@@ -17,7 +17,7 @@
 #include "basics/basics.hpp"
 
 using namespace OpenKalman;
-using std::numbers::pi;
+using numbers::pi;
 
 
 TEST(index_descriptors, integral)
@@ -29,7 +29,6 @@ TEST(index_descriptors, integral)
   static_assert(not composite_index_descriptor<int>);
   static_assert(not atomic_fixed_index_descriptor<int>);
   static_assert(euclidean_index_descriptor<int>);
-  static_assert(not typed_index_descriptor<int>);
   static_assert(dimension_size_of_v<int> == dynamic_size);
   static_assert(euclidean_dimension_size_of_v<int> == dynamic_size);
   static_assert(get_dimension_size_of(3) == 3);
@@ -49,7 +48,6 @@ TEST(index_descriptors, dynamic_Dimensions)
   static_assert(euclidean_index_descriptor<D>);
   static_assert(not composite_index_descriptor<D>);
   static_assert(euclidean_index_descriptor<D>);
-  static_assert(not typed_index_descriptor<D>);
   static_assert(not atomic_fixed_index_descriptor<D>);
   static_assert(dimension_size_of_v<D> == dynamic_size);
   static_assert(euclidean_dimension_size_of_v<D> == dynamic_size);
@@ -60,48 +58,51 @@ TEST(index_descriptors, dynamic_Dimensions)
 }
 
 
-TEST(index_descriptors, DynamicCoefficients_traits)
+TEST(index_descriptors, DynamicTypedIndex_traits)
 {
-  using D = DynamicTypedIndex<double>;
-
-  static_assert(index_descriptor<D>);
-  static_assert(dynamic_index_descriptor<D>);
-  static_assert(not fixed_index_descriptor<D>);
-  static_assert(not euclidean_index_descriptor<D>);
-  static_assert(not typed_index_descriptor<D>);
-  static_assert(composite_index_descriptor<D>);
-  static_assert(dimension_size_of_v<D> == dynamic_size);
-  static_assert(euclidean_dimension_size_of_v<D> == dynamic_size);
+  static_assert(index_descriptor<DynamicTypedIndex<>>);
+  static_assert(index_descriptor<DynamicTypedIndex<double>>);
+  static_assert(dynamic_index_descriptor<DynamicTypedIndex<>>);
+  static_assert(dynamic_index_descriptor<DynamicTypedIndex<float>>);
+  static_assert(dynamic_index_descriptor<DynamicTypedIndex<float, long double>>);
+  static_assert(not fixed_index_descriptor<DynamicTypedIndex<>>);
+  static_assert(not euclidean_index_descriptor<DynamicTypedIndex<>>);
+  static_assert(composite_index_descriptor<DynamicTypedIndex<>>);
+  static_assert(composite_index_descriptor<DynamicTypedIndex<double, long double>>);
+  static_assert(dimension_size_of_v<DynamicTypedIndex<>> == dynamic_size);
+  static_assert(dimension_size_of_v<DynamicTypedIndex<double>> == dynamic_size);
+  static_assert(euclidean_dimension_size_of_v<DynamicTypedIndex<>> == dynamic_size);
+  static_assert(euclidean_dimension_size_of_v<DynamicTypedIndex<float, long double>> == dynamic_size);
 }
 
 
-TEST(index_descriptors, DynamicCoefficients_construct)
+TEST(index_descriptors, DynamicTypedIndex_construct)
 {
-  using D = DynamicTypedIndex<double>;
+  EXPECT_EQ(get_dimension_size_of(DynamicTypedIndex {Axis{}}), 1);
+  EXPECT_EQ(get_dimension_size_of(DynamicTypedIndex {angle::Degrees{}}), 1);
+  EXPECT_EQ(get_euclidean_dimension_size_of(DynamicTypedIndex {angle::Degrees{}}), 2);
+  EXPECT_EQ(get_dimension_size_of(DynamicTypedIndex {Dimensions<5>{}}), 5);
+  EXPECT_EQ(get_dimension_size_of(DynamicTypedIndex {Dimensions{5}}), 5);
+  EXPECT_EQ(get_dimension_size_of(DynamicTypedIndex {Polar<Distance, angle::PositiveRadians>{}}), 2);
+  EXPECT_EQ(get_euclidean_dimension_size_of(DynamicTypedIndex {Polar<angle::PositiveDegrees, Distance>{}}), 3);
+  EXPECT_EQ(get_dimension_size_of(DynamicTypedIndex {Spherical<Distance, inclination::Radians, angle::PositiveDegrees>{}}), 3);
+  EXPECT_EQ(get_euclidean_dimension_size_of(DynamicTypedIndex {Spherical<inclination::Radians, Distance, angle::PositiveDegrees>{}}), 4);
 
-  EXPECT_EQ(get_dimension_size_of(D {Axis{}}), 1);
-  EXPECT_EQ(get_dimension_size_of(D {angle::Degrees{}}), 1);
-  EXPECT_EQ(get_euclidean_dimension_size_of(D {angle::Degrees{}}), 2);
-  EXPECT_EQ(get_dimension_size_of(D {Dimensions<5>{}}), 5);
-  EXPECT_EQ(get_dimension_size_of(D {Dimensions{5}}), 5);
-  EXPECT_EQ(get_dimension_size_of(D {Polar<Distance, angle::PositiveRadians>{}}), 2);
-  EXPECT_EQ(get_euclidean_dimension_size_of(D {Polar<angle::PositiveDegrees, Distance>{}}), 3);
-  EXPECT_EQ(get_dimension_size_of(D {Spherical<Distance, inclination::Radians, angle::PositiveDegrees>{}}), 3);
-  EXPECT_EQ(get_euclidean_dimension_size_of(D {Spherical<inclination::Radians, Distance, angle::PositiveDegrees>{}}), 4);
+  EXPECT_EQ(get_dimension_size_of(DynamicTypedIndex {Dimensions{5}, Dimensions<1>{}, angle::Degrees{}}), 7);
+  EXPECT_EQ(get_euclidean_dimension_size_of(DynamicTypedIndex {Axis{}, Dimensions{5}, angle::Degrees{}}), 8);
+  EXPECT_EQ(get_dimension_size_of(DynamicTypedIndex {TypedIndex<Axis, inclination::Radians>{}, angle::Degrees{}, Dimensions{5}}), 8);
+  EXPECT_EQ(get_euclidean_dimension_size_of(DynamicTypedIndex {Dimensions{5}, TypedIndex<Axis, inclination::Radians>{}, angle::Degrees{}}), 10);
+  EXPECT_EQ(get_euclidean_dimension_size_of(DynamicTypedIndex {Dimensions{5}, TypedIndex<Axis, inclination::Radians>{}, DynamicTypedIndex {TypedIndex<Axis, angle::Radians>{}}, angle::Degrees{}}), 13);
 
-  EXPECT_EQ(get_dimension_size_of(D {Dimensions{5}, Dimensions<1>{}, angle::Degrees{}}), 7);
-  EXPECT_EQ(get_euclidean_dimension_size_of(D {Axis{}, Dimensions{5}, angle::Degrees{}}), 8);
-  EXPECT_EQ(get_dimension_size_of(D {TypedIndex<Axis, inclination::Radians>{}, angle::Degrees{}, Dimensions{5}}), 8);
-  EXPECT_EQ(get_euclidean_dimension_size_of(D {Dimensions{5}, TypedIndex<Axis, inclination::Radians>{}, angle::Degrees{}}), 10);
-  EXPECT_EQ(get_euclidean_dimension_size_of(D {Dimensions{5}, TypedIndex<Axis, inclination::Radians>{}, D {TypedIndex<Axis, angle::Radians>{}}, angle::Degrees{}}), 13);
+  DynamicTypedIndex d {Dimensions{5}, TypedIndex<Axis, inclination::Radians>{}};
+  EXPECT_EQ(get_euclidean_dimension_size_of(DynamicTypedIndex {d, DynamicTypedIndex {TypedIndex<Axis, angle::Radians>{}}, angle::Degrees{}}), 13);
+  EXPECT_EQ(get_euclidean_dimension_size_of(DynamicTypedIndex {std::move(d), DynamicTypedIndex {TypedIndex<Axis, angle::Radians>{}}, angle::Degrees{}}), 13);
 }
 
 
-TEST(index_descriptors, DynamicCoefficients_extend)
+TEST(index_descriptors, DynamicTypedIndex_extend)
 {
-  using D = DynamicTypedIndex<double>;
-
-  D d;
+  DynamicTypedIndex d;
   EXPECT_EQ(get_dimension_size_of(d), 0); EXPECT_EQ(get_euclidean_dimension_size_of(d), 0); EXPECT_EQ(get_index_descriptor_component_count_of(d), 0);
   d.extend(Axis{});
   EXPECT_EQ(get_dimension_size_of(d), 1); EXPECT_EQ(get_euclidean_dimension_size_of(d), 1); EXPECT_EQ(get_index_descriptor_component_count_of(d), 1);
@@ -132,76 +133,95 @@ TEST(index_descriptors, dynamic_comparison)
   static_assert(Dimensions{4} >= Dimensions<3>{});
 
   static_assert(Dimensions{3} == TypedIndex<Axis, Axis, Axis>{});
-  static_assert(Dimensions{3} <= TypedIndex<Axis, Axis, Axis>{});
-  static_assert(Dimensions{3} < TypedIndex<Axis, Axis, Axis, Axis>{});
+  static_assert(Dimensions{4} == TypedIndex<Axis, Dimensions<2>, Axis>{});
+  static_assert(Dimensions{3} <= TypedIndex<Axis, Dimensions<2>>{});
+  static_assert(Dimensions{3} < TypedIndex<Axis, Dimensions<2>, Axis>{});
+  static_assert(Dimensions{3} != TypedIndex<Axis, Dimensions<2>, Axis>{});
   static_assert(Dimensions{3} <= TypedIndex<Axis, Axis, Axis, Axis>{});
 
-  EXPECT_TRUE((Polar<Distance, angle::Radians>{} != Dimensions{5}));
-  EXPECT_TRUE((Polar<Distance, angle::Radians>{} < Dimensions{5}));
-  EXPECT_TRUE((Spherical<Distance, inclination::Radians, angle::Radians>{} != Dimensions{5}));
-  EXPECT_TRUE((Spherical<Distance, inclination::Radians, angle::Radians>{} < Dimensions{5}));
+  static_assert(TypedIndex<Axis, Axis, Axis>{} == Dimensions{3});
+  static_assert(TypedIndex<Axis, Dimensions<2>, Axis>{} == Dimensions{4});
+  static_assert(TypedIndex<Axis, Dimensions<2>>{} >= Dimensions{3});
+  static_assert(TypedIndex<Axis, Dimensions<2>, Axis>{} > Dimensions{3});
+  static_assert(TypedIndex<Axis, Dimensions<2>, Axis>{} != Dimensions{3});
+  static_assert(TypedIndex<Axis, Axis, Axis, Axis>{} >= Dimensions{3});
 
-  using D = DynamicTypedIndex<double>;
+  static_assert(Polar<Distance, angle::Radians>{} != Dimensions{5});
+  static_assert(not (Polar<Distance, angle::Radians>{} < Dimensions{5}));
+  static_assert(Spherical<Distance, inclination::Radians, angle::Radians>{} != Dimensions{5});
+  static_assert(not (Spherical<Distance, inclination::Radians, angle::Radians>{} > Dimensions{5}));
 
-  EXPECT_TRUE((D {TypedIndex<> {}} == D {TypedIndex<> {}}));
-  EXPECT_TRUE((D {TypedIndex<> {}} == D {}));
-  EXPECT_TRUE((D {Axis {}} == D {Axis {}}));
-  EXPECT_TRUE((D {Axis {}} <= D {Axis {}}));
-  EXPECT_TRUE((D {Axis {}} != D {angle::Radians {}}));
-  EXPECT_TRUE((D {angle::Degrees {}} != D {angle::Radians {}}));
-  EXPECT_TRUE((D {Axis {}} != D {Polar<> {}}));
-  EXPECT_TRUE((D {Axis {}} == D {TypedIndex<Axis> {}}));
-  EXPECT_TRUE((D {Axis {}} < D {TypedIndex<Axis, Axis> {}}));
-  EXPECT_TRUE((D {TypedIndex<Axis> {}} == D {Axis {}}));
-  EXPECT_TRUE((D {TypedIndex<Axis, Axis> {}} > D {Axis {}}));
-  EXPECT_TRUE((D {TypedIndex<Axis> {}} == D {TypedIndex<Axis> {}}));
-  EXPECT_TRUE((D {TypedIndex<Axis, Axis> {}} >= D {TypedIndex<Axis> {}}));
-  EXPECT_TRUE((D {TypedIndex<Axis, angle::Radians, Axis> {}} == D {TypedIndex<Axis, angle::Radians, Axis> {}}));
-  EXPECT_TRUE((D {TypedIndex<Axis, angle::Radians, Axis> {}} < D {TypedIndex<Axis, Axis, angle::Radians, Axis> {}}));
-  EXPECT_TRUE((D {TypedIndex<Axis, angle::Radians, Axis> {}} == D {Axis {}, angle::Radians {}, Axis {}}));
-  EXPECT_TRUE((D {TypedIndex<Axis, angle::Radians, Axis> {}} == D {Axis {}, angle::Radians {}, TypedIndex<Axis> {}}));
-  EXPECT_TRUE((D {TypedIndex<Axis, angle::Radians, Axis> {}} == D {Axis {}, angle::Radians {}, TypedIndex<TypedIndex<Axis>> {}}));
-  EXPECT_TRUE((D {TypedIndex<TypedIndex<Axis>, angle::Radians, TypedIndex<Axis>> {}} == D {TypedIndex<Axis, angle::Radians, Axis> {}}));
-  EXPECT_TRUE((D {Polar<Distance, angle::Radians> {}} == D {Polar<Distance, angle::Radians> {}}));
-  EXPECT_TRUE((D {Polar<Distance, angle::Radians> {}, Axis{}} > D {Polar<Distance, angle::Radians> {}}));
-  EXPECT_TRUE((D {Spherical<Distance, angle::Radians, inclination::Radians> {}} == D {Spherical<Distance, angle::Radians, inclination::Radians> {}}));
-  EXPECT_TRUE((D {TypedIndex<Axis, angle::Radians, angle::Radians> {}} != D {TypedIndex<Axis, angle::Radians, Axis> {}}));
-  EXPECT_TRUE((D {TypedIndex<Axis, angle::Radians> {}} != D {Polar<Distance, angle::Radians> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<> {}} == DynamicTypedIndex {TypedIndex<> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<> {}} == DynamicTypedIndex {}));
+  EXPECT_TRUE((DynamicTypedIndex {Axis {}} == DynamicTypedIndex {Axis {}}));
+  EXPECT_TRUE((DynamicTypedIndex {Axis {}} <= DynamicTypedIndex {Axis {}}));
+  EXPECT_TRUE((DynamicTypedIndex {Axis {}} != DynamicTypedIndex {angle::Radians {}}));
+  EXPECT_TRUE((DynamicTypedIndex {angle::Degrees {}} != DynamicTypedIndex {angle::Radians {}}));
+  EXPECT_TRUE((DynamicTypedIndex {Axis {}} != DynamicTypedIndex {Polar<> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {Axis {}} == DynamicTypedIndex {TypedIndex<Axis> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {Axis {}} < DynamicTypedIndex {TypedIndex<Axis, Axis> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis> {}} == DynamicTypedIndex {Axis {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, Axis> {}} > DynamicTypedIndex {Axis {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis> {}} == DynamicTypedIndex {TypedIndex<Axis> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, Axis> {}} >= DynamicTypedIndex {TypedIndex<Axis> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, angle::Radians, Axis> {}} == DynamicTypedIndex {TypedIndex<Axis, angle::Radians, Axis> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, angle::Radians, Axis> {}} < DynamicTypedIndex {TypedIndex<Axis, angle::Radians, Axis, Axis> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, angle::Radians, Axis, Axis> {}} > DynamicTypedIndex {TypedIndex<Axis, angle::Radians, Axis> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, angle::Radians, Axis> {}} == DynamicTypedIndex {Axis {}, angle::Radians {}, Axis {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, angle::Radians, Axis> {}} == DynamicTypedIndex {Axis {}, angle::Radians {}, TypedIndex<Axis> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, angle::Radians, Axis> {}} == DynamicTypedIndex {Axis {}, angle::Radians {}, TypedIndex<TypedIndex<Axis>> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {Dimensions<3>{}, Dimensions<2>{}, angle::Radians{}, Dimensions<5> {}} == DynamicTypedIndex {Dimensions<2>{}, Dimensions<3>{}, angle::Radians{}, Dimensions<2>{}, Dimensions<3>{}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<TypedIndex<Axis>, angle::Radians, TypedIndex<Axis>> {}} == DynamicTypedIndex {TypedIndex<Axis, angle::Radians, Axis> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {Dimensions<3>{}, Dimensions<2>{}, angle::Radians{}, Dimensions<4> {}} < DynamicTypedIndex {Dimensions<2>{}, Dimensions<3>{}, angle::Radians{}, Dimensions<2>{}, Dimensions<3>{}}));
+  EXPECT_TRUE((DynamicTypedIndex {Dimensions<3>{}, Dimensions<2>{}, angle::Radians{}, Dimensions<5> {}} > DynamicTypedIndex {Dimensions<2>{}, Dimensions<3>{}, angle::Radians{}, Dimensions<2>{}, Dimensions<2>{}}));
+  EXPECT_TRUE((DynamicTypedIndex {Polar<Distance, angle::Radians> {}} == DynamicTypedIndex {Polar<Distance, angle::Radians> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {Polar<Distance, angle::Radians> {}, Axis{}} > DynamicTypedIndex {Polar<Distance, angle::Radians> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {Spherical<Distance, angle::Radians, inclination::Radians> {}} == DynamicTypedIndex {Spherical<Distance, angle::Radians, inclination::Radians> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, angle::Radians, angle::Radians> {}} != DynamicTypedIndex {TypedIndex<Axis, angle::Radians, Axis> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, angle::Radians> {}} != DynamicTypedIndex {Polar<Distance, angle::Radians> {}}));
 
-  EXPECT_TRUE((D {Axis {}} == Dimensions<1>{}));
-  EXPECT_TRUE((Dimensions<1>{} == D {Axis {}}));
-  EXPECT_TRUE((D {TypedIndex<Axis> {}} == Dimensions<1>{}));
-  EXPECT_TRUE((D {TypedIndex<Axis, Axis, Axis> {}} == Dimensions<3>{}));
-  EXPECT_TRUE((D {TypedIndex<Axis, Axis> {}} < Dimensions<3>{}));
-  EXPECT_TRUE((D {Dimensions<4>{}} > TypedIndex<Axis, Axis> {}));
-  EXPECT_TRUE((D {Dimensions<4>{}} != TypedIndex<Axis, Axis> {}));
-  EXPECT_TRUE((D {angle::Degrees{}} < Dimensions<3>{}));
-  EXPECT_TRUE((D {Dimensions<3>{}} > angle::Degrees{}));
+  EXPECT_TRUE((DynamicTypedIndex {Axis {}} == Dimensions<1>{}));
+  EXPECT_TRUE((Dimensions<1>{} == DynamicTypedIndex {Axis {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis> {}} == Dimensions<1>{}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, Axis, Axis> {}} == Dimensions<3>{}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, Axis> {}} < Dimensions<3>{}));
+  EXPECT_TRUE((DynamicTypedIndex {Dimensions<4>{}} > TypedIndex<Axis, Axis> {}));
+  EXPECT_TRUE((DynamicTypedIndex {Dimensions<4>{}} != TypedIndex<Axis, Axis> {}));
+  EXPECT_TRUE((DynamicTypedIndex {Dimensions<3>{}, angle::Degrees{}} > Dimensions<3>{}));
+  EXPECT_TRUE((DynamicTypedIndex {Dimensions<3>{}} < TypedIndex<Dimensions<3>, angle::Degrees>{}));
+  EXPECT_TRUE((DynamicTypedIndex {Dimensions<3>{}, angle::Degrees{}, Dimensions<5>{}} == TypedIndex<Dimensions<3>, angle::Degrees, Dimensions<5>>{}));
+  EXPECT_TRUE((DynamicTypedIndex {Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}} == TypedIndex<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<3>>{}));
+  EXPECT_TRUE((DynamicTypedIndex {Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}} == TypedIndex<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<3>>{}));
+  EXPECT_TRUE((DynamicTypedIndex {Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}} < TypedIndex<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<4>>{}));
+  EXPECT_TRUE((DynamicTypedIndex {Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}} > TypedIndex<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<2>>{}));
+  EXPECT_TRUE((DynamicTypedIndex {Axis{}, Dimensions<3>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}} != TypedIndex<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<3>>{}));
+  EXPECT_TRUE(not (DynamicTypedIndex {Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}} < TypedIndex<Dimensions<4>, angle::Degrees, Dimensions<3>, Dimensions<3>>{}));
+  EXPECT_TRUE((DynamicTypedIndex {Axis {}} == Dimensions{1}));
+  EXPECT_TRUE((Dimensions{1} == DynamicTypedIndex {Axis {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis> {}} == Dimensions{1}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, Axis, Axis> {}} == Dimensions{3}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, Axis> {}} < Dimensions{3}));
+  EXPECT_TRUE((DynamicTypedIndex {Dimensions{4}} > TypedIndex<Axis, Axis> {}));
+  EXPECT_TRUE((Dimensions{4} != DynamicTypedIndex {TypedIndex<Axis, Axis> {}}));
 
-  EXPECT_TRUE((D {Axis {}} == Dimensions{1}));
-  EXPECT_TRUE((Dimensions{1} == D {Axis {}}));
-  EXPECT_TRUE((D {TypedIndex<Axis> {}} == Dimensions{1}));
-  EXPECT_TRUE((D {TypedIndex<Axis, Axis, Axis> {}} == Dimensions{3}));
-  EXPECT_TRUE((D {TypedIndex<Axis, Axis> {}} < Dimensions{3}));
-  EXPECT_TRUE((D {Dimensions{4}} > TypedIndex<Axis, Axis> {}));
-  EXPECT_TRUE((Dimensions{4} != D {TypedIndex<Axis, Axis> {}}));
-  EXPECT_TRUE((D {angle::Degrees{}} < Dimensions{3}));
-
-  EXPECT_TRUE((TypedIndex<> {} == D {TypedIndex<> {}}));
-  EXPECT_TRUE((D {TypedIndex<Axis, angle::Radians>{}} == TypedIndex<Axis, angle::Radians>{}));
-  EXPECT_TRUE((TypedIndex<Axis, angle::Radians>{} <= D {TypedIndex<Axis, angle::Radians>{}}));
-  EXPECT_TRUE((TypedIndex<Axis, angle::Radians>{} <= D {Axis{}, angle::Radians{}}));
-  EXPECT_TRUE((D {TypedIndex<Axis, angle::Radians>{}} >= TypedIndex<Axis, angle::Radians>{}));
-  EXPECT_TRUE((TypedIndex<Axis, angle::Radians>{} < D {TypedIndex<Axis, angle::Radians, Axis>{}}));
-  EXPECT_TRUE((D {TypedIndex<Axis, angle::Radians>{}} <= TypedIndex<Axis, angle::Radians, Axis>{}));
-  EXPECT_TRUE((angle::Radians{} == D {angle::Radians{}}));
-  EXPECT_TRUE((D {inclination::Radians{}} == inclination::Radians{}));
-  EXPECT_TRUE((angle::Radians{} != D {inclination::Radians{}}));
+  EXPECT_TRUE((TypedIndex<> {} == DynamicTypedIndex {TypedIndex<> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, angle::Radians>{}} == TypedIndex<Axis, angle::Radians>{}));
+  EXPECT_TRUE((TypedIndex<Axis, angle::Radians>{} <= DynamicTypedIndex {TypedIndex<Axis, angle::Radians>{}}));
+  EXPECT_TRUE((TypedIndex<Axis, angle::Radians>{} <= DynamicTypedIndex {Axis{}, angle::Radians{}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, angle::Radians>{}} >= TypedIndex<Axis, angle::Radians>{}));
+  EXPECT_TRUE((TypedIndex<Axis, angle::Radians>{} < DynamicTypedIndex {TypedIndex<Axis, angle::Radians, Axis>{}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, angle::Radians>{}} <= TypedIndex<Axis, angle::Radians, Axis>{}));
+  EXPECT_TRUE((angle::Radians{} == DynamicTypedIndex {angle::Radians{}}));
+  EXPECT_TRUE((DynamicTypedIndex {inclination::Radians{}} == inclination::Radians{}));
+  EXPECT_TRUE((angle::Radians{} != DynamicTypedIndex {inclination::Radians{}}));
   EXPECT_FALSE((angle::Radians{} < inclination::Radians{}));
-  EXPECT_TRUE((D {Polar<Distance, angle::Radians>{}} != Dimensions<5>{}));
-  EXPECT_TRUE((Polar<Distance, angle::Radians>{} < D {Dimensions<5>{}}));
-  EXPECT_TRUE((D {Spherical<Distance, inclination::Radians, angle::Radians>{}} != Dimensions<5>{}));
-  EXPECT_TRUE((Spherical<Distance, inclination::Radians, angle::Radians>{} < D {Dimensions<5>{}}));
+  EXPECT_TRUE((DynamicTypedIndex {Polar<Distance, angle::Radians>{}} != Dimensions<5>{}));
+  EXPECT_FALSE((Polar<Distance, angle::Radians>{} < DynamicTypedIndex {Dimensions<5>{}}));
+  EXPECT_TRUE((DynamicTypedIndex {Spherical<Distance, inclination::Radians, angle::Radians>{}} != Dimensions<5>{}));
+  EXPECT_FALSE((Spherical<Distance, inclination::Radians, angle::Radians>{} < DynamicTypedIndex {Dimensions<5>{}}));
+
+  EXPECT_TRUE((DynamicTypedIndex<double> {TypedIndex<Axis, angle::Radians, Distance> {}} == DynamicTypedIndex<float> {TypedIndex<Axis, angle::Radians, Distance> {}}));
+  EXPECT_TRUE((DynamicTypedIndex {TypedIndex<Axis, angle::Radians, Distance> {}} == DynamicTypedIndex<long double> {TypedIndex<Axis, angle::Radians, Distance> {}}));
 }
 
 
@@ -209,4 +229,18 @@ TEST(index_descriptors, dynamic_arithmetic)
 {
   EXPECT_TRUE(Dimensions{3} + Dimensions{4} == Dimensions{7});
   EXPECT_TRUE(Dimensions{7} - Dimensions{4} == Dimensions{3});
+  EXPECT_TRUE((DynamicTypedIndex {Axis{}, angle::Radians{}} + DynamicTypedIndex {angle::Degrees{}, Axis{}} == DynamicTypedIndex {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}}));
+  EXPECT_TRUE((DynamicTypedIndex {Axis{}, angle::Radians{}} + TypedIndex<angle::Degrees, Axis>{} == DynamicTypedIndex {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}}));
+  EXPECT_TRUE((TypedIndex<Axis, angle::Radians>{} + DynamicTypedIndex {angle::Degrees{}, Axis{}} == DynamicTypedIndex {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}}));
+}
+
+
+TEST(index_descriptors, replicate_index_descriptor)
+{
+  auto d1 = replicate_index_descriptor(4, 3);
+  EXPECT_EQ(get_dimension_size_of(d1), 12); EXPECT_EQ(get_euclidean_dimension_size_of(d1), 12); EXPECT_EQ(get_index_descriptor_component_count_of(d1), 12);
+  auto d2 = replicate_index_descriptor(angle::Radians{}, 4);
+  EXPECT_EQ(get_dimension_size_of(d2), 4); EXPECT_EQ(get_euclidean_dimension_size_of(d2), 8); EXPECT_EQ(get_index_descriptor_component_count_of(d2), 4);
+  auto d3 = replicate_index_descriptor(Polar<Distance, angle::Radians>{}, 2);
+  EXPECT_EQ(get_dimension_size_of(d3), 4); EXPECT_EQ(get_euclidean_dimension_size_of(d3), 6); EXPECT_EQ(get_index_descriptor_component_count_of(d3), 2);
 }

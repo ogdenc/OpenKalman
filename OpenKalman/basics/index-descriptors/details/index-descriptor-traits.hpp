@@ -32,16 +32,16 @@ namespace OpenKalman
     template<typename...C>
     struct is_composite_index_descriptor<TypedIndex<C...>> : std::true_type {};
 
-    template<typename Scalar>
-    struct is_composite_index_descriptor<DynamicTypedIndex<Scalar>> : std::true_type {};
+    template<typename...AllowableScalarTypes>
+    struct is_composite_index_descriptor<DynamicTypedIndex<AllowableScalarTypes...>> : std::true_type {};
   }
 
 
   /**
    * \brief T is a composite index descriptor.
    * \details A composite index descriptor is a container for other index descriptors, and can either be
-   * TypedIndex or DynamicCoefficients.
-   * \sa TypedIndex, DynamicCoefficients.
+   * TypedIndex or DynamicTypedIndex.
+   * \sa TypedIndex, DynamicTypedIndex.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -67,7 +67,7 @@ namespace OpenKalman
 #else
   constexpr bool atomic_fixed_index_descriptor =
 #endif
-    (typed_index_descriptor<T> or (euclidean_index_descriptor<T> and fixed_index_descriptor<T>)) and
+    (fixed_index_descriptor<T> or (euclidean_index_descriptor<T> and fixed_index_descriptor<T>)) and
       (not composite_index_descriptor<T>);
 
 
@@ -204,15 +204,15 @@ namespace OpenKalman
    * \brief T is equivalent to U, where T and U are sets of coefficients.
    * \details Sets of coefficients are equivalent if they are treated functionally the same.
    * - Any coefficient or group of coefficients is equivalent to itself.
-   * - Coefficient<Ts...> is equivalent to Coefficient<Us...>, if each Ts is equivalent to its respective Us.
-   * - Coefficient<T> is equivalent to T, and vice versa.
+   * - TypedIndex<Ts...> is equivalent to TypedIndex<Us...>, if each Ts is equivalent to its respective Us.
+   * - TypedIndex<T> is equivalent to T, and vice versa.
    * \par Example:
    * <code>equivalent_to&lt;Axis, TypedIndex&lt;Axis&gt;&gt;</code>
    */
   template<typename T, typename U>
 #ifdef __cpp_concepts
   concept equivalent_to = fixed_index_descriptor<T> and fixed_index_descriptor<U> and
-      std::same_as<canonical_fixed_index_descriptor_t<T>, canonical_fixed_index_descriptor_t<U>>;
+      std::same_as<canonical_fixed_index_descriptor_t<std::decay_t<T>>, canonical_fixed_index_descriptor_t<std::decay_t<U>>>;
 #else
   constexpr bool equivalent_to = detail::is_equivalent_to<T, U>::value;
 #endif
@@ -289,13 +289,13 @@ namespace OpenKalman
 #else
   constexpr bool prefix_of =
 #endif
-    index_descriptor<T> and index_descriptor<U> and detail::is_prefix_of<
-      canonical_fixed_index_descriptor_t<T>, canonical_fixed_index_descriptor_t<U>>::value;
+    fixed_index_descriptor<T> and fixed_index_descriptor<U> and detail::is_prefix_of<
+      canonical_fixed_index_descriptor_t<std::decay_t<T>>, canonical_fixed_index_descriptor_t<std::decay_t<U>>>::value;
 
 
-  // --------------------------------------------------------- //
-  //   has_uniform_dimension_type, uniform_dimension_type_of   //
-  // --------------------------------------------------------- //
+  // -------------------------------------------------------------------------------------------------- //
+  //   has_uniform_dimension_type, uniform_dimension_type_of, equivalent_to_uniform_dimension_type_of   //
+  // -------------------------------------------------------------------------------------------------- //
 
   namespace detail
   {
@@ -346,7 +346,7 @@ namespace OpenKalman
 
     template<typename T>
     struct uniform_dimension_impl_17<T, std::void_t<typename canonical_fixed_index_descriptor<T>::type>>
-      : detail::uniform_dimension_impl<canonical_fixed_index_descriptor_t<T>> {};
+      : detail::uniform_dimension_impl<canonical_fixed_index_descriptor_t<std::decay_t<T>>> {};
 #endif
 
   } // namespace detail
@@ -354,12 +354,11 @@ namespace OpenKalman
 
   /**
    * \brief T is an fixed-type index descriptor comprising a uniform set of 1D \ref atomic_fixed_index_descriptor types.
-   * \tparam T
    */
   template<typename T>
 #ifdef __cpp_concepts
   concept has_uniform_dimension_type = fixed_index_descriptor<T> and
-    (euclidean_index_descriptor<T> or detail::uniform_dimension_impl<canonical_fixed_index_descriptor_t<T>>::value);
+    (euclidean_index_descriptor<T> or detail::uniform_dimension_impl<canonical_fixed_index_descriptor_t<std::decay_t<T>>>::value);
 #else
   constexpr bool has_uniform_dimension_type = fixed_index_descriptor<T> and
     (euclidean_index_descriptor<T> or detail::uniform_dimension_impl_17<T>::value);
@@ -381,7 +380,7 @@ namespace OpenKalman
   struct uniform_dimension_type_of<T, std::enable_if_t<has_uniform_dimension_type<T>>>
 #endif
   {
-    using type = typename detail::uniform_dimension_impl<canonical_fixed_index_descriptor_t<T>>::uniform_type;
+    using type = typename detail::uniform_dimension_impl<canonical_fixed_index_descriptor_t<std::decay_t<T>>>::uniform_type;
   };
 
 
@@ -394,6 +393,32 @@ namespace OpenKalman
   template<typename T>
 #endif
   using uniform_dimension_type_of_t = typename uniform_dimension_type_of<T>::type;
+
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename C, typename = void>
+    struct equivalent_to_uniform_dimension_type_of_impl : std::false_type {};
+
+    template<typename T, typename C>
+    struct equivalent_to_uniform_dimension_type_of_impl<T, C, std::enable_if_t<
+      equivalent_to<T, uniform_dimension_type_of<C>::type>>> {};
+  }
+#endif
+
+
+  /**
+   * \brief T is equivalent to the uniform dimension type of C.
+   * \tparam T A 1D \ref atomic_fixed_index_descriptor
+   * \tparam C a \ref has_uniform_dimension_type
+   */
+  template<typename T, typename C>
+#ifdef __cpp_concepts
+  concept equivalent_to_uniform_dimension_type_of = equivalent_to<T, uniform_dimension_type_of_t<C>>;
+#else
+  constexpr bool equivalent_to_uniform_dimension_type_of = detail::equivalent_to_uniform_dimension_type_of_impl<T, C>::value;
+#endif
 
 
 } // namespace OpenKalman

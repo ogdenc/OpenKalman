@@ -13,7 +13,7 @@
 using namespace OpenKalman;
 using namespace OpenKalman::test;
 
-using std::numbers::pi;
+using numbers::pi;
 
 using M_int2 = Mean<Dimensions<2>, eigen_matrix_t<int, 2, 1>>;
 using A_int2 = Matrix<Dimensions<2>, Dimensions<2>, eigen_matrix_t<int, 2, 2>>;

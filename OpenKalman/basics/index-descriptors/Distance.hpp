@@ -27,135 +27,115 @@ namespace OpenKalman
    * \brief A non-negative real or integral number, [0,&infin;], representing a distance.
    * \details This is similar to Axis, but wrapping occurs to ensure that values are never negative.
    */
-  struct Distance
-  {
-    /**
-     * \brief Maps an element to positive coordinates in 1D Euclidean space.
-     * \tparam Scalar The scalar type (e.g., double).
-     * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
-     * \param euclidean_local_index A local index relative to the Euclidean-transformed coordinates (starting at 0)
-     * \param start The starting index within the index descriptor
-     */
+  struct Distance {};
+
+
+  /**
+   * \brief T is an index descriptor of a distance.
+   */
+  template<typename T>
 #ifdef __cpp_concepts
-    template<typename Scalar> requires std::is_arithmetic_v<Scalar>
+  concept distance_descriptor = std::same_as<T, Distance>;
 #else
-    template<typename Scalar, std::enable_if_t<std::is_arithmetic<Scalar>::value, int> = 0>
+  static constexpr bool distance_descriptor = std::is_same_v<T, Distance>;
 #endif
-    static constexpr auto
-    to_euclidean_element(const std::function<Scalar(std::size_t)>& g, std::size_t euclidean_local_index, std::size_t start)
-    {
-      return g(start);
-    }
-
-
-    /**
-     * \brief Maps a coordinate in positive 1D Euclidean space to an element.
-     * \details The resulting distance should always be positive, so this function takes the absolute value.
-     * \tparam Scalar The scalar type (e.g., double).
-     * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
-     * \param local_index A local index relative to the original coordinates (starting at 0)
-     * \param start The starting index within the Euclidean-transformed indices
-     */
-#ifdef __cpp_concepts
-    template<typename Scalar> requires std::is_arithmetic_v<Scalar>
-#else
-    template<typename Scalar, std::enable_if_t<std::is_arithmetic<Scalar>::value, int> = 0>
-#endif
-    static constexpr auto
-    from_euclidean_element(const std::function<Scalar(std::size_t)>& g, std::size_t local_index, std::size_t euclidean_start)
-    {
-      return std::abs(g(euclidean_start)); // The distance component may need to be wrapped to the positive half of the axis.
-    }
-
-
-    /**
-     * \brief Perform modular wrapping of an element.
-     * \details The wrapping operation is equivalent to taking the absolute value.
-     * \tparam Scalar The scalar type (e.g., double).
-     * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
-     * \param local_index A local index accessing the angle (in this case, it must be 0)
-     * \param start The starting location of the angle within any larger set of index type descriptors
-     */
-#ifdef __cpp_concepts
-    template<typename Scalar> requires std::is_arithmetic_v<Scalar>
-#else
-    template<typename Scalar, std::enable_if_t<std::is_arithmetic<Scalar>::value, int> = 0>
-#endif
-    static constexpr auto
-    wrap_get_element(const std::function<Scalar(std::size_t)>& g, std::size_t local_index, std::size_t start)
-    {
-      return std::abs(g(start));
-    }
-
-
-    /**
-     * \brief Set an element and then perform any necessary modular wrapping.
-     * \details The operation is equivalent to setting and then changing to the absolute value.
-     * \tparam Scalar The scalar type (e.g., double).
-     * \param s An element setter (<code>std::function&lt;void(std::size_t, Scalar)&rt;</code>)
-     * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
-     * \param local_index A local index accessing the angle (in this case, it must be 0)
-     * \param start The starting location of the angle within any larger set of index type descriptors
-     */
-#ifdef __cpp_concepts
-    template<typename Scalar> requires std::is_arithmetic_v<Scalar>
-#else
-    template<typename Scalar, std::enable_if_t<std::is_arithmetic<Scalar>::value, int> = 0>
-#endif
-    static constexpr void
-    wrap_set_element(const std::function<void(Scalar, std::size_t)>& s, const std::function<Scalar(std::size_t)>& g,
-            Scalar x, std::size_t local_index, std::size_t start)
-    {
-      s(std::abs(x), start);
-    }
-
-  };
 
 
   namespace interface
   {
     /**
      * \internal
-     * \brief Distance is represented by one coordinate.
+     * \brief traits for Distance.
      */
     template<>
-    struct IndexDescriptorSize<Distance> : std::integral_constant<std::size_t, 1>
+    struct FixedIndexDescriptorTraits<Distance>
     {
-      constexpr static std::size_t get(const Distance&) { return 1; }
+      static constexpr std::size_t size = 1;
+      static constexpr std::size_t euclidean_size = 1;
+      static constexpr std::size_t component_count = 1;
+      using difference_type = Dimensions<1>;
+      static constexpr bool always_euclidean = false;
+
+      /*
+       * \brief Maps an element to positive coordinates in 1D Euclidean space.
+       * \param euclidean_local_index This is assumed to be 0.
+       */
+#ifdef __cpp_concepts
+      static constexpr floating_scalar_type auto
+      to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start)
+      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; }
+#else
+      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+      static constexpr auto
+      to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start)
+#endif
+      {
+        return g(start);
+      }
+
+
+      /*
+       * \brief Maps a coordinate in positive 1D Euclidean space to an element.
+       * \details The resulting distance should always be positive, so this function takes the absolute value.
+       * \param local_index This is assumed to be 0.
+       */
+#ifdef __cpp_concepts
+      static constexpr floating_scalar_type auto
+      from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start)
+      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; }
+#else
+      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+      static constexpr auto
+      from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start)
+#endif
+      {
+        auto x = g(euclidean_start);
+        // The distance component may need to be wrapped to the positive half of the axis:
+        return inverse_real_projection(x, std::abs(real_projection(x)));
+      }
+
+
+      /*
+       * \details The wrapping operation is equivalent to taking the absolute value.
+       * \param local_index This is assumed to be 0.
+       */
+#ifdef __cpp_concepts
+      static constexpr floating_scalar_type auto
+      wrap_get_element(const auto& g, std::size_t local_index, std::size_t start)
+      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; }
+#else
+      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+      static constexpr auto
+      wrap_get_element(const G& g, std::size_t local_index, std::size_t start)
+#endif
+      {
+        auto x = g(start);
+        return inverse_real_projection(x, std::abs(real_projection(x)));
+      }
+
+
+      /*
+       * \details The operation is equivalent to setting and then changing to the absolute value.
+       * \param local_index This is assumed to be 0.
+       */
+#ifdef __cpp_concepts
+      static constexpr void
+      wrap_set_element(const auto& s, const auto& g,
+        const std::decay_t<std::invoke_result_t<decltype(g), std::size_t>>& x, std::size_t local_index, std::size_t start)
+      requires requires (std::size_t i){ s(x, i); {x} -> floating_scalar_type; }
+#else
+      template<typename S, typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type> and
+        std::is_invocable<S, typename std::invoke_result<G, std::size_t>::type, std::size_t>::value, int> = 0>
+      static constexpr void
+      wrap_set_element(const S& s, const G& g, const std::decay_t<typename std::invoke_result<G, std::size_t>::type>& x,
+                       std::size_t local_index, std::size_t start)
+  #endif
+      {
+        s(inverse_real_projection(x, std::abs(real_projection(x))), start);
+      }
+
     };
 
-
-    /**
-     * \internal
-     * \brief Distance is represented by one coordinate in Euclidean space.
-     */
-    template<>
-    struct EuclideanIndexDescriptorSize<Distance> : std::integral_constant<std::size_t, 1>
-    {
-      constexpr static std::size_t get(const Distance&) { return 1; }
-    };
-
-
-    /**
-     * \internal
-     * \brief The number of atomic components.
-     */
-    template<>
-    struct IndexDescriptorComponentCount<Distance> : std::integral_constant<std::size_t, 1>
-    {
-      constexpr static std::size_t get(const Distance&) { return 1; }
-    };
-
-
-    /**
-     * \internal
-     * \brief The type of the result when subtracting two Distance values.
-     * \details A difference between two distances can be positive or negative, and is treated as Axis.
-     * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
-     * 18th Int'l Conf. on Information Fusion 1553, 1555 (2015).
-     */
-    template<>
-    struct IndexDescriptorDifferenceType<Distance> { using type = Axis; };
 
   } // namespace interface
 

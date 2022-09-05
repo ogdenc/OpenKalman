@@ -25,6 +25,50 @@
  */
 namespace OpenKalman::interface
 {
+  /**
+   * \internal
+   * \brief Traits for scalar types, including user-defined scalar types.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+#else
+  template<typename T, typename = void>
+#endif
+  struct ScalarTraits
+  {
+    /**
+     * \brief Project to a corresponding \ref std::floating_point type representing a point on a real axis.
+     * \details For example, for a complex number, this function returns the real part. If an argument is already
+     * \ref std::floating_point, the function returns the argument unchanged.
+     * \param arg An argument of type T
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::decay_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::decay_t<T>&>, int> = 0>
+#endif
+    static constexpr auto real_projection(Arg&& arg) = delete;
+
+
+    /**
+     * \brief The inverse of \ref real_projection.
+     * \details This takes a real number (\ref std::floating_point) and recovers a corresponding scalar value
+     * from which it would have been a projection. This function must obey the following identity for all
+     * <code>x</code> of type T: <code>x == inverse_real_projection(x, real_projection(x))</code>.
+     * For example, if the argument is a complex number, the result of this function is a complex number whose real
+     * part is updated with the value p of floating type RealProj.
+     * \param arg An argument of type T
+     * \param p A \ref std::floating_point value representing a hypothetical result of \ref real_projection.
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::decay_t<T>&> Arg, std::floating_point RealProj>
+#else
+    template<typename Arg, typename RealProj, std::enable_if_t<
+      std::is_convertible_v<Arg, const std::decay_t<T>&> and std::is_floating_point_v<RealProj>, int> = 0>
+#endif
+    static constexpr auto inverse_real_projection(Arg&& arg, RealProj p) = delete;
+  };
+
 
   /**
    * \internal
@@ -520,29 +564,62 @@ namespace OpenKalman::interface
   struct Subsets
   {
     /**
-     * \brief Extract one column from a matrix or other tensor.
-     * \details The index of the column may be specified at either compile time <em>or</em> at runtime, but not both.
-     * \tparam compile_time_index The index of the column, if specified at compile time
-     * \tparam Arg The matrix or other tensor from which the column is to be extracted
-     * \tparam runtime_index_t The type of the index of the column, if the index is specified at runtime. This type
-     * should be convertible to <code>std::size_t</code>
-     * \return A \ref column_vector
+     * \brief Extract a slice (sub-array) of the input object.
+     * \tparam indices The index or indices of the dimension(s) that will be preserved (in numerical order).
+     * For example, with a value of {0}, the sub-array will be a column vector. With a value of {1}, the sub-array
+     * will be a row vector. With a value of {0, 1}, the sub-array will be a matrix.
+     * \tparam Arg The object from which to take the subset
+     * \tparam index_values the index values of the particular subset (in order, omitting the indices that are
+     * preserved). Ths index_values may either be positive \ref std::integral or positive \ref std::integral_constant
+     * \return A sub-array
+     * \todo Add corresponding function
      */
-    template<std::size_t...compile_time_index, typename Arg, typename...runtime_index_t>
-    static constexpr decltype(auto) column(Arg&& arg, runtime_index_t...i) = delete;
+    template<std::size_t...indices, typename Arg, typename...index_values>
+    static constexpr decltype(auto) slice(Arg& arg, index_values...is) = delete;
 
 
     /**
-     * \brief Extract one row from a matrix or other tensor.
-     * \details The index of the row may be specified at either compile time <em>or</em> at runtime, but not both.
-     * \tparam compile_time_index The index of the row, if specified at compile time
-     * \tparam Arg The matrix or other tensor from which the row is to be extracted
-     * \tparam runtime_index_t The type of the index of the row, if the index is specified at runtime. This type
-     * should be convertible to <code>std::size_t</code>
-     * \return A \ref row_vector
+     * \brief Extract a sub-array having rank less than the rank of the input object.
+     * \details A chip is a special type of "thin" slice of width 1 in one or more dimensions, and otherwise no
+     * reduction in extents. For example, the result could be a row vector, a column vector, a matrix (e.g., if the
+     * input object is a rank-3 or higher tensor), etc.
+     * \tparam indices The index or indices of the sliced dimension(s) in numerical order.
+     * For example, if the input object is a matrix, a value of {0} will result in a row vector and a value of {1} will
+     * result in a column vector. If the input object is a rank-3 tensor, a value of {0, 1} will result in a matrix.
+     * \tparam index_values the index values corresponding to <code>indices</code>, in the same order. The values
+     * may be positive \ref std::integral types or a positive \ref std::integral_constant.
+     * \return A sub-array
      */
-    template<std::size_t...compile_time_index, typename Arg, typename...runtime_index_t>
-    static constexpr decltype(auto) row(Arg&& arg, runtime_index_t...i) = delete;
+    template<std::size_t...indices, typename Arg, typename...index_values>
+    static constexpr decltype(auto) chip(Arg& arg, index_values...is) = delete;
+
+
+    /**
+     * \brief Concatenate some number of math objects along one or more indices.
+     * \tparam indices The indices along which the concatenation occurs. For example,
+     *  - if indices is {0}, concatenation is along row index 0, and is a vertical concatenation;
+     *  - if indices is {1}, concatenation is along column index 1, and is a horizontal concatenation; and
+     *  - if indices is {0, 1}, concatenation is diagonal along both row and column directions.
+     * \tparam Args The objects to be concatenated
+     * \return The concatenated object
+     */
+    template<std::size_t...indices, typename...Args>
+    static constexpr decltype(auto) concatenate(Args&&...args) = delete;
+
+
+    /**
+     * \brief Split into some number of sub-objects along one or more indices (the inverse of concatenate).
+     * \tparam indices The indices along which the split occurs. For example,
+     *  - if indices is {0}, the split is along row index 0, and is a vertical split;
+     *  - if indices is {1}, split is along column index 1, and is a horizontal split; and
+     *  - if indices is {0, 1}, split is diagonal along both row and column directions.
+     * \tparam Arg The object to be split
+     * \tparam Ds A set of index descriptors for each component of the result.
+     * \return A tuple of objects.
+     */
+    template<std::size_t...indices, typename Arg, typename...Ds>
+    static constexpr decltype(auto) split(Arg&& arg, Ds&&...ds) = delete;
+
   };
 
 

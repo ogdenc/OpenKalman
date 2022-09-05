@@ -545,7 +545,7 @@ namespace OpenKalman
 
 
     /*
-     * A typed matrix is diagonal if its nested matrix is diagonal and its row and column typed_index_descriptors are equivalent.
+     * A typed matrix is diagonal if its nested matrix is diagonal and its row and column fixed_index_descriptors are equivalent.
      */
 #ifdef __cpp_concepts
     template<typed_matrix T>
@@ -673,11 +673,11 @@ namespace OpenKalman
   public:
 
 #ifdef __cpp_concepts
-    template<typed_index_descriptor RC = RowCoefficients, typed_index_descriptor CC = ColumnCoefficients, typed_matrix_nestable Arg>
+    template<fixed_index_descriptor RC = RowCoefficients, fixed_index_descriptor CC = ColumnCoefficients, typed_matrix_nestable Arg>
     requires (row_dimension_of_v<Arg> == dimension_size_of_v<RC>) and (column_dimension_of_v<Arg> == dimension_size_of_v<CC>)
 #else
     template<typename RC = RowCoefficients, typename CC = ColumnCoefficients, typename Arg, std::enable_if_t<
-      typed_index_descriptor<RC> and typed_index_descriptor<CC> and typed_matrix_nestable<Arg> and
+      fixed_index_descriptor<RC> and fixed_index_descriptor<CC> and typed_matrix_nestable<Arg> and
       (row_dimension_of<Arg>::value == dimension_size_of_v<RC>) and (column_dimension_of<Arg>::value == dimension_size_of_v<CC>), int> = 0>
 #endif
     static auto make(Arg&& arg)
@@ -703,7 +703,7 @@ namespace OpenKalman
 
     /// Make from a typed_matrix_nestable. If CC is specified, it must be axes-only.
 #ifdef __cpp_concepts
-    template<typed_index_descriptor RC = RowCoefficients, typename CC = void, typed_matrix_nestable Arg> requires
+    template<fixed_index_descriptor RC = RowCoefficients, typename CC = void, typed_matrix_nestable Arg> requires
       (std::is_void_v<CC> or equivalent_to<CC, Dimensions<column_dimension_of_v<Arg>>>) and
       (row_dimension_of_v<Arg> == dimension_size_of_v<RC>)
 #else
@@ -733,12 +733,12 @@ namespace OpenKalman
 
     /// Make from a regular matrix. If CC is specified, it must be axes-only.
 #ifdef __cpp_concepts
-    template<typed_index_descriptor RC = RowCoefficients, typename CC = void, typed_matrix_nestable Arg> requires
+    template<fixed_index_descriptor RC = RowCoefficients, typename CC = void, typed_matrix_nestable Arg> requires
     (std::is_void_v<CC> or equivalent_to<CC, Dimensions<column_dimension_of_v<Arg>>>) and
     (row_dimension_of_v<Arg> == euclidean_dimension_size_of_v<RC>)
 #else
     template<typename RC = RowCoefficients, typename CC = void, typename Arg, std::enable_if_t<
-      typed_index_descriptor<RC> and (std::is_void_v<CC> or equivalent_to<CC, Dimensions<column_dimension_of<Arg>::value>>) and
+      fixed_index_descriptor<RC> and (std::is_void_v<CC> or equivalent_to<CC, Dimensions<column_dimension_of<Arg>::value>>) and
       typed_matrix_nestable<Arg> and (row_dimension_of<Arg>::value == euclidean_dimension_size_of_v<RC>), int> = 0>
 #endif
     static auto make(Arg&& arg) noexcept
@@ -761,9 +761,9 @@ namespace OpenKalman
   public:
 
 #ifdef __cpp_concepts
-    template<typed_index_descriptor C = Coeffs, covariance_nestable Arg>
+    template<fixed_index_descriptor C = Coeffs, covariance_nestable Arg>
 #else
-    template<typename C = Coeffs, typename Arg, std::enable_if_t<typed_index_descriptor<C> and covariance_nestable<Arg>,int> = 0>
+    template<typename C = Coeffs, typename Arg, std::enable_if_t<fixed_index_descriptor<C> and covariance_nestable<Arg>,int> = 0>
 #endif
     static auto make(Arg&& arg) noexcept
     {
@@ -786,7 +786,7 @@ namespace OpenKalman
 
     /// Make SquareRootCovariance from a \ref covariance_nestable.
 #ifdef __cpp_concepts
-    template<typed_index_descriptor C = Coeffs, covariance_nestable Arg>
+    template<fixed_index_descriptor C = Coeffs, covariance_nestable Arg>
 #else
     template<typename C = Coeffs, typename Arg>
 #endif

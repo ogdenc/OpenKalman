@@ -14,7 +14,7 @@
 using namespace OpenKalman;
 using namespace OpenKalman::test;
 
-using std::numbers::pi;
+using numbers::pi;
 
 using C2 = TypedIndex<Polar<>>;
 using M2 = Mean<C2>;

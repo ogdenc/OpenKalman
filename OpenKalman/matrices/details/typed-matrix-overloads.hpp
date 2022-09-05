@@ -57,7 +57,7 @@ namespace OpenKalman::interface
         const auto set_coeff = [&arg, is...](const std::size_t row, const scalar_type_of_t<Arg> value) {
           set_element(nested_matrix(arg), value, row, is...);
         };
-        oin::wrap_set_element<Coeffs>(i, s, set_coeff, get_coeff);
+        wrap_set_element<Coeffs>(Coeffs{}, i, s, set_coeff, get_coeff);
       }
       else
       {
@@ -101,14 +101,14 @@ namespace OpenKalman
       else if constexpr (fixed_index_descriptor<column_coefficient_types_of_t<Arg>>)
       {
         static_assert(sizeof...(index) > 0);
-        using CC = column_coefficient_types_of_t<Arg>::template Coefficient<index...>;
+        using CC = column_coefficient_types_of_t<Arg>::template Select<index...>;
         static_assert(dimension_size_of_v<CC> == 1);
         return MatrixTraits<Arg>::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg))));
       }
       else
       {
         static_assert(dynamic_index_descriptor<column_coefficient_types_of_t<Arg>>);
-        using CC = column_coefficient_types_of_t<Arg>::template Coefficient<index...>;
+        using CC = column_coefficient_types_of_t<Arg>::template Select<index...>;
         return MatrixTraits<Arg>::template make<RC, CC>(column(nested_matrix(std::forward<Arg>(arg)), i...));
       }
     }
@@ -128,14 +128,14 @@ namespace OpenKalman
       else if constexpr (fixed_index_descriptor<row_coefficient_types_of_t<Arg>>)
       {
         static_assert(sizeof...(index) > 0);
-        using RC = row_coefficient_types_of_t<Arg>::template Coefficient<index...>;
+        using RC = row_coefficient_types_of_t<Arg>::template Select<index...>;
         static_assert(dimension_size_of_v<RC> == 1);
         return MatrixTraits<Arg>::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg))));
       }
       else
       {
         static_assert(dynamic_index_descriptor<row_coefficient_types_of_t<Arg>>);
-        using RC = row_coefficient_types_of_t<Arg>::template Coefficient<index...>;
+        using RC = row_coefficient_types_of_t<Arg>::template Select<index...>;
         return MatrixTraits<Arg>::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
       }
     }
@@ -482,7 +482,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
   /// Split typed matrix into one or more typed matrices vertically.
 #ifdef __cpp_concepts
-  template<typed_index_descriptor ... Cs, typed_matrix M> requires
+  template<fixed_index_descriptor ... Cs, typed_matrix M> requires
     prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<M>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
@@ -499,7 +499,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
   /// Split typed matrix into one or more typed matrices horizontally.
 #ifdef __cpp_concepts
-  template<typed_index_descriptor ... Cs, typed_matrix M> requires
+  template<fixed_index_descriptor ... Cs, typed_matrix M> requires
     prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, column_coefficient_types_of_t<M>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
@@ -531,7 +531,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
   /// Split typed matrix into one or more typed matrices diagonally.
 #ifdef __cpp_concepts
-  template<typed_index_descriptor ... Cs, typed_matrix M>
+  template<fixed_index_descriptor ... Cs, typed_matrix M>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M>, int> = 0>
 #endif

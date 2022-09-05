@@ -75,16 +75,6 @@
 // Introduce key Eigen3 interface functions into OpenKalman namespace.
 namespace OpenKalman
 {
-  using Eigen3::concatenate_vertical;
-  using Eigen3::concatenate_horizontal;
-  using Eigen3::concatenate_diagonal;
-  using Eigen3::split_vertical;
-  using Eigen3::split_horizontal;
-  using Eigen3::split_diagonal;
-  using Eigen3::apply_columnwise;
-  using Eigen3::apply_rowwise;
-  using Eigen3::apply_coefficientwise;
-
   using Eigen3::eigen_matrix_t;
 }
 

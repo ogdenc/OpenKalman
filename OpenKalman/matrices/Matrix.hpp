@@ -20,7 +20,7 @@ namespace OpenKalman
   // --------------------- //
 
 #ifdef __cpp_concepts
-  template<typed_index_descriptor RowCoefficients, typed_index_descriptor ColumnCoefficients, typed_matrix_nestable NestedMatrix>
+  template<fixed_index_descriptor RowCoefficients, fixed_index_descriptor ColumnCoefficients, typed_matrix_nestable NestedMatrix>
   requires (dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>) and
     (dimension_size_of_v<ColumnCoefficients> == column_dimension_of_v<NestedMatrix>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
@@ -34,8 +34,8 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(typed_index_descriptor<RowCoefficients>);
-    static_assert(typed_index_descriptor<ColumnCoefficients>);
+    static_assert(fixed_index_descriptor<RowCoefficients>);
+    static_assert(fixed_index_descriptor<ColumnCoefficients>);
     static_assert(typed_matrix_nestable<NestedMatrix>);
     static_assert(dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>);
     static_assert(dimension_size_of_v<ColumnCoefficients> == column_dimension_of_v<NestedMatrix>);
@@ -341,12 +341,12 @@ namespace OpenKalman
    * \tparam M A typed_matrix_nestable with size matching RowCoefficients and ColumnCoefficients.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor RowCoefficients, typed_index_descriptor ColumnCoefficients, typed_matrix_nestable M>
+  template<fixed_index_descriptor RowCoefficients, fixed_index_descriptor ColumnCoefficients, typed_matrix_nestable M>
     requires (row_dimension_of_v<M> == dimension_size_of_v<RowCoefficients>) and
     (column_dimension_of_v<M> == dimension_size_of_v<ColumnCoefficients>)
 #else
   template<typename RowCoefficients, typename ColumnCoefficients, typename M, std::enable_if_t<
-    typed_index_descriptor<RowCoefficients> and typed_index_descriptor<ColumnCoefficients> and typed_matrix_nestable<M> and
+    fixed_index_descriptor<RowCoefficients> and fixed_index_descriptor<ColumnCoefficients> and typed_matrix_nestable<M> and
     (row_dimension_of<M>::value == dimension_size_of_v<RowCoefficients>) and
     (column_dimension_of<M>::value == dimension_size_of_v<ColumnCoefficients>), int> = 0>
 #endif
@@ -363,11 +363,11 @@ namespace OpenKalman
    * \tparam M A typed_matrix_nestable with size matching RowCoefficients and ColumnCoefficients.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor RowCoefficients, typed_matrix_nestable M>
+  template<fixed_index_descriptor RowCoefficients, typed_matrix_nestable M>
   requires (row_dimension_of_v<M> == dimension_size_of_v<RowCoefficients>)
 #else
   template<typename RowCoefficients, typename M, std::enable_if_t<
-    typed_index_descriptor<RowCoefficients> and typed_matrix_nestable<M> and
+    fixed_index_descriptor<RowCoefficients> and typed_matrix_nestable<M> and
     (row_dimension_of<M>::value == dimension_size_of_v<RowCoefficients>), int> = 0>
 #endif
   inline auto make_matrix(M&& m)
@@ -441,12 +441,12 @@ namespace OpenKalman
    * if it is not already self-contained.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor RowCoefficients, typed_index_descriptor ColumnCoefficients, typed_matrix_nestable M> requires
+  template<fixed_index_descriptor RowCoefficients, fixed_index_descriptor ColumnCoefficients, typed_matrix_nestable M> requires
     (row_dimension_of_v<M> == dimension_size_of_v<RowCoefficients>) and
     (column_dimension_of_v<M> == dimension_size_of_v<ColumnCoefficients>)
 #else
   template<typename RowCoefficients, typename ColumnCoefficients, typename M, std::enable_if_t<
-    typed_index_descriptor<RowCoefficients> and typed_index_descriptor<ColumnCoefficients> and typed_matrix_nestable<M> and
+    fixed_index_descriptor<RowCoefficients> and fixed_index_descriptor<ColumnCoefficients> and typed_matrix_nestable<M> and
     (row_dimension_of<M>::value == dimension_size_of_v<RowCoefficients>) and
     (column_dimension_of<M>::value == dimension_size_of_v<ColumnCoefficients>), int> = 0>
 #endif

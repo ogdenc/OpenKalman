@@ -25,8 +25,11 @@
 #ifndef OPENKALMAN_INDEX_DESCRIPTORS_HPP
 #define OPENKALMAN_INDEX_DESCRIPTORS_HPP
 
-#include "index-descriptor-interface-traits.hpp"
-#include "index-descriptor-forward-declarations.hpp"
+#include "details/index-descriptor-interface-traits.hpp"
+#include "details/index-descriptor-forward-declarations.hpp"
+#include "basics/functions/index-descriptor-forward-functions.hpp"
+
+#include "details/integral-interface-traits.hpp"
 
 #include "Dimensions.hpp"
 #include "Distance.hpp"
@@ -37,11 +40,10 @@
 
 #include "TypedIndex.hpp"
 
-#include "details/AbstractDynamicTypedIndexDescriptor.hpp"
-#include "details/DynamicTypedIndexDescriptor.hpp"
+#include "details/AnyAtomicIndexDescriptor.hpp"
 #include "DynamicTypedIndex.hpp"
 
-#include "index-descriptor-traits.hpp"
-#include "index-descriptor-functions.hpp"
+#include "details/index-descriptor-traits.hpp"
+#include "basics/functions/index-descriptor-functions.hpp"
 
 #endif //OPENKALMAN_INDEX_DESCRIPTORS_HPP

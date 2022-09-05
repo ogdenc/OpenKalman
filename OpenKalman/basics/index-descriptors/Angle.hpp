@@ -25,116 +25,73 @@
 
 namespace OpenKalman
 {
-  template<template<typename Scalar> typename Limits>
+  template<typename Limits>
 #ifdef __cpp_concepts
-  requires std::floating_point<decltype(Limits<double>::min)> and
-    std::floating_point<decltype(Limits<double>::max)> and (Limits<double>::min < Limits<double>::max) and
-    (Limits<double>::min <= 0) and (0 <= Limits<double>::max)
+  requires floating_scalar_type<decltype(Limits::min)> and floating_scalar_type<decltype(Limits::max)> and
+    (Limits::min < Limits::max) and (Limits::min <= 0) and (Limits::max > 0)
 #endif
   struct Angle;
 
 
-  /// Namespace for definitions relating to typed_index_descriptors representing an angle.
+  /// Namespace for definitions relating to fixed_index_descriptors representing an angle.
   namespace angle
   {
-    /// Namespace for classes describing the numerical limits for an angle.
-    namespace limits
+    /**
+     * \brief The numerical range [minimum, maximum)spanned by an angle.
+     * \details The range include 0.
+     * \tparam minimum The minimum angle (inclusive)
+     * \tparam maximum The maximum angle (exclusive)
+     */
+    template<auto minimum, auto maximum>
+    struct Limits
     {
-      /**
-       * The limits of an angle measured in radians: [-&pi;,&pi;).
-       * \tparam Scalar The scalar type (e.g., <code>double</code>).
-       */
-      template<typename Scalar = double>
-#ifdef __cpp_concepts
-      requires std::floating_point<Scalar>
-#endif
-      struct Radians
-      {
-        static constexpr Scalar max = std::numbers::pi_v<Scalar>;
-        static constexpr Scalar min = -std::numbers::pi_v<Scalar>;
-      };
+      static constexpr auto min = minimum;
+      static constexpr auto max = maximum;
+    };
 
 
-      /**
-       * The limits of an angle measured in positive radians: [0,2&pi;).
-       * \tparam Scalar The scalar type (e.g., <code>double</code>).
-       */
-      template<typename Scalar = double>
-#ifdef __cpp_concepts
-      requires std::floating_point<Scalar>
-#endif
-      struct PositiveRadians
-      {
-        static constexpr Scalar max = 2 * std::numbers::pi_v<Scalar>;
-        static constexpr Scalar min = 0;
-      };
-
-
-      /**
-       * The limits of an angle measured in positive or negative degrees: [-180,180).
-       * \tparam Scalar The scalar type (e.g., <code>double</code>).
-       */
-      template<typename Scalar = double>
-#ifdef __cpp_concepts
-      requires std::floating_point<Scalar>
-#endif
-      struct Degrees
-      {
-        static constexpr Scalar max = 180;
-        static constexpr Scalar min = -180;
-      };
-
-
-      /**
-       * The limits of an angle measured in positive degrees: [0,360).
-       * \tparam Scalar The scalar type (e.g., <code>double</code>).
-       */
-      template<typename Scalar = double>
-#ifdef __cpp_concepts
-      requires std::floating_point<Scalar>
-#endif
-      struct PositiveDegrees
-      {
-        static constexpr Scalar max = 360;
-        static constexpr Scalar min = 0;
-      };
-
-
-      /**
-       * The limits of a wrapping circle, such as the wrapping interval [0,1).
-       * \tparam Scalar The scalar type (e.g., <code>double</code>).
-       */
-      template<typename Scalar = double>
-#ifdef __cpp_concepts
-      requires std::floating_point<Scalar>
-#endif
-      struct Circle
-      {
-        static constexpr Scalar min = 0;
-        static constexpr Scalar max = 1;
-      };
-
-    } // namespace limits
-
+#if __cpp_nontype_template_args >= 201911L
+    /// An angle measured in radians [-&pi;,&pi;).
+    using Radians = Angle<Limits<-numbers::pi_v<long double>, numbers::pi_v<long double>>>;
+#else
+    /// The limits of an angle measured in radians [-&pi;,&pi;).
+    struct RadiansLimits
+    {
+      static constexpr long double min = -numbers::pi_v<long double>;
+      static constexpr long double max = numbers::pi_v<long double>;
+    };
 
     /// An angle measured in radians [-&pi;,&pi;).
-    using Radians = Angle<limits::Radians>;
+    using Radians = Angle<RadiansLimits>;
+#endif
 
+
+#if __cpp_nontype_template_args >= 201911L
+    /// An angle measured in positive radians [0,2&pi;).
+    using PositiveRadians = Angle<Limits<0, 2 * numbers::pi_v<long double>>>;
+#else
+    /// The limits of an angle measured in positive radians [0,2&pi;).
+    struct PositiveRadiansLimits
+    {
+      static constexpr long double min = 0;
+      static constexpr long double max = 2 * numbers::pi_v<long double>;
+    };
 
     /// An angle measured in positive radians [0,2&pi;).
-    using PositiveRadians = Angle<limits::PositiveRadians>;
+    using PositiveRadians = Angle<PositiveRadiansLimits>;
+#endif
 
 
     /// An angle measured in degrees [0,360).
-    using PositiveDegrees = Angle<limits::PositiveDegrees>;
+    using PositiveDegrees = Angle<Limits<0, 360>>;
 
 
     /// An angle measured in positive or negative degrees [-180,180).
-    using Degrees = Angle<limits::Degrees>;
+    using Degrees = Angle<Limits<-180, 180>>;
 
 
     /// An wrapping circle such as the wrapping interval [0,1).
-    using Circle = Angle<limits::Circle>;
+    using Circle = Angle<Limits<0, 1>>;
 
   } // namespace angle
 
@@ -146,197 +103,188 @@ namespace OpenKalman
    * angle::PositiveDegrees, and angle::Circle.
    * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
    * 18th Int'l Conf. on Information Fusion 1550, 1553 (2015).
-   * \tparam Limits A class template defining the real values <code>min</code> and <code>max</code>, representing
+   * \tparam Limits A template class defining the real values <code>min</code> and <code>max</code>, representing
    * minimum and maximum values, respectively, beyond which wrapping occurs. This range must include 0.
-   * <code>Scalar</code> is a <code>std::floating_point</code> type.
+   * <code>Scalar</code> is a \ref floating_scalar_type.
    */
-  template<template<typename Scalar> typename Limits = angle::limits::Radians>
+#if __cpp_nontype_template_args >= 201911L
+  template<typename Limits = angle::Limits<-numbers::pi_v<long double>, numbers::pi_v<long double>>>
+#else
+  template<typename Limits = angle::RadiansLimits>
+#endif
 #ifdef __cpp_concepts
-    requires std::floating_point<decltype(Limits<double>::min)> and
-      std::floating_point<decltype(Limits<double>::max)> and (Limits<double>::min < Limits<double>::max) and
-      (Limits<double>::min <= 0) and (0 <= Limits<double>::max)
+    requires floating_scalar_type<decltype(Limits::min)> and floating_scalar_type<decltype(Limits::max)> and
+      (Limits::min < Limits::max) and (Limits::min <= 0) and (Limits::max > 0)
 #endif
   struct Angle
   {
 #ifndef __cpp_concepts
-    static_assert(std::is_floating_point_v<decltype(Limits<double>::min)>);
-    static_assert(std::is_floating_point_v<decltype(Limits<double>::max)>);
-    static_assert(Limits<double>::min < Limits<double>::max);
-    static_assert((Limits<double>::min <= 0) and (0 <= Limits<double>::max));
+    static_assert(floating_scalar_type<decltype(Limits::min)>);
+    static_assert(floating_scalar_type<decltype(Limits::max)>);
+    static_assert(Limits::min < Limits::max);
+    static_assert(Limits::min <= 0);
+    static_assert(Limits::max > 0);
 #endif
-
-  private:
-
-    template<typename Scalar>
-    static constexpr Scalar cf = 2 * std::numbers::pi_v<Scalar> / (Limits<Scalar>::max - Limits<Scalar>::min);
-
-    template<typename Scalar>
-    static constexpr Scalar mid = (Limits<Scalar>::max + Limits<Scalar>::min) / 2;
-
-  public:
-
-    /**
-     * \brief Maps an angle element to coordinates in Euclidean space.
-     * \details The angle corresponds to x and y coordinates on a unit circle.
-     * By convention, the minimum angle limit Limits<Scalar::min corresponds to the point (-1,0) in Euclidean space,
-     * and the angle is scaled so that the difference between Limits<Scalar>::min and Limits<<Scalar>::max is 2&pi;,
-     * so Limits<Scalar>::max wraps back to the point (-1, 0).
-     * \tparam Scalar The scalar type (e.g., double).
-     * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
-     * \param euclidean_local_index A local index accessing either the x (if 0) or y (if 1) coordinate in Euclidean space
-     * \param start The starting location of the angle within any larger set of index type descriptors
-     */
-#ifdef __cpp_concepts
-    template<std::floating_point Scalar>
-#else
-    template<typename Scalar, std::enable_if_t<std::is_floating_point<Scalar>::value, int> = 0>
-#endif
-    static constexpr auto
-    to_euclidean_element(const std::function<Scalar(std::size_t)>& g, std::size_t euclidean_local_index, std::size_t start)
-    {
-      const auto theta = cf<Scalar> * (g(start) - mid<Scalar>); // Convert to radians
-      if (euclidean_local_index == 0)
-        return std::cos(theta);
-      else
-        return std::sin(theta);
-    }
-
-
-    /**
-     * \brief Return a functor mapping coordinates in Euclidean space to an angle element.
-     * \details The angle corresponds to x and y coordinates on a unit circle.
-     * \tparam Scalar The scalar type (e.g., double).
-     * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
-     * \param local_index A local index accessing the angle (in this case, it must be 0)
-     * \param euclidean_start The starting location of the x and y coordinates within any larger set of index type descriptors
-     */
-#ifdef __cpp_concepts
-    template<std::floating_point Scalar>
-#else
-    template<typename Scalar, std::enable_if_t<std::is_floating_point<Scalar>::value, int> = 0>
-#endif
-    static constexpr auto
-    from_euclidean_element(const std::function<Scalar(std::size_t)>& g, std::size_t local_index, std::size_t euclidean_start)
-    {
-      const auto x = g(euclidean_start);
-      const auto y = g(euclidean_start + 1);
-      if constexpr (not std::numeric_limits<Scalar>::is_iec559)
-        if (x == 0) return (y == 0) ? mid<Scalar> : std::signbit(y) ? Limits<Scalar>::down : Limits<Scalar>::up;
-      return std::atan2(y, x) / cf<Scalar> + mid<Scalar>;
-    }
-
-
-  private:
-
-    template<typename Scalar>
-    static constexpr Scalar wrap_impl(const Scalar a)
-    {
-      constexpr Scalar max = Limits<Scalar>::max;
-      constexpr Scalar min = Limits<Scalar>::min;
-      if (a >= min and a < max)
-      {
-        return a;
-      }
-      else
-      {
-        constexpr Scalar period = max - min;
-        Scalar ar = std::fmod(a - min, period);
-        if (ar < 0) ar += period;
-        return ar + min;
-      }
-    }
-
-  public:
-
-    /**
-     * \brief Return a functor wrapping an angle.
-     * \details The wrapping operation is equivalent to mapping to, and then back from, Euclidean space.
-     * \tparam Scalar The scalar type (e.g., double).
-     * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
-     * \param local_index A local index accessing the angle (in this case, it must be 0)
-     * \param start The starting location of the angle within any larger set of index type descriptors
-     */
-#ifdef __cpp_concepts
-    template<std::floating_point Scalar>
-#else
-    template<typename Scalar, std::enable_if_t<std::is_floating_point<Scalar>::value, int> = 0>
-#endif
-    static constexpr auto
-    wrap_get_element(const std::function<Scalar(std::size_t)>& g, std::size_t local_index, std::size_t start)
-    {
-      return wrap_impl(g(start));
-    }
-
-
-    /**
-     * \brief Set an angle and then wrapping.
-     * \details The operation is equivalent to setting the angle and then mapping to, and then back from, Euclidean space.
-     * \tparam Scalar The scalar type (e.g., double).
-     * \param s An element setter (<code>std::function&lt;void(std::size_t, Scalar)&rt;</code>)
-     * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
-     * \param local_index A local index accessing the angle (in this case, it must be 0)
-     * \param start The starting location of the angle within any larger set of index type descriptors
-     */
-#ifdef __cpp_concepts
-    template<std::floating_point Scalar>
-#else
-    template<typename Scalar, std::enable_if_t<std::is_floating_point<Scalar>::value, int> = 0>
-#endif
-    static constexpr void
-    wrap_set_element(const std::function<void(Scalar, std::size_t)>& s, const std::function<Scalar(std::size_t)>& g,
-      Scalar x, std::size_t local_index, std::size_t start)
-    {
-      s(wrap_impl(x), start);
-    }
-
   };
+
+
+  namespace internal
+  {
+    template<typename T>
+    struct is_angle_descriptor : std::false_type {};
+
+    template<typename Limits>
+    struct is_angle_descriptor<Angle<Limits>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief T is an index descriptor of an angle.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept angle_descriptor =
+#else
+  static constexpr bool angle_descriptor =
+#endif
+    internal::is_angle_descriptor<T>::value;
 
 
   namespace interface
   {
     /**
      * \internal
-     * \brief Angle is represented by one coordinate.
+     * \brief traits for Angle.
      */
-    template<template<typename Scalar> typename Limits>
-    struct IndexDescriptorSize<Angle<Limits>> : std::integral_constant<std::size_t, 1>
+    template<typename Limits>
+    struct FixedIndexDescriptorTraits<Angle<Limits>>
     {
-      constexpr static std::size_t get(const Angle<Limits>&) { return 1; }
+      static constexpr std::size_t size = 1;
+      static constexpr std::size_t euclidean_size = 2;
+      static constexpr std::size_t component_count = 1;
+      using difference_type = Angle<Limits>;
+      static constexpr bool always_euclidean = false;
+
+      /*
+       * \details The angle corresponds to x and y coordinates on a unit circle.
+       * By convention, the minimum angle limit Limits<Scalar::min corresponds to the point (-1,0) in Euclidean space,
+       * and the angle is scaled so that the difference between Limits<Scalar>::min and Limits<<Scalar>::max is 2&pi;,
+       * so Limits<Scalar>::max wraps back to the point (-1, 0).
+       * \param euclidean_local_index A local index accessing either the x (if 0) or y (if 1) coordinate in Euclidean space
+       */
+  #ifdef __cpp_concepts
+      static constexpr floating_scalar_type auto
+      to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start)
+      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; }
+  #else
+      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+      static constexpr auto
+      to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start)
+  #endif
+      {
+        using Scalar = decltype(g(std::declval<std::size_t>()));
+        using R = std::decay_t<decltype(real_projection(std::declval<Scalar>()))>;
+        const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
+        const Scalar mid { R{Limits::max + Limits::min} * R{0.5}};
+
+        Scalar theta = cf * (g(start) - mid); // Convert to radians
+        if (euclidean_local_index == 0)
+          return interface::ScalarTraits<Scalar>::cos(theta);
+        else
+          return interface::ScalarTraits<Scalar>::sin(theta);
+      }
+
+
+      /*
+       * \details The angle corresponds to x and y coordinates on a unit circle.
+       * \param local_index This is assumed to be 0.
+       * \param euclidean_start The starting location of the x and y coordinates within any larger set of index type descriptors
+       */
+  #ifdef __cpp_concepts
+      static constexpr floating_scalar_type auto
+      from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start)
+      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; }
+  #else
+      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+      static constexpr auto
+      from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start)
+  #endif
+      {
+        using Scalar = decltype(g(std::declval<std::size_t>()));
+        using R = std::decay_t<decltype(real_projection(std::declval<Scalar>()))>;
+        const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
+        const Scalar mid { R{Limits::max + Limits::min} * R{0.5}};
+
+        Scalar x = g(euclidean_start);
+        Scalar y = g(euclidean_start + 1);
+        return interface::ScalarTraits<Scalar>::atan2(y, x) / cf + mid;
+      }
+
+
+    private:
+
+  #ifdef __cpp_concepts
+      static constexpr auto wrap_impl(auto&& a) -> std::decay_t<decltype(a)>
+  #else
+      template<typename Scalar>
+      static constexpr std::decay_t<Scalar> wrap_impl(Scalar&& a)
+  #endif
+      {
+        auto ap = real_projection(a);
+        if (not (ap < Limits::min) and ap < Limits::max)
+        {
+          return std::forward<decltype(a)>(a);
+        }
+        else
+        {
+          using R = std::decay_t<decltype(ap)>;
+          constexpr R period {Limits::max - Limits::min};
+          R ar {std::fmod(ap - R{Limits::min}, period)};
+          if (ar < 0) return inverse_real_projection(std::forward<decltype(a)>(a), R{Limits::min} + ar + period);
+          else return inverse_real_projection(std::forward<decltype(a)>(a), R{Limits::min} + ar);
+        }
+      }
+
+    public:
+
+      /*
+       * \param local_index This is assumed to be 0.
+       */
+  #ifdef __cpp_concepts
+      static constexpr floating_scalar_type auto
+      wrap_get_element(const auto& g, std::size_t local_index, std::size_t start)
+      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; }
+  #else
+      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+      static constexpr auto
+      wrap_get_element(const G& g, std::size_t local_index, std::size_t start)
+  #endif
+      {
+        return wrap_impl(g(start));
+      }
+
+
+      /**
+       * \param local_index This is assumed to be 0.
+       */
+  #ifdef __cpp_concepts
+      static constexpr void
+      wrap_set_element(const auto& s, const auto& g,
+        const std::decay_t<std::invoke_result_t<decltype(g), std::size_t>>& x, std::size_t local_index, std::size_t start)
+      requires requires (std::size_t i){ s(x, i); {x} -> floating_scalar_type; }
+  #else
+      template<typename S, typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type> and
+        std::is_invocable<S, typename std::invoke_result<G, std::size_t>::type, std::size_t>::value, int> = 0>
+      static constexpr void
+      wrap_set_element(const S& s, const G& g, const std::decay_t<typename std::invoke_result<G, std::size_t>::type>& x,
+                       std::size_t local_index, std::size_t start)
+  #endif
+      {
+        s(wrap_impl(x), start);
+      }
+
     };
 
-
-    /**
-     * \internal
-     * \brief Angle is represented by two coordinates in Euclidean space.
-     */
-    template<template<typename Scalar> typename Limits>
-    struct EuclideanIndexDescriptorSize<Angle<Limits>> : std::integral_constant<std::size_t, 2>
-    {
-      constexpr static std::size_t get(const Angle<Limits>&) { return 2; }
-    };
-
-
-    /**
-     * \internal
-     * \brief The number of atomic components.
-     */
-    template<template<typename Scalar> typename Limits>
-    struct IndexDescriptorComponentCount<Angle<Limits>> : std::integral_constant<std::size_t, 1>
-    {
-      constexpr static std::size_t get(const Angle<Limits>&) { return 1; }
-    };
-
-
-    /**
-     * \internal
-     * \brief The type of the result when subtracting two Angle values.
-     * \details A distance between two points on a circle cannot be more than the circumference of the circle,
-     * so it must be wrapped as an Angle.
-     * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
-     * 18th Int'l Conf. on Information Fusion 1550, 1553 (2015).
-     */
-    template<template<typename Scalar> typename Limits>
-    struct IndexDescriptorDifferenceType<Angle<Limits>> { using type = Angle<Limits>; };
 
   } // namespace interface
 

@@ -771,10 +771,10 @@ namespace OpenKalman::Eigen3
 
   /// Split a diagonal matrix diagonally.
 #ifdef __cpp_concepts
-  template<typename F, typed_index_descriptor ... Cs, eigen_diagonal_expr Arg> requires (not typed_index_descriptor<F>)
+  template<typename F, fixed_index_descriptor ... Cs, eigen_diagonal_expr Arg> requires (not fixed_index_descriptor<F>)
 #else
   template<typename F, typename ... Cs, typename Arg,
-    std::enable_if_t<eigen_diagonal_expr<Arg> and not typed_index_descriptor<F> and (typed_index_descriptor<Cs> and ...), int> = 0>
+    std::enable_if_t<eigen_diagonal_expr<Arg> and not fixed_index_descriptor<F> and (fixed_index_descriptor<Cs> and ...), int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg)
@@ -786,12 +786,12 @@ namespace OpenKalman::Eigen3
 
   /// Split a self-adjoint or triangular matrix diagonally.
 #ifdef __cpp_concepts
-  template<typename F, typed_index_descriptor ... Cs, typename Arg> requires
-    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and (not typed_index_descriptor<F>)
+  template<typename F, fixed_index_descriptor ... Cs, typename Arg> requires
+    (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and (not fixed_index_descriptor<F>)
 #else
   template<typename F, typename ... Cs, typename Arg,
     std::enable_if_t<(eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>) and
-    not typed_index_descriptor<F> and (typed_index_descriptor<Cs> and ...), int> = 0>
+    not fixed_index_descriptor<F> and (fixed_index_descriptor<Cs> and ...), int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg)
@@ -803,10 +803,10 @@ namespace OpenKalman::Eigen3
 
   /// Split a self-adjoint, triangular, or diagonal matrix diagonally.
 #ifdef __cpp_concepts
-  template<typed_index_descriptor ... Cs, typename Arg> requires
+  template<fixed_index_descriptor ... Cs, typename Arg> requires
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>)
 #else
-  template<typename ... Cs, typename Arg, std::enable_if_t<(typed_index_descriptor<Cs> and ...) and
+  template<typename ... Cs, typename Arg, std::enable_if_t<(fixed_index_descriptor<Cs> and ...) and
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>), int> = 0>
 #endif
   inline auto
@@ -835,12 +835,12 @@ namespace OpenKalman::Eigen3
 
   /// Split a self-adjoint, triangular, or diagonal matrix vertically, returning a regular matrix.
 #ifdef __cpp_concepts
-  template<typename F, typed_index_descriptor ... Cs, typename Arg> requires (not typed_index_descriptor<F>) and
+  template<typename F, fixed_index_descriptor ... Cs, typename Arg> requires (not fixed_index_descriptor<F>) and
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>)
 #else
   template<typename F, typename ... Cs, typename Arg, std::enable_if_t<
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
-      not typed_index_descriptor<F> and (typed_index_descriptor<Cs> and ...), int> = 0>
+      not fixed_index_descriptor<F> and (fixed_index_descriptor<Cs> and ...), int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg)
@@ -851,11 +851,11 @@ namespace OpenKalman::Eigen3
 
   /// Split a self-adjoint, triangular, or diagonal matrix diagonally.
 #ifdef __cpp_concepts
-  template<typed_index_descriptor ... Cs, typename Arg>
+  template<fixed_index_descriptor ... Cs, typename Arg>
   requires (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
     (dynamic_rows<Arg> or (0 + ... + dimension_size_of_v<Cs>) <= row_dimension_of_v<Arg>)
 #else
-  template<typename ... Cs, typename Arg, std::enable_if_t<(typed_index_descriptor<Cs> and ...) and
+  template<typename ... Cs, typename Arg, std::enable_if_t<(fixed_index_descriptor<Cs> and ...) and
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
     (dynamic_rows<Arg> or (0 + ... + dimension_size_of_v<Cs>) <= row_dimension_of<Arg>::value), int> = 0>
 #endif
@@ -884,12 +884,12 @@ namespace OpenKalman::Eigen3
 
   /// Split a self-adjoint, triangular, or diagonal matrix horizontally, returning a regular matrix.
 #ifdef __cpp_concepts
-  template<typename F, typed_index_descriptor ... Cs, typename Arg> requires (not typed_index_descriptor<F>) and
+  template<typename F, fixed_index_descriptor ... Cs, typename Arg> requires (not fixed_index_descriptor<F>) and
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>)
 #else
   template<typename F, typename ... Cs, typename Arg, std::enable_if_t<
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
-      not typed_index_descriptor<F> and (typed_index_descriptor<Cs> and ...), int> = 0>
+      not fixed_index_descriptor<F> and (fixed_index_descriptor<Cs> and ...), int> = 0>
 #endif
   inline auto
   split_horizontal(Arg&& arg)
@@ -900,12 +900,12 @@ namespace OpenKalman::Eigen3
 
   /// Split a self-adjoint, triangular, or diagonal matrix horizontally.
 #ifdef __cpp_concepts
-  template<typed_index_descriptor ... Cs, typename Arg> requires
+  template<fixed_index_descriptor ... Cs, typename Arg> requires
     eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>
 #else
   template<typename ... Cs, typename Arg, std::enable_if_t<
     (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg> or eigen_diagonal_expr<Arg>) and
-    (typed_index_descriptor<Cs> and ...), int> = 0>
+    (fixed_index_descriptor<Cs> and ...), int> = 0>
 #endif
   inline auto
   split_horizontal(Arg&& arg)

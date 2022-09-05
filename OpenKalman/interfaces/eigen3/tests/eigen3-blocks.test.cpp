@@ -212,19 +212,19 @@ TEST(eigen3, concatenate_vertical)
   auto m12_56 = make_dense_writable_matrix_from<M12>(5, 6);
   auto m32 = make_dense_writable_matrix_from<M32>(1, 2, 3, 4, 5, 6);
 
-  EXPECT_TRUE(is_near(concatenate_vertical(m22, m12_56), m32));
-  EXPECT_TRUE(is_near(concatenate_vertical(M20 {m22}, m12_56), m32));
-  EXPECT_TRUE(is_near(concatenate_vertical(M20 {m22}, M10 {m12_56}), m32));
-  EXPECT_TRUE(is_near(concatenate_vertical(M20 {m22}, M02 {m12_56}), m32));
-  EXPECT_TRUE(is_near(concatenate_vertical(M20 {m22}, M00 {m12_56}), m32));
-  EXPECT_TRUE(is_near(concatenate_vertical(M02 {m22}, m12_56), m32));
-  EXPECT_TRUE(is_near(concatenate_vertical(M02 {m22}, M10 {m12_56}), m32));
-  EXPECT_TRUE(is_near(concatenate_vertical(M02 {m22}, M02 {m12_56}), m32));
-  EXPECT_TRUE(is_near(concatenate_vertical(M02 {m22}, M00 {m12_56}), m32));
-  EXPECT_TRUE(is_near(concatenate_vertical(M00 {m22}, m12_56), m32));
-  EXPECT_TRUE(is_near(concatenate_vertical(M00 {m22}, M10 {m12_56}), m32));
-  EXPECT_TRUE(is_near(concatenate_vertical(M00 {m22}, M02 {m12_56}), m32));
-  EXPECT_TRUE(is_near(concatenate_vertical(M00 {m22}, M00 {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(m22, m12_56), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(M20 {m22}, m12_56), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(M20 {m22}, M10 {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(M20 {m22}, M02 {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(M20 {m22}, M00 {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(M02 {m22}, m12_56), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(M02 {m22}, M10 {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(M02 {m22}, M02 {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(M02 {m22}, M00 {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(M00 {m22}, m12_56), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(M00 {m22}, M10 {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(M00 {m22}, M02 {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(M00 {m22}, M00 {m12_56}), m32));
 }
 
 
@@ -234,19 +234,19 @@ TEST(eigen3, concatenate_horizontal)
   auto m21_56 = make_dense_writable_matrix_from<M21>(3, 6);
   auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
 
-  EXPECT_TRUE(is_near(concatenate_horizontal(m22, m21_56), m23));
-  EXPECT_TRUE(is_near(concatenate_horizontal(M20 {m22}, m21_56), m23));
-  EXPECT_TRUE(is_near(concatenate_horizontal(M20 {m22}, M20 {m21_56}), m23));
-  EXPECT_TRUE(is_near(concatenate_horizontal(M20 {m22}, M01 {m21_56}), m23));
-  EXPECT_TRUE(is_near(concatenate_horizontal(M20 {m22}, M00 {m21_56}), m23));
-  EXPECT_TRUE(is_near(concatenate_horizontal(M02 {m22}, m21_56), m23));
-  EXPECT_TRUE(is_near(concatenate_horizontal(M02 {m22}, M20 {m21_56}), m23));
-  EXPECT_TRUE(is_near(concatenate_horizontal(M02 {m22}, M01 {m21_56}), m23));
-  EXPECT_TRUE(is_near(concatenate_horizontal(M02 {m22}, M00 {m21_56}), m23));
-  EXPECT_TRUE(is_near(concatenate_horizontal(M00 {m22}, m21_56), m23));
-  EXPECT_TRUE(is_near(concatenate_horizontal(M00 {m22}, M20 {m21_56}), m23));
-  EXPECT_TRUE(is_near(concatenate_horizontal(M00 {m22}, M01 {m21_56}), m23));
-  EXPECT_TRUE(is_near(concatenate_horizontal(M00 {m22}, M00 {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(m22, m21_56), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(M20 {m22}, m21_56), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(M20 {m22}, M20 {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(M20 {m22}, M01 {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(M20 {m22}, M00 {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(M02 {m22}, m21_56), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(M02 {m22}, M20 {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(M02 {m22}, M01 {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(M02 {m22}, M00 {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(M00 {m22}, m21_56), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(M00 {m22}, M20 {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(M00 {m22}, M01 {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(M00 {m22}, M00 {m21_56}), m23));
 }
 
 
@@ -256,19 +256,19 @@ TEST(eigen3, concatenate_diagonal)
   auto m22_5678 = make_eigen_matrix<double, 2, 2>(5, 6, 7, 8);
   auto m44_diag = make_eigen_matrix<double, 4, 4>(1, 2, 0, 0, 3, 4, 0, 0, 0, 0, 5, 6, 0, 0, 7, 8);
 
-  EXPECT_TRUE(is_near(concatenate_diagonal(m22, m22_5678), m44_diag));
-  EXPECT_TRUE(is_near(concatenate_diagonal(M20 {m22}, m22_5678), m44_diag));
-  EXPECT_TRUE(is_near(concatenate_diagonal(M20 {m22}, M20 {m22_5678}), m44_diag));
-  EXPECT_TRUE(is_near(concatenate_diagonal(M20 {m22}, M02 {m22_5678}), m44_diag));
-  EXPECT_TRUE(is_near(concatenate_diagonal(M20 {m22}, M00 {m22_5678}), m44_diag));
-  EXPECT_TRUE(is_near(concatenate_diagonal(M02 {m22}, m22_5678), m44_diag));
-  EXPECT_TRUE(is_near(concatenate_diagonal(M02 {m22}, M20 {m22_5678}), m44_diag));
-  EXPECT_TRUE(is_near(concatenate_diagonal(M02 {m22}, M02 {m22_5678}), m44_diag));
-  EXPECT_TRUE(is_near(concatenate_diagonal(M02 {m22}, M00 {m22_5678}), m44_diag));
-  EXPECT_TRUE(is_near(concatenate_diagonal(M00 {m22}, m22_5678), m44_diag));
-  EXPECT_TRUE(is_near(concatenate_diagonal(M00 {m22}, M20 {m22_5678}), m44_diag));
-  EXPECT_TRUE(is_near(concatenate_diagonal(M00 {m22}, M02 {m22_5678}), m44_diag));
-  EXPECT_TRUE(is_near(concatenate_diagonal(M00 {m22}, M00 {m22_5678}), m44_diag));
+  EXPECT_TRUE(is_near(concatenate<0, 1>(m22, m22_5678), m44_diag));
+  EXPECT_TRUE(is_near(concatenate<0, 1>(M20 {m22}, m22_5678), m44_diag));
+  EXPECT_TRUE(is_near(concatenate<0, 1>(M20 {m22}, M20 {m22_5678}), m44_diag));
+  EXPECT_TRUE(is_near(concatenate<0, 1>(M20 {m22}, M02 {m22_5678}), m44_diag));
+  EXPECT_TRUE(is_near(concatenate<0, 1>(M20 {m22}, M00 {m22_5678}), m44_diag));
+  EXPECT_TRUE(is_near(concatenate<0, 1>(M02 {m22}, m22_5678), m44_diag));
+  EXPECT_TRUE(is_near(concatenate<0, 1>(M02 {m22}, M20 {m22_5678}), m44_diag));
+  EXPECT_TRUE(is_near(concatenate<0, 1>(M02 {m22}, M02 {m22_5678}), m44_diag));
+  EXPECT_TRUE(is_near(concatenate<0, 1>(M02 {m22}, M00 {m22_5678}), m44_diag));
+  EXPECT_TRUE(is_near(concatenate<0, 1>(M00 {m22}, m22_5678), m44_diag));
+  EXPECT_TRUE(is_near(concatenate<0, 1>(M00 {m22}, M20 {m22_5678}), m44_diag));
+  EXPECT_TRUE(is_near(concatenate<0, 1>(M00 {m22}, M02 {m22_5678}), m44_diag));
+  EXPECT_TRUE(is_near(concatenate<0, 1>(M00 {m22}, M00 {m22_5678}), m44_diag));
 }
 
 

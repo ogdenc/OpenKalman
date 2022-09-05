@@ -30,49 +30,66 @@ namespace OpenKalman
    * \internal
    */
   template<typename C1 = Distance, typename C2 = angle::Radians>
-  struct Polar;
+#ifdef __cpp_concepts
+  requires (distance_descriptor<C1> and angle_descriptor<C2>) or (distance_descriptor<C2> and angle_descriptor<C1>)
+#endif
+  struct Polar
+  {
+#ifndef __cpp_concepts
+    static_assert((distance_descriptor<C1> and angle_descriptor<C2>) or (distance_descriptor<C2> and angle_descriptor<C1>));
+#endif
+  };
 
 
   namespace detail
   {
     // Implementation of polar coordinates.
-    template<template<typename Scalar> typename Limits,
+    template<typename Limits,
       std::size_t d_i, std::size_t a_i, std::size_t d2_i, std::size_t x_i, std::size_t y_i>
     struct PolarBase
     {
-    private:
+      static constexpr std::size_t size = 2;
+      static constexpr std::size_t euclidean_size = 3;
+      static constexpr std::size_t component_count = 1;
+      static constexpr bool always_euclidean = false;
 
-      template<typename Scalar>
-      static constexpr Scalar cf = 2 * std::numbers::pi_v<Scalar> / (Limits<Scalar>::max - Limits<Scalar>::min);
-
-      template<typename Scalar>
-      static constexpr Scalar mid = (Limits<Scalar>::max + Limits<Scalar>::min) / 2;
-
-    public:
 
       /**
        * \brief Maps a polar coordinate to coordinates in Euclidean space.
        * \details This function takes a set of polar coordinates and converts them to x, y, and z
        * Cartesian coordinates representing a location on a unit half-cylinder.
-       * \tparam Scalar The scalar type (e.g., double).
        * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
        * \param euclidean_local_index A local index relative to the Euclidean-transformed coordinates (starting at 0)
        * \param start The starting index within the index descriptor
        */
 #ifdef __cpp_concepts
-      template<std::floating_point Scalar>
+      static constexpr floating_scalar_type auto
+      to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start)
+      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; }
 #else
-      template<typename Scalar, std::enable_if_t<std::is_floating_point<Scalar>::value, int> = 0>
-#endif
+      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
       static constexpr auto
-      to_euclidean_element(const std::function<Scalar(std::size_t)>& g, std::size_t euclidean_local_index, std::size_t start)
+      to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start)
+#endif
       {
-        auto d = g(start + d_i);
-        switch(euclidean_local_index)
+        using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
+        Scalar d = g(start + d_i);
+        if (euclidean_local_index == d2_i)
         {
-          case x_i: return std::cos(cf<Scalar> * g(start + a_i) - mid<Scalar>);
-          case y_i: return std::sin(cf<Scalar> * g(start + a_i) - mid<Scalar>);
-          default:  return d; // case d2_i
+          return d;
+        }
+        else
+        {
+          using R = std::decay_t<decltype(real_projection(std::declval<Scalar>()))>;
+          const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
+          const Scalar mid {R{Limits::max + Limits::min} * R{0.5}};
+
+          Scalar theta = cf * g(start + a_i) - mid;
+          switch(euclidean_local_index)
+          {
+            case x_i: return interface::ScalarTraits<Scalar>::cos(theta);
+            default: return interface::ScalarTraits<Scalar>::sin(theta); // case y_i
+          }
         }
       }
 
@@ -81,55 +98,63 @@ namespace OpenKalman
        * \brief Maps a coordinate in Euclidean space to an element.
        * \details This function takes x, y, and z Cartesian coordinates representing a location on a
        * unit half-cylinder, and converts them to polar coordinates.
-       * \tparam Scalar The scalar type (e.g., double).
        * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
        * \param local_index A local index relative to the original coordinates (starting at 0)
        * \param start The starting index within the Euclidean-transformed indices
        */
 #ifdef __cpp_concepts
-      template<std::floating_point Scalar>
+      static constexpr floating_scalar_type auto
+      from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start)
+      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; }
 #else
-      template<typename Scalar, std::enable_if_t<std::is_floating_point<Scalar>::value, int> = 0>
-#endif
+      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
       static constexpr auto
-      from_euclidean_element(const std::function<Scalar(std::size_t)>& g, std::size_t local_index, std::size_t euclidean_start)
+      from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start)
+#endif
       {
-        auto d = g(euclidean_start + d2_i);
+        using Scalar = decltype(g(std::declval<std::size_t>()));
+        Scalar d = g(euclidean_start + d2_i);
+        auto dr = real_projection(d);
         if (local_index == d_i)
         {
-          return std::abs(d); // A negative distance is reflected to the positive axis.
+          // A negative distance is reflected to the positive axis.
+          return inverse_real_projection(d, std::abs(dr));
         }
         else
         {
+          using R = std::decay_t<decltype(real_projection(std::declval<Scalar>()))>;
+          const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
+          const Scalar mid {R{Limits::max + Limits::min} * R{0.5}};
+
           // If distance is negative, flip 180 degrees:
-          const auto x = std::signbit(d) ? -g(euclidean_start + x_i) : g(euclidean_start + x_i);
-          const auto y = std::signbit(d) ? -g(euclidean_start + y_i) : g(euclidean_start + y_i);
-          if constexpr (not std::numeric_limits<Scalar>::is_iec559)
-            if (x == 0) return (y == 0) ? mid<Scalar> : std::signbit(y) ? Limits<Scalar>::down : Limits<Scalar>::up;
-          return std::atan2(y, x) / cf<Scalar> + mid<Scalar>;
+          Scalar x = std::signbit(dr) ? -g(euclidean_start + x_i) : g(euclidean_start + x_i);
+          Scalar y = std::signbit(dr) ? -g(euclidean_start + y_i) : g(euclidean_start + y_i);
+          return interface::ScalarTraits<Scalar>::atan2(y, x) / cf + mid;
         }
       }
 
     private:
 
+#ifdef __cpp_concepts
+      static constexpr auto polar_angle_wrap_impl(bool distance_is_negative, auto&& a) -> std::decay_t<decltype(a)>
+#else
       template<typename Scalar>
-      static constexpr Scalar polar_angle_wrap_impl(bool distance_is_negative, Scalar s)
+      static constexpr std::decay_t<Scalar> polar_angle_wrap_impl(bool distance_is_negative, Scalar&& a)
+#endif
       {
-        constexpr Scalar max = Limits<Scalar>::max;
-        constexpr Scalar min = Limits<Scalar>::min;
-        constexpr Scalar period = max - min;
+        using R = std::decay_t<decltype(real_projection(std::declval<decltype(a)>()))>;
+        constexpr R period {Limits::max - Limits::min};
+        R ap {distance_is_negative ? real_projection(a) + period * R{0.5} : real_projection(a)};
 
-        Scalar a = distance_is_negative ? s + period * 0.5 : s;
-
-        if (a >= min and a < max) // Check if the angle doesn't need wrapping.
+        if (ap >= Limits::min and ap < Limits::max) // Check if the angle doesn't need wrapping.
         {
-          return a;
+          return inverse_real_projection(std::forward<decltype(a)>(a), ap);;
         }
         else // Wrap the angle.
         {
-          Scalar ar = std::fmod(a - min, period);
-          if (ar < 0) ar += period;
-          return ar + min;
+          auto ar = std::fmod(ap - R{Limits::min}, period);
+          if (ar < 0) return inverse_real_projection(std::forward<decltype(a)>(a), R{Limits::min} + ar + period);
+          else return inverse_real_projection(std::forward<decltype(a)>(a), R{Limits::min} + ar);
         }
       }
 
@@ -138,53 +163,65 @@ namespace OpenKalman
       /**
        * \brief Perform modular wrapping of polar coordinates.
        * \details The wrapping operation is equivalent to mapping to, and then back from, Euclidean space.
-       * \tparam Scalar The scalar type (e.g., double).
        * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
        * \param local_index A local index accessing the angle (in this case, it must be 0)
        * \param start The starting location of the angle within any larger set of index type descriptors
        */
 #ifdef __cpp_concepts
-      template<std::floating_point Scalar>
+      static constexpr floating_scalar_type auto
+      wrap_get_element(const auto& g, std::size_t local_index, std::size_t start)
+      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; }
 #else
-      template<typename Scalar, std::enable_if_t<std::is_floating_point<Scalar>::value, int> = 0>
-#endif
+      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
       static constexpr auto
-      wrap_get_element(const std::function<Scalar(std::size_t)>& g, std::size_t local_index, std::size_t start)
+      wrap_get_element(const G& g, std::size_t local_index, std::size_t start)
+#endif
       {
-        const auto d = g(start + d_i);
-        if (local_index == d_i)
-          return std::abs(d);
-        else // local_index == a_i
-          return polar_angle_wrap_impl<Scalar>(std::signbit(d), g(start + a_i));
+        auto d = g(start + d_i);
+        switch(local_index)
+        {
+          case d_i: return inverse_real_projection(d, std::abs(real_projection(d)));
+          default: return polar_angle_wrap_impl(std::signbit(real_projection(d)), g(start + a_i)); // case a_i
+        }
       }
 
 
       /**
        * \brief Set an element and then perform any necessary modular wrapping.
        * \details The operation is equivalent to setting the angle and then mapping to, and then back from, Euclidean space.
-       * \tparam Scalar The scalar type (e.g., double).
        * \param s An element setter (<code>std::function&lt;void(std::size_t, Scalar)&rt;</code>)
        * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
+       * \param x The scalar value to be set.
        * \param local_index A local index accessing the angle (in this case, it must be 0)
        * \param start The starting location of the angle within any larger set of index type descriptors
        */
 #ifdef __cpp_concepts
-      template<std::floating_point Scalar>
-#else
-      template<typename Scalar, std::enable_if_t<std::is_floating_point<Scalar>::value, int> = 0>
-#endif
       static constexpr void
-      wrap_set_element(const std::function<void(Scalar, std::size_t)>& s, const std::function<Scalar(std::size_t)>& g,
-        Scalar x, std::size_t local_index, std::size_t start)
+      wrap_set_element(const auto& s, const auto& g,
+        const std::decay_t<std::invoke_result_t<decltype(g), std::size_t>>& x, std::size_t local_index, std::size_t start)
+      requires requires (std::size_t i){ s(x, i); {x} -> floating_scalar_type; }
+#else
+      template<typename S, typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type> and
+        std::is_invocable<S, typename std::invoke_result<G, std::size_t>::type, std::size_t>::value, int> = 0>
+      static constexpr void
+      wrap_set_element(const S& s, const G& g, const std::decay_t<typename std::invoke_result<G, std::size_t>::type>& x,
+                       std::size_t local_index, std::size_t start)
+#endif
       {
-        if (local_index == d_i)
+        switch(local_index)
         {
-          s(std::abs(x), start + d_i);
-          s(polar_angle_wrap_impl<Scalar>(std::signbit(x), g(start + a_i)), start + a_i); //< Possibly reflect angle
-        }
-        else // local_index == a_i
-        {
-          s(polar_angle_wrap_impl<Scalar>(false, x), start + a_i);
+          case d_i:
+          {
+            auto xp = real_projection(x);
+            s(inverse_real_projection(x, std::abs(xp)), start + d_i);
+            s(polar_angle_wrap_impl(std::signbit(xp), g(start + a_i)), start + a_i); //< Possibly reflect angle
+            break;
+          }
+          default: // case a_i
+          {
+            s(polar_angle_wrap_impl(false, x), start + a_i);
+            break;
+          }
         }
       }
 
@@ -193,64 +230,31 @@ namespace OpenKalman
   } // namespace detail
 
 
-  // (Radius, Angle).
-  template<template<typename Scalar> typename Limits>
-  struct Polar<Distance, Angle<Limits>> : detail::PolarBase<Limits, 0, 1,  0, 1, 2> {};
-
-
-  // (Angle, Radius).
-  template<template<typename Scalar> typename Limits>
-  struct Polar<Angle<Limits>, Distance> : detail::PolarBase<Limits, 1, 0,  2, 0, 1> {};
-
-
   namespace interface
   {
     /**
      * \internal
-     * \brief Polar is represented by two coordinates.
+     * \brief traits for Polar<Distance, Angle>.
      */
-     template<typename T1, typename T2>
-     struct IndexDescriptorSize<Polar<T1, T2>> : std::integral_constant<std::size_t, 2>
-     {
-       constexpr static std::size_t get(const Polar<T1, T2>&) { return 2; }
-     };
-
-
-    /**
-     * \internal
-     * \brief Polar is represented by three coordinates in Euclidean space.
-     */
-    template<typename T1, typename T2>
-    struct EuclideanIndexDescriptorSize<Polar<T1, T2>> : std::integral_constant<std::size_t, 3>
+    template<typename Limits>
+    struct FixedIndexDescriptorTraits<Polar<Distance, Angle<Limits>>> : detail::PolarBase<Limits, 0, 1,  0, 1, 2>
     {
-      constexpr static std::size_t get(const Polar<T1, T2>&) { return 3; }
+      using difference_type = concatenate_fixed_index_descriptor_t<
+        typename FixedIndexDescriptorTraits<Distance>::difference_type,
+        typename FixedIndexDescriptorTraits<Angle<Limits>>::difference_type>;
     };
 
 
     /**
      * \internal
-     * \brief The number of atomic components.
+     * \brief traits for Polar<Angle, Distance>.
      */
-     template<typename T1, typename T2>
-     struct IndexDescriptorComponentCount<Polar<T1, T2>> : std::integral_constant<std::size_t, 1>
-     {
-       constexpr static std::size_t get(const Polar<T1, T2>&) { return 1; }
-     };
-
-
-    /**
-     * \internal
-     * \brief The type of the result when subtracting two Polar vectors.
-     * \details For differences, each coordinate behaves as if it were Distance or Angle.
-     * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
-     * 18th Int'l Conf. on Information Fusion 1550, 1553 (2015).
-     */
-    template<typename T1, typename T2>
-    struct IndexDescriptorDifferenceType<Polar<T1, T2>>
+    template<typename Limits>
+    struct FixedIndexDescriptorTraits<Polar<Angle<Limits>, Distance>> : detail::PolarBase<Limits, 1, 0,  2, 0, 1>
     {
-      using type = concatenate_fixed_index_descriptor_t<
-        typename IndexDescriptorDifferenceType<T1>::type,
-        typename IndexDescriptorDifferenceType<T2>::type>;
+      using difference_type = concatenate_fixed_index_descriptor_t<
+        typename FixedIndexDescriptorTraits<Angle<Limits>>::difference_type,
+        typename FixedIndexDescriptorTraits<Distance>::difference_type>;
     };
 
   } // namespace interface

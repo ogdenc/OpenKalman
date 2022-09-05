@@ -453,22 +453,11 @@ namespace Eigen::internal
   namespace detail
   {
 #ifdef __cpp_concepts
-    template<OpenKalman::index_descriptor TypedIndex, typename XprType, typename Nested, typename NestedEvaluator>
+    template<index_descriptor TypedIndex, typename XprType, typename Nested, typename NestedEvaluator>
 #else
     template<typename TypedIndex, typename XprType, typename Nested, typename NestedEvaluator, typename = void>
 #endif
-    struct Evaluator_EuclideanExpr_Base;
-
-
-#ifdef __cpp_concepts
-    template<OpenKalman::typed_index_descriptor TypedIndex, typename XprType, typename Nested, typename NestedEvaluator>
-    struct Evaluator_EuclideanExpr_Base<TypedIndex, XprType, Nested, NestedEvaluator>
-#else
-    template<typename TypedIndex, typename XprType, typename Nested, typename NestedEvaluator>
-    struct Evaluator_EuclideanExpr_Base<TypedIndex, XprType, Nested, NestedEvaluator,
-      std::enable_if_t<OpenKalman::typed_index_descriptor<TypedIndex>>>
-#endif
-      : evaluator_base<XprType>
+    struct Evaluator_EuclideanExpr_Base : evaluator_base<XprType>
     {
       using CoeffReturnType = typename traits<Nested>::Scalar;
 
@@ -488,12 +477,12 @@ namespace Eigen::internal
 
 
 #ifdef __cpp_concepts
-    template<OpenKalman::euclidean_index_descriptor TypedIndex, typename XprType, typename Nested, typename NestedEvaluator>
+    template<euclidean_index_descriptor TypedIndex, typename XprType, typename Nested, typename NestedEvaluator>
     struct Evaluator_EuclideanExpr_Base<TypedIndex, XprType, Nested, NestedEvaluator>
 #else
     template<typename TypedIndex, typename XprType, typename Nested, typename NestedEvaluator>
     struct Evaluator_EuclideanExpr_Base<TypedIndex, XprType, Nested, NestedEvaluator,
-      std::enable_if_t<OpenKalman::euclidean_index_descriptor<TypedIndex>>>
+      std::enable_if_t<euclidean_index_descriptor<TypedIndex>>>
 #endif
       : NestedEvaluator
     {
@@ -510,7 +499,7 @@ namespace Eigen::internal
   /**
    * \internal
    * \brief Evaluator for ToEuclideanExpr
-   * \tparam Coeffs Coefficient types
+   * \tparam Coeffs TypedIndex types
    * \tparam ArgType Type of the nested expression
    */
   template<typename Coeffs, typename ArgType>
@@ -547,10 +536,7 @@ namespace Eigen::internal
       else
       {
         const auto g = [col, this] (std::size_t i) { return this->m_argImpl.coeff((Index) i, col); };
-        if constexpr (typed_index_descriptor<Coeffs>)
-          return Coeffs::template to_euclidean_element<Scalar>(g, (std::size_t) row, 0);
-        else
-          return i_descriptor.to_euclidean_element(g, (std::size_t) row, 0);
+        return to_euclidean_element(i_descriptor, g, (std::size_t) row, 0);
       }
     }
 
@@ -563,10 +549,7 @@ namespace Eigen::internal
       else
       {
         const auto g = [this] (std::size_t i) { return this->m_argImpl.coeff((Index) i); };
-        if constexpr (typed_index_descriptor<Coeffs>)
-          return Coeffs::template to_euclidean_element<Scalar>(g, (std::size_t) row, 0);
-        else
-          return i_descriptor.to_euclidean_element(g, (std::size_t) row, 0);
+        return to_euclidean_element(i_descriptor, g, (std::size_t) row, 0);
       }
     }
 
@@ -580,7 +563,7 @@ namespace Eigen::internal
   /**
    * \internal
    * \brief General evaluator for FromEuclideanExpr
-   * \tparam Coeffs Coefficient types
+   * \tparam Coeffs TypedIndex types
    * \tparam ArgType Type of the nested expression
    */
   template<typename Coeffs, typename ArgType>
@@ -616,10 +599,7 @@ namespace Eigen::internal
       else
       {
         const auto g = [col, this] (std::size_t i) { return this->m_argImpl.coeff((Index) i, col); };
-        if constexpr (typed_index_descriptor<Coeffs>)
-          return Coeffs::template from_euclidean_element<Scalar>(g, (std::size_t) row, 0);
-        else
-          return i_descriptor.from_euclidean_element(g, (std::size_t) row, 0);
+        return i_descriptor.from_euclidean_element(i_descriptor, g, (std::size_t) row, 0);
       }
     }
 
@@ -632,10 +612,7 @@ namespace Eigen::internal
       else
       {
         const auto g = [this] (std::size_t i) { return this->m_argImpl.coeff((Index) i); };
-        if constexpr (typed_index_descriptor<Coeffs>)
-          return Coeffs::template from_euclidean_element<Scalar>(g, (std::size_t) row, 0);
-        else
-          return i_descriptor.from_euclidean_element(g, (std::size_t) row, 0);
+        return from_euclidean_element(i_descriptor, g, (std::size_t) row, 0);
       }
     }
   };
@@ -645,7 +622,7 @@ namespace Eigen::internal
    * \internal
    * \brief Specialized evaluator for FromEuclideanExpr that has a nested ToEuclideanExpr.
    * \details This amounts to wrapping angles.
-   * \tparam Coeffs Coefficient types
+   * \tparam Coeffs TypedIndex types
    * \tparam ArgType Type of the nested expression
    */
   template<typename Coeffs, typename ArgType>
@@ -682,10 +659,7 @@ namespace Eigen::internal
       else
       {
         const auto g = [col, this] (std::size_t i) { return this->m_argImpl.coeff((Index) i, col); };
-        if constexpr (typed_index_descriptor<Coeffs>)
-          return Coeffs::template wrap_get_element<Scalar>(g, (std::size_t) row, 0);
-        else
-          return i_descriptor.wrap_get_element(g, (std::size_t) row, 0);
+        return wrap_get_element(i_descriptor, g, (std::size_t) row, 0);
       }
     }
 
@@ -698,10 +672,7 @@ namespace Eigen::internal
       else
       {
         const auto g = [this] (std::size_t i) { return this->m_argImpl.coeff((Index) i); };
-        if constexpr (typed_index_descriptor<Coeffs>)
-          return Coeffs::template wrap_get_element<Scalar>(g, (std::size_t) row, 0);
-        else
-          return i_descriptor.wrap_get_element(g, (std::size_t) row, 0);
+        return wrap_get_element(i_descriptor, g, (std::size_t) row, 0);
       }
     }
   };

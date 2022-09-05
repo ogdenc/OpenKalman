@@ -20,7 +20,7 @@
 namespace OpenKalman::internal
 {
 #ifdef __cpp_concepts
-  template<typename Derived, typename NestedMatrix, typed_index_descriptor...TypedIndex>
+  template<typename Derived, typename NestedMatrix, fixed_index_descriptor...TypedIndex>
   requires (not std::is_rvalue_reference_v<NestedMatrix>) and (sizeof...(TypedIndex) <= 2)
 #else
   template<typename Derived, typename NestedMatrix, typename...TypedIndex>
@@ -29,7 +29,7 @@ namespace OpenKalman::internal
   {
 
 #ifndef __cpp_concepts
-    static_assert((typed_index_descriptor<TypedIndex> and ...));
+    static_assert((fixed_index_descriptor<TypedIndex> and ...));
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
     static_assert(sizeof...(TypedIndex) <= 2);
 #endif
@@ -158,7 +158,7 @@ namespace OpenKalman::internal
     std::tuple<TypedIndex...> my_dimensions;
 
 #ifdef __cpp_concepts
-    template<typename T, std::size_t N> friend struct OpenKalman::interface::CoordinateSystemTraits;
+    template<typename T, std::size_t N> friend struct interface::CoordinateSystemTraits;
 #else
     template<typename T, std::size_t N, typename Enable> friend struct OpenKalman::interface::CoordinateSystemTraits;
 #endif

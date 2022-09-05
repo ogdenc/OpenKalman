@@ -21,8 +21,9 @@ namespace OpenKalman
   // ------------ //
 
 #ifdef __cpp_concepts
-  template<typed_index_descriptor TypedIndex, covariance_nestable NestedMatrix> requires
-    (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<fixed_index_descriptor TypedIndex, covariance_nestable NestedMatrix> requires
+    (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
+    (not std::is_rvalue_reference_v<NestedMatrix>) and floating_scalar_type<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename TypedIndex, typename NestedMatrix>
 #endif
@@ -30,10 +31,11 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(typed_index_descriptor<TypedIndex>);
+    static_assert(fixed_index_descriptor<TypedIndex>);
     static_assert(covariance_nestable<NestedMatrix>);
     static_assert(dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
+    static_assert(floating_scalar_type<scalar_type_of_t<NestedMatrix>>);
 #endif
 
     using Scalar = scalar_type_of_t<NestedMatrix>; ///< Scalar type for this matrix.
@@ -652,7 +654,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<typed_index_descriptor C, covariance_nestable N> requires
+    template<fixed_index_descriptor C, covariance_nestable N> requires
     (dimension_size_of_v<C> == row_dimension_of_v<N>) and (not std::is_rvalue_reference_v<N>)
 #else
     template<typename, typename>
@@ -661,7 +663,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<typed_index_descriptor C, covariance_nestable N> requires
+    template<fixed_index_descriptor C, covariance_nestable N> requires
       (dimension_size_of_v<C> == row_dimension_of_v<N>) and (not std::is_rvalue_reference_v<N>)
 #else
     template<typename, typename>
@@ -717,15 +719,15 @@ namespace OpenKalman
   // ---------------- //
 
   /**
-   * \brief Make a Covariance from a \ref covariance_nestable, specifying the typed_index_descriptor.
+   * \brief Make a Covariance from a \ref covariance_nestable, specifying the fixed_index_descriptor.
    * \tparam TypedIndex The coefficient types corresponding to the rows and columns.
    * \tparam Arg A \ref covariance_nestable with size matching TypedIndex.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor TypedIndex, covariance_nestable Arg> requires
+  template<fixed_index_descriptor TypedIndex, covariance_nestable Arg> requires
     (dimension_size_of_v<TypedIndex> == row_dimension_of_v<Arg>)
 #else
-  template<typename TypedIndex, typename Arg, std::enable_if_t<typed_index_descriptor<TypedIndex> and
+  template<typename TypedIndex, typename Arg, std::enable_if_t<fixed_index_descriptor<TypedIndex> and
     covariance_nestable<Arg> and (dimension_size_of_v<TypedIndex> == row_dimension_of<Arg>::value), int> = 0>
 #endif
   inline auto
@@ -736,20 +738,20 @@ namespace OpenKalman
 
 
   /**
-   * \brief Make a Covariance from a \ref covariance_nestable, specifying the typed_index_descriptor.
+   * \brief Make a Covariance from a \ref covariance_nestable, specifying the fixed_index_descriptor.
    * \tparam TypedIndex The coefficient types corresponding to the rows and columns.
    * \tparam TriangleType The type of the nested triangular matrix (upper, lower, diagonal).
    * \tparam Arg A \ref covariance_nestable with size matching TypedIndex.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor TypedIndex, TriangleType triangle_type, covariance_nestable Arg> requires
+  template<fixed_index_descriptor TypedIndex, TriangleType triangle_type, covariance_nestable Arg> requires
     (dimension_size_of_v<TypedIndex> == row_dimension_of_v<Arg>) and
     (triangle_type != TriangleType::lower or lower_triangular_matrix<Arg>) and
     (triangle_type != TriangleType::upper or upper_triangular_matrix<Arg>) and
     (triangle_type != TriangleType::diagonal or diagonal_matrix<Arg>)
 #else
   template<typename TypedIndex, TriangleType triangle_type, typename Arg, std::enable_if_t<
-    typed_index_descriptor<TypedIndex> and covariance_nestable<Arg> and
+    fixed_index_descriptor<TypedIndex> and covariance_nestable<Arg> and
     (dimension_size_of_v<TypedIndex> == row_dimension_of<Arg>::value) and
     (triangle_type != TriangleType::lower or lower_triangular_matrix<Arg>) and
     (triangle_type != TriangleType::upper or upper_triangular_matrix<Arg>) and
@@ -789,13 +791,13 @@ namespace OpenKalman
    * \tparam Arg A square, self-adjoint \ref typed_matrix_nestable with size matching TypedIndex.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor TypedIndex, TriangleType triangle_type, typed_matrix_nestable Arg> requires
+  template<fixed_index_descriptor TypedIndex, TriangleType triangle_type, typed_matrix_nestable Arg> requires
     (not covariance_nestable<Arg>) and
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
     (dimension_size_of_v<TypedIndex> == row_dimension_of_v<Arg>) and (dimension_size_of_v<TypedIndex> == column_dimension_of_v<Arg>)
 #else
   template<typename TypedIndex, TriangleType triangle_type, typename Arg, std::enable_if_t<
-    typed_index_descriptor<TypedIndex> and typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
+    fixed_index_descriptor<TypedIndex> and typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
     (dimension_size_of_v<TypedIndex> == row_dimension_of<Arg>::value) and
     (dimension_size_of_v<TypedIndex> == column_dimension_of<Arg>::value), int> = 0>
@@ -815,11 +817,11 @@ namespace OpenKalman
    * \tparam Arg A square \ref typed_matrix_nestable with size matching TypedIndex.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor TypedIndex, typed_matrix_nestable Arg> requires (not covariance_nestable<Arg>) and
+  template<fixed_index_descriptor TypedIndex, typed_matrix_nestable Arg> requires (not covariance_nestable<Arg>) and
     (dimension_size_of_v<TypedIndex> == row_dimension_of_v<Arg>) and (dimension_size_of_v<TypedIndex> == column_dimension_of_v<Arg>)
 #else
   template<typename TypedIndex, typename Arg, std::enable_if_t<
-    typed_index_descriptor<TypedIndex> and typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
+    fixed_index_descriptor<TypedIndex> and typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
     (dimension_size_of_v<TypedIndex> == row_dimension_of<Arg>::value) and
     (dimension_size_of_v<TypedIndex> == column_dimension_of<Arg>::value), int> = 0>
 #endif
@@ -877,7 +879,7 @@ namespace OpenKalman
    * \brief Make a writable, uninitialized Covariance from a \ref covariance_nestable or \ref typed_matrix_nestable.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor TypedIndex, typename Arg> requires
+  template<fixed_index_descriptor TypedIndex, typename Arg> requires
     (covariance_nestable<Arg> or typed_matrix_nestable<Arg>) and square_matrix<Arg>
 #else
   template<typename TypedIndex, typename Arg, std::enable_if_t<
@@ -901,11 +903,11 @@ namespace OpenKalman
    * \brief Make a writable, uninitialized Covariance with a nested triangular matrix, from a \ref typed_matrix_nestable.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor TypedIndex, TriangleType triangle_type, typed_matrix_nestable Arg> requires
+  template<fixed_index_descriptor TypedIndex, TriangleType triangle_type, typed_matrix_nestable Arg> requires
     square_matrix<Arg>
 #else
   template<typename TypedIndex, TriangleType triangle_type, typename Arg,
-    std::enable_if_t<typed_index_descriptor<TypedIndex> and typed_matrix_nestable<Arg> and square_matrix<Arg>, int> = 0>
+    std::enable_if_t<fixed_index_descriptor<TypedIndex> and typed_matrix_nestable<Arg> and square_matrix<Arg>, int> = 0>
 #endif
   inline auto
   make_covariance()

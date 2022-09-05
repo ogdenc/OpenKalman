@@ -28,7 +28,7 @@ namespace OpenKalman
    * It is a native matrix type with both rows and columns corresponding to OutputCoefficients.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor InputCoefficients, typed_index_descriptor OutputCoefficients, typed_matrix_nestable TransformationMatrix,
+  template<fixed_index_descriptor InputCoefficients, fixed_index_descriptor OutputCoefficients, typed_matrix_nestable TransformationMatrix,
       typed_matrix_nestable ... PerturbationTransformationMatrices> requires
     (row_dimension_of_v<TransformationMatrix> == dimension_size_of_v<OutputCoefficients>) and
     (column_dimension_of_v<TransformationMatrix> == dimension_size_of_v<InputCoefficients>) and
@@ -75,15 +75,15 @@ namespace OpenKalman
     /**
      * \internal
      * \brief T is a suitable input to a linear tests constructor.
-     * \tparam RowCoefficients The row \ref typed_index_descriptor of the linear tests matrix.
-     * \tparam ColumnCoefficients The column \ref typed_index_descriptor of the linear tests
+     * \tparam RowCoefficients The row \ref fixed_index_descriptor of the linear tests matrix.
+     * \tparam ColumnCoefficients The column \ref fixed_index_descriptor of the linear tests
      * matrix.
      */
 #ifdef __cpp_concepts
     template<typename T, typename RowCoefficients, typename ColumnCoefficients = RowCoefficients>
     concept linear_transformation_input =
       (typed_matrix<T> or typed_matrix_nestable<T>) and
-      typed_index_descriptor<RowCoefficients> and typed_index_descriptor<ColumnCoefficients> and
+      fixed_index_descriptor<RowCoefficients> and fixed_index_descriptor<ColumnCoefficients> and
       (not typed_matrix<T> or (equivalent_to<row_coefficient_types_of_t<T>, RowCoefficients> and
           equivalent_to<column_coefficient_types_of_t<T>, ColumnCoefficients>)) and
       (not typed_matrix_nestable<T> or (row_dimension_of_v<T> == dimension_size_of_v<RowCoefficients> and
@@ -91,7 +91,7 @@ namespace OpenKalman
 #else
     template<typename T, typename RowCoefficients, typename ColumnCoefficients = RowCoefficients>
     constexpr bool linear_transformation_input =
-      typed_index_descriptor<RowCoefficients> and typed_index_descriptor<ColumnCoefficients> and
+      fixed_index_descriptor<RowCoefficients> and fixed_index_descriptor<ColumnCoefficients> and
       detail::is_linear_transformation_input<T, RowCoefficients, ColumnCoefficients>::value;
 #endif
 
@@ -99,7 +99,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_index_descriptor InputCoefficients, typed_index_descriptor OutputCoefficients, typed_matrix_nestable TransformationMatrix,
+  template<fixed_index_descriptor InputCoefficients, fixed_index_descriptor OutputCoefficients, typed_matrix_nestable TransformationMatrix,
     typed_matrix_nestable ... PerturbationTransformationMatrices> requires
   (row_dimension_of_v<TransformationMatrix> == dimension_size_of_v<OutputCoefficients>) and
     (column_dimension_of_v<TransformationMatrix> == dimension_size_of_v<InputCoefficients>) and
@@ -113,8 +113,8 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(typed_index_descriptor<InputCoefficients>);
-    static_assert(typed_index_descriptor<OutputCoefficients>);
+    static_assert(fixed_index_descriptor<InputCoefficients>);
+    static_assert(fixed_index_descriptor<OutputCoefficients>);
     static_assert(typed_matrix_nestable<TransformationMatrix>);
     static_assert((typed_matrix_nestable<PerturbationTransformationMatrices> and ...));
     static_assert(row_dimension_of_v<TransformationMatrix> == dimension_size_of_v<OutputCoefficients>);

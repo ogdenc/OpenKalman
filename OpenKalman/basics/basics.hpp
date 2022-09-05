@@ -39,12 +39,16 @@ namespace OpenKalman::internal {}
 #include "utils.hpp"
 
 #include "forward-interface-traits.hpp"
+
+#include "scalar-types.hpp"
+#include "functions/scalar_functions.hpp"
+
 #include "index-descriptors/index-descriptors.hpp"
 
 #include "forward-traits.hpp"
 #include "forward-class-declarations.hpp"
 
-#include "functions.hpp"
+#include "functions/functions.hpp"
 
 #include "traits.hpp"
 

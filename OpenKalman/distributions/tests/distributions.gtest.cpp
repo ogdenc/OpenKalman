@@ -13,7 +13,7 @@
 using namespace OpenKalman;
 using namespace OpenKalman::test;
 
-using std::numbers::pi;
+using numbers::pi;
 
 using M1 = eigen_matrix_t<double, 1, 1>;
 using M2 = eigen_matrix_t<double, 2, 2>;

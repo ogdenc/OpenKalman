@@ -20,7 +20,7 @@ namespace OpenKalman::Eigen3
 {
 
 #ifdef __cpp_concepts
-  template<typed_index_descriptor TypedIndex, typename NestedMatrix>
+  template<fixed_index_descriptor TypedIndex, typename NestedMatrix>
   requires (dynamic_index_descriptor<TypedIndex> == dynamic_rows<NestedMatrix>) and
     (not fixed_index_descriptor<TypedIndex> or euclidean_dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
     (not dynamic_index_descriptor<TypedIndex> or
@@ -33,7 +33,7 @@ namespace OpenKalman::Eigen3
   {
 
 #ifndef __cpp_concepts
-    static_assert(typed_index_descriptor<TypedIndex>);
+    static_assert(fixed_index_descriptor<TypedIndex>);
     static_assert(dynamic_index_descriptor<TypedIndex> == dynamic_rows<NestedMatrix>);
     static_assert(not fixed_index_descriptor<TypedIndex> or euclidean_dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>);
 #endif

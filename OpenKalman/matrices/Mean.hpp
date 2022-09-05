@@ -25,7 +25,7 @@ namespace OpenKalman
 
   /// A typed vector.
 #ifdef __cpp_concepts
-  template<typed_index_descriptor RowCoefficients, typed_matrix_nestable NestedMatrix> requires
+  template<fixed_index_descriptor RowCoefficients, typed_matrix_nestable NestedMatrix> requires
     (dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
@@ -36,7 +36,7 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(typed_index_descriptor<RowCoefficients>);
+    static_assert(fixed_index_descriptor<RowCoefficients>);
     static_assert(typed_matrix_nestable<NestedMatrix>);
     static_assert(dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
@@ -404,15 +404,15 @@ namespace OpenKalman
   // ----------------------------- //
 
   /**
-   * \brief Make a Mean from a typed_matrix_nestable, specifying the row typed_index_descriptor.
+   * \brief Make a Mean from a typed_matrix_nestable, specifying the row fixed_index_descriptor.
    * \tparam TypedIndex The coefficient types corresponding to the rows.
    * \tparam M A typed_matrix_nestable with size matching ColumnCoefficients.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor TypedIndex, typed_matrix_nestable M> requires
+  template<fixed_index_descriptor TypedIndex, typed_matrix_nestable M> requires
     (dimension_size_of_v<TypedIndex> == row_dimension_of_v<M>)
 #else
-  template<typename TypedIndex, typename M, std::enable_if_t<typed_index_descriptor<TypedIndex> and
+  template<typename TypedIndex, typename M, std::enable_if_t<fixed_index_descriptor<TypedIndex> and
     typed_matrix_nestable<M> and (dimension_size_of_v<TypedIndex> == row_dimension_of<M>::value), int> = 0>
 #endif
   inline auto make_mean(M&& m) noexcept
@@ -426,7 +426,7 @@ namespace OpenKalman
 
   /**
    * \overload
-   * \brief Make a Mean from a typed_matrix_nestable object, with default Axis typed_index_descriptor.
+   * \brief Make a Mean from a typed_matrix_nestable object, with default Axis fixed_index_descriptor.
    */
 #ifdef __cpp_concepts
   template<typed_matrix_nestable M>
@@ -468,11 +468,11 @@ namespace OpenKalman
    * if it is not already self-contained.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor TypedIndex, typed_matrix_nestable M> requires
+  template<fixed_index_descriptor TypedIndex, typed_matrix_nestable M> requires
     (row_dimension_of_v<M> == dimension_size_of_v<TypedIndex>)
 #else
   template<typename TypedIndex, typename M, std::enable_if_t<
-    typed_index_descriptor<TypedIndex> and typed_matrix_nestable<M> and
+    fixed_index_descriptor<TypedIndex> and typed_matrix_nestable<M> and
     (row_dimension_of<M>::value == dimension_size_of_v<TypedIndex>), int> = 0>
 #endif
   inline auto make_mean()
@@ -483,7 +483,7 @@ namespace OpenKalman
 
   /**
    * \overload
-   * \brief Make a self-contained Mean with default Axis typed_index_descriptor.
+   * \brief Make a self-contained Mean with default Axis fixed_index_descriptor.
    * \tparam M a typed_matrix_nestable on which the new mean is based. It will be converted to a self_contained type
    * if it is not already self-contained.
    */

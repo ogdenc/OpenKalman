@@ -59,7 +59,7 @@ TEST(index_descriptors, Distance)
   static_assert(get_dimension_size_of(Distance{}) == 1);
   static_assert(get_euclidean_dimension_size_of(Distance{}) == 1);
   static_assert(not composite_index_descriptor<Distance>);
-  static_assert(typed_index_descriptor<Distance>);
+  static_assert(fixed_index_descriptor<Distance>);
 }
 
 
@@ -71,7 +71,7 @@ TEST(index_descriptors, Angle)
   static_assert(get_dimension_size_of(angle::Radians{}) == 1);
   static_assert(get_euclidean_dimension_size_of(angle::Radians{}) == 2);
   static_assert(not composite_index_descriptor<angle::Radians>);
-  static_assert(typed_index_descriptor<angle::Radians>);
+  static_assert(fixed_index_descriptor<angle::Radians>);
 }
 
 
@@ -83,7 +83,7 @@ TEST(index_descriptors, Inclination)
   static_assert(get_dimension_size_of(inclination::Radians{}) == 1);
   static_assert(get_euclidean_dimension_size_of(inclination::Radians{}) == 2);
   static_assert(not composite_index_descriptor<inclination::Radians>);
-  static_assert(typed_index_descriptor<inclination::Radians>);
+  static_assert(fixed_index_descriptor<inclination::Radians>);
 }
 
 
@@ -95,7 +95,7 @@ TEST(index_descriptors, Polar)
   static_assert(get_dimension_size_of(Polar<Distance, angle::Radians>{}) == 2);
   static_assert(get_euclidean_dimension_size_of(Polar<Distance, angle::Radians>{}) == 3);
   static_assert(not composite_index_descriptor<Polar<Distance, angle::Radians>>);
-  static_assert(typed_index_descriptor<Polar<Distance, angle::Radians>>);
+  static_assert(fixed_index_descriptor<Polar<Distance, angle::Radians>>);
 }
 
 
@@ -107,7 +107,7 @@ TEST(index_descriptors, Spherical)
   static_assert(get_dimension_size_of(Spherical<Distance, angle::Radians, inclination::Radians>{}) == 3);
   static_assert(get_euclidean_dimension_size_of(Spherical<Distance, angle::Radians, inclination::Radians>{}) == 4);
   static_assert(not composite_index_descriptor<Spherical<Distance, angle::Radians, inclination::Radians>>);
-  static_assert(typed_index_descriptor<Spherical<Distance, angle::Radians, inclination::Radians>>);
+  static_assert(fixed_index_descriptor<Spherical<Distance, angle::Radians, inclination::Radians>>);
 }
 
 
@@ -125,14 +125,14 @@ TEST(index_descriptors, TypedIndex)
   static_assert(euclidean_index_descriptor<TypedIndex<TypedIndex<Axis>, TypedIndex<Axis>>>);
   static_assert(not euclidean_index_descriptor<TypedIndex<Axis, Axis, angle::Radians>>);
   static_assert(not euclidean_index_descriptor<TypedIndex<angle::Radians, Axis, Axis>>);
-  static_assert(typed_index_descriptor<TypedIndex<Axis, Axis, angle::Radians>>);
+  static_assert(fixed_index_descriptor<TypedIndex<Axis, Axis, angle::Radians>>);
   static_assert(not atomic_fixed_index_descriptor<TypedIndex<Axis>>);
-  static_assert(std::is_same_v<TypedIndex<Axis, angle::Radians, Axis>::Coefficient<0>, Axis>);
-  static_assert(std::is_same_v<TypedIndex<Axis, angle::Radians, Axis>::Coefficient<1>, angle::Radians>);
-  static_assert(std::is_same_v<TypedIndex<Axis, angle::Radians, Axis>::Coefficient<2>, Axis>);
-  static_assert(std::is_same_v<TypedIndex<Dimensions<3>, Dimensions<2>, Axis>::Coefficient<0>, Dimensions<3>>);
-  static_assert(std::is_same_v<TypedIndex<Dimensions<3>, Dimensions<2>, Axis>::Coefficient<1>, Dimensions<2>>);
-  static_assert(std::is_same_v<TypedIndex<Dimensions<3>, Dimensions<2>, Axis>::Coefficient<2>, Axis>);
+  static_assert(std::is_same_v<TypedIndex<Axis, angle::Radians, Axis>::Select<0>, Axis>);
+  static_assert(std::is_same_v<TypedIndex<Axis, angle::Radians, Axis>::Select<1>, angle::Radians>);
+  static_assert(std::is_same_v<TypedIndex<Axis, angle::Radians, Axis>::Select<2>, Axis>);
+  static_assert(std::is_same_v<TypedIndex<Dimensions<3>, Dimensions<2>, Axis>::Select<0>, Dimensions<3>>);
+  static_assert(std::is_same_v<TypedIndex<Dimensions<3>, Dimensions<2>, Axis>::Select<1>, Dimensions<2>>);
+  static_assert(std::is_same_v<TypedIndex<Dimensions<3>, Dimensions<2>, Axis>::Select<2>, Axis>);
   static_assert(std::is_same_v<dimension_difference_of_t<TypedIndex<Distance, angle::Radians, inclination::Radians>>, TypedIndex<Axis, angle::Radians, Axis>>);
   static_assert(get_dimension_size_of(TypedIndex<Axis, Axis, angle::Radians>{}) == 3);
   static_assert(get_euclidean_dimension_size_of(TypedIndex<Axis, Axis, angle::Radians>{}) == 4);
@@ -152,7 +152,6 @@ TEST(index_descriptors, prepend_append)
 
 TEST(index_descriptors, Take)
 {
-  // Take
   static_assert(std::is_same_v<TypedIndex<>::Take<0>, TypedIndex<>>);
   static_assert(std::is_same_v<TypedIndex<angle::Radians>::Take<1>, TypedIndex<angle::Radians>>);
   static_assert(std::is_same_v<TypedIndex<Axis, angle::Radians, Axis, Axis, angle::Radians>::Take<3>, TypedIndex<Axis, angle::Radians, Axis>>);
@@ -162,7 +161,6 @@ TEST(index_descriptors, Take)
 
 TEST(index_descriptors, Discard)
 {
-  // Discard
   static_assert(std::is_same_v<TypedIndex<Axis>::Discard<0>, TypedIndex<Axis>>);
   static_assert(std::is_same_v<TypedIndex<angle::Radians>::Discard<1>, TypedIndex<>>);
   static_assert(std::is_same_v<TypedIndex<Axis, angle::Radians, Axis, Axis, angle::Radians>::Discard<3>, TypedIndex<Axis, angle::Radians>>);
@@ -172,7 +170,6 @@ TEST(index_descriptors, Discard)
 
 TEST(index_descriptors, replicate_fixed_index_descriptor)
 {
-  // Replicate
   static_assert(std::is_same_v<replicate_fixed_index_descriptor_t<angle::Radians, 0>, TypedIndex<>>);
   static_assert(std::is_same_v<replicate_fixed_index_descriptor_t<angle::Radians, 1>, angle::Radians>);
   static_assert(std::is_same_v<replicate_fixed_index_descriptor_t<angle::Radians, 2>, TypedIndex<angle::Radians, angle::Radians>>);
@@ -202,7 +199,7 @@ TEST(index_descriptors, concatenate_fixed_index_descriptor_t)
 }
 
 
-TEST(index_descriptors, reduced_typed_index_descriptor)
+TEST(index_descriptors, canonical_fixed_index_descriptor)
 {
   static_assert(std::is_same_v<canonical_fixed_index_descriptor_t<TypedIndex<>>, TypedIndex<>>);
   static_assert(std::is_same_v<canonical_fixed_index_descriptor_t<Axis>, TypedIndex<Axis>>);
@@ -290,41 +287,49 @@ TEST(index_descriptors, has_uniform_dimension_type)
 
 TEST(index_descriptors, comparison)
 {
-  static_assert(Dimensions<3>{} == Dimensions<3>{});
-  static_assert(Dimensions<3>{} <= Dimensions<3>{});
-  static_assert(Dimensions<3>{} >= Dimensions<3>{});
+  // Note: some tests cannot be static_assert because of a bug in GCC 10.0
+  EXPECT_TRUE(Dimensions<3>{} == Dimensions<3>{});
+  EXPECT_TRUE(Dimensions<3>{} <= Dimensions<3>{});
+  EXPECT_TRUE(Dimensions<3>{} >= Dimensions<3>{});
   EXPECT_TRUE((Dimensions<3>{} != Dimensions<4>{}));
   EXPECT_TRUE((Dimensions<3>{} < Dimensions<4>{}));
   EXPECT_TRUE((Dimensions<3>{} <= Dimensions<4>{}));
   EXPECT_TRUE((Dimensions<4>{} > Dimensions<3>{}));
   EXPECT_TRUE((Dimensions<4>{} >= Dimensions<3>{}));
 
-  static_assert(Dimensions<3>{} == TypedIndex<Axis, Axis, Axis>{});
-  static_assert(Dimensions<3>{} <= TypedIndex<Axis, Axis, Axis>{});
-  EXPECT_TRUE((Dimensions<3>{} < TypedIndex<Axis, Axis, Axis, Axis>{}));
+  EXPECT_TRUE((Dimensions<3>{} == TypedIndex<Axis, Axis, Axis>{}));
+  EXPECT_TRUE((Dimensions<3>{} <= TypedIndex<Axis, Axis, Axis>{}));
   EXPECT_TRUE((Dimensions<3>{} <= TypedIndex<Axis, Axis, Axis, Axis>{}));
+  EXPECT_TRUE((Dimensions<3>{} < TypedIndex<Axis, Axis, Axis, Axis>{}));
+  EXPECT_TRUE((Dimensions<4>{} >= TypedIndex<Axis, Axis, Axis, Axis>{}));
+  EXPECT_TRUE((Dimensions<4>{} >= TypedIndex<Axis, Axis, Axis>{}));
+  EXPECT_TRUE((Dimensions<4>{} > TypedIndex<Axis, Axis, Axis>{}));
 
-  static_assert(TypedIndex<> {} == TypedIndex<> {});
+  EXPECT_TRUE(TypedIndex<> {} == TypedIndex<> {});
   static_assert(TypedIndex<Axis, angle::Radians>{} == TypedIndex<Axis, angle::Radians>{});
   static_assert(TypedIndex<Axis, angle::Radians>{} <= TypedIndex<Axis, angle::Radians>{});
+  static_assert(TypedIndex<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{} == TypedIndex<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{});
+  static_assert(TypedIndex<Axis, Dimensions<3>, angle::Radians, Axis, Dimensions<2>>{} < TypedIndex<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<4>>{});
+  static_assert(TypedIndex<Axis, angle::Radians>{} < TypedIndex<Axis, angle::Radians, Axis>{});
   static_assert(TypedIndex<Axis, angle::Radians>{} >= TypedIndex<Axis, angle::Radians>{});
-  EXPECT_TRUE((TypedIndex<Axis, angle::Radians>{} < TypedIndex<Axis, angle::Radians, Axis>{}));
-  EXPECT_TRUE((TypedIndex<Axis, angle::Radians>{} <= TypedIndex<Axis, angle::Radians, Axis>{}));
+  static_assert(TypedIndex<Axis, angle::Radians, Axis>{} > TypedIndex<Axis, angle::Radians>{});
 
   static_assert(angle::Radians{} == angle::Radians{});
   static_assert(inclination::Radians{} == inclination::Radians{});
   static_assert(angle::Radians{} != inclination::Radians{});
   static_assert(not (angle::Radians{} < inclination::Radians{}));
-  EXPECT_TRUE((Polar<Distance, angle::Radians>{} != Dimensions<5>{}));
-  EXPECT_TRUE((Polar<Distance, angle::Radians>{} < Dimensions<5>{}));
-  EXPECT_TRUE((Spherical<Distance, inclination::Radians, angle::Radians>{} != Dimensions<5>{}));
-  EXPECT_TRUE((Spherical<Distance, inclination::Radians, angle::Radians>{} < Dimensions<5>{}));
+  static_assert((Polar<Distance, angle::Radians>{} != Dimensions<5>{}));
+  static_assert(not (Polar<Distance, angle::Radians>{} < Dimensions<5>{}));
+  static_assert((Spherical<Distance, inclination::Radians, angle::Radians>{} != Dimensions<5>{}));
+  static_assert(not (Spherical<Distance, inclination::Radians, angle::Radians>{} < Dimensions<5>{}));
 }
 
 
 TEST(index_descriptors, fixed_arithmetic)
 {
-  static_assert(Dimensions<3>{} + Dimensions<4>{} == Dimensions<7>{});
-  static_assert(TypedIndex<Axis, Axis>{} + TypedIndex<Axis, Axis, Axis>{} == Dimensions<5>{});
-  static_assert(Dimensions<7>{} - Dimensions<4>{} == Dimensions<3>{});
+  // Note: some tests cannot be static_assert because of a bug in GCC 10.0
+  EXPECT_TRUE(Dimensions<3>{} + Dimensions<4>{} == Dimensions<7>{});
+  EXPECT_TRUE((TypedIndex<Axis, Axis>{} + TypedIndex<Axis, Axis, Axis>{} == Dimensions<5>{}));
+  EXPECT_TRUE(Dimensions<7>{} - Dimensions<4>{} == Dimensions<3>{});
+  static_assert(Polar<Distance, angle::Radians>{} + Dimensions<2>{} == TypedIndex<Polar<Distance, angle::Radians>, Axis, Axis>{});
 }

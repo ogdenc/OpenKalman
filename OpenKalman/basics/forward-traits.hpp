@@ -128,7 +128,9 @@ namespace OpenKalman
 
   /**
    * \brief The dimension of an index for a matrix, expression, or array.
-   * \note If the dimension is dynamic, then <code>value</code> is \ref dynamic_size.
+   * \details The static constexpr <code>value</code> member indicates the size of the object associated with a
+   * particular index. If the dimension is undefined <code>value</code> will be 0. If the dimension is dynamic,
+   * <code>value</code> will be \ref dynamic_size.
    * \tparam N The index
    * \tparam T The matrix, expression, or array
    * \internal \sa interface::IndexTraits
@@ -414,7 +416,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that T has a typed index N.
-   * \details Index N of T is be modular (e.g., Angle, Polar, Spherical, etc.).
+   * \details Index N of T is modular (e.g., Angle, Polar, Spherical, etc.).
    */
 #ifdef __cpp_concepts
   template<typename T, std::size_t N>
@@ -423,7 +425,32 @@ namespace OpenKalman
   template<typename T, std::size_t N>
   constexpr bool has_typed_index =
 #endif
-    typed_index_descriptor<coefficient_types_of_t<T, N>>;
+    fixed_index_descriptor<coefficient_types_of_t<T, N>>;
+
+
+  // ----------------------- //
+  //   has_any_typed_index   //
+  // ----------------------- //
+
+  namespace detail
+  {
+    template<typename T, std::size_t...I>
+    constexpr bool has_any_typed_index_impl(std::index_sequence<I...>) { return (has_typed_index<T, I> or ...); }
+  }
+
+
+  /**
+   * \brief Specifies that T has any typed indices.
+   * \details No index of T is modular (e.g., Angle, Polar, Spherical, etc.).
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept has_any_typed_index =
+#else
+  template<typename T>
+  constexpr bool has_any_typed_index =
+#endif
+    (detail::has_any_typed_index_impl<T>(std::make_index_sequence<max_indices_of_v<T>> {}));
 
 
   // ------------------ //
@@ -1069,7 +1096,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a matrix is square (i.e., has the same number and type of rows and column).
-   * \details If T is a \ref typed_matrix, the row typed_index_descriptor must also be \ref equivalent_to the column typed_index_descriptor.
+   * \details If T is a \ref typed_matrix, the row fixed_index_descriptor must also be \ref equivalent_to the column fixed_index_descriptor.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -1133,7 +1160,7 @@ namespace OpenKalman
 
 
   /**
-   * \brief Specifies that T is a wrapped mean (i.e., its row typed_index_descriptor have at least one type that requires wrapping).
+   * \brief Specifies that T is a wrapped mean (i.e., its row fixed_index_descriptor have at least one type that requires wrapping).
    */
 #ifdef __cpp_concepts
   template<typename T>

@@ -13,7 +13,7 @@
 using namespace OpenKalman;
 using namespace OpenKalman::test;
 
-using std::numbers::pi;
+using numbers::pi;
 
 
 using M1 = Mean<Axis, eigen_matrix_t<double, 1, 1>>;

@@ -13,8 +13,8 @@
 using namespace OpenKalman;
 using namespace OpenKalman::test;
 
-using std::numbers::pi;
-using std::numbers::sqrt2;
+using numbers::pi;
+using numbers::sqrt2;
 
 using M12 = eigen_matrix_t<double, 1, 2>;
 using M21 = eigen_matrix_t<double, 2, 1>;

@@ -20,7 +20,7 @@ using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
 
-using std::numbers::pi;
+using numbers::pi;
 
 
 namespace
@@ -43,7 +43,7 @@ namespace
 
   using To23 = ToEuclideanExpr<Car, M23>;
   using To32 = ToEuclideanExpr<Cara, M32>;
-  using To02 = ToEuclideanExpr<DynamicTypedIndex<double>, M02>;
+  using To02 = ToEuclideanExpr<DynamicTypedIndex, M02>;
 
   auto dara = DynamicTypedIndex {Cara {}};
 

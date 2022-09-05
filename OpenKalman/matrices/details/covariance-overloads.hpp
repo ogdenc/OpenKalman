@@ -121,14 +121,14 @@ namespace OpenKalman
       else if constexpr (fixed_index_descriptor<column_coefficient_types_of_t<Arg>>)
       {
         static_assert(sizeof...(index) > 0);
-        using CC = column_coefficient_types_of_t<Arg>::template Coefficient<index...>;
+        using CC = column_coefficient_types_of_t<Arg>::template Select<index...>;
         static_assert(dimension_size_of_v<CC> == 1);
         return make_matrix<RC, CC>(column<index...>(to_covariance_nestable(std::forward<Arg>(arg))));
       }
       else
       {
         static_assert(dynamic_index_descriptor<column_coefficient_types_of_t<Arg>>);
-        using CC = column_coefficient_types_of_t<Arg>::template Coefficient<index...>;
+        using CC = column_coefficient_types_of_t<Arg>::template Select<index...>;
         return make_matrix<RC, CC>(column(to_covariance_nestable(std::forward<Arg>(arg)), i...));
       }
     }
@@ -148,14 +148,14 @@ namespace OpenKalman
       else if constexpr (fixed_index_descriptor<row_coefficient_types_of_t<Arg>>)
       {
         static_assert(sizeof...(index) > 0);
-        using RC = row_coefficient_types_of_t<Arg>::template Coefficient<index...>;
+        using RC = row_coefficient_types_of_t<Arg>::template Select<index...>;
         static_assert(dimension_size_of_v<RC> == 1);
         return make_matrix<RC, CC>(column<index...>(to_covariance_nestable(std::forward<Arg>(arg))));
       }
       else
       {
         static_assert(dynamic_index_descriptor<row_coefficient_types_of_t<Arg>>);
-        using RC = row_coefficient_types_of_t<Arg>::template Coefficient<index...>;
+        using RC = row_coefficient_types_of_t<Arg>::template Select<index...>;
         return make_matrix<RC, CC>(column<index...>(to_covariance_nestable(std::forward<Arg>(arg)), i...));
       }
     }
@@ -392,7 +392,7 @@ namespace OpenKalman
 
   /// Split Covariance or SquareRootCovariance diagonally.
 #ifdef __cpp_concepts
-  template<typed_index_descriptor ... Cs, covariance M>
+  template<fixed_index_descriptor ... Cs, covariance M>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
@@ -406,7 +406,7 @@ namespace OpenKalman
 
   /// Split Covariance or SquareRootCovariance vertically. Result is a tuple of typed matrices.
 #ifdef __cpp_concepts
-  template<typed_index_descriptor ... Cs, covariance M>
+  template<fixed_index_descriptor ... Cs, covariance M>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
@@ -421,7 +421,7 @@ namespace OpenKalman
 
   /// Split Covariance or SquareRootCovariance vertically. Result is a tuple of typed matrices.
 #ifdef __cpp_concepts
-  template<typed_index_descriptor ... Cs, covariance M>
+  template<fixed_index_descriptor ... Cs, covariance M>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif

@@ -15,7 +15,7 @@ using namespace OpenKalman;
 using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
-using std::numbers::pi;
+using numbers::pi;
 
 namespace
 {

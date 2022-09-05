@@ -20,7 +20,7 @@ namespace OpenKalman
   // --------------- //
 
 #ifdef __cpp_concepts
-  template<typed_index_descriptor RowCoefficients, typed_matrix_nestable NestedMatrix> requires
+  template<fixed_index_descriptor RowCoefficients, typed_matrix_nestable NestedMatrix> requires
     (euclidean_dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
@@ -31,7 +31,7 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(typed_index_descriptor<RowCoefficients>);
+    static_assert(fixed_index_descriptor<RowCoefficients>);
     static_assert(typed_matrix_nestable<NestedMatrix>);
     static_assert(euclidean_dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
@@ -131,13 +131,13 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, EuclideanMean>) and
-      (not euclidean_transformed<Arg> and typed_index_descriptor<RowCoefficients>) and
+      (not euclidean_transformed<Arg> and fixed_index_descriptor<RowCoefficients>) and
       equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
       has_untyped_index<Arg, 1> and modifiable<NestedMatrix, nested_matrix_of_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
       (not std::is_base_of_v<EuclideanMean, std::decay_t<Arg>>) and
-      (not euclidean_transformed<Arg> and typed_index_descriptor<RowCoefficients>) and
+      (not euclidean_transformed<Arg> and fixed_index_descriptor<RowCoefficients>) and
       equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
       has_untyped_index<Arg, 1> and modifiable<NestedMatrix, nested_matrix_of_t<Arg>>, int> = 0>
 #endif
@@ -311,10 +311,10 @@ euclidean_dimension_size_of_v<row_coefficient_types_of_t<V>> == row_dimension_of
    * \tparam M A typed_matrix_nestable with size matching ColumnCoefficients.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor TypedIndex, typed_matrix_nestable M> requires
+  template<fixed_index_descriptor TypedIndex, typed_matrix_nestable M> requires
     (euclidean_dimension_size_of_v<TypedIndex> == row_dimension_of_v<M>)
 #else
-  template<typename TypedIndex, typename M, std::enable_if_t<typed_index_descriptor<TypedIndex> and
+  template<typename TypedIndex, typename M, std::enable_if_t<fixed_index_descriptor<TypedIndex> and
     typed_matrix_nestable<M> and (euclidean_dimension_size_of_v<TypedIndex> == row_dimension_of<M>::value), int> = 0>
 #endif
   auto make_euclidean_mean(M&& arg) noexcept
@@ -367,10 +367,10 @@ euclidean_dimension_size_of_v<row_coefficient_types_of_t<V>> == row_dimension_of
    * if it is not already self-contained.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor TypedIndex, typed_matrix_nestable M> requires
+  template<fixed_index_descriptor TypedIndex, typed_matrix_nestable M> requires
     (euclidean_dimension_size_of_v<TypedIndex> == row_dimension_of_v<M>)
 #else
-  template<typename TypedIndex, typename M, std::enable_if_t<typed_index_descriptor<TypedIndex> and
+  template<typename TypedIndex, typename M, std::enable_if_t<fixed_index_descriptor<TypedIndex> and
     typed_matrix_nestable<M> and (euclidean_dimension_size_of_v<TypedIndex> == row_dimension_of<M>::value), int> = 0>
 #endif
   auto make_euclidean_mean()

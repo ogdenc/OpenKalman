@@ -44,19 +44,9 @@ namespace OpenKalman::interface
         auto g {[&arg, is...](std::size_t ix) { return get_element(nested_matrix(std::forward<Arg>(arg)), ix, is...); }};
 
         if constexpr(to_euclidean_expr<Arg>)
-        {
-          if constexpr (typed_index_descriptor<coefficient_types_of_t<T, 0>>)
-            return coefficient_types_of_t<Arg, 0>::template to_euclidean_element<Scalar>(g, i, 0);
-          else
-            return get_dimensions_of<0>(arg).to_euclidean_element(g, i, 0);
-        }
+          return to_euclidean_element(get_dimensions_of<0>(arg), g, i, 0);
         else
-        {
-          if constexpr (typed_index_descriptor<coefficient_types_of_t<T, 0>>)
-            return coefficient_types_of_t<Arg, 0>::template from_euclidean_element<Scalar>(g, i, 0);
-          else
-            return get_dimensions_of<0>(arg).from_euclidean_element(g, i, 0);
-        }
+          return from_euclidean_element(get_dimensions_of<0>(arg), g, i, 0);
       }
     }
   };
@@ -83,12 +73,8 @@ namespace OpenKalman::interface
       }
       else
       {
-        using Scalar = scalar_type_of_t<Arg>;
         auto g {[&arg, is...](std::size_t ix) { return get_element(nested_matrix(std::forward<Arg>(arg)), ix, is...); }};
-        if constexpr (typed_index_descriptor<coefficient_types_of_t<T, 0>>)
-          return coefficient_types_of_t<Arg, 0>::template wrap_get_element<Scalar>(g, i, 0);
-        else
-          return get_dimensions_of<0>(arg).wrap_get_element(g, i, 0);
+        return wrap_get_element(get_dimensions_of<0>(arg), g, i, 0);
       }
     }
   };
@@ -148,10 +134,7 @@ namespace OpenKalman::interface
       {
         auto s {[&arg, is...](Scalar x, std::size_t i) { return set_element(nested_matrix(nested_matrix(arg)), x, i, is...); }};
         auto g {[&arg, is...](std::size_t ix) { return get_element(nested_matrix(nested_matrix(arg)), ix, is...); }};
-        if constexpr (typed_index_descriptor<coefficient_types_of_t<Arg, 0>>)
-          coefficient_types_of_t<Arg, 0>::template wrap_set_element<Scalar>(s, g, x, i, 0);
-        else
-          get_dimensions_of<0>(arg).wrap_set_element(s, g, x, i, 0);
+        wrap_set_element(get_dimensions_of<0>(arg), s, g, x, i, 0);
       }
     }
   };
@@ -541,11 +524,11 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions vertically.
 #ifdef __cpp_concepts
-  template<typename F, typed_index_descriptor...Cs, euclidean_expr Arg> requires (not typed_index_descriptor<F>) and
+  template<typename F, fixed_index_descriptor...Cs, euclidean_expr Arg> requires (not fixed_index_descriptor<F>) and
     prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<Arg>>
 #else
   template<typename F, typename...Cs, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
-    (not typed_index_descriptor<F>) and prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<Arg>>, int> = 0>
+    (not fixed_index_descriptor<F>) and prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<Arg>>, int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg) noexcept
@@ -558,11 +541,11 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions vertically.
 #ifdef __cpp_concepts
-  template<typename F, bool, typed_index_descriptor...Cs, euclidean_expr Arg> requires (not typed_index_descriptor<F>) and
+  template<typename F, bool, fixed_index_descriptor...Cs, euclidean_expr Arg> requires (not fixed_index_descriptor<F>) and
     prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<Arg>>
 #else
   template<typename F, bool, typename...Cs, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
-    (not typed_index_descriptor<F>) and prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<Arg>>, int> = 0>
+    (not fixed_index_descriptor<F>) and prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<Arg>>, int> = 0>
 #endif
   inline auto
   split_vertical(Arg&& arg) noexcept
@@ -573,7 +556,7 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions vertically.
 #ifdef __cpp_concepts
-  template<typed_index_descriptor...Cs, euclidean_expr Arg> requires
+  template<fixed_index_descriptor...Cs, euclidean_expr Arg> requires
     prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<Arg>>
 #else
   template<typename...Cs, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
@@ -615,11 +598,11 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions horizontally.
 #ifdef __cpp_concepts
-  template<typename F, typed_index_descriptor...Cs, euclidean_expr Arg> requires
-    (not typed_index_descriptor<F>) and ((0 + ... + dimension_size_of_v<Cs>) <= column_dimension_of_v<Arg>)
+  template<typename F, fixed_index_descriptor...Cs, euclidean_expr Arg> requires
+    (not fixed_index_descriptor<F>) and ((0 + ... + dimension_size_of_v<Cs>) <= column_dimension_of_v<Arg>)
 #else
   template<typename F, typename...Cs, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
-    (not typed_index_descriptor<F>) and ((0 + ... + dimension_size_of_v<Cs>) <= column_dimension_of<Arg>::value), int> = 0>
+    (not fixed_index_descriptor<F>) and ((0 + ... + dimension_size_of_v<Cs>) <= column_dimension_of<Arg>::value), int> = 0>
 #endif
   inline auto
   split_horizontal(Arg&& arg) noexcept
@@ -632,10 +615,10 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions horizontally.
 #ifdef __cpp_concepts
-  template<typed_index_descriptor...Cs, euclidean_expr Arg>
+  template<fixed_index_descriptor...Cs, euclidean_expr Arg>
 #else
   template<typename...Cs, typename Arg, std::enable_if_t<
-    euclidean_expr<Arg> and (typed_index_descriptor<Cs> and ...), int> = 0>
+    euclidean_expr<Arg> and (fixed_index_descriptor<Cs> and ...), int> = 0>
 #endif
   inline auto
   split_horizontal(Arg&& arg) noexcept
@@ -667,11 +650,11 @@ namespace OpenKalman::Eigen3
    * \brief Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
    */
 #ifdef __cpp_concepts
-  template<typename F, typed_index_descriptor...Cs, euclidean_expr Arg> requires square_matrix<Arg> and (not typed_index_descriptor<F>) and
+  template<typename F, fixed_index_descriptor...Cs, euclidean_expr Arg> requires square_matrix<Arg> and (not fixed_index_descriptor<F>) and
     prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<Arg>>
 #else
   template<typename F, typename...Cs, typename Arg, std::enable_if_t<euclidean_expr<Arg> and square_matrix<Arg> and
-    (not typed_index_descriptor<F>) and prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<Arg>>, int> = 0>
+    (not fixed_index_descriptor<F>) and prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<Arg>>, int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept
@@ -683,11 +666,11 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
 #ifdef __cpp_concepts
-  template<typename F, bool, typed_index_descriptor...Cs, euclidean_expr Arg> requires square_matrix<Arg> and
-    (not typed_index_descriptor<F>) and prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<Arg>>
+  template<typename F, bool, fixed_index_descriptor...Cs, euclidean_expr Arg> requires square_matrix<Arg> and
+    (not fixed_index_descriptor<F>) and prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<Arg>>
 #else
   template<typename F, bool, typename...Cs, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
-    square_matrix<Arg> and (not typed_index_descriptor<F>) and
+    square_matrix<Arg> and (not fixed_index_descriptor<F>) and
     prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<Arg>>, int> = 0>
 #endif
   inline auto
@@ -699,11 +682,11 @@ namespace OpenKalman::Eigen3
 
   /// Split into one or more Euclidean expressions diagonally. The valuated expression must be square.
 #ifdef __cpp_concepts
-  template<typed_index_descriptor...Cs, euclidean_expr Arg> requires square_matrix<Arg> and
+  template<fixed_index_descriptor...Cs, euclidean_expr Arg> requires square_matrix<Arg> and
     prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<Arg>>
 #else
   template<typename...Cs, typename Arg, std::enable_if_t<euclidean_expr<Arg> and square_matrix<Arg> and
-    (typed_index_descriptor<Cs> and ...) and prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<Arg>>, int> = 0>
+    (fixed_index_descriptor<Cs> and ...) and prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<Arg>>, int> = 0>
 #endif
   inline auto
   split_diagonal(Arg&& arg) noexcept

@@ -301,7 +301,7 @@ namespace OpenKalman
      * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
      */
   #ifdef __cpp_concepts
-    template<typed_index_descriptor TypedIndex, typename NestedMatrix>
+    template<fixed_index_descriptor TypedIndex, typename NestedMatrix>
     requires (dynamic_index_descriptor<TypedIndex> == dynamic_rows<NestedMatrix>) and
       (not fixed_index_descriptor<TypedIndex> or euclidean_dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
       (not dynamic_index_descriptor<TypedIndex> or
@@ -344,7 +344,7 @@ namespace OpenKalman
      * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
      */
   #ifdef __cpp_concepts
-    template<typed_index_descriptor TypedIndex, typename NestedMatrix> requires (not from_euclidean_expr<NestedMatrix>) and
+    template<fixed_index_descriptor TypedIndex, typename NestedMatrix> requires (not from_euclidean_expr<NestedMatrix>) and
       (dynamic_index_descriptor<TypedIndex> == dynamic_rows<NestedMatrix>) and
       (not fixed_index_descriptor<TypedIndex> or dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
       (not dynamic_index_descriptor<TypedIndex> or
@@ -405,7 +405,7 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor RowCoefficients, typed_index_descriptor ColumnCoefficients, typed_matrix_nestable NestedMatrix>
+  template<fixed_index_descriptor RowCoefficients, fixed_index_descriptor ColumnCoefficients, typed_matrix_nestable NestedMatrix>
   requires (dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>) and
     (dimension_size_of_v<ColumnCoefficients> == column_dimension_of_v<NestedMatrix>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
@@ -420,7 +420,7 @@ namespace OpenKalman
   namespace internal
   {
     template<typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
-    struct is_matrix<OpenKalman::Matrix<RowCoefficients, ColumnCoefficients, NestedMatrix>> : std::true_type {};
+    struct is_matrix<Matrix<RowCoefficients, ColumnCoefficients, NestedMatrix>> : std::true_type {};
   }
 
 
@@ -437,7 +437,7 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor RowCoefficients, typed_matrix_nestable NestedMatrix> requires
+  template<fixed_index_descriptor RowCoefficients, typed_matrix_nestable NestedMatrix> requires
   (dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>) and
   (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
@@ -466,7 +466,7 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor TypedIndex, typed_matrix_nestable NestedMatrix> requires
+  template<fixed_index_descriptor TypedIndex, typed_matrix_nestable NestedMatrix> requires
   (euclidean_dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename TypedIndex, typename NestedMatrix>
@@ -491,8 +491,9 @@ namespace OpenKalman
    * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor TypedIndex, covariance_nestable NestedMatrix> requires
-    (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<fixed_index_descriptor TypedIndex, covariance_nestable NestedMatrix> requires
+    (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
+    (not std::is_rvalue_reference_v<NestedMatrix>) and floating_scalar_type<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename TypedIndex, typename NestedMatrix>
 #endif
@@ -518,8 +519,9 @@ namespace OpenKalman
    * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<typed_index_descriptor TypedIndex, covariance_nestable NestedMatrix> requires
-    (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<fixed_index_descriptor TypedIndex, covariance_nestable NestedMatrix> requires
+    (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
+    (not std::is_rvalue_reference_v<NestedMatrix>) and floating_scalar_type<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename TypedIndex, typename NestedMatrix>
 #endif
@@ -543,7 +545,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<
-    typed_index_descriptor TypedIndex,
+    fixed_index_descriptor TypedIndex,
     typed_matrix_nestable MeanNestedMatrix,
     covariance_nestable CovarianceNestedMatrix,
     std::uniform_random_bit_generator random_number_engine = std::mt19937> requires
@@ -593,7 +595,7 @@ namespace OpenKalman
      * \tparam TypedIndex The \ref OpenKalman::coefficients "coefficients" representing the rows and columns of the matrix.
      */
 #ifdef __cpp_concepts
-    template<typename Derived, typename NestedMatrix, typed_index_descriptor...TypedIndex>
+    template<typename Derived, typename NestedMatrix, fixed_index_descriptor...TypedIndex>
     requires (not std::is_rvalue_reference_v<NestedMatrix>) and (sizeof...(TypedIndex) <= 2)
 #else
     template<typename Derived, typename NestedMatrix, typename...TypedIndex>
