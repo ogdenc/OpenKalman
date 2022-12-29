@@ -32,7 +32,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
   template<typename T>
 #else
-  template<typename T, typename = void>
+  template<typename T, typename /* == void */>
 #endif
   struct ScalarTraits
   {
@@ -40,14 +40,8 @@ namespace OpenKalman::interface
      * \brief Project to a corresponding \ref std::floating_point type representing a point on a real axis.
      * \details For example, for a complex number, this function returns the real part. If an argument is already
      * \ref std::floating_point, the function returns the argument unchanged.
-     * \param arg An argument of type T
      */
-#ifdef __cpp_concepts
-    template<std::convertible_to<const std::decay_t<T>&> Arg>
-#else
-    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::decay_t<T>&>, int> = 0>
-#endif
-    static constexpr auto real_projection(Arg&& arg) = delete;
+    static constexpr auto real_projection(std::decay_t<T> t) = delete;
 
 
     /**
@@ -67,6 +61,90 @@ namespace OpenKalman::interface
       std::is_convertible_v<Arg, const std::decay_t<T>&> and std::is_floating_point_v<RealProj>, int> = 0>
 #endif
     static constexpr auto inverse_real_projection(Arg&& arg, RealProj p) = delete;
+
+
+    /*
+     * \brief Take the imaginary part, if complex.
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::decay_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::decay_t<T>&>, int> = 0>
+#endif
+    static constexpr auto imag(Arg&& arg) = delete;
+
+
+    /**
+     * \brief The complex conjugate.
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::decay_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::decay_t<T>&>, int> = 0>
+#endif
+    static constexpr auto conj(Arg&& arg) = delete;
+
+
+    /*
+     * \brief Sine function.
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::decay_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::decay_t<T>&>, int> = 0>
+#endif
+    static auto sin(Arg&& arg) = delete;
+
+
+    /*
+     * \brief Cosine function.
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::decay_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::decay_t<T>&>, int> = 0>
+#endif
+    static auto cos(Arg&& arg) = delete;
+
+
+    /*
+     * \brief Square root.
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::decay_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::decay_t<T>&>, int> = 0>
+#endif
+    static auto sqrt(Arg&& arg) = delete;
+
+
+    /**
+     * \brief Two-parameter arcsine function.
+     * \param y Y-axis
+     * \param r Radius
+     * \return
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::decay_t<T>&> Y, typename  R>
+#else
+    template<typename Y, typename R, std::enable_if_t<std::is_convertible_v<Y, const std::decay_t<T>&>, int> = 0>
+#endif
+    static auto asin2(Y&& y, R&& r) = delete;
+
+
+    /**
+     * \brief Two-parameter arctangent function.
+     * \param y Y-axis
+     * \param x X-axis
+     * \return
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::decay_t<T>&> Y, typename  X>
+#else
+    template<typename Y, typename X, std::enable_if_t<std::is_convertible_v<Y, const std::decay_t<T>&>, int> = 0>
+#endif
+    static auto atan2(Y&& y, X&& x) = delete;
+
   };
 
 
@@ -114,10 +192,12 @@ namespace OpenKalman::interface
   struct IndexTraits
   {
     /**
+     * \var dimension
      * \brief The dimension of index N of T, evaluated at compile time.
      * \details For example, a 2-by-3 matrix has dimension 2 in index 0 (rows) and dimension 3 in index 1 (columns).
+     * static constexpr std::size_t dimension = 0;
+     * \code\endcode
      */
-     static constexpr std::size_t dimension = 0;
 
 
     /**
@@ -208,7 +288,7 @@ namespace OpenKalman::interface
 #else
     template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
 #endif
-    static void set(Arg& arg, const typename IndexibleObjectTraits<std::decay_t<Arg>>::scalar_type& s, I...i) = delete;
+    static Arg& set(Arg& arg, const typename IndexibleObjectTraits<std::decay_t<Arg>>::scalar_type& s, I...i) = delete;
   };
 
 
@@ -228,6 +308,11 @@ namespace OpenKalman::interface
 #endif
   struct EquivalentDenseWritableMatrix
   {
+    /**
+     * \brief Whether T is already a writable, self-contained matrix or array.
+     */
+    static constexpr bool is_writable = false;
+
 
     /**
      * \brief Converts a matrix/array convertible to type <code>T</code> into a dense, writable matrix/array.
@@ -393,7 +478,7 @@ namespace OpenKalman::interface
      * \brief Create a \ref constant_matrix corresponding to the shape of T.
      * \details Takes a list of \ref index_descriptor items that specify the size of the resulting object
      * \tparam D A list of \ref index_descriptor items
-     * \note If this is not defined, it will return an object of type ConstantMatrix.
+     * \note If this is not defined, it will return an object of type ConstantAdapter.
      */
 /*#ifdef __cpp_concepts
     template<auto constant, index_descriptor...D> requires (sizeof...(D) == IndexibleObjectTraits<T>::max_indices)
@@ -525,8 +610,26 @@ namespace OpenKalman::interface
 
     /**
      * \brief Whether T is a triangular adapter.
+     * \todo remove as unnecessary
      */
     static constexpr bool is_triangular_adapter = false;
+
+    /**
+     * \brief Create a \ref triangular_matrix from a general matrix.
+     * \details This is used by the function OpenKalman::make_triangular_matrix. This can be left undefined if
+     * - Arg is already triangular and of a TriangleType compatible with t, or
+     * - the intended result is for Arg to be wrapped in an \ref Eigen::TriangularMatrix (which will happen automatically).
+     * \tparam t The intended \ref TriangleType of the result.
+     * \tparam Arg A general matrix to be made triangular.
+     */
+#ifdef __cpp_concepts
+    template<TriangleType t, std::convertible_to<const std::remove_reference_t<T>&> Arg> requires
+      (IndexTraits<std::decay_t<T>, 0>::dimension == IndexTraits<std::decay_t<T>, 1>::dimension) or
+      (IndexTraits<std::decay_t<T>, 0>::dimension == dynamic_size) or (IndexTraits<std::decay_t<T>, 1>::dimension == dynamic_size)
+#else
+    template<TriangleType t, typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+#endif
+    static constexpr auto make_triangular_matrix(Arg&& arg) = delete;
   };
 
 
@@ -547,10 +650,9 @@ namespace OpenKalman::interface
     static constexpr bool is_hermitian = false;
 
     /**
-     * \brief The storage type of T, if T is a hermitian adapter.
-     * \details This trait should propagate from the nested matrices in any expression or wrapper class. If T is not
-     * hermitian, this can be defined as TriangleType::none. T can be hermitian without being a hermitian adapter.
-     * But if this value is other than TriangleType::none, then <code>value</code> should be <code>true</code>.
+     * \brief The hermitian-adapter storage type of T, if any.
+     * \details If T is not hermitian or not a hermitian adapter, this can be defined as TriangleType::none.
+     * Alternatively, this can be omitted.
      */
      static constexpr TriangleType adapter_type = TriangleType::none;
   };
@@ -564,62 +666,57 @@ namespace OpenKalman::interface
   struct Subsets
   {
     /**
-     * \brief Extract a slice (sub-array) of the input object.
-     * \tparam indices The index or indices of the dimension(s) that will be preserved (in numerical order).
-     * For example, with a value of {0}, the sub-array will be a column vector. With a value of {1}, the sub-array
-     * will be a row vector. With a value of {0, 1}, the sub-array will be a matrix.
-     * \tparam Arg The object from which to take the subset
-     * \tparam index_values the index values of the particular subset (in order, omitting the indices that are
-     * preserved). Ths index_values may either be positive \ref std::integral or positive \ref std::integral_constant
-     * \return A sub-array
-     * \todo Add corresponding function
+     * \brief Get a block from a matrix or tensor.
+     * \tparam Begin \ref index_value
+     * \tparam Size \ref index_value
+     * \param begin A tuple corresponding to each of indices, each element specifying the beginning \ref index_value.
+     * \param size A tuple corresponding to each of indices, each element specifying the dimensions of the extracted block.
      */
-    template<std::size_t...indices, typename Arg, typename...index_values>
-    static constexpr decltype(auto) slice(Arg& arg, index_values...is) = delete;
+#ifdef __cpp_concepts
+    template<typename Arg, typename...Begin, typename...Size> requires
+      (interface::IndexibleObjectTraits<std::decay_t<Arg>>::max_indices == sizeof...(Begin)) and
+      (interface::IndexibleObjectTraits<std::decay_t<Arg>>::max_indices == sizeof...(Size))
+#else
+    template<typename Arg, typename...Begin, typename...Size, std::enable_if_t<
+      (interface::IndexibleObjectTraits<std::decay_t<Arg>>::max_indices == sizeof...(Begin)) and
+      (interface::IndexibleObjectTraits<std::decay_t<Arg>>::max_indices == sizeof...(Size)), int> = 0>
+#endif
+    static decltype(auto) get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size) = delete;
 
 
     /**
-     * \brief Extract a sub-array having rank less than the rank of the input object.
-     * \details A chip is a special type of "thin" slice of width 1 in one or more dimensions, and otherwise no
-     * reduction in extents. For example, the result could be a row vector, a column vector, a matrix (e.g., if the
-     * input object is a rank-3 or higher tensor), etc.
-     * \tparam indices The index or indices of the sliced dimension(s) in numerical order.
-     * For example, if the input object is a matrix, a value of {0} will result in a row vector and a value of {1} will
-     * result in a column vector. If the input object is a rank-3 tensor, a value of {0, 1} will result in a matrix.
-     * \tparam index_values the index values corresponding to <code>indices</code>, in the same order. The values
-     * may be positive \ref std::integral types or a positive \ref std::integral_constant.
-     * \return A sub-array
+     * \brief Set a block from a \ref writable matrix or tensor.
+     * \tparam Arg The matrix or tensor to be modified.
+     * \tparam Block A block to be copied into Arg at a particular location.
+     * \tparam Begin \ref index_value corresponding to each of indices, specifying the beginning \ref index_value.
+     * \returns An lvalue reference to Arg.
      */
-    template<std::size_t...indices, typename Arg, typename...index_values>
-    static constexpr decltype(auto) chip(Arg& arg, index_values...is) = delete;
+#ifdef __cpp_concepts
+    template<typename Arg, typename Block, typename...Begin> requires std::convertible_to<Arg&, std::decay_t<T>&> and
+      (interface::IndexibleObjectTraits<std::decay_t<Arg>>::max_indices == sizeof...(Begin))
+#else
+    template<typename Arg, typename Block, typename...Begin, typename...Size, std::enable_if_t<
+      std::is_convertible_v<Arg&, std::decay_t<T>&> and
+      (interface::IndexibleObjectTraits<std::decay_t<Arg>>::max_indices == sizeof...(Begin)), int> = 0>
+#endif
+    static Arg& set_block(Arg& arg, Block&& block, Begin...begin) = delete;
 
 
     /**
-     * \brief Concatenate some number of math objects along one or more indices.
-     * \tparam indices The indices along which the concatenation occurs. For example,
-     *  - if indices is {0}, concatenation is along row index 0, and is a vertical concatenation;
-     *  - if indices is {1}, concatenation is along column index 1, and is a horizontal concatenation; and
-     *  - if indices is {0, 1}, concatenation is diagonal along both row and column directions.
-     * \tparam Args The objects to be concatenated
-     * \return The concatenated object
+     * \brief Set only a triangular (or diagonal) portion taken from another matrix to a \ref writable matrix.
+     * \note This is optional.
+     * \tparam t The TriangleType (upper, lower, or diagonal)
+     * \tparam A The matrix or tensor to be set
+     * \tparam B A matrix or tensor to be copied from, which may or may not be triangular
      */
-    template<std::size_t...indices, typename...Args>
-    static constexpr decltype(auto) concatenate(Args&&...args) = delete;
-
-
-    /**
-     * \brief Split into some number of sub-objects along one or more indices (the inverse of concatenate).
-     * \tparam indices The indices along which the split occurs. For example,
-     *  - if indices is {0}, the split is along row index 0, and is a vertical split;
-     *  - if indices is {1}, split is along column index 1, and is a horizontal split; and
-     *  - if indices is {0, 1}, split is diagonal along both row and column directions.
-     * \tparam Arg The object to be split
-     * \tparam Ds A set of index descriptors for each component of the result.
-     * \return A tuple of objects.
-     */
-    template<std::size_t...indices, typename Arg, typename...Ds>
-    static constexpr decltype(auto) split(Arg&& arg, Ds&&...ds) = delete;
-
+#ifdef __cpp_concepts
+    template<TriangleType t, typename A, typename B> requires std::convertible_to<A&, std::decay_t<T>&> and
+      (t != TriangleType::none)
+#else
+    template<TriangleType t, typename A, typename B, std::enable_if_t<std::is_convertible_v<A&, std::decay_t<T>&> and
+      (t != TriangleType::none)>>
+#endif
+    static A& set_triangle(A& a, B&& b) = delete;
   };
 
 
@@ -653,8 +750,12 @@ namespace OpenKalman::interface
       ((IndexTraits<std::decay_t<T>, 1>::dimension == 1) or
        (IndexTraits<std::decay_t<T>, 1>::dimension == dynamic_size)), int> = 0>
 #endif
-    static constexpr auto
+    static constexpr decltype(auto)
     to_diagonal(Arg&& arg) = delete;
+    /* This should be the default:
+    {
+      return DiagonalMatrix<passable_t<Arg>> {std::forward<Arg>(arg)};
+    }*/
 
 
     /**
@@ -678,7 +779,7 @@ namespace OpenKalman::interface
        (IndexTraits<std::decay_t<T>, 1>::dimension == dynamic_size) or
        (IndexTraits<std::decay_t<T>, 0>::dimension == IndexTraits<std::decay_t<T>, 1>::dimension)), int> = 0>
 #endif
-    static constexpr auto
+    static constexpr decltype(auto)
     diagonal_of(Arg&& arg) = delete;
 
   };
@@ -753,25 +854,54 @@ namespace OpenKalman::interface
   struct ModularTransformationTraits
   {
     /**
-     * \brief Convert Arg to a set of coordinates in Euclidean space, based on \ref index_descriptor I.
+     * \brief Convert Arg to a set of coordinates in Euclidean space, based on \ref index_descriptor C.
      */
-    template<typename Arg, typename I>
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg, index_descriptor C>
+#else
+    template<typename Arg, typename C, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&> and
+      index_descriptor<C>, int> = 0>
+#endif
     constexpr decltype(auto)
-    to_euclidean(Arg&& arg, const I& i) = delete;
+    to_euclidean(Arg&& arg, const C& c) = delete;
+    /* This should be the default:
+    {
+      return ToEuclideanExpr<C, passable_t<Arg>> {std::forward<Arg>(arg), c};
+    }*/
+
 
     /**
-     * \brief Convert Arg from a set of coordinates in Euclidean space, based on \ref index_descriptor I.
+     * \brief Convert Arg from a set of coordinates in Euclidean space, based on \ref index_descriptor C.
      */
-    template<typename Arg, typename I>
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg, index_descriptor C>
+#else
+    template<typename Arg, typename C, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&> and
+      index_descriptor<C>, int> = 0>
+#endif
     constexpr decltype(auto)
-    from_euclidean(Arg&& arg, const I& i) = delete;
+    from_euclidean(Arg&& arg, const C& c) = delete;
+    /* This should be the default:
+    {
+      return FromEuclideanExpr<C, passable_t<Arg>> {std::forward<Arg>(arg), c};
+    }*/
+
 
     /**
-     * \brief Wrap Arg based on \ref index_descriptor I.
+     * \brief Wrap Arg based on \ref index_descriptor C.
      */
-    template<typename Arg, typename I>
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg, index_descriptor C>
+#else
+    template<typename Arg, typename C, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&> and
+      index_descriptor<C>, int> = 0>
+#endif
     constexpr decltype(auto)
-    wrap_angles(Arg&& arg, const I& i) = delete;
+    wrap_angles(Arg&& arg, const C& c) = delete;
+    /* This should be the default:
+    {
+      return OpenKalman::from_euclidean(OpenKalman::to_euclidean(std::forward<Arg>(arg), c), c);
+    }*/
   };
 
 
@@ -835,27 +965,73 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Take the trace of T
-     * \tparam Arg An object of type T
+     * \brief Perform an element-by-element sum of compatible tensors
+     * \tparam A A tensor of type T
+     * \tparam B Another tensor of the same dimensions as A
      */
 #ifdef __cpp_concepts
-    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+    template<std::convertible_to<const std::remove_reference_t<T>&> A, typename B>
 #else
-    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+    template<typename A, typename B, std::enable_if_t<std::is_convertible_v<A, const std::remove_reference_t<T>&>, int> = 0>
 #endif
-    static constexpr auto trace(Arg&&) = delete;
+    static constexpr auto sum(A&& a, B&& b) = delete;
 
 
     /**
-     * \brief Do a rank update on a native Eigen matrix, treating it as a self-adjoint matrix.
+     * \brief Perform a contraction involving two compatible tensors
+     * \tparam A A tensor of type T
+     * \tparam B Another tensor of the same dimensions as A
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> A, typename B>
+#else
+    template<typename A, typename B, std::enable_if_t<std::is_convertible_v<A, const std::remove_reference_t<T>&>, int> = 0>
+#endif
+    static constexpr auto contract(A&& a, B&& b) = delete;
+
+
+    /**
+     * \brief Perform an in-place contraction involving two compatible tensors
+     * \tparam A A tensor of type T
+     * \tparam B Another tensor of the same dimensions as A
+     * \return A reference to A
+     */
+#ifdef __cpp_concepts
+    template<bool on_the_right, std::convertible_to<const std::remove_reference_t<T>&> A, typename B>
+#else
+    template<bool on_the_right, typename A, typename B, std::enable_if_t<std::is_convertible_v<A, const std::remove_reference_t<T>&>, int> = 0>
+#endif
+    static constexpr A& contract_in_place(A& a, B&& b) = delete;
+
+
+    /**
+     * \brief Take the Cholesky factor of matrix Arg
+     * \tparam triangle_type The \ref TriangleType of the result.
+     * \param a A matrix of type T
+     * \return A matrix t where tt<sup>T</sup> = a (if triangle_type == TriangleType::lower) or
+     * t<sup>T</sup>t = a (if triangle_type == TriangleType::upper).
+     */
+#ifdef __cpp_concepts
+    template<TriangleType triangle_type, std::convertible_to<const std::remove_reference_t<T>&> Arg>
+#else
+    template<TriangleType triangle_type, typename Arg, std::enable_if_t<
+      std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+#endif
+    static constexpr auto cholesky_factor(Arg&& a) = delete;
+
+
+    /**
+     * \brief Do a rank update on a hermitian matrix.
+     * \note This is preferably (but not necessarily) performed as an in-place operation.
      * \details If A is not hermitian, the result will modify only the specified storage triangle. The contents of the
      * other elements outside the specified storage triangle are undefined.
      * - The update is A += αUU<sup>*</sup>, returning the updated hermitian A.
      * - If A is an lvalue reference and is writable, it will be updated in place and the return value will be an
      * lvalue reference to the same, updated A. Otherwise, the function returns a new matrix.
      * \tparam t Whether to use the upper triangle elements (TriangleType::upper), lower triangle elements
-     * (TriangleType::lower) or diagonal elements (TriangleType::diagonal).
-     * \tparam A An object of type T, which is the matrix to be rank updated.
+     * (TriangleType::lower) or diagonal elements (TriangleType::diagonal). If A is a hermitian type, t always matches the
+     * triangle type of A.
+     * \tparam A An object of type T, which is either hermitian or dense-writable.
      * \tparam U The update vector or matrix.
      * \returns an updated native, writable matrix in hermitian form.
      */
@@ -869,7 +1045,8 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Do a rank update on a native Eigen matrix, treating it as a triangular matrix.
+     * \brief Do a rank update on a triangular matrix.
+     * \note This is preferably (but not necessarily) performed as an in-place operation.
      * \details If A is not a triangular matrix, the result will modify only the specified triangle. The contents of
      * other elements outside the specified triangle are undefined.
      * - If A is lower-triangular, diagonal, or one-by-one, the update is AA<sup>*</sup> += αUU<sup>*</sup>,
@@ -878,8 +1055,9 @@ namespace OpenKalman::interface
      * - If A is an lvalue reference and is writable, it will be updated in place and the return value will be an
      * lvalue reference to the same, updated A. Otherwise, the function returns a new matrix.
      * \tparam t Whether to use the upper triangle elements (TriangleType::upper), lower triangle elements
-     * (TriangleType::lower) or diagonal elements (TriangleType::diagonal).
-     * \tparam A An object of type T, which is the matrix to be rank updated.
+     * (TriangleType::lower) or diagonal elements (TriangleType::diagonal). If A is a triangular type, t always matches the
+     * triangle type of A.
+     * \tparam A An object of type T, which is either triangular or dense-writable.
      * \tparam U The update vector or matrix.
      * \returns an updated native, writable matrix in triangular (or diagonal) form.
      */
@@ -913,6 +1091,32 @@ namespace OpenKalman::interface
 #endif
     static decltype(auto) solve(A&&, B&&) = delete;
 
+
+    /**
+     * \brief Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
+     * \tparam A The matrix to be decomposed
+     * \returns L as a \ref lower_triangular_matrix
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+#endif
+    static constexpr auto LQ_decomposition(Arg&&) = delete;
+
+
+    /**
+     * \brief Perform a QR decomposition of matrix A=Q[U,0], U is a upper-triangular matrix, and Q is orthogonal.
+     * \tparam A The matrix to be decomposed
+     * \returns U as an \ref upper_triangular_matrix
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+#endif
+    static constexpr auto QR_decomposition(Arg&&) = delete;
+
   };
 
 
@@ -940,21 +1144,6 @@ namespace OpenKalman
   template<typename T, typename = void>
 #endif
   struct MatrixTraits {};
-
-
-#ifdef __cpp_concepts
-  template<typename T> requires std::is_reference_v<T> or std::is_const_v<std::remove_reference_t<T>>
-  struct MatrixTraits<T> : MatrixTraits<std::decay_t<T>> {};
-#else
-  template<typename T>
-  struct MatrixTraits<T&> : MatrixTraits<T> {};
-
-  template<typename T>
-  struct MatrixTraits<T&&> : MatrixTraits<T> {};
-
-  template<typename T>
-  struct MatrixTraits<const T> : MatrixTraits<T> {};
-#endif
 
 
   /**

@@ -94,7 +94,7 @@ namespace OpenKalman::internal
     /// Construct from a list of coefficients.
 #ifdef __cpp_concepts
     template<std::convertible_to<const Scalar> ... Args> requires (sizeof...(Args) > 0) and
-      requires(Args ... args) { NestedMatrix {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)}; }
+      requires(Args ... args) { NestedMatrix {MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...)}; }
 #else
     template<typename ... Args, std::enable_if_t<(std::is_convertible_v<Args, const Scalar> and ...) and
       (sizeof...(Args) > 0) and (
@@ -105,7 +105,7 @@ namespace OpenKalman::internal
             Dimensions<row_dimension_of<NestedMatrix>::value>, Dimensions<column_dimension_of<NestedMatrix>::value>>>)), int> = 0>
 #endif
     TypedMatrixBase(Args ... args)
-      : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
+      : Base {MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...)} {}
 
 
     // ---------------------- //

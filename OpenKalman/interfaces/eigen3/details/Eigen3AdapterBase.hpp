@@ -11,17 +11,17 @@
 /**
  * \internal
  * \file
- * \brief Definitions for Eigen3::Eigen3Base
+ * \brief Definitions for Eigen3::Eigen3AdapterBase
  */
 
-#ifndef OPENKALMAN_EIGEN3BASE_HPP
-#define OPENKALMAN_EIGEN3BASE_HPP
+#ifndef OPENKALMAN_EIGEN3ADAPTERBASE_HPP
+#define OPENKALMAN_EIGEN3ADAPTERBASE_HPP
 
 namespace OpenKalman::Eigen3::internal
 {
   template<typename Derived, typename NestedMatrix>
-  struct Eigen3Base
-    : std::conditional_t<native_eigen_array<NestedMatrix>, Eigen::ArrayBase<Derived>, Eigen::MatrixBase<Derived>>
+  struct Eigen3AdapterBase : Eigen3Base,
+    std::conditional_t<native_eigen_array<NestedMatrix>, Eigen::ArrayBase<Derived>, Eigen::MatrixBase<Derived>>
   {
 
   private:
@@ -41,6 +41,16 @@ namespace OpenKalman::Eigen3::internal
 
     /// \internal \note Eigen3 requires this.
     using Scalar = scalar_type_of_t<NestedMatrix>;
+
+    using StorageKind [[maybe_unused]] = typename Eigen::internal::traits<Derived>::StorageKind;
+    using StorageIndex [[maybe_unused]] = typename Eigen::internal::traits<Derived>::StorageIndex;
+    enum CompileTimeTraits
+        { RowsAtCompileTime [[maybe_unused]] = Eigen::internal::traits<Derived>::RowsAtCompileTime,
+          ColsAtCompileTime [[maybe_unused]] = Eigen::internal::traits<Derived>::ColsAtCompileTime,
+          Flags [[maybe_unused]] = Eigen::internal::traits<Derived>::Flags,
+          SizeAtCompileTime [[maybe_unused]] = Base::SizeAtCompileTime,
+          MaxSizeAtCompileTime [[maybe_unused]] = Base::MaxSizeAtCompileTime,
+          IsVectorAtCompileTime [[maybe_unused]] = Base::IsVectorAtCompileTime };
 
 
     /**
@@ -132,8 +142,8 @@ namespace OpenKalman::Eigen3::internal
       auto& b = nested_matrix(arg);
       using B = decltype(b);
       static_assert(not std::is_const_v<std::remove_reference_t<B>>);
-      if constexpr(Eigen3::eigen_self_adjoint_expr<B> or Eigen3::eigen_triangular_expr<B> or
-        Eigen3::eigen_diagonal_expr<B> or Eigen3::euclidean_expr<B>)
+      if constexpr(eigen_self_adjoint_expr<B> or eigen_triangular_expr<B> or
+        eigen_diagonal_expr<B> or euclidean_expr<B>)
       {
         return get_ultimate_nested_matrix(b);
       }
@@ -147,12 +157,12 @@ namespace OpenKalman::Eigen3::internal
     template<typename Arg>
     auto& get_ultimate_nested_matrix(Arg& arg)
     {
-      if constexpr(Eigen3::eigen_self_adjoint_expr<Arg>)
+      if constexpr(eigen_self_adjoint_expr<Arg>)
       {
-        if constexpr (self_adjoint_triangle_type_of_v<Arg> == TriangleType::diagonal) return arg;
+        if constexpr (hermitian_adapter_type_of_v<Arg> == TriangleType::diagonal) return arg;
         else return get_ultimate_nested_matrix_impl(arg);
       }
-      else if constexpr(Eigen3::eigen_triangular_expr<Arg>)
+      else if constexpr(eigen_triangular_expr<Arg>)
       {
         if constexpr(triangle_type_of_v<Arg> == TriangleType::diagonal) return arg;
         else return get_ultimate_nested_matrix_impl(arg);
@@ -186,7 +196,7 @@ namespace OpenKalman::Eigen3::internal
         {
           return Eigen::MeanCommaInitializer<Derived, Xpr> {xpr, static_cast<const Scalar&>(s)};
         }
-        else if constexpr((Eigen3::eigen_self_adjoint_expr<Xpr> or Eigen3::eigen_triangular_expr<Xpr>)
+        else if constexpr((eigen_self_adjoint_expr<Xpr> or eigen_triangular_expr<Xpr>)
           and diagonal_matrix<Xpr>)
         {
           return Eigen::DiagonalCommaInitializer {xpr, static_cast<const Scalar&>(s)};
@@ -200,9 +210,9 @@ namespace OpenKalman::Eigen3::internal
 
 
 #ifdef __cpp_concepts
-    template<eigen_matrix Other>
+    template<indexible Other>
 #else
-    template<typename Other, std::enable_if_t<eigen_matrix<Other>, int> = 0>
+    template<typename Other, std::enable_if_t<indexible<Other>, int> = 0>
 #endif
     auto operator<<(const Other& other)
     {
@@ -219,7 +229,7 @@ namespace OpenKalman::Eigen3::internal
         {
           return Eigen::MeanCommaInitializer<Derived, Xpr> {xpr, other};
         }
-        else if constexpr ((Eigen3::eigen_self_adjoint_expr<Xpr> or Eigen3::eigen_triangular_expr<Xpr>)
+        else if constexpr ((eigen_self_adjoint_expr<Xpr> or eigen_triangular_expr<Xpr>)
           and diagonal_matrix<Xpr>)
         {
           return Eigen::DiagonalCommaInitializer {xpr, other};
@@ -236,4 +246,4 @@ namespace OpenKalman::Eigen3::internal
 } // namespace OpenKalman::Eigen3::internal
 
 
-#endif //OPENKALMAN_EIGEN3BASE_HPP
+#endif //OPENKALMAN_EIGEN3ADAPTERBASE_HPP

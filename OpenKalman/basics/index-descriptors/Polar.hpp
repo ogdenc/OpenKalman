@@ -87,8 +87,8 @@ namespace OpenKalman
           Scalar theta = cf * g(start + a_i) - mid;
           switch(euclidean_local_index)
           {
-            case x_i: return interface::ScalarTraits<Scalar>::cos(theta);
-            default: return interface::ScalarTraits<Scalar>::sin(theta); // case y_i
+            case x_i: return cosine(theta);
+            default: return sine(theta); // case y_i
           }
         }
       }
@@ -112,7 +112,7 @@ namespace OpenKalman
       from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start)
 #endif
       {
-        using Scalar = decltype(g(std::declval<std::size_t>()));
+        using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
         Scalar d = g(euclidean_start + d2_i);
         auto dr = real_projection(d);
         if (local_index == d_i)
@@ -129,7 +129,7 @@ namespace OpenKalman
           // If distance is negative, flip 180 degrees:
           Scalar x = std::signbit(dr) ? -g(euclidean_start + x_i) : g(euclidean_start + x_i);
           Scalar y = std::signbit(dr) ? -g(euclidean_start + y_i) : g(euclidean_start + y_i);
-          return interface::ScalarTraits<Scalar>::atan2(y, x) / cf + mid;
+          return arctangent2(y, x) / cf + mid;
         }
       }
 

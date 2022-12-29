@@ -19,6 +19,26 @@
 using namespace OpenKalman;
 
 
+TEST(index_descriptors, integral_constant)
+{
+  static_assert(dimension_size_of_v<std::integral_constant<std::size_t, 3>> == 3);
+  static_assert(dimension_size_of_v<std::integral_constant<int, 3>> == 3);
+  static_assert(euclidean_dimension_size_of_v<std::integral_constant<std::size_t, 3>> == 3);
+  static_assert(index_descriptor_components_of_v<std::integral_constant<std::size_t, 3>> == 3);
+  static_assert(get_dimension_size_of(std::integral_constant<std::size_t, 3>{}) == 3);
+  static_assert(get_euclidean_dimension_size_of(std::integral_constant<std::size_t, 3>{}) == 3);
+  static_assert(get_index_descriptor_component_count_of(std::integral_constant<std::size_t, 3>{}) == 3);
+  static_assert(fixed_index_descriptor<std::integral_constant<std::size_t, 3>>);
+  static_assert(fixed_index_descriptor<std::integral_constant<int, 3>>);
+  static_assert(not composite_index_descriptor<std::integral_constant<std::size_t, 1>>);
+  static_assert(not composite_index_descriptor<std::integral_constant<std::size_t, 2>>);
+  static_assert(atomic_fixed_index_descriptor<std::integral_constant<std::size_t, 1>>);
+  static_assert(atomic_fixed_index_descriptor<std::integral_constant<std::size_t, 2>>);
+  static_assert(euclidean_index_descriptor<std::integral_constant<std::size_t, 1>>);
+  static_assert(euclidean_index_descriptor<std::integral_constant<std::size_t, 2>>);
+}
+
+
 TEST(index_descriptors, fixed_Dimensions)
 {
   static_assert(dimension_size_of_v<Dimensions<3>> == 3);
@@ -29,6 +49,7 @@ TEST(index_descriptors, fixed_Dimensions)
   static_assert(get_index_descriptor_component_count_of(Dimensions<3>{}) == 3);
   static_assert(get_dimension_size_of(Dimensions{Axis {}}) == 1);
   static_assert(get_dimension_size_of(Dimensions{TypedIndex<Axis, Axis> {}}) == 2);
+  static_assert(get_dimension_size_of(Dimensions{std::integral_constant<int, 3> {}}) == 3);
   static_assert(fixed_index_descriptor<Dimensions<3>>);
   static_assert(not composite_index_descriptor<Dimensions<1>>);
   static_assert(not composite_index_descriptor<Dimensions<2>>);
@@ -36,6 +57,7 @@ TEST(index_descriptors, fixed_Dimensions)
   static_assert(atomic_fixed_index_descriptor<Dimensions<2>>);
   static_assert(euclidean_index_descriptor<Dimensions<1>>);
   static_assert(euclidean_index_descriptor<Dimensions<2>>);
+  static_assert(static_cast<std::integral_constant<int, 3>>(Dimensions{std::integral_constant<int, 3> {}}) == 3);
 }
 
 
@@ -261,6 +283,27 @@ TEST(index_descriptors, prefix_of)
   static_assert(prefix_of<TypedIndex<Axis, angle::Radians>, TypedIndex<Axis, angle::Radians, Axis>>);
   static_assert(prefix_of<TypedIndex<Axis, angle::Radians, Axis>, TypedIndex<Axis, angle::Radians, Axis>>);
   static_assert(not prefix_of<TypedIndex<Axis, angle::Radians, angle::Radians>, TypedIndex<Axis, angle::Radians, Axis>>);
+}
+
+
+TEST(index_descriptors, head_of)
+{
+  static_assert(equivalent_to<head_of_t<TypedIndex<>>, TypedIndex<>>);
+  static_assert(equivalent_to<head_of_t<Axis>, Axis>);
+  static_assert(equivalent_to<head_of_t<TypedIndex<Axis, Distance>>, Axis>);
+  static_assert(equivalent_to<head_of_t<TypedIndex<Axis, Polar<Distance, angle::Radians>>>, Axis>);
+  static_assert(equivalent_to<head_of_t<TypedIndex<TypedIndex<Axis, Distance>, Distance>>, Axis>);
+}
+
+
+TEST(index_descriptors, tail_of)
+{
+  static_assert(equivalent_to<tail_of_t<TypedIndex<>>, TypedIndex<>>);
+  static_assert(equivalent_to<tail_of_t<Axis>, TypedIndex<>>);
+  static_assert(equivalent_to<tail_of_t<TypedIndex<Axis, Distance>>, Distance>);
+  static_assert(equivalent_to<tail_of_t<TypedIndex<Axis, Distance, Axis>>, TypedIndex<Distance, Axis>>);
+  static_assert(equivalent_to<tail_of_t<TypedIndex<Axis, Polar<Distance, angle::Radians>>>, Polar<Distance, angle::Radians>>);
+  static_assert(equivalent_to<tail_of_t<TypedIndex<TypedIndex<Axis, Distance>, Axis>>, TypedIndex<Distance, Axis>>);
 }
 
 

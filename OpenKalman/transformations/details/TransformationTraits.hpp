@@ -130,7 +130,7 @@ namespace OpenKalman
     struct PerturbationTraits<T> : MatrixTraits<typename DistributionTraits<T>::Mean> {};
 
     template<typed_matrix T>
-    struct PerturbationTraits<T> : MatrixTraits<T> {};
+    struct PerturbationTraits<T> : MatrixTraits<std::decay_t<T>> {};
 #else
     template<typename T, typename = void>
     struct PerturbationTraits;
@@ -141,7 +141,7 @@ namespace OpenKalman
 
     template<typename T>
     struct PerturbationTraits<T, std::enable_if_t<typed_matrix<T>>>
-      : MatrixTraits<T> {};
+      : MatrixTraits<std::decay_t<T>> {};
 #endif
 
   } // namespace internal

@@ -60,11 +60,11 @@ namespace OpenKalman
 
     // May be accessed externally through MatrixTraits:
     static constexpr TriangleType triangle_type =
-      triangle_type_of_v<typename MatrixTraits<NestedMatrix>::template TriangularMatrixFrom<>>;
+      triangle_type_of_v<typename MatrixTraits<std::decay_t<NestedMatrix>>::template TriangularMatrixFrom<>>;
 
     // A triangular nested matrix type.
     using NestedTriangular = std::conditional_t<triangular_matrix<NestedMatrix>, NestedMatrix,
-      typename MatrixTraits<NestedMatrix>::template TriangularMatrixFrom<triangle_type>>;
+      typename MatrixTraits<std::decay_t<NestedMatrix>>::template TriangularMatrixFrom<triangle_type>>;
 
 
     // A function that makes a self-contained covariance from a nested matrix.
@@ -80,11 +80,11 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<self_adjoint_covariance M> requires (not diagonal_matrix<M> or identity_matrix<M> or zero_matrix<M>) and
-      (self_adjoint_matrix<nested_matrix_of_t<M>> == self_adjoint_matrix<NestedMatrix>)
+      (hermitian_matrix<nested_matrix_of_t<M>> == hermitian_matrix<NestedMatrix>)
 #else
     template<typename M, std::enable_if_t<self_adjoint_covariance<M> and
       (not diagonal_matrix<M> or identity_matrix<M> or zero_matrix<M>) and
-      (self_adjoint_matrix<nested_matrix_of_t<M>> == self_adjoint_matrix<NestedMatrix>), int> = 0>
+      (hermitian_matrix<nested_matrix_of_t<M>> == hermitian_matrix<NestedMatrix>), int> = 0>
 #endif
     SquareRootCovariance(M&& m) noexcept : Base {std::forward<M>(m)} {}
 
@@ -175,7 +175,7 @@ namespace OpenKalman
     /// Construct from Scalar coefficients. Assumes matrix is triangular, and only reads lower left triangle.
 #ifdef __cpp_concepts
     template<std::convertible_to<const Scalar> ... Args> requires (sizeof...(Args) > 0) and
-      requires(Args ... args) { Base {MatrixTraits<NestedTriangular>::make(static_cast<const Scalar>(args)...)};
+      requires(Args ... args) { Base {MatrixTraits<std::decay_t<NestedTriangular>>::make(static_cast<const Scalar>(args)...)};
       }
 #else
     template<typename ... Args, std::enable_if_t<(std::is_convertible_v<Args, const Scalar> and ...) and
@@ -183,7 +183,7 @@ namespace OpenKalman
         (sizeof...(Args) == dim * dim)) and std::is_constructible_v<Base, NestedTriangular&&>, int> = 0>
 #endif
     SquareRootCovariance(Args ... args)
-      : Base {MatrixTraits<NestedTriangular>::make(static_cast<const Scalar>(args)...)} {}
+      : Base {MatrixTraits<std::decay_t<NestedTriangular>>::make(static_cast<const Scalar>(args)...)} {}
 
 
     // ---------------------- //
@@ -636,7 +636,7 @@ namespace OpenKalman
   template<typename M, std::enable_if_t<typed_matrix<M> and square_matrix<M>, int> = 0>
 #endif
   explicit SquareRootCovariance(M&&) -> SquareRootCovariance<row_coefficient_types_of_t<M>,
-    typename MatrixTraits<nested_matrix_of_t<M>>::template TriangularMatrixFrom<>>;
+    typename MatrixTraits<std::decay_t<nested_matrix_of_t<M>>>::template TriangularMatrixFrom<>>;
 
 
   /**
@@ -649,7 +649,7 @@ namespace OpenKalman
     typed_matrix_nestable<M> and (not covariance_nestable<M>) and square_matrix<M>, int> = 0>
 #endif
   explicit SquareRootCovariance(M&&) -> SquareRootCovariance<Dimensions<row_dimension_of_v<M>>,
-    typename MatrixTraits<M>::template TriangularMatrixFrom<>>;
+    typename MatrixTraits<std::decay_t<M>>::template TriangularMatrixFrom<>>;
 
 
   // ---------------- //
@@ -716,7 +716,7 @@ namespace OpenKalman
   inline auto
   make_square_root_covariance(Arg&& arg) noexcept
   {
-    using T = typename MatrixTraits<Arg>::template TriangularMatrixFrom<triangle_type>;
+    using T = typename MatrixTraits<std::decay_t<Arg>>::template TriangularMatrixFrom<triangle_type>;
     return SquareRootCovariance<TypedIndex, T>(std::forward<Arg>(arg));
   }
 
@@ -758,8 +758,8 @@ namespace OpenKalman
   make_square_root_covariance()
   {
     using B = std::conditional_t<triangle_type == TriangleType::diagonal,
-    typename MatrixTraits<Arg>::template DiagonalMatrixFrom<>,
-      typename MatrixTraits<Arg>::template TriangularMatrixFrom<triangle_type>>;
+    typename MatrixTraits<std::decay_t<Arg>>::template DiagonalMatrixFrom<>,
+      typename MatrixTraits<std::decay_t<Arg>>::template TriangularMatrixFrom<triangle_type>>;
     return SquareRootCovariance<TypedIndex, B>();
   }
 
@@ -778,12 +778,12 @@ namespace OpenKalman
   inline auto
   make_square_root_covariance()
   {
-    constexpr TriangleType template_type = triangle_type_of_v<typename MatrixTraits<Arg>::template TriangularMatrixFrom<>>;
+    constexpr TriangleType template_type = triangle_type_of_v<typename MatrixTraits<std::decay_t<Arg>>::template TriangularMatrixFrom<>>;
     using B = std::conditional_t<diagonal_matrix<Arg>,
-      typename MatrixTraits<Arg>::template DiagonalMatrixFrom<>,
-      std::conditional_t<self_adjoint_matrix<Arg>,
-        typename MatrixTraits<Arg>::template SelfAdjointMatrixFrom<template_type>,
-        typename MatrixTraits<Arg>::template TriangularMatrixFrom<template_type>>>;
+      typename MatrixTraits<std::decay_t<Arg>>::template DiagonalMatrixFrom<>,
+      std::conditional_t<hermitian_matrix<Arg>,
+        typename MatrixTraits<std::decay_t<Arg>>::template SelfAdjointMatrixFrom<template_type>,
+        typename MatrixTraits<std::decay_t<Arg>>::template TriangularMatrixFrom<template_type>>>;
     return SquareRootCovariance<TypedIndex, B>();
   }
 

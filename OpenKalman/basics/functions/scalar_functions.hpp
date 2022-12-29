@@ -26,13 +26,17 @@ namespace OpenKalman
    * \details For example, if the argument is a complex number, the function will convert to the type of its real part.
    */
 #ifdef __cpp_concepts
-  constexpr std::floating_point auto real_projection(scalar_type auto&& arg)
+  constexpr decltype(auto)
+  real_projection(scalar_type auto&& arg)
 #else
   template<typename Arg, std::enable_if_t<scalar_type<Arg>, int> = 0>
-  constexpr auto real_projection(Arg&& arg)
+  constexpr decltype(auto) real_projection(Arg&& arg)
 #endif
   {
-    return interface::ScalarTraits<std::decay_t<decltype(arg)>>::template real_projection(std::forward<decltype(arg)>(arg));
+    if constexpr (complex_number<decltype(arg)>)
+      return interface::ScalarTraits<std::decay_t<decltype(arg)>>::real_projection(std::forward<decltype(arg)>(arg));
+    else
+      return std::forward<decltype(arg)>(arg);
   }
 
 
@@ -49,15 +53,19 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<std::floating_point Scalar>
-  constexpr Scalar real_projection(scalar_type auto&& arg)
+  constexpr std::floating_point decltype(auto)
+  real_projection(scalar_type auto&& arg)
   requires std::convertible_to<std::decay_t<decltype(real_projection(arg))>, Scalar>
 #else
   template<typename Scalar, typename Arg, std::enable_if_t<std::is_floating_point_v<Scalar> and scalar_type<Arg> and
     std::is_convertible_v<decltype(real_projection(std::declval<Arg&&>())), std::decay_t<Scalar>>, int> = 0>
-  constexpr Scalar real_projection(Arg&& arg)
+  constexpr decltype(auto) real_projection(Arg&& arg)
 #endif
   {
-    return real_projection(std::forward<decltype(arg)>(arg));
+    if constexpr (complex_number<decltype(arg)>)
+      return static_cast<std::decay_t<Scalar>>(real_projection(std::forward<decltype(arg)>(arg)));
+    else
+      return std::forward<decltype(arg)>(arg);
   }
 
 
@@ -72,16 +80,124 @@ namespace OpenKalman
    * \param real_projection A \ref std::floating_point argument representing a hypothetical result of \ref real_projection.
    */
 #ifdef __cpp_concepts
-  constexpr floating_scalar_type auto
+  constexpr /*floating_scalar_type*/ decltype(auto)
   inverse_real_projection(floating_scalar_type auto&& arg, std::decay_t<decltype(real_projection(arg))> real_projection)
 #else
   template<typename Scalar, std::enable_if_t<floating_scalar_type<Scalar>, int> = 0>
-  constexpr auto inverse_real_projection(Scalar&& arg, std::decay_t<decltype(real_projection(arg))> real_projection)
+  constexpr decltype(auto) inverse_real_projection(Scalar&& arg, std::decay_t<decltype(real_projection(arg))> real_projection)
 #endif
   {
     return interface::ScalarTraits<std::decay_t<decltype(arg)>>::template inverse_real_projection(
       std::forward<decltype(arg)>(arg), real_projection);
   }
+
+
+  /**
+   * \brief Return the imaginary part of a complex number.
+   */
+#ifdef __cpp_concepts
+  template<scalar_type Scalar>
+#else
+  template<typename Scalar, std::enable_if_t<scalar_type<Scalar>, int> = 0>
+#endif
+  constexpr decltype(auto) imaginary_part(Scalar&& scalar)
+  {
+    if constexpr (complex_number<Scalar>)
+      return ScalarTraits<std::decay_t<Scalar>>::imag(std::forward<Scalar>(scalar));
+    else
+      return static_cast<std::decay_t<Scalar>>(0);
+  }
+
+
+  /**
+   * \brief Return the complex conjugate of a number.   */
+#ifdef __cpp_concepts
+  template<scalar_type Scalar>
+#else
+  template<typename Scalar, std::enable_if_t<scalar_type<Scalar>, int> = 0>
+#endif
+  constexpr decltype(auto) conjugate(Scalar&& scalar)
+  {
+    if constexpr (complex_number<Scalar>)
+      return ScalarTraits<std::decay_t<Scalar>>::conj(std::forward<Scalar>(scalar));
+    else
+      return std::forward<Scalar>(scalar);
+  }
+
+
+  /**
+   * \brief Return the sine of a number.
+   */
+#ifdef __cpp_concepts
+  template<scalar_type Scalar>
+#else
+  template<typename Scalar, std::enable_if_t<scalar_type<Scalar>, int> = 0>
+#endif
+  constexpr decltype(auto) sine(Scalar&& scalar)
+  {
+    return ScalarTraits<std::decay_t<Scalar>>::sin(std::forward<Scalar>(scalar));
+  }
+
+
+  /**
+   * \brief Return the cosine of a number.
+   */
+#ifdef __cpp_concepts
+  template<scalar_type Scalar>
+#else
+  template<typename Scalar, std::enable_if_t<scalar_type<Scalar>, int> = 0>
+#endif
+  constexpr decltype(auto) cosine(Scalar&& scalar)
+  {
+    return ScalarTraits<std::decay_t<Scalar>>::cos(std::forward<Scalar>(scalar));
+  }
+
+
+  /**
+   * \brief Return the square root of a number.
+   */
+#ifdef __cpp_concepts
+  template<scalar_type Scalar>
+#else
+  template<typename Scalar, std::enable_if_t<scalar_type<Scalar>, int> = 0>
+#endif
+  constexpr decltype(auto) square_root(Scalar&& scalar)
+  {
+    return ScalarTraits<std::decay_t<Scalar>>::sqrt(std::forward<Scalar>(scalar));
+  }
+
+
+  /**
+   * \brief Return the arcsine of the ratio Y / R, taking account the correct quadrant.
+   * \tparam Y A y-axis coordinate.
+   * \tparam R A radius (distance from origin).
+   */
+#ifdef __cpp_concepts
+  template<scalar_type Y, scalar_type R>
+#else
+  template<typename Y, typename R, std::enable_if_t<scalar_type<Y> and scalar_type<R>, int> = 0>
+#endif
+  constexpr decltype(auto) arcsine2(Y&& y, R&& r)
+  {
+    return ScalarTraits<std::decay_t<Y>>::asin2(std::forward<Y>(y), std::forward<R>(r));
+  }
+
+
+  /**
+   * \brief Return the arctangent of the ratio Y / X, taking account the correct quadrant.
+   * \tparam Y A y-axis coordinate.
+   * \tparam X An x-axis coordinate.
+   */
+#ifdef __cpp_concepts
+  template<scalar_type Y, scalar_type X>
+#else
+  template<typename Y, typename X, std::enable_if_t<scalar_type<Y> and scalar_type<X>, int> = 0>
+#endif
+  constexpr decltype(auto) arctangent2(Y&& y, X&& x)
+  {
+    return ScalarTraits<std::decay_t<Y>>::atan2(std::forward<Y>(y), std::forward<X>(x));
+  }
+
 
 } // namespace OpenKalman
 

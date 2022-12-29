@@ -47,8 +47,10 @@ namespace
 
   using cdouble = std::complex<double>;
 
+  using CM11 = eigen_matrix_t<cdouble, 1, 1>;
   using CM22 = eigen_matrix_t<cdouble, 2, 2>;
   using CM23 = eigen_matrix_t<cdouble, 2, 3>;
+  using CM33 = eigen_matrix_t<cdouble, 3, 3>;
   using CM32 = eigen_matrix_t<cdouble, 3, 2>;
   using CM34 = eigen_matrix_t<cdouble, 3, 4>;
   using CM43 = eigen_matrix_t<cdouble, 4, 3>;
@@ -65,11 +67,20 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(Eigen3::native_eigen_matrix<M00>);
   static_assert(Eigen3::native_eigen_general<M11>);
   static_assert(Eigen3::native_eigen_general<M00>);
-  static_assert(native_eigen_matrix<Eigen3::EigenWrapper<Eigen3::ConstantMatrix<M33, 1>>>);
-  static_assert(native_eigen_matrix<Eigen3::EigenWrapper<Eigen3::ConstantMatrix<M00, 1>>>);
-  static_assert(interface::IndexibleObjectTraits<M11>::max_indices == 2);
-  static_assert(interface::IndexibleObjectTraits<M00>::max_indices == 2);
-  static_assert(interface::IndexibleObjectTraits<M21>::max_indices == 2);
+
+  static_assert(max_indices_of_v<M11> == 2);
+  static_assert(max_indices_of_v<M00> == 2);
+  static_assert(max_indices_of_v<M21> == 2);
+
+  static_assert(max_tensor_order_of_v<M23> == 2);
+  static_assert(max_tensor_order_of_v<M21> == 1);
+  static_assert(max_tensor_order_of_v<M11> == 0);
+  static_assert(max_tensor_order_of_v<M20> == 2);
+  static_assert(max_tensor_order_of_v<M02> == 2);
+  static_assert(max_tensor_order_of_v<M10> == 1);
+  static_assert(max_tensor_order_of_v<M01> == 1);
+  static_assert(max_tensor_order_of_v<M00> == 2);
+
   static_assert(interface::IndexTraits<M11, 0>::dimension == 1);
   static_assert(interface::IndexTraits<M21, 0>::dimension == 2);
   static_assert(interface::IndexTraits<M00, 0>::dimension == dynamic_size);
@@ -179,6 +190,22 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(equivalent_to<coefficient_types_of_t<M22, 0>, TypedIndex<Axis, Axis>>);
   static_assert(equivalent_to<coefficient_types_of_t<M22, 1>, TypedIndex<Axis, Axis>>);
 
+  static_assert(maybe_index_descriptors_match<M22, M20, M02, M00>);
+  static_assert(index_descriptors_match<M22, CM22, M22>);
+  EXPECT_TRUE(get_index_descriptors_match(m22, cm22, M20{m22}, M02{m22}, M00{m22}));
+
+  static_assert(square_matrix<M11, Likelihood::maybe>);
+  static_assert(square_matrix<M22, Likelihood::maybe>);
+  static_assert(not square_matrix<M32, Likelihood::maybe>);
+  static_assert(square_matrix<M20, Likelihood::maybe>);
+  static_assert(square_matrix<M02, Likelihood::maybe>);
+  static_assert(square_matrix<M00, Likelihood::maybe>);
+  static_assert(square_matrix<CM22, Likelihood::maybe>);
+  static_assert(not square_matrix<CM32, Likelihood::maybe>);
+  static_assert(square_matrix<CM20, Likelihood::maybe>);
+  static_assert(square_matrix<CM02, Likelihood::maybe>);
+  static_assert(square_matrix<CM00, Likelihood::maybe>);
+
   static_assert(square_matrix<M11>);
   static_assert(square_matrix<M22>);
   static_assert(not square_matrix<M20>);
@@ -191,6 +218,22 @@ TEST(eigen3, Eigen_Matrix)
 
   static_assert(one_by_one_matrix<M11>);
   static_assert(not one_by_one_matrix<M10>);
+  static_assert(one_by_one_matrix<M10, Likelihood::maybe>);
+
+  static_assert(column_vector<M31>);
+  static_assert(column_vector<M01>);
+  static_assert(column_vector<M30, Likelihood::maybe>);
+  static_assert(column_vector<M00, Likelihood::maybe>);
+  static_assert(not column_vector<M32, Likelihood::maybe>);
+  static_assert(not column_vector<M02, Likelihood::maybe>);
+
+  static_assert(row_vector<M13>);
+  static_assert(row_vector<M10>);
+  static_assert(row_vector<M03, Likelihood::maybe>);
+  static_assert(row_vector<M00, Likelihood::maybe>);
+  static_assert(not row_vector<M23, Likelihood::maybe>);
+  static_assert(not row_vector<M20, Likelihood::maybe>);
+
   static_assert(native_eigen_matrix<M22>);
   static_assert(native_eigen_matrix<M00>);
   static_assert(native_eigen_matrix<CM22>);
@@ -201,8 +244,7 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(not modifiable<M33, M31>);
   static_assert(not modifiable<M33, eigen_matrix_t<int, 3, 3>>);
   static_assert(not modifiable<const M33, M33>);
-  static_assert(modifiable<M33, IdentityMatrix<M33>>);
-  static_assert(not modifiable<M33, int>);
+  static_assert(modifiable<M33, Eigen3::IdentityMatrix<M33>>);
 }
 
 
@@ -216,6 +258,7 @@ namespace
   using Z20 = Eigen::Replicate<Z11, 2, Eigen::Dynamic>;
   using Z02 = Eigen::Replicate<Z11, Eigen::Dynamic, 2>;
   using Z00 = Eigen::Replicate<Z11, Eigen::Dynamic, Eigen::Dynamic>;
+  using Z10 = Eigen::Replicate<Z11, 1, Eigen::Dynamic>;
   using Z01 = Eigen::Replicate<Z11, Eigen::Dynamic, 1>;
 
   using C11_1 = M11::IdentityReturnType;
@@ -253,6 +296,8 @@ namespace
   using C11_m2 = decltype(-(M11::Identity() + M11::Identity()));
   using C22_m2 = Eigen::Replicate<C11_m2, 2, 2>;
   using C21_m2 = Eigen::Replicate<C11_m2, 2, 1>;
+
+  using C11_2_complex = decltype(CM11::Identity() + CM11::Identity());
 
   using B11_true = decltype(eigen_matrix_t<bool, 1, 1>::Identity());
   using B11_false = decltype((not eigen_matrix_t<bool, 1, 1>::Identity().array()).matrix());
@@ -297,6 +342,18 @@ namespace
   using Md01_2 = Eigen::ArrayWrapper<DiagonalMatrix<M01>>;
   using Md00_21 = Eigen::ArrayWrapper<DiagonalMatrix<M00>>;
 
+  using Salv22 = Eigen::SelfAdjointView<M22, Eigen::Lower>;
+  using Salv20_2 = Eigen::SelfAdjointView<M20, Eigen::Lower>;
+  using Salv02_2 = Eigen::SelfAdjointView<M02, Eigen::Lower>;
+  using Salv00_22 = Eigen::SelfAdjointView<M00, Eigen::Lower>;
+
+  using Sauv22 = Eigen::SelfAdjointView<M22, Eigen::Upper>;
+  using Sauv20_2 = Eigen::SelfAdjointView<M20, Eigen::Upper>;
+  using Sauv02_2 = Eigen::SelfAdjointView<M02, Eigen::Upper>;
+  using Sauv00_22 = Eigen::SelfAdjointView<M00, Eigen::Upper>;
+
+  using Sadv22 = Eigen::SelfAdjointView<I21, Eigen::Lower>;
+
   using Sal22 = Eigen::ArrayWrapper<SelfAdjointMatrix<M22, TriangleType::lower>>;
   using Sal20_2 = Eigen::ArrayWrapper<SelfAdjointMatrix<M20, TriangleType::lower>>;
   using Sal02_2 = Eigen::ArrayWrapper<SelfAdjointMatrix<M02, TriangleType::lower>>;
@@ -306,6 +363,11 @@ namespace
   using Sau20_2 = Eigen::ArrayWrapper<SelfAdjointMatrix<M20, TriangleType::upper>>;
   using Sau02_2 = Eigen::ArrayWrapper<SelfAdjointMatrix<M02, TriangleType::upper>>;
   using Sau00_22 = Eigen::ArrayWrapper<SelfAdjointMatrix<M00, TriangleType::upper>>;
+
+  using Sad22 = Eigen::ArrayWrapper<SelfAdjointMatrix<M22, TriangleType::diagonal>>;
+  using Sad20_2 = Eigen::ArrayWrapper<SelfAdjointMatrix<M20, TriangleType::diagonal>>;
+  using Sad02_2 = Eigen::ArrayWrapper<SelfAdjointMatrix<M02, TriangleType::diagonal>>;
+  using Sad00_22 = Eigen::ArrayWrapper<SelfAdjointMatrix<M00, TriangleType::diagonal>>;
 
   using Tl22 = Eigen::ArrayWrapper<TriangularMatrix<M22, TriangleType::lower>>;
   using Tl20_2 = Eigen::ArrayWrapper<TriangularMatrix<M20, TriangleType::lower>>;
@@ -319,12 +381,378 @@ namespace
 }
 
 
+TEST(eigen3, Eigen_check_test_classes)
+{
+  static_assert(are_within_tolerance(constant_coefficient_v<Z21>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Z12>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Z23>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Z20>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Z02>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Z00>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<Z01>, 0));
+  static_assert(are_within_tolerance(constant_coefficient_v<C11_1>, 1));
+  static_assert(are_within_tolerance(constant_coefficient_v<C11_m1>, -1));
+  static_assert(are_within_tolerance(constant_coefficient_v<C11_2>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<C11_m2>, -2));
+  static_assert(are_within_tolerance(constant_coefficient_v<C11_3>, 3));
+  static_assert(are_within_tolerance(constant_coefficient_v<C20_2>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<C02_2>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<C00_2>, 2));
+  static_assert(constant_coefficient_v<B22_true> == true);
+  static_assert(constant_coefficient_v<B22_false> == false);
+  static_assert(not constant_matrix<Cd21_2>);
+  static_assert(not constant_matrix<Cd20_1_2>);
+  static_assert(not constant_matrix<Cd01_2_2>);
+  static_assert(not constant_matrix<Cd21_3>);
+  static_assert(not constant_matrix<Cd21_2, Likelihood::maybe>);
+  static_assert(not constant_matrix<Cd20_1_2, Likelihood::maybe>);
+  static_assert(constant_matrix<Cd01_2_2, Likelihood::maybe>);
+  static_assert(not constant_matrix<Cd21_3, Likelihood::maybe>);
+
+  static_assert(constant_diagonal_matrix<Z11>);
+  static_assert(not constant_diagonal_matrix<Z21>);
+  static_assert(not constant_diagonal_matrix<Z12>);
+  static_assert(not constant_diagonal_matrix<Z23>);
+  static_assert(not constant_diagonal_matrix<Z20>);
+  static_assert(not constant_diagonal_matrix<Z02>);
+  static_assert(not constant_diagonal_matrix<Z00>);
+  static_assert(not constant_diagonal_matrix<Z01>);
+  static_assert(not constant_diagonal_matrix<Z21, Likelihood::maybe>);
+  static_assert(constant_diagonal_matrix<Z10, Likelihood::maybe>);
+  static_assert(constant_diagonal_matrix<Z01, Likelihood::maybe>);
+  static_assert(constant_diagonal_matrix<Z00, Likelihood::maybe>);
+  static_assert(constant_diagonal_coefficient_v<C11_1> == 1);
+  static_assert(constant_diagonal_coefficient_v<C11_m1> == -1);
+  static_assert(constant_diagonal_coefficient_v<C11_2> == 2);
+  static_assert(constant_diagonal_coefficient_v<C11_m2> == -2);
+  static_assert(constant_diagonal_matrix<C11_1>);
+  static_assert(not constant_diagonal_matrix<C21_1>);
+  static_assert(not constant_diagonal_matrix<C20_1>);
+  static_assert(not constant_diagonal_matrix<C01_1>);
+  static_assert(not constant_diagonal_matrix<C00_1>);
+  static_assert(constant_diagonal_matrix<C11_1, Likelihood::maybe>);
+  static_assert(constant_diagonal_matrix<C10_1, Likelihood::maybe>);
+  static_assert(constant_diagonal_matrix<C01_1, Likelihood::maybe>);
+  static_assert(constant_diagonal_matrix<C00_1, Likelihood::maybe>);
+  static_assert(constant_diagonal_coefficient_v<I21> == 1);
+  static_assert(constant_diagonal_coefficient_v<I20_1> == 1);
+  static_assert(constant_diagonal_coefficient_v<I01_2> == 1);
+  static_assert(constant_diagonal_coefficient_v<I00_21> == 1);
+  static_assert(constant_diagonal_coefficient_v<Cd21_2> == 2);
+  static_assert(constant_diagonal_coefficient_v<Cd20_1_2> == 2);
+  static_assert(constant_diagonal_coefficient_v<Cd01_2_2> == 2);
+  static_assert(constant_diagonal_coefficient_v<Cd00_21_2> == 2);
+
+  static_assert(zero_matrix<Z21>);
+  static_assert(zero_matrix<Eigen::DiagonalWrapper<Z21>>);
+  static_assert(zero_matrix<Z23>);
+  static_assert(zero_matrix<Z20>);
+  static_assert(zero_matrix<Z02>);
+  static_assert(zero_matrix<B22_false>);
+  static_assert(not zero_matrix<Cd21_2>);
+  static_assert(zero_matrix<Z11>);
+  static_assert(zero_matrix<Z00>);
+
+  static_assert(not identity_matrix<C21_1>);
+  static_assert(identity_matrix<I21>);
+  static_assert(identity_matrix<I20_1>);
+  static_assert(identity_matrix<I01_2>);
+  static_assert(identity_matrix<I00_21>);
+  static_assert(not identity_matrix<Cd21_2>);
+  static_assert(not identity_matrix<Cd21_3>);
+  static_assert(identity_matrix<C11_1>);
+  static_assert(not identity_matrix<C10_1>);
+  static_assert(not identity_matrix<C01_1>);
+  static_assert(not identity_matrix<C00_1>);
+  static_assert(not identity_matrix<C21_1, Likelihood::maybe>);
+  static_assert(not identity_matrix<C20_1, Likelihood::maybe>);
+  static_assert(identity_matrix<C10_1, Likelihood::maybe>);
+  static_assert(identity_matrix<C01_1, Likelihood::maybe>);
+  static_assert(identity_matrix<C00_1, Likelihood::maybe>);
+
+  static_assert(diagonal_matrix<Z22>);
+  static_assert(not diagonal_matrix<Z20>);
+  static_assert(not diagonal_matrix<Z02>);
+  static_assert(not diagonal_matrix<Z00>);
+  static_assert(diagonal_matrix<Z22, Likelihood::maybe>);
+  static_assert(diagonal_matrix<Z20, Likelihood::maybe>);
+  static_assert(diagonal_matrix<Z02, Likelihood::maybe>);
+  static_assert(diagonal_matrix<Z00, Likelihood::maybe>);
+  static_assert(diagonal_matrix<C11_2>);
+  static_assert(diagonal_matrix<I21>);
+  static_assert(diagonal_matrix<I20_1>);
+  static_assert(diagonal_matrix<I01_2>);
+  static_assert(diagonal_matrix<I00_21>);
+  static_assert(diagonal_matrix<Cd21_2>);
+  static_assert(diagonal_matrix<Cd20_1_2>);
+  static_assert(diagonal_matrix<Cd01_2_2>);
+  static_assert(diagonal_matrix<Cd00_21_2>);
+  static_assert(diagonal_matrix<Md21>);
+  static_assert(diagonal_matrix<Md20_1>);
+  static_assert(diagonal_matrix<Md01_2>);
+  static_assert(diagonal_matrix<Md00_21>);
+  static_assert(not diagonal_matrix<Sal22>);
+  static_assert(not diagonal_matrix<Sau22>);
+  static_assert(diagonal_matrix<Sad22>);
+  static_assert(diagonal_matrix<Sad20_2>);
+  static_assert(diagonal_matrix<Sad02_2>);
+  static_assert(diagonal_matrix<Sad00_22>);
+  static_assert(diagonal_matrix<M11>);
+  static_assert(not diagonal_matrix<M10>);
+  static_assert(not diagonal_matrix<M01>);
+  static_assert(not diagonal_matrix<M00>);
+  static_assert(diagonal_matrix<M11, Likelihood::maybe>);
+  static_assert(diagonal_matrix<M10, Likelihood::maybe>);
+  static_assert(diagonal_matrix<M01, Likelihood::maybe>);
+  static_assert(diagonal_matrix<M00, Likelihood::maybe>);
+
+  static_assert(not diagonal_adapter<M11, Likelihood::maybe>);
+  static_assert(not diagonal_adapter<M10, Likelihood::maybe>);
+  static_assert(not diagonal_adapter<M01, Likelihood::maybe>);
+  static_assert(not diagonal_adapter<M00, Likelihood::maybe>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M21>>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M20>>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M01>>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M10>>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M00>>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M21>, Likelihood::maybe>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M20>, Likelihood::maybe>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M01>, Likelihood::maybe>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M10>, Likelihood::maybe>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M00>, Likelihood::maybe>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M22>, Likelihood::maybe>);
+
+  static_assert(hermitian_matrix<Z22>);
+  static_assert(hermitian_matrix<Z20, Likelihood::maybe>);
+  static_assert(hermitian_matrix<Z02, Likelihood::maybe>);
+  static_assert(hermitian_matrix<Z00, Likelihood::maybe>);
+  static_assert(not hermitian_adapter<Z22>);
+  static_assert(not hermitian_adapter<Z20>);
+  static_assert(not hermitian_adapter<Z02>);
+  static_assert(not hermitian_adapter<Z00>);
+  static_assert(hermitian_matrix<C22_2>);
+  static_assert(hermitian_matrix<I21>);
+  static_assert(hermitian_matrix<I20_1>);
+  static_assert(hermitian_matrix<I01_2>);
+  static_assert(hermitian_matrix<I00_21>);
+  static_assert(hermitian_matrix<Cd21_2>);
+  static_assert(hermitian_matrix<Cd20_1_2>);
+  static_assert(hermitian_matrix<Cd01_2_2>);
+  static_assert(hermitian_matrix<Cd00_21_2>);
+  static_assert(hermitian_matrix<Md21>);
+  static_assert(hermitian_matrix<Md20_1>);
+  static_assert(hermitian_matrix<Md01_2>);
+  static_assert(hermitian_matrix<Md00_21>);
+  static_assert(not hermitian_adapter<C22_2>);
+  static_assert(not hermitian_adapter<I21>);
+  static_assert(not hermitian_adapter<I20_1>);
+  static_assert(not hermitian_adapter<I01_2>);
+  static_assert(not hermitian_adapter<I00_21>);
+  static_assert(not hermitian_adapter<Cd21_2>);
+  static_assert(not hermitian_adapter<Cd20_1_2>);
+  static_assert(not hermitian_adapter<Cd01_2_2>);
+  static_assert(not hermitian_adapter<Cd00_21_2>);
+  static_assert(not hermitian_adapter<Md21>);
+  static_assert(not hermitian_adapter<Md20_1>);
+  static_assert(not hermitian_adapter<Md01_2>);
+  static_assert(not hermitian_adapter<Md00_21>);
+  static_assert(hermitian_matrix<Sal22>);
+  static_assert(hermitian_matrix<Sal20_2>);
+  static_assert(hermitian_matrix<Sal02_2>);
+  static_assert(hermitian_matrix<Sal00_22>);
+
+  static_assert(lower_hermitian_adapter<Salv22>);
+  static_assert(lower_hermitian_adapter<Salv20_2>);
+  static_assert(lower_hermitian_adapter<Salv02_2>);
+  static_assert(lower_hermitian_adapter<Salv00_22>);
+  static_assert(not upper_hermitian_adapter<Salv22>);
+
+  static_assert(upper_hermitian_adapter<Sauv22>);
+  static_assert(upper_hermitian_adapter<Sauv20_2>);
+  static_assert(upper_hermitian_adapter<Sauv02_2>);
+  static_assert(upper_hermitian_adapter<Sauv00_22>);
+  static_assert(not lower_hermitian_adapter<Sauv22>);
+
+  static_assert(diagonal_hermitian_adapter<Sadv22>);
+  static_assert(not upper_hermitian_adapter<Sadv22>);
+  static_assert(not lower_hermitian_adapter<Sadv22>);
+
+  static_assert(hermitian_adapter_type_of_v<Salv22> == TriangleType::lower);
+  static_assert(hermitian_adapter_type_of_v<Salv22, Salv22> == TriangleType::lower);
+  static_assert(hermitian_adapter_type_of_v<Sauv22> == TriangleType::upper);
+  static_assert(hermitian_adapter_type_of_v<Sauv22, Sauv22> == TriangleType::upper);
+  static_assert(hermitian_adapter_type_of_v<Sauv22, Salv22> == TriangleType::none);
+  static_assert(hermitian_adapter_type_of_v<Salv22, Sauv22> == TriangleType::none);
+
+  static_assert(lower_triangular_matrix<Z22>);
+  static_assert(not lower_triangular_matrix<Z20>);
+  static_assert(not lower_triangular_matrix<Z02>);
+  static_assert(not lower_triangular_matrix<Z00>);
+  static_assert(lower_triangular_matrix<Z20, Likelihood::maybe>);
+  static_assert(lower_triangular_matrix<Z02, Likelihood::maybe>);
+  static_assert(lower_triangular_matrix<Z00, Likelihood::maybe>);
+  static_assert(lower_triangular_matrix<C11_2>);
+  static_assert(not lower_triangular_matrix<C22_2>);
+  static_assert(not lower_triangular_matrix<C22_2, Likelihood::maybe>);
+  static_assert(lower_triangular_matrix<I21>);
+  static_assert(lower_triangular_matrix<I20_1>);
+  static_assert(lower_triangular_matrix<I01_2>);
+  static_assert(lower_triangular_matrix<I00_21>);
+  static_assert(lower_triangular_matrix<Cd21_2>);
+  static_assert(lower_triangular_matrix<Cd20_1_2>);
+  static_assert(lower_triangular_matrix<Cd01_2_2>);
+  static_assert(lower_triangular_matrix<Cd00_21_2>);
+  static_assert(lower_triangular_matrix<Md21>);
+  static_assert(lower_triangular_matrix<Md20_1>);
+  static_assert(lower_triangular_matrix<Md01_2>);
+  static_assert(lower_triangular_matrix<Md00_21>);
+  static_assert(lower_triangular_matrix<Tl22>);
+  static_assert(lower_triangular_matrix<Tl20_2>);
+  static_assert(lower_triangular_matrix<Tl02_2>);
+  static_assert(lower_triangular_matrix<Tl00_22>);
+  static_assert(not lower_triangular_matrix<Tu22>);
+  static_assert(not lower_triangular_matrix<Tu22, Likelihood::maybe>);
+
+  static_assert(upper_triangular_matrix<Z22>);
+  static_assert(not upper_triangular_matrix<Z20>);
+  static_assert(not upper_triangular_matrix<Z02>);
+  static_assert(not upper_triangular_matrix<Z00>);
+  static_assert(upper_triangular_matrix<Z20, Likelihood::maybe>);
+  static_assert(upper_triangular_matrix<Z02, Likelihood::maybe>);
+  static_assert(upper_triangular_matrix<Z00, Likelihood::maybe>);
+  static_assert(upper_triangular_matrix<C11_2>);
+  static_assert(not upper_triangular_matrix<C22_2>);
+  static_assert(not upper_triangular_matrix<C22_2, Likelihood::maybe>);
+
+  static_assert(upper_triangular_matrix<I21>);
+  static_assert(upper_triangular_matrix<I20_1>);
+  static_assert(upper_triangular_matrix<I01_2>);
+  static_assert(upper_triangular_matrix<I00_21>);
+  static_assert(upper_triangular_matrix<Cd21_2>);
+  static_assert(upper_triangular_matrix<Cd20_1_2>);
+  static_assert(upper_triangular_matrix<Cd01_2_2>);
+  static_assert(upper_triangular_matrix<Cd00_21_2>);
+  static_assert(upper_triangular_matrix<Md21>);
+  static_assert(upper_triangular_matrix<Md20_1>);
+  static_assert(upper_triangular_matrix<Md01_2>);
+  static_assert(upper_triangular_matrix<Md00_21>);
+  static_assert(upper_triangular_matrix<Tu22>);
+  static_assert(upper_triangular_matrix<Tu20_2>);
+  static_assert(upper_triangular_matrix<Tu02_2>);
+  static_assert(upper_triangular_matrix<Tu00_22>);
+  static_assert(not upper_triangular_matrix<Tl22>);
+  static_assert(not upper_triangular_matrix<Tl22, Likelihood::maybe>);
+
+  static_assert(square_matrix<C11_m1, Likelihood::maybe>);
+  static_assert(square_matrix<Z22, Likelihood::maybe>);
+  static_assert(square_matrix<Z20, Likelihood::maybe>);
+  static_assert(square_matrix<Z02, Likelihood::maybe>);
+  static_assert(square_matrix<Z00, Likelihood::maybe>);
+  static_assert(square_matrix<C22_2, Likelihood::maybe>);
+  static_assert(square_matrix<C20_2, Likelihood::maybe>);
+  static_assert(square_matrix<C02_2, Likelihood::maybe>);
+  static_assert(square_matrix<C00_2, Likelihood::maybe>);
+  static_assert(square_matrix<DM2, Likelihood::maybe>);
+  static_assert(square_matrix<DM0, Likelihood::maybe>);
+  static_assert(square_matrix<Sal22, Likelihood::maybe>);
+  static_assert(square_matrix<Sal20_2, Likelihood::maybe>);
+  static_assert(square_matrix<Sal02_2, Likelihood::maybe>);
+  static_assert(square_matrix<Sal00_22, Likelihood::maybe>);
+  static_assert(square_matrix<Sau22, Likelihood::maybe>);
+  static_assert(square_matrix<Sau20_2, Likelihood::maybe>);
+  static_assert(square_matrix<Sau02_2, Likelihood::maybe>);
+  static_assert(square_matrix<Sau00_22, Likelihood::maybe>);
+  static_assert(square_matrix<Tl22, Likelihood::maybe>);
+  static_assert(square_matrix<Tl20_2, Likelihood::maybe>);
+  static_assert(square_matrix<Tl02_2, Likelihood::maybe>);
+  static_assert(square_matrix<Tl00_22, Likelihood::maybe>);
+  static_assert(square_matrix<Tu22, Likelihood::maybe>);
+  static_assert(square_matrix<Tu20_2, Likelihood::maybe>);
+  static_assert(square_matrix<Tu02_2, Likelihood::maybe>);
+  static_assert(square_matrix<Tu00_22, Likelihood::maybe>);
+  static_assert(square_matrix<DiagonalMatrix<M11>, Likelihood::maybe>);
+  static_assert(square_matrix<DiagonalMatrix<M10>, Likelihood::maybe>);
+  static_assert(square_matrix<DiagonalMatrix<M01>, Likelihood::maybe>);
+  static_assert(square_matrix<DiagonalMatrix<M00>, Likelihood::maybe>);
+  static_assert(square_matrix<SelfAdjointMatrix<M11, TriangleType::diagonal>, Likelihood::maybe>);
+  static_assert(square_matrix<SelfAdjointMatrix<M10, TriangleType::lower>, Likelihood::maybe>);
+  static_assert(square_matrix<SelfAdjointMatrix<M01, TriangleType::upper>, Likelihood::maybe>);
+  static_assert(square_matrix<SelfAdjointMatrix<M00, TriangleType::lower>, Likelihood::maybe>);
+
+  static_assert(square_matrix<C11_m1>);
+  static_assert(square_matrix<Z22>);
+  static_assert(not square_matrix<Z20>);
+  static_assert(not square_matrix<Z02>);
+  static_assert(not square_matrix<Z00>);
+  static_assert(square_matrix<C22_2>);
+  static_assert(not square_matrix<C20_2>);
+  static_assert(not square_matrix<C02_2>);
+  static_assert(not square_matrix<C00_2>);
+  static_assert(square_matrix<DM2>);
+  static_assert(square_matrix<DM0>);
+  static_assert(square_matrix<Sal22>);
+  static_assert(square_matrix<Sal20_2>);
+  static_assert(square_matrix<Sal02_2>);
+  static_assert(square_matrix<Sal00_22>);
+  static_assert(square_matrix<Sau22>);
+  static_assert(square_matrix<Sau20_2>);
+  static_assert(square_matrix<Sau02_2>);
+  static_assert(square_matrix<Sau00_22>);
+  static_assert(square_matrix<Tl22>);
+  static_assert(square_matrix<Tl20_2>);
+  static_assert(square_matrix<Tl02_2>);
+  static_assert(square_matrix<Tl00_22>);
+  static_assert(square_matrix<Tu22>);
+  static_assert(square_matrix<Tu20_2>);
+  static_assert(square_matrix<Tu02_2>);
+  static_assert(square_matrix<Tu00_22>);
+  static_assert(square_matrix<DiagonalMatrix<M11>>);
+  static_assert(square_matrix<DiagonalMatrix<M10>>);
+  static_assert(square_matrix<DiagonalMatrix<M01>>);
+  static_assert(square_matrix<DiagonalMatrix<M00>>);
+  static_assert(square_matrix<SelfAdjointMatrix<M11, TriangleType::diagonal>>);
+  static_assert(square_matrix<SelfAdjointMatrix<M10, TriangleType::lower>>);
+  static_assert(square_matrix<SelfAdjointMatrix<M01, TriangleType::upper>>);
+  static_assert(square_matrix<SelfAdjointMatrix<M00, TriangleType::lower>>);
+
+  static_assert(one_by_one_matrix<Z01, Likelihood::maybe>);
+  static_assert(not one_by_one_matrix<Z01>);
+  static_assert(one_by_one_matrix<C10_1, Likelihood::maybe>);
+  static_assert(not one_by_one_matrix<C10_1>);
+  static_assert(one_by_one_matrix<C00_1, Likelihood::maybe>);
+  static_assert(not one_by_one_matrix<C00_1>);
+  static_assert(one_by_one_matrix<C11_m1>);
+  static_assert(one_by_one_matrix<DiagonalMatrix<M11>>);
+  static_assert(one_by_one_matrix<DiagonalMatrix<M10>>);
+  static_assert(one_by_one_matrix<DiagonalMatrix<M01>, Likelihood::maybe>);
+  static_assert(not one_by_one_matrix<DiagonalMatrix<M01>>);
+  static_assert(one_by_one_matrix<DiagonalMatrix<M01>, Likelihood::maybe>);
+  static_assert(not one_by_one_matrix<DiagonalMatrix<M00>>);
+  static_assert(one_by_one_matrix<DiagonalMatrix<M00>, Likelihood::maybe>);
+  static_assert(one_by_one_matrix<SelfAdjointMatrix<M11, TriangleType::diagonal>>);
+  static_assert(one_by_one_matrix<SelfAdjointMatrix<M10, TriangleType::lower>>);
+  static_assert(one_by_one_matrix<SelfAdjointMatrix<M01, TriangleType::upper>>);
+  static_assert(one_by_one_matrix<SelfAdjointMatrix<M00, TriangleType::lower>, Likelihood::maybe>);
+  static_assert(not one_by_one_matrix<SelfAdjointMatrix<M00, TriangleType::lower>>);
+
+  static_assert(maybe_has_same_shape_as<>);
+  static_assert(maybe_has_same_shape_as<M32>);
+  static_assert(maybe_has_same_shape_as<M32, M02, M30>);
+  static_assert(maybe_has_same_shape_as<M20, M23, M03>);
+  static_assert(maybe_has_same_shape_as<M20, Z23>);
+  static_assert(maybe_has_same_shape_as<M20, M03>);
+
+  static_assert(has_same_shape_as<M32, M32>);
+  static_assert(not has_same_shape_as<M32, M02>);
+  static_assert(not has_same_shape_as<M02, M32>);
+  static_assert(has_same_shape_as<M22, Sal22, M22, Z22>);
+}
+
+
 TEST(eigen3, Eigen_Array)
 {
   static_assert(native_eigen_array<Eigen::Array<double, 3, 2>>);
   static_assert(not native_eigen_matrix<Eigen::Array<double, 3, 2>>);
-  static_assert(native_eigen_array<Eigen3::EigenWrapper<Eigen3::ConstantMatrix<Eigen::Array<double, 3, 2>, 1>>>);
-  static_assert(native_eigen_array<Eigen3::EigenWrapper<Eigen3::ConstantMatrix<Eigen::Array<double, 3, 2>, 1>>>);
   static_assert(self_contained<Eigen::Array<double, 3, 2>>);
   static_assert(row_dimension_of_v<Eigen::Array<double, 3, 2>> == 3);
   static_assert(column_dimension_of_v<Eigen::Array<double, 3, 2>> == 2);
@@ -354,8 +782,8 @@ TEST(eigen3, Eigen_ArrayWrapper)
   static_assert(zero_matrix<Eigen::ArrayWrapper<Z23>>);
 
   static_assert(diagonal_matrix<Md21>);
-  static_assert(lower_self_adjoint_matrix<Eigen::ArrayWrapper<C22_2>>);
-  static_assert(upper_self_adjoint_matrix<Eigen::ArrayWrapper<C22_2>>);
+  static_assert(not hermitian_adapter<Eigen::ArrayWrapper<Z22>>);
+  static_assert(not hermitian_adapter<Eigen::ArrayWrapper<C22_2>>);
   static_assert(lower_triangular_matrix<Md21>);
   static_assert(upper_triangular_matrix<Md21>);
 }
@@ -369,10 +797,10 @@ TEST(eigen3, Eigen_Block)
 
   static_assert(self_contained<decltype(std::declval<I21>().block<2,1>(0, 0))>);
   static_assert(not self_contained<decltype(std::declval<Eigen::ArrayWrapper<M32>>().block<2,1>(0, 0))>);
-  static_assert(self_contained<decltype(column<0>(2 * std::declval<I21>() + std::declval<I21>()))>);
-  static_assert(not self_contained<decltype(column<0>(2 * std::declval<I21>() + M22 {1, 2, 3, 4}))>);
-  static_assert(self_contained<decltype(row<0>(2 * std::declval<I21>() + std::declval<I21>()))>);
-  static_assert(not self_contained<decltype(row<0>(2 * std::declval<I21>() + M22 {1, 2, 3, 4}))>);
+  static_assert(self_contained<decltype((2 * std::declval<I21>() + std::declval<I21>()).col(0))>);
+  static_assert(not self_contained<decltype((2 * std::declval<I21>() + M22 {1, 2, 3, 4}).col(0))>);
+  static_assert(self_contained<decltype((2 * std::declval<I21>() + std::declval<I21>()).row(0))>);
+  static_assert(not self_contained<decltype((2 * std::declval<I21>() + M22 {1, 2, 3, 4}).row(0))>);
 
   static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().block<2, 1>(0, 0))>, 2));
   static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().block(2, 1, 0, 0))>, 2));
@@ -423,18 +851,25 @@ TEST(eigen3, Eigen_CwiseBinaryOp)
   static_assert(diagonal_matrix<decltype(std::declval<Md20_1>() + std::declval<Md20_1>())>);
   static_assert(diagonal_matrix<decltype(std::declval<Md01_2>() + std::declval<Md01_2>())>);
   static_assert(diagonal_matrix<decltype(std::declval<Md00_21>() + std::declval<Md00_21>())>);
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<Md21>() + std::declval<Md21>())>);
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<Sal22>() + std::declval<Sal22>())>);
-  static_assert(not lower_self_adjoint_matrix<decltype(std::declval<Sau22>() + std::declval<Sal22>())>);
-  static_assert(not lower_self_adjoint_matrix<decltype(std::declval<Sal22>() + std::declval<Sau22>())>);
-  static_assert(not lower_self_adjoint_matrix<decltype(std::declval<Sal20_2>() + std::declval<Sau02_2>())>);
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Md21>() + std::declval<Md21>())>);
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Sau22>() + std::declval<Sau22>())>);
-  static_assert(not upper_self_adjoint_matrix<decltype(std::declval<Sau22>() + std::declval<Sal22>())>);
-  static_assert(not upper_self_adjoint_matrix<decltype(std::declval<Sal22>() + std::declval<Sau22>())>);
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Sau20_2>() + std::declval<Sau02_2>())>);
-  static_assert(self_adjoint_matrix<decltype(std::declval<Sau22>() + std::declval<Sal22>())>);
-  static_assert(self_adjoint_matrix<decltype(std::declval<Sal20_2>() + std::declval<Sau02_2>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Md21>() + std::declval<Md21>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>() + std::declval<Sal22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>() + std::declval<Sau22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>() + std::declval<Sal22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>() + std::declval<Sal22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>() + std::declval<Sau22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal20_2>() + std::declval<Sau02_2>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Md21>() + std::declval<Md21>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>() + std::declval<Sau22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>() + std::declval<Sal22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>() + std::declval<Sal22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>() + std::declval<Sau22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau20_2>() + std::declval<Sau02_2>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>() + std::declval<Sal22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal20_2>() + std::declval<Sau02_2>())>);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sal22>() + std::declval<Sal22>())> == TriangleType::none);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sau22>() + std::declval<Sau22>())> == TriangleType::none);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sau22>() + std::declval<Sal22>())> == TriangleType::none);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sal22>() + std::declval<Sau22>())> == TriangleType::none);
   static_assert(lower_triangular_matrix<decltype(std::declval<Md21>() + std::declval<Md21>())>);
   static_assert(upper_triangular_matrix<decltype(std::declval<Md21>() + std::declval<Md21>())>);
   static_assert(not writable<decltype(std::declval<M22>() + std::declval<M22>())>);
@@ -452,19 +887,23 @@ TEST(eigen3, Eigen_CwiseBinaryOp)
   static_assert(diagonal_matrix<decltype(std::declval<Md01_2>() - std::declval<Md21>())>);
   static_assert(diagonal_matrix<decltype(std::declval<Md00_21>() - std::declval<Md00_21>())>);
   static_assert(identity_matrix<decltype(M33::Identity() - (M33::Identity() - M33::Identity()))>);
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<Md21>() - std::declval<Md21>())>);
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<Sal22>() - std::declval<Sal22>())>);
-  static_assert(not lower_self_adjoint_matrix<decltype(std::declval<Sau22>() - std::declval<Sal22>())>);
-  static_assert(not lower_self_adjoint_matrix<decltype(std::declval<Sal22>() - std::declval<Sau22>())>);
-  static_assert(not lower_self_adjoint_matrix<decltype(std::declval<Sal00_22>() - std::declval<Sau00_22>())>);
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Md21>() - std::declval<Md21>())>);
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Sau22>() - std::declval<Sau22>())>);
-  static_assert(not upper_self_adjoint_matrix<decltype(std::declval<Sau22>() - std::declval<Sal22>())>);
-  static_assert(not upper_self_adjoint_matrix<decltype(std::declval<Sal22>() - std::declval<Sau22>())>);
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Sau00_22>() - std::declval<Sau00_22>())>);
-  static_assert(self_adjoint_matrix<decltype(std::declval<Sau22>() - std::declval<Sal22>())>);
-  static_assert(self_adjoint_matrix<decltype(std::declval<Sal22>() - std::declval<Sau22>())>);
-  static_assert(self_adjoint_matrix<decltype(std::declval<Sal00_22>() - std::declval<Sau00_22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Md21>() - std::declval<Md21>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>() - std::declval<Sal22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>() - std::declval<Sal22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>() - std::declval<Sau22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal00_22>() - std::declval<Sau00_22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Md21>() - std::declval<Md21>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>() - std::declval<Sau22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>() - std::declval<Sal22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>() - std::declval<Sau22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau00_22>() - std::declval<Sau00_22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>() - std::declval<Sal22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>() - std::declval<Sau22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal00_22>() - std::declval<Sau00_22>())>);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sal22>() - std::declval<Sal22>())> == TriangleType::none);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sau22>() - std::declval<Sau22>())> == TriangleType::none);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sau22>() - std::declval<Sal22>())> == TriangleType::none);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sal22>() - std::declval<Sau22>())> == TriangleType::none);
   static_assert(lower_triangular_matrix<decltype(std::declval<Md21>() - std::declval<Md21>())>);
   static_assert(upper_triangular_matrix<decltype(std::declval<Md21>() - std::declval<Md21>())>);
 
@@ -487,19 +926,23 @@ TEST(eigen3, Eigen_CwiseBinaryOp)
   static_assert(diagonal_matrix<decltype(std::declval<Tu22>() * std::declval<Tl22>())>);
   static_assert(diagonal_matrix<decltype(std::declval<Tu20_2>() * std::declval<Tl02_2>())>);
   static_assert(diagonal_matrix<decltype(std::declval<Tu00_22>() * std::declval<Tl00_22>())>);
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<Md21>() * std::declval<Md21>())>);
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<Md21>() * 3)>);
-  static_assert(lower_self_adjoint_matrix<decltype(2 * std::declval<Md21>())>);
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<Sal22>() * std::declval<Sal22>())>);
-  static_assert(not lower_self_adjoint_matrix<decltype(std::declval<Sau22>() * std::declval<Sal22>())>);
-  static_assert(not lower_self_adjoint_matrix<decltype(std::declval<Sal22>() * std::declval<Sau22>())>);
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Md21>() * 3)>);
-  static_assert(upper_self_adjoint_matrix<decltype(2 * std::declval<Md21>())>);
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Sau22>() * std::declval<Sau22>())>);
-  static_assert(not upper_self_adjoint_matrix<decltype(std::declval<Sau22>() * std::declval<Sal22>())>);
-  static_assert(not upper_self_adjoint_matrix<decltype(std::declval<Sal22>() * std::declval<Sau22>())>);
-  static_assert(self_adjoint_matrix<decltype(std::declval<Sau22>() * std::declval<Sal22>())>);
-  static_assert(self_adjoint_matrix<decltype(std::declval<Sal22>() * std::declval<Sau22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Md21>() * std::declval<Md21>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Md21>() * 3)>);
+  static_assert(hermitian_matrix<decltype(2 * std::declval<Md21>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>() * std::declval<Sal22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>() * std::declval<Sal22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>() * std::declval<Sau22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Md21>() * 3)>);
+  static_assert(hermitian_matrix<decltype(2 * std::declval<Md21>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>() * std::declval<Sau22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>() * std::declval<Sal22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>() * std::declval<Sau22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>() * std::declval<Sal22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>() * std::declval<Sau22>())>);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sau22>() * std::declval<Sau22>())> == TriangleType::none);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sal22>() * std::declval<Sal22>())> == TriangleType::none);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sau22>() * std::declval<Sal22>())> == TriangleType::none);
+  static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sal22>() * std::declval<Sau22>())> == TriangleType::none);
   static_assert(lower_triangular_matrix<decltype(std::declval<Md21>() * 3)>);
   static_assert(lower_triangular_matrix<decltype(2 * std::declval<Md21>())>);
   static_assert(lower_triangular_matrix<decltype(std::declval<Tl22>() * std::declval<Tl22>())>);
@@ -524,7 +967,7 @@ TEST(eigen3, Eigen_CwiseBinaryOp)
   static_assert(are_within_tolerance(constant_diagonal_coefficient_v<decltype(std::declval<C11_3>().array() / std::declval<C11_m2>().array())>, -1.5));
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z11>().array() / std::declval<C11_m2>().array())> == 0);
   static_assert(not constant_diagonal_matrix<decltype(std::declval<C11_3>().array() / std::declval<Z11>().array())>); // divide by zero
-  static_assert(not lower_self_adjoint_matrix<decltype(std::declval<Md21>() / std::declval<Md21>())>);
+  static_assert(not lower_hermitian_adapter<decltype(std::declval<Md21>() / std::declval<Md21>())>);
 
   static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_2>().array().min(std::declval<C21_m2>().array()))>, -2));
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>().min(std::declval<Cd21_3>()))> == 2);
@@ -535,7 +978,10 @@ TEST(eigen3, Eigen_CwiseBinaryOp)
   static_assert(are_within_tolerance(constant_coefficient_v<Eigen::CwiseBinaryOp<Eigen::internal::scalar_hypot_op<double, double>, C21_2, C21_m2>>, OpenKalman::internal::constexpr_sqrt(8.)));
   static_assert(are_within_tolerance(constant_diagonal_coefficient_v<Eigen::CwiseBinaryOp<Eigen::internal::scalar_hypot_op<double, double>, Cd21_2, Cd21_3>>, OpenKalman::internal::constexpr_sqrt(13.)));
 
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_m2>().array().pow(std::declval<C21_3>().array()))>, -8));
+  using M11_int = eigen_matrix_t<int, 1, 1>;
+  using C11_3_int = decltype(M11_int::Identity() + M11_int::Identity() + M11_int::Identity());
+  using C21_3_int = Eigen::Replicate<C11_3_int, 2, 1>;
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_3_int>().array().pow(std::declval<C21_3_int>().array()))>, 27));
 
   static_assert(constant_coefficient_v<decltype(std::declval<B22_true>().array() and std::declval<B22_true>().array())> == true);
   static_assert(constant_coefficient_v<decltype(std::declval<B22_true>().array() and std::declval<B22_false>().array())> == false);
@@ -579,17 +1025,13 @@ TEST(eigen3, Eigen_CwiseNullaryOp)
 
   static_assert(diagonal_matrix<typename M33::IdentityReturnType>);
 
-  static_assert(self_adjoint_matrix<M33::ConstantReturnType>);
+  static_assert(hermitian_matrix<M33::ConstantReturnType>);
 
-  static_assert(not lower_self_adjoint_matrix<M33::ConstantReturnType>);
-  static_assert(not lower_self_adjoint_matrix<M21::ConstantReturnType>);
-  static_assert(lower_self_adjoint_matrix<typename M33::IdentityReturnType>);
-  static_assert(lower_self_adjoint_matrix<Z22>);
-  static_assert(lower_self_adjoint_matrix<C11_2>);
-
-  static_assert(not upper_self_adjoint_matrix<M33::ConstantReturnType>);
-  static_assert(upper_self_adjoint_matrix<typename M33::IdentityReturnType>);
-  static_assert(upper_self_adjoint_matrix<Z22>);
+  static_assert(hermitian_matrix<M33::ConstantReturnType>);
+  static_assert(not hermitian_matrix<M21::ConstantReturnType>);
+  static_assert(hermitian_matrix<typename M33::IdentityReturnType>);
+  static_assert(hermitian_matrix<Z22>);
+  static_assert(hermitian_matrix<C11_2>);
 
   static_assert(lower_triangular_matrix<Z22>);
 
@@ -598,7 +1040,15 @@ TEST(eigen3, Eigen_CwiseNullaryOp)
   static_assert(square_matrix<Z11>);
   static_assert(square_matrix<C11_1>);
 
+  static_assert(square_matrix<Z11, Likelihood::maybe>);
+  static_assert(square_matrix<Z20, Likelihood::maybe>);
+  static_assert(not square_matrix<Z21, Likelihood::maybe>);
+  static_assert(square_matrix<C22_1, Likelihood::maybe>);
+  static_assert(not square_matrix<C21_1, Likelihood::maybe>);
+
   static_assert(one_by_one_matrix<Z11>);
+  static_assert(one_by_one_matrix<Z10, Likelihood::maybe>);
+  static_assert(one_by_one_matrix<Z01, Likelihood::maybe>);
   static_assert(one_by_one_matrix<C11_1>);
 
   static_assert(not writable<M02::ConstantReturnType>);
@@ -661,13 +1111,13 @@ TEST(eigen3, Eigen_CwiseUnaryOp)
   static_assert(diagonal_matrix<decltype(-std::declval<Cd21_2>())>);
   static_assert(diagonal_matrix<decltype(std::declval<Cd21_2>().conjugate())>);
 
-  static_assert(lower_self_adjoint_matrix<decltype(-std::declval<Sal22>())>);
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<Sal22>().conjugate())>);
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<Sal22>().cube())>);
+  static_assert(hermitian_matrix<decltype(-std::declval<Sal22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>().conjugate())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>().cube())>);
 
-  static_assert(upper_self_adjoint_matrix<decltype(-std::declval<Sau22>())>);
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Sau22>().conjugate())>);
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Sau22>().cube())>);
+  static_assert(hermitian_matrix<decltype(-std::declval<Sau22>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>().conjugate())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>().cube())>);
 
   static_assert(lower_triangular_matrix<decltype(-std::declval<Tl22>())>);
   static_assert(lower_triangular_matrix<decltype(std::declval<Tl22>().conjugate())>);
@@ -707,11 +1157,11 @@ TEST(eigen3, Eigen_CwiseUnaryView)
   static_assert(diagonal_matrix<decltype(std::declval<Cd21_2>().real())>);
   static_assert(diagonal_matrix<decltype(std::declval<Cd21_2>().real())>);
 
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<Sal22>().real())>);
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<Sal22>().imag())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>().real())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>().imag())>);
 
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Sau22>().real())>);
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Sau22>().imag())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>().real())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>().imag())>);
 
   static_assert(lower_triangular_matrix<decltype(std::declval<Tl22>().real())>);
   static_assert(lower_triangular_matrix<decltype(std::declval<Tl22>().imag())>);
@@ -791,7 +1241,7 @@ TEST(eigen3, Eigen_DiagonalMatrix)
 
   static_assert(diagonal_matrix<Eigen::DiagonalMatrix<double, 3>>);
 
-  static_assert(writable<Eigen::DiagonalMatrix<double, 3>>);
+  static_assert(not writable<Eigen::DiagonalMatrix<double, 3>>);
 }
 
 
@@ -864,8 +1314,8 @@ TEST(eigen3, Eigen_MatrixWrapper)
   static_assert(zero_matrix<decltype(std::declval<Z23>().array().matrix())>);
   static_assert(identity_matrix<decltype(std::declval<I21>().array().matrix())>);
   static_assert(diagonal_matrix<decltype(std::declval<Cd21_2>().matrix())>);
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<Sal22>().matrix())>);
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Sau22>().matrix())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>().matrix())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>().matrix())>);
   static_assert(lower_triangular_matrix<decltype(std::declval<Tl22>().matrix())>);
   static_assert(upper_triangular_matrix<decltype(std::declval<Tu22>().matrix())>);
 }
@@ -875,8 +1325,8 @@ TEST(eigen3, Eigen_PartialReduxExpr)
 {
   static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().lpNorm<1>())>, 2));
   static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().lpNorm<2>())>, 2));
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().squaredNorm())>, 2));
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().norm())>, 2));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().squaredNorm())>, 8));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().norm())>,constexpr_sqrt(8.)));
   static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().stableNorm())>, 2));
   static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().colwise().hypotNorm())>, 2));
   static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().sum())>, 4));
@@ -887,7 +1337,9 @@ TEST(eigen3, Eigen_PartialReduxExpr)
   static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C20_2>().colwise().sum())>, 4));
   static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C01_2>().rowwise().sum())>, 2));
   static_assert(not constant_matrix<decltype(std::declval<C02_2>().colwise().sum())>);
+#if not EIGEN_VERSION_AT_LEAST(3,4,0)
   static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().mean())>, 2));
+#endif
   static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().minCoeff())>, 2));
   static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().colwise().maxCoeff())>, 2));
   static_assert(constant_coefficient_v<decltype(std::declval<B22_true>().colwise().all())> == true);
@@ -906,10 +1358,12 @@ TEST(eigen3, Eigen_PartialReduxExpr)
 
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C21_m2>().colwise().lpNorm<1>())> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C21_m2>().colwise().lpNorm<2>())> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C21_m2>().colwise().squaredNorm())> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C21_m2>().colwise().norm())> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C01_2>().colwise().norm())> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C10_2>().rowwise().norm())> == 2);
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C21_m2>().colwise().squaredNorm())> == 8);
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C21_m2>().colwise().norm())> == constexpr_sqrt(8.));
+#if not EIGEN_VERSION_AT_LEAST(3,4,0)
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C01_2>().colwise().norm())> == constexpr_sqrt(8.));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C10_2>().rowwise().norm())> == constexpr_sqrt(8.));
+#endif
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C21_m2>().colwise().stableNorm())> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C21_m2>().colwise().hypotNorm())> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C21_2>().colwise().sum())> == 4);
@@ -917,9 +1371,11 @@ TEST(eigen3, Eigen_PartialReduxExpr)
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C12_2>().rowwise().sum())> == 4);
   static_assert(not constant_matrix<decltype(std::declval<C01_2>().colwise().sum())>);
   static_assert(not constant_matrix<decltype(std::declval<C10_2>().rowwise().sum())>);
+#if not EIGEN_VERSION_AT_LEAST(3,4,0)
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C21_2>().colwise().mean())> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C01_2>().colwise().mean())> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C10_2>().rowwise().mean())> == 2);
+#endif
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C21_2>().colwise().minCoeff())> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C21_2>().colwise().maxCoeff())> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<B11_true>().colwise().all())> == true);
@@ -991,11 +1447,11 @@ TEST(eigen3, Eigen_Product)
   static_assert(diagonal_matrix<decltype(std::declval<Md21>().matrix() * std::declval<Md21>().matrix())>);
   static_assert(diagonal_matrix<decltype(std::declval<Md21>().matrix() * std::declval<Cd21_2>().matrix())>);
 
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<Cd21_2>().matrix() * std::declval<Sal22>().matrix())>);
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<Sal22>().matrix() * std::declval<Cd21_2>().matrix())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Cd21_2>().matrix() * std::declval<Sal22>().matrix())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>().matrix() * std::declval<Cd21_2>().matrix())>);
 
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Cd21_2>().matrix() * std::declval<Sau22>().matrix())>);
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Sau22>().matrix() * std::declval<Cd21_2>().matrix())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Cd21_2>().matrix() * std::declval<Sau22>().matrix())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>().matrix() * std::declval<Cd21_2>().matrix())>);
 
   static_assert(lower_triangular_matrix<decltype(std::declval<Cd21_2>().matrix() * std::declval<Tl22>().matrix())>);
   static_assert(lower_triangular_matrix<decltype(std::declval<Tl22>().matrix() * std::declval<Cd21_2>().matrix())>);
@@ -1050,9 +1506,9 @@ TEST(eigen3, Eigen_Replicate)
   static_assert(not diagonal_matrix<decltype(z11.replicate<Eigen::Dynamic, 2>())>);
   static_assert(not diagonal_matrix<decltype(z11.replicate<Eigen::Dynamic, Eigen::Dynamic>())>);
 
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<Sal22>().replicate<1, 1>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>().replicate<1, 1>())>);
 
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Sau22>().replicate<1, 1>())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>().replicate<1, 1>())>);
 
   static_assert(lower_triangular_matrix<decltype(std::declval<Tl22>().replicate<1, 1>())>);
 
@@ -1079,11 +1535,11 @@ TEST(eigen3, Eigen_Reverse)
   static_assert(diagonal_matrix<Eigen::Reverse<C11_2, Eigen::Vertical>>);
   static_assert(not diagonal_matrix<Eigen::Reverse<C00_2, Eigen::Vertical>>);
 
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<Sau22>().reverse())>);
-  static_assert(lower_self_adjoint_matrix<Eigen::Reverse<C11_2, Eigen::Vertical>>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>().reverse())>);
+  static_assert(hermitian_matrix<Eigen::Reverse<C11_2, Eigen::Vertical>>);
 
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Sal22>().reverse())>);
-  static_assert(upper_self_adjoint_matrix<Eigen::Reverse<C11_2, Eigen::Vertical>>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>().reverse())>);
+  static_assert(hermitian_matrix<Eigen::Reverse<C11_2, Eigen::Vertical>>);
 
   static_assert(lower_triangular_matrix<decltype(std::declval<Tu22>().reverse())>);
   static_assert(lower_triangular_matrix<Eigen::Reverse<C11_2, Eigen::Vertical>>);
@@ -1120,17 +1576,14 @@ TEST(eigen3, Eigen_Select)
   static_assert(diagonal_matrix<decltype(std::declval<B22_true>().select(std::declval<Md21>(), std::declval<M22>()))>);
   static_assert(diagonal_matrix<decltype(std::declval<B22_false>().select(std::declval<M22>(), std::declval<Md21>()))>);
 
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<B22_true>().select(std::declval<Sal22>(), std::declval<M22>()))>);
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<B22_false>().select(std::declval<M22>(), std::declval<Sal22>()))>);
-  static_assert(lower_self_adjoint_matrix<decltype(bsa.select(std::declval<Sal22>(), std::declval<Sal22>()))>);
-  static_assert(not lower_self_adjoint_matrix<decltype(bsa.select(std::declval<Sal22>(), std::declval<Sau22>()))>);
-
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<B22_true>().select(std::declval<Sau22>(), std::declval<M22>()))>);
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<B22_false>().select(std::declval<M22>(), std::declval<Sau22>()))>);
-  static_assert(upper_self_adjoint_matrix<decltype(bsa.select(std::declval<Sau22>(), std::declval<Sau22>()))>);
-  static_assert(not upper_self_adjoint_matrix<decltype(bsa.select(std::declval<Sal22>(), std::declval<Sau22>()))>);
-
-  static_assert(self_adjoint_matrix<decltype(bsa.select(std::declval<Sal22>(), std::declval<Sau22>()))>);
+  static_assert(hermitian_matrix<decltype(std::declval<B22_true>().select(std::declval<Sal22>(), std::declval<M22>()))>);
+  static_assert(hermitian_matrix<decltype(std::declval<B22_true>().select(std::declval<Sau22>(), std::declval<M22>()))>);
+  static_assert(hermitian_matrix<decltype(std::declval<B22_false>().select(std::declval<M22>(), std::declval<Sal22>()))>);
+  static_assert(hermitian_matrix<decltype(std::declval<B22_false>().select(std::declval<M22>(), std::declval<Sau22>()))>);
+  static_assert(hermitian_matrix<decltype(bsa.select(std::declval<Sal22>(), std::declval<Sal22>()))>);
+  static_assert(hermitian_matrix<decltype(bsa.select(std::declval<Sau22>(), std::declval<Sau22>()))>);
+  static_assert(hermitian_matrix<decltype(bsa.select(std::declval<Sal22>(), std::declval<Sau22>()))>);
+  static_assert(hermitian_matrix<decltype(bsa.select(std::declval<Sau22>(), std::declval<Sal22>()))>);
 
   static_assert(lower_triangular_matrix<decltype(std::declval<B22_true>().select(std::declval<Tl22>(), std::declval<M22>()))>);
   static_assert(lower_triangular_matrix<decltype(std::declval<B22_false>().select(std::declval<M22>(), std::declval<Tl22>()))>);
@@ -1144,6 +1597,9 @@ TEST(eigen3, Eigen_SelfAdjointView)
 {
   static_assert(std::is_same_v<nested_matrix_of_t<Eigen::SelfAdjointView<M22, Eigen::Lower>>, M22&>);
 
+  static_assert(not native_eigen_matrix<Eigen::SelfAdjointView<M33, Eigen::Lower>>);
+  static_assert(not writable<Eigen::SelfAdjointView<M33, Eigen::Lower>>);
+
   static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::SelfAdjointView<M33, Eigen::Lower>>, M33>);
   static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::SelfAdjointView<M30, Eigen::Lower>>, M33>);
   static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::SelfAdjointView<M03, Eigen::Lower>>, M33>);
@@ -1153,6 +1609,10 @@ TEST(eigen3, Eigen_SelfAdjointView)
   static_assert(not has_dynamic_dimensions<dense_writable_matrix_t<SelfAdjointMatrix<M20>>>);
 
   static_assert(are_within_tolerance(constant_coefficient_v<Eigen::SelfAdjointView<C22_2, Eigen::Upper>>, 2));
+  static_assert(constant_matrix<C11_2_complex>);
+  static_assert(std::real(constant_coefficient_v<C11_2_complex>) == 2);
+  static_assert(std::imag(constant_coefficient_v<C11_2_complex>) == 0);
+  static_assert(constant_matrix<Eigen::SelfAdjointView<C11_2_complex, Eigen::Lower>>);
 
   static_assert(are_within_tolerance(constant_diagonal_coefficient_v<Eigen::SelfAdjointView<Eigen::MatrixWrapper<Cd21_2>, Eigen::Upper>>, 2));
 
@@ -1173,14 +1633,17 @@ TEST(eigen3, Eigen_SelfAdjointView)
   static_assert(diagonal_matrix<Eigen::SelfAdjointView<decltype(std::declval<Md01_2>().matrix()), Eigen::Upper>>);
   static_assert(diagonal_matrix<Eigen::SelfAdjointView<decltype(std::declval<Md00_21>().matrix()), Eigen::Upper>>);
 
-  static_assert(lower_self_adjoint_matrix<Eigen::SelfAdjointView<M33, Eigen::Lower>>);
-  static_assert(not lower_self_adjoint_matrix<Eigen::SelfAdjointView<CM22, Eigen::Lower>>); // the diagonal must be real
+  static_assert(lower_hermitian_adapter<Eigen::SelfAdjointView<M33, Eigen::Lower>>);
+  static_assert(not lower_hermitian_adapter<Eigen::SelfAdjointView<CM22, Eigen::Lower>>); // the diagonal must be real
 
-  static_assert(upper_self_adjoint_matrix<Eigen::SelfAdjointView<M33, Eigen::Upper>>);
-  static_assert(not upper_self_adjoint_matrix<Eigen::SelfAdjointView<CM22, Eigen::Upper>>); // the diagonal must be real
+  static_assert(upper_hermitian_adapter<Eigen::SelfAdjointView<M33, Eigen::Upper>>);
+  static_assert(not upper_hermitian_adapter<Eigen::SelfAdjointView<CM22, Eigen::Upper>>); // the diagonal must be real
 
-  static_assert(self_adjoint_matrix<Eigen::SelfAdjointView<M33, Eigen::Lower>>);
-  static_assert(self_adjoint_matrix<Eigen::SelfAdjointView<M33, Eigen::Upper>>);
+  static_assert(hermitian_matrix<Eigen::SelfAdjointView<M33, Eigen::Lower>>);
+  static_assert(hermitian_matrix<Eigen::SelfAdjointView<M33, Eigen::Upper>>);
+
+  static_assert(hermitian_adapter<Eigen::SelfAdjointView<M33, Eigen::Lower>>);
+  static_assert(hermitian_adapter<Eigen::SelfAdjointView<M33, Eigen::Upper>>);
 }
 
 
@@ -1201,8 +1664,8 @@ TEST(eigen3, Eigen_Transpose)
   static_assert(identity_matrix<Eigen::Transpose<I21>>);
 
   static_assert(diagonal_matrix<decltype(std::declval<Md21>().transpose())>);
-  static_assert(lower_self_adjoint_matrix<decltype(std::declval<Sau22>().transpose())>);
-  static_assert(upper_self_adjoint_matrix<decltype(std::declval<Sal22>().transpose())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sau22>().transpose())>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sal22>().transpose())>);
   static_assert(lower_triangular_matrix<decltype(std::declval<Tu22>().transpose())>);
   static_assert(upper_triangular_matrix<decltype(std::declval<Tl22>().transpose())>);
 }
@@ -1265,13 +1728,21 @@ TEST(eigen3, Eigen_TriangularView)
 
   static_assert(triangular_matrix<Eigen::TriangularView<M33, Eigen::Upper>>);
   static_assert(triangular_matrix<Eigen::TriangularView<M33, Eigen::Lower>>);
+
+  static_assert(hermitian_matrix<Eigen::TriangularView<decltype(std::declval<Md21>().matrix()), Eigen::Lower>>);
+  static_assert(hermitian_matrix<Eigen::TriangularView<decltype(std::declval<Md21>().matrix()), Eigen::Upper>>);
+  static_assert(diagonal_hermitian_adapter<Eigen::TriangularView<Z22, Eigen::Lower>>);
+  static_assert(diagonal_hermitian_adapter<Eigen::TriangularView<Z22, Eigen::Upper>>);
 }
 
 
 TEST(eigen3, Eigen_VectorBlock)
 {
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_2>().segment<1>(0))>, 2));
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C21_m2>().segment(1, 0))>, -2));
+  static_assert(native_eigen_matrix<Eigen::VectorBlock<Eigen::Matrix<double, 2, 1>, 1>>);
+  static_assert(native_eigen_array<Eigen::VectorBlock<Eigen::Array<double, 2, 1>, 1>>);
+  static_assert(std::is_same_v<double, typename Eigen::VectorBlock<Eigen::Matrix<double, 2, 1>, 0>::Scalar>);
+  static_assert(constant_coefficient_v<decltype(std::declval<C21_2>().segment<1>(0))> == 2);
+  static_assert(constant_coefficient_v<decltype(std::declval<C21_m2>().segment(1, 0))> == -2);
 
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_2>().segment<1>(0))> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_m2>().segment<1>(0))> == -2);
@@ -1284,236 +1755,17 @@ TEST(eigen3, Eigen_VectorBlock)
 
 TEST(eigen3, Eigen_VectorWiseOp)
 {
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().colwise())>, 2));
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().rowwise())>, 2));
+  static_assert(max_indices_of_v<decltype(std::declval<M34>().colwise())> == 2);
+  static_assert(std::is_same_v<scalar_type_of_t<decltype(std::declval<M34>().colwise())>, double>);
+
+  static_assert(index_dimension_of_v<decltype(std::declval<M34>().rowwise()), 0> == 3);
+  static_assert(index_dimension_of_v<decltype(std::declval<M30>().rowwise()), 0> == 3);
+  static_assert(index_dimension_of_v<decltype(std::declval<M34>().colwise()), 1> == 4);
+  static_assert(index_dimension_of_v<decltype(std::declval<M04>().colwise()), 1> == 4);
+
+  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().colwise())> == 2);
+  static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().rowwise())> == 2);
 
   static_assert(zero_matrix<decltype(std::declval<Z22>().colwise())>);
   static_assert(zero_matrix<decltype(std::declval<Z22>().rowwise())>);
-}
-
-
-TEST(eigen3, Eigen_check_test_classes)
-{
-  static_assert(are_within_tolerance(constant_coefficient_v<Z21>, 0));
-  static_assert(are_within_tolerance(constant_coefficient_v<Z12>, 0));
-  static_assert(are_within_tolerance(constant_coefficient_v<Z23>, 0));
-  static_assert(are_within_tolerance(constant_coefficient_v<Z20>, 0));
-  static_assert(are_within_tolerance(constant_coefficient_v<Z02>, 0));
-  static_assert(are_within_tolerance(constant_coefficient_v<Z00>, 0));
-  static_assert(are_within_tolerance(constant_coefficient_v<Z01>, 0));
-  static_assert(are_within_tolerance(constant_coefficient_v<C11_1>, 1));
-  static_assert(are_within_tolerance(constant_coefficient_v<C11_m1>, -1));
-  static_assert(are_within_tolerance(constant_coefficient_v<C11_2>, 2));
-  static_assert(are_within_tolerance(constant_coefficient_v<C11_m2>, -2));
-  static_assert(are_within_tolerance(constant_coefficient_v<C11_3>, 3));
-  static_assert(are_within_tolerance(constant_coefficient_v<C20_2>, 2));
-  static_assert(are_within_tolerance(constant_coefficient_v<C02_2>, 2));
-  static_assert(are_within_tolerance(constant_coefficient_v<C00_2>, 2));
-  static_assert(constant_coefficient_v<B22_true> == true);
-  static_assert(constant_coefficient_v<B22_false> == false);
-  static_assert(not constant_matrix<Cd21_2>);
-  static_assert(not constant_matrix<Cd20_1_2>);
-  static_assert(not constant_matrix<Cd01_2_2>);
-  static_assert(not constant_matrix<Cd21_3>);
-
-  static_assert(not constant_diagonal_matrix<Z21>);
-  static_assert(not constant_diagonal_matrix<Z12>);
-  static_assert(not constant_diagonal_matrix<Z23>);
-  static_assert(not constant_diagonal_matrix<Z20>);
-  static_assert(not constant_diagonal_matrix<Z02>);
-  static_assert(not constant_diagonal_matrix<Z00>);
-  static_assert(not constant_diagonal_matrix<Z01>);
-  static_assert(constant_diagonal_coefficient_v<C11_1> == 1);
-  static_assert(constant_diagonal_coefficient_v<C11_m1> == -1);
-  static_assert(constant_diagonal_coefficient_v<C11_2> == 2);
-  static_assert(constant_diagonal_coefficient_v<C11_m2> == -2);
-  static_assert(not constant_diagonal_matrix<C21_1>);
-  static_assert(not constant_diagonal_matrix<C20_1>);
-  static_assert(not constant_diagonal_matrix<C01_1>);
-  static_assert(not constant_diagonal_matrix<C00_1>);
-  static_assert(constant_diagonal_coefficient_v<I21> == 1);
-  static_assert(constant_diagonal_coefficient_v<I20_1> == 1);
-  static_assert(constant_diagonal_coefficient_v<I01_2> == 1);
-  static_assert(constant_diagonal_coefficient_v<I00_21> == 1);
-  static_assert(constant_diagonal_coefficient_v<Cd21_2> == 2);
-  static_assert(constant_diagonal_coefficient_v<Cd20_1_2> == 2);
-  static_assert(constant_diagonal_coefficient_v<Cd01_2_2> == 2);
-  static_assert(constant_diagonal_coefficient_v<Cd00_21_2> == 2);
-
-  static_assert(zero_matrix<Z21>);
-  static_assert(zero_matrix<Z23>);
-  static_assert(zero_matrix<Z20>);
-  static_assert(zero_matrix<Z02>);
-  static_assert(zero_matrix<B22_false>);
-  static_assert(not zero_matrix<Cd21_2>);
-
-  static_assert(not identity_matrix<C21_1>);
-  static_assert(identity_matrix<I21>);
-  static_assert(identity_matrix<I20_1>);
-  static_assert(identity_matrix<I01_2>);
-  static_assert(identity_matrix<I00_21>);
-  static_assert(not identity_matrix<Cd21_2>);
-  static_assert(not identity_matrix<Cd21_3>);
-
-  static_assert(diagonal_matrix<Z22>);
-  static_assert(not diagonal_matrix<Z20>);
-  static_assert(not diagonal_matrix<Z02>);
-  static_assert(not diagonal_matrix<Z00>);
-  static_assert(diagonal_matrix<C11_2>);
-  static_assert(diagonal_matrix<I21>);
-  static_assert(diagonal_matrix<I20_1>);
-  static_assert(diagonal_matrix<I01_2>);
-  static_assert(diagonal_matrix<I00_21>);
-  static_assert(diagonal_matrix<Cd21_2>);
-  static_assert(diagonal_matrix<Cd20_1_2>);
-  static_assert(diagonal_matrix<Cd01_2_2>);
-  static_assert(diagonal_matrix<Cd00_21_2>);
-  static_assert(diagonal_matrix<Md21>);
-  static_assert(diagonal_matrix<Md20_1>);
-  static_assert(diagonal_matrix<Md01_2>);
-  static_assert(diagonal_matrix<Md00_21>);
-
-  static_assert(lower_self_adjoint_matrix<Z22>);
-  static_assert(not lower_self_adjoint_matrix<Z20>);
-  static_assert(not lower_self_adjoint_matrix<Z02>);
-  static_assert(not lower_self_adjoint_matrix<Z00>);
-  static_assert(lower_self_adjoint_matrix<C22_2>);
-  static_assert(lower_self_adjoint_matrix<I21>);
-  static_assert(lower_self_adjoint_matrix<I20_1>);
-  static_assert(lower_self_adjoint_matrix<I01_2>);
-  static_assert(lower_self_adjoint_matrix<I00_21>);
-  static_assert(lower_self_adjoint_matrix<Cd21_2>);
-  static_assert(lower_self_adjoint_matrix<Cd20_1_2>);
-  static_assert(lower_self_adjoint_matrix<Cd01_2_2>);
-  static_assert(lower_self_adjoint_matrix<Cd00_21_2>);
-  static_assert(lower_self_adjoint_matrix<Md21>);
-  static_assert(lower_self_adjoint_matrix<Md20_1>);
-  static_assert(lower_self_adjoint_matrix<Md01_2>);
-  static_assert(lower_self_adjoint_matrix<Md00_21>);
-  static_assert(lower_self_adjoint_matrix<Sal22>);
-  static_assert(lower_self_adjoint_matrix<Sal20_2>);
-  static_assert(lower_self_adjoint_matrix<Sal02_2>);
-  static_assert(lower_self_adjoint_matrix<Sal00_22>);
-  static_assert(not lower_self_adjoint_matrix<Sau22>);
-
-  static_assert(upper_self_adjoint_matrix<Z22>);
-  static_assert(not upper_self_adjoint_matrix<Z20>);
-  static_assert(not upper_self_adjoint_matrix<Z02>);
-  static_assert(not upper_self_adjoint_matrix<Z00>);
-  static_assert(upper_self_adjoint_matrix<C11_2>);
-  static_assert(upper_self_adjoint_matrix<C22_2>);
-  static_assert(upper_self_adjoint_matrix<I21>);
-  static_assert(upper_self_adjoint_matrix<I20_1>);
-  static_assert(upper_self_adjoint_matrix<I01_2>);
-  static_assert(upper_self_adjoint_matrix<I00_21>);
-  static_assert(upper_self_adjoint_matrix<Cd21_2>);
-  static_assert(upper_self_adjoint_matrix<Cd20_1_2>);
-  static_assert(upper_self_adjoint_matrix<Cd01_2_2>);
-  static_assert(upper_self_adjoint_matrix<Cd00_21_2>);
-  static_assert(upper_self_adjoint_matrix<Md21>);
-  static_assert(upper_self_adjoint_matrix<Md20_1>);
-  static_assert(upper_self_adjoint_matrix<Md01_2>);
-  static_assert(upper_self_adjoint_matrix<Md00_21>);
-  static_assert(upper_self_adjoint_matrix<Sau22>);
-  static_assert(upper_self_adjoint_matrix<Sau20_2>);
-  static_assert(upper_self_adjoint_matrix<Sau02_2>);
-  static_assert(upper_self_adjoint_matrix<Sau00_22>);
-  static_assert(not upper_self_adjoint_matrix<Sal22>);
-
-  static_assert(lower_triangular_matrix<Z22>);
-  static_assert(not lower_triangular_matrix<Z20>);
-  static_assert(not lower_triangular_matrix<Z02>);
-  static_assert(not lower_triangular_matrix<Z00>);
-  static_assert(lower_triangular_matrix<C11_2>);
-  static_assert(not lower_triangular_matrix<C22_2>);
-  static_assert(lower_triangular_matrix<I21>);
-  static_assert(lower_triangular_matrix<I20_1>);
-  static_assert(lower_triangular_matrix<I01_2>);
-  static_assert(lower_triangular_matrix<I00_21>);
-  static_assert(lower_triangular_matrix<Cd21_2>);
-  static_assert(lower_triangular_matrix<Cd20_1_2>);
-  static_assert(lower_triangular_matrix<Cd01_2_2>);
-  static_assert(lower_triangular_matrix<Cd00_21_2>);
-  static_assert(lower_triangular_matrix<Md21>);
-  static_assert(lower_triangular_matrix<Md20_1>);
-  static_assert(lower_triangular_matrix<Md01_2>);
-  static_assert(lower_triangular_matrix<Md00_21>);
-  static_assert(lower_triangular_matrix<Tl22>);
-  static_assert(lower_triangular_matrix<Tl20_2>);
-  static_assert(lower_triangular_matrix<Tl02_2>);
-  static_assert(lower_triangular_matrix<Tl00_22>);
-  static_assert(not lower_triangular_matrix<Tu22>);
-
-  static_assert(upper_triangular_matrix<Z22>);
-  static_assert(not upper_triangular_matrix<Z20>);
-  static_assert(not upper_triangular_matrix<Z02>);
-  static_assert(not upper_triangular_matrix<Z00>);
-  static_assert(upper_triangular_matrix<C11_2>);
-  static_assert(not upper_triangular_matrix<C22_2>);
-  static_assert(upper_triangular_matrix<I21>);
-  static_assert(upper_triangular_matrix<I20_1>);
-  static_assert(upper_triangular_matrix<I01_2>);
-  static_assert(upper_triangular_matrix<I00_21>);
-  static_assert(upper_triangular_matrix<Cd21_2>);
-  static_assert(upper_triangular_matrix<Cd20_1_2>);
-  static_assert(upper_triangular_matrix<Cd01_2_2>);
-  static_assert(upper_triangular_matrix<Cd00_21_2>);
-  static_assert(upper_triangular_matrix<Md21>);
-  static_assert(upper_triangular_matrix<Md20_1>);
-  static_assert(upper_triangular_matrix<Md01_2>);
-  static_assert(upper_triangular_matrix<Md00_21>);
-  static_assert(upper_triangular_matrix<Tu22>);
-  static_assert(upper_triangular_matrix<Tu20_2>);
-  static_assert(upper_triangular_matrix<Tu02_2>);
-  static_assert(upper_triangular_matrix<Tu00_22>);
-  static_assert(not upper_triangular_matrix<Tl22>);
-
-  static_assert(square_matrix<C11_m1>);
-  static_assert(square_matrix<Z22>);
-  static_assert(not square_matrix<Z20>);
-  static_assert(not square_matrix<Z02>);
-  static_assert(not square_matrix<Z00>);
-  static_assert(square_matrix<C22_2>);
-  static_assert(not square_matrix<C20_2>);
-  static_assert(not square_matrix<C02_2>);
-  static_assert(not square_matrix<C00_2>);
-  static_assert(square_matrix<DM2>);
-  static_assert(square_matrix<DM0>);
-  static_assert(square_matrix<Sal22>);
-  static_assert(square_matrix<Sal20_2>);
-  static_assert(square_matrix<Sal02_2>);
-  static_assert(square_matrix<Sal00_22>);
-  static_assert(square_matrix<Sau22>);
-  static_assert(square_matrix<Sau20_2>);
-  static_assert(square_matrix<Sau02_2>);
-  static_assert(square_matrix<Sau00_22>);
-  static_assert(square_matrix<Tl22>);
-  static_assert(square_matrix<Tl20_2>);
-  static_assert(square_matrix<Tl02_2>);
-  static_assert(square_matrix<Tl00_22>);
-  static_assert(square_matrix<Tu22>);
-  static_assert(square_matrix<Tu20_2>);
-  static_assert(square_matrix<Tu02_2>);
-  static_assert(square_matrix<Tu00_22>);
-  static_assert(square_matrix<DiagonalMatrix<M11>>);
-  static_assert(square_matrix<DiagonalMatrix<M10>>);
-  static_assert(square_matrix<DiagonalMatrix<M01>>);
-  static_assert(square_matrix<DiagonalMatrix<M00>>);
-  static_assert(square_matrix<SelfAdjointMatrix<M11, TriangleType::diagonal>>);
-  static_assert(square_matrix<SelfAdjointMatrix<M10, TriangleType::lower>>);
-  static_assert(square_matrix<SelfAdjointMatrix<M01, TriangleType::upper>>);
-  static_assert(square_matrix<SelfAdjointMatrix<M00, TriangleType::lower>>);
-
-  static_assert(not one_by_one_matrix<Z01>);
-  static_assert(not one_by_one_matrix<C10_1>);
-  static_assert(not one_by_one_matrix<C00_1>);
-  static_assert(one_by_one_matrix<C11_m1>);
-  static_assert(one_by_one_matrix<DiagonalMatrix<M11>>);
-  static_assert(one_by_one_matrix<DiagonalMatrix<M10>>);
-  static_assert(not one_by_one_matrix<DiagonalMatrix<M01>>);
-  static_assert(not one_by_one_matrix<DiagonalMatrix<M00>>);
-  static_assert(one_by_one_matrix<SelfAdjointMatrix<M11, TriangleType::diagonal>>);
-  static_assert(one_by_one_matrix<SelfAdjointMatrix<M10, TriangleType::lower>>);
-  static_assert(one_by_one_matrix<SelfAdjointMatrix<M01, TriangleType::upper>>);
-  static_assert(not one_by_one_matrix<SelfAdjointMatrix<M00, TriangleType::lower>>);
 }

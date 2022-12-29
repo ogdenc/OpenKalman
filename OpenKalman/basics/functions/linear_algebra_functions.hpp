@@ -24,7 +24,11 @@ namespace OpenKalman
    * \brief Take the conjugate of a matrix
    * \tparam Arg The matrix
    */
-  template<typename Arg>
+#ifdef __cpp_concepts
+  template<indexible Arg>
+#else
+  template<typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
+#endif
   constexpr decltype(auto) conjugate(Arg&& arg) noexcept
   {
     if constexpr (not complex_number<scalar_type_of_t<Arg>> or zero_matrix<Arg> or identity_matrix<Arg>)
@@ -33,17 +37,31 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<Arg>)
     {
-      if constexpr (std::imag(constant_coefficient_v<Arg>) == 0)
+      constexpr auto c = constant_coefficient_v<Arg>;
+      if constexpr (imaginary_part(c) == 0)
         return std::forward<Arg>(arg);
       else
-        return interface::LinearAlgebra<std::decay_t<Arg>>::conjugate(std::forward<Arg>(arg));
+# if __cpp_nontype_template_args >= 201911L
+        return make_constant_matrix_like<conjugate(c)>(std::forward<Arg>(arg));
+# else
+        return make_self_contained(c * make_constant_matrix_like<1>(std::forward<Arg>(arg)));
+# endif
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      if constexpr (std::imag(constant_diagonal_coefficient_v<Arg>) == 0)
+      constexpr auto c = constant_diagonal_coefficient_v<Arg>;
+      if constexpr (imaginary_part(c) == 0)
         return std::forward<Arg>(arg);
       else
-        return interface::LinearAlgebra<std::decay_t<Arg>>::conjugate(std::forward<Arg>(arg));
+# if __cpp_nontype_template_args >= 201911L
+        return to_diagonal(make_constant_matrix_like<conjugate(c)>(diagonal_of(std::forward<Arg>(arg))));
+# else
+        return make_self_contained(c * to_diagonal(make_constant_matrix_like<1>(diagonal_of(std::forward<Arg>(arg)))));
+# endif
+    }
+    else if constexpr (diagonal_matrix<Arg>)
+    {
+      return to_diagonal(conjugate(diagonal_of(std::forward<Arg>(arg))));
     }
     else
     {
@@ -52,17 +70,56 @@ namespace OpenKalman
   }
 
 
+  namespace detail
+  {
+    template<typename Arg, std::size_t...Is>
+    constexpr decltype(auto) transpose_zero(Arg&& arg, std::index_sequence<Is...>) noexcept
+    {
+      return make_zero_matrix_like<Arg>(get_dimensions_of<1>(arg), get_dimensions_of<0>(arg), get_dimensions_of<Is + 2>(arg)...);
+    }
+
+    template<auto c, typename Arg, std::size_t...Is>
+    constexpr decltype(auto) transpose_constant(Arg&& arg, std::index_sequence<Is...>) noexcept
+    {
+      return make_constant_matrix_like<Arg, c>(get_dimensions_of<1>(arg), get_dimensions_of<0>(arg), get_dimensions_of<Is + 2>(arg)...);
+    }
+  }
+
+
   /**
    * \brief Take the transpose of a matrix
    * \tparam Arg The matrix
    */
-  template<typename Arg>
+#ifdef __cpp_concepts
+  template<indexible Arg>
+#else
+  template<typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
+#endif
   constexpr decltype(auto) transpose(Arg&& arg) noexcept
   {
-    if constexpr (diagonal_matrix<Arg> or (self_adjoint_matrix<Arg> and not complex_number<scalar_type_of_t<Arg>>) or
+    if constexpr (diagonal_matrix<Arg> or (hermitian_matrix<Arg> and not complex_number<scalar_type_of_t<Arg>>) or
       (constant_matrix<Arg> and square_matrix<Arg>))
     {
       return std::forward<Arg>(arg);
+    }
+    else if constexpr (zero_matrix<Arg>)
+    {
+      constexpr std::size_t dims = std::max({max_indices_of_v<Arg>, static_cast<std::size_t>(2)});
+      return detail::transpose_zero(std::forward<Arg>(arg), std::make_index_sequence<dims - 2> {});
+    }
+    else if constexpr (constant_matrix<Arg>)
+    {
+      constexpr std::make_index_sequence<std::max({max_indices_of_v<Arg>, static_cast<std::size_t>(2)}) - 2> seq;
+# if __cpp_nontype_template_args >= 201911L
+      return detail::transpose_constant<constant_coefficient_v<Arg>>(std::forward<Arg>(arg), seq);
+# else
+      constexpr auto c = real_projection(constant_coefficient_v<Arg>);
+      constexpr auto c_integral = static_cast<std::intmax_t>(c);
+      if constexpr (are_within_tolerance(c, static_cast<decltype(c)>(c_integral)))
+        return detail::transpose_constant<c_integral>(std::forward<Arg>(arg), seq);
+      else
+        return make_self_contained(c * detail::transpose_constant<1>(std::forward<Arg>(arg), seq));
+# endif
     }
     else
     {
@@ -75,12 +132,20 @@ namespace OpenKalman
    * \brief Take the adjoint of a matrix
    * \tparam Arg The matrix
    */
-  template<typename Arg>
+#ifdef __cpp_concepts
+  template<indexible Arg>
+#else
+  template<typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
+#endif
   constexpr decltype(auto) adjoint(Arg&& arg) noexcept
   {
-    if constexpr (self_adjoint_matrix<Arg>)
+    if constexpr (hermitian_matrix<Arg>)
     {
       return std::forward<Arg>(arg);
+    }
+    else if constexpr (diagonal_matrix<Arg>)
+    {
+      return conjugate(std::forward<Arg>(arg));
     }
     else if constexpr (zero_matrix<Arg> or not complex_number<scalar_type_of_t<Arg>>)
     {
@@ -88,21 +153,16 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<Arg>)
     {
-      if constexpr (std::imag(constant_coefficient_v<Arg>) == 0)
+      constexpr auto c = constant_coefficient_v<Arg>;
+      if constexpr (imaginary_part(c) == 0)
         return transpose(std::forward<Arg>(arg));
       else if constexpr (not has_dynamic_dimensions<Arg> and row_dimension_of_v<Arg> == column_dimension_of_v<Arg>)
         return conjugate(std::forward<Arg>(arg));
       else
-        return interface::LinearAlgebra<std::decay_t<Arg>>::adjoint(std::forward<Arg>(arg));
-    }
-    else if constexpr (constant_diagonal_matrix<Arg>)
-    {
-      if constexpr (std::imag(constant_diagonal_coefficient_v<Arg>) == 0)
-        return transpose(std::forward<Arg>(arg));
-      else if constexpr (not has_dynamic_dimensions<Arg> and row_dimension_of_v<Arg> == column_dimension_of_v<Arg>)
-        return conjugate(std::forward<Arg>(arg));
-      else
-        return interface::LinearAlgebra<std::decay_t<Arg>>::adjoint(std::forward<Arg>(arg));
+      {
+        constexpr std::make_index_sequence<std::max({max_indices_of_v<Arg>, static_cast<std::size_t>(2)}) - 2> seq;
+        return detail::transpose_constant<conjugate(c)>(std::forward<Arg>(arg), seq);
+      }
     }
     else
     {
@@ -116,9 +176,9 @@ namespace OpenKalman
    * \tparam Arg The matrix
    */
 #ifdef __cpp_concepts
-  template<typename Arg> requires has_dynamic_dimensions<Arg> or square_matrix<Arg>
+  template<square_matrix<Likelihood::maybe> Arg>
 #else
-  template<typename Arg, std::enable_if_t<has_dynamic_dimensions<Arg> or square_matrix<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe>, int> = 0>
 #endif
   constexpr auto determinant(Arg&& arg)
   {
@@ -131,13 +191,11 @@ namespace OpenKalman
 
     if constexpr (identity_matrix<Arg>)
     {
-      if constexpr (complex_number<Scalar>) return std::real(Scalar(1));
-      else return Scalar(1);
+      return real_projection(Scalar(1));
     }
     else if constexpr (zero_matrix<Arg> or (constant_matrix<Arg> and not one_by_one_matrix<Arg>))
     {
-      if constexpr (complex_number<Scalar>) return std::real(Scalar(0));
-      else return Scalar(0);
+      return real_projection(Scalar(0));
     }
     else if constexpr (constant_matrix<Arg>)
     {
@@ -154,11 +212,15 @@ namespace OpenKalman
     {
       return get_element(arg, std::size_t(0), std::size_t(0));
     }
+    else if constexpr (triangular_matrix<Arg>) // this includes diagonal case
+    {
+      return reduce(std::multiplies<scalar_type_of_t<Arg>>{}, diagonal_of(std::forward<Arg>(arg)));
+    }
     else
     {
       auto r = interface::LinearAlgebra<std::decay_t<Arg>>::determinant(std::forward<Arg>(arg));
       static_assert(std::is_convertible_v<decltype(r), const scalar_type_of_t<Arg>>);
-      if constexpr (self_adjoint_matrix<Arg> and complex_number<std::decay_t<decltype(r)>>) return std::real(r);
+      if constexpr (hermitian_matrix<Arg> and complex_number<std::decay_t<decltype(r)>>) return real_projection(r);
       else return r;
     }
   }
@@ -169,9 +231,9 @@ namespace OpenKalman
    * \brief Take the trace of a matrix
    * \tparam Arg The matrix
    */
-  template<typename Arg> requires has_dynamic_dimensions<Arg> or square_matrix<Arg>
+  template<square_matrix<Likelihood::maybe> Arg>
 #else
-  template<typename Arg, std::enable_if_t<(has_dynamic_dimensions<Arg> or square_matrix<Arg>), int> = 0>
+  template<typename Arg, std::enable_if_t<(square_matrix<Arg, Likelihood::maybe>), int> = 0>
 #endif
   constexpr auto trace(Arg&& arg)
   {
@@ -204,577 +266,250 @@ namespace OpenKalman
     }
     else
     {
-      auto r = interface::LinearAlgebra<std::decay_t<Arg>>::trace(std::forward<Arg>(arg));
-      static_assert(std::is_convertible_v<decltype(r), const scalar_type_of_t<Arg>>);
-      return r;
-    }
-  }
-
-
-  /**
-   * \brief Do a rank update on a matrix, treating it as a self-adjoint matrix.
-   * \details If A is not hermitian, the result will modify only the specified storage triangle. The contents of the
-   * other elements outside the specified storage triangle are undefined.
-   * - The update is A += αUU<sup>*</sup>, returning the updated hermitian A.
-   * - If A is an lvalue reference and is writable, it will be updated in place and the return value will be an
-   * lvalue reference to the same, updated A. Otherwise, the function returns a new matrix.
-   * \tparam t Whether to use the upper triangle elements (TriangleType::upper), lower triangle elements
-   * (TriangleType::lower) or diagonal elements (TriangleType::diagonal).
-   * \tparam A The matrix to be rank updated.
-   * \tparam U The update vector or matrix.
-   * \returns an updated native, writable matrix in hermitian form.
-   */
-#ifdef __cpp_concepts
-  template<TriangleType t, typename A, typename U, std::convertible_to<const scalar_type_of_t<A>> Alpha> requires
-    (dynamic_rows<U> or dynamic_rows<A> or row_dimension_of_v<U> == row_dimension_of_v<A>) and
-    (has_dynamic_dimensions<A> or square_matrix<A>)
-#else
-  template<TriangleType t, typename A, typename U, typename Alpha, std::enable_if_t<
-    std::is_convertible_v<Alpha, const scalar_type_of_t<A>> and
-    (dynamic_rows<U> or dynamic_rows<A> or
-      row_dimension_of<std::decay_t<U>>::value == row_dimension_of<std::decay_t<A>>::value) and
-    (has_dynamic_dimensions<A> or square_matrix<A>), int> = 0>
-#endif
-  inline decltype(auto)
-  rank_update_self_adjoint(A&& a, U&& u, Alpha alpha = 1)
-  {
-    if constexpr (dynamic_rows<A> or dynamic_rows<U>) if (get_index_dimension_of<0>(a) != get_index_dimension_of<0>(u))
-      throw std::domain_error {
-        "In rank_update_self_adjoint, rows of a (" + std::to_string(get_index_dimension_of<0>(a)) +
-        ") do not match rows of u (" + std::to_string(get_index_dimension_of<0>(u)) + ")"};
-
-    if constexpr (has_dynamic_dimensions<A>) if (get_index_dimension_of<0>(a) != get_index_dimension_of<1>(a))
-      throw std::domain_error {
-        "In rank_update_self_adjoint, rows of a (" + std::to_string(get_index_dimension_of<0>(a)) +
-        ") do not match columns of a (" + std::to_string(get_index_dimension_of<1>(a)) + ")"};
-
-    if constexpr (zero_matrix<U>)
-    {
-      return std::forward<A>(a);
-    }
-    // \todo Generalize zero and diagonal cases from eigen and special-matrix
-    else
-    {
-      using Trait = interface::LinearAlgebra<std::decay_t<A>>;
-      return Trait::template rank_update_self_adjoint<t>(std::forward<A>(a), std::forward<U>(u), alpha);
-    }
-  }
-
-
-  /**
-   * \overload
-   * \brief The triangle type is derived from A, or is TriangleType::lower by default.
-   */
-#ifdef __cpp_concepts
-  template<typename A, typename U, std::convertible_to<const scalar_type_of_t<A>> Alpha> requires
-    (dynamic_rows<U> or dynamic_rows<A> or row_dimension_of_v<U> == row_dimension_of_v<A>) and
-    (has_dynamic_dimensions<A> or square_matrix<A>)
-#else
-  template<typename A, typename U, typename Alpha, std::enable_if_t<
-    std::is_convertible_v<Alpha, const scalar_type_of_t<A>> and
-    (dynamic_rows<U> or dynamic_rows<A> or row_dimension_of<U>::value == row_dimension_of<A>::value) and
-    (has_dynamic_dimensions<A> or square_matrix<A>), int> = 0>
-#endif
-  inline decltype(auto)
-  rank_update_self_adjoint(A&& a, U&& u, Alpha alpha = 1)
-  {
-    if constexpr (self_adjoint_matrix<A>)
-      return rank_update_self_adjoint<self_adjoint_triangle_type_of_v<A>>(std::forward<A>(a), std::forward<U>(u), alpha);
-    else if constexpr (triangular_matrix<A>)
-      return rank_update_self_adjoint<triangle_type_of_v<A>>(std::forward<A>(a), std::forward<U>(u), alpha);
-    else
-      return rank_update_self_adjoint<TriangleType::lower>(std::forward<A>(a), std::forward<U>(u), alpha);
-  }
-
-
-  /**
-   * \brief Do a rank update on a matrix, treating it as a triangular matrix.
-   * \details If A is not a triangular matrix, the result will modify only the specified triangle. The contents of
-   * other elements outside the specified triangle are undefined.
-   * - If A is lower-triangular, diagonal, or one-by-one, the update is AA<sup>*</sup> += αUU<sup>*</sup>,
-   * returning the updated A.
-   * - If A is upper-triangular, the update is A<sup>*</sup>A += αUU<sup>*</sup>, returning the updated A.
-   * - If A is an lvalue reference and is writable, it will be updated in place and the return value will be an
-   * lvalue reference to the same, updated A. Otherwise, the function returns a new matrix.
-   * \tparam t Whether to use the upper triangle elements (TriangleType::upper), lower triangle elements
-   * (TriangleType::lower) or diagonal elements (TriangleType::diagonal).
-   * \tparam A The matrix to be rank updated.
-   * \tparam U The update vector or matrix.
-   * \returns an updated native, writable matrix in triangular (or diagonal) form.
-   */
-# ifdef __cpp_concepts
-  template<TriangleType t, typename A, typename U, std::convertible_to<const scalar_type_of_t<A>> Alpha> requires
-    (t != TriangleType::lower or lower_triangular_matrix<A> or not upper_triangular_matrix<A>) and
-    (t != TriangleType::upper or upper_triangular_matrix<A> or not lower_triangular_matrix<A>) and
-    (dynamic_rows<A> or dynamic_rows<U> or row_dimension_of_v<A> == row_dimension_of_v<U>) and
-    (has_dynamic_dimensions<A> or square_matrix<A>)
-# else
-  template<TriangleType t, typename A, typename U, typename Alpha, std::enable_if_t<
-    std::is_convertible_v<Alpha, const scalar_type_of_t<A>> and
-    (t != TriangleType::lower or lower_triangular_matrix<A> or not upper_triangular_matrix<A>) and
-    (t != TriangleType::upper or upper_triangular_matrix<A> or not lower_triangular_matrix<A>) and
-    (dynamic_rows<A> or dynamic_rows<U> or row_dimension_of<A>::value == row_dimension_of<U>::value) and
-    (has_dynamic_dimensions<A> or square_matrix<A>), int> = 0>
-# endif
-  inline decltype(auto)
-  rank_update_triangular(A&& a, U&& u, Alpha alpha = 1)
-  {
-    if constexpr (dynamic_rows<A> or dynamic_rows<U>) if (get_index_dimension_of<0>(a) != get_index_dimension_of<0>(u))
-      throw std::domain_error {
-        "In rank_update_triangular, rows of a (" + std::to_string(get_index_dimension_of<0>(a)) +
-        ") do not match rows of u (" + std::to_string(get_index_dimension_of<0>(u)) + ")"};
-
-    if constexpr (has_dynamic_dimensions<A>) if (get_index_dimension_of<0>(a) != get_index_dimension_of<1>(a))
-      throw std::domain_error {
-        "In rank_update_triangular, rows of a (" + std::to_string(get_index_dimension_of<0>(a)) +
-        ") do not match columns of a (" + std::to_string(get_index_dimension_of<1>(a)) + ")"};
-
-    if constexpr (zero_matrix<U>)
-    {
-      return std::forward<A>(a);
-    }
-    // \todo Generalize zero and diagonal cases from eigen and special-matrix
-    else
-    {
-      using Trait = interface::LinearAlgebra<std::decay_t<A>>;
-      return Trait::template rank_update_triangular<t>(std::forward<A>(a), std::forward<U>(u), alpha);
-    }
-  }
-
-
-  /**
-   * \overload
-   * \brief The triangle type is derived from A, or is TriangleType::lower by default.
-   */
-# ifdef __cpp_concepts
-  template<typename A, typename U, std::convertible_to<const scalar_type_of_t<A>> Alpha> requires
-    (dynamic_rows<A> or dynamic_rows<U> or row_dimension_of_v<A> == row_dimension_of_v<U>) and
-    (has_dynamic_dimensions<A> or square_matrix<A>)
-# else
-  template<typename A, typename U, typename Alpha, std::enable_if_t<
-    std::is_convertible_v<Alpha, const scalar_type_of_t<A>> and
-    (dynamic_rows<A> or dynamic_rows<U> or row_dimension_of<A>::value == row_dimension_of<U>::value) and
-    (has_dynamic_dimensions<A> or square_matrix<A>), int> = 0>
-# endif
-  inline decltype(auto)
-  rank_update_triangular(A&& a, U&& u, Alpha alpha = 1)
-  {
-    if constexpr (triangular_matrix<A>)
-      return rank_update_triangular<triangle_type_of_v<A>>(std::forward<A>(a), std::forward<U>(u), alpha);
-    else if constexpr (self_adjoint_matrix<A>)
-      return rank_update_triangular<self_adjoint_triangle_type_of_v<A>>(std::forward<A>(a), std::forward<U>(u), alpha);
-    else
-      return rank_update_triangular<TriangleType::lower>(std::forward<A>(a), std::forward<U>(u), alpha);
-  }
-
-
-  /**
-   * \brief Do a rank update on a hermitian, triangular, or one-by-one matrix.
-   * \details
-   * - If A is hermitian and non-diagonal, then the update is A += αUU<sup>*</sup>, returning the updated hermitian A.
-   * - If A is lower-triangular, diagonal, or one-by-one, the update is AA<sup>*</sup> += αUU<sup>*</sup>,
-   * returning the updated A.
-   * - If A is upper-triangular, the update is A<sup>*</sup>A += αUU<sup>*</sup>, returning the updated A.
-   * - If A is an lvalue reference and is writable, it will be updated in place and the return value will be an
-   * lvalue reference to the same, updated A. Otherwise, the function returns a new matrix.
-   * \tparam A A matrix to be updated, which must be hermitian (known at compile time),
-   * triangular (known at compile time), or one-by-one (determinable at runtime) .
-   * \tparam U A matrix or column vector with a number of rows that matches the size of A.
-   * \param alpha A scalar multiplication factor.
-   */
-#ifdef __cpp_concepts
-  template<typename A, typename U, std::convertible_to<const scalar_type_of_t<A>> Alpha> requires
-    (triangular_matrix<A> or self_adjoint_matrix<A> or (zero_matrix<A> and has_dynamic_dimensions<A>) or
-      (constant_matrix<A> and not complex_number<scalar_type_of<A>> and has_dynamic_dimensions<A>) or
-      (dynamic_rows<A> and dynamic_columns<A>) or (dynamic_rows<A> and column_vector<A>) or
-      (dynamic_columns<A> and row_vector<A>)) and
-    (dynamic_rows<U> or dynamic_rows<A> or row_dimension_of_v<U> == row_dimension_of_v<A>) and
-    (has_dynamic_dimensions<A> or square_matrix<A>)
-#else
-  template<typename A, typename U, typename Alpha, std::enable_if_t<
-    std::is_convertible_v<Alpha, const scalar_type_of_t<A>> and
-    (triangular_matrix<A> or self_adjoint_matrix<A> or (zero_matrix<A> and has_dynamic_dimensions<A>) or
-      (constant_matrix<A> and not complex_number<scalar_type_of<A>> and has_dynamic_dimensions<A>) or
-      (dynamic_rows<A> and dynamic_columns<A>) or (dynamic_rows<A> and column_vector<A>) or
-      (dynamic_columns<A> and row_vector<A>)) and
-    (dynamic_rows<U> or dynamic_rows<A> or row_dimension_of<U>::value == row_dimension_of<A>::value) and
-    (has_dynamic_dimensions<A> or square_matrix<A>), int> = 0>
-#endif
-  inline decltype(auto)
-  rank_update(A&& a, U&& u, Alpha alpha = 1)
-  {
-    if constexpr (dynamic_rows<A> or dynamic_rows<U>) if (get_dimensions_of<0>(a) != get_dimensions_of<0>(u))
-      throw std::domain_error {
-        "In rank_update, rows of a (" + std::to_string(get_index_dimension_of<0>(a)) + ") do not match rows of u (" +
-        std::to_string(get_index_dimension_of<0>(u)) + ")"};
-
-    if constexpr (triangular_matrix<A>)
-    {
-      constexpr TriangleType t = triangle_type_of_v<A>;
-      return rank_update_triangular<t>(std::forward<A>(a), std::forward<U>(u), alpha);
-    }
-    else if constexpr (zero_matrix<A> and has_dynamic_dimensions<A>)
-    {
-      return rank_update_triangular<TriangleType::diagonal>(std::forward<A>(a), std::forward<U>(u), alpha);
-    }
-    else if constexpr (self_adjoint_matrix<A>)
-    {
-      constexpr TriangleType t = self_adjoint_triangle_type_of_v<A>;
-      return rank_update_self_adjoint<t>(std::forward<A>(a), std::forward<U>(u), alpha);
-    }
-    else if constexpr (constant_matrix<A> and not complex_number<scalar_type_of<A>> and has_dynamic_dimensions<A>)
-    {
-      return rank_update_self_adjoint<TriangleType::lower>(std::forward<A>(a), std::forward<U>(u), alpha);
-    }
-    else
-    {
-      if constexpr (has_dynamic_dimensions<A>)
-        if ((dynamic_rows<A> and get_index_dimension_of<0>(a) != 1) or (dynamic_columns<A> and get_index_dimension_of<1>(a) != 1))
-          throw std::domain_error {
-            "Non hermitian, non-triangular argument to rank_update expected to be one-by-one, but instead it has " +
-            std::to_string(get_index_dimension_of<0>(a)) + " rows and " + std::to_string(get_index_dimension_of<1>(a)) + " columns"};
-
-      auto e = std::sqrt(trace(a) * trace(a.conjugate()) + alpha * trace(u * adjoint(u)));
-
-      if constexpr (std::is_lvalue_reference_v<A> and not std::is_const_v<std::remove_reference_t<A>> and writable<A>)
-      {
-        if constexpr (element_settable<A, std::size_t, std::size_t>)
-        {
-          set_element(a, e, 0, 0);
-        }
-        else
-        {
-          a = MatrixTraits<A>::make(e);
-        }
-        return std::forward<A>(a);
-      }
-      else
-      {
-        return MatrixTraits<A>::make(e);
-      }
+      return reduce(std::plus<scalar_type_of_t<Arg>>{}, diagonal_of(std::forward<Arg>(arg)));
     }
   }
 
 
   namespace detail
   {
-    template<typename A, typename B>
-    void solve_check_A_and_B_rows_match(const A& a, const B& b)
+    template<typename A, typename B, std::size_t...Is>
+    static constexpr decltype(auto) contract_zero(A&& a, B&& b, std::index_sequence<Is...>) noexcept
     {
-      if (get_dimensions_of<0>(a) != get_dimensions_of<0>(b))
-        throw std::domain_error {"The rows of the two operands of the solve function must be the same, but instead "
-          "the first operand has " + std::to_string(get_index_dimension_of<0>(a)) + " rows and the second operand has " +
-          std::to_string(get_index_dimension_of<0>(b)) + " rows"};
+      return make_zero_matrix_like<A>(
+        get_dimensions_of<0>(a), get_dimensions_of<1>(b), get_dimensions_of<Is + 2>(a)...);
     }
-  }
+
+    template<auto c, typename A, typename B, std::size_t...Is>
+    static constexpr decltype(auto) contract_constant(A&& a, B&& b, std::index_sequence<Is...>) noexcept
+    {
+      return make_constant_matrix_like<A, c>(get_dimensions_of<0>(a), get_dimensions_of<1>(b), get_dimensions_of<Is + 2>(a)...);
+    }
+
+
+    template<std::size_t I, typename T, typename...Ts>
+    constexpr decltype(auto) best_descriptor(T&& t, Ts&&...ts)
+    {
+       if constexpr (sizeof...(Ts) == 0 or dynamic_dimension<T, I>) return get_dimensions_of<I>(t);
+       else return best_descriptor<I>(std::forward<Ts>(ts)...);
+    }
+
+
+    template<std::size_t...I, typename T>
+    constexpr decltype(auto) sum_impl(std::index_sequence<I...>, T&& t) { return std::forward<T>(t); }
+
+
+    template<std::size_t...I, typename T0, typename T1, typename...Ts>
+    constexpr decltype(auto) sum_impl(std::index_sequence<I...> seq, T0&& t0, T1&& t1, Ts&&...ts)
+    {
+      using Scalar = std::common_type_t<scalar_type_of_t<T0>, scalar_type_of_t<T1>>;
+
+      if constexpr ((constant_matrix<T0> or constant_matrix<T1>) and not index_descriptors_match<T0, T1>)
+      {
+        if (not get_index_descriptors_match(t0, t1))
+          throw std::invalid_argument {"In sum function, index descriptors of arguments do not match"};
+      }
+
+      if constexpr (zero_matrix<T0>)
+      {
+        return sum_impl(seq, std::forward<T1>(t1), std::forward<Ts>(ts)...);
+      }
+      else if constexpr (zero_matrix<T1>)
+      {
+        return sum_impl(seq, std::forward<T0>(t0), std::forward<Ts>(ts)...);
+      }
+      else if constexpr ((constant_matrix<T0> and constant_matrix<T1>))
+      {
+        constexpr auto c = constant_coefficient_v<T0> + constant_coefficient_v<T1>;
+# if __cpp_nontype_template_args >= 201911L
+        return sum_impl(seq, make_constant_matrix_like<T0, c, Scalar>(best_descriptor<I>(t0, t1, ts...)...), std::forward<Ts>(ts)...);
+# else
+        constexpr auto c_integral = static_cast<std::intmax_t>(c);
+        if constexpr (are_within_tolerance(c, static_cast<Scalar>(c_integral)))
+          return sum_impl(seq, make_constant_matrix_like<T0, c_integral, Scalar>(best_descriptor<I>(t0, t1, ts...)...), std::forward<Ts>(ts)...);
+        else
+          return make_self_contained(c * sum_impl(seq, make_constant_matrix_like<T0, 1, Scalar>(best_descriptor<I>(t0, t1, ts...)...), std::forward<Ts>(ts)...));
+# endif
+      }
+      else if constexpr (constant_matrix<T0> and sizeof...(Ts) > 0)
+      {
+        return sum_impl(seq, std::forward<T1>(t1), sum_impl(seq, std::forward<T0>(t0), std::forward<Ts>(ts)...));
+      }
+      else if constexpr (constant_matrix<T1> and sizeof...(Ts) > 0)
+      {
+        return sum_impl(seq, std::forward<T0>(t0), sum_impl(seq, std::forward<T1>(t1), std::forward<Ts>(ts)...));
+      }
+      else if constexpr (diagonal_matrix<T0> and diagonal_matrix<T1>)
+      {
+        auto d0 = to_diagonal(sum_impl(seq, diagonal_of(std::forward<T0>(t0)), diagonal_of(std::forward<T1>(t1))));
+        auto ret = sum_impl(seq, std::move(d0), std::forward<Ts>(ts)...);
+        return ret;
+      }
+      else
+      {
+        auto ret = sum_impl(seq, interface::LinearAlgebra<std::decay_t<T0>>::sum(std::forward<T0>(t0), std::forward<T1>(t1)), std::forward<Ts>(ts)...);
+        return ret;
+      }
+    }
+  } // namespace detail
 
 
   /**
-   * \brief Solve the equation AX = B for X, which may or may not be a unique solution.
-   * \details The interface to the relevant linear algebra library determines what happens if A is not invertible.
-   * \tparam must_be_unique Determines whether the function throws an exception if the solution X is non-unique
-   * (e.g., if the equation is under-determined)
-   * \tparam must_be_exact Determines whether the function throws an exception if it cannot return an exact solution,
-   * such as if the equation is over-determined. * If <code>false<code>, then the function will return an estimate
-   * instead of throwing an exception.
-   * \tparam A The matrix A in the equation AX = B
-   * \tparam B The matrix B in the equation AX = B
-   * \return The unique solution X of the equation AX = B. If <code>must_be_unique</code>, then the function can return
-   * any valid solution for X. In particular, if <code>must_be_unique</code>, the function has the following behavior:
-   * - If A is a \ref zero_matrix, then the result X will also be a \ref zero_matrix
-   */
-  #ifdef __cpp_concepts
-  template<bool must_be_unique = false, bool must_be_exact = false, typename A, typename B> requires
-    (dynamic_rows<A> or dynamic_rows<B> or row_dimension_of_v<A> == row_dimension_of_v<B>) and
-    (not zero_matrix<A> or not zero_matrix<B> or not must_be_unique) and
-    (not zero_matrix<A> or not (constant_matrix<B> or constant_diagonal_matrix<B>) or zero_matrix<B> or not must_be_exact) and
-    (not constant_matrix<A> or not constant_diagonal_matrix<B> or has_dynamic_dimensions<A> or
-      (row_dimension_of_v<A> <= column_dimension_of_v<A> and row_dimension_of_v<B> <= column_dimension_of_v<A>) or
-      (row_dimension_of_v<A> == 1 and row_dimension_of_v<B> == 1) or not must_be_exact)
-  #else
-  template<bool must_be_unique = false, bool must_be_exact = false, typename A, typename B, std::enable_if_t<
-    (dynamic_rows<A> or dynamic_rows<B> or row_dimension_of_v<A> == row_dimension_of_v<B>) and
-    (not zero_matrix<A> or not zero_matrix<B> or not must_be_unique) and
-    (not zero_matrix<A> or not (constant_matrix<B> or constant_diagonal_matrix<B>) or zero_matrix<B> or not must_be_exact) and
-    (not constant_matrix<A> or not constant_diagonal_matrix<B> or has_dynamic_dimensions<A> or
-      (row_dimension_of_v<A> <= column_dimension_of_v<A> and row_dimension_of_v<B> <= column_dimension_of_v<A>) or
-      (row_dimension_of_v<A> == 1 and row_dimension_of_v<B> == 1) or not must_be_exact), int> = 0>
-  #endif
-  constexpr auto
-  solve(A&& a, B&& b)
-  {
-    using Scalar = scalar_type_of_t<A>;
-
-    if constexpr (zero_matrix<B>)
-    {
-      if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
-
-      if constexpr (must_be_unique and not constant_matrix<A> and not constant_diagonal_matrix<A>)
-      {
-        if (a == make_zero_matrix_like(a))
-          throw std::runtime_error {"solve function requires a unique solution, "
-            "but because operands A and B are both zero matrices, result X may take on any value"};
-        else
-          return make_zero_matrix_like<B, Scalar>(get_dimensions_of<1>(a), get_dimensions_of<1>(b));
-      }
-      else
-        return make_zero_matrix_like<B, Scalar>(get_dimensions_of<1>(a), get_dimensions_of<1>(b));
-    }
-    else if constexpr (zero_matrix<A>) //< This will be a non-exact solution unless b is zero.
-    {
-      if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
-        return make_zero_matrix_like<B, Scalar>(get_dimensions_of<1>(a), get_dimensions_of<1>(b));
-    }
-    else if constexpr (constant_diagonal_matrix<A>)
-    {
-      if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
-      if constexpr (identity_matrix<A>)
-        return std::forward<B>(b);
-      else
-        return make_self_contained(std::forward<B>(b) / constant_diagonal_coefficient_v<A>);
-    }
-    else if constexpr (constant_matrix<A>)
-    {
-      constexpr auto a_const = constant_coefficient_v<A>;
-
-      if constexpr ((row_dimension_of_v<A> == 1 or row_dimension_of_v<B> == 1) and column_dimension_of_v<A> == 1)
-      {
-        if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
-        return make_self_contained(std::forward<B>(b) / a_const);
-      }
-      else if constexpr (constant_matrix<B>)
-      {
-        if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
-
-        constexpr auto b_const = constant_coefficient_v<B>;
-        constexpr auto a_cols = column_dimension_of_v<A>;
-
-        if constexpr (a_cols == dynamic_size)
-        {
-          auto a_runtime_cols = get_index_dimension_of<1>(a);
-          auto c = static_cast<Scalar>(b_const) / (a_runtime_cols * a_const);
-          return make_self_contained(c * make_constant_matrix_like<B, 1, Scalar>(Dimensions{a_runtime_cols}, get_dimensions_of<1>(b)));
-        }
-        else
-        {
-  #if __cpp_nontype_template_args >= 201911L
-          constexpr auto c = static_cast<Scalar>(b_const) / (a_cols * a_const);
-          return make_constant_matrix_like<B, c, Scalar>(Dimensions<a_cols>{}, get_dimensions_of<1>(b));
-  #else
-          if constexpr(b_const % (a_cols * a_const) == 0)
-          {
-            constexpr std::size_t c = static_cast<std::size_t>(b_const) / (a_cols * static_cast<std::size_t>(a_const));
-            return make_constant_matrix_like<B, c, Scalar>(Dimensions<a_cols>{}, get_dimensions_of<1>(b));
-          }
-          else
-          {
-            auto c = static_cast<Scalar>(b_const) / (a_cols * a_const);
-            auto m = make_constant_matrix_like<B, 1, Scalar>(Dimensions<a_cols>{}, get_dimensions_of<1>(b));
-            return make_self_contained(c * to_native_matrix<B>(m));
-          }
-  #endif
-        }
-      }
-      else if constexpr (row_dimension_of_v<A> == 1 or row_dimension_of_v<B> == 1 or
-        (not must_be_exact and (not must_be_unique or
-          (not has_dynamic_dimensions<A> and row_dimension_of_v<A> >= column_dimension_of_v<A>))))
-      {
-        if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
-        return make_self_contained(b / (get_index_dimension_of<1>(a) * constant_coefficient_v<A>));
-      }
-      else //< The solution will be non-exact unless every row of b is identical.
-      {
-        return interface::LinearAlgebra<std::decay_t<A>>::template solve<must_be_unique, must_be_exact>(
-          std::forward<A>(a), std::forward<B>(b));
-      }
-    }
-    else if constexpr (diagonal_matrix<A> or
-      ((row_dimension_of_v<A> == 1 or row_dimension_of_v<B> == 1) and column_dimension_of_v<A> == 1))
-    {
-      auto op = [](auto&& b_elem, auto&& a_elem) {
-        if (a_elem == 0)
-        {
-          using Scalar = scalar_type_of_t<B>;
-          if constexpr (not std::numeric_limits<Scalar>::has_infinity) throw std::logic_error {
-            "In solve function, an element should be infinite, but the scalar type does not have infinite values"};
-          else return std::numeric_limits<Scalar>::infinity();
-        }
-        else
-        {
-          return std::forward<decltype(b_elem)>(b_elem) / std::forward<decltype(a_elem)>(a_elem);
-        }
-      };
-      return n_ary_operation(
-        get_all_dimensions_of(b), std::move(op), std::forward<B>(b), diagonal_of(std::forward<A>(a)));
-    }
-    else
-    {
-      return interface::LinearAlgebra<std::decay_t<A>>::template solve<must_be_unique, must_be_exact>(
-        std::forward<A>(a), std::forward<B>(b));
-    }
-  }
-
-
-  /**
-   * \brief Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
-   * \tparam A The matrix to be decomposed
-   * \returns L as a \ref lower_triangular_matrix
+   * \brief Element-by-element sum of one or more objects.
    */
 #ifdef __cpp_concepts
-  template<indexible A> requires (not euclidean_transformed<A>)
+  template<indexible...Ts> requires (sizeof...(Ts) > 0) and maybe_index_descriptors_match<Ts...>
 #else
-  template<typename A, std::enable_if_t<indexible<A> and (not euclidean_transformed<A>), int> = 0>
+  template<typename...Ts, std::enable_if_t<(indexible<Ts> and ...) and (sizeof...(Ts) > 0) and
+    maybe_index_descriptors_match<Ts...>, int> = 0>
 #endif
-  constexpr auto
-  LQ_decomposition(A&& a)
+  constexpr decltype(auto) sum(Ts&&...ts)
   {
-    if constexpr (lower_triangular_matrix<A>)
+    constexpr std::make_index_sequence<std::max({max_indices_of_v<Ts>...})> seq;
+    return detail::sum_impl(seq, std::forward<Ts>(ts)...);
+  }
+
+
+  /* // Only for use with alternate code below
+  namespace detail
+  {
+    template<typename A, typename B, std::size_t...Is>
+    static constexpr auto contract_dimensions(A&& a, B&& b, std::index_sequence<Is...>) noexcept
+    {
+      return std::tuple {get_dimensions_of<0>(a), get_dimensions_of<1>(b), get_dimensions_of<Is + 2>(a)...};
+    }
+  }*/
+
+
+  /**
+   * \brief Matrix multiplication of A * B.
+   */
+#ifdef __cpp_concepts
+  template<indexible A, indexible B> requires dynamic_dimension<A, 1> or dynamic_dimension<B, 0> or
+    (index_dimension_of_v<A, 1> == index_dimension_of_v<B, 0>)
+#else
+  template<typename A, typename B, std::enable_if_t<indexible<A> and indexible<B> and
+    (dynamic_dimension<A, 1> or dynamic_dimension<B, 0> or (index_dimension_of_v<A, 1> == index_dimension_of_v<B, 0>)), int> = 0>
+#endif
+  constexpr decltype(auto) contract(A&& a, B&& b)
+  {
+    if constexpr (dynamic_dimension<A, 1> or dynamic_dimension<B, 0>) if (get_dimensions_of<1>(a) != get_dimensions_of<0>(b))
+      throw std::domain_error {"In contract, columns of a (" + std::to_string(get_index_dimension_of<1>(a)) +
+        ") do not match rows of b (" + std::to_string(get_index_dimension_of<0>(b)) + ")"};
+
+    constexpr std::size_t dims = std::max({max_indices_of_v<A>, max_indices_of_v<B>, static_cast<std::size_t>(2)});
+    constexpr std::make_index_sequence<dims - 2> seq;
+
+    if constexpr (identity_matrix<B>)
     {
       return std::forward<A>(a);
     }
-    else if constexpr (zero_matrix<A>)
+    else if constexpr (identity_matrix<A>)
     {
-      auto dim = get_dimensions_of<0>(a);
-      return make_zero_matrix_like<A>(dim, dim);
+      return std::forward<B>(b);
     }
-    else if constexpr (constant_matrix<A>)
+    else if constexpr (zero_matrix<A> or zero_matrix<B>)
     {
-      using Scalar = scalar_type_of_t<A>;
-      constexpr auto constant = constant_coefficient_v<A>;
-
-      const Scalar elem = constant * [](A&& a){
-        if constexpr (dynamic_dimension<A, 1>) return std::sqrt(static_cast<Scalar>(get_index_dimension_of<1>(a)));
-        else return internal::constexpr_sqrt(static_cast<Scalar>(index_dimension_of_v<A, 1>));
-      }(std::forward<A>(a));
-
-      if constexpr (dynamic_dimension<A, 0>)
+      return detail::contract_zero(std::forward<A>(a), std::forward<B>(b), seq);
+    }
+    else if constexpr (constant_matrix<A> and constant_matrix<B>)
+    {
+      constexpr auto c = constant_coefficient_v<A> * constant_coefficient_v<B>;
+      if constexpr (dynamic_dimension<A, 1> and dynamic_dimension<B, 0>)
       {
-        auto dim = Dimensions {get_index_dimension_of<0>(a)};
-        auto col1 = elem * make_constant_matrix_like<A, 1>(dim, Dimensions<1>{});
-
-        auto ret = make_default_dense_writable_matrix_like<A>(dim, dim);
-
-        if (get_dimension_size_of(dim) == 1)
-          ret = std::move(col1);
-        else
-          ret = concatenate_horizontal(std::move(col1), make_zero_matrix_like<A>(dim, dim - Dimensions<1>{}));
-
-        return SquareRootCovariance {std::move(ret), get_dimensions_of<0>(a)};
+        auto r = get_index_dimension_of<1>(a);
+        return r * detail::contract_constant<c>(std::forward<A>(a), std::forward<B>(b), seq);
       }
       else
       {
-        auto m = [](Scalar elem){
-          constexpr auto dim = index_dimension_of_v<A, 0>;
-          auto col1 = elem * make_constant_matrix_like<A, 1>(Dimensions<dim>{}, Dimensions<1>{});
-          if constexpr (dimension_size_of_v<dim> == 1) return col1;
-          else return concatenate_horizontal(std::move(col1), make_zero_matrix_like<A>(Dimensions<dim>{}, Dimensions<dim - 1>{}));
-        }(elem);
-
-        auto ret = Eigen3::TriangularMatrix<decltype(m), TriangleType::lower> {std::move(m)};
-
-        using C = coefficient_types_of_t<A, 0>;
-        if constexpr (euclidean_index_descriptor<C>) return ret;
-        else return SquareRootCovariance {std::move(ret), C{}};
+        constexpr auto r = dynamic_dimension<A, 1> ? index_dimension_of_v<B, 0> : index_dimension_of_v<A, 1>;
+# if __cpp_nontype_template_args >= 201911L
+        return detail::contract_constant<c * r>(std::forward<A>(a), std::forward<B>(b), seq);
+# else
+        constexpr auto cr_integral = static_cast<std::intmax_t>(c * r);
+        if constexpr (are_within_tolerance(c * r, static_cast<scalar_type_of_t<A>>(cr_integral)))
+          return detail::contract_constant<cr_integral>(std::forward<A>(a), std::forward<B>(b), seq);
+        else
+          return make_self_contained(c * detail::contract_constant<r>(std::forward<A>(a), std::forward<B>(b), seq));
+# endif
       }
+    }
+    else if constexpr (diagonal_matrix<A> and constant_matrix<B>)
+    {
+      auto col = make_self_contained(diagonal_of(std::forward<A>(a)) * constant_coefficient_v<B>);
+      return chipwise_operation<1>([&]{ return col; }, get_index_dimension_of<1>(b));
+      //Another way to do this:
+      //auto tup = detail::contract_dimensions(std::forward<A>(a), std::forward<B>(b), seq);
+      //auto op = [](auto&& x){ return std::forward<decltype(x)>(x); };
+      //return n_ary_operation(std::move(tup), op, make_self_contained(std::move(col)));
+    }
+    else if constexpr (constant_matrix<A> and diagonal_matrix<B>)
+    {
+      auto row = make_self_contained(transpose(diagonal_of(std::forward<B>(b))) * constant_coefficient_v<A>);
+      return chipwise_operation<0>([&]{ return row; }, get_index_dimension_of<0>(a));
+      //Another way to do this:
+      //auto tup = detail::contract_dimensions(std::forward<A>(a), std::forward<B>(b), seq);
+      //auto op = [](auto&& x){ return std::forward<decltype(x)>(x); };
+      //return n_ary_operation(std::move(tup), op, make_self_contained(std::move(row)));
+    }
+    else if constexpr (diagonal_matrix<A> and diagonal_matrix<B>)
+    {
+      auto ret = to_diagonal(n_ary_operation(std::multiplies<scalar_type_of_t<A>>{}, diagonal_of(std::forward<A>(a)), diagonal_of(std::forward<B>(b))));
+      return ret;
     }
     else
     {
-      auto m = interface::LinearAlgebra<std::decay_t<A>>::LQ_decomposition(std::forward<A>(a));
-      auto ret = Eigen3::TriangularMatrix<decltype(m), TriangleType::lower> {std::move(m)};
-
-      // \todo remove the "and false" once SquareRootCovariance works:
-      if constexpr (dynamic_dimension<A, 0> and false)
-      {
-        return SquareRootCovariance {std::move(ret), get_dimensions_of<0>(a)};
-      }
-      else
-      {
-        using C = coefficient_types_of_t<A, 0>;
-        if constexpr (euclidean_index_descriptor<C>) return ret;
-        else return SquareRootCovariance {std::move(ret), C{}};
-      }
+      return interface::LinearAlgebra<std::decay_t<A>>::contract(std::forward<A>(a), std::forward<B>(b));
     }
   }
 
 
   /**
-   * \brief Perform a QR decomposition of matrix A=Q[U,0], U is a upper-triangular matrix, and Q is orthogonal.
-   * \tparam A The matrix to be decomposed
-   * \returns U as an \ref upper_triangular_matrix
+   * \brief In-place matrix multiplication of A * B, storing the result in A
+   * \tparam on_the_right Whether the application is on the right (true) or on the left (false)
+   * \result Either either A * B (if on_the_right == true) or B * A (if on_the_right == false)
    */
 #ifdef __cpp_concepts
-  template<indexible A>
+  template<bool on_the_right = true, writable A, indexible B>
+  requires (dynamic_dimension<A, 0> or dynamic_dimension<A, 1> or index_dimension_of_v<A, 0> == index_dimension_of_v<A, 1>) and
+    (dynamic_dimension<A, 0> or dynamic_dimension<B, 0> or index_dimension_of_v<A, 0> == index_dimension_of_v<B, 0>) and
+    (dynamic_dimension<A, 1> or dynamic_dimension<B, 1> or index_dimension_of_v<A, 1> == index_dimension_of_v<B, 1>)
 #else
-  template<typename A, std::enable_if_t<indexible<A>, int> = 0>
+  template<bool on_the_right = true, typename A, typename B, std::enable_if_t<writable<A> and indexible<B> and
+    (dynamic_dimension<A, 0> or dynamic_dimension<A, 1> or index_dimension_of_v<A, 0> == index_dimension_of_v<A, 1>) and
+    (dynamic_dimension<A, 0> or dynamic_dimension<B, 0> or index_dimension_of_v<A, 0> == index_dimension_of_v<B, 0>) and
+    (dynamic_dimension<A, 1> or dynamic_dimension<B, 1> or index_dimension_of_v<A, 1> == index_dimension_of_v<B, 1>), int> = 0>
 #endif
-  constexpr auto
-  QR_decomposition(A&& a)
+  constexpr A& contract_in_place(A& a, B&& b)
   {
-    if constexpr (upper_triangular_matrix<A>)
+    if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<A, 1>) if (get_dimensions_of<0>(a) != get_dimensions_of<1>(a))
+      throw std::domain_error {"In contract_in_place, argument a is not square"};
+
+    if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) if (get_dimensions_of<0>(a) != get_dimensions_of<0>(b))
+      throw std::domain_error {"In contract_in_place, rows of a (" + std::to_string(get_index_dimension_of<0>(a)) +
+        ") do not match rows of b (" + std::to_string(get_index_dimension_of<0>(b)) + ")"};
+
+    if constexpr (dynamic_dimension<A, 1> or dynamic_dimension<B, 1>) if (get_dimensions_of<1>(a) != get_dimensions_of<1>(b))
+      throw std::domain_error {"In contract_in_place, columns of a (" + std::to_string(get_index_dimension_of<1>(a)) +
+        ") do not match columns of b (" + std::to_string(get_index_dimension_of<1>(b)) + ")"};
+
+    if constexpr (identity_matrix<B>)
     {
-      return std::forward<A>(a);
+      return a;
     }
-    else if constexpr (zero_matrix<A>)
+    else if constexpr (zero_matrix<B>)
     {
-      auto dim = get_dimensions_of<1>(a);
-      return make_zero_matrix_like<A>(dim, dim);
+      return a = std::forward<B>(b);
     }
-    else if constexpr (constant_matrix<A>)
-    {
-      using Scalar = scalar_type_of_t<A>;
-      constexpr auto constant = constant_coefficient_v<A>;
-
-      const Scalar elem = constant * [](A&& a){
-        if constexpr (dynamic_dimension<A, 0>) return std::sqrt(static_cast<Scalar>(get_index_dimension_of<0>(a)));
-        else return internal::constexpr_sqrt(static_cast<Scalar>(index_dimension_of_v<A, 0>));
-      }(std::forward<A>(a));
-
-      if constexpr (dynamic_dimension<A, 1>)
-      {
-        auto dim = Dimensions {get_index_dimension_of<1>(a)};
-        auto row1 = elem * make_constant_matrix_like<A, 1>(Dimensions<1>{}, dim);
-
-        auto ret = make_default_dense_writable_matrix_like<A>(dim, dim);
-
-        if (get_dimension_size_of(dim) == 1)
-          ret = std::move(row1);
-        else
-          ret = concatenate_vertical(std::move(row1), make_zero_matrix_like<A>(dim - Dimensions<1>{}, dim));
-
-        return SquareRootCovariance {std::move(ret), get_dimensions_of<1>(a)};
-      }
-      else
-      {
-        auto m = [](Scalar elem){
-          constexpr auto dim = index_dimension_of_v<A, 1>;
-          auto row1 = elem * make_constant_matrix_like<A, 1>(Dimensions<1>{}, Dimensions<dim>{});
-          if constexpr (dimension_size_of_v<dim> == 1) return row1;
-          else return concatenate_vertical(std::move(row1), make_zero_matrix_like<A>(Dimensions<dim - 1>{}, Dimensions<dim>{}));
-        }(elem);
-
-        auto ret = Eigen3::TriangularMatrix<decltype(m), TriangleType::upper> {std::move(m)};
-
-        using C = coefficient_types_of_t<A, 1>;
-        if constexpr (euclidean_index_descriptor<C>) return ret;
-        else return SquareRootCovariance {std::move(ret), C{}};
-      }
-    }
+    //else if constexpr (diagonal_matrix<A> and diagonal_matrix<B>)
+    //{
+    //  \todo Create and a new set_diagonal function for this (similar to set_chip).
+    //  set_diagonal(n_ary_operation(std::multiplies<scalar_type_of_t<A>>{}, diagonal_of(a), diagonal_of(std::forward<B>(b))));
+    //  return a;
+    //}
     else
     {
-      auto m = interface::LinearAlgebra<std::decay_t<A>>::QR_decomposition(std::forward<A>(a));
-      auto ret = Eigen3::TriangularMatrix<decltype(m), TriangleType::upper> {std::move(m)};
-
-      // \todo remove the "and false" once SquareRootCovariance works:
-      if constexpr (dynamic_dimension<A, 1> and false)
-      {
-        return SquareRootCovariance {std::move(ret), get_dimensions_of<1>(a)};
-      }
-      else
-      {
-        using C = coefficient_types_of_t<A, 1>;
-        if constexpr (euclidean_index_descriptor<C>) return ret;
-        else return SquareRootCovariance {std::move(ret), C{}};
-      }
+      return interface::LinearAlgebra<std::decay_t<A>>::template contract_in_place<on_the_right>(a, std::forward<B>(b));
     }
   }
 

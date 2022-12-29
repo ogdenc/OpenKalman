@@ -25,7 +25,7 @@ namespace OpenKalman::internal
 #else
   template<typename Derived, typename NestedMatrix>
 #endif
-  struct MatrixBase : MatrixTraits<NestedMatrix>::template MatrixBaseFrom<Derived>
+  struct MatrixBase : internal::library_base<Derived, NestedMatrix>
   {
 
 #ifndef __cpp_concepts
@@ -51,14 +51,14 @@ namespace OpenKalman::internal
      * \internal
      * \brief Copy constructor.
      */
-    MatrixBase(const MatrixBase& other) : m_arg {other.m_arg} {}
+    //MatrixBase(const MatrixBase& other) : m_arg {other.m_arg} {}
 
 
     /**
      * \internal
      * \brief Move constructor.
      */
-    MatrixBase(MatrixBase&& other) noexcept : m_arg {std::move(other).m_arg} {}
+    //MatrixBase(MatrixBase&& other) noexcept : m_arg {std::move(other).m_arg} {}
 
 
     /**
@@ -80,33 +80,35 @@ namespace OpenKalman::internal
      * \internal
      * \brief Copy assignment operator.
      */
-    auto& operator=(const MatrixBase& other)
+    /*auto& operator=(const MatrixBase& other)
 #ifdef __cpp_concepts
       requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>)
 #endif
     {
+      // \todo Change static_assert to "writable"
       static_assert(not std::is_const_v<std::remove_reference_t<NestedMatrix>>, "Nested matrix cannot be modified.");
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
       {
         return operator=(other.m_arg);
       }
       return *this;
-    }
+    }*/
 
 
     /**
      * \internal
      * \brief Move assignment operator.
      */
-    auto& operator=(MatrixBase&& other) noexcept
+    /*auto& operator=(MatrixBase&& other) noexcept
     {
+      // \todo Change static_assert to "writable"
       static_assert(not std::is_const_v<std::remove_reference_t<NestedMatrix>>, "Nested matrix cannot be modified.");
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
       {
         m_arg = std::move(other).m_arg;
       }
       return *this;
-    }
+    }*/
 
 
     /** \internal

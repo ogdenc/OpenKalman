@@ -38,13 +38,12 @@ namespace OpenKalman::internal {}
 #include "global-definitions.hpp"
 #include "utils.hpp"
 
-#include "forward-interface-traits.hpp"
-
 #include "scalar-types.hpp"
 #include "functions/scalar_functions.hpp"
 
 #include "index-descriptors/index-descriptors.hpp"
 
+#include "forward-interface-traits.hpp"
 #include "forward-traits.hpp"
 #include "forward-class-declarations.hpp"
 
@@ -52,8 +51,9 @@ namespace OpenKalman::internal {}
 
 #include "traits.hpp"
 
-#include "MatrixBase.hpp"
-#include "TypedMatrixBase.hpp"
-#include "ElementAccessor.hpp"
+#include "internal/library_base.hpp"
+#include "internal/MatrixBase.hpp"
+#include "internal/TypedMatrixBase.hpp"
+#include "internal/ElementAccessor.hpp"
 
 #endif //OPENKALMAN_BASICS_HPP

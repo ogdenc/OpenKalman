@@ -170,6 +170,7 @@ namespace OpenKalman
     struct EquivalentDenseWritableMatrix<T, Scalar, std::enable_if_t<covariance<T>>>
 #endif
     {
+      static constexpr bool is_writable = EquivalentDenseWritableMatrix<std::decay_t<nested_matrix_of_t<T>>, Scalar>::is_writable;
 
       template<typename...D>
       static auto make_default(D&&...d)
@@ -204,11 +205,13 @@ namespace OpenKalman
     struct EquivalentDenseWritableMatrix<T, Scalar, std::enable_if_t<typed_matrix<T>>>
 #endif
     {
+      static constexpr bool is_writable = EquivalentDenseWritableMatrix<std::decay_t<nested_matrix_of_t<T>>, Scalar>::is_writable;
+
 
       template<typename...D>
       static auto make_default(D&&...d)
       {
-        using Trait = EquivalentDenseWritableMatrix<pattern_matrix_of_t<T>, Scalar>;
+        using Trait = EquivalentDenseWritableMatrix<nested_matrix_of_t<T>, Scalar>;
         return Trait::make_default(std::forward<D>(d)...);
       }
 
@@ -244,7 +247,7 @@ namespace OpenKalman
       static decltype(auto) get_nested_matrix(Arg&& arg)
       {
         static_assert(i == 0);
-        if constexpr (self_adjoint_matrix<NestedMatrix>)
+        if constexpr (hermitian_matrix<NestedMatrix>)
         {
           return std::forward<Arg>(arg).get_self_adjoint_nested_matrix();
         }
@@ -273,7 +276,7 @@ namespace OpenKalman
       static decltype(auto) get_nested_matrix(Arg&& arg)
       {
         static_assert(i == 0);
-        if constexpr (self_adjoint_matrix<NestedMatrix>)
+        if constexpr (hermitian_matrix<NestedMatrix>)
         {
           return std::forward<Arg>(arg).get_self_adjoint_nested_matrix();
         }
@@ -575,19 +578,26 @@ namespace OpenKalman
     {
       static constexpr TriangleType triangle_type = triangle_type_of_v<nested_matrix_of_t<T>>;
       static constexpr bool is_triangular_adapter = false;
+
+      template<TriangleType t, typename Arg>
+      static constexpr auto make_triangular_matrix(Arg&& arg)
+      {
+        constexpr auto TriMode = t == TriangleType::upper ? Eigen::Upper : Eigen::Lower;
+        return std::forward<Arg>(arg).template triangularView<TriMode>();
+      }
     };
 
 
 #ifdef __cpp_concepts
-    template<triangular_covariance T> requires self_adjoint_matrix<nested_matrix_of_t<T>>
+    template<triangular_covariance T> requires hermitian_matrix<nested_matrix_of_t<T>>
     struct TriangularTraits<T>
 #else
     template<typename T>
     struct TriangularTraits<T, std::enable_if_t<triangular_covariance<T> and
-      self_adjoint_matrix<nested_matrix_of<T>::type>>>
+      hermitian_matrix<nested_matrix_of<T>::type>>>
 #endif
     {
-      static constexpr TriangleType triangle_type = self_adjoint_triangle_type_of_v<nested_matrix_of_t<T>>;
+      static constexpr TriangleType triangle_type = hermitian_adapter_type_of_v<nested_matrix_of_t<T>>;
       static constexpr bool is_triangular_adapter = false;
     };
 
@@ -613,16 +623,16 @@ namespace OpenKalman
     // ----------------- //
 
 #ifdef __cpp_concepts
-    template<self_adjoint_covariance T> requires self_adjoint_matrix<nested_matrix_of_t<T>>
+    template<self_adjoint_covariance T> requires hermitian_matrix<nested_matrix_of_t<T>>
     struct HermitianTraits<T>
 #else
     template<typename T>
     struct HermitianTraits<T, std::enable_if_t<self_adjoint_covariance<T> and
-      self_adjoint_matrix<nested_matrix_of<T>::type>>>
+      hermitian_matrix<nested_matrix_of<T>::type>>>
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = self_adjoint_triangle_type_of_v<nested_matrix_of_t<T>>;
+      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
@@ -636,21 +646,24 @@ namespace OpenKalman
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = triangle_type_of_v<nested_matrix_of_t<T>>;
+      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
 #ifdef __cpp_concepts
-    template<typed_matrix T> requires self_adjoint_matrix<nested_matrix_of_t<T>> and
+    template<typed_matrix T> requires hermitian_matrix<nested_matrix_of_t<T>> and
       equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>>
     struct HermitianTraits<T>
 #else
     template<typename T>
     struct HermitianTraits<T, std::enable_if_t<
-      typed_matrix<T> and self_adjoint_matrix<nested_matrix_of<T>::type> and
+      typed_matrix<T> and hermitian_matrix<nested_matrix_of<T>::type> and
       equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>>>>
 #endif
-      : self_adjoint_triangle_type_of<nested_matrix_of_t<T>> {};
+    {
+      static constexpr bool is_hermitian = hermitian_matrix<nested_matrix_of_t<T>>;
+      static constexpr TriangleType adapter_type = TriangleType::none;
+    };
 
   } // namespace interface
 

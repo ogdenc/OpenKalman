@@ -19,12 +19,23 @@
 #ifndef OPENKALMAN_FUNCTIONS_HPP
 #define OPENKALMAN_FUNCTIONS_HPP
 
-#include "size_functions.hpp"
+#include "indexible_property_functions.hpp"
 #include "make_functions.hpp"
 #include "element_functions.hpp"
 #include "conversion_functions.hpp"
-#include "array_functions.hpp"
-#include "subset_functions.hpp"
+#include "diagonalizing-functions.hpp"
+#include "n_ary_operation.hpp"
+#include "randomize.hpp"
+#include "reduction_functions.hpp"
+#include "block_functions.hpp"
+#include "tile.hpp"
+#include "concatenate.hpp"
+#include "split.hpp"
+#include "chipwise-operations.hpp"
 #include "linear_algebra_functions.hpp"
+#include "decomposition_functions.hpp"
+#include "cholesky-decomposition.hpp"
+#include "rank-update.hpp"
+#include "solve.hpp"
 
 #endif //OPENKALMAN_FUNCTIONS_HPP

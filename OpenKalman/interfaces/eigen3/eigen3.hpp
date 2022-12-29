@@ -51,9 +51,9 @@
 #include "../interfaces.hpp" // Includes basics.hpp
 
 #include "details/eigen3-forward-declarations.hpp"
-#include "special-matrices/special-matrices.hpp" // \todo Because some Eigen3 code refers to special matrices and vice versa. ^^ Need to fix this and delete
 
 #include "details/eigen3-matrix-traits.hpp"
+
 #include "details/eigen3-traits.hpp"
 
 #include "details/eigen3-interface.hpp"
@@ -62,11 +62,12 @@
 #include "details/eigen3-cholesky-overloads.hpp"
 
 #include "details/eigen3-comma-initializers.hpp"
-#include "details/Eigen3Base.hpp"
+#include "details/Eigen3AdapterBase.hpp"
 
 #include "details/eigen3-native-traits.hpp"
 #include "details/eigen3-native-evaluators.hpp"
 
+#include "details/EigenWrapper.hpp"
 
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
@@ -83,6 +84,6 @@ namespace OpenKalman
 #endif
 
 #include "default-overloads.hpp"
-
+#include "special-matrix-arithmetic.hpp"
 
 #endif //OPENKALMAN_EIGEN3_HPP

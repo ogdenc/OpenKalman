@@ -26,47 +26,43 @@ namespace OpenKalman
   namespace EGI = Eigen::internal;
 
 
-  namespace Eigen3
+#ifdef __cpp_concepts
+  template<native_eigen_matrix Arg>
+#else
+  template<typename Arg, std::enable_if_t<native_eigen_matrix<Arg>, int> = 0>
+#endif
+  explicit SelfAdjointMatrix(Arg&&) -> SelfAdjointMatrix<passable_t<Arg>, TriangleType::lower>;
+
+
+#ifdef __cpp_concepts
+  template<TriangleType t = TriangleType::lower, native_eigen_matrix M>
+#else
+  template<TriangleType t = TriangleType::lower, typename M, std::enable_if_t<native_eigen_matrix<M>, int> = 0>
+#endif
+  auto
+  make_EigenSelfAdjointMatrix(M&& m)
   {
-#ifdef __cpp_concepts
-    template<native_eigen_matrix Arg>
-#else
-    template<typename Arg, std::enable_if_t<native_eigen_matrix<Arg>, int> = 0>
-#endif
-    explicit SelfAdjointMatrix(Arg&&) -> SelfAdjointMatrix<passable_t<Arg>, TriangleType::lower>;
+    return SelfAdjointMatrix<passable_t<M>, t> {std::forward<M>(m)};
+  }
 
 
 #ifdef __cpp_concepts
-    template<TriangleType t = TriangleType::lower, native_eigen_matrix M>
+  template<native_eigen_matrix M>
 #else
-    template<TriangleType t = TriangleType::lower, typename M, std::enable_if_t<native_eigen_matrix<M>, int> = 0>
+  template<typename M, std::enable_if_t<native_eigen_matrix<M>, int> = 0>
 #endif
-    auto
-    make_EigenSelfAdjointMatrix(M&& m)
-    {
-      return SelfAdjointMatrix<passable_t<M>, t> {std::forward<M>(m)};
-    }
+  explicit TriangularMatrix(M&&) -> TriangularMatrix<passable_t<M>, TriangleType::lower>;
 
 
 #ifdef __cpp_concepts
-    template<native_eigen_matrix M>
+  template<TriangleType t = TriangleType::lower, native_eigen_matrix M>
 #else
-    template<typename M, std::enable_if_t<native_eigen_matrix<M>, int> = 0>
+ template<TriangleType t = TriangleType::lower, typename M, std::enable_if_t<native_eigen_matrix<M>, int> = 0>
 #endif
-    explicit TriangularMatrix(M&&) -> TriangularMatrix<passable_t<M>, TriangleType::lower>;
-
-
-#ifdef __cpp_concepts
-    template<TriangleType t = TriangleType::lower, native_eigen_matrix M>
-#else
-   template<TriangleType t = TriangleType::lower, typename M, std::enable_if_t<native_eigen_matrix<M>, int> = 0>
-#endif
-    auto make_EigenTriangularMatrix(M&& m)
-    {
-      return TriangularMatrix<passable_t<M>, t> (std::forward<M>(m));
-    }
-
-  } // namespace Eigen3
+  auto make_EigenTriangularMatrix(M&& m)
+  {
+    return TriangularMatrix<passable_t<M>, t> (std::forward<M>(m));
+  }
 
 
   namespace interface
@@ -99,9 +95,10 @@ namespace OpenKalman
     {
     private:
 
-      static constexpr auto e_dim = (std::decay_t<T>::RowsAtCompileTime == Eigen::Dynamic) and (
-        eigen_SelfAdjointView<T> or eigen_TriangularView<T>) ?
-        std::decay_t<T>::ColsAtCompileTime : std::decay_t<T>::RowsAtCompileTime;
+      static constexpr auto e_dim =
+        (std::decay_t<T>::RowsAtCompileTime == Eigen::Dynamic) and
+          (eigen_SelfAdjointView<T> or eigen_TriangularView<T>) ? std::decay_t<T>::ColsAtCompileTime :
+        std::decay_t<T>::RowsAtCompileTime;
 
     public:
 
@@ -128,9 +125,10 @@ namespace OpenKalman
     {
     private:
 
-      static constexpr auto e_dim = (std::decay_t<T>::ColsAtCompileTime == Eigen::Dynamic) and (
-        eigen_SelfAdjointView<T> or eigen_TriangularView<T>) ?
-        std::decay_t<T>::RowsAtCompileTime : std::decay_t<T>::ColsAtCompileTime;
+      static constexpr auto e_dim =
+        (std::decay_t<T>::ColsAtCompileTime == Eigen::Dynamic) and (
+          eigen_SelfAdjointView<T> or eigen_TriangularView<T>) ? std::decay_t<T>::RowsAtCompileTime :
+        std::decay_t<T>::ColsAtCompileTime;
 
     public:
 
@@ -185,6 +183,10 @@ namespace OpenKalman
 
     public:
 
+      static constexpr bool is_writable = (native_eigen_matrix<T> or native_eigen_array<T>) and
+        static_cast<bool>(Eigen::internal::traits<std::decay_t<T>>::Flags & (Eigen::LvalueBit | Eigen::DirectAccessBit));
+
+
       template<typename...D>
       static auto make_default(D&&...d)
       {
@@ -225,6 +227,7 @@ namespace OpenKalman
           {
             set_element(m, get_element(std::forward<Arg>(arg), i, j), i, j);
           }
+          return m;
         }
       }
 
@@ -233,17 +236,11 @@ namespace OpenKalman
       static decltype(auto) to_native_matrix(Arg&& arg)
       {
         if constexpr (native_eigen_matrix<Arg>)
-        {
           return std::forward<Arg>(arg);
-        }
         else if constexpr (native_eigen_array<Arg>)
-        {
           return std::forward<Arg>(arg).matrix();
-        }
         else if constexpr (native_eigen_general<Arg>)
-        {
           return convert(std::forward<Arg>(arg));
-        }
         else
         {
           static_assert(traits_and_evaluator_defined<Arg>::value, "To convert to a native Eigen matrix, the interface "
@@ -267,14 +264,14 @@ namespace OpenKalman
       static constexpr auto make_zero_matrix(D&&...d)
       {
         using N = dense_writable_matrix_t<T, std::decay_t<D>...>;
-        return ZeroMatrix<N> {std::forward<D>(d)...};
+        return ZeroAdapter<N> {std::forward<D>(d)...};
       }
 
       template<auto constant, typename...D>
       static constexpr auto make_constant_matrix(D&&...d)
       {
         using N = dense_writable_matrix_t<T, std::decay_t<D>...>;
-        return ConstantMatrix<N, constant> {std::forward<D>(d)...};
+        return ConstantAdapter<N, constant> {std::forward<D>(d)...};
       }
     };
 
@@ -385,15 +382,15 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<self_adjoint_matrix XprType>
+    template<hermitian_matrix XprType>
     struct HermitianTraits<Eigen::ArrayWrapper<XprType>>
 #else
     template<typename XprType>
-    struct HermitianTraits<Eigen::ArrayWrapper<XprType>, std::enable_if_t<self_adjoint_matrix<XprType>>>
+    struct HermitianTraits<Eigen::ArrayWrapper<XprType>, std::enable_if_t<hermitian_matrix<XprType>>>
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = self_adjoint_triangle_type_of_v<XprType>;
+      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
@@ -455,8 +452,6 @@ namespace OpenKalman
     private:
 
       using T = Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>;
-      using N = Eigen::CwiseBinaryOp<BinaryOp, equivalent_self_contained_t<LhsType>,
-        equivalent_self_contained_t<RhsType>>;
 
     public:
 
@@ -478,6 +473,8 @@ namespace OpenKalman
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
+        using N = Eigen::CwiseBinaryOp<BinaryOp, equivalent_self_contained_t<LhsType>,
+          equivalent_self_contained_t<RhsType>>;
         // Do a partial evaluation as long as at least one argument is already self-contained.
         if constexpr ((self_contained<LhsType> or self_contained<RhsType>) and
           not std::is_lvalue_reference_v<typename N::LhsNested> and
@@ -632,6 +629,9 @@ namespace OpenKalman
       std::enable_if_t<constant_matrix<Arg1> and constant_matrix<Arg2> and (not zero_matrix<Arg2>)>>
 #endif
     {
+# if __cpp_nontype_template_args >= 201911L
+      static constexpr auto value = constant_coefficient_v<Arg1> / constant_coefficient_v<Arg2>;
+# else
       static constexpr auto value = [] {
         using Scalar = scalar_type_of_t<Eigen::CwiseBinaryOp<EGI::scalar_quotient_op<Scalar1, Scalar2>, Arg1, Arg2>>;
         if constexpr (std::is_integral_v<decltype(constant_coefficient_v<Arg1>)> and
@@ -645,6 +645,7 @@ namespace OpenKalman
           return constant_coefficient_v<Arg1> / constant_coefficient_v<Arg2>;
         }
       }();
+# endif
     };
 
 
@@ -713,12 +714,12 @@ namespace OpenKalman
 
     /// The coefficient-wise power of two constant arrays is also constant. \todo update this with constexpr floating power
 #ifdef __cpp_concepts
-    template<typename Scalar1, typename Scalar2, constant_matrix Arg1, constant_matrix Arg2> requires
+    template<typename Scalar, typename Exponent, constant_matrix Arg1, constant_matrix Arg2> requires
       std::is_integral_v<decltype(constant_coefficient_v<Arg2>)>
-    struct SingleConstant<Eigen::CwiseBinaryOp<EGI::scalar_pow_op<Scalar1, Scalar2>, Arg1, Arg2>>
+    struct SingleConstant<Eigen::CwiseBinaryOp<EGI::scalar_pow_op<Scalar, Exponent>, Arg1, Arg2>>
 #else
-    template<typename Scalar1, typename Scalar2, typename Arg1, typename Arg2>
-    struct SingleConstant<Eigen::CwiseBinaryOp<EGI::scalar_pow_op<Scalar1, Scalar2>, Arg1, Arg2>,
+    template<typename Scalar, typename Exponent, typename Arg1, typename Arg2>
+    struct SingleConstant<Eigen::CwiseBinaryOp<EGI::scalar_pow_op<Scalar, Exponent>, Arg1, Arg2>,
       std::enable_if_t<constant_matrix<Arg1> and constant_matrix<Arg2> and
       std::is_integral_v<decltype(constant_coefficient_v<Arg2>)>>>
 #endif
@@ -859,6 +860,9 @@ namespace OpenKalman
       (one_by_one_matrix<Arg1> or one_by_one_matrix<Arg2>) and (not zero_matrix<Arg2>)>>
 #endif
     {
+# if __cpp_nontype_template_args >= 201911L
+      static constexpr auto value = constant_diagonal_coefficient_v<Arg1> / constant_diagonal_coefficient_v<Arg2>;
+# else
       static constexpr auto value = [] {
         using Scalar = scalar_type_of_t<Eigen::CwiseBinaryOp<EGI::scalar_quotient_op<Scalar1, Scalar2>, Arg1, Arg2>>;
         if constexpr (std::is_integral_v<decltype(constant_diagonal_coefficient_v<Arg1>)> and
@@ -873,6 +877,7 @@ namespace OpenKalman
           return constant_diagonal_coefficient_v<Arg1> / constant_diagonal_coefficient_v<Arg2>;
         }
       }();
+# endif
     };
 
 
@@ -1004,48 +1009,48 @@ namespace OpenKalman
 
     // The sum of two hermitian matrices is hermitian.
 #ifdef __cpp_concepts
-    template<typename Scalar1, typename Scalar2, self_adjoint_matrix Arg1, self_adjoint_matrix Arg2>
+    template<typename Scalar1, typename Scalar2, hermitian_matrix Arg1, hermitian_matrix Arg2>
     struct HermitianTraits<Eigen::CwiseBinaryOp<EGI::scalar_sum_op<Scalar1, Scalar2>, Arg1, Arg2>>
 #else
     template<typename Scalar1, typename Scalar2, typename Arg1, typename Arg2>
     struct HermitianTraits<Eigen::CwiseBinaryOp<EGI::scalar_sum_op<Scalar1, Scalar2>, Arg1, Arg2>, std::enable_if_t<
-      self_adjoint_matrix<Arg1> and self_adjoint_matrix<Arg2>>>
+      hermitian_matrix<Arg1> and hermitian_matrix<Arg2>>>
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = self_adjoint_triangle_type_of_v<Arg1, Arg2>;
+      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
     // The difference between two hermitian matrices is hermitian.
 #ifdef __cpp_concepts
-    template<typename Scalar1, typename Scalar2, self_adjoint_matrix Arg1, self_adjoint_matrix Arg2>
+    template<typename Scalar1, typename Scalar2, hermitian_matrix Arg1, hermitian_matrix Arg2>
     struct HermitianTraits<Eigen::CwiseBinaryOp<EGI::scalar_difference_op<Scalar1, Scalar2>, Arg1, Arg2>>
 #else
     template<typename Scalar1, typename Scalar2, typename Arg1, typename Arg2>
     struct HermitianTraits<Eigen::CwiseBinaryOp<EGI::scalar_difference_op<Scalar1, Scalar2>, Arg1, Arg2>, std::enable_if_t<
-      self_adjoint_matrix<Arg1> and self_adjoint_matrix<Arg2>>>
+      hermitian_matrix<Arg1> and hermitian_matrix<Arg2>>>
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = self_adjoint_triangle_type_of_v<Arg1, Arg2>;
+      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
     /// The scalar product of two hermitian matrices is hermitian if the two argument matrices are real.
 #ifdef __cpp_concepts
-    template<typename Scalar1, typename Scalar2, self_adjoint_matrix Arg1, self_adjoint_matrix Arg2> requires
+    template<typename Scalar1, typename Scalar2, hermitian_matrix Arg1, hermitian_matrix Arg2> requires
       (not complex_number<Scalar1>) and (not complex_number<Scalar2>)
     struct HermitianTraits<Eigen::CwiseBinaryOp<EGI::scalar_product_op<Scalar1, Scalar2>, Arg1, Arg2>>
 #else
     template<typename Scalar1, typename Scalar2, typename Arg1, typename Arg2>
     struct HermitianTraits<Eigen::CwiseBinaryOp<EGI::scalar_product_op<Scalar1, Scalar2>, Arg1, Arg2>, std::enable_if_t<
-      self_adjoint_matrix<Arg1> and self_adjoint_matrix<Arg2> and
+      hermitian_matrix<Arg1> and hermitian_matrix<Arg2> and
       not complex_number<Scalar1> and not complex_number<Scalar2>>>
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = self_adjoint_triangle_type_of_v<Arg1, Arg2>;
+      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
@@ -1086,9 +1091,9 @@ namespace OpenKalman
     };
 
 
-    template<typename Scalar, typename PacketType, typename PlainObjectType>
-    struct Dependencies<Eigen::CwiseNullaryOp<EGI::linspaced_op<Scalar, PacketType>, PlainObjectType>>
-      : detail::CwiseNullaryOpDependenciesBase<EGI::linspaced_op<Scalar, PacketType>, PlainObjectType>
+    template<typename PlainObjectType, typename...Args>
+    struct Dependencies<Eigen::CwiseNullaryOp<EGI::linspaced_op<Args...>, PlainObjectType>>
+      : detail::CwiseNullaryOpDependenciesBase<EGI::linspaced_op<Args...>, PlainObjectType>
     {
       static constexpr bool has_runtime_parameters = true;
     };
@@ -1123,17 +1128,10 @@ namespace OpenKalman
 
 
     /// A constant square matrix is hermitian if it is not complex.
-#ifdef __cpp_concepts
-    template<typename Scalar, typename PlainObjectType> requires square_matrix<PlainObjectType> and
-      (not complex_number<Scalar>)
-    struct HermitianTraits<Eigen::CwiseNullaryOp<EGI::scalar_constant_op<Scalar>, PlainObjectType>>
-#else
     template<typename Scalar, typename PlainObjectType>
-    struct HermitianTraits<Eigen::CwiseNullaryOp<EGI::scalar_constant_op<Scalar>, PlainObjectType>, std::enable_if_t<
-      square_matrix<PlainObjectType> and (not complex_number<Scalar>)>>
-#endif
+    struct HermitianTraits<Eigen::CwiseNullaryOp<EGI::scalar_constant_op<Scalar>, PlainObjectType>>
     {
-      static constexpr bool is_hermitian = true;
+      static constexpr bool is_hermitian = square_matrix<PlainObjectType> and (not complex_number<Scalar>);
       static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
@@ -1148,8 +1146,6 @@ namespace OpenKalman
     private:
 
       using T = Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>;
-      using N = Eigen::CwiseTernaryOp<TernaryOp,
-        equivalent_self_contained_t<Arg1>, equivalent_self_contained_t<Arg2>, equivalent_self_contained_t<Arg3>>;
 
     public:
 
@@ -1171,6 +1167,8 @@ namespace OpenKalman
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
+        using N = Eigen::CwiseTernaryOp<TernaryOp,
+          equivalent_self_contained_t<Arg1>, equivalent_self_contained_t<Arg2>, equivalent_self_contained_t<Arg3>>;
         // Do a partial evaluation as long as at least two arguments are already self-contained.
         if constexpr (
           ((self_contained<Arg1> ? 1 : 0) + (self_contained<Arg2> ? 1 : 0) + (self_contained<Arg3> ? 1 : 0) >= 2) and
@@ -1199,7 +1197,6 @@ namespace OpenKalman
     private:
 
       using T = Eigen::CwiseUnaryOp<UnaryOp, XprType>;
-      using N = Eigen::CwiseUnaryOp<UnaryOp, equivalent_self_contained_t<XprType>>;
 
     public:
 
@@ -1219,6 +1216,7 @@ namespace OpenKalman
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
+        using N = Eigen::CwiseUnaryOp<UnaryOp, equivalent_self_contained_t<XprType>>;
         if constexpr (not std::is_lvalue_reference_v<typename N::XprTypeNested>)
           return N {make_self_contained(arg.nestedExpression()), arg.functor()};
         else
@@ -1270,16 +1268,7 @@ namespace OpenKalman
       std::enable_if_t<constant_matrix<Arg>>>
 #endif
     {
-      static constexpr auto value = [] {
-        if constexpr (complex_number<Scalar>)
-#ifdef __cpp_lib_constexpr_complex
-          return std::conj(constant_coefficient_v<Arg>);
-#else
-          return std::complex(std::real(constant_coefficient_v<Arg>), -std::imag(constant_coefficient_v<Arg>));
-#endif
-        else
-          return constant_coefficient_v<Arg>;
-      };
+      static constexpr auto value = conjugate(constant_coefficient_v<Arg>);
     };
 
 
@@ -1293,12 +1282,7 @@ namespace OpenKalman
       std::enable_if_t<constant_matrix<Arg>>>
 #endif
     {
-      static constexpr auto value = [] {
-        if constexpr (complex_number<Scalar>)
-          return std::real(constant_coefficient_v<Arg>);
-        else
-          return constant_coefficient_v<Arg>;
-      }();
+      static constexpr auto value = real_projection(constant_coefficient_v<Arg>);
     };
 
 
@@ -1312,12 +1296,7 @@ namespace OpenKalman
       std::enable_if_t<constant_matrix<Arg>>>
 #endif
     {
-      static constexpr auto value = [] {
-        if constexpr (complex_number<Scalar>)
-          return std::imag(constant_coefficient_v<Arg>);
-        else
-          return 0;
-      }();
+      static constexpr auto value = imaginary_part(constant_coefficient_v<Arg>);
     };
 
 
@@ -1346,7 +1325,10 @@ namespace OpenKalman
       std::enable_if_t<constant_matrix<Arg>>>
 #endif
     {
-      static constexpr auto value = constant_coefficient_v<Arg> * constant_coefficient_v<Arg>;
+      static constexpr auto value = complex_number<Scalar> ?
+        real_projection(constant_coefficient_v<Arg>) * real_projection(constant_coefficient_v<Arg>) +
+          imaginary_part(constant_coefficient_v<Arg>) * imaginary_part(constant_coefficient_v<Arg>):
+        constant_coefficient_v<Arg> * constant_coefficient_v<Arg>;
     };
 
 
@@ -1464,17 +1446,7 @@ namespace OpenKalman
       std::enable_if_t<constant_diagonal_matrix<Arg>>>
 #endif
     {
-      static constexpr auto value = [] {
-        if constexpr (complex_number<Scalar>)
-#ifdef __cpp_lib_constexpr_complex
-          return std::conj(constant_diagonal_coefficient_v<Arg>);
-#else
-          return std::complex(std::real(constant_diagonal_coefficient_v<Arg>),
-            -std::imag(constant_diagonal_coefficient_v<Arg>));
-#endif
-        else
-          return constant_diagonal_coefficient_v<Arg>;
-      }();
+      static constexpr auto value = conjugate(constant_diagonal_coefficient_v<Arg>);
     };
 
 
@@ -1488,12 +1460,7 @@ namespace OpenKalman
       std::enable_if_t<constant_diagonal_matrix<Arg>>>
 #endif
     {
-      static constexpr auto value = [] {
-        if constexpr (complex_number<Scalar>)
-          return std::real(constant_diagonal_coefficient_v<Arg>);
-        else
-          return constant_diagonal_coefficient_v<Arg>;
-      }();
+      static constexpr auto value = real_projection(constant_diagonal_coefficient_v<Arg>);
     };
 
 
@@ -1507,12 +1474,7 @@ namespace OpenKalman
       std::enable_if_t<constant_diagonal_matrix<Arg>>>
 #endif
     {
-      static constexpr auto value = [] {
-        if constexpr (complex_number<Scalar>)
-          return std::imag(constant_diagonal_coefficient_v<Arg>);
-        else
-          return 0;
-      }();
+      static constexpr auto value = imaginary_part(constant_diagonal_coefficient_v<Arg>);
     };
 
 
@@ -1756,20 +1718,20 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<typename UnaryOp, self_adjoint_matrix Arg> requires one_by_one_matrix<Arg> or
+    template<typename UnaryOp, hermitian_matrix Arg> requires one_by_one_matrix<Arg> or
       (not diagonal_matrix<Arg> and detail::hermitian_preserving_unary_op<UnaryOp>::value) or
       (diagonal_matrix<Arg> and detail::triangular_preserving_unary_op<UnaryOp>::value)
     struct HermitianTraits<Eigen::CwiseUnaryOp<UnaryOp, Arg>>
 #else
     template<typename UnaryOp, typename Arg>
-    struct HermitianTraits<Eigen::CwiseUnaryOp<UnaryOp, Arg>, std::enable_if_t<self_adjoint_matrix<Arg> and
+    struct HermitianTraits<Eigen::CwiseUnaryOp<UnaryOp, Arg>, std::enable_if_t<hermitian_matrix<Arg> and
       (one_by_one_matrix<Arg> or
       (not diagonal_matrix<Arg> and detail::hermitian_preserving_unary_op<UnaryOp>::value) or
       (diagonal_matrix<Arg> and detail::triangular_preserving_unary_op<UnaryOp>::value))>>
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = self_adjoint_triangle_type_of_v<Arg>;
+      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
@@ -1783,7 +1745,6 @@ namespace OpenKalman
     private:
 
       using T = Eigen::CwiseUnaryView<ViewOp, MatrixType>;
-      using N = Eigen::CwiseUnaryView<ViewOp, equivalent_self_contained_t<MatrixType>>;
 
     public:
 
@@ -1803,6 +1764,7 @@ namespace OpenKalman
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
+        using N = Eigen::CwiseUnaryView<ViewOp, equivalent_self_contained_t<MatrixType>>;
         if constexpr (not std::is_lvalue_reference_v<typename N::MatrixTypeNested>)
           return N {make_self_contained(arg.nestedExpression()), arg.functor()};
         else
@@ -1821,12 +1783,7 @@ namespace OpenKalman
       std::enable_if_t<constant_matrix<Arg>>>
 #endif
     {
-      static constexpr auto value = [] {
-        if constexpr (complex_number<Scalar>)
-          return std::real(constant_coefficient_v<Arg>);
-        else
-          return constant_coefficient_v<Arg>;
-      };
+      static constexpr auto value = real_projection(constant_coefficient_v<Arg>);
     };
 
 
@@ -1841,12 +1798,7 @@ namespace OpenKalman
       std::enable_if_t<constant_matrix<Arg>>>
 #endif
     {
-      static constexpr auto value = [] {
-        if constexpr (complex_number<Scalar>)
-          return std::imag(constant_coefficient_v<Arg>);
-        else
-          return 0;
-      }();
+      static constexpr auto value = imaginary_part(constant_coefficient_v<Arg>);
     };
 
 
@@ -1873,12 +1825,7 @@ namespace OpenKalman
       std::enable_if_t<constant_diagonal_matrix<Arg>>>
 #endif
     {
-      static constexpr auto value = [] {
-        if constexpr (complex_number<Scalar>)
-          return std::real(constant_diagonal_coefficient_v<Arg>);
-        else
-          return constant_diagonal_coefficient_v<Arg>;
-      }();
+      static constexpr auto value = real_projection(constant_diagonal_coefficient_v<Arg>);
     };
 
 
@@ -1892,12 +1839,7 @@ namespace OpenKalman
       std::enable_if_t<constant_diagonal_matrix<Arg>>>
 #endif
     {
-      static constexpr auto value = [] {
-        if constexpr (complex_number<Scalar>)
-          return std::imag(constant_diagonal_coefficient_v<Arg>);
-        else
-          return 0;
-      }();
+      static constexpr auto value = imaginary_part(constant_diagonal_coefficient_v<Arg>);
     };
 
 
@@ -1933,20 +1875,20 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<typename UnaryOp, self_adjoint_matrix Arg> requires one_by_one_matrix<Arg> or
+    template<typename UnaryOp, hermitian_matrix Arg> requires one_by_one_matrix<Arg> or
       (not diagonal_matrix<Arg> and detail::hermitian_preserving_unary_op<UnaryOp>::value) or
       (diagonal_matrix<Arg> and detail::triangular_preserving_unary_op<UnaryOp>::value)
     struct HermitianTraits<Eigen::CwiseUnaryView<UnaryOp, Arg>>
 #else
     template<typename UnaryOp, typename Arg>
-    struct HermitianTraits<Eigen::CwiseUnaryView<UnaryOp, Arg>, std::enable_if_t<self_adjoint_matrix<Arg> and
+    struct HermitianTraits<Eigen::CwiseUnaryView<UnaryOp, Arg>, std::enable_if_t<hermitian_matrix<Arg> and
       (one_by_one_matrix<Arg> or
       (not diagonal_matrix<Arg> and detail::hermitian_preserving_unary_op<UnaryOp>::value) or
       (diagonal_matrix<Arg> and detail::triangular_preserving_unary_op<UnaryOp>::value))>>
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = self_adjoint_triangle_type_of_v<Arg>;
+      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
@@ -2081,7 +2023,8 @@ namespace OpenKalman
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
-        return make_self_contained(Eigen3::DiagonalMatrix {std::forward<Arg>(arg)});
+        auto d {make_self_contained(std::forward<Arg>(arg).diagonal())};
+        return DiagonalMatrix<decltype(d)> {d};
       }
     };
 
@@ -2090,6 +2033,14 @@ namespace OpenKalman
     struct DiagonalTraits<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
     {
       static constexpr bool is_diagonal = true;
+    };
+
+
+    template<typename Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
+    struct TriangularTraits<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
+    {
+      static constexpr TriangleType triangle_type = TriangleType::diagonal;
+      static constexpr bool is_triangular_adapter = false;
     };
 
   } // namespace interface
@@ -2129,7 +2080,8 @@ namespace OpenKalman
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
-        return make_self_contained(Eigen3::DiagonalMatrix {std::forward<Arg>(arg)});
+        auto d {make_self_contained(std::forward<Arg>(arg).diagonal())};
+        return DiagonalMatrix<decltype(d)> {d};
       }
     };
 
@@ -2137,13 +2089,13 @@ namespace OpenKalman
     // A diagonal wrapper is constant if its nested vector is constant and is either zero or has one row.
 #ifdef __cpp_concepts
     template<constant_matrix DiagonalVectorType> requires zero_matrix<DiagonalVectorType> or
-      (row_dimension_of_v<DiagonalVectorType> == 1)
+      (index_dimension_of_v<DiagonalVectorType, 0> == 1 and index_dimension_of_v<DiagonalVectorType, 1> == 1)
     struct SingleConstant<Eigen::DiagonalWrapper<DiagonalVectorType>>
 #else
     template<typename DiagonalVectorType>
     struct SingleConstant<Eigen::DiagonalWrapper<DiagonalVectorType>, std::enable_if_t<
       constant_matrix<DiagonalVectorType> and (zero_matrix<DiagonalVectorType> or
-      (row_dimension_of<DiagonalVectorType>::value == 1))>>
+      (index_dimension_of_v<DiagonalVectorType, 0> == 1 and index_dimension_of_v<DiagonalVectorType, 1> == 1))>>
 #endif
       : SingleConstant<std::decay_t<DiagonalVectorType>> {};
 
@@ -2164,6 +2116,14 @@ namespace OpenKalman
     struct DiagonalTraits<Eigen::DiagonalWrapper<DiagonalVectorType>>
     {
       static constexpr bool is_diagonal = true;
+    };
+
+
+    template<typename DiagonalVectorType>
+    struct TriangularTraits<Eigen::DiagonalWrapper<DiagonalVectorType>>
+    {
+      static constexpr TriangleType triangle_type = TriangleType::diagonal;
+      static constexpr bool is_triangular_adapter = false;
     };
 
   } // namespace interface
@@ -2205,7 +2165,6 @@ namespace OpenKalman
     private:
 
       using T = Eigen::Inverse<XprType>;
-      using N = Eigen::Inverse<equivalent_self_contained_t<XprType>>;
 
     public:
 
@@ -2222,7 +2181,8 @@ namespace OpenKalman
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
-        if constexpr (not std::is_lvalue_reference_v<N::XprTypeNested>)
+        using N = Eigen::Inverse<equivalent_self_contained_t<XprType>>;
+        if constexpr (not std::is_lvalue_reference_v<typename N::XprTypeNested>)
           return N {make_self_contained(arg.nestedExpression())};
         else
           return make_dense_writable_matrix_from(std::forward<Arg>(arg));
@@ -2237,8 +2197,22 @@ namespace OpenKalman
     template<typename PlainObjectType, int MapOptions, typename StrideType>
     struct Dependencies<Eigen::Map<PlainObjectType, MapOptions, StrideType>>
     {
-      static constexpr bool has_runtime_parameters = false;
+    private:
+      using M = Eigen::Map<PlainObjectType, MapOptions, StrideType>;
+    public:
+      static constexpr bool has_runtime_parameters =
+        M::RowsAtCompileTime == Eigen::Dynamic or M::ColsAtCompileTime == Eigen::Dynamic or
+        M::OuterStrideAtCompileTime == Eigen::Dynamic or M::InnerStrideAtCompileTime == Eigen::Dynamic;
+
       // Map is not self-contained in any circumstances.
+      using type = std::tuple<decltype(*std::declval<typename M::PointerType>())>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return *std::forward<Arg>(arg).data();
+      }
     };
 
 
@@ -2264,7 +2238,6 @@ namespace OpenKalman
     private:
 
       using T = Eigen::MatrixWrapper<XprType>;
-      using N = Eigen::MatrixWrapper<equivalent_self_contained_t<XprType>>;
 
     public:
 
@@ -2281,6 +2254,7 @@ namespace OpenKalman
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
+        using N = Eigen::MatrixWrapper<equivalent_self_contained_t<XprType>>;
         if constexpr (not std::is_lvalue_reference_v<typename N::NestedExpressionType>)
           return N {make_self_contained(arg.nestedExpression())};
         else
@@ -2333,15 +2307,15 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<self_adjoint_matrix XprType>
+    template<hermitian_matrix XprType>
     struct HermitianTraits<Eigen::MatrixWrapper<XprType>>
 #else
     template<typename XprType>
-    struct HermitianTraits<Eigen::MatrixWrapper<XprType>, std::enable_if_t<self_adjoint_matrix<XprType>>>
+    struct HermitianTraits<Eigen::MatrixWrapper<XprType>, std::enable_if_t<hermitian_matrix<XprType>>>
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = self_adjoint_triangle_type_of_v<XprType>;
+      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
@@ -2372,11 +2346,44 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<constant_matrix MatrixType, int p, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_lpnorm<p, Scalar>, Direction>>
+    template<constant_matrix MatrixType, int Direction, int p, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_lpnorm<p, Args...>, Direction>>
 #else
-    template<typename MatrixType, int p, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_lpnorm<p, Scalar>, Direction>,
+    template<typename MatrixType, int Direction, int p, typename...LpnormArgs>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_lpnorm<p, LpnormArgs...>, Direction>,
+      std::enable_if_t<constant_matrix<MatrixType>>>
+#endif
+    {
+      static constexpr auto value = (constant_coefficient_v<MatrixType> >= 0) ?
+        constant_coefficient_v<MatrixType> : -constant_coefficient_v<MatrixType>;
+    };
+
+
+    // \todo add SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_redux<Args...>, Direction>>
+
+
+#if not EIGEN_VERSION_AT_LEAST(3,4,0)
+#ifdef __cpp_concepts
+    template<constant_matrix MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_squaredNorm<Args...>, Direction>>
+#else
+    template<typename MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_squaredNorm<Args...>, Direction>,
+      std::enable_if_t<constant_matrix<MatrixType>>>
+#endif
+    {
+      static constexpr auto value = (constant_coefficient_v<MatrixType> >= 0) ?
+        constant_coefficient_v<MatrixType> : -constant_coefficient_v<MatrixType>;
+    };
+#endif
+
+
+#ifdef __cpp_concepts
+    template<constant_matrix MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_norm<Args...>, Direction>>
+#else
+    template<typename MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_norm<Args...>, Direction>,
       std::enable_if_t<constant_matrix<MatrixType>>>
 #endif
     {
@@ -2386,11 +2393,11 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<constant_matrix MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_squaredNorm<Scalar>, Direction>>
+    template<constant_matrix MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_stableNorm<Args...>, Direction>>
 #else
-    template<typename MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_squaredNorm<Scalar>, Direction>,
+    template<typename MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_stableNorm<Args...>, Direction>,
       std::enable_if_t<constant_matrix<MatrixType>>>
 #endif
     {
@@ -2400,11 +2407,11 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<constant_matrix MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_norm<Scalar>, Direction>>
+template<constant_matrix MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_hypotNorm<Args...>, Direction>>
 #else
-    template<typename MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_norm<Scalar>, Direction>,
+    template<typename MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_hypotNorm<Args...>, Direction>,
       std::enable_if_t<constant_matrix<MatrixType>>>
 #endif
     {
@@ -2414,41 +2421,13 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<constant_matrix MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_stableNorm<Scalar>, Direction>>
-#else
-    template<typename MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_stableNorm<Scalar>, Direction>,
-      std::enable_if_t<constant_matrix<MatrixType>>>
-#endif
-    {
-      static constexpr auto value = (constant_coefficient_v<MatrixType> >= 0) ?
-        constant_coefficient_v<MatrixType> : -constant_coefficient_v<MatrixType>;
-    };
-
-
-#ifdef __cpp_concepts
-    template<constant_matrix MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_hypotNorm<Scalar>, Direction>>
-#else
-    template<typename MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_hypotNorm<Scalar>, Direction>,
-      std::enable_if_t<constant_matrix<MatrixType>>>
-#endif
-    {
-      static constexpr auto value = (constant_coefficient_v<MatrixType> >= 0) ?
-        constant_coefficient_v<MatrixType> : -constant_coefficient_v<MatrixType>;
-    };
-
-
-#ifdef __cpp_concepts
-    template<constant_matrix MatrixType, typename Scalar, int Direction>
+    template<constant_matrix MatrixType, int Direction, typename...Args>
     requires (Direction == Eigen::Horizontal or not dynamic_rows<MatrixType>) and
       (Direction == Eigen::Vertical or not dynamic_columns<MatrixType>)
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_sum<Scalar>, Direction>>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_sum<Args...>, Direction>>
 #else
-    template<typename MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_sum<Scalar>, Direction>,
+      template<typename MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_sum<Args...>, Direction>,
       std::enable_if_t<constant_matrix<MatrixType> and
         (Direction == Eigen::Horizontal or not dynamic_rows<MatrixType>) and
         (Direction == Eigen::Vertical or not dynamic_columns<MatrixType>)>>
@@ -2459,12 +2438,27 @@ namespace OpenKalman
     };
 
 
+#if not EIGEN_VERSION_AT_LEAST(3,4,0)
 #ifdef __cpp_concepts
-    template<constant_matrix MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_mean<Scalar>, Direction>>
+    template<constant_matrix MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_mean<Args...>, Direction>>
 #else
-    template<typename MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_mean<Scalar>, Direction>,
+    template<typename MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_mean<Args...>, Direction>,
+      std::enable_if_t<constant_matrix<MatrixType>>>
+#endif
+    {
+      static constexpr auto value = constant_coefficient_v<MatrixType>;
+    };
+#endif
+
+
+#ifdef __cpp_concepts
+    template<constant_matrix MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_minCoeff<Args...>, Direction>>
+#else
+    template<typename MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_minCoeff<Args...>, Direction>,
       std::enable_if_t<constant_matrix<MatrixType>>>
 #endif
     {
@@ -2473,11 +2467,11 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<constant_matrix MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_minCoeff<Scalar>, Direction>>
+    template<constant_matrix MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_maxCoeff<Args...>, Direction>>
 #else
-    template<typename MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_minCoeff<Scalar>, Direction>,
+    template<typename MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_maxCoeff<Args...>, Direction>,
       std::enable_if_t<constant_matrix<MatrixType>>>
 #endif
     {
@@ -2486,11 +2480,11 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<constant_matrix MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_maxCoeff<Scalar>, Direction>>
+    template<constant_matrix MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_all<Args...>, Direction>>
 #else
-    template<typename MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_maxCoeff<Scalar>, Direction>,
+    template<typename MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_all<Args...>, Direction>,
       std::enable_if_t<constant_matrix<MatrixType>>>
 #endif
     {
@@ -2499,11 +2493,11 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<constant_matrix MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_all<Scalar>, Direction>>
+    template<constant_matrix MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_any<Args...>, Direction>>
 #else
-    template<typename MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_all<Scalar>, Direction>,
+    template<typename MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_any<Args...>, Direction>,
       std::enable_if_t<constant_matrix<MatrixType>>>
 #endif
     {
@@ -2512,26 +2506,13 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<constant_matrix MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_any<Scalar>, Direction>>
-#else
-    template<typename MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_any<Scalar>, Direction>,
-      std::enable_if_t<constant_matrix<MatrixType>>>
-#endif
-    {
-      static constexpr auto value = constant_coefficient_v<MatrixType>;
-    };
-
-
-#ifdef __cpp_concepts
-    template<constant_matrix MatrixType, typename Index, int Direction>
+    template<constant_matrix MatrixType, int Direction, typename...Args>
     requires (Direction == Eigen::Horizontal or not dynamic_rows<MatrixType>) and
       (Direction == Eigen::Vertical or not dynamic_columns<MatrixType>)
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_count<Index>, Direction>>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_count<Args...>, Direction>>
 #else
-    template<typename MatrixType, typename Index, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_count<Index>, Direction>,
+    template<typename MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_count<Args...>, Direction>,
       std::enable_if_t<constant_matrix<MatrixType> and
         (Direction == Eigen::Horizontal or not dynamic_rows<MatrixType>) and
         (Direction == Eigen::Vertical or not dynamic_columns<MatrixType>)>>
@@ -2543,13 +2524,13 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<constant_matrix MatrixType, typename Scalar, int Direction>
+template<constant_matrix MatrixType, int Direction, typename...Args>
     requires (Direction == Eigen::Horizontal or not dynamic_rows<MatrixType>) and
       (Direction == Eigen::Vertical or not dynamic_columns<MatrixType>)
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_prod<Scalar>, Direction>>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_prod<Args...>, Direction>>
 #else
-    template<typename MatrixType, typename Scalar, int Direction>
-    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_prod<Scalar>, Direction>,
+    template<typename MatrixType, int Direction, typename...Args>
+    struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, EGI::member_prod<Args...>, Direction>,
       std::enable_if_t<constant_matrix<MatrixType> and
         (Direction == Eigen::Horizontal or not dynamic_rows<MatrixType>) and
         (Direction == Eigen::Vertical or not dynamic_columns<MatrixType>)>>
@@ -2563,8 +2544,8 @@ namespace OpenKalman
     // A constant partial redux expression is constant-diagonal if it is one-by-one.
 #ifdef __cpp_concepts
     template<constant_matrix MatrixType, typename MemberOp, int Direction>
-    requires (Direction == Eigen::Vertical and column_dimension_of_v<MatrixType> == 1) or
-      (Direction == Eigen::Horizontal and row_dimension_of_v<MatrixType> == 1)
+    requires (Direction == Eigen::Vertical and index_dimension_of_v<MatrixType, 1> == 1) or
+      (Direction == Eigen::Horizontal and index_dimension_of_v<MatrixType, 0> == 1)
     struct SingleConstantDiagonal<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
 #else
     template<typename MatrixType, typename MemberOp, int Direction>
@@ -2638,7 +2619,6 @@ namespace OpenKalman
     private:
 
       using T = Eigen::Product<LhsType, RhsType>;
-      using N = Eigen::Product<equivalent_self_contained_t<LhsType>, equivalent_self_contained_t<RhsType>, Option>;
 
     public:
 
@@ -2658,7 +2638,8 @@ namespace OpenKalman
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
-        constexpr auto to_be_evaluated_size = self_contained<LhsType> ?
+        using N = Eigen::Product<equivalent_self_contained_t<LhsType>, equivalent_self_contained_t<RhsType>, Option>;
+        constexpr Eigen::Index to_be_evaluated_size = self_contained<LhsType> ?
           RhsType::RowsAtCompileTime * RhsType::ColsAtCompileTime :
           LhsType::RowsAtCompileTime * LhsType::ColsAtCompileTime;
 
@@ -2668,7 +2649,7 @@ namespace OpenKalman
           (LhsType::ColsAtCompileTime != Eigen::Dynamic) and
           (RhsType::RowsAtCompileTime != Eigen::Dynamic) and
           (RhsType::ColsAtCompileTime != Eigen::Dynamic) and
-          (LhsType::RowsAtCompileTime * RhsType::ColsAtCompileTime > to_be_evaluated_size) and
+          ((Eigen::Index)LhsType::RowsAtCompileTime * (Eigen::Index)RhsType::ColsAtCompileTime > to_be_evaluated_size) and
           not std::is_lvalue_reference_v<typename N::LhsNested> and
           not std::is_lvalue_reference_v<typename N::RhsNested>)
         {
@@ -2818,31 +2799,31 @@ namespace OpenKalman
 
     /// A constant diagonal matrix times a self-adjoint matrix (or vice versa) is self-adjoint.
 #ifdef __cpp_concepts
-    template<constant_diagonal_matrix Arg1, self_adjoint_matrix Arg2>
+    template<constant_diagonal_matrix Arg1, hermitian_matrix Arg2>
     struct HermitianTraits<Eigen::Product<Arg1, Arg2>>
 #else
     template<typename Arg1, typename Arg2>
     struct HermitianTraits<Eigen::Product<Arg1, Arg2>, std::enable_if_t<
-      (constant_diagonal_matrix<Arg1> and self_adjoint_matrix<Arg2>)>>
+      (constant_diagonal_matrix<Arg1> and hermitian_matrix<Arg2>)>>
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = self_adjoint_triangle_type_of_v<Arg2>;
+      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
     /// A self-adjoint matrix times a constant-diagonal matrix is self-adjoint.
 #ifdef __cpp_concepts
-    template<self_adjoint_matrix Arg1, constant_diagonal_matrix Arg2> requires (not constant_diagonal_matrix<Arg1>)
+    template<hermitian_matrix Arg1, constant_diagonal_matrix Arg2> requires (not constant_diagonal_matrix<Arg1>)
     struct HermitianTraits<Eigen::Product<Arg1, Arg2>>
 #else
     template<typename Arg1, typename Arg2>
     struct HermitianTraits<Eigen::Product<Arg1, Arg2>, std::enable_if_t<
-      (self_adjoint_matrix<Arg1> and constant_diagonal_matrix<Arg2> and not constant_diagonal_matrix<Arg1>)>>
+      (hermitian_matrix<Arg1> and constant_diagonal_matrix<Arg2> and not constant_diagonal_matrix<Arg1>)>>
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = self_adjoint_triangle_type_of_v<Arg1>;
+      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
@@ -2868,7 +2849,6 @@ namespace OpenKalman
     private:
 
       using T = Eigen::Replicate<MatrixType, RowFactor, ColFactor>;
-      using N = Eigen::Replicate<equivalent_self_contained_t<MatrixType>, RowFactor, ColFactor>;
 
     public:
 
@@ -2885,6 +2865,7 @@ namespace OpenKalman
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
+        using N = Eigen::Replicate<equivalent_self_contained_t<MatrixType>, RowFactor, ColFactor>;
         if constexpr (not std::is_lvalue_reference_v<typename EGI::traits<N>::MatrixTypeNested>)
           return N {make_self_contained(arg.nestedExpression())};
         else
@@ -2958,15 +2939,15 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<self_adjoint_matrix MatrixType>
+    template<hermitian_matrix MatrixType>
     struct HermitianTraits<Eigen::Replicate<MatrixType, 1, 1>>
 #else
     template<typename MatrixType>
-    struct HermitianTraits<Eigen::Replicate<MatrixType, 1, 1>, std::enable_if_t<self_adjoint_matrix<MatrixType>>>
+    struct HermitianTraits<Eigen::Replicate<MatrixType, 1, 1>, std::enable_if_t<hermitian_matrix<MatrixType>>>
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = self_adjoint_triangle_type_of_v<MatrixType>;
+      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
@@ -3062,18 +3043,17 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<self_adjoint_matrix MatrixType, int Direction> requires
+    template<hermitian_matrix MatrixType, int Direction> requires
       (Direction == Eigen::BothDirections) or (one_by_one_matrix<MatrixType>)
     struct HermitianTraits<Eigen::Reverse<MatrixType, Direction>>
 #else
     template<typename MatrixType, int Direction>
-    struct HermitianTraits<Eigen::Reverse<MatrixType, Direction>, std::enable_if_t<self_adjoint_matrix<MatrixType> and
+    struct HermitianTraits<Eigen::Reverse<MatrixType, Direction>, std::enable_if_t<hermitian_matrix<MatrixType> and
       (Direction == Eigen::BothDirections or one_by_one_matrix<MatrixType>)>>
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = diagonal_matrix<MatrixType> ? TriangleType::diagonal :
-        (lower_self_adjoint_matrix<MatrixType> ? TriangleType::upper : TriangleType::lower);
+      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
@@ -3087,8 +3067,6 @@ namespace OpenKalman
     private:
 
       using T = Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>;
-      using N = Eigen::Select<equivalent_self_contained_t<ConditionMatrixType>,
-        equivalent_self_contained_t<ThenMatrixType>, equivalent_self_contained_t<ElseMatrixType>>;
 
     public:
 
@@ -3111,6 +3089,8 @@ namespace OpenKalman
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
+        using N = Eigen::Select<equivalent_self_contained_t<ConditionMatrixType>,
+          equivalent_self_contained_t<ThenMatrixType>, equivalent_self_contained_t<ElseMatrixType>>;
         // Do a partial evaluation as long as at least two arguments are already self-contained.
         if constexpr (
           ((self_contained<ConditionMatrixType> ? 1 : 0) + (self_contained<ThenMatrixType> ? 1 : 0) +
@@ -3269,36 +3249,35 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<constant_matrix ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType> requires
-      (self_adjoint_matrix<ThenMatrixType> and static_cast<bool>(constant_coefficient_v<ConditionMatrixType>)) or
-      (self_adjoint_matrix<ElseMatrixType> and not static_cast<bool>(constant_coefficient_v<ConditionMatrixType>))
+      (hermitian_matrix<ThenMatrixType> and static_cast<bool>(constant_coefficient_v<ConditionMatrixType>)) or
+      (hermitian_matrix<ElseMatrixType> and not static_cast<bool>(constant_coefficient_v<ConditionMatrixType>))
     struct HermitianTraits<Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>>
 #else
     template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType>
     struct HermitianTraits<Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>, std::enable_if_t<
       constant_matrix<ConditionMatrixType> and
-      ((self_adjoint_matrix<ThenMatrixType> and static_cast<bool>(constant_coefficient<ConditionMatrixType>::value)) or
-       (self_adjoint_matrix<ElseMatrixType> and not static_cast<bool>(constant_coefficient<ConditionMatrixType>::value)))>>
+      ((hermitian_matrix<ThenMatrixType> and static_cast<bool>(constant_coefficient<ConditionMatrixType>::value)) or
+       (hermitian_matrix<ElseMatrixType> and not static_cast<bool>(constant_coefficient<ConditionMatrixType>::value)))>>
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = static_cast<bool>(constant_coefficient_v<ConditionMatrixType>) ?
-        self_adjoint_triangle_type_of_v<ThenMatrixType> : self_adjoint_triangle_type_of_v<ElseMatrixType>;
+      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
 #ifdef __cpp_concepts
-    template<self_adjoint_matrix ConditionMatrixType, self_adjoint_matrix ThenMatrixType,
-      self_adjoint_matrix ElseMatrixType> requires (not constant_matrix<ConditionMatrixType>)
+    template<hermitian_matrix ConditionMatrixType, hermitian_matrix ThenMatrixType,
+      hermitian_matrix ElseMatrixType> requires (not constant_matrix<ConditionMatrixType>)
     struct HermitianTraits<Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>>
 #else
     template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType>
     struct HermitianTraits<Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>,
-      std::enable_if_t<self_adjoint_matrix<ConditionMatrixType> and self_adjoint_matrix<ThenMatrixType> and
-        self_adjoint_matrix<ElseMatrixType> and (not constant_matrix<ConditionMatrixType>)>>
+      std::enable_if_t<hermitian_matrix<ConditionMatrixType> and hermitian_matrix<ThenMatrixType> and
+        hermitian_matrix<ElseMatrixType> and (not constant_matrix<ConditionMatrixType>)>>
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = self_adjoint_triangle_type_of_v<ThenMatrixType, ElseMatrixType>;
+      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
@@ -3317,26 +3296,36 @@ namespace OpenKalman
       static decltype(auto) get_nested_matrix(Arg&& arg)
       {
         static_assert(i == 0);
-        if constexpr (std::is_const_v<std::remove_reference_t<std::tuple_element_t<0, type>>>)
-          return std::as_const(arg).nestedExpression();
-        else
-          return arg.nestedExpression();
+        return std::forward<Arg>(arg).nestedExpression();
       }
 
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
-        return make_self_contained(Eigen3::SelfAdjointMatrix {std::forward<Arg>(arg)});
+        return make_self_contained(SelfAdjointMatrix {std::forward<Arg>(arg)});
       }
     };
 
 
 #ifdef __cpp_concepts
     template<constant_matrix MatrixType, unsigned int UpLo>
+    requires (not complex_number<scalar_type_of_t<MatrixType>>) or (imaginary_part(constant_coefficient_v<MatrixType>) == 0)
     struct SingleConstant<Eigen::SelfAdjointView<MatrixType, UpLo>>
 #else
+    namespace detail
+    {
+      template<typename T, typename = void>
+      struct constant_value_is_real : std::false_type {};
+
+      template<typename T>
+      struct constant_value_is_real<T, std::enable_if_t<constant_matrix<T>>>
+        : std::bool_constant<not complex_number<scalar_type_of_t<T>> or
+        imaginary_part(constant_coefficient_v<T>) == 0> {};
+    }
+
     template<typename MatrixType, unsigned int UpLo>
-    struct SingleConstant<Eigen::SelfAdjointView<MatrixType, UpLo>, std::enable_if_t<constant_matrix<MatrixType>>>
+    struct SingleConstant<Eigen::SelfAdjointView<MatrixType, UpLo>, std::enable_if_t<
+      detail::constant_value_is_real<MatrixType>::value>>
 #endif
       : SingleConstant<std::decay_t<MatrixType>> {};
 
@@ -3370,6 +3359,21 @@ namespace OpenKalman
     };
 
 
+    template<typename MatrixType, unsigned int UpLo>
+    struct TriangularTraits<Eigen::SelfAdjointView<MatrixType, UpLo>>
+    {
+      static constexpr TriangleType triangle_type = diagonal_matrix<MatrixType> ? TriangleType::diagonal : TriangleType::none;
+      static constexpr bool is_triangular_adapter = false;
+
+      template<TriangleType t, typename Arg>
+      static constexpr auto make_triangular_matrix(Arg&& arg)
+      {
+        constexpr auto TriMode = t == TriangleType::upper ? Eigen::Upper : Eigen::Lower;
+        return std::forward<Arg>(arg).nestedExpression().template triangularView<TriMode>();
+      }
+    };
+
+
 #ifndef __cpp_concepts
     namespace detail
     {
@@ -3378,11 +3382,11 @@ namespace OpenKalman
 
       template<typename T>
       struct any_const_imag_part_is_zero<T, std::enable_if_t<
-        std::imag(constant_coefficient<std::decay_t<T>>::value) != 0>> : std::false_type {};
+        imaginary_part(constant_coefficient<std::decay_t<T>>::value) != 0>> : std::false_type {};
 
       template<typename T>
       struct any_const_imag_part_is_zero<T, std::enable_if_t<not constant_matrix<T> and
-        std::imag(constant_diagonal_coefficient<std::decay_t<T>>::value) != 0>> : std::false_type {};
+        imaginary_part(constant_diagonal_coefficient<std::decay_t<T>>::value) != 0>> : std::false_type {};
     };
 #endif
 
@@ -3390,8 +3394,8 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename MatrixType, unsigned int UpLo> requires
       (not complex_number<typename EGI::traits<MatrixType>::Scalar>) or
-      (std::imag(constant_coefficient_v<MatrixType>) == 0) or
-      (std::imag(constant_diagonal_coefficient_v<MatrixType>) == 0)
+      (imaginary_part(constant_coefficient_v<MatrixType>) == 0) or
+      (imaginary_part(constant_diagonal_coefficient_v<MatrixType>) == 0)
     struct HermitianTraits<Eigen::SelfAdjointView<MatrixType, UpLo>>
 #else
     template<typename MatrixType, unsigned int UpLo>
@@ -3401,25 +3405,25 @@ namespace OpenKalman
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = (UpLo & Eigen::Upper) != 0 ? TriangleType::upper :
-        TriangleType::lower;
+      static constexpr TriangleType adapter_type = diagonal_matrix<MatrixType> ? TriangleType::diagonal :
+        (UpLo & Eigen::Upper) != 0 ? TriangleType::upper : TriangleType::lower;
+
+      // make_hermitian_adapter not included because SelfAdjointView is already hermitian.
+
     };
 
   } // namespace interface
 
 
-  namespace Eigen3
-  {
-    /**
-     * \brief Deduction guide for converting Eigen::SelfAdjointView to SelfAdjointMatrix
-     */
-  #ifdef __cpp_concepts
-    template<Eigen3::eigen_SelfAdjointView M>
-  #else
-    template<typename M, std::enable_if_t<Eigen3::eigen_SelfAdjointView<M>, int> = 0>
-  #endif
-    SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<nested_matrix_of_t<M>, self_adjoint_triangle_type_of_v<M>>;
-  }
+  /**
+   * \brief Deduction guide for converting Eigen::SelfAdjointView to SelfAdjointMatrix
+   */
+#ifdef __cpp_concepts
+  template<Eigen3::eigen_SelfAdjointView M>
+#else
+  template<typename M, std::enable_if_t<Eigen3::eigen_SelfAdjointView<M>, int> = 0>
+#endif
+  SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<nested_matrix_of_t<M>, hermitian_adapter_type_of_v<M>>;
 
 
   /**
@@ -3427,7 +3431,7 @@ namespace OpenKalman
    * \brief Matrix traits for Eigen::SelfAdjointView.
    */
   template<typename M, unsigned int UpLo>
-  struct MatrixTraits<Eigen::SelfAdjointView<M, UpLo>> : MatrixTraits<M>
+  struct MatrixTraits<Eigen::SelfAdjointView<M, UpLo>> : MatrixTraits<std::decay_t<M>>
   {
   private:
 
@@ -3440,11 +3444,11 @@ namespace OpenKalman
   public:
 
     template<TriangleType storage_triangle = storage_triangle, std::size_t dim = rows>
-    using SelfAdjointMatrixFrom = typename MatrixTraits<M>::template SelfAdjointMatrixFrom<storage_triangle, dim>;
+    using SelfAdjointMatrixFrom = typename MatrixTraits<std::decay_t<M>>::template SelfAdjointMatrixFrom<storage_triangle, dim>;
 
 
     template<TriangleType triangle_type = storage_triangle, std::size_t dim = rows>
-    using TriangularMatrixFrom = typename MatrixTraits<M>::template TriangularMatrixFrom<triangle_type, dim>;
+    using TriangularMatrixFrom = typename MatrixTraits<std::decay_t<M>>::template TriangularMatrixFrom<triangle_type, dim>;
 
 
 #ifdef __cpp_concepts
@@ -3574,16 +3578,15 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<self_adjoint_matrix MatrixType>
+    template<hermitian_matrix MatrixType>
     struct HermitianTraits<Eigen::Transpose<MatrixType>>
 #else
     template<typename MatrixType>
-    struct HermitianTraits<Eigen::Transpose<MatrixType>, std::enable_if_t<self_adjoint_matrix<MatrixType>>>
+    struct HermitianTraits<Eigen::Transpose<MatrixType>, std::enable_if_t<hermitian_matrix<MatrixType>>>
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = diagonal_matrix<MatrixType> ? TriangleType::diagonal :
-        (lower_self_adjoint_matrix<MatrixType> ? TriangleType::upper : TriangleType::lower);
+      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
   } // namespace interface
@@ -3592,18 +3595,15 @@ namespace OpenKalman
     //  TriangularView  //
     // ---------------- //
 
-  namespace Eigen3
-  {
-    /**
-     * \brief Deduction guide for converting Eigen::TriangularView to TriangularMatrix
-     */
-  #ifdef __cpp_concepts
-    template<Eigen3::eigen_TriangularView M>
-  #else
-    template<typename M, std::enable_if_t<Eigen3::eigen_TriangularView<M>, int> = 0>
-  #endif
-    TriangularMatrix(M&&) -> TriangularMatrix<nested_matrix_of_t<M>, triangle_type_of_v<M>>;
-  }
+  /**
+   * \brief Deduction guide for converting Eigen::TriangularView to TriangularMatrix
+   */
+#ifdef __cpp_concepts
+  template<Eigen3::eigen_TriangularView M>
+#else
+  template<typename M, std::enable_if_t<Eigen3::eigen_TriangularView<M>, int> = 0>
+#endif
+  TriangularMatrix(M&&) -> TriangularMatrix<nested_matrix_of_t<M>, triangle_type_of_v<M>>;
 
 
   namespace interface
@@ -3618,16 +3618,13 @@ namespace OpenKalman
       static decltype(auto) get_nested_matrix(Arg&& arg)
       {
         static_assert(i == 0);
-        if constexpr (std::is_const_v<std::remove_reference_t<std::tuple_element_t<0, type>>>)
-          return std::as_const(arg).nestedExpression();
-        else
-          return arg.nestedExpression();
+        return std::forward<Arg>(arg).nestedExpression();
       }
 
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
-        return make_self_contained(Eigen3::TriangularMatrix {std::forward<Arg>(arg)});
+        return make_self_contained(TriangularMatrix {std::forward<Arg>(arg)});
       }
     };
 
@@ -3751,7 +3748,41 @@ namespace OpenKalman
       static constexpr TriangleType triangle_type = (Mode & Eigen::Upper) != 0 ?
         (lower_triangular_matrix<MatrixType> ? TriangleType::diagonal : TriangleType::upper) :
         (upper_triangular_matrix<MatrixType> ? TriangleType::diagonal : TriangleType::lower);
+
       static constexpr bool is_triangular_adapter = true;
+
+      template<TriangleType t, typename Arg>
+      static constexpr decltype(auto) make_triangular_matrix(Arg&& arg)
+      {
+        auto& n = std::forward<Arg>(arg).nestedExpression();
+        return TriangularMatrix<decltype(n), TriangleType::diagonal> {n};
+      }
+    };
+
+
+#ifdef __cpp_concepts
+    template<typename MatrixType, unsigned int Mode> requires
+      (not complex_number<typename EGI::traits<MatrixType>::Scalar>) or
+      (imaginary_part(constant_coefficient_v<MatrixType>) == 0) or
+      (imaginary_part(constant_diagonal_coefficient_v<MatrixType>) == 0)
+    struct HermitianTraits<Eigen::TriangularView<MatrixType, Mode>>
+#else
+    template<typename MatrixType, unsigned int Mode>
+    struct HermitianTraits<Eigen::TriangularView<MatrixType, Mode>, std::enable_if_t<
+      (not complex_number<typename EGI::traits<MatrixType>::Scalar>) or
+      detail::any_const_imag_part_is_zero<MatrixType>::value>>
+#endif
+    {
+      static constexpr bool is_hermitian = diagonal_matrix<MatrixType>;
+      static constexpr TriangleType adapter_type = is_hermitian ? TriangleType::diagonal : TriangleType::none;
+
+      template<TriangleType t, typename Arg>
+      static constexpr auto make_hermitian_adapter(Arg&& arg)
+      {
+        static_assert(not hermitian_matrix<Arg>);
+        constexpr auto TriMode = t == TriangleType::upper ? Eigen::Upper : Eigen::Lower;
+        return std::forward<Arg>(arg).nestedExpression().template selfadjointView<TriMode>();
+      }
     };
 
   } // namespace interface
@@ -3762,7 +3793,7 @@ namespace OpenKalman
    * \brief Matrix traits for Eigen::TriangularView.
    */
   template<typename M, unsigned int Mode>
-  struct MatrixTraits<Eigen::TriangularView<M, Mode>> : MatrixTraits<M>
+  struct MatrixTraits<Eigen::TriangularView<M, Mode>> : MatrixTraits<std::decay_t<M>>
   {
   private:
 
@@ -3775,11 +3806,11 @@ namespace OpenKalman
   public:
 
     template<TriangleType storage_triangle = triangle_type, std::size_t dim = rows>
-    using SelfAdjointMatrixFrom = typename MatrixTraits<M>::template SelfAdjointMatrixFrom<storage_triangle, dim>;
+    using SelfAdjointMatrixFrom = typename MatrixTraits<std::decay_t<M>>::template SelfAdjointMatrixFrom<storage_triangle, dim>;
 
 
     template<TriangleType triangle_type = triangle_type, std::size_t dim = rows>
-    using TriangularMatrixFrom = typename MatrixTraits<M>::template TriangularMatrixFrom<triangle_type, dim>;
+    using TriangularMatrixFrom = typename MatrixTraits<std::decay_t<M>>::template TriangularMatrixFrom<triangle_type, dim>;
 
 
 #ifdef __cpp_concepts
@@ -3846,6 +3877,33 @@ namespace OpenKalman
   // -------------- //
   //  VectorWiseOp  //
   // -------------- //
+
+    template<typename ExpressionType, int Direction>
+    struct IndexibleObjectTraits<Eigen::VectorwiseOp<ExpressionType, Direction>>
+    {
+      static constexpr std::size_t max_indices = 2;
+      using scalar_type = typename std::decay_t<Eigen::VectorwiseOp<ExpressionType, Direction>>::Scalar;
+    };
+
+
+    template<typename ExpressionType, int Direction>
+    struct IndexTraits<Eigen::VectorwiseOp<ExpressionType, Direction>, Direction == Eigen::Vertical ? 1 : 0>
+    {
+    private:
+
+      static constexpr std::size_t ix = Direction == Eigen::Vertical ? 1 : 0;
+
+    public:
+
+      static constexpr std::size_t dimension = index_dimension_of_v<ExpressionType, ix>;
+
+      template<typename Arg>
+      static constexpr std::size_t dimension_at_runtime(const Arg& arg)
+      {
+        return get_index_dimension_of<ix>(arg);
+      }
+    };
+
 
     template<typename ExpressionType, int Direction>
     struct Dependencies<Eigen::VectorwiseOp<ExpressionType, Direction>>

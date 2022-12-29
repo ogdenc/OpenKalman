@@ -56,7 +56,7 @@ namespace OpenKalman
       using OutputEuclideanMeanMatrix = untyped_dense_writable_matrix_t<InputMeanMatrix, dimension_size_of_v<OutputCoefficients>, 1>;
       using OutputCovarianceMatrix = untyped_dense_writable_matrix_t<InputMeanMatrix, dimension_size_of_v<OutputCoefficients>,
         dimension_size_of_v<OutputCoefficients>>;
-      using OutputCovarianceSA = typename MatrixTraits<OutputCovarianceMatrix>::template SelfAdjointMatrixFrom<>;
+      using OutputCovarianceSA = typename MatrixTraits<std::decay_t<OutputCovarianceMatrix>>::template SelfAdjointMatrixFrom<>;
       using CrossCovarianceMatrix = untyped_dense_writable_matrix_t<InputMeanMatrix, dimension_size_of_v<InputCoefficients>,
         dimension_size_of_v<OutputCoefficients>>;
 

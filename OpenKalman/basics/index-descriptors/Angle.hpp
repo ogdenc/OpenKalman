@@ -182,16 +182,16 @@ namespace OpenKalman
       to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start)
   #endif
       {
-        using Scalar = decltype(g(std::declval<std::size_t>()));
+        using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
         using R = std::decay_t<decltype(real_projection(std::declval<Scalar>()))>;
         const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
         const Scalar mid { R{Limits::max + Limits::min} * R{0.5}};
 
         Scalar theta = cf * (g(start) - mid); // Convert to radians
         if (euclidean_local_index == 0)
-          return interface::ScalarTraits<Scalar>::cos(theta);
+          return cosine(theta);
         else
-          return interface::ScalarTraits<Scalar>::sin(theta);
+          return sine(theta);
       }
 
 
@@ -210,14 +210,14 @@ namespace OpenKalman
       from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start)
   #endif
       {
-        using Scalar = decltype(g(std::declval<std::size_t>()));
+        using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
         using R = std::decay_t<decltype(real_projection(std::declval<Scalar>()))>;
         const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
         const Scalar mid { R{Limits::max + Limits::min} * R{0.5}};
 
         Scalar x = g(euclidean_start);
         Scalar y = g(euclidean_start + 1);
-        return interface::ScalarTraits<Scalar>::atan2(y, x) / cf + mid;
+        return arctangent2(y, x) / cf + mid;
       }
 
 

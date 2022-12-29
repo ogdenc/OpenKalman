@@ -130,6 +130,9 @@ namespace OpenKalman::internal
 
   public:
 
+    /**
+     * \brief Construct from a \ref fixed_index_descriptor.
+     */
 #ifdef __cpp_concepts
     template <fixed_index_descriptor T>
 #else

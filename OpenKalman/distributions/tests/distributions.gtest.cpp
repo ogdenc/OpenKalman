@@ -41,7 +41,7 @@ using SA2u = SelfAdjointMatrix<M2, TriangleType::upper>;
 using T2l = TriangularMatrix<M2, TriangleType::lower>;
 using T2u = TriangularMatrix<M2, TriangleType::upper>;
 using D2 = DiagonalMatrix<M2col>;
-using I2 = IdentityMatrix<M2>;
+using I2 = Eigen3::IdentityMatrix<M2>;
 using Z2 = ZeroMatrix<eigen_matrix_t<double, 2, 2>>;
 using SA4l = SelfAdjointMatrix<M4, TriangleType::lower>;
 using SA4u = SelfAdjointMatrix<M4, TriangleType::upper>;
@@ -523,31 +523,31 @@ TEST(matrices, GaussianDistribution_deduction_guides)
 {
   EXPECT_TRUE(is_near(GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}))>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}))>);
+  static_assert(hermitian_matrix<decltype(GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}))>);
 
   EXPECT_TRUE(is_near(GaussianDistribution(Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(GaussianDistribution(Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}))>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(GaussianDistribution(Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}))>);
+  static_assert(hermitian_matrix<decltype(GaussianDistribution(Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}))>);
 
   EXPECT_TRUE(is_near(GaussianDistribution(Mean2 {1, 2}, Mat2 {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(GaussianDistribution(Mean2 {1, 2}, Mat2 {9, 3, 3, 10}))>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(GaussianDistribution(Mean2 {1, 2}, Mat2 {9, 3, 3, 10}))>);
+  static_assert(hermitian_matrix<decltype(GaussianDistribution(Mean2 {1, 2}, Mat2 {9, 3, 3, 10}))>);
 
   EXPECT_TRUE(is_near(GaussianDistribution(Mean2 {1, 2}, SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(GaussianDistribution(Mean2 {1, 2}, SA2l {9, 3, 3, 10}))>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(GaussianDistribution(Mean2 {1, 2}, SA2l {9, 3, 3, 10}))>);
+  static_assert(hermitian_matrix<decltype(GaussianDistribution(Mean2 {1, 2}, SA2l {9, 3, 3, 10}))>);
 
   EXPECT_TRUE(is_near(GaussianDistribution(make_eigen_matrix(1., 2), CovSA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(GaussianDistribution(make_eigen_matrix(1., 2), CovSA2l {9, 3, 3, 10}))>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(GaussianDistribution(make_dense_writable_matrix_from<M2col>(1, 2), CovSA2l {9, 3, 3, 10}))>);
+  static_assert(hermitian_matrix<decltype(GaussianDistribution(make_dense_writable_matrix_from<M2col>(1, 2), CovSA2l {9, 3, 3, 10}))>);
 
   EXPECT_TRUE(is_near(GaussianDistribution(make_eigen_matrix(1., 2), Mat2 {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(GaussianDistribution(make_eigen_matrix(1., 2), Mat2 {9, 3, 3, 10}))>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(GaussianDistribution(make_dense_writable_matrix_from<M2col>(1, 2), Mat2 {9, 3, 3, 10}))>);
+  static_assert(hermitian_matrix<decltype(GaussianDistribution(make_dense_writable_matrix_from<M2col>(1, 2), Mat2 {9, 3, 3, 10}))>);
 
   EXPECT_TRUE(is_near(GaussianDistribution(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(GaussianDistribution(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}))>::TypedIndex, Dimensions<2>>);
-  static_assert(self_adjoint_matrix<decltype(GaussianDistribution(make_dense_writable_matrix_from<M2col>(1, 2), SA2l {9, 3, 3, 10}))>);
+  static_assert(hermitian_matrix<decltype(GaussianDistribution(make_dense_writable_matrix_from<M2col>(1, 2), SA2l {9, 3, 3, 10}))>);
 }
 
 
@@ -555,66 +555,66 @@ TEST(matrices, GaussianDistribution_make)
 {
   EXPECT_TRUE(is_near(make_GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}))>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}))>);
+  static_assert(hermitian_matrix<decltype(make_GaussianDistribution(DistSA2l {{1, 2}, {9, 3, 3, 10}}))>);
 
   EXPECT_TRUE(is_near(make_GaussianDistribution(Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}))>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution(Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}))>);
+  static_assert(hermitian_matrix<decltype(make_GaussianDistribution(Mean2 {1, 2}, CovSA2l {9, 3, 3, 10}))>);
 
   EXPECT_TRUE(is_near(make_GaussianDistribution(Mean2 {1, 2}, SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(Mean2 {1, 2}, SA2l {9, 3, 3, 10}))>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution(Mean2 {1, 2}, SA2l {9, 3, 3, 10}))>);
+  static_assert(hermitian_matrix<decltype(make_GaussianDistribution(Mean2 {1, 2}, SA2l {9, 3, 3, 10}))>);
 
   EXPECT_TRUE(is_near(make_GaussianDistribution(Mean2 {1, 2}, make_dense_writable_matrix_from<M2>(9, 3, 3, 10)), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(Mean2 {1, 2}, make_dense_writable_matrix_from<M2>(9, 3, 3, 10)))>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution(Mean2 {1, 2}, make_dense_writable_matrix_from<M2>(9, 3, 3, 10)))>);
+  static_assert(hermitian_matrix<decltype(make_GaussianDistribution(Mean2 {1, 2}, make_dense_writable_matrix_from<M2>(9, 3, 3, 10)))>);
 
   EXPECT_TRUE(is_near(make_GaussianDistribution(make_eigen_matrix(1., 2), CovSA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), CovSA2l {9, 3, 3, 10}))>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), CovSA2l {9, 3, 3, 10}))>);
+  static_assert(hermitian_matrix<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), CovSA2l {9, 3, 3, 10}))>);
 
   EXPECT_TRUE(is_near(make_GaussianDistribution(make_eigen_matrix(1., 2), Mat2 {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), Mat2 {9, 3, 3, 10}))>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), Mat2 {9, 3, 3, 10}))>);
+  static_assert(hermitian_matrix<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), Mat2 {9, 3, 3, 10}))>);
 
   EXPECT_TRUE(is_near(make_GaussianDistribution<C2>(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution<C2>(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}))>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution<C2>(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}))>);
+  static_assert(hermitian_matrix<decltype(make_GaussianDistribution<C2>(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}))>);
 
   EXPECT_TRUE(is_near(make_GaussianDistribution(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}))>::TypedIndex, Dimensions<2>>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}))>);
+  static_assert(hermitian_matrix<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), SA2l {9, 3, 3, 10}))>);
 
   EXPECT_TRUE(is_near(make_GaussianDistribution<C2>(make_eigen_matrix(1., 2), make_dense_writable_matrix_from<M2>(9, 3, 3, 10)), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution<C2>(make_eigen_matrix(1., 2), make_dense_writable_matrix_from<M2>(9, 3, 3, 10)))>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution<C2>(make_eigen_matrix(1., 2), make_dense_writable_matrix_from<M2>(9, 3, 3, 10)))>);
+  static_assert(hermitian_matrix<decltype(make_GaussianDistribution<C2>(make_eigen_matrix(1., 2), make_dense_writable_matrix_from<M2>(9, 3, 3, 10)))>);
 
   EXPECT_TRUE(is_near(make_GaussianDistribution(make_eigen_matrix(1., 2), make_dense_writable_matrix_from<M2>(9, 3, 3, 10)), DistSA2l {{1, 2}, {9, 3, 3, 10}}));
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), make_dense_writable_matrix_from<M2>(9, 3, 3, 10)))>::TypedIndex, Dimensions<2>>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), make_dense_writable_matrix_from<M2>(9, 3, 3, 10)))>);
+  static_assert(hermitian_matrix<decltype(make_GaussianDistribution(make_eigen_matrix(1., 2), make_dense_writable_matrix_from<M2>(9, 3, 3, 10)))>);
 
   // Defaults
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution<Mean2, CovSA2l>())>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution<Mean2, CovSA2l>())>);
+  static_assert(hermitian_matrix<decltype(make_GaussianDistribution<Mean2, CovSA2l>())>);
 
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution<Mean2, SA2l>())>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution<Mean2, SA2l>())>);
+  static_assert(hermitian_matrix<decltype(make_GaussianDistribution<Mean2, SA2l>())>);
 
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution<M2col, CovSA2l>())>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution<M2col, CovSA2l>())>);
+  static_assert(hermitian_matrix<decltype(make_GaussianDistribution<M2col, CovSA2l>())>);
 
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution<C2, M2col, SA2l>())>::TypedIndex, C2>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution<C2, M2col, SA2l>())>);
+  static_assert(hermitian_matrix<decltype(make_GaussianDistribution<C2, M2col, SA2l>())>);
 
   static_assert(equivalent_to<typename DistributionTraits<decltype(make_GaussianDistribution<M2col, SA2l>())>::TypedIndex, Dimensions<2>>);
-  static_assert(self_adjoint_matrix<decltype(make_GaussianDistribution<M2col, SA2l>())>);
+  static_assert(hermitian_matrix<decltype(make_GaussianDistribution<M2col, SA2l>())>);
 }
 
 
 TEST(matrices, GaussianDistribution_traits)
 {
   static_assert(not diagonal_matrix<DistSA2l>);
-  static_assert(self_adjoint_matrix<DistSA2l>);
+  static_assert(hermitian_matrix<DistSA2l>);
   static_assert(not cholesky_form<DistSA2l>);
   static_assert(not triangular_matrix<DistSA2l>);
   static_assert(not lower_triangular_matrix<DistSA2l>);
@@ -622,7 +622,7 @@ TEST(matrices, GaussianDistribution_traits)
   static_assert(not zero_matrix<DistSA2l>);
 
   static_assert(not diagonal_matrix<DistT2l>);
-  static_assert(self_adjoint_matrix<DistT2l>);
+  static_assert(hermitian_matrix<DistT2l>);
   static_assert(cholesky_form<DistT2l>);
   static_assert(not triangular_matrix<DistT2l>);
   static_assert(not lower_triangular_matrix<DistT2l>);
@@ -631,7 +631,7 @@ TEST(matrices, GaussianDistribution_traits)
   static_assert(not zero_matrix<DistT2l>);
 
   static_assert(diagonal_matrix<DistD2>);
-  static_assert(self_adjoint_matrix<DistD2>);
+  static_assert(hermitian_matrix<DistD2>);
   static_assert(not cholesky_form<DistD2>);
   static_assert(triangular_matrix<DistD2>);
   static_assert(lower_triangular_matrix<DistD2>);
@@ -640,7 +640,7 @@ TEST(matrices, GaussianDistribution_traits)
   static_assert(not zero_matrix<DistD2>);
 
   static_assert(diagonal_matrix<DistI2>);
-  static_assert(self_adjoint_matrix<DistI2>);
+  static_assert(hermitian_matrix<DistI2>);
   static_assert(not cholesky_form<DistI2>);
   static_assert(triangular_matrix<DistI2>);
   static_assert(lower_triangular_matrix<DistI2>);
@@ -649,7 +649,7 @@ TEST(matrices, GaussianDistribution_traits)
   static_assert(not zero_matrix<DistI2>);
 
   static_assert(diagonal_matrix<DistZ2>);
-  static_assert(self_adjoint_matrix<DistZ2>);
+  static_assert(hermitian_matrix<DistZ2>);
   static_assert(not cholesky_form<DistZ2>);
   static_assert(triangular_matrix<DistZ2>);
   static_assert(lower_triangular_matrix<DistZ2>);

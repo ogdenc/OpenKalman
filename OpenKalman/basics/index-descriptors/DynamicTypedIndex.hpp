@@ -113,10 +113,10 @@ namespace OpenKalman
      */
   #ifdef __cpp_concepts
     template<index_descriptor...Cs> requires (sizeof...(Cs) > 0) and
-      ((fixed_index_descriptor<Cs> or euclidean_index_descriptor<Cs> or std::same_as<Cs, DynamicTypedIndex>) and ...)
+      ((fixed_index_descriptor<Cs> or euclidean_index_descriptor<Cs> or std::same_as<std::decay_t<Cs>, DynamicTypedIndex>) and ...)
   #else
     template<typename...Cs, std::enable_if_t<(index_descriptor<Cs> and ...) and (sizeof...(Cs) > 0) and
-      ((fixed_index_descriptor<Cs> or euclidean_index_descriptor<Cs> or std::is_same_v<Cs, DynamicTypedIndex>) and ...), int> = 0>
+      ((fixed_index_descriptor<Cs> or euclidean_index_descriptor<Cs> or std::is_same_v<std::decay_t<Cs>, DynamicTypedIndex>) and ...), int> = 0>
   #endif
     DynamicTypedIndex& extend(Cs&&...cs)
     {
@@ -334,18 +334,18 @@ namespace OpenKalman
 
   #if defined(__cpp_concepts) and defined(__cpp_impl_three_way_comparison)
     template<index_descriptor A, index_descriptor B>
-    friend constexpr auto operator<=>(const A& a, const B& b) requires (not std::integral<A>) and (not std::integral<B>);
+    friend constexpr auto operator<=>(const A& a, const B& b) requires (not std::integral<A>) or (not std::integral<B>);
   #else
     template<typename A, typename B, std::enable_if_t<index_descriptor<A> and index_descriptor<B> and
-        (not std::is_integral_v<A>) and (not std::is_integral_v<B>), int>>
+        (not std::is_integral_v<A> or not std::is_integral_v<B>), int>>
     friend constexpr bool operator==(const A& a, const B& b);
 
     template<typename A, typename B, std::enable_if_t<index_descriptor<A> and index_descriptor<B> and
-      (not std::is_integral_v<A>) and (not std::is_integral_v<B>), int>>
+      (not std::is_integral_v<A> or not std::is_integral_v<B>), int>>
     friend constexpr bool operator<(const A& a, const B& b);
 
     template<typename A, typename B, std::enable_if_t<index_descriptor<A> and index_descriptor<B> and
-      (not std::is_integral_v<A>) and (not std::is_integral_v<B>), int>>
+      (not std::is_integral_v<A> or not std::is_integral_v<B>), int>>
     friend constexpr bool operator>(const A& a, const B& b);
   #endif
 

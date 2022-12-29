@@ -35,34 +35,38 @@ namespace OpenKalman::test
 #endif
   struct TestComparison;
 
+  namespace detail
+  {
+    template<typename Arg, std::size_t...Is>
+    inline ::testing::AssertionResult
+    print_dimensions(::testing::AssertionResult& res, const Arg& arg, std::index_sequence<Is...>)
+    {
+      return (res << ... << (std::to_string(get_index_dimension_of<Is>(arg)) + (Is + 1 < sizeof...(Is) ? "," : "")));
+    }
+  }
 
-  // ---------- //
-  //  Matrices  //
-  // ---------- //
+
+  // ------------------- //
+  //  indexible objects  //
+  // ------------------- //
 
 #ifdef __cpp_concepts
-  template<indexible Arg1, indexible Arg2, typename Err = double> requires
-    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>) and
-    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_dimension_of_v<Arg1> == column_dimension_of_v<Arg2>)
+  template<indexible Arg1, maybe_index_descriptors_match<Arg1> Arg2, typename Err = double>
 #else
   template<typename Arg1, typename Arg2, typename Err = double, std::enable_if_t<
-    indexible<Arg1> and indexible<Arg2> and
-    (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value) and
-    (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_dimension_of<Arg1>::value == column_dimension_of<Arg2>::value),
-    int> = 0>
+    indexible<Arg1> and indexible<Arg2> and maybe_index_descriptors_match<Arg1, Arg2>, int> = 0>
 #endif
   inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
   {
     if constexpr (has_dynamic_dimensions<Arg1> or has_dynamic_dimensions<Arg2>)
-      if (get_dimensions_of<0>(arg1) != get_dimensions_of<0>(arg2) or get_dimensions_of<1>(arg1) != get_dimensions_of<1>(arg2))
+      if (not get_index_descriptors_match(arg1, arg2))
     {
-      return ::testing::AssertionFailure() << std::endl << make_dense_writable_matrix_from(arg1) << std::endl <<
-        "(rows " << get_dimension_size_of(get_dimensions_of<0>(arg1)) <<
-        ", cols " << get_dimension_size_of(get_dimensions_of<1>(arg1)) << "), is not near" << std::endl <<
-        make_dense_writable_matrix_from(arg2) << std::endl <<
-        "(rows " << get_dimension_size_of(get_dimensions_of<0>(arg2)) <<
-        ", cols " << get_dimension_size_of(get_dimensions_of<1>(arg2)) <<
-        ")" << std::endl;
+      auto ret = ::testing::AssertionFailure();
+      ret << "Dimensions of first argument (";
+      detail::print_dimensions(ret, arg1, std::make_index_sequence<max_indices_of_v<Arg1>>{});
+      ret << ") and second argument (";
+      detail::print_dimensions(ret, arg2, std::make_index_sequence<max_indices_of_v<Arg2>>{});
+      return ret << ") do not match";
     }
 
     return TestComparison<Arg1, Arg2, Err> {arg1, arg2, err};

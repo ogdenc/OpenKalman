@@ -48,43 +48,45 @@ TEST(eigen3, nullary_operation)
   // One operation for the entire matrix
   auto m23 = make_dense_writable_matrix_from<M23>(5.5, 5.5, 5.5, 5.5, 5.5, 5.5);
   EXPECT_TRUE(is_near(n_ary_operation<M00>(std::tuple {Dimensions<2>{}, Dimensions<3>{}}, []{return 5.5;}), m23));
-  EXPECT_TRUE(is_near(n_ary_operation<M23>([]{return 5.5;}), m23));
   EXPECT_TRUE(is_near(n_ary_operation<M00>(std::tuple {Dimensions{2}, Dimensions<3>{}}, []{return 5.5;}), m23));
   EXPECT_TRUE(is_near(n_ary_operation<M00>(std::tuple {Dimensions<2>{}, Dimensions{3}}, []{return 5.5;}), m23));
   EXPECT_TRUE(is_near(n_ary_operation<M00>(std::tuple {Dimensions{2}, Dimensions{3}}, []{return 5.5;}), m23));
+  EXPECT_TRUE(is_near(n_ary_operation<M23>([]{return 5.5;}), m23));
 
   auto m23p = make_dense_writable_matrix_from<M23>(0, 1, 2, 1, 2, 3);
 
   EXPECT_TRUE(is_near(n_ary_operation<M00>(std::tuple {Dimensions<2>{}, Dimensions<3>{}}, [](std::size_t r, std::size_t c){return 5.5 + r + c;}), m23 + m23p));
-  EXPECT_TRUE(is_near(n_ary_operation<M23>([](std::size_t r, std::size_t c){return 5.5 + r + c;}), m23 + m23p));
   EXPECT_TRUE(is_near(n_ary_operation<M00>(std::tuple {Dimensions{2}, Dimensions<3>{}}, [](std::size_t r, std::size_t c){return 5.5 + r + c;}), m23 + m23p));
   EXPECT_TRUE(is_near(n_ary_operation<M00>(std::tuple {Dimensions<2>{}, Dimensions{3}}, [](std::size_t r, std::size_t c){return 5.5 + r + c;}), m23 + m23p));
   EXPECT_TRUE(is_near(n_ary_operation<M00>(std::tuple {Dimensions{2}, Dimensions{3}}, [](std::size_t r, std::size_t c){return 5.5 + r + c;}), m23 + m23p));
+  EXPECT_TRUE(is_near(n_ary_operation<M23>([](std::size_t r, std::size_t c){return 5.5 + r + c;}), m23 + m23p));
 
   // One operation for each element
   m23 = make_dense_writable_matrix_from<M23>(5.4, 5.5, 5.6, 5.7, 5.8, 5.9);
-  EXPECT_TRUE(is_near(n_ary_operation<M23>(std::index_sequence<0, 1>{}, []{return 5.4;}, []{return 5.5;}, []{return 5.6;}, []{return 5.7;}, []{return 5.8;}, []{return 5.9;}), m23));
+  EXPECT_TRUE(is_near(n_ary_operation<M00, 0, 1>(std::tuple {Dimensions<2>{}, Dimensions<3>{}}, []{return 5.4;}, []{return 5.5;}, []{return 5.6;}, []{return 5.7;}, []{return 5.8;}, []{return 5.9;}), m23));
+  EXPECT_TRUE(is_near(n_ary_operation<M23, 0, 1>([]{return 5.4;}, []{return 5.5;}, []{return 5.6;}, []{return 5.7;}, []{return 5.8;}, []{return 5.9;}), m23));
 
   m23p = make_dense_writable_matrix_from<M23>(0, 0, 0, 1, 2, 3);
-  EXPECT_TRUE(is_near(n_ary_operation<M23>(std::index_sequence<0, 1>{}, []{return 5.4;}, []{return 5.5;}, []{return 5.6;}, [](std::size_t r, std::size_t c){return 5.7 + r + c;}, [](std::size_t r, std::size_t c){return 5.8 + r + c;}, [](std::size_t r, std::size_t c){return 5.9 + r + c;}), m23 + m23p));
+  EXPECT_TRUE(is_near(n_ary_operation<M00, 1, 0>(std::tuple {Dimensions<2>{}, Dimensions<3>{}}, []{return 5.4;}, [](std::size_t r, std::size_t c){return 5.7 + r + c;}, []{return 5.5;}, [](std::size_t r, std::size_t c){return 5.8 + r + c;}, []{return 5.6;}, [](std::size_t r, std::size_t c){return 5.9 + r + c;}), m23 + m23p));
+  EXPECT_TRUE(is_near(n_ary_operation<M23, 1, 0>([]{return 5.4;}, [](std::size_t r, std::size_t c){return 5.7 + r + c;}, []{return 5.5;}, [](std::size_t r, std::size_t c){return 5.8 + r + c;}, []{return 5.6;}, [](std::size_t r, std::size_t c){return 5.9 + r + c;}), m23 + m23p));
 
   // One operation for each row
   m23 = make_dense_writable_matrix_from<M23>(5.5, 5.5, 5.5, 5.6, 5.6, 5.6);
-  EXPECT_TRUE(is_near(n_ary_operation<M23>(std::index_sequence<0>{}, []{return 5.5;}, []{return 5.6;}), m23));
-  EXPECT_TRUE(is_near(n_ary_operation<M00>(std::index_sequence<0>{}, std::tuple {Dimensions<2>{}, Dimensions{3}}, []{return 5.5;}, []{return 5.6;}), m23));
+  EXPECT_TRUE(is_near(n_ary_operation<M00, 0>(std::tuple {Dimensions<2>{}, Dimensions{3}}, []{return 5.5;}, []{return 5.6;}), m23));
+  EXPECT_TRUE(is_near(n_ary_operation<M23, 0>([]{return 5.5;}, []{return 5.6;}), m23));
 
   m23p = make_dense_writable_matrix_from<M23>(0, 1, 2, 0, 1, 2);
-  EXPECT_TRUE(is_near(n_ary_operation<M23>(std::index_sequence<0>{}, [](std::size_t r, std::size_t c){return 5.5 + c;}, [](std::size_t r, std::size_t c){return 5.6 + c;}), m23 + m23p));
-  EXPECT_TRUE(is_near(n_ary_operation<M00>(std::index_sequence<0>{}, std::tuple {Dimensions<2>{}, Dimensions{3}}, [](std::size_t r, std::size_t c){return 5.5 + c;}, [](std::size_t r, std::size_t c){return 5.6 + c;}), m23 + m23p));
+  EXPECT_TRUE(is_near(n_ary_operation<M00, 0>(std::tuple {Dimensions<2>{}, Dimensions{3}}, [](std::size_t r, std::size_t c){return 5.5 + c;}, [](std::size_t r, std::size_t c){return 5.6 + c;}), m23 + m23p));
+  EXPECT_TRUE(is_near(n_ary_operation<M23, 0>([](std::size_t r, std::size_t c){return 5.5 + c;}, [](std::size_t r, std::size_t c){return 5.6 + c;}), m23 + m23p));
 
   // One operation for each column
   m23 = make_dense_writable_matrix_from<M23>(5.5, 5.6, 5.7, 5.5, 5.6, 5.7);
-  EXPECT_TRUE(is_near(n_ary_operation<M23>(std::index_sequence<1>{}, []{return 5.5;}, []{return 5.6;}, []{return 5.7;}), m23));
-  EXPECT_TRUE(is_near(n_ary_operation<M00>(std::index_sequence<1>{}, std::tuple {Dimensions{2}, Dimensions<3>{}}, []{return 5.5;}, []{return 5.6;}, []{return 5.7;}), m23));
+  EXPECT_TRUE(is_near(n_ary_operation<M00, 1>(std::tuple {Dimensions{2}, Dimensions<3>{}}, []{return 5.5;}, []{return 5.6;}, []{return 5.7;}), m23));
+  EXPECT_TRUE(is_near(n_ary_operation<M23, 1>([]{return 5.5;}, []{return 5.6;}, []{return 5.7;}), m23));
 
   m23p = make_dense_writable_matrix_from<M23>(0, 0, 0, 1, 0, 1);
-  EXPECT_TRUE(is_near(n_ary_operation<M23>(std::index_sequence<1>{}, [](std::size_t r, std::size_t c){return 5.5 + r;}, []{return 5.6;}, [](std::size_t r, std::size_t c){return 5.7 + r;}), m23 + m23p));
-  EXPECT_TRUE(is_near(n_ary_operation<M00>(std::index_sequence<1>{}, std::tuple {Dimensions{2}, Dimensions<3>{}}, [](std::size_t r, std::size_t c){return 5.5 + r;}, []{return 5.6;}, [](std::size_t r, std::size_t c){return 5.7 + r;}), m23 + m23p));
+  EXPECT_TRUE(is_near(n_ary_operation<M00, 1>(std::tuple {Dimensions{2}, Dimensions<3>{}}, [](std::size_t r, std::size_t c){return 5.5 + r;}, []{return 5.6;}, [](std::size_t r, std::size_t c){return 5.7 + r;}), m23 + m23p));
+  EXPECT_TRUE(is_near(n_ary_operation<M23, 1>([](std::size_t r, std::size_t c){return 5.5 + r;}, []{return 5.6;}, [](std::size_t r, std::size_t c){return 5.7 + r;}), m23 + m23p));
 }
 
 
@@ -170,9 +172,9 @@ TEST(eigen3, unary_operation_in_place)
   auto m03_2 = make_dense_writable_matrix_from<M03>(m23);
   auto m00_23 = make_dense_writable_matrix_from<M00>(m23);
 
-  EXPECT_TRUE(is_near(n_ary_operation([](auto& arg){return arg *= 3;}, m20_3), m23 * 3));
-  EXPECT_TRUE(is_near(n_ary_operation([](auto& arg){return arg *= 4;}, m03_2), m23 * 4));
-  EXPECT_TRUE(is_near(n_ary_operation([](auto& arg){return arg *= 5;}, m00_23), m23 * 5));
+  EXPECT_TRUE(is_near(unary_operation_in_place([](auto& arg){return arg *= 3;}, m20_3), m23 * 3));
+  EXPECT_TRUE(is_near(unary_operation_in_place([](auto& arg){return arg *= 4;}, m03_2), m23 * 4));
+  EXPECT_TRUE(is_near(unary_operation_in_place([](auto& arg){return arg *= 5;}, m00_23), m23 * 5));
 
   const auto m33_123 = make_dense_writable_matrix_from<M33>(
     1, 0, 0,
@@ -184,40 +186,65 @@ TEST(eigen3, unary_operation_in_place)
     1, 3, 1,
     1, 1, 4);
 
-  auto m33 = M33 {m33_123}; n_ary_operation([](auto& x){ x += 1; }, m33); EXPECT_TRUE(is_near(m33, m33_234));
-  auto m30 = M30 {m33_123}; n_ary_operation([](auto& x){ x += 1; }, m30); EXPECT_TRUE(is_near(m30, m33_234));
-  auto m03 = M03 {m33_123}; n_ary_operation([](auto& x){ x += 1; }, m03); EXPECT_TRUE(is_near(m03, m33_234));
-  auto m00 = M00 {m33_123}; n_ary_operation([](auto& x){ x += 1; }, m00); EXPECT_TRUE(is_near(m00, m33_234));
+  auto m33 = M33 {m33_123}; unary_operation_in_place([](auto& x){ return x += 1; }, m33); EXPECT_TRUE(is_near(m33, m33_234));
+  auto m30 = M30 {m33_123}; unary_operation_in_place([](auto& x){ return x += 1; }, m30); EXPECT_TRUE(is_near(m30, m33_234));
+  auto m03 = M03 {m33_123}; unary_operation_in_place([](auto& x){ return x += 1; }, m03); EXPECT_TRUE(is_near(m03, m33_234));
+  auto m00 = M00 {m33_123}; unary_operation_in_place([](auto& x){ return x += 1; }, m00); EXPECT_TRUE(is_near(m00, m33_234));
 
-  EXPECT_TRUE(is_near(n_ary_operation([](double& x){ return x + 1; }, M33 {m33_123}), m33_234));
-  EXPECT_TRUE(is_near(n_ary_operation([](const double& x){ return x + 1; }, M30 {m33_123}), m33_234));
-  EXPECT_TRUE(is_near(n_ary_operation([](double x){ return x + 1; }, M03 {m33_123}), m33_234));
-  EXPECT_TRUE(is_near(n_ary_operation([](const double x){ return x + 1; }, M00 {m33_123}), m33_234));
+  EXPECT_TRUE(is_near(unary_operation_in_place([](double& x){ ++x; }, M33 {m33_123}), m33_234));
+  EXPECT_TRUE(is_near(unary_operation_in_place([](double& x){ ++x; }, M30 {m33_123}), m33_234));
+  EXPECT_TRUE(is_near(unary_operation_in_place([](double& x){ ++x; }, M03 {m33_123}), m33_234));
+  EXPECT_TRUE(is_near(unary_operation_in_place([](double& x){ ++x; }, M00 {m33_123}), m33_234));
 
-  EXPECT_TRUE(is_near(n_ary_operation([](const double& x){ return x + 1; }, m33_123), m33_234));
-  EXPECT_TRUE(is_near(m33_123 + M33::Constant(1), m33_234));
+  m33 = m33_123;
+  EXPECT_TRUE(is_near(unary_operation_in_place([](double& x){ ++x; }, m33), m33_234));
+  EXPECT_TRUE(is_near(m33, m33_234));
 
-  auto m33_147 = make_eigen_matrix<double, 3, 3>(
+  const auto m33_147 = make_eigen_matrix<double, 3, 3>(
     1, 1, 2,
     1, 4, 3,
     2, 3, 7);
 
-  m33 = m33_123; n_ary_operation([](auto& x, std::size_t i, std::size_t j){ x += i + j; }, m33); EXPECT_TRUE(is_near(m33, m33_147));
-  m30 = m33_123; n_ary_operation([](auto& x, std::size_t i, std::size_t j){ x += i + j; }, m30); EXPECT_TRUE(is_near(m30, m33_147));
-  m03 = m33_123; n_ary_operation([](auto& x, std::size_t i, std::size_t j){ x += i + j; }, m03); EXPECT_TRUE(is_near(m03, m33_147));
-  m00 = m33_123; n_ary_operation([](auto& x, std::size_t i, std::size_t j){ x += i + j; }, m00); EXPECT_TRUE(is_near(m00, m33_147));
+  m33 = m33_123; unary_operation_in_place([](auto& x, std::size_t i, std::size_t j){ x += i + j; }, m33); EXPECT_TRUE(is_near(m33, m33_147));
+  m30 = m33_123; unary_operation_in_place([](auto& x, std::size_t i, std::size_t j){ x += i + j; }, m30); EXPECT_TRUE(is_near(m30, m33_147));
+  m03 = m33_123; unary_operation_in_place([](auto& x, std::size_t i, std::size_t j){ x += i + j; }, m03); EXPECT_TRUE(is_near(m03, m33_147));
+  m00 = m33_123; unary_operation_in_place([](auto& x, std::size_t i, std::size_t j){ x += i + j; }, m00); EXPECT_TRUE(is_near(m00, m33_147));
 
-  EXPECT_TRUE(is_near(n_ary_operation([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, M33 {m33_123}), m33_147));
-  EXPECT_TRUE(is_near(n_ary_operation([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, M30 {m33_123}), m33_147));
-  EXPECT_TRUE(is_near(n_ary_operation([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, M03 {m33_123}), m33_147));
-  EXPECT_TRUE(is_near(n_ary_operation([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, M00 {m33_123}), m33_147));
+  EXPECT_TRUE(is_near(unary_operation_in_place([](auto& x, std::size_t i, std::size_t j){ return x += i + j; }, M33 {m33_123}), m33_147));
+  EXPECT_TRUE(is_near(unary_operation_in_place([](auto& x, std::size_t i, std::size_t j){ return x += i + j; }, M30 {m33_123}), m33_147));
+  EXPECT_TRUE(is_near(unary_operation_in_place([](auto& x, std::size_t i, std::size_t j){ return x += i + j; }, M03 {m33_123}), m33_147));
+  EXPECT_TRUE(is_near(unary_operation_in_place([](auto& x, std::size_t i, std::size_t j){ return x += i + j; }, M00 {m33_123}), m33_147));
 
-  EXPECT_TRUE(is_near(n_ary_operation([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, m33_123), m33_147));
+  m33 = m33_123;
+  EXPECT_TRUE(is_near(unary_operation_in_place([](auto& x, std::size_t i, std::size_t j){ return x += i + j; }, m33), m33_147));
+  EXPECT_TRUE(is_near(m33, m33_147));
 }
 
 
 TEST(eigen3, binary_operation)
 {
+  auto m11_2 = make_dense_writable_matrix_from<M11>(2);
+  auto m11_5 = make_dense_writable_matrix_from<M11>(5);
+  auto m11_7 = make_dense_writable_matrix_from<M11>(7);
+  auto m11_10 = make_dense_writable_matrix_from<M11>(10);
+
+  EXPECT_TRUE(is_near(n_ary_operation(std::multiplies<double>{}, m11_2, m11_5), m11_10));
+  EXPECT_TRUE(is_near(n_ary_operation(std::multiplies<double>{}, M10{m11_2}, m11_5), m11_10));
+  EXPECT_TRUE(is_near(n_ary_operation(std::multiplies<double>{}, M01{m11_2}, m11_5), m11_10));
+  EXPECT_TRUE(is_near(n_ary_operation(std::multiplies<double>{}, M00{m11_2}, m11_5), m11_10));
+  EXPECT_TRUE(is_near(n_ary_operation(std::multiplies<double>{}, m11_2, M10{m11_5}), m11_10));
+  EXPECT_TRUE(is_near(n_ary_operation(std::multiplies<double>{}, M10{m11_2}, M10{m11_5}), m11_10));
+  EXPECT_TRUE(is_near(n_ary_operation(std::multiplies<double>{}, M01{m11_2}, M10{m11_5}), m11_10));
+  EXPECT_TRUE(is_near(n_ary_operation(std::multiplies<double>{}, M00{m11_2}, M10{m11_5}), m11_10));
+  EXPECT_TRUE(is_near(n_ary_operation(std::plus<double>{}, m11_2, M01{m11_5}), m11_7));
+  EXPECT_TRUE(is_near(n_ary_operation(std::plus<double>{}, M10{m11_2}, M01{m11_5}), m11_7));
+  EXPECT_TRUE(is_near(n_ary_operation(std::plus<double>{}, M01{m11_2}, M01{m11_5}), m11_7));
+  EXPECT_TRUE(is_near(n_ary_operation(std::plus<double>{}, M00{m11_2}, M01{m11_5}), m11_7));
+  EXPECT_TRUE(is_near(n_ary_operation(std::plus<double>{}, m11_2, M00{m11_5}), m11_7));
+  EXPECT_TRUE(is_near(n_ary_operation(std::plus<double>{}, M10{m11_2}, M00{m11_5}), m11_7));
+  EXPECT_TRUE(is_near(n_ary_operation(std::plus<double>{}, M01{m11_2}, M00{m11_5}), m11_7));
+  EXPECT_TRUE(is_near(n_ary_operation(std::plus<double>{}, M00{m11_2}, M00{m11_5}), m11_7));
+
   auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
   auto m20_3 = make_dense_writable_matrix_from<M20>(m23);
   auto m03_2 = make_dense_writable_matrix_from<M03>(m23);
@@ -392,7 +419,7 @@ TEST(eigen3, randomize)
 
   for (int i=0; i<100; i++)
   {
-    m22 = (m22 * i + randomize<M22>(std::index_sequence<0, 1>{}, N {1.0, 0.3}, N {2.0, 0.3}, 3.0, N {4.0, 0.3})) / (i + 1);
+    m22 = (m22 * i + randomize<M22, 0, 1>(N {1.0, 0.3}, N {2.0, 0.3}, 3.0, N {4.0, 0.3})) / (i + 1);
   }
 
   m22_true = MatrixTraits<M22>::make(1, 2, 3, 4);
@@ -408,11 +435,11 @@ TEST(eigen3, randomize)
 
   for (int i=0; i<10; i++)
   {
-    m32 = (m32 * i + randomize<M32>(std::index_sequence<0>{}, N {1.0, 0.3}, 2.0, N {3.0, 0.3})) / (i + 1);
-    m30_2 = (m30_2 * i + randomize<M30>(std::index_sequence<0>{}, std::tuple {Dimensions<3>{}, 2}, N {1.0, 0.3}, 2.0, N {3.0, 0.3})) / (i + 1);
+    m32 = (m32 * i + randomize<M32, 0>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})) / (i + 1);
+    m30_2 = (m30_2 * i + randomize<M30, 0>(std::tuple {Dimensions<3>{}, 2}, N {1.0, 0.3}, 2.0, N {3.0, 0.3})) / (i + 1);
 
-    m23 = (m23 * i + randomize<M23>(std::index_sequence<0>{}, N {1.0, 0.3}, N {2.0, 0.3})) / (i + 1);
-    m20_3 = (m20_3 * i + randomize<M20>(std::index_sequence<0>{}, std::tuple {Dimensions<2>{}, 3}, N {1.0, 0.3}, N {2.0, 0.3})) / (i + 1);
+    m23 = (m23 * i + randomize<M23, 0>(N {1.0, 0.3}, N {2.0, 0.3})) / (i + 1);
+    m20_3 = (m20_3 * i + randomize<M20, 0>(std::tuple {Dimensions<2>{}, 3}, N {1.0, 0.3}, N {2.0, 0.3})) / (i + 1);
   }
 
   m32_true = MatrixTraits<M32>::make(1, 1, 2, 2, 3, 3);
@@ -436,11 +463,11 @@ TEST(eigen3, randomize)
 
   for (int i=0; i<10; i++)
   {
-    m32 = (m32 * i + randomize<M32>(std::index_sequence<1>{}, N {1.0, 0.3}, N {2.0, 0.3})) / (i + 1);
-    m02_3 = (m02_3 * i + randomize<M02>(std::index_sequence<1>{}, std::tuple {3, Dimensions<2>{}}, N {1.0, 0.3}, N {2.0, 0.3})) / (i + 1);
+    m32 = (m32 * i + randomize<M32, 1>(N {1.0, 0.3}, N {2.0, 0.3})) / (i + 1);
+    m02_3 = (m02_3 * i + randomize<M02, 1>(std::tuple {3, Dimensions<2>{}}, N {1.0, 0.3}, N {2.0, 0.3})) / (i + 1);
 
-    m23 = (m23 * i + randomize<M23>(std::index_sequence<1>{}, N {1.0, 0.3}, 2.0, N {3.0, 0.3})) / (i + 1);
-    m03_2 = (m03_2 * i + randomize<M03>(std::index_sequence<1>{}, std::tuple {2, Dimensions<3>{}}, N {1.0, 0.3}, 2.0, N {3.0, 0.3})) / (i + 1);
+    m23 = (m23 * i + randomize<M23, 1>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})) / (i + 1);
+    m03_2 = (m03_2 * i + randomize<M03, 1>(std::tuple {2, Dimensions<3>{}}, N {1.0, 0.3}, 2.0, N {3.0, 0.3})) / (i + 1);
   }
 
   m32_true = MatrixTraits<M32>::make(1, 2, 1, 2, 1, 2);

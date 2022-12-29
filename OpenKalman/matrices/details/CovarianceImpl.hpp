@@ -73,7 +73,7 @@ namespace OpenKalman::internal
 #endif
     auto covariance_op(const F1& f1, const F2& f2) const &
     {
-      using Derived2 = decltype(MatrixTraits<Derived>::make(f1(nested_matrix())));
+      using Derived2 = decltype(MatrixTraits<std::decay_t<Derived>>::make(f1(nested_matrix())));
       using R = equivalent_self_contained_t<Derived2>;
       if (synchronization_direction() >= 0)
       {
@@ -105,7 +105,7 @@ namespace OpenKalman::internal
 #endif
     auto covariance_op(const F1& f1, const F2& f2) const &&
     {
-      using Derived2 = decltype(MatrixTraits<Derived>::make(f1(std::move(*this).nested_matrix())));
+      using Derived2 = decltype(MatrixTraits<std::decay_t<Derived>>::make(f1(std::move(*this).nested_matrix())));
       using R = equivalent_self_contained_t<Derived2>;
       if (synchronization_direction() >= 0)
       {
@@ -225,28 +225,28 @@ namespace OpenKalman::internal
      */
     decltype(auto) get_self_adjoint_nested_matrix() &
     {
-      return this->get_nested_matrix_impl<self_adjoint_matrix<NestedMatrix>>();
+      return this->get_nested_matrix_impl<hermitian_matrix<NestedMatrix>>();
     }
 
 
     /// \overload
     decltype(auto) get_self_adjoint_nested_matrix() const &
     {
-      return this->get_nested_matrix_impl<self_adjoint_matrix<NestedMatrix>>();
+      return this->get_nested_matrix_impl<hermitian_matrix<NestedMatrix>>();
     }
 
 
     /// \overload
     decltype(auto) get_self_adjoint_nested_matrix() &&
     {
-      return std::move(*this).template get_nested_matrix_impl<self_adjoint_matrix<NestedMatrix>>();
+      return std::move(*this).template get_nested_matrix_impl<hermitian_matrix<NestedMatrix>>();
     }
 
 
     /// \overload
     decltype(auto) get_self_adjoint_nested_matrix() const &&
     {
-      return std::move(*this).template get_nested_matrix_impl<self_adjoint_matrix<NestedMatrix>>();
+      return std::move(*this).template get_nested_matrix_impl<hermitian_matrix<NestedMatrix>>();
     }
 
 
@@ -289,14 +289,14 @@ namespace OpenKalman::internal
       {
         if (synchronization_direction() > 0)
         {
-          return std::sqrt(OpenKalman::determinant(nested_matrix()));
+          return square_root(OpenKalman::determinant(nested_matrix()));
         }
         else
         {
           return OpenKalman::determinant(cholesky_nested_matrix());
         }
       }
-      else if constexpr (self_adjoint_covariance<Derived> and not self_adjoint_matrix<NestedMatrix>)
+      else if constexpr (self_adjoint_covariance<Derived> and not hermitian_matrix<NestedMatrix>)
       {
         if (synchronization_direction() > 0)
         {
@@ -314,7 +314,7 @@ namespace OpenKalman::internal
         {
           if constexpr (triangular_covariance<Derived>)
           {
-            return std::sqrt(OpenKalman::determinant(cholesky_nested_matrix()));
+            return square_root(OpenKalman::determinant(cholesky_nested_matrix()));
           }
           else
           {

@@ -20,6 +20,94 @@
 
 namespace OpenKalman
 {
+  // --------------------------------------------- //
+  //   static_index_value, static_index_value_of   //
+  // --------------------------------------------- //
+
+  /**
+   * \brief T is a static index value.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept static_index_value = std::convertible_to<decltype(std::decay_t<T>::value), std::size_t> and (std::decay_t<T>::value >= 0);
+#else
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct is_static_index_value : std::false_type {};
+
+    template<typename T>
+    struct is_static_index_value<T, std::enable_if_t<std::is_convertible<decltype(std::decay_t<T>::value), std::size_t>::value>>
+      : std::bool_constant<std::decay_t<T>::value >= 0> {};
+  }
+
+  template<typename T>
+  constexpr bool static_index_value = detail::is_static_index_value<T>::value;
+#endif
+
+
+  /**
+   * \brief The numerical value of a \ref static_index_value.
+   * \details If T is not a static, compile-time constant, the result is \ref dynamic_size.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+#else
+  template<typename T, typename = void>
+#endif
+  struct static_index_value_of : std::integral_constant<std::size_t, dynamic_size> {};
+
+
+#ifdef __cpp_concepts
+  template<static_index_value T>
+  struct static_index_value_of<T>
+#else
+  template<typename T>
+  struct static_index_value_of<T, std::enable_if_t<static_index_value<T>>>
+#endif
+    : std::integral_constant<std::size_t, std::decay_t<T>::value> {};
+
+
+  /**
+   * \brief Helper template for \ref static_index_value_of.
+   */
+  template<typename T>
+  constexpr auto static_index_value_of_v = static_index_value_of<T>::value;
+
+
+  // ----------------------- //
+  //   dynamic_index_value   //
+  // ----------------------- //
+
+  /**
+   * \brief T is a dynamic index value.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept dynamic_index_value = std::integral<std::decay_t<T>>;
+#else
+  template<typename T>
+  constexpr bool dynamic_index_value = std::is_integral_v<std::decay_t<T>>;
+#endif
+
+
+  // --------------- //
+  //   index_value   //
+  // --------------- //
+
+  /**
+   * \brief T is an index value.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  concept index_value =
+#else
+  template<typename T>
+  constexpr bool index_value =
+#endif
+    static_index_value<T> or dynamic_index_value<T>;
+
+
   // -------------------------- //
   //   fixed_index_descriptor   //
   // -------------------------- //
@@ -32,6 +120,7 @@ namespace OpenKalman
 
     template<typename T>
     struct is_fixed_index_descriptor<T, std::enable_if_t<
+      std::is_default_constructible<std::decay_t<T>>::value and
       std::is_convertible<decltype(interface::FixedIndexDescriptorTraits<std::decay_t<T>>::size), std::size_t>::value and
       std::is_convertible<decltype(interface::FixedIndexDescriptorTraits<std::decay_t<T>>::euclidean_size), std::size_t>::value and
       std::is_convertible<decltype(interface::FixedIndexDescriptorTraits<std::decay_t<T>>::component_count), std::size_t>::value and
@@ -48,7 +137,8 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept fixed_index_descriptor = requires(interface::FixedIndexDescriptorTraits<std::decay_t<T>> t) {
+  concept fixed_index_descriptor = std::default_initializable<std::decay_t<T>> and
+    requires(interface::FixedIndexDescriptorTraits<std::decay_t<T>> t) {
       {decltype(t)::size} -> std::convertible_to<std::size_t>;
       {decltype(t)::euclidean_size} -> std::convertible_to<std::size_t>;
       {decltype(t)::component_count} -> std::convertible_to<std::size_t>;

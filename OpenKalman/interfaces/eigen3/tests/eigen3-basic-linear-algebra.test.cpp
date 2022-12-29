@@ -23,6 +23,7 @@ namespace
   using M21 = eigen_matrix_t<double, 2, 1>;
   using M22 = eigen_matrix_t<double, 2, 2>;
   using M23 = eigen_matrix_t<double, 2, 3>;
+  using M24 = eigen_matrix_t<double, 2, 4>;
   using M31 = eigen_matrix_t<double, 3, 1>;
   using M32 = eigen_matrix_t<double, 3, 2>;
   using M33 = eigen_matrix_t<double, 3, 3>;
@@ -301,4 +302,224 @@ TEST(eigen3, determinant_trace)
 
   EXPECT_NEAR(determinant(M22::Identity()), 1, 1e-6);
   EXPECT_NEAR(trace(M22::Identity()), 2, 1e-6);
+}
+
+
+TEST(eigen3, sum)
+{
+  auto m23a = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
+  auto m23b = make_dense_writable_matrix_from<M23>(7, 8, 9, 10, 11, 12);
+  auto m23c = make_dense_writable_matrix_from<M23>(8, 10, 12, 14, 16, 18);
+
+  EXPECT_TRUE(is_near(sum(m23a, m23b), m23c));
+}
+
+
+TEST(eigen3, contract)
+{
+  auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
+  auto m20_3 = make_dense_writable_matrix_from<M20>(m23);
+  auto m03_2 = make_dense_writable_matrix_from<M03>(m23);
+  auto m00_23 = make_dense_writable_matrix_from<M00>(m23);
+
+  auto m34 = make_dense_writable_matrix_from<M34>(7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18);
+  auto m30_4 = make_dense_writable_matrix_from<M30>(m34);
+  auto m04_3 = make_dense_writable_matrix_from<M04>(m34);
+  auto m00_34 = make_dense_writable_matrix_from<M00>(m34);
+
+  auto m24 = make_dense_writable_matrix_from<M24>(74, 80, 86, 92, 173, 188, 203, 218);
+
+  EXPECT_TRUE(is_near(contract(m23, m34), m24));
+  EXPECT_TRUE(is_near(contract(M23{m23}, M34{m34}), m24));
+  EXPECT_TRUE(is_near(contract(m23, M34{m34}), m24));
+  EXPECT_TRUE(is_near(contract(M23{m23}, m34), m24));
+  EXPECT_TRUE(is_near(contract(m20_3, m34), m24));
+  EXPECT_TRUE(is_near(contract(m20_3, m04_3), m24));
+  EXPECT_TRUE(is_near(contract(m23, m04_3), m24));
+  EXPECT_TRUE(is_near(contract(m03_2, m30_4), m24));
+
+  EXPECT_TRUE(is_near(contract(m23, M33::Identity()), m23));
+  EXPECT_TRUE(is_near(contract(M22::Identity(), m23), m23));
+  EXPECT_TRUE(is_near(contract(m23, make_identity_matrix_like<M33>()), m23));
+  EXPECT_TRUE(is_near(contract(make_identity_matrix_like<M22>(), m23), m23));
+
+  auto z11 = M11::Identity() - M11::Identity();
+
+  auto z22 = M22::Identity() - M22::Identity();
+  auto z20_2 = Eigen::Replicate<decltype(z11), 2, Eigen::Dynamic> {z11, 2, 2};
+  auto z02_2 = Eigen::Replicate<decltype(z11), Eigen::Dynamic, 2> {z11, 2, 2};
+  auto z00_22 = Eigen::Replicate<decltype(z11), Eigen::Dynamic, Eigen::Dynamic> {z11, 2, 2};
+
+  auto z33 = M33::Identity() - M33::Identity();
+  auto z30_3 = Eigen::Replicate<decltype(z11), 3, Eigen::Dynamic> {z11, 3, 3};
+  auto z03_3 = Eigen::Replicate<decltype(z11), Eigen::Dynamic, 3> {z11, 3, 3};
+  auto z00_33 = Eigen::Replicate<decltype(z11), Eigen::Dynamic, Eigen::Dynamic> {z11, 3, 3};
+
+  auto z23 = make_zero_matrix_like<M23>();
+
+  EXPECT_TRUE(is_near(contract(z22, m23), z23));
+  EXPECT_TRUE(is_near(contract(z20_2, m23), z23));
+  EXPECT_TRUE(is_near(contract(z02_2, m23), z23));
+  EXPECT_TRUE(is_near(contract(z00_22, m23), z23));
+  EXPECT_TRUE(is_near(contract(m23, z33), z23));
+  EXPECT_TRUE(is_near(contract(m23, z30_3), z23));
+  EXPECT_TRUE(is_near(contract(m23, z03_3), z23));
+  EXPECT_TRUE(is_near(contract(m23, z00_33), z23));
+  static_assert(zero_matrix<decltype(contract(z22, m23))>);
+  static_assert(zero_matrix<decltype(contract(z20_2, m23))>);
+  static_assert(zero_matrix<decltype(contract(z02_2, m23))>);
+  static_assert(zero_matrix<decltype(contract(z00_22, m23))>);
+  static_assert(zero_matrix<decltype(contract(m23, z33))>);
+  static_assert(zero_matrix<decltype(contract(m23, z30_3))>);
+  static_assert(zero_matrix<decltype(contract(m23, z03_3))>);
+  static_assert(zero_matrix<decltype(contract(m23, z00_33))>);
+
+  EXPECT_TRUE(is_near(contract(m23, make_zero_matrix_like<M33>()), z23));
+  EXPECT_TRUE(is_near(contract(make_zero_matrix_like<M22>(), m23), z23));
+  static_assert(zero_matrix<decltype(contract(m23, make_zero_matrix_like<M33>()))>);
+  static_assert(zero_matrix<decltype(contract(make_zero_matrix_like<M22>(), m23))>);
+
+  auto c11_2 {M11::Identity() + M11::Identity()};
+  auto c10_1_2 = Eigen::Replicate<decltype(c11_2), 1, Eigen::Dynamic>(c11_2, 1, 1);
+  auto c01_1_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, 1>(c11_2, 1, 1);
+  auto c00_11_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, Eigen::Dynamic>(c11_2, 1, 1);
+
+  auto c23_2 = c11_2.replicate<2, 3>();
+  auto c20_3_2 = Eigen::Replicate<decltype(c11_2), 2, Eigen::Dynamic>(c11_2, 2, 3);
+  auto c03_2_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, 3>(c11_2, 2, 3);
+  auto c00_23_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, Eigen::Dynamic>(c11_2, 2, 3);
+
+  auto c11_3 {M11::Identity() + M11::Identity() + M11::Identity()};
+
+  auto c33_3 = c11_3.replicate<3, 3>();
+  auto c30_3_3 = Eigen::Replicate<decltype(c11_3), 3, Eigen::Dynamic>(c11_3, 3, 3);
+  auto c03_3_3 = Eigen::Replicate<decltype(c11_3), Eigen::Dynamic, 3>(c11_3, 3, 3);
+  auto c00_33_3 = Eigen::Replicate<decltype(c11_3), Eigen::Dynamic, Eigen::Dynamic>(c11_3, 3, 3);
+
+  auto c23_18 = make_constant_matrix_like<M23, 18>();
+
+  EXPECT_TRUE(is_near(contract(c23_2, c33_3), c23_18));
+  EXPECT_TRUE(is_near(contract(c20_3_2, c33_3), c23_18));
+  EXPECT_TRUE(is_near(contract(c03_2_2, c33_3), c23_18));
+  EXPECT_TRUE(is_near(contract(c00_23_2, c33_3), c23_18));
+  EXPECT_TRUE(is_near(contract(c23_2, c30_3_3), c23_18));
+  EXPECT_TRUE(is_near(contract(c20_3_2, c30_3_3), c23_18));
+  EXPECT_TRUE(is_near(contract(c03_2_2, c30_3_3), c23_18));
+  EXPECT_TRUE(is_near(contract(c00_23_2, c30_3_3), c23_18));
+  EXPECT_TRUE(is_near(contract(c23_2, c03_3_3), c23_18));
+  EXPECT_TRUE(is_near(contract(c20_3_2, c03_3_3), c23_18));
+  EXPECT_TRUE(is_near(contract(c03_2_2, c03_3_3), c23_18));
+  EXPECT_TRUE(is_near(contract(c00_23_2, c03_3_3), c23_18));
+  EXPECT_TRUE(is_near(contract(c23_2, c00_33_3), c23_18));
+  EXPECT_TRUE(is_near(contract(c20_3_2, c00_33_3), c23_18));
+  EXPECT_TRUE(is_near(contract(c03_2_2, c00_33_3), c23_18));
+  EXPECT_TRUE(is_near(contract(c00_23_2, c00_33_3), c23_18));
+  static_assert(constant_coefficient_v<decltype(contract(c23_2, c33_3))> == 18);
+
+  EXPECT_TRUE(is_near(contract(make_constant_matrix_like<M23, 2>(), make_constant_matrix_like<M33, 3>()), c23_18));
+  static_assert(constant_coefficient_v<decltype(contract(make_constant_matrix_like<M23, 2>(), make_constant_matrix_like<M33, 3>()))> == 18);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+  auto m11_2 = make_dense_writable_matrix_from<M11>(2); auto m10_1_2 = M10{m11_2}; auto m01_1_2 = M01{m11_2}; auto m00_11_2 = M00{m11_2};
+  auto m11_4 = make_dense_writable_matrix_from<M11>(4);
+  auto m11_5 = make_dense_writable_matrix_from<M11>(5); auto m10_1_5 = M10{m11_5}; auto m01_1_5 = M01{m11_5}; auto m00_11_5 = M00{m11_5};
+  auto m11_10 = make_dense_writable_matrix_from<M11>(10);
+#pragma GCC diagnostic pop
+
+  EXPECT_TRUE(is_near(contract(m11_2, m11_5), m11_10));
+  EXPECT_TRUE(is_near(contract(m01_1_2, m11_5), m11_10));
+  EXPECT_TRUE(is_near(contract(m10_1_2, m11_5), m11_10));
+  EXPECT_TRUE(is_near(contract(m00_11_2, m11_5), m11_10));
+  EXPECT_TRUE(is_near(contract(m11_2, m10_1_5), m11_10));
+  EXPECT_TRUE(is_near(contract(m01_1_2, m10_1_5), m11_10));
+  EXPECT_TRUE(is_near(contract(m10_1_2, m10_1_5), m11_10));
+  EXPECT_TRUE(is_near(contract(m00_11_2, m10_1_5), m11_10));
+  EXPECT_TRUE(is_near(contract(m11_2, m01_1_5), m11_10));
+  EXPECT_TRUE(is_near(contract(m01_1_2, m01_1_5), m11_10));
+  EXPECT_TRUE(is_near(contract(m10_1_2, m01_1_5), m11_10));
+  EXPECT_TRUE(is_near(contract(m00_11_2, m01_1_5), m11_10));
+  EXPECT_TRUE(is_near(contract(m11_2, m00_11_5), m11_10));
+  EXPECT_TRUE(is_near(contract(m01_1_2, m00_11_5), m11_10));
+  EXPECT_TRUE(is_near(contract(m10_1_2, m00_11_5), m11_10));
+  EXPECT_TRUE(is_near(contract(m00_11_2, m00_11_5), m11_10));
+
+  EXPECT_TRUE(is_near(contract(c11_2, m11_2), m11_4));
+  EXPECT_TRUE(is_near(contract(c10_1_2, m11_2), m11_4));
+  EXPECT_TRUE(is_near(contract(c01_1_2, m11_2), m11_4));
+  EXPECT_TRUE(is_near(contract(c00_11_2, m11_2), m11_4));
+  EXPECT_TRUE(is_near(contract(c11_2, m10_1_2), m11_4));
+  EXPECT_TRUE(is_near(contract(c10_1_2, m10_1_2), m11_4));
+  EXPECT_TRUE(is_near(contract(c01_1_2, m10_1_2), m11_4));
+  EXPECT_TRUE(is_near(contract(c00_11_2, m10_1_2), m11_4));
+  EXPECT_TRUE(is_near(contract(c11_2, m01_1_2), m11_4));
+  EXPECT_TRUE(is_near(contract(c10_1_2, m01_1_2), m11_4));
+  EXPECT_TRUE(is_near(contract(c01_1_2, m01_1_2), m11_4));
+  EXPECT_TRUE(is_near(contract(c00_11_2, m01_1_2), m11_4));
+  EXPECT_TRUE(is_near(contract(c11_2, m00_11_2), m11_4));
+  EXPECT_TRUE(is_near(contract(c10_1_2, m00_11_2), m11_4));
+  EXPECT_TRUE(is_near(contract(c01_1_2, m00_11_2), m11_4));
+  EXPECT_TRUE(is_near(contract(c00_11_2, m00_11_2), m11_4));
+
+  EXPECT_TRUE(is_near(contract(m11_5, c11_2), m11_10));
+  EXPECT_TRUE(is_near(contract(m11_5, c10_1_2), m11_10));
+  EXPECT_TRUE(is_near(contract(m11_5, c01_1_2), m11_10));
+  EXPECT_TRUE(is_near(contract(m11_5, c00_11_2), m11_10));
+  EXPECT_TRUE(is_near(contract(m10_1_5, c11_2), m11_10));
+  EXPECT_TRUE(is_near(contract(m10_1_5, c10_1_2), m11_10));
+  EXPECT_TRUE(is_near(contract(m10_1_5, c01_1_2), m11_10));
+  EXPECT_TRUE(is_near(contract(m10_1_5, c00_11_2), m11_10));
+  EXPECT_TRUE(is_near(contract(m01_1_5, c11_2), m11_10));
+  EXPECT_TRUE(is_near(contract(m01_1_5, c10_1_2), m11_10));
+  EXPECT_TRUE(is_near(contract(m01_1_5, c01_1_2), m11_10));
+  EXPECT_TRUE(is_near(contract(m01_1_5, c00_11_2), m11_10));
+  EXPECT_TRUE(is_near(contract(m00_11_5, c11_2), m11_10));
+  EXPECT_TRUE(is_near(contract(m00_11_5, c10_1_2), m11_10));
+  EXPECT_TRUE(is_near(contract(m00_11_5, c01_1_2), m11_10));
+  EXPECT_TRUE(is_near(contract(m00_11_5, c00_11_2), m11_10));
+
+  auto m31a = make_dense_writable_matrix_from<M31>(2, 3, 4);
+  auto m01_3a = M01{m31a};
+  auto m31b = make_dense_writable_matrix_from<M31>(5, 6, 7);
+  auto m01_3b = M01{m31b};
+
+  auto dm3a = Eigen::DiagonalMatrix<double, 3>{m31a};
+  auto dm0_3a = Eigen::DiagonalMatrix<double, Eigen::Dynamic>{m31a};
+  auto dw3a = Eigen::DiagonalWrapper{m31a};
+  auto dw0_3a = Eigen::DiagonalWrapper{m01_3a};
+
+  auto dm3b = Eigen::DiagonalMatrix<double, 3>{m31b};
+  auto dm0_3b = Eigen::DiagonalMatrix<double, Eigen::Dynamic>{m31b};
+  auto dw3b = Eigen::DiagonalWrapper{m31b};
+  auto dw0_3b = Eigen::DiagonalWrapper{m01_3b};
+
+  auto d3c = DiagonalMatrix<M31> {10, 18, 28};
+
+  EXPECT_TRUE(is_near(contract(dm3a, dm3b), d3c));
+  EXPECT_TRUE(is_near(contract(dm0_3a, dm3b), d3c));
+  EXPECT_TRUE(is_near(contract(dm3a, dm0_3b), d3c));
+  EXPECT_TRUE(is_near(contract(dm0_3a, dm0_3b), d3c));
+  EXPECT_TRUE(is_near(contract(dw3a, dw3b), d3c));
+  EXPECT_TRUE(is_near(contract(dw0_3a, dw3b), d3c));
+  EXPECT_TRUE(is_near(contract(dw3a, dw0_3b), d3c));
+  EXPECT_TRUE(is_near(contract(dw0_3a, dw0_3b), d3c));
+
+  auto m23_468 = make_dense_writable_matrix_from<M23>(4, 6, 8, 4, 6, 8);
+
+  EXPECT_TRUE(is_near(contract(c23_2, dm3a), m23_468));
+  EXPECT_TRUE(is_near(contract(c20_3_2, dw3a), m23_468));
+  EXPECT_TRUE(is_near(contract(c03_2_2, dm3a), m23_468));
+  EXPECT_TRUE(is_near(contract(c00_23_2, dw3a), m23_468));
+  EXPECT_TRUE(is_near(contract(make_constant_matrix_like<M23, 2>(), dm3a), m23_468));
+  EXPECT_TRUE(is_near(contract(make_constant_matrix_like<M23, 2>(), dw3a), m23_468));
+
+  auto m23_151821 = make_dense_writable_matrix_from<M33>(15, 15, 15, 18, 18, 18, 21, 21, 21);
+
+  EXPECT_TRUE(is_near(contract(dw3b, c33_3), m23_151821));
+  EXPECT_TRUE(is_near(contract(dm3b, c30_3_3), m23_151821));
+  EXPECT_TRUE(is_near(contract(dw3b, c03_3_3), m23_151821));
+  EXPECT_TRUE(is_near(contract(dm3b, c00_33_3), m23_151821));
+  EXPECT_TRUE(is_near(contract(dm3b, make_constant_matrix_like<M33, 3>()), m23_151821));
+  EXPECT_TRUE(is_near(contract(dw3b, make_constant_matrix_like<M33, 3>()), m23_151821));
+
 }

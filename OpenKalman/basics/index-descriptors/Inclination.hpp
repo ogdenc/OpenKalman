@@ -54,7 +54,7 @@ namespace OpenKalman
 
 #if __cpp_nontype_template_args >= 201911L
     /// An inclination measured in radians [-½&pi;,½&pi;].
-    using Radians = Inclination<Limits<-numbers::pi_v<long double> / 2, -numbers::pi_v<long double> / 2>>;
+    using Radians = Inclination<Limits<-numbers::pi_v<long double> / 2, numbers::pi_v<long double> / 2>>;
 #else
     /// The limits of an inclination measured in radians: [-½&pi;,½&pi;].
     struct RadiansLimits
@@ -86,7 +86,7 @@ namespace OpenKalman
    * Scalar is a \ref floating_scalar_type.
    */
 #if __cpp_nontype_template_args >= 201911L
-  template<typename Limits = inclination::Limits<-numbers::pi_v<long double> / 2, -numbers::pi_v<long double> / 2>>
+  template<typename Limits = inclination::Limits<-numbers::pi_v<long double> / 2, numbers::pi_v<long double> / 2>>
 #else
   template<typename Limits = inclination::RadiansLimits>
 #endif
@@ -168,9 +168,9 @@ namespace OpenKalman
 
         Scalar theta = cf * (g(start) - horiz); // Convert to radians
         if (euclidean_local_index == 0)
-          return interface::ScalarTraits<Scalar>::cos(theta);
+          return cosine(theta);
         else
-          return interface::ScalarTraits<Scalar>::sin(theta);
+          return sine(theta);
       }
 
 
@@ -188,7 +188,7 @@ namespace OpenKalman
       from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start)
 #endif
       {
-        using Scalar = decltype(g(std::declval<std::size_t>()));
+        using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
         using R = std::decay_t<decltype(real_projection(std::declval<Scalar>()))>;
         const Scalar cf {numbers::pi_v<R> / (Limits::up - Limits::down)};
         const Scalar horiz {R{Limits::up + Limits::down} * R{0.5}};
@@ -197,7 +197,7 @@ namespace OpenKalman
         // In Euclidean space, (the real part of) x must be non-negative since the inclination is in range [-½pi,½pi].
         Scalar pos_x = inverse_real_projection(x, std::abs(real_projection(x)));
         Scalar y = g(euclidean_start + 1);
-        return interface::ScalarTraits<Scalar>::atan2(y, pos_x) / cf + horiz;
+        return arctangent2(y, pos_x) / cf + horiz;
       }
 
     private:

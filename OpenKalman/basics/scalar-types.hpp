@@ -57,6 +57,14 @@ namespace OpenKalman
 
   namespace interface
   {
+  #ifdef __cpp_concepts
+    template<typename T>
+  #else
+    template<typename T, typename = void>
+  #endif
+    struct ScalarTraits; // defined in forward-interface-traits.hpp
+
+
 #ifdef __cpp_concepts
     template<typename T> requires std::is_arithmetic_v<std::decay_t<T>>
     struct ScalarTraits<T>
@@ -67,73 +75,72 @@ namespace OpenKalman
     {
     private:
 
-      using Real = std::conditional_t<std::is_floating_point_v<std::decay_t<T>>, std::decay_t<T>, double>;
+      static_assert(std::is_same_v<T, std::decay_t<T>>);
+      using Real = std::decay_t<decltype(std::real(std::declval<T>()))>;
 
     public:
 
       template<typename Arg>
-      static constexpr auto real_projection(Arg&& arg)
-      {
-        if constexpr (std::is_floating_point_v<std::decay_t<Arg>>) return std::forward<Arg>(arg);
-        else return double(std::forward<Arg>(arg));
-      }
+      static constexpr auto real_projection(Arg&& arg) { return std::real(std::forward<Arg>(arg)); }
 
       template<typename Arg, typename RealProj>
       static constexpr auto inverse_real_projection(Arg&&, RealProj p) { return p; }
 
-      static auto sin(std::decay_t<T> t) { return std::sin(t); }
-      static auto cos(std::decay_t<T> t) { return std::cos(t); }
+      template<typename Arg>
+      static constexpr auto imag(Arg&& arg) { return std::imag(std::forward<Arg>(arg)); }
 
-      static auto sqrt(std::decay_t<T> t) { return std::sqrt(t); }
+      template<typename Arg>
+      static constexpr auto conj(Arg&& arg) { return std::conj(std::forward<Arg>(arg)); }
 
-      static auto asin2(std::decay_t<T> y, std::decay_t<T> r) {
+      template<typename Arg>
+      static auto sin(Arg&& arg) { return std::sin(std::forward<Arg>(arg)); }
+
+      template<typename Arg>
+      static auto cos(Arg&& arg) { return std::cos(std::forward<Arg>(arg)); }
+
+      template<typename Arg>
+      static auto sqrt(Arg&& arg) { return std::sqrt(std::forward<Arg>(arg)); }
+
+      template<typename Y, typename R>
+      static auto asin2(Y&& y, R&& r)
+      {
         // This is so that a zero-radius or faulty spherical coordinate has horizontal inclination:
-        if (r == 0 or r < y or y < -r) return std::decay_t<decltype(std::asin(y/r))>(0);
+        if (r == 0 or r < y or y < -r) return Real(0);
         else return std::asin(y/r);
       }
 
-      static auto atan2(std::decay_t<T> y, std::decay_t<T> x) {
+      template<typename Y, typename X>
+      static auto atan2(Y&& y, X&& x)
+      {
         if constexpr (std::numeric_limits<std::decay_t<T>>::is_iec559) return std::atan2(y, x);
         else
         {
           using R = std::decay_t<decltype(std::atan2(y, x))>;
-          if (y == 0)
-            return std::copysign(std::signbit(x) ? R(0) : numbers::pi_v<R>, y);
+          if (y == 0) return std::copysign(std::signbit(x) ? R(0) : numbers::pi_v<R>, y);
           else if (not std::isfinite(y))
             return std::copysign(numbers::pi_v<R> * (std::isfinite(x) ? 0.5 : std::signbit(x) ? 0.25 : 0.75), y);
-          else if (not std::isfinite(x)) {
+          else if (not std::isfinite(x))
+          {
             if (std::signbit(x)) return std::copysign(numbers::pi_v<R>, y);
             else return std::copysign(R(0), y);
           }
-          else if (x == 0)
-            return std::copysign(numbers::pi_v<R>/2, y);
-          else
-            return std::atan2(y, x);
+          else if (x == 0) return std::copysign(numbers::pi_v<R>/2, y);
+          else return std::atan2(y, x);
         }
       }
     };
 
 
-#ifdef __cpp_concepts
-    template<complex_number T>
-    struct ScalarTraits<T>
-#else
     template<typename T>
-    struct ScalarTraits<T, std::enable_if_t<complex_number<std::decay_t<T>>>>
-#endif
+    struct ScalarTraits<std::complex<T>> : ScalarTraits<std::decay_t<T>>
     {
     private:
 
-      using Real = std::decay_t<decltype(std::real(std::declval<T>()))>;
+      using Base = ScalarTraits<std::decay_t<T>>;
+      using Real = std::decay_t<T>;
       static constexpr auto pi = numbers::pi_v<Real>;
 
     public:
-
-      template<typename Arg>
-      static constexpr auto real_projection(Arg&& arg)
-      {
-        return std::real(std::forward<Arg>(arg));
-      }
 
       template<typename Arg, typename RealProj>
       static constexpr auto inverse_real_projection(Arg&& arg, RealProj p)
@@ -141,32 +148,44 @@ namespace OpenKalman
         return std::complex {p, std::imag(std::forward<Arg>(arg))};
       }
 
-      static auto sin(std::decay_t<T> t) { return std::sin(t); }
-      static auto cos(std::decay_t<T> t) { return std::cos(t); }
-
-      static auto sqrt(std::decay_t<T> t) { return std::sqrt(t);
+      template<typename Arg>
+      static constexpr auto conj(Arg&& arg)
+      {
+# ifdef __cpp_lib_constexpr_complex
+          return std::conj(arg);
+# else
+          return std::complex(std::real(arg), -imag(arg));
+# endif
       }
 
-      static auto asin2(std::decay_t<T> y, std::decay_t<T> r) {
-        if (r == Real(0)) return std::decay_t<T>(Real(0));
+      template<typename Y, typename R>
+      static auto asin2(Y&& y, R&& r)
+      {
+        if (r == Real(0)) return std::complex {Real(0)};
         else return std::asin(y/r);
       }
 
-      static auto atan2(std::decay_t<T> y, std::decay_t<T> x) {
-        if (y == Real(0)) {
-          return std::decay_t<T> {std::copysign(std::signbit(x.real()) ? 0 : pi, y.real())};
+      template<typename Y, typename X>
+      static auto atan2(Y&& y, X&& x)
+      {
+        if (y == std::complex{Real(0)})
+          return std::complex {std::copysign(std::signbit(std::real(x)) ? 0 : pi, std::real(y))};
+        else if (not std::isfinite(std::real(y)))
+        {
+          Real k = std::isfinite(std::real(x)) ? 0.5 : std::signbit(std::real(x)) ? 0.25 : 0.75;
+          return std::complex {std::copysign(pi * k, std::real(y))};
         }
-        else if (not std::isfinite(y.real())) {
-          Real k = pi * (std::isfinite(x.real()) ? 0.5 : std::signbit(x.real()) ? 0.25 : 0.75);
-          return std::decay_t<T> {std::copysign(k, y.real())};
+        else if (not std::isfinite(std::real(x)))
+        {
+          if (std::signbit(std::real(x))) return std::complex {std::copysign(pi, std::real(y))};
+          else return std::complex {std::copysign(Real(0), std::real(y))};
         }
-        else if (not std::isfinite(x.real())) {
-          if (std::signbit(x.real())) return std::decay_t<T> {std::copysign(pi, y.real())};
-          else return std::decay_t<T> {std::copysign(Real(0), y.real())};
-        }
-        else if (x.real() > 0) return std::atan(y/x);
-        else if (x.real() < 0) return std::atan(y/x) + std::copysign(pi, y.real());
-        else return std::decay_t<T> {std::copysign(pi/2, y.real())}; // x.real() == 0
+        else if (std::real(x) > 0)
+          return std::atan(y/x);
+        else if (std::real(x) < 0)
+          return std::atan(y/x) + std::copysign(pi, std::real(y));
+        else
+          return std::complex {std::copysign(pi/2, std::real(y))}; // std::real(x) == 0
       }
     };
 
@@ -213,16 +232,16 @@ namespace OpenKalman
   template<typename T>
 #ifdef __cpp_concepts
   concept floating_scalar_type = std::floating_point<std::decay_t<T>> or complex_number<T> or
-    requires(T t1, T t2) {
+    requires(std::decay_t<T> t1, std::decay_t<T> t2) {
       requires std::default_initializable<std::decay_t<T>>;
-      requires std::floating_point<std::decay_t<decltype(interface::ScalarTraits<T>::real_projection(t1))>>;
-      {interface::ScalarTraits<T>::inverse_real_projection(t1,
-        interface::ScalarTraits<T>::real_projection(t2))} -> std::convertible_to<const std::decay_t<T>&>;
-      {interface::ScalarTraits<T>::sin(t1)} -> std::convertible_to<const std::decay_t<T>&>;
-      {interface::ScalarTraits<T>::cos(t1)} -> std::convertible_to<const std::decay_t<T>&>;
-      {interface::ScalarTraits<T>::sqrt(t1)} -> std::convertible_to<const std::decay_t<T>&>;
-      {interface::ScalarTraits<T>::asin2(t1, t2)} -> std::convertible_to<const std::decay_t<T>&>;
-      {interface::ScalarTraits<T>::atan2(t1, t2)} -> std::convertible_to<const std::decay_t<T>&>;
+      requires std::floating_point<std::decay_t<decltype(interface::ScalarTraits<std::decay_t<T>>::real_projection(t1))>>;
+      {interface::ScalarTraits<std::decay_t<T>>::inverse_real_projection(t1,
+        interface::ScalarTraits<std::decay_t<T>>::real_projection(t2))} -> std::convertible_to<const std::decay_t<T>&>;
+      {interface::ScalarTraits<std::decay_t<T>>::sin(t1)} -> std::convertible_to<const std::decay_t<T>&>;
+      {interface::ScalarTraits<std::decay_t<T>>::cos(t1)} -> std::convertible_to<const std::decay_t<T>&>;
+      {interface::ScalarTraits<std::decay_t<T>>::sqrt(t1)} -> std::convertible_to<const std::decay_t<T>&>;
+      {interface::ScalarTraits<std::decay_t<T>>::asin2(t1, t2)} -> std::convertible_to<const std::decay_t<T>&>;
+      {interface::ScalarTraits<std::decay_t<T>>::atan2(t1, t2)} -> std::convertible_to<const std::decay_t<T>&>;
       {t1 + t2} -> std::convertible_to<const std::decay_t<T>&>;
       {t1 - t2} -> std::convertible_to<const std::decay_t<T>&>;
       {t1 * t2} -> std::convertible_to<const std::decay_t<T>&>;

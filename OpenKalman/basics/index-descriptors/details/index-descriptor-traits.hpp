@@ -67,8 +67,7 @@ namespace OpenKalman
 #else
   constexpr bool atomic_fixed_index_descriptor =
 #endif
-    (fixed_index_descriptor<T> or (euclidean_index_descriptor<T> and fixed_index_descriptor<T>)) and
-      (not composite_index_descriptor<T>);
+    fixed_index_descriptor<T> and (not composite_index_descriptor<T>);
 
 
   // ------------------------------------- //
@@ -154,17 +153,18 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<std::size_t N> requires (N != dynamic_size)
-  struct canonical_fixed_index_descriptor<Dimensions<N>>
+  template<atomic_fixed_index_descriptor C> requires (euclidean_index_descriptor<C>)
+  struct canonical_fixed_index_descriptor<C>
 #else
-  template<std::size_t N>
-  struct canonical_fixed_index_descriptor<Dimensions<N>, std::enable_if_t<N != dynamic_size>>
+  template<typename C>
+  struct canonical_fixed_index_descriptor<C, std::enable_if_t<
+    atomic_fixed_index_descriptor<C> and (euclidean_index_descriptor<C>)>>
 #endif
   {
     using type = std::conditional_t<
-      N == 1,
-      TypedIndex<replicate_fixed_index_descriptor_t<Dimensions<1>, N>>,
-      replicate_fixed_index_descriptor_t<Dimensions<1>, N>>;
+      dimension_size_of_v<C> == 1,
+      TypedIndex<replicate_fixed_index_descriptor_t<Dimensions<1>, dimension_size_of_v<C>>>,
+      replicate_fixed_index_descriptor_t<Dimensions<1>, dimension_size_of_v<C>>>;
   };
 
 
@@ -186,36 +186,53 @@ namespace OpenKalman
   //   equivalent_to   //
   // ----------------- //
 
-#ifndef __cpp_concepts
   namespace detail
   {
+#ifdef __cpp_concepts
+    template<typename T, typename U>
+#else
     template<typename T, typename U, typename = void>
+#endif
+    struct is_equivalent_to_impl : std::false_type {};
+
+
+#ifdef __cpp_concepts
+    template<fixed_index_descriptor T, fixed_index_descriptor U>
+    struct is_equivalent_to_impl<T, U>
+#else
+    template<typename T, typename U>
+    struct is_equivalent_to_impl<T, U, std::enable_if_t<fixed_index_descriptor<T> and fixed_index_descriptor<U>>>
+#endif
+      : std::bool_constant<std::is_same_v<canonical_fixed_index_descriptor_t<T>, canonical_fixed_index_descriptor_t<U>>> {};
+
+
+    template<typename...Ts>
     struct is_equivalent_to : std::false_type {};
 
-    template<typename T, typename U>
-    struct is_equivalent_to<T, U, std::enable_if_t<fixed_index_descriptor<T> and fixed_index_descriptor<U> and
-      std::is_same<typename canonical_fixed_index_descriptor<T>::type, typename canonical_fixed_index_descriptor<U>::type>::value>>
-      : std::true_type {};
+    template<>
+    struct is_equivalent_to<> : std::true_type {};
+
+    template<typename T, typename...Ts>
+    struct is_equivalent_to<T, Ts...> : std::bool_constant<(is_equivalent_to_impl<T, Ts>::value and ...)> {};
   }
-#endif
 
 
   /**
-   * \brief T is equivalent to U, where T and U are sets of coefficients.
+   * \brief Specifies that a set of index descriptors are known at compile time to be equivalent.
    * \details Sets of coefficients are equivalent if they are treated functionally the same.
    * - Any coefficient or group of coefficients is equivalent to itself.
-   * - TypedIndex<Ts...> is equivalent to TypedIndex<Us...>, if each Ts is equivalent to its respective Us.
-   * - TypedIndex<T> is equivalent to T, and vice versa.
+   * - TypedIndex<As...> is equivalent to TypedIndex<Bs...>, if each As is equivalent to its respective Bs.
+   * - TypedIndex<A> is equivalent to A, and vice versa.
    * \par Example:
    * <code>equivalent_to&lt;Axis, TypedIndex&lt;Axis&gt;&gt;</code>
    */
-  template<typename T, typename U>
+  template<typename...Ts>
 #ifdef __cpp_concepts
-  concept equivalent_to = fixed_index_descriptor<T> and fixed_index_descriptor<U> and
-      std::same_as<canonical_fixed_index_descriptor_t<std::decay_t<T>>, canonical_fixed_index_descriptor_t<std::decay_t<U>>>;
+  concept equivalent_to =
 #else
-  constexpr bool equivalent_to = detail::is_equivalent_to<T, U>::value;
+  constexpr bool equivalent_to =
 #endif
+    (fixed_index_descriptor<Ts> and ...) and detail::is_equivalent_to<Ts...>::value;
 
 
   // ------------- //
@@ -291,6 +308,104 @@ namespace OpenKalman
 #endif
     fixed_index_descriptor<T> and fixed_index_descriptor<U> and detail::is_prefix_of<
       canonical_fixed_index_descriptor_t<std::decay_t<T>>, canonical_fixed_index_descriptor_t<std::decay_t<U>>>::value;
+
+
+  // ----------- //
+  //   head_of   //
+  // ----------- //
+
+  namespace detail
+  {
+  #ifdef __cpp_concepts
+    template<typename T>
+  #else
+    template<typename T, typename = void>
+  #endif
+    struct head_tail_id_split;
+
+
+    template<>
+    struct head_tail_id_split<TypedIndex<>>  { using head = TypedIndex<>; using tail = TypedIndex<>; };
+
+
+    template<typename C>
+    struct head_tail_id_split<TypedIndex<C>> { using head = C; using tail = TypedIndex<>; };
+
+
+    template<typename C0, typename...Cs>
+    struct head_tail_id_split<TypedIndex<C0, Cs...>> { using head = C0; using tail = TypedIndex<Cs...>; };
+
+
+  #ifdef __cpp_concepts
+    template<atomic_fixed_index_descriptor C>
+    struct head_tail_id_split<C>
+  #else
+    template<typename C>
+    struct head_tail_id_split<C, std::enable_if_t<atomic_fixed_index_descriptor<C>>>
+  #endif
+    { using head = C; using tail = TypedIndex<>; };
+
+  } // namespace detail
+
+
+  /**
+   * \brief Type trait extracting the head of a \ref fixed_index_descriptor.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+#else
+  template<typename T, typename = void>
+#endif
+  struct head_of;
+
+
+#ifdef __cpp_concepts
+  template<fixed_index_descriptor T>
+  struct head_of<T>
+#else
+  template<typename T>
+  struct head_of<T, std::enable_if_t<fixed_index_descriptor<T>>>
+#endif
+    { using type = typename detail::head_tail_id_split<canonical_fixed_index_descriptor_t<T>>::head; };
+
+
+  /**
+   * \brief Helper for \ref head_of.
+   */
+  template<typename T>
+  using head_of_t = typename head_of<T>::type;
+
+
+  // ----------- //
+  //   tail_of   //
+  // ----------- //
+
+  /**
+   * \brief Type trait extracting the tail of a \ref fixed_index_descriptor.
+   */
+  #ifdef __cpp_concepts
+  template<typename T>
+  #else
+  template<typename T, typename = void>
+  #endif
+  struct tail_of ;
+
+
+#ifdef __cpp_concepts
+  template<fixed_index_descriptor T>
+  struct tail_of<T>
+#else
+  template<typename T>
+  struct tail_of<T, std::enable_if_t<fixed_index_descriptor<T>>>
+#endif
+    { using type = typename detail::head_tail_id_split<canonical_fixed_index_descriptor_t<T>>::tail; };
+
+
+  /**
+   * \brief Helper for \ref tail_of.
+   */
+  template<typename T>
+  using tail_of_t = typename tail_of<T>::type;
 
 
   // -------------------------------------------------------------------------------------------------- //
@@ -403,7 +518,7 @@ namespace OpenKalman
 
     template<typename T, typename C>
     struct equivalent_to_uniform_dimension_type_of_impl<T, C, std::enable_if_t<
-      equivalent_to<T, uniform_dimension_type_of<C>::type>>> {};
+      equivalent_to<T, typename uniform_dimension_type_of<C>::type>>> : std::true_type {};
   }
 #endif
 

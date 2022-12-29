@@ -46,7 +46,7 @@ namespace OpenKalman
   make_eigen_matrix(const Args ... args)
   {
     using M = Eigen3::eigen_matrix_t<Scalar, rows, columns>;
-    return MatrixTraits<M>::make(static_cast<const Scalar>(args)...);
+    return MatrixTraits<std::decay_t<M>>::make(static_cast<const Scalar>(args)...);
   }
 #ifndef __cpp_concepts
 # pragma GCC diagnostic pop

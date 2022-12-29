@@ -20,6 +20,8 @@ namespace OpenKalman
 {
   using namespace interface;
 
+  // \todo Add functions that return stl-compatible iterators.
+
   // =================== //
   //  Element functions  //
   // =================== //
@@ -49,7 +51,7 @@ namespace OpenKalman
       }
       else
       {
-        (((i >= get_index_dimension_of<seq>(arg)) ?
+        (((static_cast<std::size_t>(i) >= get_index_dimension_of<seq>(arg)) ?
           throw std::out_of_range {(("At least one " + std::string {set ? "s" : "g"} +
             "et_element index out of range:") + ... + (" Index " + std::to_string(seq) + " is " +
             std::to_string(i) + " and should be in range [0..." +
@@ -72,7 +74,7 @@ namespace OpenKalman
     }
     else
     {
-      detail::check_index_bounds<false>(arg, std::make_index_sequence<sizeof...(I)> {}, i...);
+      detail::check_index_bounds<false>(arg, std::index_sequence_for<I...> {}, i...);
       return interface::GetElement<std::decay_t<Arg>, I...>::get(std::forward<Arg>(arg), i...);
     }
   }
@@ -82,7 +84,7 @@ namespace OpenKalman
     (sizeof...(I) != 1 or column_vector<Arg> or row_vector<Arg>), int> = 0>
   constexpr decltype(auto) get_element(Arg&& arg, const I...i)
   {
-    detail::check_index_bounds<false>(arg, std::make_index_sequence<sizeof...(I)> {}, i...);
+    detail::check_index_bounds<false>(arg, std::index_sequence_for<I...> {}, i...);
     return interface::GetElement<std::decay_t<Arg>, void, I...>::get(std::forward<Arg>(arg), i...);
   }
 #endif
@@ -92,9 +94,9 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>&> Scalar, std::convertible_to<std::size_t>...I>
     requires element_settable<Arg&, std::conditional_t<std::same_as<I, std::size_t>, I, std::size_t>...>
-  inline void set_element(Arg& arg, Scalar s, const I...i)
+  inline Arg& set_element(Arg& arg, Scalar s, const I...i)
   {
-    detail::check_index_bounds<true>(arg, std::make_index_sequence<sizeof...(I)> {}, i...);
+    detail::check_index_bounds<true>(arg, std::index_sequence_for<I...> {}, i...);
     return interface::SetElement<std::decay_t<Arg>, I...>::set(arg, s, i...);
   }
 #else
@@ -102,9 +104,9 @@ namespace OpenKalman
     (std::is_convertible_v<I, std::size_t> and ...) and
     std::is_convertible_v<Scalar, const scalar_type_of_t<Arg>&> and
     element_settable<Arg&, std::conditional_t<std::is_same_v<I, std::size_t>, I, std::size_t>...>, int> = 0>
-  inline void set_element(Arg& arg, Scalar s, const I...i)
+  inline Arg& set_element(Arg& arg, Scalar s, const I...i)
   {
-    detail::check_index_bounds<true>(arg, std::make_index_sequence<sizeof...(I)> {}, i...);
+    detail::check_index_bounds<true>(arg, std::index_sequence_for<I...> {}, i...);
     return interface::SetElement<std::decay_t<Arg>, void, I...>::set(arg, s, i...);
   }
 #endif

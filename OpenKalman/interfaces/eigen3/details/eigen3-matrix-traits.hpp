@@ -19,47 +19,6 @@
 #include <type_traits>
 
 
-namespace OpenKalman::internal
-{
-  using namespace OpenKalman::Eigen3;
-
-
-  // ------------------------ //
-  //  is_covariance_nestable  //
-  // ------------------------ //
-
-  /// \internal Defines a type in Eigen3 that is nestable within a \ref covariance.
-#ifdef __cpp_concepts
-  template<typename T>
-  requires (native_eigen_matrix<T> and (triangular_matrix<T> or self_adjoint_matrix<T>))
-  struct is_covariance_nestable<T>
-#else
-  template<typename T>
-  struct is_covariance_nestable<T, std::enable_if_t<
-    (Eigen3::native_eigen_matrix<T> and (triangular_matrix<T> or self_adjoint_matrix<T>))>>
-#endif
-    : std::true_type
-  {
-  };
-
-
-  // -------------------------- //
-  //  is_typed_matrix_nestable  //
-  // -------------------------- //
-
-  /// \internal Defines a type in Eigen3 that is nestable within a \ref typed_matrix.
-#ifdef __cpp_concepts
-  template<native_eigen_matrix T>
-  struct is_typed_matrix_nestable<T>
-#else
-  template<typename T>
-  struct is_typed_matrix_nestable<T, std::enable_if_t<native_eigen_matrix<T>>>
-#endif
-    : std::true_type {};
-
-}
-
-
 namespace OpenKalman::Eigen3
 {
   // ------------------------------------------------------------------------------------------- //
@@ -95,7 +54,6 @@ namespace OpenKalman::Eigen3
 
     template<typename DiagonalVectorType>
     struct is_eigen_DiagonalWrapper<Eigen::DiagonalWrapper<DiagonalVectorType>> : std::true_type {};
-
 
     template<typename T>
     struct is_eigen_Identity : std::false_type {};
@@ -155,12 +113,14 @@ namespace OpenKalman::Eigen3
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept native_eigen_general = native_eigen_matrix<T> or native_eigen_array<T> or
-    eigen_SelfAdjointView<T> or eigen_TriangularView<T> or eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>;
+  concept native_eigen_general =
 #else
-  constexpr bool native_eigen_general = native_eigen_matrix<T> or native_eigen_array<T> or
-    eigen_SelfAdjointView<T> or eigen_TriangularView<T> or eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>;
+  constexpr bool native_eigen_general =
 #endif
+    native_eigen_matrix<T> or native_eigen_array<T> or eigen_SelfAdjointView<T> or eigen_TriangularView<T> or
+    eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T> or
+    (std::is_base_of_v<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>> and
+      not std::is_base_of_v<internal::Eigen3Base, std::decay_t<T>>);
 
 
   /**
@@ -181,37 +141,6 @@ namespace OpenKalman::Eigen3
 namespace OpenKalman::internal
 {
   using namespace OpenKalman::Eigen3;
-
-  // ------------- //
-  //  is_writable  //
-  // ------------- //
-
-#ifdef __cpp_concepts
-  template<typename T> requires (native_eigen_matrix<T> or native_eigen_array<T>) and
-    (static_cast<bool>(Eigen::internal::traits<std::decay_t<T>>::Flags & Eigen::LvalueBit))
-  struct is_writable<T>
-#else
-  template<typename T>
-  struct is_writable<T, std::enable_if_t<(native_eigen_matrix<T> or native_eigen_array<T>) and
-    (static_cast<bool>(std::decay_t<T>::Flags & Eigen::LvalueBit))>>
-#endif
-    : std::true_type {};
-
-
-#ifdef __cpp_concepts
-  template<native_eigen_general T> requires (not native_eigen_matrix<T>) and (not native_eigen_array<T>) and
-    (static_cast<bool>(Eigen::internal::traits<std::decay_t<T>>::Flags & Eigen::LvalueBit)) and
-    writable<nested_matrix_of_t<T>>
-  struct is_writable<T>
-#else
-  template<typename T>
-  struct is_writable<T, std::enable_if_t<native_eigen_general<T> and
-    (not native_eigen_matrix<T>) and (not native_eigen_array<T>) and
-    (static_cast<bool>(Eigen::internal::traits<std::decay_t<T>>::Flags & Eigen::LvalueBit)) and
-    writable<nested_matrix_of_t<T>>>>
-#endif
-    : std::true_type {};
-
 
   // ---------------------- //
   //  is_modifiable_native  //
@@ -276,13 +205,11 @@ namespace OpenKalman
    * \tparam M The matrix.
    */
 #ifdef __cpp_concepts
-  template<typename M> requires
-    (Eigen3::native_eigen_matrix<M> or Eigen3::native_eigen_array<M>) and std::same_as<M, std::decay_t<M>>
+  template<typename M> requires Eigen3::native_eigen_matrix<M> or Eigen3::native_eigen_array<M>
   struct MatrixTraits<M>
 #else
   template<typename M>
-  struct MatrixTraits<M, std::enable_if_t<
-    (Eigen3::native_eigen_matrix<M> or Eigen3::native_eigen_array<M>) and std::is_same_v<M, std::decay_t<M>>>>
+  struct MatrixTraits<M, std::enable_if_t<Eigen3::native_eigen_matrix<M> or Eigen3::native_eigen_array<M>>>
 #endif
   {
   private:
@@ -300,22 +227,22 @@ namespace OpenKalman
   public:
 
     template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = rows>
-    using SelfAdjointMatrixFrom = std::conditional_t<self_adjoint_matrix<Nat<Scalar, dim, dim>>,
-      Nat<Scalar, dim, dim>, Eigen3::SelfAdjointMatrix<Nat<Scalar, dim, dim>, storage_triangle>>;
+    using SelfAdjointMatrixFrom = std::conditional_t<hermitian_matrix<Nat<Scalar, dim, dim>>,
+      Nat<Scalar, dim, dim>, SelfAdjointMatrix<Nat<Scalar, dim, dim>, storage_triangle>>;
 
 
     template<TriangleType triangle_type = TriangleType::lower, std::size_t dim = rows>
     using TriangularMatrixFrom = std::conditional_t<triangular_matrix<Nat<Scalar, dim, dim>>,
-      Nat<Scalar, dim, dim>, Eigen3::TriangularMatrix<Nat<Scalar, dim, dim>, triangle_type>>;
+      Nat<Scalar, dim, dim>, TriangularMatrix<Nat<Scalar, dim, dim>, triangle_type>>;
 
 
     template<std::size_t dim = rows>
     using DiagonalMatrixFrom = std::conditional_t<diagonal_matrix<Nat<Scalar, dim, 1>>,
-      Nat<Scalar, dim, 1>, Eigen3::DiagonalMatrix<Nat<Scalar, dim, 1>>>;
+      Nat<Scalar, dim, 1>, DiagonalMatrix<Nat<Scalar, dim, 1>>>;
 
 
     template<typename Derived>
-    using MatrixBaseFrom = Eigen3::internal::Eigen3Base<Derived, M>;
+    using MatrixBaseFrom = Eigen3::internal::Eigen3AdapterBase<Derived, M>;
 
 
 #ifdef __cpp_concepts

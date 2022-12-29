@@ -82,9 +82,10 @@ namespace OpenKalman::interface
 #endif
   {
     template<typename Arg, typename Scalar>
-    static constexpr void set(Arg&& arg, Scalar s, I...i)
+    static constexpr Arg& set(Arg&& arg, Scalar s, I...i)
     {
       arg.set_element(s, i...);
+      return arg;
     }
   };
 
@@ -196,7 +197,7 @@ namespace OpenKalman
       static constexpr decltype(auto) conjugate(Arg&& arg) noexcept
       {
         // \todo optimize this by also copying cholesky nested matrix
-        return MatrixTraits<Arg>::make(OpenKalman::conjugate(nested_matrix(std::forward<Arg>(arg))));
+        return MatrixTraits<std::decay_t<Arg>>::make(OpenKalman::conjugate(nested_matrix(std::forward<Arg>(arg))));
       }
 
 
@@ -204,7 +205,7 @@ namespace OpenKalman
       static constexpr decltype(auto) transpose(Arg&& arg) noexcept
       {
         // \todo optimize this by also copying cholesky nested matrix
-        return MatrixTraits<Arg>::make(OpenKalman::transpose(nested_matrix(std::forward<Arg>(arg))));
+        return MatrixTraits<std::decay_t<Arg>>::make(OpenKalman::transpose(nested_matrix(std::forward<Arg>(arg))));
       }
 
 
@@ -213,7 +214,7 @@ namespace OpenKalman
       {
         // \todo optimize this by also copying cholesky nested matrix
         static_assert(triangular_covariance<Arg>)
-        return MatrixTraits<Arg>::make(OpenKalman::adjoint(nested_matrix(std::forward<Arg>(arg))));
+        return MatrixTraits<std::decay_t<Arg>>::make(OpenKalman::adjoint(nested_matrix(std::forward<Arg>(arg))));
       }
 
 
@@ -221,14 +222,6 @@ namespace OpenKalman
       static constexpr auto determinant(Arg&& arg) noexcept
       {
         return std::forward<Arg>(arg).determinant();
-      }
-
-
-      template<typename Arg>
-      static constexpr auto trace(Arg&& arg) noexcept
-      {
-        // \todo Optimize this?
-        return OpenKalman::trace(to_covariance_nestable(std::forward<Arg>(arg)));
       }
 
 
@@ -268,7 +261,7 @@ namespace OpenKalman
       {
         auto x = make_self_contained<A, B>(OpenKalman::solve<must_be_unique, must_be_exact>(
           to_covariance_nestable(std::forward<A>(a)), nested_matrix(std::forward<B>(b))));
-        return MatrixTraits<B>::template make<row_coefficient_types_of_t<A>>(std::move(x));
+        return MatrixTraits<std::decay_t<B>>::template make<row_coefficient_types_of_t<A>>(std::move(x));
       }
 
 
@@ -306,7 +299,7 @@ namespace OpenKalman
       using Coeffs =
         concatenate_fixed_index_descriptor_t<row_coefficient_types_of_t<M>, row_coefficient_types_of_t<Ms>...>;
       auto cat = concatenate_diagonal(nested_matrix(std::forward<M>(m)), nested_matrix(std::forward<Ms>(mN))...);
-      return MatrixTraits<M>::template make<Coeffs>(std::move(cat));
+      return MatrixTraits<std::decay_t<M>>::template make<Coeffs>(std::move(cat));
     }
     else
     {
@@ -323,15 +316,15 @@ namespace OpenKalman
     {
       if constexpr(one_by_one_matrix<Arg> and self_adjoint_covariance<Expr> and cholesky_form<Expr>)
       {
-        return MatrixTraits<Expr>::template make<C>(Cholesky_square(std::forward<Arg>(arg)));
+        return MatrixTraits<std::decay_t<Expr>>::template make<C>(Cholesky_square(std::forward<Arg>(arg)));
       }
       else if constexpr(one_by_one_matrix<Arg> and triangular_covariance<Expr> and not cholesky_form<Expr>)
       {
-        return MatrixTraits<Expr>::template make<C>(Cholesky_factor<TriangleType::lower>(std::forward<Arg>(arg)));
+        return MatrixTraits<std::decay_t<Expr>>::template make<C>(Cholesky_factor<TriangleType::lower>(std::forward<Arg>(arg)));
       }
       else
       {
-        return MatrixTraits<Expr>::template make<C>(std::forward<Arg>(arg));
+        return MatrixTraits<std::decay_t<Expr>>::template make<C>(std::forward<Arg>(arg));
       }
     }
   }
@@ -362,7 +355,7 @@ namespace OpenKalman
       static auto call(Arg&& arg)
       {
         static_assert(equivalent_to<RC, CC>);
-        auto f = [](auto&& m) { return MatrixTraits<Expr>::template make<RC>(std::forward<decltype(m)>(m)); };
+        auto f = [](auto&& m) { return MatrixTraits<std::decay_t<Expr>>::template make<RC>(std::forward<decltype(m)>(m)); };
         return split_cov_diag_impl<Expr>(f, std::forward<Arg>(arg));
       }
     };

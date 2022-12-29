@@ -26,10 +26,10 @@ namespace OpenKalman::internal
    */
   template<typename Cov, typename Nested = nested_matrix_of_t<Cov>>
 #ifdef __cpp_concepts
-  concept case1or2 = (self_adjoint_covariance<Cov> and self_adjoint_matrix<Nested>) or
+  concept case1or2 = (self_adjoint_covariance<Cov> and hermitian_matrix<Nested>) or
     (triangular_covariance<Cov> and triangular_matrix<Nested>);
 #else
-  static constexpr bool case1or2 = (self_adjoint_covariance<Cov> and self_adjoint_matrix<Nested>) or
+  static constexpr bool case1or2 = (self_adjoint_covariance<Cov> and hermitian_matrix<Nested>) or
     (triangular_covariance<Cov> and triangular_matrix<Nested>);
 #endif
 
@@ -72,10 +72,10 @@ namespace OpenKalman::internal
   protected:
 
     using CholeskyNestedMatrix = std::conditional_t<diagonal_matrix<NestedMatrix>,
-      typename MatrixTraits<NestedMatrix>::template DiagonalMatrixFrom<>,
+      typename MatrixTraits<std::decay_t<NestedMatrix>>::template DiagonalMatrixFrom<>,
       std::conditional_t<triangular_matrix<NestedMatrix>,
-        typename MatrixTraits<NestedMatrix>::template SelfAdjointMatrixFrom<>,
-        typename MatrixTraits<NestedMatrix>::template TriangularMatrixFrom<>>>;
+        typename MatrixTraits<std::decay_t<NestedMatrix>>::template SelfAdjointMatrixFrom<>,
+        typename MatrixTraits<std::decay_t<NestedMatrix>>::template TriangularMatrixFrom<>>>;
 
 
     /**

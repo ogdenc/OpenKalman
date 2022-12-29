@@ -96,7 +96,7 @@ namespace OpenKalman
 
       auto sum = make_self_contained<decltype(b1), decltype(b2)>(std::forward<B1>(b1) + std::forward<B2>(b2));
 
-      if constexpr (self_adjoint_matrix<decltype(sum)>)
+      if constexpr (hermitian_matrix<decltype(sum)>)
       {
         return make_covariance<C>(std::move(sum));
       }
@@ -160,7 +160,7 @@ namespace OpenKalman
 
       auto diff = make_self_contained<B1, B2>(std::forward<B1>(b1) - std::forward<B2>(b2));
 
-      if constexpr (self_adjoint_matrix<decltype(diff)>)
+      if constexpr (hermitian_matrix<decltype(diff)>)
       {
         return make_covariance<C>(std::move(diff));
       }
@@ -207,7 +207,7 @@ namespace OpenKalman
 
       auto prod = make_self_contained<B1, B2>(std::forward<B1>(b1) * std::forward<B2>(b2));
 
-      if constexpr (self_adjoint_matrix<decltype(prod)>)
+      if constexpr (hermitian_matrix<decltype(prod)>)
       {
         return make_covariance<C>(std::move(prod));
       }
@@ -228,10 +228,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typed_matrix M, covariance Cov> requires
-    equivalent_to<row_coefficient_types_of_t<M>::ColumnCoefficients, typename MatrixTraits<Cov>>
+    equivalent_to<row_coefficient_types_of_t<M>::ColumnCoefficients, typename MatrixTraits<std::decay_t<Cov>>>
 #else
   template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and covariance<Cov> and
-    equivalent_to<row_coefficient_types_of_t<M>::ColumnCoefficients, typename MatrixTraits<Cov>>, int> = 0>
+    equivalent_to<row_coefficient_types_of_t<M>::ColumnCoefficients, typename MatrixTraits<std::decay_t<Cov>>>, int> = 0>
 #endif
   constexpr decltype(auto) operator*(M&& m, Cov&& cov) noexcept
   {
@@ -329,26 +329,26 @@ namespace OpenKalman
       if constexpr (triangular_covariance<M>)
       {
         auto prod = nested_matrix(std::forward<M>(m)) * static_cast<Scalar>(s);
-        return MatrixTraits<M>::make(make_self_contained<M>(std::move(prod)));
+        return MatrixTraits<std::decay_t<M>>::make(make_self_contained<M>(std::move(prod)));
       }
       else
       {
-        using B = typename MatrixTraits<nested_matrix_of_t<M>>::template TriangularMatrixFrom<>;
+        using B = typename MatrixTraits<std::decay_t<nested_matrix_of_t<M>>>::template TriangularMatrixFrom<>;
 
         if (s > Scalar(0))
         {
-          return MatrixTraits<M>::make(B {nested_matrix(std::forward<M>(m)) * std::sqrt(static_cast<Scalar>(s))});
+          return MatrixTraits<std::decay_t<M>>::make(B {nested_matrix(std::forward<M>(m)) * square_root(static_cast<Scalar>(s))});
         }
         else if (s < Scalar(0))
         {
-          return MatrixTraits<M>::make(B {rank_update(
+          return MatrixTraits<std::decay_t<M>>::make(B {rank_update(
             make_zero_matrix_like(nested_matrix(m)),
             make_dense_writable_matrix_from(nested_matrix(std::forward<M>(m))),
             static_cast<Scalar>(s))});
         }
         else
         {
-          return MatrixTraits<M>::make(B {make_zero_matrix_like(nested_matrix(m))});
+          return MatrixTraits<std::decay_t<M>>::make(B {make_zero_matrix_like(nested_matrix(m))});
         }
       }
     }
@@ -357,12 +357,12 @@ namespace OpenKalman
       if constexpr (triangular_covariance<M> and not diagonal_matrix<M>)
       {
         auto prod = nested_matrix(std::forward<M>(m)) * (static_cast<Scalar>(s) * static_cast<Scalar>(s));
-        return MatrixTraits<M>::make(make_self_contained<M>(std::move(prod)));
+        return MatrixTraits<std::decay_t<M>>::make(make_self_contained<M>(std::move(prod)));
       }
       else
       {
         auto prod = nested_matrix(std::forward<M>(m)) * static_cast<Scalar>(s);
-        return MatrixTraits<M>::make(make_self_contained<M>(std::move(prod)));
+        return MatrixTraits<std::decay_t<M>>::make(make_self_contained<M>(std::move(prod)));
       }
     }
   }
@@ -400,19 +400,19 @@ namespace OpenKalman
       if constexpr (triangular_covariance<M>)
       {
         auto ret = nested_matrix(std::forward<M>(m)) / static_cast<Scalar>(s);
-        return MatrixTraits<M>::make(make_self_contained<M>(std::move(ret)));
+        return MatrixTraits<std::decay_t<M>>::make(make_self_contained<M>(std::move(ret)));
       }
       else
       {
-        using B = typename MatrixTraits<nested_matrix_of_t<M>>::template TriangularMatrixFrom<>;
+        using B = typename MatrixTraits<std::decay_t<nested_matrix_of_t<M>>>::template TriangularMatrixFrom<>;
 
         if (s > Scalar(0))
         {
-          return MatrixTraits<M>::make(B {nested_matrix(std::forward<M>(m)) / std::sqrt(static_cast<Scalar>(s))});
+          return MatrixTraits<std::decay_t<M>>::make(B {nested_matrix(std::forward<M>(m)) / square_root(static_cast<Scalar>(s))});
         }
         else if (s < Scalar(0))
         {
-          return MatrixTraits<M>::make(B {rank_update(
+          return MatrixTraits<std::decay_t<M>>::make(B {rank_update(
             make_zero_matrix_like(nested_matrix(m)),
             make_dense_writable_matrix_from(nested_matrix(std::forward<M>(m))),
             1 / static_cast<Scalar>(s))});
@@ -432,12 +432,12 @@ namespace OpenKalman
       else if constexpr (triangular_covariance<M> and not diagonal_matrix<M>)
       {
         auto ret = nested_matrix(std::forward<M>(m)) / (static_cast<Scalar>(s) * static_cast<Scalar>(s));
-        return MatrixTraits<M>::make(make_self_contained<M>(std::move(ret)));
+        return MatrixTraits<std::decay_t<M>>::make(make_self_contained<M>(std::move(ret)));
       }
       else
       {
         auto ret = nested_matrix(std::forward<M>(m)) / static_cast<Scalar>(s);
-        return MatrixTraits<M>::make(make_self_contained<M>(std::move(ret)));
+        return MatrixTraits<std::decay_t<M>>::make(make_self_contained<M>(std::move(ret)));
       }
     }
   }
@@ -465,7 +465,7 @@ namespace OpenKalman
         "With real numbers, it is impossible to represent the negation of a non-diagonal, non-Cholesky-form "
         "square-root covariance.");
       auto ret = -nested_matrix(std::forward<M>(m));
-      return MatrixTraits<M>::make(make_self_contained<M>(std::move(ret)));
+      return MatrixTraits<std::decay_t<M>>::make(make_self_contained<M>(std::move(ret)));
     }
   }
 
@@ -523,12 +523,12 @@ namespace OpenKalman
     if constexpr (cholesky_form<M> or (diagonal_matrix<M> and triangular_covariance<M>))
     {
       auto ret = nested_matrix(std::forward<M>(m)) * s;
-      return MatrixTraits<M>::make(make_self_contained<M>(std::move(ret)));
+      return MatrixTraits<std::decay_t<M>>::make(make_self_contained<M>(std::move(ret)));
     }
     else
     {
       auto ret = nested_matrix(std::forward<M>(m)) * (static_cast<Scalar>(s) * s);
-      return MatrixTraits<M>::make(make_self_contained<M>(std::move(ret)));
+      return MatrixTraits<std::decay_t<M>>::make(make_self_contained<M>(std::move(ret)));
     }
   }
 
@@ -548,12 +548,12 @@ namespace OpenKalman
     if constexpr (cholesky_form<M> or (diagonal_matrix<M> and triangular_covariance<M>))
     {
       auto ret = nested_matrix(std::forward<M>(m)) / s;
-      return MatrixTraits<M>::make(make_self_contained<M>(std::move(ret)));
+      return MatrixTraits<std::decay_t<M>>::make(make_self_contained<M>(std::move(ret)));
     }
     else
     {
       auto ret = nested_matrix(std::forward<M>(m)) / (static_cast<Scalar>(s) * s);
-      return MatrixTraits<M>::make(make_self_contained<M>(std::move(ret)));
+      return MatrixTraits<std::decay_t<M>>::make(make_self_contained<M>(std::move(ret)));
     }
   }
 
@@ -569,11 +569,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<covariance M, typed_matrix A> requires
-    equivalent_to<row_coefficient_types_of_t<A>::ColumnCoefficients, typename MatrixTraits<M>> and
+    equivalent_to<row_coefficient_types_of_t<A>::ColumnCoefficients, typename MatrixTraits<std::decay_t<M>>> and
     (not euclidean_transformed<A>)
 #else
   template<typename M, typename A, std::enable_if_t<covariance<M> and typed_matrix<A> and
-    equivalent_to<row_coefficient_types_of_t<A>::ColumnCoefficients, typename MatrixTraits<M>> and
+    equivalent_to<row_coefficient_types_of_t<A>::ColumnCoefficients, typename MatrixTraits<std::decay_t<M>>> and
     (not euclidean_transformed<A>), int> = 0>
 #endif
   inline auto
@@ -582,34 +582,34 @@ namespace OpenKalman
     using AC = row_coefficient_types_of_t<A>;
     using NestedMatrix = nested_matrix_of_t<M>;
 
-    if constexpr (diagonal_matrix<NestedMatrix> or self_adjoint_matrix<NestedMatrix>)
+    if constexpr (diagonal_matrix<NestedMatrix> or hermitian_matrix<NestedMatrix>)
     {
       using SABaseType = std::conditional_t<
         diagonal_matrix<NestedMatrix>,
-        typename MatrixTraits<NestedMatrix>::template SelfAdjointMatrixFrom<TriangleType::lower>,
-        typename MatrixTraits<NestedMatrix>::template SelfAdjointMatrixFrom<>>;
+        typename MatrixTraits<std::decay_t<NestedMatrix>>::template SelfAdjointMatrixFrom<TriangleType::lower>,
+        typename MatrixTraits<std::decay_t<NestedMatrix>>::template SelfAdjointMatrixFrom<>>;
 
       if constexpr(triangular_covariance<M>)
       {
         auto b = make_self_contained<M, A>(nested_matrix(a * (square(std::forward<M>(m)) * adjoint(a))));
-        return make_square_root_covariance<AC>(MatrixTraits<SABaseType>::make(std::move(b)));
+        return make_square_root_covariance<AC>(MatrixTraits<std::decay_t<SABaseType>>::make(std::move(b)));
       }
       else
       {
         auto b = make_self_contained<M, A>(nested_matrix(a * (std::forward<M>(m) * adjoint(a))));
-        return make_covariance<AC>(MatrixTraits<SABaseType>::make(std::move(b)));
+        return make_covariance<AC>(MatrixTraits<std::decay_t<SABaseType>>::make(std::move(b)));
       }
     }
     else if constexpr (upper_triangular_matrix<NestedMatrix>)
     {
       auto b = QR_decomposition(nested_matrix(std::forward<M>(m)) * adjoint(nested_matrix(std::forward<A>(a))));
-      return MatrixTraits<M>::template make<AC>(make_self_contained<M, A>(std::move(b)));
+      return MatrixTraits<std::decay_t<M>>::template make<AC>(make_self_contained<M, A>(std::move(b)));
     }
     else
     {
       static_assert(lower_triangular_matrix<NestedMatrix>);
       auto b = LQ_decomposition(nested_matrix(std::forward<A>(a)) * nested_matrix(std::forward<M>(m)));
-      return MatrixTraits<M>::template make<AC>(make_self_contained<M, A>(std::move(b)));
+      return MatrixTraits<std::decay_t<M>>::template make<AC>(make_self_contained<M, A>(std::move(b)));
     }
   }
 

@@ -175,7 +175,6 @@ TEST(eigen3, ToEuclideanExpr_traits)
   static_assert(typed_matrix_nestable<decltype(To32 {1, 2, pi/6, pi/3, 3, 4})>);
   static_assert(not from_euclidean_expr<decltype(To32 {1, 2, pi/6, pi/3, 3, 4})>);
   static_assert(not native_eigen_matrix<decltype(To32 {1, 2, pi/6, pi/3, 3, 4})>);
-  static_assert(not eigen_matrix<decltype(To32 {1, 2, pi/6, pi/3, 3, 4})>);
   static_assert(not identity_matrix<decltype(To32 {1, 2, pi/6, pi/3, 3, 4})>);
   static_assert(not zero_matrix<decltype(To32 {1, 2, pi/6, pi/3, 3, 4})>);
   // MatrixTraits
@@ -211,10 +210,10 @@ TEST(eigen3, ToEuclideanExpr_overloads)
   //EXPECT_TRUE(is_near(to_euclidean<TypedIndex<angle::Radians, Axis>>(m03_2), m33_to_ra));
   //EXPECT_TRUE(is_near(to_euclidean<TypedIndex<angle::Radians, Axis>>(m00_23), m33_to_ra));
 
-  ConstantMatrix<eigen_matrix_t<double, 3, 4>, 5> c534 {};
-  ConstantMatrix<eigen_matrix_t<double, 3, dynamic_size>, 5> c530_4 {4};
-  ConstantMatrix<eigen_matrix_t<double, dynamic_size, 4>, 5> c504_3 {3};
-  ConstantMatrix<eigen_matrix_t<double, dynamic_size, dynamic_size>, 5> c500_34 {3, 4};
+  ConstantAdapter<eigen_matrix_t<double, 3, 4>, 5> c534 {};
+  ConstantAdapter<eigen_matrix_t<double, 3, dynamic_size>, 5> c530_4 {4};
+  ConstantAdapter<eigen_matrix_t<double, dynamic_size, 4>, 5> c504_3 {3};
+  ConstantAdapter<eigen_matrix_t<double, dynamic_size, dynamic_size>, 5> c500_34 {3, 4};
 
   EXPECT_TRUE(is_near(to_euclidean<Dimensions<3>>(c534), c534));
   EXPECT_TRUE(is_near(to_euclidean<Dimensions<3>>(c530_4), c534));

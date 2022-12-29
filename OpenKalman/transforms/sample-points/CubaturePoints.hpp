@@ -178,7 +178,7 @@ namespace OpenKalman
 
       if constexpr(cholesky_form<InputDist>)
       {
-        auto out_covariance = make_self_contained(square(LQ_decomposition(y_deviations * std::sqrt(inv_weight))));
+        auto out_covariance = make_self_contained(square(LQ_decomposition(y_deviations * square_root(inv_weight))));
         static_assert(OpenKalman::covariance<decltype(out_covariance)>);
 
         if constexpr (return_cross)

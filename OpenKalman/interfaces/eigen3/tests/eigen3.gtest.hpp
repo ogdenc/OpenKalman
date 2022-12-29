@@ -15,7 +15,7 @@
 #define EIGEN3_GTEST_HPP
 
 #include "basics/tests/tests.hpp"
-
+#include "special-matrices/special-matrices.hpp"
 #include "interfaces/eigen3/eigen3.hpp"
 
 
@@ -128,18 +128,19 @@ namespace OpenKalman::test
     : ::testing::AssertionResult
   {
   private:
-    template<typename Arg>
-    decltype(auto) convert_impl(const Arg& arg)
+    decltype(auto) convert_impl(const Arg1& arg1, const Arg2& arg2, const Err& err)
     {
-      if constexpr (native_eigen_matrix<Arg>)
-        return (arg);
+      if constexpr (native_eigen_matrix<Arg1>)
+        return is_near(make_dense_writable_matrix_from(arg1),
+          make_dense_writable_matrix_from(to_native_matrix<Arg1>(arg2)), err);
       else
-        return make_dense_writable_matrix_from(arg);
+        return is_near(make_dense_writable_matrix_from(to_native_matrix<Arg2>(arg1)),
+          make_dense_writable_matrix_from(arg2), err);
     }
 
   public:
     TestComparison(const Arg1& arg1, const Arg2& arg2, const Err& err)
-      : ::testing::AssertionResult {is_near(convert_impl(arg1), convert_impl(arg2), err)} {};
+      : ::testing::AssertionResult {convert_impl(arg1, arg2, err)} {};
 
   };
 

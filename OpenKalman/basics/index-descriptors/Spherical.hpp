@@ -97,7 +97,7 @@ namespace OpenKalman
         }
         else
         {
-          using Scalar = decltype(g(std::declval<std::size_t>()));
+          using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
           using R = std::decay_t<decltype(real_projection(std::declval<Scalar>()))>;
           const Scalar cf_inc {numbers::pi_v<R> / (InclinationLimits::up - InclinationLimits::down)};
           const Scalar horiz {R{InclinationLimits::up + InclinationLimits::down} * R{0.5}};
@@ -105,7 +105,7 @@ namespace OpenKalman
           Scalar phi = cf_inc * (g(start + i_i) - horiz);
           if (euclidean_local_index == z_i)
           {
-            return interface::ScalarTraits<Scalar>::sin(phi);
+            return sine(phi);
           }
           else
           {
@@ -113,9 +113,9 @@ namespace OpenKalman
             const Scalar mid {R{CircleLimits::max + CircleLimits::min} * R{0.5}};
             Scalar theta = cf_cir * (g(start + a_i) - mid);
             if (euclidean_local_index == x_i)
-              return interface::ScalarTraits<Scalar>::cos(theta) * interface::ScalarTraits<Scalar>::cos(phi);
+              return cosine(theta) * cosine(phi);
             else // euclidean_local_index == y_i
-              return interface::ScalarTraits<Scalar>::sin(theta) * interface::ScalarTraits<Scalar>::cos(phi);
+              return sine(theta) * cosine(phi);
           }
         }
       }
@@ -165,7 +165,7 @@ namespace OpenKalman
               // If distance is negative, flip x and y axes 180 degrees:
               Scalar x2 = inverse_real_projection(x, std::signbit(dr) ? -xp : xp);
               Scalar y2 = inverse_real_projection(y, std::signbit(dr) ? -yp : yp);
-              return interface::ScalarTraits<Scalar>::atan2(y2, x2) / cf_cir + mid;
+              return arctangent2(y2, x2) / cf_cir + mid;
             }
             default: // case i_i
             {
@@ -174,8 +174,8 @@ namespace OpenKalman
               Scalar z {g(euclidean_start + z_i)};
               auto zp = real_projection(z);
               Scalar z2 {inverse_real_projection(z, std::signbit(dr) ? -zp : zp)};
-              Scalar r {interface::ScalarTraits<Scalar>::sqrt(x*x + y*y + z2*z2)};
-              return interface::ScalarTraits<Scalar>::asin2(z2, r) / cf_inc + horiz;
+              Scalar r {square_root(x*x + y*y + z2*z2)};
+              return arcsine2(z2, r) / cf_inc + horiz;
             }
           }
         }

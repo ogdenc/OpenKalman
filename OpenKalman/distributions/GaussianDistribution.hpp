@@ -17,7 +17,7 @@
 #define OPENKALMAN_GAUSSIANDISTRIBUTION_HPP
 
 #include <iostream>
-#include <special-matrices/details/eigen3-special-matrix-overloads.hpp>
+#include <special-matrices/details/special-matrix-overloads.hpp>
 
 
 namespace OpenKalman
@@ -414,7 +414,7 @@ namespace OpenKalman
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     row_coefficient_types_of_t<M>,
     nested_matrix_of_t<passable_t<M>>,
-    typename MatrixTraits<nested_matrix_of_t<C>>::template SelfAdjointMatrixFrom<>>;
+    typename MatrixTraits<std::decay_t<nested_matrix_of_t<C>>>::template SelfAdjointMatrixFrom<>>;
 
 
 #ifdef __cpp_concepts
@@ -461,7 +461,7 @@ namespace OpenKalman
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     row_coefficient_types_of_t<C>,
     passable_t<M>,
-    typename MatrixTraits<nested_matrix_of_t<C>>::template SelfAdjointMatrixFrom<>>;
+    typename MatrixTraitsstd::decay_t<nested_matrix_of_t<C>>>::template SelfAdjointMatrixFrom<>>;
 
 
 #ifdef __cpp_concepts
@@ -935,7 +935,7 @@ namespace OpenKalman
     {
       auto means = split_vertical<Cs...>(mean_of(d));
       auto covariances = split_diagonal<Cs...>(covariance_of(std::forward<D>(d)));
-      return OpenKalman::detail::zip_dist<D>(means, covariances, std::make_index_sequence<sizeof...(Cs)> {});
+      return OpenKalman::detail::zip_dist<D>(means, covariances, std::index_sequence_for<Cs...> {});
     }
   }
 

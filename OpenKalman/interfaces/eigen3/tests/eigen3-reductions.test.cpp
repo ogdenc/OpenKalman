@@ -232,13 +232,17 @@ TEST(eigen3, reduce_constant)
   auto c13 = Eigen::Replicate<C11, 1, 3> {c11};
   auto c21 = Eigen::Replicate<C11, 2, 1> {c11};
 
-  EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, c23), 2 * c13)); static_assert(constant_coefficient_v<decltype(reduce<0>(std::plus<double>{}, c23))> == 4);
+  EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, c23), 2 * c13));
+  static_assert(constant_coefficient_v<decltype(reduce<0>(std::plus<double>{}, c23))> == 4);
   EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, c03_2), 2 * c13));
-  EXPECT_TRUE(is_near(reduce<0>(std::multiplies<double>{}, c20_3), 2 * c13)); static_assert(constant_coefficient_v<decltype(reduce<0>(std::plus<double>{}, c20_3))> == 4);
+  EXPECT_TRUE(is_near(reduce<0>(std::multiplies<double>{}, c20_3), 2 * c13));
+  static_assert(constant_coefficient_v<decltype(reduce<0>(std::plus<double>{}, c20_3))> == 4);
   EXPECT_TRUE(is_near(reduce<0>(std::multiplies<double>{}, c00_23), 2 * c13));
 
-  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, c23), 3 * c21)); static_assert(constant_coefficient_v<decltype(reduce<1>(std::plus<double>{}, c23))> == 6);
-  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, c03_2), 3 * c21)); static_assert(constant_coefficient_v<decltype(reduce<1>(std::plus<double>{}, c03_2))> == 6);
+  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, c23), 3 * c21));
+  static_assert(constant_coefficient_v<decltype(reduce<1>(std::plus<double>{}, c23))> == 6);
+  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, c03_2), 3 * c21));
+  static_assert(constant_coefficient_v<decltype(reduce<1>(std::plus<double>{}, c03_2))> == 6);
   EXPECT_TRUE(is_near(reduce<1>(std::multiplies<double>{}, c20_3), 4 * c21));
   EXPECT_TRUE(is_near(reduce<1>(std::multiplies<double>{}, c00_23), 4 * c21));
 
@@ -248,6 +252,9 @@ TEST(eigen3, reduce_constant)
   EXPECT_EQ((reduce(std::multiplies<double>{}, c00_23)), 64);
   EXPECT_TRUE(is_near(reduce<1, 0>(std::multiplies<double>{}, c20_3), 32 * c11));
 
+  double non_constexpr_dummy = 0.0;
+  EXPECT_TRUE(is_near(reduce<1, 0>([&](auto a, auto b){ return non_constexpr_dummy + a + b; }, c23), 6 * c11));
+
   static_assert(reduce(std::plus<double>{}, c11) == 2);
   static_assert(reduce(std::multiplies<double>{}, c11) == 2);
   static_assert(reduce(std::plus<double>{}, c13) == 6);
@@ -256,6 +263,8 @@ TEST(eigen3, reduce_constant)
   static_assert(reduce(std::multiplies<double>{}, c21) == 4);
   static_assert(reduce(std::plus<double>{}, c23) == 12);
   static_assert(reduce(std::multiplies<double>{}, c23) == 64);
+
+  EXPECT_NEAR(reduce([&](auto a, auto b){ return non_constexpr_dummy + a * b; }, c13), 8, 1e-9);
 }
 
 
@@ -329,31 +338,29 @@ TEST(eigen3, average_constant)
 
 TEST(eigen3, average_identity)
 {
-  auto i22 = M22::Identity();
-  auto i20_2 = Eigen::Replicate<typename M11::IdentityReturnType, 2, Eigen::Dynamic> {M11::Identity(), 2, 1}.asDiagonal();
-  auto i02_2 = Eigen::Replicate<typename M11::IdentityReturnType, Eigen::Dynamic, 1> {M11::Identity(), 2, 1}.asDiagonal();
-  auto i00_22 = Eigen::Replicate<typename M11::IdentityReturnType, Eigen::Dynamic, Eigen::Dynamic> {M11::Identity(), 2, 1}.asDiagonal();
-  static_assert(constant_diagonal_coefficient_v<decltype(i00_22)>);
+  auto i21 = M22::Identity();
+  auto i20_1 = Eigen::Replicate<typename M11::IdentityReturnType, 2, Eigen::Dynamic> {M11::Identity(), 2, 1}.asDiagonal();
+  auto i01_2 = Eigen::Replicate<typename M11::IdentityReturnType, Eigen::Dynamic, 1> {M11::Identity(), 2, 1}.asDiagonal();
+  auto i00_21 = Eigen::Replicate<typename M11::IdentityReturnType, Eigen::Dynamic, Eigen::Dynamic> {M11::Identity(), 2, 1}.asDiagonal();
+  static_assert(identity_matrix<decltype(i21)>);
+  static_assert(identity_matrix<decltype(i20_1)>);
+  static_assert(identity_matrix<decltype(i01_2)>);
+  static_assert(identity_matrix<decltype(i00_21)>);
 
-  EXPECT_TRUE(is_near(average_reduce<1>(i22), M21::Constant(0.5)));
-  EXPECT_TRUE(is_near(average_reduce<1>(i20_2), M21::Constant(0.5)));
-  EXPECT_TRUE(is_near(average_reduce<1>(i02_2), M21::Constant(0.5)));
-  EXPECT_TRUE(is_near(average_reduce<1>(i00_22), M21::Constant(0.5)));
+  EXPECT_TRUE(is_near(average_reduce<1>(i21), M21::Constant(0.5)));
+  EXPECT_TRUE(is_near(average_reduce<1>(i20_1), M21::Constant(0.5)));
+  EXPECT_TRUE(is_near(average_reduce<1>(i01_2), M21::Constant(0.5)));
+  EXPECT_TRUE(is_near(average_reduce<1>(i00_21), M21::Constant(0.5)));
 
-  EXPECT_TRUE(is_near(average_reduce<0>(i22), M12::Constant(0.5)));
-  EXPECT_TRUE(is_near(average_reduce<0>(i20_2), M12::Constant(0.5)));
-  EXPECT_TRUE(is_near(average_reduce<0>(i02_2), M12::Constant(0.5)));
-  EXPECT_TRUE(is_near(average_reduce<0>(i00_22), M12::Constant(0.5)));
+  EXPECT_TRUE(is_near(average_reduce<0>(i21), M12::Constant(0.5)));
+  EXPECT_TRUE(is_near(average_reduce<0>(i20_1), M12::Constant(0.5)));
+  EXPECT_TRUE(is_near(average_reduce<0>(i01_2), M12::Constant(0.5)));
+  EXPECT_TRUE(is_near(average_reduce<0>(i00_21), M12::Constant(0.5)));
 
-#if __cpp_nontype_template_args >= 201911L
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(average_reduce<0>(i22))>, 0.5));
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(average_reduce<1>(i22))>, 0.5));
-  static_assert(average_reduce(i22) == 0.5);
-  static_assert(average_reduce(i20_2) == 0.5);
-  static_assert(average_reduce(i02_2)== 0.5);
-  static_assert(average_reduce(i00_22) == 0.5);
-#endif
-
+  static_assert(average_reduce(i21) == 0.5);
+  EXPECT_EQ(average_reduce(i20_1), 0.5);
+  EXPECT_EQ(average_reduce(i01_2), 0.5);
+  EXPECT_EQ(average_reduce(i00_21), 0.5);
 }
 
 
@@ -376,16 +383,12 @@ TEST(eigen3, average_constant_diagonal)
   EXPECT_TRUE(is_near(average_reduce<0>(d01_2_2), M12::Constant(1)));
   EXPECT_TRUE(is_near(average_reduce<0>(d00_21_2), M12::Constant(1)));
 
-#if __cpp_nontype_template_args >= 201911L
+  static_assert(constant_coefficient_v<decltype(average_reduce<0>(d21_2))> == 1);
+  static_assert(constant_coefficient_v<decltype(average_reduce<1>(d21_2))> == 1);
+
   static_assert(average_reduce(d21_2) == 1);
-  static_assert(average_reduce(d20_1_2) == 1);
-  static_assert(average_reduce(d01_2_2) == 1);
-  static_assert(average_reduce(d00_21_2) == 1);
-#else
-  EXPECT_EQ(average_reduce(d21_2), 1);
   EXPECT_EQ(average_reduce(d20_1_2), 1);
   EXPECT_EQ(average_reduce(d01_2_2), 1);
   EXPECT_EQ(average_reduce(d00_21_2), 1);
-#endif
 }
 

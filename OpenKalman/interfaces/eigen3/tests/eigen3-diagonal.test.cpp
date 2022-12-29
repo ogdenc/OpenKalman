@@ -61,7 +61,14 @@ TEST(eigen3, to_diagonal)
   EXPECT_TRUE(is_near(to_diagonal(m11), m11));
   EXPECT_TRUE(is_near(to_diagonal(M10 {m11}), m11));
   EXPECT_TRUE(is_near(to_diagonal(M01 {m11}), m11));
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
   EXPECT_TRUE(is_near(to_diagonal(M00 {m11}), m11));
+#pragma GCC diagnostic pop
+  EXPECT_TRUE(is_near(to_diagonal(Eigen::DiagonalWrapper {m11}), m11));
+  EXPECT_TRUE(is_near(to_diagonal(Eigen::DiagonalMatrix<double, 1> {m11}), m11));
+  EXPECT_TRUE(is_near(to_diagonal(m11.selfadjointView<Eigen::Lower>()), m11));
+  EXPECT_TRUE(is_near(to_diagonal(m11.triangularView<Eigen::Upper>()), m11));
 
   auto m21 = M21 {1, 4};
   auto m20_1 = M20 {m21};
@@ -94,7 +101,10 @@ TEST(eigen3, diagonal_of_matrix)
   auto m11 = M11 {3};
   auto m10_1 = M10 {m11};
   auto m01_1 = M01 {m11};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
   auto m00_11 = M00 {m11};
+#pragma GCC diagnostic pop
 
   EXPECT_TRUE(is_near(diagonal_of(m11), m11));
   EXPECT_TRUE(is_near(diagonal_of(m10_1), m11)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(m10_1))>);
@@ -233,9 +243,9 @@ TEST(eigen3, diagonal_of_identity)
   EXPECT_TRUE(is_near(diagonal_of(M02::Identity(2, 2)), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(M02::Identity(2, 2)))> == 1);
   EXPECT_TRUE(is_near(diagonal_of(M00::Identity(2, 2)), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(M00::Identity(2, 2)))> == 1);
 
-  static_assert(eigen_constant_expr<decltype(diagonal_of(std::declval<IdentityMatrix<M33>>()))>);
-  static_assert(row_dimension_of_v<decltype(diagonal_of(std::declval<IdentityMatrix<M33>>()))> == 3);
-  static_assert(column_dimension_of_v<decltype(diagonal_of(std::declval<IdentityMatrix<M33>>()))> == 1);
+  static_assert(eigen_constant_expr<decltype(diagonal_of(std::declval<Eigen3::IdentityMatrix<M33>>()))>);
+  static_assert(row_dimension_of_v<decltype(diagonal_of(std::declval<Eigen3::IdentityMatrix<M33>>()))> == 3);
+  static_assert(column_dimension_of_v<decltype(diagonal_of(std::declval<Eigen3::IdentityMatrix<M33>>()))> == 1);
 }
 
 

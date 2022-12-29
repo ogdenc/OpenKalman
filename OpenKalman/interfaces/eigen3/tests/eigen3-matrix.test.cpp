@@ -176,7 +176,7 @@ TEST(eigen3, make_dense_writable_matrix_from)
 
 TEST(eigen3, make_functions)
 {
-  auto m23 = M23 {};
+  auto m23 = make_dense_writable_matrix_from<M23>(0, 0, 0, 0, 0, 0);
   auto m20_3 = M20 {m23};
   auto m03_2 = M03 {m23};
   auto m00_23 = M00 {m23};
@@ -191,15 +191,15 @@ TEST(eigen3, make_functions)
   EXPECT_TRUE(is_near(make_zero_matrix_like(m00_23), M23::Zero()));
   EXPECT_TRUE(is_near(make_zero_matrix_like<M23>(), M23::Zero()));
 
-  static_assert(eigen_zero_expr<decltype(make_zero_matrix_like<M00>(Dimensions<2>(), Dimensions<3>()))>);
-  static_assert(eigen_zero_expr<decltype(make_zero_matrix_like<M00>(Dimensions<2>(), 3))>);
-  static_assert(eigen_zero_expr<decltype(make_zero_matrix_like<M00>(2, Dimensions<3>()))>);
-  static_assert(eigen_zero_expr<decltype(make_zero_matrix_like<M00>(2, 3))>);
-  static_assert(eigen_zero_expr<decltype(make_zero_matrix_like(m23))>);
-  static_assert(eigen_zero_expr<decltype(make_zero_matrix_like(m20_3))>);
-  static_assert(eigen_zero_expr<decltype(make_zero_matrix_like(m03_2))>);
-  static_assert(eigen_zero_expr<decltype(make_zero_matrix_like(m00_23))>);
-  static_assert(eigen_zero_expr<decltype(make_zero_matrix_like<M23>())>);
+  static_assert(zero_matrix<decltype(make_zero_matrix_like<M00>(Dimensions<2>(), Dimensions<3>()))>);
+  static_assert(zero_matrix<decltype(make_zero_matrix_like<M00>(Dimensions<2>(), 3))>);
+  static_assert(zero_matrix<decltype(make_zero_matrix_like<M00>(2, Dimensions<3>()))>);
+  static_assert(zero_matrix<decltype(make_zero_matrix_like<M00>(2, 3))>);
+  static_assert(zero_matrix<decltype(make_zero_matrix_like(m23))>);
+  static_assert(zero_matrix<decltype(make_zero_matrix_like(m20_3))>);
+  static_assert(zero_matrix<decltype(make_zero_matrix_like(m03_2))>);
+  static_assert(zero_matrix<decltype(make_zero_matrix_like(m00_23))>);
+  static_assert(zero_matrix<decltype(make_zero_matrix_like<M23>())>);
 
   static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<M00>(Dimensions<2>(), Dimensions<3>())), 0> == 2);
   static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<M00>(Dimensions<2>(), 3)), 0> == 2);
@@ -298,6 +298,32 @@ TEST(eigen3, make_functions)
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m20_2)), 1> == 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m02_2)), 1> == 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m00_22)), 1> == dynamic_size); EXPECT_EQ(get_index_dimension_of<1>(make_identity_matrix_like(m00_22)), 2);
+
+  auto m22h = make_dense_writable_matrix_from<M22>(3, 1, 1, 3);
+  auto m22u = make_dense_writable_matrix_from<M22>(3, 1, 0, 3);
+  auto m22l = make_dense_writable_matrix_from<M22>(3, 0, 1, 3);
+  auto m22d = make_dense_writable_matrix_from<M22>(3, 0, 0, 3);
+  auto m22_uppert = Eigen::TriangularView<M22, Eigen::Upper> {m22h};
+  auto m22_lowert = Eigen::TriangularView<M22, Eigen::Lower> {m22h};
+  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::upper>(m22_uppert), m22u));
+  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::upper>(m22_uppert))>);
+  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::lower>(m22_uppert), m22d));
+  static_assert(diagonal_matrix<decltype(make_triangular_matrix<TriangleType::lower>(m22_uppert))>);
+  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::lower>(m22_lowert), m22l));
+  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::lower>(m22_lowert))>);
+  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::upper>(m22_lowert), m22d));
+  static_assert(diagonal_matrix<decltype(make_triangular_matrix<TriangleType::upper>(m22_lowert))>);
+
+  auto m22_upperh = Eigen::SelfAdjointView<M22, Eigen::Upper> {m22h};
+  auto m22_lowerh = Eigen::SelfAdjointView<M22, Eigen::Lower> {m22h};
+  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::upper>(m22_upperh), m22u));
+  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::upper>(m22_upperh))>);
+  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::lower>(m22_upperh), m22l));
+  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::lower>(m22_upperh))>);
+  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::lower>(m22_lowerh), m22l));
+  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::lower>(m22_lowerh))>);
+  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::upper>(m22_lowerh), m22u));
+  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::upper>(m22_lowerh))>);
 }
 
 
@@ -314,6 +340,32 @@ TEST(eigen3, get_index_dimension_of)
   EXPECT_EQ(get_index_dimension_of<1>(M20 {m23}), 3);
   EXPECT_EQ(get_index_dimension_of<1>(M03 {m23}), 3);
   EXPECT_EQ(get_index_dimension_of<1>(M00 {m23}), 3);
+}
+
+
+TEST(eigen3, get_tensor_order_of)
+{
+  auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
+  auto m21 = make_dense_writable_matrix_from<M21>(1, 2);
+  auto m11 = make_dense_writable_matrix_from<M11>(6);
+
+  static_assert(get_tensor_order_of(m23) == 2);
+  static_assert(get_tensor_order_of(m21) == 1);
+  static_assert(get_tensor_order_of(m11) == 0);
+
+  EXPECT_EQ(get_tensor_order_of(M20 {m23}), 2);
+  EXPECT_EQ(get_tensor_order_of(M03 {m23}), 2);
+  EXPECT_EQ(get_tensor_order_of(M00 {m23}), 2);
+  EXPECT_EQ(get_tensor_order_of(M20 {m21}), 1);
+  EXPECT_EQ(get_tensor_order_of(M01 {m21}), 1);
+  EXPECT_EQ(get_tensor_order_of(M00 {m21}), 1);
+  EXPECT_EQ(get_tensor_order_of(M10 {m11}), 0);
+  EXPECT_EQ(get_tensor_order_of(M01 {m11}), 0);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+  EXPECT_EQ(get_tensor_order_of(M00 {m11}), 0);
+#pragma GCC diagnostic pop
+
 }
 
 

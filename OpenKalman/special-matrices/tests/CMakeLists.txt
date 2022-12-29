@@ -15,13 +15,12 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 
 add_executable(special-matrices
-        ZeroMatrix.test.cpp
-        ConstantMatrix.test.cpp
-        DiagonalMatrix.test.cpp
-        SelfAdjointMatrix.test.cpp
-        TriangularMatrix.test.cpp
-        ToEuclideanExpr.test.cpp
-        FromEuclideanExpr.test.cpp
+        ConstantAdapter.test.cpp
+        #DiagonalMatrix.test.cpp
+        #SelfAdjointMatrix.test.cpp
+        #TriangularMatrix.test.cpp
+        #ToEuclideanExpr.test.cpp
+        #FromEuclideanExpr.test.cpp
     )
 
 target_link_libraries(special-matrices ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)

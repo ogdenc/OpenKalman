@@ -10,17 +10,17 @@
 
 /**
  * \file
- * \brief Definitions for Eigen3::DiagonalMatrix
+ * \brief Definitions for DiagonalMatrix
  */
 
-#ifndef OPENKALMAN_EIGEN3_DIAGONALMATRIX_HPP
-#define OPENKALMAN_EIGEN3_DIAGONALMATRIX_HPP
+#ifndef OPENKALMAN_DIAGONALMATRIX_HPP
+#define OPENKALMAN_DIAGONALMATRIX_HPP
 
-namespace OpenKalman::Eigen3
+namespace OpenKalman
 {
 
 #ifdef __cpp_concepts
-  template<typename NestedMatrix> requires dynamic_columns<NestedMatrix> or column_vector<NestedMatrix>
+  template<indexible NestedMatrix> requires dimension_size_of_index_is<NestedMatrix, 1, 1, Likelihood::maybe>
 #else
   template<typename NestedMatrix>
 #endif
@@ -29,7 +29,8 @@ namespace OpenKalman::Eigen3
   {
 
 #ifndef __cpp_concepts
-    static_assert(dynamic_columns<NestedMatrix> or column_vector<NestedMatrix>);
+    static_assert(indexible<NestedMatrix>);
+    static_assert(dimension_size_of_index_is<NestedMatrix, 1, 1, Likelihood::maybe>);
 #endif
 
   private:
@@ -63,64 +64,45 @@ namespace OpenKalman::Eigen3
       : Base {} {}
 
 
-    /// Construct from a \ref diagonal_matrix, including eigen_diagonal_expr.
+    /// Construct from a \ref square_matrix or \ref column_vector.
 #ifdef __cpp_concepts
-    template<typename Arg> requires
-      (diagonal_matrix<Arg> or (not column_vector<Arg> and not dynamic_columns<Arg>)) and
-      (not std::derived_from<std::decay_t<Arg>, DiagonalMatrix>) and
-      (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_dimension_of_v<Arg> == dim) and
-      (dynamic_columns<Arg> or dynamic_rows<NestedMatrix> or column_dimension_of_v<Arg> == dim) and
-      requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; }
+    template<indexible Arg> requires (not std::derived_from<std::decay_t<Arg>, DiagonalMatrix>) and
+      dimension_size_of_index_is<Arg, 0, dim, Likelihood::maybe> and
+      (dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe> or
+        dimension_size_of_index_is<Arg, 1, dim, Likelihood::maybe>) and
+      (requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; } or
+        std::is_constructible_v<NestedMatrix, Arg&&>)
 #else
-    template<typename Arg, std::enable_if_t<
-      (diagonal_matrix<Arg> or (not column_vector<Arg> and not dynamic_columns<Arg>)) and
-      (not std::is_base_of_v<DiagonalMatrix, std::decay_t<Arg>>) and
-      (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_dimension_of_v<Arg> == dim) and
-      (dynamic_columns<Arg> or dynamic_rows<NestedMatrix> or column_dimension_of<Arg>::value == dim) and
-      std::is_constructible_v<NestedMatrix, decltype(diagonal_of(std::declval<Arg>()))>, int> = 0>
-#endif
-    DiagonalMatrix(Arg&& arg)
-      : Base {[](Arg&& arg) -> decltype(auto) {
-        if constexpr (dynamic_rows<Arg> and not dynamic_rows<NestedMatrix>)
-        {
-          auto r = get_dimensions_of<0>(std::forward<Arg>(arg));
-          if (r != dim) throw std::domain_error {"Dynamic size of diagonal argument (" + std::to_string(r) +
-            ") does not match the fixed DiagonalMatrix size (" + std::to_string(dim) + ") in " + __func__ +
-            " at line " + std::to_string(__LINE__) + " of " + __FILE__};
-        }
-        return diagonal_of(std::forward<Arg>(arg));
-    }(std::forward<Arg>(arg))} {}
-
-
-    /// Construct from a \ref column_vector.
-#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
-    template<typename Arg> requires (not diagonal_matrix<Arg>) and (column_vector<Arg> or dynamic_columns<Arg>) and
-      (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_dimension_of_v<Arg> == dim) and
-      requires(Arg&& arg) { NestedMatrix {std::forward<Arg>(arg)}; }
-#else
-    template<typename Arg, std::enable_if_t<
-      (not diagonal_matrix<Arg>) and (column_vector<Arg> or dynamic_columns<Arg>) and
-      (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_dimension_of<Arg>::value == dim) and
-      std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
+    template<typename Arg, std::enable_if_t<(not std::is_base_of_v<DiagonalMatrix, std::decay_t<Arg>>) and
+      dimension_size_of_index_is<Arg, 0, dim, Likelihood::maybe> and
+      (dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe> or
+        dimension_size_of_index_is<Arg, 1, dim, Likelihood::maybe>), int> = 0>
 #endif
     explicit DiagonalMatrix(Arg&& arg)
       : Base {[](Arg&& arg) -> decltype(auto) {
-        if constexpr (dynamic_rows<Arg> and not dynamic_rows<NestedMatrix>)
+        if constexpr (dimension_size_of_index_is<Arg, 1, 1>)
         {
-          auto r = get_index_dimension_of<0>(std::forward<Arg>(arg));
-          if (r != dim) throw std::domain_error {"DiagonalMatrix argument has " + std::to_string(r) +
-            " rows, but should have " + std::to_string(dim) + " at line " + std::to_string(__LINE__) +
-            " of " + __FILE__};
+          return std::forward<Arg>(arg);
         }
-
-        if constexpr (dynamic_columns<Arg>)
+        else if constexpr (dimension_size_of_index_is<Arg, 1, dim> and dim != dynamic_size)
+        {
+          return diagonal_of(std::forward<Arg>(arg));
+        }
+        else // number of columns is dynamic
         {
           auto c = get_index_dimension_of<1>(std::forward<Arg>(arg));
-          if (c != 1) throw std::domain_error {"DiagonalMatrix argument has " + std::to_string(c) +
-            " columns, but should have 1 at line " + std::to_string(__LINE__) + " of " + __FILE__};
-        }
+          if constexpr (std::is_constructible_v<NestedMatrix, Arg&&>)
+          {
+            if (c == 1) return Base {std::forward<Arg>(arg)};
+          }
 
-        return std::forward<Arg>(arg);
+          auto r = get_index_dimension_of<0>(std::forward<Arg>(arg));
+          if (c == r) return Base {diagonal_of(std::forward<Arg>(arg))};
+          else throw std::domain_error {
+          "DiagonalMatrix argument has " + std::to_string(r) + " rows and " + std::to_string(c) +
+          " dynamic columns, but the number of columns should either be 1 or " + std::to_string(r) +
+          "; at line " + std::to_string(__LINE__) + " of " + __FILE__};
+        }
     }(std::forward<Arg>(arg))} {}
 
 
@@ -131,14 +113,14 @@ namespace OpenKalman::Eigen3
     template<std::convertible_to<const Scalar> ... Args>
     requires (has_dynamic_dimensions<NestedMatrix> or sizeof...(Args) == dim) and
       requires(Args ... args) {
-        NestedMatrix {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)};
+        NestedMatrix {MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...)};
       }
 #else
-    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
+    template<typename...Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
         (has_dynamic_dimensions<NestedMatrix> or sizeof...(Args) == dim) and
         std::is_constructible_v<NestedMatrix, untyped_dense_writable_matrix_t<NestedMatrix, sizeof...(Args), 1>>, int> = 0>
 #endif
-    DiagonalMatrix(Args ... args) : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
+    DiagonalMatrix(Args...args) : Base {MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...)} {}
 
 
     /**
@@ -185,13 +167,11 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<zero_matrix Arg>
     requires (not eigen_diagonal_expr<Arg>) and (not identity_matrix<NestedMatrix>) and
-      (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_dimension_of_v<Arg> == dim) and
-      (has_dynamic_dimensions<Arg> or square_matrix<Arg>)
+      (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_dimension_of_v<Arg> == dim) and square_matrix<Arg, Likelihood::maybe>
 #else
     template<typename Arg, std::enable_if_t<zero_matrix<Arg> and (not eigen_diagonal_expr<Arg>) and
       (not identity_matrix<NestedMatrix>) and
-      (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_dimension_of<Arg>::value == dim) and
-      (has_dynamic_dimensions<Arg> or square_matrix<Arg>), int> = 0>
+      (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_dimension_of<Arg>::value == dim) and square_matrix<Arg, Likelihood::maybe>, int> = 0>
 #endif
     auto& operator=(Arg&& arg)
     {
@@ -210,13 +190,11 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<identity_matrix Arg>
     requires (not eigen_diagonal_expr<Arg>) and (not zero_matrix<NestedMatrix>) and
-      (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_dimension_of_v<Arg> == dim) and
-      (has_dynamic_dimensions<Arg> or square_matrix<Arg>)
+      (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_dimension_of_v<Arg> == dim) and square_matrix<Arg, Likelihood::maybe>
 #else
     template<typename Arg, std::enable_if_t<
       identity_matrix<Arg> and (not eigen_diagonal_expr<Arg>) and (not zero_matrix<NestedMatrix>) and
-      (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_dimension_of<Arg>::value == dim) and
-      (has_dynamic_dimensions<Arg> or square_matrix<Arg>), int> = 0>
+      (dynamic_rows<Arg> or dynamic_rows<NestedMatrix> or row_dimension_of<Arg>::value == dim) and square_matrix<Arg, Likelihood::maybe>, int> = 0>
 #endif
     auto& operator=(Arg&& arg)
     {
@@ -357,39 +335,42 @@ namespace OpenKalman::Eigen3
 
 
   /**
-   * \brief Deduce DiagonalMatrix template parameters for a diagonal matrix.
-   * \tparam Arg A diagonal matrix
+   * \brief Deduce DiagonalMatrix template parameters for a column vector.
+   * \tparam Arg A \ref column_vector
    */
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
-  template<typename Arg> requires
-    (diagonal_matrix<Arg> or (not column_vector<Arg> and not dynamic_columns<Arg>)) and
-    requires(Arg&& arg) { diagonal_of(std::forward<Arg>(arg)); }
+  template<dimension_size_of_index_is<1, 1, Likelihood::maybe> Arg> requires (not square_matrix<Arg>) or
+    (not requires(Arg&& arg) { diagonal_of(std::forward<Arg>(arg)); })
 #else
-  template<typename Arg, std::enable_if_t<
-    (diagonal_matrix<Arg> or (not column_vector<Arg> and not dynamic_columns<Arg>)) and
-    detail::diagonal_exists<Arg>::value, int> = 0>
+  template<typename Arg, std::enable_if_t<dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe> and
+    (not square_matrix<Arg, Likelihood::maybe> or not detail::diagonal_exists<Arg>::value), int> = 0>
 #endif
-  DiagonalMatrix(Arg&&) -> DiagonalMatrix<std::conditional_t<std::is_lvalue_reference_v<Arg>,
-    decltype(diagonal_of(std::declval<Arg&&>())),
-    equivalent_self_contained_t<decltype(diagonal_of(std::declval<Arg&&>()))>>>;
+  explicit DiagonalMatrix(Arg&&) ->
+    DiagonalMatrix<std::conditional_t<constant_matrix<Arg>, std::decay_t<Arg>, passable_t<Arg>>>;
 
 
   /**
-   * \brief Deduce DiagonalMatrix template parameters for a column vector.
-   * \tparam Arg A column vector or a matrix with dynamic columns that could be a column vector
+   * \brief Deduce DiagonalMatrix template parameters for a square matrix.
+   * \tparam Arg A \ref square_matrix
    */
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
-  template<typename Arg> requires ((not diagonal_matrix<Arg>) and (column_vector<Arg> or dynamic_columns<Arg>)) or
-    (not requires(Arg&& arg) { diagonal_of(std::forward<Arg>(arg)); })
+  template<square_matrix<Likelihood::maybe> Arg>
+  requires (square_matrix<Arg> or not dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe>) and
+    requires(Arg&& arg) { diagonal_of(std::forward<Arg>(arg)); }
 #else
-  template<typename Arg, std::enable_if_t<(not diagonal_matrix<Arg> and (column_vector<Arg> or dynamic_columns<Arg>)) or
-    not detail::diagonal_exists<Arg>::value, int> = 0>
+  template<typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe> and
+    (square_matrix<Arg> or not dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe>) and
+    detail::diagonal_exists<Arg>::value, int> = 0>
 #endif
-  explicit DiagonalMatrix(Arg&&) -> DiagonalMatrix<passable_t<Arg>>;
+  DiagonalMatrix(Arg&&) -> DiagonalMatrix<std::conditional_t<
+    constant_matrix<Arg> or constant_diagonal_matrix<Arg>,
+    std::decay_t<decltype(diagonal_of(std::declval<Arg&&>()))>,
+    passable_t<decltype(diagonal_of(std::declval<Arg&&>()))>
+  >>;
 
 
-} // OpenKalman::Eigen3
+} // OpenKalman
 
 
 
-#endif //OPENKALMAN_EIGEN3_DIAGONALMATRIX_HPP
+#endif //OPENKALMAN_DIAGONALMATRIX_HPP

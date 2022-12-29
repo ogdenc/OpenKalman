@@ -35,7 +35,7 @@ namespace OpenKalman
 #else
   constexpr bool typed_adapter =
 #endif
-    typed_matrix<T> or covariance<T> or Eigen3::euclidean_expr<T>;
+    typed_matrix<T> or covariance<T> or euclidean_expr<T>;
 
 
   // ----------------- //
@@ -45,8 +45,7 @@ namespace OpenKalman
   /**
    * \brief Specifies that T is an untyped adapter expression.
    * \details Untyped adapter expressions are generally used whenever the native matrix library does not have an
-   * important built-in matrix type, such as a single-scalar constant matrix, a diagonal matrix, a triangular matrix,
-   * or a hermitian matrix.
+   * important built-in matrix type, such as a diagonal matrix, a triangular matrix, or a hermitian matrix.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -54,8 +53,7 @@ namespace OpenKalman
 #else
   constexpr bool untyped_adapter =
 #endif
-    Eigen3::eigen_constant_expr<T> or Eigen3::eigen_zero_expr<T> or Eigen3::eigen_diagonal_expr<T> or
-    Eigen3::eigen_self_adjoint_expr<T> or Eigen3::eigen_triangular_expr<T>;
+    eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>;
 
 
   // ========= //
@@ -145,32 +143,6 @@ namespace OpenKalman
   //  Traits for which specializations must be defined in the matrix interface  //
   // ========================================================================== //
 
-  // ------------- //
-  //  is_writable  //
-  // ------------- //
-
-  namespace internal
-  {
-#ifdef __cpp_concepts
-    template<typed_matrix T> requires writable<nested_matrix_of_t<T>>
-    struct is_writable<T> : std::true_type {};
-#else
-    template<typename T>
-    struct is_writable<T, std::enable_if_t<typed_matrix<T> and writable<nested_matrix_of_t<T>>>> : std::true_type {};
-#endif
-
-
-#ifdef __cpp_concepts
-    template<covariance T> requires writable<nested_matrix_of_t<T>>
-    struct is_writable<T> : std::true_type {};
-#else
-    template<typename T>
-    struct is_writable<T, std::enable_if_t<covariance<T> and writable<nested_matrix_of_t<T>>>> : std::true_type {};
-#endif
-
-  }  // namespace internal
-
-
   // --------------- //
   //  is_modifiable  //
   // --------------- //
@@ -200,48 +172,27 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<typename T, typename U>
-#else
-    template<typename T, typename U, typename = void>
-#endif
-    struct has_same_matrix_shape : std::false_type {};
-
-
-#ifdef __cpp_concepts
-    template<typename T, typename U> requires
-      (dynamic_rows<T> or dynamic_rows<U> or row_dimension_of_v<T> == row_dimension_of_v<U>) and
-      (dynamic_columns<T> or dynamic_columns<U> or column_dimension_of_v<T> == column_dimension_of_v<U>) and
-      (std::same_as<scalar_type_of_t<T>, scalar_type_of_t<U>>)
-    struct has_same_matrix_shape<T, U> : std::true_type {};
-#else
-    template<typename T, typename U>
-    struct has_same_matrix_shape<T, U, std::enable_if_t<
-      (dynamic_rows<T> or dynamic_rows<U> or row_dimension_of<T>::value == row_dimension_of<U>::value) and
-      (dynamic_columns<T> or dynamic_columns<U> or column_dimension_of<T>::value == column_dimension_of<U>::value) and
-      (std::is_same_v<typename scalar_type_of<T>::type, typename scalar_type_of<U>::type>)>> : std::true_type {};
-#endif
-
-
-#ifdef __cpp_concepts
     template<typename T, typename U> requires
       has_const<T>::value or
-      (not has_same_matrix_shape<T, U>::value) or
+      (not maybe_has_same_shape_as<T, U>) or
+      (not std::same_as<scalar_type_of_t<T>, scalar_type_of_t<U>>) or
       (constant_matrix<T> and not constant_matrix<U>) or
       (identity_matrix<T> and not identity_matrix<U>) or
       (upper_triangular_matrix<T> and not upper_triangular_matrix<U>) or
       (lower_triangular_matrix<T> and not lower_triangular_matrix<U>) or
-      (self_adjoint_matrix<T> and not self_adjoint_matrix<U>)
+      (hermitian_matrix<T> and not hermitian_matrix<U>)
     struct is_modifiable<T, U> : std::false_type {};
 #else
     template<typename T, typename U>
     struct is_modifiable<T, U, std::enable_if_t<
       has_const<T>::value or
-      (not has_same_matrix_shape<T, U>::value) or
+      (not maybe_has_same_shape_as<T, U>) or
+      (not std::is_same_v<scalar_type_of_t<T>, scalar_type_of_t<U>>) or
       (constant_matrix<T> and not constant_matrix<U>) or
       (identity_matrix<T> and not identity_matrix<U>) or
       (upper_triangular_matrix<T> and not upper_triangular_matrix<U>) or
       (lower_triangular_matrix<T> and not lower_triangular_matrix<U>) or
-      (self_adjoint_matrix<T> and not self_adjoint_matrix<U>)>> : std::false_type {};
+      (hermitian_matrix<T> and not hermitian_matrix<U>)>> : std::false_type {};
 #endif
 
   } // namespace internal

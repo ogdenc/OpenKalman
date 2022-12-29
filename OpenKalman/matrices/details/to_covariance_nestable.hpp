@@ -41,7 +41,7 @@ namespace OpenKalman::internal
       // diagonal -> diagonal
       if constexpr (column_vector<Arg> and not one_by_one_matrix<Arg>)
       {
-        return MatrixTraits<T>::make(std::forward<Arg>(arg));
+        return MatrixTraits<std::decay_t<T>>::make(std::forward<Arg>(arg));
       }
       else
       {
@@ -52,15 +52,15 @@ namespace OpenKalman::internal
     }
     else if constexpr (diagonal_matrix<Arg>)
     {
-      return MatrixTraits<T>::make(std::forward<Arg>(arg));
+      return MatrixTraits<std::decay_t<T>>::make(std::forward<Arg>(arg));
     }
-    else if constexpr (self_adjoint_matrix<T> and triangular_matrix<Arg>)
+    else if constexpr (hermitian_matrix<T> and triangular_matrix<Arg>)
     {
       // non-diagonal triangular --> non-diagonal self-adjoint
-      static_assert(self_adjoint_matrix<decltype(Cholesky_square(std::declval<Arg&&>()))>);
+      static_assert(hermitian_matrix<decltype(Cholesky_square(std::declval<Arg&&>()))>);
       return Cholesky_square(std::forward<Arg>(arg));
     }
-    else if constexpr (triangular_matrix<T> and self_adjoint_matrix<Arg>)
+    else if constexpr (triangular_matrix<T> and hermitian_matrix<Arg>)
     {
       // non-diagonal self-adjoint --> non-diagonal triangular
       static_assert(triangle_type_of_v<T> ==
@@ -77,13 +77,13 @@ namespace OpenKalman::internal
     else if constexpr (typed_matrix_nestable<Arg> and not covariance_nestable<Arg>)
     {
       // typed_matrix_nestable -> covariance_nestable:
-      return MatrixTraits<T>::make(std::forward<Arg>(arg));
+      return MatrixTraits<std::decay_t<T>>::make(std::forward<Arg>(arg));
     }
     else
     {
       // Pass through if no conversion is necessary.
       static_assert(covariance_nestable<Arg>);
-      static_assert(self_adjoint_matrix<T> == self_adjoint_matrix<Arg>);
+      static_assert(hermitian_matrix<T> == hermitian_matrix<Arg>);
       static_assert(triangular_matrix<T> == triangular_matrix<Arg>);
       static_assert(diagonal_matrix<T> == diagonal_matrix<Arg>);
       static_assert(lower_triangular_matrix<Arg> == lower_triangular_matrix<Arg>);
@@ -120,7 +120,7 @@ namespace OpenKalman::internal
         return to_covariance_nestable<T>(std::forward<Arg>(arg).get_self_adjoint_nested_matrix());
       }
     }
-    else if constexpr (self_adjoint_matrix<T>)
+    else if constexpr (hermitian_matrix<T>)
     {
       return to_covariance_nestable<T>(std::forward<Arg>(arg).get_self_adjoint_nested_matrix());
     }
@@ -147,16 +147,16 @@ namespace OpenKalman::internal
     }
     else if constexpr (square_matrix<Arg>)
     {
-      using SA = typename MatrixTraits<Arg>::template SelfAdjointMatrixFrom<>;
-      static_assert(self_adjoint_matrix<decltype(MatrixTraits<SA>::make(std::forward<Arg>(arg)))>);
-      return MatrixTraits<SA>::make(std::forward<Arg>(arg));
+      using SA = typename MatrixTraits<std::decay_t<Arg>>::template SelfAdjointMatrixFrom<>;
+      static_assert(hermitian_matrix<decltype(MatrixTraits<std::decay_t<SA>>::make(std::forward<Arg>(arg)))>);
+      return MatrixTraits<std::decay_t<SA>>::make(std::forward<Arg>(arg));
     }
     else
     {
       static_assert(column_vector<Arg>);
-      using D = typename MatrixTraits<Arg>::template DiagonalMatrixFrom<>;
-      static_assert(diagonal_matrix<decltype(MatrixTraits<D>::make(std::forward<Arg>(arg)))>);
-      return MatrixTraits<D>::make(std::forward<Arg>(arg));
+      using D = typename MatrixTraits<std::decay_t<Arg>>::template DiagonalMatrixFrom<>;
+      static_assert(diagonal_matrix<decltype(MatrixTraits<std::decay_t<D>>::make(std::forward<Arg>(arg)))>);
+      return MatrixTraits<std::decay_t<D>>::make(std::forward<Arg>(arg));
     }
   }
 

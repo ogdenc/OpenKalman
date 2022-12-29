@@ -93,16 +93,16 @@ TEST(eigen3, SelfAdjointMatrix_static_checks)
 
   static_assert(not OpenKalman::internal::has_const<SAl<M22>>::value);
   static_assert(OpenKalman::internal::has_const<SAl<const M22>>::value);
-  static_assert(OpenKalman::internal::has_same_matrix_shape<SAl<M22>, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>::value);
-  static_assert(not OpenKalman::internal::has_same_matrix_shape<SAl<M22>, ZeroMatrix<eigen_matrix_t<double, 3, 3>>>::value);
+  static_assert(maybe_has_same_shape_as<SAl<M22>, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>);
+  static_assert(not maybe_has_same_shape_as<SAl<M22>, ZeroMatrix<eigen_matrix_t<double, 3, 3>>>);
 
-  static_assert(modifiable<SAl<M22>, ConstantMatrix<eigen_matrix_t<double, 2, 2>, 7>>);
-  static_assert(modifiable<SAu<M22>, ConstantMatrix<eigen_matrix_t<double, 2, 2>, 7>>);
+  static_assert(modifiable<SAl<M22>, ConstantAdapter<eigen_matrix_t<double, 2, 2>, 7>>);
+  static_assert(modifiable<SAu<M22>, ConstantAdapter<eigen_matrix_t<double, 2, 2>, 7>>);
   
   static_assert(modifiable<SAl<M22>, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>);
   static_assert(modifiable<SAu<M22>, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>);
-  static_assert(modifiable<SAl<M22>, IdentityMatrix<M22>>);
-  static_assert(modifiable<SAu<M22>, IdentityMatrix<M22>>);
+  static_assert(modifiable<SAl<M22>, Eigen3::IdentityMatrix<M22>>);
+  static_assert(modifiable<SAu<M22>, Eigen3::IdentityMatrix<M22>>);
   static_assert(modifiable<SAl<M22>, D<M21>>);
   static_assert(modifiable<SAu<M22>, D<M21>>);
   static_assert(not modifiable<SAl<M22>, M22>);
@@ -170,8 +170,8 @@ TEST(eigen3, SelfAdjointMatrix_class)
   U22 u2 {mat22(9, 3, 3, 10)};
   EXPECT_TRUE(is_near(u1, m_93310));
   //
-  EXPECT_TRUE(is_near(L22(DiagonalMatrix {3., 4}), mat22(3, 0, 0, 4)));
-  EXPECT_TRUE(is_near(U22(DiagonalMatrix {3., 4}), mat22(3, 0, 0, 4)));
+  EXPECT_TRUE(is_near(L22(D2 {3., 4}), mat22(3, 0, 0, 4)));
+  EXPECT_TRUE(is_near(U22(D2 {3., 4}), mat22(3, 0, 0, 4)));
   //
   EXPECT_TRUE(is_near(L22(make_zero_matrix_like<M22>()), M22::Zero()));
   EXPECT_TRUE(is_near(U22(make_zero_matrix_like<M22>()), M22::Zero()));
@@ -547,19 +547,19 @@ TEST(eigen3, SelfAdjointMatrix_make)
   static_assert(zero_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(make_zero_matrix_like<M22>()))>);
   static_assert(zero_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(make_zero_matrix_like<M22>()))>);
   static_assert(zero_matrix<decltype(make_EigenSelfAdjointMatrix(make_zero_matrix_like<M22>()))>);
-  static_assert(upper_self_adjoint_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(make_dense_writable_matrix_from<M22>(9, 3, 3, 10)))>);
-  static_assert(lower_self_adjoint_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(make_dense_writable_matrix_from<M22>(9, 3, 3, 10)))>);
-  static_assert(lower_self_adjoint_matrix<decltype(make_EigenSelfAdjointMatrix(make_dense_writable_matrix_from<M22>(9, 3, 3, 10)))>);
-  static_assert(diagonal_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(DiagonalMatrix {3., 4}))>);
-  static_assert(diagonal_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(DiagonalMatrix {3., 4}))>);
-  static_assert(diagonal_matrix<decltype(make_EigenSelfAdjointMatrix(DiagonalMatrix {3., 4}))>);
+  static_assert(upper_hermitian_adapter<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(make_dense_writable_matrix_from<M22>(9, 3, 3, 10)))>);
+  static_assert(lower_hermitian_adapter<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(make_dense_writable_matrix_from<M22>(9, 3, 3, 10)))>);
+  static_assert(lower_hermitian_adapter<decltype(make_EigenSelfAdjointMatrix(make_dense_writable_matrix_from<M22>(9, 3, 3, 10)))>);
+  static_assert(diagonal_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(D2 {3., 4}))>);
+  static_assert(diagonal_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(D2 {3., 4}))>);
+  static_assert(diagonal_matrix<decltype(make_EigenSelfAdjointMatrix(D2 {3., 4}))>);
 
-  static_assert(upper_self_adjoint_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(U22 {9, 3, 3, 10}))>);
-  static_assert(lower_self_adjoint_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(L22 {9, 3, 3, 10}))>);
-  static_assert(upper_self_adjoint_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(L22 {9, 3, 3, 10}))>);
-  static_assert(lower_self_adjoint_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(U22 {9, 3, 3, 10}))>);
-  static_assert(upper_self_adjoint_matrix<decltype(make_EigenSelfAdjointMatrix(U22 {9, 3, 3, 10}))>);
-  static_assert(lower_self_adjoint_matrix<decltype(make_EigenSelfAdjointMatrix(L22 {9, 3, 3, 10}))>);
+  static_assert(upper_hermitian_adapter<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(U22 {9, 3, 3, 10}))>);
+  static_assert(lower_hermitian_adapter<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(L22 {9, 3, 3, 10}))>);
+  static_assert(upper_hermitian_adapter<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(L22 {9, 3, 3, 10}))>);
+  static_assert(lower_hermitian_adapter<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(U22 {9, 3, 3, 10}))>);
+  static_assert(upper_hermitian_adapter<decltype(make_EigenSelfAdjointMatrix(U22 {9, 3, 3, 10}))>);
+  static_assert(lower_hermitian_adapter<decltype(make_EigenSelfAdjointMatrix(L22 {9, 3, 3, 10}))>);
 }
 
 
@@ -579,8 +579,8 @@ TEST(eigen3, SelfAdjointMatrix_traits)
   EXPECT_TRUE(is_near(make_identity_matrix_like<Dl>(), M22::Identity()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<Du>(), M22::Identity()));
 
-  static_assert(lower_self_adjoint_matrix<L22>);
-  static_assert(upper_self_adjoint_matrix<U22>);
+  static_assert(lower_hermitian_adapter<L22>);
+  static_assert(upper_hermitian_adapter<U22>);
   static_assert(diagonal_matrix<DM22>);
   static_assert(diagonal_matrix<DD2>);
   static_assert(diagonal_matrix<DL2>);
@@ -664,7 +664,7 @@ TEST(eigen3, SelfAdjointMatrix_overloads)
   static_assert(upper_triangular_matrix<decltype(Cholesky_factor<TriangleType::upper>(U22 {9., 3, 3, 1}))>);
 
   // Constant semidefinite case:
-  using Const922 = ConstantMatrix<eigen_matrix_t<double, 2, 2>, 9>;
+  using Const922 = ConstantAdapter<eigen_matrix_t<double, 2, 2>, 9>;
   EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::lower>(SelfAdjointMatrix<Const922, TriangleType::lower> {Const922 {}}), mat22(3., 0, 3, 0)));
   EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::upper>(SelfAdjointMatrix<Const922, TriangleType::upper> {Const922 {}}), mat22(3., 3, 0, 0)));
   EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::lower>(SelfAdjointMatrix<Const922, TriangleType::lower> {Const922 {}}), mat22(3., 0, 3, 0)));
@@ -766,7 +766,7 @@ TEST(eigen3, SelfAdjointMatrix_blocks_lower)
                                                                           0, 0, 4, 5, 6,
                                                                           0, 0, 5, 7, 8,
                                                                           0, 0, 6, 8, 9}));
-  static_assert(lower_self_adjoint_matrix<decltype(concatenate_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m1))>);
+  static_assert(lower_hermitian_adapter<decltype(concatenate_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m1))>);
 
   EXPECT_TRUE(is_near(concatenate_vertical(m0, m1),
     make_eigen_matrix<6,3>(1., 2, 3,
@@ -895,7 +895,7 @@ TEST(eigen3, SelfAdjointMatrix_blocks_upper)
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}));
-  static_assert(upper_self_adjoint_matrix<decltype(concatenate_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1))>);
+  static_assert(upper_hermitian_adapter<decltype(concatenate_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1))>);
 
   EXPECT_TRUE(is_near(concatenate_vertical(m0, m1),
     make_eigen_matrix<6,3>(1., 2, 3,
@@ -1008,8 +1008,8 @@ TEST(eigen3, SelfAdjointMatrix_blocks_mixed)
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}));
-  static_assert(upper_self_adjoint_matrix<decltype(concatenate_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1))>);
-  static_assert(lower_self_adjoint_matrix<decltype(concatenate_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m0))>);
+  static_assert(upper_hermitian_adapter<decltype(concatenate_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, m1))>);
+  static_assert(lower_hermitian_adapter<decltype(concatenate_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, m0))>);
 
   EXPECT_TRUE(is_near(concatenate_vertical(m0, m1),
     make_eigen_matrix<6,3>(1., 2, 3,
@@ -1042,27 +1042,27 @@ TEST(eigen3, SelfAdjointMatrix_arithmetic_lower)
   auto i = M22::Identity();
   auto z = ZeroMatrix<eigen_matrix_t<double, 2, 2>> {};
 
-  EXPECT_TRUE(is_near(m1 + m2, mat22(5, 7, 7, 9))); static_assert(self_adjoint_matrix<decltype(m1 + m2)>);
-  EXPECT_TRUE(is_near(m1 + d, mat22(5, 5, 5, 9))); static_assert(self_adjoint_matrix<decltype(m1 + d)>);
-  EXPECT_TRUE(is_near(d + m1, mat22(5, 5, 5, 9))); static_assert(self_adjoint_matrix<decltype(d + m1)>);
-  EXPECT_TRUE(is_near(m1 + i, mat22(5, 5, 5, 7))); static_assert(self_adjoint_matrix<decltype(m1 + i)>);
-  EXPECT_TRUE(is_near(i + m1, mat22(5, 5, 5, 7))); static_assert(self_adjoint_matrix<decltype(i + m1)>);
-  EXPECT_TRUE(is_near(m1 + z, mat22(4, 5, 5, 6))); static_assert(self_adjoint_matrix<decltype(m1 + z)>);
-  EXPECT_TRUE(is_near(z + m1, mat22(4, 5, 5, 6))); static_assert(self_adjoint_matrix<decltype(z + m1)>);
+  EXPECT_TRUE(is_near(m1 + m2, mat22(5, 7, 7, 9))); static_assert(hermitian_matrix<decltype(m1 + m2)>);
+  EXPECT_TRUE(is_near(m1 + d, mat22(5, 5, 5, 9))); static_assert(hermitian_matrix<decltype(m1 + d)>);
+  EXPECT_TRUE(is_near(d + m1, mat22(5, 5, 5, 9))); static_assert(hermitian_matrix<decltype(d + m1)>);
+  EXPECT_TRUE(is_near(m1 + i, mat22(5, 5, 5, 7))); static_assert(hermitian_matrix<decltype(m1 + i)>);
+  EXPECT_TRUE(is_near(i + m1, mat22(5, 5, 5, 7))); static_assert(hermitian_matrix<decltype(i + m1)>);
+  EXPECT_TRUE(is_near(m1 + z, mat22(4, 5, 5, 6))); static_assert(hermitian_matrix<decltype(m1 + z)>);
+  EXPECT_TRUE(is_near(z + m1, mat22(4, 5, 5, 6))); static_assert(hermitian_matrix<decltype(z + m1)>);
 
-  EXPECT_TRUE(is_near(m1 - m2, mat22(3, 3, 3, 3))); static_assert(self_adjoint_matrix<decltype(m1 - m2)>);
-  EXPECT_TRUE(is_near(m1 - d, mat22(3, 5, 5, 3))); static_assert(self_adjoint_matrix<decltype(m1 - d)>);
-  EXPECT_TRUE(is_near(d - m1, mat22(-3, -5, -5, -3))); static_assert(self_adjoint_matrix<decltype(d - m1)>);
-  EXPECT_TRUE(is_near(m1 - i, mat22(3, 5, 5, 5))); static_assert(self_adjoint_matrix<decltype(m1 - i)>);
-  EXPECT_TRUE(is_near(i - m1, mat22(-3, -5, -5, -5))); static_assert(self_adjoint_matrix<decltype(i - m1)>);
-  EXPECT_TRUE(is_near(m1 - z, mat22(4, 5, 5, 6))); static_assert(self_adjoint_matrix<decltype(m1 - z)>);
-  EXPECT_TRUE(is_near(z - m1, mat22(-4, -5, -5, -6))); static_assert(self_adjoint_matrix<decltype(z - m1)>);
+  EXPECT_TRUE(is_near(m1 - m2, mat22(3, 3, 3, 3))); static_assert(hermitian_matrix<decltype(m1 - m2)>);
+  EXPECT_TRUE(is_near(m1 - d, mat22(3, 5, 5, 3))); static_assert(hermitian_matrix<decltype(m1 - d)>);
+  EXPECT_TRUE(is_near(d - m1, mat22(-3, -5, -5, -3))); static_assert(hermitian_matrix<decltype(d - m1)>);
+  EXPECT_TRUE(is_near(m1 - i, mat22(3, 5, 5, 5))); static_assert(hermitian_matrix<decltype(m1 - i)>);
+  EXPECT_TRUE(is_near(i - m1, mat22(-3, -5, -5, -5))); static_assert(hermitian_matrix<decltype(i - m1)>);
+  EXPECT_TRUE(is_near(m1 - z, mat22(4, 5, 5, 6))); static_assert(hermitian_matrix<decltype(m1 - z)>);
+  EXPECT_TRUE(is_near(z - m1, mat22(-4, -5, -5, -6))); static_assert(hermitian_matrix<decltype(z - m1)>);
 
-  EXPECT_TRUE(is_near(m1 * 2, mat22(8, 10, 10, 12))); static_assert(self_adjoint_matrix<decltype(m1 * 2)>);
-  EXPECT_TRUE(is_near(2 * m1, mat22(8, 10, 10, 12))); static_assert(self_adjoint_matrix<decltype(2 * m1)>);
-  EXPECT_TRUE(is_near(m1 / 2, mat22(2, 2.5, 2.5, 3))); static_assert(self_adjoint_matrix<decltype(m1 / 2)>);
-  static_assert(self_adjoint_matrix<decltype(m1 / 0)>);
-  EXPECT_TRUE(is_near(-m1, mat22(-4, -5, -5, -6)));  static_assert(self_adjoint_matrix<decltype(-m1)>);
+  EXPECT_TRUE(is_near(m1 * 2, mat22(8, 10, 10, 12))); static_assert(hermitian_matrix<decltype(m1 * 2)>);
+  EXPECT_TRUE(is_near(2 * m1, mat22(8, 10, 10, 12))); static_assert(hermitian_matrix<decltype(2 * m1)>);
+  EXPECT_TRUE(is_near(m1 / 2, mat22(2, 2.5, 2.5, 3))); static_assert(hermitian_matrix<decltype(m1 / 2)>);
+  static_assert(hermitian_matrix<decltype(m1 / 0)>);
+  EXPECT_TRUE(is_near(-m1, mat22(-4, -5, -5, -6)));  static_assert(hermitian_matrix<decltype(-m1)>);
 
   EXPECT_TRUE(is_near(SelfAdjointMatrix<decltype(i), TriangleType::diagonal> {i} * 2, mat22(2, 0, 0, 2)));
   static_assert(diagonal_matrix<decltype(SelfAdjointMatrix<decltype(i), TriangleType::diagonal> {i} * 2)>);
@@ -1074,8 +1074,8 @@ TEST(eigen3, SelfAdjointMatrix_arithmetic_lower)
   EXPECT_TRUE(is_near(m1 * m2, mat22(14, 23, 17, 28)));
   EXPECT_TRUE(is_near(m1 * d, mat22(4, 15, 5, 18)));
   EXPECT_TRUE(is_near(d * m1, mat22(4, 5, 15, 18)));
-  EXPECT_TRUE(is_near(m1 * i, m1));  static_assert(self_adjoint_matrix<decltype(m1 * i)>);
-  EXPECT_TRUE(is_near(i * m1, m1));  static_assert(self_adjoint_matrix<decltype(i * m1)>);
+  EXPECT_TRUE(is_near(m1 * i, m1));  static_assert(hermitian_matrix<decltype(m1 * i)>);
+  EXPECT_TRUE(is_near(i * m1, m1));  static_assert(hermitian_matrix<decltype(i * m1)>);
   EXPECT_TRUE(is_near(m1 * z, z));  static_assert(zero_matrix<decltype(m1 * z)>);
   EXPECT_TRUE(is_near(z * m1, z));  static_assert(zero_matrix<decltype(z * m1)>);
   EXPECT_TRUE(is_near(MatrixTraits<L22>::make(mat22(1, 2, 3, 4) * (m1 * mat22(1, 3, 2, 4))), mat22(48, 110, 110, 252)));
@@ -1098,33 +1098,33 @@ TEST(eigen3, SelfAdjointMatrix_arithmetic_upper)
   auto d = DiagonalMatrix<eigen_matrix_t<double, 2, 1>> {1, 3};
   auto i = M22::Identity();
   auto z = ZeroMatrix<eigen_matrix_t<double, 2, 2>> {};
-  EXPECT_TRUE(is_near(m1 + m2, mat22(5, 7, 7, 9))); static_assert(self_adjoint_matrix<decltype(m1 + m2)>);
-  EXPECT_TRUE(is_near(m1 + d, mat22(5, 5, 5, 9))); static_assert(self_adjoint_matrix<decltype(m1 + d)>);
-  EXPECT_TRUE(is_near(d + m1, mat22(5, 5, 5, 9))); static_assert(self_adjoint_matrix<decltype(d + m1)>);
-  EXPECT_TRUE(is_near(m1 + i, mat22(5, 5, 5, 7))); static_assert(self_adjoint_matrix<decltype(m1 + i)>);
-  EXPECT_TRUE(is_near(i + m1, mat22(5, 5, 5, 7))); static_assert(self_adjoint_matrix<decltype(i + m1)>);
-  EXPECT_TRUE(is_near(m1 + z, mat22(4, 5, 5, 6))); static_assert(self_adjoint_matrix<decltype(m1 + z)>);
-  EXPECT_TRUE(is_near(z + m1, mat22(4, 5, 5, 6))); static_assert(self_adjoint_matrix<decltype(z + m1)>);
+  EXPECT_TRUE(is_near(m1 + m2, mat22(5, 7, 7, 9))); static_assert(hermitian_matrix<decltype(m1 + m2)>);
+  EXPECT_TRUE(is_near(m1 + d, mat22(5, 5, 5, 9))); static_assert(hermitian_matrix<decltype(m1 + d)>);
+  EXPECT_TRUE(is_near(d + m1, mat22(5, 5, 5, 9))); static_assert(hermitian_matrix<decltype(d + m1)>);
+  EXPECT_TRUE(is_near(m1 + i, mat22(5, 5, 5, 7))); static_assert(hermitian_matrix<decltype(m1 + i)>);
+  EXPECT_TRUE(is_near(i + m1, mat22(5, 5, 5, 7))); static_assert(hermitian_matrix<decltype(i + m1)>);
+  EXPECT_TRUE(is_near(m1 + z, mat22(4, 5, 5, 6))); static_assert(hermitian_matrix<decltype(m1 + z)>);
+  EXPECT_TRUE(is_near(z + m1, mat22(4, 5, 5, 6))); static_assert(hermitian_matrix<decltype(z + m1)>);
 
-  EXPECT_TRUE(is_near(m1 - m2, mat22(3, 3, 3, 3))); static_assert(self_adjoint_matrix<decltype(m1 - m2)>);
-  EXPECT_TRUE(is_near(m1 - d, mat22(3, 5, 5, 3))); static_assert(self_adjoint_matrix<decltype(m1 - d)>);
-  EXPECT_TRUE(is_near(d - m1, mat22(-3, -5, -5, -3))); static_assert(self_adjoint_matrix<decltype(d - m1)>);
-  EXPECT_TRUE(is_near(m1 - i, mat22(3, 5, 5, 5))); static_assert(self_adjoint_matrix<decltype(m1 - i)>);
-  EXPECT_TRUE(is_near(i - m1, mat22(-3, -5, -5, -5))); static_assert(self_adjoint_matrix<decltype(i - m1)>);
-  EXPECT_TRUE(is_near(m1 - z, mat22(4, 5, 5, 6))); static_assert(self_adjoint_matrix<decltype(m1 - z)>);
-  EXPECT_TRUE(is_near(z - m1, mat22(-4, -5, -5, -6))); static_assert(self_adjoint_matrix<decltype(z - m1)>);
+  EXPECT_TRUE(is_near(m1 - m2, mat22(3, 3, 3, 3))); static_assert(hermitian_matrix<decltype(m1 - m2)>);
+  EXPECT_TRUE(is_near(m1 - d, mat22(3, 5, 5, 3))); static_assert(hermitian_matrix<decltype(m1 - d)>);
+  EXPECT_TRUE(is_near(d - m1, mat22(-3, -5, -5, -3))); static_assert(hermitian_matrix<decltype(d - m1)>);
+  EXPECT_TRUE(is_near(m1 - i, mat22(3, 5, 5, 5))); static_assert(hermitian_matrix<decltype(m1 - i)>);
+  EXPECT_TRUE(is_near(i - m1, mat22(-3, -5, -5, -5))); static_assert(hermitian_matrix<decltype(i - m1)>);
+  EXPECT_TRUE(is_near(m1 - z, mat22(4, 5, 5, 6))); static_assert(hermitian_matrix<decltype(m1 - z)>);
+  EXPECT_TRUE(is_near(z - m1, mat22(-4, -5, -5, -6))); static_assert(hermitian_matrix<decltype(z - m1)>);
 
-  EXPECT_TRUE(is_near(m1 * 2, mat22(8, 10, 10, 12))); static_assert(self_adjoint_matrix<decltype(m1 * 2)>);
-  EXPECT_TRUE(is_near(2 * m1, mat22(8, 10, 10, 12))); static_assert(self_adjoint_matrix<decltype(2 * m1)>);
-  EXPECT_TRUE(is_near(m1 / 2, mat22(2, 2.5, 2.5, 3))); static_assert(self_adjoint_matrix<decltype(m1 / 2)>);
-  static_assert(self_adjoint_matrix<decltype(m1 / 0)>);
-  EXPECT_TRUE(is_near(-m1, mat22(-4, -5, -5, -6)));  static_assert(self_adjoint_matrix<decltype(-m1)>);
+  EXPECT_TRUE(is_near(m1 * 2, mat22(8, 10, 10, 12))); static_assert(hermitian_matrix<decltype(m1 * 2)>);
+  EXPECT_TRUE(is_near(2 * m1, mat22(8, 10, 10, 12))); static_assert(hermitian_matrix<decltype(2 * m1)>);
+  EXPECT_TRUE(is_near(m1 / 2, mat22(2, 2.5, 2.5, 3))); static_assert(hermitian_matrix<decltype(m1 / 2)>);
+  static_assert(hermitian_matrix<decltype(m1 / 0)>);
+  EXPECT_TRUE(is_near(-m1, mat22(-4, -5, -5, -6)));  static_assert(hermitian_matrix<decltype(-m1)>);
 
   EXPECT_TRUE(is_near(m1 * m2, mat22(14, 23, 17, 28)));
   EXPECT_TRUE(is_near(m1 * d, mat22(4, 15, 5, 18)));
   EXPECT_TRUE(is_near(d * m1, mat22(4, 5, 15, 18)));
-  EXPECT_TRUE(is_near(m1 * i, m1));  static_assert(self_adjoint_matrix<decltype(m1 * i)>);
-  EXPECT_TRUE(is_near(i * m1, m1));  static_assert(self_adjoint_matrix<decltype(i * m1)>);
+  EXPECT_TRUE(is_near(m1 * i, m1));  static_assert(hermitian_matrix<decltype(m1 * i)>);
+  EXPECT_TRUE(is_near(i * m1, m1));  static_assert(hermitian_matrix<decltype(i * m1)>);
   EXPECT_TRUE(is_near(m1 * z, z));  static_assert(zero_matrix<decltype(m1 * z)>);
   EXPECT_TRUE(is_near(z * m1, z));  static_assert(zero_matrix<decltype(z * m1)>);
 
@@ -1145,10 +1145,10 @@ TEST(eigen3, SelfAdjointMatrix_arithmetic_mixed)
   auto m2 = L22 {1., 2, 2, 3};
   auto tl1 = TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {2, 0, 1, 2};
   auto tu1 = TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {2, 1, 0, 2};
-  EXPECT_TRUE(is_near(m1 + m2, mat22(5., 7, 7, 9))); static_assert(upper_self_adjoint_matrix<decltype(m1 + m2)>);
-  EXPECT_TRUE(is_near(m2 + m1, mat22(5., 7, 7, 9))); static_assert(lower_self_adjoint_matrix<decltype(m2 + m1)>);
-  EXPECT_TRUE(is_near(m1 - m2, mat22(3, 3, 3, 3))); static_assert(upper_self_adjoint_matrix<decltype(m1 - m2)>);
-  EXPECT_TRUE(is_near(m2 - m1, mat22(-3, -3, -3, -3))); static_assert(lower_self_adjoint_matrix<decltype(m2 - m1)>);
+  EXPECT_TRUE(is_near(m1 + m2, mat22(5., 7, 7, 9))); static_assert(upper_hermitian_adapter<decltype(m1 + m2)>);
+  EXPECT_TRUE(is_near(m2 + m1, mat22(5., 7, 7, 9))); static_assert(lower_hermitian_adapter<decltype(m2 + m1)>);
+  EXPECT_TRUE(is_near(m1 - m2, mat22(3, 3, 3, 3))); static_assert(upper_hermitian_adapter<decltype(m1 - m2)>);
+  EXPECT_TRUE(is_near(m2 - m1, mat22(-3, -3, -3, -3))); static_assert(lower_hermitian_adapter<decltype(m2 - m1)>);
   EXPECT_TRUE(is_near(m1 * m2, mat22(14, 23, 17, 28)));
   EXPECT_TRUE(is_near(m2 * m1, mat22(14, 17, 23, 28)));
 

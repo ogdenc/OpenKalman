@@ -10,11 +10,11 @@
 
 /**
  * \file
- * \brief Overloaded general functions relating to object size or dimension.
+ * \brief Overloaded general functions relating to object size, dimension, or other index properties.
  */
 
-#ifndef OPENKALMAN_SIZE_FUNCTIONS_HPP
-#define OPENKALMAN_SIZE_FUNCTIONS_HPP
+#ifndef OPENKALMAN_INDEXIBLE_PROPERTY_FUNCTIONS_HPP
+#define OPENKALMAN_INDEXIBLE_PROPERTY_FUNCTIONS_HPP
 
 namespace OpenKalman
 {
@@ -26,10 +26,18 @@ namespace OpenKalman
 
   namespace detail
   {
-    template<std::size_t...I, typename T>
-    constexpr auto get_tensor_order_of_impl(std::index_sequence<I...>, const T& t)
+    template<typename T>
+    constexpr std::size_t get_tensor_order_of_impl(std::index_sequence<>, const T& t) { return 0; }
+
+    template<std::size_t I, std::size_t...Is, typename T>
+    constexpr std::size_t get_tensor_order_of_impl(std::index_sequence<I, Is...>, const T& t)
     {
-      return ((IndexTraits<T, I>::dimension_at_runtime(t) == 1 ? 0 : 1) + ... + 0);
+      if (IndexTraits<T, I>::dimension_at_runtime(t) == 0)
+        return 0;
+      else if (IndexTraits<T, I>::dimension_at_runtime(t) == 1)
+        return get_tensor_order_of_impl(std::index_sequence<Is...> {}, t);
+      else
+        return 1 + get_tensor_order_of_impl(std::index_sequence<Is...> {}, t);
     }
   }
 
@@ -43,12 +51,15 @@ namespace OpenKalman
 #else
   template<typename T, std::enable_if_t<indexible<T>, int> = 0>
 #endif
-  constexpr auto get_tensor_order_of(const T& t)
+  constexpr std::size_t get_tensor_order_of(const T& t)
   {
-    if constexpr (not has_dynamic_dimensions<T>)
-      return tensor_order_of_v<T>;
+    constexpr std::size_t max = max_indices_of_v<T>;
+    if constexpr (max == 0)
+      return 0;
+    else if constexpr (not has_dynamic_dimensions<T>)
+      return max_tensor_order_of_v<T>;
     else
-      return detail::get_tensor_order_of_impl(std::make_index_sequence<max_indices_of_v<T>> {}, t);
+      return detail::get_tensor_order_of_impl(std::make_index_sequence<max> {}, t);
   }
 
 
@@ -160,6 +171,71 @@ namespace OpenKalman
   }
 
 
+  // ----------------------------- //
+  //  get_index_descriptors_match  //
+  // ----------------------------- //
+
+  namespace detail
+  {
+    template<std::size_t...Is>
+    constexpr bool get_index_descriptors_match_impl(std::index_sequence<Is...>) { return true; }
+
+    template<std::size_t...Is, typename T, typename...Ts>
+    constexpr bool get_index_descriptors_match_impl(std::index_sequence<Is...>, const T& t, const Ts&...ts)
+    {
+      return ([](auto I_const, const T& t, const Ts&...ts){
+        constexpr std::size_t I = decltype(I_const)::value;
+        return ((get_dimensions_of<I>(t) == get_dimensions_of<I>(ts)) and ...);
+      }(std::integral_constant<std::size_t, Is>{}, t, ts...) and ...);
+    }
+  }
+
+
+  /**
+   * \brief Return true if every \ref index_descriptor of a set of objects match.
+   * \tparam Ts A set of tensors or matrices
+   */
+#ifdef __cpp_concepts
+  template<indexible...Ts>
+#else
+  template<typename...Ts, std::enable_if_t<(indexible<Ts> and ...), int> = 0>
+#endif
+  constexpr bool get_index_descriptors_match(const Ts&...ts)
+  {
+    return detail::get_index_descriptors_match_impl(std::make_index_sequence<std::max({max_indices_of_v<Ts>...})> {}, ts...);
+  }
+
+
+  // --------------- //
+  //  get_wrappable  //
+  // --------------- //
+
+  namespace detail
+  {
+    template<typename T, std::size_t...I>
+    constexpr bool get_wrappable_impl(const T& t, std::index_sequence<I...>)
+    {
+      return (get_index_descriptor_is_euclidean(get_dimensions_of<I + 1>(t)) and ...);
+    }
+  }
+
+
+  /**
+   * \brief Determine whether T is wrappable (i.e., all its dimensions other than potentially 0 are euclidean).
+   * \tparam T A matrix or array
+   * \sa wrappable
+   */
+#ifdef __cpp_concepts
+  template<indexible T> requires (max_indices_of_v<T> >= 1)
+#else
+  template<typename T, std::enable_if_t<indexible<T> and (max_indices_of_v<T> >= 1), int> = 0>
+#endif
+  constexpr bool get_wrappable(const T& t)
+  {
+    return detail::get_wrappable_impl(t, std::make_index_sequence<max_indices_of_v<T> - 1> {});
+  }
+
+
 } // namespace OpenKalman
 
-#endif //OPENKALMAN_SIZE_FUNCTIONS_HPP
+#endif //OPENKALMAN_INDEXIBLE_PROPERTY_FUNCTIONS_HPP

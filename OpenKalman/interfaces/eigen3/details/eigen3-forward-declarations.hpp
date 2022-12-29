@@ -21,11 +21,11 @@
 
 /**
  * \namespace OpenKalman::Eigen3
- * \brief Namespace for all Eigen3 interface definitions.
+ * \brief Namespace for all Eigen3-specific definitions.
  *
  * \internal
  * \namespace OpenKalman::Eigen3::internal
- * \brief Namespace for definitions internal to the Eigen3 interface library.
+ * \brief Namespace for definitions internal to Eigen3-related functions.
  *
  * \namespace Eigen
  * \brief Eigen3's native namespace.
@@ -42,14 +42,19 @@ namespace OpenKalman::Eigen3
   {
     /**
      * \internal
-     * \brief The ultimate base for Eigen-based matrix classes in OpenKalman.
+     * \brief The ultimate Eigen base for OpenKalman classes.
      * \details This class is used mainly to distinguish OpenKalman classes from native Eigen classes which are
-     * also derived from Eigen::MatrixBase.
+     * also derived from Eigen::MatrixBase or Eigen::ArrayBase.
+     */
+    struct Eigen3Base {};
+
+    /**
+     * \internal
+     * \brief The ultimate base for Eigen-based adapter classes in OpenKalman.
+     * \details This class adds base features required by Eigen.
      */
     template<typename Derived, typename NestedMatrix>
-    struct Eigen3Base;
-
-
+    struct Eigen3AdapterBase;
   } // namespace internal
 
 
@@ -59,7 +64,7 @@ namespace OpenKalman::Eigen3
    * \tparam T A non-Eigen class, for which an Eigen3 trait and evaluator is defined.
    */
   template<typename T>
-  struct EigenWrapper : T {};
+  struct EigenWrapper;
 
 
   namespace detail
@@ -68,7 +73,12 @@ namespace OpenKalman::Eigen3
     struct is_eigen_matrix_wrapper : std::false_type {};
 
     template<typename T>
-    struct is_eigen_matrix_wrapper<EigenWrapper<T>> : std::is_base_of<Eigen::MatrixBase<T>, T> {};
+    struct is_eigen_matrix_wrapper<EigenWrapper<T>>
+      : std::is_base_of<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> {};
+
+    template<typename T, int Size>
+    struct is_eigen_matrix_wrapper<Eigen::VectorBlock<T, Size>>
+      : std::is_base_of<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> {};
   }
 
 
@@ -83,7 +93,7 @@ namespace OpenKalman::Eigen3
 #endif
     (std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> or
       detail::is_eigen_matrix_wrapper<std::decay_t<T>>::value) and
-    (not untyped_adapter<T>) and (not typed_adapter<T>);
+    (not std::is_base_of_v<internal::Eigen3Base, std::decay_t<T>>);
 
 
   namespace detail
@@ -92,7 +102,12 @@ namespace OpenKalman::Eigen3
     struct is_eigen_array_wrapper : std::false_type {};
 
     template<typename T>
-    struct is_eigen_array_wrapper<EigenWrapper<T>> : std::is_base_of<Eigen::ArrayBase<T>, T> {};
+    struct is_eigen_array_wrapper<EigenWrapper<T>>
+      : std::is_base_of<Eigen::ArrayBase<std::decay_t<T>>, std::decay_t<T>> {};
+
+    template<typename T, int Size>
+    struct is_eigen_array_wrapper<Eigen::VectorBlock<T, Size>>
+      : std::is_base_of<Eigen::ArrayBase<std::decay_t<T>>, std::decay_t<T>> {};
   }
 
 
@@ -107,7 +122,28 @@ namespace OpenKalman::Eigen3
 #endif
     (std::is_base_of_v<Eigen::ArrayBase<std::decay_t<T>>, std::decay_t<T>> or
       detail::is_eigen_array_wrapper<std::decay_t<T>>::value) and
-    (not untyped_adapter<T>) and (not typed_adapter<T>);
+    (not std::is_base_of_v<internal::Eigen3Base, std::decay_t<T>>);
+
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_eigen_block : std::false_type {};
+
+    template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
+    struct is_eigen_block<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>> : std::true_type {};
+  }
+
+  /**
+   * \brief Specifies whether T is Eigen::Block
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_block =
+#else
+  constexpr bool eigen_block =
+#endif
+    detail::is_eigen_block<std::decay_t<T>>::value;
 
 
 #ifndef __cpp_concepts
@@ -157,24 +193,15 @@ namespace OpenKalman::Eigen3
       typename Eigen::internal::traits<std::decay_t<NestedMatrix>>::Scalar>, NestedMatrix>;
 
 
-  // -------------- //
-  //  eigen_matrix  //
-  // -------------- //
-
-  /**
-   * \brief Specifies that T is a suitable nested matrix for OpenKalman's new Eigen matrix classes.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept eigen_matrix = native_eigen_matrix<T> or eigen_zero_expr<T> or eigen_constant_expr<T>;
-#else
-  constexpr bool eigen_matrix = native_eigen_matrix<T> or eigen_zero_expr<T> or eigen_constant_expr<T>;
-#endif
-
-
   // ---------------- //
   //  eigen_matrix_t  //
   // ---------------- //
+
+  namespace detail
+  {
+    template<std::size_t size>
+    constexpr auto eigen_index_convert = size == dynamic_size ? Eigen::Dynamic : (Eigen::Index) size;
+  }
 
   /**
    * \brief An alias for a self-contained, writable, native Eigen matrix.
@@ -182,9 +209,10 @@ namespace OpenKalman::Eigen3
    * \tparam rows Number of rows in the native matrix (0 if not fixed at compile time).
    * \tparam cols Number of columns in the native matrix (0 if not fixed at compile time).
    */
-  template<typename Scalar, std::size_t rows, std::size_t columns = 1>
-  using eigen_matrix_t = Eigen::Matrix<Scalar, rows == dynamic_size ? Eigen::Dynamic : (Eigen::Index) rows,
-    columns == dynamic_size ? Eigen::Dynamic : (Eigen::Index) columns>;
+  template<typename Scalar, std::size_t...dims>
+  using eigen_matrix_t = std::conditional_t<sizeof...(dims) == 1,
+    Eigen::Matrix<Scalar, detail::eigen_index_convert<dims>..., static_cast<Eigen::Index>(1)>,
+    Eigen::Matrix<Scalar, detail::eigen_index_convert<dims>...>>;
 
 } // namespace OpenKalman::Eigen3
 

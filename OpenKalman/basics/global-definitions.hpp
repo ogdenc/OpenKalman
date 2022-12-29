@@ -33,19 +33,29 @@ namespace OpenKalman
 #endif
 
 
-  // -------------- //
-  //  TriangleType  //
-  // -------------- //
-
   /**
    * \brief The type of a triangular matrix.
    */
   enum struct TriangleType : int {
-    none, ///< A non-triangular matrix.
     lower, ///< A lower-left triangular matrix.
     upper, ///< An upper-right triangular matrix.
     diagonal, ///< A diagonal matrix (both a lower-left and an upper-right triangular matrix).
+    none, ///< Neither upper, lower, or diagonal.
   };
+
+
+  /**
+   * \brief The likelihood, at compile time, that a particular property applies.
+   */
+  enum struct Likelihood : bool {
+    maybe = false, ///< It is not known at compile time whether the property applies, but it's not ruled out.
+    definitely = true, ///< The property is known at compile time to apply.
+  };
+
+  constexpr Likelihood operator!(Likelihood x)
+  {
+    return x == Likelihood::definitely ? Likelihood::maybe : Likelihood::definitely;
+  }
 
 
   /**
@@ -82,11 +92,11 @@ namespace OpenKalman
      * \return The square root of x.
      */
     template<typename Scalar>
-  # ifdef __cpp_consteval
+# ifdef __cpp_consteval
     consteval
-  # else
+# else
     constexpr
-  # endif
+# endif
     Scalar constexpr_sqrt(Scalar x)
     {
       if constexpr(std::is_integral_v<Scalar>)
@@ -124,11 +134,11 @@ namespace OpenKalman
      * \return a to the power of n.
      */
     template<typename Scalar>
-  # ifdef __cpp_consteval
-    consteval
-  # else
+//# ifdef __cpp_consteval
+//    consteval
+//# else
     constexpr
-  # endif
+//# endif
     Scalar constexpr_pow(Scalar a, std::size_t n)
     {
       return n == 0 ? 1 : constexpr_pow(a, n / 2) * constexpr_pow(a, n / 2) * (n % 2 == 0 ?  1 : a);

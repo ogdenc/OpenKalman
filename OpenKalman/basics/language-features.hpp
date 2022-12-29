@@ -42,7 +42,7 @@
 
 #ifdef __cpp_lib_math_constants
 #include <numbers>
-namespace OpenKalman::numbers { using std::numbers; }
+namespace OpenKalman::numbers { using namespace std::numbers; }
 #else
 // These re-create the c++20 mathematical constants.
 namespace OpenKalman::numbers

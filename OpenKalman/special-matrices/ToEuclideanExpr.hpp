@@ -13,10 +13,10 @@
  * \brief ToEuclideanExpr and related definitions.
  */
 
-#ifndef OPENKALMAN_EIGEN3_TOEUCLIDEANEXPR_HPP
-#define OPENKALMAN_EIGEN3_TOEUCLIDEANEXPR_HPP
+#ifndef OPENKALMAN_TOEUCLIDEANEXPR_HPP
+#define OPENKALMAN_TOEUCLIDEANEXPR_HPP
 
-namespace OpenKalman::Eigen3
+namespace OpenKalman
 {
 
   /// \todo Remove nested diagonal matrix option
@@ -97,7 +97,7 @@ namespace OpenKalman::Eigen3
      */
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
       (sizeof...(Args) == columns * dimension_size_of_v<TypedIndex>), int> = 0>
-    ToEuclideanExpr(Args ... args) : Base {MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...)} {}
+    ToEuclideanExpr(Args ... args) : Base {MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...)} {}
 #endif
 
 
@@ -160,7 +160,7 @@ namespace OpenKalman::Eigen3
     }
 
 
-    /// Increment from another \ref eigen_matrix.
+    /// Increment from another \ref matrix.
 #ifdef __cpp_concepts
     template<indexible Arg> requires (not to_euclidean_expr<Arg>) and (column_dimension_of_v<Arg> == columns) and
       (row_dimension_of_v<Arg> == euclidean_dimension_size_of_v<TypedIndex>)
@@ -191,7 +191,7 @@ namespace OpenKalman::Eigen3
     }
 
 
-    /// Decrement from another \ref eigen_matrix.
+    /// Decrement from another \ref matrix.
 #ifdef __cpp_concepts
     template<indexible Arg> requires (not to_euclidean_expr<Arg>) and (column_dimension_of_v<Arg> == columns) and
       (row_dimension_of_v<Arg> == euclidean_dimension_size_of_v<TypedIndex>)
@@ -243,8 +243,8 @@ namespace OpenKalman::Eigen3
   ToEuclideanExpr(Arg&&, const C&) -> ToEuclideanExpr<C, passable_t<Arg>>;
 
 
-} // OpenKalman::Eigen3
+} // OpenKalman
 
 
 
-#endif //OPENKALMAN_EIGEN3_TOEUCLIDEANEXPR_HPP
+#endif //OPENKALMAN_TOEUCLIDEANEXPR_HPP

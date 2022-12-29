@@ -55,6 +55,7 @@ TEST(index_descriptors, dynamic_Dimensions)
   static_assert(get_euclidean_dimension_size_of(Dimensions{3}) == 3);
   static_assert(get_dimension_size_of(Dimensions<dynamic_size> {Axis {}}) == 1);
   static_assert(get_dimension_size_of(Dimensions<dynamic_size> {Dimensions<3> {}}) == 3);
+  static_assert(static_cast<std::size_t>(Dimensions {3}) == 3);
 }
 
 
@@ -235,12 +236,54 @@ TEST(index_descriptors, dynamic_arithmetic)
 }
 
 
-TEST(index_descriptors, replicate_index_descriptor)
+TEST(index_descriptors, internal_replicate_index_descriptor)
 {
+  using namespace internal;
+
+  // fixed:
+  static_assert(std::is_same_v<decltype(replicate_index_descriptor(TypedIndex<angle::Radians, Axis> {}, std::integral_constant<std::size_t, 2> {})), TypedIndex<TypedIndex<angle::Radians, Axis>, TypedIndex<angle::Radians, Axis>>>);
+
+  // dynamic:
   auto d1 = replicate_index_descriptor(4, 3);
   EXPECT_EQ(get_dimension_size_of(d1), 12); EXPECT_EQ(get_euclidean_dimension_size_of(d1), 12); EXPECT_EQ(get_index_descriptor_component_count_of(d1), 12);
   auto d2 = replicate_index_descriptor(angle::Radians{}, 4);
   EXPECT_EQ(get_dimension_size_of(d2), 4); EXPECT_EQ(get_euclidean_dimension_size_of(d2), 8); EXPECT_EQ(get_index_descriptor_component_count_of(d2), 4);
   auto d3 = replicate_index_descriptor(Polar<Distance, angle::Radians>{}, 2);
   EXPECT_EQ(get_dimension_size_of(d3), 4); EXPECT_EQ(get_euclidean_dimension_size_of(d3), 6); EXPECT_EQ(get_index_descriptor_component_count_of(d3), 2);
+}
+
+
+TEST(index_descriptors, internal_is_uniform_component_of)
+{
+  using namespace internal;
+
+  // fixed:
+  static_assert(is_uniform_component_of(Axis {}, Axis {}));
+  static_assert(is_uniform_component_of(Axis {}, Dimensions<10> {}));
+  static_assert(not is_uniform_component_of(Dimensions<2> {}, Dimensions<10> {}));
+  static_assert(not is_uniform_component_of(Axis {}, TypedIndex<Dimensions<10>, Distance> {}));
+  static_assert(is_uniform_component_of(Distance {}, TypedIndex<Distance, Distance, Distance, Distance> {}));
+  static_assert(is_uniform_component_of(angle::Radians {}, TypedIndex<angle::Radians, angle::Radians, angle::Radians, angle::Radians> {}));
+  static_assert(not is_uniform_component_of(Polar<> {}, TypedIndex<Polar<>, Polar<>, Polar<>, Polar<>> {}));
+
+  // dynamic:
+  static_assert(is_uniform_component_of(1, Dimensions<10> {}));
+  static_assert(is_uniform_component_of(Dimensions<1> {}, 10));
+  static_assert(is_uniform_component_of(1, 10));
+  static_assert(not is_uniform_component_of(2, 10));
+  EXPECT_TRUE(is_uniform_component_of(Axis {}, DynamicTypedIndex {Axis {}}));
+  EXPECT_TRUE(is_uniform_component_of(Axis {}, DynamicTypedIndex {Dimensions<10> {}}));
+  EXPECT_TRUE(is_uniform_component_of(DynamicTypedIndex {Distance {}}, TypedIndex<Distance, Distance, Distance, Distance> {}));
+  EXPECT_TRUE(is_uniform_component_of(DynamicTypedIndex {Axis {}}, DynamicTypedIndex {Axis {}}));
+  EXPECT_TRUE(is_uniform_component_of(DynamicTypedIndex {Axis {}}, DynamicTypedIndex {Dimensions<10> {}}));
+  EXPECT_FALSE(is_uniform_component_of(DynamicTypedIndex {Dimensions<2> {}}, DynamicTypedIndex {Dimensions<10> {}}));
+  EXPECT_FALSE(is_uniform_component_of(DynamicTypedIndex {Axis {}}, DynamicTypedIndex {Dimensions<2> {}, Distance {}}));
+  EXPECT_TRUE(is_uniform_component_of(DynamicTypedIndex {Distance {}}, DynamicTypedIndex {Distance {}, Distance {}, Distance {}, Distance {}}));
+
+  auto d1 = DynamicTypedIndex<double> {Axis {}};
+  auto f2 = DynamicTypedIndex<float> {Dimensions<2> {}};
+  auto a2 = DynamicTypedIndex {Axis {}, Axis {}};
+  auto a10 = DynamicTypedIndex {Dimensions<10> {}};
+  static_assert(not is_uniform_component_of(d1, f2));
+  static_assert(not is_uniform_component_of(Dimensions<2> {}, a10));
 }

@@ -13,8 +13,8 @@
  * \brief Overloaded functions relating to Eigen3::euclidean_expr types
  */
 
-#ifndef OPENKALMAN_EIGEN3_EUCLIDEAN_OVERLOADS_HPP
-#define OPENKALMAN_EIGEN3_EUCLIDEAN_OVERLOADS_HPP
+#ifndef OPENKALMAN_EUCLIDEAN_OVERLOADS_HPP
+#define OPENKALMAN_EUCLIDEAN_OVERLOADS_HPP
 
 namespace OpenKalman::interface
 {
@@ -40,7 +40,6 @@ namespace OpenKalman::interface
       }
       else
       {
-        using Scalar = scalar_type_of_t<Arg>;
         auto g {[&arg, is...](std::size_t ix) { return get_element(nested_matrix(std::forward<Arg>(arg)), ix, is...); }};
 
         if constexpr(to_euclidean_expr<Arg>)
@@ -93,9 +92,10 @@ namespace OpenKalman::interface
 #endif
   {
     template<typename Arg, typename Scalar>
-    static constexpr void set(Arg&& arg, Scalar s, I i, Is...is)
+    static constexpr Arg& set(Arg& arg, Scalar s, I i, Is...is)
     {
       set_element(nested_matrix(arg), s, i, is...);
+      return arg;
     }
   };
 
@@ -124,7 +124,7 @@ namespace OpenKalman::interface
      * \param j The column of the coefficient.
      */
     template<typename Arg, typename Scalar>
-    static constexpr void set(const Arg& arg, Scalar x, I i, Is...is)
+    static constexpr Arg& set(Arg& arg, Scalar x, I i, Is...is)
     {
       if constexpr (has_untyped_index<Arg, 0>)
       {
@@ -136,6 +136,7 @@ namespace OpenKalman::interface
         auto g {[&arg, is...](std::size_t ix) { return get_element(nested_matrix(nested_matrix(arg)), ix, is...); }};
         wrap_set_element(get_dimensions_of<0>(arg), s, g, x, i, 0);
       }
+      return arg;
     }
   };
 
@@ -370,21 +371,6 @@ namespace OpenKalman::interface
     }
 
 
-    template<typename Arg>
-    static constexpr auto
-    trace(Arg&& arg) noexcept
-    {
-      if constexpr(has_untyped_index<Arg, 0>)
-      {
-        return OpenKalman::trace(nested_matrix(std::forward<Arg>(arg)));
-      }
-      else
-      {
-        return arg.trace(); //< \todo Generalize this.
-      }
-    }
-
-
     template<TriangleType t, typename A, typename U, typename Alpha>
     static decltype(auto)
     rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
@@ -450,7 +436,7 @@ namespace OpenKalman::Eigen3
       constexpr auto cols = column_dimension_of_v<V>;
       static_assert(((cols == column_dimension_of_v<Vs>) and ...));
       using C = concatenate_fixed_index_descriptor_t<row_coefficient_types_of_t<V>, row_coefficient_types_of_t<Vs>...>;
-      return MatrixTraits<V>::template make<C>(
+      return MatrixTraits<std::decay_t<V>>::template make<C>(
         concatenate_vertical(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
     }
     else
@@ -476,7 +462,7 @@ namespace OpenKalman::Eigen3
     {
       using C = row_coefficient_types_of_t<V>;
       static_assert(std::conjunction_v<std::is_same<C, row_coefficient_types_of_t<Vs>>...>);
-      return MatrixTraits<V>::template make<C>(
+      return MatrixTraits<std::decay_t<V>>::template make<C>(
         concatenate_horizontal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
     }
     else
@@ -494,7 +480,7 @@ namespace OpenKalman::Eigen3
       template<typename RC, typename, typename Arg>
       static auto call(Arg&& arg)
       {
-        return G::template call<RC, CC>(MatrixTraits<Expr>::template make<RC>(std::forward<Arg>(arg)));
+        return G::template call<RC, CC>(MatrixTraits<std::decay_t<Expr>>::template make<RC>(std::forward<Arg>(arg)));
       }
     };
 
@@ -505,7 +491,7 @@ namespace OpenKalman::Eigen3
       template<typename, typename CC, typename Arg>
       static auto call(Arg&& arg)
       {
-        return G::template call<RC, CC>(MatrixTraits<Expr>::template make<RC>(std::forward<Arg>(arg)));
+        return G::template call<RC, CC>(MatrixTraits<std::decay_t<Expr>>::template make<RC>(std::forward<Arg>(arg)));
       }
     };
 
@@ -516,7 +502,7 @@ namespace OpenKalman::Eigen3
       template<typename RC, typename CC, typename Arg>
       static auto call(Arg&& arg)
       {
-        return G::template call<RC, CC>(MatrixTraits<Expr>::template make<RC>(std::forward<Arg>(arg)));
+        return G::template call<RC, CC>(MatrixTraits<std::decay_t<Expr>>::template make<RC>(std::forward<Arg>(arg)));
       }
     };
   } // internal
@@ -744,7 +730,7 @@ namespace OpenKalman::Eigen3
     using TypedIndex = row_coefficient_types_of_t<Arg>;
     const auto f_nested = [&f](auto& col)
     {
-      auto mc = MatrixTraits<Arg>::template make<TypedIndex>(std::move(col));
+      auto mc = MatrixTraits<std::decay_t<Arg>>::template make<TypedIndex>(std::move(col));
       f(mc);
       col = std::move(nested_matrix(mc));
     };
@@ -778,7 +764,7 @@ namespace OpenKalman::Eigen3
     using TypedIndex = row_coefficient_types_of_t<Arg>;
     const auto f_nested = [&f](auto& col, std::size_t i)
     {
-      auto mc = MatrixTraits<Arg>::template make<TypedIndex>(std::move(col));
+      auto mc = MatrixTraits<std::decay_t<Arg>>::template make<TypedIndex>(std::move(col));
       f(mc, i);
       col = std::move(nested_matrix(mc));
     };
@@ -807,7 +793,7 @@ namespace OpenKalman::Eigen3
   {
     using TypedIndex = row_coefficient_types_of_t<Arg>;
     const auto f_nested = [&f](auto&& col) -> auto {
-      return make_self_contained(f(MatrixTraits<Arg>::template make<TypedIndex>(std::forward<decltype(col)>(col))));
+      return make_self_contained(f(MatrixTraits<std::decay_t<Arg>>::template make<TypedIndex>(std::forward<decltype(col)>(col))));
     };
     return apply_columnwise(f_nested, nested_matrix(arg));
   }
@@ -832,7 +818,7 @@ namespace OpenKalman::Eigen3
     using TypedIndex = row_coefficient_types_of_t<Arg>;
     const auto f_nested = [&f](auto&& col, std::size_t i) -> auto {
       return make_self_contained(
-        f(MatrixTraits<Arg>::template make<TypedIndex>(std::forward<decltype(col)>(col)), i));
+        f(MatrixTraits<std::decay_t<Arg>>::template make<TypedIndex>(std::forward<decltype(col)>(col)), i));
     };
     return apply_columnwise(f_nested, nested_matrix(arg));
   }
@@ -850,7 +836,7 @@ namespace OpenKalman::Eigen3
   {
     using ResultType = std::invoke_result_t<Function>;
     const auto f_nested = [&f] () -> auto { return make_self_contained(nested_matrix(f())); };
-    return MatrixTraits<ResultType>::make(apply_columnwise<count>(f_nested));
+    return MatrixTraits<std::decay_t<ResultType>>::make(apply_columnwise<count>(f_nested));
   }
 
 
@@ -867,7 +853,7 @@ namespace OpenKalman::Eigen3
   {
     using ResultType = std::invoke_result_t<Function, std::size_t>;
     const auto f_nested = [&f](std::size_t i) -> auto { return make_self_contained(nested_matrix(f(i))); };
-    return MatrixTraits<ResultType>::make(apply_columnwise<count>(f_nested));
+    return MatrixTraits<std::decay_t<ResultType>>::make(apply_columnwise<count>(f_nested));
   }
 
 
@@ -976,9 +962,9 @@ namespace OpenKalman::Eigen3
   randomize(Dists...dists)
   {
     using B = nested_matrix_of_t<ReturnType>;
-    return MatrixTraits<ReturnType>::make(randomize<B, random_number_engine>(std::forward<Dists>(dists)...));
+    return MatrixTraits<std::decay_t<ReturnType>>::make(randomize<B, random_number_engine>(std::forward<Dists>(dists)...));
   }
 
 } // namespace OpenKalman::Eigen3
 
-#endif //OPENKALMAN_EIGEN3_EUCLIDEAN_OVERLOADS_HPP
+#endif //OPENKALMAN_EUCLIDEAN_OVERLOADS_HPP

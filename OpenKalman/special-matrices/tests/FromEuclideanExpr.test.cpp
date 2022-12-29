@@ -212,7 +212,6 @@ TEST(eigen3, FromEuclideanExpr_traits)
   static_assert(typed_matrix_nestable<decltype(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
   static_assert(not to_euclidean_expr<decltype(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
   static_assert(not native_eigen_matrix<decltype(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
-  static_assert(not eigen_matrix<decltype(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
   static_assert(not identity_matrix<decltype(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
   static_assert(not zero_matrix<decltype(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
   // MatrixTraits
@@ -222,6 +221,15 @@ TEST(eigen3, FromEuclideanExpr_traits)
     mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(make_zero_matrix_like<From42>(), eigen_matrix_t<double, 3, 2>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<FromEuclideanExpr<Dimensions<2>, eigen_matrix_t<double, 2, 2>>>(), eigen_matrix_t<double, 2, 2>::Identity()));
+}
+
+
+TEST(eigen3, FromEuclideanExpr_properties)
+{
+  static_assert(wrappable<M23>);
+  EXPECT_TRUE(get_wrappable(M23 {}));
+  static_assert(not wrappable<From32>);
+  EXPECT_TRUE(not_wrappable(From32 {}));
 }
 
 
@@ -263,10 +271,10 @@ TEST(eigen3, FromEuclideanExpr_overloads)
 
   auto m23_wrap_ar = make_dense_writable_matrix_from<M23>(1, 2, 3, 4-pi, 5-pi, 6-pi);
 
-  ConstantMatrix<eigen_matrix_t<double, 3, 4>, 5> c534 {};
-  ConstantMatrix<eigen_matrix_t<double, 3, dynamic_size>, 5> c530_4 {4};
-  ConstantMatrix<eigen_matrix_t<double, dynamic_size, 4>, 5> c504_3 {3};
-  ConstantMatrix<eigen_matrix_t<double, dynamic_size, dynamic_size>, 5> c500_34 {3, 4};
+  ConstantAdapter<eigen_matrix_t<double, 3, 4>, 5> c534 {};
+  ConstantAdapter<eigen_matrix_t<double, 3, dynamic_size>, 5> c530_4 {4};
+  ConstantAdapter<eigen_matrix_t<double, dynamic_size, 4>, 5> c504_3 {3};
+  ConstantAdapter<eigen_matrix_t<double, dynamic_size, dynamic_size>, 5> c500_34 {3, 4};
 
   EXPECT_TRUE(is_near(from_euclidean<Dimensions<3>>(c534), c534));
   EXPECT_TRUE(is_near(from_euclidean<Dimensions<3>>(c530_4), c534));

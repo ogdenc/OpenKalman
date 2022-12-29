@@ -46,7 +46,7 @@ namespace OpenKalman::interface
 #endif
   {
     template<typename Arg, typename Scalar>
-    static constexpr void set(Arg&& arg, Scalar s, I i, Is...is)
+    static constexpr Arg& set(Arg& arg, Scalar s, I i, Is...is)
     {
       if constexpr(wrapped_mean<Arg>)
       {
@@ -63,6 +63,7 @@ namespace OpenKalman::interface
       {
         set_element(nested_matrix(arg), s, i, is...);
       }
+      return arg;
     }
   };
 
@@ -92,24 +93,25 @@ namespace OpenKalman
     column(Arg&& arg, runtime_index_t...i)
     {
       using RC = row_coefficient_types_of_t<Arg>;
+      using Traits = MatrixTraits<std::decay_t<Arg>>;
 
       if constexpr (has_uniform_dimension_type<column_coefficient_types_of_t<Arg>>)
       {
         using CC = typename uniform_dimension_type_of_t<column_coefficient_types_of_t<Arg>>;
-        return MatrixTraits<Arg>::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
+        return Traits::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
       }
       else if constexpr (fixed_index_descriptor<column_coefficient_types_of_t<Arg>>)
       {
         static_assert(sizeof...(index) > 0);
         using CC = column_coefficient_types_of_t<Arg>::template Select<index...>;
         static_assert(dimension_size_of_v<CC> == 1);
-        return MatrixTraits<Arg>::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg))));
+        return Traits::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg))));
       }
       else
       {
         static_assert(dynamic_index_descriptor<column_coefficient_types_of_t<Arg>>);
         using CC = column_coefficient_types_of_t<Arg>::template Select<index...>;
-        return MatrixTraits<Arg>::template make<RC, CC>(column(nested_matrix(std::forward<Arg>(arg)), i...));
+        return Traits::template make<RC, CC>(column(nested_matrix(std::forward<Arg>(arg)), i...));
       }
     }
 
@@ -119,24 +121,25 @@ namespace OpenKalman
     row(Arg&& arg, runtime_index_t...i)
     {
       using CC = column_coefficient_types_of_t<Arg>;
+      using Traits = MatrixTraits<std::decay_t<Arg>>;
 
       if constexpr (has_uniform_dimension_type<row_coefficient_types_of_t<Arg>>)
       {
         using RC = typename uniform_dimension_type_of_t<row_coefficient_types_of_t<Arg>>;
-        return MatrixTraits<Arg>::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
+        return Traits::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
       }
       else if constexpr (fixed_index_descriptor<row_coefficient_types_of_t<Arg>>)
       {
         static_assert(sizeof...(index) > 0);
         using RC = row_coefficient_types_of_t<Arg>::template Select<index...>;
         static_assert(dimension_size_of_v<RC> == 1);
-        return MatrixTraits<Arg>::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg))));
+        return Traits::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg))));
       }
       else
       {
         static_assert(dynamic_index_descriptor<row_coefficient_types_of_t<Arg>>);
         using RC = row_coefficient_types_of_t<Arg>::template Select<index...>;
-        return MatrixTraits<Arg>::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
+        return Traits::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
       }
     }
   };
@@ -217,7 +220,7 @@ namespace OpenKalman
     wrap_angles(Arg&& arg, const C& c) noexcept
     {
       decltype(auto) n = OpenKalman::wrap_angles(nested_matrix(std::forward<Arg>(arg), c));
-      return MatrixTraits<Arg>::make(std::forward<decltype(n)>(n), c);
+      return MatrixTraits<std::decay_t<Arg>>::make(std::forward<decltype(n)>(n), c);
     }
 
   };
@@ -293,14 +296,14 @@ namespace OpenKalman
       }
 
 
-      template<typename Arg>
-      static constexpr auto trace(Arg&& arg) noexcept
+      template<typename A, typename B>
+      static decltype(auto) contract(A&& a, B&& b)
       {
-        return OpenKalman::trace(nested_matrix(std::forward<Arg>(arg)));
+        return OpenKalman::contract(nested_matrix(std::forward<A>(a)), nested_matrix(std::forward<B>(b)));
       }
 
 
-      template<TriangleType t, typename Arg, typename U, typename Alpha>
+      template<TriangleType t, typename A, typename U, typename Alpha>
       static decltype(auto) rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
       {
         return OpenKalman::rank_update_self_adjoint<t>(
@@ -308,8 +311,8 @@ namespace OpenKalman
       }
 
 
-      template<TriangleType t, typename Arg, typename U, typename Alpha>
-      static decltype(auto) rank_update_triangular(Arg&& arg, U&& u, const Alpha alpha)
+      template<TriangleType t, typename A, typename U, typename Alpha>
+      static decltype(auto) rank_update_triangular(A&& arg, U&& u, const Alpha alpha)
       {
         return OpenKalman::rank_update_triangular<t>(
           nested_matrix(std::forward<A>(a)), nested_matrix(std::forward<U>(u)), alpha);
@@ -322,7 +325,7 @@ namespace OpenKalman
       {
         auto x = OpenKalman::solve<must_be_unique, must_be_exact>(
           nested_matrix(std::forward<A>(a)), nested_matrix(std::forward<B>(b)));
-        return MatrixTraits<B>::make(std::move(x));
+        return MatrixTraits<std::decay_t<B>>::make(std::move(x));
       }
 
     };
@@ -361,7 +364,7 @@ namespace OpenKalman
     if constexpr(sizeof...(Vs) > 0)
     {
       using RC = concatenate_fixed_index_descriptor_t<row_coefficient_types_of_t<V>, row_coefficient_types_of_t<Vs>...>;
-      return MatrixTraits<V>::template make<RC>(
+      return MatrixTraits<std::decay_t<V>>::template make<RC>(
         concatenate_vertical(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
     }
     else
@@ -404,7 +407,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       auto cat = concatenate_horizontal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...);
       if constexpr(euclidean_index_descriptor<CC>)
       {
-        return MatrixTraits<V>::template make<RC, CC>(std::move(cat));
+        return MatrixTraits<std::decay_t<V>>::template make<RC, CC>(std::move(cat));
       }
       else
       {
@@ -433,7 +436,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       using RC = concatenate_fixed_index_descriptor_t<row_coefficient_types_of_t<V>, row_coefficient_types_of_t<Vs>...>;
       using CC = concatenate_fixed_index_descriptor_t<column_coefficient_types_of_t<V>,
         column_coefficient_types_of_t<Vs>...>;
-      return MatrixTraits<V>::template make<RC, CC>(
+      return MatrixTraits<std::decay_t<V>>::template make<RC, CC>(
         concatenate_diagonal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
     }
     else
@@ -451,7 +454,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       template<typename RC, typename, typename Arg>
       static auto call(Arg&& arg)
       {
-        return MatrixTraits<Expr>::template make<RC, CC>(std::forward<Arg>(arg));
+        return MatrixTraits<std::decay_t<Expr>>::template make<RC, CC>(std::forward<Arg>(arg));
       }
     };
 
@@ -462,7 +465,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       template<typename, typename CC, typename Arg>
       static auto call(Arg&& arg)
       {
-        return MatrixTraits<Expr>::template make<RC, CC>(std::forward<Arg>(arg));
+        return MatrixTraits<std::decay_t<Expr>>::template make<RC, CC>(std::forward<Arg>(arg));
       }
     };
 
@@ -474,7 +477,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       static auto call(Arg&& arg)
       {
         static_assert(equivalent_to<RC, CC>);
-        return MatrixTraits<Expr>::template make<RC, CC>(std::forward<Arg>(arg));
+        return MatrixTraits<std::decay_t<Expr>>::template make<RC, CC>(std::forward<Arg>(arg));
       }
     };
   }
@@ -539,7 +542,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   split_diagonal(M&& m) noexcept
   {
     static_assert(prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<M>>);
-    static_assert(equivalent_to<row_coefficient_types_of_t<M>::ColumnCoefficients, typename MatrixTraits<M>>);
+    static_assert(equivalent_to<row_coefficient_types_of_t<M>::ColumnCoefficients, MatrixTraits<std::decay_t<M>>>);
     return split_diagonal<oin::SplitMatDiagF<M>, Cs...>(nested_matrix(std::forward<M>(m)));
   }
 
@@ -565,7 +568,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using RC = row_coefficient_types_of_t<Arg>;
     const auto f_nested = [&f](auto& col)
     {
-      auto mc = MatrixTraits<Arg>::template make<RC, Axis>(std::move(col));
+      auto mc = MatrixTraits<std::decay_t<Arg>>::template make<RC, Axis>(std::move(col));
       f(mc);
       col = std::move(nested_matrix(mc));
     };
@@ -596,7 +599,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using RC = row_coefficient_types_of_t<Arg>;
     const auto f_nested = [&f](auto& col, std::size_t i)
     {
-      auto mc = MatrixTraits<Arg>::template make<RC, Axis>(std::move(col));
+      auto mc = MatrixTraits<std::decay_t<Arg>>::template make<RC, Axis>(std::move(col));
       f(mc, i);
       col = std::move(nested_matrix(mc));
     };
@@ -630,9 +633,9 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using RC = row_coefficient_types_of_t<Arg>;
     const auto f_nested = [&f](auto&& col) -> auto {
       return make_self_contained(
-        nested_matrix(f(MatrixTraits<Arg>::template make<RC, Axis>(std::forward<decltype(col)>(col)))));
+        nested_matrix(f(MatrixTraits<std::decay_t<Arg>>::template make<RC, Axis>(std::forward<decltype(col)>(col)))));
     };
-    return MatrixTraits<ResultType>::template make<ResRC, ResCC>(apply_columnwise(f_nested, nested_matrix(arg)));
+    return MatrixTraits<std::decay_t<ResultType>>::template make<ResRC, ResCC>(apply_columnwise(f_nested, nested_matrix(arg)));
   }
 
 
@@ -659,9 +662,9 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     const auto f_nested = [&f](auto&& col, std::size_t i) -> auto {
       using RC = row_coefficient_types_of_t<Arg>;
       return make_self_contained(
-        nested_matrix(f(MatrixTraits<Arg>::template make<RC, Axis>(std::forward<decltype(col)>(col)), i)));
+        nested_matrix(f(MatrixTraits<std::decay_t<Arg>>::template make<RC, Axis>(std::forward<decltype(col)>(col)), i)));
     };
-    return MatrixTraits<ResultType>::template make<ResRC, ResCC>(apply_columnwise(f_nested, nested_matrix(arg)));
+    return MatrixTraits<std::decay_t<ResultType>>::template make<ResRC, ResCC>(apply_columnwise(f_nested, nested_matrix(arg)));
   }
 
 
@@ -684,7 +687,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using CC0 = column_coefficient_types_of_t<ResultType>;
     static_assert(dimension_size_of_v<CC0> == 1, "Function argument of apply_columnwise must return a column vector.");
     using CC = replicate_fixed_index_descriptor_t<CC0, count>;
-    return MatrixTraits<ResultType>::template make<RC, CC>(apply_columnwise<count>(f_nested));
+    return MatrixTraits<std::decay_t<ResultType>>::template make<RC, CC>(apply_columnwise<count>(f_nested));
   }
 
 
@@ -707,7 +710,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using CC0 = column_coefficient_types_of_t<ResultType>;
     static_assert(dimension_size_of_v<CC0> == 1, "Function argument of apply_columnwise must return a column vector.");
     using CC = replicate_fixed_index_descriptor_t<CC0, count>;
-    return MatrixTraits<ResultType>::template make<RC, CC>(apply_columnwise<count>(f_nested));
+    return MatrixTraits<std::decay_t<ResultType>>::template make<RC, CC>(apply_columnwise<count>(f_nested));
   }
 
 
@@ -762,7 +765,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   inline auto
   apply_coefficientwise(const Function& f, const Arg& arg)
   {
-    return MatrixTraits<Arg>::make(apply_coefficientwise(f, nested_matrix(arg)));
+    return MatrixTraits<std::decay_t<Arg>>::make(apply_coefficientwise(f, nested_matrix(arg)));
   }
 
 
@@ -778,7 +781,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   inline auto
   apply_coefficientwise(const Function& f, const Arg& arg)
   {
-    return MatrixTraits<Arg>::make(apply_coefficientwise(f, nested_matrix(arg)));
+    return MatrixTraits<std::decay_t<Arg>>::make(apply_coefficientwise(f, nested_matrix(arg)));
   }
 
 
@@ -799,12 +802,12 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       std::decay_t<std::invoke_result_t<Function>>,
       std::decay_t<scalar_type_of_t<V>>>)
     {
-      return MatrixTraits<V>::make(apply_coefficientwise<rows, columns>(f));
+      return MatrixTraits<std::decay_t<V>>::make(apply_coefficientwise<rows, columns>(f));
     }
     else
     {
       const auto f_conv = [&f] { return static_cast<Scalar>(f()); };
-      return MatrixTraits<V>::make(apply_coefficientwise<rows, columns>(f_conv));
+      return MatrixTraits<std::decay_t<V>>::make(apply_coefficientwise<rows, columns>(f_conv));
     }
   }
 
@@ -826,19 +829,19 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       std::decay_t<std::invoke_result_t<Function, std::size_t, std::size_t>>,
       std::decay_t<scalar_type_of_t<V>>>)
     {
-      return MatrixTraits<V>::make(apply_coefficientwise<rows, columns>(std::forward<Function>(f)));
+      return MatrixTraits<std::decay_t<V>>::make(apply_coefficientwise<rows, columns>(std::forward<Function>(f)));
     }
     else
     {
       if constexpr (std::is_lvalue_reference_v<Function>)
       {
         auto f_conv = [&f](size_t i, size_t j){ return static_cast<Scalar>(f(i, j)); };
-        return MatrixTraits<V>::make(apply_coefficientwise<rows, columns>(std::move(f_conv)));
+        return MatrixTraits<std::decay_t<V>>::make(apply_coefficientwise<rows, columns>(std::move(f_conv)));
       }
       else
       {
         auto f_conv = [f = std::move(f)](size_t i, size_t j){ return static_cast<Scalar>(f(i, j)); };
-        return MatrixTraits<V>::make(apply_coefficientwise<rows, columns>(std::move(f_conv)));
+        return MatrixTraits<std::decay_t<V>>::make(apply_coefficientwise<rows, columns>(std::move(f_conv)));
       }
 
 
@@ -908,7 +911,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   randomize(Dists&& ... dists)
   {
     using B = nested_matrix_of_t<ReturnType>;
-    return MatrixTraits<ReturnType>::template make(randomize<B, random_number_engine>(std::forward<Dists>(dists)...));
+    return MatrixTraits<std::decay_t<ReturnType>>::template make(randomize<B, random_number_engine>(std::forward<Dists>(dists)...));
   }
 
 
@@ -945,7 +948,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     if constexpr (not dynamic_rows<ReturnType>) assert(rows == row_dimension_of_v<ReturnType>);
     if constexpr (not dynamic_columns<ReturnType>) assert(columns == column_dimension_of_v<ReturnType>);
     using B = nested_matrix_of_t<ReturnType>;
-    return MatrixTraits<ReturnType>::template make(randomize<B, random_number_engine>(
+    return MatrixTraits<std::decay_t<ReturnType>>::template make(randomize<B, random_number_engine>(
       rows, columns, std::forward<Dist>(dist)));
   }
 

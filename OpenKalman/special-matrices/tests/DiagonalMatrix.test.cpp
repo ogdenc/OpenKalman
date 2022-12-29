@@ -91,7 +91,7 @@ TEST(eigen3, Diagonal_static_checks)
   static_assert(not writable<D<const M31&>>);
   
   static_assert(modifiable<D<M31>, ZeroMatrix<eigen_matrix_t<double, 3, 3>>>);
-  static_assert(modifiable<D<M31>, IdentityMatrix<M33>>);
+  static_assert(modifiable<D<M31>, Eigen3::IdentityMatrix<M33>>);
   static_assert(not modifiable<D<M31>, M31>);
   static_assert(modifiable<D<M31>, D<M31>>);
   static_assert(modifiable<D<M31>, const D<M31>>);
@@ -137,10 +137,10 @@ TEST(eigen3, Diagonal_class)
   DiagonalMatrix d0c_3 {d0b_3};
   EXPECT_TRUE(is_near(d0c_3, m33));
 
-  // column scalar constructor and corresponding deduction guide
-  DiagonalMatrix d3d {1., 2, 3};
+  // column scalar constructor
+  D3 d3d {1., 2, 3};
   EXPECT_TRUE(is_near(d3d, m33));
-  D0 d0d_3 {1., 2, 3}; // does not rely on deduction guide
+  D0 d0d_3 {1., 2, 3};
   EXPECT_TRUE(is_near(d0d_3, m33));
 
   // column vector constructor and deduction guide
@@ -178,6 +178,7 @@ TEST(eigen3, Diagonal_class)
   // construct from zero matrix, and deduction guide (from non-DiagonalMatrix diagonal)
   static_assert(zero_matrix<decltype(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, 1>>{}})>);
   static_assert(diagonal_matrix<decltype(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, 1>>{}})>);
+  static_assert(square_matrix<decltype(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, 1>>{}}), Likelihood::maybe> );
   static_assert(square_matrix<decltype(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, 1>>{}})>);
 
   EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, 1>>{}}, M33::Zero()));
@@ -458,7 +459,7 @@ TEST(eigen3, Diagonal_traits)
 {
   static_assert(diagonal_matrix<decltype(DiagonalMatrix{2.})>);
   static_assert(diagonal_matrix<decltype(DiagonalMatrix{2, 3})>);
-  static_assert(self_adjoint_matrix<decltype(DiagonalMatrix{2, 3})>);
+  static_assert(hermitian_matrix<decltype(DiagonalMatrix{2, 3})>);
   static_assert(triangular_matrix<decltype(DiagonalMatrix{2, 3})>);
   static_assert(lower_triangular_matrix<decltype(DiagonalMatrix{2, 3})>);
   static_assert(upper_triangular_matrix<decltype(DiagonalMatrix{2, 3})>);
@@ -745,17 +746,17 @@ TEST(eigen3, Diagonal_arithmetic)
   EXPECT_TRUE(is_near(i + i, DiagonalMatrix {2., 2, 2})); static_assert(diagonal_matrix<decltype(i + i)>);
   EXPECT_TRUE(is_near(i + z, i)); static_assert(identity_matrix<decltype(i + z)>);
   EXPECT_TRUE(is_near(z + i, i)); static_assert(identity_matrix<decltype(z + i)>);
-  EXPECT_TRUE(is_near(z + z, z)); static_assert(eigen_zero_expr<decltype(z + z)>);
+  EXPECT_TRUE(is_near(z + z, z)); static_assert(zero_matrix<decltype(z + z)>);
 
   EXPECT_TRUE(is_near(d3a - d3b, DiagonalMatrix {-3., -3, -3})); static_assert(diagonal_matrix<decltype(d3a - d3b)>);
   EXPECT_TRUE(is_near(d3a - i, DiagonalMatrix {0., 1, 2})); static_assert(diagonal_matrix<decltype(d3a - i)>);
   EXPECT_TRUE(is_near(d3a - z, d3a)); static_assert(diagonal_matrix<decltype(d3a - z)>);
   EXPECT_TRUE(is_near(i - i, z)); static_assert(zero_matrix<decltype(i - i)>);
   EXPECT_TRUE(is_near(i * (i - i), z)); static_assert(zero_matrix<decltype(i - i)>);
-  EXPECT_TRUE(is_near(z * (i - i), z)); static_assert(eigen_zero_expr<decltype(z * (i - i))>);
+  EXPECT_TRUE(is_near(z * (i - i), z)); static_assert(zero_matrix<decltype(z * (i - i))>);
   EXPECT_TRUE(is_near(i - z, i)); static_assert(identity_matrix<decltype(i - z)>);
   EXPECT_TRUE(is_near(z - i, -i)); static_assert(diagonal_matrix<decltype(z - i)>);
-  EXPECT_TRUE(is_near(z - z, z)); static_assert(eigen_zero_expr<decltype(z - z)>);
+  EXPECT_TRUE(is_near(z - z, z)); static_assert(zero_matrix<decltype(z - z)>);
 
   EXPECT_TRUE(is_near(d3a * 4, DiagonalMatrix {4., 8, 12})); static_assert(eigen_diagonal_expr<decltype(d3a * 4)>);
   EXPECT_TRUE(is_near(4 * d3a, DiagonalMatrix {4., 8, 12})); static_assert(eigen_diagonal_expr<decltype(4 * d3a)>);
@@ -776,17 +777,17 @@ TEST(eigen3, Diagonal_arithmetic)
 
   EXPECT_TRUE(is_near(-d3a, DiagonalMatrix {-1., -2, -3})); static_assert(eigen_diagonal_expr<decltype(-d3a)>);
   EXPECT_TRUE(is_near(-i, DiagonalMatrix {-1., -1, -1})); static_assert(diagonal_matrix<decltype(-i)>);
-  EXPECT_TRUE(is_near(-z, z)); static_assert(eigen_zero_expr<decltype(z)>);
+  EXPECT_TRUE(is_near(-z, z)); static_assert(zero_matrix<decltype(z)>);
 
   EXPECT_TRUE(is_near(d3a * d3b, DiagonalMatrix {4., 10, 18})); static_assert(eigen_diagonal_expr<decltype(d3a * d3b)>);
-  EXPECT_TRUE(is_near(d3a * ConstantMatrix<eigen_matrix_t<double, 3, 3>, 4> {}, make_dense_writable_matrix_from<M33>(4, 4, 4, 8, 8, 8, 12, 12, 12)));
-  EXPECT_TRUE(is_near(ConstantMatrix<eigen_matrix_t<double, 3, 3>, 4> {} * d3a, make_dense_writable_matrix_from<M33>(4, 8, 12, 4, 8, 12, 4, 8, 12)));
+  EXPECT_TRUE(is_near(d3a * ConstantAdapter<eigen_matrix_t<double, 3, 3>, 4> {}, make_dense_writable_matrix_from<M33>(4, 4, 4, 8, 8, 8, 12, 12, 12)));
+  EXPECT_TRUE(is_near(ConstantAdapter<eigen_matrix_t<double, 3, 3>, 4> {} * d3a, make_dense_writable_matrix_from<M33>(4, 8, 12, 4, 8, 12, 4, 8, 12)));
   EXPECT_TRUE(is_near(d3a * i, d3a)); static_assert(eigen_diagonal_expr<decltype(d3a * i)>);
   EXPECT_TRUE(is_near(i * d3a, d3a)); static_assert(eigen_diagonal_expr<decltype(i * d3a)>);
-  EXPECT_TRUE(is_near(d3a * z, z)); static_assert(eigen_zero_expr<decltype(d3a * z)>);
-  EXPECT_TRUE(is_near(z * d3a, z)); static_assert(eigen_zero_expr<decltype(z * d3a)>);
+  EXPECT_TRUE(is_near(d3a * z, z)); static_assert(zero_matrix<decltype(d3a * z)>);
+  EXPECT_TRUE(is_near(z * d3a, z)); static_assert(zero_matrix<decltype(z * d3a)>);
   EXPECT_TRUE(is_near(i * i, i)); static_assert(identity_matrix<decltype(i * i)>);
-  EXPECT_TRUE(is_near(z * z, z)); static_assert(eigen_zero_expr<decltype(z * z)>);
+  EXPECT_TRUE(is_near(z * z, z)); static_assert(zero_matrix<decltype(z * z)>);
 
   EXPECT_TRUE(is_near(d3a * SelfAdjointMatrix {
     1., 2, 3,

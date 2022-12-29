@@ -121,7 +121,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<const Scalar> ... Args> requires (sizeof...(Args) > 0) and
       requires(Args ... args) { NestedMatrix {wrap_angles<RowCoefficients>(
-        MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...))}; }
+        MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...))}; }
 #else
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
       ((diagonal_matrix<NestedMatrix> and sizeof...(Args) == row_dimension_of<NestedMatrix>::value) or
@@ -130,7 +130,7 @@ namespace OpenKalman
         int> = 0>
 #endif
     Mean(Args ... args)
-      : Base {wrap_angles<RowCoefficients>(MatrixTraits<NestedMatrix>::make(static_cast<const Scalar>(args)...))} {}
+      : Base {wrap_angles<RowCoefficients>(MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...))} {}
 
 
     /**

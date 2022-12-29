@@ -20,90 +20,38 @@ namespace OpenKalman
 {
   using namespace interface;
 
-  /**
-   * \brief Convert a column vector into a diagonal matrix.
-   * \tparam Arg A column vector matrix
-   * \returns A diagonal matrix
-   */
-#ifdef __cpp_concepts
-  template<typename Arg> requires column_vector<Arg> or dynamic_columns<Arg>
-#else
-  template<typename Arg, std::enable_if_t<column_vector<Arg> or dynamic_columns<Arg>, int> = 0>
-#endif
-  inline decltype(auto)
-  to_diagonal(Arg&& arg)
-  {
-    constexpr auto dim = row_dimension_of_v<Arg>;
-
-    if constexpr (dim == 1)
-    {
-      if constexpr (dynamic_columns<Arg>)
-        if (get_index_dimension_of<1>(arg) != 1) throw std::domain_error {
-          "Argument of to_diagonal must be a column vector, not a row vector"};
-      return std::forward<Arg>(arg);
-    }
-    else if constexpr (zero_matrix<Arg> and dim != dynamic_size)
-    {
-      // note, the interface function should deal with a zero matrix of uncertain size.
-
-      if constexpr (dynamic_columns<Arg>)
-        if (get_index_dimension_of<1>(arg) != 1) throw std::domain_error {
-          "Argument of to_diagonal must have 1 column; instead it has " +
-          std::to_string(get_index_dimension_of<1>(arg))};
-      return make_zero_matrix_like<Arg>(Dimensions<dim>{}, Dimensions<dim>{});
-    }
-    else
-    {
-      return interface::Conversions<std::decay_t<Arg>>::to_diagonal(std::forward<Arg>(arg));
-    }
-  }
-
-
-  namespace detail
-  {
-    template<typename Arg>
-    inline void check_if_square_at_runtime(const Arg& arg)
-    {
-      if (get_dimensions_of<0>(arg) != get_dimensions_of<1>(arg))
-        throw std::invalid_argument {"Argument of diagonal_of must be a square matrix; instead, " +
-        (get_index_dimension_of<0>(arg) == get_index_dimension_of<1>(arg) ?
-          "the row and column indices have non-equivalent types" :
-          "it has " + std::to_string(get_index_dimension_of<0>(arg)) + " rows and " +
-            std::to_string(get_index_dimension_of<1>(arg)) + "columns")};
-    };
-  }
-
-
   // ================================== //
   //  Modular transformation functions  //
   // ================================== //
 
+  /**
+   * \brief Transform a matrix or tensor into Euclidean space along its first index.
+   * \tparam Arg A matrix or tensor. I
+   */
 #ifdef __cpp_concepts
-  template<indexible Arg, index_descriptor C> requires (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
-    (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
-      equivalent_to<C, coefficient_types_of_t<Arg, 0>>)
+  template<wrappable Arg, index_descriptor C>
+  requires dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
+    equivalent_to<C, coefficient_types_of_t<Arg, 0>>
 #else
-  template<typename Arg, typename C, std::enable_if_t<index_descriptor<C> and indexible<Arg> and
-    (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
+  template<typename Arg, typename C, std::enable_if_t<wrappable<Arg> and index_descriptor<C> and
     (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
       equivalent_to<C, coefficient_types_of_t<Arg, 0>>), int> = 0>
 #endif
   constexpr decltype(auto)
   to_euclidean(Arg&& arg, const C& c) noexcept
   {
+    if constexpr (dynamic_dimension<Arg, 0> and not euclidean_index_descriptor<coefficient_types_of_t<Arg, 0>>)
+      if (not get_index_descriptor_is_euclidean(get_dimensions_of<0>(arg)) and c != get_dimensions_of<0>(arg))
+        throw std::domain_error {"In to_euclidean, specified index descriptor does not match that of the object's index 0"};
+
     if constexpr (euclidean_index_descriptor<C>)
     {
       return std::forward<Arg>(arg);
     }
     else
     {
-      if constexpr (dynamic_columns<Arg>) if (not get_index_descriptor_is_euclidean(get_dimensions_of<1>(arg)))
-        throw std::domain_error {"In to_euclidean, the column index is not untyped"};
-
-      if constexpr (dynamic_rows<Arg>)
-        if (not get_index_descriptor_is_euclidean(get_dimensions_of<0>(arg)) and get_dimensions_of<0>(arg) != C{})
-          throw std::domain_error {"In to_euclidean, the row index is not untyped and does not match the designated"
-            "fixed_index_descriptor"};
+      if constexpr (has_dynamic_dimensions<Arg>) if (not get_wrappable(arg))
+        throw std::domain_error {"Argument of to_euclidean is not wrappable"};
 
       return interface::ModularTransformationTraits<Arg>::to_euclidean(std::forward<Arg>(arg), c);
     }
@@ -111,10 +59,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<indexible Arg> requires (not has_untyped_index<Arg, 0>) and has_untyped_index<Arg, 1>
+  template<all_fixed_indices_are_euclidean Arg>
 #else
-  template<typename Arg, std::enable_if_t<indexible<Arg> and (not has_untyped_index<Arg, 0>) and
-    has_untyped_index<Arg, 1>, int> = 0>
+  template<typename Arg, std::enable_if_t<all_fixed_indices_are_euclidean<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   to_euclidean(Arg&& arg)
@@ -124,31 +71,29 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<indexible Arg, index_descriptor C> requires (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
-    (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
-      equivalent_to<C, coefficient_types_of_t<Arg, 0>>)
+  template<wrappable Arg, index_descriptor C>
+  requires (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
+    equivalent_to<C, coefficient_types_of_t<Arg, 0>>)
 #else
-  template<typename Arg, typename C, std::enable_if_t<index_descriptor<C> and indexible<Arg> and
-    (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
+  template<typename Arg, typename C, std::enable_if_t<wrappable<Arg> and index_descriptor<C> and
     (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
       equivalent_to<C, coefficient_types_of_t<Arg, 0>>), int> = 0>
 #endif
   constexpr decltype(auto)
   from_euclidean(Arg&& arg, const C& c) noexcept
   {
+    if constexpr (dynamic_dimension<Arg, 0> and not euclidean_index_descriptor<coefficient_types_of_t<Arg, 0>>)
+      if (not get_index_descriptor_is_euclidean(get_dimensions_of<0>(arg)) and c != get_dimensions_of<0>(arg))
+        throw std::domain_error {"In from_euclidean, specified index descriptor does not match that of the object's index 0"};
+
     if constexpr (euclidean_index_descriptor<C>)
     {
       return std::forward<Arg>(arg);
     }
     else
     {
-      if constexpr (dynamic_columns<Arg>) if (not get_index_descriptor_is_euclidean(get_dimensions_of<1>(arg)))
-        throw std::domain_error {"In from_euclidean, the column index is not untyped"};
-
-      if constexpr (dynamic_rows<Arg>)
-        if (not get_index_descriptor_is_euclidean(get_dimensions_of<0>(arg)) and get_dimensions_of<0>(arg) != C{})
-          throw std::domain_error {"In from_euclidean, the row index is not untyped and does not match the designated"
-            "fixed_index_descriptor"};
+      if constexpr (has_dynamic_dimensions<Arg>) if (not get_wrappable(arg))
+        throw std::domain_error {"Argument of from_euclidean is not wrappable"};
 
       return interface::ModularTransformationTraits<Arg>::from_euclidean(std::forward<Arg>(arg), c);
     }
@@ -156,10 +101,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<indexible Arg> requires (not has_untyped_index<Arg, 0>) and has_untyped_index<Arg, 1>
+  template<all_fixed_indices_are_euclidean Arg>
 #else
-  template<typename Arg, std::enable_if_t<indexible<Arg> and (not has_untyped_index<Arg, 0>) and
-    has_untyped_index<Arg, 1>, int> = 0>
+  template<typename Arg, std::enable_if_t<all_fixed_indices_are_euclidean<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   from_euclidean(Arg&& arg)
@@ -169,31 +113,29 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<indexible Arg, index_descriptor C> requires (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
-    (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
-      equivalent_to<C, coefficient_types_of_t<Arg, 0>>)
+  template<wrappable Arg, index_descriptor C>
+  requires (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
+    equivalent_to<C, coefficient_types_of_t<Arg, 0>>)
 #else
-  template<typename Arg, typename C, std::enable_if_t<index_descriptor<C> and indexible<Arg> and
-    (dynamic_columns<Arg> or has_untyped_index<Arg, 1>) and
+  template<typename Arg, typename C, std::enable_if_t<wrappable<Arg> and index_descriptor<C> and
     (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
       equivalent_to<C, coefficient_types_of_t<Arg, 0>>), int> = 0>
 #endif
   constexpr decltype(auto)
   wrap_angles(Arg&& arg, const C& c)
   {
+    if constexpr (dynamic_dimension<Arg, 0> and not euclidean_index_descriptor<coefficient_types_of_t<Arg, 0>>)
+      if (not get_index_descriptor_is_euclidean(get_dimensions_of<0>(arg)) and c != get_dimensions_of<0>(arg))
+        throw std::domain_error {"In wrap_angles, specified index descriptor does not match that of the object's index 0"};
+
     if constexpr (euclidean_index_descriptor<C> or identity_matrix<Arg> or zero_matrix<Arg>)
     {
       return std::forward<Arg>(arg);
     }
     else
     {
-      if constexpr (dynamic_columns<Arg>) if (not get_index_descriptor_is_euclidean(get_dimensions_of<1>(arg)))
-        throw std::domain_error {"In wrap_angles, the column index is not untyped"};
-
-      if constexpr (dynamic_rows<Arg>)
-        if (not get_index_descriptor_is_euclidean(get_dimensions_of<0>(arg)) and get_dimensions_of<0>(arg) != C{})
-          throw std::domain_error {"In wrap_angles, the row index is not untyped and does not match the designated"
-            "fixed_index_descriptor"};
+      if constexpr (has_dynamic_dimensions<Arg>) if (not get_wrappable(arg))
+        throw std::domain_error {"Argument of wrap_angles is not wrappable"};
 
       interface::ModularTransformationTraits<Arg>::wrap_angles(std::forward<Arg>(arg), c);
     }
@@ -201,10 +143,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<indexible Arg> requires (not has_untyped_index<Arg, 0>) and has_untyped_index<Arg, 1>
+  template<all_fixed_indices_are_euclidean Arg>
 #else
-  template<typename Arg, std::enable_if_t<indexible<Arg> and (not has_untyped_index<Arg, 0>) and
-    has_untyped_index<Arg, 1>, int> = 0>
+  template<typename Arg, std::enable_if_t<all_fixed_indices_are_euclidean<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
   wrap_angles(Arg&& arg)
@@ -292,7 +233,7 @@ namespace OpenKalman
     /**
      * \overload
      * \internal
-     * /return A \ref triangular_matrix if Arg is a \ref triangular_covariance or otherwise a \ref self_adjoint_matrix.
+     * /return A \ref triangular_matrix if Arg is a \ref triangular_covariance or otherwise a \ref hermitian_matrix.
      */
 #ifdef __cpp_concepts
     template<typename Arg> requires covariance<Arg> or
