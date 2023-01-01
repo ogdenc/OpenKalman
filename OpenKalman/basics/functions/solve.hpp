@@ -121,21 +121,16 @@ namespace OpenKalman
         }
         else
         {
+          constexpr auto c = b_const / (a_cols * a_const);
+          using C = std::decay_t<decltype(c)>;
   #if __cpp_nontype_template_args >= 201911L
-          constexpr auto c = static_cast<scalar_type_of_t<B>>(b_const) / (a_cols * a_const);
-          return make_constant_matrix_like<B, c>(Dimensions<a_cols>{}, get_dimensions_of<1>(b));
+          return make_constant_matrix_like<B, c, C>(Dimensions<a_cols>{}, get_dimensions_of<1>(b));
   #else
-          if constexpr(b_const % (a_cols * a_const) == 0)
-          {
-            constexpr std::size_t c = static_cast<std::size_t>(b_const) / (a_cols * static_cast<std::size_t>(a_const));
-            return make_constant_matrix_like<B, c>(Dimensions<a_cols>{}, get_dimensions_of<1>(b));
-          }
+          constexpr auto c_integral = static_cast<std::intmax_t>(c);
+          if constexpr (are_within_tolerance(c, static_cast<C>(c_integral)))
+            return make_constant_matrix_like<B, c_integral, C>(Dimensions<a_cols>{}, get_dimensions_of<1>(b));
           else
-          {
-            auto c = static_cast<scalar_type_of_t<B>>(b_const) / (a_cols * a_const);
-            auto m = make_constant_matrix_like<B, 1>(Dimensions<a_cols>{}, get_dimensions_of<1>(b));
-            return make_self_contained(c * to_native_matrix<B>(m));
-          }
+            return make_self_contained(c * make_constant_matrix_like<B, 1, C>(Dimensions<a_cols>{}, get_dimensions_of<1>(b)));
   #endif
         }
       }

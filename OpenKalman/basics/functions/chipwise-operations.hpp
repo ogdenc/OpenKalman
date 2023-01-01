@@ -208,14 +208,10 @@ namespace OpenKalman
    * \tparam Is Number of dimensions corresponding to each <code>index...</code>.
    */
 #ifdef __cpp_concepts
-  template<std::size_t...indices, typename Operation, index_value...Is>
-  requires (sizeof...(Is) == sizeof...(indices)) and
-    (indexible<std::invoke_result_t<Operation>> or
-      indexible<std::invoke_result_t<Operation, std::integral_constant<decltype(indices), 0>...>>)
+  template<std::size_t...indices, typename Operation, index_value...Is> requires (sizeof...(Is) == sizeof...(indices))
 #else
   template<std::size_t...indices, typename Operation, typename...Is, std::enable_if_t<
-    (index_value<Is> and ...) and (sizeof...(Is) == sizeof...(indices)) and
-    (std::is_invocable_v<Operation> or std::is_invocable_v<Operation, std::integral_constant<decltype(indices), 0>...>), int> = 0>
+    (index_value<Is> and ...) and (sizeof...(Is) == sizeof...(indices)), int> = 0>
 #endif
   constexpr auto
   chipwise_operation(const Operation& operation, Is...is)

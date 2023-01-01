@@ -31,7 +31,7 @@ namespace OpenKalman
   #ifdef __cpp_concepts
     concept eigen_constant_expr = is_eigen_constant_expr<std::decay_t<T>>::value;
   #else
-    constexpr bool eigen_constant_expr = detail::is_eigen_constant_expr<std::decay_t<T>>::value;
+    constexpr bool eigen_constant_expr = is_eigen_constant_expr<std::decay_t<T>>::value;
   #endif
   }
 
@@ -123,28 +123,26 @@ namespace OpenKalman
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
     (row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>) and
-    (column_dimension_of_v<Arg1> == column_dimension_of_v<Arg2>) and
-    std::same_as<scalar_type_of_t<Arg1>, scalar_type_of_t<Arg2>>
+    (column_dimension_of_v<Arg1> == column_dimension_of_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<constant_matrix<Arg1> and constant_matrix<Arg2> and
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
     (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value) and
-    (column_dimension_of<Arg1>::value == column_dimension_of<Arg2>::value) and
-    std::is_same_v<typename scalar_type_of<Arg1>::type, typename scalar_type_of<Arg2>::type>, int> = 0>
+    (column_dimension_of<Arg1>::value == column_dimension_of<Arg2>::value), int> = 0>
 #endif
   constexpr auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
     constexpr auto c = constant_coefficient_v<Arg1> + constant_coefficient_v<Arg2>;
+    using Scalar = std::common_type_t<scalar_type_of_t<Arg1>, scalar_type_of_t<Arg2>>;
 # if __cpp_nontype_template_args >= 201911L
-    return make_constant_matrix_like<c>(std::forward<Arg1>(arg1));
+    return make_constant_matrix_like<c, Scalar>(std::forward<Arg1>(arg1));
 # else
     constexpr auto c_integral = static_cast<std::intmax_t>(c);
-    using Scalar = std::common_type_t<std::decay_t<Arg1>, std::decay_t<Arg2>>;
     if constexpr (are_within_tolerance(c, static_cast<Scalar>(c_integral)))
-      return make_constant_matrix_like<c_integral>(std::forward<Arg1>(arg1));
+      return make_constant_matrix_like<c_integral, Scalar>(std::forward<Arg1>(arg1));
     else
-      return make_self_contained(c * make_constant_matrix_like<1>(std::forward<Arg1>(arg1)));
+      return make_self_contained(c * make_constant_matrix_like<1, Scalar>(std::forward<Arg1>(arg1)));
 # endif
   }
 
@@ -324,28 +322,26 @@ namespace OpenKalman
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
     (row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>) and
-    (column_dimension_of_v<Arg1> == column_dimension_of_v<Arg2>) and
-    std::same_as<scalar_type_of_t<Arg1>, scalar_type_of_t<Arg2>>
+    (column_dimension_of_v<Arg1> == column_dimension_of_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<constant_matrix<Arg1> and constant_matrix<Arg2> and
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
     (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value) and
-    (column_dimension_of<Arg1>::value == column_dimension_of<Arg2>::value) and
-    std::is_same<typename scalar_type_of<Arg1>::type, typename scalar_type_of<Arg2>::type>::value, int> = 0>
+    (column_dimension_of<Arg1>::value == column_dimension_of<Arg2>::value), int> = 0>
 #endif
   constexpr auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
     constexpr auto c = constant_coefficient_v<Arg1> - constant_coefficient_v<Arg2>;
+    using Scalar = std::common_type_t<scalar_type_of_t<Arg1>, scalar_type_of_t<Arg2>>;
 # if __cpp_nontype_template_args >= 201911L
-    return make_constant_matrix_like<c>(std::forward<Arg1>(arg1));
+    return make_constant_matrix_like<c, Scalar>(std::forward<Arg1>(arg1));
 # else
     constexpr auto c_integral = static_cast<std::intmax_t>(c);
-    using Scalar = std::common_type_t<std::decay_t<Arg1>, std::decay_t<Arg2>>;
     if constexpr (are_within_tolerance(c, static_cast<Scalar>(c_integral)))
-      return make_constant_matrix_like<c_integral>(std::forward<Arg1>(arg1));
+      return make_constant_matrix_like<c_integral, Scalar>(std::forward<Arg1>(arg1));
     else
-      return make_self_contained(c * make_constant_matrix_like<1>(std::forward<Arg1>(arg1)));
+      return make_self_contained(c * make_constant_matrix_like<1, Scalar>(std::forward<Arg1>(arg1)));
 # endif
 
   }
@@ -615,11 +611,11 @@ namespace OpenKalman
    * \brief A matrix product, where one of the arguments is eigen_zero_expr
    */
 #ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2> requires
+  template<indexible Arg1, indexible Arg2> requires
     ((eigen_constant_expr<Arg1> and zero_matrix<Arg1>) or (eigen_constant_expr<Arg2> and zero_matrix<Arg2>)) and
     (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<
+  template<typename Arg1, typename Arg2, std::enable_if_t<indexible<Arg1> and indexible<Arg2> and
     ((eigen_constant_expr<Arg1> and zero_matrix<Arg1>) or (eigen_constant_expr<Arg2> and zero_matrix<Arg2>)) and
     (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value), int> = 0>
 #endif
@@ -637,32 +633,17 @@ namespace OpenKalman
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
     (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and
-    (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>) and
-    std::same_as<scalar_type_of_t<Arg1>, scalar_type_of_t<Arg2>>
+    (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<constant_matrix<Arg1> and constant_matrix<Arg2> and
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
     (not identity_matrix<Arg1>) and (not identity_matrix<Arg2>) and
-    (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value) and
-    std::is_same_v<typename scalar_type_of<Arg1>::type, typename scalar_type_of<Arg2>::type>, int> = 0>
+    (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value), int> = 0>
 #endif
   inline auto operator*(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr (dynamic_columns<Arg1> or dynamic_rows<Arg2>) assert (get_dimensions_of<1>(arg1) == get_dimensions_of<0>(arg2));
-
-    constexpr auto c = constant_coefficient_v<Arg1> * constant_coefficient_v<Arg2> * row_dimension_of_v<Arg2>;
-# if __cpp_nontype_template_args >= 201911L
-    return make_constant_matrix_like<Arg1, c>(get_dimensions_of<0>(arg1), get_dimensions_of<1>(arg2));
-# else
-    constexpr auto c_integral = static_cast<std::intmax_t>(c);
-    using Scalar = std::common_type_t<std::decay_t<Arg1>, std::decay_t<Arg2>>;
-    if constexpr (are_within_tolerance(c, static_cast<Scalar>(c_integral)))
-      return make_constant_matrix_like<Arg1, c_integral>(get_dimensions_of<0>(arg1), get_dimensions_of<1>(arg2));
-    else
-      return make_self_contained(c * make_constant_matrix_like<Arg1, 1>(get_dimensions_of<0>(arg1), get_dimensions_of<1>(arg2)));
-# endif
-
+    return contract(std::forward<Arg1>(arg1), std::forward<Arg2>(arg2));
   }
 
 

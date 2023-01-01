@@ -58,26 +58,27 @@ namespace OpenKalman
         auto dim = Dimensions {get_index_dimension_of<0>(a)};
         auto col1 = elem * make_constant_matrix_like<A, 1>(dim, Dimensions<1>{});
 
-        auto ret {make_default_dense_writable_matrix_like<A>(dim, dim)};
+        auto m {make_default_dense_writable_matrix_like<A>(dim, dim)};
 
-        if (get_dimension_size_of(dim) == 1)
-          ret = std::move(col1);
-        else
-          ret = concatenate_horizontal(std::move(col1), make_zero_matrix_like<A>(dim, dim - Dimensions<1>{}));
+        if (get_dimension_size_of(dim) == 1) m = std::move(col1);
+        else m = concatenate<1>(std::move(col1), make_zero_matrix_like<A>(dim, dim - Dimensions<1>{}));
 
-        return SquareRootCovariance {std::move(ret), get_dimensions_of<0>(a)};
+        auto ret = make_triangular_matrix<TriangleType::lower>(std::move(m));
+
+        // \todo Fix this:
+        if constexpr (euclidean_index_descriptor<coefficient_types_of_t<A, 0>>) return ret;
+        else return SquareRootCovariance {std::move(ret), get_dimensions_of<0>(a)};
       }
       else
       {
-        auto m = [](Scalar elem){
+        auto ret = make_triangular_matrix<TriangleType::lower>([](Scalar elem){
           constexpr auto dim = index_dimension_of_v<A, 0>;
           auto col1 = elem * make_constant_matrix_like<A, 1>(Dimensions<dim>{}, Dimensions<1>{});
           if constexpr (dim == 1) return col1;
-          else return concatenate_horizontal(std::move(col1), make_zero_matrix_like<A>(Dimensions<dim>{}, Dimensions<dim - 1>{}));
-        }(elem);
+          else return concatenate<1>(std::move(col1), make_zero_matrix_like<A>(Dimensions<dim>{}, Dimensions<dim - 1>{}));
+        }(elem));
 
-        TriangularMatrix<decltype(m), TriangleType::lower> ret {std::move(m)};
-
+        // \todo Fix this:
         using C = coefficient_types_of_t<A, 0>;
         if constexpr (euclidean_index_descriptor<C>) return ret;
         else return SquareRootCovariance {std::move(ret), C{}};
@@ -89,10 +90,9 @@ namespace OpenKalman
       static_assert(lower_triangular_matrix<decltype(ret)>,
         "Interface implementation error: interface::LinearAlgebra<T>::LQ_decomposition must return a lower_triangular_matrix.");
 
-      if constexpr (euclidean_index_descriptor<coefficient_types_of_t<A, 0>>)
-        return ret;
-      else
-        return SquareRootCovariance {std::move(ret), get_dimensions_of<0>(a)};
+      // \todo Fix this:
+      if constexpr (euclidean_index_descriptor<coefficient_types_of_t<A, 0>>) return ret;
+      else return SquareRootCovariance {std::move(ret), get_dimensions_of<0>(a)};
     }
   }
 
@@ -135,26 +135,27 @@ namespace OpenKalman
         auto dim = Dimensions {get_index_dimension_of<1>(a)};
         auto row1 = elem * make_constant_matrix_like<A, 1>(Dimensions<1>{}, dim);
 
-        auto ret = make_default_dense_writable_matrix_like<A>(dim, dim);
+        auto m = make_default_dense_writable_matrix_like<A>(dim, dim);
 
-        if (get_dimension_size_of(dim) == 1)
-          ret = std::move(row1);
-        else
-          ret = concatenate_vertical(std::move(row1), make_zero_matrix_like<A>(dim - Dimensions<1>{}, dim));
+        if (get_dimension_size_of(dim) == 1) m = std::move(row1);
+        else m = concatenate<0>(std::move(row1), make_zero_matrix_like<A>(dim - Dimensions<1>{}, dim));
 
-        return SquareRootCovariance {std::move(ret), get_dimensions_of<1>(a)};
+        auto ret = make_triangular_matrix<TriangleType::upper>(std::move(m));
+
+        // \todo Fix this:
+        if constexpr (euclidean_index_descriptor<coefficient_types_of_t<A, 1>>) return ret;
+        else return SquareRootCovariance {std::move(ret), get_dimensions_of<1>(a)};
       }
       else
       {
-        auto m = [](Scalar elem){
+        auto ret = make_triangular_matrix<TriangleType::upper>([](Scalar elem){
           constexpr auto dim = index_dimension_of_v<A, 1>;
           auto row1 = elem * make_constant_matrix_like<A, 1>(Dimensions<1>{}, Dimensions<dim>{});
           if constexpr (dim == 1) return row1;
-          else return concatenate_vertical(std::move(row1), make_zero_matrix_like<A>(Dimensions<dim - 1>{}, Dimensions<dim>{}));
-        }(elem);
+          else return concatenate<0>(std::move(row1), make_zero_matrix_like<A>(Dimensions<dim - 1>{}, Dimensions<dim>{}));
+        }(elem));
 
-        TriangularMatrix<decltype(m), TriangleType::upper> ret {std::move(m)};
-
+        // \todo Fix this:
         using C = coefficient_types_of_t<A, 1>;
         if constexpr (euclidean_index_descriptor<C>) return ret;
         else return SquareRootCovariance {std::move(ret), C{}};
@@ -166,10 +167,9 @@ namespace OpenKalman
       static_assert(upper_triangular_matrix<decltype(ret)>,
         "Interface implementation error: interface::LinearAlgebra<T>::QR_decomposition must return an upper_triangular_matrix.");
 
-      if constexpr (euclidean_index_descriptor<coefficient_types_of_t<A, 1>>)
-        return ret;
-      else
-        return SquareRootCovariance {std::move(ret), get_dimensions_of<1>(a)};
+      // \todo Fix this:
+      if constexpr (euclidean_index_descriptor<coefficient_types_of_t<A, 1>>) return ret;
+      else return SquareRootCovariance {std::move(ret), get_dimensions_of<1>(a)};
     }
   }
 

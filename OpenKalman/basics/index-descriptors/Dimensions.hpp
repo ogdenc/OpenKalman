@@ -102,7 +102,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::integral Int>
 #else
-    template<typename Int, std::enable_if_t<std::is_integral<Int>, int> = 0>
+    template<typename Int, std::enable_if_t<std::is_integral_v<Int>, int> = 0>
 #endif
     explicit constexpr operator Int()
     {

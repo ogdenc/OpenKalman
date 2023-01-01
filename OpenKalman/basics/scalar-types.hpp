@@ -206,18 +206,18 @@ namespace OpenKalman
     struct is_floating_scalar_type<T, std::enable_if_t<
       std::is_default_constructible_v<T> and
       std::is_floating_point_v<std::decay_t<decltype(interface::ScalarTraits<T>::real_projection(std::declval<T>()))>> and
-      std::is_convertible_v<decltype(interface::ScalarTraits<T>::inverse_real_projection(std::declval<T>(),
-        interface::ScalarTraits<T>::real_projection(std::declval<T>()))), const T&> and
-      std::is_convertible_v<decltype(interface::ScalarTraits<T>::sin(std::declval<T>())), const T&> and
-      std::is_convertible_v<decltype(interface::ScalarTraits<T>::cos(std::declval<T>())), const T&> and
-      std::is_convertible_v<decltype(interface::ScalarTraits<T>::sqrt(std::declval<T>())), const T&> and
-      std::is_convertible_v<decltype(interface::ScalarTraits<T>::asin2(std::declval<T>(), std::declval<T>())), const T&> and
-      std::is_convertible_v<decltype(interface::ScalarTraits<T>::atan2(std::declval<T>(), std::declval<T>())), const T&> and
-      std::is_convertible_v<decltype(std::declval<T>() + std::declval<T>()), const T&> and
-      std::is_convertible_v<decltype(std::declval<T>() - std::declval<T>()), const T&> and
-      std::is_convertible_v<decltype(std::declval<T>() * std::declval<T>()), const T&> and
-      std::is_convertible_v<decltype(std::declval<T>() / std::declval<T>()), const T&> and
-      std::is_convertible_v<decltype(std::declval<T>() == std::declval<T>()), const T&>
+      std::is_convertible<decltype(interface::ScalarTraits<T>::inverse_real_projection(std::declval<T>(),
+        interface::ScalarTraits<T>::real_projection(std::declval<T>()))), const T&>::value and
+      std::is_convertible<decltype(interface::ScalarTraits<T>::sin(std::declval<T>())), const T&>::value and
+      std::is_convertible<decltype(interface::ScalarTraits<T>::cos(std::declval<T>())), const T&>::value and
+      std::is_convertible<decltype(interface::ScalarTraits<T>::sqrt(std::declval<T>())), const T&>::value and
+      std::is_convertible<decltype(interface::ScalarTraits<T>::asin2(std::declval<T>(), std::declval<T>())), const T&>::value and
+      std::is_convertible<decltype(interface::ScalarTraits<T>::atan2(std::declval<T>(), std::declval<T>())), const T&>::value and
+      std::is_convertible<decltype(std::declval<T>() + std::declval<T>()), const T&>::value and
+      std::is_convertible<decltype(std::declval<T>() - std::declval<T>()), const T&>::value and
+      std::is_convertible<decltype(std::declval<T>() * std::declval<T>()), const T&>::value and
+      std::is_convertible<decltype(std::declval<T>() / std::declval<T>()), const T&>::value and
+      std::is_convertible<decltype(std::declval<T>() == std::declval<T>()), const T&>::value
       >>: std::true_type {};
   }
 #endif
@@ -267,7 +267,7 @@ namespace OpenKalman
 #else
   constexpr bool scalar_type =
 #endif
-    floating_scalar_type<T> or std::is_arithmetic_v<std::decay_t<T>>;
+    std::is_arithmetic_v<std::decay_t<T>> or floating_scalar_type<T>;
 
 
 } // namespace OpenKalman

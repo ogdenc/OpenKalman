@@ -111,7 +111,7 @@ namespace OpenKalman
     {
       constexpr std::make_index_sequence<std::max({max_indices_of_v<Arg>, static_cast<std::size_t>(2)}) - 2> seq;
 # if __cpp_nontype_template_args >= 201911L
-      return detail::transpose_constant<constant_coefficient_v<Arg>>(std::forward<Arg>(arg), seq);
+      return detail::transpose_constant<real_projection(constant_coefficient_v<Arg>)>(std::forward<Arg>(arg), seq);
 # else
       constexpr auto c = real_projection(constant_coefficient_v<Arg>);
       constexpr auto c_integral = static_cast<std::intmax_t>(c);
@@ -418,7 +418,7 @@ namespace OpenKalman
       if constexpr (dynamic_dimension<A, 1> and dynamic_dimension<B, 0>)
       {
         auto r = get_index_dimension_of<1>(a);
-        return r * detail::contract_constant<c>(std::forward<A>(a), std::forward<B>(b), seq);
+        return make_self_contained(c * r * detail::contract_constant<1>(std::forward<A>(a), std::forward<B>(b), seq));
       }
       else
       {

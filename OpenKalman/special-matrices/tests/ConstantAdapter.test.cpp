@@ -29,6 +29,7 @@ namespace
   using M32 = eigen_matrix_t<double, 3, 2>;
   using M33 = eigen_matrix_t<double, 3, 3>;
   using M34 = eigen_matrix_t<double, 3, 4>;
+  using M42 = eigen_matrix_t<double, 4, 2>;
   using M43 = eigen_matrix_t<double, 4, 3>;
   using M44 = eigen_matrix_t<double, 4, 4>;
   using M55 = eigen_matrix_t<double, 5, 5>;
@@ -60,45 +61,6 @@ namespace
   using CM00 = eigen_matrix_t<cdouble, dynamic_size, dynamic_size>;
 
   using Axis2 = TypedIndex<Axis, Axis>;
-
-  auto z11 = M11::Identity() - M11::Identity(); using Z11 = decltype(z11);
-  auto z22 = M22::Identity() - M22::Identity(); using Z22 = decltype(z22);
-  auto z21 = z22.diagonal(); using Z21 = decltype(z21);
-  auto z12 = z11.replicate<1,2>(); using Z12 = decltype(z12);
-  auto z23 = z11.replicate<2,3>(); using Z23 = decltype(z23);
-  using Z20 = Eigen::Replicate<Z11, 2, Eigen::Dynamic>; 
-  using Z02 = Eigen::Replicate<Z11, Eigen::Dynamic, 2>; 
-  using Z00 = Eigen::Replicate<Z11, Eigen::Dynamic, Eigen::Dynamic>; 
-  using Z01 = Eigen::Replicate<Z11, Eigen::Dynamic, 1>; 
-  auto z20_2 = Z20 {z11, 2, 2};
-  auto z02_2 = Z02 {z11, 2, 2};
-  auto z00_22 = Z00 {z11, 2, 2};
-  auto z01_2 = Z01 {z11, 2, 1};
-  auto z20_1 = Z20 {z11, 2, 1};
-  auto z00_21 = Z00 {z11, 2, 1};
-
-  auto c11_1 = M11::Identity(); using C11_1 = decltype(c11_1);
-  auto c11_m1 = -M11::Identity(); using C11_m1 = decltype(c11_m1);
-  auto c11_2 = c11_1 + c11_1; using C11_2 = decltype(c11_2);
-  auto c11_m2 = -c11_2; using C11_m2 = decltype(c11_m2);
-  auto c21_1 = c11_1.replicate<2,1>(); using C21_1 = decltype(c21_1);
-  auto c21_2 = c11_2.replicate<2,1>(); using C21_2 = decltype(c21_2);
-  auto c21_m2 = c11_m2.replicate<2,1>(); using C21_m2 = decltype(c21_m2);
-  auto c12_2 = c11_2.replicate<1,2>(); using C12_2 = decltype(c12_2);
-  auto c22_2 = c11_2.replicate<2,2>(); using C22_2 = decltype(c22_2);
-  auto c22_m2 = c11_m2.replicate<2,2>(); using C22_m2 = decltype(c22_m2);
-  using C20_2 = Eigen::Replicate<C11_2, 2, Eigen::Dynamic>;
-  using C02_2 = Eigen::Replicate<C11_2, Eigen::Dynamic, 2>;
-  using C00_2 = Eigen::Replicate<C11_2, Eigen::Dynamic, Eigen::Dynamic>;
-  using C01_2 = Eigen::Replicate<C11_2, Eigen::Dynamic, 2>;
-  auto c20_2_2 = C20_2 {c11_2, 2, 2};
-  auto c02_2_2 = C02_2 {c11_2, 2, 2};
-  auto c00_22_2 = C00_2 {c11_2, 2, 2};
-  auto c20_1_2 = C20_2 {c11_2, 2, 1};
-  auto c01_2_2 = C01_2 {c11_2, 2, 1};
-  auto c00_21_2 = C00_2 {c11_2, 2, 1};
-
-  auto b22_true = eigen_matrix_t<bool, 1, 1>::Identity().replicate<2,2>(); using B22_true = decltype(b22_true);
 
   using ZA11 = ZeroAdapter<M11>;
   using ZA10 = ZeroAdapter<M10>;
@@ -190,7 +152,7 @@ TEST(eigen3, ConstantAdapter_traits)
 }
 
 
-TEST(eigen3, Zero_traits)
+TEST(eigen3, ZeroAdapter_traits)
 {
   static_assert(indexible<ZA31>);
 
@@ -261,8 +223,6 @@ TEST(eigen3, Zero_traits)
 }
 
 
-
-
 TEST(eigen3, ConstantAdapter_class)
 {
   ConstantAdapter<M23, 3> c323 {};
@@ -282,15 +242,10 @@ TEST(eigen3, ConstantAdapter_class)
   EXPECT_TRUE(is_near(ConstantAdapter {c303}, M23::Constant(3)));
   EXPECT_TRUE(is_near(ConstantAdapter {c300}, M23::Constant(3)));
 
-  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M23, 3> {}}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M20, 3> {3}}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M03, 3> {2}}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M00, 3> {2,3}}, M23::Constant(3)));
-
-  EXPECT_TRUE(is_near(ConstantAdapter {ZeroAdapter<M23> {}}, M23::Zero()));
-  EXPECT_TRUE(is_near(ConstantAdapter {ZeroAdapter<M20> {3}}, M23::Zero()));
-  EXPECT_TRUE(is_near(ConstantAdapter {ZeroAdapter<M03> {2}}, M23::Zero()));
-  EXPECT_TRUE(is_near(ConstantAdapter {ZeroAdapter<M00> {2,3}}, M23::Zero()));
+  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M23, 3> {N2{}, N3{}}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M20, 3> {N2{}, 3}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M03, 3> {2, N3{}}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M00, 3> {2, 3}}, M23::Constant(3)));
 
   EXPECT_TRUE(is_near(ConstantAdapter<M23, 3> {c320}, M23::Constant(3)));
   EXPECT_TRUE(is_near(ConstantAdapter<M23, 3> {c303}, M23::Constant(3)));
@@ -348,6 +303,42 @@ TEST(eigen3, ConstantAdapter_class)
   c303 = ConstantAdapter {c300}; EXPECT_TRUE(is_near(c303, M23::Constant(3)));
   c300 = ConstantAdapter {c300}; EXPECT_TRUE(is_near(c300, M23::Constant(3)));
 
+  auto nc11 = M11::Identity() + M11::Identity() + M11::Identity(); using NC11 = decltype(nc11);
+  auto nc23 = nc11.replicate<2,3>();
+  auto nc20 = Eigen::Replicate<NC11, 2, Eigen::Dynamic> {nc11, 2, 3};
+  auto nc03 = Eigen::Replicate<NC11, Eigen::Dynamic, 3> {nc11, 2, 3};
+  auto nc00 = Eigen::Replicate<NC11, Eigen::Dynamic, Eigen::Dynamic> {nc11, 2, 3};
+
+  c320 = nc23; EXPECT_TRUE(is_near(c320, M23::Constant(3)));
+  c303 = nc23; EXPECT_TRUE(is_near(c303, M23::Constant(3)));
+  c300 = nc23; EXPECT_TRUE(is_near(c300, M23::Constant(3)));
+  c323 = nc20; EXPECT_TRUE(is_near(c323, M23::Constant(3)));
+  c303 = nc20; EXPECT_TRUE(is_near(c303, M23::Constant(3)));
+  c300 = nc20; EXPECT_TRUE(is_near(c300, M23::Constant(3)));
+  c323 = nc03; EXPECT_TRUE(is_near(c323, M23::Constant(3)));
+  c320 = nc03; EXPECT_TRUE(is_near(c320, M23::Constant(3)));
+  c300 = nc03; EXPECT_TRUE(is_near(c300, M23::Constant(3)));
+  c323 = nc00; EXPECT_TRUE(is_near(c323, M23::Constant(3)));
+  c320 = nc00; EXPECT_TRUE(is_near(c320, M23::Constant(3)));
+  c303 = nc00; EXPECT_TRUE(is_near(c303, M23::Constant(3)));
+
+  c323 = ConstantAdapter {nc23}; EXPECT_TRUE(is_near(c323, M23::Constant(3)));
+  c320 = ConstantAdapter {nc23}; EXPECT_TRUE(is_near(c320, M23::Constant(3)));
+  c303 = ConstantAdapter {nc23}; EXPECT_TRUE(is_near(c303, M23::Constant(3)));
+  c300 = ConstantAdapter {nc23}; EXPECT_TRUE(is_near(c300, M23::Constant(3)));
+  c323 = ConstantAdapter {nc20}; EXPECT_TRUE(is_near(c323, M23::Constant(3)));
+  c320 = ConstantAdapter {nc20}; EXPECT_TRUE(is_near(c320, M23::Constant(3)));
+  c303 = ConstantAdapter {nc20}; EXPECT_TRUE(is_near(c303, M23::Constant(3)));
+  c300 = ConstantAdapter {nc20}; EXPECT_TRUE(is_near(c300, M23::Constant(3)));
+  c323 = ConstantAdapter {nc03}; EXPECT_TRUE(is_near(c323, M23::Constant(3)));
+  c320 = ConstantAdapter {nc03}; EXPECT_TRUE(is_near(c320, M23::Constant(3)));
+  c303 = ConstantAdapter {nc03}; EXPECT_TRUE(is_near(c303, M23::Constant(3)));
+  c300 = ConstantAdapter {nc03}; EXPECT_TRUE(is_near(c300, M23::Constant(3)));
+  c323 = ConstantAdapter {nc00}; EXPECT_TRUE(is_near(c323, M23::Constant(3)));
+  c320 = ConstantAdapter {nc00}; EXPECT_TRUE(is_near(c320, M23::Constant(3)));
+  c303 = ConstantAdapter {nc00}; EXPECT_TRUE(is_near(c303, M23::Constant(3)));
+  c300 = ConstantAdapter {nc00}; EXPECT_TRUE(is_near(c300, M23::Constant(3)));
+
   EXPECT_NEAR((ConstantAdapter<M22, 3> {}(0, 0)), 3, 1e-6);
   EXPECT_NEAR((ConstantAdapter<M22, 3> {}(0, 1)), 3, 1e-6);
   EXPECT_NEAR((ConstantAdapter<M20, 3> {2}(0, 1)), 3, 1e-6);
@@ -382,10 +373,10 @@ TEST(eigen3, ZeroAdapter_class)
   EXPECT_TRUE(is_near(ConstantAdapter {z03}, M23::Zero()));
   EXPECT_TRUE(is_near(ConstantAdapter {z00}, M23::Zero()));
 
-  EXPECT_TRUE(is_near(ConstantAdapter {ZA23 {}}, M23::Zero()));
-  EXPECT_TRUE(is_near(ConstantAdapter {ZA20 {3}}, M23::Zero()));
-  EXPECT_TRUE(is_near(ConstantAdapter {ZA03 {2}}, M23::Zero()));
-  EXPECT_TRUE(is_near(ConstantAdapter {ZA00 {2,3}}, M23::Zero()));
+  EXPECT_TRUE(is_near(ConstantAdapter {ZA23 {N2{}, N3{}}}, M23::Zero()));
+  EXPECT_TRUE(is_near(ConstantAdapter {ZA20 {N2{}, 3}}, M23::Zero()));
+  EXPECT_TRUE(is_near(ConstantAdapter {ZA03 {2, N3{}}}, M23::Zero()));
+  EXPECT_TRUE(is_near(ConstantAdapter {ZA00 {2, 3}}, M23::Zero()));
 
   EXPECT_NEAR((ConstantAdapter {ConstantAdapter<M23, 0>{}}(1, 2)), 0, 1e-6);
   EXPECT_NEAR((ConstantAdapter {ConstantAdapter<M20, 0>{3}}(1, 2)), 0, 1e-6);
@@ -516,7 +507,7 @@ TEST(eigen3, ConstantAdapter_make_functions)
 
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C533>()), 1> == 3);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C500>(Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C500>(3)), 1> == dynamic_size);  EXPECT_EQ(get_dimensions_of<1>(make_identity_matrix_like<C500>(2)), 3);
+  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C500>(3)), 1> == dynamic_size);  EXPECT_EQ(get_dimensions_of<1>(make_identity_matrix_like<C500>(3)), 3);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c533)), 1> == 3);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c530_3)), 1> == 3); EXPECT_EQ(get_dimensions_of<1>(make_identity_matrix_like(c530_3)), 3);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c503_3)), 1> == 3);
@@ -761,7 +752,7 @@ TEST(eigen3, ConstantAdapter_functions)
   EXPECT_TRUE(is_near(solve(ConstantAdapter<M00, 2> {1, 1}, make_eigen_matrix<double, dynamic_size, 1>(8)), make_eigen_matrix<double, 1, 1>(4)));
   EXPECT_TRUE(is_near(solve(ConstantAdapter<M00, 2> {1, 1}, make_eigen_matrix<double, dynamic_size, dynamic_size>(8)), make_eigen_matrix<double, 1, 1>(4)));
 
-  EXPECT_TRUE(is_near(solve(M11::Identity(), make_eigen_matrix<double, 1, 1>(8)), make_eigen_matrix<double, 1, 1>(4)));
+  EXPECT_TRUE(is_near(solve(M11::Identity(), make_eigen_matrix<double, 1, 1>(8)), make_eigen_matrix<double, 1, 1>(8)));
 
   auto colzc34 = average_reduce<1>(c500_34);
   EXPECT_TRUE(is_near(average_reduce<1>(ConstantAdapter<M23, 3> ()), (M21::Constant(3))));
@@ -772,12 +763,12 @@ TEST(eigen3, ConstantAdapter_functions)
 
   auto rowzc34 = average_reduce<0>(c500_34);
   EXPECT_TRUE(is_near(average_reduce<0>(ConstantAdapter<M23, 3> ()), (M13::Constant(3))));
-  EXPECT_EQ(rowzc34, (ConstantAdapter<M14, 5> {}));
+  EXPECT_EQ(rowzc34, (ConstantAdapter<eigen_matrix_t<double, 1, 4>, 5> {}));
   EXPECT_EQ(get_dimensions_of<1>(rowzc34), 4);
   EXPECT_EQ(get_dimensions_of<0>(rowzc34), 1);
   static_assert(eigen_constant_expr<decltype(rowzc34)>);
 
-  EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<M53, 7> ()), LQ_decomposition(make_eigen_matrix<double, 5, 3>(7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7)).cwiseAbs()));
+  EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<eigen_matrix_t<double, 5, 3>, 7> ()), LQ_decomposition(make_eigen_matrix<double, 5, 3>(7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7)).cwiseAbs()));
   auto lq332 = make_self_contained(LQ_decomposition(make_eigen_matrix<double, 3, 2>(3, 3, 3, 3, 3, 3)).cwiseAbs());
   EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<M32, 3> ()), lq332));
   auto lqzc30_2 = LQ_decomposition(ConstantAdapter<M30, 3> {2});
@@ -793,7 +784,7 @@ TEST(eigen3, ConstantAdapter_functions)
   EXPECT_EQ(get_dimensions_of<0>(lqzc00_32), 3);
   EXPECT_EQ(get_dimensions_of<1>(lqzc00_32), 3);
 
-  EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<M35, 7> ()), QR_decomposition(make_eigen_matrix<double, 3, 5>(7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7)).cwiseAbs()));
+  EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<eigen_matrix_t<double, 3, 5>, 7> ()), QR_decomposition(make_eigen_matrix<double, 3, 5>(7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7)).cwiseAbs()));
   auto qr323 = make_self_contained(QR_decomposition(make_eigen_matrix<double, 2, 3>(3, 3, 3, 3, 3, 3)).cwiseAbs());
   EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<M23, 3> ()), qr323));
   auto qrzc20_3 = QR_decomposition(ConstantAdapter<M20, 3> {3});
@@ -826,24 +817,24 @@ TEST(eigen3, ConstantAdapter_functions)
   EXPECT_NEAR((get_element(c00, 1, 1)), 5, 1e-6);
   EXPECT_NEAR((get_element(ConstantAdapter<M01, 7> {3}, 0)), 7, 1e-6);
 
-  EXPECT_TRUE(is_near(column(ConstantAdapter<M23, 6> {}, 1), (M21::Constant(6))));
-  EXPECT_TRUE(is_near(column<1>(ConstantAdapter<M23, 7> {}), (M21::Constant(7))));
-  auto czc34 = column(c500_34, 1);
+  EXPECT_TRUE(is_near(get_chip<1>(ConstantAdapter<M23, 6> {}, 1), (M21::Constant(6))));
+  EXPECT_TRUE(is_near(get_chip<1>(ConstantAdapter<M23, 7> {}, N1{}), (M21::Constant(7))));
+  auto czc34 = get_chip<1>(c500_34, 1);
   EXPECT_EQ(get_dimensions_of<0>(czc34), 3);
   static_assert(get_dimensions_of<1>(czc34) == 1);
   static_assert(eigen_constant_expr<decltype(czc34)>);
-  auto czv34 = column<1>(ConstantAdapter<M04, 5> {3});
+  auto czv34 = get_chip<1>(ConstantAdapter<M04, 5> {3}, N1{});
   EXPECT_EQ(get_dimensions_of<0>(czv34), 3);
   static_assert(get_dimensions_of<1>(czv34) == 1);
   static_assert(eigen_constant_expr<decltype(czv34)>);
 
-  EXPECT_TRUE(is_near(row(ConstantAdapter<M32, 6> {}, 1), (M12::Constant(6))));
-  EXPECT_TRUE(is_near(row<1>(ConstantAdapter<M32, 7> {}), (M12::Constant(7))));
-  auto rzc34 = row(c500_34, 1);
+  EXPECT_TRUE(is_near(get_chip<0>(ConstantAdapter<M32, 6> {}, 1), (M12::Constant(6))));
+  EXPECT_TRUE(is_near(get_chip<0>(ConstantAdapter<M32, 7> {}, N1{}), (M12::Constant(7))));
+  auto rzc34 = get_chip<0>(c500_34, 1);
   EXPECT_EQ(get_dimensions_of<1>(rzc34), 4);
   static_assert(get_dimensions_of<0>(rzc34) == 1);
   static_assert(eigen_constant_expr<decltype(rzc34)>);
-  auto rzv34 = row<1>(ConstantAdapter<M30, 5> {4});
+  auto rzv34 = get_chip<0>(ConstantAdapter<M30, 5> {4}, N1{});
   EXPECT_EQ(get_dimensions_of<1>(rzv34), 4);
   static_assert(get_dimensions_of<0>(rzv34) == 1);
   static_assert(eigen_constant_expr<decltype(rzv34)>);
@@ -1101,24 +1092,100 @@ TEST(eigen3, ZeroAdapter_functions)
 
 TEST(eigen3, ConstantAdapter_equality)
 {
-  static_assert(ConstantAdapter<M22, 3> == ConstantAdapter<M22, 3> {});
-  static_assert(ConstantAdapter<M22, 3> == M22 {3, 3, 3, 3});
-  static_assert(M22 {3, 3, 3, 3} == ConstantAdapter<M22, 3>);
+  ConstantAdapter<M23, 3> ca23;
+  ConstantAdapter<M20, 3> ca20 {3};
+  ConstantAdapter<M03, 3> ca03 {2};
+  ConstantAdapter<M00, 3> ca00 {2, 3};
+
+  auto nc11 = M11::Identity() + M11::Identity() + M11::Identity(); using NC11 = decltype(nc11);
+  auto nc23 = nc11.replicate<2,3>();
+  auto nc20 = Eigen::Replicate<NC11, 2, Eigen::Dynamic> {nc11, 2, 3};
+  auto nc03 = Eigen::Replicate<NC11, Eigen::Dynamic, 3> {nc11, 2, 3};
+  auto nc00 = Eigen::Replicate<NC11, Eigen::Dynamic, Eigen::Dynamic> {nc11, 2, 3};
+
+  auto mc23 = M23::Constant(3);
+  auto mc20 = M20::Constant(2, 3, 3);
+  auto mc03 = M03::Constant(2, 3, 3);
+  auto mc00 = M00::Constant(2, 3, 3);
+
+  static_assert(ca23 == ca23);
+  static_assert(ca23 == nc23);
+  static_assert(nc23 == ca23);
+
+  EXPECT_TRUE(ca23 == nc20);
+  EXPECT_TRUE(ca23 == nc03);
+  EXPECT_TRUE(ca23 == nc00);
+  EXPECT_TRUE(ca20 == nc20);
+  EXPECT_TRUE(ca20 == nc03);
+  EXPECT_TRUE(ca20 == nc00);
+  EXPECT_TRUE(ca03 == nc20);
+  EXPECT_TRUE(ca03 == nc03);
+  EXPECT_TRUE(ca03 == nc00);
+  EXPECT_TRUE(ca00 == nc20);
+  EXPECT_TRUE(ca00 == nc03);
+  EXPECT_TRUE(ca00 == nc00);
+
+  EXPECT_TRUE(nc20 == ca23);
+  EXPECT_TRUE(nc03 == ca23);
+  EXPECT_TRUE(nc00 == ca23);
+  EXPECT_TRUE(nc20 == ca20);
+  EXPECT_TRUE(nc03 == ca20);
+  EXPECT_TRUE(nc00 == ca20);
+  EXPECT_TRUE(nc20 == ca03);
+  EXPECT_TRUE(nc03 == ca03);
+  EXPECT_TRUE(nc00 == ca03);
+  EXPECT_TRUE(nc20 == ca00);
+  EXPECT_TRUE(nc03 == ca00);
+  EXPECT_TRUE(nc00 == ca00);
+
+  EXPECT_TRUE(ca23 == mc23);
+  EXPECT_TRUE(ca23 == mc20);
+  EXPECT_TRUE(ca23 == mc03);
+  EXPECT_TRUE(ca23 == mc00);
+  EXPECT_TRUE(ca20 == mc20);
+  EXPECT_TRUE(ca20 == mc23);
+  EXPECT_TRUE(ca20 == mc03);
+  EXPECT_TRUE(ca20 == mc00);
+  EXPECT_TRUE(ca03 == mc20);
+  EXPECT_TRUE(ca03 == mc23);
+  EXPECT_TRUE(ca03 == mc03);
+  EXPECT_TRUE(ca03 == mc00);
+  EXPECT_TRUE(ca00 == mc20);
+  EXPECT_TRUE(ca00 == mc23);
+  EXPECT_TRUE(ca00 == mc03);
+  EXPECT_TRUE(ca00 == mc00);
+
+  EXPECT_TRUE(mc20 == ca23);
+  EXPECT_TRUE(mc23 == ca23);
+  EXPECT_TRUE(mc03 == ca23);
+  EXPECT_TRUE(mc00 == ca23);
+  EXPECT_TRUE(mc23 == ca20);
+  EXPECT_TRUE(mc20 == ca20);
+  EXPECT_TRUE(mc03 == ca20);
+  EXPECT_TRUE(mc00 == ca20);
+  EXPECT_TRUE(mc23 == ca03);
+  EXPECT_TRUE(mc20 == ca03);
+  EXPECT_TRUE(mc03 == ca03);
+  EXPECT_TRUE(mc00 == ca03);
+  EXPECT_TRUE(mc23 == ca00);
+  EXPECT_TRUE(mc20 == ca00);
+  EXPECT_TRUE(mc03 == ca00);
+  EXPECT_TRUE(mc00 == ca00);
 }
 
 
-TEST(eigen3, Zero_equality)
+TEST(eigen3, ZeroAdapter_equality)
 {
   ZeroAdapter<M23> za23;
   ZeroAdapter<M20> za20 {3};
   ZeroAdapter<M03> za03 {2};
   ZA00 za00 {2, 3};
 
-  auto nz11 = M11::Identity() - M11::Identity(); using Z11 = decltype(nz11);
+  auto nz11 = M11::Identity() - M11::Identity(); using NZ11 = decltype(nz11);
   auto nz23 = nz11.replicate<2,3>();
-  auto nz20 = Eigen::Replicate<Z11, 2, Eigen::Dynamic> {nz11, 2, 3};
-  auto nz03 = Eigen::Replicate<Z11, Eigen::Dynamic, 3> {nz11, 2, 3};
-  auto nz00 = Eigen::Replicate<Z11, Eigen::Dynamic, Eigen::Dynamic> {nz11, 2, 3};
+  auto nz20 = Eigen::Replicate<NZ11, 2, Eigen::Dynamic> {nz11, 2, 3};
+  auto nz03 = Eigen::Replicate<NZ11, Eigen::Dynamic, 3> {nz11, 2, 3};
+  auto nz00 = Eigen::Replicate<NZ11, Eigen::Dynamic, Eigen::Dynamic> {nz11, 2, 3};
 
   auto mz23 = M23::Zero();
   auto mz20 = M20::Zero(2, 3);
@@ -1214,10 +1281,10 @@ TEST(eigen3, ConstantAdapter_arithmetic)
   EXPECT_TRUE(is_near(M23::Constant(3) * ConstantAdapter<M32, 5> {}, ConstantAdapter<M22, 45> {}));
   EXPECT_TRUE(is_near(M34::Constant(4) * ConstantAdapter<M42, 7> {}, ConstantAdapter<M32, 112> {}));
 
-  EXPECT_EQ((ConstantAdapter<M43, 3>::rows()), 4);
-  EXPECT_EQ((ConstantAdapter<M43, 3>::cols()), 3);
+  EXPECT_EQ((ConstantAdapter<M43, 3>{}.rows()), 4);
+  EXPECT_EQ((ConstantAdapter<M43, 3>{}.cols()), 3);
   EXPECT_TRUE(is_near(make_zero_matrix_like<ConstantAdapter<M23, 3>>(), M23::Zero()));
-  EXPECT_TRUE(is_near(make_identity_matrix_like<ConstantAdapter<M23, 3>>(), M22::Identity()));
+  EXPECT_TRUE(is_near(make_identity_matrix_like<ConstantAdapter<M22, 3>>(), M22::Identity()));
 }
 
 

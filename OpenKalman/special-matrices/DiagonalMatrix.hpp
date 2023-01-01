@@ -343,7 +343,7 @@ namespace OpenKalman
     (not requires(Arg&& arg) { diagonal_of(std::forward<Arg>(arg)); })
 #else
   template<typename Arg, std::enable_if_t<dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe> and
-    (not square_matrix<Arg, Likelihood::maybe> or not detail::diagonal_exists<Arg>::value), int> = 0>
+    (not square_matrix<Arg> or not detail::diagonal_exists<Arg>::value), int> = 0>
 #endif
   explicit DiagonalMatrix(Arg&&) ->
     DiagonalMatrix<std::conditional_t<constant_matrix<Arg>, std::decay_t<Arg>, passable_t<Arg>>>;

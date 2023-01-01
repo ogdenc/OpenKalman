@@ -249,6 +249,14 @@ namespace OpenKalman
         }
       }
 
+
+      template<typename Arg>
+      static decltype(auto) to_native_matrix(const EigenWrapper<Arg>& arg) { return arg; }
+
+
+      template<typename Arg>
+      static decltype(auto) to_native_matrix(EigenWrapper<Arg>&& arg) { return std::move(arg); }
+
     };
 
 

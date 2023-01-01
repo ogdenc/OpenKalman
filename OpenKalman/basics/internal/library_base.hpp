@@ -25,20 +25,7 @@ namespace OpenKalman::internal
 #else
   template<typename Derived, typename PatternMatrix, typename>
 #endif
-  struct library_base
-  {};
-
-
-#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
-  template<typename Derived, typename PatternMatrix>
-  requires requires { typename MatrixTraits<std::decay_t<PatternMatrix>>::template MatrixBaseFrom<Derived>; }
-  struct library_base<Derived, PatternMatrix>
-#else
-  template<typename Derived, typename PatternMatrix>
-  struct library_base<Derived, PatternMatrix,
-    std::void_t<typename MatrixTraits<std::decay_t<PatternMatrix>>::template MatrixBaseFrom<Derived>>>
-#endif
-    : MatrixTraits<std::decay_t<PatternMatrix>>::template MatrixBaseFrom<Derived>
+  struct library_base : MatrixTraits<std::decay_t<PatternMatrix>>::template MatrixBaseFrom<Derived>
   {};
 
 } // namespace OpenKalman::internal

@@ -80,8 +80,7 @@ namespace OpenKalman
   }
 #else
   template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, std::size_t> and ...) and
-    element_gettable<Arg, std::conditional_t<std::is_same_v<I, std::size_t>, I, std::size_t>...> and
-    (sizeof...(I) != 1 or column_vector<Arg> or row_vector<Arg>), int> = 0>
+    element_gettable<Arg, std::conditional_t<std::is_same_v<I, std::size_t>, I, std::size_t>...>, int> = 0>
   constexpr decltype(auto) get_element(Arg&& arg, const I...i)
   {
     detail::check_index_bounds<false>(arg, std::index_sequence_for<I...> {}, i...);

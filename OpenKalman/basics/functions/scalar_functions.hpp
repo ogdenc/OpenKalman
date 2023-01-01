@@ -20,6 +20,100 @@ namespace OpenKalman
 {
   using namespace interface;
 
+
+  /**
+   * \brief Determine whether two numbers are within a rounding tolerance
+   * \tparam Arg1 The first argument
+   * \tparam Arg2 The second argument
+   * \tparam epsilon_factor A factor to be multiplied by the epsilon
+   * \return true if within the rounding tolerance, otherwise false
+   */
+  template<unsigned int epsilon_factor = 2, typename Arg1, typename Arg2>
+  constexpr bool are_within_tolerance(const Arg1& arg1, const Arg2& arg2)
+  {
+    if constexpr (complex_number<Arg1> or complex_number<Arg2>)
+    {
+      return are_within_tolerance<epsilon_factor>(std::real(arg1), std::real(arg2)) and
+        are_within_tolerance<epsilon_factor>(std::imag(arg1), std::imag(arg2));
+    }
+    else
+    {
+      auto diff = arg1 - arg2;
+      using Diff = decltype(diff);
+      constexpr auto ep = epsilon_factor * std::numeric_limits<Diff>::epsilon();
+      return -static_cast<Diff>(ep) <= diff and diff <= static_cast<Diff>(ep);
+    }
+
+  }
+
+
+  namespace internal
+  {
+
+    /**
+     * \internal
+     * \brief A constexpr square root function.
+     * \tparam Scalar The scalar type.
+     * \param x The operand.
+     * \return The square root of x.
+     */
+    template<typename Scalar>
+# ifdef __cpp_consteval
+    consteval
+# else
+    constexpr
+# endif
+    Scalar constexpr_sqrt(Scalar x)
+    {
+      if constexpr(std::is_integral_v<Scalar>)
+      {
+        Scalar lo = 0;
+        Scalar hi = x / 2 + 1;
+        while (lo != hi)
+        {
+          const Scalar mid = (lo + hi + 1) / 2;
+          if (x / mid < mid) hi = mid - 1;
+          else lo = mid;
+        }
+        return lo;
+      }
+      else
+      {
+        Scalar cur = 0.5 * x;
+        Scalar old = 0.0;
+        while (cur != old)
+        {
+          old = cur;
+          cur = 0.5 * (old + x / old);
+        }
+        return cur;
+      }
+    }
+
+
+    /**
+     * \internal
+     * \brief A constexpr power function.
+     * \tparam Scalar The scalar type.
+     * \param a The operand
+     * \param n The power
+     * \return a to the power of n.
+     */
+    template<typename Scalar>
+//# ifdef __cpp_consteval
+//    consteval
+//# else
+    constexpr
+//# endif
+    Scalar constexpr_pow(Scalar a, std::size_t n)
+    {
+      return n == 0 ? 1 : constexpr_pow(a, n / 2) * constexpr_pow(a, n / 2) * (n % 2 == 0 ?  1 : a);
+    }
+
+
+  } // namespace internal
+
+
   /**
    * \brief Project to a real number of a \ref std::floating_point type that depends on the argument.
    * \tparam Arg a \ref scalar_type

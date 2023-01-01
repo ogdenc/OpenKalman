@@ -401,7 +401,7 @@ namespace OpenKalman
   {
     constexpr auto c =
 # if __cpp_nontype_template_args >= 201911L
-      static_cast<Scalar>(constant);
+      real_projection(static_cast<Scalar>(constant));
 # else
       constant;
 # endif
@@ -446,7 +446,7 @@ namespace OpenKalman
   {
     constexpr auto c = constant_coefficient_v<T>;
 # if __cpp_nontype_template_args >= 201911L
-    return make_constant_matrix_like<T, c, Scalar>(std::forward<D>(d));
+    return make_constant_matrix_like<T, c, Scalar>(std::forward<D>(d)...);
 # else
     constexpr auto c_integral = static_cast<std::intmax_t>(c);
     static_assert(are_within_tolerance(c, static_cast<Scalar>(c_integral)));

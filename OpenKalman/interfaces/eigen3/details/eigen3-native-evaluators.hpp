@@ -23,17 +23,22 @@ namespace Eigen::internal
 {
   using namespace OpenKalman;
 
-  // ---------------------------------- //
-  //  OpenKalman::Eigen3::EigenWrapper  //
-  // ---------------------------------- //
+  // ---------------------- //
+  //  Eigen3::EigenWrapper  //
+  // ---------------------- //
 
-  template<typename NestedMatrix>
-  struct evaluator<OpenKalman::Eigen3::EigenWrapper<NestedMatrix>> : evaluator<NestedMatrix> {};
+  template<typename ArgType>
+  struct evaluator<OpenKalman::Eigen3::EigenWrapper<ArgType>> : evaluator<std::decay_t<ArgType>>
+  {
+    using XprType = OpenKalman::Eigen3::EigenWrapper<ArgType>;
+    using Base = evaluator<std::decay_t<ArgType>>;
+    explicit evaluator(const XprType& m) : Base {m.wrapped_expression} {}
+  };
 
 
-  // ----------------------------- //
-  //  OpenKalman::ConstantAdapter  //
-  // ----------------------------- //
+  // ----------------- //
+  //  ConstantAdapter  //
+  // ----------------- //
 
   template<typename PatternMatrix, auto constant>
   struct evaluator<ConstantAdapter<PatternMatrix, constant>>
@@ -77,9 +82,9 @@ namespace Eigen::internal
   };
 
 
-  // --------------------------------------- //
-  //  OpenKalman::SelfAdjointMatrix  //
-  // --------------------------------------- //
+  // ------------------- //
+  //  SelfAdjointMatrix  //
+  // ------------------- //
 
   template<typename ArgType, OpenKalman::TriangleType storage_triangle>
   struct evaluator<SelfAdjointMatrix<ArgType, storage_triangle>>
@@ -180,9 +185,9 @@ namespace Eigen::internal
   };
 
 
-  // -------------------------------------- //
-  //  OpenKalman::TriangularMatrix  //
-  // -------------------------------------- //
+  // ------------------ //
+  //  TriangularMatrix  //
+  // ------------------ //
 
   template<typename ArgType, OpenKalman::TriangleType triangle_type>
   struct evaluator<TriangularMatrix<ArgType, triangle_type>>
@@ -252,9 +257,9 @@ namespace Eigen::internal
   };
 
 
-  // ---------------------------- //
-  //  OpenKalman::DiagonalMatrix  //
-  // ---------------------------- //
+  // ---------------- //
+  //  DiagonalMatrix  //
+  // ---------------- //
 
   template<typename ArgType>
   struct evaluator<OpenKalman::DiagonalMatrix<ArgType>>
@@ -353,9 +358,9 @@ namespace Eigen::internal
   }
 
 
-  // ------------------------- //
+  // ----------------- //
   //  ToEuclideanExpr  //
-  // ------------------------- //
+  // ----------------- //
 
   /**
    * \internal
@@ -417,9 +422,9 @@ namespace Eigen::internal
   };
 
 
-  // --------------------------------------- //
-  //  OpenKalman::FromEuclideanExpr  //
-  // --------------------------------------- //
+  // ------------------- //
+  //  FromEuclideanExpr  //
+  // ------------------- //
 
   /**
    * \internal
@@ -572,9 +577,9 @@ namespace Eigen::internal
   };
 
 
-  // ------------------ //
-  //  OpenKalman::Mean  //
-  // ------------------ //
+  // ------ //
+  //  Mean  //
+  // ------ //
 
   template<typename TypedIndex, typename ArgType>
   struct evaluator<OpenKalman::Mean<TypedIndex, ArgType>> : evaluator<std::decay_t<ArgType>>
@@ -589,9 +594,9 @@ namespace Eigen::internal
   };
 
 
-  // -------------------- //
-  //  OpenKalman::Matrix  //
-  // -------------------- //
+  // -------- //
+  //  Matrix  //
+  // -------- //
 
   template<typename RowCoeffs, typename ColCoeffs, typename ArgType>
   struct evaluator<OpenKalman::Matrix<RowCoeffs, ColCoeffs, ArgType>> : evaluator<std::decay_t<ArgType>>
@@ -602,9 +607,9 @@ namespace Eigen::internal
   };
 
 
-  // --------------------------- //
-  //  OpenKalman::EuclideanMean  //
-  // --------------------------- //
+  // --------------- //
+  //  EuclideanMean  //
+  // --------------- //
 
   template<typename Coeffs, typename ArgType>
   struct evaluator<OpenKalman::EuclideanMean<Coeffs, ArgType>> : evaluator<std::decay_t<ArgType>>
@@ -616,9 +621,9 @@ namespace Eigen::internal
   };
 
 
-  // ------------------------ //
-  //  OpenKalman::Covariance  //
-  // ------------------------ //
+  // ------------ //
+  //  Covariance  //
+  // ------------ //
 
   template<typename TypedIndex, typename ArgType>
   struct evaluator<OpenKalman::Covariance<TypedIndex, ArgType>>
@@ -636,9 +641,9 @@ namespace Eigen::internal
   };
 
 
-  // ---------------------------------- //
-  //  OpenKalman::SquareRootCovariance  //
-  // ---------------------------------- //
+  // ---------------------- //
+  //  SquareRootCovariance  //
+  // ---------------------- //
 
   template<typename TypedIndex, typename ArgType>
   struct evaluator<OpenKalman::SquareRootCovariance<TypedIndex, ArgType>>

@@ -74,9 +74,6 @@ namespace OpenKalman
             return make_self_contained(c * make_constant_matrix_like<Arg, 1>(ds...));
 # endif
         }, size);
-
-
-
       }
       else
       {
@@ -240,7 +237,7 @@ namespace OpenKalman
   template<std::size_t...indices, typename Arg, typename...Is, std::enable_if_t<
     indexible<Arg> and (index_value<Is> and ...) and
     ((sizeof...(indices) > 0 and sizeof...(indices) == sizeof...(Is)) or
-      (sizeof...(Is) == 0 and ((index_dimension_of_v<Arg, indices> == 1) and ...))), int> = 0>
+      (sizeof...(Is) == 0 and ((index_dimension_of<Arg, indices>::value == 1) and ...))), int> = 0>
 #endif
   constexpr decltype(auto) get_chip(Arg&& arg, Is...is)
   {
@@ -336,7 +333,7 @@ namespace OpenKalman
   template<std::size_t...indices, typename Arg, typename Chip, typename...Is, std::enable_if_t<
     writable<Arg> and indexible<Chip> and (index_value<Is> and ...) and
     ((sizeof...(indices) > 0 and sizeof...(indices) == sizeof...(Is)) or
-      (sizeof...(Is) == 0 and ((index_dimension_of_v<Arg, indices> == 1) and ...))), int> = 0>
+      (sizeof...(Is) == 0 and ((index_dimension_of<Arg, indices>::value == 1) and ...))), int> = 0>
 #endif
   constexpr auto& set_chip(Arg& arg, Chip&& chip, Is...is)
   {

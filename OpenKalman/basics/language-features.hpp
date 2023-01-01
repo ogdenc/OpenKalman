@@ -24,19 +24,14 @@
 
 
 #ifdef __clang__
-#  define OPENKALMAN_CPP_FEATURE_CONCEPTS             true
-#  define OPENKALMAN_CPP_FEATURE_CONCEPTS_2           false // clang versions known to cause bugs: 10.0.0
+#  define OPENKALMAN_CPP_FEATURE_CONCEPTS   true
+#  define OPENKALMAN_CPP_FEATURE_CONCEPTS_2 (__clang_major__ >= 15) // optimal value may be as low as > 10 (ver. 10.0.0)
 #elif defined(__GNUC__)
-#  if __GNUC__ > 100
-#    define OPENKALMAN_CPP_FEATURE_CONCEPTS           true
-#    define OPENKALMAN_CPP_FEATURE_CONCEPTS_2         true
-#  else
-#    define OPENKALMAN_CPP_FEATURE_CONCEPTS           false // GCC versions known to cause bugs: 10.1.0
-#    define OPENKALMAN_CPP_FEATURE_CONCEPTS_2         false // GCC versions known to cause bugs: 10.1.0
-#  endif
+#  define OPENKALMAN_CPP_FEATURE_CONCEPTS   (__GNUC__ >= 12) // optimal value may be as low as > 10 (ver. 10.1.0)
+#  define OPENKALMAN_CPP_FEATURE_CONCEPTS_2 (__GNUC__ >= 12) // optimal value may be as low as > 10 (ver. 10.1.0)
 #else
-#  define OPENKALMAN_CPP_FEATURE_CONCEPTS             true
-#  define OPENKALMAN_CPP_FEATURE_CONCEPTS_2           true
+#  define OPENKALMAN_CPP_FEATURE_CONCEPTS   true
+#  define OPENKALMAN_CPP_FEATURE_CONCEPTS_2 true
 #endif
 
 

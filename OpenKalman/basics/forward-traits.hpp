@@ -175,13 +175,11 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typename T, std::size_t N> requires (N < max_indices_of_v<T>) and
-    requires { interface::IndexTraits<std::decay_t<T>, N>::dimension; }
+  template<indexible T, std::size_t N> requires (N < max_indices_of_v<T>)
   struct index_dimension_of<T, N>
 #else
   template<typename T, std::size_t N>
-  struct index_dimension_of<T, N, std::enable_if_t<N < max_indices_of<T>::value and
-    interface::IndexTraits<std::decay_t<T>, N>::dimension >= 0>>
+  struct index_dimension_of<T, N, std::enable_if_t<indexible<T> and N < max_indices_of<T>::value>>
 #endif
     : std::integral_constant<std::size_t, interface::IndexTraits<std::decay_t<T>, N>::dimension> {};
 
@@ -966,6 +964,19 @@ namespace OpenKalman
   //  constant_diagonal_coefficient, constant_diagonal_matrix  //
   // --------------------------------------------------------- //
 
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct is_diagonal_matrix : std::false_type {};
+
+    template<typename T>
+    struct is_diagonal_matrix<T, std::enable_if_t<interface::DiagonalTraits<std::decay_t<T>>::is_diagonal>>
+      : std::true_type {};
+  }
+#endif
+
+
   /**
    * \brief Specifies that a type is a constant diagonal matrix, with the constant known at compile time.
    */
@@ -982,7 +993,7 @@ namespace OpenKalman
   constexpr bool constant_diagonal_matrix =
     (b != Likelihood::definitely or not has_dynamic_dimensions<T> or detail::is_diagonal_matrix<T>::value) and (
       (detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) and
-        (detail::is_constant_diagonal_matrix<T>::value or detail::is_specific_constant_diagonal_matrix<T, 0>::value)) or
+        (detail::is_constant_diagonal_matrix<T>::value or detail::is_specific_constant_matrix<T, 0>::value)) or
       (detail::is_constant_matrix<T>::value and
         detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})));
 #endif
@@ -1041,16 +1052,27 @@ namespace OpenKalman
   //  zero_matrix  //
   // ------------- //
 
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct is_zero_matrix : std::false_type {};
+
+    template<typename T>
+    struct is_zero_matrix<T, std::enable_if_t<constant_matrix<T>>>
+      : std::bool_constant<are_within_tolerance(constant_coefficient_v<T>, 0)> {};
+  }
+#endif
+
+
   /**
    * \brief Specifies that a type is known at compile time to be a constant matrix of value zero.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept zero_matrix = are_within_tolerance(constant_coefficient_v<T>, 0) or
-    are_within_tolerance(constant_diagonal_coefficient_v<T>, 0);
+  concept zero_matrix = are_within_tolerance(constant_coefficient_v<T>, 0);
 #else
-  constexpr bool zero_matrix = detail::is_specific_constant_matrix<T, 0>::value or
-    detail::is_specific_constant_diagonal_matrix<T, 0>::value;
+  constexpr bool zero_matrix = detail::is_zero_matrix<T>::value;
 #endif
 
 
@@ -1077,13 +1099,6 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, typename = void>
-    struct is_diagonal_matrix : std::false_type {};
-
-    template<typename T>
-    struct is_diagonal_matrix<T, std::enable_if_t<interface::DiagonalTraits<std::decay_t<T>>::is_diagonal>>
-      : std::true_type {};
-
     template<typename T, TriangleType t, typename = void>
     struct is_triangular_matrix : std::false_type {};
 
@@ -1118,13 +1133,17 @@ namespace OpenKalman
     (interface::TriangularTraits<std::decay_t<T>>::triangle_type == TriangleType::diagonal) or
     (interface::HermitianTraits<std::decay_t<T>>::is_hermitian and
       interface::HermitianTraits<std::decay_t<T>>::adapter_type == TriangleType::diagonal) or
-    constant_diagonal_matrix<T, b>);
+    constant_diagonal_matrix<T, b> or
+    ((b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
+      detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})));
 #else
   constexpr bool diagonal_matrix = indexible<T> and
     (detail::is_diagonal_matrix<T>::value or
     detail::is_triangular_matrix<T, TriangleType::diagonal>::value or
     (detail::is_hermitian_matrix<T>::value and detail::hermitian_adapter_triangle_type<T>::value == TriangleType::diagonal) or
-    constant_diagonal_matrix<T, b>);
+    constant_diagonal_matrix<T, b> or
+    ((b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
+      detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})));
 #endif
 
 
@@ -1518,7 +1537,8 @@ namespace OpenKalman
     struct dimension_size_of_index_is_impl : std::false_type {};
 
     template<typename T, std::size_t index, std::size_t value>
-    struct dimension_size_of_index_is_impl<T, std::enable_if_t<index_dimension_of<T, index>::value == value>> : std::true_type {};
+    struct dimension_size_of_index_is_impl<T, index, value, std::enable_if_t<
+      index_dimension_of<T, index>::value == value>> : std::true_type {};
   }
 #endif
 
@@ -1526,41 +1546,39 @@ namespace OpenKalman
   /**
    * \brief Specifies that a given index of T has a specified size.
    */
-#ifdef __cpp_concepts
   template<typename T, std::size_t index, std::size_t value, Likelihood b = Likelihood::definitely>
+#ifdef __cpp_concepts
   concept dimension_size_of_index_is = (index_dimension_of_v<T, index> == value) or
-    (b == Likelihood::maybe and dynamic_dimension<T, index>);
 #else
-  template<typename T>
   constexpr bool dimension_size_of_index_is = detail::dimension_size_of_index_is_impl<T, index, value>::value or
-      (b == Likelihood::maybe and dynamic_dimension<T, index>);
 #endif
+    (b == Likelihood::maybe and dynamic_dimension<T, index>);
 
 
   /**
    * \brief Specifies that T is a row vector.
    * \todo Remove as redundant?
    */
-#ifdef __cpp_concepts
   template<typename T, Likelihood b = Likelihood::definitely>
-  concept row_vector = dimension_size_of_index_is<T, 0, 1, b>;
+#ifdef __cpp_concepts
+  concept row_vector =
 #else
-  template<typename T>
-  constexpr bool row_vector = dimension_size_of_index_is<T, 0, 1, b>;
+  constexpr bool row_vector =
 #endif
+    dimension_size_of_index_is<T, 0, 1, b>;
 
 
   /**
    * \brief Specifies that T is a column vector.
    * \todo Remove as redundant?
    */
-#ifdef __cpp_concepts
   template<typename T, Likelihood b = Likelihood::definitely>
-  concept column_vector = dimension_size_of_index_is<T, 1, 1, b>;
+#ifdef __cpp_concepts
+  concept column_vector =
 #else
-  template<typename T>
-  constexpr bool column_vector = dimension_size_of_index_is<T, 1, 1, b>;
+  constexpr bool column_vector =
 #endif
+    dimension_size_of_index_is<T, 1, 1, b>;
 
 
   // ------------------------- //
@@ -1584,6 +1602,15 @@ namespace OpenKalman
     {
       return (maybe_dimensions_are_same<Is, Ts...>() and ...);
     }
+#ifndef __cpp_concepts
+
+
+    template<typename = void, typename...Ts>
+    struct maybe_has_same_shape_as_test : std::false_type {};
+
+    template<typename...Ts>
+    struct maybe_has_same_shape_as_test<std::enable_if_t<(indexible<Ts> and ...)>, Ts...> : std::true_type {};
+#endif
   }
 
   /**
@@ -1592,12 +1619,11 @@ namespace OpenKalman
    */
   template<typename...Ts>
 #ifdef __cpp_concepts
-  concept maybe_has_same_shape_as =
-#else
-  constexpr bool maybe_has_same_shape_as =
-#endif
-    (indexible<Ts> and ...) and
+  concept maybe_has_same_shape_as = (indexible<Ts> and ...) and
     detail::maybe_has_same_shape_as_impl<Ts...>(std::make_index_sequence<std::max({std::size_t{0}, max_indices_of_v<Ts>...})>{});
+#else
+  constexpr bool maybe_has_same_shape_as = detail::maybe_has_same_shape_as_test<void, Ts...>::value;
+#endif
 
 
   // ------------------- //
@@ -1837,7 +1863,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept covariance_nestable =
 #else
-  constexpr bool covariance_nestable
+  constexpr bool covariance_nestable =
 #endif
     triangular_matrix<T> or hermitian_matrix<T>;
 

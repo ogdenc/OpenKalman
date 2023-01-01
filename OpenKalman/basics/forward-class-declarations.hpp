@@ -31,11 +31,7 @@ namespace OpenKalman
    * \tparam constant The constant value
    */
 #ifdef __cpp_concepts
-# if __cpp_nontype_template_args >= 201911L
-  template<indexible PatternMatrix, scalar_type_of_t<PatternMatrix> constant>
-# else
   template<indexible PatternMatrix, auto constant>
-# endif
   requires std::convertible_to<decltype(constant), scalar_type_of_t<PatternMatrix>>
 #else
   template<typename PatternMatrix, auto constant>
@@ -82,11 +78,7 @@ namespace OpenKalman
 #else
   template<typename PatternMatrix>
 #endif
-#if __cpp_nontype_template_args >= 201911L
-  using ZeroAdapter = ConstantAdapter<PatternMatrix, static_cast<Scalar>(0)>;
-#else
   using ZeroAdapter = ConstantAdapter<PatternMatrix, 0>;
-#endif
 
 
   // ---------------------------------------- //

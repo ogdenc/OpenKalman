@@ -21,16 +21,72 @@ namespace OpenKalman::Eigen3::internal
 {
   template<typename Derived, typename NestedMatrix>
   struct Eigen3AdapterBase : Eigen3Base,
-    std::conditional_t<native_eigen_array<NestedMatrix>, Eigen::ArrayBase<Derived>, Eigen::MatrixBase<Derived>>
+    std::conditional_t<std::is_base_of_v<Eigen::ArrayBase<std::decay_t<NestedMatrix>>, std::decay_t<NestedMatrix>>,
+      Eigen::ArrayBase<Derived>, Eigen::MatrixBase<Derived>>,
+    Eigen::internal::no_assignment_operator // Override all Eigen assignment operators
   {
 
   private:
 
-    using Base = std::conditional_t<native_eigen_array<NestedMatrix>, Eigen::ArrayBase<Derived>, Eigen::MatrixBase<Derived>>;
+    using Base = std::conditional_t<std::is_base_of_v<Eigen::ArrayBase<std::decay_t<NestedMatrix>>, std::decay_t<NestedMatrix>>,
+      Eigen::ArrayBase<Derived>, Eigen::MatrixBase<Derived>>;
+
+
+#ifdef __cpp_concepts
+    template<typename T>
+#else
+    template<typename T, typename = void>
+#endif
+    struct PacketScalarImpl { using type = scalar_type_of<NestedMatrix>; };
+
+
+#ifdef __cpp_concepts
+    template<typename T> requires requires { typename T::PacketScalar; }
+    struct PacketScalarImpl<T>
+#else
+    template<typename T>
+    struct PacketScalarImpl<T, std::void_t<typename T::PacketScalar>>
+#endif
+      { using type = typename T::PacketScalar; };
+
 
   public:
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(bool {has_dynamic_dimensions<NestedMatrix>})
+
+
+    Eigen3AdapterBase() = default;
+
+    Eigen3AdapterBase(const Eigen3AdapterBase&) = default;
+
+    Eigen3AdapterBase(Eigen3AdapterBase&&) = default;
+
+    ~Eigen3AdapterBase() = default;
+
+    Eigen3AdapterBase& operator=(const Eigen3AdapterBase& other) { return *this; }
+
+    Eigen3AdapterBase& operator=(Eigen3AdapterBase&& other) { return *this; }
+
+
+    /// \internal \note Eigen3 requires this.
+    using Scalar = scalar_type_of_t<NestedMatrix>;
+
+    using PacketScalar = typename PacketScalarImpl<Derived>::type;
+
+
+    /* \internal
+     * \brief The underlying numeric type for composed scalar types.
+     * \details In cases where Scalar is e.g. std::complex<T>, T were corresponding to RealScalar.
+     */
+    using RealScalar = typename Eigen::NumTraits<Scalar>::Real;
+
+
+    /* \internal
+     * \brief The return type for coefficient access.
+     * \details Depending on whether the object allows direct coefficient access (e.g. for a MatrixXd), this type is
+     * either 'const Scalar&' or simply 'Scalar' for objects that do not allow direct coefficient access.
+     */
+    using typename Base::CoeffReturnType;
 
     /**
      * \internal
@@ -39,18 +95,20 @@ namespace OpenKalman::Eigen3::internal
      */
     using Nested = Derived;
 
-    /// \internal \note Eigen3 requires this.
-    using Scalar = scalar_type_of_t<NestedMatrix>;
-
     using StorageKind [[maybe_unused]] = typename Eigen::internal::traits<Derived>::StorageKind;
+
     using StorageIndex [[maybe_unused]] = typename Eigen::internal::traits<Derived>::StorageIndex;
+
+
     enum CompileTimeTraits
-        { RowsAtCompileTime [[maybe_unused]] = Eigen::internal::traits<Derived>::RowsAtCompileTime,
-          ColsAtCompileTime [[maybe_unused]] = Eigen::internal::traits<Derived>::ColsAtCompileTime,
-          Flags [[maybe_unused]] = Eigen::internal::traits<Derived>::Flags,
-          SizeAtCompileTime [[maybe_unused]] = Base::SizeAtCompileTime,
-          MaxSizeAtCompileTime [[maybe_unused]] = Base::MaxSizeAtCompileTime,
-          IsVectorAtCompileTime [[maybe_unused]] = Base::IsVectorAtCompileTime };
+    {
+      RowsAtCompileTime [[maybe_unused]] = Eigen::internal::traits<Derived>::RowsAtCompileTime,
+      ColsAtCompileTime [[maybe_unused]] = Eigen::internal::traits<Derived>::ColsAtCompileTime,
+      Flags [[maybe_unused]] = Eigen::internal::traits<Derived>::Flags,
+      SizeAtCompileTime [[maybe_unused]] = Base::SizeAtCompileTime,
+      MaxSizeAtCompileTime [[maybe_unused]] = Base::MaxSizeAtCompileTime,
+      IsVectorAtCompileTime [[maybe_unused]] = Base::IsVectorAtCompileTime,
+    };
 
 
     /**

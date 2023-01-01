@@ -49,20 +49,6 @@ namespace OpenKalman::internal
 
     /**
      * \internal
-     * \brief Copy constructor.
-     */
-    //MatrixBase(const MatrixBase& other) : m_arg {other.m_arg} {}
-
-
-    /**
-     * \internal
-     * \brief Move constructor.
-     */
-    //MatrixBase(MatrixBase&& other) noexcept : m_arg {std::move(other).m_arg} {}
-
-
-    /**
-     * \internal
      * \brief Construct from a nestable type.
      */
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
@@ -74,41 +60,6 @@ namespace OpenKalman::internal
 #endif
     explicit MatrixBase(Arg&& arg) noexcept
       : m_arg {std::forward<Arg>(arg)} {}
-
-
-    /**
-     * \internal
-     * \brief Copy assignment operator.
-     */
-    /*auto& operator=(const MatrixBase& other)
-#ifdef __cpp_concepts
-      requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>)
-#endif
-    {
-      // \todo Change static_assert to "writable"
-      static_assert(not std::is_const_v<std::remove_reference_t<NestedMatrix>>, "Nested matrix cannot be modified.");
-      if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
-      {
-        return operator=(other.m_arg);
-      }
-      return *this;
-    }*/
-
-
-    /**
-     * \internal
-     * \brief Move assignment operator.
-     */
-    /*auto& operator=(MatrixBase&& other) noexcept
-    {
-      // \todo Change static_assert to "writable"
-      static_assert(not std::is_const_v<std::remove_reference_t<NestedMatrix>>, "Nested matrix cannot be modified.");
-      if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
-      {
-        m_arg = std::move(other).m_arg;
-      }
-      return *this;
-    }*/
 
 
     /** \internal

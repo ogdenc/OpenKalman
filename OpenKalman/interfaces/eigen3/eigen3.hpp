@@ -62,11 +62,11 @@
 #include "details/eigen3-cholesky-overloads.hpp"
 
 #include "details/eigen3-comma-initializers.hpp"
-#include "details/Eigen3AdapterBase.hpp"
 
 #include "details/eigen3-native-traits.hpp"
 #include "details/eigen3-native-evaluators.hpp"
 
+#include "details/Eigen3AdapterBase.hpp"
 #include "details/EigenWrapper.hpp"
 
 #ifdef __GNUC__

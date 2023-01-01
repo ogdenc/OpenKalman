@@ -752,36 +752,6 @@ namespace OpenKalman
 
   using namespace OpenKalman::internal;
 
-  // --------------------------- //
-  //        MatrixTraits         //
-  // --------------------------- //
-
-  template<typename PatternMatrix, auto constant>
-  struct MatrixTraits<ConstantAdapter<PatternMatrix, constant>>
-  {
-  private:
-
-    using Matrix = ConstantAdapter<PatternMatrix, constant>;
-
-  public:
-
-    template<typename Derived>
-    using MatrixBaseFrom = typename MatrixTraits<std::decay_t<PatternMatrix>>::template MatrixBaseFrom<Derived>;
-
-
-    template<TriangleType storage_triangle = TriangleType::diagonal>
-    using SelfAdjointMatrixFrom = SelfAdjointMatrix<Matrix, storage_triangle>;
-
-    template<TriangleType triangle_type = TriangleType::diagonal>
-    using TriangularMatrixFrom = TriangularMatrix<Matrix, triangle_type>;
-
-    template<std::size_t dim = row_dimension_of_v<PatternMatrix>>
-    using DiagonalMatrixFrom = DiagonalMatrix<ConstantAdapter<
-      untyped_dense_writable_matrix_t<PatternMatrix, dim, 1>, constant>>;
-
-  };
-
-
   template<typename NestedMatrix>
   struct MatrixTraits<DiagonalMatrix<NestedMatrix>>
   {
