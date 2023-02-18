@@ -88,6 +88,11 @@ namespace
 
 TEST(eigen3, ConstantAdapter_traits)
 {
+  static_assert(constant_matrix<ConstantAdapter<M22, 1>, Likelihood::definitely, CompileTimeStatus::known>);
+  static_assert(not constant_matrix<ConstantAdapter<M22, 1>, Likelihood::definitely, CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<ConstantAdapter<M22>, Likelihood::definitely, CompileTimeStatus::unknown>);
+  static_assert(not constant_matrix<ConstantAdapter<M22>, Likelihood::definitely, CompileTimeStatus::known>);
+
   static_assert(indexible<ConstantAdapter<M22, 1>>);
 
   static_assert(zero_matrix<ConstantAdapter<M22, 0>>);
@@ -96,6 +101,7 @@ TEST(eigen3, ConstantAdapter_traits)
 
   static_assert(diagonal_matrix<ConstantAdapter<M22, 0>>);
   static_assert(diagonal_matrix<ConstantAdapter<M11, 5>>);
+  static_assert(diagonal_matrix<ConstantAdapter<M11>>);
   static_assert(not diagonal_matrix<ConstantAdapter<M00, 5>>);
   static_assert(not diagonal_matrix<ConstantAdapter<CM22, 5>>);
 

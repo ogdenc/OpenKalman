@@ -195,32 +195,13 @@ namespace OpenKalman
     static constexpr auto
     n_ary_operation_impl(const std::tuple<Ds...>& d_tup, const Op& op, Args&&...args)
     {
-      // zero_matrix with addition or multiplication:
-      if constexpr ((zero_matrix<Args> and ...) and (internal::is_plus<Op>::value or internal::is_multiplies<Op>::value))
-      {
-        using Scalar = decltype(op((static_cast<scalar_type_of_t<Args>>(0))...));
-        return std::apply(
-          [](auto&&...ds){ return make_zero_matrix_like<PatternMatrix, Scalar>(std::forward<decltype(ds)>(ds)...); },
-          d_tup);
-      }
-
       // constant_matrix:
-      else if constexpr (internal::constexpr_n_ary_function<Op, Args...>)
+      if constexpr ((constant_matrix<Args, Likelihood::definitely, CompileTimeStatus::any> and ...))
       {
-
-        return std::apply([](auto&&...ds){
-          constexpr auto c = Op{}(constant_coefficient_v<Args>...);
-          using Scalar = std::decay_t<decltype(c)>;
-# if __cpp_nontype_template_args >= 201911L
-          return make_constant_matrix_like<PatternMatrix, c, Scalar>(std::forward<decltype(ds)>(ds)...);
-# else
-          constexpr auto c_integral = static_cast<std::intmax_t>(c);
-          if constexpr (are_within_tolerance(c, static_cast<Scalar>(c_integral)))
-            return make_constant_matrix_like<PatternMatrix, c_integral, Scalar>(std::forward<decltype(ds)>(ds)...);
-          else
-            return make_self_contained(c * make_constant_matrix_like<PatternMatrix, 1, Scalar>(std::forward<decltype(ds)>(ds)...));
-# endif
-        }, d_tup);
+        internal::scalar_constant_operation c {op, constant_coefficient{std::forward<Args>(args)}...};
+        return std::apply(
+          [](auto&&...args){ return make_constant_matrix_like<PatternMatrix>(std::forward<decltype(args)>(args)...); },
+          std::tuple_cat(std::tuple{std::move(c)}, d_tup));
       }
 
       // other cases:

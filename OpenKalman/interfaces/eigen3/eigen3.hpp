@@ -43,6 +43,7 @@
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunknown-pragmas"
+#pragma GCC diagnostic ignored "-Wignored-attributes"
 #ifdef __clang__
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 #endif
@@ -54,9 +55,19 @@
 
 #include "details/eigen3-matrix-traits.hpp"
 
-#include "details/eigen3-traits.hpp"
+#include "traits/eigen3-interface.hpp"
+#include "traits/eigen3-traits.hpp"
 
-#include "details/eigen3-interface.hpp"
+#include "traits/functors/nullary.hpp"
+#include "traits/functors/unary.hpp"
+#include "traits/functors/binary.hpp"
+
+#include "traits/CwiseBinaryOp.hpp"
+#include "traits/CwiseNullaryOp.hpp"
+#include "traits/CwiseUnaryOp.hpp"
+#include "traits/CwiseUnaryView.hpp"
+#include "traits/CwiseTernaryOp.hpp"
+
 #include "details/eigen3-functions.hpp"
 
 #include "details/eigen3-cholesky-overloads.hpp"

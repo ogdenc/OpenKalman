@@ -34,6 +34,6 @@ set(MyCXX_FLAGS "-g -O2 -Wall -ftemplate-backtrace-limit=0")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MyCXX_FLAGS}")
 
-
 add_subdirectory(OpenKalman)
 add_subdirectory(docs)
+

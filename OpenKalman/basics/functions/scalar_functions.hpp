@@ -22,6 +22,111 @@ namespace OpenKalman
 
 
   /**
+   * \brief Make a complex number from real and imaginary parts.
+   * \param re The real part.
+   * \param im The imaginary part.
+   */
+#ifdef __cpp_concepts
+  constexpr complex_number auto
+  make_complex_number(scalar_type auto&& re, scalar_type auto&& im = 0)
+    requires (not complex_number<decltype(re)>) and std::same_as<std::decay_t<decltype(re)>, std::decay_t<decltype(im)>>
+#else
+  template<typename Re, typename Im, std::enable_if_t<scalar_type<Re> and (not complex_number<Re>) and
+    std::is_same_v<std::decay_t<Re>, std::decay_t<Im>>, int> = 0>
+  constexpr auto make_complex_number(Re&& re, Im&& im)
+#endif
+  {
+    using R = std::decay_t<decltype(re)>;
+    return interface::ScalarTraits<R>::make_complex(std::forward<decltype(re)>(re), std::forward<decltype(im)>(im));
+  }
+
+
+  /**
+   * \brief Make a complex number of type T from real and imaginary parts.
+   * \param re The real part.
+   * \param im The imaginary part.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  constexpr complex_number auto
+  make_complex_number(scalar_type auto&& re, scalar_type auto&& im = 0)
+  requires std::same_as<std::decay_t<decltype(re)>, std::decay_t<decltype(im)>>
+#else
+  template<typename T, typename Re, typename Im, std::enable_if_t<scalar_type<Re> and
+    std::is_same_v<std::decay_t<Re>, std::decay_t<Im>>, int> = 0>
+  constexpr auto make_complex_number(Re&& re, Im&& im)
+#endif
+  {
+    return interface::ScalarTraits<std::decay_t<T>>::make_complex(std::forward<decltype(re)>(re), std::forward<decltype(im)>(im));
+  }
+
+
+  /**
+   * \brief Return the imaginary part of a complex number.
+   */
+#ifdef __cpp_concepts
+  constexpr floating_scalar_type decltype(auto)
+  real_part(scalar_type auto&& arg)
+#else
+  template<typename Arg, std::enable_if_t<scalar_type<Arg>, int> = 0>
+  constexpr decltype(auto) real_part(Arg&& arg)
+#endif
+  {
+    return interface::ScalarTraits<std::decay_t<decltype(arg)>>::real_part(std::forward<decltype(arg)>(arg));
+  }
+
+
+  /**
+   * \brief Return the imaginary part of a complex number.
+   */
+#ifdef __cpp_concepts
+  constexpr floating_scalar_type decltype(auto)
+  imaginary_part(scalar_type auto&& arg)
+#else
+  template<typename Arg, std::enable_if_t<scalar_type<Arg>, int> = 0>
+  constexpr decltype(auto) imaginary_part(Arg&& arg)
+#endif
+  {
+    return interface::ScalarTraits<std::decay_t<decltype(arg)>>::imaginary_part(std::forward<decltype(arg)>(arg));
+  }
+
+
+  namespace internal
+  {
+    /**
+     * \internal
+     * \brief The inverse of \ref real_part.
+     * \details This takes a real number (\ref std::floating_point) and recovers a corresponding scalar value
+     * from which it would have been a projection. This function must obey the following identity for all
+     * <code>x</code> of type Scalar: <code>x == inverse_real_projection(x, real_part(x))</code>.
+     * For example, if the argument is a complex number, the result of this function is a complex number whose real
+     * part is updated with the value p of floating type RealProj.
+     * \tparam Scalar a \ref scalar_type
+     * \param re A \ref std::floating_point argument representing a hypothetical result of \ref real_part.
+     */
+  #ifdef __cpp_concepts
+    constexpr scalar_type decltype(auto)
+    inverse_real_projection(scalar_type auto&& arg, floating_scalar_type auto&& re)
+      requires std::same_as<std::decay_t<decltype(real_part(arg))>, std::decay_t<decltype(re)>>
+  #else
+    template<typename Arg, typename Re, std::enable_if_t<scalar_type<Arg> and floating_scalar_type<Re> and
+      std::is_same_v<std::decay_t<decltype(real_part(std::declval<Arg>()))>, std::decay_t<Re>>, int> = 0>
+    constexpr decltype(auto) inverse_real_projection(Arg&& arg, Re&& re)
+  #endif
+    {
+      using S = std::decay_t<decltype(arg)>;
+      if constexpr (complex_number<S>)
+      {
+        auto im = imaginary_part(std::forward<decltype(arg)>(arg));
+        auto ret = make_complex_number(static_cast<std::decay_t<decltype(im)>>(re), std::move(im));
+        return static_cast<S>(std::move(ret));
+      }
+      else return std::forward<decltype(re)>(re);
+    }
+  }
+
+
+  /**
    * \brief Determine whether two numbers are within a rounding tolerance
    * \tparam Arg1 The first argument
    * \tparam Arg2 The second argument
@@ -33,8 +138,8 @@ namespace OpenKalman
   {
     if constexpr (complex_number<Arg1> or complex_number<Arg2>)
     {
-      return are_within_tolerance<epsilon_factor>(std::real(arg1), std::real(arg2)) and
-        are_within_tolerance<epsilon_factor>(std::imag(arg1), std::imag(arg2));
+      return are_within_tolerance<epsilon_factor>(real_part(arg1), real_part(arg2)) and
+        are_within_tolerance<epsilon_factor>(imaginary_part(arg1), imaginary_part(arg2));
     }
     else
     {
@@ -44,162 +149,6 @@ namespace OpenKalman
       return -static_cast<Diff>(ep) <= diff and diff <= static_cast<Diff>(ep);
     }
 
-  }
-
-
-  namespace internal
-  {
-
-    /**
-     * \internal
-     * \brief A constexpr square root function.
-     * \tparam Scalar The scalar type.
-     * \param x The operand.
-     * \return The square root of x.
-     */
-    template<typename Scalar>
-# ifdef __cpp_consteval
-    consteval
-# else
-    constexpr
-# endif
-    Scalar constexpr_sqrt(Scalar x)
-    {
-      if constexpr(std::is_integral_v<Scalar>)
-      {
-        Scalar lo = 0;
-        Scalar hi = x / 2 + 1;
-        while (lo != hi)
-        {
-          const Scalar mid = (lo + hi + 1) / 2;
-          if (x / mid < mid) hi = mid - 1;
-          else lo = mid;
-        }
-        return lo;
-      }
-      else
-      {
-        Scalar cur = 0.5 * x;
-        Scalar old = 0.0;
-        while (cur != old)
-        {
-          old = cur;
-          cur = 0.5 * (old + x / old);
-        }
-        return cur;
-      }
-    }
-
-
-    /**
-     * \internal
-     * \brief A constexpr power function.
-     * \tparam Scalar The scalar type.
-     * \param a The operand
-     * \param n The power
-     * \return a to the power of n.
-     */
-    template<typename Scalar>
-//# ifdef __cpp_consteval
-//    consteval
-//# else
-    constexpr
-//# endif
-    Scalar constexpr_pow(Scalar a, std::size_t n)
-    {
-      return n == 0 ? 1 : constexpr_pow(a, n / 2) * constexpr_pow(a, n / 2) * (n % 2 == 0 ?  1 : a);
-    }
-
-
-  } // namespace internal
-
-
-  /**
-   * \brief Project to a real number of a \ref std::floating_point type that depends on the argument.
-   * \tparam Arg a \ref scalar_type
-   * \details For example, if the argument is a complex number, the function will convert to the type of its real part.
-   */
-#ifdef __cpp_concepts
-  constexpr decltype(auto)
-  real_projection(scalar_type auto&& arg)
-#else
-  template<typename Arg, std::enable_if_t<scalar_type<Arg>, int> = 0>
-  constexpr decltype(auto) real_projection(Arg&& arg)
-#endif
-  {
-    if constexpr (complex_number<decltype(arg)>)
-      return interface::ScalarTraits<std::decay_t<decltype(arg)>>::real_projection(std::forward<decltype(arg)>(arg));
-    else
-      return std::forward<decltype(arg)>(arg);
-  }
-
-
-  /**
-   * \overload
-   * \brief Project to a real number of type Scalar.
-   * \details This is used for wrapping the real part of angles or other modular scalar values. If the argument is
-   * already a real number (as opposed, for example, to a complex number), this will be an identity function
-   * (if already \ref std::floating_point) or a numerical conversion from a \ref std::integral or custom scalar type to
-   * \ref std::floating_point.
-   * \tparam Scalar a std::floating_point type to convert to.
-   * \tparam Arg a \ref scalar_type
-   * \return A number of type Scalar. This will be the real part of a complex number, or the argument converted to Scalar.
-   */
-#ifdef __cpp_concepts
-  template<std::floating_point Scalar>
-  constexpr std::floating_point decltype(auto)
-  real_projection(scalar_type auto&& arg)
-  requires std::convertible_to<std::decay_t<decltype(real_projection(arg))>, Scalar>
-#else
-  template<typename Scalar, typename Arg, std::enable_if_t<std::is_floating_point_v<Scalar> and scalar_type<Arg> and
-    std::is_convertible_v<decltype(real_projection(std::declval<Arg&&>())), std::decay_t<Scalar>>, int> = 0>
-  constexpr decltype(auto) real_projection(Arg&& arg)
-#endif
-  {
-    if constexpr (complex_number<decltype(arg)>)
-      return static_cast<std::decay_t<Scalar>>(real_projection(std::forward<decltype(arg)>(arg)));
-    else
-      return std::forward<decltype(arg)>(arg);
-  }
-
-
-  /**
-   * \brief The inverse of \ref real_projection.
-   * \details This takes a real number (\ref std::floating_point) and recovers a corresponding scalar value
-   * from which it would have been a projection. This function must obey the following identity for all
-   * <code>x</code> of type Scalar: <code>x == inverse_real_projection(x, real_projection(x))</code>.
-   * For example, if the argument is a complex number, the result of this function is a complex number whose real
-   * part is updated with the value p of floating type RealProj.
-   * \tparam Scalar a \ref scalar_type
-   * \param real_projection A \ref std::floating_point argument representing a hypothetical result of \ref real_projection.
-   */
-#ifdef __cpp_concepts
-  constexpr /*floating_scalar_type*/ decltype(auto)
-  inverse_real_projection(floating_scalar_type auto&& arg, std::decay_t<decltype(real_projection(arg))> real_projection)
-#else
-  template<typename Scalar, std::enable_if_t<floating_scalar_type<Scalar>, int> = 0>
-  constexpr decltype(auto) inverse_real_projection(Scalar&& arg, std::decay_t<decltype(real_projection(arg))> real_projection)
-#endif
-  {
-    return interface::ScalarTraits<std::decay_t<decltype(arg)>>::template inverse_real_projection(
-      std::forward<decltype(arg)>(arg), real_projection);
-  }
-
-
-  /**
-   * \brief Return the imaginary part of a complex number.
-   */
-#ifdef __cpp_concepts
-  template<scalar_type Scalar>
-#else
-  template<typename Scalar, std::enable_if_t<scalar_type<Scalar>, int> = 0>
-#endif
-  constexpr decltype(auto) imaginary_part(Scalar&& scalar)
-  {
-    if constexpr (complex_number<Scalar>)
-      return ScalarTraits<std::decay_t<Scalar>>::imag(std::forward<Scalar>(scalar));
-    else
-      return static_cast<std::decay_t<Scalar>>(0);
   }
 
 

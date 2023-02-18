@@ -60,7 +60,7 @@ namespace Eigen
   {
     using Scalar = scalar_type_of_t<XprType>;
     static constexpr auto dim = row_dimension_of_v<XprType>;
-    using NestedMatrix = untyped_dense_writable_matrix_t<pattern_matrix_of_t<XprType>, dim, 1>;
+    using NestedMatrix = untyped_dense_writable_matrix_t<pattern_matrix_of_t<XprType>, Scalar, dim, 1>;
     using Nested = CommaInitializer<NestedMatrix>;
 
     NestedMatrix matrix;
@@ -126,8 +126,8 @@ namespace Eigen
     using Scalar = scalar_type_of_t<CovarianceType>;
     using CovNest = nested_matrix_of_t<CovarianceType>;
     using NestedMatrix = std::conditional_t<diagonal_matrix<CovNest>,
-      untyped_dense_writable_matrix_t<CovNest, row_dimension_of_v<CovNest>, 1>,
-      dense_writable_matrix_t<CovNest>>;
+      untyped_dense_writable_matrix_t<CovNest, Scalar, row_dimension_of_v<CovNest>, 1>,
+      dense_writable_matrix_t<CovNest, Scalar>>;
     using Nested = CommaInitializer<NestedMatrix>;
 
     NestedMatrix matrix;

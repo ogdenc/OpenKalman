@@ -20,6 +20,17 @@ namespace OpenKalman
 {
   using namespace interface;
 
+
+  namespace detail
+  {
+    struct constexpr_conj_op
+    {
+      template<typename Arg>
+      constexpr auto operator()(Arg arg) const noexcept { return conjugate(arg); }
+    };
+  }
+
+
   /**
    * \brief Take the conjugate of a matrix
    * \tparam Arg The matrix
@@ -37,27 +48,21 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<Arg>)
     {
-      constexpr auto c = constant_coefficient_v<Arg>;
-      if constexpr (imaginary_part(c) == 0)
+      if constexpr (imaginary_part(constant_coefficient_v<Arg>) == 0)
         return std::forward<Arg>(arg);
       else
-# if __cpp_nontype_template_args >= 201911L
-        return make_constant_matrix_like<conjugate(c)>(std::forward<Arg>(arg));
-# else
-        return make_self_contained(c * make_constant_matrix_like<1>(std::forward<Arg>(arg)));
-# endif
+        return make_constant_matrix_like(
+          internal::scalar_constant_operation<detail::constexpr_conj_op, constant_coefficient<Arg>>{},
+          std::forward<Arg>(arg));
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      constexpr auto c = constant_diagonal_coefficient_v<Arg>;
-      if constexpr (imaginary_part(c) == 0)
+      if constexpr (imaginary_part(constant_diagonal_coefficient_v<Arg>) == 0)
         return std::forward<Arg>(arg);
       else
-# if __cpp_nontype_template_args >= 201911L
-        return to_diagonal(make_constant_matrix_like<conjugate(c)>(diagonal_of(std::forward<Arg>(arg))));
-# else
-        return make_self_contained(c * to_diagonal(make_constant_matrix_like<1>(diagonal_of(std::forward<Arg>(arg)))));
-# endif
+        return to_diagonal(make_constant_matrix_like(
+          internal::scalar_constant_operation<detail::constexpr_conj_op, constant_diagonal_coefficient<Arg>>{},
+          diagonal_of(std::forward<Arg>(arg))));
     }
     else if constexpr (diagonal_matrix<Arg>)
     {
@@ -72,16 +77,11 @@ namespace OpenKalman
 
   namespace detail
   {
-    template<typename Arg, std::size_t...Is>
-    constexpr decltype(auto) transpose_zero(Arg&& arg, std::index_sequence<Is...>) noexcept
+    template<typename C, typename Arg, std::size_t...Is>
+    constexpr decltype(auto) transpose_constant(C&& c, Arg&& arg, std::index_sequence<Is...>) noexcept
     {
-      return make_zero_matrix_like<Arg>(get_dimensions_of<1>(arg), get_dimensions_of<0>(arg), get_dimensions_of<Is + 2>(arg)...);
-    }
-
-    template<auto c, typename Arg, std::size_t...Is>
-    constexpr decltype(auto) transpose_constant(Arg&& arg, std::index_sequence<Is...>) noexcept
-    {
-      return make_constant_matrix_like<Arg, c>(get_dimensions_of<1>(arg), get_dimensions_of<0>(arg), get_dimensions_of<Is + 2>(arg)...);
+      return make_constant_matrix_like<Arg>(std::forward<C>(c),
+        get_dimensions_of<1>(arg), get_dimensions_of<0>(arg), get_dimensions_of<Is + 2>(arg)...);
     }
   }
 
@@ -102,24 +102,10 @@ namespace OpenKalman
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (zero_matrix<Arg>)
-    {
-      constexpr std::size_t dims = std::max({max_indices_of_v<Arg>, static_cast<std::size_t>(2)});
-      return detail::transpose_zero(std::forward<Arg>(arg), std::make_index_sequence<dims - 2> {});
-    }
     else if constexpr (constant_matrix<Arg>)
     {
       constexpr std::make_index_sequence<std::max({max_indices_of_v<Arg>, static_cast<std::size_t>(2)}) - 2> seq;
-# if __cpp_nontype_template_args >= 201911L
-      return detail::transpose_constant<real_projection(constant_coefficient_v<Arg>)>(std::forward<Arg>(arg), seq);
-# else
-      constexpr auto c = real_projection(constant_coefficient_v<Arg>);
-      constexpr auto c_integral = static_cast<std::intmax_t>(c);
-      if constexpr (are_within_tolerance(c, static_cast<decltype(c)>(c_integral)))
-        return detail::transpose_constant<c_integral>(std::forward<Arg>(arg), seq);
-      else
-        return make_self_contained(c * detail::transpose_constant<1>(std::forward<Arg>(arg), seq));
-# endif
+      return detail::transpose_constant(constant_coefficient<Arg>{}, std::forward<Arg>(arg), seq);
     }
     else
     {
@@ -153,15 +139,16 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<Arg>)
     {
-      constexpr auto c = constant_coefficient_v<Arg>;
-      if constexpr (imaginary_part(c) == 0)
+      if constexpr (imaginary_part(constant_coefficient_v<Arg>) == 0)
         return transpose(std::forward<Arg>(arg));
       else if constexpr (not has_dynamic_dimensions<Arg> and row_dimension_of_v<Arg> == column_dimension_of_v<Arg>)
         return conjugate(std::forward<Arg>(arg));
       else
       {
         constexpr std::make_index_sequence<std::max({max_indices_of_v<Arg>, static_cast<std::size_t>(2)}) - 2> seq;
-        return detail::transpose_constant<conjugate(c)>(std::forward<Arg>(arg), seq);
+        return detail::transpose_constant(
+          internal::scalar_constant_operation<detail::constexpr_conj_op, constant_coefficient<Arg>>{},
+          std::forward<Arg>(arg), seq);
       }
     }
     else
@@ -180,22 +167,20 @@ namespace OpenKalman
 #else
   template<typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe>, int> = 0>
 #endif
-  constexpr auto determinant(Arg&& arg)
+  constexpr auto determinant(Arg&& arg) -> scalar_type_of_t<Arg>
   {
     if constexpr (has_dynamic_dimensions<Arg>) if (get_dimensions_of<0>(arg) != get_dimensions_of<1>(arg))
       throw std::domain_error {
         "In determinant, rows of arg (" + std::to_string(get_index_dimension_of<0>(arg)) + ") do not match columns of arg (" +
         std::to_string(get_index_dimension_of<1>(arg)) + ")"};
 
-    using Scalar = scalar_type_of_t<Arg>;
-
     if constexpr (identity_matrix<Arg>)
     {
-      return real_projection(Scalar(1));
+      return 1;
     }
     else if constexpr (zero_matrix<Arg> or (constant_matrix<Arg> and not one_by_one_matrix<Arg>))
     {
-      return real_projection(Scalar(0));
+      return 0;
     }
     else if constexpr (constant_matrix<Arg>)
     {
@@ -218,10 +203,7 @@ namespace OpenKalman
     }
     else
     {
-      auto r = interface::LinearAlgebra<std::decay_t<Arg>>::determinant(std::forward<Arg>(arg));
-      static_assert(std::is_convertible_v<decltype(r), const scalar_type_of_t<Arg>>);
-      if constexpr (hermitian_matrix<Arg> and complex_number<std::decay_t<decltype(r)>>) return real_projection(r);
-      else return r;
+      return interface::LinearAlgebra<std::decay_t<Arg>>::determinant(std::forward<Arg>(arg));
     }
   }
 
@@ -235,7 +217,7 @@ namespace OpenKalman
 #else
   template<typename Arg, std::enable_if_t<(square_matrix<Arg, Likelihood::maybe>), int> = 0>
 #endif
-  constexpr auto trace(Arg&& arg)
+  constexpr auto trace(Arg&& arg) -> scalar_type_of_t<Arg>
   {
     if constexpr (has_dynamic_dimensions<Arg>) if (get_dimensions_of<0>(arg) != get_dimensions_of<1>(arg))
       throw std::domain_error {
@@ -246,19 +228,19 @@ namespace OpenKalman
 
     if constexpr (identity_matrix<Arg>)
     {
-      return Scalar(get_index_dimension_of<0>(arg));
+      return get_index_dimension_of<0>(arg);
     }
     else if constexpr (zero_matrix<Arg>)
     {
-      return Scalar(0);
+      return 0;
     }
     else if constexpr (constant_matrix<Arg>)
     {
-      return Scalar(constant_coefficient_v<Arg> * get_index_dimension_of<0>(arg));
+      return constant_coefficient_v<Arg> * static_cast<Scalar>(get_index_dimension_of<0>(arg));
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      return Scalar(constant_diagonal_coefficient_v<Arg> * get_index_dimension_of<0>(arg));
+      return constant_diagonal_coefficient_v<Arg> * static_cast<Scalar>(get_index_dimension_of<0>(arg));
     }
     else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg, std::size_t, std::size_t>)
     {
@@ -273,17 +255,11 @@ namespace OpenKalman
 
   namespace detail
   {
-    template<typename A, typename B, std::size_t...Is>
-    static constexpr decltype(auto) contract_zero(A&& a, B&& b, std::index_sequence<Is...>) noexcept
+    template<typename C, typename A, typename B, std::size_t...Is>
+    static constexpr decltype(auto) contract_constant(C&& c, A&& a, B&& b, std::index_sequence<Is...>) noexcept
     {
-      return make_zero_matrix_like<A>(
+      return make_constant_matrix_like<A>(std::forward<C>(c),
         get_dimensions_of<0>(a), get_dimensions_of<1>(b), get_dimensions_of<Is + 2>(a)...);
-    }
-
-    template<auto c, typename A, typename B, std::size_t...Is>
-    static constexpr decltype(auto) contract_constant(A&& a, B&& b, std::index_sequence<Is...>) noexcept
-    {
-      return make_constant_matrix_like<A, c>(get_dimensions_of<0>(a), get_dimensions_of<1>(b), get_dimensions_of<Is + 2>(a)...);
     }
 
 
@@ -320,16 +296,9 @@ namespace OpenKalman
       }
       else if constexpr ((constant_matrix<T0> and constant_matrix<T1>))
       {
-        constexpr auto c = constant_coefficient_v<T0> + constant_coefficient_v<T1>;
-# if __cpp_nontype_template_args >= 201911L
-        return sum_impl(seq, make_constant_matrix_like<T0, c, Scalar>(best_descriptor<I>(t0, t1, ts...)...), std::forward<Ts>(ts)...);
-# else
-        constexpr auto c_integral = static_cast<std::intmax_t>(c);
-        if constexpr (are_within_tolerance(c, static_cast<Scalar>(c_integral)))
-          return sum_impl(seq, make_constant_matrix_like<T0, c_integral, Scalar>(best_descriptor<I>(t0, t1, ts...)...), std::forward<Ts>(ts)...);
-        else
-          return make_self_contained(c * sum_impl(seq, make_constant_matrix_like<T0, 1, Scalar>(best_descriptor<I>(t0, t1, ts...)...), std::forward<Ts>(ts)...));
-# endif
+        constexpr internal::scalar_constant_operation<std::plus<>, constant_coefficient<T0>, constant_coefficient<T1>> c;
+        constexpr auto cm = make_constant_matrix_like<T0, Scalar>(c, best_descriptor<I>(t0, t1, ts...)...);
+        return sum_impl(seq, cm, std::forward<Ts>(ts)...);
       }
       else if constexpr (constant_matrix<T0> and sizeof...(Ts) > 0)
       {
@@ -410,28 +379,22 @@ namespace OpenKalman
     }
     else if constexpr (zero_matrix<A> or zero_matrix<B>)
     {
-      return detail::contract_zero(std::forward<A>(a), std::forward<B>(b), seq);
+      return detail::contract_constant(std::integral_constant<int, 0>{}, std::forward<A>(a), std::forward<B>(b), seq);
     }
     else if constexpr (constant_matrix<A> and constant_matrix<B>)
     {
-      constexpr auto c = constant_coefficient_v<A> * constant_coefficient_v<B>;
+      using op_c = internal::scalar_constant_operation<std::multiplies<>, constant_coefficient<A>, constant_coefficient<B>>;
+
       if constexpr (dynamic_dimension<A, 1> and dynamic_dimension<B, 0>)
       {
         auto r = get_index_dimension_of<1>(a);
-        return make_self_contained(c * r * detail::contract_constant<1>(std::forward<A>(a), std::forward<B>(b), seq));
+        return detail::contract_constant<1>(op_c{} * r, std::forward<A>(a), std::forward<B>(b), seq);
       }
       else
       {
         constexpr auto r = dynamic_dimension<A, 1> ? index_dimension_of_v<B, 0> : index_dimension_of_v<A, 1>;
-# if __cpp_nontype_template_args >= 201911L
-        return detail::contract_constant<c * r>(std::forward<A>(a), std::forward<B>(b), seq);
-# else
-        constexpr auto cr_integral = static_cast<std::intmax_t>(c * r);
-        if constexpr (are_within_tolerance(c * r, static_cast<scalar_type_of_t<A>>(cr_integral)))
-          return detail::contract_constant<cr_integral>(std::forward<A>(a), std::forward<B>(b), seq);
-        else
-          return make_self_contained(c * detail::contract_constant<r>(std::forward<A>(a), std::forward<B>(b), seq));
-# endif
+        constexpr internal::scalar_constant_operation<std::multiplies<>, op_c, std::integral_constant<std::size_t, r>> cr;
+        return detail::contract_constant(cr, std::forward<A>(a), std::forward<B>(b), seq);
       }
     }
     else if constexpr (diagonal_matrix<A> and constant_matrix<B>)

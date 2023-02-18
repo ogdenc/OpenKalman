@@ -215,16 +215,7 @@ namespace OpenKalman
     else if constexpr (sizeof...(indices) == 1 and detail::constant_concatenate_arguments<Arg, Args...>)
     {
       return std::apply([](auto&&...ds){
-        constexpr auto c = constant_coefficient_v<Arg>;
-# if __cpp_nontype_template_args >= 201911L
-        return make_constant_matrix_like<Arg, c>(std::forward<decltype(ds)>(ds)...);
-# else
-        constexpr auto c_integral = static_cast<std::intmax_t>(c);
-        if constexpr (are_within_tolerance(c, static_cast<scalar_type_of_t<Arg>>(c_integral)))
-          return make_constant_matrix_like<Arg, c_integral>(std::forward<decltype(ds)>(ds)...);
-        else
-          return make_self_contained(c * make_constant_matrix_like<Arg, 1>(std::forward<decltype(ds)>(ds)...));
-# endif
+        return make_constant_matrix_like<Arg>(constant_coefficient<Arg>{}, std::forward<decltype(ds)>(ds)...);
       }, d_tup);
     }
     else if constexpr (sizeof...(indices) == 2 and ((indices == 0) or ...) and ((indices == 1) or ...) and

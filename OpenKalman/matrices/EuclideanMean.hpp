@@ -375,7 +375,7 @@ euclidean_dimension_size_of_v<row_coefficient_types_of_t<V>> == row_dimension_of
 #endif
   auto make_euclidean_mean()
   {
-    return EuclideanMean<TypedIndex, dense_writable_matrix_t<M>>();
+    return EuclideanMean<TypedIndex, dense_writable_matrix_t<M, scalar_type_of_t<M>>>();
   }
 
 

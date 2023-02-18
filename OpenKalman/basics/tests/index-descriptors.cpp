@@ -19,7 +19,7 @@
 using namespace OpenKalman;
 
 
-TEST(index_descriptors, integral_constant)
+TEST(basics, integral_constant)
 {
   static_assert(dimension_size_of_v<std::integral_constant<std::size_t, 3>> == 3);
   static_assert(dimension_size_of_v<std::integral_constant<int, 3>> == 3);
@@ -39,7 +39,7 @@ TEST(index_descriptors, integral_constant)
 }
 
 
-TEST(index_descriptors, fixed_Dimensions)
+TEST(basics, fixed_Dimensions)
 {
   static_assert(dimension_size_of_v<Dimensions<3>> == 3);
   static_assert(euclidean_dimension_size_of_v<Dimensions<3>> == 3);
@@ -61,7 +61,7 @@ TEST(index_descriptors, fixed_Dimensions)
 }
 
 
-TEST(index_descriptors, Axis)
+TEST(basics, Axis)
 {
   static_assert(dimension_size_of_v<Axis> == 1);
   static_assert(euclidean_dimension_size_of_v<Axis> == 1);
@@ -73,7 +73,7 @@ TEST(index_descriptors, Axis)
 }
 
 
-TEST(index_descriptors, Distance)
+TEST(basics, Distance)
 {
   static_assert(dimension_size_of_v<Distance> == 1);
   static_assert(euclidean_dimension_size_of_v<Distance> == 1);
@@ -85,7 +85,7 @@ TEST(index_descriptors, Distance)
 }
 
 
-TEST(index_descriptors, Angle)
+TEST(basics, Angle)
 {
   static_assert(dimension_size_of_v<angle::Radians> == 1);
   static_assert(euclidean_dimension_size_of_v<angle::Radians> == 2);
@@ -97,7 +97,7 @@ TEST(index_descriptors, Angle)
 }
 
 
-TEST(index_descriptors, Inclination)
+TEST(basics, Inclination)
 {
   static_assert(dimension_size_of_v<inclination::Radians> == 1);
   static_assert(euclidean_dimension_size_of_v<inclination::Radians> == 2);
@@ -109,7 +109,7 @@ TEST(index_descriptors, Inclination)
 }
 
 
-TEST(index_descriptors, Polar)
+TEST(basics, Polar)
 {
   static_assert(dimension_size_of_v<Polar<Distance, angle::Radians>> == 2);
   static_assert(euclidean_dimension_size_of_v<Polar<Distance, angle::Radians>> == 3);
@@ -121,7 +121,7 @@ TEST(index_descriptors, Polar)
 }
 
 
-TEST(index_descriptors, Spherical)
+TEST(basics, Spherical)
 {
   static_assert(dimension_size_of_v<Spherical<Distance, angle::Radians, inclination::Radians>> == 3);
   static_assert(euclidean_dimension_size_of_v<Spherical<Distance, angle::Radians, inclination::Radians>> == 4);
@@ -133,7 +133,7 @@ TEST(index_descriptors, Spherical)
 }
 
 
-TEST(index_descriptors, TypedIndex)
+TEST(basics, TypedIndex)
 {
   static_assert(dimension_size_of_v<TypedIndex<Axis, Axis>> == 2);
   static_assert(euclidean_dimension_size_of_v<TypedIndex<Axis, Axis>> == 2);
@@ -162,7 +162,7 @@ TEST(index_descriptors, TypedIndex)
 }
 
 
-TEST(index_descriptors, prepend_append)
+TEST(basics, prepend_append)
 {
   static_assert(std::is_same_v<TypedIndex<angle::Radians, Axis>::Prepend<Axis>, TypedIndex<Axis, angle::Radians, Axis>>);
   static_assert(!std::is_same_v<TypedIndex<Axis, angle::Radians>::Prepend<Axis>, TypedIndex<Axis, angle::Radians, Axis>>);
@@ -172,7 +172,7 @@ TEST(index_descriptors, prepend_append)
 }
 
 
-TEST(index_descriptors, Take)
+TEST(basics, Take)
 {
   static_assert(std::is_same_v<TypedIndex<>::Take<0>, TypedIndex<>>);
   static_assert(std::is_same_v<TypedIndex<angle::Radians>::Take<1>, TypedIndex<angle::Radians>>);
@@ -181,7 +181,7 @@ TEST(index_descriptors, Take)
 }
 
 
-TEST(index_descriptors, Discard)
+TEST(basics, Discard)
 {
   static_assert(std::is_same_v<TypedIndex<Axis>::Discard<0>, TypedIndex<Axis>>);
   static_assert(std::is_same_v<TypedIndex<angle::Radians>::Discard<1>, TypedIndex<>>);
@@ -190,7 +190,7 @@ TEST(index_descriptors, Discard)
 }
 
 
-TEST(index_descriptors, replicate_fixed_index_descriptor)
+TEST(basics, replicate_fixed_index_descriptor)
 {
   static_assert(std::is_same_v<replicate_fixed_index_descriptor_t<angle::Radians, 0>, TypedIndex<>>);
   static_assert(std::is_same_v<replicate_fixed_index_descriptor_t<angle::Radians, 1>, angle::Radians>);
@@ -200,7 +200,7 @@ TEST(index_descriptors, replicate_fixed_index_descriptor)
 }
 
 
-TEST(index_descriptors, concatenate_fixed_index_descriptor_t)
+TEST(basics, concatenate_fixed_index_descriptor_t)
 {
   static_assert(std::is_same_v<concatenate_fixed_index_descriptor_t<TypedIndex<>>, TypedIndex<>>);
   static_assert(std::is_same_v<concatenate_fixed_index_descriptor_t<TypedIndex<>, TypedIndex<>>, TypedIndex<>>);
@@ -221,7 +221,7 @@ TEST(index_descriptors, concatenate_fixed_index_descriptor_t)
 }
 
 
-TEST(index_descriptors, canonical_fixed_index_descriptor)
+TEST(basics, canonical_fixed_index_descriptor)
 {
   static_assert(std::is_same_v<canonical_fixed_index_descriptor_t<TypedIndex<>>, TypedIndex<>>);
   static_assert(std::is_same_v<canonical_fixed_index_descriptor_t<Axis>, TypedIndex<Axis>>);
@@ -244,7 +244,7 @@ TEST(index_descriptors, canonical_fixed_index_descriptor)
 }
 
 
-TEST(index_descriptors, equivalent_to)
+TEST(basics, equivalent_to)
 {
   static_assert(equivalent_to<TypedIndex<>, TypedIndex<>>);
   static_assert(equivalent_to<Axis, Axis>);
@@ -268,7 +268,7 @@ TEST(index_descriptors, equivalent_to)
 }
 
 
-TEST(index_descriptors, prefix_of)
+TEST(basics, prefix_of)
 {
   static_assert(prefix_of<TypedIndex<>, Axis>);
   static_assert(prefix_of<TypedIndex<>, Dimensions<2>>);
@@ -286,7 +286,7 @@ TEST(index_descriptors, prefix_of)
 }
 
 
-TEST(index_descriptors, head_of)
+TEST(basics, head_of)
 {
   static_assert(equivalent_to<head_of_t<TypedIndex<>>, TypedIndex<>>);
   static_assert(equivalent_to<head_of_t<Axis>, Axis>);
@@ -296,7 +296,7 @@ TEST(index_descriptors, head_of)
 }
 
 
-TEST(index_descriptors, tail_of)
+TEST(basics, tail_of)
 {
   static_assert(equivalent_to<tail_of_t<TypedIndex<>>, TypedIndex<>>);
   static_assert(equivalent_to<tail_of_t<Axis>, TypedIndex<>>);
@@ -307,7 +307,7 @@ TEST(index_descriptors, tail_of)
 }
 
 
-TEST(index_descriptors, has_uniform_dimension_type)
+TEST(basics, has_uniform_dimension_type)
 {
   static_assert(has_uniform_dimension_type<TypedIndex<>>);
   static_assert(std::is_same_v<uniform_dimension_type_of_t<Axis>, Axis>);
@@ -328,7 +328,7 @@ TEST(index_descriptors, has_uniform_dimension_type)
 }
 
 
-TEST(index_descriptors, comparison)
+TEST(basics, comparison)
 {
   // Note: some tests cannot be static_assert because of a bug in GCC 10.0
   EXPECT_TRUE(Dimensions<3>{} == Dimensions<3>{});
@@ -368,7 +368,7 @@ TEST(index_descriptors, comparison)
 }
 
 
-TEST(index_descriptors, fixed_arithmetic)
+TEST(basics, fixed_arithmetic)
 {
   // Note: some tests cannot be static_assert because of a bug in GCC 10.0
   EXPECT_TRUE(Dimensions<3>{} + Dimensions<4>{} == Dimensions<7>{});

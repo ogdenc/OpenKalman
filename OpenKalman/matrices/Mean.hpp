@@ -477,7 +477,7 @@ namespace OpenKalman
 #endif
   inline auto make_mean()
   {
-    return Mean<TypedIndex, dense_writable_matrix_t<M>>();
+    return Mean<TypedIndex, dense_writable_matrix_t<M, scalar_type_of_t<M>>>();
   }
 
 

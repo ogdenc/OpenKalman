@@ -29,7 +29,7 @@ namespace OpenKalman
    * \tparam AllowableScalarTypes The allowable scalar types for elements associated with this index descriptor.
    */
 #ifdef __cpp_concepts
-  template<floating_scalar_type...AllowableScalarTypes>
+  template<scalar_type...AllowableScalarTypes>
 #else
   template<typename...AllowableScalarTypes>
 #endif
@@ -37,11 +37,11 @@ namespace OpenKalman
   {
   private:
 #ifndef __cpp_concepts
-    static_assert((floating_scalar_type<AllowableScalarTypes> and ...));
+    static_assert((scalar_type<AllowableScalarTypes> and ...));
 #endif
 
 #ifdef __cpp_concepts
-    template<floating_scalar_type...>
+    template<scalar_type...>
 #else
     template<typename...>
 #endif
@@ -412,7 +412,7 @@ namespace OpenKalman
     /**
      * \internal
      * \brief Tests whether Scalar is an allowable scalar type.
-     * \tparam Scalar A \ref floating_scalar_type
+     * \tparam Scalar A \ref scalar_type
      * \tparam AtomicType An object of type internal::AnyAtomicIndexDescriptor
      */
 #ifdef __cpp_concepts
@@ -422,7 +422,7 @@ namespace OpenKalman
     template<typename Scalar, typename AtomicType>
     constexpr bool allowable_scalar =
 #endif
-      floating_scalar_type<Scalar> and is_allowable_scalar<Scalar, std::decay_t<AtomicType>>::value;
+      scalar_type<Scalar> and is_allowable_scalar<Scalar, std::decay_t<AtomicType>>::value;
 
   } // namespace detail
 
@@ -464,7 +464,7 @@ namespace OpenKalman
 
 
   #ifdef __cpp_concepts
-      floating_scalar_type auto
+      scalar_type auto
       to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start) const
       requires requires (std::size_t i){ {g(i)} -> detail::allowable_scalar<AtomicType>; }
   #else
@@ -485,7 +485,7 @@ namespace OpenKalman
        * \param start The starting index within the Euclidean-transformed indices
        */
   #ifdef __cpp_concepts
-      floating_scalar_type auto
+      scalar_type auto
       from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start) const
       requires requires (std::size_t i){ {g(i)} -> detail::allowable_scalar<AtomicType>; }
   #else
@@ -507,7 +507,7 @@ namespace OpenKalman
        * \param start The starting location of the angle within any larger set of index type descriptors
        */
   #ifdef __cpp_concepts
-        floating_scalar_type auto
+        scalar_type auto
         wrap_get_element(const auto& g, std::size_t local_index, std::size_t start) const
         requires requires (std::size_t i){ {g(i)} -> detail::allowable_scalar<AtomicType>; }
   #else

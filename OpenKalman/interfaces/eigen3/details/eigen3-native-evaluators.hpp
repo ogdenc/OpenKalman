@@ -40,12 +40,12 @@ namespace Eigen::internal
   //  ConstantAdapter  //
   // ----------------- //
 
-  template<typename PatternMatrix, auto constant>
-  struct evaluator<ConstantAdapter<PatternMatrix, constant>>
-    : evaluator_base<ConstantAdapter<PatternMatrix, constant>>
+  template<typename PatternMatrix, auto...constant>
+  struct evaluator<ConstantAdapter<PatternMatrix, constant...>>
+    : evaluator_base<ConstantAdapter<PatternMatrix, constant...>>
   {
     using Scalar = scalar_type_of_t<PatternMatrix>;
-    using XprType = ConstantAdapter<PatternMatrix, constant>;
+    using XprType = ConstantAdapter<PatternMatrix, constant...>;
     using M = Eigen3::eigen_matrix_t<Scalar, index_dimension_of_v<PatternMatrix, 0>, index_dimension_of_v<PatternMatrix, 1>>;
 
     enum {
@@ -59,24 +59,24 @@ namespace Eigen::internal
 
     constexpr Scalar coeff(Index row, Index col) const
     {
-      return constant;
+      return Scalar {constant...};
     }
 
     constexpr Scalar coeff(Index row) const
     {
-      return constant;
+      return Scalar {constant...};
     }
 
     template<int LoadMode, typename PacketType>
     constexpr PacketType packet(Index row, Index col) const
     {
-      return internal::pset1<PacketType>(constant);
+      return internal::pset1<PacketType>(Scalar {constant...});
     }
 
     template<int LoadMode, typename PacketType>
     constexpr PacketType packet(Index row) const
     {
-      return internal::pset1<PacketType>(constant);
+      return internal::pset1<PacketType>(Scalar {constant...});
     }
 
   };
@@ -165,7 +165,7 @@ namespace Eigen::internal
       }
 
       if (row == col)
-        return real_projection(m_argImpl.coeff(row, col));
+        return real_part(m_argImpl.coeff(row, col));
       else
         return m_argImpl.coeff(row, col);
     }

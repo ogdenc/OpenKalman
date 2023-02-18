@@ -105,7 +105,7 @@ namespace OpenKalman
     static constexpr auto
     sigma_point_coeff()
     {
-      constexpr auto denom = 1 / oin::constexpr_sqrt((j + 1) * (j + 2) * unscaled_W<dim>());
+      constexpr auto denom = 1 / static_cast<std::size_t>(oin::constexpr_sqrt((j + 1)) * (j + 2) * unscaled_W<dim>());
       if constexpr(i == 0)
         return Scalar(0);
       else if constexpr(i < j + 2)
@@ -125,7 +125,7 @@ namespace OpenKalman
       using Scalar = typename DistributionTraits<Dist>::Scalar;
       constexpr auto rows = index_dimension_of_v<Dist, 0>;
       constexpr auto count = sigma_point_count<dim>;
-      using Xnative = untyped_dense_writable_matrix_t<typename DistributionTraits<Dist>::Mean, rows, count>;
+      using Xnative = untyped_dense_writable_matrix_t<typename DistributionTraits<Dist>::Mean, Scalar, rows, count>;
       Matrix<TypedIndex, Dimensions<count>, Xnative> X {sigma_point_coeff<ns / count + pos, ns % count, dim, Scalar>()...};
       return X;
     }

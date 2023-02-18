@@ -82,11 +82,11 @@ namespace OpenKalman
        * \param start The starting index within the index descriptor
        */
 #ifdef __cpp_concepts
-      static constexpr floating_scalar_type auto
+      static constexpr scalar_type auto
       to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start)
-      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; }
+      requires requires (std::size_t i){ {g(i)} -> scalar_type; }
 #else
-      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+      template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
       static constexpr auto
       to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start)
 #endif
@@ -98,7 +98,7 @@ namespace OpenKalman
         else
         {
           using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
-          using R = std::decay_t<decltype(real_projection(std::declval<Scalar>()))>;
+          using R = std::decay_t<decltype(real_part(std::declval<Scalar>()))>;
           const Scalar cf_inc {numbers::pi_v<R> / (InclinationLimits::up - InclinationLimits::down)};
           const Scalar horiz {R{InclinationLimits::up + InclinationLimits::down} * R{0.5}};
 
@@ -130,26 +130,26 @@ namespace OpenKalman
        * \param start The starting index within the Euclidean-transformed indices
        */
 #ifdef __cpp_concepts
-      static constexpr floating_scalar_type auto
+      static constexpr scalar_type auto
       from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start)
-      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; }
+      requires requires (std::size_t i){ {g(i)} -> scalar_type; }
 #else
-      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+      template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
       static constexpr auto
       from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start)
 #endif
       {
         using Scalar = decltype(g(std::declval<std::size_t>()));
         Scalar d = g(euclidean_start + d2_i);
-        auto dr = real_projection(d);
+        auto dr = real_part(d);
 
         if (local_index == d_i)
         {
-          return inverse_real_projection(d, std::abs(dr));
+          return internal::inverse_real_projection(d, std::abs(dr));
         }
         else
         {
-          using R = std::decay_t<decltype(real_projection(std::declval<Scalar>()))>;
+          using R = std::decay_t<decltype(real_part(std::declval<Scalar>()))>;
           const Scalar cf_cir {2 * numbers::pi_v<R> / (CircleLimits::max - CircleLimits::min)};
           const Scalar mid {R{CircleLimits::max + CircleLimits::min} * R{0.5}};
 
@@ -160,11 +160,11 @@ namespace OpenKalman
           {
             case a_i:
             {
-              auto xp = real_projection(g(euclidean_start + x_i));
-              auto yp = real_projection(g(euclidean_start + y_i));
+              auto xp = real_part(g(euclidean_start + x_i));
+              auto yp = real_part(g(euclidean_start + y_i));
               // If distance is negative, flip x and y axes 180 degrees:
-              Scalar x2 = inverse_real_projection(x, std::signbit(dr) ? -xp : xp);
-              Scalar y2 = inverse_real_projection(y, std::signbit(dr) ? -yp : yp);
+              Scalar x2 = internal::inverse_real_projection(x, std::signbit(dr) ? -xp : xp);
+              Scalar y2 = internal::inverse_real_projection(y, std::signbit(dr) ? -yp : yp);
               return arctangent2(y2, x2) / cf_cir + mid;
             }
             default: // case i_i
@@ -172,8 +172,8 @@ namespace OpenKalman
               const Scalar cf_inc {numbers::pi_v<R> / (InclinationLimits::up - InclinationLimits::down)};
               const Scalar horiz {R{InclinationLimits::up + InclinationLimits::down} * R{0.5}};
               Scalar z {g(euclidean_start + z_i)};
-              auto zp = real_projection(z);
-              Scalar z2 {inverse_real_projection(z, std::signbit(dr) ? -zp : zp)};
+              auto zp = real_part(z);
+              Scalar z2 {internal::inverse_real_projection(z, std::signbit(dr) ? -zp : zp)};
               Scalar r {square_root(x*x + y*y + z2*z2)};
               return arcsine2(z2, r) / cf_inc + horiz;
             }
@@ -186,9 +186,9 @@ namespace OpenKalman
 
       template<typename Scalar>
       static constexpr auto
-      inclination_wrap_impl(const Scalar& a) -> std::tuple<std::decay_t<std::decay_t<decltype(real_projection(a))>>, bool>
+      inclination_wrap_impl(const Scalar& a) -> std::tuple<std::decay_t<std::decay_t<decltype(real_part(a))>>, bool>
       {
-        auto ap = real_projection(a);
+        auto ap = real_part(a);
         using R = std::decay_t<decltype(ap)>;
         if (ap >= InclinationLimits::down and ap <= InclinationLimits::up) // A shortcut, for the easy case.
         {
@@ -209,20 +209,20 @@ namespace OpenKalman
       static constexpr std::decay_t<Scalar>
       azimuth_wrap_impl(bool reflect_azimuth, Scalar&& a)
       {
-        using R = std::decay_t<decltype(real_projection(std::declval<decltype(a)>()))>;
+        using R = std::decay_t<decltype(real_part(std::declval<decltype(a)>()))>;
         constexpr R period {CircleLimits::max - CircleLimits::min};
         constexpr R half_period {(CircleLimits::max - CircleLimits::min) / R{2}};
-        R ap = reflect_azimuth ? real_projection(a) - half_period : real_projection(a);
+        R ap = reflect_azimuth ? real_part(a) - half_period : real_part(a);
 
         if (ap >= CircleLimits::min and ap < CircleLimits::max) // Check if angle doesn't need wrapping.
         {
-          return inverse_real_projection(std::forward<decltype(a)>(a), ap);;
+          return internal::inverse_real_projection(std::forward<decltype(a)>(a), ap);;
         }
         else // Wrap the angle.
         {
           auto ar = std::fmod(ap - R{CircleLimits::min}, period);
-          if (ar < 0) return inverse_real_projection(std::forward<decltype(a)>(a), R{CircleLimits::min} + ar + period);
-          else return inverse_real_projection(std::forward<decltype(a)>(a), R{CircleLimits::min} + ar);
+          if (ar < 0) return internal::inverse_real_projection(std::forward<decltype(a)>(a), R{CircleLimits::min} + ar + period);
+          else return internal::inverse_real_projection(std::forward<decltype(a)>(a), R{CircleLimits::min} + ar);
         }
       }
 
@@ -236,23 +236,23 @@ namespace OpenKalman
        * \param start The starting location of the angle within any larger set of index type descriptors
        */
 #ifdef __cpp_concepts
-      static constexpr floating_scalar_type auto
+      static constexpr scalar_type auto
       wrap_get_element(const auto& g, std::size_t local_index, std::size_t start)
-      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; }
+      requires requires (std::size_t i){ {g(i)} -> scalar_type; }
 #else
-      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+      template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
       static constexpr auto
       wrap_get_element(const G& g, std::size_t local_index, std::size_t start)
 #endif
       {
         auto d = g(start + d_i);
-        auto dp = real_projection(d);
+        auto dp = real_part(d);
 
         switch(local_index)
         {
           case d_i:
           {
-            return inverse_real_projection(d, std::abs(dp));
+            return internal::inverse_real_projection(d, std::abs(dp));
           }
           case a_i:
           {
@@ -263,7 +263,7 @@ namespace OpenKalman
           {
             auto i = g(start + i_i);
             auto new_i = std::get<0>(inclination_wrap_impl(i));
-            return inverse_real_projection(i, std::signbit(dp) ? -new_i : new_i);
+            return internal::inverse_real_projection(i, std::signbit(dp) ? -new_i : new_i);
           }
         }
       }
@@ -282,21 +282,21 @@ namespace OpenKalman
       static constexpr void
       wrap_set_element(const auto& s, const auto& g,
         const std::decay_t<std::invoke_result_t<decltype(g), std::size_t>>& x, std::size_t local_index, std::size_t start)
-      requires requires (std::size_t i){ s(x, i); {x} -> floating_scalar_type; }
+      requires requires (std::size_t i){ s(x, i); {x} -> scalar_type; }
 #else
-      template<typename S, typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type> and
+      template<typename S, typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type> and
         std::is_invocable<S, typename std::invoke_result<G, std::size_t>::type, std::size_t>::value, int> = 0>
       static constexpr void
       wrap_set_element(const S& s, const G& g, const std::decay_t<typename std::invoke_result<G, std::size_t>::type>& x,
-                       std::size_t local_index, std::size_t start)
+        std::size_t local_index, std::size_t start)
 #endif
       {
         switch(local_index)
         {
           case d_i:
           {
-            auto dp = real_projection(x);
-            s(inverse_real_projection(x, std::abs(dp)), start + d_i);
+            auto dp = real_part(x);
+            s(internal::inverse_real_projection(x, std::abs(dp)), start + d_i);
             if (std::signbit(dp)) // If new distance would have been negative
             {
               auto azimuth_i = start + a_i;
@@ -314,7 +314,7 @@ namespace OpenKalman
           default: // case i_i
           {
             const auto [ip, b] = inclination_wrap_impl(x);
-            s(inverse_real_projection(x, ip), start + i_i); // Reflect inclination.
+            s(internal::inverse_real_projection(x, ip), start + i_i); // Reflect inclination.
             const auto azimuth_i = start + a_i;
             s(azimuth_wrap_impl(b, g(azimuth_i)), azimuth_i); // Maybe reflect azimuth.
             break;

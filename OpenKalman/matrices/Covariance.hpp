@@ -23,7 +23,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<fixed_index_descriptor TypedIndex, covariance_nestable NestedMatrix> requires
     (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
-    (not std::is_rvalue_reference_v<NestedMatrix>) and floating_scalar_type<scalar_type_of_t<NestedMatrix>>
+    (not std::is_rvalue_reference_v<NestedMatrix>) and scalar_type<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename TypedIndex, typename NestedMatrix>
 #endif
@@ -35,7 +35,7 @@ namespace OpenKalman
     static_assert(covariance_nestable<NestedMatrix>);
     static_assert(dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
-    static_assert(floating_scalar_type<scalar_type_of_t<NestedMatrix>>);
+    static_assert(scalar_type<scalar_type_of_t<NestedMatrix>>);
 #endif
 
     using Scalar = scalar_type_of_t<NestedMatrix>; ///< Scalar type for this matrix.

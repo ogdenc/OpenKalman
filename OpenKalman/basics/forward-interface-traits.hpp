@@ -37,30 +37,36 @@ namespace OpenKalman::interface
   struct ScalarTraits
   {
     /**
+     * \brief Whether T is a complex number.
+     */
+    static constexpr bool is_complex = false;
+
+
+    /**
+     * \brief Make a complex number consistent with T from two real arguments.
+     * \tparam Re Real part
+     * \tparam Im Imaginary part
+     */
+    template<typename Re, typename Im>
+    static constexpr decltype(auto) make_complex(Re&& re, Im&& im) = delete;
+
+
+    /**
+     * \brief Return a tuple containing the coefficients of the scalar value when viewed as a real vector space.
+     * \detail Must be a constexpr function. Examples:
+     * - If the scalar is an integral or floating value, the tuple contains only the value.
+     * - If the scalar is complex, the tuple contains the real and imaginary components.
+     * \return
+     */
+    static constexpr auto parts(std::decay_t<T> t) = delete;
+
+
+    /**
      * \brief Project to a corresponding \ref std::floating_point type representing a point on a real axis.
      * \details For example, for a complex number, this function returns the real part. If an argument is already
      * \ref std::floating_point, the function returns the argument unchanged.
      */
-    static constexpr auto real_projection(std::decay_t<T> t) = delete;
-
-
-    /**
-     * \brief The inverse of \ref real_projection.
-     * \details This takes a real number (\ref std::floating_point) and recovers a corresponding scalar value
-     * from which it would have been a projection. This function must obey the following identity for all
-     * <code>x</code> of type T: <code>x == inverse_real_projection(x, real_projection(x))</code>.
-     * For example, if the argument is a complex number, the result of this function is a complex number whose real
-     * part is updated with the value p of floating type RealProj.
-     * \param arg An argument of type T
-     * \param p A \ref std::floating_point value representing a hypothetical result of \ref real_projection.
-     */
-#ifdef __cpp_concepts
-    template<std::convertible_to<const std::decay_t<T>&> Arg, std::floating_point RealProj>
-#else
-    template<typename Arg, typename RealProj, std::enable_if_t<
-      std::is_convertible_v<Arg, const std::decay_t<T>&> and std::is_floating_point_v<RealProj>, int> = 0>
-#endif
-    static constexpr auto inverse_real_projection(Arg&& arg, RealProj p) = delete;
+    static constexpr auto real_part(std::decay_t<T> t) = delete;
 
 
     /*
@@ -71,7 +77,7 @@ namespace OpenKalman::interface
 #else
     template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::decay_t<T>&>, int> = 0>
 #endif
-    static constexpr auto imag(Arg&& arg) = delete;
+    static constexpr auto imaginary_part(Arg&& arg) = delete;
 
 
     /**
@@ -475,26 +481,39 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Create a \ref constant_matrix corresponding to the shape of T.
+     * \brief Create a \ref compile-time constant_matrix corresponding to the shape of T.
      * \details Takes a list of \ref index_descriptor items that specify the size of the resulting object
      * \tparam D A list of \ref index_descriptor items
      * \note If this is not defined, it will return an object of type ConstantAdapter.
      */
 /*#ifdef __cpp_concepts
-    template<auto constant, index_descriptor...D> requires (sizeof...(D) == IndexibleObjectTraits<T>::max_indices)
+    template<auto...constant, index_descriptor...D> requires (sizeof...(D) == IndexibleObjectTraits<T>::max_indices)
 #else
-    template<auto constant, typename...D, std::enable_if_t<(index_descriptor<D> and ...) and
+    template<auto...constant, typename...D, std::enable_if_t<(index_descriptor<D> and ...) and
       sizeof...(D) == IndexibleObjectTraits<T>::max_indices, int> = 0>
 #endif
     static constexpr auto make_constant_matrix(D&&...d); //< Defined elsewhere*/
+
+
+    /**
+     * \brief Create a runtime-constant object corresponding to the shape of T.
+     * \details Takes a list of \ref index_descriptor items that specify the size of the resulting object
+     * \tparam D A list of \ref index_descriptor items
+     * \note If this is not defined, it will return an object of type ConstantAdapter.
+     */
+/*#ifdef __cpp_concepts
+    template<scalar_type Scalar, index_descriptor...D> requires (sizeof...(D) == IndexibleObjectTraits<T>::max_indices)
+#else
+    template<typename Scalar, typename...D, std::enable_if_t<(index_descriptor<D> and ...) and
+      sizeof...(D) == IndexibleObjectTraits<T>::max_indices, int> = 0>
+#endif
+    static constexpr auto make_runtime_constant(Scalar&& s, D&&...d); //< Defined elsewhere*/
   };
 
 
   /**
-   * \brief If T is an object in which all components are a single constant, this is an interface to that constant.
-   * \details The interface must define static constexpr member <code>value</code> representing the constant.
-   * The type of <code>value</code> must be convertible to <code>scalar_type_of<T></code>.
-   * \note This need only be defined for matrices in which every element is a constant expression.
+   * \brief Traits for \ref constant_matrix or \ref constant_diagonal_matrix objects.
+   * \details If T's constant is known only at runtime, this class must be constructible from an object of type T.
    * \tparam T
    */
 #ifdef __cpp_concepts
@@ -505,14 +524,30 @@ namespace OpenKalman::interface
   struct SingleConstant
   {
     /**
-     * \var value
-     * \brief The constant element of T, of a type convertible to <code>scalar_type_of<T></code>.
-     * \details The following example indicates that every element of T is 0 (same scalar type as T):
-     * \code
-     *   static constexpr typename IndexibleObjectTraits<T>::scalar_type value = 0;
-     * \endcode
+     * \brief Constructor for the case that T is only be derivable at runtime.
      */
+    SingleConstant(const std::decay_t<T>&) = delete;
+
+    /**
+     * \brief If T has a constant value across all elements, return that constant.
+     * \details The return type must be convertible to scalar_type_of_t<T>. If T's elements are a constant known
+     * only at runtime, this should be a non-static function.
+     */
+    constexpr auto get_constant(const T&) = delete;
+
+    /**
+     * \brief If T has a constant diagonal value, return that constant.
+     * \details The return type must be convertible to scalar_type_of_t<T>. If T's elements are a constant known
+     * only at runtime, this should be a non-static function.
+     */
+    constexpr auto get_constant_diagonal(const T&) = delete;
+
   };
+
+
+  /// \brief Deduction guide for \ref interface::SingleConstant
+  template<typename T>
+  explicit SingleConstant(const T&) -> SingleConstant<T>;
 
 
   /**
@@ -542,32 +577,6 @@ namespace OpenKalman::interface
     template<typename D, std::enable_if_t<index_descriptor<D>, int> = 0>
 #endif
     static constexpr auto make_identity_matrix(D&& d); //< Defined elsewhere*/
-  };
-
-
-  /**
-   * \brief If T is a constant-diagonal matrix, this is an interface to that constant.
-   * \details The interface must define static constexpr member <code>value</code> representing the constant.
-   * The type of <code>value</code> must be convertible to <code>scalar_type_of<T></code>.
-   * \note This need only be defined for diagonal matrices in which every diagonal element is a single constant.
-   * \tparam T
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct SingleConstantDiagonal
-  {
-    /**
-     * \var value
-     * \brief The constant element of T, of a type convertible to <code>scalar_type_of<T></code>.
-     * \details The following example indicates that every diagonal element of T is 1 (same scalar type as T), and every
-     * non-diagonal element is 0:
-     * \code
-     *   static constexpr typename IndexibleObjectTraits<T>::scalar_type value = 1;
-     * \endcode
-     */
   };
 
 

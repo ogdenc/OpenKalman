@@ -39,77 +39,83 @@ namespace OpenKalman
     }
 
 
-    template<std::size_t...index, typename T, std::size_t...I>
-    constexpr auto make_zero_matrix_reduction(T&& t, std::index_sequence<I...>)
+    template<std::size_t...index, typename C, typename T, std::size_t...I>
+    constexpr auto make_constant_matrix_reduction(C&& c, T&& t, std::index_sequence<I...>)
     {
-      return make_zero_matrix_like<T>(get_reduced_index<I, index...>(std::forward<T>(t))...);
+      return make_constant_matrix_like<T>(std::forward<C>(c), get_reduced_index<I, index...>(std::forward<T>(t))...);
     }
 
 
-    template<auto constant, std::size_t...index, typename T, std::size_t...I>
-    constexpr auto make_constant_matrix_reduction(T&& t, std::index_sequence<I...>)
-    {
-      return make_constant_matrix_like<T, constant>(get_reduced_index<I, index...>(std::forward<T>(t))...);
-    }
-
-
-    template<auto constant, std::size_t index, typename T, std::size_t...I>
-    constexpr auto make_constant_diagonal_matrix_reduction(T&& t, std::index_sequence<I...>)
+    template<std::size_t index, typename C, typename T, std::size_t...I>
+    constexpr auto make_constant_diagonal_matrix_reduction(C&& c, T&& t, std::index_sequence<I...>)
     {
       // \todo Handle 3+ dimensional constant diagonal tensors
       static_assert(index == 0 or index == 1);
-      return make_constant_matrix_like<T, constant>(get_reduced_index<I, index>(std::forward<T>(t))...);
-    }
-
-
-    template<typename T, std::size_t...indices, std::size_t...Is>
-    constexpr std::size_t count_reduced_dimensions(std::index_sequence<Is...>)
-    {
-      return ([]{
-        constexpr auto I = Is;
-        if constexpr (((I == indices) or ...)) return index_dimension_of_v<T, I>;
-        else return 1;
-      }() * ... * 1);
+      return make_constant_matrix_like<T>(std::forward<C>(c), get_reduced_index<I, index>(std::forward<T>(t))...);
     }
 
 
     template<std::size_t...indices, typename T, std::size_t...Is>
     constexpr std::size_t count_reduced_dimensions(const T& t, std::index_sequence<Is...>)
     {
-      return ([](const T& t){
-        constexpr auto I = Is;
-        if constexpr (((I == indices) or ...)) return get_index_dimension_of<I>(t);
-        else return 1;
-      }(t) * ... * 1);
-    }
-
-
-    template<std::size_t dim, typename BinaryFunction, typename Scalar>
-    constexpr Scalar calc_reduce_constant(Scalar constant)
-    {
-      if constexpr (dim <= 1)
-        return constant;
-      else if constexpr (internal::is_plus<BinaryFunction>::value)
-        return constant * static_cast<Scalar>(dim);
-      else if constexpr (internal::is_multiplies<BinaryFunction>::value)
-        return internal::constexpr_pow(constant, dim);
+      if constexpr ((dynamic_dimension<T, indices> or ...))
+      {
+        return ([](const T& t){
+          constexpr auto I = Is;
+          if constexpr (((I == indices) or ...)) return get_index_dimension_of<I>(t);
+          else return 1;
+        }(t) * ... * 1);
+      }
       else
-        return BinaryFunction{}(constant, calc_reduce_constant<dim - 1, BinaryFunction>(constant));
+      {
+        constexpr auto dim = ([]{
+          constexpr auto I = Is;
+          if constexpr (((I == indices) or ...)) return index_dimension_of_v<T, I>;
+          else return 1;
+        }() * ... * 1);
+        return std::integral_constant<std::size_t, dim>{};
+      }
     }
 
 
-    template<typename BinaryFunction, typename Scalar>
-    constexpr Scalar calc_reduce_constant(std::size_t dim, const BinaryFunction& b, Scalar constant)
+    struct constexpr_pow_op
     {
-      if (dim <= 1)
-        return constant;
-      else if constexpr (internal::is_plus<BinaryFunction>::value)
-        return constant * dim;
-      else if constexpr (internal::is_multiplies<BinaryFunction>::value)
-        return std::pow(constant, dim);
-      else
-        return b(constant, calc_reduce_constant(dim - 1, b, constant));
+      template<typename Arg>
+      constexpr auto operator()(Arg arg) const noexcept { return OpenKalman::internal::constexpr_pow(arg); }
+    };
+
+
+#ifdef __cpp_concepts
+    template<static_index_value Dim, typename BinaryOperation, scalar_constant<CompileTimeStatus::known> Constant>
+#else
+    template<typename Dim, typename BinaryOperation, typename Constant,
+      std::enable_if_t<static_index_value<Dim> and scalar_constant<Constant, CompileTimeStatus::known>, int> = 0>
+#endif
+    constexpr auto scalar_reduce_operation(Dim dim, const BinaryOperation& op, const Constant& c)
+    {
+      if constexpr (Dim::value <= 1) return c;
+      else if constexpr (internal::is_plus<BinaryOperation>::value)
+        return internal::scalar_constant_operation {std::multiplies<>{}, c, dim};
+      else if constexpr (internal::is_multiplies<BinaryOperation>::value)
+        return internal::scalar_constant_operation {constexpr_pow_op{}, c, dim};
+      else return internal::scalar_constant_operation {op,
+        scalar_reduce_operation(std::integral_constant<std::size_t, dim - 1>{}, op, c), c};
     }
+
+
+#ifdef __cpp_concepts
+    template<dynamic_index_value Dim, typename BinaryOperation, typename Constant>
+#else
+    template<typename Dim, typename BinaryOperation, typename Constant, std::enable_if_t<dynamic_index_value<Dim>, int> = 0>
+#endif
+    constexpr auto scalar_reduce_operation(Dim dim, const BinaryOperation& op, const Constant& c)
+    {
+      if (dim <= 1) return get_scalar_constant_value(c);
+      else if constexpr (internal::is_plus<BinaryOperation>::value) return get_scalar_constant_value(c) * dim;
+      else if constexpr (internal::is_multiplies<BinaryOperation>::value) return std::pow(get_scalar_constant_value(c), dim);
+      else return op(scalar_reduce_operation(dim - 1, op, c), get_scalar_constant_value(c));
+    }
+
 
 
     template<typename Arg, std::size_t...I>
@@ -129,21 +135,9 @@ namespace OpenKalman
       }
       else if constexpr (constant_matrix<Arg>)
       {
-        using Scalar = scalar_type_of_t<Arg>;
-        constexpr Scalar c = constant_coefficient_v<Arg>;
         constexpr auto seq = std::make_index_sequence<max_indices_of_v<Arg>> {};
-        constexpr bool fixed_reduction_dims = not (dynamic_dimension<Arg, indices> or ...);
-
-        if constexpr (fixed_reduction_dims and internal::constexpr_n_ary_function<BinaryFunction, Arg, Arg>)
-        {
-          constexpr std::size_t dim = count_reduced_dimensions<Arg, indices...>(seq);
-          return calc_reduce_constant<dim, BinaryFunction>(c);
-        }
-        else
-        {
-          std::size_t dim = count_reduced_dimensions<indices...>(arg, seq);
-          return calc_reduce_constant(dim, b, c);
-        }
+        auto dim = count_reduced_dimensions<indices...>(arg, seq);
+        return scalar_reduce_operation(dim, b, constant_coefficient{std::forward<Arg>(arg)});
       }
       else
       {
@@ -234,35 +228,13 @@ namespace OpenKalman
     }
     else if constexpr (zero_matrix<Arg> and (internal::is_plus<BinaryFunction>::value or internal::is_multiplies<BinaryFunction>::value))
     {
-      return detail::make_zero_matrix_reduction<index, indices...>(std::forward<Arg>(arg), seq);
+      return detail::make_constant_matrix_reduction<index, indices...>(std::integral_constant<int, 0>{}, std::forward<Arg>(arg), seq);
     }
     else if constexpr (constant_matrix<Arg>)
     {
-      using Scalar = scalar_type_of_t<Arg>;
-      constexpr Scalar c_arg = constant_coefficient_v<Arg>;
-      constexpr bool fixed_reduction_dims = not (dynamic_dimension<Arg, index> or ... or dynamic_dimension<Arg, indices>);
-
-      if constexpr (fixed_reduction_dims and internal::constexpr_n_ary_function<BinaryFunction, Arg, Arg>)
-      {
-        constexpr std::size_t dim = detail::count_reduced_dimensions<Arg, index, indices...>(seq);
-        constexpr auto c = detail::calc_reduce_constant<dim, BinaryFunction>(c_arg);
-# if __cpp_nontype_template_args >= 201911L
-        return detail::make_constant_matrix_reduction<c, index, indices...>(std::forward<Arg>(arg), seq);
-# else
-        constexpr auto c_integral = static_cast<std::intmax_t>(c);
-        if constexpr (are_within_tolerance(c, static_cast<Scalar>(c_integral)))
-          return detail::make_constant_matrix_reduction<c_integral, index, indices...>(std::forward<Arg>(arg), seq);
-        else
-          return make_self_contained(c * detail::make_constant_matrix_reduction<1, index, indices...>(std::forward<Arg>(arg), seq));
-# endif
-      }
-      else
-      {
-        std::size_t dim = detail::count_reduced_dimensions<index, indices...>(arg, seq);
-        auto c = detail::calc_reduce_constant(dim, b, c_arg);
-        auto red = detail::make_constant_matrix_reduction<1, index, indices...>(std::forward<Arg>(arg), seq);
-        return make_self_contained(c * to_native_matrix<Arg>(std::move(red)));
-      }
+      auto dim = detail::count_reduced_dimensions<index, indices...>(arg, seq);
+      auto c = detail::scalar_reduce_operation(dim, b, constant_coefficient{std::forward<Arg>(arg)});
+      auto red = detail::make_constant_matrix_reduction<index, indices...>(std::move(c), std::forward<Arg>(arg), seq);
     }
     // \todo Add this after updating DiagonalMatrix to include diagonals of any rank
     //else if constexpr (constant_diagonal_matrix<Arg>)
@@ -368,54 +340,18 @@ namespace OpenKalman
       if constexpr (sizeof...(indices) == 0) return std::forward<Arg>(arg);
       else return average_reduce<indices...>(std::forward<Arg>(arg));
     }
-    else if constexpr (zero_matrix<Arg>)
-    {
-      return detail::make_zero_matrix_reduction<index, indices...>(std::forward<Arg>(arg), seq);
-    }
     else if constexpr (constant_matrix<Arg>)
     {
-      constexpr Scalar c = constant_coefficient_v<Arg>;
-# if __cpp_nontype_template_args >= 201911L
-      return detail::make_constant_matrix_reduction<c, index, indices...>(std::forward<Arg>(arg), seq);
-# else
-      constexpr auto c_integral = static_cast<std::intmax_t>(c);
-      if constexpr (are_within_tolerance(c, static_cast<Scalar>(c_integral)))
-      {
-        return detail::make_constant_matrix_reduction<c_integral, index, indices...>(std::forward<Arg>(arg), seq);
-      }
-      else
-      {
-        auto red = detail::make_constant_matrix_reduction<1, index, indices...>(std::forward<Arg>(arg), seq);
-        return make_self_contained(c * to_native_matrix<Arg>(red));
-      }
-# endif
+      return detail::make_constant_matrix_reduction<index, indices...>(constant_coefficient<Arg>{}, std::forward<Arg>(arg), seq);
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       if constexpr (not dynamic_dimension<Arg, 0>)
       {
-        constexpr auto c = static_cast<Scalar>(constant_diagonal_coefficient_v<Arg>) / index_dimension_of_v<Arg, 0>;
-# if __cpp_nontype_template_args >= 201911L
-        auto ret = detail::make_constant_diagonal_matrix_reduction<c, index>(std::forward<Arg>(arg), seq);
+        constexpr internal::scalar_constant_operation<std::divides<>, constant_diagonal_coefficient<Arg>, index_dimension_of<Arg, 0>> c;
+        auto ret = detail::make_constant_diagonal_matrix_reduction<index>(c, std::forward<Arg>(arg), seq);
         if constexpr (sizeof...(indices) > 0) return average_reduce<indices...>(std::move(ret));
         else return ret;
-# else
-        constexpr auto c_integral = static_cast<std::intmax_t>(c);
-        if constexpr (are_within_tolerance(c, static_cast<Scalar>(c_integral)))
-        {
-          auto ret = detail::make_constant_diagonal_matrix_reduction<c_integral, index>(std::forward<Arg>(arg), seq);
-          if constexpr (sizeof...(indices) > 0) return average_reduce<indices...>(std::move(ret));
-          else return ret;
-        }
-        else
-        {
-          auto ret = detail::make_constant_diagonal_matrix_reduction<1, index>(std::forward<Arg>(arg), seq);
-          if constexpr (sizeof...(indices) > 0)
-            return make_self_contained(c * average_reduce<indices...>(std::move(ret)));
-          else
-            return make_self_contained(c * std::move(ret));
-        }
-# endif
       }
       else
       {

@@ -31,7 +31,7 @@ inline auto g(Ss...ss)
 }
 
 
-TEST(index_descriptors, toEuclidean_axis_angle_fixed)
+TEST(basics, toEuclidean_axis_angle_fixed)
 {
   EXPECT_NEAR((to_euclidean_element(Axis{}, g(3.), 0, 0)), 3., 1e-6);
   EXPECT_NEAR((to_euclidean_element(angle::Radians{}, g(pi/3), 0, 0)), 0.5, 1e-6);
@@ -58,7 +58,7 @@ TEST(index_descriptors, toEuclidean_axis_angle_fixed)
 }
 
 
-TEST(index_descriptors, toEuclidean_axis_angle_dynamic)
+TEST(basics, toEuclidean_axis_angle_dynamic)
 {
   EXPECT_NEAR((to_euclidean_element(DynamicTypedIndex {Axis{}}, g(3.), 0, 0)), 3., 1e-6);
   EXPECT_NEAR((to_euclidean_element(DynamicTypedIndex {angle::Radians{}}, g(pi/3), 0, 0)), 0.5, 1e-6);
@@ -93,7 +93,7 @@ TEST(index_descriptors, toEuclidean_axis_angle_dynamic)
 }
 
 
-TEST(index_descriptors, toEuclidean_distance_inclination_fixed)
+TEST(basics, toEuclidean_distance_inclination_fixed)
 {
   EXPECT_NEAR((to_euclidean_element(Distance{}, g(3.), 0, 0)), 3., 1e-6);
   EXPECT_NEAR((to_euclidean_element(Distance{}, g(-3.), 0, 0)), -3., 1e-6);
@@ -119,7 +119,7 @@ TEST(index_descriptors, toEuclidean_distance_inclination_fixed)
 }
 
 
-TEST(index_descriptors, toEuclidean_distance_inclination_dynamic)
+TEST(basics, toEuclidean_distance_inclination_dynamic)
 {
   EXPECT_NEAR((to_euclidean_element(DynamicTypedIndex {Distance{}}, g(3.), 0, 0)), 3., 1e-6);
   EXPECT_NEAR((to_euclidean_element(DynamicTypedIndex {Distance{}}, g(-3.), 0, 0)), -3., 1e-6);
@@ -154,7 +154,7 @@ TEST(index_descriptors, toEuclidean_distance_inclination_dynamic)
 }
 
 
-TEST(index_descriptors, toEuclidean_polar_fixed)
+TEST(basics, toEuclidean_polar_fixed)
 {
   EXPECT_NEAR((to_euclidean_element(Polar<Distance, angle::Radians>{}, g(3., pi/3), 0, 0)), 3., 1e-6);
   EXPECT_NEAR((to_euclidean_element(Polar<Distance, angle::Radians>{}, g(3., pi/3), 1, 0)), 0.5, 1e-6);
@@ -175,7 +175,7 @@ TEST(index_descriptors, toEuclidean_polar_fixed)
 }
 
 
-TEST(index_descriptors, toEuclidean_polar_dynamic)
+TEST(basics, toEuclidean_polar_dynamic)
 {
   EXPECT_NEAR((to_euclidean_element(DynamicTypedIndex {Polar<Distance, angle::Radians>{}}, g(3., pi/3), 0, 0)), 3., 1e-6);
   EXPECT_NEAR((to_euclidean_element(DynamicTypedIndex {Polar<Distance, angle::Radians>{}}, g(3., pi/3), 1, 0)), 0.5, 1e-6);
@@ -202,7 +202,7 @@ TEST(index_descriptors, toEuclidean_polar_dynamic)
 }
 
 
-TEST(index_descriptors, toEuclidean_spherical_fixed)
+TEST(basics, toEuclidean_spherical_fixed)
 {
   EXPECT_NEAR((to_euclidean_element(Spherical<Distance, angle::Radians, inclination::Radians>{}, g(2., pi/6, pi/3), 0, 0)), 2., 1e-6);
   EXPECT_NEAR((to_euclidean_element(Spherical<Distance, angle::Radians, inclination::Radians>{}, g(2., pi/6, pi/3), 1, 0)), std::sqrt(3)/4, 1e-6);
@@ -223,7 +223,7 @@ TEST(index_descriptors, toEuclidean_spherical_fixed)
 }
 
 
-TEST(index_descriptors, toEuclidean_spherical_dynamic)
+TEST(basics, toEuclidean_spherical_dynamic)
 {
   EXPECT_NEAR((to_euclidean_element(DynamicTypedIndex {Spherical<Distance, angle::Radians, inclination::Radians>{}}, g(2., pi/6, pi/3), 0, 0)), 2., 1e-6);
   EXPECT_NEAR((to_euclidean_element(DynamicTypedIndex {Spherical<Distance, angle::Radians, inclination::Radians>{}}, g(2., pi/6, pi/3), 1, 0)), std::sqrt(3)/4, 1e-6);
@@ -252,7 +252,7 @@ TEST(index_descriptors, toEuclidean_spherical_dynamic)
 }
 
 
-TEST(index_descriptors, fromEuclidean_axis_angle_fixed)
+TEST(basics, fromEuclidean_axis_angle_fixed)
 {
   EXPECT_NEAR((from_euclidean_element(TypedIndex<Axis>{}, g(3.), 0, 0)), 3, 1e-6);
   EXPECT_NEAR((from_euclidean_element(TypedIndex<Axis>{}, g(-3.), 0, 0)), -3, 1e-6);
@@ -265,7 +265,7 @@ TEST(index_descriptors, fromEuclidean_axis_angle_fixed)
 }
 
 
-TEST(index_descriptors, fromEuclidean_axis_angle_dynamic)
+TEST(basics, fromEuclidean_axis_angle_dynamic)
 {
   EXPECT_NEAR((from_euclidean_element(DynamicTypedIndex {TypedIndex<Axis>{}}, g(3.), 0, 0)), 3, 1e-6);
   EXPECT_NEAR((from_euclidean_element(DynamicTypedIndex {TypedIndex<Axis>{}}, g(-3.), 0, 0)), -3, 1e-6);
@@ -283,7 +283,7 @@ TEST(index_descriptors, fromEuclidean_axis_angle_dynamic)
 }
 
 
-TEST(index_descriptors, fromEuclidean_distance_inclination_fixed)
+TEST(basics, fromEuclidean_distance_inclination_fixed)
 {
   EXPECT_NEAR((from_euclidean_element(TypedIndex<Distance>{}, g(3.), 0, 0)), 3, 1e-6);
   EXPECT_NEAR((from_euclidean_element(TypedIndex<Distance>{}, g(-3.), 0, 0)), 3, 1e-6);
@@ -296,7 +296,7 @@ TEST(index_descriptors, fromEuclidean_distance_inclination_fixed)
 }
 
 
-TEST(index_descriptors, fromEuclidean_distance_inclination_dynamic)
+TEST(basics, fromEuclidean_distance_inclination_dynamic)
 {
   EXPECT_NEAR((from_euclidean_element(DynamicTypedIndex {TypedIndex<Distance>{}}, g(3.), 0, 0)), 3, 1e-6);
   EXPECT_NEAR((from_euclidean_element(DynamicTypedIndex {TypedIndex<Distance>{}}, g(-3.), 0, 0)), 3, 1e-6);
@@ -314,7 +314,7 @@ TEST(index_descriptors, fromEuclidean_distance_inclination_dynamic)
 }
 
 
-TEST(index_descriptors, fromEuclidean_polar_fixed)
+TEST(basics, fromEuclidean_polar_fixed)
 {
   EXPECT_NEAR((from_euclidean_element(TypedIndex<Polar<Distance, angle::Radians>>{}, g(3., 0.5, std::sqrt(3) / 2), 0, 0)), 3., 1e-6);
   EXPECT_NEAR((from_euclidean_element(TypedIndex<Polar<Distance, angle::Radians>>{}, g(3., 0.5, std::sqrt(3) / 2), 1, 0)), pi/3, 1e-6);
@@ -327,7 +327,7 @@ TEST(index_descriptors, fromEuclidean_polar_fixed)
 }
 
 
-TEST(index_descriptors, fromEuclidean_polar_dynamic)
+TEST(basics, fromEuclidean_polar_dynamic)
 {
   EXPECT_NEAR((from_euclidean_element(DynamicTypedIndex {TypedIndex<Polar<Distance, angle::Radians>>{}}, g(3., 0.5, std::sqrt(3) / 2), 0, 0)), 3., 1e-6);
   EXPECT_NEAR((from_euclidean_element(DynamicTypedIndex {TypedIndex<Polar<Distance, angle::Radians>>{}}, g(3., 0.5, std::sqrt(3) / 2), 1, 0)), pi/3, 1e-6);
@@ -345,7 +345,7 @@ TEST(index_descriptors, fromEuclidean_polar_dynamic)
 }
 
 
-TEST(index_descriptors, fromEuclidean_spherical_fixed)
+TEST(basics, fromEuclidean_spherical_fixed)
 {
   EXPECT_NEAR((from_euclidean_element(Spherical<Distance, angle::Radians, inclination::Radians>{}, g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 0, 0)), 2., 1e-6);
   EXPECT_NEAR((from_euclidean_element(Spherical<Distance, angle::Radians, inclination::Radians>{}, g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 1, 0)), pi/6, 1e-6);
@@ -363,7 +363,7 @@ TEST(index_descriptors, fromEuclidean_spherical_fixed)
 }
 
 
-TEST(index_descriptors, fromEuclidean_spherical_dynamic)
+TEST(basics, fromEuclidean_spherical_dynamic)
 {
   EXPECT_NEAR((from_euclidean_element(DynamicTypedIndex {Spherical<Distance, angle::Radians, inclination::Radians>{}}, g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 0, 0)), 2., 1e-6);
   EXPECT_NEAR((from_euclidean_element(DynamicTypedIndex {Spherical<Distance, angle::Radians, inclination::Radians>{}}, g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 1, 0)), pi/6, 1e-6);
@@ -388,7 +388,7 @@ TEST(index_descriptors, fromEuclidean_spherical_dynamic)
 }
 
 
-TEST(index_descriptors, wrap_get_element_axis_angle_fixed)
+TEST(basics, wrap_get_element_axis_angle_fixed)
 {
   EXPECT_NEAR((wrap_get_element(TypedIndex<Axis>{}, g(3.), 0, 0)), 3., 1e-6);
   EXPECT_NEAR((wrap_get_element(TypedIndex<Axis>{}, g(-3.), 0, 0)), -3., 1e-6);
@@ -408,7 +408,7 @@ TEST(index_descriptors, wrap_get_element_axis_angle_fixed)
 }
 
 
-TEST(index_descriptors, wrap_get_element_axis_angle_dynamic)
+TEST(basics, wrap_get_element_axis_angle_dynamic)
 {
   EXPECT_NEAR((wrap_get_element(DynamicTypedIndex {TypedIndex<Axis>{}}, g(3.), 0, 0)), 3., 1e-6);
   EXPECT_NEAR((wrap_get_element(DynamicTypedIndex {TypedIndex<Axis>{}}, g(-3.), 0, 0)), -3., 1e-6);
@@ -433,7 +433,7 @@ TEST(index_descriptors, wrap_get_element_axis_angle_dynamic)
 }
 
 
-TEST(index_descriptors, wrap_get_element_distance_inclination_fixed)
+TEST(basics, wrap_get_element_distance_inclination_fixed)
 {
   EXPECT_NEAR((wrap_get_element(TypedIndex<Distance>{}, g(3.), 0, 0)), 3., 1e-6);
   EXPECT_NEAR((wrap_get_element(TypedIndex<Distance>{}, g(-3.), 0, 0)), 3., 1e-6);
@@ -448,7 +448,7 @@ TEST(index_descriptors, wrap_get_element_distance_inclination_fixed)
 }
 
 
-TEST(index_descriptors, wrap_get_element_distance_inclination_dynamic)
+TEST(basics, wrap_get_element_distance_inclination_dynamic)
 {
   EXPECT_NEAR((wrap_get_element(DynamicTypedIndex {TypedIndex<Distance>{}}, g(3.), 0, 0)), 3., 1e-6);
   EXPECT_NEAR((wrap_get_element(DynamicTypedIndex {TypedIndex<Distance>{}}, g(-3.), 0, 0)), 3., 1e-6);
@@ -468,7 +468,7 @@ TEST(index_descriptors, wrap_get_element_distance_inclination_dynamic)
 }
 
 
-TEST(index_descriptors, wrap_get_element_polar_fixed)
+TEST(basics, wrap_get_element_polar_fixed)
 {
   EXPECT_NEAR((wrap_get_element(TypedIndex<Axis, Polar<Distance, angle::Radians>>{}, g(3., -2., 1.1*pi), 0, 0)), 3., 1e-6);
   EXPECT_NEAR((wrap_get_element(TypedIndex<Axis, Polar<Distance, angle::Radians>>{}, g(3., -2., 1.1*pi), 1, 0)), 2., 1e-6);
@@ -492,7 +492,7 @@ TEST(index_descriptors, wrap_get_element_polar_fixed)
 }
 
 
-TEST(index_descriptors, wrap_get_element_polar_dynamic)
+TEST(basics, wrap_get_element_polar_dynamic)
 {
   EXPECT_NEAR((wrap_get_element(DynamicTypedIndex {TypedIndex<Axis, Polar<Distance, angle::Radians>>{}}, g(3., -2., 1.1*pi), 0, 0)), 3., 1e-6);
   EXPECT_NEAR((wrap_get_element(DynamicTypedIndex {TypedIndex<Axis, Polar<Distance, angle::Radians>>{}}, g(3., -2., 1.1*pi), 1, 0)), 2., 1e-6);
@@ -521,7 +521,7 @@ TEST(index_descriptors, wrap_get_element_polar_dynamic)
 }
 
 
-TEST(index_descriptors, wrap_get_element_spherical_fixed)
+TEST(basics, wrap_get_element_spherical_fixed)
 {
   EXPECT_NEAR((wrap_get_element(Spherical<Distance, angle::Radians, inclination::Radians>{}, g(2., 1.1*pi, 0.6*pi), 0, 0)), 2., 1e-6);
   EXPECT_NEAR((wrap_get_element(Spherical<Distance, angle::Radians, inclination::Radians>{}, g(2., 0.5*pi, 0.6*pi), 1, 0)), -0.5*pi, 1e-6);
@@ -537,7 +537,7 @@ TEST(index_descriptors, wrap_get_element_spherical_fixed)
 }
 
 
-TEST(index_descriptors, wrap_get_element_spherical_dynamic)
+TEST(basics, wrap_get_element_spherical_dynamic)
 {
   EXPECT_NEAR((wrap_get_element(DynamicTypedIndex {Spherical<Distance, angle::Radians, inclination::Radians>{}}, g(2., 1.1*pi, 0.6*pi), 0, 0)), 2., 1e-6);
   EXPECT_NEAR((wrap_get_element(DynamicTypedIndex {Spherical<Distance, angle::Radians, inclination::Radians>{}}, g(2., 0.5*pi, 0.6*pi), 1, 0)), -0.5*pi, 1e-6);
@@ -560,7 +560,7 @@ TEST(index_descriptors, wrap_get_element_spherical_dynamic)
 }
 
 
-TEST(index_descriptors, wrap_set_element_axis_angle)
+TEST(basics, wrap_set_element_axis_angle)
 {
   std::array<double, 2> a1 = {0, 0};
   auto s = std::function {[&](const double& s, std::size_t i) { a1[i] = s; }};
@@ -607,7 +607,7 @@ TEST(index_descriptors, wrap_set_element_axis_angle)
 }
 
 
-TEST(index_descriptors, wrap_set_element_distance_inclination)
+TEST(basics, wrap_set_element_distance_inclination)
 {
   std::array<float, 2> a1 = {0, 0};
   auto s = std::function {[&](const float& s, std::size_t i) { a1[i] = s; }};
@@ -654,7 +654,7 @@ TEST(index_descriptors, wrap_set_element_distance_inclination)
 }
 
 
-TEST(index_descriptors, wrap_set_element_polar_fixed)
+TEST(basics, wrap_set_element_polar_fixed)
 {
   std::array<double, 4> a1 = {1, 0.8*pi, 0, 1};
   auto s = std::function {[&](const double& s, std::size_t i) { a1[i] = s; }};
@@ -685,7 +685,7 @@ TEST(index_descriptors, wrap_set_element_polar_fixed)
 }
 
 
-TEST(index_descriptors, wrap_set_element_polar_dynamic)
+TEST(basics, wrap_set_element_polar_dynamic)
 {
   std::array<long double, 4> a1 = {1, -0.2*numbers::pi_v<long double>, 0, 1};
   auto s = std::function {[&](const long double& s, std::size_t i) { a1[i] = s; }};
@@ -728,7 +728,7 @@ TEST(index_descriptors, wrap_set_element_polar_dynamic)
 }
 
 
-TEST(index_descriptors, wrap_set_element_spherical_fixed)
+TEST(basics, wrap_set_element_spherical_fixed)
 {
   std::array<double, 4> a1 = {0, 0, 0, 0};
   auto s = std::function {[&](const double& s, std::size_t i) { a1[i] = s; }};
@@ -798,7 +798,7 @@ TEST(index_descriptors, wrap_set_element_spherical_fixed)
 }
 
 
-TEST(index_descriptors, wrap_set_element_spherical_dynamic)
+TEST(basics, wrap_set_element_spherical_dynamic)
 {
   std::array<double, 4> a1 = {0, 0, 0, 0};
   auto s = std::function {[&](const double& s, std::size_t i) { a1[i] = s; }};

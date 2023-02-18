@@ -63,11 +63,11 @@ namespace OpenKalman
        * \param start The starting index within the index descriptor
        */
 #ifdef __cpp_concepts
-      static constexpr floating_scalar_type auto
+      static constexpr scalar_type auto
       to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start)
-      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; }
+      requires requires (std::size_t i){ {g(i)} -> scalar_type; }
 #else
-      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+      template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
       static constexpr auto
       to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start)
 #endif
@@ -80,7 +80,7 @@ namespace OpenKalman
         }
         else
         {
-          using R = std::decay_t<decltype(real_projection(std::declval<Scalar>()))>;
+          using R = std::decay_t<decltype(real_part(std::declval<Scalar>()))>;
           const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
           const Scalar mid {R{Limits::max + Limits::min} * R{0.5}};
 
@@ -103,26 +103,26 @@ namespace OpenKalman
        * \param start The starting index within the Euclidean-transformed indices
        */
 #ifdef __cpp_concepts
-      static constexpr floating_scalar_type auto
+      static constexpr scalar_type auto
       from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start)
-      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; }
+      requires requires (std::size_t i){ {g(i)} -> scalar_type; }
 #else
-      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+      template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
       static constexpr auto
       from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start)
 #endif
       {
         using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
         Scalar d = g(euclidean_start + d2_i);
-        auto dr = real_projection(d);
+        auto dr = real_part(d);
         if (local_index == d_i)
         {
           // A negative distance is reflected to the positive axis.
-          return inverse_real_projection(d, std::abs(dr));
+          return internal::inverse_real_projection(d, std::abs(dr));
         }
         else
         {
-          using R = std::decay_t<decltype(real_projection(std::declval<Scalar>()))>;
+          using R = std::decay_t<decltype(real_part(std::declval<Scalar>()))>;
           const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
           const Scalar mid {R{Limits::max + Limits::min} * R{0.5}};
 
@@ -142,19 +142,19 @@ namespace OpenKalman
       static constexpr std::decay_t<Scalar> polar_angle_wrap_impl(bool distance_is_negative, Scalar&& a)
 #endif
       {
-        using R = std::decay_t<decltype(real_projection(std::declval<decltype(a)>()))>;
+        using R = std::decay_t<decltype(real_part(std::declval<decltype(a)>()))>;
         constexpr R period {Limits::max - Limits::min};
-        R ap {distance_is_negative ? real_projection(a) + period * R{0.5} : real_projection(a)};
+        R ap {distance_is_negative ? real_part(a) + period * R{0.5} : real_part(a)};
 
         if (ap >= Limits::min and ap < Limits::max) // Check if the angle doesn't need wrapping.
         {
-          return inverse_real_projection(std::forward<decltype(a)>(a), ap);;
+          return internal::inverse_real_projection(std::forward<decltype(a)>(a), ap);;
         }
         else // Wrap the angle.
         {
           auto ar = std::fmod(ap - R{Limits::min}, period);
-          if (ar < 0) return inverse_real_projection(std::forward<decltype(a)>(a), R{Limits::min} + ar + period);
-          else return inverse_real_projection(std::forward<decltype(a)>(a), R{Limits::min} + ar);
+          if (ar < 0) return internal::inverse_real_projection(std::forward<decltype(a)>(a), R{Limits::min} + ar + period);
+          else return internal::inverse_real_projection(std::forward<decltype(a)>(a), R{Limits::min} + ar);
         }
       }
 
@@ -168,11 +168,11 @@ namespace OpenKalman
        * \param start The starting location of the angle within any larger set of index type descriptors
        */
 #ifdef __cpp_concepts
-      static constexpr floating_scalar_type auto
+      static constexpr scalar_type auto
       wrap_get_element(const auto& g, std::size_t local_index, std::size_t start)
-      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; }
+      requires requires (std::size_t i){ {g(i)} -> scalar_type; }
 #else
-      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+      template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
       static constexpr auto
       wrap_get_element(const G& g, std::size_t local_index, std::size_t start)
 #endif
@@ -180,8 +180,8 @@ namespace OpenKalman
         auto d = g(start + d_i);
         switch(local_index)
         {
-          case d_i: return inverse_real_projection(d, std::abs(real_projection(d)));
-          default: return polar_angle_wrap_impl(std::signbit(real_projection(d)), g(start + a_i)); // case a_i
+          case d_i: return internal::inverse_real_projection(d, std::abs(real_part(d)));
+          default: return polar_angle_wrap_impl(std::signbit(real_part(d)), g(start + a_i)); // case a_i
         }
       }
 
@@ -199,21 +199,21 @@ namespace OpenKalman
       static constexpr void
       wrap_set_element(const auto& s, const auto& g,
         const std::decay_t<std::invoke_result_t<decltype(g), std::size_t>>& x, std::size_t local_index, std::size_t start)
-      requires requires (std::size_t i){ s(x, i); {x} -> floating_scalar_type; }
+      requires requires (std::size_t i){ s(x, i); {x} -> scalar_type; }
 #else
-      template<typename S, typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type> and
+      template<typename S, typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type> and
         std::is_invocable<S, typename std::invoke_result<G, std::size_t>::type, std::size_t>::value, int> = 0>
       static constexpr void
       wrap_set_element(const S& s, const G& g, const std::decay_t<typename std::invoke_result<G, std::size_t>::type>& x,
-                       std::size_t local_index, std::size_t start)
+        std::size_t local_index, std::size_t start)
 #endif
       {
         switch(local_index)
         {
           case d_i:
           {
-            auto xp = real_projection(x);
-            s(inverse_real_projection(x, std::abs(xp)), start + d_i);
+            auto xp = real_part(x);
+            s(internal::inverse_real_projection(x, std::abs(xp)), start + d_i);
             s(polar_angle_wrap_impl(std::signbit(xp), g(start + a_i)), start + a_i); //< Possibly reflect angle
             break;
           }

@@ -41,7 +41,7 @@ namespace OpenKalman::interface
     static constexpr scalar_type auto to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start)
     requires requires (std::size_t i){ {g(i)} -> scalar_type; }
 #else
-    template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
     static constexpr auto to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start)
 #endif
     {
@@ -51,9 +51,9 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
     static constexpr scalar_type auto from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start)
-    requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; }
+    requires requires (std::size_t i){ {g(i)} -> scalar_type; }
 #else
-    template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
     static constexpr auto from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start)
 #endif
     {
@@ -65,7 +65,7 @@ namespace OpenKalman::interface
     static constexpr scalar_type auto wrap_get_element(const auto& g, std::size_t local_index, std::size_t start)
     requires requires (std::size_t i){ {g(i)} -> scalar_type; }
 #else
-    template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
     static constexpr auto wrap_get_element(const G& g, std::size_t local_index, std::size_t start)
 #endif
     {
@@ -113,7 +113,7 @@ namespace OpenKalman::interface
     static constexpr scalar_type auto to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start)
     requires requires (std::size_t i){ {g(i)} -> scalar_type; }
 #else
-    template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
     static constexpr auto to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start)
 #endif
     {

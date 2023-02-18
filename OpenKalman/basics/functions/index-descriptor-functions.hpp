@@ -247,9 +247,9 @@ namespace OpenKalman
      * \brief Replicate \ref fixed_index_descriptor T some number of times.
      */
 #ifdef __cpp_concepts
-    template<floating_scalar_type..., fixed_index_descriptor T, static_index_value N>
+    template<scalar_type..., fixed_index_descriptor T, static_index_value N>
 #else
-    template<typename...S, typename T, typename N, std::enable_if_t<(floating_scalar_type<S> and ...) and
+    template<typename...S, typename T, typename N, std::enable_if_t<(scalar_type<S> and ...) and
       fixed_index_descriptor<T> and static_index_value<N>, int> = 0>
 #endif
     auto replicate_index_descriptor(const T& t, N)
@@ -263,11 +263,11 @@ namespace OpenKalman
      * \brief Replicate a (potentially) dynamic \ref index_descriptor T some (potentially) dynamic number of times.
      */
 #ifdef __cpp_concepts
-    template<floating_scalar_type...AllowableScalarTypes, index_descriptor T, index_value N>
+    template<scalar_type...AllowableScalarTypes, index_descriptor T, index_value N>
     requires (not fixed_index_descriptor<T>) or (not static_index_value<N>)
 #else
     template<typename...AllowableScalarTypes, typename T, typename N, std::enable_if_t<
-      (floating_scalar_type<AllowableScalarTypes> and ...) and index_descriptor<T> and index_value<N> and
+      (scalar_type<AllowableScalarTypes> and ...) and index_descriptor<T> and index_value<N> and
         (not fixed_index_descriptor<T> or not static_index_value<N>), int> = 0>
 #endif
     auto replicate_index_descriptor(const T& t, N n)

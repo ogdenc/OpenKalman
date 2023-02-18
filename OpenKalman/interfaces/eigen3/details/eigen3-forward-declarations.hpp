@@ -38,24 +38,50 @@
 namespace OpenKalman::Eigen3
 {
 
-  namespace internal
+  /**
+   * \internal
+   * \brief The ultimate Eigen base for OpenKalman classes.
+   * \details This class is used mainly to distinguish OpenKalman classes from native Eigen classes which are
+   * also derived from Eigen::MatrixBase or Eigen::ArrayBase.
+   */
+  struct Eigen3Base {};
+
+  /**
+   * \internal
+   * \brief The ultimate base for Eigen-based adapter classes in OpenKalman.
+   * \details This class adds base features required by Eigen.
+   */
+  template<typename Derived, typename NestedMatrix>
+  struct Eigen3AdapterBase;
+
+
+  /**
+   * \internal
+   * \brief Traits for n-ary functors.
+   * \tparam Operation The n-ary operation.
+   * \tparam XprTypes Any argument types.
+   */
+  template<typename Operation, typename...XprTypes>
+  struct FunctorTraits
   {
     /**
-     * \internal
-     * \brief The ultimate Eigen base for OpenKalman classes.
-     * \details This class is used mainly to distinguish OpenKalman classes from native Eigen classes which are
-     * also derived from Eigen::MatrixBase or Eigen::ArrayBase.
+     * \brief
+     * \tparam T \ref constant_coefficient or \ref constant_diagonal_coefficient
+     * \tparam Arg The n-ary operation expression (e.g., Eigen::CwiseNullaryOp, Eigen::CwiseUnaryOp, etc.
+     * \return \ref scalar_constant
      */
-    struct Eigen3Base {};
+    template<template<typename...> typename T, typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
+    {
+      return std::monostate {};
+    }
 
-    /**
-     * \internal
-     * \brief The ultimate base for Eigen-based adapter classes in OpenKalman.
-     * \details This class adds base features required by Eigen.
-     */
-    template<typename Derived, typename NestedMatrix>
-    struct Eigen3AdapterBase;
-  } // namespace internal
+    static constexpr bool is_diagonal = false;
+
+    static constexpr TriangleType triangle_type = TriangleType::none;
+
+    static constexpr bool is_hermitian = false;
+  };
 
 
   /**
@@ -93,7 +119,7 @@ namespace OpenKalman::Eigen3
 #endif
     (std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> or
       detail::is_eigen_matrix_wrapper<std::decay_t<T>>::value) and
-    (not std::is_base_of_v<internal::Eigen3Base, std::decay_t<T>>);
+    (not std::is_base_of_v<Eigen3Base, std::decay_t<T>>);
 
 
   namespace detail
@@ -122,7 +148,7 @@ namespace OpenKalman::Eigen3
 #endif
     (std::is_base_of_v<Eigen::ArrayBase<std::decay_t<T>>, std::decay_t<T>> or
       detail::is_eigen_array_wrapper<std::decay_t<T>>::value) and
-    (not std::is_base_of_v<internal::Eigen3Base, std::decay_t<T>>);
+    (not std::is_base_of_v<Eigen3Base, std::decay_t<T>>);
 
 
   namespace detail

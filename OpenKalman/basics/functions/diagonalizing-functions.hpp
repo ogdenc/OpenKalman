@@ -119,23 +119,15 @@ namespace OpenKalman
       detail::check_if_square_at_runtime(arg);
       return make_zero_matrix_like<Arg>(dim, Dimensions<1>{});
     }
-    else if constexpr (constant_matrix<Arg> or constant_diagonal_matrix<Arg>)
+    else if constexpr (constant_matrix<Arg>)
     {
       detail::check_if_square_at_runtime(arg);
-      constexpr auto c = []{
-        if constexpr (constant_matrix<Arg>) return constant_coefficient_v<Arg>;
-        else return constant_diagonal_coefficient_v<Arg>;
-      }();
-
-#  if __cpp_nontype_template_args >= 201911L
-      return make_constant_matrix_like<Arg, c>(dim, Dimensions<1>{});
-#  else
-      constexpr auto c_integral = static_cast<std::intmax_t>(c);
-      if constexpr (are_within_tolerance(c, static_cast<scalar_type_of_t<Arg>>(c_integral)))
-        return make_constant_matrix_like<Arg, c_integral>(dim, Dimensions<1>{});
-      else
-        return make_self_contained(c * make_constant_matrix_like<Arg, 1>(dim, Dimensions<1>{}));
-#  endif
+      return make_constant_matrix_like<Arg>(constant_coefficient{arg}, dim, Dimensions<1>{});
+    }
+    else if constexpr (constant_diagonal_matrix<Arg>)
+    {
+      detail::check_if_square_at_runtime(arg);
+      return make_constant_matrix_like<Arg>(constant_diagonal_coefficient{arg}, dim, Dimensions<1>{});
     }
     else
     {

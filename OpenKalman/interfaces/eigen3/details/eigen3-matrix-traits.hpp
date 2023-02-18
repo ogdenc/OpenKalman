@@ -55,6 +55,7 @@ namespace OpenKalman::Eigen3
     template<typename DiagonalVectorType>
     struct is_eigen_DiagonalWrapper<Eigen::DiagonalWrapper<DiagonalVectorType>> : std::true_type {};
 
+
     template<typename T>
     struct is_eigen_Identity : std::false_type {};
 
@@ -120,7 +121,7 @@ namespace OpenKalman::Eigen3
     native_eigen_matrix<T> or native_eigen_array<T> or eigen_SelfAdjointView<T> or eigen_TriangularView<T> or
     eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T> or
     (std::is_base_of_v<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>> and
-      not std::is_base_of_v<internal::Eigen3Base, std::decay_t<T>>);
+      not std::is_base_of_v<Eigen3Base, std::decay_t<T>>);
 
 
   /**
@@ -242,7 +243,7 @@ namespace OpenKalman
 
 
     template<typename Derived>
-    using MatrixBaseFrom = Eigen3::internal::Eigen3AdapterBase<Derived, M>;
+    using MatrixBaseFrom = Eigen3::Eigen3AdapterBase<Derived, M>;
 
 
 #ifdef __cpp_concepts

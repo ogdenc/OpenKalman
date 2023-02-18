@@ -20,7 +20,7 @@ using namespace OpenKalman;
 using numbers::pi;
 
 
-TEST(index_descriptors, integral)
+TEST(basics, integral)
 {
   static_assert(index_descriptor<int>);
   static_assert(dynamic_index_descriptor<int>);
@@ -38,7 +38,7 @@ TEST(index_descriptors, integral)
 }
 
 
-TEST(index_descriptors, dynamic_Dimensions)
+TEST(basics, dynamic_Dimensions)
 {
   using D = Dimensions<dynamic_size>;
 
@@ -59,7 +59,7 @@ TEST(index_descriptors, dynamic_Dimensions)
 }
 
 
-TEST(index_descriptors, DynamicTypedIndex_traits)
+TEST(basics, DynamicTypedIndex_traits)
 {
   static_assert(index_descriptor<DynamicTypedIndex<>>);
   static_assert(index_descriptor<DynamicTypedIndex<double>>);
@@ -77,7 +77,7 @@ TEST(index_descriptors, DynamicTypedIndex_traits)
 }
 
 
-TEST(index_descriptors, DynamicTypedIndex_construct)
+TEST(basics, DynamicTypedIndex_construct)
 {
   EXPECT_EQ(get_dimension_size_of(DynamicTypedIndex {Axis{}}), 1);
   EXPECT_EQ(get_dimension_size_of(DynamicTypedIndex {angle::Degrees{}}), 1);
@@ -101,7 +101,7 @@ TEST(index_descriptors, DynamicTypedIndex_construct)
 }
 
 
-TEST(index_descriptors, DynamicTypedIndex_extend)
+TEST(basics, DynamicTypedIndex_extend)
 {
   DynamicTypedIndex d;
   EXPECT_EQ(get_dimension_size_of(d), 0); EXPECT_EQ(get_euclidean_dimension_size_of(d), 0); EXPECT_EQ(get_index_descriptor_component_count_of(d), 0);
@@ -112,7 +112,7 @@ TEST(index_descriptors, DynamicTypedIndex_extend)
 }
 
 
-TEST(index_descriptors, dynamic_comparison)
+TEST(basics, dynamic_comparison)
 {
   static_assert(Dimensions{3} == Dimensions{3});
   static_assert(Dimensions{3} == Dimensions{3});
@@ -226,7 +226,7 @@ TEST(index_descriptors, dynamic_comparison)
 }
 
 
-TEST(index_descriptors, dynamic_arithmetic)
+TEST(basics, dynamic_arithmetic)
 {
   EXPECT_TRUE(Dimensions{3} + Dimensions{4} == Dimensions{7});
   EXPECT_TRUE(Dimensions{7} - Dimensions{4} == Dimensions{3});
@@ -236,7 +236,7 @@ TEST(index_descriptors, dynamic_arithmetic)
 }
 
 
-TEST(index_descriptors, internal_replicate_index_descriptor)
+TEST(basics, internal_replicate_index_descriptor)
 {
   using namespace internal;
 
@@ -253,7 +253,7 @@ TEST(index_descriptors, internal_replicate_index_descriptor)
 }
 
 
-TEST(index_descriptors, internal_is_uniform_component_of)
+TEST(basics, internal_is_uniform_component_of)
 {
   using namespace internal;
 

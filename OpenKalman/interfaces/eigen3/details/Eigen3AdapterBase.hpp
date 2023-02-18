@@ -17,7 +17,7 @@
 #ifndef OPENKALMAN_EIGEN3ADAPTERBASE_HPP
 #define OPENKALMAN_EIGEN3ADAPTERBASE_HPP
 
-namespace OpenKalman::Eigen3::internal
+namespace OpenKalman::Eigen3
 {
   template<typename Derived, typename NestedMatrix>
   struct Eigen3AdapterBase : Eigen3Base,
@@ -301,7 +301,7 @@ namespace OpenKalman::Eigen3::internal
 
   };
 
-} // namespace OpenKalman::Eigen3::internal
+} // namespace OpenKalman::Eigen3
 
 
 #endif //OPENKALMAN_EIGEN3ADAPTERBASE_HPP

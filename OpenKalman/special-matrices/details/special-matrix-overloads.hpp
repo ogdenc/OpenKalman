@@ -91,7 +91,7 @@ namespace OpenKalman::interface
         {
           if constexpr (complex_number<scalar_type_of_t<Arg>>)
           {
-            if (i == j) return real_projection(get_element(nested_matrix(std::forward<Arg>(arg)), i, j));
+            if (i == j) return real_part(get_element(nested_matrix(std::forward<Arg>(arg)), i, j));
           }
           return get_element(nested_matrix(std::forward<Arg>(arg)), i, j);
         }

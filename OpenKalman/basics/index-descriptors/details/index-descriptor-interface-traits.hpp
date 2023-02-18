@@ -188,10 +188,10 @@ namespace OpenKalman::interface
      * \copydoc interface::FixedIndexDescriptorTraits::from_euclidean_element
      */
 #ifdef __cpp_concepts
-    floating_scalar_type auto from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start) const
-    requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; } = delete;
+    scalar_type auto from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start) const
+    requires requires (std::size_t i){ {g(i)} -> scalar_type; } = delete;
 #else
-    template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
     auto from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start) const = delete;
 #endif
 
@@ -200,10 +200,10 @@ namespace OpenKalman::interface
      * \copydoc interface::FixedIndexDescriptorTraits::wrap_get_element
      */
 #ifdef __cpp_concepts
-    floating_scalar_type auto wrap_get_element(const auto& g, std::size_t local_index, std::size_t start) const
-    requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; } = delete;
+    scalar_type auto wrap_get_element(const auto& g, std::size_t local_index, std::size_t start) const
+    requires requires (std::size_t i){ {g(i)} -> scalar_type; } = delete;
 #else
-    template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
     auto wrap_get_element(const G& g, std::size_t local_index, std::size_t start) const = delete;
 #endif
 
@@ -214,9 +214,9 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     void wrap_set_element(const auto& s, const auto& g,
       const std::decay_t<std::invoke_result_t<decltype(g), std::size_t>>& x, std::size_t local_index, std::size_t start) const
-    requires requires (std::size_t i){ s(x, i); {x} -> floating_scalar_type; } = delete;
+    requires requires (std::size_t i){ s(x, i); {x} -> scalar_type; } = delete;
 #else
-    template<typename S, typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type> and
+    template<typename S, typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type> and
       std::is_invocable<S, typename std::invoke_result<G, std::size_t>::type, std::size_t>::value, int> = 0>
     void wrap_set_element(const S& s, const G& g, const std::decay_t<typename std::invoke_result<G, std::size_t>::type>& x,
       std::size_t local_index, std::size_t start) const = delete;

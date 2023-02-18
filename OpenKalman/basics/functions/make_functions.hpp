@@ -369,118 +369,179 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, typename Scalar, auto constant, typename = void, typename...D>
+    template<typename T, typename Scalar, typename = void, typename...D>
     struct make_constant_matrix_trait_defined: std::false_type {};
 
-    template<typename T, typename Scalar, auto constant, typename...D>
-    struct make_constant_matrix_trait_defined<T, Scalar, constant, std::void_t<
-      decltype(SingleConstantMatrixTraits<T, Scalar>::template make_constant_matrix<constant>(std::declval<D&&>()...))>, D...>
+    template<typename T, typename Scalar, typename...D>
+    struct make_constant_matrix_trait_defined<T, Scalar, std::void_t<
+      decltype(SingleConstantMatrixTraits<T, Scalar>::template make_constant_matrix<0>(std::declval<D&&>()...))>, D...>
+      : std::true_type {};
+
+
+    template<typename T, typename Scalar, typename = void, typename...D>
+    struct make_runtime_constant_trait_defined: std::false_type {};
+
+    template<typename T, typename Scalar, typename...D>
+    struct make_runtime_constant_trait_defined<T, Scalar, std::void_t<
+      decltype(SingleConstantMatrixTraits<T, Scalar>::template make_runtime_constant(std::declval<Scalar>(), std::declval<D&&>()...))>, D...>
       : std::true_type {};
   }
 #endif
 
 
   /**
-   * \brief Make a constant matrix based on a particular library object
+   * \brief Make a compile-time constant matrix based on a particular library object
    * \tparam T A matrix or tensor from a particular library.
-   * \tparam constant The constant
-   * \tparam Scalar An optional scalar type for the new zero matrix. By default, T's scalar type is used.
-   * \param D A set of \ref index_descriptor "index descriptors" defining the dimensions of each index.
-   * \todo Swap T and constant positions
+   * \tparam constant A constant or set of coefficients in a vector space defining a constant
+   * (e.g., real and imaginary parts of a complex number)
+   * \tparam Scalar A scalar type for the new zero matrix.
+   * \param Ds A set of \ref index_descriptor "index descriptors" defining the dimensions of each index.
    */
 #ifdef __cpp_concepts
-  template<indexible T, auto constant, scalar_type Scalar = scalar_type_of_t<T>, index_descriptor...D> requires
-    (sizeof...(D) == max_indices_of_v<T>)
+  template<indexible T, scalar_type Scalar, auto...constant, index_descriptor...Ds> requires (sizeof...(constant) > 0) and
+    (sizeof...(Ds) == max_indices_of_v<T>) and std::constructible_from<Scalar, decltype(constant)...>
   constexpr constant_matrix auto
 #else
-  template<typename T, auto constant, typename Scalar = scalar_type_of_t<T>, typename...D, std::enable_if_t<
-    indexible<T> and scalar_type<Scalar> and (index_descriptor<D> and ...) and sizeof...(D) == max_indices_of_v<T>, int> = 0>
+  template<typename T, typename Scalar, auto...constant, typename...Ds, std::enable_if_t<
+    indexible<T> and scalar_type<Scalar> and (index_descriptor<Ds> and ...) and (sizeof...(constant) > 0) and
+      sizeof...(Ds) == max_indices_of<T>::value and std::is_constructible<Scalar, decltype(constant)...>::value, int> = 0>
   constexpr auto
 #endif
-  make_constant_matrix_like(D&&...d)
+  make_constant_matrix_like(Ds&&...ds)
   {
-    constexpr auto c =
-# if __cpp_nontype_template_args >= 201911L
-      real_projection(static_cast<Scalar>(constant));
-# else
-      constant;
-# endif
-
-    using Td = std::decay_t<T>;
 #ifdef __cpp_concepts
-    if constexpr (requires (D&&...d) {
-      SingleConstantMatrixTraits<std::decay_t<T>, std::decay_t<Scalar>>::template make_constant_matrix<c>(std::forward<D>(d)...);
+    if constexpr (requires (Ds&&...d) {
+      SingleConstantMatrixTraits<std::decay_t<T>, std::decay_t<Scalar>>::
+        template make_constant_matrix<constant...>(std::forward<Ds>(d)...);
     })
 #else
-    if constexpr (detail::make_constant_matrix_trait_defined<Td, Scalar, constant, void, D...>::value)
+    if constexpr (detail::make_constant_matrix_trait_defined<std::decay_t<T>, std::decay_t<Scalar>, void, Ds...>::value)
 #endif
     {
-      return SingleConstantMatrixTraits<std::decay_t<T>, std::decay_t<Scalar>>::template make_constant_matrix<c>(std::forward<D>(d)...);
+      return SingleConstantMatrixTraits<std::decay_t<T>, std::decay_t<Scalar>>::
+        template make_constant_matrix<constant...>(std::forward<Ds>(ds)...);
     }
     else
     {
       // Default behavior if interface function not defined:
-      using N = std::decay_t<decltype(EquivalentDenseWritableMatrix<Td, std::decay_t<Scalar>>::make_default(std::declval<D&&>()...))>;
-      return ConstantAdapter<N, c> {std::forward<D>(d)...};
+      using Trait = EquivalentDenseWritableMatrix<std::decay_t<T>, std::decay_t<Scalar>>;
+      using N = std::decay_t<decltype(Trait::make_default(std::declval<Ds&&>()...))>;
+      return ConstantAdapter<N, constant...> {std::forward<Ds>(ds)...};
     }
   }
 
 
   /**
    * \overload
-   * \brief Make a constant matrix based on a particular library object
-   * \tparam T A matrix or tensor from a particular library.
-   * \tparam Scalar An optional scalar type for the new zero matrix. By default, T's scalar type is used.
-   * \param D A set of \ref index_descriptor "index descriptors" defining the dimensions of each index.
+   * \brief Make a compile-time constant matrix based on a particular library object
+   * \details The scalar value of the new type is the same as T.
    */
 #ifdef __cpp_concepts
-  template<indexible T, scalar_type Scalar = scalar_type_of_t<T>, index_descriptor...D> requires
-    (sizeof...(D) == max_indices_of_v<T>)
+  template<indexible T, auto...constant, index_descriptor...Ds> requires (sizeof...(constant) > 0) and
+    (sizeof...(Ds) == max_indices_of_v<T>) and std::constructible_from<scalar_type_of_t<T>, decltype(constant)...>
   constexpr constant_matrix auto
 #else
-  template<typename T, typename Scalar = scalar_type_of_t<T>, typename...D, std::enable_if_t<
-    indexible<T> and scalar_type<Scalar> and (index_descriptor<D> and ...) and sizeof...(D) == max_indices_of_v<T>, int> = 0>
+  template<typename T, auto...constant, typename...Ds, std::enable_if_t<
+    indexible<T> and (index_descriptor<Ds> and ...) and (sizeof...(constant) > 0) and
+      sizeof...(Ds) == max_indices_of_v<T> and std::is_constructible<typename scalar_type_of<T>::type, decltype(constant)...>::value, int> = 0>
   constexpr auto
 #endif
-  make_constant_matrix_like(D&&...d)
+  make_constant_matrix_like(Ds&&...ds)
   {
-    constexpr auto c = constant_coefficient_v<T>;
+    return make_constant_matrix_like<T, scalar_type_of_t<T>, constant...>(std::forward<Ds>(ds)...);
+  }
+
+
+  namespace detail
+  {
+    template<typename T, typename Scalar, typename C, typename...Ds>
+    constexpr auto make_constant_adapter_detail(C&& c, Ds&&...ds)
+    {
+#ifdef __cpp_concepts
+      if constexpr (requires (Ds&&...d) {
+        SingleConstantMatrixTraits<std::decay_t<T>, Scalar>::template make_runtime_constant(
+          get_scalar_constant_value(std::forward<C>(c)), std::forward<Ds>(d)...);
+      })
+#else
+      if constexpr (detail::make_runtime_constant_trait_defined<std::decay_t<T>, Scalar, void, Ds...>::value)
+#endif
+      {
+        return SingleConstantMatrixTraits<std::decay_t<T>, Scalar>::template make_runtime_constant(
+          get_scalar_constant_value(std::forward<C>(c)), std::forward<Ds>(ds)...);
+      }
+      else
+      {
+        // Default behavior if interface function not defined:
+        return get_scalar_constant_value(std::forward<C>(c)) * make_constant_matrix_like<T, Scalar, 1>(std::forward<Ds>(ds)...);
+      }
+    }
+
+
+    template<typename T, typename Scalar, typename C, std::size_t...Is, typename...Ds>
+    constexpr auto make_constant_adapter_impl(C&& c, std::index_sequence<Is...>, Ds&&...ds)
+    {
+      constexpr auto tup = ScalarTraits<Scalar>::parts(get_scalar_constant_value(std::decay_t<C>::value));
 # if __cpp_nontype_template_args >= 201911L
-    return make_constant_matrix_like<T, c, Scalar>(std::forward<D>(d)...);
+      return make_constant_matrix_like<T, Scalar, std::get<Is>(tup)...>(std::forward<Ds>(ds)...);
 # else
-    constexpr auto c_integral = static_cast<std::intmax_t>(c);
-    static_assert(are_within_tolerance(c, static_cast<Scalar>(c_integral)));
-    return make_constant_matrix_like<T, c_integral, Scalar>(std::forward<D>(d)...);
+      if constexpr ((are_within_tolerance(std::get<Is>(tup), static_cast<std::intmax_t>(std::get<Is>(tup))) and ...))
+        return make_constant_matrix_like<T, Scalar, static_cast<std::intmax_t>(std::get<Is>(tup))...>(std::forward<Ds>(ds)...);
+      else
+        return make_constant_adapter_detail<T, Scalar>(std::forward<C>(c), std::forward<Ds>(ds)...);
 # endif
+    }
   }
 
 
   /**
    * \overload
-   * \brief Make a single-constant matrix based on T, but specifying a new constant and a new scalar type.
-   * \tparam T The matrix or array on which the new matrix is patterned.
-   * \tparam constant The constant.
-   * \tparam Scalar A scalar type for the new matrix.
+   * \brief Make a constant object based on a particular constant library object
+   * \details The constant for the new object is derived from T.
    */
 #ifdef __cpp_concepts
-  template<auto constant, scalar_type Scalar, indexible T>
+  template<constant_matrix T, scalar_type Scalar = scalar_type_of_t<T>, index_descriptor...Ds> requires
+    (sizeof...(Ds) == max_indices_of_v<T>)
   constexpr constant_matrix auto
 #else
-  template<auto constant, typename Scalar, typename T, std::enable_if_t<scalar_type<Scalar> and indexible<T>, int> = 0>
+  template<typename T, typename Scalar = scalar_type_of_t<T>, typename...Ds, std::enable_if_t<
+    constant_matrix<T> and scalar_type<Scalar> and (index_descriptor<Ds> and ...) and sizeof...(Ds) == max_indices_of<T>::value, int> = 0>
   constexpr auto
 #endif
-  make_constant_matrix_like(const T& t)
+  make_constant_matrix_like(Ds&&...ds)
+  {
+    constexpr std::size_t N = std::tuple_size_v<decltype(ScalarTraits<Scalar>::parts(constant_coefficient_v<T>))>;
+    return detail::make_constant_adapter_impl<T, Scalar>(constant_coefficient<T>{}, std::make_index_sequence<N>{}, std::forward<Ds>(ds)...);
+  }
+
+
+  /**
+   * \overload
+   * \brief Make a new constant object based on a (potentially non-constant) library object.
+   * \tparam T The matrix or array on which the new matrix is patterned.
+   * \tparam Scalar A scalar type for the new matrix.
+   * \tparam constant The constant.
+   */
+#ifdef __cpp_concepts
+  template<scalar_type Scalar, auto...constant, indexible T>
+  requires (sizeof...(constant) > 0) and std::constructible_from<Scalar, decltype(constant)...>
+  constexpr constant_matrix auto
+#else
+  template<typename Scalar, auto...constant, typename T, std::enable_if_t<scalar_type<Scalar> and indexible<T> and
+    (sizeof...(constant) > 0) and std::is_constructible<Scalar, decltype(constant)...>::value, int> = 0>
+  constexpr auto
+#endif
+  make_constant_matrix_like(T&& t)
   {
     constexpr bool constants_match = []{
-      if constexpr (constant_matrix<T>) return are_within_tolerance(constant, constant_coefficient_v<T>);
+      if constexpr (constant_matrix<T>) return are_within_tolerance(Scalar {constant...}, constant_coefficient_v<T>);
       else return false;
     }();
 
     if constexpr (constants_match and std::is_same_v<Scalar, scalar_type_of_t<T>>)
-      return t;
+      return std::forward<T>(t);
     else
       return std::apply(
-        [](auto&&...arg){ return make_constant_matrix_like<T, constant, Scalar>(std::forward<decltype(arg)>(arg)...); },
+        [](auto&&...arg){ return make_constant_matrix_like<T, Scalar, constant...>(std::forward<decltype(arg)>(arg)...); },
         get_all_dimensions_of(t));
   }
 
@@ -488,27 +549,45 @@ namespace OpenKalman
   /**
    * \overload
    * \brief Make a single-constant matrix based on T, but specifying a new constant (of scalar type the same as T).
-   * \tparam T The matrix or array on which the new matrix is patterned.
-   * \tparam constant The constant.
+   * \details The scalar type is derived from T.
    */
 #ifdef __cpp_concepts
-  template<auto constant, indexible T>
+  template<auto...constant, indexible T> requires (sizeof...(constant) > 0)
   constexpr constant_matrix auto
 #else
-  template<auto constant, typename T, std::enable_if_t<indexible<T>, int> = 0>
+  template<auto...constant, typename T, std::enable_if_t<indexible<T> and (sizeof...(constant) > 0), int> = 0>
   constexpr auto
 #endif
   make_constant_matrix_like(const T& t)
   {
-    return make_constant_matrix_like<constant, scalar_type_of_t<T>>(t);
+    return make_constant_matrix_like<scalar_type_of_t<T>, constant...>(t);
   }
 
 
   /**
    * \overload
    * \brief Make a single-constant matrix based on a constant T.
-   * \tparam T The matrix or array on which the new matrix is patterned.
-   * \tparam constant The constant.
+   * \details The constant is derived from T
+   */
+#ifdef __cpp_concepts
+  template<scalar_type Scalar, constant_matrix T>
+  constexpr constant_matrix auto
+#else
+  template<typename Scalar, typename T, std::enable_if_t<scalar_type<Scalar> and constant_matrix<T>, int> = 0>
+  constexpr auto
+#endif
+  make_constant_matrix_like(const T& t)
+  {
+    return std::apply(
+      [](auto&&...arg){ return make_constant_matrix_like<T, Scalar>(std::forward<decltype(arg)>(arg)...); },
+      get_all_dimensions_of(t));
+  }
+
+
+  /**
+   * \overload
+   * \brief Make a single-constant matrix based on a constant T.
+   * \details Both the scalar type and the constant are derived from T.
    */
 #ifdef __cpp_concepts
   template<constant_matrix T>
@@ -519,76 +598,126 @@ namespace OpenKalman
 #endif
   make_constant_matrix_like(const T& t)
   {
-    using Scalar = scalar_type_of_t<T>;
-    constexpr auto c = constant_coefficient_v<T>;
-# if __cpp_nontype_template_args >= 201911L
-    return make_constant_matrix_like<c, Scalar>(t);
-# else
-    if constexpr (std::is_integral_v<Scalar>) return make_constant_matrix_like<c, Scalar>(t);
-    else
-    {
-      constexpr auto c_integral = static_cast<std::intmax_t>(c);
-      static_assert(are_within_tolerance(c, static_cast<Scalar>(c_integral)));
-      return make_constant_matrix_like<c_integral, Scalar>(t);
-    }
-# endif
+    return make_constant_matrix_like<scalar_type_of_t<T>>(t);
   }
 
 
   /**
    * \overload
-   * \brief Make a single-constant matrix based on the type T, where the dimensions of T are known at compile time.
-   * \tparam T The matrix or array on which the new constant matrix is patterned.
-   * \tparam constant The constant.
-   * \tparam Scalar A scalar type for the new matrix (by default, the same as that of T)
-   * \todo Swap T and constant positions
+   * \brief Make a single-constant matrix based on a type T whose dimensions are known at compile time.
+   * \details If no constant values are provided, they are derived from T
    */
 #ifdef __cpp_concepts
-  template<indexible T, auto constant, scalar_type Scalar = scalar_type_of_t<T>> requires (not has_dynamic_dimensions<T>)
+  template<indexible T, scalar_type Scalar, auto...constant> requires (not has_dynamic_dimensions<T>) and
+    std::constructible_from<Scalar, decltype(constant)...>
   constexpr constant_matrix auto
 #else
-  template<typename T, auto constant, typename Scalar = scalar_type_of_t<T>, std::enable_if_t<
-    indexible<T> and scalar_type<Scalar> and (not has_dynamic_dimensions<T>), int> = 0>
+  template<typename T, typename Scalar, auto...constant, auto dummy = 0, std::enable_if_t<indexible<T> and scalar_type<Scalar> and
+    (not has_dynamic_dimensions<T>) and std::is_constructible<Scalar, decltype(constant)...>::value, int> = 0>
   constexpr auto
 #endif
   make_constant_matrix_like()
   {
     return std::apply(
-      [](auto&&...arg){ return make_constant_matrix_like<T, constant, Scalar>(std::forward<decltype(arg)>(arg)...); },
+      [](auto&&...arg){ return make_constant_matrix_like<T, Scalar, constant...>(std::forward<decltype(arg)>(arg)...); },
       get_all_dimensions_of<T>());
   }
 
 
   /**
    * \overload
-   * \brief Make a single-constant matrix based on the type T, where the dimensions of T are known at compile time.
-   * \tparam T The matrix or array on which the new constant matrix is patterned.
-   * \tparam constant The constant.
-   * \tparam Scalar A scalar type for the new matrix (by default, the same as that of T)
-   * \todo Swap T and constant positions
+   * \brief Make a single-constant matrix based on a type T whose dimensions are known at compile time.
+   * \details The scalar type is derived from T. If no constant values are provided, they are derived from T
    */
 #ifdef __cpp_concepts
-  template<indexible T, scalar_type Scalar = scalar_type_of_t<T>> requires (not has_dynamic_dimensions<T>)
+  template<indexible T, auto...constant> requires (not has_dynamic_dimensions<T>) and
+    std::constructible_from<scalar_type_of_t<T>, decltype(constant)...>
   constexpr constant_matrix auto
 #else
-  template<typename T, typename Scalar = scalar_type_of_t<T>, std::enable_if_t<
-    indexible<T> and scalar_type<Scalar> and (not has_dynamic_dimensions<T>), int> = 0>
+  template<typename T, auto...constant, std::enable_if_t<indexible<T> and (not has_dynamic_dimensions<T>) and
+    std::is_constructible_v<typename scalar_type_of<T>::type, decltype(constant)...>, int> = 0>
   constexpr auto
 #endif
   make_constant_matrix_like()
   {
-    constexpr auto c = constant_coefficient_v<T>;
-# if __cpp_nontype_template_args >= 201911L
-    return make_constant_matrix_like<T, c, Scalar>();
-# else
-    if constexpr (std::is_integral_v<Scalar>) return make_constant_matrix_like<T, c, Scalar>();
+    return make_constant_matrix_like<T, scalar_type_of_t<T>, constant...>();
+  }
+
+
+  /**
+   * \overload
+   * \brief Make a compile-time constant matrix based on a particular library object
+   * \tparam T A matrix or tensor from a particular library.
+   * \tparam C A constant
+   * \param Ds A set of \ref index_descriptor "index descriptors" defining the dimensions of each index.
+   */
+#ifdef __cpp_concepts
+  template<indexible T, scalar_constant C, index_descriptor...Ds> requires (sizeof...(Ds) == max_indices_of_v<T>)
+  constexpr constant_matrix<Likelihood::definitely, CompileTimeStatus::any> auto
+#else
+  template<typename T, typename C, typename...Ds, std::enable_if_t<indexible<T> and scalar_constant<C> and
+    (index_descriptor<Ds> and ...) and (sizeof...(Ds) == max_indices_of<T>::value), int> = 0>
+  constexpr auto
+#endif
+  make_constant_matrix_like(C&& c, Ds&&...ds)
+  {
+    using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
+    if constexpr (scalar_constant<C, CompileTimeStatus::known>)
+    {
+      constexpr std::size_t N = std::tuple_size_v<decltype(ScalarTraits<Scalar>::parts(get_scalar_constant_value(std::decay_t<C>::value)))>;
+      return detail::make_constant_adapter_impl<T, Scalar>(std::forward<C>(c), std::make_index_sequence<N>{}, std::forward<Ds>(ds)...);
+    }
     else
     {
-      constexpr auto c_integral = static_cast<std::intmax_t>(c);
-      static_assert(are_within_tolerance(c, static_cast<Scalar>(c_integral)));
-      return make_constant_matrix_like<T, c_integral, Scalar>();
+      return detail::make_constant_adapter_detail<T, Scalar>(std::forward<C>(c), std::forward<Ds>(ds)...);
     }
-# endif
+  }
+
+
+  /**
+   * \overload
+   * \brief Make a new constant object based on a (potentially non-constant) library object.
+   * \tparam T The matrix or array on which the new matrix is patterned.
+   * \tparam C A constant.
+   */
+#ifdef __cpp_concepts
+  template<scalar_constant C, indexible T>
+  constexpr constant_matrix<Likelihood::definitely, CompileTimeStatus::any> auto
+#else
+  template<typename C, typename T, std::enable_if_t<scalar_constant<C> and indexible<T>, int> = 0>
+  constexpr auto
+#endif
+  make_constant_matrix_like(C&& c, T&& t)
+  {
+    if constexpr (constant_matrix<T> and (std::is_same_v<decltype(std::decay_t<C>::value), scalar_type_of_t<T>> or
+      std::is_same_v<std::decay_t<C>, scalar_type_of_t<T>>))
+    {
+      if (are_within_tolerance(c, constant_coefficient_v<T>)) return std::forward<T>(t);
+    }
+
+    return std::apply(
+      [](auto&&...arg){ return make_constant_matrix_like<T>(std::forward<decltype(arg)>(arg)...); },
+      std::tuple_cat(std::forward_as_tuple(std::forward<C>(c)), get_all_dimensions_of(t)));
+  }
+
+
+  /**
+   * \overload
+   * \brief Make a single-constant matrix based on a type T whose dimensions are known at compile time.
+   */
+  #ifdef __cpp_concepts
+  template<indexible T, scalar_constant C> requires (not has_dynamic_dimensions<T>)
+  constexpr constant_matrix<Likelihood::definitely, CompileTimeStatus::any> auto
+  #else
+  template<typename T, typename C, std::enable_if_t<indexible<T> and scalar_constant<C> and
+    (not has_dynamic_dimensions<T>), int> = 0>
+  constexpr auto
+  #endif
+  make_constant_matrix_like(C&& c)
+  {
+    return std::apply(
+      [](auto&&...arg){ return make_constant_matrix_like<T>(std::forward<decltype(arg)>(arg)...); },
+      std::tuple_cat(std::forward_as_tuple(std::forward<C>(c)), get_all_dimensions_of<T>()));
   }
 
 
@@ -599,12 +728,12 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, typename Scalar, typename = void, typename...D>
+    template<typename T, typename Scalar, typename = void, typename...Ds>
     struct make_zero_matrix_trait_defined: std::false_type {};
 
-    template<typename T, typename Scalar, typename...D>
+    template<typename T, typename Scalar, typename...Ds>
     struct make_zero_matrix_trait_defined<T, Scalar, std::void_t<
-      decltype(SingleConstantMatrixTraits<T, Scalar>::make_zero_matrix(std::declval<D&&>()...))>, D...>
+      decltype(SingleConstantMatrixTraits<T, Scalar>::make_zero_matrix(std::declval<Ds&&>()...))>, Ds...>
       : std::true_type {};
   }
 #endif
@@ -614,39 +743,39 @@ namespace OpenKalman
    * \brief Make a \ref zero_matrix associated with a particular library.
    * \tparam T A matrix or other tensor within a particular library. Its details are not important.
    * \tparam Scalar An optional scalar type for the new zero matrix. By default, T's scalar type is used.
-   * \param D A set of \ref index_descriptor "index descriptors" defining the dimensions of each index.
+   * \param Ds A set of \ref index_descriptor "index descriptors" defining the dimensions of each index.
    */
 #ifdef __cpp_concepts
-  template<indexible T, scalar_type Scalar = scalar_type_of_t<T>, index_descriptor...D> requires
-    (sizeof...(D) == max_indices_of_v<T>)
+  template<indexible T, scalar_type Scalar = scalar_type_of_t<T>, index_descriptor...Ds> requires
+    (sizeof...(Ds) == max_indices_of_v<T>)
   constexpr zero_matrix auto
 #else
-  template<typename T, typename Scalar = scalar_type_of_t<T>, typename...D, std::enable_if_t<indexible<T> and
-    scalar_type<Scalar> and (index_descriptor<D> and ...) and sizeof...(D) == max_indices_of_v<T>, int> = 0>
+  template<typename T, typename Scalar = scalar_type_of_t<T>, typename...Ds, std::enable_if_t<indexible<T> and
+    scalar_type<Scalar> and (index_descriptor<Ds> and ...) and sizeof...(Ds) == max_indices_of_v<T>, int> = 0>
   constexpr auto
 #endif
-  make_zero_matrix_like(D&&...d)
+  make_zero_matrix_like(Ds&&...ds)
   {
     using Td = std::decay_t<T>;
 #ifdef __cpp_concepts
-    if constexpr (requires (D&&...d) { SingleConstantMatrixTraits<T, Scalar>::make_zero_matrix(std::forward<D>(d)...); })
+    if constexpr (requires (Ds&&...d) { SingleConstantMatrixTraits<T, Scalar>::make_zero_matrix(std::forward<Ds>(d)...); })
 #else
-    if constexpr (detail::make_zero_matrix_trait_defined<Td, Scalar, void, D...>::value)
+    if constexpr (detail::make_zero_matrix_trait_defined<Td, Scalar, void, Ds...>::value)
 #endif
     {
-      return SingleConstantMatrixTraits<Td, Scalar>::make_zero_matrix(std::forward<D>(d)...);
+      return SingleConstantMatrixTraits<Td, Scalar>::make_zero_matrix(std::forward<Ds>(ds)...);
     }
     else
     {
       // Default behavior if interface function not defined:
-      return make_constant_matrix_like<T, 0, Scalar>(std::forward<D>(d)...);
+      return make_constant_matrix_like<T, Scalar, 0>(std::forward<Ds>(ds)...);
     }
   }
 
 
   /**
    * \overload
-   * \brief Make a \ref zero_matrix based on an argument, specifying a new scalar type.
+   * \brief Make a \ref zero_matrix based on an argument.
    * \tparam T The matrix or array on which the new zero matrix is patterned.
    * \tparam Scalar A scalar type for the new matrix.
    */
@@ -659,14 +788,14 @@ namespace OpenKalman
 #endif
   make_zero_matrix_like(const T& t)
   {
-    return make_constant_matrix_like<0, Scalar>(t);
+    return make_constant_matrix_like<Scalar, 0>(t);
   }
 
 
   /**
    * \overload
    * \brief Make a zero matrix based on T.
-   * \tparam T The matrix or array on which the new matrix is patterned.
+   * \details The new scalar type is also derived from T.
    */
 #ifdef __cpp_concepts
   template<indexible T>
@@ -677,15 +806,13 @@ namespace OpenKalman
 #endif
   make_zero_matrix_like(const T& t)
   {
-    return make_constant_matrix_like<0, scalar_type_of_t<T>>(t);
+    return make_constant_matrix_like<scalar_type_of_t<T>, 0>(t);
   }
 
 
   /**
    * \overload
    * \brief Make a zero matrix based on the type T, where the dimensions of T are known at compile time.
-   * \tparam T The matrix or array on which the new zero matrix is patterned.
-   * \tparam Scalar A scalar type for the new matrix (by default, the same as that of T)
    */
 #ifdef __cpp_concepts
   template<indexible T, scalar_type Scalar = scalar_type_of_t<T>> requires (not has_dynamic_dimensions<T>)
@@ -697,7 +824,7 @@ namespace OpenKalman
 #endif
   make_zero_matrix_like()
   {
-    return make_constant_matrix_like<T, 0, Scalar>();
+    return make_constant_matrix_like<T, Scalar, 0>();
   }
 
 
@@ -747,7 +874,7 @@ namespace OpenKalman
     else
     {
       // Default behavior if interface function not defined:
-      return DiagonalMatrix {make_constant_matrix_like<Td, 1, Scalar>(std::forward<D>(d), Dimensions<1>{})};
+      return DiagonalMatrix {make_constant_matrix_like<Td, Scalar, 1>(std::forward<D>(d), Dimensions<1>{})};
     }
   }
 
@@ -767,7 +894,7 @@ namespace OpenKalman
 #endif
   make_identity_matrix_like(D&& d)
   {
-    return DiagonalMatrix {make_constant_matrix_like<1, Scalar>(std::forward<D>(d), Dimensions<1>{})};
+    return DiagonalMatrix {make_constant_matrix_like<Scalar, 1>(std::forward<D>(d), Dimensions<1>{})};
   }
 
 
@@ -784,11 +911,11 @@ namespace OpenKalman
   template<typename Scalar, typename T, std::enable_if_t<scalar_type<Scalar> and square_matrix<T, Likelihood::maybe>, int> = 0>
   constexpr auto
 #endif
-  make_identity_matrix_like(const T& t)
+  make_identity_matrix_like(T&& t)
   {
     if constexpr (identity_matrix<T> and std::is_same_v<Scalar, scalar_type_of_t<T>>)
     {
-      return t;
+      return std::forward<T>(t);
     }
     else if constexpr (has_dynamic_dimensions<T>)
     {
@@ -815,10 +942,10 @@ namespace OpenKalman
    * \tparam T The matrix or array on which the new zero matrix is patterned.
    */
 #ifdef __cpp_concepts
-  template<indexible T> requires has_dynamic_dimensions<T> or square_matrix<T>
+  template<square_matrix<Likelihood::maybe> T>
   constexpr identity_matrix auto
 #else
-  template<typename T, std::enable_if_t<indexible<T> and (has_dynamic_dimensions<T> or square_matrix<T>), int> = 0>
+  template<typename T, std::enable_if_t<indexible<T> and square_matrix<T, Likelihood::maybe>, int> = 0>
   constexpr auto
 #endif
   make_identity_matrix_like(const T& t)
@@ -834,11 +961,10 @@ namespace OpenKalman
    * \tparam Scalar A scalar type for the new matrix. The default is the scalar type of T.
    */
 #ifdef __cpp_concepts
-  template<indexible T, scalar_type Scalar = scalar_type_of_t<T>> requires square_matrix<T>
+  template<square_matrix T, scalar_type Scalar = scalar_type_of_t<T>>
   constexpr identity_matrix auto
 #else
-  template<typename T, typename Scalar = scalar_type_of_t<T>, std::enable_if_t<indexible<T> and scalar_type<Scalar> and
-    square_matrix<T>, int> = 0>
+  template<typename T, typename Scalar = scalar_type_of_t<T>, std::enable_if_t<square_matrix<T> and scalar_type<Scalar>, int> = 0>
   constexpr auto
 #endif
   make_identity_matrix_like()
@@ -931,12 +1057,12 @@ namespace OpenKalman
    * \tparam Arg A general matrix to be made triangular.
    */
 #ifdef __cpp_concepts
-  template<TriangleType t = TriangleType::lower, indexible Arg> requires
-    (t == TriangleType::lower or t == TriangleType::upper) and (square_matrix<Arg> or has_dynamic_dimensions<Arg>)
-  constexpr /*triangular_matrix<t>*/ decltype(auto)
+  template<TriangleType t = TriangleType::lower, square_matrix<Likelihood::maybe> Arg> requires
+    (t == TriangleType::lower or t == TriangleType::upper)
+  constexpr triangular_matrix decltype(auto)
 #else
-  template<TriangleType t = TriangleType::lower, typename Arg, std::enable_if_t<indexible<Arg> and
-    (t == TriangleType::lower or t == TriangleType::upper) and (square_matrix<Arg> or has_dynamic_dimensions<Arg>), int> = 0>
+  template<TriangleType t = TriangleType::lower, typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe> and
+    (t == TriangleType::lower or t == TriangleType::upper), int> = 0>
   constexpr decltype(auto)
 #endif
   make_triangular_matrix(Arg&& arg)

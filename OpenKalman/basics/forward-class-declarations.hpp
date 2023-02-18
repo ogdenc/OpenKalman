@@ -27,14 +27,20 @@ namespace OpenKalman
 
   /**
    * \brief A tensor or other matrix in which all elements are a constant scalar value known at compile time.
+   * \details The constant scalar value is, in general, a set of coefficients reflecting a vector in a vector space
+   * comprising the scalar value. For example,
+   * - An integral or real constant will consist of a single value.
+   * - A complex constant will consist of two values (real and imaginary parts).
+   * - A quaternion constant will consist of four values, etc.
+   * There must be a constructor for scalar_type_of_t<PatternMatrix> taking all the constants as arguments.
    * \tparam PatternMatrix An \ref native_eigen_general matrix having the size and shape of this matrix
-   * \tparam constant The constant value
+   * \tparam constant The constant scalar value or coefficients within a vector space representing the constant scalar value.
    */
 #ifdef __cpp_concepts
-  template<indexible PatternMatrix, auto constant>
-  requires std::convertible_to<decltype(constant), scalar_type_of_t<PatternMatrix>>
+  template<indexible PatternMatrix, auto...constant>
+  requires std::constructible_from<scalar_type_of_t<PatternMatrix>, decltype(constant)...>
 #else
-  template<typename PatternMatrix, auto constant>
+  template<typename PatternMatrix, auto...constant>
 #endif
   struct ConstantAdapter;
 
@@ -48,8 +54,8 @@ namespace OpenKalman
     template<typename T>
     struct is_constant_adapter : std::false_type {};
 
-    template<typename PatternMatrix, auto constant>
-    struct is_constant_adapter<ConstantAdapter<PatternMatrix, constant>> : std::true_type {};
+    template<typename PatternMatrix, auto...constant>
+    struct is_constant_adapter<ConstantAdapter<PatternMatrix, constant...>> : std::true_type {};
   }
 
 
@@ -96,8 +102,8 @@ namespace OpenKalman
 #endif
   struct pattern_matrix_of;
 
-  template<typename PatternMatrix, auto constant>
-  struct pattern_matrix_of<ConstantAdapter<PatternMatrix, constant>> { using type = PatternMatrix; };
+  template<typename PatternMatrix, auto...constant>
+  struct pattern_matrix_of<ConstantAdapter<PatternMatrix, constant...>> { using type = PatternMatrix; };
 
 
 #ifdef __cpp_concepts
@@ -178,7 +184,8 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<square_matrix<Likelihood::maybe> NestedMatrix, TriangleType storage_triangle =
       (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : TriangleType::lower)> requires
-    (not diagonal_matrix<NestedMatrix> or not complex_number<scalar_type_of_t<NestedMatrix>>) and
+    (not constant_matrix<NestedMatrix> or imaginary_part(constant_coefficient_v<NestedMatrix>) == 0) and
+    (not constant_diagonal_matrix<NestedMatrix> or imaginary_part(constant_diagonal_coefficient_v<NestedMatrix>) == 0) and
     (storage_triangle != TriangleType::none)
 #else
   template<typename NestedMatrix, TriangleType storage_triangle =
@@ -225,7 +232,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<square_matrix<Likelihood::maybe> NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
-      (upper_triangular_matrix<NestedMatrix> ? TriangleType::upper : TriangleType::lower))> requires
+                                                                                        (upper_triangular_matrix<NestedMatrix> ? TriangleType::upper : TriangleType::lower))> requires
     (triangle_type != TriangleType::none)
 #else
   template<typename NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
@@ -460,7 +467,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<fixed_index_descriptor TypedIndex, covariance_nestable NestedMatrix> requires
     (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
-    (not std::is_rvalue_reference_v<NestedMatrix>) and floating_scalar_type<scalar_type_of_t<NestedMatrix>>
+    (not std::is_rvalue_reference_v<NestedMatrix>) and scalar_type<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename TypedIndex, typename NestedMatrix>
 #endif
@@ -488,7 +495,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<fixed_index_descriptor TypedIndex, covariance_nestable NestedMatrix> requires
     (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
-    (not std::is_rvalue_reference_v<NestedMatrix>) and floating_scalar_type<scalar_type_of_t<NestedMatrix>>
+    (not std::is_rvalue_reference_v<NestedMatrix>) and scalar_type<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename TypedIndex, typename NestedMatrix>
 #endif

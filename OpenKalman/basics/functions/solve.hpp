@@ -110,29 +110,15 @@ namespace OpenKalman
       {
         if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
 
-        constexpr auto b_const = constant_coefficient_v<B>;
-        constexpr auto a_cols = column_dimension_of_v<A>;
+        auto a_col_dim = [](const auto& a) {
+          if constexpr (dynamic_dimension<A, 1>) return get_index_dimension_of<1>(a);
+          else return index_dimension_of<A, 1>{};
+        }(a);
 
-        if constexpr (a_cols == dynamic_size)
-        {
-          auto a_runtime_cols = get_index_dimension_of<1>(a);
-          auto c = static_cast<scalar_type_of_t<B>>(b_const) / (a_runtime_cols * a_const);
-          return make_self_contained(c * make_constant_matrix_like<B, 1>(Dimensions{a_runtime_cols}, get_dimensions_of<1>(b)));
-        }
-        else
-        {
-          constexpr auto c = b_const / (a_cols * a_const);
-          using C = std::decay_t<decltype(c)>;
-  #if __cpp_nontype_template_args >= 201911L
-          return make_constant_matrix_like<B, c, C>(Dimensions<a_cols>{}, get_dimensions_of<1>(b));
-  #else
-          constexpr auto c_integral = static_cast<std::intmax_t>(c);
-          if constexpr (are_within_tolerance(c, static_cast<C>(c_integral)))
-            return make_constant_matrix_like<B, c_integral, C>(Dimensions<a_cols>{}, get_dimensions_of<1>(b));
-          else
-            return make_self_contained(c * make_constant_matrix_like<B, 1, C>(Dimensions<a_cols>{}, get_dimensions_of<1>(b)));
-  #endif
-        }
+        return make_constant_matrix_like<B>(
+          internal::scalar_constant_operation {std::divides<>{}, constant_coefficient<B>{},
+            internal::scalar_constant_operation {std::multiplies<>{}, a_col_dim, constant_coefficient<A>{}}},
+          get_dimensions_of<1>(a), get_dimensions_of<1>(b));
       }
       else if constexpr (row_dimension_of_v<A> == 1 or row_dimension_of_v<B> == 1 or
         (not must_be_exact and (not must_be_unique or

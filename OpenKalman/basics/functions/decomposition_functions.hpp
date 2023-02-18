@@ -56,7 +56,7 @@ namespace OpenKalman
       if constexpr (dynamic_dimension<A, 0>)
       {
         auto dim = Dimensions {get_index_dimension_of<0>(a)};
-        auto col1 = elem * make_constant_matrix_like<A, 1>(dim, Dimensions<1>{});
+        auto col1 = make_constant_matrix_like<A>(elem, dim, Dimensions<1>{});
 
         auto m {make_default_dense_writable_matrix_like<A>(dim, dim)};
 
@@ -73,7 +73,7 @@ namespace OpenKalman
       {
         auto ret = make_triangular_matrix<TriangleType::lower>([](Scalar elem){
           constexpr auto dim = index_dimension_of_v<A, 0>;
-          auto col1 = elem * make_constant_matrix_like<A, 1>(Dimensions<dim>{}, Dimensions<1>{});
+          auto col1 = make_constant_matrix_like<A>(elem, Dimensions<dim>{}, Dimensions<1>{});
           if constexpr (dim == 1) return col1;
           else return concatenate<1>(std::move(col1), make_zero_matrix_like<A>(Dimensions<dim>{}, Dimensions<dim - 1>{}));
         }(elem));
@@ -133,7 +133,7 @@ namespace OpenKalman
       if constexpr (dynamic_dimension<A, 1>)
       {
         auto dim = Dimensions {get_index_dimension_of<1>(a)};
-        auto row1 = elem * make_constant_matrix_like<A, 1>(Dimensions<1>{}, dim);
+        auto row1 = make_constant_matrix_like<A>(elem, Dimensions<1>{}, dim);
 
         auto m = make_default_dense_writable_matrix_like<A>(dim, dim);
 
@@ -150,7 +150,7 @@ namespace OpenKalman
       {
         auto ret = make_triangular_matrix<TriangleType::upper>([](Scalar elem){
           constexpr auto dim = index_dimension_of_v<A, 1>;
-          auto row1 = elem * make_constant_matrix_like<A, 1>(Dimensions<1>{}, Dimensions<dim>{});
+          auto row1 = make_constant_matrix_like<A>(elem, Dimensions<1>{}, Dimensions<dim>{});
           if constexpr (dim == 1) return row1;
           else return concatenate<0>(std::move(row1), make_zero_matrix_like<A>(Dimensions<dim - 1>{}, Dimensions<dim>{}));
         }(elem));

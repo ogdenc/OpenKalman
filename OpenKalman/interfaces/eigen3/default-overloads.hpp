@@ -288,18 +288,16 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<TriangleType triangle_type, scalar_type ... Args> requires
     (sizeof...(Args) > 0) and (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
-      OpenKalman::internal::constexpr_sqrt(sizeof...(Args)))
+    (sizeof...(Args) == static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))))
 #else
   template<TriangleType triangle_type, typename ... Args, std::enable_if_t<
     (sizeof...(Args) > 0) and (scalar_type<Args> and ...) and
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
-      OpenKalman::internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
+    (sizeof...(Args) == static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args)))), int> = 0>
 #endif
   auto make_covariance(const Args ... args) noexcept
   {
-    constexpr auto dim = OpenKalman::internal::constexpr_sqrt(sizeof...(Args));
+    constexpr auto dim = static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args)));
     using TypedIndex = OpenKalman::Dimensions<dim>;
     return make_covariance<TypedIndex, triangle_type>(args...);
   }
@@ -314,16 +312,14 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<scalar_type ... Args> requires (sizeof...(Args) > 0) and
-    (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
-      OpenKalman::internal::constexpr_sqrt(sizeof...(Args)))
+    (sizeof...(Args) == static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))))
 #else
   template<typename ... Args, std::enable_if_t<(sizeof...(Args) > 0) and (scalar_type<Args> and ...) and
-  (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
-    OpenKalman::internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
+  (sizeof...(Args) == static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args)))), int> = 0>
 #endif
   auto make_covariance(const Args ... args) noexcept
   {
-    constexpr auto dim = OpenKalman::internal::constexpr_sqrt(sizeof...(Args));
+    constexpr auto dim = static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args)));
     using TypedIndex = OpenKalman::Dimensions<dim>;
     return make_covariance<TypedIndex>(args...);
   }
@@ -415,18 +411,16 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<TriangleType triangle_type = TriangleType::lower, scalar_type ... Args> requires
   (sizeof...(Args) > 0) and (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
-      OpenKalman::internal::constexpr_sqrt(sizeof...(Args)))
+    (sizeof...(Args) == static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))))
 #else
   template<TriangleType triangle_type = TriangleType::lower, typename ... Args, std::enable_if_t<
     (sizeof...(Args) > 0) and (scalar_type<Args> and ...) and
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (sizeof...(Args) == OpenKalman::internal::constexpr_sqrt(sizeof...(Args)) *
-      OpenKalman::internal::constexpr_sqrt(sizeof...(Args))), int> = 0>
+    (sizeof...(Args) == static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args)))), int> = 0>
 #endif
   auto make_square_root_covariance(const Args ... args) noexcept
   {
-    constexpr auto dim = OpenKalman::internal::constexpr_sqrt(sizeof...(Args));
+    constexpr auto dim = static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args)));
     using TypedIndex = OpenKalman::Dimensions<dim>;
     return make_square_root_covariance<TypedIndex, triangle_type>(args...);
   }
@@ -568,7 +562,7 @@ namespace OpenKalman
   template<fixed_index_descriptor TypedIndex, covariance_nestable NestedMatrix =
     SelfAdjointMatrix<Eigen3::eigen_matrix_t<double, dimension_size_of_v<TypedIndex>, dimension_size_of_v<TypedIndex>>>>
   requires (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
-    (not std::is_rvalue_reference_v<NestedMatrix>) and floating_scalar_type<scalar_type_of_t<NestedMatrix>>
+    (not std::is_rvalue_reference_v<NestedMatrix>) and scalar_type<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename TypedIndex, typename NestedMatrix =
     SelfAdjointMatrix<Eigen3::eigen_matrix_t<double, dimension_size_of_v<TypedIndex>, dimension_size_of_v<TypedIndex>>>>
@@ -579,14 +573,14 @@ namespace OpenKalman
   /// If the arguments are a sequence of scalars, derive a square, self-adjoint matrix.
 #if defined(__cpp_concepts) && not defined(__clang__) // Because of compiler issue in at least clang version 10.0.0
   template<scalar_type ... Args> requires (sizeof...(Args) > 0) and
-    (sizeof...(Args) == constexpr_sqrt(sizeof...(Args)) * constexpr_sqrt(sizeof...(Args)))
+    (sizeof...(Args) == static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))))
 #else
   template<typename ... Args, std::enable_if_t<(scalar_type<Args> and ...) and (sizeof...(Args) > 0) and
-    (sizeof...(Args) == constexpr_sqrt(sizeof...(Args)) * constexpr_sqrt(sizeof...(Args))), int> = 0>
+    (sizeof...(Args) == static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args)))), int> = 0>
 #endif
-  explicit Covariance(const Args& ...) -> Covariance<Dimensions<constexpr_sqrt(sizeof...(Args))>,
+  explicit Covariance(const Args& ...) -> Covariance<Dimensions<static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args)))>,
   SelfAdjointMatrix<Eigen3::eigen_matrix_t<std::common_type_t<Args...>,
-    constexpr_sqrt(sizeof...(Args)), constexpr_sqrt(sizeof...(Args))>>>;
+    static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))), static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args)))>>>;
 
 
   // --------------------- //
@@ -597,7 +591,7 @@ namespace OpenKalman
   template<fixed_index_descriptor TypedIndex, covariance_nestable NestedMatrix =
   SelfAdjointMatrix<Eigen3::eigen_matrix_t<double, dimension_size_of_v<TypedIndex>, dimension_size_of_v<TypedIndex>>>>
     requires (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
-      (not std::is_rvalue_reference_v<NestedMatrix>) and floating_scalar_type<scalar_type_of_t<NestedMatrix>>
+      (not std::is_rvalue_reference_v<NestedMatrix>) and scalar_type<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename TypedIndex, typename NestedMatrix =
     SelfAdjointMatrix<Eigen3::eigen_matrix_t<double, dimension_size_of_v<TypedIndex>, dimension_size_of_v<TypedIndex>>>>
@@ -608,14 +602,14 @@ namespace OpenKalman
   /// If the arguments are a sequence of scalars, derive a square, lower triangular matrix.
 #if defined(__cpp_concepts) && not defined(__clang__) // Because of compiler issue in at least clang version 10.0.0
   template<scalar_type ... Args> requires (sizeof...(Args) > 0) and
-  (sizeof...(Args) == constexpr_sqrt(sizeof...(Args)) * constexpr_sqrt(sizeof...(Args)))
+  (sizeof...(Args) == static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))))
 #else
   template<typename ... Args, std::enable_if_t<(scalar_type<Args> and ...) and (sizeof...(Args) > 0) and
-    (sizeof...(Args) == constexpr_sqrt(sizeof...(Args)) * constexpr_sqrt(sizeof...(Args))), int> = 0>
+    (sizeof...(Args) == static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args)))), int> = 0>
 #endif
   explicit SquareRootCovariance(const Args& ...) -> SquareRootCovariance<Dimensions<constexpr_sqrt(sizeof...(Args))>,
   TriangularMatrix<Eigen3::eigen_matrix_t<std::common_type_t<Args...>,
-    constexpr_sqrt(sizeof...(Args)), constexpr_sqrt(sizeof...(Args))>>>;
+    static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))), static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args)))>>>;
 
 
 } // namespace OpenKalman

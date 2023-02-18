@@ -429,20 +429,32 @@ namespace OpenKalman
     //  SingleConstant  //
     // ---------------- //
 
-    /*
-     * A typed matrix or covariance is a constant matrix if its nested matrix is a constant matrix.
-     * In the case of a triangular_covariance, the nested matrix must also be a zero_matrix.
-     */
 #ifdef __cpp_concepts
-    template<typename T> requires
-      ((typed_matrix<T> or self_adjoint_covariance<T>) and constant_matrix<nested_matrix_of_t<T>>) or
-      (triangular_covariance<T> and zero_matrix<nested_matrix_of_t<T>>)
+    template<typed_matrix T>
     struct SingleConstant<T>
 #else
     template<typename T>
-    struct SingleConstant<T, std::enable_if_t<
-      ((typed_matrix<T> or self_adjoint_covariance<T>) and constant_matrix<nested_matrix_of<T>::type>) or
-      (triangular_covariance<T> and zero_matrix<nested_matrix_of<T>::type>)>>>
+    struct SingleConstant<T, std::enable_if_t<(typed_matrix<T>)>>>
+#endif
+      : SingleConstant<std::decay_t<nested_matrix_of_t<T>>> {};
+
+
+#ifdef __cpp_concepts
+    template<self_adjoint_covariance T> requires (not triangular_matrix<nested_matrix_of_t<T>, Likelihood::maybe>)
+    struct SingleConstant<T>
+#else
+    template<typename T>
+    struct SingleConstant<T, std::enable_if_t<(not triangular_matrix<nested_matrix_of_t<T>, Likelihood::maybe>)>>>
+#endif
+      : SingleConstant<std::decay_t<nested_matrix_of_t<T>>> {};
+
+
+#ifdef __cpp_concepts
+    template<triangular_covariance T> requires zero_matrix<nested_matrix_of_t<T>>
+    struct SingleConstant<T>
+#else
+    template<typename T>
+    struct SingleConstant<T, std::enable_if_t<triangular_covariance<T> and zero_matrix<nested_matrix_of_t<T>>>>>
 #endif
       : SingleConstant<std::decay_t<nested_matrix_of_t<T>>> {};
 
@@ -509,23 +521,6 @@ namespace OpenKalman
         return SquareRootCovariance<Coeffs, std::decay_t<decltype(n)>>(std::move(n)); //< \todo use make_square_root_covariance
       }
     };
-
-
-    // ------------------------ //
-    //  SingleConstantDiagonal  //
-    // ------------------------ //
-
-    /*
-     * A typed_matrix or covariance is a constant_diagonal_matrix if its nested matrix is a constant_diagonal_matrix.
-     */
-#ifdef __cpp_concepts
-    template<typename T> requires typed_matrix<T> or covariance<T>
-    struct SingleConstantDiagonal<T>
-#else
-    template<typename T>
-    struct SingleConstantDiagonal<T, std::enable_if_t<typed_matrix<T> or covariance<T>>>
-#endif
-      : SingleConstantDiagonal<std::decay_t<nested_matrix_of_t<T>>> {};
 
 
     // ---------------- //

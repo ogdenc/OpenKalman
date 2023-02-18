@@ -114,7 +114,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<covariance<Arg> and
       equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
       equivalent_to<row_coefficient_types_of_t<Arg>, ColumnCoefficients> and
-      std::is_constructible_v<NestedMatrix, dense_writable_matrix_t<Arg>>, int> = 0>
+      std::is_constructible_v<NestedMatrix, dense_writable_matrix_t<Arg, scalar_type_of_t<Arg>>>, int> = 0>
 #endif
     Matrix(Arg&& arg) noexcept : Base {make_dense_writable_matrix_from(std::forward<Arg>(arg))} {}
 
@@ -327,7 +327,7 @@ namespace OpenKalman
   Matrix(V&&) -> Matrix<
     row_coefficient_types_of_t<V>,
     row_coefficient_types_of_t<V>,
-    dense_writable_matrix_t<nested_matrix_of_t<V>>>;
+    dense_writable_matrix_t<nested_matrix_of_t<V, scalar_type_of_t<V>>>>;
 
 
   // ----------------------------- //
@@ -452,7 +452,7 @@ namespace OpenKalman
 #endif
   inline auto make_matrix()
   {
-    return Matrix<RowCoefficients, ColumnCoefficients, dense_writable_matrix_t<M>>();
+    return Matrix<RowCoefficients, ColumnCoefficients, dense_writable_matrix_t<M, scalar_type_of_t<M>>>();
   }
 
 

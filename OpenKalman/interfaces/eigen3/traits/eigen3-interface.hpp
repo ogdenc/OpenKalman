@@ -392,7 +392,7 @@ namespace OpenKalman::interface
         if constexpr (std::is_lvalue_reference_v<Arg> or not has_dynamic_dimensions<Arg> or dim == dynamic_size)
           return d;
         else
-          return untyped_dense_writable_matrix_t<decltype(d), dim, 1> {std::move(d)};
+          return untyped_dense_writable_matrix_t<decltype(d), Scalar, dim, 1> {std::move(d)};
       }
     }
 
@@ -482,7 +482,7 @@ namespace OpenKalman::interface
 
       if constexpr (sizeof...(Args) == 0)
       {
-        using P = dense_writable_matrix_t<T, Ds...>;
+        using P = dense_writable_matrix_t<T, scalar_type_of_t<T>, Ds...>;
         Eigen::Index r = get_dimension_size_of(std::get<0>(tup));
         Eigen::Index c = get_dimension_size_of(std::get<1>(tup));
         return Eigen::CwiseNullaryOp<std::decay_t<Op>, P> {r, c, std::forward<Op>(op)};
@@ -519,7 +519,7 @@ namespace OpenKalman::interface
     static constexpr auto
     n_ary_operation_with_indices(const std::tuple<Ds...>& d_tup, Operation&& operation)
     {
-      using P = dense_writable_matrix_t<T, Ds...>;
+      using P = dense_writable_matrix_t<T, scalar_type_of_t<T>, Ds...>;
       Eigen::Index r = get_dimension_size_of(std::get<0>(d_tup));
       Eigen::Index c = get_dimension_size_of(std::get<1>(d_tup));
       return Eigen::CwiseNullaryOp<std::decay_t<Operation>, P> {r, c, std::forward<Operation>(operation)};
@@ -748,7 +748,7 @@ namespace OpenKalman::interface
       using NestedMatrix = std::decay_t<nested_matrix_of_t<A>>;
       using Scalar = scalar_type_of_t<A>;
       constexpr auto dim = index_dimension_of_v<A, 0>;
-      using M = dense_writable_matrix_t<A>;
+      using M = dense_writable_matrix_t<A, Scalar>;
 
       if constexpr (std::is_same_v<
         const NestedMatrix, const typename Eigen::MatrixBase<NestedMatrix>::ConstantReturnType>)
@@ -766,19 +766,19 @@ namespace OpenKalman::interface
         if constexpr(triangle_type == TriangleType::diagonal)
         {
           static_assert(diagonal_matrix<A>);
-          auto vec = square_root(s) * make_constant_matrix_like<A, 1>(Dimensions<dim>{}, Dimensions<1>{});
+          auto vec = make_constant_matrix_like<A>(square_root(s), Dimensions<dim>{}, Dimensions<1>{});
           return DiagonalMatrix<decltype(vec)> {vec};
         }
         else if constexpr(triangle_type == TriangleType::lower)
         {
-          auto col0 = square_root(s) * make_constant_matrix_like<A, 1>(Dimensions<dim>{}, Dimensions<1>{});
+          auto col0 = make_constant_matrix_like<A>(square_root(s), Dimensions<dim>{}, Dimensions<1>{});
           auto othercols = make_zero_matrix_like<A>(get_dimensions_of<0>(a), get_dimensions_of<0>(a) - 1);
           return TriangularMatrix<M, triangle_type> {concatenate_horizontal(col0, othercols)};
         }
         else
         {
           static_assert(triangle_type == TriangleType::upper);
-          auto row0 = square_root(s) * make_constant_matrix_like<A, 1>(Dimensions<1>{}, Dimensions<dim>{});
+          auto row0 = make_constant_matrix_like<A>(square_root(s), Dimensions<1>{}, Dimensions<dim>{});
           auto otherrows = make_zero_matrix_like<A>(get_dimensions_of<0>(a) - 1, get_dimensions_of<0>(a));
           return TriangularMatrix<M, triangle_type> {concatenate_vertical(row0, otherrows)};
         }

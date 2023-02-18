@@ -245,12 +245,11 @@ namespace OpenKalman
     public:
 
   #ifdef __cpp_concepts
-      static constexpr floating_scalar_type auto
+      static constexpr scalar_type auto
       to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start)
-      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; } or
-        (euclidean_type and requires(std::size_t i){ {g(i)} -> scalar_type; })
+      requires requires (std::size_t i){ {g(i)} -> scalar_type; }
   #else
-      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+      template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
       static constexpr auto to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start)
   #endif
       {
@@ -261,12 +260,11 @@ namespace OpenKalman
 
 
   #ifdef __cpp_concepts
-      static constexpr floating_scalar_type auto
+      static constexpr scalar_type auto
       from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start)
-      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; } or
-        (euclidean_type and requires(std::size_t i){ {g(i)} -> scalar_type; })
+      requires requires (std::size_t i){ {g(i)} -> scalar_type; }
   #else
-      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+      template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
       static constexpr auto from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start)
   #endif
       {
@@ -277,12 +275,11 @@ namespace OpenKalman
 
 
   #ifdef __cpp_concepts
-      static constexpr floating_scalar_type auto
+      static constexpr scalar_type auto
       wrap_get_element(const auto& g, std::size_t local_index, std::size_t start)
-      requires requires (std::size_t i){ {g(i)} -> floating_scalar_type; } or
-        (euclidean_type and requires(std::size_t i){ {g(i)} -> scalar_type; })
+      requires requires (std::size_t i){ {g(i)} -> scalar_type; }
   #else
-      template<typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+      template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
       static constexpr auto wrap_get_element(const G& g, std::size_t local_index, std::size_t start)
   #endif
       {
@@ -296,9 +293,9 @@ namespace OpenKalman
       static constexpr void
       wrap_set_element(const auto& s, const auto& g,
         const std::decay_t<std::invoke_result_t<decltype(g), std::size_t>>& x, std::size_t local_index, std::size_t start)
-      requires requires (std::size_t i){ s(x, i); } and (euclidean_type or requires{ {x} -> floating_scalar_type; })
+      requires requires (std::size_t i){ s(x, i); } and (euclidean_type or requires{ {x} -> scalar_type; })
   #else
-      template<typename S, typename G, std::enable_if_t<floating_scalar_type<typename std::invoke_result<G, std::size_t>::type> and
+      template<typename S, typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type> and
         std::is_invocable<S, typename std::invoke_result<G, std::size_t>::type, std::size_t>::value, int> = 0>
       static constexpr void wrap_set_element(const S& s, const G& g,
         const std::decay_t<typename std::invoke_result<G, std::size_t>::type>& x, std::size_t local_index, std::size_t start)

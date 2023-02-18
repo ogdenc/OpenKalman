@@ -806,45 +806,80 @@ namespace OpenKalman
     ((sizeof...(Ts) > 0) and ... and (std::is_lvalue_reference_v<Ts> or detail::all_lvalue_ref_dependencies<Ts>));
 
 
-  // --------------------------------------- //
-  //  constant_matrix, constant_coefficient  //
-  // --------------------------------------- //
+  // ----------------- //
+  //  constant_matrix  //
+  // ----------------- //
 
   namespace detail
   {
 #ifndef __cpp_concepts
     template<typename T, typename = void>
-    struct is_constant_matrix : std::false_type {};
+    struct get_constant_res {};
 
     template<typename T>
-    struct is_constant_matrix<T, std::void_t<decltype(interface::SingleConstant<std::decay_t<T>>::value)>>
+    struct get_constant_res<T, std::void_t<decltype(interface::SingleConstant{std::declval<const std::decay_t<T>&>()}.get_constant())>>
+    {
+      using type = std::decay_t<decltype(interface::SingleConstant{std::declval<const std::decay_t<T>&>()}.get_constant())>;
+    };
+
+
+    template<typename T, CompileTimeStatus c = CompileTimeStatus::known, typename = void>
+    struct is_constant_matrix : std::false_type {};
+
+    template<typename T, CompileTimeStatus c>
+    struct is_constant_matrix<T, c, std::enable_if_t<scalar_constant<typename get_constant_res<T>::type, c>>>
       : std::true_type {};
 
 
-    template<typename T, std::size_t c, typename = void>
+    template<typename T, std::size_t v, typename = void>
     struct is_specific_constant_matrix : std::false_type {};
 
-    template<typename T, std::size_t c>
-    struct is_specific_constant_matrix<T, c, std::enable_if_t<
-      are_within_tolerance(interface::SingleConstant<std::decay_t<T>>::value, c)>>
+    template<typename T, std::size_t v>
+    struct is_specific_constant_matrix<T, v, std::enable_if_t<are_within_tolerance(get_constant_res<T>::type::value, v)>>
       : std::true_type {};
+
+
+    template<typename T, Likelihood b, typename = void>
+    struct constant_status : std::false_type {};
+
+    template<typename T, Likelihood b>
+    struct constant_status<T, b, std::enable_if_t<std::is_convertible_v<decltype(get_constant_res<T>::type::status), Likelihood>>>
+      : std::bool_constant<get_constant_res<T>::type::status == b> {};
 
 
     template<typename T, typename = void>
-    struct is_constant_diagonal_matrix : std::false_type {};
+    struct get_constant_diagonal_res {};
 
     template<typename T>
-    struct is_constant_diagonal_matrix<T, std::void_t<decltype(interface::SingleConstantDiagonal<std::decay_t<T>>::value)>>
+    struct get_constant_diagonal_res<T, std::void_t<decltype(interface::SingleConstant{std::declval<const std::decay_t<T>&>()}.get_constant_diagonal())>>
+    {
+      using type = std::decay_t<decltype(interface::SingleConstant{std::declval<const std::decay_t<T>&>()}.get_constant_diagonal())>;
+    };
+
+
+    template<typename T, CompileTimeStatus c = CompileTimeStatus::known, typename = void>
+    struct is_constant_diagonal_matrix : std::false_type {};
+
+    template<typename T, CompileTimeStatus c>
+    struct is_constant_diagonal_matrix<T, c, std::enable_if_t<scalar_constant<typename get_constant_diagonal_res<T>::type, c>>>
       : std::true_type {};
 
 
-    template<typename T, std::size_t c, typename = void>
+    template<typename T, std::size_t v, typename = void>
     struct is_specific_constant_diagonal_matrix : std::false_type {};
 
-    template<typename T, std::size_t c>
-    struct is_specific_constant_diagonal_matrix<T, c, std::enable_if_t<
-      are_within_tolerance(interface::SingleConstantDiagonal<std::decay_t<T>>::value, c)>>
+    template<typename T, std::size_t v>
+    struct is_specific_constant_diagonal_matrix<T, v, std::enable_if_t<are_within_tolerance(get_constant_diagonal_res<T>::type::value, v)>>
       : std::true_type {};
+
+
+    template<typename T, Likelihood b, typename = void>
+    struct constant_diagonal_status : std::false_type {};
+
+    template<typename T, Likelihood b>
+    struct constant_diagonal_status<T, b, std::enable_if_t<
+      std::is_convertible_v<decltype(get_constant_diagonal_res<T>::type::status), Likelihood>>>
+      : std::bool_constant<get_constant_diagonal_res<T>::type::status == b> {};
 
 
     template<typename T, std::size_t I, typename = void>
@@ -852,7 +887,6 @@ namespace OpenKalman
 
     template<typename T, std::size_t I>
     struct dimension_is_1D<T, I, std::enable_if_t<index_dimension_of<T, I>::value == 1>> : std::true_type {};
-
 
 #endif
     template<typename T>
@@ -892,70 +926,144 @@ namespace OpenKalman
   /**
    * \brief Specifies that a type is a constant matrix, with the constant known at compile time.
    */
-  template<typename T, Likelihood b = Likelihood::definitely>
+  template<typename T, Likelihood b = Likelihood::definitely, CompileTimeStatus c = CompileTimeStatus::known>
 #ifdef __cpp_concepts
-  concept constant_matrix =
-    requires { interface::SingleConstant<std::decay_t<T>>::value; } or
-    are_within_tolerance(interface::SingleConstantDiagonal<std::decay_t<T>>::value, 0) or
-    (requires { interface::SingleConstantDiagonal<std::decay_t<T>>::value; } and
-      (b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
-      detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}));
+  concept constant_matrix = indexible<T> and
+    requires(interface::SingleConstant<std::decay_t<T>>& trait) { requires
+      requires {
+        {trait.get_constant()} -> scalar_constant<c>;
+        requires b != Likelihood::definitely or
+          not requires { requires std::decay_t<decltype(trait.get_constant())>::status == Likelihood::maybe; };
+      } or
+      requires {
+        {trait.get_constant_diagonal()} -> scalar_constant<c>;
+        requires requires { requires are_within_tolerance(std::decay_t<decltype(trait.get_constant_diagonal())>::value, 0); } or
+          (detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) and
+            (b != Likelihood::definitely or not has_dynamic_dimensions<T>));
+      };
+    };
 #else
-  constexpr bool constant_matrix = detail::is_constant_matrix<T>::value or
-    (detail::is_specific_constant_diagonal_matrix<T, 0>::value or
-    (detail::is_constant_diagonal_matrix<T>::value and
-      (b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
-      detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})));
+  constexpr bool constant_matrix = indexible<T> and (
+    (detail::is_constant_matrix<T, c>::value and
+      (b != Likelihood::definitely or not detail::constant_status<T, Likelihood::maybe>::value)) or
+    (detail::is_constant_diagonal_matrix<T, c>::value and
+      (detail::is_specific_constant_diagonal_matrix<T, 0>::value or
+      (detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) and
+        (b != Likelihood::definitely or not has_dynamic_dimensions<T>)))));
 #endif
 
 
+  // ---------------------- //
+  //  constant_coefficient  //
+  // ---------------------- //
+
   /**
-   * \brief The constant associated with T if T is a \ref constant_matrix.
-   * \note In pre-c++20 code, the type of the constant is not necessarily the Scalar type of T, and may need to be cast.
-   * For example, the constant may be an integral type while the scalar type of T is a floating-point type. However,
-   * if <code>__cpp_nontype_template_args >= 201911L</code>, then the type of the constant is <code>scalar_type_of_t<T></code>.
+   * \brief The constant associated with T, assuming T is a \ref constant_matrix.
+   * \details Before using this value, always check if T is a \ref constant_matrix, because the value be defined exist
+   * even in cases where T is not actually a constant matrix.
    */
 #ifdef __cpp_concepts
-  template<typename T>
+  template<indexible T>
 #else
   template<typename T, typename = void>
 #endif
-  struct constant_coefficient;
+  struct constant_coefficient
+  {
+    explicit constexpr constant_coefficient(const std::decay_t<T>&) {};
+  };
 
 
+  /**
+   * \overload
+   * \brief In this case, the constant can be derived at compile time.
+   */
 #ifdef __cpp_concepts
-  template<constant_matrix T>
+  template<constant_matrix<Likelihood::maybe, CompileTimeStatus::known> T>
   struct constant_coefficient<T>
 #else
   template<typename T>
-  struct constant_coefficient<T, std::enable_if_t<constant_matrix<T>>>
+  struct constant_coefficient<T, std::enable_if_t<constant_matrix<T, Likelihood::maybe, CompileTimeStatus::known>>>
 #endif
   {
-# if __cpp_nontype_template_args >= 201911L
-    static constexpr scalar_type_of_t<T> value =
-#else
-    static constexpr auto value =
-#endif
+    constexpr constant_coefficient() = default;
+    explicit constexpr constant_coefficient(const std::decay_t<T>&) {};
+    using value_type = scalar_type_of_t<T>;
+    using type = constant_coefficient;
+
+    static constexpr value_type value =
       []{
+        using Trait = interface::SingleConstant<std::decay_t<T>>;
 #ifdef __cpp_concepts
-        if constexpr (requires { interface::SingleConstant<std::decay_t<T>>::value; })
+        if constexpr (requires(Trait& trait) { {trait.get_constant()} -> scalar_constant<CompileTimeStatus::known>; })
 #else
         if constexpr (detail::is_constant_matrix<T>::value)
 #endif
-          return interface::SingleConstant<std::decay_t<T>>::value;
+          return std::decay_t<decltype(std::declval<Trait>().get_constant())>::value;
         else
-          return interface::SingleConstantDiagonal<std::decay_t<T>>::value;
+          return std::decay_t<decltype(std::declval<Trait>().get_constant_diagonal())>::value;
       }();
+
+    static constexpr Likelihood status = constant_matrix<T> ? Likelihood::definitely : Likelihood::maybe;
+
+    constexpr operator value_type() const noexcept { return value; }
+    constexpr value_type operator()() const noexcept { return value; }
   };
+
+
+  /**
+   * \overload
+   * \brief In this case, the constant is determined at runtime.
+   */
+#ifdef __cpp_concepts
+  template<constant_matrix<Likelihood::maybe, CompileTimeStatus::unknown> T>
+  struct constant_coefficient<T>
+#else
+  template<typename T>
+  struct constant_coefficient<T, std::enable_if_t<constant_matrix<T, Likelihood::maybe, CompileTimeStatus::unknown>>>
+#endif
+  {
+    template<typename Arg>
+    explicit constexpr constant_coefficient(Arg&& arg) : value {[](Arg&& arg){
+        using Trait = interface::SingleConstant<std::decay_t<T>>;
+#ifdef __cpp_concepts
+        if constexpr (requires(Trait& trait) { {trait.get_constant()} -> scalar_constant<CompileTimeStatus::unknown>; })
+#else
+        if constexpr (detail::is_constant_matrix<T, CompileTimeStatus::unknown>::value)
+#endif
+          return get_scalar_constant_value(Trait{std::forward<Arg>(arg)}.get_constant());
+        else
+          return get_scalar_constant_value(Trait{std::forward<Arg>(arg)}.get_constant_diagonal());
+      }(std::forward<Arg>(arg))} {};
+
+    using value_type = scalar_type_of_t<T>;
+    using type = constant_coefficient;
+
+    static constexpr Likelihood status = constant_matrix<T, Likelihood::definitely, CompileTimeStatus::unknown> ?
+      Likelihood::definitely : Likelihood::maybe;
+
+    constexpr operator value_type() const noexcept { return value; }
+    constexpr value_type operator()() const noexcept { return value; }
+
+  private:
+
+    value_type value;
+  };
+
+
+  /**
+   * \brief Deduction guide for \ref constant_coefficient.
+   */
+  template<typename T>
+  explicit constant_coefficient(const T&) -> constant_coefficient<T>;
 
 
   /**
    * \brief Helper template for constant_coefficient.
    */
 #ifdef __cpp_concepts
-  template<constant_matrix T>
+  template<constant_matrix<Likelihood::maybe> T>
 #else
-  template<typename T, std::enable_if_t<constant_matrix<T>, int> = 0>
+  template<typename T>
 #endif
   constexpr auto constant_coefficient_v = constant_coefficient<T>::value;
 
@@ -980,68 +1088,141 @@ namespace OpenKalman
   /**
    * \brief Specifies that a type is a constant diagonal matrix, with the constant known at compile time.
    */
-  template<typename T, Likelihood b = Likelihood::definitely>
+  template<typename T, Likelihood b = Likelihood::definitely, CompileTimeStatus c = CompileTimeStatus::known>
 #ifdef __cpp_concepts
-  concept constant_diagonal_matrix =
-    (b != Likelihood::definitely or not has_dynamic_dimensions<T> or interface::DiagonalTraits<std::decay_t<T>>::is_diagonal) and (
-      (detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) and
-        (requires { interface::SingleConstantDiagonal<std::decay_t<T>>::value; } or
-          are_within_tolerance(interface::SingleConstant<std::decay_t<T>>::value, 0))) or
-      (requires { interface::SingleConstant<std::decay_t<T>>::value; } and
-        detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})));
+  concept constant_diagonal_matrix = indexible<T> and
+    requires(interface::SingleConstant<std::decay_t<T>>& trait) { requires
+      requires {
+        {trait.get_constant_diagonal()} -> scalar_constant<c>;
+        requires b != Likelihood::definitely or interface::DiagonalTraits<std::decay_t<T>>::is_diagonal or
+          (not has_dynamic_dimensions<T> and detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})) or
+          requires { requires std::decay_t<decltype(trait.get_constant_diagonal())>::status == Likelihood::definitely; };
+      } or
+      requires {
+        {trait.get_constant()} -> scalar_constant<c>;
+        requires (b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
+          (detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) or
+          (requires { requires are_within_tolerance(std::decay_t<decltype(trait.get_constant())>::value, 0); } and
+            detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})));
+      };
+    };
 #else
-  constexpr bool constant_diagonal_matrix =
-    (b != Likelihood::definitely or not has_dynamic_dimensions<T> or detail::is_diagonal_matrix<T>::value) and (
-      (detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) and
-        (detail::is_constant_diagonal_matrix<T>::value or detail::is_specific_constant_matrix<T, 0>::value)) or
-      (detail::is_constant_matrix<T>::value and
-        detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})));
+  constexpr bool constant_diagonal_matrix = indexible<T> and (
+    (detail::is_constant_diagonal_matrix<T, c>::value and
+      (b != Likelihood::definitely or detail::is_diagonal_matrix<T>::value or
+        (not has_dynamic_dimensions<T> and detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})) or
+        detail::constant_diagonal_status<T, Likelihood::definitely>::value)) or
+    (detail::is_constant_matrix<T, c>::value and
+      ((b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
+        (detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) or
+        (detail::is_specific_constant_matrix<T, 0>::value and
+          detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}))))));
 #endif
 
 
   /**
-   * \brief The constant associated with a \ref constant_diagonal_matrix.
-   * \note In pre-c++20 code, the type of the constant is not necessarily the Scalar type of T, and may need to be cast.
-   * For example, the constant may be an integral type while the scalar type of T is a floating-point type. However,
-   * if <code>__cpp_nontype_template_args >= 201911L</code>, then the type of the constant is <code>scalar_type_of_t<T></code>.
+   * \brief The constant associated with T, assuming T is a \ref constant_diagonal_matrix.
+   * \details Before using this value, always check if T is a \ref constant_diagonal_matrix, because the value be defined exist
+   * even in cases where T is not actually a constant diagonal matrix.
    */
 #ifdef __cpp_concepts
-  template<typename T>
+  template<indexible T>
 #else
   template<typename T, typename = void>
 #endif
-  struct constant_diagonal_coefficient;
+  struct constant_diagonal_coefficient
+  {
+    explicit constexpr constant_diagonal_coefficient(const std::decay_t<T>&) {};
+  };
 
 
+  /**
+   * \overload
+   * \brief In this case, the constant can be derived at compile time.
+   */
 #ifdef __cpp_concepts
-  template<constant_diagonal_matrix T>
+  template<constant_diagonal_matrix<Likelihood::maybe, CompileTimeStatus::known> T>
   struct constant_diagonal_coefficient<T>
 #else
   template<typename T>
-  struct constant_diagonal_coefficient<T, std::enable_if_t<constant_diagonal_matrix<T>>>
+  struct constant_diagonal_coefficient<T, std::enable_if_t<constant_diagonal_matrix<T, Likelihood::maybe, CompileTimeStatus::known>>>
 #endif
   {
-#  if __cpp_nontype_template_args >= 201911L
-    static constexpr scalar_type_of_t<T> value =
-#  else
-    static constexpr auto value =
-#  endif
+    constexpr constant_diagonal_coefficient() = default;
+    explicit constexpr constant_diagonal_coefficient(const std::decay_t<T>&) {};
+    using value_type = scalar_type_of_t<T>;
+    using type = constant_diagonal_coefficient;
+
+    static constexpr value_type value =
       []{
+        using Trait = interface::SingleConstant<std::decay_t<T>>;
 #ifdef __cpp_concepts
-        if constexpr (requires { interface::SingleConstantDiagonal<std::decay_t<T>>::value; })
+        if constexpr (requires(Trait& trait) { {trait.get_constant_diagonal()} -> scalar_constant<CompileTimeStatus::known>; })
 #else
         if constexpr (detail::is_constant_diagonal_matrix<T>::value)
 #endif
-          return interface::SingleConstantDiagonal<std::decay_t<T>>::value;
+          return std::decay_t<decltype(std::declval<Trait>().get_constant_diagonal())>::value;
         else
-          return interface::SingleConstant<std::decay_t<T>>::value;
+          return std::decay_t<decltype(std::declval<Trait>().get_constant())>::value;
       }();
+
+    static constexpr Likelihood status = constant_diagonal_matrix<T> ? Likelihood::definitely : Likelihood::maybe;
+
+    constexpr operator value_type() const noexcept { return value; }
+    constexpr value_type operator()() const noexcept { return value; }
   };
+
+
+  /**
+   * \overload
+   * \brief In this case, the constant can be derived at compile time.
+   */
+#ifdef __cpp_concepts
+  template<constant_diagonal_matrix<Likelihood::maybe, CompileTimeStatus::unknown> T>
+  struct constant_diagonal_coefficient<T>
+#else
+  template<typename T>
+  struct constant_diagonal_coefficient<T, std::enable_if_t<constant_diagonal_matrix<T, Likelihood::maybe, CompileTimeStatus::unknown>>>
+#endif
+  {
+    template<typename Arg>
+    explicit constexpr constant_diagonal_coefficient(Arg&& arg) : value {[](Arg&& arg){
+        using Trait = interface::SingleConstant<std::decay_t<T>>;
+#ifdef __cpp_concepts
+        if constexpr (requires(Trait& trait) { {trait.get_constant_diagonal()} -> scalar_constant<CompileTimeStatus::unknown>; })
+#else
+        if constexpr (detail::is_constant_diagonal_matrix<T, CompileTimeStatus::unknown>::value)
+#endif
+          return get_scalar_constant_value(Trait{std::forward<Arg>(arg)}.get_constant_diagonal());
+        else
+          return get_scalar_constant_value(Trait{std::forward<Arg>(arg)}.get_constant());
+      }(std::forward<Arg>(arg))} {};
+
+    using value_type = scalar_type_of_t<T>;
+    using type = constant_diagonal_coefficient;
+
+    static constexpr Likelihood status = constant_diagonal_matrix<T, Likelihood::definitely, CompileTimeStatus::unknown> ?
+      Likelihood::definitely : Likelihood::maybe;
+
+    constexpr operator value_type() const noexcept { return value; }
+    constexpr value_type operator()() const noexcept { return value; }
+
+  private:
+
+    value_type value;
+  };
+
+
+  /**
+   * \brief Deduction guide for \ref constant_diagonal_coefficient.
+   */
+  template<typename T>
+  explicit constant_diagonal_coefficient(T&&) -> constant_diagonal_coefficient<std::decay_t<T>>;
 
 
   /// Helper template for constant_diagonal_coefficient.
 #ifdef __cpp_concepts
-  template<constant_diagonal_matrix T>
+  template<constant_diagonal_matrix<Likelihood::maybe> T>
 #else
   template<typename T>
 #endif
@@ -1055,11 +1236,11 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, typename = void>
+    template<typename T, Likelihood b, typename = void>
     struct is_zero_matrix : std::false_type {};
 
-    template<typename T>
-    struct is_zero_matrix<T, std::enable_if_t<constant_matrix<T>>>
+    template<typename T, Likelihood b>
+    struct is_zero_matrix<T, b, std::enable_if_t<constant_matrix<T, b, CompileTimeStatus::known>>>
       : std::bool_constant<are_within_tolerance(constant_coefficient_v<T>, 0)> {};
   }
 #endif
@@ -1068,11 +1249,11 @@ namespace OpenKalman
   /**
    * \brief Specifies that a type is known at compile time to be a constant matrix of value zero.
    */
-  template<typename T>
+  template<typename T, Likelihood b = Likelihood::definitely>
 #ifdef __cpp_concepts
-  concept zero_matrix = are_within_tolerance(constant_coefficient_v<T>, 0);
+  concept zero_matrix = constant_matrix<T, b, CompileTimeStatus::known> and are_within_tolerance(constant_coefficient_v<T>, 0);
 #else
-  constexpr bool zero_matrix = detail::is_zero_matrix<T>::value;
+  constexpr bool zero_matrix = detail::is_zero_matrix<T, b>::value;
 #endif
 
 
@@ -1080,15 +1261,26 @@ namespace OpenKalman
   //  identity_matrix  //
   // ----------------- //
 
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, Likelihood b, typename = void>
+    struct is_identity_matrix : std::false_type {};
+
+    template<typename T, Likelihood b>
+    struct is_identity_matrix<T, b, std::enable_if_t<constant_diagonal_matrix<T, b>>>
+      : std::bool_constant<are_within_tolerance(constant_diagonal_coefficient_v<T>, 1)> {};
+  }
+#endif
+
   /**
    * \brief Specifies that a type is an identity matrix.
    */
   template<typename T, Likelihood b = Likelihood::definitely>
 #ifdef __cpp_concepts
-  concept identity_matrix = are_within_tolerance(constant_diagonal_coefficient_v<T>, 1);
+  concept identity_matrix = constant_diagonal_matrix<T, b> and are_within_tolerance(constant_diagonal_coefficient_v<T>, 1);
 #else
-  constexpr bool identity_matrix = constant_diagonal_matrix<T> and
-    detail::is_specific_constant_diagonal_matrix<T, 1>::value;
+  constexpr bool identity_matrix = detail::is_identity_matrix<T, b>::value;
 #endif
 
 
@@ -1133,7 +1325,7 @@ namespace OpenKalman
     (interface::TriangularTraits<std::decay_t<T>>::triangle_type == TriangleType::diagonal) or
     (interface::HermitianTraits<std::decay_t<T>>::is_hermitian and
       interface::HermitianTraits<std::decay_t<T>>::adapter_type == TriangleType::diagonal) or
-    constant_diagonal_matrix<T, b> or
+    constant_diagonal_matrix<T, b, CompileTimeStatus::any> or
     ((b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
       detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})));
 #else
@@ -1141,7 +1333,7 @@ namespace OpenKalman
     (detail::is_diagonal_matrix<T>::value or
     detail::is_triangular_matrix<T, TriangleType::diagonal>::value or
     (detail::is_hermitian_matrix<T>::value and detail::hermitian_adapter_triangle_type<T>::value == TriangleType::diagonal) or
-    constant_diagonal_matrix<T, b> or
+    constant_diagonal_matrix<T, b, CompileTimeStatus::any> or
     ((b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
       detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})));
 #endif
@@ -1297,10 +1489,10 @@ namespace OpenKalman
 
     template<typename T, Likelihood b>
     struct is_inferred_hermitian_matrix<T, b, std::enable_if_t<
-      (not complex_number<typename scalar_type_of<T>::type> or zero_matrix<T> or diag_imag_part_is_zero<T>::value) and
-      (diagonal_matrix<T, b> or
-        (constant_matrix<T, b> and (b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
-          detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})))>>
+      (not complex_number<typename scalar_type_of<T>::type> or zero_matrix<T, b> or diag_imag_part_is_zero<T>::value) and
+      ((constant_matrix<T, b, CompileTimeStatus::any> and (b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
+          detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})) or
+        diagonal_matrix<T, b>)>>
       : std::true_type {};
   };
 #endif
@@ -1313,11 +1505,11 @@ namespace OpenKalman
   template<typename T, Likelihood b = Likelihood::definitely>
 #ifdef __cpp_concepts
   concept hermitian_matrix = interface::HermitianTraits<std::decay_t<T>>::is_hermitian or
-    ((not complex_number<scalar_type_of_t<T>> or zero_matrix<T> or
+    ((not complex_number<scalar_type_of_t<T>> or zero_matrix<T, b> or
         imaginary_part(constant_coefficient_v<T>) == 0 or imaginary_part(constant_diagonal_coefficient_v<T>) == 0) and
-      (diagonal_matrix<T, b> or
-        (constant_matrix<T, b> and (b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
-          detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}))));
+      ((constant_matrix<T, b, CompileTimeStatus::any> and (b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
+          detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})) or
+        diagonal_matrix<T, b>));
 #else
   constexpr bool hermitian_matrix = detail::is_hermitian_matrix<T>::value or detail::is_inferred_hermitian_matrix<T, b>::value;
 #endif
@@ -1957,53 +2149,6 @@ namespace OpenKalman
 #endif
     indexible<T> and indexible<U> and internal::is_modifiable<T, U>::value and internal::is_modifiable_native<T, U>::value;
 
-
-  namespace internal
-  {
-    // ----------------------- //
-    //  is_plus, is_multiplies //
-    // ----------------------- //
-
-    template<typename T>
-    struct is_plus : std::false_type {};
-
-    template<typename T>
-    struct is_plus<std::plus<T>> : std::true_type {};
-
-    template<typename T>
-    struct is_multiplies : std::false_type {};
-
-    template<typename T>
-    struct is_multiplies<std::multiplies<T>> : std::true_type {};
-
-
-    // ---------------------------- //
-    //  is_constexpr_n_ary_function //
-    // ---------------------------- //
-
-#ifdef __cpp_concepts
-    template<typename Op, typename...Args>
-    struct is_constexpr_n_ary_function : std::false_type {};
-
-    template<typename Op, typename...Args>
-    requires requires { typename std::bool_constant<0 == Op{}(constant_coefficient_v<Args>...)>; }
-    struct is_constexpr_n_ary_function<Op, Args...> : std::true_type {};
-
-    template<typename Op, typename...Args>
-    constexpr bool constexpr_n_ary_function = is_constexpr_n_ary_function<Op, Args...>::value;
-#else
-    template<typename Op, typename = void, typename...Args>
-    struct is_constexpr_n_ary_function : std::false_type {};
-
-    template<typename Op, typename...Args>
-    struct is_constexpr_n_ary_function<Op, std::void_t<std::bool_constant<0 == Op{}(constant_coefficient<Args>::value...)>>, Args...>
-      : std::true_type {};
-
-    template<typename Op, typename...Args>
-    constexpr bool constexpr_n_ary_function = is_constexpr_n_ary_function<Op, void, Args...>::value;
-#endif
-
-  } // namespace internal
 
 } // namespace OpenKalman
 

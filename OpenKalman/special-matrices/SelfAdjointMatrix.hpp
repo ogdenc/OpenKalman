@@ -22,7 +22,8 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<square_matrix<Likelihood::maybe> NestedMatrix, TriangleType storage_triangle> requires
-    (not diagonal_matrix<NestedMatrix> or not complex_number<scalar_type_of_t<NestedMatrix>>) and
+    (not constant_matrix<NestedMatrix> or imaginary_part(constant_coefficient_v<NestedMatrix>) == 0) and
+    (not constant_diagonal_matrix<NestedMatrix> or imaginary_part(constant_diagonal_coefficient_v<NestedMatrix>) == 0) and
     (storage_triangle != TriangleType::none)
 #else
   template<typename NestedMatrix, TriangleType storage_triangle>
@@ -33,7 +34,8 @@ namespace OpenKalman
 
 #ifndef __cpp_concepts
     static_assert(square_matrix<NestedMatrix, Likelihood::maybe>);
-    static_assert(not diagonal_matrix<NestedMatrix> or not complex_number<scalar_type_of_t<NestedMatrix>>);
+    static_assert([]{if constexpr (constant_matrix<NestedMatrix>) return imaginary_part(constant_coefficient_v<NestedMatrix>) == 0; else return true; }());
+    static_assert([]{if constexpr (constant_diagonal_matrix<NestedMatrix>) return imaginary_part(constant_diagonal_coefficient_v<NestedMatrix>) == 0; else return true; }());
     static_assert(storage_triangle != TriangleType::none);
 #endif
 
@@ -206,9 +208,9 @@ namespace OpenKalman
       (sizeof...(Args) > 0) and
       (storage_triangle != TriangleType::diagonal or diagonal_matrix<NestedMatrix>) and
       (std::is_constructible_v<NestedMatrix,
-        untyped_dense_writable_matrix_t<NestedMatrix, constexpr_sqrt(sizeof...(Args)), constexpr_sqrt(sizeof...(Args))>> or
+        untyped_dense_writable_matrix_t<NestedMatrix, Scalar, static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))), static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args)))>> or
         (diagonal_matrix<NestedMatrix> and std::is_constructible_v<NestedMatrix,
-          untyped_dense_writable_matrix_t<NestedMatrix, sizeof...(Args), 1>>)), int> = 0>
+          untyped_dense_writable_matrix_t<NestedMatrix, Scalar, sizeof...(Args), 1>>)), int> = 0>
 #endif
     SelfAdjointMatrix(Args ... args)
       : Base {MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...)} {}
@@ -231,9 +233,9 @@ namespace OpenKalman
     template<typename ... Args, std::enable_if_t<(sizeof...(Args) > 0) and
       std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
       (storage_triangle == TriangleType::diagonal) and (not diagonal_matrix<NestedMatrix>) and
-      (std::is_constructible_v<NestedMatrix, untyped_dense_writable_matrix_t<NestedMatrix, sizeof...(Args), 1>> or
+      (std::is_constructible_v<NestedMatrix, untyped_dense_writable_matrix_t<NestedMatrix, Scalar, sizeof...(Args), 1>> or
        std::is_constructible_v<NestedMatrix,
-         untyped_dense_writable_matrix_t<NestedMatrix, constexpr_sqrt(sizeof...(Args)), constexpr_sqrt(sizeof...(Args))>>), int> = 0>
+         untyped_dense_writable_matrix_t<NestedMatrix, Scalar, static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))), static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args)))>>), int> = 0>
 #endif
     SelfAdjointMatrix(Args ... args)
       : Base {MatrixTraits<typename MatrixTraits<std::decay_t<NestedMatrix>>::template DiagonalMatrixFrom<>>::make(

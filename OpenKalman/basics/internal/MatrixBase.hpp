@@ -38,11 +38,11 @@ namespace OpenKalman::internal
      * \brief Default constructor.
      */
 #ifdef __cpp_concepts
-    MatrixBase() requires self_contained<NestedMatrix> and requires { NestedMatrix {}; }
+    MatrixBase() noexcept requires self_contained<NestedMatrix> and std::default_initializable<NestedMatrix>
 #else
     template<typename T = NestedMatrix, std::enable_if_t<self_contained<T> and
       std::is_default_constructible<NestedMatrix>::value, int> = 0>
-    MatrixBase()
+    MatrixBase() noexcept
 #endif
       : m_arg {} {}
 
@@ -53,7 +53,7 @@ namespace OpenKalman::internal
      */
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
     template<typename Arg> requires (not std::is_base_of_v<MatrixBase, std::decay_t<Arg>>) and
-      requires(Arg&& arg) { NestedMatrix {std::forward<Arg>(arg)}; }
+    std::constructible_from<NestedMatrix, Arg&&>
 #else
     template<typename Arg, std::enable_if_t<not std::is_base_of_v<MatrixBase, std::decay_t<Arg>> and
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
@@ -84,19 +84,19 @@ namespace OpenKalman::internal
     /**
      * \brief Get the nested matrix.
      */
-    decltype(auto) nested_matrix() & { return (m_arg); }
+    decltype(auto) nested_matrix() & noexcept { return (m_arg); }
 
 
     /// \overload
-    decltype(auto) nested_matrix() const & { return (m_arg); }
+    decltype(auto) nested_matrix() const & noexcept { return (m_arg); }
 
 
     /// \overload
-    decltype(auto) nested_matrix() && { return (std::move(*this).m_arg); }
+    decltype(auto) nested_matrix() && noexcept { return (std::move(*this).m_arg); }
 
 
     /// \overload
-    decltype(auto) nested_matrix() const && { return (std::move(*this).m_arg); }
+    decltype(auto) nested_matrix() const && noexcept { return (std::move(*this).m_arg); }
 
 
     /**

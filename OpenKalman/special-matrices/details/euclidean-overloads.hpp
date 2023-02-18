@@ -472,40 +472,37 @@ namespace OpenKalman::Eigen3
   }
 
 
-  namespace internal
+  template<typename G, typename Expr, typename CC>
+  struct SplitEuclideanVertF
   {
-    template<typename G, typename Expr, typename CC>
-    struct SplitEuclideanVertF
+    template<typename RC, typename, typename Arg>
+    static auto call(Arg&& arg)
     {
-      template<typename RC, typename, typename Arg>
-      static auto call(Arg&& arg)
-      {
-        return G::template call<RC, CC>(MatrixTraits<std::decay_t<Expr>>::template make<RC>(std::forward<Arg>(arg)));
-      }
-    };
+      return G::template call<RC, CC>(MatrixTraits<std::decay_t<Expr>>::template make<RC>(std::forward<Arg>(arg)));
+    }
+  };
 
 
-    template<typename G, typename Expr, typename RC>
-    struct SplitEuclideanHorizF
+  template<typename G, typename Expr, typename RC>
+  struct SplitEuclideanHorizF
+  {
+    template<typename, typename CC, typename Arg>
+    static auto call(Arg&& arg)
     {
-      template<typename, typename CC, typename Arg>
-      static auto call(Arg&& arg)
-      {
-        return G::template call<RC, CC>(MatrixTraits<std::decay_t<Expr>>::template make<RC>(std::forward<Arg>(arg)));
-      }
-    };
+      return G::template call<RC, CC>(MatrixTraits<std::decay_t<Expr>>::template make<RC>(std::forward<Arg>(arg)));
+    }
+  };
 
 
-    template<typename G, typename Expr>
-    struct SplitEuclideanDiagF
+  template<typename G, typename Expr>
+  struct SplitEuclideanDiagF
+  {
+    template<typename RC, typename CC, typename Arg>
+    static auto call(Arg&& arg)
     {
-      template<typename RC, typename CC, typename Arg>
-      static auto call(Arg&& arg)
-      {
-        return G::template call<RC, CC>(MatrixTraits<std::decay_t<Expr>>::template make<RC>(std::forward<Arg>(arg)));
-      }
-    };
-  } // internal
+      return G::template call<RC, CC>(MatrixTraits<std::decay_t<Expr>>::template make<RC>(std::forward<Arg>(arg)));
+    }
+  };
 
 
   /// Split into one or more Euclidean expressions vertically.
@@ -520,7 +517,7 @@ namespace OpenKalman::Eigen3
   split_vertical(Arg&& arg) noexcept
   {
     using CC = Dimensions<column_dimension_of_v<Arg>>;
-    return split_vertical<internal::SplitEuclideanVertF<F, Arg, CC>, from_euclidean_expr<Arg>, Cs...>(
+    return split_vertical<SplitEuclideanVertF<F, Arg, CC>, from_euclidean_expr<Arg>, Cs...>(
       nested_matrix(std::forward<Arg>(arg)));
   }
 
@@ -594,7 +591,7 @@ namespace OpenKalman::Eigen3
   split_horizontal(Arg&& arg) noexcept
   {
     using RC = row_coefficient_types_of_t<Arg>;
-    return split_horizontal<internal::SplitEuclideanHorizF<F, Arg, RC>, Cs...>(
+    return split_horizontal<SplitEuclideanHorizF<F, Arg, RC>, Cs...>(
       nested_matrix(std::forward<Arg>(arg)));
   }
 
@@ -645,7 +642,7 @@ namespace OpenKalman::Eigen3
   inline auto
   split_diagonal(Arg&& arg) noexcept
   {
-    return split_diagonal<internal::SplitEuclideanDiagF<F, Arg>, from_euclidean_expr<Arg>, Cs...>(
+    return split_diagonal<SplitEuclideanDiagF<F, Arg>, from_euclidean_expr<Arg>, Cs...>(
       nested_matrix(std::forward<Arg>(arg)));
   }
 

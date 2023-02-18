@@ -480,7 +480,7 @@ namespace OpenKalman
 #endif
   constexpr bool operator==(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr (std::is_same_v<dense_writable_matrix_t<Arg1>, dense_writable_matrix_t<Arg2>> and
+    if constexpr (std::is_same_v<dense_writable_matrix_t<Arg1, scalar_type_of_t<Arg1>>, dense_writable_matrix_t<Arg2, scalar_type_of_t<Arg2>>> and
       equivalent_to<row_coefficient_types_of_t<Arg1>, row_coefficient_types_of_t<Arg2>>)
     {
       return make_dense_writable_matrix_from(std::forward<Arg1>(arg1)) == make_dense_writable_matrix_from(std::forward<Arg2>(arg2));

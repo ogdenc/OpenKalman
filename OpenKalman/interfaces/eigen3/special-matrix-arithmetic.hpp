@@ -24,8 +24,8 @@ namespace OpenKalman
     template<typename T>
     struct is_eigen_constant_expr : std::false_type {};
 
-    template<typename PatternMatrix, auto constant>
-    struct is_eigen_constant_expr<ConstantAdapter<PatternMatrix, constant>> : std::true_type {};
+    template<typename PatternMatrix, auto...constant>
+    struct is_eigen_constant_expr<ConstantAdapter<PatternMatrix, constant...>> : std::true_type {};
 
     template<typename T>
   #ifdef __cpp_concepts
@@ -51,19 +51,7 @@ namespace OpenKalman
   constexpr decltype(auto) operator-(Arg&& arg)
   {
     if constexpr (zero_matrix<Arg>) return std::forward<Arg>(arg);
-    else
-    {
-      constexpr auto c = constant_coefficient_v<Arg>;
-# if __cpp_nontype_template_args >= 201911L
-      return make_constant_matrix_like<-c>(std::forward<Arg>(arg));
-# else
-      constexpr auto c_integral = static_cast<std::intmax_t>(c);
-      if constexpr (are_within_tolerance(c, static_cast<scalar_type_of_t<Arg>>(c_integral)))
-        return make_constant_matrix_like<-c_integral>(std::forward<Arg>(arg));
-      else
-        return make_self_contained(-c * make_constant_matrix_like<1>(std::forward<Arg>(arg)));
-# endif
-    }
+    else return make_constant_matrix_like(internal::scalar_constant_operation<std::negate<>, constant_coefficient<Arg>>{}, std::forward<Arg>(arg));
   }
 
 
@@ -122,28 +110,17 @@ namespace OpenKalman
   template<constant_matrix Arg1, constant_matrix Arg2> requires
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
-    (row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>) and
-    (column_dimension_of_v<Arg1> == column_dimension_of_v<Arg2>)
+    maybe_has_same_shape_as<Arg1, Arg2>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<constant_matrix<Arg1> and constant_matrix<Arg2> and
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
-    (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value) and
-    (column_dimension_of<Arg1>::value == column_dimension_of<Arg2>::value), int> = 0>
+    maybe_has_same_shape_as<Arg1, Arg2>, int> = 0>
 #endif
   constexpr auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
-    constexpr auto c = constant_coefficient_v<Arg1> + constant_coefficient_v<Arg2>;
-    using Scalar = std::common_type_t<scalar_type_of_t<Arg1>, scalar_type_of_t<Arg2>>;
-# if __cpp_nontype_template_args >= 201911L
-    return make_constant_matrix_like<c, Scalar>(std::forward<Arg1>(arg1));
-# else
-    constexpr auto c_integral = static_cast<std::intmax_t>(c);
-    if constexpr (are_within_tolerance(c, static_cast<Scalar>(c_integral)))
-      return make_constant_matrix_like<c_integral, Scalar>(std::forward<Arg1>(arg1));
-    else
-      return make_self_contained(c * make_constant_matrix_like<1, Scalar>(std::forward<Arg1>(arg1)));
-# endif
+    using op = internal::scalar_constant_operation<std::plus<>, constant_coefficient<Arg1>, constant_coefficient<Arg2>>;
+    return make_constant_matrix_like(op{}, std::forward<Arg1>(arg1));
   }
 
 
@@ -321,29 +298,17 @@ namespace OpenKalman
   template<constant_matrix Arg1, constant_matrix Arg2> requires
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
-    (row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>) and
-    (column_dimension_of_v<Arg1> == column_dimension_of_v<Arg2>)
+    maybe_has_same_shape_as<Arg1, Arg2>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<constant_matrix<Arg1> and constant_matrix<Arg2> and
     (eigen_constant_expr<Arg1> or eigen_constant_expr<Arg2>) and
     (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
-    (row_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value) and
-    (column_dimension_of<Arg1>::value == column_dimension_of<Arg2>::value), int> = 0>
+    maybe_has_same_shape_as<Arg1, Arg2>, int> = 0>
 #endif
   constexpr auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
-    constexpr auto c = constant_coefficient_v<Arg1> - constant_coefficient_v<Arg2>;
-    using Scalar = std::common_type_t<scalar_type_of_t<Arg1>, scalar_type_of_t<Arg2>>;
-# if __cpp_nontype_template_args >= 201911L
-    return make_constant_matrix_like<c, Scalar>(std::forward<Arg1>(arg1));
-# else
-    constexpr auto c_integral = static_cast<std::intmax_t>(c);
-    if constexpr (are_within_tolerance(c, static_cast<Scalar>(c_integral)))
-      return make_constant_matrix_like<c_integral, Scalar>(std::forward<Arg1>(arg1));
-    else
-      return make_self_contained(c * make_constant_matrix_like<1, Scalar>(std::forward<Arg1>(arg1)));
-# endif
-
+    using op = internal::scalar_constant_operation<std::minus<>, constant_coefficient<Arg1>, constant_coefficient<Arg2>>;
+    return make_constant_matrix_like(op{}, std::forward<Arg1>(arg1));
   }
 
 

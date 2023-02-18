@@ -25,18 +25,18 @@ namespace OpenKalman
   // ----------------- //
 
 #ifdef __cpp_concepts
-  template<indexible PatternMatrix, auto constant>
-  requires std::convertible_to<decltype(constant), scalar_type_of_t<PatternMatrix>>
+  template<indexible PatternMatrix, auto...constant>
+  requires std::constructible_from<scalar_type_of_t<PatternMatrix>, decltype(constant)...>
 #else
-  template<typename PatternMatrix, auto constant>
+  template<typename PatternMatrix, auto...constant>
 #endif
-  struct ConstantAdapter : internal::library_base<ConstantAdapter<PatternMatrix, constant>, PatternMatrix>
+  struct ConstantAdapter : internal::library_base<ConstantAdapter<PatternMatrix, constant...>, PatternMatrix>
   {
 
   private:
 
 #ifndef __cpp_concepts
-    static_assert(std::is_convertible_v<decltype(constant), scalar_type_of_t<PatternMatrix>>);
+    static_assert(std::is_constructible_v<scalar_type_of_t<PatternMatrix>, decltype(constant)...>);
 #endif
 
     using MyDimensions = decltype(get_all_dimensions_of(std::declval<PatternMatrix>()));
@@ -120,7 +120,8 @@ namespace OpenKalman
      * \tparam Ds A set of \ref dynamic_index_descriptor "dynamic index descriptors" corresponding to each of
      * class template parameter Ds that is dynamic, in order of Ds. This list should omit
      * any \ref fixed_index_descriptor "fixed index descriptors".
-     * \details The constructor can take a number of arguments representing the number of dynamic dimensions.
+     * \details If PatternMatrix has no dynamic dimensions, this is a default constructor.
+     * The constructor can take a number of arguments representing the number of dynamic dimensions.
      * For example, the following construct a 2-by-3 constant matrix of value 5:
      * \code
      * ConstantAdapter<eigen_matrix_t<double, dynamic_size, dynamic_size>, 5>(2, 3) // Dynamic rows and columns.
@@ -175,10 +176,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<constant_matrix Arg> requires (not std::derived_from<Arg, ConstantAdapter>) and
-      (constant == constant_coefficient_v<Arg>) and maybe_has_same_shape_as<Arg, PatternMatrix>
+      (constant_coefficient_v<Arg> == scalar_type_of_t<PatternMatrix> {constant...}) and
+      maybe_has_same_shape_as<Arg, PatternMatrix>
 #else
     template<typename Arg, std::enable_if_t<constant_matrix<Arg> and (not std::is_base_of_v<ConstantAdapter, Arg>) and
-      (constant == constant_coefficient<Arg>::value) and maybe_has_same_shape_as<Arg, PatternMatrix>, int> = 0>
+      (constant_coefficient<Arg>::value == scalar_type_of_t<PatternMatrix> {constant...}) and
+      maybe_has_same_shape_as<Arg, PatternMatrix>, int> = 0>
 #endif
     constexpr ConstantAdapter(const Arg& arg) : my_dimensions {make_dimensions_tuple(arg)} {}
 
@@ -207,10 +210,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<constant_matrix Arg> requires (not std::derived_from<Arg, ConstantAdapter>) and
-      (constant_coefficient_v<Arg> == constant) and maybe_has_same_shape_as<Arg, PatternMatrix>
+      (constant_coefficient_v<Arg> == scalar_type_of_t<PatternMatrix> {constant...}) and
+      maybe_has_same_shape_as<Arg, PatternMatrix>
 #else
     template<typename Arg, std::enable_if_t<constant_matrix<Arg> and (not std::is_base_of_v<ConstantAdapter, Arg>) and
-      (constant_coefficient<Arg>::value == constant) and maybe_has_same_shape_as<Arg, PatternMatrix>, int> = 0>
+      (constant_coefficient<Arg>::value == scalar_type_of_t<PatternMatrix> {constant...}) and
+      maybe_has_same_shape_as<Arg, PatternMatrix>, int> = 0>
 #endif
     constexpr auto& operator=(Arg&& arg)
     {
@@ -236,8 +241,10 @@ namespace OpenKalman
       }
       else if constexpr (constant_matrix<Arg>)
       {
-        if constexpr (constant != constant_coefficient_v<Arg>) return false;
-        else return get_index_descriptors_match(*this, arg);
+        if constexpr (constant_coefficient_v<Arg> == scalar_type_of_t<PatternMatrix> {constant...})
+          return get_index_descriptors_match(*this, arg);
+        else
+          return false;
       }
       else
       {
@@ -246,6 +253,12 @@ namespace OpenKalman
           "interface::EquivalentDenseWritableMatrix<PatternMatrix>::to_native_matrix(*this) must define an object within the library of Arg");
         return std::move(c) == arg;
       }
+    }
+
+
+    constexpr const scalar_type_of_t<PatternMatrix> value() const
+    {
+      return {constant...};
     }
 
 
@@ -263,7 +276,7 @@ namespace OpenKalman
       if constexpr (not maybe_has_same_shape_as<Arg, PatternMatrix>)
         return false;
       else if constexpr (constant_matrix<Arg>)
-        return constant_coefficient_v<Arg> == constant and get_index_descriptors_match(arg, c);
+        return constant_coefficient_v<Arg> == scalar_type_of_t<PatternMatrix>{constant...} and get_index_descriptors_match(arg, c);
       else
       {
         auto new_c = to_native_matrix<Arg>(c);
@@ -306,7 +319,7 @@ namespace OpenKalman
     constexpr scalar_type_of_t<PatternMatrix>
     operator()(Is...is) const
     {
-      return constant;
+      return {constant...};
     }
 
 
@@ -324,7 +337,7 @@ namespace OpenKalman
     constexpr scalar_type_of_t<PatternMatrix>
     operator[](Is is) const
     {
-      return constant;
+      return {constant...};
     }
 
   protected:
@@ -348,24 +361,32 @@ namespace OpenKalman
   // ------------------ //
 
 #ifdef __cpp_concepts
-#  if __cpp_nontype_template_args >= 201911L
-  template<constant_matrix Arg> requires (not constant_adapter<Arg>)
+  template<constant_matrix Arg> requires (not constant_adapter<Arg>) and
+    requires { typename ConstantAdapter<std::decay_t<Arg>, constant_coefficient_v<Arg>>; }
   ConstantAdapter(Arg&&) -> ConstantAdapter<std::decay_t<Arg>, constant_coefficient_v<Arg>>;
-#  else
-  template<constant_matrix Arg> requires (not constant_adapter<Arg>) and std::is_integral_v<scalar_type_of_t<Arg>>
-  ConstantAdapter(Arg&&) -> ConstantAdapter<std::decay_t<Arg>, constant_coefficient_v<Arg>>;;
 
-  template<constant_matrix Arg> requires (not constant_adapter<Arg>) and (not std::is_integral_v<scalar_type_of_t<Arg>>) and
-    (constant_coefficient_v<Arg> == static_cast<std::intmax_t>(constant_coefficient_v<Arg>))
+  template<constant_matrix Arg> requires (not constant_adapter<Arg>) and
+    (not requires { typename ConstantAdapter<std::decay_t<Arg>, constant_coefficient_v<Arg>>; }) and
+    (are_within_tolerance(constant_coefficient_v<Arg>, static_cast<std::intmax_t>(constant_coefficient_v<Arg>)))
   ConstantAdapter(Arg&&) -> ConstantAdapter<std::decay_t<Arg>, static_cast<std::intmax_t>(constant_coefficient_v<Arg>)>;
-#  endif
 #else
   template<typename Arg, std::enable_if_t<constant_matrix<Arg> and (not constant_adapter<Arg>) and
-    std::is_integral_v<scalar_type_of_t<Arg>>, int> = 0>
+    std::is_integral_v<typename scalar_type_of<Arg>::type>, int> = 0>
   ConstantAdapter(Arg&&) -> ConstantAdapter<std::decay_t<Arg>, constant_coefficient_v<Arg>>;
 
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct rounds_to_integral : std::false_type {};
+
+    template<typename T>
+    struct rounds_to_integral<T, std::enable_if_t<
+      are_within_tolerance(constant_coefficient<T>::value, static_cast<std::intmax_t>(constant_coefficient<T>::value))>>
+      : std::true_type {};
+  }
+
   template<typename Arg, std::enable_if_t<constant_matrix<Arg> and (not constant_adapter<Arg>) and
-    constant_coefficient_v<Arg> == static_cast<std::intmax_t>(constant_coefficient_v<Arg>), int> = 0>
+    (not std::is_integral_v<typename scalar_type_of<Arg>::type>) and (detail::rounds_to_integral<Arg>::value), int> = 0>
   ConstantAdapter(Arg&&) -> ConstantAdapter<std::decay_t<Arg>, static_cast<std::intmax_t>(constant_coefficient_v<Arg>)>;
 #endif
 
@@ -376,16 +397,16 @@ namespace OpenKalman
 
   namespace interface
   {
-    template<typename PatternMatrix, auto constant>
-    struct IndexibleObjectTraits<ConstantAdapter<PatternMatrix, constant>>
+    template<typename PatternMatrix, auto...constant>
+    struct IndexibleObjectTraits<ConstantAdapter<PatternMatrix, constant...>>
     {
       static constexpr std::size_t max_indices = max_indices_of_v<PatternMatrix>;
       using scalar_type = scalar_type_of_t<PatternMatrix>;
     };
 
 
-    template<typename PatternMatrix, auto constant, std::size_t N>
-    struct IndexTraits<ConstantAdapter<PatternMatrix, constant>, N>
+    template<typename PatternMatrix, auto...constant, std::size_t N>
+    struct IndexTraits<ConstantAdapter<PatternMatrix, constant...>, N>
     {
       static constexpr std::size_t dimension = index_dimension_of_v<PatternMatrix, N>;
 
@@ -397,8 +418,8 @@ namespace OpenKalman
     };
 
 
-    template<typename PatternMatrix, auto constant, std::size_t N>
-    struct CoordinateSystemTraits<ConstantAdapter<PatternMatrix, constant>, N>
+    template<typename PatternMatrix, auto...constant, std::size_t N>
+    struct CoordinateSystemTraits<ConstantAdapter<PatternMatrix, constant...>, N>
     {
       using coordinate_system_types = coefficient_types_of_t<PatternMatrix, N>;
 
@@ -410,11 +431,11 @@ namespace OpenKalman
     };
 
 
-    template<typename PatternMatrix, auto constant, typename...I>
+    template<typename PatternMatrix, auto...constant, typename...I>
 #ifdef __cpp_concepts
-    struct GetElement<ConstantAdapter<PatternMatrix, constant>, I...>
+    struct GetElement<ConstantAdapter<PatternMatrix, constant...>, I...>
 #else
-    struct GetElement<ConstantAdapter<PatternMatrix, constant>, void, I...>
+    struct GetElement<ConstantAdapter<PatternMatrix, constant...>, void, I...>
 #endif
     {
       template<typename Arg>
@@ -425,8 +446,8 @@ namespace OpenKalman
     // No SetElement defined  because ConstantAdapter is not writable.
 
 
-    template<typename PatternMatrix, auto constant, typename Scalar>
-    struct EquivalentDenseWritableMatrix<ConstantAdapter<PatternMatrix, constant>, Scalar>
+    template<typename PatternMatrix, auto...constant, typename Scalar>
+    struct EquivalentDenseWritableMatrix<ConstantAdapter<PatternMatrix, constant...>, Scalar>
     {
       static constexpr bool is_writable = false;
 
@@ -450,16 +471,16 @@ namespace OpenKalman
     };
 
 
-    template<typename PatternMatrix, auto constant>
-    struct Dependencies<ConstantAdapter<PatternMatrix, constant>>
+    template<typename PatternMatrix, auto...constant>
+    struct Dependencies<ConstantAdapter<PatternMatrix, constant...>>
     {
       static constexpr bool has_runtime_parameters = has_dynamic_dimensions<PatternMatrix>;
       using type = std::tuple<>;
     };
 
 
-    template<typename PatternMatrix, auto c, typename Scalar>
-    struct SingleConstantMatrixTraits<ConstantAdapter<PatternMatrix, c>, Scalar>
+    template<typename PatternMatrix, auto...c, typename Scalar>
+    struct SingleConstantMatrixTraits<ConstantAdapter<PatternMatrix, c...>, Scalar>
     {
       template<typename...D>
       static constexpr auto make_zero_matrix(D&&...d)
@@ -468,23 +489,60 @@ namespace OpenKalman
       }
 
 
-      template<auto constant, typename...D>
+      template<auto...constant, typename...D>
       static constexpr auto make_constant_matrix(D&&...d)
       {
-        return make_constant_matrix_like<PatternMatrix, constant, Scalar>(std::forward<D>(d)...);
+        return make_constant_matrix_like<PatternMatrix, Scalar, constant...>(std::forward<D>(d)...);
+      }
+
+
+      template<typename S, typename...D>
+      static constexpr auto make_runtime_constant(S&& s, D&&...d)
+      {
+        return make_constant_matrix_like<PatternMatrix>(std::forward<S>(s), std::forward<D>(d)...);
       }
     };
 
 
-    template<typename PatternMatrix, auto constant>
-    struct SingleConstant<ConstantAdapter<PatternMatrix, constant>>
+    template<typename PatternMatrix, auto c, auto...cs>
+    struct SingleConstant<ConstantAdapter<PatternMatrix, c, cs...>>
     {
-      static constexpr scalar_type_of_t<PatternMatrix> value = constant;
+    private:
+
+      struct C
+      {
+        using value_type = scalar_type_of_t<PatternMatrix>;
+        static constexpr value_type value {c, cs...};
+        static constexpr Likelihood status = Likelihood::definitely;
+        constexpr operator value_type() const noexcept { return value; }
+        constexpr value_type operator()() const noexcept { return value; }
+      };
+
+    public:
+
+      const ConstantAdapter<PatternMatrix, c, cs...>& xpr;
+
+      static constexpr auto get_constant()
+      {
+        return C{};
+      }
     };
 
 
-    template<typename PatternMatrix, auto constant, typename Scalar>
-    struct SingleConstantDiagonalMatrixTraits<ConstantAdapter<PatternMatrix, constant>, Scalar>
+    template<typename PatternMatrix>
+    struct SingleConstant<ConstantAdapter<PatternMatrix>>
+    {
+      const ConstantAdapter<PatternMatrix>& xpr;
+
+      constexpr auto get_constant()
+      {
+        return xpr.value();
+      }
+    };
+
+
+    template<typename PatternMatrix, auto...constant, typename Scalar>
+    struct SingleConstantDiagonalMatrixTraits<ConstantAdapter<PatternMatrix, constant...>, Scalar>
     {
       template<typename D>
       static constexpr auto make_identity_matrix(D&& d)
@@ -500,8 +558,8 @@ namespace OpenKalman
     // HermitianTraits not necessary because SingleConstant is defined
 
 
-    template<typename PatternMatrix, auto constant>
-    struct ArrayOperations<ConstantAdapter<PatternMatrix, constant>>
+    template<typename PatternMatrix, auto...constant>
+    struct ArrayOperations<ConstantAdapter<PatternMatrix, constant...>>
     {
       template<typename...Ds, typename Op, typename...Args>
       static constexpr decltype(auto)
@@ -530,8 +588,8 @@ namespace OpenKalman
     // No struct ModularTransformationTraits. Relying on default definition of that trait.
 
 
-    template<typename PatternMatrix, auto constant>
-    struct LinearAlgebra<ConstantAdapter<PatternMatrix, constant>>
+    template<typename PatternMatrix, auto...constant>
+    struct LinearAlgebra<ConstantAdapter<PatternMatrix, constant...>>
     {
       // conjugate is not necessary because it is handled by the general conjugate function.
       // transpose is not necessary because it is handled by the general transpose function.
@@ -574,12 +632,12 @@ namespace OpenKalman
   //        MatrixTraits         //
   // --------------------------- //
 
-  template<typename PatternMatrix, auto constant>
-  struct MatrixTraits<ConstantAdapter<PatternMatrix, constant>>
+  template<typename PatternMatrix, auto...constant>
+  struct MatrixTraits<ConstantAdapter<PatternMatrix, constant...>>
   {
   private:
 
-    using Matrix = ConstantAdapter<PatternMatrix, constant>;
+    using Matrix = ConstantAdapter<PatternMatrix, constant...>;
 
   public:
 
@@ -594,7 +652,7 @@ namespace OpenKalman
 
     template<std::size_t dim = row_dimension_of_v<PatternMatrix>>
     using DiagonalMatrixFrom = DiagonalMatrix<ConstantAdapter<
-      untyped_dense_writable_matrix_t<PatternMatrix, dim, 1>, constant>>;
+      untyped_dense_writable_matrix_t<PatternMatrix, scalar_type_of_t<PatternMatrix>, dim, 1>, constant...>>;
 
   };
 

@@ -118,7 +118,7 @@ namespace OpenKalman
 #else
     template<typename...Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
         (has_dynamic_dimensions<NestedMatrix> or sizeof...(Args) == dim) and
-        std::is_constructible_v<NestedMatrix, untyped_dense_writable_matrix_t<NestedMatrix, sizeof...(Args), 1>>, int> = 0>
+        std::is_constructible_v<NestedMatrix, untyped_dense_writable_matrix_t<NestedMatrix, Scalar, sizeof...(Args), 1>>, int> = 0>
 #endif
     DiagonalMatrix(Args...args) : Base {MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...)} {}
 

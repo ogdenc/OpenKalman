@@ -62,18 +62,7 @@ namespace OpenKalman
       }
       else if constexpr (constant_matrix<Arg>)
       {
-        return std::apply([](auto...ds){
-          constexpr auto c = constant_coefficient_v<Arg>;
-# if __cpp_nontype_template_args >= 201911L
-          return make_constant_matrix_like<Arg, c>(ds...);
-# else
-          constexpr auto c_integral = static_cast<std::intmax_t>(c);
-          if constexpr (are_within_tolerance(c, static_cast<scalar_type_of_t<Arg>>(c_integral)))
-            return make_constant_matrix_like<Arg, c_integral>(ds...);
-          else
-            return make_self_contained(c * make_constant_matrix_like<Arg, 1>(ds...));
-# endif
-        }, size);
+        return std::apply([](auto...ds){ return make_constant_matrix_like<Arg>(constant_coefficient<Arg>{}, ds...); }, size);
       }
       else
       {

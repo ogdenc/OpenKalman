@@ -40,6 +40,7 @@ namespace OpenKalman::internal {}
 
 #include "scalar-types.hpp"
 #include "functions/scalar_functions.hpp"
+#include "internal/math_constexpr.hpp"
 
 #include "index-descriptors/index-descriptors.hpp"
 

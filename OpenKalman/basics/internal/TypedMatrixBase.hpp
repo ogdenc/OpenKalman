@@ -99,9 +99,10 @@ namespace OpenKalman::internal
     template<typename ... Args, std::enable_if_t<(std::is_convertible_v<Args, const Scalar> and ...) and
       (sizeof...(Args) > 0) and (
         (diagonal_matrix<NestedMatrix> and
-          std::is_constructible_v<NestedMatrix, dense_writable_matrix_t<NestedMatrix, Dimensions<sizeof...(Args)>, Dimensions<1>>>) or
+          std::is_constructible_v<NestedMatrix, dense_writable_matrix_t<NestedMatrix, typename scalar_type_of<NestedMatrix>::type,
+            Dimensions<sizeof...(Args)>, Dimensions<1>>>) or
         (sizeof...(Args) == row_dimension_of<NestedMatrix>::value * column_dimension_of<NestedMatrix>::value and
-          std::is_constructible_v<NestedMatrix, dense_writable_matrix_t<NestedMatrix,
+          std::is_constructible_v<NestedMatrix, dense_writable_matrix_t<NestedMatrix, typename scalar_type_of<NestedMatrix>::type,
             Dimensions<row_dimension_of<NestedMatrix>::value>, Dimensions<column_dimension_of<NestedMatrix>::value>>>)), int> = 0>
 #endif
     TypedMatrixBase(Args ... args)

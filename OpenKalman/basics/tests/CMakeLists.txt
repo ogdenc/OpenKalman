@@ -14,12 +14,14 @@ enable_testing()
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
-add_executable(index-descriptors
+add_executable(basics
+        scalar-types.cpp
+        basics.cpp
         index-descriptors.cpp
         index-descriptor-functions.cpp
         dynamic-typed-index-descriptors.cpp
     )
 
-target_link_libraries(index-descriptors ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
+target_link_libraries(basics ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
 
-gtest_discover_tests(index-descriptors DISCOVERY_TIMEOUT 10)
+gtest_discover_tests(basics DISCOVERY_TIMEOUT 10)

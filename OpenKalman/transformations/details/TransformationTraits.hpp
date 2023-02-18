@@ -219,7 +219,7 @@ namespace OpenKalman
       using InputCoefficients = row_coefficient_types_of_t<In>;
       constexpr std::size_t input_size = dimension_size_of_v<InputCoefficients>;
       constexpr std::size_t output_size = dimension_size_of_v<OutputCoefficients>;
-      using HessianMatrixInBase = untyped_dense_writable_matrix_t<In, input_size, input_size>;
+      using HessianMatrixInBase = untyped_dense_writable_matrix_t<In, scalar_type_of_t<In>, input_size, input_size>;
       using HessianMatrixIn = Matrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
       using HessianArrayIn = std::array<HessianMatrixIn, output_size>;
 

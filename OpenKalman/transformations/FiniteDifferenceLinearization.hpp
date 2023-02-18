@@ -88,7 +88,7 @@ namespace OpenKalman
     {
       using RC = row_coefficient_types_of_t<T>;
       using CC = column_coefficient_types_of_t<T>;
-      return Matrix<RC, CC, dense_writable_matrix_t<T>> {std::forward<T>(t)};
+      return Matrix<RC, CC, dense_writable_matrix_t<T, scalar_type_of_t<T>>> {std::forward<T>(t)};
     }
 
 
@@ -191,7 +191,7 @@ namespace OpenKalman
       using Term = decltype(std::get<term>(inputs));
       const auto t = h_k<term>(inputs, std::make_index_sequence<row_dimension_of_v<Term>> {});
       using C = row_coefficient_types_of_t<Term>;
-      using V = Matrix<C, C, dense_writable_matrix_t<Term, Dimensions<row_dimension_of_v<Term>>, Dimensionsrow_dimension_of_v<Term>>>>;
+      using V = Matrix<C, C, dense_writable_matrix_t<Term, scalar_type_of_t<Term>, Dimensions<row_dimension_of_v<Term>>, Dimensions<row_dimension_of_v<Term>>>>;
       return std::array<V, sizeof...(ks)> {
         apply_coefficientwise<V>([&t](std::size_t i, std::size_t j) { return t[i][j][ks]; })...};
     }

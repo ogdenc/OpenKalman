@@ -125,7 +125,7 @@ namespace OpenKalman::internal
     {
       static_assert(column_dimension_of_v<YMeans> == Derived::template sigma_point_count<dim>);
       constexpr auto count = column_dimension_of_v<YMeans>;
-      using Weights = Matrix<Dimensions<count>, Axis, untyped_dense_writable_matrix_t<YMeans, count, 1>>;
+      using Weights = Matrix<Dimensions<count>, Axis, untyped_dense_writable_matrix_t<YMeans, scalar_type_of_t<YMeans>, count, 1>>;
       return make_self_contained(std::forward<YMeans>(y_means) * mean_weights<dim, Weights>());
     }
 
@@ -155,7 +155,7 @@ namespace OpenKalman::internal
     {
       static_assert(column_dimension_of_v<X> == Derived::template sigma_point_count<dim>);
       constexpr auto count = column_dimension_of_v<X>;
-      using Weights = Matrix<Dimensions<count>, Axis, untyped_dense_writable_matrix_t<X, count, 1>>;
+      using Weights = Matrix<Dimensions<count>, Axis, untyped_dense_writable_matrix_t<X, scalar_type_of_t<X>, count, 1>>;
       auto weights = covariance_weights<dim, Weights>();
 
       if constexpr(cholesky_form<InputDist>)

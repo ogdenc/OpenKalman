@@ -45,17 +45,90 @@ namespace OpenKalman
 
 
   /**
-   * \brief The likelihood, at compile time, that a particular property applies.
+   * \brief Whether a property is definitely known to apply at compile time (definitely) or not ruled out (maybe).
    */
   enum struct Likelihood : bool {
-    maybe = false, ///< It is not known at compile time whether the property applies, but it's not ruled out.
-    definitely = true, ///< The property is known at compile time to apply.
+    maybe = false, ///< At compile time, the property is not ruled out.
+    definitely = true, ///< At compile time, the property is known.
   };
+
 
   constexpr Likelihood operator!(Likelihood x)
   {
     return x == Likelihood::definitely ? Likelihood::maybe : Likelihood::definitely;
   }
+
+
+  constexpr Likelihood operator&&(Likelihood x, Likelihood y)
+  {
+    return Likelihood {static_cast<bool>(x) && static_cast<bool>(y)};
+  }
+
+
+  constexpr Likelihood operator||(Likelihood x, Likelihood y)
+  {
+    return Likelihood {static_cast<bool>(x) || static_cast<bool>(y)};
+  }
+
+
+  /**
+   * \brief The known/unknown status of a particular property at compile time.
+   */
+  enum struct CompileTimeStatus {
+    any, ///< The property is either known or unknown at compile time.
+    unknown, ///< The property is unknown at compile time but known at runtime.
+    known, ///< The property is known at compile time.
+  };
+
+
+
+  namespace internal
+  {
+    // ----------------------- //
+    //  is_plus, is_multiplies //
+    // ----------------------- //
+
+    template<typename T>
+    struct is_plus : std::false_type {};
+
+    template<typename T>
+    struct is_plus<std::plus<T>> : std::true_type {};
+
+    template<typename T>
+    struct is_multiplies : std::false_type {};
+
+    template<typename T>
+    struct is_multiplies<std::multiplies<T>> : std::true_type {};
+
+
+    // ------------------------- //
+    //  constexpr_n_ary_function //
+    // ------------------------- //
+
+#ifdef __cpp_concepts
+    template<typename Op, typename...Args>
+    struct is_constexpr_n_ary_function : std::false_type {};
+
+    template<typename Op, typename...Args>
+    requires requires { typename std::bool_constant<0 == Op{}(std::decay_t<Args>::value...)>; }
+    struct is_constexpr_n_ary_function<Op, Args...> : std::true_type {};
+
+    template<typename Op, typename...Args>
+    concept constexpr_n_ary_function = is_constexpr_n_ary_function<Op, Args...>::value;
+#else
+    template<typename Op, typename = void, typename...Args>
+    struct is_constexpr_n_ary_function : std::false_type {};
+
+    template<typename Op, typename...Args>
+    struct is_constexpr_n_ary_function<Op, std::void_t<std::bool_constant<0 == Op{}(std::decay_t<Args>::value...)>>, Args...>
+      : std::true_type {};
+
+    template<typename Op, typename...Args>
+    constexpr bool constexpr_n_ary_function = is_constexpr_n_ary_function<Op, void, Args...>::value;
+#endif
+
+
+  } // namespace internal
 
 } // namespace OpenKalman
 

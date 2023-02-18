@@ -66,17 +66,17 @@ namespace OpenKalman
 
   namespace detail
   {
-    template<typename T, typename...D>
+    template<typename T, typename Scalar, typename...D>
     struct dense_writable_matrix_impl
     {
-      using type = std::decay_t<decltype(make_default_dense_writable_matrix_like<T>(std::declval<D>()...))>;
+      using type = std::decay_t<decltype(make_default_dense_writable_matrix_like<T, Scalar>(std::declval<D>()...))>;
     };
 
 
-    template<typename T>
-    struct dense_writable_matrix_impl<T>
+    template<typename T, typename Scalar>
+    struct dense_writable_matrix_impl<T, Scalar>
     {
-      using type = std::decay_t<decltype(make_default_dense_writable_matrix_like(std::declval<T>()))>;
+      using type = std::decay_t<decltype(make_default_dense_writable_matrix_like<Scalar>(std::declval<T>()))>;
     };
   }
 
@@ -84,15 +84,16 @@ namespace OpenKalman
   /**
     * \brief An alias for a dense, writable matrix, patterned on parameter T.
     * \tparam T A matrix or array from the relevant matrix library.
+    * \tparam S A scalar type (may or may not be </code>scalar_type_of_t<T></code>.
     * \tparam D Index descriptors defining the dimensions of the new matrix.
     * \todo Create typed Matrix if Ds are typed.
     */
 #ifdef __cpp_concepts
-  template<indexible T, index_descriptor...D>
+  template<indexible T, scalar_type S = scalar_type_of_t<T>, index_descriptor...D>
 #else
-  template<typename T, typename...D>
+  template<typename T, typename S = scalar_type_of_t<T>, typename...D>
 #endif
-  using dense_writable_matrix_t = typename detail::dense_writable_matrix_impl<T, D...>::type;
+  using dense_writable_matrix_t = typename detail::dense_writable_matrix_impl<T, std::decay_t<S>, D...>::type;
 
 
   // --------------------------------- //
@@ -105,11 +106,11 @@ namespace OpenKalman
    * \tparam D Integral values defining the dimensions of the new matrix.
    */
 #ifdef __cpp_concepts
-  template<indexible T, auto...D> requires ((std::is_integral_v<decltype(D)> and D >= 0) and ...)
+  template<indexible T, scalar_type S, auto...D> requires ((std::is_integral_v<decltype(D)> and D >= 0) and ...)
 #else
-  template<typename T, auto...D>
+  template<typename T, typename S, auto...D>
 #endif
-  using untyped_dense_writable_matrix_t = dense_writable_matrix_t<T, Dimensions<static_cast<const std::size_t>(D)>...>;
+  using untyped_dense_writable_matrix_t = dense_writable_matrix_t<T, S, Dimensions<static_cast<const std::size_t>(D)>...>;
 
 
   // --------------------------- //

@@ -52,6 +52,16 @@ namespace OpenKalman
   }
 
 
+  namespace detail
+  {
+    struct constexpr_sqrt_op
+    {
+      template<typename Arg>
+      constexpr auto operator()(Arg arg) const noexcept { return OpenKalman::internal::constexpr_sqrt(arg); }
+    };
+  }
+
+
   /**
    * \brief Take the Cholesky factor of a matrix.
    * \tparam A A square matrix.
@@ -83,16 +93,12 @@ namespace OpenKalman
       // Check that Cholesky factor elements are real:
       constexpr scalar_type_of_t<A> s = constant_coefficient_v<A>;
       static_assert(s >= 0, "For a Cholesky_factor of a negative constant matrix, the constant must be positive");
-      constexpr auto sqrt_s = OpenKalman::internal::constexpr_sqrt(s);
+      using op = internal::scalar_constant_operation<detail::constexpr_sqrt_op, constant_coefficient<A>>;
 
       if constexpr (triangle_type == TriangleType::diagonal)
       {
         static_assert(diagonal_matrix<A>);
-#if __cpp_nontype_template_args >= 201911L
-        return to_diagonal(make_constant_matrix_like<A, sqrt_s>(get_dimensions_of<0>(a), Dimensions<1>{}));
-#else
-        return make_self_contained<A>(sqrt_s * make_identity_matrix_like(a));
-#endif
+        return to_diagonal(make_constant_matrix_like<A>(op{}, get_dimensions_of<0>(a), Dimensions<1>{}));
       }
       else
       {
@@ -108,21 +114,13 @@ namespace OpenKalman
           constexpr Dimensions<1> D1;
           if constexpr (triangle_type == TriangleType::lower)
           {
-#if __cpp_nontype_template_args >= 201911L
-            auto col0 = make_constant_matrix_like<A, sqrt_s>(euclidean_id_a, D1);
-#else
-            auto col0 = sqrt_s * make_constant_matrix_like<A, 1>(euclidean_id_a, D1);
-#endif
+            auto col0 = make_constant_matrix_like<A>(op{}, euclidean_id_a, D1);
             return concatenate<1>(col0, make_zero_matrix_like<A>(euclidean_id_a, euclidean_id_a - D1));
           }
           else
           {
             static_assert(triangle_type == TriangleType::upper);
-#if __cpp_nontype_template_args >= 201911L
-            auto row0 = make_constant_matrix_like<A, sqrt_s>(D1, euclidean_id_a);
-#else
-            auto row0 = sqrt_s * make_constant_matrix_like<A, 1>(D1, euclidean_id_a);
-#endif
+            auto row0 = make_constant_matrix_like<A>(op{}, D1, euclidean_id_a);
             return concatenate<0>(row0, make_zero_matrix_like<A>(euclidean_id_a - D1, euclidean_id_a));
           }
         }(euclidean_id_a);
