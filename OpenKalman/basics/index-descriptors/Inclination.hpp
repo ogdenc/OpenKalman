@@ -164,15 +164,15 @@ namespace OpenKalman
 #endif
       {
         using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
-        using R = std::decay_t<decltype(real_part(std::declval<Scalar>()))>;
+        using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
         const Scalar cf {numbers::pi_v<R> / (Limits::up - Limits::down)};
         const Scalar horiz {R{Limits::up + Limits::down} * R{0.5}};
 
         Scalar theta = cf * (g(start) - horiz); // Convert to radians
-        if (euclidean_local_index == 0)
-          return cosine(theta);
-        else
-          return sine(theta);
+
+        using std::cos, std::sin;
+        if (euclidean_local_index == 0) return cos(theta);
+        else return sin(theta);
       }
 
 
@@ -191,15 +191,18 @@ namespace OpenKalman
 #endif
       {
         using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
-        using R = std::decay_t<decltype(real_part(std::declval<Scalar>()))>;
+        using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
         const Scalar cf {numbers::pi_v<R> / (Limits::up - Limits::down)};
         const Scalar horiz {R{Limits::up + Limits::down} * R{0.5}};
 
         Scalar x = g(euclidean_start);
         // In Euclidean space, (the real part of) x must be non-negative since the inclination is in range [-½pi,½pi].
-        Scalar pos_x = internal::inverse_real_projection(x, std::abs(real_part(x)));
+        using std::abs;
+        Scalar pos_x = internal::update_real_part(x, abs(internal::constexpr_real(x)));
         Scalar y = g(euclidean_start + 1);
-        return arctangent2(y, pos_x) / cf + horiz;
+
+        if constexpr (complex_number<Scalar>) return internal::constexpr_atan2(y, pos_x) / cf + horiz;
+        else { using std::atan2; return atan2(y, pos_x) / cf + horiz; }
       }
 
     private:
@@ -207,7 +210,7 @@ namespace OpenKalman
       template<typename A>
       static constexpr std::decay_t<A> wrap_impl(A&& a)
       {
-        auto ap = real_part(a);
+        auto ap = internal::constexpr_real(a);
         if (ap >= Limits::down and ap <= Limits::up)
         {
           return std::forward<decltype(a)>(a);
@@ -217,11 +220,12 @@ namespace OpenKalman
           using R = std::decay_t<decltype(ap)>;
           constexpr R range {Limits::up - Limits::down};
           constexpr R period {range * 2};
-          auto ar = std::fmod(ap - R{Limits::down}, period);
+          using std::fmod;
+          auto ar = fmod(ap - R{Limits::down}, period);
 
-          if (ar < 0) return internal::inverse_real_projection(std::forward<decltype(a)>(a), R{Limits::down} + ar + period);
-          else if (ar > range) return internal::inverse_real_projection(std::forward<decltype(a)>(a), R{Limits::down} - ar + period);
-          else return internal::inverse_real_projection(std::forward<decltype(a)>(a), R{Limits::down} + ar);
+          if (ar < 0) return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::down} + ar + period);
+          else if (ar > range) return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::down} - ar + period);
+          else return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::down} + ar);
         }
       }
 

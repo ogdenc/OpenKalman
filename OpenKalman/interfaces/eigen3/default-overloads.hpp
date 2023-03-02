@@ -607,8 +607,9 @@ namespace OpenKalman
   template<typename ... Args, std::enable_if_t<(scalar_type<Args> and ...) and (sizeof...(Args) > 0) and
     (sizeof...(Args) == static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args)))), int> = 0>
 #endif
-  explicit SquareRootCovariance(const Args& ...) -> SquareRootCovariance<Dimensions<constexpr_sqrt(sizeof...(Args))>,
-  TriangularMatrix<Eigen3::eigen_matrix_t<std::common_type_t<Args...>,
+  explicit SquareRootCovariance(const Args& ...) -> SquareRootCovariance<
+    Dimensions<static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args)))>,
+    TriangularMatrix<Eigen3::eigen_matrix_t<std::common_type_t<Args...>,
     static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))), static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args)))>>>;
 
 

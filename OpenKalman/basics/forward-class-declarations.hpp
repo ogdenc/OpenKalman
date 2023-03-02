@@ -184,8 +184,8 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<square_matrix<Likelihood::maybe> NestedMatrix, TriangleType storage_triangle =
       (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : TriangleType::lower)> requires
-    (not constant_matrix<NestedMatrix> or imaginary_part(constant_coefficient_v<NestedMatrix>) == 0) and
-    (not constant_diagonal_matrix<NestedMatrix> or imaginary_part(constant_diagonal_coefficient_v<NestedMatrix>) == 0) and
+    (not constant_matrix<NestedMatrix> or real_axis_number<constant_coefficient<NestedMatrix>>) and
+    (not constant_diagonal_matrix<NestedMatrix> or real_axis_number<constant_diagonal_coefficient<NestedMatrix>>) and
     (storage_triangle != TriangleType::none)
 #else
   template<typename NestedMatrix, TriangleType storage_triangle =

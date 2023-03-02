@@ -80,15 +80,16 @@ namespace OpenKalman
         }
         else
         {
-          using R = std::decay_t<decltype(real_part(std::declval<Scalar>()))>;
+          using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
           const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
           const Scalar mid {R{Limits::max + Limits::min} * R{0.5}};
 
           Scalar theta = cf * g(start + a_i) - mid;
           switch(euclidean_local_index)
           {
-            case x_i: return cosine(theta);
-            default: return sine(theta); // case y_i
+            using std::cos, std::sin;
+            case x_i: return cos(theta);
+            default: return sin(theta); // case y_i
           }
         }
       }
@@ -114,22 +115,26 @@ namespace OpenKalman
       {
         using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
         Scalar d = g(euclidean_start + d2_i);
-        auto dr = real_part(d);
+        auto dr = internal::constexpr_real(d);
         if (local_index == d_i)
         {
           // A negative distance is reflected to the positive axis.
-          return internal::inverse_real_projection(d, std::abs(dr));
+          using std::abs;
+          return internal::update_real_part(d, abs(dr));
         }
         else
         {
-          using R = std::decay_t<decltype(real_part(std::declval<Scalar>()))>;
+          using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
           const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
           const Scalar mid {R{Limits::max + Limits::min} * R{0.5}};
 
           // If distance is negative, flip 180 degrees:
-          Scalar x = std::signbit(dr) ? -g(euclidean_start + x_i) : g(euclidean_start + x_i);
-          Scalar y = std::signbit(dr) ? -g(euclidean_start + y_i) : g(euclidean_start + y_i);
-          return arctangent2(y, x) / cf + mid;
+          using std::signbit;
+          Scalar x = signbit(dr) ? -g(euclidean_start + x_i) : g(euclidean_start + x_i);
+          Scalar y = signbit(dr) ? -g(euclidean_start + y_i) : g(euclidean_start + y_i);
+
+          if constexpr (complex_number<Scalar>) return internal::constexpr_atan2(y, x) / cf + mid;
+          else { using std::atan2; return atan2(y, x) / cf + mid; }
         }
       }
 
@@ -142,19 +147,20 @@ namespace OpenKalman
       static constexpr std::decay_t<Scalar> polar_angle_wrap_impl(bool distance_is_negative, Scalar&& a)
 #endif
       {
-        using R = std::decay_t<decltype(real_part(std::declval<decltype(a)>()))>;
+        using R = std::decay_t<decltype(internal::constexpr_real(std::declval<decltype(a)>()))>;
         constexpr R period {Limits::max - Limits::min};
-        R ap {distance_is_negative ? real_part(a) + period * R{0.5} : real_part(a)};
+        R ap {distance_is_negative ? internal::constexpr_real(a) + period * R{0.5} : internal::constexpr_real(a)};
 
         if (ap >= Limits::min and ap < Limits::max) // Check if the angle doesn't need wrapping.
         {
-          return internal::inverse_real_projection(std::forward<decltype(a)>(a), ap);;
+          return internal::update_real_part(std::forward<decltype(a)>(a), ap);;
         }
         else // Wrap the angle.
         {
-          auto ar = std::fmod(ap - R{Limits::min}, period);
-          if (ar < 0) return internal::inverse_real_projection(std::forward<decltype(a)>(a), R{Limits::min} + ar + period);
-          else return internal::inverse_real_projection(std::forward<decltype(a)>(a), R{Limits::min} + ar);
+          using std::fmod;
+          auto ar = fmod(ap - R{Limits::min}, period);
+          if (ar < 0) return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar + period);
+          else return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar);
         }
       }
 
@@ -177,11 +183,12 @@ namespace OpenKalman
       wrap_get_element(const G& g, std::size_t local_index, std::size_t start)
 #endif
       {
+        using std::abs, std::signbit;
         auto d = g(start + d_i);
         switch(local_index)
         {
-          case d_i: return internal::inverse_real_projection(d, std::abs(real_part(d)));
-          default: return polar_angle_wrap_impl(std::signbit(real_part(d)), g(start + a_i)); // case a_i
+          case d_i: return internal::update_real_part(d, abs(internal::constexpr_real(d)));
+          default: return polar_angle_wrap_impl(signbit(internal::constexpr_real(d)), g(start + a_i)); // case a_i
         }
       }
 
@@ -212,9 +219,10 @@ namespace OpenKalman
         {
           case d_i:
           {
-            auto xp = real_part(x);
-            s(internal::inverse_real_projection(x, std::abs(xp)), start + d_i);
-            s(polar_angle_wrap_impl(std::signbit(xp), g(start + a_i)), start + a_i); //< Possibly reflect angle
+            auto xp = internal::constexpr_real(x);
+            using std::abs, std::signbit;
+            s(internal::update_real_part(x, abs(xp)), start + d_i);
+            s(polar_angle_wrap_impl(signbit(xp), g(start + a_i)), start + a_i); //< Possibly reflect angle
             break;
           }
           default: // case a_i

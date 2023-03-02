@@ -31,6 +31,13 @@ namespace OpenKalman {}
 namespace OpenKalman::internal {}
 
 
+/**
+ * \internal
+ * \brief The root namespace for OpenKalman interface types.
+ */
+namespace OpenKalman::interface {}
+
+
 #ifndef OPENKALMAN_BASICS_HPP
 #define OPENKALMAN_BASICS_HPP
 
@@ -38,6 +45,7 @@ namespace OpenKalman::internal {}
 #include "global-definitions.hpp"
 #include "utils.hpp"
 
+#include "internal/scalar-traits.hpp"
 #include "scalar-types.hpp"
 #include "functions/scalar_functions.hpp"
 #include "internal/math_constexpr.hpp"

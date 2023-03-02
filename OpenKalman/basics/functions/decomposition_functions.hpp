@@ -49,8 +49,9 @@ namespace OpenKalman
       constexpr auto constant = constant_coefficient_v<A>;
 
       const Scalar elem = constant * [](A&& a){
-        if constexpr (dynamic_dimension<A, 1>) return square_root(static_cast<Scalar>(get_index_dimension_of<1>(a)));
-        else return internal::constexpr_sqrt(static_cast<Scalar>(index_dimension_of_v<A, 1>));
+        using std::sqrt;
+        if constexpr (dynamic_dimension<A, 1>) return sqrt(static_cast<Scalar>(get_index_dimension_of<1>(a)));
+        else return sqrt(static_cast<Scalar>(index_dimension_of_v<A, 1>));
       }(std::forward<A>(a));
 
       if constexpr (dynamic_dimension<A, 0>)
@@ -126,8 +127,9 @@ namespace OpenKalman
       constexpr auto constant = constant_coefficient_v<A>;
 
       const Scalar elem = constant * [](A&& a){
-        if constexpr (dynamic_dimension<A, 0>) return square_root(static_cast<Scalar>(get_index_dimension_of<0>(a)));
-        else return internal::constexpr_sqrt(static_cast<Scalar>(index_dimension_of_v<A, 0>));
+        using std::sqrt;
+        if constexpr (dynamic_dimension<A, 0>) return sqrt(static_cast<Scalar>(get_index_dimension_of<0>(a)));
+        else return sqrt(static_cast<Scalar>(index_dimension_of_v<A, 0>));
       }(std::forward<A>(a));
 
       if constexpr (dynamic_dimension<A, 1>)

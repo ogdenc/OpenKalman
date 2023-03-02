@@ -90,8 +90,9 @@ namespace OpenKalman
 #endif
       {
         auto x = g(euclidean_start);
-        // The distance component may need to be wrapped to the positive half of the axis:
-        return internal::inverse_real_projection(x, std::abs(real_part(x)));
+        // The distance component may need to be wrapped to the positive half of the real axis:
+        using std::abs;
+        return internal::update_real_part(x, abs(internal::constexpr_real(x)));
       }
 
 
@@ -110,7 +111,8 @@ namespace OpenKalman
 #endif
       {
         auto x = g(start);
-        return internal::inverse_real_projection(x, std::abs(real_part(x)));
+        using std::abs;
+        return internal::update_real_part(x, abs(internal::constexpr_real(x)));
       }
 
 
@@ -131,7 +133,8 @@ namespace OpenKalman
         std::size_t local_index, std::size_t start)
   #endif
       {
-        s(internal::inverse_real_projection(x, std::abs(real_part(x))), start);
+        using std::abs;
+        s(internal::update_real_part(x, abs(internal::constexpr_real(x))), start);
       }
 
     };

@@ -1593,7 +1593,7 @@ namespace OpenKalman
           return constant_coefficient{xpr.nestedExpression()};
         else if constexpr (constant_matrix<MatrixType, Likelihood::maybe, CompileTimeStatus::known>)
         {
-          if constexpr (imaginary_part(constant_coefficient_v<MatrixType>) == 0)
+          if constexpr (real_axis_number<constant_coefficient<MatrixType>>)
             return constant_coefficient{xpr.nestedExpression()};
           else return std::monostate{};
         }
@@ -1630,34 +1630,18 @@ namespace OpenKalman
     };
 
 
-#ifndef __cpp_concepts
-    namespace detail
-    {
-      template<typename T, typename = void>
-      struct any_const_imag_part_is_zero : std::false_type {};
-
-      template<typename T>
-      struct any_const_imag_part_is_zero<T, std::enable_if_t<
-        imaginary_part(constant_coefficient<std::decay_t<T>>::value) != 0>> : std::false_type {};
-
-      template<typename T>
-      struct any_const_imag_part_is_zero<T, std::enable_if_t<not constant_matrix<T> and
-        imaginary_part(constant_diagonal_coefficient<std::decay_t<T>>::value) != 0>> : std::false_type {};
-    };
-#endif
-
-
 #ifdef __cpp_concepts
     template<typename MatrixType, unsigned int UpLo> requires
       (not complex_number<typename EGI::traits<MatrixType>::Scalar>) or
-      (imaginary_part(constant_coefficient_v<MatrixType>) == 0) or
-      (imaginary_part(constant_diagonal_coefficient_v<MatrixType>) == 0)
+      real_axis_number<constant_coefficient<MatrixType>> or
+      real_axis_number<constant_diagonal_coefficient<MatrixType>>
     struct HermitianTraits<Eigen::SelfAdjointView<MatrixType, UpLo>>
 #else
     template<typename MatrixType, unsigned int UpLo>
     struct HermitianTraits<Eigen::SelfAdjointView<MatrixType, UpLo>, std::enable_if_t<
       (not complex_number<typename EGI::traits<MatrixType>::Scalar>) or
-      detail::any_const_imag_part_is_zero<MatrixType>::value>>
+      real_axis_number<constant_coefficient<MatrixType>> or
+      real_axis_number<constant_diagonal_coefficient<MatrixType>>>>
 #endif
     {
       static constexpr bool is_hermitian = true;
@@ -1942,14 +1926,15 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename MatrixType, unsigned int Mode> requires
       (not complex_number<typename EGI::traits<MatrixType>::Scalar>) or
-      (imaginary_part(constant_coefficient_v<MatrixType>) == 0) or
-      (imaginary_part(constant_diagonal_coefficient_v<MatrixType>) == 0)
+      real_axis_number<constant_coefficient<MatrixType>> or
+      real_axis_number<constant_diagonal_coefficient<MatrixType>>
     struct HermitianTraits<Eigen::TriangularView<MatrixType, Mode>>
 #else
     template<typename MatrixType, unsigned int Mode>
     struct HermitianTraits<Eigen::TriangularView<MatrixType, Mode>, std::enable_if_t<
       (not complex_number<typename EGI::traits<MatrixType>::Scalar>) or
-      detail::any_const_imag_part_is_zero<MatrixType>::value>>
+      real_axis_number<constant_coefficient<MatrixType>> or
+      real_axis_number<constant_diagonal_coefficient<MatrixType>>>>
 #endif
     {
       static constexpr bool is_hermitian = diagonal_matrix<MatrixType>;

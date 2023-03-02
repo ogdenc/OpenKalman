@@ -337,7 +337,8 @@ namespace OpenKalman
 
         if (s > Scalar(0))
         {
-          return MatrixTraits<std::decay_t<M>>::make(B {nested_matrix(std::forward<M>(m)) * square_root(static_cast<Scalar>(s))});
+          using std::sqrt;
+          return MatrixTraits<std::decay_t<M>>::make(B {nested_matrix(std::forward<M>(m)) * sqrt(static_cast<Scalar>(s))});
         }
         else if (s < Scalar(0))
         {
@@ -408,7 +409,8 @@ namespace OpenKalman
 
         if (s > Scalar(0))
         {
-          return MatrixTraits<std::decay_t<M>>::make(B {nested_matrix(std::forward<M>(m)) / square_root(static_cast<Scalar>(s))});
+          using std::sqrt;
+          return MatrixTraits<std::decay_t<M>>::make(B {nested_matrix(std::forward<M>(m)) / sqrt(static_cast<Scalar>(s))});
         }
         else if (s < Scalar(0))
         {

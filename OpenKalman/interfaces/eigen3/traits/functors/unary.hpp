@@ -17,6 +17,7 @@
 #define OPENKALMAN_EIGEN3_TRAITS_FUNCTORS_UNARY_HPP
 
 #include <type_traits>
+#include <complex>
 
 namespace OpenKalman::Eigen3
 {
@@ -98,8 +99,8 @@ namespace OpenKalman::Eigen3
       {
         if constexpr (complex_number<Scalar>)
         {
-          auto r = real_part(arg);
-          auto i = imaginary_part(arg);
+          auto r = internal::constexpr_real(arg);
+          auto i = internal::constexpr_imag(arg);
           return constexpr_sqrt(r * r + i * i);
         }
         else return arg >= Scalar{0} ? arg : -arg;
@@ -137,8 +138,8 @@ namespace OpenKalman::Eigen3
       {
         if constexpr (complex_number<Scalar>)
         {
-          auto r = real_part(arg);
-          auto i = imaginary_part(arg);
+          auto r = internal::constexpr_real(arg);
+          auto i = internal::constexpr_imag(arg);
           return r * r + i * i;
         }
         else return arg * arg;
@@ -162,7 +163,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar, typename XprType>
   struct FunctorTraits<EGI::scalar_conjugate_op<Scalar>, XprType>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const noexcept { return conjugate(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_conj(arg); } };
 
     template<template<typename...> typename T, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -182,7 +183,7 @@ namespace OpenKalman::Eigen3
   struct FunctorTraits<EGI::scalar_arg_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept {
-      return internal::constexpr_atan2(imaginary_part(arg), real_part(arg)); } };
+      return internal::constexpr_atan2(internal::constexpr_imag(arg), internal::constexpr_real(arg)); } };
 
     template<template<typename...> typename T, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -270,7 +271,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar, typename XprType>
   struct FunctorTraits<EGI::scalar_real_op<Scalar>, XprType>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const noexcept { return real_part(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_real(arg); } };
 
     template<template<typename...> typename T, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -289,7 +290,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar, typename XprType>
   struct FunctorTraits<EGI::scalar_imag_op<Scalar>, XprType>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const noexcept { return imaginary_part(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_imag(arg); } };
 
     template<template<typename...> typename T, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -402,7 +403,7 @@ namespace OpenKalman::Eigen3
     {
       constexpr auto operator()(Scalar arg) const noexcept
       {
-        using S = std::decay_t<decltype(real_part(arg))>;
+        using S = std::decay_t<decltype(internal::constexpr_real(arg))>;
         return internal::constexpr_log(arg) / numbers::ln10_v<S>;
       }
     };
@@ -430,7 +431,7 @@ namespace OpenKalman::Eigen3
     {
       constexpr auto operator()(Scalar arg) const noexcept
       {
-        using S = std::decay_t<decltype(real_part(arg))>;
+        using S = std::decay_t<decltype(internal::constexpr_real(arg))>;
         return internal::constexpr_log(arg) / numbers::ln2_v<S>;
       }
     };
@@ -473,7 +474,13 @@ namespace OpenKalman::Eigen3
   template<typename Scalar, typename XprType>
   struct FunctorTraits<EGI::scalar_rsqrt_op<Scalar>, XprType>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_pow(arg, -0.5); } };
+    struct Op
+    {
+      constexpr auto operator()(Scalar arg) const
+      {
+        return Scalar{1} / internal::constexpr_sqrt(arg);
+      }
+    };
 
     template<template<typename...> typename T, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -611,10 +618,7 @@ namespace OpenKalman::Eigen3
   {
     struct Op
     {
-      constexpr auto operator()(Scalar arg) const noexcept
-      {
-        return internal::constexpr_tanh(arg);
-      }
+      constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_tanh(arg); }
     };
 
     template<template<typename...> typename T, typename Arg>
@@ -637,7 +641,7 @@ namespace OpenKalman::Eigen3
   {
     struct Op
     {
-      constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_log((1 + arg)/(1 - arg)) / 2; }
+      constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_atanh(arg); }
     };
 
     template<template<typename...> typename T, typename Arg>
@@ -660,10 +664,7 @@ namespace OpenKalman::Eigen3
   {
     struct Op
     {
-      constexpr auto operator()(Scalar arg) const noexcept
-      {
-        return internal::constexpr_sinh(arg);
-      }
+      constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_sinh(arg); }
     };
 
     template<template<typename...> typename T, typename Arg>
@@ -686,7 +687,7 @@ namespace OpenKalman::Eigen3
   {
     struct Op
     {
-      constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_log(arg + internal::constexpr_sqrt(arg * arg + 1)); }
+      constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_asinh(arg); }
     };
 
     template<template<typename...> typename T, typename Arg>
@@ -736,7 +737,7 @@ namespace OpenKalman::Eigen3
   {
     struct Op
     {
-      constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_log(arg + internal::constexpr_sqrt(arg * arg - 1)); }
+      constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_acosh(arg); }
     };
 
     template<template<typename...> typename T, typename Arg>
@@ -851,12 +852,18 @@ namespace OpenKalman::Eigen3
   template<typename Scalar, typename XprType>
   struct FunctorTraits<EGI::scalar_logistic_op<Scalar>, XprType>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const noexcept { return 1 / (1 + (internal::constexpr_exp(-arg))); } };
+    struct Op { constexpr auto operator()(Scalar arg) const noexcept
+    {
+      return Scalar{1} / (Scalar{1} + (internal::constexpr_exp(-arg))); }
+    };
 
     template<template<typename...> typename T, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      if constexpr (std::is_same_v<T<XprType>, constant_coefficient<XprType>>)
+        return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      else
+        return std::monostate {};
     }
 
     static constexpr bool is_diagonal = false;

@@ -16,6 +16,9 @@
 #ifndef OPENKALMAN_LINEAR_ALGEBRA_FUNCTIONS_HPP
 #define OPENKALMAN_LINEAR_ALGEBRA_FUNCTIONS_HPP
 
+#include<complex>
+
+
 namespace OpenKalman
 {
   using namespace interface;
@@ -26,7 +29,7 @@ namespace OpenKalman
     struct constexpr_conj_op
     {
       template<typename Arg>
-      constexpr auto operator()(Arg arg) const noexcept { return conjugate(arg); }
+      constexpr auto operator()(Arg arg) const noexcept { return internal::constexpr_conj(arg); }
     };
   }
 
@@ -48,7 +51,7 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<Arg>)
     {
-      if constexpr (imaginary_part(constant_coefficient_v<Arg>) == 0)
+      if constexpr (real_axis_number<constant_coefficient<Arg>>)
         return std::forward<Arg>(arg);
       else
         return make_constant_matrix_like(
@@ -57,7 +60,7 @@ namespace OpenKalman
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      if constexpr (imaginary_part(constant_diagonal_coefficient_v<Arg>) == 0)
+      if constexpr (real_axis_number<constant_diagonal_coefficient<Arg>>)
         return std::forward<Arg>(arg);
       else
         return to_diagonal(make_constant_matrix_like(
@@ -139,7 +142,7 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<Arg>)
     {
-      if constexpr (imaginary_part(constant_coefficient_v<Arg>) == 0)
+      if constexpr (real_axis_number<constant_coefficient<Arg>>)
         return transpose(std::forward<Arg>(arg));
       else if constexpr (not has_dynamic_dimensions<Arg> and row_dimension_of_v<Arg> == column_dimension_of_v<Arg>)
         return conjugate(std::forward<Arg>(arg));

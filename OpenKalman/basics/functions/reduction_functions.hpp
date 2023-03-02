@@ -80,8 +80,8 @@ namespace OpenKalman
 
     struct constexpr_pow_op
     {
-      template<typename Arg>
-      constexpr auto operator()(Arg arg) const noexcept { return OpenKalman::internal::constexpr_pow(arg); }
+      template<typename Arg, typename Exp>
+      constexpr auto operator()(Arg arg, Exp exp) const noexcept { return OpenKalman::internal::constexpr_pow(arg, exp); }
     };
 
 

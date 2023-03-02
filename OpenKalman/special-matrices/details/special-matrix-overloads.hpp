@@ -16,6 +16,9 @@
 #ifndef OPENKALMAN_SPECIAL_MATRIX_OVERLOADS_HPP
 #define OPENKALMAN_SPECIAL_MATRIX_OVERLOADS_HPP
 
+#include <complex>
+
+
 namespace OpenKalman::interface
 {
 
@@ -91,13 +94,13 @@ namespace OpenKalman::interface
         {
           if constexpr (complex_number<scalar_type_of_t<Arg>>)
           {
-            if (i == j) return real_part(get_element(nested_matrix(std::forward<Arg>(arg)), i, j));
+            if (i == j) return internal::constexpr_real(get_element(nested_matrix(std::forward<Arg>(arg)), i, j));
           }
           return get_element(nested_matrix(std::forward<Arg>(arg)), i, j);
         }
         else
         {
-          return conjugate(get_element(nested_matrix(std::forward<Arg>(arg)), j, i));
+          return internal::constexpr_conj(get_element(nested_matrix(std::forward<Arg>(arg)), j, i));
         }
       }
     }
@@ -175,7 +178,7 @@ namespace OpenKalman::interface
         }
         else
         {
-          set_element(nested_matrix(arg), conjugate(s), j, i);
+          set_element(nested_matrix(arg), internal::constexpr_conj(s), j, i);
         }
       }
       return arg;

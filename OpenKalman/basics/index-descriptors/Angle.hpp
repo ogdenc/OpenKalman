@@ -184,15 +184,15 @@ namespace OpenKalman
   #endif
       {
         using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
-        using R = std::decay_t<decltype(real_part(std::declval<Scalar>()))>;
+        using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
         const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
         const Scalar mid { R{Limits::max + Limits::min} * R{0.5}};
 
         Scalar theta = cf * (g(start) - mid); // Convert to radians
-        if (euclidean_local_index == 0)
-          return cosine(theta);
-        else
-          return sine(theta);
+
+        using std::cos, std::sin;
+        if (euclidean_local_index == 0) return cos(theta);
+        else return sin(theta);
       }
 
 
@@ -212,13 +212,15 @@ namespace OpenKalman
   #endif
       {
         using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
-        using R = std::decay_t<decltype(real_part(std::declval<Scalar>()))>;
+        using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
         const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
         const Scalar mid { R{Limits::max + Limits::min} * R{0.5}};
 
         Scalar x = g(euclidean_start);
         Scalar y = g(euclidean_start + 1);
-        return arctangent2(y, x) / cf + mid;
+
+        if constexpr (complex_number<Scalar>) return internal::constexpr_atan2(y, x) / cf + mid;
+        else { using std::atan2; return atan2(y, x) / cf + mid; }
       }
 
 
@@ -231,7 +233,7 @@ namespace OpenKalman
       static constexpr std::decay_t<Scalar> wrap_impl(Scalar&& a)
   #endif
       {
-        auto ap = real_part(a);
+        auto ap = internal::constexpr_real(a);
         if (not (ap < Limits::min) and ap < Limits::max)
         {
           return std::forward<decltype(a)>(a);
@@ -240,9 +242,10 @@ namespace OpenKalman
         {
           using R = std::decay_t<decltype(ap)>;
           constexpr R period {Limits::max - Limits::min};
-          R ar {std::fmod(ap - R{Limits::min}, period)};
-          if (ar < 0) return internal::inverse_real_projection(std::forward<decltype(a)>(a), R{Limits::min} + ar + period);
-          else return internal::inverse_real_projection(std::forward<decltype(a)>(a), R{Limits::min} + ar);
+          using std::fmod;
+          R ar {fmod(ap - R{Limits::min}, period)};
+          if (ar < 0) return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar + period);
+          else return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar);
         }
       }
 

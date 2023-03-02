@@ -1470,26 +1470,13 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, typename = void>
-    struct imag_part_is_zero : std::false_type {};
-
-    template<typename T>
-    struct imag_part_is_zero<T, std::enable_if_t<imaginary_part(constant_coefficient<T>::value) == 0>>
-      : std::true_type {};
-
-    template<typename T, typename = void>
-    struct diag_imag_part_is_zero : std::bool_constant<imag_part_is_zero<T>::value> {};
-
-    template<typename T>
-    struct diag_imag_part_is_zero<T, std::enable_if_t<imaginary_part(constant_diagonal_coefficient<T>::value) == 0>>
-      : std::true_type {};
-
     template<typename T, Likelihood b, typename = void>
     struct is_inferred_hermitian_matrix : std::false_type {};
 
     template<typename T, Likelihood b>
     struct is_inferred_hermitian_matrix<T, b, std::enable_if_t<
-      (not complex_number<typename scalar_type_of<T>::type> or zero_matrix<T, b> or diag_imag_part_is_zero<T>::value) and
+      (not complex_number<typename scalar_type_of<T>::type> or zero_matrix<T, b> or
+        real_axis_number<constant_coefficient<T>> or real_axis_number<constant_diagonal_coefficient<T>>) and
       ((constant_matrix<T, b, CompileTimeStatus::any> and (b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
           detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})) or
         diagonal_matrix<T, b>)>>
@@ -1506,7 +1493,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept hermitian_matrix = interface::HermitianTraits<std::decay_t<T>>::is_hermitian or
     ((not complex_number<scalar_type_of_t<T>> or zero_matrix<T, b> or
-        imaginary_part(constant_coefficient_v<T>) == 0 or imaginary_part(constant_diagonal_coefficient_v<T>) == 0) and
+        real_axis_number<constant_coefficient<T>> or real_axis_number<constant_diagonal_coefficient<T>>) and
       ((constant_matrix<T, b, CompileTimeStatus::any> and (b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
           detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})) or
         diagonal_matrix<T, b>));

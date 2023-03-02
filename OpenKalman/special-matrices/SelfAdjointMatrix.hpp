@@ -22,8 +22,8 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<square_matrix<Likelihood::maybe> NestedMatrix, TriangleType storage_triangle> requires
-    (not constant_matrix<NestedMatrix> or imaginary_part(constant_coefficient_v<NestedMatrix>) == 0) and
-    (not constant_diagonal_matrix<NestedMatrix> or imaginary_part(constant_diagonal_coefficient_v<NestedMatrix>) == 0) and
+    (not constant_matrix<NestedMatrix> or real_axis_number<constant_coefficient<NestedMatrix>>) and
+    (not constant_diagonal_matrix<NestedMatrix> or real_axis_number<constant_diagonal_coefficient<NestedMatrix>>) and
     (storage_triangle != TriangleType::none)
 #else
   template<typename NestedMatrix, TriangleType storage_triangle>
@@ -34,8 +34,8 @@ namespace OpenKalman
 
 #ifndef __cpp_concepts
     static_assert(square_matrix<NestedMatrix, Likelihood::maybe>);
-    static_assert([]{if constexpr (constant_matrix<NestedMatrix>) return imaginary_part(constant_coefficient_v<NestedMatrix>) == 0; else return true; }());
-    static_assert([]{if constexpr (constant_diagonal_matrix<NestedMatrix>) return imaginary_part(constant_diagonal_coefficient_v<NestedMatrix>) == 0; else return true; }());
+    static_assert([]{if constexpr (constant_matrix<NestedMatrix>) return real_axis_number<constant_coefficient<NestedMatrix>>; else return true; }());
+    static_assert([]{if constexpr (constant_diagonal_matrix<NestedMatrix>) return real_axis_number<constant_diagonal_coefficient<NestedMatrix>>; else return true; }());
     static_assert(storage_triangle != TriangleType::none);
 #endif
 
