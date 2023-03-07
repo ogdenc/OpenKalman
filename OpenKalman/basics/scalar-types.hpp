@@ -52,25 +52,6 @@ namespace OpenKalman
   //   scalar_type   //
   // --------------- //
 
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct is_scalar_type : std::false_type {};
-
-    template<typename T>
-    struct is_scalar_type<T, std::enable_if_t<
-      std::is_default_constructible_v<T> and
-      std::is_convertible_v<decltype(std::declval<T>() + std::declval<T>()), const std::decay_t<T>&> and
-      std::is_convertible_v<decltype(std::declval<T>() - std::declval<T>()), const std::decay_t<T>&> and
-      std::is_convertible_v<decltype(std::declval<T>() * std::declval<T>()), const std::decay_t<T>&> and
-      std::is_convertible_v<decltype(std::declval<T>() / std::declval<T>()), const std::decay_t<T>&> and
-      std::is_convertible_v<decltype(std::declval<T>() == std::declval<T>()), const bool>
-      >>: std::true_type {};
-  }
-#endif
-
-
   /**
    * \brief T is a scalar type.
    * \details T can be any arithmetic, complex, or custom scalar type in which certain traits in
@@ -78,20 +59,11 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept scalar_type = std::is_arithmetic_v<std::decay_t<T>> or complex_number<T> or
-    requires(std::decay_t<T> t1, std::decay_t<T> t2) {
-      requires std::default_initializable<std::decay_t<T>>;
-      {t1 + t2} -> std::convertible_to<const std::decay_t<T>&>;
-      {t1 - t2} -> std::convertible_to<const std::decay_t<T>&>;
-      {t1 * t2} -> std::convertible_to<const std::decay_t<T>&>;
-      {t1 / t2} -> std::convertible_to<const std::decay_t<T>&>;
-      {t1 == t2} -> std::convertible_to<const bool>;
-      {interface::ScalarTraits<std::decay_t<T>>::make_complex(real(t1), imag(t1))} -> std::convertible_to<const std::decay_t<T>&>;
-    };
+  concept scalar_type =
 #else
   constexpr bool scalar_type =
-    std::is_arithmetic_v<std::decay_t<T>> or complex_number<T> or detail::is_scalar_type<std::decay_t<T>>::value;
 #endif
+    std::numeric_limits<std::decay_t<T>>::is_specialized or complex_number<T>;
 
 
   // ------------------------ //
@@ -120,12 +92,24 @@ namespace OpenKalman
     namespace detail
     {
       template<typename T, typename = void>
-      struct is_compile_time_scalar_constant : std::false_type {};
+      struct has_value_member : std::false_type {};
 
       template<typename T>
-      struct is_compile_time_scalar_constant<T, std::enable_if_t<std::is_default_constructible_v<std::decay_t<T>> and
-        scalar_type<decltype(std::decay_t<T>::value)>>>
-        : std::bool_constant<std::is_convertible_v<T, const decltype(std::decay_t<T>::value)>> {};
+      struct has_value_member<T, std::enable_if_t<scalar_type<decltype(T::value)>>> : std::true_type {};
+
+      template<typename T, typename = void>
+      struct call_result_is_scalar : std::false_type {};
+
+      template<typename T>
+      struct call_result_is_scalar<T, std::void_t<std::bool_constant<(T{}(), true)>>>
+        : std::bool_constant<scalar_type<decltype(T{}())>> {};
+
+      template<typename T, typename = void>
+      struct convertible_to_value_type : std::false_type {};
+
+      template<typename T>
+      struct convertible_to_value_type<T, std::void_t<std::bool_constant<(typename T::value_type {T{}}, true)>>>
+        : std::bool_constant<scalar_type<decltype(typename T::value_type {T{}})>> {};
     }
 #endif
 
@@ -136,12 +120,17 @@ namespace OpenKalman
     template<typename T>
 #ifdef __cpp_concepts
     concept compile_time_scalar_constant = std::default_initializable<std::decay_t<T>> and
-      requires {
-        {std::decay_t<T>::value} -> scalar_type;
-        static_cast<const decltype(std::decay_t<T>::value)>(std::declval<T>());
-      };
+      ( requires { {std::decay_t<T>::value} -> scalar_type; } or
+        requires {
+          {std::decay_t<T>{}()} -> scalar_type;
+          typename std::bool_constant<(std::decay_t<T>{}(), true)>; } or
+        requires {
+          {typename std::decay_t<T>::value_type {std::decay_t<T>{}}} -> scalar_type;
+          typename std::bool_constant<(typename std::decay_t<T>::value_type {std::decay_t<T>{}}, true)>; });
 #else
-    constexpr bool compile_time_scalar_constant = detail::is_compile_time_scalar_constant<T>::value;
+    constexpr bool compile_time_scalar_constant = std::is_default_constructible_v<std::decay_t<T>> and
+      (detail::has_value_member<std::decay_t<T>>::value or detail::call_result_is_scalar<std::decay_t<T>>::value or
+        detail::convertible_to_value_type<std::decay_t<T>>::value);
 #endif
 
 
@@ -152,7 +141,14 @@ namespace OpenKalman
       struct is_runtime_scalar : std::false_type {};
 
       template<typename T>
-      struct is_runtime_scalar<T, std::enable_if_t<(scalar_type<typename std::invoke_result<std::decay_t<T>>::type>)>>
+      struct is_runtime_scalar<T, std::enable_if_t<scalar_type<typename std::invoke_result<T>::type>>>
+        : std::true_type {};
+
+      template<typename T, typename = void>
+      struct is_runtime_convertible_scalar : std::false_type {};
+
+      template<typename T>
+      struct is_runtime_convertible_scalar<T, std::enable_if_t<scalar_type<decltype(typename T::value_type {std::declval<T>()})>>>
         : std::true_type {};
     }
 #endif
@@ -163,10 +159,12 @@ namespace OpenKalman
     template<typename T>
 #ifdef __cpp_concepts
     concept runtime_scalar_constant = (not compile_time_scalar_constant<T>) and
-      (scalar_type<T> or requires(std::decay_t<T> t){ {t()} -> scalar_type; });
+      (scalar_type<T> or requires(std::decay_t<T> t){ {t()} -> scalar_type; } or
+        requires(std::decay_t<T> t){ {typename std::decay_t<T>::value_type {t}} -> scalar_type; });
 #else
     constexpr bool runtime_scalar_constant = (not compile_time_scalar_constant<T>) and
-      (scalar_type<T> or detail::is_runtime_scalar<T>::value);
+      (scalar_type<T> or detail::is_runtime_scalar<std::decay_t<T>>::value or
+      detail::is_runtime_convertible_scalar<std::decay_t<T>>::value);
 #endif
   } // namespace internal
 
@@ -201,12 +199,21 @@ namespace OpenKalman
   constexpr decltype(auto) get_scalar_constant_value(Arg&& arg)
 #endif
   {
-    if constexpr (internal::compile_time_scalar_constant<Arg>)
-      return std::decay_t<Arg>::value;
-    else if constexpr (scalar_type<Arg>)
-      return std::forward<Arg>(arg);
-    else
-      return std::forward<Arg>(arg)();
+    using T = std::decay_t<Arg>;
+#ifdef __cpp_concepts
+    if constexpr (requires { {T::value} -> scalar_type; }) return T::value;
+    else if constexpr (requires { {arg()} -> scalar_type; }) return std::forward<Arg>(arg)();
+    else if constexpr (requires { {typename T::value_type {arg}} -> scalar_type; }) return typename T::value_type {std::forward<Arg>(arg)};
+    else if constexpr (scalar_type<Arg>) return std::forward<Arg>(arg);
+#else
+    if constexpr (internal::detail::has_value_member<T>::value) return T::value;
+    else if constexpr (internal::detail::call_result_is_scalar<T>::value or
+      internal::detail::is_runtime_scalar<T>::value) return std::forward<Arg>(arg)();
+    else if constexpr (internal::detail::convertible_to_value_type<T>::value or
+      internal::detail::is_runtime_convertible_scalar<T>::value) return typename T::value_type {std::forward<Arg>(arg)};
+    else if constexpr (scalar_type<Arg>) return std::forward<Arg>(arg);
+    else return std::forward<Arg>(arg)();
+#endif
   }
 
 
@@ -217,12 +224,17 @@ namespace OpenKalman
   namespace detail
   {
     template<typename T>
+    constexpr bool imaginary_part_is_zero() { return true; }
+
+#ifdef __cpp_concepts
+    template<complex_number T>
+#else
+    template<typename T, typename = std::enable_if_t<complex_number<T> and scalar_constant<T, CompileTimeStatus::known>>>
+#endif
     constexpr bool imaginary_part_is_zero()
     {
       using std::imag;
-      constexpr auto v = std::decay_t<T>::value;
-      if constexpr (complex_number<decltype(v)>) return imag(v) == 0;
-      else return true;
+      return imag(std::decay_t<T>::value) == 0;
     }
   }
 
@@ -252,7 +264,8 @@ namespace OpenKalman
       struct scalar_op_constexpr : std::false_type {};
 
       template<typename Operation, typename...Ts>
-      struct scalar_op_constexpr<Operation, std::enable_if_t<(Operation{}(Ts::value...), true)>, Ts...> : std::true_type {};
+      struct scalar_op_constexpr<Operation, std::void_t<
+        std::bool_constant<(Operation{}(std::decay_t<Ts>::value...), true)>>, Ts...> : std::true_type {};
 
 
       template<typename Operation, typename = void, typename...Ts>
@@ -327,7 +340,7 @@ namespace OpenKalman
      * \brief An operation involving some number of compile-time \ref scalar_constant values.
      */
     template<typename Operation, scalar_constant<CompileTimeStatus::known>...Ts> requires
-      requires { requires (Operation{}(std::decay_t<Ts>::value...), true); }
+      requires { typename std::bool_constant<(Operation{}(std::decay_t<Ts>::value...), true)>; }
     struct scalar_constant_operation<Operation, Ts...>
     {
     private:
@@ -355,14 +368,14 @@ namespace OpenKalman
      */
     template<typename Operation, scalar_constant...Ts> requires
       (not (scalar_constant<Ts, CompileTimeStatus::known> and ...)) or
-      (not requires { requires (Operation{}(std::decay_t<Ts>::value...), true); })
+      (not requires { typename std::bool_constant<(Operation{}(std::decay_t<Ts>::value...), true)>; })
     struct scalar_constant_operation<Operation, Ts...>
     {
       explicit constexpr scalar_constant_operation(const Operation& op, const Ts&...ts)
         : value {op(get_scalar_constant_value(ts)...)} {};
 
       using value_type =
-        std::decay_t<decltype(std::declval<const Operation&>()(get_scalar_constant_value(std::declval<const Ts&>())...))>;
+        std::decay_t<decltype(std::declval<Operation>()(get_scalar_constant_value(std::declval<const Ts&>())...))>;
 
       using type = scalar_constant_operation;
       operator value_type() const noexcept { return value; }

@@ -196,14 +196,15 @@ namespace OpenKalman
     n_ary_operation_impl(const std::tuple<Ds...>& d_tup, const Op& op, Args&&...args)
     {
       // constant_matrix:
-      if constexpr ((constant_matrix<Args, Likelihood::definitely, CompileTimeStatus::any> and ...))
+      constexpr std::index_sequence_for<Ds...> seq {};
+      if constexpr ((constant_matrix<Args, Likelihood::definitely, CompileTimeStatus::any> and ...) and
+        not is_invocable_with_indices<Op&&, scalar_type_of_t<Args>...>(seq))
       {
         internal::scalar_constant_operation c {op, constant_coefficient{std::forward<Args>(args)}...};
         return std::apply(
-          [](auto&&...args){ return make_constant_matrix_like<PatternMatrix>(std::forward<decltype(args)>(args)...); },
+          [](auto&&...as){ return make_constant_matrix_like<PatternMatrix>(std::forward<decltype(as)>(as)...); },
           std::tuple_cat(std::tuple{std::move(c)}, d_tup));
       }
-
       // other cases:
       /*//Note: these might not be necessary. n_ary_operation_iterate might be more efficient than library-defined operations.
       else if constexpr (is_invocable_with_indices<Op&&, std::add_lvalue_reference_t<scalar_type_of_t<Args>>...>(seq) and

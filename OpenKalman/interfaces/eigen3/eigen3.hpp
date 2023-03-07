@@ -95,6 +95,5 @@ namespace OpenKalman
 #endif
 
 #include "default-overloads.hpp"
-#include "special-matrix-arithmetic.hpp"
 
 #endif //OPENKALMAN_EIGEN3_HPP

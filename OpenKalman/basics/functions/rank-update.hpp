@@ -128,6 +128,8 @@ namespace OpenKalman
         "In rank_update_triangular, rows of a (" + std::to_string(get_index_dimension_of<0>(a)) +
         ") do not match columns of a (" + std::to_string(get_index_dimension_of<1>(a)) + ")"};
 
+    using std::sqrt;
+
     constexpr auto t = triangle_type_of_v<A>;
     if constexpr (zero_matrix<U>)
     {
@@ -136,7 +138,7 @@ namespace OpenKalman
     else if constexpr (one_by_one_matrix<A> or index_dimension_of_v<U, 0> == 1)
     {
       // Both A is known at compile time to be a 1-by-1 matrix.
-      auto e = square_root(trace(a) * trace(conjugate(a)) + alpha * trace(u) * trace(conjugate(u)));
+      auto e = sqrt(trace(a) * trace(conjugate(a)) + alpha * trace(u) * trace(conjugate(u)));
 
       if constexpr (element_settable<A, std::size_t>)
         return set_element(a, e, 0);
@@ -153,15 +155,15 @@ namespace OpenKalman
     {
       if constexpr (diagonal_matrix<U>)
       {
-        return to_diagonal(square_root(alpha) * diagonal_of(std::forward<U>(u)));
+        return to_diagonal(sqrt(alpha) * diagonal_of(std::forward<U>(u)));
       }
       else if constexpr (t == TriangleType::upper)
       {
-        return QR_decomposition(square_root(alpha) * adjoint(std::forward<U>(u)));
+        return QR_decomposition(sqrt(alpha) * adjoint(std::forward<U>(u)));
       }
       else
       {
-        return LQ_decomposition(square_root(alpha) * std::forward<U>(u));
+        return LQ_decomposition(sqrt(alpha) * std::forward<U>(u));
       }
     }
     else if constexpr (diagonal_matrix<A> and diagonal_matrix<U>)

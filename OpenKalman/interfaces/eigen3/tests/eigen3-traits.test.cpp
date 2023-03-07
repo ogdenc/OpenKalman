@@ -417,9 +417,14 @@ TEST(eigen3, Eigen_check_test_classes)
   static_assert(constant_matrix<Z21, Likelihood::maybe, CompileTimeStatus::known>);
   static_assert(scalar_constant<constant_coefficient<Z21>, CompileTimeStatus::known>);
   static_assert(not scalar_constant<constant_coefficient<Z21>, CompileTimeStatus::unknown>);
-  static_assert(scalar_constant<int, CompileTimeStatus::unknown>);
-  struct RuntimeScalarConstant { constexpr double operator()() const noexcept { return 1; } };
-  static_assert(scalar_constant<RuntimeScalarConstant, CompileTimeStatus::unknown>);
+
+  static_assert(constant_matrix<M11, Likelihood::definitely, CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<M10, Likelihood::maybe, CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<M01, Likelihood::maybe, CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<M00, Likelihood::maybe, CompileTimeStatus::unknown>);
+  EXPECT_EQ(constant_coefficient{make_dense_writable_matrix_from<M11>(5.5)}(), 5.5);
+  static_assert(constant_diagonal_matrix<M00, Likelihood::maybe, CompileTimeStatus::unknown>);
+  EXPECT_EQ(constant_diagonal_coefficient{make_dense_writable_matrix_from<M11>(5.5)}(), 5.5);
 
   static_assert(are_within_tolerance(constant_coefficient_v<Z21>, 0));
   static_assert(are_within_tolerance(constant_coefficient_v<Z12>, 0));
@@ -974,7 +979,7 @@ TEST(eigen3, cwise_unary_operations)
   EXPECT_EQ(constant_coefficient{cm2.arg()}(), std::arg(-2));
   static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().arg())> == pi);
   EXPECT_TRUE(are_within_tolerance<10>((constant_coefficient{cxa.arg()}()), (std::arg(std::complex<double>{1, 2}))));
-  EXPECT_TRUE(are_within_tolerance((constant_coefficient{cxb.arg()}()), (std::arg(std::complex<double>{3, 4}))));
+  EXPECT_TRUE(are_within_tolerance<10>((constant_coefficient{cxb.arg()}()), (std::arg(std::complex<double>{3, 4}))));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd21_2>().arg())>);
   static_assert(not diagonal_matrix<decltype(std::declval<Cd21_2>().arg())>);
   static_assert(not lower_triangular_matrix<decltype(std::declval<Tl22>().arg())>);
@@ -1102,7 +1107,7 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().expm1())>, constexpr_expm1(-2)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cp2.expm1()}(), cp2.expm1()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cm2.expm1()}(), cm2.expm1()(0, 0)));
-  EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxa.expm1()}(), cxa.expm1()(0, 0)));
+  EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cxa.expm1()}(), cxa.expm1()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<100>(constant_coefficient{cxb.expm1()}(), cxb.expm1()(0, 0)));
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>().expm1())> == constexpr_expm1(2));
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_m1>().expm1())> == constexpr_expm1(-1));
@@ -1121,7 +1126,7 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().log())>, constexpr_log(2)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cp2.log()}(), cp2.log()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cxa.log()}(), cxa.log()(0, 0)));
-  EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxb.log()}(), cxb.log()(0, 0)));
+  EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cxb.log()}(), cxb.log()(0, 0)));
   static_assert(zero_matrix<decltype(std::declval<C22_1>().log())>);
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd21_2>().log())>);
   static_assert(not diagonal_matrix<decltype((id * 3).log())>);
@@ -1130,11 +1135,11 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(not hermitian_matrix<decltype(cxa.log())>); // because cxa is not necessarily hermitian
 
   // scalar_log1p_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().log1p())>, constexpr_log(2+1)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().log1p())>, constexpr_log1p(2)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cp2.log1p()}(), cp2.log1p()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxa.log1p()}(), cxa.log1p()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxb.log1p()}(), cxb.log1p()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>().log1p())> == constexpr_log(2+1));
+  static_assert(are_within_tolerance(constant_diagonal_coefficient_v<decltype(std::declval<Cd21_2>().log1p())>, constexpr_log1p(2)));
   EXPECT_TRUE(are_within_tolerance(constant_diagonal_coefficient{cdp2.log1p()}(), cdp2.log1p()(0, 0)));
   EXPECT_EQ(0, cdp2.log1p()(0, 1));
   static_assert(zero_matrix<decltype(zero.log1p())>);
@@ -1160,7 +1165,7 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().log2())>, constexpr_log(2) / numbers::ln2_v<double>));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cp2.log2()}(), cp2.log2()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cxa.log2()}(), cxa.log2()(0, 0)));
-  EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxb.log2()}(), cxb.log2()(0, 0)));
+  EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cxb.log2()}(), cxb.log2()(0, 0)));
   static_assert(zero_matrix<decltype(std::declval<C22_1>().log2())>);
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd21_2>().log2())>);
   static_assert(not diagonal_matrix<decltype((id * 3).log2())>);

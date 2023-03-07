@@ -72,15 +72,16 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<std::size_t N, indexible T>
+  constexpr index_value auto
 #else
   template<std::size_t N, typename T, std::enable_if_t<indexible<T>, int> = 0>
+  constexpr auto
 #endif
-  constexpr std::size_t
   get_index_dimension_of(const T& t)
   {
     constexpr auto dim = index_dimension_of_v<T, N>;
     if constexpr (dim == dynamic_size) return IndexTraits<T, N>::dimension_at_runtime(t);
-    else return dim;
+    else return std::integral_constant<std::size_t, dim> {};
   }
 
 

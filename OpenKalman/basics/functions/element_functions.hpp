@@ -34,10 +34,10 @@ namespace OpenKalman
       if constexpr (sizeof...(I) == 1)
       {
         std::size_t dim_i = (i,...);
-        auto c = get_index_dimension_of<1>(arg);
+        std::size_t c = get_index_dimension_of<1>(arg);
         if (c == 1)
         {
-          auto r = get_index_dimension_of<0>(arg);
+          std::size_t r = get_index_dimension_of<0>(arg);
           if (dim_i >= r)
             throw std::out_of_range {((std::string {set ? "s" : "g"} + "et_element:") + " Row index is " +
             std::to_string(dim_i) + " but should be in range [0..." + std::to_string(r-1) + "].")};
@@ -51,11 +51,11 @@ namespace OpenKalman
       }
       else
       {
-        (((static_cast<std::size_t>(i) >= get_index_dimension_of<seq>(arg)) ?
+        (((static_cast<std::size_t>(i) >= std::size_t{get_index_dimension_of<seq>(arg)}) ?
           throw std::out_of_range {(("At least one " + std::string {set ? "s" : "g"} +
             "et_element index out of range:") + ... + (" Index " + std::to_string(seq) + " is " +
             std::to_string(i) + " and should be in range [0..." +
-            std::to_string(get_index_dimension_of<seq>(arg)-1) + "]."))} :
+            std::to_string(std::size_t{get_index_dimension_of<seq>(arg)}-1) + "]."))} :
           false) , ...);
       }
     }

@@ -83,7 +83,7 @@ namespace OpenKalman
 
     template<typename T, typename...Ts>
     struct constant_concatenate_arguments_impl<T,
-      std::enable_if_t<(are_within_tolerance(constant_coefficient_v<T>, constant_coefficient_v<Ts>) and ...)>, Ts...>
+      std::enable_if_t<(are_within_tolerance(constant_coefficient<T>::value, constant_coefficient<Ts>::value) and ...)>, Ts...>
       : std::true_type {};
 
     template<typename T, typename...Ts>

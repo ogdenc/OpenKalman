@@ -63,18 +63,22 @@
     FUNCTIONEXISTSTEST(F)                                                                                    \
                                                                                                              \
     template<typename Arg>                                                                                   \
-    struct Op_##F { constexpr auto operator()(const Arg& arg) { using std::F; return F(arg); } };            \
-                                                                                                             \
-    template<typename Arg>                                                                                   \
     constexpr auto F##_is_constexpr_callable(const Arg& arg)                                                 \
     {                                                                                                        \
       using std::F;                                                                                          \
       if constexpr (IFFUNCTIONISINVOCABLEWITHARG(F))                                                         \
       {                                                                                                      \
         using Scalar = std::decay_t<decltype(F(std::declval<const Arg&>()))>;                                \
-        if constexpr (constexpr_callable<Scalar, Arg, Op_##F<Arg>>) return std::tuple {true, F(arg)};        \
-        else if (NOTCONSTANTEVALUATED) return std::tuple {true, F(arg)};                                     \
-        else return std::tuple {false, Scalar{}};                                                            \
+        struct Op { constexpr auto operator()(const Arg& arg) { using std::F; return F(arg); } };            \
+                                                                                                             \
+        if (NOTCONSTANTEVALUATED or constexpr_callable<Op, Arg> or arg != arg)                               \
+          return std::tuple {true, F(arg)};                                                                  \
+                                                                                                             \
+        if constexpr (std::numeric_limits<Arg>::has_infinity)                                                \
+          if (arg == std::numeric_limits<Arg>::infinity() or arg == -std::numeric_limits<Arg>::infinity())   \
+            return std::tuple {true, F(arg)};                                                                \
+                                                                                                             \
+        return std::tuple {false, Scalar{}};                                                                 \
       }                                                                                                      \
       else                                                                                                   \
       {                                                                                                      \
@@ -95,22 +99,30 @@
     FUNCTIONEXISTSTEST2(F)                                                                                   \
                                                                                                              \
     template<typename Arg1, typename Arg2>                                                                   \
-    struct Op_##F                                                                                            \
-    {                                                                                                        \
-      constexpr auto operator()(const Arg1& arg1, const Arg2& arg2) { using std::F; return F(arg1, arg2); }  \
-    };                                                                                                       \
-                                                                                                             \
-    template<typename Arg1, typename Arg2>                                                                   \
     constexpr auto F##_is_constexpr_callable(const Arg1& arg1, const Arg2& arg2)                             \
     {                                                                                                        \
       using std::F;                                                                                          \
       if constexpr (IFFUNCTIONISINVOCABLEWITHARG2(F))                                                        \
       {                                                                                                      \
         using Scalar = std::decay_t<decltype(F(std::declval<const Arg1&>(), std::declval<const Arg2&>()))>;  \
-        if constexpr (constexpr_callable<Scalar, Arg1, Arg2, Op_##F<Arg1, Arg2>>)                            \
+        struct Op                                                                                            \
+        {                                                                                                    \
+          constexpr auto operator()(const Arg1& arg1, const Arg2& arg2)                                      \
+          { using std::F; return F(arg1, arg2); }                                                            \
+        };                                                                                                   \
+                                                                                                             \
+        if (NOTCONSTANTEVALUATED or constexpr_callable<Op, Arg1, Arg2> or arg1 != arg1 or arg2 != arg2)      \
           return std::tuple {true, F(arg1, arg2)};                                                           \
-        else if (NOTCONSTANTEVALUATED) return std::tuple {true, F(arg1, arg2)};                              \
-        else return std::tuple {false, Scalar{}};                                                            \
+                                                                                                             \
+        if constexpr (std::numeric_limits<Arg1>::has_infinity)                                               \
+          if (arg1 == std::numeric_limits<Arg1>::infinity() or arg1 == -std::numeric_limits<Arg1>::infinity()) \
+            return std::tuple {true, F(arg1, arg2)};                                                         \
+                                                                                                             \
+        if constexpr (std::numeric_limits<Arg2>::has_infinity)                                               \
+          if (arg2 == std::numeric_limits<Arg2>::infinity() or arg2 == -std::numeric_limits<Arg2>::infinity()) \
+            return std::tuple {true, F(arg1, arg2)};                                                         \
+                                                                                                             \
+        return std::tuple {false, Scalar{}};                                                                 \
       }                                                                                                      \
       else                                                                                                   \
       {                                                                                                      \
@@ -160,22 +172,26 @@ namespace OpenKalman::internal
       else if constexpr (std::is_same_v<Scalar, std::decay_t<T>>) return std::forward<T>(x);
       else return static_cast<Scalar>(std::forward<T>(x));
     }
+  } // namespace detail
 
 
+#ifndef __cpp_concepts
+  namespace detail
+  {
     // Determine whether operator F can be constant-evaluated.
     template<typename F, typename = void, typename...Args>
     struct is_constexpr_callable : std::false_type {};
 
     template<typename F, typename...Args>
-    struct is_constexpr_callable<F, std::enable_if_t<(F{}(Args{}...), true)>, Args...> : std::true_type {};
-  } // namespace detail
+    struct is_constexpr_callable<F, std::void_t<std::bool_constant<(F{}(Args{}...), true)>>, Args...> : std::true_type {};
+  }
+#endif
 
 
+  template<typename F, typename...Args>
 #ifdef __cpp_concepts
-  template<typename F, typename...Args>
-  concept constexpr_callable = detail::is_constexpr_callable<F, void, Args...>::value;
+  concept constexpr_callable = requires { typename std::bool_constant<(F{}(Args{}...), true)>; };
 #else
-  template<typename F, typename...Args>
   static constexpr bool constexpr_callable = detail::is_constexpr_callable<F, void, Args...>::value;
 #endif
 
@@ -320,7 +336,7 @@ namespace OpenKalman::internal
 #else
   template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
 #endif
-  constexpr std::decay_t<T> constexpr_NaN()
+  std::decay_t<T> constexpr_NaN()
   {
     if constexpr (complex_number<T>)
     {
@@ -346,7 +362,7 @@ namespace OpenKalman::internal
 #else
   template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
 #endif
-  constexpr std::decay_t<T> constexpr_infinity()
+  std::decay_t<T> constexpr_infinity()
   {
     using R = std::decay_t<T>;
     if constexpr (std::numeric_limits<R>::has_infinity) return std::numeric_limits<R>::infinity();
@@ -1101,21 +1117,84 @@ namespace OpenKalman::internal
     {
       auto re = detail::convert_to_floating(constexpr_real(arg));
       auto im = detail::convert_to_floating(constexpr_imag(arg));
-      return make_complex_number<Scalar>(constexpr_log(constexpr_sqrt(re * re + im * im)), detail::atan2_impl(im, re));
+      using R = std::decay_t<decltype(re)>;
+      return make_complex_number<Scalar>(R{0.5} * constexpr_log(re * re + im * im), detail::atan2_impl(im, re));
     }
     else
     {
       decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
+      if constexpr (std::numeric_limits<Scalar>::has_infinity)
+        if (x == std::numeric_limits<Scalar>::infinity()) return x;
+
       if (x == Scalar{1}) return Scalar{+0.};
+      else if (x == Scalar{0}) return -constexpr_infinity<Scalar>();
+      else if (x < Scalar{0}) return constexpr_NaN<Scalar>();
+      auto [scaled, corr] = x >= Scalar{0x1p4} ? detail::log_scaling_gt(x) : detail::log_scaling_lt(x);
+      return detail::log_impl(scaled) + corr;
+    }
+  }
+
+
+  namespace detail
+  {
+    // Taylor series for log(1+x)
+    template <typename T>
+    constexpr T log1p_impl(int n, const T& x, const T& sum, const T& term)
+    {
+      T next_sum = sum + term / n;
+      if (sum == next_sum) return sum;
+      else return log1p_impl(n + 1, x, next_sum, term * -x);
+    }
+  }
+
+
+  FUNCTIONISCONSTEXPRCALLABLE(log1p)
+
+  /**
+   * \internal
+   * \brief The log1p function, where log1p(x) = log(x+1).
+   */
+#ifdef __cpp_concepts
+  constexpr auto constexpr_log1p(scalar_type auto&& arg)
+#else
+  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  constexpr auto constexpr_log1p(T&& arg)
+#endif
+  {
+    using Arg = decltype(arg);
+
+    auto [is_callable, ret] = detail::log1p_is_constexpr_callable(arg);
+    if (is_callable) return ret;
+    using Scalar = std::decay_t<decltype(ret)>;
+
+    if (arg != arg) return constexpr_NaN<Scalar>();
+
+    if constexpr (complex_number<Scalar>)
+    {
+      auto re = detail::convert_to_floating(constexpr_real(arg));
+      auto im = detail::convert_to_floating(constexpr_imag(arg));
+      using R = std::decay_t<decltype(re)>;
+      return make_complex_number<Scalar>(
+        R{0.5} * constexpr_log1p(re * re + R{2}*re + im * im),
+        detail::atan2_impl(im, re + R{1}));
+    }
+    else
+    {
+      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
       if constexpr (std::numeric_limits<Scalar>::has_infinity)
         if (x == std::numeric_limits<Scalar>::infinity()) return x;
 
-      if (x == 0) return -constexpr_infinity<Scalar>();
-      else if (x < 0) return constexpr_NaN<Scalar>();
-      auto [scaled, corr] = x >= Scalar{0x1p4} ? detail::log_scaling_gt(x) : detail::log_scaling_lt(x);
-      return detail::log_impl(scaled) + corr;
+      if (x == Scalar{0}) return x;
+      else if (x == Scalar{-1}) return -constexpr_infinity<Scalar>();
+      else if (x < Scalar{-1}) return constexpr_NaN<Scalar>();
+      if (Scalar{-0x1p-3} < x and x < Scalar{0x1p-3}) return detail::log1p_impl(2, x, x, x);
+      else
+      {
+        auto [scaled, corr] = x >= Scalar{0x1p4} ? detail::log_scaling_gt(x + Scalar{1}) : detail::log_scaling_lt(x + Scalar{1});
+        return detail::log_impl(scaled) + corr;
+      }
     }
   }
 
@@ -1418,15 +1497,18 @@ namespace OpenKalman::internal
    * \return x to the power of n.
    */
 #ifdef __cpp_concepts
-  template<scalar_type T, scalar_type U>
+  template<scalar_type Arg, scalar_type Exponent>
 #else
-  template <typename T, typename U, std::enable_if_t<scalar_type<T> and scalar_type<U>, int> = 0>
+  template <typename Arg, typename Exponent, std::enable_if_t<scalar_type<Arg> and scalar_type<Exponent>, int> = 0>
 #endif
-  constexpr auto constexpr_pow(T&& arg, U&& exponent)
+  constexpr auto constexpr_pow(Arg&& arg, Exponent&& exponent)
   {
     auto [is_callable, ret] = detail::pow_is_constexpr_callable(arg, exponent);
     if (is_callable) return ret;
     using Scalar = std::decay_t<decltype(ret)>;
+
+    using T = std::decay_t<Arg>;
+    using U = std::decay_t<Exponent>;
 
     if (arg == T{1} or exponent == U{0}) return Scalar{1};
     else if (arg != arg or exponent != exponent) return constexpr_NaN<Scalar>();
@@ -1472,7 +1554,9 @@ namespace OpenKalman::internal
         {
           if (x == -std::numeric_limits<Scalar>::infinity() or x == +std::numeric_limits<Scalar>::infinity())
           {
-            if (n < Scalar{0}) return Scalar{+0.}; else return +constexpr_infinity<Scalar>();
+            // Note: en.cppreference.com/w/cpp/numeric/math/pow says that the sign of both these should be reversed,
+            // but both GCC and clang return a result as follows:
+            if (n < Scalar{0}) return Scalar{-0.}; else return -constexpr_infinity<Scalar>();
           }
           else if (n == -std::numeric_limits<Scalar>::infinity())
           {

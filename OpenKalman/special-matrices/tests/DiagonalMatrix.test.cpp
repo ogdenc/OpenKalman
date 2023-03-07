@@ -516,6 +516,30 @@ TEST(eigen3, Diagonal_overloads)
   EXPECT_TRUE(is_near(Cholesky_factor(DiagonalMatrix {9.}), M11 {3}));
   EXPECT_TRUE(is_near(Cholesky_factor(D0 {M11 {9}}), M11 {3}));
 
+  auto m21 = M21 {1, 4};
+  auto m20_1 = M20 {m21};
+  auto m01_2 = M01 {m21};
+  auto m00_21 = M00 {m21};
+
+  auto m22_1004 = make_dense_writable_matrix_from<M22>(1, 0, 0, 4);
+
+  EXPECT_TRUE(is_near(to_diagonal(m21), m22_1004));
+  EXPECT_TRUE(is_near(to_diagonal(m20_1), m22_1004)); static_assert(not has_dynamic_dimensions<decltype(to_diagonal(m20_1))>);
+  EXPECT_TRUE(is_near(to_diagonal(m01_2), m22_1004)); static_assert(has_dynamic_dimensions<decltype(to_diagonal(m01_2))>);
+  EXPECT_TRUE(is_near(to_diagonal(m00_21), m22_1004)); static_assert(has_dynamic_dimensions<decltype(to_diagonal(m00_21))>);
+
+  auto z11 {M11::Identity() - M11::Identity()};
+
+  auto z21 {(M22::Identity() - M22::Identity()).diagonal()};
+  auto z01_2 = Eigen::Replicate<decltype(z11), Eigen::Dynamic, 1> {z11, 2, 1};
+  auto z20_1 = Eigen::Replicate<decltype(z11), 2, Eigen::Dynamic> {z11, 2, 1};
+  auto z00_21 = Eigen::Replicate<decltype(z11), Eigen::Dynamic, Eigen::Dynamic> {z11, 2, 1};
+
+  static_assert(zero_matrix<decltype(to_diagonal(z21))>);
+  static_assert(zero_matrix<decltype(to_diagonal(z20_1))>); static_assert(not has_dynamic_dimensions<decltype(to_diagonal(z20_1))>);
+  static_assert(zero_matrix<decltype(to_diagonal(z01_2))>); static_assert(has_dynamic_dimensions<decltype(to_diagonal(z01_2))>);
+  static_assert(zero_matrix<decltype(to_diagonal(z00_21))>); static_assert(has_dynamic_dimensions<decltype(to_diagonal(z00_21))>);
+
   EXPECT_TRUE(is_near(diagonal_of(d3), m31));
   EXPECT_TRUE(is_near(diagonal_of(d0_3), m31));
 

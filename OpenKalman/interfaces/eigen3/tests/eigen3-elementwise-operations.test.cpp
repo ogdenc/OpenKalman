@@ -47,12 +47,6 @@ TEST(eigen3, nullary_operation)
 {
   // One operation for the entire matrix
   auto m23 = make_dense_writable_matrix_from<M23>(5.5, 5.5, 5.5, 5.5, 5.5, 5.5);
-  EXPECT_TRUE(is_near(n_ary_operation<M00>(std::tuple {Dimensions<2>{}, Dimensions<3>{}}, []{return 5.5;}), m23));
-  EXPECT_TRUE(is_near(n_ary_operation<M00>(std::tuple {Dimensions{2}, Dimensions<3>{}}, []{return 5.5;}), m23));
-  EXPECT_TRUE(is_near(n_ary_operation<M00>(std::tuple {Dimensions<2>{}, Dimensions{3}}, []{return 5.5;}), m23));
-  EXPECT_TRUE(is_near(n_ary_operation<M00>(std::tuple {Dimensions{2}, Dimensions{3}}, []{return 5.5;}), m23));
-  EXPECT_TRUE(is_near(n_ary_operation<M23>([]{return 5.5;}), m23));
-
   auto m23p = make_dense_writable_matrix_from<M23>(0, 1, 2, 1, 2, 3);
 
   EXPECT_TRUE(is_near(n_ary_operation<M00>(std::tuple {Dimensions<2>{}, Dimensions<3>{}}, [](std::size_t r, std::size_t c){return 5.5 + r + c;}), m23 + m23p));

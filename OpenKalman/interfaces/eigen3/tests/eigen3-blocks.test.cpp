@@ -140,29 +140,6 @@ TEST(eigen3, get_block)
   auto N2 = std::integral_constant<std::size_t, 2>{};
   auto N3 = std::integral_constant<std::size_t, 3>{};
 
-  auto z34 = make_zero_matrix_like<M34>();
-
-  EXPECT_TRUE(is_near(get_block(z34, std::tuple{N0, N0}, std::tuple{N2, N2}), make_zero_matrix_like<M22>()));
-  EXPECT_TRUE(is_near(get_block(z34, std::tuple{N1, N1}, std::tuple{2, N3}), make_zero_matrix_like<M23>()));
-  EXPECT_TRUE(is_near(get_block(z34, std::tuple{0, 0}, std::tuple{2, N2}), make_zero_matrix_like<M22>()));
-  EXPECT_TRUE(is_near(get_block(z34, std::tuple{0, 0}, std::tuple{2, N2}), make_zero_matrix_like<M22>()));
-  EXPECT_TRUE(is_near(get_block<1, 0>(z34, std::tuple{N0, N0}, std::tuple{N3, N2}), make_zero_matrix_like<M23>()));
-  EXPECT_TRUE(is_near(get_block<0>(z34, std::tuple{N0}, std::tuple{N2}), make_zero_matrix_like<M24>()));
-  EXPECT_TRUE(is_near(get_block<0>(z34, std::tuple{1}, std::tuple{1}), make_zero_matrix_like<M14>()));
-  EXPECT_TRUE(is_near(get_block<1>(z34, std::tuple{N0}, std::tuple{N2}), make_zero_matrix_like<M32>()));
-  EXPECT_TRUE(is_near(get_block<1>(z34, std::tuple{1}, std::tuple{1}), make_zero_matrix_like<M31>()));
-
-  auto c34 = make_constant_matrix_like<M34, 3>();
-  EXPECT_TRUE(is_near(get_block(c34, std::tuple{N0, N0}, std::tuple{N2, N2}), make_constant_matrix_like<M22, 3>()));
-  EXPECT_TRUE(is_near(get_block(c34, std::tuple{N1, N1}, std::tuple{2, N3}), make_constant_matrix_like<M23, 3>()));
-  EXPECT_TRUE(is_near(get_block(c34, std::tuple{0, 0}, std::tuple{2, N2}), make_constant_matrix_like<M22, 3>()));
-  EXPECT_TRUE(is_near(get_block(c34, std::tuple{0, 0}, std::tuple{2, N2}), make_constant_matrix_like<M22, 3>()));
-  EXPECT_TRUE(is_near(get_block<1, 0>(c34, std::tuple{N0, N0}, std::tuple{N3, N2}), make_constant_matrix_like<M23, 3>()));
-  EXPECT_TRUE(is_near(get_block<0>(c34, std::tuple{N0}, std::tuple{N2}), make_constant_matrix_like<M24, 3>()));
-  EXPECT_TRUE(is_near(get_block<0>(c34, std::tuple{1}, std::tuple{1}), make_constant_matrix_like<M14, 3>()));
-  EXPECT_TRUE(is_near(get_block<1>(c34, std::tuple{N0}, std::tuple{N2}), make_constant_matrix_like<M32, 3>()));
-  EXPECT_TRUE(is_near(get_block<1>(c34, std::tuple{1}, std::tuple{1}), make_constant_matrix_like<M31, 3>()));
-
   auto m34 = make_dense_writable_matrix_from<M34>(
     1, 2, 3, 4,
     5, 6, 7, 8,

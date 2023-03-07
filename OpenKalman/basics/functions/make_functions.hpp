@@ -478,16 +478,16 @@ namespace OpenKalman
 
 
     template<typename T, typename Scalar, typename C, std::size_t...Is, typename...Ds>
-    constexpr auto make_constant_adapter_impl(C&& c, std::index_sequence<Is...>, Ds&&...ds)
+    constexpr auto make_constant_adapter_impl(std::index_sequence<Is...>, Ds&&...ds)
     {
-      constexpr auto tup = ScalarTraits<Scalar>::parts(get_scalar_constant_value(std::decay_t<C>::value));
+      constexpr auto tup = ScalarTraits<Scalar>::parts(get_scalar_constant_value(std::decay_t<C>{}));
 # if __cpp_nontype_template_args >= 201911L
       return make_constant_matrix_like<T, Scalar, std::get<Is>(tup)...>(std::forward<Ds>(ds)...);
 # else
       if constexpr ((are_within_tolerance(std::get<Is>(tup), static_cast<std::intmax_t>(std::get<Is>(tup))) and ...))
         return make_constant_matrix_like<T, Scalar, static_cast<std::intmax_t>(std::get<Is>(tup))...>(std::forward<Ds>(ds)...);
       else
-        return make_constant_adapter_detail<T, Scalar>(std::forward<C>(c), std::forward<Ds>(ds)...);
+        return make_constant_adapter_detail<T, Scalar>(C{}, std::forward<Ds>(ds)...);
 # endif
     }
   }
@@ -510,7 +510,7 @@ namespace OpenKalman
   make_constant_matrix_like(Ds&&...ds)
   {
     constexpr std::size_t N = std::tuple_size_v<decltype(ScalarTraits<Scalar>::parts(constant_coefficient_v<T>))>;
-    return detail::make_constant_adapter_impl<T, Scalar>(constant_coefficient<T>{}, std::make_index_sequence<N>{}, std::forward<Ds>(ds)...);
+    return detail::make_constant_adapter_impl<T, Scalar, constant_coefficient<T>>(std::make_index_sequence<N>{}, std::forward<Ds>(ds)...);
   }
 
 
@@ -664,8 +664,8 @@ namespace OpenKalman
     using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
     if constexpr (scalar_constant<C, CompileTimeStatus::known>)
     {
-      constexpr std::size_t N = std::tuple_size_v<decltype(ScalarTraits<Scalar>::parts(get_scalar_constant_value(std::decay_t<C>::value)))>;
-      return detail::make_constant_adapter_impl<T, Scalar>(std::forward<C>(c), std::make_index_sequence<N>{}, std::forward<Ds>(ds)...);
+      constexpr std::size_t N = std::tuple_size_v<decltype(ScalarTraits<Scalar>::parts(get_scalar_constant_value(c)))>;
+      return detail::make_constant_adapter_impl<T, Scalar, C>(std::make_index_sequence<N>{}, std::forward<Ds>(ds)...);
     }
     else
     {

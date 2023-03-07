@@ -157,17 +157,28 @@ namespace Eigen::internal
       }
       else if constexpr (storage_triangle == TriangleType::upper)
       {
-        if (row > col) return OpenKalman::internal::constexpr_conj(m_argImpl.coeff(col, row));
+        if (row > col)
+        {
+          if constexpr (complex_number<Scalar>) return OpenKalman::internal::constexpr_conj(m_argImpl.coeff(col, row));
+          else return m_argImpl.coeff(col, row);
+        }
       }
       else if constexpr (storage_triangle == TriangleType::lower)
       {
-        if (row < col) return OpenKalman::internal::constexpr_conj(m_argImpl.coeff(col, row));
+        if (row < col)
+        {
+          if constexpr (complex_number<Scalar>) return OpenKalman::internal::constexpr_conj(m_argImpl.coeff(col, row));
+          else return m_argImpl.coeff(col, row);
+        }
       }
 
       if (row == col)
-        return OpenKalman::internal::constexpr_real(m_argImpl.coeff(row, col));
-      else
-        return m_argImpl.coeff(row, col);
+      {
+        if constexpr (complex_number<Scalar> and not std::is_lvalue_reference_v<CoeffReturnType>)
+          return OpenKalman::internal::constexpr_real(m_argImpl.coeff(row, col));
+      }
+
+      return m_argImpl.coeff(row, col);
     }
 
 

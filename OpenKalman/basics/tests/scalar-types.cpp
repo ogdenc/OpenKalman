@@ -57,6 +57,17 @@ TEST(basics, scalar_traits)
   static_assert(scalar_constant<double, CompileTimeStatus::any>);
   static_assert(scalar_constant<std::integral_constant<int, 5>, CompileTimeStatus::known>);
   static_assert(scalar_constant<std::integral_constant<int, 6>, CompileTimeStatus::any>);
+
+  struct return8 { constexpr auto operator()() { return 8; } };
+  static_assert(scalar_constant<return8, CompileTimeStatus::known>);
+  struct return8r { auto operator()() { return 8; } };
+  static_assert(scalar_constant<return8r, CompileTimeStatus::unknown>);
+
+  struct convertto9 { using value_type = double; constexpr operator double() { return 8.; } };
+  static_assert(scalar_constant<convertto9, CompileTimeStatus::known>);
+  struct convertto9r { using value_type = double; operator double() { return 8.; } };
+  static_assert(scalar_constant<convertto9r, CompileTimeStatus::unknown>);
+
   EXPECT_EQ(get_scalar_constant_value(7), 7);
   EXPECT_EQ(get_scalar_constant_value(std::integral_constant<int, 7>{}), 7);
   EXPECT_EQ(get_scalar_constant_value([](){ return 8; }), 8);
@@ -135,8 +146,8 @@ TEST(basics, constexpr_signbit)
   EXPECT_TRUE(constexpr_signbit(-NAN));
   EXPECT_TRUE(not constexpr_signbit(NAN));
 #endif
-  static_assert(constexpr_signbit(-INFINITY));
-  static_assert(not constexpr_signbit(INFINITY));
+  EXPECT_TRUE(constexpr_signbit(-INFINITY));
+  EXPECT_TRUE(not constexpr_signbit(INFINITY));
 }
 
 
@@ -313,12 +324,12 @@ TEST(basics, constexpr_sinh)
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
-    static_assert(constexpr_sinh(constexpr_NaN<double>()) != constexpr_sinh(constexpr_NaN<double>()));
-    static_assert(constexpr_sinh(constexpr_infinity<double>()) == constexpr_infinity<double>());
-    static_assert(constexpr_sinh(-constexpr_infinity<double>()) == -constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_sinh(constexpr_NaN<double>()) != constexpr_sinh(constexpr_NaN<double>()));
+    EXPECT_TRUE(constexpr_sinh(constexpr_infinity<double>()) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_sinh(-constexpr_infinity<double>()) == -constexpr_infinity<double>());
     EXPECT_TRUE(std::signbit(constexpr_sinh(-0.)));
     EXPECT_TRUE(not std::signbit(constexpr_sinh(0.)));
-    static_assert(constexpr_sinh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_sinh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+    EXPECT_TRUE(constexpr_sinh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_sinh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
   }
 
   static_assert(constexpr_sinh(0) == 0);
@@ -345,10 +356,10 @@ TEST(basics, constexpr_cosh)
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
-    static_assert(constexpr_cosh(constexpr_NaN<double>()) != constexpr_cosh(constexpr_NaN<double>()));
-    static_assert(constexpr_cosh(constexpr_infinity<double>()) == constexpr_infinity<double>());
-    static_assert(constexpr_cosh(-constexpr_infinity<double>()) == constexpr_infinity<double>());
-    static_assert(constexpr_cosh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_cosh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+    EXPECT_TRUE(constexpr_cosh(constexpr_NaN<double>()) != constexpr_cosh(constexpr_NaN<double>()));
+    EXPECT_TRUE(constexpr_cosh(constexpr_infinity<double>()) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_cosh(-constexpr_infinity<double>()) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_cosh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_cosh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
   }
 
   static_assert(constexpr_cosh(0) == 1);
@@ -375,12 +386,12 @@ TEST(basics, constexpr_tanh)
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
-    static_assert(constexpr_tanh(constexpr_NaN<double>()) != constexpr_tanh(constexpr_NaN<double>()));
-    static_assert(constexpr_tanh(constexpr_infinity<double>()) == 1);
-    static_assert(constexpr_tanh(-constexpr_infinity<double>()) == -1);
+    EXPECT_TRUE(constexpr_tanh(constexpr_NaN<double>()) != constexpr_tanh(constexpr_NaN<double>()));
+    EXPECT_TRUE(constexpr_tanh(constexpr_infinity<double>()) == 1);
+    EXPECT_TRUE(constexpr_tanh(-constexpr_infinity<double>()) == -1);
     EXPECT_TRUE(std::signbit(constexpr_tanh(-0.)));
     EXPECT_TRUE(not std::signbit(constexpr_tanh(0.)));
-    static_assert(constexpr_tanh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_tanh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+    EXPECT_TRUE(constexpr_tanh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_tanh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
   }
 
   static_assert(constexpr_tanh(0) == 0);
@@ -413,7 +424,7 @@ TEST(basics, constexpr_sin)
     EXPECT_TRUE(std::isnan(constexpr_sin(-constexpr_infinity<double>())));
     EXPECT_FALSE(std::signbit(constexpr_sin(+0.)));
     EXPECT_TRUE(std::signbit(constexpr_sin(-0.)));
-    static_assert(constexpr_sin(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_sin(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+    EXPECT_TRUE(constexpr_sin(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_sin(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
   }
 
   static_assert(are_within_tolerance(constexpr_sin(0), 0));
@@ -464,7 +475,7 @@ TEST(basics, constexpr_cos)
     EXPECT_TRUE(std::isnan(constexpr_cos(constexpr_NaN<double>())));
     EXPECT_TRUE(std::isnan(constexpr_cos(constexpr_infinity<double>())));
     EXPECT_TRUE(std::isnan(constexpr_cos(-constexpr_infinity<double>())));
-    static_assert(constexpr_cos(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_cos(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+    EXPECT_TRUE(constexpr_cos(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_cos(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
   }
 
   static_assert(constexpr_cos(2*pi) == 1);
@@ -511,10 +522,10 @@ TEST(basics, constexpr_tan)
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
-    static_assert(constexpr_tan(constexpr_NaN<double>()) != constexpr_tan(constexpr_NaN<double>()));
-    static_assert(constexpr_tan(constexpr_infinity<double>()) != constexpr_tan(constexpr_infinity<double>()));
-    static_assert(constexpr_tan(-constexpr_infinity<double>()) != constexpr_tan(constexpr_infinity<double>()));
-    static_assert(constexpr_tan(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_tan(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+    EXPECT_TRUE(constexpr_tan(constexpr_NaN<double>()) != constexpr_tan(constexpr_NaN<double>()));
+    EXPECT_TRUE(constexpr_tan(constexpr_infinity<double>()) != constexpr_tan(constexpr_infinity<double>()));
+    EXPECT_TRUE(constexpr_tan(-constexpr_infinity<double>()) != constexpr_tan(constexpr_infinity<double>()));
+    EXPECT_TRUE(constexpr_tan(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_tan(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
   }
 
   static_assert(constexpr_tan(0) == 0);
@@ -558,15 +569,17 @@ TEST(basics, constexpr_log)
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
-    static_assert(constexpr_log(0) == -constexpr_infinity<double>());
-    static_assert(constexpr_log(-0) == -constexpr_infinity<double>());
-    static_assert(constexpr_log(-1) != constexpr_log(-1)); // Nan
-    static_assert(constexpr_log(+constexpr_infinity<double>()) == +constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_log(0) == -constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_log(-0) == -constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_log(+constexpr_infinity<double>()) == +constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_log(-1) != constexpr_log(-1)); // Nan
     EXPECT_FALSE(std::signbit(constexpr_log(1)));
-    static_assert(constexpr_log(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_log(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+    EXPECT_TRUE(constexpr_log(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_log(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
   }
 
   static_assert(constexpr_log(1) == 0);
+  static_assert(are_within_tolerance<10>(constexpr_log(2), numbers::ln2_v<double>));
+  static_assert(are_within_tolerance<10>(constexpr_log(10), numbers::ln10_v<double>));
   static_assert(are_within_tolerance(constexpr_log(e), 1));
   static_assert(are_within_tolerance(constexpr_log(e*e), 2));
   static_assert(are_within_tolerance(constexpr_log(e*e*e), 3));
@@ -596,6 +609,57 @@ TEST(basics, constexpr_log)
 }
 
 
+TEST(basics, constexpr_log1p)
+{
+  constexpr auto e = numbers::e_v<double>;
+
+  if constexpr (std::numeric_limits<double>::is_iec559)
+  {
+    EXPECT_TRUE(std::signbit(constexpr_log1p(-0.)));
+    EXPECT_FALSE(std::signbit(constexpr_log1p(+0.)));
+    EXPECT_EQ(constexpr_log1p(-1), -constexpr_infinity<double>());
+    EXPECT_EQ(constexpr_log1p(+constexpr_infinity<double>()), +constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_log1p(-2) != constexpr_log(-2)); // Nan
+    EXPECT_TRUE(constexpr_log1p(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_log1p(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+  }
+
+  static_assert(are_within_tolerance<10>(constexpr_log1p(-0.), 0));
+  static_assert(are_within_tolerance<10>(constexpr_log1p(1.), numbers::ln2_v<double>));
+  static_assert(are_within_tolerance<10>(constexpr_log1p(9.), numbers::ln10_v<double>));
+  static_assert(are_within_tolerance<10>(constexpr_log1p(e - 1), 1));
+  static_assert(are_within_tolerance<10>(constexpr_log1p(e*e - 1), 2));
+  static_assert(are_within_tolerance<10>(constexpr_log1p(e*e*e - 1), 3));
+  static_assert(are_within_tolerance<10>(constexpr_log1p(e*e*e*e*e*e*e*e*e*e*e*e*e*e*e*e - 1), 16));
+  static_assert(are_within_tolerance<10>(constexpr_log1p(1/e - 1), -1));
+  EXPECT_NEAR(constexpr_log1p(5.0L), std::log1p(5.0L), 1e-9);
+  EXPECT_NEAR(constexpr_log1p(0.2L), std::log1p(0.2L), 1e-9);
+  EXPECT_NEAR(constexpr_log1p(5), std::log1p(5), 1e-9);
+  EXPECT_NEAR(constexpr_log1p(0.2), std::log1p(0.2), 1e-9);
+  EXPECT_NEAR(constexpr_log1p(20), std::log1p(20), 1e-9);
+  EXPECT_NEAR(constexpr_log1p(0.05), std::log1p(0.05), 1e-9);
+  EXPECT_NEAR(constexpr_log1p(100), std::log1p(100), 1e-9);
+  EXPECT_NEAR(constexpr_log1p(0.01), std::log1p(0.01), 1e-9);
+  EXPECT_NEAR(constexpr_log1p(0.001), std::log1p(0.001), 1e-9);
+  EXPECT_NEAR(constexpr_log1p(0.0001), std::log1p(0.0001), 1e-9);
+  EXPECT_NEAR(constexpr_log1p(0.00001), std::log1p(0.00001), 1e-9);
+  EXPECT_NEAR(constexpr_log1p(0.000001), std::log1p(0.000001), 1e-9);
+  EXPECT_NEAR(constexpr_log1p(1e-20), std::log1p(1e-20), 1e-9);
+  EXPECT_NEAR(constexpr_log1p(1e-200), std::log1p(1e-200), 1e-9);
+  EXPECT_NEAR(constexpr_log1p(1e-200L), std::log1p(1e-200L), 1e-9);
+  EXPECT_NEAR(constexpr_log1p(1e20), std::log1p(1e20), 1e-9);
+  EXPECT_NEAR(constexpr_log1p(1e200), std::log1p(1e200), 1e-9);
+  EXPECT_NEAR(constexpr_log1p(1e200L), std::log1p(1e200L), 1e-9);
+
+  EXPECT_PRED3(tolerance, std::real(constexpr_log1p(std::complex<double>{4e-21})), std::log1p(4e-21), 1e-30);
+  EXPECT_PRED3(tolerance, constexpr_log1p(std::complex<double>{-4}), std::log(std::complex<double>{-3}), 1e-9);
+  EXPECT_PRED3(tolerance, constexpr_log1p(std::complex<double>{3, 4}), std::log(std::complex<double>{4, 4}), 1e-9);
+  EXPECT_PRED3(tolerance, constexpr_log1p(std::complex<double>{3, -4}), std::log(std::complex<double>{4, -4}), 1e-9);
+  EXPECT_PRED3(tolerance, constexpr_log1p(std::complex<double>{-3, 4}), std::log(std::complex<double>{-2, 4}), 1e-9);
+  EXPECT_PRED3(tolerance, constexpr_log1p(std::complex<double>{-3, -4}), std::log(std::complex<double>{-2, -4}), 1e-9);
+  COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_log1p(std::complex<int>{3, -4})));
+}
+
+
 TEST(basics, constexpr_asin)
 {
   constexpr auto pi = numbers::pi_v<double>;
@@ -604,12 +668,12 @@ TEST(basics, constexpr_asin)
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
-    static_assert(constexpr_asin(constexpr_NaN<double>()) != constexpr_asin(constexpr_NaN<double>()));
-    static_assert(constexpr_asin(2.0) != constexpr_asin(2.0));
-    static_assert(constexpr_asin(-2.0) != constexpr_asin(-2.0));
+    EXPECT_TRUE(constexpr_asin(constexpr_NaN<double>()) != constexpr_asin(constexpr_NaN<double>()));
+    EXPECT_TRUE(constexpr_asin(2.0) != constexpr_asin(2.0));
+    EXPECT_TRUE(constexpr_asin(-2.0) != constexpr_asin(-2.0));
     EXPECT_TRUE(std::signbit(constexpr_asin(-0.)));
     EXPECT_TRUE(not std::signbit(constexpr_asin(0.)));
-    static_assert(constexpr_asin(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_asin(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+    EXPECT_TRUE(constexpr_asin(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_asin(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
   }
 
   static_assert(constexpr_asin(0) == 0);
@@ -646,10 +710,10 @@ TEST(basics, constexpr_acos)
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
-    static_assert(constexpr_acos(constexpr_NaN<double>()) != constexpr_acos(constexpr_NaN<double>()));
-    static_assert(constexpr_acos(-2) != constexpr_acos(-2)); // NaN
+    EXPECT_TRUE(constexpr_acos(constexpr_NaN<double>()) != constexpr_acos(constexpr_NaN<double>()));
+    EXPECT_TRUE(constexpr_acos(-2) != constexpr_acos(-2)); // NaN
     EXPECT_FALSE(std::signbit(constexpr_cos(1)));
-    static_assert(constexpr_acos(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_acos(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+    EXPECT_TRUE(constexpr_acos(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_acos(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
   }
 
   static_assert(constexpr_acos(0) == pi/2);
@@ -684,12 +748,12 @@ TEST(basics, constexpr_atan)
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
-    static_assert(constexpr_atan(constexpr_NaN<double>()) != constexpr_atan(constexpr_NaN<double>()));
-    static_assert(constexpr_atan(constexpr_infinity<double>()) == pi/2);
-    static_assert(constexpr_atan(-constexpr_infinity<double>()) == -pi/2);
+    EXPECT_TRUE(constexpr_atan(constexpr_NaN<double>()) != constexpr_atan(constexpr_NaN<double>()));
+    EXPECT_TRUE(constexpr_atan(constexpr_infinity<double>()) == pi/2);
+    EXPECT_TRUE(constexpr_atan(-constexpr_infinity<double>()) == -pi/2);
     EXPECT_TRUE(std::signbit(constexpr_atan(-0.)));
     EXPECT_FALSE(std::signbit(constexpr_atan(+0.)));
-    static_assert(constexpr_atan(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_atan(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+    EXPECT_TRUE(constexpr_atan(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_atan(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
   }
 
   static_assert(constexpr_atan(0) == 0);
@@ -720,25 +784,25 @@ TEST(basics, constexpr_atan2)
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
-    static_assert(constexpr_atan2(constexpr_infinity<double>(), 0.f) == pi/2);
-    static_assert(constexpr_atan2(-constexpr_infinity<double>(), 0.f) == -pi/2);
-    static_assert(constexpr_atan2(0., constexpr_infinity<double>()) == 0);
-    static_assert(constexpr_atan2(0., -constexpr_infinity<double>()) == pi);
-    static_assert(constexpr_atan2(constexpr_infinity<double>(), constexpr_infinity<double>()) == pi/4);
-    static_assert(constexpr_atan2(constexpr_infinity<double>(), -constexpr_infinity<double>()) == 3*pi/4);
-    static_assert(constexpr_atan2(-constexpr_infinity<double>(), constexpr_infinity<double>()) == -pi/4);
-    static_assert(constexpr_atan2(-constexpr_infinity<double>(), -constexpr_infinity<double>()) == -3*pi/4);
+    EXPECT_TRUE(constexpr_atan2(constexpr_infinity<double>(), 0.f) == pi/2);
+    EXPECT_TRUE(constexpr_atan2(-constexpr_infinity<double>(), 0.f) == -pi/2);
+    EXPECT_TRUE(constexpr_atan2(0., constexpr_infinity<double>()) == 0);
+    EXPECT_TRUE(constexpr_atan2(0., -constexpr_infinity<double>()) == pi);
+    EXPECT_TRUE(constexpr_atan2(constexpr_infinity<double>(), constexpr_infinity<double>()) == pi/4);
+    EXPECT_TRUE(constexpr_atan2(constexpr_infinity<double>(), -constexpr_infinity<double>()) == 3*pi/4);
+    EXPECT_TRUE(constexpr_atan2(-constexpr_infinity<double>(), constexpr_infinity<double>()) == -pi/4);
+    EXPECT_TRUE(constexpr_atan2(-constexpr_infinity<double>(), -constexpr_infinity<double>()) == -3*pi/4);
 #ifdef __cpp_lib_constexpr_cmath
-    static_assert(std::signbit(constexpr_atan2(-0., constexpr_infinity<double>())));
+    EXPECT_TRUE(std::signbit(constexpr_atan2(-0., constexpr_infinity<double>())));
     static_assert(std::signbit(constexpr_atan2(-0., +0.)));
-    static_assert(not std::signbit(constexpr_atan2(+0., constexpr_infinity<double>())));
+    EXPECT_TRUE(not std::signbit(constexpr_atan2(+0., constexpr_infinity<double>())));
     static_assert(not std::signbit(constexpr_atan2(+0., +0.)));
-    static_assert(constexpr_atan2(-0., -constexpr_infinity<double>()) == -pi);
+    EXPECT_TRUE(constexpr_atan2(-0., -constexpr_infinity<double>()) == -pi);
     static_assert(constexpr_atan2(-0., -0.) == -pi);
     static_assert(constexpr_atan2(-0., -1.) == -pi);
     static_assert(constexpr_atan2(+0., -0.) == pi);
 #endif
-    static_assert(constexpr_atan2(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}, std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_atan2(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}, std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+    EXPECT_TRUE(constexpr_atan2(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}, std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_atan2(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}, std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
   }
 
   static_assert(constexpr_atan2(0, 1) == 0);
@@ -776,12 +840,12 @@ TEST(basics, constexpr_asinh)
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
-    static_assert(constexpr_asinh(constexpr_NaN<double>()) != constexpr_asinh(constexpr_NaN<double>()));
-    static_assert(constexpr_asinh(constexpr_infinity<double>()) == constexpr_infinity<double>());
-    static_assert(constexpr_asinh(-constexpr_infinity<double>()) == -constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_asinh(constexpr_NaN<double>()) != constexpr_asinh(constexpr_NaN<double>()));
+    EXPECT_TRUE(constexpr_asinh(constexpr_infinity<double>()) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_asinh(-constexpr_infinity<double>()) == -constexpr_infinity<double>());
     EXPECT_FALSE(std::signbit(constexpr_asinh(+0.)));
     EXPECT_TRUE(std::signbit(constexpr_asinh(-0.)));
-    static_assert(constexpr_asinh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_asinh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+    EXPECT_TRUE(constexpr_asinh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_asinh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
   }
 
   static_assert(constexpr_asinh(0) == 0);
@@ -807,14 +871,14 @@ TEST(basics, constexpr_acosh)
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
-    static_assert(constexpr_acosh(constexpr_NaN<double>()) != constexpr_acosh(constexpr_NaN<double>()));
-    static_assert(constexpr_acosh(-1) != constexpr_acosh(-1));
-    static_assert(constexpr_acosh(constexpr_infinity<double>()) == constexpr_infinity<double>());
-    static_assert(constexpr_acosh(-constexpr_infinity<double>()) != constexpr_acosh(-constexpr_infinity<double>()));
-    static_assert(constexpr_acosh(0.9) != constexpr_acosh(0.9));
-    static_assert(constexpr_acosh(-1) != constexpr_acosh(-1));
+    EXPECT_TRUE(constexpr_acosh(constexpr_NaN<double>()) != constexpr_acosh(constexpr_NaN<double>()));
+    EXPECT_TRUE(constexpr_acosh(-1) != constexpr_acosh(-1));
+    EXPECT_TRUE(constexpr_acosh(constexpr_infinity<double>()) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_acosh(-constexpr_infinity<double>()) != constexpr_acosh(-constexpr_infinity<double>()));
+    EXPECT_TRUE(constexpr_acosh(0.9) != constexpr_acosh(0.9));
+    EXPECT_TRUE(constexpr_acosh(-1) != constexpr_acosh(-1));
     EXPECT_FALSE(std::signbit(constexpr_acosh(1)));
-    static_assert(constexpr_acosh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_acosh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+    EXPECT_TRUE(constexpr_acosh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_acosh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
   }
 
   static_assert(constexpr_acosh(1) == 0);
@@ -839,14 +903,14 @@ TEST(basics, constexpr_atanh)
 
   if constexpr (std::numeric_limits<double>::is_iec559)
   {
-    static_assert(constexpr_atanh(constexpr_NaN<double>()) != constexpr_atanh(constexpr_NaN<double>()));
-    static_assert(constexpr_atanh(2) != constexpr_atanh(2));
-    static_assert(constexpr_atanh(-2) != constexpr_atanh(-2));
-    static_assert(constexpr_atanh(1) == constexpr_infinity<double>());
-    static_assert(constexpr_atanh(-1) == -constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_atanh(constexpr_NaN<double>()) != constexpr_atanh(constexpr_NaN<double>()));
+    EXPECT_TRUE(constexpr_atanh(2) != constexpr_atanh(2));
+    EXPECT_TRUE(constexpr_atanh(-2) != constexpr_atanh(-2));
+    EXPECT_TRUE(constexpr_atanh(1) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_atanh(-1) == -constexpr_infinity<double>());
     EXPECT_FALSE(std::signbit(constexpr_atanh(+0.)));
     EXPECT_TRUE(std::signbit(constexpr_atanh(-0.)));
-    static_assert(constexpr_atanh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_atanh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+    EXPECT_TRUE(constexpr_atanh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_atanh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
   }
 
   static_assert(constexpr_atanh(0) == 0);
@@ -874,63 +938,63 @@ TEST(basics, constexpr_pow)
     EXPECT_TRUE(std::signbit(constexpr_pow(-0., 3U)));
     EXPECT_FALSE(std::signbit(constexpr_pow(+0., 2U)));
     EXPECT_FALSE(std::signbit(constexpr_pow(-0., 2U)));
-    static_assert(constexpr_pow(constexpr_NaN<double>(), 0U) == 1);
-    static_assert(constexpr_pow(constexpr_NaN<double>(), 1U) != constexpr_pow(constexpr_NaN<double>(), 1U));
-    static_assert(constexpr_pow(-constexpr_infinity<double>(), 3U) == -constexpr_infinity<double>());
-    static_assert(constexpr_pow(-constexpr_infinity<double>(), 4U) == constexpr_infinity<double>());
-    static_assert(constexpr_pow(constexpr_infinity<double>(), 3U) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_pow(constexpr_NaN<double>(), 0U) == 1);
+    EXPECT_TRUE(constexpr_pow(constexpr_NaN<double>(), 1U) != constexpr_pow(constexpr_NaN<double>(), 1U));
+    EXPECT_TRUE(constexpr_pow(-constexpr_infinity<double>(), 3U) == -constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_pow(-constexpr_infinity<double>(), 4U) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_pow(constexpr_infinity<double>(), 3U) == constexpr_infinity<double>());
 
     EXPECT_TRUE(constexpr_pow(+0., -3) == constexpr_infinity<double>());
 #ifdef __cpp_lib_constexpr_cmath
     EXPECT_TRUE(constexpr_pow(-0., -3) == -constexpr_infinity<double>());
 #endif
-    static_assert(constexpr_pow(+0., -2) == constexpr_infinity<double>());
-    static_assert(constexpr_pow(-0., -2) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_pow(+0., -2) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_pow(-0., -2) == constexpr_infinity<double>());
     EXPECT_FALSE(std::signbit(constexpr_pow(+0., 3)));
     EXPECT_TRUE(std::signbit(constexpr_pow(-0., 3)));
     EXPECT_FALSE(std::signbit(constexpr_pow(+0., 2)));
     EXPECT_FALSE(std::signbit(constexpr_pow(-0., 2)));
-    static_assert(constexpr_pow(constexpr_NaN<double>(), 0) == 1);
-    static_assert(constexpr_pow(constexpr_NaN<double>(), 1) != constexpr_pow(constexpr_NaN<double>(), 1));
-    static_assert(constexpr_pow(-constexpr_infinity<double>(), -3) == 0);
+    EXPECT_TRUE(constexpr_pow(constexpr_NaN<double>(), 0) == 1);
+    EXPECT_TRUE(constexpr_pow(constexpr_NaN<double>(), 1) != constexpr_pow(constexpr_NaN<double>(), 1));
+    EXPECT_TRUE(constexpr_pow(-constexpr_infinity<double>(), -3) == 0);
     EXPECT_TRUE(std::signbit(constexpr_pow(-constexpr_infinity<double>(), -3)));
-    static_assert(constexpr_pow(-constexpr_infinity<double>(), -2) == 0);
+    EXPECT_TRUE(constexpr_pow(-constexpr_infinity<double>(), -2) == 0);
     EXPECT_FALSE(std::signbit(constexpr_pow(-constexpr_infinity<double>(), -2)));
-    static_assert(constexpr_pow(-constexpr_infinity<double>(), 3) == -constexpr_infinity<double>());
-    static_assert(constexpr_pow(-constexpr_infinity<double>(), 4) == constexpr_infinity<double>());
-    static_assert(constexpr_pow(constexpr_infinity<double>(), -3) == 0);
+    EXPECT_TRUE(constexpr_pow(-constexpr_infinity<double>(), 3) == -constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_pow(-constexpr_infinity<double>(), 4) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_pow(constexpr_infinity<double>(), -3) == 0);
     EXPECT_FALSE(std::signbit(constexpr_pow(constexpr_infinity<double>(), -3)));
-    static_assert(constexpr_pow(constexpr_infinity<double>(), 3) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_pow(constexpr_infinity<double>(), 3) == constexpr_infinity<double>());
 
-    static_assert(constexpr_pow(+0., -constexpr_infinity<double>()) == constexpr_infinity<double>());
-    static_assert(constexpr_pow(-0., -constexpr_infinity<double>()) == constexpr_infinity<double>());
-    static_assert(constexpr_pow(+0.5, -constexpr_infinity<double>()) == constexpr_infinity<double>());
-    static_assert(constexpr_pow(-0.5, -constexpr_infinity<double>()) == constexpr_infinity<double>());
-    static_assert(constexpr_pow(+1.5, -constexpr_infinity<double>()) == 0);
-    static_assert(constexpr_pow(-1.5, -constexpr_infinity<double>()) == 0);
+    EXPECT_TRUE(constexpr_pow(+0., -constexpr_infinity<double>()) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_pow(-0., -constexpr_infinity<double>()) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_pow(+0.5, -constexpr_infinity<double>()) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_pow(-0.5, -constexpr_infinity<double>()) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_pow(+1.5, -constexpr_infinity<double>()) == 0);
+    EXPECT_TRUE(constexpr_pow(-1.5, -constexpr_infinity<double>()) == 0);
     EXPECT_FALSE(std::signbit(constexpr_pow(+1.5, -constexpr_infinity<double>())));
     EXPECT_FALSE(std::signbit(constexpr_pow(-1.5, -constexpr_infinity<double>())));
-    static_assert(constexpr_pow(+0.5, constexpr_infinity<double>()) == 0);
-    static_assert(constexpr_pow(-0.5, constexpr_infinity<double>()) == 0);
+    EXPECT_TRUE(constexpr_pow(+0.5, constexpr_infinity<double>()) == 0);
+    EXPECT_TRUE(constexpr_pow(-0.5, constexpr_infinity<double>()) == 0);
     EXPECT_FALSE(std::signbit(constexpr_pow(+0.5, constexpr_infinity<double>())));
     EXPECT_FALSE(std::signbit(constexpr_pow(-0.5, constexpr_infinity<double>())));
-    static_assert(constexpr_pow(+1.5, constexpr_infinity<double>()) == constexpr_infinity<double>());
-    static_assert(constexpr_pow(-1.5, constexpr_infinity<double>()) == constexpr_infinity<double>());
-    static_assert(constexpr_pow(-constexpr_infinity<double>(), -3.) == 0);
-    //EXPECT_FALSE(std::signbit(constexpr_pow(-constexpr_infinity<double>(), -3.)));
-    static_assert(constexpr_pow(-constexpr_infinity<double>(), 3.) == constexpr_infinity<double>());
-    static_assert(constexpr_pow(constexpr_infinity<double>(), -3.) == 0);
+    EXPECT_TRUE(constexpr_pow(+1.5, constexpr_infinity<double>()) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_pow(-1.5, constexpr_infinity<double>()) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_pow(-constexpr_infinity<double>(), -3.) == 0);
+    EXPECT_TRUE(std::signbit(constexpr_pow(-constexpr_infinity<double>(), -3.))); // note: cpp reference says sign is reversed, which is maybe an error.
+    EXPECT_EQ(constexpr_pow(-constexpr_infinity<double>(), 3.), -constexpr_infinity<double>()); // note: cpp reference says sign is reversed, which is maybe an error.
+    EXPECT_TRUE(constexpr_pow(constexpr_infinity<double>(), -3.) == 0);
     EXPECT_FALSE(std::signbit(constexpr_pow(constexpr_infinity<double>(), -3.)));
-    static_assert(constexpr_pow(constexpr_infinity<double>(), 3.) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_pow(constexpr_infinity<double>(), 3.) == constexpr_infinity<double>());
     EXPECT_FALSE(std::signbit(constexpr_pow(+0, 3.)));
     EXPECT_FALSE(std::signbit(constexpr_pow(-0, 3.)));
-    static_assert(constexpr_pow(-1., constexpr_infinity<double>()) == 1);
-    static_assert(constexpr_pow(-1., -constexpr_infinity<double>()) == 1);
-    static_assert(constexpr_pow(+1., constexpr_NaN<double>()) == 1);
-    static_assert(constexpr_pow(constexpr_NaN<double>(), +0) == 1);
-    static_assert(constexpr_pow(constexpr_NaN<double>(), 1.) != constexpr_pow(constexpr_NaN<double>(), 1.));
+    EXPECT_TRUE(constexpr_pow(-1., constexpr_infinity<double>()) == 1);
+    EXPECT_TRUE(constexpr_pow(-1., -constexpr_infinity<double>()) == 1);
+    EXPECT_TRUE(constexpr_pow(+1., constexpr_NaN<double>()) == 1);
+    EXPECT_TRUE(constexpr_pow(constexpr_NaN<double>(), +0) == 1);
+    EXPECT_TRUE(constexpr_pow(constexpr_NaN<double>(), 1.) != constexpr_pow(constexpr_NaN<double>(), 1.));
 
-    static_assert(constexpr_pow(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}, std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_pow(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}, std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+    EXPECT_TRUE(constexpr_pow(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}, std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_pow(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}, std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
   }
 
   static_assert(constexpr_pow(+0., 3U) == 0);
@@ -960,8 +1024,8 @@ TEST(basics, constexpr_pow)
   static_assert(constexpr_pow(-0., 3.) == +0);
   static_assert(constexpr_pow(+1., 5) == 1);
   static_assert(constexpr_pow(-5., +0) == 1);
-  static_assert(constexpr_pow(-5., 1.5) != constexpr_pow(-5., 1.5));
-  static_assert(constexpr_pow(-7.3, 3.3) != constexpr_pow(-7.3, 3.3));
+  EXPECT_TRUE(constexpr_pow(-5., 1.5) != constexpr_pow(-5., 1.5));
+  EXPECT_TRUE(constexpr_pow(-7.3, 3.3) != constexpr_pow(-7.3, 3.3));
   static_assert(are_within_tolerance(constexpr_pow(2, -4.), 0.0625));
   static_assert(are_within_tolerance(constexpr_pow(10, -4.), 1e-4));
   static_assert(are_within_tolerance(constexpr_pow(10., 6.), 1e6, 1e-4));

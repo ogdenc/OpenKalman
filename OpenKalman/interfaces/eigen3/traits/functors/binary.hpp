@@ -177,7 +177,7 @@ namespace OpenKalman::Eigen3
   {
     struct Op
     {
-      constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return conjugate(arg1) * arg2; }
+      constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return constexpr_conj(arg1) * arg2; }
     };
 
     template<template<typename...> typename T, typename Arg>

@@ -79,6 +79,7 @@ namespace OpenKalman
       return are_within_tolerance<epsilon_factor>(real(arg1), real(arg2)) and
         are_within_tolerance<epsilon_factor>(imag(arg1), imag(arg2));
     }
+    else if (arg1 != arg1 or arg2 != arg2) return false; // in case either argument is NaN
     else
     {
       auto diff = arg1 - arg2;
@@ -86,7 +87,6 @@ namespace OpenKalman
       constexpr auto ep = epsilon_factor * std::numeric_limits<Diff>::epsilon();
       return -static_cast<Diff>(ep) <= diff and diff <= static_cast<Diff>(ep);
     }
-
   }
 
 
@@ -105,6 +105,7 @@ namespace OpenKalman
       using std::real, std::imag;
       return are_within_tolerance(real(arg1), real(arg2), err) and are_within_tolerance(imag(arg1), imag(arg2), err);
     }
+    else if (arg1 != arg1 or arg2 != arg2) return false; // in case either argument is NaN
     else
     {
       auto diff = arg1 - arg2;

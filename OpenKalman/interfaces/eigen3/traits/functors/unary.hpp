@@ -60,7 +60,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const Arg& arg)
     {
       if constexpr (std::is_same_v<T<XprType>, constant_coefficient<XprType>>)
-        return default_get_constant<XprType, T>(arg.functor(), arg);
+        return detail::default_get_constant<XprType, T>(arg.functor(), arg);
       else
         return std::monostate {};
     }
@@ -93,19 +93,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar, typename XprType>
   struct FunctorTraits<EGI::scalar_abs_op<Scalar>, XprType>
   {
-    struct Op
-    {
-      constexpr auto operator()(Scalar arg) const noexcept
-      {
-        if constexpr (complex_number<Scalar>)
-        {
-          auto r = internal::constexpr_real(arg);
-          auto i = internal::constexpr_imag(arg);
-          return constexpr_sqrt(r * r + i * i);
-        }
-        else return arg >= Scalar{0} ? arg : -arg;
-      }
-    };
+    struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_abs(arg); } };
 
     template<template<typename...> typename T, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -380,7 +368,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar, typename XprType>
   struct FunctorTraits<EGI::scalar_log1p_op<Scalar>, XprType>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_log(arg + Scalar{1}); } };
+    struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_log1p(arg); } };
 
     template<template<typename...> typename T, typename Arg>
     static constexpr auto get_constant(const Arg& arg)

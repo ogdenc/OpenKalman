@@ -812,6 +812,17 @@ namespace OpenKalman
 
   namespace detail
   {
+#ifdef __cpp_concepts
+#else
+    template<typename T, typename = void>
+    struct constant_is_constexpr : std::false_type {};
+
+    template<typename T>
+    struct constant_is_constexpr<T, std::enable_if_t<(interface::SingleConstant<std::decay_t<T>>::get_constant(), true)>>
+      : std::true_type {};
+#endif
+
+
 #ifndef __cpp_concepts
     template<typename T, typename = void>
     struct get_constant_res {};
@@ -887,7 +898,6 @@ namespace OpenKalman
 
     template<typename T, std::size_t I>
     struct dimension_is_1D<T, I, std::enable_if_t<index_dimension_of<T, I>::value == 1>> : std::true_type {};
-
 #endif
     template<typename T>
     constexpr bool maybe_one_by_one_matrix_impl(std::index_sequence<>) { return true; }
@@ -920,6 +930,17 @@ namespace OpenKalman
         return ((dynamic_dimension<T, I> or equivalent_to<coefficient_types_of_t<T, I0>, coefficient_types_of_t<T, I>>) and ...);
     }
 
+
+    template<typename Arg, std::size_t...is>
+    constexpr auto get00element(Arg&& arg, std::index_sequence<is...>)
+    {
+#ifdef __cpp_concepts
+      return interface::GetElement<std::decay_t<Arg>, decltype(is)...>::get(std::forward<Arg>(arg), decltype(is){0}...);
+#else
+      return interface::GetElement<std::decay_t<Arg>, void, decltype(is)...>::get(std::forward<Arg>(arg), decltype(is){0}...);
+#endif
+    }
+
   } // namespace detail
 
 
@@ -940,6 +961,14 @@ namespace OpenKalman
         requires requires { requires are_within_tolerance(std::decay_t<decltype(trait.get_constant_diagonal())>::value, 0); } or
           (detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) and
             (b != Likelihood::definitely or not has_dynamic_dimensions<T>));
+      } or
+      requires {
+        requires c != CompileTimeStatus::known;
+        requires (max_indices_of_v<T> > 0);
+        requires (b != Likelihood::definitely or not has_dynamic_dimensions<T>);
+        requires detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{});
+        requires not requires { {trait.get_constant()} -> scalar_constant<CompileTimeStatus::known>; };
+        requires not requires { {trait.get_constant_diagonal()} -> scalar_constant<CompileTimeStatus::known>; };
       };
     };
 #else
@@ -949,7 +978,14 @@ namespace OpenKalman
     (detail::is_constant_diagonal_matrix<T, c>::value and
       (detail::is_specific_constant_diagonal_matrix<T, 0>::value or
       (detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) and
-        (b != Likelihood::definitely or not has_dynamic_dimensions<T>)))));
+        (b != Likelihood::definitely or not has_dynamic_dimensions<T>)))) or
+    ( c != CompileTimeStatus::known and
+      (max_indices_of<T>::value > 0) and
+      (b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
+      detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of<T>::value>{}) and
+      not detail::is_constant_matrix<T, CompileTimeStatus::known>::value and
+      not detail::is_constant_diagonal_matrix<T, CompileTimeStatus::known>::value
+    ));
 #endif
 
 
@@ -1031,8 +1067,14 @@ namespace OpenKalman
         if constexpr (detail::is_constant_matrix<T, CompileTimeStatus::unknown>::value)
 #endif
           return get_scalar_constant_value(Trait{std::forward<Arg>(arg)}.get_constant());
-        else
+#ifdef __cpp_concepts
+        else if constexpr (requires(Trait& trait) { {trait.get_constant_diagonal()} -> scalar_constant<CompileTimeStatus::unknown>; })
+#else
+        else if constexpr (detail::is_constant_diagonal_matrix<T, CompileTimeStatus::unknown>::value)
+#endif
           return get_scalar_constant_value(Trait{std::forward<Arg>(arg)}.get_constant_diagonal());
+        else
+          return detail::get00element(std::forward<Arg>(arg), std::make_index_sequence<max_indices_of_v<T>>{});
       }(std::forward<Arg>(arg))} {};
 
     using value_type = scalar_type_of_t<T>;
@@ -1100,23 +1142,38 @@ namespace OpenKalman
       } or
       requires {
         {trait.get_constant()} -> scalar_constant<c>;
-        requires (b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
-          (detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) or
+        requires (b != Likelihood::definitely or not has_dynamic_dimensions<T>);
+        requires detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) or
           (requires { requires are_within_tolerance(std::decay_t<decltype(trait.get_constant())>::value, 0); } and
-            detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})));
+            detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}));
+      } or
+      requires {
+        requires c != CompileTimeStatus::known;
+        requires (max_indices_of_v<T> > 0);
+        requires (b != Likelihood::definitely or not has_dynamic_dimensions<T>);
+        requires detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{});
+        requires not requires { {trait.get_constant_diagonal()} -> scalar_constant<CompileTimeStatus::known>; };
+        requires not requires { {trait.get_constant()} -> scalar_constant<CompileTimeStatus::known>; };
       };
     };
 #else
   constexpr bool constant_diagonal_matrix = indexible<T> and (
-    (detail::is_constant_diagonal_matrix<T, c>::value and
+    ( detail::is_constant_diagonal_matrix<T, c>::value and
       (b != Likelihood::definitely or detail::is_diagonal_matrix<T>::value or
         (not has_dynamic_dimensions<T> and detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})) or
         detail::constant_diagonal_status<T, Likelihood::definitely>::value)) or
-    (detail::is_constant_matrix<T, c>::value and
-      ((b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
-        (detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) or
+    ( detail::is_constant_matrix<T, c>::value and
+      (b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
+      ( (detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) or
         (detail::is_specific_constant_matrix<T, 0>::value and
-          detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}))))));
+          detail::maybe_square_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}))))) or
+    ( c != CompileTimeStatus::known and
+      (b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
+      (max_indices_of<T>::value > 0) and
+      detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of<T>::value>{}) and
+      not detail::is_constant_diagonal_matrix<T, CompileTimeStatus::known>::value and
+      not detail::is_constant_matrix<T, CompileTimeStatus::known>::value
+    ));
 #endif
 
 
@@ -1194,8 +1251,14 @@ namespace OpenKalman
         if constexpr (detail::is_constant_diagonal_matrix<T, CompileTimeStatus::unknown>::value)
 #endif
           return get_scalar_constant_value(Trait{std::forward<Arg>(arg)}.get_constant_diagonal());
-        else
+#ifdef __cpp_concepts
+        if constexpr (requires(Trait& trait) { {trait.get_constant()} -> scalar_constant<CompileTimeStatus::unknown>; })
+#else
+        if constexpr (detail::is_constant_matrix<T, CompileTimeStatus::unknown>::value)
+#endif
           return get_scalar_constant_value(Trait{std::forward<Arg>(arg)}.get_constant());
+        else
+          return detail::get00element(std::forward<Arg>(arg), std::make_index_sequence<max_indices_of_v<T>>{});
       }(std::forward<Arg>(arg))} {};
 
     using value_type = scalar_type_of_t<T>;

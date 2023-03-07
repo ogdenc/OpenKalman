@@ -17,15 +17,15 @@ include(GoogleTest)
 add_executable(eigen3
     eigen3-traits.test.cpp
     eigen3-matrix.test.cpp
-    #eigen3-diagonal.test.cpp
-    #eigen3-elementwise-operations.test.cpp
-    #eigen3-reductions.test.cpp
-    #eigen3-blocks.test.cpp
-    #eigen3-chipwise-operations.test.cpp
-    #eigen3-basic-linear-algebra.test.cpp
-    #eigen3-rank-update.test.cpp
-    #eigen3-solve.test.cpp
-    #eigen3-decomposition.test.cpp
+    eigen3-diagonal.test.cpp
+    eigen3-elementwise-operations.test.cpp
+    eigen3-reductions.test.cpp
+    eigen3-blocks.test.cpp
+    eigen3-chipwise-operations.test.cpp
+    eigen3-basic-linear-algebra.test.cpp
+    eigen3-rank-update.test.cpp
+    eigen3-solve.test.cpp
+    eigen3-decomposition.test.cpp
     )
 
 target_link_libraries(eigen3 ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
