@@ -74,73 +74,25 @@ namespace OpenKalman::test
 
 
 #ifdef __cpp_concepts
-  template<native_eigen_general Arg1, native_eigen_general Arg2, typename Err> requires
-    (not native_eigen_matrix<Arg1> and not native_eigen_array<Arg1>) or
-    (not native_eigen_matrix<Arg2> and not native_eigen_array<Arg2>)
-  struct TestComparison<Arg1, Arg2, Err>
-#else
-  template<typename Arg1, typename Arg2, typename Err>
-  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<native_eigen_general<Arg1> and native_eigen_general<Arg2> and
-    ((not native_eigen_matrix<Arg1> and not native_eigen_array<Arg1>) or
-    (not native_eigen_matrix<Arg2> and not native_eigen_array<Arg2>))>>
-#endif
-    : ::testing::AssertionResult
-  {
-  private:
-    template<typename Arg>
-    decltype(auto) convert_impl(const Arg& arg)
-    {
-      if constexpr (native_eigen_matrix<Arg>)
-        return (arg);
-      else
-        return make_dense_writable_matrix_from(arg);
-    }
-
-  public:
-    TestComparison(const Arg1& arg1, const Arg2& arg2, const Err& err)
-      : ::testing::AssertionResult {is_near(convert_impl(arg1), convert_impl(arg2), err)} {};
-
-  };
-
-
-  namespace detail
-  {
-    template<typename Arg>
-#ifdef __cpp_concepts
-    concept eigen_type = typed_matrix_nestable<Arg> or covariance_nestable<Arg>;
-#else
-    static constexpr bool eigen_type = typed_matrix_nestable<Arg> or covariance_nestable<Arg>;
-#endif
-  } // namespace detail
-
-
-#ifdef __cpp_concepts
-  template<indexible Arg1, indexible Arg2, typename Err>
-  requires (native_eigen_general<Arg1> and not native_eigen_general<Arg2>) or
+  template<indexible Arg1, indexible Arg2, typename Err> requires
+    (native_eigen_general<Arg1> and not native_eigen_general<Arg2>) or
     (not native_eigen_general<Arg1> and native_eigen_general<Arg2>)
   struct TestComparison<Arg1, Arg2, Err>
 #else
   template<typename Arg1, typename Arg2, typename Err>
   struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<indexible<Arg1> and indexible<Arg2> and
-    ((native_eigen_general<Arg1> and not native_eigen_general<Arg2>) or
-      (not native_eigen_general<Arg1> and native_eigen_general<Arg2>))>>
+    (native_eigen_general<Arg1> and not native_eigen_general<Arg2>) or
+    (not native_eigen_general<Arg1> and native_eigen_general<Arg2>)>>
 #endif
     : ::testing::AssertionResult
   {
   private:
-    decltype(auto) convert_impl(const Arg1& arg1, const Arg2& arg2, const Err& err)
-    {
-      if constexpr (native_eigen_matrix<Arg1>)
-        return is_near(make_dense_writable_matrix_from(arg1),
-          make_dense_writable_matrix_from(to_native_matrix<Arg1>(arg2)), err);
-      else
-        return is_near(make_dense_writable_matrix_from(to_native_matrix<Arg2>(arg1)),
-          make_dense_writable_matrix_from(arg2), err);
-    }
+
+    using A = std::conditional_t<native_eigen_general<Arg1>, Arg1, Arg2>;
 
   public:
     TestComparison(const Arg1& arg1, const Arg2& arg2, const Err& err)
-      : ::testing::AssertionResult {convert_impl(arg1, arg2, err)} {};
+      : ::testing::AssertionResult {is_near(to_native_matrix<A>(arg1), to_native_matrix<A>(arg2), err)} {};
 
   };
 

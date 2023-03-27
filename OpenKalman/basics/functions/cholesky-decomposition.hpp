@@ -39,7 +39,10 @@ namespace OpenKalman
     }
     else if constexpr (diagonal_matrix<A>)
     {
-      return to_diagonal(n_ary_operation([](const auto x){ return x * conjugate(x); }, diagonal_of(std::forward<A>(a))));
+      return to_diagonal(n_ary_operation([](const auto x){
+        if constexpr (complex_number<decltype(x)>) { using std::conj; return x * conj(x); }
+        else return x * x;
+      }, diagonal_of(std::forward<A>(a))));
     }
     else
     {
@@ -86,7 +89,7 @@ namespace OpenKalman
     }
     else if constexpr (diagonal_matrix<A>)
     {
-      return to_diagonal(n_ary_operation([](const auto x){ return square_root(x); }, diagonal_of(std::forward<A>(a))));
+      return to_diagonal(n_ary_operation([](const auto x){ using std::sqrt; return sqrt(x); }, diagonal_of(std::forward<A>(a))));
     }
     else if constexpr (constant_matrix<A>)
     {

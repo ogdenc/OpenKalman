@@ -27,20 +27,27 @@ namespace OpenKalman
 
   /**
    * \brief A tensor or other matrix in which all elements are a constant scalar value known at compile time.
-   * \details The constant scalar value is, in general, a set of coefficients reflecting a vector in a vector space
-   * comprising the scalar value. For example,
-   * - An integral or real constant will consist of a single value.
-   * - A complex constant will consist of two values (real and imaginary parts).
-   * - A quaternion constant will consist of four values, etc.
-   * There must be a constructor for scalar_type_of_t<PatternMatrix> taking all the constants as arguments.
+   * \details The constant value can be known at compile time, or alternatively, known only at runtime.
+   * Examples:
+   * \code
+   * using T = Eigen::Matrix<double, 3, 2>; // A 3-by-2 matrix of scalar-type double.
+   * ConstantAdapter<T> c1 {3.0}; // Construct a 3-by-2 double constant of shape T with value 3.0 (known at runtime).
+   * ConstantAdapter<T, int> c2 {3}; // Construct a 3-by-2 int constant of shape T with value 3 (known at runtime).
+   * ConstantAdapter<T, int, 1> c3; // Construct a 3-by-2 int constant of shape T with value 1 (known at compile time).
+   * ConstantAdapter<T, double, 1> c4; // Construct a 3-by-2 double constant of shape T with value 1.0 (known at compile time).
+   * ConstantAdapter<T, std::integral_constant<int, 1>> c5; // Construct a 3-by-2 int constant of shape T with value 1 (known at compile time).
+   * ConstantAdapter<T, std::complex<double>> c6 {std::complex<double>{4, 5}}; // Construct a 3-by-2 complex constant of shape T and value 4.0 + 5.0i (known at runtime).
+   * ConstantAdapter<T, std::complex<double>, 4, 5> c7; // Construct a 3-by-2 A complex constant of shape T and value 4.0 + 5.0i (known at compile time).
+   * \endcode
    * \tparam PatternMatrix An \ref native_eigen_general matrix having the size and shape of this matrix
-   * \tparam constant The constant scalar value or coefficients within a vector space representing the constant scalar value.
+   * \tparam Scalar A \ref scalar_type reflecting the type of the constant
+   * \tparam constant Optional parameters for constructing Scalar at compile time.
    */
 #ifdef __cpp_concepts
-  template<indexible PatternMatrix, auto...constant>
-  requires std::constructible_from<scalar_type_of_t<PatternMatrix>, decltype(constant)...>
+  template<indexible PatternMatrix, scalar_constant Scalar = scalar_type_of_t<PatternMatrix>, auto...constant>
+    requires (sizeof...(constant) == 0) or requires { Scalar {constant...}; }
 #else
-  template<typename PatternMatrix, auto...constant>
+  template<typename PatternMatrix, typename Scalar = scalar_type_of_t<PatternMatrix>, auto...constant>
 #endif
   struct ConstantAdapter;
 
@@ -54,8 +61,8 @@ namespace OpenKalman
     template<typename T>
     struct is_constant_adapter : std::false_type {};
 
-    template<typename PatternMatrix, auto...constant>
-    struct is_constant_adapter<ConstantAdapter<PatternMatrix, constant...>> : std::true_type {};
+    template<typename PatternMatrix, typename Scalar, auto...constant>
+    struct is_constant_adapter<ConstantAdapter<PatternMatrix, Scalar, constant...>> : std::true_type {};
   }
 
 
@@ -80,11 +87,11 @@ namespace OpenKalman
    * \tparam PatternMatrix An \ref native_eigen_general matrix having the size and shape of this matrix
    */
 #ifdef __cpp_concepts
-  template<indexible PatternMatrix>
+  template<indexible PatternMatrix, scalar_type Scalar = scalar_type_of_t<PatternMatrix>>
 #else
-  template<typename PatternMatrix>
+  template<typename PatternMatrix, typename Scalar = scalar_type_of_t<PatternMatrix>>
 #endif
-  using ZeroAdapter = ConstantAdapter<PatternMatrix, 0>;
+  using ZeroAdapter = ConstantAdapter<PatternMatrix, Scalar, 0>;
 
 
   // ---------------------------------------- //
@@ -102,8 +109,8 @@ namespace OpenKalman
 #endif
   struct pattern_matrix_of;
 
-  template<typename PatternMatrix, auto...constant>
-  struct pattern_matrix_of<ConstantAdapter<PatternMatrix, constant...>> { using type = PatternMatrix; };
+  template<typename PatternMatrix, typename Scalar, auto...constant>
+  struct pattern_matrix_of<ConstantAdapter<PatternMatrix, Scalar, constant...>> { using type = PatternMatrix; };
 
 
 #ifdef __cpp_concepts

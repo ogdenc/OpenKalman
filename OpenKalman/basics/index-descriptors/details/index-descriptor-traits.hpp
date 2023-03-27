@@ -535,7 +535,6 @@ namespace OpenKalman
   constexpr bool equivalent_to_uniform_dimension_type_of = detail::equivalent_to_uniform_dimension_type_of_impl<T, C>::value;
 #endif
 
-
 } // namespace OpenKalman
 
 #endif //OPENKALMAN_INDEX_DESCRIPTOR_TRAITS_HPP

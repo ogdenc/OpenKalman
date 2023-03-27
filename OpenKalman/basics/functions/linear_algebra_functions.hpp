@@ -281,8 +281,6 @@ namespace OpenKalman
     template<std::size_t...I, typename T0, typename T1, typename...Ts>
     constexpr decltype(auto) sum_impl(std::index_sequence<I...> seq, T0&& t0, T1&& t1, Ts&&...ts)
     {
-      using Scalar = std::common_type_t<scalar_type_of_t<T0>, scalar_type_of_t<T1>>;
-
       if constexpr ((constant_matrix<T0> or constant_matrix<T1>) and not index_descriptors_match<T0, T1>)
       {
         if (not get_index_descriptors_match(t0, t1))
@@ -300,7 +298,7 @@ namespace OpenKalman
       else if constexpr ((constant_matrix<T0> and constant_matrix<T1>))
       {
         constexpr internal::scalar_constant_operation<std::plus<>, constant_coefficient<T0>, constant_coefficient<T1>> c;
-        constexpr auto cm = make_constant_matrix_like<T0, Scalar>(c, best_descriptor<I>(t0, t1, ts...)...);
+        constexpr auto cm = make_constant_matrix_like<T0>(c, best_descriptor<I>(t0, t1, ts...)...);
         return sum_impl(seq, cm, std::forward<Ts>(ts)...);
       }
       else if constexpr (constant_matrix<T0> and sizeof...(Ts) > 0)
@@ -382,7 +380,8 @@ namespace OpenKalman
     }
     else if constexpr (zero_matrix<A> or zero_matrix<B>)
     {
-      return detail::contract_constant(std::integral_constant<int, 0>{}, std::forward<A>(a), std::forward<B>(b), seq);
+      using Scalar = std::decay_t<decltype(std::declval<scalar_type_of_t<A>>() * std::declval<scalar_type_of_t<B>>())>;
+      return detail::contract_constant(internal::KnownScalarConstant<Scalar, 0>{}, std::forward<A>(a), std::forward<B>(b), seq);
     }
     else if constexpr (constant_matrix<A> and constant_matrix<B>)
     {
@@ -391,7 +390,8 @@ namespace OpenKalman
       if constexpr (dynamic_dimension<A, 1> and dynamic_dimension<B, 0>)
       {
         auto r = get_index_dimension_of<1>(a);
-        return detail::contract_constant<1>(op_c{} * r, std::forward<A>(a), std::forward<B>(b), seq);
+        internal::scalar_constant_operation cr {std::multiplies<>{}, op_c{}, r};
+        return detail::contract_constant(cr, std::forward<A>(a), std::forward<B>(b), seq);
       }
       else
       {
@@ -420,7 +420,7 @@ namespace OpenKalman
     }
     else if constexpr (diagonal_matrix<A> and diagonal_matrix<B>)
     {
-      auto ret = to_diagonal(n_ary_operation(std::multiplies<scalar_type_of_t<A>>{}, diagonal_of(std::forward<A>(a)), diagonal_of(std::forward<B>(b))));
+      auto ret = to_diagonal(n_ary_operation(std::multiplies<>{}, diagonal_of(std::forward<A>(a)), diagonal_of(std::forward<B>(b))));
       return ret;
     }
     else

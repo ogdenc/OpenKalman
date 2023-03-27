@@ -112,7 +112,7 @@ namespace OpenKalman
     }
     else if constexpr (identity_matrix<Arg>)
     {
-      return make_constant_matrix_like<Arg, 1>(dim, Dimensions<1>{});
+      return make_constant_matrix_like<Arg, scalar_type_of_t<Arg>, 1>(dim, Dimensions<1>{});
     }
     else if constexpr (zero_matrix<Arg>)
     {

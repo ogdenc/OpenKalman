@@ -52,16 +52,6 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Return a tuple containing the coefficients of the scalar value when viewed as a real vector space.
-     * \detail Must be a constexpr function. Examples:
-     * - If the scalar is an integral or floating value, the tuple contains only the value.
-     * - If the scalar is complex, the tuple contains the real and imaginary components.
-     * \return
-     */
-    static constexpr auto parts(std::decay_t<T> t) = delete;
-
-
-    /**
      * \brief The real part, if complex.
      * \details This is optional, and need only be defined if there is not otherwise a constexpr definition of real(t).
      */
@@ -102,9 +92,6 @@ namespace OpenKalman::interface
     {
       return std::complex<std::decay_t<T>>{std::forward<Re>(re), std::forward<Im>(im)};
     }
-
-    template<typename Arg>
-    static constexpr auto parts(Arg&& arg) { return std::forward_as_tuple(std::forward<Arg>(arg)); }
   };
 
 
@@ -129,8 +116,6 @@ namespace OpenKalman::interface
     {
       return {static_cast<T>(std::forward<Re>(re)), static_cast<T>(std::forward<Im>(im))};
     }
-
-    static constexpr std::tuple<Scalar, Scalar> parts(const std::complex<T>& arg) { return {std::real(arg), std::imag(arg)}; }
   };
 
 } // namespace OpenKalman::interface

@@ -527,6 +527,42 @@ namespace OpenKalman
     (detail::index_descriptors_match_impl<Ts...>(std::make_index_sequence<std::max({max_indices_of_v<Ts>...})> {}));
 
 
+  // ------------------------------------- //
+  //   compatible_with_index_descriptors   //
+  // ------------------------------------- //
+
+  namespace detail
+  {
+    template<typename T, std::size_t N, typename...Ds>
+    struct compatible_with_index_descriptors_impl : std::false_type {};
+
+    template<typename T, std::size_t N>
+    struct compatible_with_index_descriptors_impl<T, N> : std::bool_constant<N == max_indices_of_v<T>> {};
+
+    template<typename T, std::size_t N, typename D, typename...Ds>
+    struct compatible_with_index_descriptors_impl<T, N, D, Ds...> : std::bool_constant<
+#ifdef __cpp_concepts
+      (dynamic_dimension<T, N> or equivalent_to<D, coefficient_types_of_t<T, N>>) and
+#else
+      (dynamic_dimension<T, std::min(N, max_indices_of_v<T> - 1)> or equivalent_to<D, coefficient_types_of_t<T, std::min(N, max_indices_of_v<T> - 1)>>) and
+#endif
+        compatible_with_index_descriptors_impl<T, N + 1, Ds...>::value> {};
+  }
+
+
+  /**
+   * \brief \ref indexible T is compatible with \ref index_descriptor set Ds.
+   */
+  template<typename T, typename...Ds>
+#ifdef __cpp_concepts
+  concept compatible_with_index_descriptors =
+#else
+  constexpr bool compatible_with_index_descriptors =
+#endif
+    (max_indices_of_v<T> == sizeof...(Ds)) and (index_descriptor<Ds> and ...) and
+    detail::compatible_with_index_descriptors_impl<T, 0, Ds...>::value;
+
+
   // ------------- //
   //   wrappable   //
   // ------------- //
@@ -864,7 +900,7 @@ namespace OpenKalman
     template<typename T>
     struct get_constant_diagonal_res<T, std::void_t<decltype(interface::SingleConstant{std::declval<const std::decay_t<T>&>()}.get_constant_diagonal())>>
     {
-      using type = std::decay_t<decltype(interface::SingleConstant{std::declval<const std::decay_t<T>&>()}.get_constant_diagonal())>;
+      using type = std::decay_t<decltype(interface::SingleConstant {std::declval<const std::decay_t<T>&>()}.get_constant_diagonal())>;
     };
 
 
@@ -951,18 +987,18 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept constant_matrix = indexible<T> and
     requires(interface::SingleConstant<std::decay_t<T>>& trait) { requires
-      requires {
+      requires { // explicitly constant
         {trait.get_constant()} -> scalar_constant<c>;
         requires b != Likelihood::definitely or
           not requires { requires std::decay_t<decltype(trait.get_constant())>::status == Likelihood::maybe; };
       } or
-      requires {
+      requires { // constant diagonal that is either zero or has a one-by-one shape
         {trait.get_constant_diagonal()} -> scalar_constant<c>;
         requires requires { requires are_within_tolerance(std::decay_t<decltype(trait.get_constant_diagonal())>::value, 0); } or
           (detail::maybe_one_by_one_matrix_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) and
             (b != Likelihood::definitely or not has_dynamic_dimensions<T>));
       } or
-      requires {
+      requires { // anything with a one-by-one shape
         requires c != CompileTimeStatus::known;
         requires (max_indices_of_v<T> > 0);
         requires (b != Likelihood::definitely or not has_dynamic_dimensions<T>);
@@ -1430,7 +1466,7 @@ namespace OpenKalman
     (max_tensor_order_of_v<nested_matrix_of_t<T>> >= 1) and
     (b != Likelihood::definitely or max_tensor_order_of_v<nested_matrix_of_t<T>> == 1);
 #else
-  constexpr bool diagonal_adapter = diagonal_matrix<T> and has_nested_matrix<T> and
+  constexpr bool diagonal_adapter = diagonal_matrix<T, b> and has_nested_matrix<T> and
     detail::nested_matrix_is_order_1<T, b>::value;
 #endif
 

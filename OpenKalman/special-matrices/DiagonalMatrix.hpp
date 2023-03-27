@@ -24,8 +24,7 @@ namespace OpenKalman
 #else
   template<typename NestedMatrix>
 #endif
-  struct DiagonalMatrix
-    : OpenKalman::internal::MatrixBase<DiagonalMatrix<NestedMatrix>, NestedMatrix>
+  struct DiagonalMatrix : OpenKalman::internal::MatrixBase<DiagonalMatrix<NestedMatrix>, NestedMatrix>
   {
 
 #ifndef __cpp_concepts
@@ -203,7 +202,7 @@ namespace OpenKalman
         if constexpr (has_dynamic_dimensions<Arg>) assert(get_dimensions_of<0>(arg) == get_dimensions_of<1>(arg));
         if constexpr (dynamic_rows<NestedMatrix>) assert(get_dimensions_of<0>(this->nested_matrix()) == get_dimensions_of<0>(arg));
 
-        this->nested_matrix() = make_constant_matrix_like<NestedMatrix, 1>(Dimensions<dim>{}, Dimensions<1>{});
+        this->nested_matrix() = make_constant_matrix_like<NestedMatrix, scalar_type_of_t<NestedMatrix>, 1>(Dimensions<dim>{}, Dimensions<1>{});
       }
       return *this;
     }

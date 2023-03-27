@@ -253,6 +253,42 @@ namespace OpenKalman
 
   namespace internal
   {
+    // --------------------- //
+    //  KnownScalarConstant  //
+    // --------------------- //
+
+    template<typename Scalar, auto...constant>
+     struct KnownScalarConstant
+     {
+       using value_type = Scalar;
+       constexpr KnownScalarConstant() = default;
+       static constexpr value_type value {constant...};
+       static constexpr Likelihood status = Likelihood::definitely;
+       constexpr operator value_type() const noexcept { return value; }
+       constexpr value_type operator()() const noexcept { return value; }
+
+ #ifdef __cpp_concepts
+       template<scalar_constant<CompileTimeStatus::known> T> requires (get_scalar_constant_value(T{}) == value)
+ #else
+       template<typename T, std::enable_if_t<scalar_constant<T, CompileTimeStatus::known> and
+         (get_scalar_constant_value(T{}) == value), int> = 0>
+ #endif
+       explicit constexpr KnownScalarConstant(const T&)  {};
+
+ #ifdef __cpp_concepts
+       template<scalar_constant<CompileTimeStatus::known> T> requires (get_scalar_constant_value(T{}) == value)
+ #else
+       template<typename T, std::enable_if_t<scalar_constant<T, CompileTimeStatus::known> and
+         (get_scalar_constant_value(T{}) == value), int> = 0>
+ #endif
+       constexpr KnownScalarConstant& operator=(const T&) { return *this; }
+     };
+
+
+     template<typename Scalar>
+     struct KnownScalarConstant<Scalar> {};
+
+
     // --------------------------- //
     //  scalar_constant_operation  //
     // --------------------------- //
@@ -364,7 +400,7 @@ namespace OpenKalman
     /**
      * \internal
      * \overload
-     * \brief An operation involving some number of \ref scalar_constant values, which is not calculatable at compile time.
+     * \brief An operation involving some number of \ref scalar_constant values, which is not calculable at compile time.
      */
     template<typename Operation, scalar_constant...Ts> requires
       (not (scalar_constant<Ts, CompileTimeStatus::known> and ...)) or
@@ -375,7 +411,7 @@ namespace OpenKalman
         : value {op(get_scalar_constant_value(ts)...)} {};
 
       using value_type =
-        std::decay_t<decltype(std::declval<Operation>()(get_scalar_constant_value(std::declval<const Ts&>())...))>;
+        std::decay_t<decltype(std::declval<const Operation&>()(get_scalar_constant_value(std::declval<const Ts&>())...))>;
 
       using type = scalar_constant_operation;
       operator value_type() const noexcept { return value; }

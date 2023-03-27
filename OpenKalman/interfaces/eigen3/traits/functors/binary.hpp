@@ -41,10 +41,12 @@ namespace OpenKalman::Eigen3
     template<typename LhsType, typename RhsType, template<typename...> typename T, typename Op, typename Arg>
     static constexpr auto default_get_constant(const Op& op, const Arg& arg)
     {
-      if constexpr (has_constant_args<LhsType, RhsType, T, CompileTimeStatus::known>::value)
-        return scalar_constant_operation {op, T {arg.lhs()}, T {arg.rhs()}};
-      else if constexpr (has_constant_args<LhsType, RhsType, T, CompileTimeStatus::any>::value)
+      if constexpr (has_constant_args<LhsType, RhsType, T, CompileTimeStatus::unknown>::value and std::is_same_v<LhsType, RhsType>)
+      {
         return arg.functor()(T {arg.lhs()}(), T {arg.rhs()}());
+      }
+      else if constexpr (has_constant_args<LhsType, RhsType, T, CompileTimeStatus::any>::value)
+        return scalar_constant_operation {op, T {arg.lhs()}, T {arg.rhs()}};
       else
         return std::monostate {};
     }

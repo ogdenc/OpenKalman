@@ -26,12 +26,11 @@ namespace Eigen::internal
   struct traits<OpenKalman::Eigen3::EigenWrapper<NestedMatrix>> : traits<NestedMatrix> {};
 
 
-  template<typename PatternMatrix, auto...constant>
-  struct traits<OpenKalman::ConstantAdapter<PatternMatrix, constant...>> : traits<std::decay_t<PatternMatrix>>
+  template<typename PatternMatrix, typename Scalar, auto...constant>
+  struct traits<OpenKalman::ConstantAdapter<PatternMatrix, Scalar, constant...>> : traits<std::decay_t<PatternMatrix>>
   {
     using StorageKind = Eigen::Dense;
     using B = traits<std::decay_t<PatternMatrix>>;
-    using Scalar = typename B::Scalar;
     using M = Matrix<Scalar, B::RowsAtCompileTime, B::ColsAtCompileTime>;
     enum
     {

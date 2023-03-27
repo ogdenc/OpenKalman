@@ -393,24 +393,10 @@ namespace OpenKalman
     struct SingleConstantMatrixTraits<T, Scalar, std::enable_if_t<untyped_adapter<T>>>
 #endif
     {
-      template<typename...D>
-      static constexpr auto make_zero_matrix(D&&...d)
+      template<typename C, typename...D>
+      static constexpr auto make_constant_matrix(C&& c, D&&...d)
       {
-        return make_zero_matrix_like<pattern_matrix_of_t<T>, Scalar>(std::forward<D>(d)...);
-      }
-
-
-      template<auto...constant, typename...D>
-      static constexpr auto make_constant_matrix(D&&...d)
-      {
-        return make_constant_matrix_like<pattern_matrix_of_t<T>, Scalar, constant...>(std::forward<D>(d)...);
-      }
-
-
-      template<typename S, typename...D>
-      static constexpr auto make_runtime_constant(S&& s, D&&...d)
-      {
-        return make_constant_matrix_like<pattern_matrix_of_t<T>>(std::forward<S>(s), std::forward<D>(d)...);
+        return make_constant_matrix_like<pattern_matrix_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
       }
     };
 
@@ -423,24 +409,10 @@ namespace OpenKalman
     struct SingleConstantMatrixTraits<T, Scalar, std::enable_if_t<euclidean_expr<T>>>
 #endif
     {
-      template<typename...D>
-      static constexpr auto make_zero_matrix(D&&...d)
+      template<typename C, typename...D>
+      static constexpr auto make_constant_matrix(C&& c, D&&...d)
       {
-        return make_zero_matrix_like<pattern_matrix_of_t<T>, Scalar>(std::forward<D>(d)...);
-      }
-
-
-      template<auto...constant, typename...D>
-      static constexpr auto make_constant_matrix(D&&...d)
-      {
-        return make_constant_matrix_like<pattern_matrix_of_t<T>, Scalar, constant...>(std::forward<D>(d)...);
-      }
-
-
-      template<typename S, typename...D>
-      static constexpr auto make_runtime_constant(S&& s, D&&...d)
-      {
-        return make_constant_matrix_like<pattern_matrix_of_t<T>>(std::forward<S>(s), std::forward<D>(d)...);
+        return make_constant_matrix_like<pattern_matrix_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
       }
     };
 
@@ -497,7 +469,7 @@ namespace OpenKalman
 
       constexpr auto get_constant_diagonal()
       {
-        return constant_coefficient{diagonal_of(xpr)};
+        return constant_coefficient{nested_matrix(xpr)};
       }
     };
 

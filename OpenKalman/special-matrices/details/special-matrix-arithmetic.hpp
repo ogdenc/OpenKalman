@@ -24,8 +24,8 @@ namespace OpenKalman
     template<typename T>
     struct is_eigen_constant_expr : std::false_type {};
 
-    template<typename PatternMatrix, auto...constant>
-    struct is_eigen_constant_expr<ConstantAdapter<PatternMatrix, constant...>> : std::true_type {};
+    template<typename PatternMatrix, typename Scalar, auto...constant>
+    struct is_eigen_constant_expr<ConstantAdapter<PatternMatrix, Scalar, constant...>> : std::true_type {};
 
     template<typename T>
   #ifdef __cpp_concepts
@@ -51,7 +51,7 @@ namespace OpenKalman
   constexpr decltype(auto) operator-(Arg&& arg)
   {
     if constexpr (zero_matrix<Arg>) return std::forward<Arg>(arg);
-    else return make_constant_matrix_like(internal::scalar_constant_operation<std::negate<>, constant_coefficient<Arg>>{}, std::forward<Arg>(arg));
+    else return make_constant_matrix_like(std::forward<Arg>(arg), internal::scalar_constant_operation<std::negate<>, constant_coefficient<Arg>>{});
   }
 
 
@@ -119,8 +119,11 @@ namespace OpenKalman
 #endif
   constexpr auto operator+(Arg1&& arg1, Arg2&& arg2)
   {
+    using M = std::conditional_t<eigen_constant_expr<Arg1>, Arg1, Arg2>;
     using op = internal::scalar_constant_operation<std::plus<>, constant_coefficient<Arg1>, constant_coefficient<Arg2>>;
-    return make_constant_matrix_like(op{}, std::forward<Arg1>(arg1));
+    if constexpr (not has_same_shape_as<Arg1, Arg2>) if (not get_index_descriptors_match(arg1, arg2))
+      throw std::invalid_argument {"Arguments to operator+ have non-matching index descriptors"};
+    return make_constant_matrix_like<M>(arg1, op{});
   }
 
 
@@ -307,8 +310,11 @@ namespace OpenKalman
 #endif
   constexpr auto operator-(Arg1&& arg1, Arg2&& arg2)
   {
+    using M = std::conditional_t<eigen_constant_expr<Arg1>, Arg1, Arg2>;
     using op = internal::scalar_constant_operation<std::minus<>, constant_coefficient<Arg1>, constant_coefficient<Arg2>>;
-    return make_constant_matrix_like(op{}, std::forward<Arg1>(arg1));
+    if constexpr (not has_same_shape_as<Arg1, Arg2>) if (not get_index_descriptors_match(arg1, arg2))
+      throw std::invalid_argument {"Arguments to operator- have non-matching index descriptors"};
+    return make_constant_matrix_like<M>(arg1, op{});
   }
 
 

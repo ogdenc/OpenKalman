@@ -16,7 +16,7 @@ include(GoogleTest)
 
 add_executable(special-matrices
         ConstantAdapter.test.cpp
-        #constant-matrix-functions.cpp
+        constant-matrix-functions.cpp
         #DiagonalMatrix.test.cpp
         #SelfAdjointMatrix.test.cpp
         #TriangularMatrix.test.cpp

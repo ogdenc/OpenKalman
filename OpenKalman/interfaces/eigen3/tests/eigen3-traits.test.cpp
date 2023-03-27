@@ -355,6 +355,12 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(index_descriptors_match<M22, CM22, M22>);
   EXPECT_TRUE(get_index_descriptors_match(m22, cm22, M20{m22}, M02{m22}, M00{m22}));
 
+  static_assert(compatible_with_index_descriptors<M23, std::integral_constant<int, 2>, std::integral_constant<int, 3>>);
+  static_assert(not compatible_with_index_descriptors<M23, std::integral_constant<int, 2>, std::integral_constant<int, 2>>);
+  static_assert(compatible_with_index_descriptors<M20, std::integral_constant<int, 2>, std::integral_constant<int, 2>>);
+  static_assert(compatible_with_index_descriptors<M20, std::integral_constant<int, 2>, int>);
+  static_assert(not compatible_with_index_descriptors<M20, std::integral_constant<int, 3>, int>);
+
   static_assert(square_matrix<M11, Likelihood::maybe>);
   static_assert(square_matrix<M22, Likelihood::maybe>);
   static_assert(not square_matrix<M32, Likelihood::maybe>);

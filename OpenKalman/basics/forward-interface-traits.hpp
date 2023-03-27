@@ -334,48 +334,21 @@ namespace OpenKalman::interface
   struct SingleConstantMatrixTraits
   {
     /**
-     * \brief Create a \ref zero_matrix corresponding to the shape of T.
+     * \internal
+     * \brief Create a \ref constant_matrix corresponding to the shape of T (optional).
      * \details Takes a list of \ref index_descriptor items that specify the size of the resulting object
-     * \tparam D A list of \ref index_descriptor items
-     * \note If this is not defined, it will return an object of type ZeroMatrix.
-     */
-/*#ifdef __cpp_concepts
-    template<index_descriptor...D> requires (sizeof...(D) == IndexibleObjectTraits<T>::max_indices)
-#else
-    template<typename...D, std::enable_if_t<(index_descriptor<D> and ...) and
-      sizeof...(D) == IndexibleObjectTraits<T>::max_indices, int> = 0>
-#endif
-    static constexpr auto make_zero_matrix(D&&...d); //< Defined elsewhere*/
-
-
-    /**
-     * \brief Create a \ref compile-time constant_matrix corresponding to the shape of T.
-     * \details Takes a list of \ref index_descriptor items that specify the size of the resulting object
+     * \tparam C A \ref scalar_constant (the constant known either at compile time or runtime)
      * \tparam D A list of \ref index_descriptor items
      * \note If this is not defined, it will return an object of type ConstantAdapter.
      */
-/*#ifdef __cpp_concepts
-    template<auto...constant, index_descriptor...D> requires (sizeof...(D) == IndexibleObjectTraits<T>::max_indices)
+#ifdef __cpp_concepts
+    template<scalar_constant C, index_descriptor...D> requires (sizeof...(D) == IndexibleObjectTraits<T>::max_indices)
 #else
-    template<auto...constant, typename...D, std::enable_if_t<(index_descriptor<D> and ...) and
+    template<typename C, typename...D, std::enable_if_t<scalar_constant<C> and (index_descriptor<D> and ...) and
       sizeof...(D) == IndexibleObjectTraits<T>::max_indices, int> = 0>
 #endif
-    static constexpr auto make_constant_matrix(D&&...d); //< Defined elsewhere*/
-
-
-    /**
-     * \brief Create a runtime-constant object corresponding to the shape of T.
-     * \details Takes a list of \ref index_descriptor items that specify the size of the resulting object
-     * \tparam D A list of \ref index_descriptor items
-     * \note If this is not defined, it will return an object of type ConstantAdapter.
-     */
-/*#ifdef __cpp_concepts
-    template<scalar_type Scalar, index_descriptor...D> requires (sizeof...(D) == IndexibleObjectTraits<T>::max_indices)
-#else
-    template<typename Scalar, typename...D, std::enable_if_t<(index_descriptor<D> and ...) and
-      sizeof...(D) == IndexibleObjectTraits<T>::max_indices, int> = 0>
-#endif
-    static constexpr auto make_runtime_constant(Scalar&& s, D&&...d); //< Defined elsewhere*/
+    static constexpr /*constant_matrix*/ auto
+    make_constant_matrix(const C& c, const D&...d) = delete;
   };
 
 

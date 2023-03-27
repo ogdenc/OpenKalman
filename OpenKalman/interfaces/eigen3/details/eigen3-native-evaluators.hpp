@@ -40,12 +40,11 @@ namespace Eigen::internal
   //  ConstantAdapter  //
   // ----------------- //
 
-  template<typename PatternMatrix, auto...constant>
-  struct evaluator<ConstantAdapter<PatternMatrix, constant...>>
-    : evaluator_base<ConstantAdapter<PatternMatrix, constant...>>
+  template<typename PatternMatrix, typename Scalar, auto...constant>
+  struct evaluator<ConstantAdapter<PatternMatrix, Scalar, constant...>>
+    : evaluator_base<ConstantAdapter<PatternMatrix, Scalar, constant...>>
   {
-    using Scalar = scalar_type_of_t<PatternMatrix>;
-    using XprType = ConstantAdapter<PatternMatrix, constant...>;
+    using XprType = ConstantAdapter<PatternMatrix, Scalar, constant...>;
     using M = Eigen3::eigen_matrix_t<Scalar, index_dimension_of_v<PatternMatrix, 0>, index_dimension_of_v<PatternMatrix, 1>>;
 
     enum {

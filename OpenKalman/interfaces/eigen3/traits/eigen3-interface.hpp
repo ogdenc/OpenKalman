@@ -344,8 +344,8 @@ namespace OpenKalman::interface
       }
       else if constexpr (eigen_Identity<Arg>)
       {
-        if constexpr (dim == dynamic_size) return make_constant_matrix_like<Arg, 1>(get_dimensions_of<0>(arg), Dimensions<1>{});
-        else return make_constant_matrix_like<Arg, 1>(Dimensions<dim>{}, Dimensions<1>{});
+        if constexpr (dim == dynamic_size) return make_constant_matrix_like<Arg, Scalar, 1>(get_dimensions_of<0>(arg), Dimensions<1>{});
+        else return make_constant_matrix_like<Arg, Scalar, 1>(Dimensions<dim>{}, Dimensions<1>{});
       }
       else if constexpr (dim == 1 and (native_eigen_matrix<Arg> or native_eigen_array<Arg>))
       {

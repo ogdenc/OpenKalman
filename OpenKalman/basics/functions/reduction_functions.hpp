@@ -219,7 +219,7 @@ namespace OpenKalman
     }
     else if constexpr (zero_matrix<Arg> and (internal::is_plus<BinaryFunction>::value or internal::is_multiplies<BinaryFunction>::value))
     {
-      return detail::make_constant_matrix_reduction<index, indices...>([]{ return scalar_type_of_t<Arg>{0}; }, std::forward<Arg>(arg), seq);
+      return detail::make_constant_matrix_reduction<index, indices...>(internal::KnownScalarConstant<scalar_type_of_t<Arg>, 0>{}, std::forward<Arg>(arg), seq);
     }
     else if constexpr (constant_matrix<Arg>)
     {

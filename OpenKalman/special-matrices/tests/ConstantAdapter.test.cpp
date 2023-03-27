@@ -88,94 +88,58 @@ namespace
 
 TEST(eigen3, ConstantAdapter_traits)
 {
-  static_assert(constant_matrix<ConstantAdapter<M22, 1>, Likelihood::definitely, CompileTimeStatus::known>);
-  static_assert(not constant_matrix<ConstantAdapter<M22, 1>, Likelihood::definitely, CompileTimeStatus::unknown>);
+  static_assert(indexible<ConstantAdapter<M22, double, 1>>);
+  static_assert(indexible<ZA31>);
+
+  static_assert(self_contained<ConstantAdapter<M22, double, 1>>);
+  static_assert(self_contained<ConstantAdapter<M22, std::integral_constant<int, 1>>>);
+  static_assert(self_contained<ZA31>);
+
+  static_assert(constant_matrix<ConstantAdapter<M22, double, 1>, Likelihood::definitely, CompileTimeStatus::known>);
+  static_assert(not constant_matrix<ConstantAdapter<M22, double, 1>, Likelihood::definitely, CompileTimeStatus::unknown>);
   static_assert(constant_matrix<ConstantAdapter<M22>, Likelihood::definitely, CompileTimeStatus::unknown>);
   static_assert(not constant_matrix<ConstantAdapter<M22>, Likelihood::definitely, CompileTimeStatus::known>);
 
-  static_assert(indexible<ConstantAdapter<M22, 1>>);
-
-  static_assert(zero_matrix<ConstantAdapter<M22, 0>>);
-  static_assert(zero_matrix<ConstantAdapter<M00, 0>>);
-  static_assert(not zero_matrix<ConstantAdapter<M22, 1>>);
-
-  static_assert(diagonal_matrix<ConstantAdapter<M22, 0>>);
-  static_assert(diagonal_matrix<ConstantAdapter<M11, 5>>);
-  static_assert(diagonal_matrix<ConstantAdapter<M11>>);
-  static_assert(not diagonal_matrix<ConstantAdapter<M00, 5>>);
-  static_assert(not diagonal_matrix<ConstantAdapter<CM22, 5>>);
-
-  static_assert(hermitian_matrix<ConstantAdapter<M22, 0>>);
-  static_assert(hermitian_matrix<ConstantAdapter<M11, 5>>);
-  static_assert(hermitian_matrix<ConstantAdapter<CM11, 5>>);
-  static_assert(hermitian_matrix<ConstantAdapter<M22, 5>>);
-  static_assert(hermitian_matrix<ConstantAdapter<CM22, 5>>);
-  static_assert(not hermitian_matrix<ConstantAdapter<M34, 5>>);
-  static_assert(not hermitian_matrix<ConstantAdapter<CM34, 5>>);
-
-  static_assert(triangular_matrix<ConstantAdapter<M22, 0>>);
-  static_assert(triangular_matrix<ConstantAdapter<M11, 5>>);
-  static_assert(not triangular_matrix<ConstantAdapter<M22, 5>>);
-  static_assert(not triangular_matrix<ConstantAdapter<M00, 5>>);
-  static_assert(not triangular_matrix<ConstantAdapter<M34, 5>>);
-  static_assert(not triangular_matrix<ConstantAdapter<M34, 0>>);
-
-  static_assert(square_matrix<ConstantAdapter<M22, 0>, Likelihood::maybe>);
-  static_assert(not square_matrix<ConstantAdapter<M34, 5>, Likelihood::maybe>);
-  static_assert(square_matrix<ConstantAdapter<M30, 5>, Likelihood::maybe>);
-  static_assert(square_matrix<ConstantAdapter<M00, 5>, Likelihood::maybe>);
-
-  static_assert(square_matrix<ConstantAdapter<M22, 0>>);
-  static_assert(square_matrix<ConstantAdapter<M22, 5>>);
-  static_assert(not square_matrix<ConstantAdapter<M00, 5>>);
-  static_assert(not square_matrix<ConstantAdapter<M34, 5>>);
-
-  static_assert(one_by_one_matrix<ConstantAdapter<M11, 5>>);
-  static_assert(one_by_one_matrix<ConstantAdapter<M10, 5>, Likelihood::maybe>);
-  static_assert(not one_by_one_matrix<ConstantAdapter<M10, 5>>);
-  static_assert(one_by_one_matrix<ConstantAdapter<M00, 5>, Likelihood::maybe>);
-  static_assert(not one_by_one_matrix<ConstantAdapter<M00, 5>>);
-
-  static_assert(element_gettable<ConstantAdapter<M22, 3>, std::size_t, std::size_t>);
-  static_assert(element_gettable<ConstantAdapter<M20, 3>, std::size_t, std::size_t>);
-  static_assert(element_gettable<ConstantAdapter<M02, 3>, std::size_t, std::size_t>);
-  static_assert(element_gettable<ConstantAdapter<M00, 3>, std::size_t, std::size_t>);
-
-  static_assert(not element_settable<ConstantAdapter<M22, 3>&, std::size_t, std::size_t>);
-  static_assert(not element_settable<ConstantAdapter<M20, 3>&, std::size_t, std::size_t>);
-  static_assert(not element_settable<ConstantAdapter<M02, 3>&, std::size_t, std::size_t>);
-  static_assert(not element_settable<ConstantAdapter<M20, 3>&, std::size_t, std::size_t>);
-
-  static_assert(dynamic_rows<ConstantAdapter<M00, 5>>);
-  static_assert(dynamic_columns<ConstantAdapter<M00, 5>>);
-  static_assert(dynamic_rows<ConstantAdapter<M01, 5>>);
-  static_assert(not dynamic_columns<ConstantAdapter<M01, 5>>);
-  static_assert(not dynamic_rows<ConstantAdapter<M10, 5>>);
-  static_assert(dynamic_columns<ConstantAdapter<M10, 5>>);
-
-  static_assert(not writable<ConstantAdapter<M33, 7>>);
-  static_assert(modifiable<M31, ConstantAdapter<M31, 7>>);
-}
-
-
-TEST(eigen3, ZeroAdapter_traits)
-{
-  static_assert(indexible<ZA31>);
-
-  static_assert(zero_matrix<ZA31>);
   static_assert(constant_diagonal_matrix<ZA33>);
   static_assert(not constant_diagonal_matrix<ZA31, Likelihood::maybe>);
+
+  static_assert(zero_matrix<ConstantAdapter<M22, double, 0>>);
+  static_assert(zero_matrix<ConstantAdapter<M00, double, 0>>);
+  static_assert(not zero_matrix<ConstantAdapter<M22, double, 1>>);
+  static_assert(zero_matrix<ZA31>);
+
+  static_assert(diagonal_matrix<ConstantAdapter<M22, double, 0>>);
+  static_assert(diagonal_matrix<ConstantAdapter<M11, double, 5>>);
+  static_assert(diagonal_matrix<ConstantAdapter<M11>>);
+  static_assert(not diagonal_matrix<ConstantAdapter<M00, double, 5>>);
+  static_assert(not diagonal_matrix<ConstantAdapter<CM22, cdouble, 5>>);
+
   static_assert(diagonal_matrix<ZA33>);
   static_assert(not diagonal_adapter<ZA33>);
   static_assert(not diagonal_matrix<ZA31, Likelihood::maybe>);
   static_assert(not diagonal_matrix<ZA00>);
   static_assert(diagonal_matrix<ZA00, Likelihood::maybe>);
 
+  static_assert(hermitian_matrix<ConstantAdapter<M22, double, 0>>);
+  static_assert(hermitian_matrix<ConstantAdapter<M11, double, 5>>);
+  static_assert(hermitian_matrix<ConstantAdapter<CM11, cdouble, 5>>);
+  static_assert(hermitian_matrix<ConstantAdapter<M22, double, 5>>);
+  static_assert(hermitian_matrix<ConstantAdapter<CM22, cdouble, 5>>);
+  static_assert(not hermitian_matrix<ConstantAdapter<M34, double, 5>>);
+  static_assert(not hermitian_matrix<ConstantAdapter<CM34, cdouble, 5>>);
+
   static_assert(hermitian_matrix<ZA33>);
   static_assert(hermitian_matrix<ZeroAdapter<CM33>>);
   static_assert(not hermitian_matrix<ZA31, Likelihood::maybe>);
   static_assert(not hermitian_matrix<ZA00>);
   static_assert(hermitian_matrix<ZA00, Likelihood::maybe>);
+
+  static_assert(triangular_matrix<ConstantAdapter<M22, double, 0>>);
+  static_assert(triangular_matrix<ConstantAdapter<M11, double, 5>>);
+  static_assert(not triangular_matrix<ConstantAdapter<M22, double, 5>>);
+  static_assert(not triangular_matrix<ConstantAdapter<M00, double, 5>>);
+  static_assert(not triangular_matrix<ConstantAdapter<M34, double, 5>>);
+  static_assert(not triangular_matrix<ConstantAdapter<M34, double, 0>>);
 
   static_assert(upper_triangular_matrix<ZA33>);
   static_assert(not upper_triangular_matrix<ZA31>);
@@ -187,6 +151,16 @@ TEST(eigen3, ZeroAdapter_traits)
   static_assert(not lower_triangular_matrix<ZA00>);
   static_assert(lower_triangular_matrix<ZA00, Likelihood::maybe>);
 
+  static_assert(square_matrix<ConstantAdapter<M22, double, 0>, Likelihood::maybe>);
+  static_assert(not square_matrix<ConstantAdapter<M34, double, 5>, Likelihood::maybe>);
+  static_assert(square_matrix<ConstantAdapter<M30, double, 5>, Likelihood::maybe>);
+  static_assert(square_matrix<ConstantAdapter<M00, double, 5>, Likelihood::maybe>);
+
+  static_assert(square_matrix<ConstantAdapter<M22, double, 0>>);
+  static_assert(square_matrix<ConstantAdapter<M22, double, 5>>);
+  static_assert(not square_matrix<ConstantAdapter<M00, double, 5>>);
+  static_assert(not square_matrix<ConstantAdapter<M34, double, 5>>);
+
   static_assert(not square_matrix<ZA31, Likelihood::maybe>);
   static_assert(square_matrix<ZA33>);
   static_assert(not square_matrix<ZA30>);
@@ -195,6 +169,12 @@ TEST(eigen3, ZeroAdapter_traits)
   static_assert(square_matrix<ZA03, Likelihood::maybe>);
   static_assert(not square_matrix<ZA00>);
   static_assert(square_matrix<ZA00, Likelihood::maybe>);
+
+  static_assert(one_by_one_matrix<ConstantAdapter<M11, double, 5>>);
+  static_assert(one_by_one_matrix<ConstantAdapter<M10, double, 5>, Likelihood::maybe>);
+  static_assert(not one_by_one_matrix<ConstantAdapter<M10, double, 5>>);
+  static_assert(one_by_one_matrix<ConstantAdapter<M00, double, 5>, Likelihood::maybe>);
+  static_assert(not one_by_one_matrix<ConstantAdapter<M00, double, 5>>);
 
   static_assert(not one_by_one_matrix<ZA31, Likelihood::maybe>);
   static_assert(one_by_one_matrix<ZA11>);
@@ -205,15 +185,32 @@ TEST(eigen3, ZeroAdapter_traits)
   static_assert(not one_by_one_matrix<ZA00>);
   static_assert(one_by_one_matrix<ZA00, Likelihood::maybe>);
 
+  static_assert(element_gettable<ConstantAdapter<M22, double, 3>, std::size_t, std::size_t>);
+  static_assert(element_gettable<ConstantAdapter<M20, double, 3>, std::size_t, std::size_t>);
+  static_assert(element_gettable<ConstantAdapter<M02, double, 3>, std::size_t, std::size_t>);
+  static_assert(element_gettable<ConstantAdapter<M00, double, 3>, std::size_t, std::size_t>);
+
   static_assert(element_gettable<ZA33, std::size_t, std::size_t>);
   static_assert(element_gettable<ZA30, std::size_t, std::size_t>);
   static_assert(element_gettable<ZA03, std::size_t, std::size_t>);
   static_assert(element_gettable<ZA00, std::size_t, std::size_t>);
 
+  static_assert(not element_settable<ConstantAdapter<M22, double, 3>&, std::size_t, std::size_t>);
+  static_assert(not element_settable<ConstantAdapter<M20, double, 3>&, std::size_t, std::size_t>);
+  static_assert(not element_settable<ConstantAdapter<M02, double, 3>&, std::size_t, std::size_t>);
+  static_assert(not element_settable<ConstantAdapter<M20, double, 3>&, std::size_t, std::size_t>);
+
   static_assert(not element_settable<ZA33&, std::size_t, std::size_t>);
   static_assert(not element_settable<ZA30&, std::size_t, std::size_t>);
   static_assert(not element_settable<ZA03&, std::size_t, std::size_t>);
   static_assert(not element_settable<ZA00&, std::size_t, std::size_t>);
+
+  static_assert(dynamic_rows<ConstantAdapter<M00, double, 5>>);
+  static_assert(dynamic_columns<ConstantAdapter<M00, double, 5>>);
+  static_assert(dynamic_rows<ConstantAdapter<M01, double, 5>>);
+  static_assert(not dynamic_columns<ConstantAdapter<M01, double, 5>>);
+  static_assert(not dynamic_rows<ConstantAdapter<M10, double, 5>>);
+  static_assert(dynamic_columns<ConstantAdapter<M10, double, 5>>);
 
   static_assert(dynamic_rows<ZA00>);
   static_assert(dynamic_rows<ZA03>);
@@ -223,61 +220,94 @@ TEST(eigen3, ZeroAdapter_traits)
   static_assert(not dynamic_columns<ZA03>);
   static_assert(dynamic_columns<ZA30>);
 
+  static_assert(not writable<ConstantAdapter<M33, double, 7>>);
   static_assert(not writable<ZA33>);
 
+  static_assert(modifiable<M31, ConstantAdapter<M31, double, 7>>);
   static_assert(modifiable<M33, ZA33>);
 }
 
 
 TEST(eigen3, ConstantAdapter_class)
 {
-  ConstantAdapter<M23, 3> c323 {};
-  ConstantAdapter<M20, 3> c320 {3};
-  ConstantAdapter<M03, 3> c303 {2};
-  ConstantAdapter<M00, 3> c300 {2,3};
+  ConstantAdapter<M23, double, 3> c323 {};
+  ConstantAdapter<M20, double, 3> c320 {3};
+  ConstantAdapter<M03, double, 3> c303 {2};
+  ConstantAdapter<M00, double, 3> c300 {2,3};
+
+  ZA23 z23;
+  ZA20 z20 {3};
+  ZA03 z03 {2};
+  ZA00 z00 {2, 3};
 
   EXPECT_TRUE(is_near(c323, M23::Constant(3)));
   EXPECT_TRUE(is_near(c320, M23::Constant(3)));
   EXPECT_TRUE(is_near(c303, M23::Constant(3)));
   EXPECT_TRUE(is_near(c300, M23::Constant(3)));
 
-  EXPECT_NEAR(std::real(ConstantAdapter<CM22, 3> {}(0, 1)), 3, 1e-6);
+  EXPECT_TRUE(is_near(z23, M23::Zero()));
+  EXPECT_TRUE(is_near(z20, M23::Zero()));
+  EXPECT_TRUE(is_near(z03, M23::Zero()));
+  EXPECT_TRUE(is_near(z00, M23::Zero()));
+
+  EXPECT_TRUE(is_near(ConstantAdapter {z23}, M23::Zero()));
+  EXPECT_TRUE(is_near(ConstantAdapter {z20}, M23::Zero()));
+  EXPECT_TRUE(is_near(ConstantAdapter {z03}, M23::Zero()));
+  EXPECT_TRUE(is_near(ConstantAdapter {z00}, M23::Zero()));
+
+  EXPECT_TRUE(is_near(ConstantAdapter {ZA23 {N2{}, N3{}}}, M23::Zero()));
+  EXPECT_TRUE(is_near(ConstantAdapter {ZA20 {N2{}, 3}}, M23::Zero()));
+  EXPECT_TRUE(is_near(ConstantAdapter {ZA03 {2, N3{}}}, M23::Zero()));
+  EXPECT_TRUE(is_near(ConstantAdapter {ZA00 {2, 3}}, M23::Zero()));
+
+  EXPECT_NEAR(std::real(ConstantAdapter<CM22, cdouble, 3> {}(0, 1)), 3, 1e-6);
 
   EXPECT_TRUE(is_near(ConstantAdapter {c323}, M23::Constant(3)));
   EXPECT_TRUE(is_near(ConstantAdapter {c320}, M23::Constant(3)));
   EXPECT_TRUE(is_near(ConstantAdapter {c303}, M23::Constant(3)));
   EXPECT_TRUE(is_near(ConstantAdapter {c300}, M23::Constant(3)));
 
-  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M23, 3> {N2{}, N3{}}}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M20, 3> {N2{}, 3}}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M03, 3> {2, N3{}}}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M00, 3> {2, 3}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M23, double, 3> {N2{}, N3{}}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M20, double, 3> {N2{}, 3}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M03, double, 3> {2, N3{}}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M00, double, 3> {2, 3}}, M23::Constant(3)));
 
-  EXPECT_TRUE(is_near(ConstantAdapter<M23, 3> {c320}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M23, 3> {c303}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M23, 3> {c300}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M20, 3> {c323}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M20, 3> {c303}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M20, 3> {c300}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M03, 3> {c323}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M03, 3> {c320}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M03, 3> {c300}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M00, 3> {c323}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M00, 3> {c320}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M00, 3> {c303}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M23, double, 2> {N2{}, N3{}}}, M23::Constant(2)));
+  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M20, double, 2> {N2{}, 3}}, M23::Constant(2)));
+  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M20, double, 2> {N2{}, N2{}, 3}}, M23::Constant(2)));
+  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M03, double, 2> {2, N3{}}}, M23::Constant(2)));
+  EXPECT_TRUE(is_near(ConstantAdapter {ConstantAdapter<M00, double, 2> {2, 3}}, M23::Constant(2)));
 
-  EXPECT_TRUE(is_near(ConstantAdapter<M23, 3> {ConstantAdapter {c320}}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M23, 3> {ConstantAdapter {c303}}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M23, 3> {ConstantAdapter {c300}}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M20, 3> {ConstantAdapter {c323}}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M20, 3> {ConstantAdapter {c303}}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M20, 3> {ConstantAdapter {c300}}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M03, 3> {ConstantAdapter {c323}}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M03, 3> {ConstantAdapter {c320}}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M03, 3> {ConstantAdapter {c300}}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M00, 3> {ConstantAdapter {c323}}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M00, 3> {ConstantAdapter {c320}}, M23::Constant(3)));
-  EXPECT_TRUE(is_near(ConstantAdapter<M00, 3> {ConstantAdapter {c303}}, M23::Constant(3)));
+  EXPECT_NEAR((ConstantAdapter {ConstantAdapter<M23, double, 0>{}}(1, 2)), 0, 1e-6);
+  EXPECT_NEAR((ConstantAdapter {ConstantAdapter<M20, double, 0>{3}}(1, 2)), 0, 1e-6);
+  EXPECT_NEAR((ConstantAdapter {ConstantAdapter<M03, double, 0>{2}}(1, 2)), 0, 1e-6);
+  EXPECT_NEAR((ConstantAdapter {ConstantAdapter<M00, double, 0>{2,3}}(1, 2)), 0, 1e-6);
+
+  EXPECT_TRUE(is_near(ConstantAdapter<M23, double, 3> {c320}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M23, double, 3> {c303}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M23, double, 3> {c300}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M20, double, 3> {c323}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M20, double, 3> {c303}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M20, double, 3> {c300}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M03, double, 3> {c323}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M03, double, 3> {c320}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M03, double, 3> {c300}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M00, double, 3> {c323}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M00, double, 3> {c320}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M00, double, 3> {c303}, M23::Constant(3)));
+
+  EXPECT_TRUE(is_near(ConstantAdapter<M23, double, 3> {ConstantAdapter {c320}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M23, double, 3> {ConstantAdapter {c303}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M23, double, 3> {ConstantAdapter {c300}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M20, double, 3> {ConstantAdapter {c323}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M20, double, 3> {ConstantAdapter {c303}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M20, double, 3> {ConstantAdapter {c300}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M03, double, 3> {ConstantAdapter {c323}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M03, double, 3> {ConstantAdapter {c320}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M03, double, 3> {ConstantAdapter {c300}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M00, double, 3> {ConstantAdapter {c323}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M00, double, 3> {ConstantAdapter {c320}}, M23::Constant(3)));
+  EXPECT_TRUE(is_near(ConstantAdapter<M00, double, 3> {ConstantAdapter {c303}}, M23::Constant(3)));
 
   c320 = c323; EXPECT_TRUE(is_near(c320, M23::Constant(3)));
   c303 = c323; EXPECT_TRUE(is_near(c303, M23::Constant(3)));
@@ -345,49 +375,20 @@ TEST(eigen3, ConstantAdapter_class)
   c303 = ConstantAdapter {nc00}; EXPECT_TRUE(is_near(c303, M23::Constant(3)));
   c300 = ConstantAdapter {nc00}; EXPECT_TRUE(is_near(c300, M23::Constant(3)));
 
-  EXPECT_NEAR((ConstantAdapter<M22, 3> {}(0, 0)), 3, 1e-6);
-  EXPECT_NEAR((ConstantAdapter<M22, 3> {}(0, 1)), 3, 1e-6);
-  EXPECT_NEAR((ConstantAdapter<M20, 3> {2}(0, 1)), 3, 1e-6);
-  EXPECT_NEAR((ConstantAdapter<M02, 3> {2}(0, 1)), 3, 1e-6);
-  EXPECT_NEAR((ConstantAdapter<M00, 3> {2,2}(0, 1)), 3, 1e-6);
+  EXPECT_NEAR((ConstantAdapter<M22, double, 3> {}(0, 0)), 3, 1e-6);
+  EXPECT_NEAR((ConstantAdapter<M22, double, 3> {}(0, 1)), 3, 1e-6);
+  EXPECT_NEAR((ConstantAdapter<M20, double, 3> {2}(0, 1)), 3, 1e-6);
+  EXPECT_NEAR((ConstantAdapter<M02, double, 3> {2}(0, 1)), 3, 1e-6);
+  EXPECT_NEAR((ConstantAdapter<M00, double, 3> {2,2}(0, 1)), 3, 1e-6);
 
-  EXPECT_NEAR((ConstantAdapter<M31, 3> {}(1)), 3, 1e-6);
-  EXPECT_NEAR((ConstantAdapter<M01, 3> {3}(1)), 3, 1e-6);
-  EXPECT_NEAR((ConstantAdapter<M13, 3> {}(1)), 3, 1e-6);
-  EXPECT_NEAR((ConstantAdapter<M10, 3> {3}(1)), 3, 1e-6);
-  EXPECT_NEAR((ConstantAdapter<M31, 3> {}[1]), 3, 1e-6);
-  EXPECT_NEAR((ConstantAdapter<M01, 3> {3}[1]), 3, 1e-6);
-  EXPECT_NEAR((ConstantAdapter<M13, 3> {}[1]), 3, 1e-6);
-  EXPECT_NEAR((ConstantAdapter<M10, 3> {3}[1]), 3, 1e-6);
-}
-
-
-TEST(eigen3, ZeroAdapter_class)
-{
-  ZA23 z23;
-  ZA20 z20 {3};
-  ZA03 z03 {2};
-  ZA00 z00 {2, 3};
-
-  EXPECT_TRUE(is_near(z23, M23::Zero()));
-  EXPECT_TRUE(is_near(z20, M23::Zero()));
-  EXPECT_TRUE(is_near(z03, M23::Zero()));
-  EXPECT_TRUE(is_near(z00, M23::Zero()));
-
-  EXPECT_TRUE(is_near(ConstantAdapter {z23}, M23::Zero()));
-  EXPECT_TRUE(is_near(ConstantAdapter {z20}, M23::Zero()));
-  EXPECT_TRUE(is_near(ConstantAdapter {z03}, M23::Zero()));
-  EXPECT_TRUE(is_near(ConstantAdapter {z00}, M23::Zero()));
-
-  EXPECT_TRUE(is_near(ConstantAdapter {ZA23 {N2{}, N3{}}}, M23::Zero()));
-  EXPECT_TRUE(is_near(ConstantAdapter {ZA20 {N2{}, 3}}, M23::Zero()));
-  EXPECT_TRUE(is_near(ConstantAdapter {ZA03 {2, N3{}}}, M23::Zero()));
-  EXPECT_TRUE(is_near(ConstantAdapter {ZA00 {2, 3}}, M23::Zero()));
-
-  EXPECT_NEAR((ConstantAdapter {ConstantAdapter<M23, 0>{}}(1, 2)), 0, 1e-6);
-  EXPECT_NEAR((ConstantAdapter {ConstantAdapter<M20, 0>{3}}(1, 2)), 0, 1e-6);
-  EXPECT_NEAR((ConstantAdapter {ConstantAdapter<M03, 0>{2}}(1, 2)), 0, 1e-6);
-  EXPECT_NEAR((ConstantAdapter {ConstantAdapter<M00, 0>{2,3}}(1, 2)), 0, 1e-6);
+  EXPECT_NEAR((ConstantAdapter<M31, double, 3> {}(1)), 3, 1e-6);
+  EXPECT_NEAR((ConstantAdapter<M01, double, 3> {3}(1)), 3, 1e-6);
+  EXPECT_NEAR((ConstantAdapter<M13, double, 3> {}(1)), 3, 1e-6);
+  EXPECT_NEAR((ConstantAdapter<M10, double, 3> {3}(1)), 3, 1e-6);
+  EXPECT_NEAR((ConstantAdapter<M31, double, 3> {}[1]), 3, 1e-6);
+  EXPECT_NEAR((ConstantAdapter<M01, double, 3> {3}[1]), 3, 1e-6);
+  EXPECT_NEAR((ConstantAdapter<M13, double, 3> {}[1]), 3, 1e-6);
+  EXPECT_NEAR((ConstantAdapter<M10, double, 3> {3}[1]), 3, 1e-6);
 
   auto nz11 = M11::Identity() - M11::Identity(); using Z11 = decltype(nz11);
   auto nz23 = nz11.replicate<2,3>();
@@ -442,7 +443,158 @@ TEST(eigen3, ZeroAdapter_class)
 }
 
 
-TEST(eigen3, ConstantAdapter_make_functions)
+TEST(eigen3, make_dense_writable_matrix_from)
+{
+  ConstantAdapter<M34, double, 5> c534 {};
+  ConstantAdapter<M30, double, 5> c530_4 {4};
+  ConstantAdapter<M04, double, 5> c504_3 {3};
+  ConstantAdapter<M00, double, 5> c500_34 {3, 4};
+
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(c534), M34::Constant(5)));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(c530_4), M34::Constant(5)));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(c504_3), M34::Constant(5)));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(c500_34), M34::Constant(5)));
+  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(ConstantAdapter<CM34, cdouble, 5> {}), CM34::Constant(cdouble(5,0))));
+}
+
+
+TEST(eigen3, make_constant_matrix_like)
+{
+  auto m23 = make_dense_writable_matrix_from<M23>(0, 0, 0, 0, 0, 0);
+  auto m20_3 = M20 {m23};
+  auto m03_2 = M03 {m23};
+  auto m00_23 = M00 {m23};
+
+  ConstantAdapter<M34, double, 5> c534 {};
+  ConstantAdapter<M30, double, 5> c530_4 {4};
+  ConstantAdapter<M04, double, 5> c504_3 {3};
+  ConstantAdapter<M00, double, 5> c500_34 {3, 4};
+
+  using C534 = decltype(c534);
+
+  constexpr internal::KnownScalarConstant<double, 5> nd5;
+
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M23>(nd5, Dimensions<2>{}, Dimensions<3>{}), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M00>(nd5, Dimensions<2>{}, 3), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M00>(nd5, 2, Dimensions<3>{}), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M00>(nd5, 2, 3), M23::Constant(5)));
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M00>(nd5, Dimensions<2>(), Dimensions<3>()))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M00>(nd5, Dimensions<2>(), 3))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M00>(nd5, 2, Dimensions<3>()))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M00>(nd5, 2, 3))> == 5);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00>(nd5, Dimensions<2>(), Dimensions<3>())), 0> == 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00>(nd5, Dimensions<2>(), 3)), 0> == 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00>(nd5, 2, Dimensions<3>())), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_constant_matrix_like<M00>(nd5, 2, Dimensions<3>())), 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00>(nd5, 2, 3)), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_constant_matrix_like<M00>(nd5, 2, 3)), 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00>(nd5, Dimensions<2>(), Dimensions<3>())), 1> == 3);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00>(nd5, Dimensions<2>(), 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_dimension_of<1>(make_constant_matrix_like<M00>(nd5, 2, 3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00>(nd5, 2, Dimensions<3>())), 1> == 3);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00>(nd5, 2, 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_dimension_of<1>(make_constant_matrix_like<M00>(nd5, 2, 3)), 3);
+
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M23>(5., Dimensions<2>{}, Dimensions<3>{}), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M00>(5., Dimensions<2>{}, 3), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M00>(5., 2, Dimensions<3>{}), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M00>(5., 2, 3), M23::Constant(5)));
+
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M23>(nd5), M23::Constant(5)));
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M23>(nd5))> == 5);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M23>(nd5)), 0> == 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M23>(nd5)), 1> == 3);
+
+  EXPECT_TRUE(is_near(make_constant_matrix_like<C534>(Dimensions<2>{}, Dimensions<3>{}), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<C534>(Dimensions<2>{}, 3), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<C534>(2, Dimensions<3>{}), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<C534>(2, 3), M23::Constant(5)));
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<C534>(Dimensions<2>(), Dimensions<3>()))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<C534>(Dimensions<2>(), 3))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<C534>(2, Dimensions<3>()))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<C534>(2, 3))> == 5);
+
+  EXPECT_TRUE(is_near(make_constant_matrix_like(m23, nd5), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like(m20_3, nd5), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like(m03_2, nd5), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like(m00_23, nd5), M23::Constant(5)));
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like(m23, nd5))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like(m20_3, nd5))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like(m03_2, nd5))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like(m00_23, nd5))> == 5);
+
+  EXPECT_TRUE(is_near(make_constant_matrix_like(m23, 5.), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like(m20_3, 5.), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like(m03_2, 5.), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like(m00_23, 5.), M23::Constant(5)));
+
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M00, double, 5>(Dimensions<2>{}, Dimensions<3>{}), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M00, double, 5>(Dimensions<2>{}, 3), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M00, double, 5>(2, Dimensions<3>{}), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M00, double, 5>(2, 3), M23::Constant(5)));
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M00, double, 5>(Dimensions<2>(), Dimensions<3>()))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M00, double, 5>(Dimensions<2>(), 3))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M00, double, 5>(2, Dimensions<3>()))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M00, double, 5>(2, 3))> == 5);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, double, 5>(Dimensions<2>(), Dimensions<3>())), 0> == 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, double, 5>(Dimensions<2>(), 3)), 0> == 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, double, 5>(2, Dimensions<3>())), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_constant_matrix_like<M00, double, 5>(2, Dimensions<3>())), 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, double, 5>(2, 3)), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_constant_matrix_like<M00, double, 5>(2, 3)), 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, double, 5>(Dimensions<2>(), Dimensions<3>())), 1> == 3);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, double, 5>(Dimensions<2>(), 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_dimension_of<1>(make_constant_matrix_like<M00, double, 5>(2, 3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, double, 5>(2, Dimensions<3>())), 1> == 3);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, double, 5>(2, 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_dimension_of<1>(make_constant_matrix_like<M00, double, 5>(2, 3)), 3);
+
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M00, cdouble, 3, 4>(Dimensions<2>{}, Dimensions<3>{}), CM23::Constant(cdouble{3, 4})));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M00, cdouble, 3, 4>(Dimensions<2>{}, 3), CM23::Constant(cdouble{3, 4})));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M00, cdouble, 3, 4>(2, Dimensions<3>{}), CM23::Constant(cdouble{3, 4})));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M00, cdouble, 3, 4>(2, 3), CM23::Constant(cdouble{3, 4})));
+
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M23, double, 5>(), M23::Constant(5)));
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M23, double, 5>())> == 5);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M23, double, 5>()), 0> == 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M23, double, 5>()), 1> == 3);
+
+  EXPECT_TRUE(is_near(make_constant_matrix_like<M23, cdouble, 3, 4>(), CM23::Constant(cdouble{3, 4})));
+
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M00, 5>(Dimensions<2>(), Dimensions<3>()))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M00, 5>(Dimensions<2>(), 3))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M00, 5>(2, Dimensions<3>()))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M00, 5>(2, 3))> == 5);
+  static_assert(std::is_integral_v<constant_coefficient<decltype(make_constant_matrix_like<M00, 5>(Dimensions<2>(), Dimensions<3>()))>::value_type>);
+  static_assert(std::is_integral_v<constant_coefficient<decltype(make_constant_matrix_like<M00, 5>(Dimensions<2>(), 3))>::value_type>);
+  static_assert(std::is_integral_v<constant_coefficient<decltype(make_constant_matrix_like<M00, 5>(2, Dimensions<3>()))>::value_type>);
+  static_assert(std::is_integral_v<constant_coefficient<decltype(make_constant_matrix_like<M00, 5>(2, 3))>::value_type>);
+
+  EXPECT_TRUE(is_near(make_constant_matrix_like<double, 5>(m23), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<double, 5>(m20_3), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<double, 5>(m03_2), M23::Constant(5)));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<double, 5>(m00_23), M23::Constant(5)));
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<double, 5>(m23))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<double, 5>(m20_3))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<double, 5>(m03_2))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<double, 5>(m00_23))> == 5);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<double, 5>(m23)), 0> == 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<double, 5>(m20_3)), 0> == 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<double, 5>(m03_2)), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_constant_matrix_like<double, 5>(m03_2)), 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<double, 5>(m00_23)), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_constant_matrix_like<double, 5>(m00_23)), 2);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<double, 5>(m20_3)), 1> == dynamic_size); EXPECT_EQ(get_index_dimension_of<1>(make_constant_matrix_like<double, 5>(m20_3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<double, 5>(m03_2)), 1> == 3);
+  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<double, 5>(m00_23)), 1> == dynamic_size); EXPECT_EQ(get_index_dimension_of<1>(make_constant_matrix_like<double, 5>(m00_23)), 3);
+
+  EXPECT_TRUE(is_near(make_constant_matrix_like<cdouble, 3, 4>(m23), CM23::Constant(cdouble{3, 4})));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<cdouble, 3, 4>(m20_3), CM23::Constant(cdouble{3, 4})));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<cdouble, 3, 4>(m03_2), CM23::Constant(cdouble{3, 4})));
+  EXPECT_TRUE(is_near(make_constant_matrix_like<cdouble, 3, 4>(m00_23), CM23::Constant(cdouble{3, 4})));
+
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<5>(m23))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<5>(m20_3))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<5>(m03_2))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<5>(m00_23))> == 5);
+  static_assert(std::is_integral_v<constant_coefficient<decltype(make_constant_matrix_like<5>(m23))>::value_type>);
+  static_assert(std::is_integral_v<constant_coefficient<decltype(make_constant_matrix_like<5>(m20_3))>::value_type>);
+  static_assert(std::is_integral_v<constant_coefficient<decltype(make_constant_matrix_like<5>(m03_2))>::value_type>);
+  static_assert(std::is_integral_v<constant_coefficient<decltype(make_constant_matrix_like<5>(m00_23))>::value_type>);
+}
+
+
+TEST(eigen3, make_zero_matrix_like)
 {
   auto m23 = make_dense_writable_matrix_from<M23>(0, 0, 0, 0, 0, 0);
   auto m20_3 = M20 {m23};
@@ -489,250 +641,24 @@ TEST(eigen3, ConstantAdapter_make_functions)
   static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(m00_23)), 1> == dynamic_size); EXPECT_EQ(get_index_dimension_of<1>(make_zero_matrix_like(m00_23)), 3);
   static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<M23>()), 1> == 3);
 
-
-  EXPECT_TRUE(is_near(make_constant_matrix_like<M23, 5>(Dimensions<2>{}, Dimensions<3>{}), M23::Constant(5)));
-  EXPECT_TRUE(is_near(make_constant_matrix_like<M00, 5>(Dimensions<2>{}, 3), M23::Constant(5)));
-  EXPECT_TRUE(is_near(make_constant_matrix_like<M00, 5>(2, Dimensions<3>{}), M23::Constant(5)));
-  EXPECT_TRUE(is_near(make_constant_matrix_like<M00, 5>(2, 3), M23::Constant(5)));
-  EXPECT_TRUE(is_near(make_constant_matrix_like<5>(m23), M23::Constant(5)));
-  EXPECT_TRUE(is_near(make_constant_matrix_like<5>(m20_3), M23::Constant(5)));
-  EXPECT_TRUE(is_near(make_constant_matrix_like<5>(m03_2), M23::Constant(5)));
-  EXPECT_TRUE(is_near(make_constant_matrix_like<5>(m00_23), M23::Constant(5)));
-  EXPECT_TRUE(is_near(make_constant_matrix_like<M23, 5>(), M23::Constant(5)));
-
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M00, 5>(Dimensions<2>(), Dimensions<3>()))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M00, 5>(Dimensions<2>(), 3))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M00, 5>(2, Dimensions<3>()))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M00, 5>(2, 3))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<5>(m23))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<5>(m20_3))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<5>(m03_2))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<5>(m00_23))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<M23, 5>())> == 5);
-
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(Dimensions<2>(), Dimensions<3>())), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(Dimensions<2>(), 3)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(2, Dimensions<3>())), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_constant_matrix_like<M00, 5>(2, Dimensions<3>())), 2);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(2, 3)), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_constant_matrix_like<M00, 5>(2, 3)), 2);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m23)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m20_3)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m03_2)), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_constant_matrix_like<5>(m03_2)), 2);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m00_23)), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_constant_matrix_like<5>(m00_23)), 2);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M23, 5>()), 0> == 2);
-
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(Dimensions<2>(), Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(Dimensions<2>(), 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_dimension_of<1>(make_constant_matrix_like<M00, 5>(2, 3)), 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(2, Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M00, 5>(2, 3)), 1> == dynamic_size);  EXPECT_EQ(get_index_dimension_of<1>(make_constant_matrix_like<M00, 5>(2, 3)), 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m23)), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m20_3)), 1> == dynamic_size); EXPECT_EQ(get_index_dimension_of<1>(make_constant_matrix_like<5>(m20_3)), 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m03_2)), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<5>(m00_23)), 1> == dynamic_size); EXPECT_EQ(get_index_dimension_of<1>(make_constant_matrix_like<5>(m00_23)), 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<M23, 5>()), 1> == 3);
-
-  auto m22 = M22 {};
-  auto m20_2 = M20 {m22};
-  auto m02_2 = M02 {m22};
-  auto m00_22 = M00 {m22};
-
-  EXPECT_TRUE(is_near(make_identity_matrix_like<M22>(), M22::Identity()));
-  EXPECT_TRUE(is_near(make_identity_matrix_like<M00>(Dimensions<2>()), M22::Identity()));
-  EXPECT_TRUE(is_near(make_identity_matrix_like<M00>(2), M22::Identity()));
-  EXPECT_TRUE(is_near(make_identity_matrix_like(m22), M22::Identity()));
-  EXPECT_TRUE(is_near(make_identity_matrix_like(m20_2), M22::Identity()));
-  EXPECT_TRUE(is_near(make_identity_matrix_like(m02_2), M22::Identity()));
-  EXPECT_TRUE(is_near(make_identity_matrix_like(m00_22), M22::Identity()));
-
-  static_assert(identity_matrix<decltype(make_identity_matrix_like<M22>())>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like<M00>(Dimensions<2>()))>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like<M00>(2))>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like(m22))>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like(m20_2))>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like(m02_2))>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like(m00_22))>);
-
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<M22>()), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<M00>(Dimensions<2>())), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<M00>(2)), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_identity_matrix_like<M00>(2)), 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m22)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m20_2)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m02_2)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m00_22)), 0> == dynamic_size); EXPECT_EQ(get_index_dimension_of<0>(make_identity_matrix_like(m00_22)), 2);
-
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<M22>()), 1> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<M00>(Dimensions<2>())), 1> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<M00>(2)), 1> == dynamic_size);  EXPECT_EQ(get_index_dimension_of<1>(make_identity_matrix_like<M00>(2)), 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m22)), 1> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m20_2)), 1> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m02_2)), 1> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(m00_22)), 1> == dynamic_size); EXPECT_EQ(get_index_dimension_of<1>(make_identity_matrix_like(m00_22)), 2);
-
-
-  ConstantAdapter<M34, 5> c534 {};
-  ConstantAdapter<M30, 5> c530_4 {4};
-  ConstantAdapter<M04, 5> c504_3 {3};
-  ConstantAdapter<M00, 5> c500_34 {3, 4};
-
-  ConstantAdapter<M33, 5> c533 {};
-  ConstantAdapter<M30, 5> c530_3 {3};
-  ConstantAdapter<M03, 5> c503_3 {3};
-  ConstantAdapter<M00, 5> c500_33 {3, 3};
-
-  ConstantAdapter<M31, 5> c531 {};
-  ConstantAdapter<M30, 5> c530_1 {1};
-  ConstantAdapter<M01, 5> c501_3 {3};
-  ConstantAdapter<M00, 5> c500_31 {3, 1};
-
-  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(c534), M34::Constant(5)));
-  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(c530_4), M34::Constant(5)));
-  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(c504_3), M34::Constant(5)));
-  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(c500_34), M34::Constant(5)));
-  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(ConstantAdapter<CM34, 5> {}), CM34::Constant(cdouble(5,0))));
-
-  using C533 = decltype(c533);
-  using C534 = decltype(c534);
-  using C500 = decltype(c500_34);
-
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<C534, 5>())> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<C534, 5>(Dimensions<3>(), Dimensions<4>()))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<C534, 5>(Dimensions<3>(), 4))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<C534, 5>(3, Dimensions<4>()))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<C534, 5>(3, 4))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<5>(c534))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<5>(c530_4))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<5>(c504_3))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant_matrix_like<5>(c500_34))> == 5);
-
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<C534, 5>()), 0> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<C534, 5>(Dimensions<3>(), Dimensions<4>())), 0> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<C534, 5>(Dimensions<3>(), 4)), 0> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<C534, 5>(3, Dimensions<4>())), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_zero_matrix_like<C500>(3, Dimensions<4>())), 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<C534, 5>(3, 4)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_zero_matrix_like<C500>(3, 4)), 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like(c534)), 0> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like(c530_4)), 0> == 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like(c504_3)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_constant_matrix_like(c504_3)), 3);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like(c500_34)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<1>(make_constant_matrix_like(c500_34)), 4);
-
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<C534>()), 1> == 4);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<C534>(Dimensions<3>(), Dimensions<4>())), 1> == 4);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<C534>(Dimensions<3>(), 4)), 1> == dynamic_size);  EXPECT_EQ(get_dimensions_of<1>(make_zero_matrix_like<C500>(3, 4)), 4);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<C534>(3, Dimensions<4>())), 1> == 4);
-  static_assert(index_dimension_of_v<decltype(make_constant_matrix_like<C534>(3, 4)), 1> == dynamic_size);  EXPECT_EQ(get_dimensions_of<1>(make_zero_matrix_like<C500>(3, 4)), 4);
-
-  static_assert(identity_matrix<decltype(make_identity_matrix_like<C533>())>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like<C500>(Dimensions<3>()))>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like<C500>(3))>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like(c533))>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like(c530_3))>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like(c503_3))>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like(c500_33))>);
-
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C533>()), 0> == 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C500>(Dimensions<3>())), 0> == 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C500>(3)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_identity_matrix_like<C500>(3)), 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c533)), 0> == 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c530_3)), 0> == 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c503_3)), 0> == 3); EXPECT_EQ(get_dimensions_of<0>(make_identity_matrix_like(c503_3)), 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c500_33)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_identity_matrix_like(c500_33)), 3);
-
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C533>()), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C500>(Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C500>(3)), 1> == dynamic_size);  EXPECT_EQ(get_dimensions_of<1>(make_identity_matrix_like<C500>(3)), 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c533)), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c530_3)), 1> == 3); EXPECT_EQ(get_dimensions_of<1>(make_identity_matrix_like(c530_3)), 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c503_3)), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c500_33)), 1> == dynamic_size); EXPECT_EQ(get_dimensions_of<1>(make_identity_matrix_like(c500_33)), 3);
-
-  EXPECT_TRUE(is_near(make_self_contained(ConstantAdapter {c534}), M34::Constant(5)));
-  EXPECT_TRUE(is_near(make_self_contained(ConstantAdapter {c530_4}), M34::Constant(5)));
-  EXPECT_TRUE(is_near(make_self_contained(ConstantAdapter {c504_3}), M34::Constant(5)));
-  EXPECT_TRUE(is_near(make_self_contained(ConstantAdapter {c500_34}), M34::Constant(5)));
-}
-
-
-TEST(eigen3, ZeroAdapter_make_functions)
-{
-  ZA23 z23 {Dimensions<2>(), Dimensions<3>()};
-  ZA20 z20_3 {Dimensions<2>(), 3};
-  ZA03 z03_2 {2, Dimensions<3>()};
-  ZA22 z22 {Dimensions<2>(), Dimensions<2>()};
-  ZA20 z20_2 {Dimensions<2>(), 2};
-  ZA02 z02_2 {2, Dimensions<2>()};
-  ZA00 z00_23 {2, 3};
-  ZA00 z00_22 {2, 2};
-
-  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(z23), M23::Zero()));
-  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(z20_3), M23::Zero()));
-  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(z03_2), M23::Zero()));
-  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(z00_23), M23::Zero()));
-
-  static_assert(zero_matrix<decltype(make_zero_matrix_like<ZA23>())>);
-  static_assert(zero_matrix<decltype(make_zero_matrix_like<ZA00>(Dimensions<2>(), Dimensions<3>()))>);
-  static_assert(zero_matrix<decltype(make_zero_matrix_like<ZA00>(Dimensions<2>(), 3))>);
-  static_assert(zero_matrix<decltype(make_zero_matrix_like<ZA00>(2, Dimensions<3>()))>);
-  static_assert(zero_matrix<decltype(make_zero_matrix_like<ZA00>(2, 3))>);
-  static_assert(zero_matrix<decltype(make_zero_matrix_like(z23))>);
-  static_assert(zero_matrix<decltype(make_zero_matrix_like(z20_3))>);
-  static_assert(zero_matrix<decltype(make_zero_matrix_like(z03_2))>);
-  static_assert(zero_matrix<decltype(make_zero_matrix_like(z00_23))>);
-
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<ZA23>()), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<ZA00>(Dimensions<2>(), Dimensions<3>())), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<ZA00>(Dimensions<2>(), 3)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<ZA00>(2, Dimensions<3>())), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_zero_matrix_like<ZA00>(2, Dimensions<3>())), 2);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<ZA00>(2, 3)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_zero_matrix_like<ZA00>(2, 3)), 2);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(z23)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(z20_3)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(z03_2)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_zero_matrix_like(z03_2)), 2);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(z00_23)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_zero_matrix_like(z00_23)), 2);
-
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<ZA23>()), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<ZA00>(Dimensions<2>(), Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<ZA00>(Dimensions<2>(), 3)), 1> == dynamic_size);  EXPECT_EQ(get_dimensions_of<1>(make_zero_matrix_like<ZA00>(2, 3)), 3);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<ZA00>(2, Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like<ZA00>(2, 3)), 1> == dynamic_size);  EXPECT_EQ(get_dimensions_of<1>(make_zero_matrix_like<ZA00>(2, 3)), 3);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(z23)), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(z20_3)), 1> == dynamic_size); EXPECT_EQ(get_dimensions_of<1>(make_zero_matrix_like(z20_3)), 3);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(z03_2)), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_zero_matrix_like(z00_23)), 1> == dynamic_size); EXPECT_EQ(get_dimensions_of<1>(make_zero_matrix_like(z00_23)), 3);
-
-  static_assert(identity_matrix<decltype(make_identity_matrix_like<ZA22>())>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like<ZA00>(Dimensions<2>()))>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like<ZA00>(2))>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like(z22))>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like(z20_2))>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like(z02_2))>);
-  static_assert(identity_matrix<decltype(make_identity_matrix_like(z00_22))>);
-
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<ZA22>()), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<ZA00>(Dimensions<2>())), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<ZA00>(2)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_identity_matrix_like<ZA00>(2)), 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z22)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z20_2)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z02_2)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z00_22)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_identity_matrix_like(z00_22)), 2);
-
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<ZA22>()), 1> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<ZA00>(Dimensions<2>())), 1> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<ZA00>(2)), 1> == dynamic_size);  EXPECT_EQ(get_dimensions_of<1>(make_identity_matrix_like<ZA00>(2)), 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z22)), 1> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z20_2)), 1> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z02_2)), 1> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z00_22)), 1> == dynamic_size); EXPECT_EQ(get_dimensions_of<1>(make_identity_matrix_like(z00_22)), 2);
-
-  EXPECT_TRUE(is_near(make_self_contained(ConstantAdapter {z23}), M23::Zero()));
-  EXPECT_TRUE(is_near(make_self_contained(ConstantAdapter {z20_3}), M23::Zero()));
-  EXPECT_TRUE(is_near(make_self_contained(ConstantAdapter {z03_2}), M23::Zero()));
-  EXPECT_TRUE(is_near(make_self_contained(ConstantAdapter {z00_23}), M23::Zero()));
+  static_assert(std::is_integral_v<constant_coefficient<decltype(make_zero_matrix_like<M00, int>(Dimensions<2>(), Dimensions<3>()))>::value_type>);
+  static_assert(std::is_integral_v<constant_coefficient<decltype(make_zero_matrix_like<M00, int>(Dimensions<2>(), 3))>::value_type>);
+  static_assert(std::is_integral_v<constant_coefficient<decltype(make_zero_matrix_like<M00, int>(2, Dimensions<3>()))>::value_type>);
+  static_assert(std::is_integral_v<constant_coefficient<decltype(make_zero_matrix_like<M00, int>(2, 3))>::value_type>);
+  static_assert(std::is_integral_v<constant_coefficient<decltype(make_zero_matrix_like<int>(m23))>::value_type>);
+  static_assert(std::is_integral_v<constant_coefficient<decltype(make_zero_matrix_like<int>(m20_3))>::value_type>);
+  static_assert(std::is_integral_v<constant_coefficient<decltype(make_zero_matrix_like<int>(m03_2))>::value_type>);
+  static_assert(std::is_integral_v<constant_coefficient<decltype(make_zero_matrix_like<int>(m00_23))>::value_type>);
+  static_assert(std::is_integral_v<constant_coefficient<decltype(make_zero_matrix_like<M23, int>())>::value_type>);
 }
 
 
 TEST(eigen3, ConstantAdapter_equality)
 {
-  ConstantAdapter<M23, 3> ca23;
-  ConstantAdapter<M20, 3> ca20 {3};
-  ConstantAdapter<M03, 3> ca03 {2};
-  ConstantAdapter<M00, 3> ca00 {2, 3};
+  ConstantAdapter<M23, double, 3> ca23;
+  ConstantAdapter<M20, double, 3> ca20 {3};
+  ConstantAdapter<M03, double, 3> ca03 {2};
+  ConstantAdapter<M00, double, 3> ca00 {2, 3};
 
   auto nc11 = M11::Identity() + M11::Identity() + M11::Identity(); using NC11 = decltype(nc11);
   auto nc23 = nc11.replicate<2,3>();
@@ -808,11 +734,7 @@ TEST(eigen3, ConstantAdapter_equality)
   EXPECT_TRUE(mc20 == ca00);
   EXPECT_TRUE(mc03 == ca00);
   EXPECT_TRUE(mc00 == ca00);
-}
 
-
-TEST(eigen3, ZeroAdapter_equality)
-{
   ZeroAdapter<M23> za23;
   ZeroAdapter<M20> za20 {3};
   ZeroAdapter<M03> za03 {2};
@@ -897,36 +819,30 @@ TEST(eigen3, ZeroAdapter_equality)
 
 TEST(eigen3, ConstantAdapter_arithmetic)
 {
-  EXPECT_TRUE(is_near(ConstantAdapter<M22, 3> {} + ConstantAdapter<M22, 5> {}, ConstantAdapter<M22, 8> {}));
-  EXPECT_TRUE(is_near(ConstantAdapter<M22, 3> {} - ConstantAdapter<M22, 5> {}, ConstantAdapter<M22, -2> {}));
-  EXPECT_TRUE(is_near(ConstantAdapter<M23, 3> {} * ConstantAdapter<M32, 5> {}, ConstantAdapter<M22, 45> {}));
-  EXPECT_TRUE(is_near(ConstantAdapter<M34, 4> {} * ConstantAdapter<M42, 7> {}, ConstantAdapter<M32, 112> {}));
-  EXPECT_TRUE(is_near(ConstantAdapter<M22, 0> {} * 2.0, ConstantAdapter<M22, 0> {}));
-  EXPECT_TRUE(is_near(ConstantAdapter<M22, 3> {} * -2.0, ConstantAdapter<M22, -6> {}));
-  EXPECT_TRUE(is_near(3.0 * ConstantAdapter<M22, 0> {}, ConstantAdapter<M22, 0> {}));
-  EXPECT_TRUE(is_near(-3.0 * ConstantAdapter<M22, 3> {}, ConstantAdapter<M22, -9> {}));
-  EXPECT_TRUE(is_near(ConstantAdapter<M22, 0> {} / 2.0, ConstantAdapter<M22, 0> {}));
-  EXPECT_TRUE(is_near(ConstantAdapter<M22, 8> {} / -2.0, ConstantAdapter<M22, -4> {}));
-  EXPECT_TRUE(is_near(-ConstantAdapter<M22, 7> {}, ConstantAdapter<M22, -7> {}));
+  EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} + ConstantAdapter<M22, double, 5> {}, ConstantAdapter<M22, double, 8> {}));
+  EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} - ConstantAdapter<M22, double, 5> {}, ConstantAdapter<M22, double, -2> {}));
+  EXPECT_TRUE(is_near(ConstantAdapter<M23, double, 3> {} * ConstantAdapter<M32, double, 5> {}, ConstantAdapter<M22, double, 45> {}));
+  EXPECT_TRUE(is_near(ConstantAdapter<M34, double, 4> {} * ConstantAdapter<M42, double, 7> {}, ConstantAdapter<M32, double, 112> {}));
+  EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 0> {} * 2.0, ConstantAdapter<M22, double, 0> {}));
+  EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} * -2.0, ConstantAdapter<M22, double, -6> {}));
+  EXPECT_TRUE(is_near(3.0 * ConstantAdapter<M22, double, 0> {}, ConstantAdapter<M22, double, 0> {}));
+  EXPECT_TRUE(is_near(-3.0 * ConstantAdapter<M22, double, 3> {}, ConstantAdapter<M22, double, -9> {}));
+  EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 0> {} / 2.0, ConstantAdapter<M22, double, 0> {}));
+  EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 8> {} / -2.0, ConstantAdapter<M22, double, -4> {}));
+  EXPECT_TRUE(is_near(-ConstantAdapter<M22, double, 7> {}, ConstantAdapter<M22, double, -7> {}));
 
-  EXPECT_TRUE(is_near(ConstantAdapter<M22, 3> {} + M22::Constant(5), ConstantAdapter<M22, 8> {}));
-  EXPECT_TRUE(is_near(M22::Constant(5) + ConstantAdapter<M22, 3> {}, ConstantAdapter<M22, 8> {}));
-  EXPECT_TRUE(is_near(ConstantAdapter<M22, 3> {} - M22::Constant(5), ConstantAdapter<M22, -2> {}));
-  EXPECT_TRUE(is_near(M22::Constant(5) - ConstantAdapter<M22, 3> {}, ConstantAdapter<M22, 2> {}));
-  EXPECT_TRUE(is_near(ConstantAdapter<M23, 3> {} * M32::Constant(5), ConstantAdapter<M22, 45> {}));
-  EXPECT_TRUE(is_near(ConstantAdapter<M34, 4> {} * M42::Constant(7), ConstantAdapter<M32, 112> {}));
-  EXPECT_TRUE(is_near(M23::Constant(3) * ConstantAdapter<M32, 5> {}, ConstantAdapter<M22, 45> {}));
-  EXPECT_TRUE(is_near(M34::Constant(4) * ConstantAdapter<M42, 7> {}, ConstantAdapter<M32, 112> {}));
+  EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} + M22::Constant(5), ConstantAdapter<M22, double, 8> {}));
+  EXPECT_TRUE(is_near(M22::Constant(5) + ConstantAdapter<M22, double, 3> {}, ConstantAdapter<M22, double, 8> {}));
+  EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} - M22::Constant(5), ConstantAdapter<M22, double, -2> {}));
+  EXPECT_TRUE(is_near(M22::Constant(5) - ConstantAdapter<M22, double, 3> {}, ConstantAdapter<M22, double, 2> {}));
+  EXPECT_TRUE(is_near(ConstantAdapter<M23, double, 3> {} * M32::Constant(5), ConstantAdapter<M22, double, 45> {}));
+  EXPECT_TRUE(is_near(ConstantAdapter<M34, double, 4> {} * M42::Constant(7), ConstantAdapter<M32, double, 112> {}));
+  EXPECT_TRUE(is_near(M23::Constant(3) * ConstantAdapter<M32, double, 5> {}, ConstantAdapter<M22, double, 45> {}));
+  EXPECT_TRUE(is_near(M34::Constant(4) * ConstantAdapter<M42, double, 7> {}, ConstantAdapter<M32, double, 112> {}));
 
-  EXPECT_EQ((ConstantAdapter<M43, 3>{}.rows()), 4);
-  EXPECT_EQ((ConstantAdapter<M43, 3>{}.cols()), 3);
-  EXPECT_TRUE(is_near(make_zero_matrix_like<ConstantAdapter<M23, 3>>(), M23::Zero()));
-  EXPECT_TRUE(is_near(make_identity_matrix_like<ConstantAdapter<M22, 3>>(), M22::Identity()));
-}
+  EXPECT_EQ((ConstantAdapter<M43, double, 3>{}.rows()), 4);
+  EXPECT_EQ((ConstantAdapter<M43, double, 3>{}.cols()), 3);
 
-
-TEST(eigen3, ZeroAdapter_arithmetic)
-{
   ZA00 z00 {2, 2};
 
   auto m22y = make_eigen_matrix<double, 2, 2>(1, 2, 3, 4);
@@ -948,6 +864,5 @@ TEST(eigen3, ZeroAdapter_arithmetic)
 
   EXPECT_EQ((z00.rows()), 2);
   EXPECT_EQ((z00.cols()), 2);
-  EXPECT_TRUE(is_near(make_identity_matrix_like<ZeroAdapter<M22>>(), M22::Identity()));
 }
 

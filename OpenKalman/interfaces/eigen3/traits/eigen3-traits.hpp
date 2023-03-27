@@ -267,26 +267,18 @@ namespace OpenKalman
     struct SingleConstantMatrixTraits<T, Scalar, std::enable_if_t<native_eigen_general<T>>>
 #endif
     {
-      template<typename...Ds>
-      static constexpr auto make_zero_matrix(Ds&&...ds)
+#ifdef __cpp_concepts
+      template<scalar_constant<CompileTimeStatus::unknown> C, typename...Ds> requires (sizeof...(Ds) == 2)
+      static constexpr constant_matrix<Likelihood::definitely, CompileTimeStatus::unknown> auto
+#else
+      template<typename C, typename...Ds, std::enable_if_t<
+        scalar_constant<C, CompileTimeStatus::unknown> and (sizeof...(Ds) == 2), int> = 0>
+      static constexpr auto
+#endif
+      make_constant_matrix(C&& c, Ds&&...ds)
       {
         using N = dense_writable_matrix_t<T, Scalar, std::decay_t<Ds>...>;
-        return ZeroAdapter<N> {std::forward<Ds>(ds)...};
-      }
-
-      template<auto...constant, typename...Ds>
-      static constexpr auto make_constant_matrix(Ds&&...ds)
-      {
-        using N = dense_writable_matrix_t<T, Scalar, std::decay_t<Ds>...>;
-        return ConstantAdapter<N, constant...> {std::forward<Ds>(ds)...};
-      }
-
-      template<typename S, typename...Ds>
-      static constexpr auto make_runtime_constant(S&& s, Ds&&...ds)
-      {
-        static_assert(sizeof...(Ds) == 2);
-        using N = dense_writable_matrix_t<T, S, std::decay_t<Ds>...>;
-        return N::Constant(static_cast<Eigen::Index>(get_dimension_size_of(std::forward<Ds>(ds)))..., std::forward<S>(s));
+        return N::Constant(static_cast<Eigen::Index>(get_dimension_size_of(std::forward<Ds>(ds)))..., std::forward<C>(c));
       }
     };
 
