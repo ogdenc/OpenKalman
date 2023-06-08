@@ -39,6 +39,24 @@ namespace
 }
 
 
+TEST(basics, ScalarConstant)
+{
+  static_assert(internal::ScalarConstant<Likelihood::definitely, double, 3>{}() == 3);
+  static_assert(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{}() == std::complex<double>{3, 4});
+  static_assert(internal::ScalarConstant<Likelihood::maybe, std::integral_constant<int, 7>>{}() == 7);
+  static_assert(internal::ScalarConstant{std::integral_constant<int, 7>{}}.value == 7);
+  static_assert(internal::ScalarConstant{3}() == 3);
+  static_assert(internal::ScalarConstant{3.} == 3.);
+  static_assert(std::is_same_v<decltype(internal::ScalarConstant{std::integral_constant<int, 7>{}})::value_type, int>);
+  static_assert(std::is_same_v<decltype(internal::ScalarConstant{3})::value_type, int>);
+  static_assert(std::is_same_v<decltype(internal::ScalarConstant{3.})::value_type, double>);
+  static_assert(internal::ScalarConstant{internal::ScalarConstant<Likelihood::maybe, double, 3>{}}.status == Likelihood::maybe);
+  static_assert(internal::ScalarConstant{internal::ScalarConstant<Likelihood::definitely, double, 3>{}}.status == Likelihood::definitely);
+  static_assert(internal::ScalarConstant{std::integral_constant<int, 7>{}}.status == Likelihood::definitely);
+  static_assert(internal::ScalarConstant{3}.status == Likelihood::definitely);
+}
+
+
 TEST(basics, scalar_traits)
 {
   static_assert(complex_number<std::complex<double>>);

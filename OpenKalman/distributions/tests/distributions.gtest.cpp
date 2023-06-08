@@ -617,44 +617,44 @@ TEST(matrices, GaussianDistribution_traits)
   static_assert(hermitian_matrix<DistSA2l>);
   static_assert(not cholesky_form<DistSA2l>);
   static_assert(not triangular_matrix<DistSA2l>);
-  static_assert(not lower_triangular_matrix<DistSA2l>);
-  static_assert(not upper_triangular_matrix<DistSA2l>);
+  static_assert(not triangular_matrix<DistSA2l, TriangleType::lower>);
+  static_assert(not triangular_matrix<DistSA2l, TriangleType::upper>);
   static_assert(not zero_matrix<DistSA2l>);
 
   static_assert(not diagonal_matrix<DistT2l>);
   static_assert(hermitian_matrix<DistT2l>);
   static_assert(cholesky_form<DistT2l>);
   static_assert(not triangular_matrix<DistT2l>);
-  static_assert(not lower_triangular_matrix<DistT2l>);
-  static_assert(not upper_triangular_matrix<DistT2l>);
-  static_assert(not upper_triangular_matrix<DistT2l>);
+  static_assert(not triangular_matrix<DistT2l, TriangleType::lower>);
+  static_assert(not triangular_matrix<DistT2l, TriangleType::upper>);
+  static_assert(not triangular_matrix<DistT2l, TriangleType::upper>);
   static_assert(not zero_matrix<DistT2l>);
 
   static_assert(diagonal_matrix<DistD2>);
   static_assert(hermitian_matrix<DistD2>);
   static_assert(not cholesky_form<DistD2>);
   static_assert(triangular_matrix<DistD2>);
-  static_assert(lower_triangular_matrix<DistD2>);
-  static_assert(upper_triangular_matrix<DistD2>);
-  static_assert(upper_triangular_matrix<DistD2>);
+  static_assert(triangular_matrix<DistD2, TriangleType::lower>);
+  static_assert(triangular_matrix<DistD2, TriangleType::upper>);
+  static_assert(triangular_matrix<DistD2, TriangleType::upper>);
   static_assert(not zero_matrix<DistD2>);
 
   static_assert(diagonal_matrix<DistI2>);
   static_assert(hermitian_matrix<DistI2>);
   static_assert(not cholesky_form<DistI2>);
   static_assert(triangular_matrix<DistI2>);
-  static_assert(lower_triangular_matrix<DistI2>);
-  static_assert(upper_triangular_matrix<DistI2>);
-  static_assert(upper_triangular_matrix<DistI2>);
+  static_assert(triangular_matrix<DistI2, TriangleType::lower>);
+  static_assert(triangular_matrix<DistI2, TriangleType::upper>);
+  static_assert(triangular_matrix<DistI2, TriangleType::upper>);
   static_assert(not zero_matrix<DistI2>);
 
   static_assert(diagonal_matrix<DistZ2>);
   static_assert(hermitian_matrix<DistZ2>);
   static_assert(not cholesky_form<DistZ2>);
   static_assert(triangular_matrix<DistZ2>);
-  static_assert(lower_triangular_matrix<DistZ2>);
-  static_assert(upper_triangular_matrix<DistZ2>);
-  static_assert(upper_triangular_matrix<DistZ2>);
+  static_assert(triangular_matrix<DistZ2, TriangleType::lower>);
+  static_assert(triangular_matrix<DistZ2, TriangleType::upper>);
+  static_assert(triangular_matrix<DistZ2, TriangleType::upper>);
   static_assert(zero_matrix<DistZ2>);
 
   // DistributionTraits

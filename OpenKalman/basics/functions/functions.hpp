@@ -20,10 +20,12 @@
 #define OPENKALMAN_FUNCTIONS_HPP
 
 #include "indexible_property_functions.hpp"
+#include "make_dense_writable.hpp"
+#include "make_constant_functions.hpp"
+#include "diagonalizing-functions.hpp"
 #include "make_functions.hpp"
 #include "element_functions.hpp"
 #include "conversion_functions.hpp"
-#include "diagonalizing-functions.hpp"
 #include "n_ary_operation.hpp"
 #include "randomize.hpp"
 #include "reduction_functions.hpp"

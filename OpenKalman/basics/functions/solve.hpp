@@ -95,29 +95,23 @@ namespace OpenKalman
       if constexpr (identity_matrix<A>)
         return std::forward<B>(b);
       else
-        return make_self_contained(std::forward<B>(b) / constant_diagonal_coefficient_v<A>);
+        return make_self_contained(std::forward<B>(b) / constant_diagonal_coefficient{a}());
     }
     else if constexpr (constant_matrix<A>)
     {
-      constexpr auto a_const = constant_coefficient_v<A>;
-
       if constexpr ((row_dimension_of_v<A> == 1 or row_dimension_of_v<B> == 1) and column_dimension_of_v<A> == 1)
       {
         if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
-        return make_self_contained(std::forward<B>(b) / a_const);
+        return make_self_contained(std::forward<B>(b) / constant_coefficient{a}());
       }
       else if constexpr (constant_matrix<B>)
       {
         if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
 
-        auto a_col_dim = [](const auto& a) {
-          if constexpr (dynamic_dimension<A, 1>) return get_index_dimension_of<1>(a);
-          else return index_dimension_of<A, 1>{};
-        }(a);
-
         return make_constant_matrix_like<B>(
-          internal::scalar_constant_operation {std::divides<>{}, constant_coefficient<B>{},
-            internal::scalar_constant_operation {std::multiplies<>{}, a_col_dim, constant_coefficient<A>{}}},
+          internal::scalar_constant_operation {
+            std::divides<>{}, constant_coefficient{b}, internal::scalar_constant_operation {
+              std::multiplies<>{}, internal::index_dimension_scalar_constant_of<1>(a), constant_coefficient{a}}},
           get_dimensions_of<1>(a), get_dimensions_of<1>(b));
       }
       else if constexpr (row_dimension_of_v<A> == 1 or row_dimension_of_v<B> == 1 or

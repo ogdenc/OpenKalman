@@ -62,6 +62,20 @@ namespace OpenKalman::Eigen3
     template<typename Scalar, typename Arg>
     struct is_eigen_Identity<Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<Scalar>, Arg>>
       : std::true_type {};
+
+
+    template<typename T>
+    struct is_eigen_MatrixWrapper : std::false_type {};
+
+    template<typename XprType>
+    struct is_eigen_MatrixWrapper<Eigen::MatrixWrapper<XprType>> : std::true_type {};
+
+
+    template<typename T>
+    struct is_eigen_ArrayWrapper : std::false_type {};
+
+    template<typename XprType>
+    struct is_eigen_ArrayWrapper<Eigen::ArrayWrapper<XprType>> : std::true_type {};
   }
 
 
@@ -118,10 +132,8 @@ namespace OpenKalman::Eigen3
 #else
   constexpr bool native_eigen_general =
 #endif
-    native_eigen_matrix<T> or native_eigen_array<T> or eigen_SelfAdjointView<T> or eigen_TriangularView<T> or
-    eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T> or
-    (std::is_base_of_v<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>> and
-      not std::is_base_of_v<Eigen3Base, std::decay_t<T>>);
+    (std::is_base_of_v<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>> or native_eigen_dense<T>) and
+    (not std::is_base_of_v<Eigen3Base, std::decay_t<T>>);
 
 
   /**
@@ -134,6 +146,79 @@ namespace OpenKalman::Eigen3
   constexpr bool eigen_Identity = detail::is_eigen_Identity<std::decay_t<T>>::value;
 #endif
 
+
+  /**
+   * \brief T is of type Eigen::DiagonalMatrix.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_MatrixWrapper = detail::is_eigen_MatrixWrapper<std::decay_t<T>>::value;
+#else
+  constexpr bool eigen_MatrixWrapper = detail::is_eigen_MatrixWrapper<std::decay_t<T>>::value;
+#endif
+
+
+  /**
+   * \brief T is of type Eigen::DiagonalMatrix.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_ArrayWrapper = detail::is_eigen_ArrayWrapper<std::decay_t<T>>::value;
+#else
+  constexpr bool eigen_ArrayWrapper = detail::is_eigen_ArrayWrapper<std::decay_t<T>>::value;
+#endif
+
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct has_Eigen_traits_impl : std::false_type {};
+
+    template<typename T>
+    struct has_Eigen_traits_impl<T, std::void_t<Eigen::internal::traits<std::decay_t<T>>>> : std::true_type {};
+  } // namespace detail
+#endif
+
+
+  /**
+   * \brief Whether T has native Eigen::internal::traits.
+   * \tparam T An expression
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept has_eigen_traits = requires { typename Eigen::internal::traits<std::decay_t<T>>; };
+#else
+  constexpr bool has_eigen_traits = detail::has_Eigen_traits_impl<std::decay_t<T>>::value;
+#endif
+
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct has_eigen_evaluator_impl : std::false_type {};
+
+    template<typename T>
+    struct has_eigen_evaluator_impl<T, std::void_t<Eigen::internal::evaluator<T>>> : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief Whether T has native Eigen::internal::evaluator.
+   * \tparam T An expression
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept has_eigen_evaluator = (not eigen_TriangularView<T>) and (not eigen_SelfAdjointView<T>) and
+    (not eigen_DiagonalWrapper<T>) and (not eigen_DiagonalMatrix<T>) and
+    requires { typename Eigen::internal::evaluator<std::decay_t<T>>; };
+#else
+  constexpr bool has_eigen_evaluator = (not eigen_TriangularView<T>) and (not eigen_SelfAdjointView<T>) and
+    (not eigen_DiagonalWrapper<T>) and (not eigen_DiagonalMatrix<T>) and
+    detail::has_eigen_evaluator_impl<std::decay_t<T>>::value;
+#endif
 
 
 } // namespace OpenKalman::Eigen3
@@ -227,7 +312,7 @@ namespace OpenKalman
 
   public:
 
-    template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = rows>
+    template<HermitianAdapterType storage_triangle = HermitianAdapterType::lower, std::size_t dim = rows>
     using SelfAdjointMatrixFrom = std::conditional_t<hermitian_matrix<Nat<Scalar, dim, dim>>,
       Nat<Scalar, dim, dim>, SelfAdjointMatrix<Nat<Scalar, dim, dim>, storage_triangle>>;
 

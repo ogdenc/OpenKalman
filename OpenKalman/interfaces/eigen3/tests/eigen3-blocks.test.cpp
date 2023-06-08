@@ -165,6 +165,19 @@ TEST(eigen3, get_block)
   EXPECT_TRUE(is_near(get_block<1>(m34, std::tuple{N1}, std::tuple{2}), make_dense_writable_matrix_from<M32>(2, 3, 6, 7, 10, 11)));
   EXPECT_TRUE(is_near(get_block<1>(m34, std::tuple{1}, std::tuple{1}), make_dense_writable_matrix_from<M31>(2, 6, 10)));
   EXPECT_TRUE(is_near(get_block<1>(M00{m34}, std::tuple{1}, std::tuple{N3}), make_dense_writable_matrix_from<M33>(2, 3, 4, 6, 7, 8, 10, 11, 12)));
+
+  auto ewd3 = Eigen3::EigenWrapper {Eigen::DiagonalMatrix<double, 3>{make_dense_writable_matrix_from<M31>(1, 2, 3)}};
+
+  EXPECT_TRUE(is_near(get_block(ewd3, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_writable_matrix_from<M22>(1, 0, 0, 2)));
+  EXPECT_TRUE(is_near(get_block(ewd3, std::tuple{0, 0}, std::tuple{2, 2}), make_dense_writable_matrix_from<M22>(1, 0, 0, 2)));
+  EXPECT_TRUE(is_near(get_block<0>(ewd3, std::tuple{N1}, std::tuple{N2}), make_dense_writable_matrix_from<M23>(0, 2, 0, 0, 0, 3)));
+  EXPECT_TRUE(is_near(get_block<1>(ewd3, std::tuple{N1}, std::tuple{N2}), make_dense_writable_matrix_from<M32>(0, 0, 2, 0, 0, 3)));
+
+  EXPECT_TRUE(is_near(get_block(Eigen3::EigenWrapper {Eigen::DiagonalMatrix<double, 3>{make_dense_writable_matrix_from<M31>(1, 2, 3)}}, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_writable_matrix_from<M22>(1, 0, 0, 2)));
+  auto d3a = Eigen::DiagonalMatrix<double, 3>{make_dense_writable_matrix_from<M31>(1, 2, 3)};
+  EXPECT_TRUE(is_near(get_block(Eigen3::EigenWrapper {d3a}, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_writable_matrix_from<M22>(1, 0, 0, 2)));
+  auto ewd3a = Eigen3::EigenWrapper {d3a};
+  EXPECT_TRUE(is_near(get_block(ewd3a, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_writable_matrix_from<M22>(1, 0, 0, 2)));
 }
 
 
@@ -180,6 +193,8 @@ TEST(eigen3, set_block)
     5, 6, 7, 8,
     9, 10, 11, 12);
 
+  auto ewm34 = Eigen3::EigenWrapper {m34};
+
   auto m31 = make_dense_writable_matrix_from<M31>(13, 14, 15);
 
   set_block(m34, m31, N0, N1);
@@ -187,7 +202,8 @@ TEST(eigen3, set_block)
     1, 13, 3, 4,
     5, 14, 7, 8,
     9, 15, 11, 12)));
-  set_block(m34, m31, N0, 2);
+
+  set_block(ewm34, m31, N0, 2);
   EXPECT_TRUE(is_near(m34, make_dense_writable_matrix_from<M34>(
     1, 13, 13, 4,
     5, 14, 14, 8,
@@ -200,6 +216,7 @@ TEST(eigen3, set_block)
     1, 13, 13, 4,
     16, 17, 18, 19,
     9, 15, 15, 12)));
+
   set_block(m34, m14, 2, 0);
   EXPECT_TRUE(is_near(m34, make_dense_writable_matrix_from<M34>(
     1, 13, 13, 4,
@@ -213,6 +230,7 @@ TEST(eigen3, set_block)
     1, 13, 13, 4,
     16, 20, 18, 19,
     16, 21, 18, 19)));
+
   set_block(m34, m21, 0, N3);
   EXPECT_TRUE(is_near(m34, make_dense_writable_matrix_from<M34>(
     1, 13, 13, 20,
@@ -220,11 +238,13 @@ TEST(eigen3, set_block)
     16, 21, 18, 19)));
 
   auto m13 = make_dense_writable_matrix_from<M13>(22, 23, 24);
+
   set_block(m34, m13, N2, 1);
   EXPECT_TRUE(is_near(m34, make_dense_writable_matrix_from<M34>(
     1, 13, 13, 20,
     16, 20, 18, 21,
     16, 22, 23, 24)));
+
   set_block(m34, m13, 1, 0);
   EXPECT_TRUE(is_near(m34, make_dense_writable_matrix_from<M34>(
     1, 13, 13, 20,
@@ -599,5 +619,140 @@ TEST(eigen3, split_diagonal_asymmetric)
   EXPECT_TRUE(is_near(split<0, 1>(M40 {m45}, std::tuple{1, Dimensions<2>{}}, std::tuple{Dimensions<2>{}, 2}), tup_m22_m22));
   EXPECT_TRUE(is_near(split<0, 1>(M05 {m45}, std::tuple{Dimensions<1>{}, 2}, std::tuple{2, Dimensions{2}}), tup_m22_m22));
   EXPECT_TRUE(is_near(split<0, 1>(M00 {m45}, std::tuple{1, Dimensions<2>{}}, std::tuple{Dimensions<2>{}, Dimensions{2}}), tup_m22_m22));
+}
+
+
+TEST(eigen3, set_triangle)
+{
+  const auto a33 = make_dense_writable_matrix_from<M33>(
+    1, 2, 3,
+    2, 4, 5,
+    3, 5, 6);
+  const auto b33 = make_dense_writable_matrix_from<M33>(
+    1.5, 2.5, 3.5,
+    2.5, 4.5, 5.5,
+    3.5, 5.5, 6.5);
+  const auto l33 = make_dense_writable_matrix_from<M33>(
+    1.5, 2, 3,
+    2.5, 4.5, 5,
+    3.5, 5.5, 6.5);
+  const auto u33 = make_dense_writable_matrix_from<M33>(
+    1.5, 2.5, 3.5,
+    2, 4.5, 5.5,
+    3, 5, 6.5);
+  const Eigen::TriangularView<const M33, Eigen::Lower> bl33 {b33};
+  const Eigen::TriangularView<const M33, Eigen::Upper> bu33 {b33};
+
+  M33 a;
+
+  a = a33; internal::set_triangle<TriangleType::lower>(a, b33);
+  EXPECT_TRUE(is_near(a, l33));
+
+  a = a33; internal::set_triangle<TriangleType::upper>(a, b33);
+  EXPECT_TRUE(is_near(a, u33));
+
+  a = a33; internal::set_triangle<TriangleType::lower>(a.triangularView<Eigen::Lower>(), b33);
+  EXPECT_TRUE(is_near(a, l33));
+
+  a = a33; internal::set_triangle<TriangleType::upper>(a.triangularView<Eigen::Upper>(), b33);
+  EXPECT_TRUE(is_near(a, u33));
+
+  a = a33; internal::set_triangle(a.triangularView<Eigen::Lower>(), b33);
+  EXPECT_TRUE(is_near(a, l33));
+
+  a = a33; internal::set_triangle(a.triangularView<Eigen::Upper>(), b33);
+  EXPECT_TRUE(is_near(a, u33));
+
+  a = a33; internal::set_triangle<TriangleType::lower>(EigenWrapper {a.triangularView<Eigen::Lower>()}, b33);
+  EXPECT_TRUE(is_near(a, l33));
+
+  a = a33; internal::set_triangle<TriangleType::upper>(EigenWrapper {a.triangularView<Eigen::Upper>()}, b33);
+  EXPECT_TRUE(is_near(a, u33));
+
+  a = a33; internal::set_triangle<TriangleType::lower>(a.selfadjointView<Eigen::Lower>(), b33);
+  EXPECT_TRUE(is_near(a, l33));
+
+  a = a33; internal::set_triangle<TriangleType::upper>(a.selfadjointView<Eigen::Upper>(), b33);
+  EXPECT_TRUE(is_near(a, u33));
+
+  a = a33; internal::set_triangle<TriangleType::lower>(EigenWrapper {a.selfadjointView<Eigen::Lower>()}, b33);
+  EXPECT_TRUE(is_near(a, l33));
+
+  a = a33; internal::set_triangle<TriangleType::upper>(EigenWrapper {a.selfadjointView<Eigen::Upper>()}, b33);
+  EXPECT_TRUE(is_near(a, u33));
+
+  a = a33; internal::set_triangle(a, bl33);
+  EXPECT_TRUE(is_near(a, l33));
+
+  a = a33; internal::set_triangle(a, bu33);
+  EXPECT_TRUE(is_near(a, u33));
+
+  a = a33; internal::set_triangle(a.triangularView<Eigen::Lower>(), bl33);
+  EXPECT_TRUE(is_near(a, l33));
+
+  a = a33; internal::set_triangle(a.triangularView<Eigen::Upper>(), bu33);
+  EXPECT_TRUE(is_near(a, u33));
+
+  const auto d33 = make_dense_writable_matrix_from<M33>(
+    1.5, 2, 3,
+    2, 4.5, 5,
+    3, 5, 6.5);
+  const auto d31 = make_dense_writable_matrix_from<M31>(1, 4, 6);
+  const auto e31 = make_dense_writable_matrix_from<M31>(1.5, 4.5, 6.5);
+  const auto e33 = e31.asDiagonal();
+
+  a = a33; internal::set_triangle<TriangleType::diagonal>(a, b33);
+  EXPECT_TRUE(is_near(a, d33));
+  EXPECT_TRUE(is_near(internal::set_triangle<TriangleType::diagonal>(a33, b33), d33));
+
+  a = a33; internal::set_triangle<TriangleType::diagonal>(a.triangularView<Eigen::Lower>(), b33);
+  EXPECT_TRUE(is_near(a, d33));
+  EXPECT_TRUE(is_near(nested_matrix(internal::set_triangle<TriangleType::diagonal>(a33.triangularView<Eigen::Lower>(), b33)), d33));
+
+  a = a33; internal::set_triangle<TriangleType::diagonal>(EigenWrapper {a.triangularView<Eigen::Upper>()}, b33);
+  EXPECT_TRUE(is_near(a, d33));
+  EXPECT_TRUE(is_near(nested_matrix(internal::set_triangle<TriangleType::diagonal>(EigenWrapper {a33.triangularView<Eigen::Upper>()}, b33)), d33));
+
+  a = a33; internal::set_triangle<TriangleType::diagonal>(a.selfadjointView<Eigen::Upper>(), b33);
+  EXPECT_TRUE(is_near(a, d33));
+  EXPECT_TRUE(is_near(internal::set_triangle<TriangleType::diagonal>(a33.selfadjointView<Eigen::Upper>(), b33), d33));
+
+  a = a33; internal::set_triangle<TriangleType::diagonal>(EigenWrapper {a.selfadjointView<Eigen::Lower>()}, b33);
+  EXPECT_TRUE(is_near(a, d33));
+  EXPECT_TRUE(is_near(internal::set_triangle<TriangleType::diagonal>(EigenWrapper {a33.selfadjointView<Eigen::Lower>()}, b33), d33));
+
+  a = a33; internal::set_triangle(a, e33);
+  EXPECT_TRUE(is_near(a, d33));
+  EXPECT_TRUE(is_near(internal::set_triangle(a33, e33), d33));
+
+  a = a33; internal::set_triangle(a.triangularView<Eigen::Lower>(), e33);
+  EXPECT_TRUE(is_near(a, d33));
+  EXPECT_TRUE(is_near(nested_matrix(internal::set_triangle(a33.triangularView<Eigen::Lower>(), e33)), d33));
+
+  a = a33; internal::set_triangle(EigenWrapper {a.triangularView<Eigen::Upper>()}, e33);
+  EXPECT_TRUE(is_near(a, d33));
+  EXPECT_TRUE(is_near(nested_matrix(internal::set_triangle(EigenWrapper {a33.triangularView<Eigen::Upper>()}, e33)), d33));
+
+  a = a33; internal::set_triangle(a.selfadjointView<Eigen::Upper>(), e33);
+  EXPECT_TRUE(is_near(a, d33));
+  EXPECT_TRUE(is_near(internal::set_triangle(a33.selfadjointView<Eigen::Upper>(), e33), d33));
+
+  a = a33; internal::set_triangle(EigenWrapper {a.selfadjointView<Eigen::Lower>()}, e33);
+  EXPECT_TRUE(is_near(a, d33));
+  EXPECT_TRUE(is_near(internal::set_triangle(EigenWrapper {a33.selfadjointView<Eigen::Lower>()}, e33), d33));
+
+  M31 d;
+
+  d = d31; internal::set_triangle(Eigen::DiagonalWrapper<M31>{d}, b33);
+  EXPECT_TRUE(is_near(d, e31));
+  EXPECT_TRUE(is_near(internal::set_triangle<TriangleType::diagonal>(d31.asDiagonal(), b33), e33));
+  EXPECT_TRUE(is_near(internal::set_triangle(d31.asDiagonal(), b33), e33));
+  EXPECT_TRUE(is_near(internal::set_triangle(Eigen::DiagonalMatrix<double, 3>{d31}, b33), e33));
+
+  d = d31; internal::set_triangle(Eigen::DiagonalWrapper<M31>{d}, e33);
+  EXPECT_TRUE(is_near(d, e31));
+  EXPECT_TRUE(is_near(internal::set_triangle<TriangleType::diagonal>(d31.asDiagonal(), e33), e33));
+  EXPECT_TRUE(is_near(internal::set_triangle(d31.asDiagonal(), e33), e33));
+  EXPECT_TRUE(is_near(internal::set_triangle(Eigen::DiagonalMatrix<double, 3>{d31}, e33), e33));
 }
 

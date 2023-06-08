@@ -62,7 +62,9 @@ namespace OpenKalman
       }
       else if constexpr (constant_matrix<Arg>)
       {
-        return std::apply([](auto...ds){ return make_constant_matrix_like<Arg>(constant_coefficient<Arg>{}, ds...); }, size);
+        return std::apply(
+          [](auto&& a, auto...ds){ return make_constant_matrix_like<Arg>(constant_coefficient{a}, ds...); },
+          std::tuple_cat(std::forward_as_tuple(std::forward<Arg>(arg)), size));
       }
       else
       {
@@ -386,6 +388,19 @@ namespace OpenKalman
 
   namespace internal
   {
+#ifndef __cpp_concepts
+    namespace detail
+    {
+      template<TriangleType t, typename A, typename B, typename = void>
+      struct set_triangle_trait_exists : std::false_type {};
+
+      template<TriangleType t, typename A, typename B>
+      struct set_triangle_trait_exists<t, A, B, std::void_t<decltype(
+          interface::Subsets<std::decay_t<A>>::template set_triangle<t>(std::declval<A>(), std::declval<B>()))>>
+        : std::true_type {};
+    }
+#endif
+
     /**
      * \internal
      * \brief Set only a triangle (upper or lower) or diagonal taken from another matrix to a \ref writable matrix.
@@ -394,20 +409,132 @@ namespace OpenKalman
      * \tparam A The matrix or tensor to be set
      * \tparam B A matrix or tensor to be copied from, which may or may not be triangular
      */
-  #ifdef __cpp_concepts
-    template<TriangleType t, writable A, indexible B> requires (t != TriangleType::none) and (not diagonal_matrix<A>) and
-      (not triangular_matrix<B> or t == triangle_type_of_v<B> or diagonal_matrix<B>) and
-      (max_indices_of_v<A> == 2) and square_matrix<A, Likelihood::maybe> and square_matrix<B, Likelihood::maybe> and maybe_has_same_shape_as<A, B>
-  #else
-    template<TriangleType t, typename A, typename B, std::enable_if_t<writable<A> and indexible<B> and
-      (t != TriangleType::none) and (not diagonal_matrix<A>) and
-      (not triangular_matrix<B> or t == triangle_type_of_v<B> or diagonal_matrix<B>) and
-      (max_indices_of_v<A> == 2) and square_matrix<A, Likelihood::maybe> and square_matrix<B, Likelihood::maybe> and maybe_has_same_shape_as<A, B>, int> = 0>
-  #endif
-    constexpr auto&
-    set_triangle(A& a, B&& b)
+#ifdef __cpp_concepts
+    template<TriangleType t, square_matrix<Likelihood::maybe> A, square_matrix<Likelihood::maybe> B> requires
+      maybe_has_same_shape_as<A, B> and (t != TriangleType::any) and
+      (not triangular_matrix<A, TriangleType::any, Likelihood::maybe> or triangular_matrix<A, t, Likelihood::maybe> or t == TriangleType::diagonal) and
+      (not triangular_matrix<B, TriangleType::any, Likelihood::maybe> or triangular_matrix<B, t, Likelihood::maybe> or t == TriangleType::diagonal)
+#else
+    template<TriangleType t, typename A, typename B, std::enable_if_t<
+      square_matrix<A, Likelihood::maybe> and square_matrix<B, Likelihood::maybe> and
+      maybe_has_same_shape_as<A, B> and (t != TriangleType::any) and
+      (not triangular_matrix<A, TriangleType::any, Likelihood::maybe> or triangular_matrix<A, t, Likelihood::maybe> or t == TriangleType::diagonal) and
+      (not triangular_matrix<B, TriangleType::any, Likelihood::maybe> or triangular_matrix<B, t, Likelihood::maybe> or t == TriangleType::diagonal), int> = 0>
+#endif
+    constexpr decltype(auto)
+    set_triangle(A&& a, B&& b)
     {
-      return interface::Subsets<std::decay_t<A>>::template set_triangle<t>(a, std::forward<B>(b));
+      if constexpr (diagonal_adapter<A>)
+      {
+        static_assert(t == TriangleType::diagonal);
+        using N = decltype(nested_matrix(a));
+        if constexpr (writable<N> and std::is_lvalue_reference_v<N>)
+        {
+          nested_matrix(a) = diagonal_of(std::forward<B>(b));
+          return std::forward<A>(a);
+        }
+        else
+        {
+          return to_diagonal(diagonal_of(std::forward<B>(b)));
+        }
+      }
+      else if constexpr (triangular_adapter<A>)
+      {
+        using N = decltype(nested_matrix(a));
+        if constexpr (writable<N> and std::is_lvalue_reference_v<N>)
+        {
+          set_triangle<t>(nested_matrix(a), std::forward<B>(b));
+          return std::forward<A>(a);
+        }
+        else
+        {
+          auto aw = make_dense_writable_matrix_from(nested_matrix(std::forward<A>(a)));
+          set_triangle<t>(aw, std::forward<B>(b));
+          return make_triangular_matrix<triangle_type_of_v<A>>(std::move(aw));
+        }
+      }
+      else if constexpr (hermitian_adapter<A>)
+      {
+        using N = decltype(nested_matrix(a));
+        if constexpr (writable<N> and std::is_lvalue_reference_v<N>)
+        {
+          if constexpr ((t == TriangleType::lower and hermitian_adapter<A, HermitianAdapterType::upper>) or
+              (t == TriangleType::upper and hermitian_adapter<A, HermitianAdapterType::lower>))
+            set_triangle<t>(adjoint(nested_matrix(a)), std::forward<B>(b));
+          else
+            set_triangle<t>(nested_matrix(a), std::forward<B>(b));
+          return std::forward<A>(a);
+        }
+        else if constexpr (t == TriangleType::diagonal)
+        {
+          return make_hermitian_matrix<HermitianAdapterType::lower>(set_triangle<t>(nested_matrix(std::forward<A>(a)), std::forward<B>(b)));
+        }
+        else if constexpr (t == TriangleType::upper)
+        {
+          return make_hermitian_matrix<HermitianAdapterType::upper>(std::forward<B>(b));
+        }
+        else
+        {
+          return make_hermitian_matrix<HermitianAdapterType::lower>(std::forward<B>(b));
+        }
+      }
+#ifdef __cpp_concepts
+      else if constexpr (requires { interface::Subsets<std::decay_t<A>>::template set_triangle<t>(std::forward<A>(a), std::forward<B>(b)); })
+#else
+      if constexpr (detail::set_triangle_trait_exists<t, A, B>::value)
+#endif
+      {
+        return interface::Subsets<std::decay_t<A>>::template set_triangle<t>(std::forward<A>(a), std::forward<B>(b));
+      }
+      else
+      {
+        decltype(auto) aw = make_dense_writable_matrix_from(std::forward<A>(a));
+
+        if constexpr (t == TriangleType::upper)
+        {
+          for (int i = 0; i < get_index_dimension_of<0>(aw); i++)
+          for (int j = i; j < get_index_dimension_of<1>(aw); j++)
+            set_element(aw, get_element(b, i, i), i, i);
+        }
+        else if constexpr (t == TriangleType::lower)
+        {
+          for (int i = 0; i < get_index_dimension_of<0>(aw); i++)
+          for (int j = 0; j < i; j++)
+            set_element(aw, get_element(b, i, i), i, i);
+        }
+        else // t == TriangleType::diagonal
+        {
+          for (int i = 0; i < get_index_dimension_of<0>(aw); i++) set_element(aw, get_element(b, i, i), i, i);
+        }
+        return std::forward<decltype(aw)>(aw);
+      }
+    }
+
+
+    /**
+     * \overload
+     * \internal
+     * \brief Derives the TriangleType from the triangle types of the arguments.
+     */
+#ifdef __cpp_concepts
+    template<square_matrix<Likelihood::maybe> A, square_matrix<Likelihood::maybe> B> requires maybe_has_same_shape_as<A, B> and
+      (triangular_matrix<A, TriangleType::any, Likelihood::maybe> or triangular_matrix<B, TriangleType::any, Likelihood::maybe>) and
+      (triangle_type_of_v<A> == TriangleType::any or triangle_type_of_v<B> == TriangleType::any or triangle_type_of_v<A, B> != TriangleType::any)
+#else
+    template<typename A, typename B, std::enable_if_t<
+      square_matrix<A, Likelihood::maybe> and square_matrix<B, Likelihood::maybe> and maybe_has_same_shape_as<A, B> and
+      (triangular_matrix<A, TriangleType::any, Likelihood::maybe> or triangular_matrix<B, TriangleType::any, Likelihood::maybe>) and
+      (triangle_type_of<A>::value == TriangleType::any or triangle_type_of<B>::value == TriangleType::any or
+        triangle_type_of<A, B>::value != TriangleType::any), int> = 0>
+#endif
+    constexpr decltype(auto)
+    set_triangle(A&& a, B&& b)
+    {
+      constexpr auto t =
+        diagonal_matrix<A, Likelihood::maybe> or diagonal_matrix<B, Likelihood::maybe> ? TriangleType::diagonal :
+        triangle_type_of_v<A, B> != TriangleType::any ? triangle_type_of_v<A, B> :
+        triangle_type_of_v<A> != TriangleType::any ? triangle_type_of_v<A> : triangle_type_of_v<B>;
+      return set_triangle<t>(std::forward<A>(a), std::forward<B>(b));
     }
 
   } // namespace internal

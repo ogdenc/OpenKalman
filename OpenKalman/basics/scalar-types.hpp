@@ -98,18 +98,32 @@ namespace OpenKalman
       struct has_value_member<T, std::enable_if_t<scalar_type<decltype(T::value)>>> : std::true_type {};
 
       template<typename T, typename = void>
+      struct call_result_is_scalar_impl : std::false_type {};
+
+      template<typename T>
+      struct call_result_is_scalar_impl<T, std::void_t<std::bool_constant<(T{}(), true)>>>
+        : std::bool_constant<scalar_type<decltype(T{}())>> {};
+
+      template<typename T, typename = void>
       struct call_result_is_scalar : std::false_type {};
 
       template<typename T>
-      struct call_result_is_scalar<T, std::void_t<std::bool_constant<(T{}(), true)>>>
-        : std::bool_constant<scalar_type<decltype(T{}())>> {};
+      struct call_result_is_scalar<T, std::enable_if_t<std::is_default_constructible_v<T>>>
+        : std::bool_constant<call_result_is_scalar_impl<T>::value> {};
+
+      template<typename T, typename = void>
+      struct convertible_to_value_type_impl : std::false_type {};
+
+      template<typename T>
+      struct convertible_to_value_type_impl<T, std::void_t<std::bool_constant<(typename T::value_type {T{}}, true)>>>
+        : std::bool_constant<scalar_type<decltype(typename T::value_type {T{}})>> {};
 
       template<typename T, typename = void>
       struct convertible_to_value_type : std::false_type {};
 
       template<typename T>
-      struct convertible_to_value_type<T, std::void_t<std::bool_constant<(typename T::value_type {T{}}, true)>>>
-        : std::bool_constant<scalar_type<decltype(typename T::value_type {T{}})>> {};
+      struct convertible_to_value_type<T, std::enable_if_t<std::is_default_constructible_v<T>>>
+        : std::bool_constant<convertible_to_value_type_impl<T>::value> {};
     }
 #endif
 
@@ -179,9 +193,9 @@ namespace OpenKalman
 #else
   constexpr bool scalar_constant =
 #endif
-    (c != CompileTimeStatus::known or internal::compile_time_scalar_constant<T>) and
-    (c != CompileTimeStatus::unknown or internal::runtime_scalar_constant<T>) and
-    (c != CompileTimeStatus::any or internal::compile_time_scalar_constant<T> or internal::runtime_scalar_constant<T>);
+    (c == CompileTimeStatus::any and (internal::compile_time_scalar_constant<T> or internal::runtime_scalar_constant<T>)) or
+    (c == CompileTimeStatus::known and internal::compile_time_scalar_constant<T>) or
+    (c == CompileTimeStatus::unknown and internal::runtime_scalar_constant<T>);
 
 
   // ----------------------------- //
@@ -204,15 +218,14 @@ namespace OpenKalman
     if constexpr (requires { {T::value} -> scalar_type; }) return T::value;
     else if constexpr (requires { {arg()} -> scalar_type; }) return std::forward<Arg>(arg)();
     else if constexpr (requires { {typename T::value_type {arg}} -> scalar_type; }) return typename T::value_type {std::forward<Arg>(arg)};
-    else if constexpr (scalar_type<Arg>) return std::forward<Arg>(arg);
+    else return std::forward<Arg>(arg);
 #else
     if constexpr (internal::detail::has_value_member<T>::value) return T::value;
     else if constexpr (internal::detail::call_result_is_scalar<T>::value or
       internal::detail::is_runtime_scalar<T>::value) return std::forward<Arg>(arg)();
     else if constexpr (internal::detail::convertible_to_value_type<T>::value or
       internal::detail::is_runtime_convertible_scalar<T>::value) return typename T::value_type {std::forward<Arg>(arg)};
-    else if constexpr (scalar_type<Arg>) return std::forward<Arg>(arg);
-    else return std::forward<Arg>(arg)();
+    else { static_assert(scalar_type<Arg>); return std::forward<Arg>(arg); }
 #endif
   }
 
@@ -224,17 +237,20 @@ namespace OpenKalman
   namespace detail
   {
     template<typename T>
-    constexpr bool imaginary_part_is_zero() { return true; }
-
-#ifdef __cpp_concepts
-    template<complex_number T>
-#else
-    template<typename T, typename = std::enable_if_t<complex_number<T> and scalar_constant<T, CompileTimeStatus::known>>>
-#endif
     constexpr bool imaginary_part_is_zero()
     {
-      using std::imag;
-      return imag(std::decay_t<T>::value) == 0;
+      if constexpr (scalar_constant<T, CompileTimeStatus::known>)
+      {
+        if constexpr (complex_number<decltype(std::decay_t<T>::value)>)
+        {
+          using std::imag;
+          return imag(std::decay_t<T>::value) == 0;
+        }
+        else return true;
+      }
+      else if constexpr (scalar_constant<T, CompileTimeStatus::unknown>)
+        return not complex_number<decltype(get_scalar_constant_value(std::declval<T>()))>;
+      else return false;
     }
   }
 
@@ -248,45 +264,153 @@ namespace OpenKalman
 #else
   constexpr bool real_axis_number =
 #endif
-    scalar_constant<T, CompileTimeStatus::known> and detail::imaginary_part_is_zero<std::decay_t<T>>();
+    scalar_constant<T> and detail::imaginary_part_is_zero<std::decay_t<T>>();
 
 
   namespace internal
   {
-    // --------------------- //
-    //  KnownScalarConstant  //
-    // --------------------- //
+    // ---------------- //
+    //  ScalarConstant  //
+    // ---------------- //
 
-    template<typename Scalar, auto...constant>
-     struct KnownScalarConstant
-     {
-       using value_type = Scalar;
-       constexpr KnownScalarConstant() = default;
-       static constexpr value_type value {constant...};
-       static constexpr Likelihood status = Likelihood::definitely;
-       constexpr operator value_type() const noexcept { return value; }
-       constexpr value_type operator()() const noexcept { return value; }
-
- #ifdef __cpp_concepts
-       template<scalar_constant<CompileTimeStatus::known> T> requires (get_scalar_constant_value(T{}) == value)
- #else
-       template<typename T, std::enable_if_t<scalar_constant<T, CompileTimeStatus::known> and
-         (get_scalar_constant_value(T{}) == value), int> = 0>
- #endif
-       explicit constexpr KnownScalarConstant(const T&)  {};
-
- #ifdef __cpp_concepts
-       template<scalar_constant<CompileTimeStatus::known> T> requires (get_scalar_constant_value(T{}) == value)
- #else
-       template<typename T, std::enable_if_t<scalar_constant<T, CompileTimeStatus::known> and
-         (get_scalar_constant_value(T{}) == value), int> = 0>
- #endif
-       constexpr KnownScalarConstant& operator=(const T&) { return *this; }
-     };
+#ifndef __cpp_concepts
+    namespace detail
+    {
+      template<typename C, typename = void, auto...constant>
+      struct ScalarConstantImpl;
 
 
-     template<typename Scalar>
-     struct KnownScalarConstant<Scalar> {};
+      template<typename C, auto...constant>
+      struct ScalarConstantImpl<C, std::enable_if_t<get_scalar_constant_value(C{constant...}) == get_scalar_constant_value(C{constant...})>, constant...>
+      {
+        static constexpr auto value {get_scalar_constant_value(C{constant...})};
+        using value_type = std::decay_t<decltype(value)>;
+        constexpr operator value_type() const noexcept { return value; }
+        constexpr value_type operator()() const noexcept { return value; }
+
+        constexpr ScalarConstantImpl() = default;
+
+        template<typename T, std::enable_if_t<scalar_constant<T, CompileTimeStatus::known> and T::value == value, int> = 0>
+        explicit constexpr ScalarConstantImpl(const T&) {};
+
+        template<typename T, std::enable_if_t<scalar_constant<T, CompileTimeStatus::known> and T::value == value, int> = 0>
+        constexpr ScalarConstantImpl& operator=(const T&) { return *this; }
+      };
+
+
+      template<typename C>
+      struct ScalarConstantImpl<C, std::enable_if_t<scalar_constant<C, CompileTimeStatus::unknown>>>
+      {
+        using value_type = std::decay_t<decltype(get_scalar_constant_value(std::declval<C>()))>;
+        constexpr operator value_type() const noexcept { return value; }
+        constexpr value_type operator()() const noexcept { return value; }
+
+        template<typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
+        explicit constexpr ScalarConstantImpl(const T& t) : value {get_scalar_constant_value(t)} {};
+
+        template<typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
+        constexpr ScalarConstantImpl& operator=(const T& t) { value = t; return *this; }
+
+      private:
+        value_type value;
+      };
+    } // namespace detail
+#endif
+
+
+#ifdef __cpp_concepts
+    template<Likelihood b, typename C, auto...constant>
+    struct ScalarConstant;
+
+
+    template<Likelihood b, scalar_constant C, auto...constant> requires std::bool_constant<(C{constant...}, true)>::value
+    struct ScalarConstant<b, C, constant...>
+    {
+      static constexpr auto value {get_scalar_constant_value(C{constant...})};
+      using value_type = std::decay_t<decltype(value)>;
+      using type = ScalarConstant;
+      static constexpr Likelihood status = b;
+      constexpr operator value_type() const noexcept { return value; }
+      constexpr value_type operator()() const noexcept { return value; }
+
+      constexpr ScalarConstant() = default;
+
+      template<scalar_constant<CompileTimeStatus::known> T> requires (T::value == value)
+      explicit constexpr ScalarConstant(const T&) {};
+
+      template<scalar_constant<CompileTimeStatus::known> T> requires (T::value == value)
+      constexpr ScalarConstant& operator=(const T&) { return *this; }
+    };
+
+
+    template<Likelihood b, scalar_constant<CompileTimeStatus::unknown> C>
+    struct ScalarConstant<b, C>
+    {
+      using value_type = std::decay_t<decltype(get_scalar_constant_value(std::declval<C>()))>;
+      constexpr operator value_type() const noexcept { return value; }
+      constexpr value_type operator()() const noexcept { return value; }
+      using type = ScalarConstant;
+      static constexpr Likelihood status = b;
+
+      template<scalar_constant T>
+      explicit constexpr ScalarConstant(const T& t) : value {get_scalar_constant_value(t)} {};
+
+      template<scalar_constant T>
+      constexpr ScalarConstant& operator=(const T& t) { value = t; return *this; }
+
+    private:
+      value_type value;
+    };
+#else
+    template<Likelihood b, typename C, auto...constant>
+    struct ScalarConstant : detail::ScalarConstantImpl<C, void, constant...>
+    {
+    private:
+      static_assert(scalar_constant<C>);
+      using Base = detail::ScalarConstantImpl<C, void, constant...>;
+    public:
+      using Base::Base;
+      using Base::operator=;
+      using type = ScalarConstant;
+      static constexpr Likelihood status = b;
+    };
+#endif
+
+
+#ifndef __cpp_concepts
+    namespace detail
+    {
+      template<typename T, typename = void>
+      struct has_constant_status : std::false_type {};
+
+      template<typename T>
+      struct has_constant_status<T, std::enable_if_t<std::is_same_v<decltype(T::status), Likelihood>>> : std::true_type {};
+    }
+#endif
+
+
+    /**
+     * \internal
+     * \brief Deduction guide for \ref ScalarConstant where T has a <code>status</code> member.
+     */
+#ifdef __cpp_concepts
+    template<typename T> requires requires { {T::status} -> std::same_as<Likelihood>; }
+#else
+    template<typename T, std::enable_if_t<detail::has_constant_status<T>::value, int> = 0>
+#endif
+    explicit ScalarConstant(const T&) -> ScalarConstant<T::status, std::decay_t<T>>;
+
+
+    /**
+     * \internal
+     * \brief Deduction guide for \ref ScalarConstant where T does not have a <code>status</code> member.
+     */
+#ifdef __cpp_concepts
+    template<typename T> requires (not requires { {T::status} -> std::same_as<Likelihood>; })
+#else
+    template<typename T, std::enable_if_t<not detail::has_constant_status<T>::value, int> = 0>
+#endif
+    explicit ScalarConstant(const T&) -> ScalarConstant<Likelihood::definitely, std::decay_t<T>>;
 
 
     // --------------------------- //
@@ -329,8 +453,8 @@ namespace OpenKalman
         constexpr scalar_constant_operation_impl() = default;
         explicit constexpr scalar_constant_operation_impl(const Operation&, const Ts&...) {};
         static constexpr auto value = Operation{}(Ts::value...);
-        static constexpr Likelihood status = (has_maybe_status<Ts>::value or ...) ? Likelihood::maybe : Likelihood::definitely;
         using value_type = std::decay_t<decltype(value)>;
+        static constexpr Likelihood status = (has_maybe_status<Ts>::value or ...) ? Likelihood::maybe : Likelihood::definitely;
         constexpr operator value_type() const noexcept { return value; }
         constexpr value_type operator()() const noexcept { return value; }
       };
@@ -339,14 +463,26 @@ namespace OpenKalman
       // n-ary, not all arguments calculable at compile time
       template<typename Operation, typename...Ts>
       struct scalar_constant_operation_impl<Operation, std::enable_if_t<(scalar_constant<Ts> and ...) and
+        std::is_invocable_v<const Operation&, decltype(get_scalar_constant_value(std::declval<const Ts&>()))...> and
         (not (scalar_constant<Ts, CompileTimeStatus::known> and ...) or
         not std::is_default_constructible_v<Operation> or not scalar_op_constexpr<Operation, void, Ts...>::value)>, Ts...>
       {
+      private:
+
+        template<typename U, typename = void>
+        struct has_maybe_status : std::false_type {};
+
+        template<typename U>
+        struct has_maybe_status<U, std::enable_if_t<U::status == Likelihood::maybe>> : std::true_type {};
+
+      public:
+
         explicit constexpr scalar_constant_operation_impl(const Operation& op, const Ts&...ts)
           : value {op(get_scalar_constant_value(ts)...)} {};
 
         using value_type = std::decay_t<decltype(std::declval<const Operation&>()(get_scalar_constant_value(std::declval<const Ts&>())...))>;
 
+        static constexpr Likelihood status = (has_maybe_status<Ts>::value or ...) ? Likelihood::maybe : Likelihood::definitely;
         operator value_type() const noexcept { return value; }
         value_type operator()() const noexcept { return value; }
       private:
@@ -389,8 +525,8 @@ namespace OpenKalman
       constexpr scalar_constant_operation() = default;
       explicit constexpr scalar_constant_operation(const Operation&, const Ts&...) {};
       static constexpr auto value = Operation{}(Ts::value...);
-      static constexpr Likelihood status = (has_maybe_status<Ts> or ...) ? Likelihood::maybe : Likelihood::definitely;
       using value_type = std::decay_t<decltype(value)>;
+      static constexpr Likelihood status = (has_maybe_status<Ts> or ...) ? Likelihood::maybe : Likelihood::definitely;
       using type = scalar_constant_operation;
       constexpr operator value_type() const noexcept { return value; }
       constexpr value_type operator()() const noexcept { return value; }
@@ -403,16 +539,25 @@ namespace OpenKalman
      * \brief An operation involving some number of \ref scalar_constant values, which is not calculable at compile time.
      */
     template<typename Operation, scalar_constant...Ts> requires
-      (not (scalar_constant<Ts, CompileTimeStatus::known> and ...)) or
-      (not requires { typename std::bool_constant<(Operation{}(std::decay_t<Ts>::value...), true)>; })
+      requires(const Operation& op, const Ts&...ts) { op(get_scalar_constant_value(ts)...); } and
+      (not (scalar_constant<Ts, CompileTimeStatus::known> and ...) or
+      not requires { typename std::bool_constant<(Operation{}(std::decay_t<Ts>::value...), true)>; })
     struct scalar_constant_operation<Operation, Ts...>
     {
+    private:
+
+      template<typename U>
+      static constexpr bool has_maybe_status = requires { requires U::status == Likelihood::maybe; };
+
+    public:
+
       explicit constexpr scalar_constant_operation(const Operation& op, const Ts&...ts)
         : value {op(get_scalar_constant_value(ts)...)} {};
 
       using value_type =
         std::decay_t<decltype(std::declval<const Operation&>()(get_scalar_constant_value(std::declval<const Ts&>())...))>;
 
+      static constexpr Likelihood status = (has_maybe_status<Ts> or ...) ? Likelihood::maybe : Likelihood::definitely;
       using type = scalar_constant_operation;
       operator value_type() const noexcept { return value; }
       value_type operator()() const noexcept { return value; }
@@ -453,7 +598,8 @@ namespace OpenKalman
 #endif
     constexpr auto scalar_constant_operation_v = scalar_constant_operation<Operation, Ts...>::value;
 
-  } // namespace internal
+
+  }; // namespace internal
 
 } // namespace OpenKalman
 

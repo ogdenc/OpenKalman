@@ -20,13 +20,40 @@ namespace OpenKalman
 {
   using namespace interface;
 
+  namespace detail
+  {
+    template<typename U, typename A>
+    constexpr decltype(auto)
+    get_writable_square(A&& a)
+    {
+      constexpr auto dim = not dynamic_dimension<A, 0> ? index_dimension_of_v<A, 0> :
+                           not dynamic_dimension<A, 1> ? index_dimension_of_v<A, 1> : index_dimension_of_v<U, 0>;
+      if constexpr (writable<A>)
+      {
+        return std::forward<A>(a);
+      }
+      else if constexpr (not has_dynamic_dimensions<A> or dim == dynamic_size)
+      {
+        return make_dense_writable_matrix_from(std::forward<A>(a));
+      }
+      else
+      {
+        constexpr auto d = std::integral_constant<std::size_t, dim>{};
+        auto ret = make_default_dense_writable_matrix_like<A>(d, d);
+        ret = std::forward<A>(a);
+        return ret;
+      }
+    }
+  }
+
+
   /**
    * \brief Do a rank update on a hermitian matrix.
    * \note This may (or may not) be performed as an in-place operation if argument A is writable.
    * \details The update is A += αUU<sup>*</sup>, returning the updated hermitian A.
    * If A is an lvalue reference and is writable, it will be updated in place and the return value will be an
    * lvalue reference to the same, updated A. Otherwise, the function returns a new matrix.
-   * \tparam A The matrix to be rank updated.
+   * \tparam A The hermitian matrix to be rank updated.
    * \tparam U The update vector or matrix.
    * \returns an updated native, writable matrix in hermitian form.
    */
@@ -52,8 +79,6 @@ namespace OpenKalman
       throw std::invalid_argument {
         "In rank_update_self_adjoint, rows of a (" + std::to_string(get_index_dimension_of<0>(a)) +
         ") do not match columns of a (" + std::to_string(get_index_dimension_of<1>(a)) + ")"};
-
-    constexpr auto t = hermitian_adapter_type_of_v<A>;
 
     if constexpr (zero_matrix<U>)
     {
@@ -84,10 +109,21 @@ namespace OpenKalman
       if constexpr (std::is_assignable_v<A, decltype(std::move(d))>) return a = std::move(d);
       else return d;
     }
-    else
+    else if constexpr (hermitian_adapter<A>)
     {
-      using Trait = interface::LinearAlgebra<std::decay_t<A>>;
-      return Trait::template rank_update_self_adjoint<t>(std::forward<A>(a), std::forward<U>(u), alpha);
+      decltype(auto) aw = detail::get_writable_square<U>(nested_matrix(std::forward<A>(a)));
+      using Trait = interface::LinearAlgebra<std::decay_t<decltype(aw)>>;
+      constexpr auto t = hermitian_adapter_type_of_v<A>;
+      decltype(auto) ret = Trait::template rank_update_self_adjoint<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
+      return make_hermitian_matrix<t>(std::forward<decltype(ret)>(ret));
+    }
+    else // hermitian_matrix but not hermitian_adapter
+    {
+      decltype(auto) aw = detail::get_writable_square<U>(std::forward<A>(a));
+      using Trait = interface::LinearAlgebra<std::decay_t<decltype(aw)>>;
+      constexpr auto t = HermitianAdapterType::lower;
+      decltype(auto) ret = Trait::template rank_update_self_adjoint<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
+      return make_hermitian_matrix<t>(std::forward<decltype(ret)>(ret));
     }
   }
 
@@ -106,12 +142,12 @@ namespace OpenKalman
    * \returns an updated native, writable matrix in triangular (or diagonal) form.
    */
 # ifdef __cpp_concepts
-  template<triangular_matrix<Likelihood::maybe> A, indexible U> requires
+  template<triangular_matrix<TriangleType::any, Likelihood::maybe> A, indexible U> requires
     (dynamic_rows<A> or dynamic_rows<U> or row_dimension_of_v<A> == row_dimension_of_v<U>) and
     std::convertible_to<scalar_type_of_t<U>, const scalar_type_of_t<A>>
-  inline /*triangular_matrix<Likelihood::maybe>*/ decltype(auto)
+  inline triangular_matrix<triangle_type_of_v<A> == TriangleType::upper ? TriangleType::upper : TriangleType::lower, Likelihood::maybe> decltype(auto)
 # else
-  template<typename A, typename U, std::enable_if_t<triangular_matrix<A, Likelihood::maybe> and indexible<U> and
+  template<typename A, typename U, std::enable_if_t<triangular_matrix<A, TriangleType::any, Likelihood::maybe> and indexible<U> and
     (dynamic_rows<A> or dynamic_rows<U> or row_dimension_of<A>::value == row_dimension_of<U>::value) and
     std::is_convertible_v<scalar_type_of_t<U>, const scalar_type_of_t<A>>, int> = 0>
   inline decltype(auto)
@@ -130,41 +166,36 @@ namespace OpenKalman
 
     using std::sqrt;
 
-    constexpr auto t = triangle_type_of_v<A>;
+    constexpr auto t = triangle_type_of_v<A> == TriangleType::upper ? TriangleType::upper : TriangleType::lower;
+
     if constexpr (zero_matrix<U>)
     {
       return std::forward<A>(a);
     }
-    else if constexpr (one_by_one_matrix<A> or index_dimension_of_v<U, 0> == 1)
+    else if constexpr (index_dimension_of_v<A, 0> == 1 or index_dimension_of_v<A, 1> == 1 or index_dimension_of_v<U, 0> == 1)
     {
-      // Both A is known at compile time to be a 1-by-1 matrix.
+      // A is known at compile time to be a 1-by-1 matrix.
       auto e = sqrt(trace(a) * trace(conjugate(a)) + alpha * trace(u) * trace(conjugate(u)));
 
-      if constexpr (element_settable<A, std::size_t>)
+      if constexpr (std::is_lvalue_reference_v<A> and element_settable<A, std::size_t>)
         return set_element(a, e, 0);
-      else if constexpr (element_settable<A, std::size_t, std::size_t>)
+      else if constexpr (std::is_lvalue_reference_v<A> and element_settable<A, std::size_t, std::size_t>)
         return set_element(a, e, 0, 0);
       else
       {
         auto ret = make_dense_writable_matrix_from<A>(std::tuple{Dimensions<1>{}, Dimensions<1>{}}, e);
-        if constexpr (std::is_assignable_v<A, decltype(std::move(ret))>) return a = std::move(ret);
+        if constexpr (std::is_lvalue_reference_v<A> and std::is_assignable_v<A, decltype(std::move(ret))>) return a = std::move(ret);
         else return ret;
       }
     }
     else if constexpr (zero_matrix<A>)
     {
       if constexpr (diagonal_matrix<U>)
-      {
         return to_diagonal(sqrt(alpha) * diagonal_of(std::forward<U>(u)));
-      }
       else if constexpr (t == TriangleType::upper)
-      {
         return QR_decomposition(sqrt(alpha) * adjoint(std::forward<U>(u)));
-      }
       else
-      {
         return LQ_decomposition(sqrt(alpha) * std::forward<U>(u));
-      }
     }
     else if constexpr (diagonal_matrix<A> and diagonal_matrix<U>)
     {
@@ -174,8 +205,15 @@ namespace OpenKalman
     }
     else
     {
-      using Trait = interface::LinearAlgebra<std::decay_t<A>>;
-      return Trait::template rank_update_triangular<t>(std::forward<A>(a), std::forward<U>(u), alpha);
+      decltype(auto) an = [](A&& a) -> decltype(auto) {
+        if constexpr (triangular_adapter<A>) return nested_matrix(std::forward<A>(a));
+        else return std::forward<A>(a);
+      }(std::forward<A>(a));
+
+      decltype(auto) aw = detail::get_writable_square<U>(std::forward<decltype(an)>(an));
+      using Trait = interface::LinearAlgebra<std::decay_t<decltype(aw)>>;
+      decltype(auto) ret = Trait::template rank_update_triangular<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
+      return make_triangular_matrix<t>(std::forward<decltype(ret)>(ret));
     }
   }
 

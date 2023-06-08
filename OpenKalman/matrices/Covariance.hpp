@@ -298,7 +298,7 @@ namespace OpenKalman
       {
         if (synchronization_direction() >= 0)
         {
-          if constexpr(upper_triangular_matrix<NestedMatrix>)
+          if constexpr(triangular_matrix<NestedMatrix, TriangleType::upper>)
           {
 
             nested_matrix() = QR_decomposition(concatenate_vertical(
@@ -746,15 +746,15 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<fixed_index_descriptor TypedIndex, TriangleType triangle_type, covariance_nestable Arg> requires
     (dimension_size_of_v<TypedIndex> == row_dimension_of_v<Arg>) and
-    (triangle_type != TriangleType::lower or lower_triangular_matrix<Arg>) and
-    (triangle_type != TriangleType::upper or upper_triangular_matrix<Arg>) and
+    (triangle_type != TriangleType::lower or triangular_matrix<Arg, TriangleType::lower>) and
+    (triangle_type != TriangleType::upper or triangular_matrix<Arg, TriangleType::upper>) and
     (triangle_type != TriangleType::diagonal or diagonal_matrix<Arg>)
 #else
   template<typename TypedIndex, TriangleType triangle_type, typename Arg, std::enable_if_t<
     fixed_index_descriptor<TypedIndex> and covariance_nestable<Arg> and
     (dimension_size_of_v<TypedIndex> == row_dimension_of<Arg>::value) and
-    (triangle_type != TriangleType::lower or lower_triangular_matrix<Arg>) and
-    (triangle_type != TriangleType::upper or upper_triangular_matrix<Arg>) and
+    (triangle_type != TriangleType::lower or triangular_matrix<Arg, TriangleType::lower>) and
+    (triangle_type != TriangleType::upper or triangular_matrix<Arg, TriangleType::upper>) and
     (triangle_type != TriangleType::diagonal or diagonal_matrix<Arg>), int> = 0>
 #endif
   inline auto

@@ -69,13 +69,6 @@ namespace OpenKalman
     }
 
 
-    struct constexpr_pow_op
-    {
-      template<typename Arg, typename Exp>
-      constexpr auto operator()(Arg arg, Exp exp) const noexcept { return OpenKalman::internal::constexpr_pow(arg, exp); }
-    };
-
-
 #ifdef __cpp_concepts
     template<static_index_value Dim, typename BinaryOperation, scalar_constant<CompileTimeStatus::known> Constant>
 #else
@@ -88,7 +81,7 @@ namespace OpenKalman
       else if constexpr (internal::is_plus<BinaryOperation>::value)
         return internal::scalar_constant_operation {std::multiplies<>{}, c, dim};
       else if constexpr (internal::is_multiplies<BinaryOperation>::value)
-        return internal::scalar_constant_operation {constexpr_pow_op{}, c, dim};
+        return internal::scalar_constant_pow(c, dim);
       else return internal::scalar_constant_operation {op,
         scalar_reduce_operation(std::integral_constant<std::size_t, std::size_t{dim} - 1>{}, op, c), c};
     }
@@ -128,7 +121,7 @@ namespace OpenKalman
       {
         constexpr auto seq = std::make_index_sequence<max_indices_of_v<Arg>> {};
         auto dim = count_reduced_dimensions<indices...>(arg, seq);
-        return scalar_reduce_operation(dim, b, constant_coefficient{std::forward<Arg>(arg)});
+        return scalar_reduce_operation(dim, b, constant_coefficient {std::forward<Arg>(arg)});
       }
       else
       {
@@ -219,7 +212,8 @@ namespace OpenKalman
     }
     else if constexpr (zero_matrix<Arg> and (internal::is_plus<BinaryFunction>::value or internal::is_multiplies<BinaryFunction>::value))
     {
-      return detail::make_constant_matrix_reduction<index, indices...>(internal::KnownScalarConstant<scalar_type_of_t<Arg>, 0>{}, std::forward<Arg>(arg), seq);
+      return detail::make_constant_matrix_reduction<index, indices...>(
+        internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<Arg>, 0>{}, std::forward<Arg>(arg), seq);
     }
     else if constexpr (constant_matrix<Arg>)
     {
@@ -261,8 +255,7 @@ namespace OpenKalman
   constexpr scalar_type_of_t<Arg>
   reduce(const BinaryFunction& b, Arg&& arg)
   {
-    constexpr auto max_indices = max_indices_of_v<Arg>;
-    return detail::reduce_all_indices(b, std::forward<Arg>(arg), std::make_index_sequence<max_indices> {});
+    return detail::reduce_all_indices(b, std::forward<Arg>(arg), std::make_index_sequence<max_indices_of_v<Arg>> {});
   }
 
 
@@ -333,13 +326,13 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<Arg>)
     {
-      return detail::make_constant_matrix_reduction<index, indices...>(constant_coefficient<Arg>{}, std::forward<Arg>(arg), seq);
+      return detail::make_constant_matrix_reduction<index, indices...>(constant_coefficient{arg}, std::forward<Arg>(arg), seq);
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       // \todo Handle diagonal tensors of order greater than 2 ?
       internal::scalar_constant_operation c {std::divides<>{}, constant_diagonal_coefficient{arg}, get_index_dimension_of<0>(arg)};
-      auto ret = detail::make_constant_matrix_reduction<index>(c, std::forward<Arg>(arg), seq);
+      auto ret = detail::make_constant_matrix_reduction<index>(std::move(c), std::forward<Arg>(arg), seq);
       if constexpr (sizeof...(indices) > 0) return average_reduce<indices...>(std::move(ret));
       else return ret;
     }
@@ -381,10 +374,10 @@ namespace OpenKalman
     if constexpr (zero_matrix<Arg>)
       return 0;
     else if constexpr (constant_matrix<Arg>)
-      return constant_coefficient_v<Arg>;
+      return constant_coefficient{arg}();
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      return static_cast<scalar_type_of_t<Arg>>(constant_diagonal_coefficient_v<Arg>) /
+      return static_cast<scalar_type_of_t<Arg>>(constant_diagonal_coefficient{arg}()) /
         detail::const_diagonal_matrix_dim(arg, std::make_index_sequence<max_indices_of_v<Arg>>{});
     }
     else

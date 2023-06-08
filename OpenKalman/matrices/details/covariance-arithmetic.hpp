@@ -68,17 +68,17 @@ namespace OpenKalman
     {
       decltype(auto) e1 = nested_matrix(std::forward<Arg1>(arg1)); using E1 = decltype(e1);
       decltype(auto) e2 = nested_matrix(std::forward<Arg2>(arg2)); using E2 = decltype(e2);
-      if constexpr (upper_triangular_matrix<E1> and upper_triangular_matrix<E2>)
+      if constexpr (triangular_matrix<E1, TriangleType::upper> and triangular_matrix<E2, TriangleType::upper>)
       {
         return make_covariance<C>(make_self_contained<E1, E2>(
           QR_decomposition(concatenate_vertical(std::forward<E1>(e1), std::forward<E2>(e2)))));
       }
-      else if constexpr (upper_triangular_matrix<E1> and lower_triangular_matrix<E2>)
+      else if constexpr (triangular_matrix<E1, TriangleType::upper> and triangular_matrix<E2, TriangleType::lower>)
       {
         return make_covariance<C>(make_self_contained<E1, E2>(
           QR_decomposition(concatenate_vertical(std::forward<E1>(e1), adjoint(std::forward<E2>(e2))))));
       }
-      else if constexpr (lower_triangular_matrix<E1> and upper_triangular_matrix<E2>)
+      else if constexpr (triangular_matrix<E1, TriangleType::lower> and triangular_matrix<E2, TriangleType::upper>)
       {
         return make_covariance<C>(make_self_contained<E1, E2>(
           LQ_decomposition(concatenate_horizontal(std::forward<E1>(e1), adjoint(std::forward<E2>(e2))))));
@@ -142,7 +142,7 @@ namespace OpenKalman
 
       auto a = nested_matrix(std::forward<Arg1>(arg1));
 
-      if constexpr (upper_triangular_matrix<B>)
+      if constexpr (triangular_matrix<B, TriangleType::upper>)
       {
         auto b = make_dense_writable_matrix_from(adjoint(nested_matrix(std::forward<Arg2>(arg2))));
         return make_covariance<C>(make_self_contained(rank_update(std::move(a), std::move(b), Scalar(-1))));
@@ -602,14 +602,14 @@ namespace OpenKalman
         return make_covariance<AC>(MatrixTraits<std::decay_t<SABaseType>>::make(std::move(b)));
       }
     }
-    else if constexpr (upper_triangular_matrix<NestedMatrix>)
+    else if constexpr (triangular_matrix<NestedMatrix, TriangleType::upper>)
     {
       auto b = QR_decomposition(nested_matrix(std::forward<M>(m)) * adjoint(nested_matrix(std::forward<A>(a))));
       return MatrixTraits<std::decay_t<M>>::template make<AC>(make_self_contained<M, A>(std::move(b)));
     }
     else
     {
-      static_assert(lower_triangular_matrix<NestedMatrix>);
+      static_assert(triangular_matrix<NestedMatrix, TriangleType::lower>);
       auto b = LQ_decomposition(nested_matrix(std::forward<A>(a)) * nested_matrix(std::forward<M>(m)));
       return MatrixTraits<std::decay_t<M>>::template make<AC>(make_self_contained<M, A>(std::move(b)));
     }

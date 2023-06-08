@@ -39,37 +39,42 @@ namespace OpenKalman
     // ------------- //
 
 #ifdef __cpp_concepts
-    template<typed_matrix T, std::size_t N>
-    struct IndexTraits<T, N>
+    template<typed_matrix T>
+    struct IndexTraits<T>
 #else
-    template<typename T, std::size_t N>
-    struct IndexTraits<T, N, std::enable_if_t<typed_matrix<T>>>
+    template<typename T>
+    struct IndexTraits<T, std::enable_if_t<typed_matrix<T>>>
 #endif
     {
+      template<std::size_t N>
       static constexpr std::size_t dimension = index_dimension_of_v<nested_matrix_of_t<T>, N>;
 
-      template<typename Arg>
+      template<std::size_t N, typename Arg>
       static constexpr std::size_t dimension_at_runtime(Arg&& arg)
       {
         if constexpr (dynamic_dimension<T, N>)
           return get_index_dimension_of<N>(nested_matrix(std::forward<Arg>(arg)));
         else
-          return dimension;
+          return dimension<N>;
       }
+
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = one_by_one_matrix<nested_matrix_of_t<T>, b>;
     };
 
 
 #ifdef __cpp_concepts
-    template<covariance T, std::size_t N>
-    struct IndexTraits<T, N>
+    template<covariance T>
+    struct IndexTraits<T>
 #else
-    template<typename T, std::size_t N>
-    struct IndexTraits<T, N, std::enable_if_t<covariance<T>>>
+    template<typename T>
+    struct IndexTraits<T, std::enable_if_t<covariance<T>>>
 #endif
     {
+      template<std::size_t N>
       static constexpr std::size_t dimension = index_dimension_of_v<nested_matrix_of_t<T>, N>;
 
-      template<typename Arg>
+      template<std::size_t N, typename Arg>
       static constexpr std::size_t dimension_at_runtime(const Arg& arg)
       {
         using Nested = nested_matrix_of_t<T>;
@@ -83,9 +88,12 @@ namespace OpenKalman
         }
         else
         {
-          return dimension;
+          return dimension<N>;
         }
       }
+
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = one_by_one_matrix<nested_matrix_of_t<T>, b>;
     };
 
 
@@ -93,12 +101,13 @@ namespace OpenKalman
     //  CoordinateSystemTraits  //
     // ------------------------ //
 
-    template<typename RowCoeffs, typename ColCoeffs, typename NestedMatrix, std::size_t N>
-    struct CoordinateSystemTraits<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>, N>
+    template<typename RowCoeffs, typename ColCoeffs, typename NestedMatrix>
+    struct CoordinateSystemTraits<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>>
     {
+      template<std::size_t N>
       using coordinate_system_types = std::conditional_t<N == 0, RowCoeffs, ColCoeffs>;
 
-      template<typename Arg>
+      template<std::size_t N, typename Arg>
       static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
       {
         return std::get<N>(std::forward<Arg>(arg).my_dimensions);
@@ -107,11 +116,12 @@ namespace OpenKalman
 
 
     template<typename Coeffs, typename NestedMatrix>
-    struct CoordinateSystemTraits<Mean<Coeffs, NestedMatrix>, 0>
+    struct CoordinateSystemTraits<Mean<Coeffs, NestedMatrix>>
     {
+      template<std::size_t N>
       using coordinate_system_types = Coeffs;
 
-      template<typename Arg>
+      template<std::size_t N, typename Arg>
       static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
       {
         return std::get<N>(std::forward<Arg>(arg).my_dimensions);
@@ -120,11 +130,12 @@ namespace OpenKalman
 
 
     template<typename Coeffs, typename NestedMatrix>
-    struct CoordinateSystemTraits<EuclideanMean<Coeffs, NestedMatrix>, 0>
+    struct CoordinateSystemTraits<EuclideanMean<Coeffs, NestedMatrix>>
     {
+      template<std::size_t N>
       using coordinate_system_types = Coeffs;
 
-      template<typename Arg>
+      template<std::size_t N, typename Arg>
       static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
       {
         return std::get<N>(std::forward<Arg>(arg).my_dimensions);
@@ -132,12 +143,13 @@ namespace OpenKalman
     };
 
 
-    template<typename Coeffs, typename NestedMatrix, std::size_t N>
-    struct CoordinateSystemTraits<Covariance<Coeffs, NestedMatrix>, N>
+    template<typename Coeffs, typename NestedMatrix>
+    struct CoordinateSystemTraits<Covariance<Coeffs, NestedMatrix>>
     {
+      template<std::size_t N>
       using coordinate_system_types = Coeffs;
 
-      template<typename Arg>
+      template<std::size_t N, typename Arg>
       static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
       {
         return std::get<N>(std::forward<Arg>(arg).my_dimensions);
@@ -145,12 +157,13 @@ namespace OpenKalman
     };
 
 
-    template<typename Coeffs, typename NestedMatrix, std::size_t N>
-    struct CoordinateSystemTraits<SquareRootCovariance<Coeffs, NestedMatrix>, N>
+    template<typename Coeffs, typename NestedMatrix>
+    struct CoordinateSystemTraits<SquareRootCovariance<Coeffs, NestedMatrix>>
     {
+      template<std::size_t N>
       using coordinate_system_types = Coeffs;
 
-      template<typename Arg>
+      template<std::size_t N, typename Arg>
       static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
       {
         return std::get<N>(std::forward<Arg>(arg).my_dimensions);
@@ -459,92 +472,43 @@ namespace OpenKalman
     };
 
 
-    // ---------------- //
-    //  DiagonalTraits  //
-    // ---------------- //
-
-    /*
-     * A covariance is a diagonal matrix if its nested matrix is diagonal
-     */
-#ifdef __cpp_concepts
-    template<covariance T>
-    struct DiagonalTraits<T>
-#else
-    template<typename T>
-    struct DiagonalTraits<T, std::enable_if_t<covariance<T>>>
-#endif
-    {
-      static constexpr bool is_diagonal = diagonal_matrix<nested_matrix_of_t<T>>;
-    };
-
-
-    /*
-     * A typed matrix is diagonal if its nested matrix is diagonal and its row and column fixed_index_descriptors are equivalent.
-     */
-#ifdef __cpp_concepts
-    template<typed_matrix T>
-    struct DiagonalTraits<T>
-#else
-    template<typename T>
-    struct DiagonalTraits<T, std::enable_if_t<typed_matrix<T>>>
-#endif
-    {
-      static constexpr bool is_diagonal = diagonal_matrix<nested_matrix_of_t<T>> and
-        equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>>;
-    };
-
-
     // ------------------ //
     //  TriangularTraits  //
     // ------------------ //
 
-#ifdef __cpp_concepts
-    template<triangular_covariance T> requires triangular_matrix<nested_matrix_of_t<T>>
-    struct TriangularTraits<T>
-#else
-    template<typename T>
-    struct TriangularTraits<T, std::enable_if_t<triangular_covariance<T> and
-      triangular_matrix<nested_matrix_of<T>::type>>>
-#endif
+    template<typename TypedIndex, typename NestedMatrix>
+    struct TriangularTraits<SquareRootCovariance<TypedIndex, NestedMatrix>>
     {
-      static constexpr TriangleType triangle_type = triangle_type_of_v<nested_matrix_of_t<T>>;
-      static constexpr bool is_triangular_adapter = false;
+      template<TriangleType t, Likelihood b>
+      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, t, Likelihood::maybe> or
+        hermitian_adapter<NestedMatrix, t == TriangleType::upper ? HermitianAdapterType::upper : HermitianAdapterType::lower>;
 
-      template<TriangleType t, typename Arg>
-      static constexpr auto make_triangular_matrix(Arg&& arg)
-      {
-        constexpr auto TriMode = t == TriangleType::upper ? Eigen::Upper : Eigen::Lower;
-        return std::forward<Arg>(arg).template triangularView<TriMode>();
-      }
+      static constexpr bool is_triangular_adapter = false;
     };
 
 
-#ifdef __cpp_concepts
-    template<triangular_covariance T> requires hermitian_matrix<nested_matrix_of_t<T>>
-    struct TriangularTraits<T>
-#else
-    template<typename T>
-    struct TriangularTraits<T, std::enable_if_t<triangular_covariance<T> and
-      hermitian_matrix<nested_matrix_of<T>::type>>>
-#endif
+    template<typename TypedIndex, typename NestedMatrix>
+    struct TriangularTraits<Covariance<TypedIndex, NestedMatrix>>
     {
-      static constexpr TriangleType triangle_type = hermitian_adapter_type_of_v<nested_matrix_of_t<T>>;
+      template<TriangleType t, Likelihood b>
+      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, TriangleType::diagonal, Likelihood::maybe>;
+
       static constexpr bool is_triangular_adapter = false;
     };
 
 
 #ifdef __cpp_concepts
-    template<typed_matrix T> requires triangular_matrix<nested_matrix_of_t<T>> and
-      equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>>
+    template<typed_matrix T>
     struct TriangularTraits<T>
 #else
     template<typename T>
-    struct TriangularTraits<T, std::enable_if_t<
-      typed_matrix<T> and triangular_matrix<nested_matrix_of<T>::type> and
-      equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>>>>
+    struct TriangularTraits<T, std::enable_if_t<typed_matrix<T>>>
 #endif
     {
-      static constexpr TriangleType triangle_type = triangle_type_of_v<nested_matrix_of_t<T>>;
+      template<TriangleType t, Likelihood b>
+      static constexpr bool is_triangular = equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>> and
+        triangular_matrix<nested_matrix_of_t<T>, t, b>;
+
       static constexpr bool is_triangular_adapter = false;
     };
 
@@ -563,7 +527,6 @@ namespace OpenKalman
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
@@ -577,7 +540,6 @@ namespace OpenKalman
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
@@ -593,7 +555,6 @@ namespace OpenKalman
 #endif
     {
       static constexpr bool is_hermitian = hermitian_matrix<nested_matrix_of_t<T>>;
-      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
   } // namespace interface

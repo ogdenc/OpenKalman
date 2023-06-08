@@ -182,17 +182,36 @@ TEST(eigen3, make_functions)
   auto m22d = make_dense_writable_matrix_from<M22>(3, 0, 0, 3);
   auto m22_uppert = Eigen::TriangularView<M22, Eigen::Upper> {m22h};
   auto m22_lowert = Eigen::TriangularView<M22, Eigen::Lower> {m22h};
+  auto m22_upperh = Eigen::SelfAdjointView<M22, Eigen::Upper> {m22u};
+  auto m22_lowerh = Eigen::SelfAdjointView<M22, Eigen::Lower> {m22l};
+
   EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::upper>(m22_uppert), m22u));
   static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::upper>(m22_uppert))>);
   EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::lower>(m22_uppert), m22d));
+  static_assert(eigen_diagonal_expr<decltype(make_triangular_matrix<TriangleType::lower>(m22_uppert))>);
   static_assert(diagonal_matrix<decltype(make_triangular_matrix<TriangleType::lower>(m22_uppert))>);
   EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::lower>(m22_lowert), m22l));
   static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::lower>(m22_lowert))>);
   EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::upper>(m22_lowert), m22d));
+  static_assert(eigen_diagonal_expr<decltype(make_triangular_matrix<TriangleType::upper>(m22_lowert))>);
   static_assert(diagonal_matrix<decltype(make_triangular_matrix<TriangleType::upper>(m22_lowert))>);
 
-  auto m22_upperh = Eigen::SelfAdjointView<M22, Eigen::Upper> {m22h};
-  auto m22_lowerh = Eigen::SelfAdjointView<M22, Eigen::Lower> {m22h};
+  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::diagonal>(m22h), m22d));
+  static_assert(eigen_diagonal_expr<decltype(make_triangular_matrix<TriangleType::diagonal>(m22h))>);
+  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::diagonal>(m22h), m22d));
+  static_assert(eigen_diagonal_expr<decltype(make_triangular_matrix<TriangleType::diagonal>(m22h))>);
+
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m22_uppert), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22_uppert))>);
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m22_uppert), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m22_uppert))>);
+  static_assert(hermitian_adapter<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m22_uppert)), HermitianAdapterType::lower>);
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m22_lowert), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m22_lowert))>);
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m22_lowert), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22_lowert))>);
+  static_assert(hermitian_adapter<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22_lowert)), HermitianAdapterType::upper>);
+
   EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::upper>(m22_upperh), m22u));
   static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::upper>(m22_upperh))>);
   EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::lower>(m22_upperh), m22l));
@@ -201,6 +220,21 @@ TEST(eigen3, make_functions)
   static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::lower>(m22_lowerh))>);
   EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::upper>(m22_lowerh), m22u));
   static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::upper>(m22_lowerh))>);
+
+  auto m20h = M20{m22h};
+  auto m20_upperh = Eigen::SelfAdjointView<M20, Eigen::Upper> {m20h};
+  auto m20_lowerh = Eigen::SelfAdjointView<M20, Eigen::Lower> {m20h};
+
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m20_upperh), m22h));
+  static_assert(eigen_self_adjoint_expr<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m20_upperh))>);
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m20_upperh), m22h));
+  static_assert(eigen_self_adjoint_expr<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m20_upperh))>);
+  static_assert(hermitian_adapter<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m20_upperh)), HermitianAdapterType::upper>);
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m20_lowerh), m22h));
+  static_assert(eigen_self_adjoint_expr<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m20_lowerh))>);
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m20_lowerh), m22h));
+  static_assert(eigen_self_adjoint_expr<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m20_lowerh))>);
+  static_assert(hermitian_adapter<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m20_lowerh)), HermitianAdapterType::lower>);
 }
 
 

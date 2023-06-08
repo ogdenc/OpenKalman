@@ -62,53 +62,61 @@ namespace OpenKalman
   }
 
 
-  /// Get element of matrix arg using I... indices.
-#ifdef __cpp_concepts
-  template<typename Arg, std::convertible_to<std::size_t>...I> requires
-    element_gettable<Arg, std::conditional_t<std::same_as<I, std::size_t>, I, std::size_t>...>
-  constexpr decltype(auto) get_element(Arg&& arg, const I...i)
+/**
+ * \brief Get element of matrix arg using I... indices.
+ * \tparam Arg
+ * \tparam I
+ * \param arg
+ * \param i
+ * \sa element_gettable
+ * \return
+ */
+#ifdef __cpp_lib_concepts
+  template<indexible Arg, std::convertible_to<const std::size_t>...I>
+  constexpr std::convertible_to<const scalar_type_of_t<Arg>> decltype(auto)
+#else
+  template<typename Arg, typename...I, std::enable_if_t<indexible<Arg> and
+    (std::is_convertible_v<I, const std::size_t> and ...), int> = 0>
+  constexpr decltype(auto)
+#endif
+  get_element(Arg&& arg, I...i)
   {
     if constexpr (constant_matrix<Arg>)
     {
-      return constant_coefficient_v<Arg>;
+      return get_scalar_constant_value(constant_coefficient {arg});
     }
     else
     {
+      static_assert(element_gettable<Arg&&, I...>, "error in definition of interface::GetElement::get(...)");
       detail::check_index_bounds<false>(arg, std::index_sequence_for<I...> {}, i...);
-      return interface::GetElement<std::decay_t<Arg>, I...>::get(std::forward<Arg>(arg), i...);
+      return interface::GetElement<std::decay_t<Arg>>::get(std::forward<Arg>(arg), static_cast<const std::size_t>(i)...);
     }
   }
-#else
-  template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, std::size_t> and ...) and
-    element_gettable<Arg, std::conditional_t<std::is_same_v<I, std::size_t>, I, std::size_t>...>, int> = 0>
-  constexpr decltype(auto) get_element(Arg&& arg, const I...i)
-  {
-    detail::check_index_bounds<false>(arg, std::index_sequence_for<I...> {}, i...);
-    return interface::GetElement<std::decay_t<Arg>, void, I...>::get(std::forward<Arg>(arg), i...);
-  }
-#endif
 
 
-  /// Set element to s using I... indices.
-#ifdef __cpp_concepts
-  template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>&> Scalar, std::convertible_to<std::size_t>...I>
-    requires element_settable<Arg&, std::conditional_t<std::same_as<I, std::size_t>, I, std::size_t>...>
-  inline Arg& set_element(Arg& arg, Scalar s, const I...i)
-  {
-    detail::check_index_bounds<true>(arg, std::index_sequence_for<I...> {}, i...);
-    return interface::SetElement<std::decay_t<Arg>, I...>::set(arg, s, i...);
-  }
+  /**
+   * \brief Set element to s using I... indices.
+   * \tparam Arg
+   * \tparam I
+   * \param arg
+   * \param s
+   * \param i
+   * \sa element_settable
+   * \return
+   */
+#ifdef __cpp_lib_concepts
+  template<indexible Arg, std::convertible_to<const std::size_t>...I>
 #else
-  template<typename Arg, typename Scalar, typename...I, std::enable_if_t<
-    (std::is_convertible_v<I, std::size_t> and ...) and
-    std::is_convertible_v<Scalar, const scalar_type_of_t<Arg>&> and
-    element_settable<Arg&, std::conditional_t<std::is_same_v<I, std::size_t>, I, std::size_t>...>, int> = 0>
-  inline Arg& set_element(Arg& arg, Scalar s, const I...i)
-  {
-    detail::check_index_bounds<true>(arg, std::index_sequence_for<I...> {}, i...);
-    return interface::SetElement<std::decay_t<Arg>, void, I...>::set(arg, s, i...);
-  }
+  template<typename Arg, typename...I, std::enable_if_t<indexible<Arg> and
+    (std::is_convertible_v<I, const std::size_t> and ...), int> = 0>
 #endif
+  inline Arg&&
+  set_element(Arg&& arg, const scalar_type_of_t<Arg>& s, I...i)
+  {
+    static_assert(element_settable<Arg&&, I...>, "error in definition of interface::SetElement::set(...)");
+    detail::check_index_bounds<true>(arg, std::index_sequence_for<I...> {}, i...);
+    return interface::SetElement<std::decay_t<Arg>>::set(std::forward<Arg>(arg), s, static_cast<const std::size_t>(i)...);
+  }
 
 
 } // namespace OpenKalman

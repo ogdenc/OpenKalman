@@ -76,9 +76,10 @@ namespace OpenKalman::Eigen3
       return std::monostate {};
     }
 
+    template<Likelihood b>
     static constexpr bool is_diagonal = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
+    static constexpr bool triangle_type = false;
 
     static constexpr bool is_hermitian = false;
   };
@@ -91,6 +92,28 @@ namespace OpenKalman::Eigen3
    */
   template<typename T>
   struct EigenWrapper;
+
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_EigenWrapper : std::false_type {};
+
+    template<typename T>
+    struct is_EigenWrapper<EigenWrapper<T>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief An instance of Eigen3::EigenWrapper<T>, for any T.
+   */
+  template<typename T>
+  #ifdef __cpp_concepts
+  concept eigen_wrapper =
+  #else
+  constexpr bool eigen_wrapper =
+  #endif
+    detail::is_EigenWrapper<std::decay_t<T>>::value;
 
 
   namespace detail
@@ -148,6 +171,31 @@ namespace OpenKalman::Eigen3
 #endif
     (std::is_base_of_v<Eigen::ArrayBase<std::decay_t<T>>, std::decay_t<T>> or
       detail::is_eigen_array_wrapper<std::decay_t<T>>::value) and
+    (not std::is_base_of_v<Eigen3Base, std::decay_t<T>>);
+
+
+  /**
+   * \brief Specifies a native Eigen3 object deriving from Eigen::MatrixBase or Eigen::ArrayBase.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept native_eigen_dense =
+#else
+  constexpr bool native_eigen_dense =
+#endif
+    native_eigen_matrix<T> or native_eigen_array<T>;
+
+
+  /**
+   * \brief Specifies a native Eigen3 plain object (derives from from Eigen::PlainObjectBase).
+   */
+  template<typename T>
+  #ifdef __cpp_concepts
+  concept native_eigen_plain_object =
+  #else
+  constexpr bool native_eigen_plain_object =
+  #endif
+    (std::is_base_of_v<Eigen::PlainObjectBase<std::decay_t<T>>, std::decay_t<T>>) and
     (not std::is_base_of_v<Eigen3Base, std::decay_t<T>>);
 
 

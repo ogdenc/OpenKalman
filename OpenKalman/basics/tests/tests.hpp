@@ -51,13 +51,15 @@ namespace OpenKalman::test
   // ------------------- //
 
 #ifdef __cpp_concepts
-  template<indexible Arg1, maybe_index_descriptors_match<Arg1> Arg2, typename Err = double>
+  template<indexible Arg1, indexible Arg2, typename Err = double>
 #else
   template<typename Arg1, typename Arg2, typename Err = double, std::enable_if_t<
-    indexible<Arg1> and indexible<Arg2> and maybe_index_descriptors_match<Arg1, Arg2>, int> = 0>
+    indexible<Arg1> and indexible<Arg2>, int> = 0>
 #endif
   inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
   {
+    static_assert(maybe_index_descriptors_match<Arg1, Arg2>, "Dimensions must match");
+
     if constexpr (has_dynamic_dimensions<Arg1> or has_dynamic_dimensions<Arg2>)
       if (not get_index_descriptors_match(arg1, arg2))
     {

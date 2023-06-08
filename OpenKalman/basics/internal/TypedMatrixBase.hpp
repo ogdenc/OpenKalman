@@ -159,9 +159,9 @@ namespace OpenKalman::internal
     std::tuple<TypedIndex...> my_dimensions;
 
 #ifdef __cpp_concepts
-    template<typename T, std::size_t N> friend struct interface::CoordinateSystemTraits;
+    template<typename T> friend struct interface::CoordinateSystemTraits;
 #else
-    template<typename T, std::size_t N, typename Enable> friend struct OpenKalman::interface::CoordinateSystemTraits;
+    template<typename T, typename Enable> friend struct OpenKalman::interface::CoordinateSystemTraits;
 #endif
 
   };

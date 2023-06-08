@@ -222,7 +222,7 @@ namespace OpenKalman::Eigen3
       }
       else if constexpr(eigen_triangular_expr<Arg>)
       {
-        if constexpr(triangle_type_of_v<Arg> == TriangleType::diagonal) return arg;
+        if constexpr(triangular_matrix<Arg, TriangleType::diagonal>) return arg;
         else return get_ultimate_nested_matrix_impl(arg);
       }
       else

@@ -30,7 +30,7 @@ namespace OpenKalman
    * \returns A diagonal matrix
    */
 #ifdef __cpp_concepts
-  template<typename Arg> requires dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe>
+  template<dimension_size_of_index_is<1, 1, Likelihood::maybe> Arg>
 #else
   template<typename Arg, std::enable_if_t<dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe>, int> = 0>
 #endif
@@ -43,7 +43,7 @@ namespace OpenKalman
     {
       if constexpr (diagonal_matrix<Arg>)
       {
-        return to_native_matrix(std::forward<Arg>(arg));
+        return std::forward<Arg>(arg);
       }
       else
       {
@@ -52,16 +52,16 @@ namespace OpenKalman
         return DiagonalMatrix {std::forward<Arg>(arg)};
       }
     }
-    else if constexpr (constant_matrix<Arg> or (zero_matrix<Arg> and dynamic_rows<Arg>))
-    {
-      return DiagonalMatrix {std::forward<Arg>(arg)};
-    }
-    else if constexpr (zero_matrix<Arg>)
+    else if constexpr (zero_matrix<Arg> and dim != dynamic_size)
     {
       if constexpr (dynamic_columns<Arg>) if (get_index_dimension_of<1>(arg) != 1)
         throw std::domain_error {"Argument of to_diagonal must have 1 column; instead it has " +
           std::to_string(get_index_dimension_of<1>(arg))};
       return make_zero_matrix_like<Arg>(Dimensions<dim>{}, Dimensions<dim>{});
+    }
+    else if constexpr (constant_matrix<Arg>)
+    {
+      return DiagonalMatrix {std::forward<Arg>(arg)};
     }
     else
     {
@@ -79,8 +79,7 @@ namespace OpenKalman
     template<typename Arg>
     constexpr void check_if_square_at_runtime(const Arg& arg)
     {
-      if constexpr (not square_matrix<Arg>)
-      if (get_dimensions_of<0>(arg) != get_dimensions_of<1>(arg))
+      if constexpr (not square_matrix<Arg>) if (get_dimensions_of<0>(arg) != get_dimensions_of<1>(arg))
         throw std::invalid_argument {"Argument of diagonal_of must be a square matrix; instead, " +
         (get_index_dimension_of<0>(arg) == get_index_dimension_of<1>(arg) ?
           "the row and column indices have non-equivalent types" :

@@ -20,29 +20,33 @@ namespace OpenKalman::interface
 {
 
 #ifdef __cpp_concepts
-  template<euclidean_expr T, std::convertible_to<const std::size_t&> I, std::convertible_to<const std::size_t&>...Is>
-    requires (sizeof...(Is) <= 1) and (not to_euclidean_expr<nested_matrix_of_t<T>>) and
-    element_gettable<nested_matrix_of_t<T>, I, Is...>
-  struct GetElement<T, I, Is...>
+  template<euclidean_expr T>
+  struct GetElement<T>
 #else
-  template<typename T, typename I, typename...Is>
-  struct GetElement<T, std::enable_if_t<euclidean_expr<T> and (not to_euclidean_expr<nested_matrix_of_t<T>>) and
-    (std::is_convertible_v<I, const std::size_t&> and ... and std::is_convertible_v<Is, const std::size_t&>) and
-    (sizeof...(Is) <= 1) and element_gettable<nested_matrix_of_t<T>, I, Is...>>, I, Is...>
+  template<typename T>
+  struct GetElement<T, std::enable_if_t<euclidean_expr<T>>>
 #endif
   {
-    template<typename Arg>
+#ifdef __cpp_lib_concepts
+    template<typename Arg, typename I, typename...Is> requires element_gettable<nested_matrix_of_t<Arg>, I, Is...>
+#else
+    template<typename Arg, typename I, typename...Is, std::enable_if_t<element_gettable<typename nested_matrix_of<Arg>::type, I, Is...>, int> = 0>
+#endif
     static constexpr auto get(Arg&& arg, I i, Is...is)
     {
       if constexpr (has_untyped_index<Arg, 0>)
       {
-        return get_element(nested_matrix(std::forward<Arg>(arg)), i, is...);
+        if constexpr (from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_of_t<Arg>>)
+          return get_element(nested_matrix(nested_matrix(std::forward<Arg>(arg))), i, is...);
+        else
+          return get_element(nested_matrix(std::forward<Arg>(arg)), i, is...);
       }
       else
       {
         auto g {[&arg, is...](std::size_t ix) { return get_element(nested_matrix(std::forward<Arg>(arg)), ix, is...); }};
-
-        if constexpr(to_euclidean_expr<Arg>)
+        if constexpr (from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_of_t<Arg>>)
+          return wrap_get_element(get_dimensions_of<0>(arg), g, i, 0);
+        else if constexpr(to_euclidean_expr<Arg>)
           return to_euclidean_element(get_dimensions_of<0>(arg), g, i, 0);
         else
           return from_euclidean_element(get_dimensions_of<0>(arg), g, i, 0);
@@ -52,67 +56,15 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-  template<from_euclidean_expr T, std::convertible_to<const std::size_t&> I, std::convertible_to<const std::size_t&>...Is>
-    requires (sizeof...(Is) <= 1) and to_euclidean_expr<nested_matrix_of_t<T>> and
-    element_gettable<nested_matrix_of_t<T>, I, Is...>
-  struct GetElement<T, I, Is...>
+  template<euclidean_expr T>
+  struct SetElement<T>
 #else
-  template<typename T, typename I, typename...Is>
-  struct GetElement<T, std::enable_if_t<from_euclidean_expr<T> and to_euclidean_expr<nested_matrix_of_t<T>> and
-    (std::is_convertible_v<I, const std::size_t&> and ... and std::is_convertible_v<Is, const std::size_t&>) and
-    (sizeof...(Is) <= 1) and element_gettable<nested_matrix_of_t<T>, I, Is...>>, I, Is...>
-#endif
-  {
-    template<typename Arg>
-    static constexpr auto get(Arg&& arg, I i, Is...is)
-    {
-      if constexpr (has_untyped_index<Arg, 0>)
-      {
-        return get_element(nested_matrix(nested_matrix(std::forward<Arg>(arg))), i, is...);
-      }
-      else
-      {
-        auto g {[&arg, is...](std::size_t ix) { return get_element(nested_matrix(std::forward<Arg>(arg)), ix, is...); }};
-        return wrap_get_element(get_dimensions_of<0>(arg), g, i, 0);
-      }
-    }
-  };
-
-
-#ifdef __cpp_concepts
-  template<euclidean_expr T, std::convertible_to<const std::size_t&> I, std::convertible_to<const std::size_t&>...Is>
-    requires (sizeof...(Is) <= 1) and (not to_euclidean_expr<nested_matrix_of_t<T>>) and
-      has_untyped_index<T, 0> and element_settable<nested_matrix_of_t<T>, I, Is...>
-  struct SetElement<T, I, Is...>
-#else
-  template<typename T, typename I, typename...Is>
-  struct SetElement<T, std::enable_if_t<euclidean_expr<T> and (not to_euclidean_expr<nested_matrix_of_t<T>>) and
-    (std::is_convertible_v<I, const std::size_t&> and ... and std::is_convertible_v<Is, const std::size_t&>) and
-    has_untyped_index<T, 0> and (sizeof...(Is) <= 1) and element_settable<nested_matrix_of_t<T>, I, Is...>>, I, Is...>
-#endif
-  {
-    template<typename Arg, typename Scalar>
-    static constexpr Arg& set(Arg& arg, Scalar s, I i, Is...is)
-    {
-      set_element(nested_matrix(arg), s, i, is...);
-      return arg;
-    }
-  };
-
-
-#ifdef __cpp_concepts
-  template<from_euclidean_expr T, std::convertible_to<const std::size_t&> I, std::convertible_to<const std::size_t&>...Is>
-    requires (sizeof...(Is) <= 1) and to_euclidean_expr<nested_matrix_of_t<T>> and
-      element_settable<nested_matrix_of_t<T>, I, Is...>
-  struct SetElement<T, I, Is...>
-#else
-  template<typename T, typename I, typename...Is>
-  struct SetElement<T, std::enable_if_t<from_euclidean_expr<T> and to_euclidean_expr<nested_matrix_of_t<T>> and
-    (std::is_convertible_v<I, const std::size_t&> and ... and std::is_convertible_v<Is, const std::size_t&>) and
-    (sizeof...(Is) <= 1) and element_settable<nested_matrix_of_t<T>, I, Is...>>, I, Is...>
+  template<typename T>
+  struct SetElement<T, std::enable_if_t<euclidean_expr<T>>>
 #endif
   {
     /**
+     * \internal
      * \brief Set element (i, j) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s.
      * \details This function sets the nested matrix, not the wrapped resulting matrix.
      * For example, if the coefficient is Polar<Distance, angle::Radians> and the initial value of a
@@ -123,20 +75,36 @@ namespace OpenKalman::interface
      * \param i The row of the coefficient.
      * \param j The column of the coefficient.
      */
-    template<typename Arg, typename Scalar>
-    static constexpr Arg& set(Arg& arg, Scalar x, I i, Is...is)
+#ifdef __cpp_lib_concepts
+    template<typename Arg, typename I, typename...Is> requires element_gettable<nested_matrix_of_t<Arg>, I, Is...> and
+      (has_untyped_index<Arg, 0> or (from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_of_t<Arg>>))
+#else
+    template<typename Arg, typename I, typename...Is, std::enable_if_t<
+      element_gettable<typename nested_matrix_of<Arg>::type, I, Is...> and
+      (has_untyped_index<Arg, 0> or (from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_of_t<Arg>>)), int> = 0>
+#endif
+    static constexpr Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, I i, Is...is)
     {
       if constexpr (has_untyped_index<Arg, 0>)
       {
-        set_element(nested_matrix(nested_matrix(arg)), x, i, is...);
+        set_element(nested_matrix(nested_matrix(arg)), s, i, is...);
+      }
+      else if constexpr (from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_of_t<Arg>>)
+      {
+        auto s {[&arg, is...](const scalar_type_of_t<Arg>& x, std::size_t i) {
+          return set_element(nested_matrix(nested_matrix(arg)), x, i, is...);
+        }};
+        auto g {[&arg, is...](std::size_t ix) {
+          return get_element(nested_matrix(nested_matrix(arg)), ix, is...);
+        }};
+        wrap_set_element(get_dimensions_of<0>(arg), s, g, s, i, 0);
       }
       else
       {
-        auto s {[&arg, is...](Scalar x, std::size_t i) { return set_element(nested_matrix(nested_matrix(arg)), x, i, is...); }};
-        auto g {[&arg, is...](std::size_t ix) { return get_element(nested_matrix(nested_matrix(arg)), ix, is...); }};
-        wrap_set_element(get_dimensions_of<0>(arg), s, g, x, i, 0);
+        set_element(nested_matrix(arg), s, i, is...);
       }
-      return arg;
+
+      return std::forward<Arg>(arg);
     }
   };
 
@@ -371,18 +339,18 @@ namespace OpenKalman::interface
     }
 
 
-    template<TriangleType t, typename A, typename U, typename Alpha>
+    template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
     static decltype(auto)
     rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
     {
-      return OpenKalman::rank_update_self_adjoint<t>(make_dense_writable_matrix_from(std::forward<A>(a)), std::forward<U>(u), alpha);
+      return OpenKalman::rank_update_self_adjoint<significant_triangle>(make_hermitian_matrix(make_dense_writable_matrix_from(std::forward<A>(a))), std::forward<U>(u), alpha);
     }
 
 
-    template<TriangleType t, typename A, typename U, typename Alpha>
+    template<TriangleType triangle, typename A, typename U, typename Alpha>
     static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
     {
-      return OpenKalman::rank_update_triangular<t>(make_dense_writable_matrix_from(std::forward<A>(a)), std::forward<U>(u), alpha);
+      return OpenKalman::rank_update_triangular(make_triangular_matrix<triangle>(make_dense_writable_matrix_from(std::forward<A>(a))), std::forward<U>(u), alpha);
     }
 
 

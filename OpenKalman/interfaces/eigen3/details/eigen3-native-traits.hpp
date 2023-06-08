@@ -22,10 +22,6 @@ namespace Eigen::internal
   using namespace OpenKalman;
 
 
-  template<typename NestedMatrix>
-  struct traits<OpenKalman::Eigen3::EigenWrapper<NestedMatrix>> : traits<NestedMatrix> {};
-
-
   template<typename PatternMatrix, typename Scalar, auto...constant>
   struct traits<OpenKalman::ConstantAdapter<PatternMatrix, Scalar, constant...>> : traits<std::decay_t<PatternMatrix>>
   {
@@ -40,7 +36,7 @@ namespace Eigen::internal
   };
 
 
-  template<typename NestedMatrix, OpenKalman::TriangleType storage_triangle>
+  template<typename NestedMatrix, OpenKalman::HermitianAdapterType storage_triangle>
   struct traits<OpenKalman::SelfAdjointMatrix<NestedMatrix, storage_triangle>>
     : traits<std::decay_t<NestedMatrix>>
   {
@@ -50,10 +46,9 @@ namespace Eigen::internal
     {
       Flags = traits<Nested>::Flags &
         (~DirectAccessBit) &
-        (~(storage_triangle == TriangleType::diagonal or one_by_one_matrix<NestedMatrix> ? 0 : LinearAccessBit)) &
+        (~(one_by_one_matrix<NestedMatrix> ? 0 : LinearAccessBit)) &
         (~PacketAccessBit) &
-        ((storage_triangle == TriangleType::diagonal and not one_by_one_matrix<NestedMatrix>) or
-          OpenKalman::complex_number<Scalar> ? ~LvalueBit : ~static_cast<decltype(LvalueBit)>(0u)),
+        (OpenKalman::complex_number<Scalar> ? ~LvalueBit : ~static_cast<decltype(LvalueBit)>(0u)),
     };
   };
 

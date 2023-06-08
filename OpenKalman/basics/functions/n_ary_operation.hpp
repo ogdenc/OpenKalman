@@ -197,10 +197,9 @@ namespace OpenKalman
     {
       // constant_matrix:
       constexpr std::index_sequence_for<Ds...> seq {};
-      if constexpr ((constant_matrix<Args, Likelihood::definitely, CompileTimeStatus::any> and ...) and
-        not is_invocable_with_indices<Op&&, scalar_type_of_t<Args>...>(seq))
+      if constexpr ((constant_matrix<Args> and ...) and not is_invocable_with_indices<Op&&, scalar_type_of_t<Args>...>(seq))
       {
-        internal::scalar_constant_operation c {op, constant_coefficient{std::forward<Args>(args)}...};
+        internal::scalar_constant_operation c {op, constant_coefficient {std::forward<Args>(args)}...};
         return std::apply(
           [](auto&&...as){ return make_constant_matrix_like<PatternMatrix>(std::forward<decltype(as)>(as)...); },
           std::tuple_cat(std::tuple{std::move(c)}, d_tup));
@@ -815,9 +814,11 @@ namespace OpenKalman
   #else
   template<typename Operation, typename Arg, std::enable_if_t<writable<Arg>, int> = 0>
   #endif
-  constexpr Arg&
+  constexpr decltype(auto)
   unary_operation_in_place(const Operation& operation, Arg&& arg)
   {
+    // \todo If the native library has its own facilities for doing this, use it.
+
     constexpr auto dims = max_indices_of_v<Arg>;
     static_assert (detail::n_ary_operator<Operation, dims, Arg>,
       "For unary_operation_in_place, the operation must be invocable with one argument, optionally with indices.");
@@ -825,10 +826,10 @@ namespace OpenKalman
     constexpr std::make_index_sequence<dims> seq;
     using G = decltype(detail::n_ary_get_element_0(std::declval<Arg&&>(), seq));
     static_assert(std::is_same_v<G, std::decay_t<G>&>,
-      "unary_operation_in_place requires that get_element(arg) returns a non-const lvalue reference.");
+      "unary_operation_in_place requires get_element(arg) to return a non-const lvalue reference.");
 
     detail::unary_operation_in_place_impl(operation, arg, seq);
-    return arg;
+    return std::forward<Arg>(arg);
   }
 
 

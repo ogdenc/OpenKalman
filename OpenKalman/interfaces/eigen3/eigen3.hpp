@@ -68,6 +68,8 @@
 #include "traits/CwiseUnaryView.hpp"
 #include "traits/CwiseTernaryOp.hpp"
 
+#include "traits/PartialReduxExpr.hpp"
+
 #include "details/eigen3-functions.hpp"
 
 #include "details/eigen3-cholesky-overloads.hpp"

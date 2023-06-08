@@ -23,19 +23,6 @@ namespace Eigen::internal
 {
   using namespace OpenKalman;
 
-  // ---------------------- //
-  //  Eigen3::EigenWrapper  //
-  // ---------------------- //
-
-  template<typename ArgType>
-  struct evaluator<OpenKalman::Eigen3::EigenWrapper<ArgType>> : evaluator<std::decay_t<ArgType>>
-  {
-    using XprType = OpenKalman::Eigen3::EigenWrapper<ArgType>;
-    using Base = evaluator<std::decay_t<ArgType>>;
-    explicit evaluator(const XprType& m) : Base {m.wrapped_expression} {}
-  };
-
-
   // ----------------- //
   //  ConstantAdapter  //
   // ----------------- //
@@ -54,30 +41,33 @@ namespace Eigen::internal
       Alignment = AlignedMax
     };
 
-    explicit constexpr evaluator(const XprType&) {}
+    explicit constexpr evaluator(const XprType& t) : m_xpr{t} {}
 
     constexpr Scalar coeff(Index row, Index col) const
     {
-      return Scalar {constant...};
+      return m_xpr.get_scalar_constant();
     }
 
     constexpr Scalar coeff(Index row) const
     {
-      return Scalar {constant...};
+      return m_xpr.get_scalar_constant();
     }
 
     template<int LoadMode, typename PacketType>
     constexpr PacketType packet(Index row, Index col) const
     {
-      return internal::pset1<PacketType>(Scalar {constant...});
+      return internal::pset1<PacketType>(m_xpr.get_scalar_constant());
     }
 
     template<int LoadMode, typename PacketType>
     constexpr PacketType packet(Index row) const
     {
-      return internal::pset1<PacketType>(Scalar {constant...});
+      return internal::pset1<PacketType>(m_xpr.get_scalar_constant());
     }
 
+  protected:
+
+    const XprType& m_xpr;
   };
 
 
@@ -85,7 +75,7 @@ namespace Eigen::internal
   //  SelfAdjointMatrix  //
   // ------------------- //
 
-  template<typename ArgType, OpenKalman::TriangleType storage_triangle>
+  template<typename ArgType, OpenKalman::HermitianAdapterType storage_triangle>
   struct evaluator<SelfAdjointMatrix<ArgType, storage_triangle>>
     : evaluator_base<SelfAdjointMatrix<ArgType, storage_triangle>>
   {
@@ -107,18 +97,15 @@ namespace Eigen::internal
 
     auto& coeffRef(Index row, Index col)
     {
-      static_assert(storage_triangle != TriangleType::diagonal or one_by_one_matrix<ArgType>,
-        "Reference to element is not available for a diagonal SelfAdjointMatrix");
-
       static_assert(not OpenKalman::complex_number<Scalar>,
         "Reference to element is not available for a complex SelfAdjointMatrix");
 
-      if constexpr (storage_triangle == TriangleType::upper)
+      if constexpr (storage_triangle == HermitianAdapterType::upper)
       {
         if (row > col)
           return m_argImpl.coeffRef(col, row);
       }
-      else if constexpr (storage_triangle == TriangleType::lower)
+      else if constexpr (storage_triangle == HermitianAdapterType::lower)
       {
         if (row < col)
           return m_argImpl.coeffRef(col, row);
@@ -142,31 +129,21 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr (storage_triangle == TriangleType::diagonal)
-      {
-        if (row != col)
-        {
-          if constexpr(std::is_lvalue_reference_v<CoeffReturnType>)
-          {
-            static std::remove_reference_t<CoeffReturnType> dummy = 0;
-            return dummy;
-          }
-          else return Scalar {0};
-        }
-      }
-      else if constexpr (storage_triangle == TriangleType::upper)
+      if constexpr (storage_triangle == HermitianAdapterType::upper)
       {
         if (row > col)
         {
-          if constexpr (complex_number<Scalar>) return OpenKalman::internal::constexpr_conj(m_argImpl.coeff(col, row));
+          using std::conj;
+          if constexpr (complex_number<Scalar>) return conj(m_argImpl.coeff(col, row));
           else return m_argImpl.coeff(col, row);
         }
       }
-      else if constexpr (storage_triangle == TriangleType::lower)
+      else if constexpr (storage_triangle == HermitianAdapterType::lower)
       {
         if (row < col)
         {
-          if constexpr (complex_number<Scalar>) return OpenKalman::internal::constexpr_conj(m_argImpl.coeff(col, row));
+          using std::conj;
+          if constexpr (complex_number<Scalar>) return conj(m_argImpl.coeff(col, row));
           else return m_argImpl.coeff(col, row);
         }
       }
@@ -174,7 +151,10 @@ namespace Eigen::internal
       if (row == col)
       {
         if constexpr (complex_number<Scalar> and not std::is_lvalue_reference_v<CoeffReturnType>)
-          return OpenKalman::internal::constexpr_real(m_argImpl.coeff(row, col));
+        {
+          using std::real;
+          return real(m_argImpl.coeff(row, col));
+        }
       }
 
       return m_argImpl.coeff(row, col);
@@ -183,8 +163,8 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index i) const
     {
-      static_assert(storage_triangle == TriangleType::diagonal or one_by_one_matrix<ArgType>,
-        "Linear (single index) element access is only available for diagonal SelfAdjointMatrix");
+      static_assert(one_by_one_matrix<ArgType>,
+        "Linear (single index) element access is only available for one-by-one SelfAdjointMatrix");
 
       return m_argImpl.coeff(i);
     }

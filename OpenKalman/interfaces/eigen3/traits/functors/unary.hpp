@@ -26,48 +26,44 @@ namespace OpenKalman::Eigen3
 
   namespace detail
   {
-    template<typename XprType, template<typename...> typename T, CompileTimeStatus>
-    struct has_constant_arg;
-
-    template<typename XprType, CompileTimeStatus c>
-    struct has_constant_arg<XprType, constant_coefficient, c>
-      : std::bool_constant<constant_matrix<XprType, Likelihood::maybe, c>> {};
-
-    template<typename XprType, CompileTimeStatus c>
-    struct has_constant_arg<XprType, constant_diagonal_coefficient, c>
-      : std::bool_constant<constant_diagonal_matrix<XprType, Likelihood::maybe, c>> {};
-
-
-    template<typename XprType, template<typename...> typename T, typename Op, typename Arg>
-    static constexpr auto default_get_constant(const Op& op, const Arg& arg)
+    template<typename Op, typename XprType, bool is_diag, typename Arg>
+    static constexpr auto default_get_constant(const Arg& arg)
     {
-      if constexpr (has_constant_arg<XprType, T, CompileTimeStatus::known>::value)
-        return scalar_constant_operation {op, T {arg.nestedExpression()}};
-      else if constexpr (has_constant_arg<XprType, T, CompileTimeStatus::any>::value)
-        return arg.functor()(T {arg.nestedExpression()}());
+      if constexpr (is_diag)
+      {
+        if constexpr (std::is_default_constructible_v<Op> and constant_diagonal_matrix<XprType, CompileTimeStatus::known, Likelihood::maybe>)
+          return scalar_constant_operation {Op{}, constant_diagonal_coefficient {arg.nestedExpression()}};
+        else if constexpr (constant_diagonal_matrix<XprType, CompileTimeStatus::any, Likelihood::maybe>)
+          return arg.functor()(constant_diagonal_coefficient {arg.nestedExpression()}());
+        else
+          return std::monostate {};
+      }
       else
-        return std::monostate {};
+      {
+        if constexpr (std::is_default_constructible_v<Op> and constant_matrix<XprType, CompileTimeStatus::known, Likelihood::maybe>)
+          return scalar_constant_operation {Op{}, constant_coefficient {arg.nestedExpression()}};
+        else if constexpr (constant_matrix<XprType, CompileTimeStatus::any, Likelihood::maybe>)
+          return arg.functor()(constant_coefficient {arg.nestedExpression()}());
+        else
+          return std::monostate {};
+      }
     }
-
   } // namespace detail
 
 
   // Default unary traits, if UnaryOp is not specifically matched.
-  template<typename BinaryOp, typename XprType>
-  struct FunctorTraits<BinaryOp, XprType>
+  template<typename UnaryOp, typename XprType>
+  struct FunctorTraits<UnaryOp, XprType>
   {
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (std::is_same_v<T<XprType>, constant_coefficient<XprType>>)
-        return detail::default_get_constant<XprType, T>(arg.functor(), arg);
-      else
-        return std::monostate {};
+      if constexpr (is_diag) return std::monostate {};
+      else return detail::default_get_constant<UnaryOp, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
-
-    static constexpr TriangleType triangle_type = TriangleType::none;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = false;
   };
@@ -76,17 +72,16 @@ namespace OpenKalman::Eigen3
   template<typename Scalar, typename XprType>
   struct FunctorTraits<EGI::scalar_opposite_op<Scalar>, XprType>
   {
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {std::negate<>{}, T<XprType> {arg.nestedExpression()}};
+      return detail::default_get_constant<std::negate<>, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -95,17 +90,16 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_abs(arg); } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T<XprType> {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -134,17 +128,16 @@ namespace OpenKalman::Eigen3
       }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -153,17 +146,16 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_conj(arg); } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -173,18 +165,17 @@ namespace OpenKalman::Eigen3
     struct Op { constexpr auto operator()(Scalar arg) const noexcept {
       return internal::constexpr_atan2(internal::constexpr_imag(arg), internal::constexpr_real(arg)); } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (not std::is_same_v<T<XprType>, constant_coefficient<XprType>>) return std::monostate {};
-      else return scalar_constant_operation {Op{}, constant_coefficient {arg.nestedExpression()}};
+      if constexpr (is_diag) return std::monostate {};
+      else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -202,17 +193,16 @@ namespace OpenKalman::Eigen3
       }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -222,17 +212,16 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return arg >> N; } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -241,17 +230,16 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return arg << N; } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 #endif
 
@@ -261,17 +249,16 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_real(arg); } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -280,17 +267,16 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_imag(arg); } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = not complex_number<Scalar> and hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = not complex_number<Scalar> and hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -309,18 +295,17 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_exp(arg); } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (not std::is_same_v<T<XprType>, constant_coefficient<XprType>>) return std::monostate {};
-      else return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      if constexpr (is_diag) return std::monostate {};
+      else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -330,17 +315,16 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_expm1(arg); } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 #endif
 
@@ -350,18 +334,17 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_log(arg); } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (not std::is_same_v<T<XprType>, constant_coefficient<XprType>>) return std::monostate {};
-      else return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      if constexpr (is_diag) return std::monostate {};
+      else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -370,17 +353,16 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_log1p(arg); } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -396,18 +378,17 @@ namespace OpenKalman::Eigen3
       }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (not std::is_same_v<T<XprType>, constant_coefficient<XprType>>) return std::monostate {};
-      else return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      if constexpr (is_diag) return std::monostate {};
+      else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -424,18 +405,17 @@ namespace OpenKalman::Eigen3
       }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (not std::is_same_v<T<XprType>, constant_coefficient<XprType>>) return std::monostate {};
-      else return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      if constexpr (is_diag) return std::monostate {};
+      else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 #endif
 
@@ -445,17 +425,16 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_sqrt(arg); } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -464,24 +443,20 @@ namespace OpenKalman::Eigen3
   {
     struct Op
     {
-      constexpr auto operator()(Scalar arg) const
-      {
-        return Scalar{1} / internal::constexpr_sqrt(arg);
-      }
+      constexpr auto operator()(Scalar arg) const { return Scalar{1} / internal::constexpr_sqrt(arg); }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (not std::is_same_v<T<XprType>, constant_coefficient<XprType>>) return std::monostate {};
-      else return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      if constexpr (zero_matrix<XprType> or is_diag) return std::monostate {};
+      else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -490,18 +465,17 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_cos(arg); } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (not std::is_same_v<T<XprType>, constant_coefficient<XprType>>) return std::monostate {};
-      else return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      if constexpr (is_diag) return std::monostate {};
+      else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -510,17 +484,16 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_sin(arg); } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -529,17 +502,16 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_tan(arg); } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -548,18 +520,17 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_acos(arg); } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (not std::is_same_v<T<XprType>, constant_coefficient<XprType>>) return std::monostate {};
-      else return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      if constexpr (is_diag) return std::monostate {};
+      else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -568,17 +539,16 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_asin(arg); } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -587,17 +557,16 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_atan(arg); } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -609,17 +578,16 @@ namespace OpenKalman::Eigen3
       constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_tanh(arg); }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -632,17 +600,16 @@ namespace OpenKalman::Eigen3
       constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_atanh(arg); }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 #endif
 
@@ -655,17 +622,16 @@ namespace OpenKalman::Eigen3
       constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_sinh(arg); }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -678,17 +644,16 @@ namespace OpenKalman::Eigen3
       constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_asinh(arg); }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 #endif
 
@@ -704,18 +669,17 @@ namespace OpenKalman::Eigen3
       }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (not std::is_same_v<T<XprType>, constant_coefficient<XprType>>) return std::monostate {};
-      else return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      if constexpr (is_diag) return std::monostate {};
+      else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -728,18 +692,17 @@ namespace OpenKalman::Eigen3
       constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_acosh(arg); }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (not std::is_same_v<T<XprType>, constant_coefficient<XprType>>) return std::monostate {};
-      else return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      if constexpr (is_diag) return std::monostate {};
+      else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 # endif
 
@@ -749,20 +712,17 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return static_cast<Scalar>(1) / arg; } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (zero_matrix<XprType, Likelihood::maybe> or not std::is_same_v<T<XprType>, constant_coefficient<XprType>>)
-        return std::monostate {};
-      else
-        return scalar_constant_operation {Op{}, constant_coefficient {arg.nestedExpression()}};
+      if constexpr (zero_matrix<XprType> or is_diag) return std::monostate {};
+      else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -771,17 +731,16 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return arg * arg; } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -790,17 +749,16 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return arg * arg * arg; } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
+      return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<XprType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<XprType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -818,18 +776,17 @@ namespace OpenKalman::Eigen3
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return not static_cast<bool>(arg); } };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (not std::is_same_v<T<XprType>, constant_coefficient<XprType>>) return std::monostate {};
-      else return scalar_constant_operation {Op{}, constant_coefficient {arg.nestedExpression()}};
+      if constexpr (is_diag) return std::monostate {};
+      else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 
 
@@ -845,20 +802,17 @@ namespace OpenKalman::Eigen3
       return Scalar{1} / (Scalar{1} + (internal::constexpr_exp(-arg))); }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (std::is_same_v<T<XprType>, constant_coefficient<XprType>>)
-        return scalar_constant_operation {Op{}, T {arg.nestedExpression()}};
-      else
-        return std::monostate {};
+      if constexpr (is_diag) return std::monostate {};
+      else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
-
-    static constexpr bool is_hermitian = hermitian_matrix<XprType>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
   };
 #endif
 
@@ -866,48 +820,42 @@ namespace OpenKalman::Eigen3
   template<typename BinaryOp, typename XprType>
   struct FunctorTraits<EGI::bind1st_op<BinaryOp>, XprType>
   {
-    using ConstantType = Eigen::CwiseNullaryOp<EGI::scalar_constant_op<scalar_type_of_t<XprType>>, XprType>;
+    using CFunctor = EGI::scalar_constant_op<scalar_type_of_t<XprType>>;
+    using ConstantType = Eigen::CwiseNullaryOp<CFunctor, XprType>;
     using BinaryOpType = Eigen::CwiseBinaryOp<BinaryOp, ConstantType, XprType>;
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (detail::has_constant_arg<BinaryOpType, T, CompileTimeStatus::known>::value) //< e.g., sometimes if XprType is zero
-        return T<BinaryOpType>{};
-      else if constexpr (detail::has_constant_arg<XprType, T, CompileTimeStatus::any>::value)
-        return arg.functor()(T {arg.nestedExpression()}());
-      else
-        return std::monostate {};
+      const auto& x = arg.nestedExpression();
+      BinaryOpType bin {ConstantType{x.rows(), x.cols(), CFunctor{arg.functor().m_value}}, x, arg.functor()};
+      return FunctorTraits<BinaryOp, ConstantType, XprType>::template get_constant<is_diag>(bin);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<BinaryOpType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<BinaryOpType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<BinaryOpType>;
+    static constexpr bool is_hermitian = hermitian_matrix<BinaryOpType, Likelihood::maybe>;
   };
 
 
   template<typename BinaryOp, typename XprType>
   struct FunctorTraits<EGI::bind2nd_op<BinaryOp>, XprType>
   {
-    using ConstantType = Eigen::CwiseNullaryOp<EGI::scalar_constant_op<scalar_type_of_t<XprType>>, XprType>;
+    using CFunctor = EGI::scalar_constant_op<scalar_type_of_t<XprType>>;
+    using ConstantType = Eigen::CwiseNullaryOp<CFunctor, XprType>;
     using BinaryOpType = Eigen::CwiseBinaryOp<BinaryOp, XprType, ConstantType>;
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (detail::has_constant_arg<BinaryOpType, T, CompileTimeStatus::known>::value) //< e.g., sometimes if XprType is zero
-        return T<BinaryOpType>{};
-      else if constexpr (detail::has_constant_arg<XprType, T, CompileTimeStatus::any>::value)
-        return arg.functor()(T {arg.nestedExpression()}());
-      else
-        return std::monostate {};
+      const auto& x = arg.nestedExpression();
+      BinaryOpType bin {x, ConstantType{x.rows(), x.cols(), CFunctor{arg.functor().m_value}}, arg.functor()};
+      return FunctorTraits<BinaryOp, XprType, ConstantType>::template get_constant<is_diag>(bin);
     }
 
-    static constexpr bool is_diagonal = diagonal_matrix<BinaryOpType>;
-
-    static constexpr TriangleType triangle_type = triangle_type_of_v<BinaryOpType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
     static constexpr bool is_hermitian = hermitian_matrix<BinaryOpType>;
   };

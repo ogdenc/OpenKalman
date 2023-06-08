@@ -37,19 +37,37 @@ namespace OpenKalman
    * \brief The type of a triangular matrix.
    */
   enum struct TriangleType : int {
+    diagonal, ///< A diagonal matrix (both a lower-left and an upper-right triangular matrix).
     lower, ///< A lower-left triangular matrix.
     upper, ///< An upper-right triangular matrix.
-    diagonal, ///< A diagonal matrix (both a lower-left and an upper-right triangular matrix).
-    none, ///< Neither upper, lower, or diagonal.
+    any, ///< Lower, upper, or diagonal matrix.
+  };
+
+
+  /**
+   * \brief The type of a hermitian matrix.
+   * \details This type can be statically cast from \ref TriangleType so that <code>lower</code>, <code>upper</code>,
+   * and <code>any</code> correspond to each other. The value <code>none</code> corresponds to TriangleType::diagonal.
+   *
+   */
+  enum struct HermitianAdapterType : int {
+    any = static_cast<int>(TriangleType::diagonal), ///< Either lower or upper hermitian adapter.
+    lower = static_cast<int>(TriangleType::lower), ///< A lower-left hermitian adapter.
+    upper = static_cast<int>(TriangleType::upper), ///< An upper-right hermitian adapter.
   };
 
 
   /**
    * \brief Whether a property is definitely known to apply at compile time (definitely) or not ruled out (maybe).
+   * \details Generally, Likelihood::maybe means that there are parameters defined at runtime, such as dynamic dimensions
+   * of a matrix, that might make the property apply, but this cannot be determined at compile time. For example:
+   * - <code>square_matrix<T, Likelihood::definitely></code> means that T is known at compile time to be a square matrix.
+   * - <code>square_matrix<T, Likelihood::maybe></code> means that T <em>could</em> be a square matrix, but whether it
+   * actually <em>is</em> cannot be determined at compile time.
    */
-  enum struct Likelihood : bool {
-    maybe = false, ///< At compile time, the property is not ruled out.
-    definitely = true, ///< At compile time, the property is known.
+  enum struct Likelihood : int {
+    maybe, ///< At compile time, the property is not ruled out.
+    definitely, ///< At compile time, the property is known to apply.
   };
 
 
@@ -61,13 +79,13 @@ namespace OpenKalman
 
   constexpr Likelihood operator&&(Likelihood x, Likelihood y)
   {
-    return Likelihood {static_cast<bool>(x) && static_cast<bool>(y)};
+    return x == Likelihood::definitely and y == Likelihood::definitely ? Likelihood::definitely : Likelihood::maybe;
   }
 
 
   constexpr Likelihood operator||(Likelihood x, Likelihood y)
   {
-    return Likelihood {static_cast<bool>(x) || static_cast<bool>(y)};
+    return x == Likelihood::definitely or y == Likelihood::definitely ? Likelihood::definitely : Likelihood::maybe;
   }
 
 
@@ -75,11 +93,10 @@ namespace OpenKalman
    * \brief The known/unknown status of a particular property at compile time.
    */
   enum struct CompileTimeStatus {
-    any, ///< The property is either known or unknown at compile time.
-    unknown, ///< The property is unknown at compile time but known at runtime.
+    any, ///< The property is determined either at compile time or runtime.
+    unknown, ///< The property is unknown at compile time and is determined at runtime.
     known, ///< The property is known at compile time.
   };
-
 
 
   namespace internal

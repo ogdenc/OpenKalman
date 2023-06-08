@@ -19,17 +19,17 @@
 namespace OpenKalman
 {
 #ifdef __cpp_concepts
-  template<square_matrix<Likelihood::maybe> NestedMatrix, TriangleType triangle_type> requires (triangle_type != TriangleType::none)
+  template<square_matrix<Likelihood::maybe> NestedMatrix, TriangleType triangle_type>
+    requires (max_indices_of_v<NestedMatrix> <= 2)
 #else
   template<typename NestedMatrix, TriangleType triangle_type>
 #endif
-  struct TriangularMatrix
-    : OpenKalman::internal::MatrixBase<TriangularMatrix<NestedMatrix, triangle_type>, NestedMatrix>
+  struct TriangularMatrix : OpenKalman::internal::MatrixBase<TriangularMatrix<NestedMatrix, triangle_type>, NestedMatrix>
   {
 
 #ifndef __cpp_concepts
     static_assert(square_matrix<NestedMatrix, Likelihood::maybe>);
-    static_assert(triangle_type != TriangleType::none);
+    static_assert(max_indices_of_v<NestedMatrix> <= 2);
 #endif
 
   private:
@@ -61,10 +61,10 @@ namespace OpenKalman
       : Base {} {}
 
 
-    /// Construct from a triangular matrix adapter if NestedMatrix is non-diagonal.
+    /// Construct from a triangular adapter if NestedMatrix is non-diagonal.
 #ifdef __cpp_concepts
-    template<triangular_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, TriangularMatrix>) and
-      (triangle_type_of_v<Arg> == triangle_type or diagonal_matrix<Arg>) and (not diagonal_matrix<NestedMatrix>) and
+    template<triangular_adapter Arg> requires (not std::derived_from<std::decay_t<Arg>, TriangularMatrix>) and
+      triangular_matrix<Arg, triangle_type> and (not diagonal_matrix<NestedMatrix>) and
       (dimensions_match<nested_matrix_of_t<Arg>, 0>()) and (dimensions_match<nested_matrix_of_t<Arg>, 1>()) and
 # if OPENKALMAN_CPP_FEATURE_CONCEPTS
       requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; } //-- not accepted in GCC 10.1.0
@@ -72,8 +72,8 @@ namespace OpenKalman
       std::constructible_from<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>
 # endif
 #else
-    template<typename Arg, std::enable_if_t<(not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and
-      (triangle_type_of<Arg>::value == triangle_type or diagonal_matrix<Arg>) and (not diagonal_matrix<NestedMatrix>) and
+    template<typename Arg, std::enable_if_t<triangular_adapter<Arg> and (not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and
+      (triangular_matrix<Arg, triangle_type>) and (not diagonal_matrix<NestedMatrix>) and
       (dimensions_match<typename nested_matrix_of<Arg>::type, 0>()) and (dimensions_match<typename nested_matrix_of<Arg>::type, 1>()) and
       std::is_constructible<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>::value, int> = 0>
 #endif
@@ -82,23 +82,21 @@ namespace OpenKalman
 
     /// Construct from a non-triangular or square matrix if NestedMatrix is non-diagonal.
 #ifdef __cpp_concepts
-    template<square_matrix<Likelihood::maybe> Arg> requires (not triangular_matrix<Arg>) and (not diagonal_matrix<NestedMatrix>) and
+    template<square_matrix<Likelihood::maybe> Arg> requires (not triangular_matrix<Arg, triangle_type>) and
+      (not diagonal_matrix<NestedMatrix>) and
       (dimensions_match<Arg, 0>()) and (dimensions_match<Arg, 1>()) and std::constructible_from<NestedMatrix, Arg&&>
 #else
     template<typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe> and
-      (not triangular_matrix<Arg>) and (not diagonal_matrix<NestedMatrix>) and
+      (not triangular_matrix<Arg, triangle_type>) and (not diagonal_matrix<NestedMatrix>) and
       (dimensions_match<Arg, 0>()) and (dimensions_match<Arg, 1>()) and
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
     explicit TriangularMatrix(Arg&& arg) : Base {
       [](Arg&& arg) -> decltype(auto) {
-          if constexpr (has_dynamic_dimensions<Arg>)
-          {
-            if (get_index_dimension_of<0>(arg) != get_index_dimension_of<1>(arg)) throw std::domain_error {
-              "Argument to TriangularMatrix must be a square matrix, but the argument has dimensions " +
-              std::to_string(get_index_dimension_of<0>(arg)) + "×" + std::to_string(get_index_dimension_of<1>(arg)) +
-              " in " + __func__ + " at line " + std::to_string(__LINE__) + " of " + __FILE__};
-          }
+          if constexpr (has_dynamic_dimensions<Arg>) if (not get_is_square(arg)) throw std::invalid_argument {
+            "Argument to TriangularMatrix must be a square matrix, but the argument has dimensions " +
+            std::to_string(get_index_dimension_of<0>(arg)) + "×" + std::to_string(get_index_dimension_of<1>(arg)) +
+            " in " + __func__ + " at line " + std::to_string(__LINE__) + " of " + __FILE__};
           return std::forward<Arg>(arg);
       }(std::forward<Arg>(arg))
     } {}
@@ -106,14 +104,12 @@ namespace OpenKalman
 
     /// Construct from a triangular, non-adapter matrix.
 #ifdef __cpp_concepts
-    template<triangular_matrix Arg> requires
-      (triangle_type_of_v<Arg> == triangle_type or diagonal_matrix<Arg>) and
+    template<triangular_matrix<triangle_type> Arg> requires (not triangular_adapter<Arg>) and
       (not has_nested_matrix<Arg> or (diagonal_matrix<NestedMatrix> and diagonal_matrix<Arg>)) and
       (dimensions_match<Arg, 0>()) and (dimensions_match<Arg, 1>()) and
       std::constructible_from<NestedMatrix, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<triangular_matrix<Arg> and
-      (triangle_type_of<Arg>::value == triangle_type or diagonal_matrix<Arg>) and
+    template<typename Arg, std::enable_if_t<triangular_matrix<Arg, triangle_type> and (not triangular_adapter<Arg>) and
       (not has_nested_matrix<Arg> or (diagonal_matrix<NestedMatrix> and diagonal_matrix<Arg>)) and
       (dimensions_match<Arg, 0>()) and (dimensions_match<Arg, 1>()) and
       std::is_constructible<NestedMatrix, Arg&&>::value, int> = 0>
@@ -149,13 +145,10 @@ namespace OpenKalman
 #endif
     explicit TriangularMatrix(Arg&& arg) : Base {
       [](Arg&& arg) -> decltype(auto) {
-          if constexpr (has_dynamic_dimensions<Arg>)
-          {
-            if (get_index_dimension_of<0>(arg) != get_index_dimension_of<1>(arg)) throw std::domain_error {
-              "Argument to TriangularMatrix must be a square matrix, but the argument has dimensions " +
-              std::to_string(get_index_dimension_of<0>(arg)) + "×" + std::to_string(get_index_dimension_of<1>(arg)) +
-              " in " + __func__ + " at line " + std::to_string(__LINE__) + " of " + __FILE__};
-          }
+          if constexpr (has_dynamic_dimensions<Arg>) if (not get_is_square(arg)) throw std::invalid_argument {
+            "Argument to TriangularMatrix must be a square matrix, but the argument has dimensions " +
+            std::to_string(get_index_dimension_of<0>(arg)) + "×" + std::to_string(get_index_dimension_of<1>(arg)) +
+            " in " + __func__ + " at line " + std::to_string(__LINE__) + " of " + __FILE__};
           return diagonal_of(std::forward<Arg>(arg));
       }(std::forward<Arg>(arg))
     } {}
@@ -202,15 +195,14 @@ namespace OpenKalman
 
     /// Assign from another \ref triangular_matrix.
 #ifdef __cpp_concepts
-    template<triangular_matrix Arg> requires (triangle_type_of_v<Arg> == triangle_type or diagonal_matrix<Arg>) and
+    template<triangular_matrix<triangle_type> Arg> requires
       (not std::derived_from<std::decay_t<Arg>, TriangularMatrix>) and
       maybe_has_same_shape_as<NestedMatrix, Arg> and
-      (not constant_diagonal_matrix<NestedMatrix> or
-        requires { requires constant_diagonal_coefficient_v<NestedMatrix> == constant_diagonal_coefficient_v<Arg>; }) and
+      (not constant_diagonal_matrix<NestedMatrix, CompileTimeStatus::known> or
+        requires { requires constant_diagonal_coefficient<NestedMatrix>::value == constant_diagonal_coefficient<Arg>::value; }) and
       (not (diagonal_matrix<NestedMatrix> or triangle_type == TriangleType::diagonal) or diagonal_matrix<Arg>)
 #else
-    template<typename Arg, std::enable_if_t<triangular_matrix<Arg> and
-      (triangle_type_of_v<Arg> == triangle_type or diagonal_matrix<Arg>) and
+    template<typename Arg, std::enable_if_t<triangular_matrix<Arg, triangle_type> and
       (not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and maybe_has_same_shape_as<NestedMatrix, Arg> and
       (not constant_diagonal_matrix<NestedMatrix> or constant_diagonal_matrix<Arg>) and
       (not (diagonal_matrix<NestedMatrix> or triangle_type == TriangleType::diagonal) or diagonal_matrix<Arg>), int> = 0>
@@ -290,17 +282,17 @@ namespace OpenKalman
   // ------------------------------- //
 
 #ifdef __cpp_concepts
-  template<triangular_matrix M>
+  template<triangular_matrix<TriangleType::any, Likelihood::maybe> M>
 #else
-  template<typename M, std::enable_if_t<triangular_matrix<M>, int> = 0>
+  template<typename M, std::enable_if_t<triangular_matrix<M, TriangleType::any, Likelihood::maybe>, int> = 0>
 #endif
   TriangularMatrix(M&&) -> TriangularMatrix<passable_t<M>, triangle_type_of_v<M>>;
 
 
 #ifdef __cpp_concepts
-  template<hermitian_adapter M> requires (not triangular_matrix<M>)
+  template<hermitian_adapter M> requires (not triangular_matrix<M, TriangleType::any, Likelihood::maybe>)
 #else
-  template<typename M, std::enable_if_t<hermitian_adapter<M> and not triangular_matrix<M>, int> = 0>
+  template<typename M, std::enable_if_t<hermitian_adapter<M> and not triangular_matrix<M, TriangleType::any, Likelihood::maybe>, int> = 0>
 #endif
   TriangularMatrix(M&&) -> TriangularMatrix<passable_t<nested_matrix_of_t<M>>, hermitian_adapter_type_of_v<M>>;
 
@@ -322,10 +314,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<TriangleType t, triangular_matrix M> requires (t == triangle_type_of_v<M> or diagonal_matrix<M>)
+  template<TriangleType t, triangular_matrix<t> M>
 #else
-  template<TriangleType t, typename M, std::enable_if_t<triangular_matrix<M> and
-    (t == triangle_type_of<M>::value or diagonal_matrix<M>), int> = 0>
+  template<TriangleType t, typename M, std::enable_if_t<triangular_matrix<M, t>, int> = 0>
 #endif
   auto make_EigenTriangularMatrix(M&& m)
   {

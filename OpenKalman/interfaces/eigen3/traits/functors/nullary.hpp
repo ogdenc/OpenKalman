@@ -26,18 +26,16 @@ namespace OpenKalman::Eigen3
   template<typename Scalar, typename PlainObjectType>
   struct FunctorTraits<EGI::scalar_identity_op<Scalar>, PlainObjectType>
   {
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (std::is_same_v<T<Arg>, constant_diagonal_coefficient<Arg>>)
-        return std::integral_constant<int, 1>{};
-      else
-        return std::monostate {};
+      constexpr auto b = has_dynamic_dimensions<Arg> ? Likelihood::maybe : Likelihood::definitely;
+      if constexpr (is_diag) return internal::ScalarConstant<b, Scalar, 1>{};
+      else return std::monostate {};
     }
 
-    static constexpr bool is_diagonal = square_matrix<PlainObjectType>;
-
-    static constexpr TriangleType triangle_type = square_matrix<PlainObjectType> ? TriangleType::diagonal : TriangleType::none;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = square_matrix<PlainObjectType, b>;
 
     static constexpr bool is_hermitian = square_matrix<PlainObjectType>;
   };
@@ -46,12 +44,11 @@ namespace OpenKalman::Eigen3
   template<typename Scalar, typename PlainObjectType>
   struct FunctorTraits<EGI::linspaced_op<Scalar>, PlainObjectType>
   {
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg) { return std::monostate {}; }
 
-    static constexpr bool is_diagonal = false;
-
-    static constexpr TriangleType triangle_type = TriangleType::none;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = false;
   };
@@ -60,18 +57,15 @@ namespace OpenKalman::Eigen3
   template<typename Scalar, typename PlainObjectType>
   struct FunctorTraits<EGI::scalar_constant_op<Scalar>, PlainObjectType>
   {
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (std::is_same_v<T<Arg>, constant_coefficient<Arg>>)
-        return arg.functor()();
-      else
-        return std::monostate {};
+      if constexpr (is_diag) return std::monostate {};
+      else return arg.functor()();
     }
 
-    static constexpr bool is_diagonal = false;
-
-    static constexpr TriangleType triangle_type = TriangleType::none;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = square_matrix<PlainObjectType> and not complex_number<Scalar>;
   };

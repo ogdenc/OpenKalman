@@ -39,7 +39,7 @@ namespace OpenKalman
    * ConstantAdapter<T, std::complex<double>> c6 {std::complex<double>{4, 5}}; // Construct a 3-by-2 complex constant of shape T and value 4.0 + 5.0i (known at runtime).
    * ConstantAdapter<T, std::complex<double>, 4, 5> c7; // Construct a 3-by-2 A complex constant of shape T and value 4.0 + 5.0i (known at compile time).
    * \endcode
-   * \tparam PatternMatrix An \ref native_eigen_general matrix having the size and shape of this matrix
+   * \tparam PatternMatrix An \ref indexible object reflecting the size and shape of the constant object
    * \tparam Scalar A \ref scalar_type reflecting the type of the constant
    * \tparam constant Optional parameters for constructing Scalar at compile time.
    */
@@ -177,11 +177,10 @@ namespace OpenKalman
   /**
    * \brief A hermitian matrix wrapper.
    * \details The matrix is guaranteed to be self-adjoint. It is ::self_contained iff NestedMatrix is ::self_contained.
-   * It may \em also be a diagonal matrix if storage_triangle is TriangleType::diagonal.
    * Implicit conversions are available from any \ref hermitian_matrix of compatible size.
    * \tparam NestedMatrix A nested \ref square_matrix expression, on which the self-adjoint matrix is based.
-   * \tparam storage_triangle The TriangleType (\ref TriangleType::lower "lower", \ref TriangleType::upper "upper", or
-   * \ref TriangleType::diagonal "diagonal") in which the data is stored.
+   * \tparam storage_triangle The HermitianAdapterType (\ref HermitianAdapterType::lower "lower" or
+   * \ref HermitianAdapterType::upper "upper") in which the data is stored.
    * Matrix elements outside this triangle/diagonal are ignored. If the matrix is lower or upper triangular,
    * elements are mapped (as complex conjugates) from this selected triangle to the elements in the other triangle to
    * ensure that the matrix is hermitian. Also, any imaginary part of the diagonal elements is discarded.
@@ -189,14 +188,19 @@ namespace OpenKalman
    * diagonal.
    */
 #ifdef __cpp_concepts
-  template<square_matrix<Likelihood::maybe> NestedMatrix, TriangleType storage_triangle =
-      (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : TriangleType::lower)> requires
+  template<square_matrix<Likelihood::maybe> NestedMatrix, HermitianAdapterType storage_triangle =
+      triangular_matrix<NestedMatrix, TriangleType::diagonal> ? HermitianAdapterType::lower :
+      triangular_matrix<NestedMatrix, TriangleType::upper> ? HermitianAdapterType::upper : HermitianAdapterType::lower> requires
+    (max_indices_of_v<NestedMatrix> <= 2) and
+    (storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper) and
     (not constant_matrix<NestedMatrix> or real_axis_number<constant_coefficient<NestedMatrix>>) and
     (not constant_diagonal_matrix<NestedMatrix> or real_axis_number<constant_diagonal_coefficient<NestedMatrix>>) and
-    (storage_triangle != TriangleType::none)
+    (not triangular_matrix<NestedMatrix, TriangleType::any, Likelihood::maybe> or
+      triangular_matrix<NestedMatrix, static_cast<TriangleType>(storage_triangle), Likelihood::maybe>)
 #else
-  template<typename NestedMatrix, TriangleType storage_triangle =
-    (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : TriangleType::lower)>
+  template<typename NestedMatrix, HermitianAdapterType storage_triangle =
+    triangular_matrix<NestedMatrix, TriangleType::diagonal> ? HermitianAdapterType::lower :
+    triangular_matrix<NestedMatrix, TriangleType::upper> ? HermitianAdapterType::upper : HermitianAdapterType::lower>
 #endif
   struct SelfAdjointMatrix;
 
@@ -206,7 +210,7 @@ namespace OpenKalman
     template<typename T>
     struct is_eigen_self_adjoint_expr : std::false_type {};
 
-    template<typename NestedMatrix, TriangleType storage_triangle>
+    template<typename NestedMatrix, HermitianAdapterType storage_triangle>
     struct is_eigen_self_adjoint_expr<SelfAdjointMatrix<NestedMatrix, storage_triangle>> : std::true_type {};
   }
 
@@ -239,11 +243,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<square_matrix<Likelihood::maybe> NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
-                                                                                        (upper_triangular_matrix<NestedMatrix> ? TriangleType::upper : TriangleType::lower))> requires
-    (triangle_type != TriangleType::none)
+      (triangular_matrix<NestedMatrix, TriangleType::upper> ? TriangleType::upper : TriangleType::lower))>
+    requires (max_indices_of_v<NestedMatrix> <= 2)
 #else
   template<typename NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
-    (upper_triangular_matrix<NestedMatrix> ? TriangleType::upper : TriangleType::lower))>
+    (triangular_matrix<NestedMatrix, TriangleType::upper> ? TriangleType::upper : TriangleType::lower))>
 #endif
   struct TriangularMatrix;
 

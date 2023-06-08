@@ -23,18 +23,21 @@ namespace OpenKalman::interface
 {
 
 #ifdef __cpp_concepts
-  template<diagonal_matrix T, std::convertible_to<const std::size_t&> I> requires
-    (eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>) and
-    (element_gettable<nested_matrix_of_t<T>, I> or element_gettable<nested_matrix_of_t<T>, I, I>)
-  struct GetElement<T, I>
+  template<typename T> requires eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>
+  struct GetElement<T>
 #else
-  template<typename T, typename I>
-  struct GetElement<T, std::enable_if_t<diagonal_matrix<T> and std::is_convertible_v<I, const std::size_t&> and
-    (eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>) and
-    (element_gettable<nested_matrix_of_t<T>, I> or element_gettable<nested_matrix_of_t<T>, I, I>)>, I>
+  template<typename T>
+  struct GetElement<T, std::enable_if_t<eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>>>
 #endif
   {
-    template<typename Arg>
+#ifdef __cpp_lib_concepts
+    template<diagonal_matrix Arg, typename I>
+    requires element_gettable<nested_matrix_of_t<Arg>, I> or element_gettable<nested_matrix_of_t<Arg>, I, I>
+#else
+    template<typename Arg, typename I, std::enable_if_t<diagonal_matrix<Arg> and
+      element_gettable<typename nested_matrix_of<Arg>::type, I> and
+      element_gettable<typename nested_matrix_of<Arg>::type, I, I>, int> = 0>
+#endif
     static constexpr auto get(Arg&& arg, I i)
     {
       if constexpr (element_gettable<nested_matrix_of_t<Arg>, I>)
@@ -44,25 +47,20 @@ namespace OpenKalman::interface
       else
         return get_element(nested_matrix(std::forward<Arg>(arg)), i, i);
     }
-  };
 
 
-#ifdef __cpp_concepts
-  template<typename T, std::convertible_to<const std::size_t&> I, std::convertible_to<const std::size_t&> J>
-  requires (eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>) and
-    (element_gettable<nested_matrix_of_t<T>, I, J> or (diagonal_matrix<T> and element_gettable<nested_matrix_of_t<T>, I>))
-    struct GetElement<T, I, J>
+#ifdef __cpp_lib_concepts
+    template<typename Arg, typename I, typename J> requires element_gettable<nested_matrix_of_t<T>, I, J> or
+      (diagonal_matrix<T> and element_gettable<nested_matrix_of_t<T>, I>)
 #else
-  template<typename T, typename I, typename J>
-  struct GetElement<T, std::enable_if_t<
-    (eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>) and
-    std::is_convertible_v<I, const std::size_t&> and std::is_convertible_v<J, const std::size_t&> and
-    (element_gettable<nested_matrix_of_t<T>, I, J> or (diagonal_matrix<T> and element_gettable<nested_matrix_of_t<T>, I>))>, I, J>
+    template<typename Arg, typename I, typename J, std::enable_if_t<
+      element_gettable<typename nested_matrix_of<T>::type, I, J> or
+      (diagonal_matrix<T> and element_gettable<typename nested_matrix_of<T>::type, I>), int> = 0>
 #endif
-  {
-    template<typename Arg>
-    static constexpr auto get(Arg&& arg, I i, J j)
+    static constexpr scalar_type_of_t<Arg> get(Arg&& arg, I i, J j)
     {
+      using Scalar = scalar_type_of<Arg>;
+
       if constexpr (diagonal_matrix<T>)
       {
         if (i == static_cast<I>(j))
@@ -76,31 +74,37 @@ namespace OpenKalman::interface
         }
         else
         {
-          return static_cast<scalar_type_of_t<Arg>>(0);
+          return 0;
         }
       }
       else if constexpr (eigen_triangular_expr<T>)
       {
-        if (lower_triangular_matrix<Arg> ? i >= static_cast<I>(j) : i <= static_cast<I>(j))
+        if (triangular_matrix<Arg, TriangleType::lower> ? i >= static_cast<I>(j) : i <= static_cast<I>(j))
           return get_element(nested_matrix(std::forward<Arg>(arg)), i, j);
         else
-          return static_cast<scalar_type_of_t<Arg>>(0);
+          return 0;
       }
       else
       {
         static_assert(eigen_self_adjoint_expr<T>);
+        decltype(auto) n = nested_matrix(std::forward<Arg>(arg));
+        using N = decltype(n);
 
-        if (lower_hermitian_adapter<Arg> ? i >= static_cast<I>(j) : i <= static_cast<I>(j))
+        if (hermitian_adapter<Arg, HermitianAdapterType::lower> ? i >= static_cast<I>(j) : i <= static_cast<I>(j))
         {
-          if constexpr (complex_number<scalar_type_of_t<Arg>>)
+          if constexpr (complex_number<Scalar>)
           {
-            if (i == j) return internal::constexpr_real(get_element(nested_matrix(std::forward<Arg>(arg)), i, j));
+            decltype(auto) e = get_element(std::forward<N>(n), i, j);
+            if (i == j) return internal::constexpr_real(get_element(std::forward<N>(n), i, j));
           }
-          return get_element(nested_matrix(std::forward<Arg>(arg)), i, j);
+          return get_element(std::forward<decltype(n)>(n), i, j);
         }
         else
         {
-          return internal::constexpr_conj(get_element(nested_matrix(std::forward<Arg>(arg)), j, i));
+          if constexpr (complex_number<Scalar>)
+            return internal::constexpr_conj(get_element(std::forward<N>(n), j, i));
+          else
+            return get_element(std::forward<N>(n), j, i);
         }
       }
     }
@@ -108,44 +112,40 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-  template<diagonal_matrix T, std::convertible_to<const std::size_t&> I> requires
-    (eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>) and
-    (element_settable<nested_matrix_of_t<T>, I> or element_settable<nested_matrix_of_t<T>, I, I>)
-  struct SetElement<T, I>
+  template<typename T> requires eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>
+  struct SetElement<T>
 #else
-  template<typename T, typename I>
-  struct SetElement<T, std::enable_if_t<diagonal_matrix<T> and std::is_convertible_v<I, const std::size_t&> and
-    (eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>) and
-    (element_settable<nested_matrix_of_t<T>, I> or element_settable<nested_matrix_of_t<T>, I, I>)>, I>
+  template<typename T>
+  struct SetElement<T, std::enable_if_t<eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>>>
 #endif
   {
-    template<typename Arg, typename Scalar>
-    static Arg& set(Arg& arg, Scalar s, I i)
+#ifdef __cpp_lib_concepts
+    template<diagonal_matrix Arg, typename I>
+    requires element_settable<nested_matrix_of_t<Arg>, I> or element_settable<nested_matrix_of_t<Arg>, I, I>
+#else
+    template<typename Arg, typename I, std::enable_if_t<diagonal_matrix<Arg> and
+      element_gettable<typename nested_matrix_of<Arg>::type, I> and
+      element_gettable<typename nested_matrix_of<Arg>::type, I, I>, int> = 0>
+#endif
+    static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, I i)
     {
       if constexpr (element_settable<nested_matrix_of_t<Arg>, I>)
         set_element(nested_matrix(arg), s, i);
       else
         set_element(nested_matrix(arg), s, i, static_cast<I>(1));
-      return arg;
+      return std::forward<Arg>(arg);
     }
-  };
 
 
-#ifdef __cpp_concepts
-  template<typename T, std::convertible_to<const std::size_t&> I, std::convertible_to<const std::size_t&> J>
-  requires (eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>) and
-    (element_settable<nested_matrix_of_t<T>, I, J> or (diagonal_matrix<T> and element_settable<nested_matrix_of_t<T>, I>))
-    struct SetElement<T, I, J>
+#ifdef __cpp_lib_concepts
+    template<typename Arg, typename I, typename J> requires element_settable<nested_matrix_of_t<T>, I, J> or
+      (diagonal_matrix<T> and element_settable<nested_matrix_of_t<T>, I>)
 #else
-  template<typename T, typename I, typename J>
-  struct SetElement<T, std::enable_if_t<
-    (eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>) and
-    std::is_convertible_v<I, const std::size_t&> and std::is_convertible_v<J, const std::size_t&> and
-    (element_settable<nested_matrix_of_t<T>, I, J> or (diagonal_matrix<T> and element_settable<nested_matrix_of_t<T>, I>))>, I, J>
+    template<typename Arg, typename I, typename J, std::enable_if_t<
+      element_settable<typename nested_matrix_of<T>::type, I, J> or
+      (diagonal_matrix<T> and element_settable<typename nested_matrix_of<T>::type, I>), int> = 0>
 #endif
-  {
-    template<typename Arg, typename Scalar>
-    static Arg& set(Arg& arg, Scalar s, I i, J j)
+    static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, I i, J j)
     {
       if constexpr (diagonal_matrix<T>)
       {
@@ -163,7 +163,7 @@ namespace OpenKalman::interface
       }
       else if constexpr (eigen_triangular_expr<T>)
       {
-        if (lower_triangular_matrix<Arg> ? i >= static_cast<I>(j) : i <= static_cast<I>(j))
+        if (triangular_matrix<Arg, TriangleType::lower> ? i >= static_cast<I>(j) : i <= static_cast<I>(j))
           set_element(nested_matrix(arg), s, i, j);
         else if (s != 0)
           throw std::out_of_range("Cannot set elements of a triangular matrix to non-zero values outside the triangle.");
@@ -172,7 +172,7 @@ namespace OpenKalman::interface
       {
         static_assert(eigen_self_adjoint_expr<T>);
 
-        if (lower_hermitian_adapter<Arg> ? i >= static_cast<I>(j) : i <= static_cast<I>(j))
+        if (hermitian_adapter<Arg, HermitianAdapterType::lower> ? i >= static_cast<I>(j) : i <= static_cast<I>(j))
         {
           set_element(nested_matrix(arg), s, i, j);
         }
@@ -181,7 +181,7 @@ namespace OpenKalman::interface
           set_element(nested_matrix(arg), internal::constexpr_conj(s), j, i);
         }
       }
-      return arg;
+      return std::forward<Arg>(arg);
     }
   };
 
@@ -213,8 +213,8 @@ namespace OpenKalman::interface
       }
       else if constexpr (eigen_self_adjoint_expr<A>)
       {
-        if constexpr ((t == TriangleType::upper and not upper_hermitian_adapter<A>) or
-          (t == TriangleType::lower and not lower_hermitian_adapter<A>))
+        if constexpr ((t == TriangleType::upper and not hermitian_adapter<A, HermitianAdapterType::upper>) or
+          (t == TriangleType::lower and not hermitian_adapter<A, HermitianAdapterType::lower>))
           OpenKalman::set_triangle<t>(nested_matrix(a), adjoint(std::forward<B>(b)));
         else
           OpenKalman::set_triangle<t>(nested_matrix(a), std::forward<B>(b));
@@ -338,7 +338,7 @@ namespace OpenKalman::interface
         }
         else
         {
-          constexpr auto t = (lower_hermitian_adapter<Arg> ? TriangleType::upper : TriangleType::lower);
+          constexpr auto t = (hermitian_adapter<Arg, HermitianAdapterType::lower> ? TriangleType::upper : TriangleType::lower);
           return MatrixTraits<std::decay_t<Arg>>::template make<t>(
             make_self_contained<Arg>(OpenKalman::transpose(nested_matrix(std::forward<Arg>(arg)))));
         }
@@ -351,7 +351,7 @@ namespace OpenKalman::interface
         }
         else
         {
-          constexpr auto t = lower_triangular_matrix<Arg> ? TriangleType::upper : TriangleType::lower;
+          constexpr auto t = triangular_matrix<Arg, TriangleType::lower> ? TriangleType::upper : TriangleType::lower;
           return MatrixTraits<std::decay_t<Arg>>::template make<t>(
             make_self_contained<Arg>(OpenKalman::transpose(nested_matrix(std::forward<Arg>(arg)))));
         }
@@ -365,10 +365,8 @@ namespace OpenKalman::interface
       // Global conjugate function already handles SelfAdjointMatrix and DiagonalMatrix
       static_assert(eigen_triangular_expr<Arg>);
 
-      constexpr auto t = lower_hermitian_adapter<Arg> or lower_triangular_matrix<Arg> ?
-        TriangleType::upper : TriangleType::lower;
-      return MatrixTraits<std::decay_t<Arg>>::template make<t>(
-        make_self_contained<Arg>(OpenKalman::adjoint(nested_matrix(std::forward<Arg>(arg)))));
+      constexpr auto t = triangular_matrix<Arg, TriangleType::lower> ? TriangleType::upper : TriangleType::lower;
+      return make_triangular_matrix<t>(OpenKalman::adjoint(nested_matrix(std::forward<Arg>(arg))));
     }
 
 
@@ -395,38 +393,38 @@ namespace OpenKalman::interface
     }
 
 
-    template<TriangleType t, typename A, typename U, typename Alpha>
+    template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
     static decltype(auto) rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
     {
       decltype(auto) n = nested_matrix(std::forward<A>(a));
       using Trait = interface::LinearAlgebra<std::decay_t<decltype(n)>>;
       if constexpr (eigen_self_adjoint_expr<A>)
       {
-        decltype(auto) m = Trait::template rank_update_self_adjoint<t>(std::forward<decltype(n)>(n), std::forward<U>(u), alpha);
-        return make_hermitian_matrix<t>(std::forward<decltype(m)>(m));
+        decltype(auto) m = Trait::template rank_update_self_adjoint<significant_triangle>(std::forward<decltype(n)>(n), std::forward<U>(u), alpha);
+        return make_hermitian_matrix<significant_triangle>(std::forward<decltype(m)>(m));
       }
       else
       {
         static_assert(eigen_diagonal_expr<A>);
-        return Trait::template rank_update_self_adjoint<t>(to_native_matrix(std::forward<A>(a)), std::forward<U>(u), alpha);
+        return Trait::template rank_update_self_adjoint<significant_triangle>(to_native_matrix(std::forward<A>(a)), std::forward<U>(u), alpha);
       }
     }
 
 
-    template<TriangleType t, typename A, typename U, typename Alpha>
+    template<TriangleType triangle, typename A, typename U, typename Alpha>
     static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
     {
       decltype(auto) n = nested_matrix(std::forward<A>(a));
       using Trait = interface::LinearAlgebra<std::decay_t<decltype(n)>>;
       if constexpr (eigen_triangular_expr<A>)
       {
-        decltype(auto) m = Trait::template rank_update_triangular<t>(std::forward<decltype(n)>(n), std::forward<U>(u), alpha);
-        return make_triangular_matrix<t>(std::forward<decltype(m)>(m));
+        decltype(auto) m = Trait::template rank_update_triangular<triangle>(std::forward<decltype(n)>(n), std::forward<U>(u), alpha);
+        return make_triangular_matrix<triangle>(std::forward<decltype(m)>(m));
       }
       else
       {
         static_assert(eigen_diagonal_expr<A>);
-        return Trait::template rank_update_triangular<t>(to_native_matrix(std::forward<A>(a)), std::forward<U>(u), alpha);
+        return Trait::template rank_update_triangular<triangle>(to_native_matrix(std::forward<A>(a)), std::forward<U>(u), alpha);
       }
     }
 

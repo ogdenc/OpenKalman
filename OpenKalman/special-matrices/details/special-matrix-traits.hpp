@@ -48,26 +48,31 @@ namespace OpenKalman
     //  IndexTraits  //
     // ------------- //
 
-    template<typename Nested, std::size_t N>
-    struct IndexTraits<DiagonalMatrix<Nested>, N>
+    template<typename Nested>
+    struct IndexTraits<DiagonalMatrix<Nested>>
     {
+      template<std::size_t N>
       static constexpr std::size_t dimension = index_dimension_of_v<Nested, 0>;
 
-      template<typename Arg>
+      template<std::size_t N, typename Arg>
       static constexpr std::size_t dimension_at_runtime(const Arg& arg)
       {
         return get_index_dimension_of<0>(nested_matrix(arg));
       }
+
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = one_by_one_matrix<Nested, b>;
     };
 
 
-    template<typename Nested, TriangleType t, std::size_t N>
-    struct IndexTraits<SelfAdjointMatrix<Nested, t>, N>
+    template<typename Nested, HermitianAdapterType t>
+    struct IndexTraits<SelfAdjointMatrix<Nested, t>>
     {
+      template<std::size_t N>
       static constexpr std::size_t dimension = dynamic_dimension<Nested, 0> ?
         index_dimension_of_v<Nested, 1> : index_dimension_of_v<Nested, 0>;
 
-      template<typename Arg>
+      template<std::size_t N, typename Arg>
       static constexpr std::size_t dimension_at_runtime(const Arg& arg)
       {
         if constexpr (dynamic_dimension<Nested, 0>)
@@ -79,19 +84,23 @@ namespace OpenKalman
         }
         else
         {
-          return dimension;
+          return dimension<N>;
         }
       }
+
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = one_by_one_matrix<Nested, b>;
     };
 
 
-    template<typename Nested, TriangleType t, std::size_t N>
-    struct IndexTraits<TriangularMatrix<Nested, t>, N>
+    template<typename Nested, TriangleType t>
+    struct IndexTraits<TriangularMatrix<Nested, t>>
     {
+      template<std::size_t N>
       static constexpr std::size_t dimension = dynamic_dimension<Nested, 0> ?
         index_dimension_of_v<Nested, 1> : index_dimension_of_v<Nested, 0>;
 
-      template<typename Arg>
+      template<std::size_t N, typename Arg>
       static constexpr std::size_t dimension_at_runtime(const Arg& arg)
       {
         if constexpr (dynamic_dimension<Nested, 0>)
@@ -103,41 +112,47 @@ namespace OpenKalman
         }
         else
         {
-          return dimension;
+          return dimension<N>;
         }
       }
+
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = one_by_one_matrix<Nested, b>;
     };
 
 
-    template<typename C, typename Nested, std::size_t N>
-    struct IndexTraits<FromEuclideanExpr<C, Nested>, N>
+    template<typename C, typename Nested>
+    struct IndexTraits<FromEuclideanExpr<C, Nested>>
     {
+      template<std::size_t N>
       static constexpr std::size_t dimension = N == 0 ? dimension_size_of_v<C> : index_dimension_of_v<Nested, N>;
 
-      template<typename Arg>
+      template<std::size_t N, typename Arg>
       static constexpr std::size_t dimension_at_runtime(const Arg& arg)
       {
         if constexpr (dynamic_dimension<Arg, N>)
         {
-          if constexpr (N == 0)
-            return arg.row_coefficients.dimension;
-          else
-            return get_index_dimension_of<N>(nested_matrix(arg));
+          if constexpr (N == 0) return arg.row_coefficients.dimension;
+          else return get_index_dimension_of<N>(nested_matrix(arg));
         }
         else
         {
-          return dimension;
+          return dimension<N>;
         }
       }
+
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = euclidean_index_descriptor<C> and one_by_one_matrix<Nested, b>;
     };
 
 
-    template<typename C, typename Nested, std::size_t N>
-    struct IndexTraits<ToEuclideanExpr<C, Nested>, N>
+    template<typename C, typename Nested>
+    struct IndexTraits<ToEuclideanExpr<C, Nested>>
     {
+      template<std::size_t N>
       static constexpr std::size_t dimension = N == 0 ? euclidean_dimension_size_of_v<C> : index_dimension_of_v<Nested, N>;
 
-      template<typename Arg>
+      template<std::size_t N, typename Arg>
       static constexpr std::size_t dimension_at_runtime(const Arg& arg)
       {
         if constexpr (dynamic_dimension<Arg, N>)
@@ -149,9 +164,12 @@ namespace OpenKalman
         }
         else
         {
-          return dimension;
+          return dimension<N>;
         }
       }
+
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = euclidean_index_descriptor<C> and one_by_one_matrix<Nested, b>;
     };
 
 
@@ -159,12 +177,13 @@ namespace OpenKalman
     //  CoordinateSystemTraits  //
     // ------------------------ //
 
-    template<typename C, typename Nested, std::size_t N>
-    struct CoordinateSystemTraits<FromEuclideanExpr<C, Nested>, N>
+    template<typename C, typename Nested>
+    struct CoordinateSystemTraits<FromEuclideanExpr<C, Nested>>
     {
+      template<std::size_t N>
       using coordinate_system_types = C;
 
-      template<typename Arg>
+      template<std::size_t N, typename Arg>
       static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
       {
         return std::get<N>(std::forward<Arg>(arg).my_dimensions);
@@ -172,12 +191,13 @@ namespace OpenKalman
     };
 
 
-    template<typename C, typename Nested, std::size_t N>
-    struct CoordinateSystemTraits<ToEuclideanExpr<C, Nested>, N>
+    template<typename C, typename Nested>
+    struct CoordinateSystemTraits<ToEuclideanExpr<C, Nested>>
     {
+      template<std::size_t N>
       using coordinate_system_types = C;
 
-      template<typename Arg>
+      template<std::size_t N, typename Arg>
       static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
       {
         return std::get<N>(std::forward<Arg>(arg).my_dimensions);
@@ -315,7 +335,7 @@ namespace OpenKalman
     };
 
 
-    template<typename NestedMatrix, TriangleType triangle_type>
+    template<typename NestedMatrix, HermitianAdapterType triangle_type>
     struct Dependencies<SelfAdjointMatrix<NestedMatrix, triangle_type>>
     {
       static constexpr bool has_runtime_parameters = false;
@@ -458,29 +478,29 @@ namespace OpenKalman
     // ---------------- //
 
 #ifdef __cpp_concepts
-    template<constant_matrix<Likelihood::maybe> NestedMatrix>
+    template<constant_matrix<CompileTimeStatus::any, Likelihood::maybe> NestedMatrix>
     struct SingleConstant<DiagonalMatrix<NestedMatrix>>
 #else
     template<typename NestedMatrix>
-    struct SingleConstant<DiagonalMatrix<NestedMatrix>, std::enable_if_t<constant_matrix<NestedMatrix, Likelihood::maybe>>>
+    struct SingleConstant<DiagonalMatrix<NestedMatrix>, std::enable_if_t<constant_matrix<NestedMatrix, CompileTimeStatus::any, Likelihood::maybe>>>
 #endif
     {
       const DiagonalMatrix<NestedMatrix>& xpr;
 
       constexpr auto get_constant_diagonal()
       {
-        return constant_coefficient{nested_matrix(xpr)};
+        return constant_coefficient {nested_matrix(xpr)};
       }
     };
 
 
 #ifdef __cpp_concepts
-    template<constant_diagonal_matrix<Likelihood::maybe> NestedMatrix, TriangleType triangle_type>
+    template<constant_diagonal_matrix<CompileTimeStatus::any, Likelihood::maybe> NestedMatrix, TriangleType triangle_type>
     struct SingleConstant<TriangularMatrix<NestedMatrix, triangle_type>>
 #else
     template<typename NestedMatrix, TriangleType triangle_type>
     struct SingleConstant<TriangularMatrix<NestedMatrix, triangle_type>, std::enable_if_t<
-      constant_diagonal_matrix<NestedMatrix, Likelihood::maybe>>>
+      constant_diagonal_matrix<NestedMatrix, CompileTimeStatus::any, Likelihood::maybe>>>
 #endif
     {
       const TriangularMatrix<NestedMatrix, triangle_type>& xpr;
@@ -493,40 +513,36 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<constant_matrix<Likelihood::maybe> NestedMatrix>
+    template<constant_matrix<CompileTimeStatus::any, Likelihood::maybe> NestedMatrix>
     struct SingleConstant<TriangularMatrix<NestedMatrix, TriangleType::diagonal>>
 #else
     template<typename NestedMatrix>
     struct SingleConstant<TriangularMatrix<NestedMatrix, TriangleType::diagonal>, std::enable_if_t<
-      constant_matrix<NestedMatrix, Likelihood::maybe>>>
+      constant_matrix<NestedMatrix, CompileTimeStatus::any, Likelihood::maybe>>>
 #endif
     {
       const TriangularMatrix<NestedMatrix, TriangleType::diagonal>& xpr;
 
       constexpr auto get_constant_diagonal()
       {
-        return constant_coefficient{nested_matrix(xpr)};
+        return constant_coefficient {nested_matrix(xpr)};
       }
     };
 
 
-    template<typename NestedMatrix, TriangleType storage_type>
+    template<typename NestedMatrix, HermitianAdapterType storage_type>
     struct SingleConstant<SelfAdjointMatrix<NestedMatrix, storage_type>>
     {
       const SelfAdjointMatrix<NestedMatrix, storage_type>& xpr;
 
       constexpr auto get_constant()
       {
-        if constexpr (storage_type != TriangleType::diagonal) return constant_coefficient{nested_matrix(xpr)};
-        else return std::monostate{};
+        return constant_coefficient{nested_matrix(xpr)};
       }
 
       constexpr auto get_constant_diagonal()
       {
-        if constexpr (storage_type == TriangleType::diagonal and constant_matrix<NestedMatrix, Likelihood::maybe>)
-          return constant_coefficient{nested_matrix(xpr)};
-        else
-          return constant_diagonal_coefficient{nested_matrix(xpr)};
+        return constant_diagonal_coefficient {nested_matrix(xpr)};
       }
     };
 
@@ -551,83 +567,55 @@ namespace OpenKalman
       : SingleConstant<std::decay_t<NestedMatrix>> {};
 
 
-    // ---------------- //
-    //  DiagonalTraits  //
-    // ---------------- //
-
-    template<typename NestedMatrix>
-    struct DiagonalTraits<DiagonalMatrix<NestedMatrix>>
-    {
-      static constexpr bool is_diagonal = true;
-    };
-
-
-    template<typename NestedMatrix, TriangleType triangle_type>
-    struct DiagonalTraits<TriangularMatrix<NestedMatrix, triangle_type>>
-    {
-      static constexpr bool is_diagonal = diagonal_matrix<NestedMatrix> or triangle_type == TriangleType::diagonal or
-        (upper_triangular_matrix<NestedMatrix> and triangle_type == TriangleType::lower) or
-        (lower_triangular_matrix<NestedMatrix> and triangle_type == TriangleType::upper);
-    };
-
-
-    template<typename NestedMatrix, TriangleType storage_type>
-    struct DiagonalTraits<SelfAdjointMatrix<NestedMatrix, storage_type>>
-    {
-      static constexpr bool is_diagonal = diagonal_matrix<NestedMatrix> or storage_type == TriangleType::diagonal;
-    };
-
-
-    template<typename TypedIndex, typename NestedMatrix>
-    struct DiagonalTraits<ToEuclideanExpr<TypedIndex, NestedMatrix>>
-    {
-      static constexpr bool is_diagonal = euclidean_index_descriptor<TypedIndex> and diagonal_matrix<NestedMatrix>;
-    };
-
-
-    template<typename TypedIndex, typename NestedMatrix>
-    struct DiagonalTraits<FromEuclideanExpr<TypedIndex, NestedMatrix>>
-    {
-      static constexpr bool is_diagonal = euclidean_index_descriptor<TypedIndex> and diagonal_matrix<NestedMatrix>;
-    };
-
-
     // ------------------ //
     //  TriangularTraits  //
     // ------------------ //
 
-    template<typename NestedMatrix, TriangleType t>
-    struct TriangularTraits<TriangularMatrix<NestedMatrix, t>>
+    template<typename NestedMatrix>
+    struct TriangularTraits<DiagonalMatrix<NestedMatrix>>
     {
-      static constexpr TriangleType triangle_type = diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : t;
+      template<TriangleType t, Likelihood b>
+      static constexpr bool is_triangular = true;
+
+      static constexpr bool is_diagonal_adapter = true;
+    };
+
+
+    template<typename NestedMatrix, HermitianAdapterType storage_type>
+    struct TriangularTraits<SelfAdjointMatrix<NestedMatrix, storage_type>>
+    {
+      template<TriangleType t, Likelihood>
+      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, TriangleType::diagonal, Likelihood::maybe>;
+    };
+
+
+    template<typename NestedMatrix, TriangleType tt>
+    struct TriangularTraits<TriangularMatrix<NestedMatrix, tt>>
+    {
+      template<TriangleType t, Likelihood>
+      static constexpr bool is_triangular = t == TriangleType::any or tt == TriangleType::diagonal or tt == t or
+        triangular_matrix<NestedMatrix, t, Likelihood::maybe>;
+
       static constexpr bool is_triangular_adapter = true;
     };
 
 
-#ifdef __cpp_concepts
-    template<euclidean_index_descriptor TypedIndex, triangular_matrix NestedMatrix>
-    struct TriangularTraits<ToEuclideanExpr<TypedIndex, NestedMatrix>>
-#else
     template<typename TypedIndex, typename NestedMatrix>
-    struct TriangularTraits<ToEuclideanExpr<TypedIndex, NestedMatrix>, std::enable_if_t<
-      triangular_matrix<NestedMatrix> and euclidean_index_descriptor<TypedIndex>>>
-#endif
+    struct TriangularTraits<ToEuclideanExpr<TypedIndex, NestedMatrix>>
     {
-      static constexpr TriangleType triangle_type = triangle_type_of_v<NestedMatrix>;
+      template<TriangleType t, Likelihood b>
+      static constexpr bool is_triangular = euclidean_index_descriptor<TypedIndex> and triangular_matrix<NestedMatrix, t, b>;
+
       static constexpr bool is_triangular_adapter = false;
     };
 
 
-#ifdef __cpp_concepts
-    template<euclidean_index_descriptor TypedIndex, triangular_matrix NestedMatrix>
-    struct TriangularTraits<FromEuclideanExpr<TypedIndex, NestedMatrix>>
-#else
     template<typename TypedIndex, typename NestedMatrix>
-    struct TriangularTraits<FromEuclideanExpr<TypedIndex, NestedMatrix>, std::enable_if_t<
-      triangular_matrix<NestedMatrix> and euclidean_index_descriptor<TypedIndex>>>
-#endif
+    struct TriangularTraits<FromEuclideanExpr<TypedIndex, NestedMatrix>>
     {
-      static constexpr TriangleType triangle_type = triangle_type_of_v<NestedMatrix>;
+      template<TriangleType t, Likelihood b>
+      static constexpr bool is_triangular = euclidean_index_descriptor<TypedIndex> and triangular_matrix<NestedMatrix, t, b>;
+
       static constexpr bool is_triangular_adapter = false;
     };
 
@@ -636,11 +624,11 @@ namespace OpenKalman
     //  HermitianTraits  //
     // ----------------- //
 
-    template<typename NestedMatrix, TriangleType t>
+    template<typename NestedMatrix, HermitianAdapterType t>
     struct HermitianTraits<SelfAdjointMatrix<NestedMatrix, t>>
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = diagonal_matrix<NestedMatrix> ? TriangleType::diagonal : t;
+      static constexpr HermitianAdapterType adapter_type = t;
     };
 
 
@@ -654,7 +642,6 @@ namespace OpenKalman
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
@@ -668,7 +655,6 @@ namespace OpenKalman
 #endif
     {
       static constexpr bool is_hermitian = true;
-      static constexpr TriangleType adapter_type = TriangleType::none;
     };
 
 
@@ -691,7 +677,7 @@ namespace OpenKalman
     template<typename Derived>
     using MatrixBaseFrom = typename MatrixTraits<std::decay_t<NestedMatrix>>::template MatrixBaseFrom<Derived>;
 
-    template<TriangleType storage_triangle = TriangleType::diagonal, std::size_t dim = rows>
+    template<HermitianAdapterType storage_triangle = HermitianAdapterType::lower, std::size_t dim = rows>
     using SelfAdjointMatrixFrom = SelfAdjointMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, dim>, storage_triangle>;
 
     template<TriangleType triangle_type = TriangleType::diagonal, std::size_t dim = rows>
@@ -765,7 +751,8 @@ namespace OpenKalman
     template<typename Derived>
     using MatrixBaseFrom = typename MatrixTraits<std::decay_t<NestedMatrix>>::template MatrixBaseFrom<Derived>;
 
-    template<TriangleType t = triangle_type, std::size_t dim = rows>
+    template<HermitianAdapterType t = triangle_type == TriangleType::upper ?
+      HermitianAdapterType::upper : HermitianAdapterType::lower, std::size_t dim = rows>
     using SelfAdjointMatrixFrom = SelfAdjointMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, dim>, t>;
 
     template<TriangleType t = triangle_type, std::size_t dim = rows>
@@ -818,7 +805,7 @@ namespace OpenKalman
   };
 
 
-  template<typename NestedMatrix, TriangleType storage_triangle>
+  template<typename NestedMatrix, HermitianAdapterType storage_triangle>
   struct MatrixTraits<SelfAdjointMatrix<NestedMatrix, storage_triangle>>
   {
   private:
@@ -833,10 +820,10 @@ namespace OpenKalman
     template<typename Derived>
     using MatrixBaseFrom = typename MatrixTraits<std::decay_t<NestedMatrix>>::template MatrixBaseFrom<Derived>;
 
-    template<TriangleType t = storage_triangle, std::size_t dim = rows>
+    template<HermitianAdapterType t = storage_triangle, std::size_t dim = rows>
     using SelfAdjointMatrixFrom = SelfAdjointMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, dim>, t>;
 
-    template<TriangleType t = storage_triangle, std::size_t dim = rows>
+    template<TriangleType t = storage_triangle == HermitianAdapterType::upper ? TriangleType::upper : TriangleType::lower, std::size_t dim = rows>
     using TriangularMatrixFrom = TriangularMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, dim>, t>;
 
     template<std::size_t dim = rows>
@@ -844,11 +831,11 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<TriangleType t = storage_triangle, typename Arg> requires
+    template<HermitianAdapterType t = storage_triangle, typename Arg> requires
       (not diagonal_matrix<NestedMatrix> or not complex_number<scalar_type_of_t<NestedMatrix>>) and
       square_matrix<NestedMatrix, Likelihood::maybe>
 #else
-    template<TriangleType t = storage_triangle, typename Arg, std::enable_if_t<
+    template<HermitianAdapterType t = storage_triangle, typename Arg, std::enable_if_t<
       (not diagonal_matrix<NestedMatrix> or not complex_number<scalar_type_of_t<NestedMatrix>>) and
       square_matrix<NestedMatrix, Likelihood::maybe>, int> = 0>
 #endif
@@ -859,10 +846,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<TriangleType t = storage_triangle, diagonal_matrix Arg> requires
+    template<HermitianAdapterType t = storage_triangle, diagonal_matrix Arg> requires
       eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>
 #else
-    template<TriangleType t = storage_triangle, typename Arg, std::enable_if_t<diagonal_matrix<Arg> and
+    template<HermitianAdapterType t = storage_triangle, typename Arg, std::enable_if_t<diagonal_matrix<Arg> and
       (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>), int> = 0>
 #endif
     static auto make(Arg&& arg) noexcept
@@ -874,9 +861,9 @@ namespace OpenKalman
     /// Make self-adjoint matrix using a list of coefficients in row-major order.
     /// Only the coefficients in the lower-left corner are significant.
 #ifdef __cpp_concepts
-    template<TriangleType t = storage_triangle, std::convertible_to<Scalar> ... Args>
+    template<HermitianAdapterType t = storage_triangle, std::convertible_to<Scalar> ... Args>
 #else
-    template<TriangleType t = storage_triangle, typename ... Args,
+    template<HermitianAdapterType t = storage_triangle, typename ... Args,
       std::enable_if_t<std::conjunction_v<std::is_convertible<Args, Scalar>...>, int> = 0>
 #endif
     static auto make(const Args ... args)
@@ -902,7 +889,7 @@ namespace OpenKalman
     using MatrixBaseFrom = typename MatrixTraits<std::decay_t<NestedMatrix>>::template MatrixBaseFrom<Derived>;
 
 
-    template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = rows>
+    template<HermitianAdapterType storage_triangle = HermitianAdapterType::lower, std::size_t dim = rows>
     using SelfAdjointMatrixFrom = SelfAdjointMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, dim>, storage_triangle>;
 
 
@@ -966,7 +953,7 @@ namespace OpenKalman
     using MatrixBaseFrom = typename MatrixTraits<std::decay_t<NestedMatrix>>::template MatrixBaseFrom<Derived>;
 
 
-    template<TriangleType storage_triangle = TriangleType::lower, std::size_t dim = rows>
+    template<HermitianAdapterType storage_triangle = HermitianAdapterType::lower, std::size_t dim = rows>
     using SelfAdjointMatrixFrom = SelfAdjointMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, dim>, storage_triangle>;
 
 
@@ -1021,21 +1008,19 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typename NestedMatrix, TriangleType storage_triangle, typename U> requires
+  template<typename NestedMatrix, HermitianAdapterType storage_triangle, typename U> requires
     //(not hermitian_matrix<U>) or
-    //(storage_triangle == TriangleType::diagonal and not diagonal_matrix<U>) or
     (eigen_self_adjoint_expr<U> and not modifiable<NestedMatrix, nested_matrix_of_t<U>>) or
     (not eigen_self_adjoint_expr<U> and not modifiable<NestedMatrix, U>)
   struct is_modifiable_native<SelfAdjointMatrix<NestedMatrix, storage_triangle>, U> : std::false_type {};
 #else
-  template<typename N1, TriangleType t1, typename N2, TriangleType t2>
+  template<typename N1, HermitianAdapterType t1, typename N2, HermitianAdapterType t2>
   struct is_modifiable_native<SelfAdjointMatrix<N1, t1>, SelfAdjointMatrix<N2, t2>>
     : std::bool_constant<modifiable<N1, N2>> {};
 
-  template<typename NestedMatrix, TriangleType t, typename U>
+  template<typename NestedMatrix, HermitianAdapterType t, typename U>
   struct is_modifiable_native<SelfAdjointMatrix<NestedMatrix, t>, U>
-    : std::bool_constant</*hermitian_matrix<U> and (t != TriangleType::diagonal or diagonal_matrix<U>) and
-      */modifiable<NestedMatrix, U>> {};
+    : std::bool_constant</*hermitian_matrix<U> and */modifiable<NestedMatrix, U>> {};
 #endif
 
 

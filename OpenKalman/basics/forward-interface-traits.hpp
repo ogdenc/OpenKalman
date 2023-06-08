@@ -56,22 +56,22 @@ namespace OpenKalman::interface
    * \internal
    * \brief An interface to traits of a particular index of a matrix, or array, expression, or tensor.
    * \tparam T The matrix, array, expression, or tensor.
-   * \tparam N The index number
    */
 #ifdef __cpp_concepts
-  template<typename T, std::size_t N>
+  template<typename T>
 #else
-  template<typename T, std::size_t N, typename = void>
+  template<typename T, typename = void>
 #endif
   struct IndexTraits
   {
     /**
-     * \var dimension
+     * \var template<std::size_t N> static constexpr std::size_t dimension
      * \brief The dimension of index N of T, evaluated at compile time.
      * \details For example, a 2-by-3 matrix has dimension 2 in index 0 (rows) and dimension 3 in index 1 (columns).
-     * static constexpr std::size_t dimension = 0;
-     * \code\endcode
+     * \tparam N The index number
      */
+    template<std::size_t N>
+    static constexpr std::size_t dimension = 0;
 
 
     /**
@@ -80,12 +80,30 @@ namespace OpenKalman::interface
      * \tparam Arg An argument matrix of type T
      */
 #ifdef __cpp_concepts
-    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+    template<std::size_t N, std::convertible_to<const std::remove_reference_t<T>&> Arg>
 #else
-    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg,
+    template<std::size_t N, typename Arg, std::enable_if_t<std::is_convertible_v<Arg,
       const std::add_lvalue_reference_t<std::decay_t<T>>>, int> = 0>
 #endif
     static constexpr std::size_t dimension_at_runtime(const Arg& arg) = delete;
+
+
+    /**
+     * \brief Whether T is one-by-one (optional).
+     * \details This can be useful because some dynamic matrix types erase the shape info about their nested matrix,
+     * such that it does not preserve the knowledge that the object cannot be one-by-one.
+     */
+    template<Likelihood b>
+    static constexpr bool is_one_by_one = false;
+
+
+    /**
+     * \brief Whether all dimensions of T are the same and type-equivalent (optional).
+     * \details This can be useful because some dynamic matrix types erase the shape info about their nested matrix,
+     * such that it does not preserve the knowledge that the object cannot be square.
+     */
+    template<Likelihood b>
+    static constexpr bool is_square = false;
   };
 
 
@@ -95,10 +113,11 @@ namespace OpenKalman::interface
    * \details Example definitions:
    * \code
    * // The coordinate system type(s) associated with index N of T, evaluated at compile time.
+   * template<std::size_t N>
    * using coordinate_system_types = a_compile_time_index_descriptor;
    *
    * // Returns the coordinate system type(s) of index N of the argument, evaluated at runtime.
-   * template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+   * template<std::size_t N, std::convertible_to<const std::remove_reference_t<T>&> Arg>
    * static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
    * {
    *   return a_runtime_index_descriptor;
@@ -107,12 +126,11 @@ namespace OpenKalman::interface
    * \note Euclidean types (i.e., regular matrices or other true tensors that operate on a vector space) do not
    * need to define this and can rely on the default behavior.
    * \tparam T The matrix, array, expression, or tensor.
-   * \tparam N The index number
    */
 #ifdef __cpp_concepts
-  template<typename T, std::size_t N>
+  template<typename T>
 #else
-  template<typename T, std::size_t N, typename = void>
+  template<typename T, typename = void>
 #endif
   struct CoordinateSystemTraits;
 
@@ -126,17 +144,18 @@ namespace OpenKalman::interface
    * \returns an element or an l-value reference to an element
    */
 #ifdef __cpp_concepts
-  template<typename T, typename...I>
+  template<typename T>
 #else
-  template<typename T, typename = void, typename...I>
+  template<typename T, typename = void>
 #endif
   struct GetElement
   {
     /// Get element at indices (i...) of matrix arg. This should preferably return a non-const lvalue reference, if possible.
 #ifdef __cpp_concepts
-    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+    template<std::convertible_to<const std::decay_t<T>&> Arg, std::convertible_to<const std::size_t>...I>
 #else
-    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+    template<typename Arg, typename...I, std::enable_if_t<
+      std::is_convertible_v<Arg, const std::decay_t<T>&> and (std::is_convertible_v<I, const std::size_t> and ...), int> = 0>
 #endif
     static constexpr decltype(auto) get(Arg&& arg, I...i) = delete;
   };
@@ -150,19 +169,20 @@ namespace OpenKalman::interface
    * \tparam I The indices (each of type std::size_t)
    */
 #ifdef __cpp_concepts
-  template<typename T, typename...I>
+  template<typename T>
 #else
-  template<typename T, typename = void, typename...I>
+  template<typename T, typename = void>
 #endif
   struct SetElement
   {
     /// Set element at indices (i...) of matrix arg to s.
 #ifdef __cpp_concepts
-    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+    template<std::convertible_to<std::decay_t<T>> Arg, std::convertible_to<const std::size_t>...I>
 #else
-    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+    template<typename Arg, typename...I, std::enable_if_t<
+      std::is_convertible_v<Arg, std::decay_t<T>> and (std::is_convertible_v<I, const std::size_t> and ...), int> = 0>
 #endif
-    static Arg& set(Arg& arg, const typename IndexibleObjectTraits<std::decay_t<Arg>>::scalar_type& s, I...i) = delete;
+    static Arg&& set(Arg&& arg, const typename IndexibleObjectTraits<std::decay_t<Arg>>::scalar_type& s, I...i) = delete;
   };
 
 
@@ -212,7 +232,9 @@ namespace OpenKalman::interface
 
     /**
      * \brief Converts Arg (if it is not already) to a native matrix operable within the library associated with T.
-     * \details The result must be in a form for which basic matrix operations can be performed within the library for T.
+     * \details The result should be in a form for which basic matrix operations can be performed within the library for T.
+     * If possible, properties such as \ref diagonal_matrix, \ref triangular_matrix, \ref hermitian_matrix,
+     * \ref constant_matrix, and \ref constant_diagonal_matrix should be preserved in the resulting object.
      */
     template<typename Arg>
     static decltype(auto) to_native_matrix(Arg&& arg) = delete;
@@ -422,28 +444,8 @@ namespace OpenKalman::interface
 
 
   /**
-   * \brief An interface to properties of a diagonal matrix.
-   * \details If T is a diagonal matrix, the interface must define static constexpr bool member <code>value</code> as
-   * true.
-   * \note This class need only be defined for diagonal matrices.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct DiagonalTraits
-  {
-    /**
-     * \brief Whether T is diagonal.
-     */
-    static constexpr bool is_diagonal = false;
-  };
-
-
-  /**
-   * \brief An interface to properties of a triangular matrix.
-   * \note This class need only be defined for triangular matrices.
+   * \brief An interface to properties of a triangular  or diagonal matrix.
+   * \note This class need only be defined for triangular or diagonal matrices.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -453,16 +455,26 @@ namespace OpenKalman::interface
   struct TriangularTraits
   {
     /**
-     * \brief The triangle type of T.
+     * \brief Whether T is triangular or diagonal, having a triangle type of t.
      * \details This trait should propagate from any nested matrices or matrices involved in any expression arguments.
+     * \tparam t The \ref TriangleType
+     * \tparam b The \ref Likelihood. If <code>b == Likelihood::definitely</code>, then T's triangle type is known at compile time.
+     * If <code>b == Likelihood::maybe</code>, then T's triangle type is determined at runtime (for example, T might be
+     * triangular if and only iff it is a square matrix, but it is unknown whether T is square).
      */
-    static constexpr TriangleType triangle_type = TriangleType::none;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
     /**
-     * \brief Whether T is a triangular adapter.
-     * \todo remove as unnecessary
+     * \brief Whether T is a triangular adapter (defaults to false, if omitted).
+     * \details This is not a guarantee that the matrix is triangular, because it could be dynamically non-square.
      */
     static constexpr bool is_triangular_adapter = false;
+
+    /**
+     * \brief Whether T is a diagonal adapter (defaults to false, if omitted).
+     */
+    static constexpr bool is_diagonal_adapter = false;
 
     /**
      * \brief Create a \ref triangular_matrix from a general matrix.
@@ -474,8 +486,8 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     template<TriangleType t, std::convertible_to<const std::remove_reference_t<T>&> Arg> requires
-      (IndexTraits<std::decay_t<T>, 0>::dimension == IndexTraits<std::decay_t<T>, 1>::dimension) or
-      (IndexTraits<std::decay_t<T>, 0>::dimension == dynamic_size) or (IndexTraits<std::decay_t<T>, 1>::dimension == dynamic_size)
+      (IndexTraits<std::decay_t<T>>::template dimension<0> == IndexTraits<std::decay_t<T>>::template dimension<1>) or
+      (IndexTraits<std::decay_t<T>>::template dimension<0> == dynamic_size) or (IndexTraits<std::decay_t<T>>::template dimension<1> == dynamic_size)
 #else
     template<TriangleType t, typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
 #endif
@@ -500,11 +512,18 @@ namespace OpenKalman::interface
     static constexpr bool is_hermitian = false;
 
     /**
-     * \brief The hermitian-adapter storage type of T, if any.
-     * \details If T is not hermitian or not a hermitian adapter, this can be defined as TriangleType::none.
-     * Alternatively, this can be omitted.
+     * \brief The hermitian-adapter storage type of T, if any (optional).
+     * \details This is not a guarantee that the matrix is hermitian, because it could be dynamically non-square.
+     * If T is not a hermitian adapter, this should be omitted. Permissible values are HermitianAdapterType::upper and
+     * HermitianAdapterType::lower.
      */
-     static constexpr TriangleType adapter_type = TriangleType::none;
+     //static constexpr HermitianAdapterType adapter_type = HermitianAdapterType::lower;
+
+     /**
+      * \brief Make a hermitian adapter.
+      */
+     template<HermitianAdapterType t, typename Arg>
+     static constexpr auto make_hermitian_adpater(Arg&& arg) = delete;
   };
 
 
@@ -560,13 +579,11 @@ namespace OpenKalman::interface
      * \tparam B A matrix or tensor to be copied from, which may or may not be triangular
      */
 #ifdef __cpp_concepts
-    template<TriangleType t, typename A, typename B> requires std::convertible_to<A&, std::decay_t<T>&> and
-      (t != TriangleType::none)
+    template<TriangleType t, typename A, typename B> requires std::convertible_to<A&&, std::decay_t<T>&>
 #else
-    template<TriangleType t, typename A, typename B, std::enable_if_t<std::is_convertible_v<A&, std::decay_t<T>&> and
-      (t != TriangleType::none)>>
+    template<TriangleType t, typename A, typename B, std::enable_if_t<std::is_convertible_v<A&&, std::decay_t<T>&>>>
 #endif
-    static A& set_triangle(A& a, B&& b) = delete;
+    static decltype(auto) set_triangle(A&& a, B&& b) = delete;
   };
 
 
@@ -594,11 +611,11 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     template<std::convertible_to<const std::remove_reference_t<T>&> Arg> requires
-      (IndexTraits<std::decay_t<T>, 1>::dimension == 1) or (IndexTraits<std::decay_t<T>, 1>::dimension == dynamic_size)
+      (IndexTraits<std::decay_t<T>>::template dimension<1> == 1) or (IndexTraits<std::decay_t<T>>::template dimension<1> == dynamic_size)
 #else
     template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&> and
-      ((IndexTraits<std::decay_t<T>, 1>::dimension == 1) or
-       (IndexTraits<std::decay_t<T>, 1>::dimension == dynamic_size)), int> = 0>
+      ((IndexTraits<std::decay_t<T>>::template dimension<1> == 1) or
+       (IndexTraits<std::decay_t<T>>::template dimension<1> == dynamic_size)), int> = 0>
 #endif
     static constexpr decltype(auto)
     to_diagonal(Arg&& arg) = delete;
@@ -620,14 +637,14 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     template<std::convertible_to<const std::remove_reference_t<T>&> Arg> requires
-      (IndexTraits<std::decay_t<T>, 0>::dimension == dynamic_size) or
-      (IndexTraits<std::decay_t<T>, 1>::dimension == dynamic_size) or
-      (IndexTraits<std::decay_t<T>, 0>::dimension == IndexTraits<std::decay_t<T>, 1>::dimension)
+      (IndexTraits<std::decay_t<T>>::template dimension<0> == dynamic_size) or
+      (IndexTraits<std::decay_t<T>>::template dimension<1> == dynamic_size) or
+      (IndexTraits<std::decay_t<T>>::template dimension<0> == IndexTraits<std::decay_t<T>>::template dimension<1>)
 #else
     template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&> and
-      ((IndexTraits<std::decay_t<T>, 0>::dimension == dynamic_size) or
-       (IndexTraits<std::decay_t<T>, 1>::dimension == dynamic_size) or
-       (IndexTraits<std::decay_t<T>, 0>::dimension == IndexTraits<std::decay_t<T>, 1>::dimension)), int> = 0>
+      ((IndexTraits<std::decay_t<T>>::template dimension<0> == dynamic_size) or
+       (IndexTraits<std::decay_t<T>>::template dimension<1> == dynamic_size) or
+       (IndexTraits<std::decay_t<T>>::template dimension<0> == IndexTraits<std::decay_t<T>>::template dimension<1>)), int> = 0>
 #endif
     static constexpr decltype(auto)
     diagonal_of(Arg&& arg) = delete;
@@ -873,22 +890,18 @@ namespace OpenKalman::interface
     /**
      * \brief Do a rank update on a hermitian matrix.
      * \note This is preferably (but not necessarily) performed as an in-place operation.
-     * \details If A is not hermitian, the result will modify only the specified storage triangle. The contents of the
-     * other elements outside the specified storage triangle are undefined.
+     * \details A must be a \ref hermitian_matrix.
      * - The update is A += αUU<sup>*</sup>, returning the updated hermitian A.
-     * - If A is an lvalue reference and is writable, it will be updated in place and the return value will be an
-     * lvalue reference to the same, updated A. Otherwise, the function returns a new matrix.
-     * \tparam t Whether to use the upper triangle elements (TriangleType::upper), lower triangle elements
-     * (TriangleType::lower) or diagonal elements (TriangleType::diagonal). If A is a hermitian type, t always matches the
-     * triangle type of A.
-     * \tparam A An object of type T, which is either hermitian or dense-writable.
+     * - If A is a non-const lvalue reference, it should be updated in place if possible. Otherwise, the function may return a new matrix.
+     * \tparam significant_triangle The triangle which is significant (or TriangleType::any if both are significant)
+     * \tparam A A writable object (same library as type T) in which triangle t is significant.
      * \tparam U The update vector or matrix.
      * \returns an updated native, writable matrix in hermitian form.
      */
 #ifdef __cpp_concepts
-    template<TriangleType t, std::convertible_to<const std::remove_reference_t<T>&> A, typename U, typename Alpha>
+    template<HermitianAdapterType significant_triangle, std::convertible_to<const std::remove_reference_t<T>&> A, typename U, typename Alpha>
 #else
-    template<TriangleType t, typename A, typename U, typename Alpha, std::enable_if_t<
+    template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha, std::enable_if_t<
       std::is_convertible_v<A, const std::remove_reference_t<T>&>, int> = 0>
 #endif
     static decltype(auto) rank_update_self_adjoint(A&&, U&&, const Alpha) = delete;
@@ -897,24 +910,20 @@ namespace OpenKalman::interface
     /**
      * \brief Do a rank update on a triangular matrix.
      * \note This is preferably (but not necessarily) performed as an in-place operation.
-     * \details If A is not a triangular matrix, the result will modify only the specified triangle. The contents of
-     * other elements outside the specified triangle are undefined.
+     * \details A must be a triangular matrix.
      * - If A is lower-triangular, diagonal, or one-by-one, the update is AA<sup>*</sup> += αUU<sup>*</sup>,
      * returning the updated A.
      * - If A is upper-triangular, the update is A<sup>*</sup>A += αUU<sup>*</sup>, returning the updated A.
-     * - If A is an lvalue reference and is writable, it will be updated in place and the return value will be an
-     * lvalue reference to the same, updated A. Otherwise, the function returns a new matrix.
-     * \tparam t Whether to use the upper triangle elements (TriangleType::upper), lower triangle elements
-     * (TriangleType::lower) or diagonal elements (TriangleType::diagonal). If A is a triangular type, t always matches the
-     * triangle type of A.
+     * - If A is a non-const lvalue reference, it should be updated in place if possible. Otherwise, the function may return a new matrix.
+     * \tparam triangle The triangle (upper or lower)
      * \tparam A An object of type T, which is either triangular or dense-writable.
      * \tparam U The update vector or matrix.
      * \returns an updated native, writable matrix in triangular (or diagonal) form.
      */
 #ifdef __cpp_concepts
-    template<TriangleType t, std::convertible_to<const std::remove_reference_t<T>&> A, typename U, typename Alpha>
+    template<TriangleType triangle, std::convertible_to<const std::remove_reference_t<T>&> A, typename U, typename Alpha>
 #else
-    template<TriangleType t, typename A, typename U, typename Alpha, std::enable_if_t<
+    template<TriangleType triangle, typename A, typename U, typename Alpha, std::enable_if_t<
       std::is_convertible_v<A, const std::remove_reference_t<T>&>, int> = 0>
 #endif
     static decltype(auto) rank_update_triangular(A&&, U&&, const Alpha) = delete;
@@ -945,7 +954,7 @@ namespace OpenKalman::interface
     /**
      * \brief Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
      * \tparam A The matrix to be decomposed
-     * \returns L as a \ref lower_triangular_matrix
+     * \returns L as a lower \ref triangular_matrix
      */
 #ifdef __cpp_concepts
     template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
@@ -958,7 +967,7 @@ namespace OpenKalman::interface
     /**
      * \brief Perform a QR decomposition of matrix A=Q[U,0], U is a upper-triangular matrix, and Q is orthogonal.
      * \tparam A The matrix to be decomposed
-     * \returns U as an \ref upper_triangular_matrix
+     * \returns U as an upper \ref triangular_matrix
      */
 #ifdef __cpp_concepts
     template<std::convertible_to<const std::remove_reference_t<T>&> Arg>

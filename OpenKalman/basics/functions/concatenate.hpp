@@ -75,7 +75,8 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typename T, typename...Ts>
-    concept constant_concatenate_arguments = (constant_matrix<T> and ... and constant_matrix<Ts>) and
+    concept constant_concatenate_arguments =
+      (constant_matrix<T, CompileTimeStatus::known> and ... and constant_matrix<Ts, CompileTimeStatus::known>) and
       (are_within_tolerance(constant_coefficient_v<T>, constant_coefficient_v<Ts>) and ...);
 #else
     template<typename T, typename = void, typename...Ts>
@@ -225,7 +226,7 @@ namespace OpenKalman
     }
     else if constexpr (sizeof...(indices) == 2 and ((indices == 0) or ...) and ((indices == 1) or ...) and
       (triangular_matrix<Arg> and ... and triangular_matrix<Args>) and
-      ((upper_triangular_matrix<Arg> == upper_triangular_matrix<Args>) and ...))
+      ((triangular_matrix<Arg, TriangleType::upper> == triangular_matrix<Args, TriangleType::upper>) and ...))
     {
       return make_triangular_matrix<triangle_type_of_v<Arg>>(
         concatenate<0, 1>(nested_matrix(std::forward<Arg>(arg)), nested_matrix(std::forward<Args>(args))...));

@@ -23,18 +23,18 @@ namespace OpenKalman
   /**
    * \brief Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
    * \tparam A The matrix to be decomposed
-   * \returns L as a \ref lower_triangular_matrix
+   * \returns L as a lower \ref triangular_matrix
    */
 #ifdef __cpp_concepts
   template<indexible A> requires (not euclidean_transformed<A>)
-  constexpr lower_triangular_matrix<Likelihood::maybe> auto
+  constexpr triangular_matrix<TriangleType::lower, Likelihood::maybe> auto
 #else
   template<typename A, std::enable_if_t<indexible<A> and (not euclidean_transformed<A>), int> = 0>
   constexpr auto
 #endif
   LQ_decomposition(A&& a)
   {
-    if constexpr (lower_triangular_matrix<A>)
+    if constexpr (triangular_matrix<A, TriangleType::lower>)
     {
       return std::forward<A>(a);
     }
@@ -46,13 +46,9 @@ namespace OpenKalman
     else if constexpr (constant_matrix<A>)
     {
       using Scalar = scalar_type_of_t<A>;
-      constexpr auto constant = constant_coefficient_v<A>;
 
-      const Scalar elem = constant * [](A&& a){
-        using std::sqrt;
-        if constexpr (dynamic_dimension<A, 1>) return sqrt(static_cast<Scalar>(get_index_dimension_of<1>(a)));
-        else return sqrt(static_cast<Scalar>(index_dimension_of_v<A, 1>));
-      }(std::forward<A>(a));
+      auto elem = internal::scalar_constant_operation {std::multiplies<>{}, constant_coefficient{a},
+        internal::scalar_constant_sqrt(internal::index_dimension_scalar_constant_of<1>(a))};
 
       if constexpr (dynamic_dimension<A, 0>)
       {
@@ -88,8 +84,8 @@ namespace OpenKalman
     else
     {
       auto ret {interface::LinearAlgebra<std::decay_t<A>>::LQ_decomposition(std::forward<A>(a))};
-      static_assert(lower_triangular_matrix<decltype(ret)>,
-        "Interface implementation error: interface::LinearAlgebra<T>::LQ_decomposition must return a lower_triangular_matrix.");
+      static_assert(triangular_matrix<decltype(ret), TriangleType::lower, Likelihood::maybe>,
+        "Interface implementation error: interface::LinearAlgebra<T>::LQ_decomposition must return a lower triangular_matrix.");
 
       // \todo Fix this:
       if constexpr (euclidean_index_descriptor<coefficient_types_of_t<A, 0>>) return ret;
@@ -101,18 +97,18 @@ namespace OpenKalman
   /**
    * \brief Perform a QR decomposition of matrix A=Q[U,0], U is a upper-triangular matrix, and Q is orthogonal.
    * \tparam A The matrix to be decomposed
-   * \returns U as an \ref upper_triangular_matrix
+   * \returns U as an upper \ref triangular_matrix
    */
 #ifdef __cpp_concepts
   template<indexible A>
-  constexpr upper_triangular_matrix<Likelihood::maybe> auto
+  constexpr triangular_matrix<TriangleType::upper, Likelihood::maybe> auto
 #else
   template<typename A, std::enable_if_t<indexible<A>, int> = 0>
   constexpr auto
 #endif
   QR_decomposition(A&& a)
   {
-    if constexpr (upper_triangular_matrix<A>)
+    if constexpr (triangular_matrix<A, TriangleType::upper>)
     {
       return std::forward<A>(a);
     }
@@ -124,13 +120,9 @@ namespace OpenKalman
     else if constexpr (constant_matrix<A>)
     {
       using Scalar = scalar_type_of_t<A>;
-      constexpr auto constant = constant_coefficient_v<A>;
 
-      const Scalar elem = constant * [](A&& a){
-        using std::sqrt;
-        if constexpr (dynamic_dimension<A, 0>) return sqrt(static_cast<Scalar>(get_index_dimension_of<0>(a)));
-        else return sqrt(static_cast<Scalar>(index_dimension_of_v<A, 0>));
-      }(std::forward<A>(a));
+      auto elem = internal::scalar_constant_operation {std::multiplies<>{}, constant_coefficient{a},
+        internal::scalar_constant_sqrt(internal::index_dimension_scalar_constant_of<0>(a))};
 
       if constexpr (dynamic_dimension<A, 1>)
       {
@@ -166,8 +158,8 @@ namespace OpenKalman
     else
     {
       auto ret {interface::LinearAlgebra<std::decay_t<A>>::QR_decomposition(std::forward<A>(a))};
-      static_assert(upper_triangular_matrix<decltype(ret)>,
-        "Interface implementation error: interface::LinearAlgebra<T>::QR_decomposition must return an upper_triangular_matrix.");
+      static_assert(triangular_matrix<decltype(ret), TriangleType::upper, Likelihood::maybe>,
+        "Interface implementation error: interface::LinearAlgebra<T>::QR_decomposition must return an upper triangular_matrix.");
 
       // \todo Fix this:
       if constexpr (euclidean_index_descriptor<coefficient_types_of_t<A, 1>>) return ret;

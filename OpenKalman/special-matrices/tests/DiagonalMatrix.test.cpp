@@ -454,8 +454,8 @@ TEST(eigen3, Diagonal_traits)
   static_assert(diagonal_matrix<decltype(DiagonalMatrix{2, 3})>);
   static_assert(hermitian_matrix<decltype(DiagonalMatrix{2, 3})>);
   static_assert(triangular_matrix<decltype(DiagonalMatrix{2, 3})>);
-  static_assert(lower_triangular_matrix<decltype(DiagonalMatrix{2, 3})>);
-  static_assert(upper_triangular_matrix<decltype(DiagonalMatrix{2, 3})>);
+  static_assert(triangular_matrix<decltype(DiagonalMatrix{2, 3}), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(DiagonalMatrix{2, 3}), TriangleType::upper>);
   static_assert(not identity_matrix<decltype(DiagonalMatrix{2, 3})>);
   static_assert(not zero_matrix<decltype(DiagonalMatrix{2, 3})>);
   static_assert(covariance_nestable<decltype(DiagonalMatrix{2, 3})>);

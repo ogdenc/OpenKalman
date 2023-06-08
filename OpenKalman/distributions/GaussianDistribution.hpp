@@ -327,7 +327,7 @@ namespace OpenKalman
       auto norm = randomize<Matrix<TypedIndex, Axis, MeanNestedMatrix>, random_number_engine>(
         std::normal_distribution {0.0, 1.0});
       auto s = square_root(sigma);
-      if constexpr(upper_triangular_matrix<decltype(s)>)
+      if constexpr(triangular_matrix<decltype(s), TriangleType::upper>)
         return make_self_contained(Matrix {mu} + transpose(std::move(s)) * std::move(norm));
       else
         return make_self_contained(Matrix {mu} + std::move(s) * std::move(norm));
@@ -414,7 +414,7 @@ namespace OpenKalman
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     row_coefficient_types_of_t<M>,
     nested_matrix_of_t<passable_t<M>>,
-    typename MatrixTraits<std::decay_t<nested_matrix_of_t<C>>>::template SelfAdjointMatrixFrom<>>;
+    decltype(to_covariance_nestable(nested_matrix(std::declval<passable_t<C>>())))>;
 
 
 #ifdef __cpp_concepts
@@ -461,7 +461,7 @@ namespace OpenKalman
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     row_coefficient_types_of_t<C>,
     passable_t<M>,
-    typename MatrixTraitsstd::decay_t<nested_matrix_of_t<C>>>::template SelfAdjointMatrixFrom<>>;
+    decltype(to_covariance_nestable(nested_matrix(std::declval<passable_t<C>>())))>;
 
 
 #ifdef __cpp_concepts
@@ -737,17 +737,18 @@ namespace OpenKalman
 
 
     template<typename Coeffs, typename NestedMean, typename NestedCovariance, typename re>
-    struct IndexTraits<GaussianDistribution<Coeffs, NestedMean, NestedCovariance, re>, 0>
+    struct IndexTraits<GaussianDistribution<Coeffs, NestedMean, NestedCovariance, re>>
     {
-      static constexpr std::size_t dimension = dimension_size_of_v<TypedIndex>;
+      template<std::size_t N>
+      static constexpr std::size_t dimension = dimension_size_of_v<Coeffs>;
 
-      template<typename Arg>
+      template<std::size_t N, typename Arg>
       static constexpr std::size_t dimension_at_runtime(const Arg& arg)
       {
         if constexpr (dynamic_index_descriptor<Coeffs>)
-          return get_dimensions_of(mean_of(arg));
+          return get_index_dimension_of<N>(mean_of(arg));
         else
-          return dimension;
+          return dimension<N>;
       }
     };
 

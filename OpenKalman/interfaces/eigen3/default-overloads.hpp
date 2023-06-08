@@ -247,7 +247,7 @@ namespace OpenKalman
     using Scalar = std::decay_t<std::common_type_t<Args...>>;
     using Mat = Eigen3::eigen_matrix_t<Scalar, dimension_size_of_v<TypedIndex>, dimension_size_of_v<TypedIndex>>;
     using T = TriangularMatrix<Mat, triangle_type>;
-    using SA = SelfAdjointMatrix<Mat, triangle_type>;
+    using SA = SelfAdjointMatrix<Mat, triangle_type == TriangleType::upper ? HermitianAdapterType::upper : HermitianAdapterType::lower>;
     return Covariance<TypedIndex, T>(MatrixTraits<std::decay_t<SA>>::make(static_cast<const Scalar>(args)...));
   }
 

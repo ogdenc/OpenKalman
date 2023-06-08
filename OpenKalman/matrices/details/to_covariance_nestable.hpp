@@ -86,8 +86,8 @@ namespace OpenKalman::internal
       static_assert(hermitian_matrix<T> == hermitian_matrix<Arg>);
       static_assert(triangular_matrix<T> == triangular_matrix<Arg>);
       static_assert(diagonal_matrix<T> == diagonal_matrix<Arg>);
-      static_assert(lower_triangular_matrix<Arg> == lower_triangular_matrix<Arg>);
-      static_assert(upper_triangular_matrix<Arg> == upper_triangular_matrix<Arg>);
+      static_assert(triangular_matrix<Arg, TriangleType::lower> == triangular_matrix<Arg, TriangleType::lower>);
+      static_assert(triangular_matrix<Arg, TriangleType::upper> == triangular_matrix<Arg, TriangleType::upper>);
       return std::forward<Arg>(arg);
     }
   }
@@ -147,16 +147,12 @@ namespace OpenKalman::internal
     }
     else if constexpr (square_matrix<Arg>)
     {
-      using SA = typename MatrixTraits<std::decay_t<Arg>>::template SelfAdjointMatrixFrom<>;
-      static_assert(hermitian_matrix<decltype(MatrixTraits<std::decay_t<SA>>::make(std::forward<Arg>(arg)))>);
-      return MatrixTraits<std::decay_t<SA>>::make(std::forward<Arg>(arg));
+      return make_hermitian_matrix(std::forward<Arg>(arg));
     }
     else
     {
       static_assert(column_vector<Arg>);
-      using D = typename MatrixTraits<std::decay_t<Arg>>::template DiagonalMatrixFrom<>;
-      static_assert(diagonal_matrix<decltype(MatrixTraits<std::decay_t<D>>::make(std::forward<Arg>(arg)))>);
-      return MatrixTraits<std::decay_t<D>>::make(std::forward<Arg>(arg));
+      return to_diagonal(std::forward<Arg>(arg));
     }
   }
 

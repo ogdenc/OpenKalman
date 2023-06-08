@@ -26,16 +26,12 @@ namespace OpenKalman::test
 
 
 #ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2, typename Err> requires
-    (native_eigen_matrix<Arg1> or native_eigen_array<Arg1>) and
-    (native_eigen_matrix<Arg2> or native_eigen_array<Arg2>) and
-    (std::is_arithmetic_v<Err> or native_eigen_matrix<Err> or native_eigen_array<Err>)
+  template<native_eigen_dense Arg1, native_eigen_dense Arg2, typename Err> requires std::is_arithmetic_v<Err> or native_eigen_dense<Err>
   struct TestComparison<Arg1, Arg2, Err>
 #else
   template<typename Arg1, typename Arg2, typename Err>
-  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<(native_eigen_matrix<Arg1> or native_eigen_array<Arg1>) and
-    (native_eigen_matrix<Arg2> or native_eigen_array<Arg2>) and
-    (std::is_arithmetic_v<Err> or native_eigen_matrix<Err> or native_eigen_array<Err>)>>
+  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<native_eigen_dense<Arg1> and native_eigen_dense<Arg2> and
+    (std::is_arithmetic_v<Err> or native_eigen_dense<Err>)>>
 #endif
     : ::testing::AssertionResult
   {
@@ -81,8 +77,8 @@ namespace OpenKalman::test
 #else
   template<typename Arg1, typename Arg2, typename Err>
   struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<indexible<Arg1> and indexible<Arg2> and
-    (native_eigen_general<Arg1> and not native_eigen_general<Arg2>) or
-    (not native_eigen_general<Arg1> and native_eigen_general<Arg2>)>>
+    ((native_eigen_general<Arg1> and not native_eigen_general<Arg2>) or
+    (not native_eigen_general<Arg1> and native_eigen_general<Arg2>))>>
 #endif
     : ::testing::AssertionResult
   {

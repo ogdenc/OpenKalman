@@ -22,99 +22,107 @@ namespace OpenKalman::Eigen3
 {
   namespace EGI = Eigen::internal;
 
+
   namespace detail
   {
-    template<typename LhsType, typename RhsType, template<typename...> typename T, CompileTimeStatus>
-    struct has_constant_args;
-
-    template<typename LhsType, typename RhsType, CompileTimeStatus c>
-    struct has_constant_args<LhsType, RhsType, constant_coefficient, c> : std::bool_constant<
-      constant_matrix<LhsType, Likelihood::maybe, c> and
-      constant_matrix<RhsType, Likelihood::maybe, c>> {};
-
-    template<typename LhsType, typename RhsType, CompileTimeStatus c>
-    struct has_constant_args<LhsType, RhsType, constant_diagonal_coefficient, c> : std::bool_constant<
-      constant_diagonal_matrix<LhsType, Likelihood::maybe, c> and
-      constant_diagonal_matrix<RhsType, Likelihood::maybe, c>> {};
-
-
-    template<typename LhsType, typename RhsType, template<typename...> typename T, typename Op, typename Arg>
-    static constexpr auto default_get_constant(const Op& op, const Arg& arg)
+    template<typename Op, typename LhsType, typename RhsType, bool is_diag, typename Arg>
+    static constexpr auto default_get_constant(const Arg& arg)
     {
-      if constexpr (has_constant_args<LhsType, RhsType, T, CompileTimeStatus::unknown>::value and std::is_same_v<LhsType, RhsType>)
+      if constexpr (is_diag)
       {
-        return arg.functor()(T {arg.lhs()}(), T {arg.rhs()}());
+        if constexpr (std::is_default_constructible_v<Op> and
+            constant_diagonal_matrix<LhsType, CompileTimeStatus::known, Likelihood::maybe> and
+            constant_diagonal_matrix<RhsType, CompileTimeStatus::known, Likelihood::maybe>)
+          return scalar_constant_operation {Op{}, constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
+        else if constexpr (constant_diagonal_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe> and
+                           constant_diagonal_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe>)
+          return scalar_constant_operation {arg.functor(), constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
+        else
+          return std::monostate {};
       }
-      else if constexpr (has_constant_args<LhsType, RhsType, T, CompileTimeStatus::any>::value)
-        return scalar_constant_operation {op, T {arg.lhs()}, T {arg.rhs()}};
       else
-        return std::monostate {};
+      {
+        if constexpr (std::is_default_constructible_v<Op> and
+            constant_matrix<LhsType, CompileTimeStatus::known, Likelihood::maybe> and
+            constant_matrix<RhsType, CompileTimeStatus::known, Likelihood::maybe>)
+          return scalar_constant_operation {Op{}, constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
+        else if constexpr (constant_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe> and
+                           constant_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe>)
+        {
+          return scalar_constant_operation {arg.functor(), constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
+        }
+        else
+          return std::monostate {};
+      }
     }
 
 
-    template<typename LhsType, typename RhsType, typename Op, template<typename...> typename T, typename Arg>
+    template<typename Op, typename LhsType, typename RhsType, bool is_diag, typename Arg>
     static constexpr auto get_constant_sum_impl(const Arg& arg)
     {
       if constexpr (zero_matrix<LhsType>)
-        return T {arg.rhs()};
+      {
+        if constexpr (is_diag) return constant_diagonal_coefficient {arg.rhs()};
+        else return constant_coefficient {arg.rhs()};
+      }
       else if constexpr (zero_matrix<RhsType>)
-        return T {arg.lhs()};
-      else
-        return default_get_constant<LhsType, RhsType, T>(Op{}, arg);
+      {
+        if constexpr (is_diag) return constant_diagonal_coefficient {arg.lhs()};
+        else return constant_coefficient {arg.lhs()};
+      }
+      else return default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
     }
 
 
-    template<typename LhsType, typename RhsType, typename Op, template<typename...> typename T, typename Arg>
+    template<typename Op, typename LhsType, typename RhsType, bool is_diag, typename Arg>
     static constexpr auto get_constant_product_impl(const Arg& arg)
     {
       if constexpr (zero_matrix<LhsType>)
       {
-        return T {arg.lhs()};
+        return constant_coefficient {arg.lhs()};
       }
       else if constexpr (zero_matrix<RhsType>)
       {
-        return T {arg.rhs()};
+        return constant_coefficient {arg.rhs()};
       }
-      else if constexpr (std::is_same_v<T<LhsType>, constant_diagonal_coefficient<LhsType>> and
-        constant_diagonal_matrix<LhsType, Likelihood::definitely, CompileTimeStatus::any> and
-        constant_matrix<RhsType, Likelihood::maybe, CompileTimeStatus::any>)
+      else if constexpr (is_diag and constant_diagonal_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe> and constant_matrix<RhsType>)
       {
-        return scalar_constant_operation {
-          Op{}, constant_diagonal_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
+        if constexpr (std::is_default_constructible_v<Op> and
+            constant_diagonal_matrix<LhsType, CompileTimeStatus::known, Likelihood::maybe> and constant_matrix<RhsType, CompileTimeStatus::known>)
+          return scalar_constant_operation {Op{}, constant_diagonal_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
+        else
+          return scalar_constant_operation {arg.functor(), constant_diagonal_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
       }
-      else if constexpr (std::is_same_v<T<RhsType>, constant_diagonal_coefficient<RhsType>> and
-        constant_matrix<LhsType, Likelihood::maybe, CompileTimeStatus::any> and
-        constant_diagonal_matrix<RhsType, Likelihood::definitely, CompileTimeStatus::any>)
+      else if constexpr (is_diag and constant_matrix<LhsType> and constant_diagonal_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe>)
       {
-        return scalar_constant_operation {
-          Op{}, constant_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
+        if constexpr (std::is_default_constructible_v<Op> and
+            constant_matrix<LhsType, CompileTimeStatus::known, Likelihood::maybe> and constant_diagonal_matrix<RhsType, CompileTimeStatus::known, Likelihood::maybe>)
+          return scalar_constant_operation {Op{}, constant_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
+        else
+          return scalar_constant_operation {arg.functor(), constant_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
       }
       else
       {
-        return default_get_constant<LhsType, RhsType, T>(Op{}, arg);
+        return default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
       }
     }
 
 
-    template<typename Arg1, typename Arg2>
-    static constexpr auto is_diagonal_sum = diagonal_matrix<Arg1> and diagonal_matrix<Arg2>;
+    template<typename Arg1, typename Arg2, TriangleType t, Likelihood b>
+    static constexpr bool is_triangular_sum =
+      triangular_matrix<Arg1, t, Likelihood::maybe> and triangular_matrix<Arg2, t, Likelihood::maybe> and
+      (t != TriangleType::any or
+        (triangular_matrix<Arg1, TriangleType::upper, Likelihood::maybe> and triangular_matrix<Arg2, TriangleType::upper, Likelihood::maybe>) or
+        (triangular_matrix<Arg1, TriangleType::lower, Likelihood::maybe> and triangular_matrix<Arg2, TriangleType::lower, Likelihood::maybe>)) and
+      (b != Likelihood::definitely or triangular_matrix<Arg1, t, b> or triangular_matrix<Arg2, t, b>);
 
 
-    template<typename Arg1, typename Arg2>
-    static constexpr auto is_diagonal_product =
-      diagonal_matrix<Arg1> or diagonal_matrix<Arg2> or
-      (lower_triangular_matrix<Arg1> and upper_triangular_matrix<Arg2>) or
-      (upper_triangular_matrix<Arg1> and lower_triangular_matrix<Arg2>);
-
-
-    template<typename Arg1, typename Arg2>
-    static constexpr TriangleType triangle_type_product =
-      (diagonal_matrix<Arg1> or diagonal_matrix<Arg2> or
-        (lower_triangular_matrix<Arg1> and upper_triangular_matrix<Arg2>) or
-        (upper_triangular_matrix<Arg1> and lower_triangular_matrix<Arg2>)) ? TriangleType::diagonal :
-      ((lower_triangular_matrix<Arg1> or lower_triangular_matrix<Arg2>) ? TriangleType::lower :
-      ((upper_triangular_matrix<Arg1> or upper_triangular_matrix<Arg2>) ? TriangleType::upper :
-      TriangleType::none));
+    template<typename Arg1, typename Arg2, TriangleType t, Likelihood b>
+    static constexpr bool is_triangular_product =
+      triangular_matrix<Arg1, t, b> or triangular_matrix<Arg2, t, b> or
+      (((triangular_matrix<Arg1, TriangleType::lower, Likelihood::maybe> and triangular_matrix<Arg2, TriangleType::upper, Likelihood::maybe>) or
+      (triangular_matrix<Arg1, TriangleType::upper, Likelihood::maybe> and triangular_matrix<Arg2, TriangleType::lower, Likelihood::maybe>))
+        and (square_matrix<Arg1, b> or square_matrix<Arg2, b>));
 
   } // namespace detail
 
@@ -123,18 +131,15 @@ namespace OpenKalman::Eigen3
   template<typename BinaryOp, typename LhsType, typename RhsType>
   struct FunctorTraits<BinaryOp, LhsType, RhsType>
   {
-    template<template<typename...> typename T, typename Arg> 
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (std::is_same_v<T<LhsType>, constant_coefficient<LhsType>>)
-        return detail::default_get_constant<LhsType, RhsType, T>(arg.functor(), arg);
-      else
-        return std::monostate {};
+      if constexpr (is_diag) return std::monostate {};
+      else return detail::default_get_constant<BinaryOp, LhsType, RhsType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
-
-    static constexpr TriangleType triangle_type = TriangleType::none;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = false;
   };
@@ -143,34 +148,32 @@ namespace OpenKalman::Eigen3
   template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
   struct FunctorTraits<EGI::scalar_sum_op<Scalar1, Scalar2>, LhsType, RhsType>
   {
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return detail::get_constant_sum_impl<LhsType, RhsType, std::plus<>, T>(arg);
+      return detail::get_constant_sum_impl<std::plus<>, LhsType, RhsType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = detail::is_diagonal_sum<LhsType, RhsType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<LhsType, RhsType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType> and hermitian_matrix<RhsType>;
+    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Likelihood::maybe> and hermitian_matrix<RhsType, Likelihood::maybe>;
   };
 
 
   template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
   struct FunctorTraits<EGI::scalar_product_op<Scalar1, Scalar2>, LhsType, RhsType>
   {
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return detail::get_constant_product_impl<LhsType, RhsType, std::multiplies<>, T>(arg);
+      return detail::get_constant_product_impl<std::multiplies<>, LhsType, RhsType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = detail::is_diagonal_product<LhsType, RhsType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = detail::is_triangular_product<LhsType, RhsType, t, b>;
 
-    static constexpr TriangleType triangle_type = detail::triangle_type_product<LhsType, RhsType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType> and hermitian_matrix<RhsType>;
+    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Likelihood::maybe> and hermitian_matrix<RhsType, Likelihood::maybe>;
   };
 
 
@@ -182,17 +185,16 @@ namespace OpenKalman::Eigen3
       constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return constexpr_conj(arg1) * arg2; }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return detail::get_constant_product_impl<LhsType, RhsType, Op, T>(arg);
+      return detail::get_constant_product_impl<Op, LhsType, RhsType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = detail::is_diagonal_product<LhsType, RhsType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = detail::is_triangular_product<LhsType, RhsType, t, b>;
 
-    static constexpr TriangleType triangle_type = detail::triangle_type_product<LhsType, RhsType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType> and hermitian_matrix<RhsType>;
+    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Likelihood::maybe> and hermitian_matrix<RhsType, Likelihood::maybe>;
   };
 
 
@@ -204,17 +206,16 @@ namespace OpenKalman::Eigen3
       constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return std::min(arg1, arg2); }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return detail::default_get_constant<LhsType, RhsType, T>(Op{}, arg);
+      return detail::default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = detail::is_diagonal_sum<LhsType, RhsType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<LhsType, RhsType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType> and hermitian_matrix<RhsType>;
+    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Likelihood::maybe> and hermitian_matrix<RhsType, Likelihood::maybe>;
   };
 
 
@@ -226,17 +227,16 @@ namespace OpenKalman::Eigen3
       constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return std::max(arg1, arg2); }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return detail::default_get_constant<LhsType, RhsType, T>(Op{}, arg);
+      return detail::default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = detail::is_diagonal_sum<LhsType, RhsType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<LhsType, RhsType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType> and hermitian_matrix<RhsType>;
+    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Likelihood::maybe> and hermitian_matrix<RhsType, Likelihood::maybe>;
   };
 
 
@@ -258,18 +258,17 @@ namespace OpenKalman::Eigen3
       }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (not std::is_same_v<T<LhsType>, constant_coefficient<LhsType>>) return std::monostate {};
-      else return detail::default_get_constant<LhsType, RhsType, constant_coefficient>(Op{}, arg);
+      if constexpr (is_diag) return std::monostate {};
+      else return detail::default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType> and hermitian_matrix<RhsType>;
+    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Likelihood::maybe> and hermitian_matrix<RhsType, Likelihood::maybe>;
   };
 
 
@@ -284,17 +283,16 @@ namespace OpenKalman::Eigen3
       }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return detail::get_constant_sum_impl<LhsType, RhsType, Op, T>(arg);
+      return detail::get_constant_sum_impl<Op, LhsType, RhsType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = detail::is_diagonal_sum<LhsType, RhsType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<LhsType, RhsType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType> and hermitian_matrix<RhsType>;
+    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Likelihood::maybe> and hermitian_matrix<RhsType, Likelihood::maybe>;
   };
 
 
@@ -306,124 +304,126 @@ namespace OpenKalman::Eigen3
       constexpr auto operator()(Scalar arg1, Exponent arg2) const noexcept { return internal::constexpr_pow(arg1, arg2); }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (not std::is_same_v<T<LhsType>, constant_coefficient<LhsType>>) return std::monostate {};
-      else if constexpr (zero_matrix<RhsType>) return std::integral_constant<int, 1>{};
-      else return detail::default_get_constant<LhsType, RhsType, constant_coefficient>(Op{}, arg);
+      if constexpr (is_diag) return std::monostate {};
+      else if constexpr (zero_matrix<RhsType>) return ScalarConstant<Likelihood::definitely, Scalar, 1>{};
+      else return detail::default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType> and hermitian_matrix<RhsType>;
+    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Likelihood::maybe> and hermitian_matrix<RhsType, Likelihood::maybe>;
   };
 
 
   template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
   struct FunctorTraits<EGI::scalar_difference_op<Scalar1, Scalar2>, LhsType, RhsType>
   {
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (zero_matrix<LhsType>) return scalar_constant_operation {std::negate<>{}, T {arg.rhs()}};
-      else if constexpr (zero_matrix<RhsType>) return T {arg.lhs()};
-      else return detail::default_get_constant<LhsType, RhsType, T>(std::minus<>{}, arg);
+      if constexpr (zero_matrix<LhsType>)
+      {
+        if constexpr (is_diag) return scalar_constant_operation {std::negate<>{}, constant_diagonal_coefficient {arg.rhs()}};
+        else return scalar_constant_operation {std::negate<>{}, constant_coefficient {arg.rhs()}};
+      }
+      else if constexpr (zero_matrix<RhsType>)
+      {
+        if constexpr (is_diag) return constant_diagonal_coefficient {arg.lhs()};
+        else return constant_coefficient {arg.lhs()};
+      }
+      else return detail::default_get_constant<std::minus<>, LhsType, RhsType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = detail::is_diagonal_sum<LhsType, RhsType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<LhsType, RhsType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType> and hermitian_matrix<RhsType>;
+    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Likelihood::maybe> and hermitian_matrix<RhsType, Likelihood::maybe>;
   };
 
 
   template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
   struct FunctorTraits<EGI::scalar_quotient_op<Scalar1, Scalar2>, LhsType, RhsType>
   {
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (not std::is_same_v<T<LhsType>, constant_coefficient<LhsType>> or zero_matrix<RhsType>) return std::monostate {};
-      else return detail::default_get_constant<LhsType, RhsType, constant_coefficient>(std::divides<>{}, arg);
+      if constexpr (is_diag or zero_matrix<RhsType>) return std::monostate {};
+      else return detail::default_get_constant<std::divides<>, LhsType, RhsType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType> and hermitian_matrix<RhsType>;
+    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Likelihood::maybe> and hermitian_matrix<RhsType, Likelihood::maybe>;
   };
 
 
   template<typename LhsType, typename RhsType>
   struct FunctorTraits<EGI::scalar_boolean_and_op, LhsType, RhsType>
   {
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return detail::get_constant_product_impl<LhsType, RhsType, std::logical_and<>, T>(arg);
+      return detail::get_constant_product_impl<std::logical_and<>, LhsType, RhsType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = detail::is_diagonal_product<LhsType, RhsType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = detail::is_triangular_product<LhsType, RhsType, t, b>;
 
-    static constexpr TriangleType triangle_type = detail::triangle_type_product<LhsType, RhsType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType> and hermitian_matrix<RhsType>;
+    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Likelihood::maybe> and hermitian_matrix<RhsType, Likelihood::maybe>;
   };
 
 
   template<typename LhsType, typename RhsType>
   struct FunctorTraits<EGI::scalar_boolean_or_op, LhsType, RhsType>
   {
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (std::is_same_v<T<LhsType>, constant_coefficient<LhsType>> and
-        constant_diagonal_matrix<LhsType, Likelihood::definitely, CompileTimeStatus::any> and
-        constant_matrix<RhsType, Likelihood::maybe, CompileTimeStatus::known>)
+      if constexpr (not is_diag and
+        constant_diagonal_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe> and
+        constant_matrix<RhsType, CompileTimeStatus::known, Likelihood::maybe>)
       {
-        if constexpr (constant_coefficient_v<RhsType> == true) return std::integral_constant<bool, true>{};
+        if constexpr (constant_coefficient_v<RhsType> == true) return internal::ScalarConstant<Likelihood::maybe, bool, true>{};
         else return constant_diagonal_coefficient {arg.lhs()};
       }
-      else if constexpr (std::is_same_v<T<RhsType>, constant_coefficient<RhsType>> and
-        constant_matrix<LhsType, Likelihood::maybe, CompileTimeStatus::known> and
-        constant_diagonal_matrix<RhsType, Likelihood::definitely, CompileTimeStatus::any>)
+      else if constexpr (not is_diag and
+        constant_matrix<LhsType, CompileTimeStatus::known, Likelihood::maybe> and
+        constant_diagonal_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe>)
       {
-        if constexpr (constant_coefficient_v<LhsType> == true) return std::integral_constant<bool, true>{};
+        if constexpr (constant_coefficient_v<LhsType> == true) return internal::ScalarConstant<Likelihood::maybe, bool, true>{};
         else return constant_diagonal_coefficient {arg.rhs()};
       }
       else
       {
-        return detail::get_constant_sum_impl<LhsType, RhsType, std::logical_or<>, T>(arg);
+        return detail::get_constant_sum_impl<std::logical_or<>, LhsType, RhsType, is_diag>(arg);
       }
     }
 
-    static constexpr bool is_diagonal = detail::is_diagonal_sum<LhsType, RhsType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<LhsType, RhsType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType> and hermitian_matrix<RhsType>;
+    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Likelihood::maybe> and hermitian_matrix<RhsType, Likelihood::maybe>;
   };
 
 
   template<typename LhsType, typename RhsType>
   struct FunctorTraits<EGI::scalar_boolean_xor_op, LhsType, RhsType>
   {
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return detail::default_get_constant<LhsType, RhsType, T>(std::not_equal_to<>{}, arg);
+      return detail::default_get_constant<std::not_equal_to<>, LhsType, RhsType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
-    static constexpr TriangleType triangle_type = TriangleType::none;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType> and hermitian_matrix<RhsType>;
+    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Likelihood::maybe> and hermitian_matrix<RhsType, Likelihood::maybe>;
   };
 
 
@@ -436,17 +436,16 @@ namespace OpenKalman::Eigen3
       constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return arg2 > arg1 ? arg2 - arg1 : arg1 - arg2; }
     };
 
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return detail::get_constant_sum_impl<LhsType, RhsType, Op, T>(arg);
+      return detail::get_constant_sum_impl<Op, LhsType, RhsType, is_diag>(arg);
     }
 
-    static constexpr bool is_diagonal = detail::is_diagonal_sum<LhsType, RhsType>;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t, b>;
 
-    static constexpr TriangleType triangle_type = triangle_type_of_v<LhsType, RhsType>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType> and hermitian_matrix<RhsType>;
+    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Likelihood::maybe> and hermitian_matrix<RhsType, Likelihood::maybe>;
   };
 #endif
 

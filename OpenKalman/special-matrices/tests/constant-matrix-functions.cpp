@@ -244,6 +244,11 @@ TEST(eigen3, ConstantAdapter_functions)
   EXPECT_EQ(get_dimensions_of<0>(lqzc00_32), 3);
   EXPECT_EQ(get_dimensions_of<1>(lqzc00_32), 3);
 
+  EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<M32, double> (3.)), lq332));
+  EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<M30, double> (3., 2)), lq332));
+  EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<M02, double> (3., 3)), lq332));
+  EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<M00, double> (3., 3, 2)), lq332));
+
   EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<eigen_matrix_t<double, 3, 5>, double, 7> ()), QR_decomposition(make_eigen_matrix<double, 3, 5>(7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7)).cwiseAbs()));
   auto qr323 = make_self_contained(QR_decomposition(make_eigen_matrix<double, 2, 3>(3, 3, 3, 3, 3, 3)).cwiseAbs());
   EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<M23, double, 3> ()), qr323));
@@ -259,6 +264,11 @@ TEST(eigen3, ConstantAdapter_functions)
   EXPECT_TRUE(is_near(qrzc00_23, qr323));
   EXPECT_EQ(get_dimensions_of<0>(qrzc00_23), 3);
   EXPECT_EQ(get_dimensions_of<1>(qrzc00_23), 3);
+
+  EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<M23, double> (3.)), qr323));
+  EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<M20, double> (3., 3)), qr323));
+  EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<M03, double> (3., 2)), qr323));
+  EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<M00, double> (3., 2, 3)), qr323));
 }
 
 
@@ -1265,16 +1275,29 @@ TEST(eigen3, constant_element_functions)
   EXPECT_TRUE(is_near(get_block<1>(z34, std::tuple{N0}, std::tuple{N2}), make_zero_matrix_like<M32>()));
   EXPECT_TRUE(is_near(get_block<1>(z34, std::tuple{1}, std::tuple{1}), make_zero_matrix_like<M31>()));
 
-  auto c34 = make_constant_matrix_like<M34, 3>();
-  EXPECT_TRUE(is_near(get_block(c34, std::tuple{N0, N0}, std::tuple{N2, N2}), make_constant_matrix_like<M22, 3>()));
-  EXPECT_TRUE(is_near(get_block(c34, std::tuple{N1, N1}, std::tuple{2, N3}), make_constant_matrix_like<M23, 3>()));
-  EXPECT_TRUE(is_near(get_block(c34, std::tuple{0, 0}, std::tuple{2, N2}), make_constant_matrix_like<M22, 3>()));
-  EXPECT_TRUE(is_near(get_block(c34, std::tuple{0, 0}, std::tuple{2, N2}), make_constant_matrix_like<M22, 3>()));
-  EXPECT_TRUE(is_near(get_block<1, 0>(c34, std::tuple{N0, N0}, std::tuple{N3, N2}), make_constant_matrix_like<M23, 3>()));
-  EXPECT_TRUE(is_near(get_block<0>(c34, std::tuple{N0}, std::tuple{N2}), make_constant_matrix_like<M24, 3>()));
-  EXPECT_TRUE(is_near(get_block<0>(c34, std::tuple{1}, std::tuple{1}), make_constant_matrix_like<M14, 3>()));
-  EXPECT_TRUE(is_near(get_block<1>(c34, std::tuple{N0}, std::tuple{N2}), make_constant_matrix_like<M32, 3>()));
-  EXPECT_TRUE(is_near(get_block<1>(c34, std::tuple{1}, std::tuple{1}), make_constant_matrix_like<M31, 3>()));
+  auto c34 = make_constant_matrix_like<M34, double, 3>();
+
+  EXPECT_TRUE(is_near(get_block(c34, std::tuple{N0, N0}, std::tuple{N2, N2}), make_constant_matrix_like<M22, double, 3>()));
+  EXPECT_TRUE(is_near(get_block(c34, std::tuple{N1, N1}, std::tuple{2, N3}), make_constant_matrix_like<M23, double, 3>()));
+  EXPECT_TRUE(is_near(get_block(c34, std::tuple{0, 0}, std::tuple{2, N2}), make_constant_matrix_like<M22, double, 3>()));
+  EXPECT_TRUE(is_near(get_block(c34, std::tuple{0, 0}, std::tuple{2, N2}), make_constant_matrix_like<M22, double, 3>()));
+  EXPECT_TRUE(is_near(get_block<1, 0>(c34, std::tuple{N0, N0}, std::tuple{N3, N2}), make_constant_matrix_like<M23, double, 3>()));
+  EXPECT_TRUE(is_near(get_block<0>(c34, std::tuple{N0}, std::tuple{N2}), make_constant_matrix_like<M24, double, 3>()));
+  EXPECT_TRUE(is_near(get_block<0>(c34, std::tuple{1}, std::tuple{1}), make_constant_matrix_like<M14, double, 3>()));
+  EXPECT_TRUE(is_near(get_block<1>(c34, std::tuple{N0}, std::tuple{N2}), make_constant_matrix_like<M32, double, 3>()));
+  EXPECT_TRUE(is_near(get_block<1>(c34, std::tuple{1}, std::tuple{1}), make_constant_matrix_like<M31, double, 3>()));
+
+  auto c34r = make_constant_matrix_like<M34>(3.);
+
+  EXPECT_TRUE(is_near(get_block(c34r, std::tuple{N0, N0}, std::tuple{N2, N2}), make_constant_matrix_like<M22>(3.)));
+  EXPECT_TRUE(is_near(get_block(c34r, std::tuple{N1, N1}, std::tuple{2, N3}), make_constant_matrix_like<M23>(3.)));
+  EXPECT_TRUE(is_near(get_block(c34r, std::tuple{0, 0}, std::tuple{2, N2}), make_constant_matrix_like<M22>(3.)));
+  EXPECT_TRUE(is_near(get_block(c34r, std::tuple{0, 0}, std::tuple{2, N2}), make_constant_matrix_like<M22>(3.)));
+  EXPECT_TRUE(is_near(get_block<1, 0>(c34r, std::tuple{N0, N0}, std::tuple{N3, N2}), make_constant_matrix_like<M23>(3.)));
+  EXPECT_TRUE(is_near(get_block<0>(c34r, std::tuple{N0}, std::tuple{N2}), make_constant_matrix_like<M24>(3.)));
+  EXPECT_TRUE(is_near(get_block<0>(c34r, std::tuple{1}, std::tuple{1}), make_constant_matrix_like<M14>(3.)));
+  EXPECT_TRUE(is_near(get_block<1>(c34r, std::tuple{N0}, std::tuple{N2}), make_constant_matrix_like<M32>(3.)));
+  EXPECT_TRUE(is_near(get_block<1>(c34r, std::tuple{1}, std::tuple{1}), make_constant_matrix_like<M31>(3.)));
 
   // get_chip
 

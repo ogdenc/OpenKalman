@@ -133,6 +133,7 @@ TEST(eigen3, rank_update_diagonal)
 
   auto m22_2012 = make_dense_writable_matrix_from<M22>(2, 0, 1, 2);
   auto m22_198823 = make_dense_writable_matrix_from<M22>(19, 8, 8, 23);
+  auto m22_258829_sqrt = make_dense_writable_matrix_from<M22>(5, 0, 1.6, std::sqrt(26.44));
 
   EXPECT_TRUE(is_near(rank_update_self_adjoint(Eigen::DiagonalMatrix<double, 2>(m21_33), m22_2012, 4), m22_198823));
   EXPECT_TRUE(is_near(rank_update_self_adjoint(Eigen::DiagonalMatrix<double, Eigen::Dynamic>(m21_33), m22_2012, 4), m22_198823));
@@ -141,6 +142,13 @@ TEST(eigen3, rank_update_diagonal)
   EXPECT_TRUE(is_near(rank_update_self_adjoint(Eigen::DiagonalWrapper {m01_33}, m22_2012, 4), m22_198823));
   EXPECT_TRUE(is_near(rank_update_self_adjoint(Eigen::DiagonalWrapper {m00_33}, m22_2012, 4), m22_198823));
 
+  EXPECT_TRUE(is_near(rank_update_triangular(Eigen::DiagonalMatrix<double, 2>(m21_33), m22_2012, 4), m22_258829_sqrt));
+  EXPECT_TRUE(is_near(rank_update_triangular(Eigen::DiagonalMatrix<double, Eigen::Dynamic>(m21_33), m22_2012, 4), m22_258829_sqrt));
+  EXPECT_TRUE(is_near(rank_update_triangular(Eigen::DiagonalWrapper {m21_33}, m22_2012, 4), m22_258829_sqrt));
+  EXPECT_TRUE(is_near(rank_update_triangular(Eigen::DiagonalWrapper {m20_33}, m22_2012, 4), m22_258829_sqrt));
+  EXPECT_TRUE(is_near(rank_update_triangular(Eigen::DiagonalWrapper {m01_33}, m22_2012, 4), m22_258829_sqrt));
+  EXPECT_TRUE(is_near(rank_update_triangular(Eigen::DiagonalWrapper {m00_33}, m22_2012, 4), m22_258829_sqrt));
+
   static_assert(not std::is_lvalue_reference_v<decltype(rank_update_self_adjoint(Eigen::DiagonalMatrix<double, 2>(m21_33), m22_2012, 4))>);
   static_assert(not std::is_lvalue_reference_v<decltype(rank_update_self_adjoint(Eigen::DiagonalMatrix<double, Eigen::Dynamic>(m21_33), m22_2012, 4))>);
   static_assert(not std::is_lvalue_reference_v<decltype(rank_update_self_adjoint(Eigen::DiagonalWrapper {m00_33}, m22_2012, 4))>);
@@ -148,6 +156,21 @@ TEST(eigen3, rank_update_diagonal)
   static_assert(not std::is_lvalue_reference_v<decltype(rank_update_triangular(Eigen::DiagonalMatrix<double, 2>(m21_33), m22_2012, 4))>);
   static_assert(not std::is_lvalue_reference_v<decltype(rank_update_triangular(Eigen::DiagonalMatrix<double, Eigen::Dynamic>(m21_33), m22_2012, 4))>);
   static_assert(not std::is_lvalue_reference_v<decltype(rank_update_triangular(Eigen::DiagonalWrapper {m00_33}, m22_2012, 4))>);
+
+  const auto cd22_3 = M22::Identity() + M22::Identity() + M22::Identity();
+  const auto cd20_3 = Eigen::Replicate<decltype(cd22_3), 1, Eigen::Dynamic> {cd22_3, 1, 1};
+  const auto cd02_3 = Eigen::Replicate<decltype(cd22_3), Eigen::Dynamic, 1> {cd22_3, 1, 1};
+  const auto cd00_3 = Eigen::Replicate<decltype(cd22_3), Eigen::Dynamic, Eigen::Dynamic> {cd22_3, 1, 1};
+
+  EXPECT_TRUE(is_near(rank_update_self_adjoint(cd22_3.triangularView<Eigen::Lower>(), m22_2012, 4), m22_198823));
+  EXPECT_TRUE(is_near(rank_update_self_adjoint(cd20_3.triangularView<Eigen::Upper>(), m22_2012, 4), m22_198823));
+  EXPECT_TRUE(is_near(rank_update_self_adjoint(cd02_3.triangularView<Eigen::Lower>(), m22_2012, 4), m22_198823));
+  EXPECT_TRUE(is_near(rank_update_self_adjoint(cd00_3.triangularView<Eigen::Upper>(), m22_2012, 4), m22_198823));
+
+  EXPECT_TRUE(is_near(rank_update_triangular(cd22_3.selfadjointView<Eigen::Lower>(), m22_2012, 4), m22_258829_sqrt));
+  EXPECT_TRUE(is_near(rank_update_triangular(cd20_3.selfadjointView<Eigen::Upper>(), m22_2012, 4), m22_258829_sqrt));
+  EXPECT_TRUE(is_near(rank_update_triangular(cd02_3.selfadjointView<Eigen::Lower>(), m22_2012, 4), m22_258829_sqrt));
+  EXPECT_TRUE(is_near(rank_update_triangular(cd00_3.selfadjointView<Eigen::Upper>(), m22_2012, 4), m22_258829_sqrt));
 }
 
 
@@ -168,15 +191,15 @@ TEST(eigen3, rank_update_self_adjoint)
 
   m22 = make_dense_writable_matrix_from<M22>(9, 9, 9, 18);
 
-  EXPECT_TRUE(is_near(rank_update_self_adjoint(M22 {m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4), m22_25));
-  EXPECT_TRUE(is_near(rank_update_self_adjoint(M20 {m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4), m22_25));
-  EXPECT_TRUE(is_near(rank_update_self_adjoint(M02 {m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4), m22_25));
-  EXPECT_TRUE(is_near(rank_update_self_adjoint(M00 {m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4), m22_25));
+  EXPECT_TRUE(is_near(rank_update_self_adjoint(M22{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4), m22_25));
+  EXPECT_TRUE(is_near(rank_update_self_adjoint(M20{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4), m22_25));
+  EXPECT_TRUE(is_near(rank_update_self_adjoint(M02{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4), m22_25));
+  EXPECT_TRUE(is_near(rank_update_self_adjoint(M00{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4), m22_25));
 
-  static_assert(lower_hermitian_adapter<decltype(rank_update_self_adjoint(M22 {m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4))>);
-  static_assert(lower_hermitian_adapter<decltype(rank_update_self_adjoint(M20 {m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4))>);
-  static_assert(lower_hermitian_adapter<decltype(rank_update_self_adjoint(M02 {m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4))>);
-  static_assert(lower_hermitian_adapter<decltype(rank_update_self_adjoint(M00 {m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4))>);
+  static_assert(hermitian_adapter<decltype(rank_update_self_adjoint(M22{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4)), HermitianAdapterType::lower>);
+  static_assert(hermitian_adapter<decltype(rank_update_self_adjoint(M20{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4)), HermitianAdapterType::lower>);
+  static_assert(hermitian_adapter<decltype(rank_update_self_adjoint(M02{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4)), HermitianAdapterType::lower>);
+  static_assert(hermitian_adapter<decltype(rank_update_self_adjoint(M00{m22}.selfadjointView<Eigen::Lower>(), m22_2022, 4)), HermitianAdapterType::lower>);
 
   auto z22 = M22::Identity() - M22::Identity(); static_assert(zero_matrix<decltype(z22)>);
 
@@ -204,7 +227,7 @@ TEST(eigen3, rank_update_self_adjoint)
   EXPECT_TRUE(is_near(ru_93310_2102_4_rvalue, m22_29111126));
   EXPECT_TRUE(is_near(m22_93310.selfadjointView<Eigen::Upper>(), m22_29111126));
   static_assert(eigen_self_adjoint_expr<decltype(ru_93310_2102_4_rvalue)>);
-  static_assert(upper_hermitian_adapter<decltype(ru_93310_2102_4_rvalue)>);
+  static_assert(hermitian_adapter<decltype(ru_93310_2102_4_rvalue), HermitianAdapterType::upper>);
   static_assert(std::is_lvalue_reference_v<nested_matrix_of_t<decltype(ru_93310_2102_4_rvalue)>>);
 
   m22_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
@@ -215,7 +238,7 @@ TEST(eigen3, rank_update_self_adjoint)
   EXPECT_TRUE(is_near(sa_93310_2012_4, m22_25111130));
   EXPECT_TRUE(is_near(m22_93310.template selfadjointView<Eigen::Lower>(), m22_25111130));
   static_assert(eigen_self_adjoint_expr<decltype(ru_93310_2012_4_lvalue)>);
-  static_assert(lower_hermitian_adapter<decltype(ru_93310_2012_4_lvalue)>);
+  static_assert(hermitian_adapter<decltype(ru_93310_2012_4_lvalue), HermitianAdapterType::lower>);
   static_assert(std::is_lvalue_reference_v<nested_matrix_of_t<decltype(ru_93310_2012_4_lvalue)>>);
 
   m22_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
@@ -230,19 +253,19 @@ TEST(eigen3, rank_update_self_adjoint)
 
 TEST(eigen3, rank_update_triangular)
 {
-  auto m22_3033 = make_dense_writable_matrix_from<M22>(3, 0, 3, 3);
-  auto m20_3033 = make_dense_writable_matrix_from<M20>(m22_3033);
-  auto m02_3033 = make_dense_writable_matrix_from<M02>(m22_3033);
-  auto m00_3033 = make_dense_writable_matrix_from<M00>(m22_3033);
+  const auto m22_3033 = make_dense_writable_matrix_from<M22>(3, 0, 3, 3);
+  const auto m20_3033 = make_dense_writable_matrix_from<M20>(m22_3033);
+  const auto m02_3033 = make_dense_writable_matrix_from<M02>(m22_3033);
+  const auto m00_3033 = make_dense_writable_matrix_from<M00>(m22_3033);
 
-  auto m22_3303 = make_dense_writable_matrix_from<M22>(3, 3, 0, 3);
-  auto m20_3303 = make_dense_writable_matrix_from<M20>(m22_3303);
-  auto m02_3303 = make_dense_writable_matrix_from<M02>(m22_3303);
-  auto m00_3303 = make_dense_writable_matrix_from<M00>(m22_3303);
+  const auto m22_3303 = make_dense_writable_matrix_from<M22>(3, 3, 0, 3);
+  const auto m20_3303 = make_dense_writable_matrix_from<M20>(m22_3303);
+  const auto m02_3303 = make_dense_writable_matrix_from<M02>(m22_3303);
+  const auto m00_3303 = make_dense_writable_matrix_from<M00>(m22_3303);
 
-  auto m22_2022 = make_dense_writable_matrix_from<M22>(2, 0, 2, 2);
-  auto m22_5055 = make_dense_writable_matrix_from<M22>(5, 0, 5, 5);
-  auto m22_5505 = make_dense_writable_matrix_from<M22>(5, 5, 0, 5);
+  const auto m22_2022 = make_dense_writable_matrix_from<M22>(2, 0, 2, 2);
+  const auto m22_5055 = make_dense_writable_matrix_from<M22>(5, 0, 5, 5);
+  const auto m22_5505 = make_dense_writable_matrix_from<M22>(5, 5, 0, 5);
 
   auto m22 = m22_3033;
   auto m20 = m20_3033;
@@ -253,16 +276,26 @@ TEST(eigen3, rank_update_triangular)
   rank_update_triangular(m20.triangularView<Eigen::Lower>(), m22_2022, 4); EXPECT_TRUE(is_near(m20, m22_5055));
   rank_update_triangular(m02.triangularView<Eigen::Lower>(), m22_2022, 4); EXPECT_TRUE(is_near(m02, m22_5055));
   rank_update_triangular(m00.triangularView<Eigen::Lower>(), m22_2022, 4); EXPECT_TRUE(is_near(m00, m22_5055));
+  static_assert(triangular_matrix<decltype(rank_update_triangular(m22.triangularView<Eigen::Lower>(), m22_2022, 4)), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(rank_update_triangular(m20.triangularView<Eigen::Lower>(), m22_2022, 4)), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(rank_update_triangular(m02.triangularView<Eigen::Lower>(), m22_2022, 4)), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(rank_update_triangular(m00.triangularView<Eigen::Lower>(), m22_2022, 4)), TriangleType::lower>);
 
   EXPECT_TRUE(is_near(rank_update_triangular(M22 {m22_3033}.triangularView<Eigen::Lower>(), m22_2022, 4), m22_5055));
   EXPECT_TRUE(is_near(rank_update_triangular(M20 {m22_3033}.triangularView<Eigen::Lower>(), m22_2022, 4), m22_5055));
   EXPECT_TRUE(is_near(rank_update_triangular(M02 {m22_3033}.triangularView<Eigen::Lower>(), m22_2022, 4), m22_5055));
   EXPECT_TRUE(is_near(rank_update_triangular(M00 {m22_3033}.triangularView<Eigen::Lower>(), m22_2022, 4), m22_5055));
 
-  static_assert(lower_triangular_matrix<decltype(rank_update_triangular(M22 {m22_3033}.triangularView<Eigen::Lower>(), m22_2022, 4))>);
-  static_assert(lower_triangular_matrix<decltype(rank_update_triangular(M20 {m22_3033}.triangularView<Eigen::Lower>(), m22_2022, 4))>);
-  static_assert(lower_triangular_matrix<decltype(rank_update_triangular(M02 {m22_3033}.triangularView<Eigen::Lower>(), m22_2022, 4))>);
-  static_assert(lower_triangular_matrix<decltype(rank_update_triangular(M00 {m22_3033}.triangularView<Eigen::Lower>(), m22_2022, 4))>);
+  static_assert(triangular_matrix<decltype(rank_update_triangular(M22 {m22_3033}.triangularView<Eigen::Lower>(), m22_2022, 4)), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(rank_update_triangular(M20 {m22_3033}.triangularView<Eigen::Lower>(), m22_2022, 4)), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(rank_update_triangular(M02 {m22_3033}.triangularView<Eigen::Lower>(), m22_2022, 4)), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(rank_update_triangular(M00 {m22_3033}.triangularView<Eigen::Lower>(), m22_2022, 4)), TriangleType::lower>);
+
+  const auto constm00 {m00_3033};
+  static_assert(triangular_matrix<decltype(rank_update_triangular(constm00.triangularView<Eigen::Lower>(), m22_2022, 4)), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(rank_update_triangular(constm00.triangularView<Eigen::Lower>(), M20{m22_2022}, 4)), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(rank_update_triangular(constm00.triangularView<Eigen::Lower>(), M02{m22_2022}, 4)), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(rank_update_triangular(constm00.triangularView<Eigen::Lower>(), M00{m22_2022}, 4)), TriangleType::lower>);
 
   auto z22 = M22::Identity() - M22::Identity(); static_assert(zero_matrix<decltype(z22)>);
 
@@ -307,7 +340,7 @@ TEST(eigen3, rank_update_triangular)
   auto ru22_rvalue = rank_update_triangular(Eigen::TriangularView<M22, Eigen::Upper> {m22}, m22_2022, 4);
   EXPECT_TRUE(is_near(ru22_rvalue, m22_5505));
   static_assert(eigen_triangular_expr<decltype(ru22_rvalue)>);
-  static_assert(upper_triangular_matrix<decltype(ru22_rvalue)>);
+  static_assert(triangular_matrix<decltype(ru22_rvalue), TriangleType::upper>);
   static_assert(std::is_lvalue_reference_v<nested_matrix_of_t<decltype(ru22_rvalue)>>);
 
   m22 = m22_3033;
@@ -316,7 +349,7 @@ TEST(eigen3, rank_update_triangular)
   EXPECT_TRUE(is_near(ru22_const_lvalue, m22_5055));
   EXPECT_TRUE(is_near(t22_lvalue, m22_3033));
   static_assert(eigen_triangular_expr<decltype(ru22_const_lvalue)>);
-  static_assert(lower_triangular_matrix<decltype(ru22_const_lvalue)>);
+  static_assert(triangular_matrix<decltype(ru22_const_lvalue), TriangleType::lower>);
   static_assert(not std::is_lvalue_reference_v<nested_matrix_of_t<decltype(ru22_const_lvalue)>>);
 }
 

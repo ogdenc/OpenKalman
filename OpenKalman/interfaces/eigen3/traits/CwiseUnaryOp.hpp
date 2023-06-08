@@ -25,6 +25,26 @@ namespace OpenKalman::interface
 
 
   template<typename UnaryOp, typename XprType>
+  struct IndexTraits<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
+  {
+    template<std::size_t N>
+    static constexpr std::size_t dimension = index_dimension_of_v<XprType, N>;
+
+    template<std::size_t N, typename Arg>
+    static constexpr std::size_t dimension_at_runtime(const Arg& arg)
+    {
+      return get_index_dimension_of<N>(arg.nestedExpression());
+    }
+
+    template<Likelihood b>
+    static constexpr bool is_one_by_one = one_by_one_matrix<XprType, b>;
+
+    template<Likelihood b>
+    static constexpr bool is_square = square_matrix<XprType, b>;
+  };
+
+
+  template<typename UnaryOp, typename XprType>
   struct Dependencies<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
   {
   private:
@@ -83,27 +103,21 @@ namespace OpenKalman::interface
 
     constexpr auto get_constant()
     {
-      return Eigen3::FunctorTraits<UnaryOp, XprType>::template get_constant<constant_coefficient>(xpr);
+      return Eigen3::FunctorTraits<UnaryOp, XprType>::template get_constant<false>(xpr);
     }
 
     constexpr auto get_constant_diagonal()
     {
-      return Eigen3::FunctorTraits<UnaryOp, XprType>::template get_constant<constant_diagonal_coefficient>(xpr);
+      return Eigen3::FunctorTraits<UnaryOp, XprType>::template get_constant<true>(xpr);
     }
-  };
-
-
-  template<typename UnaryOp, typename XprType>
-  struct DiagonalTraits<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
-  {
-    static constexpr bool is_diagonal = Eigen3::FunctorTraits<UnaryOp, XprType>::is_diagonal;
   };
 
 
   template<typename UnaryOp, typename XprType>
   struct TriangularTraits<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
   {
-    static constexpr TriangleType triangle_type = Eigen3::FunctorTraits<UnaryOp, XprType>::triangle_type;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = Eigen3::FunctorTraits<UnaryOp, XprType>::template is_triangular<t, b>;
 
     static constexpr bool is_triangular_adapter = false;
   };
@@ -113,8 +127,6 @@ namespace OpenKalman::interface
   struct HermitianTraits<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
   {
     static constexpr bool is_hermitian = Eigen3::FunctorTraits<UnaryOp, XprType>::is_hermitian;
-
-    static constexpr TriangleType adapter_type = TriangleType::none;
   };
 
 

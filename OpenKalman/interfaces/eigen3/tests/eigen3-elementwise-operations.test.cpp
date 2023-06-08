@@ -91,6 +91,7 @@ TEST(eigen3, unary_operation)
   auto m03_2 = make_dense_writable_matrix_from<M03>(m23);
   auto m00_23 = make_dense_writable_matrix_from<M00>(m23);
   EXPECT_TRUE(is_near(n_ary_operation(std::tuple {Dimensions<2>{}, Dimensions<3>{}}, [](auto arg) {return arg + arg;}, m23), m23 * 2));
+  EXPECT_TRUE(is_near(n_ary_operation(std::tuple {Dimensions<2>{}, Dimensions<3>{}}, [](auto arg) {return arg + arg;}, EigenWrapper {m23}), m23 * 2));
   EXPECT_TRUE(is_near(n_ary_operation(std::tuple {Dimensions<2>{}, Dimensions<3>{}}, [](auto arg){return 3 * arg;}, m00_23), m23 * 3));
   EXPECT_TRUE(is_near(n_ary_operation(std::tuple {Dimensions{2}, Dimensions<3>{}}, [](const auto& arg){return 3 * arg;}, m20_3), m23 * 3));
   EXPECT_TRUE(is_near(n_ary_operation(std::tuple {Dimensions<2>{}, Dimensions{3}}, [](const auto& arg){return 3 * arg;}, m03_2), m23 * 3));
@@ -101,6 +102,7 @@ TEST(eigen3, unary_operation)
   auto m23p = make_dense_writable_matrix_from<M23>(0, 1, 2, 1, 2, 3);
 
   EXPECT_TRUE(is_near(n_ary_operation(std::tuple {Dimensions<2>{}, Dimensions<3>{}}, [](auto arg, std::size_t r, std::size_t c) {return arg + arg + r + c;}, m23), 2*m23 + m23p));
+  EXPECT_TRUE(is_near(n_ary_operation(std::tuple {Dimensions<2>{}, Dimensions<3>{}}, [](auto arg, std::size_t r, std::size_t c) {return arg + arg + r + c;}, EigenWrapper {m23}), 2*m23 + m23p));
   EXPECT_TRUE(is_near(n_ary_operation(std::tuple {Dimensions<2>{}, Dimensions<3>{}}, [](auto arg, std::size_t r, std::size_t c){return 3 * arg + r + c;}, m00_23), 3*m23 + m23p));
   EXPECT_TRUE(is_near(n_ary_operation(std::tuple {Dimensions{2}, Dimensions<3>{}}, [](const auto& arg, std::size_t r, std::size_t c){return 3 * arg + r + c;}, m20_3), 3*m23 + m23p));
   EXPECT_TRUE(is_near(n_ary_operation(std::tuple {Dimensions<2>{}, Dimensions{3}}, [](const auto& arg, std::size_t r, std::size_t c){return 3 * arg + r + c;}, m03_2), 3*m23 + m23p));
@@ -161,14 +163,20 @@ TEST(eigen3, unary_operation)
 
 TEST(eigen3, unary_operation_in_place)
 {
-  auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
-  auto m20_3 = make_dense_writable_matrix_from<M20>(m23);
-  auto m03_2 = make_dense_writable_matrix_from<M03>(m23);
-  auto m00_23 = make_dense_writable_matrix_from<M00>(m23);
+  const auto m23c = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
+  auto m23 {m23c};
+  auto m20_3 {make_dense_writable_matrix_from<M20>(m23)};
+  auto m03_2 {make_dense_writable_matrix_from<M03>(m23)};
+  auto m00_23 {make_dense_writable_matrix_from<M00>(m23)};
+  EigenWrapper ewm23 {m23};
 
-  EXPECT_TRUE(is_near(unary_operation_in_place([](auto& arg){return arg *= 3;}, m20_3), m23 * 3));
-  EXPECT_TRUE(is_near(unary_operation_in_place([](auto& arg){return arg *= 4;}, m03_2), m23 * 4));
-  EXPECT_TRUE(is_near(unary_operation_in_place([](auto& arg){return arg *= 5;}, m00_23), m23 * 5));
+  EXPECT_TRUE(is_near(unary_operation_in_place([](auto& arg){return arg *= 2;}, m23), m23c * 2));
+  EXPECT_TRUE(is_near(unary_operation_in_place([](auto& arg){return arg *= 3;}, ewm23), m23c * 6));
+  EXPECT_TRUE(is_near(unary_operation_in_place([](auto& arg){return arg *= 4;}, EigenWrapper {m23}), m23c * 24));
+
+  EXPECT_TRUE(is_near(unary_operation_in_place([](auto& arg){return arg *= 3;}, m20_3), m23c * 3));
+  EXPECT_TRUE(is_near(unary_operation_in_place([](auto& arg){return arg *= 4;}, m03_2), m23c * 4));
+  EXPECT_TRUE(is_near(unary_operation_in_place([](auto& arg){return arg *= 5;}, m00_23), m23c * 5));
 
   const auto m33_123 = make_dense_writable_matrix_from<M33>(
     1, 0, 0,
@@ -184,6 +192,7 @@ TEST(eigen3, unary_operation_in_place)
   auto m30 = M30 {m33_123}; unary_operation_in_place([](auto& x){ return x += 1; }, m30); EXPECT_TRUE(is_near(m30, m33_234));
   auto m03 = M03 {m33_123}; unary_operation_in_place([](auto& x){ return x += 1; }, m03); EXPECT_TRUE(is_near(m03, m33_234));
   auto m00 = M00 {m33_123}; unary_operation_in_place([](auto& x){ return x += 1; }, m00); EXPECT_TRUE(is_near(m00, m33_234));
+  auto ewm33 = EigenWrapper {M33 {m33_123}}; unary_operation_in_place([](auto& x){ return x += 1; }, ewm33); EXPECT_TRUE(is_near(ewm33, m33_234));
 
   EXPECT_TRUE(is_near(unary_operation_in_place([](double& x){ ++x; }, M33 {m33_123}), m33_234));
   EXPECT_TRUE(is_near(unary_operation_in_place([](double& x){ ++x; }, M30 {m33_123}), m33_234));

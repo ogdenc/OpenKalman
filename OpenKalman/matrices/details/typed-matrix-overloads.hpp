@@ -17,17 +17,19 @@ namespace OpenKalman::interface
 {
 
 #ifdef __cpp_concepts
-  template<typed_matrix T, std::convertible_to<const std::size_t&>...I> requires (sizeof...(I) <= 2) and
-    element_gettable<nested_matrix_of_t<T>, I...>
-  struct GetElement<T, I...>
+  template<typed_matrix T>
+  struct GetElement<T>
 #else
-  template<typename T, typename...I>
-  struct GetElement<T, I..., std::enable_if_t<typed_matrix<T> and element_gettable<nested_matrix_of_t<T>, I...> and
-    ((sizeof...(I) <= 2) and ... and std::is_convertible_v<I, const std::size_t&>)>>
+  template<typename T>
+  struct GetElement<T, std::enable_if_t<typed_matrix<T>>>
 #endif
   {
-    template<typename Arg>
-    static constexpr auto get(Arg&& arg, I...i)
+#ifdef __cpp_lib_concepts
+    template<typename Arg, typename...I> requires element_gettable<nested_matrix_of_t<Arg>, I...>
+#else
+    template<typename Arg, typename...I, std::enable_if_t<element_gettable<typename nested_matrix_of<Arg>::type, I...>, int> = 0>
+#endif
+    static constexpr decltype(auto) get(Arg&& arg, I...i)
     {
       return get_element(nested_matrix(std::forward<Arg>(arg)), i...);
     }
@@ -35,18 +37,19 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix T, std::convertible_to<const std::size_t&> I, std::convertible_to<const std::size_t&>...Is>
-    requires (sizeof...(Is) <= 1) and element_settable<nested_matrix_of_t<T>, I, Is...>
-  struct SetElement<T, I, Is...>
+  template<typed_matrix T>
+  struct SetElement<T>
 #else
-  template<typename T, typename I, typename...I>
-  struct SetElement<T, I, Is..., std::enable_if_t<typed_matrix<T> and
-    (std::is_convertible_v<I, const std::size_t&> and ... and std::is_convertible_v<Is, const std::size_t&>) and
-    (sizeof...(Is) <= 1) and element_settable<nested_matrix_of_t<T>, I, Is...>>>
+  template<typename T>
+  struct SetElement<T, std::enable_if_t<typed_matrix<T>>>
 #endif
   {
-    template<typename Arg, typename Scalar>
-    static constexpr Arg& set(Arg& arg, Scalar s, I i, Is...is)
+#ifdef __cpp_lib_concepts
+    template<typename Arg, typename I, typename...Is> requires element_settable<nested_matrix_of_t<Arg>, I, Is...>
+#else
+    template<typename Arg, typename I, typename...Is, std::enable_if_t<element_settable<typename nested_matrix_of<Arg>::type, I, Is...>, int> = 0>
+#endif
+    static constexpr Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, I i, Is...is)
     {
       if constexpr(wrapped_mean<Arg>)
       {
@@ -63,7 +66,8 @@ namespace OpenKalman::interface
       {
         set_element(nested_matrix(arg), s, i, is...);
       }
-      return arg;
+
+      return std::forward<Arg>(arg);
     }
   };
 
@@ -234,7 +238,6 @@ namespace OpenKalman
     struct linearAlgebra<T, std::enable_if_t<typed_matrix<T>>>
 #endif
     {
-
       template<typename Arg>
       static constexpr auto conjugate(Arg&& arg) noexcept
       {
@@ -303,18 +306,17 @@ namespace OpenKalman
       }
 
 
-      template<TriangleType t, typename A, typename U, typename Alpha>
+      template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
       static decltype(auto) rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
       {
-        return OpenKalman::rank_update_self_adjoint<t>(
-          nested_matrix(std::forward<A>(a)), nested_matrix(std::forward<U>(u)), alpha);
+        return OpenKalman::rank_update_self_adjoint(nested_matrix(std::forward<A>(a)), nested_matrix(std::forward<U>(u)), alpha);
       }
 
 
-      template<TriangleType t, typename A, typename U, typename Alpha>
-      static decltype(auto) rank_update_triangular(A&& arg, U&& u, const Alpha alpha)
+      template<TriangleType triangle, typename A, typename U, typename Alpha>
+      static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
       {
-        return OpenKalman::rank_update_triangular<t>(
+        return OpenKalman::rank_update_triangular(
           nested_matrix(std::forward<A>(a)), nested_matrix(std::forward<U>(u)), alpha);
       }
 

@@ -24,6 +24,31 @@ namespace OpenKalman::interface
   namespace EGI = Eigen::internal;
 
 
+  template<typename NullaryOp, typename PlainObjectType>
+  struct IndexTraits<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
+  {
+    template<std::size_t N>
+    static constexpr std::size_t dimension = index_dimension_of_v<PlainObjectType, N>;
+
+    template<std::size_t N, typename Arg>
+    static constexpr std::size_t dimension_at_runtime(const Arg& arg)
+    {
+      if constexpr (dimension<N> == dynamic_size)
+      {
+        if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
+        else return static_cast<std::size_t>(arg.cols());
+      }
+      else return dimension<N>;
+    }
+
+    template<Likelihood b>
+    static constexpr bool is_one_by_one = one_by_one_matrix<PlainObjectType, b>;
+
+    template<Likelihood b>
+    static constexpr bool is_square = square_matrix<PlainObjectType, b>;
+  };
+
+
   namespace detail
   {
     template<typename NullaryOp, typename PlainObjectType>
@@ -72,27 +97,21 @@ namespace OpenKalman::interface
 
     constexpr auto get_constant()
     {
-      return Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::template get_constant<constant_coefficient>(xpr);
+      return Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::template get_constant<false>(xpr);
     }
 
     constexpr auto get_constant_diagonal()
     {
-      return Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::template get_constant<constant_diagonal_coefficient>(xpr);
+      return Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::template get_constant<true>(xpr);
     }
-  };
-
-
-  template<typename NullaryOp, typename PlainObjectType>
-  struct DiagonalTraits<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
-  {
-    static constexpr bool is_diagonal = Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::is_diagonal;
   };
 
 
   template<typename NullaryOp, typename PlainObjectType>
   struct TriangularTraits<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
   {
-    static constexpr TriangleType triangle_type = Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::triangle_type;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::template is_triangular<t, b>;
 
     static constexpr bool is_triangular_adapter = false;
   };
@@ -102,8 +121,6 @@ namespace OpenKalman::interface
   struct HermitianTraits<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
   {
     static constexpr bool is_hermitian = Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::is_hermitian;
-
-    static constexpr TriangleType adapter_type = TriangleType::none;
   };
 
 

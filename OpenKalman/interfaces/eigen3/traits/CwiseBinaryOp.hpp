@@ -22,6 +22,42 @@ namespace OpenKalman::interface
 {
   namespace EGI = Eigen::internal;
 
+
+  template<typename BinaryOp, typename LhsType, typename RhsType>
+#ifdef __cpp_concepts
+  struct IndexTraits<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>
+#else
+  struct IndexTraits<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>, std::enable_if_t<native_eigen_general<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>>>
+#endif
+  {
+    template<std::size_t N>
+    static constexpr std::size_t dimension =
+      not dynamic_dimension<LhsType, N> ? index_dimension_of_v<LhsType, N> :
+      not dynamic_dimension<RhsType, N> ? index_dimension_of_v<RhsType, N> :
+      dynamic_size;
+
+    template<std::size_t N, typename Arg>
+    static constexpr std::size_t dimension_at_runtime(const Arg& arg)
+    {
+      if constexpr (dimension<N> != dynamic_size) return dimension<N>;
+      else return get_index_dimension_of<N>(arg.lhs());
+    }
+
+    template<Likelihood b>
+    static constexpr bool is_one_by_one =
+      one_by_one_matrix<LhsType, Likelihood::maybe> and one_by_one_matrix<RhsType, Likelihood::maybe> and
+      (b != Likelihood::definitely or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>> or
+        (square_matrix<LhsType, b> and (index_dimension_of_v<RhsType, 0> == 1 or index_dimension_of_v<RhsType, 1> == 1)) or
+        ((index_dimension_of_v<LhsType, 0> == 1 or index_dimension_of_v<LhsType, 1> == 1) and square_matrix<RhsType, b>));
+
+    template<Likelihood b>
+    static constexpr bool is_square =
+      square_matrix<LhsType, Likelihood::maybe> and square_matrix<RhsType, Likelihood::maybe> and
+      (b != Likelihood::definitely or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>> or
+        square_matrix<LhsType, b> or square_matrix<RhsType, b>);
+  };
+
+
   template<typename BinaryOp, typename LhsType, typename RhsType>
   struct Dependencies<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>
   {
@@ -73,27 +109,21 @@ namespace OpenKalman::interface
 
     constexpr auto get_constant()
     {
-      return Eigen3::FunctorTraits<BinaryOp, LhsType, RhsType>::template get_constant<constant_coefficient>(xpr);
+      return Eigen3::FunctorTraits<BinaryOp, LhsType, RhsType>::template get_constant<false>(xpr);
     }
 
     constexpr auto get_constant_diagonal()
     {
-      return Eigen3::FunctorTraits<BinaryOp, LhsType, RhsType>::template get_constant<constant_diagonal_coefficient>(xpr);
+      return Eigen3::FunctorTraits<BinaryOp, LhsType, RhsType>::template get_constant<true>(xpr);
     }
-  };
-
-
-  template<typename BinaryOp, typename LhsType, typename RhsType>
-  struct DiagonalTraits<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>
-  {
-    static constexpr bool is_diagonal = Eigen3::FunctorTraits<BinaryOp, LhsType, RhsType>::is_diagonal;
   };
 
 
   template<typename BinaryOp, typename LhsType, typename RhsType>
   struct TriangularTraits<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>
   {
-    static constexpr TriangleType triangle_type = Eigen3::FunctorTraits<BinaryOp, LhsType, RhsType>::triangle_type;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = Eigen3::FunctorTraits<BinaryOp, LhsType, RhsType>::template is_triangular<t, b>;
 
     static constexpr bool is_triangular_adapter = false;
   };
@@ -103,8 +133,6 @@ namespace OpenKalman::interface
   struct HermitianTraits<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>
   {
     static constexpr bool is_hermitian = Eigen3::FunctorTraits<BinaryOp, LhsType, RhsType>::is_hermitian;
-
-    static constexpr TriangleType adapter_type = TriangleType::none;
   };
 
 

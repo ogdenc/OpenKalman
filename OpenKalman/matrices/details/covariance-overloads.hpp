@@ -48,19 +48,22 @@ namespace OpenKalman::interface
 {
 
 #ifdef __cpp_concepts
-  template<covariance T, std::convertible_to<const std::size_t&>...I> requires (sizeof...(I) <= 2) and
-    (not self_adjoint_covariance<T> or element_gettable<decltype(std::declval<T>().get_self_adjoint_nested_matrix()), I...>) and
-    (not triangular_covariance<T> or element_gettable<decltype(std::declval<T>().get_triangular_nested_matrix()), I...>)
-  struct GetElement<T, I...>
+  template<covariance T>
+  struct GetElement<T>
 #else
-  template<typename T, typename...I>
-  struct GetElement<T, I..., std::enable_if_t<covariance<T> and
-    ((sizeof...(I) <= 2) and ... and std::is_convertible_v<I, const std::size_t&>) and
-    (not self_adjoint_covariance<T> or element_gettable<decltype(std::declval<T>().get_self_adjoint_nested_matrix()), I...>) and
-    (not triangular_covariance<T> or element_gettable<decltype(std::declval<T>().get_triangular_nested_matrix()), I...>)>>
+  template<typename T>
+  struct GetElement<T, std::enable_if_t<covariance<T>>>
 #endif
   {
-    template<typename Arg>
+#ifdef __cpp_lib_concepts
+    template<typename Arg, typename...I> requires
+      (not self_adjoint_covariance<Arg> or element_gettable<decltype(std::declval<Arg>().get_self_adjoint_nested_matrix()), I...>) and
+      (not triangular_covariance<Arg> or element_gettable<decltype(std::declval<Arg>().get_triangular_nested_matrix()), I...>)
+#else
+    template<typename Arg, typename...I, std::enable_if_t<
+      (not self_adjoint_covariance<Arg> or element_gettable<decltype(std::declval<Arg>().get_self_adjoint_nested_matrix()), I...>) and
+      (not triangular_covariance<Arg> or element_gettable<decltype(std::declval<Arg>().get_triangular_nested_matrix()), I...>), int> = 0>
+#endif
     static constexpr auto get(Arg&& arg, I...i)
     {
       return std::forward<Arg>(arg)(i...);
@@ -69,23 +72,26 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-  template<covariance T, std::convertible_to<const std::size_t&>...I> requires (sizeof...(I) <= 2) and
-    (not self_adjoint_covariance<T> or element_settable<decltype(std::declval<T>().get_self_adjoint_nested_matrix()), I...>) and
-    (not triangular_covariance<T> or element_settable<decltype(std::declval<T>().get_triangular_nested_matrix()), I...>)
-  struct SetElement<T, I...>
+  template<covariance T>
+  struct SetElement<T>
 #else
-  template<typename T, typename...I>
-  struct SetElement<T, I..., std::enable_if_t<covariance<T> and element_settable<nested_matrix_of_t<Arg>, I...> and
-    ((sizeof...(I) <= 2) and ... and std::is_convertible_v<I, const std::size_t&>) and
-    (not self_adjoint_covariance<T> or element_gettable<decltype(std::declval<T>().get_self_adjoint_nested_matrix()), I...>) and
-    (not triangular_covariance<T> or element_gettable<decltype(std::declval<T>().get_triangular_nested_matrix()), I...>)>>
+  template<typename T>
+  struct SetElement<T, std::enable_if_t<covariance<T>>>
 #endif
   {
-    template<typename Arg, typename Scalar>
-    static constexpr Arg& set(Arg&& arg, Scalar s, I...i)
+#ifdef __cpp_lib_concepts
+    template<typename Arg, typename...I> requires
+      (not self_adjoint_covariance<Arg> or element_settable<decltype(std::declval<Arg>().get_self_adjoint_nested_matrix()), I...>) and
+      (not triangular_covariance<Arg> or element_settable<decltype(std::declval<Arg>().get_triangular_nested_matrix()), I...>)
+#else
+    template<typename Arg, typename...I, std::enable_if_t<
+      (not self_adjoint_covariance<Arg> or element_settable<decltype(std::declval<Arg>().get_self_adjoint_nested_matrix()), I...>) and
+      (not triangular_covariance<Arg> or element_settable<decltype(std::declval<Arg>().get_triangular_nested_matrix()), I...>), int> = 0>
+#endif
+    static constexpr Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, I...i)
     {
       arg.set_element(s, i...);
-      return arg;
+      return std::forward<Arg>(arg);
     }
   };
 
@@ -213,7 +219,7 @@ namespace OpenKalman
       static constexpr decltype(auto) adjoint(Arg&& arg) noexcept
       {
         // \todo optimize this by also copying cholesky nested matrix
-        static_assert(triangular_covariance<Arg>)
+        static_assert(triangular_covariance<Arg>);
         return MatrixTraits<std::decay_t<Arg>>::make(OpenKalman::adjoint(nested_matrix(std::forward<Arg>(arg))));
       }
 
@@ -225,12 +231,12 @@ namespace OpenKalman
       }
 
 
-      template<TriangleType t, typename Arg, typename U, typename Alpha>
+      template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
       static decltype(auto) rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
       {
         if constexpr (std::is_same_v<A&&, std::decay_t<A>&>)
         {
-          return arg.rank_update(std::forward<U>(u), alpha);
+          return a.rank_update(std::forward<U>(u), alpha);
         }
         else
         {
@@ -240,12 +246,12 @@ namespace OpenKalman
       }
 
 
-      template<TriangleType t, typename Arg, typename U, typename Alpha>
+      template<TriangleType triangle, typename A, typename U, typename Alpha>
       static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
       {
         if constexpr (std::is_same_v<A&&, std::decay_t<A>&>)
         {
-          return arg.rank_update(std::forward<U>(u), alpha);
+          return a.rank_update(std::forward<U>(u), alpha);
         }
         else
         {

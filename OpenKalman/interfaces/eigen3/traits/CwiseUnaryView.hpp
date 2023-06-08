@@ -25,6 +25,26 @@ namespace OpenKalman::interface
 
 
   template<typename ViewOp, typename MatrixType>
+  struct IndexTraits<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
+  {
+    template<std::size_t N>
+    static constexpr std::size_t dimension = index_dimension_of_v<MatrixType, N>;
+
+    template<std::size_t N, typename Arg>
+    static constexpr std::size_t dimension_at_runtime(const Arg& arg)
+    {
+      return get_index_dimension_of<N>(arg.nestedExpression());
+    }
+
+    template<Likelihood b>
+    static constexpr bool is_one_by_one = one_by_one_matrix<MatrixType, b>;
+
+    template<Likelihood b>
+    static constexpr bool is_square = square_matrix<MatrixType, b>;
+  };
+
+
+  template<typename ViewOp, typename MatrixType>
   struct Dependencies<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
   {
   private:
@@ -58,45 +78,37 @@ namespace OpenKalman::interface
   };
 
 
-  template<typename UnaryOp, typename XprType>
-  struct SingleConstant<Eigen::CwiseUnaryView<UnaryOp, XprType>>
+  template<typename UnaryOp, typename MatrixType>
+  struct SingleConstant<Eigen::CwiseUnaryView<UnaryOp, MatrixType>>
   {
-    const Eigen::CwiseUnaryView<UnaryOp, XprType>& xpr;
+    const Eigen::CwiseUnaryView<UnaryOp, MatrixType>& xpr;
 
     constexpr auto get_constant()
     {
-      return Eigen3::FunctorTraits<UnaryOp, XprType>::template get_constant<constant_coefficient>(xpr);
+      return Eigen3::FunctorTraits<UnaryOp, MatrixType>::template get_constant<false>(xpr);
     }
 
     constexpr auto get_constant_diagonal()
     {
-      return Eigen3::FunctorTraits<UnaryOp, XprType>::template get_constant<constant_diagonal_coefficient>(xpr);
+      return Eigen3::FunctorTraits<UnaryOp, MatrixType>::template get_constant<true>(xpr);
     }
   };
 
 
-  template<typename UnaryOp, typename XprType>
-  struct DiagonalTraits<Eigen::CwiseUnaryView<UnaryOp, XprType>>
+  template<typename UnaryOp, typename MatrixType>
+  struct TriangularTraits<Eigen::CwiseUnaryView<UnaryOp, MatrixType>>
   {
-    static constexpr bool is_diagonal = Eigen3::FunctorTraits<UnaryOp, XprType>::is_diagonal;
-  };
-
-
-  template<typename UnaryOp, typename XprType>
-  struct TriangularTraits<Eigen::CwiseUnaryView<UnaryOp, XprType>>
-  {
-    static constexpr TriangleType triangle_type = Eigen3::FunctorTraits<UnaryOp, XprType>::triangle_type;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = Eigen3::FunctorTraits<UnaryOp, MatrixType>::template is_triangular<t, b>;
 
     static constexpr bool is_triangular_adapter = false;
   };
 
 
-  template<typename UnaryOp, typename XprType>
-  struct HermitianTraits<Eigen::CwiseUnaryView<UnaryOp, XprType>>
+  template<typename UnaryOp, typename MatrixType>
+  struct HermitianTraits<Eigen::CwiseUnaryView<UnaryOp, MatrixType>>
   {
-    static constexpr bool is_hermitian = Eigen3::FunctorTraits<UnaryOp, XprType>::is_hermitian;
-
-    static constexpr TriangleType adapter_type = TriangleType::none;
+    static constexpr bool is_hermitian = Eigen3::FunctorTraits<UnaryOp, MatrixType>::is_hermitian;
   };
 
 

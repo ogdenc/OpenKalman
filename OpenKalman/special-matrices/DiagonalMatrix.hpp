@@ -66,16 +66,16 @@ namespace OpenKalman
     /// Construct from a \ref square_matrix or \ref column_vector.
 #ifdef __cpp_concepts
     template<indexible Arg> requires (not std::derived_from<std::decay_t<Arg>, DiagonalMatrix>) and
-      dimension_size_of_index_is<Arg, 0, dim, Likelihood::maybe> and
+      (dim == dynamic_size or dimension_size_of_index_is<Arg, 0, dim, Likelihood::maybe>) and
       (dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe> or
-        dimension_size_of_index_is<Arg, 1, dim, Likelihood::maybe>) and
+        (dim == dynamic_size or dimension_size_of_index_is<Arg, 1, dim, Likelihood::maybe>)) and
       (requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; } or
         std::is_constructible_v<NestedMatrix, Arg&&>)
 #else
     template<typename Arg, std::enable_if_t<(not std::is_base_of_v<DiagonalMatrix, std::decay_t<Arg>>) and
-      dimension_size_of_index_is<Arg, 0, dim, Likelihood::maybe> and
+      (dim == dynamic_size or dimension_size_of_index_is<Arg, 0, dim, Likelihood::maybe>) and
       (dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe> or
-        dimension_size_of_index_is<Arg, 1, dim, Likelihood::maybe>), int> = 0>
+        (dim == dynamic_size or dimension_size_of_index_is<Arg, 1, dim, Likelihood::maybe>)), int> = 0>
 #endif
     explicit DiagonalMatrix(Arg&& arg)
       : Base {[](Arg&& arg) -> decltype(auto) {
@@ -344,8 +344,7 @@ namespace OpenKalman
   template<typename Arg, std::enable_if_t<dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe> and
     (not square_matrix<Arg> or not detail::diagonal_exists<Arg>::value), int> = 0>
 #endif
-  explicit DiagonalMatrix(Arg&&) ->
-    DiagonalMatrix<std::conditional_t<constant_matrix<Arg>, std::decay_t<Arg>, passable_t<Arg>>>;
+  explicit DiagonalMatrix(Arg&&) -> DiagonalMatrix<passable_t<Arg>>;
 
 
   /**
@@ -361,11 +360,7 @@ namespace OpenKalman
     (square_matrix<Arg> or not dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe>) and
     detail::diagonal_exists<Arg>::value, int> = 0>
 #endif
-  DiagonalMatrix(Arg&&) -> DiagonalMatrix<std::conditional_t<
-    constant_matrix<Arg> or constant_diagonal_matrix<Arg>,
-    std::decay_t<decltype(diagonal_of(std::declval<Arg&&>()))>,
-    passable_t<decltype(diagonal_of(std::declval<Arg&&>()))>
-  >>;
+  DiagonalMatrix(Arg&&) -> DiagonalMatrix<passable_t<decltype(diagonal_of(std::declval<Arg&&>()))>>;
 
 
 } // OpenKalman

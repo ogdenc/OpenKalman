@@ -24,16 +24,6 @@ namespace OpenKalman
   using namespace interface;
 
 
-  namespace detail
-  {
-    struct constexpr_conj_op
-    {
-      template<typename Arg>
-      constexpr auto operator()(Arg arg) const noexcept { return internal::constexpr_conj(arg); }
-    };
-  }
-
-
   /**
    * \brief Take the conjugate of a matrix
    * \tparam Arg The matrix
@@ -54,17 +44,14 @@ namespace OpenKalman
       if constexpr (real_axis_number<constant_coefficient<Arg>>)
         return std::forward<Arg>(arg);
       else
-        return make_constant_matrix_like(
-          internal::scalar_constant_operation<detail::constexpr_conj_op, constant_coefficient<Arg>>{},
-          std::forward<Arg>(arg));
+        return make_constant_matrix_like(internal::scalar_constant_conj(constant_coefficient{arg}), std::forward<Arg>(arg));
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       if constexpr (real_axis_number<constant_diagonal_coefficient<Arg>>)
         return std::forward<Arg>(arg);
       else
-        return to_diagonal(make_constant_matrix_like(
-          internal::scalar_constant_operation<detail::constexpr_conj_op, constant_diagonal_coefficient<Arg>>{},
+        return to_diagonal(make_constant_matrix_like(internal::scalar_constant_conj(constant_diagonal_coefficient{arg}),
           diagonal_of(std::forward<Arg>(arg))));
     }
     else if constexpr (diagonal_matrix<Arg>)
@@ -108,7 +95,7 @@ namespace OpenKalman
     else if constexpr (constant_matrix<Arg>)
     {
       constexpr std::make_index_sequence<std::max({max_indices_of_v<Arg>, static_cast<std::size_t>(2)}) - 2> seq;
-      return detail::transpose_constant(constant_coefficient<Arg>{}, std::forward<Arg>(arg), seq);
+      return detail::transpose_constant(constant_coefficient{arg}, std::forward<Arg>(arg), seq);
     }
     else
     {
@@ -136,7 +123,7 @@ namespace OpenKalman
     {
       return conjugate(std::forward<Arg>(arg));
     }
-    else if constexpr (zero_matrix<Arg> or not complex_number<scalar_type_of_t<Arg>>)
+    else if constexpr (zero_matrix<Arg>)
     {
       return transpose(std::forward<Arg>(arg));
     }
@@ -149,9 +136,7 @@ namespace OpenKalman
       else
       {
         constexpr std::make_index_sequence<std::max({max_indices_of_v<Arg>, static_cast<std::size_t>(2)}) - 2> seq;
-        return detail::transpose_constant(
-          internal::scalar_constant_operation<detail::constexpr_conj_op, constant_coefficient<Arg>>{},
-          std::forward<Arg>(arg), seq);
+        return detail::transpose_constant(internal::scalar_constant_conj(constant_coefficient{arg}), std::forward<Arg>(arg), seq);
       }
     }
     else
@@ -181,20 +166,14 @@ namespace OpenKalman
     {
       return 1;
     }
-    else if constexpr (zero_matrix<Arg> or (constant_matrix<Arg> and not one_by_one_matrix<Arg>))
-    {
-      return 0;
-    }
     else if constexpr (constant_matrix<Arg>)
     {
-      return constant_coefficient_v<Arg>; //< One-by-one case. General case is handled above.
+      if constexpr (one_by_one_matrix<Arg>) return get_scalar_constant_value(constant_coefficient {arg});
+      else return 0;
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      if constexpr (dynamic_rows<Arg>)
-        return std::pow(constant_diagonal_coefficient_v<Arg>, get_index_dimension_of<0>(arg));
-      else
-        return internal::constexpr_pow(constant_diagonal_coefficient_v<Arg>, row_dimension_of_v<Arg>);
+      return internal::scalar_constant_pow(constant_diagonal_coefficient{arg}, internal::index_dimension_scalar_constant_of<0>(arg))();
     }
     else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg, std::size_t, std::size_t>)
     {
@@ -227,8 +206,6 @@ namespace OpenKalman
         "In trace, rows of arg (" + std::to_string(get_index_dimension_of<0>(arg)) + ") do not match columns of arg (" +
         std::to_string(get_index_dimension_of<1>(arg)) + ")"};
 
-    using Scalar = scalar_type_of_t<Arg>;
-
     if constexpr (identity_matrix<Arg>)
     {
       return get_index_dimension_of<0>(arg);
@@ -239,11 +216,13 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<Arg>)
     {
-      return constant_coefficient_v<Arg> * static_cast<Scalar>(get_index_dimension_of<0>(arg));
+      return internal::scalar_constant_operation {std::multiplies<>{}, constant_coefficient{arg},
+        internal::index_dimension_scalar_constant_of<0>(arg)}();
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      return constant_diagonal_coefficient_v<Arg> * static_cast<Scalar>(get_index_dimension_of<0>(arg));
+      return internal::scalar_constant_operation {std::multiplies<>{}, constant_diagonal_coefficient{arg},
+        internal::index_dimension_scalar_constant_of<0>(arg)}();
     }
     else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg, std::size_t, std::size_t>)
     {
@@ -281,7 +260,7 @@ namespace OpenKalman
     template<std::size_t...I, typename T0, typename T1, typename...Ts>
     constexpr decltype(auto) sum_impl(std::index_sequence<I...> seq, T0&& t0, T1&& t1, Ts&&...ts)
     {
-      if constexpr ((constant_matrix<T0> or constant_matrix<T1>) and not index_descriptors_match<T0, T1>)
+      if constexpr ((zero_matrix<T0> or zero_matrix<T1> or (constant_matrix<T0> and constant_matrix<T1>)) and not index_descriptors_match<T0, T1>)
       {
         if (not get_index_descriptors_match(t0, t1))
           throw std::invalid_argument {"In sum function, index descriptors of arguments do not match"};
@@ -297,9 +276,9 @@ namespace OpenKalman
       }
       else if constexpr ((constant_matrix<T0> and constant_matrix<T1>))
       {
-        constexpr internal::scalar_constant_operation<std::plus<>, constant_coefficient<T0>, constant_coefficient<T1>> c;
-        constexpr auto cm = make_constant_matrix_like<T0>(c, best_descriptor<I>(t0, t1, ts...)...);
-        return sum_impl(seq, cm, std::forward<Ts>(ts)...);
+        internal::scalar_constant_operation c {std::plus<>{}, constant_coefficient{t0}, constant_coefficient{t1}};
+        auto cm = make_constant_matrix_like<T0>(std::move(c), best_descriptor<I>(t0, t1, ts...)...);
+        return sum_impl(seq, std::move(cm), std::forward<Ts>(ts)...);
       }
       else if constexpr (constant_matrix<T0> and sizeof...(Ts) > 0)
       {
@@ -381,28 +360,23 @@ namespace OpenKalman
     else if constexpr (zero_matrix<A> or zero_matrix<B>)
     {
       using Scalar = std::decay_t<decltype(std::declval<scalar_type_of_t<A>>() * std::declval<scalar_type_of_t<B>>())>;
-      return detail::contract_constant(internal::KnownScalarConstant<Scalar, 0>{}, std::forward<A>(a), std::forward<B>(b), seq);
+      return detail::contract_constant(internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{}, std::forward<A>(a), std::forward<B>(b), seq);
     }
     else if constexpr (constant_matrix<A> and constant_matrix<B>)
     {
-      using op_c = internal::scalar_constant_operation<std::multiplies<>, constant_coefficient<A>, constant_coefficient<B>>;
+      internal::scalar_constant_operation ab {std::multiplies<>{}, constant_coefficient{a}, constant_coefficient{b}};
 
-      if constexpr (dynamic_dimension<A, 1> and dynamic_dimension<B, 0>)
-      {
-        auto r = get_index_dimension_of<1>(a);
-        internal::scalar_constant_operation cr {std::multiplies<>{}, op_c{}, r};
-        return detail::contract_constant(cr, std::forward<A>(a), std::forward<B>(b), seq);
-      }
-      else
-      {
-        constexpr auto r = dynamic_dimension<A, 1> ? index_dimension_of_v<B, 0> : index_dimension_of_v<A, 1>;
-        constexpr internal::scalar_constant_operation<std::multiplies<>, op_c, std::integral_constant<std::size_t, r>> cr;
-        return detail::contract_constant(cr, std::forward<A>(a), std::forward<B>(b), seq);
-      }
+      auto dim_const = [](const auto& a, const auto& b) {
+        if constexpr (dynamic_dimension<A, 1>) return internal::index_dimension_scalar_constant_of<0>(b);
+        else return internal::index_dimension_scalar_constant_of<1>(a);
+      }(a, b);
+
+      internal::scalar_constant_operation abd {std::multiplies<>{}, std::move(ab), std::move(dim_const)};
+      return detail::contract_constant(std::move(abd), std::forward<A>(a), std::forward<B>(b), seq);
     }
     else if constexpr (diagonal_matrix<A> and constant_matrix<B>)
     {
-      auto col = make_self_contained(diagonal_of(std::forward<A>(a)) * constant_coefficient_v<B>);
+      auto col = make_self_contained(diagonal_of(std::forward<A>(a)) * constant_coefficient{b}());
       return chipwise_operation<1>([&]{ return col; }, get_index_dimension_of<1>(b));
       //Another way to do this:
       //auto tup = detail::contract_dimensions(std::forward<A>(a), std::forward<B>(b), seq);
@@ -411,7 +385,7 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<A> and diagonal_matrix<B>)
     {
-      auto row = make_self_contained(transpose(diagonal_of(std::forward<B>(b))) * constant_coefficient_v<A>);
+      auto row = make_self_contained(transpose(diagonal_of(std::forward<B>(b))) * constant_coefficient{a}());
       return chipwise_operation<0>([&]{ return row; }, get_index_dimension_of<0>(a));
       //Another way to do this:
       //auto tup = detail::contract_dimensions(std::forward<A>(a), std::forward<B>(b), seq);
@@ -430,36 +404,39 @@ namespace OpenKalman
   }
 
 
+#ifndef __cpp_concepts
+    namespace detail
+    {
+      template<bool on_the_right, typename A, typename B, typename = void>
+      struct contract_in_place_exists : std::false_type {};
+
+      template<bool on_the_right, typename A, typename B>
+      struct contract_in_place_exists<on_the_right, A, B, std::void_t<decltype(
+        interface::LinearAlgebra<std::decay_t<A>>::template contract<on_the_right>(std::declval<A&>(), std::declval<B&&>()))>>
+        : std::true_type {};
+    }
+#endif
+
+
   /**
    * \brief In-place matrix multiplication of A * B, storing the result in A
    * \tparam on_the_right Whether the application is on the right (true) or on the left (false)
    * \result Either either A * B (if on_the_right == true) or B * A (if on_the_right == false)
    */
 #ifdef __cpp_concepts
-  template<bool on_the_right = true, writable A, indexible B>
-  requires (dynamic_dimension<A, 0> or dynamic_dimension<A, 1> or index_dimension_of_v<A, 0> == index_dimension_of_v<A, 1>) and
-    (dynamic_dimension<A, 0> or dynamic_dimension<B, 0> or index_dimension_of_v<A, 0> == index_dimension_of_v<B, 0>) and
-    (dynamic_dimension<A, 1> or dynamic_dimension<B, 1> or index_dimension_of_v<A, 1> == index_dimension_of_v<B, 1>)
+  template<bool on_the_right = true, square_matrix<Likelihood::maybe> A, square_matrix<Likelihood::maybe> B> requires
+    maybe_has_same_shape_as<A, B> and (writable<A> or triangle_type_of_v<A> == triangle_type_of_v<A, B>)
 #else
-  template<bool on_the_right = true, typename A, typename B, std::enable_if_t<writable<A> and indexible<B> and
-    (dynamic_dimension<A, 0> or dynamic_dimension<A, 1> or index_dimension_of_v<A, 0> == index_dimension_of_v<A, 1>) and
-    (dynamic_dimension<A, 0> or dynamic_dimension<B, 0> or index_dimension_of_v<A, 0> == index_dimension_of_v<B, 0>) and
-    (dynamic_dimension<A, 1> or dynamic_dimension<B, 1> or index_dimension_of_v<A, 1> == index_dimension_of_v<B, 1>), int> = 0>
+  template<bool on_the_right = true, typename A, typename B, std::enable_if_t<
+    square_matrix<A, Likelihood::maybe> and square_matrix<B, Likelihood::maybe> and maybe_has_same_shape_as<A, B> and
+    (writable<A> or triangle_type_of_v<A> == triangle_type_of_v<A, B>), int> = 0>
 #endif
   constexpr A& contract_in_place(A& a, B&& b)
   {
-    if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<A, 1>) if (get_dimensions_of<0>(a) != get_dimensions_of<1>(a))
-      throw std::domain_error {"In contract_in_place, argument a is not square"};
+    if constexpr (not square_matrix<A> or not square_matrix<B> or not has_same_shape_as<A, B>) if (not get_index_descriptors_match(a, b))
+      throw std::invalid_argument {"Arguments to contract_in_place must match in size and be square matrices"};
 
-    if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) if (get_dimensions_of<0>(a) != get_dimensions_of<0>(b))
-      throw std::domain_error {"In contract_in_place, rows of a (" + std::to_string(get_index_dimension_of<0>(a)) +
-        ") do not match rows of b (" + std::to_string(get_index_dimension_of<0>(b)) + ")"};
-
-    if constexpr (dynamic_dimension<A, 1> or dynamic_dimension<B, 1>) if (get_dimensions_of<1>(a) != get_dimensions_of<1>(b))
-      throw std::domain_error {"In contract_in_place, columns of a (" + std::to_string(get_index_dimension_of<1>(a)) +
-        ") do not match columns of b (" + std::to_string(get_index_dimension_of<1>(b)) + ")"};
-
-    if constexpr (identity_matrix<B>)
+    if constexpr (zero_matrix<A> or identity_matrix<B>)
     {
       return a;
     }
@@ -467,15 +444,27 @@ namespace OpenKalman
     {
       return a = std::forward<B>(b);
     }
-    //else if constexpr (diagonal_matrix<A> and diagonal_matrix<B>)
-    //{
-    //  \todo Create and a new set_diagonal function for this (similar to set_chip).
-    //  set_diagonal(n_ary_operation(std::multiplies<scalar_type_of_t<A>>{}, diagonal_of(a), diagonal_of(std::forward<B>(b))));
-    //  return a;
-    //}
-    else
+    else if constexpr (diagonal_adapter<A> and diagonal_matrix<B>)
+    {
+      internal::set_triangle<TriangleType::diagonal>(a, n_ary_operation(std::multiplies<>{}, diagonal_of(a), diagonal_of(std::forward<B>(b))));
+      return a;
+    }
+    else if constexpr (triangular_adapter<A> and triangle_type_of_v<A> == triangle_type_of_v<A, B>)
+    {
+      internal::set_triangle<triangle_type_of_v<A>>(a, contract(a, std::forward<B>(b)));
+      return a;
+    }
+#ifdef __cpp_concepts
+    else if constexpr (requires { interface::LinearAlgebra<std::decay_t<A>>::template contract_in_place<on_the_right>(a, std::forward<B>(b)); })
+#else
+    else if constexpr (detail::contract_in_place_exists<on_the_right, A, B>::value)
+#endif
     {
       return interface::LinearAlgebra<std::decay_t<A>>::template contract_in_place<on_the_right>(a, std::forward<B>(b));
+    }
+    else
+    {
+      a = contract(a, std::forward<B>(b));
     }
   }
 

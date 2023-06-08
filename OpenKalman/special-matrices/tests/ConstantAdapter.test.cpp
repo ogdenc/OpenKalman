@@ -95,10 +95,10 @@ TEST(eigen3, ConstantAdapter_traits)
   static_assert(self_contained<ConstantAdapter<M22, std::integral_constant<int, 1>>>);
   static_assert(self_contained<ZA31>);
 
-  static_assert(constant_matrix<ConstantAdapter<M22, double, 1>, Likelihood::definitely, CompileTimeStatus::known>);
-  static_assert(not constant_matrix<ConstantAdapter<M22, double, 1>, Likelihood::definitely, CompileTimeStatus::unknown>);
-  static_assert(constant_matrix<ConstantAdapter<M22>, Likelihood::definitely, CompileTimeStatus::unknown>);
-  static_assert(not constant_matrix<ConstantAdapter<M22>, Likelihood::definitely, CompileTimeStatus::known>);
+  static_assert(constant_matrix<ConstantAdapter<M22, double, 1>, CompileTimeStatus::known>);
+  static_assert(not constant_matrix<ConstantAdapter<M22, double, 1>, CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<ConstantAdapter<M22>, CompileTimeStatus::unknown>);
+  static_assert(not constant_matrix<ConstantAdapter<M22>, CompileTimeStatus::known>);
 
   static_assert(constant_diagonal_matrix<ZA33>);
   static_assert(not constant_diagonal_matrix<ZA31, Likelihood::maybe>);
@@ -141,15 +141,15 @@ TEST(eigen3, ConstantAdapter_traits)
   static_assert(not triangular_matrix<ConstantAdapter<M34, double, 5>>);
   static_assert(not triangular_matrix<ConstantAdapter<M34, double, 0>>);
 
-  static_assert(upper_triangular_matrix<ZA33>);
-  static_assert(not upper_triangular_matrix<ZA31>);
-  static_assert(not upper_triangular_matrix<ZA00>);
-  static_assert(upper_triangular_matrix<ZA00, Likelihood::maybe>);
+  static_assert(triangular_matrix<ZA33, TriangleType::upper>);
+  static_assert(not triangular_matrix<ZA31, TriangleType::upper>);
+  static_assert(not triangular_matrix<ZA00, TriangleType::upper>);
+  static_assert(triangular_matrix<ZA00, TriangleType::upper, Likelihood::maybe>);
 
-  static_assert(lower_triangular_matrix<ZA33>);
-  static_assert(not lower_triangular_matrix<ZA31>);
-  static_assert(not lower_triangular_matrix<ZA00>);
-  static_assert(lower_triangular_matrix<ZA00, Likelihood::maybe>);
+  static_assert(triangular_matrix<ZA33, TriangleType::lower>);
+  static_assert(not triangular_matrix<ZA31, TriangleType::lower>);
+  static_assert(not triangular_matrix<ZA00, TriangleType::lower>);
+  static_assert(triangular_matrix<ZA00, TriangleType::lower, Likelihood::maybe>);
 
   static_assert(square_matrix<ConstantAdapter<M22, double, 0>, Likelihood::maybe>);
   static_assert(not square_matrix<ConstantAdapter<M34, double, 5>, Likelihood::maybe>);
@@ -472,7 +472,7 @@ TEST(eigen3, make_constant_matrix_like)
 
   using C534 = decltype(c534);
 
-  constexpr internal::KnownScalarConstant<double, 5> nd5;
+  constexpr internal::ScalarConstant<double, 5> nd5;
 
   EXPECT_TRUE(is_near(make_constant_matrix_like<M23>(nd5, Dimensions<2>{}, Dimensions<3>{}), M23::Constant(5)));
   EXPECT_TRUE(is_near(make_constant_matrix_like<M00>(nd5, Dimensions<2>{}, 3), M23::Constant(5)));
