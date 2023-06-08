@@ -345,7 +345,7 @@ namespace OpenKalman
   namespace interface
   {
     template<typename T>
-    struct GetElement<Eigen3::EigenWrapper<T>>
+    struct Elements<Eigen3::EigenWrapper<T>>
     {
 #ifdef __cpp_lib_concepts
       template<typename Arg, typename...I> requires element_gettable<nested_matrix_of_t<Arg>, I...>
@@ -356,12 +356,8 @@ namespace OpenKalman
       {
         return get_element(nested_matrix(std::forward<Arg>(arg)), i...);
       }
-    };
 
 
-    template<typename T>
-    struct SetElement<Eigen3::EigenWrapper<T>>
-    {
 #ifdef __cpp_lib_concepts
       template<typename Arg, typename Scalar, typename...I> requires element_settable<nested_matrix_of_t<Arg>, I...>
 #else

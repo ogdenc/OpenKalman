@@ -49,10 +49,10 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<covariance T>
-  struct GetElement<T>
+  struct Elements<T>
 #else
   template<typename T>
-  struct GetElement<T, std::enable_if_t<covariance<T>>>
+  struct Elements<T, std::enable_if_t<covariance<T>>>
 #endif
   {
 #ifdef __cpp_lib_concepts
@@ -68,17 +68,8 @@ namespace OpenKalman::interface
     {
       return std::forward<Arg>(arg)(i...);
     }
-  };
 
 
-#ifdef __cpp_concepts
-  template<covariance T>
-  struct SetElement<T>
-#else
-  template<typename T>
-  struct SetElement<T, std::enable_if_t<covariance<T>>>
-#endif
-  {
 #ifdef __cpp_lib_concepts
     template<typename Arg, typename...I> requires
       (not self_adjoint_covariance<Arg> or element_settable<decltype(std::declval<Arg>().get_self_adjoint_nested_matrix()), I...>) and

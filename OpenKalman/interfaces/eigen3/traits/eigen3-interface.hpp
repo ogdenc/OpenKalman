@@ -39,10 +39,10 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<native_eigen_dense T>
-  struct GetElement<T>
+  struct Elements<T>
 #else
   template<typename T>
-  struct GetElement<T, std::enable_if_t<native_eigen_dense<T> and (not eigen_wrapper<T>)>>
+  struct Elements<T, std::enable_if_t<native_eigen_dense<T> and (not eigen_wrapper<T>)>>
 #endif
   {
 #ifdef __cpp_lib_concepts
@@ -59,11 +59,27 @@ namespace OpenKalman::interface
       else
         return std::forward<Arg>(arg).coeff(static_cast<Eigen::Index>(i)...);
     }
+
+
+#ifdef __cpp_lib_concepts
+    template<typename Arg, typename...I> requires (sizeof...(I) <= 2) and (std::convertible_to<I, Eigen::Index> and ...) and
+      (sizeof...(I) != 1 or (Eigen::internal::evaluator<std::decay_t<Arg>>::Flags & Eigen::LinearAccessBit) != 0) and
+      ((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0)
+#else
+    template<typename Arg, typename...I, std::enable_if_t<(sizeof...(I) <= 2) and (std::is_convertible_v<I, Eigen::Index> and ...) and
+      (sizeof...(I) != 1 or (Eigen::internal::evaluator<std::decay_t<Arg>>::Flags & Eigen::LinearAccessBit) != 0) and
+      ((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0), int> = 0>
+#endif
+    static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, I...i)
+    {
+      arg.coeffRef(i...) = s;
+      return std::forward<Arg>(arg);
+    }
   };
 
 
   template<typename MatrixType, unsigned int UpLo>
-  struct GetElement<Eigen::SelfAdjointView<MatrixType, UpLo>>
+  struct Elements<Eigen::SelfAdjointView<MatrixType, UpLo>>
   {
     template<typename Arg>
     static constexpr decltype(auto) get(Arg&& arg, Eigen::Index i, Eigen::Index j)
@@ -95,11 +111,36 @@ namespace OpenKalman::interface
         }
       }
     }
+
+
+#ifdef __cpp_concepts
+    template<typename Arg>
+      requires ((Eigen::internal::traits<Eigen::SelfAdjointView<MatrixType, UpLo>>::Flags & Eigen::LvalueBit) != 0)
+#else
+    template<typename Arg, std::enable_if_t<(
+      (Eigen::internal::traits<Eigen::SelfAdjointView<MatrixType, UpLo>>::Flags & Eigen::LvalueBit) != 0), int> = 0>
+#endif
+    static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i, Eigen::Index j)
+    {
+      if ((i > j and (UpLo & Eigen::Upper) != 0) or (i < j and (UpLo & Eigen::Lower) != 0))
+      {
+        if constexpr (complex_number<scalar_type_of_t<MatrixType>>)
+        {
+          using std::conj;
+          arg.coeffRef(j, i) = conj(s);
+        }
+        else
+          arg.coeffRef(j, i) = s;
+      }
+      else arg.coeffRef(i, j) = s;
+
+      return std::forward<Arg>(arg);
+    }
   };
 
 
   template<typename MatrixType, unsigned int Mode>
-  struct GetElement<Eigen::TriangularView<MatrixType, Mode>>
+  struct Elements<Eigen::TriangularView<MatrixType, Mode>>
   {
     template<typename Arg>
     static scalar_type_of_t<Arg> get(const Arg& arg, Eigen::Index i, Eigen::Index j)
@@ -107,15 +148,27 @@ namespace OpenKalman::interface
       if ((i > j and (Mode & Eigen::Upper) != 0) or (i < j and (Mode & Eigen::Lower) != 0)) return 0;
       else return arg.coeff(i, j);
     }
+
+
+#ifdef __cpp_concepts
+    template<typename Arg> requires ((Eigen::TriangularView<MatrixType, Mode>::Flags & Eigen::LvalueBit) != 0)
+#else
+    template<typename Arg, std::enable_if_t<((Eigen::TriangularView<MatrixType, Mode>::Flags & Eigen::LvalueBit) != 0), int> = 0>
+#endif
+    static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i, Eigen::Index j)
+    {
+      arg.coeffRef(i, j) = s;
+      return std::forward<Arg>(arg);
+    }
   };
 
 
 #ifdef __cpp_concepts
   template<typename T> requires eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>
-  struct GetElement<T>
+  struct Elements<T>
 #else
   template<typename T>
-  struct GetElement<T, std::enable_if_t<eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>>>
+  struct Elements<T, std::enable_if_t<eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>>>
 #endif
   {
 #ifdef __cpp_concepts
@@ -150,87 +203,8 @@ namespace OpenKalman::interface
         return scalar_type_of_t<Arg>(0);
       }
     }
-  };
 
 
-#ifdef __cpp_concepts
-  template<native_eigen_dense T>
-  struct SetElement<T>
-#else
-  template<typename T>
-  struct SetElement<T, std::enable_if_t<native_eigen_dense<T>>>
-#endif
-  {
-#ifdef __cpp_lib_concepts
-    template<typename Arg, typename...I> requires (sizeof...(I) <= 2) and (std::convertible_to<I, Eigen::Index> and ...) and
-      (sizeof...(I) != 1 or (Eigen::internal::evaluator<std::decay_t<Arg>>::Flags & Eigen::LinearAccessBit) != 0) and
-      ((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0)
-#else
-    template<typename Arg, typename...I, std::enable_if_t<(sizeof...(I) <= 2) and (std::is_convertible_v<I, Eigen::Index> and ...) and
-      (sizeof...(I) != 1 or (Eigen::internal::evaluator<std::decay_t<Arg>>::Flags & Eigen::LinearAccessBit) != 0) and
-      ((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0), int> = 0>
-#endif
-    static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, I...i)
-    {
-      arg.coeffRef(i...) = s;
-      return std::forward<Arg>(arg);
-    }
-  };
-
-
-  template<typename MatrixType, unsigned int UpLo>
-  struct SetElement<Eigen::SelfAdjointView<MatrixType, UpLo>>
-  {
-#ifdef __cpp_concepts
-    template<typename Arg>
-      requires ((Eigen::internal::traits<Eigen::SelfAdjointView<MatrixType, UpLo>>::Flags & Eigen::LvalueBit) != 0)
-#else
-    template<typename Arg, std::enable_if_t<(
-      (Eigen::internal::traits<Eigen::SelfAdjointView<MatrixType, UpLo>>::Flags & Eigen::LvalueBit) != 0), int> = 0>
-#endif
-    static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i, Eigen::Index j)
-    {
-      if ((i > j and (UpLo & Eigen::Upper) != 0) or (i < j and (UpLo & Eigen::Lower) != 0))
-      {
-        if constexpr (complex_number<scalar_type_of_t<MatrixType>>)
-        {
-          using std::conj;
-          arg.coeffRef(j, i) = conj(s);
-        }
-        else
-          arg.coeffRef(j, i) = s;
-      }
-      else arg.coeffRef(i, j) = s;
-
-      return std::forward<Arg>(arg);
-    }
-  };
-
-
-  template<typename MatrixType, unsigned int Mode>
-  struct SetElement<Eigen::TriangularView<MatrixType, Mode>>
-  {
-#ifdef __cpp_concepts
-    template<typename Arg> requires ((Eigen::TriangularView<MatrixType, Mode>::Flags & Eigen::LvalueBit) != 0)
-#else
-    template<typename Arg, std::enable_if_t<((Eigen::TriangularView<MatrixType, Mode>::Flags & Eigen::LvalueBit) != 0), int> = 0>
-#endif
-    static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i, Eigen::Index j)
-    {
-      arg.coeffRef(i, j) = s;
-      return std::forward<Arg>(arg);
-    }
-  };
-
-
-#ifdef __cpp_concepts
-  template<typename T> requires eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>
-  struct SetElement<T>
-#else
-  template<typename T>
-  struct SetElement<T, std::enable_if_t<eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>>>
-#endif
-  {
 #ifdef __cpp_concepts
     template<typename Arg> requires element_settable<nested_matrix_of_t<Arg>, std::size_t> or
       element_settable<nested_matrix_of_t<Arg>, std::size_t, std::size_t>

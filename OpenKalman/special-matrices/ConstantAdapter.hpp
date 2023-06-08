@@ -474,14 +474,15 @@ namespace OpenKalman
 
 
     template<typename PatternMatrix, typename Scalar, auto...constant>
-    struct GetElement<ConstantAdapter<PatternMatrix, Scalar, constant...>>
+    struct Elements<ConstantAdapter<PatternMatrix, Scalar, constant...>>
     {
       template<typename Arg, typename...I>
       static constexpr auto get(Arg&& arg, I...) { return constant_coefficient_v<Arg>; }
+
+      // No set defined  because ConstantAdapter is not writable.
     };
 
 
-    // No SetElement defined  because ConstantAdapter is not writable.
 
 
     template<typename PatternMatrix, typename S, auto...constant, typename Scalar>

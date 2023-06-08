@@ -608,7 +608,7 @@ namespace OpenKalman
 
     template<typename T, typename...I>
     struct element_gettable_impl<T, std::void_t<
-        decltype(interface::GetElement<std::decay_t<T>>::get(std::declval<T>(), static_cast<const std::size_t>(std::declval<I>())...))>, I...>
+        decltype(interface::Elements<std::decay_t<T>>::get(std::declval<T>(), static_cast<const std::size_t>(std::declval<I>())...))>, I...>
       : std::true_type {};
   }
 #endif
@@ -623,7 +623,7 @@ namespace OpenKalman
 #ifdef __cpp_lib_concepts
   concept element_gettable = (sizeof...(I) > 0) and (sizeof...(I) <= max_indices_of_v<T>) and
     (std::convertible_to<I, const std::size_t> and ...) and
-    requires(T t, I...i) { interface::GetElement<std::decay_t<T>>::get(t, static_cast<const std::size_t>(i)...); };
+    requires(T t, I...i) { interface::Elements<std::decay_t<T>>::get(t, static_cast<const std::size_t>(i)...); };
 #else
   constexpr bool element_gettable = (sizeof...(I) > 0) and (std::is_convertible<I, const std::size_t>::value and ...) and
     detail::element_gettable_impl<T, void, I...>::value;
@@ -642,7 +642,7 @@ namespace OpenKalman
 
     template<typename T, typename...I>
     struct element_settable_impl<T, std::enable_if_t<(sizeof...(I) <= max_indices_of_v<T>) and
-        std::is_same<decltype(interface::SetElement<std::decay_t<T>>::set(std::declval<T&&>(),
+        std::is_same<decltype(interface::Elements<std::decay_t<T>>::set(std::declval<T&&>(),
           std::declval<const typename scalar_type_of<T>::type&>(), static_cast<const std::size_t>(std::declval<I>())...)), T&&>::value>, I...>
       : std::true_type {};
   }
@@ -659,7 +659,7 @@ namespace OpenKalman
   concept element_settable = (sizeof...(I) > 0) and (sizeof...(I) <= max_indices_of_v<T>) and
     (std::convertible_to<I, const std::size_t> and ...) and (not std::is_const_v<std::remove_reference_t<T>>) and
     requires(T&& t, const scalar_type_of_t<T>& s, I...i) {
-      {interface::SetElement<std::decay_t<T>>::set(std::forward<T>(t), s, static_cast<const std::size_t>(i)...)} -> std::same_as<T&&>;
+      {interface::Elements<std::decay_t<T>>::set(std::forward<T>(t), s, static_cast<const std::size_t>(i)...)} -> std::same_as<T&&>;
     };
 #else
   constexpr bool element_settable = (sizeof...(I) > 0) and (std::is_convertible_v<I, const std::size_t> and ...) and

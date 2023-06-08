@@ -87,9 +87,9 @@ namespace OpenKalman
     }
     else
     {
-      static_assert(element_gettable<Arg&&, I...>, "error in definition of interface::GetElement::get(...)");
+      static_assert(element_gettable<Arg&&, I...>, "error in definition of interface::Elements::get(...)");
       detail::check_index_bounds<false>(arg, std::index_sequence_for<I...> {}, i...);
-      return interface::GetElement<std::decay_t<Arg>>::get(std::forward<Arg>(arg), static_cast<const std::size_t>(i)...);
+      return interface::Elements<std::decay_t<Arg>>::get(std::forward<Arg>(arg), static_cast<const std::size_t>(i)...);
     }
   }
 
@@ -113,9 +113,9 @@ namespace OpenKalman
   inline Arg&&
   set_element(Arg&& arg, const scalar_type_of_t<Arg>& s, I...i)
   {
-    static_assert(element_settable<Arg&&, I...>, "error in definition of interface::SetElement::set(...)");
+    static_assert(element_settable<Arg&&, I...>, "error in definition of interface::Elements::set(...)");
     detail::check_index_bounds<true>(arg, std::index_sequence_for<I...> {}, i...);
-    return interface::SetElement<std::decay_t<Arg>>::set(std::forward<Arg>(arg), s, static_cast<const std::size_t>(i)...);
+    return interface::Elements<std::decay_t<Arg>>::set(std::forward<Arg>(arg), s, static_cast<const std::size_t>(i)...);
   }
 
 

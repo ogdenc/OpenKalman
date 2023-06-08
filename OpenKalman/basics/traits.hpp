@@ -130,7 +130,7 @@ namespace OpenKalman
     template<typename T, std::size_t...is>
     static constexpr auto get00element(const T& t, std::index_sequence<is...>)
     {
-      return interface::GetElement<std::decay_t<T>>::get(t, decltype(is){0}...);
+      return interface::Elements<std::decay_t<T>>::get(t, decltype(is){0}...);
     }
   } // namespace detail
 

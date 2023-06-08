@@ -21,10 +21,10 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<euclidean_expr T>
-  struct GetElement<T>
+  struct Elements<T>
 #else
   template<typename T>
-  struct GetElement<T, std::enable_if_t<euclidean_expr<T>>>
+  struct Elements<T, std::enable_if_t<euclidean_expr<T>>>
 #endif
   {
 #ifdef __cpp_lib_concepts
@@ -52,17 +52,8 @@ namespace OpenKalman::interface
           return from_euclidean_element(get_dimensions_of<0>(arg), g, i, 0);
       }
     }
-  };
 
 
-#ifdef __cpp_concepts
-  template<euclidean_expr T>
-  struct SetElement<T>
-#else
-  template<typename T>
-  struct SetElement<T, std::enable_if_t<euclidean_expr<T>>>
-#endif
-  {
     /**
      * \internal
      * \brief Set element (i, j) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s.

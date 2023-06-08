@@ -24,10 +24,10 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typename T> requires eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>
-  struct GetElement<T>
+  struct Elements<T>
 #else
   template<typename T>
-  struct GetElement<T, std::enable_if_t<eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>>>
+  struct Elements<T, std::enable_if_t<eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>>>
 #endif
   {
 #ifdef __cpp_lib_concepts
@@ -108,17 +108,8 @@ namespace OpenKalman::interface
         }
       }
     }
-  };
 
 
-#ifdef __cpp_concepts
-  template<typename T> requires eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>
-  struct SetElement<T>
-#else
-  template<typename T>
-  struct SetElement<T, std::enable_if_t<eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>>>
-#endif
-  {
 #ifdef __cpp_lib_concepts
     template<diagonal_matrix Arg, typename I>
     requires element_settable<nested_matrix_of_t<Arg>, I> or element_settable<nested_matrix_of_t<Arg>, I, I>

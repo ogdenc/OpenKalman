@@ -136,21 +136,20 @@ namespace OpenKalman::interface
 
 
   /**
-   * \brief An interface to features for getting individual elements of matrix T using indices I... of type std::size_t.
-   * \detail The interface may define static member function <code>get</code> with one or two indices. If
-   * getting an element is not possible, leave <code>get</code> undefined.
-   * \note OpenKalman only recognizes indices of type <code>std::size_t</code>.
+   * \brief An interface to features of individual elements of indexible object T using indices I... of type std::size_t.
+   * \detail The interface may define static member function <code>get</code>  and <code>set</code> with one or two indices. If
+   * getting or setting an element is not possible, leave <code>get</code> or <code>set</code> undefined, respectively.
    * \tparam I The indices (each of type std::size_t)
-   * \returns an element or an l-value reference to an element
    */
 #ifdef __cpp_concepts
   template<typename T>
 #else
   template<typename T, typename = void>
 #endif
-  struct GetElement
+  struct Elements
   {
     /// Get element at indices (i...) of matrix arg. This should preferably return a non-const lvalue reference, if possible.
+    /// \returns an element or reference to an element
 #ifdef __cpp_concepts
     template<std::convertible_to<const std::decay_t<T>&> Arg, std::convertible_to<const std::size_t>...I>
 #else
@@ -158,23 +157,8 @@ namespace OpenKalman::interface
       std::is_convertible_v<Arg, const std::decay_t<T>&> and (std::is_convertible_v<I, const std::size_t> and ...), int> = 0>
 #endif
     static constexpr decltype(auto) get(Arg&& arg, I...i) = delete;
-  };
 
 
-  /**
-   * \brief An interface to features for setting individual elements of matrix T using indices I... of type std::size_t.
-   * \detail The interface may define static member function <code>set</code> with one or two indices. If
-   * setting an element is not possible, leave <code>set</code> undefined.
-   * \note OpenKalman only recognizes indices of type <code>std::size_t</code>.
-   * \tparam I The indices (each of type std::size_t)
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct SetElement
-  {
     /// Set element at indices (i...) of matrix arg to s.
 #ifdef __cpp_concepts
     template<std::convertible_to<std::decay_t<T>> Arg, std::convertible_to<const std::size_t>...I>

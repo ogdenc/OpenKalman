@@ -18,10 +18,10 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typed_matrix T>
-  struct GetElement<T>
+  struct Elements<T>
 #else
   template<typename T>
-  struct GetElement<T, std::enable_if_t<typed_matrix<T>>>
+  struct Elements<T, std::enable_if_t<typed_matrix<T>>>
 #endif
   {
 #ifdef __cpp_lib_concepts
@@ -33,17 +33,8 @@ namespace OpenKalman::interface
     {
       return get_element(nested_matrix(std::forward<Arg>(arg)), i...);
     }
-  };
 
 
-#ifdef __cpp_concepts
-  template<typed_matrix T>
-  struct SetElement<T>
-#else
-  template<typename T>
-  struct SetElement<T, std::enable_if_t<typed_matrix<T>>>
-#endif
-  {
 #ifdef __cpp_lib_concepts
     template<typename Arg, typename I, typename...Is> requires element_settable<nested_matrix_of_t<Arg>, I, Is...>
 #else
