@@ -195,35 +195,35 @@ TEST(matrices, TypedMatrix_class)
 
 TEST(matrices, TypedMatrix_subscripts)
 {
-  static_assert(element_gettable<Mat23, std::size_t, std::size_t>);
-  static_assert(not element_gettable<Mat23, std::size_t>);
-  static_assert(element_gettable<const Mat23, std::size_t, std::size_t>);
-  static_assert(not element_gettable<const Mat23, std::size_t>);
-  static_assert(element_gettable<Mat21, std::size_t, std::size_t>);
-  static_assert(element_gettable<Mat21, std::size_t>);
-  static_assert(element_gettable<const Mat21, std::size_t, std::size_t>);
-  static_assert(element_gettable<const Mat21, std::size_t>);
-  static_assert(element_gettable<Matrix<C3, C2, M32>, std::size_t, std::size_t>);
-  static_assert(not element_gettable<Matrix<C3, C2, M32>, std::size_t>);
-  static_assert(element_gettable<Matrix<C2, Axis, M21>, std::size_t, std::size_t>);
-  static_assert(element_gettable<Matrix<C2, Axis, M21>, std::size_t>);
+  static_assert(element_gettable<Mat23, 2>);
+  static_assert(not element_gettable<Mat23, 1>);
+  static_assert(element_gettable<const Mat23, 2>);
+  static_assert(not element_gettable<const Mat23, 1>);
+  static_assert(element_gettable<Mat21, 2>);
+  static_assert(element_gettable<Mat21, 1>);
+  static_assert(element_gettable<const Mat21, 2>);
+  static_assert(element_gettable<const Mat21, 1>);
+  static_assert(element_gettable<Matrix<C3, C2, M32>, 2>);
+  static_assert(not element_gettable<Matrix<C3, C2, M32>, 1>);
+  static_assert(element_gettable<Matrix<C2, Axis, M21>, 2>);
+  static_assert(element_gettable<Matrix<C2, Axis, M21>, 1>);
 
-  static_assert(element_settable<Mat23&, std::size_t, std::size_t>);
-  static_assert(not element_settable<Mat23&, std::size_t>);
-  static_assert(not element_settable<const Mat23&, std::size_t, std::size_t>);
-  static_assert(not element_settable<const Mat23&, std::size_t>);
-  static_assert(element_settable<Mat21&, std::size_t, std::size_t>);
-  static_assert(element_settable<Mat21&, std::size_t>);
-  static_assert(not element_settable<const Mat21&, std::size_t, std::size_t>);
-  static_assert(not element_settable<const Mat21&, std::size_t>);
-  static_assert(element_settable<Matrix<C3, C2, M32>&, std::size_t, std::size_t>);
-  static_assert(not element_settable<Matrix<C3, C2, M32>&, std::size_t>);
-  static_assert(not element_settable<Matrix<C3, C2, const M32>&, std::size_t, std::size_t>);
-  static_assert(not element_settable<Matrix<C3, C2, const M32>&, std::size_t>);
-  static_assert(element_settable<Matrix<C2, Axis, M21>&, std::size_t, std::size_t>);
-  static_assert(element_settable<Matrix<C2, Axis, M21>&, std::size_t>);
-  static_assert(not element_settable<Matrix<C2, Axis, const M21>&, std::size_t, std::size_t>);
-  static_assert(not element_settable<Matrix<C2, Axis, const M21>&, std::size_t>);
+  static_assert(element_settable<Mat23&, 2>);
+  static_assert(not element_settable<Mat23&, 1>);
+  static_assert(not element_settable<const Mat23&, 2>);
+  static_assert(not element_settable<const Mat23&, 1>);
+  static_assert(element_settable<Mat21&, 2>);
+  static_assert(element_settable<Mat21&, 1>);
+  static_assert(not element_settable<const Mat21&, 2>);
+  static_assert(not element_settable<const Mat21&, 1>);
+  static_assert(element_settable<Matrix<C3, C2, M32>&, 2>);
+  static_assert(not element_settable<Matrix<C3, C2, M32>&, 1>);
+  static_assert(not element_settable<Matrix<C3, C2, const M32>&, 2>);
+  static_assert(not element_settable<Matrix<C3, C2, const M32>&, 1>);
+  static_assert(element_settable<Matrix<C2, Axis, M21>&, 2>);
+  static_assert(element_settable<Matrix<C2, Axis, M21>&, 1>);
+  static_assert(not element_settable<Matrix<C2, Axis, const M21>&, 2>);
+  static_assert(not element_settable<Matrix<C2, Axis, const M21>&, 1>);
 
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(0, 0), 1, 1e-6);
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(0, 1), 2, 1e-6);

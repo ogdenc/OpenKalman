@@ -95,7 +95,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<std::size_t N = 0, indexible Arg> requires (N < max_indices_of_v<Arg>) and
     (euclidean_index_descriptor<coefficient_types_of_t<Arg, N>> or
-      requires(const Arg& arg) { interface::CoordinateSystemTraits<Arg>::template coordinate_system_types_at_runtime<N>(arg); })
+      requires(const Arg& arg) { interface::IndexTraits<Arg>::template get_index_type<N>(arg); })
 #else
   template<std::size_t N = 0, typename Arg, std::enable_if_t<indexible<Arg> and N < max_indices_of<Arg>::value, int> = 0>
 #endif
@@ -112,7 +112,7 @@ namespace OpenKalman
     else
     {
       if constexpr (dynamic_dimension<Arg, N>)
-        return interface::CoordinateSystemTraits<Arg>::template coordinate_system_types_at_runtime<N>(arg);
+        return interface::IndexTraits<Arg>::template get_index_type<N>(arg);
       else
         return coefficient_types_of_t<Arg, N> {};
     }
@@ -216,7 +216,8 @@ namespace OpenKalman
     template<std::size_t I, std::size_t...Is, typename T>
     constexpr bool get_is_square_impl(std::index_sequence<I, Is...>, const T& t)
     {
-      return ((get_dimensions_of<I>(t) == get_dimensions_of<Is>(t)) and ...);
+      auto dim_I = get_dimensions_of<I>(t);
+      return ((dim_I != 0) and ... and (dim_I == get_dimensions_of<Is>(t)));
     }
   }
 
@@ -233,7 +234,7 @@ namespace OpenKalman
   constexpr bool get_is_square(const T& t)
   {
     if constexpr (square_matrix<T>) return true;
-    else if constexpr (not square_matrix<T, Likelihood::maybe> or max_indices_of_v<T> == 0) return false;
+    else if constexpr (not square_matrix<T, Likelihood::maybe>) return false;
     else if constexpr (max_indices_of_v<T> == 1) return has_untyped_index<T, 0>;
     else return detail::get_is_square_impl(std::make_index_sequence<max_indices_of_v<T>> {}, t);
   }

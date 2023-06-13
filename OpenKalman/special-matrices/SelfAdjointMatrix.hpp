@@ -331,11 +331,24 @@ namespace OpenKalman
   // ------------------------------- //
 
 #ifdef __cpp_concepts
-  template<hermitian_matrix Arg>
+  template<hermitian_matrix<Likelihood::maybe> M>
 #else
-  template<typename Arg, std::enable_if_t<hermitian_matrix<Arg>, int> = 0>
+  template<typename M, std::enable_if_t<hermitian_matrix<M, Likelihood::maybe>, int> = 0>
 #endif
-  explicit SelfAdjointMatrix(Arg&&) -> SelfAdjointMatrix<passable_t<Arg>, hermitian_adapter_type_of_v<Arg>>;
+  SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<
+    std::conditional_t<hermitian_adapter<M>, passable_t<nested_matrix_of_t<M&&>>, passable_t<M>>,
+    hermitian_adapter<M> ? hermitian_adapter_type_of_v<M> : HermitianAdapterType::lower>;
+
+
+#ifdef __cpp_concepts
+  template<triangular_matrix<TriangleType::any, Likelihood::maybe> M> requires (not hermitian_matrix<M, Likelihood::maybe>)
+#else
+  template<typename M, std::enable_if_t<triangular_matrix<M, TriangleType::any, Likelihood::maybe> and
+    (not hermitian_matrix<M, Likelihood::maybe>), int> = 0>
+#endif
+  explicit SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<
+    std::conditional_t<triangular_adapter<M>, passable_t<nested_matrix_of_t<M&&>>, passable_t<M>>,
+    triangular_matrix<M, TriangleType::lower> ? HermitianAdapterType::lower : HermitianAdapterType::upper>;
 
 
   // ----------------------------- //
@@ -389,7 +402,156 @@ namespace OpenKalman
     else return SelfAdjointMatrix<passable_t<M>, t> {std::forward<M>(m)};
   }
 
-} // OpenKalman
+
+  // ------------------------- //
+  //        Interfaces         //
+  // ------------------------- //
+
+  namespace interface
+  {
+    template<typename Nested, HermitianAdapterType t>
+    struct IndexTraits<SelfAdjointMatrix<Nested, t>>
+    {
+      static constexpr std::size_t max_indices = 2;
+
+      template<std::size_t N>
+      static constexpr std::size_t dimension = dynamic_dimension<Nested, 0> ?
+        index_dimension_of_v<Nested, 1> : index_dimension_of_v<Nested, 0>;
+
+      template<std::size_t N, typename Arg>
+      static constexpr std::size_t dimension_at_runtime(const Arg& arg)
+      {
+        if constexpr (dynamic_dimension<Nested, 0>)
+        {
+          if constexpr (dynamic_dimension<Nested, 1>)
+            return get_index_dimension_of<0>(nested_matrix(arg));
+          else
+            return index_dimension_of_v<Nested, 1>;
+        }
+        else
+        {
+          return dimension<N>;
+        }
+      }
+
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = one_by_one_matrix<Nested, b>;
+    };
+
+
+    template<typename NestedMatrix, HermitianAdapterType storage_triangle>
+    struct Elements<SelfAdjointMatrix<NestedMatrix, storage_triangle>>
+    {
+      using scalar_type = scalar_type_of_t<NestedMatrix>;
+
+
+#ifdef __cpp_lib_concepts
+    template<diagonal_matrix Arg, typename I> requires element_gettable<nested_matrix_of_t<Arg&&>, 1> or
+      element_gettable<nested_matrix_of_t<Arg&&>, 2>
+#else
+    template<typename Arg, typename I, std::enable_if_t<diagonal_matrix<Arg> and
+      element_gettable<typename nested_matrix_of<Arg&&>::type, 1> and
+      element_gettable<typename nested_matrix_of<Arg&&>::type, 2>, int> = 0>
+#endif
+      static constexpr auto get(Arg&& arg, I i)
+      {
+        if constexpr (element_gettable<nested_matrix_of_t<Arg&&>, 1>)
+          return get_element(nested_matrix(std::forward<Arg>(arg)), i);
+        else
+          return get_element(nested_matrix(std::forward<Arg>(arg)), i, i);
+      }
+
+
+  #ifdef __cpp_lib_concepts
+      template<typename Arg, typename I, typename J> requires element_gettable<nested_matrix_of_t<Arg&&>, 2>
+  #else
+      template<typename Arg, typename I, typename J, std::enable_if_t<
+        element_gettable<typename nested_matrix_of<Arg&&>::type, 2>, int> = 0>
+  #endif
+      static constexpr scalar_type_of_t<Arg> get(Arg&& arg, I i, J j)
+      {
+        using Scalar = scalar_type_of<Arg>;
+
+        decltype(auto) n = nested_matrix(std::forward<Arg>(arg));
+        using N = decltype(n);
+
+        if (hermitian_adapter<Arg, HermitianAdapterType::lower> ? i >= static_cast<I>(j) : i <= static_cast<I>(j))
+        {
+          if constexpr (complex_number<Scalar>)
+          {
+            decltype(auto) e = get_element(std::forward<N>(n), i, j);
+            if (i == j) return internal::constexpr_real(get_element(std::forward<N>(n), i, j));
+          }
+          return get_element(std::forward<decltype(n)>(n), i, j);
+        }
+        else
+        {
+          if constexpr (complex_number<Scalar>)
+            return internal::constexpr_conj(get_element(std::forward<N>(n), j, i));
+          else
+            return get_element(std::forward<N>(n), j, i);
+        }
+      }
+
+
+#ifdef __cpp_lib_concepts
+    template<diagonal_matrix Arg, typename I> requires element_settable<nested_matrix_of_t<Arg&&>, 1> or
+      element_settable<nested_matrix_of_t<Arg&&>, 2>
+#else
+    template<typename Arg, typename I, std::enable_if_t<diagonal_matrix<Arg> and
+      element_settable<typename nested_matrix_of<Arg&&>::type, 1> and
+      element_settable<typename nested_matrix_of<Arg&&>::type, 2>, int> = 0>
+#endif
+      static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, I i)
+      {
+        if constexpr (element_settable<nested_matrix_of_t<Arg&&>, 1>)
+          set_element(nested_matrix(arg), s, i);
+        else
+          set_element(nested_matrix(arg), s, i, static_cast<I>(1));
+        return std::forward<Arg>(arg);
+      }
+
+
+  #ifdef __cpp_lib_concepts
+      template<typename Arg, typename I, typename J> requires element_settable<nested_matrix_of_t<Arg&&>, 2>
+  #else
+      template<typename Arg, typename I, typename J, std::enable_if_t<element_settable<typename nested_matrix_of<Arg&&>::type, 2>, int> = 0>
+  #endif
+      static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, I i, J j)
+      {
+        if (hermitian_adapter<Arg, HermitianAdapterType::lower> ? i >= static_cast<I>(j) : i <= static_cast<I>(j))
+          set_element(nested_matrix(arg), s, i, j);
+        else
+          set_element(nested_matrix(arg), internal::constexpr_conj(s), j, i);
+        return std::forward<Arg>(arg);
+      }
+    };
+
+
+    template<typename NestedMatrix, HermitianAdapterType triangle_type>
+    struct Dependencies<SelfAdjointMatrix<NestedMatrix, triangle_type>>
+    {
+      static constexpr bool has_runtime_parameters = false;
+      using type = std::tuple<NestedMatrix>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).nested_matrix();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        auto n = make_self_contained(get_nested_matrix<0>(std::forward<Arg>(arg)));
+        return SelfAdjointMatrix<decltype(n), triangle_type> {std::move(n)};
+      }
+    };
+
+  } // namespace interface
+
+} // namespace OpenKalman
 
 
 

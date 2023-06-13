@@ -27,6 +27,8 @@ namespace OpenKalman::interface
   template<typename TernaryOp, typename Arg1, typename Arg2, typename Arg3>
   struct IndexTraits<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
   {
+    static constexpr std::size_t max_indices = std::max({max_indices_of_v<Arg1>, max_indices_of_v<Arg2>, max_indices_of_v<Arg3>});
+
     template<std::size_t N>
     static constexpr std::size_t dimension =
       not dynamic_dimension<Arg1, N> ? index_dimension_of_v<Arg1, N> :

@@ -185,25 +185,25 @@ TEST(eigen3, ConstantAdapter_traits)
   static_assert(not one_by_one_matrix<ZA00>);
   static_assert(one_by_one_matrix<ZA00, Likelihood::maybe>);
 
-  static_assert(element_gettable<ConstantAdapter<M22, double, 3>, std::size_t, std::size_t>);
-  static_assert(element_gettable<ConstantAdapter<M20, double, 3>, std::size_t, std::size_t>);
-  static_assert(element_gettable<ConstantAdapter<M02, double, 3>, std::size_t, std::size_t>);
-  static_assert(element_gettable<ConstantAdapter<M00, double, 3>, std::size_t, std::size_t>);
+  static_assert(element_gettable<ConstantAdapter<M22, double, 3>, 2>);
+  static_assert(element_gettable<ConstantAdapter<M20, double, 3>, 2>);
+  static_assert(element_gettable<ConstantAdapter<M02, double, 3>, 2>);
+  static_assert(element_gettable<ConstantAdapter<M00, double, 3>, 2>);
 
-  static_assert(element_gettable<ZA33, std::size_t, std::size_t>);
-  static_assert(element_gettable<ZA30, std::size_t, std::size_t>);
-  static_assert(element_gettable<ZA03, std::size_t, std::size_t>);
-  static_assert(element_gettable<ZA00, std::size_t, std::size_t>);
+  static_assert(element_gettable<ZA33, 2>);
+  static_assert(element_gettable<ZA30, 2>);
+  static_assert(element_gettable<ZA03, 2>);
+  static_assert(element_gettable<ZA00, 2>);
 
-  static_assert(not element_settable<ConstantAdapter<M22, double, 3>&, std::size_t, std::size_t>);
-  static_assert(not element_settable<ConstantAdapter<M20, double, 3>&, std::size_t, std::size_t>);
-  static_assert(not element_settable<ConstantAdapter<M02, double, 3>&, std::size_t, std::size_t>);
-  static_assert(not element_settable<ConstantAdapter<M20, double, 3>&, std::size_t, std::size_t>);
+  static_assert(not element_settable<ConstantAdapter<M22, double, 3>&, 2>);
+  static_assert(not element_settable<ConstantAdapter<M20, double, 3>&, 2>);
+  static_assert(not element_settable<ConstantAdapter<M02, double, 3>&, 2>);
+  static_assert(not element_settable<ConstantAdapter<M20, double, 3>&, 2>);
 
-  static_assert(not element_settable<ZA33&, std::size_t, std::size_t>);
-  static_assert(not element_settable<ZA30&, std::size_t, std::size_t>);
-  static_assert(not element_settable<ZA03&, std::size_t, std::size_t>);
-  static_assert(not element_settable<ZA00&, std::size_t, std::size_t>);
+  static_assert(not element_settable<ZA33&, 2>);
+  static_assert(not element_settable<ZA30&, 2>);
+  static_assert(not element_settable<ZA03&, 2>);
+  static_assert(not element_settable<ZA00&, 2>);
 
   static_assert(dynamic_rows<ConstantAdapter<M00, double, 5>>);
   static_assert(dynamic_columns<ConstantAdapter<M00, double, 5>>);

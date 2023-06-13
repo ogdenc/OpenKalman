@@ -30,6 +30,8 @@ namespace OpenKalman::interface
   struct IndexTraits<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>, std::enable_if_t<native_eigen_general<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>>>
 #endif
   {
+    static constexpr std::size_t max_indices = std::max({max_indices_of_v<LhsType>, max_indices_of_v<RhsType>});
+
     template<std::size_t N>
     static constexpr std::size_t dimension =
       not dynamic_dimension<LhsType, N> ? index_dimension_of_v<LhsType, N> :
@@ -47,8 +49,8 @@ namespace OpenKalman::interface
     static constexpr bool is_one_by_one =
       one_by_one_matrix<LhsType, Likelihood::maybe> and one_by_one_matrix<RhsType, Likelihood::maybe> and
       (b != Likelihood::definitely or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>> or
-        (square_matrix<LhsType, b> and (index_dimension_of_v<RhsType, 0> == 1 or index_dimension_of_v<RhsType, 1> == 1)) or
-        ((index_dimension_of_v<LhsType, 0> == 1 or index_dimension_of_v<LhsType, 1> == 1) and square_matrix<RhsType, b>));
+        (square_matrix<LhsType, b> and (dimension_size_of_index_is<RhsType, 0, 1> or dimension_size_of_index_is<RhsType, 1, 1>)) or
+        ((dimension_size_of_index_is<LhsType, 0, 1> or dimension_size_of_index_is<LhsType, 1, 1>) and square_matrix<RhsType, b>));
 
     template<Likelihood b>
     static constexpr bool is_square =

@@ -132,7 +132,7 @@ namespace OpenKalman
 
         if constexpr (scalar_type<Red>)
           return std::forward<Red>(red);
-        else if constexpr (element_gettable<Red, decltype(indices)...>)
+        else if constexpr (element_gettable<Red, sizeof...(indices)>)
           return get_element(std::forward<Red>(red), static_cast<decltype(indices)>(0)...);
         else
           return interface::LinearAlgebra<std::decay_t<Red>>::trace(std::forward<Red>(red));
@@ -205,7 +205,7 @@ namespace OpenKalman
       auto m = reduce<index, indices...>(b, nested_matrix(std::forward<Arg>(arg)));
       return Matrix<RC, CC, decltype(m)> {std::move(m)};
     }
-    else if constexpr (index_dimension_of_v<Arg, index> == 1)
+    else if constexpr (dimension_size_of_index_is<Arg, index, 1>)
     {
       if constexpr (sizeof...(indices) == 0) return std::forward<Arg>(arg);
       else return reduce<indices...>(b, std::forward<Arg>(arg));
@@ -319,7 +319,7 @@ namespace OpenKalman
       auto m = average_reduce<index, indices...>(nested_matrix(std::forward<Arg>(arg)));
       return Matrix<RC, CC, decltype(m)> {std::move(m)};
     }
-    else if constexpr (index_dimension_of_v<Arg, index> == 1)
+    else if constexpr (dimension_size_of_index_is<Arg, index, 1>)
     {
       if constexpr (sizeof...(indices) == 0) return std::forward<Arg>(arg);
       else return average_reduce<indices...>(std::forward<Arg>(arg));

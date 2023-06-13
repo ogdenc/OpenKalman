@@ -134,12 +134,12 @@ namespace OpenKalman
      * M is assumed (without enforcement) to be self-adjoint, and the data in only one of the triangles is significant.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix M> requires (square_matrix<M> or (diagonal_matrix<NestedMatrix> and column_vector<M>)) and
+    template<typed_matrix M> requires (square_matrix<M> or (diagonal_matrix<NestedMatrix> and dimension_size_of_index_is<M, 1, 1>)) and
       equivalent_to<row_coefficient_types_of_t<M>, TypedIndex> and
       requires(M&& m) { Base {oin::to_covariance_nestable<NestedSelfAdjoint>(std::forward<M>(m))}; }
 #else
     template<typename M, std::enable_if_t<typed_matrix<M> and
-      (square_matrix<M> or (diagonal_matrix<NestedMatrix> and column_vector<M>)) and
+      (square_matrix<M> or (diagonal_matrix<NestedMatrix> and dimension_size_of_index_is<M, 1, 1>)) and
       equivalent_to<row_coefficient_types_of_t<M>, TypedIndex> and
       std::is_constructible_v<Base,
         decltype(oin::to_covariance_nestable<NestedSelfAdjoint>(std::declval<M&&>()))>, int> = 0>
@@ -156,12 +156,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix_nestable M> requires (not covariance_nestable<M>) and
-      (square_matrix<M> or (diagonal_matrix<NestedMatrix> and column_vector<M>)) and
+      (square_matrix<M> or (diagonal_matrix<NestedMatrix> and dimension_size_of_index_is<M, 1, 1>)) and
       requires(M&& m) { Base {oin::to_covariance_nestable<NestedSelfAdjoint>(std::forward<M>(m))};
       }
 #else
     template<typename M, std::enable_if_t<typed_matrix_nestable<M> and (not covariance_nestable<M>) and
-      (square_matrix<M> or (diagonal_matrix<NestedMatrix> and column_vector<M>)) and
+      (square_matrix<M> or (diagonal_matrix<NestedMatrix> and dimension_size_of_index_is<M, 1, 1>)) and
       std::is_constructible_v<Base,
         decltype(oin::to_covariance_nestable<NestedSelfAdjoint>(std::declval<M&&>()))>, int> = 0>
 #endif
@@ -1062,6 +1062,42 @@ namespace OpenKalman
     using B = nested_matrix_of_t<Arg>;
     return make_covariance<C, B>();
   }
+
+
+  // ------------------------- //
+  //        Interfaces         //
+  // ------------------------- //
+
+  namespace interface
+  {
+    template<typename Coeffs, typename NestedMatrix>
+    struct IndexTraits<Covariance<Coeffs, NestedMatrix>>
+    {
+      static constexpr std::size_t max_indices = 2;
+
+      template<std::size_t N>
+      using coordinate_system_types = Coeffs;
+
+      template<std::size_t N, typename Arg>
+      static constexpr auto get_index_type(Arg&& arg)
+      {
+        return std::forward<Arg>(arg).my_dimension;
+      }
+
+      template<std::size_t N>
+      static constexpr std::size_t dimension = dimension_size_of_v<coordinate_system_types<N>>;
+
+      template<std::size_t N, typename Arg>
+      static constexpr std::size_t dimension_at_runtime(Arg&& arg)
+      {
+        return get_dimension_size_of(get_index_type<N>(std::forward<Arg>(arg)));
+      }
+
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = one_by_one_matrix<NestedMatrix, b>;
+    };
+
+  } // namespace interface
 
 
 } // OpenKalman

@@ -119,7 +119,7 @@ namespace OpenKalman
     template<std::size_t I, std::size_t...Is, typename T>
     static constexpr bool is_1_by_1_impl(const T& t, std::index_sequence<I, Is...>)
     {
-      if constexpr (index_dimension_of_v<T, I> == 1) return is_1_by_1_impl(t, std::index_sequence<Is...>{});
+      if constexpr (dimension_size_of_index_is<T, I, 1>) return is_1_by_1_impl(t, std::index_sequence<Is...>{});
       else if (IndexTraits<T>::template dimension_at_runtime<I>(t) == 1) return is_1_by_1_impl(t, std::index_sequence<Is...>{});
       else return false;
     }

@@ -475,6 +475,41 @@ namespace OpenKalman
   }
 
 
+  // ------------------------- //
+  //        Interfaces         //
+  // ------------------------- //
+
+  namespace interface
+  {
+    template<typename RowCoeffs, typename ColCoeffs, typename NestedMatrix>
+    struct IndexTraits<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>>
+    {
+      static constexpr std::size_t max_indices = 2;
+
+      template<std::size_t N>
+      using coordinate_system_types = std::conditional_t<N == 0, RowCoeffs, ColCoeffs>;
+
+      template<std::size_t N, typename Arg>
+      static constexpr auto get_index_type(Arg&& arg)
+      {
+        return std::get<N>(std::forward<Arg>(arg).my_dimensions);
+      }
+
+      template<std::size_t N>
+      static constexpr std::size_t dimension = dimension_size_of_v<coordinate_system_types<N>>;
+
+      template<std::size_t N, typename Arg>
+      static constexpr std::size_t dimension_at_runtime(Arg&& arg)
+      {
+        return get_dimension_size_of(get_index_type<N>(std::forward<Arg>(arg)));
+      }
+
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = one_by_one_matrix<NestedMatrix, b>;
+    };
+
+  } // namespace interface
+
 } // namespace OpenKalman
 
 

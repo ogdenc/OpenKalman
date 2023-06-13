@@ -560,7 +560,7 @@ namespace OpenKalman::internal
      */
     auto operator() (std::size_t i, std::size_t j)
     {
-      if constexpr(element_settable<NestedMatrix, std::size_t, std::size_t> and element_settable<CholeskyNestedMatrix, std::size_t, std::size_t>)
+      if constexpr(element_settable<NestedMatrix, 2> and element_settable<CholeskyNestedMatrix, 2>)
       {
         return ElementAccessor(cholesky_nested_link, i, j,
           [this] { if (synchronization_direction() > 0) synchronize_forward(); },
@@ -592,7 +592,7 @@ namespace OpenKalman::internal
      */
     auto operator[] (std::size_t i)
     {
-      if constexpr(element_settable<NestedMatrix, std::size_t> and element_settable<CholeskyNestedMatrix, std::size_t>)
+      if constexpr(element_settable<NestedMatrix, 1> and element_settable<CholeskyNestedMatrix, 1>)
       {
         return ElementAccessor(cholesky_nested_link, i,
           [this] { if (synchronization_direction() > 0) synchronize_forward(); },

@@ -55,14 +55,16 @@ namespace OpenKalman::interface
   struct Elements<T, std::enable_if_t<covariance<T>>>
 #endif
   {
+    using scalar_type = scalar_type_of_t<nested_matrix_of_t<T>>;
+
 #ifdef __cpp_lib_concepts
     template<typename Arg, typename...I> requires
-      (not self_adjoint_covariance<Arg> or element_gettable<decltype(std::declval<Arg>().get_self_adjoint_nested_matrix()), I...>) and
-      (not triangular_covariance<Arg> or element_gettable<decltype(std::declval<Arg>().get_triangular_nested_matrix()), I...>)
+      (not self_adjoint_covariance<Arg> or element_gettable<decltype(std::declval<Arg&&>().get_self_adjoint_nested_matrix()), sizeof...(I)>) and
+      (not triangular_covariance<Arg> or element_gettable<decltype(std::declval<Arg&&>().get_triangular_nested_matrix()), sizeof...(I)>)
 #else
     template<typename Arg, typename...I, std::enable_if_t<
-      (not self_adjoint_covariance<Arg> or element_gettable<decltype(std::declval<Arg>().get_self_adjoint_nested_matrix()), I...>) and
-      (not triangular_covariance<Arg> or element_gettable<decltype(std::declval<Arg>().get_triangular_nested_matrix()), I...>), int> = 0>
+      (not self_adjoint_covariance<Arg> or element_gettable<decltype(std::declval<Arg&&>().get_self_adjoint_nested_matrix()), sizeof...(I)>) and
+      (not triangular_covariance<Arg> or element_gettable<decltype(std::declval<Arg&&>().get_triangular_nested_matrix()), sizeof...(I)>), int> = 0>
 #endif
     static constexpr auto get(Arg&& arg, I...i)
     {
@@ -72,12 +74,12 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_lib_concepts
     template<typename Arg, typename...I> requires
-      (not self_adjoint_covariance<Arg> or element_settable<decltype(std::declval<Arg>().get_self_adjoint_nested_matrix()), I...>) and
-      (not triangular_covariance<Arg> or element_settable<decltype(std::declval<Arg>().get_triangular_nested_matrix()), I...>)
+      (not self_adjoint_covariance<Arg> or element_settable<decltype(std::declval<Arg&&>().get_self_adjoint_nested_matrix()), sizeof...(I)>) and
+      (not triangular_covariance<Arg> or element_settable<decltype(std::declval<Arg&&>().get_triangular_nested_matrix()), sizeof...(I)>)
 #else
     template<typename Arg, typename...I, std::enable_if_t<
-      (not self_adjoint_covariance<Arg> or element_settable<decltype(std::declval<Arg>().get_self_adjoint_nested_matrix()), I...>) and
-      (not triangular_covariance<Arg> or element_settable<decltype(std::declval<Arg>().get_triangular_nested_matrix()), I...>), int> = 0>
+      (not self_adjoint_covariance<Arg> or element_settable<decltype(std::declval<Arg&&>().get_self_adjoint_nested_matrix()), sizeof...(I)>) and
+      (not triangular_covariance<Arg> or element_settable<decltype(std::declval<Arg&&>().get_triangular_nested_matrix()), sizeof...(I)>), int> = 0>
 #endif
     static constexpr Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, I...i)
     {

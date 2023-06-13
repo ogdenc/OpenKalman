@@ -355,17 +355,17 @@ TEST(eigen3, Diagonal_class)
 
 TEST(eigen3, Diagonal_subscripts)
 {
-  static_assert(element_gettable<D3, std::size_t, std::size_t>);
-  static_assert(element_gettable<D3, std::size_t>);
+  static_assert(element_gettable<D3, 2>);
+  static_assert(element_gettable<D3, 1>);
   static_assert(not element_gettable<D3, 3>);
-  static_assert(element_settable<D3&, std::size_t, std::size_t>);
-  static_assert(element_settable<D3&, std::size_t>);
+  static_assert(element_settable<D3&, 2>);
+  static_assert(element_settable<D3&, 1>);
 
-  static_assert(element_gettable<D0, std::size_t, std::size_t>);
-  static_assert(element_gettable<D0, std::size_t>);
+  static_assert(element_gettable<D0, 2>);
+  static_assert(element_gettable<D0, 1>);
   static_assert(not element_gettable<D0, 3>);
-  static_assert(element_settable<D0&, std::size_t, std::size_t>);
-  static_assert(element_settable<D0&, std::size_t>);
+  static_assert(element_settable<D0&, 2>);
+  static_assert(element_settable<D0&, 1>);
 
   D3 d3a {1, 2, 3};
   D0 d0a_3 {1, 2, 3};

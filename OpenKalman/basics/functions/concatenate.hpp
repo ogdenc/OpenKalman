@@ -29,8 +29,8 @@ namespace OpenKalman
     template<typename T, typename U, std::size_t...indices, std::size_t...I>
     constexpr bool concatenate_dimensions_match_impl(std::index_sequence<I...>)
     {
-      return (([](std::size_t i){ return ((i != indices) and ...); }(I) or dynamic_dimension<T, I> or
-        dynamic_dimension<U, I> or index_dimension_of_v<T, I> == index_dimension_of_v<U, I>) and ...);
+      return (([](std::size_t i){ return ((i != indices) and ...); }(I) or
+        dimension_size_of_index_is<T, I, index_dimension_of_v<U, I>, Likelihood::maybe>) and ...);
     }
 
 

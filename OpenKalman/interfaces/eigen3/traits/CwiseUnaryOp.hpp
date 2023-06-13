@@ -27,6 +27,8 @@ namespace OpenKalman::interface
   template<typename UnaryOp, typename XprType>
   struct IndexTraits<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
   {
+    static constexpr std::size_t max_indices = max_indices_of_v<XprType>;
+
     template<std::size_t N>
     static constexpr std::size_t dimension = index_dimension_of_v<XprType, N>;
 

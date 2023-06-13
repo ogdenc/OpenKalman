@@ -110,20 +110,6 @@ namespace OpenKalman
       template<typename T>
       struct call_result_is_scalar<T, std::enable_if_t<std::is_default_constructible_v<T>>>
         : std::bool_constant<call_result_is_scalar_impl<T>::value> {};
-
-      template<typename T, typename = void>
-      struct convertible_to_value_type_impl : std::false_type {};
-
-      template<typename T>
-      struct convertible_to_value_type_impl<T, std::void_t<std::bool_constant<(typename T::value_type {T{}}, true)>>>
-        : std::bool_constant<scalar_type<decltype(typename T::value_type {T{}})>> {};
-
-      template<typename T, typename = void>
-      struct convertible_to_value_type : std::false_type {};
-
-      template<typename T>
-      struct convertible_to_value_type<T, std::enable_if_t<std::is_default_constructible_v<T>>>
-        : std::bool_constant<convertible_to_value_type_impl<T>::value> {};
     }
 #endif
 
@@ -137,14 +123,10 @@ namespace OpenKalman
       ( requires { {std::decay_t<T>::value} -> scalar_type; } or
         requires {
           {std::decay_t<T>{}()} -> scalar_type;
-          typename std::bool_constant<(std::decay_t<T>{}(), true)>; } or
-        requires {
-          {typename std::decay_t<T>::value_type {std::decay_t<T>{}}} -> scalar_type;
-          typename std::bool_constant<(typename std::decay_t<T>::value_type {std::decay_t<T>{}}, true)>; });
+          typename std::bool_constant<(std::decay_t<T>{}(), true)>; });
 #else
     constexpr bool compile_time_scalar_constant = std::is_default_constructible_v<std::decay_t<T>> and
-      (detail::has_value_member<std::decay_t<T>>::value or detail::call_result_is_scalar<std::decay_t<T>>::value or
-        detail::convertible_to_value_type<std::decay_t<T>>::value);
+      (detail::has_value_member<std::decay_t<T>>::value or detail::call_result_is_scalar<std::decay_t<T>>::value);
 #endif
 
 
@@ -217,14 +199,13 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     if constexpr (requires { {T::value} -> scalar_type; }) return T::value;
     else if constexpr (requires { {arg()} -> scalar_type; }) return std::forward<Arg>(arg)();
-    else if constexpr (requires { {typename T::value_type {arg}} -> scalar_type; }) return typename T::value_type {std::forward<Arg>(arg)};
     else return std::forward<Arg>(arg);
 #else
     if constexpr (internal::detail::has_value_member<T>::value) return T::value;
-    else if constexpr (internal::detail::call_result_is_scalar<T>::value or
-      internal::detail::is_runtime_scalar<T>::value) return std::forward<Arg>(arg)();
-    else if constexpr (internal::detail::convertible_to_value_type<T>::value or
-      internal::detail::is_runtime_convertible_scalar<T>::value) return typename T::value_type {std::forward<Arg>(arg)};
+    else if constexpr (internal::detail::call_result_is_scalar<T>::value or internal::detail::is_runtime_scalar<T>::value)
+      return std::forward<Arg>(arg)();
+    else if constexpr (internal::detail::is_runtime_convertible_scalar<T>::value)
+      return typename T::value_type {std::forward<Arg>(arg)};
     else { static_assert(scalar_type<Arg>); return std::forward<Arg>(arg); }
 #endif
   }

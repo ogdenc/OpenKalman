@@ -111,10 +111,10 @@ namespace OpenKalman
      * \brief Construct from a \ref typed_matrix and an rvalue of a \ref covariance.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix M> requires column_vector<M> and has_untyped_index<M, 1> and
+    template<typed_matrix M> requires dimension_size_of_index_is<M, 1, 1> and has_untyped_index<M, 1> and
       equivalent_to<row_coefficient_types_of_t<M>, TypedIndex>
 #else
-    template<typename M, std::enable_if_t<typed_matrix<M> and column_vector<M> and has_untyped_index<M, 1> and
+    template<typename M, std::enable_if_t<typed_matrix<M> and dimension_size_of_index_is<M, 1, 1> and has_untyped_index<M, 1> and
       equivalent_to<row_coefficient_types_of_t<M>, TypedIndex>, int> = 0>
 #endif
     GaussianDistribution(M&& mean, Covariance&& cov) : mu {std::forward<M>(mean)}, sigma {std::move(cov)} {}
@@ -124,9 +124,9 @@ namespace OpenKalman
      * \brief Construct from a \ref typed_matrix_nestable and an rvalue of a \ref covariance.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix_nestable M> requires column_vector<M> and (row_dimension_of_v<M> == dim)
+    template<typed_matrix_nestable M> requires dimension_size_of_index_is<M, 1, 1> and (row_dimension_of_v<M> == dim)
 #else
-    template<typename M, std::enable_if_t<typed_matrix_nestable<M> and column_vector<M> and
+    template<typename M, std::enable_if_t<typed_matrix_nestable<M> and dimension_size_of_index_is<M, 1, 1> and
       (row_dimension_of<M>::value == dim), int> = 0>
 #endif
     GaussianDistribution(M&& mean, Covariance&& cov) : mu {std::forward<M>(mean)}, sigma {std::move(cov)} {}
@@ -157,12 +157,12 @@ namespace OpenKalman
      * \tparam Cov A \ref covariance or \ref square_matrix "square" \ref typed_matrix.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix M, typename Cov> requires column_vector<M> and has_untyped_index<M, 1> and
+    template<typed_matrix M, typename Cov> requires dimension_size_of_index_is<M, 1, 1> and has_untyped_index<M, 1> and
       equivalent_to<row_coefficient_types_of_t<M>, TypedIndex> and
       (covariance<Cov> or typed_matrix<Cov>) and
       equivalent_to<row_coefficient_types_of_t<Cov>, TypedIndex>
 #else
-    template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and column_vector<M> and has_untyped_index<M, 1> and
+    template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and dimension_size_of_index_is<M, 1, 1> and has_untyped_index<M, 1> and
       equivalent_to<row_coefficient_types_of_t<M>, TypedIndex> and
       (covariance<Cov> or typed_matrix<Cov>) and
       equivalent_to<row_coefficient_types_of_t<Cov>, TypedIndex>, int> = 0>
@@ -177,11 +177,11 @@ namespace OpenKalman
      * \tparam Cov A \ref covariance_nestable.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix M, typename Cov> requires column_vector<M> and has_untyped_index<M, 1> and
+    template<typed_matrix M, typename Cov> requires dimension_size_of_index_is<M, 1, 1> and has_untyped_index<M, 1> and
       equivalent_to<row_coefficient_types_of_t<M>, TypedIndex> and
       covariance_nestable<Cov> and (row_dimension_of_v<Cov> == dim)
 #else
-    template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and column_vector<M> and has_untyped_index<M, 1> and
+    template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and dimension_size_of_index_is<M, 1, 1> and has_untyped_index<M, 1> and
       equivalent_to<row_coefficient_types_of_t<M>, TypedIndex> and
       covariance_nestable<Cov> and (row_dimension_of<Cov>::value == dim), int> = 0>
 #endif
@@ -194,11 +194,11 @@ namespace OpenKalman
      * \tparam Cov A \ref covariance or \ref square_matrix "square" \ref typed_matrix.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix_nestable M, typename Cov> requires column_vector<M> and
+    template<typed_matrix_nestable M, typename Cov> requires dimension_size_of_index_is<M, 1, 1> and
       (row_dimension_of_v<M> == dim) and (covariance<Cov> or typed_matrix<Cov>) and
       equivalent_to<row_coefficient_types_of_t<Cov>, TypedIndex>
 #else
-    template<typename M, typename Cov, std::enable_if_t<typed_matrix_nestable<M> and column_vector<M> and
+    template<typename M, typename Cov, std::enable_if_t<typed_matrix_nestable<M> and dimension_size_of_index_is<M, 1, 1> and
       (row_dimension_of<M>::value == dim) and (covariance<Cov> or typed_matrix<Cov>) and
       equivalent_to<row_coefficient_types_of_t<Cov>, TypedIndex>, int> = 0>
 #endif
@@ -212,11 +212,11 @@ namespace OpenKalman
      * \tparam Cov A \ref covariance_nestable.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix_nestable M, typename Cov> requires column_vector<M> and
+    template<typed_matrix_nestable M, typename Cov> requires dimension_size_of_index_is<M, 1, 1> and
       (row_dimension_of_v<M> == dim) and covariance_nestable<Cov> and
       (row_dimension_of_v<Cov> == dim)
 #else
-    template<typename M, typename Cov, std::enable_if_t<typed_matrix_nestable<M> and column_vector<M> and
+    template<typename M, typename Cov, std::enable_if_t<typed_matrix_nestable<M> and dimension_size_of_index_is<M, 1, 1> and
       (row_dimension_of<M>::value == dim) and covariance_nestable<Cov> and
       (row_dimension_of<Cov>::value == dim), int> = 0>
 #endif
@@ -340,9 +340,9 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix...Z> requires (sizeof...(Z) > 0) and
-      ((column_vector<Z> and equivalent_to<row_coefficient_types_of_t<Z>, TypedIndex>) and ...)
+      ((dimension_size_of_index_is<Z, 1, 1> and equivalent_to<row_coefficient_types_of_t<Z>, TypedIndex>) and ...)
 #else
-    template<typename...Z, std::enable_if_t<(sizeof...(Z) > 0) and ((typed_matrix<Z> and column_vector<Z> and
+    template<typename...Z, std::enable_if_t<(sizeof...(Z) > 0) and ((typed_matrix<Z> and dimension_size_of_index_is<Z, 1, 1> and
       equivalent_to<row_coefficient_types_of_t<Z>, TypedIndex>) and ...), int> = 0>
 #endif
     Scalar log_likelihood(const Z&...z) const
@@ -506,11 +506,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<std::uniform_random_bit_generator re = std::mt19937, typed_matrix M, typename Cov> requires
-    column_vector<M> and has_untyped_index<M, 1> and square_matrix<Cov> and (covariance<Cov> or typed_matrix<Cov>) and
+    dimension_size_of_index_is<M, 1, 1> and has_untyped_index<M, 1> and square_matrix<Cov> and (covariance<Cov> or typed_matrix<Cov>) and
     (equivalent_to<row_coefficient_types_of_t<M>, row_coefficient_types_of_t<Cov>>)
 #else
   template<typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<(not fixed_index_descriptor<re>) and
-    typed_matrix<M> and column_vector<M> and has_untyped_index<M, 1> and
+    typed_matrix<M> and dimension_size_of_index_is<M, 1, 1> and has_untyped_index<M, 1> and
     square_matrix<Cov> and (covariance<Cov> or typed_matrix<Cov>) and
     (equivalent_to<row_coefficient_types_of_t<M>, row_coefficient_types_of_t<Cov>>), int> = 0>
 #endif
@@ -533,12 +533,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<std::uniform_random_bit_generator re = std::mt19937, typed_matrix M, typename Cov> requires
-    column_vector<M> and has_untyped_index<M, 1> and
+    dimension_size_of_index_is<M, 1, 1> and has_untyped_index<M, 1> and
     square_matrix<Cov> and (covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
     (row_dimension_of_v<M> == row_dimension_of_v<Cov>)
 #else
   template<typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<
-    (not fixed_index_descriptor<re>) and typed_matrix<M> and column_vector<M> and has_untyped_index<M, 1> and
+    (not fixed_index_descriptor<re>) and typed_matrix<M> and dimension_size_of_index_is<M, 1, 1> and has_untyped_index<M, 1> and
     square_matrix<Cov> and (covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
     (row_dimension_of<M>::value == row_dimension_of<Cov>::value), int> = 0>
 #endif
@@ -561,12 +561,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<std::uniform_random_bit_generator re = std::mt19937, typed_matrix_nestable M, typename Cov> requires
-    column_vector<M> and square_matrix<Cov> and
+    dimension_size_of_index_is<M, 1, 1> and square_matrix<Cov> and
     (covariance<Cov> or typed_matrix<Cov> or covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
     (row_dimension_of_v<M> == row_dimension_of_v<Cov>)
 #else
   template<typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<
-    (not fixed_index_descriptor<re>) and typed_matrix_nestable<M> and column_vector<M> and square_matrix<Cov> and
+    (not fixed_index_descriptor<re>) and typed_matrix_nestable<M> and dimension_size_of_index_is<M, 1, 1> and square_matrix<Cov> and
     (covariance<Cov> or typed_matrix<Cov> or covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
     (row_dimension_of<M>::value == row_dimension_of<Cov>::value), int> = 0>
 #endif
@@ -608,10 +608,10 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<fixed_index_descriptor TypedIndex, std::uniform_random_bit_generator re = std::mt19937,
     typed_matrix_nestable M, typename Cov> requires
-    column_vector<M> and (covariance_nestable<Cov> or typed_matrix_nestable<Cov>)
+    dimension_size_of_index_is<M, 1, 1> and (covariance_nestable<Cov> or typed_matrix_nestable<Cov>)
 #else
   template<typename TypedIndex, typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<
-    fixed_index_descriptor<TypedIndex> and typed_matrix_nestable<M> and column_vector<M> and
+    fixed_index_descriptor<TypedIndex> and typed_matrix_nestable<M> and dimension_size_of_index_is<M, 1, 1> and
     (covariance_nestable<Cov> or typed_matrix_nestable<Cov>), int> = 0>
 #endif
   inline auto
@@ -642,11 +642,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typed_matrix M, covariance Cov, std::uniform_random_bit_generator re = std::mt19937> requires
-    column_vector<M> and has_untyped_index<M, 1> and
+    dimension_size_of_index_is<M, 1, 1> and has_untyped_index<M, 1> and
     equivalent_to<row_coefficient_types_of_t<M>, row_coefficient_types_of_t<Cov>>
 #else
   template<typename M, typename Cov, typename re = std::mt19937, std::enable_if_t<
-    typed_matrix<M> and column_vector<M> and has_untyped_index<M, 1> and covariance<Cov> and
+    typed_matrix<M> and dimension_size_of_index_is<M, 1, 1> and has_untyped_index<M, 1> and covariance<Cov> and
     equivalent_to<row_coefficient_types_of_t<M>, row_coefficient_types_of_t<Cov>>, int> = 0>
 #endif
   inline auto
@@ -666,13 +666,13 @@ namespace OpenKalman
    * \note This overload excludes the case in which M is \ref typed_matrix \em and Cov is \ref covariance.
    */
 #ifdef __cpp_concepts
-  template<column_vector M, typename Cov, std::uniform_random_bit_generator re = std::mt19937> requires
+  template<dimension_size_of_index_is<1, 1> M, typename Cov, std::uniform_random_bit_generator re = std::mt19937> requires
     (typed_matrix<M> or typed_matrix_nestable<M>) and has_untyped_index<M, 1> and
     (covariance<Cov> or covariance_nestable<Cov>) and (not typed_matrix<M> or not covariance<Cov>) and
     (row_dimension_of_v<M> == row_dimension_of_v<Cov>)
 #else
   template<typename M, typename Cov, typename re = std::mt19937, std::enable_if_t<
-    column_vector<M> and (typed_matrix<M> or typed_matrix_nestable<M>) and has_untyped_index<M, 1> and
+    dimension_size_of_index_is<M, 1, 1> and (typed_matrix<M> or typed_matrix_nestable<M>) and has_untyped_index<M, 1> and
     (covariance<Cov> or covariance_nestable<Cov>) and (not typed_matrix<M> or not covariance<Cov>) and
     (row_dimension_of<M>::value == row_dimension_of<Cov>::value), int> = 0>
 #endif
@@ -708,10 +708,10 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<fixed_index_descriptor TypedIndex, typed_matrix_nestable M, covariance_nestable Cov,
       std::uniform_random_bit_generator re = std::mt19937> requires
-    column_vector<M> and (row_dimension_of_v<M> == row_dimension_of_v<Cov>)
+    dimension_size_of_index_is<M, 1, 1> and (row_dimension_of_v<M> == row_dimension_of_v<Cov>)
 #else
   template<typename TypedIndex, typename M, typename Cov, typename re = std::mt19937, std::enable_if_t<
-    typed_matrix_nestable<M> and column_vector<M> and covariance_nestable<Cov> and
+    typed_matrix_nestable<M> and dimension_size_of_index_is<M, 1, 1> and covariance_nestable<Cov> and
     (row_dimension_of<M>::value == row_dimension_of<Cov>::value), int> = 0>
 #endif
   inline auto
@@ -727,18 +727,11 @@ namespace OpenKalman
 
   namespace interface
   {
-
-    template<typename Coeffs, typename NestedMean, typename NestedCovariance, typename re>
-    struct IndexibleObjectTraits<GaussianDistribution<Coeffs, NestedMean, NestedCovariance, re>>
-    {
-      static constexpr std::size_t max_indices = 1;
-      using scalar_type = scalar_type_of_t<NestedMean>;
-    };
-
-
     template<typename Coeffs, typename NestedMean, typename NestedCovariance, typename re>
     struct IndexTraits<GaussianDistribution<Coeffs, NestedMean, NestedCovariance, re>>
     {
+      static constexpr std::size_t max_indices = 1;
+
       template<std::size_t N>
       static constexpr std::size_t dimension = dimension_size_of_v<Coeffs>;
 
@@ -750,6 +743,13 @@ namespace OpenKalman
         else
           return dimension<N>;
       }
+    };
+
+
+    template<typename Coeffs, typename NestedMean, typename NestedCovariance, typename re>
+    struct Elements<GaussianDistribution<Coeffs, NestedMean, NestedCovariance, re>>
+    {
+      using scalar_type = scalar_type_of_t<NestedMean>;
     };
 
 
@@ -795,11 +795,11 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<fixed_index_descriptor C = TypedIndex, typed_matrix_nestable M, covariance_nestable Cov> requires
-      column_vector<M> and (row_dimension_of_v<M> == row_dimension_of_v<Cov>)
+      dimension_size_of_index_is<M, 1, 1> and (row_dimension_of_v<M> == row_dimension_of_v<Cov>)
 #else
     template<typename C = TypedIndex, typename M, typename Cov,
       std::enable_if_t<fixed_index_descriptor<C> and typed_matrix_nestable<M> and covariance_nestable<Cov> and
-      column_vector<M> and (row_dimension_of<M>::value == row_dimension_of<Cov>::value), int> = 0>
+      dimension_size_of_index_is<M, 1, 1> and (row_dimension_of<M>::value == row_dimension_of<Cov>::value), int> = 0>
 #endif
     static auto make(M&& mean, Cov&& covariance) noexcept
     {

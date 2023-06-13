@@ -293,7 +293,7 @@ namespace OpenKalman::internal
      */
     auto operator() (std::size_t i, std::size_t j)
     {
-      if constexpr(element_settable<CholeskyNestedMatrix, std::size_t, std::size_t>)
+      if constexpr(element_settable<CholeskyNestedMatrix, 2>)
         return ElementAccessor(cholesky_nested, i, j,
           [this] { if (synch_direction > 0) synchronize_forward(); },
           [this] { mark_cholesky_nested_matrix_changed(); });
@@ -316,7 +316,7 @@ namespace OpenKalman::internal
      */
     auto operator[] (std::size_t i)
     {
-      if constexpr(element_settable<CholeskyNestedMatrix, std::size_t>)
+      if constexpr(element_settable<CholeskyNestedMatrix, 1>)
         return ElementAccessor(cholesky_nested, i,
           [this] { if (synch_direction > 0) synchronize_forward(); },
           [this] { mark_cholesky_nested_matrix_changed(); });

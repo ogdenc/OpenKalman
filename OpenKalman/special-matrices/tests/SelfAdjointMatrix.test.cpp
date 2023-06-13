@@ -427,44 +427,44 @@ TEST(eigen3, SelfAdjointMatrix_class)
 
 TEST(eigen3, SelfAdjointMatrix_subscripts)
 {
-  static_assert(element_gettable<L22, std::size_t, std::size_t>);
-  static_assert(not element_gettable<L22, std::size_t>);
-  static_assert(element_gettable<U22, std::size_t, std::size_t>);
-  static_assert(not element_gettable<U22, std::size_t>);
-  static_assert(element_gettable<DM22, std::size_t, std::size_t>);
-  static_assert(element_gettable<DM22, std::size_t>);
-  static_assert(element_gettable<DD2, std::size_t, std::size_t>);
-  static_assert(element_gettable<DD2, std::size_t>);
-  static_assert(element_gettable<DL2, std::size_t, std::size_t>);
-  static_assert(element_gettable<DL2, std::size_t>);
+  static_assert(element_gettable<L22, 2>);
+  static_assert(not element_gettable<L22, 1>);
+  static_assert(element_gettable<U22, 2>);
+  static_assert(not element_gettable<U22, 1>);
+  static_assert(element_gettable<DM22, 2>);
+  static_assert(element_gettable<DM22, 1>);
+  static_assert(element_gettable<DD2, 2>);
+  static_assert(element_gettable<DD2, 1>);
+  static_assert(element_gettable<DL2, 2>);
+  static_assert(element_gettable<DL2, 1>);
 
-  static_assert(element_settable<L22&, std::size_t, std::size_t>);
-  static_assert(not element_settable<L22&, std::size_t>);
-  static_assert(element_settable<U22&, std::size_t, std::size_t>);
-  static_assert(not element_settable<U22&, std::size_t>);
-  static_assert(element_settable<DM22&, std::size_t, std::size_t>);
-  static_assert(element_settable<DM22&, std::size_t>);
-  static_assert(element_settable<DD2&, std::size_t, std::size_t>);
-  static_assert(element_settable<DD2&, std::size_t>);
-  static_assert(element_settable<DL2&, std::size_t, std::size_t>);
-  static_assert(element_settable<DL2&, std::size_t>);
+  static_assert(element_settable<L22&, 2>);
+  static_assert(not element_settable<L22&, 1>);
+  static_assert(element_settable<U22&, 2>);
+  static_assert(not element_settable<U22&, 1>);
+  static_assert(element_settable<DM22&, 2>);
+  static_assert(element_settable<DM22&, 1>);
+  static_assert(element_settable<DD2&, 2>);
+  static_assert(element_settable<DD2&, 1>);
+  static_assert(element_settable<DL2&, 2>);
+  static_assert(element_settable<DL2&, 1>);
 
-  static_assert(not element_settable<const L22&, std::size_t, std::size_t>);
-  static_assert(not element_settable<const L22&, std::size_t>);
-  static_assert(not element_settable<const U22&, std::size_t, std::size_t>);
-  static_assert(not element_settable<const U22&, std::size_t>);
-  static_assert(not element_settable<const DM22&, std::size_t, std::size_t>);
-  static_assert(not element_settable<const DM22&, std::size_t>);
-  static_assert(not element_settable<const DD2&, std::size_t, std::size_t>);
-  static_assert(not element_settable<const DD2&, std::size_t>);
-  static_assert(not element_settable<const DL2&, std::size_t, std::size_t>);
-  static_assert(not element_settable<const DL2&, std::size_t>);
+  static_assert(not element_settable<const L22&, 2>);
+  static_assert(not element_settable<const L22&, 1>);
+  static_assert(not element_settable<const U22&, 2>);
+  static_assert(not element_settable<const U22&, 1>);
+  static_assert(not element_settable<const DM22&, 2>);
+  static_assert(not element_settable<const DM22&, 1>);
+  static_assert(not element_settable<const DD2&, 2>);
+  static_assert(not element_settable<const DD2&, 1>);
+  static_assert(not element_settable<const DL2&, 2>);
+  static_assert(not element_settable<const DL2&, 1>);
 
-  static_assert(not element_settable<SelfAdjointMatrix<const M22, TriangleType::lower>&, std::size_t, std::size_t>);
-  static_assert(not element_settable<SelfAdjointMatrix<const D2, TriangleType::lower>&, std::size_t, std::size_t>);
-  static_assert(not element_settable<SelfAdjointMatrix<const D2, TriangleType::lower>&, std::size_t>);
-  static_assert(not element_settable<SelfAdjointMatrix<DiagonalMatrix<const eigen_matrix_t<double, 2, 1>>, TriangleType::lower>&, std::size_t, std::size_t>);
-  static_assert(not element_settable<SelfAdjointMatrix<DiagonalMatrix<const eigen_matrix_t<double, 2, 1>>, TriangleType::lower>&, std::size_t>);
+  static_assert(not element_settable<SelfAdjointMatrix<const M22, TriangleType::lower>&, 2>);
+  static_assert(not element_settable<SelfAdjointMatrix<const D2, TriangleType::lower>&, 2>);
+  static_assert(not element_settable<SelfAdjointMatrix<const D2, TriangleType::lower>&, 1>);
+  static_assert(not element_settable<SelfAdjointMatrix<DiagonalMatrix<const eigen_matrix_t<double, 2, 1>>, TriangleType::lower>&, 2>);
+  static_assert(not element_settable<SelfAdjointMatrix<DiagonalMatrix<const eigen_matrix_t<double, 2, 1>>, TriangleType::lower>&, 1>);
 
   auto l1 = L22 {9, 3, 3, 10};
   set_element(l1, 3.1, 1, 0);

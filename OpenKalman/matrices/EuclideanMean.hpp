@@ -396,6 +396,42 @@ euclidean_dimension_size_of_v<row_coefficient_types_of_t<V>> == row_dimension_of
   }
 
 
+  // ------------------------- //
+  //        Interfaces         //
+  // ------------------------- //
+
+  namespace interface
+  {
+    template<typename Coeffs, typename NestedMatrix>
+    struct IndexTraits<EuclideanMean<Coeffs, NestedMatrix>>
+    {
+      static constexpr std::size_t max_indices = 2;
+
+      template<std::size_t N>
+      using coordinate_system_types = std::conditional_t<N == 0, Coeffs, coefficient_types_of_t<NestedMatrix, N>>;
+
+      template<std::size_t N, typename Arg>
+      static constexpr auto get_index_type(Arg&& arg)
+      {
+        if constexpr (N == 0) return std::get<N>(std::forward<Arg>(arg).my_dimensions);
+        else return get_dimensions_of<N>(nested_matrix(std::forward<Arg>(arg)));
+      }
+
+      template<std::size_t N>
+      static constexpr std::size_t dimension = dimension_size_of_v<coordinate_system_types<N>>;
+
+      template<std::size_t N, typename Arg>
+      static constexpr std::size_t dimension_at_runtime(Arg&& arg)
+      {
+        return get_dimension_size_of(get_index_type<N>(std::forward<Arg>(arg)));
+      }
+
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = one_by_one_matrix<NestedMatrix, b>;
+    };
+
+  } // namespace interface
+
 
 } // namespace OpenKalman::internal
 

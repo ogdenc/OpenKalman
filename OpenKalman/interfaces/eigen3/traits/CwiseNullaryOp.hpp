@@ -27,6 +27,8 @@ namespace OpenKalman::interface
   template<typename NullaryOp, typename PlainObjectType>
   struct IndexTraits<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
   {
+    static constexpr std::size_t max_indices = max_indices_of_v<PlainObjectType>;
+
     template<std::size_t N>
     static constexpr std::size_t dimension = index_dimension_of_v<PlainObjectType, N>;
 

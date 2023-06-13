@@ -130,6 +130,22 @@ TEST(eigen3, get_and_set_elements)
 
   set_element(el12, 5.6, 1); EXPECT_NEAR(get_element(el12, 1), 5.6, 1e-8);
   set_element(el10_2, 5.6, 1); EXPECT_NEAR(get_element(el10_2, 1), 5.6, 1e-8);
+
+  Eigen::DiagonalMatrix<double, 2> dm2{m21};
+  EXPECT_EQ(get_element(dm2, 0, 0), 1);
+  EXPECT_EQ(get_element(dm2, 0, 1), 0);
+  EXPECT_EQ(get_element(dm2, 1, 1), 2);
+  EXPECT_EQ(get_element(dm2, 1, 0), 0);
+  EXPECT_EQ(get_element(dm2, 0), 1);
+  EXPECT_EQ(get_element(dm2, 1), 2);
+
+  Eigen::DiagonalMatrix<double, Eigen::Dynamic> dm0{m21};
+  EXPECT_EQ(get_element(dm0, 0, 0), 1);
+  EXPECT_EQ(get_element(dm0, 0, 1), 0);
+  EXPECT_EQ(get_element(dm0, 1, 1), 2);
+  EXPECT_EQ(get_element(dm0, 1, 0), 0);
+  EXPECT_EQ(get_element(dm0, 0), 1);
+  EXPECT_EQ(get_element(dm0, 1), 2);
 }
 
 
@@ -293,10 +309,10 @@ TEST(eigen3, get_chip)
   EXPECT_TRUE(is_near(get_row(M03 {m33}.array(), N0), r0));
   EXPECT_TRUE(is_near(get_row(M00 {m33}.array(), 2), r2));
 
-  static_assert(row_vector<decltype(get_row(M00 {m33}, N0))>);
-  static_assert(row_vector<decltype(get_row(M00 {m33}.array(), N1))>);
-  static_assert(row_vector<decltype(get_row(M00 {m33}, 1))>);
-  static_assert(row_vector<decltype(get_row(M00 {m33}.array(), 2))>);
+  static_assert(dimension_size_of_index_is<decltype(get_row(M00 {m33}, N0)), 0, 1>);
+  static_assert(dimension_size_of_index_is<decltype(get_row(M00 {m33}.array(), N1)), 0, 1>);
+  static_assert(dimension_size_of_index_is<decltype(get_row(M00 {m33}, 1)), 0, 1>);
+  static_assert(dimension_size_of_index_is<decltype(get_row(M00 {m33}.array(), 2)), 0, 1>);
 
   EXPECT_TRUE(is_near(get_column(m33, 2), c2));
   EXPECT_TRUE(is_near(get_column(M30 {m33}, N1), c1));
@@ -308,10 +324,10 @@ TEST(eigen3, get_chip)
   EXPECT_TRUE(is_near(get_column(M03 {m33}.array(), N1), c1));
   EXPECT_TRUE(is_near(get_column(M00 {m33}.array(), 0), c0));
 
-  static_assert(column_vector<decltype(get_column(M00 {m33}, N1))>);
-  static_assert(column_vector<decltype(get_column(M00 {m33}.array(), N2))>);
-  static_assert(column_vector<decltype(get_column(M00 {m33}, 2))>);
-  static_assert(column_vector<decltype(get_column(M00 {m33}.array(), 0))>);
+  static_assert(dimension_size_of_index_is<decltype(get_column(M00 {m33}, N1)), 1, 1>);
+  static_assert(dimension_size_of_index_is<decltype(get_column(M00 {m33}.array(), N2)), 1, 1>);
+  static_assert(dimension_size_of_index_is<decltype(get_column(M00 {m33}, 2)), 1, 1>);
+  static_assert(dimension_size_of_index_is<decltype(get_column(M00 {m33}.array(), 0)), 1, 1>);
 }
 
 

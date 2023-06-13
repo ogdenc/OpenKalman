@@ -69,6 +69,8 @@
 #include "traits/CwiseTernaryOp.hpp"
 
 #include "traits/PartialReduxExpr.hpp"
+#include "traits/SelfAdjointView.hpp"
+#include "traits/TriangularView.hpp"
 
 #include "details/eigen3-functions.hpp"
 

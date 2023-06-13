@@ -405,7 +405,6 @@ namespace OpenKalman
 
 
     friend struct interface::IndexTraits<ConstantAdapter>;
-    friend struct interface::CoordinateSystemTraits<ConstantAdapter>;
 
   };
 
@@ -437,38 +436,26 @@ namespace OpenKalman
   namespace interface
   {
     template<typename PatternMatrix, typename Scalar, auto...constant>
-    struct IndexibleObjectTraits<ConstantAdapter<PatternMatrix, Scalar, constant...>>
-    {
-      static constexpr std::size_t max_indices = max_indices_of_v<PatternMatrix>;
-      using scalar_type = std::decay_t<decltype(get_scalar_constant_value(
-        std::declval<ConstantAdapter<PatternMatrix, Scalar, constant...>>().get_scalar_constant()))>;
-    };
-
-
-    template<typename PatternMatrix, typename Scalar, auto...constant>
     struct IndexTraits<ConstantAdapter<PatternMatrix, Scalar, constant...>>
     {
-      template<std::size_t N>
-      static constexpr std::size_t dimension = index_dimension_of_v<PatternMatrix, N>;
+      static constexpr std::size_t max_indices = max_indices_of_v<PatternMatrix>;
 
-      template<std::size_t N, typename Arg>
-      static constexpr std::size_t dimension_at_runtime(const Arg& arg)
-      {
-        return get_dimension_size_of(std::get<N>(arg.my_dimensions));
-      }
-    };
-
-
-    template<typename PatternMatrix, typename Scalar, auto...constant>
-    struct CoordinateSystemTraits<ConstantAdapter<PatternMatrix, Scalar, constant...>>
-    {
       template<std::size_t N>
       using coordinate_system_types = coefficient_types_of_t<PatternMatrix, N>;
 
       template<std::size_t N, typename Arg>
-      static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
+      static constexpr auto get_index_type(Arg&& arg)
       {
         return std::get<N>(std::forward<Arg>(arg).my_dimensions);
+      }
+
+      template<std::size_t N>
+      static constexpr std::size_t dimension = dimension_size_of_v<coordinate_system_types<N>>;
+
+      template<std::size_t N, typename Arg>
+      static constexpr std::size_t dimension_at_runtime(Arg&& arg)
+      {
+        return get_dimension_size_of(get_index_type<N>(std::forward<Arg>(arg)));
       }
     };
 
@@ -476,13 +463,14 @@ namespace OpenKalman
     template<typename PatternMatrix, typename Scalar, auto...constant>
     struct Elements<ConstantAdapter<PatternMatrix, Scalar, constant...>>
     {
+      using scalar_type = std::decay_t<decltype(get_scalar_constant_value(
+        std::declval<ConstantAdapter<PatternMatrix, Scalar, constant...>>().get_scalar_constant()))>;
+
       template<typename Arg, typename...I>
       static constexpr auto get(Arg&& arg, I...) { return constant_coefficient_v<Arg>; }
 
       // No set defined  because ConstantAdapter is not writable.
     };
-
-
 
 
     template<typename PatternMatrix, typename S, auto...constant, typename Scalar>

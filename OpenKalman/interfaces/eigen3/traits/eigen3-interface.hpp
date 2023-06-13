@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -45,6 +45,9 @@ namespace OpenKalman::interface
   struct Elements<T, std::enable_if_t<native_eigen_dense<T> and (not eigen_wrapper<T>)>>
 #endif
   {
+    using scalar_type = typename std::decay_t<T>::Scalar;
+
+
 #ifdef __cpp_lib_concepts
     template<typename Arg, typename...I> requires (sizeof...(I) <= 2) and (std::convertible_to<I, Eigen::Index> and ...) and
       (sizeof...(I) != 1 or (Eigen::internal::evaluator<std::decay_t<Arg>>::Flags & Eigen::LinearAccessBit) != 0)
@@ -78,91 +81,6 @@ namespace OpenKalman::interface
   };
 
 
-  template<typename MatrixType, unsigned int UpLo>
-  struct Elements<Eigen::SelfAdjointView<MatrixType, UpLo>>
-  {
-    template<typename Arg>
-    static constexpr decltype(auto) get(Arg&& arg, Eigen::Index i, Eigen::Index j)
-    {
-      using Scalar = scalar_type_of_t<MatrixType>;
-
-      if constexpr (complex_number<Scalar>)
-      {
-        if ((i > j and (UpLo & Eigen::Upper) != 0) or (i < j and (UpLo & Eigen::Lower) != 0))
-        {
-          using std::conj;
-          return Scalar {conj(std::as_const(arg).nestedExpression().coeff(j, i))};
-        }
-        else return Scalar {std::as_const(arg).nestedExpression().coeff(i, j)};
-      }
-      else
-      {
-        if constexpr ((Eigen::internal::traits<Eigen::SelfAdjointView<MatrixType, UpLo>>::Flags & Eigen::LvalueBit) != 0)
-        {
-          if ((i > j and (UpLo & Eigen::Upper) != 0) or (i < j and (UpLo & Eigen::Lower) != 0))
-            return std::forward<Arg>(arg).nestedExpression().coeffRef(j, i);
-          else return std::forward<Arg>(arg).nestedExpression().coeffRef(i, j);
-        }
-        else
-        {
-          if ((i > j and (UpLo & Eigen::Upper) != 0) or (i < j and (UpLo & Eigen::Lower) != 0))
-            return std::as_const(arg).nestedExpression().coeff(j, i);
-          else return std::as_const(arg).nestedExpression().coeff(i, j);
-        }
-      }
-    }
-
-
-#ifdef __cpp_concepts
-    template<typename Arg>
-      requires ((Eigen::internal::traits<Eigen::SelfAdjointView<MatrixType, UpLo>>::Flags & Eigen::LvalueBit) != 0)
-#else
-    template<typename Arg, std::enable_if_t<(
-      (Eigen::internal::traits<Eigen::SelfAdjointView<MatrixType, UpLo>>::Flags & Eigen::LvalueBit) != 0), int> = 0>
-#endif
-    static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i, Eigen::Index j)
-    {
-      if ((i > j and (UpLo & Eigen::Upper) != 0) or (i < j and (UpLo & Eigen::Lower) != 0))
-      {
-        if constexpr (complex_number<scalar_type_of_t<MatrixType>>)
-        {
-          using std::conj;
-          arg.coeffRef(j, i) = conj(s);
-        }
-        else
-          arg.coeffRef(j, i) = s;
-      }
-      else arg.coeffRef(i, j) = s;
-
-      return std::forward<Arg>(arg);
-    }
-  };
-
-
-  template<typename MatrixType, unsigned int Mode>
-  struct Elements<Eigen::TriangularView<MatrixType, Mode>>
-  {
-    template<typename Arg>
-    static scalar_type_of_t<Arg> get(const Arg& arg, Eigen::Index i, Eigen::Index j)
-    {
-      if ((i > j and (Mode & Eigen::Upper) != 0) or (i < j and (Mode & Eigen::Lower) != 0)) return 0;
-      else return arg.coeff(i, j);
-    }
-
-
-#ifdef __cpp_concepts
-    template<typename Arg> requires ((Eigen::TriangularView<MatrixType, Mode>::Flags & Eigen::LvalueBit) != 0)
-#else
-    template<typename Arg, std::enable_if_t<((Eigen::TriangularView<MatrixType, Mode>::Flags & Eigen::LvalueBit) != 0), int> = 0>
-#endif
-    static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i, Eigen::Index j)
-    {
-      arg.coeffRef(i, j) = s;
-      return std::forward<Arg>(arg);
-    }
-  };
-
-
 #ifdef __cpp_concepts
   template<typename T> requires eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>
   struct Elements<T>
@@ -171,10 +89,13 @@ namespace OpenKalman::interface
   struct Elements<T, std::enable_if_t<eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>>>
 #endif
   {
+    using scalar_type = typename std::decay_t<T>::Scalar;
+
+
 #ifdef __cpp_concepts
-    template<typename Arg> requires element_gettable<nested_matrix_of_t<Arg>, std::size_t>
+    template<typename Arg> requires element_gettable<nested_matrix_of_t<const Arg&>, 1>
 #else
-    template<typename Arg, std::enable_if_t<element_gettable<nested_matrix_of_t<Arg>, std::size_t>, int> = 0>
+    template<typename Arg, std::enable_if_t<element_gettable<nested_matrix_of_t<const Arg&>, 1>, int> = 0>
 #endif
     static scalar_type_of_t<Arg> get(const Arg& arg, Eigen::Index i)
     {
@@ -183,17 +104,17 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires element_gettable<nested_matrix_of_t<Arg>, std::size_t> or
-      element_gettable<nested_matrix_of_t<Arg>, std::size_t, std::size_t>
+    template<typename Arg> requires element_gettable<nested_matrix_of_t<const Arg&>, 1> or
+      element_gettable<nested_matrix_of_t<const Arg&>, 2>
 #else
-    template<typename Arg, std::enable_if_t<element_gettable<typename nested_matrix_of<Arg>::type, std::size_t> or
-      element_gettable<typename nested_matrix_of<Arg>::type, std::size_t, std::size_t>, int> = 0>
+    template<typename Arg, std::enable_if_t<element_gettable<typename nested_matrix_of<const Arg&>::type, 1> or
+      element_gettable<typename nested_matrix_of<const Arg&>::type, 2>, int> = 0>
 #endif
     static constexpr auto get(const Arg& arg, Eigen::Index i, Eigen::Index j)
     {
       if (i == j)
       {
-        if constexpr (element_gettable<nested_matrix_of_t<Arg>, std::size_t>)
+        if constexpr (element_gettable<nested_matrix_of_t<const Arg&>, 1>)
           return arg.diagonal().coeff(i);
         else
           return arg.diagonal().coeff(i, i);
@@ -206,15 +127,32 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires element_settable<nested_matrix_of_t<Arg>, std::size_t> or
-      element_settable<nested_matrix_of_t<Arg>, std::size_t, std::size_t>
+    template<typename Arg> requires element_settable<nested_matrix_of_t<Arg&&>, 1> or
+      element_settable<nested_matrix_of_t<Arg&&>, 2>
 #else
-    template<typename Arg, std::enable_if_t<element_settable<typename nested_matrix_of<Arg>::type, std::size_t> or
-      element_settable<typename nested_matrix_of<Arg>::type, std::size_t, std::size_t>, int> = 0>
+    template<typename Arg, std::enable_if_t<element_settable<typename nested_matrix_of<Arg&&>::type, 1> or
+      element_settable<typename nested_matrix_of<Arg&&>::type, 2>, int> = 0>
+#endif
+    static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i)
+    {
+      if constexpr (element_settable<nested_matrix_of_t<Arg&&>, 1>)
+        arg.coeffRef(i) = s;
+      else
+        arg.coeffRef(i, i) = s;
+      return std::forward<Arg>(arg);
+    }
+
+
+#ifdef __cpp_concepts
+    template<typename Arg> requires element_settable<nested_matrix_of_t<Arg&&>, 1> or
+      element_settable<nested_matrix_of_t<Arg&&>, 2>
+#else
+    template<typename Arg, std::enable_if_t<element_settable<typename nested_matrix_of<Arg&&>::type, 1> or
+      element_settable<typename nested_matrix_of<Arg&&>::type, 2>, int> = 0>
 #endif
     static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i, Eigen::Index j)
     {
-      if constexpr (element_settable<nested_matrix_of_t<Arg>, std::size_t>)
+      if constexpr (element_settable<nested_matrix_of_t<Arg&&>, 1>)
       {
         arg.coeffRef(i) = s;
       }
@@ -223,23 +161,6 @@ namespace OpenKalman::interface
         if (i == j or s == 0) arg.coeffRef(i, j) = s;
         else throw std::invalid_argument {"Off-diagonal elements of DiagonalMatrix or DiagonalWrapper can only be set to zero"};
       }
-      return std::forward<Arg>(arg);
-    }
-
-
-#ifdef __cpp_concepts
-    template<typename Arg> requires element_settable<nested_matrix_of_t<Arg>, std::size_t> or
-      element_settable<nested_matrix_of_t<Arg>, std::size_t, std::size_t>
-#else
-    template<typename Arg, std::enable_if_t<element_settable<typename nested_matrix_of<Arg>::type, std::size_t> or
-      element_settable<typename nested_matrix_of<Arg>::type, std::size_t, std::size_t>, int> = 0>
-#endif
-    static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i)
-    {
-      if constexpr (element_settable<nested_matrix_of_t<Arg>, std::size_t>)
-        arg.coeffRef(i) = s;
-      else
-        arg.coeffRef(i, i) = s;
       return std::forward<Arg>(arg);
     }
   };

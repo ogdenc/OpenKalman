@@ -224,7 +224,7 @@ namespace OpenKalman
       }(operation);
     using OpResult = decltype(op_result);
 
-    static_assert(((dynamic_dimension<OpResult, indices> or index_dimension_of_v<OpResult, indices> == 1) and ...),
+    static_assert((dimension_size_of_index_is<OpResult, indices, 1, Likelihood::maybe> and ...),
       "Operator must return a chip, meaning that the dimension is 1 for each of the specified indices.");
     // Note: set_chip includes a runtime check that operation() is a chip.
 

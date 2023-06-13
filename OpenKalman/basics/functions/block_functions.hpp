@@ -223,12 +223,12 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<std::size_t...indices, indexible Arg, index_value...Is>
   requires (sizeof...(indices) > 0 and sizeof...(indices) == sizeof...(Is)) or
-    (sizeof...(Is) == 0 and ((index_dimension_of_v<Arg, indices> == 1) and ...))
+    (sizeof...(Is) == 0 and (dimension_size_of_index_is<Arg, indices, 1> and ...))
 #else
   template<std::size_t...indices, typename Arg, typename...Is, std::enable_if_t<
     indexible<Arg> and (index_value<Is> and ...) and
     ((sizeof...(indices) > 0 and sizeof...(indices) == sizeof...(Is)) or
-      (sizeof...(Is) == 0 and ((index_dimension_of<Arg, indices>::value == 1) and ...))), int> = 0>
+      (sizeof...(Is) == 0 and (dimension_size_of_index_is<Arg, indices, 1> and ...))), int> = 0>
 #endif
   constexpr decltype(auto) get_chip(Arg&& arg, Is...is)
   {
@@ -245,16 +245,16 @@ namespace OpenKalman
    * collapses the row (0) index.
    * \tparam Arg The matrix or other tensor from which the row is to be extracted
    * \tparam I The type of the index of the row, which is an \index_value
-   * \return A \ref row_vector
    */
 #ifdef __cpp_concepts
   template<indexible Arg, index_value I> requires dynamic_rows<Arg> or (not static_index_value<I>) or
     (static_index_value_of_v<I> < row_dimension_of_v<Arg>)
+  constexpr dimension_size_of_index_is<0, 1> decltype(auto)
 #else
   template<typename Arg, typename I, std::enable_if_t<indexible<Arg> and index_value<I> and
     (dynamic_rows<Arg> or not static_index_value<I> or (static_index_value_of<I>::value < row_dimension_of<Arg>::value)), int> = 0>
-#endif
   constexpr decltype(auto)
+#endif
   get_row(Arg&& arg, I i)
   {
     return get_chip<0>(std::forward<Arg>(arg), i);
@@ -267,16 +267,16 @@ namespace OpenKalman
    * collapses the column (1) index.
    * \tparam Arg The matrix or other tensor from which the column is to be extracted
    * \tparam I The type of the index of the column, which is an \index_value
-   * \return A \ref column_vector
    */
 #ifdef __cpp_concepts
   template<indexible Arg, index_value I> requires dynamic_columns<Arg> or (not static_index_value<I>) or
     (static_index_value_of_v<I> < column_dimension_of_v<Arg>)
+  constexpr dimension_size_of_index_is<1, 1> decltype(auto)
 #else
   template<typename Arg, typename I, std::enable_if_t<indexible<Arg> and index_value<I> and
     (dynamic_columns<Arg> or not static_index_value<I> or (static_index_value_of<I>::value < column_dimension_of<Arg>::value)), int> = 0>
-#endif
   constexpr decltype(auto)
+#endif
   get_column(Arg&& arg, I i)
   {
     return get_chip<1>(std::forward<Arg>(arg), i);
@@ -319,18 +319,18 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<std::size_t...indices, writable Arg, indexible Chip, index_value...Is>
   requires ((sizeof...(indices) > 0 and sizeof...(indices) == sizeof...(Is)) or
-    (sizeof...(Is) == 0 and ((index_dimension_of_v<Arg, indices> == 1) and ...)))
+    (sizeof...(Is) == 0 and (dimension_size_of_index_is<Arg, indices, 1> and ...)))
 #else
   template<std::size_t...indices, typename Arg, typename Chip, typename...Is, std::enable_if_t<
     writable<Arg> and indexible<Chip> and (index_value<Is> and ...) and
     ((sizeof...(indices) > 0 and sizeof...(indices) == sizeof...(Is)) or
-      (sizeof...(Is) == 0 and ((index_dimension_of<Arg, indices>::value == 1) and ...))), int> = 0>
+      (sizeof...(Is) == 0 and (dimension_size_of_index_is<Arg, indices, 1> and ...))), int> = 0>
 #endif
   constexpr auto& set_chip(Arg& arg, Chip&& chip, Is...is)
   {
     ([](const auto& chip){
       if constexpr (not dynamic_dimension<Chip, indices>)
-        static_assert(index_dimension_of_v<Chip, indices> == 1, "Argument to set_chip is not 1D in at least one of the specified indices.");
+        static_assert(dimension_size_of_index_is<Chip, indices, 1>, "Argument to set_chip is not 1D in at least one of the specified indices.");
       else if (get_index_dimension_of<indices>(chip) != 1)
         throw std::invalid_argument {"Argument to set_chip must be 1D in each of the specified indices."};
     }(chip),...);

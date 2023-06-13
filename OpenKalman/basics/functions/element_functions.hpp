@@ -28,8 +28,8 @@ namespace OpenKalman
 
   namespace detail
   {
-    template<bool set, typename Arg, std::size_t...seq, typename...I>
-    constexpr void check_index_bounds(const Arg& arg, std::index_sequence<seq...>, I...i)
+    /*template<bool set, typename Arg, std::size_t...I, typename...Ind>
+    constexpr void check_index_bounds(const Arg& arg, std::index_sequence<I...>, Ind...i)
     {
       if constexpr (sizeof...(I) == 1)
       {
@@ -51,15 +51,31 @@ namespace OpenKalman
       }
       else
       {
-        (((static_cast<std::size_t>(i) >= std::size_t{get_index_dimension_of<seq>(arg)}) ?
+        ((static_cast<std::size_t>(i) >= get_index_dimension_of<I>(arg) ?
           throw std::out_of_range {(("At least one " + std::string {set ? "s" : "g"} +
-            "et_element index out of range:") + ... + (" Index " + std::to_string(seq) + " is " +
+            "et_element index out of range:") + ... + (" Index " + std::to_string(I) + " is " +
             std::to_string(i) + " and should be in range [0..." +
-            std::to_string(std::size_t{get_index_dimension_of<seq>(arg)}-1) + "]."))} :
+            std::to_string(get_index_dimension_of<I>(arg) - 1) + "]."))} :
           false) , ...);
       }
+    }*/
+
+
+    template<typename Arg, std::size_t...I>
+    constexpr decltype(auto) get_diag_element(Arg&& arg, std::index_sequence<I...> seq, std::size_t i)
+    {
+      //detail::check_index_bounds<false>(arg, seq, (I, i)...);
+      return interface::Elements<std::decay_t<Arg>>::get(std::forward<Arg>(arg), (I?i:i)...);
     }
-  }
+
+
+    template<typename Arg, typename Scalar, std::size_t...I>
+    constexpr Arg&& set_diag_element(Arg&& arg, const Scalar& s, std::index_sequence<I...> seq, std::size_t i)
+    {
+      //detail::check_index_bounds<true>(arg, seq, (I, i)...);
+      return interface::Elements<std::decay_t<Arg>>::set(std::forward<Arg>(arg), s, (I?i:i)...);
+    }
+  } // namespace detail
 
 
 /**
@@ -81,15 +97,26 @@ namespace OpenKalman
 #endif
   get_element(Arg&& arg, I...i)
   {
+    static_assert(element_gettable<Arg&&, sizeof...(I)>, "Wrong number of indices for get_element");
+
     if constexpr (constant_matrix<Arg>)
     {
       return get_scalar_constant_value(constant_coefficient {arg});
     }
+#ifdef __cpp_lib_concepts
+    else if constexpr (requires { interface::Elements<std::decay_t<Arg>>::get(arg, static_cast<const std::size_t>(i)...); })
+#else
+    else if constexpr (internal::is_element_gettable<Arg, void, I...>::value)
+#endif
+    {
+      //detail::check_index_bounds<false>(arg, std::index_sequence_for<I...> {}, i...);
+      return interface::Elements<std::decay_t<Arg>>::get(std::forward<Arg>(arg), static_cast<const std::size_t>(i)...);
+    }
     else
     {
-      static_assert(element_gettable<Arg&&, I...>, "error in definition of interface::Elements::get(...)");
-      detail::check_index_bounds<false>(arg, std::index_sequence_for<I...> {}, i...);
-      return interface::Elements<std::decay_t<Arg>>::get(std::forward<Arg>(arg), static_cast<const std::size_t>(i)...);
+      static_assert(sizeof...(I) == 1 and diagonal_matrix<Arg> and max_indices_of_v<Arg> > 1, "Must use correct number of indices");
+      std::make_index_sequence<max_indices_of_v<Arg>> seq;
+      return detail::get_diag_element(std::forward<Arg>(arg), seq, static_cast<const std::size_t>(i)...);
     }
   }
 
@@ -113,9 +140,23 @@ namespace OpenKalman
   inline Arg&&
   set_element(Arg&& arg, const scalar_type_of_t<Arg>& s, I...i)
   {
-    static_assert(element_settable<Arg&&, I...>, "error in definition of interface::Elements::set(...)");
-    detail::check_index_bounds<true>(arg, std::index_sequence_for<I...> {}, i...);
-    return interface::Elements<std::decay_t<Arg>>::set(std::forward<Arg>(arg), s, static_cast<const std::size_t>(i)...);
+    static_assert(element_settable<Arg&&, sizeof...(I)>, "Wrong number of indices for set_element");
+
+#ifdef __cpp_lib_concepts
+    if constexpr (requires { interface::Elements<std::decay_t<Arg>>::set(arg, s, static_cast<const std::size_t>(i)...); })
+#else
+    if constexpr (internal::is_element_settable<Arg, void, I...>::value)
+#endif
+    {
+      //detail::check_index_bounds<true>(arg, std::index_sequence_for<I...> {}, i...);
+      return interface::Elements<std::decay_t<Arg>>::set(std::forward<Arg>(arg), s, static_cast<const std::size_t>(i)...);
+    }
+    else
+    {
+      static_assert(sizeof...(I) == 1 and diagonal_matrix<Arg> and max_indices_of_v<Arg> > 1, "Must use correct number of indices");
+      std::make_index_sequence<max_indices_of_v<Arg>> seq;
+      return detail::set_diag_element(std::forward<Arg>(arg), s, seq, static_cast<const std::size_t>(i)...);
+    }
   }
 
 

@@ -27,6 +27,8 @@ namespace OpenKalman::interface
   template<typename ViewOp, typename MatrixType>
   struct IndexTraits<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
   {
+    static constexpr std::size_t max_indices = max_indices_of_v<MatrixType>;
+
     template<std::size_t N>
     static constexpr std::size_t dimension = index_dimension_of_v<MatrixType, N>;
 

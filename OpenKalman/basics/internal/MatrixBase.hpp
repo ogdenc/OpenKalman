@@ -103,15 +103,15 @@ namespace OpenKalman::internal
      * Access the coefficient at row i and column j
      * \param i The row.
      * \param j The column.
-     * \return If <code>element_settable<Derived&, std::size_t, std::size_t></code>, the element is settable. Therefore,
+     * \return If <code>element_settable<Derived&, 2></code>, the element is settable. Therefore,
      * this function returns an object that can be assigned the coefficient to be set.
      * Otherwise, it will return the (non-settable) coefficient as a value.
      */
     auto operator()(std::size_t i, std::size_t j) &
     {
-      static_assert(element_gettable<Derived&, std::size_t, std::size_t>);
+      static_assert(element_gettable<Derived&, 2>);
 
-      if constexpr (element_settable<Derived&, std::size_t, std::size_t>)
+      if constexpr (element_settable<Derived&, 2>)
         return ElementAccessor(static_cast<Derived&>(*this), i, j);
       else
         return get_element(static_cast<Derived&>(*this), i, j);
@@ -121,9 +121,9 @@ namespace OpenKalman::internal
     /// \overload
     auto operator()(std::size_t i, std::size_t j) &&
     {
-      static_assert(element_gettable<Derived&&, std::size_t, std::size_t>);
+      static_assert(element_gettable<Derived&&, 2>);
 
-      if constexpr (element_settable<Derived&&, std::size_t, std::size_t>)
+      if constexpr (element_settable<Derived&&, 2>)
         return ElementAccessor(static_cast<Derived&&>(*this), i, j);
       else
         return get_element(static_cast<Derived&&>(*this), i, j);
@@ -133,7 +133,7 @@ namespace OpenKalman::internal
     /// \overload
     auto operator()(std::size_t i, std::size_t j) const &
     {
-      static_assert(element_gettable<const Derived&, std::size_t, std::size_t>);
+      static_assert(element_gettable<const Derived&, 2>);
 
       return get_element(static_cast<const Derived&>(*this), i, j);
     }
@@ -142,7 +142,7 @@ namespace OpenKalman::internal
     /// \overload
     auto operator()(std::size_t i, std::size_t j) const &&
     {
-      static_assert(element_gettable<const Derived&&, std::size_t, std::size_t>);
+      static_assert(element_gettable<const Derived&&, 2>);
 
       return get_element(static_cast<const Derived&&>(*this), i, j);
     }
@@ -151,23 +151,23 @@ namespace OpenKalman::internal
     /**
      * Access the coefficient at row i
      * \param i The row.
-     * \return If <code>element_settable<Derived, std::size_t></code>, the element is settable. Therefore,
+     * \return If <code>element_settable<Derived&, 1></code>, the element is settable. Therefore,
      * this function returns an object that can be assigned the coefficient to be set.
      * Otherwise, it will return the (non-settable) coefficient as a value.
      */
     auto operator[](std::size_t i) &
     {
-      if constexpr (element_settable<Derived&, std::size_t>)
+      if constexpr (element_settable<Derived&, 1>)
         return ElementAccessor(static_cast<Derived&>(*this), i);
-      else if constexpr (diagonal_matrix<Derived> and element_settable<Derived&, std::size_t, std::size_t>)
+      else if constexpr (diagonal_matrix<Derived> and element_settable<Derived&, 2>)
         return ElementAccessor(static_cast<Derived&>(*this), i, i);
       else
       {
-        if constexpr (element_gettable<Derived&, std::size_t>)
+        if constexpr (element_gettable<Derived&, 1>)
           return get_element(static_cast<Derived&>(*this), i);
         else
         {
-          static_assert(diagonal_matrix<Derived> and element_gettable<Derived&, std::size_t, std::size_t>);
+          static_assert(diagonal_matrix<Derived> and element_gettable<Derived&, 2>);
           return get_element(static_cast<Derived&>(*this), i, i);
         }
       }
@@ -177,17 +177,17 @@ namespace OpenKalman::internal
     /// \overload
     auto operator[](std::size_t i) &&
     {
-      if constexpr (element_settable<Derived&&, std::size_t>)
+      if constexpr (element_settable<Derived&&, 1>)
         return ElementAccessor(static_cast<Derived&&>(*this), i);
-      else if constexpr (diagonal_matrix<Derived> and element_settable<Derived&&, std::size_t, std::size_t>)
+      else if constexpr (diagonal_matrix<Derived> and element_settable<Derived&&, 2>)
         return ElementAccessor(static_cast<Derived&&>(*this), i, i);
       else
       {
-        if constexpr (element_gettable<Derived&&, std::size_t>)
+        if constexpr (element_gettable<Derived&&, 1>)
           return get_element(static_cast<Derived&&>(*this), i);
         else
         {
-          static_assert(diagonal_matrix<Derived> and element_gettable<Derived&&, std::size_t, std::size_t>);
+          static_assert(diagonal_matrix<Derived> and element_gettable<Derived&&, 2>);
           return get_element(static_cast<Derived&&>(*this), i, i);
         }
       }
@@ -197,11 +197,11 @@ namespace OpenKalman::internal
     /// \overload
     auto operator[](std::size_t i) const &
     {
-      if constexpr (element_gettable<const Derived&, std::size_t>)
+      if constexpr (element_gettable<const Derived&, 1>)
         return get_element(static_cast<const Derived&>(*this), i);
       else
       {
-        static_assert(diagonal_matrix<Derived> and element_gettable<const Derived&, std::size_t, std::size_t>);
+        static_assert(diagonal_matrix<Derived> and element_gettable<const Derived&, 2>);
         return get_element(static_cast<const Derived&>(*this), i, i);
       }
     }
@@ -210,11 +210,11 @@ namespace OpenKalman::internal
     /// \overload
     auto operator[](std::size_t i) const &&
     {
-      if constexpr (element_gettable<const Derived&&, std::size_t>)
+      if constexpr (element_gettable<const Derived&&, 1>)
         return get_element(static_cast<const Derived&&>(*this), i);
       else
       {
-        static_assert(diagonal_matrix<Derived> and element_gettable<const Derived&&, std::size_t, std::size_t>);
+        static_assert(diagonal_matrix<Derived> and element_gettable<const Derived&&, 2>);
         return get_element(static_cast<const Derived&&>(*this), i, i);
       }
     }

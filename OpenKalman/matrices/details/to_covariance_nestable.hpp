@@ -21,10 +21,10 @@ namespace OpenKalman::internal
 {
 #ifdef __cpp_concepts
   template<covariance_nestable T, typename Arg>
-  requires (covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or column_vector<Arg>))) and
+  requires (covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>))) and
     (row_dimension_of_v<Arg> == row_dimension_of_v<T>) and
     (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
-    (not diagonal_matrix<T> or diagonal_matrix<Arg> or column_vector<Arg>)
+    (not diagonal_matrix<T> or diagonal_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>)
 #else
   template<typename T, typename Arg, typename>
 #endif
@@ -39,7 +39,7 @@ namespace OpenKalman::internal
     else if constexpr (diagonal_matrix<T>)
     {
       // diagonal -> diagonal
-      if constexpr (column_vector<Arg> and not one_by_one_matrix<Arg>)
+      if constexpr (dimension_size_of_index_is<Arg, 1, 1> and not one_by_one_matrix<Arg>)
       {
         return MatrixTraits<std::decay_t<T>>::make(std::forward<Arg>(arg));
       }
@@ -95,10 +95,10 @@ namespace OpenKalman::internal
 
 #ifdef __cpp_concepts
   template<covariance_nestable T, typename Arg> requires
-    (covariance<Arg> or (typed_matrix<Arg> and (square_matrix<Arg> or column_vector<Arg>))) and
+    (covariance<Arg> or (typed_matrix<Arg> and (square_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>))) and
     (row_dimension_of_v<Arg> == row_dimension_of_v<T>) and
     (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
-    (not diagonal_matrix<T> or diagonal_matrix<Arg> or column_vector<Arg>)
+    (not diagonal_matrix<T> or diagonal_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>)
 #else
   template<typename T, typename Arg, typename, typename>
 #endif
@@ -109,7 +109,7 @@ namespace OpenKalman::internal
     {
       return to_covariance_nestable<T>(std::forward<Arg>(arg).nested_matrix());
     }
-    else if constexpr (diagonal_matrix<T>) // In this case, diagonal_matrix<Arg> or column_vector<Arg>.
+    else if constexpr (diagonal_matrix<T>) // In this case, diagonal_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>.
     {
       if constexpr (triangular_covariance<Arg>)
       {
@@ -134,7 +134,7 @@ namespace OpenKalman::internal
 
 #ifdef __cpp_concepts
   template<typename Arg>
-  requires covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or column_vector<Arg>))
+  requires covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>))
 #else
   template<typename Arg, typename>
 #endif
@@ -151,14 +151,14 @@ namespace OpenKalman::internal
     }
     else
     {
-      static_assert(column_vector<Arg>);
+      static_assert(dimension_size_of_index_is<Arg, 1, 1>);
       return to_diagonal(std::forward<Arg>(arg));
     }
   }
 
 
 #ifdef __cpp_concepts
-  template<typename Arg> requires covariance<Arg> or (typed_matrix<Arg> and (square_matrix<Arg> or column_vector<Arg>))
+  template<typename Arg> requires covariance<Arg> or (typed_matrix<Arg> and (square_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>))
 #else
   template<typename Arg, typename, typename>
 #endif

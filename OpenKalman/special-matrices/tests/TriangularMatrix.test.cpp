@@ -370,44 +370,44 @@ TEST(eigen3, TriangularMatrix_class)
 
 TEST(eigen3, TriangularMatrix_subscripts)
 {
-  static_assert(element_gettable<Lower, std::size_t, std::size_t>);
-  static_assert(not element_gettable<Lower, std::size_t>);
-  static_assert(element_gettable<Upper, std::size_t, std::size_t>);
-  static_assert(not element_gettable<Upper, std::size_t>);
-  static_assert(element_gettable<Diagonal, std::size_t, std::size_t>);
-  static_assert(element_gettable<Diagonal, std::size_t>);
-  static_assert(element_gettable<Diagonal2, std::size_t, std::size_t>);
-  static_assert(element_gettable<Diagonal2, std::size_t>);
-  static_assert(element_gettable<Diagonal3, std::size_t, std::size_t>);
-  static_assert(element_gettable<Diagonal3, std::size_t>);
+  static_assert(element_gettable<Lower, 2>);
+  static_assert(not element_gettable<Lower, 1>);
+  static_assert(element_gettable<Upper, 2>);
+  static_assert(not element_gettable<Upper, 1>);
+  static_assert(element_gettable<Diagonal, 2>);
+  static_assert(element_gettable<Diagonal, 1>);
+  static_assert(element_gettable<Diagonal2, 2>);
+  static_assert(element_gettable<Diagonal2, 1>);
+  static_assert(element_gettable<Diagonal3, 2>);
+  static_assert(element_gettable<Diagonal3, 1>);
 
-  static_assert(element_settable<Lower&, std::size_t, std::size_t>);
-  static_assert(not element_settable<Lower&, std::size_t>);
-  static_assert(element_settable<Upper&, std::size_t, std::size_t>);
-  static_assert(not element_settable<Upper&, std::size_t>);
-  static_assert(element_settable<Diagonal&, std::size_t, std::size_t>);
-  static_assert(element_settable<Diagonal&, std::size_t>);
-  static_assert(element_settable<Diagonal2&, std::size_t, std::size_t>);
-  static_assert(element_settable<Diagonal2&, std::size_t>);
-  static_assert(element_settable<Diagonal3&, std::size_t, std::size_t>);
-  static_assert(element_settable<Diagonal3&, std::size_t>);
+  static_assert(element_settable<Lower&, 2>);
+  static_assert(not element_settable<Lower&, 1>);
+  static_assert(element_settable<Upper&, 2>);
+  static_assert(not element_settable<Upper&, 1>);
+  static_assert(element_settable<Diagonal&, 2>);
+  static_assert(element_settable<Diagonal&, 1>);
+  static_assert(element_settable<Diagonal2&, 2>);
+  static_assert(element_settable<Diagonal2&, 1>);
+  static_assert(element_settable<Diagonal3&, 2>);
+  static_assert(element_settable<Diagonal3&, 1>);
 
-  static_assert(not element_settable<const Lower&, std::size_t, std::size_t>);
-  static_assert(not element_settable<const Lower&, std::size_t>);
-  static_assert(not element_settable<const Upper&, std::size_t, std::size_t>);
-  static_assert(not element_settable<const Upper&, std::size_t>);
-  static_assert(not element_settable<const Diagonal&, std::size_t, std::size_t>);
-  static_assert(not element_settable<const Diagonal&, std::size_t>);
-  static_assert(not element_settable<const Diagonal2&, std::size_t, std::size_t>);
-  static_assert(not element_settable<const Diagonal2&, std::size_t>);
-  static_assert(not element_settable<const Diagonal3&, std::size_t, std::size_t>);
-  static_assert(not element_settable<const Diagonal3&, std::size_t>);
+  static_assert(not element_settable<const Lower&, 2>);
+  static_assert(not element_settable<const Lower&, 1>);
+  static_assert(not element_settable<const Upper&, 2>);
+  static_assert(not element_settable<const Upper&, 1>);
+  static_assert(not element_settable<const Diagonal&, 2>);
+  static_assert(not element_settable<const Diagonal&, 1>);
+  static_assert(not element_settable<const Diagonal2&, 2>);
+  static_assert(not element_settable<const Diagonal2&, 1>);
+  static_assert(not element_settable<const Diagonal3&, 2>);
+  static_assert(not element_settable<const Diagonal3&, 1>);
 
-  static_assert(not element_settable<TriangularMatrix<const M22, TriangleType::lower>&, std::size_t, std::size_t>);
-  static_assert(not element_settable<TriangularMatrix<const D2, TriangleType::lower>&, std::size_t, std::size_t>);
-  static_assert(not element_settable<TriangularMatrix<const D2, TriangleType::lower>&, std::size_t>);
-  static_assert(not element_settable<TriangularMatrix<DiagonalMatrix<const eigen_matrix_t<double, 2, 1>>, TriangleType::lower>&, std::size_t, std::size_t>);
-  static_assert(not element_settable<TriangularMatrix<DiagonalMatrix<const eigen_matrix_t<double, 2, 1>>, TriangleType::lower>&, std::size_t>);
+  static_assert(not element_settable<TriangularMatrix<const M22, TriangleType::lower>&, 2>);
+  static_assert(not element_settable<TriangularMatrix<const D2, TriangleType::lower>&, 2>);
+  static_assert(not element_settable<TriangularMatrix<const D2, TriangleType::lower>&, 1>);
+  static_assert(not element_settable<TriangularMatrix<DiagonalMatrix<const eigen_matrix_t<double, 2, 1>>, TriangleType::lower>&, 2>);
+  static_assert(not element_settable<TriangularMatrix<DiagonalMatrix<const eigen_matrix_t<double, 2, 1>>, TriangleType::lower>&, 1>);
 
   auto l1 = Lower {3, 0, 1, 3};
   set_element(l1, 1.1, 1, 0);

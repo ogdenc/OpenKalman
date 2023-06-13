@@ -59,12 +59,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<hermitian_matrix<Likelihood::maybe> A, indexible U> requires
-    (dynamic_dimension<U, 0> or dynamic_dimension<A, 0> or index_dimension_of_v<U, 0> == index_dimension_of_v<A, 0>) and
+    (dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 0>, Likelihood::maybe>) and
     std::convertible_to<scalar_type_of_t<U>, const scalar_type_of_t<A>>
   inline /*hermitian_matrix<Likelihood::maybe>*/ decltype(auto)
 #else
   template<typename A, typename U, std::enable_if_t<indexible<U> and hermitian_matrix<A, Likelihood::maybe> and
-    (dynamic_dimension<U, 0> or dynamic_dimension<A, 0> or index_dimension_of<U, 0>::value == index_dimension_of<A, 0>::value) and
+    dimension_size_of_index_is<U, 0, index_dimension_of<A, 0>::value, Likelihood::maybe> and
     std::is_convertible_v<typename scalar_type_of<U>::type, const typename scalar_type_of<A>::type>, int> = 0>
   inline decltype(auto)
 #endif
@@ -84,13 +84,13 @@ namespace OpenKalman
     {
       return std::forward<A>(a);
     }
-    else if constexpr (one_by_one_matrix<A> or index_dimension_of_v<U, 0> == 1)
+    else if constexpr (one_by_one_matrix<A> or dimension_size_of_index_is<U, 0, 1>)
     {
       auto e = trace(a) + alpha * trace(u) * trace(conjugate(u));
 
-      if constexpr (element_settable<A, std::size_t>)
+      if constexpr (element_settable<A&&, 1>)
         return set_element(a, e, 0);
-      else if constexpr (element_settable<A, std::size_t, std::size_t>)
+      else if constexpr (element_settable<A&&, 2>)
         return set_element(a, e, 0, 0);
       else
       {
@@ -172,14 +172,14 @@ namespace OpenKalman
     {
       return std::forward<A>(a);
     }
-    else if constexpr (index_dimension_of_v<A, 0> == 1 or index_dimension_of_v<A, 1> == 1 or index_dimension_of_v<U, 0> == 1)
+    else if constexpr (dimension_size_of_index_is<A, 0, 1> or dimension_size_of_index_is<A, 1, 1> or dimension_size_of_index_is<U, 0, 1>)
     {
       // A is known at compile time to be a 1-by-1 matrix.
       auto e = sqrt(trace(a) * trace(conjugate(a)) + alpha * trace(u) * trace(conjugate(u)));
 
-      if constexpr (std::is_lvalue_reference_v<A> and element_settable<A, std::size_t>)
+      if constexpr (std::is_lvalue_reference_v<A> and element_settable<A&&, 1>)
         return set_element(a, e, 0);
-      else if constexpr (std::is_lvalue_reference_v<A> and element_settable<A, std::size_t, std::size_t>)
+      else if constexpr (std::is_lvalue_reference_v<A> and element_settable<A&&, 2>)
         return set_element(a, e, 0, 0);
       else
       {

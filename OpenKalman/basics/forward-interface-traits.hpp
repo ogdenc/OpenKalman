@@ -24,36 +24,6 @@ namespace OpenKalman::interface
 {
   /**
    * \internal
-   * \brief An interface to the storage array traits of a vector, matrix, matrix expression, or other tensor.
-   * \details The interface must define a member alias <code>scalar_type</code> as the scalar type.
-   * \tparam T The tensor, matrix, expression, or array.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct IndexibleObjectTraits
-  {
-    /**
-     * \brief The maximum number of indices by which the elements of T are accessible.
-     * \details T may optionally be accessible by fewer indices.
-     */
-    static constexpr std::size_t max_indices = 0;
-
-    /**
-     * \typedef scalar_type
-     * \brief The scalar type of T (e.g., double, int).
-     * \details Example:
-     * \code
-     * using scalar_type = double;
-     * \endcode
-     */
-  };
-
-
-  /**
-   * \internal
    * \brief An interface to traits of a particular index of a matrix, or array, expression, or tensor.
    * \tparam T The matrix, array, expression, or tensor.
    */
@@ -65,6 +35,13 @@ namespace OpenKalman::interface
   struct IndexTraits
   {
     /**
+     * \brief The maximum number of indices by which the elements of T are accessible.
+     * \details T may optionally be accessible by fewer indices.
+     */
+    static constexpr std::size_t max_indices = 0;
+
+
+    /**
      * \var template<std::size_t N> static constexpr std::size_t dimension
      * \brief The dimension of index N of T, evaluated at compile time.
      * \details For example, a 2-by-3 matrix has dimension 2 in index 0 (rows) and dimension 3 in index 1 (columns).
@@ -72,6 +49,14 @@ namespace OpenKalman::interface
      */
     template<std::size_t N>
     static constexpr std::size_t dimension = 0;
+
+
+    /**
+     * \brief The coordinate system type(s) associated with index N of T, evaluated at compile time.
+     * \tparam N The index
+     */
+    template<std::size_t N>
+    using coordinate_system_types = Dimensions<0>;
 
 
     /**
@@ -86,6 +71,19 @@ namespace OpenKalman::interface
       const std::add_lvalue_reference_t<std::decay_t<T>>>, int> = 0>
 #endif
     static constexpr std::size_t dimension_at_runtime(const Arg& arg) = delete;
+
+
+    /**
+     * \brief Get an \ref index_descriptor for index N of an argument.
+     * \tparam N The index
+     * \param arg An indexible object (tensor, matrix, vector, etc.)
+     * \return an \ref index_descriptor (either fixed or dynamic)
+     */
+    template<std::size_t N, typename Arg>
+    static constexpr auto get_index_type(const Arg& arg)
+    {
+      return Dimensions<dynamic_size>{0};
+    }
 
 
     /**
@@ -104,35 +102,8 @@ namespace OpenKalman::interface
      */
     template<Likelihood b>
     static constexpr bool is_square = false;
+
   };
-
-
-  /**
-   * \internal
-   * \brief An interface to the coordinate system(s) associated with an index of a matrix, array, or expression.
-   * \details Example definitions:
-   * \code
-   * // The coordinate system type(s) associated with index N of T, evaluated at compile time.
-   * template<std::size_t N>
-   * using coordinate_system_types = a_compile_time_index_descriptor;
-   *
-   * // Returns the coordinate system type(s) of index N of the argument, evaluated at runtime.
-   * template<std::size_t N, std::convertible_to<const std::remove_reference_t<T>&> Arg>
-   * static constexpr auto coordinate_system_types_at_runtime(Arg&& arg)
-   * {
-   *   return a_runtime_index_descriptor;
-   * }
-   * \endcode
-   * \note Euclidean types (i.e., regular matrices or other true tensors that operate on a vector space) do not
-   * need to define this and can rely on the default behavior.
-   * \tparam T The matrix, array, expression, or tensor.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct CoordinateSystemTraits;
 
 
   /**
@@ -148,8 +119,23 @@ namespace OpenKalman::interface
 #endif
   struct Elements
   {
-    /// Get element at indices (i...) of matrix arg. This should preferably return a non-const lvalue reference, if possible.
-    /// \returns an element or reference to an element
+    /**
+     * \typedef scalar_type
+     * \brief The scalar type of T (e.g., double, int).
+     * \details Example:
+     * \code
+     * using scalar_type = double;
+     * \endcode
+     */
+
+
+
+    /**
+     * \brief Get element at indices (i...) of matrix arg. This should preferably return a non-const lvalue reference, if possible.
+     * \details This function, or the library, is responsible for any bounds checking.
+     * \returns an element or reference to an element
+     *
+     */
 #ifdef __cpp_concepts
     template<std::convertible_to<const std::decay_t<T>&> Arg, std::convertible_to<const std::size_t>...I>
 #else
@@ -159,14 +145,18 @@ namespace OpenKalman::interface
     static constexpr decltype(auto) get(Arg&& arg, I...i) = delete;
 
 
-    /// Set element at indices (i...) of matrix arg to s.
+    /**
+     * \brief Set element at indices (i...) of matrix arg to s.
+     * \details This function, or the library, is responsible for any bounds checking.
+     *
+     */
 #ifdef __cpp_concepts
     template<std::convertible_to<std::decay_t<T>> Arg, std::convertible_to<const std::size_t>...I>
 #else
     template<typename Arg, typename...I, std::enable_if_t<
       std::is_convertible_v<Arg, std::decay_t<T>> and (std::is_convertible_v<I, const std::size_t> and ...), int> = 0>
 #endif
-    static Arg&& set(Arg&& arg, const typename IndexibleObjectTraits<std::decay_t<Arg>>::scalar_type& s, I...i) = delete;
+    static Arg&& set(Arg&& arg, const typename Elements<std::decay_t<Arg>>::scalar_type& s, I...i) = delete;
   };
 
 
@@ -180,9 +170,9 @@ namespace OpenKalman::interface
    * \tparam Scalar The specified scalar type of the matrix (defaults to that of T)
    */
 #ifdef __cpp_concepts
-  template<typename T, typename Scalar = typename IndexibleObjectTraits<std::decay_t<T>>::scalar_type>
+  template<typename T, typename Scalar = typename Elements<std::decay_t<T>>::scalar_type>
 #else
-  template<typename T, typename Scalar = typename IndexibleObjectTraits<std::decay_t<T>>::scalar_type, typename = void>
+  template<typename T, typename Scalar = typename Elements<std::decay_t<T>>::scalar_type, typename = void>
 #endif
   struct EquivalentDenseWritableMatrix
   {
@@ -333,9 +323,9 @@ namespace OpenKalman::interface
    * \tparam Scalar The specified scalar type of the matrix (defaults to that of T)
    */
 #ifdef __cpp_concepts
-  template<typename T, typename Scalar = typename IndexibleObjectTraits<std::decay_t<T>>::scalar_type>
+  template<typename T, typename Scalar = typename Elements<std::decay_t<T>>::scalar_type>
 #else
-  template<typename T, typename Scalar = typename IndexibleObjectTraits<std::decay_t<T>>::scalar_type, typename = void>
+  template<typename T, typename Scalar = typename Elements<std::decay_t<T>>::scalar_type, typename = void>
 #endif
   struct SingleConstantMatrixTraits
   {
@@ -348,10 +338,10 @@ namespace OpenKalman::interface
      * \note If this is not defined, it will return an object of type ConstantAdapter.
      */
 #ifdef __cpp_concepts
-    template<scalar_constant C, index_descriptor...D> requires (sizeof...(D) == IndexibleObjectTraits<T>::max_indices)
+    template<scalar_constant C, index_descriptor...D> requires (sizeof...(D) == IndexTraits<T>::max_indices)
 #else
     template<typename C, typename...D, std::enable_if_t<scalar_constant<C> and (index_descriptor<D> and ...) and
-      sizeof...(D) == IndexibleObjectTraits<T>::max_indices, int> = 0>
+      sizeof...(D) == IndexTraits<T>::max_indices, int> = 0>
 #endif
     static constexpr /*constant_matrix*/ auto
     make_constant_matrix(const C& c, const D&...d) = delete;
@@ -407,9 +397,9 @@ namespace OpenKalman::interface
    * \tparam Scalar The specified scalar type of the matrix (defaults to that of T)
    */
 #ifdef __cpp_concepts
-  template<typename T, typename Scalar = typename IndexibleObjectTraits<std::decay_t<T>>::scalar_type>
+  template<typename T, typename Scalar = typename Elements<std::decay_t<T>>::scalar_type>
 #else
-  template<typename T, typename Scalar = typename IndexibleObjectTraits<std::decay_t<T>>::scalar_type, typename = void>
+  template<typename T, typename Scalar = typename Elements<std::decay_t<T>>::scalar_type, typename = void>
 #endif
   struct SingleConstantDiagonalMatrixTraits
   {
@@ -527,12 +517,12 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     template<typename Arg, typename...Begin, typename...Size> requires
-      (interface::IndexibleObjectTraits<std::decay_t<Arg>>::max_indices == sizeof...(Begin)) and
-      (interface::IndexibleObjectTraits<std::decay_t<Arg>>::max_indices == sizeof...(Size))
+      (interface::IndexTraits<std::decay_t<Arg>>::max_indices == sizeof...(Begin)) and
+      (interface::IndexTraits<std::decay_t<Arg>>::max_indices == sizeof...(Size))
 #else
     template<typename Arg, typename...Begin, typename...Size, std::enable_if_t<
-      (interface::IndexibleObjectTraits<std::decay_t<Arg>>::max_indices == sizeof...(Begin)) and
-      (interface::IndexibleObjectTraits<std::decay_t<Arg>>::max_indices == sizeof...(Size)), int> = 0>
+      (interface::IndexTraits<std::decay_t<Arg>>::max_indices == sizeof...(Begin)) and
+      (interface::IndexTraits<std::decay_t<Arg>>::max_indices == sizeof...(Size)), int> = 0>
 #endif
     static decltype(auto) get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size) = delete;
 
@@ -546,11 +536,11 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     template<typename Arg, typename Block, typename...Begin> requires std::convertible_to<Arg&, std::decay_t<T>&> and
-      (interface::IndexibleObjectTraits<std::decay_t<Arg>>::max_indices == sizeof...(Begin))
+      (interface::IndexTraits<std::decay_t<Arg>>::max_indices == sizeof...(Begin))
 #else
     template<typename Arg, typename Block, typename...Begin, typename...Size, std::enable_if_t<
       std::is_convertible_v<Arg&, std::decay_t<T>&> and
-      (interface::IndexibleObjectTraits<std::decay_t<Arg>>::max_indices == sizeof...(Begin)), int> = 0>
+      (interface::IndexTraits<std::decay_t<Arg>>::max_indices == sizeof...(Begin)), int> = 0>
 #endif
     static Arg& set_block(Arg& arg, Block&& block, Begin...begin) = delete;
 

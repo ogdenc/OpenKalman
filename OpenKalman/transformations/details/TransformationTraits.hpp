@@ -157,7 +157,7 @@ namespace OpenKalman
 #else
   constexpr bool transformation_input =
 #endif
-    typed_matrix<T> and column_vector<T> and has_untyped_index<T, 1> and (not euclidean_transformed<T>) and
+    typed_matrix<T> and dimension_size_of_index_is<T, 1, 1> and has_untyped_index<T, 1> and (not euclidean_transformed<T>) and
     equivalent_to<typename oin::PerturbationTraits<T>::RowCoefficients, Coeffs>;
 
 

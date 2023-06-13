@@ -17,6 +17,7 @@ include(GoogleTest)
 add_executable(eigen3
     eigen3-traits.test.cpp
     eigen3-nary-op-traits.test.cpp
+    eigen3-vector-wise.test.cpp
     eigen3-matrix.test.cpp
     eigen3-diagonal.test.cpp
     eigen3-elementwise-operations.test.cpp

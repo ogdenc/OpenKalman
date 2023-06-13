@@ -344,36 +344,11 @@ namespace OpenKalman
 
   namespace interface
   {
-    template<typename T>
-    struct Elements<Eigen3::EigenWrapper<T>>
-    {
-#ifdef __cpp_lib_concepts
-      template<typename Arg, typename...I> requires element_gettable<nested_matrix_of_t<Arg>, I...>
-#else
-      template<typename Arg, typename...I, std::enable_if_t<element_gettable<typename nested_matrix_of<Arg>::type, I...>, int> = 0>
-#endif
-      static constexpr decltype(auto) get(Arg&& arg, I...i)
-      {
-        return get_element(nested_matrix(std::forward<Arg>(arg)), i...);
-      }
-
-
-#ifdef __cpp_lib_concepts
-      template<typename Arg, typename Scalar, typename...I> requires element_settable<nested_matrix_of_t<Arg>, I...>
-#else
-      template<typename Arg, typename Scalar, typename...I, std::enable_if_t<element_settable<typename nested_matrix_of<Arg>::type, I...>, int> = 0>
-#endif
-      static constexpr Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, I...i)
-      {
-        set_element(nested_matrix(arg), s, i...);
-        return std::forward<Arg>(arg);
-      }
-    };
-
-
     template<typename NestedMatrix>
     struct IndexTraits<Eigen3::EigenWrapper<NestedMatrix>>
     {
+      static constexpr std::size_t max_indices = max_indices_of_v<NestedMatrix>;
+
       template<std::size_t N>
       static constexpr std::size_t dimension = index_dimension_of_v<NestedMatrix, N>;
 
@@ -388,6 +363,35 @@ namespace OpenKalman
 
       template<Likelihood b>
       static constexpr bool is_square = square_matrix<NestedMatrix, b>;
+    };
+
+
+    template<typename T>
+    struct Elements<Eigen3::EigenWrapper<T>>
+    {
+      using scalar_type = scalar_type_of_t<T>;
+
+#ifdef __cpp_lib_concepts
+      template<typename Arg, typename...I> requires element_gettable<nested_matrix_of_t<Arg>, sizeof...(I)>
+#else
+      template<typename Arg, typename...I, std::enable_if_t<element_gettable<typename nested_matrix_of<Arg>::type, sizeof...(I)>, int> = 0>
+#endif
+      static constexpr decltype(auto) get(Arg&& arg, I...i)
+      {
+        return get_element(nested_matrix(std::forward<Arg>(arg)), i...);
+      }
+
+
+#ifdef __cpp_lib_concepts
+      template<typename Arg, typename Scalar, typename...I> requires element_settable<nested_matrix_of_t<Arg&&>, sizeof...(I)>
+#else
+      template<typename Arg, typename Scalar, typename...I, std::enable_if_t<element_settable<typename nested_matrix_of<Arg&&>::type, sizeof...(I)>, int> = 0>
+#endif
+      static constexpr Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, I...i)
+      {
+        set_element(nested_matrix(arg), s, i...);
+        return std::forward<Arg>(arg);
+      }
     };
 
 

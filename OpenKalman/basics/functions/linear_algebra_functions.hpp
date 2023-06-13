@@ -175,7 +175,7 @@ namespace OpenKalman
     {
       return internal::scalar_constant_pow(constant_diagonal_coefficient{arg}, internal::index_dimension_scalar_constant_of<0>(arg))();
     }
-    else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg, std::size_t, std::size_t>)
+    else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg&&, 2>)
     {
       return get_element(arg, std::size_t(0), std::size_t(0));
     }
@@ -224,7 +224,7 @@ namespace OpenKalman
       return internal::scalar_constant_operation {std::multiplies<>{}, constant_diagonal_coefficient{arg},
         internal::index_dimension_scalar_constant_of<0>(arg)}();
     }
-    else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg, std::size_t, std::size_t>)
+    else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg&&, 2>)
     {
       return get_element(std::forward<Arg>(arg), std::size_t(0), std::size_t(0));
     }
@@ -334,11 +334,10 @@ namespace OpenKalman
    * \brief Matrix multiplication of A * B.
    */
 #ifdef __cpp_concepts
-  template<indexible A, indexible B> requires dynamic_dimension<A, 1> or dynamic_dimension<B, 0> or
-    (index_dimension_of_v<A, 1> == index_dimension_of_v<B, 0>)
+  template<indexible A, indexible B> requires dimension_size_of_index_is<A, 1, index_dimension_of_v<B, 0>, Likelihood::maybe>
 #else
   template<typename A, typename B, std::enable_if_t<indexible<A> and indexible<B> and
-    (dynamic_dimension<A, 1> or dynamic_dimension<B, 0> or (index_dimension_of_v<A, 1> == index_dimension_of_v<B, 0>)), int> = 0>
+    (dimension_size_of_index_is<A, 1, index_dimension_of<B, 0>::value, Likelihood::maybe>), int> = 0>
 #endif
   constexpr decltype(auto) contract(A&& a, B&& b)
   {

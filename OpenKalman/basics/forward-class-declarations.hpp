@@ -137,7 +137,7 @@ namespace OpenKalman
    * \brief A diagonal matrix.
    * \details The matrix is guaranteed to be diagonal. It is ::self_contained iff NestedMatrix is ::self_contained.
    * Implicit conversions are available from any \ref diagonal_matrix of compatible size.
-   * \tparam NestedMatrix A \ref column_vector expression defining the diagonal elements.
+   * \tparam NestedMatrix A column vector expression defining the diagonal elements.
    * Elements outside the diagonal are automatically 0.
    * \note This has the same name as Eigen::DiagonalMatrix, and is intended as a replacement.
    */

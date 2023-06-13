@@ -47,3 +47,4 @@ Makefile
 /cmake-build-debug-clang-c20/
 /cmake-build-debug-gcc-c17/
 /cmake-build-debug-gcc-c20/
+/docs/

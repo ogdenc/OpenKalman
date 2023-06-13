@@ -82,7 +82,7 @@ namespace OpenKalman
     struct n_ary_operator_impl : std::false_type {};
 
     template<typename Op, std::size_t Indices, typename...Args>
-    struct n_ary_operator_impl<Op, Indices, std::enable_if_t<(indexible<Args> and ...) and
+    struct n_ary_operator_impl<Op, Indices, std::enable_if_t<
       (std::is_invocable<Op, typename std::add_lvalue_reference<typename scalar_type_of<Args>::type>::type...>::value or
         is_invocable_with_indices<Op, typename std::add_lvalue_reference<typename scalar_type_of<Args>::type>::type...>(
           std::make_index_sequence<Indices> {}))>, Args...>
@@ -92,8 +92,7 @@ namespace OpenKalman
 
     template<typename Op, std::size_t Indices, typename...Args>
 #ifdef __cpp_concepts
-    concept n_ary_operator = (indexible<Args> and ...) and
-      (std::is_invocable_v<Op, std::add_lvalue_reference_t<scalar_type_of_t<Args>>...> or
+    concept n_ary_operator = (std::is_invocable_v<Op, std::add_lvalue_reference_t<scalar_type_of_t<Args>>...> or
         is_invocable_with_indices<Op, std::add_lvalue_reference_t<scalar_type_of_t<Args>>...>(
           std::make_index_sequence<Indices> {}));
 #else
@@ -223,7 +222,7 @@ namespace OpenKalman
         using Scalar = std::decay_t<typename n_ary_operator_traits<Op, sizeof...(Ds),
           std::add_lvalue_reference_t<scalar_type_of_t<Args>>...>::type>;
 
-        if constexpr (((dimension_size_of_v<Ds> == 1) and ...) and (element_gettable<Args, std::size_t, std::size_t> and ...))
+        if constexpr (((dimension_size_of_v<Ds> == 1) and ...) and (element_gettable<Args&&, 2> and ...))
         {
           // one-by-one matrix
           auto e = op(get_element(std::forward<Args>(args), std::size_t(0), std::size_t(0))...);
@@ -347,17 +346,16 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<index_descriptor...Ds, typename Operation, indexible...Args> requires (sizeof...(Args) > 0) and
-    (sizeof...(Ds) >= std::max({max_indices_of_v<Args>...}))
+    (sizeof...(Ds) >= std::max({max_indices_of_v<Args>...})) and detail::n_ary_operator<Operation, sizeof...(Ds), Args...>
 #else
   template<typename...Ds, typename Operation, typename...Args, std::enable_if_t<
     (index_descriptor<Ds> and ...) and (indexible<Args> and ...) and
-    (sizeof...(Args) > 0) and (sizeof...(Ds) >= std::max({max_indices_of<Args>::value...})), int> = 0>
+    (sizeof...(Args) > 0) and (sizeof...(Ds) >= std::max({max_indices_of<Args>::value...})) and
+    detail::n_ary_operator<Operation, sizeof...(Ds), Args...>, int> = 0>
 #endif
   constexpr auto
   n_ary_operation(const std::tuple<Ds...>& d_tup, const Operation& operation, Args&&...args)
   {
-    static_assert (detail::n_ary_operator<Operation, sizeof...(Ds), Args...>,
-      "For n_ary_operation, the operation must be invocable with elements of Args, optionally with indices.");
     detail::check_n_ary_dims(std::index_sequence_for<Ds...> {}, d_tup, args...);
     using Arg0 = std::tuple_element_t<0, std::tuple<Args...>>; // \todo Pick the first appropriate pattern matrix, even if not the first one.
     return detail::n_ary_operation_impl<Arg0>(d_tup, operation, std::forward<Args>(args)...);
@@ -480,18 +478,16 @@ namespace OpenKalman
    * from each of the arguments, in the order specified.
    */
 #ifdef __cpp_concepts
-  template<typename Operation, indexible...Args> requires (sizeof...(Args) > 0)
+  template<typename Operation, indexible...Args> requires (sizeof...(Args) > 0) and
+    detail::n_ary_operator<Operation, std::max({max_indices_of_v<Args>...}), Args...>
 #else
   template<typename Operation, typename...Args, std::enable_if_t<(indexible<Args> and ...) and
-    (sizeof...(Args) > 0), int> = 0>
+    (sizeof...(Args) > 0) and detail::n_ary_operator<Operation, std::max({max_indices_of_v<Args>...}), Args...>, int> = 0>
 #endif
   constexpr auto
   n_ary_operation(const Operation& operation, Args&&...args)
   {
-    constexpr auto dims = std::max({max_indices_of_v<Args>...});
-    static_assert (detail::n_ary_operator<Operation, dims, Args...>,
-      "For n_ary_operation, the operation must be invocable with elements of Args, optionally with indices.");
-    auto d_tup = detail::find_max_dims(std::make_index_sequence<dims> {}, args...);
+    auto d_tup = detail::find_max_dims(std::make_index_sequence<std::max({max_indices_of_v<Args>...})> {}, args...);
     using Arg0 = std::tuple_element_t<0, std::tuple<Args...>>;
     return detail::n_ary_operation_impl<Arg0>(std::move(d_tup), operation, std::forward<Args>(args)...);
   }
@@ -635,19 +631,18 @@ namespace OpenKalman
   #ifdef __cpp_concepts
   template<indexible PatternMatrix, std::size_t...indices, index_descriptor...Ds, typename...Operations>
   requires ((fixed_index_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
-    (sizeof...(Operations) == (1 * ... * dimension_size_of_v<std::tuple_element_t<indices, std::tuple<Ds...>>>))
+    (sizeof...(Operations) == (1 * ... * dimension_size_of_v<std::tuple_element_t<indices, std::tuple<Ds...>>>)) and
+    (detail::n_ary_operator<Operations, max_indices_of_v<PatternMatrix>> and ...)
   #else
   template<typename PatternMatrix, std::size_t...indices, typename...Ds, typename...Operations, std::enable_if_t<
     indexible<PatternMatrix> and (index_descriptor<Ds> and ...) and
     ((fixed_index_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
-    (sizeof...(Operations) == (1 * ... * dimension_size_of<std::tuple_element_t<indices, std::tuple<Ds...>>>::value)), int> = 0>
+    (sizeof...(Operations) == (1 * ... * dimension_size_of<std::tuple_element_t<indices, std::tuple<Ds...>>>::value)) and
+    (detail::n_ary_operator<Operations, max_indices_of_v<PatternMatrix>> and ...), int> = 0>
   #endif
   constexpr auto
   n_ary_operation(const std::tuple<Ds...>& d_tup, const Operations&...operations)
   {
-    constexpr auto dims = max_indices_of_v<PatternMatrix>;
-    static_assert ((detail::n_ary_operator<Operations, dims> and ...),
-      "For nullary n_ary_operation, the operation must be invocable, optionally with indices.");
     using Scalar = std::common_type_t<std::decay_t<
       typename detail::n_ary_operator_traits<Operations, max_indices_of_v<PatternMatrix>>::type>...>;
 
@@ -659,7 +654,7 @@ namespace OpenKalman
     // One operation for each element, and the operations are not invocable with indices:
     else if constexpr (((not dynamic_index_descriptor<Ds>) and ...) and
       sizeof...(operations) == (dimension_size_of_v<Ds> * ...) and
-      not (detail::is_invocable_with_indices<const Operations&>(std::make_index_sequence<dims> {}) or ...))
+      not (detail::is_invocable_with_indices<const Operations&>(std::make_index_sequence<max_indices_of_v<PatternMatrix>> {}) or ...))
     {
       return make_dense_writable_matrix_from<PatternMatrix, Scalar>(d_tup, operations()...);
     }
@@ -810,20 +805,17 @@ namespace OpenKalman
    * from each of the arguments, in the order specified.
    */
   #ifdef __cpp_concepts
-  template<typename Operation, writable Arg>
+  template<typename Operation, writable Arg> requires detail::n_ary_operator<Operation, max_indices_of_v<Arg>, Arg>
   #else
-  template<typename Operation, typename Arg, std::enable_if_t<writable<Arg>, int> = 0>
+  template<typename Operation, typename Arg, std::enable_if_t<writable<Arg> and
+    detail::n_ary_operator<Operation, max_indices_of_v<Arg>, Arg>, int> = 0>
   #endif
   constexpr decltype(auto)
   unary_operation_in_place(const Operation& operation, Arg&& arg)
   {
     // \todo If the native library has its own facilities for doing this, use it.
 
-    constexpr auto dims = max_indices_of_v<Arg>;
-    static_assert (detail::n_ary_operator<Operation, dims, Arg>,
-      "For unary_operation_in_place, the operation must be invocable with one argument, optionally with indices.");
-
-    constexpr std::make_index_sequence<dims> seq;
+    constexpr std::make_index_sequence<max_indices_of_v<Arg>> seq;
     using G = decltype(detail::n_ary_get_element_0(std::declval<Arg&&>(), seq));
     static_assert(std::is_same_v<G, std::decay_t<G>&>,
       "unary_operation_in_place requires get_element(arg) to return a non-const lvalue reference.");
