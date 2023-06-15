@@ -165,7 +165,7 @@ namespace OpenKalman
       {
         using In_Mean = typename DistributionTraits<InputDist>::Mean;
         using Out_Mean = std::invoke_result_t<Trans, In_Mean>;
-        using OutputCoeffs = row_coefficient_types_of_t<Out_Mean>;
+        using OutputCoeffs = row_index_descriptor_of_t<Out_Mean>;
         auto hessians = transformation.hessian(mean_of(x), mean_of(n)...);
 
         return make_self_contained(zip_tuples<OutputCoeffs>(std::move(hessians), std::forward_as_tuple(x, n...)));

@@ -25,7 +25,7 @@ namespace OpenKalman
     template<typename A, typename B>
     void solve_check_A_and_B_rows_match(const A& a, const B& b)
     {
-      if (get_dimensions_of<0>(a) != get_dimensions_of<0>(b))
+      if (get_index_descriptor<0>(a) != get_index_descriptor<0>(b))
         throw std::domain_error {"The rows of the two operands of the solve function must be the same, but instead "
           "the first operand has " + std::to_string(get_index_dimension_of<0>(a)) + " rows and the second operand has " +
           std::to_string(get_index_dimension_of<0>(b)) + " rows"};
@@ -79,15 +79,15 @@ namespace OpenKalman
           throw std::runtime_error {"solve function requires a unique solution, "
             "but because operands A and B are both zero matrices, result X may take on any value"};
         else
-          return make_zero_matrix_like<B>(get_dimensions_of<1>(a), get_dimensions_of<1>(b));
+          return make_zero_matrix_like<B>(get_index_descriptor<1>(a), get_index_descriptor<1>(b));
       }
       else
-        return make_zero_matrix_like<B>(get_dimensions_of<1>(a), get_dimensions_of<1>(b));
+        return make_zero_matrix_like<B>(get_index_descriptor<1>(a), get_index_descriptor<1>(b));
     }
     else if constexpr (zero_matrix<A>) //< This will be a non-exact solution unless b is zero.
     {
       if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
-        return make_zero_matrix_like<B>(get_dimensions_of<1>(a), get_dimensions_of<1>(b));
+        return make_zero_matrix_like<B>(get_index_descriptor<1>(a), get_index_descriptor<1>(b));
     }
     else if constexpr (constant_diagonal_matrix<A>)
     {
@@ -112,7 +112,7 @@ namespace OpenKalman
           internal::scalar_constant_operation {
             std::divides<>{}, constant_coefficient{b}, internal::scalar_constant_operation {
               std::multiplies<>{}, internal::index_dimension_scalar_constant_of<1>(a), constant_coefficient{a}}},
-          get_dimensions_of<1>(a), get_dimensions_of<1>(b));
+          get_index_descriptor<1>(a), get_index_descriptor<1>(b));
       }
       else if constexpr (row_dimension_of_v<A> == 1 or row_dimension_of_v<B> == 1 or
         (not must_be_exact and (not must_be_unique or

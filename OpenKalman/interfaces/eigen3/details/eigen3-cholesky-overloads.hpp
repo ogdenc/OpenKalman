@@ -36,7 +36,7 @@ namespace OpenKalman
     if constexpr ((has_dynamic_dimensions<D> and not diagonal_matrix<D>) or one_by_one_matrix<D>)
     {
       if constexpr (has_dynamic_dimensions<D> and not diagonal_matrix<D>)
-        assert(get_dimensions_of<0>(d) == 1 and get_dimensions_of<1>(d) == 1);
+        assert(get_index_descriptor<0>(d) == 1 and get_index_descriptor<1>(d) == 1);
 
       return std::forward<D>(d).array().square().matrix();
     }
@@ -70,7 +70,7 @@ namespace OpenKalman
     if constexpr((has_dynamic_dimensions<D> and not diagonal_matrix<D>) or one_by_one_matrix<D>)
     {
       if constexpr (has_dynamic_dimensions<D> and not diagonal_matrix<D>)
-        assert(get_dimensions_of<0>(d) == 1 and get_dimensions_of<1>(d) == 1);
+        assert(get_index_descriptor<0>(d) == 1 and get_index_descriptor<1>(d) == 1);
 
       return std::forward<D>(d).cwiseSqrt();
     }

@@ -541,19 +541,19 @@ TEST(eigen3, diagonal_make_functions)
 
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C533>()), 0> == 3);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C500>(Dimensions<3>())), 0> == 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C500>(3)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_identity_matrix_like<C500>(3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C500>(3)), 0> == dynamic_size); EXPECT_EQ(get_index_descriptor<0>(make_identity_matrix_like<C500>(3)), 3);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c533)), 0> == 3);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c530_3)), 0> == 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c503_3)), 0> == 3); EXPECT_EQ(get_dimensions_of<0>(make_identity_matrix_like(c503_3)), 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c500_33)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_identity_matrix_like(c500_33)), 3);
+  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c503_3)), 0> == 3); EXPECT_EQ(get_index_descriptor<0>(make_identity_matrix_like(c503_3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c500_33)), 0> == dynamic_size); EXPECT_EQ(get_index_descriptor<0>(make_identity_matrix_like(c500_33)), 3);
 
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C533>()), 1> == 3);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C500>(Dimensions<3>())), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C500>(3)), 1> == dynamic_size);  EXPECT_EQ(get_dimensions_of<1>(make_identity_matrix_like<C500>(3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<C500>(3)), 1> == dynamic_size);  EXPECT_EQ(get_index_descriptor<1>(make_identity_matrix_like<C500>(3)), 3);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c533)), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c530_3)), 1> == 3); EXPECT_EQ(get_dimensions_of<1>(make_identity_matrix_like(c530_3)), 3);
+  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c530_3)), 1> == 3); EXPECT_EQ(get_index_descriptor<1>(make_identity_matrix_like(c530_3)), 3);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c503_3)), 1> == 3);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c500_33)), 1> == dynamic_size); EXPECT_EQ(get_dimensions_of<1>(make_identity_matrix_like(c500_33)), 3);
+  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(c500_33)), 1> == dynamic_size); EXPECT_EQ(get_index_descriptor<1>(make_identity_matrix_like(c500_33)), 3);
 
   ZA23 z23 {Dimensions<2>(), Dimensions<3>()};
   ZA20 z20_3 {Dimensions<2>(), 3};
@@ -574,19 +574,19 @@ TEST(eigen3, diagonal_make_functions)
 
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<ZA22>()), 0> == 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<ZA00>(Dimensions<2>())), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<ZA00>(2)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_identity_matrix_like<ZA00>(2)), 2);
+  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<ZA00>(2)), 0> == dynamic_size); EXPECT_EQ(get_index_descriptor<0>(make_identity_matrix_like<ZA00>(2)), 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z22)), 0> == 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z20_2)), 0> == 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z02_2)), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z00_22)), 0> == dynamic_size); EXPECT_EQ(get_dimensions_of<0>(make_identity_matrix_like(z00_22)), 2);
+  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z00_22)), 0> == dynamic_size); EXPECT_EQ(get_index_descriptor<0>(make_identity_matrix_like(z00_22)), 2);
 
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<ZA22>()), 1> == 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<ZA00>(Dimensions<2>())), 1> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<ZA00>(2)), 1> == dynamic_size);  EXPECT_EQ(get_dimensions_of<1>(make_identity_matrix_like<ZA00>(2)), 2);
+  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like<ZA00>(2)), 1> == dynamic_size);  EXPECT_EQ(get_index_descriptor<1>(make_identity_matrix_like<ZA00>(2)), 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z22)), 1> == 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z20_2)), 1> == 2);
   static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z02_2)), 1> == 2);
-  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z00_22)), 1> == dynamic_size); EXPECT_EQ(get_dimensions_of<1>(make_identity_matrix_like(z00_22)), 2);
+  static_assert(index_dimension_of_v<decltype(make_identity_matrix_like(z00_22)), 1> == dynamic_size); EXPECT_EQ(get_index_descriptor<1>(make_identity_matrix_like(z00_22)), 2);
 
   EXPECT_TRUE(is_near(make_identity_matrix_like<ConstantAdapter<M22, double, 3>>(), M22::Identity()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<ZeroAdapter<M22>>(), M22::Identity()));
@@ -606,11 +606,11 @@ TEST(eigen3, Diagonal_overloads)
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from(d3), m33));
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from(d0_3), m33));
 
-  EXPECT_EQ(get_dimensions_of<0>(d3), 3);
-  EXPECT_EQ(get_dimensions_of<0>(d0_3), 3);
+  EXPECT_EQ(get_index_descriptor<0>(d3), 3);
+  EXPECT_EQ(get_index_descriptor<0>(d0_3), 3);
 
-  EXPECT_EQ(get_dimensions_of<1>(d3), 3);
-  EXPECT_EQ(get_dimensions_of<1>(d0_3), 3);
+  EXPECT_EQ(get_index_descriptor<1>(d3), 3);
+  EXPECT_EQ(get_index_descriptor<1>(d0_3), 3);
 
   EXPECT_TRUE(is_near(Cholesky_square(d3), D3 {1, 4, 9}));
   EXPECT_TRUE(is_near(Cholesky_square(d0_3), D3 {1, 4, 9}));

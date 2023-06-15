@@ -37,7 +37,8 @@ namespace OpenKalman
   get_dimension_size_of(const T& t)
   {
     if constexpr (fixed_index_descriptor<T>) return dimension_size_of_v<T>;
-    else {
+    else
+    {
       interface::DynamicIndexDescriptorTraits ret{t};
       return ret.get_size();
     }
@@ -60,7 +61,8 @@ namespace OpenKalman
   get_euclidean_dimension_size_of(const T& t)
   {
     if constexpr (fixed_index_descriptor<T>) return euclidean_dimension_size_of_v<T>;
-    else {
+    else
+    {
       interface::DynamicIndexDescriptorTraits ret{t};
       return ret.get_euclidean_size();
     }
@@ -83,7 +85,8 @@ namespace OpenKalman
   get_index_descriptor_component_count_of(const T& t)
   {
     if constexpr (fixed_index_descriptor<T>) return index_descriptor_components_of_v<T>;
-    else {
+    else
+    {
       interface::DynamicIndexDescriptorTraits ret{t};
       return ret.get_component_count();
     }
@@ -106,7 +109,8 @@ namespace OpenKalman
   get_index_descriptor_is_euclidean(const T& t)
   {
     if constexpr (fixed_index_descriptor<T>) return euclidean_index_descriptor<T>;
-    else {
+    else
+    {
       interface::DynamicIndexDescriptorTraits ret{t};
       return ret.is_euclidean();
     }

@@ -20,6 +20,44 @@ namespace OpenKalman
 {
   using namespace interface;
 
+  // ---------------------- //
+  //  get_index_descriptor  //
+  // ---------------------- //
+
+  /**
+   * \brief Get the index descriptor of object Arg for index N.
+   */
+#ifdef __cpp_concepts
+  template<std::size_t N = 0, indexible Arg> requires (N < max_indices_of_v<Arg>)
+  constexpr index_descriptor auto get_index_descriptor(const Arg& arg)
+#else
+  template<std::size_t N = 0, typename Arg, std::enable_if_t<indexible<Arg> and N < max_indices_of<Arg>::value, int> = 0>
+  constexpr auto get_index_descriptor(const Arg& arg)
+#endif
+  {
+    return interface::IndexTraits<Arg>::template get_index_descriptor<N>(arg);
+  }
+
+
+  // -------------------------- //
+  //   get_index_dimension_of   //
+  // -------------------------- //
+
+  /**
+   * \brief Get the runtime dimensions of index N of \ref indexible T
+   */
+#ifdef __cpp_concepts
+  template<std::size_t N, indexible T>
+#else
+  template<std::size_t N, typename T, std::enable_if_t<indexible<T>, int> = 0>
+#endif
+  constexpr std::size_t
+  get_index_dimension_of(const T& t)
+  {
+    return get_dimension_size_of(get_index_descriptor<N>(t));
+  }
+
+
   // --------------------- //
   //  get_tensor_order_of  //
   // --------------------- //
@@ -32,12 +70,10 @@ namespace OpenKalman
     template<std::size_t I, std::size_t...Is, typename T>
     constexpr std::size_t get_tensor_order_of_impl(std::index_sequence<I, Is...>, const T& t)
     {
-      if (IndexTraits<T>::template dimension_at_runtime<I>(t) == 0)
-        return 0;
-      else if (IndexTraits<T>::template dimension_at_runtime<I>(t) == 1)
-        return get_tensor_order_of_impl(std::index_sequence<Is...> {}, t);
-      else
-        return 1 + get_tensor_order_of_impl(std::index_sequence<Is...> {}, t);
+      std::size_t dim = get_index_dimension_of<I>(t);
+      if (dim == 0) return 0;
+      else if (dim == 1) return get_tensor_order_of_impl(std::index_sequence<Is...> {}, t);
+      else return 1 + get_tensor_order_of_impl(std::index_sequence<Is...> {}, t);
     }
   }
 
@@ -53,69 +89,8 @@ namespace OpenKalman
 #endif
   constexpr std::size_t get_tensor_order_of(const T& t)
   {
-    constexpr std::size_t max = max_indices_of_v<T>;
-    if constexpr (max == 0)
-      return 0;
-    else if constexpr (not has_dynamic_dimensions<T>)
-      return max_tensor_order_of_v<T>;
-    else
-      return detail::get_tensor_order_of_impl(std::make_index_sequence<max> {}, t);
-  }
-
-
-  // -------------------------- //
-  //   get_index_dimension_of   //
-  // -------------------------- //
-
-  /**
-   * \brief Get the runtime dimensions of index N of \ref indexible T
-   */
-#ifdef __cpp_concepts
-  template<std::size_t N, indexible T>
-  constexpr index_value auto
-#else
-  template<std::size_t N, typename T, std::enable_if_t<indexible<T>, int> = 0>
-  constexpr auto
-#endif
-  get_index_dimension_of(const T& t)
-  {
-    constexpr auto dim = index_dimension_of_v<T, N>;
-    if constexpr (dim == dynamic_size) return IndexTraits<T>::template dimension_at_runtime<N>(t);
-    else return std::integral_constant<std::size_t, dim> {};
-  }
-
-
-  // ------------------- //
-  //  get_dimensions_of  //
-  // ------------------- //
-
-  /**
-   * \brief Get the index descriptor of object Arg for index N.
-   */
-#ifdef __cpp_concepts
-  template<std::size_t N = 0, indexible Arg> requires (N < max_indices_of_v<Arg>) and
-    (euclidean_index_descriptor<coefficient_types_of_t<Arg, N>> or
-      requires(const Arg& arg) { interface::IndexTraits<Arg>::template get_index_type<N>(arg); })
-#else
-  template<std::size_t N = 0, typename Arg, std::enable_if_t<indexible<Arg> and N < max_indices_of<Arg>::value, int> = 0>
-#endif
-  constexpr auto get_dimensions_of(const Arg& arg)
-  {
-    using T = coefficient_types_of_t<Arg, N>;
-    if constexpr (euclidean_index_descriptor<T>)
-    {
-      if constexpr (dynamic_dimension<Arg, N>)
-        return Dimensions{interface::IndexTraits<std::decay_t<Arg>>::template dimension_at_runtime<N>(arg)};
-      else
-        return Dimensions<index_dimension_of_v<Arg, N>> {};
-    }
-    else
-    {
-      if constexpr (dynamic_dimension<Arg, N>)
-        return interface::IndexTraits<Arg>::template get_index_type<N>(arg);
-      else
-        return coefficient_types_of_t<Arg, N> {};
-    }
+    if constexpr (not has_dynamic_dimensions<T>) return max_tensor_order_of_v<T>;
+    else return detail::get_tensor_order_of_impl(std::make_index_sequence<max_indices_of_v<T>> {}, t);
   }
 
 
@@ -128,14 +103,14 @@ namespace OpenKalman
     template<typename T, std::size_t...I>
     constexpr auto get_all_dimensions_of_impl(const T& t, std::index_sequence<I...>)
     {
-      return std::tuple {get_dimensions_of<I>(t)...};
+      return std::tuple {get_index_descriptor<I>(t)...};
     }
 
 
     template<typename T, std::size_t...I>
     constexpr auto get_all_dimensions_of_impl(std::index_sequence<I...>)
     {
-      return std::tuple {coefficient_types_of_t<T, I> {}...};
+      return std::tuple {index_descriptor_of_t<T, I> {}...};
     }
   }
 
@@ -186,7 +161,7 @@ namespace OpenKalman
     {
       return ([](auto I_const, const T& t, const Ts&...ts){
         constexpr std::size_t I = decltype(I_const)::value;
-        return ((get_dimensions_of<I>(t) == get_dimensions_of<I>(ts)) and ...);
+        return ((get_index_descriptor<I>(t) == get_index_descriptor<I>(ts)) and ...);
       }(std::integral_constant<std::size_t, Is>{}, t, ts...) and ...);
     }
   }
@@ -216,8 +191,8 @@ namespace OpenKalman
     template<std::size_t I, std::size_t...Is, typename T>
     constexpr bool get_is_square_impl(std::index_sequence<I, Is...>, const T& t)
     {
-      auto dim_I = get_dimensions_of<I>(t);
-      return ((dim_I != 0) and ... and (dim_I == get_dimensions_of<Is>(t)));
+      auto dim_I = get_index_descriptor<I>(t);
+      return ((dim_I != 0) and ... and (dim_I == get_index_descriptor<Is>(t)));
     }
   }
 
@@ -241,6 +216,32 @@ namespace OpenKalman
 
 
   // --------------- //
+  //  nested_matrix  //
+  // --------------- //
+
+  /**
+   * \brief Retrieve a nested matrix of Arg, if it exists.
+   * \tparam i Index of the nested matrix (0 for the 1st, 1 for the 2nd, etc.).
+   * \tparam Arg A wrapper that has at least one nested matrix.
+   * \internal \sa interface::Dependencies::get_nested_matrix
+   */
+#ifdef __cpp_concepts
+  template<std::size_t i = 0, typename Arg> requires
+    (i < std::tuple_size_v<typename Dependencies<std::decay_t<Arg>>::type>) and
+    requires(Arg&& arg) { Dependencies<std::decay_t<Arg>>::template get_nested_matrix<i>(std::forward<Arg>(arg)); }
+#else
+  template<std::size_t i = 0, typename Arg,
+    std::enable_if_t<(i < std::tuple_size<typename Dependencies<std::decay_t<Arg>>::type>::value), int> = 0,
+    typename = std::void_t<decltype(Dependencies<std::decay_t<Arg>>::template get_nested_matrix<i>(std::declval<Arg&&>()))>>
+#endif
+  constexpr decltype(auto)
+  nested_matrix(Arg&& arg)
+  {
+      return Dependencies<std::decay_t<Arg>>::template get_nested_matrix<i>(std::forward<Arg>(arg));
+  }
+
+
+  // --------------- //
   //  get_wrappable  //
   // --------------- //
 
@@ -249,7 +250,7 @@ namespace OpenKalman
     template<typename T, std::size_t...I>
     constexpr bool get_wrappable_impl(const T& t, std::index_sequence<I...>)
     {
-      return (get_index_descriptor_is_euclidean(get_dimensions_of<I + 1>(t)) and ...);
+      return (get_index_descriptor_is_euclidean(get_index_descriptor<I + 1>(t)) and ...);
     }
   }
 

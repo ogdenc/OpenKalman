@@ -198,15 +198,15 @@ namespace OpenKalman
         if constexpr (fixed_index_descriptor<E>)
         {
           auto e = std::get<N>(my_dimensions);
-          using D = coefficient_types_of_t<Arg, N>;
+          using D = index_descriptor_of_t<Arg, N>;
           if constexpr (fixed_index_descriptor<D>) static_assert(equivalent_to<D, E>);
-          else if (e != get_dimensions_of<N>(arg))
+          else if (e != get_index_descriptor<N>(arg))
             throw std::invalid_argument {"Invalid argument for index descriptors of a constant matrix"};
           return std::tuple_cat(std::tuple{std::move(e)}, make_dimensions_tuple<N + 1>(arg));
         }
         else
         {
-          return std::tuple_cat(std::tuple{get_dimensions_of<N>(arg)}, make_dimensions_tuple<N + 1>(arg));
+          return std::tuple_cat(std::tuple{get_index_descriptor<N>(arg)}, make_dimensions_tuple<N + 1>(arg));
         }
       }
       else
@@ -440,23 +440,14 @@ namespace OpenKalman
     {
       static constexpr std::size_t max_indices = max_indices_of_v<PatternMatrix>;
 
-      template<std::size_t N>
-      using coordinate_system_types = coefficient_types_of_t<PatternMatrix, N>;
-
       template<std::size_t N, typename Arg>
-      static constexpr auto get_index_type(Arg&& arg)
+      static constexpr auto get_index_descriptor(const Arg& arg)
       {
-        return std::get<N>(std::forward<Arg>(arg).my_dimensions);
+        return std::get<N>(arg.my_dimensions);
       }
 
-      template<std::size_t N>
-      static constexpr std::size_t dimension = dimension_size_of_v<coordinate_system_types<N>>;
-
-      template<std::size_t N, typename Arg>
-      static constexpr std::size_t dimension_at_runtime(Arg&& arg)
-      {
-        return get_dimension_size_of(get_index_type<N>(std::forward<Arg>(arg)));
-      }
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = one_by_one_matrix<PatternMatrix, b>;
     };
 
 

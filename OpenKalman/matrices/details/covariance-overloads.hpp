@@ -111,24 +111,24 @@ namespace OpenKalman
     static constexpr decltype(auto)
     column(Arg&& arg, runtime_index_t...i)
     {
-      using RC = row_coefficient_types_of_t<Arg>;
+      using RC = row_index_descriptor_of_t<Arg>;
 
-      if constexpr (has_uniform_dimension_type<column_coefficient_types_of_t<Arg>>)
+      if constexpr (has_uniform_dimension_type<column_index_descriptor_of_t<Arg>>)
       {
-        using CC = typename uniform_dimension_type_of_t<column_coefficient_types_of_t<Arg>>;
+        using CC = typename uniform_dimension_type_of_t<column_index_descriptor_of_t<Arg>>;
         return make_matrix<RC, CC>(column<index...>(to_covariance_nestable(std::forward<Arg>(arg)), i...));
       }
-      else if constexpr (fixed_index_descriptor<column_coefficient_types_of_t<Arg>>)
+      else if constexpr (fixed_index_descriptor<column_index_descriptor_of_t<Arg>>)
       {
         static_assert(sizeof...(index) > 0);
-        using CC = column_coefficient_types_of_t<Arg>::template Select<index...>;
+        using CC = column_index_descriptor_of_t<Arg>::template Select<index...>;
         static_assert(dimension_size_of_v<CC> == 1);
         return make_matrix<RC, CC>(column<index...>(to_covariance_nestable(std::forward<Arg>(arg))));
       }
       else
       {
-        static_assert(dynamic_index_descriptor<column_coefficient_types_of_t<Arg>>);
-        using CC = column_coefficient_types_of_t<Arg>::template Select<index...>;
+        static_assert(dynamic_index_descriptor<column_index_descriptor_of_t<Arg>>);
+        using CC = column_index_descriptor_of_t<Arg>::template Select<index...>;
         return make_matrix<RC, CC>(column(to_covariance_nestable(std::forward<Arg>(arg)), i...));
       }
     }
@@ -138,24 +138,24 @@ namespace OpenKalman
     static constexpr decltype(auto)
     row(Arg&& arg, runtime_index_t...i)
     {
-      using CC = column_coefficient_types_of_t<Arg>;
+      using CC = column_index_descriptor_of_t<Arg>;
 
-      if constexpr (has_uniform_dimension_type<row_coefficient_types_of_t<Arg>>)
+      if constexpr (has_uniform_dimension_type<row_index_descriptor_of_t<Arg>>)
       {
-        using RC = typename uniform_dimension_type_of_t<row_coefficient_types_of_t<Arg>>;
+        using RC = typename uniform_dimension_type_of_t<row_index_descriptor_of_t<Arg>>;
         return make_matrix<RC, CC>(column<index...>(to_covariance_nestable(std::forward<Arg>(arg)), i...));
       }
-      else if constexpr (fixed_index_descriptor<row_coefficient_types_of_t<Arg>>)
+      else if constexpr (fixed_index_descriptor<row_index_descriptor_of_t<Arg>>)
       {
         static_assert(sizeof...(index) > 0);
-        using RC = row_coefficient_types_of_t<Arg>::template Select<index...>;
+        using RC = row_index_descriptor_of_t<Arg>::template Select<index...>;
         static_assert(dimension_size_of_v<RC> == 1);
         return make_matrix<RC, CC>(column<index...>(to_covariance_nestable(std::forward<Arg>(arg))));
       }
       else
       {
-        static_assert(dynamic_index_descriptor<row_coefficient_types_of_t<Arg>>);
-        using RC = row_coefficient_types_of_t<Arg>::template Select<index...>;
+        static_assert(dynamic_index_descriptor<row_index_descriptor_of_t<Arg>>);
+        using RC = row_index_descriptor_of_t<Arg>::template Select<index...>;
         return make_matrix<RC, CC>(column<index...>(to_covariance_nestable(std::forward<Arg>(arg)), i...));
       }
     }
@@ -175,7 +175,7 @@ namespace OpenKalman
       static auto
       diagonal_of(Arg&& arg) noexcept
       {
-        using C = row_coefficient_types_of_t<Arg>;
+        using C = row_index_descriptor_of_t<Arg>;
         auto b = make_self_contained<Arg>(diagonal_of(oin::to_covariance_nestable(std::forward<Arg>(arg))));
         return Matrix<C, Axis, decltype(b)>(std::move(b));
       }
@@ -260,7 +260,7 @@ namespace OpenKalman
       {
         auto x = make_self_contained<A, B>(OpenKalman::solve<must_be_unique, must_be_exact>(
           to_covariance_nestable(std::forward<A>(a)), nested_matrix(std::forward<B>(b))));
-        return MatrixTraits<std::decay_t<B>>::template make<row_coefficient_types_of_t<A>>(std::move(x));
+        return MatrixTraits<std::decay_t<B>>::template make<row_index_descriptor_of_t<A>>(std::move(x));
       }
 
 
@@ -296,7 +296,7 @@ namespace OpenKalman
     if constexpr(sizeof...(Ms) > 0)
     {
       using Coeffs =
-        concatenate_fixed_index_descriptor_t<row_coefficient_types_of_t<M>, row_coefficient_types_of_t<Ms>...>;
+        concatenate_fixed_index_descriptor_t<row_index_descriptor_of_t<M>, row_index_descriptor_of_t<Ms>...>;
       auto cat = concatenate_diagonal(nested_matrix(std::forward<M>(m)), nested_matrix(std::forward<Ms>(mN))...);
       return MatrixTraits<std::decay_t<M>>::template make<Coeffs>(std::move(cat));
     }
@@ -391,7 +391,7 @@ namespace OpenKalman
   inline auto
   split_diagonal(M&& m) noexcept
   {
-    static_assert(prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_coefficient_types_of_t<M>>);
+    static_assert(prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_index_descriptor_of_t<M>>);
     return split_diagonal<oin::SplitCovDiagF<M>, Cs...>(nested_matrix(std::forward<M>(m)));
   }
 
@@ -405,7 +405,7 @@ namespace OpenKalman
   inline auto
   split_vertical(M&& m) noexcept
   {
-    using CC = row_coefficient_types_of_t<M>;
+    using CC = row_index_descriptor_of_t<M>;
     static_assert(prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, CC>);
     return split_vertical<oin::SplitCovVertF<M, CC>, Cs...>(make_dense_writable_matrix_from(std::forward<M>(m)));
   }
@@ -420,7 +420,7 @@ namespace OpenKalman
   inline auto
   split_horizontal(M&& m) noexcept
   {
-    using RC = row_coefficient_types_of_t<M>;
+    using RC = row_index_descriptor_of_t<M>;
     static_assert(prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, RC>);
     return split_horizontal<oin::SplitCovHorizF<M, RC>, Cs...>(make_dense_writable_matrix_from(std::forward<M>(m)));
   }
@@ -440,7 +440,7 @@ namespace OpenKalman
   inline auto
   apply_columnwise(const Function& f, Arg&& arg)
   {
-    using C = row_coefficient_types_of_t<Arg>;
+    using C = row_index_descriptor_of_t<Arg>;
     const auto f_nested = [&f] (auto&& col) -> auto {
       return make_self_contained(nested_matrix(f(make_matrix<C, Axis>(std::forward<decltype(col)>(col)))));
     };
@@ -462,7 +462,7 @@ namespace OpenKalman
   inline auto
   apply_columnwise(const Function& f, Arg&& arg)
   {
-    using C = row_coefficient_types_of_t<Arg>;
+    using C = row_index_descriptor_of_t<Arg>;
     const auto f_nested = [&f] (auto&& col, std::size_t i) -> auto {
       return make_self_contained(nested_matrix(f(make_matrix<C, Axis>(std::forward<decltype(col)>(col)), i)));
     };
@@ -481,7 +481,7 @@ namespace OpenKalman
   inline auto
   apply_coefficientwise(const Function& f, Arg&& arg)
   {
-    using C = row_coefficient_types_of_t<Arg>;
+    using C = row_index_descriptor_of_t<Arg>;
     return make_matrix<C, C>(apply_coefficientwise(f, to_covariance_nestable(std::forward<Arg>(arg))));
   }
 
@@ -498,7 +498,7 @@ namespace OpenKalman
   inline auto
   apply_coefficientwise(const Function& f, Arg&& arg)
   {
-    using C = row_coefficient_types_of_t<Arg>;
+    using C = row_index_descriptor_of_t<Arg>;
     return make_matrix<C, C>(apply_coefficientwise(f, to_covariance_nestable(std::forward<Arg>(arg))));
   }
 

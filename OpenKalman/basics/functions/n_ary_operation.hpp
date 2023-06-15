@@ -251,7 +251,7 @@ namespace OpenKalman
           using Arg = decltype(arg);
           if constexpr (dynamic_dimension<Arg, ix> or dynamic_index_descriptor<std::tuple_element_t<ix, DTup>>)
           {
-            auto arg_d = get_dimensions_of<ix>(arg);
+            auto arg_d = get_index_descriptor<ix>(arg);
             auto tup_d = std::get<ix>(d_tup);
             auto dim_arg_d = get_dimension_size_of(arg_d);
             auto dim_tup_d = get_dimension_size_of(tup_d);
@@ -263,7 +263,7 @@ namespace OpenKalman
           }
           else
           {
-            using D_Arg = coefficient_types_of_t<Arg, ix>;
+            using D_Arg = index_descriptor_of_t<Arg, ix>;
             using D = std::tuple_element_t<ix, DTup>;
             static_assert(equivalent_to<D_Arg, D> or equivalent_to_uniform_dimension_type_of<D_Arg, D> or
               (ix >= max_indices_of_v<Arg> and has_uniform_dimension_type<D>),
@@ -367,11 +367,11 @@ namespace OpenKalman
     template<std::size_t ix, typename Arg, typename...Args>
     constexpr auto find_max_dim(const Arg& arg, const Args&...args)
     {
-      if constexpr (sizeof...(Args) == 0) return get_dimensions_of<ix>(arg);
+      if constexpr (sizeof...(Args) == 0) return get_index_descriptor<ix>(arg);
       else
       {
         auto max_d = find_max_dim<ix>(args...);
-        using Arg_D = coefficient_types_of_t<Arg, ix>;
+        using Arg_D = index_descriptor_of_t<Arg, ix>;
         using Max_D = decltype(max_d);
         if constexpr (fixed_index_descriptor<Arg_D> and fixed_index_descriptor<Max_D>)
         {
@@ -386,12 +386,12 @@ namespace OpenKalman
             constexpr auto dim_max_d = dimension_size_of_v<Max_D>;
             static_assert(dim_max_d != 1 or not equivalent_to_uniform_dimension_type_of<Max_D, Arg_D>,
               "The dimension of arguments to n_ary_operation are not compatible with each other for at least one index.");
-            return get_dimensions_of<ix>(arg);
+            return get_index_descriptor<ix>(arg);
           }
         }
         else if constexpr (euclidean_index_descriptor<Arg_D> and euclidean_index_descriptor<Max_D>)
         {
-          auto arg_d = get_dimensions_of<ix>(arg);
+          auto arg_d = get_index_descriptor<ix>(arg);
           auto dim_arg_d = get_dimension_size_of(arg_d);
           auto dim_max_d = get_dimension_size_of(max_d);
           if (dim_arg_d == dim_max_d or (dim_arg_d == 1 and dim_arg_d <= dim_max_d)) return dim_max_d;
@@ -401,7 +401,7 @@ namespace OpenKalman
         }
         else
         {
-          auto arg_d = get_dimensions_of<ix>(arg);
+          auto arg_d = get_index_descriptor<ix>(arg);
           using Scalar = scalar_type_of_t<Arg>;
           if (internal::is_uniform_component_of(arg_d, max_d))
           {
@@ -726,12 +726,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible PatternMatrix, std::size_t...indices, index_descriptor...Ds, typename...Operations>
-  requires ((fixed_index_descriptor<coefficient_types_of_t<PatternMatrix, indices>>) and ...) and
+  requires ((fixed_index_descriptor<index_descriptor_of_t<PatternMatrix, indices>>) and ...) and
     (sizeof...(Operations) == (1 * ... * index_dimension_of_v<PatternMatrix, indices>))
 #else
   template<typename PatternMatrix, std::size_t...indices, typename...Ds, typename...Operations, std::enable_if_t<
     indexible<PatternMatrix> and (index_descriptor<Ds> and ...) and
-    ((fixed_index_descriptor<typename coefficient_types_of<PatternMatrix, indices>::type>) and ...) and
+    ((fixed_index_descriptor<typename index_descriptor_of<PatternMatrix, indices>::type>) and ...) and
     (sizeof...(Operations) == (1 * ... * index_dimension_of<PatternMatrix, indices>::value)), int> = 0>
 #endif
   constexpr auto

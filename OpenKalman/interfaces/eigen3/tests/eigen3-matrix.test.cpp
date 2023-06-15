@@ -238,20 +238,32 @@ TEST(eigen3, make_functions)
 }
 
 
+TEST(eigen3, get_index_descriptor)
+{
+  auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
+
+  static_assert(dimension_size_of_v<decltype(get_index_descriptor<0>(m23))> == 2);
+  static_assert(dimension_size_of_v<decltype(get_index_descriptor<0>(M20 {m23}))> == 2);
+  EXPECT_EQ(get_dimension_size_of(get_index_descriptor<0>(M03 {m23})), 2);
+  EXPECT_EQ(get_dimension_size_of(get_index_descriptor<0>(M00 {m23})), 2);
+
+  static_assert(dimension_size_of_v<decltype(get_index_descriptor<1>(m23))> == 3);
+  EXPECT_EQ(get_dimension_size_of(get_index_descriptor<1>(M20 {m23})), 3);
+  static_assert(dimension_size_of_v<decltype(get_index_descriptor<1>(M03 {m23}))> == 3);
+  EXPECT_EQ(get_dimension_size_of(get_index_descriptor<1>(M00 {m23})), 3);
+}
+
+
 TEST(eigen3, get_index_dimension_of)
 {
   auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
 
   static_assert(get_index_dimension_of<0>(m23) == 2);
-  static_assert(static_index_value<decltype(get_index_dimension_of<0>(m23))>);
-  static_assert(std::decay_t<decltype(get_index_dimension_of<0>(m23))>::value == 2);
   EXPECT_EQ(get_index_dimension_of<0>(M20 {m23}), 2);
   EXPECT_EQ(get_index_dimension_of<0>(M03 {m23}), 2);
   EXPECT_EQ(get_index_dimension_of<0>(M00 {m23}), 2);
 
   static_assert(get_index_dimension_of<1>(m23) == 3);
-  static_assert(static_index_value<decltype(get_index_dimension_of<1>(m23))>);
-  static_assert(std::decay_t<decltype(get_index_dimension_of<1>(m23))>::value == 3);
   EXPECT_EQ(get_index_dimension_of<1>(M20 {m23}), 3);
   EXPECT_EQ(get_index_dimension_of<1>(M03 {m23}), 3);
   EXPECT_EQ(get_index_dimension_of<1>(M00 {m23}), 3);
@@ -281,22 +293,6 @@ TEST(eigen3, get_tensor_order_of)
   EXPECT_EQ(get_tensor_order_of(M00 {m11}), 0);
 #pragma GCC diagnostic pop
 
-}
-
-
-TEST(eigen3, get_dimensions_of)
-{
-  auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
-
-  static_assert(dimension_size_of_v<decltype(get_dimensions_of<0>(m23))> == 2);
-  static_assert(dimension_size_of_v<decltype(get_dimensions_of<0>(M20 {m23}))> == 2);
-  EXPECT_EQ(get_dimension_size_of(get_dimensions_of<0>(M03 {m23})), 2);
-  EXPECT_EQ(get_dimension_size_of(get_dimensions_of<0>(M00 {m23})), 2);
-
-  static_assert(dimension_size_of_v<decltype(get_dimensions_of<1>(m23))> == 3);
-  EXPECT_EQ(get_dimension_size_of(get_dimensions_of<1>(M20 {m23})), 3);
-  static_assert(dimension_size_of_v<decltype(get_dimensions_of<1>(M03 {m23}))> == 3);
-  EXPECT_EQ(get_dimension_size_of(get_dimensions_of<1>(M00 {m23})), 3);
 }
 
   // to_euclidean is tested in ToEuclideanExpr.test.cpp.

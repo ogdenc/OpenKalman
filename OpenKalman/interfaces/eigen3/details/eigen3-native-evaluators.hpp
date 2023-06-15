@@ -381,7 +381,7 @@ namespace Eigen::internal
           (int) Eigen::internal::functor_traits<Eigen::internal::scalar_cos_op<Scalar>>::Cost)
     };
 
-    explicit evaluator(const XprType& t) : Base {t.nested_matrix()}, i_descriptor {get_dimensions_of<0>(t)} {}
+    explicit evaluator(const XprType& t) : Base {t.nested_matrix()}, i_descriptor {get_index_descriptor<0>(t)} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {
@@ -444,7 +444,7 @@ namespace Eigen::internal
         Eigen::internal::functor_traits<Eigen::internal::scalar_atan_op<Scalar>>::Cost)
     };
 
-    explicit evaluator(const XprType& t) : Base {t.nested_matrix()}, i_descriptor {get_dimensions_of<0>(t)} {}
+    explicit evaluator(const XprType& t) : Base {t.nested_matrix()}, i_descriptor {get_index_descriptor<0>(t)} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {
@@ -504,7 +504,7 @@ namespace Eigen::internal
     };
 
     template<typename Arg>
-    explicit evaluator(const Arg& t) : Base {t.nested_matrix().nested_matrix()}, i_descriptor {get_dimensions_of<0>(t)} {}
+    explicit evaluator(const Arg& t) : Base {t.nested_matrix().nested_matrix()}, i_descriptor {get_index_descriptor<0>(t)} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {

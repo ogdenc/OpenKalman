@@ -10,19 +10,214 @@
 
 /**
  * \file
- * \brief Overloaded functions relating to various Eigen3 types
+ * \brief Type traits as applied to native Eigen types.
  */
 
-#ifndef OPENKALMAN_EIGEN3_INTERFACE_HPP
-#define OPENKALMAN_EIGEN3_INTERFACE_HPP
+#ifndef OPENKALMAN_EIGEN3_GENERAL_TRAITS_HPP
+#define OPENKALMAN_EIGEN3_GENERAL_TRAITS_HPP
 
 #include <type_traits>
 #include <tuple>
 #include <random>
 
+
 namespace OpenKalman::interface
 {
   namespace EI = Eigen::internal;
+
+#ifdef __cpp_concepts
+  template<native_eigen_general T>
+  struct IndexTraits<T>
+#else
+  namespace detail
+  {
+  template<typename T>
+  struct IndexTraits_Eigen_default
+#endif
+  {
+    static constexpr std::size_t max_indices = 2;
+
+    template<std::size_t N, typename Arg>
+    static constexpr auto get_index_descriptor(const Arg& arg)
+    {
+      constexpr Eigen::Index dim = N == 0 ? T::RowsAtCompileTime : T::ColsAtCompileTime;
+
+      if constexpr (dim == Eigen::Dynamic)
+      {
+        if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
+        else return static_cast<std::size_t>(arg.cols());
+      }
+      else return Dimensions<dim>{};
+    }
+  };
+#ifndef __cpp_concepts
+  } // namespace detail
+#endif
+
+
+
+#ifdef __cpp_concepts
+  template<native_eigen_general T, typename Scalar>
+  struct EquivalentDenseWritableMatrix<T, Scalar>
+#else
+  template<typename T, typename Scalar>
+  struct EquivalentDenseWritableMatrix<T, Scalar, std::enable_if_t<native_eigen_general<T>>>
+#endif
+  {
+  private:
+
+    template<Eigen::Index...Is>
+    using dense_type = std::conditional_t<native_eigen_array<T>,
+      Eigen::Array<Scalar, Is...>, Eigen::Matrix<Scalar, Is...>>;
+
+    template<std::size_t...Is>
+    using writable_type = dense_type<(Is == dynamic_size ? Eigen::Dynamic : static_cast<Eigen::Index>(Is))...>;
+
+#  ifdef __cpp_concepts
+    template<typename ArgType>
+#  else
+    template<typename ArgType, typename = void>
+#  endif
+    struct traits_and_evaluator_defined : std::false_type {};
+
+
+#  ifdef __cpp_concepts
+     template<typename ArgType> requires
+       requires { typename Eigen::internal::traits<ArgType>; typename Eigen::internal::evaluator<ArgType>; }
+     struct traits_and_evaluator_defined<ArgType> : std::true_type {};
+#  else
+     template<typename ArgType>
+     struct traits_and_evaluator_defined<ArgType, std::enable_if_t<
+       std::is_void<std::void_t<Eigen::internal::traits<ArgType>>>::value and
+       std::is_void<std::void_t<Eigen::internal::evaluator<ArgType>>>::value>> : std::true_type {};
+#  endif
+
+  public:
+
+    static constexpr bool is_writable = native_eigen_dense<T> and
+      static_cast<bool>(Eigen::internal::traits<std::decay_t<T>>::Flags & (Eigen::LvalueBit | Eigen::DirectAccessBit));
+
+
+    template<typename...D>
+    static auto make_default(D&&...d)
+    {
+      using M = writable_type<dimension_size_of_v<D>...>;
+
+      if constexpr (((dimension_size_of_v<D> == dynamic_size) or ...))
+        return M(static_cast<Eigen::Index>(get_dimension_size_of(d))...);
+      else
+        return M {};
+    }
+
+
+    template<typename Arg>
+    static decltype(auto) convert(Arg&& arg)
+    {
+      using M = writable_type<index_dimension_of_v<Arg, 0>, index_dimension_of_v<Arg, 1>>;
+
+      if constexpr (eigen_DiagonalWrapper<Arg>)
+      {
+        // Note: Arg's nested matrix might not be a column vector.
+        return M {OpenKalman::to_diagonal(OpenKalman::diagonal_of(std::forward<Arg>(arg)))};
+      }
+      else if constexpr (std::is_base_of_v<Eigen::PlainObjectBase<std::decay_t<Arg>>, std::decay_t<Arg>> and
+        not std::is_const_v<std::remove_reference_t<Arg>>)
+      {
+        return std::forward<Arg>(arg);
+      }
+      else if constexpr (std::is_constructible_v<M, Arg&&>)
+      {
+        return M {std::forward<Arg>(arg)};
+      }
+      else
+      {
+        auto r = get_index_dimension_of<0>(arg);
+        auto c = get_index_dimension_of<1>(arg);
+        auto m = make_default(r, c);
+        for (int i = 0; i < r ; ++i) for (int j = 0; j < c ; ++j)
+        {
+          set_element(m, get_element(std::forward<Arg>(arg), i, j), i, j);
+        }
+        return m;
+      }
+    }
+
+
+    template<typename Arg>
+    static decltype(auto) to_native_matrix(Arg&& arg)
+    {
+      if constexpr (native_eigen_matrix<Arg>)
+        return std::forward<Arg>(arg);
+      else if constexpr (native_eigen_array<Arg>)
+        return std::forward<Arg>(arg).matrix();
+      else if constexpr (native_eigen_general<Arg>)
+        return convert(std::forward<Arg>(arg));
+      else
+      {
+        static_assert(traits_and_evaluator_defined<Arg>::value, "To convert to a native Eigen matrix, the interface "
+          "must define a trait and an evaluator for the argument");
+        return EigenWrapper<std::decay_t<Arg>> {std::forward<Arg>(arg)};
+      }
+    }
+
+
+    template<typename Arg>
+    static decltype(auto) to_native_matrix(const EigenWrapper<Arg>& arg) { return arg; }
+
+
+    template<typename Arg>
+    static decltype(auto) to_native_matrix(EigenWrapper<Arg>&& arg) { return std::move(arg); }
+
+  };
+
+
+#ifdef __cpp_concepts
+  template<native_eigen_general T, typename Scalar>
+  struct SingleConstantMatrixTraits<T, Scalar>
+#else
+  template<typename T, typename Scalar>
+  struct SingleConstantMatrixTraits<T, Scalar, std::enable_if_t<native_eigen_general<T>>>
+#endif
+  {
+#ifdef __cpp_concepts
+    template<scalar_constant<CompileTimeStatus::unknown> C, typename...Ds> requires (sizeof...(Ds) == 2)
+    static constexpr constant_matrix<CompileTimeStatus::unknown> auto
+#else
+    template<typename C, typename...Ds, std::enable_if_t<
+      scalar_constant<C, CompileTimeStatus::unknown> and (sizeof...(Ds) == 2), int> = 0>
+    static constexpr auto
+#endif
+    make_constant_matrix(C&& c, Ds&&...ds)
+    {
+      using N = dense_writable_matrix_t<T, Scalar, std::decay_t<Ds>...>;
+      return N::Constant(static_cast<Eigen::Index>(get_dimension_size_of(std::forward<Ds>(ds)))..., std::forward<C>(c));
+    }
+  };
+
+
+#ifdef __cpp_concepts
+  template<native_eigen_general T, typename Scalar>
+  struct SingleConstantDiagonalMatrixTraits<T, Scalar>
+#else
+  template<typename T, typename Scalar>
+  struct SingleConstantDiagonalMatrixTraits<T, Scalar, std::enable_if_t<native_eigen_general<T>>>
+#endif
+  {
+    template<typename D>
+    static constexpr auto make_identity_matrix(D&& d)
+    {
+      if constexpr (dimension_size_of_v<D> == dynamic_size)
+      {
+        return to_diagonal(make_constant_matrix_like<T, Scalar, 1>(std::forward<D>(d), Dimensions<1>{}));
+      }
+      else
+      {
+        constexpr Eigen::Index n {dimension_size_of_v<D>};
+        return eigen_matrix_t<Scalar, n, n>::Identity();
+      }
+    }
+  };
+
 
 #ifndef __cpp_concepts
   namespace detail
@@ -334,7 +529,7 @@ namespace OpenKalman::interface
 
       if constexpr (eigen_Identity<Arg>)
       {
-        if constexpr (dim == dynamic_size) return make_constant_matrix_like<Arg, Scalar, 1>(get_dimensions_of<0>(arg), Dimensions<1>{});
+        if constexpr (dim == dynamic_size) return make_constant_matrix_like<Arg, Scalar, 1>(get_index_descriptor<0>(arg), Dimensions<1>{});
         else return make_constant_matrix_like<Arg, Scalar, 1>(Dimensions<dim>{}, Dimensions<1>{});
       }
       else if constexpr (dim == 1)
@@ -741,14 +936,14 @@ namespace OpenKalman::interface
         else if constexpr(triangle_type == TriangleType::lower)
         {
           auto col0 = make_constant_matrix_like<A>(square_root(s), Dimensions<dim>{}, Dimensions<1>{});
-          auto othercols = make_zero_matrix_like<A>(get_dimensions_of<0>(a), get_dimensions_of<0>(a) - 1);
+          auto othercols = make_zero_matrix_like<A>(get_index_descriptor<0>(a), get_index_descriptor<0>(a) - 1);
           return TriangularMatrix<M, triangle_type> {concatenate_horizontal(col0, othercols)};
         }
         else
         {
           static_assert(triangle_type == TriangleType::upper);
           auto row0 = make_constant_matrix_like<A>(square_root(s), Dimensions<1>{}, Dimensions<dim>{});
-          auto otherrows = make_zero_matrix_like<A>(get_dimensions_of<0>(a) - 1, get_dimensions_of<0>(a));
+          auto otherrows = make_zero_matrix_like<A>(get_index_descriptor<0>(a) - 1, get_index_descriptor<0>(a));
           return TriangularMatrix<M, triangle_type> {concatenate_vertical(row0, otherrows)};
         }
       }
@@ -1023,5 +1218,4 @@ namespace OpenKalman::interface
 
 } // namespace OpenKalman::interface
 
-
-#endif //OPENKALMAN_EIGEN3_INTERFACE_HPP
+#endif //OPENKALMAN_EIGEN3_GENERAL_TRAITS_HPP

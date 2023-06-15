@@ -32,17 +32,11 @@ namespace OpenKalman::interface
   {
     static constexpr std::size_t max_indices = std::max({max_indices_of_v<LhsType>, max_indices_of_v<RhsType>});
 
-    template<std::size_t N>
-    static constexpr std::size_t dimension =
-      not dynamic_dimension<LhsType, N> ? index_dimension_of_v<LhsType, N> :
-      not dynamic_dimension<RhsType, N> ? index_dimension_of_v<RhsType, N> :
-      dynamic_size;
-
     template<std::size_t N, typename Arg>
-    static constexpr std::size_t dimension_at_runtime(const Arg& arg)
+    static constexpr auto get_index_descriptor(const Arg& arg)
     {
-      if constexpr (dimension<N> != dynamic_size) return dimension<N>;
-      else return get_index_dimension_of<N>(arg.lhs());
+      if constexpr (not dynamic_dimension<LhsType, N>) return OpenKalman::get_index_descriptor<N>(arg.lhs());
+      else return OpenKalman::get_index_descriptor<N>(arg.rhs());
     }
 
     template<Likelihood b>

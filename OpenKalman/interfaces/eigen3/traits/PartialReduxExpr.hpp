@@ -21,9 +21,6 @@
 
 namespace OpenKalman::interface
 {
-  namespace EGI = Eigen::internal;
-  using namespace Eigen3;
-
 
 #ifndef __cpp_concepts
   template<typename MatrixType, typename MemberOp, int Direction>
@@ -80,7 +77,7 @@ namespace OpenKalman::interface
 
 
     template<int p, typename XprType, typename...Args>
-    struct SingleConstantPartialRedux<XprType, EGI::member_lpnorm<p, Args...>>
+    struct SingleConstantPartialRedux<XprType, Eigen::internal::member_lpnorm<p, Args...>>
     {
       struct Op
       {
@@ -112,7 +109,7 @@ namespace OpenKalman::interface
 
 
     template<typename XprType, typename...Args>
-    struct SingleConstantPartialRedux<XprType, EGI::member_stableNorm<Args...>>
+    struct SingleConstantPartialRedux<XprType, Eigen::internal::member_stableNorm<Args...>>
     {
       struct Op
       {
@@ -136,7 +133,7 @@ namespace OpenKalman::interface
 
 
     template<typename XprType, typename...Args>
-    struct SingleConstantPartialRedux<XprType, EGI::member_hypotNorm<Args...>>
+    struct SingleConstantPartialRedux<XprType, Eigen::internal::member_hypotNorm<Args...>>
     {
       struct Op
       {
@@ -160,7 +157,7 @@ namespace OpenKalman::interface
 
 
     template<typename XprType, typename...Args>
-    struct SingleConstantPartialRedux<XprType, EGI::member_sum<Args...>>
+    struct SingleConstantPartialRedux<XprType, Eigen::internal::member_sum<Args...>>
     {
       struct Op
       {
@@ -181,7 +178,7 @@ namespace OpenKalman::interface
 
 # if not EIGEN_VERSION_AT_LEAST(3,4,0)
     template<typename XprType, typename...Args>
-    struct SingleConstantPartialRedux<EGI::member_squaredNorm<Args...>>
+    struct SingleConstantPartialRedux<Eigen::internal::member_squaredNorm<Args...>>
     {
       struct Op
       {
@@ -210,7 +207,7 @@ namespace OpenKalman::interface
     };
 
     template<typename XprType, typename...Args>
-    struct SingleConstantPartialRedux<EGI::member_norm<Args...>>
+    struct SingleConstantPartialRedux<Eigen::internal::member_norm<Args...>>
     {
       struct Op
       {
@@ -243,7 +240,7 @@ namespace OpenKalman::interface
     };
 
     template<typename XprType, typename...Args>
-    struct SingleConstantPartialRedux<EGI::member_mean<Args...>>
+    struct SingleConstantPartialRedux<Eigen::internal::member_mean<Args...>>
     {
       template<typename O>
       struct Op
@@ -266,7 +263,7 @@ namespace OpenKalman::interface
 
 
     template<typename XprType, typename...Args>
-    struct SingleConstantPartialRedux<XprType, EGI::member_minCoeff<Args...>>
+    struct SingleConstantPartialRedux<XprType, Eigen::internal::member_minCoeff<Args...>>
     {
       struct Op
       {
@@ -298,7 +295,7 @@ namespace OpenKalman::interface
 
 
     template<typename XprType, typename...Args>
-    struct SingleConstantPartialRedux<XprType, EGI::member_maxCoeff<Args...>>
+    struct SingleConstantPartialRedux<XprType, Eigen::internal::member_maxCoeff<Args...>>
     {
       struct Op
       {
@@ -330,7 +327,7 @@ namespace OpenKalman::interface
 
 
     template<typename XprType, typename...Args>
-    struct SingleConstantPartialRedux<XprType, EGI::member_all<Args...>>
+    struct SingleConstantPartialRedux<XprType, Eigen::internal::member_all<Args...>>
     {
       struct Op
       {
@@ -356,7 +353,7 @@ namespace OpenKalman::interface
 
 
     template<typename XprType, typename...Args>
-    struct SingleConstantPartialRedux<XprType, EGI::member_any<Args...>>
+    struct SingleConstantPartialRedux<XprType, Eigen::internal::member_any<Args...>>
     {
       struct Op
       {
@@ -377,7 +374,7 @@ namespace OpenKalman::interface
 
 
     template<typename XprType, typename...Args>
-    struct SingleConstantPartialRedux<XprType, EGI::member_count<Args...>>
+    struct SingleConstantPartialRedux<XprType, Eigen::internal::member_count<Args...>>
     {
       struct Op
       {
@@ -399,7 +396,7 @@ namespace OpenKalman::interface
 
 
     template<typename XprType, typename...Args>
-    struct SingleConstantPartialRedux<XprType, EGI::member_prod<Args...>>
+    struct SingleConstantPartialRedux<XprType, Eigen::internal::member_prod<Args...>>
     {
       struct Op
       {

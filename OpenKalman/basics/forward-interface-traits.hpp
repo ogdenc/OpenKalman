@@ -42,47 +42,21 @@ namespace OpenKalman::interface
 
 
     /**
-     * \var template<std::size_t N> static constexpr std::size_t dimension
-     * \brief The dimension of index N of T, evaluated at compile time.
-     * \details For example, a 2-by-3 matrix has dimension 2 in index 0 (rows) and dimension 3 in index 1 (columns).
-     * \tparam N The index number
-     */
-    template<std::size_t N>
-    static constexpr std::size_t dimension = 0;
-
-
-    /**
-     * \brief The coordinate system type(s) associated with index N of T, evaluated at compile time.
-     * \tparam N The index
-     */
-    template<std::size_t N>
-    using coordinate_system_types = Dimensions<0>;
-
-
-    /**
-     * \brief Returns the dimension of index N of the argument, evaluated at runtime.
-     * \details For example, a 2-by-3 matrix has dimension 2 in index 0 (rows) and dimension 3 in index 1 (columns).
-     * \tparam Arg An argument matrix of type T
-     */
-#ifdef __cpp_concepts
-    template<std::size_t N, std::convertible_to<const std::remove_reference_t<T>&> Arg>
-#else
-    template<std::size_t N, typename Arg, std::enable_if_t<std::is_convertible_v<Arg,
-      const std::add_lvalue_reference_t<std::decay_t<T>>>, int> = 0>
-#endif
-    static constexpr std::size_t dimension_at_runtime(const Arg& arg) = delete;
-
-
-    /**
      * \brief Get an \ref index_descriptor for index N of an argument.
      * \tparam N The index
      * \param arg An indexible object (tensor, matrix, vector, etc.)
      * \return an \ref index_descriptor (either fixed or dynamic)
      */
-    template<std::size_t N, typename Arg>
-    static constexpr auto get_index_type(const Arg& arg)
+#ifdef __cpp_concepts
+    template<std::size_t N, std::convertible_to<const std::remove_reference_t<T>&> Arg>
+    static constexpr index_descriptor auto get_index_descriptor(const Arg& arg)
+#else
+    template<std::size_t N, typename Arg, std::enable_if_t<std::is_convertible_v<Arg,
+      const std::add_lvalue_reference_t<std::decay_t<T>>>, int> = 0>
+    static constexpr auto get_index_descriptor(const Arg& arg)
+#endif
     {
-      return Dimensions<dynamic_size>{0};
+      return Dimensions<0>{};
     }
 
 
@@ -451,17 +425,15 @@ namespace OpenKalman::interface
     static constexpr bool is_diagonal_adapter = false;
 
     /**
-     * \brief Create a \ref triangular_matrix from a general matrix.
+     * \brief Create a \ref triangular_matrix from a square matrix.
      * \details This is used by the function OpenKalman::make_triangular_matrix. This can be left undefined if
      * - Arg is already triangular and of a TriangleType compatible with t, or
      * - the intended result is for Arg to be wrapped in an \ref Eigen::TriangularMatrix (which will happen automatically).
      * \tparam t The intended \ref TriangleType of the result.
-     * \tparam Arg A general matrix to be made triangular.
+     * \tparam Arg A square matrix to be made triangular.
      */
 #ifdef __cpp_concepts
-    template<TriangleType t, std::convertible_to<const std::remove_reference_t<T>&> Arg> requires
-      (IndexTraits<std::decay_t<T>>::template dimension<0> == IndexTraits<std::decay_t<T>>::template dimension<1>) or
-      (IndexTraits<std::decay_t<T>>::template dimension<0> == dynamic_size) or (IndexTraits<std::decay_t<T>>::template dimension<1> == dynamic_size)
+    template<TriangleType t, std::convertible_to<const std::remove_reference_t<T>&> Arg>
 #else
     template<TriangleType t, typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
 #endif
@@ -584,12 +556,9 @@ namespace OpenKalman::interface
      * \tparam Arg A column vector.
      */
 #ifdef __cpp_concepts
-    template<std::convertible_to<const std::remove_reference_t<T>&> Arg> requires
-      (IndexTraits<std::decay_t<T>>::template dimension<1> == 1) or (IndexTraits<std::decay_t<T>>::template dimension<1> == dynamic_size)
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
 #else
-    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&> and
-      ((IndexTraits<std::decay_t<T>>::template dimension<1> == 1) or
-       (IndexTraits<std::decay_t<T>>::template dimension<1> == dynamic_size)), int> = 0>
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
 #endif
     static constexpr decltype(auto)
     to_diagonal(Arg&& arg) = delete;
@@ -610,15 +579,9 @@ namespace OpenKalman::interface
      * \returns A column vector
      */
 #ifdef __cpp_concepts
-    template<std::convertible_to<const std::remove_reference_t<T>&> Arg> requires
-      (IndexTraits<std::decay_t<T>>::template dimension<0> == dynamic_size) or
-      (IndexTraits<std::decay_t<T>>::template dimension<1> == dynamic_size) or
-      (IndexTraits<std::decay_t<T>>::template dimension<0> == IndexTraits<std::decay_t<T>>::template dimension<1>)
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
 #else
-    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&> and
-      ((IndexTraits<std::decay_t<T>>::template dimension<0> == dynamic_size) or
-       (IndexTraits<std::decay_t<T>>::template dimension<1> == dynamic_size) or
-       (IndexTraits<std::decay_t<T>>::template dimension<0> == IndexTraits<std::decay_t<T>>::template dimension<1>)), int> = 0>
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
 #endif
     static constexpr decltype(auto)
     diagonal_of(Arg&& arg) = delete;

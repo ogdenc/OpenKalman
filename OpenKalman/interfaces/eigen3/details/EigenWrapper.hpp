@@ -349,13 +349,10 @@ namespace OpenKalman
     {
       static constexpr std::size_t max_indices = max_indices_of_v<NestedMatrix>;
 
-      template<std::size_t N>
-      static constexpr std::size_t dimension = index_dimension_of_v<NestedMatrix, N>;
-
       template<std::size_t N, typename Arg>
-      static constexpr std::size_t dimension_at_runtime(const Arg& arg)
+      static constexpr auto get_index_descriptor(const Arg& arg)
       {
-        return get_index_dimension_of<N>(arg.nested_matrix());
+        return OpenKalman::get_index_descriptor<N>(nested_matrix(arg));
       }
 
       template<Likelihood b>

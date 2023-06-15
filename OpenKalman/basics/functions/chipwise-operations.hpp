@@ -32,7 +32,7 @@ namespace OpenKalman
     template<std::size_t ix, typename Best_d, typename Arg, typename...Args>
     decltype(auto) chipwise_descriptor_for(const Best_d& best_d, const Arg& arg, const Args&...args)
     {
-      auto d = get_dimensions_of<ix>(arg);
+      auto d = get_index_descriptor<ix>(arg);
       using D = decltype(d);
       if constexpr (fixed_index_descriptor<Best_d>)
       {
@@ -56,7 +56,7 @@ namespace OpenKalman
     template<std::size_t...ix, typename Arg, typename...Args>
     auto make_chipwise_default(std::index_sequence<ix...>, const Arg& arg, const Args&...args)
     {
-      return make_default_dense_writable_matrix_like<Arg>(chipwise_descriptor_for<ix>(get_dimensions_of<ix>(arg), args...)...);
+      return make_default_dense_writable_matrix_like<Arg>(chipwise_descriptor_for<ix>(get_index_descriptor<ix>(arg), args...)...);
     }
 
 

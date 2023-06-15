@@ -101,15 +101,15 @@ TEST(eigen3, ConstantAdapter_functions)
   ConstantAdapter<M01, double, 5> c501_3 {3};
   ConstantAdapter<M00, double, 5> c500_31 {3, 1};
 
-  EXPECT_EQ(get_dimensions_of<0>(c534), 3);
-  EXPECT_EQ(get_dimensions_of<0>(c530_4), 3);
-  EXPECT_EQ(get_dimensions_of<0>(c504_3), 3);
-  EXPECT_EQ(get_dimensions_of<0>(c500_34), 3);
+  EXPECT_EQ(get_index_descriptor<0>(c534), 3);
+  EXPECT_EQ(get_index_descriptor<0>(c530_4), 3);
+  EXPECT_EQ(get_index_descriptor<0>(c504_3), 3);
+  EXPECT_EQ(get_index_descriptor<0>(c500_34), 3);
 
-  EXPECT_EQ(get_dimensions_of<1>(c534), 4);
-  EXPECT_EQ(get_dimensions_of<1>(c530_4), 4);
-  EXPECT_EQ(get_dimensions_of<1>(c504_3), 4);
-  EXPECT_EQ(get_dimensions_of<1>(c500_34), 4);
+  EXPECT_EQ(get_index_descriptor<1>(c534), 4);
+  EXPECT_EQ(get_index_descriptor<1>(c530_4), 4);
+  EXPECT_EQ(get_index_descriptor<1>(c504_3), 4);
+  EXPECT_EQ(get_index_descriptor<1>(c500_34), 4);
 
   // to_euclidean is tested in ToEuclideanExpr.test.cpp.
   // from_euclidean is tested in FromEuclideanExpr.test.cpp.
@@ -233,16 +233,16 @@ TEST(eigen3, ConstantAdapter_functions)
   EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<M32, double, 3> ()), lq332));
   auto lqzc30_2 = LQ_decomposition(ConstantAdapter<M30, double, 3> {2});
   EXPECT_TRUE(is_near(lqzc30_2, lq332));
-  EXPECT_EQ(get_dimensions_of<0>(lqzc30_2), 3);
-  EXPECT_EQ(get_dimensions_of<1>(lqzc30_2), 3);
+  EXPECT_EQ(get_index_descriptor<0>(lqzc30_2), 3);
+  EXPECT_EQ(get_index_descriptor<1>(lqzc30_2), 3);
   auto lqzc02_3 = LQ_decomposition(ConstantAdapter<M02, double, 3> {3});
   EXPECT_TRUE(is_near(lqzc02_3, lq332));
-  EXPECT_EQ(get_dimensions_of<0>(lqzc02_3), 3);
-  EXPECT_EQ(get_dimensions_of<1>(lqzc02_3), 3);
+  EXPECT_EQ(get_index_descriptor<0>(lqzc02_3), 3);
+  EXPECT_EQ(get_index_descriptor<1>(lqzc02_3), 3);
   auto lqzc00_32 = LQ_decomposition(ConstantAdapter<M00, double, 3> {3, 2});
   EXPECT_TRUE(is_near(lqzc00_32, lq332));
-  EXPECT_EQ(get_dimensions_of<0>(lqzc00_32), 3);
-  EXPECT_EQ(get_dimensions_of<1>(lqzc00_32), 3);
+  EXPECT_EQ(get_index_descriptor<0>(lqzc00_32), 3);
+  EXPECT_EQ(get_index_descriptor<1>(lqzc00_32), 3);
 
   EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<M32, double> (3.)), lq332));
   EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<M30, double> (3., 2)), lq332));
@@ -254,16 +254,16 @@ TEST(eigen3, ConstantAdapter_functions)
   EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<M23, double, 3> ()), qr323));
   auto qrzc20_3 = QR_decomposition(ConstantAdapter<M20, double, 3> {3});
   EXPECT_TRUE(is_near(qrzc20_3, qr323));
-  EXPECT_EQ(get_dimensions_of<0>(qrzc20_3), 3);
-  EXPECT_EQ(get_dimensions_of<1>(qrzc20_3), 3);
+  EXPECT_EQ(get_index_descriptor<0>(qrzc20_3), 3);
+  EXPECT_EQ(get_index_descriptor<1>(qrzc20_3), 3);
   auto qrzc03_2 = QR_decomposition(ConstantAdapter<M03, double, 3> {2});
   EXPECT_TRUE(is_near(qrzc03_2, qr323));
-  EXPECT_EQ(get_dimensions_of<0>(qrzc03_2), 3);
-  EXPECT_EQ(get_dimensions_of<1>(qrzc03_2), 3);
+  EXPECT_EQ(get_index_descriptor<0>(qrzc03_2), 3);
+  EXPECT_EQ(get_index_descriptor<1>(qrzc03_2), 3);
   auto qrzc00_23 = QR_decomposition(ConstantAdapter<M00, double, 3> {2, 3});
   EXPECT_TRUE(is_near(qrzc00_23, qr323));
-  EXPECT_EQ(get_dimensions_of<0>(qrzc00_23), 3);
-  EXPECT_EQ(get_dimensions_of<1>(qrzc00_23), 3);
+  EXPECT_EQ(get_index_descriptor<0>(qrzc00_23), 3);
+  EXPECT_EQ(get_index_descriptor<1>(qrzc00_23), 3);
 
   EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<M23, double> (3.)), qr323));
   EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<M20, double> (3., 3)), qr323));
@@ -1190,15 +1190,15 @@ TEST(eigen3, constant_reductions)
   auto colzc34 = average_reduce<1>(c500_34);
   EXPECT_TRUE(is_near(average_reduce<1>(ConstantAdapter<M23, double, 3> ()), (M21::Constant(3))));
   EXPECT_EQ(colzc34, (ConstantAdapter<M31, double, 5> {}));
-  EXPECT_EQ(get_dimensions_of<0>(colzc34), 3);
-  EXPECT_EQ(get_dimensions_of<1>(colzc34), 1);
+  EXPECT_EQ(get_index_descriptor<0>(colzc34), 3);
+  EXPECT_EQ(get_index_descriptor<1>(colzc34), 1);
   static_assert(eigen_constant_expr<decltype(colzc34)>);
 
   auto rowzc34 = average_reduce<0>(c500_34);
   EXPECT_TRUE(is_near(average_reduce<0>(ConstantAdapter<M23, double, 3> ()), (M13::Constant(3))));
   EXPECT_EQ(rowzc34, (ConstantAdapter<eigen_matrix_t<double, 1, 4>, double, 5> {}));
-  EXPECT_EQ(get_dimensions_of<1>(rowzc34), 4);
-  EXPECT_EQ(get_dimensions_of<0>(rowzc34), 1);
+  EXPECT_EQ(get_index_descriptor<1>(rowzc34), 4);
+  EXPECT_EQ(get_index_descriptor<0>(rowzc34), 1);
   static_assert(eigen_constant_expr<decltype(rowzc34)>);
 }
 
@@ -1306,23 +1306,23 @@ TEST(eigen3, constant_element_functions)
   EXPECT_TRUE(is_near(get_chip<1>(ConstantAdapter<M23, double, 6> {}, 1), (M21::Constant(6))));
   EXPECT_TRUE(is_near(get_chip<1>(ConstantAdapter<M23, double, 7> {}, N1), (M21::Constant(7))));
   auto c5c34 = get_chip<1>(c500_34, 1);
-  EXPECT_EQ(get_dimensions_of<0>(c5c34), 3);
-  static_assert(get_dimensions_of<1>(c5c34) == 1);
+  EXPECT_EQ(get_index_descriptor<0>(c5c34), 3);
+  static_assert(get_index_descriptor<1>(c5c34) == 1);
   static_assert(constant_coefficient_v<decltype(c5c34)> == 5);
   auto c5v34 = get_chip<1>(ConstantAdapter<M04, double, 5> {3}, N1);
-  EXPECT_EQ(get_dimensions_of<0>(c5v34), 3);
-  static_assert(get_dimensions_of<1>(c5v34) == 1);
+  EXPECT_EQ(get_index_descriptor<0>(c5v34), 3);
+  static_assert(get_index_descriptor<1>(c5v34) == 1);
   static_assert(constant_coefficient_v<decltype(c5v34)> == 5);
 
   EXPECT_TRUE(is_near(get_chip<0>(ConstantAdapter<M32, double, 6> {}, 1), (M12::Constant(6))));
   EXPECT_TRUE(is_near(get_chip<0>(ConstantAdapter<M32, double, 7> {}, N1), (M12::Constant(7))));
   auto r5c34 = get_chip<0>(c500_34, 1);
-  EXPECT_EQ(get_dimensions_of<1>(r5c34), 4);
-  static_assert(get_dimensions_of<0>(r5c34) == 1);
+  EXPECT_EQ(get_index_descriptor<1>(r5c34), 4);
+  static_assert(get_index_descriptor<0>(r5c34) == 1);
   static_assert(constant_coefficient_v<decltype(r5c34)> == 5);
   auto r5v34 = get_chip<0>(ConstantAdapter<M30, double, 5> {4}, N1);
-  EXPECT_EQ(get_dimensions_of<1>(r5v34), 4);
-  static_assert(get_dimensions_of<0>(r5v34) == 1);
+  EXPECT_EQ(get_index_descriptor<1>(r5v34), 4);
+  static_assert(get_index_descriptor<0>(r5v34) == 1);
   static_assert(constant_coefficient_v<decltype(r5v34)> == 5);
 
   auto zc34 = ZeroAdapter<M34> {};
@@ -1330,12 +1330,12 @@ TEST(eigen3, constant_element_functions)
   EXPECT_TRUE(is_near(get_column(ZeroAdapter<M23>(), N1), (M21::Zero())));
   EXPECT_TRUE(is_near(get_column(ZeroAdapter<M23>(), 1), (M21::Zero())));
   auto czc34 = get_column(zc34, 1);
-  EXPECT_EQ(get_dimensions_of<0>(czc34), 3);
-  static_assert(get_dimensions_of<1>(czc34) == 1);
+  EXPECT_EQ(get_index_descriptor<0>(czc34), 3);
+  static_assert(get_index_descriptor<1>(czc34) == 1);
   static_assert(zero_matrix<decltype(czc34)>);
   auto czv34 = get_column(ZeroAdapter<M04> {3}, N1);
-  EXPECT_EQ(get_dimensions_of<0>(czv34), 3);
-  static_assert(get_dimensions_of<1>(czv34) == 1);
+  EXPECT_EQ(get_index_descriptor<0>(czv34), 3);
+  static_assert(get_index_descriptor<1>(czv34) == 1);
   static_assert(zero_matrix<decltype(czv34)>);
 
   EXPECT_TRUE(is_near(get_column(make_zero_matrix_like<M33>(Dimensions<3>{}, Dimensions<3>{}), N1), make_dense_writable_matrix_from<M31>(0., 0, 0)));
@@ -1347,12 +1347,12 @@ TEST(eigen3, constant_element_functions)
   EXPECT_TRUE(is_near(get_row(ZeroAdapter<M32>(Dimensions<3>{}, Dimensions<2>{}), N1), (M12::Zero())));
   EXPECT_TRUE(is_near(get_row(ZeroAdapter<M32>(Dimensions<3>{}, Dimensions<2>{}), 1), (M12::Zero())));
   auto rzc34 = get_row(zc34, 1);
-  EXPECT_EQ(get_dimensions_of<1>(rzc34), 4);
-  static_assert(get_dimensions_of<0>(rzc34) == 1);
+  EXPECT_EQ(get_index_descriptor<1>(rzc34), 4);
+  static_assert(get_index_descriptor<0>(rzc34) == 1);
   static_assert(zero_matrix<decltype(rzc34)>);
   auto rzv34 = get_row(ZeroAdapter<M30> {Dimensions<3>{}, 4}, N1);
-  EXPECT_EQ(get_dimensions_of<1>(rzv34), 4);
-  static_assert(get_dimensions_of<0>(rzv34) == 1);
+  EXPECT_EQ(get_index_descriptor<1>(rzv34), 4);
+  static_assert(get_index_descriptor<0>(rzv34) == 1);
   static_assert(zero_matrix<decltype(rzv34)>);
 
   EXPECT_TRUE(is_near(get_row(make_zero_matrix_like<M33>(Dimensions<3>{}, Dimensions<3>{}), N1), make_dense_writable_matrix_from<M13>(0., 0, 0)));

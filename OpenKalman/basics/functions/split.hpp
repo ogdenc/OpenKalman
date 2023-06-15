@@ -31,13 +31,13 @@ namespace OpenKalman
     {
       if constexpr ((dynamic_index_descriptor<Ds> or ... or dynamic_dimension<Arg, index>))
       {
-        if (not ((ds + ... + 0) <= get_dimensions_of<index>(arg)))
+        if (not ((get_dimension_size_of(ds) + ... + std::size_t{0}) <= get_index_descriptor<index>(arg)))
           throw std::logic_error {"When concatenated, the index descriptors provided to split function are not a "
             "prefix of the argument's index descriptor along at least index " + std::to_string(index)};
       }
       else
       {
-        static_assert(prefix_of<TypedIndex<std::decay_t<Ds>...>, coefficient_types_of_t<Arg, index>>,
+        static_assert(prefix_of<TypedIndex<std::decay_t<Ds>...>, index_descriptor_of_t<Arg, index>>,
           "Concatenated index descriptors provided to split function must be a prefix of the argument's index descriptor");
       }
     }
@@ -70,8 +70,8 @@ namespace OpenKalman
    * \brief Split a matrix or tensor into sub-parts, where the split is the same for every index.
    * \details This is an inverse of the \ref OpenKalman::concatenate "concatenate" operation.
    * In other words, for all <code>std::size_t i..., j...</code> and <code>indexible a...</code>, and given
-   * the function <code>template<std::size_t...i> auto f(auto a) { return get_dimensions_of<i>(a)...}; }</code>
-   * <code>((split<i...>(concatenate<i...>(a...), get_dimensions_of<j>(a)...) == std::tuple{a...}) and ...)</code>.
+   * the function <code>template<std::size_t...i> auto f(auto a) { return get_index_descriptor<i>(a)...}; }</code>
+   * <code>((split<i...>(concatenate<i...>(a...), get_index_descriptor<j>(a)...) == std::tuple{a...}) and ...)</code>.
    * \tparam indices The indices along which to make the split. E.g., 0 means to split along rows,
    * 1 means to split along columns, {0, 1} means to split diagonally.
    * \tparam Arg The matrix or tensor to be split.
@@ -132,7 +132,7 @@ namespace OpenKalman
    * \brief Split a matrix or tensor into sub-parts of a size defined independently for each index.
    * \details This is an inverse of the \ref OpenKalman::concatenate "concatenate" operation.
    * In other words, for all <code>std::size_t i...</code> and <code>indexible a...</code>, and given
-   * the function <code>template<std::size_t...i> auto f(auto a) { return std::tuple{get_dimensions_of<i>(a)...}; }</code>
+   * the function <code>template<std::size_t...i> auto f(auto a) { return std::tuple{get_index_descriptor<i>(a)...}; }</code>
    * <code>split<i...>(concatenate<i...>(a...), f<i...>(a)...) == std::tuple{a...}</code>.
    * \tparam indices The indices along which to make the split. E.g., 0 means to split along rows,
    * 1 means to split along columns, {0, 1} means to split diagonally.

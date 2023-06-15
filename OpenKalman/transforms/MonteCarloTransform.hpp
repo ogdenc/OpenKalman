@@ -46,8 +46,8 @@ namespace OpenKalman
 
       using In_Mean = typename DistributionTraits<InputDistribution>::Mean;
       using Out_Mean = std::invoke_result_t<TransformationType, In_Mean>;
-      using InputCoefficients = row_coefficient_types_of_t<In_Mean>;
-      using OutputCoefficients = row_coefficient_types_of_t<Out_Mean>;
+      using InputCoefficients = row_index_descriptor_of_t<In_Mean>;
+      using OutputCoefficients = row_index_descriptor_of_t<Out_Mean>;
       using Scalar = scalar_type_of_t<In_Mean>;
       static_assert((equivalent_to<OutputCoefficients,
         typename DistributionTraits<NoiseDistributions>::TypedIndex> and ...));

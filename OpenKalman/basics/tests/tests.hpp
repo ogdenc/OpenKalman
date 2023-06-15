@@ -137,14 +137,14 @@ namespace OpenKalman::test
     }
 
     if constexpr (dynamic_rows<std::tuple_element_t<0, Arg1>> or dynamic_rows<std::tuple_element_t<0, Arg2>>)
-      if (get_dimensions_of<0>(std::get<0>(arg1)) != get_dimensions_of<0>(std::get<0>(arg2)))
-        throw std::logic_error {"Row dimension mismatch: " + std::to_string(get_dimensions_of<0>(std::get<0>(arg1))) + " != " +
-          std::to_string(get_dimensions_of<0>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
+      if (get_index_descriptor<0>(std::get<0>(arg1)) != get_index_descriptor<0>(std::get<0>(arg2)))
+        throw std::logic_error {"Row dimension mismatch: " + std::to_string(get_index_descriptor<0>(std::get<0>(arg1))) + " != " +
+          std::to_string(get_index_descriptor<0>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
 
     if constexpr (dynamic_columns<std::tuple_element_t<0, Arg1>> or dynamic_columns<std::tuple_element_t<0, Arg2>>)
-      if (get_dimensions_of<1>(std::get<0>(arg1)) != get_dimensions_of<1>(std::get<0>(arg2)))
-        throw std::logic_error {"Column dimension mismatch: " + std::to_string(get_dimensions_of<1>(std::get<0>(arg1))) + " != " +
-          std::to_string(get_dimensions_of<1>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
+      if (get_index_descriptor<1>(std::get<0>(arg1)) != get_index_descriptor<1>(std::get<0>(arg2)))
+        throw std::logic_error {"Column dimension mismatch: " + std::to_string(get_index_descriptor<1>(std::get<0>(arg1))) + " != " +
+          std::to_string(get_index_descriptor<1>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
   }
 
 

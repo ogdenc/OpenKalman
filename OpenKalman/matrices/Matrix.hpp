@@ -59,15 +59,15 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, Matrix>) and
       (not euclidean_transformed<Arg>) and
-      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
-      equivalent_to<column_coefficient_types_of_t<Arg>, ColumnCoefficients> and
+      equivalent_to<row_index_descriptor_of_t<Arg>, RowCoefficients> and
+      equivalent_to<column_index_descriptor_of_t<Arg>, ColumnCoefficients> and
       //requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; } // \todo 't work in GCC 10
       std::constructible_from<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and not std::is_base_of_v<Matrix, std::decay_t<Arg>> and
       not euclidean_transformed<Arg> and
-      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
-      equivalent_to<column_coefficient_types_of_t<Arg>, ColumnCoefficients> and
+      equivalent_to<row_index_descriptor_of_t<Arg>, RowCoefficients> and
+      equivalent_to<column_index_descriptor_of_t<Arg>, ColumnCoefficients> and
       std::is_constructible_v<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>, int> = 0>
 #endif
     Matrix(Arg&& arg) noexcept : Base {nested_matrix(std::forward<Arg>(arg))} {}
@@ -76,13 +76,13 @@ namespace OpenKalman
     /// Construct from a compatible \ref OpenKalman::euclidean_transformed "euclidean_transformed".
 #ifdef __cpp_concepts
     template<euclidean_transformed Arg> requires
-      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
-      equivalent_to<column_coefficient_types_of_t<Arg>, ColumnCoefficients> and
+      equivalent_to<row_index_descriptor_of_t<Arg>, RowCoefficients> and
+      equivalent_to<column_index_descriptor_of_t<Arg>, ColumnCoefficients> and
       requires(Arg&& arg) { NestedMatrix {from_euclidean<RowCoefficients>(nested_matrix(std::forward<Arg>(arg)))}; }
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and euclidean_transformed<Arg> and
-      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
-      equivalent_to<column_coefficient_types_of_t<Arg>, ColumnCoefficients> and
+      equivalent_to<row_index_descriptor_of_t<Arg>, RowCoefficients> and
+      equivalent_to<column_index_descriptor_of_t<Arg>, ColumnCoefficients> and
       std::is_constructible_v<NestedMatrix,
         decltype(from_euclidean<RowCoefficients>(nested_matrix(std::declval<Arg&&>())))>, int> = 0>
 #endif
@@ -107,13 +107,13 @@ namespace OpenKalman
     /// Construct from compatible \ref OpenKalman::covariance "covariance".
 #ifdef __cpp_concepts
     template<covariance Arg> requires
-      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
-      equivalent_to<row_coefficient_types_of_t<Arg>, ColumnCoefficients> and
+      equivalent_to<row_index_descriptor_of_t<Arg>, RowCoefficients> and
+      equivalent_to<row_index_descriptor_of_t<Arg>, ColumnCoefficients> and
       requires(Arg&& arg) { NestedMatrix {make_dense_writable_matrix_from(std::forward<Arg>(arg))}; }
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and
-      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
-      equivalent_to<row_coefficient_types_of_t<Arg>, ColumnCoefficients> and
+      equivalent_to<row_index_descriptor_of_t<Arg>, RowCoefficients> and
+      equivalent_to<row_index_descriptor_of_t<Arg>, ColumnCoefficients> and
       std::is_constructible_v<NestedMatrix, dense_writable_matrix_t<Arg, scalar_type_of_t<Arg>>>, int> = 0>
 #endif
     Matrix(Arg&& arg) noexcept : Base {make_dense_writable_matrix_from(std::forward<Arg>(arg))} {}
@@ -123,14 +123,14 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not euclidean_transformed<Arg>) and
       (not std::derived_from<std::decay_t<Arg>, Matrix>) and
-      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
-      equivalent_to<column_coefficient_types_of_t<Arg>, ColumnCoefficients> and
+      equivalent_to<row_index_descriptor_of_t<Arg>, RowCoefficients> and
+      equivalent_to<column_index_descriptor_of_t<Arg>, ColumnCoefficients> and
       modifiable<NestedMatrix, nested_matrix_of_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and (not euclidean_transformed<Arg>) and
       (not std::is_base_of_v<Matrix, std::decay_t<Arg>>) and
-      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
-      equivalent_to<column_coefficient_types_of_t<Arg>, ColumnCoefficients> and
+      equivalent_to<row_index_descriptor_of_t<Arg>, RowCoefficients> and
+      equivalent_to<column_index_descriptor_of_t<Arg>, ColumnCoefficients> and
       modifiable<NestedMatrix, nested_matrix_of_t<Arg>>, int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
@@ -146,13 +146,13 @@ namespace OpenKalman
     /// Assign from a compatible \ref OpenKalman::euclidean_transformed "euclidean_transformed" matrix.
 #ifdef __cpp_concepts
     template<euclidean_transformed Arg> requires
-      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
-      equivalent_to<column_coefficient_types_of_t<Arg>, ColumnCoefficients> and
+      equivalent_to<row_index_descriptor_of_t<Arg>, RowCoefficients> and
+      equivalent_to<column_index_descriptor_of_t<Arg>, ColumnCoefficients> and
       modifiable<NestedMatrix, decltype(from_euclidean<RowCoefficients>(std::declval<nested_matrix_of_t<Arg>>()))>
 #else
     template<typename Arg, std::enable_if_t<euclidean_transformed<Arg> and
-      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
-      equivalent_to<column_coefficient_types_of_t<Arg>, ColumnCoefficients> and
+      equivalent_to<row_index_descriptor_of_t<Arg>, RowCoefficients> and
+      equivalent_to<column_index_descriptor_of_t<Arg>, ColumnCoefficients> and
       modifiable<NestedMatrix, decltype(from_euclidean<RowCoefficients>(std::declval<nested_matrix_of_t<Arg>>()))>,
         int> = 0>
 #endif
@@ -192,12 +192,12 @@ namespace OpenKalman
     /// Increment from another typed matrix.
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires
-      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
-      equivalent_to<column_coefficient_types_of_t<Arg>, ColumnCoefficients>
+      equivalent_to<row_index_descriptor_of_t<Arg>, RowCoefficients> and
+      equivalent_to<column_index_descriptor_of_t<Arg>, ColumnCoefficients>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
-      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
-      equivalent_to<column_coefficient_types_of_t<Arg>, ColumnCoefficients>, int> = 0>
+      equivalent_to<row_index_descriptor_of_t<Arg>, RowCoefficients> and
+      equivalent_to<column_index_descriptor_of_t<Arg>, ColumnCoefficients>, int> = 0>
 #endif
     auto& operator+=(Arg&& other) noexcept
     {
@@ -232,12 +232,12 @@ namespace OpenKalman
     /// Decrement from another typed matrix.
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires
-      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
-      equivalent_to<column_coefficient_types_of_t<Arg>, ColumnCoefficients>
+      equivalent_to<row_index_descriptor_of_t<Arg>, RowCoefficients> and
+      equivalent_to<column_index_descriptor_of_t<Arg>, ColumnCoefficients>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
-      equivalent_to<row_coefficient_types_of_t<Arg>, RowCoefficients> and
-      equivalent_to<column_coefficient_types_of_t<Arg>, ColumnCoefficients>, int> = 0>
+      equivalent_to<row_index_descriptor_of_t<Arg>, RowCoefficients> and
+      equivalent_to<column_index_descriptor_of_t<Arg>, ColumnCoefficients>, int> = 0>
 #endif
     auto& operator-=(Arg&& other) noexcept
     {
@@ -299,8 +299,8 @@ namespace OpenKalman
   template<typename V, std::enable_if_t<typed_matrix<V> and not euclidean_transformed<V>, int> = 0>
 #endif
   Matrix(V&&) -> Matrix<
-    row_coefficient_types_of_t<V>,
-    column_coefficient_types_of_t<V>,
+    row_index_descriptor_of_t<V>,
+    column_index_descriptor_of_t<V>,
     passable_t<nested_matrix_of_t<V>>>;
 
 
@@ -312,9 +312,9 @@ namespace OpenKalman
   template<typename V, std::enable_if_t<euclidean_transformed<V> and has_untyped_index<V, 1>, int> = 0>
 #endif
   Matrix(V&&) -> Matrix<
-    row_coefficient_types_of_t<V>,
-    column_coefficient_types_of_t<V>,
-    decltype(from_euclidean<row_coefficient_types_of_t<V>>(
+    row_index_descriptor_of_t<V>,
+    column_index_descriptor_of_t<V>,
+    decltype(from_euclidean<row_index_descriptor_of_t<V>>(
       nested_matrix(std::forward<V>(std::declval<V>()))))>;
 
 
@@ -325,8 +325,8 @@ namespace OpenKalman
   template<typename V, std::enable_if_t<covariance<V>, int> = 0>
 #endif
   Matrix(V&&) -> Matrix<
-    row_coefficient_types_of_t<V>,
-    row_coefficient_types_of_t<V>,
+    row_index_descriptor_of_t<V>,
+    row_index_descriptor_of_t<V>,
     dense_writable_matrix_t<nested_matrix_of_t<V, scalar_type_of_t<V>>>>;
 
 
@@ -406,7 +406,7 @@ namespace OpenKalman
 #endif
   inline auto make_matrix(M&& arg)
   {
-    using C = row_coefficient_types_of_t<M>;
+    using C = row_index_descriptor_of_t<M>;
     return make_matrix<C, C>(make_dense_writable_matrix_from(std::forward<M>(arg)));
   }
 
@@ -423,8 +423,8 @@ namespace OpenKalman
 #endif
   inline auto make_matrix(Arg&& arg)
   {
-    using RowCoeffs = row_coefficient_types_of_t<Arg>;
-    using ColCoeffs = column_coefficient_types_of_t<Arg>;
+    using RowCoeffs = row_index_descriptor_of_t<Arg>;
+    using ColCoeffs = column_index_descriptor_of_t<Arg>;
     if constexpr(euclidean_transformed<Arg>)
       return make_matrix<RowCoeffs, ColCoeffs>(nested_matrix(from_euclidean<RowCoeffs>(std::forward<Arg>(arg))));
     else
@@ -486,22 +486,10 @@ namespace OpenKalman
     {
       static constexpr std::size_t max_indices = 2;
 
-      template<std::size_t N>
-      using coordinate_system_types = std::conditional_t<N == 0, RowCoeffs, ColCoeffs>;
-
       template<std::size_t N, typename Arg>
-      static constexpr auto get_index_type(Arg&& arg)
+      static constexpr auto get_index_descriptor(const Arg& arg)
       {
         return std::get<N>(std::forward<Arg>(arg).my_dimensions);
-      }
-
-      template<std::size_t N>
-      static constexpr std::size_t dimension = dimension_size_of_v<coordinate_system_types<N>>;
-
-      template<std::size_t N, typename Arg>
-      static constexpr std::size_t dimension_at_runtime(Arg&& arg)
-      {
-        return get_dimension_size_of(get_index_type<N>(std::forward<Arg>(arg)));
       }
 
       template<Likelihood b>

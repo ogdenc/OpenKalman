@@ -139,12 +139,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix M> requires (square_matrix<M> or (diagonal_matrix<NestedMatrix> and dimension_size_of_index_is<M, 1, 1>)) and
-      equivalent_to<row_coefficient_types_of_t<M>, TypedIndex> and
+      equivalent_to<row_index_descriptor_of_t<M>, TypedIndex> and
       requires(M&& m) { Base {oin::to_covariance_nestable<NestedTriangular>(std::forward<M>(m))}; }
 #else
     template<typename M, std::enable_if_t<typed_matrix<M> and
       (square_matrix<M> or (diagonal_matrix<NestedMatrix> and dimension_size_of_index_is<M, 1, 1>)) and
-      equivalent_to<row_coefficient_types_of_t<M>, TypedIndex> and
+      equivalent_to<row_index_descriptor_of_t<M>, TypedIndex> and
       std::is_constructible_v<Base,
         decltype(oin::to_covariance_nestable<NestedTriangular>(std::declval<M&&>()))>, int> = 0>
 #endif
@@ -197,13 +197,13 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<triangular_covariance Arg> requires (not std::derived_from<std::decay_t<Arg>, SquareRootCovariance>) and
       (triangle_type_of_v<Arg> == triangle_type_of_v<SquareRootCovariance>) and
-      equivalent_to<row_coefficient_types_of_t<Arg>, TypedIndex> and
+      equivalent_to<row_index_descriptor_of_t<Arg>, TypedIndex> and
       modifiable<NestedMatrix, nested_matrix_of_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<triangular_covariance<Arg> and
       (not std::is_base_of_v<SquareRootCovariance, std::decay_t<Arg>>) and
       (triangle_type_of<Arg>::value == triangle_type_of<SquareRootCovariance>::value) and
-      equivalent_to<row_coefficient_types_of_t<Arg>, TypedIndex> and
+      equivalent_to<row_index_descriptor_of_t<Arg>, TypedIndex> and
       modifiable<NestedMatrix, nested_matrix_of_t<Arg>>, int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
@@ -221,11 +221,11 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires square_matrix<Arg> and
-      equivalent_to<row_coefficient_types_of_t<Arg>, TypedIndex> and
+      equivalent_to<row_index_descriptor_of_t<Arg>, TypedIndex> and
       modifiable<NestedMatrix, NestedTriangular>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and square_matrix<Arg> and
-      equivalent_to<row_coefficient_types_of_t<Arg>, TypedIndex> and
+      equivalent_to<row_index_descriptor_of_t<Arg>, TypedIndex> and
       modifiable<NestedMatrix, NestedTriangular>, int> = 0>
 #endif
     auto& operator=(Arg&& other) noexcept
@@ -285,12 +285,12 @@ namespace OpenKalman
     template<typename Arg> requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
       ((triangular_covariance<Arg> and triangle_type_of_v<Arg> == triangle_type_of_v<SquareRootCovariance>) or
         (typed_matrix<Arg> and square_matrix<Arg>)) and
-      equivalent_to<row_coefficient_types_of_t<Arg>, TypedIndex>
+      equivalent_to<row_index_descriptor_of_t<Arg>, TypedIndex>
 #else
     template<typename Arg, std::enable_if_t<(not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
       ((triangular_covariance<Arg> and triangle_type_of<Arg>::value == triangle_type_of<SquareRootCovariance>::value) or
         (typed_matrix<Arg> and square_matrix<Arg>)) and
-      equivalent_to<row_coefficient_types_of_t<Arg>, TypedIndex>, int> = 0>
+      equivalent_to<row_index_descriptor_of_t<Arg>, TypedIndex>, int> = 0>
 #endif
     auto& operator+=(const Arg& arg)
     {
@@ -341,12 +341,12 @@ namespace OpenKalman
     template<typename Arg> requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
     ((triangular_covariance<Arg> and triangle_type_of_v<Arg> == triangle_type_of_v<SquareRootCovariance>) or
       (typed_matrix<Arg> and square_matrix<Arg>)) and
-      equivalent_to<row_coefficient_types_of_t<Arg>, TypedIndex>
+      equivalent_to<row_index_descriptor_of_t<Arg>, TypedIndex>
 #else
     template<typename Arg, std::enable_if_t<(not std::is_const_v<std::remove_reference_t<NestedMatrix>>) and
       ((triangular_covariance<Arg> and triangle_type_of<Arg>::value == triangle_type_of<SquareRootCovariance>::value) or
         (typed_matrix<Arg> and square_matrix<Arg>)) and
-      equivalent_to<row_coefficient_types_of_t<Arg>, TypedIndex>, int> = 0>
+      equivalent_to<row_index_descriptor_of_t<Arg>, TypedIndex>, int> = 0>
 #endif
     auto& operator-=(const Arg& arg)
     {
@@ -543,11 +543,11 @@ namespace OpenKalman
      * \brief Perform a rank update.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix U> requires equivalent_to<row_coefficient_types_of_t<U>, TypedIndex> and
+    template<typed_matrix U> requires equivalent_to<row_index_descriptor_of_t<U>, TypedIndex> and
       (not std::is_const_v<std::remove_reference_t<NestedMatrix>>)
 #else
     template<typename U, std::enable_if_t<typed_matrix<U> and
-      equivalent_to<row_coefficient_types_of_t<U>, TypedIndex> and
+      equivalent_to<row_index_descriptor_of_t<U>, TypedIndex> and
       (not std::is_const_v<std::remove_reference_t<NestedMatrix>>), int> = 0>
 #endif
     auto& rank_update(const U& u, const Scalar alpha = 1) &
@@ -563,10 +563,10 @@ namespace OpenKalman
      * \brief Perform a rank update.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix U> requires equivalent_to<row_coefficient_types_of_t<U>, TypedIndex>
+    template<typed_matrix U> requires equivalent_to<row_index_descriptor_of_t<U>, TypedIndex>
 #else
     template<typename U, std::enable_if_t<typed_matrix<U> and
-      equivalent_to<row_coefficient_types_of_t<U>, TypedIndex>, int> = 0>
+      equivalent_to<row_index_descriptor_of_t<U>, TypedIndex>, int> = 0>
 #endif
     auto rank_update(const U& u, const Scalar alpha = 1) &&
     {
@@ -635,7 +635,7 @@ namespace OpenKalman
 #else
   template<typename M, std::enable_if_t<typed_matrix<M> and square_matrix<M>, int> = 0>
 #endif
-  explicit SquareRootCovariance(M&&) -> SquareRootCovariance<row_coefficient_types_of_t<M>,
+  explicit SquareRootCovariance(M&&) -> SquareRootCovariance<row_index_descriptor_of_t<M>,
     typename MatrixTraits<std::decay_t<nested_matrix_of_t<M>>>::template TriangularMatrixFrom<>>;
 
 
@@ -837,7 +837,7 @@ namespace OpenKalman
   inline auto
   make_square_root_covariance(Arg&& arg) noexcept
   {
-    using C = row_coefficient_types_of_t<Arg>;
+    using C = row_index_descriptor_of_t<Arg>;
     return SquareRootCovariance<C, nested_matrix_of_t<Arg>>(std::forward<Arg>(arg));
   }
 
@@ -854,7 +854,7 @@ namespace OpenKalman
   inline auto
   make_square_root_covariance()
   {
-    using C = row_coefficient_types_of_t<Arg>;
+    using C = row_index_descriptor_of_t<Arg>;
     using B = nested_matrix_of_t<Arg>;
     return make_square_root_covariance<C, B>();
   }
@@ -874,7 +874,7 @@ namespace OpenKalman
   inline auto
   make_square_root_covariance(Arg&& arg) noexcept
   {
-    using C = row_coefficient_types_of_t<Arg>;
+    using C = row_index_descriptor_of_t<Arg>;
     return make_square_root_covariance<C, triangle_type>(nested_matrix(std::forward<Arg>(arg)));
   }
 
@@ -892,7 +892,7 @@ namespace OpenKalman
   inline auto
   make_square_root_covariance()
   {
-    using C = row_coefficient_types_of_t<Arg>;
+    using C = row_index_descriptor_of_t<Arg>;
     using B = nested_matrix_of_t<Arg>;
     return make_square_root_covariance<C, triangle_type, B>();
   }
@@ -910,7 +910,7 @@ namespace OpenKalman
   inline auto
   make_square_root_covariance()
   {
-    using C = row_coefficient_types_of_t<Arg>;
+    using C = row_index_descriptor_of_t<Arg>;
     using B = nested_matrix_of_t<Arg>;
     return make_square_root_covariance<C, B>();
   }
@@ -927,22 +927,10 @@ namespace OpenKalman
     {
       static constexpr std::size_t max_indices = 2;
 
-      template<std::size_t N>
-      using coordinate_system_types = Coeffs;
-
       template<std::size_t N, typename Arg>
-      static constexpr auto get_index_type(Arg&& arg)
+      static constexpr auto get_index_descriptor(const Arg& arg)
       {
         return std::forward<Arg>(arg).my_dimension;
-      }
-
-      template<std::size_t N>
-      static constexpr std::size_t dimension = dimension_size_of_v<coordinate_system_types<N>>;
-
-      template<std::size_t N, typename Arg>
-      static constexpr std::size_t dimension_at_runtime(Arg&& arg)
-      {
-        return get_dimension_size_of(get_index_type<N>(std::forward<Arg>(arg)));
       }
 
       template<Likelihood b>

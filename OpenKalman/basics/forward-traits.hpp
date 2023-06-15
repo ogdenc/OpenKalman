@@ -115,6 +115,61 @@ namespace OpenKalman
   using scalar_type_of_t = typename scalar_type_of<T>::type;
 
 
+  // -------------------------------------------------------------------------- //
+  //  index_descriptor_of, row_index_descriptor_of, column_index_descriptor_of  //
+  // -------------------------------------------------------------------------- //
+
+  /**
+   * \brief The type of the index descriptor for index N of object T.
+   * \tparam T A matrix, expression, or array
+   * \tparam N The index number (0 = rows, 1 = columns, etc.)
+   * \internal \sa interface::IndexTraits
+   */
+#ifdef __cpp_concepts
+  template<indexible T, std::size_t N = 0> requires (N < max_indices_of_v<T>)
+  struct index_descriptor_of
+#else
+  template<typename T, std::size_t N = 0, typename = void>
+  struct index_descriptor_of {};
+
+  template<typename T, std::size_t N>
+  struct index_descriptor_of<T, N, std::enable_if_t<indexible<T> and (N < max_indices_of_v<T>)>>
+#endif
+  {
+    using type = decltype(interface::IndexTraits<std::decay_t<T>>::template get_index_descriptor<N>(std::declval<T>()));
+  };
+
+
+  /**
+   * \brief helper template for \ref index_descriptor_of.
+   */
+  template<typename T, std::size_t N>
+  using index_descriptor_of_t = typename index_descriptor_of<T, N>::type;
+
+
+
+  template<typename T>
+  using row_index_descriptor_of = index_descriptor_of<T, 0>;
+
+
+  /**
+   * \brief helper template for \ref row_index_descriptor_of.
+   */
+  template<typename T>
+  using row_index_descriptor_of_t = typename row_index_descriptor_of<T>::type;
+
+
+  template<typename T>
+  using column_index_descriptor_of = index_descriptor_of<T, 1>;
+
+
+  /**
+   * \brief helper template for \ref column_index_descriptor_of.
+   */
+  template<typename T>
+  using column_index_descriptor_of_t = typename column_index_descriptor_of<T>::type;
+
+
   // -------------------- //
   //  index_dimension_of  //
   // -------------------- //
@@ -125,20 +180,18 @@ namespace OpenKalman
    * particular index. If the dimension is dynamic, <code>value</code> will be \ref dynamic_size.
    * \tparam N The index
    * \tparam T The matrix, expression, or array
-   * \internal \sa interface::IndexTraits
    */
 #ifdef __cpp_concepts
-  template<indexible T, std::size_t N> requires (N < max_indices_of_v<T>)
+  template<indexible T, std::size_t N = 0> requires (N < max_indices_of_v<T>)
   struct index_dimension_of
-    : std::integral_constant<std::size_t, interface::IndexTraits<std::decay_t<T>>::template dimension<N>> {};
 #else
   template<typename T, std::size_t N = 0, typename = void>
   struct index_dimension_of {};
 
   template<typename T, std::size_t N>
   struct index_dimension_of<T, N, std::enable_if_t<indexible<T> and N < max_indices_of<T>::value>>
-    : std::integral_constant<std::size_t, interface::IndexTraits<std::decay_t<T>>::template dimension<N>> {};
 #endif
+    : dimension_size_of<index_descriptor_of_t<T, N>> {};
 
 
   /**
@@ -156,7 +209,6 @@ namespace OpenKalman
    * \brief The row dimension of a matrix, expression, or array.
    * \note If the row dimension is dynamic, then <code>value</code> is \ref dynamic_size.
    * \tparam T The matrix, expression, or array.
-   * \internal \sa interface::IndexTraits
    */
   template<typename T>
   using row_dimension_of = index_dimension_of<T, 0>;
@@ -177,7 +229,6 @@ namespace OpenKalman
    * \brief The column dimension of a matrix, expression, or array.
    * \note If the column dimension is dynamic, then <code>value</code> is \ref dynamic_size.
    * \tparam T The matrix, expression, or array.
-   * \internal \sa interface::IndexTraits
    */
   template<typename T>
   using column_dimension_of = index_dimension_of<T, 1>;
@@ -316,14 +367,10 @@ namespace OpenKalman
     template<std::size_t i, typename T>
     constexpr std::size_t max_tensor_order_of_impl()
     {
-      if constexpr (i == 0)
-        return 0;
-      else if constexpr (interface::IndexTraits<std::decay_t<T>>::template dimension<i - 1> == 0)
-        return 0;
-      else if constexpr (interface::IndexTraits<std::decay_t<T>>::template dimension<i - 1> == 1)
-        return max_tensor_order_of_impl<i - 1, T>();
-      else
-        return 1 + max_tensor_order_of_impl<i - 1, T>();
+      if constexpr (i == 0) return 0;
+      else if constexpr (index_dimension_of_v<T, i - 1> == 0) return 0;
+      else if constexpr (index_dimension_of_v<T, i - 1> == 1) return max_tensor_order_of_impl<i - 1, T>();
+      else return 1 + max_tensor_order_of_impl<i - 1, T>();
     }
   }
 
@@ -344,70 +391,6 @@ namespace OpenKalman
   static constexpr std::size_t max_tensor_order_of_v = max_tensor_order_of<T>::value;
 
 
-  // ----------------------------------------------------------------------------- //
-  //  coefficient_types_of, row_coefficient_types_of, column_coefficient_types_of  //
-  // ----------------------------------------------------------------------------- //
-
-  /**
-   * \brief The coefficient types of T for index N.
-   * \tparam T A matrix, expression, or array
-   * \tparam N The index number (0 = rows, 1 = columns, etc.)
-   */
-#ifdef __cpp_concepts
-  template<typename T, std::size_t N>
-#else
-  template<typename T, std::size_t N, typename = void>
-#endif
-  struct coefficient_types_of
-  {
-    using type = Dimensions<index_dimension_of_v<T, N>>;
-  };
-
-
-#ifdef __cpp_concepts
-  template<indexible T, std::size_t N> requires (N < max_indices_of_v<T>) and
-    requires { typename interface::IndexTraits<std::decay_t<T>>::template coordinate_system_types<N>; }
-  struct coefficient_types_of<T, N>
-#else
-  template<typename T, std::size_t N>
-  struct coefficient_types_of<T, N, std::enable_if_t<indexible<T> and N < max_indices_of_v<T> and
-    std::is_void<std::void_t<typename interface::IndexTraits<std::decay_t<T>>::template coordinate_system_types<N>>>::value>>
-#endif
-  {
-    using type = typename interface::IndexTraits<std::decay_t<T>>::template coordinate_system_types<N>;
-  };
-
-
-  /**
-   * \brief helper template for \ref coefficient_types_of.
-   */
-  template<typename T, std::size_t N>
-  using coefficient_types_of_t = typename coefficient_types_of<T, N>::type;
-
-
-
-  template<typename T>
-  using row_coefficient_types_of = coefficient_types_of<T, 0>;
-
-
-  /**
-   * \brief helper template for \ref row_coefficient_types_of.
-   */
-  template<typename T>
-  using row_coefficient_types_of_t = typename row_coefficient_types_of<T>::type;
-
-
-  template<typename T>
-  using column_coefficient_types_of = coefficient_types_of<T, 1>;
-
-
-  /**
-   * \brief helper template for \ref column_coefficient_types_of.
-   */
-  template<typename T>
-  using column_coefficient_types_of_t = typename column_coefficient_types_of<T>::type;
-
-
   // --------------------- //
   //   has_untyped_index   //
   // --------------------- //
@@ -423,7 +406,7 @@ namespace OpenKalman
   template<typename T, std::size_t N>
   constexpr bool has_untyped_index =
 #endif
-    euclidean_index_descriptor<coefficient_types_of_t<T, N>>;
+    euclidean_index_descriptor<index_descriptor_of_t<T, N>>;
 
 
   // ----------------------------------- //
@@ -471,7 +454,7 @@ namespace OpenKalman
         return maybe_index_descriptors_match_impl<Ts...>(std::index_sequence<I, Is...>{}) and
           maybe_index_descriptors_match_impl<T, Ts...>(std::index_sequence<Is...>{});
       else
-        return ((dynamic_dimension<Ts, I> or equivalent_to<coefficient_types_of_t<T, I>, coefficient_types_of_t<Ts, I>>)
+        return ((dynamic_dimension<Ts, I> or equivalent_to<index_descriptor_of_t<T, I>, index_descriptor_of_t<Ts, I>>)
           and ... and maybe_index_descriptors_match_impl<T, Ts...>(std::index_sequence<Is...>{}));
     }
   }
@@ -501,7 +484,7 @@ namespace OpenKalman
     constexpr bool index_descriptors_match_impl(std::index_sequence<Is...>)
     {
       return ([](auto I){
-        return equivalent_to<coefficient_types_of_t<Ts, decltype(I)::value>...>;
+        return equivalent_to<index_descriptor_of_t<Ts, decltype(I)::value>...>;
       }(std::integral_constant<std::size_t, Is>{}) and ...);
     }
   }
@@ -536,9 +519,9 @@ namespace OpenKalman
     template<typename T, std::size_t N, typename D, typename...Ds>
     struct compatible_with_index_descriptors_impl<T, N, D, Ds...> : std::bool_constant<
 #ifdef __cpp_concepts
-      (dynamic_dimension<T, N> or equivalent_to<D, coefficient_types_of_t<T, N>>) and
+      (dynamic_dimension<T, N> or equivalent_to<D, index_descriptor_of_t<T, N>>) and
 #else
-      (dynamic_dimension<T, std::min(N, max_indices_of_v<T> - 1)> or equivalent_to<D, coefficient_types_of_t<T, std::min(N, max_indices_of_v<T> - 1)>>) and
+      (dynamic_dimension<T, std::min(N, max_indices_of_v<T> - 1)> or equivalent_to<D, index_descriptor_of_t<T, std::min(N, max_indices_of_v<T> - 1)>>) and
 #endif
         compatible_with_index_descriptors_impl<T, N + 1, Ds...>::value> {};
   }
@@ -736,15 +719,6 @@ namespace OpenKalman
 
     template<typename T>
     constexpr bool all_lvalue_ref_dependencies = all_lvalue_ref_dependencies_detail<std::decay_t<T>>::value;
-
-
-    template<typename T, typename = void>
-    struct convert_to_self_contained_is_defined : std::false_type {};
-
-    template<typename T>
-    struct convert_to_self_contained_is_defined<T,
-      std::void_t<decltype(Dependencies<std::decay_t<T>>::convert_to_self_contained(std::declval<T&&>()))>>
-      : std::true_type {};
 #endif
   } // namespace detail
 
@@ -1009,7 +983,7 @@ namespace OpenKalman
       else if constexpr (index_dimension_of_v<T, I0> == 0)
         return false;
       else
-        return ((dynamic_dimension<T, I> or equivalent_to<coefficient_types_of_t<T, I0>, coefficient_types_of_t<T, I>>) and ...);
+        return ((dynamic_dimension<T, I> or equivalent_to<index_descriptor_of_t<T, I0>, index_descriptor_of_t<T, I>>) and ...);
     }
 
 
@@ -1048,7 +1022,7 @@ namespace OpenKalman
     template<typename T, Likelihood b>
     struct is_square_matrix<T, b, std::enable_if_t<indexible<T>>> : std::bool_constant<
       (b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
-      (max_indices_of_v<T> != 1 or dynamic_dimension<T, 0> or equivalent_to<coefficient_types_of_t<T, 0>, Axis>) and
+      (max_indices_of_v<T> != 1 or dynamic_dimension<T, 0> or equivalent_to<index_descriptor_of_t<T, 0>, Axis>) and
       (max_indices_of_v<T> < 2 or is_maybe_square_matrix<T>::value)> {};
 
 
@@ -1072,7 +1046,7 @@ namespace OpenKalman
       interface::IndexTraits<std::decay_t<T>>::template is_square<b>) and
     (requires { interface::IndexTraits<std::decay_t<T>>::template is_square<b>; } or
       ((b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
-        (max_indices_of_v<T> != 1 or dynamic_dimension<T, 0> or equivalent_to<coefficient_types_of_t<T, 0>, Axis>) and
+        (max_indices_of_v<T> != 1 or dynamic_dimension<T, 0> or equivalent_to<index_descriptor_of_t<T, 0>, Axis>) and
         (max_indices_of_v<T> < 2 or detail::is_maybe_square_matrix<T>::value)) or
       (b == Likelihood::definitely and
         (interface::TriangularTraits<std::decay_t<T>>::template is_triangular<TriangleType::any, b> or
@@ -1349,7 +1323,7 @@ namespace OpenKalman
     constexpr bool maybe_dimensions_are_same()
     {
       if constexpr (dynamic_dimension<T, I>) return maybe_dimensions_are_same<I, Ts...>();
-      else return ((dynamic_dimension<Ts, I> or equivalent_to<coefficient_types_of_t<T, I>, coefficient_types_of_t<Ts, I>>) and ...);
+      else return ((dynamic_dimension<Ts, I> or equivalent_to<index_descriptor_of_t<T, I>, index_descriptor_of_t<Ts, I>>) and ...);
     }
 
     template<typename...Ts, std::size_t...Is>

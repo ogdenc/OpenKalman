@@ -29,7 +29,7 @@ namespace Eigen
   {
     using Base = CommaInitializer<XprType>;
     using Scalar = OpenKalman::scalar_type_of_t<XprType>;
-    using TypedIndex = row_coefficient_types_of_t<Derived>;
+    using TypedIndex = row_index_descriptor_of_t<Derived>;
     using Base::Base;
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>

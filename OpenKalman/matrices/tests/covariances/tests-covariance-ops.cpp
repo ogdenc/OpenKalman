@@ -644,8 +644,8 @@ TEST(covariance_tests, Covariance_mult_TypedMatrix)
   EXPECT_TRUE(is_near(covSA2l * matz2, Mat2 {0, 0, 0, 0}));
   static_assert(hermitian_adapter<decltype((covSA2l * mati2).get_self_adjoint_nested_matrix()), HermitianAdapterType::lower>);
   static_assert(zero_matrix<decltype((covSA2l * matz2).nested_matrix())>);
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(covSA2l * mati2x)>, C>);
-  static_assert(equivalent_to<column_coefficient_types_of_t<decltype(covSA2l * mati2x)>, Cx>);
+  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(covSA2l * mati2x)>, C>);
+  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(covSA2l * mati2x)>, Cx>);
 
   auto covSA2u = CovSA2u {9, 3, 3, 10};
   EXPECT_TRUE(is_near(covSA2u * Mat2 {4, 2, 2, 5}, Mat2 {42, 33, 32, 56}));
@@ -653,8 +653,8 @@ TEST(covariance_tests, Covariance_mult_TypedMatrix)
   EXPECT_TRUE(is_near(covSA2u * matz2, Mat2 {0, 0, 0, 0}));
   static_assert(hermitian_adapter<decltype((covSA2u * mati2).get_self_adjoint_nested_matrix()), HermitianAdapterType::upper>);
   static_assert(zero_matrix<decltype((covSA2u * matz2).nested_matrix())>);
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(covSA2u * mati2x)>, C>);
-  static_assert(equivalent_to<column_coefficient_types_of_t<decltype(covSA2u * mati2x)>, Cx>);
+  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(covSA2u * mati2x)>, C>);
+  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(covSA2u * mati2x)>, Cx>);
 
   auto covT2l = CovT2l {9, 3, 3, 10};
   EXPECT_TRUE(is_near(covT2l * Mat2 {4, 2, 2, 5}, Mat2 {42, 33, 32, 56}));
@@ -662,8 +662,8 @@ TEST(covariance_tests, Covariance_mult_TypedMatrix)
   EXPECT_TRUE(is_near(covT2l * matz2, Mat2 {0, 0, 0, 0}));
   static_assert(triangular_matrix<decltype((covT2l * mati2).get_triangular_nested_matrix()), TriangleType::lower>);
   static_assert(zero_matrix<decltype((covT2l * matz2).nested_matrix())>);
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(covT2l * mati2x)>, C>);
-  static_assert(equivalent_to<column_coefficient_types_of_t<decltype(covT2l * mati2x)>, Cx>);
+  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(covT2l * mati2x)>, C>);
+  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(covT2l * mati2x)>, Cx>);
 
   auto covT2u = CovT2u {9, 3, 3, 10};
   EXPECT_TRUE(is_near(covT2u * Mat2 {4, 2, 2, 5}, Mat2 {42, 33, 32, 56}));
@@ -671,8 +671,8 @@ TEST(covariance_tests, Covariance_mult_TypedMatrix)
   EXPECT_TRUE(is_near(covT2u * matz2, Mat2 {0, 0, 0, 0}));
   static_assert(triangular_matrix<decltype((covT2u * mati2).get_triangular_nested_matrix()), TriangleType::upper>);
   static_assert(zero_matrix<decltype((covT2u * matz2).nested_matrix())>);
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(covT2u * mati2x)>, C>);
-  static_assert(equivalent_to<column_coefficient_types_of_t<decltype(covT2u * mati2x)>, Cx>);
+  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(covT2u * mati2x)>, C>);
+  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(covT2u * mati2x)>, Cx>);
 
   auto covD2 = CovD2 {9, 10};
   EXPECT_TRUE(is_near(covD2 * Mat2 {4, 2, 2, 5}, Mat2 {36, 18, 20, 50}));
@@ -680,24 +680,24 @@ TEST(covariance_tests, Covariance_mult_TypedMatrix)
   EXPECT_TRUE(is_near(covD2 * matz2, Mat2 {0, 0, 0, 0}));
   static_assert(diagonal_matrix<decltype((covD2 * mati2).get_self_adjoint_nested_matrix())>);
   static_assert(zero_matrix<decltype((covD2 * matz2).nested_matrix())>);
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(covD2 * mati2x)>, C>);
-  static_assert(equivalent_to<column_coefficient_types_of_t<decltype(covD2 * mati2x)>, Cx>);
+  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(covD2 * mati2x)>, C>);
+  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(covD2 * mati2x)>, Cx>);
 
   EXPECT_TRUE(is_near(covi2 * Mat2 {4, 2, 2, 5}, Mat2 {4, 2, 2, 5}));
   EXPECT_TRUE(is_near(covi2 * mati2, Mat2 {1, 0, 0, 1}));
   EXPECT_TRUE(is_near(covi2 * matz2, Mat2 {0, 0, 0, 0}));
   static_assert(identity_matrix<decltype((covi2 * mati2).get_self_adjoint_nested_matrix())>);
   static_assert(zero_matrix<decltype((covi2 * matz2).nested_matrix())>);
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(covi2 * mati2x)>, C>);
-  static_assert(equivalent_to<column_coefficient_types_of_t<decltype(covi2 * mati2x)>, Cx>);
+  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(covi2 * mati2x)>, C>);
+  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(covi2 * mati2x)>, Cx>);
 
   EXPECT_TRUE(is_near(covz2 * Mat2 {4, 2, 2, 5}, Mat2 {0, 0, 0, 0}));
   EXPECT_TRUE(is_near(covz2 * mati2, Mat2 {0, 0, 0, 0}));
   EXPECT_TRUE(is_near(covz2 * matz2, Mat2 {0, 0, 0, 0}));
   static_assert(zero_matrix<decltype((covz2 * mati2).nested_matrix())>);
   static_assert(zero_matrix<decltype((covz2 * matz2).nested_matrix())>);
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(covz2 * mati2x)>, C>);
-  static_assert(equivalent_to<column_coefficient_types_of_t<decltype(covz2 * mati2x)>, Cx>);
+  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(covz2 * mati2x)>, C>);
+  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(covz2 * mati2x)>, Cx>);
 }
 
 
@@ -883,8 +883,8 @@ TEST(covariance_tests, TypedMatrix_mult_Covariance)
   EXPECT_TRUE(is_near(matz2 * covSA2l, Mat2 {0, 0, 0, 0}));
   static_assert(hermitian_adapter<decltype((mati2 * covSA2l).get_self_adjoint_nested_matrix()), HermitianAdapterType::lower>);
   static_assert(zero_matrix<decltype((matz2 * covSA2l).nested_matrix())>);
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(mati2x * covSA2l)>, Cx>);
-  static_assert(equivalent_to<column_coefficient_types_of_t<decltype(mati2x * covSA2l)>, C>);
+  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(mati2x * covSA2l)>, Cx>);
+  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(mati2x * covSA2l)>, C>);
 
   auto covSA2u = CovSA2u {9, 3, 3, 10};
   EXPECT_TRUE(is_near(Mat2 {4, 2, 2, 5} * covSA2u, Mat2 {42, 32, 33, 56}));
@@ -893,8 +893,8 @@ TEST(covariance_tests, TypedMatrix_mult_Covariance)
   EXPECT_TRUE(is_near(matz2 * covSA2u, Mat2 {0, 0, 0, 0}));
   static_assert(hermitian_adapter<decltype((mati2 * covSA2u).get_self_adjoint_nested_matrix()), HermitianAdapterType::upper>);
   static_assert(zero_matrix<decltype((matz2 * covSA2u).nested_matrix())>);
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(mati2x * covSA2u)>, Cx>);
-  static_assert(equivalent_to<column_coefficient_types_of_t<decltype(mati2x * covSA2u)>, C>);
+  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(mati2x * covSA2u)>, Cx>);
+  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(mati2x * covSA2u)>, C>);
 
   auto covT2l = CovT2l {9, 3, 3, 10};
   EXPECT_TRUE(is_near(Mat2 {4, 2, 2, 5} * covT2l, Mat2 {42, 32, 33, 56}));
@@ -902,8 +902,8 @@ TEST(covariance_tests, TypedMatrix_mult_Covariance)
   EXPECT_TRUE(is_near(matz2 * covT2l, Mat2 {0, 0, 0, 0}));
   static_assert(triangular_matrix<decltype((mati2 * covT2l).get_triangular_nested_matrix()), TriangleType::lower>);
   static_assert(zero_matrix<decltype((matz2 * covT2l).nested_matrix())>);
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(mati2x * covT2l)>, Cx>);
-  static_assert(equivalent_to<column_coefficient_types_of_t<decltype(mati2x * covT2l)>, C>);
+  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(mati2x * covT2l)>, Cx>);
+  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(mati2x * covT2l)>, C>);
 
   auto covT2u = CovT2u {9, 3, 3, 10};
   EXPECT_TRUE(is_near(Mat2 {4, 2, 2, 5} * covT2u, Mat2 {42, 32, 33, 56}));
@@ -911,8 +911,8 @@ TEST(covariance_tests, TypedMatrix_mult_Covariance)
   EXPECT_TRUE(is_near(matz2 * covT2u, Mat2 {0, 0, 0, 0}));
   static_assert(triangular_matrix<decltype((mati2 * covT2u).get_triangular_nested_matrix()), TriangleType::upper>);
   static_assert(zero_matrix<decltype((matz2 * covT2u).nested_matrix())>);
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(mati2x * covT2u)>, Cx>);
-  static_assert(equivalent_to<column_coefficient_types_of_t<decltype(mati2x * covT2u)>, C>);
+  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(mati2x * covT2u)>, Cx>);
+  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(mati2x * covT2u)>, C>);
 
   auto covD2 = CovD2 {9, 10};
   EXPECT_TRUE(is_near(Mat2 {4, 2, 2, 5} * covD2, Mat2 {36, 20, 18, 50}));
@@ -920,24 +920,24 @@ TEST(covariance_tests, TypedMatrix_mult_Covariance)
   EXPECT_TRUE(is_near(matz2 * covD2, Mat2 {0, 0, 0, 0}));
   static_assert(diagonal_matrix<decltype((mati2 * covD2).get_self_adjoint_nested_matrix())>);
   static_assert(zero_matrix<decltype((matz2 * covD2).nested_matrix())>);
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(mati2x * covD2)>, Cx>);
-  static_assert(equivalent_to<column_coefficient_types_of_t<decltype(mati2x * covD2)>, C>);
+  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(mati2x * covD2)>, Cx>);
+  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(mati2x * covD2)>, C>);
 
   EXPECT_TRUE(is_near(Mat2 {4, 2, 2, 5} * covi2, Mat2 {4, 2, 2, 5}));
   EXPECT_TRUE(is_near(mati2 * covi2, Mat2 {1, 0, 0, 1}));
   EXPECT_TRUE(is_near(matz2 * covi2, Mat2 {0, 0, 0, 0}));
   static_assert(identity_matrix<decltype((mati2 * covi2).get_self_adjoint_nested_matrix())>);
   static_assert(zero_matrix<decltype((matz2 * covi2).nested_matrix())>);
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(mati2x * covi2)>, Cx>);
-  static_assert(equivalent_to<column_coefficient_types_of_t<decltype(mati2x * covi2)>, C>);
+  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(mati2x * covi2)>, Cx>);
+  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(mati2x * covi2)>, C>);
 
   EXPECT_TRUE(is_near(Mat2 {4, 2, 2, 5} * covz2, Mat2 {0, 0, 0, 0}));
   EXPECT_TRUE(is_near(mati2 * covz2, Mat2 {0, 0, 0, 0}));
   EXPECT_TRUE(is_near(matz2 * covz2, Mat2 {0, 0, 0, 0}));
   static_assert(zero_matrix<decltype((mati2 * covz2).nested_matrix())>);
   static_assert(zero_matrix<decltype((matz2 * covz2).nested_matrix())>);
-  static_assert(equivalent_to<row_coefficient_types_of_t<decltype(mati2x * covz2)>, Cx>);
-  static_assert(equivalent_to<column_coefficient_types_of_t<decltype(mati2x * covz2)>, C>);
+  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(mati2x * covz2)>, Cx>);
+  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(mati2x * covz2)>, C>);
 }
 
 

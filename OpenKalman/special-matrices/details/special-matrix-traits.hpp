@@ -756,7 +756,7 @@ namespace OpenKalman
   template<typename C, typename NestedMatrix, typename U> requires
     (euclidean_expr<U> and (to_euclidean_expr<U> or
       not modifiable<NestedMatrix, nested_matrix_of_t<U>> or
-      not equivalent_to<C, row_coefficient_types_of_t<U>>)) or
+      not equivalent_to<C, row_index_descriptor_of_t<U>>)) or
     (not euclidean_expr<U> and not modifiable<NestedMatrix, ToEuclideanExpr<C, std::decay_t<U>>>)
   struct is_modifiable_native<FromEuclideanExpr<C, NestedMatrix>, U>
     : std::false_type {};
@@ -781,7 +781,7 @@ namespace OpenKalman
   template<typename C, typename NestedMatrix, typename U> requires
     (euclidean_expr<U> and (from_euclidean_expr<U> or
       not modifiable<NestedMatrix, nested_matrix_of_t<U>> or
-      not equivalent_to<C, row_coefficient_types_of_t<U>>)) or
+      not equivalent_to<C, row_index_descriptor_of_t<U>>)) or
     (not euclidean_expr<U> and not modifiable<NestedMatrix, FromEuclideanExpr<C, std::decay_t<U>>>)
   struct is_modifiable_native<ToEuclideanExpr<C, NestedMatrix>, U>
   : std::false_type {};

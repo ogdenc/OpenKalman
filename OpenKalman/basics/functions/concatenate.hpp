@@ -103,7 +103,7 @@ namespace OpenKalman
       else
       {
         using Pattern = std::tuple_element_t<0, Args_tup>;
-        return make_zero_matrix_like<Pattern>(get_dimensions_of<all_indices>(std::get<pos>(args_tup))...);
+        return make_zero_matrix_like<Pattern>(get_index_descriptor<all_indices>(std::get<pos>(args_tup))...);
       }
     }
 

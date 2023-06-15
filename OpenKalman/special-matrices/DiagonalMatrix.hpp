@@ -174,8 +174,8 @@ namespace OpenKalman
     {
       if constexpr (not zero_matrix<NestedMatrix>)
       {
-        if constexpr (has_dynamic_dimensions<Arg>) assert(get_dimensions_of<0>(arg) == get_dimensions_of<1>(arg));
-        if constexpr (dynamic_rows<NestedMatrix>) assert(get_dimensions_of<0>(this->nested_matrix()) == get_dimensions_of<0>(arg));
+        if constexpr (has_dynamic_dimensions<Arg>) assert(get_index_descriptor<0>(arg) == get_index_descriptor<1>(arg));
+        if constexpr (dynamic_rows<NestedMatrix>) assert(get_index_descriptor<0>(this->nested_matrix()) == get_index_descriptor<0>(arg));
 
         this->nested_matrix() = make_zero_matrix_like(this->nested_matrix());
       }
@@ -197,8 +197,8 @@ namespace OpenKalman
     {
       if constexpr (not identity_matrix<NestedMatrix>)
       {
-        if constexpr (has_dynamic_dimensions<Arg>) assert(get_dimensions_of<0>(arg) == get_dimensions_of<1>(arg));
-        if constexpr (dynamic_rows<NestedMatrix>) assert(get_dimensions_of<0>(this->nested_matrix()) == get_dimensions_of<0>(arg));
+        if constexpr (has_dynamic_dimensions<Arg>) assert(get_index_descriptor<0>(arg) == get_index_descriptor<1>(arg));
+        if constexpr (dynamic_rows<NestedMatrix>) assert(get_index_descriptor<0>(this->nested_matrix()) == get_index_descriptor<0>(arg));
 
         this->nested_matrix() = make_constant_matrix_like<NestedMatrix, scalar_type_of_t<NestedMatrix>, 1>(Dimensions<dim>{}, Dimensions<1>{});
       }
@@ -221,7 +221,7 @@ namespace OpenKalman
     auto& operator=(Arg&& arg)
     {
       if constexpr (dynamic_rows<NestedMatrix>)
-        assert(get_dimensions_of<0>(this->nested_matrix()) == get_dimensions_of<0>(arg));
+        assert(get_index_descriptor<0>(this->nested_matrix()) == get_index_descriptor<0>(arg));
 
       this->nested_matrix() = diagonal_of(std::forward<Arg>(arg));
       return *this;
@@ -238,7 +238,7 @@ namespace OpenKalman
     auto& operator+=(Arg&& arg)
     {
       if constexpr (dynamic_rows<NestedMatrix>)
-        assert(get_dimensions_of<0>(this->nested_matrix()) == get_dimensions_of<0>(arg));
+        assert(get_index_descriptor<0>(this->nested_matrix()) == get_index_descriptor<0>(arg));
 
       this->nested_matrix() += diagonal_of(std::forward<Arg>(arg));
       return *this;
@@ -255,7 +255,7 @@ namespace OpenKalman
     auto& operator-=(Arg&& arg)
     {
       if constexpr (dynamic_rows<NestedMatrix>)
-        assert(get_dimensions_of<0>(this->nested_matrix()) == get_dimensions_of<0>(arg));
+        assert(get_index_descriptor<0>(this->nested_matrix()) == get_index_descriptor<0>(arg));
 
       this->nested_matrix() -= diagonal_of(std::forward<Arg>(arg));
       return *this;
@@ -372,23 +372,10 @@ namespace OpenKalman
     {
       static constexpr std::size_t max_indices = 2;
 
-      template<std::size_t N>
-      using coordinate_system_types = coefficient_types_of_t<Nested, 0>;
-
       template<std::size_t N, typename Arg>
-      static constexpr auto get_index_type(Arg&& arg)
+      static constexpr auto get_index_descriptor(const Arg& arg)
       {
-        if constexpr (N == 0) return std::get<N>(std::forward<Arg>(arg).my_dimensions);
-        else return get_dimensions_of<N>(nested_matrix(std::forward<Arg>(arg)));
-      }
-
-      template<std::size_t N>
-      static constexpr std::size_t dimension = index_dimension_of_v<Nested, 0>;
-
-      template<std::size_t N, typename Arg>
-      static constexpr std::size_t dimension_at_runtime(const Arg& arg)
-      {
-        return get_index_dimension_of<0>(nested_matrix(arg));
+        return OpenKalman::get_index_descriptor<0>(nested_matrix(arg));
       }
 
       template<Likelihood b>

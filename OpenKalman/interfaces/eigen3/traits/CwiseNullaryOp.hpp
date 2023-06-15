@@ -29,18 +29,16 @@ namespace OpenKalman::interface
   {
     static constexpr std::size_t max_indices = max_indices_of_v<PlainObjectType>;
 
-    template<std::size_t N>
-    static constexpr std::size_t dimension = index_dimension_of_v<PlainObjectType, N>;
-
     template<std::size_t N, typename Arg>
-    static constexpr std::size_t dimension_at_runtime(const Arg& arg)
+    static constexpr auto get_index_descriptor(const Arg& arg)
     {
-      if constexpr (dimension<N> == dynamic_size)
+      constexpr Eigen::Index dim = N == 0 ? PlainObjectType::RowsAtCompileTime : PlainObjectType::ColsAtCompileTime;
+      if constexpr (dim == Eigen::Dynamic)
       {
         if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
         else return static_cast<std::size_t>(arg.cols());
       }
-      else return dimension<N>;
+      else return Dimensions<dim>{};
     }
 
     template<Likelihood b>

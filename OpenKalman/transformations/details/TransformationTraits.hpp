@@ -216,7 +216,7 @@ namespace OpenKalman
     template<typename OutputCoefficients, typename In>
     inline auto zero_hessian_impl()
     {
-      using InputCoefficients = row_coefficient_types_of_t<In>;
+      using InputCoefficients = row_index_descriptor_of_t<In>;
       constexpr std::size_t input_size = dimension_size_of_v<InputCoefficients>;
       constexpr std::size_t output_size = dimension_size_of_v<OutputCoefficients>;
       using HessianMatrixInBase = untyped_dense_writable_matrix_t<In, scalar_type_of_t<In>, input_size, input_size>;

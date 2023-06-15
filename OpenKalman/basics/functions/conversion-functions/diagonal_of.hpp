@@ -10,76 +10,22 @@
 
 /**
  * \file
- * \brief Functions for converting to and from a diagonal matrix or tensor.
+ * \brief Definition for \ref diagonal_of function.
  */
 
-#ifndef OPENKALMAN_DIAGONALIZING_FUNCTIONS_HPP
-#define OPENKALMAN_DIAGONALIZING_FUNCTIONS_HPP
+#ifndef OPENKALMAN_DIAGONAL_OF_HPP
+#define OPENKALMAN_DIAGONAL_OF_HPP
 
 namespace OpenKalman
 {
   using namespace interface;
-
-  // ============= //
-  //  to_diagonal  //
-  // ============= //
-
-  /**
-   * \brief Convert a column vector into a diagonal matrix.
-   * \tparam Arg A column vector matrix
-   * \returns A diagonal matrix
-   */
-#ifdef __cpp_concepts
-  template<dimension_size_of_index_is<1, 1, Likelihood::maybe> Arg>
-#else
-  template<typename Arg, std::enable_if_t<dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  to_diagonal(Arg&& arg)
-  {
-    constexpr auto dim = row_dimension_of_v<Arg>;
-
-    if constexpr (dim == 1)
-    {
-      if constexpr (diagonal_matrix<Arg>)
-      {
-        return std::forward<Arg>(arg);
-      }
-      else
-      {
-        if constexpr (dynamic_columns<Arg>) if (get_index_dimension_of<1>(arg) != 1)
-          throw std::domain_error {"Argument of to_diagonal must be a column vector, not a row vector"};
-        return DiagonalMatrix {std::forward<Arg>(arg)};
-      }
-    }
-    else if constexpr (zero_matrix<Arg> and dim != dynamic_size)
-    {
-      if constexpr (dynamic_columns<Arg>) if (get_index_dimension_of<1>(arg) != 1)
-        throw std::domain_error {"Argument of to_diagonal must have 1 column; instead it has " +
-          std::to_string(get_index_dimension_of<1>(arg))};
-      return make_zero_matrix_like<Arg>(Dimensions<dim>{}, Dimensions<dim>{});
-    }
-    else if constexpr (constant_matrix<Arg>)
-    {
-      return DiagonalMatrix {std::forward<Arg>(arg)};
-    }
-    else
-    {
-      return interface::Conversions<std::decay_t<Arg>>::to_diagonal(std::forward<Arg>(arg));
-    }
-  }
-
-
-  // ============= //
-  //  diagonal_of  //
-  // ============= //
 
   namespace detail
   {
     template<typename Arg>
     constexpr void check_if_square_at_runtime(const Arg& arg)
     {
-      if constexpr (not square_matrix<Arg>) if (get_dimensions_of<0>(arg) != get_dimensions_of<1>(arg))
+      if constexpr (not square_matrix<Arg>) if (get_index_descriptor<0>(arg) != get_index_descriptor<1>(arg))
         throw std::invalid_argument {"Argument of diagonal_of must be a square matrix; instead, " +
         (get_index_dimension_of<0>(arg) == get_index_dimension_of<1>(arg) ?
           "the row and column indices have non-equivalent types" :
@@ -103,7 +49,7 @@ namespace OpenKalman
 #endif
   diagonal_of(Arg&& arg)
   {
-    auto dim = get_dimensions_of<dynamic_rows<Arg> ? 1 : 0>(arg);
+    auto dim = get_index_descriptor<dynamic_rows<Arg> ? 1 : 0>(arg);
 
     if constexpr (one_by_one_matrix<Arg>)
     {
@@ -137,4 +83,4 @@ namespace OpenKalman
 
 } // namespace OpenKalman
 
-#endif //OPENKALMAN_DIAGONALIZING_FUNCTIONS_HPP
+#endif //OPENKALMAN_DIAGONAL_OF_HPP

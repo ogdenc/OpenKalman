@@ -71,7 +71,7 @@ namespace OpenKalman
     constexpr decltype(auto) transpose_constant(C&& c, Arg&& arg, std::index_sequence<Is...>) noexcept
     {
       return make_constant_matrix_like<Arg>(std::forward<C>(c),
-        get_dimensions_of<1>(arg), get_dimensions_of<0>(arg), get_dimensions_of<Is + 2>(arg)...);
+        get_index_descriptor<1>(arg), get_index_descriptor<0>(arg), get_index_descriptor<Is + 2>(arg)...);
     }
   }
 
@@ -157,7 +157,7 @@ namespace OpenKalman
 #endif
   constexpr auto determinant(Arg&& arg) -> scalar_type_of_t<Arg>
   {
-    if constexpr (has_dynamic_dimensions<Arg>) if (get_dimensions_of<0>(arg) != get_dimensions_of<1>(arg))
+    if constexpr (has_dynamic_dimensions<Arg>) if (get_index_descriptor<0>(arg) != get_index_descriptor<1>(arg))
       throw std::domain_error {
         "In determinant, rows of arg (" + std::to_string(get_index_dimension_of<0>(arg)) + ") do not match columns of arg (" +
         std::to_string(get_index_dimension_of<1>(arg)) + ")"};
@@ -201,7 +201,7 @@ namespace OpenKalman
 #endif
   constexpr auto trace(Arg&& arg) -> scalar_type_of_t<Arg>
   {
-    if constexpr (has_dynamic_dimensions<Arg>) if (get_dimensions_of<0>(arg) != get_dimensions_of<1>(arg))
+    if constexpr (has_dynamic_dimensions<Arg>) if (get_index_descriptor<0>(arg) != get_index_descriptor<1>(arg))
       throw std::domain_error {
         "In trace, rows of arg (" + std::to_string(get_index_dimension_of<0>(arg)) + ") do not match columns of arg (" +
         std::to_string(get_index_dimension_of<1>(arg)) + ")"};
@@ -241,14 +241,14 @@ namespace OpenKalman
     static constexpr decltype(auto) contract_constant(C&& c, A&& a, B&& b, std::index_sequence<Is...>) noexcept
     {
       return make_constant_matrix_like<A>(std::forward<C>(c),
-        get_dimensions_of<0>(a), get_dimensions_of<1>(b), get_dimensions_of<Is + 2>(a)...);
+        get_index_descriptor<0>(a), get_index_descriptor<1>(b), get_index_descriptor<Is + 2>(a)...);
     }
 
 
     template<std::size_t I, typename T, typename...Ts>
     constexpr decltype(auto) best_descriptor(T&& t, Ts&&...ts)
     {
-       if constexpr (sizeof...(Ts) == 0 or dynamic_dimension<T, I>) return get_dimensions_of<I>(t);
+       if constexpr (sizeof...(Ts) == 0 or dynamic_dimension<T, I>) return get_index_descriptor<I>(t);
        else return best_descriptor<I>(std::forward<Ts>(ts)...);
     }
 
@@ -325,7 +325,7 @@ namespace OpenKalman
     template<typename A, typename B, std::size_t...Is>
     static constexpr auto contract_dimensions(A&& a, B&& b, std::index_sequence<Is...>) noexcept
     {
-      return std::tuple {get_dimensions_of<0>(a), get_dimensions_of<1>(b), get_dimensions_of<Is + 2>(a)...};
+      return std::tuple {get_index_descriptor<0>(a), get_index_descriptor<1>(b), get_index_descriptor<Is + 2>(a)...};
     }
   }*/
 
@@ -341,7 +341,7 @@ namespace OpenKalman
 #endif
   constexpr decltype(auto) contract(A&& a, B&& b)
   {
-    if constexpr (dynamic_dimension<A, 1> or dynamic_dimension<B, 0>) if (get_dimensions_of<1>(a) != get_dimensions_of<0>(b))
+    if constexpr (dynamic_dimension<A, 1> or dynamic_dimension<B, 0>) if (get_index_descriptor<1>(a) != get_index_descriptor<0>(b))
       throw std::domain_error {"In contract, columns of a (" + std::to_string(get_index_dimension_of<1>(a)) +
         ") do not match rows of b (" + std::to_string(get_index_dimension_of<0>(b)) + ")"};
 

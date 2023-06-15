@@ -292,6 +292,16 @@ namespace OpenKalman
     hermitian_adapter<M, HermitianAdapterType::upper> ? TriangleType::upper : TriangleType::lower>;
 
 
+#ifdef __cpp_concepts
+  template<indexible M> requires (not triangular_matrix<M, TriangleType::any, Likelihood::maybe>) and
+    (not hermitian_matrix<M, Likelihood::maybe>)
+#else
+  template<typename M, std::enable_if_t<indexible<M> and (not triangular_matrix<M, TriangleType::any, Likelihood::maybe>) and
+      (not hermitian_matrix<M, Likelihood::maybe>), int> = 0>
+#endif
+  explicit TriangularMatrix(M&&) -> TriangularMatrix<passable_t<M>, TriangleType::lower>;
+
+
   // ----------------------------- //
   //        Make functions         //
   // ----------------------------- //
@@ -347,24 +357,11 @@ namespace OpenKalman
     {
       static constexpr std::size_t max_indices = 2;
 
-      template<std::size_t N>
-      static constexpr std::size_t dimension = dynamic_dimension<Nested, 0> ?
-        index_dimension_of_v<Nested, 1> : index_dimension_of_v<Nested, 0>;
-
       template<std::size_t N, typename Arg>
-      static constexpr std::size_t dimension_at_runtime(const Arg& arg)
+      static constexpr auto get_index_descriptor(const Arg& arg)
       {
-        if constexpr (dynamic_dimension<Nested, 0>)
-        {
-          if constexpr (dynamic_dimension<Nested, 1>)
-            return get_index_dimension_of<0>(nested_matrix(arg));
-          else
-            return index_dimension_of_v<Nested, 1>;
-        }
-        else
-        {
-          return dimension<N>;
-        }
+        if constexpr (not dynamic_dimension<Nested, 0>) return OpenKalman::get_index_descriptor<0>(nested_matrix(arg));
+        else return OpenKalman::get_index_descriptor<1>(nested_matrix(arg));
       }
 
       template<Likelihood b>

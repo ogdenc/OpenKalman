@@ -352,7 +352,7 @@ namespace OpenKalman
 #endif
     {
       template<TriangleType t, Likelihood b>
-      static constexpr bool is_triangular = equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>> and
+      static constexpr bool is_triangular = equivalent_to<row_index_descriptor_of_t<T>, column_index_descriptor_of_t<T>> and
         triangular_matrix<nested_matrix_of_t<T>, t, b>;
 
       static constexpr bool is_triangular_adapter = false;
@@ -391,13 +391,13 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typed_matrix T> requires hermitian_matrix<nested_matrix_of_t<T>> and
-      equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>>
+      equivalent_to<row_index_descriptor_of_t<T>, column_index_descriptor_of_t<T>>
     struct HermitianTraits<T>
 #else
     template<typename T>
     struct HermitianTraits<T, std::enable_if_t<
       typed_matrix<T> and hermitian_matrix<nested_matrix_of<T>::type> and
-      equivalent_to<row_coefficient_types_of_t<T>, column_coefficient_types_of_t<T>>>>
+      equivalent_to<row_index_descriptor_of_t<T>, column_index_descriptor_of_t<T>>>>
 #endif
     {
       static constexpr bool is_hermitian = hermitian_matrix<nested_matrix_of_t<T>>;

@@ -31,11 +31,11 @@ namespace OpenKalman
     {
       if constexpr (((I == index) or ...))
       {
-        using T = coefficient_types_of_t<Arg, I>;
+        using T = index_descriptor_of_t<Arg, I>;
         if constexpr (has_uniform_dimension_type<T>) return uniform_dimension_type_of_t<T>{};
         else return Dimensions<1>{};
       }
-      else return get_dimensions_of<I>(std::forward<Arg>(arg));
+      else return get_index_descriptor<I>(std::forward<Arg>(arg));
     }
 
 
@@ -105,7 +105,7 @@ namespace OpenKalman
     template<typename Arg, std::size_t...I>
     constexpr bool has_uniform_reduction_indices(std::index_sequence<I...>)
     {
-      return ((has_uniform_dimension_type<coefficient_types_of_t<Arg, I>> or dynamic_dimension<Arg, I>) and ...);
+      return ((has_uniform_dimension_type<index_descriptor_of_t<Arg, I>> or dynamic_dimension<Arg, I>) and ...);
     }
 
 
@@ -176,32 +176,32 @@ namespace OpenKalman
     if constexpr (covariance<Arg>)
     {
       using RC = std::conditional_t<((index == 0) or ... or (indices == 0)),
-        uniform_dimension_type_of_t<coefficient_types_of_t<Arg, 0>>, coefficient_types_of_t<Arg, 0>>;
+        uniform_dimension_type_of_t<index_descriptor_of_t<Arg, 0>>, index_descriptor_of_t<Arg, 0>>;
       using CC = std::conditional_t<((index == 1) or ... or (indices == 1)),
-        uniform_dimension_type_of_t<coefficient_types_of_t<Arg, 1>>, coefficient_types_of_t<Arg, 1>>;
+        uniform_dimension_type_of_t<index_descriptor_of_t<Arg, 1>>, index_descriptor_of_t<Arg, 1>>;
       auto m = reduce<index, indices...>(b, to_covariance_nestable(std::forward<Arg>(arg)));
       return Matrix<RC, CC, decltype(m)> {std::move(m)};
     }
     else if constexpr(mean<Arg> and ((index != 0) or ... or (indices != 0)))
     {
       using C = std::conditional_t<((index == 0) or ... or (indices == 0)),
-        uniform_dimension_type_of_t<coefficient_types_of_t<Arg, 0>>, coefficient_types_of_t<Arg, 0>>;
+        uniform_dimension_type_of_t<index_descriptor_of_t<Arg, 0>>, index_descriptor_of_t<Arg, 0>>;
       auto m = from_euclidean<C>(reduce<index, indices...>(b, nested_matrix(to_euclidean(std::forward<Arg>(arg)))));
       return Mean<C, decltype(m)> {std::move(m)};
     }
     else if constexpr (euclidean_transformed<Arg> and ((index != 0) or ... or (indices != 0)))
     {
       using C = std::conditional_t<((index == 0) or ... or (indices == 0)),
-        uniform_dimension_type_of_t<coefficient_types_of_t<Arg, 0>>, coefficient_types_of_t<Arg, 0>>;
+        uniform_dimension_type_of_t<index_descriptor_of_t<Arg, 0>>, index_descriptor_of_t<Arg, 0>>;
       auto m = reduce<index, indices...>(b, nested_matrix(std::forward<Arg>(arg)));
       return EuclideanMean<C, decltype(m)> {std::move(m)};
     }
     else if constexpr (typed_matrix<Arg>)
     {
       using RC = std::conditional_t<((index == 0) or ... or (indices == 0)),
-        uniform_dimension_type_of_t<coefficient_types_of_t<Arg, 0>>, coefficient_types_of_t<Arg, 0>>;
+        uniform_dimension_type_of_t<index_descriptor_of_t<Arg, 0>>, index_descriptor_of_t<Arg, 0>>;
       using CC = std::conditional_t<((index == 1) or ... or (indices == 1)),
-        uniform_dimension_type_of_t<coefficient_types_of_t<Arg, 1>>, coefficient_types_of_t<Arg, 1>>;
+        uniform_dimension_type_of_t<index_descriptor_of_t<Arg, 1>>, index_descriptor_of_t<Arg, 1>>;
       auto m = reduce<index, indices...>(b, nested_matrix(std::forward<Arg>(arg)));
       return Matrix<RC, CC, decltype(m)> {std::move(m)};
     }
@@ -290,32 +290,32 @@ namespace OpenKalman
     if constexpr (covariance<Arg>)
     {
       using RC = std::conditional_t<((index == 0) or ... or (indices == 0)),
-        uniform_dimension_type_of_t<coefficient_types_of_t<Arg, 0>>, coefficient_types_of_t<Arg, 0>>;
+        uniform_dimension_type_of_t<index_descriptor_of_t<Arg, 0>>, index_descriptor_of_t<Arg, 0>>;
       using CC = std::conditional_t<((index == 1) or ... or (indices == 1)),
-        uniform_dimension_type_of_t<coefficient_types_of_t<Arg, 1>>, coefficient_types_of_t<Arg, 1>>;
+        uniform_dimension_type_of_t<index_descriptor_of_t<Arg, 1>>, index_descriptor_of_t<Arg, 1>>;
       auto m = average_reduce<index, indices...>(to_covariance_nestable(std::forward<Arg>(arg)));
       return Matrix<RC, CC, decltype(m)> {std::move(m)};
     }
     else if constexpr(mean<Arg> and ((index != 0) or ... or (indices != 0)))
     {
       using C = std::conditional_t<((index == 0) or ... or (indices == 0)),
-        uniform_dimension_type_of_t<coefficient_types_of_t<Arg, 0>>, coefficient_types_of_t<Arg, 0>>;
+        uniform_dimension_type_of_t<index_descriptor_of_t<Arg, 0>>, index_descriptor_of_t<Arg, 0>>;
       auto m = from_euclidean<C>(average_reduce<index, indices...>(nested_matrix(to_euclidean(std::forward<Arg>(arg)))));
       return Mean<C, decltype(m)> {std::move(m)};
     }
     else if constexpr (euclidean_transformed<Arg> and ((index != 0) or ... or (indices != 0)))
     {
       using C = std::conditional_t<((index == 0) or ... or (indices == 0)),
-        uniform_dimension_type_of_t<coefficient_types_of_t<Arg, 0>>, coefficient_types_of_t<Arg, 0>>;
+        uniform_dimension_type_of_t<index_descriptor_of_t<Arg, 0>>, index_descriptor_of_t<Arg, 0>>;
       auto m = average_reduce<index, indices...>(nested_matrix(std::forward<Arg>(arg)));
       return EuclideanMean<C, decltype(m)> {std::move(m)};
     }
     else if constexpr (typed_matrix<Arg>)
     {
       using RC = std::conditional_t<((index == 0) or ... or (indices == 0)),
-        uniform_dimension_type_of_t<coefficient_types_of_t<Arg, 0>>, coefficient_types_of_t<Arg, 0>>;
+        uniform_dimension_type_of_t<index_descriptor_of_t<Arg, 0>>, index_descriptor_of_t<Arg, 0>>;
       using CC = std::conditional_t<((index == 1) or ... or (indices == 1)),
-        uniform_dimension_type_of_t<coefficient_types_of_t<Arg, 1>>, coefficient_types_of_t<Arg, 1>>;
+        uniform_dimension_type_of_t<index_descriptor_of_t<Arg, 1>>, index_descriptor_of_t<Arg, 1>>;
       auto m = average_reduce<index, indices...>(nested_matrix(std::forward<Arg>(arg)));
       return Matrix<RC, CC, decltype(m)> {std::move(m)};
     }

@@ -240,18 +240,19 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(max_tensor_order_of_v<M01> == 1);
   static_assert(max_tensor_order_of_v<M00> == 2);
 
-  static_assert(interface::IndexTraits<M11>::dimension<0> == 1);
-  static_assert(interface::IndexTraits<M21>::dimension<0> == 2);
-  static_assert(interface::IndexTraits<M00>::dimension<0> == dynamic_size);
-  static_assert(interface::IndexTraits<M11>::dimension<1> == 1);
-  static_assert(interface::IndexTraits<M21>::dimension<1> == 1);
-  static_assert(interface::IndexTraits<M00>::dimension<1> == dynamic_size);
-  EXPECT_EQ((interface::IndexTraits<M11>::dimension_at_runtime<0>(M11{})), 1);
-  EXPECT_EQ((interface::IndexTraits<M21>::dimension_at_runtime<0>(M21{})), 2);
-  EXPECT_EQ((interface::IndexTraits<M00>::dimension_at_runtime<0>(M00{2, 1})), 2);
-  EXPECT_EQ((interface::IndexTraits<M11>::dimension_at_runtime<1>(M11{})), 1);
-  EXPECT_EQ((interface::IndexTraits<M21>::dimension_at_runtime<1>(M21{})), 1);
-  EXPECT_EQ((interface::IndexTraits<M00>::dimension_at_runtime<1>(M00{2, 1})), 1);
+  static_assert(index_dimension_of_v<M11, 0> == 1);
+  static_assert(index_dimension_of_v<M21, 0> == 2);
+  static_assert(index_dimension_of_v<M00, 0> == dynamic_size);
+  static_assert(index_dimension_of_v<M11, 1> == 1);
+  static_assert(index_dimension_of_v<M21, 1> == 1);
+  static_assert(index_dimension_of_v<M00, 1> == dynamic_size);
+  EXPECT_EQ(get_index_descriptor<0>(M11{}), 1);
+  EXPECT_EQ(get_index_descriptor<0>(M21{}), 2);
+  EXPECT_EQ((get_index_descriptor<0>(M00{2, 1})), 2);
+  EXPECT_EQ((get_index_descriptor<1>(M11{})), 1);
+  EXPECT_EQ((get_index_descriptor<1>(M21{})), 1);
+  EXPECT_EQ((get_index_descriptor<1>(M00{2, 1})), 1);
+
   static_assert(std::is_same_v<typename interface::Elements<M00>::scalar_type, double>);
 
   static_assert(dynamic_rows<eigen_matrix_t<double, dynamic_size, dynamic_size>>);
@@ -346,14 +347,14 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(row_dimension_of_v<decltype(MatrixTraits<M02>::make(1, 2))> == 1);
   static_assert(row_dimension_of_v<decltype(MatrixTraits<M00>::make(1, 2))> == 2);
 
-  static_assert(std::is_same_v<coefficient_types_of<M11, 0>::type, Dimensions<1>>);
-  static_assert(std::is_same_v<coefficient_types_of<M11, 1>::type, Dimensions<1>>);
-  static_assert(equivalent_to<coefficient_types_of_t<M11, 0>, Axis>);
-  static_assert(equivalent_to<coefficient_types_of_t<M11, 1>, Axis>);
-  static_assert(std::is_same_v<coefficient_types_of<M22, 0>::type, Dimensions<2>>);
-  static_assert(std::is_same_v<coefficient_types_of<M22, 1>::type, Dimensions<2>>);
-  static_assert(equivalent_to<coefficient_types_of_t<M22, 0>, TypedIndex<Axis, Axis>>);
-  static_assert(equivalent_to<coefficient_types_of_t<M22, 1>, TypedIndex<Axis, Axis>>);
+  static_assert(std::is_same_v<index_descriptor_of<M11, 0>::type, Dimensions<1>>);
+  static_assert(std::is_same_v<index_descriptor_of<M11, 1>::type, Dimensions<1>>);
+  static_assert(equivalent_to<index_descriptor_of_t<M11, 0>, Axis>);
+  static_assert(equivalent_to<index_descriptor_of_t<M11, 1>, Axis>);
+  static_assert(std::is_same_v<index_descriptor_of<M22, 0>::type, Dimensions<2>>);
+  static_assert(std::is_same_v<index_descriptor_of<M22, 1>::type, Dimensions<2>>);
+  static_assert(equivalent_to<index_descriptor_of_t<M22, 0>, TypedIndex<Axis, Axis>>);
+  static_assert(equivalent_to<index_descriptor_of_t<M22, 1>, TypedIndex<Axis, Axis>>);
 
   static_assert(maybe_index_descriptors_match<M22, M20, M02, M00>);
   static_assert(index_descriptors_match<M22, CM22, M22>);
@@ -1147,11 +1148,11 @@ TEST(eigen3, Eigen_Replicate)
   auto z00_22 = Eigen::Replicate<Z11, Eigen::Dynamic, Eigen::Dynamic> {z11, 2, 2};
 
   static_assert(Eigen3::native_eigen_general<Z00>);
-  static_assert(interface::IndexTraits<Z00>::max_indices == 2);
-  static_assert(interface::IndexTraits<Z00>::dimension<0> == dynamic_size);
-  static_assert(interface::IndexTraits<Z00>::dimension<1> == dynamic_size);
-  EXPECT_EQ((interface::IndexTraits<Z00>::dimension_at_runtime<0>(z00_21)), 2);
-  EXPECT_EQ((interface::IndexTraits<Z00>::dimension_at_runtime<1>(z00_21)), 1);
+  static_assert(max_indices_of_v<Z00> == 2);
+  static_assert(index_dimension_of_v<Z00, 0> == dynamic_size);
+  static_assert(index_dimension_of_v<Z00, 1> == dynamic_size);
+  EXPECT_EQ(get_index_descriptor<0>(z00_21), 2);
+  EXPECT_EQ(get_index_descriptor<1>(z00_21), 1);
   static_assert(std::is_same_v<typename interface::Elements<Z00>::scalar_type, double>);
 
   static_assert(one_by_one_matrix<Eigen::Replicate<M11, 1, 1>>);

@@ -80,7 +80,7 @@ namespace OpenKalman
     else if constexpr (constant_diagonal_matrix<A>)
     {
       auto sq = internal::scalar_constant_sqrt(constant_diagonal_coefficient{a});
-      return to_diagonal(make_constant_matrix_like<A>(sq, get_dimensions_of<0>(a), Dimensions<1>{}));
+      return to_diagonal(make_constant_matrix_like<A>(sq, get_index_descriptor<0>(a), Dimensions<1>{}));
     }
     else if constexpr (constant_matrix<A>)
     {
@@ -110,8 +110,8 @@ namespace OpenKalman
       }(a);
 
       auto ret = make_triangular_matrix<triangle_type>(std::move(m));
-      using C0 = coefficient_types_of_t<A, 0>;
-      using C1 = coefficient_types_of_t<A, 1>;
+      using C0 = index_descriptor_of_t<A, 0>;
+      using C1 = index_descriptor_of_t<A, 1>;
       using Cret = std::conditional_t<dynamic_index_descriptor<C0>, C1, C0>;
 
       if constexpr (euclidean_index_descriptor<Cret>) return ret;

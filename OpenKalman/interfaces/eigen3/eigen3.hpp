@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -55,22 +55,7 @@
 
 #include "details/eigen3-matrix-traits.hpp"
 
-#include "traits/eigen3-interface.hpp"
 #include "traits/eigen3-traits.hpp"
-
-#include "traits/functors/nullary.hpp"
-#include "traits/functors/unary.hpp"
-#include "traits/functors/binary.hpp"
-
-#include "traits/CwiseBinaryOp.hpp"
-#include "traits/CwiseNullaryOp.hpp"
-#include "traits/CwiseUnaryOp.hpp"
-#include "traits/CwiseUnaryView.hpp"
-#include "traits/CwiseTernaryOp.hpp"
-
-#include "traits/PartialReduxExpr.hpp"
-#include "traits/SelfAdjointView.hpp"
-#include "traits/TriangularView.hpp"
 
 #include "details/eigen3-functions.hpp"
 
