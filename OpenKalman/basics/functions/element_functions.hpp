@@ -80,6 +80,7 @@ namespace OpenKalman
 
 /**
  * \brief Get element of matrix arg using I... indices.
+ * \details The number of indices I... may be 0 if there is only one element, or 1 if Arg is diagonal.
  * \tparam Arg
  * \tparam I
  * \param arg
@@ -97,9 +98,9 @@ namespace OpenKalman
 #endif
   get_element(Arg&& arg, I...i)
   {
-    static_assert(element_gettable<Arg&&, sizeof...(I)>, "Wrong number of indices for get_element");
+    constexpr auto N = sizeof...(I);
 
-    if constexpr (constant_matrix<Arg>)
+    if constexpr (constant_matrix<Arg> and (not one_by_one_matrix<Arg>) and (N == max_indices_of_v<Arg> or N == 0))
     {
       return get_scalar_constant_value(constant_coefficient {arg});
     }
@@ -112,9 +113,18 @@ namespace OpenKalman
       //detail::check_index_bounds<false>(arg, std::index_sequence_for<I...> {}, i...);
       return interface::Elements<std::decay_t<Arg>>::get(std::forward<Arg>(arg), static_cast<const std::size_t>(i)...);
     }
+    else if constexpr (N == 0 and one_by_one_matrix<Arg, Likelihood::maybe>)
+    {
+      if constexpr (not one_by_one_matrix<Arg>) if (get_index_dimension_of<0>(arg) != 1 or get_index_dimension_of<1>(arg) != 1)
+        throw std::invalid_argument {"Wrong number of indices in arguments to get_element."};
+      std::make_index_sequence<max_indices_of_v<Arg>> seq;
+      return detail::get_diag_element(std::forward<Arg>(arg), seq, static_cast<const std::size_t>(0));
+    }
     else
     {
-      static_assert(sizeof...(I) == 1 and diagonal_matrix<Arg> and max_indices_of_v<Arg> > 1, "Must use correct number of indices");
+      static_assert(N == 1 and diagonal_matrix<Arg, Likelihood::maybe> and max_indices_of_v<Arg> > 1, "Must use correct number of indices");
+      if constexpr (not diagonal_matrix<Arg>) if (not get_is_square(arg))
+        throw std::invalid_argument {"Wrong number of indices in arguments to get_element."};
       std::make_index_sequence<max_indices_of_v<Arg>> seq;
       return detail::get_diag_element(std::forward<Arg>(arg), seq, static_cast<const std::size_t>(i)...);
     }
@@ -123,6 +133,7 @@ namespace OpenKalman
 
   /**
    * \brief Set element to s using I... indices.
+   * \details The number of indices I... may be 0 if there is only one element, or 1 if Arg is diagonal.
    * \tparam Arg
    * \tparam I
    * \param arg
@@ -140,7 +151,7 @@ namespace OpenKalman
   inline Arg&&
   set_element(Arg&& arg, const scalar_type_of_t<Arg>& s, I...i)
   {
-    static_assert(element_settable<Arg&&, sizeof...(I)>, "Wrong number of indices for set_element");
+    constexpr auto N = sizeof...(I);
 
 #ifdef __cpp_lib_concepts
     if constexpr (requires { interface::Elements<std::decay_t<Arg>>::set(arg, s, static_cast<const std::size_t>(i)...); })
@@ -151,9 +162,18 @@ namespace OpenKalman
       //detail::check_index_bounds<true>(arg, std::index_sequence_for<I...> {}, i...);
       return interface::Elements<std::decay_t<Arg>>::set(std::forward<Arg>(arg), s, static_cast<const std::size_t>(i)...);
     }
+    else if constexpr (N == 0 and one_by_one_matrix<Arg, Likelihood::maybe>)
+    {
+      if constexpr (not one_by_one_matrix<Arg>) if (get_index_dimension_of<0>(arg) != 1 or get_index_dimension_of<1>(arg) != 1)
+        throw std::invalid_argument {"Wrong number of indices in arguments to set_element."};
+      std::make_index_sequence<max_indices_of_v<Arg>> seq;
+      return detail::get_diag_element(std::forward<Arg>(arg), seq, static_cast<const std::size_t>(0));
+    }
     else
     {
-      static_assert(sizeof...(I) == 1 and diagonal_matrix<Arg> and max_indices_of_v<Arg> > 1, "Must use correct number of indices");
+      static_assert(N == 1 and diagonal_matrix<Arg, Likelihood::maybe> and max_indices_of_v<Arg> > 1, "Must use correct number of indices");
+      if constexpr (not diagonal_matrix<Arg>) if (not get_is_square(arg))
+        throw std::invalid_argument {"Wrong number of indices in arguments to set_element."};
       std::make_index_sequence<max_indices_of_v<Arg>> seq;
       return detail::set_diag_element(std::forward<Arg>(arg), s, seq, static_cast<const std::size_t>(i)...);
     }

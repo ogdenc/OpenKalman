@@ -151,7 +151,7 @@ namespace OpenKalman
       constexpr auto get_constant_diagonal()
       {
         using Scalar = scalar_type_of_t<MatrixType>;
-        if constexpr (eigen_Identity<MatrixType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 1>{};
+        if constexpr (Eigen3::eigen_Identity<MatrixType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 1>{};
         else return constant_diagonal_coefficient {xpr.nestedExpression()};
       }
     };
@@ -207,12 +207,8 @@ namespace OpenKalman
       static auto
       to_diagonal(Arg&& arg)
       {
-          // In this case, arg will be a one-by-one matrix.
-          if constexpr (has_dynamic_dimensions<Arg>)
-            if (get_index_dimension_of<0>(arg) != 1 or get_index_dimension_of<1>(arg) != 1) throw std::logic_error {
-            "Argument of to_diagonal must be 1-by-1"};
-
-          return make_self_contained<Arg>(std::forward<Arg>(arg).nestedExpression());
+        // If it is a column vector, the SelfAdjointView wrapper doesn't matter, and otherwise, the following will thow an exception:
+        return OpenKalman::to_diagonal(nested_matrix(std::forward<Arg>(arg)));
       }
 
 

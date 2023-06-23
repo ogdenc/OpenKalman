@@ -23,10 +23,8 @@
 
 namespace OpenKalman::interface
 {
-  namespace EI = Eigen::internal;
-
 #ifdef __cpp_concepts
-  template<native_eigen_general T>
+  template<Eigen3::native_eigen_general T>
   struct IndexTraits<T>
 #else
   namespace detail
@@ -57,17 +55,17 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-  template<native_eigen_general T, typename Scalar>
+  template<Eigen3::native_eigen_general T, typename Scalar>
   struct EquivalentDenseWritableMatrix<T, Scalar>
 #else
   template<typename T, typename Scalar>
-  struct EquivalentDenseWritableMatrix<T, Scalar, std::enable_if_t<native_eigen_general<T>>>
+  struct EquivalentDenseWritableMatrix<T, Scalar, std::enable_if_t<Eigen3::native_eigen_general<T>>>
 #endif
   {
   private:
 
     template<Eigen::Index...Is>
-    using dense_type = std::conditional_t<native_eigen_array<T>,
+    using dense_type = std::conditional_t<Eigen3::native_eigen_array<T>,
       Eigen::Array<Scalar, Is...>, Eigen::Matrix<Scalar, Is...>>;
 
     template<std::size_t...Is>
@@ -94,7 +92,7 @@ namespace OpenKalman::interface
 
   public:
 
-    static constexpr bool is_writable = native_eigen_dense<T> and
+    static constexpr bool is_writable = Eigen3::native_eigen_dense<T> and
       static_cast<bool>(Eigen::internal::traits<std::decay_t<T>>::Flags & (Eigen::LvalueBit | Eigen::DirectAccessBit));
 
 
@@ -115,12 +113,12 @@ namespace OpenKalman::interface
     {
       using M = writable_type<index_dimension_of_v<Arg, 0>, index_dimension_of_v<Arg, 1>>;
 
-      if constexpr (eigen_DiagonalWrapper<Arg>)
+      /*if constexpr (Eigen3::eigen_DiagonalWrapper<Arg>)
       {
         // Note: Arg's nested matrix might not be a column vector.
         return M {OpenKalman::to_diagonal(OpenKalman::diagonal_of(std::forward<Arg>(arg)))};
       }
-      else if constexpr (std::is_base_of_v<Eigen::PlainObjectBase<std::decay_t<Arg>>, std::decay_t<Arg>> and
+      else*/ if constexpr (std::is_base_of_v<Eigen::PlainObjectBase<std::decay_t<Arg>>, std::decay_t<Arg>> and
         not std::is_const_v<std::remove_reference_t<Arg>>)
       {
         return std::forward<Arg>(arg);
@@ -131,6 +129,7 @@ namespace OpenKalman::interface
       }
       else
       {
+        static_assert(not Eigen3::eigen_DiagonalWrapper<Arg>); // \todo remove b/c Matrix should be constructible with DiagonalWrapper.
         auto r = get_index_dimension_of<0>(arg);
         auto c = get_index_dimension_of<1>(arg);
         auto m = make_default(r, c);
@@ -146,37 +145,37 @@ namespace OpenKalman::interface
     template<typename Arg>
     static decltype(auto) to_native_matrix(Arg&& arg)
     {
-      if constexpr (native_eigen_matrix<Arg>)
+      if constexpr (Eigen3::native_eigen_matrix<Arg>)
         return std::forward<Arg>(arg);
-      else if constexpr (native_eigen_array<Arg>)
+      else if constexpr (Eigen3::native_eigen_array<Arg>)
         return std::forward<Arg>(arg).matrix();
-      else if constexpr (native_eigen_general<Arg>)
+      else if constexpr (Eigen3::native_eigen_general<Arg>)
         return convert(std::forward<Arg>(arg));
       else
       {
         static_assert(traits_and_evaluator_defined<Arg>::value, "To convert to a native Eigen matrix, the interface "
           "must define a trait and an evaluator for the argument");
-        return EigenWrapper<std::decay_t<Arg>> {std::forward<Arg>(arg)};
+        return Eigen3::EigenWrapper<std::decay_t<Arg>> {std::forward<Arg>(arg)};
       }
     }
 
 
     template<typename Arg>
-    static decltype(auto) to_native_matrix(const EigenWrapper<Arg>& arg) { return arg; }
+    static decltype(auto) to_native_matrix(const Eigen3::EigenWrapper<Arg>& arg) { return arg; }
 
 
     template<typename Arg>
-    static decltype(auto) to_native_matrix(EigenWrapper<Arg>&& arg) { return std::move(arg); }
+    static decltype(auto) to_native_matrix(Eigen3::EigenWrapper<Arg>&& arg) { return std::move(arg); }
 
   };
 
 
 #ifdef __cpp_concepts
-  template<native_eigen_general T, typename Scalar>
+  template<Eigen3::native_eigen_general T, typename Scalar>
   struct SingleConstantMatrixTraits<T, Scalar>
 #else
   template<typename T, typename Scalar>
-  struct SingleConstantMatrixTraits<T, Scalar, std::enable_if_t<native_eigen_general<T>>>
+  struct SingleConstantMatrixTraits<T, Scalar, std::enable_if_t<Eigen3::native_eigen_general<T>>>
 #endif
   {
 #ifdef __cpp_concepts
@@ -196,11 +195,11 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-  template<native_eigen_general T, typename Scalar>
+  template<Eigen3::native_eigen_general T, typename Scalar>
   struct SingleConstantDiagonalMatrixTraits<T, Scalar>
 #else
   template<typename T, typename Scalar>
-  struct SingleConstantDiagonalMatrixTraits<T, Scalar, std::enable_if_t<native_eigen_general<T>>>
+  struct SingleConstantDiagonalMatrixTraits<T, Scalar, std::enable_if_t<Eigen3::native_eigen_general<T>>>
 #endif
   {
     template<typename D>
@@ -213,7 +212,7 @@ namespace OpenKalman::interface
       else
       {
         constexpr Eigen::Index n {dimension_size_of_v<D>};
-        return eigen_matrix_t<Scalar, n, n>::Identity();
+        return Eigen3::eigen_matrix_t<Scalar, n, n>::Identity();
       }
     }
   };
@@ -233,21 +232,23 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-  template<native_eigen_dense T>
+  template<Eigen3::native_eigen_dense T>
   struct Elements<T>
 #else
   template<typename T>
-  struct Elements<T, std::enable_if_t<native_eigen_dense<T> and (not eigen_wrapper<T>)>>
+  struct Elements<T, std::enable_if_t<Eigen3::native_eigen_dense<T> and (not Eigen3::eigen_wrapper<T>)>>
 #endif
   {
     using scalar_type = typename std::decay_t<T>::Scalar;
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg, typename...I> requires (sizeof...(I) <= 2) and (std::convertible_to<I, Eigen::Index> and ...) and
+    template<typename Arg, typename...I> requires (sizeof...(I) > 0) and (sizeof...(I) <= 2) and
+      (std::convertible_to<I, Eigen::Index> and ...) and
       (sizeof...(I) != 1 or (Eigen::internal::evaluator<std::decay_t<Arg>>::Flags & Eigen::LinearAccessBit) != 0)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(sizeof...(I) <= 2) and (std::is_convertible_v<I, Eigen::Index> and ...) and
+    template<typename Arg, typename...I, std::enable_if_t<(sizeof...(I) > 0) and (sizeof...(I) <= 2) and
+      (std::is_convertible_v<I, Eigen::Index> and ...) and
       (sizeof...(I) != 1 or (Eigen::internal::evaluator<std::decay_t<Arg>>::Flags & Eigen::LinearAccessBit) != 0) , int> = 0>
 #endif
     static constexpr decltype(auto) get(Arg&& arg, I...i)
@@ -260,11 +261,13 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg, typename...I> requires (sizeof...(I) <= 2) and (std::convertible_to<I, Eigen::Index> and ...) and
+    template<typename Arg, typename...I> requires (sizeof...(I) > 0) and (sizeof...(I) <= 2) and
+      (std::convertible_to<I, Eigen::Index> and ...) and
       (sizeof...(I) != 1 or (Eigen::internal::evaluator<std::decay_t<Arg>>::Flags & Eigen::LinearAccessBit) != 0) and
       ((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(sizeof...(I) <= 2) and (std::is_convertible_v<I, Eigen::Index> and ...) and
+    template<typename Arg, typename...I, std::enable_if_t<(sizeof...(I) > 0) and (sizeof...(I) <= 2) and
+      (std::is_convertible_v<I, Eigen::Index> and ...) and
       (sizeof...(I) != 1 or (Eigen::internal::evaluator<std::decay_t<Arg>>::Flags & Eigen::LinearAccessBit) != 0) and
       ((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0), int> = 0>
 #endif
@@ -277,11 +280,11 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-  template<typename T> requires eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>
+  template<typename T> requires Eigen3::eigen_DiagonalMatrix<T> or Eigen3::eigen_DiagonalWrapper<T>
   struct Elements<T>
 #else
   template<typename T>
-  struct Elements<T, std::enable_if_t<eigen_DiagonalMatrix<T> or eigen_DiagonalWrapper<T>>>
+  struct Elements<T, std::enable_if_t<Eigen3::eigen_DiagonalMatrix<T> or Eigen3::eigen_DiagonalWrapper<T>>>
 #endif
   {
     using scalar_type = typename std::decay_t<T>::Scalar;
@@ -362,11 +365,11 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-  template<native_eigen_general T>
+  template<Eigen3::native_eigen_general T>
   struct Subsets<T>
 #else
   template<typename T>
-  struct Subsets<T, std::enable_if_t<native_eigen_general<T>>>
+  struct Subsets<T, std::enable_if_t<Eigen3::native_eigen_general<T>>>
 #endif
   {
     template<typename Arg, typename...Begin, typename...Size>
@@ -374,7 +377,7 @@ namespace OpenKalman::interface
     {
       static_assert(sizeof...(Begin) == 2 and sizeof...(Size) == 2);
 
-      if constexpr (native_eigen_dense<Arg>)
+      if constexpr (Eigen3::native_eigen_dense<Arg>)
       {
         using B = Eigen::Block<std::remove_reference_t<Arg>,
           static_cast<Eigen::Index>(static_index_value<Size> ? static_index_value_of_v<Size> : Eigen::Dynamic)...>;
@@ -392,16 +395,16 @@ namespace OpenKalman::interface
     static constexpr Arg& set_block(Arg& arg, Block&& block, Begin...begin)
     {
       static_assert(sizeof...(Begin) == 2);
-      if constexpr (eigen_wrapper<Arg>)
+      if constexpr (Eigen3::eigen_wrapper<Arg>)
       {
         OpenKalman::set_block(nested_matrix(arg), std::forward<Block>(block), begin...);
         return arg;
       }
       else
       {
-        static_assert(native_eigen_dense<Arg>);
+        static_assert(Eigen3::native_eigen_dense<Arg>);
 
-        if constexpr (eigen_block<Block>)
+        if constexpr (Eigen3::eigen_block<Block>)
         {
           if (std::addressof(arg) == std::addressof(block.nestedExpression()) and
               std::get<0>(std::tuple{begin...}) == block.startRow() and std::get<1>(std::tuple{begin...}) == block.startCol())
@@ -446,9 +449,9 @@ namespace OpenKalman::interface
     {
       if constexpr (Eigen3::eigen_MatrixWrapper<A> or Eigen3::eigen_ArrayWrapper<A> or pass_through_eigenwrapper<A>::value)
       {
-        return OpenKalman::set_triangle<t>(nested_matrix(std::forward<A>(a)), std::forward<B>(b));
+        return internal::set_triangle<t>(nested_matrix(std::forward<A>(a)), std::forward<B>(b));
       }
-      else if constexpr (not native_eigen_dense<A>)
+      else if constexpr (not Eigen3::native_eigen_dense<A>)
       {
         return set_triangle<t>(Eigen3::EigenWrapper {std::forward<A>(a)}, std::forward<B>(b));
       }
@@ -490,30 +493,35 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-  template<native_eigen_dense T>
+  template<Eigen3::native_eigen_dense T>
   struct Conversions<T>
 #else
   template<typename T>
-  struct Conversions<T, std::enable_if_t<native_eigen_dense<T> and not eigen_wrapper<T> and
-    not eigen_ArrayWrapper<T> and not eigen_MatrixWrapper<T>>>
+  struct Conversions<T, std::enable_if_t<Eigen3::native_eigen_dense<T> and not Eigen3::eigen_wrapper<T> and
+    not Eigen3::eigen_ArrayWrapper<T> and not Eigen3::eigen_MatrixWrapper<T>>>
 #endif
   {
 #ifdef __cpp_concepts
-    template<native_eigen_dense Arg>
+    template<Eigen3::native_eigen_dense Arg>
+      requires std::is_lvalue_reference_v<nested_matrix_of_t<Eigen::DiagonalWrapper<std::decay_t<Arg>>>>
 #else
-    template<typename Arg, std::enable_if_t<native_eigen_dense<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<Eigen3::native_eigen_dense<Arg> and
+      std::is_lvalue_reference_v<typename nested_matrix_of<Eigen::DiagonalWrapper<std::decay_t<Arg>>>::type>, int> = 0>
 #endif
-    static auto
-    to_diagonal(Arg&& arg)
+    static constexpr decltype(auto)
+    to_diagonal(Arg& arg)
     {
-      return OpenKalman::DiagonalMatrix {std::forward<Arg>(arg)};
+      if constexpr (dynamic_columns<Arg>) if (get_index_dimension_of<1>(arg) != 1) throw std::invalid_argument {
+        "Argument of to_diagonal must have 1 column; instead it has " + std::to_string(get_index_dimension_of<1>(arg))};
+
+      return Eigen::DiagonalWrapper<std::decay_t<Arg>> {arg};
     }
 
 
 #ifdef __cpp_concepts
-    template<native_eigen_dense Arg>
+    template<Eigen3::native_eigen_dense Arg>
 #else
-    template<typename Arg, std::enable_if_t<native_eigen_dense<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<Eigen3::native_eigen_dense<Arg>, int> = 0>
 #endif
     static constexpr decltype(auto)
     diagonal_of(Arg&& arg)
@@ -527,7 +535,7 @@ namespace OpenKalman::interface
 
       constexpr std::size_t dim = dynamic_rows<Arg> ? column_dimension_of_v<Arg> : row_dimension_of_v<Arg>;
 
-      if constexpr (eigen_Identity<Arg>)
+      if constexpr (Eigen3::eigen_Identity<Arg>)
       {
         if constexpr (dim == dynamic_size) return make_constant_matrix_like<Arg, Scalar, 1>(get_index_descriptor<0>(arg), Dimensions<1>{});
         else return make_constant_matrix_like<Arg, Scalar, 1>(Dimensions<dim>{}, Dimensions<1>{});
@@ -539,7 +547,7 @@ namespace OpenKalman::interface
       else
       {
         auto d {[](Arg&& arg){
-          if constexpr (native_eigen_array<Arg>)
+          if constexpr (Eigen3::native_eigen_array<Arg>)
             return make_self_contained<Arg>(std::forward<Arg>(arg).matrix().diagonal());
           else // native_eigen_matrix<Arg>
             return make_self_contained<Arg>(std::forward<Arg>(arg).diagonal());
@@ -556,34 +564,34 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-  template<native_eigen_general T>
+  template<Eigen3::native_eigen_general T>
   struct ArrayOperations<T>
 #else
   template<typename T>
-  struct ArrayOperations<T, std::enable_if_t<native_eigen_general<T>>>
+  struct ArrayOperations<T, std::enable_if_t<Eigen3::native_eigen_general<T>>>
 #endif
   {
   private:
 
     // Convert std functions to equivalent Eigen operations for possible vectorization:
     template<typename Op> static decltype(auto) nat_op(Op&& op) { return std::forward<Op>(op); };
-    template<typename S> static auto nat_op(const std::plus<S>& op) { return EI::scalar_sum_op<S, S> {}; };
-    template<typename S> static auto nat_op(const std::minus<S>& op) { return EI::scalar_difference_op<S, S> {}; };
-    template<typename S> static auto nat_op(const std::multiplies<S>& op) {return EI::scalar_product_op<S, S> {}; };
-    template<typename S> static auto nat_op(const std::divides<S>& op) { return EI::scalar_quotient_op<S, S> {}; };
-    template<typename S> static auto nat_op(const std::negate<S>& op) { return EI::scalar_opposite_op<S> {}; };
+    template<typename S> static auto nat_op(const std::plus<S>& op) { return Eigen::internal::scalar_sum_op<S, S> {}; };
+    template<typename S> static auto nat_op(const std::minus<S>& op) { return Eigen::internal::scalar_difference_op<S, S> {}; };
+    template<typename S> static auto nat_op(const std::multiplies<S>& op) {return Eigen::internal::scalar_product_op<S, S> {}; };
+    template<typename S> static auto nat_op(const std::divides<S>& op) { return Eigen::internal::scalar_quotient_op<S, S> {}; };
+    template<typename S> static auto nat_op(const std::negate<S>& op) { return Eigen::internal::scalar_opposite_op<S> {}; };
 
-    using EIC = EI::ComparisonName;
-    template<typename S> static auto nat_op(const std::equal_to<S>& op) { return EI::scalar_cmp_op<S, S, EIC::cmp_EQ> {}; };
-    template<typename S> static auto nat_op(const std::not_equal_to<S>& op) { return EI::scalar_cmp_op<S, S, EIC::cmp_NEQ> {}; };
-    template<typename S> static auto nat_op(const std::greater<S>& op) { return EI::scalar_cmp_op<S, S, EIC::cmp_GT> {}; };
-    template<typename S> static auto nat_op(const std::less<S>& op) { return EI::scalar_cmp_op<S, S, EIC::cmp_LT> {}; };
-    template<typename S> static auto nat_op(const std::greater_equal<S>& op) { return EI::scalar_cmp_op<S, S, EIC::cmp_GE> {}; };
-    template<typename S> static auto nat_op(const std::less_equal<S>& op) { return EI::scalar_cmp_op<S, S, EIC::cmp_LE> {}; };
+    using EIC = Eigen::internal::ComparisonName;
+    template<typename S> static auto nat_op(const std::equal_to<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_EQ> {}; };
+    template<typename S> static auto nat_op(const std::not_equal_to<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_NEQ> {}; };
+    template<typename S> static auto nat_op(const std::greater<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_GT> {}; };
+    template<typename S> static auto nat_op(const std::less<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_LT> {}; };
+    template<typename S> static auto nat_op(const std::greater_equal<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_GE> {}; };
+    template<typename S> static auto nat_op(const std::less_equal<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_LE> {}; };
 
-    template<typename S> static auto nat_op(const std::logical_and<S>& op) { return EI::scalar_boolean_and_op {}; };
-    template<typename S> static auto nat_op(const std::logical_or<S>& op) { return EI::scalar_boolean_or_op {}; };
-    template<typename S> static auto nat_op(const std::logical_not<S>& op) { return EI::scalar_boolean_not_op<S> {}; };
+    template<typename S> static auto nat_op(const std::logical_and<S>& op) { return Eigen::internal::scalar_boolean_and_op {}; };
+    template<typename S> static auto nat_op(const std::logical_or<S>& op) { return Eigen::internal::scalar_boolean_or_op {}; };
+    template<typename S> static auto nat_op(const std::logical_not<S>& op) { return Eigen::internal::scalar_boolean_not_op<S> {}; };
 
 
     template<typename...Ds, typename...ArgDs, typename Arg, std::size_t...I>
@@ -712,11 +720,11 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-  template<native_eigen_general T>
+  template<Eigen3::native_eigen_general T>
   struct ModularTransformationTraits<T>
 #else
   template<typename T>
-  struct ModularTransformationTraits<T, std::enable_if_t<native_eigen_general<T>>>
+  struct ModularTransformationTraits<T, std::enable_if_t<Eigen3::native_eigen_general<T>>>
 #endif
   {
     template<typename Arg, typename C>
@@ -746,11 +754,11 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-  template<native_eigen_general T>
+  template<Eigen3::native_eigen_general T>
   struct LinearAlgebra<T>
 #else
   template<typename T>
-  struct LinearAlgebra<T, std::enable_if_t<native_eigen_general<T>>>
+  struct LinearAlgebra<T, std::enable_if_t<Eigen3::native_eigen_general<T>>>
 #endif
   {
 
@@ -767,21 +775,21 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     transpose(Arg&& arg) noexcept
     {
-      if constexpr (eigen_wrapper<Arg>)
+      if constexpr (Eigen3::eigen_wrapper<Arg>)
       {
-        if constexpr (native_eigen_general<nested_matrix_of_t<Arg>>)
+        if constexpr (Eigen3::native_eigen_general<nested_matrix_of_t<Arg>>)
           return transpose(nested_matrix(std::forward<Arg>(arg)));
         else
           return std::forward<Arg>(arg).transpose();
       }
-      else if constexpr (native_eigen_matrix<Arg> or eigen_TriangularView<Arg> or eigen_SelfAdjointView<Arg>)
+      else if constexpr (Eigen3::native_eigen_matrix<Arg> or Eigen3::eigen_TriangularView<Arg> or Eigen3::eigen_SelfAdjointView<Arg>)
         return std::forward<Arg>(arg).transpose();
-      else if constexpr (native_eigen_array<Arg>)
+      else if constexpr (Eigen3::native_eigen_array<Arg>)
         return std::forward<Arg>(arg).matrix().transpose();
       else if constexpr (triangular_matrix<Arg>)
         return OpenKalman::transpose(TriangularMatrix {std::forward<Arg>(arg)});
       else
-        return EigenWrapper {std::forward<Arg>(arg)}.transpose();
+        return Eigen3::EigenWrapper {std::forward<Arg>(arg)}.transpose();
       // Note: the global transpose function already handles zero, constant, constant-diagonal, and symmetric cases.
     }
 
@@ -790,21 +798,21 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     adjoint(Arg&& arg) noexcept
     {
-      if constexpr (eigen_wrapper<Arg>)
+      if constexpr (Eigen3::eigen_wrapper<Arg>)
       {
-        if constexpr (native_eigen_general<nested_matrix_of_t<Arg>>)
+        if constexpr (Eigen3::native_eigen_general<nested_matrix_of_t<Arg>>)
           return adjoint(nested_matrix(std::forward<Arg>(arg)));
         else
           return std::forward<Arg>(arg).adjoint();
       }
-      else if constexpr (native_eigen_matrix<Arg> or eigen_TriangularView<Arg> or eigen_SelfAdjointView<Arg>)
+      else if constexpr (Eigen3::native_eigen_matrix<Arg> or Eigen3::eigen_TriangularView<Arg> or Eigen3::eigen_SelfAdjointView<Arg>)
         return std::forward<Arg>(arg).adjoint();
-      else if constexpr (native_eigen_array<Arg>)
+      else if constexpr (Eigen3::native_eigen_array<Arg>)
         return std::forward<Arg>(arg).matrix().adjoint();
       else if constexpr (triangular_matrix<Arg>)
         return OpenKalman::adjoint(TriangularMatrix {std::forward<Arg>(arg)});
       else
-        return EigenWrapper {std::forward<Arg>(arg)}.adjoint();
+        return Eigen3::EigenWrapper {std::forward<Arg>(arg)}.adjoint();
       // Note: the global adjoint function already handles zero, constant, diagonal, non-complex, and hermitian cases.
     }
 
@@ -813,12 +821,12 @@ namespace OpenKalman::interface
     static constexpr auto
     determinant(Arg&& arg) noexcept
     {
-      if constexpr (native_eigen_matrix<Arg>)
+      if constexpr (Eigen3::native_eigen_matrix<Arg>)
         return std::forward<Arg>(arg).determinant();
-      else if constexpr (native_eigen_array<Arg>)
+      else if constexpr (Eigen3::native_eigen_array<Arg>)
         return std::forward<Arg>(arg).matrix().determinant();
       else
-        return EigenWrapper {std::forward<Arg>(arg)}.determinant();
+        return Eigen3::EigenWrapper {std::forward<Arg>(arg)}.determinant();
       // Note: the global determinant function already handles TriangularView, DiagonalMatrix, and DiagonalWrapper
     }
 
@@ -837,7 +845,7 @@ namespace OpenKalman::interface
     {
       if constexpr (diagonal_adapter<A>)
       {
-        if constexpr (eigen_DiagonalWrapper<A> or eigen_DiagonalMatrix<A>)
+        if constexpr (Eigen3::eigen_DiagonalWrapper<A> or Eigen3::eigen_DiagonalMatrix<A>)
           return make_self_contained<A, B>(std::forward<A>(a) * to_native_matrix<T>(std::forward<B>(b)));
         else
           return make_self_contained<A, B>(to_native_matrix<T>(nested_matrix(std::forward<A>(a))).asDiagonal() *
@@ -845,7 +853,7 @@ namespace OpenKalman::interface
       }
       else if constexpr (diagonal_adapter<B>)
       {
-        if constexpr (eigen_DiagonalWrapper<B> or eigen_DiagonalMatrix<B>)
+        if constexpr (Eigen3::eigen_DiagonalWrapper<B> or Eigen3::eigen_DiagonalMatrix<B>)
           return make_self_contained<A, B>(to_native_matrix<T>(std::forward<A>(a)) * std::forward<B>(b));
         else
           return make_self_contained<A, B>(to_native_matrix<T>(std::forward<A>(a)) *
@@ -885,15 +893,15 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<bool on_the_right, writable A, indexible B> requires native_eigen_dense<A>
+    template<bool on_the_right, writable A, indexible B> requires Eigen3::native_eigen_dense<A>
 #else
-    template<bool on_the_right, typename A, typename B, std::enable_if_t<writable<A> and native_eigen_dense<A>,int> = 0>
+    template<bool on_the_right, typename A, typename B, std::enable_if_t<writable<A> and Eigen3::native_eigen_dense<A>,int> = 0>
 #endif
     static A&
     contract_in_place(A& a, B&& b)
     {
       decltype(auto) ma = [](A& a){
-        if constexpr (native_eigen_array<A>) return a.matrix();
+        if constexpr (Eigen3::native_eigen_array<A>) return a.matrix();
         else return (a);
       }(a);
 
@@ -1057,10 +1065,10 @@ namespace OpenKalman::interface
       constexpr std::size_t a_cols = column_dimension_of_v<A>;
       constexpr std::size_t b_cols = column_dimension_of_v<B>;
 
-      if constexpr (not native_eigen_matrix<A>)
+      if constexpr (not Eigen3::native_eigen_matrix<A>)
       {
         decltype(auto) n = to_native_matrix(std::forward<A>(a));
-        static_assert(native_eigen_matrix<decltype(n)>);
+        static_assert(Eigen3::native_eigen_matrix<decltype(n)>);
         return solve<must_be_unique, must_be_exact>(std::forward<decltype(n)>(n), std::forward<B>(b));
       }
       else if constexpr (triangular_matrix<A>)
@@ -1097,7 +1105,7 @@ namespace OpenKalman::interface
         if constexpr (must_be_exact or must_be_unique or true)
         {
           auto a_cols_rt = get_index_dimension_of<1>(a);
-          Eigen::ColPivHouseholderQR<eigen_matrix_t<Scalar, a_rows, a_cols>> QR {std::forward<A>(a)};
+          Eigen::ColPivHouseholderQR<Eigen3::eigen_matrix_t<Scalar, a_rows, a_cols>> QR {std::forward<A>(a)};
           if constexpr (must_be_unique)
           {
             if (QR.rank() < a_cols_rt) throw std::runtime_error {"solve function requests a "
@@ -1123,7 +1131,7 @@ namespace OpenKalman::interface
         }
         else
         {
-          Eigen::HouseholderQR<eigen_matrix_t<Scalar, a_rows, a_cols>> QR {std::forward<A>(a)};
+          Eigen::HouseholderQR<Eigen3::eigen_matrix_t<Scalar, a_rows, a_cols>> QR {std::forward<A>(a)};
           return make_self_contained(QR.solve(std::forward<B>(b)));
         }
       }

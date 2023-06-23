@@ -101,7 +101,7 @@ namespace OpenKalman
 
       static constexpr bool is_triangular_adapter = false;
 
-      static constexpr bool is_diagonal_adapter = true;
+      static constexpr bool is_diagonal_adapter = dimension_size_of_index_is<DiagVectorType, 1, 1>;
     };
 
 

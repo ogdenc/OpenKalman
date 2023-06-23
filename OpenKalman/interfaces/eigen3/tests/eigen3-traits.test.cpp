@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020-2021 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2023 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -392,18 +392,28 @@ TEST(eigen3, Eigen_Matrix)
   Eigen::Matrix<double, 0, 0> m0;
 
   static_assert(get_is_square(m22));
+  static_assert(*get_is_square(m22) == Dimensions<2>{});
   EXPECT_TRUE(get_is_square(M20{m22}));
   EXPECT_TRUE(get_is_square(M02{m22}));
   EXPECT_TRUE(get_is_square(M00{m22}));
+  EXPECT_TRUE(*get_is_square(M00{m22}) == 2);
   static_assert(get_is_square(m11_1));
+  static_assert(*get_is_square(m11_1) == Dimensions<1>{});
   EXPECT_TRUE(get_is_square(M10{m11_1}));
   EXPECT_TRUE(get_is_square(M01{m11_1}));
   EXPECT_TRUE(get_is_square(M00{m11_1}));
+  EXPECT_TRUE(*get_is_square(M00{m11_1}) == 1);
   static_assert(not get_is_square(m0));
 
   static_assert(one_by_one_matrix<M11>);
   static_assert(not one_by_one_matrix<M10>);
   static_assert(one_by_one_matrix<M10, Likelihood::maybe>);
+
+  static_assert(get_is_one_by_one(m11_1));
+  EXPECT_TRUE(get_is_one_by_one(M10{m11_1}));
+  EXPECT_TRUE(get_is_one_by_one(M01{m11_1}));
+  EXPECT_TRUE(get_is_one_by_one(M00{m11_1}));
+  static_assert(not get_is_one_by_one(m0));
 
   static_assert(dimension_size_of_index_is<M31, 1, 1>);
   static_assert(dimension_size_of_index_is<M01, 1, 1>);
@@ -1457,8 +1467,10 @@ TEST(eigen3, Eigen_SelfAdjointView)
   static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::SelfAdjointView<M03, Eigen::Lower>>, M03>);
   static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::SelfAdjointView<M00, Eigen::Lower>>, M00>);
 
-  static_assert(not has_dynamic_dimensions<dense_writable_matrix_t<SelfAdjointMatrix<M02>>>);
-  static_assert(not has_dynamic_dimensions<dense_writable_matrix_t<SelfAdjointMatrix<M20>>>);
+  static_assert(not has_dynamic_dimensions<dense_writable_matrix_t<Eigen::SelfAdjointView<M02, Eigen::Lower>>>);
+  static_assert(not has_dynamic_dimensions<dense_writable_matrix_t<Eigen::SelfAdjointView<M02, Eigen::Upper>>>);
+  static_assert(not has_dynamic_dimensions<dense_writable_matrix_t<Eigen::SelfAdjointView<M20, Eigen::Lower>>>);
+  static_assert(not has_dynamic_dimensions<dense_writable_matrix_t<Eigen::SelfAdjointView<M20, Eigen::Upper>>>);
 
   static_assert(constant_coefficient_v<Eigen::SelfAdjointView<Eigen::MatrixWrapper<C22_2>, Eigen::Upper>> == 2);
 

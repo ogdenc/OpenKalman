@@ -19,22 +19,6 @@
 #include <type_traits>
 
 
-/**
- * \namespace OpenKalman::Eigen3
- * \brief Namespace for all Eigen3-specific definitions.
- *
- * \internal
- * \namespace OpenKalman::Eigen3::internal
- * \brief Namespace for definitions internal to Eigen3-related functions.
- *
- * \namespace Eigen
- * \brief Eigen3's native namespace.
- *
- * \namespace Eigen::internal
- * \brief Eigen3's native namespace for internal definitions.
- */
-
-
 namespace OpenKalman::Eigen3
 {
 

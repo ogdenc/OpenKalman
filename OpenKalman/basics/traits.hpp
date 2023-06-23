@@ -111,27 +111,6 @@ namespace OpenKalman
     struct constant_status<T, std::enable_if_t<std::decay_t<T>::status == Likelihood::maybe>>
 #endif
       : std::integral_constant<Likelihood, Likelihood::maybe> {};
-
-
-    template<typename T>
-    static constexpr bool is_1_by_1_impl(const T& t, std::index_sequence<>) { return true; }
-
-    template<std::size_t I, std::size_t...Is, typename T>
-    static constexpr bool is_1_by_1_impl(const T& t, std::index_sequence<I, Is...>)
-    {
-      if constexpr (dimension_size_of_index_is<T, I, 1>) return is_1_by_1_impl(t, std::index_sequence<Is...>{});
-      else if (get_dimension_size_of(IndexTraits<T>::template get_index_descriptor<I>(t)) == 1) return is_1_by_1_impl(t, std::index_sequence<Is...>{});
-      else return false;
-    }
-
-    template<typename T>
-    static constexpr bool is_1_by_1(const T& t) { return is_1_by_1_impl(t, std::make_index_sequence<max_indices_of_v<T>>{}); }
-
-    template<typename T, std::size_t...is>
-    static constexpr auto get00element(const T& t, std::index_sequence<is...>)
-    {
-      return interface::Elements<std::decay_t<T>>::get(t, decltype(is){0}...);
-    }
   } // namespace detail
 
 
@@ -197,14 +176,14 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible T> requires detail::has_get_constant_interface<T, CompileTimeStatus::unknown> or
-    (one_by_one_matrix<T, Likelihood::maybe> and (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::unknown> or
-      (not detail::has_get_constant_interface<T> and not detail::has_get_constant_diagonal_interface<T>)))
+    (one_by_one_matrix<T, Likelihood::maybe> and
+      (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::unknown> or element_gettable<T, 0>))
   struct constant_coefficient<T>
 #else
   template<typename T>
   struct constant_coefficient<T, std::enable_if_t<detail::has_get_constant_interface<T, CompileTimeStatus::unknown> or
-    (one_by_one_matrix<T, Likelihood::maybe> and (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::unknown> or
-      (not detail::has_get_constant_interface<T> and not detail::has_get_constant_diagonal_interface<T>)))>>
+    (one_by_one_matrix<T, Likelihood::maybe> and
+      (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::unknown> or element_gettable<T, 0>))>>
 #endif
   {
   private:
@@ -220,11 +199,12 @@ namespace OpenKalman
         }
         else
         {
-          if constexpr (not one_by_one_matrix<T>) if (not detail::is_1_by_1(t)) throw std::logic_error {"Not a constant object"};
+          if constexpr (not one_by_one_matrix<T>) if (not get_is_one_by_one(t)) throw std::logic_error {"Not a constant object"};
+
           if constexpr (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::unknown>)
             return get_scalar_constant_value(Trait{t}.get_constant_diagonal());
           else
-            return detail::get00element(t, std::make_index_sequence<max_indices_of_v<T>>{});
+            return get_element(t);
         }
       }(t)} {};
 
@@ -305,14 +285,14 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible T> requires detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::unknown> or
-    (one_by_one_matrix<T, Likelihood::maybe> and (detail::has_get_constant_interface<T, CompileTimeStatus::unknown> or
-      (not detail::has_get_constant_diagonal_interface<T> and not detail::has_get_constant_interface<T>)))
+    (one_by_one_matrix<T, Likelihood::maybe> and
+      (detail::has_get_constant_interface<T, CompileTimeStatus::unknown> or element_gettable<T, 0>))
   struct constant_diagonal_coefficient<T>
 #else
   template<typename T>
   struct constant_diagonal_coefficient<T, std::enable_if_t<detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::unknown> or
-    (one_by_one_matrix<T, Likelihood::maybe> and (detail::has_get_constant_interface<T, CompileTimeStatus::unknown> or
-      (not detail::has_get_constant_diagonal_interface<T> and not detail::has_get_constant_interface<T>)))>>
+    (one_by_one_matrix<T, Likelihood::maybe> and
+      (detail::has_get_constant_interface<T, CompileTimeStatus::unknown> or element_gettable<T, 0>))>>
 #endif
   {
   private:
@@ -326,11 +306,11 @@ namespace OpenKalman
         }
         else
         {
-          if constexpr (not one_by_one_matrix<T>) if (not detail::is_1_by_1(t)) throw std::logic_error {"Not a diagonal constant object"};
+          if constexpr (not one_by_one_matrix<T>) if (not get_is_one_by_one(t)) throw std::logic_error {"Not a diagonal constant object"};
           if constexpr (detail::has_get_constant_interface<T>)
             return get_scalar_constant_value(Trait{t}.get_constant());
           else
-            return detail::get00element(t, std::make_index_sequence<max_indices_of_v<T>>{});
+            return get_element(t);
         }
       }(t)} {};
 

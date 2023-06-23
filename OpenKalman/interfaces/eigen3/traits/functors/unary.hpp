@@ -21,9 +21,6 @@
 
 namespace OpenKalman::Eigen3
 {
-  namespace EGI = Eigen::internal;
-
-
   namespace detail
   {
     template<typename Op, typename XprType, bool is_diag, typename Arg>
@@ -32,7 +29,7 @@ namespace OpenKalman::Eigen3
       if constexpr (is_diag)
       {
         if constexpr (std::is_default_constructible_v<Op> and constant_diagonal_matrix<XprType, CompileTimeStatus::known, Likelihood::maybe>)
-          return scalar_constant_operation {Op{}, constant_diagonal_coefficient {arg.nestedExpression()}};
+          return internal::scalar_constant_operation {Op{}, constant_diagonal_coefficient {arg.nestedExpression()}};
         else if constexpr (constant_diagonal_matrix<XprType, CompileTimeStatus::any, Likelihood::maybe>)
           return arg.functor()(constant_diagonal_coefficient {arg.nestedExpression()}());
         else
@@ -41,7 +38,7 @@ namespace OpenKalman::Eigen3
       else
       {
         if constexpr (std::is_default_constructible_v<Op> and constant_matrix<XprType, CompileTimeStatus::known, Likelihood::maybe>)
-          return scalar_constant_operation {Op{}, constant_coefficient {arg.nestedExpression()}};
+          return internal::scalar_constant_operation {Op{}, constant_coefficient {arg.nestedExpression()}};
         else if constexpr (constant_matrix<XprType, CompileTimeStatus::any, Likelihood::maybe>)
           return arg.functor()(constant_coefficient {arg.nestedExpression()}());
         else
@@ -70,7 +67,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_opposite_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_opposite_op<Scalar>, XprType>
   {
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -86,7 +83,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_abs_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_abs_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_abs(arg); } };
 
@@ -104,15 +101,15 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_score_coeff_op<Scalar>, XprType>
-    : FunctorTraits<EGI::scalar_abs_op<Scalar>, XprType> {};
+  struct FunctorTraits<Eigen::internal::scalar_score_coeff_op<Scalar>, XprType>
+    : FunctorTraits<Eigen::internal::scalar_abs_op<Scalar>, XprType> {};
 
 
   // abs_knowing_score not implemented because it is not a true Eigen functor.
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_abs2_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_abs2_op<Scalar>, XprType>
   {
     struct Op
     {
@@ -142,7 +139,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_conjugate_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_conjugate_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_conj(arg); } };
 
@@ -160,7 +157,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_arg_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_arg_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept {
       return internal::constexpr_atan2(internal::constexpr_imag(arg), internal::constexpr_real(arg)); } };
@@ -180,7 +177,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename NewType, typename XprType>
-  struct FunctorTraits<EGI::scalar_cast_op<Scalar, NewType>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_cast_op<Scalar, NewType>, XprType>
   {
     struct Op
     {
@@ -208,7 +205,7 @@ namespace OpenKalman::Eigen3
 
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
   template<typename Scalar, int N, typename XprType>
-  struct FunctorTraits<EGI::scalar_shift_right_op<Scalar, N>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_shift_right_op<Scalar, N>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return arg >> N; } };
 
@@ -226,7 +223,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, int N, typename XprType>
-  struct FunctorTraits<EGI::scalar_shift_left_op<Scalar, N>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_shift_left_op<Scalar, N>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return arg << N; } };
 
@@ -245,7 +242,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_real_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_real_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_real(arg); } };
 
@@ -263,7 +260,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_imag_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_imag_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_imag(arg); } };
 
@@ -281,17 +278,17 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_real_ref_op<Scalar>, XprType>
-    : FunctorTraits<EGI::scalar_real_op<Scalar>, XprType> {};
+  struct FunctorTraits<Eigen::internal::scalar_real_ref_op<Scalar>, XprType>
+    : FunctorTraits<Eigen::internal::scalar_real_op<Scalar>, XprType> {};
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_imag_ref_op<Scalar>, XprType>
-    : FunctorTraits<EGI::scalar_imag_op<Scalar>, XprType> {};
+  struct FunctorTraits<Eigen::internal::scalar_imag_ref_op<Scalar>, XprType>
+    : FunctorTraits<Eigen::internal::scalar_imag_op<Scalar>, XprType> {};
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_exp_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_exp_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_exp(arg); } };
 
@@ -311,7 +308,7 @@ namespace OpenKalman::Eigen3
 
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_expm1_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_expm1_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_expm1(arg); } };
 
@@ -330,7 +327,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_log_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_log_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_log(arg); } };
 
@@ -349,7 +346,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_log1p_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_log1p_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_log1p(arg); } };
 
@@ -367,7 +364,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_log10_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_log10_op<Scalar>, XprType>
   {
     struct Op
     {
@@ -394,7 +391,7 @@ namespace OpenKalman::Eigen3
 
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_log2_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_log2_op<Scalar>, XprType>
   {
     struct Op
     {
@@ -421,7 +418,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_sqrt_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_sqrt_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_sqrt(arg); } };
 
@@ -439,7 +436,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_rsqrt_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_rsqrt_op<Scalar>, XprType>
   {
     struct Op
     {
@@ -461,7 +458,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_cos_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_cos_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_cos(arg); } };
 
@@ -480,7 +477,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_sin_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_sin_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_sin(arg); } };
 
@@ -498,7 +495,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_tan_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_tan_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_tan(arg); } };
 
@@ -516,7 +513,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_acos_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_acos_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_acos(arg); } };
 
@@ -535,7 +532,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_asin_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_asin_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_asin(arg); } };
 
@@ -553,7 +550,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_atan_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_atan_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return internal::constexpr_atan(arg); } };
 
@@ -571,7 +568,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_tanh_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_tanh_op<Scalar>, XprType>
   {
     struct Op
     {
@@ -593,7 +590,7 @@ namespace OpenKalman::Eigen3
 
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_atanh_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_atanh_op<Scalar>, XprType>
   {
     struct Op
     {
@@ -615,7 +612,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_sinh_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_sinh_op<Scalar>, XprType>
   {
     struct Op
     {
@@ -637,7 +634,7 @@ namespace OpenKalman::Eigen3
 
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_asinh_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_asinh_op<Scalar>, XprType>
   {
     struct Op
     {
@@ -659,7 +656,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_cosh_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_cosh_op<Scalar>, XprType>
   {
     struct Op
     {
@@ -685,7 +682,7 @@ namespace OpenKalman::Eigen3
 
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_acosh_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_acosh_op<Scalar>, XprType>
   {
     struct Op
     {
@@ -708,7 +705,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_inverse_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_inverse_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return static_cast<Scalar>(1) / arg; } };
 
@@ -727,7 +724,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_square_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_square_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return arg * arg; } };
 
@@ -745,7 +742,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_cube_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_cube_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return arg * arg * arg; } };
 
@@ -762,17 +759,17 @@ namespace OpenKalman::Eigen3
   };
 
 
-  // EGI::scalar_round_op not implemented
-  // EGI::scalar_floor_op not implemented
-  // EGI::scalar_rint_op not implemented (Eigen 3.4+)
-  // EGI::scalar_ceil_op not implemented
-  // EGI::scalar_isnan_op not implemented
-  // EGI::scalar_isinf_op not implemented
-  // EGI::scalar_isfinite_op not implemented
+  // Eigen::internal::scalar_round_op not implemented
+  // Eigen::internal::scalar_floor_op not implemented
+  // Eigen::internal::scalar_rint_op not implemented (Eigen 3.4+)
+  // Eigen::internal::scalar_ceil_op not implemented
+  // Eigen::internal::scalar_isnan_op not implemented
+  // Eigen::internal::scalar_isinf_op not implemented
+  // Eigen::internal::scalar_isfinite_op not implemented
 
 
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_boolean_not_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_boolean_not_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept { return not static_cast<bool>(arg); } };
 
@@ -790,12 +787,12 @@ namespace OpenKalman::Eigen3
   };
 
 
-  // EGI::scalar_sign_op not implemented
+  // Eigen::internal::scalar_sign_op not implemented
 
 
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
   template<typename Scalar, typename XprType>
-  struct FunctorTraits<EGI::scalar_logistic_op<Scalar>, XprType>
+  struct FunctorTraits<Eigen::internal::scalar_logistic_op<Scalar>, XprType>
   {
     struct Op { constexpr auto operator()(Scalar arg) const noexcept
     {
@@ -818,9 +815,9 @@ namespace OpenKalman::Eigen3
 
 
   template<typename BinaryOp, typename XprType>
-  struct FunctorTraits<EGI::bind1st_op<BinaryOp>, XprType>
+  struct FunctorTraits<Eigen::internal::bind1st_op<BinaryOp>, XprType>
   {
-    using CFunctor = EGI::scalar_constant_op<scalar_type_of_t<XprType>>;
+    using CFunctor = Eigen::internal::scalar_constant_op<scalar_type_of_t<XprType>>;
     using ConstantType = Eigen::CwiseNullaryOp<CFunctor, XprType>;
     using BinaryOpType = Eigen::CwiseBinaryOp<BinaryOp, ConstantType, XprType>;
 
@@ -840,9 +837,9 @@ namespace OpenKalman::Eigen3
 
 
   template<typename BinaryOp, typename XprType>
-  struct FunctorTraits<EGI::bind2nd_op<BinaryOp>, XprType>
+  struct FunctorTraits<Eigen::internal::bind2nd_op<BinaryOp>, XprType>
   {
-    using CFunctor = EGI::scalar_constant_op<scalar_type_of_t<XprType>>;
+    using CFunctor = Eigen::internal::scalar_constant_op<scalar_type_of_t<XprType>>;
     using ConstantType = Eigen::CwiseNullaryOp<CFunctor, XprType>;
     using BinaryOpType = Eigen::CwiseBinaryOp<BinaryOp, XprType, ConstantType>;
 

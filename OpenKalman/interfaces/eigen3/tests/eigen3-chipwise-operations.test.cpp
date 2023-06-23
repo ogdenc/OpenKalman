@@ -271,11 +271,11 @@ TEST(eigen3, chipwise_binary_w_indices)
      8,  7,  6,  5,
      4,  3,  1,  0);
 
-  const M33 d1 = to_diagonal(make_dense_writable_matrix_from<M31>(1, 2, 3));
-  const M33 d2 = to_diagonal(make_dense_writable_matrix_from<M31>(2, 3, 4));
-  const M44 e1 = to_diagonal(make_dense_writable_matrix_from<M41>(1, 2, 3, 4));
-  const M44 e2 = to_diagonal(make_dense_writable_matrix_from<M41>(2, 3, 4, 5));
-  const M44 e3 = to_diagonal(make_dense_writable_matrix_from<M41>(3, 4, 5, 6));
+  const M33 d1 {make_dense_writable_matrix_from<M31>(1, 2, 3).asDiagonal()};
+  const M33 d2 {make_dense_writable_matrix_from<M31>(2, 3, 4).asDiagonal()};
+  const M44 e1 {make_dense_writable_matrix_from<M41>(1, 2, 3, 4).asDiagonal()};
+  const M44 e2 {make_dense_writable_matrix_from<M41>(2, 3, 4, 5).asDiagonal()};
+  const M44 e3 {make_dense_writable_matrix_from<M41>(3, 4, 5, 6).asDiagonal()};
 
   const auto m34p = d1 * m34a * mt4 + d2 * m34b * mt4;
   const auto m34q = mt3 * m34a * e2 + mt3 * m34b * e1;

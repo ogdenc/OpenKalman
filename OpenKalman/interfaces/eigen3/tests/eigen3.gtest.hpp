@@ -14,9 +14,9 @@
 #ifndef EIGEN3_GTEST_HPP
 #define EIGEN3_GTEST_HPP
 
-#include "basics/tests/tests.hpp"
-#include "special-matrices/special-matrices.hpp"
+//#include "special-matrices/special-matrices.hpp"
 #include "interfaces/eigen3/eigen3.hpp"
+#include "basics/tests/tests.hpp"
 
 
 namespace OpenKalman::test

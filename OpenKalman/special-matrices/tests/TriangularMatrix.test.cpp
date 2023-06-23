@@ -24,12 +24,14 @@ namespace
 {
   using cdouble = std::complex<double>;
 
+  using M11 = eigen_matrix_t<double, 1, 1>;
+  using M10 = eigen_matrix_t<double, 1, dynamic_size>;
+  using M01 = eigen_matrix_t<double, dynamic_size, 1>;
+  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
   using M21 = eigen_matrix_t<double, 2, 1>;
   using M22 = eigen_matrix_t<double, 2, 2>;
   using M20 = eigen_matrix_t<double, 2, dynamic_size>;
   using M02 = eigen_matrix_t<double, dynamic_size, 2>;
-  using M01 = eigen_matrix_t<double, dynamic_size, 1>;
-  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
 
   using CM2 = eigen_matrix_t<std::complex<double>, 2, 2>;
   using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
@@ -49,7 +51,7 @@ namespace
 }
 
 
-TEST(eigen3, TriangularMatrix_static_checks)
+TEST(special_matrices, TriangularMatrix_static_checks)
 {
   static_assert(writable<Tl<M22>>);
   static_assert(writable<Tl<M22&>>);
@@ -134,7 +136,7 @@ TEST(eigen3, TriangularMatrix_static_checks)
 }
 
 
-TEST(eigen3, TriangularMatrix_class)
+TEST(special_matrices, TriangularMatrix_class)
 {
   M22 ml, mu;
   ml << 3, 0, 1, 3;
@@ -368,7 +370,7 @@ TEST(eigen3, TriangularMatrix_class)
 }
 
 
-TEST(eigen3, TriangularMatrix_subscripts)
+TEST(special_matrices, TriangularMatrix_subscripts)
 {
   static_assert(element_gettable<Lower, 2>);
   static_assert(not element_gettable<Lower, 1>);
@@ -534,7 +536,7 @@ TEST(eigen3, TriangularMatrix_subscripts)
 }
 
 
-TEST(eigen3, TriangularMatrix_view)
+TEST(special_matrices, TriangularMatrix_view)
 {
   Lower l1 {3, 0, 1, 3};
   EXPECT_TRUE(is_near(M22 {l1.view()}, mat22(3, 0, 1, 3)));
@@ -570,7 +572,7 @@ TEST(eigen3, TriangularMatrix_view)
 }
 
 
-TEST(eigen3, TriangularMatrix_make)
+TEST(special_matrices, TriangularMatrix_make)
 {
   static_assert(zero_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>(make_zero_matrix_like<M22>()))>);
   static_assert(zero_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>(make_zero_matrix_like<M22>()))>);
@@ -589,7 +591,7 @@ TEST(eigen3, TriangularMatrix_make)
 }
 
 
-TEST(eigen3, TriangularMatrix_traits)
+TEST(special_matrices, TriangularMatrix_traits)
 {
   M22 ml, mu;
   ml << 3, 0, 1, 3;
@@ -619,7 +621,7 @@ TEST(eigen3, TriangularMatrix_traits)
 }
 
 
-TEST(eigen3, TriangularMatrix_overloads)
+TEST(special_matrices, TriangularMatrix_overloads)
 {
   M22 ml, mu;
   ml << 3, 0, 1, 3;
@@ -713,36 +715,24 @@ TEST(eigen3, TriangularMatrix_overloads)
   EXPECT_NEAR(trace(Lower {3., 0, 1, 3}), 6, 1e-6);
   EXPECT_NEAR(trace(Upper {3., 1, 0, 3}), 6, 1e-6);
   //
-  EXPECT_TRUE(is_near(solve(Lower {3., 0, 1, 3}, make_eigen_matrix<double, 2, 1>(3, 7)), make_eigen_matrix(1., 2)));
-  EXPECT_TRUE(is_near(solve(Upper {3., 1, 0, 3}, make_eigen_matrix<double, 2, 1>(3, 9)), make_eigen_matrix(0., 3)));
-  //
   EXPECT_TRUE(is_near(average_reduce<1>(Lower {3., 0, 1, 3}), make_eigen_matrix(1.5, 2)));
   EXPECT_TRUE(is_near(average_reduce<1>(Upper {3., 1, 0, 3}), make_eigen_matrix(2, 1.5)));
   //
   EXPECT_TRUE(is_near(average_reduce<0>(Lower {3., 0, 1, 3}), make_eigen_matrix<double, 1, 2>(2, 1.5)));
   EXPECT_TRUE(is_near(average_reduce<0>(Upper {3., 1, 0, 3}), make_eigen_matrix<double, 1, 2>(1.5, 2)));
-  //
-  auto sl1 = Lower {3., 0, 1, 3};
-  rank_update(sl1, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4);
-  EXPECT_TRUE(is_near(sl1, mat22(5., 0, 2.2, std::sqrt(25.16))));
-  auto su1 = Upper {3., 1, 0, 3};
-  rank_update(su1, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4);
-  EXPECT_TRUE(is_near(su1, mat22(5., 2.2, 0, std::sqrt(25.16))));
-  //
-  const auto sl2 = Lower {3., 0, 1, 3};
-  EXPECT_TRUE(is_near(rank_update(sl2, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4), mat22(5., 0, 2.2, std::sqrt(25.16))));
-  const auto su2 = Upper {3., 1, 0, 3};
-  EXPECT_TRUE(is_near(rank_update(su2, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4), mat22(5., 2.2, 0, std::sqrt(25.16))));
-  //
-  EXPECT_TRUE(is_near(rank_update(Lower {3., 0, 1, 3}, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4), mat22(5., 0, 2.2, std::sqrt(25.16))));
-  EXPECT_TRUE(is_near(rank_update(Upper {3., 1, 0, 3}, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4), mat22(5., 2.2, 0, std::sqrt(25.16))));
-  EXPECT_TRUE(is_near(rank_update(Diagonal {3., 3}, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4), mat22(5., 0, 1.6, std::sqrt(26.44))));
-  EXPECT_TRUE(is_near(rank_update(Diagonal2 {3., 3}, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4), mat22(5., 0, 1.6, std::sqrt(26.44))));
-  EXPECT_TRUE(is_near(rank_update(Diagonal3 {3., 3}, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4), mat22(5., 0, 1.6, std::sqrt(26.44))));
+}
+TEST(special_matrices, TriangularMatrix_solve)
+{
+  EXPECT_TRUE(is_near(solve(Lower {3., 0, 1, 3}, make_eigen_matrix<double, 2, 1>(3, 7)), make_eigen_matrix(1., 2)));
+  EXPECT_TRUE(is_near(solve(Upper {3., 1, 0, 3}, make_eigen_matrix<double, 2, 1>(3, 9)), make_eigen_matrix(0., 3)));
   //
   EXPECT_TRUE(is_near(solve(Lower {3., 0, 1, 3}, make_eigen_matrix<double, 2, 1>(3, 7)), make_eigen_matrix<double, 2, 1>(1, 2)));
   EXPECT_TRUE(is_near(solve(Upper {3., 1, 0, 3}, make_eigen_matrix<double, 2, 1>(3, 9)), make_eigen_matrix<double, 2, 1>(0, 3)));
-  //
+}
+
+
+TEST(special_matrices, TriangularMatrix_decompositions)
+{
   EXPECT_TRUE(is_near(LQ_decomposition(Lower {3., 0, 1, 3}), mat22(3., 0, 1, 3)));
   EXPECT_TRUE(is_near(QR_decomposition(Upper {3., 1, 0, 3}), mat22(3., 1, 0, 3)));
   EXPECT_TRUE(is_near(Cholesky_square(LQ_decomposition(Upper {3., 1, 0, 3})), mat22(10, 3, 3, 9)));
@@ -750,7 +740,7 @@ TEST(eigen3, TriangularMatrix_overloads)
 }
 
 
-TEST(eigen3, TriangularMatrix_blocks_lower)
+TEST(special_matrices, TriangularMatrix_blocks_lower)
 {
   auto m0 = TriangularMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::lower> {1, 0, 0,
                                                                                      2, 4, 0,
@@ -873,7 +863,7 @@ TEST(eigen3, TriangularMatrix_blocks_lower)
 }
 
 
-TEST(eigen3, TriangularMatrix_blocks_upper)
+TEST(special_matrices, TriangularMatrix_blocks_upper)
 {
   auto m0 = TriangularMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::upper> {1, 2, 3,
                                                                                      0, 4, 5,
@@ -985,7 +975,7 @@ TEST(eigen3, TriangularMatrix_blocks_upper)
 }
 
 
-TEST(eigen3, TriangularMatrix_arithmetic_lower)
+TEST(special_matrices, TriangularMatrix_arithmetic_lower)
 {
   auto m1 = Lower {4., 0, 5, 6};
   auto m2 = Lower {1., 0, 2, 3};
@@ -1035,7 +1025,7 @@ TEST(eigen3, TriangularMatrix_arithmetic_lower)
 }
 
 
-TEST(eigen3, TriangularMatrix_arithmetic_upper)
+TEST(special_matrices, TriangularMatrix_arithmetic_upper)
 {
   auto m1 = Upper {4., 5, 0, 6};
   auto m2 = Upper {1., 2, 0, 3};
@@ -1077,7 +1067,7 @@ TEST(eigen3, TriangularMatrix_arithmetic_upper)
 }
 
 
-TEST(eigen3, TriangularMatrix_arithmetic_mixed)
+TEST(special_matrices, TriangularMatrix_arithmetic_mixed)
 {
   auto m_upper = Upper {4., 5, 0, 6};
   auto m_lower = Lower {1., 0, 2, 3};
@@ -1090,7 +1080,7 @@ TEST(eigen3, TriangularMatrix_arithmetic_mixed)
 }
 
 
-TEST(eigen3, TriangularMatrix_references)
+TEST(special_matrices, TriangularMatrix_references)
 {
   M22 m, n;
   m << 2, 0, 1, 2;

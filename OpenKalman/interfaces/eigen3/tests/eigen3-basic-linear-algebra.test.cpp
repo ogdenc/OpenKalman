@@ -432,7 +432,7 @@ TEST(eigen3, contract)
   auto dw3b = Eigen::DiagonalWrapper{m31b};
   auto dw0_3b = Eigen::DiagonalWrapper{m01_3b};
 
-  auto d3c = DiagonalMatrix<M31> {10, 18, 28};
+  M33 d3c {make_dense_writable_matrix_from<M31>(10, 18, 28).asDiagonal()};
 
   EXPECT_TRUE(is_near(contract(dm3a, dm3b), d3c));
   EXPECT_TRUE(is_near(contract(EigenWrapper {dm3a}, EigenWrapper {dm3b}), d3c));

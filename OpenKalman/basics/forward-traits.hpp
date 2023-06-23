@@ -358,6 +358,37 @@ namespace OpenKalman
     (number_of_dynamic_indices_v<T> > 0);
 
 
+  // ------------------------------ //
+  //   dimension_size_of_index_is   //
+  // ------------------------------ //
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, std::size_t index, std::size_t value, typename = void>
+    struct dimension_size_of_index_is_impl : std::false_type {};
+
+    template<typename T, std::size_t index, std::size_t value>
+    struct dimension_size_of_index_is_impl<T, index, value, std::enable_if_t<
+      index_dimension_of<T, index>::value == value>> : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief Specifies that a given index of T has a specified size.
+   * \details If <code>b == Likelihood::maybe</code>, then the concept will apply if there is a possibility that
+   * the specified index of <code>T</code> is <code>value</code>.
+   */
+  template<typename T, std::size_t index, std::size_t value, Likelihood b = Likelihood::definitely>
+#ifdef __cpp_concepts
+  concept dimension_size_of_index_is = (index_dimension_of_v<T, index> == value) or
+#else
+  constexpr bool dimension_size_of_index_is = detail::dimension_size_of_index_is_impl<T, index, value>::value or
+#endif
+    (b == Likelihood::maybe and (value == dynamic_size or dynamic_dimension<T, index>));
+
+
   // --------------------- //
   //  max_tensor_order_of  //
   // --------------------- //
@@ -368,8 +399,8 @@ namespace OpenKalman
     constexpr std::size_t max_tensor_order_of_impl()
     {
       if constexpr (i == 0) return 0;
-      else if constexpr (index_dimension_of_v<T, i - 1> == 0) return 0;
-      else if constexpr (index_dimension_of_v<T, i - 1> == 1) return max_tensor_order_of_impl<i - 1, T>();
+      else if constexpr (dimension_size_of_index_is<T, i - 1, 0>) return 0;
+      else if constexpr (dimension_size_of_index_is<T, i - 1, 1>) return max_tensor_order_of_impl<i - 1, T>();
       else return 1 + max_tensor_order_of_impl<i - 1, T>();
     }
   }
@@ -944,7 +975,7 @@ namespace OpenKalman
     template<typename T, Likelihood b, std::size_t...I>
     constexpr bool has_1_by_1_dims(std::index_sequence<I...>)
     {
-      return (((b != Likelihood::definitely and dynamic_dimension<T, I>) or index_dimension_of_v<T, I> == 1) and ...);
+      return (dimension_size_of_index_is<T, I, 1, b> and ...);
     }
   } // namespace detail
 
@@ -963,6 +994,39 @@ namespace OpenKalman
   constexpr bool one_by_one_matrix = indexible<T> and (max_indices_of_v<T> > 0) and
     (detail::has_is_one_by_one_interface<T, b>::value ? detail::is_one_by_one_matrix<T, b>::value :
       detail::has_1_by_1_dims<T, b>(std::make_index_sequence<max_indices_of_v<T>>{}));
+#endif
+
+
+  // ------------------ //
+  //  diagonal_adapter  //
+  // ------------------ //
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct is_diagonal_adapter : std::false_type {};
+
+    template<typename T>
+    struct is_diagonal_adapter<T, std::enable_if_t<interface::TriangularTraits<std::decay_t<T>>::is_diagonal_adapter>>
+      : std::true_type {};
+  }
+#endif
+
+
+  /**
+   * \brief Specifies that a type is a diagonal adapter.
+   * \details This is a wrapper that takes elements of a matrix or tensor and distributes them along a diagonal.
+   * The rest of the elements are zero.
+   * \tparam T A matrix or tensor.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept diagonal_adapter = indexible<T> and interface::TriangularTraits<std::decay_t<T>>::is_diagonal_adapter and
+    has_nested_matrix<T> and (max_indices_of_v<T> >= 2);
+#else
+  constexpr bool diagonal_adapter = indexible<T> and detail::is_diagonal_adapter<T>::value and has_nested_matrix<T> and
+    (max_indices_of_v<T> >= 2);
 #endif
 
 
@@ -1008,21 +1072,13 @@ namespace OpenKalman
       : std::true_type {};
 
 
-    template<typename T, typename = void>
-    struct is_diagonal_adapter : std::false_type {};
-
-    template<typename T>
-    struct is_diagonal_adapter<T, std::enable_if_t<interface::TriangularTraits<std::decay_t<T>>::is_diagonal_adapter>>
-      : std::true_type {};
-
-
     template<typename T, Likelihood b, typename = void>
     struct is_square_matrix : std::false_type {};
 
     template<typename T, Likelihood b>
     struct is_square_matrix<T, b, std::enable_if_t<indexible<T>>> : std::bool_constant<
       (b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
-      (max_indices_of_v<T> != 1 or dynamic_dimension<T, 0> or equivalent_to<index_descriptor_of_t<T, 0>, Axis>) and
+      (max_indices_of_v<T> != 1 or dimension_size_of_index_is<T, 0, 1, Likelihood::maybe>) and
       (max_indices_of_v<T> < 2 or is_maybe_square_matrix<T>::value)> {};
 
 
@@ -1046,17 +1102,16 @@ namespace OpenKalman
       interface::IndexTraits<std::decay_t<T>>::template is_square<b>) and
     (requires { interface::IndexTraits<std::decay_t<T>>::template is_square<b>; } or
       ((b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
-        (max_indices_of_v<T> != 1 or dynamic_dimension<T, 0> or equivalent_to<index_descriptor_of_t<T, 0>, Axis>) and
+        (max_indices_of_v<T> != 1 or dimension_size_of_index_is<T, 0, 1, Likelihood::maybe>) and
         (max_indices_of_v<T> < 2 or detail::is_maybe_square_matrix<T>::value)) or
       (b == Likelihood::definitely and
-        (interface::TriangularTraits<std::decay_t<T>>::template is_triangular<TriangleType::any, b> or
-          interface::TriangularTraits<std::decay_t<T>>::is_diagonal_adapter))));
+        (interface::TriangularTraits<std::decay_t<T>>::template is_triangular<TriangleType::any, b> or diagonal_adapter<T>))));
 #else
   constexpr bool square_matrix = one_by_one_matrix<T, b> or
     ((not detail::has_is_square_interface<T, b>::value or detail::is_explicitly_square<T, b>::value) and
     (detail::has_is_square_interface<T, b>::value or detail::is_square_matrix<T, b>::value or
       (b == Likelihood::definitely and (detail::is_triangular_matrix<std::decay_t<T>, TriangleType::any, b>::value or
-         detail::is_diagonal_adapter<T>::value))));
+         diagonal_adapter<T>))));
 #endif
 
 
@@ -1072,11 +1127,11 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept triangular_matrix = indexible<T> and
     ((interface::TriangularTraits<std::decay_t<T>>::template is_triangular<t, square_matrix<T> ? Likelihood::maybe : b> and square_matrix<T, b>) or
-    interface::TriangularTraits<std::decay_t<T>>::is_diagonal_adapter or constant_diagonal_matrix<T, CompileTimeStatus::any, b>);
+    diagonal_adapter<T> or constant_diagonal_matrix<T, CompileTimeStatus::any, b>);
 #else
   constexpr bool triangular_matrix =
     ((detail::is_triangular_matrix<T, t, square_matrix<T> ? Likelihood::maybe : b>::value and square_matrix<T, b>) or
-    detail::is_diagonal_adapter<T>::value or constant_diagonal_matrix<T, CompileTimeStatus::any, b>);
+    diagonal_adapter<T> or constant_diagonal_matrix<T, CompileTimeStatus::any, b>);
 #endif
 
 
@@ -1124,6 +1179,8 @@ namespace OpenKalman
   /**
    * \brief Specifies that a type is a triangular adapter of triangle type triangle_type.
    * \details If T has a dynamic shape, it is not guaranteed to be triangular because it could be non-square.
+   * \details A triangular adapter is necessarily triangular if it is a square matrix. If it is not a square matrix,
+   * only the truncated square portion of the matrix would be triangular.
    * \tparam T A matrix or tensor.
    */
   template<typename T>
@@ -1141,6 +1198,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is a diagonal matrix.
+   * \note A \ref diagonal_adapter is definitely a diagonal matrix.
    */
   template<typename T, Likelihood b = Likelihood::definitely>
 #ifdef __cpp_concepts
@@ -1149,26 +1207,6 @@ namespace OpenKalman
   constexpr bool diagonal_matrix =
 #endif
     triangular_matrix<T, TriangleType::diagonal, b>;
-
-
-  // ------------------ //
-  //  diagonal_adapter  //
-  // ------------------ //
-
-  /**
-   * \brief Specifies that a type is a diagonal adapter.
-   * \details This is a wrapper that takes elements of a matrix or tensor and distributes them along a diagonal.
-   * The rest of the elements are zero.
-   * \tparam T A matrix or tensor.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept diagonal_adapter = indexible<T> and interface::TriangularTraits<std::decay_t<T>>::is_diagonal_adapter and
-    has_nested_matrix<T> and (max_indices_of_v<T> >= 2);
-#else
-  constexpr bool diagonal_adapter = indexible<T> and detail::is_diagonal_adapter<T>::value and has_nested_matrix<T> and
-    (max_indices_of_v<T> >= 2);
-#endif
 
 
   // ------------------ //
@@ -1237,7 +1275,8 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is a hermitian matrix adapter of a particular type.
-   * \details If T has a dynamic shape, it is not guaranteed to be hermitian because it could be non-square.
+   * \details A hermitian adapter is necessarily hermitian if it is a square matrix. If it is not a square matrix,
+   * only the truncated square portion of the matrix would be hermitian.
    * \tparam T A matrix or tensor.
    * \tparam t The HermitianAdapterType of T.
    */
@@ -1277,37 +1316,6 @@ namespace OpenKalman
    */
   template<typename T, typename...Ts>
   constexpr auto hermitian_adapter_type_of_v = hermitian_adapter_type_of<T, Ts...>::value;
-
-
-  // ------------------------------ //
-  //   dimension_size_of_index_is   //
-  // ------------------------------ //
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, std::size_t index, std::size_t value, typename = void>
-    struct dimension_size_of_index_is_impl : std::false_type {};
-
-    template<typename T, std::size_t index, std::size_t value>
-    struct dimension_size_of_index_is_impl<T, index, value, std::enable_if_t<
-      index_dimension_of<T, index>::value == value>> : std::true_type {};
-  }
-#endif
-
-
-  /**
-   * \brief Specifies that a given index of T has a specified size.
-   * \details If <code>b == Likelihood::maybe</code>, then the concept will apply if there is a possibility that
-   * the specified index of <code>T</code> is <code>value</code>.
-   */
-  template<typename T, std::size_t index, std::size_t value, Likelihood b = Likelihood::definitely>
-#ifdef __cpp_concepts
-  concept dimension_size_of_index_is = (index_dimension_of_v<T, index> == value) or
-#else
-  constexpr bool dimension_size_of_index_is = detail::dimension_size_of_index_is_impl<T, index, value>::value or
-#endif
-    (b == Likelihood::maybe and (value == dynamic_size or dynamic_dimension<T, index>));
 
 
   // ------------------------- //
@@ -1703,46 +1711,20 @@ namespace OpenKalman
     struct is_element_gettable<T, std::void_t<
         decltype(interface::Elements<std::decay_t<T>>::get(std::declval<T>(), static_cast<const std::size_t>(std::declval<I>())...))>, I...>
       : std::true_type {};
-
-
-    template<typename T, typename = void, typename...I>
-    struct is_element_settable : std::false_type {};
-
-    template<typename T, typename...I>
-    struct is_element_settable<T, std::enable_if_t<(sizeof...(I) <= max_indices_of_v<T>) and
-        std::is_same<decltype(interface::Elements<std::decay_t<T>>::set(std::declval<T&&>(),
-          std::declval<const typename scalar_type_of<T>::type&>(), static_cast<const std::size_t>(std::declval<I>())...)), T&&>::value>, I...>
-      : std::true_type {};
   } // namespace internal
 #endif
 
   namespace detail
   {
+    template<typename T, std::size_t...Is>
+    constexpr bool element_gettable_impl(std::index_sequence<Is...>)
+    {
 #ifdef __cpp_lib_concepts
-    template<typename T, std::size_t...Is>
-    constexpr bool element_gettable_impl(std::index_sequence<Is...>)
-    {
       return requires(T t) { interface::Elements<std::decay_t<T>>::get(t, Is...); };
-    }
-
-    template<typename T, std::size_t...Is>
-    constexpr bool element_settable_impl(std::index_sequence<Is...>)
-    {
-      return requires(T t, const scalar_type_of_t<T>& s) { interface::Elements<std::decay_t<T>>::set(t, s, Is...); };
-    }
 #else
-    template<typename T, std::size_t...Is>
-    constexpr bool element_gettable_impl(std::index_sequence<Is...>)
-    {
       return internal::is_element_gettable<T, void, decltype(Is)...>::value;
-    }
-
-    template<typename T, std::size_t...Is>
-    constexpr bool element_settable_impl(std::index_sequence<Is...>)
-    {
-      return internal::is_element_settable<T, void, decltype(Is)...>::value;
-    }
 #endif
+    }
   }// namespace detail
 
 
@@ -1757,13 +1739,43 @@ namespace OpenKalman
 #else
   constexpr bool element_gettable =
 #endif
-    (N > 0) and (N <= max_indices_of_v<T>) and (detail::element_gettable_impl<T>(std::make_index_sequence<N>{}) or
-      (N == 1 and diagonal_matrix<T> and detail::element_gettable_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})));
+    (N <= max_indices_of_v<T> and detail::element_gettable_impl<T>(std::make_index_sequence<N>{})) or
+    ((N == 0 or N == max_indices_of_v<T>) and constant_matrix<T, CompileTimeStatus::any, Likelihood::maybe>) or
+    (detail::element_gettable_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) and
+      ((N == 1 and diagonal_matrix<T, Likelihood::maybe>) or (N == 0 and one_by_one_matrix<T, Likelihood::maybe>)));
 
 
   // ------------------ //
   //  element_settable  //
   // ------------------ //
+
+#ifndef __cpp_lib_concepts
+  namespace internal
+  {
+    template<typename T, typename = void, typename...I>
+    struct is_element_settable : std::false_type {};
+
+    template<typename T, typename...I>
+    struct is_element_settable<T, std::enable_if_t<(sizeof...(I) <= max_indices_of_v<T>) and
+        std::is_same<decltype(interface::Elements<std::decay_t<T>>::set(std::declval<T&&>(),
+          std::declval<const typename scalar_type_of<T>::type&>(), static_cast<const std::size_t>(std::declval<I>())...)), T&&>::value>, I...>
+      : std::true_type {};
+  } // namespace internal
+#endif
+
+  namespace detail
+  {
+    template<typename T, std::size_t...Is>
+    constexpr bool element_settable_impl(std::index_sequence<Is...>)
+    {
+#ifdef __cpp_lib_concepts
+      return requires(T t, const scalar_type_of_t<T>& s) { interface::Elements<std::decay_t<T>>::set(t, s, Is...); };
+#else
+      return internal::is_element_settable<T, void, decltype(Is)...>::value;
+#endif
+    }
+  }// namespace detail
+
 
   /**
    * \brief Specifies that a type has elements that can be set with N number of indices (of type std::size_t).
@@ -1776,9 +1788,10 @@ namespace OpenKalman
 #else
   constexpr bool element_settable =
 #endif
-    (N > 0) and (N <= max_indices_of_v<T>) and (not std::is_const_v<std::remove_reference_t<T>>) and
-    (detail::element_settable_impl<T>(std::make_index_sequence<N>{}) or
-      (N == 1 and diagonal_matrix<T> and detail::element_settable_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{})));
+    (not std::is_const_v<std::remove_reference_t<T>>) and
+    ((N <= max_indices_of_v<T> and detail::element_settable_impl<T>(std::make_index_sequence<N>{})) or
+      (detail::element_settable_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) and
+        ((N == 1 and diagonal_matrix<T, Likelihood::maybe>) or (N == 0 and one_by_one_matrix<T, Likelihood::maybe>))));
 
 
 } // namespace OpenKalman

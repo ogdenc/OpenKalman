@@ -57,7 +57,7 @@ namespace
 }
 
 
-TEST(eigen3, FromEuclideanExpr_static_checks)
+TEST(special_matrices, FromEuclideanExpr_static_checks)
 {
   static_assert(writable<From<Cara, M42>>);
   static_assert(writable<From<Cara, M42&>>);
@@ -81,7 +81,7 @@ TEST(eigen3, FromEuclideanExpr_static_checks)
 }
 
 
-TEST(eigen3, FromEuclideanExpr_class)
+TEST(special_matrices, FromEuclideanExpr_class)
 {
   M32 m;
   m << 1, 2, pi/6, pi/3, 3, 4;
@@ -178,7 +178,7 @@ TEST(eigen3, FromEuclideanExpr_class)
 }
 
 
-TEST(eigen3, FromEuclideanExpr_subscripts)
+TEST(special_matrices, FromEuclideanExpr_subscripts)
 {
   auto el = FromTo32 {1, 2, pi/6, pi/3, 3, 4};
   set_element(el, pi/2, 1, 0);
@@ -206,7 +206,7 @@ TEST(eigen3, FromEuclideanExpr_subscripts)
 }
 
 
-TEST(eigen3, FromEuclideanExpr_traits)
+TEST(special_matrices, FromEuclideanExpr_traits)
 {
   static_assert(from_euclidean_expr<decltype(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
   static_assert(typed_matrix_nestable<decltype(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
@@ -224,7 +224,7 @@ TEST(eigen3, FromEuclideanExpr_traits)
 }
 
 
-TEST(eigen3, FromEuclideanExpr_properties)
+TEST(special_matrices, FromEuclideanExpr_properties)
 {
   static_assert(wrappable<M23>);
   EXPECT_TRUE(get_wrappable(M23 {}));
@@ -233,7 +233,7 @@ TEST(eigen3, FromEuclideanExpr_properties)
 }
 
 
-TEST(eigen3, FromEuclideanExpr_overloads)
+TEST(special_matrices, FromEuclideanExpr_overloads)
 {
   M23 m23; m23 << 1, 2, 3, 4, 5, 6;
   M03 m03_2 {2,3}; m03_2 << 1, 2, 3, 4, 5, 6;
@@ -394,7 +394,7 @@ TEST(eigen3, FromEuclideanExpr_overloads)
 }
 
 
-TEST(eigen3, FromEuclideanExpr_blocks)
+TEST(special_matrices, FromEuclideanExpr_blocks)
 {
   EXPECT_TRUE(is_near(concatenate_vertical(
     FromEuclideanExpr<Car, eigen_matrix_t<double, 3, 3>> {1, 2, 3,
@@ -643,7 +643,7 @@ TEST(eigen3, FromEuclideanExpr_blocks)
 }
 
 
-TEST(eigen3, FromEuclideanExpr_arithmetic)
+TEST(special_matrices, FromEuclideanExpr_arithmetic)
 {
   EXPECT_TRUE(is_near(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4} + From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}, mat3(2, 4, pi/3, pi*2/3, 6, 8)));
   EXPECT_TRUE(is_near(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4} - From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}, M32::Zero()));
@@ -660,7 +660,7 @@ TEST(eigen3, FromEuclideanExpr_arithmetic)
 }
 
 
-TEST(eigen3, FromEuclideanExpr_references)
+TEST(special_matrices, FromEuclideanExpr_references)
 {
   M22 m, n;
   m << pi/6, pi/4, 1, 2;
@@ -679,7 +679,7 @@ TEST(eigen3, FromEuclideanExpr_references)
 }
 
 
-TEST(eigen3, Wrap_angle)
+TEST(special_matrices, Wrap_angle)
 {
   using R = FromEuclideanExpr<angle::Radians, ToEuclideanExpr<angle::Radians, M11>>;
   R x0 {pi/4};
@@ -692,7 +692,7 @@ TEST(eigen3, Wrap_angle)
 }
 
 
-TEST(eigen3, Wrap_distance)
+TEST(special_matrices, Wrap_distance)
 {
   using R = FromEuclideanExpr<Distance, ToEuclideanExpr<Distance, M11>>;
   R x0 {-5};
@@ -708,7 +708,7 @@ TEST(eigen3, Wrap_distance)
 }
 
 
-TEST(eigen3, Wrap_inclination)
+TEST(special_matrices, Wrap_inclination)
 {
   using R = FromEuclideanExpr<inclination::Radians, ToEuclideanExpr<inclination::Radians, M11>>;
   R x0 {pi/2};
@@ -721,7 +721,7 @@ TEST(eigen3, Wrap_inclination)
 }
 
 
-TEST(eigen3, Wrap_polar)
+TEST(special_matrices, Wrap_polar)
 {
   using C1 = Polar<Distance, angle::Radians>;
   using P = FromEuclideanExpr<C1, ToEuclideanExpr<C1, eigen_matrix_t<double, 2, 1>>>;
@@ -749,7 +749,7 @@ TEST(eigen3, Wrap_polar)
 }
 
 
-TEST(eigen3, Wrap_spherical)
+TEST(special_matrices, Wrap_spherical)
 {
   using C1 = Spherical<Distance, angle::Radians, inclination::Radians>;
   using S = FromEuclideanExpr<C1, ToEuclideanExpr<C1, eigen_matrix_t<double, 3, 1>>>;

@@ -366,18 +366,16 @@ namespace OpenKalman
 #endif
     static auto make(const Arg arg, const Args ... args)
     {
-      using namespace Eigen3;
-
       if constexpr (rows != dynamic_size and columns != dynamic_size)
-        return ((eigen_matrix_t<Scalar, rows, columns> {} << arg), ... , args).finished();
+        return ((Eigen3::eigen_matrix_t<Scalar, rows, columns> {} << arg), ... , args).finished();
       else if constexpr (rows != dynamic_size and columns == dynamic_size)
-        return ((eigen_matrix_t<Scalar, rows, (1 + sizeof...(Args)) / rows> {} << arg), ... , args).finished();
+        return ((Eigen3::eigen_matrix_t<Scalar, rows, (1 + sizeof...(Args)) / rows> {} << arg), ... , args).finished();
       else if constexpr (rows == dynamic_size and columns != dynamic_size)
-        return ((eigen_matrix_t<Scalar, (1 + sizeof...(Args)) / columns, columns> {} << arg), ... , args).finished();
+        return ((Eigen3::eigen_matrix_t<Scalar, (1 + sizeof...(Args)) / columns, columns> {} << arg), ... , args).finished();
       else
       {
         static_assert(rows == dynamic_size and columns == dynamic_size);
-        return ((eigen_matrix_t<Scalar, 1 + sizeof...(Args), 1> {} << arg), ... , args).finished();
+        return ((Eigen3::eigen_matrix_t<Scalar, 1 + sizeof...(Args), 1> {} << arg), ... , args).finished();
       }
     }
 #ifndef __cpp_concepts

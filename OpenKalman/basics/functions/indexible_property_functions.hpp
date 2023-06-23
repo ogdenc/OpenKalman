@@ -16,6 +16,9 @@
 #ifndef OPENKALMAN_INDEXIBLE_PROPERTY_FUNCTIONS_HPP
 #define OPENKALMAN_INDEXIBLE_PROPERTY_FUNCTIONS_HPP
 
+#include<optional>
+
+
 namespace OpenKalman
 {
   using namespace interface;
@@ -189,10 +192,60 @@ namespace OpenKalman
   namespace detail
   {
     template<std::size_t I, std::size_t...Is, typename T>
-    constexpr bool get_is_square_impl(std::index_sequence<I, Is...>, const T& t)
+    constexpr auto get_best_square_index_descriptor(std::index_sequence<I, Is...>, const T& t)
+    {
+      if constexpr (not dynamic_dimension<T, I> or sizeof...(Is) == 0) return get_index_descriptor<I>(t);
+      else return get_best_square_index_descriptor(std::index_sequence<Is...>{}, t);
+    }
+
+
+    template<std::size_t I, std::size_t...Is, typename T>
+    constexpr auto get_is_square_impl(std::index_sequence<I, Is...>, const T& t)
     {
       auto dim_I = get_index_descriptor<I>(t);
-      return ((dim_I != 0) and ... and (dim_I == get_index_descriptor<Is>(t)));
+      if (((get_dimension_size_of(dim_I) != 0) and ... and (dim_I == get_index_descriptor<Is>(t))))
+        return std::optional {dim_I};
+      else return std::optional<decltype(dim_I)> {};
+    }
+  }
+
+
+  /**
+   * \brief Return true if T is a \ref square_matrix at runtime.
+   * \tparam T A tensor or matrix
+   * \return a \ref std::optional which includes the index descriptor if T is square.
+   */
+#ifdef __cpp_concepts
+  template<indexible T>
+#else
+  template<typename T, std::enable_if_t<indexible<T>, int> = 0>
+#endif
+  constexpr auto get_is_square(const T& t)
+  {
+    if constexpr (square_matrix<T>)
+      return std::optional {detail::get_best_square_index_descriptor(std::make_index_sequence<max_indices_of_v<T>>{}, t)};
+    else if constexpr (not square_matrix<T, Likelihood::maybe>)
+      return std::optional<std::size_t> {};
+    else if constexpr (max_indices_of_v<T> == 1 and dimension_size_of_index_is<T, 0, 1, Likelihood::maybe>)
+    {
+      auto d = get_index_descriptor<0>(t);
+      if (get_dimension_size_of(d) == 1) return std::optional {d};
+      else return std::optional<decltype(d)> {};
+    }
+    else return detail::get_is_square_impl(std::make_index_sequence<max_indices_of_v<T>>{}, t);
+  }
+
+
+  // ------------------- //
+  //  get_is_one_by_one  //
+  // ------------------- //
+
+  namespace detail
+  {
+    template<std::size_t...Is, typename T>
+    constexpr bool get_is_one_by_one_impl(std::index_sequence<Is...>, const T& t)
+    {
+      return (... and (get_index_dimension_of<Is>(t) == 1));
     }
   }
 
@@ -206,12 +259,11 @@ namespace OpenKalman
 #else
   template<typename T, std::enable_if_t<indexible<T>, int> = 0>
 #endif
-  constexpr bool get_is_square(const T& t)
+  constexpr bool get_is_one_by_one(const T& t)
   {
-    if constexpr (square_matrix<T>) return true;
-    else if constexpr (not square_matrix<T, Likelihood::maybe>) return false;
-    else if constexpr (max_indices_of_v<T> == 1) return has_untyped_index<T, 0>;
-    else return detail::get_is_square_impl(std::make_index_sequence<max_indices_of_v<T>> {}, t);
+    if constexpr (one_by_one_matrix<T>) return true;
+    else if constexpr (not one_by_one_matrix<T, Likelihood::maybe>) return false;
+    else return detail::get_is_one_by_one_impl(std::make_index_sequence<max_indices_of_v<T>>{}, t);
   }
 
 

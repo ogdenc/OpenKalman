@@ -69,7 +69,7 @@ namespace OpenKalman::interface
         ((Rows != Eigen::Dynamic or Cols != Eigen::Dynamic) and number_of_dynamic_indices_v<XprType> <= 1)) and
       (Rows == Eigen::Dynamic or Cols == Eigen::Dynamic or Rows == Cols) and
       (xprtypeprod == dynamic_size or (
-        are_within_tolerance(xprtypeprod, constexpr_sqrt(xprtypeprod) * constexpr_sqrt(xprtypeprod)) and
+        are_within_tolerance(xprtypeprod, internal::constexpr_sqrt(xprtypeprod) * internal::constexpr_sqrt(xprtypeprod)) and
         (Rows == Eigen::Dynamic or Rows * Rows == xprtypeprod) and
         (Cols == Eigen::Dynamic or Cols * Cols == xprtypeprod))) and
       (Rows == Eigen::Dynamic or xprtypemax == 0 or (Rows * Rows) % xprtypemax == 0) and

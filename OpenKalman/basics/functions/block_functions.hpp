@@ -20,8 +20,6 @@
 
 namespace OpenKalman
 {
-  using namespace interface;
-
   // =========== //
   //  get_block  //
   // =========== //

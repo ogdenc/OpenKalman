@@ -29,6 +29,8 @@ namespace
   using M22 = eigen_matrix_t<double, 2, 2>;
   using M20 = eigen_matrix_t<double, 2, dynamic_size>;
   using M02 = eigen_matrix_t<double, dynamic_size, 2>;
+  using M11 = eigen_matrix_t<double, 1, 1>;
+  using M10 = eigen_matrix_t<double, 1, dynamic_size>;
   using M01 = eigen_matrix_t<double, dynamic_size, 1>;
   using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
 
@@ -79,7 +81,7 @@ namespace
   template<typename T> using SAu = SelfAdjointMatrix<T, TriangleType::upper>;
 }
 
-TEST(eigen3, SelfAdjointMatrix_static_checks)
+TEST(special_matrices, SelfAdjointMatrix_static_checks)
 {
   static_assert(writable<SAl<M22>>);
   static_assert(writable<SAl<M22&>>);
@@ -168,7 +170,7 @@ TEST(eigen3, SelfAdjointMatrix_static_checks)
 }
 
 
-TEST(eigen3, SelfAdjointMatrix_class)
+TEST(special_matrices, SelfAdjointMatrix_class)
 {
   D2 d2 {9, 9};
   //
@@ -425,7 +427,7 @@ TEST(eigen3, SelfAdjointMatrix_class)
 }
 
 
-TEST(eigen3, SelfAdjointMatrix_subscripts)
+TEST(special_matrices, SelfAdjointMatrix_subscripts)
 {
   static_assert(element_gettable<L22, 2>);
   static_assert(not element_gettable<L22, 1>);
@@ -572,8 +574,43 @@ TEST(eigen3, SelfAdjointMatrix_subscripts)
 }
 
 
-TEST(eigen3, SelfAdjointMatrix_make)
+TEST(special_matrices, make_hermitian_matrix)
 {
+  auto m22h = make_dense_writable_matrix_from<M22>(3, 1, 1, 3);
+  auto m22u = make_dense_writable_matrix_from<M22>(3, 1, 0, 3);
+  auto m22l = make_dense_writable_matrix_from<M22>(3, 0, 1, 3);
+  auto m22d = make_dense_writable_matrix_from<M22>(3, 0, 0, 3);
+  auto m22_uppert = Eigen::TriangularView<M22, Eigen::Upper> {m22h};
+  auto m22_lowert = Eigen::TriangularView<M22, Eigen::Lower> {m22h};
+  auto m22_upperh = Eigen::SelfAdjointView<M22, Eigen::Upper> {m22u};
+  auto m22_lowerh = Eigen::SelfAdjointView<M22, Eigen::Lower> {m22l};
+
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m22_uppert), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22_uppert))>);
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m22_uppert), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m22_uppert))>);
+  static_assert(hermitian_adapter<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m22_uppert)), HermitianAdapterType::lower>);
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m22_lowert), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m22_lowert))>);
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m22_lowert), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22_lowert))>);
+  static_assert(hermitian_adapter<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22_lowert)), HermitianAdapterType::upper>);
+
+  auto m20h = M20{m22h};
+  auto m20_upperh = Eigen::SelfAdjointView<M20, Eigen::Upper> {m20h};
+  auto m20_lowerh = Eigen::SelfAdjointView<M20, Eigen::Lower> {m20h};
+
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m20_upperh), m22h));
+  static_assert(eigen_self_adjoint_expr<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m20_upperh))>);
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m20_upperh), m22h));
+  static_assert(eigen_self_adjoint_expr<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m20_upperh))>);
+  static_assert(hermitian_adapter<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m20_upperh)), HermitianAdapterType::upper>);
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m20_lowerh), m22h));
+  static_assert(eigen_self_adjoint_expr<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m20_lowerh))>);
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m20_lowerh), m22h));
+  static_assert(eigen_self_adjoint_expr<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m20_lowerh))>);
+  static_assert(hermitian_adapter<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m20_lowerh)), HermitianAdapterType::lower>);
+
   static_assert(zero_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(make_zero_matrix_like<M22>()))>);
   static_assert(zero_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(make_zero_matrix_like<M22>()))>);
   static_assert(zero_matrix<decltype(make_EigenSelfAdjointMatrix(make_zero_matrix_like<M22>()))>);
@@ -593,7 +630,7 @@ TEST(eigen3, SelfAdjointMatrix_make)
 }
 
 
-TEST(eigen3, SelfAdjointMatrix_traits)
+TEST(special_matrices, SelfAdjointMatrix_traits)
 {
   using Dl = SelfAdjointMatrix<M22, TriangleType::lower>;
   using Du = SelfAdjointMatrix<M22, TriangleType::upper>;
@@ -620,7 +657,7 @@ TEST(eigen3, SelfAdjointMatrix_traits)
 }
 
 
-TEST(eigen3, SelfAdjointMatrix_overloads)
+TEST(special_matrices, SelfAdjointMatrix_overloads)
 {
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from(L22(9., 3, 3, 10)), make_dense_writable_matrix_from<M22>(9, 3, 3, 10)));
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from(U22(9., 3, 3, 10)), make_dense_writable_matrix_from<M22>(9, 3, 3, 10)));
@@ -744,36 +781,27 @@ TEST(eigen3, SelfAdjointMatrix_overloads)
   EXPECT_NEAR(trace(L22 {9., 3, 3, 10}), 19, 1e-6);
   EXPECT_NEAR(trace(U22 {9., 3, 3, 10}), 19, 1e-6);
   //
-  EXPECT_TRUE(is_near(solve(L22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix(1., 2)));
-  EXPECT_TRUE(is_near(solve(U22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix(1., 2)));
-  //
   EXPECT_TRUE(is_near(average_reduce<1>(L22 {9., 3, 3, 10}), make_eigen_matrix(6., 6.5)));
   EXPECT_TRUE(is_near(average_reduce<1>(U22 {9., 3, 3, 10}), make_eigen_matrix(6., 6.5)));
   //
   EXPECT_TRUE(is_near(average_reduce<0>(L22 {9., 3, 3, 10}), make_eigen_matrix<double, 1, 2>(6., 6.5)));
   EXPECT_TRUE(is_near(average_reduce<0>(U22 {9., 3, 3, 10}), make_eigen_matrix<double, 1, 2>(6., 6.5)));
   //
-  auto sl1 = L22 {9., 3, 3, 10};
-  rank_update(sl1, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4);
-  EXPECT_TRUE(is_near(sl1, mat22(25., 11, 11, 30)));
-  auto su1 = U22 {9., 3, 3, 10};
-  rank_update(su1, make_dense_writable_matrix_from<M22>(2, 1, 0, 2), 4);
-  EXPECT_TRUE(is_near(su1, mat22(29., 11, 11, 26)));
-  //
-  const auto sl2 = L22 {9., 3, 3, 10};
-  EXPECT_TRUE(is_near(rank_update(sl2, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4), mat22(25., 11, 11, 30)));
-  const auto su2 = U22 {9., 3, 3, 10};
-  EXPECT_TRUE(is_near(rank_update(su2, make_dense_writable_matrix_from<M22>(2, 1, 0, 2), 4), mat22(29., 11, 11, 26)));
-  //
-  EXPECT_TRUE(is_near(rank_update(L22 {9., 3, 3, 10}, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4), mat22(25., 11, 11, 30)));
-  EXPECT_TRUE(is_near(rank_update(U22 {9., 3, 3, 10}, make_dense_writable_matrix_from<M22>(2, 1, 0, 2), 4), mat22(29., 11, 11, 26)));
-  EXPECT_TRUE(is_near(rank_update(DM22 {9., 10}, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4), mat22(25., 8, 8, 30)));
-  EXPECT_TRUE(is_near(rank_update(DD2 {9., 10}, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4), mat22(25., 8, 8, 30)));
-  EXPECT_TRUE(is_near(rank_update(DL2 {9., 10}, make_dense_writable_matrix_from<M22>(2, 0, 1, 2), 4), mat22(25., 8, 8, 30)));
+}
+
+
+TEST(special_matrices, SelfAdjointMatrix_solve)
+{
+  EXPECT_TRUE(is_near(solve(L22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix(1., 2)));
+  EXPECT_TRUE(is_near(solve(U22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix(1., 2)));
   //
   EXPECT_TRUE(is_near(solve(L22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix<double, 2, 1>(1, 2)));
   EXPECT_TRUE(is_near(solve(U22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix<double, 2, 1>(1, 2)));
-  //
+}
+
+
+TEST(special_matrices, SelfAdjointMatrix_decompositions)
+{
   EXPECT_TRUE(is_near(Cholesky_square(LQ_decomposition(L22 {9., 3, 3, 10})), mat22(90., 57, 57, 109)));
   EXPECT_TRUE(is_near(Cholesky_square(LQ_decomposition(U22 {9., 3, 3, 10})), mat22(90., 57, 57, 109)));
   //
@@ -782,7 +810,7 @@ TEST(eigen3, SelfAdjointMatrix_overloads)
 }
 
 
-TEST(eigen3, SelfAdjointMatrix_blocks_lower)
+TEST(special_matrices, SelfAdjointMatrix_blocks_lower)
 {
   auto m0 = SelfAdjointMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::lower> {1, 2, 3,
                                                                                   2, 4, 5,
@@ -911,7 +939,7 @@ TEST(eigen3, SelfAdjointMatrix_blocks_lower)
 }
 
 
-TEST(eigen3, SelfAdjointMatrix_blocks_upper)
+TEST(special_matrices, SelfAdjointMatrix_blocks_upper)
 {
   auto m0 = SelfAdjointMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::upper> {1, 2, 3,
                                                                                       2, 4, 5,
@@ -1024,7 +1052,7 @@ TEST(eigen3, SelfAdjointMatrix_blocks_upper)
 }
 
 
-TEST(eigen3, SelfAdjointMatrix_blocks_mixed)
+TEST(special_matrices, SelfAdjointMatrix_blocks_mixed)
 {
   auto m0 = SelfAdjointMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::upper> {1, 2, 3,
                                                                                       2, 4, 5,
@@ -1064,7 +1092,7 @@ TEST(eigen3, SelfAdjointMatrix_blocks_mixed)
 }
 
 
-TEST(eigen3, SelfAdjointMatrix_arithmetic_lower)
+TEST(special_matrices, SelfAdjointMatrix_arithmetic_lower)
 {
   auto m1 = L22 {4., 5, 5, 6};
   auto m2 = L22 {1., 2, 2, 3};
@@ -1121,7 +1149,7 @@ TEST(eigen3, SelfAdjointMatrix_arithmetic_lower)
 }
 
 
-TEST(eigen3, SelfAdjointMatrix_arithmetic_upper)
+TEST(special_matrices, SelfAdjointMatrix_arithmetic_upper)
 {
   auto m1 = U22 {4., 5, 5, 6};
   auto m2 = U22 {1., 2, 2, 3};
@@ -1169,7 +1197,7 @@ TEST(eigen3, SelfAdjointMatrix_arithmetic_upper)
 }
 
 
-TEST(eigen3, SelfAdjointMatrix_arithmetic_mixed)
+TEST(special_matrices, SelfAdjointMatrix_arithmetic_mixed)
 {
   auto m1 = U22 {4., 5, 5, 6};
   auto m2 = L22 {1., 2, 2, 3};
@@ -1193,7 +1221,7 @@ TEST(eigen3, SelfAdjointMatrix_arithmetic_mixed)
 }
 
 
-TEST(eigen3, SelfAdjointMatrix_references)
+TEST(special_matrices, SelfAdjointMatrix_references)
 {
   SelfAdjointMatrix<M22, TriangleType::lower> x {m_4225};
   SelfAdjointMatrix<M22&, TriangleType::lower> x_lvalue = x;

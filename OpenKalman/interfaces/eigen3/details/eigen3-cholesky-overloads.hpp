@@ -25,10 +25,10 @@ namespace OpenKalman
    * \return dd<sup>T</sup>
    */
 #ifdef __cpp_concepts
-  template<native_eigen_matrix D> requires has_dynamic_dimensions<D> or diagonal_matrix<D>
+  template<Eigen3::native_eigen_matrix D> requires has_dynamic_dimensions<D> or diagonal_matrix<D>
 #else
   template<typename D, std::enable_if_t<
-    native_eigen_matrix<D> and (has_dynamic_dimensions<D> or diagonal_matrix<D>), int> = 0>
+    Eigen3::native_eigen_matrix<D> and (has_dynamic_dimensions<D> or diagonal_matrix<D>), int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_square(D&& d) noexcept
@@ -58,11 +58,11 @@ namespace OpenKalman
    * \return e, where ee<sup>T</sup> = d.
    */
 #ifdef __cpp_concepts
-  template<TriangleType = TriangleType::diagonal, native_eigen_matrix D>
+  template<TriangleType = TriangleType::diagonal, Eigen3::native_eigen_matrix D>
   requires has_dynamic_dimensions<D> or diagonal_matrix<D>
 #else
   template<TriangleType = TriangleType::diagonal,
-    typename D, std::enable_if_t<native_eigen_matrix<D> and (has_dynamic_dimensions<D> or diagonal_matrix<D>), int> = 0>
+    typename D, std::enable_if_t<Eigen3::native_eigen_matrix<D> and (has_dynamic_dimensions<D> or diagonal_matrix<D>), int> = 0>
 #endif
   constexpr decltype(auto)
   Cholesky_factor(D&& d) noexcept

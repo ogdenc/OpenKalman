@@ -88,13 +88,13 @@ namespace OpenKalman::interface
       if constexpr (constant_diagonal_matrix<Arg1, CompileTimeStatus::any, Likelihood::maybe> and
         constant_matrix<Arg2, CompileTimeStatus::any, Likelihood::maybe>)
       {
-        return scalar_constant_operation {std::multiplies<>{},
+        return internal::scalar_constant_operation {std::multiplies<>{},
            constant_diagonal_coefficient{xpr.lhs()}, constant_coefficient{xpr.rhs()}};
       }
       else if constexpr (constant_matrix<Arg1, CompileTimeStatus::any, Likelihood::maybe> and
         constant_diagonal_matrix<Arg2, CompileTimeStatus::any, Likelihood::maybe>)
       {
-        return scalar_constant_operation {std::multiplies<>{},
+        return internal::scalar_constant_operation {std::multiplies<>{},
           constant_coefficient{xpr.lhs()}, constant_diagonal_coefficient{xpr.rhs()}};
       }
       else
@@ -112,20 +112,20 @@ namespace OpenKalman::interface
         if constexpr (zero_matrix<Arg1>) return constant_coefficient{xpr.lhs()};
         else if constexpr (zero_matrix<Arg2>) return constant_coefficient{xpr.rhs()};
         else if constexpr (constant_diagonal_matrix<Arg1, CompileTimeStatus::any, Likelihood::maybe>)
-          return scalar_constant_operation {std::multiplies<>{},
+          return internal::scalar_constant_operation {std::multiplies<>{},
             constant_diagonal_coefficient{xpr.lhs()},
             constant_coefficient{xpr.rhs()}};
         else if constexpr (constant_diagonal_matrix<Arg2, CompileTimeStatus::any, Likelihood::maybe>)
-          return scalar_constant_operation {std::multiplies<>{},
+          return internal::scalar_constant_operation {std::multiplies<>{},
             constant_coefficient{xpr.lhs()},
             constant_diagonal_coefficient{xpr.rhs()}};
         else if constexpr (dim == dynamic_size)
-          return scalar_constant_operation {Op{},
+          return internal::scalar_constant_operation {Op{},
             get_index_dimension_of<1>(xpr.lhs()),
             constant_coefficient{xpr.rhs()},
             constant_coefficient{xpr.lhs()}};
         else
-          return scalar_constant_operation {Op{},
+          return internal::scalar_constant_operation {Op{},
             std::integral_constant<std::size_t, dim>{},
             constant_coefficient{xpr.rhs()},
             constant_coefficient{xpr.lhs()}};
@@ -134,7 +134,7 @@ namespace OpenKalman::interface
 
     constexpr auto get_constant_diagonal()
     {
-      return scalar_constant_operation {std::multiplies<>{},
+      return internal::scalar_constant_operation {std::multiplies<>{},
         constant_diagonal_coefficient{xpr.lhs()}, constant_diagonal_coefficient{xpr.rhs()}};
     }
   };

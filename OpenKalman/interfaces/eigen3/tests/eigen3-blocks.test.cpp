@@ -437,30 +437,7 @@ TEST(eigen3, concatenate_horizontal)
 }
 
 
-TEST(eigen3, concatenate_diagonal)
-{
-  auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
-  auto m22 = make_dense_writable_matrix_from<M22>(7, 8, 9, 10);
-  auto m45 = make_dense_writable_matrix_from<M45>(
-    1, 2, 3, 0, 0,
-    4, 5, 6, 0, 0,
-    0, 0, 0, 7, 8,
-    0, 0, 0, 9, 10);
-
-  EXPECT_TRUE(is_near(concatenate<0, 1>(m23, m22), m45));
-  EXPECT_TRUE(is_near(concatenate<1, 0>(M20 {m23}, m22), m45));
-  EXPECT_TRUE(is_near(concatenate<0, 1>(M20 {m23}, M20 {m22}), m45));
-  EXPECT_TRUE(is_near(concatenate<1, 0>(M20 {m23}, M02 {m22}), m45));
-  EXPECT_TRUE(is_near(concatenate<0, 1>(M20 {m23}, M00 {m22}), m45));
-  EXPECT_TRUE(is_near(concatenate<1, 0>(M03 {m23}, m22), m45));
-  EXPECT_TRUE(is_near(concatenate<0, 1>(M03 {m23}, M20 {m22}), m45));
-  EXPECT_TRUE(is_near(concatenate<1, 0>(M03 {m23}, M02 {m22}), m45));
-  EXPECT_TRUE(is_near(concatenate<0, 1>(M03 {m23}, M00 {m22}), m45));
-  EXPECT_TRUE(is_near(concatenate<1, 0>(M00 {m23}, m22), m45));
-  EXPECT_TRUE(is_near(concatenate<0, 1>(M00 {m23}, M20 {m22}), m45));
-  EXPECT_TRUE(is_near(concatenate<1, 0>(M00 {m23}, M02 {m22}), m45));
-  EXPECT_TRUE(is_near(concatenate<0, 1>(M00 {m23}, M00 {m22}), m45));
-}
+// concatenate_diagonal is in special_matrices tests because it involves constructing zero matrices.
 
 
 TEST(eigen3, split_vertical)
@@ -721,54 +698,18 @@ TEST(eigen3, set_triangle)
   EXPECT_TRUE(is_near(a, d33));
   EXPECT_TRUE(is_near(internal::set_triangle<TriangleType::diagonal>(a33, b33), d33));
 
-  a = a33; internal::set_triangle<TriangleType::diagonal>(a.triangularView<Eigen::Lower>(), b33);
-  EXPECT_TRUE(is_near(a, d33));
-  EXPECT_TRUE(is_near(nested_matrix(internal::set_triangle<TriangleType::diagonal>(a33.triangularView<Eigen::Lower>(), b33)), d33));
-
-  a = a33; internal::set_triangle<TriangleType::diagonal>(EigenWrapper {a.triangularView<Eigen::Upper>()}, b33);
-  EXPECT_TRUE(is_near(a, d33));
-  EXPECT_TRUE(is_near(nested_matrix(internal::set_triangle<TriangleType::diagonal>(EigenWrapper {a33.triangularView<Eigen::Upper>()}, b33)), d33));
-
-  a = a33; internal::set_triangle<TriangleType::diagonal>(a.selfadjointView<Eigen::Upper>(), b33);
-  EXPECT_TRUE(is_near(a, d33));
-  EXPECT_TRUE(is_near(internal::set_triangle<TriangleType::diagonal>(a33.selfadjointView<Eigen::Upper>(), b33), d33));
-
-  a = a33; internal::set_triangle<TriangleType::diagonal>(EigenWrapper {a.selfadjointView<Eigen::Lower>()}, b33);
-  EXPECT_TRUE(is_near(a, d33));
-  EXPECT_TRUE(is_near(internal::set_triangle<TriangleType::diagonal>(EigenWrapper {a33.selfadjointView<Eigen::Lower>()}, b33), d33));
-
   a = a33; internal::set_triangle(a, e33);
   EXPECT_TRUE(is_near(a, d33));
   EXPECT_TRUE(is_near(internal::set_triangle(a33, e33), d33));
-
-  a = a33; internal::set_triangle(a.triangularView<Eigen::Lower>(), e33);
-  EXPECT_TRUE(is_near(a, d33));
-  EXPECT_TRUE(is_near(nested_matrix(internal::set_triangle(a33.triangularView<Eigen::Lower>(), e33)), d33));
-
-  a = a33; internal::set_triangle(EigenWrapper {a.triangularView<Eigen::Upper>()}, e33);
-  EXPECT_TRUE(is_near(a, d33));
-  EXPECT_TRUE(is_near(nested_matrix(internal::set_triangle(EigenWrapper {a33.triangularView<Eigen::Upper>()}, e33)), d33));
-
-  a = a33; internal::set_triangle(a.selfadjointView<Eigen::Upper>(), e33);
-  EXPECT_TRUE(is_near(a, d33));
-  EXPECT_TRUE(is_near(internal::set_triangle(a33.selfadjointView<Eigen::Upper>(), e33), d33));
-
-  a = a33; internal::set_triangle(EigenWrapper {a.selfadjointView<Eigen::Lower>()}, e33);
-  EXPECT_TRUE(is_near(a, d33));
-  EXPECT_TRUE(is_near(internal::set_triangle(EigenWrapper {a33.selfadjointView<Eigen::Lower>()}, e33), d33));
 
   M31 d;
 
   d = d31; internal::set_triangle(Eigen::DiagonalWrapper<M31>{d}, b33);
   EXPECT_TRUE(is_near(d, e31));
-  EXPECT_TRUE(is_near(internal::set_triangle<TriangleType::diagonal>(d31.asDiagonal(), b33), e33));
-  EXPECT_TRUE(is_near(internal::set_triangle(d31.asDiagonal(), b33), e33));
   EXPECT_TRUE(is_near(internal::set_triangle(Eigen::DiagonalMatrix<double, 3>{d31}, b33), e33));
 
   d = d31; internal::set_triangle(Eigen::DiagonalWrapper<M31>{d}, e33);
   EXPECT_TRUE(is_near(d, e31));
-  EXPECT_TRUE(is_near(internal::set_triangle<TriangleType::diagonal>(d31.asDiagonal(), e33), e33));
-  EXPECT_TRUE(is_near(internal::set_triangle(d31.asDiagonal(), e33), e33));
   EXPECT_TRUE(is_near(internal::set_triangle(Eigen::DiagonalMatrix<double, 3>{d31}, e33), e33));
 }
 

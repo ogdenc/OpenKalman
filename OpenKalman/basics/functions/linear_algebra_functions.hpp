@@ -175,9 +175,9 @@ namespace OpenKalman
     {
       return internal::scalar_constant_pow(constant_diagonal_coefficient{arg}, internal::index_dimension_scalar_constant_of<0>(arg))();
     }
-    else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg&&, 2>)
+    else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg&&, 0>)
     {
-      return get_element(arg, std::size_t(0), std::size_t(0));
+      return get_element(arg);
     }
     else if constexpr (triangular_matrix<Arg>) // this includes diagonal case
     {
@@ -224,9 +224,9 @@ namespace OpenKalman
       return internal::scalar_constant_operation {std::multiplies<>{}, constant_diagonal_coefficient{arg},
         internal::index_dimension_scalar_constant_of<0>(arg)}();
     }
-    else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg&&, 2>)
+    else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg&&, 0>)
     {
-      return get_element(std::forward<Arg>(arg), std::size_t(0), std::size_t(0));
+      return get_element(std::forward<Arg>(arg));
     }
     else
     {
@@ -248,7 +248,7 @@ namespace OpenKalman
     template<std::size_t I, typename T, typename...Ts>
     constexpr decltype(auto) best_descriptor(T&& t, Ts&&...ts)
     {
-       if constexpr (sizeof...(Ts) == 0 or dynamic_dimension<T, I>) return get_index_descriptor<I>(t);
+       if constexpr (sizeof...(Ts) == 0 or not dynamic_dimension<T, I>) return get_index_descriptor<I>(t);
        else return best_descriptor<I>(std::forward<Ts>(ts)...);
     }
 
@@ -314,6 +314,7 @@ namespace OpenKalman
 #endif
   constexpr decltype(auto) sum(Ts&&...ts)
   {
+    // \todo Create a new wrapper argument that uses best_descriptor above and guarantees a set of compile-time dimensions.
     constexpr std::make_index_sequence<std::max({max_indices_of_v<Ts>...})> seq;
     return detail::sum_impl(seq, std::forward<Ts>(ts)...);
   }

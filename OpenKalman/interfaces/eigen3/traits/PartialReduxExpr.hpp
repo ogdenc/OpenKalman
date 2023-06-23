@@ -102,8 +102,8 @@ namespace OpenKalman::interface
           if constexpr (std::numeric_limits<Scalar>::has_infinity) return std::numeric_limits<Scalar>::infinity();
           else throw std::domain_error {"Domain error in lpnorm<0>: result is infinity"};
         }
-        else if constexpr (is_diag_v<XprType>) return scalar_constant_operation {Op{}, c, factor};
-        else return scalar_constant_operation {Op{}, c, scalar_constant_operation {std::multiplies<>{}, dim, factor}};
+        else if constexpr (is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
+        else return internal::scalar_constant_operation {Op{}, c, internal::scalar_constant_operation {std::multiplies<>{}, dim, factor}};
       }
     };
 
@@ -126,8 +126,8 @@ namespace OpenKalman::interface
       {
         using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
         if constexpr (zero_matrix<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
-        else if constexpr (is_diag_v<XprType>) return scalar_constant_operation {Op{}, c, factor};
-        else return scalar_constant_operation {Op{}, c, scalar_constant_operation {std::multiplies<>{}, dim, factor}};
+        else if constexpr (is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
+        else return internal::scalar_constant_operation {Op{}, c, internal::scalar_constant_operation {std::multiplies<>{}, dim, factor}};
       }
     };
 
@@ -150,8 +150,8 @@ namespace OpenKalman::interface
       {
         using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
         if constexpr (zero_matrix<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
-        else if constexpr (is_diag_v<XprType>) return scalar_constant_operation {Op{}, c, factor};
-        else return scalar_constant_operation {Op{}, c, scalar_constant_operation {std::multiplies<>{}, dim, factor}};
+        else if constexpr (is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
+        else return internal::scalar_constant_operation {Op{}, c, internal::scalar_constant_operation {std::multiplies<>{}, dim, factor}};
       }
     };
 
@@ -170,8 +170,8 @@ namespace OpenKalman::interface
       {
         using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
         if constexpr (zero_matrix<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
-        else if constexpr (is_diag_v<XprType>) return scalar_constant_operation {Op{}, c, factor};
-        else return scalar_constant_operation {Op{}, c, scalar_constant_operation {std::multiplies<>{}, dim, factor}};
+        else if constexpr (is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
+        else return internal::scalar_constant_operation {Op{}, c, internal::scalar_constant_operation {std::multiplies<>{}, dim, factor}};
       }
     };
 
@@ -285,9 +285,9 @@ namespace OpenKalman::interface
         else if constexpr (is_diag_v<XprType>)
         {
           if constexpr (scalar_constant<C, CompileTimeStatus::known> and not one_by_one_matrix<XprType, Likelihood::maybe>)
-            return scalar_constant_operation {Op{}, c, std::integral_constant<std::size_t, 2>{}}; // 2 is an arbitrary number > 1
+            return internal::scalar_constant_operation {Op{}, c, std::integral_constant<std::size_t, 2>{}}; // 2 is an arbitrary number > 1
           else
-            return scalar_constant_operation {Op{}, c, dim};
+            return internal::scalar_constant_operation {Op{}, c, dim};
         }
         else return c;
       }
@@ -317,9 +317,9 @@ namespace OpenKalman::interface
         else if constexpr (is_diag_v<XprType>)
         {
           if constexpr (scalar_constant<C, CompileTimeStatus::known> and not one_by_one_matrix<XprType, Likelihood::maybe>)
-            return scalar_constant_operation {Op{}, c, std::integral_constant<std::size_t, 2>{}}; // 2 is an arbitrary number > 1
+            return internal::scalar_constant_operation {Op{}, c, std::integral_constant<std::size_t, 2>{}}; // 2 is an arbitrary number > 1
           else
-            return scalar_constant_operation {Op{}, c, dim};
+            return internal::scalar_constant_operation {Op{}, c, dim};
         }
         else return c;
       }
@@ -346,8 +346,8 @@ namespace OpenKalman::interface
       {
         if constexpr (zero_matrix<XprType> or (is_diag_v<XprType> and not one_by_one_matrix<XprType, Likelihood::maybe>))
           return std::false_type{};
-        else if constexpr (is_diag_v<XprType>) return scalar_constant_operation {Op{}, c, dim};
-        else return scalar_constant_operation {Op{}, c};
+        else if constexpr (is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, dim};
+        else return internal::scalar_constant_operation {Op{}, c};
       }
     };
 
@@ -368,7 +368,7 @@ namespace OpenKalman::interface
       static constexpr auto get_constant(const C& c, const Dim& dim, const Factor& factor) noexcept
       {
         if constexpr (zero_matrix<XprType>) return std::false_type{};
-        else return scalar_constant_operation {Op{}, c, scalar_constant_operation {std::multiplies<>{}, dim, factor}};
+        else return internal::scalar_constant_operation {Op{}, c, internal::scalar_constant_operation {std::multiplies<>{}, dim, factor}};
       }
     };
 
@@ -389,8 +389,8 @@ namespace OpenKalman::interface
       static constexpr auto get_constant(const C& c, const Dim& dim, const Factor& factor) noexcept
       {
         if constexpr (zero_matrix<XprType>) return std::integral_constant<Eigen::Index, 0>{};
-        else if constexpr (is_diag_v<XprType>) return scalar_constant_operation {Op{}, c, factor};
-        else return scalar_constant_operation {Op{}, c, scalar_constant_operation {std::multiplies<>{}, dim, factor}};
+        else if constexpr (is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
+        else return internal::scalar_constant_operation {Op{}, c, internal::scalar_constant_operation {std::multiplies<>{}, dim, factor}};
       }
     };
 
@@ -427,15 +427,15 @@ namespace OpenKalman::interface
         }
         else if constexpr (is_diag_v<XprType>)
         {
-          auto c2 = scalar_constant_operation {Op{}, c, dim};
+          auto c2 = internal::scalar_constant_operation {Op{}, c, dim};
           if constexpr (scalar_constant<decltype(c2), CompileTimeStatus::known>)
           {
             if constexpr (get_scalar_constant_value(c2) == 0) return c2;
-            else return scalar_constant_operation {PowOp{}, c2, factor};
+            else return internal::scalar_constant_operation {PowOp{}, c2, factor};
           }
-          else return scalar_constant_operation {PowOp{}, c2, factor};
+          else return internal::scalar_constant_operation {PowOp{}, c2, factor};
         }
-        else return scalar_constant_operation {PowOp{}, c, scalar_constant_operation {std::multiplies<>{}, dim, factor}};
+        else return internal::scalar_constant_operation {PowOp{}, c, internal::scalar_constant_operation {std::multiplies<>{}, dim, factor}};
       }
     };
 
@@ -474,7 +474,7 @@ namespace OpenKalman::interface
       else
       {
         std::integral_constant<std::size_t, factor> f;
-        scalar_constant_operation d {std::divides<>{}, dim, f};
+        internal::scalar_constant_operation d {std::divides<>{}, dim, f};
         return SingleConstantPartialRedux<XprType, MemberOp>::get_constant(c, d, f);
       }
     }
@@ -497,11 +497,11 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
     template<typename MemberOp, int Direction, typename XprType, typename Dim>
-      requires eigen_MatrixWrapper<XprType> or eigen_ArrayWrapper<XprType> or eigen_wrapper<XprType>
+      requires Eigen3::eigen_MatrixWrapper<XprType> or Eigen3::eigen_ArrayWrapper<XprType> or Eigen3::eigen_wrapper<XprType>
 #else
     template<typename MemberOp, int Direction, typename XprType, typename Dim, std::enable_if_t<
       not is_EigenReplicate<XprType, Direction>::value and
-      (eigen_MatrixWrapper<XprType> or eigen_ArrayWrapper<XprType> or eigen_wrapper<XprType>), int> = 0>
+      (Eigen3::eigen_MatrixWrapper<XprType> or Eigen3::eigen_ArrayWrapper<XprType> or Eigen3::eigen_wrapper<XprType>), int> = 0>
 #endif
     constexpr auto get_PartialReduxExpr_constant(const XprType& xpr, const Dim& dim)
     {

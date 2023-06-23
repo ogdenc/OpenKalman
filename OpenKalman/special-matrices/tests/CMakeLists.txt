@@ -16,12 +16,15 @@ include(GoogleTest)
 
 add_executable(special-matrices
         ConstantAdapter.test.cpp
-        constant-matrix-functions.cpp
+        constant-matrix-functions.test.cpp
         #DiagonalMatrix.test.cpp
         #SelfAdjointMatrix.test.cpp
         #TriangularMatrix.test.cpp
         #ToEuclideanExpr.test.cpp
         #FromEuclideanExpr.test.cpp
+        rank-update.test.cpp
+        blocks.test.cpp
+        decompositions.test.cpp
     )
 
 target_link_libraries(special-matrices ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)

@@ -51,6 +51,13 @@
 
 #include "../interfaces.hpp" // Includes basics.hpp
 
+/**
+ * \internal
+ * \brief Namespace for all Eigen3-specific definitions, not intended for use outside of OpenKalman development.
+ */
+namespace OpenKalman::Eigen3 {}
+
+
 #include "details/eigen3-forward-declarations.hpp"
 
 #include "details/eigen3-matrix-traits.hpp"

@@ -83,7 +83,7 @@ namespace
 }
 
 
-TEST(eigen3, Diagonal_static_checks)
+TEST(special_matrices, Diagonal_static_checks)
 {
   static_assert(writable<D<M31>>);
   static_assert(writable<D<M31&>>);
@@ -107,7 +107,7 @@ TEST(eigen3, Diagonal_static_checks)
 }
 
 
-TEST(eigen3, Diagonal_class)
+TEST(special_matrices, Diagonal_class)
 {
   // default constructor and comma expression, .nested_matrix()
   D3 d3a;
@@ -353,7 +353,7 @@ TEST(eigen3, Diagonal_class)
   EXPECT_EQ((d0_3.cols()), 3);
 }
 
-TEST(eigen3, Diagonal_subscripts)
+TEST(special_matrices, Diagonal_subscripts)
 {
   static_assert(element_gettable<D3, 2>);
   static_assert(element_gettable<D3, 1>);
@@ -448,7 +448,7 @@ TEST(eigen3, Diagonal_subscripts)
   EXPECT_NEAR((D0 {1., 2, 3}).nested_matrix()[2], 3, 1e-6);
 }
 
-TEST(eigen3, Diagonal_traits)
+TEST(special_matrices, Diagonal_traits)
 {
   static_assert(diagonal_matrix<decltype(DiagonalMatrix{2.})>);
   static_assert(diagonal_matrix<decltype(DiagonalMatrix{2, 3})>);
@@ -477,7 +477,41 @@ TEST(eigen3, Diagonal_traits)
   EXPECT_TRUE(is_near(MatrixTraits<D0>::make(1, 2, 3), m33));
 }
 
-TEST(eigen3, diagonal_make_functions)
+TEST(special_matrices, to_diagonal)
+{
+  auto m11 = M11 {3};
+
+  EXPECT_TRUE(is_near(to_diagonal(m11), m11));
+  EXPECT_TRUE(is_near(to_diagonal(M10 {m11}), m11));
+  EXPECT_TRUE(is_near(to_diagonal(M01 {m11}), m11));
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+  EXPECT_TRUE(is_near(to_diagonal(M00 {m11}), m11));
+#pragma GCC diagnostic pop
+}
+
+TEST(special_matrices, diagonal_make_triangular_matrix)
+{
+  auto m22h = make_dense_writable_matrix_from<M22>(3, 1, 1, 3);
+  auto m22d = make_dense_writable_matrix_from<M22>(3, 0, 0, 3);
+  auto m22_uppert = Eigen::TriangularView<M22, Eigen::Upper> {m22h};
+  auto m22_lowert = Eigen::TriangularView<M22, Eigen::Lower> {m22h};
+
+  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::lower>(m22_uppert), m22d));
+  static_assert(eigen_diagonal_expr<decltype(make_triangular_matrix<TriangleType::lower>(m22_uppert))>);
+  static_assert(diagonal_matrix<decltype(make_triangular_matrix<TriangleType::lower>(m22_uppert))>);
+
+  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::upper>(m22_lowert), m22d));
+  static_assert(eigen_diagonal_expr<decltype(make_triangular_matrix<TriangleType::upper>(m22_lowert))>);
+  static_assert(diagonal_matrix<decltype(make_triangular_matrix<TriangleType::upper>(m22_lowert))>);
+
+  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::diagonal>(m22h), m22d));
+  static_assert(eigen_diagonal_expr<decltype(make_triangular_matrix<TriangleType::diagonal>(m22h))>);
+  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::diagonal>(m22h), m22d));
+  static_assert(eigen_diagonal_expr<decltype(make_triangular_matrix<TriangleType::diagonal>(m22h))>);
+}
+
+TEST(special_matrices, diagonal_make_functions)
 {
   auto m22 = M22 {};
   auto m20_2 = M20 {m22};
@@ -601,7 +635,7 @@ TEST(eigen3, diagonal_make_functions)
   EXPECT_TRUE(is_near(make_zero_matrix_like(d0_3), M33::Zero()));
 }
 
-TEST(eigen3, Diagonal_overloads)
+TEST(special_matrices, Diagonal_overloads)
 {
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from(d3), m33));
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from(d0_3), m33));
@@ -666,24 +700,6 @@ TEST(eigen3, Diagonal_overloads)
 
   EXPECT_NEAR(trace(DiagonalMatrix {2., 3, 4}), 9, 1e-6);
   //
-  auto s2 = DiagonalMatrix {3., 3};
-  rank_update(s2, DiagonalMatrix {2., 2}, 4);
-  EXPECT_TRUE(is_near(s2, MatrixTraits<M22>::make(5., 0, 0, 5)));
-  s2 = DiagonalMatrix {3., 3};
-  rank_update(s2, 2 * M22::Identity(), 4);
-  EXPECT_TRUE(is_near(s2, MatrixTraits<M22>::make(5., 0, 0, 5)));
-  //
-  using M1by1 = eigen_matrix_t<double, 1, 1>;
-  auto s2a = M1by1 {3.};
-  rank_update(s2a, M1by1 {2.}, 4);
-  EXPECT_TRUE(is_near(s2a, M1by1 {5.}));
-  //
-  EXPECT_TRUE(is_near(rank_update(DiagonalMatrix {3., 3}, DiagonalMatrix {2., 2}, 4), make_eigen_matrix<double, 2, 2>(5., 0, 0, 5.)));
-  EXPECT_TRUE(is_near(rank_update(DiagonalMatrix {3., 3}, 2 * M22::Identity(), 4), make_dense_writable_matrix_from<M22>(5., 0, 0, 5.)));
-  EXPECT_TRUE(is_near(rank_update(DiagonalMatrix {3., 3}, make_dense_writable_matrix_from<M22>(2, 0, 0, 2.), 4), make_dense_writable_matrix_from<M22>(5., 0, 0, 5.)));
-  //
-  EXPECT_TRUE(is_near(rank_update(M1by1 {3.}, M1by1 {2.}, 4), M1by1 {5.}));
-  //
   EXPECT_TRUE(is_near(solve(d3, make_eigen_matrix<double, 3, 1>(4., 10, 18)),
     make_eigen_matrix(4., 5, 6)));
   EXPECT_TRUE(is_near(average_reduce<1>(d3), make_eigen_matrix(1., 2, 3)));
@@ -716,7 +732,7 @@ TEST(eigen3, Diagonal_overloads)
   EXPECT_FALSE(is_near(d0_3, d0_3_offset, 1e-6));
 }
 
-TEST(eigen3, Diagonal_blocks)
+TEST(special_matrices, Diagonal_blocks)
 {
   EXPECT_TRUE(is_near(concatenate_diagonal(d3, D2 {4, 5}), d5));
   EXPECT_TRUE(is_near(concatenate_diagonal(d3, D0 {4, 5}), d5));
@@ -871,7 +887,7 @@ TEST(eigen3, Diagonal_blocks)
       2, 3, 7)));
 }
 
-TEST(eigen3, Diagonal_arithmetic)
+TEST(special_matrices, Diagonal_arithmetic)
 {
   auto d3a = d3;
   auto d3b = DiagonalMatrix {4., 5, 6};
@@ -970,7 +986,7 @@ TEST(eigen3, Diagonal_arithmetic)
     7, 16, 27)));
 }
 
-TEST(eigen3, Diagonal_references)
+TEST(special_matrices, Diagonal_references)
 {
   DiagonalMatrix<const M31> n {4, 5, 6};
   DiagonalMatrix<M31> x = d3;

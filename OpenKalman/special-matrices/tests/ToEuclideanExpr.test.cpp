@@ -61,7 +61,7 @@ namespace
 }
 
 
-TEST(eigen3, ToEuclideanExpr_static_checks)
+TEST(special_matrices, ToEuclideanExpr_static_checks)
 {
   static_assert(writable<To<Cara, M32>>);
   static_assert(writable<To<Cara, M32&>>);
@@ -86,7 +86,7 @@ TEST(eigen3, ToEuclideanExpr_static_checks)
 }
 
 
-TEST(eigen3, ToEuclideanExpr_class)
+TEST(special_matrices, ToEuclideanExpr_class)
 {
   M42 m;
   m << 1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4;
@@ -141,7 +141,7 @@ TEST(eigen3, ToEuclideanExpr_class)
 }
 
 
-TEST(eigen3, ToEuclideanExpr_subscripts)
+TEST(special_matrices, ToEuclideanExpr_subscripts)
 {
   EXPECT_NEAR(get_element(To32 {1, 2, pi/6, pi/3, 3, 4}, 1, 1), 0.5, 1e-8);
   EXPECT_NEAR(get_element(To32 {1, 2, pi/6, pi/3, 3, 4}, 1, 0), std::sqrt(3)/2, 1e-8);
@@ -169,7 +169,7 @@ TEST(eigen3, ToEuclideanExpr_subscripts)
 }
 
 
-TEST(eigen3, ToEuclideanExpr_traits)
+TEST(special_matrices, ToEuclideanExpr_traits)
 {
   static_assert(to_euclidean_expr<decltype(To32 {1, 2, pi/6, pi/3, 3, 4})>);
   static_assert(typed_matrix_nestable<decltype(To32 {1, 2, pi/6, pi/3, 3, 4})>);
@@ -187,7 +187,7 @@ TEST(eigen3, ToEuclideanExpr_traits)
 }
 
 
-TEST(eigen3, ToEuclideanExpr_overloads)
+TEST(special_matrices, ToEuclideanExpr_overloads)
 {
   M23 m23; m23 << 1, 2, 3, 4, 5, 6;
   M03 m03_2 {2,3}; m03_2 << 1, 2, 3, 4, 5, 6;
@@ -294,7 +294,7 @@ TEST(eigen3, ToEuclideanExpr_overloads)
 }
 
 
-TEST(eigen3, ToEuclideanExpr_blocks)
+TEST(special_matrices, ToEuclideanExpr_blocks)
 {
   EXPECT_TRUE(is_near(concatenate_vertical(
     ToEuclideanExpr<Car, eigen_matrix_t<double, 2, 3>> {1., 2, 3, pi/6, pi/3, pi/4},
@@ -517,7 +517,7 @@ TEST(eigen3, ToEuclideanExpr_blocks)
 }
 
 
-TEST(eigen3, ToEuclideanExpr_arithmetic)
+TEST(special_matrices, ToEuclideanExpr_arithmetic)
 {
   EXPECT_TRUE(is_near(To32 {1, 2, pi/6, pi/3, 3, 4} + To32 {1, 2, pi/6, pi/3, 3, 4}, mat4(2, 4, std::sqrt(3), 1, 1, std::sqrt(3), 6, 8)));
   EXPECT_TRUE(is_near(To32 {1, 2, pi/6, pi/3, 3, 4} - To32 {1, 2, pi/6, pi/3, 3, 4}, M42::Zero()));
@@ -529,7 +529,7 @@ TEST(eigen3, ToEuclideanExpr_arithmetic)
 }
 
 
-TEST(eigen3, ToEuclideanExpr_references)
+TEST(special_matrices, ToEuclideanExpr_references)
 {
   M22 m, n;
   m << pi/6, pi/4, 1, 2;

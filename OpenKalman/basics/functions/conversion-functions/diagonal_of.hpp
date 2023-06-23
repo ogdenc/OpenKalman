@@ -18,61 +18,56 @@
 
 namespace OpenKalman
 {
-  using namespace interface;
-
   namespace detail
   {
-    template<typename Arg>
-    constexpr void check_if_square_at_runtime(const Arg& arg)
+    template<typename T, std::size_t...Is, typename C, typename D0>
+    constexpr auto make_constant_column_vector(std::index_sequence<Is...>, C&& c, D0&& d0)
     {
-      if constexpr (not square_matrix<Arg>) if (get_index_descriptor<0>(arg) != get_index_descriptor<1>(arg))
-        throw std::invalid_argument {"Argument of diagonal_of must be a square matrix; instead, " +
-        (get_index_dimension_of<0>(arg) == get_index_dimension_of<1>(arg) ?
-          "the row and column indices have non-equivalent types" :
-          "it has " + std::to_string(get_index_dimension_of<0>(arg)) + " rows and " +
-            std::to_string(get_index_dimension_of<1>(arg)) + " columns")};
-    };
+      return make_constant_matrix_like<T>(std::forward<C>(c), std::forward<D0>(d0), Dimensions<static_cast<decltype(Is)>(1)>{}...);
+    }
   }
 
 
   /**
    * \brief Extract the diagonal from a square matrix.
-   * \tparam Arg A diagonal matrix
+   * \tparam Arg A square matrix
    * \returns Arg A column vector
    */
 #ifdef __cpp_concepts
   template<square_matrix<Likelihood::maybe> Arg>
-  constexpr /*dimension_size_of_index_is<1, 1>*/ decltype(auto)
+  constexpr dimension_size_of_index_is<1, 1> decltype(auto)
 #else
   template<typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe>, int> = 0>
   constexpr decltype(auto)
 #endif
   diagonal_of(Arg&& arg)
   {
-    auto dim = get_index_descriptor<dynamic_rows<Arg> ? 1 : 0>(arg);
+    constexpr std::make_index_sequence<max_indices_of_v<Arg> - 1> seq;
 
-    if constexpr (one_by_one_matrix<Arg>)
+    if constexpr (diagonal_adapter<Arg>)
+    {
+      return nested_matrix(std::forward<Arg>(arg));
+    }
+    else if constexpr (one_by_one_matrix<Arg>)
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (identity_matrix<Arg>)
+    else if constexpr (constant_matrix<Arg, CompileTimeStatus::any, Likelihood::maybe>)
     {
-      return make_constant_matrix_like<Arg, scalar_type_of_t<Arg>, 1>(dim, Dimensions<1>{});
+      auto d = get_is_square(arg);
+      if (not d) throw std::invalid_argument {"Argument of diagonal_of is not a square matrix."};
+      return detail::make_constant_column_vector<Arg>(seq, constant_coefficient {std::forward<Arg>(arg)}, *d);
     }
-    else if constexpr (zero_matrix<Arg>)
+    else if constexpr (constant_diagonal_matrix<Arg, CompileTimeStatus::any, Likelihood::maybe>)
     {
-      detail::check_if_square_at_runtime(arg);
-      return make_zero_matrix_like<Arg>(dim, Dimensions<1>{});
+      auto d = get_is_square(arg);
+      if (not d) throw std::invalid_argument {"Argument of diagonal_of is not a square matrix."};
+      return detail::make_constant_column_vector<Arg>(seq, constant_diagonal_coefficient {std::forward<Arg>(arg)}, *d);
     }
-    else if constexpr (constant_matrix<Arg>)
+    else if constexpr (max_tensor_order_of_v<Arg> < max_indices_of_v<Arg> and element_gettable<Arg, 0>)
     {
-      detail::check_if_square_at_runtime(arg);
-      return make_constant_matrix_like<Arg>(constant_coefficient{arg}, dim, Dimensions<1>{});
-    }
-    else if constexpr (constant_diagonal_matrix<Arg>)
-    {
-      detail::check_if_square_at_runtime(arg);
-      return make_constant_matrix_like<Arg>(constant_diagonal_coefficient{arg}, dim, Dimensions<1>{});
+      if (not get_is_square(arg)) throw std::invalid_argument {"Argument of diagonal_of is not a square matrix."};
+      return detail::make_constant_column_vector<Arg>(seq, get_element(std::forward<Arg>(arg)), Dimensions<1>{});
     }
     else
     {

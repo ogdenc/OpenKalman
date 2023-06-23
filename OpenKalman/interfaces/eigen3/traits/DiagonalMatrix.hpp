@@ -81,30 +81,7 @@ namespace OpenKalman
     template<typename Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
     struct Conversions<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
     {
-      template<typename Arg>
-      static decltype(auto)
-      to_diagonal(Arg&& arg)
-      {
-        // In this case, arg will be one-by-one.
-        if constexpr (dynamic_columns<Arg>) if (get_index_dimension_of<1>(arg) != 1)
-          throw std::logic_error {"Argument of to_diagonal must be 1-by-1"};
-
-        using M = Eigen::Matrix<scalar_type_of_t<Arg>, 1, 1>;
-        return M {std::forward<Arg>(arg).diagonal()};
-      }
-
-
-      template<typename Arg>
-      static constexpr decltype(auto)
-      diagonal_of(Arg&& arg)
-      {
-        auto d {make_self_contained<Arg>(std::forward<Arg>(arg).diagonal())};
-
-        if constexpr (std::is_lvalue_reference_v<Arg> or not has_dynamic_dimensions<Arg> or SizeAtCompileTime == Eigen::Dynamic)
-          return d;
-        else
-          return untyped_dense_writable_matrix_t<decltype(d), Scalar, static_cast<std::size_t>(SizeAtCompileTime), 1> {std::move(d)};
-      }
+      // Because DiagonalMatrix is a diagonal adapter, the general to_diagonal and diagonal_of functions handle everything.
     };
 
   } // namespace interface

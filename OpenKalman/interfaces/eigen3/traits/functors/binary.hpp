@@ -20,9 +20,6 @@
 
 namespace OpenKalman::Eigen3
 {
-  namespace EGI = Eigen::internal;
-
-
   namespace detail
   {
     template<typename Op, typename LhsType, typename RhsType, bool is_diag, typename Arg>
@@ -33,10 +30,10 @@ namespace OpenKalman::Eigen3
         if constexpr (std::is_default_constructible_v<Op> and
             constant_diagonal_matrix<LhsType, CompileTimeStatus::known, Likelihood::maybe> and
             constant_diagonal_matrix<RhsType, CompileTimeStatus::known, Likelihood::maybe>)
-          return scalar_constant_operation {Op{}, constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
+          return internal::scalar_constant_operation {Op{}, constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
         else if constexpr (constant_diagonal_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe> and
                            constant_diagonal_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe>)
-          return scalar_constant_operation {arg.functor(), constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
+          return internal::scalar_constant_operation {arg.functor(), constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
         else
           return std::monostate {};
       }
@@ -45,11 +42,11 @@ namespace OpenKalman::Eigen3
         if constexpr (std::is_default_constructible_v<Op> and
             constant_matrix<LhsType, CompileTimeStatus::known, Likelihood::maybe> and
             constant_matrix<RhsType, CompileTimeStatus::known, Likelihood::maybe>)
-          return scalar_constant_operation {Op{}, constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
+          return internal::scalar_constant_operation {Op{}, constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
         else if constexpr (constant_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe> and
                            constant_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe>)
         {
-          return scalar_constant_operation {arg.functor(), constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
+          return internal::scalar_constant_operation {arg.functor(), constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
         }
         else
           return std::monostate {};
@@ -89,17 +86,17 @@ namespace OpenKalman::Eigen3
       {
         if constexpr (std::is_default_constructible_v<Op> and
             constant_diagonal_matrix<LhsType, CompileTimeStatus::known, Likelihood::maybe> and constant_matrix<RhsType, CompileTimeStatus::known>)
-          return scalar_constant_operation {Op{}, constant_diagonal_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
+          return internal::scalar_constant_operation {Op{}, constant_diagonal_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
         else
-          return scalar_constant_operation {arg.functor(), constant_diagonal_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
+          return internal::scalar_constant_operation {arg.functor(), constant_diagonal_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
       }
       else if constexpr (is_diag and constant_matrix<LhsType> and constant_diagonal_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe>)
       {
         if constexpr (std::is_default_constructible_v<Op> and
             constant_matrix<LhsType, CompileTimeStatus::known, Likelihood::maybe> and constant_diagonal_matrix<RhsType, CompileTimeStatus::known, Likelihood::maybe>)
-          return scalar_constant_operation {Op{}, constant_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
+          return internal::scalar_constant_operation {Op{}, constant_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
         else
-          return scalar_constant_operation {arg.functor(), constant_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
+          return internal::scalar_constant_operation {arg.functor(), constant_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
       }
       else
       {
@@ -146,7 +143,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<EGI::scalar_sum_op<Scalar1, Scalar2>, LhsType, RhsType>
+  struct FunctorTraits<Eigen::internal::scalar_sum_op<Scalar1, Scalar2>, LhsType, RhsType>
   {
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -162,7 +159,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<EGI::scalar_product_op<Scalar1, Scalar2>, LhsType, RhsType>
+  struct FunctorTraits<Eigen::internal::scalar_product_op<Scalar1, Scalar2>, LhsType, RhsType>
   {
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -178,7 +175,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<EGI::scalar_conj_product_op<Scalar1, Scalar2>, LhsType, RhsType>
+  struct FunctorTraits<Eigen::internal::scalar_conj_product_op<Scalar1, Scalar2>, LhsType, RhsType>
   {
     struct Op
     {
@@ -199,7 +196,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<EGI::scalar_min_op<Scalar1, Scalar2>, LhsType, RhsType>
+  struct FunctorTraits<Eigen::internal::scalar_min_op<Scalar1, Scalar2>, LhsType, RhsType>
   {
     struct Op
     {
@@ -220,7 +217,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<EGI::scalar_max_op<Scalar1, Scalar2>, LhsType, RhsType>
+  struct FunctorTraits<Eigen::internal::scalar_max_op<Scalar1, Scalar2>, LhsType, RhsType>
   {
     struct Op
     {
@@ -241,20 +238,20 @@ namespace OpenKalman::Eigen3
 
 
   template<typename LhsScalar, typename RhsScalar, Eigen::internal::ComparisonName cmp, typename LhsType, typename RhsType>
-  struct FunctorTraits<EGI::scalar_cmp_op<LhsScalar, RhsScalar, cmp>, LhsType, RhsType>
+  struct FunctorTraits<Eigen::internal::scalar_cmp_op<LhsScalar, RhsScalar, cmp>, LhsType, RhsType>
   {
     struct Op
     {
       constexpr auto operator()(LhsScalar a, RhsScalar b) const noexcept
       {
-        if constexpr (cmp == EGI::ComparisonName::cmp_EQ) return a == b;
-        else if constexpr (cmp == EGI::ComparisonName::cmp_LT) return a < b;
-        else if constexpr (cmp == EGI::ComparisonName::cmp_LE) return a <= b;
-        else if constexpr (cmp == EGI::ComparisonName::cmp_GT) return a > b;
-        else if constexpr (cmp == EGI::ComparisonName::cmp_GE) return a >= b;
-        else if constexpr (cmp == EGI::ComparisonName::cmp_NEQ) return a != b;
-        else if constexpr (cmp == EGI::ComparisonName::cmp_UNORD) return not (a<=b or b<=a);
-        else return EGI::scalar_cmp_op<LhsScalar, RhsScalar, cmp> {}(a, b); // Failsafe, but not a constexpr function.
+        if constexpr (cmp == Eigen::internal::ComparisonName::cmp_EQ) return a == b;
+        else if constexpr (cmp == Eigen::internal::ComparisonName::cmp_LT) return a < b;
+        else if constexpr (cmp == Eigen::internal::ComparisonName::cmp_LE) return a <= b;
+        else if constexpr (cmp == Eigen::internal::ComparisonName::cmp_GT) return a > b;
+        else if constexpr (cmp == Eigen::internal::ComparisonName::cmp_GE) return a >= b;
+        else if constexpr (cmp == Eigen::internal::ComparisonName::cmp_NEQ) return a != b;
+        else if constexpr (cmp == Eigen::internal::ComparisonName::cmp_UNORD) return not (a<=b or b<=a);
+        else return Eigen::internal::scalar_cmp_op<LhsScalar, RhsScalar, cmp> {}(a, b); // Failsafe, but not a constexpr function.
       }
     };
 
@@ -273,7 +270,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<EGI::scalar_hypot_op<Scalar1, Scalar2>, LhsType, RhsType>
+  struct FunctorTraits<Eigen::internal::scalar_hypot_op<Scalar1, Scalar2>, LhsType, RhsType>
   {
     struct Op
     {
@@ -297,7 +294,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename Exponent, typename LhsType, typename RhsType>
-  struct FunctorTraits<EGI::scalar_pow_op<Scalar, Exponent>, LhsType, RhsType>
+  struct FunctorTraits<Eigen::internal::scalar_pow_op<Scalar, Exponent>, LhsType, RhsType>
   {
     struct Op
     {
@@ -308,7 +305,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const Arg& arg)
     {
       if constexpr (is_diag) return std::monostate {};
-      else if constexpr (zero_matrix<RhsType>) return ScalarConstant<Likelihood::definitely, Scalar, 1>{};
+      else if constexpr (zero_matrix<RhsType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 1>{};
       else return detail::default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
     }
 
@@ -320,15 +317,15 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<EGI::scalar_difference_op<Scalar1, Scalar2>, LhsType, RhsType>
+  struct FunctorTraits<Eigen::internal::scalar_difference_op<Scalar1, Scalar2>, LhsType, RhsType>
   {
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
       if constexpr (zero_matrix<LhsType>)
       {
-        if constexpr (is_diag) return scalar_constant_operation {std::negate<>{}, constant_diagonal_coefficient {arg.rhs()}};
-        else return scalar_constant_operation {std::negate<>{}, constant_coefficient {arg.rhs()}};
+        if constexpr (is_diag) return internal::scalar_constant_operation {std::negate<>{}, constant_diagonal_coefficient {arg.rhs()}};
+        else return internal::scalar_constant_operation {std::negate<>{}, constant_coefficient {arg.rhs()}};
       }
       else if constexpr (zero_matrix<RhsType>)
       {
@@ -346,7 +343,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<EGI::scalar_quotient_op<Scalar1, Scalar2>, LhsType, RhsType>
+  struct FunctorTraits<Eigen::internal::scalar_quotient_op<Scalar1, Scalar2>, LhsType, RhsType>
   {
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -363,7 +360,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename LhsType, typename RhsType>
-  struct FunctorTraits<EGI::scalar_boolean_and_op, LhsType, RhsType>
+  struct FunctorTraits<Eigen::internal::scalar_boolean_and_op, LhsType, RhsType>
   {
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -379,7 +376,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename LhsType, typename RhsType>
-  struct FunctorTraits<EGI::scalar_boolean_or_op, LhsType, RhsType>
+  struct FunctorTraits<Eigen::internal::scalar_boolean_or_op, LhsType, RhsType>
   {
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -412,7 +409,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename LhsType, typename RhsType>
-  struct FunctorTraits<EGI::scalar_boolean_xor_op, LhsType, RhsType>
+  struct FunctorTraits<Eigen::internal::scalar_boolean_xor_op, LhsType, RhsType>
   {
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -429,7 +426,7 @@ namespace OpenKalman::Eigen3
 
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
   template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<EGI::scalar_absolute_difference_op<Scalar1, Scalar2>, LhsType, RhsType>
+  struct FunctorTraits<Eigen::internal::scalar_absolute_difference_op<Scalar1, Scalar2>, LhsType, RhsType>
   {
     struct Op
     {

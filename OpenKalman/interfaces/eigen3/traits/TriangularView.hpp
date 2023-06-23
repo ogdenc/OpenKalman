@@ -114,7 +114,7 @@ namespace OpenKalman
         {
           return std::monostate{};
         }
-        else if constexpr ((Mode & Eigen::ZeroDiag) == 0 and eigen_Identity<MatrixType>)
+        else if constexpr ((Mode & Eigen::ZeroDiag) == 0 and Eigen3::eigen_Identity<MatrixType>)
         {
           return internal::ScalarConstant<b, Scalar, 1>{};
         }
@@ -190,12 +190,8 @@ namespace OpenKalman
       static auto
       to_diagonal(Arg&& arg)
       {
-          // In this case, arg will be a one-by-one matrix.
-          if constexpr (has_dynamic_dimensions<Arg>)
-            if (get_index_dimension_of<0>(arg) != 1 or get_index_dimension_of<1>(arg) != 1) throw std::logic_error {
-            "Argument of to_diagonal must be 1-by-1"};
-
-          return make_self_contained<Arg>(std::forward<Arg>(arg).nestedExpression());
+        // If it is a column vector, the TriangularView wrapper doesn't matter, and otherwise, the following will thow an exception:
+        return OpenKalman::to_diagonal(nested_matrix(std::forward<Arg>(arg)));
       }
 
 
