@@ -98,6 +98,28 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typename T>
+    concept known_constant = detail::has_get_constant_interface<T, CompileTimeStatus::known> or
+      (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::known> and
+        (one_by_one_matrix<T, Likelihood::maybe> or requires(interface::SingleConstant<std::decay_t<T>>& trait) {
+          requires are_within_tolerance(std::decay_t<decltype(trait.get_constant_diagonal())>::value, 0);
+        }));
+#else
+    template<typename T, typename = void>
+    struct is_known_constant : std::false_type {};
+
+    template<typename T>
+    struct is_known_constant<T, std::enable_if_t<detail::has_get_constant_interface<T, CompileTimeStatus::known> or
+      (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::known> and
+        (one_by_one_matrix<T, Likelihood::maybe> or detail::constant_diagonal_matrix_is_zero<T>::value))>>
+      : std::true_type {};
+
+    template<typename T>
+    constexpr bool known_constant = is_known_constant<T>::value;
+#endif
+
+
+#ifdef __cpp_concepts
+    template<typename T>
 #else
     template<typename T, typename = void>
 #endif
@@ -123,17 +145,11 @@ namespace OpenKalman
    * \brief Specialization of \ref constant_coefficient in which the constant is known at compile time.
    */
 #ifdef __cpp_concepts
-  template<indexible T> requires detail::has_get_constant_interface<T, CompileTimeStatus::known> or
-    (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::known> and
-      (one_by_one_matrix<T, Likelihood::maybe> or requires(interface::SingleConstant<std::decay_t<T>>& trait) {
-        requires are_within_tolerance(std::decay_t<decltype(trait.get_constant_diagonal())>::value, 0);
-      }))
+  template<indexible T> requires detail::known_constant<T>
   struct constant_coefficient<T>
 #else
   template<typename T>
-  struct constant_coefficient<T, std::enable_if_t<detail::has_get_constant_interface<T, CompileTimeStatus::known> or
-    (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::known> and
-      (one_by_one_matrix<T, Likelihood::maybe> or detail::constant_diagonal_matrix_is_zero<T>::value))>>
+  struct constant_coefficient<T, std::enable_if_t<indexible<T> and detail::known_constant<T>>>
 #endif
   {
   private:
@@ -175,15 +191,13 @@ namespace OpenKalman
    * \brief Specialization of \ref constant_coefficient in which the constant can be known only at runtime.
    */
 #ifdef __cpp_concepts
-  template<indexible T> requires detail::has_get_constant_interface<T, CompileTimeStatus::unknown> or
-    (one_by_one_matrix<T, Likelihood::maybe> and
-      (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::unknown> or element_gettable<T, 0>))
+  template<indexible T> requires (not detail::known_constant<T>) and
+    (detail::has_get_constant_interface<T, CompileTimeStatus::unknown> or one_by_one_matrix<T, Likelihood::maybe>)
   struct constant_coefficient<T>
 #else
   template<typename T>
-  struct constant_coefficient<T, std::enable_if_t<detail::has_get_constant_interface<T, CompileTimeStatus::unknown> or
-    (one_by_one_matrix<T, Likelihood::maybe> and
-      (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::unknown> or element_gettable<T, 0>))>>
+  struct constant_coefficient<T, std::enable_if_t<(not detail::known_constant<T>) and
+    (detail::has_get_constant_interface<T, CompileTimeStatus::unknown> or one_by_one_matrix<T, Likelihood::maybe>)>>
 #endif
   {
   private:
@@ -232,24 +246,44 @@ namespace OpenKalman
   //  constant_diagonal_coefficient specializations  //
   // ----------------------------------------------- //
 
+  namespace detail
+  {
+#ifdef __cpp_concepts
+    template<typename T>
+    concept known_constant_diagonal = detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::known> or
+      (detail::has_get_constant_interface<T, CompileTimeStatus::known> and
+        (one_by_one_matrix<T, Likelihood::maybe> or (square_matrix<T, Likelihood::maybe> and
+          requires(interface::SingleConstant<std::decay_t<T>>& trait) {
+            requires are_within_tolerance(std::decay_t<decltype(trait.get_constant())>::value, 0);
+          })));
+#else
+    template<typename T, typename = void>
+    struct is_known_constant_diagonal : std::false_type {};
+
+    template<typename T>
+    struct is_known_constant_diagonal<T, std::enable_if_t<
+      detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::known> or
+      (detail::has_get_constant_interface<T, CompileTimeStatus::known> and
+        (one_by_one_matrix<T, Likelihood::maybe> or (square_matrix<T, Likelihood::maybe> and
+        detail::constant_matrix_is_zero<T>::value)))>>
+      : std::true_type {};
+
+    template<typename T>
+    constexpr bool known_constant_diagonal = is_known_constant_diagonal<T>::value;
+#endif
+  } // namepsace detail
+
+
   /**
    * \internal
    * \brief Specialization of \ref constant_diagonal_coefficient in which the constant is known at compile time.
    */
 #ifdef __cpp_concepts
-  template<indexible T> requires detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::known> or
-    (detail::has_get_constant_interface<T, CompileTimeStatus::known> and
-      (one_by_one_matrix<T, Likelihood::maybe> or (square_matrix<T, Likelihood::maybe> and
-        requires(interface::SingleConstant<std::decay_t<T>>& trait) {
-          requires are_within_tolerance(std::decay_t<decltype(trait.get_constant())>::value, 0);
-        })))
+  template<indexible T> requires detail::known_constant_diagonal<T>
   struct constant_diagonal_coefficient<T>
 #else
   template<typename T>
-  struct constant_diagonal_coefficient<T, std::enable_if_t<detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::known> or
-    (detail::has_get_constant_interface<T, CompileTimeStatus::known> and
-      (one_by_one_matrix<T, Likelihood::maybe> or (square_matrix<T, Likelihood::maybe> and
-      detail::constant_matrix_is_zero<T>::value)))>>
+  struct constant_diagonal_coefficient<T, std::enable_if_t<indexible<T> and detail::known_constant_diagonal<T>>>
 #endif
   {
   private:
@@ -284,15 +318,13 @@ namespace OpenKalman
    * \brief Specialization of \ref constant_diagonal_coefficient in which the constant can be known only at runtime.
    */
 #ifdef __cpp_concepts
-  template<indexible T> requires detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::unknown> or
-    (one_by_one_matrix<T, Likelihood::maybe> and
-      (detail::has_get_constant_interface<T, CompileTimeStatus::unknown> or element_gettable<T, 0>))
+  template<indexible T> requires (not detail::known_constant_diagonal<T>) and
+    (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::unknown> or one_by_one_matrix<T, Likelihood::maybe>)
   struct constant_diagonal_coefficient<T>
 #else
   template<typename T>
-  struct constant_diagonal_coefficient<T, std::enable_if_t<detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::unknown> or
-    (one_by_one_matrix<T, Likelihood::maybe> and
-      (detail::has_get_constant_interface<T, CompileTimeStatus::unknown> or element_gettable<T, 0>))>>
+  struct constant_diagonal_coefficient<T, std::enable_if_t<indexible<T> and (not detail::known_constant_diagonal<T>) and
+    (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::unknown> or one_by_one_matrix<T, Likelihood::maybe>)>>
 #endif
   {
   private:

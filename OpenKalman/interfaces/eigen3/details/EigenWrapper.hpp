@@ -380,14 +380,13 @@ namespace OpenKalman
 
 
 #ifdef __cpp_lib_concepts
-      template<typename Arg, typename Scalar, typename...I> requires element_settable<nested_matrix_of_t<Arg&&>, sizeof...(I)>
+      template<typename Arg, typename Scalar, typename...I> requires element_settable<nested_matrix_of_t<Arg&>, sizeof...(I)>
 #else
-      template<typename Arg, typename Scalar, typename...I, std::enable_if_t<element_settable<typename nested_matrix_of<Arg&&>::type, sizeof...(I)>, int> = 0>
+      template<typename Arg, typename Scalar, typename...I, std::enable_if_t<element_settable<typename nested_matrix_of<Arg&>::type, sizeof...(I)>, int> = 0>
 #endif
-      static constexpr Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, I...i)
+      static constexpr void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
       {
         set_element(nested_matrix(arg), s, i...);
-        return std::forward<Arg>(arg);
       }
     };
 

@@ -24,6 +24,7 @@ add_executable(special-matrices
         #FromEuclideanExpr.test.cpp
         rank-update.test.cpp
         blocks.test.cpp
+        linear-algebra.test.cpp
         decompositions.test.cpp
     )
 

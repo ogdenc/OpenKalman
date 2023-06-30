@@ -101,7 +101,8 @@ namespace OpenKalman
 
       static constexpr bool is_triangular_adapter = false;
 
-      static constexpr bool is_diagonal_adapter = dimension_size_of_index_is<DiagVectorType, 1, 1>;
+      template<Likelihood b>
+      static constexpr bool is_diagonal_adapter = dimension_size_of_index_is<DiagVectorType, 1, 1, b>;
     };
 
 
@@ -130,7 +131,9 @@ namespace OpenKalman
         constexpr Eigen::Index rows = EigenTraits::RowsAtCompileTime;
         constexpr Eigen::Index cols = EigenTraits::ColsAtCompileTime;
 
-        if constexpr (cols == 1 or cols == 0)
+        static_assert(cols != 1, "For Eigen::DiagonalWrapper<T> interface, T should never be a column vector "
+                                 "because diagonal_of function handles this case.");
+        if constexpr (cols == 0)
         {
           return std::forward<Diag>(diag);
         }

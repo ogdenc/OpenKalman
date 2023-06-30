@@ -70,10 +70,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<static_index_value Dim, typename BinaryOperation, scalar_constant<CompileTimeStatus::known> Constant>
+    template<static_index_value Dim, typename BinaryOperation, typename Constant>
 #else
-    template<typename Dim, typename BinaryOperation, typename Constant,
-      std::enable_if_t<static_index_value<Dim> and scalar_constant<Constant, CompileTimeStatus::known>, int> = 0>
+    template<typename Dim, typename BinaryOperation, typename Constant, std::enable_if_t<static_index_value<Dim>, int> = 0>
 #endif
     constexpr auto scalar_reduce_operation(Dim dim, const BinaryOperation& op, const Constant& c)
     {

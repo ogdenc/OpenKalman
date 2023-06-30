@@ -671,16 +671,23 @@ TEST(eigen3, Eigen_check_test_classes)
   static_assert(not diagonal_adapter<M01>);
   static_assert(not diagonal_adapter<M00>);
   static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M21>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M20>>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M20>>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M20>, Likelihood::maybe>);
   static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M01>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M10>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M00>>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M10>>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M10>, Likelihood::maybe>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M00>>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M00>, Likelihood::maybe>);
   static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M21>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M20>>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M20>>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M20>, Likelihood::maybe>);
   static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M01>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M10>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M00>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M22>>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M10>>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M10>, Likelihood::maybe>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M00>>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M00>, Likelihood::maybe>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M22>>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M22>, Likelihood::maybe>);
 
   static_assert(triangular_matrix<Z22, TriangleType::lower>);
   static_assert(not triangular_matrix<Z20, TriangleType::lower>);
@@ -1467,10 +1474,12 @@ TEST(eigen3, Eigen_SelfAdjointView)
   static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::SelfAdjointView<M03, Eigen::Lower>>, M03>);
   static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::SelfAdjointView<M00, Eigen::Lower>>, M00>);
 
-  static_assert(not has_dynamic_dimensions<dense_writable_matrix_t<Eigen::SelfAdjointView<M02, Eigen::Lower>>>);
-  static_assert(not has_dynamic_dimensions<dense_writable_matrix_t<Eigen::SelfAdjointView<M02, Eigen::Upper>>>);
-  static_assert(not has_dynamic_dimensions<dense_writable_matrix_t<Eigen::SelfAdjointView<M20, Eigen::Lower>>>);
-  static_assert(not has_dynamic_dimensions<dense_writable_matrix_t<Eigen::SelfAdjointView<M20, Eigen::Upper>>>);
+  static_assert(not has_dynamic_dimensions<dense_writable_matrix_t<Eigen::SelfAdjointView<M22, Eigen::Lower>>>);
+  static_assert(not has_dynamic_dimensions<dense_writable_matrix_t<Eigen::SelfAdjointView<M22, Eigen::Upper>>>);
+  static_assert(has_dynamic_dimensions<dense_writable_matrix_t<Eigen::SelfAdjointView<M02, Eigen::Lower>>>);
+  static_assert(has_dynamic_dimensions<dense_writable_matrix_t<Eigen::SelfAdjointView<M02, Eigen::Upper>>>);
+  static_assert(has_dynamic_dimensions<dense_writable_matrix_t<Eigen::SelfAdjointView<M20, Eigen::Lower>>>);
+  static_assert(has_dynamic_dimensions<dense_writable_matrix_t<Eigen::SelfAdjointView<M20, Eigen::Upper>>>);
 
   static_assert(constant_coefficient_v<Eigen::SelfAdjointView<Eigen::MatrixWrapper<C22_2>, Eigen::Upper>> == 2);
 

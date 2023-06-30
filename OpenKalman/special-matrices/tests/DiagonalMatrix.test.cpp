@@ -479,14 +479,14 @@ TEST(special_matrices, Diagonal_traits)
 
 TEST(special_matrices, to_diagonal)
 {
+  // See eigen3-diagonal.test.cpp
+
   auto m11 = M11 {3};
 
-  EXPECT_TRUE(is_near(to_diagonal(m11), m11));
-  EXPECT_TRUE(is_near(to_diagonal(M10 {m11}), m11));
-  EXPECT_TRUE(is_near(to_diagonal(M01 {m11}), m11));
+  EXPECT_TRUE(is_near(to_diagonal(M01 {m11}), m11)); static_assert(eigen_diagonal_expr<decltype(to_diagonal(M01 {m11}))>);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
-  EXPECT_TRUE(is_near(to_diagonal(M00 {m11}), m11));
+  EXPECT_TRUE(is_near(to_diagonal(M00 {m11}), m11)); static_assert(eigen_diagonal_expr<decltype(to_diagonal(M00 {m11}))>);
 #pragma GCC diagnostic pop
 }
 

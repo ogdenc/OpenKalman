@@ -225,7 +225,7 @@ namespace OpenKalman::interface
     struct eigen_has_linear_access : std::false_type {};
 
     template<typename T>
-    struct eigen_has_linear_access<T, std::enable_if_t<native_eigen_dense<T>>>
+    struct eigen_has_linear_access<T, std::enable_if_t<Eigen3::native_eigen_dense<T>>>
       : std::bool_constant<(Eigen::internal::evaluator<T>::Flags & Eigen::LinearAccessBit) != 0> {};
   }
 #endif
@@ -271,10 +271,9 @@ namespace OpenKalman::interface
       (sizeof...(I) != 1 or (Eigen::internal::evaluator<std::decay_t<Arg>>::Flags & Eigen::LinearAccessBit) != 0) and
       ((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0), int> = 0>
 #endif
-    static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, I...i)
+    static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
     {
       arg.coeffRef(i...) = s;
-      return std::forward<Arg>(arg);
     }
   };
 
@@ -313,9 +312,9 @@ namespace OpenKalman::interface
       if (i == j)
       {
         if constexpr (element_gettable<nested_matrix_of_t<const Arg&>, 1>)
-          return arg.diagonal().coeff(i);
+          return get_element(nested_matrix(arg), i);
         else
-          return arg.diagonal().coeff(i, i);
+          return get_element(nested_matrix(arg), i, i);
       }
       else
       {
@@ -325,41 +324,38 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires element_settable<nested_matrix_of_t<Arg&&>, 1> or
-      element_settable<nested_matrix_of_t<Arg&&>, 2>
+    template<typename Arg> requires element_settable<nested_matrix_of_t<Arg&>, 1> or
+      element_settable<nested_matrix_of_t<Arg&>, 2>
 #else
-    template<typename Arg, std::enable_if_t<element_settable<typename nested_matrix_of<Arg&&>::type, 1> or
-      element_settable<typename nested_matrix_of<Arg&&>::type, 2>, int> = 0>
+    template<typename Arg, std::enable_if_t<element_settable<typename nested_matrix_of<Arg&>::type, 1> or
+      element_settable<typename nested_matrix_of<Arg&>::type, 2>, int> = 0>
 #endif
-    static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i)
+    static void set(Arg& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i)
     {
-      if constexpr (element_settable<nested_matrix_of_t<Arg&&>, 1>)
-        arg.coeffRef(i) = s;
+      if constexpr (element_settable<nested_matrix_of_t<Arg&>, 1>)
+        set_element(nested_matrix(arg), s, i);
       else
-        arg.coeffRef(i, i) = s;
-      return std::forward<Arg>(arg);
+        set_element(nested_matrix(arg), s, i, i);
     }
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires element_settable<nested_matrix_of_t<Arg&&>, 1> or
-      element_settable<nested_matrix_of_t<Arg&&>, 2>
+    template<typename Arg> requires element_settable<nested_matrix_of_t<Arg&>, 1> or
+      element_settable<nested_matrix_of_t<Arg&>, 2>
 #else
-    template<typename Arg, std::enable_if_t<element_settable<typename nested_matrix_of<Arg&&>::type, 1> or
-      element_settable<typename nested_matrix_of<Arg&&>::type, 2>, int> = 0>
+    template<typename Arg, std::enable_if_t<element_settable<typename nested_matrix_of<Arg&>::type, 1> or
+      element_settable<typename nested_matrix_of<Arg&>::type, 2>, int> = 0>
 #endif
-    static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i, Eigen::Index j)
+    static void set(Arg& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i, Eigen::Index j)
     {
-      if constexpr (element_settable<nested_matrix_of_t<Arg&&>, 1>)
+      if (i == j or s == 0)
       {
-        arg.coeffRef(i) = s;
+        if constexpr (element_settable<nested_matrix_of_t<Arg&>, 1>)
+          set_element(nested_matrix(arg), s, i);
+        else
+          set_element(nested_matrix(arg), s, i, i);
       }
-      else
-      {
-        if (i == j or s == 0) arg.coeffRef(i, j) = s;
-        else throw std::invalid_argument {"Off-diagonal elements of DiagonalMatrix or DiagonalWrapper can only be set to zero"};
-      }
-      return std::forward<Arg>(arg);
+      else throw std::invalid_argument {"Off-diagonal elements of DiagonalMatrix or DiagonalWrapper can only be set to zero"};
     }
   };
 
@@ -502,19 +498,19 @@ namespace OpenKalman::interface
 #endif
   {
 #ifdef __cpp_concepts
-    template<Eigen3::native_eigen_dense Arg>
-      requires std::is_lvalue_reference_v<nested_matrix_of_t<Eigen::DiagonalWrapper<std::decay_t<Arg>>>>
+    template<Eigen3::native_eigen_dense Arg> requires (std::is_lvalue_reference_v<Arg> ==
+      std::is_lvalue_reference_v<nested_matrix_of_t<Eigen::DiagonalWrapper<std::remove_reference_t<Arg>>>>)
 #else
-    template<typename Arg, std::enable_if_t<Eigen3::native_eigen_dense<Arg> and
-      std::is_lvalue_reference_v<typename nested_matrix_of<Eigen::DiagonalWrapper<std::decay_t<Arg>>>::type>, int> = 0>
+    template<typename Arg, std::enable_if_t<Eigen3::native_eigen_dense<Arg> and (std::is_lvalue_reference_v<Arg> ==
+      std::is_lvalue_reference_v<typename nested_matrix_of<Eigen::DiagonalWrapper<std::remove_reference_t<Arg>>>::type>), int> = 0>
 #endif
-    static constexpr decltype(auto)
-    to_diagonal(Arg& arg)
+    static constexpr auto
+    to_diagonal(Arg&& arg)
     {
       if constexpr (dynamic_columns<Arg>) if (get_index_dimension_of<1>(arg) != 1) throw std::invalid_argument {
         "Argument of to_diagonal must have 1 column; instead it has " + std::to_string(get_index_dimension_of<1>(arg))};
 
-      return Eigen::DiagonalWrapper<std::decay_t<Arg>> {arg};
+      return Eigen::DiagonalWrapper<std::remove_reference_t<Arg>> {std::forward<Arg>(arg)};
     }
 
 
@@ -526,37 +522,39 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     diagonal_of(Arg&& arg)
     {
-      if constexpr (not square_matrix<Arg>) if (get_index_dimension_of<0>(arg) != get_index_dimension_of<1>(arg))
-        throw std::logic_error {"Argument of diagonal_of must be a square matrix; instead it has " +
+      auto d = get_is_square(arg);
+      if (not d) throw std::invalid_argument {"Argument of diagonal_of must be a square matrix; instead it has " +
           std::to_string(get_index_dimension_of<0>(arg)) + " rows and " +
           std::to_string(get_index_dimension_of<1>(arg)) + " columns"};
 
       using Scalar = scalar_type_of_t<Arg>;
 
       constexpr std::size_t dim = dynamic_rows<Arg> ? column_dimension_of_v<Arg> : row_dimension_of_v<Arg>;
+      static_assert(dim != 1); // This should be handled by general funciton.
 
       if constexpr (Eigen3::eigen_Identity<Arg>)
       {
-        if constexpr (dim == dynamic_size) return make_constant_matrix_like<Arg, Scalar, 1>(get_index_descriptor<0>(arg), Dimensions<1>{});
+        if constexpr (dim == dynamic_size) return make_constant_matrix_like<Arg, Scalar, 1>(*d, Dimensions<1>{});
         else return make_constant_matrix_like<Arg, Scalar, 1>(Dimensions<dim>{}, Dimensions<1>{});
       }
-      else if constexpr (dim == 1)
+      /*else if constexpr (dim == 1)
       {
         return std::forward<Arg>(arg);
-      }
+      }*/
       else
       {
-        auto d {[](Arg&& arg){
+        auto diag {[](Arg&& arg){
           if constexpr (Eigen3::native_eigen_array<Arg>)
             return make_self_contained<Arg>(std::forward<Arg>(arg).matrix().diagonal());
           else // native_eigen_matrix<Arg>
             return make_self_contained<Arg>(std::forward<Arg>(arg).diagonal());
         }(std::forward<Arg>(arg))};
 
-        if constexpr (std::is_lvalue_reference_v<Arg> or not has_dynamic_dimensions<Arg> or dim == dynamic_size)
-          return d;
+        if constexpr (/*std::is_lvalue_reference_v<Arg> or*/ not has_dynamic_dimensions<Arg> or dim == dynamic_size)
+          return diag;
         else
-          return untyped_dense_writable_matrix_t<decltype(d), Scalar, dim, 1> {std::move(d)};
+          // \todo Create an internal wrapper with an immutable nested matrix that guarantees a compile-time set of dimensions.
+          return untyped_dense_writable_matrix_t<decltype(diag), Scalar, dim, 1> {std::move(diag)};
       }
     }
 

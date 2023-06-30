@@ -286,6 +286,7 @@ namespace OpenKalman
       template<TriangleType t, Likelihood b>
       static constexpr bool is_triangular = true;
 
+      template<Likelihood b>
       static constexpr bool is_diagonal_adapter = true;
     };
 

@@ -26,13 +26,13 @@ endif()
 #include_directories(SYSTEM ${OPENCV_INCLUDE_DIRS})
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(MyCXX_FLAGS "-g -O2 -Wall -ftemplate-backtrace-limit=0")
+#set(MyCXX_FLAGS "")
 
 #if(${CMAKE_CXX_STANDARD} LESS 20)
 #    set(MyCXX_FLAGS "${MyCXX_FLAGS}")
 #endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MyCXX_FLAGS}")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MyCXX_FLAGS}")
 
 add_subdirectory(OpenKalman)
 add_subdirectory(docs)

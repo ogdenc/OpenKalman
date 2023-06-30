@@ -27,7 +27,8 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
   struct IndexTraits<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>
 #else
-  struct IndexTraits<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>, std::enable_if_t<native_eigen_general<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>>>
+  struct IndexTraits<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>, std::enable_if_t<
+    Eigen3::native_eigen_general<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>>>
 #endif
   {
     static constexpr std::size_t max_indices = std::max({max_indices_of_v<LhsType>, max_indices_of_v<RhsType>});

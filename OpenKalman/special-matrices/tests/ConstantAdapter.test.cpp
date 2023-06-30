@@ -655,6 +655,24 @@ TEST(special_matrices, make_zero_matrix_like)
 
 TEST(special_matrices, diagonal_of_constant)
 {
+  // Note: ConstantAdapter is only created when the constant is known at compile time.
+  // dynamic one-by-one, known at compile time:
+
+  auto m10_1 = M10 {m11};
+  auto m01_1 = M01 {m11};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+  auto m00_11 = M00 {m11};
+#pragma GCC diagnostic pop
+
+  static_assert(square_matrix<decltype(M00::Identity(1, 1)), Likelihood::maybe>);
+  static_assert(constant_coefficient_v<decltype(diagonal_of(M10::Identity()))> == 1);
+  static_assert(constant_coefficient_v<decltype(diagonal_of(M01::Identity()))> == 1);
+  static_assert(constant_coefficient_v<decltype(diagonal_of(M00::Identity()))> == 1);
+  static_assert(not has_dynamic_dimensions<decltype(diagonal_of(M10::Identity(1, 1)))>);
+  static_assert(not has_dynamic_dimensions<decltype(diagonal_of(M01::Identity(1, 1)))>);
+  static_assert(not has_dynamic_dimensions<decltype(diagonal_of(M00::Identity(1, 1)))>);
+
   auto i22 = M22::Identity();
   auto i20_2 = M20::Identity(2, 2);
   auto i02_2 = M02::Identity(2, 2);

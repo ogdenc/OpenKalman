@@ -485,7 +485,7 @@ namespace OpenKalman::interface
 #else
     template<typename MemberOp, int Direction, typename XprType, typename Dim, std::enable_if_t<
       not is_EigenReplicate<XprType, Direction>::value and
-      not eigen_MatrixWrapper<XprType> and not eigen_ArrayWrapper<XprType> and not eigen_wrapper<XprType>, int> = 0>
+      not Eigen3::eigen_MatrixWrapper<XprType> and not Eigen3::eigen_ArrayWrapper<XprType> and not Eigen3::eigen_wrapper<XprType>, int> = 0>
 #endif
     constexpr auto get_PartialReduxExpr_constant(const XprType& xpr, const Dim& dim)
     {

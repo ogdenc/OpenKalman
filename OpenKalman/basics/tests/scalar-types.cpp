@@ -81,11 +81,6 @@ TEST(basics, scalar_traits)
   struct return8r { auto operator()() { return 8; } };
   static_assert(scalar_constant<return8r, CompileTimeStatus::unknown>);
 
-  struct convertto9 { using value_type = double; constexpr operator double() { return 8.; } };
-  static_assert(scalar_constant<convertto9, CompileTimeStatus::known>);
-  struct convertto9r { using value_type = double; operator double() { return 8.; } };
-  static_assert(scalar_constant<convertto9r, CompileTimeStatus::unknown>);
-
   EXPECT_EQ(get_scalar_constant_value(7), 7);
   EXPECT_EQ(get_scalar_constant_value(std::integral_constant<int, 7>{}), 7);
   EXPECT_EQ(get_scalar_constant_value([](){ return 8; }), 8);

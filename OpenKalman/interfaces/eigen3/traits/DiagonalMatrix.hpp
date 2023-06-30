@@ -74,6 +74,7 @@ namespace OpenKalman
 
       static constexpr bool is_triangular_adapter = false;
 
+      template<Likelihood b>
       static constexpr bool is_diagonal_adapter = true;
     };
 

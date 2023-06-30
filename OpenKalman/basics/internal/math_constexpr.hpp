@@ -10,7 +10,7 @@
 
 /**
  * \file \internal
- * \brief Overloaded consteval math functions.
+ * \brief Overloaded constexpr math functions.
  */
 
 #ifndef OPENKALMAN_MATH_CONSTEXPR_HPP
@@ -1142,7 +1142,7 @@ namespace OpenKalman::internal
     template <typename T>
     constexpr T log1p_impl(int n, const T& x, const T& sum, const T& term)
     {
-      T next_sum = sum + term / n;
+      T next_sum = sum + x * term / n;
       if (sum == next_sum) return sum;
       else return log1p_impl(n + 1, x, next_sum, term * -x);
     }
@@ -1189,7 +1189,7 @@ namespace OpenKalman::internal
       if (x == Scalar{0}) return x;
       else if (x == Scalar{-1}) return -constexpr_infinity<Scalar>();
       else if (x < Scalar{-1}) return constexpr_NaN<Scalar>();
-      if (Scalar{-0x1p-3} < x and x < Scalar{0x1p-3}) return detail::log1p_impl(2, x, x, x);
+      if (Scalar{-0x1p-3} < x and x < Scalar{0x1p-3}) return detail::log1p_impl(2, x, x, -x);
       else
       {
         auto [scaled, corr] = x >= Scalar{0x1p4} ? detail::log_scaling_gt(x + Scalar{1}) : detail::log_scaling_lt(x + Scalar{1});

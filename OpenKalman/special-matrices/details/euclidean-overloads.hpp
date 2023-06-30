@@ -70,14 +70,14 @@ namespace OpenKalman::interface
      * \param j The column of the coefficient.
      */
 #ifdef __cpp_lib_concepts
-    template<typename Arg, typename I, typename...Is> requires element_gettable<nested_matrix_of_t<Arg&&>, 1 + sizeof...(Is)> and
+    template<typename Arg, typename I, typename...Is> requires element_gettable<nested_matrix_of_t<Arg&>, 1 + sizeof...(Is)> and
       (has_untyped_index<Arg, 0> or (from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_of_t<Arg>>))
 #else
     template<typename Arg, typename I, typename...Is, std::enable_if_t<
-      element_gettable<typename nested_matrix_of<Arg&&>::type, 1 + sizeof...(Is)> and
+      element_gettable<typename nested_matrix_of<Arg&>::type, 1 + sizeof...(Is)> and
       (has_untyped_index<Arg, 0> or (from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_of_t<Arg>>)), int> = 0>
 #endif
-    static constexpr Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, I i, Is...is)
+    static constexpr void set(Arg& arg, const scalar_type_of_t<Arg>& s, I i, Is...is)
     {
       if constexpr (has_untyped_index<Arg, 0>)
       {
@@ -97,8 +97,6 @@ namespace OpenKalman::interface
       {
         set_element(nested_matrix(arg), s, i, is...);
       }
-
-      return std::forward<Arg>(arg);
     }
   };
 

@@ -425,24 +425,12 @@ TEST(eigen3, contract)
   auto dm3a = Eigen::DiagonalMatrix<double, 3>{m31a};
   auto dm0_3a = Eigen::DiagonalMatrix<double, Eigen::Dynamic>{m31a};
   auto dw3a = Eigen::DiagonalWrapper{m31a};
-  auto dw0_3a = Eigen::DiagonalWrapper{m01_3a};
 
   auto dm3b = Eigen::DiagonalMatrix<double, 3>{m31b};
   auto dm0_3b = Eigen::DiagonalMatrix<double, Eigen::Dynamic>{m31b};
   auto dw3b = Eigen::DiagonalWrapper{m31b};
-  auto dw0_3b = Eigen::DiagonalWrapper{m01_3b};
 
   M33 d3c {make_dense_writable_matrix_from<M31>(10, 18, 28).asDiagonal()};
-
-  EXPECT_TRUE(is_near(contract(dm3a, dm3b), d3c));
-  EXPECT_TRUE(is_near(contract(EigenWrapper {dm3a}, EigenWrapper {dm3b}), d3c));
-  EXPECT_TRUE(is_near(contract(dm0_3a, dm3b), d3c));
-  EXPECT_TRUE(is_near(contract(dm3a, dm0_3b), d3c));
-  EXPECT_TRUE(is_near(contract(dm0_3a, dm0_3b), d3c));
-  EXPECT_TRUE(is_near(contract(dw3a, dw3b), d3c));
-  EXPECT_TRUE(is_near(contract(dw0_3a, dw3b), d3c));
-  EXPECT_TRUE(is_near(contract(dw3a, dw0_3b), d3c));
-  EXPECT_TRUE(is_near(contract(dw0_3a, dw0_3b), d3c));
 
   auto c23_2 = Eigen::Replicate<decltype(c11_2), 2, 3>(c11_2);
   auto c20_3_2 = Eigen::Replicate<decltype(c11_2), 2, Eigen::Dynamic>(c11_2, 2, 3);
@@ -455,8 +443,6 @@ TEST(eigen3, contract)
   EXPECT_TRUE(is_near(contract(c20_3_2, dw3a), m23_468));
   EXPECT_TRUE(is_near(contract(c03_2_2, dm3a), m23_468));
   EXPECT_TRUE(is_near(contract(c00_23_2, dw3a), m23_468));
-  EXPECT_TRUE(is_near(contract(make_constant_matrix_like<M23, 2>(), dm3a), m23_468));
-  EXPECT_TRUE(is_near(contract(make_constant_matrix_like<M23, 2>(), dw3a), m23_468));
 
   auto c11_3 {M11::Identity() + M11::Identity() + M11::Identity()};
   auto c33_3 = Eigen::Replicate<decltype(c11_3), 3, 3>(c11_3);
@@ -470,6 +456,4 @@ TEST(eigen3, contract)
   EXPECT_TRUE(is_near(contract(dm3b, c30_3_3), m23_151821));
   EXPECT_TRUE(is_near(contract(dw3b, c03_3_3), m23_151821));
   EXPECT_TRUE(is_near(contract(dm3b, c00_33_3), m23_151821));
-  EXPECT_TRUE(is_near(contract(dm3b, make_constant_matrix_like<M33, 3>()), m23_151821));
-  EXPECT_TRUE(is_near(contract(dw3b, make_constant_matrix_like<M33, 3>()), m23_151821));
 }

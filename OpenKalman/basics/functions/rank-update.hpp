@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_RANK_UPDATE_HPP
 #define OPENKALMAN_RANK_UPDATE_HPP
 
+
 namespace OpenKalman
 {
   using namespace interface;
@@ -90,16 +91,11 @@ namespace OpenKalman
           throw std::invalid_argument {"In rank_update_self_adjoint, rows of a (" + std::to_string(get_index_dimension_of<0>(a)) +
             ") do not match rows of u (" + std::to_string(get_index_dimension_of<0>(u)) + ")"};
 
-      auto e = trace(a) + alpha * trace(contract(u, adjoint(u)));
+      auto e = get_element(a) + alpha * get_element(contract(u, adjoint(u)));
 
-      if constexpr (element_settable<A&&, 1>)
+      if constexpr (element_settable<A&&, 0>)
       {
-        set_element(a, e, 0);
-        return make_hermitian_matrix<t>(std::forward<A>(a));
-      }
-      else if constexpr (element_settable<A&&, 2>)
-      {
-        set_element(a, e, 0, 0);
+        set_element(a, e);
         return make_hermitian_matrix<t>(std::forward<A>(a));
       }
       else
@@ -191,18 +187,16 @@ namespace OpenKalman
         throw std::invalid_argument {"In rank_update_triangular, rows of a (" + std::to_string(get_index_dimension_of<0>(a)) +
           ") do not match rows of u (" + std::to_string(get_index_dimension_of<0>(u)) + ")"};
 
-      using std::conj;
-      // A is known at compile time to be a 1-by-1 matrix.
-      auto e = sqrt(trace(a) * conj(trace(a)) + alpha * trace(contract(u, conjugate(u))));
+      // From here on, A is known to be a 1-by-1 matrix.
+      auto e = [](const auto& a, auto&& uterm) {
+          using std::conj;
+          if constexpr (complex_number<scalar_type_of<A>>) return sqrt(get_element(a) * conj(get_element(a)) + uterm);
+          else return sqrt(get_element(a) * get_element(a) + uterm);
+      }(a, alpha * get_element(contract(u, adjoint(u))));
 
-      if constexpr (element_settable<A&&, 1>)
+      if constexpr (element_settable<A&&, 0>)
       {
-        set_element(a, e, 0);
-        return make_triangular_matrix<t>(std::forward<A>(a));
-      }
-      else if constexpr (element_settable<A&&, 2>)
-      {
-        set_element(a, e, 0, 0);
+        set_element(a, e);
         return make_triangular_matrix<t>(std::forward<A>(a));
       }
       else

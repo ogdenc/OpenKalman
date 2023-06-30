@@ -126,11 +126,13 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     template<std::convertible_to<std::decay_t<T>> Arg, std::convertible_to<const std::size_t>...I>
+      requires (not std::is_const_v<std::remove_reference_t<Arg>>)
 #else
     template<typename Arg, typename...I, std::enable_if_t<
-      std::is_convertible_v<Arg, std::decay_t<T>> and (std::is_convertible_v<I, const std::size_t> and ...), int> = 0>
+      std::is_convertible_v<Arg, std::decay_t<T>> and (std::is_convertible_v<I, const std::size_t> and ...) and
+      not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
 #endif
-    static Arg&& set(Arg&& arg, const typename Elements<std::decay_t<Arg>>::scalar_type& s, I...i) = delete;
+    static void set(Arg& arg, const typename Elements<std::decay_t<Arg>>::scalar_type& s, I...i) = delete;
   };
 
 
@@ -420,8 +422,10 @@ namespace OpenKalman::interface
     static constexpr bool is_triangular_adapter = false;
 
     /**
-     * \brief Whether T is a diagonal adapter (defaults to false, if omitted).
+     * \brief Whether T is a \ref diagonal_adapter (defaults to false, if omitted).
+     * \details The likelihood b is available if it is not known whether the nested matrix is a column vector
      */
+    template<Likelihood b>
     static constexpr bool is_diagonal_adapter = false;
 
     /**

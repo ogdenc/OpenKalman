@@ -43,8 +43,8 @@ Makefile
 
 # Unversioned files
 .idea/
-/cmake-build-debug-clang-c17/
-/cmake-build-debug-clang-c20/
-/cmake-build-debug-gcc-c17/
-/cmake-build-debug-gcc-c20/
 /docs/
+/cmake-build-clang-c17/
+/cmake-build-clang-c20/
+/cmake-build-gcc-c17/
+/cmake-build-gcc-c20/

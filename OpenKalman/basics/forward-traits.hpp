@@ -1004,11 +1004,11 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, typename = void>
+    template<typename T, Likelihood b, typename = void>
     struct is_diagonal_adapter : std::false_type {};
 
-    template<typename T>
-    struct is_diagonal_adapter<T, std::enable_if_t<interface::TriangularTraits<std::decay_t<T>>::is_diagonal_adapter>>
+    template<typename T, Likelihood b>
+    struct is_diagonal_adapter<T, b, std::enable_if_t<interface::TriangularTraits<std::decay_t<T>>::template is_diagonal_adapter<b>>>
       : std::true_type {};
   }
 #endif
@@ -1019,13 +1019,14 @@ namespace OpenKalman
    * \details This is a wrapper that takes elements of a matrix or tensor and distributes them along a diagonal.
    * The rest of the elements are zero.
    * \tparam T A matrix or tensor.
+   * \todo Derive this from the combination of triangular_matrix and the nested matrix being a column vector.
    */
-  template<typename T>
+  template<typename T, Likelihood b = Likelihood::definitely>
 #ifdef __cpp_concepts
-  concept diagonal_adapter = indexible<T> and interface::TriangularTraits<std::decay_t<T>>::is_diagonal_adapter and
+  concept diagonal_adapter = indexible<T> and interface::TriangularTraits<std::decay_t<T>>::template is_diagonal_adapter<b> and
     has_nested_matrix<T> and (max_indices_of_v<T> >= 2);
 #else
-  constexpr bool diagonal_adapter = indexible<T> and detail::is_diagonal_adapter<T>::value and has_nested_matrix<T> and
+  constexpr bool diagonal_adapter = indexible<T> and detail::is_diagonal_adapter<T, b>::value and has_nested_matrix<T> and
     (max_indices_of_v<T> >= 2);
 #endif
 
@@ -1701,31 +1702,46 @@ namespace OpenKalman
   //  element_gettable  //
   // ------------------ //
 
-#ifndef __cpp_lib_concepts
   namespace internal
   {
-    template<typename T, typename = void, typename...I>
-    struct is_element_gettable : std::false_type {};
-
-    template<typename T, typename...I>
-    struct is_element_gettable<T, std::void_t<
-        decltype(interface::Elements<std::decay_t<T>>::get(std::declval<T>(), static_cast<const std::size_t>(std::declval<I>())...))>, I...>
-      : std::true_type {};
-  } // namespace internal
-#endif
-
-  namespace detail
-  {
-    template<typename T, std::size_t...Is>
-    constexpr bool element_gettable_impl(std::index_sequence<Is...>)
+    namespace detail
     {
 #ifdef __cpp_lib_concepts
-      return requires(T t) { interface::Elements<std::decay_t<T>>::get(t, Is...); };
+      template<typename T, std::size_t...is>
+      constexpr bool is_element_gettable_impl(std::index_sequence<is...>)
+      {
+        return requires(T t) { interface::Elements<std::decay_t<T>>::get(t, is...); };
+      }
 #else
-      return internal::is_element_gettable<T, void, decltype(Is)...>::value;
+      template<typename T, typename = void, std::size_t...is>
+      struct has_element_get_interface : std::false_type {};
+
+      template<typename T, std::size_t...is>
+        struct has_element_get_interface<T, std::void_t<
+          decltype(interface::Elements<std::decay_t<T>>::get(std::declval<T>(), is...))>, is...>
+          : std::true_type {};
+
+
+      template<typename T, std::size_t...is>
+      constexpr bool is_element_gettable_impl(std::index_sequence<is...>)
+      {
+        return has_element_get_interface<T, void, is...>::value;
+      }
 #endif
-    }
-  }// namespace detail
+    } // namespace detail
+
+
+    /**
+     * \internal
+     * \brief Whether T has an get-element interface using N indices.
+     * \tparam T An indexible object
+     * \tparam N A number of indices
+     */
+    template<typename T, std::size_t N>
+    struct is_element_gettable
+      : std::bool_constant<detail::is_element_gettable_impl<T>(std::make_index_sequence<N>{})> {};
+
+  } // namespace internal
 
 
   /**
@@ -1739,9 +1755,9 @@ namespace OpenKalman
 #else
   constexpr bool element_gettable =
 #endif
-    (N <= max_indices_of_v<T> and detail::element_gettable_impl<T>(std::make_index_sequence<N>{})) or
+    (N <= max_indices_of_v<T> and internal::is_element_gettable<T, N>::value) or
     ((N == 0 or N == max_indices_of_v<T>) and constant_matrix<T, CompileTimeStatus::any, Likelihood::maybe>) or
-    (detail::element_gettable_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) and
+    (internal::is_element_gettable<T, max_indices_of_v<T>>::value and
       ((N == 1 and diagonal_matrix<T, Likelihood::maybe>) or (N == 0 and one_by_one_matrix<T, Likelihood::maybe>)));
 
 
@@ -1749,32 +1765,46 @@ namespace OpenKalman
   //  element_settable  //
   // ------------------ //
 
-#ifndef __cpp_lib_concepts
   namespace internal
   {
-    template<typename T, typename = void, typename...I>
-    struct is_element_settable : std::false_type {};
-
-    template<typename T, typename...I>
-    struct is_element_settable<T, std::enable_if_t<(sizeof...(I) <= max_indices_of_v<T>) and
-        std::is_same<decltype(interface::Elements<std::decay_t<T>>::set(std::declval<T&&>(),
-          std::declval<const typename scalar_type_of<T>::type&>(), static_cast<const std::size_t>(std::declval<I>())...)), T&&>::value>, I...>
-      : std::true_type {};
-  } // namespace internal
-#endif
-
-  namespace detail
-  {
-    template<typename T, std::size_t...Is>
-    constexpr bool element_settable_impl(std::index_sequence<Is...>)
+    namespace detail
     {
 #ifdef __cpp_lib_concepts
-      return requires(T t, const scalar_type_of_t<T>& s) { interface::Elements<std::decay_t<T>>::set(t, s, Is...); };
+      template<typename T, std::size_t...is>
+      constexpr bool is_element_settable_impl(std::index_sequence<is...>)
+      {
+        return requires(T t, const scalar_type_of_t<T>& s) { interface::Elements<std::decay_t<T>>::set(t, s, is...); };
+      }
 #else
-      return internal::is_element_settable<T, void, decltype(Is)...>::value;
+      template<typename T, typename = void, std::size_t...is>
+      struct has_element_set_interface : std::false_type {};
+
+      template<typename T, std::size_t...is>
+      struct has_element_set_interface<T, std::void_t<
+        decltype(interface::Elements<std::decay_t<T>>::set(std::declval<std::add_lvalue_reference_t<T>>(),
+        std::declval<const typename scalar_type_of<T>::type &>(), is...))>, is...>
+        : std::true_type {};
+
+
+      template<typename T, std::size_t...is>
+      constexpr bool is_element_settable_impl(std::index_sequence<is...>)
+      {
+        return has_element_set_interface<T, void, is...>::value;
+      }
 #endif
-    }
-  }// namespace detail
+    } // namespace detail
+
+
+    /**
+     * \internal
+     * \brief Whether T has a set-element interface using N indices.
+     * \tparam T An indexible object
+     * \tparam N A number of indices
+     */
+    template<typename T, std::size_t N>
+    struct is_element_settable
+      : std::bool_constant<detail::is_element_settable_impl<T>(std::make_index_sequence<N>{})> {};
+  } // namespace internal
 
 
   /**
@@ -1789,8 +1819,8 @@ namespace OpenKalman
   constexpr bool element_settable =
 #endif
     (not std::is_const_v<std::remove_reference_t<T>>) and
-    ((N <= max_indices_of_v<T> and detail::element_settable_impl<T>(std::make_index_sequence<N>{})) or
-      (detail::element_settable_impl<T>(std::make_index_sequence<max_indices_of_v<T>>{}) and
+    ((N <= max_indices_of_v<T> and internal::is_element_settable<T, N>::value) or
+      (internal::is_element_settable<T, max_indices_of_v<T>>::value and
         ((N == 1 and diagonal_matrix<T, Likelihood::maybe>) or (N == 0 and one_by_one_matrix<T, Likelihood::maybe>))));
 
 

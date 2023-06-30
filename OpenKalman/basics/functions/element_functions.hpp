@@ -67,14 +67,6 @@ namespace OpenKalman
       //detail::check_index_bounds<false>(arg, seq, (I, i)...);
       return interface::Elements<std::decay_t<Arg>>::get(std::forward<Arg>(arg), (I?i:i)...);
     }
-
-
-    template<typename Arg, typename Scalar, std::size_t...I>
-    constexpr Arg&& set_diag_element(Arg&& arg, const Scalar& s, std::index_sequence<I...> seq, std::size_t i)
-    {
-      //detail::check_index_bounds<true>(arg, seq, (I, i)...);
-      return interface::Elements<std::decay_t<Arg>>::set(std::forward<Arg>(arg), s, (I?i:i)...);
-    }
   } // namespace detail
 
 
@@ -104,11 +96,7 @@ namespace OpenKalman
     {
       return get_scalar_constant_value(constant_coefficient {arg});
     }
-#ifdef __cpp_lib_concepts
-    else if constexpr (requires { interface::Elements<std::decay_t<Arg>>::get(arg, static_cast<const std::size_t>(i)...); })
-#else
-    else if constexpr (internal::is_element_gettable<Arg, void, I...>::value)
-#endif
+    else if constexpr (internal::is_element_gettable<Arg, N>::value)
     {
       //detail::check_index_bounds<false>(arg, std::index_sequence_for<I...> {}, i...);
       return interface::Elements<std::decay_t<Arg>>::get(std::forward<Arg>(arg), static_cast<const std::size_t>(i)...);
@@ -131,6 +119,17 @@ namespace OpenKalman
   }
 
 
+  namespace detail
+  {
+    template<typename Arg, typename Scalar, std::size_t...I>
+    constexpr void set_diag_element(Arg& arg, const Scalar& s, std::index_sequence<I...> seq, std::size_t i)
+    {
+      //detail::check_index_bounds<true>(arg, seq, (I, i)...);
+      interface::Elements<std::decay_t<Arg>>::set(arg, s, (I?i:i)...);
+    }
+  } // namespace detail
+
+
   /**
    * \brief Set element to s using I... indices.
    * \details The number of indices I... may be 0 if there is only one element, or 1 if Arg is diagonal.
@@ -143,40 +142,39 @@ namespace OpenKalman
    * \return
    */
 #ifdef __cpp_lib_concepts
-  template<indexible Arg, std::convertible_to<const std::size_t>...I>
+  template<indexible Arg, std::convertible_to<const std::size_t>...I> requires (not std::is_const_v<std::remove_reference_t<Arg>>)
 #else
   template<typename Arg, typename...I, std::enable_if_t<indexible<Arg> and
-    (std::is_convertible_v<I, const std::size_t> and ...), int> = 0>
+    (std::is_convertible_v<I, const std::size_t> and ...) and not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
 #endif
   inline Arg&&
   set_element(Arg&& arg, const scalar_type_of_t<Arg>& s, I...i)
   {
     constexpr auto N = sizeof...(I);
 
-#ifdef __cpp_lib_concepts
-    if constexpr (requires { interface::Elements<std::decay_t<Arg>>::set(arg, s, static_cast<const std::size_t>(i)...); })
-#else
-    if constexpr (internal::is_element_settable<Arg, void, I...>::value)
-#endif
+    if constexpr (internal::is_element_settable<Arg, N>::value)
     {
       //detail::check_index_bounds<true>(arg, std::index_sequence_for<I...> {}, i...);
-      return interface::Elements<std::decay_t<Arg>>::set(std::forward<Arg>(arg), s, static_cast<const std::size_t>(i)...);
+      interface::Elements<std::decay_t<Arg>>::set(arg, s, static_cast<const std::size_t>(i)...);
     }
     else if constexpr (N == 0 and one_by_one_matrix<Arg, Likelihood::maybe>)
     {
       if constexpr (not one_by_one_matrix<Arg>) if (get_index_dimension_of<0>(arg) != 1 or get_index_dimension_of<1>(arg) != 1)
         throw std::invalid_argument {"Wrong number of indices in arguments to set_element."};
       std::make_index_sequence<max_indices_of_v<Arg>> seq;
-      return detail::get_diag_element(std::forward<Arg>(arg), seq, static_cast<const std::size_t>(0));
+      detail::set_diag_element(arg, s, seq, static_cast<const std::size_t>(0));
     }
     else
     {
-      static_assert(N == 1 and diagonal_matrix<Arg, Likelihood::maybe> and max_indices_of_v<Arg> > 1, "Must use correct number of indices");
-      if constexpr (not diagonal_matrix<Arg>) if (not get_is_square(arg))
-        throw std::invalid_argument {"Wrong number of indices in arguments to set_element."};
+      static_assert(N == 1 and diagonal_matrix<Arg, Likelihood::maybe> and max_indices_of_v<Arg> > 1,
+        "Must use correct number of indices");
+      if constexpr (not diagonal_matrix<Arg>)
+        if (not get_is_square(arg))
+          throw std::invalid_argument{"Wrong number of indices in arguments to set_element."};
       std::make_index_sequence<max_indices_of_v<Arg>> seq;
-      return detail::set_diag_element(std::forward<Arg>(arg), s, seq, static_cast<const std::size_t>(i)...);
+      detail::set_diag_element(arg, s, seq, static_cast<const std::size_t>(i)...);
     }
+    return std::forward<Arg>(arg);
   }
 
 

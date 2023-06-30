@@ -61,7 +61,6 @@ TEST(eigen3, rank_update_self_adjoint)
 
   const auto m22_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
   M22 m22 = m22_93310;
-  const auto m22_2012 = make_dense_writable_matrix_from<M22>(2, 0, 1, 2);
   const auto z22 = M22::Identity() - M22::Identity(); static_assert(zero_matrix<decltype(z22)>);
 
   auto hl22 = Eigen::SelfAdjointView<M22, Eigen::Lower> {m22};
@@ -79,7 +78,7 @@ TEST(eigen3, rank_update_self_adjoint)
   // a is 1-by-1 (Dymamic requires creating a special matrix. Tests are in special_matrices tests.):
 
   const auto m11_2 = M11(2);
-  const auto m14_05 = make_dense_writable_matrix_from<M14>(0.5, 0.5, 0.5, 0.5);
+  const auto m14_1 = make_dense_writable_matrix_from<M14>(1, 1, 1, 1);
   const auto m11_25 = M11(25);
 
   auto m11 = M11(9);
@@ -89,14 +88,14 @@ TEST(eigen3, rank_update_self_adjoint)
   EXPECT_TRUE(is_near(rank_update_self_adjoint(M11 {m11}, M01 {m11_2}, 4), m11_25));
   EXPECT_TRUE(is_near(rank_update_self_adjoint(M11 {m11}, M00 {m11_2}, 4), m11_25));
 
-  EXPECT_TRUE(is_near(rank_update_self_adjoint(std::as_const(m11), m14_05, 4), m11_25));
-  EXPECT_TRUE(is_near(rank_update_self_adjoint(std::as_const(m11), M10 {m14_05}, 4), m11_25));
-  EXPECT_TRUE(is_near(rank_update_self_adjoint(M11 {m11}, M01 {m14_05}, 4), m11_25));
-  EXPECT_TRUE(is_near(rank_update_self_adjoint(M11 {m11}, M00 {m14_05}, 4), m11_25));
+  EXPECT_TRUE(is_near(rank_update_self_adjoint(std::as_const(m11), m14_1, 4), m11_25));
+  EXPECT_TRUE(is_near(rank_update_self_adjoint(std::as_const(m11), M10 {m14_1}, 4), m11_25));
+  EXPECT_TRUE(is_near(rank_update_self_adjoint(M11 {m11}, M04 {m14_1}, 4), m11_25));
+  EXPECT_TRUE(is_near(rank_update_self_adjoint(M11 {m11}, M00 {m14_1}, 4), m11_25));
 
   rank_update_self_adjoint(m11, m11_2, 4); EXPECT_TRUE(is_near(m11, m11_25));
   m11 = M11(9);
-  rank_update_self_adjoint(m11, m14_05, 4); EXPECT_TRUE(is_near(m11, m11_25));
+  rank_update_self_adjoint(m11, m14_1, 4); EXPECT_TRUE(is_near(m11, m11_25));
 
   // Other tests require creation of DiagonalMatrix. See special_matrix tests.
 }
@@ -108,7 +107,6 @@ TEST(eigen3, rank_update_triangular)
 
   const auto m22_3013 = make_dense_writable_matrix_from<M22>(3, 0, 1, 3);
   const auto m22_3103 = make_dense_writable_matrix_from<M22>(3, 1, 0, 3);
-  const auto m22_2012 = make_dense_writable_matrix_from<M22>(2, 0, 1, 2);
   const auto z22 = M22::Identity() - M22::Identity(); static_assert(zero_matrix<decltype(z22)>);
 
   M22 m22 = m22_3013;
@@ -128,7 +126,7 @@ TEST(eigen3, rank_update_triangular)
   // a is 1-by-1 (Dymamic requires creating a special matrix. Tests are in special_matrices tests.):
 
   const auto m11_2 = M11(2);
-  const auto m14_05 = make_dense_writable_matrix_from<M14>(0.5, 0.5, 0.5, 0.5);
+  const auto m14_1 = make_dense_writable_matrix_from<M14>(1, 1, 1, 1);
   const auto m11_5 = M11(5);
 
   auto m11 = M11(3);
@@ -138,14 +136,14 @@ TEST(eigen3, rank_update_triangular)
   EXPECT_TRUE(is_near(rank_update_triangular(std::as_const(m11), M01 {m11_2}, 4), m11_5));
   EXPECT_TRUE(is_near(rank_update_triangular(std::as_const(m11), M00 {m11_2}, 4), m11_5));
 
-  EXPECT_TRUE(is_near(rank_update_triangular(M11 {m11}, m14_05, 4), m11_5));
-  EXPECT_TRUE(is_near(rank_update_triangular(M11 {m11}, M10 {m14_05}, 4), m11_5));
-  EXPECT_TRUE(is_near(rank_update_triangular(std::as_const(m11), M01 {m14_05}, 4), m11_5));
-  EXPECT_TRUE(is_near(rank_update_triangular(std::as_const(m11), M00 {m14_05}, 4), m11_5));
+  EXPECT_TRUE(is_near(rank_update_triangular(M11 {m11}, m14_1, 4), m11_5));
+  EXPECT_TRUE(is_near(rank_update_triangular(M11 {m11}, M10 {m14_1}, 4), m11_5));
+  EXPECT_TRUE(is_near(rank_update_triangular(std::as_const(m11), M04 {m14_1}, 4), m11_5));
+  EXPECT_TRUE(is_near(rank_update_triangular(std::as_const(m11), M00 {m14_1}, 4), m11_5));
 
   rank_update_triangular(m11, m11_2, 4); EXPECT_TRUE(is_near(m11, m11_5));
   m11 = M11(3);
-  rank_update_triangular(m11, m14_05, 4); EXPECT_TRUE(is_near(m11, m11_5));
+  rank_update_triangular(m11, m14_1, 4); EXPECT_TRUE(is_near(m11, m11_5));
 
   // Other tests require creation of DiagonalMatrix. See special_matrix tests.
 }

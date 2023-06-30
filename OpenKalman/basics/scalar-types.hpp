@@ -139,13 +139,6 @@ namespace OpenKalman
       template<typename T>
       struct is_runtime_scalar<T, std::enable_if_t<scalar_type<typename std::invoke_result<T>::type>>>
         : std::true_type {};
-
-      template<typename T, typename = void>
-      struct is_runtime_convertible_scalar : std::false_type {};
-
-      template<typename T>
-      struct is_runtime_convertible_scalar<T, std::enable_if_t<scalar_type<decltype(typename T::value_type {std::declval<T>()})>>>
-        : std::true_type {};
     }
 #endif
 
@@ -155,12 +148,10 @@ namespace OpenKalman
     template<typename T>
 #ifdef __cpp_concepts
     concept runtime_scalar_constant = (not compile_time_scalar_constant<T>) and
-      (scalar_type<T> or requires(std::decay_t<T> t){ {t()} -> scalar_type; } or
-        requires(std::decay_t<T> t){ {typename std::decay_t<T>::value_type {t}} -> scalar_type; });
+      (scalar_type<T> or requires(std::decay_t<T> t){ {t()} -> scalar_type; });
 #else
     constexpr bool runtime_scalar_constant = (not compile_time_scalar_constant<T>) and
-      (scalar_type<T> or detail::is_runtime_scalar<std::decay_t<T>>::value or
-      detail::is_runtime_convertible_scalar<std::decay_t<T>>::value);
+      (scalar_type<T> or detail::is_runtime_scalar<std::decay_t<T>>::value);
 #endif
   } // namespace internal
 
@@ -204,8 +195,6 @@ namespace OpenKalman
     if constexpr (internal::detail::has_value_member<T>::value) return T::value;
     else if constexpr (internal::detail::call_result_is_scalar<T>::value or internal::detail::is_runtime_scalar<T>::value)
       return std::forward<Arg>(arg)();
-    else if constexpr (internal::detail::is_runtime_convertible_scalar<T>::value)
-      return typename T::value_type {std::forward<Arg>(arg)};
     else { static_assert(scalar_type<Arg>); return std::forward<Arg>(arg); }
 #endif
   }
@@ -262,7 +251,8 @@ namespace OpenKalman
 
 
       template<typename C, auto...constant>
-      struct ScalarConstantImpl<C, std::enable_if_t<get_scalar_constant_value(C{constant...}) == get_scalar_constant_value(C{constant...})>, constant...>
+      struct ScalarConstantImpl<C, std::enable_if_t<(scalar_constant<C, CompileTimeStatus::known> or sizeof...(constant) > 0) and
+        get_scalar_constant_value(C{constant...}) == get_scalar_constant_value(C{constant...})>, constant...>
       {
         static constexpr auto value {get_scalar_constant_value(C{constant...})};
         using value_type = std::decay_t<decltype(value)>;

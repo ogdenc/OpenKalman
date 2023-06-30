@@ -88,7 +88,7 @@ namespace OpenKalman
   #else
       template<typename Arg, std::enable_if_t<((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0), int> = 0>
   #endif
-      static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i, Eigen::Index j)
+      static void set(Arg& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i, Eigen::Index j)
       {
         if ((i > j and (UpLo & Eigen::Upper) != 0) or (i < j and (UpLo & Eigen::Lower) != 0))
         {
@@ -101,8 +101,6 @@ namespace OpenKalman
             arg.coeffRef(j, i) = s;
         }
         else arg.coeffRef(i, j) = s;
-
-        return std::forward<Arg>(arg);
       }
     };
 
@@ -207,7 +205,7 @@ namespace OpenKalman
       static auto
       to_diagonal(Arg&& arg)
       {
-        // If it is a column vector, the SelfAdjointView wrapper doesn't matter, and otherwise, the following will thow an exception:
+        // If it is a column vector, the SelfAdjointView wrapper doesn't matter, and otherwise, the following will throw an exception:
         return OpenKalman::to_diagonal(nested_matrix(std::forward<Arg>(arg)));
       }
 

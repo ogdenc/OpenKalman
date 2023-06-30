@@ -430,42 +430,39 @@ namespace OpenKalman
 
 
 #ifdef __cpp_lib_concepts
-      template<typename Arg, typename I> requires element_settable<nested_matrix_of_t<Arg&&>, 1> or
-        element_settable<nested_matrix_of_t<Arg&&>, 2>
+      template<typename Arg, typename I> requires element_settable<nested_matrix_of_t<Arg&>, 1> or
+        element_settable<nested_matrix_of_t<Arg&>, 2>
 #else
-      template<typename Arg, typename I, std::enable_if_t<element_gettable<typename nested_matrix_of<Arg&&>::type, 1> or
-        element_gettable<typename nested_matrix_of<Arg&&>::type, 2>, int> = 0>
+      template<typename Arg, typename I, std::enable_if_t<element_gettable<typename nested_matrix_of<Arg&>::type, 1> or
+        element_gettable<typename nested_matrix_of<Arg&>::type, 2>, int> = 0>
 #endif
-      static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, I i)
+      static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I i)
       {
-        if constexpr (element_settable<nested_matrix_of_t<Arg&&>, 1>)
+        if constexpr (element_settable<nested_matrix_of_t<Arg&>, 1>)
           set_element(nested_matrix(arg), s, i);
         else
           set_element(nested_matrix(arg), s, i, static_cast<I>(1));
-        return std::forward<Arg>(arg);
       }
 
 
 #ifdef __cpp_lib_concepts
-      template<typename Arg, typename I, typename J> requires element_settable<nested_matrix_of_t<Arg&&>, 2> or
-        element_settable<nested_matrix_of_t<Arg&&>, 1>
+      template<typename Arg, typename I, typename J> requires element_settable<nested_matrix_of_t<Arg&>, 2> or
+        element_settable<nested_matrix_of_t<Arg&>, 1>
 #else
-      template<typename Arg, typename I, typename J, std::enable_if_t<
-        element_settable<typename nested_matrix_of<Arg&&>::type, 2> or
-        element_settable<typename nested_matrix_of<Arg&&>::type, 1>, int> = 0>
+      template<typename Arg, typename I, typename J, std::enable_if_t<element_settable<typename nested_matrix_of<Arg&>::type, 2> or
+        element_settable<typename nested_matrix_of<Arg&>::type, 1>, int> = 0>
 #endif
-      static Arg&& set(Arg&& arg, const scalar_type_of_t<Arg>& s, I i, J j)
+      static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I i, J j)
       {
         if (i == static_cast<I>(j))
         {
-          if constexpr (element_settable<nested_matrix_of_t<Arg&&>, 1>)
+          if constexpr (element_settable<nested_matrix_of_t<Arg&>, 1>)
             set_element(nested_matrix(arg), s, i);
           else
             set_element(nested_matrix(arg), s, i, static_cast<I>(1));
         }
         else if (s != 0)
           throw std::out_of_range("Cannot set non-diagonal element of a diagonal matrix to a non-zero value.");
-        return std::forward<Arg>(arg);
       }
     };
 

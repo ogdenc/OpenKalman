@@ -52,22 +52,22 @@ namespace OpenKalman
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (constant_matrix<Arg, CompileTimeStatus::any, Likelihood::maybe>)
+    else if constexpr (max_tensor_order_of_v<Arg> < max_indices_of_v<Arg>) // arg is a one-by-one matrix with at least one dynamic dimension
+    {
+      if (not get_is_square(arg)) throw std::invalid_argument{"Argument of diagonal_of is not a square matrix."};
+      return detail::make_constant_column_vector<Arg>(seq, constant_coefficient {std::forward<Arg>(arg)}, Dimensions<1>{});
+    }
+    else if constexpr (constant_matrix<Arg>)
     {
       auto d = get_is_square(arg);
-      if (not d) throw std::invalid_argument {"Argument of diagonal_of is not a square matrix."};
-      return detail::make_constant_column_vector<Arg>(seq, constant_coefficient {std::forward<Arg>(arg)}, *d);
+      if (not d) throw std::invalid_argument{"Argument of diagonal_of is not a square matrix."};
+      return detail::make_constant_column_vector<Arg>(seq, constant_coefficient{std::forward<Arg>(arg)}, *d);
     }
-    else if constexpr (constant_diagonal_matrix<Arg, CompileTimeStatus::any, Likelihood::maybe>)
+    else if constexpr (constant_diagonal_matrix<Arg>)
     {
       auto d = get_is_square(arg);
       if (not d) throw std::invalid_argument {"Argument of diagonal_of is not a square matrix."};
       return detail::make_constant_column_vector<Arg>(seq, constant_diagonal_coefficient {std::forward<Arg>(arg)}, *d);
-    }
-    else if constexpr (max_tensor_order_of_v<Arg> < max_indices_of_v<Arg> and element_gettable<Arg, 0>)
-    {
-      if (not get_is_square(arg)) throw std::invalid_argument {"Argument of diagonal_of is not a square matrix."};
-      return detail::make_constant_column_vector<Arg>(seq, get_element(std::forward<Arg>(arg)), Dimensions<1>{});
     }
     else
     {
