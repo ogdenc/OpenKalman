@@ -47,7 +47,6 @@
 #include "Map.hpp"
 #include "Matrix.hpp"
 #include "MatrixWrapper.hpp"
-#include "PartialReduxExpr.hpp"
 #include "PermutationMatrix.hpp"
 #include "PermutationWrapper.hpp"
 #include "Product.hpp"
@@ -66,6 +65,9 @@
 #include "TriangularView.hpp"
 #include "VectorBlock.hpp"
 #include "VectorWiseOp.hpp"
+
+#include "functors/redux.hpp"
+#include "PartialReduxExpr.hpp"
 
 
 #endif //OPENKALMAN_EIGEN3_TRAITS_HPP

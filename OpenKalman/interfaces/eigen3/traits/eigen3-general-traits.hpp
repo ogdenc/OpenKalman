@@ -113,12 +113,7 @@ namespace OpenKalman::interface
     {
       using M = writable_type<index_dimension_of_v<Arg, 0>, index_dimension_of_v<Arg, 1>>;
 
-      /*if constexpr (Eigen3::eigen_DiagonalWrapper<Arg>)
-      {
-        // Note: Arg's nested matrix might not be a column vector.
-        return M {OpenKalman::to_diagonal(OpenKalman::diagonal_of(std::forward<Arg>(arg)))};
-      }
-      else*/ if constexpr (std::is_base_of_v<Eigen::PlainObjectBase<std::decay_t<Arg>>, std::decay_t<Arg>> and
+      if constexpr (std::is_base_of_v<Eigen::PlainObjectBase<std::decay_t<Arg>>, std::decay_t<Arg>> and
         not std::is_const_v<std::remove_reference_t<Arg>>)
       {
         return std::forward<Arg>(arg);
@@ -129,7 +124,6 @@ namespace OpenKalman::interface
       }
       else
       {
-        static_assert(not Eigen3::eigen_DiagonalWrapper<Arg>); // \todo remove b/c Matrix should be constructible with DiagonalWrapper.
         auto r = get_index_dimension_of<0>(arg);
         auto c = get_index_dimension_of<1>(arg);
         auto m = make_default(r, c);

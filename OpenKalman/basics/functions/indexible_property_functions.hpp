@@ -351,6 +351,29 @@ namespace OpenKalman
         return ScalarConstant<Likelihood::definitely, Scalar, index_dimension_of_v<T, N>>{};
     }
 
+
+    // -------------------------- //
+    //  index_dimension_value_of  //
+    // -------------------------- //
+
+    /**
+     * \internal
+     * \brief Returns an \ref index_value reflecting the size of an index for a tensor or matrix.
+     * \details The return value is a fixed or dynamic \ref index_value.
+     * \tparam N The index
+     * \tparam T The matrix, expression, or array
+     */
+#ifdef __cpp_concepts
+    template<std::size_t N, indexible T>
+#else
+    template<std::size_t N, typename T, std::enable_if_t<indexible<T>, int> = 0>
+#endif
+    constexpr auto index_dimension_value_of(const T& t)
+    {
+      if constexpr (dynamic_dimension<T, N>) return get_index_dimension_of<N>(t);
+      else return std::integral_constant<std::size_t, index_dimension_of_v<T, N>>{};
+    }
+
   } // namespace internal
 
 
