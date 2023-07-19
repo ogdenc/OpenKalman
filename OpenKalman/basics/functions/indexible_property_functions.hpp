@@ -191,21 +191,23 @@ namespace OpenKalman
 
   namespace detail
   {
-    template<std::size_t I, std::size_t...Is, typename T>
-    constexpr auto get_best_square_index_descriptor(std::index_sequence<I, Is...>, const T& t)
+    template<typename T, std::size_t I, std::size_t...Is>
+    constexpr auto get_best_square_index(std::index_sequence<I, Is...>)
     {
-      if constexpr (not dynamic_dimension<T, I> or sizeof...(Is) == 0) return get_index_descriptor<I>(t);
-      else return get_best_square_index_descriptor(std::index_sequence<Is...>{}, t);
+      if constexpr (not dynamic_dimension<T, I> or sizeof...(Is) == 0) return I;
+      else return get_best_square_index<T>(std::index_sequence<Is...>{});
     }
 
 
-    template<std::size_t I, std::size_t...Is, typename T>
-    constexpr auto get_is_square_impl(std::index_sequence<I, Is...>, const T& t)
+    template<std::size_t...Is, typename T>
+    constexpr auto get_is_square_impl(std::index_sequence<Is...> seq, const T& t)
     {
-      auto dim_I = get_index_descriptor<I>(t);
-      if (((get_dimension_size_of(dim_I) != 0) and ... and (dim_I == get_index_descriptor<Is>(t))))
-        return std::optional {dim_I};
-      else return std::optional<decltype(dim_I)> {};
+      constexpr auto bestI = get_best_square_index<T>(seq);
+      auto dim_bestI = get_index_descriptor<bestI>(t);
+      if (((get_dimension_size_of(dim_bestI) != 0) and ... and (Is == bestI or get_index_descriptor<Is>(t) == dim_bestI)))
+        return std::optional {dim_bestI};
+      else
+        return std::optional<decltype(dim_bestI)> {};
     }
   }
 
@@ -223,7 +225,7 @@ namespace OpenKalman
   constexpr auto get_is_square(const T& t)
   {
     if constexpr (square_matrix<T>)
-      return std::optional {detail::get_best_square_index_descriptor(std::make_index_sequence<max_indices_of_v<T>>{}, t)};
+      return std::optional {get_index_descriptor<detail::get_best_square_index<T>(std::make_index_sequence<max_indices_of_v<T>>{})>(t)};
     else if constexpr (not square_matrix<T, Likelihood::maybe>)
       return std::optional<std::size_t> {};
     else if constexpr (max_indices_of_v<T> == 1 and dimension_size_of_index_is<T, 0, 1, Likelihood::maybe>)

@@ -29,11 +29,11 @@ namespace
   using M22 = eigen_matrix_t<double, 2, 2>;
   using M11 = eigen_matrix_t<double, 1, 1>;
 
-  using M30 = eigen_matrix_t<double, 3, dynamic_size>;
-  using M20 = eigen_matrix_t<double, 2, dynamic_size>;
-  using M03 = eigen_matrix_t<double, dynamic_size, 3>;
-  using M02 = eigen_matrix_t<double, dynamic_size, 2>;
-  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
+  using M3x = eigen_matrix_t<double, 3, dynamic_size>;
+  using M2x = eigen_matrix_t<double, 2, dynamic_size>;
+  using Mx3 = eigen_matrix_t<double, dynamic_size, 3>;
+  using Mx2 = eigen_matrix_t<double, dynamic_size, 2>;
+  using Mxx = eigen_matrix_t<double, dynamic_size, dynamic_size>;
 
   using Car = TypedIndex<Axis, angle::Radians>;
   using Cra = TypedIndex<angle::Radians, Axis>;
@@ -43,15 +43,15 @@ namespace
 
   using From32 = FromEuclideanExpr<Car, M32>;
   using From42 = FromEuclideanExpr<Cara, M42>;
-  using From02 = FromEuclideanExpr<DynamicTypedIndex<double>, M02>;
+  using From02 = FromEuclideanExpr<DynamicTypedIndex<double>, Mx2>;
   using FromTo32 = FromEuclideanExpr<Cara, ToEuclideanExpr<Cara, M32>>;
-  using FromTo02 = FromEuclideanExpr<DynamicTypedIndex<double>, ToEuclideanExpr<DynamicTypedIndex<double>, M02>>;
+  using FromTo02 = FromEuclideanExpr<DynamicTypedIndex<double>, ToEuclideanExpr<DynamicTypedIndex<double>, Mx2>>;
 
   template<typename...Args>
-  inline auto mat3(Args...args) { return MatrixTraits<M32>::make(args...); }
+  inline auto mat3(Args...args) { return make_dense_writable_matrix_from<M32>(args...); }
 
   template<typename...Args>
-  inline auto mat4(Args...args) { return MatrixTraits<M42>::make(args...); }
+  inline auto mat4(Args...args) { return make_dense_writable_matrix_from<M42>(args...); }
   
   template<typename C, typename T> using From = FromEuclideanExpr<C, T>;
 }
@@ -91,7 +91,7 @@ TEST(special_matrices, FromEuclideanExpr_class)
   EXPECT_TRUE(is_near(d1.nested_matrix(), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(d1, m));
 
-  /*From02 d02_4 {dara, M02 {4, 2}};
+  /*From02 d02_4 {dara, Mx2 {4, 2}};
   d02_4 << 1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4;
   EXPECT_TRUE(is_near(d02_4.nested_matrix(), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(d02_4, m));
@@ -106,7 +106,7 @@ TEST(special_matrices, FromEuclideanExpr_class)
   EXPECT_TRUE(is_near(d1b.nested_matrix(), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(d1b, mat3(1, 2, pi/6, pi/3, 3, 4)));
 
-  /*FromTo02 ft02_3 {dara, M02 {3, 2}};
+  /*FromTo02 ft02_3 {dara, Mx2 {3, 2}};
   ft02_3 << 1, 2, pi/6, pi/3, 3, 4;
   EXPECT_TRUE(is_near(ft02_3.nested_matrix(), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(ft02_3, mat3(1, 2, pi/6, pi/3, 3, 4)));
@@ -214,11 +214,7 @@ TEST(special_matrices, FromEuclideanExpr_traits)
   static_assert(not native_eigen_matrix<decltype(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
   static_assert(not identity_matrix<decltype(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
   static_assert(not zero_matrix<decltype(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4})>);
-  // MatrixTraits
-  EXPECT_TRUE(is_near(MatrixTraits<From42>::make(make_eigen_matrix<double, 4, 2>(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)),
-    mat3(1, 2, pi/6, pi/3, 3, 4)));
-  EXPECT_TRUE(is_near(MatrixTraits<From42>::make(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4),
-    mat3(1, 2, pi/6, pi/3, 3, 4)));
+
   EXPECT_TRUE(is_near(make_zero_matrix_like<From42>(), eigen_matrix_t<double, 3, 2>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<FromEuclideanExpr<Dimensions<2>, eigen_matrix_t<double, 2, 2>>>(), eigen_matrix_t<double, 2, 2>::Identity()));
 }
@@ -236,38 +232,38 @@ TEST(special_matrices, FromEuclideanExpr_properties)
 TEST(special_matrices, FromEuclideanExpr_overloads)
 {
   M23 m23; m23 << 1, 2, 3, 4, 5, 6;
-  M03 m03_2 {2,3}; m03_2 << 1, 2, 3, 4, 5, 6;
-  M20 m20_3 {2,3}; m20_3 << 1, 2, 3, 4, 5, 6;
-  M00 m00_23 {2,3}; m00_23 << 1, 2, 3, 4, 5, 6;
+  Mx3 mx3_2 {2,3}; mx3_2 << 1, 2, 3, 4, 5, 6;
+  M2x m2x_3 {2,3}; m2x_3 << 1, 2, 3, 4, 5, 6;
+  Mxx mxx_23 {2,3}; mxx_23 << 1, 2, 3, 4, 5, 6;
 
   M32 m32; m32 << 1, 4, 2, 5, 3, 6;
-  M02 m02_3 {3,2}; m02_3 << 1, 4, 2, 5, 3, 6;
-  M30 m30_2 {3,2}; m30_2 << 1, 4, 3, 5, 3, 6;
-  M30 m00_32 {3,2}; m00_32 << 1, 4, 3, 5, 3, 6;
+  Mx2 mx2_3 {3,2}; mx2_3 << 1, 4, 2, 5, 3, 6;
+  M3x m3x_2 {3,2}; m3x_2 << 1, 4, 3, 5, 3, 6;
+  M3x mxx_32 {3,2}; mxx_32 << 1, 4, 3, 5, 3, 6;
 
   EXPECT_TRUE(is_near(nested_matrix(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(make_self_contained(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
 
   EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(m23), m23));
-  EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(m20_3), m23));
-  EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(m03_2), m23));
-  EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(m00_23), m23));
+  EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(m2x_3), m23));
+  EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(mx3_2), m23));
+  EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(mxx_23), m23));
 
   auto m22_from_ra = make_dense_writable_matrix_from<M22>(std::atan2(2.,1.), std::atan2(5.,4.), 3, 6);
 
   EXPECT_TRUE(is_near(from_euclidean<TypedIndex<angle::Radians, Axis>>(m32), m22_from_ra));
-  //EXPECT_TRUE(is_near(from_euclidean<TypedIndex<angle::Radians, Axis>>(m30_2), m22_from_ra));
-  //EXPECT_TRUE(is_near(from_euclidean<TypedIndex<angle::Radians, Axis>>(m02_3), m22_from_ra));
-  //EXPECT_TRUE(is_near(from_euclidean<TypedIndex<angle::Radians, Axis>>(m00_32), m22_from_ra));
+  //EXPECT_TRUE(is_near(from_euclidean<TypedIndex<angle::Radians, Axis>>(m3x_2), m22_from_ra));
+  //EXPECT_TRUE(is_near(from_euclidean<TypedIndex<angle::Radians, Axis>>(mx2_3), m22_from_ra));
+  //EXPECT_TRUE(is_near(from_euclidean<TypedIndex<angle::Radians, Axis>>(mxx_32), m22_from_ra));
 
   EXPECT_TRUE(is_near(to_euclidean(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(to_euclidean<Cara>(From42 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
 
   EXPECT_TRUE(is_near(wrap_angles<Dimensions<2>>(m23), m23));
-  EXPECT_TRUE(is_near(wrap_angles<Dimensions<2>>(m20_3), m23));
-  EXPECT_TRUE(is_near(wrap_angles<Dimensions<2>>(m03_2), m23));
-  EXPECT_TRUE(is_near(wrap_angles<Dimensions<2>>(m00_23), m23));
+  EXPECT_TRUE(is_near(wrap_angles<Dimensions<2>>(m2x_3), m23));
+  EXPECT_TRUE(is_near(wrap_angles<Dimensions<2>>(mx3_2), m23));
+  EXPECT_TRUE(is_near(wrap_angles<Dimensions<2>>(mxx_23), m23));
 
   auto m23_wrap_ar = make_dense_writable_matrix_from<M23>(1, 2, 3, 4-pi, 5-pi, 6-pi);
 
@@ -314,9 +310,9 @@ TEST(special_matrices, FromEuclideanExpr_overloads)
   EXPECT_TRUE(is_near(from_euclidean<TypedIndex<angle::Radians>>(z00_23), z13));
 
   EXPECT_TRUE(is_near(wrap_angles<TypedIndex<Axis, angle::Radians>>(m23), m23_wrap_ar));
-  //EXPECT_TRUE(is_near(wrap_angles<TypedIndex<Axis, angle::Radians>>(m20_3), m23_wrap_ar));
-  //EXPECT_TRUE(is_near(wrap_angles<TypedIndex<Axis, angle::Radians>>(m03_2), m23_wrap_ar));
-  //EXPECT_TRUE(is_near(wrap_angles<TypedIndex<Axis, angle::Radians>>(m00_23), m23_wrap_ar));
+  //EXPECT_TRUE(is_near(wrap_angles<TypedIndex<Axis, angle::Radians>>(m2x_3), m23_wrap_ar));
+  //EXPECT_TRUE(is_near(wrap_angles<TypedIndex<Axis, angle::Radians>>(mx3_2), m23_wrap_ar));
+  //EXPECT_TRUE(is_near(wrap_angles<TypedIndex<Axis, angle::Radians>>(mxx_23), m23_wrap_ar));
 
   EXPECT_TRUE(is_near(wrap_angles<Dimensions<3>>(c534), c534));
   EXPECT_TRUE(is_near(wrap_angles<Dimensions<3>>(c530_4), c534));

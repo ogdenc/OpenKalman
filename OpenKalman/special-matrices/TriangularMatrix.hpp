@@ -153,13 +153,13 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<const Scalar>...Args> requires (sizeof...(Args) > 0) and
       (triangle_type != TriangleType::diagonal or diagonal_matrix<NestedMatrix>) and
-      requires(Args...args) { NestedMatrix {MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...)}; }
+      requires(Args...args) { NestedMatrix {make_dense_writable_matrix_from<NestedMatrix>(static_cast<const Scalar>(args)...)}; }
 #else
     template<typename...Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
       (sizeof...(Args) > 0) and (triangle_type != TriangleType::diagonal or diagonal_matrix<NestedMatrix>), int> = 0>
 #endif
     TriangularMatrix(Args...args)
-      : Base {MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...)} {}
+      : Base {make_dense_writable_matrix_from<NestedMatrix>(static_cast<const Scalar>(args)...)} {}
 
 
     /**
@@ -172,14 +172,14 @@ namespace OpenKalman
     template<std::convertible_to<const Scalar>...Args> requires (sizeof...(Args) > 0) and
       (triangle_type == TriangleType::diagonal) and (not diagonal_matrix<NestedMatrix>) and
       requires(Args ... args) { NestedMatrix {
-        MatrixTraits<typename MatrixTraits<std::decay_t<NestedMatrix>>::template DiagonalMatrixFrom<>>::make(
+        make_dense_writable_matrix_from<typename MatrixTraits<std::decay_t<NestedMatrix>>::template DiagonalMatrixFrom<>>(
           static_cast<const Scalar>(args)...)}; }
 #else
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
       (sizeof...(Args) > 0) and (triangle_type == TriangleType::diagonal) and (not diagonal_matrix<NestedMatrix>), int> = 0>
 #endif
     TriangularMatrix(Args...args)
-      : Base {MatrixTraits<typename MatrixTraits<std::decay_t<NestedMatrix>>::template DiagonalMatrixFrom<>>::make(
+      : Base {make_dense_writable_matrix_from<typename MatrixTraits<std::decay_t<NestedMatrix>>::template DiagonalMatrixFrom<>>(
           static_cast<const Scalar>(args)...)} {}
 
 

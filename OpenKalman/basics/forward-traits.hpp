@@ -389,6 +389,38 @@ namespace OpenKalman
     (b == Likelihood::maybe and (value == dynamic_size or dynamic_dimension<T, index>));
 
 
+  // -------- //
+  //  vector  //
+  // -------- //
+
+  namespace detail
+  {
+    template<typename T, std::size_t N, Likelihood b, std::size_t...Is>
+    constexpr bool vector_impl(std::index_sequence<Is...>)
+    {
+      return (... and (N == Is or (b == Likelihood::maybe and dynamic_dimension<T, Is>) or dimension_size_of_index_is<T, Is, 1>));
+    }
+  }
+
+
+  /**
+   * \brief T is a vector (e.g., column or row vector).
+   * \details T can be a tensor over a vector space, but can also be an analogous algebraic structure over a
+   * tensor product of modules over division rings (e.g., an vector-like structure that contains angles).
+   * \tparam T An indexible object
+   * \tparam N An index designating the "large" index (0 for a column vector, 1 for a row vector)
+   * \tparam b Whether the vector status is definitely known at compile time (Likelihood::definitely), or
+   * only known at runtime (Likelihood::maybe)
+   */
+  template<typename T, std::size_t N = 0, Likelihood b = Likelihood::definitely>
+#ifdef __cpp_concepts
+  concept vector =
+#else
+  constexpr bool vector =
+#endif
+    indexible<T> and detail::vector_impl<T, N, b>(std::make_index_sequence<max_indices_of_v<T>> {});
+
+
   // --------------------- //
   //  max_tensor_order_of  //
   // --------------------- //
@@ -1571,10 +1603,6 @@ namespace OpenKalman
     template<typename T>
     struct is_cholesky_form<T, std::enable_if_t<covariance<T>>>
       : std::bool_constant<not hermitian_matrix<nested_matrix_of_t<T>>> {};
-
-    template<typename T>
-    struct is_cholesky_form<T, std::enable_if_t<distribution<T>>>
-      : is_cholesky_form<typename DistributionTraits<T>::Covariance> {};
 #endif
   }
 
@@ -1585,8 +1613,7 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept cholesky_form = (not covariance<T> or not hermitian_matrix<nested_matrix_of_t<T>>) or
-    (not distribution<T> or not hermitian_matrix<nested_matrix_of_t<typename DistributionTraits<T>::Covariance>>);
+  concept cholesky_form = (not covariance<T> or not hermitian_matrix<nested_matrix_of_t<T>>);
 #else
   constexpr bool cholesky_form = detail::is_cholesky_form<std::decay_t<T>>::value;
 #endif

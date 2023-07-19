@@ -21,7 +21,19 @@
 
 namespace Eigen::internal
 {
-  using namespace OpenKalman;
+  // ------------------ //
+  //  FixedSizeAdapter  //
+  // ------------------ //
+
+  template<typename NestedMatrix, typename...IndexDescriptors>
+  struct evaluator<OpenKalman::internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>>
+    : evaluator<std::decay_t<NestedMatrix>>
+  {
+    using XprType = OpenKalman::internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>;
+    using Base = evaluator<std::decay_t<NestedMatrix>>;
+    explicit evaluator(const XprType& arg) : Base {nested_matrix(arg)} {}
+  };
+
 
   // ----------------- //
   //  ConstantAdapter  //

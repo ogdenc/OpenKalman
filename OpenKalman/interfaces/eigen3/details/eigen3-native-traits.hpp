@@ -19,7 +19,18 @@
 
 namespace Eigen::internal
 {
-  using namespace OpenKalman;
+  template<typename NestedMatrix, typename Rows, typename Cols, typename...IndexDescriptors>
+  struct traits<OpenKalman::internal::FixedSizeAdapter<NestedMatrix, Rows, Cols, IndexDescriptors...>>
+    : traits<std::decay_t<NestedMatrix>>
+  {
+    enum
+    {
+      RowsAtCompileTime = OpenKalman::fixed_index_descriptor<Rows> ? static_cast<int>(OpenKalman::dimension_size_of_v<Rows>) : Eigen::Dynamic,
+      ColsAtCompileTime = OpenKalman::fixed_index_descriptor<Cols> ? static_cast<int>(OpenKalman::dimension_size_of_v<Cols>) : Eigen::Dynamic,
+      MaxRowsAtCompileTime = RowsAtCompileTime,
+      MaxColsAtCompileTime = ColsAtCompileTime,
+    };
+  };
 
 
   template<typename PatternMatrix, typename Scalar, auto...constant>
@@ -161,9 +172,9 @@ namespace Eigen::internal
 
   template<typename TypedIndex, typename ArgType>
   struct traits<OpenKalman::Covariance<TypedIndex, ArgType>>
-    : traits<typename OpenKalman::MatrixTraits<std::decay_t<ArgType>>::template SelfAdjointMatrixFrom<>>
+    : traits<std::decay_t<std::conditional_t<hermitian_matrix<ArgType>, ArgType, decltype(Cholesky_square(std::declval<ArgType>()))>>>
   {
-    using Base = traits<typename OpenKalman::MatrixTraits<std::decay_t<ArgType>>::template SelfAdjointMatrixFrom<>>;
+    using Base = traits<std::decay_t<std::conditional_t<hermitian_matrix<ArgType>, ArgType, decltype(Cholesky_square(std::declval<ArgType>()))>>>;
     enum
     {
       Flags = Base::Flags & (OpenKalman::hermitian_matrix<ArgType> ? ~0 : ~LvalueBit),
@@ -173,9 +184,9 @@ namespace Eigen::internal
 
   template<typename TypedIndex, typename ArgType>
   struct traits<OpenKalman::SquareRootCovariance<TypedIndex, ArgType>>
-    : traits<typename OpenKalman::MatrixTraits<std::decay_t<ArgType>>::template TriangularMatrixFrom<>>
+    : traits<std::decay_t<std::conditional_t<triangular_matrix<ArgType>, ArgType, decltype(Cholesky_factor(std::declval<ArgType>()))>>>
   {
-    using Base = traits<typename OpenKalman::MatrixTraits<std::decay_t<ArgType>>::template TriangularMatrixFrom<>>;
+    using Base = traits<std::decay_t<std::conditional_t<triangular_matrix<ArgType>, ArgType, decltype(Cholesky_factor(std::declval<ArgType>()))>>>;
     enum
     {
       Flags = Base::Flags & (OpenKalman::triangular_matrix<ArgType> ? ~0 : ~LvalueBit),

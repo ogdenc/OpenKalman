@@ -16,37 +16,6 @@ using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
 
-namespace
-{
-  using M11 = eigen_matrix_t<double, 1, 1>;
-  using M12 = eigen_matrix_t<double, 1, 2>;
-  using M13 = eigen_matrix_t<double, 1, 3>;
-  using M14 = eigen_matrix_t<double, 1, 4>;
-  using M21 = eigen_matrix_t<double, 2, 1>;
-  using M22 = eigen_matrix_t<double, 2, 2>;
-  using M23 = eigen_matrix_t<double, 2, 3>;
-  using M31 = eigen_matrix_t<double, 3, 1>;
-  using M32 = eigen_matrix_t<double, 3, 2>;
-  using M33 = eigen_matrix_t<double, 3, 3>;
-  using M34 = eigen_matrix_t<double, 3, 4>;
-  using M41 = eigen_matrix_t<double, 4, 1>;
-  using M43 = eigen_matrix_t<double, 4, 3>;
-  using M44 = eigen_matrix_t<double, 4, 4>;
-  using M55 = eigen_matrix_t<double, 5, 5>;
-
-  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
-  using M10 = eigen_matrix_t<double, 1, dynamic_size>;
-  using M01 = eigen_matrix_t<double, dynamic_size, 1>;
-  using M20 = eigen_matrix_t<double, 2, dynamic_size>;
-  using M02 = eigen_matrix_t<double, dynamic_size, 2>;
-  using M30 = eigen_matrix_t<double, 3, dynamic_size>;
-  using M03 = eigen_matrix_t<double, dynamic_size, 3>;
-  using M04 = eigen_matrix_t<double, dynamic_size, 4>;
-  using M50 = eigen_matrix_t<double, 5, dynamic_size>;
-  using M05 = eigen_matrix_t<double, dynamic_size, 5>;
-}
-
-
 TEST(eigen3, chipwise_nullary)
 {
   auto N1 = std::integral_constant<std::size_t, 1>{};
@@ -141,26 +110,26 @@ TEST(eigen3, chipwise_unary)
     9, 10, 11, 12);
 
   EXPECT_TRUE(is_near(chipwise_operation([](const auto& c){ return c * 2; }, m34), m34 * 2));
-  EXPECT_TRUE(is_near(chipwise_operation([](const auto& c){ return c * 3; }, M30{m34}), m34 * 3));
-  EXPECT_TRUE(is_near(chipwise_operation([](const auto& c){ return c * 4; }, M04{m34}), m34 * 4));
-  EXPECT_TRUE(is_near(chipwise_operation([](const auto& c){ return c * 5; }, M00{m34}), m34 * 5));
+  EXPECT_TRUE(is_near(chipwise_operation([](const auto& c){ return c * 3; }, M3x{m34}), m34 * 3));
+  EXPECT_TRUE(is_near(chipwise_operation([](const auto& c){ return c * 4; }, Mx4{m34}), m34 * 4));
+  EXPECT_TRUE(is_near(chipwise_operation([](const auto& c){ return c * 5; }, Mxx{m34}), m34 * 5));
 
   EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c){ return c * 2; }, m34), m34 * 2));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c){ return c * 3; }, M30{m34}), m34 * 3));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c){ return c * 4; }, M04{m34}), m34 * 4));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c){ return c * 5; }, M00{m34}), m34 * 5));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c){ return c * 3; }, M3x{m34}), m34 * 3));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c){ return c * 4; }, Mx4{m34}), m34 * 4));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c){ return c * 5; }, Mxx{m34}), m34 * 5));
 
   EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c){ return c * 2; }, m34), m34 * 2));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c){ return c * 3; }, M30{m34}), m34 * 3));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c){ return c * 4; }, M04{m34}), m34 * 4));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c){ return c * 5; }, M00{m34}), m34 * 5));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c){ return c * 3; }, M3x{m34}), m34 * 3));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c){ return c * 4; }, Mx4{m34}), m34 * 4));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c){ return c * 5; }, Mxx{m34}), m34 * 5));
 
   EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& c){ return c * 2; }, m34), m34 * 2));
   EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& c){ return c * 2; }, M34{m34}), m34 * 2));
-  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& c){ return c * 4; }, M04{m34}), m34 * 4));
+  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& c){ return c * 4; }, Mx4{m34}), m34 * 4));
 
-  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& c){ return c * 3; }, M30{m34}), m34 * 3));
-  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& c){ return c * 5; }, M00{m34}), m34 * 5));
+  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& c){ return c * 3; }, M3x{m34}), m34 * 3));
+  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& c){ return c * 5; }, Mxx{m34}), m34 * 5));
 }
 
 
@@ -184,21 +153,21 @@ TEST(eigen3, chipwise_unary_w_indices)
     54, 90, 132, 180);
 
   EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c, std::size_t i){ return c * (i + 2); }, m34), m34r));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c, std::size_t i){ return c * (i + 2); }, M30{m34}), m34r));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c, std::size_t i){ return c * (i + 2); }, M04{m34}), m34r));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c, std::size_t i){ return c * (i + 2); }, M00{m34}), m34r));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c, std::size_t i){ return c * (i + 2); }, M3x{m34}), m34r));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c, std::size_t i){ return c * (i + 2); }, Mx4{m34}), m34r));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c, std::size_t i){ return c * (i + 2); }, Mxx{m34}), m34r));
 
   EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c, std::size_t j){ return c * (j + 2); }, m34), m34c));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c, std::size_t j){ return c * (j + 2); }, M30{m34}), m34c));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c, std::size_t j){ return c * (j + 2); }, M04{m34}), m34c));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c, std::size_t j){ return c * (j + 2); }, M00{m34}), m34c));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c, std::size_t j){ return c * (j + 2); }, M3x{m34}), m34c));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c, std::size_t j){ return c * (j + 2); }, Mx4{m34}), m34c));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c, std::size_t j){ return c * (j + 2); }, Mxx{m34}), m34c));
 
   EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& c, std::size_t i, std::size_t j){ return c * (i + 1) * (j + 2); }, m34), m34rc));
   EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& c, std::size_t i, std::size_t j){ return c * (i + 1) * (j + 2); }, M34{m34}), m34rc));
-  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& c, std::size_t i, std::size_t j){ return c * (i + 1) * (j + 2); }, M04{m34}), m34rc));
+  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& c, std::size_t i, std::size_t j){ return c * (i + 1) * (j + 2); }, Mx4{m34}), m34rc));
 
-  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& c, std::size_t j, std::size_t i){ return c * (i + 1) * (j + 2); }, M30{m34}), m34rc));
-  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& c, std::size_t j, std::size_t i){ return c * (i + 1) * (j + 2); }, M00{m34}), m34rc));
+  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& c, std::size_t j, std::size_t i){ return c * (i + 1) * (j + 2); }, M3x{m34}), m34rc));
+  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& c, std::size_t j, std::size_t i){ return c * (i + 1) * (j + 2); }, Mxx{m34}), m34rc));
 }
 
 
@@ -226,25 +195,25 @@ TEST(eigen3, chipwise_binary)
      4,  3,  1,  0);
 
   EXPECT_TRUE(is_near(chipwise_operation([&](const auto& a, const auto& b){ return mt3 * a + b * mt4; }, m34a, m34b), mt3 * m34a + m34b * mt4));
-  EXPECT_TRUE(is_near(chipwise_operation([&](const auto& a, const auto& b){ return mt3 * a + b * mt4; }, M30{m34a}, m34b), mt3 * m34a + m34b * mt4));
-  EXPECT_TRUE(is_near(chipwise_operation([&](const auto& a, const auto& b){ return mt3 * a + b * mt4; }, m34a, M04{m34b}), mt3 * m34a + m34b * mt4));
-  EXPECT_TRUE(is_near(chipwise_operation([&](const auto& a, const auto& b){ return mt3 * a + b * mt4; }, M00{m34a}, M00{m34b}), mt3 * m34a + m34b * mt4));
+  EXPECT_TRUE(is_near(chipwise_operation([&](const auto& a, const auto& b){ return mt3 * a + b * mt4; }, M3x{m34a}, m34b), mt3 * m34a + m34b * mt4));
+  EXPECT_TRUE(is_near(chipwise_operation([&](const auto& a, const auto& b){ return mt3 * a + b * mt4; }, m34a, Mx4{m34b}), mt3 * m34a + m34b * mt4));
+  EXPECT_TRUE(is_near(chipwise_operation([&](const auto& a, const auto& b){ return mt3 * a + b * mt4; }, Mxx{m34a}, Mxx{m34b}), mt3 * m34a + m34b * mt4));
 
   EXPECT_TRUE(is_near(chipwise_operation<0>([&](const auto& a, const auto& b){ return a * mt4 + b * mt4; }, m34a, m34b), m34a * mt4 + m34b * mt4));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([&](const auto& a, const auto& b){ return a * mt4 + b * mt4; }, M04{m34a}, m34b), m34a * mt4 + m34b * mt4));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([&](const auto& a, const auto& b){ return a * mt4 + b * mt4; }, m34a, M30{m34b}), m34a * mt4 + m34b * mt4));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([&](const auto& a, const auto& b){ return a * mt4 + b * mt4; }, M00{m34a}, M00{m34b}), m34a * mt4 + m34b * mt4));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([&](const auto& a, const auto& b){ return a * mt4 + b * mt4; }, Mx4{m34a}, m34b), m34a * mt4 + m34b * mt4));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([&](const auto& a, const auto& b){ return a * mt4 + b * mt4; }, m34a, M3x{m34b}), m34a * mt4 + m34b * mt4));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([&](const auto& a, const auto& b){ return a * mt4 + b * mt4; }, Mxx{m34a}, Mxx{m34b}), m34a * mt4 + m34b * mt4));
 
   EXPECT_TRUE(is_near(chipwise_operation<1>([&](const auto& a, const auto& b){ return mt3 * a + mt3 * b; }, m34a, m34b), mt3 * m34a + mt3 * m34b));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([&](const auto& a, const auto& b){ return mt3 * a + mt3 * b; }, M30{m34a}, m34b), mt3 * m34a + mt3 * m34b));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([&](const auto& a, const auto& b){ return mt3 * a + mt3 * b; }, m34a, M04{m34b}), mt3 * m34a + mt3 * m34b));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([&](const auto& a, const auto& b){ return mt3 * a + mt3 * b; }, M00{m34a}, M00{m34b}), mt3 * m34a + mt3 * m34b));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([&](const auto& a, const auto& b){ return mt3 * a + mt3 * b; }, M3x{m34a}, m34b), mt3 * m34a + mt3 * m34b));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([&](const auto& a, const auto& b){ return mt3 * a + mt3 * b; }, m34a, Mx4{m34b}), mt3 * m34a + mt3 * m34b));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([&](const auto& a, const auto& b){ return mt3 * a + mt3 * b; }, Mxx{m34a}, Mxx{m34b}), mt3 * m34a + mt3 * m34b));
 
   EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& a, const auto& b){ return 3 * a + 2 * b; }, m34a, m34b), 3 * m34a + 2 * m34b));
-  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& a, const auto& b){ return 3 * a + 2 * b; }, M04{m34a}, m34b), 3 * m34a + 2 * m34b));
+  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& a, const auto& b){ return 3 * a + 2 * b; }, Mx4{m34a}, m34b), 3 * m34a + 2 * m34b));
 
-  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& a, const auto& b){ return 3 * a + 2 * b; }, m34a, M30{m34b}), 3 * m34a + 2 * m34b));
-  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& a, const auto& b){ return 3 * a + 2 * b; }, M00{m34a}, M00{m34b}), 3 * m34a + 2 * m34b));
+  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& a, const auto& b){ return 3 * a + 2 * b; }, m34a, M3x{m34b}), 3 * m34a + 2 * m34b));
+  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& a, const auto& b){ return 3 * a + 2 * b; }, Mxx{m34a}, Mxx{m34b}), 3 * m34a + 2 * m34b));
 }
 
 
@@ -282,19 +251,19 @@ TEST(eigen3, chipwise_binary_w_indices)
   const auto m34r = d2 * m34a + m34b * e3;
 
   EXPECT_TRUE(is_near(chipwise_operation<0>([&](const auto& a, const auto& b, std::size_t i){ return a * mt4 * (i + 1) + b * mt4 * (i + 2); }, m34a, m34b), m34p));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([&](const auto& a, const auto& b, std::size_t i){ return a * mt4 * (i + 1) + b * mt4 * (i + 2); }, M04{m34a}, m34b), m34p));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([&](const auto& a, const auto& b, std::size_t i){ return a * mt4 * (i + 1) + b * mt4 * (i + 2); }, m34a, M30{m34b}), m34p));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([&](const auto& a, const auto& b, std::size_t i){ return a * mt4 * (i + 1) + b * mt4 * (i + 2); }, M00{m34a}, M00{m34b}), m34p));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([&](const auto& a, const auto& b, std::size_t i){ return a * mt4 * (i + 1) + b * mt4 * (i + 2); }, Mx4{m34a}, m34b), m34p));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([&](const auto& a, const auto& b, std::size_t i){ return a * mt4 * (i + 1) + b * mt4 * (i + 2); }, m34a, M3x{m34b}), m34p));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([&](const auto& a, const auto& b, std::size_t i){ return a * mt4 * (i + 1) + b * mt4 * (i + 2); }, Mxx{m34a}, Mxx{m34b}), m34p));
 
   EXPECT_TRUE(is_near(chipwise_operation<1>([&](const auto& a, const auto& b, std::size_t j){ return mt3 * a * (j + 2) + mt3 * b * (j + 1); }, m34a, m34b), m34q));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([&](const auto& a, const auto& b, std::size_t j){ return mt3 * a * (j + 2) + mt3 * b * (j + 1); }, M30{m34a}, m34b), m34q));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([&](const auto& a, const auto& b, std::size_t j){ return mt3 * a * (j + 2) + mt3 * b * (j + 1); }, m34a, M04{m34b}), m34q));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([&](const auto& a, const auto& b, std::size_t j){ return mt3 * a * (j + 2) + mt3 * b * (j + 1); }, M00{m34a}, M00{m34b}), m34q));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([&](const auto& a, const auto& b, std::size_t j){ return mt3 * a * (j + 2) + mt3 * b * (j + 1); }, M3x{m34a}, m34b), m34q));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([&](const auto& a, const auto& b, std::size_t j){ return mt3 * a * (j + 2) + mt3 * b * (j + 1); }, m34a, Mx4{m34b}), m34q));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([&](const auto& a, const auto& b, std::size_t j){ return mt3 * a * (j + 2) + mt3 * b * (j + 1); }, Mxx{m34a}, Mxx{m34b}), m34q));
 
   EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& a, const auto& b, std::size_t i, std::size_t j){ return (i + 2) * a + (j + 3) * b; }, m34a, m34b), m34r));
-  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& a, const auto& b, std::size_t i, std::size_t j){ return (i + 2) * a + (j + 3) * b; }, M04{m34a}, m34b), m34r));
+  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& a, const auto& b, std::size_t i, std::size_t j){ return (i + 2) * a + (j + 3) * b; }, Mx4{m34a}, m34b), m34r));
 
-  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& a, const auto& b, std::size_t j, std::size_t i){ return (i + 2) * a + (j + 3) * b; }, m34a, M30{m34b}), m34r));
-  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& a, const auto& b, std::size_t j, std::size_t i){ return (i + 2) * a + (j + 3) * b; }, M00{m34a}, M00{m34b}), m34r));
+  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& a, const auto& b, std::size_t j, std::size_t i){ return (i + 2) * a + (j + 3) * b; }, m34a, M3x{m34b}), m34r));
+  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& a, const auto& b, std::size_t j, std::size_t i){ return (i + 2) * a + (j + 3) * b; }, Mxx{m34a}, Mxx{m34b}), m34r));
 }
 

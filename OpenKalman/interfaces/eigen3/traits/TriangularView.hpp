@@ -210,45 +210,6 @@ namespace OpenKalman
 
   } // namespace interface
 
-
-  /**
-   * \internal
-   * \brief Matrix traits for Eigen::TriangularView.
-   */
-  template<typename M, unsigned int Mode>
-  struct MatrixTraits<Eigen::TriangularView<M, Mode>> : MatrixTraits<std::decay_t<M>>
-  {
-  private:
-
-    using Scalar = typename EGI::traits<Eigen::TriangularView<M, Mode>>::Scalar;
-    static constexpr auto rows = row_dimension_of_v<M>;
-    static constexpr auto columns = column_dimension_of_v<M>;
-
-    static constexpr TriangleType triangle_type = Mode & Eigen::Upper ? TriangleType::upper : TriangleType::lower;
-
-  public:
-
-    template<HermitianAdapterType storage_triangle =
-      triangle_type == TriangleType::upper ? HermitianAdapterType ::upper : HermitianAdapterType ::lower, std::size_t dim = rows>
-    using SelfAdjointMatrixFrom = typename MatrixTraits<std::decay_t<M>>::template SelfAdjointMatrixFrom<storage_triangle, dim>;
-
-
-    template<TriangleType triangle_type = triangle_type, std::size_t dim = rows>
-    using TriangularMatrixFrom = typename MatrixTraits<std::decay_t<M>>::template TriangularMatrixFrom<triangle_type, dim>;
-
-
-#ifdef __cpp_concepts
-    template<Eigen3::native_eigen_matrix Arg>
-#else
-    template<typename Arg, std::enable_if_t<Eigen3::native_eigen_matrix<Arg>, int> = 0>
-#endif
-    auto make(Arg& arg) noexcept
-    {
-      return Eigen::TriangularView<std::remove_reference_t<Arg>, Mode>(arg);
-    }
-
-  };
-
 } // namespace OpenKalman
 
 #endif //OPENKALMAN_EIGEN3_TRAITS_HPP

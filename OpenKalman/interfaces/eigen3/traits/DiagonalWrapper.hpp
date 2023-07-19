@@ -102,7 +102,7 @@ namespace OpenKalman
       static constexpr bool is_triangular_adapter = false;
 
       template<Likelihood b>
-      static constexpr bool is_diagonal_adapter = dimension_size_of_index_is<DiagVectorType, 1, 1, b>;
+      static constexpr bool is_diagonal_adapter = vector<DiagVectorType, 0, b>;
     };
 
 
@@ -157,16 +157,6 @@ namespace OpenKalman
     };
 
   } // namespace interface
-
-
-  /**
-   * \internal
-   * \brief Matrix traits for Eigen::DiagonalWrapper.
-   */
-  template<typename V>
-  struct MatrixTraits<Eigen::DiagonalWrapper<V>>
-    : MatrixTraits<Eigen::Matrix<typename Eigen::internal::traits<std::decay_t<V>>::Scalar,
-        V::SizeAtCompileTime, V::SizeAtCompileTime>> {};
 
 } // namespace OpenKalman
 

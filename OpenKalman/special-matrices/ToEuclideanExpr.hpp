@@ -97,7 +97,7 @@ namespace OpenKalman
      */
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
       (sizeof...(Args) == columns * dimension_size_of_v<TypedIndex>), int> = 0>
-    ToEuclideanExpr(Args ... args) : Base {MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...)} {}
+    ToEuclideanExpr(Args ... args) : Base {make_dense_writable_matrix_from<NestedMatrix>(static_cast<const Scalar>(args)...)} {}
 #endif
 
 

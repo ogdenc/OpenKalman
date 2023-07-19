@@ -81,6 +81,102 @@ namespace OpenKalman::interface
 
 
   /**
+   * \internal
+   * \brief An interface to T's nested matrices or other dependencies, whether embedded in T or nested by reference.
+   * \details The interface must define a <code>std::tuple</code> as member alias <code>type</code>, where the tuple
+   * elements correspond to each dependent object for which Dependencies is also defined. Such dependent objects may
+   * include nested matrices or any parameters (e.g., indices indicating a particular block within a matrix).
+   * The tuple element should be an lvalue reference if it is stored as an lvalue reference in type T).
+   * The interface may define the following:
+   *   - a static boolean member <code>has_runtime_parameters</code> that indicates whether type T stores any internal
+   *   runtime parameters;
+   *   - a member alias <code>type</code>, which is a tuple of elements corresponding to each dependency (the tuple
+   *   element should be an lvalue reference if it is stored in T as an lvalue reference, and each included type should
+   *   also have its own instance of Dependencies defined for it);
+   *   - static member function <code>get_nested_matrix</code> that returns one of the dependencies; and
+   *   - static member function <code>convert_to_self_contained</code> that converts a matrix convertible to type T
+   *   into a self-contained object (optional if <code>type</code> is an empty tuple).
+   * \tparam T A matrix, array, expression, distribution, etc., that has dependencies
+   * \sa self_contained, make_self_contained, equivalent_self_contained_t, equivalent_dense_writable_matrix,
+   * self_contained_parameter
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+#else
+  template<typename T, typename = void>
+#endif
+  struct Dependencies
+  {
+    /**
+     * \brief Indicates whether type T stores any internal runtime parameters.
+     * \details An example of an internal runtime parameter might be indices for start locations, or sizes, for an
+     * expression representing a block or sub-matrix within a matrix. If unknown, the value of <code>true</code> is
+     * the safest and will prevent unintended dangling references.
+     * \note If this is not defined, T will be treated as if it is defined and true. This parameter can ignore whether
+     * any nested matrices, themselves, have internal runtime parameters.
+     */
+    static constexpr bool has_runtime_parameters = true;
+
+
+    /**
+     * \brief Gets the i-th dependency of T.
+     * /detail There is no need to check the bounds of <code>i</code>, but they should be treated as following this
+     * constraint:
+     * /code
+     *   requires (i < std::tuple_size_v<type>) and std::same_as<std::decay_t<Arg>, std::decay_t<T>>
+     * /endcode
+     * \note Defining this function is optional. Also, there is no need for the example constraints on i or Arg,
+     * as OpenKalman::nested_matrix already enforces these constraints.
+     * \tparam i Index of the dependency (0 for the 1st dependency, 1 for the 2nd, etc.).
+     * \tparam Arg An object of type T
+     * \return The i-th dependency of T
+     * \sa OpenKalman::nested_matrix
+     */
+#ifdef __cpp_concepts
+    template<std::size_t i, std::convertible_to<const std::remove_reference_t<T>&> Arg>
+#else
+    template<std::size_t i, typename Arg, std::enable_if_t<
+      std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+#endif
+    static decltype(auto) get_nested_matrix(Arg&& arg) = delete;
+
+
+    /**
+     * \brief Converts an object of type T into an equivalent, self-contained object (i.e., no external dependencies).
+     * \detail The resulting type must be equivalent to T, including in shape and scalar type. But it must be
+     * self-contained, so that it has external dependencies accessible only by lvalue references. The result must be
+     * guaranteed to be returnable from a function without causing a dangling reference. If possible, this should
+     * preserve the traits of T, such as whether it is a \ref triangular_matrix, \ref diagonal_matrix, or
+     * \note Defining this function is optional. If not defined, the default behavior is to convert to the equivalent,
+     * dense, writable matrix. Also, there is no need for the example constraint on Arg, as
+     * OpenKalman::make_self_contained already enforces this constraint.
+     * \ref zero_matrix.
+     * \tparam Arg An object of type T
+     * \return An equivalent self-contained version of T
+     */
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+#endif
+    static decltype(auto) convert_to_self_contained(Arg&& arg) = delete;
+
+
+    /**
+     * \typedef type
+     * \brief A tuple with elements corresponding to each dependent object.
+     * \details If the object is linked within T by an lvalue reference, the element should be an lvalue reference.
+     * Examples:
+     * \code
+     *   using type = std::tuple<>; //< T has no dependencies
+     *   using type = std::tuple<Arg1, Arg2&>; //< T stores Arg1 and a reference to Arg2
+     * \endcode
+     * \note If this is not defined, T will be considered non-self-contained.
+     */
+  };
+
+
+  /**
    * \brief An interface to features of individual elements of indexible object T using indices I... of type std::size_t.
    * \detail The interface may define static member function <code>get</code>  and <code>set</code> with one or two indices. If
    * getting or setting an element is not possible, leave <code>get</code> or <code>set</code> undefined, respectively.
@@ -189,102 +285,20 @@ namespace OpenKalman::interface
     template<typename Arg>
     static decltype(auto) to_native_matrix(Arg&& arg) = delete;
 
-  };
-
-
-  /**
-   * \internal
-   * \brief An interface to T's nested matrices or other dependencies, whether embedded in T or nested by reference.
-   * \details The interface must define a <code>std::tuple</code> as member alias <code>type</code>, where the tuple
-   * elements correspond to each dependent object for which Dependencies is also defined. Such dependent objects may
-   * include nested matrices or any parameters (e.g., indices indicating a particular block within a matrix).
-   * The tuple element should be an lvalue reference if it is stored as an lvalue reference in type T).
-   * The interface may define the following:
-   *   - a static boolean member <code>has_runtime_parameters</code> that indicates whether type T stores any internal
-   *   runtime parameters;
-   *   - a member alias <code>type</code>, which is a tuple of elements corresponding to each dependency (the tuple
-   *   element should be an lvalue reference if it is stored in T as an lvalue reference, and each included type should
-   *   also have its own instance of Dependencies defined for it);
-   *   - static member function <code>get_nested_matrix</code> that returns one of the dependencies; and
-   *   - static member function <code>convert_to_self_contained</code> that converts a matrix convertible to type T
-   *   into a self-contained object (optional if <code>type</code> is an empty tuple).
-   * \tparam T A matrix, array, expression, distribution, etc., that has dependencies
-   * \sa self_contained, make_self_contained, equivalent_self_contained_t, equivalent_dense_writable_matrix,
-   * self_contained_parameter
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct Dependencies
-  {
-    /**
-     * \brief Indicates whether type T stores any internal runtime parameters.
-     * \details An example of an internal runtime parameter might be indices for start locations, or sizes, for an
-     * expression representing a block or sub-matrix within a matrix. If unknown, the value of <code>true</code> is
-     * the safest and will prevent unintended dangling references.
-     * \note If this is not defined, T will be treated as if it is defined and true. This parameter can ignore whether
-     * any nested matrices, themselves, have internal runtime parameters.
-     */
-    static constexpr bool has_runtime_parameters = true;
-
 
     /**
-     * \brief Gets the i-th dependency of T.
-     * /detail There is no need to check the bounds of <code>i</code>, but they should be treated as following this
-     * constraint:
-     * /code
-     *   requires (i < std::tuple_size_v<type>) and std::same_as<std::decay_t<Arg>, std::decay_t<T>>
-     * /endcode
-     * \note Defining this function is optional. Also, there is no need for the example constraints on i or Arg,
-     * as OpenKalman::nested_matrix already enforces these constraints.
-     * \tparam i Index of the dependency (0 for the 1st dependency, 1 for the 2nd, etc.).
-     * \tparam Arg An object of type T
-     * \return The i-th dependency of T
-     * \sa OpenKalman::nested_matrix
+     * \brief Make a writable matrix given a list of elements in row-major order.
+     * \param d_tup A tuple of index descriptors defining the dimensions of the result.
+     * \param args A set of scalar values representing the elements.
      */
 #ifdef __cpp_concepts
-    template<std::size_t i, std::convertible_to<const std::remove_reference_t<T>&> Arg>
+    template<index_descriptor...Ds, std::convertible_to<Scalar> ... Args>
 #else
-    template<std::size_t i, typename Arg, std::enable_if_t<
-      std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
+    template<typename...Ds, typename...Args, std::enable_if_t<(index_descriptor<Ds> and ...) and
+      std::conjunction_v<std::is_convertible<Args, Scalar>...>, int> = 0>
 #endif
-    static decltype(auto) get_nested_matrix(Arg&& arg) = delete;
+    static auto make_from_elements(const std::tuple<Ds...>& d_tup, const Args ... args) = delete;
 
-
-    /**
-     * \brief Converts an object of type T into an equivalent, self-contained object (i.e., no external dependencies).
-     * \detail The resulting type must be equivalent to T, including in shape and scalar type. But it must be
-     * self-contained, so that it has external dependencies accessible only by lvalue references. The result must be
-     * guaranteed to be returnable from a function without causing a dangling reference. If possible, this should
-     * preserve the traits of T, such as whether it is a \ref triangular_matrix, \ref diagonal_matrix, or
-     * \note Defining this function is optional. If not defined, the default behavior is to convert to the equivalent,
-     * dense, writable matrix. Also, there is no need for the example constraint on Arg, as
-     * OpenKalman::make_self_contained already enforces this constraint.
-     * \ref zero_matrix.
-     * \tparam Arg An object of type T
-     * \return An equivalent self-contained version of T
-     */
-#ifdef __cpp_concepts
-    template<std::convertible_to<const std::remove_reference_t<T>&> Arg>
-#else
-    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
-#endif
-    static decltype(auto) convert_to_self_contained(Arg&& arg) = delete;
-
-
-    /**
-     * \typedef type
-     * \brief A tuple with elements corresponding to each dependent object.
-     * \details If the object is linked within T by an lvalue reference, the element should be an lvalue reference.
-     * Examples:
-     * \code
-     *   using type = std::tuple<>; //< T has no dependencies
-     *   using type = std::tuple<Arg1, Arg2&>; //< T stores Arg1 and a reference to Arg2
-     * \endcode
-     * \note If this is not defined, T will be considered non-self-contained.
-     */
   };
 
 
@@ -473,7 +487,7 @@ namespace OpenKalman::interface
       * \brief Make a hermitian adapter.
       */
      template<HermitianAdapterType t, typename Arg>
-     static constexpr auto make_hermitian_adpater(Arg&& arg) = delete;
+     static constexpr auto make_hermitian_adapter(Arg&& arg) = delete;
   };
 
 
@@ -725,6 +739,13 @@ namespace OpenKalman::interface
   struct LinearAlgebra
   {
     /**
+     * \brief A Base object within the library of T for from which user-defined objects may be derived (optional).
+     */
+    //template<typename Derived>
+    //using MatrixBaseFrom = ???;
+
+
+    /**
      * \brief Take the conjugate of T
      * \tparam Arg An object of type T
      */
@@ -922,60 +943,5 @@ namespace OpenKalman::interface
 
 } // namespace OpenKalman::interface
 
-
-namespace OpenKalman
-{
-
-  // ------------------------------------ //
-  //   MatrixTraits, DistributionTraits   //
-  // ------------------------------------ //
-
-
-  /**
-   * \internal
-   * \brief A type trait class for any matrix T.
-   * \details This class includes key information about a matrix or matrix expression, such as its dimension,
-   * coefficient types, etc.
-   * \tparam T The matrix type. The type is treated as non-qualified, even if it is const or a reference.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct MatrixTraits {};
-
-
-  /**
-   * \internal
-   * \brief A type trait class for any distribution T.
-   * \details This class includes key information about a matrix or matrix expression, such as its dimension,
-   * coefficient types, etc.
-   * \sa MatrixTraits
-   * \tparam T The distribution type. The type is treated as non-qualified, even if it is const or a reference.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct DistributionTraits {};
-
-
-#ifdef __cpp_concepts
-  template<typename T> requires std::is_reference_v<T> or std::is_const_v<std::remove_reference_t<T>>
-  struct DistributionTraits<T> : DistributionTraits<std::decay_t<T>> {};
-#else
-  template<typename T>
-  struct DistributionTraits<T&> : DistributionTraits<T> {};
-
-  template<typename T>
-  struct DistributionTraits<T&&> : DistributionTraits<T> {};
-
-  template<typename T>
-  struct DistributionTraits<const T> : DistributionTraits<T> {};
-#endif
-
-} // namespace OpenKalman
 
 #endif //OPENKALMAN_FORWARD_INTERFACE_TRAITS_HPP

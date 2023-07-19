@@ -19,50 +19,46 @@
 namespace OpenKalman
 {
   /**
-   * \brief Convert the argument to a dense, writable matrix.
+   * \brief Convert the argument to a dense, writable matrix of a particular scalar type.
    * \tparam Scalar The Scalar type of the new matrix, if different than that of Arg
    * \tparam Arg The object from which the new matrix is based
    */
 #ifdef __cpp_concepts
   template<scalar_type Scalar, indexible Arg>
-  constexpr /*writable*/ decltype(auto)
+  constexpr writable decltype(auto)
 #else
   template<typename Scalar, typename Arg, std::enable_if_t<scalar_type<Scalar> and indexible<Arg>, int> = 0>
   constexpr decltype(auto)
 #endif
   make_dense_writable_matrix_from(Arg&& arg)
   {
-    if constexpr (writable<Arg> and std::is_same_v<Scalar, scalar_type_of_t<Arg>>)
-      return std::forward<Arg>(arg);
-    else
-      return interface::EquivalentDenseWritableMatrix<std::decay_t<Arg>, std::decay_t<Scalar>>::convert(std::forward<Arg>(arg));
+    if constexpr (writable<Arg> and std::is_same_v<Scalar, scalar_type_of_t<Arg>>) return std::forward<Arg>(arg);
+    else return interface::EquivalentDenseWritableMatrix<std::decay_t<Arg>, std::decay_t<Scalar>>::convert(std::forward<Arg>(arg));
   }
 
 
   /**
    * \overload
-   * \brief Convert the argument to a dense, writable matrix.
+   * \brief Convert the argument to a dense, writable matrix with the same scalar type as the argument.
    * \tparam Arg The object from which the new matrix is based
    */
 #ifdef __cpp_concepts
   template<indexible Arg>
-  constexpr /*writable*/ decltype(auto)
+  constexpr writable decltype(auto)
 #else
   template<typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
   constexpr decltype(auto)
 #endif
   make_dense_writable_matrix_from(Arg&& arg)
   {
-    if constexpr (writable<Arg>)
-      return std::forward<Arg>(arg);
-    else
-      return interface::EquivalentDenseWritableMatrix<std::decay_t<Arg>, scalar_type_of_t<Arg>>::convert(std::forward<Arg>(arg));
+    if constexpr (writable<Arg>) return std::forward<Arg>(arg);
+    else return interface::EquivalentDenseWritableMatrix<std::decay_t<Arg>, scalar_type_of_t<Arg>>::convert(std::forward<Arg>(arg));
   }
 
 
   /**
    * \overload
-   * \brief Create a dense, writable matrix with size and shape based on M, filled with a set of scalar components
+   * \brief Create a dense, writable matrix from the library of which M is a member, filled with a set of scalar components
    * \tparam M The matrix or array on which the new matrix is patterned.
    * \tparam Scalar An optional scalar type for the new matrix. By default, M's scalar type is used.
    * \tparam Ds Index descriptors describing the size of the resulting object.
@@ -84,9 +80,9 @@ namespace OpenKalman
 #endif
   make_dense_writable_matrix_from(const std::tuple<Ds...>& d_tup, Args...args)
   {
-    using Trait = interface::EquivalentDenseWritableMatrix<std::decay_t<M>, std::decay_t<Scalar>>;
-    using Nat = decltype(Trait::make_default(std::declval<Ds&&>()...));
-    return MatrixTraits<std::decay_t<Nat>>::make(static_cast<const Scalar>(args)...);
+    using W = decltype(make_default_dense_writable_matrix_like<M>(std::declval<Ds>()...));
+    using Trait = interface::EquivalentDenseWritableMatrix<std::decay_t<W>, std::decay_t<Scalar>>;
+    return Trait::make_from_elements(d_tup, static_cast<const Scalar>(args)...);
   }
 #ifndef __cpp_concepts
 # pragma GCC diagnostic pop
@@ -103,21 +99,22 @@ namespace OpenKalman
 
 
     template<typename M, std::size_t N>
-    constexpr auto check_make_dense_args()
+    constexpr bool check_make_dense_args()
     {
       constexpr auto dims = count_fixed_dims<M>(std::make_index_sequence<max_indices_of_v<M>> {});
-      return (N % dims == 0) and number_of_dynamic_indices_v<M> <= 1;
+      if constexpr (dims == 0) return false;
+      else return (N % dims == 0) and number_of_dynamic_indices_v<M> <= 1;
     }
 
 
     template<typename M, std::size_t dims, typename Scalar, std::size_t...I, typename...Args>
     inline auto make_dense_writable_matrix_from_impl(std::index_sequence<I...>, Args...args)
     {
-      return make_dense_writable_matrix_from<M, Scalar>(
-        std::tuple {[]{
+      std::tuple d_tup {[]{
           if constexpr (dynamic_dimension<M, I>) return Dimensions<sizeof...(Args) / dims>{};
           else return index_descriptor_of_t<M, I> {};
-        }()...}, args...);
+        }()...};
+      return make_dense_writable_matrix_from<M, Scalar>(d_tup, args...);
     }
 
   } // namespace detail
@@ -125,16 +122,15 @@ namespace OpenKalman
 
   /**
    * \overload
-   * \brief Create a dense, writable matrix with size and shape based on M, filled with a set of scalar components
+   * \brief Create a dense, writable matrix from a set of components, with size and shape inferred from M.
+   * \details The index descriptors of the result must be unambiguously inferrable from M and the number of indices.
    * \tparam M The matrix or array on which the new matrix is patterned.
-   * \tparam rows An optional row dimension for the new matrix. By default, M's row dimension is used.
-   * \tparam columns An optional column dimension for the new matrix. By default, M's column dimension is used.
    * \tparam Scalar An optional scalar type for the new matrix. By default, M's scalar type is used.
    * \param args Scalar values to fill the new matrix.
    */
 #ifdef __cpp_concepts
   template<indexible M, scalar_type Scalar = scalar_type_of_t<M>, std::convertible_to<const Scalar> ... Args>
-  requires (detail::check_make_dense_args<M, sizeof...(Args)>())
+    requires (detail::check_make_dense_args<M, sizeof...(Args)>())
   inline writable auto
 #else
   template<typename M, typename Scalar = scalar_type_of_t<M>, typename ... Args, std::enable_if_t<

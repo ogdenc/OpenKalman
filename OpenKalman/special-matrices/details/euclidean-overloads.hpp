@@ -739,10 +739,10 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<typename Function, euclidean_expr Arg> requires
-    requires(const Arg& arg, const Function& f) { {f(column(arg, 0))} -> dimension_size_of_index_is<1, 1>; }
+    requires(const Arg& arg, const Function& f) { {f(column(arg, 0))} -> vector; }
 #else
   template<typename Function, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
-    dimension_size_of_index_is<std::invoke_result_t<Function, std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&&>, 1, 1>, int> = 0>
+    vector<std::invoke_result_t<Function, std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&&>>, int> = 0>
 #endif
   inline auto
   apply_columnwise(const Function& f, const Arg& arg)
@@ -762,10 +762,10 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<typename Function, euclidean_expr Arg> requires
-    requires(const Arg& arg, const Function& f, std::size_t i) { {f(column(arg, 0), i)} -> dimension_size_of_index_is<1, 1>; }
+    requires(const Arg& arg, const Function& f, std::size_t i) { {f(column(arg, 0), i)} -> vector; }
 #else
   template<typename Function, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
-    dimension_size_of_index_is<std::invoke_result_t<Function, std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&&, std::size_t>, 1, 1>, int> = 0>
+    vector<std::invoke_result_t<Function, std::decay_t<decltype(column(std::declval<const Arg&>(), 0))>&&, std::size_t>>, int> = 0>
 #endif
   inline auto
   apply_columnwise(const Function& f, const Arg& arg)
@@ -781,10 +781,10 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
   template<std::size_t count, typename Function> requires
-    requires(const Function& f) { {f()} -> euclidean_expr; {f()} -> dimension_size_of_index_is<1, 1>; }
+    requires(const Function& f) { {f()} -> euclidean_expr; {f()} -> vector; }
 #else
   template<std::size_t count, typename Function, std::enable_if_t<
-    euclidean_expr<std::invoke_result_t<Function>> and dimension_size_of_index_is<std::invoke_result_t<Function>, 1, 1>, int> = 0>
+    euclidean_expr<std::invoke_result_t<Function>> and vector<std::invoke_result_t<Function>>, int> = 0>
 #endif
   inline auto
   apply_columnwise(const Function& f)
@@ -797,11 +797,11 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
   template<std::size_t count, typename Function> requires
-    requires(const Function& f, std::size_t i) { {f(i)} -> euclidean_expr; {f(i)} -> dimension_size_of_index_is<1, 1>; }
+    requires(const Function& f, std::size_t i) { {f(i)} -> euclidean_expr; {f(i)} -> vector; }
 #else
   template<std::size_t count, typename Function, std::enable_if_t<
     euclidean_expr<std::invoke_result_t<Function, std::size_t>> and
-    dimension_size_of_index_is<std::invoke_result_t<Function, std::size_t>, 1, 1>, int> = 0>
+    vector<std::invoke_result_t<Function, std::size_t>>, int> = 0>
 #endif
   inline auto
   apply_columnwise(const Function& f)
@@ -819,11 +819,11 @@ namespace OpenKalman::Eigen3
    */
   #ifdef __cpp_concepts
   template<typename Function, euclidean_expr Arg> requires
-    requires(const Function& f, const Arg& arg) { {f(row(arg, 0))} -> dimension_size_of_index_is<0, 1>; } or
-    requires(const Function& f, const Arg& arg, std::size_t i) { {f(row(arg, 0), i)} -> dimension_size_of_index_is<0, 1>; }
+    requires(const Function& f, const Arg& arg) { {f(row(arg, 0))} -> vector<1>; } or
+    requires(const Function& f, const Arg& arg, std::size_t i) { {f(row(arg, 0), i)} -> vector<1>; }
   #else
   template<typename Function, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
-    dimension_size_of_index_is<std::invoke_result_t<Function, std::decay_t<decltype(row(std::declval<const Arg&>(), 0))>&&>, 0, 1>, int> = 0>
+    vector<std::invoke_result_t<Function, std::decay_t<decltype(row(std::declval<const Arg&>(), 0))>&&>, 1>, int> = 0>
   inline auto
   apply_rowwise(const Function& f, Arg&& arg)
   {
@@ -831,8 +831,7 @@ namespace OpenKalman::Eigen3
   }
 
   template<typename Function, typename Arg, std::enable_if_t<euclidean_expr<Arg> and
-    dimension_size_of_index_is<std::invoke_result_t<Function,
-      std::decay_t<decltype(row(std::declval<const Arg&>(), 0))>&&, std::size_t>, 0, 1>, int> = 0>
+    vector<std::invoke_result_t<Function, std::decay_t<decltype(row(std::declval<const Arg&>(), 0))>&&, std::size_t>, 1>, int> = 0>
   #endif
   inline auto
   apply_rowwise(const Function& f, Arg&& arg)
@@ -843,10 +842,10 @@ namespace OpenKalman::Eigen3
 
   #ifdef __cpp_concepts
   template<std::size_t count, typename Function> requires
-    requires(const Function& f) { {f()} -> euclidean_expr; {f()} -> dimension_size_of_index_is<0, 1>; }
+    requires(const Function& f) { {f()} -> euclidean_expr; {f()} -> vector<1>; }
   #else
   template<std::size_t count, typename Function, std::enable_if_t<
-    euclidean_expr<std::invoke_result_t<Function>> and dimension_size_of_index_is<std::invoke_result_t<Function>, 0, 1>, int> = 0>
+    euclidean_expr<std::invoke_result_t<Function>> and vector<std::invoke_result_t<Function>, 1>, int> = 0>
   #endif
   inline auto
   apply_rowwise(const Function& f)
@@ -858,11 +857,10 @@ namespace OpenKalman::Eigen3
 
 #ifdef __cpp_concepts
   template<std::size_t count, typename Function> requires
-    requires(const Function& f, std::size_t i) { {f(i)} -> euclidean_expr; {f(i)} -> dimension_size_of_index_is<0, 1>; }
+    requires(const Function& f, std::size_t i) { {f(i)} -> euclidean_expr; {f(i)} -> vector<1>; }
 #else
   template<std::size_t count, typename Function, std::enable_if_t<
-    euclidean_expr<std::invoke_result_t<Function, std::size_t>> and
-      dimension_size_of_index_is<std::invoke_result_t<Function, std::size_t>, 0, 1>, int> = 0>
+    euclidean_expr<std::invoke_result_t<Function, std::size_t>> and vector<std::invoke_result_t<Function, std::size_t>, 1>, int> = 0>
 #endif
   inline auto
   apply_rowwise(const Function& f)

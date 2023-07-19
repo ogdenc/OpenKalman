@@ -246,8 +246,6 @@ TEST(matrices, EuclideanMean_traits)
   static_assert(zero_matrix<EuclideanMean<Dimensions<2>, Z22>>);
   static_assert(zero_matrix<EuclideanMean<C2, ZeroMatrix<eigen_matrix_t<double, 3, 3>>>>);
 
-  EXPECT_TRUE(is_near(MatrixTraits<Mat23>::make(
-    make_eigen_matrix<double, 3, 3>(1, 2, 3, 4, 5, 6, 7, 8, 9)).nested_matrix(), TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));
   EXPECT_TRUE(is_near(make_zero_matrix_like<Mat23>(), eigen_matrix_t<double, 3, 3>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<EuclideanMean<Dimensions<2>, I22>>(), eigen_matrix_t<double, 2, 2>::Identity()));
 }
@@ -269,13 +267,13 @@ TEST(matrices, EuclideanMean_overloads)
     Mean<C2, M23> {1, 2, 3,
                    pi/3, pi/6, pi/4}));
 
-  const auto m1 = make_euclidean_mean(-2., 5, 3);
-  EXPECT_TRUE(is_near(from_euclidean(m1), m1));
+  const auto ma = make_euclidean_mean(-2., 5, 3);
+  EXPECT_TRUE(is_near(from_euclidean(ma), ma));
 
   using A3 = TypedIndex<angle::Radians, Axis, angle::Radians>;
-  const auto m2 = make_euclidean_mean<A3>(std::sqrt(3) / 2, 0.5, 5, 0.5, -std::sqrt(3) / 2);
+  const auto mb = make_euclidean_mean<A3>(std::sqrt(3) / 2, 0.5, 5, 0.5, -std::sqrt(3) / 2);
   const auto x2 = (eigen_matrix_t<double, 3, 1> {} << pi / 6, 5, -pi / 3).finished();
-  EXPECT_TRUE(is_near(from_euclidean(m2).nested_matrix(), x2));
+  EXPECT_TRUE(is_near(from_euclidean(mb).nested_matrix(), x2));
 
   EXPECT_TRUE(is_near(to_diagonal(EuclideanMean<Dimensions<2>, M21> {2, 3}).nested_matrix(), TM22 {2, 0, 0, 3}));
   static_assert(diagonal_matrix<decltype(to_diagonal(EuclideanMean<Dimensions<2>, M21> {2, 3}))>);
@@ -430,87 +428,87 @@ TEST(matrices, EuclideanMean_arithmetic)
 
 TEST(matrices, Polar_Spherical_toEuclideanExpr)
 {
-  using P1 = Polar<Distance, angle::Radians>;
-  const Mean<P1> m1 {2, pi / 6};
-  const auto x1 = make_euclidean_mean<P1>(2, std::sqrt(3) / 2, 0.5);
-  EXPECT_TRUE(is_near(to_euclidean(m1), x1));
+  using Pa = Polar<Distance, angle::Radians>;
+  const Mean<Pa> ma {2, pi / 6};
+  const auto xa = make_euclidean_mean<Pa>(2, std::sqrt(3) / 2, 0.5);
+  EXPECT_TRUE(is_near(to_euclidean(ma), xa));
 
-  using P2 = Polar<angle::Radians, Distance>;
-  const Mean<P2> m2 {pi / 6, 2};
-  const auto x2 = make_euclidean_mean<P2>(std::sqrt(3) / 2, 0.5, 2);
-  EXPECT_TRUE(is_near(to_euclidean(m2), x2));
+  using Pb = Polar<angle::Radians, Distance>;
+  const Mean<Pb> mb {pi / 6, 2};
+  const auto xb = make_euclidean_mean<P2>(std::sqrt(3) / 2, 0.5, 2);
+  EXPECT_TRUE(is_near(to_euclidean(mb), xb));
 
-  using S3 = Spherical<Distance, angle::Radians, inclination::Radians>;
-  const Mean<S3> m3 {2, pi / 6, -pi / 3};
-  const auto x3 = make_euclidean_mean<S3>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(to_euclidean(m3), x3));
+  using Sc = Spherical<Distance, angle::Radians, inclination::Radians>;
+  const Mean<Sc> mc {2, pi / 6, -pi / 3};
+  const auto xc = make_euclidean_mean<Sc>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
+  EXPECT_TRUE(is_near(to_euclidean(mc), xc));
 
-  using S4 = Spherical<Distance, inclination::Radians, angle::Radians>;
-  const Mean<S4> m4 {2, -pi / 3, pi / 6};
-  const auto x4 = make_euclidean_mean<S4>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(to_euclidean(m4), x4));
+  using Sd = Spherical<Distance, inclination::Radians, angle::Radians>;
+  const Mean<Sd> md {2, -pi / 3, pi / 6};
+  const auto xd = make_euclidean_mean<Sd>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
+  EXPECT_TRUE(is_near(to_euclidean(md), xd));
 
-  using S5 = Spherical<angle::Radians, Distance, inclination::Radians>;
-  const Mean<S5> m5 {pi / 6, 2, -pi / 3};
-  const auto x5 = make_euclidean_mean<S5>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(to_euclidean(m5), x5));
+  using Se = Spherical<angle::Radians, Distance, inclination::Radians>;
+  const Mean<Se> me {pi / 6, 2, -pi / 3};
+  const auto xe = make_euclidean_mean<Se>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
+  EXPECT_TRUE(is_near(to_euclidean(me), xe));
 
-  using S6 = Spherical<inclination::Radians, Distance, angle::Radians>;
-  const Mean<S6> m6 {-pi / 3, 2, pi / 6};
-  const auto x6 = make_euclidean_mean<S6>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(to_euclidean(m6), x6));
+  using Sf = Spherical<inclination::Radians, Distance, angle::Radians>;
+  const Mean<Sf> mf {-pi / 3, 2, pi / 6};
+  const auto xf = make_euclidean_mean<Sf>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
+  EXPECT_TRUE(is_near(to_euclidean(mf), xf));
 
-  using S7 = Spherical<angle::Radians, inclination::Radians, Distance>;
-  const Mean<S7> m7 {pi / 6, -pi / 3, 2};
-  const auto x7 = make_euclidean_mean<S7>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(to_euclidean(m7), x7));
+  using Sg = Spherical<angle::Radians, inclination::Radians, Distance>;
+  const Mean<Sg> mg {pi / 6, -pi / 3, 2};
+  const auto xg = make_euclidean_mean<Sg>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
+  EXPECT_TRUE(is_near(to_euclidean(mg), xg));
 
-  using S8 = Spherical<inclination::Radians, angle::Radians, Distance>;
-  const Mean<S8> m8 {-pi / 3, pi / 6, 2};
-  const auto x8 = make_euclidean_mean<S8>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(to_euclidean(m8), x8));
+  using Sh = Spherical<inclination::Radians, angle::Radians, Distance>;
+  const Mean<Sh> mh {-pi / 3, pi / 6, 2};
+  const auto xh = make_euclidean_mean<Sh>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
+  EXPECT_TRUE(is_near(to_euclidean(mh), xh));
 }
 
 
 TEST(matrices, Polar_Spherical_fromEuclideanExpr)
 {
-  using P1 = Polar<Distance, angle::Radians>;
-  const Mean<P1> m1 {2, pi / 6};
-  const auto x1 = make_euclidean_mean<P1>(2, std::sqrt(3) / 2, 0.5);
-  EXPECT_TRUE(is_near(m1, from_euclidean(x1)));
+  using Pa = Polar<Distance, angle::Radians>;
+  const Mean<Pa> ma {2, pi / 6};
+  const auto xa = make_euclidean_mean<Pa>(2, std::sqrt(3) / 2, 0.5);
+  EXPECT_TRUE(is_near(ma, from_euclidean(xa)));
 
-  using P2 = Polar<angle::Radians, Distance>;
-  const Mean<P2> m2 {pi / 6, 2};
-  const auto x2 = make_euclidean_mean<P2>(std::sqrt(3) / 2, 0.5, 2);
-  EXPECT_TRUE(is_near(m2, from_euclidean(x2)));
+  using Pb = Polar<angle::Radians, Distance>;
+  const Mean<Pb> mb {pi / 6, 2};
+  const auto xb = make_euclidean_mean<Pb>(std::sqrt(3) / 2, 0.5, 2);
+  EXPECT_TRUE(is_near(mb, from_euclidean(xb)));
 
-  using S3 = Spherical<Distance, angle::Radians, inclination::Radians>;
-  const Mean<S3> m3 {2, pi / 6, -pi / 3};
-  const auto x3 = make_euclidean_mean<S3>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(m3, from_euclidean(x3)));
+  using Sc = Spherical<Distance, angle::Radians, inclination::Radians>;
+  const Mean<Sc> mc {2, pi / 6, -pi / 3};
+  const auto xc = make_euclidean_mean<Sc>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
+  EXPECT_TRUE(is_near(mc, from_euclidean(xc)));
 
-  using S4 = Spherical<Distance, inclination::Radians, angle::Radians>;
-  const Mean<S4> m4 {2, -pi / 3, pi / 6};
-  const auto x4 = make_euclidean_mean<S4>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(m4, from_euclidean(x4)));
+  using Sd = Spherical<Distance, inclination::Radians, angle::Radians>;
+  const Mean<Sd> md {2, -pi / 3, pi / 6};
+  const auto xd = make_euclidean_mean<Sd>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
+  EXPECT_TRUE(is_near(md, from_euclidean(xd)));
 
-  using S5 = Spherical<angle::Radians, Distance, inclination::Radians>;
-  const Mean<S5> m5 {pi / 6, 2, -pi / 3};
-  const auto x5 = make_euclidean_mean<S5>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(m5, from_euclidean(x5)));
+  using Se = Spherical<angle::Radians, Distance, inclination::Radians>;
+  const Mean<Se> me {pi / 6, 2, -pi / 3};
+  const auto xe = make_euclidean_mean<Se>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
+  EXPECT_TRUE(is_near(me, from_euclidean(xe)));
 
-  using S6 = Spherical<inclination::Radians, Distance, angle::Radians>;
-  const Mean<S6> m6 {-pi / 3, 2, pi / 6};
-  const auto x6 = make_euclidean_mean<S6>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(m6, from_euclidean(x6)));
+  using Sf = Spherical<inclination::Radians, Distance, angle::Radians>;
+  const Mean<Sf> mf {-pi / 3, 2, pi / 6};
+  const auto xf = make_euclidean_mean<Sf>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
+  EXPECT_TRUE(is_near(mf, from_euclidean(xf)));
 
-  using S7 = Spherical<angle::Radians, inclination::Radians, Distance>;
-  const Mean<S7> m7 {pi / 6, -pi / 3, 2};
-  const auto x7 = make_euclidean_mean<S7>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(m7, from_euclidean(x7)));
+  using Sg = Spherical<angle::Radians, inclination::Radians, Distance>;
+  const Mean<Sg> mg {pi / 6, -pi / 3, 2};
+  const auto xg = make_euclidean_mean<Sg>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
+  EXPECT_TRUE(is_near(mg, from_euclidean(xg)));
 
-  using S8 = Spherical<inclination::Radians, angle::Radians, Distance>;
-  const Mean<S8> m8 {-pi / 3, pi / 6, 2};
-  const auto x8 = make_euclidean_mean<S8>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
-  EXPECT_TRUE(is_near(m8, from_euclidean(x8)));
+  using Sh = Spherical<inclination::Radians, angle::Radians, Distance>;
+  const Mean<Sh> mh {-pi / 3, pi / 6, 2};
+  const auto xh = make_euclidean_mean<Sh>(2, std::sqrt(3) / 4, 0.25, -std::sqrt(3) / 2);
+  EXPECT_TRUE(is_near(mh, from_euclidean(xh)));
 }

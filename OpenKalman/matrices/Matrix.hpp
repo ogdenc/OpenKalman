@@ -327,7 +327,7 @@ namespace OpenKalman
   Matrix(V&&) -> Matrix<
     row_index_descriptor_of_t<V>,
     row_index_descriptor_of_t<V>,
-    dense_writable_matrix_t<nested_matrix_of_t<V, scalar_type_of_t<V>>>>;
+    dense_writable_matrix_t<nested_matrix_of_t<V>, scalar_type_of_t<V>>>;
 
 
   // ----------------------------- //

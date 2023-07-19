@@ -161,6 +161,31 @@ namespace OpenKalman::interface
     template<typename Arg>
     static decltype(auto) to_native_matrix(Eigen3::EigenWrapper<Arg>&& arg) { return std::move(arg); }
 
+
+#ifdef __cpp_concepts
+    template<index_descriptor Drow, index_descriptor Dcol, std::convertible_to<Scalar> Arg, std::convertible_to<Scalar> ... Args>
+#else
+    template<typename Drow, typename Dcol, typename Arg, typename...Args, std::enable_if_t<
+      index_descriptor<Drow> and index_descriptor<Dcol> and
+      std::conjunction_v<std::is_convertible<Arg, Scalar>, std::is_convertible<Args, Scalar>...>, int> = 0>
+#endif
+    static auto make_from_elements(const std::tuple<Drow, Dcol>& d_tup, const Arg arg, const Args ... args)
+    {
+      constexpr std::size_t rows = dimension_size_of_v<Drow>;
+      constexpr std::size_t columns = dimension_size_of_v<Dcol>;
+      if constexpr (rows != dynamic_size and columns != dynamic_size)
+        return ((Eigen3::eigen_matrix_t<Scalar, rows, columns> {} << arg), ... , args).finished();
+      else if constexpr (rows != dynamic_size and columns == dynamic_size)
+        return ((Eigen3::eigen_matrix_t<Scalar, rows, (1 + sizeof...(Args)) / rows> {} << arg), ... , args).finished();
+      else if constexpr (rows == dynamic_size and columns != dynamic_size)
+        return ((Eigen3::eigen_matrix_t<Scalar, (1 + sizeof...(Args)) / columns, columns> {} << arg), ... , args).finished();
+      else
+      {
+        static_assert(rows == dynamic_size and columns == dynamic_size);
+        return ((Eigen3::eigen_matrix_t<Scalar, 1 + sizeof...(Args), 1> {} << arg), ... , args).finished();
+      }
+    }
+
   };
 
 
@@ -523,18 +548,12 @@ namespace OpenKalman::interface
 
       using Scalar = scalar_type_of_t<Arg>;
 
-      constexpr std::size_t dim = dynamic_rows<Arg> ? column_dimension_of_v<Arg> : row_dimension_of_v<Arg>;
-      static_assert(dim != 1); // This should be handled by general funciton.
-
       if constexpr (Eigen3::eigen_Identity<Arg>)
       {
+        constexpr std::size_t dim = dynamic_rows<Arg> ? column_dimension_of_v<Arg> : row_dimension_of_v<Arg>;
         if constexpr (dim == dynamic_size) return make_constant_matrix_like<Arg, Scalar, 1>(*d, Dimensions<1>{});
         else return make_constant_matrix_like<Arg, Scalar, 1>(Dimensions<dim>{}, Dimensions<1>{});
       }
-      /*else if constexpr (dim == 1)
-      {
-        return std::forward<Arg>(arg);
-      }*/
       else
       {
         auto diag {[](Arg&& arg){
@@ -543,13 +562,12 @@ namespace OpenKalman::interface
           else // native_eigen_matrix<Arg>
             return make_self_contained<Arg>(std::forward<Arg>(arg).diagonal());
         }(std::forward<Arg>(arg))};
+        using Diag = const std::decay_t<decltype(diag)>;
 
-        if constexpr (/*std::is_lvalue_reference_v<Arg> or*/ not has_dynamic_dimensions<Arg> or dim == dynamic_size)
-          return diag;
-        else
-          // \todo Create an internal wrapper with an immutable nested matrix that guarantees a compile-time set of dimensions.
-          return untyped_dense_writable_matrix_t<decltype(diag), Scalar, dim, 1> {std::move(diag)};
-      }
+        using D = std::decay_t<decltype(*d)>;
+        if constexpr ((not dynamic_dimension<Diag, 0> or dynamic_index_descriptor<D>) and index_dimension_of_v<Diag, 1> == 1) return diag;
+        else return internal::FixedSizeAdapter<Diag, D, Dimensions<1>> {std::move(diag)};
+      };
     }
 
   };
@@ -753,6 +771,9 @@ namespace OpenKalman::interface
   struct LinearAlgebra<T, std::enable_if_t<Eigen3::native_eigen_general<T>>>
 #endif
   {
+    template<typename Derived>
+    using MatrixBaseFrom = Eigen3::Eigen3AdapterBase<Derived, T>;
+
 
     template<typename Arg>
     static constexpr decltype(auto)

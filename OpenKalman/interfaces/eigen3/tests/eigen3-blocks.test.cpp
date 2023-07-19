@@ -9,54 +9,10 @@
  */
 
 #include "eigen3.gtest.hpp"
-#include <complex>
 
 using namespace OpenKalman;
 using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
-
-
-namespace
-{
-  using M11 = eigen_matrix_t<double, 1, 1>;
-  using M12 = eigen_matrix_t<double, 1, 2>;
-  using M13 = eigen_matrix_t<double, 1, 3>;
-  using M14 = eigen_matrix_t<double, 1, 4>;
-  using M21 = eigen_matrix_t<double, 2, 1>;
-  using M22 = eigen_matrix_t<double, 2, 2>;
-  using M23 = eigen_matrix_t<double, 2, 3>;
-  using M24 = eigen_matrix_t<double, 2, 4>;
-  using M31 = eigen_matrix_t<double, 3, 1>;
-  using M32 = eigen_matrix_t<double, 3, 2>;
-  using M33 = eigen_matrix_t<double, 3, 3>;
-  using M34 = eigen_matrix_t<double, 3, 4>;
-  using M42 = eigen_matrix_t<double, 4, 2>;
-  using M43 = eigen_matrix_t<double, 4, 3>;
-  using M44 = eigen_matrix_t<double, 4, 4>;
-  using M45 = eigen_matrix_t<double, 4, 5>;
-  using M55 = eigen_matrix_t<double, 5, 5>;
-
-  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
-  using M10 = eigen_matrix_t<double, 1, dynamic_size>;
-  using M01 = eigen_matrix_t<double, dynamic_size, 1>;
-  using M20 = eigen_matrix_t<double, 2, dynamic_size>;
-  using M02 = eigen_matrix_t<double, dynamic_size, 2>;
-  using M30 = eigen_matrix_t<double, 3, dynamic_size>;
-  using M03 = eigen_matrix_t<double, dynamic_size, 3>;
-  using M04 = eigen_matrix_t<double, dynamic_size, 4>;
-  using M40 = eigen_matrix_t<double, 4, dynamic_size>;
-  using M50 = eigen_matrix_t<double, 5, dynamic_size>;
-  using M05 = eigen_matrix_t<double, dynamic_size, 5>;
-
-  using cdouble = std::complex<double>;
-
-  using CM21 = eigen_matrix_t<cdouble, 2, 1>;
-  using CM22 = eigen_matrix_t<cdouble, 2, 2>;
-  using CM23 = eigen_matrix_t<cdouble, 2, 3>;
-  using CM32 = eigen_matrix_t<cdouble, 3, 2>;
-  using CM34 = eigen_matrix_t<cdouble, 3, 4>;
-  using CM43 = eigen_matrix_t<cdouble, 4, 3>;
-}
 
 
 TEST(eigen3, element_access)
@@ -81,9 +37,9 @@ TEST(eigen3, get_and_set_elements)
   auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
 
   M22 el22 {m22}; // 1, 2, 3, 4
-  M20 el20_2 {m22};
-  M02 el02_2 {m22};
-  M00 el00_22 {m22};
+  M2x el20_2 {m22};
+  Mx2 el02_2 {m22};
+  Mxx el00_22 {m22};
 
   EXPECT_NEAR(get_element(el22, 0, 0), 1, 1e-8);
   EXPECT_NEAR(get_element(el20_2, 0, 1), 2, 1e-8);
@@ -96,9 +52,9 @@ TEST(eigen3, get_and_set_elements)
   set_element(el00_22, 5.5, 1, 0); EXPECT_NEAR(get_element(el00_22, 1, 0), 5.5, 1e-8);
 
   M21 el21 {m21}; // 1, 2
-  M20 el20_1 {m21};
-  M01 el01_2 {m21};
-  M00 el00_21 {m21};
+  M2x el20_1 {m21};
+  Mx1 el01_2 {m21};
+  Mxx el00_21 {m21};
 
   EXPECT_NEAR(get_element(el21, 0, 0), 1, 1e-8);
   EXPECT_NEAR(get_element(el20_1, 1, 0), 2, 1e-8);
@@ -114,9 +70,9 @@ TEST(eigen3, get_and_set_elements)
   set_element(el01_2, 5.6, 1); EXPECT_NEAR(get_element(el01_2, 1), 5.6, 1e-8);
 
   M12 el12 {m12}; // 1, 2
-  M10 el10_2 {m12};
-  M02 el02_1 {m12};
-  M00 el00_12 {m12};
+  M1x el10_2 {m12};
+  Mx2 el02_1 {m12};
+  Mxx el00_12 {m12};
 
   EXPECT_NEAR(get_element(el12, 0, 0), 1, 1e-8);
   EXPECT_NEAR(get_element(el10_2, 0, 1), 2, 1e-8);
@@ -165,22 +121,22 @@ TEST(eigen3, get_block)
   EXPECT_TRUE(is_near(get_block(M34{m34}, std::tuple{N1, N1}, std::tuple{2, N3}), make_dense_writable_matrix_from<M23>(6, 7, 8, 10, 11, 12)));
   EXPECT_TRUE(is_near(get_block(m34, std::tuple{N1, 1}, std::tuple{N2, 2}), make_dense_writable_matrix_from<M22>(6, 7, 10, 11)));
   EXPECT_TRUE(is_near(get_block(m34, std::tuple{0, 0}, std::tuple{2, N2}), make_dense_writable_matrix_from<M22>(1, 2, 5, 6)));
-  EXPECT_TRUE(is_near(get_block(M30{m34}, std::tuple{0, N0}, std::tuple{2, 2}), make_dense_writable_matrix_from<M22>(1, 2, 5, 6)));
-  EXPECT_TRUE(is_near(get_block(M00{m34}, std::tuple{0, 0}, std::tuple{2, 2}), make_dense_writable_matrix_from<M22>(1, 2, 5, 6)));
-  EXPECT_TRUE(is_near(get_block(M00{m34}, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_writable_matrix_from<M22>(1, 2, 5, 6)));
+  EXPECT_TRUE(is_near(get_block(M3x{m34}, std::tuple{0, N0}, std::tuple{2, 2}), make_dense_writable_matrix_from<M22>(1, 2, 5, 6)));
+  EXPECT_TRUE(is_near(get_block(Mxx{m34}, std::tuple{0, 0}, std::tuple{2, 2}), make_dense_writable_matrix_from<M22>(1, 2, 5, 6)));
+  EXPECT_TRUE(is_near(get_block(Mxx{m34}, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_writable_matrix_from<M22>(1, 2, 5, 6)));
 
-  EXPECT_TRUE(is_near(get_block<0, 1>(M00{m34}, std::tuple{N0, N0}, std::tuple{N2, N3}), make_dense_writable_matrix_from<M23>(1, 2, 3, 5, 6, 7)));
-  EXPECT_TRUE(is_near(get_block<1, 0>(M00{m34}, std::tuple{N0, N0}, std::tuple{N3, N2}), make_dense_writable_matrix_from<M23>(1, 2, 3, 5, 6, 7)));
+  EXPECT_TRUE(is_near(get_block<0, 1>(Mxx{m34}, std::tuple{N0, N0}, std::tuple{N2, N3}), make_dense_writable_matrix_from<M23>(1, 2, 3, 5, 6, 7)));
+  EXPECT_TRUE(is_near(get_block<1, 0>(Mxx{m34}, std::tuple{N0, N0}, std::tuple{N3, N2}), make_dense_writable_matrix_from<M23>(1, 2, 3, 5, 6, 7)));
 
   EXPECT_TRUE(is_near(get_block<0>(m34, std::tuple{N0}, std::tuple{N2}), make_dense_writable_matrix_from<M24>(1, 2, 3, 4, 5, 6, 7, 8)));
   EXPECT_TRUE(is_near(get_block<0>(m34, std::tuple{N1}, std::tuple{2}), make_dense_writable_matrix_from<M24>(5, 6, 7, 8, 9, 10, 11, 12)));
   EXPECT_TRUE(is_near(get_block<0>(m34, std::tuple{1}, std::tuple{1}), make_dense_writable_matrix_from<M14>(5, 6, 7, 8)));
-  EXPECT_TRUE(is_near(get_block<0>(M00{m34}, std::tuple{1}, std::tuple{N2}), make_dense_writable_matrix_from<M24>(5, 6, 7, 8, 9, 10, 11, 12)));
+  EXPECT_TRUE(is_near(get_block<0>(Mxx{m34}, std::tuple{1}, std::tuple{N2}), make_dense_writable_matrix_from<M24>(5, 6, 7, 8, 9, 10, 11, 12)));
 
   EXPECT_TRUE(is_near(get_block<1>(m34, std::tuple{N0}, std::tuple{N2}), make_dense_writable_matrix_from<M32>(1, 2, 5, 6, 9, 10)));
   EXPECT_TRUE(is_near(get_block<1>(m34, std::tuple{N1}, std::tuple{2}), make_dense_writable_matrix_from<M32>(2, 3, 6, 7, 10, 11)));
   EXPECT_TRUE(is_near(get_block<1>(m34, std::tuple{1}, std::tuple{1}), make_dense_writable_matrix_from<M31>(2, 6, 10)));
-  EXPECT_TRUE(is_near(get_block<1>(M00{m34}, std::tuple{1}, std::tuple{N3}), make_dense_writable_matrix_from<M33>(2, 3, 4, 6, 7, 8, 10, 11, 12)));
+  EXPECT_TRUE(is_near(get_block<1>(Mxx{m34}, std::tuple{1}, std::tuple{N3}), make_dense_writable_matrix_from<M33>(2, 3, 4, 6, 7, 8, 10, 11, 12)));
 
   auto ewd3 = Eigen3::EigenWrapper {Eigen::DiagonalMatrix<double, 3>{make_dense_writable_matrix_from<M31>(1, 2, 3)}};
 
@@ -300,34 +256,34 @@ TEST(eigen3, get_chip)
   EXPECT_TRUE(is_near(get_chip<0, 1>(m33, N2, N0), make_dense_writable_matrix_from<M11>(9)));
 
   EXPECT_TRUE(is_near(get_row(m33, 0), r0));
-  EXPECT_TRUE(is_near(get_row(M30 {m33}, N1), r1));
-  EXPECT_TRUE(is_near(get_row(M03 {m33}, N2), r2));
-  EXPECT_TRUE(is_near(get_row(M00 {m33}, 1), r1));
+  EXPECT_TRUE(is_near(get_row(M3x {m33}, N1), r1));
+  EXPECT_TRUE(is_near(get_row(Mx3 {m33}, N2), r2));
+  EXPECT_TRUE(is_near(get_row(Mxx {m33}, 1), r1));
 
   EXPECT_TRUE(is_near(get_row(m33.array(), 2), r2));
-  EXPECT_TRUE(is_near(get_row(M30 {m33}.array(), N1), r1));
-  EXPECT_TRUE(is_near(get_row(M03 {m33}.array(), N0), r0));
-  EXPECT_TRUE(is_near(get_row(M00 {m33}.array(), 2), r2));
+  EXPECT_TRUE(is_near(get_row(M3x {m33}.array(), N1), r1));
+  EXPECT_TRUE(is_near(get_row(Mx3 {m33}.array(), N0), r0));
+  EXPECT_TRUE(is_near(get_row(Mxx {m33}.array(), 2), r2));
 
-  static_assert(dimension_size_of_index_is<decltype(get_row(M00 {m33}, N0)), 0, 1>);
-  static_assert(dimension_size_of_index_is<decltype(get_row(M00 {m33}.array(), N1)), 0, 1>);
-  static_assert(dimension_size_of_index_is<decltype(get_row(M00 {m33}, 1)), 0, 1>);
-  static_assert(dimension_size_of_index_is<decltype(get_row(M00 {m33}.array(), 2)), 0, 1>);
+  static_assert(dimension_size_of_index_is<decltype(get_row(Mxx {m33}, N0)), 0, 1>);
+  static_assert(dimension_size_of_index_is<decltype(get_row(Mxx {m33}.array(), N1)), 0, 1>);
+  static_assert(dimension_size_of_index_is<decltype(get_row(Mxx {m33}, 1)), 0, 1>);
+  static_assert(dimension_size_of_index_is<decltype(get_row(Mxx {m33}.array(), 2)), 0, 1>);
 
   EXPECT_TRUE(is_near(get_column(m33, 2), c2));
-  EXPECT_TRUE(is_near(get_column(M30 {m33}, N1), c1));
-  EXPECT_TRUE(is_near(get_column(M03 {m33}, N0), c0));
-  EXPECT_TRUE(is_near(get_column(M00 {m33}, 2), c2));
+  EXPECT_TRUE(is_near(get_column(M3x {m33}, N1), c1));
+  EXPECT_TRUE(is_near(get_column(Mx3 {m33}, N0), c0));
+  EXPECT_TRUE(is_near(get_column(Mxx {m33}, 2), c2));
 
   EXPECT_TRUE(is_near(get_column(m33.array(), 1), c1));
-  EXPECT_TRUE(is_near(get_column(M30 {m33}.array(), N2), c2));
-  EXPECT_TRUE(is_near(get_column(M03 {m33}.array(), N1), c1));
-  EXPECT_TRUE(is_near(get_column(M00 {m33}.array(), 0), c0));
+  EXPECT_TRUE(is_near(get_column(M3x {m33}.array(), N2), c2));
+  EXPECT_TRUE(is_near(get_column(Mx3 {m33}.array(), N1), c1));
+  EXPECT_TRUE(is_near(get_column(Mxx {m33}.array(), 0), c0));
 
-  static_assert(dimension_size_of_index_is<decltype(get_column(M00 {m33}, N1)), 1, 1>);
-  static_assert(dimension_size_of_index_is<decltype(get_column(M00 {m33}.array(), N2)), 1, 1>);
-  static_assert(dimension_size_of_index_is<decltype(get_column(M00 {m33}, 2)), 1, 1>);
-  static_assert(dimension_size_of_index_is<decltype(get_column(M00 {m33}.array(), 0)), 1, 1>);
+  static_assert(dimension_size_of_index_is<decltype(get_column(Mxx {m33}, N1)), 1, 1>);
+  static_assert(dimension_size_of_index_is<decltype(get_column(Mxx {m33}.array(), N2)), 1, 1>);
+  static_assert(dimension_size_of_index_is<decltype(get_column(Mxx {m33}, 2)), 1, 1>);
+  static_assert(dimension_size_of_index_is<decltype(get_column(Mxx {m33}.array(), 0)), 1, 1>);
 }
 
 
@@ -400,18 +356,18 @@ TEST(eigen3, concatenate_vertical)
   auto m32 = make_dense_writable_matrix_from<M32>(1, 2, 3, 4, 5, 6);
 
   EXPECT_TRUE(is_near(concatenate<0>(m22, m12_56), m32));
-  EXPECT_TRUE(is_near(concatenate<0>(M20 {m22}, m12_56), m32));
-  EXPECT_TRUE(is_near(concatenate<0>(M20 {m22}, M10 {m12_56}), m32));
-  EXPECT_TRUE(is_near(concatenate<0>(M20 {m22}, M02 {m12_56}), m32));
-  EXPECT_TRUE(is_near(concatenate<0>(M20 {m22}, M00 {m12_56}), m32));
-  EXPECT_TRUE(is_near(concatenate<0>(M02 {m22}, m12_56), m32));
-  EXPECT_TRUE(is_near(concatenate<0>(M02 {m22}, M10 {m12_56}), m32));
-  EXPECT_TRUE(is_near(concatenate<0>(M02 {m22}, M02 {m12_56}), m32));
-  EXPECT_TRUE(is_near(concatenate<0>(M02 {m22}, M00 {m12_56}), m32));
-  EXPECT_TRUE(is_near(concatenate<0>(M00 {m22}, m12_56), m32));
-  EXPECT_TRUE(is_near(concatenate<0>(M00 {m22}, M10 {m12_56}), m32));
-  EXPECT_TRUE(is_near(concatenate<0>(M00 {m22}, M02 {m12_56}), m32));
-  EXPECT_TRUE(is_near(concatenate<0>(M00 {m22}, M00 {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(M2x {m22}, m12_56), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(M2x {m22}, M1x {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(M2x {m22}, Mx2 {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(M2x {m22}, Mxx {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(Mx2 {m22}, m12_56), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(Mx2 {m22}, M1x {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(Mx2 {m22}, Mx2 {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(Mx2 {m22}, Mxx {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(Mxx {m22}, m12_56), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(Mxx {m22}, M1x {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(Mxx {m22}, Mx2 {m12_56}), m32));
+  EXPECT_TRUE(is_near(concatenate<0>(Mxx {m22}, Mxx {m12_56}), m32));
 }
 
 
@@ -422,18 +378,18 @@ TEST(eigen3, concatenate_horizontal)
   auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
 
   EXPECT_TRUE(is_near(concatenate<1>(m22, m21_56), m23));
-  EXPECT_TRUE(is_near(concatenate<1>(M20 {m22}, m21_56), m23));
-  EXPECT_TRUE(is_near(concatenate<1>(M20 {m22}, M20 {m21_56}), m23));
-  EXPECT_TRUE(is_near(concatenate<1>(M20 {m22}, M01 {m21_56}), m23));
-  EXPECT_TRUE(is_near(concatenate<1>(M20 {m22}, M00 {m21_56}), m23));
-  EXPECT_TRUE(is_near(concatenate<1>(M02 {m22}, m21_56), m23));
-  EXPECT_TRUE(is_near(concatenate<1>(M02 {m22}, M20 {m21_56}), m23));
-  EXPECT_TRUE(is_near(concatenate<1>(M02 {m22}, M01 {m21_56}), m23));
-  EXPECT_TRUE(is_near(concatenate<1>(M02 {m22}, M00 {m21_56}), m23));
-  EXPECT_TRUE(is_near(concatenate<1>(M00 {m22}, m21_56), m23));
-  EXPECT_TRUE(is_near(concatenate<1>(M00 {m22}, M20 {m21_56}), m23));
-  EXPECT_TRUE(is_near(concatenate<1>(M00 {m22}, M01 {m21_56}), m23));
-  EXPECT_TRUE(is_near(concatenate<1>(M00 {m22}, M00 {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(M2x {m22}, m21_56), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(M2x {m22}, M2x {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(M2x {m22}, Mx1 {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(M2x {m22}, Mxx {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(Mx2 {m22}, m21_56), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(Mx2 {m22}, M2x {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(Mx2 {m22}, Mx1 {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(Mx2 {m22}, Mxx {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(Mxx {m22}, m21_56), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(Mxx {m22}, M2x {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(Mxx {m22}, Mx1 {m21_56}), m23));
+  EXPECT_TRUE(is_near(concatenate<1>(Mxx {m22}, Mxx {m21_56}), m23));
 }
 
 
@@ -444,9 +400,9 @@ TEST(eigen3, split_vertical)
 {
   auto m22 = make_dense_writable_matrix_from<M22>(1, 0, 0, 2);
   EXPECT_TRUE(is_near(split<0>(m22), std::tuple {}));
-  EXPECT_TRUE(is_near(split<0>(M20 {m22}), std::tuple {}));
-  EXPECT_TRUE(is_near(split<0>(M02 {m22}), std::tuple {}));
-  EXPECT_TRUE(is_near(split<0>(M00 {m22}), std::tuple {}));
+  EXPECT_TRUE(is_near(split<0>(M2x {m22}), std::tuple {}));
+  EXPECT_TRUE(is_near(split<0>(Mx2 {m22}), std::tuple {}));
+  EXPECT_TRUE(is_near(split<0>(Mxx {m22}), std::tuple {}));
 
   auto x1 = make_eigen_matrix<double, 5, 3>(
     1, 0, 0,
@@ -492,9 +448,9 @@ TEST(eigen3, split_horizontal)
 
   EXPECT_TRUE(is_near(split<1>(m22_12), std::tuple {}));
   EXPECT_TRUE(is_near(split<1>(M22 {m22_12}), std::tuple {}));
-  EXPECT_TRUE(is_near(split<1>(M20 {m22_12}), std::tuple {}));
-  EXPECT_TRUE(is_near(split<1>(M02 {m22_12}), std::tuple {}));
-  EXPECT_TRUE(is_near(split<1>(M00 {m22_12}), std::tuple {}));
+  EXPECT_TRUE(is_near(split<1>(M2x {m22_12}), std::tuple {}));
+  EXPECT_TRUE(is_near(split<1>(Mx2 {m22_12}), std::tuple {}));
+  EXPECT_TRUE(is_near(split<1>(Mxx {m22_12}), std::tuple {}));
 
   const auto b1 = make_eigen_matrix<double, 3, 5>(
     1, 0, 0, 0, 0,
@@ -541,9 +497,9 @@ TEST(eigen3, split_diagonal_symmetric)
 
   EXPECT_TRUE(is_near(split<0, 1>(m22_12), std::tuple {}));
   EXPECT_TRUE(is_near(split<0, 1>(M22 {m22_12}), std::tuple {}));
-  EXPECT_TRUE(is_near(split<0, 1>(M20 {m22_12}), std::tuple {}));
-  EXPECT_TRUE(is_near(split<0, 1>(M02 {m22_12}), std::tuple {}));
-  EXPECT_TRUE(is_near(split<0, 1>(M00 {m22_12}), std::tuple {}));
+  EXPECT_TRUE(is_near(split<0, 1>(M2x {m22_12}), std::tuple {}));
+  EXPECT_TRUE(is_near(split<0, 1>(Mx2 {m22_12}), std::tuple {}));
+  EXPECT_TRUE(is_near(split<0, 1>(Mxx {m22_12}), std::tuple {}));
 
   auto m55 = make_eigen_matrix<double, 5, 5>(
     1, 2, 3, 0, 0,
@@ -563,9 +519,9 @@ TEST(eigen3, split_diagonal_symmetric)
 
   EXPECT_TRUE(is_near(split<0, 1>(m55, Dimensions<3>{}, Dimensions<2>{}), tup_m33_m22));
   EXPECT_TRUE(is_near(split<0, 1>(M55 {m55}, 3, 2), tup_m33_m22));
-  EXPECT_TRUE(is_near(split<0, 1>(M50 {m55}, 3, Dimensions<2>{}), tup_m33_m22));
-  EXPECT_TRUE(is_near(split<0, 1>(M05 {m55}, Dimensions<3>{}, 2), tup_m33_m22));
-  EXPECT_TRUE(is_near(split<0, 1>(M00 {m55}, Dimensions<3>{}, Dimensions<2>{}), tup_m33_m22));
+  EXPECT_TRUE(is_near(split<0, 1>(M5x {m55}, 3, Dimensions<2>{}), tup_m33_m22));
+  EXPECT_TRUE(is_near(split<0, 1>(Mx5 {m55}, Dimensions<3>{}, 2), tup_m33_m22));
+  EXPECT_TRUE(is_near(split<0, 1>(Mxx {m55}, Dimensions<3>{}, Dimensions<2>{}), tup_m33_m22));
 
   auto tup_m22_m22 = std::tuple {m22_12, make_eigen_matrix<double, 2, 2>(
     9, 0,
@@ -573,9 +529,9 @@ TEST(eigen3, split_diagonal_symmetric)
 
   EXPECT_TRUE(is_near(split<0, 1>(m55, Dimensions<2>{}, Dimensions<2>{}), tup_m22_m22));
   EXPECT_TRUE(is_near(split<0, 1>(M55 {m55}, Dimensions<2>{}, Dimensions<2>{}), tup_m22_m22));
-  EXPECT_TRUE(is_near(split<0, 1>(M50 {m55}, Dimensions<2>{}, Dimensions<2>{}), tup_m22_m22));
-  EXPECT_TRUE(is_near(split<0, 1>(M05 {m55}, Dimensions{2}, Dimensions{2}), tup_m22_m22));
-  EXPECT_TRUE(is_near(split<0, 1>(M00 {m55}, 2, 2), tup_m22_m22));
+  EXPECT_TRUE(is_near(split<0, 1>(M5x {m55}, Dimensions<2>{}, Dimensions<2>{}), tup_m22_m22));
+  EXPECT_TRUE(is_near(split<0, 1>(Mx5 {m55}, Dimensions{2}, Dimensions{2}), tup_m22_m22));
+  EXPECT_TRUE(is_near(split<0, 1>(Mxx {m55}, 2, 2), tup_m22_m22));
 }
 
 
@@ -597,9 +553,9 @@ TEST(eigen3, split_diagonal_asymmetric)
 
   EXPECT_TRUE(is_near(split<0, 1>(m45, std::tuple{Dimensions<2>{}, Dimensions<3>{}}, std::tuple {Dimensions<2>{}, Dimensions<2>{}}), tup_m23_m22));
   EXPECT_TRUE(is_near(split<0, 1>(M45 {m45}, std::tuple{2, 3}, std::tuple {Dimensions<2>{}, 2}), tup_m23_m22));
-  EXPECT_TRUE(is_near(split<0, 1>(M40 {m45}, std::tuple{Dimensions<2>{}, 3}, std::tuple {Dimensions<2>{}, Dimensions<2>{}}), tup_m23_m22));
-  EXPECT_TRUE(is_near(split<0, 1>(M05 {m45}, std::tuple{Dimensions<2>{}, Dimensions<3>{}}, std::tuple {Dimensions<2>{}, 2}), tup_m23_m22));
-  EXPECT_TRUE(is_near(split<0, 1>(M00 {m45}, std::tuple{2, 3}, std::tuple {2, 2}), tup_m23_m22));
+  EXPECT_TRUE(is_near(split<0, 1>(M4x {m45}, std::tuple{Dimensions<2>{}, 3}, std::tuple {Dimensions<2>{}, Dimensions<2>{}}), tup_m23_m22));
+  EXPECT_TRUE(is_near(split<0, 1>(Mx5 {m45}, std::tuple{Dimensions<2>{}, Dimensions<3>{}}, std::tuple {Dimensions<2>{}, 2}), tup_m23_m22));
+  EXPECT_TRUE(is_near(split<0, 1>(Mxx {m45}, std::tuple{2, 3}, std::tuple {2, 2}), tup_m23_m22));
 
   auto m12_12 = make_eigen_matrix<double, 1, 2>(1, 2);
 
@@ -609,9 +565,9 @@ TEST(eigen3, split_diagonal_asymmetric)
 
   EXPECT_TRUE(is_near(split<0, 1>(m45, std::tuple{1, 2}, std::tuple{2, 2}), tup_m22_m22));
   EXPECT_TRUE(is_near(split<0, 1>(M45 {m45}, std::tuple{Dimensions<1>{}, 2}, std::tuple{Dimensions<2>{}, Dimensions{2}}), tup_m22_m22));
-  EXPECT_TRUE(is_near(split<0, 1>(M40 {m45}, std::tuple{1, Dimensions<2>{}}, std::tuple{Dimensions<2>{}, 2}), tup_m22_m22));
-  EXPECT_TRUE(is_near(split<0, 1>(M05 {m45}, std::tuple{Dimensions<1>{}, 2}, std::tuple{2, Dimensions{2}}), tup_m22_m22));
-  EXPECT_TRUE(is_near(split<0, 1>(M00 {m45}, std::tuple{1, Dimensions<2>{}}, std::tuple{Dimensions<2>{}, Dimensions{2}}), tup_m22_m22));
+  EXPECT_TRUE(is_near(split<0, 1>(M4x {m45}, std::tuple{1, Dimensions<2>{}}, std::tuple{Dimensions<2>{}, 2}), tup_m22_m22));
+  EXPECT_TRUE(is_near(split<0, 1>(Mx5 {m45}, std::tuple{Dimensions<1>{}, 2}, std::tuple{2, Dimensions{2}}), tup_m22_m22));
+  EXPECT_TRUE(is_near(split<0, 1>(Mxx {m45}, std::tuple{1, Dimensions<2>{}}, std::tuple{Dimensions<2>{}, Dimensions{2}}), tup_m22_m22));
 }
 
 

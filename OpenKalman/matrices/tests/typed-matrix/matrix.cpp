@@ -312,8 +312,6 @@ TEST(matrices, TypedMatrix_traits)
   static_assert(zero_matrix<Matrix<C2, C2, Z22>>);
   static_assert(zero_matrix<Matrix<C2, C3, ZeroMatrix<eigen_matrix_t<double, 2, 3>>>>);
 
-  EXPECT_TRUE(is_near(MatrixTraits<Mat23>::make(
-    make_eigen_matrix<double, 2, 3>(1, 2, 3, 4, 5, 6)).nested_matrix(), Mat23 {1, 2, 3, 4, 5, 6}));
   EXPECT_TRUE(is_near(make_zero_matrix_like<Mat23>(), eigen_matrix_t<double, 2, 3>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<Mat22>(), eigen_matrix_t<double, 2, 2>::Identity()));
 }

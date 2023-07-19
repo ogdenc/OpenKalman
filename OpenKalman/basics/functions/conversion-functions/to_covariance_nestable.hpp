@@ -27,17 +27,17 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<covariance_nestable T, typename Arg> requires
-    (covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>))) and
+    (covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or vector<Arg>))) and
     (row_dimension_of_v<Arg> == row_dimension_of_v<T>) and
     (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
-    (not diagonal_matrix<T> or diagonal_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>)
+    (not diagonal_matrix<T> or diagonal_matrix<Arg> or vector<Arg>)
 #else
   template<typename T, typename Arg, typename = std::enable_if_t<
     (not std::is_same_v<T, Arg>) and covariance_nestable<T> and
-    (covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>))) and
+    (covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or vector<Arg>))) and
     (row_dimension_of<Arg>::value == row_dimension_of<T>::value) and
     (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
-    (not diagonal_matrix<T> or diagonal_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>)>>
+    (not diagonal_matrix<T> or diagonal_matrix<Arg> or vector<Arg>)>>
 #endif
   constexpr decltype(auto)
   to_covariance_nestable(Arg&&) noexcept;
@@ -53,17 +53,17 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<covariance_nestable T, typename Arg> requires
-    (covariance<Arg> or (typed_matrix<Arg> and (square_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>))) and
+    (covariance<Arg> or (typed_matrix<Arg> and (square_matrix<Arg> or vector<Arg>))) and
     (row_dimension_of_v<Arg> == row_dimension_of_v<T>) and
     (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
-    (not diagonal_matrix<T> or diagonal_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>)
+    (not diagonal_matrix<T> or diagonal_matrix<Arg> or vector<Arg>)
 #else
   template<typename T, typename Arg, typename = void, typename = std::enable_if_t<
     (not std::is_same_v<T, Arg>) and covariance_nestable<T> and (not std::is_void_v<Arg>) and
-    (covariance<Arg> or (typed_matrix<Arg> and (square_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>))) and
+    (covariance<Arg> or (typed_matrix<Arg> and (square_matrix<Arg> or vector<Arg>))) and
     (row_dimension_of<Arg>::value == row_dimension_of<T>::value) and
     (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
-    (not diagonal_matrix<T> or diagonal_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>)>>
+    (not diagonal_matrix<T> or diagonal_matrix<Arg> or vector<Arg>)>>
 #endif
   constexpr decltype(auto)
   to_covariance_nestable(Arg&&) noexcept;
@@ -76,10 +76,10 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<typename Arg>
-  requires covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>))
+  requires covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or vector<Arg>))
 #else
   template<typename Arg, typename = std::enable_if_t<covariance_nestable<Arg> or
-      (typed_matrix_nestable<Arg> and (square_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>))>>
+      (typed_matrix_nestable<Arg> and (square_matrix<Arg> or vector<Arg>))>>
 #endif
   constexpr decltype(auto)
   to_covariance_nestable(Arg&&) noexcept;
@@ -92,10 +92,10 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<typename Arg> requires covariance<Arg> or
-    (typed_matrix<Arg> and (square_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>))
+    (typed_matrix<Arg> and (square_matrix<Arg> or vector<Arg>))
 #else
   template<typename Arg, typename = void, typename = std::enable_if_t<covariance<Arg> or
-    (typed_matrix<Arg> and (square_matrix<Arg> or dimension_size_of_index_is<Arg, 1, 1>))>>
+    (typed_matrix<Arg> and (square_matrix<Arg> or vector<Arg>))>>
 #endif
   constexpr decltype(auto)
   to_covariance_nestable(Arg&&) noexcept;

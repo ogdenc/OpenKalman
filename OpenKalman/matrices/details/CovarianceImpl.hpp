@@ -73,7 +73,7 @@ namespace OpenKalman::internal
 #endif
     auto covariance_op(const F1& f1, const F2& f2) const &
     {
-      using Derived2 = decltype(MatrixTraits<std::decay_t<Derived>>::make(f1(nested_matrix())));
+      using Derived2 = decltype(make_dense_writable_matrix_from<Derived>(f1(nested_matrix())));
       using R = equivalent_self_contained_t<Derived2>;
       if (synchronization_direction() >= 0)
       {
@@ -105,7 +105,7 @@ namespace OpenKalman::internal
 #endif
     auto covariance_op(const F1& f1, const F2& f2) const &&
     {
-      using Derived2 = decltype(MatrixTraits<std::decay_t<Derived>>::make(f1(std::move(*this).nested_matrix())));
+      using Derived2 = decltype(make_dense_writable_matrix_from<Derived>(f1(std::move(*this).nested_matrix())));
       using R = equivalent_self_contained_t<Derived2>;
       if (synchronization_direction() >= 0)
       {

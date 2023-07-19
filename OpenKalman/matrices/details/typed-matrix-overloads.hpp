@@ -607,7 +607,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   template<typename Function, typed_matrix Arg> requires has_untyped_index<Arg, 1> and
     requires(const Arg& arg, const Function& f) {
       {f(column<0>(arg))} -> typed_matrix;
-      {f(column<0>(arg))} -> dimension_size_of_index_is<1, 1>;
+      {f(column<0>(arg))} -> vector;
     }
 #else
   template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and has_untyped_index<Arg, 1> and
@@ -636,7 +636,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   template<typename Function, typed_matrix Arg> requires has_untyped_index<Arg, 1> and
     requires(const Arg& arg, const Function& f, std::size_t i) {
       {f(column<0>(arg), i)} -> typed_matrix;
-      {f(column<0>(arg), i)} -> dimension_size_of_index_is<1, 1>;
+      {f(column<0>(arg), i)} -> vector;
     }
 #else
   template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and has_untyped_index<Arg, 1> and
@@ -665,7 +665,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   template<std::size_t count, typename Function> requires
     requires(const Function& f) {
       {f()} -> typed_matrix;
-      {nested_matrix(f())} -> dimension_size_of_index_is<1, 1>;
+      {nested_matrix(f())} -> vector;
     }
 #else
   template<std::size_t count, typename Function, std::enable_if_t<
@@ -688,7 +688,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   template<std::size_t count, typename Function> requires
     requires(const Function& f, std::size_t i) {
       {f(i)} -> typed_matrix;
-      {nested_matrix(f(i))} -> dimension_size_of_index_is<1, 1>;
+      {nested_matrix(f(i))} -> vector;
     }
 #else
   template<std::size_t count, typename Function, std::enable_if_t<

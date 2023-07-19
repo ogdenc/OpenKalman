@@ -753,17 +753,8 @@ TEST(covariance_tests, Covariance_traits)
   static_assert(not identity_matrix<CovZ2>);
   static_assert(zero_matrix<CovZ2>);
 
-  // MatrixTraits
-  EXPECT_TRUE(is_near(MatrixTraits<CovSA2l>::make(SA2l {9, 3, 3, 10}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(MatrixTraits<CovSA2u>::make(SA2u {9, 3, 3, 10}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(MatrixTraits<CovSA2l>::make(T2l {3, 0, 1, 3}).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(MatrixTraits<CovSA2u>::make(T2u {3, 1, 0, 3}).get_triangular_nested_matrix(), Mat2 {3, 1, 0, 3}));
   EXPECT_TRUE(is_near(make_zero_matrix_like<CovSA2l>(), eigen_matrix_t<double, 2, 2>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<CovSA2l>(), eigen_matrix_t<double, 2, 2>::Identity()));
-  EXPECT_TRUE(is_near(MatrixTraits<CovT2l>::make(SA2l {9, 3, 3, 10}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(MatrixTraits<CovT2u>::make(SA2u {9, 3, 3, 10}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(MatrixTraits<CovT2l>::make(T2l {3, 0, 1, 3}).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(MatrixTraits<CovT2u>::make(T2u {3, 1, 0, 3}).get_triangular_nested_matrix(), Mat2 {3, 1, 0, 3}));
   EXPECT_TRUE(is_near(make_zero_matrix_like<CovT2l>(), eigen_matrix_t<double, 2, 2>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<CovT2l>(), eigen_matrix_t<double, 2, 2>::Identity()));
 }
@@ -897,45 +888,45 @@ TEST(covariance_tests, Covariance_blocks)
   using CovSA4u = Covariance<C4, SelfAdjointMatrix<M4, TriangleType::upper>>;
   using CovT4l = Covariance<C4, TriangularMatrix<M4, TriangleType::lower>>;
   using CovT4u = Covariance<C4, TriangularMatrix<M4, TriangleType::upper>>;
-  Mat2 m1 {9, 3, 3, 10}, m2 {4, 2, 2, 5};
+  Mat2 ma {9, 3, 3, 10}, mb {4, 2, 2, 5};
   Mat4 n {9, 3, 0, 0,
           3, 10, 0, 0,
           0, 0, 4, 2,
           0, 0, 2, 5};
-  EXPECT_TRUE(is_near(concatenate(CovSA2l(m1), CovSA2l(m2)), n));
-  EXPECT_TRUE(is_near(concatenate(CovSA2u(m1), CovSA2u(m2)), n));
-  EXPECT_TRUE(is_near(concatenate(CovT2l(m1), CovT2l(m2)), n));
-  EXPECT_TRUE(is_near(concatenate(CovT2u(m1), CovT2u(m2)), n));
+  EXPECT_TRUE(is_near(concatenate(CovSA2l(ma), CovSA2l(mb)), n));
+  EXPECT_TRUE(is_near(concatenate(CovSA2u(ma), CovSA2u(mb)), n));
+  EXPECT_TRUE(is_near(concatenate(CovT2l(ma), CovT2l(mb)), n));
+  EXPECT_TRUE(is_near(concatenate(CovT2u(ma), CovT2u(mb)), n));
 
   EXPECT_TRUE(is_near(split_diagonal(CovSA4l(n)), std::tuple {}));
-  EXPECT_TRUE(is_near(split_diagonal<C, C>(CovSA4l(n)), std::tuple {m1, m2}));
-  EXPECT_TRUE(is_near(split_diagonal<C, C>(CovSA4u(n)), std::tuple {m1, m2}));
-  EXPECT_TRUE(is_near(split_diagonal<C, C>(CovT4l(n)), std::tuple {m1, m2}));
-  EXPECT_TRUE(is_near(split_diagonal<C, C>(CovT4u(n)), std::tuple {m1, m2}));
-  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(CovSA4l(n)), std::tuple {m1, Matrix<angle::Radians, angle::Radians>{4}}));
-  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(CovSA4u(n)), std::tuple {m1, Matrix<angle::Radians, angle::Radians>{4}}));
-  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(CovT4l(n)), std::tuple {m1, Matrix<angle::Radians, angle::Radians>{4}}));
-  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(CovT4u(n)), std::tuple {m1, Matrix<angle::Radians, angle::Radians>{4}}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C>(CovSA4l(n)), std::tuple {ma, mb}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C>(CovSA4u(n)), std::tuple {ma, mb}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C>(CovT4l(n)), std::tuple {ma, mb}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C>(CovT4u(n)), std::tuple {ma, mb}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(CovSA4l(n)), std::tuple {ma, Matrix<angle::Radians, angle::Radians>{4}}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(CovSA4u(n)), std::tuple {ma, Matrix<angle::Radians, angle::Radians>{4}}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(CovT4l(n)), std::tuple {ma, Matrix<angle::Radians, angle::Radians>{4}}));
+  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(CovT4u(n)), std::tuple {ma, Matrix<angle::Radians, angle::Radians>{4}}));
 
   EXPECT_TRUE(is_near(split_vertical(CovSA4l(n)), std::tuple {}));
-  EXPECT_TRUE(is_near(split_vertical<C, C>(CovSA4l(n)), std::tuple {concatenate_horizontal(m1, make_zero_matrix_like<Mat2>()), concatenate_horizontal(make_zero_matrix_like<Mat2>(), m2)}));
-  EXPECT_TRUE(is_near(split_vertical<C, C>(CovSA4u(n)), std::tuple {concatenate_horizontal(m1, make_zero_matrix_like<Mat2>()), concatenate_horizontal(make_zero_matrix_like<Mat2>(), m2)}));
-  EXPECT_TRUE(is_near(split_vertical<C, C>(CovT4l(n)), std::tuple {concatenate_horizontal(m1, make_zero_matrix_like<Mat2>()), concatenate_horizontal(make_zero_matrix_like<Mat2>(), m2)}));
-  EXPECT_TRUE(is_near(split_vertical<C, C>(CovT4u(n)), std::tuple {concatenate_horizontal(m1, make_zero_matrix_like<Mat2>()), concatenate_horizontal(make_zero_matrix_like<Mat2>(), m2)}));
-  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovSA4l(n)), std::tuple {concatenate_horizontal(m1, make_zero_matrix_like<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovSA4u(n)), std::tuple {concatenate_horizontal(m1, make_zero_matrix_like<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovT4l(n)), std::tuple {concatenate_horizontal(m1, make_zero_matrix_like<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovT4u(n)), std::tuple {concatenate_horizontal(m1, make_zero_matrix_like<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_vertical<C, C>(CovSA4l(n)), std::tuple {concatenate_horizontal(ma, make_zero_matrix_like<Mat2>()), concatenate_horizontal(make_zero_matrix_like<Mat2>(), mb)}));
+  EXPECT_TRUE(is_near(split_vertical<C, C>(CovSA4u(n)), std::tuple {concatenate_horizontal(ma, make_zero_matrix_like<Mat2>()), concatenate_horizontal(make_zero_matrix_like<Mat2>(), mb)}));
+  EXPECT_TRUE(is_near(split_vertical<C, C>(CovT4l(n)), std::tuple {concatenate_horizontal(ma, make_zero_matrix_like<Mat2>()), concatenate_horizontal(make_zero_matrix_like<Mat2>(), mb)}));
+  EXPECT_TRUE(is_near(split_vertical<C, C>(CovT4u(n)), std::tuple {concatenate_horizontal(ma, make_zero_matrix_like<Mat2>()), concatenate_horizontal(make_zero_matrix_like<Mat2>(), mb)}));
+  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovSA4l(n)), std::tuple {concatenate_horizontal(ma, make_zero_matrix_like<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovSA4u(n)), std::tuple {concatenate_horizontal(ma, make_zero_matrix_like<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovT4l(n)), std::tuple {concatenate_horizontal(ma, make_zero_matrix_like<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovT4u(n)), std::tuple {concatenate_horizontal(ma, make_zero_matrix_like<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
 
   EXPECT_TRUE(is_near(split_horizontal(CovSA4l(n)), std::tuple {}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C>(CovSA4l(n)), std::tuple {concatenate_vertical(m1, make_zero_matrix_like<Mat2>()), concatenate_vertical(make_zero_matrix_like<Mat2>(), m2)}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C>(CovSA4u(n)), std::tuple {concatenate_vertical(m1, make_zero_matrix_like<Mat2>()), concatenate_vertical(make_zero_matrix_like<Mat2>(), m2)}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C>(CovT4l(n)), std::tuple {concatenate_vertical(m1, make_zero_matrix_like<Mat2>()), concatenate_vertical(make_zero_matrix_like<Mat2>(), m2)}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C>(CovT4u(n)), std::tuple {concatenate_vertical(m1, make_zero_matrix_like<Mat2>()), concatenate_vertical(make_zero_matrix_like<Mat2>(), m2)}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovSA4l(n)), std::tuple {concatenate_vertical(m1, make_zero_matrix_like<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovSA4u(n)), std::tuple {concatenate_vertical(m1, make_zero_matrix_like<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovT4l(n)), std::tuple {concatenate_vertical(m1, make_zero_matrix_like<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovT4u(n)), std::tuple {concatenate_vertical(m1, make_zero_matrix_like<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_horizontal<C, C>(CovSA4l(n)), std::tuple {concatenate_vertical(ma, make_zero_matrix_like<Mat2>()), concatenate_vertical(make_zero_matrix_like<Mat2>(), mb)}));
+  EXPECT_TRUE(is_near(split_horizontal<C, C>(CovSA4u(n)), std::tuple {concatenate_vertical(ma, make_zero_matrix_like<Mat2>()), concatenate_vertical(make_zero_matrix_like<Mat2>(), mb)}));
+  EXPECT_TRUE(is_near(split_horizontal<C, C>(CovT4l(n)), std::tuple {concatenate_vertical(ma, make_zero_matrix_like<Mat2>()), concatenate_vertical(make_zero_matrix_like<Mat2>(), mb)}));
+  EXPECT_TRUE(is_near(split_horizontal<C, C>(CovT4u(n)), std::tuple {concatenate_vertical(ma, make_zero_matrix_like<Mat2>()), concatenate_vertical(make_zero_matrix_like<Mat2>(), mb)}));
+  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovSA4l(n)), std::tuple {concatenate_vertical(ma, make_zero_matrix_like<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovSA4u(n)), std::tuple {concatenate_vertical(ma, make_zero_matrix_like<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovT4l(n)), std::tuple {concatenate_vertical(ma, make_zero_matrix_like<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovT4u(n)), std::tuple {concatenate_vertical(ma, make_zero_matrix_like<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
 
   EXPECT_TRUE(is_near(column(CovSA4l(n), 2), Mean{0., 0, 4, 2}));
   EXPECT_TRUE(is_near(column(CovSA4u(n), 2), Mean{0., 0, 4, 2}));
@@ -947,24 +938,24 @@ TEST(covariance_tests, Covariance_blocks)
   EXPECT_TRUE(is_near(column<1>(CovT4u(n)), Mean{3., 10, 0, 0}));
   EXPECT_TRUE(is_near(column<1>(CovT4l(n)), Mean{3., 10, 0, 0}));
 
-  EXPECT_TRUE(is_near(apply_columnwise([](auto col){ return col * 2; }, CovSA2l(m1)), Mat2 {18, 6, 6, 20}));
-  EXPECT_TRUE(is_near(apply_columnwise([](const auto col){ return col * 2; }, CovSA2u(m1)), Mat2 {18, 6, 6, 20}));
-  EXPECT_TRUE(is_near(apply_columnwise([](auto&& col){ return col * 2; }, CovT2l(m1)), Mat2 {18, 6, 6, 20}));
-  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return col * 2; }, CovT2u(m1)), Mat2 {18, 6, 6, 20}));
+  EXPECT_TRUE(is_near(apply_columnwise([](auto col){ return col * 2; }, CovSA2l(ma)), Mat2 {18, 6, 6, 20}));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto col){ return col * 2; }, CovSA2u(ma)), Mat2 {18, 6, 6, 20}));
+  EXPECT_TRUE(is_near(apply_columnwise([](auto&& col){ return col * 2; }, CovT2l(ma)), Mat2 {18, 6, 6, 20}));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return col * 2; }, CovT2u(ma)), Mat2 {18, 6, 6, 20}));
 
-  EXPECT_TRUE(is_near(apply_columnwise([](auto col, std::size_t i){ return col * i; }, CovSA2l(m1)), Mat2 {0, 3, 0, 10}));
-  EXPECT_TRUE(is_near(apply_columnwise([](const auto col, std::size_t i){ return col * i; }, CovSA2u(m1)), Mat2 {0, 3, 0, 10}));
-  EXPECT_TRUE(is_near(apply_columnwise([](auto&& col, std::size_t i){ return col * i; }, CovT2l(m1)), Mat2 {0, 3, 0, 10}));
-  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col, std::size_t i){ return col * i; }, CovT2u(m1)), Mat2 {0, 3, 0, 10}));
+  EXPECT_TRUE(is_near(apply_columnwise([](auto col, std::size_t i){ return col * i; }, CovSA2l(ma)), Mat2 {0, 3, 0, 10}));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto col, std::size_t i){ return col * i; }, CovSA2u(ma)), Mat2 {0, 3, 0, 10}));
+  EXPECT_TRUE(is_near(apply_columnwise([](auto&& col, std::size_t i){ return col * i; }, CovT2l(ma)), Mat2 {0, 3, 0, 10}));
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col, std::size_t i){ return col * i; }, CovT2u(ma)), Mat2 {0, 3, 0, 10}));
 
-  EXPECT_TRUE(is_near(apply_coefficientwise([](auto x){ return x + 1; }, CovSA2l(m1)), Mat2 {10, 4, 4, 11}));
-  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto x){ return x + 1; }, CovSA2u(m1)), Mat2 {10, 4, 4, 11}));
-  EXPECT_TRUE(is_near(apply_coefficientwise([](auto&& x){ return x + 1; }, CovT2l(m1)), Mat2 {10, 4, 4, 11}));
-  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, CovT2u(m1)), Mat2 {10, 4, 4, 11}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](auto x){ return x + 1; }, CovSA2l(ma)), Mat2 {10, 4, 4, 11}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto x){ return x + 1; }, CovSA2u(ma)), Mat2 {10, 4, 4, 11}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](auto&& x){ return x + 1; }, CovT2l(ma)), Mat2 {10, 4, 4, 11}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, CovT2u(ma)), Mat2 {10, 4, 4, 11}));
 
-  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, CovSA2l(m1)), Mat2 {9, 4, 4, 12}));
-  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, CovSA2u(m1)), Mat2 {9, 4, 4, 12}));
-  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, CovT2l(m1)), Mat2 {9, 4, 4, 12}));
-  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, CovT2u(m1)), Mat2 {9, 4, 4, 12}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, CovSA2l(ma)), Mat2 {9, 4, 4, 12}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, CovSA2u(ma)), Mat2 {9, 4, 4, 12}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, CovT2l(ma)), Mat2 {9, 4, 4, 12}));
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, CovT2u(ma)), Mat2 {9, 4, 4, 12}));
 }
 

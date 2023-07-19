@@ -54,10 +54,10 @@ namespace OpenKalman
    * \returns A diagonal matrix
    */
 #ifdef __cpp_concepts
-  template<dimension_size_of_index_is<1, 1, Likelihood::maybe> Arg>
+  template<vector<0, Likelihood::maybe> Arg>
   constexpr diagonal_matrix decltype(auto)
 #else
-  template<typename Arg, std::enable_if_t<dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe>, int> = 0>
+  template<typename Arg, std::enable_if_t<vector<Arg, 0, Likelihood::maybe>, int> = 0>
   constexpr decltype(auto)
 #endif
   to_diagonal(Arg&& arg)

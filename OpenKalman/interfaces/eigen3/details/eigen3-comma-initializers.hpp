@@ -169,18 +169,18 @@ namespace Eigen
 
       if constexpr (diagonal_matrix<CovNest>)
       {
-        cov = MatrixTraits<std::decay_t<CovNest>>::make(std::move(comma_initializer.finished()));
+        cov = CovarianceType {std::move(comma_initializer).finished()};
       }
       else if constexpr (triangular_covariance<CovarianceType>)
       {
-        using T = typename MatrixTraits<std::decay_t<CovNest>>::template TriangularMatrixFrom<>;
-        auto b = OpenKalman::internal::to_covariance_nestable<T>(std::move(comma_initializer.finished()));
+        using T = std::conditional_t<triangular_matrix<CovNest>, CovNest, decltype(Cholesky_factor(std::declval<CovNest>()))>;
+        auto b = OpenKalman::internal::to_covariance_nestable<T>(std::move(comma_initializer).finished());
         cov = OpenKalman::internal::to_covariance_nestable<CovNest>(std::move(b));
       }
       else
       {
-        using SA = typename MatrixTraits<std::decay_t<CovNest>>::template SelfAdjointMatrixFrom<>;
-        auto b = OpenKalman::internal::to_covariance_nestable<SA>(std::move(comma_initializer.finished()));
+        using SA = std::conditional_t<hermitian_matrix<CovNest>, CovNest, decltype(Cholesky_square(std::declval<CovNest>()))>;
+        auto b = OpenKalman::internal::to_covariance_nestable<SA>(std::move(comma_initializer).finished());
         cov = OpenKalman::internal::to_covariance_nestable<CovNest>(std::move(b));
       }
     }
@@ -191,17 +191,17 @@ namespace Eigen
 
       if constexpr (diagonal_matrix<CovNest>)
       {
-        cov = MatrixTraits<std::decay_t<CovNest>>::make(comma_initializer.finished());
+        cov = CovarianceType {comma_initializer.finished()};
       }
       else if constexpr (triangular_covariance<CovarianceType>)
       {
-        using T = typename MatrixTraits<std::decay_t<CovNest>>::template TriangularMatrixFrom<>;
+        using T = std::conditional_t<triangular_matrix<CovNest>, CovNest, decltype(Cholesky_factor(std::declval<CovNest>()))>;
         auto b = OpenKalman::internal::to_covariance_nestable<T>(comma_initializer.finished());
         cov = OpenKalman::internal::to_covariance_nestable<CovNest>(std::move(b));
       }
       else
       {
-        using SA = typename MatrixTraits<std::decay_t<CovNest>>::template SelfAdjointMatrixFrom<>;
+        using SA = std::conditional_t<hermitian_matrix<CovNest>, CovNest, decltype(Cholesky_square(std::declval<CovNest>()))>;
         auto b = OpenKalman::internal::to_covariance_nestable<SA>(comma_initializer.finished());
         cov = OpenKalman::internal::to_covariance_nestable<CovNest>(std::move(b));
       }

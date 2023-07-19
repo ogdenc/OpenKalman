@@ -237,45 +237,6 @@ namespace OpenKalman
 #endif
   SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<nested_matrix_of_t<M>, hermitian_adapter_type_of_v<M>>;
 
-
-  /**
-   * \internal
-   * \brief Matrix traits for Eigen::SelfAdjointView.
-   */
-  template<typename M, unsigned int UpLo>
-  struct MatrixTraits<Eigen::SelfAdjointView<M, UpLo>> : MatrixTraits<std::decay_t<M>>
-  {
-  private:
-
-    using Scalar = typename EGI::traits<Eigen::SelfAdjointView<M, UpLo>>::Scalar;
-    static constexpr auto rows = row_dimension_of_v<M>;
-    static constexpr auto columns = column_dimension_of_v<M>;
-
-    static constexpr HermitianAdapterType storage_triangle = UpLo & Eigen::Upper ? HermitianAdapterType::upper : HermitianAdapterType::lower;
-
-  public:
-
-    template<HermitianAdapterType storage_triangle = storage_triangle, std::size_t dim = rows>
-    using SelfAdjointMatrixFrom = typename MatrixTraits<std::decay_t<M>>::template SelfAdjointMatrixFrom<storage_triangle, dim>;
-
-
-    template<TriangleType triangle_type = storage_triangle ==
-      HermitianAdapterType::upper ? TriangleType::upper : TriangleType::lower, std::size_t dim = rows>
-    using TriangularMatrixFrom = typename MatrixTraits<std::decay_t<M>>::template TriangularMatrixFrom<triangle_type, dim>;
-
-
-#ifdef __cpp_concepts
-    template<Eigen3::native_eigen_matrix Arg>
-#else
-    template<typename Arg, std::enable_if_t<Eigen3::native_eigen_matrix<Arg>, int> = 0>
-#endif
-    auto make(Arg& arg) noexcept
-    {
-      return Eigen::SelfAdjointView<std::remove_reference_t<Arg>, UpLo>(arg);
-    }
-
-  };
-
 } // namespace OpenKalman
 
 #endif //OPENKALMAN_EIGEN3_SELFADJOINTVIEW_HPP

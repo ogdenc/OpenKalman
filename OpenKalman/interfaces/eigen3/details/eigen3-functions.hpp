@@ -27,75 +27,71 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<scalar_type Scalar, std::size_t rows, std::size_t columns = 1, std::convertible_to<Scalar> ... Args>
-  requires
-    (rows == dynamic_size and columns == dynamic_size) or
-    (rows != dynamic_size and columns != dynamic_size and sizeof...(Args) == rows * columns) or
-    (columns == dynamic_size and sizeof...(Args) % rows == 0) or
-    (rows == dynamic_size and sizeof...(Args) % columns == 0)
+    requires (rows != dynamic_size) and (columns != dynamic_size) and (sizeof...(Args) == rows * columns)
 #else
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wdiv-by-zero"
   template<typename Scalar, std::size_t rows, std::size_t columns = 1, typename ... Args, std::enable_if_t<
     scalar_type<Scalar> and (std::is_convertible_v<Args, Scalar> and ...) and
-    ((rows == dynamic_size and columns == dynamic_size) or
-    (rows != dynamic_size and columns != dynamic_size and sizeof...(Args) == rows * columns) or
-    (columns == dynamic_size and sizeof...(Args) % rows == 0) or
-    (rows == dynamic_size and sizeof...(Args) % columns == 0)), int> = 0>
+    (rows != dynamic_size) and (columns != dynamic_size) and (sizeof...(Args) == rows * columns), int> = 0>
 #endif
   inline auto
-  make_eigen_matrix(const Args ... args)
+  make_eigen_matrix(const Args...args)
   {
     using M = Eigen3::eigen_matrix_t<Scalar, rows, columns>;
-    return MatrixTraits<std::decay_t<M>>::make(static_cast<const Scalar>(args)...);
+    std::tuple d_tup {Dimensions<rows>{}, Dimensions<columns>{}};
+    return make_dense_writable_matrix_from<M>(std::move(d_tup), static_cast<const Scalar>(args)...);
   }
-#ifndef __cpp_concepts
-# pragma GCC diagnostic pop
-#endif
 
 
   /**
    * \overload
-   * \brief Make a native Eigen matrix from a list of coefficients in row-major order.
+   * \brief In this overload, the scalar type is derived from the arguments.
    */
 #ifdef __cpp_concepts
-  template<std::size_t rows, std::size_t columns = 1, scalar_type ... Args>
-  requires
-    (rows == dynamic_size and columns == dynamic_size) or
-    ((rows != dynamic_size and columns != dynamic_size and sizeof...(Args) == rows * columns) or
-    (columns == dynamic_size and sizeof...(Args) % rows == 0) or
-    (rows == dynamic_size and sizeof...(Args) % columns == 0))
+  template<std::size_t rows, std::size_t columns = 1, scalar_type...Args> requires
+    (rows != dynamic_size) and (columns != dynamic_size) and (sizeof...(Args) == rows * columns) and
+    requires { scalar_type<std::common_type_t<Args...>>; }
 #else
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wdiv-by-zero"
-  template<std::size_t rows, std::size_t columns = 1, typename ... Args, std::enable_if_t<
-    (scalar_type<Args> and ...) and
-    ((rows == dynamic_size and columns == dynamic_size) or
-    ((rows != dynamic_size and columns != dynamic_size and sizeof...(Args) == rows * columns) or
-    (columns == dynamic_size and sizeof...(Args) % rows == 0) or
-    (rows == dynamic_size and sizeof...(Args) % columns == 0))), int> = 0>
+  template<std::size_t rows, std::size_t columns = 1, typename ... Args, std::enable_if_t<(scalar_type<Args> and ...) and
+    (rows != dynamic_size) and (columns != dynamic_size) and (sizeof...(Args) == rows * columns), int> = 0>
 #endif
   inline auto
-  make_eigen_matrix(const Args ... args)
+  make_eigen_matrix(const Args...args)
   {
-    using Scalar = std::common_type_t<Args...>;
-    return make_eigen_matrix<Scalar, rows, columns>(args...);
+    return make_eigen_matrix<std::common_type_t<Args...>, rows, columns>(args...);
   }
-#ifndef __cpp_concepts
-# pragma GCC diagnostic pop
-#endif
 
 
-  /// Make a native Eigen 1-column vector from a list of coefficients in row-major order.
+  /**
+   * \overload
+   * \brief In this overload, the result is a column vector of size determined by the number of arguments.
+   */
 #ifdef __cpp_concepts
-  template<scalar_type ... Args>
+  template<scalar_type Scalar, std::convertible_to<Scalar>...Args> requires (not std::is_void_v<Scalar>)
 #else
-  template<typename ... Args, std::enable_if_t<(scalar_type<Args> and ...), int> = 0>
+  template<typename Scalar, typename ... Args, std::enable_if_t<
+    scalar_type<Scalar> and (std::is_convertible_v<Args, Scalar> and ...) and (not std::is_void_v<Scalar>), int> = 0>
 #endif
   inline auto
   make_eigen_matrix(const Args ... args)
   {
-    using Scalar = std::common_type_t<Args...>;
     return make_eigen_matrix<Scalar, sizeof...(Args), 1>(args...);
+  }
+
+
+  /**
+   * \overload
+   * \brief In this overload, the scalar type is derived from the arguments.
+   */
+#ifdef __cpp_concepts
+  template<typename Scalar = void, scalar_type ... Args> requires (std::is_void_v<Scalar>) and
+    requires { scalar_type<std::common_type_t<Args...>>; }
+#else
+  template<typename Scalar = void, typename ... Args, std::enable_if_t<(scalar_type<Args> and ...) and std::is_void_v<Scalar>, int> = 0>
+#endif
+  inline auto
+  make_eigen_matrix(const Args...args)
+  {
+    return make_eigen_matrix<std::common_type_t<Args...>>(args...);
   }
 
 } // namespace OpenKalman

@@ -9,59 +9,20 @@
  */
 
 #include "eigen3.gtest.hpp"
-#include <complex>
 
 using namespace OpenKalman;
 using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
-namespace
-{
-  using M11 = eigen_matrix_t<double, 1, 1>;
-  using M12 = eigen_matrix_t<double, 1, 2>;
-  using M13 = eigen_matrix_t<double, 1, 3>;
-  using M21 = eigen_matrix_t<double, 2, 1>;
-  using M22 = eigen_matrix_t<double, 2, 2>;
-  using M23 = eigen_matrix_t<double, 2, 3>;
-  using M31 = eigen_matrix_t<double, 3, 1>;
-  using M32 = eigen_matrix_t<double, 3, 2>;
-  using M33 = eigen_matrix_t<double, 3, 3>;
-  using M34 = eigen_matrix_t<double, 3, 4>;
-  using M41 = eigen_matrix_t<double, 4, 1>;
-  using M43 = eigen_matrix_t<double, 4, 3>;
-  using M44 = eigen_matrix_t<double, 4, 4>;
-  using M55 = eigen_matrix_t<double, 5, 5>;
-
-  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
-  using M10 = eigen_matrix_t<double, 1, dynamic_size>;
-  using M01 = eigen_matrix_t<double, dynamic_size, 1>;
-  using M20 = eigen_matrix_t<double, 2, dynamic_size>;
-  using M02 = eigen_matrix_t<double, dynamic_size, 2>;
-  using M30 = eigen_matrix_t<double, 3, dynamic_size>;
-  using M03 = eigen_matrix_t<double, dynamic_size, 3>;
-  using M04 = eigen_matrix_t<double, dynamic_size, 4>;
-  using M50 = eigen_matrix_t<double, 5, dynamic_size>;
-  using M05 = eigen_matrix_t<double, dynamic_size, 5>;
-
-  using cdouble = std::complex<double>;
-
-  using CM21 = eigen_matrix_t<cdouble, 2, 1>;
-  using CM22 = eigen_matrix_t<cdouble, 2, 2>;
-  using CM23 = eigen_matrix_t<cdouble, 2, 3>;
-  using CM32 = eigen_matrix_t<cdouble, 3, 2>;
-  using CM34 = eigen_matrix_t<cdouble, 3, 4>;
-  using CM43 = eigen_matrix_t<cdouble, 4, 3>;
-}
-
 
 TEST(eigen3, to_diagonal)
 {
   auto m11 = M11 {3};
-  auto m10_1 = M10 {m11};
-  auto m01_1 = M01 {m11};
+  auto m1x_1 = M1x {m11};
+  auto mx1_1 = Mx1 {m11};
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
-  auto m00_11 = M00 {m11};
+  auto mxx_11 = Mxx {m11};
 #pragma GCC diagnostic pop
 
   // diagonal_matrix input:
@@ -83,34 +44,34 @@ TEST(eigen3, to_diagonal)
   // Handled by dense Eigen interface:
 
   EXPECT_TRUE(is_near(to_diagonal(m11), m11)); static_assert(std::is_same_v<decltype(to_diagonal(m11)), M11&>);
-  EXPECT_TRUE(is_near(to_diagonal(m10_1), m11)); static_assert(not has_dynamic_dimensions<decltype(to_diagonal(m10_1))>);
-  EXPECT_TRUE(is_near(to_diagonal(m01_1), m11)); static_assert(has_dynamic_dimensions<decltype(to_diagonal(m01_1))>); static_assert(eigen_DiagonalWrapper<decltype(to_diagonal(m01_1))>);
-  EXPECT_TRUE(is_near(to_diagonal(m00_11), m11)); static_assert(has_dynamic_dimensions<decltype(to_diagonal(m00_11))>); static_assert(eigen_DiagonalWrapper<decltype(to_diagonal(m00_11))>);
+  EXPECT_TRUE(is_near(to_diagonal(m1x_1), m11)); static_assert(not has_dynamic_dimensions<decltype(to_diagonal(m1x_1))>);
+  EXPECT_TRUE(is_near(to_diagonal(mx1_1), m11)); static_assert(has_dynamic_dimensions<decltype(to_diagonal(mx1_1))>); static_assert(eigen_DiagonalWrapper<decltype(to_diagonal(mx1_1))>);
+  EXPECT_TRUE(is_near(to_diagonal(mxx_11), m11)); static_assert(has_dynamic_dimensions<decltype(to_diagonal(mxx_11))>); static_assert(eigen_DiagonalWrapper<decltype(to_diagonal(mxx_11))>);
 
   EXPECT_TRUE(is_near(to_diagonal(M11 {m11}), m11)); static_assert(std::is_same_v<decltype(to_diagonal(M11 {m11})), M11&&>);
-  EXPECT_TRUE(is_near(to_diagonal(M10 {m11}), m11)); static_assert(not has_dynamic_dimensions<decltype(to_diagonal(M10 {m11}))>);
-  // to_diagonal(M10 {m11}) must create OpenKalman::DiagonalMatrix. See special-matrices/tests/DiagonalMatrix.test.cpp
-  // to_diagonal(M00 {m11}) must create OpenKalman::DiagonalMatrix. See special-matrices/tests/DiagonalMatrix.test.cpp
+  EXPECT_TRUE(is_near(to_diagonal(M1x {m11}), m11)); static_assert(not has_dynamic_dimensions<decltype(to_diagonal(M1x {m11}))>);
+  // to_diagonal(M1x {m11}) must create OpenKalman::DiagonalMatrix. See special-matrices/tests/DiagonalMatrix.test.cpp
+  // to_diagonal(Mxx {m11}) must create OpenKalman::DiagonalMatrix. See special-matrices/tests/DiagonalMatrix.test.cpp
 }
 
 
 TEST(eigen3, diagonal_of_diagonal_adapter)
 {
   auto m21 = M21 {1, 4};
-  auto m01_2 = M01 {m21};
+  auto mx1_2 = Mx1 {m21};
 
   auto dm2 = Eigen::DiagonalMatrix<double, 2> {m21}; static_assert(diagonal_adapter<decltype(dm2)>);
-  auto dm0_2 = Eigen::DiagonalMatrix<double, Eigen::Dynamic> {m01_2}; static_assert(diagonal_adapter<decltype(dm0_2)>);
+  auto dm0_2 = Eigen::DiagonalMatrix<double, Eigen::Dynamic> {mx1_2}; static_assert(diagonal_adapter<decltype(dm0_2)>);
 
   EXPECT_TRUE(is_near(diagonal_of(dm2), m21));
-  EXPECT_TRUE(is_near(diagonal_of(dm0_2), m01_2));
+  EXPECT_TRUE(is_near(diagonal_of(dm0_2), mx1_2));
 
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalMatrix<double, 2> {dm2}), m21));
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalMatrix<double, Eigen::Dynamic> {dm0_2}), m21));
 
   static_assert(diagonal_adapter<decltype(Eigen::DiagonalWrapper {m21})>);
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m21}), m21));
-  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m01_2}), m21));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {mx1_2}), m21));
 
   static_assert(std::is_assignable_v<decltype(nested_matrix(Eigen::DiagonalWrapper {m21})), M21>);
   static_assert(std::is_assignable_v<decltype(diagonal_of(Eigen::DiagonalWrapper {m21})), M21>);
@@ -120,34 +81,34 @@ TEST(eigen3, diagonal_of_diagonal_adapter)
 TEST(eigen3, diagonal_of_diagonal_wrapper) // For Eigen::DiagonalWrapper cases not handled by general diagonal_of function.
 {
   auto m21 = M21 {1, 4};
-  auto m20_1 = M20 {m21};
-  auto m00_21 = M00 {m21};
+  auto m2x_1 = M2x {m21};
+  auto mxx_21 = Mxx {m21};
 
-  static_assert(not diagonal_adapter<decltype(Eigen::DiagonalWrapper {m20_1})>);
-  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m20_1}), m21));
-  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m00_21}), m21));
+  static_assert(not diagonal_adapter<decltype(Eigen::DiagonalWrapper {m2x_1})>);
+  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m2x_1}), m21));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {mxx_21}), m21));
 
   auto m12 = M12 {1, 4};
-  auto m10_2 = M10 {m12};
-  auto m02_1 = M02 {m12};
-  auto m00_12 = M00 {m12};
+  auto m1x_2 = M1x {m12};
+  auto mx2_1 = Mx2 {m12};
+  auto mxx_12 = Mxx {m12};
 
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m12}), m21));
-  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m10_2}), m21));
-  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m02_1}), m21));
-  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m00_12}), m21));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m1x_2}), m21));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {mx2_1}), m21));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {mxx_12}), m21));
 
   auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
-  auto m20_2 = M20 {m22};
-  auto m02_2 = M02 {m22};
-  auto m00_22 = M00 {m22};
+  auto m2x_2 = M2x {m22};
+  auto mx2_2 = Mx2 {m22};
+  auto mxx_22 = Mxx {m22};
 
   const auto m41 = make_dense_writable_matrix_from<M41>(1, 3, 2, 4);
 
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m22}), m41));
-  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m20_2}), m41));
-  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m02_2}), m41));
-  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m00_22}), m41));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m2x_2}), m41));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {mx2_2}), m41));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {mxx_22}), m41));
 }
 
 
@@ -166,21 +127,21 @@ TEST(eigen3, diagonal_of_1x1)
 
   // dynamic one-by-one, unknown at compile time:
 
-  auto m10_1 = M10 {m11};
-  auto m01_1 = M01 {m11};
+  auto m1x_1 = M1x {m11};
+  auto mx1_1 = Mx1 {m11};
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
-  auto m00_11 = M00 {m11};
+  auto mxx_11 = Mxx {m11};
 #pragma GCC diagnostic pop
 
-  EXPECT_TRUE(is_near(diagonal_of(m10_1), m11)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(m10_1))>);
-  EXPECT_TRUE(is_near(diagonal_of(m01_1), m11)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(m01_1))>);
-  EXPECT_TRUE(is_near(diagonal_of(m00_11), m11)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(m00_11))>);
+  EXPECT_TRUE(is_near(diagonal_of(m1x_1), m11)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(m1x_1))>);
+  EXPECT_TRUE(is_near(diagonal_of(mx1_1), m11)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(mx1_1))>);
+  EXPECT_TRUE(is_near(diagonal_of(mxx_11), m11)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(mxx_11))>);
   static_assert(constant_matrix<decltype(diagonal_of(m11)), CompileTimeStatus::unknown>);
-  static_assert(constant_matrix<decltype(diagonal_of(m10_1)), CompileTimeStatus::unknown>);
-  static_assert(constant_matrix<decltype(diagonal_of(m01_1)), CompileTimeStatus::unknown>);
-  static_assert(not constant_matrix<decltype(diagonal_of(m00_11)), CompileTimeStatus::any>);
-  static_assert(constant_matrix<decltype(diagonal_of(m00_11)), CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(constant_matrix<decltype(diagonal_of(m1x_1)), CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<decltype(diagonal_of(mx1_1)), CompileTimeStatus::unknown>);
+  static_assert(not constant_matrix<decltype(diagonal_of(mxx_11)), CompileTimeStatus::any>);
+  static_assert(constant_matrix<decltype(diagonal_of(mxx_11)), CompileTimeStatus::any, Likelihood::maybe>);
 }
 
 
@@ -215,17 +176,17 @@ TEST(eigen3, diagonal_of_constant)
 TEST(eigen3, diagonal_of_dense)
 {
   auto m21 = M21 {1, 4};
-  auto m20_1 = M20 {m21};
-  auto m01_2 = M01 {m21};
-  auto m00_21 = M00 {m21};
+  auto m2x_1 = M2x {m21};
+  auto mx1_2 = Mx1 {m21};
+  auto mxx_21 = Mxx {m21};
 
   auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
-  auto m20_2 = M20 {m22};
-  auto m02_2 = M02 {m22};
-  auto m00_22 = M00 {m22};
+  auto m2x_2 = M2x {m22};
+  auto mx2_2 = Mx2 {m22};
+  auto mxx_22 = Mxx {m22};
 
   auto dm2 = Eigen::DiagonalMatrix<double, 2> {m21};
-  auto dm0_2 = Eigen::DiagonalMatrix<double, Eigen::Dynamic> {m01_2};
+  auto dm0_2 = Eigen::DiagonalMatrix<double, Eigen::Dynamic> {mx1_2};
 
   const auto m41 = make_dense_writable_matrix_from<M41>(1, 3, 2, 4);
 
@@ -235,24 +196,24 @@ TEST(eigen3, diagonal_of_dense)
   EXPECT_TRUE(is_near(diagonal_of(EigenWrapper {Eigen::DiagonalWrapper {m22}}), m41));
 
   EXPECT_TRUE(is_near(diagonal_of(m22), m21));
-  EXPECT_TRUE(is_near(diagonal_of(m20_2), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(m20_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(m02_2), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(m02_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(m00_22), m21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(m00_22))>);
+  EXPECT_TRUE(is_near(diagonal_of(m2x_2), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(m2x_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(mx2_2), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(mx2_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(mxx_22), m21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(mxx_22))>);
   EXPECT_TRUE(is_near(diagonal_of(EigenWrapper {m22}), m21));
 
   EXPECT_TRUE(is_near(diagonal_of(M22 {m22}), m21));
-  EXPECT_TRUE(is_near(diagonal_of(M20 {m20_2}), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(M20 {m20_2}))>);
-  EXPECT_TRUE(is_near(diagonal_of(M02 {m02_2}), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(M02 {m02_2}))>);
-  EXPECT_TRUE(is_near(diagonal_of(M00 {m00_22}), m21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(M00 {m00_22}))>);
+  EXPECT_TRUE(is_near(diagonal_of(M2x {m2x_2}), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(M2x {m2x_2}))>);
+  EXPECT_TRUE(is_near(diagonal_of(Mx2 {mx2_2}), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(Mx2 {mx2_2}))>);
+  EXPECT_TRUE(is_near(diagonal_of(Mxx {mxx_22}), m21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(Mxx {mxx_22}))>);
 }
 
 
 TEST(eigen3, diagonal_of_self_adjoint)
 {
   auto m22_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
-  auto m20_93310 = M20 {m22_93310};
-  auto m02_93310 = M02 {m22_93310};
-  auto m00_93310 = M00 {m22_93310};
+  auto m20_93310 = M2x {m22_93310};
+  auto m02_93310 = Mx2 {m22_93310};
+  auto m00_93310 = Mxx {m22_93310};
 
   auto m21_910 = make_dense_writable_matrix_from<M21>(9, 10);
 
@@ -267,14 +228,14 @@ TEST(eigen3, diagonal_of_self_adjoint)
 TEST(eigen3, diagonal_of_triangular)
 {
   auto m22_3013 = make_dense_writable_matrix_from<M22>(3, 0, 1, 3);
-  auto m20_3013 = M20 {m22_3013};
-  auto m02_3013 = M02 {m22_3013};
-  auto m00_3013 = M00 {m22_3013};
+  auto m20_3013 = M2x {m22_3013};
+  auto m02_3013 = Mx2 {m22_3013};
+  auto m00_3013 = Mxx {m22_3013};
 
   auto m22_3103 = make_dense_writable_matrix_from<M22>(3, 1, 0, 3);
-  auto m20_3103 = M20 {m22_3103};
-  auto m02_3103 = M02 {m22_3103};
-  auto m00_3103 = M00 {m22_3103};
+  auto m20_3103 = M2x {m22_3103};
+  auto m02_3103 = Mx2 {m22_3103};
+  auto m00_3103 = Mxx {m22_3103};
 
   auto m21_33 = make_dense_writable_matrix_from<M21>(3, 3);
 

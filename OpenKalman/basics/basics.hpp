@@ -65,4 +65,6 @@ namespace OpenKalman::interface {}
 #include "internal/TypedMatrixBase.hpp"
 #include "internal/ElementAccessor.hpp"
 
+#include "internal/FixedSizeAdapter.hpp"
+
 #endif //OPENKALMAN_BASICS_HPP

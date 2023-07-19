@@ -31,11 +31,11 @@ namespace
   using M23 = eigen_matrix_t<double, 2, 3>;
   using M42 = eigen_matrix_t<double, 4, 2>;
 
-  using M30 = eigen_matrix_t<double, 3, dynamic_size>;
-  using M20 = eigen_matrix_t<double, 2, 3>;
-  using M03 = eigen_matrix_t<double, dynamic_size, 3>;
-  using M02 = eigen_matrix_t<double, dynamic_size, 2>;
-  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
+  using M3x = eigen_matrix_t<double, 3, dynamic_size>;
+  using M2x = eigen_matrix_t<double, 2, 3>;
+  using Mx3 = eigen_matrix_t<double, dynamic_size, 3>;
+  using Mx2 = eigen_matrix_t<double, dynamic_size, 2>;
+  using Mxx = eigen_matrix_t<double, dynamic_size, dynamic_size>;
 
   using Car = TypedIndex<Axis, angle::Radians>;
   using Cra = TypedIndex<angle::Radians, Axis>;
@@ -43,18 +43,18 @@ namespace
 
   using To23 = ToEuclideanExpr<Car, M23>;
   using To32 = ToEuclideanExpr<Cara, M32>;
-  using To02 = ToEuclideanExpr<DynamicTypedIndex, M02>;
+  using To02 = ToEuclideanExpr<DynamicTypedIndex, Mx2>;
 
   auto dara = DynamicTypedIndex {Cara {}};
 
   template<typename...Args>
-  inline auto mat2(Args...args) { return MatrixTraits<M23>::make(args...); }
+  inline auto mat2(Args...args) { return make_dense_writable_matrix_from<M23>(args...); }
 
   template<typename...Args>
-  inline auto mat3(Args...args) { return MatrixTraits<M32>::make(args...); }
+  inline auto mat3(Args...args) { return make_dense_writable_matrix_from<M32>(args...); }
 
   template<typename...Args>
-  inline auto mat4(Args...args) { return MatrixTraits<M42>::make(args...); }
+  inline auto mat4(Args...args) { return make_dense_writable_matrix_from<M42>(args...); }
   
   template<typename C, typename T> using To = ToEuclideanExpr<C, T>;
   
@@ -177,11 +177,7 @@ TEST(special_matrices, ToEuclideanExpr_traits)
   static_assert(not native_eigen_matrix<decltype(To32 {1, 2, pi/6, pi/3, 3, 4})>);
   static_assert(not identity_matrix<decltype(To32 {1, 2, pi/6, pi/3, 3, 4})>);
   static_assert(not zero_matrix<decltype(To32 {1, 2, pi/6, pi/3, 3, 4})>);
-  // MatrixTraits
-  EXPECT_TRUE(is_near(MatrixTraits<To32>::make(make_eigen_matrix<double, 3, 2>(1, 2, pi/6, pi/3, 3, 4)),
-    mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
-  EXPECT_TRUE(is_near(MatrixTraits<To32>::make(1, 2, pi/6, pi/3, 3, 4),
-    mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
+
   EXPECT_TRUE(is_near(make_zero_matrix_like<To32>(), eigen_matrix_t<double, 4, 2>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<ToEuclideanExpr<Dimensions<2>, eigen_matrix_t<double, 2, 2>>>(), eigen_matrix_t<double, 2, 2>::Identity()));
 }
@@ -190,25 +186,25 @@ TEST(special_matrices, ToEuclideanExpr_traits)
 TEST(special_matrices, ToEuclideanExpr_overloads)
 {
   M23 m23; m23 << 1, 2, 3, 4, 5, 6;
-  M03 m03_2 {2,3}; m03_2 << 1, 2, 3, 4, 5, 6;
-  M20 m20_3 {2,3}; m20_3 << 1, 2, 3, 4, 5, 6;
-  M00 m00_23 {2,3}; m00_23 << 1, 2, 3, 4, 5, 6;
+  Mx3 mx3_2 {2,3}; mx3_2 << 1, 2, 3, 4, 5, 6;
+  M2x m2x_3 {2,3}; m2x_3 << 1, 2, 3, 4, 5, 6;
+  Mxx mxx_23 {2,3}; mxx_23 << 1, 2, 3, 4, 5, 6;
 
   EXPECT_TRUE(is_near(nested_matrix(To32 {1, 2, pi/6, pi/3, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(make_dense_writable_matrix_from(To32 {1, 2, pi/6, pi/3, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(make_self_contained(To32 {1, 2, pi/6, pi/3, 3, 4}), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
 
   EXPECT_TRUE(is_near(to_euclidean<Dimensions<2>>(m23), m23));
-  EXPECT_TRUE(is_near(to_euclidean<Dimensions<2>>(m20_3), m23));
-  EXPECT_TRUE(is_near(to_euclidean<Dimensions<2>>(m03_2), m23));
-  EXPECT_TRUE(is_near(to_euclidean<Dimensions<2>>(m00_23), m23));
+  EXPECT_TRUE(is_near(to_euclidean<Dimensions<2>>(m2x_3), m23));
+  EXPECT_TRUE(is_near(to_euclidean<Dimensions<2>>(mx3_2), m23));
+  EXPECT_TRUE(is_near(to_euclidean<Dimensions<2>>(mxx_23), m23));
 
   auto m33_to_ra = make_dense_writable_matrix_from<M33>(std::cos(1.), std::cos(2.), std::cos(3.), std::sin(1.), std::sin(2.), std::sin(3.), 4, 5, 6);
 
   EXPECT_TRUE(is_near(to_euclidean<TypedIndex<angle::Radians, Axis>>(m23), m33_to_ra));
-  //EXPECT_TRUE(is_near(to_euclidean<TypedIndex<angle::Radians, Axis>>(m20_3), m33_to_ra)); \todo
-  //EXPECT_TRUE(is_near(to_euclidean<TypedIndex<angle::Radians, Axis>>(m03_2), m33_to_ra));
-  //EXPECT_TRUE(is_near(to_euclidean<TypedIndex<angle::Radians, Axis>>(m00_23), m33_to_ra));
+  //EXPECT_TRUE(is_near(to_euclidean<TypedIndex<angle::Radians, Axis>>(m2x_3), m33_to_ra)); \todo
+  //EXPECT_TRUE(is_near(to_euclidean<TypedIndex<angle::Radians, Axis>>(mx3_2), m33_to_ra));
+  //EXPECT_TRUE(is_near(to_euclidean<TypedIndex<angle::Radians, Axis>>(mxx_23), m33_to_ra));
 
   ConstantAdapter<eigen_matrix_t<double, 3, 4>, 5> c534 {};
   ConstantAdapter<eigen_matrix_t<double, 3, dynamic_size>, 5> c530_4 {4};

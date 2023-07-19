@@ -264,9 +264,6 @@ TEST(matrices, Mean_traits)
   static_assert(zero_matrix<Mean<C2, Z22>>);
   static_assert(zero_matrix<Mean<C2, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>>);
 
-  EXPECT_TRUE(is_near(
-    MatrixTraits<Mat23>::make(make_eigen_matrix<double, 2, 3>(1, 2, 3, 4, 5, 6)).nested_matrix(),
-    Mean<Dimensions<2>, M23> {1, 2, 3, 4-2*pi, 5-2*pi, 6-2*pi}));
   EXPECT_TRUE(is_near(make_zero_matrix_like<Mat23>(), eigen_matrix_t<double, 2, 3>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<Mat22>(), eigen_matrix_t<double, 2, 2>::Identity()));
 }
@@ -294,13 +291,13 @@ TEST(matrices, Mean_overloads)
                             0.5, std::sqrt(3)/2, sqrt2/2,
                             std::sqrt(3)/2, 0.5, sqrt2/2}));
 
-  const auto m1 = make_mean(-2., 5, 3);
-  EXPECT_TRUE(is_near(to_euclidean(m1), m1));
+  const auto ma = make_mean(-2., 5, 3);
+  EXPECT_TRUE(is_near(to_euclidean(ma), ma));
 
   using A3 = TypedIndex<angle::Radians, Axis, angle::Radians>;
-  const auto m2 = make_mean<A3>(pi / 6, 5, -pi / 3);
+  const auto mb = make_mean<A3>(pi / 6, 5, -pi / 3);
   const auto x2 = (eigen_matrix_t<double, 5, 1> {} << std::sqrt(3) / 2, 0.5, 5, 0.5, -std::sqrt(3) / 2).finished();
-  EXPECT_TRUE(is_near(to_euclidean(m2).nested_matrix(), x2));
+  EXPECT_TRUE(is_near(to_euclidean(mb).nested_matrix(), x2));
 
   EXPECT_TRUE(is_near(to_diagonal(Mat21 {2, 3}).nested_matrix(), Mat22 {2, 0, 0, 3}));
   static_assert(diagonal_matrix<decltype(to_diagonal(Mat21 {2, 3}))>);
@@ -478,23 +475,23 @@ TEST(matrices, Mean_angles_construct_coefficients)
   EXPECT_EQ(v2[0], 7-2*pi);
   EXPECT_EQ(v2[1], 8);
   EXPECT_EQ(v2[2], 9-2*pi);
-  eigen_matrix_t<double, 3, 3> m3;
-  m3 << 9, 3, 1,
+  eigen_matrix_t<double, 3, 3> m33;
+  m33 << 9, 3, 1,
     3, 8 - pi*2, 2,
     7, 1, 8;
   auto v3 = make_mean<double, TypedIndex<Axis, angle::Radians, Axis>, 3>();
   v3 << 9, 3, 1,
     3, 8, 2,
     7, 1, 8;
-  EXPECT_TRUE(is_near(nested_matrix(v3), m3));
+  EXPECT_TRUE(is_near(nested_matrix(v3), m33));
   auto v3_1 = make_mean<TypedIndex<Axis, angle::Radians, Axis>>(9., 3, 1, 3, 8, 2, 7, 1, 8);
-  EXPECT_TRUE(is_near(v3_1, m3));
+  EXPECT_TRUE(is_near(v3_1, m33));
   auto v3_2 = v3;
-  EXPECT_TRUE(is_near(v3_2, m3));
-  static_assert(std::is_same_v<nested_matrix_of_t<decltype(v3)>, decltype(m3)>);
+  EXPECT_TRUE(is_near(v3_2, m33));
+  static_assert(std::is_same_v<nested_matrix_of_t<decltype(v3)>, decltype(m33)>);
   auto v3_3 = make_mean<double, TypedIndex<Axis, angle::Radians, Axis>, 3>();
   v3_3 << make_dense_writable_matrix_from(v3);
-  EXPECT_TRUE(is_near(v3_3, m3));
+  EXPECT_TRUE(is_near(v3_3, m33));
 }
 
 
@@ -530,7 +527,7 @@ TEST(matrices, Mean_angle_Euclidean_conversion)
   using Var3 = Mean<TypedIndex<angle::Radians, Axis, angle::Radians>>;
   const Var3 x1 {pi / 6, 5, -pi / 3};
   const Var3 x1p {pi / 5.99999999, 5, -pi / 2.99999999};
-  const auto m1 = (eigen_matrix_t<double, 3, 1> {} << pi / 6, 5, -pi / 3).finished();
+  const auto ma = (eigen_matrix_t<double, 3, 1> {} << pi / 6, 5, -pi / 3).finished();
   EXPECT_TRUE(is_near(x1, x1p));
   EXPECT_TRUE(is_near(x1.nested_matrix(), x1p.nested_matrix()));
   EXPECT_TRUE(is_near(to_euclidean(x1).nested_matrix(), to_euclidean(x1p).nested_matrix()));
@@ -538,9 +535,9 @@ TEST(matrices, Mean_angle_Euclidean_conversion)
   EXPECT_NEAR(x1.nested_matrix()[0], pi / 6, 1e-6);
   EXPECT_NEAR(x1.nested_matrix()[1], 5, 1e-6);
   EXPECT_NEAR(x1.nested_matrix()[2], -pi / 3, 1e-6);
-  EXPECT_TRUE(is_near(x1.nested_matrix(), m1));
+  EXPECT_TRUE(is_near(x1.nested_matrix(), ma));
   EXPECT_TRUE(is_near(make_mean(std::sqrt(3.)/2, 0.5, 5, 0.5, -std::sqrt(3.)/2), to_euclidean(x1).nested_matrix()));
-  EXPECT_TRUE(is_near(Var3 {m1}, x1));
+  EXPECT_TRUE(is_near(Var3 {ma}, x1));
 }
 
 

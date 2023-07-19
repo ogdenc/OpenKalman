@@ -792,17 +792,8 @@ TEST(covariance_tests, SquareRootCovariance_traits)
   static_assert(not identity_matrix<SqCovZ2>);
   static_assert(zero_matrix<SqCovZ2>);
 
-  // MatrixTraits
-  EXPECT_TRUE(is_near(MatrixTraits<SqCovSA2l>::make(SA2l {9, 3, 3, 10}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(MatrixTraits<SqCovSA2u>::make(SA2u {9, 3, 3, 10}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(MatrixTraits<SqCovSA2l>::make(T2l {3, 0, 1, 3}).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(MatrixTraits<SqCovSA2u>::make(T2u {3, 1, 0, 3}).get_triangular_nested_matrix(), Mat2 {3, 1, 0, 3}));
   EXPECT_TRUE(is_near(make_zero_matrix_like<SqCovSA2l>(), eigen_matrix_t<double, 2, 2>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<SqCovSA2l>(), eigen_matrix_t<double, 2, 2>::Identity()));
-  EXPECT_TRUE(is_near(MatrixTraits<SqCovT2l>::make(SA2l {9, 3, 3, 10}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(MatrixTraits<SqCovT2u>::make(SA2u {9, 3, 3, 10}).get_self_adjoint_nested_matrix(), Mat2 {9, 3, 3, 10}));
-  EXPECT_TRUE(is_near(MatrixTraits<SqCovT2l>::make(T2l {3, 0, 1, 3}).get_triangular_nested_matrix(), Mat2 {3, 0, 1, 3}));
-  EXPECT_TRUE(is_near(MatrixTraits<SqCovT2u>::make(T2u {3, 1, 0, 3}).get_triangular_nested_matrix(), Mat2 {3, 1, 0, 3}));
   EXPECT_TRUE(is_near(make_zero_matrix_like<SqCovT2l>(), eigen_matrix_t<double, 2, 2>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<SqCovT2l>(), eigen_matrix_t<double, 2, 2>::Identity()));
 }

@@ -20,7 +20,7 @@ namespace OpenKalman
 {
 
 #ifdef __cpp_concepts
-  template<indexible NestedMatrix> requires dimension_size_of_index_is<NestedMatrix, 1, 1, Likelihood::maybe>
+  template<vector<0, Likelihood::maybe> NestedMatrix>
 #else
   template<typename NestedMatrix>
 #endif
@@ -29,7 +29,7 @@ namespace OpenKalman
 
 #ifndef __cpp_concepts
     static_assert(indexible<NestedMatrix>);
-    static_assert(dimension_size_of_index_is<NestedMatrix, 1, 1, Likelihood::maybe>);
+    static_assert(vector<NestedMatrix, 0, Likelihood::maybe>);
 #endif
 
   private:
@@ -67,17 +67,17 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<indexible Arg> requires (not std::derived_from<std::decay_t<Arg>, DiagonalMatrix>) and
       dimension_size_of_index_is<Arg, 0, dim, Likelihood::maybe> and
-      (dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe> or dimension_size_of_index_is<Arg, 1, dim, Likelihood::maybe>) and
+      (vector<Arg, 0, Likelihood::maybe> or dimension_size_of_index_is<Arg, 1, dim, Likelihood::maybe>) and
       (requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; } or
         std::is_constructible_v<NestedMatrix, Arg&&>)
 #else
     template<typename Arg, std::enable_if_t<(not std::is_base_of_v<DiagonalMatrix, std::decay_t<Arg>>) and
       dimension_size_of_index_is<Arg, 0, dim, Likelihood::maybe> and
-      (dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe> or dimension_size_of_index_is<Arg, 1, dim, Likelihood::maybe>), int> = 0>
+      (vector<Arg, 0, Likelihood::maybe> or dimension_size_of_index_is<Arg, 1, dim, Likelihood::maybe>), int> = 0>
 #endif
     explicit DiagonalMatrix(Arg&& arg)
       : Base {[](Arg&& arg) -> decltype(auto) {
-        if constexpr (dimension_size_of_index_is<Arg, 1, 1>)
+        if constexpr (vector<Arg>)
         {
           return std::forward<Arg>(arg);
         }
@@ -110,14 +110,14 @@ namespace OpenKalman
     template<std::convertible_to<const Scalar> ... Args>
     requires (has_dynamic_dimensions<NestedMatrix> or sizeof...(Args) == dim) and
       requires(Args ... args) {
-        NestedMatrix {MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...)};
+        NestedMatrix {make_dense_writable_matrix_from<NestedMatrix>(static_cast<const Scalar>(args)...)};
       }
 #else
     template<typename...Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
         (has_dynamic_dimensions<NestedMatrix> or sizeof...(Args) == dim) and
         std::is_constructible_v<NestedMatrix, untyped_dense_writable_matrix_t<NestedMatrix, Scalar, sizeof...(Args), 1>>, int> = 0>
 #endif
-    DiagonalMatrix(Args...args) : Base {MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...)} {}
+    DiagonalMatrix(Args...args) : Base {make_dense_writable_matrix_from<NestedMatrix>(static_cast<const Scalar>(args)...)} {}
 
 
     /**
@@ -336,10 +336,10 @@ namespace OpenKalman
    * \tparam Arg A column vector
    */
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
-  template<dimension_size_of_index_is<1, 1, Likelihood::maybe> Arg> requires (not square_matrix<Arg>) or
+  template<vector<0, Likelihood::maybe> Arg> requires (not square_matrix<Arg>) or
     (not requires(Arg&& arg) { diagonal_of(std::forward<Arg>(arg)); })
 #else
-  template<typename Arg, std::enable_if_t<dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe> and
+  template<typename Arg, std::enable_if_t<vector<Arg, 0, Likelihood::maybe> and
     (not square_matrix<Arg> or not detail::diagonal_exists<Arg>::value), int> = 0>
 #endif
   explicit DiagonalMatrix(Arg&&) -> DiagonalMatrix<passable_t<Arg>>;
@@ -351,11 +351,11 @@ namespace OpenKalman
    */
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
   template<square_matrix<Likelihood::maybe> Arg>
-  requires (square_matrix<Arg> or not dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe>) and
+  requires (square_matrix<Arg> or not vector<Arg, 0, Likelihood::maybe>) and
     requires(Arg&& arg) { diagonal_of(std::forward<Arg>(arg)); }
 #else
   template<typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe> and
-    (square_matrix<Arg> or not dimension_size_of_index_is<Arg, 1, 1, Likelihood::maybe>) and
+    (square_matrix<Arg> or not vector<Arg, 0, Likelihood::maybe>) and
     detail::diagonal_exists<Arg>::value, int> = 0>
 #endif
   DiagonalMatrix(Arg&&) -> DiagonalMatrix<passable_t<decltype(diagonal_of(std::declval<Arg&&>()))>>;

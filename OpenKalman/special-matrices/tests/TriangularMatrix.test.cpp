@@ -25,13 +25,13 @@ namespace
   using cdouble = std::complex<double>;
 
   using M11 = eigen_matrix_t<double, 1, 1>;
-  using M10 = eigen_matrix_t<double, 1, dynamic_size>;
-  using M01 = eigen_matrix_t<double, dynamic_size, 1>;
-  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
+  using M1x = eigen_matrix_t<double, 1, dynamic_size>;
+  using Mx1 = eigen_matrix_t<double, dynamic_size, 1>;
+  using Mxx = eigen_matrix_t<double, dynamic_size, dynamic_size>;
   using M21 = eigen_matrix_t<double, 2, 1>;
   using M22 = eigen_matrix_t<double, 2, 2>;
-  using M20 = eigen_matrix_t<double, 2, dynamic_size>;
-  using M02 = eigen_matrix_t<double, dynamic_size, 2>;
+  using M2x = eigen_matrix_t<double, 2, dynamic_size>;
+  using Mx2 = eigen_matrix_t<double, dynamic_size, 2>;
 
   using CM2 = eigen_matrix_t<std::complex<double>, 2, 2>;
   using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
@@ -44,7 +44,7 @@ namespace
   using Diagonal3 = TriangularMatrix<D2, TriangleType::lower>;
 
   template<typename...Args>
-  inline auto mat22(Args...args) { return MatrixTraits<M22>::make(args...); }
+  inline auto mat22(Args...args) { return make_dense_writable_matrix_from<M22>(args...); }
 
   template<typename T> using Tl = TriangularMatrix<T, TriangleType::lower>;
   template<typename T> using Tu = TriangularMatrix<T, TriangleType::upper>;
@@ -68,37 +68,37 @@ TEST(special_matrices, TriangularMatrix_static_checks)
   static_assert(diagonal_matrix<Diagonal>);
   static_assert(diagonal_matrix<Diagonal2>);
   static_assert(diagonal_matrix<Diagonal3>);
-  static_assert(diagonal_matrix<Tl<M20>>);
-  static_assert(diagonal_matrix<Tl<M02>>);
-  static_assert(diagonal_matrix<Tl<M00>>);
+  static_assert(diagonal_matrix<Tl<M2x>>);
+  static_assert(diagonal_matrix<Tl<Mx2>>);
+  static_assert(diagonal_matrix<Tl<Mxx>>);
 
   static_assert(triangular_matrix<Lower, TriangleType::lower>);
   static_assert(not triangular_matrix<Upper, TriangleType::lower, Likelihood::maybe>);
   static_assert(triangular_matrix<Diagonal, TriangleType::lower>);
   static_assert(triangular_matrix<Diagonal2, TriangleType::lower>);
   static_assert(triangular_matrix<Diagonal3, TriangleType::lower>);
-  static_assert(triangular_matrix<Tl<M20>, TriangleType::lower>);
-  static_assert(triangular_matrix<Tl<M02>, TriangleType::lower>);
-  static_assert(triangular_matrix<Tl<M00>, TriangleType::lower>);
-  static_assert(triangular_matrix<Tu<M00>, TriangleType::lower, Likelihood::maybe>);
+  static_assert(triangular_matrix<Tl<M2x>, TriangleType::lower>);
+  static_assert(triangular_matrix<Tl<Mx2>, TriangleType::lower>);
+  static_assert(triangular_matrix<Tl<Mxx>, TriangleType::lower>);
+  static_assert(triangular_matrix<Tu<Mxx>, TriangleType::lower, Likelihood::maybe>);
 
   static_assert(triangular_matrix<Upper, TriangleType::upper>);
   static_assert(not triangular_matrix<Lower, TriangleType::upper, Likelihood::maybe>);
   static_assert(triangular_matrix<Diagonal, TriangleType::upper>);
   static_assert(triangular_matrix<Diagonal2, TriangleType::upper>);
   static_assert(triangular_matrix<Diagonal3, TriangleType::upper>);
-  static_assert(triangular_matrix<Tu<M20>, TriangleType::upper>);
-  static_assert(triangular_matrix<Tu<M02>, TriangleType::upper>);
-  static_assert(triangular_matrix<Tu<M00>, TriangleType::upper>);
-  static_assert(triangular_matrix<Tl<M00>, TriangleType::upper, Likelihood::maybe>);
+  static_assert(triangular_matrix<Tu<M2x>, TriangleType::upper>);
+  static_assert(triangular_matrix<Tu<Mx2>, TriangleType::upper>);
+  static_assert(triangular_matrix<Tu<Mxx>, TriangleType::upper>);
+  static_assert(triangular_matrix<Tl<Mxx>, TriangleType::upper, Likelihood::maybe>);
 
   static_assert(square_matrix<Lower>);
   static_assert(square_matrix<Upper>);
   static_assert(square_matrix<Diagonal>);
   static_assert(square_matrix<Diagonal2>);
   static_assert(square_matrix<Diagonal3>);
-  static_assert(square_matrix<Tl<M00>>);
-  static_assert(square_matrix<Tu<M00>>);
+  static_assert(square_matrix<Tl<Mxx>>);
+  static_assert(square_matrix<Tu<Mxx>>);
 
   // \todo Fill in other traits
   
@@ -598,11 +598,7 @@ TEST(special_matrices, TriangularMatrix_traits)
   mu << 3, 1, 0, 3;
   using Dl = TriangularMatrix<M22, TriangleType::lower>;
   using Du = TriangularMatrix<M22, TriangleType::upper>;
-  EXPECT_TRUE(is_near(MatrixTraits<Dl>::make(ml), ml));
-  EXPECT_TRUE(is_near(MatrixTraits<Du>::make(mu), mu));
   //
-  EXPECT_TRUE(is_near(MatrixTraits<Dl>::make(3, 0, 1, 3), ml));
-  EXPECT_TRUE(is_near(MatrixTraits<Du>::make(3, 1, 0, 3), mu));
   //
   EXPECT_TRUE(is_near(make_zero_matrix_like<Dl>(), M22::Zero()));
   EXPECT_TRUE(is_near(make_zero_matrix_like<Du>(), M22::Zero()));
@@ -742,28 +738,28 @@ TEST(special_matrices, TriangularMatrix_decompositions)
 
 TEST(special_matrices, TriangularMatrix_blocks_lower)
 {
-  auto m0 = TriangularMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::lower> {1, 0, 0,
+  auto ma = TriangularMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::lower> {1, 0, 0,
                                                                                      2, 4, 0,
                                                                                      3, 5, 6};
-  auto m1 = TriangularMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::lower> {4, 0, 0,
+  auto mb = TriangularMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::lower> {4, 0, 0,
                                                                                      5, 7, 0,
                                                                                      6, 8, 9};
-  EXPECT_TRUE(is_near(concatenate_diagonal(TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 0, 2, 3}, m1),
+  EXPECT_TRUE(is_near(concatenate_diagonal(TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 0, 2, 3}, mb),
     TriangularMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1., 0, 0, 0, 0,
                                                                              2, 3, 0, 0, 0,
                                                                              0, 0, 4, 0, 0,
                                                                              0, 0, 5, 7, 0,
                                                                              0, 0, 6, 8, 9}));
-  static_assert(triangular_matrix<decltype(concatenate_diagonal(TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 0, 2, 3}, m1)), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(concatenate_diagonal(TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 0, 2, 3}, mb)), TriangleType::lower>);
 
-  EXPECT_TRUE(is_near(concatenate_vertical(m0, m1),
+  EXPECT_TRUE(is_near(concatenate_vertical(ma, mb),
     make_eigen_matrix<6,3>(1., 0, 0,
                                     2, 4, 0,
                                     3, 5, 6,
                                     4, 0, 0,
                                     5, 7, 0,
                                     6, 8, 9)));
-  EXPECT_TRUE(is_near(concatenate_horizontal(m0, m1),
+  EXPECT_TRUE(is_near(concatenate_horizontal(ma, mb),
     make_eigen_matrix<3, 6>(1., 0, 0, 4, 0, 0,
                                      2, 4, 0, 5, 7, 0,
                                      3, 5, 6, 6, 8, 9)));
@@ -774,7 +770,7 @@ TEST(special_matrices, TriangularMatrix_blocks_lower)
                                                                              0, 0, 4, 0, 0,
                                                                              0, 0, 5, 7, 0,
                                                                              0, 0, 6, 8, 9}),
-    std::tuple {TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 0, 2, 3}, m1}));
+    std::tuple {TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 0, 2, 3}, mb}));
   EXPECT_TRUE(is_near(split_diagonal<2, 2>(
     TriangularMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1., 0, 0, 0, 0,
                                                                              2, 3, 0, 0, 0,
@@ -823,39 +819,39 @@ TEST(special_matrices, TriangularMatrix_blocks_lower)
     std::tuple {make_eigen_matrix<5,2>(1., 0, 2, 3, 0, 0, 0, 0, 0, 0),
                make_eigen_matrix<5,2>(0., 0, 0, 0, 4, 0, 5, 7, 6, 8)}));
 
-  EXPECT_TRUE(is_near(column(m1, 2), make_eigen_matrix(0., 0, 9)));
-  EXPECT_TRUE(is_near(column<1>(m1), make_eigen_matrix(0., 7, 8)));
-  EXPECT_TRUE(is_near(row(m1, 2), make_eigen_matrix<double, 1, 3>(6., 8, 9)));
-  EXPECT_TRUE(is_near(row<1>(m1), make_eigen_matrix<double, 1, 3>(5., 7, 0)));
+  EXPECT_TRUE(is_near(column(mb, 2), make_eigen_matrix(0., 0, 9)));
+  EXPECT_TRUE(is_near(column<1>(mb), make_eigen_matrix(0., 7, 8)));
+  EXPECT_TRUE(is_near(row(mb, 2), make_eigen_matrix<double, 1, 3>(6., 8, 9)));
+  EXPECT_TRUE(is_near(row<1>(mb), make_eigen_matrix<double, 1, 3>(5., 7, 0)));
 
-  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, m1),
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, mb),
     make_eigen_matrix<double, 3, 3>(
       5, 1, 1,
       6, 8, 1,
       7, 9, 10)));
-  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }, m1),
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }, mb),
     make_eigen_matrix<double, 3, 3>(
       4, 1, 2,
       5, 8, 2,
       6, 9, 11)));
 
-  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, m1),
+  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, mb),
     make_eigen_matrix<double, 3, 3>(
       5, 1, 1,
       6, 8, 1,
       7, 9, 10)));
-  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row, std::size_t i){ return make_self_contained(row + row.Constant(i)); }, m1),
+  EXPECT_TRUE(is_near(apply_rowwise([](const auto& row, std::size_t i){ return make_self_contained(row + row.Constant(i)); }, mb),
     make_eigen_matrix<double, 3, 3>(
       4, 0, 0,
       6, 8, 1,
       8, 10, 11)));
 
-  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, m1),
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, mb),
     make_eigen_matrix<double, 3, 3>(
       5, 1, 1,
       6, 8, 1,
       7, 9, 10)));
-  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, m1),
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, mb),
     make_eigen_matrix<double, 3, 3>(
       4, 1, 2,
       6, 9, 3,
@@ -865,28 +861,28 @@ TEST(special_matrices, TriangularMatrix_blocks_lower)
 
 TEST(special_matrices, TriangularMatrix_blocks_upper)
 {
-  auto m0 = TriangularMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::upper> {1, 2, 3,
+  auto ma = TriangularMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::upper> {1, 2, 3,
                                                                                      0, 4, 5,
                                                                                      0, 0, 6};
-  auto m1 = TriangularMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::upper> {4., 5, 6,
+  auto mb = TriangularMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::upper> {4., 5, 6,
                                                                                      0, 7, 8,
                                                                                      0, 0, 9};
-  EXPECT_TRUE(is_near(concatenate_diagonal(TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 0, 3}, m1),
+  EXPECT_TRUE(is_near(concatenate_diagonal(TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 0, 3}, mb),
     TriangularMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
                                                                              0, 3, 0, 0, 0,
                                                                              0, 0, 4, 5, 6,
                                                                              0, 0, 0, 7, 8,
                                                                              0, 0, 0, 0, 9}));
-  static_assert(triangular_matrix<decltype(concatenate_diagonal(TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 0, 3}, m1)), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(concatenate_diagonal(TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 0, 3}, mb)), TriangleType::upper>);
 
-  EXPECT_TRUE(is_near(concatenate_vertical(m0, m1),
+  EXPECT_TRUE(is_near(concatenate_vertical(ma, mb),
     make_eigen_matrix<6,3>(1., 2, 3,
                                     0, 4, 5,
                                     0, 0, 6,
                                     4, 5, 6,
                                     0, 7, 8,
                                     0, 0, 9)));
-  EXPECT_TRUE(is_near(concatenate_horizontal(m0, m1),
+  EXPECT_TRUE(is_near(concatenate_horizontal(ma, mb),
     make_eigen_matrix<3,6>(1., 2, 3, 4, 5, 6,
                                     0, 4, 5, 0, 7, 8,
                                     0, 0, 6, 0, 0, 9)));
@@ -896,7 +892,7 @@ TEST(special_matrices, TriangularMatrix_blocks_upper)
                                                                              0, 0, 4, 5, 6,
                                                                              0, 0, 0, 7, 8,
                                                                              0, 0, 0, 0, 9}),
-    std::tuple {TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 0, 3}, m1}));
+    std::tuple {TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 0, 3}, mb}));
   EXPECT_TRUE(is_near(split_diagonal(TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple {}));
   EXPECT_TRUE(is_near(split_diagonal<2, 2>(
     TriangularMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
@@ -946,28 +942,28 @@ TEST(special_matrices, TriangularMatrix_blocks_upper)
     std::tuple {make_eigen_matrix<5,2>(1., 2, 0, 3, 0, 0, 0, 0, 0, 0),
                make_eigen_matrix<5,2>(0., 0, 0, 0, 4, 5, 0, 7, 0, 0)}));
 
-  EXPECT_TRUE(is_near(column(m1, 2), make_eigen_matrix(6., 8, 9)));
-  EXPECT_TRUE(is_near(column<1>(m1), make_eigen_matrix(5., 7, 0)));
+  EXPECT_TRUE(is_near(column(mb, 2), make_eigen_matrix(6., 8, 9)));
+  EXPECT_TRUE(is_near(column<1>(mb), make_eigen_matrix(5., 7, 0)));
 
-  EXPECT_TRUE(is_near(row(m1, 2), make_eigen_matrix<double, 1, 3>(0., 0, 9)));
-  EXPECT_TRUE(is_near(row<1>(m1), make_eigen_matrix<double, 1, 3>(0., 7, 8)));
+  EXPECT_TRUE(is_near(row(mb, 2), make_eigen_matrix<double, 1, 3>(0., 0, 9)));
+  EXPECT_TRUE(is_near(row<1>(mb), make_eigen_matrix<double, 1, 3>(0., 7, 8)));
 
-  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, m1),
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, mb),
     make_eigen_matrix<double, 3, 3>(
       5, 6, 7,
       1, 8, 9,
       1, 1, 10)));
-  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }, m1),
+  EXPECT_TRUE(is_near(apply_columnwise([](const auto& col, std::size_t i){ return make_self_contained(col + col.Constant(i)); }, mb),
     make_eigen_matrix<double, 3, 3>(
       4, 6, 8,
       0, 8, 10,
       0, 1, 11)));
-  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, m1),
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x){ return x + 1; }, mb),
     make_eigen_matrix<double, 3, 3>(
       5, 6, 7,
       1, 8, 9,
       1, 1, 10)));
-  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, m1),
+  EXPECT_TRUE(is_near(apply_coefficientwise([](const auto& x, std::size_t i, std::size_t j){ return x + i + j; }, mb),
     make_eigen_matrix<double, 3, 3>(
       4, 6, 8,
       1, 9, 11,
@@ -977,33 +973,33 @@ TEST(special_matrices, TriangularMatrix_blocks_upper)
 
 TEST(special_matrices, TriangularMatrix_arithmetic_lower)
 {
-  auto m1 = Lower {4., 0, 5, 6};
-  auto m2 = Lower {1., 0, 2, 3};
+  auto ma = Lower {4., 0, 5, 6};
+  auto mb = Lower {1., 0, 2, 3};
   auto d = DiagonalMatrix<eigen_matrix_t<double, 2, 1>> {1, 3};
   auto i = M22::Identity();
   auto z = ZeroMatrix<eigen_matrix_t<double, 2, 2>> {};
 
-  EXPECT_TRUE(is_near(m1 + m2, mat22(5, 0, 7, 9))); static_assert(triangular_matrix<decltype(m1 + m2), TriangleType::lower>);
-  EXPECT_TRUE(is_near(m1 + d, mat22(5, 0, 5, 9))); static_assert(triangular_matrix<decltype(m1 + d), TriangleType::lower>);
-  EXPECT_TRUE(is_near(d + m1, mat22(5, 0, 5, 9))); static_assert(triangular_matrix<decltype(d + m1), TriangleType::lower>);
-  EXPECT_TRUE(is_near(m1 + i, mat22(5, 0, 5, 7))); static_assert(triangular_matrix<decltype(m1 + i), TriangleType::lower>);
-  EXPECT_TRUE(is_near(i + m1, mat22(5, 0, 5, 7))); static_assert(triangular_matrix<decltype(i + m1), TriangleType::lower>);
-  EXPECT_TRUE(is_near(m1 + z, mat22(4, 0, 5, 6))); static_assert(triangular_matrix<decltype(m1 + z), TriangleType::lower>);
-  EXPECT_TRUE(is_near(z + m1, mat22(4, 0, 5, 6))); static_assert(triangular_matrix<decltype(z + m1), TriangleType::lower>);
+  EXPECT_TRUE(is_near(ma + mb, mat22(5, 0, 7, 9))); static_assert(triangular_matrix<decltype(ma + mb), TriangleType::lower>);
+  EXPECT_TRUE(is_near(ma + d, mat22(5, 0, 5, 9))); static_assert(triangular_matrix<decltype(ma + d), TriangleType::lower>);
+  EXPECT_TRUE(is_near(d + ma, mat22(5, 0, 5, 9))); static_assert(triangular_matrix<decltype(d + ma), TriangleType::lower>);
+  EXPECT_TRUE(is_near(ma + i, mat22(5, 0, 5, 7))); static_assert(triangular_matrix<decltype(ma + i), TriangleType::lower>);
+  EXPECT_TRUE(is_near(i + ma, mat22(5, 0, 5, 7))); static_assert(triangular_matrix<decltype(i + ma), TriangleType::lower>);
+  EXPECT_TRUE(is_near(ma + z, mat22(4, 0, 5, 6))); static_assert(triangular_matrix<decltype(ma + z), TriangleType::lower>);
+  EXPECT_TRUE(is_near(z + ma, mat22(4, 0, 5, 6))); static_assert(triangular_matrix<decltype(z + ma), TriangleType::lower>);
 
-  EXPECT_TRUE(is_near(m1 - m2, mat22(3, 0, 3, 3))); static_assert(triangular_matrix<decltype(m1 - m2), TriangleType::lower>);
-  EXPECT_TRUE(is_near(m1 - d, mat22(3, 0, 5, 3))); static_assert(triangular_matrix<decltype(m1 - d), TriangleType::lower>);
-  EXPECT_TRUE(is_near(d - m1, mat22(-3, 0, -5, -3))); static_assert(triangular_matrix<decltype(d - m1), TriangleType::lower>);
-  EXPECT_TRUE(is_near(m1 - i, mat22(3, 0, 5, 5))); static_assert(triangular_matrix<decltype(m1 - i), TriangleType::lower>);
-  EXPECT_TRUE(is_near(i - m1, mat22(-3, 0, -5, -5))); static_assert(triangular_matrix<decltype(i - m1), TriangleType::lower>);
-  EXPECT_TRUE(is_near(m1 - z, mat22(4, 0, 5, 6))); static_assert(triangular_matrix<decltype(m1 - z), TriangleType::lower>);
-  EXPECT_TRUE(is_near(z - m1, mat22(-4, 0, -5, -6))); static_assert(triangular_matrix<decltype(z - m1), TriangleType::lower>);
+  EXPECT_TRUE(is_near(ma - mb, mat22(3, 0, 3, 3))); static_assert(triangular_matrix<decltype(ma - mb), TriangleType::lower>);
+  EXPECT_TRUE(is_near(ma - d, mat22(3, 0, 5, 3))); static_assert(triangular_matrix<decltype(ma - d), TriangleType::lower>);
+  EXPECT_TRUE(is_near(d - ma, mat22(-3, 0, -5, -3))); static_assert(triangular_matrix<decltype(d - ma), TriangleType::lower>);
+  EXPECT_TRUE(is_near(ma - i, mat22(3, 0, 5, 5))); static_assert(triangular_matrix<decltype(ma - i), TriangleType::lower>);
+  EXPECT_TRUE(is_near(i - ma, mat22(-3, 0, -5, -5))); static_assert(triangular_matrix<decltype(i - ma), TriangleType::lower>);
+  EXPECT_TRUE(is_near(ma - z, mat22(4, 0, 5, 6))); static_assert(triangular_matrix<decltype(ma - z), TriangleType::lower>);
+  EXPECT_TRUE(is_near(z - ma, mat22(-4, 0, -5, -6))); static_assert(triangular_matrix<decltype(z - ma), TriangleType::lower>);
 
-  EXPECT_TRUE(is_near(m1 * 2, mat22(8, 0, 10, 12))); static_assert(triangular_matrix<decltype(m1 * 2), TriangleType::lower>);
-  EXPECT_TRUE(is_near(2 * m1, mat22(8, 0, 10, 12))); static_assert(triangular_matrix<decltype(2 * m1), TriangleType::lower>);
-  EXPECT_TRUE(is_near(m1 / 2, mat22(2, 0, 2.5, 3))); static_assert(triangular_matrix<decltype(m1 / 2), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(m1 / 0), TriangleType::lower>);
-  EXPECT_TRUE(is_near(-m1, mat22(-4, 0, -5, -6)));  static_assert(triangular_matrix<decltype(-m1), TriangleType::lower>);
+  EXPECT_TRUE(is_near(ma * 2, mat22(8, 0, 10, 12))); static_assert(triangular_matrix<decltype(ma * 2), TriangleType::lower>);
+  EXPECT_TRUE(is_near(2 * ma, mat22(8, 0, 10, 12))); static_assert(triangular_matrix<decltype(2 * ma), TriangleType::lower>);
+  EXPECT_TRUE(is_near(ma / 2, mat22(2, 0, 2.5, 3))); static_assert(triangular_matrix<decltype(ma / 2), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(ma / 0), TriangleType::lower>);
+  EXPECT_TRUE(is_near(-ma, mat22(-4, 0, -5, -6)));  static_assert(triangular_matrix<decltype(-ma), TriangleType::lower>);
 
   EXPECT_TRUE(is_near(TriangularMatrix<decltype(i), TriangleType::diagonal> {i} * 2, mat22(2, 0, 0, 2)));
   static_assert(diagonal_matrix<decltype(TriangularMatrix<decltype(i), TriangleType::diagonal> {i} * 2)>);
@@ -1012,58 +1008,58 @@ TEST(special_matrices, TriangularMatrix_arithmetic_lower)
   EXPECT_TRUE(is_near(TriangularMatrix<decltype(i), TriangleType::diagonal> {i} / 0.5, mat22(2, 0, 0, 2)));
   static_assert(diagonal_matrix<decltype(TriangularMatrix<decltype(i), TriangleType::diagonal> {i} / 2)>);
 
-  EXPECT_TRUE(is_near(m1 * m2, mat22(4, 0, 17, 18))); static_assert(triangular_matrix<decltype(m1 * m2), TriangleType::lower>);
-  EXPECT_TRUE(is_near(m1 * d, mat22(4, 0, 5, 18))); static_assert(triangular_matrix<decltype(m1 * d), TriangleType::lower>);
-  EXPECT_TRUE(is_near(d * m1, mat22(4, 0, 15, 18))); static_assert(triangular_matrix<decltype(d * m2), TriangleType::lower>);
-  EXPECT_TRUE(is_near(m1 * i, m1));  static_assert(triangular_matrix<decltype(m1 * i), TriangleType::lower>);
-  EXPECT_TRUE(is_near(i * m1, m1));  static_assert(triangular_matrix<decltype(i * m1), TriangleType::lower>);
-  EXPECT_TRUE(is_near(m1 * z, z));  static_assert(zero_matrix<decltype(m1 * z)>);
-  EXPECT_TRUE(is_near(z * m1, z));  static_assert(zero_matrix<decltype(z * m1)>);
+  EXPECT_TRUE(is_near(ma * mb, mat22(4, 0, 17, 18))); static_assert(triangular_matrix<decltype(ma * mb), TriangleType::lower>);
+  EXPECT_TRUE(is_near(ma * d, mat22(4, 0, 5, 18))); static_assert(triangular_matrix<decltype(ma * d), TriangleType::lower>);
+  EXPECT_TRUE(is_near(d * ma, mat22(4, 0, 15, 18))); static_assert(triangular_matrix<decltype(d * mb), TriangleType::lower>);
+  EXPECT_TRUE(is_near(ma * i, ma));  static_assert(triangular_matrix<decltype(ma * i), TriangleType::lower>);
+  EXPECT_TRUE(is_near(i * ma, ma));  static_assert(triangular_matrix<decltype(i * ma), TriangleType::lower>);
+  EXPECT_TRUE(is_near(ma * z, z));  static_assert(zero_matrix<decltype(ma * z)>);
+  EXPECT_TRUE(is_near(z * ma, z));  static_assert(zero_matrix<decltype(z * ma)>);
 
-  EXPECT_TRUE(is_near(mat22(4, 0, 5, 6) * m2, mat22(4, 0, 17, 18)));
-  EXPECT_TRUE(is_near(m1 * mat22(1, 0, 2, 3), mat22(4, 0, 17, 18)));
+  EXPECT_TRUE(is_near(mat22(4, 0, 5, 6) * mb, mat22(4, 0, 17, 18)));
+  EXPECT_TRUE(is_near(ma * mat22(1, 0, 2, 3), mat22(4, 0, 17, 18)));
 }
 
 
 TEST(special_matrices, TriangularMatrix_arithmetic_upper)
 {
-  auto m1 = Upper {4., 5, 0, 6};
-  auto m2 = Upper {1., 2, 0, 3};
+  auto ma = Upper {4., 5, 0, 6};
+  auto mb = Upper {1., 2, 0, 3};
   auto d = DiagonalMatrix<eigen_matrix_t<double, 2, 1>> {1, 3};
   auto i = M22::Identity();
   auto z = ZeroMatrix<eigen_matrix_t<double, 2, 2>> {};
-  EXPECT_TRUE(is_near(m1 + m2, mat22(5, 7, 0, 9))); static_assert(triangular_matrix<decltype(m1 + m2), TriangleType::upper>);
-  EXPECT_TRUE(is_near(m1 + d, mat22(5, 5, 0, 9))); static_assert(triangular_matrix<decltype(m1 + d), TriangleType::upper>);
-  EXPECT_TRUE(is_near(d + m1, mat22(5, 5, 0, 9))); static_assert(triangular_matrix<decltype(d + m1), TriangleType::upper>);
-  EXPECT_TRUE(is_near(m1 + i, mat22(5, 5, 0, 7))); static_assert(triangular_matrix<decltype(m1 + i), TriangleType::upper>);
-  EXPECT_TRUE(is_near(i + m1, mat22(5, 5, 0, 7))); static_assert(triangular_matrix<decltype(i + m1), TriangleType::upper>);
-  EXPECT_TRUE(is_near(m1 + z, mat22(4, 5, 0, 6))); static_assert(triangular_matrix<decltype(m1 + z), TriangleType::upper>);
-  EXPECT_TRUE(is_near(z + m1, mat22(4, 5, 0, 6))); static_assert(triangular_matrix<decltype(z + m1), TriangleType::upper>);
+  EXPECT_TRUE(is_near(ma + mb, mat22(5, 7, 0, 9))); static_assert(triangular_matrix<decltype(ma + mb), TriangleType::upper>);
+  EXPECT_TRUE(is_near(ma + d, mat22(5, 5, 0, 9))); static_assert(triangular_matrix<decltype(ma + d), TriangleType::upper>);
+  EXPECT_TRUE(is_near(d + ma, mat22(5, 5, 0, 9))); static_assert(triangular_matrix<decltype(d + ma), TriangleType::upper>);
+  EXPECT_TRUE(is_near(ma + i, mat22(5, 5, 0, 7))); static_assert(triangular_matrix<decltype(ma + i), TriangleType::upper>);
+  EXPECT_TRUE(is_near(i + ma, mat22(5, 5, 0, 7))); static_assert(triangular_matrix<decltype(i + ma), TriangleType::upper>);
+  EXPECT_TRUE(is_near(ma + z, mat22(4, 5, 0, 6))); static_assert(triangular_matrix<decltype(ma + z), TriangleType::upper>);
+  EXPECT_TRUE(is_near(z + ma, mat22(4, 5, 0, 6))); static_assert(triangular_matrix<decltype(z + ma), TriangleType::upper>);
 
-  EXPECT_TRUE(is_near(m1 - m2, mat22(3, 3, 0, 3))); static_assert(triangular_matrix<decltype(m1 - m2), TriangleType::upper>);
-  EXPECT_TRUE(is_near(m1 - d, mat22(3, 5, 0, 3))); static_assert(triangular_matrix<decltype(m1 - d), TriangleType::upper>);
-  EXPECT_TRUE(is_near(d - m1, mat22(-3, -5, 0, -3))); static_assert(triangular_matrix<decltype(d - m1), TriangleType::upper>);
-  EXPECT_TRUE(is_near(m1 - i, mat22(3, 5, 0, 5))); static_assert(triangular_matrix<decltype(m1 - i), TriangleType::upper>);
-  EXPECT_TRUE(is_near(i - m1, mat22(-3, -5, 0, -5))); static_assert(triangular_matrix<decltype(i - m1), TriangleType::upper>);
-  EXPECT_TRUE(is_near(m1 - z, mat22(4, 5, 0, 6))); static_assert(triangular_matrix<decltype(m1 - z), TriangleType::upper>);
-  EXPECT_TRUE(is_near(z - m1, mat22(-4, -5, 0, -6))); static_assert(triangular_matrix<decltype(z - m1), TriangleType::upper>);
+  EXPECT_TRUE(is_near(ma - mb, mat22(3, 3, 0, 3))); static_assert(triangular_matrix<decltype(ma - mb), TriangleType::upper>);
+  EXPECT_TRUE(is_near(ma - d, mat22(3, 5, 0, 3))); static_assert(triangular_matrix<decltype(ma - d), TriangleType::upper>);
+  EXPECT_TRUE(is_near(d - ma, mat22(-3, -5, 0, -3))); static_assert(triangular_matrix<decltype(d - ma), TriangleType::upper>);
+  EXPECT_TRUE(is_near(ma - i, mat22(3, 5, 0, 5))); static_assert(triangular_matrix<decltype(ma - i), TriangleType::upper>);
+  EXPECT_TRUE(is_near(i - ma, mat22(-3, -5, 0, -5))); static_assert(triangular_matrix<decltype(i - ma), TriangleType::upper>);
+  EXPECT_TRUE(is_near(ma - z, mat22(4, 5, 0, 6))); static_assert(triangular_matrix<decltype(ma - z), TriangleType::upper>);
+  EXPECT_TRUE(is_near(z - ma, mat22(-4, -5, 0, -6))); static_assert(triangular_matrix<decltype(z - ma), TriangleType::upper>);
 
-  EXPECT_TRUE(is_near(m1 * 2, mat22(8, 10, 0, 12))); static_assert(triangular_matrix<decltype(m1 * 2), TriangleType::upper>);
-  EXPECT_TRUE(is_near(2 * m1, mat22(8, 10, 0, 12))); static_assert(triangular_matrix<decltype(2 * m1), TriangleType::upper>);
-  EXPECT_TRUE(is_near(m1 / 2, mat22(2, 2.5, 0, 3))); static_assert(triangular_matrix<decltype(m1 / 2), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(m1 / 0), TriangleType::upper>);
-  EXPECT_TRUE(is_near(-m1, mat22(-4, -5, 0, -6)));  static_assert(triangular_matrix<decltype(-m1), TriangleType::upper>);
+  EXPECT_TRUE(is_near(ma * 2, mat22(8, 10, 0, 12))); static_assert(triangular_matrix<decltype(ma * 2), TriangleType::upper>);
+  EXPECT_TRUE(is_near(2 * ma, mat22(8, 10, 0, 12))); static_assert(triangular_matrix<decltype(2 * ma), TriangleType::upper>);
+  EXPECT_TRUE(is_near(ma / 2, mat22(2, 2.5, 0, 3))); static_assert(triangular_matrix<decltype(ma / 2), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(ma / 0), TriangleType::upper>);
+  EXPECT_TRUE(is_near(-ma, mat22(-4, -5, 0, -6)));  static_assert(triangular_matrix<decltype(-ma), TriangleType::upper>);
 
-  EXPECT_TRUE(is_near(m1 * m2, mat22(4, 23, 0, 18))); static_assert(triangular_matrix<decltype(m1 * m2), TriangleType::upper>);
-  EXPECT_TRUE(is_near(m1 * d, mat22(4, 15, 0, 18))); static_assert(triangular_matrix<decltype(m1 * d), TriangleType::upper>);
-  EXPECT_TRUE(is_near(d * m1, mat22(4, 5, 0, 18))); static_assert(triangular_matrix<decltype(d * m1), TriangleType::upper>);
-  EXPECT_TRUE(is_near(m1 * i, m1));  static_assert(triangular_matrix<decltype(m1 * i), TriangleType::upper>);
-  EXPECT_TRUE(is_near(i * m1, m1));  static_assert(triangular_matrix<decltype(i * m1), TriangleType::upper>);
-  EXPECT_TRUE(is_near(m1 * z, z));  static_assert(zero_matrix<decltype(m1 * z)>);
-  EXPECT_TRUE(is_near(z * m1, z));  static_assert(zero_matrix<decltype(z * m1)>);
+  EXPECT_TRUE(is_near(ma * mb, mat22(4, 23, 0, 18))); static_assert(triangular_matrix<decltype(ma * mb), TriangleType::upper>);
+  EXPECT_TRUE(is_near(ma * d, mat22(4, 15, 0, 18))); static_assert(triangular_matrix<decltype(ma * d), TriangleType::upper>);
+  EXPECT_TRUE(is_near(d * ma, mat22(4, 5, 0, 18))); static_assert(triangular_matrix<decltype(d * ma), TriangleType::upper>);
+  EXPECT_TRUE(is_near(ma * i, ma));  static_assert(triangular_matrix<decltype(ma * i), TriangleType::upper>);
+  EXPECT_TRUE(is_near(i * ma, ma));  static_assert(triangular_matrix<decltype(i * ma), TriangleType::upper>);
+  EXPECT_TRUE(is_near(ma * z, z));  static_assert(zero_matrix<decltype(ma * z)>);
+  EXPECT_TRUE(is_near(z * ma, z));  static_assert(zero_matrix<decltype(z * ma)>);
 
-  EXPECT_TRUE(is_near(mat22(4, 5, 0, 6) * m2, mat22(4, 23, 0, 18)));
-  EXPECT_TRUE(is_near(m1 * mat22(1, 2, 0, 3), mat22(4, 23, 0, 18)));
+  EXPECT_TRUE(is_near(mat22(4, 5, 0, 6) * mb, mat22(4, 23, 0, 18)));
+  EXPECT_TRUE(is_near(ma * mat22(1, 2, 0, 3), mat22(4, 23, 0, 18)));
 }
 
 

@@ -25,7 +25,7 @@ namespace OpenKalman::internal
 #else
   template<typename Derived, typename PatternMatrix, typename>
 #endif
-  struct library_base : MatrixTraits<std::decay_t<PatternMatrix>>::template MatrixBaseFrom<Derived>
+  struct library_base : LinearAlgebra<std::decay_t<PatternMatrix>>::template MatrixBaseFrom<Derived>
   {};
 
 } // namespace OpenKalman::internal

@@ -27,10 +27,12 @@ namespace OpenKalman
     static_assert(equivalent_to<row_index_descriptor_of_t<V2>, RC1>);
     static_assert(equivalent_to<column_index_descriptor_of_t<V2>, CC1>);
     static_assert(euclidean_transformed<V1> == euclidean_transformed<V2>);
-    using CommonV = std::decay_t<std::conditional_t<
-      (euclidean_mean<V1> and euclidean_mean<V2>) or (mean<V1> and mean<V2>), V1, decltype(Matrix {v1})>>;
-    auto b = nested_matrix(std::forward<V1>(v1)) + nested_matrix(std::forward<V2>(v2));
-    return MatrixTraits<std::decay_t<CommonV>>::make(make_self_contained<V1, V2>(std::move(b)));
+
+    auto b = make_self_contained<V1, V2>(nested_matrix(std::forward<V1>(v1)) + nested_matrix(std::forward<V2>(v2)));
+
+    if constexpr (euclidean_mean<V1> and euclidean_mean<V2>) return make_euclidean_mean<RC1>(std::move(b));
+    else if constexpr (mean<V1> and mean<V2>) return make_mean<RC1>(std::move(b));
+    else return make_matrix<RC1, CC1>(std::move(b));
   }
 
 
@@ -47,19 +49,12 @@ namespace OpenKalman
     static_assert(equivalent_to<row_index_descriptor_of_t<V2>, RC1>);
     static_assert(equivalent_to<column_index_descriptor_of_t<V2>, CC1>);
     static_assert(euclidean_transformed<V1> == euclidean_transformed<V2>);
-    using CommonV = std::decay_t<std::conditional_t<
-      (euclidean_mean<V1> and euclidean_mean<V2>), V1, decltype(Matrix {v1})>>;
-    auto b = nested_matrix(std::forward<V1>(v1)) - nested_matrix(std::forward<V2>(v2));
-    if constexpr (mean<V1> and mean<V2>)
-    {
-      // WC is the difference type for the fixed_index_descriptor. However, the result should retain coefficient types RC1.
-      using WC = typename RC1::difference_type;
-      return MatrixTraits<std::decay_t<CommonV>>::make(make_self_contained<V1, V2>(wrap_angles<WC>(std::move(b))));
-    }
-    else
-    {
-      return MatrixTraits<std::decay_t<CommonV>>::make(make_self_contained<V1, V2>(std::move(b)));
-    }
+
+    auto b = make_self_contained<V1, V2>(nested_matrix(std::forward<V1>(v1)) - nested_matrix(std::forward<V2>(v2)));
+
+    if constexpr (euclidean_mean<V1> and euclidean_mean<V2>) return make_euclidean_mean<RC1>(std::move(b));
+    else if constexpr (mean<V1> and mean<V2>) return make_matrix<typename RC1::difference_type, CC1>(std::move(b));
+    else return make_matrix<RC1, CC1>(std::move(b));
   }
 
 
@@ -72,9 +67,15 @@ namespace OpenKalman
 #endif
   inline auto operator*(V&& v, S scale)
   {
+    using RC = row_index_descriptor_of_t<V>;
+    using CC = column_index_descriptor_of_t<V>;
     using Sc = scalar_type_of_t<V>;
-    auto b = nested_matrix(std::forward<V>(v)) * static_cast<Sc>(scale);
-    return MatrixTraits<std::decay_t<V>>::make(make_self_contained<V>(std::move(b)));
+
+    auto b = make_self_contained<V>(nested_matrix(std::forward<V>(v)) * static_cast<Sc>(scale));
+
+    if constexpr (euclidean_mean<V>) return make_euclidean_mean<RC>(std::move(b));
+    else if constexpr (mean<V>) return make_mean<RC>(std::move(b));
+    else return make_matrix<RC, CC>(std::move(b));
   }
 
 
@@ -87,9 +88,15 @@ namespace OpenKalman
 #endif
   inline auto operator*(S scale, V&& v)
   {
+    using RC = row_index_descriptor_of_t<V>;
+    using CC = column_index_descriptor_of_t<V>;
     using Sc = const scalar_type_of_t<V>;
-    auto b = static_cast<Sc>(scale) * nested_matrix(std::forward<V>(v));
-    return MatrixTraits<std::decay_t<V>>::make(make_self_contained<V>(std::move(b)));
+
+    auto b = make_self_contained<V>(static_cast<Sc>(scale) * nested_matrix(std::forward<V>(v)));
+
+    if constexpr (euclidean_mean<V>) return make_euclidean_mean<RC>(std::move(b));
+    else if constexpr (mean<V>) return make_mean<RC>(std::move(b));
+    else return make_matrix<RC, CC>(std::move(b));
   }
 
 
@@ -102,9 +109,15 @@ namespace OpenKalman
 #endif
   inline auto operator/(V&& v, S scale)
   {
+    using RC = row_index_descriptor_of_t<V>;
+    using CC = column_index_descriptor_of_t<V>;
     using Sc = scalar_type_of_t<V>;
-    auto b = nested_matrix(std::forward<V>(v)) / static_cast<Sc>(scale);
-    return MatrixTraits<std::decay_t<V>>::make(make_self_contained<V>(std::move(b)));
+
+    auto b = make_self_contained<V>(nested_matrix(std::forward<V>(v)) / static_cast<Sc>(scale));
+
+    if constexpr (euclidean_mean<V>) return make_euclidean_mean<RC>(std::move(b));
+    else if constexpr (mean<V>) return make_mean<RC>(std::move(b));
+    else return make_matrix<RC, CC>(std::move(b));
   }
 
 
@@ -116,13 +129,14 @@ namespace OpenKalman
 #endif
   inline auto operator*(V1&& v1, V2&& v2)
   {
-    static_assert(equivalent_to<row_index_descriptor_of_t<V1>::ColumnCoefficients, typename MatrixTraits<std::decay_t<V2>>>);
-    static_assert(column_dimension_of_v<V1> == row_dimension_of_v<V2>);
+    static_assert(equivalent_to<column_index_descriptor_of_t<V1>, row_index_descriptor_of_t<V2>>);
     using RC = row_index_descriptor_of_t<V1>;
     using CC = column_index_descriptor_of_t<V2>;
-    auto b = nested_matrix(std::forward<V1>(v1)) * nested_matrix(std::forward<V2>(v2));
-    using CommonV = std::decay_t<std::conditional_t<euclidean_mean<V1>, V1, decltype(Matrix {v1})>>;
-    return MatrixTraits<std::decay_t<CommonV>>::template make<RC, CC>(make_self_contained<V1, V2>(std::move(b)));
+
+    auto b = make_self_contained<V1, V2>(nested_matrix(std::forward<V1>(v1)) * nested_matrix(std::forward<V2>(v2)));
+
+    if constexpr (euclidean_mean<V1> and euclidean_mean<V2>) return make_euclidean_mean<RC>(std::move(b));
+    else return make_matrix<RC, CC>(std::move(b));
   }
 
 
@@ -134,9 +148,13 @@ namespace OpenKalman
 #endif
   inline auto operator-(V&& v)
   {
-    using Res = std::decay_t<std::conditional_t<euclidean_mean<V>, V, decltype(Matrix {v})>>;
-    auto b = -nested_matrix(std::forward<V>(v));
-    return MatrixTraits<std::decay_t<Res>>::make(make_self_contained<V>(std::move(b)));
+    using RC = row_index_descriptor_of_t<V>;
+    using CC = column_index_descriptor_of_t<V>;
+
+    auto b = make_self_contained<V>(-nested_matrix(std::forward<V>(v)));
+
+    if constexpr (euclidean_mean<V>) return make_euclidean_mean<RC>(std::move(b));
+    else return make_matrix<RC, CC>(std::move(b));
   }
 
 

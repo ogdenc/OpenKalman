@@ -87,17 +87,6 @@ namespace OpenKalman
 
   } // namespace interface
 
-
-  /**
-   * \internal
-   * \brief Matrix traits for Eigen::DiagonalMatrix.
-   */
-  template<typename Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
-  struct MatrixTraits<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
-    : MatrixTraits<Eigen::Matrix<Scalar, SizeAtCompileTime, SizeAtCompileTime>>
-  {
-  };
-
 } // namespace OpenKalman
 
 #endif //OPENKALMAN_EIGEN3_TRAITS_DIAGONALMATRIX_HPP

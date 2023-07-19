@@ -39,28 +39,41 @@ namespace OpenKalman
     struct EquivalentDenseWritableMatrix<T, Scalar, std::enable_if_t<untyped_adapter<T>>>
 #endif
     {
+    private:
+
+      using Trait = EquivalentDenseWritableMatrix<std::decay_t<pattern_matrix_of_t<T>>, Scalar>;
+
+    public:
+
       static constexpr bool is_writable = false;
 
 
       template<typename...D>
       static auto make_default(D&&...d)
       {
-        using Trait = EquivalentDenseWritableMatrix<std::decay_t<pattern_matrix_of_t<T>>, Scalar>;
         return Trait::make_default(std::forward<D>(d)...);
       }
 
       template<typename Arg>
       static decltype(auto) convert(Arg&& arg)
       {
-        using Trait = EquivalentDenseWritableMatrix<std::decay_t<pattern_matrix_of_t<T>>, Scalar>;
         return Trait::convert(std::forward<Arg>(arg));
       }
 
       template<typename Arg>
       static decltype(auto) to_native_matrix(Arg&& arg)
       {
-        using Trait = EquivalentDenseWritableMatrix<std::decay_t<pattern_matrix_of_t<T>>, Scalar>;
         return Trait::to_native_matrix(std::forward<Arg>(arg));
+      }
+#ifdef __cpp_concepts
+      template<index_descriptor...Ds, std::convertible_to<Scalar> ... Args>
+#else
+      template<typename...Ds, typename...Args, std::enable_if_t<(index_descriptor<Ds> and ...) and
+        std::conjunction_v<std::is_convertible<Args, Scalar>...>, int> = 0>
+#endif
+      static auto make_from_elements(const std::tuple<Ds...>& d_tup, const Args ... args)
+      {
+        return Trait::make_from_elements(d_tup, args...);
       }
 
     };
@@ -372,337 +385,6 @@ namespace OpenKalman
 
 
   using namespace OpenKalman::internal;
-
-  template<typename NestedMatrix>
-  struct MatrixTraits<DiagonalMatrix<NestedMatrix>>
-  {
-  private:
-
-    using Scalar = scalar_type_of_t<NestedMatrix>;
-    static constexpr auto rows = row_dimension_of_v<NestedMatrix>;
-    static constexpr auto columns = rows;
-
-  public:
-
-    template<typename Derived>
-    using MatrixBaseFrom = typename MatrixTraits<std::decay_t<NestedMatrix>>::template MatrixBaseFrom<Derived>;
-
-    template<HermitianAdapterType storage_triangle = HermitianAdapterType::lower, std::size_t dim = rows>
-    using SelfAdjointMatrixFrom = SelfAdjointMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, dim>, storage_triangle>;
-
-    template<TriangleType triangle_type = TriangleType::diagonal, std::size_t dim = rows>
-    using TriangularMatrixFrom = TriangularMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, dim>, triangle_type>;
-
-    template<std::size_t dim = rows>
-    using DiagonalMatrixFrom = DiagonalMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, 1>>;
-
-
-#ifdef __cpp_concepts
-    template<dimension_size_of_index_is<1, 1> Arg>
-#else
-    template<typename Arg, std::enable_if_t<dimension_size_of_index_is<Arg, 1, 1>, int> = 0>
-#endif
-    static auto make(Arg&& arg) noexcept
-    {
-      if constexpr (eigen_diagonal_expr<Arg>)
-        return DiagonalMatrix<nested_matrix_of_t<Arg>> {std::forward<Arg>(arg)};
-      else
-        return DiagonalMatrix<Arg> {std::forward<Arg>(arg)};
-    }
-
-
-    /** Make diagonal matrix using a list of coefficients defining the diagonal.
-     * The size of the list must match the number of diagonal coefficients.
-     */
-#ifdef __cpp_concepts
-    template<std::convertible_to<Scalar> ... Args> requires (rows == dynamic_size) or (sizeof...(Args) == rows)
-#else
-    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, Scalar>...> and
-      ((rows == dynamic_size) or (sizeof...(Args) == rows)), int> = 0>
-#endif
-    static auto make(const Args ... args)
-    {
-      return make(MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...));
-    }
-
-
-    /** Make diagonal matrix using a list of coefficients in row-major order (ignoring non-diagonal coefficients).
-     * The size of the list must match the number of coefficients in the matrix (diagonal and non-diagonal).
-     */
-#ifdef __cpp_concepts
-    template<std::convertible_to<Scalar> ... Args>
-    requires (rows != dynamic_size) and (rows > 1) and (sizeof...(Args) == rows * rows)
-#else
-    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, Scalar>...> and
-      (rows != dynamic_size) and (rows > 1) and (sizeof...(Args) == rows * rows), int> = 0>
-#endif
-    static auto
-    make(const Args ... args)
-    {
-      using M = untyped_dense_writable_matrix_t<NestedMatrix, Scalar, rows, columns>;
-      return make(make_self_contained(diagonal_of(MatrixTraits<std::decay_t<M>>::make(static_cast<const Scalar>(args)...))));
-    }
-
-  };
-
-
-  template<typename NestedMatrix, TriangleType triangle_type>
-  struct MatrixTraits<TriangularMatrix<NestedMatrix, triangle_type>>
-  {
-  private:
-
-    using Scalar = scalar_type_of_t<NestedMatrix>;
-    static constexpr auto rows = dynamic_rows<NestedMatrix> ? column_dimension_of_v<NestedMatrix> :
-      row_dimension_of_v<NestedMatrix>;
-    static constexpr auto columns = rows;
-
-  public:
-
-    template<typename Derived>
-    using MatrixBaseFrom = typename MatrixTraits<std::decay_t<NestedMatrix>>::template MatrixBaseFrom<Derived>;
-
-    template<HermitianAdapterType t = triangle_type == TriangleType::upper ?
-      HermitianAdapterType::upper : HermitianAdapterType::lower, std::size_t dim = rows>
-    using SelfAdjointMatrixFrom = SelfAdjointMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, dim>, t>;
-
-    template<TriangleType t = triangle_type, std::size_t dim = rows>
-    using TriangularMatrixFrom = TriangularMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, dim>, t>;
-
-    template<std::size_t dim = rows>
-    using DiagonalMatrixFrom = DiagonalMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, 1>>;
-
-
-#ifdef __cpp_concepts
-    template<TriangleType t = triangle_type, typename Arg> requires square_matrix<NestedMatrix, Likelihood::maybe>
-#else
-    template<TriangleType t = triangle_type, typename Arg, std::enable_if_t<square_matrix<NestedMatrix, Likelihood::maybe>, int> = 0>
-#endif
-    static auto make(Arg&& arg) noexcept
-    {
-      return TriangularMatrix<Arg, t> {std::forward<Arg>(arg)};
-    }
-
-
-#ifdef __cpp_concepts
-    template<TriangleType t = triangle_type, diagonal_matrix Arg> requires eigen_self_adjoint_expr<Arg> or
-      (eigen_triangular_expr<Arg> and triangle_type_of_v<Arg> == triangle_type_of_v<TriangularMatrixFrom<t>>)
-#else
-    template<TriangleType t = triangle_type, typename Arg, std::enable_if_t<
-      diagonal_matrix<Arg> and (eigen_self_adjoint_expr<Arg> or
-      (eigen_triangular_expr<Arg> and
-        triangle_type_of<Arg>::value == triangle_type_of<TriangularMatrixFrom<t>>::value)), int> = 0>
-#endif
-    static auto make(Arg&& arg) noexcept
-    {
-      return TriangularMatrix<nested_matrix_of_t<Arg>, t> {std::forward<Arg>(arg)};
-    }
-
-
-    /// Make triangular matrix using a list of coefficients in row-major order.
-    /// Only the coefficients in the lower-left corner are significant.
-#ifdef __cpp_concepts
-
-    template<TriangleType t = triangle_type, std::convertible_to<Scalar> ... Args>
-#else
-    template<TriangleType t = triangle_type, typename ... Args,
-      std::enable_if_t<std::conjunction_v<std::is_convertible<Args, Scalar>...>, int> = 0>
-#endif
-    static auto make(const Args...args)
-    {
-      return make<t>(MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...));
-    }
-
-  };
-
-
-  template<typename NestedMatrix, HermitianAdapterType storage_triangle>
-  struct MatrixTraits<SelfAdjointMatrix<NestedMatrix, storage_triangle>>
-  {
-  private:
-
-    using Scalar = scalar_type_of_t<NestedMatrix>;
-    static constexpr auto rows = dynamic_rows<NestedMatrix> ? column_dimension_of_v<NestedMatrix> :
-          row_dimension_of_v<NestedMatrix>;
-    static constexpr auto columns = rows;
-
-  public:
-
-    template<typename Derived>
-    using MatrixBaseFrom = typename MatrixTraits<std::decay_t<NestedMatrix>>::template MatrixBaseFrom<Derived>;
-
-    template<HermitianAdapterType t = storage_triangle, std::size_t dim = rows>
-    using SelfAdjointMatrixFrom = SelfAdjointMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, dim>, t>;
-
-    template<TriangleType t = storage_triangle == HermitianAdapterType::upper ? TriangleType::upper : TriangleType::lower, std::size_t dim = rows>
-    using TriangularMatrixFrom = TriangularMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, dim>, t>;
-
-    template<std::size_t dim = rows>
-    using DiagonalMatrixFrom = DiagonalMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, 1>>;
-
-
-#ifdef __cpp_concepts
-    template<HermitianAdapterType t = storage_triangle, typename Arg> requires
-      (not diagonal_matrix<NestedMatrix> or not complex_number<scalar_type_of_t<NestedMatrix>>) and
-      square_matrix<NestedMatrix, Likelihood::maybe>
-#else
-    template<HermitianAdapterType t = storage_triangle, typename Arg, std::enable_if_t<
-      (not diagonal_matrix<NestedMatrix> or not complex_number<scalar_type_of_t<NestedMatrix>>) and
-      square_matrix<NestedMatrix, Likelihood::maybe>, int> = 0>
-#endif
-    static auto make(Arg&& arg) noexcept
-    {
-      return SelfAdjointMatrix<Arg, t> {std::forward<Arg>(arg)};
-    }
-
-
-#ifdef __cpp_concepts
-    template<HermitianAdapterType t = storage_triangle, diagonal_matrix Arg> requires
-      eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>
-#else
-    template<HermitianAdapterType t = storage_triangle, typename Arg, std::enable_if_t<diagonal_matrix<Arg> and
-      (eigen_self_adjoint_expr<Arg> or eigen_triangular_expr<Arg>), int> = 0>
-#endif
-    static auto make(Arg&& arg) noexcept
-    {
-      return SelfAdjointMatrix<nested_matrix_of_t<Arg>, t> {std::forward<Arg>(arg)};
-    }
-
-
-    /// Make self-adjoint matrix using a list of coefficients in row-major order.
-    /// Only the coefficients in the lower-left corner are significant.
-#ifdef __cpp_concepts
-    template<HermitianAdapterType t = storage_triangle, std::convertible_to<Scalar> ... Args>
-#else
-    template<HermitianAdapterType t = storage_triangle, typename ... Args,
-      std::enable_if_t<std::conjunction_v<std::is_convertible<Args, Scalar>...>, int> = 0>
-#endif
-    static auto make(const Args ... args)
-    {
-      return make<t>(MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...));
-    }
-
-  };
-
-
-  template<typename Coeffs, typename NestedMatrix>
-  struct MatrixTraits<FromEuclideanExpr<Coeffs, NestedMatrix>>
-  {
-  private:
-
-    using Scalar = scalar_type_of_t<NestedMatrix>;
-    static constexpr auto rows = dimension_size_of_v<Coeffs>;
-    static constexpr auto columns = column_dimension_of_v<NestedMatrix>;
-
-  public:
-
-    template<typename Derived>
-    using MatrixBaseFrom = typename MatrixTraits<std::decay_t<NestedMatrix>>::template MatrixBaseFrom<Derived>;
-
-
-    template<HermitianAdapterType storage_triangle = HermitianAdapterType::lower, std::size_t dim = rows>
-    using SelfAdjointMatrixFrom = SelfAdjointMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, dim>, storage_triangle>;
-
-
-    template<TriangleType triangle_type = TriangleType::lower, std::size_t dim = rows>
-    using TriangularMatrixFrom = TriangularMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, dim>, triangle_type>;
-
-
-    template<std::size_t dim = rows>
-    using DiagonalMatrixFrom = DiagonalMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, 1>>;
-
-
-    // Make from a regular matrix.
-#ifdef __cpp_concepts
-    template<typename C = Coeffs, typename Arg> requires
-      (dynamic_index_descriptor<C> == dynamic_rows<Arg>) and
-      (not fixed_index_descriptor<C> or euclidean_dimension_size_of_v<C> == row_dimension_of_v<Arg>) and
-      (not dynamic_index_descriptor<C> or std::same_as<typename C::Scalar, scalar_type_of_t<Arg>>)
-#else
-    template<typename C = Coeffs, typename Arg, std::enable_if_t<
-      (dynamic_index_descriptor<C> == dynamic_rows<Arg>) and
-      (not fixed_index_descriptor<C> or euclidean_dimension_size_of<C>::value == row_dimension_of<Arg>::value) and
-      (not dynamic_index_descriptor<C> or std::is_same_v<typename C::Scalar, typename scalar_type_of<Arg>::type>), int> = 0>
-#endif
-    static auto make(Arg&& arg) noexcept
-    {
-      return from_euclidean<C>(std::forward<Arg>(arg));
-    }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<Scalar> ... Args> requires (sizeof...(Args) == euclidean_dimension_size_of_v<Coeffs> * columns)
-#else
-    template<typename ... Args, std::enable_if_t<std::conjunction_v<
-      std::is_convertible<Args, Scalar>...> and (sizeof...(Args) == euclidean_dimension_size_of_v<Coeffs> * columns), int> = 0>
-#endif
-    static auto make(const Args ... args)
-    {
-      return make(MatrixTraits<std::decay_t<NestedMatrix>>::make(static_cast<const Scalar>(args)...));
-    }
-
-  };
-
-
-  template<typename Coeffs, typename NestedMatrix>
-  struct MatrixTraits<ToEuclideanExpr<Coeffs, NestedMatrix>>
-  {
-  private:
-
-    using Scalar = scalar_type_of_t<NestedMatrix>;
-    static constexpr auto rows = euclidean_dimension_size_of_v<Coeffs>;
-    static constexpr auto columns = column_dimension_of_v<NestedMatrix>;
-
-  public:
-
-    using RowCoefficients = Coeffs;
-    using ColumnCoefficients = Dimensions<columns>;
-    static_assert(dimension_size_of_v<Coeffs> == row_dimension_of_v<NestedMatrix>);
-
-
-    template<typename Derived>
-    using MatrixBaseFrom = typename MatrixTraits<std::decay_t<NestedMatrix>>::template MatrixBaseFrom<Derived>;
-
-
-    template<HermitianAdapterType storage_triangle = HermitianAdapterType::lower, std::size_t dim = rows>
-    using SelfAdjointMatrixFrom = SelfAdjointMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, dim>, storage_triangle>;
-
-
-    template<TriangleType triangle_type = TriangleType::lower, std::size_t dim = rows>
-    using TriangularMatrixFrom = TriangularMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, dim>, triangle_type>;
-
-
-    template<std::size_t dim = rows>
-    using DiagonalMatrixFrom = DiagonalMatrix<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, dim, 1>>;
-
-
-    // Make from a regular matrix.
-#ifdef __cpp_concepts
-    template<typename C = Coeffs, typename Arg> requires (row_dimension_of_v<Arg> == dimension_size_of_v<C>)
-#else
-    template<typename C = Coeffs, typename Arg, std::enable_if_t<
-      (row_dimension_of<Arg>::value == dimension_size_of_v<C>), int> = 0>
-#endif
-    static decltype(auto) make(Arg&& arg) noexcept
-    {
-      return to_euclidean<C>(std::forward<Arg>(arg));
-    }
-
-
-#ifdef __cpp_concepts
-    template<std::convertible_to<Scalar> ... Args> requires (sizeof...(Args) == dimension_size_of_v<Coeffs> * columns)
-#else
-    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, Scalar>...> and
-      (sizeof...(Args) == dimension_size_of_v<Coeffs> * columns), int> = 0>
-#endif
-    static auto make(const Args ... args)
-    {
-      return make(MatrixTraits<std::decay_t<untyped_dense_writable_matrix_t<NestedMatrix, Scalar, rows, columns>>>::make(
-        static_cast<const Scalar>(args)...));
-    }
-
-  };
-
-
 
   // ---------------------- //
   //  is_modifiable_native  //

@@ -477,10 +477,10 @@ TEST(matrices, GaussianDistribution_class_Cholesky_random)
 TEST(matrices, GaussianDistribution_class_Cholesky_random_axis)
 {
   using Mat = Mean<TypedIndex<Axis, Axis>>;
-  M2 m2;
-  m2 << 3, 0, 1, 3;
+  M2 m22;
+  m22 << 3, 0, 1, 3;
   const Mat true_x {20, 30};
-  GaussianDistribution dist {true_x, TriangularMatrix {m2}};
+  GaussianDistribution dist {true_x, TriangularMatrix {m22}};
   const Mat x1 {dist()};
   const Mat x2 {dist()};
   EXPECT_NE(x1, x2);
@@ -690,25 +690,25 @@ TEST(matrices, GaussianDistribution_blocks)
 {
   Mean2 a1 {1, 2}, a2 {3, 4};
   Mean4 b {1, 2, 3, 4};
-  Mat2 m1 {9, 3, 3, 10}, m2 {4, 2, 2, 5};
+  Mat2 ma {9, 3, 3, 10}, mb {4, 2, 2, 5};
   Mat4 n {9, 3, 0, 0,
           3, 10, 0, 0,
           0, 0, 4, 2,
           0, 0, 2, 5};
-  EXPECT_TRUE(is_near(concatenate(DistSA2l(a1, m1), DistSA2l(a2, m2)), DistSA4l(b, n)));
-  EXPECT_TRUE(is_near(concatenate(DistSA2u(a1, m1), DistSA2u(a2, m2)), DistSA4u(b, n)));
-  EXPECT_TRUE(is_near(concatenate(DistT2l(a1, m1), DistT2l(a2, m2)), DistT4l(b, n)));
-  EXPECT_TRUE(is_near(concatenate(DistT2u(a1, m1), DistT2u(a2, m2)), DistT4u(b, n)));
+  EXPECT_TRUE(is_near(concatenate(DistSA2l(a1, ma), DistSA2l(a2, mb)), DistSA4l(b, n)));
+  EXPECT_TRUE(is_near(concatenate(DistSA2u(a1, ma), DistSA2u(a2, mb)), DistSA4u(b, n)));
+  EXPECT_TRUE(is_near(concatenate(DistT2l(a1, ma), DistT2l(a2, mb)), DistT4l(b, n)));
+  EXPECT_TRUE(is_near(concatenate(DistT2u(a1, ma), DistT2u(a2, mb)), DistT4u(b, n)));
 
   EXPECT_TRUE(is_near(split(DistSA4l(b, n)), std::tuple {}));
-  EXPECT_TRUE(is_near(split<C2, C2>(DistSA4l(b, n)), std::tuple {DistSA2l(a1, m1), DistSA2l(a2, m2)}));
-  EXPECT_TRUE(is_near(split<C2, C2>(DistSA4u(b, n)), std::tuple {DistSA2u(a1, m1), DistSA2u(a2, m2)}));
-  EXPECT_TRUE(is_near(split<C2, C2>(DistT4l(b, n)), std::tuple {DistT2l(a1, m1), DistT2l(a2, m2)}));
-  EXPECT_TRUE(is_near(split<C2, C2>(DistT4u(b, n)), std::tuple {DistT2u(a1, m1), DistT2u(a2, m2)}));
-  EXPECT_TRUE(is_near(split<C2, C2::Take<1>>(DistSA4l(b, n)), std::tuple {DistSA2l(a1, m1), GaussianDistribution {Mean1 {3}, SA1l {4}}}));
-  EXPECT_TRUE(is_near(split<C2, C2::Take<1>>(DistSA4u(b, n)), std::tuple {DistSA2u(a1, m1), GaussianDistribution {Mean1 {3}, SA1u {4}}}));
-  EXPECT_TRUE(is_near(split<C2, C2::Take<1>>(DistT4l(b, n)), std::tuple {DistT2l(a1, m1), GaussianDistribution {Mean1 {3}, SA1l {4}}}));
-  EXPECT_TRUE(is_near(split<C2, C2::Take<1>>(DistT4u(b, n)), std::tuple {DistT2u(a1, m1), GaussianDistribution {Mean1 {3}, SA1u {4}}}));
+  EXPECT_TRUE(is_near(split<C2, C2>(DistSA4l(b, n)), std::tuple {DistSA2l(a1, ma), DistSA2l(a2, mb)}));
+  EXPECT_TRUE(is_near(split<C2, C2>(DistSA4u(b, n)), std::tuple {DistSA2u(a1, ma), DistSA2u(a2, mb)}));
+  EXPECT_TRUE(is_near(split<C2, C2>(DistT4l(b, n)), std::tuple {DistT2l(a1, ma), DistT2l(a2, mb)}));
+  EXPECT_TRUE(is_near(split<C2, C2>(DistT4u(b, n)), std::tuple {DistT2u(a1, ma), DistT2u(a2, mb)}));
+  EXPECT_TRUE(is_near(split<C2, C2::Take<1>>(DistSA4l(b, n)), std::tuple {DistSA2l(a1, ma), GaussianDistribution {Mean1 {3}, SA1l {4}}}));
+  EXPECT_TRUE(is_near(split<C2, C2::Take<1>>(DistSA4u(b, n)), std::tuple {DistSA2u(a1, ma), GaussianDistribution {Mean1 {3}, SA1u {4}}}));
+  EXPECT_TRUE(is_near(split<C2, C2::Take<1>>(DistT4l(b, n)), std::tuple {DistT2l(a1, ma), GaussianDistribution {Mean1 {3}, SA1l {4}}}));
+  EXPECT_TRUE(is_near(split<C2, C2::Take<1>>(DistT4u(b, n)), std::tuple {DistT2u(a1, ma), GaussianDistribution {Mean1 {3}, SA1u {4}}}));
 }
 
 

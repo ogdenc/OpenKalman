@@ -45,12 +45,11 @@ namespace OpenKalman
   std::enable_if_t<(sizeof...(Args) > 0) and (scalar_type<Args> and ...) and
     (dimension_size_of_v<RowCoefficients> * dimension_size_of_v<ColumnCoefficients> == sizeof...(Args)), int> = 0>
 #endif
-  auto make_matrix(const Args ... args)
+  auto make_matrix(const Args...args)
   {
     using Scalar = std::common_type_t<Args...>;
     using Mat = Eigen3::eigen_matrix_t<Scalar, dimension_size_of_v<RowCoefficients>, dimension_size_of_v<ColumnCoefficients>>;
-    return Matrix<RowCoefficients, ColumnCoefficients, Mat>(MatrixTraits<std::decay_t<Mat>>::make(
-      static_cast<const Scalar>(args)...));
+    return Matrix<RowCoefficients, ColumnCoefficients, Mat>(make_dense_writable_matrix_from<Mat>(static_cast<const Scalar>(args)...));
   }
 
 
@@ -117,7 +116,7 @@ namespace OpenKalman
     constexpr std::size_t dim = dimension_size_of_v<TypedIndex>;
     constexpr std::size_t cols = sizeof...(Args) / dim;
     using Mat = Eigen3::eigen_matrix_t<Scalar, dim, cols>;
-    return Mean<TypedIndex, Mat>(MatrixTraits<std::decay_t<Mat>>::make(static_cast<const Scalar>(args)...));
+    return Mean<TypedIndex, Mat>(make_dense_writable_matrix_from<Mat>(static_cast<const Scalar>(args)...));
   }
 
 
@@ -181,7 +180,7 @@ namespace OpenKalman
     constexpr std::size_t dim = euclidean_dimension_size_of_v<TypedIndex>;
     constexpr std::size_t cols = sizeof...(Args) / dim;
     using Mat = Eigen3::eigen_matrix_t<Scalar, dim, cols>;
-    return EuclideanMean<TypedIndex, Mat>(MatrixTraits<std::decay_t<Mat>>::make(static_cast<const Scalar>(args)...));
+    return EuclideanMean<TypedIndex, Mat>(make_dense_writable_matrix_from<Mat>(static_cast<const Scalar>(args)...));
   }
 
 
@@ -248,7 +247,7 @@ namespace OpenKalman
     using Mat = Eigen3::eigen_matrix_t<Scalar, dimension_size_of_v<TypedIndex>, dimension_size_of_v<TypedIndex>>;
     using T = TriangularMatrix<Mat, triangle_type>;
     using SA = SelfAdjointMatrix<Mat, triangle_type == TriangleType::upper ? HermitianAdapterType::upper : HermitianAdapterType::lower>;
-    return Covariance<TypedIndex, T>(MatrixTraits<std::decay_t<SA>>::make(static_cast<const Scalar>(args)...));
+    return Covariance<TypedIndex, T>(SA {make_dense_writable_matrix_from<Mat>(static_cast<const Scalar>(args)...)});
   }
 
 
@@ -272,8 +271,9 @@ namespace OpenKalman
   {
     using Scalar = std::decay_t<std::common_type_t<Args...>>;
     using Mat = Eigen3::eigen_matrix_t<Scalar, dimension_size_of_v<TypedIndex>, dimension_size_of_v<TypedIndex>>;
+    auto mat = make_dense_writable_matrix_from<Mat>(static_cast<const Scalar>(args)...);
     using SA = SelfAdjointMatrix<Mat>;
-    return Covariance<TypedIndex, SA>(MatrixTraits<std::decay_t<SA>>::make(static_cast<const Scalar>(args)...));
+    return Covariance<TypedIndex, SA>(SA {mat});
   }
 
 
@@ -395,8 +395,10 @@ namespace OpenKalman
   {
     using Scalar = std::decay_t<std::common_type_t<Args...>>;
     using Mat = Eigen3::eigen_matrix_t<Scalar, dimension_size_of_v<TypedIndex>, dimension_size_of_v<TypedIndex>>;
-    using T = typename MatrixTraits<std::decay_t<Mat>>::template TriangularMatrixFrom<triangle_type>;
-    return SquareRootCovariance<TypedIndex, T>(MatrixTraits<std::decay_t<T>>::make(static_cast<const Scalar>(args)...));
+    auto mat = make_dense_writable_matrix_from<Mat>(static_cast<const Scalar>(args)...);
+    using Tri = TriangularMatrix<Mat, triangle_type>;
+    auto tri = Tri {mat};
+    return SquareRootCovariance<TypedIndex, Tri>(tri);
   }
 
 

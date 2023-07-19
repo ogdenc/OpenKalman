@@ -16,33 +16,6 @@ using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
 
-namespace
-{
-  using M11 = eigen_matrix_t<double, 1, 1>;
-  using M22 = eigen_matrix_t<double, 2, 2>;
-  using M23 = eigen_matrix_t<double, 2, 3>;
-  using M32 = eigen_matrix_t<double, 3, 2>;
-  using M33 = eigen_matrix_t<double, 3, 3>;
-  using M44 = eigen_matrix_t<double, 4, 4>;
-  using M99 = eigen_matrix_t<double, 9, 9>;
-
-  using M00 = eigen_matrix_t<double, dynamic_size, dynamic_size>;
-  using M20 = eigen_matrix_t<double, 2, dynamic_size>;
-  using M02 = eigen_matrix_t<double, dynamic_size, 2>;
-  using M30 = eigen_matrix_t<double, 3, dynamic_size>;
-  using M03 = eigen_matrix_t<double, dynamic_size, 3>;
-  using M40 = eigen_matrix_t<double, 4, dynamic_size>;
-  using M04 = eigen_matrix_t<double, dynamic_size, 4>;
-  using M90 = eigen_matrix_t<double, 9, dynamic_size>;
-  using M09 = eigen_matrix_t<double, dynamic_size, 9>;
-
-  using cdouble = std::complex<double>;
-
-  using CM23 = eigen_matrix_t<cdouble, 2, 3>;
-  using CM32 = eigen_matrix_t<cdouble, 3, 2>;
-}
-
-
 TEST(eigen3, LQ_and_QR_decomp_triangular)
 {
   auto m22_lq = make_dense_writable_matrix_from<M22>(-0.1, 0, 1.096, -1.272);

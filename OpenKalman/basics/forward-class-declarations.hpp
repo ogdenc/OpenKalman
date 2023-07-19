@@ -142,7 +142,7 @@ namespace OpenKalman
    * \note This has the same name as Eigen::DiagonalMatrix, and is intended as a replacement.
    */
 #ifdef __cpp_concepts
-  template<indexible NestedMatrix> requires dimension_size_of_index_is<NestedMatrix, 1, 1, Likelihood::maybe>
+  template<vector<0, Likelihood::maybe> NestedMatrix>
 #else
   template<typename NestedMatrix>
 #endif
@@ -565,7 +565,7 @@ namespace OpenKalman
     /**
      * \internal
      * \brief A base class within a particular library
-     * \details This is defined by MatrixTraits<std::decay_t<PatternMatrix>>::template MatrixBaseFrom<Derived>
+     * \details This is defined by LinearAlgebra<std::decay_t<PatternMatrix>>::template MatrixBaseFrom<Derived>
      * \tparam Derived A derived class, such as an adapter.
      * \tparam PatternMatrix A class within a particular library
      */
@@ -643,6 +643,22 @@ namespace OpenKalman
     template<typename Derived, typename NestedMatrix>
 #endif
     struct CovarianceImpl;
+
+
+  /**
+   * \internal
+   * \brief Wraps a dynamic-sized input, immutably, in a wrapper that has one or more fixed dimensions.
+   * \tparam NestedMatrix The underlying native matrix or matrix expression.
+   * \tparam IndexDescriptors A set of index descriptors
+   */
+#ifdef __cpp_concepts
+  template<indexible NestedMatrix, index_descriptor...IndexDescriptors>
+    requires compatible_with_index_descriptors<NestedMatrix, IndexDescriptors...> and
+      (sizeof...(IndexDescriptors) == max_indices_of_v<NestedMatrix>) and (not std::is_reference_v<NestedMatrix>)
+#else
+  template<typename NestedMatrix, typename...IndexDescriptors>
+#endif
+  struct FixedSizeAdapter;
 
 
   } // namespace internal

@@ -395,6 +395,7 @@ namespace OpenKalman
     struct Dependencies<Eigen3::EigenWrapper<NestedMatrix>>
     {
       static constexpr bool has_runtime_parameters = false;
+
       using type = std::tuple<NestedMatrix>;
 
       template<std::size_t i, typename Arg>
@@ -430,15 +431,10 @@ namespace OpenKalman
     };
 
 
-#ifdef __cpp_concepts
-    template<hermitian_matrix<Likelihood::maybe> NestedMatrix>
-    struct HermitianTraits<Eigen3::EigenWrapper<NestedMatrix>>
-#else
     template<typename NestedMatrix>
-    struct HermitianTraits<Eigen3::EigenWrapper<NestedMatrix>, std::enable_if_t<hermitian_matrix<NestedMatrix, Likelihood::maybe>>>
-#endif
+    struct HermitianTraits<Eigen3::EigenWrapper<NestedMatrix>>
     {
-      static constexpr bool is_hermitian = true;
+      static constexpr bool is_hermitian = hermitian_matrix<NestedMatrix, Likelihood::maybe>;
     };
 
 

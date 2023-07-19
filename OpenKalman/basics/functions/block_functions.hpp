@@ -247,7 +247,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<indexible Arg, index_value I> requires dynamic_rows<Arg> or (not static_index_value<I>) or
     (static_index_value_of_v<I> < row_dimension_of_v<Arg>)
-  constexpr dimension_size_of_index_is<0, 1> decltype(auto)
+  constexpr vector<1> decltype(auto)
 #else
   template<typename Arg, typename I, std::enable_if_t<indexible<Arg> and index_value<I> and
     (dynamic_rows<Arg> or not static_index_value<I> or (static_index_value_of<I>::value < row_dimension_of<Arg>::value)), int> = 0>
@@ -269,7 +269,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<indexible Arg, index_value I> requires dynamic_columns<Arg> or (not static_index_value<I>) or
     (static_index_value_of_v<I> < column_dimension_of_v<Arg>)
-  constexpr dimension_size_of_index_is<1, 1> decltype(auto)
+  constexpr vector<0> decltype(auto)
 #else
   template<typename Arg, typename I, std::enable_if_t<indexible<Arg> and index_value<I> and
     (dynamic_columns<Arg> or not static_index_value<I> or (static_index_value_of<I>::value < column_dimension_of<Arg>::value)), int> = 0>

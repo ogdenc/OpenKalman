@@ -134,12 +134,12 @@ namespace OpenKalman
      * M is assumed (without enforcement) to be self-adjoint, and the data in only one of the triangles is significant.
      */
 #ifdef __cpp_concepts
-    template<typed_matrix M> requires (square_matrix<M> or (diagonal_matrix<NestedMatrix> and dimension_size_of_index_is<M, 1, 1>)) and
+    template<typed_matrix M> requires (square_matrix<M> or (diagonal_matrix<NestedMatrix> and vector<M>)) and
       equivalent_to<row_index_descriptor_of_t<M>, TypedIndex> and
       requires(M&& m) { Base {oin::to_covariance_nestable<NestedSelfAdjoint>(std::forward<M>(m))}; }
 #else
     template<typename M, std::enable_if_t<typed_matrix<M> and
-      (square_matrix<M> or (diagonal_matrix<NestedMatrix> and dimension_size_of_index_is<M, 1, 1>)) and
+      (square_matrix<M> or (diagonal_matrix<NestedMatrix> and vector<M>)) and
       equivalent_to<row_index_descriptor_of_t<M>, TypedIndex> and
       std::is_constructible_v<Base,
         decltype(oin::to_covariance_nestable<NestedSelfAdjoint>(std::declval<M&&>()))>, int> = 0>
@@ -156,12 +156,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix_nestable M> requires (not covariance_nestable<M>) and
-      (square_matrix<M> or (diagonal_matrix<NestedMatrix> and dimension_size_of_index_is<M, 1, 1>)) and
+      (square_matrix<M> or (diagonal_matrix<NestedMatrix> and vector<M>)) and
       requires(M&& m) { Base {oin::to_covariance_nestable<NestedSelfAdjoint>(std::forward<M>(m))};
       }
 #else
     template<typename M, std::enable_if_t<typed_matrix_nestable<M> and (not covariance_nestable<M>) and
-      (square_matrix<M> or (diagonal_matrix<NestedMatrix> and dimension_size_of_index_is<M, 1, 1>)) and
+      (square_matrix<M> or (diagonal_matrix<NestedMatrix> and vector<M>)) and
       std::is_constructible_v<Base,
         decltype(oin::to_covariance_nestable<NestedSelfAdjoint>(std::declval<M&&>()))>, int> = 0>
 #endif
@@ -178,7 +178,7 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<std::convertible_to<const Scalar> ... Args> requires (sizeof...(Args) > 0) and
-      requires(Args ... args) { Base {MatrixTraits<std::decay_t<NestedSelfAdjoint>>::make(static_cast<const Scalar>(args)...)};
+      requires(Args ... args) { Base {make_dense_writable_matrix_from<NestedSelfAdjoint>(static_cast<const Scalar>(args)...)};
       }
 #else
     template<typename ... Args, std::enable_if_t<(std::is_convertible_v<Args, const Scalar> and ...) and
@@ -186,7 +186,7 @@ namespace OpenKalman
         (sizeof...(Args) == dim * dim)) and std::is_constructible_v<Base, NestedSelfAdjoint&&>, int> = 0>
 #endif
     Covariance(Args ... args)
-      : Base {MatrixTraits<std::decay_t<NestedSelfAdjoint>>::make(static_cast<const Scalar>(args)...)} {}
+      : Base {make_dense_writable_matrix_from<NestedSelfAdjoint>(static_cast<const Scalar>(args)...)} {}
 
 
     // ---------------------- //
@@ -626,8 +626,8 @@ namespace OpenKalman
       if (synchronization_direction() < 0) synchronize_reverse();
       if constexpr (one_by_one_matrix<NestedMatrix>)
       {
-        auto b = trace(nested_matrix()) + alpha * trace(u * adjoint(u));
-        return make(MatrixTraits<std::decay_t<NestedMatrix>>::make(b));
+        std::tuple d_tup {Dimensions<1>{}, Dimensions<1>{}};
+        return make_dense_writable_matrix_from<NestedMatrix>(d_tup, trace(nested_matrix()) + alpha * trace(u * adjoint(u)));
       }
       else
       {

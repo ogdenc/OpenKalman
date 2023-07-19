@@ -43,7 +43,7 @@ namespace OpenKalman
       static_assert(gaussian_distribution<XDistribution>);
       static_assert(gaussian_distribution<YDistribution>);
       static_assert(typed_matrix<CrossCovariance>);
-      static_assert(typed_matrix<Measurement> and dimension_size_of_index_is<Measurement, 1, 1>);
+      static_assert(typed_matrix<Measurement> and vector<Measurement>);
       static_assert(equivalent_to<row_index_descriptor_of_t<Measurement>,
         typename DistributionTraits<YDistribution>::TypedIndex>);
       static_assert(equivalent_to<row_index_descriptor_of_t<CrossCovariance>,
