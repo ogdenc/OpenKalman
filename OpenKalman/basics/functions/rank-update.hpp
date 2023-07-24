@@ -19,8 +19,6 @@
 
 namespace OpenKalman
 {
-  using namespace interface;
-
   namespace detail
   {
     template<typename U, typename A>
@@ -127,14 +125,14 @@ namespace OpenKalman
     else if constexpr (hermitian_adapter<A>)
     {
       decltype(auto) aw = detail::get_writable_square<U>(nested_matrix(std::forward<A>(a)));
-      using Trait = interface::LinearAlgebra<std::decay_t<decltype(aw)>>;
+      using Trait = interface::LibraryRoutines<std::decay_t<decltype(aw)>>;
       decltype(auto) ret = Trait::template rank_update_self_adjoint<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
       return make_hermitian_matrix<t>(std::forward<decltype(ret)>(ret));
     }
     else // hermitian_matrix but not hermitian_adapter
     {
       decltype(auto) aw = detail::get_writable_square<U>(std::forward<A>(a));
-      using Trait = interface::LinearAlgebra<std::decay_t<decltype(aw)>>;
+      using Trait = interface::LibraryRoutines<std::decay_t<decltype(aw)>>;
       decltype(auto) ret = Trait::template rank_update_self_adjoint<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
       return make_hermitian_matrix<t>(std::forward<decltype(ret)>(ret));
     }
@@ -233,7 +231,7 @@ namespace OpenKalman
       }(std::forward<A>(a));
 
       decltype(auto) aw = detail::get_writable_square<U>(std::forward<decltype(an)>(an));
-      using Trait = interface::LinearAlgebra<std::decay_t<decltype(aw)>>;
+      using Trait = interface::LibraryRoutines<std::decay_t<decltype(aw)>>;
       decltype(auto) ret = Trait::template rank_update_triangular<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
       return make_triangular_matrix<t>(std::forward<decltype(ret)>(ret));
     }

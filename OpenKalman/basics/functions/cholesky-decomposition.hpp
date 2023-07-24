@@ -49,7 +49,7 @@ namespace OpenKalman
       constexpr auto triangle_type = triangle_type_of_v<A>;
       auto prod {make_dense_writable_matrix_from(OpenKalman::adjoint(a))};
       constexpr bool on_the_right = triangular_matrix<A, TriangleType::upper>;
-      interface::LinearAlgebra<std::decay_t<A>>::template contract_in_place<on_the_right>(prod, std::forward<A>(a));
+      interface::LibraryRoutines<std::decay_t<A>>::template contract_in_place<on_the_right>(prod, std::forward<A>(a));
       return SelfAdjointMatrix<decltype(prod), triangle_type> {std::move(prod)};
     }
   }
@@ -124,7 +124,7 @@ namespace OpenKalman
     }
     else
     {
-      return interface::LinearAlgebra<std::decay_t<A>>::template cholesky_factor<triangle_type>(std::forward<A>(a));
+      return interface::LibraryRoutines<std::decay_t<A>>::template cholesky_factor<triangle_type>(std::forward<A>(a));
     }
   }
 

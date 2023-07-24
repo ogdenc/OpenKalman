@@ -20,11 +20,8 @@
 
 namespace OpenKalman::Eigen3
 {
-  namespace EGI = Eigen::internal;
-
-
   template<typename Scalar, typename PlainObjectType>
-  struct FunctorTraits<EGI::scalar_identity_op<Scalar>, PlainObjectType>
+  struct FunctorTraits<Eigen::internal::scalar_identity_op<Scalar>, PlainObjectType>
   {
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -42,7 +39,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename PlainObjectType>
-  struct FunctorTraits<EGI::linspaced_op<Scalar>, PlainObjectType>
+  struct FunctorTraits<Eigen::internal::linspaced_op<Scalar>, PlainObjectType>
   {
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg) { return std::monostate {}; }
@@ -55,7 +52,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename PlainObjectType>
-  struct FunctorTraits<EGI::scalar_constant_op<Scalar>, PlainObjectType>
+  struct FunctorTraits<Eigen::internal::scalar_constant_op<Scalar>, PlainObjectType>
   {
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)

@@ -33,16 +33,32 @@ namespace OpenKalman::internal
 
 
     /**
-     * \brief Construct by moving from compatible indexible object.
+     * \brief Construct from compatible indexible object.
      */
 #ifdef __cpp_concepts
     template<compatible_with_index_descriptors<IndexDescriptors...> Arg>
-      requires std::constructible_from<NestedMatrix, Arg&&>
+      requires (not std::derived_from<std::decay_t<Arg>, FixedSizeAdapter>) and std::constructible_from<NestedMatrix, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<compatible_with_index_descriptors<Arg, IndexDescriptors...> and
-      std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
+    template<typename Arg, std::enable_if_t<(not std::is_base_of_v<FixedSizeAdapter, std::decay_t<Arg>>) and
+      compatible_with_index_descriptors<Arg, IndexDescriptors...> and std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
     explicit FixedSizeAdapter(Arg&& arg) noexcept : m_arg {std::forward<Arg>(arg)} {}
+
+
+    /**
+     * \brief Construct from compatible indexible object based on a set of fixed index descriptors.
+     */
+#ifdef __cpp_concepts
+    template<compatible_with_index_descriptors<IndexDescriptors...> Arg, fixed_index_descriptor...Ids>
+      requires (... and (dynamic_index_descriptor<IndexDescriptors> or equivalent_to<Ids, IndexDescriptors>)) and
+      std::constructible_from<NestedMatrix, Arg&&>
+#else
+    template<typename Arg, typename...Ids, std::enable_if_t<
+      compatible_with_index_descriptors<Arg, IndexDescriptors...> and (... and fixed_index_descriptor<Ids>) and
+      (... and (dynamic_index_descriptor<IndexDescriptors> or equivalent_to<Ids, IndexDescriptors>)) and
+      std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
+#endif
+    FixedSizeAdapter(Arg&& arg, const Ids&...ids) noexcept : m_arg {std::forward<Arg>(arg)} {}
 
 
     /**
@@ -118,6 +134,18 @@ namespace OpenKalman::internal
   };
 
 
+  // ------------------------------- //
+  //        Deduction Guide         //
+  // ------------------------------- //
+
+#ifdef __cpp_concepts
+    template<indexible Arg, fixed_index_descriptor...Ids>
+#else
+    template<typename Arg, typename...Ids, std::enable_if_t<indexible<Arg> and (... and fixed_index_descriptor<Ids>), int> = 0>
+#endif
+    FixedSizeAdapter(Arg&& arg, const Ids&...ids) -> FixedSizeAdapter<std::remove_reference_t<Arg>, Ids...>;
+
+
 } // namespace OpenKalman::internal
 
 
@@ -127,59 +155,19 @@ namespace OpenKalman::internal
 
 namespace OpenKalman::interface
 {
-  template<typename NestedMatrix, typename IndexDescriptor, typename...IndexDescriptors>
-  struct IndexTraits<internal::FixedSizeAdapter<NestedMatrix, IndexDescriptor, IndexDescriptors...>>
+  template<typename NestedMatrix, typename...IndexDescriptors>
+  struct IndexibleObjectTraits<internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>>
   {
-    static constexpr std::size_t max_indices = 1 + sizeof...(IndexDescriptors);
+    static constexpr std::size_t max_indices = sizeof...(IndexDescriptors);
 
     template<std::size_t N, typename Arg>
     static constexpr auto get_index_descriptor(const Arg& arg)
     {
-      using ID = std::tuple_element_t<N, std::tuple<IndexDescriptor, IndexDescriptors...>>;
+      using ID = std::tuple_element_t<N, std::tuple<IndexDescriptors...>>;
       if constexpr (fixed_index_descriptor<ID>) return ID {};
       else return OpenKalman::get_index_descriptor<N>(arg.nested_matrix());
     }
-  };
 
-
-  template<typename NestedMatrix, typename...IndexDescriptors>
-  struct Elements<internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>>
-  {
-    using scalar_type = scalar_type_of_t<NestedMatrix>;
-
-#ifdef __cpp_lib_concepts
-    template<typename Arg, typename...I> requires element_gettable<nested_matrix_of_t<Arg>, sizeof...(I)>
-#else
-    template<typename Arg, typename...I, std::enable_if_t<element_gettable<typename nested_matrix_of<Arg>::type, sizeof...(I)>, int> = 0>
-#endif
-    static constexpr decltype(auto) get(Arg&& arg, I...i)
-    {
-      return get_element(std::forward<Arg>(arg).nested_matrix(), i...);
-    }
-  };
-
-
-  template<typename NestedMatrix, typename...IndexDescriptors>
-  struct EquivalentDenseWritableMatrix<internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>>
-    : EquivalentDenseWritableMatrix<NestedMatrix>
-  {
-    template<typename Arg>
-    static decltype(auto) convert(Arg&& arg)
-    {
-      return make_dense_writable_matrix_from(std::forward<Arg>(arg).nested_matrix());
-    }
-
-    template<typename Arg>
-    static decltype(auto) to_native_matrix(Arg&& arg)
-    {
-      return OpenKalman::to_native_matrix<NestedMatrix>(std::forward<Arg>(arg).nested_matrix());
-    }
-  };
-
-
-  template<typename NestedMatrix, typename...IndexDescriptors>
-  struct Dependencies<internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>>
-  {
     static constexpr bool has_runtime_parameters = false;
 
     using type = std::tuple<NestedMatrix>;
@@ -196,43 +184,48 @@ namespace OpenKalman::interface
     {
       return make_self_contained(std::forward<Arg>(arg).nested_matrix());
     }
-  };
 
+  private:
 
-  template<typename NestedMatrix, typename...IndexDescriptors>
-  struct SingleConstantMatrixTraits<internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>>
-    : SingleConstantMatrixTraits<NestedMatrix> {};
+    static constexpr bool maybe_1x1 =
+      ((dynamic_index_descriptor<IndexDescriptors> or dimension_size_of_v<IndexDescriptors> == 1) and ...);
 
+  public:
 
-  template<typename NestedMatrix, typename...IndexDescriptors>
-  struct SingleConstant<internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>>
-    : SingleConstant<NestedMatrix>
-  {
-    SingleConstant(const internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>& arg)
-      : SingleConstant<std::decay_t<NestedMatrix>> {arg.nested_matrix()} {};
-  };
+    template<typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
+    {
+      if constexpr (constant_matrix<NestedMatrix, CompileTimeStatus::any, Likelihood::maybe> and
+          (constant_matrix<NestedMatrix> or maybe_1x1))
+        return constant_coefficient{arg.nested_matrix()};
+      else
+        return std::monostate {};
+    }
 
+    template<typename Arg>
+    static constexpr auto get_constant_diagonal(const Arg& arg)
+    {
+      if constexpr (constant_diagonal_matrix<NestedMatrix, CompileTimeStatus::any, Likelihood::maybe> and
+          (constant_diagonal_matrix<NestedMatrix> or maybe_1x1))
+        return constant_diagonal_coefficient {arg.nested_matrix()};
+      else
+        return std::monostate {};
+    }
 
-  template<typename NestedMatrix, typename...IndexDescriptors>
-  struct SingleConstantDiagonalMatrixTraits<internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>>
-    : SingleConstantDiagonalMatrixTraits<NestedMatrix> {};
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = triangular_matrix<NestedMatrix, t, b>;
 
-
-  template<typename NestedMatrix, typename...IndexDescriptors>
-  struct TriangularTraits<internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>>
-    : TriangularTraits<NestedMatrix>
-  {
     static constexpr bool is_triangular_adapter = false;
 
     template<Likelihood b>
     static constexpr bool is_diagonal_adapter = false;
 
-  };
+    template<TriangleType t, typename Arg>
+    static constexpr auto make_triangular_matrix(Arg&& arg)
+    {
+      return make_triangular_matrix<NestedMatrix>(std::forward<Arg>(arg));
+    }
 
-
-  template<typename NestedMatrix, typename...IndexDescriptors>
-  struct HermitianTraits<internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>>
-  {
     static constexpr bool is_hermitian = hermitian_matrix<NestedMatrix, Likelihood::maybe>;
 
     template<HermitianAdapterType t, typename Arg>
@@ -240,12 +233,59 @@ namespace OpenKalman::interface
     {
       return make_hermitian_matrix<t>(std::forward<Arg>(arg).nested_matrix());
     }
+
+    using scalar_type = scalar_type_of_t<NestedMatrix>;
+
+#ifdef __cpp_lib_concepts
+    template<typename Arg, typename...I> requires element_gettable<decltype(std::declval<Arg&&>().nested_matrix()), sizeof...(I)>
+#else
+    template<typename Arg, typename...I, std::enable_if_t<element_gettable<decltype(std::declval<Arg&&>().nested_matrix()), sizeof...(I)>, int> = 0>
+#endif
+    static constexpr decltype(auto) get(Arg&& arg, I...i)
+    {
+      return get_element(std::forward<Arg>(arg).nested_matrix(), i...);
+    }
+
+
+#ifdef __cpp_lib_concepts
+    template<typename Arg, typename...I> requires element_settable<decltype(std::declval<Arg&>().nested_matrix()), sizeof...(I)>
+#else
+    template<typename Arg, typename...I, std::enable_if_t<element_settable<decltype(std::declval<Arg&>().nested_matrix()), sizeof...(I)>, int> = 0>
+#endif
+    static constexpr void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
+    {
+      arg.set_element(arg.nested_matrix(), s, i...);
+    }
   };
 
 
   template<typename NestedMatrix, typename...IndexDescriptors>
-  struct Subsets<internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>>
+  struct LibraryRoutines<internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>>
   {
+    template<typename Scalar, typename Arg>
+    static decltype(auto) convert(Arg&& arg)
+    {
+      return make_dense_writable_matrix_from<Scalar>(std::forward<Arg>(arg).nested_matrix());
+    }
+
+    template<typename Arg>
+    static decltype(auto) to_native_matrix(Arg&& arg)
+    {
+      return OpenKalman::to_native_matrix<NestedMatrix>(std::forward<Arg>(arg).nested_matrix());
+    }
+
+    template<typename C, typename...D>
+    static constexpr auto make_constant_matrix(C&& c, D&&...d)
+    {
+      return make_constant_matrix_like<NestedMatrix>(std::forward<C>(c), std::forward<D>(d)...);
+    }
+
+    template<typename Scalar, typename D>
+    static constexpr auto make_identity_matrix(D&& d)
+    {
+      return make_identity_matrix_like<NestedMatrix, Scalar>(std::forward<D>(d));
+    }
+
     template<typename Arg, typename...Begin, typename...Size>
     static decltype(auto) get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
     {
@@ -263,12 +303,7 @@ namespace OpenKalman::interface
     {
       return OpenKalman::internal::set_triangle<t>(std::forward<A>(a).nested_matrix(), std::forward<B>(b));
     }
-  };
 
-
-  template<typename NestedMatrix, typename...IndexDescriptors>
-  struct Conversions<internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>>
-  {
     template<typename Arg>
     static constexpr decltype(auto) to_diagonal(Arg&& arg)
     {
@@ -280,47 +315,37 @@ namespace OpenKalman::interface
     {
       return OpenKalman::diagonal_of(std::forward<Arg>(arg).nested_matrix());
     }
-  };
 
-
-  template<typename NestedMatrix, typename...IndexDescriptors>
-  struct ArrayOperations<internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>>
-  {
     template<typename...Ds, typename Operation, typename...Args>
     static auto n_ary_operation(const std::tuple<Ds...>& d_tup, Operation&& op)
     {
-      return ArrayOperations<NestedMatrix>::n_ary_operation(d_tup, std::forward<Operation>(op));
+      return LibraryRoutines<NestedMatrix>::n_ary_operation(d_tup, std::forward<Operation>(op));
     }
 
     template<typename...Ds, typename Operation, typename Arg, typename...Args>
     static auto n_ary_operation(const std::tuple<Ds...>& d_tup, Operation&& op, Arg&& arg, Args&&...args)
     {
-      return ArrayOperations<NestedMatrix>::n_ary_operation(d_tup, std::forward<Operation>(op), std::forward<Arg>(arg).nested_matrix(), std::forward<Args>(args)...);
+      return LibraryRoutines<NestedMatrix>::n_ary_operation(d_tup, std::forward<Operation>(op), std::forward<Arg>(arg).nested_matrix(), std::forward<Args>(args)...);
     }
 
     template<typename...Ds, typename Operation, typename Arg, typename...Args>
     static auto n_ary_operation_with_indices(const std::tuple<Ds...>& d_tup, Operation&& op)
     {
-      return ArrayOperations<NestedMatrix>::n_ary_operation_with_indices(d_tup, std::forward<Operation>(op));
+      return LibraryRoutines<NestedMatrix>::n_ary_operation_with_indices(d_tup, std::forward<Operation>(op));
     }
 
     template<typename...Ds, typename Operation, typename Arg, typename...Args>
     static auto n_ary_operation_with_indices(const std::tuple<Ds...>& d_tup, Operation&& op, Arg&& arg, Args&&...args)
     {
-      return ArrayOperations<NestedMatrix>::n_ary_operation_with_indices(d_tup, std::forward<Operation>(op), std::forward<Arg>(arg).nested_matrix(), std::forward<Args>(args)...);
+      return LibraryRoutines<NestedMatrix>::n_ary_operation_with_indices(d_tup, std::forward<Operation>(op), std::forward<Arg>(arg).nested_matrix(), std::forward<Args>(args)...);
     }
 
     template<std::size_t...indices, typename BinaryFunction, typename Arg>
     static constexpr decltype(auto) reduce(BinaryFunction&& b, Arg&& arg)
     {
-      return ArrayOperations<NestedMatrix>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg).nested_matrix());
+      return LibraryRoutines<NestedMatrix>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg).nested_matrix());
     }
-  };
 
-
-  template<typename NestedMatrix, typename...IndexDescriptors>
-  struct ModularTransformationTraits<internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>>
-  {
     template<typename Arg, typename C>
     constexpr decltype(auto) to_euclidean(Arg&& arg, const C& c)
     {
@@ -338,12 +363,7 @@ namespace OpenKalman::interface
     {
       return wrap_angles(std::forward<Arg>(arg).nested_matrix(), c);
     }
-  };
 
-
-  template<typename NestedMatrix, typename...IndexDescriptors>
-  struct LinearAlgebra<internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>>
-  {
     template<typename Arg>
     static constexpr auto conjugate(Arg&& arg) { return OpenKalman::conjugate(std::forward<Arg>(arg).nested_matrix()); }
 

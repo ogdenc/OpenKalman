@@ -20,17 +20,16 @@
 
 namespace OpenKalman::interface
 {
-  namespace EGI = Eigen::internal;
-
-
   template<typename BinaryOp, typename LhsType, typename RhsType>
-#ifdef __cpp_concepts
-  struct IndexTraits<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>
-#else
-  struct IndexTraits<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>, std::enable_if_t<
-    Eigen3::native_eigen_general<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>>>
-#endif
+  struct IndexibleObjectTraits<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>
   {
+  private:
+
+    using T = Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>;
+
+  public:
+
     static constexpr std::size_t max_indices = std::max({max_indices_of_v<LhsType>, max_indices_of_v<RhsType>});
 
     template<std::size_t N, typename Arg>
@@ -52,17 +51,6 @@ namespace OpenKalman::interface
       square_matrix<LhsType, Likelihood::maybe> and square_matrix<RhsType, Likelihood::maybe> and
       (b != Likelihood::definitely or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>> or
         square_matrix<LhsType, b> or square_matrix<RhsType, b>);
-  };
-
-
-  template<typename BinaryOp, typename LhsType, typename RhsType>
-  struct Dependencies<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>
-  {
-  private:
-
-    using T = Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>;
-
-  public:
 
     static constexpr bool has_runtime_parameters = false;
     using type = std::tuple<typename T::LhsNested, typename T::RhsNested>;
@@ -96,39 +84,24 @@ namespace OpenKalman::interface
         return make_dense_writable_matrix_from(std::forward<Arg>(arg));
       }
     }
-  };
 
-
-  template<typename BinaryOp, typename LhsType, typename RhsType>
-  struct SingleConstant<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>
-  {
-    const Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>& xpr;
-
-    constexpr auto get_constant()
+    template<typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
     {
-      return Eigen3::FunctorTraits<BinaryOp, LhsType, RhsType>::template get_constant<false>(xpr);
+      return Eigen3::FunctorTraits<BinaryOp, LhsType, RhsType>::template get_constant<false>(arg);
     }
 
-    constexpr auto get_constant_diagonal()
+    template<typename Arg>
+    static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return Eigen3::FunctorTraits<BinaryOp, LhsType, RhsType>::template get_constant<true>(xpr);
+      return Eigen3::FunctorTraits<BinaryOp, LhsType, RhsType>::template get_constant<true>(arg);
     }
-  };
 
-
-  template<typename BinaryOp, typename LhsType, typename RhsType>
-  struct TriangularTraits<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>
-  {
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = Eigen3::FunctorTraits<BinaryOp, LhsType, RhsType>::template is_triangular<t, b>;
 
     static constexpr bool is_triangular_adapter = false;
-  };
 
-
-  template<typename BinaryOp, typename LhsType, typename RhsType>
-  struct HermitianTraits<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>>
-  {
     static constexpr bool is_hermitian = Eigen3::FunctorTraits<BinaryOp, LhsType, RhsType>::is_hermitian;
   };
 

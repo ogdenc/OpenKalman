@@ -482,7 +482,7 @@ namespace OpenKalman
   namespace interface
   {
     template<typename RowCoeffs, typename ColCoeffs, typename NestedMatrix>
-    struct IndexTraits<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>>
+    struct IndexibleObjectTraits<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>>
     {
       static constexpr std::size_t max_indices = 2;
 
@@ -494,6 +494,74 @@ namespace OpenKalman
 
       template<Likelihood b>
       static constexpr bool is_one_by_one = one_by_one_matrix<NestedMatrix, b>;
+
+      static constexpr bool has_runtime_parameters = false;
+
+      using type = std::tuple<NestedMatrix>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).nested_matrix();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        auto n = make_self_contained(std::forward<Arg>(arg).nested_matrix());
+        return Matrix<RowCoeffs, ColCoeffs, decltype(n)> {std::move(n)};
+      }
+
+      template<typename Arg>
+      static constexpr auto get_constant(const Arg& arg)
+      {
+        return constant_coefficient{arg.nestedExpression()};
+      }
+
+      template<typename Arg>
+      static constexpr auto get_constant_diagonal(const Arg& arg)
+      {
+        if constexpr (euclidean_index_descriptor<RowCoeffs> and euclidean_index_descriptor<ColCoeffs>)
+          return constant_diagonal_coefficient {arg.nestedExpression()};
+        else
+          return std::monostate {};
+      }
+
+      template<TriangleType t, Likelihood b>
+      static constexpr bool is_triangular = equivalent_to<RowCoeffs, ColCoeffs> and triangular_matrix<NestedMatrix, t, b>;
+
+      static constexpr bool is_triangular_adapter = false;
+
+      static constexpr bool is_hermitian = equivalent_to<RowCoeffs, ColCoeffs> and hermitian_matrix<NestedMatrix>;
+
+
+      using scalar_type = scalar_type_of_t<NestedMatrix>;
+
+  #ifdef __cpp_lib_concepts
+      template<typename Arg, typename...I> requires element_gettable<nested_matrix_of_t<Arg&&>, sizeof...(I)>
+  #else
+      template<typename Arg, typename...I, std::enable_if_t<element_gettable<typename nested_matrix_of<Arg&&>::type, sizeof...(I)>, int> = 0>
+  #endif
+      static constexpr decltype(auto) get(Arg&& arg, I...i)
+      {
+        return get_element(nested_matrix(std::forward<Arg>(arg)), i...);
+      }
+
+
+  #ifdef __cpp_lib_concepts
+      template<typename Arg, typename I, typename...Is> requires element_settable<nested_matrix_of_t<Arg&>, 1 + sizeof...(Is)>
+  #else
+      template<typename Arg, typename I, typename...Is, std::enable_if_t<element_settable<typename nested_matrix_of<Arg&>::type, 1 + sizeof...(Is)>, int> = 0>
+  #endif
+      static constexpr void set(Arg& arg, const scalar_type_of_t<Arg>& s, I i, Is...is)
+      {
+        set_element(nested_matrix(arg), s, i, is...);
+      }
+
+
+      static constexpr bool is_writable = LibraryRoutines<std::decay_t<NestedMatrix>>::is_writable;
+
     };
 
   } // namespace interface

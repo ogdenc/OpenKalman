@@ -22,8 +22,15 @@
 namespace OpenKalman::interface
 {
   template<typename XprType>
-  struct IndexTraits<Eigen::MatrixWrapper<XprType>>
+  struct IndexibleObjectTraits<Eigen::MatrixWrapper<XprType>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::MatrixWrapper<XprType>>
   {
+  private:
+
+    using NestedXpr = typename Eigen::MatrixWrapper<XprType>::NestedExpressionType;
+
+  public:
+
     static constexpr std::size_t max_indices = max_indices_of_v<XprType>;
 
     template<std::size_t N, typename Arg>
@@ -37,19 +44,9 @@ namespace OpenKalman::interface
 
     template<Likelihood b>
     static constexpr bool is_square = square_matrix<XprType, b>;
-  };
-
-
-  template<typename XprType>
-  struct Dependencies<Eigen::MatrixWrapper<XprType>>
-  {
-  private:
-
-    using NestedXpr = typename Eigen::MatrixWrapper<XprType>::NestedExpressionType;
-
-  public:
 
     static constexpr bool has_runtime_parameters = false;
+
     using type = std::tuple<NestedXpr>;
 
     template<std::size_t i, typename Arg>
@@ -71,47 +68,27 @@ namespace OpenKalman::interface
       else
         return make_dense_writable_matrix_from(std::forward<Arg>(arg));
     }
-  };
 
+    template<typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
+    {
+      return constant_coefficient{arg.nestedExpression()};
+    }
 
-  template<typename XprType>
-  struct SingleConstant<Eigen::MatrixWrapper<XprType>> : SingleConstant<std::decay_t<XprType>>
-  {
-    SingleConstant(const Eigen::MatrixWrapper<XprType>& xpr) :
-      SingleConstant<std::decay_t<XprType>> {xpr.nestedExpression()} {};
-  };
+    template<typename Arg>
+    static constexpr auto get_constant_diagonal(const Arg& arg)
+    {
+      return constant_diagonal_coefficient {arg.nestedExpression()};
+    }
 
-
-  template<typename XprType>
-  struct TriangularTraits<Eigen::MatrixWrapper<XprType>>
-  {
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
     static constexpr bool is_triangular_adapter = false;
-  };
 
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
 
-#ifdef __cpp_concepts
-  template<hermitian_matrix<Likelihood::maybe> XprType>
-  struct HermitianTraits<Eigen::MatrixWrapper<XprType>>
-#else
-  template<typename XprType>
-  struct HermitianTraits<Eigen::MatrixWrapper<XprType>, std::enable_if_t<hermitian_matrix<XprType, Likelihood::maybe>>>
-#endif
-  {
-    static constexpr bool is_hermitian = true;
-  };
-
-
-  template<typename XprType>
-  struct Conversions<Eigen::MatrixWrapper<XprType>>
-  {
-    template<typename Arg>
-    static constexpr decltype(auto) to_diagonal(Arg&& arg) { return OpenKalman::to_diagonal(nested_matrix(std::forward<Arg>(arg))); }
-
-    template<typename Arg>
-    static constexpr decltype(auto) diagonal_of(Arg&& arg) { return OpenKalman::diagonal_of(nested_matrix(std::forward<Arg>(arg))); }
+    // make_hermitian_adapter(Arg&& arg) not defined
   };
 
 

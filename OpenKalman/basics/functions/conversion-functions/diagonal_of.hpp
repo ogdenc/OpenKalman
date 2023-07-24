@@ -35,7 +35,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<square_matrix<Likelihood::maybe> Arg>
-  constexpr vector<0> decltype(auto)
+  constexpr vector decltype(auto)
 #else
   template<typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe>, int> = 0>
   constexpr decltype(auto)
@@ -71,7 +71,7 @@ namespace OpenKalman
     }
     else
     {
-      return interface::Conversions<std::decay_t<Arg>>::diagonal_of(std::forward<Arg>(arg));
+      return interface::LibraryRoutines<std::decay_t<Arg>>::diagonal_of(std::forward<Arg>(arg));
     }
   }
 

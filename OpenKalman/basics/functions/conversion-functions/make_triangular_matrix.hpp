@@ -26,7 +26,7 @@ namespace OpenKalman
 
     template<typename T, TriangleType t>
     struct make_triangular_matrix_defined<T, t, std::void_t<
-      decltype(interface::TriangularTraits<std::decay_t<T>>::template make_triangular_matrix<t>(std::declval<T&&>()))>>
+      decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::template make_triangular_matrix<t>(std::declval<T&&>()))>>
       : std::true_type {};
   }
 #endif
@@ -48,7 +48,7 @@ namespace OpenKalman
 #endif
   make_triangular_matrix(Arg&& arg)
   {
-    using Traits = interface::TriangularTraits<std::decay_t<Arg>>;
+    using Traits = interface::IndexibleObjectTraits<std::decay_t<Arg>>;
 
     if constexpr (triangular_matrix<Arg, t>)
     {

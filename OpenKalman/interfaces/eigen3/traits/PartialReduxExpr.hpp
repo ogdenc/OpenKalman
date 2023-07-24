@@ -22,35 +22,6 @@
 namespace OpenKalman::interface
 {
 
-#ifndef __cpp_concepts
-  template<typename MatrixType, typename MemberOp, int Direction>
-  struct IndexTraits<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
-    : detail::IndexTraits_Eigen_default<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>> {};
-#endif
-
-
-  template<typename MatrixType, typename MemberOp, int Direction>
-  struct Dependencies<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
-  {
-    static constexpr bool has_runtime_parameters = false;
-
-    using type = std::tuple<typename MatrixType::Nested, const MemberOp>;
-
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
-    {
-      if constexpr (i == 0)
-        return std::forward<Arg>(arg).nestedExpression();
-      else
-        return std::forward<Arg>(arg).functor();
-      static_assert(i <= 1);
-    }
-
-    // If a partial redux expression needs to be partially evaluated, it's probably faster to do a full evaluation.
-    // Thus, we omit the conversion function.
-  };
-
-
   namespace detail
   {
     template<typename XprType>
@@ -189,15 +160,48 @@ namespace OpenKalman::interface
 
 
   template<typename MatrixType, typename MemberOp, int Direction>
-  struct SingleConstant<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
+  struct IndexibleObjectTraits<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
   {
-    const Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>& xpr;
+    static constexpr std::size_t max_indices = 2;
 
-    constexpr auto get_constant()
+    template<std::size_t N, typename Arg>
+    static constexpr auto get_index_descriptor(const Arg& arg)
+    {
+      using Xpr = Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>;
+      constexpr Eigen::Index dim = N == 0 ? Xpr::RowsAtCompileTime : Xpr::ColsAtCompileTime;
+
+      if constexpr (dim == Eigen::Dynamic)
+      {
+        if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
+        else return static_cast<std::size_t>(arg.cols());
+      }
+      else return Dimensions<dim>{};
+    }
+
+    static constexpr bool has_runtime_parameters = false;
+
+    using type = std::tuple<typename MatrixType::Nested, const MemberOp>;
+
+    template<std::size_t i, typename Arg>
+    static decltype(auto) get_nested_matrix(Arg&& arg)
+    {
+      if constexpr (i == 0)
+        return std::forward<Arg>(arg).nestedExpression();
+      else
+        return std::forward<Arg>(arg).functor();
+      static_assert(i <= 1);
+    }
+
+    // If a partial redux expression needs to be partially evaluated, it's probably faster to do a full evaluation.
+    // Thus, we omit the conversion function.
+
+    template<typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
     {
       // colwise (acting on columns) is Eigen::Vertical and rowwise (acting on rows) is Eigen::Horizontal
       constexpr std::size_t N = Direction == Eigen::Horizontal ? 1 : 0;
-      const auto& x {xpr.nestedExpression()};
+      const auto& x {arg.nestedExpression()};
       auto dim = internal::index_dimension_value_of<N>(x);
 
       return detail::get_PartialReduxExpr_constant<MemberOp, Direction>(x, dim);

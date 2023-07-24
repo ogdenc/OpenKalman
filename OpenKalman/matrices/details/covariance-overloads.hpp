@@ -15,9 +15,6 @@
 
 namespace OpenKalman
 {
-  namespace oin = OpenKalman::internal;
-
-
 #ifdef __cpp_concepts
   template<self_adjoint_covariance Arg>
 #else
@@ -41,134 +38,77 @@ namespace OpenKalman
     return std::forward<Arg>(arg).square();
   }
 
-} // namespace OpenKalman
-
-
-namespace OpenKalman::interface
-{
-
-#ifdef __cpp_concepts
-  template<covariance T>
-  struct Elements<T>
-#else
-  template<typename T>
-  struct Elements<T, std::enable_if_t<covariance<T>>>
-#endif
-  {
-    using scalar_type = scalar_type_of_t<nested_matrix_of_t<T>>;
-
-#ifdef __cpp_lib_concepts
-    template<typename Arg, typename...I> requires
-      (not self_adjoint_covariance<Arg> or element_gettable<decltype(std::declval<Arg&&>().get_self_adjoint_nested_matrix()), sizeof...(I)>) and
-      (not triangular_covariance<Arg> or element_gettable<decltype(std::declval<Arg&&>().get_triangular_nested_matrix()), sizeof...(I)>)
-#else
-    template<typename Arg, typename...I, std::enable_if_t<
-      (not self_adjoint_covariance<Arg> or element_gettable<decltype(std::declval<Arg&&>().get_self_adjoint_nested_matrix()), sizeof...(I)>) and
-      (not triangular_covariance<Arg> or element_gettable<decltype(std::declval<Arg&&>().get_triangular_nested_matrix()), sizeof...(I)>), int> = 0>
-#endif
-    static constexpr auto get(Arg&& arg, I...i)
-    {
-      return std::forward<Arg>(arg)(i...);
-    }
-
-
-#ifdef __cpp_lib_concepts
-    template<typename Arg, typename...I> requires
-      (not self_adjoint_covariance<Arg> or element_settable<decltype(std::declval<Arg&>().get_self_adjoint_nested_matrix()), sizeof...(I)>) and
-      (not triangular_covariance<Arg> or element_settable<decltype(std::declval<Arg&>().get_triangular_nested_matrix()), sizeof...(I)>)
-#else
-    template<typename Arg, typename...I, std::enable_if_t<
-      (not self_adjoint_covariance<Arg> or element_settable<decltype(std::declval<Arg&>().get_self_adjoint_nested_matrix()), sizeof...(I)>) and
-      (not triangular_covariance<Arg> or element_settable<decltype(std::declval<Arg&>().get_triangular_nested_matrix()), sizeof...(I)>), int> = 0>
-#endif
-    static constexpr void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
-    {
-      arg.set_element(s, i...);
-    }
-  };
-
-} // namespace OpenKalman::interface
-
-
-namespace OpenKalman
-{
 
   namespace interface
   {
 
 #ifdef __cpp_concepts
-  template<covariance T>
-  struct Subsets<T>
-#else
-  template<typename T>
-  struct Subsets<T, std::enable_if_t<covariance<T>>>
-#endif
-  {
-    // \todo Add come of this logic to global functions.
-
-    template<std::size_t...index, typename Arg, typename...runtime_index_t>
-    static constexpr decltype(auto)
-    column(Arg&& arg, runtime_index_t...i)
-    {
-      using RC = row_index_descriptor_of_t<Arg>;
-
-      if constexpr (has_uniform_dimension_type<column_index_descriptor_of_t<Arg>>)
-      {
-        using CC = typename uniform_dimension_type_of_t<column_index_descriptor_of_t<Arg>>;
-        return make_matrix<RC, CC>(column<index...>(to_covariance_nestable(std::forward<Arg>(arg)), i...));
-      }
-      else if constexpr (fixed_index_descriptor<column_index_descriptor_of_t<Arg>>)
-      {
-        static_assert(sizeof...(index) > 0);
-        using CC = column_index_descriptor_of_t<Arg>::template Select<index...>;
-        static_assert(dimension_size_of_v<CC> == 1);
-        return make_matrix<RC, CC>(column<index...>(to_covariance_nestable(std::forward<Arg>(arg))));
-      }
-      else
-      {
-        static_assert(dynamic_index_descriptor<column_index_descriptor_of_t<Arg>>);
-        using CC = column_index_descriptor_of_t<Arg>::template Select<index...>;
-        return make_matrix<RC, CC>(column(to_covariance_nestable(std::forward<Arg>(arg)), i...));
-      }
-    }
-
-
-    template<std::size_t...index, typename Arg, typename...runtime_index_t>
-    static constexpr decltype(auto)
-    row(Arg&& arg, runtime_index_t...i)
-    {
-      using CC = column_index_descriptor_of_t<Arg>;
-
-      if constexpr (has_uniform_dimension_type<row_index_descriptor_of_t<Arg>>)
-      {
-        using RC = typename uniform_dimension_type_of_t<row_index_descriptor_of_t<Arg>>;
-        return make_matrix<RC, CC>(column<index...>(to_covariance_nestable(std::forward<Arg>(arg)), i...));
-      }
-      else if constexpr (fixed_index_descriptor<row_index_descriptor_of_t<Arg>>)
-      {
-        static_assert(sizeof...(index) > 0);
-        using RC = row_index_descriptor_of_t<Arg>::template Select<index...>;
-        static_assert(dimension_size_of_v<RC> == 1);
-        return make_matrix<RC, CC>(column<index...>(to_covariance_nestable(std::forward<Arg>(arg))));
-      }
-      else
-      {
-        static_assert(dynamic_index_descriptor<row_index_descriptor_of_t<Arg>>);
-        using RC = row_index_descriptor_of_t<Arg>::template Select<index...>;
-        return make_matrix<RC, CC>(column<index...>(to_covariance_nestable(std::forward<Arg>(arg)), i...));
-      }
-    }
-  };
-
-
-#ifdef __cpp_concepts
     template<covariance T>
-    struct Conversions<T>
+    struct LibraryRoutines<T>
 #else
     template<typename T>
-    struct Conversions<T, std::enable_if_t<covariance<T>>>
+    struct linearAlgebra<T, std::enable_if_t<covariance<T>>>
 #endif
     {
+      template<typename Scalar, typename...D>
+      static auto make_default(D&&...d)
+      {
+        return LibraryRoutines<nested_matrix_of_t<T>>::template make_default<Scalar>(std::forward<D>(d)...);
+      }
+
+
+      template<typename Scalar, typename Arg>
+      static decltype(auto) convert(Arg&& arg)
+      {
+        using Trait = LibraryRoutines<nested_matrix_of_t<T>, Scalar>;
+        return Trait::template convert<Scalar>(OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg)));
+      }
+
+
+      template<typename Arg>
+      static decltype(auto) to_native_matrix(Arg&& arg)
+      {
+        return OpenKalman::to_native_matrix(
+          OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg))(std::forward<Arg>(arg)));
+      }
+
+      template<typename C, typename...D>
+      static constexpr auto make_constant_matrix(C&& c, D&&...d)
+      {
+        return make_constant_matrix_like<nested_matrix_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
+      }
+
+
+      template<typename Scalar, typename D>
+      static constexpr auto make_identity_matrix(D&& d)
+      {
+        return make_identity_matrix_like<nested_matrix_of_t<T>, Scalar>(std::forward<D>(d));
+      }
+
+
+      template<typename Arg, typename...Begin, typename...Size>
+      static decltype(auto) get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
+      {
+        /// \todo Properly wrap this
+        return OpenKalman::get_block(nested_matrix(std::forward<Arg>(arg)), begin, size);
+      };
+
+
+      template<typename Arg, typename Block, typename...Begin>
+      static Arg& set_block(Arg& arg, Block&& block, Begin...begin)
+      {
+        /// \todo Properly wrap this
+        return OpenKalman::set_block(nested_matrix(std::forward<Arg>(arg)), std::forward<Block>(block), begin...);
+      };
+
+
+      template<TriangleType t, typename A, typename B>
+      static decltype(auto) set_triangle(A&& a, B&& b)
+      {
+        /// \todo Properly wrap this
+        return OpenKalman::internal::set_triangle<t>(nested_matrix(std::forward<A>(a)), std::forward<B>(b));
+      }
+
 
       template<typename Arg>
       static auto
@@ -179,17 +119,6 @@ namespace OpenKalman
         return Matrix<C, Axis, decltype(b)>(std::move(b));
       }
 
-    };
-
-
-#ifdef __cpp_concepts
-    template<covariance T>
-    struct LinearAlgebra<T>
-#else
-    template<typename T>
-    struct linearAlgebra<T, std::enable_if_t<covariance<T>>>
-#endif
-    {
 
       template<typename Arg>
       static constexpr decltype(auto) conjugate(Arg&& arg) noexcept
@@ -514,6 +443,6 @@ namespace OpenKalman
   }
 
 
-}
+} // namespace OpenKalman
 
 #endif //OPENKALMAN_COVARIANCEOVERLOADS_HPP

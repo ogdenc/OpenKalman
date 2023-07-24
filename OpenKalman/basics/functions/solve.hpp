@@ -18,8 +18,6 @@
 
 namespace OpenKalman
 {
-  using namespace interface;
-
   namespace detail
   {
     template<typename A, typename B>
@@ -123,7 +121,7 @@ namespace OpenKalman
       }
       else //< The solution will be non-exact unless every row of b is identical.
       {
-        return interface::LinearAlgebra<std::decay_t<A>>::template solve<must_be_unique, must_be_exact>(
+        return interface::LibraryRoutines<std::decay_t<A>>::template solve<must_be_unique, must_be_exact>(
           std::forward<A>(a), std::forward<B>(b));
       }
     }
@@ -146,7 +144,7 @@ namespace OpenKalman
     }
     else
     {
-      return interface::LinearAlgebra<std::decay_t<A>>::template solve<must_be_unique, must_be_exact>(
+      return interface::LibraryRoutines<std::decay_t<A>>::template solve<must_be_unique, must_be_exact>(
         std::forward<A>(a), std::forward<B>(b));
     }
   }

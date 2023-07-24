@@ -18,8 +18,6 @@
 
 namespace OpenKalman
 {
-  using namespace interface;
-
   // ----------------- //
   //  n_ary_operation  //
   // ----------------- //
@@ -111,12 +109,12 @@ namespace OpenKalman
     template<typename T, typename DTup, typename Op, typename...Args>
 #ifdef __cpp_concepts
     requires requires(const DTup& d_tup, Op op, Args...args) {
-      interface::ArrayOperations<std::decay_t<T>>::n_ary_operation(d_tup, op, std::forward<Args>(args)...);
+      interface::LibraryRoutines<std::decay_t<T>>::n_ary_operation(d_tup, op, std::forward<Args>(args)...);
     }
     struct interface_defines_n_ary_operation<T, DTup, Op, Args...>
 #else
     struct interface_defines_n_ary_operation<T, DTup, Op, std::void_t<
-      decltype(interface::ArrayOperations<std::decay_t<T>>::n_ary_operation_with_indices(
+      decltype(interface::LibraryRoutines<std::decay_t<T>>::n_ary_operation_with_indices(
         std::declval<const DTup&>(), std::declval<const Op&>(), std::declval<Args>()...))>, Args...>
 #endif
       : std::true_type {};
@@ -133,12 +131,12 @@ namespace OpenKalman
     template<typename T, typename DTup, typename Op, typename...Args>
 #ifdef __cpp_concepts
     requires requires(const DTup& d_tup, const Op& op, Args...args) {
-      interface::ArrayOperations<std::decay_t<T>>::n_ary_operation_with_indices(d_tup, op, std::forward<Args>(args)...);
+      interface::LibraryRoutines<std::decay_t<T>>::n_ary_operation_with_indices(d_tup, op, std::forward<Args>(args)...);
     }
     struct interface_defines_n_ary_operation_with_indices<T, DTup, Op, Args...>
 #else
     struct interface_defines_n_ary_operation_with_indices<T, DTup, Op, std::void_t<
-      decltype(interface::ArrayOperations<std::decay_t<T>>::n_ary_operation_with_indices(
+      decltype(interface::LibraryRoutines<std::decay_t<T>>::n_ary_operation_with_indices(
         std::declval<const DTup&>(), std::declval<const Op&>(), std::declval<Args>()...))>, Args...>
 #endif
       : std::true_type {};
@@ -208,13 +206,13 @@ namespace OpenKalman
       else if constexpr (is_invocable_with_indices<Op&&, std::add_lvalue_reference_t<scalar_type_of_t<Args>>...>(seq) and
         detail::interface_defines_n_ary_operation_with_indices<PatternMatrix, std::tuple<Ds...>, Op&&, Args&&...>::value)
       {
-        using Trait = interface::ArrayOperations<std::decay_t<PatternMatrix>>;
+        using Trait = interface::LibraryRoutines<std::decay_t<PatternMatrix>>;
         return Trait::n_ary_operation_with_indices(d_tup, std::forward<Op>(op), std::forward<Args>(args)...);
       }
       else if constexpr (is_invocable_with_indices<Op&&, std::add_lvalue_reference_t<scalar_type_of_t<Args>>...>(seq) and
         detail::interface_defines_n_ary_operation<PatternMatrix, std::tuple<Ds...>, Op&&, Args&&...>::value)
       {
-        using Trait = interface::ArrayOperations<std::decay_t<PatternMatrix>>;
+        using Trait = interface::LibraryRoutines<std::decay_t<PatternMatrix>>;
         return Trait::n_ary_operation(d_tup, std::forward<Op>(op), std::forward<Args>(args)...);
       }*/
       else

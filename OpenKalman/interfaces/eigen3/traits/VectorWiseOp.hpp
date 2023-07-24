@@ -22,7 +22,7 @@
 namespace OpenKalman::interface
 {
   template<typename ExpressionType, int Direction>
-  struct IndexTraits<Eigen::VectorwiseOp<ExpressionType, Direction>>
+  struct IndexibleObjectTraits<Eigen::VectorwiseOp<ExpressionType, Direction>>
   {
     static constexpr std::size_t max_indices = max_indices_of_v<ExpressionType>;
 
@@ -37,23 +37,10 @@ namespace OpenKalman::interface
 
     template<Likelihood b>
     static constexpr bool is_square = square_matrix<ExpressionType, b>;
-  };
 
-
-  template<typename ExpressionType, int Direction>
-  struct Elements<Eigen::VectorwiseOp<ExpressionType, Direction>>
-  {
-    using scalar_type = scalar_type_of_t<ExpressionType>;
-
-    // No get or set defined.
-  };
-
-
-  template<typename ExpressionType, int Direction>
-  struct Dependencies<Eigen::VectorwiseOp<ExpressionType, Direction>>
-  {
     static constexpr bool has_runtime_parameters = false;
-    using type = std::tuple<typename ExpressionType::ExpressionTypeNested>;
+
+    using type = std::tuple<typename Eigen::VectorwiseOp<ExpressionType, Direction>::ExpressionTypeNested>;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -70,18 +57,16 @@ namespace OpenKalman::interface
         "This VectorWiseOp expression cannot be made self-contained");
       return N {make_self_contained(arg._expression())};
     }
-  };
 
-
-  template<typename ExpressionType, int Direction>
-  struct SingleConstant<Eigen::VectorwiseOp<ExpressionType, Direction>>
-  {
-    const Eigen::VectorwiseOp<ExpressionType, Direction>& xpr;
-
-    constexpr auto get_constant()
+    template<typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
     {
-      return constant_coefficient {xpr._expression()};
+      return constant_coefficient {arg._expression()};
     }
+
+    using scalar_type = scalar_type_of_t<ExpressionType>;
+
+    // No get or set defined.
   };
 
 } // namespace OpenKalman::interface

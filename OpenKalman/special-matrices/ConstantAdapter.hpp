@@ -297,7 +297,7 @@ namespace OpenKalman
       {
         auto c = to_native_matrix<PatternMatrix>(*this);
         static_assert(not std::is_same_v<decltype(c), ConstantAdapter>,
-          "interface::EquivalentDenseWritableMatrix<PatternMatrix>::to_native_matrix(*this) must define an object within the library of Arg");
+          "interface::LibraryRoutines<PatternMatrix>::to_native_matrix(*this) must define an object within the library of Arg");
         return std::move(c) == arg;
       }
     }
@@ -322,7 +322,7 @@ namespace OpenKalman
       {
         auto new_c = to_native_matrix<Arg>(c);
         static_assert(not std::is_same_v<decltype(new_c), ConstantAdapter>,
-          "interface::EquivalentDenseWritableMatrix<Arg>::to_native_matrix(c) must define an object within the library of Arg");
+          "interface::LibraryRoutines<Arg>::to_native_matrix(c) must define an object within the library of Arg");
         return arg == std::move(new_c);
       }
     }
@@ -404,7 +404,7 @@ namespace OpenKalman
     MyDimensions my_dimensions;
 
 
-    friend struct interface::IndexTraits<ConstantAdapter>;
+    friend struct interface::IndexibleObjectTraits<ConstantAdapter>;
 
   };
 
@@ -436,7 +436,7 @@ namespace OpenKalman
   namespace interface
   {
     template<typename PatternMatrix, typename Scalar, auto...constant>
-    struct IndexTraits<ConstantAdapter<PatternMatrix, Scalar, constant...>>
+    struct IndexibleObjectTraits<ConstantAdapter<PatternMatrix, Scalar, constant...>>
     {
       static constexpr std::size_t max_indices = max_indices_of_v<PatternMatrix>;
 
@@ -448,12 +448,14 @@ namespace OpenKalman
 
       template<Likelihood b>
       static constexpr bool is_one_by_one = one_by_one_matrix<PatternMatrix, b>;
-    };
 
+      static constexpr bool has_runtime_parameters = has_dynamic_dimensions<PatternMatrix>;
 
-    template<typename PatternMatrix, typename Scalar, auto...constant>
-    struct Elements<ConstantAdapter<PatternMatrix, Scalar, constant...>>
-    {
+      using type = std::tuple<>;
+
+      template<typename Arg>
+      static constexpr auto get_constant(const Arg& arg) { return arg.get_scalar_constant(); }
+
       using scalar_type = std::decay_t<decltype(get_scalar_constant_value(
         std::declval<ConstantAdapter<PatternMatrix, Scalar, constant...>>().get_scalar_constant()))>;
 
@@ -461,18 +463,24 @@ namespace OpenKalman
       static constexpr auto get(Arg&& arg, I...) { return constant_coefficient_v<Arg>; }
 
       // No set defined  because ConstantAdapter is not writable.
+
+      static constexpr bool is_writable = false;
     };
 
 
-    template<typename PatternMatrix, typename S, auto...constant, typename Scalar>
-    struct EquivalentDenseWritableMatrix<ConstantAdapter<PatternMatrix, S, constant...>, Scalar>
+    template<typename PatternMatrix, typename Scalar, auto...constant>
+    struct LibraryRoutines<ConstantAdapter<PatternMatrix, Scalar, constant...>>
     {
-      static constexpr bool is_writable = false;
-
-      template<typename...D>
+      template<typename S, typename...D>
       static auto make_default(D&&...d)
       {
-        return make_default_dense_writable_matrix_like<PatternMatrix, Scalar>(std::forward<D>(d)...);
+        return make_default_dense_writable_matrix_like<PatternMatrix, S>(std::forward<D>(d)...);
+      }
+
+      template<typename S, typename Arg>
+      static decltype(auto) convert(Arg&& arg)
+      {
+        return make_dense_writable_matrix_from<S>(OpenKalman::to_native_matrix<PatternMatrix>(std::forward<Arg>(arg)));
       }
 
       template<typename Arg>
@@ -481,91 +489,48 @@ namespace OpenKalman
         return OpenKalman::to_native_matrix<PatternMatrix>(std::forward<Arg>(arg));
       }
 
-      template<typename Arg>
-      static decltype(auto) convert(Arg&& arg)
-      {
-        return make_dense_writable_matrix_from(OpenKalman::to_native_matrix<PatternMatrix>(std::forward<Arg>(arg)));
-      }
-    };
-
-
-    template<typename PatternMatrix, typename Scalar, auto...constant>
-    struct Dependencies<ConstantAdapter<PatternMatrix, Scalar, constant...>>
-    {
-      static constexpr bool has_runtime_parameters = has_dynamic_dimensions<PatternMatrix>;
-      using type = std::tuple<>;
-    };
-
-
-    template<typename PatternMatrix, typename S, auto...constant, typename Scalar>
-    struct SingleConstantMatrixTraits<ConstantAdapter<PatternMatrix, S, constant...>, Scalar>
-    {
       template<typename C, typename...D>
       static constexpr auto make_constant_matrix(C&& c, D&&...d)
       {
         return make_constant_matrix_like<PatternMatrix>(std::forward<C>(c), std::forward<D>(d)...);
       }
-    };
 
-
-    template<typename PatternMatrix, typename Scalar, auto...cs>
-    struct SingleConstant<ConstantAdapter<PatternMatrix, Scalar, cs...>>
-    {
-      const ConstantAdapter<PatternMatrix, Scalar, cs...>& xpr;
-
-      constexpr auto get_constant() { return xpr.get_scalar_constant(); }
-    };
-
-
-    template<typename PatternMatrix, typename S, auto...constant, typename Scalar>
-    struct SingleConstantDiagonalMatrixTraits<ConstantAdapter<PatternMatrix, S, constant...>, Scalar>
-    {
-      template<typename D>
+      template<typename S, typename D>
       static constexpr auto make_identity_matrix(D&& d)
       {
-        return make_identity_matrix_like<PatternMatrix, Scalar>(std::forward<D>(d));
+        return make_identity_matrix_like<PatternMatrix, S>(std::forward<D>(d));
       }
-    };
 
+      // no get_block
+      // no set_block
+      // no set_triangle
+      // no to_diagonal
+      // no diagonal_of
 
-    // SingleConstantDiagonal not necessary because SingleConstant is defined
-    // TriangularTraits not necessary because SingleConstant is defined
-    // HermitianTraits not necessary because SingleConstant is defined
-
-
-    template<typename PatternMatrix, typename Scalar, auto...constant>
-    struct ArrayOperations<ConstantAdapter<PatternMatrix, Scalar, constant...>>
-    {
       template<typename...Ds, typename Op, typename...Args>
       static constexpr decltype(auto)
       n_ary_operation(const std::tuple<Ds...>& d_tup, Op&& op, Args&&...args)
       {
-        return ArrayOperations<PatternMatrix>::template n_ary_operation(d_tup, std::forward<Op>(op), std::forward<Args>(args)...);
+        return LibraryRoutines<PatternMatrix>::template n_ary_operation(d_tup, std::forward<Op>(op), std::forward<Args>(args)...);
       }
 
       template<typename...Ds, typename Op, typename...Args>
       static auto n_ary_operation_with_indices(const std::tuple<Ds...>& d_tup, Op&& op, Args&&...args)
       {
-        return ArrayOperations<PatternMatrix>::template n_ary_operation_with_indices(d_tup, std::forward<Op>(op), std::forward<Args>(args)...);
+        return LibraryRoutines<PatternMatrix>::template n_ary_operation_with_indices(d_tup, std::forward<Op>(op), std::forward<Args>(args)...);
       }
 
       template<std::size_t...indices, typename BinaryFunction, typename Arg>
       static constexpr decltype(auto)
       reduce(BinaryFunction&& b, Arg&& arg)
       {
-        return ArrayOperations<PatternMatrix>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
+        return LibraryRoutines<PatternMatrix>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
       }
-    };
 
+      // no to_euclidean
+      // no from_euclidean
+      // no wrap_angles
 
-    // No struct Conversions because to_diagonal and diagonal_of are handled by general functions.
-    // No struct Subsets defined because get-block operation is handled by get_block function, and there is no set-block operation.
-    // No struct ModularTransformationTraits. Relying on default definition of that trait.
-
-
-    template<typename PatternMatrix, typename Scalar, auto...constant>
-    struct LinearAlgebra<ConstantAdapter<PatternMatrix, Scalar, constant...>>
-    {
       // conjugate is not necessary because it is handled by the general conjugate function.
       // transpose is not necessary because it is handled by the general transpose function.
       // adjoint is not necessary because it is handled by the general adjoint function.
@@ -574,13 +539,13 @@ namespace OpenKalman
       template<typename A, typename B>
       static constexpr auto sum(A&& a, B&& b)
       {
-        return LinearAlgebra<PatternMatrix>::sum(std::forward<A>(a), std::forward<B>(b));
+        return LibraryRoutines<PatternMatrix>::sum(std::forward<A>(a), std::forward<B>(b));
       }
 
       template<typename A, typename B>
       static constexpr auto contract(A&& a, B&& b)
       {
-        return LinearAlgebra<PatternMatrix>::contract(std::forward<A>(a), std::forward<B>(b));
+        return LibraryRoutines<PatternMatrix>::contract(std::forward<A>(a), std::forward<B>(b));
       }
 
       // contract_in_place is not necessary because the argument will not be writable.
@@ -590,7 +555,7 @@ namespace OpenKalman
       template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
       static decltype(auto) rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
       {
-        using Trait = interface::LinearAlgebra<PatternMatrix>;
+        using Trait = interface::LibraryRoutines<PatternMatrix>;
         return Trait::template rank_update_self_adjoint<significant_triangle>(std::forward<A>(a), std::forward<U>(u), alpha);
       }
 

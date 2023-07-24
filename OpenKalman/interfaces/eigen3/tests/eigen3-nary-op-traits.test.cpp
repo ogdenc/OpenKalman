@@ -127,8 +127,8 @@ TEST(eigen3, cwise_unary_operations)
   auto zero = id - id; // Zero
   auto cp2 = (I11 {1, 1} + I11 {1, 1}).replicate(2, 2); // Constant +2
   auto cm2 = (-(I11 {1, 1} + I11 {1, 1})).replicate<2, 2>(); // Constant -2
-  auto cxa = Eigen::CwiseNullaryOp<EGI::scalar_constant_op<cdouble>, CA22> {2, 2, std::complex<double>{1, 2}}; // Constant complex
-  auto cxb = Eigen::CwiseNullaryOp<EGI::scalar_constant_op<cdouble>, CA22> {2, 2, std::complex<double>{3, 4}}; // Constant complex
+  auto cxa = Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<cdouble>, CA22> {2, 2, std::complex<double>{1, 2}}; // Constant complex
+  auto cxb = Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<cdouble>, CA22> {2, 2, std::complex<double>{3, 4}}; // Constant complex
   auto cdp2 = id * 2; // Constant diagonal +2
   auto cdm2 = id * -2; // Constant diagonal -2
 
@@ -240,8 +240,8 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(not hermitian_matrix<Eigen::CwiseUnaryOp<Eigen::internal::scalar_cast_op<std::complex<double>, std::complex<int>>, decltype(cxa)>>);
 
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
-  auto id1_int = Eigen::CwiseNullaryOp<EGI::scalar_identity_op<int>, Eigen::Array<int, 1, 1>> {1, 1}; // Identity
-  auto id2_int = Eigen::CwiseNullaryOp<EGI::scalar_identity_op<int>, Eigen::Array<int, 2, 2>> {2, 2}; // Identity
+  auto id1_int = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<int>, Eigen::Array<int, 1, 1>> {1, 1}; // Identity
+  auto id2_int = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<int>, Eigen::Array<int, 2, 2>> {2, 2}; // Identity
   auto cp2_int = (id1_int + id1_int).replicate<2, 2>(); // Constant +2
   auto cdp2_int = id2_int * 2; // Constant diagonal +2
 
@@ -331,8 +331,8 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(hermitian_matrix<decltype(cxa.imag())>);
 
   // scalar_exp_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().exp())>, constexpr_exp(2)));
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().exp())>, constexpr_exp(-2)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().exp())>, internal::constexpr_exp(2)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().exp())>, internal::constexpr_exp(-2)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cp2.exp()}(), cp2.exp()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cm2.exp()}(), cm2.exp()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxa.exp()}(), cxa.exp()(0, 0)));
@@ -346,14 +346,14 @@ TEST(eigen3, cwise_unary_operations)
 
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
   // scalar_expm1_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().expm1())>, constexpr_expm1(2)));
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().expm1())>, constexpr_expm1(-2)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().expm1())>, internal::constexpr_expm1(2)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_m2>().expm1())>, internal::constexpr_expm1(-2)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cp2.expm1()}(), cp2.expm1()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cm2.expm1()}(), cm2.expm1()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cxa.expm1()}(), cxa.expm1()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<100>(constant_coefficient{cxb.expm1()}(), cxb.expm1()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().expm1())> == constexpr_expm1(2));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_m1>().expm1())> == constexpr_expm1(-1));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().expm1())> == internal::constexpr_expm1(2));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_m1>().expm1())> == internal::constexpr_expm1(-1));
   EXPECT_TRUE(are_within_tolerance<10>(constant_diagonal_coefficient{cdp2.expm1()}(), cdp2.expm1()(0, 0)));
   EXPECT_EQ(0, cdp2.expm1()(0, 1));
   EXPECT_TRUE(are_within_tolerance(constant_diagonal_coefficient{cdm2.expm1()}(), cdm2.expm1()(0, 0)));
@@ -366,7 +366,7 @@ TEST(eigen3, cwise_unary_operations)
 #endif
 
   // scalar_log_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().log())>, constexpr_log(2)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().log())>, internal::constexpr_log(2)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cp2.log()}(), cp2.log()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cxa.log()}(), cxa.log()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cxb.log()}(), cxb.log()(0, 0)));
@@ -378,11 +378,11 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(not hermitian_matrix<decltype(cxa.log())>); // because cxa is not necessarily hermitian
 
   // scalar_log1p_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().log1p())>, constexpr_log1p(2)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().log1p())>, internal::constexpr_log1p(2)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cp2.log1p()}(), cp2.log1p()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxa.log1p()}(), cxa.log1p()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxb.log1p()}(), cxb.log1p()(0, 0)));
-  static_assert(are_within_tolerance(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().log1p())>, constexpr_log1p(2)));
+  static_assert(are_within_tolerance(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().log1p())>, internal::constexpr_log1p(2)));
   EXPECT_TRUE(are_within_tolerance(constant_diagonal_coefficient{cdp2.log1p()}(), cdp2.log1p()(0, 0)));
   EXPECT_EQ(0, cdp2.log1p()(0, 1));
   static_assert(zero_matrix<decltype(zero.log1p())>);
@@ -392,7 +392,7 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(not hermitian_matrix<decltype(cxa.log1p())>); // because cxa is not necessarily hermitian
 
   // scalar_log10_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().log10())>, constexpr_log(2) / numbers::ln10_v<double>));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().log10())>, internal::constexpr_log(2) / numbers::ln10_v<double>));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cp2.log10()}(), cp2.log10()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cxa.log10()}(), cxa.log10()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxb.log10()}(), cxb.log10()(0, 0)));
@@ -405,7 +405,7 @@ TEST(eigen3, cwise_unary_operations)
 
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
   // scalar_log2_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().log2())>, constexpr_log(2) / numbers::ln2_v<double>));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().log2())>, internal::constexpr_log(2) / numbers::ln2_v<double>));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cp2.log2()}(), cp2.log2()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cxa.log2()}(), cxa.log2()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cxb.log2()}(), cxb.log2()(0, 0)));
@@ -418,11 +418,11 @@ TEST(eigen3, cwise_unary_operations)
 #endif
 
   // scalar_sqrt_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().sqrt())>, constexpr_sqrt(2.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().sqrt())>, internal::constexpr_sqrt(2.)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cp2.sqrt()}(), cp2.sqrt()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxa.sqrt()}(), cxa.sqrt()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxb.sqrt()}(), cxb.sqrt()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().sqrt())> == constexpr_sqrt(2.));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().sqrt())> == internal::constexpr_sqrt(2.));
   EXPECT_TRUE(are_within_tolerance(constant_diagonal_coefficient{cdp2.sqrt()}(), cdp2.sqrt()(0, 0)));
   EXPECT_EQ(0, cdp2.sqrt()(0, 1));
   static_assert(zero_matrix<decltype(zero.sqrt())>);
@@ -432,7 +432,7 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(not hermitian_matrix<decltype(cxa.sqrt())>); // because cxa is not necessarily hermitian
 
   // scalar_rsqrt_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().rsqrt())>, 1./constexpr_sqrt(2.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().rsqrt())>, 1./internal::constexpr_sqrt(2.)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cp2.rsqrt()}(), cp2.rsqrt()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxa.rsqrt()}(), cxa.rsqrt()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxb.rsqrt()}(), cxb.rsqrt()(0, 0)));
@@ -444,7 +444,7 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(not hermitian_matrix<decltype(cxa.rsqrt())>); // because cxa is not necessarily hermitian
 
   // scalar_cos_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().cos())>, constexpr_cos(2.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().cos())>, internal::constexpr_cos(2.)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cp2.cos()}(), cp2.cos()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxa.cos()}(), cxa.cos()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<100>(constant_coefficient{cxb.cos()}(), cxb.cos()(0, 0)));
@@ -456,11 +456,11 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(not hermitian_matrix<decltype(cxa.cos())>); // because cxa is not necessarily hermitian
 
   // scalar_sin_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().sin())>, constexpr_sin(2.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().sin())>, internal::constexpr_sin(2.)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cp2.sin()}(), cp2.sin()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxa.sin()}(), cxa.sin()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<100>(constant_coefficient{cxb.sin()}(), cxb.sin()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().sin())> == constexpr_sin(2.));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().sin())> == internal::constexpr_sin(2.));
   EXPECT_TRUE(are_within_tolerance(constant_diagonal_coefficient{cdp2.sin()}(), cdp2.sin()(0, 0)));
   EXPECT_EQ(0, cdp2.sin()(0, 1));
   static_assert(zero_matrix<decltype(zero.sin())>);
@@ -470,11 +470,11 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(not hermitian_matrix<decltype(cxa.sin())>); // because cxa is not necessarily hermitian
 
   // scalar_tan_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().tan())>, constexpr_tan(2.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().tan())>, internal::constexpr_tan(2.)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cp2.tan()}(), cp2.tan()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxa.tan()}(), cxa.tan()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxb.tan()}(), cxb.tan()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().tan())> == constexpr_tan(2.));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().tan())> == internal::constexpr_tan(2.));
   EXPECT_TRUE(are_within_tolerance(constant_diagonal_coefficient{cdp2.tan()}(), cdp2.tan()(0, 0)));
   EXPECT_EQ(0, cdp2.tan()(0, 1));
   static_assert(zero_matrix<decltype(zero.tan())>);
@@ -484,7 +484,7 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(not hermitian_matrix<decltype(cxa.tan())>); // because cxa is not necessarily hermitian
 
   // scalar_acos_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_1>().acos())>, constexpr_acos(1.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_1>().acos())>, internal::constexpr_acos(1.)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{(cp2/4).acos()}(), (cp2/4).acos()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cxa.acos()}(), cxa.acos()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cxb.acos()}(), cxb.acos()(0, 0)));
@@ -496,11 +496,11 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(not hermitian_matrix<decltype((cxa* 0.25).acos())>); // because cxa is not necessarily hermitian
 
   // scalar_asin_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_1>().asin())>, constexpr_asin(1.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_1>().asin())>, internal::constexpr_asin(1.)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{(cp2/4).asin()}(), (cp2/4).asin()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cxa.asin()}(), cxa.asin()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cxb.asin()}(), cxb.asin()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_m1>().asin())> == constexpr_asin(-1.));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_m1>().asin())> == internal::constexpr_asin(-1.));
   EXPECT_TRUE(are_within_tolerance(constant_diagonal_coefficient{(cdp2*0.25).asin()}(), (cdp2*0.25).asin()(0, 0)));
   EXPECT_EQ(0, (cdp2*0.25).asin()(0, 1));
   static_assert(zero_matrix<decltype(zero.asin())>);
@@ -511,11 +511,11 @@ TEST(eigen3, cwise_unary_operations)
 
   // scalar_atan_op
   //static_assert(constexpr_atan(11.) > 1.1);
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().atan())>, constexpr_atan(2.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().atan())>, internal::constexpr_atan(2.)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cp2.atan()}(), cp2.atan()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cxa.atan()}(), cxa.atan()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<100>(constant_coefficient{cxb.atan()}(), cxb.atan()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_m2>().atan())> == constexpr_atan(-2.));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_m2>().atan())> == internal::constexpr_atan(-2.));
   EXPECT_TRUE(are_within_tolerance(constant_diagonal_coefficient{(cdp2*0.25).atan()}(), (cdp2*0.25).atan()(0, 0)));
   EXPECT_EQ(0, (cdp2*0.25).atan()(0, 1));
   static_assert(zero_matrix<decltype(zero.atan())>);
@@ -525,11 +525,11 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(not hermitian_matrix<decltype((cxa * 0.25).atan())>); // because cxa is not necessarily hermitian
 
   // scalar_tanh_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().tanh())>, constexpr_tanh(2.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().tanh())>, internal::constexpr_tanh(2.)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cp2.tanh()}(), cp2.tanh()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxa.tanh()}(), cxa.tanh()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxb.tanh()}(), cxb.tanh()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().tanh())> == constexpr_tanh(2.));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().tanh())> == internal::constexpr_tanh(2.));
   EXPECT_TRUE(are_within_tolerance(constant_diagonal_coefficient{cdp2.tanh()}(), cdp2.tanh()(0, 0)));
   EXPECT_EQ(0, cdp2.tanh()(0, 1));
   static_assert(zero_matrix<decltype(zero.tanh())>);
@@ -553,11 +553,11 @@ TEST(eigen3, cwise_unary_operations)
 #endif
 
   // scalar_sinh_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().sinh())>, constexpr_sinh(2.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().sinh())>, internal::constexpr_sinh(2.)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cp2.sinh()}(), cp2.sinh()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxa.sinh()}(), cxa.sinh()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<100>(constant_coefficient{cxb.sinh()}(), cxb.sinh()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().sinh())> == constexpr_sinh(2.));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().sinh())> == internal::constexpr_sinh(2.));
   EXPECT_TRUE(are_within_tolerance(constant_diagonal_coefficient{cdp2.sinh()}(), cdp2.sinh()(0, 0)));
   EXPECT_EQ(0, cdp2.sinh()(0, 1));
   static_assert(zero_matrix<decltype(zero.sinh())>);
@@ -568,11 +568,11 @@ TEST(eigen3, cwise_unary_operations)
 
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
   // scalar_asinh_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().asinh())>, constexpr_asinh(2.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().asinh())>, internal::constexpr_asinh(2.)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cp2.asinh()}(), cp2.asinh()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<10>(constant_coefficient{cxa.asinh()}(), cxa.asinh()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxb.asinh()}(), cxb.asinh()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().asinh())> == constexpr_asinh(2.));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().asinh())> == internal::constexpr_asinh(2.));
   EXPECT_TRUE(are_within_tolerance(constant_diagonal_coefficient{cdp2.asinh()}(), cdp2.asinh()(0, 0)));
   EXPECT_EQ(0, cdp2.asinh()(0, 1));
   static_assert(zero_matrix<decltype(zero.asinh())>);
@@ -583,7 +583,7 @@ TEST(eigen3, cwise_unary_operations)
 #endif
 
   // scalar_cosh_op
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().cosh())>, constexpr_cosh(2.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(std::declval<C22_2>().cosh())>, internal::constexpr_cosh(2.)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cp2.cosh()}(), cp2.cosh()(0, 0)));
   EXPECT_TRUE(are_within_tolerance(constant_coefficient{cxa.cosh()}(), cxa.cosh()(0, 0)));
   EXPECT_TRUE(are_within_tolerance<100>(constant_coefficient{cxb.cosh()}(), cxb.cosh()(0, 0)));
@@ -648,14 +648,14 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>().array().cube())>);
   static_assert(not hermitian_matrix<decltype(cxa.cube())>); // because cxa is not necessarily hermitian
 
-  // EGI::scalar_round_op not implemented
-  // EGI::scalar_floor_op not implemented
-  // EGI::scalar_rint_op not implemented (Eigen 3.4+)
-  // EGI::scalar_ceil_op not implemented
+  // Eigen::internal::scalar_round_op not implemented
+  // Eigen::internal::scalar_floor_op not implemented
+  // Eigen::internal::scalar_rint_op not implemented (Eigen 3.4+)
+  // Eigen::internal::scalar_ceil_op not implemented
 
-  // EGI::scalar_isnan_op not implemented
-  // EGI::scalar_isinf_op not implemented
-  // EGI::scalar_isfinite_op not implemented
+  // Eigen::internal::scalar_isnan_op not implemented
+  // Eigen::internal::scalar_isinf_op not implemented
+  // Eigen::internal::scalar_isfinite_op not implemented
 
   // scalar_boolean_not_op
   static_assert(constant_coefficient_v<decltype(not std::declval<B22_true>())> == false);
@@ -670,7 +670,7 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(not diagonal_matrix<decltype(not std::declval<B22_false>())>);
   static_assert(hermitian_matrix<decltype(not std::declval<B22_false>())>);
 
-  // EGI::scalar_sign_op not implemented
+  // Eigen::internal::scalar_sign_op not implemented
 
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
   // scalar_logistic_op
@@ -732,12 +732,12 @@ TEST(eigen3, cwise_unary_operations)
 TEST(eigen3, cwise_binary_operations)
 {
   auto id = I22 {2, 2}; // Identity
-  auto cid = Eigen::CwiseNullaryOp<EGI::scalar_identity_op<cdouble>, CA22> {2, 2};
+  auto cid = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<cdouble>, CA22> {2, 2};
   auto zero = id - id; // Zero
   auto cp2 = (I11 {1, 1} + I11 {1, 1}).replicate(2, 2); // Constant +2
   auto cm2 = (-(I11 {1, 1} + I11 {1, 1})).replicate<2, 2>(); // Constant -2
-  auto cxa = Eigen::CwiseNullaryOp<EGI::scalar_constant_op<cdouble>, CA22> {2, 2, std::complex<double>{1, 2}}; // Constant complex
-  auto cxb = Eigen::CwiseNullaryOp<EGI::scalar_constant_op<cdouble>, CA22> {2, 2, std::complex<double>{3, 4}}; // Constant complex
+  auto cxa = Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<cdouble>, CA22> {2, 2, std::complex<double>{1, 2}}; // Constant complex
+  auto cxb = Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<cdouble>, CA22> {2, 2, std::complex<double>{3, 4}}; // Constant complex
   auto cdp2 = id * 2; // Constant diagonal +2
   auto cdm2 = id * -2; // Constant diagonal -2
 
@@ -912,8 +912,8 @@ TEST(eigen3, cwise_binary_operations)
   static_assert(triangular_matrix<Eigen::CwiseBinaryOp<CProd, Tuv22, Tuv22>, TriangleType::upper>);
   static_assert(triangular_matrix<Eigen::CwiseBinaryOp<CProd, M22, Tuv22>, TriangleType::upper>);
   static_assert(hermitian_matrix<Eigen::CwiseBinaryOp<CProd, Sauv22, Salv22>>);
-  static_assert(OpenKalman::interface::HermitianTraits<Eigen::CwiseBinaryOp<CProd, Sauv22, DW21>>::is_hermitian == true);
-  static_assert(OpenKalman::interface::HermitianTraits<Eigen::CwiseBinaryOp<CProd, DW21, DW21>>::is_hermitian == true);
+  static_assert(OpenKalman::interface::IndexibleObjectTraits<Eigen::CwiseBinaryOp<CProd, Sauv22, DW21>>::is_hermitian == true);
+  static_assert(OpenKalman::interface::IndexibleObjectTraits<Eigen::CwiseBinaryOp<CProd, DW21, DW21>>::is_hermitian == true);
 
   // scalar_min_op
   static_assert(constant_coefficient_v<decltype(cp2.min(cm2))> == -2);

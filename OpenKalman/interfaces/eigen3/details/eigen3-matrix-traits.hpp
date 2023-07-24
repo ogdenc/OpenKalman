@@ -226,8 +226,6 @@ namespace OpenKalman::Eigen3
 
 namespace OpenKalman::internal
 {
-  using namespace OpenKalman::Eigen3;
-
   // ---------------------- //
   //  is_modifiable_native  //
   // ---------------------- //

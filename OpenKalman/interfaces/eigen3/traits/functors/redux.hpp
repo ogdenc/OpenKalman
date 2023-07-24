@@ -266,7 +266,7 @@ namespace OpenKalman::Eigen3
     };
 
     template<typename C, typename Dim, typename Factor>
-    static constexpr decltype(auto) get_constant(const C& c, const Dim& dim, const Factor&) noexcept
+    static constexpr auto get_constant(const C& c, const Dim& dim, const Factor&) noexcept
     {
       if constexpr (zero_matrix<XprType>)
       {
@@ -308,7 +308,7 @@ namespace OpenKalman::Eigen3
     };
 
     template<typename C, typename Dim, typename Factor>
-    static constexpr decltype(auto) get_constant(const C& c, const Dim& dim, const Factor&) noexcept
+    static constexpr auto get_constant(const C& c, const Dim& dim, const Factor&) noexcept
     {
       if constexpr (zero_matrix<XprType>)
       {

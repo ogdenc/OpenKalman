@@ -21,12 +21,25 @@
 
 namespace OpenKalman::interface
 {
-  namespace EGI = Eigen::internal;
-
-
   template<typename UnaryOp, typename XprType>
-  struct IndexTraits<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
+  struct IndexibleObjectTraits<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
   {
+  private:
+
+    using T = Eigen::CwiseUnaryOp<UnaryOp, XprType>;
+
+    template<typename T>
+    struct is_bind_operator : std::false_type {};
+
+    template<typename BinaryOp>
+    struct is_bind_operator<Eigen::internal::bind1st_op<BinaryOp>> : std::true_type {};
+
+    template<typename BinaryOp>
+    struct is_bind_operator<Eigen::internal::bind2nd_op<BinaryOp>> : std::true_type {};
+
+  public:
+
     static constexpr std::size_t max_indices = max_indices_of_v<XprType>;
 
     template<std::size_t N, typename Arg>
@@ -40,19 +53,9 @@ namespace OpenKalman::interface
 
     template<Likelihood b>
     static constexpr bool is_square = square_matrix<XprType, b>;
-  };
 
+    static constexpr bool has_runtime_parameters = is_bind_operator<UnaryOp>::value;
 
-  template<typename UnaryOp, typename XprType>
-  struct Dependencies<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
-  {
-  private:
-
-    using T = Eigen::CwiseUnaryOp<UnaryOp, XprType>;
-
-  public:
-
-    static constexpr bool has_runtime_parameters = false;
     using type = std::tuple<typename T::XprTypeNested>;
 
     template<std::size_t i, typename Arg>
@@ -74,57 +77,24 @@ namespace OpenKalman::interface
       else
         return make_dense_writable_matrix_from(std::forward<Arg>(arg));
     }
-  };
 
-
-  template<typename BinaryOp, typename XprType>
-  struct Dependencies<Eigen::CwiseUnaryOp<EGI::bind1st_op<BinaryOp>, XprType>>
-  {
-    static constexpr bool has_runtime_parameters = true;
-    using type =
-      std::tuple<typename Eigen::CwiseUnaryOp<EGI::bind1st_op<BinaryOp>, XprType>::XprTypeNested>;
-  };
-
-
-  template<typename BinaryOp, typename XprType>
-  struct Dependencies<Eigen::CwiseUnaryOp<EGI::bind2nd_op<BinaryOp>, XprType>>
-  {
-    static constexpr bool has_runtime_parameters = true;
-    using type =
-      std::tuple<typename Eigen::CwiseUnaryOp<EGI::bind2nd_op<BinaryOp>, XprType>::XprTypeNested>;
-  };
-
-
-  template<typename UnaryOp, typename XprType>
-  struct SingleConstant<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
-  {
-    const Eigen::CwiseUnaryOp<UnaryOp, XprType>& xpr;
-
-    constexpr auto get_constant()
+    template<typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
     {
-      return Eigen3::FunctorTraits<UnaryOp, XprType>::template get_constant<false>(xpr);
+      return Eigen3::FunctorTraits<UnaryOp, XprType>::template get_constant<false>(arg);
     }
 
-    constexpr auto get_constant_diagonal()
+    template<typename Arg>
+    static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return Eigen3::FunctorTraits<UnaryOp, XprType>::template get_constant<true>(xpr);
+      return Eigen3::FunctorTraits<UnaryOp, XprType>::template get_constant<true>(arg);
     }
-  };
 
-
-  template<typename UnaryOp, typename XprType>
-  struct TriangularTraits<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
-  {
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = Eigen3::FunctorTraits<UnaryOp, XprType>::template is_triangular<t, b>;
 
     static constexpr bool is_triangular_adapter = false;
-  };
 
-
-  template<typename UnaryOp, typename XprType>
-  struct HermitianTraits<Eigen::CwiseUnaryOp<UnaryOp, XprType>>
-  {
     static constexpr bool is_hermitian = Eigen3::FunctorTraits<UnaryOp, XprType>::is_hermitian;
   };
 

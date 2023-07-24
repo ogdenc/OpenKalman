@@ -24,7 +24,8 @@ namespace OpenKalman
   namespace interface
   {
     template<typename Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
-    struct IndexTraits<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
+    struct IndexibleObjectTraits<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
+      : Eigen3::IndexibleObjectTraitsBase<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
     {
       static constexpr std::size_t max_indices = 2;
 
@@ -40,13 +41,9 @@ namespace OpenKalman
 
       template<Likelihood b>
       static constexpr bool is_square = true;
-    };
 
-
-    template<typename Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
-    struct Dependencies<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
-    {
       static constexpr bool has_runtime_parameters = false;
+
       using type = std::tuple<
         typename Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>::DiagonalVectorType>;
 
@@ -63,12 +60,11 @@ namespace OpenKalman
         auto d {make_self_contained(std::forward<Arg>(arg).diagonal())};
         return DiagonalMatrix<decltype(d)> {d};
       }
-    };
 
+      // get_constant() not defined
 
-    template<typename Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
-    struct TriangularTraits<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
-    {
+      // get_constant_diagonal() not defined
+
       template<TriangleType t, Likelihood b>
       static constexpr bool is_triangular = true;
 
@@ -76,13 +72,10 @@ namespace OpenKalman
 
       template<Likelihood b>
       static constexpr bool is_diagonal_adapter = true;
-    };
 
+      // is_hermitian not defined because matrix is diagonal;
 
-    template<typename Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
-    struct Conversions<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
-    {
-      // Because DiagonalMatrix is a diagonal adapter, the general to_diagonal and diagonal_of functions handle everything.
+      // make_hermitian_adapter(Arg&& arg) not defined
     };
 
   } // namespace interface

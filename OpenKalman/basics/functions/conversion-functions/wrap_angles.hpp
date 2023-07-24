@@ -18,6 +18,19 @@
 
 namespace OpenKalman
 {
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename Arg, typename C, typename = void>
+    struct wrap_angles_exists : std::false_type {};
+
+    template<typename Arg, typename C>
+    struct wrap_angles_exists<Arg, C, std::void_t<decltype(
+        interface::LibraryRoutines<std::decay_t<Arg>>::template wrap_angles(std::declval<Arg&&>(), std::declval<const C&>()))>> :
+      std::true_type {};
+  } // namespace detail
+#endif
+
 #ifdef __cpp_concepts
   template<wrappable Arg, index_descriptor C>
   requires (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
@@ -33,17 +46,26 @@ namespace OpenKalman
     if constexpr (dynamic_dimension<Arg, 0> and not euclidean_index_descriptor<index_descriptor_of_t<Arg, 0>>)
       if (not get_index_descriptor_is_euclidean(get_index_descriptor<0>(arg)) and c != get_index_descriptor<0>(arg))
         throw std::domain_error {"In wrap_angles, specified index descriptor does not match that of the object's index 0"};
+    using Interface = interface::LibraryRoutines<std::decay_t<Arg>>;
 
     if constexpr (euclidean_index_descriptor<C> or identity_matrix<Arg> or zero_matrix<Arg>)
     {
       return std::forward<Arg>(arg);
+    }
+#ifdef __cpp_concepts
+    else if constexpr (requires { Interface::template wrap_angles(std::forward<Arg>(arg), c); })
+#else
+    else if constexpr (detail::wrap_angles_exists<Arg, C>::value)
+#endif
+    {
+      return Interface::wrap_angles(std::forward<Arg>(arg), c);
     }
     else
     {
       if constexpr (has_dynamic_dimensions<Arg>) if (not get_wrappable(arg))
         throw std::domain_error {"Argument of wrap_angles is not wrappable"};
 
-      interface::ModularTransformationTraits<Arg>::wrap_angles(std::forward<Arg>(arg), c);
+      return from_euclidean(to_euclidean(std::forward<Arg>(arg), c), c);
     }
   }
 

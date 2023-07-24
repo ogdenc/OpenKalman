@@ -21,103 +21,66 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<euclidean_expr T>
-  struct Elements<T>
+  struct LibraryRoutines<T>
 #else
   template<typename T>
-  struct Elements<T, std::enable_if_t<euclidean_expr<T>>>
+  struct LibraryRoutines<T, std::enable_if_t<euclidean_expr<T>>>
 #endif
   {
-    using scalar_type = scalar_type_of_t<nested_matrix_of_t<T>>;
+    template<typename Scalar, typename...D>
+    static auto make_default(D&&...d)
+    {
+      return make_default_dense_writable_matrix_like<pattern_matrix_of_t<T>, Scalar>(std::forward<D>(d)...);
+    }
 
 
-#ifdef __cpp_lib_concepts
-    template<typename Arg, typename I, typename...Is> requires element_gettable<nested_matrix_of_t<Arg&&>, 1 + sizeof...(Is)>
-#else
-    template<typename Arg, typename I, typename...Is, std::enable_if_t<element_gettable<typename nested_matrix_of<Arg&&>::type, 1 + sizeof...(Is)>, int> = 0>
-#endif
-    static constexpr auto get(Arg&& arg, I i, Is...is)
+    template<typename Scalar, typename Arg>
+    static decltype(auto) convert(Arg&& arg)
     {
       if constexpr (has_untyped_index<Arg, 0>)
       {
-        if constexpr (from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_of_t<Arg>>)
-          return get_element(nested_matrix(nested_matrix(std::forward<Arg>(arg))), i, is...);
-        else
-          return get_element(nested_matrix(std::forward<Arg>(arg)), i, is...);
+        return make_dense_writable_matrix_from<Scalar>(nested_matrix(std::forward<Arg>(arg)));
       }
       else
       {
-        auto g {[&arg, is...](std::size_t ix) { return get_element(nested_matrix(std::forward<Arg>(arg)), ix, is...); }};
-        if constexpr (from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_of_t<Arg>>)
-          return wrap_get_element(get_index_descriptor<0>(arg), g, i, 0);
-        else if constexpr(to_euclidean_expr<Arg>)
-          return to_euclidean_element(get_index_descriptor<0>(arg), g, i, 0);
-        else
-          return from_euclidean_element(get_index_descriptor<0>(arg), g, i, 0);
+        using M = std::decay_t<decltype(make_default_dense_writable_matrix_like<Scalar>(std::forward<Arg>(arg)))>;
+        // \todo Create an alternate path in case (not std::is_constructible_v<M, Arg&&>)
+        M m {std::forward<Arg>(arg)};
+        return m;
       }
     }
 
 
-    /**
-     * \internal
-     * \brief Set element (i, j) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s.
-     * \details This function sets the nested matrix, not the wrapped resulting matrix.
-     * For example, if the coefficient is Polar<Distance, angle::Radians> and the initial value of a
-     * single-column vector is {-1., pi/2}, then set_element(arg, pi/4, 1, 0) will replace p/2 with pi/4 to
-     * yield {-1., pi/4} in the nested matrix. The resulting wrapped expression will yield {1., -3*pi/4}.
-     * \tparam Arg The matrix to set.
-     * \tparam Scalar The value to set the coefficient to.
-     * \param i The row of the coefficient.
-     * \param j The column of the coefficient.
-     */
-#ifdef __cpp_lib_concepts
-    template<typename Arg, typename I, typename...Is> requires element_gettable<nested_matrix_of_t<Arg&>, 1 + sizeof...(Is)> and
-      (has_untyped_index<Arg, 0> or (from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_of_t<Arg>>))
-#else
-    template<typename Arg, typename I, typename...Is, std::enable_if_t<
-      element_gettable<typename nested_matrix_of<Arg&>::type, 1 + sizeof...(Is)> and
-      (has_untyped_index<Arg, 0> or (from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_of_t<Arg>>)), int> = 0>
-#endif
-    static constexpr void set(Arg& arg, const scalar_type_of_t<Arg>& s, I i, Is...is)
+    template<typename Arg>
+    static decltype(auto) to_native_matrix(Arg&& arg)
     {
-      if constexpr (has_untyped_index<Arg, 0>)
-      {
-        set_element(nested_matrix(nested_matrix(arg)), s, i, is...);
-      }
-      else if constexpr (from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_of_t<Arg>>)
-      {
-        auto s {[&arg, is...](const scalar_type_of_t<Arg>& x, std::size_t i) {
-          return set_element(nested_matrix(nested_matrix(arg)), x, i, is...);
-        }};
-        auto g {[&arg, is...](std::size_t ix) {
-          return get_element(nested_matrix(nested_matrix(arg)), ix, is...);
-        }};
-        wrap_set_element(get_index_descriptor<0>(arg), s, g, s, i, 0);
-      }
-      else
-      {
-        set_element(nested_matrix(arg), s, i, is...);
-      }
+      return OpenKalman::to_native_matrix<pattern_matrix_of_t<Arg>>(std::forward<Arg>(arg));
     }
-  };
 
 
-#ifdef __cpp_concepts
-  template<euclidean_expr T>
-  struct Subsets<T>
-#else
-  template<typename T>
-  struct Subsets<T, std::enable_if_t<euclidean_expr<T>>>
-#endif
-  {
+    template<typename C, typename...D>
+    static constexpr auto make_constant_matrix(C&& c, D&&...d)
+    {
+      return make_constant_matrix_like<pattern_matrix_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
+    }
+
+
+    template<typename Scalar, typename D>
+    static constexpr auto make_identity_matrix(D&& d)
+    {
+      return make_identity_matrix_like<pattern_matrix_of_t<T>, Scalar>(std::forward<D>(d));
+    }
+
+
     template<std::size_t...compile_time_index, typename Arg, typename...runtime_index_t>
     static constexpr decltype(auto)
     column(Arg&& arg, runtime_index_t...i)
     {
       using RC = row_index_descriptor_of_t<Arg>;
       if constexpr (from_euclidean_expr<Arg>)
-        return from_euclidean<RC>(column<compile_time_index...>(nested_matrix(std::forward<Arg>(arg)), i...));
+        return OpenKalman::from_euclidean<RC>(column<compile_time_index...>(nested_matrix(std::forward<Arg>(arg)), i...));
       else
-        return to_euclidean<RC>(column<compile_time_index...>(nested_matrix(std::forward<Arg>(arg)), i...));
+        return OpenKalman::to_euclidean<RC>(column<compile_time_index...>(nested_matrix(std::forward<Arg>(arg)), i...));
     }
 
 
@@ -131,26 +94,15 @@ namespace OpenKalman::interface
         using RC = uniform_dimension_type_of_t<row_index_descriptor_of_t<Arg>>;
 
         if constexpr (from_euclidean_expr<Arg>)
-          return from_euclidean<RC>(row<compile_time_index...>(nested_matrix(std::forward<Arg>(arg)), i...));
+          return OpenKalman::from_euclidean<RC>(row<compile_time_index...>(nested_matrix(std::forward<Arg>(arg)), i...));
         else
-          return to_euclidean<RC>(row<compile_time_index...>(nested_matrix(std::forward<Arg>(arg)), i...));
+          return OpenKalman::to_euclidean<RC>(row<compile_time_index...>(nested_matrix(std::forward<Arg>(arg)), i...));
       }
       else
       {
         return row<compile_time_index...>(make_dense_writable_matrix_from(std::forward<Arg>(arg)), i...);
       }
     }
-  };
-
-
-#ifdef __cpp_concepts
-  template<euclidean_expr T>
-  struct Conversions<T>
-#else
-  template<typename T>
-  struct Conversions<T, std::enable_if_t<euclidean_expr<T>>>
-#endif
-  {
 
     template<typename Arg>
     static auto
@@ -163,7 +115,7 @@ namespace OpenKalman::interface
       else
       {
         using P = pattern_matrix_of_t<T>;
-        return Conversions<P>::to_diagonal(to_native_matrix<P>(std::forward<Arg>(arg)));
+        return LibraryRoutines<P>::to_diagonal(to_native_matrix<P>(std::forward<Arg>(arg)));
       }
     }
 
@@ -179,28 +131,17 @@ namespace OpenKalman::interface
       else
       {
         using P = pattern_matrix_of_t<T>;
-        return Conversions<P>::diagonal_of(to_native_matrix<P>(std::forward<Arg>(arg)));
+        return LibraryRoutines<P>::diagonal_of(to_native_matrix<P>(std::forward<Arg>(arg)));
       }
     }
 
-  };
-
-
-#ifdef __cpp_concepts
-  template<euclidean_expr T>
-  struct ArrayOperations<T>
-#else
-  template<typename T>
-  struct ArrayOperations<T, std::enable_if_t<euclidean_expr<T>>>
-#endif
-  {
 
     template<typename...Ds, typename Operation, typename...Args>
     static constexpr decltype(auto)
     n_ary_operation(const std::tuple<Ds...>& tup, Operation&& op, Args&&...args)
     {
       using P = pattern_matrix_of_t<T>;
-      return ArrayOperations<P>::template n_ary_operation(tup, std::forward<Operation>(op), std::forward<Args>(args)...);
+      return LibraryRoutines<P>::template n_ary_operation(tup, std::forward<Operation>(op), std::forward<Args>(args)...);
     }
 
 
@@ -209,20 +150,9 @@ namespace OpenKalman::interface
     reduce(BinaryFunction&& b, Arg&& arg)
     {
       using P = pattern_matrix_of_t<T>;
-      return ArrayOperations<P>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
+      return LibraryRoutines<P>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
     }
 
-  };
-
-
-#ifdef __cpp_concepts
-  template<euclidean_expr T>
-  struct ModularTransformationTraits<T>
-#else
-  template<typename T>
-  struct ModularTransformationTraits<T, std::enable_if_t<euclidean_expr<T>>>
-#endif
-  {
 
 #ifdef __cpp_concepts
     template<from_euclidean_expr Arg, index_descriptor C>
@@ -259,17 +189,6 @@ namespace OpenKalman::interface
       return std::forward<Arg>(arg);
     }
 
-  };
-
-
-#ifdef __cpp_concepts
-  template<euclidean_expr T>
-  struct LinearAlgebra<T>
-#else
-  template<typename T>
-  struct LinearAlgebra<T, std::enable_if_t<euclidean_expr<T>>>
-#endif
-  {
 
     template<typename Arg>
     static constexpr decltype(auto)

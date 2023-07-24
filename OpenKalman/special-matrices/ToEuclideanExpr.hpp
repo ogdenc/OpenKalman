@@ -249,8 +249,8 @@ namespace OpenKalman
 
   namespace interface
   {
-    template<typename C, typename Nested>
-    struct IndexTraits<ToEuclideanExpr<C, Nested>>
+    template<typename TypedIndex, typename NestedMatrix>
+    struct IndexibleObjectTraits<ToEuclideanExpr<TypedIndex, NestedMatrix>>
     {
       static constexpr std::size_t max_indices = 2;
 
@@ -262,14 +262,10 @@ namespace OpenKalman
       }
 
       template<Likelihood b>
-      static constexpr bool is_one_by_one = euclidean_index_descriptor<C> and one_by_one_matrix<Nested, b>;
-    };
+      static constexpr bool is_one_by_one = euclidean_index_descriptor<TypedIndex> and one_by_one_matrix<NestedMatrix, b>;
 
-
-    template<typename TypedIndex, typename NestedMatrix>
-    struct Dependencies<ToEuclideanExpr<TypedIndex, NestedMatrix>>
-    {
       static constexpr bool has_runtime_parameters = false;
+
       using type = std::tuple<NestedMatrix>;
 
       template<std::size_t i, typename Arg>
@@ -285,6 +281,86 @@ namespace OpenKalman
         auto n = make_self_contained(get_nested_matrix<0>(std::forward<Arg>(arg)));
         return FromEuclideanExpr<TypedIndex, decltype(n)> {std::move(n)};
       }
+
+      template<typename Arg>
+      static constexpr auto get_constant(const Arg& arg)
+      {
+        if constexpr (euclidean_index_descriptor<NestedMatrix>)
+          return constant_coefficient{arg.nestedExpression()};
+        else
+          return std::monostate {};
+      }
+
+      template<typename Arg>
+      static constexpr auto get_constant_diagonal(const Arg& arg)
+      {
+        if constexpr (euclidean_index_descriptor<NestedMatrix>)
+          return constant_diagonal_coefficient {arg.nestedExpression()};
+        else
+          return std::monostate {};
+      }
+
+      template<TriangleType t, Likelihood b>
+      static constexpr bool is_triangular = euclidean_index_descriptor<TypedIndex> and triangular_matrix<NestedMatrix, t, b>;
+
+      static constexpr bool is_triangular_adapter = false;
+
+      static constexpr bool is_hermitian = hermitian_matrix<NestedMatrix> and euclidean_index_descriptor<TypedIndex>;
+
+
+      using scalar_type = scalar_type_of_t<NestedMatrix>;
+
+
+  #ifdef __cpp_lib_concepts
+      template<typename Arg, typename I, typename...Is> requires element_gettable<nested_matrix_of_t<Arg&&>, 1 + sizeof...(Is)>
+  #else
+      template<typename Arg, typename I, typename...Is, std::enable_if_t<element_gettable<typename nested_matrix_of<Arg&&>::type, 1 + sizeof...(Is)>, int> = 0>
+  #endif
+      static constexpr auto get(Arg&& arg, I i, Is...is)
+      {
+        if constexpr (has_untyped_index<Arg, 0>)
+        {
+          return get_element(nested_matrix(std::forward<Arg>(arg)), i, is...);
+        }
+        else
+        {
+          auto g {[&arg, is...](std::size_t ix) { return get_element(nested_matrix(std::forward<Arg>(arg)), ix, is...); }};
+          return to_euclidean_element(get_index_descriptor<0>(arg), g, i, 0);
+        }
+      }
+
+
+      /**
+       * \internal
+       * \brief Set element (i, j) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s.
+       * \details This function sets the nested matrix, not the wrapped resulting matrix.
+       * For example, if the coefficient is Polar<Distance, angle::Radians> and the initial value of a
+       * single-column vector is {-1., pi/2}, then set_element(arg, pi/4, 1, 0) will replace p/2 with pi/4 to
+       * yield {-1., pi/4} in the nested matrix. The resulting wrapped expression will yield {1., -3*pi/4}.
+       * \tparam Arg The matrix to set.
+       * \tparam Scalar The value to set the coefficient to.
+       * \param i The row of the coefficient.
+       * \param j The column of the coefficient.
+       */
+  #ifdef __cpp_lib_concepts
+      template<typename Arg, typename I, typename...Is> requires element_gettable<nested_matrix_of_t<Arg&>, 1 + sizeof...(Is)> and
+        (has_untyped_index<Arg, 0> or (from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_of_t<Arg>>))
+  #else
+      template<typename Arg, typename I, typename...Is, std::enable_if_t<
+        element_gettable<typename nested_matrix_of<Arg&>::type, 1 + sizeof...(Is)> and
+        (has_untyped_index<Arg, 0> or (from_euclidean_expr<Arg> and to_euclidean_expr<nested_matrix_of_t<Arg>>)), int> = 0>
+  #endif
+      static constexpr void set(Arg& arg, const scalar_type_of_t<Arg>& s, I i, Is...is)
+      {
+        if constexpr (has_untyped_index<Arg, 0>)
+          set_element(nested_matrix(nested_matrix(arg)), s, i, is...);
+        else
+          set_element(nested_matrix(arg), s, i, is...);
+      }
+
+
+      static constexpr bool is_writable = false;
+
     };
 
   } // namespace interface

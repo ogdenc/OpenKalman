@@ -26,7 +26,7 @@ namespace OpenKalman
 
     template<typename T, HermitianAdapterType t>
     struct make_hermitian_adapter_defined<T, t, std::void_t<
-      decltype(interface::HermitianTraits<std::decay_t<T>>::template make_hermitian_adapter<t>(std::declval<T&&>()))>>
+      decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::template make_hermitian_adapter<t>(std::declval<T&&>()))>>
       : std::true_type {};
   }
 #endif
@@ -50,7 +50,7 @@ namespace OpenKalman
 #endif
   make_hermitian_matrix(Arg&& arg)
   {
-    using Traits = interface::HermitianTraits<std::decay_t<Arg>>;
+    using Traits = interface::IndexibleObjectTraits<std::decay_t<Arg>>;
     constexpr auto transp = adapter_type == HermitianAdapterType::lower ? HermitianAdapterType::upper : HermitianAdapterType::lower;
 
     if constexpr (hermitian_matrix<Arg, Likelihood::maybe>)

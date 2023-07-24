@@ -20,8 +20,6 @@
 
 namespace OpenKalman
 {
-  using namespace interface;
-
   // --------------------------------------- //
   //  constant-related classes and concepts  //
   // --------------------------------------- //
@@ -30,17 +28,17 @@ namespace OpenKalman
   {
 #ifdef __cpp_concepts
     template<typename T, CompileTimeStatus c = CompileTimeStatus::any>
-    concept has_get_constant_interface = requires(interface::SingleConstant<std::decay_t<T>>& trait) {
-      {trait.get_constant()} -> scalar_constant<c>;
+    concept has_get_constant_interface = requires(T t) {
+      {interface::IndexibleObjectTraits<std::decay_t<T>>::get_constant(t)} -> scalar_constant<c>;
     };
 #else
     template<typename T, typename = void>
     struct get_constant_res {};
 
     template<typename T>
-    struct get_constant_res<T, std::void_t<decltype(interface::SingleConstant{std::declval<const std::decay_t<T>&>()}.get_constant())>>
+    struct get_constant_res<T, std::void_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::get_constant(std::declval<T>()))>>
     {
-      using type = std::decay_t<decltype(interface::SingleConstant{std::declval<const std::decay_t<T>&>()}.get_constant())>;
+      using type = std::decay_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::get_constant(std::declval<T>()))>;
     };
 
     template<typename T, CompileTimeStatus c, typename = void>
@@ -64,17 +62,17 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typename T, CompileTimeStatus c = CompileTimeStatus::any>
-    concept has_get_constant_diagonal_interface = requires(interface::SingleConstant<std::decay_t<T>>& trait) {
-      {trait.get_constant_diagonal()} -> scalar_constant<c>;
+    concept has_get_constant_diagonal_interface = requires(T t) {
+      {interface::IndexibleObjectTraits<std::decay_t<T>>::get_constant_diagonal(t)} -> scalar_constant<c>;
     };
 #else
     template<typename T, typename = void>
     struct get_constant_diagonal_res {};
 
     template<typename T>
-    struct get_constant_diagonal_res<T, std::void_t<decltype(interface::SingleConstant{std::declval<const std::decay_t<T>&>()}.get_constant_diagonal())>>
+    struct get_constant_diagonal_res<T, std::void_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::get_constant_diagonal(std::declval<T>()))>>
     {
-      using type = std::decay_t<decltype(interface::SingleConstant{std::declval<const std::decay_t<T>&>()}.get_constant_diagonal())>;
+      using type = std::decay_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::get_constant_diagonal(std::declval<T>()))>;
     };
 
     template<typename T, CompileTimeStatus c, typename = void>
@@ -100,8 +98,8 @@ namespace OpenKalman
     template<typename T>
     concept known_constant = detail::has_get_constant_interface<T, CompileTimeStatus::known> or
       (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::known> and
-        (one_by_one_matrix<T, Likelihood::maybe> or requires(interface::SingleConstant<std::decay_t<T>>& trait) {
-          requires are_within_tolerance(std::decay_t<decltype(trait.get_constant_diagonal())>::value, 0);
+        (one_by_one_matrix<T, Likelihood::maybe> or requires(T t) {
+          requires are_within_tolerance(std::decay_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::get_constant_diagonal(t))>::value, 0);
         }));
 #else
     template<typename T, typename = void>
@@ -154,7 +152,7 @@ namespace OpenKalman
   {
   private:
 
-    using Trait = interface::SingleConstant<std::decay_t<T>>;
+    using Trait = interface::IndexibleObjectTraits<std::decay_t<T>>;
 
   public:
 
@@ -168,16 +166,18 @@ namespace OpenKalman
 
     static constexpr value_type value = []{
       if constexpr (detail::has_get_constant_interface<T, CompileTimeStatus::known>)
-        return std::decay_t<decltype(std::declval<Trait>().get_constant())>::value;
+        return std::decay_t<decltype(Trait::get_constant(std::declval<T>()))>::value;
       else
-        return std::decay_t<decltype(std::declval<Trait>().get_constant_diagonal())>::value;
+        return std::decay_t<decltype(Trait::get_constant_diagonal(std::declval<T>()))>::value;
     }();
 
     static constexpr Likelihood status = []{
-      if constexpr (detail::has_get_constant_interface<T, CompileTimeStatus::known>)
-        return detail::constant_status<decltype(std::declval<Trait>().get_constant())>::value;
+      if constexpr (not has_dynamic_dimensions<T>)
+        return Likelihood::definitely;
+      else if constexpr (detail::has_get_constant_interface<T, CompileTimeStatus::known>)
+        return detail::constant_status<decltype(Trait::get_constant(std::declval<T>()))>::value;
       else
-        return has_dynamic_dimensions<T> ? Likelihood::maybe : Likelihood::definitely;
+        return Likelihood::maybe;
     }();
 
     constexpr operator value_type() const noexcept { return value; }
@@ -202,21 +202,21 @@ namespace OpenKalman
   {
   private:
 
-    using Trait = interface::SingleConstant<std::decay_t<T>>;
+    using Trait = interface::IndexibleObjectTraits<std::decay_t<T>>;
 
   public:
 
     explicit constexpr constant_coefficient(const std::decay_t<T>& t) : value {[](const auto& t){
         if constexpr (detail::has_get_constant_interface<T, CompileTimeStatus::unknown>)
         {
-          return get_scalar_constant_value(Trait{t}.get_constant());
+          return get_scalar_constant_value(Trait::get_constant(t));
         }
         else
         {
           if constexpr (not one_by_one_matrix<T>) if (not get_is_one_by_one(t)) throw std::logic_error {"Not a constant object"};
 
           if constexpr (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::unknown>)
-            return get_scalar_constant_value(Trait{t}.get_constant_diagonal());
+            return get_scalar_constant_value(Trait::get_constant_diagonal(t));
           else
             return get_element(t);
         }
@@ -227,10 +227,12 @@ namespace OpenKalman
     using type = constant_coefficient;
 
     static constexpr Likelihood status = []{
-      if constexpr (detail::has_get_constant_interface<T, CompileTimeStatus::unknown>)
-        return detail::constant_status<decltype(std::declval<Trait>().get_constant())>::value;
+      if constexpr (not has_dynamic_dimensions<T>)
+        return Likelihood::definitely;
+      else if constexpr (detail::has_get_constant_interface<T, CompileTimeStatus::unknown>)
+        return detail::constant_status<decltype(Trait::get_constant(std::declval<T>()))>::value;
       else
-        return has_dynamic_dimensions<T> ? Likelihood::maybe : Likelihood::definitely;
+        return Likelihood::maybe;
     }();
 
     constexpr operator value_type() const noexcept { return value; }
@@ -253,8 +255,8 @@ namespace OpenKalman
     concept known_constant_diagonal = detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::known> or
       (detail::has_get_constant_interface<T, CompileTimeStatus::known> and
         (one_by_one_matrix<T, Likelihood::maybe> or (square_matrix<T, Likelihood::maybe> and
-          requires(interface::SingleConstant<std::decay_t<T>>& trait) {
-            requires are_within_tolerance(std::decay_t<decltype(trait.get_constant())>::value, 0);
+          requires(T t) {
+            requires are_within_tolerance(std::decay_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::get_constant(t))>::value, 0);
           })));
 #else
     template<typename T, typename = void>
@@ -287,28 +289,35 @@ namespace OpenKalman
 #endif
   {
   private:
-    using Trait = interface::SingleConstant<std::decay_t<T>>;
+    using Trait = interface::IndexibleObjectTraits<std::decay_t<T>>;
 
   public:
     constexpr constant_diagonal_coefficient() = default;
+
     explicit constexpr constant_diagonal_coefficient(const std::decay_t<T>&) {};
+
     using value_type = scalar_type_of_t<T>;
+
     using type = constant_diagonal_coefficient;
+
     static constexpr value_type value = []{
       if constexpr (detail::has_get_constant_diagonal_interface<T>)
-        return std::decay_t<decltype(std::declval<Trait>().get_constant_diagonal())>::value;
+        return std::decay_t<decltype(Trait::get_constant_diagonal(std::declval<T>()))>::value;
       else
-        return std::decay_t<decltype(std::declval<Trait>().get_constant())>::value;
+        return std::decay_t<decltype(Trait::get_constant(std::declval<T>()))>::value;
     }();
+
     static constexpr Likelihood status = []{
-      if constexpr (has_dynamic_dimensions<T>)
-        return Likelihood::maybe;
-      else if constexpr (detail::has_get_constant_diagonal_interface<T>)
-        return detail::constant_status<decltype(std::declval<Trait>().get_constant_diagonal())>::value;
-      else
+      if constexpr (not has_dynamic_dimensions<T>)
         return Likelihood::definitely;
+      else if constexpr (detail::has_get_constant_diagonal_interface<T>)
+        return detail::constant_status<decltype(Trait::get_constant_diagonal(std::declval<T>()))>::value;
+      else
+        return Likelihood::maybe;
     }();
+
     constexpr operator value_type() const noexcept { return value; }
+
     constexpr value_type operator()() const noexcept { return value; }
   };
 
@@ -328,35 +337,39 @@ namespace OpenKalman
 #endif
   {
   private:
-    using Trait = interface::SingleConstant<std::decay_t<T>>;
+    using Trait = interface::IndexibleObjectTraits<std::decay_t<T>>;
 
   public:
     explicit constexpr constant_diagonal_coefficient(const std::decay_t<T>& t) : value {[](const auto& t){
         if constexpr (detail::has_get_constant_diagonal_interface<T>)
         {
-          return get_scalar_constant_value(Trait{t}.get_constant_diagonal());
+          return get_scalar_constant_value(Trait::get_constant_diagonal(t));
         }
         else
         {
           if constexpr (not one_by_one_matrix<T>) if (not get_is_one_by_one(t)) throw std::logic_error {"Not a diagonal constant object"};
           if constexpr (detail::has_get_constant_interface<T>)
-            return get_scalar_constant_value(Trait{t}.get_constant());
+            return get_scalar_constant_value(Trait::get_constant(t));
           else
             return get_element(t);
         }
       }(t)} {};
 
     using value_type = scalar_type_of_t<T>;
+
     using type = constant_diagonal_coefficient;
+
     static constexpr Likelihood status = []{
-      if constexpr (has_dynamic_dimensions<T>)
-        return Likelihood::maybe;
-      else if constexpr (detail::has_get_constant_diagonal_interface<T>)
-        return detail::constant_status<decltype(std::declval<Trait>().get_constant_diagonal())>::value;
-      else
+      if constexpr (not has_dynamic_dimensions<T>)
         return Likelihood::definitely;
+      else if constexpr (detail::has_get_constant_diagonal_interface<T>)
+        return detail::constant_status<decltype(Trait::get_constant_diagonal(std::declval<T>()))>::value;
+      else
+        return Likelihood::maybe;
     }();
+
     constexpr operator value_type() const noexcept { return value; }
+
     constexpr value_type operator()() const noexcept { return value; }
 
   private:
@@ -463,7 +476,7 @@ namespace OpenKalman
    * \brief An alias for type, derived from and equivalent to parameter T, that is self-contained.
    * \details Use this alias to obtain a type, equivalent to T, that can safely be returned from a function.
    * \sa self_contained, make_self_contained
-   * \internal \sa interface::Dependencies
+   * \internal \sa interface::IndexibleObjectTraits
    */
   template<typename T>
   using equivalent_self_contained_t = std::remove_reference_t<decltype(make_self_contained(std::declval<T>()))>;

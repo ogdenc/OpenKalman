@@ -21,25 +21,37 @@
 
 namespace OpenKalman::interface
 {
-#ifndef __cpp_concepts
   template<typename PlainObjectType, int MapOptions, typename StrideType>
-  struct IndexTraits<Eigen::Map<PlainObjectType, MapOptions, StrideType>>
-    : detail::IndexTraits_Eigen_default<Eigen::Map<PlainObjectType, MapOptions, StrideType>> {};
-#endif
-
-
-  template<typename PlainObjectType, int MapOptions, typename StrideType>
-  struct Dependencies<Eigen::Map<PlainObjectType, MapOptions, StrideType>>
+  struct IndexibleObjectTraits<Eigen::Map<PlainObjectType, MapOptions, StrideType>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::Map<PlainObjectType, MapOptions, StrideType>>
   {
   private:
-    using M = Eigen::Map<PlainObjectType, MapOptions, StrideType>;
+
+    using Xpr = Eigen::Map<PlainObjectType, MapOptions, StrideType>;
+
   public:
+
+    static constexpr std::size_t max_indices = 2;
+
+    template<std::size_t N, typename Arg>
+    static constexpr auto get_index_descriptor(const Arg& arg)
+    {
+      constexpr Eigen::Index dim = N == 0 ? Xpr::RowsAtCompileTime : Xpr::ColsAtCompileTime;
+
+      if constexpr (dim == Eigen::Dynamic)
+      {
+        if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
+        else return static_cast<std::size_t>(arg.cols());
+      }
+      else return Dimensions<dim>{};
+    }
+
     static constexpr bool has_runtime_parameters =
-      M::RowsAtCompileTime == Eigen::Dynamic or M::ColsAtCompileTime == Eigen::Dynamic or
-      M::OuterStrideAtCompileTime == Eigen::Dynamic or M::InnerStrideAtCompileTime == Eigen::Dynamic;
+      Xpr::RowsAtCompileTime == Eigen::Dynamic or Xpr::ColsAtCompileTime == Eigen::Dynamic or
+      Xpr::OuterStrideAtCompileTime == Eigen::Dynamic or Xpr::InnerStrideAtCompileTime == Eigen::Dynamic;
 
     // Map is not self-contained in any circumstances.
-    using type = std::tuple<decltype(*std::declval<typename M::PointerType>())>;
+    using type = std::tuple<decltype(*std::declval<typename Xpr::PointerType>())>;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -47,6 +59,10 @@ namespace OpenKalman::interface
       static_assert(i == 0);
       return *std::forward<Arg>(arg).data();
     }
+
+    // get_constant() not defined
+
+    // get_constant_diagonal() not defined
   };
 
 } // namespace OpenKalman::interface

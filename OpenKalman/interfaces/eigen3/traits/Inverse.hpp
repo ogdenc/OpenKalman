@@ -21,23 +21,29 @@
 
 namespace OpenKalman::interface
 {
-#ifndef __cpp_concepts
   template<typename XprType>
-  struct IndexTraits<Eigen::Inverse<XprType>> : detail::IndexTraits_Eigen_default<Eigen::Inverse<XprType>> {};
-#endif
-
-
-  template<typename XprType>
-  struct Dependencies<Eigen::Inverse<XprType>>
+  struct IndexibleObjectTraits<Eigen::Inverse<XprType>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::Inverse<XprType>>
   {
-  private:
+    static constexpr std::size_t max_indices = 2;
 
-    using T = Eigen::Inverse<XprType>;
+    template<std::size_t N, typename Arg>
+    static constexpr auto get_index_descriptor(const Arg& arg)
+    {
+      using Xpr = Eigen::Inverse<XprType>;
+      constexpr Eigen::Index dim = N == 0 ? Xpr::RowsAtCompileTime : Xpr::ColsAtCompileTime;
 
-  public:
+      if constexpr (dim == Eigen::Dynamic)
+      {
+        if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
+        else return static_cast<std::size_t>(arg.cols());
+      }
+      else return Dimensions<dim>{};
+    }
 
     static constexpr bool has_runtime_parameters = false;
-    using type = std::tuple<typename T::XprTypeNested>;
+
+    using type = std::tuple<typename Eigen::Inverse<XprType>::XprTypeNested>;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -55,6 +61,10 @@ namespace OpenKalman::interface
       else
         return make_dense_writable_matrix_from(std::forward<Arg>(arg));
     }
+
+    // get_constant() not defined
+
+    // get_constant_diagonal() not defined
   };
 
 } // namespace OpenKalman::interface

@@ -20,9 +20,6 @@
 
 namespace OpenKalman
 {
-  using namespace interface;
-
-
   /**
    * \brief Make a complex number from real and imaginary parts.
    * \param re The real part.

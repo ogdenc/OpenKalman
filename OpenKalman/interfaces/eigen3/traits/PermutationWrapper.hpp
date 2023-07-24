@@ -21,17 +21,28 @@
 
 namespace OpenKalman::interface
 {
-#ifndef __cpp_concepts
   template<typename IndicesType>
-  struct IndexTraits<Eigen::PermutationWrapper<IndicesType>>
-    : detail::IndexTraits_Eigen_default<Eigen::PermutationWrapper<IndicesType>> {};
-#endif
-
-
-  template<typename IndicesType>
-  struct Dependencies<Eigen::PermutationWrapper<IndicesType>>
+  struct IndexibleObjectTraits<Eigen::PermutationWrapper<IndicesType>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::PermutationWrapper<IndicesType>>
   {
+    static constexpr std::size_t max_indices = 2;
+
+    template<std::size_t N, typename Arg>
+    static constexpr auto get_index_descriptor(const Arg& arg)
+    {
+      using Xpr = Eigen::PermutationWrapper<IndicesType>;
+      constexpr Eigen::Index dim = N == 0 ? Xpr::RowsAtCompileTime : Xpr::ColsAtCompileTime;
+
+      if constexpr (dim == Eigen::Dynamic)
+      {
+        if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
+        else return static_cast<std::size_t>(arg.cols());
+      }
+      else return Dimensions<dim>{};
+    }
+
     static constexpr bool has_runtime_parameters = false;
+
     using type = std::tuple<typename IndicesType::Nested>;
 
     template<std::size_t i, typename Arg>
@@ -50,6 +61,10 @@ namespace OpenKalman::interface
       else
         return make_dense_writable_matrix_from(std::forward<Arg>(arg));
     }
+
+    // get_constant() not defined
+
+    // get_constant_diagonal() not defined
   };
 
 } // namespace OpenKalman::interface

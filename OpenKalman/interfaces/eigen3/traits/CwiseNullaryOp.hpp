@@ -21,12 +21,25 @@
 
 namespace OpenKalman::interface
 {
-  namespace EGI = Eigen::internal;
-
-
   template<typename NullaryOp, typename PlainObjectType>
-  struct IndexTraits<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
+  struct IndexibleObjectTraits<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
   {
+  private:
+
+    template<typename T>
+    struct has_params : std::bool_constant<
+      Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>::RowsAtCompileTime == Eigen::Dynamic or
+      Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>::ColsAtCompileTime == Eigen::Dynamic> {};
+
+    template<typename Scalar>
+    struct has_params<Eigen::internal::scalar_constant_op<Scalar>> : std::true_type {};
+
+    template<typename...Args>
+    struct has_params<Eigen::internal::linspaced_op<Args...>> : std::true_type {};
+
+  public:
+
     static constexpr std::size_t max_indices = max_indices_of_v<PlainObjectType>;
 
     template<std::size_t N, typename Arg>
@@ -46,80 +59,35 @@ namespace OpenKalman::interface
 
     template<Likelihood b>
     static constexpr bool is_square = square_matrix<PlainObjectType, b>;
-  };
 
+    static constexpr bool has_runtime_parameters = has_params<NullaryOp>::value;
 
-  namespace detail
-  {
-    template<typename NullaryOp, typename PlainObjectType>
-    struct CwiseNullaryOpDependenciesBase
+    using type = std::tuple<>;
+
+    template<std::size_t i, typename Arg>
+    static decltype(auto) get_nested_matrix(Arg&& arg)
     {
-      static constexpr bool has_runtime_parameters =
-        Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>::RowsAtCompileTime == Eigen::Dynamic or
-        Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>::ColsAtCompileTime == Eigen::Dynamic;
-
-      using type = std::tuple<>;
-
-      template<std::size_t i, typename Arg>
-      static decltype(auto) get_nested_matrix(Arg&& arg)
-      {
-        static_assert(i == 0);
-        return std::forward<Arg>(arg).functor();
-      }
-    };
-  }
-
-  template<typename NullaryOp, typename PlainObjectType>
-  struct Dependencies<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
-    : detail::CwiseNullaryOpDependenciesBase<NullaryOp, PlainObjectType> {};
-
-
-  template<typename Scalar, typename PlainObjectType>
-  struct Dependencies<Eigen::CwiseNullaryOp<EGI::scalar_constant_op<Scalar>, PlainObjectType>>
-    : detail::CwiseNullaryOpDependenciesBase<EGI::scalar_constant_op<Scalar>, PlainObjectType>
-  {
-    static constexpr bool has_runtime_parameters = true;
-  };
-
-
-  template<typename PlainObjectType, typename...Args>
-  struct Dependencies<Eigen::CwiseNullaryOp<EGI::linspaced_op<Args...>, PlainObjectType>>
-    : detail::CwiseNullaryOpDependenciesBase<EGI::linspaced_op<Args...>, PlainObjectType>
-  {
-    static constexpr bool has_runtime_parameters = true;
-  };
-
-
-  template<typename NullaryOp, typename PlainObjectType>
-  struct SingleConstant<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
-  {
-    const Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>& xpr;
-
-    constexpr auto get_constant()
-    {
-      return Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::template get_constant<false>(xpr);
+      static_assert(i == 0);
+      return std::forward<Arg>(arg).functor();
     }
 
-    constexpr auto get_constant_diagonal()
+    template<typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
     {
-      return Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::template get_constant<true>(xpr);
+      return Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::template get_constant<false>(arg);
     }
-  };
 
+    template<typename Arg>
+    static constexpr auto get_constant_diagonal(const Arg& arg)
+    {
+      return Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::template get_constant<true>(arg);
+    }
 
-  template<typename NullaryOp, typename PlainObjectType>
-  struct TriangularTraits<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
-  {
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::template is_triangular<t, b>;
 
     static constexpr bool is_triangular_adapter = false;
-  };
 
-
-  template<typename NullaryOp, typename PlainObjectType>
-  struct HermitianTraits<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
-  {
     static constexpr bool is_hermitian = Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::is_hermitian;
   };
 

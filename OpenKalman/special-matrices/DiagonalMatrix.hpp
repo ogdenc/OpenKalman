@@ -367,8 +367,8 @@ namespace OpenKalman
 
   namespace interface
   {
-    template<typename Nested>
-    struct IndexTraits<DiagonalMatrix<Nested>>
+    template<typename ColumnVector>
+    struct IndexibleObjectTraits<DiagonalMatrix<ColumnVector>>
     {
       static constexpr std::size_t max_indices = 2;
 
@@ -379,14 +379,41 @@ namespace OpenKalman
       }
 
       template<Likelihood b>
-      static constexpr bool is_one_by_one = one_by_one_matrix<Nested, b>;
-    };
+      static constexpr bool is_one_by_one = one_by_one_matrix<ColumnVector, b>;
+
+      static constexpr bool has_runtime_parameters = false;
+
+      using type = std::tuple<ColumnVector>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).nested_matrix();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        return DiagonalMatrix {make_self_contained(get_nested_matrix<0>(std::forward<Arg>(arg)))};
+      }
+
+      // get_constant(const Arg& arg) not defined
+
+      template<typename Arg>
+      static constexpr auto get_constant_diagonal(const Arg& arg)
+      {
+        return constant_coefficient {arg.nested_matrix()};
+      }
+
+      template<TriangleType t, Likelihood b>
+      static constexpr bool is_triangular = true;
+
+      template<Likelihood b>
+      static constexpr bool is_diagonal_adapter = true;
 
 
-    template<typename NestedMatrix>
-    struct Elements<DiagonalMatrix<NestedMatrix>>
-    {
-      using scalar_type = scalar_type_of_t<NestedMatrix>;
+      using scalar_type = scalar_type_of_t<ColumnVector>;
 
 
 #ifdef __cpp_lib_concepts
@@ -464,27 +491,10 @@ namespace OpenKalman
         else if (s != 0)
           throw std::out_of_range("Cannot set non-diagonal element of a diagonal matrix to a non-zero value.");
       }
-    };
 
 
-    template<typename ColumnVector>
-    struct Dependencies<DiagonalMatrix<ColumnVector>>
-    {
-      static constexpr bool has_runtime_parameters = false;
-      using type = std::tuple<ColumnVector>;
+      static constexpr bool is_writable = false;
 
-      template<std::size_t i, typename Arg>
-      static decltype(auto) get_nested_matrix(Arg&& arg)
-      {
-        static_assert(i == 0);
-        return std::forward<Arg>(arg).nested_matrix();
-      }
-
-      template<typename Arg>
-      static auto convert_to_self_contained(Arg&& arg)
-      {
-        return DiagonalMatrix {make_self_contained(get_nested_matrix<0>(std::forward<Arg>(arg)))};
-      }
     };
 
   } // namespace interface

@@ -18,136 +18,70 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typed_matrix T>
-  struct Elements<T>
+  struct LibraryRoutines<T>
 #else
   template<typename T>
-  struct Elements<T, std::enable_if_t<typed_matrix<T>>>
+  struct linearAlgebra<T, std::enable_if_t<typed_matrix<T>>>
 #endif
   {
-    using scalar_type = scalar_type_of_t<nested_matrix_of_t<T>>;
-
-#ifdef __cpp_lib_concepts
-    template<typename Arg, typename...I> requires element_gettable<nested_matrix_of_t<Arg&&>, sizeof...(I)>
-#else
-    template<typename Arg, typename...I, std::enable_if_t<element_gettable<typename nested_matrix_of<Arg&&>::type, sizeof...(I)>, int> = 0>
-#endif
-    static constexpr decltype(auto) get(Arg&& arg, I...i)
+    template<typename Scalar, typename...D>
+    static auto make_default(D&&...d)
     {
-      return get_element(nested_matrix(std::forward<Arg>(arg)), i...);
+      return LibraryRoutines<nested_matrix_of_t<T>>::template make_default<Scalar>(std::forward<D>(d)...);
     }
 
 
-#ifdef __cpp_lib_concepts
-    template<typename Arg, typename I, typename...Is> requires element_settable<nested_matrix_of_t<Arg&>, 1 + sizeof...(Is)>
-#else
-    template<typename Arg, typename I, typename...Is, std::enable_if_t<element_settable<typename nested_matrix_of<Arg&>::type, 1 + sizeof...(Is)>, int> = 0>
-#endif
-    static constexpr void set(Arg& arg, const scalar_type_of_t<Arg>& s, I i, Is...is)
+    template<typename Scalar, typename Arg>
+    static decltype(auto) convert(Arg&& arg)
     {
-      if constexpr(wrapped_mean<Arg>)
-      {
-        using Coeffs = row_index_descriptor_of_t<Arg>;
-        const auto get_coeff = [&arg, is...] (const std::size_t row) {
-          return get_element(nested_matrix(arg), row, is...);
-        };
-        const auto set_coeff = [&arg, is...](const std::size_t row, const scalar_type_of_t<Arg> value) {
-          set_element(nested_matrix(arg), value, row, is...);
-        };
-        wrap_set_element<Coeffs>(Coeffs{}, i, s, set_coeff, get_coeff);
-      }
-      else
-      {
-        set_element(nested_matrix(arg), s, i, is...);
-      }
-    }
-  };
-
-} // namespace OpenKalman::interface
-
-
-namespace OpenKalman
-{
-  namespace oin = OpenKalman::internal;
-
-
-  namespace interface
-  {
-
-#ifdef __cpp_concepts
-  template<typed_matrix T>
-  struct Subsets<T>
-#else
-  template<typename T>
-  struct Subsets<T, std::enable_if_t<typed_matrix<T>>>
-#endif
-  {
-    // \todo Add come of this logic to global functions.
-
-    template<std::size_t...index, typename Arg, typename...runtime_index_t>
-    static constexpr decltype(auto)
-    column(Arg&& arg, runtime_index_t...i)
-    {
-      using RC = row_index_descriptor_of_t<Arg>;
-      using Traits = MatrixTraits<std::decay_t<Arg>>;
-
-      if constexpr (has_uniform_dimension_type<column_index_descriptor_of_t<Arg>>)
-      {
-        using CC = typename uniform_dimension_type_of_t<column_index_descriptor_of_t<Arg>>;
-        return Traits::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
-      }
-      else if constexpr (fixed_index_descriptor<column_index_descriptor_of_t<Arg>>)
-      {
-        static_assert(sizeof...(index) > 0);
-        using CC = column_index_descriptor_of_t<Arg>::template Select<index...>;
-        static_assert(dimension_size_of_v<CC> == 1);
-        return Traits::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg))));
-      }
-      else
-      {
-        static_assert(dynamic_index_descriptor<column_index_descriptor_of_t<Arg>>);
-        using CC = column_index_descriptor_of_t<Arg>::template Select<index...>;
-        return Traits::template make<RC, CC>(column(nested_matrix(std::forward<Arg>(arg)), i...));
-      }
+      return LibraryRoutines<nested_matrix_of_t<T>>::template convert<Scalar>(nested_matrix(std::forward<Arg>(arg)));
     }
 
 
-    template<std::size_t...index, typename Arg, typename...runtime_index_t>
-    static constexpr decltype(auto)
-    row(Arg&& arg, runtime_index_t...i)
+    template<typename Arg>
+    static decltype(auto) to_native_matrix(Arg&& arg)
     {
-      using CC = column_index_descriptor_of_t<Arg>;
-      using Traits = MatrixTraits<std::decay_t<Arg>>;
-
-      if constexpr (has_uniform_dimension_type<row_index_descriptor_of_t<Arg>>)
-      {
-        using RC = typename uniform_dimension_type_of_t<row_index_descriptor_of_t<Arg>>;
-        return Traits::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
-      }
-      else if constexpr (fixed_index_descriptor<row_index_descriptor_of_t<Arg>>)
-      {
-        static_assert(sizeof...(index) > 0);
-        using RC = row_index_descriptor_of_t<Arg>::template Select<index...>;
-        static_assert(dimension_size_of_v<RC> == 1);
-        return Traits::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg))));
-      }
-      else
-      {
-        static_assert(dynamic_index_descriptor<row_index_descriptor_of_t<Arg>>);
-        using RC = row_index_descriptor_of_t<Arg>::template Select<index...>;
-        return Traits::template make<RC, CC>(column<index...>(nested_matrix(std::forward<Arg>(arg)), i...));
-      }
+      return OpenKalman::to_native_matrix(nested_matrix(std::forward<Arg>(arg)));
     }
-  };
 
 
-#ifdef __cpp_concepts
-  template<typed_matrix T>
-  struct Conversions<T>
-#else
-  template<typename T>
-  struct Conversions<T, std::enable_if_t<typed_matrix<T>>>
-#endif
-  {
+    template<typename C, typename...D>
+    static constexpr auto make_constant_matrix(C&& c, D&&...d)
+    {
+      return make_constant_matrix_like<nested_matrix_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
+    }
+
+
+    template<typename Scalar, typename D>
+    static constexpr auto make_identity_matrix(D&& d)
+    {
+      return make_identity_matrix_like<nested_matrix_of_t<T>, Scalar>(std::forward<D>(d));
+    }
+
+
+    template<typename Arg, typename...Begin, typename...Size>
+    static decltype(auto) get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
+    {
+      /// \todo Properly wrap this
+      return OpenKalman::get_block(nested_matrix(std::forward<Arg>(arg)), begin, size);
+    };
+
+
+    template<typename Arg, typename Block, typename...Begin>
+    static Arg& set_block(Arg& arg, Block&& block, Begin...begin)
+    {
+      /// \todo Properly wrap this
+      return OpenKalman::set_block(nested_matrix(std::forward<Arg>(arg)), std::forward<Block>(block), begin...);
+    };
+
+
+    template<TriangleType t, typename A, typename B>
+    static decltype(auto) set_triangle(A&& a, B&& b)
+    {
+      /// \todo Properly wrap this
+      return OpenKalman::internal::set_triangle<t>(nested_matrix(std::forward<A>(a)), std::forward<B>(b));
+    }
+
 
     template<typename Arg>
     static auto
@@ -168,17 +102,6 @@ namespace OpenKalman
       return Matrix<C, Axis, decltype(b)>(std::move(b));
     }
 
-  };
-
-
-#ifdef __cpp_concepts
-  template<typed_matrix T>
-  struct ModularTransformationTraits<T>
-#else
-  template<typename T>
-  struct ModularTransformationTraits<T, std::enable_if_t<typed_matrix<T>>>
-#endif
-  {
 
 #ifdef __cpp_concepts
     template<mean Arg, index_descriptor C>
@@ -218,110 +141,97 @@ namespace OpenKalman
       return MatrixTraits<std::decay_t<Arg>>::make(std::forward<decltype(n)>(n), c);
     }
 
-  };
-
-
-#ifdef __cpp_concepts
-    template<typed_matrix T>
-    struct LinearAlgebra<T>
-#else
-    template<typename T>
-    struct linearAlgebra<T, std::enable_if_t<typed_matrix<T>>>
-#endif
+    template<typename Arg>
+    static constexpr auto conjugate(Arg&& arg) noexcept
     {
-      template<typename Arg>
-      static constexpr auto conjugate(Arg&& arg) noexcept
+      using CRows = row_index_descriptor_of_t<Arg>;
+      using CCols = column_index_descriptor_of_t<Arg>;
+      if constexpr(euclidean_transformed<Arg>)
       {
-        using CRows = row_index_descriptor_of_t<Arg>;
-        using CCols = column_index_descriptor_of_t<Arg>;
-        if constexpr(euclidean_transformed<Arg>)
-        {
-          auto b = OpenKalman::conjugate(nested_matrix(from_euclidean(std::forward<Arg>(arg))));
-          return Matrix<CRows, CCols, decltype(b)>(std::move(b));
-        }
-        else
-        {
-          auto b = OpenKalman::conjugate(nested_matrix(std::forward<Arg>(arg)));
-          return Matrix<CRows, CCols, decltype(b)>(std::move(b));
-        }
+        auto b = OpenKalman::conjugate(nested_matrix(from_euclidean(std::forward<Arg>(arg))));
+        return Matrix<CRows, CCols, decltype(b)>(std::move(b));
       }
-
-
-      template<typename Arg>
-      static constexpr auto transpose(Arg&& arg) noexcept
+      else
       {
-        using CRows = row_index_descriptor_of_t<Arg>;
-        using CCols = column_index_descriptor_of_t<Arg>;
-        if constexpr(euclidean_transformed<Arg>)
-        {
-          auto b = OpenKalman::transpose(nested_matrix(from_euclidean(std::forward<Arg>(arg))));
-          return Matrix<CCols, CRows, decltype(b)>(std::move(b));
-        }
-        else
-        {
-          auto b = OpenKalman::transpose(nested_matrix(std::forward<Arg>(arg)));
-          return Matrix<CCols, CRows, decltype(b)>(std::move(b));
-        }
+        auto b = OpenKalman::conjugate(nested_matrix(std::forward<Arg>(arg)));
+        return Matrix<CRows, CCols, decltype(b)>(std::move(b));
       }
+    }
 
 
-      template<typename Arg>
-      static constexpr auto adjoint(Arg&& arg) noexcept
+    template<typename Arg>
+    static constexpr auto transpose(Arg&& arg) noexcept
+    {
+      using CRows = row_index_descriptor_of_t<Arg>;
+      using CCols = column_index_descriptor_of_t<Arg>;
+      if constexpr(euclidean_transformed<Arg>)
       {
-        using CRows = row_index_descriptor_of_t<Arg>;
-        using CCols = column_index_descriptor_of_t<Arg>;
-        if constexpr(euclidean_transformed<Arg>)
-        {
-          auto b = OpenKalman::adjoint(nested_matrix(from_euclidean(std::forward<Arg>(arg))));
-          return Matrix<CCols, CRows, decltype(b)>(std::move(b));
-        }
-        else
-        {
-          auto b = OpenKalman::adjoint(nested_matrix(std::forward<Arg>(arg)));
-          return Matrix<CCols, CRows, decltype(b)>(std::move(b));
-        }
+        auto b = OpenKalman::transpose(nested_matrix(from_euclidean(std::forward<Arg>(arg))));
+        return Matrix<CCols, CRows, decltype(b)>(std::move(b));
       }
-
-
-      template<typename Arg>
-      static constexpr auto determinant(Arg&& arg) noexcept
+      else
       {
-        return OpenKalman::determinant(nested_matrix(std::forward<Arg>(arg)));
+        auto b = OpenKalman::transpose(nested_matrix(std::forward<Arg>(arg)));
+        return Matrix<CCols, CRows, decltype(b)>(std::move(b));
       }
+    }
 
 
-      template<typename A, typename B>
-      static decltype(auto) contract(A&& a, B&& b)
+    template<typename Arg>
+    static constexpr auto adjoint(Arg&& arg) noexcept
+    {
+      using CRows = row_index_descriptor_of_t<Arg>;
+      using CCols = column_index_descriptor_of_t<Arg>;
+      if constexpr(euclidean_transformed<Arg>)
       {
-        return OpenKalman::contract(nested_matrix(std::forward<A>(a)), nested_matrix(std::forward<B>(b)));
+        auto b = OpenKalman::adjoint(nested_matrix(from_euclidean(std::forward<Arg>(arg))));
+        return Matrix<CCols, CRows, decltype(b)>(std::move(b));
       }
-
-
-      template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
-      static decltype(auto) rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
+      else
       {
-        return OpenKalman::rank_update_self_adjoint(nested_matrix(std::forward<A>(a)), nested_matrix(std::forward<U>(u)), alpha);
+        auto b = OpenKalman::adjoint(nested_matrix(std::forward<Arg>(arg)));
+        return Matrix<CCols, CRows, decltype(b)>(std::move(b));
       }
+    }
 
 
-      template<TriangleType triangle, typename A, typename U, typename Alpha>
-      static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
-      {
-        return OpenKalman::rank_update_triangular(
-          nested_matrix(std::forward<A>(a)), nested_matrix(std::forward<U>(u)), alpha);
-      }
+    template<typename Arg>
+    static constexpr auto determinant(Arg&& arg) noexcept
+    {
+      return OpenKalman::determinant(nested_matrix(std::forward<Arg>(arg)));
+    }
 
 
-      template<bool must_be_unique, bool must_be_exact, typename A, typename B>
-      inline auto
-      solve(A&& a, B&& b) noexcept
-      {
-        auto x = OpenKalman::solve<must_be_unique, must_be_exact>(
-          nested_matrix(std::forward<A>(a)), nested_matrix(std::forward<B>(b)));
-        return MatrixTraits<std::decay_t<B>>::make(std::move(x));
-      }
+    template<typename A, typename B>
+    static decltype(auto) contract(A&& a, B&& b)
+    {
+      return OpenKalman::contract(nested_matrix(std::forward<A>(a)), nested_matrix(std::forward<B>(b)));
+    }
 
-    };
+
+    template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
+    static decltype(auto) rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
+    {
+      return OpenKalman::rank_update_self_adjoint(nested_matrix(std::forward<A>(a)), nested_matrix(std::forward<U>(u)), alpha);
+    }
+
+
+    template<TriangleType triangle, typename A, typename U, typename Alpha>
+    static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
+    {
+      return OpenKalman::rank_update_triangular(
+        nested_matrix(std::forward<A>(a)), nested_matrix(std::forward<U>(u)), alpha);
+    }
+
+
+    template<bool must_be_unique, bool must_be_exact, typename A, typename B>
+    inline auto
+    solve(A&& a, B&& b) noexcept
+    {
+      auto x = OpenKalman::solve<must_be_unique, must_be_exact>(
+        nested_matrix(std::forward<A>(a)), nested_matrix(std::forward<B>(b)));
+      return MatrixTraits<std::decay_t<B>>::make(std::move(x));
+    }
 
 
     template<typename A>
@@ -339,8 +249,13 @@ namespace OpenKalman
       return QR_decomposition(nested_matrix(std::forward<A>(a)));
     }
 
-  } // namespace interface
+  };
 
+} // namespace OpenKalman::interface
+
+
+namespace OpenKalman
+{
 
   /// Concatenate one or more typed matrices objects vertically.
 #ifdef __cpp_concepts
@@ -836,8 +751,6 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
         auto f_conv = [f = std::move(f)](size_t i, size_t j){ return static_cast<Scalar>(f(i, j)); };
         return MatrixTraits<std::decay_t<V>>::make(apply_coefficientwise<rows, columns>(std::move(f_conv)));
       }
-
-
     }
   }
 

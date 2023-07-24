@@ -23,16 +23,16 @@ namespace OpenKalman
     template<typename Arg>
     constexpr void check_if_column_vector_at_runtime(const Arg& arg)
     {
-      if constexpr (dynamic_dimension<Arg, 1>) if (get_index_dimension_of<1>(arg) != 1)
+      if constexpr (not vector<Arg>) if (not get_is_vector(arg))
         throw std::domain_error {"Argument of to_diagonal must have 1 column; instead it has " +
           std::to_string(get_index_dimension_of<1>(arg))};
     };
 
 
-    template<typename T, std::size_t...Is, typename C, typename D0>
-    constexpr auto make_constant_square(std::index_sequence<Is...>, C&& c, D0&& d0)
+    template<std::size_t...Is, typename Arg>
+    constexpr auto make_fixed_one_by_one(std::index_sequence<Is...>, Arg&& arg)
     {
-      return make_constant_matrix_like<T>(std::forward<C>(c), (Is>=0?d0:d0)...);
+      return internal::FixedSizeAdapter {std::forward<Arg>(arg), Dimensions<Is>=0 ? 1 : 1>{}...};
     }
 
 
@@ -42,8 +42,7 @@ namespace OpenKalman
 
     template<typename Arg>
     struct to_diagonal_exists<Arg, std::void_t<decltype(
-      interface::Conversions<std::decay_t<Arg>>::template to_diagonal(std::declval<Arg&&>()))>>
-      : std::true_type {};
+      interface::LibraryRoutines<std::decay_t<Arg>>::template to_diagonal(std::declval<Arg&&>()))>> : std::true_type {};
 #endif
   } // namespace detail
 
@@ -63,30 +62,24 @@ namespace OpenKalman
   to_diagonal(Arg&& arg)
   {
     constexpr std::make_index_sequence<max_indices_of_v<Arg>> seq;
+    using Interface = interface::LibraryRoutines<std::decay_t<Arg>>;
 
-    if constexpr (diagonal_matrix<Arg>)
+    if constexpr (one_by_one_matrix<Arg>)
     {
-      detail::check_if_column_vector_at_runtime(arg);
       return std::forward<Arg>(arg);
     }
-    else if constexpr (zero_matrix<Arg>)
+    else if constexpr (square_matrix<Arg> or dimension_size_of_index_is<Arg, 0, 1>)
     {
       detail::check_if_column_vector_at_runtime(arg);
-      internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<Arg>, 0> c;
-      return detail::make_constant_square<Arg>(seq, c, get_index_descriptor<0>(arg));
-    }
-    else if constexpr (dimension_size_of_index_is<Arg, 0, 1> and element_gettable<Arg, 0>)
-    {
-      detail::check_if_column_vector_at_runtime(arg);
-      return detail::make_constant_square<Arg>(seq, get_element(std::forward<Arg>(arg)), get_index_descriptor<0>(arg));
+      return detail::make_fixed_one_by_one(seq, std::forward<Arg>(arg));
     }
 #ifdef __cpp_concepts
-    else if constexpr (requires { interface::Conversions<std::decay_t<Arg>>::template to_diagonal(std::forward<Arg>(arg)); })
+    else if constexpr (requires { Interface::template to_diagonal(std::forward<Arg>(arg)); })
 #else
     else if constexpr (detail::to_diagonal_exists<Arg>::value)
 #endif
     {
-      return interface::Conversions<std::decay_t<Arg>>::to_diagonal(std::forward<Arg>(arg));
+      return Interface::to_diagonal(std::forward<Arg>(arg));
     }
     else
     {

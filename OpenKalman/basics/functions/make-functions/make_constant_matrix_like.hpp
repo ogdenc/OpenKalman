@@ -18,8 +18,6 @@
 
 namespace OpenKalman
 {
-  using namespace interface;
-
   // --------------------------- //
   //  make_constant_matrix_like  //
   // --------------------------- //
@@ -58,8 +56,7 @@ namespace OpenKalman
   {
     if constexpr (sizeof...(Ds) == max_indices_of_v<T>)
     {
-      using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
-      using Trait = SingleConstantMatrixTraits<std::decay_t<T>, Scalar>;
+      using Trait = interface::LibraryRoutines<std::decay_t<T>>;
 # ifdef __cpp_concepts
       if constexpr (requires (Ds&&...d) { Trait::template make_constant_matrix(std::forward<C>(c), std::forward<Ds>(d)...); })
 # else
@@ -71,8 +68,9 @@ namespace OpenKalman
       else
       {
         // Default behavior if interface function not defined:
-        using Trait = EquivalentDenseWritableMatrix<std::decay_t<T>, std::decay_t<Scalar>>;
-        using U = std::decay_t<decltype(Trait::make_default(std::declval<Ds&&>()...))>;
+        using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
+        using Trait = interface::LibraryRoutines<std::decay_t<T>>;
+        using U = std::decay_t<decltype(Trait::template make_default<Scalar>(std::declval<Ds&&>()...))>;
         return ConstantAdapter<U, std::decay_t<C>> {std::forward<C>(c), std::forward<Ds>(ds)...};
       }
     }

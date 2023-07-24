@@ -18,8 +18,6 @@
 
 namespace OpenKalman
 {
-  using namespace interface;
-
   /**
    * \brief Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
    * \tparam A The matrix to be decomposed
@@ -83,9 +81,9 @@ namespace OpenKalman
     }
     else
     {
-      auto ret {interface::LinearAlgebra<std::decay_t<A>>::LQ_decomposition(std::forward<A>(a))};
+      auto ret {interface::LibraryRoutines<std::decay_t<A>>::LQ_decomposition(std::forward<A>(a))};
       static_assert(triangular_matrix<decltype(ret), TriangleType::lower, Likelihood::maybe>,
-        "Interface implementation error: interface::LinearAlgebra<T>::LQ_decomposition must return a lower triangular_matrix.");
+        "Interface implementation error: interface::LibraryRoutines<T>::LQ_decomposition must return a lower triangular_matrix.");
 
       // \todo Fix this:
       if constexpr (euclidean_index_descriptor<index_descriptor_of_t<A, 0>>) return ret;
@@ -157,9 +155,9 @@ namespace OpenKalman
     }
     else
     {
-      auto ret {interface::LinearAlgebra<std::decay_t<A>>::QR_decomposition(std::forward<A>(a))};
+      auto ret {interface::LibraryRoutines<std::decay_t<A>>::QR_decomposition(std::forward<A>(a))};
       static_assert(triangular_matrix<decltype(ret), TriangleType::upper, Likelihood::maybe>,
-        "Interface implementation error: interface::LinearAlgebra<T>::QR_decomposition must return an upper triangular_matrix.");
+        "Interface implementation error: interface::LibraryRoutines<T>::QR_decomposition must return an upper triangular_matrix.");
 
       // \todo Fix this:
       if constexpr (euclidean_index_descriptor<index_descriptor_of_t<A, 1>>) return ret;

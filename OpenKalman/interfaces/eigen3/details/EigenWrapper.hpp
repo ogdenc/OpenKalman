@@ -23,14 +23,14 @@ namespace OpenKalman
   {
     template<typename NestedMatrix>
     struct EigenWrapper : std::conditional_t<
-      std::is_base_of_v<Eigen::ArrayBase<NestedMatrix>, std::decay_t<NestedMatrix>>,
+      std::is_base_of_v<Eigen::ArrayBase<std::decay_t<NestedMatrix>>, std::decay_t<NestedMatrix>>,
       Eigen::ArrayBase<EigenWrapper<NestedMatrix>>,
       Eigen::MatrixBase<EigenWrapper<NestedMatrix>>>
     {
     private:
 
       using Base = std::conditional_t<
-        std::is_base_of_v<Eigen::ArrayBase<NestedMatrix>, std::decay_t<NestedMatrix>>,
+        std::is_base_of_v<Eigen::ArrayBase<std::decay_t<NestedMatrix>>, std::decay_t<NestedMatrix>>,
         Eigen::ArrayBase<EigenWrapper>,
         Eigen::MatrixBase<EigenWrapper>>;
 
@@ -345,7 +345,7 @@ namespace OpenKalman
   namespace interface
   {
     template<typename NestedMatrix>
-    struct IndexTraits<Eigen3::EigenWrapper<NestedMatrix>>
+    struct IndexibleObjectTraits<Eigen3::EigenWrapper<NestedMatrix>>
     {
       static constexpr std::size_t max_indices = max_indices_of_v<NestedMatrix>;
 
@@ -360,40 +360,7 @@ namespace OpenKalman
 
       template<Likelihood b>
       static constexpr bool is_square = square_matrix<NestedMatrix, b>;
-    };
 
-
-    template<typename T>
-    struct Elements<Eigen3::EigenWrapper<T>>
-    {
-      using scalar_type = scalar_type_of_t<T>;
-
-#ifdef __cpp_lib_concepts
-      template<typename Arg, typename...I> requires element_gettable<nested_matrix_of_t<Arg>, sizeof...(I)>
-#else
-      template<typename Arg, typename...I, std::enable_if_t<element_gettable<typename nested_matrix_of<Arg>::type, sizeof...(I)>, int> = 0>
-#endif
-      static constexpr decltype(auto) get(Arg&& arg, I...i)
-      {
-        return get_element(nested_matrix(std::forward<Arg>(arg)), i...);
-      }
-
-
-#ifdef __cpp_lib_concepts
-      template<typename Arg, typename Scalar, typename...I> requires element_settable<nested_matrix_of_t<Arg&>, sizeof...(I)>
-#else
-      template<typename Arg, typename Scalar, typename...I, std::enable_if_t<element_settable<typename nested_matrix_of<Arg&>::type, sizeof...(I)>, int> = 0>
-#endif
-      static constexpr void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
-      {
-        set_element(nested_matrix(arg), s, i...);
-      }
-    };
-
-
-    template<typename NestedMatrix>
-    struct Dependencies<Eigen3::EigenWrapper<NestedMatrix>>
-    {
       static constexpr bool has_runtime_parameters = false;
 
       using type = std::tuple<NestedMatrix>;
@@ -410,42 +377,52 @@ namespace OpenKalman
       {
         return make_dense_writable_matrix_from(std::forward<Arg>(arg).nested_matrix());
       }
-    };
 
+      template<typename Arg>
+      static constexpr auto get_constant(const Arg& arg)
+      {
+        return constant_coefficient{arg.nested_matrix()};
+      }
 
-    template<typename NestedMatrix>
-    struct SingleConstant<Eigen3::EigenWrapper<NestedMatrix>> : SingleConstant<std::decay_t<NestedMatrix>>
-    {
-      SingleConstant(const Eigen3::EigenWrapper<NestedMatrix>& xpr) :
-        SingleConstant<std::decay_t<NestedMatrix>> {xpr.nested_matrix()} {};
-    };
+      template<typename Arg>
+      static constexpr auto get_constant_diagonal(const Arg& arg)
+      {
+        return constant_diagonal_coefficient {arg.nested_matrix()};
+      }
 
-
-    template<typename NestedMatrix>
-    struct TriangularTraits<Eigen3::EigenWrapper<NestedMatrix>>
-    {
       template<TriangleType t, Likelihood b>
       static constexpr bool is_triangular = triangular_matrix<NestedMatrix, t, b>;
 
       static constexpr bool is_triangular_adapter = false;
-    };
 
-
-    template<typename NestedMatrix>
-    struct HermitianTraits<Eigen3::EigenWrapper<NestedMatrix>>
-    {
       static constexpr bool is_hermitian = hermitian_matrix<NestedMatrix, Likelihood::maybe>;
-    };
+
+      using scalar_type = scalar_type_of_t<NestedMatrix>;
+
+#ifdef __cpp_lib_concepts
+      template<typename Arg, typename...I> requires element_gettable<decltype(nested_matrix(std::declval<Arg&&>())), sizeof...(I)>
+#else
+      template<typename Arg, typename...I, std::enable_if_t<element_gettable<decltype(nested_matrix(std::declval<Arg&&>())), sizeof...(I)>, int> = 0>
+#endif
+      static constexpr decltype(auto) get(Arg&& arg, I...i)
+      {
+        return get_element(nested_matrix(std::forward<Arg>(arg)), i...);
+      }
 
 
-    template<typename NestedMatrix>
-    struct Conversions<Eigen3::EigenWrapper<NestedMatrix>>
-    {
-      template<typename Arg>
-      static constexpr decltype(auto) to_diagonal(Arg&& arg) { return OpenKalman::to_diagonal(nested_matrix(std::forward<Arg>(arg))); }
+#ifdef __cpp_lib_concepts
+      template<typename Arg, typename Scalar, typename...I> requires element_settable<decltype(nested_matrix(std::declval<Arg&>())), sizeof...(I)>
+#else
+      template<typename Arg, typename Scalar, typename...I, std::enable_if_t<element_settable<decltype(nested_matrix(std::declval<Arg&>())), sizeof...(I)>, int> = 0>
+#endif
+      static constexpr void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
+      {
+        set_element(nested_matrix(arg), s, i...);
+      }
 
-      template<typename Arg>
-      static constexpr decltype(auto) diagonal_of(Arg&& arg) { return OpenKalman::diagonal_of(nested_matrix(std::forward<Arg>(arg))); }
+
+      static constexpr bool is_writable =
+        static_cast<bool>(Eigen::internal::traits<std::decay_t<NestedMatrix>>::Flags & (Eigen::LvalueBit | Eigen::DirectAccessBit));
     };
 
   } // namespace interface
@@ -476,13 +453,13 @@ namespace Eigen::internal
 
     public:
 
-      using Scalar = scalar_type_of_t<T>;
+      using Scalar = OpenKalman::scalar_type_of_t<T>;
       using StorageIndex = Index;
       using StorageKind = Dense;
-      using XprKind = std::conditional_t<Eigen3::native_eigen_array<T>, ArrayXpr, MatrixXpr>;
+      using XprKind = std::conditional_t<OpenKalman::Eigen3::native_eigen_array<T>, ArrayXpr, MatrixXpr>;
       enum {
-        RowsAtCompileTime = dynamic_dimension<T, 0> ? Eigen::Dynamic : static_cast<Index>(index_dimension_of_v<T, 0>),
-        ColsAtCompileTime = dynamic_dimension<T, 1> ? Eigen::Dynamic : static_cast<Index>(index_dimension_of_v<T, 1>),
+        RowsAtCompileTime = OpenKalman::dynamic_dimension<T, 0> ? Eigen::Dynamic : static_cast<Index>(OpenKalman::index_dimension_of_v<T, 0>),
+        ColsAtCompileTime = OpenKalman::dynamic_dimension<T, 1> ? Eigen::Dynamic : static_cast<Index>(OpenKalman::index_dimension_of_v<T, 1>),
         MaxRowsAtCompileTime [[maybe_unused]] = RowsAtCompileTime,
         MaxColsAtCompileTime [[maybe_unused]] = ColsAtCompileTime,
         Flags = (lvalue_get_element ? LvalueBit : 0x0),

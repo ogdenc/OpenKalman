@@ -26,7 +26,7 @@ namespace OpenKalman
 
     template<typename T, typename Scalar, typename D>
     struct make_identity_matrix_trait_defined<T, Scalar, D, std::void_t<
-      decltype(interface::SingleConstantDiagonalMatrixTraits<T, Scalar>::make_identity_matrix(std::declval<D&&>()))>>
+      decltype(interface::LibraryRoutines<T>::template make_identity_matrix<Scalar>(std::declval<D&&>()))>>
       : std::true_type {};
   }
 #endif
@@ -50,12 +50,12 @@ namespace OpenKalman
   {
     using Td = std::decay_t<T>;
 #ifdef __cpp_concepts
-    if constexpr (requires (D&& d) { interface::SingleConstantDiagonalMatrixTraits<Td, Scalar>::make_identity_matrix(std::forward<D>(d)); })
+    if constexpr (requires (D&& d) { interface::LibraryRoutines<Td>::template make_identity_matrix<Scalar>(std::forward<D>(d)); })
 #else
     if constexpr (detail::make_identity_matrix_trait_defined<Td, Scalar, D>::value)
 #endif
     {
-      return interface::SingleConstantDiagonalMatrixTraits<Td, Scalar>::make_identity_matrix(std::forward<D>(d));
+      return interface::LibraryRoutines<Td>::template make_identity_matrix<Scalar>(std::forward<D>(d));
     }
     else
     {

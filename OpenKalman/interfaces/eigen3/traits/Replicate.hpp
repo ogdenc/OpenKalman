@@ -22,8 +22,15 @@
 namespace OpenKalman::interface
 {
   template<typename MatrixType, int RowFactor, int ColFactor>
-  struct IndexTraits<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
+  struct IndexibleObjectTraits<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
   {
+  private:
+
+    using T = Eigen::Replicate<MatrixType, RowFactor, ColFactor>;
+
+  public:
+
     static constexpr std::size_t max_indices = max_indices_of_v<MatrixType>;
 
     template<std::size_t N, typename Arg>
@@ -56,17 +63,6 @@ namespace OpenKalman::interface
       (has_dynamic_dimensions<MatrixType> or
         ((RowFactor == Eigen::Dynamic or index_dimension_of_v<MatrixType, 0> * RowFactor % index_dimension_of_v<MatrixType, 1> == 0) and
         (ColFactor == Eigen::Dynamic or index_dimension_of_v<MatrixType, 1> * ColFactor % index_dimension_of_v<MatrixType, 0> == 0)));
-  };
-
-
-  template<typename MatrixType, int RowFactor, int ColFactor>
-  struct Dependencies<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
-  {
-  private:
-
-    using T = Eigen::Replicate<MatrixType, RowFactor, ColFactor>;
-
-  public:
 
     static constexpr bool has_runtime_parameters = RowFactor == Eigen::Dynamic or ColFactor == Eigen::Dynamic;
     using type = std::tuple<typename Eigen::internal::traits<T>::MatrixTypeNested>;
@@ -87,57 +83,36 @@ namespace OpenKalman::interface
       else
         return make_dense_writable_matrix_from(std::forward<Arg>(arg));
     }
-  };
 
-
-  template<typename MatrixType, int RowFactor, int ColFactor>
-  struct SingleConstant<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
-  {
-    const Eigen::Replicate<MatrixType, RowFactor, ColFactor>& xpr;
-
-    constexpr auto get_constant()
+    template<typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
     {
-      return constant_coefficient {xpr.nestedExpression()};
+      return constant_coefficient {arg.nestedExpression()};
     }
 
-    constexpr auto get_constant_diagonal()
+    template<typename Arg>
+    static constexpr auto get_constant_diagonal(const Arg& arg)
     {
       if constexpr (RowFactor == 1 and ColFactor == 1)
       {
-        return constant_diagonal_coefficient {xpr.nestedExpression()};
+        return constant_diagonal_coefficient {arg.nestedExpression()};
       }
       else if constexpr ((RowFactor == 1 or RowFactor == Eigen::Dynamic) and
         (ColFactor == 1 or ColFactor == Eigen::Dynamic) and
         constant_diagonal_matrix<MatrixType, CompileTimeStatus::any, Likelihood::maybe>)
       {
-        constant_diagonal_coefficient cd {xpr.nestedExpression()};
+        constant_diagonal_coefficient cd {arg.nestedExpression()};
         return internal::ScalarConstant<Likelihood::maybe, std::decay_t<decltype(cd)>> {cd};
       }
       else return std::monostate {};
     }
-  };
 
-
-  template<typename MatrixType, int RowFactor, int ColFactor>
-  struct TriangularTraits<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
-  {
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = RowFactor == 1 and ColFactor == 1 and triangular_matrix<MatrixType, t, b>;
 
     static constexpr bool is_triangular_adapter = false;
-  };
 
-
-#ifdef __cpp_concepts
-  template<hermitian_matrix<Likelihood::maybe> MatrixType>
-  struct HermitianTraits<Eigen::Replicate<MatrixType, 1, 1>>
-#else
-  template<typename MatrixType>
-  struct HermitianTraits<Eigen::Replicate<MatrixType, 1, 1>, std::enable_if_t<
-    hermitian_matrix<MatrixType, Likelihood::maybe>>>
-#endif
-  {
-    static constexpr bool is_hermitian = true;
+    static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Likelihood::maybe>;
   };
 
 } // namespace OpenKalman::interface

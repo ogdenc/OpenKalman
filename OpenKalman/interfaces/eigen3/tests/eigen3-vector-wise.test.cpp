@@ -42,7 +42,7 @@ TEST(eigen3, Eigen_PartialReduxExpr_norms)
 
   // LpNorm<1>
 
-  static_assert(Eigen3::SingleConstantPartialRedux<decltype(c22_m2), EGI::member_lpnorm<1, double, double>>::
+  static_assert(Eigen3::SingleConstantPartialRedux<decltype(c22_m2), Eigen::internal::member_lpnorm<1, double, double>>::
     get_constant(constant_coefficient{c22_m2}, std::integral_constant<std::size_t, 1>{}, std::integral_constant<std::size_t, 2>{}) == 4);
 
   static_assert(constant_matrix<decltype(c22_m2), CompileTimeStatus::known>);
@@ -97,7 +97,7 @@ TEST(eigen3, Eigen_PartialReduxExpr_norms)
 
   // lpNorm<2>
 
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(c22_m2.colwise().lpNorm<2>())>, constexpr_sqrt(8.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(c22_m2.colwise().lpNorm<2>())>, internal::constexpr_sqrt(8.)));
   EXPECT_NEAR(constant_coefficient{c22_m2.colwise().lpNorm<2>()}(), std::sqrt(8.), 1e-9);
   EXPECT_NEAR(constant_coefficient{c00_22_m2.colwise().lpNorm<2>()}(), std::sqrt(8.), 1e-9);
   EXPECT_NEAR(c00_22_m2.colwise().lpNorm<2>()(0,0), std::sqrt(8.), 1e-9);
@@ -140,7 +140,7 @@ TEST(eigen3, Eigen_PartialReduxExpr_norms)
 
   // lpNorm<3>
 
-  static_assert(are_within_tolerance<5>(constant_coefficient_v<decltype(c22_m2.colwise().lpNorm<3>())>, constexpr_pow(16., 1./3)));
+  static_assert(are_within_tolerance<5>(constant_coefficient_v<decltype(c22_m2.colwise().lpNorm<3>())>, internal::constexpr_pow(16., 1./3)));
   EXPECT_NEAR(constant_coefficient{c22_m2.colwise().lpNorm<3>()}(), (std::pow(16., 1./3)), 1e-9);
   EXPECT_NEAR(constant_coefficient{c00_22_m2.colwise().lpNorm<3>()}(), (std::pow(16., 1./3)), 1e-9);
   EXPECT_NEAR(c00_22_m2.colwise().lpNorm<3>()(0,0), (std::pow(16., 1./3)), 1e-9);
@@ -213,7 +213,7 @@ TEST(eigen3, Eigen_PartialReduxExpr_norms)
 
   // stableNorm
 
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(c22_m2.colwise().stableNorm())>, constexpr_sqrt(8.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(c22_m2.colwise().stableNorm())>, internal::constexpr_sqrt(8.)));
   EXPECT_NEAR(constant_coefficient{c00_22_m2.colwise().stableNorm()}(), std::sqrt(8.), 1e-9);
   EXPECT_NEAR(c00_22_m2.colwise().stableNorm()(0,0), std::sqrt(8.), 1e-9);
 
@@ -243,7 +243,7 @@ TEST(eigen3, Eigen_PartialReduxExpr_norms)
 
   // hypotNorm
 
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(c22_m2.colwise().hypotNorm())>, constexpr_sqrt(8.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(c22_m2.colwise().hypotNorm())>, internal::constexpr_sqrt(8.)));
   EXPECT_NEAR(constant_coefficient{c00_22_m2.colwise().hypotNorm()}(), std::sqrt(8.), 1e-9);
   EXPECT_NEAR(c00_22_m2.colwise().hypotNorm()(0,0), std::sqrt(8.), 1e-9);
 
@@ -303,7 +303,7 @@ TEST(eigen3, Eigen_PartialReduxExpr_norms)
 
   // norm -- Note: Eigen version 3.4 calculates x._wise().norm() as if it were x.cwiseAbs2()._wise().sum().sqrt().
 
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(c22_m2.colwise().norm())>, constexpr_sqrt(8.)));
+  static_assert(are_within_tolerance(constant_coefficient_v<decltype(c22_m2.colwise().norm())>, internal::constexpr_sqrt(8.)));
   EXPECT_NEAR(constant_coefficient{c00_22_m2.colwise().norm()}(), std::sqrt(8.), 1e-9);
   EXPECT_NEAR(c00_22_m2.colwise().norm()(0,0), std::sqrt(8.), 1e-9);
 
@@ -348,7 +348,7 @@ TEST(eigen3, Eigen_PartialReduxExpr_sum)
   auto cd3300_22_m2 = cd00_22_m2.replicate<3,3>();
   auto cd0022_33_m2 = cd22_m2.replicate(3, 3);
 
-  auto cxb = Eigen::CwiseNullaryOp<EGI::scalar_constant_op<cdouble>, CA22> {2, 2, std::complex<double>{3, 4}}; // Constant complex
+  auto cxb = Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<cdouble>, CA22> {2, 2, std::complex<double>{3, 4}}; // Constant complex
 
   using P32vert = Eigen::PartialReduxExpr<M32, Eigen::internal::member_sum<double, double>, Eigen::Vertical>;
   static_assert(index_dimension_of_v<P32vert, 0> == 1);

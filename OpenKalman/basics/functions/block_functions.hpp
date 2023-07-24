@@ -66,7 +66,7 @@ namespace OpenKalman
       }
       else
       {
-        return interface::Subsets<std::decay_t<Arg>>::get_block(std::forward<Arg>(arg), begin, size);
+        return interface::LibraryRoutines<std::decay_t<Arg>>::get_block(std::forward<Arg>(arg), begin, size);
       }
     }
 
@@ -196,7 +196,7 @@ namespace OpenKalman
         }(std::forward<decltype(a)>(a))...};
       }, get_all_dimensions_of(block)));
 
-    interface::Subsets<std::decay_t<Arg>>::set_block(arg, std::forward<Block>(block), begin...);
+    interface::LibraryRoutines<std::decay_t<Arg>>::set_block(arg, std::forward<Block>(block), begin...);
     return arg;
   }
 
@@ -394,7 +394,7 @@ namespace OpenKalman
 
       template<TriangleType t, typename A, typename B>
       struct set_triangle_trait_exists<t, A, B, std::void_t<decltype(
-          interface::Subsets<std::decay_t<A>>::template set_triangle<t>(std::declval<A>(), std::declval<B>()))>>
+          interface::LibraryRoutines<std::decay_t<A>>::template set_triangle<t>(std::declval<A>(), std::declval<B>()))>>
         : std::true_type {};
     }
 #endif
@@ -477,12 +477,12 @@ namespace OpenKalman
         }
       }
 #ifdef __cpp_concepts
-      else if constexpr (requires { interface::Subsets<std::decay_t<A>>::template set_triangle<t>(std::forward<A>(a), std::forward<B>(b)); })
+      else if constexpr (requires { interface::LibraryRoutines<std::decay_t<A>>::template set_triangle<t>(std::forward<A>(a), std::forward<B>(b)); })
 #else
       if constexpr (detail::set_triangle_trait_exists<t, A, B>::value)
 #endif
       {
-        return interface::Subsets<std::decay_t<A>>::template set_triangle<t>(std::forward<A>(a), std::forward<B>(b));
+        return interface::LibraryRoutines<std::decay_t<A>>::template set_triangle<t>(std::forward<A>(a), std::forward<B>(b));
       }
       else
       {

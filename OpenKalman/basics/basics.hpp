@@ -52,7 +52,9 @@ namespace OpenKalman::interface {}
 
 #include "index-descriptors/index-descriptors.hpp"
 
-#include "forward-interface-traits.hpp"
+#include "IndexibleObjectTraits.hpp"
+#include "LibraryRoutines.hpp"
+
 #include "forward-traits.hpp"
 #include "forward-class-declarations.hpp"
 
@@ -60,7 +62,6 @@ namespace OpenKalman::interface {}
 
 #include "traits.hpp"
 
-#include "internal/library_base.hpp"
 #include "internal/MatrixBase.hpp"
 #include "internal/TypedMatrixBase.hpp"
 #include "internal/ElementAccessor.hpp"

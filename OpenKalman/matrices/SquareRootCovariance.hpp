@@ -923,7 +923,7 @@ namespace OpenKalman
   namespace interface
   {
     template<typename Coeffs, typename NestedMatrix>
-    struct IndexTraits<SquareRootCovariance<Coeffs, NestedMatrix>>
+    struct IndexibleObjectTraits<SquareRootCovariance<Coeffs, NestedMatrix>>
     {
       static constexpr std::size_t max_indices = 2;
 
@@ -935,6 +935,85 @@ namespace OpenKalman
 
       template<Likelihood b>
       static constexpr bool is_one_by_one = one_by_one_matrix<NestedMatrix, b>;
+
+      static constexpr bool has_runtime_parameters = false;
+
+      using type = std::tuple<NestedMatrix>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        if constexpr (hermitian_matrix<NestedMatrix>)
+        {
+          return std::forward<Arg>(arg).get_self_adjoint_nested_matrix();
+        }
+        else
+        {
+          return std::forward<Arg>(arg).get_triangular_nested_matrix();
+        }
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        auto n = make_self_contained(get_nested_matrix<0>(std::forward<Arg>(arg)));
+        return SquareRootCovariance<Coeffs, decltype(n)> {std::move(n)};
+      }
+
+      template<typename Arg>
+      static constexpr auto get_constant(const Arg& arg)
+      {
+        if constexpr (zero_matrix<NestedMatrix>)
+          return constant_coefficient{arg.nestedExpression()};
+        else
+          return std::monostate {};
+      }
+
+      template<typename Arg>
+      static constexpr auto get_constant_diagonal(const Arg& arg)
+      {
+        return constant_diagonal_coefficient {arg.nestedExpression()};
+      }
+
+      template<TriangleType t, Likelihood b>
+      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, t, Likelihood::maybe> or
+        hermitian_adapter<NestedMatrix, t == TriangleType::upper ? HermitianAdapterType::upper : HermitianAdapterType::lower>;
+
+      static constexpr bool is_triangular_adapter = false;
+
+      static constexpr bool is_hermitian = false;
+
+
+      using scalar_type = scalar_type_of_t<nested_matrix_of_t<T>>;
+
+  #ifdef __cpp_lib_concepts
+      template<typename Arg, typename...I> requires
+        element_gettable<decltype(std::declval<Arg&&>().get_triangular_nested_matrix()), sizeof...(I)>
+  #else
+      template<typename Arg, typename...I, std::enable_if_t<
+        element_gettable<decltype(std::declval<Arg&&>().get_triangular_nested_matrix()), sizeof...(I)>, int> = 0>
+  #endif
+      static constexpr auto get(Arg&& arg, I...i)
+      {
+        return std::forward<Arg>(arg)(i...);
+      }
+
+
+  #ifdef __cpp_lib_concepts
+      template<typename Arg, typename...I> requires
+        element_settable<decltype(std::declval<Arg&>().get_triangular_nested_matrix()), sizeof...(I)>
+  #else
+      template<typename Arg, typename...I, std::enable_if_t<
+        element_settable<decltype(std::declval<Arg&>().get_triangular_nested_matrix()), sizeof...(I)>, int> = 0>
+  #endif
+      static constexpr void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
+      {
+        arg.set_element(s, i...);
+      }
+
+      static constexpr bool is_writable = LibraryRoutines<std::decay_t<NestedMatrix>>::is_writable;
+
     };
 
   } // namespace interface

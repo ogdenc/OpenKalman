@@ -21,16 +21,26 @@
 
 namespace OpenKalman::interface
 {
-#ifndef __cpp_concepts
   template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
-  struct IndexTraits<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>
-    : detail::IndexTraits_Eigen_default<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>> {};
-#endif
-
-
-  template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
-  struct Dependencies<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>
+  struct IndexibleObjectTraits<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>
   {
+    static constexpr std::size_t max_indices = 2;
+
+    template<std::size_t N, typename Arg>
+    static constexpr auto get_index_descriptor(const Arg& arg)
+    {
+      using Xpr = Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>;
+      constexpr Eigen::Index dim = N == 0 ? Xpr::RowsAtCompileTime : Xpr::ColsAtCompileTime;
+
+      if constexpr (dim == Eigen::Dynamic)
+      {
+        if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
+        else return static_cast<std::size_t>(arg.cols());
+      }
+      else return Dimensions<dim>{};
+    }
+
     static constexpr bool has_runtime_parameters = true;
     using type = std::tuple<typename Eigen::internal::ref_selector<XprType>::non_const_type>;
 
@@ -41,20 +51,12 @@ namespace OpenKalman::interface
       return std::forward<Arg>(arg).nestedExpression();
     }
 
-    // Eigen::Block should always be converted to Matrix
+    // convert_to_self_contained() not defined because Eigen::Block should always be converted to Matrix
 
-  };
-
-
-  // A block taken from a constant matrix is constant.
-  template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
-  struct SingleConstant<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>
-  {
-    const Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>& xpr;
-
-    constexpr auto get_constant()
+    template<typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
     {
-      return constant_coefficient {xpr.nestedExpression()};
+      return constant_coefficient {arg.nestedExpression()};
     }
   };
 

@@ -49,7 +49,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<std::size_t rows, std::size_t columns = 1, scalar_type...Args> requires
     (rows != dynamic_size) and (columns != dynamic_size) and (sizeof...(Args) == rows * columns) and
-    requires { scalar_type<std::common_type_t<Args...>>; }
+    requires { requires scalar_type<std::common_type_t<Args...>>; }
 #else
   template<std::size_t rows, std::size_t columns = 1, typename ... Args, std::enable_if_t<(scalar_type<Args> and ...) and
     (rows != dynamic_size) and (columns != dynamic_size) and (sizeof...(Args) == rows * columns), int> = 0>
@@ -84,7 +84,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename Scalar = void, scalar_type ... Args> requires (std::is_void_v<Scalar>) and
-    requires { scalar_type<std::common_type_t<Args...>>; }
+    requires { requires scalar_type<std::common_type_t<Args...>>; }
 #else
   template<typename Scalar = void, typename ... Args, std::enable_if_t<(scalar_type<Args> and ...) and std::is_void_v<Scalar>, int> = 0>
 #endif

@@ -21,8 +21,22 @@
 
 namespace OpenKalman::interface
 {
+  namespace detail
+  {
+    template<typename XprType, int Rows, int Cols, int Order, bool HasDirectAccess>
+    struct ReshapedNested { using type = typename Eigen::Reshaped<XprType, Rows, Cols, Order>::MatrixTypeNested; };
+
+    template<typename XprType, int Rows, int Cols, int Order>
+    struct ReshapedNested<XprType, Rows, Cols, Order, true>
+    {
+      using type = typename Eigen::internal::ref_selector<XprType>::non_const_type;
+    };
+  }
+
+
   template<typename XprType, int Rows, int Cols, int Order>
-  struct IndexTraits<Eigen::Reshaped<XprType, Rows, Cols, Order>>
+  struct IndexibleObjectTraits<Eigen::Reshaped<XprType, Rows, Cols, Order>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::Reshaped<XprType, Rows, Cols, Order>>
   {
   private:
 
@@ -32,6 +46,10 @@ namespace OpenKalman::interface
     static constexpr std::size_t xprtypemax = std::max(
       dynamic_dimension<XprType, 0> ? 0 : index_dimension_of_v<XprType, 0>,
       dynamic_dimension<XprType, 1> ? 0 : index_dimension_of_v<XprType, 1>);
+
+    static constexpr bool HasDirectAccess = Eigen::internal::traits<Eigen::Reshaped<XprType, Rows, Cols, Order>>::HasDirectAccess;
+
+    using Nested_t = typename detail::ReshapedNested<XprType, Rows, Cols, Order, HasDirectAccess>::type;
 
   public:
 
@@ -74,33 +92,6 @@ namespace OpenKalman::interface
         (Cols == Eigen::Dynamic or Cols * Cols == xprtypeprod))) and
       (Rows == Eigen::Dynamic or xprtypemax == 0 or (Rows * Rows) % xprtypemax == 0) and
       (Cols == Eigen::Dynamic or xprtypemax == 0 or (Cols * Cols) % xprtypemax == 0);
-  };
-
-
-  namespace detail
-  {
-    template<typename XprType, int Rows, int Cols, int Order, bool HasDirectAccess>
-    struct ReshapedNested { using type = typename Eigen::Reshaped<XprType, Rows, Cols, Order>::MatrixTypeNested; };
-
-    template<typename XprType, int Rows, int Cols, int Order>
-    struct ReshapedNested<XprType, Rows, Cols, Order, true>
-    {
-      using type = typename Eigen::internal::ref_selector<XprType>::non_const_type;
-    };
-  }
-
-
-  template<typename XprType, int Rows, int Cols, int Order>
-  struct Dependencies<Eigen::Reshaped<XprType, Rows, Cols, Order>>
-  {
-  private:
-    using R = Eigen::Reshaped<XprType, Rows, Cols, Order>;
-
-    static constexpr bool HasDirectAccess = Eigen::internal::traits<R>::HasDirectAccess;
-
-    using Nested_t = typename detail::ReshapedNested<XprType, Rows, Cols, Order, HasDirectAccess>::type;
-
-  public:
 
     static constexpr bool has_runtime_parameters = HasDirectAccess ? Rows == Eigen::Dynamic or Cols == Eigen::Dynamic : false;
 
@@ -118,42 +109,32 @@ namespace OpenKalman::interface
     {
       return make_dense_writable_matrix_from(std::forward<Arg>(arg));
     }
-  };
 
-
-  template<typename XprType, int Rows, int Cols, int Order>
-  struct SingleConstant<Eigen::Reshaped<XprType, Rows, Cols, Order>>
-  {
-    const Eigen::Reshaped<XprType, Rows, Cols, Order>& xpr;
-
-    constexpr auto get_constant()
+    template<typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
     {
-      return constant_coefficient {xpr.nestedExpression()};
+      return constant_coefficient {arg.nestedExpression()};
     }
 
-    constexpr auto get_constant_diagonal()
+    template<typename Arg>
+    static constexpr auto get_constant_diagonal(const Arg& arg)
     {
       if constexpr (
         (Rows != Eigen::Dynamic and (Rows == XprType::RowsAtCompileTime or Rows == XprType::ColsAtCompileTime or Rows == Cols)) or
         (Cols != Eigen::Dynamic and (Cols == XprType::RowsAtCompileTime or Cols == XprType::ColsAtCompileTime)))
       {
-        return constant_diagonal_coefficient {xpr.nestedExpression()};
+        return constant_diagonal_coefficient {arg.nestedExpression()};
       }
       else if constexpr (((Rows == Eigen::Dynamic and Cols == Eigen::Dynamic) or
         (XprType::RowsAtCompileTime == Eigen::Dynamic and XprType::ColsAtCompileTime == Eigen::Dynamic)) and
         constant_diagonal_matrix<XprType, CompileTimeStatus::any, Likelihood::maybe>)
       {
-        constant_diagonal_coefficient cd {xpr.nestedExpression()};
+        constant_diagonal_coefficient cd {arg.nestedExpression()};
         return internal::ScalarConstant<Likelihood::maybe, std::decay_t<decltype(cd)>> {cd};
       }
       else return std::monostate{};
     }
-  };
 
-
-  template<typename XprType, int Rows, int Cols, int Order>
-  struct TriangularTraits<Eigen::Reshaped<XprType, Rows, Cols, Order>>
-  {
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b> and
       (Rows == index_dimension_of_v<XprType, 0> or Rows == index_dimension_of_v<XprType, 1> or
@@ -161,22 +142,11 @@ namespace OpenKalman::interface
         (Rows != Eigen::Dynamic and Rows == Cols));
 
     static constexpr bool is_triangular_adapter = false;
-  };
 
-
-#ifdef __cpp_concepts
-  template<hermitian_matrix<Likelihood::maybe> XprType, int Rows, int Cols, int Order>
-  struct HermitianTraits<Eigen::Reshaped<XprType, Rows, Cols, Order>>
-#else
-  template<typename XprType, int Rows, int Cols, int Order>
-  struct HermitianTraits<Eigen::Reshaped<XprType, Rows, Cols, Order>, std::enable_if_t<
-    hermitian_matrix<XprType, Likelihood::maybe>>>
-#endif
-  {
-    static constexpr bool is_hermitian =
-      Rows == index_dimension_of_v<XprType, 0> or Rows == index_dimension_of_v<XprType, 1> or
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe> and
+      (Rows == index_dimension_of_v<XprType, 0> or Rows == index_dimension_of_v<XprType, 1> or
         Cols == index_dimension_of_v<XprType, 1> or Cols == index_dimension_of_v<XprType, 0> or
-        (Rows != Eigen::Dynamic and Rows == Cols);
+        (Rows != Eigen::Dynamic and Rows == Cols));
   };
 
 } // namespace OpenKalman::interface

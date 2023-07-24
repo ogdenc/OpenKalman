@@ -203,7 +203,7 @@ namespace OpenKalman::internal
     struct real_trait_exists : std::false_type {};
 
     template<typename Arg>
-    struct real_trait_exists<Arg, std::void_t<decltype(ScalarTraits<Arg>::real(std::declval<const Arg&>()))>>
+    struct real_trait_exists<Arg, std::void_t<decltype(interface::ScalarTraits<Arg>::real(std::declval<const Arg&>()))>>
       : std::true_type {};
   }
 #endif
@@ -233,11 +233,11 @@ namespace OpenKalman::internal
       using Scalar = std::decay_t<decltype(ret)>;
 
   #ifdef __cpp_concepts
-      if constexpr (requires(const Arg_t& a) { ScalarTraits<Scalar>::real(a); })
+      if constexpr (requires(const Arg_t& a) { interface::ScalarTraits<Scalar>::real(a); })
   #else
       if constexpr (detail::real_trait_exists<Arg_t>::value)
   #endif
-        return static_cast<Scalar>(ScalarTraits<Arg_t>::real(std::forward<Arg>(arg)));
+        return static_cast<Scalar>(interface::ScalarTraits<Arg_t>::real(std::forward<Arg>(arg)));
       else
       {
         using std::real;
@@ -255,7 +255,7 @@ namespace OpenKalman::internal
     struct imag_trait_exists : std::false_type {};
 
     template<typename Arg>
-    struct imag_trait_exists<Arg, std::void_t<decltype(ScalarTraits<Arg>::imag(std::declval<const Arg&>()))>>
+    struct imag_trait_exists<Arg, std::void_t<decltype(interface::ScalarTraits<Arg>::imag(std::declval<const Arg&>()))>>
       : std::true_type {};
   }
 #endif
@@ -284,11 +284,11 @@ namespace OpenKalman::internal
       using Scalar = std::decay_t<decltype(ret)>;
 
   #ifdef __cpp_concepts
-      if constexpr (requires(const Arg_t& a) { ScalarTraits<Scalar>::imag(a); })
+      if constexpr (requires(const Arg_t& a) { interface::ScalarTraits<Scalar>::imag(a); })
   #else
       if constexpr (detail::imag_trait_exists<Arg_t>::value)
   #endif
-        return static_cast<Scalar>(ScalarTraits<Arg_t>::imag(std::forward<Arg>(arg)));
+        return static_cast<Scalar>(interface::ScalarTraits<Arg_t>::imag(std::forward<Arg>(arg)));
       else
       {
         using std::imag;

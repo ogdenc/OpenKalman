@@ -28,7 +28,8 @@ namespace OpenKalman::test
 {
 
 #ifdef __cpp_concepts
-  template<native_eigen_dense Arg1, native_eigen_dense Arg2, typename Err> requires std::is_arithmetic_v<Err> or native_eigen_dense<Err>
+  template<Eigen3::native_eigen_dense Arg1, Eigen3::native_eigen_dense Arg2, typename Err> requires
+    std::is_arithmetic_v<Err> or Eigen3::native_eigen_dense<Err>
   struct TestComparison<Arg1, Arg2, Err>
 #else
   template<typename Arg1, typename Arg2, typename Err>
@@ -73,8 +74,8 @@ namespace OpenKalman::test
 
 #ifdef __cpp_concepts
   template<indexible Arg1, indexible Arg2, typename Err> requires
-    (native_eigen_general<Arg1> and not native_eigen_general<Arg2>) or
-    (not native_eigen_general<Arg1> and native_eigen_general<Arg2>)
+    (Eigen3::native_eigen_general<Arg1> and not Eigen3::native_eigen_general<Arg2>) or
+    (not Eigen3::native_eigen_general<Arg1> and Eigen3::native_eigen_general<Arg2>)
   struct TestComparison<Arg1, Arg2, Err>
 #else
   template<typename Arg1, typename Arg2, typename Err>
@@ -156,13 +157,13 @@ namespace OpenKalman::test
 
   using CA22 = Eigen::Array<cdouble, 2, 2>;
 
-  using I11 = Eigen::CwiseNullaryOp<EGI::scalar_identity_op<double>, A11>; static_assert(constant_coefficient_v<I11> == 1);
+  using I11 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A11>; static_assert(constant_coefficient_v<I11> == 1);
   static_assert(one_by_one_matrix<I11, Likelihood::maybe>);
-  using I1x = Eigen::CwiseNullaryOp<EGI::scalar_identity_op<double>, A1x>; static_assert(constant_coefficient_v<I1x> == 1);
-  using Ix1 = Eigen::CwiseNullaryOp<EGI::scalar_identity_op<double>, Ax1>; static_assert(constant_coefficient_v<Ix1> == 1);
-  using Ixx = Eigen::CwiseNullaryOp<EGI::scalar_identity_op<double>, Axx>; static_assert(constant_coefficient_v<Ixx> == 1);
-  using I22 = Eigen::CwiseNullaryOp<EGI::scalar_identity_op<double>, A22>;
-  using I2x = Eigen::CwiseNullaryOp<EGI::scalar_identity_op<double>, A2x>;
+  using I1x = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A1x>; static_assert(constant_coefficient_v<I1x> == 1);
+  using Ix1 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, Ax1>; static_assert(constant_coefficient_v<Ix1> == 1);
+  using Ixx = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, Axx>; static_assert(constant_coefficient_v<Ixx> == 1);
+  using I22 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A22>;
+  using I2x = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A2x>;
 
   using Z11 = decltype(std::declval<I11>() - std::declval<I11>());
   using Z22 = decltype(std::declval<I22>() - std::declval<I22>());
@@ -214,17 +215,17 @@ namespace OpenKalman::test
   using Cx1_m2 = Eigen::Replicate<C11_m2, Eigen::Dynamic, 1>;
   using Cxx_m2 = Eigen::Replicate<C11_m2, Eigen::Dynamic, Eigen::Dynamic>;
 
-  using C11_1cx = Eigen::CwiseNullaryOp<EGI::scalar_identity_op<cdouble>, Eigen::Array<cdouble, 1, 1>>;
+  using C11_1cx = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<cdouble>, Eigen::Array<cdouble, 1, 1>>;
   using C11_2cx = decltype(std::declval<C11_1cx>() + std::declval<C11_1cx>());
 
   using B11 = Eigen::Array<bool, 1, 1>;
   using B22 = Eigen::Array<bool, 2, 2>;
 
-  using B11_true = Eigen::CwiseNullaryOp<EGI::scalar_identity_op<bool>, B11>;
+  using B11_true = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<bool>, B11>;
   using B11_false = decltype(not std::declval<B11_true>());
   using B22_true = decltype(std::declval<B11_true>().replicate<2,2>());
   using B22_false = decltype(std::declval<B11_false>().replicate<2,2>());
-  using BI22 = Eigen::CwiseNullaryOp<EGI::scalar_identity_op<bool>, B22>;
+  using BI22 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<bool>, B22>;
 
   using Cd22_2 = decltype(std::declval<I22>() + std::declval<I22>());
   using Cd2x_2 = Eigen::Replicate<Cd22_2, 1, Eigen::Dynamic>;
@@ -246,38 +247,38 @@ namespace OpenKalman::test
   using Cdx2_m2 = Eigen::Replicate<Cd22_m2, Eigen::Dynamic, 1>;
   using Cdxx_m2 = Eigen::Replicate<Cd22_m2, Eigen::Dynamic, Eigen::Dynamic>;
 
-  using DM2 = EigenWrapper<Eigen::DiagonalMatrix<double, 2>>;
-  using DMx = EigenWrapper<Eigen::DiagonalMatrix<double, Eigen::Dynamic>>;
+  using DM2 = Eigen3::EigenWrapper<Eigen::DiagonalMatrix<double, 2>>;
+  using DMx = Eigen3::EigenWrapper<Eigen::DiagonalMatrix<double, Eigen::Dynamic>>;
 
-  using DW21 = EigenWrapper<Eigen::DiagonalWrapper<M21>>;
-  using DW2x = EigenWrapper<Eigen::DiagonalWrapper<M2x>>;
-  using DWx1 = EigenWrapper<Eigen::DiagonalWrapper<Mx1>>;
-  using DWxx = EigenWrapper<Eigen::DiagonalWrapper<Mxx>>;
+  using DW21 = Eigen3::EigenWrapper<Eigen::DiagonalWrapper<M21>>;
+  using DW2x = Eigen3::EigenWrapper<Eigen::DiagonalWrapper<M2x>>;
+  using DWx1 = Eigen3::EigenWrapper<Eigen::DiagonalWrapper<Mx1>>;
+  using DWxx = Eigen3::EigenWrapper<Eigen::DiagonalWrapper<Mxx>>;
 
-  using Salv22 = EigenWrapper<Eigen::SelfAdjointView<M22, Eigen::Lower>>;
-  using Salv2x = EigenWrapper<Eigen::SelfAdjointView<M2x, Eigen::Lower>>;
-  using Salvx2 = EigenWrapper<Eigen::SelfAdjointView<Mx2, Eigen::Lower>>;
-  using Salvxx = EigenWrapper<Eigen::SelfAdjointView<Mxx, Eigen::Lower>>;
+  using Salv22 = Eigen3::EigenWrapper<Eigen::SelfAdjointView<M22, Eigen::Lower>>;
+  using Salv2x = Eigen3::EigenWrapper<Eigen::SelfAdjointView<M2x, Eigen::Lower>>;
+  using Salvx2 = Eigen3::EigenWrapper<Eigen::SelfAdjointView<Mx2, Eigen::Lower>>;
+  using Salvxx = Eigen3::EigenWrapper<Eigen::SelfAdjointView<Mxx, Eigen::Lower>>;
 
-  using Sauv22 = EigenWrapper<Eigen::SelfAdjointView<M22, Eigen::Upper>>;
-  using Sauv2x = EigenWrapper<Eigen::SelfAdjointView<M2x, Eigen::Upper>>;
-  using Sauvx2 = EigenWrapper<Eigen::SelfAdjointView<Mx2, Eigen::Upper>>;
-  using Sauvxx = EigenWrapper<Eigen::SelfAdjointView<Mxx, Eigen::Upper>>;
+  using Sauv22 = Eigen3::EigenWrapper<Eigen::SelfAdjointView<M22, Eigen::Upper>>;
+  using Sauv2x = Eigen3::EigenWrapper<Eigen::SelfAdjointView<M2x, Eigen::Upper>>;
+  using Sauvx2 = Eigen3::EigenWrapper<Eigen::SelfAdjointView<Mx2, Eigen::Upper>>;
+  using Sauvxx = Eigen3::EigenWrapper<Eigen::SelfAdjointView<Mxx, Eigen::Upper>>;
 
-  using Sadv22 = EigenWrapper<Eigen::SelfAdjointView<M22::IdentityReturnType, Eigen::Lower>>;
-  using Sadv2x = EigenWrapper<Eigen::SelfAdjointView<M2x::IdentityReturnType, Eigen::Lower>>;
-  using Sadvx2 = EigenWrapper<Eigen::SelfAdjointView<Mx2::IdentityReturnType, Eigen::Lower>>;
-  using Sadvxx = EigenWrapper<Eigen::SelfAdjointView<Mxx::IdentityReturnType, Eigen::Lower>>;
+  using Sadv22 = Eigen3::EigenWrapper<Eigen::SelfAdjointView<M22::IdentityReturnType, Eigen::Lower>>;
+  using Sadv2x = Eigen3::EigenWrapper<Eigen::SelfAdjointView<M2x::IdentityReturnType, Eigen::Lower>>;
+  using Sadvx2 = Eigen3::EigenWrapper<Eigen::SelfAdjointView<Mx2::IdentityReturnType, Eigen::Lower>>;
+  using Sadvxx = Eigen3::EigenWrapper<Eigen::SelfAdjointView<Mxx::IdentityReturnType, Eigen::Lower>>;
 
-  using Tlv22 = EigenWrapper<Eigen::TriangularView<M22, Eigen::Lower>>;
-  using Tlv2x = EigenWrapper<Eigen::TriangularView<M2x, Eigen::Lower>>;
-  using Tlvx2 = EigenWrapper<Eigen::TriangularView<Mx2, Eigen::Lower>>;
-  using Tlvxx = EigenWrapper<Eigen::TriangularView<Mxx, Eigen::Lower>>;
+  using Tlv22 = Eigen3::EigenWrapper<Eigen::TriangularView<M22, Eigen::Lower>>;
+  using Tlv2x = Eigen3::EigenWrapper<Eigen::TriangularView<M2x, Eigen::Lower>>;
+  using Tlvx2 = Eigen3::EigenWrapper<Eigen::TriangularView<Mx2, Eigen::Lower>>;
+  using Tlvxx = Eigen3::EigenWrapper<Eigen::TriangularView<Mxx, Eigen::Lower>>;
 
-  using Tuv22 = EigenWrapper<Eigen::TriangularView<M22, Eigen::Upper>>;
-  using Tuv2x = EigenWrapper<Eigen::TriangularView<M2x, Eigen::Upper>>;
-  using Tuvx2 = EigenWrapper<Eigen::TriangularView<Mx2, Eigen::Upper>>;
-  using Tuvxx = EigenWrapper<Eigen::TriangularView<Mxx, Eigen::Upper>>;
+  using Tuv22 = Eigen3::EigenWrapper<Eigen::TriangularView<M22, Eigen::Upper>>;
+  using Tuv2x = Eigen3::EigenWrapper<Eigen::TriangularView<M2x, Eigen::Upper>>;
+  using Tuvx2 = Eigen3::EigenWrapper<Eigen::TriangularView<Mx2, Eigen::Upper>>;
+  using Tuvxx = Eigen3::EigenWrapper<Eigen::TriangularView<Mxx, Eigen::Upper>>;
 
 } // namespace OpenKalman::test
 

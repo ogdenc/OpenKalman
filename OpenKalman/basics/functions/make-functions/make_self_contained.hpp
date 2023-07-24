@@ -26,7 +26,7 @@ namespace OpenKalman
 
     template<typename T>
     struct convert_to_self_contained_is_defined<T,
-      std::void_t<decltype(Dependencies<std::decay_t<T>>::convert_to_self_contained(std::declval<T&&>()))>>
+      std::void_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::convert_to_self_contained(std::declval<T&&>()))>>
       : std::true_type {};
   }
 #endif
@@ -53,7 +53,7 @@ namespace OpenKalman
    * \tparam Arg The potentially non-self-contained argument to be converted
    * \return A self-contained version of Arg (if it is not already self-contained)
    * \todo Return a new class that internalizes any external dependencies
-   * \internal \sa interface::Dependencies
+   * \internal \sa interface::IndexibleObjectTraits
    */
 #ifdef __cpp_concepts
   template<indexible...Ts, indexible Arg>
@@ -75,12 +75,12 @@ namespace OpenKalman
       return std::decay_t<Arg> {arg};
     }
 #ifdef __cpp_concepts
-    else if constexpr (requires {interface::Dependencies<std::decay_t<Arg>>::convert_to_self_contained(std::forward<Arg>(arg)); })
+    else if constexpr (requires {interface::IndexibleObjectTraits<std::decay_t<Arg>>::convert_to_self_contained(std::forward<Arg>(arg)); })
 #else
     else if constexpr (detail::convert_to_self_contained_is_defined<Arg>::value)
 #endif
     {
-      return interface::Dependencies<std::decay_t<Arg>>::convert_to_self_contained(std::forward<Arg>(arg));
+      return interface::IndexibleObjectTraits<std::decay_t<Arg>>::convert_to_self_contained(std::forward<Arg>(arg));
     }
     else
     {

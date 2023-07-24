@@ -23,13 +23,60 @@ namespace OpenKalman::interface
 {
 
 #ifdef __cpp_concepts
-  template<untyped_adapter T>
-  struct Subsets<T>
+  template<typename T> requires eigen_diagonal_expr<T> or eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>
+  struct LibraryRoutines<T>
 #else
   template<typename T>
-  struct Subsets<T, std::enable_if_t<untyped_adapter<T>>>
+  struct LibraryRoutines<T, std::enable_if_t<eigen_diagonal_expr<T> or eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>>>
 #endif
   {
+    template<typename Scalar, typename...D>
+    static auto make_default(D&&...d)
+    {
+      return LibraryRoutines<std::decay_t<pattern_matrix_of_t<T>>>::template make_default<Scalar>(std::forward<D>(d)...);
+    }
+
+
+    template<typename Scalar, typename Arg>
+    static decltype(auto) convert(Arg&& arg)
+    {
+      return LibraryRoutines<std::decay_t<pattern_matrix_of_t<T>>>::template convert<Scalar>(std::forward<Arg>(arg));
+    }
+
+
+    template<typename Arg>
+    static decltype(auto) to_native_matrix(Arg&& arg)
+    {
+      return LibraryRoutines<std::decay_t<pattern_matrix_of_t<T>>>::to_native_matrix(std::forward<Arg>(arg));
+    }
+
+
+#ifdef __cpp_concepts
+    template<typename Scalar, index_descriptor...Ds, std::convertible_to<Scalar> ... Args>
+#else
+    template<typename...Ds, typename...Args, std::enable_if_t<(index_descriptor<Ds> and ...) and
+      std::conjunction_v<std::is_convertible<Args, Scalar>...>, int> = 0>
+#endif
+    static auto make_from_elements(const std::tuple<Ds...>& d_tup, const Args ... args)
+    {
+      return LibraryRoutines<std::decay_t<pattern_matrix_of_t<T>>>::template make_from_elements<Scalar>(d_tup, args...);
+    }
+
+
+    template<typename C, typename...D>
+    static constexpr auto make_constant_matrix(C&& c, D&&...d)
+    {
+      return make_constant_matrix_like<pattern_matrix_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
+    }
+
+
+    template<typename Scalar, typename D>
+    static constexpr auto make_identity_matrix(D&& d)
+    {
+      return make_identity_matrix_like<pattern_matrix_of_t<T>, Scalar>(std::forward<D>(d));
+    }
+
+
     template<typename Arg, typename...Begin, typename...Size>
     static auto get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
     {
@@ -64,52 +111,14 @@ namespace OpenKalman::interface
       return a;
     }
 
-  };
 
-
-#ifdef __cpp_concepts
-  template<typename T> requires eigen_diagonal_expr<T> or eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>
-  struct ArrayOperations<T>
-#else
-  template<typename T>
-  struct ArrayOperations<T, std::enable_if_t<eigen_diagonal_expr<T> or eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>>>
-#endif
-  {
-    template<typename...Ds, typename Operation, typename...Args>
-    static constexpr decltype(auto)
-    n_ary_operation(const std::tuple<Ds...>& tup, Operation&& op, Args&&...args)
-    {
-      using P = pattern_matrix_of_t<T>;
-      return ArrayOperations<P>::template n_ary_operation(tup, std::forward<Operation>(op), std::forward<Args>(args)...);
-    }
-
-
-    template<std::size_t...indices, typename BinaryFunction, typename Arg>
-    static constexpr decltype(auto)
-    reduce(BinaryFunction&& b, Arg&& arg)
-    {
-      using P = pattern_matrix_of_t<T>;
-      return ArrayOperations<P>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
-    }
-
-  };
-
-
-#ifdef __cpp_concepts
-  template<typename T> requires eigen_diagonal_expr<T> or eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>
-  struct Conversions<T>
-#else
-  template<typename T>
-  struct Conversions<T, std::enable_if_t<eigen_diagonal_expr<T> or eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>>>
-#endif
-  {
     template<typename Arg>
     static decltype(auto)
     to_diagonal(Arg&& arg) noexcept
     {
       // Note: the interface only needs to handle constant and dynamic-sized zero matrices.
       using P = pattern_matrix_of_t<T>;
-      return Conversions<P>::to_diagonal(std::forward<Arg>(arg));
+      return LibraryRoutines<P>::to_diagonal(std::forward<Arg>(arg));
     }
 
 
@@ -129,20 +138,27 @@ namespace OpenKalman::interface
       }
     }
 
-  };
+
+    template<typename...Ds, typename Operation, typename...Args>
+    static constexpr decltype(auto)
+    n_ary_operation(const std::tuple<Ds...>& tup, Operation&& op, Args&&...args)
+    {
+      using P = pattern_matrix_of_t<T>;
+      return LibraryRoutines<P>::template n_ary_operation(tup, std::forward<Operation>(op), std::forward<Args>(args)...);
+    }
 
 
-  // ModularTransformationTraits for untyped_adapter are not specially defined. Relies on the default definition.
+    template<std::size_t...indices, typename BinaryFunction, typename Arg>
+    static constexpr decltype(auto)
+    reduce(BinaryFunction&& b, Arg&& arg)
+    {
+      using P = pattern_matrix_of_t<T>;
+      return LibraryRoutines<P>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
+    }
 
-
-#ifdef __cpp_concepts
-  template<typename T> requires eigen_diagonal_expr<T> or eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>
-  struct LinearAlgebra<T>
-#else
-  template<typename T>
-  struct LinearAlgebra<T, std::enable_if_t<eigen_diagonal_expr<T> or eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>>>
-#endif
-  {
+    // to_euclidean not defined
+    // from_euclidean not defined
+    // wrap_angles not defined
 
     template<typename Arg>
     static constexpr decltype(auto) conjugate(Arg&& arg) noexcept
@@ -218,14 +234,14 @@ namespace OpenKalman::interface
     template<typename A, typename B>
     static constexpr auto sum(A&& a, B&& b)
     {
-      return LinearAlgebra<std::decay_t<nested_matrix_of_t<T>>>::sum(std::forward<A>(a), std::forward<B>(b));
+      return LibraryRoutines<std::decay_t<nested_matrix_of_t<T>>>::sum(std::forward<A>(a), std::forward<B>(b));
     }
 
 
     template<typename A, typename B>
     static constexpr auto contract(A&& a, B&& b)
     {
-      return LinearAlgebra<std::decay_t<nested_matrix_of_t<T>>>::contract(std::forward<A>(a), std::forward<B>(b));
+      return LibraryRoutines<std::decay_t<nested_matrix_of_t<T>>>::contract(std::forward<A>(a), std::forward<B>(b));
     }
 
 
@@ -233,7 +249,7 @@ namespace OpenKalman::interface
     static decltype(auto) rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
     {
       decltype(auto) n = nested_matrix(std::forward<A>(a));
-      using Trait = interface::LinearAlgebra<std::decay_t<decltype(n)>>;
+      using Trait = interface::LibraryRoutines<std::decay_t<decltype(n)>>;
       if constexpr (eigen_self_adjoint_expr<A>)
       {
         decltype(auto) m = Trait::template rank_update_self_adjoint<significant_triangle>(std::forward<decltype(n)>(n), std::forward<U>(u), alpha);
@@ -251,7 +267,7 @@ namespace OpenKalman::interface
     static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
     {
       decltype(auto) n = nested_matrix(std::forward<A>(a));
-      using Trait = interface::LinearAlgebra<std::decay_t<decltype(n)>>;
+      using Trait = interface::LibraryRoutines<std::decay_t<decltype(n)>>;
       if constexpr (eigen_triangular_expr<A>)
       {
         decltype(auto) m = Trait::template rank_update_triangular<triangle>(std::forward<decltype(n)>(n), std::forward<U>(u), alpha);
@@ -270,7 +286,7 @@ namespace OpenKalman::interface
     solve(A&& a, B&& b)
     {
       using N = std::decay_t<decltype(nested_matrix(a))>;
-      return LinearAlgebra<N>::template solve<must_be_unique, must_be_exact>(to_native_matrix(std::forward<A>(a)), std::forward<B>(b));
+      return LibraryRoutines<N>::template solve<must_be_unique, must_be_exact>(to_native_matrix(std::forward<A>(a)), std::forward<B>(b));
     }
 
 
@@ -279,7 +295,7 @@ namespace OpenKalman::interface
     LQ_decomposition(A&& a)
     {
       using N = std::decay_t<decltype(nested_matrix(a))>;
-      return LinearAlgebra<N>::LQ_decomposition(to_native_matrix(std::forward<A>(a)));
+      return LibraryRoutines<N>::LQ_decomposition(to_native_matrix(std::forward<A>(a)));
     }
 
 
@@ -288,7 +304,7 @@ namespace OpenKalman::interface
     QR_decomposition(A&& a)
     {
       using N = std::decay_t<decltype(nested_matrix(a))>;
-      return LinearAlgebra<N>::QR_decomposition(to_native_matrix(std::forward<A>(a)));
+      return LibraryRoutines<N>::QR_decomposition(to_native_matrix(std::forward<A>(a)));
     }
 
   };

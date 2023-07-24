@@ -21,17 +21,28 @@
 
 namespace OpenKalman::interface
 {
-#ifndef __cpp_concepts
   template<typename VectorType, int Size>
-  struct IndexTraits<Eigen::VectorBlock<VectorType, Size>>
-    : detail::IndexTraits_Eigen_default<Eigen::Ref<Eigen::VectorBlock<VectorType, Size>>> {};
-#endif
-
-
-  template<typename VectorType, int Size>
-  struct Dependencies<Eigen::VectorBlock<VectorType, Size>>
+  struct IndexibleObjectTraits<Eigen::VectorBlock<VectorType, Size>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::VectorBlock<VectorType, Size>>
   {
+    static constexpr std::size_t max_indices = 2;
+
+    template<std::size_t N, typename Arg>
+    static constexpr auto get_index_descriptor(const Arg& arg)
+    {
+      using Xpr = Eigen::VectorBlock<VectorType, Size>;
+      constexpr Eigen::Index dim = N == 0 ? Xpr::RowsAtCompileTime : Xpr::ColsAtCompileTime;
+
+      if constexpr (dim == Eigen::Dynamic)
+      {
+        if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
+        else return static_cast<std::size_t>(arg.cols());
+      }
+      else return Dimensions<dim>{};
+    }
+
     static constexpr bool has_runtime_parameters = true;
+
     using type = std::tuple<typename Eigen::internal::ref_selector<VectorType>::non_const_type>;
 
     template<std::size_t i, typename Arg>
@@ -43,17 +54,10 @@ namespace OpenKalman::interface
 
     // Eigen::VectorBlock should always be converted to Matrix
 
-  };
-
-
-  template<typename VectorType, int Size>
-  struct SingleConstant<Eigen::VectorBlock<VectorType, Size>>
-  {
-    const Eigen::VectorBlock<VectorType, Size>& xpr;
-
-    constexpr auto get_constant()
+    template<typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
     {
-      return constant_coefficient {xpr.nestedExpression()};
+      return constant_coefficient {arg.nestedExpression()};
     }
   };
 

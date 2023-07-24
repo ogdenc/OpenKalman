@@ -727,7 +727,7 @@ namespace OpenKalman
   namespace interface
   {
     template<typename Coeffs, typename NestedMean, typename NestedCovariance, typename re>
-    struct IndexTraits<GaussianDistribution<Coeffs, NestedMean, NestedCovariance, re>>
+    struct IndexibleObjectTraits<GaussianDistribution<Coeffs, NestedMean, NestedCovariance, re>>
     {
       static constexpr std::size_t max_indices = 1;
 
@@ -738,19 +738,7 @@ namespace OpenKalman
         if constexpr (not dynamic_dimension<NestedMean, 0>) return OpenKalman::get_index_descriptor<0>(mean_of(arg));
         else return OpenKalman::get_index_descriptor<0>(covariance_of(arg));
       }
-    };
 
-
-    template<typename Coeffs, typename NestedMean, typename NestedCovariance, typename re>
-    struct Elements<GaussianDistribution<Coeffs, NestedMean, NestedCovariance, re>>
-    {
-      using scalar_type = scalar_type_of_t<NestedMean>;
-    };
-
-
-    template<typename Coeffs, typename NestedMean, typename NestedCovariance, typename re>
-    struct Dependencies<GaussianDistribution<Coeffs, NestedMean, NestedCovariance, re>>
-    {
       static constexpr bool has_runtime_parameters = false;
       using type = std::tuple<NestedMean, NestedCovariance>;
 
@@ -773,6 +761,8 @@ namespace OpenKalman
         using S = decltype(s);
         return GaussianDistribution<Coeffs, M, S, re> {std::forward<M>(m), std::forward<M>(s)};
       }
+
+      using scalar_type = scalar_type_of_t<NestedMean>;
     };
 
   } // namespace internal

@@ -21,8 +21,6 @@
 
 namespace OpenKalman
 {
-  using namespace interface;
-
   // ---------------------- //
   //  get_index_descriptor  //
   // ---------------------- //
@@ -38,7 +36,7 @@ namespace OpenKalman
   constexpr auto get_index_descriptor(const Arg& arg)
 #endif
   {
-    return interface::IndexTraits<Arg>::template get_index_descriptor<N>(arg);
+    return interface::IndexibleObjectTraits<Arg>::template get_index_descriptor<N>(arg);
   }
 
 
@@ -270,6 +268,39 @@ namespace OpenKalman
 
 
   // --------------- //
+  //  get_is_vector  //
+  // --------------- //
+
+  namespace detail
+  {
+    template<std::size_t N, std::size_t...Is, typename T>
+    constexpr bool get_is_vector_impl(std::index_sequence<Is...>, const T& t)
+    {
+      return (... and (N == Is or get_index_dimension_of<Is>(t) == 1));
+    }
+  }
+
+
+  /**
+   * \brief Return true if T is a \ref square_matrix at runtime.
+   * \tparam N An index designating the "large" index (0 for a column vector, 1 for a row vector)
+   * \tparam T A tensor or matrix
+   * \sa vector
+   */
+#ifdef __cpp_concepts
+  template<std::size_t N = 0, indexible T>
+#else
+  template<std::size_t N = 0, typename T, std::enable_if_t<indexible<T>, int> = 0>
+#endif
+  constexpr bool get_is_vector(const T& t)
+  {
+    if constexpr (vector<T, N>) return true;
+    else if constexpr (not vector<T, N, Likelihood::maybe>) return false;
+    else return detail::get_is_vector_impl<N>(std::make_index_sequence<max_indices_of_v<T>>{}, t);
+  }
+
+
+  // --------------- //
   //  nested_matrix  //
   // --------------- //
 
@@ -277,21 +308,21 @@ namespace OpenKalman
    * \brief Retrieve a nested matrix of Arg, if it exists.
    * \tparam i Index of the nested matrix (0 for the 1st, 1 for the 2nd, etc.).
    * \tparam Arg A wrapper that has at least one nested matrix.
-   * \internal \sa interface::Dependencies::get_nested_matrix
+   * \internal \sa interface::IndexibleObjectTraits::get_nested_matrix
    */
 #ifdef __cpp_concepts
   template<std::size_t i = 0, typename Arg> requires
-    (i < std::tuple_size_v<typename Dependencies<std::decay_t<Arg>>::type>) and
-    requires(Arg&& arg) { Dependencies<std::decay_t<Arg>>::template get_nested_matrix<i>(std::forward<Arg>(arg)); }
+    (i < std::tuple_size_v<typename interface::IndexibleObjectTraits<std::decay_t<Arg>>::type>) and
+    requires(Arg&& arg) { interface::IndexibleObjectTraits<std::decay_t<Arg>>::template get_nested_matrix<i>(std::forward<Arg>(arg)); }
 #else
   template<std::size_t i = 0, typename Arg,
-    std::enable_if_t<(i < std::tuple_size<typename Dependencies<std::decay_t<Arg>>::type>::value), int> = 0,
-    typename = std::void_t<decltype(Dependencies<std::decay_t<Arg>>::template get_nested_matrix<i>(std::declval<Arg&&>()))>>
+    std::enable_if_t<(i < std::tuple_size<typename interface::IndexibleObjectTraits<std::decay_t<Arg>>::type>::value), int> = 0,
+    typename = std::void_t<decltype(interface::IndexibleObjectTraits<std::decay_t<Arg>>::template get_nested_matrix<i>(std::declval<Arg&&>()))>>
 #endif
   constexpr decltype(auto)
   nested_matrix(Arg&& arg)
   {
-      return Dependencies<std::decay_t<Arg>>::template get_nested_matrix<i>(std::forward<Arg>(arg));
+    return interface::IndexibleObjectTraits<std::decay_t<Arg>>::template get_nested_matrix<i>(std::forward<Arg>(arg));
   }
 
 
@@ -337,7 +368,7 @@ namespace OpenKalman
      * \details The return value is a known or unknown \ref scalar_constant of the same scalar type as T.
      * \tparam N The index
      * \tparam T The matrix, expression, or array
-     * \internal \sa interface::IndexTraits
+     * \internal \sa interface::IndexibleObjectTraits
      */
 #ifdef __cpp_concepts
     template<std::size_t N, indexible T>

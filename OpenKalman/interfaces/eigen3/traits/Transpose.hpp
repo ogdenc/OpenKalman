@@ -22,7 +22,8 @@
 namespace OpenKalman::interface
 {
   template<typename MatrixType>
-  struct IndexTraits<Eigen::Transpose<MatrixType>>
+  struct IndexibleObjectTraits<Eigen::Transpose<MatrixType>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::Transpose<MatrixType>>
   {
     static constexpr std::size_t max_indices = max_indices_of_v<MatrixType>;
 
@@ -37,13 +38,9 @@ namespace OpenKalman::interface
 
     template<Likelihood b>
     static constexpr bool is_square = square_matrix<MatrixType, b>;
-  };
 
-
-  template<typename MatrixType>
-  struct Dependencies<Eigen::Transpose<MatrixType>>
-  {
     static constexpr bool has_runtime_parameters = false;
+
     using type = std::tuple<typename Eigen::internal::ref_selector<MatrixType>::non_const_type>;
 
     template<std::size_t i, typename Arg>
@@ -63,38 +60,27 @@ namespace OpenKalman::interface
       else
         return make_dense_writable_matrix_from(std::forward<Arg>(arg));
     }
-  };
 
+    template<typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
+    {
+      return constant_coefficient{arg.nestedExpression()};
+    }
 
-  template<typename MatrixType>
-  struct SingleConstant<Eigen::Transpose<MatrixType>> : SingleConstant<std::decay_t<MatrixType>>
-  {
-    SingleConstant(const Eigen::Transpose<MatrixType>& xpr) :
-      SingleConstant<std::decay_t<MatrixType>> {xpr.nestedExpression()} {};
-  };
+    template<typename Arg>
+    static constexpr auto get_constant_diagonal(const Arg& arg)
+    {
+      return constant_diagonal_coefficient {arg.nestedExpression()};
+    }
 
-
-  template<typename MatrixType>
-  struct TriangularTraits<Eigen::Transpose<MatrixType>>
-  {
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = diagonal_matrix<MatrixType, b> or
       (t == TriangleType::lower and triangular_matrix<MatrixType, TriangleType::upper, b>) or
       (t == TriangleType::upper and triangular_matrix<MatrixType, TriangleType::lower, b>);
 
     static constexpr bool is_triangular_adapter = false;
-  };
 
-
-#ifdef __cpp_concepts
-  template<hermitian_matrix<Likelihood::maybe> MatrixType>
-  struct HermitianTraits<Eigen::Transpose<MatrixType>>
-#else
-  template<typename MatrixType>
-  struct HermitianTraits<Eigen::Transpose<MatrixType>, std::enable_if_t<hermitian_matrix<MatrixType, Likelihood::maybe>>>
-#endif
-  {
-    static constexpr bool is_hermitian = true;
+    static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Likelihood::maybe>;
   };
 
 

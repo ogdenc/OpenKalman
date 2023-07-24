@@ -138,7 +138,7 @@ namespace OpenKalman
    * \details The matrix is guaranteed to be diagonal. It is ::self_contained iff NestedMatrix is ::self_contained.
    * Implicit conversions are available from any \ref diagonal_matrix of compatible size.
    * \tparam NestedMatrix A column vector expression defining the diagonal elements.
-   * Elements outside the diagonal are automatically 0.
+   * IndexibleObjectTraits outside the diagonal are automatically 0.
    * \note This has the same name as Eigen::DiagonalMatrix, and is intended as a replacement.
    */
 #ifdef __cpp_concepts
@@ -564,8 +564,8 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * \brief A base class within a particular library
-     * \details This is defined by LinearAlgebra<std::decay_t<PatternMatrix>>::template MatrixBaseFrom<Derived>
+     * \brief The base class of an object within a particular linear-algebra library.
+     * \details By default the library base is std::monostate.
      * \tparam Derived A derived class, such as an adapter.
      * \tparam PatternMatrix A class within a particular library
      */
@@ -574,7 +574,24 @@ namespace OpenKalman
 #else
     template<typename Derived, typename PatternMatrix, typename = void>
 #endif
-    struct library_base;
+    struct library_base : std::monostate {};
+
+
+    /**
+     * \overload
+     * \internal
+     * \brief A non-default library_base.
+     */
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
+    template<typename Derived, typename PatternMatrix> requires
+      requires { typename interface::LibraryRoutines<std::decay_t<PatternMatrix>>::template LibraryBase<std::decay_t<Derived>>; }
+    struct library_base<Derived, PatternMatrix>
+#else
+    template<typename Derived, typename PatternMatrix>
+    struct library_base<Derived, PatternMatrix,
+      std::void_t<typename interface::LibraryRoutines<std::decay_t<PatternMatrix>>::template LibraryBase<std::decay_t<Derived>>>>
+#endif
+      : interface::LibraryRoutines<std::decay_t<PatternMatrix>>::template LibraryBase<Derived> {};
 
 
     /**

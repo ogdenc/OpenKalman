@@ -18,8 +18,6 @@
 
 namespace OpenKalman
 {
-  using namespace interface;
-
   // ====== //
   //  tile  //
   // ====== //

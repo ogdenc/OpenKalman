@@ -352,26 +352,55 @@ namespace OpenKalman
 
   namespace interface
   {
-    template<typename Nested, TriangleType t>
-    struct IndexTraits<TriangularMatrix<Nested, t>>
+    template<typename NestedMatrix, TriangleType triangle_type>
+    struct IndexibleObjectTraits<TriangularMatrix<NestedMatrix, triangle_type>>
     {
       static constexpr std::size_t max_indices = 2;
 
       template<std::size_t N, typename Arg>
       static constexpr auto get_index_descriptor(const Arg& arg)
       {
-        if constexpr (not dynamic_dimension<Nested, 0>) return OpenKalman::get_index_descriptor<0>(nested_matrix(arg));
+        if constexpr (not dynamic_dimension<NestedMatrix, 0>) return OpenKalman::get_index_descriptor<0>(nested_matrix(arg));
         else return OpenKalman::get_index_descriptor<1>(nested_matrix(arg));
       }
 
       template<Likelihood b>
-      static constexpr bool is_one_by_one = one_by_one_matrix<Nested, b>;
-    };
+      static constexpr bool is_one_by_one = one_by_one_matrix<NestedMatrix, b>;
+
+      static constexpr bool has_runtime_parameters = false;
+
+      using type = std::tuple<NestedMatrix>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).nested_matrix();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        auto n = make_self_contained(get_nested_matrix<0>(std::forward<Arg>(arg)));
+        return TriangularMatrix<decltype(n), triangle_type> {std::move(n)};
+      }
+
+      template<typename Arg>
+      static constexpr auto get_constant_diagonal(const Arg& arg)
+      {
+        if constexpr (triangle_type == TriangleType::diagonal and not diagonal_matrix<NestedMatrix>)
+          return constant_coefficient{nested_matrix(arg)};
+        else
+          return constant_diagonal_coefficient{nested_matrix(arg)};
+      }
+
+      template<TriangleType t, Likelihood>
+      static constexpr bool is_triangular = t == TriangleType::any or triangle_type == TriangleType::diagonal or triangle_type == t or
+        triangular_matrix<NestedMatrix, t, Likelihood::maybe>;
+
+      static constexpr bool is_triangular_adapter = true;
 
 
-    template<typename NestedMatrix, TriangleType triangle_type>
-    struct Elements<TriangularMatrix<NestedMatrix, triangle_type>>
-    {
       using scalar_type = scalar_type_of_t<NestedMatrix>;
 
 
@@ -437,31 +466,13 @@ namespace OpenKalman
         else if (s != 0)
           throw std::out_of_range("Cannot set elements of a triangular matrix to non-zero values outside the triangle.");
       }
+
+
+      static constexpr bool is_writable = false;
+
     };
 
-  }
-
-  template<typename NestedMatrix, TriangleType triangle_type>
-  struct Dependencies<TriangularMatrix<NestedMatrix, triangle_type>>
-  {
-    static constexpr bool has_runtime_parameters = false;
-    using type = std::tuple<NestedMatrix>;
-
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
-    {
-      static_assert(i == 0);
-      return std::forward<Arg>(arg).nested_matrix();
-    }
-
-    template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      auto n = make_self_contained(get_nested_matrix<0>(std::forward<Arg>(arg)));
-      return TriangularMatrix<decltype(n), triangle_type> {std::move(n)};
-    }
-  };
-
+  } // namespace interface
 
 } // namespace OpenKalman
 

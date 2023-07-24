@@ -22,7 +22,8 @@
 namespace OpenKalman::interface
 {
   template<typename MatrixType, int Direction>
-  struct IndexTraits<Eigen::Reverse<MatrixType, Direction>>
+  struct IndexibleObjectTraits<Eigen::Reverse<MatrixType, Direction>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::Reverse<MatrixType, Direction>>
   {
     static constexpr std::size_t max_indices = max_indices_of_v<MatrixType>;
 
@@ -37,13 +38,9 @@ namespace OpenKalman::interface
 
     template<Likelihood b>
     static constexpr bool is_square = square_matrix<MatrixType, b>;
-  };
 
-
-  template<typename MatrixType, int Direction>
-  struct Dependencies<Eigen::Reverse<MatrixType, Direction>>
-  {
     static constexpr bool has_runtime_parameters = false;
+
     using type = std::tuple<typename MatrixType::Nested>;
 
     template<std::size_t i, typename Arg>
@@ -62,32 +59,20 @@ namespace OpenKalman::interface
       else
         return make_dense_writable_matrix_from(std::forward<Arg>(arg));
     }
-  };
 
-
-  template<typename MatrixType, int Direction>
-  struct SingleConstant<Eigen::Reverse<MatrixType, Direction>>
-  {
-    const Eigen::Reverse<MatrixType, Direction>& xpr;
-
-    constexpr auto get_constant()
+    template<typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
     {
-      return constant_coefficient {xpr.nestedExpression()};
+      return constant_coefficient {arg.nestedExpression()};
     }
-  };
 
+    template<typename Arg>
+    static constexpr auto get_constant_diagonal(const Arg& arg)
+    {
+      if constexpr (Direction == Eigen::BothDirections) return constant_diagonal_coefficient {arg.nestedExpression()};
+      else return std::monostate {};
+    }
 
-  template<typename MatrixType>
-  struct SingleConstant<Eigen::Reverse<MatrixType, Eigen::BothDirections>> : SingleConstant<std::decay_t<MatrixType>>
-  {
-    SingleConstant(const Eigen::Reverse<MatrixType>& xpr) :
-      SingleConstant<std::decay_t<MatrixType>> {xpr.nestedExpression()} {};
-  };
-
-
-  template<typename MatrixType, int Direction>
-  struct TriangularTraits<Eigen::Reverse<MatrixType, Direction>>
-  {
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = triangular_matrix<MatrixType,
         t == TriangleType::upper ? TriangleType::lower :
@@ -95,20 +80,9 @@ namespace OpenKalman::interface
       (Direction == Eigen::BothDirections or one_by_one_matrix<MatrixType>);
 
     static constexpr bool is_triangular_adapter = false;
-  };
 
-
-#ifdef __cpp_concepts
-  template<hermitian_matrix<Likelihood::maybe> MatrixType, int Direction> requires
-    (Direction == Eigen::BothDirections) or (one_by_one_matrix<MatrixType, Likelihood::maybe>)
-  struct HermitianTraits<Eigen::Reverse<MatrixType, Direction>>
-#else
-  template<typename MatrixType, int Direction>
-  struct HermitianTraits<Eigen::Reverse<MatrixType, Direction>, std::enable_if_t<hermitian_matrix<MatrixType, Likelihood::maybe> and
-    (Direction == Eigen::BothDirections or one_by_one_matrix<MatrixType, Likelihood::maybe>)>>
-#endif
-  {
-    static constexpr bool is_hermitian = true;
+    static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Likelihood::maybe> and
+        (Direction == Eigen::BothDirections or one_by_one_matrix<MatrixType, Likelihood::maybe>);
   };
 
 

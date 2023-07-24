@@ -18,8 +18,6 @@
 
 namespace OpenKalman
 {
-  using namespace interface;
-
   /**
    * \brief If it isn't already, convert Arg to a native matrix in library T.
    * \details The new matrix will be one in which basic matrix operations are defined.
@@ -36,7 +34,7 @@ namespace OpenKalman
   to_native_matrix(Arg&& arg)
 #endif
   {
-    return EquivalentDenseWritableMatrix<std::decay_t<T>>::to_native_matrix(std::forward<Arg>(arg));
+    return interface::LibraryRoutines<std::decay_t<T>>::to_native_matrix(std::forward<Arg>(arg));
   }
 
 
@@ -53,7 +51,7 @@ namespace OpenKalman
   to_native_matrix(Arg&& arg)
 #endif
   {
-    return EquivalentDenseWritableMatrix<std::decay_t<decltype(arg)>>::to_native_matrix(std::forward<decltype(arg)>(arg));
+    return interface::LibraryRoutines<std::decay_t<decltype(arg)>>::to_native_matrix(std::forward<decltype(arg)>(arg));
   }
 
 

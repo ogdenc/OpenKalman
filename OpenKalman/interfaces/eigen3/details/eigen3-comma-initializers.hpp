@@ -19,8 +19,6 @@
 
 namespace Eigen
 {
-  using namespace OpenKalman;
-
   /**
    * \brief Alternative version of Eigen::CommaInitializer for Mean.
    */
@@ -29,7 +27,7 @@ namespace Eigen
   {
     using Base = CommaInitializer<XprType>;
     using Scalar = OpenKalman::scalar_type_of_t<XprType>;
-    using TypedIndex = row_index_descriptor_of_t<Derived>;
+    using TypedIndex = OpenKalman::row_index_descriptor_of_t<Derived>;
     using Base::Base;
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
@@ -41,12 +39,12 @@ namespace Eigen
 
     ~MeanCommaInitializer()
     {
-      this->m_xpr = wrap_angles<TypedIndex>(Base::finished());
+      this->m_xpr = OpenKalman::wrap_angles<TypedIndex>(Base::finished());
     }
 
     auto& finished()
     {
-      this->m_xpr = wrap_angles<TypedIndex>(Base::finished());
+      this->m_xpr = OpenKalman::wrap_angles<TypedIndex>(Base::finished());
       return this->m_xpr;
     }
   };
@@ -58,9 +56,9 @@ namespace Eigen
   template<typename XprType>
   struct DiagonalCommaInitializer
   {
-    using Scalar = scalar_type_of_t<XprType>;
-    static constexpr auto dim = row_dimension_of_v<XprType>;
-    using NestedMatrix = untyped_dense_writable_matrix_t<pattern_matrix_of_t<XprType>, Scalar, dim, 1>;
+    using Scalar = OpenKalman::scalar_type_of_t<XprType>;
+    static constexpr auto dim = OpenKalman::row_dimension_of_v<XprType>;
+    using NestedMatrix = OpenKalman::untyped_dense_writable_matrix_t<OpenKalman::pattern_matrix_of_t<XprType>, Scalar, dim, 1>;
     using Nested = CommaInitializer<NestedMatrix>;
 
     NestedMatrix matrix;
@@ -123,11 +121,11 @@ namespace Eigen
   template<typename CovarianceType>
   struct CovarianceCommaInitializer
   {
-    using Scalar = scalar_type_of_t<CovarianceType>;
-    using CovNest = nested_matrix_of_t<CovarianceType>;
-    using NestedMatrix = std::conditional_t<diagonal_matrix<CovNest>,
-      untyped_dense_writable_matrix_t<CovNest, Scalar, row_dimension_of_v<CovNest>, 1>,
-      dense_writable_matrix_t<CovNest, Scalar>>;
+    using Scalar = OpenKalman::scalar_type_of_t<CovarianceType>;
+    using CovNest = OpenKalman::nested_matrix_of_t<CovarianceType>;
+    using NestedMatrix = std::conditional_t<OpenKalman::diagonal_matrix<CovNest>,
+      OpenKalman::untyped_dense_writable_matrix_t<CovNest, Scalar, OpenKalman::row_dimension_of_v<CovNest>, 1>,
+      OpenKalman::dense_writable_matrix_t<CovNest, Scalar>>;
     using Nested = CommaInitializer<NestedMatrix>;
 
     NestedMatrix matrix;

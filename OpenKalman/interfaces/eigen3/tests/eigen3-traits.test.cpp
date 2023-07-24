@@ -71,7 +71,7 @@ TEST(eigen3, Eigen_Matrix)
   EXPECT_EQ((get_index_descriptor<1>(M21{})), 1);
   EXPECT_EQ((get_index_descriptor<1>(Mxx{2, 1})), 1);
 
-  static_assert(std::is_same_v<typename interface::Elements<Mxx>::scalar_type, double>);
+  static_assert(std::is_same_v<typename interface::IndexibleObjectTraits<Mxx>::scalar_type, double>);
 
   static_assert(dynamic_rows<eigen_matrix_t<double, dynamic_size, dynamic_size>>);
   static_assert(dynamic_columns<eigen_matrix_t<double, dynamic_size, dynamic_size>>);
@@ -240,6 +240,42 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(not dimension_size_of_index_is<M23, 0, 1, Likelihood::maybe>);
   static_assert(not dimension_size_of_index_is<M2x, 0, 1, Likelihood::maybe>);
 
+  M21 m21 {1, 2};
+  M2x m2x_1 {m21};
+  Mx1 mx1_2 {m21};
+  Mxx mxx_21 {m21};
+  M12 m12 {1, 2};
+  M1x m1x_2 {m12};
+  Mx2 mx2_1 {m12};
+  Mxx mxx_12 {m12};
+
+  static_assert(vector<M11>);
+  static_assert(get_is_vector(m11_1));
+
+  static_assert(vector<M21>);
+  static_assert(vector<M2x, 0, Likelihood::maybe>);
+  static_assert(vector<Mx1, 0, Likelihood::maybe>);
+  static_assert(vector<Mxx, 0, Likelihood::maybe>);
+  static_assert(not vector<M12, 0, Likelihood::maybe>);
+  static_assert(not vector<Mx2, 0, Likelihood::maybe>);
+  static_assert(get_is_vector(m21));
+  EXPECT_TRUE(get_is_vector(m2x_1));
+  static_assert(get_is_vector(mx1_2));
+  EXPECT_TRUE(get_is_vector(mxx_21));
+  EXPECT_FALSE(get_is_vector(mxx_12));
+
+  static_assert(vector<M12, 1>);
+  static_assert(vector<M1x, 1, Likelihood::maybe>);
+  static_assert(vector<Mx2, 1, Likelihood::maybe>);
+  static_assert(vector<Mxx, 1, Likelihood::maybe>);
+  static_assert(not vector<M21, 1, Likelihood::maybe>);
+  static_assert(not vector<M2x, 1, Likelihood::maybe>);
+  static_assert(get_is_vector<1>(m12));
+  static_assert(get_is_vector<1>(m1x_2));
+  EXPECT_TRUE(get_is_vector<1>(mx2_1));
+  EXPECT_TRUE(get_is_vector<1>(mxx_12));
+  EXPECT_FALSE(get_is_vector<1>(mxx_21));
+
   static_assert(native_eigen_matrix<M22>);
   static_assert(native_eigen_matrix<Mxx>);
   static_assert(native_eigen_matrix<CM22>);
@@ -255,6 +291,8 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(constant_matrix<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, Dimensions<1>>, CompileTimeStatus::unknown>);
   static_assert(constant_matrix<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, std::size_t>, CompileTimeStatus::unknown, Likelihood::maybe>);
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, std::size_t>, CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<internal::FixedSizeAdapter<const Mxx, std::size_t, Dimensions<1>>, CompileTimeStatus::unknown, Likelihood::maybe>);
+  static_assert(not constant_matrix<internal::FixedSizeAdapter<const Mxx, std::size_t, Dimensions<1>>, CompileTimeStatus::unknown>);
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const M2x, Dimensions<2>, Dimensions<1>>, CompileTimeStatus::any, Likelihood::maybe>);
 }
 
@@ -777,10 +815,13 @@ TEST(eigen3, Eigen_Diagonal)
 
   static_assert(dimension_size_of_index_is<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, 0, 2>);
   static_assert(dimension_size_of_index_is<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, 1, 1>);
+
   static_assert(not one_by_one_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<2>, Dimensions<1>>, Likelihood::maybe>);
   static_assert(not one_by_one_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, Likelihood::maybe>);
   static_assert(one_by_one_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<1>, Dimensions<1>>>);
+
   static_assert(not square_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, Likelihood::maybe>);
+
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, CompileTimeStatus::any, Likelihood::maybe>);
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, Dimensions<2>, Dimensions<1>>, CompileTimeStatus::any, Likelihood::maybe>);
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<2>, Dimensions<1>>, CompileTimeStatus::any, Likelihood::maybe>);
@@ -975,7 +1016,11 @@ TEST(eigen3, Eigen_Product)
 }
 
 
-// No current tests for Eigen::Ref.
+TEST(eigen3, Eigen_Ref)
+{
+  static_assert(constant_coefficient_v<Eigen::Ref<C22_m2>> == -2);
+  static_assert(constant_diagonal_coefficient_v<Eigen::Ref<Cd22_2>> == 2);
+}
 
 
 TEST(eigen3, Eigen_Replicate)
@@ -996,7 +1041,7 @@ TEST(eigen3, Eigen_Replicate)
   static_assert(index_dimension_of_v<Zxx, 1> == dynamic_size);
   EXPECT_EQ(get_index_descriptor<0>(z00_21), 2);
   EXPECT_EQ(get_index_descriptor<1>(z00_21), 1);
-  static_assert(std::is_same_v<typename interface::Elements<Zxx>::scalar_type, double>);
+  static_assert(std::is_same_v<typename interface::IndexibleObjectTraits<Zxx>::scalar_type, double>);
 
   static_assert(one_by_one_matrix<Eigen::Replicate<M11, 1, 1>>);
   static_assert(one_by_one_matrix<Eigen::Replicate<Mxx, 1, 1>, Likelihood::maybe>);

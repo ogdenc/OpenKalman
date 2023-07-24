@@ -173,9 +173,9 @@ namespace OpenKalman::internal
     std::tuple<TypedIndex...> my_dimensions;
 
 #ifdef __cpp_concepts
-    template<typename T> friend struct interface::IndexTraits;
+    template<typename T> friend struct interface::IndexibleObjectTraits;
 #else
-    template<typename T, typename Enable> friend struct OpenKalman::interface::IndexTraits;
+    template<typename T, typename Enable> friend struct OpenKalman::interface::IndexibleObjectTraits;
 #endif
 
   };

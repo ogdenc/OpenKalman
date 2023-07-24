@@ -22,8 +22,6 @@
 #ifndef OPENKALMAN_MATRICES_HPP
 #define OPENKALMAN_MATRICES_HPP
 
-#include "details/matrix-traits.hpp"
-
 #include "Mean.hpp"
 #include "EuclideanMean.hpp"
 #include "Matrix.hpp"

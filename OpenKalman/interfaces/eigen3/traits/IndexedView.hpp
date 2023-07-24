@@ -21,13 +21,28 @@
 
 namespace OpenKalman::interface
 {
-  // \todo: Add.
+  // \todo: Add other interface traits.
 
-#ifndef __cpp_concepts
   template<typename XprType, typename RowIndices, typename ColIndices>
-  struct IndexTraits<Eigen::IndexedView<XprType, RowIndices, ColIndices>>
-    : detail::IndexTraits_Eigen_default<Eigen::IndexedView<XprType, RowIndices, ColIndices>> {};
-#endif
+  struct IndexibleObjectTraits<Eigen::IndexedView<XprType, RowIndices, ColIndices>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::IndexedView<XprType, RowIndices, ColIndices>>
+  {
+    static constexpr std::size_t max_indices = 2;
+
+    template<std::size_t N, typename Arg>
+    static constexpr auto get_index_descriptor(const Arg& arg)
+    {
+      using Xpr = Eigen::IndexedView<XprType, RowIndices, ColIndices>;
+      constexpr Eigen::Index dim = N == 0 ? Xpr::RowsAtCompileTime : Xpr::ColsAtCompileTime;
+
+      if constexpr (dim == Eigen::Dynamic)
+      {
+        if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
+        else return static_cast<std::size_t>(arg.cols());
+      }
+      else return Dimensions<dim>{};
+    }
+  };
 
 } // namespace OpenKalman::interface
 

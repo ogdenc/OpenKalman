@@ -272,6 +272,19 @@ namespace OpenKalman::Eigen3
     Eigen::Matrix<Scalar, detail::eigen_index_convert<dims>..., static_cast<Eigen::Index>(1)>,
     Eigen::Matrix<Scalar, detail::eigen_index_convert<dims>...>>;
 
+
+
+  /**
+   * \brief Trait object providing get and set routines
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+  struct IndexibleObjectTraitsBase;
+#else
+  template<typename T, typename = void>
+  struct IndexibleObjectTraitsBase;
+#endif
+
 } // namespace OpenKalman::Eigen3
 
 

@@ -18,8 +18,6 @@
 
 namespace OpenKalman
 {
-  using namespace OpenKalman::internal;
-
 #ifdef __cpp_concepts
   template<square_matrix<Likelihood::maybe> NestedMatrix, HermitianAdapterType storage_triangle> requires
     (max_indices_of_v<NestedMatrix> <= 2) and
@@ -419,26 +417,59 @@ namespace OpenKalman
 
   namespace interface
   {
-    template<typename Nested, HermitianAdapterType t>
-    struct IndexTraits<SelfAdjointMatrix<Nested, t>>
+    template<typename NestedMatrix, HermitianAdapterType storage_type>
+    struct IndexibleObjectTraits<SelfAdjointMatrix<NestedMatrix, storage_type>>
     {
       static constexpr std::size_t max_indices = 2;
 
       template<std::size_t N, typename Arg>
       static constexpr auto get_index_descriptor(const Arg& arg)
       {
-        if constexpr (not dynamic_dimension<Nested, 0>) return OpenKalman::get_index_descriptor<0>(nested_matrix(arg));
+        if constexpr (not dynamic_dimension<NestedMatrix, 0>) return OpenKalman::get_index_descriptor<0>(nested_matrix(arg));
         else return OpenKalman::get_index_descriptor<1>(nested_matrix(arg));
       }
 
       template<Likelihood b>
-      static constexpr bool is_one_by_one = one_by_one_matrix<Nested, b>;
-    };
+      static constexpr bool is_one_by_one = one_by_one_matrix<NestedMatrix, b>;
+
+      static constexpr bool has_runtime_parameters = false;
+
+      using type = std::tuple<NestedMatrix>;
+
+      template<std::size_t i, typename Arg>
+      static decltype(auto) get_nested_matrix(Arg&& arg)
+      {
+        static_assert(i == 0);
+        return std::forward<Arg>(arg).nested_matrix();
+      }
+
+      template<typename Arg>
+      static auto convert_to_self_contained(Arg&& arg)
+      {
+        auto n = make_self_contained(get_nested_matrix<0>(std::forward<Arg>(arg)));
+        return SelfAdjointMatrix<decltype(n), storage_type> {std::move(n)};
+      }
+
+      template<typename Arg>
+      static constexpr auto get_constant(const Arg& arg)
+      {
+        return constant_coefficient{nested_matrix(arg)};
+      }
+
+      template<typename Arg>
+      static constexpr auto get_constant_diagonal(const Arg& arg)
+      {
+        return constant_diagonal_coefficient {nested_matrix(arg)};
+      }
+
+      template<TriangleType t, Likelihood>
+      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, TriangleType::diagonal, Likelihood::maybe>;
+
+      static constexpr bool is_hermitian = true;
+
+      static constexpr HermitianAdapterType adapter_type = storage_type;
 
 
-    template<typename NestedMatrix, HermitianAdapterType storage_triangle>
-    struct Elements<SelfAdjointMatrix<NestedMatrix, storage_triangle>>
-    {
       using scalar_type = scalar_type_of_t<NestedMatrix>;
 
 
@@ -520,28 +551,10 @@ namespace OpenKalman
         else
           set_element(nested_matrix(arg), internal::constexpr_conj(s), j, i);
       }
-    };
 
 
-    template<typename NestedMatrix, HermitianAdapterType triangle_type>
-    struct Dependencies<SelfAdjointMatrix<NestedMatrix, triangle_type>>
-    {
-      static constexpr bool has_runtime_parameters = false;
-      using type = std::tuple<NestedMatrix>;
+      static constexpr bool is_writable = false;
 
-      template<std::size_t i, typename Arg>
-      static decltype(auto) get_nested_matrix(Arg&& arg)
-      {
-        static_assert(i == 0);
-        return std::forward<Arg>(arg).nested_matrix();
-      }
-
-      template<typename Arg>
-      static auto convert_to_self_contained(Arg&& arg)
-      {
-        auto n = make_self_contained(get_nested_matrix<0>(std::forward<Arg>(arg)));
-        return SelfAdjointMatrix<decltype(n), triangle_type> {std::move(n)};
-      }
     };
 
   } // namespace interface

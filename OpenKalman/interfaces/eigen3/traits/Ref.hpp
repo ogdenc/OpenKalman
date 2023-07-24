@@ -21,18 +21,47 @@
 
 namespace OpenKalman::interface
 {
-#ifndef __cpp_concepts
   template<typename PlainObjectType, int Options, typename StrideType>
-  struct IndexTraits<Eigen::Ref<PlainObjectType, Options, StrideType>>
-    : detail::IndexTraits_Eigen_default<Eigen::Ref<PlainObjectType, Options, StrideType>> {};
-#endif
-
-
-  template<typename PlainObjectType, int Options, typename StrideType>
-  struct Dependencies<Eigen::Ref<PlainObjectType, Options, StrideType>>
+  struct IndexibleObjectTraits<Eigen::Ref<PlainObjectType, Options, StrideType>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::Ref<PlainObjectType, Options, StrideType>>
   {
+    static constexpr std::size_t max_indices = 2;
+
+    template<std::size_t N, typename Arg>
+    static constexpr auto get_index_descriptor(const Arg& arg)
+    {
+      using Xpr = Eigen::Ref<PlainObjectType, Options, StrideType>;
+      constexpr Eigen::Index dim = N == 0 ? Xpr::RowsAtCompileTime : Xpr::ColsAtCompileTime;
+
+      if constexpr (dim == Eigen::Dynamic)
+      {
+        if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
+        else return static_cast<std::size_t>(arg.cols());
+      }
+      else return Dimensions<dim>{};
+    }
+
     static constexpr bool has_runtime_parameters = false;
+
     // Ref is not self-contained in any circumstances.
+
+    template<typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
+    {
+      if constexpr (constant_matrix<PlainObjectType, CompileTimeStatus::known, Likelihood::maybe>)
+        return constant_coefficient<PlainObjectType> {};
+      else
+        return std::monostate {};
+    }
+
+    template<typename Arg>
+    static constexpr auto get_constant_diagonal(const Arg& arg)
+    {
+      if constexpr (constant_diagonal_matrix<PlainObjectType, CompileTimeStatus::known, Likelihood::maybe>)
+        return constant_diagonal_coefficient<PlainObjectType> {};
+      else
+        return std::monostate {};
+    }
   };
 
 

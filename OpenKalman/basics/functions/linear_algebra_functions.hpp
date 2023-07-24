@@ -21,9 +21,6 @@
 
 namespace OpenKalman
 {
-  using namespace interface;
-
-
   /**
    * \brief Take the conjugate of a matrix
    * \tparam Arg The matrix
@@ -60,7 +57,7 @@ namespace OpenKalman
     }
     else
     {
-      return interface::LinearAlgebra<std::decay_t<Arg>>::conjugate(std::forward<Arg>(arg));
+      return interface::LibraryRoutines<std::decay_t<Arg>>::conjugate(std::forward<Arg>(arg));
     }
   }
 
@@ -99,7 +96,7 @@ namespace OpenKalman
     }
     else
     {
-      return interface::LinearAlgebra<std::decay_t<Arg>>::transpose(std::forward<Arg>(arg));
+      return interface::LibraryRoutines<std::decay_t<Arg>>::transpose(std::forward<Arg>(arg));
     }
   }
 
@@ -141,7 +138,7 @@ namespace OpenKalman
     }
     else
     {
-      return interface::LinearAlgebra<std::decay_t<Arg>>::adjoint(std::forward<Arg>(arg));
+      return interface::LibraryRoutines<std::decay_t<Arg>>::adjoint(std::forward<Arg>(arg));
     }
   }
 
@@ -185,7 +182,7 @@ namespace OpenKalman
     }
     else
     {
-      return interface::LinearAlgebra<std::decay_t<Arg>>::determinant(std::forward<Arg>(arg));
+      return interface::LibraryRoutines<std::decay_t<Arg>>::determinant(std::forward<Arg>(arg));
     }
   }
 
@@ -296,7 +293,7 @@ namespace OpenKalman
       }
       else
       {
-        auto ret = sum_impl(seq, interface::LinearAlgebra<std::decay_t<T0>>::sum(std::forward<T0>(t0), std::forward<T1>(t1)), std::forward<Ts>(ts)...);
+        auto ret = sum_impl(seq, interface::LibraryRoutines<std::decay_t<T0>>::sum(std::forward<T0>(t0), std::forward<T1>(t1)), std::forward<Ts>(ts)...);
         return ret;
       }
     }
@@ -399,7 +396,7 @@ namespace OpenKalman
     }
     else
     {
-      return interface::LinearAlgebra<std::decay_t<A>>::contract(std::forward<A>(a), std::forward<B>(b));
+      return interface::LibraryRoutines<std::decay_t<A>>::contract(std::forward<A>(a), std::forward<B>(b));
     }
   }
 
@@ -412,7 +409,7 @@ namespace OpenKalman
 
       template<bool on_the_right, typename A, typename B>
       struct contract_in_place_exists<on_the_right, A, B, std::void_t<decltype(
-        interface::LinearAlgebra<std::decay_t<A>>::template contract<on_the_right>(std::declval<A&>(), std::declval<B&&>()))>>
+        interface::LibraryRoutines<std::decay_t<A>>::template contract<on_the_right>(std::declval<A&>(), std::declval<B&&>()))>>
         : std::true_type {};
     }
 #endif
@@ -455,12 +452,12 @@ namespace OpenKalman
       return a;
     }
 #ifdef __cpp_concepts
-    else if constexpr (requires { interface::LinearAlgebra<std::decay_t<A>>::template contract_in_place<on_the_right>(a, std::forward<B>(b)); })
+    else if constexpr (requires { interface::LibraryRoutines<std::decay_t<A>>::template contract_in_place<on_the_right>(a, std::forward<B>(b)); })
 #else
     else if constexpr (detail::contract_in_place_exists<on_the_right, A, B>::value)
 #endif
     {
-      return interface::LinearAlgebra<std::decay_t<A>>::template contract_in_place<on_the_right>(a, std::forward<B>(b));
+      return interface::LibraryRoutines<std::decay_t<A>>::template contract_in_place<on_the_right>(a, std::forward<B>(b));
     }
     else
     {

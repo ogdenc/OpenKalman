@@ -21,11 +21,9 @@
 
 namespace OpenKalman::interface
 {
-  namespace EGI = Eigen::internal;
-
-
   template<typename ViewOp, typename MatrixType>
-  struct IndexTraits<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
+  struct IndexibleObjectTraits<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
   {
     static constexpr std::size_t max_indices = max_indices_of_v<MatrixType>;
 
@@ -40,20 +38,9 @@ namespace OpenKalman::interface
 
     template<Likelihood b>
     static constexpr bool is_square = square_matrix<MatrixType, b>;
-  };
-
-
-  template<typename ViewOp, typename MatrixType>
-  struct Dependencies<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
-  {
-  private:
-
-    using T = Eigen::CwiseUnaryView<ViewOp, MatrixType>;
-
-  public:
 
     static constexpr bool has_runtime_parameters = false;
-    using type = std::tuple<typename T::MatrixTypeNested, ViewOp>;
+    using type = std::tuple<typename Eigen::CwiseUnaryView<ViewOp, MatrixType>::MatrixTypeNested, ViewOp>;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -74,40 +61,25 @@ namespace OpenKalman::interface
       else
         return make_dense_writable_matrix_from(std::forward<Arg>(arg));
     }
-  };
 
-
-  template<typename UnaryOp, typename MatrixType>
-  struct SingleConstant<Eigen::CwiseUnaryView<UnaryOp, MatrixType>>
-  {
-    const Eigen::CwiseUnaryView<UnaryOp, MatrixType>& xpr;
-
-    constexpr auto get_constant()
+    template<typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
     {
-      return Eigen3::FunctorTraits<UnaryOp, MatrixType>::template get_constant<false>(xpr);
+      return Eigen3::FunctorTraits<ViewOp, MatrixType>::template get_constant<false>(arg);
     }
 
-    constexpr auto get_constant_diagonal()
+    template<typename Arg>
+    static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return Eigen3::FunctorTraits<UnaryOp, MatrixType>::template get_constant<true>(xpr);
+      return Eigen3::FunctorTraits<ViewOp, MatrixType>::template get_constant<true>(arg);
     }
-  };
 
-
-  template<typename UnaryOp, typename MatrixType>
-  struct TriangularTraits<Eigen::CwiseUnaryView<UnaryOp, MatrixType>>
-  {
     template<TriangleType t, Likelihood b>
-    static constexpr bool is_triangular = Eigen3::FunctorTraits<UnaryOp, MatrixType>::template is_triangular<t, b>;
+    static constexpr bool is_triangular = Eigen3::FunctorTraits<ViewOp, MatrixType>::template is_triangular<t, b>;
 
     static constexpr bool is_triangular_adapter = false;
-  };
 
-
-  template<typename UnaryOp, typename MatrixType>
-  struct HermitianTraits<Eigen::CwiseUnaryView<UnaryOp, MatrixType>>
-  {
-    static constexpr bool is_hermitian = Eigen3::FunctorTraits<UnaryOp, MatrixType>::is_hermitian;
+    static constexpr bool is_hermitian = Eigen3::FunctorTraits<ViewOp, MatrixType>::is_hermitian;
   };
 
 

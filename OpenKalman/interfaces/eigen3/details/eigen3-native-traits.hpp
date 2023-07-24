@@ -57,7 +57,7 @@ namespace Eigen::internal
     {
       Flags = traits<Nested>::Flags &
         (~DirectAccessBit) &
-        (~(one_by_one_matrix<NestedMatrix> ? 0 : LinearAccessBit)) &
+        (~(OpenKalman::one_by_one_matrix<NestedMatrix> ? 0 : LinearAccessBit)) &
         (~PacketAccessBit) &
         (OpenKalman::complex_number<Scalar> ? ~LvalueBit : ~static_cast<decltype(LvalueBit)>(0u)),
     };
@@ -95,13 +95,13 @@ namespace Eigen::internal
     using Nested = std::decay_t<ArgType>;
     enum
     {
-      Flags = euclidean_index_descriptor<Coeffs> ?
+      Flags = OpenKalman::euclidean_index_descriptor<Coeffs> ?
               traits<Nested>::Flags :
               traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
                 (~(OpenKalman::column_dimension_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
       RowsAtCompileTime = [] {
         if constexpr (OpenKalman::dynamic_index_descriptor<Coeffs>) return Eigen::Dynamic;
-        else return static_cast<Index>(euclidean_dimension_size_of_v<Coeffs>);
+        else return static_cast<Index>(OpenKalman::euclidean_dimension_size_of_v<Coeffs>);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };
@@ -114,13 +114,13 @@ namespace Eigen::internal
     using Nested = std::decay_t<ArgType>;
     enum
     {
-      Flags = euclidean_index_descriptor<Coeffs> ?
+      Flags = OpenKalman::euclidean_index_descriptor<Coeffs> ?
               traits<Nested>::Flags :
               traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
                 (~(OpenKalman::column_dimension_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
       RowsAtCompileTime = [] {
         if constexpr (OpenKalman::dynamic_index_descriptor<Coeffs>) return Eigen::Dynamic;
-        else return static_cast<Index>(dimension_size_of_v<Coeffs>);
+        else return static_cast<Index>(OpenKalman::dimension_size_of_v<Coeffs>);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };
@@ -135,13 +135,13 @@ namespace Eigen::internal
     using Nested = std::decay_t<ArgType>;
     enum
     {
-      Flags = euclidean_index_descriptor<Coeffs> ?
+      Flags = OpenKalman::euclidean_index_descriptor<Coeffs> ?
               traits<Nested>::Flags :
               traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
                 (~(OpenKalman::column_dimension_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
       RowsAtCompileTime = [] {
         if constexpr (OpenKalman::dynamic_index_descriptor<Coeffs>) return Eigen::Dynamic;
-        else return static_cast<Index>(dimension_size_of_v<Coeffs>);
+        else return static_cast<Index>(OpenKalman::dimension_size_of_v<Coeffs>);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };
@@ -155,7 +155,7 @@ namespace Eigen::internal
     using Base = traits<std::decay_t<ArgType>>;
     enum
     {
-      Flags = (euclidean_index_descriptor<TypedIndex> ? Base::Flags : Base::Flags & ~LvalueBit),
+      Flags = (OpenKalman::euclidean_index_descriptor<TypedIndex> ? Base::Flags : Base::Flags & ~LvalueBit),
     };
   };
 
@@ -172,9 +172,9 @@ namespace Eigen::internal
 
   template<typename TypedIndex, typename ArgType>
   struct traits<OpenKalman::Covariance<TypedIndex, ArgType>>
-    : traits<std::decay_t<std::conditional_t<hermitian_matrix<ArgType>, ArgType, decltype(Cholesky_square(std::declval<ArgType>()))>>>
+    : traits<std::decay_t<std::conditional_t<OpenKalman::hermitian_matrix<ArgType>, ArgType, decltype(Cholesky_square(std::declval<ArgType>()))>>>
   {
-    using Base = traits<std::decay_t<std::conditional_t<hermitian_matrix<ArgType>, ArgType, decltype(Cholesky_square(std::declval<ArgType>()))>>>;
+    using Base = traits<std::decay_t<std::conditional_t<OpenKalman::hermitian_matrix<ArgType>, ArgType, decltype(Cholesky_square(std::declval<ArgType>()))>>>;
     enum
     {
       Flags = Base::Flags & (OpenKalman::hermitian_matrix<ArgType> ? ~0 : ~LvalueBit),
@@ -184,9 +184,9 @@ namespace Eigen::internal
 
   template<typename TypedIndex, typename ArgType>
   struct traits<OpenKalman::SquareRootCovariance<TypedIndex, ArgType>>
-    : traits<std::decay_t<std::conditional_t<triangular_matrix<ArgType>, ArgType, decltype(Cholesky_factor(std::declval<ArgType>()))>>>
+    : traits<std::decay_t<std::conditional_t<OpenKalman::triangular_matrix<ArgType>, ArgType, decltype(Cholesky_factor(std::declval<ArgType>()))>>>
   {
-    using Base = traits<std::decay_t<std::conditional_t<triangular_matrix<ArgType>, ArgType, decltype(Cholesky_factor(std::declval<ArgType>()))>>>;
+    using Base = traits<std::decay_t<std::conditional_t<OpenKalman::triangular_matrix<ArgType>, ArgType, decltype(Cholesky_factor(std::declval<ArgType>()))>>>;
     enum
     {
       Flags = Base::Flags & (OpenKalman::triangular_matrix<ArgType> ? ~0 : ~LvalueBit),

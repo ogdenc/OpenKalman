@@ -21,12 +21,16 @@
 
 namespace OpenKalman::interface
 {
-  namespace EGI = Eigen::internal;
-
-
   template<typename TernaryOp, typename Arg1, typename Arg2, typename Arg3>
-  struct IndexTraits<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
+  struct IndexibleObjectTraits<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
   {
+  private:
+
+    using T = Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>;
+
+  public:
+
     static constexpr std::size_t max_indices = std::max({max_indices_of_v<Arg1>, max_indices_of_v<Arg2>, max_indices_of_v<Arg3>});
 
     template<std::size_t N, typename Arg>
@@ -41,17 +45,6 @@ namespace OpenKalman::interface
     static constexpr bool is_one_by_one =
       one_by_one_matrix<Arg1, Likelihood::maybe> and one_by_one_matrix<Arg2, Likelihood::maybe> and one_by_one_matrix<Arg3, Likelihood::maybe> and
       (b != Likelihood::definitely or one_by_one_matrix<Arg1, b> or one_by_one_matrix<Arg2, b> or one_by_one_matrix<Arg3, b>);
-  };
-
-
-  template<typename TernaryOp, typename Arg1, typename Arg2, typename Arg3>
-  struct Dependencies<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
-  {
-  private:
-
-    using T = Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>;
-
-  public:
 
     static constexpr bool has_runtime_parameters = false;
     using type = std::tuple<typename T::Arg1Nested, typename T::Arg2Nested, typename T::Arg3Nested>;
@@ -88,39 +81,24 @@ namespace OpenKalman::interface
         return make_dense_writable_matrix_from(std::forward<Arg>(arg));
       }
     }
-  };
 
-
-  template<typename TernaryOp, typename Arg1, typename Arg2, typename Arg3>
-  struct SingleConstant<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
-  {
-    const Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>& xpr;
-
-    constexpr auto get_constant()
+    template<typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
     {
-      return Eigen3::FunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template get_constant<false>(xpr);
+      return Eigen3::FunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template get_constant<false>(arg);
     }
 
-    constexpr auto get_constant_diagonal()
+    template<typename Arg>
+    static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return Eigen3::FunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template get_constant<true>(xpr);
+      return Eigen3::FunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template get_constant<true>(arg);
     }
-  };
 
-
-  template<typename TernaryOp, typename Arg1, typename Arg2, typename Arg3>
-  struct TriangularTraits<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
-  {
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = Eigen3::FunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template is_triangular<t, b>;
 
     static constexpr bool is_triangular_adapter = false;
-  };
 
-
-  template<typename TernaryOp, typename Arg1, typename Arg2, typename Arg3>
-  struct HermitianTraits<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
-  {
     static constexpr bool is_hermitian = Eigen3::FunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::is_hermitian;
   };
 

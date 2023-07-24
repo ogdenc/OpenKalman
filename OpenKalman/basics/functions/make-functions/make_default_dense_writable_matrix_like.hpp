@@ -46,7 +46,7 @@ namespace OpenKalman
         [](auto&&...d) { return make_default_dense_writable_matrix_like<T, Scalar>(std::forward<decltype(d)>(d)...); },
         get_all_dimensions_of<T>());
     else
-      return interface::EquivalentDenseWritableMatrix<std::decay_t<T>, std::decay_t<Scalar>>::make_default(std::forward<D>(d)...);
+      return interface::LibraryRoutines<std::decay_t<T>>::template make_default<Scalar>(std::forward<D>(d)...);
   }
 
 

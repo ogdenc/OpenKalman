@@ -21,21 +21,31 @@
 
 namespace OpenKalman::interface
 {
-#ifndef __cpp_concepts
   template<typename LhsType, typename RhsType, int Option>
-  struct IndexTraits<Eigen::Product<LhsType, RhsType, Option>>
-    : detail::IndexTraits_Eigen_default<Eigen::Product<LhsType, RhsType, Option>> {};
-#endif
-
-
-  template<typename LhsType, typename RhsType, int Option>
-  struct Dependencies<Eigen::Product<LhsType, RhsType, Option>>
+  struct IndexibleObjectTraits<Eigen::Product<LhsType, RhsType, Option>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::Product<LhsType, RhsType, Option>>
   {
   private:
 
     using T = Eigen::Product<LhsType, RhsType>;
 
   public:
+
+    static constexpr std::size_t max_indices = 2;
+
+    template<std::size_t N, typename Arg>
+    static constexpr auto get_index_descriptor(const Arg& arg)
+    {
+      using Xpr = Eigen::Product<LhsType, RhsType>;
+      constexpr Eigen::Index dim = N == 0 ? Xpr::RowsAtCompileTime : Xpr::ColsAtCompileTime;
+
+      if constexpr (dim == Eigen::Dynamic)
+      {
+        if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
+        else return static_cast<std::size_t>(arg.cols());
+      }
+      else return Dimensions<dim>{};
+    }
 
     static constexpr bool has_runtime_parameters = false;
     using type = std::tuple<typename T::LhsNested, typename T::RhsNested >;
@@ -75,108 +85,75 @@ namespace OpenKalman::interface
         return make_dense_writable_matrix_from(std::forward<Arg>(arg));
       }
     }
-  };
 
 
-  template<typename Arg1, typename Arg2>
-  struct SingleConstant<Eigen::Product<Arg1, Arg2>>
-  {
-    const Eigen::Product<Arg1, Arg2>& xpr;
-
-    constexpr auto get_constant()
+    template<typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (constant_diagonal_matrix<Arg1, CompileTimeStatus::any, Likelihood::maybe> and
-        constant_matrix<Arg2, CompileTimeStatus::any, Likelihood::maybe>)
+      if constexpr (constant_diagonal_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe> and
+        constant_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe>)
       {
         return internal::scalar_constant_operation {std::multiplies<>{},
-           constant_diagonal_coefficient{xpr.lhs()}, constant_coefficient{xpr.rhs()}};
+           constant_diagonal_coefficient{arg.lhs()}, constant_coefficient{arg.rhs()}};
       }
-      else if constexpr (constant_matrix<Arg1, CompileTimeStatus::any, Likelihood::maybe> and
-        constant_diagonal_matrix<Arg2, CompileTimeStatus::any, Likelihood::maybe>)
+      else if constexpr (constant_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe> and
+        constant_diagonal_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe>)
       {
         return internal::scalar_constant_operation {std::multiplies<>{},
-          constant_coefficient{xpr.lhs()}, constant_diagonal_coefficient{xpr.rhs()}};
+          constant_coefficient{arg.lhs()}, constant_diagonal_coefficient{arg.rhs()}};
       }
       else
       {
         struct Op
         {
-          constexpr auto operator()(std::size_t dim, scalar_type_of_t<Arg1> arg1, scalar_type_of_t<Arg2> arg2) const noexcept
+          constexpr auto operator()(std::size_t dim, scalar_type_of_t<LhsType> arg1, scalar_type_of_t<RhsType> arg2) const noexcept
           {
             return dim * arg1 * arg2;
           }
         };
 
-        constexpr auto dim = dynamic_dimension<Arg1, 1> ? index_dimension_of_v<Arg2, 0> : index_dimension_of_v<Arg1, 1>;
+        constexpr auto dim = dynamic_dimension<LhsType, 1> ? index_dimension_of_v<RhsType, 0> : index_dimension_of_v<LhsType, 1>;
 
-        if constexpr (zero_matrix<Arg1>) return constant_coefficient{xpr.lhs()};
-        else if constexpr (zero_matrix<Arg2>) return constant_coefficient{xpr.rhs()};
-        else if constexpr (constant_diagonal_matrix<Arg1, CompileTimeStatus::any, Likelihood::maybe>)
+        if constexpr (zero_matrix<LhsType>) return constant_coefficient{arg.lhs()};
+        else if constexpr (zero_matrix<RhsType>) return constant_coefficient{arg.rhs()};
+        else if constexpr (constant_diagonal_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe>)
           return internal::scalar_constant_operation {std::multiplies<>{},
-            constant_diagonal_coefficient{xpr.lhs()},
-            constant_coefficient{xpr.rhs()}};
-        else if constexpr (constant_diagonal_matrix<Arg2, CompileTimeStatus::any, Likelihood::maybe>)
+            constant_diagonal_coefficient{arg.lhs()},
+            constant_coefficient{arg.rhs()}};
+        else if constexpr (constant_diagonal_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe>)
           return internal::scalar_constant_operation {std::multiplies<>{},
-            constant_coefficient{xpr.lhs()},
-            constant_diagonal_coefficient{xpr.rhs()}};
+            constant_coefficient{arg.lhs()},
+            constant_diagonal_coefficient{arg.rhs()}};
         else if constexpr (dim == dynamic_size)
           return internal::scalar_constant_operation {Op{},
-            get_index_dimension_of<1>(xpr.lhs()),
-            constant_coefficient{xpr.rhs()},
-            constant_coefficient{xpr.lhs()}};
+            get_index_dimension_of<1>(arg.lhs()),
+            constant_coefficient{arg.rhs()},
+            constant_coefficient{arg.lhs()}};
         else
           return internal::scalar_constant_operation {Op{},
             std::integral_constant<std::size_t, dim>{},
-            constant_coefficient{xpr.rhs()},
-            constant_coefficient{xpr.lhs()}};
+            constant_coefficient{arg.rhs()},
+            constant_coefficient{arg.lhs()}};
       }
     }
 
-    constexpr auto get_constant_diagonal()
+
+    template<typename Arg>
+    static constexpr auto get_constant_diagonal(const Arg& arg)
     {
       return internal::scalar_constant_operation {std::multiplies<>{},
-        constant_diagonal_coefficient{xpr.lhs()}, constant_diagonal_coefficient{xpr.rhs()}};
+        constant_diagonal_coefficient{arg.lhs()}, constant_diagonal_coefficient{arg.rhs()}};
     }
-  };
 
-
-  template<typename Arg1, typename Arg2>
-  struct TriangularTraits<Eigen::Product<Arg1, Arg2>>
-  {
     template<TriangleType t, Likelihood b>
-    static constexpr bool is_triangular = triangular_matrix<Arg1, t, b> and triangular_matrix<Arg2, t, b>;
+    static constexpr bool is_triangular = triangular_matrix<LhsType, t, b> and triangular_matrix<RhsType, t, b>;
 
     static constexpr bool is_triangular_adapter = false;
-  };
 
-
-  /// A constant diagonal matrix times a self-adjoint matrix (or vice versa) is self-adjoint.
-#ifdef __cpp_concepts
-  template<constant_diagonal_matrix<CompileTimeStatus::any, Likelihood::maybe> Arg1, hermitian_matrix<Likelihood::maybe> Arg2>
-  struct HermitianTraits<Eigen::Product<Arg1, Arg2>>
-#else
-  template<typename Arg1, typename Arg2>
-  struct HermitianTraits<Eigen::Product<Arg1, Arg2>, std::enable_if_t<
-    (constant_diagonal_matrix<Arg1, CompileTimeStatus::any, Likelihood::maybe> and hermitian_matrix<Arg2, Likelihood::maybe>)>>
-#endif
-  {
-    static constexpr bool is_hermitian = true;
-  };
-
-
-  /// A self-adjoint matrix times a constant-diagonal matrix is self-adjoint.
-#ifdef __cpp_concepts
-  template<hermitian_matrix<Likelihood::maybe> Arg1, constant_diagonal_matrix<CompileTimeStatus::any, Likelihood::maybe> Arg2>
-    requires (not constant_diagonal_matrix<Arg1, CompileTimeStatus::any, Likelihood::maybe>)
-  struct HermitianTraits<Eigen::Product<Arg1, Arg2>>
-#else
-  template<typename Arg1, typename Arg2>
-  struct HermitianTraits<Eigen::Product<Arg1, Arg2>, std::enable_if_t<
-    (hermitian_matrix<Arg1, Likelihood::maybe> and constant_diagonal_matrix<Arg2, CompileTimeStatus::any, Likelihood::maybe> and
-    not constant_diagonal_matrix<Arg1, CompileTimeStatus::any, Likelihood::maybe>)>>
-#endif
-  {
-    static constexpr bool is_hermitian = true;
+    /// A constant diagonal matrix times a hermitian matrix (or vice versa) is hermitian.
+    static constexpr bool is_hermitian =
+      (constant_diagonal_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe> and hermitian_matrix<RhsType, Likelihood::maybe>) or
+      (constant_diagonal_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe> and hermitian_matrix<LhsType, Likelihood::maybe>);
   };
 
 

@@ -21,18 +21,37 @@
 
 namespace OpenKalman::interface
 {
-#ifndef __cpp_concepts
   template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
-  struct IndexTraits<Eigen::Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols>>
-    : detail::IndexTraits_Eigen_default<Eigen::Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols>> {};
-#endif
-
-
-  template<typename Scalar, int Rows, int Cols, int Options, int MaxRows, int MaxCols>
-  struct Dependencies<Eigen::Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols>>
+  struct IndexibleObjectTraits<Eigen::Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols>>
   {
+    static constexpr std::size_t max_indices = 2;
+
+    template<std::size_t N, typename Arg>
+    static constexpr auto get_index_descriptor(const Arg& arg)
+    {
+      using Xpr = Eigen::Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols>;
+      constexpr Eigen::Index dim = N == 0 ? Xpr::RowsAtCompileTime : Xpr::ColsAtCompileTime;
+
+      if constexpr (dim == Eigen::Dynamic)
+      {
+        if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
+        else return static_cast<std::size_t>(arg.cols());
+      }
+      else return Dimensions<dim>{};
+    }
+
     static constexpr bool has_runtime_parameters = true;
+
     using type = std::tuple<>;
+
+    // get_nested_matrix() not defined
+
+    // convert_to_self_contained() not defined
+
+    // get_constant not defined
+
+    // get_constant_diagonal not defined
   };
 
 } // namespace OpenKalman::interface

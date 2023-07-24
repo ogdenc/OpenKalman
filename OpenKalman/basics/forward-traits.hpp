@@ -41,7 +41,7 @@ namespace OpenKalman
    * \tparam T A tensor (vector, matrix, etc.)
    */
   template<typename T>
-  struct max_indices_of : std::integral_constant<std::size_t, interface::IndexTraits<std::decay_t<T>>::max_indices> {};
+  struct max_indices_of : std::integral_constant<std::size_t, interface::IndexibleObjectTraits<std::decay_t<T>>::max_indices> {};
 
 
   /**
@@ -88,13 +88,13 @@ namespace OpenKalman
   /**
    * \brief Type scalar type (e.g., std::float, std::double, std::complex<double>) of a tensor or index descriptor.
    * \tparam T A matrix, expression, array, or \ref index_descriptor.
-   * \internal \sa interface::Elements
+   * \internal \sa interface::IndexibleObjectTraits
    */
 #ifdef __cpp_concepts
   template<indexible T>
   struct scalar_type_of
   {
-    using type = typename interface::Elements<std::decay_t<T>>::scalar_type;
+    using type = typename interface::IndexibleObjectTraits<std::decay_t<T>>::scalar_type;
   };
 #else
   template<typename T, typename = void>
@@ -103,7 +103,7 @@ namespace OpenKalman
   template<typename T>
   struct scalar_type_of<T, std::enable_if_t<indexible<T>>>
   {
-    using type = typename interface::Elements<std::decay_t<T>>::scalar_type;
+    using type = typename interface::IndexibleObjectTraits<std::decay_t<T>>::scalar_type;
   };
 #endif
 
@@ -123,7 +123,7 @@ namespace OpenKalman
    * \brief The type of the index descriptor for index N of object T.
    * \tparam T A matrix, expression, or array
    * \tparam N The index number (0 = rows, 1 = columns, etc.)
-   * \internal \sa interface::IndexTraits
+   * \internal \sa interface::IndexibleObjectTraits
    */
 #ifdef __cpp_concepts
   template<indexible T, std::size_t N = 0> requires (N < max_indices_of_v<T>)
@@ -136,7 +136,7 @@ namespace OpenKalman
   struct index_descriptor_of<T, N, std::enable_if_t<indexible<T> and (N < max_indices_of_v<T>)>>
 #endif
   {
-    using type = decltype(interface::IndexTraits<std::decay_t<T>>::template get_index_descriptor<N>(std::declval<T>()));
+    using type = decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::template get_index_descriptor<N>(std::declval<T>()));
   };
 
 
@@ -411,6 +411,7 @@ namespace OpenKalman
    * \tparam N An index designating the "large" index (0 for a column vector, 1 for a row vector)
    * \tparam b Whether the vector status is definitely known at compile time (Likelihood::definitely), or
    * only known at runtime (Likelihood::maybe)
+   * \sa get_is_vector
    */
   template<typename T, std::size_t N = 0, Likelihood b = Likelihood::definitely>
 #ifdef __cpp_concepts
@@ -651,7 +652,7 @@ namespace OpenKalman
 
     template<typename T>
     struct has_nested_matrix_impl<T, std::enable_if_t<
-      (std::tuple_size<typename interface::Dependencies<T>::type>::value > 0)>> : std::true_type {};
+      (std::tuple_size<typename interface::IndexibleObjectTraits<T>::type>::value > 0)>> : std::true_type {};
   }
 #endif
 
@@ -660,7 +661,7 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept has_nested_matrix = (std::tuple_size_v<typename interface::Dependencies<std::decay_t<T>>::type> > 0);
+  concept has_nested_matrix = (std::tuple_size_v<typename interface::IndexibleObjectTraits<std::decay_t<T>>::type> > 0);
 #else
   constexpr bool has_nested_matrix = detail::has_nested_matrix_impl<std::decay_t<T>>::value;
 #endif
@@ -671,20 +672,20 @@ namespace OpenKalman
    * \details For example, for OpenKalman::Mean<RowCoefficients, M>, the nested matrix type is M.
    * \tparam T A wrapper type that has a nested matrix.
    * \tparam i Index of the dependency (0 by default)
-   * \internal \sa interface::Dependencies
+   * \internal \sa interface::IndexibleObjectTraits
    */
 #ifdef __cpp_concepts
   template<typename T, std::size_t i = 0> requires
-    (i < std::tuple_size_v<typename interface::Dependencies<std::decay_t<T>>::type>)
-  using nested_matrix_of = std::tuple_element<i, typename interface::Dependencies<std::decay_t<T>>::type>;
+    (i < std::tuple_size_v<typename interface::IndexibleObjectTraits<std::decay_t<T>>::type>)
+  using nested_matrix_of = std::tuple_element<i, typename interface::IndexibleObjectTraits<std::decay_t<T>>::type>;
 #else
   template<typename T, std::size_t i = 0, typename = void>
   struct nested_matrix_of {};
 
   template<typename T, std::size_t i>
   struct nested_matrix_of<T, i, std::enable_if_t<
-    (i < std::tuple_size<typename interface::Dependencies<std::decay_t<T>>::type>::value)>>
-    : std::tuple_element<i, typename interface::Dependencies<std::decay_t<T>>::type> {};
+    (i < std::tuple_size<typename interface::IndexibleObjectTraits<std::decay_t<T>>::type>::value)>>
+    : std::tuple_element<i, typename interface::IndexibleObjectTraits<std::decay_t<T>>::type> {};
 #endif
 
 
@@ -695,7 +696,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename T, std::size_t i = 0> requires
-      (i < std::tuple_size_v<typename interface::Dependencies<std::decay_t<T>>::type>)
+      (i < std::tuple_size_v<typename interface::IndexibleObjectTraits<std::decay_t<T>>::type>)
   using nested_matrix_of_t = typename nested_matrix_of<T, i>::type;
 #else
   template<typename T, std::size_t i = 0>
@@ -726,16 +727,16 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typename T> requires (not std::is_lvalue_reference_v<T>) and
-      (detail::no_lvalue_ref_dependencies<typename interface::Dependencies<std::decay_t<T>>::type>(
-        std::make_index_sequence<std::tuple_size_v<typename interface::Dependencies<std::decay_t<T>>::type>> {}))
+      (detail::no_lvalue_ref_dependencies<typename interface::IndexibleObjectTraits<std::decay_t<T>>::type>(
+        std::make_index_sequence<std::tuple_size_v<typename interface::IndexibleObjectTraits<std::decay_t<T>>::type>> {}))
     struct self_contained_impl<T> : std::true_type {};
 #else
     template<typename T>
     struct self_contained_impl<T, std::enable_if_t<
-      (std::tuple_size<typename interface::Dependencies<std::decay_t<T>>::type>::value >= 0)>>
+      (std::tuple_size<typename interface::IndexibleObjectTraits<std::decay_t<T>>::type>::value >= 0)>>
       : std::bool_constant<(not std::is_lvalue_reference_v<T>) and
-          no_lvalue_ref_dependencies<typename interface::Dependencies<std::decay_t<T>>::type>(
-          std::make_index_sequence<std::tuple_size_v<typename interface::Dependencies<std::decay_t<T>>::type>> {})> {};
+          no_lvalue_ref_dependencies<typename interface::IndexibleObjectTraits<std::decay_t<T>>::type>(
+          std::make_index_sequence<std::tuple_size_v<typename interface::IndexibleObjectTraits<std::decay_t<T>>::type>> {})> {};
 #endif
 
 
@@ -749,9 +750,10 @@ namespace OpenKalman
     template<typename T, std::size_t...I>
     constexpr bool no_recursive_runtime_parameters(std::index_sequence<I...>)
     {
-      return ((not Dependencies<T>::has_runtime_parameters) and ... and
-        no_recursive_runtime_parameters<std::decay_t<std::tuple_element_t<I, typename Dependencies<T>::type>>>(
-          std::make_index_sequence<std::tuple_size_v<typename Dependencies<std::decay_t<std::tuple_element_t<I, typename Dependencies<T>::type>>>::type>> {}
+      using Traits = interface::IndexibleObjectTraits<T>;
+      return ((not Traits::has_runtime_parameters) and ... and
+        no_recursive_runtime_parameters<std::decay_t<std::tuple_element_t<I, typename Traits::type>>>(
+          std::make_index_sequence<std::tuple_size_v<typename interface::IndexibleObjectTraits<std::decay_t<std::tuple_element_t<I, typename Traits::type>>>::type>> {}
           ));
     }
 
@@ -759,15 +761,15 @@ namespace OpenKalman
     template<typename T>
     concept all_lvalue_ref_dependencies =
       no_recursive_runtime_parameters<std::decay_t<T>>(
-        std::make_index_sequence<std::tuple_size_v<typename Dependencies<std::decay_t<T>>::type>> {}) and
-      all_lvalue_ref_dependencies_impl<typename Dependencies<std::decay_t<T>>::type>(
-        std::make_index_sequence<std::tuple_size_v<typename Dependencies<std::decay_t<T>>::type>> {});
+        std::make_index_sequence<std::tuple_size_v<typename interface::IndexibleObjectTraits<std::decay_t<T>>::type>> {}) and
+      all_lvalue_ref_dependencies_impl<typename interface::IndexibleObjectTraits<std::decay_t<T>>::type>(
+        std::make_index_sequence<std::tuple_size_v<typename interface::IndexibleObjectTraits<std::decay_t<T>>::type>> {});
 #else
     template<typename T, typename = void>
     struct has_no_runtime_parameters_impl : std::false_type {};
 
     template<typename T>
-    struct has_no_runtime_parameters_impl<T, std::enable_if_t<not Dependencies<T>::has_runtime_parameters>>
+    struct has_no_runtime_parameters_impl<T, std::enable_if_t<not interface::IndexibleObjectTraits<T>::has_runtime_parameters>>
       : std::true_type {};
 
 
@@ -775,10 +777,10 @@ namespace OpenKalman
     struct all_lvalue_ref_dependencies_detail : std::false_type {};
 
     template<typename T>
-    struct all_lvalue_ref_dependencies_detail<T, std::void_t<typename Dependencies<T>::type>>
+    struct all_lvalue_ref_dependencies_detail<T, std::void_t<typename interface::IndexibleObjectTraits<T>::type>>
       : std::bool_constant<has_no_runtime_parameters_impl<T>::value and
-        (all_lvalue_ref_dependencies_impl<typename Dependencies<T>::type>(
-          std::make_index_sequence<std::tuple_size_v<typename Dependencies<T>::type>> {}))> {};
+        (all_lvalue_ref_dependencies_impl<typename interface::IndexibleObjectTraits<T>::type>(
+          std::make_index_sequence<std::tuple_size_v<typename interface::IndexibleObjectTraits<T>::type>> {}))> {};
 
     template<typename T>
     constexpr bool all_lvalue_ref_dependencies = all_lvalue_ref_dependencies_detail<std::decay_t<T>>::value;
@@ -790,7 +792,7 @@ namespace OpenKalman
    * \brief Specifies that a type is a self-contained matrix or expression.
    * \details A value is self-contained if it can be created in a function and returned as the result.
    * \sa make_self_contained, equivalent_self_contained_t
-   * \internal \sa Dependencies
+   * \internal \sa IndexibleObjectTraits
    */
   template<typename T, typename...Ts>
 #ifdef __cpp_concepts
@@ -992,7 +994,7 @@ namespace OpenKalman
     struct has_is_one_by_one_interface : std::false_type {};
 
     template<typename T, Likelihood b>
-    struct has_is_one_by_one_interface<T, b, std::void_t<decltype(interface::IndexTraits<std::decay_t<T>>::template is_one_by_one<b>)>>
+    struct has_is_one_by_one_interface<T, b, std::void_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::template is_one_by_one<b>)>>
       : std::true_type {};
 
 
@@ -1000,7 +1002,7 @@ namespace OpenKalman
     struct is_one_by_one_matrix : std::false_type {};
 
     template<typename T, Likelihood b>
-    struct is_one_by_one_matrix<T, b, std::enable_if_t<interface::IndexTraits<std::decay_t<T>>::template is_one_by_one<b>>>
+    struct is_one_by_one_matrix<T, b, std::enable_if_t<interface::IndexibleObjectTraits<std::decay_t<T>>::template is_one_by_one<b>>>
       : std::true_type {};
 #endif
 
@@ -1018,9 +1020,9 @@ namespace OpenKalman
   template<typename T, Likelihood b = Likelihood::definitely>
 #ifdef __cpp_concepts
   concept one_by_one_matrix = indexible<T> and (max_indices_of_v<T> > 0) and
-    (not requires { interface::IndexTraits<std::decay_t<T>>::template is_one_by_one<b>; } or
-      interface::IndexTraits<std::decay_t<T>>::template is_one_by_one<b>) and
-    (requires { interface::IndexTraits<std::decay_t<T>>::template is_one_by_one<b>; } or
+    (not requires { interface::IndexibleObjectTraits<std::decay_t<T>>::template is_one_by_one<b>; } or
+      interface::IndexibleObjectTraits<std::decay_t<T>>::template is_one_by_one<b>) and
+    (requires { interface::IndexibleObjectTraits<std::decay_t<T>>::template is_one_by_one<b>; } or
       detail::has_1_by_1_dims<T, b>(std::make_index_sequence<max_indices_of_v<T>>{}));
 #else
   constexpr bool one_by_one_matrix = indexible<T> and (max_indices_of_v<T> > 0) and
@@ -1040,7 +1042,7 @@ namespace OpenKalman
     struct is_diagonal_adapter : std::false_type {};
 
     template<typename T, Likelihood b>
-    struct is_diagonal_adapter<T, b, std::enable_if_t<interface::TriangularTraits<std::decay_t<T>>::template is_diagonal_adapter<b>>>
+    struct is_diagonal_adapter<T, b, std::enable_if_t<interface::IndexibleObjectTraits<std::decay_t<T>>::template is_diagonal_adapter<b>>>
       : std::true_type {};
   }
 #endif
@@ -1055,7 +1057,7 @@ namespace OpenKalman
    */
   template<typename T, Likelihood b = Likelihood::definitely>
 #ifdef __cpp_concepts
-  concept diagonal_adapter = indexible<T> and interface::TriangularTraits<std::decay_t<T>>::template is_diagonal_adapter<b> and
+  concept diagonal_adapter = indexible<T> and interface::IndexibleObjectTraits<std::decay_t<T>>::template is_diagonal_adapter<b> and
     has_nested_matrix<T> and (max_indices_of_v<T> >= 2);
 #else
   constexpr bool diagonal_adapter = indexible<T> and detail::is_diagonal_adapter<T, b>::value and has_nested_matrix<T> and
@@ -1093,7 +1095,7 @@ namespace OpenKalman
     struct has_is_square_interface : std::false_type {};
 
     template<typename T, Likelihood b>
-    struct has_is_square_interface<T, b, std::void_t<decltype(interface::IndexTraits<std::decay_t<T>>::template is_square<b>)>>
+    struct has_is_square_interface<T, b, std::void_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::template is_square<b>)>>
       : std::true_type {};
 
 
@@ -1101,7 +1103,7 @@ namespace OpenKalman
     struct is_explicitly_square : std::false_type {};
 
     template<typename T, Likelihood b>
-    struct is_explicitly_square<T, b, std::enable_if_t<interface::IndexTraits<std::decay_t<T>>::template is_square<b>>>
+    struct is_explicitly_square<T, b, std::enable_if_t<interface::IndexibleObjectTraits<std::decay_t<T>>::template is_square<b>>>
       : std::true_type {};
 
 
@@ -1119,7 +1121,7 @@ namespace OpenKalman
     struct is_triangular_matrix : std::false_type {};
 
     template<typename T, TriangleType t, Likelihood b>
-    struct is_triangular_matrix<T, t, b, std::enable_if_t<interface::TriangularTraits<std::decay_t<T>>::template is_triangular<t, b>>>
+    struct is_triangular_matrix<T, t, b, std::enable_if_t<interface::IndexibleObjectTraits<std::decay_t<T>>::template is_triangular<t, b>>>
       : std::true_type {};
 #endif
   } // namespace detail
@@ -1131,14 +1133,14 @@ namespace OpenKalman
   template<typename T, Likelihood b = Likelihood::definitely>
 #ifdef __cpp_concepts
   concept square_matrix = one_by_one_matrix<T, b> or (indexible<T> and
-    (not requires { interface::IndexTraits<std::decay_t<T>>::template is_square<b>; } or
-      interface::IndexTraits<std::decay_t<T>>::template is_square<b>) and
-    (requires { interface::IndexTraits<std::decay_t<T>>::template is_square<b>; } or
+    (not requires { interface::IndexibleObjectTraits<std::decay_t<T>>::template is_square<b>; } or
+      interface::IndexibleObjectTraits<std::decay_t<T>>::template is_square<b>) and
+    (requires { interface::IndexibleObjectTraits<std::decay_t<T>>::template is_square<b>; } or
       ((b != Likelihood::definitely or not has_dynamic_dimensions<T>) and
         (max_indices_of_v<T> != 1 or dimension_size_of_index_is<T, 0, 1, Likelihood::maybe>) and
         (max_indices_of_v<T> < 2 or detail::is_maybe_square_matrix<T>::value)) or
       (b == Likelihood::definitely and
-        (interface::TriangularTraits<std::decay_t<T>>::template is_triangular<TriangleType::any, b> or diagonal_adapter<T>))));
+        (interface::IndexibleObjectTraits<std::decay_t<T>>::template is_triangular<TriangleType::any, b> or diagonal_adapter<T>))));
 #else
   constexpr bool square_matrix = one_by_one_matrix<T, b> or
     ((not detail::has_is_square_interface<T, b>::value or detail::is_explicitly_square<T, b>::value) and
@@ -1159,7 +1161,7 @@ namespace OpenKalman
   template<typename T, TriangleType t = TriangleType::any, Likelihood b = Likelihood::definitely>
 #ifdef __cpp_concepts
   concept triangular_matrix = indexible<T> and
-    ((interface::TriangularTraits<std::decay_t<T>>::template is_triangular<t, square_matrix<T> ? Likelihood::maybe : b> and square_matrix<T, b>) or
+    ((interface::IndexibleObjectTraits<std::decay_t<T>>::template is_triangular<t, square_matrix<T> ? Likelihood::maybe : b> and square_matrix<T, b>) or
     diagonal_adapter<T> or constant_diagonal_matrix<T, CompileTimeStatus::any, b>);
 #else
   constexpr bool triangular_matrix =
@@ -1203,7 +1205,7 @@ namespace OpenKalman
     struct is_triangular_adapter : std::false_type {};
 
     template<typename T>
-    struct is_triangular_adapter<T, std::enable_if_t<interface::TriangularTraits<std::decay_t<T>>::is_triangular_adapter>>
+    struct is_triangular_adapter<T, std::enable_if_t<interface::IndexibleObjectTraits<std::decay_t<T>>::is_triangular_adapter>>
       : std::true_type {};
   }
 #endif
@@ -1218,7 +1220,7 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept triangular_adapter = interface::TriangularTraits<std::decay_t<T>>::is_triangular_adapter and
+  concept triangular_adapter = interface::IndexibleObjectTraits<std::decay_t<T>>::is_triangular_adapter and
 #else
   constexpr bool triangular_adapter = detail::is_triangular_adapter<T>::value and has_nested_matrix<T> and
 #endif
@@ -1253,7 +1255,7 @@ namespace OpenKalman
     struct is_hermitian_matrix : std::false_type {};
 
     template<typename T>
-    struct is_hermitian_matrix<T, std::enable_if_t<interface::HermitianTraits<std::decay_t<T>>::is_hermitian>>
+    struct is_hermitian_matrix<T, std::enable_if_t<interface::IndexibleObjectTraits<std::decay_t<T>>::is_hermitian>>
       : std::true_type {};
 
 
@@ -1275,7 +1277,7 @@ namespace OpenKalman
   template<typename T, Likelihood b = Likelihood::definitely>
 #ifdef __cpp_concepts
   concept hermitian_matrix = indexible<T> and
-    ((interface::HermitianTraits<std::decay_t<T>>::is_hermitian and square_matrix<T, b>) or
+    ((interface::IndexibleObjectTraits<std::decay_t<T>>::is_hermitian and square_matrix<T, b>) or
       (((constant_matrix<T, CompileTimeStatus::any, b> and square_matrix<T, b>) or diagonal_matrix<T, b>) and
       (not complex_number<scalar_type_of_t<T>> or zero_matrix<T> or
           real_axis_number<constant_coefficient<T>> or real_axis_number<constant_diagonal_coefficient<T>>)));
@@ -1298,10 +1300,18 @@ namespace OpenKalman
 
     template<typename T, HermitianAdapterType t>
     struct is_hermitian_adapter<T, t, std::enable_if_t<
-        std::is_convertible_v<decltype(interface::HermitianTraits<std::decay_t<T>>::adapter_type), const HermitianAdapterType>>>
-      : std::bool_constant<(interface::HermitianTraits<std::decay_t<T>>::adapter_type == HermitianAdapterType::lower or
-          interface::HermitianTraits<std::decay_t<T>>::adapter_type == HermitianAdapterType::upper) and
-        (t == HermitianAdapterType::any or interface::HermitianTraits<std::decay_t<T>>::adapter_type == t)> {};
+        std::is_convertible_v<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::adapter_type), const HermitianAdapterType>>>
+      : std::bool_constant<(interface::IndexibleObjectTraits<std::decay_t<T>>::adapter_type == HermitianAdapterType::lower or
+          interface::IndexibleObjectTraits<std::decay_t<T>>::adapter_type == HermitianAdapterType::upper) and
+        (t == HermitianAdapterType::any or interface::IndexibleObjectTraits<std::decay_t<T>>::adapter_type == t)> {};
+
+
+    template<typename T, typename = void>
+    struct has_is_hermitian_matrix_trait : std::false_type {};
+
+    template<typename T>
+    struct has_is_hermitian_matrix_trait<T, std::void_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::is_hermitian)>>
+      : std::true_type {};
   };
 #endif
 
@@ -1316,13 +1326,16 @@ namespace OpenKalman
   template<typename T, HermitianAdapterType t = HermitianAdapterType::any>
 #ifdef __cpp_concepts
   concept hermitian_adapter = indexible<T> and has_nested_matrix<T> and
-    (interface::HermitianTraits<std::decay_t<T>>::adapter_type == HermitianAdapterType::lower or
-      interface::HermitianTraits<std::decay_t<T>>::adapter_type == HermitianAdapterType::upper) and
-    (t == HermitianAdapterType::any or interface::HermitianTraits<std::decay_t<T>>::adapter_type == t) and
+    (interface::IndexibleObjectTraits<std::decay_t<T>>::adapter_type == HermitianAdapterType::lower or
+      interface::IndexibleObjectTraits<std::decay_t<T>>::adapter_type == HermitianAdapterType::upper) and
+    (t == HermitianAdapterType::any or interface::IndexibleObjectTraits<std::decay_t<T>>::adapter_type == t) and
+    (not requires {interface::IndexibleObjectTraits<std::decay_t<T>>::is_hermitian;} or interface::IndexibleObjectTraits<std::decay_t<T>>::is_hermitian) and
     square_matrix<T, Likelihood::maybe>;
 #else
   constexpr bool hermitian_adapter = indexible<T> and has_nested_matrix<T> and
-    detail::is_hermitian_adapter<std::decay_t<T>, t>::value and square_matrix<T, Likelihood::maybe>;
+    detail::is_hermitian_adapter<std::decay_t<T>, t>::value and
+    (not detail::has_is_hermitian_matrix_trait<T>::value or detail::is_hermitian_matrix<T>::value) and
+    square_matrix<T, Likelihood::maybe>;
 #endif
 
 
@@ -1662,8 +1675,7 @@ namespace OpenKalman
     struct writable_impl : std::false_type {};
 
     template<typename T>
-    struct writable_impl<T, std::enable_if_t<
-      interface::EquivalentDenseWritableMatrix<std::decay_t<T>, scalar_type_of_t<T>>::is_writable>> : std::true_type {};
+    struct writable_impl<T, std::enable_if_t<interface::IndexibleObjectTraits<std::decay_t<T>>::is_writable>> : std::true_type {};
   };
 #endif
 
@@ -1675,7 +1687,7 @@ namespace OpenKalman
   template<typename T>
 #ifdef __cpp_concepts
   concept writable =
-    indexible<T> and interface::EquivalentDenseWritableMatrix<std::decay_t<T>, scalar_type_of_t<T>>::is_writable and
+    indexible<T> and interface::IndexibleObjectTraits<std::decay_t<T>>::is_writable and
       (not std::is_const_v<std::remove_reference_t<T>>);
 #else
   constexpr bool writable =
@@ -1737,7 +1749,7 @@ namespace OpenKalman
       template<typename T, std::size_t...is>
       constexpr bool is_element_gettable_impl(std::index_sequence<is...>)
       {
-        return requires(T t) { interface::Elements<std::decay_t<T>>::get(t, is...); };
+        return requires(T t) { interface::IndexibleObjectTraits<std::decay_t<T>>::get(t, is...); };
       }
 #else
       template<typename T, typename = void, std::size_t...is>
@@ -1745,7 +1757,7 @@ namespace OpenKalman
 
       template<typename T, std::size_t...is>
         struct has_element_get_interface<T, std::void_t<
-          decltype(interface::Elements<std::decay_t<T>>::get(std::declval<T>(), is...))>, is...>
+          decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::get(std::declval<T>(), is...))>, is...>
           : std::true_type {};
 
 
@@ -1800,7 +1812,7 @@ namespace OpenKalman
       template<typename T, std::size_t...is>
       constexpr bool is_element_settable_impl(std::index_sequence<is...>)
       {
-        return requires(T t, const scalar_type_of_t<T>& s) { interface::Elements<std::decay_t<T>>::set(t, s, is...); };
+        return requires(T t, const scalar_type_of_t<T>& s) { interface::IndexibleObjectTraits<std::decay_t<T>>::set(t, s, is...); };
       }
 #else
       template<typename T, typename = void, std::size_t...is>
@@ -1808,7 +1820,7 @@ namespace OpenKalman
 
       template<typename T, std::size_t...is>
       struct has_element_set_interface<T, std::void_t<
-        decltype(interface::Elements<std::decay_t<T>>::set(std::declval<std::add_lvalue_reference_t<T>>(),
+        decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::set(std::declval<std::add_lvalue_reference_t<T>>(),
         std::declval<const typename scalar_type_of<T>::type &>(), is...))>, is...>
         : std::true_type {};
 

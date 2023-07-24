@@ -18,6 +18,19 @@
 
 namespace OpenKalman
 {
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename Arg, typename C, typename = void>
+    struct from_euclidean_exists : std::false_type {};
+
+    template<typename Arg, typename C>
+    struct from_euclidean_exists<Arg, C, std::void_t<decltype(
+        interface::LibraryRoutines<std::decay_t<Arg>>::template from_euclidean(std::declval<Arg&&>(), std::declval<const C&>()))>> :
+      std::true_type {};
+  } // namespace detail
+#endif
+
 #ifdef __cpp_concepts
   template<wrappable Arg, index_descriptor C>
   requires (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
@@ -33,17 +46,26 @@ namespace OpenKalman
     if constexpr (dynamic_dimension<Arg, 0> and not euclidean_index_descriptor<index_descriptor_of_t<Arg, 0>>)
       if (not get_index_descriptor_is_euclidean(get_index_descriptor<0>(arg)) and c != get_index_descriptor<0>(arg))
         throw std::domain_error {"In from_euclidean, specified index descriptor does not match that of the object's index 0"};
+    using Interface = interface::LibraryRoutines<std::decay_t<Arg>>;
 
     if constexpr (euclidean_index_descriptor<C>)
     {
       return std::forward<Arg>(arg);
+    }
+#ifdef __cpp_concepts
+    else if constexpr (requires { Interface::template from_euclidean(std::forward<Arg>(arg), c); })
+#else
+    else if constexpr (detail::from_euclidean_exists<Arg, C>::value)
+#endif
+    {
+      return Interface::from_euclidean(std::forward<Arg>(arg), c);
     }
     else
     {
       if constexpr (has_dynamic_dimensions<Arg>) if (not get_wrappable(arg))
         throw std::domain_error {"Argument of from_euclidean is not wrappable"};
 
-      return interface::ModularTransformationTraits<Arg>::from_euclidean(std::forward<Arg>(arg), c);
+      return FromEuclideanExpr<C, Arg>(std::forward<Arg>(arg), c);
     }
   }
 

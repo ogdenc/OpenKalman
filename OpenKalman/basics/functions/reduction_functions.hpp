@@ -18,8 +18,6 @@
 
 namespace OpenKalman
 {
-  using namespace interface;
-
   // -------- //
   //  reduce  //
   // -------- //
@@ -124,7 +122,7 @@ namespace OpenKalman
       }
       else
       {
-        decltype(auto) red = interface::ArrayOperations<std::decay_t<Arg>>::template reduce<indices...>(b, std::forward<Arg>(arg));
+        decltype(auto) red = interface::LibraryRoutines<std::decay_t<Arg>>::template reduce<indices...>(b, std::forward<Arg>(arg));
         using Red = decltype(red);
 
         static_assert(scalar_type<Red> or one_by_one_matrix<Red, Likelihood::maybe>);
@@ -134,7 +132,7 @@ namespace OpenKalman
         else if constexpr (element_gettable<Red, sizeof...(indices)>)
           return get_element(std::forward<Red>(red), static_cast<decltype(indices)>(0)...);
         else
-          return interface::LinearAlgebra<std::decay_t<Red>>::trace(std::forward<Red>(red));
+          return interface::LibraryRoutines<std::decay_t<Red>>::trace(std::forward<Red>(red));
       }
     }
 
@@ -226,7 +224,7 @@ namespace OpenKalman
     //}
     else
     {
-      return interface::ArrayOperations<std::decay_t<Arg>>::template reduce<index, indices...>(b, std::forward<Arg>(arg));
+      return interface::LibraryRoutines<std::decay_t<Arg>>::template reduce<index, indices...>(b, std::forward<Arg>(arg));
     }
   }
 

@@ -33,7 +33,7 @@ namespace OpenKalman
   make_dense_writable_matrix_from(Arg&& arg)
   {
     if constexpr (writable<Arg> and std::is_same_v<Scalar, scalar_type_of_t<Arg>>) return std::forward<Arg>(arg);
-    else return interface::EquivalentDenseWritableMatrix<std::decay_t<Arg>, std::decay_t<Scalar>>::convert(std::forward<Arg>(arg));
+    else return interface::LibraryRoutines<std::decay_t<Arg>>::template convert<Scalar>(std::forward<Arg>(arg));
   }
 
 
@@ -51,8 +51,7 @@ namespace OpenKalman
 #endif
   make_dense_writable_matrix_from(Arg&& arg)
   {
-    if constexpr (writable<Arg>) return std::forward<Arg>(arg);
-    else return interface::EquivalentDenseWritableMatrix<std::decay_t<Arg>, scalar_type_of_t<Arg>>::convert(std::forward<Arg>(arg));
+    return make_dense_writable_matrix_from<scalar_type_of_t<Arg>>(std::forward<Arg>(arg));
   }
 
 
@@ -81,8 +80,8 @@ namespace OpenKalman
   make_dense_writable_matrix_from(const std::tuple<Ds...>& d_tup, Args...args)
   {
     using W = decltype(make_default_dense_writable_matrix_like<M>(std::declval<Ds>()...));
-    using Trait = interface::EquivalentDenseWritableMatrix<std::decay_t<W>, std::decay_t<Scalar>>;
-    return Trait::make_from_elements(d_tup, static_cast<const Scalar>(args)...);
+    using Trait = interface::LibraryRoutines<std::decay_t<W>>;
+    return Trait::template make_from_elements<Scalar>(d_tup, static_cast<const Scalar>(args)...);
   }
 #ifndef __cpp_concepts
 # pragma GCC diagnostic pop

@@ -18,8 +18,6 @@
 
 namespace OpenKalman
 {
-  using namespace interface;
-
   // \todo Add functions that return stl-compatible iterators.
 
   // =================== //
@@ -65,7 +63,7 @@ namespace OpenKalman
     constexpr decltype(auto) get_diag_element(Arg&& arg, std::index_sequence<I...> seq, std::size_t i)
     {
       //detail::check_index_bounds<false>(arg, seq, (I, i)...);
-      return interface::Elements<std::decay_t<Arg>>::get(std::forward<Arg>(arg), (I?i:i)...);
+      return interface::IndexibleObjectTraits<std::decay_t<Arg>>::get(std::forward<Arg>(arg), (I?i:i)...);
     }
   } // namespace detail
 
@@ -99,22 +97,23 @@ namespace OpenKalman
     else if constexpr (internal::is_element_gettable<Arg, N>::value)
     {
       //detail::check_index_bounds<false>(arg, std::index_sequence_for<I...> {}, i...);
-      return interface::Elements<std::decay_t<Arg>>::get(std::forward<Arg>(arg), static_cast<const std::size_t>(i)...);
+      return interface::IndexibleObjectTraits<std::decay_t<Arg>>::get(std::forward<Arg>(arg), static_cast<const std::size_t>(i)...);
     }
-    else if constexpr (N == 0 and one_by_one_matrix<Arg, Likelihood::maybe>)
+    else if constexpr (N == 1 and diagonal_matrix<Arg, Likelihood::maybe> and max_indices_of_v<Arg> >= 1)
     {
-      if constexpr (not one_by_one_matrix<Arg>) if (get_index_dimension_of<0>(arg) != 1 or get_index_dimension_of<1>(arg) != 1)
-        throw std::invalid_argument {"Wrong number of indices in arguments to get_element."};
-      std::make_index_sequence<max_indices_of_v<Arg>> seq;
-      return detail::get_diag_element(std::forward<Arg>(arg), seq, static_cast<const std::size_t>(0));
-    }
-    else
-    {
-      static_assert(N == 1 and diagonal_matrix<Arg, Likelihood::maybe> and max_indices_of_v<Arg> > 1, "Must use correct number of indices");
       if constexpr (not diagonal_matrix<Arg>) if (not get_is_square(arg))
         throw std::invalid_argument {"Wrong number of indices in arguments to get_element."};
       std::make_index_sequence<max_indices_of_v<Arg>> seq;
       return detail::get_diag_element(std::forward<Arg>(arg), seq, static_cast<const std::size_t>(i)...);
+    }
+    else
+    {
+      static_assert(N == 0, "Must use correct number of indices");
+      static_assert(one_by_one_matrix<Arg, Likelihood::maybe>, "Calling get_element without indices only allowed one-by-one matrices.");
+      if constexpr (not one_by_one_matrix<Arg>) if (get_index_dimension_of<0>(arg) != 1 or get_index_dimension_of<1>(arg) != 1)
+        throw std::invalid_argument {"Wrong number of indices in arguments to get_element."};
+      std::make_index_sequence<max_indices_of_v<Arg>> seq;
+      return detail::get_diag_element(std::forward<Arg>(arg), seq, static_cast<const std::size_t>(0));
     }
   }
 
@@ -125,7 +124,7 @@ namespace OpenKalman
     constexpr void set_diag_element(Arg& arg, const Scalar& s, std::index_sequence<I...> seq, std::size_t i)
     {
       //detail::check_index_bounds<true>(arg, seq, (I, i)...);
-      interface::Elements<std::decay_t<Arg>>::set(arg, s, (I?i:i)...);
+      interface::IndexibleObjectTraits<std::decay_t<Arg>>::set(arg, s, (I?i:i)...);
     }
   } // namespace detail
 
@@ -155,7 +154,7 @@ namespace OpenKalman
     if constexpr (internal::is_element_settable<Arg, N>::value)
     {
       //detail::check_index_bounds<true>(arg, std::index_sequence_for<I...> {}, i...);
-      interface::Elements<std::decay_t<Arg>>::set(arg, s, static_cast<const std::size_t>(i)...);
+      interface::IndexibleObjectTraits<std::decay_t<Arg>>::set(arg, s, static_cast<const std::size_t>(i)...);
     }
     else if constexpr (N == 0 and one_by_one_matrix<Arg, Likelihood::maybe>)
     {
