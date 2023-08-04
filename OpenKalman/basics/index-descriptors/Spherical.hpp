@@ -67,6 +67,8 @@ namespace OpenKalman
       static constexpr std::size_t component_count = 1;
       static constexpr bool always_euclidean = false;
 
+      static constexpr bool operations_defined = true;
+
     private:
 
       static constexpr std::size_t d2_i = 0, x_i = 1, y_i = 2, z_i = 3;

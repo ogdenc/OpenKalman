@@ -55,6 +55,9 @@ namespace OpenKalman::interface
     /// \brief Whether the index descriptor is known at compile time to describe Euclidean coordinates (and in this case, size == euclidean_size).
     static constexpr bool always_euclidean = false;
 
+    /// \brief Whether arithmetic operations (e.g., addition, subtraction) are defined for this index descriptor.
+    static constexpr bool operations_defined = false;
+
 
     /**
      * \brief Maps an element from coordinates in modular space to coordinates in Euclidean space.
@@ -170,6 +173,9 @@ namespace OpenKalman::interface
     /// \brief Whether the descriptor is euclidean at runtime.
     /// \note May be non-static if T is a \ref dynamic_index_descriptor.
     [[nodiscard]] bool is_euclidean() const = delete;
+
+    /// \brief Whether arithmetic operations (e.g., addition, subtraction) are defined for this index descriptor.
+    static constexpr bool operations_defined = false;
 
 
     /**

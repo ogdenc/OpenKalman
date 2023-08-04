@@ -27,7 +27,7 @@
 #  define OPENKALMAN_CPP_FEATURE_CONCEPTS   true
 #  define OPENKALMAN_CPP_FEATURE_CONCEPTS_2 (__clang_major__ >= 15) // optimal value may be as low as > 10 (ver. 10.0.0)
 #elif defined(__GNUC__)
-#  define OPENKALMAN_CPP_FEATURE_CONCEPTS   (__GNUC__ >= 12) // optimal value may be as low as > 10 (ver. 10.1.0)
+#  define OPENKALMAN_CPP_FEATURE_CONCEPTS   (__GNUC__ >= 20) // optimal value may be as low as > 10 (ver. 10.1.0)
 #  define OPENKALMAN_CPP_FEATURE_CONCEPTS_2 (__GNUC__ >= 12) // optimal value may be as low as > 10 (ver. 10.1.0)
 #else
 #  define OPENKALMAN_CPP_FEATURE_CONCEPTS   true

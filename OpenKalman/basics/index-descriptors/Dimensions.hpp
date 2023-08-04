@@ -61,6 +61,17 @@ namespace OpenKalman
       return std::integral_constant<Int, N>{};
     }
 
+
+#ifdef __cpp_concepts
+    template<std::integral Int>
+#else
+    template<typename Int, std::enable_if_t<std::is_integral_v<Int>, int> = 0>
+#endif
+    explicit constexpr operator Int()
+    {
+      return N;
+    }
+
     friend struct interface::FixedIndexDescriptorTraits<Dimensions<N>>;
   };
 
@@ -169,6 +180,8 @@ namespace OpenKalman
       : FixedIndexDescriptorTraits<std::integral_constant<std::size_t, N>>
     {
       using difference_type = Dimensions<N>;
+
+      static constexpr bool operations_defined = true;
     };
 
 
@@ -186,6 +199,8 @@ namespace OpenKalman
       [[nodiscard]] constexpr std::size_t get_size() const { return Base::get_size(); }
       [[nodiscard]] constexpr std::size_t get_euclidean_size() const { return Base::get_euclidean_size(); }
       [[nodiscard]] constexpr std::size_t get_component_count() const { return Base::get_component_count(); }
+
+      static constexpr bool operations_defined = true;
     };
 
   } // namespace interface

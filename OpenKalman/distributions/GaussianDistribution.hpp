@@ -17,7 +17,7 @@
 #define OPENKALMAN_GAUSSIANDISTRIBUTION_HPP
 
 #include <iostream>
-#include <special-matrices/details/special-matrix-overloads.hpp>
+#include <special-matrices/details/special-matrix-interface.hpp>
 
 
 namespace OpenKalman

@@ -30,11 +30,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<std::size_t N = 0, indexible Arg> requires (N < max_indices_of_v<Arg>)
-  constexpr index_descriptor auto get_index_descriptor(const Arg& arg)
+  constexpr index_descriptor auto
 #else
   template<std::size_t N = 0, typename Arg, std::enable_if_t<indexible<Arg> and N < max_indices_of<Arg>::value, int> = 0>
-  constexpr auto get_index_descriptor(const Arg& arg)
+  constexpr auto
 #endif
+  get_index_descriptor(const Arg& arg)
   {
     return interface::IndexibleObjectTraits<Arg>::template get_index_descriptor<N>(arg);
   }

@@ -123,7 +123,8 @@ namespace OpenKalman
       ( requires { {std::decay_t<T>::value} -> scalar_type; } or
         requires {
           {std::decay_t<T>{}()} -> scalar_type;
-          typename std::bool_constant<(std::decay_t<T>{}(), true)>; });
+          typename std::bool_constant<(std::decay_t<T>{}(), true)>;
+        });
 #else
     constexpr bool compile_time_scalar_constant = std::is_default_constructible_v<std::decay_t<T>> and
       (detail::has_value_member<std::decay_t<T>>::value or detail::call_result_is_scalar<std::decay_t<T>>::value);
@@ -176,7 +177,7 @@ namespace OpenKalman
   // ----------------------------- //
 
   /**
-   * \brief Get the \ref scalar_type of a |ref scalar_constant
+   * \brief Get the \ref scalar value of a |ref scalar_constant
    */
 #ifdef __cpp_concepts
   template<scalar_constant Arg>

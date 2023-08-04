@@ -482,6 +482,12 @@ TEST(special_matrices, to_diagonal)
 #pragma GCC diagnostic ignored "-Warray-bounds"
   EXPECT_TRUE(is_near(to_diagonal(Mxx {m11}), m11)); static_assert(eigen_diagonal_expr<decltype(to_diagonal(Mxx {m11}))>);
 #pragma GCC diagnostic pop
+
+  // zero_matrix input:
+  auto z31 = M31::Identity() - M31::Identity();
+  static_assert(zero_matrix<decltype(to_diagonal(z31))>);
+  static_assert(zero_matrix<decltype(to_diagonal(std::move(z31)))>);
+  EXPECT_TRUE(is_near(to_diagonal(z31), M33::Zero()));
 }
 
 TEST(special_matrices, diagonal_make_triangular_matrix)

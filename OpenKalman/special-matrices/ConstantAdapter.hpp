@@ -35,6 +35,7 @@ namespace OpenKalman
 
   private:
 
+
 #ifndef __cpp_concepts
     static_assert(indexible<PatternMatrix>);
     static_assert(scalar_constant<Scalar>);
@@ -42,7 +43,7 @@ namespace OpenKalman
 #endif
 
     using MyConstant = std::conditional_t<sizeof...(constant) == 0, Scalar, internal::ScalarConstant<Likelihood::definitely, Scalar, constant...>>;
-
+    using MyScalarType = std::decay_t<decltype(get_scalar_constant_value(std::declval<MyConstant>()))>;
     using MyDimensions = decltype(get_all_dimensions_of(std::declval<PatternMatrix>()));
 
     template<std::size_t N = 0>
@@ -352,11 +353,13 @@ namespace OpenKalman
      * \return The element corresponding to the indices (always the constant).
      */
 #ifdef __cpp_concepts
-    template<index_value...Is> requires (sizeof...(Is) <= max_indices_of_v<PatternMatrix>)
+    template<index_value...Is> requires (sizeof...(Is) == max_indices_of_v<PatternMatrix>) or
+      (sizeof...(Is) == 1 and max_tensor_order_of_v<PatternMatrix> == 1)
     constexpr scalar_type auto
 #else
     template<typename...Is, std::enable_if_t<
-      (index_value<Is> and ...) and (sizeof...(Is) <= max_indices_of_v<PatternMatrix>), int> = 0>
+      (index_value<Is> and ...) and (sizeof...(Is) == max_indices_of_v<PatternMatrix> or
+      (sizeof...(Is) == 1 and max_tensor_order_of_v<PatternMatrix> == 1)), int> = 0>
     constexpr auto
 #endif
     operator()(Is...is) const
@@ -372,10 +375,10 @@ namespace OpenKalman
      * \return The element corresponding to the indices (always the constant).
      */
 #ifdef __cpp_concepts
-    template<index_value Is>
+    template<index_value Is> requires (max_tensor_order_of_v<PatternMatrix> == 1)
     constexpr scalar_type auto
 #else
-    template<typename Is, std::enable_if_t<index_value<Is>, int> = 0>
+    template<typename Is, std::enable_if_t<index_value<Is> and (max_tensor_order_of_v<PatternMatrix> == 1), int> = 0>
     constexpr auto
 #endif
     operator[](Is is) const
@@ -395,6 +398,61 @@ namespace OpenKalman
     get_scalar_constant() const
     {
       return my_constant;
+    }
+
+
+    friend auto operator-(const ConstantAdapter& arg)
+    {
+      if constexpr (zero_matrix<ConstantAdapter>) return arg;
+      else
+      {
+        internal::scalar_constant_operation op {std::negate<>{}, constant_coefficient{arg}};
+        return make_constant_matrix_like(arg, op);
+      }
+    }
+
+
+#ifdef __cpp_concepts
+    friend auto operator*(const ConstantAdapter& arg, scalar_constant auto s)
+#else
+    template<typename S, std::enable_if_t<scalar_constant<S>, int> = 0>
+    friend auto operator*(const ConstantAdapter& arg, S s)
+#endif
+    {
+      if constexpr (zero_matrix<decltype(arg)>) return arg;
+      else
+      {
+        internal::scalar_constant_operation op {std::multiplies<>{}, constant_coefficient{arg}, s};
+        return make_constant_matrix_like(arg, op);
+      }
+    }
+
+
+#ifdef __cpp_concepts
+    friend auto operator*(scalar_constant auto s, const ConstantAdapter& arg)
+#else
+    template<typename S, std::enable_if_t<scalar_constant<S>, int> = 0>
+    friend auto operator*(S s, const ConstantAdapter& arg)
+#endif
+    {
+      if constexpr (zero_matrix<decltype(arg)>) return arg;
+      else
+      {
+        internal::scalar_constant_operation op {std::multiplies<>{}, s, constant_coefficient{arg}};
+        return make_constant_matrix_like(arg, op);
+      }
+    }
+
+
+#ifdef __cpp_concepts
+    friend auto operator/(const ConstantAdapter& arg, scalar_constant auto s)
+#else
+    template<typename S, std::enable_if_t<scalar_constant<S>, int> = 0>
+    friend auto operator/(const ConstantAdapter& arg, S s)
+#endif
+    {
+      internal::scalar_constant_operation op {std::divides<>{}, constant_coefficient{arg}, s};
+      return make_constant_matrix_like(arg, op);
     }
 
   protected:
@@ -456,8 +514,7 @@ namespace OpenKalman
       template<typename Arg>
       static constexpr auto get_constant(const Arg& arg) { return arg.get_scalar_constant(); }
 
-      using scalar_type = std::decay_t<decltype(get_scalar_constant_value(
-        std::declval<ConstantAdapter<PatternMatrix, Scalar, constant...>>().get_scalar_constant()))>;
+      using scalar_type = typename ConstantAdapter<PatternMatrix, Scalar, constant...>::MyScalarType;
 
       template<typename Arg, typename...I>
       static constexpr auto get(Arg&& arg, I...) { return constant_coefficient_v<Arg>; }
@@ -570,179 +627,6 @@ namespace OpenKalman
     };
 
   } // namespace interface
-
-
-  // ------------------------- //
-  //        Arithmetic         //
-  // ------------------------- //
-
-  /**
-   * \brief Negation /ref ConstantAdapter.
-   */
-#ifdef __cpp_concepts
-  constexpr decltype(auto) operator-(constant_adapter auto&& arg)
-#else
-  template<typename Arg, std::enable_if_t<constant_adapter<Arg>, int> = 0>
-  constexpr decltype(auto) operator-(Arg&& arg)
-#endif
-  {
-    if constexpr (zero_matrix<decltype(arg)>) return std::forward<decltype(arg)>(arg);
-    else
-    {
-      internal::scalar_constant_operation op {std::negate<>{}, constant_coefficient{arg}};
-      return make_constant_matrix_like(std::forward<decltype(arg)>(arg), op);
-    };
-  }
-
-
-  /**
-   * \brief indexible + indexible where at least one of them is \ref zero_matrix and one is \ref ConstantAdapter
-   */
-#ifdef __cpp_concepts
-  template<indexible Arg1, indexible Arg2> requires ((constant_adapter<Arg1> or constant_adapter<Arg2>) and
-    (zero_matrix<Arg1> or zero_matrix<Arg2>)) and maybe_has_same_shape_as<Arg1, Arg2>
-#else
-  template<typename Arg1, typename Arg2, std::enable_if_t<(indexible<Arg1> and indexible<Arg2>) and
-    ((constant_adapter<Arg1> or constant_adapter<Arg2>) and (zero_matrix<Arg1> or zero_matrix<Arg2>)) and
-    maybe_has_same_shape_as<Arg1, Arg2>, int> = 0>
-#endif
-  constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
-  {
-    if constexpr (zero_matrix<Arg2>) return std::forward<Arg1>(arg1);
-    else return std::forward<Arg2>(arg2);
-  }
-
-
-  /**
-   * \brief constant_matrix + constant_matrix, where at least one of them is \ref ConstantAdapter and neither is \ref zero_matrix
-   */
-#ifdef __cpp_concepts
-  template<constant_matrix Arg1, constant_matrix Arg2> requires (constant_adapter<Arg1> or constant_adapter<Arg2>) and
-    (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and maybe_has_same_shape_as<Arg1, Arg2>
-#else
-  template<typename Arg1, typename Arg2, std::enable_if_t<constant_matrix<Arg1> and constant_matrix<Arg2> and
-    (constant_adapter<Arg1> or constant_adapter<Arg2>) and (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
-    maybe_has_same_shape_as<Arg1, Arg2>, int> = 0>
-#endif
-  constexpr auto operator+(const Arg1& arg1, const Arg2& arg2)
-  {
-    if constexpr (not has_same_shape_as<Arg1, Arg2>) if (not get_index_descriptors_match(arg1, arg2))
-      throw std::invalid_argument {"Arguments to operator+ have non-matching index descriptors"};
-    internal::scalar_constant_operation op {std::plus<>{}, constant_coefficient{arg1}, constant_coefficient{arg2}};
-    if constexpr (constant_adapter<Arg2>) return make_constant_matrix_like(arg1, op);
-    else return make_constant_matrix_like(arg2, op);
-  }
-
-
-  /**
-   * \brief indexible - indexible where at least one of them is \ref zero_matrix and one is \ref ConstantAdapter
-   */
-#ifdef __cpp_concepts
-  template<indexible Arg1, indexible Arg2> requires ((constant_adapter<Arg1> or constant_adapter<Arg2>) and
-    (zero_matrix<Arg1> or zero_matrix<Arg2>)) and maybe_has_same_shape_as<Arg1, Arg2>
-#else
-  template<typename Arg1, typename Arg2, std::enable_if_t<(indexible<Arg1> and indexible<Arg2>) and
-    ((constant_adapter<Arg1> or constant_adapter<Arg2>) and (zero_matrix<Arg1> or zero_matrix<Arg2>)) and
-    maybe_has_same_shape_as<Arg1, Arg2>, int> = 0>
-#endif
-  constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
-  {
-    if constexpr (zero_matrix<Arg2>) return std::forward<Arg1>(arg1);
-    else return -std::forward<Arg2>(arg2);
-  }
-
-
-  /**
-   * \brief constant_matrix - constant_matrix where at least one of them is \ref ConstantAdapter and neither is \ref zero_matrix
-   */
-#ifdef __cpp_concepts
-  template<constant_matrix Arg1, constant_matrix Arg2> requires (constant_adapter<Arg1> or constant_adapter<Arg2>) and
-    (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and maybe_has_same_shape_as<Arg1, Arg2>
-#else
-  template<typename Arg1, typename Arg2, std::enable_if_t<constant_matrix<Arg1> and constant_matrix<Arg2> and
-    (constant_adapter<Arg1> or constant_adapter<Arg2>) and (not zero_matrix<Arg1>) and (not zero_matrix<Arg2>) and
-    maybe_has_same_shape_as<Arg1, Arg2>, int> = 0>
-#endif
-  constexpr auto operator-(const Arg1& arg1, const Arg2& arg2)
-  {
-    if constexpr (not has_same_shape_as<Arg1, Arg2>) if (not get_index_descriptors_match(arg1, arg2))
-      throw std::invalid_argument {"Arguments to operator- have non-matching index descriptors"};
-    internal::scalar_constant_operation op {std::minus<>{}, constant_coefficient{arg1}, constant_coefficient{arg2}};
-    if constexpr (constant_adapter<Arg2>) return make_constant_matrix_like(arg1, op);
-    else return make_constant_matrix_like(arg2, op);
-  }
-
-
-  /**
-   * \brief \ref ConstantAdapter * \ref scalar_constant
-   */
-#ifdef __cpp_concepts
-  template<constant_adapter Arg, scalar_constant Scalar>
-#else
-  template<typename Arg, typename Scalar, std::enable_if_t<constant_adapter<Arg> and scalar_constant<Scalar>, int> = 0>
-#endif
-  constexpr decltype(auto) operator*(Arg&& arg, const Scalar& s)
-  {
-    if constexpr (zero_matrix<Arg>) return std::forward<Arg>(arg);
-    else
-    {
-      internal::scalar_constant_operation op {std::multiplies<>{}, constant_coefficient{arg}, s};
-      return make_constant_matrix_like(arg, op);
-    }
-  }
-
-
-  /**
-   * \brief \ref scalar * \ref ConstantAdapter
-   */
-#ifdef __cpp_concepts
-  template<scalar_constant Scalar, constant_adapter Arg>
-#else
-  template<typename Arg, typename Scalar, std::enable_if_t<scalar_constant<Scalar> and constant_adapter<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto) operator*(const Scalar& s, Arg&& arg)
-  {
-    if constexpr (zero_matrix<Arg>) return std::forward<Arg>(arg);
-    else
-    {
-      internal::scalar_constant_operation op {std::multiplies<>{}, s, constant_coefficient{arg}};
-      return make_constant_matrix_like(arg, op);
-    }
-  }
-
-
-  /**
-   * \brief \ref ConstantAdapter / \ref scalar_constant
-   */
-#ifdef __cpp_concepts
-  template<constant_adapter Arg, scalar_constant Scalar>
-#else
-  template<typename Arg, typename Scalar, std::enable_if_t<constant_adapter<Arg> and scalar_constant<Scalar>, int> = 0>
-#endif
-  constexpr decltype(auto) operator/(Arg&& arg, const Scalar& s)
-  {
-    internal::scalar_constant_operation op {std::divides<>{}, constant_coefficient{arg}, s};
-    return make_constant_matrix_like(arg, op);
-  }
-
-
-  /**
-   * \brief A matrix product, where at least one of the arguments is \ref ConstantAdapter
-   */
-#ifdef __cpp_concepts
-  template<indexible Arg1, indexible Arg2> requires (constant_adapter<Arg1> or constant_adapter<Arg2>) and
-    (max_indices_of_v<Arg1> == 2) and (max_indices_of_v<Arg2> == 2) and
-    (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>)
-#else
-  template<typename Arg1, typename Arg2, std::enable_if_t<indexible<Arg1> and indexible<Arg2> and
-    (constant_adapter<Arg1> or constant_adapter<Arg2>) and
-    (max_indices_of_v<Arg1> == 2) and (max_indices_of_v<Arg2> == 2) and
-    (dynamic_columns<Arg1> or dynamic_rows<Arg2> or column_dimension_of<Arg1>::value == row_dimension_of<Arg2>::value), int> = 0>
-#endif
-  inline auto operator*(Arg1&& arg1, Arg2&& arg2)
-  {
-    return contract(std::forward<Arg1>(arg1), std::forward<Arg2>(arg2));
-  }
 
 
 } // namespace OpenKalman

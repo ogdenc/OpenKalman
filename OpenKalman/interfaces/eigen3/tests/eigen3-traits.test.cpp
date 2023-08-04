@@ -32,6 +32,9 @@ TEST(eigen3, EigenWrapper)
 
   static_assert(std::is_same_v<decltype(nested_matrix(std::declval<Eigen3::EigenWrapper<Eigen::DiagonalMatrix<double, 3>>>())), Eigen::DiagonalMatrix<double, 3>&&>);
   static_assert(not std::is_lvalue_reference_v<decltype(nested_matrix(std::declval<Eigen3::EigenWrapper<Eigen::DiagonalMatrix<double, 3>>>()))>);
+
+  static_assert(Eigen3::has_eigen_traits<Eigen3::EigenWrapper<Eigen::DiagonalMatrix<double, 3>>>);
+  static_assert(Eigen3::has_eigen_evaluator<Eigen3::EigenWrapper<Eigen::DiagonalMatrix<double, 3>>>);
 }
 
 
@@ -866,6 +869,9 @@ TEST(eigen3, Eigen_DiagonalMatrix)
   static_assert(element_gettable<Eigen::DiagonalWrapper<M2x>, 1>);
   static_assert(element_gettable<Eigen::DiagonalWrapper<Mx1>, 2>);
   static_assert(element_gettable<Eigen::DiagonalWrapper<Mx1>, 1>);
+
+  static_assert(Eigen3::has_eigen_traits<Eigen::DiagonalMatrix<double, 3>>);
+  static_assert(not Eigen3::has_eigen_evaluator<Eigen::DiagonalMatrix<double, 3>>);
 }
 
 

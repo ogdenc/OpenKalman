@@ -1079,7 +1079,7 @@ namespace OpenKalman
     {
       if constexpr (dynamic_dimension<T, I0>)
         return maybe_square_matrix_impl<T>(std::index_sequence<I...>{});
-      else if constexpr (index_dimension_of_v<T, I0> == 0)
+      else if constexpr (dimension_size_of_index_is<T, I0, 0>)
         return false;
       else
         return ((dynamic_dimension<T, I> or equivalent_to<index_descriptor_of_t<T, I0>, index_descriptor_of_t<T, I>>) and ...);
@@ -1181,9 +1181,9 @@ namespace OpenKalman
   template<typename T, typename...Ts>
   struct triangle_type_of
     : std::integral_constant<TriangleType,
-      (triangular_matrix<T, TriangleType::diagonal, Likelihood::maybe> and ... and triangular_matrix<Ts, TriangleType::diagonal, Likelihood::maybe>) ? TriangleType::diagonal :
-      (triangular_matrix<T, TriangleType::lower, Likelihood::maybe> and ... and triangular_matrix<Ts, TriangleType::lower, Likelihood::maybe>) ? TriangleType::lower :
-      (triangular_matrix<T, TriangleType::upper, Likelihood::maybe> and ... and triangular_matrix<Ts, TriangleType::upper, Likelihood::maybe>) ? TriangleType::upper :
+      (triangular_matrix<T, TriangleType::diagonal> and ... and triangular_matrix<Ts, TriangleType::diagonal>) ? TriangleType::diagonal :
+      (triangular_matrix<T, TriangleType::lower> and ... and triangular_matrix<Ts, TriangleType::lower>) ? TriangleType::lower :
+      (triangular_matrix<T, TriangleType::upper> and ... and triangular_matrix<Ts, TriangleType::upper>) ? TriangleType::upper :
       TriangleType::any> {};
 
 

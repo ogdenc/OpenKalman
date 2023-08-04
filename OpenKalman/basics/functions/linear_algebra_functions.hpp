@@ -275,20 +275,20 @@ namespace OpenKalman
       {
         internal::scalar_constant_operation c {std::plus<>{}, constant_coefficient{t0}, constant_coefficient{t1}};
         auto cm = make_constant_matrix_like<T0>(std::move(c), best_descriptor<I>(t0, t1, ts...)...);
-        return sum_impl(seq, std::move(cm), std::forward<Ts>(ts)...);
+        auto ret = sum_impl(seq, std::move(cm), std::forward<Ts>(ts)...);
+        return ret;
       }
-      else if constexpr (constant_matrix<T0> and sizeof...(Ts) > 0)
+      else if constexpr (constant_matrix<T0> and sizeof...(Ts) > 0) // Shift T0 right in hopes that it will combine with another constant
       {
         return sum_impl(seq, std::forward<T1>(t1), sum_impl(seq, std::forward<T0>(t0), std::forward<Ts>(ts)...));
       }
-      else if constexpr (constant_matrix<T1> and sizeof...(Ts) > 0)
+      else if constexpr (constant_matrix<T1> and sizeof...(Ts) > 0) // Shift T1 right in hopes that it will combine with another constant
       {
         return sum_impl(seq, std::forward<T0>(t0), sum_impl(seq, std::forward<T1>(t1), std::forward<Ts>(ts)...));
       }
       else if constexpr (diagonal_matrix<T0> and diagonal_matrix<T1>)
       {
-        auto d0 = to_diagonal(sum_impl(seq, diagonal_of(std::forward<T0>(t0)), diagonal_of(std::forward<T1>(t1))));
-        auto ret = sum_impl(seq, std::move(d0), std::forward<Ts>(ts)...);
+        auto ret = sum_impl(seq, to_diagonal(sum_impl(seq, diagonal_of(std::forward<T0>(t0)), diagonal_of(std::forward<T1>(t1)))), std::forward<Ts>(ts)...);
         return ret;
       }
       else
@@ -313,7 +313,40 @@ namespace OpenKalman
   {
     // \todo Create a new wrapper argument that uses best_descriptor above and guarantees a set of compile-time dimensions.
     constexpr std::make_index_sequence<std::max({max_indices_of_v<Ts>...})> seq;
-    return detail::sum_impl(seq, std::forward<Ts>(ts)...);
+
+    if constexpr ((... and constant_matrix<Ts>))
+    {
+      return detail::sum_impl(seq, std::forward<Ts>(ts)...);
+    }
+    else if constexpr ((... and diagonal_matrix<Ts>))
+    {
+      return to_diagonal(detail::sum_impl(seq, diagonal_of(std::forward<Ts>(ts))...));
+    }
+    else if constexpr (triangle_type_of_v<Ts...> != TriangleType::any)
+    {
+      constexpr auto t = triangle_type_of_v<Ts...>;
+      auto f = [](auto&& a) -> decltype(auto) {
+        if constexpr (triangular_adapter<decltype(a)>) return nested_matrix(std::forward<decltype(a)>(a));
+        else return std::forward<decltype(a)>(a);
+      };
+      return make_triangular_matrix<t>(detail::sum_impl(seq, f(std::forward<Ts>(ts))...));
+    }
+    else if constexpr ((... and hermitian_matrix<Ts>))
+    {
+      constexpr auto t = hermitian_adapter_type_of_v<Ts...> == HermitianAdapterType::any ?
+        HermitianAdapterType::lower : hermitian_adapter_type_of_v<Ts...>;
+      auto f = [](auto&& a) -> decltype(auto) {
+        static_assert(hermitian_adapter_type_of_v<decltype(a)> != HermitianAdapterType::any);
+        if constexpr (hermitian_adapter_type_of_v<decltype(a)> == t) return nested_matrix(std::forward<decltype(a)>(a));
+        else if constexpr (hermitian_adapter<decltype(a)>) return transpose(nested_matrix(std::forward<decltype(a)>(a)));
+        else return std::forward<decltype(a)>(a);
+      };
+      return make_hermitian_matrix<t>(detail::sum_impl(seq, f(std::forward<Ts>(ts))...));
+    }
+    else
+    {
+      return detail::sum_impl(seq, std::forward<Ts>(ts)...);
+    }
   }
 
 

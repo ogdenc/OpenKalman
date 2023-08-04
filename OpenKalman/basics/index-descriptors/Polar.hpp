@@ -53,6 +53,7 @@ namespace OpenKalman
       static constexpr std::size_t component_count = 1;
       static constexpr bool always_euclidean = false;
 
+      static constexpr bool operations_defined = true;
 
       /**
        * \brief Maps a polar coordinate to coordinates in Euclidean space.

@@ -58,6 +58,7 @@ TEST(basics, fixed_Dimensions)
   static_assert(euclidean_index_descriptor<Dimensions<1>>);
   static_assert(euclidean_index_descriptor<Dimensions<2>>);
   static_assert(static_cast<std::integral_constant<int, 3>>(Dimensions{std::integral_constant<int, 3> {}}) == 3);
+  static_assert(static_cast<std::size_t>(Dimensions{std::integral_constant<int, 3> {}}) == 3);
 }
 
 

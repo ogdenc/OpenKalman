@@ -330,7 +330,7 @@ namespace OpenKalman
       {
         auto prod = nested_matrix(std::forward<M>(m)) * static_cast<Scalar>(s);
         TriangleType t = triangle_type_of_v<nested_matrix_of_t<M>>;
-        return make_self_contained<M>(make_covariance(make_EigenTriangularMatrix<t>(std::move(prod))));
+        return make_self_contained<M>(make_covariance(make_triangular_matrix<t>(std::move(prod))));
       }
       else
       {
@@ -359,12 +359,12 @@ namespace OpenKalman
       if constexpr (triangular_covariance<M> and not diagonal_matrix<M>)
       {
         auto prod = nested_matrix(std::forward<M>(m)) * (static_cast<Scalar>(s) * static_cast<Scalar>(s));
-        return make_self_contained<M>(make_covariance(make_EigenSelfAdjointMatrix(std::move(prod))));
+        return make_self_contained<M>(make_covariance(make_hermitian_matrix(std::move(prod))));
       }
       else
       {
         auto prod = nested_matrix(std::forward<M>(m)) * static_cast<Scalar>(s);
-        return make_self_contained<M>(make_covariance(make_EigenSelfAdjointMatrix(std::move(prod))));
+        return make_self_contained<M>(make_covariance(make_hermitian_matrix(std::move(prod))));
       }
     }
   }
@@ -403,7 +403,7 @@ namespace OpenKalman
       {
         auto ret = nested_matrix(std::forward<M>(m)) / static_cast<Scalar>(s);
         TriangleType t = triangle_type_of_v<nested_matrix_of_t<M>>;
-        return make_self_contained<M>(make_covariance(make_EigenTriangularMatrix<t>(std::move(ret))));
+        return make_self_contained<M>(make_covariance(make_triangular_matrix<t>(std::move(ret))));
       }
       else
       {
@@ -436,12 +436,12 @@ namespace OpenKalman
       else if constexpr (triangular_covariance<M> and not diagonal_matrix<M>)
       {
         auto ret = nested_matrix(std::forward<M>(m)) / (static_cast<Scalar>(s) * static_cast<Scalar>(s));
-        return make_self_contained<M>(make_covariance(make_EigenSelfAdjointMatrix(std::move(ret))));
+        return make_self_contained<M>(make_covariance(make_hermitian_matrix(std::move(ret))));
       }
       else
       {
         auto ret = nested_matrix(std::forward<M>(m)) / static_cast<Scalar>(s);
-        return make_self_contained<M>(make_covariance(make_EigenSelfAdjointMatrix(std::move(ret))));
+        return make_self_contained<M>(make_covariance(make_hermitian_matrix(std::move(ret))));
       }
     }
   }

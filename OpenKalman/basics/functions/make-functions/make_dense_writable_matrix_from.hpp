@@ -66,14 +66,14 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible M, scalar_type Scalar = scalar_type_of_t<M>, index_descriptor...Ds, std::convertible_to<const Scalar> ... Args>
-  requires (sizeof...(Args) % ((dynamic_index_descriptor<Ds> ? 1 : dimension_size_of_v<Ds>) * ... * 1) == 0)
+    requires (sizeof...(Args) > 0) and (sizeof...(Args) % ((dynamic_index_descriptor<Ds> ? 1 : dimension_size_of_v<Ds>) * ... * 1) == 0)
   inline writable auto
 #else
 # pragma GCC diagnostic push
 # pragma GCC diagnostic ignored "-Wdiv-by-zero"
   template<typename M, typename Scalar = scalar_type_of_t<M>, typename...Ds, typename...Args, std::enable_if_t<
     indexible<M> and scalar_type<Scalar> and (index_descriptor<Ds> and ...) and
-    (std::is_convertible_v<Args, const Scalar> and ...) and
+    (std::is_convertible_v<Args, const Scalar> and ...) and (sizeof...(Args) > 0) and
     (sizeof...(Args) % ((dynamic_index_descriptor<Ds> ? 1 : dimension_size_of_v<Ds>) * ... * 1) == 0), int> = 0>
   inline auto
 #endif
@@ -129,12 +129,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible M, scalar_type Scalar = scalar_type_of_t<M>, std::convertible_to<const Scalar> ... Args>
-    requires (detail::check_make_dense_args<M, sizeof...(Args)>())
+    requires (sizeof...(Args) > 0) and (detail::check_make_dense_args<M, sizeof...(Args)>())
   inline writable auto
 #else
   template<typename M, typename Scalar = scalar_type_of_t<M>, typename ... Args, std::enable_if_t<
     indexible<M> and scalar_type<Scalar> and (std::is_convertible_v<Args, const Scalar> and ...) and
-    (detail::check_make_dense_args<M, sizeof...(Args)>()), int> = 0>
+    (sizeof...(Args) > 0) and (detail::check_make_dense_args<M, sizeof...(Args)>()), int> = 0>
   inline auto
 #endif
   make_dense_writable_matrix_from(Args...args)

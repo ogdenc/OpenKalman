@@ -95,7 +95,7 @@ namespace Eigen::internal
     using XprType = OpenKalman::SelfAdjointMatrix<ArgType, storage_triangle>;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
     using Scalar = typename traits<std::decay_t<ArgType>>::Scalar;
-    using CoeffReturnType = typename XprType::CoeffReturnType;
+    using CoeffReturnType = typename std::decay_t<ArgType>::CoeffReturnType;
 
     enum
     {
@@ -197,7 +197,7 @@ namespace Eigen::internal
     : evaluator_base<OpenKalman::TriangularMatrix<ArgType, triangle_type>>
   {
     using XprType = OpenKalman::TriangularMatrix<ArgType, triangle_type>;
-    using CoeffReturnType = typename XprType::CoeffReturnType;
+    using CoeffReturnType = typename std::decay_t<ArgType>::CoeffReturnType;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
     using Scalar = typename traits<std::decay_t<ArgType>>::Scalar;
     enum
@@ -269,7 +269,7 @@ namespace Eigen::internal
     : evaluator_base<OpenKalman::DiagonalMatrix<ArgType>>
   {
     using XprType = OpenKalman::DiagonalMatrix<ArgType>;
-    using CoeffReturnType = typename XprType::CoeffReturnType;
+    using CoeffReturnType = typename std::decay_t<ArgType>::CoeffReturnType;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
     using Scalar = typename traits<std::decay_t<ArgType>>::Scalar;
     enum

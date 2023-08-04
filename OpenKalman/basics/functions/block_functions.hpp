@@ -61,8 +61,8 @@ namespace OpenKalman
       else if constexpr (constant_matrix<Arg>)
       {
         return std::apply(
-          [](auto&& a, auto...ds){ return make_constant_matrix_like<Arg>(constant_coefficient{a}, ds...); },
-          std::tuple_cat(std::forward_as_tuple(std::forward<Arg>(arg)), size));
+          [](const auto& c, auto...ds){ return make_constant_matrix_like<Arg>(c, ds...); },
+          std::tuple_cat(std::tuple{constant_coefficient{arg}}, size));
       }
       else
       {
@@ -89,7 +89,7 @@ namespace OpenKalman
 #endif
   constexpr auto get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
   {
-    auto seq = std::make_index_sequence<max_indices_of_v<Arg>>{};
+    std::make_index_sequence<max_indices_of_v<Arg>> seq;
     detail::check_block_limits(seq, seq, arg, begin);
     detail::check_block_limits(seq, seq, arg, begin, size);
 
@@ -211,9 +211,10 @@ namespace OpenKalman
    * reduction in extents. For example, the result could be a row vector, a column vector, a matrix (e.g., if the
    * input object is a rank-3 or higher tensor), etc.
    * \tparam indices The index or indices of the dimension(s) to be collapsed to a single dimension.
-   * For example, if the input object is a matrix, a value of {0} will result in a row vector and a value of {1} will
-   * result in a column vector. If the input object is a rank-3 tensor, a value of {0, 1} will result in a 1-by-1
-   * matrix. Omission of indices will return the argument unchanged.
+   * For example, if the input object is a matrix, a value of {0} will result in a row vector, a value of {1} will
+   * result in a column vector, and a value of {0, 1} will result in a one-dimensional vector.
+   * If the input object is a rank-3 tensor, a value of {1, 2} will result in a row vector.
+   * Omission of indices will return the argument unchanged.
    * \tparam Is The index value(s) corresponding to <code>indices</code>, in the same order. The values
    * may be positive \ref std::integral types or a positive \ref std::integral_constant.
    * \return A sub-array

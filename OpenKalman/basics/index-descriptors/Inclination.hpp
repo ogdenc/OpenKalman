@@ -145,6 +145,8 @@ namespace OpenKalman
       using difference_type = Dimensions<1>;
       static constexpr bool always_euclidean = false;
 
+      static constexpr bool operations_defined = true;
+
 
       /**
        * \details The inclination angle corresponds to x and y coordinates in quadrants I or IV of a unit circle.

@@ -462,6 +462,7 @@ namespace OpenKalman
         return true;
       }
 
+      static constexpr bool operations_defined = true;
 
   #ifdef __cpp_concepts
       scalar_type auto

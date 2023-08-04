@@ -260,6 +260,18 @@ namespace OpenKalman
   //  average_reduce  //
   // ---------------- //
 
+  namespace detail
+  {
+    template<typename Arg, std::size_t I, std::size_t...Is>
+    constexpr auto const_diagonal_matrix_dim(const Arg& arg, std::index_sequence<I, Is...>)
+    {
+      if constexpr(not dynamic_dimension<Arg, I>) return index_dimension_of<Arg, I>{};
+      else if constexpr (sizeof...(Is) == 0) return get_index_dimension_of<I>(arg);
+      else return const_diagonal_matrix_dim(arg, std::index_sequence<Is...>{});
+    }
+  }
+
+
   /**
    * \brief Perform a partial reduction by taking the average along one or more indices.
    * \tparam index an index to be reduced. For example, if the index is 0, the result will have only one row.
@@ -328,7 +340,7 @@ namespace OpenKalman
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       // \todo Handle diagonal tensors of order greater than 2 ?
-      internal::scalar_constant_operation c {std::divides<>{}, constant_diagonal_coefficient{arg}, get_index_dimension_of<0>(arg)};
+      internal::scalar_constant_operation c {std::divides<>{}, constant_diagonal_coefficient{arg}, detail::const_diagonal_matrix_dim(arg, seq)};
       auto ret = detail::make_constant_matrix_reduction<index>(std::move(c), std::forward<Arg>(arg), seq);
       if constexpr (sizeof...(indices) > 0) return average_reduce<indices...>(std::move(ret));
       else return ret;
@@ -337,18 +349,6 @@ namespace OpenKalman
     {
       return make_self_contained(reduce<index, indices...>(std::plus<Scalar> {}, std::forward<Arg>(arg)) /
         (get_index_dimension_of<index>(arg) * ... * get_index_dimension_of<indices>(arg)));
-    }
-  }
-
-
-  namespace detail
-  {
-    template<typename Arg, std::size_t I, std::size_t...Is>
-    constexpr std::size_t const_diagonal_matrix_dim(const Arg& arg, std::index_sequence<I, Is...>)
-    {
-      if constexpr (sizeof...(Is) == 0) return get_index_dimension_of<I>(arg);
-      else if constexpr(not dynamic_dimension<Arg, I>) return index_dimension_of_v<Arg, I>;
-      else return const_diagonal_matrix_dim(arg, std::index_sequence<Is...>{});
     }
   }
 
@@ -374,8 +374,8 @@ namespace OpenKalman
       return constant_coefficient{arg}();
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      return static_cast<scalar_type_of_t<Arg>>(constant_diagonal_coefficient{arg}()) /
-        detail::const_diagonal_matrix_dim(arg, std::make_index_sequence<max_indices_of_v<Arg>>{});
+      return internal::scalar_constant_operation {std::divides<>{}, constant_diagonal_coefficient{arg},
+        detail::const_diagonal_matrix_dim(arg, std::make_index_sequence<max_indices_of_v<Arg>>{})};
     }
     else
     {

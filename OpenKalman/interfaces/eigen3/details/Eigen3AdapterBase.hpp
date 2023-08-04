@@ -55,17 +55,17 @@ namespace OpenKalman::Eigen3
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(bool {has_dynamic_dimensions<NestedMatrix>})
 
 
-    Eigen3AdapterBase() = default;
+    constexpr Eigen3AdapterBase() = default;
 
-    Eigen3AdapterBase(const Eigen3AdapterBase&) = default;
+    constexpr Eigen3AdapterBase(const Eigen3AdapterBase&) = default;
 
-    Eigen3AdapterBase(Eigen3AdapterBase&&) = default;
+    constexpr Eigen3AdapterBase(Eigen3AdapterBase&&) = default;
 
-    ~Eigen3AdapterBase() = default;
+    constexpr ~Eigen3AdapterBase() = default;
 
-    Eigen3AdapterBase& operator=(const Eigen3AdapterBase& other) { return *this; }
+    constexpr Eigen3AdapterBase& operator=(const Eigen3AdapterBase& other) { return *this; }
 
-    Eigen3AdapterBase& operator=(Eigen3AdapterBase&& other) { return *this; }
+    constexpr Eigen3AdapterBase& operator=(Eigen3AdapterBase&& other) { return *this; }
 
 
     /// \internal \note Eigen3 requires this.
@@ -195,7 +195,7 @@ namespace OpenKalman::Eigen3
   private:
 
     template<typename Arg>
-    auto& get_ultimate_nested_matrix_impl(Arg& arg)
+    constexpr auto& get_ultimate_nested_matrix_impl(Arg& arg)
     {
       auto& b = nested_matrix(arg);
       using B = decltype(b);
@@ -213,7 +213,7 @@ namespace OpenKalman::Eigen3
 
 
     template<typename Arg>
-    auto& get_ultimate_nested_matrix(Arg& arg)
+    constexpr auto& get_ultimate_nested_matrix(Arg& arg)
     {
       if constexpr(eigen_self_adjoint_expr<Arg>)
       {

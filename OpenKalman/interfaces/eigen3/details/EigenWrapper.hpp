@@ -423,6 +423,7 @@ namespace OpenKalman
 
       static constexpr bool is_writable =
         static_cast<bool>(Eigen::internal::traits<std::decay_t<NestedMatrix>>::Flags & (Eigen::LvalueBit | Eigen::DirectAccessBit));
+      
     };
 
   } // namespace interface
@@ -477,8 +478,9 @@ namespace Eigen::internal
       : traits<T>
     {
       using StorageKind = Dense;
+      using XprKind = MatrixXpr;
       enum {
-        Flags = std::decay_t<T>::Flags & ~(NestByRefBit),
+        Flags = traits<T>::Flags & ~(NestByRefBit),
       };
     };
 
@@ -506,23 +508,19 @@ namespace Eigen::internal
 
       using XprType = std::decay_t<ArgType>;
       using ElementRef = decltype(OpenKalman::get_element(std::declval<XprType&>(), 0, 0));
-      static constexpr bool lvalue_get_element = std::is_same_v<ElementRef, std::decay_t<ElementRef>&>;
-      static constexpr bool nested_coeffRef = ((traits<XprType>::Flags & LvalueBit) != 0);
-      using my_traits = traits<OpenKalman::Eigen3::EigenWrapper<ArgType>>;
 
     public:
 
       explicit EigenWrapperEvaluator(const XprType& t) : m_xpr {const_cast<XprType&>(t)} {}
 
 #ifdef __cpp_concepts
-      auto& coeffRef(Index row, Index col) requires nested_coeffRef or lvalue_get_element
+      auto& coeffRef(Index row, Index col) requires std::same_as<ElementRef, std::decay_t<ElementRef>&>
 #else
-      template<bool nc = nested_coeffRef, std::enable_if_t<nc or lvalue_get_element, int> = 0>
+      template<bool nc = std::is_same_v<ElementRef, std::decay_t<ElementRef>&>, std::enable_if_t<nc, int> = 0>
       auto& coeffRef(Index row, Index col)
 #endif
       {
-        if constexpr (nested_coeffRef) return m_xpr.coeffRef(row, col);
-        else return OpenKalman::get_element(m_xpr, static_cast<std::size_t>(row), static_cast<std::size_t>(col));
+        return OpenKalman::get_element(m_xpr, static_cast<std::size_t>(row), static_cast<std::size_t>(col));
       }
 
 
@@ -570,4 +568,4 @@ namespace Eigen::internal
 
 } // Eigen::internal
 
-#endif //OPENKALMAN_EIGENWRAPPER_HPP
+#endif //OPENKALMAN_EIGENWRAPP

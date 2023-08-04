@@ -10,11 +10,11 @@
 
 /**
  * \file
- * \brief Overloaded functions for Eigen3 extensions
+ * \brief Interface for DiagonalMatrix, TriangularMatrix, and SelfAdjointMatrix.
  */
 
-#ifndef OPENKALMAN_SPECIAL_MATRIX_OVERLOADS_HPP
-#define OPENKALMAN_SPECIAL_MATRIX_OVERLOADS_HPP
+#ifndef OPENKALMAN_SPECIAL_MATRIX_INTERFACE_HPP
+#define OPENKALMAN_SPECIAL_MATRIX_INTERFACE_HPP
 
 #include <complex>
 
@@ -54,7 +54,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<typename Scalar, index_descriptor...Ds, std::convertible_to<Scalar> ... Args>
 #else
-    template<typename...Ds, typename...Args, std::enable_if_t<(index_descriptor<Ds> and ...) and
+    template<typename Scalar, typename...Ds, typename...Args, std::enable_if_t<(index_descriptor<Ds> and ...) and
       std::conjunction_v<std::is_convertible<Args, Scalar>...>, int> = 0>
 #endif
     static auto make_from_elements(const std::tuple<Ds...>& d_tup, const Args ... args)
@@ -80,7 +80,7 @@ namespace OpenKalman::interface
     template<typename Arg, typename...Begin, typename...Size>
     static auto get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
     {
-      return get_block(make_dense_writable_matrix_from(std::forward<Arg>(arg)), begin, size);
+      return OpenKalman::get_block(make_dense_writable_matrix_from(std::forward<Arg>(arg)), begin, size);
     }
 
 
@@ -92,15 +92,15 @@ namespace OpenKalman::interface
     {
       if constexpr (eigen_triangular_expr<A>)
       {
-        return OpenKalman::set_triangle<t>(nested_matrix(a), std::forward<B>(b));
+        return OpenKalman::internal::set_triangle<t>(nested_matrix(a), std::forward<B>(b));
       }
       else if constexpr (eigen_self_adjoint_expr<A>)
       {
         if constexpr ((t == TriangleType::upper and not hermitian_adapter<A, HermitianAdapterType::upper>) or
           (t == TriangleType::lower and not hermitian_adapter<A, HermitianAdapterType::lower>))
-          OpenKalman::set_triangle<t>(nested_matrix(a), adjoint(std::forward<B>(b)));
+          OpenKalman::internal::set_triangle<t>(nested_matrix(a), adjoint(std::forward<B>(b)));
         else
-          OpenKalman::set_triangle<t>(nested_matrix(a), std::forward<B>(b));
+          OpenKalman::internal::set_triangle<t>(nested_matrix(a), std::forward<B>(b));
       }
       else
       {
@@ -163,25 +163,24 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr decltype(auto) conjugate(Arg&& arg) noexcept
     {
-      // Global conjugate function already handles DiagonalMatrix
       if constexpr (eigen_self_adjoint_expr<Arg>)
       {
-        auto n = OpenKalman::conjugate(nested_matrix(std::forward<Arg>(arg)));
-        return MatrixTraits<std::decay_t<Arg>>::template make<hermitian_adapter_type_of_v<Arg>>(std::move(n));
+        constexpr auto t = hermitian_adapter_type_of_v<Arg>;
+        return make_hermitian_matrix<t>(OpenKalman::conjugate(nested_matrix(std::forward<Arg>(arg))));
       }
       else
       {
         static_assert(eigen_triangular_expr<Arg>);
-        auto n = OpenKalman::conjugate(nested_matrix(std::forward<Arg>(arg)));
-        return MatrixTraits<std::decay_t<Arg>>::template make<triangle_type_of_v<Arg>>(std::move(n));
+        constexpr auto t = triangle_type_of_v<Arg>;
+        return make_triangular_matrix<t>(OpenKalman::conjugate(nested_matrix(std::forward<Arg>(arg))));
       }
+      // Global conjugate function already handles DiagonalMatrix
     }
 
 
     template<typename Arg>
     static constexpr decltype(auto) transpose(Arg&& arg) noexcept
     {
-      // Global transpose function already handles DiagonalMatrix
       if constexpr (eigen_self_adjoint_expr<Arg>)
       {
         if constexpr (hermitian_matrix<nested_matrix_of_t<Arg>>)
@@ -191,12 +190,12 @@ namespace OpenKalman::interface
         else
         {
           constexpr auto t = (hermitian_adapter<Arg, HermitianAdapterType::lower> ? TriangleType::upper : TriangleType::lower);
-          return MatrixTraits<std::decay_t<Arg>>::template make<t>(
-            make_self_contained<Arg>(OpenKalman::transpose(nested_matrix(std::forward<Arg>(arg)))));
+          return make_hermitian_matrix<t>(OpenKalman::transpose(nested_matrix(std::forward<Arg>(arg))));
         }
       }
-      else if constexpr (eigen_triangular_expr<Arg>)
+      else
       {
+        static_assert(eigen_triangular_expr<Arg>);
         if constexpr (triangular_matrix<nested_matrix_of_t<Arg>>)
         {
           return OpenKalman::transpose(nested_matrix(std::forward<Arg>(arg)));
@@ -204,10 +203,10 @@ namespace OpenKalman::interface
         else
         {
           constexpr auto t = triangular_matrix<Arg, TriangleType::lower> ? TriangleType::upper : TriangleType::lower;
-          return MatrixTraits<std::decay_t<Arg>>::template make<t>(
-            make_self_contained<Arg>(OpenKalman::transpose(nested_matrix(std::forward<Arg>(arg)))));
+          return make_triangular_matrix<t>(OpenKalman::transpose(nested_matrix(std::forward<Arg>(arg))));
         }
       }
+      // Global transpose function already handles DiagonalMatrix
     }
 
 
@@ -266,18 +265,9 @@ namespace OpenKalman::interface
     template<TriangleType triangle, typename A, typename U, typename Alpha>
     static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
     {
-      decltype(auto) n = nested_matrix(std::forward<A>(a));
-      using Trait = interface::LibraryRoutines<std::decay_t<decltype(n)>>;
-      if constexpr (eigen_triangular_expr<A>)
-      {
-        decltype(auto) m = Trait::template rank_update_triangular<triangle>(std::forward<decltype(n)>(n), std::forward<U>(u), alpha);
-        return make_triangular_matrix<triangle>(std::forward<decltype(m)>(m));
-      }
-      else
-      {
-        static_assert(eigen_diagonal_expr<A>);
-        return Trait::template rank_update_triangular<triangle>(to_native_matrix(std::forward<A>(a)), std::forward<U>(u), alpha);
-      }
+      static_assert(eigen_diagonal_expr<A>);
+      using N = std::decay_t<nested_matrix_of_t<T>>;
+      return LibraryRoutines<N>::template rank_update_triangular<triangle>(std::forward<A>(a), std::forward<U>(u), alpha);
     }
 
 
@@ -285,7 +275,7 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     solve(A&& a, B&& b)
     {
-      using N = std::decay_t<decltype(nested_matrix(a))>;
+      using N = std::decay_t<nested_matrix_of_t<T>>;
       return LibraryRoutines<N>::template solve<must_be_unique, must_be_exact>(to_native_matrix(std::forward<A>(a)), std::forward<B>(b));
     }
 
@@ -294,7 +284,7 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     LQ_decomposition(A&& a)
     {
-      using N = std::decay_t<decltype(nested_matrix(a))>;
+      using N = std::decay_t<nested_matrix_of_t<T>>;
       return LibraryRoutines<N>::LQ_decomposition(to_native_matrix(std::forward<A>(a)));
     }
 
@@ -303,7 +293,7 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     QR_decomposition(A&& a)
     {
-      using N = std::decay_t<decltype(nested_matrix(a))>;
+      using N = std::decay_t<nested_matrix_of_t<T>>;
       return LibraryRoutines<N>::QR_decomposition(to_native_matrix(std::forward<A>(a)));
     }
 
@@ -313,4 +303,4 @@ namespace OpenKalman::interface
 } // namespace OpenKalman::interface
 
 
-#endif //OPENKALMAN_SPECIAL_MATRIX_OVERLOADS_HPP
+#endif //OPENKALMAN_SPECIAL_MATRIX_INTERFACE_HPP

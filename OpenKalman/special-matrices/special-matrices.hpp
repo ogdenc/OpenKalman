@@ -30,8 +30,8 @@
 #include "FromEuclideanExpr.hpp"
 
 #include "details/special-matrix-traits.hpp"
-#include "details/special-matrix-overloads.hpp"
-#include "details/euclidean-overloads.hpp"
+#include "details/special-matrix-interface.hpp"
+#include "details/euclidean-interface.hpp"
 #include "details/special-matrix-arithmetic.hpp"
 
 #endif //OPENKALMAN_SPECIAL_MATRICES_HPP

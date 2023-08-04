@@ -93,7 +93,6 @@ namespace OpenKalman::interface
 
 
     /**
-     * \internal
      * \brief Create a \ref constant_matrix corresponding to the shape of T (optional).
      * \details Takes a list of \ref index_descriptor items that specify the size of the resulting object
      * \tparam C A \ref scalar_constant (the constant known either at compile time or runtime)
@@ -116,12 +115,12 @@ namespace OpenKalman::interface
      * \tparam D An \ref index_descriptor defining the size
      * \note If this is not defined, it will return a DiagonalMatrix adapter with a constant diagonal of 1.
      */
-/*#ifdef __cpp_concepts
+#ifdef __cpp_concepts
     template<typename Scalar, index_descriptor D>
 #else
     template<typename D, std::enable_if_t<index_descriptor<D>, int> = 0>
 #endif
-    static constexpr auto make_identity_matrix(D&& d); //< Defined elsewhere*/
+    static constexpr auto make_identity_matrix(D&& d) = delete;
 
 
     /**

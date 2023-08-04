@@ -137,10 +137,10 @@ namespace OpenKalman
   * # TriangleType::lower, by default.
   */
 #ifdef __cpp_concepts
-  template<hermitian_adapter A>
+  template<hermitian_matrix A> requires hermitian_adapter<A> or diagonal_matrix<A>
   constexpr triangular_matrix decltype(auto)
 #else
-  template<typename A, std::enable_if_t<hermitian_adapter<A>, int> = 0>
+  template<typename A, std::enable_if_t<hermitian_adapter<A> or diagonal_matrix<A>, int> = 0>
   constexpr decltype(auto)
 #endif
   Cholesky_factor(A&& a)

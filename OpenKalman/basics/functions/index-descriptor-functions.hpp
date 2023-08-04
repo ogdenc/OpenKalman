@@ -187,13 +187,43 @@ namespace OpenKalman
   //   Arithmetic   //
   // -------------- //
 
+  namespace detail
+  {
+#ifdef __cpp_concepts
+    template<typename T>
+    concept index_descriptor_arithmetic_defined =
+      interface::FixedIndexDescriptorTraits<T>::operations_defined or interface::DynamicIndexDescriptorTraits<T>::operations_defined;
+#else
+    template<typename T, typename = void>
+    struct fixed_index_descriptor_arithmetic_defined : std::false_type {};
+
+    template<typename T>
+    struct fixed_index_descriptor_arithmetic_defined<T, std::enable_if_t<
+      interface::FixedIndexDescriptorTraits<T>::operations_defined>> : std::true_type {};
+
+    template<typename T, typename = void>
+    struct dynamic_index_descriptor_arithmetic_defined : std::false_type {};
+
+    template<typename T>
+    struct dynamic_index_descriptor_arithmetic_defined<T, std::enable_if_t<
+      interface::DynamicIndexDescriptorTraits<T>::operations_defined>> : std::true_type {};
+
+    template<typename T>
+    constexpr bool index_descriptor_arithmetic_defined =
+      fixed_index_descriptor_arithmetic_defined<T>::value or dynamic_index_descriptor_arithmetic_defined<T>::value;
+#endif
+  } // namespace detail
+
+
   /**
    * \brief Add two \ref index_descriptor values, whether fixed or dynamic.
    */
 #ifdef __cpp_concepts
-  template<index_descriptor T, index_descriptor U>
+  template<index_descriptor T, index_descriptor U> requires
+    detail::index_descriptor_arithmetic_defined<T> or detail::index_descriptor_arithmetic_defined<U>
 #else
-  template<typename T, typename U, std::enable_if_t<index_descriptor<T> and index_descriptor<U>, int> = 0>
+  template<typename T, typename U, std::enable_if_t<index_descriptor<T> and index_descriptor<U> and
+    (detail::index_descriptor_arithmetic_defined<T> or detail::index_descriptor_arithmetic_defined<U>), int> = 0>
 #endif
   constexpr auto operator+(T&& t, U&& u)
   {
@@ -220,12 +250,14 @@ namespace OpenKalman
    * \warning This does not perform any runtime checks to ensure that the result is non-negative.
    */
 #ifdef __cpp_concepts
-  template<euclidean_index_descriptor T, euclidean_index_descriptor U> requires (dimension_size_of_v<T> == dynamic_size) or
-    (dimension_size_of_v<U> == dynamic_size) or (dimension_size_of_v<T> > dimension_size_of_v<U>)
+  template<euclidean_index_descriptor T, euclidean_index_descriptor U> requires (dimension_size_of_v<T> == dynamic_size or
+      dimension_size_of_v<U> == dynamic_size or dimension_size_of_v<T> > dimension_size_of_v<U>) and
+    (detail::index_descriptor_arithmetic_defined<T> or detail::index_descriptor_arithmetic_defined<U>)
 #else
   template<typename T, typename U, std::enable_if_t<euclidean_index_descriptor<T> and euclidean_index_descriptor<U> and
     ((dimension_size_of<T>::value == dynamic_size) or (dimension_size_of<U>::value == dynamic_size) or
-      (dimension_size_of<T>::value > dimension_size_of<U>::value)), int> = 0>
+      (dimension_size_of<T>::value > dimension_size_of<U>::value)) and
+      (detail::index_descriptor_arithmetic_defined<T> or detail::index_descriptor_arithmetic_defined<U>), int> = 0>
 #endif
   constexpr auto operator-(const T& t, const U& u) noexcept
   {

@@ -574,20 +574,20 @@ TEST(special_matrices, TriangularMatrix_view)
 
 TEST(special_matrices, TriangularMatrix_make)
 {
-  static_assert(zero_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>(make_zero_matrix_like<M22>()))>);
-  static_assert(zero_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>(make_zero_matrix_like<M22>()))>);
-  static_assert(zero_matrix<decltype(make_EigenTriangularMatrix(make_zero_matrix_like<M22>()))>);
-  static_assert(triangular_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>(make_dense_writable_matrix_from<M22>(3, 1, 0, 3))), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>(make_dense_writable_matrix_from<M22>(3, 0, 1, 3))), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(make_EigenTriangularMatrix(make_dense_writable_matrix_from<M22>(3, 0, 1, 3))), TriangleType::lower>);
-  static_assert(diagonal_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>(DiagonalMatrix {3., 4}))>);
-  static_assert(diagonal_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>(DiagonalMatrix {3., 4}))>);
-  static_assert(diagonal_matrix<decltype(make_EigenTriangularMatrix(DiagonalMatrix {3., 4}))>);
+  static_assert(zero_matrix<decltype(make_triangular_matrix<TriangleType::upper>(make_zero_matrix_like<M22>()))>);
+  static_assert(zero_matrix<decltype(make_triangular_matrix<TriangleType::lower>(make_zero_matrix_like<M22>()))>);
+  static_assert(zero_matrix<decltype(make_triangular_matrix(make_zero_matrix_like<M22>()))>);
+  static_assert(triangular_matrix<decltype(make_triangular_matrix<TriangleType::upper>(make_dense_writable_matrix_from<M22>(3, 1, 0, 3))), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(make_triangular_matrix<TriangleType::lower>(make_dense_writable_matrix_from<M22>(3, 0, 1, 3))), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(make_triangular_matrix(make_dense_writable_matrix_from<M22>(3, 0, 1, 3))), TriangleType::lower>);
+  static_assert(diagonal_matrix<decltype(make_triangular_matrix<TriangleType::upper>(DiagonalMatrix {3., 4}))>);
+  static_assert(diagonal_matrix<decltype(make_triangular_matrix<TriangleType::lower>(DiagonalMatrix {3., 4}))>);
+  static_assert(diagonal_matrix<decltype(make_triangular_matrix(DiagonalMatrix {3., 4}))>);
 
-  static_assert(triangular_matrix<decltype(make_EigenTriangularMatrix<TriangleType::upper>(Upper {3, 1, 0, 3})), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(make_EigenTriangularMatrix<TriangleType::lower>(Lower {3, 0, 1, 3})), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(make_EigenTriangularMatrix(Upper {3, 1, 0, 3})), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(make_EigenTriangularMatrix(Lower {3, 0, 1, 3})), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(make_triangular_matrix<TriangleType::upper>(Upper {3, 1, 0, 3})), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(make_triangular_matrix<TriangleType::lower>(Lower {3, 0, 1, 3})), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(make_triangular_matrix(Upper {3, 1, 0, 3})), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(make_triangular_matrix(Lower {3, 0, 1, 3})), TriangleType::lower>);
 }
 
 

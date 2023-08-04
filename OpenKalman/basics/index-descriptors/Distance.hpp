@@ -56,6 +56,8 @@ namespace OpenKalman
       using difference_type = Dimensions<1>;
       static constexpr bool always_euclidean = false;
 
+      static constexpr bool operations_defined = true;
+
       /*
        * \brief Maps an element to positive coordinates in 1D Euclidean space.
        * \param euclidean_local_index This is assumed to be 0.

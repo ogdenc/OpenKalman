@@ -562,36 +562,37 @@ namespace OpenKalman
 
   namespace internal
   {
+    namespace detail
+    {
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
+     template<typename Derived, typename LibraryObject>
+#else
+     template<typename Derived, typename LibraryObject, typename = void>
+#endif
+     struct library_base_impl { using type = std::monostate; };
+
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS // GCC compiler issue leads to the requires clause being false
+      template<typename Derived, typename LibraryObject> requires
+        requires { typename interface::LibraryRoutines<LibraryObject>::template LibraryBase<Derived>; }
+      struct library_base_impl<Derived, LibraryObject>
+#else
+      template<typename Derived, typename LibraryObject>
+      struct library_base_impl<Derived, LibraryObject,
+        std::void_t<typename interface::LibraryRoutines<LibraryObject>::template LibraryBase<Derived>>>
+#endif
+        { using type = typename interface::LibraryRoutines<LibraryObject>::template LibraryBase<Derived>; };
+    }
+
+
     /**
      * \internal
      * \brief The base class of an object within a particular linear-algebra library.
      * \details By default the library base is std::monostate.
      * \tparam Derived A derived class, such as an adapter.
-     * \tparam PatternMatrix A class within a particular library
+     * \tparam LibraryObject A class within a particular library
      */
-#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
-    template<typename Derived, typename PatternMatrix>
-#else
-    template<typename Derived, typename PatternMatrix, typename = void>
-#endif
-    struct library_base : std::monostate {};
-
-
-    /**
-     * \overload
-     * \internal
-     * \brief A non-default library_base.
-     */
-#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
-    template<typename Derived, typename PatternMatrix> requires
-      requires { typename interface::LibraryRoutines<std::decay_t<PatternMatrix>>::template LibraryBase<std::decay_t<Derived>>; }
-    struct library_base<Derived, PatternMatrix>
-#else
-    template<typename Derived, typename PatternMatrix>
-    struct library_base<Derived, PatternMatrix,
-      std::void_t<typename interface::LibraryRoutines<std::decay_t<PatternMatrix>>::template LibraryBase<std::decay_t<Derived>>>>
-#endif
-      : interface::LibraryRoutines<std::decay_t<PatternMatrix>>::template LibraryBase<Derived> {};
+    template<typename Derived, typename LibraryObject>
+    using library_base = typename detail::library_base_impl<std::decay_t<Derived>, std::decay_t<LibraryObject>>::type;
 
 
     /**

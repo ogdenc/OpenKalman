@@ -611,22 +611,22 @@ TEST(special_matrices, make_hermitian_matrix)
   static_assert(eigen_self_adjoint_expr<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m20_lowerh))>);
   static_assert(hermitian_adapter<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m20_lowerh)), HermitianAdapterType::lower>);
 
-  static_assert(zero_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(make_zero_matrix_like<M22>()))>);
-  static_assert(zero_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(make_zero_matrix_like<M22>()))>);
-  static_assert(zero_matrix<decltype(make_EigenSelfAdjointMatrix(make_zero_matrix_like<M22>()))>);
-  static_assert(hermitian_adapter<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(make_dense_writable_matrix_from<M22>(9, 3, 3, 10))), HermitianAdapterType::upper>);
-  static_assert(hermitian_adapter<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(make_dense_writable_matrix_from<M22>(9, 3, 3, 10))), HermitianAdapterType::lower>);
-  static_assert(hermitian_adapter<decltype(make_EigenSelfAdjointMatrix(make_dense_writable_matrix_from<M22>(9, 3, 3, 10))), HermitianAdapterType::lower>);
-  static_assert(diagonal_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(D2 {3., 4}))>);
-  static_assert(diagonal_matrix<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(D2 {3., 4}))>);
-  static_assert(diagonal_matrix<decltype(make_EigenSelfAdjointMatrix(D2 {3., 4}))>);
+  static_assert(zero_matrix<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(make_zero_matrix_like<M22>()))>);
+  static_assert(zero_matrix<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(make_zero_matrix_like<M22>()))>);
+  static_assert(zero_matrix<decltype(make_hermitian_matrix(make_zero_matrix_like<M22>()))>);
+  static_assert(hermitian_adapter<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(make_dense_writable_matrix_from<M22>(9, 3, 3, 10))), HermitianAdapterType::upper>);
+  static_assert(hermitian_adapter<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(make_dense_writable_matrix_from<M22>(9, 3, 3, 10))), HermitianAdapterType::lower>);
+  static_assert(hermitian_adapter<decltype(make_hermitian_matrix(make_dense_writable_matrix_from<M22>(9, 3, 3, 10))), HermitianAdapterType::lower>);
+  static_assert(diagonal_matrix<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(D2 {3., 4}))>);
+  static_assert(diagonal_matrix<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(D2 {3., 4}))>);
+  static_assert(diagonal_matrix<decltype(make_hermitian_matrix(D2 {3., 4}))>);
 
-  static_assert(hermitian_adapter<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(U22 {9, 3, 3, 10})), HermitianAdapterType::upper>);
-  static_assert(hermitian_adapter<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(L22 {9, 3, 3, 10})), HermitianAdapterType::lower>);
-  static_assert(hermitian_adapter<decltype(make_EigenSelfAdjointMatrix<TriangleType::upper>(L22 {9, 3, 3, 10})), HermitianAdapterType::upper>);
-  static_assert(hermitian_adapter<decltype(make_EigenSelfAdjointMatrix<TriangleType::lower>(U22 {9, 3, 3, 10})), HermitianAdapterType::lower>);
-  static_assert(hermitian_adapter<decltype(make_EigenSelfAdjointMatrix(U22 {9, 3, 3, 10})), HermitianAdapterType::upper>);
-  static_assert(hermitian_adapter<decltype(make_EigenSelfAdjointMatrix(L22 {9, 3, 3, 10})), HermitianAdapterType::lower>);
+  static_assert(hermitian_adapter<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(U22 {9, 3, 3, 10})), HermitianAdapterType::upper>);
+  static_assert(hermitian_adapter<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(L22 {9, 3, 3, 10})), HermitianAdapterType::lower>);
+  static_assert(hermitian_adapter<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(L22 {9, 3, 3, 10})), HermitianAdapterType::upper>);
+  static_assert(hermitian_adapter<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(U22 {9, 3, 3, 10})), HermitianAdapterType::lower>);
+  static_assert(hermitian_adapter<decltype(make_hermitian_matrix(U22 {9, 3, 3, 10})), HermitianAdapterType::upper>);
+  static_assert(hermitian_adapter<decltype(make_hermitian_matrix(L22 {9, 3, 3, 10})), HermitianAdapterType::lower>);
 }
 
 

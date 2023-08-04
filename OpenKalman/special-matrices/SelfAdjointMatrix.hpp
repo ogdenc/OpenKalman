@@ -207,7 +207,8 @@ namespace OpenKalman
     template<typename ... Args, std::enable_if_t<
       std::conjunction_v<std::is_convertible<Args, const Scalar>...> and (sizeof...(Args) > 0) and
       (std::is_constructible_v<NestedMatrix,
-        untyped_dense_writable_matrix_t<NestedMatrix, Scalar, static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args))), static_cast<std::size_t>(constexpr_sqrt(sizeof...(Args)))>> or
+        untyped_dense_writable_matrix_t<NestedMatrix, Scalar, static_cast<std::size_t>(
+          internal::constexpr_sqrt(sizeof...(Args))), static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)))>> or
         (diagonal_matrix<NestedMatrix> and std::is_constructible_v<NestedMatrix,
           untyped_dense_writable_matrix_t<NestedMatrix, Scalar, sizeof...(Args), 1>>)), int> = 0>
 #endif
@@ -225,7 +226,7 @@ namespace OpenKalman
           not constant_diagonal_matrix<NestedMatrix, CompileTimeStatus::known>);
       else if (this != &other)
       {
-        if constexpr (writable<NestedMatrix>) set_triangle<storage_triangle>(this->nested_matrix(), other.nested_matrix());
+        if constexpr (writable<NestedMatrix>) internal::set_triangle<storage_triangle>(this->nested_matrix(), other.nested_matrix());
         else Base::operator=(other);
       }
 
@@ -257,7 +258,7 @@ namespace OpenKalman
 #endif
     auto& operator=(Arg&& arg)
     {
-      if constexpr (writable<NestedMatrix>) set_triangle<storage_triangle>(this->nested_matrix(), std::forward<Arg>(arg));
+      if constexpr (writable<NestedMatrix>) internal::set_triangle<storage_triangle>(this->nested_matrix(), std::forward<Arg>(arg));
       else if (hermitian_adapter_type_of_v<Arg> != storage_triangle) Base::operator=(adjoint(std::forward<Arg>(arg)));
       else Base::operator=(std::forward<Arg>(arg));
       return *this;
@@ -273,7 +274,7 @@ namespace OpenKalman
 #endif
     auto& operator+=(const SelfAdjointMatrix<Arg, t>& arg)
     {
-      if constexpr (writable<NestedMatrix>) set_triangle<storage_triangle>(this->nested_matrix(), this->nested_matrix() + std::forward<Arg>(arg));
+      if constexpr (writable<NestedMatrix>) internal::set_triangle<storage_triangle>(this->nested_matrix(), this->nested_matrix() + std::forward<Arg>(arg));
       else if (t != storage_triangle) Base::operator+=(adjoint(std::forward<Arg>(arg)));
       else Base::operator+=(std::forward<Arg>(arg));
       return *this;
@@ -289,7 +290,7 @@ namespace OpenKalman
 #endif
     auto& operator-=(const SelfAdjointMatrix<Arg, t>& arg)
     {
-      if constexpr (writable<NestedMatrix>) set_triangle<storage_triangle>(this->nested_matrix(), this->nested_matrix() - std::forward<Arg>(arg));
+      if constexpr (writable<NestedMatrix>) internal::set_triangle<storage_triangle>(this->nested_matrix(), this->nested_matrix() - std::forward<Arg>(arg));
       else if (t != storage_triangle) Base::operator-=(adjoint(std::forward<Arg>(arg)));
       else Base::operator-=(std::forward<Arg>(arg));
       return *this;
@@ -303,7 +304,7 @@ namespace OpenKalman
 #endif
     auto& operator*=(const S s)
     {
-      if constexpr (writable<NestedMatrix>) set_triangle<storage_triangle>(this->nested_matrix(), this->nested_matrix() * s);
+      if constexpr (writable<NestedMatrix>) internal::set_triangle<storage_triangle>(this->nested_matrix(), this->nested_matrix() * s);
       else Base::operator*=(s);
       return *this;
     }
@@ -316,9 +317,64 @@ namespace OpenKalman
 #endif
     auto& operator/=(const S s)
     {
-      if constexpr (writable<NestedMatrix>) set_triangle<storage_triangle>(this->nested_matrix(), this->nested_matrix() / s);
+      if constexpr (writable<NestedMatrix>) internal::set_triangle<storage_triangle>(this->nested_matrix(), this->nested_matrix() / s);
       else Base::operator/=(s);
       return *this;
+    }
+
+
+#ifdef __cpp_concepts
+    template<typename Arg> requires std::same_as<std::decay_t<Arg>, SelfAdjointMatrix>
+    friend decltype(auto) operator-(Arg&& arg)
+    {
+      return make_hermitian_matrix<hermitian_adapter_type_of_v<Arg>>(-nested_matrix(std::forward<Arg>(arg)));
+    }
+#else
+    decltype(auto) operator-() const&
+    {
+      return make_hermitian_matrix<storage_triangle>(-nested_matrix(*this));
+    }
+
+    decltype(auto) operator-() const&&
+    {
+      return make_hermitian_matrix<storage_triangle>(-nested_matrix(std::move(*this)));
+    }
+#endif
+
+
+#ifdef __cpp_concepts
+    template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, SelfAdjointMatrix>
+#else
+    template<typename Arg, typename S, std::enable_if_t<
+      std::is_same_v<std::decay_t<Arg>, SelfAdjointMatrix> and std::is_convertible_v<S, const scalar_type_of_t<Arg>>>>
+#endif
+    friend decltype(auto) operator*(Arg&& arg, S s)
+    {
+      return make_hermitian_matrix<hermitian_adapter_type_of_v<Arg>>(nested_matrix(std::forward<Arg>(arg)) * s);
+    }
+
+
+#ifdef __cpp_concepts
+    template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, SelfAdjointMatrix>
+#else
+    template<typename Arg, typename S, std::enable_if_t<
+      std::is_same_v<std::decay_t<Arg>, SelfAdjointMatrix> and std::is_convertible_v<S, const scalar_type_of_t<Arg>>>>
+#endif
+    friend decltype(auto) operator*(S s, Arg&& arg)
+    {
+      return make_hermitian_matrix<hermitian_adapter_type_of_v<Arg>>(s * nested_matrix(std::forward<Arg>(arg)));
+    }
+
+
+#ifdef __cpp_concepts
+    template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, SelfAdjointMatrix>
+#else
+    template<typename Arg, typename S, std::enable_if_t<
+      std::is_same_v<std::decay_t<Arg>, SelfAdjointMatrix> and std::is_convertible_v<S, const scalar_type_of_t<Arg>>>>
+#endif
+    friend decltype(auto) operator/(Arg&& arg, S s)
+    {
+      return make_hermitian_matrix<hermitian_adapter_type_of_v<Arg>>(nested_matrix(std::forward<Arg>(arg)) / s);
     }
 
   };
@@ -357,58 +413,6 @@ namespace OpenKalman
       (not triangular_matrix<M, TriangleType::any, Likelihood::maybe>), int> = 0>
 #endif
   explicit SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<passable_t<M>, HermitianAdapterType::lower>;
-
-
-  // ----------------------------- //
-  //        Make functions         //
-  // ----------------------------- //
-
-#ifdef __cpp_concepts
-  template<HermitianAdapterType t = HermitianAdapterType::lower, typename M> requires (not hermitian_matrix<M>)
-#else
-  template<
-    HermitianAdapterType t = HermitianAdapterType::lower, typename M, std::enable_if_t<(not hermitian_matrix<M>), int> = 0>
-#endif
-  auto
-  make_EigenSelfAdjointMatrix(M&& m)
-  {
-    return SelfAdjointMatrix<passable_t<M>, t> {std::forward<M>(m)};
-  }
-
-
-#ifdef __cpp_concepts
-  template<hermitian_matrix M>
-#else
-  template<typename M, std::enable_if_t<hermitian_matrix<M>, int> = 0>
-#endif
-  auto
-  make_EigenSelfAdjointMatrix(M&& m)
-  {
-    constexpr HermitianAdapterType t = hermitian_adapter_type_of_v<M>;
-    if constexpr(hermitian_adapter<M>)
-      return make_EigenSelfAdjointMatrix<t>(nested_matrix(std::forward<M>(m)));
-    else
-      return SelfAdjointMatrix<passable_t<M>, t> {std::forward<M>(m)};
-  }
-
-
-#ifdef __cpp_concepts
-  template<HermitianAdapterType t, hermitian_matrix M>
-#else
-  template<HermitianAdapterType t, typename M, std::enable_if_t<hermitian_matrix<M>, int> = 0>
-#endif
-  auto
-  make_EigenSelfAdjointMatrix(M&& m)
-  {
-    if constexpr(hermitian_adapter<M>)
-    {
-      if constexpr (t == hermitian_adapter_type_of_v<M> or diagonal_matrix<M>)
-        return make_EigenSelfAdjointMatrix<t>(nested_matrix(std::forward<M>(m)));
-      else
-        return make_EigenSelfAdjointMatrix<t>(adjoint(nested_matrix(std::forward<M>(m))));
-    }
-    else return SelfAdjointMatrix<passable_t<M>, t> {std::forward<M>(m)};
-  }
 
 
   // ------------------------- //

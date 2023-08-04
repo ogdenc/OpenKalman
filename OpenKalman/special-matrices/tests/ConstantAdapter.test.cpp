@@ -19,47 +19,6 @@ using numbers::pi;
 
 namespace
 {
-  using M11 = eigen_matrix_t<double, 1, 1>;
-  using M12 = eigen_matrix_t<double, 1, 2>;
-  using M13 = eigen_matrix_t<double, 1, 3>;
-  using M21 = eigen_matrix_t<double, 2, 1>;
-  using M22 = eigen_matrix_t<double, 2, 2>;
-  using M23 = eigen_matrix_t<double, 2, 3>;
-  using M31 = eigen_matrix_t<double, 3, 1>;
-  using M32 = eigen_matrix_t<double, 3, 2>;
-  using M33 = eigen_matrix_t<double, 3, 3>;
-  using M34 = eigen_matrix_t<double, 3, 4>;
-  using M42 = eigen_matrix_t<double, 4, 2>;
-  using M43 = eigen_matrix_t<double, 4, 3>;
-  using M44 = eigen_matrix_t<double, 4, 4>;
-  using M55 = eigen_matrix_t<double, 5, 5>;
-
-  using Mxx = eigen_matrix_t<double, dynamic_size, dynamic_size>;
-  using M1x = eigen_matrix_t<double, 1, dynamic_size>;
-  using Mx1 = eigen_matrix_t<double, dynamic_size, 1>;
-  using M2x = eigen_matrix_t<double, 2, dynamic_size>;
-  using Mx2 = eigen_matrix_t<double, dynamic_size, 2>;
-  using M3x = eigen_matrix_t<double, 3, dynamic_size>;
-  using Mx3 = eigen_matrix_t<double, dynamic_size, 3>;
-  using Mx4 = eigen_matrix_t<double, dynamic_size, 4>;
-  using M4x = eigen_matrix_t<double, 4, dynamic_size>;
-  using M5x = eigen_matrix_t<double, 5, dynamic_size>;
-  using Mx5 = eigen_matrix_t<double, dynamic_size, 5>;
-
-  using cdouble = std::complex<double>;
-
-  using CM11 = eigen_matrix_t<cdouble, 1, 1>;
-  using CM22 = eigen_matrix_t<cdouble, 2, 2>;
-  using CM23 = eigen_matrix_t<cdouble, 2, 3>;
-  using CM32 = eigen_matrix_t<cdouble, 3, 2>;
-  using CM33 = eigen_matrix_t<cdouble, 3, 3>;
-  using CM34 = eigen_matrix_t<cdouble, 3, 4>;
-  using CM43 = eigen_matrix_t<cdouble, 4, 3>;
-
-  using CM2x = eigen_matrix_t<cdouble, 2, dynamic_size>;
-  using CMx2 = eigen_matrix_t<cdouble, dynamic_size, 2>;
-  using CMxx = eigen_matrix_t<cdouble, dynamic_size, dynamic_size>;
-
   using Axis2 = TypedIndex<Axis, Axis>;
 
   using ZA11 = ZeroAdapter<M11>;
@@ -101,7 +60,7 @@ TEST(special_matrices, ConstantAdapter_traits)
   static_assert(not constant_matrix<ConstantAdapter<M22>, CompileTimeStatus::known>);
 
   static_assert(constant_diagonal_matrix<ZA33>);
-  static_assert(not constant_diagonal_matrix<ZA31, Likelihood::maybe>);
+  static_assert(not constant_diagonal_matrix<ZA31, CompileTimeStatus::any, Likelihood::maybe>);
 
   static_assert(zero_matrix<ConstantAdapter<M22, double, 0>>);
   static_assert(zero_matrix<ConstantAdapter<Mxx, double, 0>>);
@@ -472,7 +431,7 @@ TEST(special_matrices, make_constant_matrix_like)
 
   using C534 = decltype(c534);
 
-  constexpr internal::ScalarConstant<double, 5> nd5;
+  constexpr internal::ScalarConstant<Likelihood::definitely, double, 5> nd5;
 
   EXPECT_TRUE(is_near(make_constant_matrix_like<M23>(nd5, Dimensions<2>{}, Dimensions<3>{}), M23::Constant(5)));
   EXPECT_TRUE(is_near(make_constant_matrix_like<Mxx>(nd5, Dimensions<2>{}, 3), M23::Constant(5)));
@@ -658,20 +617,14 @@ TEST(special_matrices, diagonal_of_constant)
   // Note: ConstantAdapter is only created when the constant is known at compile time.
   // dynamic one-by-one, known at compile time:
 
-  auto m1x_1 = M1x {m11};
-  auto mx1_1 = Mx1 {m11};
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-  auto mxx_11 = Mxx {m11};
-#pragma GCC diagnostic pop
-
   static_assert(square_matrix<decltype(Mxx::Identity(1, 1)), Likelihood::maybe>);
   static_assert(constant_coefficient_v<decltype(diagonal_of(M1x::Identity()))> == 1);
   static_assert(constant_coefficient_v<decltype(diagonal_of(Mx1::Identity()))> == 1);
   static_assert(constant_coefficient_v<decltype(diagonal_of(Mxx::Identity()))> == 1);
   static_assert(not has_dynamic_dimensions<decltype(diagonal_of(M1x::Identity(1, 1)))>);
   static_assert(not has_dynamic_dimensions<decltype(diagonal_of(Mx1::Identity(1, 1)))>);
-  static_assert(not has_dynamic_dimensions<decltype(diagonal_of(Mxx::Identity(1, 1)))>);
+  static_assert(dynamic_dimension<decltype(diagonal_of(Mxx::Identity(1, 1))), 0>);
+  static_assert(dimension_size_of_index_is<decltype(diagonal_of(Mxx::Identity(1, 1))), 1, 1>);
 
   auto i22 = M22::Identity();
   auto i20_2 = M2x::Identity(2, 2);
@@ -907,31 +860,63 @@ TEST(special_matrices, ConstantAdapter_equality)
 
 TEST(special_matrices, ConstantAdapter_arithmetic)
 {
-  EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} + ConstantAdapter<M22, double, 5> {}, ConstantAdapter<M22, double, 8> {}));
-  EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} - ConstantAdapter<M22, double, 5> {}, ConstantAdapter<M22, double, -2> {}));
-  EXPECT_TRUE(is_near(ConstantAdapter<M23, double, 3> {} * ConstantAdapter<M32, double, 5> {}, ConstantAdapter<M22, double, 45> {}));
-  EXPECT_TRUE(is_near(ConstantAdapter<M34, double, 4> {} * ConstantAdapter<M42, double, 7> {}, ConstantAdapter<M32, double, 112> {}));
+  EXPECT_TRUE(is_near(-ConstantAdapter<M22, double, 7> {}, ConstantAdapter<M22, double, -7> {}));
+  static_assert(constant_adapter<decltype(-ConstantAdapter<M22, double, 7> {})>);
+
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 0> {} * 2.0, ConstantAdapter<M22, double, 0> {}));
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} * -2.0, ConstantAdapter<M22, double, -6> {}));
+  static_assert(constant_adapter<decltype(ConstantAdapter<M22, double, 0> {} * 2.0)>);
+  static_assert(constant_matrix<decltype(ConstantAdapter<M22, double, 0> {} * 2.0), CompileTimeStatus::known>);
+  static_assert(constant_matrix<decltype(ConstantAdapter<M22, double, 3> {} * 2.0), CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<decltype(ConstantAdapter<M22, double, 3> {} * N2{}), CompileTimeStatus::known>);
+
   EXPECT_TRUE(is_near(3.0 * ConstantAdapter<M22, double, 0> {}, ConstantAdapter<M22, double, 0> {}));
   EXPECT_TRUE(is_near(-3.0 * ConstantAdapter<M22, double, 3> {}, ConstantAdapter<M22, double, -9> {}));
+  static_assert(constant_adapter<decltype(3.0 * ConstantAdapter<M22, double, 0> {})>);
+  static_assert(constant_matrix<decltype(3.0 * ConstantAdapter<M22, double, 0> {}), CompileTimeStatus::known>);
+  static_assert(constant_matrix<decltype(3.0 * ConstantAdapter<M22, double, 2> {}), CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<decltype(N2{} * ConstantAdapter<M22, double, 2> {}), CompileTimeStatus::known>);
+
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 0> {} / 2.0, ConstantAdapter<M22, double, 0> {}));
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 8> {} / -2.0, ConstantAdapter<M22, double, -4> {}));
-  EXPECT_TRUE(is_near(-ConstantAdapter<M22, double, 7> {}, ConstantAdapter<M22, double, -7> {}));
+  static_assert(not constant_adapter<decltype(ConstantAdapter<M22, double, 8> {} / -2.0)>);
+  static_assert(constant_matrix<decltype(ConstantAdapter<M22, double, 8> {} / -2.0)>);
 
+  EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} + ConstantAdapter<M22, double, 5> {}, ConstantAdapter<M22, double, 8> {}));
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} + M22::Constant(5), ConstantAdapter<M22, double, 8> {}));
   EXPECT_TRUE(is_near(M22::Constant(5) + ConstantAdapter<M22, double, 3> {}, ConstantAdapter<M22, double, 8> {}));
+  static_assert(constant_matrix<decltype(ConstantAdapter<M22, double, 3> {} + ConstantAdapter<M22, double, 5> {}), CompileTimeStatus::known>);
+  static_assert(not constant_adapter<decltype(ConstantAdapter<M22, double, 3> {} + ConstantAdapter<M22, double, 5> {})>);
+  static_assert(constant_matrix<decltype(M22::Constant(5) + ConstantAdapter<M22, double, 3> {}), CompileTimeStatus::unknown>);
+  static_assert(not constant_adapter<decltype(M22::Constant(5) + ConstantAdapter<M22, double, 3> {})>);
+
+  EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} - ConstantAdapter<M22, double, 5> {}, ConstantAdapter<M22, double, -2> {}));
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} - M22::Constant(5), ConstantAdapter<M22, double, -2> {}));
   EXPECT_TRUE(is_near(M22::Constant(5) - ConstantAdapter<M22, double, 3> {}, ConstantAdapter<M22, double, 2> {}));
+  static_assert(constant_matrix<decltype(ConstantAdapter<M22, double, 3> {} - ConstantAdapter<M22, double, 5> {}), CompileTimeStatus::known>);
+  static_assert(not constant_adapter<decltype(ConstantAdapter<M22, double, 3> {} - ConstantAdapter<M22, double, 5> {})>);
+  static_assert(constant_matrix<decltype(M22::Constant(5) - ConstantAdapter<M22, double, 3> {}), CompileTimeStatus::unknown>);
+  static_assert(not constant_adapter<decltype(M22::Constant(5) - ConstantAdapter<M22, double, 3> {})>);
+
+  EXPECT_TRUE(is_near(ConstantAdapter<M23, double, 3> {} * ConstantAdapter<M32, double, 5> {}, ConstantAdapter<M22, double, 45> {}));
+  EXPECT_TRUE(is_near(ConstantAdapter<M34, double, 4> {} * ConstantAdapter<M42, double, 7> {}, ConstantAdapter<M32, double, 112> {}));
   EXPECT_TRUE(is_near(ConstantAdapter<M23, double, 3> {} * M32::Constant(5), ConstantAdapter<M22, double, 45> {}));
   EXPECT_TRUE(is_near(ConstantAdapter<M34, double, 4> {} * M42::Constant(7), ConstantAdapter<M32, double, 112> {}));
   EXPECT_TRUE(is_near(M23::Constant(3) * ConstantAdapter<M32, double, 5> {}, ConstantAdapter<M22, double, 45> {}));
   EXPECT_TRUE(is_near(M34::Constant(4) * ConstantAdapter<M42, double, 7> {}, ConstantAdapter<M32, double, 112> {}));
+  static_assert(constant_matrix<decltype(ConstantAdapter<M23, double, 3> {} * ConstantAdapter<M32, double, 5> {}), CompileTimeStatus::known>);
+  static_assert(not constant_adapter<decltype(ConstantAdapter<M23, double, 3> {} * ConstantAdapter<M32, double, 5> {})>);
+  static_assert(constant_matrix<decltype(M23::Constant(3) * ConstantAdapter<M32, double, 5> {}), CompileTimeStatus::unknown>);
+  static_assert(not constant_adapter<decltype(M23::Constant(3) * ConstantAdapter<M32, double, 5> {})>);
 
   EXPECT_EQ((ConstantAdapter<M43, double, 3>{}.rows()), 4);
   EXPECT_EQ((ConstantAdapter<M43, double, 3>{}.cols()), 3);
 
   ZA00 z00 {2, 2};
+
+  EXPECT_TRUE(is_near(-z00, z00, 1e-6));
+  static_assert(zero_matrix<decltype(-z00)>);
+  static_assert(constant_adapter<decltype(-z00)>);
 
   auto m22y = make_eigen_matrix<double, 2, 2>(1, 2, 3, 4);
   EXPECT_TRUE(is_near(z00 + m22y, m22y, 1e-6));
@@ -946,9 +931,12 @@ TEST(special_matrices, ConstantAdapter_arithmetic)
   EXPECT_TRUE(is_near(z00 * m22y, z00, 1e-6));
   EXPECT_TRUE(is_near(m22y * z00, z00, 1e-6));
   EXPECT_TRUE(is_near(z00 * 2, z00, 1e-6));
+  static_assert(zero_matrix<decltype(z00 * 2)>);
+  static_assert(constant_adapter<decltype(z00 * 2)>);
   EXPECT_TRUE(is_near(2 * z00, z00, 1e-6));
+  static_assert(zero_matrix<decltype(2 * z00)>);
+  static_assert(constant_adapter<decltype(2 * z00)>);
   EXPECT_TRUE(is_near(z00 / 2, z00, 1e-6));
-  EXPECT_TRUE(is_near(-z00, z00, 1e-6));
 
   EXPECT_EQ((z00.rows()), 2);
   EXPECT_EQ((z00.cols()), 2);

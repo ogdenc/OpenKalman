@@ -135,19 +135,25 @@ TEST(eigen3, average_matrix)
   EXPECT_TRUE(is_near(average_reduce<1>(m2x_3), m21_25));
   EXPECT_TRUE(is_near(average_reduce<1>(mxx_23), m21_25));
 
-  auto i20_2 = M2x::Identity(2, 2);
-  auto i02_2 = Mx2::Identity(2, 2);
-  auto i00_22 = Mxx::Identity(2, 2);
+  auto i22 = M22::Identity();
+  auto i2x_2 = M2x::Identity(2, 2);
+  auto ix2_2 = Mx2::Identity(2, 2);
+  auto ixx_22 = Mxx::Identity(2, 2);
 
-  EXPECT_TRUE(is_near(average_reduce<1>(i20_2), M21::Constant(0.5)));
-  auto rci02_2 = average_reduce<1>(i02_2);
-  EXPECT_TRUE(is_near(rci02_2, M21::Constant(0.5)));
-  EXPECT_TRUE(is_near(average_reduce<1>(i02_2), M21::Constant(0.5)));
-  EXPECT_TRUE(is_near(average_reduce<1>(i00_22), M21::Constant(0.5)));
+  EXPECT_TRUE(is_near(average_reduce<1>(i2x_2), M21::Constant(0.5)));
+  auto rcix2_2 = average_reduce<1>(ix2_2);
+  EXPECT_TRUE(is_near(rcix2_2, M21::Constant(0.5)));
+  EXPECT_TRUE(is_near(average_reduce<1>(ix2_2), M21::Constant(0.5)));
+  EXPECT_TRUE(is_near(average_reduce<1>(ixx_22), M21::Constant(0.5)));
 
   EXPECT_TRUE(is_near(average_reduce<1>(M2x::Identity(2, 2)), M21::Constant(0.5)));
   EXPECT_TRUE(is_near(average_reduce<1>(Mx2::Identity(2, 2)), M21::Constant(0.5)));
   EXPECT_TRUE(is_near(average_reduce<1>(Mxx::Identity(2, 2)), M21::Constant(0.5)));
+
+  static_assert(average_reduce(i22) == 0.5);
+  EXPECT_EQ(average_reduce(i2x_2), 0.5);
+  EXPECT_EQ(average_reduce(ix2_2), 0.5);
+  EXPECT_EQ(average_reduce(ixx_22), 0.5);
 
   auto m13_234 = make_eigen_matrix<double, 1, 3>(2.5, 3.5, 4.5);
 

@@ -460,18 +460,18 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<Eigen3::native_eigen_dense Arg> requires (std::is_lvalue_reference_v<Arg> ==
-      std::is_lvalue_reference_v<nested_matrix_of_t<Eigen::DiagonalWrapper<std::remove_reference_t<Arg>>>>)
+    template<Eigen3::native_eigen_dense Arg> requires
+      std::is_lvalue_reference_v<nested_matrix_of_t<Eigen::DiagonalWrapper<std::remove_reference_t<Arg>>>>
 #else
-    template<typename Arg, std::enable_if_t<Eigen3::native_eigen_dense<Arg> and (std::is_lvalue_reference_v<Arg> ==
-      std::is_lvalue_reference_v<typename nested_matrix_of<Eigen::DiagonalWrapper<std::remove_reference_t<Arg>>>::type>), int> = 0>
+    template<typename Arg, std::enable_if_t<Eigen3::native_eigen_dense<Arg> and
+      std::is_lvalue_reference_v<typename nested_matrix_of<Eigen::DiagonalWrapper<std::remove_reference_t<Arg>>>::type>, int> = 0>
 #endif
     static constexpr auto
-    to_diagonal(Arg&& arg)
+    to_diagonal(Arg& arg)
     {
       if constexpr (not vector<Arg>) if (not get_is_vector(arg)) throw std::invalid_argument {
         "Argument of to_diagonal must have 1 column; instead it has " + std::to_string(get_index_dimension_of<1>(arg))};
-      return Eigen::DiagonalWrapper<std::remove_reference_t<Arg>> {std::forward<Arg>(arg)};
+      return Eigen::DiagonalWrapper<std::remove_reference_t<Arg>> {arg};
     }
 
 
@@ -819,7 +819,21 @@ namespace OpenKalman::interface
     static constexpr auto
     sum(A&& a, B&& b)
     {
-      return make_self_contained<A, B>(std::forward<A>(a) + std::forward<B>(b));
+      auto s = make_self_contained<A, B>(std::forward<A>(a) + std::forward<B>(b));
+      if constexpr ((dynamic_dimension<decltype(s), 0> and (not dynamic_dimension<A, 0> or not dynamic_dimension<B, 0>)) or
+          (dynamic_dimension<decltype(s), 1> and (not dynamic_dimension<A, 1> or not dynamic_dimension<B, 1>)))
+      {
+        using S0 = index_descriptor_of_t<decltype(s), 0>; using S1 = index_descriptor_of_t<decltype(s), 1>;
+        using A0 = index_descriptor_of_t<A, 0>; using A1 = index_descriptor_of_t<A, 1>;
+        using B0 = index_descriptor_of_t<B, 0>; using B1 = index_descriptor_of_t<B, 1>;
+
+        using R = std::conditional_t<dynamic_index_descriptor<S0>,
+          std::conditional_t<dynamic_index_descriptor<A0>, std::conditional_t<dynamic_index_descriptor<B0>, S0, B0>, A0>, S0>;
+        using C = std::conditional_t<dynamic_index_descriptor<S1>,
+          std::conditional_t<dynamic_index_descriptor<A1>, std::conditional_t<dynamic_index_descriptor<B1>, S1, B1>, A1>, S1>;
+        return internal::FixedSizeAdapter<std::decay_t<decltype(s)>, R, C> {std::move(s)};
+      }
+      else return s;
     }
 
 

@@ -150,6 +150,8 @@ namespace OpenKalman
       using difference_type = concatenate_fixed_index_descriptor_t<dimension_difference_of_t<Cs>...>;
       static constexpr bool always_euclidean = (euclidean_index_descriptor<Cs> and ...);
 
+      static constexpr bool operations_defined = true;
+
     private:
 
       // ------- Index tables ------- //

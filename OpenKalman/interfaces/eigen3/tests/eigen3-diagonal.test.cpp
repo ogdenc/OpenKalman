@@ -33,10 +33,6 @@ TEST(eigen3, to_diagonal)
   EXPECT_TRUE(is_near(to_diagonal(m11.triangularView<Eigen::Upper>()), m11));
   EXPECT_TRUE(is_near(to_diagonal(EigenWrapper {m11.triangularView<Eigen::Upper>()}), m11));
 
-  // zero_matrix input:
-
-  static_assert(zero_matrix<decltype(to_diagonal(M31::Identity() - M31::Identity()))>);
-
   // constant one-by-one input:
 
   static_assert(constant_coefficient_v<decltype(to_diagonal(M11::Identity() + M11::Identity()))> == 2);

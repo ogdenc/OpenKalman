@@ -283,7 +283,29 @@ TEST(eigen3, sum)
   auto m23b = make_dense_writable_matrix_from<M23>(7, 8, 9, 10, 11, 12);
   auto m23c = make_dense_writable_matrix_from<M23>(8, 10, 12, 14, 16, 18);
 
+  M2x m2x_3a {m23a};
+  M2x m2x_3b {m23b};
+  Mx3 mx3_2a {m23a};
+  Mx3 mx3_2b {m23b};
+  Mxx mxx_23a {m23a};
+  Mxx mxx_23b {m23b};
+
   EXPECT_TRUE(is_near(sum(m23a, m23b), m23c));
+  EXPECT_TRUE(is_near(sum(m2x_3a, mx3_2b), m23c));
+  EXPECT_TRUE(is_near(sum(mx3_2a, m2x_3b), m23c));
+  EXPECT_TRUE(is_near(sum(mxx_23a, mxx_23b), m23c));
+  static_assert(not dynamic_dimension<decltype(sum(m2x_3a, mx3_2b)), 0>);
+  static_assert(not dynamic_dimension<decltype(sum(m2x_3a, mx3_2b)), 1>);
+  static_assert(not dynamic_dimension<decltype(sum(m2x_3a, m2x_3b)), 0>);
+  static_assert(dynamic_dimension<decltype(sum(m2x_3a, m2x_3b)), 1>);
+  static_assert(dynamic_dimension<decltype(sum(mx3_2a, mx3_2b)), 0>);
+  static_assert(not dynamic_dimension<decltype(sum(mx3_2a, mx3_2b)), 1>);
+  static_assert(not dynamic_dimension<decltype(sum(mx3_2a, m2x_3b)), 0>);
+  static_assert(not dynamic_dimension<decltype(sum(mx3_2a, m2x_3b)), 1>);
+  static_assert(not dynamic_dimension<decltype(sum(mxx_23a, m23b)), 0>);
+  static_assert(not dynamic_dimension<decltype(sum(mxx_23a, m23b)), 1>);
+  static_assert(not dynamic_dimension<decltype(sum(m23a, mxx_23b)), 0>);
+  static_assert(not dynamic_dimension<decltype(sum(m23a, mxx_23b)), 1>);
 }
 
 

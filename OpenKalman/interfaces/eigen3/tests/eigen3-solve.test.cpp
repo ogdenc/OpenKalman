@@ -125,21 +125,18 @@ TEST(eigen3, solve_constant_A)
 
 TEST(eigen3, solve_one_by_one)
 {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#pragma GCC diagnostic ignored "-Wstringop-overread"
   auto m11_0 = make_dense_writable_matrix_from<M11>(0);
   auto m10_1_0 = M1x {m11_0};
   auto m01_1_0 = Mx1 {m11_0};
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
   auto m00_11_0 = Mxx {m11_0};
-#pragma GCC diagnostic pop
 
   auto m11_6 = make_dense_writable_matrix_from<M11>(6);
   auto m10_1_6 = M1x {m11_6};
   auto m01_1_6 = Mx1 {m11_6};
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
   auto m00_11_6 = Mxx {m11_6};
-#pragma GCC diagnostic pop
 
   auto inf = std::numeric_limits<double>::infinity();
 
@@ -185,10 +182,7 @@ TEST(eigen3, solve_one_by_one)
   auto m11_2 = make_dense_writable_matrix_from<M11>(2);
   auto m10_1_2 = M1x {m11_2};
   auto m01_1_2 = Mx1 {m11_2};
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
   auto m00_11_2 = Mxx {m11_2};
-#pragma GCC diagnostic pop
 
   auto m11_3 = make_dense_writable_matrix_from<M11>(3);
 
@@ -227,6 +221,7 @@ TEST(eigen3, solve_one_by_one)
   EXPECT_TRUE(is_near(solve(m00_11_2, m10_2_68), m12_34));
   EXPECT_TRUE(is_near(solve(m00_11_2, m02_1_68), m12_34));
   EXPECT_TRUE(is_near(solve(m00_11_2, m00_12_68), m12_34));
+#pragma GCC diagnostic pop
 }
 
 

@@ -180,7 +180,7 @@ namespace OpenKalman
 
 
   /**
-   * \brief Concatenate some number of math objects along one or more indices.
+   * \brief Concatenate some number of objects along one or more indices.
    * \tparam indices The indices along which the concatenation occurs. For example,
    *  - if indices is {0}, concatenation is along row index 0, and is a vertical concatenation;
    *  - if indices is {1}, concatenation is along column index 1, and is a horizontal concatenation; and

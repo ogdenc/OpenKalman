@@ -38,11 +38,11 @@ namespace OpenKalman::internal
      * \brief Default constructor.
      */
 #ifdef __cpp_concepts
-    MatrixBase() noexcept requires self_contained<NestedMatrix> and std::default_initializable<NestedMatrix>
+    constexpr MatrixBase() noexcept requires self_contained<NestedMatrix> and std::default_initializable<NestedMatrix>
 #else
     template<typename T = NestedMatrix, std::enable_if_t<self_contained<T> and
       std::is_default_constructible<NestedMatrix>::value, int> = 0>
-    MatrixBase() noexcept
+    constexpr MatrixBase() noexcept
 #endif
       : m_arg {} {}
 
@@ -58,8 +58,7 @@ namespace OpenKalman::internal
     template<typename Arg, std::enable_if_t<not std::is_base_of_v<MatrixBase, std::decay_t<Arg>> and
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
-    explicit MatrixBase(Arg&& arg) noexcept
-      : m_arg {std::forward<Arg>(arg)} {}
+    constexpr explicit MatrixBase(Arg&& arg) noexcept : m_arg {std::forward<Arg>(arg)} {}
 
 
     /** \internal
@@ -70,7 +69,7 @@ namespace OpenKalman::internal
 #else
     template<typename Arg, std::enable_if_t<not std::is_base_of_v<MatrixBase, std::decay_t<Arg>>, int> = 0>
 #endif
-    auto& operator=(Arg&& arg) noexcept
+    constexpr auto& operator=(Arg&& arg) noexcept
     {
       static_assert(not std::is_const_v<std::remove_reference_t<NestedMatrix>>, "Nested matrix cannot be modified.");
       if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>)
@@ -84,19 +83,19 @@ namespace OpenKalman::internal
     /**
      * \brief Get the nested matrix.
      */
-    decltype(auto) nested_matrix() & noexcept { return (m_arg); }
+    constexpr decltype(auto) nested_matrix() & noexcept { return (m_arg); }
 
 
     /// \overload
-    decltype(auto) nested_matrix() const & noexcept { return (m_arg); }
+    constexpr decltype(auto) nested_matrix() const & noexcept { return (m_arg); }
 
 
     /// \overload
-    decltype(auto) nested_matrix() && noexcept { return (std::move(*this).m_arg); }
+    constexpr decltype(auto) nested_matrix() && noexcept { return (std::move(*this).m_arg); }
 
 
     /// \overload
-    decltype(auto) nested_matrix() const && noexcept { return (std::move(*this).m_arg); }
+    constexpr decltype(auto) nested_matrix() const && noexcept { return (std::move(*this).m_arg); }
 
 
     /**
@@ -107,7 +106,7 @@ namespace OpenKalman::internal
      * this function returns an object that can be assigned the coefficient to be set.
      * Otherwise, it will return the (non-settable) coefficient as a value.
      */
-    auto operator()(std::size_t i, std::size_t j) &
+    constexpr auto operator()(std::size_t i, std::size_t j) &
     {
       static_assert(element_gettable<Derived&, 2>);
 
@@ -119,7 +118,7 @@ namespace OpenKalman::internal
 
 
     /// \overload
-    auto operator()(std::size_t i, std::size_t j) &&
+    constexpr auto operator()(std::size_t i, std::size_t j) &&
     {
       static_assert(element_gettable<Derived&&, 2>);
 
@@ -131,7 +130,7 @@ namespace OpenKalman::internal
 
 
     /// \overload
-    auto operator()(std::size_t i, std::size_t j) const &
+    constexpr auto operator()(std::size_t i, std::size_t j) const &
     {
       static_assert(element_gettable<const Derived&, 2>);
 
@@ -140,7 +139,7 @@ namespace OpenKalman::internal
 
 
     /// \overload
-    auto operator()(std::size_t i, std::size_t j) const &&
+    constexpr auto operator()(std::size_t i, std::size_t j) const &&
     {
       static_assert(element_gettable<const Derived&&, 2>);
 
@@ -155,7 +154,7 @@ namespace OpenKalman::internal
      * this function returns an object that can be assigned the coefficient to be set.
      * Otherwise, it will return the (non-settable) coefficient as a value.
      */
-    auto operator[](std::size_t i) &
+    constexpr auto operator[](std::size_t i) &
     {
       if constexpr (element_settable<Derived&, 1>)
         return ElementAccessor(static_cast<Derived&>(*this), i);
@@ -175,7 +174,7 @@ namespace OpenKalman::internal
 
 
     /// \overload
-    auto operator[](std::size_t i) &&
+    constexpr auto operator[](std::size_t i) &&
     {
       if constexpr (element_settable<Derived&&, 1>)
         return ElementAccessor(static_cast<Derived&&>(*this), i);
@@ -195,7 +194,7 @@ namespace OpenKalman::internal
 
 
     /// \overload
-    auto operator[](std::size_t i) const &
+    constexpr auto operator[](std::size_t i) const &
     {
       if constexpr (element_gettable<const Derived&, 1>)
         return get_element(static_cast<const Derived&>(*this), i);
@@ -208,7 +207,7 @@ namespace OpenKalman::internal
 
 
     /// \overload
-    auto operator[](std::size_t i) const &&
+    constexpr auto operator[](std::size_t i) const &&
     {
       if constexpr (element_gettable<const Derived&&, 1>)
         return get_element(static_cast<const Derived&&>(*this), i);
@@ -221,11 +220,11 @@ namespace OpenKalman::internal
 
 
     /// \overload
-    auto operator()(std::size_t i) { return operator[](i); }
+    constexpr auto operator()(std::size_t i) { return operator[](i); }
 
 
     /// \overload
-    auto operator()(std::size_t i) const { return operator[](i); }
+    constexpr auto operator()(std::size_t i) const { return operator[](i); }
 
   private:
 
