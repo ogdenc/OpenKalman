@@ -262,6 +262,10 @@ namespace OpenKalman::interface
   template<typename NestedMatrix, typename...IndexDescriptors>
   struct LibraryRoutines<internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>>
   {
+    template<typename Derived>
+    using LibraryBase = internal::library_base<Derived, NestedMatrix>;
+
+
     template<typename Scalar, typename Arg>
     static decltype(auto) convert(Arg&& arg)
     {

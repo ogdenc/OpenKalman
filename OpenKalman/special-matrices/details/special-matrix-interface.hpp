@@ -30,24 +30,28 @@ namespace OpenKalman::interface
   struct LibraryRoutines<T, std::enable_if_t<eigen_diagonal_expr<T> or eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>>>
 #endif
   {
+    template<typename Derived>
+    using LibraryBase = internal::library_base<Derived, nested_matrix_of_t<T>>;
+
+
     template<typename Scalar, typename...D>
     static auto make_default(D&&...d)
     {
-      return LibraryRoutines<std::decay_t<pattern_matrix_of_t<T>>>::template make_default<Scalar>(std::forward<D>(d)...);
+      return LibraryRoutines<std::decay_t<nested_matrix_of_t<T>>>::template make_default<Scalar>(std::forward<D>(d)...);
     }
 
 
     template<typename Scalar, typename Arg>
     static decltype(auto) convert(Arg&& arg)
     {
-      return LibraryRoutines<std::decay_t<pattern_matrix_of_t<T>>>::template convert<Scalar>(std::forward<Arg>(arg));
+      return LibraryRoutines<std::decay_t<nested_matrix_of_t<T>>>::template convert<Scalar>(std::forward<Arg>(arg));
     }
 
 
     template<typename Arg>
     static decltype(auto) to_native_matrix(Arg&& arg)
     {
-      return LibraryRoutines<std::decay_t<pattern_matrix_of_t<T>>>::to_native_matrix(std::forward<Arg>(arg));
+      return LibraryRoutines<std::decay_t<nested_matrix_of_t<T>>>::to_native_matrix(std::forward<Arg>(arg));
     }
 
 
@@ -59,21 +63,21 @@ namespace OpenKalman::interface
 #endif
     static auto make_from_elements(const std::tuple<Ds...>& d_tup, const Args ... args)
     {
-      return LibraryRoutines<std::decay_t<pattern_matrix_of_t<T>>>::template make_from_elements<Scalar>(d_tup, args...);
+      return LibraryRoutines<std::decay_t<nested_matrix_of_t<T>>>::template make_from_elements<Scalar>(d_tup, args...);
     }
 
 
     template<typename C, typename...D>
     static constexpr auto make_constant_matrix(C&& c, D&&...d)
     {
-      return make_constant_matrix_like<pattern_matrix_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
+      return make_constant_matrix_like<nested_matrix_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
     }
 
 
     template<typename Scalar, typename D>
     static constexpr auto make_identity_matrix(D&& d)
     {
-      return make_identity_matrix_like<pattern_matrix_of_t<T>, Scalar>(std::forward<D>(d));
+      return make_identity_matrix_like<nested_matrix_of_t<T>, Scalar>(std::forward<D>(d));
     }
 
 
@@ -117,8 +121,7 @@ namespace OpenKalman::interface
     to_diagonal(Arg&& arg) noexcept
     {
       // Note: the interface only needs to handle constant and dynamic-sized zero matrices.
-      using P = pattern_matrix_of_t<T>;
-      return LibraryRoutines<P>::to_diagonal(std::forward<Arg>(arg));
+      return LibraryRoutines<std::decay_t<nested_matrix_of_t<T>>>::to_diagonal(std::forward<Arg>(arg));
     }
 
 
@@ -143,8 +146,8 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     n_ary_operation(const std::tuple<Ds...>& tup, Operation&& op, Args&&...args)
     {
-      using P = pattern_matrix_of_t<T>;
-      return LibraryRoutines<P>::template n_ary_operation(tup, std::forward<Operation>(op), std::forward<Args>(args)...);
+      return LibraryRoutines<std::decay_t<nested_matrix_of_t<T>>>::template
+        n_ary_operation(tup, std::forward<Operation>(op), std::forward<Args>(args)...);
     }
 
 
@@ -152,8 +155,8 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     reduce(BinaryFunction&& b, Arg&& arg)
     {
-      using P = pattern_matrix_of_t<T>;
-      return LibraryRoutines<P>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
+      return LibraryRoutines<std::decay_t<nested_matrix_of_t<T>>>::template
+        reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
     }
 
     // to_euclidean not defined

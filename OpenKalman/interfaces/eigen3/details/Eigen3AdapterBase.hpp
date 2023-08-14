@@ -55,13 +55,13 @@ namespace OpenKalman::Eigen3
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(bool {has_dynamic_dimensions<NestedMatrix>})
 
 
-    constexpr Eigen3AdapterBase() = default;
+    Eigen3AdapterBase() = default;
 
-    constexpr Eigen3AdapterBase(const Eigen3AdapterBase&) = default;
+    Eigen3AdapterBase(const Eigen3AdapterBase&) = default;
 
-    constexpr Eigen3AdapterBase(Eigen3AdapterBase&&) = default;
+    Eigen3AdapterBase(Eigen3AdapterBase&&) = default;
 
-    constexpr ~Eigen3AdapterBase() = default;
+    ~Eigen3AdapterBase() = default;
 
     constexpr Eigen3AdapterBase& operator=(const Eigen3AdapterBase& other) { return *this; }
 

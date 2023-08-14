@@ -57,6 +57,18 @@
 #endif
 
 
+#if __cpp_lib_constexpr_cmath >= 202306L
+#define FUNCTIONISCONSTEXPRCALLABLE(F)                                                                       \
+  namespace detail                                                                                           \
+  {                                                                                                          \
+    template<typename Arg>                                                                                   \
+    constexpr auto F##_is_constexpr_callable(const Arg& arg)                                                 \
+    {                                                                                                        \
+      using std::F;                                                                                          \
+      return std::tuple {true, F(arg)};                                                                      \
+    }                                                                                                        \
+  }
+#else
 #define FUNCTIONISCONSTEXPRCALLABLE(F)                                                                       \
   namespace detail                                                                                           \
   {                                                                                                          \
@@ -91,8 +103,21 @@
       }                                                                                                      \
     }                                                                                                        \
   }
+#endif
 
 
+#if __cpp_lib_constexpr_cmath >= 202306L
+#define FUNCTIONISCONSTEXPRCALLABLE2(F)                                                                      \
+  namespace detail                                                                                           \
+  {                                                                                                          \
+    template<typename Arg>                                                                                   \
+    constexpr auto F##_is_constexpr_callable(const Arg1& arg1, const Arg2& arg2)                             \
+    {                                                                                                        \
+      using std::F;                                                                                          \
+      return std::tuple {true, F(arg1, arg2)};                                                               \
+    }                                                                                                        \
+  }
+#else
 #define FUNCTIONISCONSTEXPRCALLABLE2(F)                                                                      \
   namespace detail                                                                                           \
   {                                                                                                          \
@@ -137,6 +162,7 @@
       }                                                                                                      \
     }                                                                                                        \
   }
+#endif
 
 
 namespace OpenKalman::internal
@@ -216,15 +242,24 @@ namespace OpenKalman::internal
    * \brief A constexpr function to obtain the real part of a (complex) number.
    */
 #ifdef __cpp_concepts
-  constexpr auto constexpr_real(scalar_type auto&& arg)
+  constexpr auto constexpr_real(scalar_constant auto&& arg)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
   constexpr auto constexpr_real(T&& arg)
 #endif
   {
     using Arg = decltype(arg);
 
-    if constexpr (complex_number<Arg>)
+    if constexpr (not scalar_type<Arg>)
+    {
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_real(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+    }
+    else if constexpr (complex_number<Arg>)
     {
       using Arg_t = std::decay_t<Arg>;
 
@@ -268,16 +303,25 @@ namespace OpenKalman::internal
    * \brief A constexpr function to obtain the imaginary part of a (complex) number.
    */
 #ifdef __cpp_concepts
-  constexpr auto constexpr_imag(scalar_type auto&& arg)
+  constexpr auto constexpr_imag(scalar_constant auto&& arg)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
   constexpr auto constexpr_imag(T&& arg)
 #endif
   {
     using Arg = decltype(arg);
     using Arg_t = std::decay_t<Arg>;
 
-    if constexpr (complex_number<Arg>)
+    if constexpr (not scalar_type<Arg>)
+    {
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_imag(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+    }
+    else if constexpr (complex_number<Arg>)
     {
       auto [is_callable, ret] = detail::imag_is_constexpr_callable(arg);
       if (is_callable) return ret;
@@ -306,23 +350,38 @@ namespace OpenKalman::internal
    * \brief A constexpr function for the complex conjugate of a (complex) number.
    */
 #ifdef __cpp_concepts
-  constexpr auto constexpr_conj(scalar_type auto&& arg)
+  constexpr auto constexpr_conj(scalar_constant auto&& arg)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
   constexpr auto constexpr_conj(T&& arg)
 #endif
   {
-    auto [is_callable, ret] = detail::conj_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
+    using Arg = decltype(arg);
 
-    if constexpr (complex_number<Scalar>)
+    if constexpr (not scalar_type<Arg>)
     {
-      return make_complex_number<Scalar>(constexpr_real(arg), -constexpr_imag(arg));
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_conj(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
-      return make_complex_number(constexpr_real(arg), -constexpr_imag(arg));
+      auto [is_callable, ret] = detail::conj_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
+
+      if constexpr (complex_number<Scalar>)
+      {
+        return make_complex_number<Scalar>(constexpr_real(arg), -constexpr_imag(arg));
+      }
+      else
+      {
+        static_assert(not complex_number<Arg>);
+        return std::forward<Arg>(arg);
+      }
     }
   }
 
@@ -377,18 +436,32 @@ namespace OpenKalman::internal
    * \brief A constexpr function for signbit.
    */
 #ifdef __cpp_concepts
-  constexpr bool constexpr_signbit(scalar_type auto&& arg) requires (not complex_number<decltype(arg)>)
+  constexpr auto constexpr_signbit(scalar_constant auto&& arg) requires (not complex_number<decltype(get_scalar_constant_value(arg))>)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T> and not complex_number<T>, int> = 0>
-  constexpr bool constexpr_signbit(T&& arg)
+  template <typename T, std::enable_if_t<scalar_constant<T> and not complex_number<decltype(get_scalar_constant_value(std::declval<T>()))>, int> = 0>
+  constexpr auto constexpr_signbit(T&& arg)
 #endif
   {
-    auto [is_callable, ret] = detail::signbit_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-    static_assert(std::is_same_v<Scalar, bool>, "signbit function must return bool");
+    using Arg = decltype(arg);
 
-    return arg < 0;
+    if constexpr (not scalar_type<Arg>)
+    {
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_signbit(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+    }
+    else
+    {
+      auto [is_callable, ret] = detail::signbit_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
+      static_assert(std::is_same_v<Scalar, bool>, "signbit function must return bool");
+
+      return arg < 0;
+    }
   }
 
 
@@ -399,23 +472,40 @@ namespace OpenKalman::internal
    * \brief A constexpr function for copysign.
    */
 #ifdef __cpp_concepts
-  template<scalar_type Mag, scalar_type Sgn> requires (not complex_number<Mag>) and (not complex_number<Sgn>) and
-    (std::same_as<std::decay_t<Mag>, std::decay_t<Sgn>> or
-      (std::numeric_limits<std::decay_t<Mag>>::is_integer and std::numeric_limits<std::decay_t<Sgn>>::is_integer))
+  template<scalar_constant Mag, scalar_constant Sgn> requires
+    (not complex_number<decltype(get_scalar_constant_value(std::declval<Mag>()))>) and
+    (not complex_number<decltype(get_scalar_constant_value(std::declval<Sgn>()))>) and
+    (std::same_as<std::decay_t<decltype(get_scalar_constant_value(std::declval<Mag>()))>, std::decay_t<decltype(get_scalar_constant_value(std::declval<Sgn>()))>> or
+      (std::numeric_limits<std::decay_t<decltype(get_scalar_constant_value(std::declval<Mag>()))>>::is_integer and
+        std::numeric_limits<std::decay_t<decltype(get_scalar_constant_value(std::declval<Sgn>()))>>::is_integer))
 #else
-  template <typename Mag, typename Sgn, std::enable_if_t<scalar_type<Mag> and scalar_type<Sgn> and
-    not complex_number<Mag> and not complex_number<Sgn> and
-    (std::is_same_v<std::decay_t<Mag>, std::decay_t<Sgn>> or
-      (std::numeric_limits<std::decay_t<Mag>>::is_integer and std::numeric_limits<std::decay_t<Sgn>>::is_integer)), int> = 0>
+  template <typename Mag, typename Sgn, std::enable_if_t<scalar_constant<Mag> and scalar_constant<Sgn> and
+    not complex_number<decltype(get_scalar_constant_value(std::declval<Sgn>()))> and not complex_number<decltype(get_scalar_constant_value(std::declval<Sgn>()))> and
+    (std::is_same_v<std::decay_t<decltype(get_scalar_constant_value(std::declval<Sgn>()))>, std::decay_t<decltype(get_scalar_constant_value(std::declval<Sgn>()))>> or
+      (std::numeric_limits<std::decay_t<decltype(get_scalar_constant_value(std::declval<Sgn>()))>>::is_integer and
+        std::numeric_limits<std::decay_t<decltype(get_scalar_constant_value(std::declval<Sgn>()))>>::is_integer)), int> = 0>
 #endif
   constexpr auto constexpr_copysign(Mag&& mag, Sgn&& sgn)
   {
-    auto [is_callable, ret] = detail::copysign_is_constexpr_callable(mag, sgn);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
+    if constexpr (not scalar_type<Mag> or not scalar_type<Sgn>)
+    {
+      struct Op
+      {
+        using M = std::decay_t<decltype(get_scalar_constant_value(mag))>;
+        using S = std::decay_t<decltype(get_scalar_constant_value(sgn))>;
+        constexpr auto operator()(const M& m, const S& s) const { return constexpr_copysign(m, s); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Mag>(mag), std::forward<Sgn>(sgn)};
+    }
+    else
+    {
+      auto [is_callable, ret] = detail::copysign_is_constexpr_callable(mag, sgn);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
 
-    Scalar x = detail::convert_to_output<Scalar>(mag);
-    return constexpr_signbit(x) == constexpr_signbit(sgn) ? x : -x;
+      Scalar x = detail::convert_to_output<Scalar>(mag);
+      return constexpr_signbit(x) == constexpr_signbit(sgn) ? x : -x;
+    }
   }
 
 
@@ -430,60 +520,72 @@ namespace OpenKalman::internal
    * \return The square root of x.
    */
 #ifdef __cpp_concepts
-  constexpr auto constexpr_sqrt(scalar_type auto&& arg)
+  constexpr auto constexpr_sqrt(scalar_constant auto&& arg)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
   constexpr auto constexpr_sqrt(T&& arg)
 #endif
   {
     using Arg = decltype(arg);
 
-    auto [is_callable, ret] = detail::sqrt_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-
-    if (arg != arg) return constexpr_NaN<Scalar>();
-
-    if constexpr (complex_number<Scalar>)
+    if constexpr (not scalar_type<Arg>)
     {
-      // Find the principal square root
-      auto a {detail::convert_to_floating(constexpr_real(arg))};
-      auto b {detail::convert_to_floating(constexpr_imag(arg))};
-      using R = std::decay_t<decltype(a)>;
-      auto nx = constexpr_sqrt(a * a + b * b);
-      auto sqp = constexpr_sqrt(R{0.5} * (nx + a));
-      auto sqm = constexpr_sqrt(R{0.5} * (nx - a));
-      return make_complex_number<Scalar>(sqp, b >= R{0} ? sqm : -sqm);
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_sqrt(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
-      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+      auto [is_callable, ret] = detail::sqrt_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
 
-      if (x <= Scalar{0})
+      if (arg != arg) return constexpr_NaN<Scalar>();
+
+      if constexpr (complex_number<Scalar>)
       {
-        if (x == Scalar{0}) return x;
-        else return constexpr_NaN<Scalar>();
+        // Find the principal square root
+        auto a{detail::convert_to_floating(constexpr_real(arg))};
+        auto b{detail::convert_to_floating(constexpr_imag(arg))};
+        using R = std::decay_t<decltype(a)>;
+        auto nx = constexpr_sqrt(a * a + b * b);
+        auto sqp = constexpr_sqrt(R{0.5} * (nx + a));
+        auto sqm = constexpr_sqrt(R{0.5} * (nx - a));
+        return make_complex_number<Scalar>(sqp, b >= R{0} ? sqm : -sqm);
       }
       else
       {
-        if constexpr (std::numeric_limits<Scalar>::has_infinity)
-          if (x == std::numeric_limits<Scalar>::infinity()) return std::numeric_limits<Scalar>::infinity();
+        decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
-        Scalar next {Scalar{0.5} * x};
-        Scalar previous {0};
-        while (next != previous)
+        if (x <= Scalar{0})
         {
-          previous = next;
-          next = Scalar{0.5} * (previous + x / previous);
+          if (x == Scalar{0}) return x;
+          else return constexpr_NaN<Scalar>();
         }
-        return next;
-      }
-    }
+        else
+        {
+          if constexpr (std::numeric_limits<Scalar>::has_infinity)
+            if (x == std::numeric_limits<Scalar>::infinity()) return std::numeric_limits<Scalar>::infinity();
 
-    /** // Code for a purely integral version:
-    T lo = 0 , hi = x / 2 + 1;
-    while (lo != hi) { const T mid = (lo + hi + 1) / 2; if (x / mid < mid) hi = mid - 1; else lo = mid; }
-    return lo;*/
+          Scalar next{Scalar{0.5} * x};
+          Scalar previous{0};
+          while (next != previous)
+          {
+            previous = next;
+            next = Scalar{0.5} * (previous + x / previous);
+          }
+          return next;
+        }
+      }
+
+      /** // Code for a purely integral version:
+      T lo = 0 , hi = x / 2 + 1;
+      while (lo != hi) { const T mid = (lo + hi + 1) / 2; if (x / mid < mid) hi = mid - 1; else lo = mid; }
+      return lo;*/
+    }
   }
 
 
@@ -494,35 +596,49 @@ namespace OpenKalman::internal
    * \brief A constexpr function for the absolute value.
    */
 #ifdef __cpp_concepts
-  constexpr auto constexpr_abs(scalar_type auto&& arg)
+  constexpr auto constexpr_abs(scalar_constant auto&& arg)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
   constexpr auto constexpr_abs(T&& arg)
 #endif
   {
-    auto [is_callable, ret] = detail::abs_is_constexpr_callable(arg);
-    using Scalar = std::decay_t<decltype(ret)>;
+    using Arg = decltype(arg);
 
-    if constexpr (complex_number<Scalar>)
+    if constexpr (not scalar_type<Arg>)
     {
-      auto re {detail::convert_to_floating(constexpr_real(arg))};
-      auto im {detail::convert_to_floating(constexpr_imag(arg))};
-      using R = std::decay_t<decltype(constexpr_real(arg))>;
-      return detail::convert_to_output<R>(constexpr_sqrt(re*re + im*im));
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_abs(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
-      if (is_callable) return ret;
-      else if constexpr (complex_number<decltype(arg)>)
+      auto [is_callable, ret] = detail::abs_is_constexpr_callable(arg);
+      using Scalar = std::decay_t<decltype(ret)>;
+
+      if constexpr (complex_number<Scalar>)
       {
-        auto re {constexpr_real(arg)};
-        auto im {constexpr_imag(arg)};
-        return detail::convert_to_output<Scalar>(constexpr_sqrt(re*re + im*im));
+        auto re{detail::convert_to_floating(constexpr_real(arg))};
+        auto im{detail::convert_to_floating(constexpr_imag(arg))};
+        using R = std::decay_t<decltype(constexpr_real(arg))>;
+        return detail::convert_to_output<R>(constexpr_sqrt(re * re + im * im));
       }
       else
       {
-        auto x = detail::convert_to_output<Scalar>(arg);
-        return constexpr_signbit(arg) ? -x : x;
+        if (is_callable) return ret;
+        else if constexpr (complex_number<decltype(arg)>)
+        {
+          auto re{constexpr_real(arg)};
+          auto im{constexpr_imag(arg)};
+          return detail::convert_to_output<Scalar>(constexpr_sqrt(re * re + im * im));
+        }
+        else
+        {
+          auto x = detail::convert_to_output<Scalar>(arg);
+          return constexpr_signbit(arg) ? -x : x;
+        }
       }
     }
   }
@@ -587,9 +703,9 @@ namespace OpenKalman::internal
       constexpr auto e = numbers::e_v<Scalar>;
       if (x == T{0}) return Scalar{1};
       else if (x == T{1}) return e;
-      else if (x < T{0}) return Scalar{1} / integral_exp<Scalar>(-std::forward<T>(x));
-      else if (x % T{2} == T{1}) return e * integral_exp<Scalar>(std::forward<T>(x) - T{1}); //< odd
-      else { auto ehalf {integral_exp<Scalar>(std::forward<T>(x) / T{2})}; return ehalf * ehalf; } //< even
+      else if (x < T{0}) return Scalar{1} / integral_exp<Scalar>(-std::forward<X>(x));
+      else if (x % T{2} == T{1}) return e * integral_exp<Scalar>(std::forward<X>(x) - T{1}); //< odd
+      else { auto ehalf {integral_exp<Scalar>(std::forward<X>(x) / T{2})}; return ehalf * ehalf; } //< even
     }
   } // detail
 
@@ -602,57 +718,69 @@ namespace OpenKalman::internal
    * \details Thus uses a Maclaurin series expansion For floating-point values, or multiplication for integral values.
    */
 #ifdef __cpp_concepts
-  constexpr auto constexpr_exp(scalar_type auto&& arg)
+  constexpr auto constexpr_exp(scalar_constant auto&& arg)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
   constexpr auto constexpr_exp(T&& arg)
 #endif
   {
     using Arg = decltype(arg);
 
-    auto [is_callable, ret] = detail::exp_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-
-    if (arg != arg) return constexpr_NaN<Scalar>();
-
-    if constexpr (std::numeric_limits<std::decay_t<Arg>>::is_integer)
+    if constexpr (not scalar_type<Arg>)
     {
-      return detail::integral_exp<Scalar>(std::forward<Arg>(arg));
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_exp(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
-      if constexpr (complex_number<Scalar>)
+      auto [is_callable, ret] = detail::exp_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
+
+      if (arg != arg) return constexpr_NaN<Scalar>();
+
+      if constexpr (std::numeric_limits<std::decay_t<Arg>>::is_integer)
       {
-        auto ea = constexpr_exp(constexpr_real(arg));
-        auto b = detail::convert_to_floating(constexpr_imag(arg));
-        using Rb = std::decay_t<decltype(b)>;
-
-        if constexpr (std::numeric_limits<Rb>::has_infinity)
-          if (b == std::numeric_limits<Rb>::infinity() or b == -std::numeric_limits<Rb>::infinity())
-            return constexpr_NaN<Scalar>();
-
-        auto theta {detail::scale_periodic_function(std::move(b))};
-        auto sinb = detail::sin_cos_impl<Rb>(4, theta, theta, theta * theta * theta / Rb{-6.0});
-        auto cosb = detail::sin_cos_impl<Rb>(3, theta, Rb{1}, Rb{-0.5} * theta * theta);
-        return make_complex_number<Scalar>(ea * cosb, ea * sinb);
+        return detail::integral_exp<Scalar>(std::forward<Arg>(arg));
       }
       else
       {
-        decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
-
-        if constexpr (std::numeric_limits<Scalar>::has_infinity)
+        if constexpr (complex_number<Scalar>)
         {
-          if (x == std::numeric_limits<Scalar>::infinity()) return constexpr_infinity<Scalar>();
-          else if (x == -std::numeric_limits<Scalar>::infinity()) return Scalar{0};
-        }
+          auto ea = constexpr_exp(constexpr_real(arg));
+          auto b = detail::convert_to_floating(constexpr_imag(arg));
+          using Rb = std::decay_t<decltype(b)>;
 
-        if (x >= Scalar{0} and x < Scalar{1}) return detail::exp_impl<Scalar>(1, x, Scalar{1}, x);
+          if constexpr (std::numeric_limits<Rb>::has_infinity)
+            if (b == std::numeric_limits<Rb>::infinity() or b == -std::numeric_limits<Rb>::infinity())
+              return constexpr_NaN<Scalar>();
+
+          auto theta{detail::scale_periodic_function(std::move(b))};
+          auto sinb = detail::sin_cos_impl<Rb>(4, theta, theta, theta * theta * theta / Rb{-6.0});
+          auto cosb = detail::sin_cos_impl<Rb>(3, theta, Rb{1}, Rb{-0.5} * theta * theta);
+          return make_complex_number<Scalar>(ea * cosb, ea * sinb);
+        }
         else
         {
-          int x_trunc = static_cast<int>(x) - (x < Scalar{0} ? 1 : 0);
-          Scalar x_frac {x - static_cast<Scalar>(x_trunc)};
-          return detail::integral_exp<Scalar>(x_trunc) * detail::exp_impl<Scalar>(1, x_frac, Scalar{1}, x_frac);
+          decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+
+          if constexpr (std::numeric_limits<Scalar>::has_infinity)
+          {
+            if (x == std::numeric_limits<Scalar>::infinity()) return constexpr_infinity<Scalar>();
+            else if (x == -std::numeric_limits<Scalar>::infinity()) return Scalar{0};
+          }
+
+          if (x >= Scalar{0} and x < Scalar{1}) return detail::exp_impl<Scalar>(1, x, Scalar{1}, x);
+          else
+          {
+            int x_trunc = static_cast<int>(x) - (x < Scalar{0} ? 1 : 0);
+            Scalar x_frac{x - static_cast<Scalar>(x_trunc)};
+            return detail::integral_exp<Scalar>(x_trunc) * detail::exp_impl<Scalar>(1, x_frac, Scalar{1}, x_frac);
+          }
         }
       }
     }
@@ -667,63 +795,75 @@ namespace OpenKalman::internal
    * \details Thus uses a Maclaurin series expansion For floating-point values, or multiplication for integral values.
    */
 #ifdef __cpp_concepts
-  constexpr auto constexpr_expm1(scalar_type auto&& arg)
+  constexpr auto constexpr_expm1(scalar_constant auto&& arg)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
   constexpr auto constexpr_expm1(T&& arg)
 #endif
   {
     using Arg = decltype(arg);
 
-    auto [is_callable, ret] = detail::expm1_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-
-    if (arg != arg) return constexpr_NaN<Scalar>();
-
-    if constexpr (std::numeric_limits<std::decay_t<Arg>>::is_integer)
+    if constexpr (not scalar_type<Arg>)
     {
-      return detail::integral_exp<Scalar>(std::forward<Arg>(arg)) - Scalar{1};
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_expm1(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
-      if constexpr (complex_number<Scalar>)
+      auto [is_callable, ret] = detail::expm1_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
+
+      if (arg != arg) return constexpr_NaN<Scalar>();
+
+      if constexpr (std::numeric_limits<std::decay_t<Arg>>::is_integer)
       {
-        auto ea = constexpr_expm1(constexpr_real(arg));
-        auto b = detail::convert_to_floating(constexpr_imag(arg));
-        using Rb = std::decay_t<decltype(b)>;
-
-        if constexpr (std::numeric_limits<Rb>::has_infinity)
-          if (b == std::numeric_limits<Rb>::infinity() or b == -std::numeric_limits<Rb>::infinity())
-            return constexpr_NaN<Scalar>();
-
-        auto theta {detail::scale_periodic_function(std::move(b))};
-        auto sinb = detail::sin_cos_impl<Rb>(4, theta, theta, theta * theta * theta / Rb{-6.0});
-        auto cosbm1 = detail::sin_cos_impl<Rb>(3, theta, Rb{0}, Rb{-0.5} * theta * theta);
-        return make_complex_number<Scalar>(ea * (cosbm1 + Rb{1}) + cosbm1, ea * sinb + sinb);
+        return detail::integral_exp<Scalar>(std::forward<Arg>(arg)) - Scalar{1};
       }
       else
       {
-        decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
-
-        if constexpr (std::numeric_limits<Scalar>::has_infinity)
+        if constexpr (complex_number<Scalar>)
         {
-          if (x == std::numeric_limits<Scalar>::infinity()) return constexpr_infinity<Scalar>();
-          else if (x == -std::numeric_limits<Scalar>::infinity()) return Scalar{-1};
-        }
+          auto ea = constexpr_expm1(constexpr_real(arg));
+          auto b = detail::convert_to_floating(constexpr_imag(arg));
+          using Rb = std::decay_t<decltype(b)>;
 
-        if (x >= Scalar{0} and x < Scalar{1})
-        {
-          if (x == Scalar{0}) return x;
-          else return detail::exp_impl<Scalar>(1, x, Scalar{0}, x);
+          if constexpr (std::numeric_limits<Rb>::has_infinity)
+            if (b == std::numeric_limits<Rb>::infinity() or b == -std::numeric_limits<Rb>::infinity())
+              return constexpr_NaN<Scalar>();
+
+          auto theta{detail::scale_periodic_function(std::move(b))};
+          auto sinb = detail::sin_cos_impl<Rb>(4, theta, theta, theta * theta * theta / Rb{-6.0});
+          auto cosbm1 = detail::sin_cos_impl<Rb>(3, theta, Rb{0}, Rb{-0.5} * theta * theta);
+          return make_complex_number<Scalar>(ea * (cosbm1 + Rb{1}) + cosbm1, ea * sinb + sinb);
         }
         else
         {
-          int x_trunc = static_cast<int>(x) - (x < Scalar{0} ? 1 : 0);
-          Scalar x_frac = x - static_cast<Scalar>(x_trunc);
-          auto et = detail::integral_exp<Scalar>(x_trunc) - Scalar{1};
-          auto er = detail::exp_impl<Scalar>(1, x_frac, Scalar{0}, x_frac);
-          return et * er + et + er;
+          decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+
+          if constexpr (std::numeric_limits<Scalar>::has_infinity)
+          {
+            if (x == std::numeric_limits<Scalar>::infinity()) return constexpr_infinity<Scalar>();
+            else if (x == -std::numeric_limits<Scalar>::infinity()) return Scalar{-1};
+          }
+
+          if (x >= Scalar{0} and x < Scalar{1})
+          {
+            if (x == Scalar{0}) return x;
+            else return detail::exp_impl<Scalar>(1, x, Scalar{0}, x);
+          }
+          else
+          {
+            int x_trunc = static_cast<int>(x) - (x < Scalar{0} ? 1 : 0);
+            Scalar x_frac = x - static_cast<Scalar>(x_trunc);
+            auto et = detail::integral_exp<Scalar>(x_trunc) - Scalar{1};
+            auto er = detail::exp_impl<Scalar>(1, x_frac, Scalar{0}, x_frac);
+            return et * er + et + er;
+          }
         }
       }
     }
@@ -737,34 +877,67 @@ namespace OpenKalman::internal
    * \brief Hyperbolic sine.
    */
 #ifdef __cpp_concepts
-  constexpr auto constexpr_sinh(scalar_type auto&& arg)
+  constexpr auto constexpr_sinh(scalar_constant auto&& arg)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
   constexpr auto constexpr_sinh(T&& arg)
 #endif
   {
     using Arg = decltype(arg);
 
-    auto [is_callable, ret] = detail::sinh_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-
-    if (arg != arg) return constexpr_NaN<Scalar>();
-
-    decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
-
-    if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
+    if constexpr (not scalar_type<Arg>)
     {
-      if (x == std::numeric_limits<Scalar>::infinity()) return constexpr_infinity<Scalar>();
-      else if (x == -std::numeric_limits<Scalar>::infinity()) return -constexpr_infinity<Scalar>();
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_sinh(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
-
-    if (x == Scalar{0}) return x;
     else
     {
-      decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
-      using Xf = std::decay_t<decltype(xf)>;
-      return detail::convert_to_output<Scalar>((constexpr_exp(xf) - constexpr_exp(-xf)) * Xf{0.5});
+      auto [is_callable, ret] = detail::sinh_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
+
+      if (arg != arg) return constexpr_NaN<Scalar>();
+
+      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+
+      if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
+      {
+        if (x == std::numeric_limits<Scalar>::infinity()) return constexpr_infinity<Scalar>();
+        else if (x == -std::numeric_limits<Scalar>::infinity()) return -constexpr_infinity<Scalar>();
+      }
+
+      if (x == Scalar{0}) return x;
+      else
+      {
+        decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
+        using Xf = std::decay_t<decltype(xf)>;
+        auto ex = constexpr_exp(std::forward<decltype(xf)>(xf));
+
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 16)
+        return detail::convert_to_output<Scalar>((ex - Xf{1}/ex) * Xf{0.5});
+#else
+        if constexpr (complex_number<Scalar>)
+        {
+          using R = std::decay_t<decltype(constexpr_real(xf))>;
+          auto exr = constexpr_real(ex);
+          auto exi = constexpr_imag(ex);
+          if (exi == 0) return detail::convert_to_output<Scalar>((exr - R{1}/exr) * R{0.5});
+          else
+          {
+            auto denom1 = R(1) / (exr*exr + exi*exi);
+            return make_complex_number<Scalar>(R{0.5} * exr * (1 - denom1), R{0.5} * exi * (1 + denom1));
+          }
+        }
+        else
+        {
+          return detail::convert_to_output<Scalar>((ex - Xf{1}/ex) * Xf{0.5});
+        }
+#endif
+      }
     }
   }
 
@@ -776,29 +949,62 @@ namespace OpenKalman::internal
    * \brief Hyperbolic cosine.
    */
 #ifdef __cpp_concepts
-  constexpr auto constexpr_cosh(scalar_type auto&& arg)
+  constexpr auto constexpr_cosh(scalar_constant auto&& arg)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
   constexpr auto constexpr_cosh(T&& arg)
 #endif
   {
     using Arg = decltype(arg);
 
-    auto [is_callable, ret] = detail::cosh_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
+    if constexpr (not scalar_type<Arg>)
+    {
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_cosh(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+    }
+    else
+    {
+      auto [is_callable, ret] = detail::cosh_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
 
-    if (arg != arg) return constexpr_NaN<Scalar>();
+      if (arg != arg) return constexpr_NaN<Scalar>();
 
-    decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
-    if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
-      if (x == std::numeric_limits<Scalar>::infinity() or x == -std::numeric_limits<Scalar>::infinity())
-        return std::numeric_limits<Scalar>::infinity();
+      if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
+        if (x == std::numeric_limits<Scalar>::infinity() or x == -std::numeric_limits<Scalar>::infinity())
+          return std::numeric_limits<Scalar>::infinity();
 
-    decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
-    using Xf = std::decay_t<decltype(xf)>;
-    return detail::convert_to_output<Scalar>((constexpr_exp(xf) + constexpr_exp(-xf)) * Xf{0.5});
+      decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
+      using Xf = std::decay_t<decltype(xf)>;
+      auto ex = constexpr_exp(std::forward<decltype(xf)>(xf));
+
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 16)
+      return detail::convert_to_output<Scalar>((ex + Xf{1}/ex) * Xf{0.5});
+#else
+      if constexpr (complex_number<Scalar>)
+      {
+        using R = std::decay_t<decltype(constexpr_real(xf))>;
+        auto exr = constexpr_real(ex);
+        auto exi = constexpr_imag(ex);
+        if (exi == 0) return detail::convert_to_output<Scalar>((exr + R{1}/exr) * R{0.5});
+        else
+        {
+          auto denom1 = R(1) / (exr*exr + exi*exi);
+          return make_complex_number<Scalar>(R{0.5} * exr * (1 + denom1), R{0.5} * exi * (1 - denom1));
+        }
+      }
+      else
+      {
+        return detail::convert_to_output<Scalar>((ex + Xf{1}/ex) * Xf{0.5});
+      }
+#endif
+    }
   }
 
 
@@ -809,35 +1015,66 @@ namespace OpenKalman::internal
    * \brief Hyperbolic tangent.
    */
 #ifdef __cpp_concepts
-  constexpr auto constexpr_tanh(scalar_type auto&& arg)
+  constexpr auto constexpr_tanh(scalar_constant auto&& arg)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
   constexpr auto constexpr_tanh(T&& arg)
 #endif
   {
     using Arg = decltype(arg);
 
-    auto [is_callable, ret] = detail::tanh_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-
-    if (arg != arg) return constexpr_NaN<Scalar>();
-
-    decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
-
-    if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
+    if constexpr (not scalar_type<Arg>)
     {
-      if (x == std::numeric_limits<Scalar>::infinity()) return Scalar{1};
-      else if (x == -std::numeric_limits<Scalar>::infinity()) return Scalar{-1};
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_tanh(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
-
-    if (x == Scalar{0}) return x;
     else
     {
-      decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
-      auto em = constexpr_exp(-xf);
-      auto e = constexpr_exp(std::forward<decltype(xf)>(xf));
-      return detail::convert_to_output<Scalar>((e - em) / (e + em));
+      auto [is_callable, ret] = detail::tanh_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
+
+      if (arg != arg) return constexpr_NaN<Scalar>();
+
+      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+
+      if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
+      {
+        if (x == std::numeric_limits<Scalar>::infinity()) return Scalar{1};
+        else if (x == -std::numeric_limits<Scalar>::infinity()) return Scalar{-1};
+      }
+
+      if (x == Scalar{0}) return x;
+      else
+      {
+        decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
+        using Xf = std::decay_t<decltype(xf)>;
+        auto ex = constexpr_exp(std::forward<decltype(xf)>(xf));
+
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 16)
+        auto ex2 = ex * ex;
+        return detail::convert_to_output<Scalar>((ex2 - Xf{1}) / (ex2 + Xf{1}));
+#else
+        if constexpr (complex_number<Scalar>)
+        {
+          auto er = constexpr_real(ex);
+          auto ei = constexpr_imag(ex);
+          auto d = er*er - ei*ei;
+          auto b = 2*er*ei;
+          auto denom = d*d + b*b + 2*d + 1;
+          return make_complex_number<Scalar>((d*d + b*b - 1) / denom, 2 * b / denom);
+        }
+        else
+        {
+          auto ex2 = ex * ex;
+          return detail::convert_to_output<Scalar>((ex2 - Xf{1}) / (ex2 + Xf{1}));
+        }
+#endif
+      }
     }
   }
 
@@ -845,45 +1082,57 @@ namespace OpenKalman::internal
   FUNCTIONISCONSTEXPRCALLABLE(sin)
 
 #ifdef __cpp_concepts
-  constexpr auto constexpr_sin(scalar_type auto&& arg)
+  constexpr auto constexpr_sin(scalar_constant auto&& arg)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
   constexpr auto constexpr_sin(T&& arg)
 #endif
   {
     using Arg = decltype(arg);
 
-    auto [is_callable, ret] = detail::sin_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-
-    if (arg != arg) return constexpr_NaN<Scalar>();
-
-    if constexpr (complex_number<Scalar>)
+    if constexpr (not scalar_type<Arg>)
     {
-      auto re = detail::convert_to_floating(constexpr_real(arg));
-      auto im = detail::convert_to_floating(constexpr_imag(arg));
-      using Re = std::decay_t<decltype(re)>;
-
-      if constexpr (std::numeric_limits<Re>::has_infinity)
-        if (re == std::numeric_limits<Re>::infinity() or re == -std::numeric_limits<Re>::infinity())
-          return constexpr_NaN<Scalar>();
-
-      auto theta {detail::scale_periodic_function(std::move(re))};
-      auto sinre = detail::sin_cos_impl<Re>(4, theta, theta, theta * theta * theta / Re{-6.0});
-      auto cosre = detail::sin_cos_impl<Re>(3, theta, Re{1}, Re{-0.5} * theta * theta);
-      return make_complex_number<Scalar>(sinre * constexpr_cosh(im), cosre * constexpr_sinh(im));
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_sin(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
-      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+      auto [is_callable, ret] = detail::sin_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
 
-      if constexpr (std::numeric_limits<Scalar>::has_infinity)
-        if (x == std::numeric_limits<Scalar>::infinity() or x == -std::numeric_limits<Scalar>::infinity())
-          return constexpr_NaN<Scalar>();
+      if (arg != arg) return constexpr_NaN<Scalar>();
 
-      auto theta {detail::scale_periodic_function(std::move(x))};
-      return detail::sin_cos_impl<Scalar>(4, theta, theta, theta * theta * theta / Scalar{-6.0});
+      if constexpr (complex_number<Scalar>)
+      {
+        auto re = detail::convert_to_floating(constexpr_real(arg));
+        auto im = detail::convert_to_floating(constexpr_imag(arg));
+        using Re = std::decay_t<decltype(re)>;
+
+        if constexpr (std::numeric_limits<Re>::has_infinity)
+          if (re == std::numeric_limits<Re>::infinity() or re == -std::numeric_limits<Re>::infinity())
+            return constexpr_NaN<Scalar>();
+
+        auto theta{detail::scale_periodic_function(std::move(re))};
+        auto sinre = detail::sin_cos_impl<Re>(4, theta, theta, theta * theta * theta / Re{-6.0});
+        auto cosre = detail::sin_cos_impl<Re>(3, theta, Re{1}, Re{-0.5} * theta * theta);
+        return make_complex_number<Scalar>(sinre * constexpr_cosh(im), cosre * constexpr_sinh(im));
+      }
+      else
+      {
+        decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+
+        if constexpr (std::numeric_limits<Scalar>::has_infinity)
+          if (x == std::numeric_limits<Scalar>::infinity() or x == -std::numeric_limits<Scalar>::infinity())
+            return constexpr_NaN<Scalar>();
+
+        auto theta{detail::scale_periodic_function(std::move(x))};
+        return detail::sin_cos_impl<Scalar>(4, theta, theta, theta * theta * theta / Scalar{-6.0});
+      }
     }
   }
 
@@ -891,45 +1140,57 @@ namespace OpenKalman::internal
   FUNCTIONISCONSTEXPRCALLABLE(cos)
 
 #ifdef __cpp_concepts
-  constexpr auto constexpr_cos(scalar_type auto&& arg)
+  constexpr auto constexpr_cos(scalar_constant auto&& arg)
 #else
   template <typename T>
-  constexpr auto constexpr_cos(T&& arg, std::enable_if_t<scalar_type<T>, int> = 0)
+  constexpr auto constexpr_cos(T&& arg, std::enable_if_t<scalar_constant<T>, int> = 0)
 #endif
   {
     using Arg = decltype(arg);
 
-    auto [is_callable, ret] = detail::cos_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-
-    if (arg != arg) return constexpr_NaN<Scalar>();
-
-    if constexpr (complex_number<Scalar>)
+    if constexpr (not scalar_type<Arg>)
     {
-      auto re = detail::convert_to_floating(constexpr_real(arg));
-      auto im = detail::convert_to_floating(constexpr_imag(arg));
-      using Re = std::decay_t<decltype(re)>;
-
-      if constexpr (std::numeric_limits<Re>::has_infinity)
-        if (re == std::numeric_limits<Re>::infinity() or re == -std::numeric_limits<Re>::infinity())
-          return constexpr_NaN<Scalar>();
-
-      auto theta {detail::scale_periodic_function(std::move(re))};
-      auto sinre = detail::sin_cos_impl<Re>(4, theta, theta, theta * theta * theta / Re{-6.0});
-      auto cosre = detail::sin_cos_impl<Re>(3, theta, Re{1}, Re{-0.5} * theta * theta);
-      return make_complex_number<Scalar>(cosre * constexpr_cosh(im), -sinre * constexpr_sinh(im));
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_cos(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
-      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+      auto [is_callable, ret] = detail::cos_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
 
-      if constexpr (std::numeric_limits<Scalar>::has_infinity)
-        if (x == std::numeric_limits<Scalar>::infinity() or x == -std::numeric_limits<Scalar>::infinity())
-          return constexpr_NaN<Scalar>();
+      if (arg != arg) return constexpr_NaN<Scalar>();
 
-      auto theta {detail::scale_periodic_function(std::move(x))};
-      return detail::sin_cos_impl<Scalar>(3, theta, Scalar{1}, Scalar{-0.5} * theta * theta);
+      if constexpr (complex_number<Scalar>)
+      {
+        auto re = detail::convert_to_floating(constexpr_real(arg));
+        auto im = detail::convert_to_floating(constexpr_imag(arg));
+        using Re = std::decay_t<decltype(re)>;
+
+        if constexpr (std::numeric_limits<Re>::has_infinity)
+          if (re == std::numeric_limits<Re>::infinity() or re == -std::numeric_limits<Re>::infinity())
+            return constexpr_NaN<Scalar>();
+
+        auto theta{detail::scale_periodic_function(std::move(re))};
+        auto sinre = detail::sin_cos_impl<Re>(4, theta, theta, theta * theta * theta / Re{-6.0});
+        auto cosre = detail::sin_cos_impl<Re>(3, theta, Re{1}, Re{-0.5} * theta * theta);
+        return make_complex_number<Scalar>(cosre * constexpr_cosh(im), -sinre * constexpr_sinh(im));
+      }
+      else
+      {
+        decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+
+        if constexpr (std::numeric_limits<Scalar>::has_infinity)
+          if (x == std::numeric_limits<Scalar>::infinity() or x == -std::numeric_limits<Scalar>::infinity())
+            return constexpr_NaN<Scalar>();
+
+        auto theta{detail::scale_periodic_function(std::move(x))};
+        return detail::sin_cos_impl<Scalar>(3, theta, Scalar{1}, Scalar{-0.5} * theta * theta);
+      }
     }
   }
 
@@ -937,31 +1198,62 @@ namespace OpenKalman::internal
   FUNCTIONISCONSTEXPRCALLABLE(tan)
 
 #ifdef __cpp_concepts
-  constexpr auto constexpr_tan(scalar_type auto&& arg)
+  constexpr auto constexpr_tan(scalar_constant auto&& arg)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
   constexpr auto constexpr_tan(T&& arg)
 #endif
   {
     using Arg = decltype(arg);
 
-    auto [is_callable, ret] = detail::tan_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-
-    if (arg != arg) return constexpr_NaN<Scalar>();
-
-    decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
-
-    if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
-      if (x == std::numeric_limits<Scalar>::infinity() or x == -std::numeric_limits<Scalar>::infinity())
-        return constexpr_NaN<Scalar>();
-
-    if (x == Scalar{0}) return x;
+    if constexpr (not scalar_type<Arg>)
+    {
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_tan(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+    }
     else
     {
-      decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
-      return detail::convert_to_output<Scalar>(constexpr_sin(xf) / constexpr_cos(xf));
+      auto [is_callable, ret] = detail::tan_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
+
+      if (arg != arg) return constexpr_NaN<Scalar>();
+
+      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+
+      if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
+        if (x == std::numeric_limits<Scalar>::infinity() or x == -std::numeric_limits<Scalar>::infinity())
+          return constexpr_NaN<Scalar>();
+
+      if (x == Scalar{0}) return x;
+      else
+      {
+        decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
+        auto sx = constexpr_sin(xf);
+        auto cx = constexpr_cos(xf);
+
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 16)
+        return detail::convert_to_output<Scalar>(sx / cx);
+#else
+        if constexpr (complex_number<Scalar>)
+        {
+          auto sr = constexpr_real(sx);
+          auto si = constexpr_imag(sx);
+          auto cr = constexpr_real(cx);
+          auto ci = constexpr_imag(cx);
+          auto denom = cr*cr + ci*ci;
+          return make_complex_number<Scalar>((sr*cr + si*ci) / denom, (si*cr - sr*ci) / denom);
+        }
+        else
+        {
+          return detail::convert_to_output<Scalar>(sx / cx);
+        }
+#endif
+      }
     }
   }
 
@@ -1099,39 +1391,51 @@ namespace OpenKalman::internal
    * \brief Natural logarithm function.
    */
 #ifdef __cpp_concepts
-  constexpr auto constexpr_log(scalar_type auto&& arg)
+  constexpr auto constexpr_log(scalar_constant auto&& arg)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
   constexpr auto constexpr_log(T&& arg)
 #endif
   {
     using Arg = decltype(arg);
 
-    auto [is_callable, ret] = detail::log_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-
-    if (arg != arg) return constexpr_NaN<Scalar>();
-
-    if constexpr (complex_number<Scalar>)
+    if constexpr (not scalar_type<Arg>)
     {
-      auto re = detail::convert_to_floating(constexpr_real(arg));
-      auto im = detail::convert_to_floating(constexpr_imag(arg));
-      using R = std::decay_t<decltype(re)>;
-      return make_complex_number<Scalar>(R{0.5} * constexpr_log(re * re + im * im), detail::atan2_impl(im, re));
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_log(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
-      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+      auto [is_callable, ret] = detail::log_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
 
-      if constexpr (std::numeric_limits<Scalar>::has_infinity)
-        if (x == std::numeric_limits<Scalar>::infinity()) return x;
+      if (arg != arg) return constexpr_NaN<Scalar>();
 
-      if (x == Scalar{1}) return Scalar{+0.};
-      else if (x == Scalar{0}) return -constexpr_infinity<Scalar>();
-      else if (x < Scalar{0}) return constexpr_NaN<Scalar>();
-      auto [scaled, corr] = x >= Scalar{0x1p4} ? detail::log_scaling_gt(x) : detail::log_scaling_lt(x);
-      return detail::log_impl(scaled) + corr;
+      if constexpr (complex_number<Scalar>)
+      {
+        auto re = detail::convert_to_floating(constexpr_real(arg));
+        auto im = detail::convert_to_floating(constexpr_imag(arg));
+        using R = std::decay_t<decltype(re)>;
+        return make_complex_number<Scalar>(R{0.5} * constexpr_log(re * re + im * im), detail::atan2_impl(im, re));
+      }
+      else
+      {
+        decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+
+        if constexpr (std::numeric_limits<Scalar>::has_infinity)
+          if (x == std::numeric_limits<Scalar>::infinity()) return x;
+
+        if (x == Scalar{1}) return Scalar{+0.};
+        else if (x == Scalar{0}) return -constexpr_infinity<Scalar>();
+        else if (x < Scalar{0}) return constexpr_NaN<Scalar>();
+        auto [scaled, corr] = x >= Scalar{0x1p4} ? detail::log_scaling_gt(x) : detail::log_scaling_lt(x);
+        return detail::log_impl(scaled) + corr;
+      }
     }
   }
 
@@ -1156,44 +1460,256 @@ namespace OpenKalman::internal
    * \brief The log1p function, where log1p(x) = log(x+1).
    */
 #ifdef __cpp_concepts
-  constexpr auto constexpr_log1p(scalar_type auto&& arg)
+  constexpr auto constexpr_log1p(scalar_constant auto&& arg)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
   constexpr auto constexpr_log1p(T&& arg)
 #endif
   {
     using Arg = decltype(arg);
 
-    auto [is_callable, ret] = detail::log1p_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-
-    if (arg != arg) return constexpr_NaN<Scalar>();
-
-    if constexpr (complex_number<Scalar>)
+    if constexpr (not scalar_type<Arg>)
     {
-      auto re = detail::convert_to_floating(constexpr_real(arg));
-      auto im = detail::convert_to_floating(constexpr_imag(arg));
-      using R = std::decay_t<decltype(re)>;
-      return make_complex_number<Scalar>(
-        R{0.5} * constexpr_log1p(re * re + R{2}*re + im * im),
-        detail::atan2_impl(im, re + R{1}));
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_log1p(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
-      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+      auto [is_callable, ret] = detail::log1p_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
 
-      if constexpr (std::numeric_limits<Scalar>::has_infinity)
-        if (x == std::numeric_limits<Scalar>::infinity()) return x;
+      if (arg != arg) return constexpr_NaN<Scalar>();
 
-      if (x == Scalar{0}) return x;
-      else if (x == Scalar{-1}) return -constexpr_infinity<Scalar>();
-      else if (x < Scalar{-1}) return constexpr_NaN<Scalar>();
-      if (Scalar{-0x1p-3} < x and x < Scalar{0x1p-3}) return detail::log1p_impl(2, x, x, -x);
+      if constexpr (complex_number<Scalar>)
+      {
+        auto re = detail::convert_to_floating(constexpr_real(arg));
+        auto im = detail::convert_to_floating(constexpr_imag(arg));
+        using R = std::decay_t<decltype(re)>;
+        return make_complex_number<Scalar>(
+          R{0.5} * constexpr_log1p(re * re + R{2} * re + im * im),
+            detail::atan2_impl(im, re + R{1}));
+      }
       else
       {
-        auto [scaled, corr] = x >= Scalar{0x1p4} ? detail::log_scaling_gt(x + Scalar{1}) : detail::log_scaling_lt(x + Scalar{1});
-        return detail::log_impl(scaled) + corr;
+        decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+
+        if constexpr (std::numeric_limits<Scalar>::has_infinity)
+          if (x == std::numeric_limits<Scalar>::infinity()) return x;
+
+        if (x == Scalar{0}) return x;
+        else if (x == Scalar{-1}) return -constexpr_infinity<Scalar>();
+        else if (x < Scalar{-1}) return constexpr_NaN<Scalar>();
+        if (Scalar{-0x1p-3} < x and x < Scalar{0x1p-3}) return detail::log1p_impl(2, x, x, -x);
+        else
+        {
+          auto [scaled, corr] =
+            x >= Scalar{0x1p4} ? detail::log_scaling_gt(x + Scalar{1}) : detail::log_scaling_lt(x + Scalar{1});
+          return detail::log_impl(scaled) + corr;
+        }
+      }
+    }
+  }
+
+
+  FUNCTIONISCONSTEXPRCALLABLE(asinh)
+
+#ifdef __cpp_concepts
+  constexpr auto constexpr_asinh(scalar_constant auto&& arg)
+#else
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
+  constexpr auto constexpr_asinh(T&& arg)
+#endif
+  {
+    using Arg = decltype(arg);
+
+    if constexpr (not scalar_type<Arg>)
+    {
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_asinh(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+    }
+    else
+    {
+      auto [is_callable, ret] = detail::asinh_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
+
+      if (arg != arg) return constexpr_NaN<Scalar>();
+
+      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+
+      if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
+        if (x == std::numeric_limits<Scalar>::infinity() or x == -std::numeric_limits<Scalar>::infinity()) return x;
+
+      if (x == Scalar{0}) return x;
+      else
+      {
+        decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
+        using Xf = std::decay_t<decltype(xf)>;
+
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 16)
+        return detail::convert_to_output<Scalar>(constexpr_log(xf + constexpr_sqrt(xf * xf + Xf{1})));
+#else
+        if constexpr (complex_number<Scalar>)
+        {
+          auto xr = constexpr_real(xf);
+          auto xi = constexpr_imag(xf);
+          using R = std::decay_t<decltype(xr)>;
+          auto sqt = constexpr_sqrt(make_complex_number(xr*xr - xi*xi + R{1}, R{2}*xr*xi));
+          auto sqtr = constexpr_real(sqt);
+          auto sqti = constexpr_imag(sqt);
+          return detail::convert_to_output<Scalar>(constexpr_log(make_complex_number(xr + sqtr, xi + sqti)));
+        }
+        else
+        {
+          return detail::convert_to_output<Scalar>(constexpr_log(xf + constexpr_sqrt(xf * xf + Xf{1})));
+        }
+#endif
+      }
+    }
+  }
+
+
+  FUNCTIONISCONSTEXPRCALLABLE(acosh)
+
+#ifdef __cpp_concepts
+  constexpr auto constexpr_acosh(scalar_constant auto&& arg)
+#else
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
+  constexpr auto constexpr_acosh(T&& arg)
+#endif
+  {
+    using Arg = decltype(arg);
+
+    if constexpr (not scalar_type<Arg>)
+    {
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_acosh(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+    }
+    else
+    {
+      auto [is_callable, ret] = detail::acosh_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
+
+      if (arg != arg) return constexpr_NaN<Scalar>();
+
+      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+
+      if (x == Scalar{1}) return static_cast<Scalar>(+0.);
+
+      if constexpr (complex_number<Scalar>)
+      {
+        auto xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
+        using Xf = std::decay_t<decltype(xf)>;
+
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 16)
+        return detail::convert_to_output<Scalar>(constexpr_log(xf + constexpr_sqrt(xf + Xf{1}) * constexpr_sqrt(xf - Xf{1})));
+#else
+        if constexpr (complex_number<Scalar>)
+        {
+          auto xr = constexpr_real(xf);
+          auto xi = constexpr_imag(xf);
+          using R = std::decay_t<decltype(xr)>;
+          auto sqtp = constexpr_sqrt(make_complex_number(xr + R{1}, xi));
+          auto a = constexpr_real(sqtp);
+          auto b = constexpr_imag(sqtp);
+          auto sqtm = constexpr_sqrt(make_complex_number(xr - R{1}, xi));
+          auto c = constexpr_real(sqtm);
+          auto d = constexpr_imag(sqtm);
+          return detail::convert_to_output<Scalar>(constexpr_log(make_complex_number(xr + a*c - b*d, xi + a*d + b*c)));
+        }
+        else
+        {
+          return detail::convert_to_output<Scalar>(constexpr_log(xf + constexpr_sqrt(xf + Xf{1}) * constexpr_sqrt(xf - Xf{1})));
+        }
+#endif
+      }
+      else
+      {
+        if constexpr (std::numeric_limits<Scalar>::has_infinity)
+          if (x == std::numeric_limits<Scalar>::infinity()) return constexpr_infinity<Scalar>();
+
+        if (x < Scalar{1}) return constexpr_NaN<Scalar>();
+        else return constexpr_log(x + constexpr_sqrt(x * x - Scalar{1}));
+      }
+    }
+  }
+
+
+  FUNCTIONISCONSTEXPRCALLABLE(atanh)
+
+#ifdef __cpp_concepts
+  constexpr auto constexpr_atanh(scalar_constant auto&& arg)
+#else
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
+  constexpr auto constexpr_atanh(T&& arg)
+#endif
+  {
+    using Arg = decltype(arg);
+
+    if constexpr (not scalar_type<Arg>)
+    {
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_atanh(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+    }
+    else
+    {
+      auto [is_callable, ret] = detail::atanh_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
+
+      if (arg != arg) return constexpr_NaN<Scalar>();
+
+      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+
+      if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
+      {
+        if (x < Scalar{-1} or x > Scalar{1}) return constexpr_NaN<Scalar>();
+        else if (x == Scalar{1}) return constexpr_infinity<Scalar>();
+        else if (x == Scalar{-1}) return -constexpr_infinity<Scalar>();
+      }
+
+      if (x == Scalar{0}) return x;
+      else
+      {
+        decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
+        using Xf = std::decay_t<decltype(xf)>;
+
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 16)
+        return detail::convert_to_output<Scalar>(constexpr_log((Xf{1} + xf) / (Xf{1} - xf)) * Xf{0.5});
+#else
+        if constexpr (complex_number<Scalar>)
+        {
+          auto xr = constexpr_real(xf);
+          auto xi = constexpr_imag(xf);
+          using R = std::decay_t<decltype(xr)>;
+
+          auto denom = R(1) - R(2)*xr + xr*xr + xi*xi;
+          auto lg = constexpr_log(make_complex_number((R(1) - xr*xr - xi*xi) / denom, R(2) * xi / denom));
+          return make_complex_number<Scalar>(R(0.5) * constexpr_real(lg), R(0.5) * constexpr_imag(lg));
+        }
+        else
+        {
+          return detail::convert_to_output<Scalar>(constexpr_log((Xf{1} + xf) / (Xf{1} - xf)) * Xf{0.5});
+        }
+#endif
       }
     }
   }
@@ -1202,58 +1718,100 @@ namespace OpenKalman::internal
   FUNCTIONISCONSTEXPRCALLABLE(asin)
 
 #ifdef __cpp_concepts
-  constexpr auto constexpr_asin(scalar_type auto&& arg)
+  constexpr auto constexpr_asin(scalar_constant auto&& arg)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
   constexpr auto constexpr_asin(T&& arg)
 #endif
   {
     using Arg = decltype(arg);
 
-    auto [is_callable, ret] = detail::asin_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-
-    if constexpr (complex_number<Scalar>)
+    if constexpr (not scalar_type<Arg>)
     {
-      if (arg != arg) return constexpr_NaN<Scalar>();
-
-      decltype(auto) xf = detail::convert_to_floating(std::forward<Arg>(arg));
-      using Xf = std::decay_t<decltype(xf)>;
-      using R = std::decay_t<decltype(constexpr_real(xf))>;
-
-      constexpr auto i = make_complex_number<Xf>(R{0}, R{1});
-      return detail::convert_to_output<Scalar>(i * constexpr_log(constexpr_sqrt(Xf{1} - xf * xf) - i * xf));
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_asin(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
-    else return detail::asin_impl(detail::convert_to_output<Scalar>(std::forward<Arg>(arg)));
+    else
+    {
+      auto [is_callable, ret] = detail::asin_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
+
+      if constexpr (complex_number<Scalar>)
+      {
+        if (arg != arg) return constexpr_NaN<Scalar>();
+
+        decltype(auto) xf = detail::convert_to_floating(std::forward<Arg>(arg));
+        using R = std::decay_t<decltype(constexpr_real(xf))>;
+
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 16)
+        using Xf = std::decay_t<decltype(xf)>;
+        constexpr auto i = make_complex_number<Xf>(R{0}, R{1});
+        return detail::convert_to_output<Scalar>(i * constexpr_log(constexpr_sqrt(Xf{1} - xf * xf) - i * xf));
+#else
+        auto xr = constexpr_real(xf);
+        auto xi = constexpr_imag(xf);
+        auto sqt = constexpr_sqrt(make_complex_number(R{1} - xr*xr + xi*xi, -R(2)*xr*xi));
+        auto lg = constexpr_log(make_complex_number(constexpr_real(sqt) + xi, constexpr_imag(sqt) - xr));
+        return make_complex_number<Scalar>(-constexpr_imag(lg), constexpr_real(lg));
+#endif
+      }
+      else return detail::asin_impl(detail::convert_to_output<Scalar>(std::forward<Arg>(arg)));
+    }
   }
 
 
   FUNCTIONISCONSTEXPRCALLABLE(acos)
 
 #ifdef __cpp_concepts
-  constexpr auto constexpr_acos(scalar_type auto&& arg)
+  constexpr auto constexpr_acos(scalar_constant auto&& arg)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
   constexpr auto constexpr_acos(T&& arg)
 #endif
   {
     using Arg = decltype(arg);
 
-    auto [is_callable, ret] = detail::acos_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
+    if constexpr (not scalar_type<Arg>)
+    {
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_acos(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+    }
+    else
+    {
+      auto [is_callable, ret] = detail::acos_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
 
-    if (arg != arg) return constexpr_NaN<Scalar>();
-    else if (arg == std::decay_t<Arg>{1}) return static_cast<Scalar>(+0.);
+      if (arg != arg) return constexpr_NaN<Scalar>();
+      else if (arg == std::decay_t<Arg>{1}) return static_cast<Scalar>(+0.);
 
-    decltype(auto) xf = detail::convert_to_floating(std::forward<Arg>(arg));
-    using Xf = std::decay_t<decltype(xf)>;
-    using R = std::decay_t<decltype(constexpr_real(xf))>;
+      decltype(auto) xf = detail::convert_to_floating(std::forward<Arg>(arg));
+      using Xf = std::decay_t<decltype(xf)>;
+      using R = std::decay_t<decltype(constexpr_real(xf))>;
 
-    auto s = constexpr_asin(xf);
-    if (s != s) return constexpr_NaN<Scalar>();
-    else return detail::convert_to_output<Scalar>(Xf{numbers::pi_v<R>/2} - std::move(s));
+      auto s = constexpr_asin(xf);
+      if (s != s) return constexpr_NaN<Scalar>();
+
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 16)
+      return detail::convert_to_output<Scalar>(Xf{numbers::pi_v<R> / 2} - std::move(s));
+#else
+      if constexpr (complex_number<Scalar>)
+      {
+        constexpr R pi2 {numbers::pi_v<R> / 2};
+        return make_complex_number<Scalar>(pi2 - constexpr_real(s), - constexpr_imag(s));
+      }
+      else return detail::convert_to_output<Scalar>(Xf{numbers::pi_v<R> / 2} - std::move(s));
+#endif
+    }
   }
 
 
@@ -1265,47 +1823,75 @@ namespace OpenKalman::internal
       if constexpr (complex_number<T>)
       {
         using R = std::decay_t<decltype(constexpr_real(x))>;
+
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 16)
         constexpr auto i = make_complex_number<T>(R{0}, R{1});
         return T{-0.5} * i * constexpr_log((T{1} + x*i)/(T{1} - x*i));
+#else
+        auto xr = constexpr_real(x);
+        auto xi = constexpr_imag(x);
+        auto ar = -xi;
+        auto ai = xr;
+        auto lar = R{0.5} * constexpr_log1p(ar * ar + R{2} * ar + ai * ai);
+        auto lai = detail::atan2_impl(ai, ar + R{1});
+        auto br = xi;
+        auto bi = -xr;
+        auto lbr = R{0.5} * constexpr_log1p(br * br + R{2} * br + bi * bi);
+        auto lbi = detail::atan2_impl(bi, br + R{1});
+        return make_complex_number<T>(R{-0.5} * (-lai + lbi), R{-0.5} * (lar - lbr));
+#endif
       }
       else return atan_impl(x);
     }
-  };
+  }
 
 
   FUNCTIONISCONSTEXPRCALLABLE(atan)
 
 #ifdef __cpp_concepts
-  constexpr auto constexpr_atan(scalar_type auto&& arg)
+  constexpr auto constexpr_atan(scalar_constant auto&& arg)
 #else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
+  template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
   constexpr auto constexpr_atan(T&& arg)
 #endif
   {
     using Arg = decltype(arg);
 
-    auto [is_callable, ret] = detail::atan_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-
-    if (arg != arg) return constexpr_NaN<Scalar>();
-
-    if constexpr (complex_number<Scalar>)
+    if constexpr (not scalar_type<Arg>)
     {
-      return detail::convert_to_output<Scalar>(detail::atan_impl_general(detail::convert_to_floating(std::forward<Arg>(arg))));
+      struct Op
+      {
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        constexpr auto operator()(const A& a) const { return constexpr_atan(a); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
-      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+      auto [is_callable, ret] = detail::atan_is_constexpr_callable(arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
 
-      if constexpr (std::numeric_limits<Scalar>::has_infinity)
+      if (arg != arg) return constexpr_NaN<Scalar>();
+
+      if constexpr (complex_number<Scalar>)
       {
-        if (x == std::numeric_limits<Scalar>::infinity()) return numbers::pi_v<Scalar> * Scalar{0.5};
-        else if (x == -std::numeric_limits<Scalar>::infinity()) return numbers::pi_v<Scalar> * Scalar{-0.5};
+        auto x = detail::convert_to_floating(std::forward<Arg>(arg));
+        return detail::convert_to_output<Scalar>(detail::atan_impl_general(x));
       }
+      else
+      {
+        decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
-      if (x == Scalar{0}) return x;
-      else return detail::atan_impl(x);
+        if constexpr (std::numeric_limits<Scalar>::has_infinity)
+        {
+          if (x == std::numeric_limits<Scalar>::infinity()) return numbers::pi_v<Scalar> * Scalar{0.5};
+          else if (x == -std::numeric_limits<Scalar>::infinity()) return numbers::pi_v<Scalar> * Scalar{-0.5};
+        }
+
+        if (x == Scalar{0}) return x;
+        else return detail::atan_impl(x);
+      }
     }
   }
 
@@ -1313,148 +1899,81 @@ namespace OpenKalman::internal
   FUNCTIONISCONSTEXPRCALLABLE2(atan2)
 
 #ifdef __cpp_concepts
-  template <scalar_type Y, scalar_type X>
+  template <scalar_constant Y, scalar_constant X>
 #else
-  template <typename Y, typename X, std::enable_if_t<scalar_type<Y> and scalar_type<X>, int> = 0>
+  template <typename Y, typename X, std::enable_if_t<scalar_constant<Y> and scalar_constant<X>, int> = 0>
 #endif
   constexpr auto constexpr_atan2(Y&& y_arg, X&& x_arg)
   {
-    auto [is_callable, ret] = detail::atan2_is_constexpr_callable(y_arg, x_arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-
-    if (y_arg != y_arg or x_arg != x_arg) return constexpr_NaN<Scalar>();
-
-    if constexpr (complex_number<Y> or complex_number<X>)
+    if constexpr (not scalar_type<Y> or not scalar_type<X>)
     {
-      decltype(auto) yf = detail::convert_to_floating(std::forward<Y>(y_arg));
-      decltype(auto) xf = detail::convert_to_floating(std::forward<X>(x_arg));
-
-      auto yp = constexpr_real(yf);
-      auto xp = constexpr_real(xf);
-
-      using Sf = std::decay_t<decltype(yf)>;
-      using R = std::decay_t<decltype(yp)>;
-
-      constexpr auto pi = numbers::pi_v<R>;
-
-      if (xp >= R{0})
+      struct Op
       {
-        if (xf == Sf{0}) return Scalar{0};
-        else return detail::convert_to_output<Scalar>(detail::atan_impl_general(yf / xf));
+        using YA = std::decay_t<decltype(get_scalar_constant_value(y_arg))>;
+        using XA = std::decay_t<decltype(get_scalar_constant_value(x_arg))>;
+        constexpr auto operator()(const YA& y, const XA& x) const { return constexpr_atan2(y, x); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Y>(y_arg), std::forward<X>(x_arg)};
+    }
+    else
+    {
+      auto [is_callable, ret] = detail::atan2_is_constexpr_callable(y_arg, x_arg);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
+
+      if (y_arg != y_arg or x_arg != x_arg) return constexpr_NaN<Scalar>();
+
+      if constexpr (complex_number<Y> or complex_number<X>)
+      {
+        decltype(auto) yf = detail::convert_to_floating(std::forward<Y>(y_arg));
+        decltype(auto) xf = detail::convert_to_floating(std::forward<X>(x_arg));
+
+        auto yr = constexpr_real(yf);
+
+        using Sf = std::decay_t<decltype(yf)>;
+        using R = std::decay_t<decltype(yr)>;
+
+        constexpr auto pi = numbers::pi_v<R>;
+
+        if (xf == Sf(0))
+        {
+          if (yr > 0) return Scalar(0.5*pi);
+          else if (yr < 0) return Scalar(-0.5*pi);
+          else return Scalar{0};
+        }
+        else if (yf == Sf(0))
+        {
+          if (constexpr_real(xf) < 0) return Scalar(pi);
+          return Scalar(0);
+        }
+        else
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 16)
+        {
+          auto raw = detail::atan_impl_general(yf / xf);
+          auto raw_r = constexpr_real(raw);
+          if (raw_r > pi) return detail::convert_to_output<Scalar>(raw - Sf{pi});
+          else if (raw_r < -pi) return detail::convert_to_output<Scalar>(raw + Sf{pi});
+          else return detail::convert_to_output<Scalar>(raw);
+        }
+#else
+        {
+          auto yi = constexpr_imag(yf);
+          auto xi = constexpr_imag(xf);
+          auto xr = constexpr_real(xf);
+          auto denom = xr*xr + xi*xi;
+          auto raw = detail::atan_impl_general(make_complex_number((yr * xr + yi * xi) / denom, (yi * xr - yr * xi) / denom));
+          auto raw_r = constexpr_real(raw);
+          auto raw_i = constexpr_imag(raw);
+          if (raw_r > pi) return make_complex_number<Scalar>(raw_r - pi, raw_i);
+          else if (raw_r < -pi) return make_complex_number<Scalar>(raw_r + pi, raw_i);
+          else return make_complex_number<Scalar>(raw_r, raw_i);
+        }
+#endif
       }
-      else if (yp >= R{0})
-        return detail::convert_to_output<Scalar>(detail::atan_impl_general(yf / xf) + Sf{pi});
       else
-        return detail::convert_to_output<Scalar>(detail::atan_impl_general(yf / xf) - Sf{pi});
-    }
-    else return detail::atan2_impl(detail::convert_to_output<Scalar>(std::forward<Y>(y_arg)),
-      detail::convert_to_output<Scalar>(std::forward<X>(x_arg)));
-  }
-
-
-  FUNCTIONISCONSTEXPRCALLABLE(asinh)
-
-#ifdef __cpp_concepts
-  constexpr auto constexpr_asinh(scalar_type auto&& arg)
-#else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
-  constexpr auto constexpr_asinh(T&& arg)
-#endif
-  {
-    using Arg = decltype(arg);
-
-    auto [is_callable, ret] = detail::asinh_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-
-    if (arg != arg) return constexpr_NaN<Scalar>();
-
-    decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
-
-    if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
-      if (x == std::numeric_limits<Scalar>::infinity() or x == -std::numeric_limits<Scalar>::infinity()) return x;
-
-    if (x == Scalar{0}) return x;
-    else
-    {
-      decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
-      using Xf = std::decay_t<decltype(xf)>;
-      return detail::convert_to_output<Scalar>(constexpr_log(xf + constexpr_sqrt(xf * xf + Xf{1})));
-    }
-  }
-
-
-  FUNCTIONISCONSTEXPRCALLABLE(acosh)
-
-#ifdef __cpp_concepts
-  constexpr auto constexpr_acosh(scalar_type auto&& arg)
-#else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
-  constexpr auto constexpr_acosh(T&& arg)
-#endif
-  {
-    using Arg = decltype(arg);
-
-    auto [is_callable, ret] = detail::acosh_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-
-    if (arg != arg) return constexpr_NaN<Scalar>();
-
-    decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
-
-    if (x == Scalar{1}) return static_cast<Scalar>(+0.);
-
-    if constexpr (complex_number<Scalar>)
-    {
-      auto xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
-      using Xf = std::decay_t<decltype(xf)>;
-      return detail::convert_to_output<Scalar>(constexpr_log(xf + constexpr_sqrt(xf + Xf{1}) * constexpr_sqrt(xf - Xf{1})));
-    }
-    else
-    {
-      if constexpr (std::numeric_limits<Scalar>::has_infinity)
-        if (x == std::numeric_limits<Scalar>::infinity()) return constexpr_infinity<Scalar>();
-
-      if (x < Scalar{1}) return constexpr_NaN<Scalar>();
-      else return constexpr_log(x + constexpr_sqrt(x * x - Scalar{1}));
-    }
-  }
-
-
-  FUNCTIONISCONSTEXPRCALLABLE(atanh)
-
-#ifdef __cpp_concepts
-  constexpr auto constexpr_atanh(scalar_type auto&& arg)
-#else
-  template <typename T, std::enable_if_t<scalar_type<T>, int> = 0>
-  constexpr auto constexpr_atanh(T&& arg)
-#endif
-  {
-    using Arg = decltype(arg);
-
-    auto [is_callable, ret] = detail::atanh_is_constexpr_callable(arg);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-
-    if (arg != arg) return constexpr_NaN<Scalar>();
-
-    decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
-
-    if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
-    {
-      if (x < Scalar{-1} or x > Scalar{1}) return constexpr_NaN<Scalar>();
-      else if (x == Scalar{1}) return constexpr_infinity<Scalar>();
-      else if (x == Scalar{-1}) return -constexpr_infinity<Scalar>();
-    }
-
-    if (x == Scalar{0}) return x;
-    else
-    {
-      decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
-      using Xf = std::decay_t<decltype(xf)>;
-      return detail::convert_to_output<Scalar>(constexpr_log((Xf{1} + xf)/(Xf{1} - xf)) * Xf{0.5});
+        return detail::atan2_impl(
+          detail::convert_to_output<Scalar>(std::forward<Y>(y_arg)),
+          detail::convert_to_output<Scalar>(std::forward<X>(x_arg)));
     }
   }
 
@@ -1497,95 +2016,109 @@ namespace OpenKalman::internal
    * \return x to the power of n.
    */
 #ifdef __cpp_concepts
-  template<scalar_type Arg, scalar_type Exponent>
+  template<scalar_constant Arg, scalar_constant Exponent>
 #else
-  template <typename Arg, typename Exponent, std::enable_if_t<scalar_type<Arg> and scalar_type<Exponent>, int> = 0>
+  template <typename Arg, typename Exponent, std::enable_if_t<scalar_constant<Arg> and scalar_constant<Exponent>, int> = 0>
 #endif
   constexpr auto constexpr_pow(Arg&& arg, Exponent&& exponent)
   {
-    auto [is_callable, ret] = detail::pow_is_constexpr_callable(arg, exponent);
-    if (is_callable) return ret;
-    using Scalar = std::decay_t<decltype(ret)>;
-
-    using T = std::decay_t<Arg>;
-    using U = std::decay_t<Exponent>;
-
-    if (arg == T{1} or exponent == U{0}) return Scalar{1};
-    else if (arg != arg or exponent != exponent) return constexpr_NaN<Scalar>();
-
-    if constexpr (std::numeric_limits<U>::is_integer)
+    if constexpr (not scalar_type<Arg> or not scalar_type<Exponent>)
     {
-      if constexpr (std::numeric_limits<T>::has_infinity)
+      struct Op
       {
-        if (exponent % 2 == 1) // positive odd
-        {
-          if (arg == -std::numeric_limits<T>::infinity()) return -constexpr_infinity<T>();
-          else if (arg == +std::numeric_limits<T>::infinity()) return +constexpr_infinity<T>();
-        }
-        else if (-exponent % 2 == 1) // negative odd
-        {
-          if (arg == -std::numeric_limits<T>::infinity()) return T{-0.};
-          else if (arg == +std::numeric_limits<T>::infinity()) return T{+0.};
-        }
-        else if (arg == -std::numeric_limits<T>::infinity() or arg == +std::numeric_limits<T>::infinity())
-        {
-          if (exponent > 0) return +constexpr_infinity<T>(); // positive even
-          else return T{+0.}; // negative even
-        }
-      }
-
-      return detail::pow_integral(detail::convert_to_output<Scalar>(std::forward<T>(arg)), exponent);
+        using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
+        using E = std::decay_t<decltype(get_scalar_constant_value(exponent))>;
+        constexpr auto operator()(const A& a, const E& e) const { return constexpr_pow(a, e); }
+      };
+      return scalar_constant_operation {Op{}, std::forward<Arg>(arg), std::forward<Exponent>(exponent)};
     }
     else
     {
-      if constexpr (complex_number<Scalar>)
-      {
-        decltype(auto) xf = detail::convert_to_floating(std::forward<T>(arg));
-        decltype(auto) nf = detail::convert_to_floating(std::forward<U>(exponent));
+      auto [is_callable, ret] = detail::pow_is_constexpr_callable(arg, exponent);
+      if (is_callable) return ret;
+      using Scalar = std::decay_t<decltype(ret)>;
 
-        return detail::convert_to_output<Scalar>(constexpr_exp(constexpr_log(xf) * nf));
+      using T = std::decay_t<Arg>;
+      using U = std::decay_t<Exponent>;
+
+      if (arg == T{1} or exponent == U{0}) return Scalar{1};
+      else if (arg != arg or exponent != exponent) return constexpr_NaN<Scalar>();
+
+      if constexpr (std::numeric_limits<U>::is_integer)
+      {
+        if constexpr (std::numeric_limits<T>::has_infinity)
+        {
+          if (exponent % 2 == 1) // positive odd
+          {
+            if (arg == -std::numeric_limits<T>::infinity()) return -constexpr_infinity<T>();
+            else if (arg == +std::numeric_limits<T>::infinity()) return +constexpr_infinity<T>();
+          }
+          else if (-exponent % 2 == 1) // negative odd
+          {
+            if (arg == -std::numeric_limits<T>::infinity()) return T{-0.};
+            else if (arg == +std::numeric_limits<T>::infinity()) return T{+0.};
+          }
+          else if (arg == -std::numeric_limits<T>::infinity() or arg == +std::numeric_limits<T>::infinity())
+          {
+            if (exponent > 0) return +constexpr_infinity<T>(); // positive even
+            else return T{+0.}; // negative even
+          }
+        }
+
+        return detail::pow_integral(detail::convert_to_output<Scalar>(std::forward<Arg>(arg)), exponent);
       }
       else
       {
-        decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<T>(arg));
-        decltype(auto) n = detail::convert_to_output<Scalar>(std::forward<U>(exponent));
+        if constexpr (complex_number<Scalar>)
+        {
+          decltype(auto) xf = detail::convert_to_floating(std::forward<Arg>(arg));
+          decltype(auto) nf = detail::convert_to_floating(std::forward<Exponent>(exponent));
 
-        if constexpr (std::numeric_limits<Scalar>::has_infinity)
-        {
-          if (x == -std::numeric_limits<Scalar>::infinity() or x == +std::numeric_limits<Scalar>::infinity())
-          {
-            // Note: en.cppreference.com/w/cpp/numeric/math/pow says that the sign of both these should be reversed,
-            // but both GCC and clang return a result as follows:
-            if (n < Scalar{0}) return Scalar{-0.}; else return -constexpr_infinity<Scalar>();
-          }
-          else if (n == -std::numeric_limits<Scalar>::infinity())
-          {
-            if (Scalar{-1} < x and x < Scalar{1}) return +constexpr_infinity<Scalar>();
-            else if (x < Scalar{-1} or Scalar{1} < x) return Scalar{+0.};
-            else return Scalar{1}; // x == -1 (x == 1 case handled above)
-          }
-          else if (n == +std::numeric_limits<Scalar>::infinity())
-          {
-            if (Scalar{-1} < x and x < Scalar{1}) return Scalar{+0.};
-            else if (x < Scalar{-1} or Scalar{1} < x) return +constexpr_infinity<Scalar>();
-            else return Scalar{1}; // x == -1 (x == 1 case handled above)
-          }
+          return detail::convert_to_output<Scalar>(constexpr_exp(constexpr_log(xf) * nf));
         }
+        else
+        {
+          decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+          decltype(auto) n = detail::convert_to_output<Scalar>(std::forward<Exponent>(exponent));
 
-        if (x > Scalar{0})
-        {
-          if (n == Scalar{1}) return x;
-          else return constexpr_exp(constexpr_log(x) * n);
+          if constexpr (std::numeric_limits<Scalar>::has_infinity)
+          {
+            if (x == -std::numeric_limits<Scalar>::infinity() or x == +std::numeric_limits<Scalar>::infinity())
+            {
+              // Note: en.cppreference.com/w/cpp/numeric/math/pow says that the sign of both these should be reversed,
+              // but both GCC and clang return a result as follows:
+              if (n < Scalar{0}) return Scalar{-0.}; else return -constexpr_infinity<Scalar>();
+            }
+            else if (n == -std::numeric_limits<Scalar>::infinity())
+            {
+              if (Scalar{-1} < x and x < Scalar{1}) return +constexpr_infinity<Scalar>();
+              else if (x < Scalar{-1} or Scalar{1} < x) return Scalar{+0.};
+              else return Scalar{1}; // x == -1 (x == 1 case handled above)
+            }
+            else if (n == +std::numeric_limits<Scalar>::infinity())
+            {
+              if (Scalar{-1} < x and x < Scalar{1}) return Scalar{+0.};
+              else if (x < Scalar{-1} or Scalar{1} < x) return +constexpr_infinity<Scalar>();
+              else return Scalar{1}; // x == -1 (x == 1 case handled above)
+            }
+          }
+
+          if (x > Scalar{0})
+          {
+            if (n == Scalar{1}) return x;
+            else return constexpr_exp(constexpr_log(x) * n);
+          }
+          else if (x == 0)
+          {
+            if (n < 0) return +constexpr_infinity<Scalar>();
+            else return Scalar{+0.};
+          }
+          else return constexpr_NaN<Scalar>();
         }
-        else if (x == 0)
-        {
-          if (n < 0) return +constexpr_infinity<Scalar>();
-          else return Scalar{+0.};
-        }
-        else return constexpr_NaN<Scalar>();
       }
     }
   }
+
 
 } // namespace OpenKalman::internal
 

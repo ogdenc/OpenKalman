@@ -78,7 +78,7 @@ namespace OpenKalman
       else if constexpr (internal::is_plus<BinaryOperation>::value)
         return internal::scalar_constant_operation {std::multiplies<>{}, c, dim};
       else if constexpr (internal::is_multiplies<BinaryOperation>::value)
-        return internal::scalar_constant_pow(c, dim);
+        return internal::constexpr_pow(c, dim);
       else return internal::scalar_constant_operation {op,
         scalar_reduce_operation(std::integral_constant<std::size_t, std::size_t{dim} - 1>{}, op, c), c};
     }

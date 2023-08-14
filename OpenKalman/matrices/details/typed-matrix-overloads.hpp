@@ -24,6 +24,10 @@ namespace OpenKalman::interface
   struct linearAlgebra<T, std::enable_if_t<typed_matrix<T>>>
 #endif
   {
+    template<typename Derived>
+    using LibraryBase = internal::library_base<Derived, nested_matrix_of_t<T>>;
+
+
     template<typename Scalar, typename...D>
     static auto make_default(D&&...d)
     {

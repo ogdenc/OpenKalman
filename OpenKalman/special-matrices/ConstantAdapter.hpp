@@ -528,6 +528,10 @@ namespace OpenKalman
     template<typename PatternMatrix, typename Scalar, auto...constant>
     struct LibraryRoutines<ConstantAdapter<PatternMatrix, Scalar, constant...>>
     {
+      template<typename Derived>
+      using LibraryBase = internal::library_base<Derived, PatternMatrix>;
+
+
       template<typename S, typename...D>
       static auto make_default(D&&...d)
       {

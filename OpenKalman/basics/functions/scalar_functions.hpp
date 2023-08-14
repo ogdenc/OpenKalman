@@ -42,6 +42,7 @@ namespace OpenKalman
 
   /**
    * \brief Make a complex number of type T from real and imaginary parts.
+   * \tparam T A complex or floating type
    * \param re The real part.
    * \param im The imaginary part.
    */
@@ -112,109 +113,6 @@ namespace OpenKalman
 
   }
 
-
-  namespace internal
-  {
-    // --------------------------------- //
-    //  scalar constant math operations  //
-    // --------------------------------- //
-
-    namespace detail
-    {
-      struct constexpr_sqrt_op
-      {
-        template<typename Arg>
-        constexpr auto operator()(Arg arg) const
-        {
-          if constexpr (scalar_constant<Arg, CompileTimeStatus::known>)
-          {
-            return constexpr_sqrt(arg);
-          }
-          else
-          {
-            using std::sqrt;
-            return sqrt(arg);
-          }
-        }
-      };
-    }
-
-
-#ifdef __cpp_concepts
-    constexpr auto scalar_constant_sqrt(scalar_constant auto&& arg)
-#else
-    template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
-    constexpr auto scalar_constant_sqrt(T&& arg)
-#endif
-    {
-      return scalar_constant_operation {detail::constexpr_sqrt_op{}, std::forward<decltype(arg)>(arg)};
-    };
-
-
-    namespace detail
-    {
-      struct constexpr_conj_op
-      {
-        template<typename Arg>
-        constexpr auto operator()(Arg arg) const
-        {
-          if constexpr (scalar_constant<Arg, CompileTimeStatus::known>)
-          {
-            return constexpr_conj(arg);
-          }
-          else
-          {
-            using std::conj;
-            return conj(arg);
-          }
-        }
-      };
-    }
-
-
-#ifdef __cpp_concepts
-    constexpr auto scalar_constant_conj(scalar_constant auto&& arg)
-#else
-    template <typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
-    constexpr auto scalar_constant_conj(T&& arg)
-#endif
-    {
-      return scalar_constant_operation {detail::constexpr_conj_op{}, std::forward<decltype(arg)>(arg)};
-    }
-
-
-    namespace detail
-    {
-      struct constexpr_pow_op
-      {
-        template<typename Arg, typename Exp>
-        constexpr auto operator()(Arg arg, Exp exp) const
-        {
-          if constexpr (scalar_constant<Arg, CompileTimeStatus::known> and scalar_constant<Exp, CompileTimeStatus::known>)
-          {
-            return constexpr_pow(arg, exp);
-          }
-          else
-          {
-            using std::pow;
-            return pow(arg, exp);
-          }
-        }
-      };
-    }
-
-
-#ifdef __cpp_concepts
-    constexpr auto scalar_constant_pow(scalar_constant auto&& arg, scalar_constant auto&& exp)
-#else
-    template <typename Arg, typename Exp, std::enable_if_t<scalar_constant<Arg> and scalar_constant<Exp>, int> = 0>
-    constexpr auto scalar_constant_pow(Arg&& arg, Exp&& exp)
-#endif
-    {
-      return scalar_constant_operation {detail::constexpr_pow_op{}, std::forward<decltype(arg)>(arg), std::forward<decltype(exp)>(exp)};
-    }
-
-  } // namespace internal
 
 } // namespace OpenKalman
 

@@ -67,10 +67,12 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typename Arg> requires (not std::same_as<std::decay_t<Arg>, EigenWrapper>) and
-      (not std::constructible_from<NestedMatrix, Arg&&>) and std::default_initializable<NestedMatrix> and writable<NestedMatrix>
+      (not std::constructible_from<NestedMatrix, Arg&&>) and std::default_initializable<NestedMatrix> and
+        element_settable<NestedMatrix, 2>
 #else
     template<typename Arg, std::enable_if_t<(not std::is_same_v<std::decay_t<Arg>, EigenWrapper>) and
-      (not std::is_constructible_v<NestedMatrix, Arg&&>) and std::is_default_constructible_v<NestedMatrix> and writable<NestedMatrix>, int> = 0>
+      (not std::is_constructible_v<NestedMatrix, Arg&&>) and std::is_default_constructible_v<NestedMatrix> and
+      element_settable<NestedMatrix, 2>, int> = 0>
 #endif
       explicit EigenWrapper(Arg&& arg)
       {
@@ -114,7 +116,7 @@ namespace OpenKalman
        * either 'const Scalar&' or simply 'Scalar' for objects that do not allow direct coefficient access.
        */
       //using CoeffReturnType = typename Base::CoeffReturnType;
-      using CoeffReturnType = std::conditional_t<bool(Eigen::internal::traits<std::decay_t<NestedMatrix>>::Flags & Eigen::LvalueBit),
+      using CoeffReturnType = std::conditional_t<(Eigen::internal::traits<std::decay_t<NestedMatrix>>::Flags & Eigen::LvalueBit) != 0x0,
         const Scalar&, std::conditional_t<std::is_arithmetic_v<Scalar>, Scalar, const Scalar>>;
 
 
@@ -123,7 +125,8 @@ namespace OpenKalman
        * \brief The type of *this that is used for nesting within other Eigen classes.
        * \note Eigen3 requires this as the type used when Derived is nested.
        */
-      using Nested = EigenWrapper;
+      using Nested = std::conditional_t<(Eigen::internal::traits<EigenWrapper>::Flags & Eigen::NestByRefBit) != 0x0,
+        const EigenWrapper&, EigenWrapper>;
 
       using NestedExpression = std::decay_t<NestedMatrix>;
 
@@ -457,13 +460,13 @@ namespace Eigen::internal
       using Scalar = OpenKalman::scalar_type_of_t<T>;
       using StorageIndex = Index;
       using StorageKind = Dense;
-      using XprKind = std::conditional_t<OpenKalman::Eigen3::native_eigen_array<T>, ArrayXpr, MatrixXpr>;
+      using XprKind = MatrixXpr;
       enum {
         RowsAtCompileTime = OpenKalman::dynamic_dimension<T, 0> ? Eigen::Dynamic : static_cast<Index>(OpenKalman::index_dimension_of_v<T, 0>),
         ColsAtCompileTime = OpenKalman::dynamic_dimension<T, 1> ? Eigen::Dynamic : static_cast<Index>(OpenKalman::index_dimension_of_v<T, 1>),
         MaxRowsAtCompileTime [[maybe_unused]] = RowsAtCompileTime,
         MaxColsAtCompileTime [[maybe_unused]] = ColsAtCompileTime,
-        Flags = (lvalue_get_element ? LvalueBit : 0x0),
+        Flags = (lvalue_get_element ? LvalueBit : 0x0) | (std::is_lvalue_reference_v<T> ? 0x0 : NestByRefBit),
       };
     };
 
@@ -478,9 +481,13 @@ namespace Eigen::internal
       : traits<T>
     {
       using StorageKind = Dense;
-      using XprKind = MatrixXpr;
+      using XprKind = std::conditional_t<OpenKalman::Eigen3::native_eigen_array<T>, ArrayXpr, MatrixXpr>;
+      using ElementRef = decltype(OpenKalman::get_element(std::declval<std::remove_reference_t<T>&>(), 0, 0));
+      static constexpr bool lvb = std::is_same_v<ElementRef, std::decay_t<ElementRef>&>;
+      static constexpr bool nest_is_big = not std::is_lvalue_reference_v<T> and
+        ((traits<T>::Flags & NestByRefBit) != 0x0 or std::is_lvalue_reference_v<typename std::decay_t<T>::Nested>);
       enum {
-        Flags = traits<T>::Flags & ~(NestByRefBit),
+        Flags = (traits<T>::Flags & ~NestByRefBit & ~LvalueBit) | (nest_is_big ? NestByRefBit : 0x0) | (lvb ? LvalueBit : 0x0),
       };
     };
 
@@ -506,7 +513,7 @@ namespace Eigen::internal
     {
     private:
 
-      using XprType = std::decay_t<ArgType>;
+      using XprType = std::remove_reference_t<ArgType>;
       using ElementRef = decltype(OpenKalman::get_element(std::declval<XprType&>(), 0, 0));
 
     public:

@@ -791,6 +791,9 @@ namespace OpenKalman
   /**
    * \brief Specifies that a type is a self-contained matrix or expression.
    * \details A value is self-contained if it can be created in a function and returned as the result.
+   * \tparam T The object in question
+   * \tparam Ts An optional set of objects that T depends on. T is self-contained if all of Ts are either
+   * lvalue references or depend only on lvalue references.
    * \sa make_self_contained, equivalent_self_contained_t
    * \internal \sa IndexibleObjectTraits
    */

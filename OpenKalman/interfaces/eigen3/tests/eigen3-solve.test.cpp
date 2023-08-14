@@ -127,7 +127,7 @@ TEST(eigen3, solve_one_by_one)
 {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Warray-bounds"
-#pragma GCC diagnostic ignored "-Wstringop-overread"
+//#pragma GCC diagnostic ignored "-Wstringop-overread"
   auto m11_0 = make_dense_writable_matrix_from<M11>(0);
   auto m10_1_0 = M1x {m11_0};
   auto m01_1_0 = Mx1 {m11_0};

@@ -41,14 +41,14 @@ namespace OpenKalman
       if constexpr (real_axis_number<constant_coefficient<Arg>>)
         return std::forward<Arg>(arg);
       else
-        return make_constant_matrix_like(internal::scalar_constant_conj(constant_coefficient{arg}), std::forward<Arg>(arg));
+        return make_constant_matrix_like(internal::constexpr_conj(constant_coefficient{arg}), std::forward<Arg>(arg));
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       if constexpr (real_axis_number<constant_diagonal_coefficient<Arg>>)
         return std::forward<Arg>(arg);
       else
-        return to_diagonal(make_constant_matrix_like(internal::scalar_constant_conj(constant_diagonal_coefficient{arg}),
+        return to_diagonal(make_constant_matrix_like(internal::constexpr_conj(constant_diagonal_coefficient{arg}),
           diagonal_of(std::forward<Arg>(arg))));
     }
     else if constexpr (diagonal_matrix<Arg>)
@@ -133,7 +133,7 @@ namespace OpenKalman
       else
       {
         constexpr std::make_index_sequence<std::max({max_indices_of_v<Arg>, static_cast<std::size_t>(2)}) - 2> seq;
-        return detail::transpose_constant(internal::scalar_constant_conj(constant_coefficient{arg}), std::forward<Arg>(arg), seq);
+        return detail::transpose_constant(internal::constexpr_conj(constant_coefficient{arg}), std::forward<Arg>(arg), seq);
       }
     }
     else
@@ -170,7 +170,7 @@ namespace OpenKalman
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      return internal::scalar_constant_pow(constant_diagonal_coefficient{arg}, internal::index_dimension_scalar_constant_of<0>(arg))();
+      return internal::constexpr_pow(constant_diagonal_coefficient{arg}, internal::index_dimension_scalar_constant_of<0>(arg))();
     }
     else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg&&, 0>)
     {

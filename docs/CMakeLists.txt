@@ -5,6 +5,9 @@
 # Any copyright as to this file is dedicated to the Public Domain.
 # https://creativecommons.org/publicdomain/zero/1.0/
 
+set(MyDoc_FLAGS "-Wdocumentation")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MyDoc_FLAGS}")
+
 
 find_package(Doxygen)
 if (DOXYGEN_FOUND)

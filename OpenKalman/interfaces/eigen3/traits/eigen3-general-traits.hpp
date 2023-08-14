@@ -356,7 +356,7 @@ namespace OpenKalman::interface
         else
           return make_self_contained<Arg>(B(arg, std::get<0>(begin), std::get<1>(begin), std::get<0>(size), std::get<1>(size)));
       }
-      else return get_block(Eigen3::EigenWrapper {std::forward<Arg>(arg)}, begin, size);
+      else return make_self_contained(get_block(Eigen3::EigenWrapper {std::forward<Arg>(arg)}, begin, size));
     }
 
 

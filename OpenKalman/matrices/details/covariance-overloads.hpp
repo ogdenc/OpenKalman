@@ -50,6 +50,10 @@ namespace OpenKalman
     struct linearAlgebra<T, std::enable_if_t<covariance<T>>>
 #endif
     {
+      template<typename Derived>
+      using LibraryBase = internal::library_base<Derived, nested_matrix_of_t<T>>;
+
+
       template<typename Scalar, typename...D>
       static auto make_default(D&&...d)
       {

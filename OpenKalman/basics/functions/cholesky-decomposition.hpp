@@ -79,7 +79,7 @@ namespace OpenKalman
     }
     else if constexpr (constant_diagonal_matrix<A>)
     {
-      auto sq = internal::scalar_constant_sqrt(constant_diagonal_coefficient{a});
+      auto sq = internal::constexpr_sqrt(constant_diagonal_coefficient{a});
       return to_diagonal(make_constant_matrix_like<A>(sq, get_index_descriptor<0>(a), Dimensions<1>{}));
     }
     else if constexpr (constant_matrix<A>)
@@ -93,7 +93,7 @@ namespace OpenKalman
           else return Dimensions {get_dimension_size_of<0>(a)};
         }(a);
 
-        auto sq = internal::scalar_constant_sqrt(constant_coefficient{a});
+        auto sq = internal::constexpr_sqrt(constant_coefficient{a});
 
         constexpr Dimensions<1> D1;
         if constexpr (triangle_type == TriangleType::lower)

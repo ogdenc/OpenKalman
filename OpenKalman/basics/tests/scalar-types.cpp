@@ -135,6 +135,15 @@ TEST(basics, constexpr_real_imag_conj)
   EXPECT_EQ(constexpr_real(std::complex<double>{3, 4}), 3);
   EXPECT_EQ(constexpr_imag(std::complex<double>{3, 4}), 4);
   EXPECT_TRUE((constexpr_conj(std::complex<double>{3, 4}) == std::complex<double>{3, -4}));
+
+  static_assert(constexpr_real(std::integral_constant<int, 9>{}) == 9);
+  static_assert(constexpr_real(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{}) == 3);
+  static_assert(constexpr_imag(std::integral_constant<int, 9>{}) == 0);
+  static_assert(constexpr_imag(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{}) == 4);
+  static_assert(constexpr_real(constexpr_conj(std::integral_constant<int, 9>{})) == 9);
+  static_assert(constexpr_imag(constexpr_conj(std::integral_constant<int, 9>{})) == 0);
+  static_assert(constexpr_real(constexpr_conj(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})) == 3);
+  static_assert(constexpr_imag(constexpr_conj(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})) == -4);
 }
 
 
@@ -161,6 +170,10 @@ TEST(basics, constexpr_signbit)
 #endif
   EXPECT_TRUE(constexpr_signbit(-INFINITY));
   EXPECT_TRUE(not constexpr_signbit(INFINITY));
+
+  static_assert(constexpr_signbit(std::integral_constant<int, -3>{}));
+  static_assert(constexpr_signbit(internal::ScalarConstant<Likelihood::definitely, double, -3>{}));
+  static_assert(not constexpr_signbit(internal::ScalarConstant<Likelihood::definitely, double, 3>{}));
 }
 
 
@@ -184,6 +197,11 @@ TEST(basics, constexpr_copysign)
   EXPECT_TRUE(std::signbit(constexpr_copysign(-0., -1.)));
   EXPECT_FALSE(std::signbit(constexpr_copysign(-0., 1.)));
 #endif
+
+  static_assert(constexpr_copysign(internal::ScalarConstant<Likelihood::definitely, int, 5>{}, internal::ScalarConstant<Likelihood::definitely, int, -3>{}) == -5);
+  static_assert(constexpr_copysign(internal::ScalarConstant<Likelihood::definitely, int, -5>{}, internal::ScalarConstant<Likelihood::definitely, int, 3>{}) == 5);
+  static_assert(constexpr_copysign(internal::ScalarConstant<Likelihood::definitely, double, 5>{}, internal::ScalarConstant<Likelihood::definitely, double, -3>{}) == -5);
+  static_assert(constexpr_copysign(internal::ScalarConstant<Likelihood::definitely, double, -5>{}, internal::ScalarConstant<Likelihood::definitely, double, 3>{}) == 5);
 }
 
 
@@ -224,6 +242,9 @@ TEST(basics, constexpr_sqrt)
   EXPECT_PRED3(tolerance, constexpr_sqrt(std::complex<double>{-3e10, 4e10}), std::sqrt(std::complex<double>{-3e10, 4e10}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_sqrt(std::complex<int>{3, -4})));
   COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_sqrt(std::complex<int>{3, 4})));
+
+  static_assert(constexpr_sqrt(std::integral_constant<int, 9>{}) == 3);
+  static_assert(are_within_tolerance(constexpr_sqrt(internal::ScalarConstant<Likelihood::definitely, double, 9>{}), 3, 1e-6));
 }
 
 
@@ -248,6 +269,10 @@ TEST(basics, constexpr_abs)
 #endif
   EXPECT_EQ(constexpr_abs(std::complex<double>{3, -4}), 5);
   EXPECT_EQ(constexpr_abs(std::complex<double>{-3, 4}), 5);
+
+  static_assert(constexpr_abs(std::integral_constant<int, -9>{}) == 9);
+  static_assert(are_within_tolerance(constexpr_abs(internal::ScalarConstant<Likelihood::definitely, double, -9>{}), 9, 1e-6));
+  static_assert(constexpr_abs(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{}) == 5);
 }
 
 
@@ -284,10 +309,15 @@ TEST(basics, constexpr_exp)
   EXPECT_NEAR(constexpr_exp(1e-5), std::exp(1e-5), 1e-12);
   EXPECT_NEAR(constexpr_exp(1e-10), std::exp(1e-10), 1e-16);
 
+  static_assert(are_within_tolerance(constexpr_real(constexpr_exp(std::complex<double>{2, 0})), e*e, 1e-6));
   EXPECT_PRED3(tolerance, constexpr_exp(std::complex<double>{3.3, -4.3}), std::exp(std::complex<double>{3.3, -4.3}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_exp(std::complex<double>{10.4, 3.4}), std::exp(std::complex<double>{10.4, 3.4}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_exp(std::complex<double>{-30.6, 20.6}), std::exp(std::complex<double>{-30.6, 20.6}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_exp(std::complex<int>{3, -4})));
+
+  static_assert(are_within_tolerance(constexpr_exp(std::integral_constant<int, 2>{}), e*e, 1e-6));
+  static_assert(are_within_tolerance(constexpr_exp(internal::ScalarConstant<Likelihood::definitely, double, -2>{}), 1/(e*e), 1e-6));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_exp(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 2, 0>{})), e*e, 1e-6));
 }
 
 
@@ -322,12 +352,17 @@ TEST(basics, constexpr_expm1)
   EXPECT_PRED3(tolerance, constexpr_expm1(3e-12), std::expm1(3e-12), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_expm1(-3e-12), std::expm1(-3e-12), 1e-9);
 
+  static_assert(are_within_tolerance(constexpr_real(constexpr_expm1(std::complex<double>{2, 0})), e*e - 1, 1e-6));
   EXPECT_PRED3(tolerance, constexpr_expm1(std::complex<double>{0.001, -0.001}), std::exp(std::complex<double>{0.001, -0.001}) - 1.0, 1e-9);
   EXPECT_PRED3(tolerance, constexpr_expm1(std::complex<double>{3.2, -4.2}), std::exp(std::complex<double>{3.2, -4.2}) - 1.0, 1e-9);
   EXPECT_PRED3(tolerance, constexpr_expm1(std::complex<double>{10.3, 3.3}), std::exp(std::complex<double>{10.3, 3.3}) - 1.0, 1e-9);
   EXPECT_PRED3(tolerance, constexpr_expm1(std::complex<double>{-10.4, 10.4}), std::exp(std::complex<double>{-10.4, 10.4}) - 1.0, 1e-9);
   EXPECT_PRED3(tolerance, std::real(constexpr_expm1(std::complex<double>{3e-12, 0})), std::expm1(3e-12), 1e-20);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_expm1(std::complex<int>{3, -4})));
+
+  static_assert(are_within_tolerance(constexpr_expm1(std::integral_constant<int, 2>{}), e*e - 1, 1e-6));
+  static_assert(are_within_tolerance(constexpr_expm1(internal::ScalarConstant<Likelihood::definitely, double, -2>{}), 1/(e*e) - 1, 1e-6));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_expm1(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 2, 0>{})), e*e - 1, 1e-6));
 }
 
 
@@ -346,20 +381,26 @@ TEST(basics, constexpr_sinh)
   }
 
   static_assert(constexpr_sinh(0) == 0);
-  static_assert(are_within_tolerance(constexpr_sinh(1), (e - 1/e)/2));
-  static_assert(are_within_tolerance(constexpr_sinh(2), (e*e - 1/e/e)/2));
+  static_assert(are_within_tolerance(constexpr_sinh(1), (e - 1/e)/2, 1e-9));
+  static_assert(are_within_tolerance(constexpr_sinh(2), (e*e - 1/e/e)/2, 1e-9));
   static_assert(are_within_tolerance(constexpr_sinh(3), (e*e*e - 1/e/e/e)/2, 1e-9));
-  static_assert(are_within_tolerance(constexpr_sinh(-1), (1/e - e)/2));
-  static_assert(are_within_tolerance(constexpr_sinh(-2), (1/e/e - e*e)/2));
+  static_assert(are_within_tolerance(constexpr_sinh(-1), (1/e - e)/2, 1e-9));
+  static_assert(are_within_tolerance(constexpr_sinh(-2), (1/e/e - e*e)/2, 1e-9));
   static_assert(are_within_tolerance(constexpr_sinh(-3), (1/e/e/e - e*e*e)/2, 1e-9));
   EXPECT_NEAR(constexpr_sinh(5), std::sinh(5), 1e-9);
   EXPECT_NEAR(constexpr_sinh(-10), std::sinh(-10), 1e-9);
 
+  static_assert(are_within_tolerance(constexpr_real(constexpr_sinh(std::complex<double>{2, 0})), (e*e - 1/e/e)/2, 1e-9));
   EXPECT_PRED3(tolerance, constexpr_sinh(std::complex<double>{3.3, -4.3}), std::sinh(std::complex<double>{3.3, -4.3}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_sinh(std::complex<double>{10.4, 3.4}), std::sinh(std::complex<double>{10.4, 3.4}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_sinh(std::complex<double>{-10.6, 10.6}), std::sinh(std::complex<double>{-10.6, 10.6}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_sinh(std::complex<int>{3, -4})));
 
+  static_assert(are_within_tolerance(constexpr_sinh(std::integral_constant<int, 2>{}), (e*e - 1/e/e)/2, 1e-9));
+  static_assert(are_within_tolerance(constexpr_sinh(internal::ScalarConstant<Likelihood::definitely, double, -2>{}), (1/e/e - e*e)/2, 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_sinh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 2, 0>{})), (e*e - 1/e/e)/2, 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_sinh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, -4>{})), -6.548120040911001647767, 1e-9));
+  static_assert(are_within_tolerance(constexpr_imag(constexpr_sinh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, -4>{})), 7.619231720321410208487, 1e-9));
 }
 
 
@@ -376,20 +417,26 @@ TEST(basics, constexpr_cosh)
   }
 
   static_assert(constexpr_cosh(0) == 1);
-  static_assert(are_within_tolerance(constexpr_cosh(1), (e + 1/e)/2));
-  static_assert(are_within_tolerance(constexpr_cosh(2), (e*e + 1/e/e)/2));
+  static_assert(are_within_tolerance(constexpr_cosh(1), (e + 1/e)/2, 1e-9));
+  static_assert(are_within_tolerance(constexpr_cosh(2), (e*e + 1/e/e)/2, 1e-9));
   static_assert(are_within_tolerance(constexpr_cosh(3), (e*e*e + 1/e/e/e)/2, 1e-9));
-  static_assert(are_within_tolerance(constexpr_cosh(-1), (1/e + e)/2));
-  static_assert(are_within_tolerance(constexpr_cosh(-2), (1/e/e + e*e)/2));
+  static_assert(are_within_tolerance(constexpr_cosh(-1), (1/e + e)/2, 1e-9));
+  static_assert(are_within_tolerance(constexpr_cosh(-2), (1/e/e + e*e)/2, 1e-9));
   static_assert(are_within_tolerance(constexpr_cosh(-3), (1/e/e/e + e*e*e)/2, 1e-9));
   EXPECT_NEAR(constexpr_cosh(5), std::cosh(5), 1e-9);
   EXPECT_NEAR(constexpr_cosh(-10), std::cosh(-10), 1e-9);
 
+  static_assert(are_within_tolerance(constexpr_real(constexpr_cosh(std::complex<double>{2, 0})), (e*e + 1/e/e)/2, 1e-9));
   EXPECT_PRED3(tolerance, constexpr_cosh(std::complex<double>{3.3, -4.3}), std::cosh(std::complex<double>{3.3, -4.3}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_cosh(std::complex<double>{10.4, 3.4}), std::cosh(std::complex<double>{10.4, 3.4}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_cosh(std::complex<double>{-10.6, 10.6}), std::cosh(std::complex<double>{-10.6, 10.6}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_cosh(std::complex<int>{3, -4})));
 
+  static_assert(are_within_tolerance(constexpr_cosh(std::integral_constant<int, 2>{}), (e*e + 1/e/e)/2, 1e-9));
+  static_assert(are_within_tolerance(constexpr_cosh(internal::ScalarConstant<Likelihood::definitely, double, -2>{}), (1/e/e + e*e)/2, 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_cosh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 2, 0>{})), (e*e + 1/e/e)/2, 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_cosh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, -4>{})), -6.580663040551156432561, 1e-9));
+  static_assert(are_within_tolerance(constexpr_imag(constexpr_cosh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, -4>{})), 7.581552742746544353716, 1e-9));
 }
 
 
@@ -408,19 +455,25 @@ TEST(basics, constexpr_tanh)
   }
 
   static_assert(constexpr_tanh(0) == 0);
-  static_assert(are_within_tolerance(constexpr_tanh(1), (e*e - 1)/(e*e + 1)));
-  static_assert(are_within_tolerance(constexpr_tanh(2), (e*e*e*e - 1)/(e*e*e*e + 1)));
-  static_assert(are_within_tolerance(constexpr_tanh(3), (e*e*e*e*e*e - 1)/(e*e*e*e*e*e + 1)));
-  static_assert(are_within_tolerance(constexpr_tanh(-1), (1 - e*e)/(1 + e*e)));
-  static_assert(are_within_tolerance(constexpr_tanh(-2), (1 - e*e*e*e)/(1 + e*e*e*e)));
-  static_assert(are_within_tolerance(constexpr_tanh(-3), (1 - e*e*e*e*e*e)/(1 + e*e*e*e*e*e)));
+  static_assert(are_within_tolerance(constexpr_tanh(1), (e*e - 1)/(e*e + 1), 1e-9));
+  static_assert(are_within_tolerance(constexpr_tanh(2), (e*e*e*e - 1)/(e*e*e*e + 1), 1e-9));
+  static_assert(are_within_tolerance(constexpr_tanh(3), (e*e*e*e*e*e - 1)/(e*e*e*e*e*e + 1), 1e-9));
+  static_assert(are_within_tolerance(constexpr_tanh(-1), (1 - e*e)/(1 + e*e), 1e-9));
+  static_assert(are_within_tolerance(constexpr_tanh(-2), (1 - e*e*e*e)/(1 + e*e*e*e), 1e-9));
+  static_assert(are_within_tolerance(constexpr_tanh(-3), (1 - e*e*e*e*e*e)/(1 + e*e*e*e*e*e), 1e-9));
   EXPECT_NEAR(constexpr_tanh(5), std::tanh(5), 1e-9);
   EXPECT_NEAR(constexpr_tanh(-10), std::tanh(-10), 1e-9);
 
+  static_assert(are_within_tolerance(constexpr_real(constexpr_tanh(std::complex<double>{2, 0})), (e*e*e*e - 1)/(e*e*e*e + 1), 1e-9));
   EXPECT_PRED3(tolerance, constexpr_tanh(std::complex<double>{3.3, -4.3}), std::tanh(std::complex<double>{3.3, -4.3}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_tanh(std::complex<double>{10.4, 3.4}), std::tanh(std::complex<double>{10.4, 3.4}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_tanh(std::complex<double>{-30.6, 20.6}), std::tanh(std::complex<double>{-30.6, 20.6}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_tanh(std::complex<int>{3, -4})));
+
+  static_assert(are_within_tolerance(constexpr_tanh(std::integral_constant<int, 2>{}), (e*e*e*e - 1)/(e*e*e*e + 1), 1e-9));
+  static_assert(are_within_tolerance(constexpr_tanh(internal::ScalarConstant<Likelihood::definitely, double, -2>{}), (1 - e*e*e*e)/(1 + e*e*e*e), 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_tanh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 1.00070953606723293933, 1e-9));
+  static_assert(are_within_tolerance(constexpr_imag(constexpr_tanh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.004908258067496060259079, 1e-9));
 }
 
 
@@ -469,11 +522,16 @@ TEST(basics, constexpr_sin)
   EXPECT_NEAR(constexpr_sin(-32), std::sin(-32), 1e-9);
   EXPECT_NEAR(constexpr_sin(0x1p16), std::sin(0x1p16), 1e-9);
 
+  static_assert(are_within_tolerance(constexpr_sin(std::complex<double>{pi/2, 0}), 1));
   EXPECT_PRED3(tolerance, constexpr_sin(std::complex<double>{4.1, 3.1}), std::sin(std::complex<double>{4.1, 3.1}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_sin(std::complex<double>{3.2, -4.2}), std::sin(std::complex<double>{3.2, -4.2}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_sin(std::complex<double>{-3.3, 4.3}), std::sin(std::complex<double>{-3.3, 4.3}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_sin(std::complex<double>{-9.3, 10.3}), std::sin(std::complex<double>{-9.3, 10.3}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_sin(std::complex<int>{3, -4})));
+
+  static_assert(are_within_tolerance(constexpr_sin(std::integral_constant<int, 2>{}), 0.909297426825681695396, 1e-9));
+  static_assert(are_within_tolerance(constexpr_sin(internal::ScalarConstant<Likelihood::definitely, double, 2>{}), 0.909297426825681695396, 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_sin(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 2, 0>{})), 0.909297426825681695396, 1e-9));
 }
 
 
@@ -519,11 +577,16 @@ TEST(basics, constexpr_cos)
   EXPECT_NEAR(constexpr_cos(-32), std::cos(-32), 1e-9);
   EXPECT_NEAR(constexpr_cos(0x1p16), std::cos(0x1p16), 1e-9);
 
+  static_assert(are_within_tolerance(constexpr_cos(std::complex<double>{pi/2, 0}), 0));
   EXPECT_PRED3(tolerance, constexpr_cos(std::complex<double>{4.1, 3.1}), std::cos(std::complex<double>{4.1, 3.1}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_cos(std::complex<double>{3.2, -4.2}), std::cos(std::complex<double>{3.2, -4.2}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_cos(std::complex<double>{-3.3, 4.3}), std::cos(std::complex<double>{-3.3, 4.3}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_cos(std::complex<double>{-9.3, 10.3}), std::cos(std::complex<double>{-9.3, 10.3}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_cos(std::complex<int>{3, -4})));
+
+  static_assert(are_within_tolerance(constexpr_cos(std::integral_constant<int, 2>{}), -0.4161468365471423869976, 1e-9));
+  static_assert(are_within_tolerance(constexpr_cos(internal::ScalarConstant<Likelihood::definitely, double, 2>{}), -0.4161468365471423869976, 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_cos(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 2, 0>{})), -0.4161468365471423869976, 1e-9));
 }
 
 
@@ -568,11 +631,17 @@ TEST(basics, constexpr_tan)
   EXPECT_NEAR(constexpr_tan(-32), std::tan(-32), 1e-9);
   EXPECT_NEAR(constexpr_tan(0x1p16), std::tan(0x1p16), 1e-9);
 
+  static_assert(are_within_tolerance(constexpr_tan(std::complex<double>{pi/4, 0}), 1));
   EXPECT_PRED3(tolerance, constexpr_tan(std::complex<double>{4.1, 3.1}), std::tan(std::complex<double>{4.1, 3.1}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_tan(std::complex<double>{3.2, -4.2}), std::tan(std::complex<double>{3.2, -4.2}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_tan(std::complex<double>{-3.3, 4.3}), std::tan(std::complex<double>{-3.3, 4.3}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_tan(std::complex<double>{-30.3, 40.3}), std::tan(std::complex<double>{-30.3, 40.3}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_tan(std::complex<int>{30, -2})));
+
+  static_assert(are_within_tolerance(constexpr_tan(std::integral_constant<int, 2>{}), -2.185039863261518991643, 1e-9));
+  static_assert(are_within_tolerance(constexpr_tan(internal::ScalarConstant<Likelihood::definitely, double, 2>{}), -2.185039863261518991643, 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_tan(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), -1.873462046294784262243E-4, 1e-9));
+  static_assert(are_within_tolerance(constexpr_imag(constexpr_tan(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.9993559873814731413917, 1e-9));
 }
 
 
@@ -613,12 +682,18 @@ TEST(basics, constexpr_log)
   EXPECT_NEAR(constexpr_log(1e200L), std::log(1e200L), 1e-9);
   EXPECT_NEAR(constexpr_log(1e-200L), std::log(1e-200L), 1e-9);
 
+  static_assert(are_within_tolerance(constexpr_log(std::complex<double>{e*e, 0}), 2));
   EXPECT_PRED3(tolerance, constexpr_log(std::complex<double>{-4}), std::log(std::complex<double>{-4}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_log(std::complex<double>{3, 4}), std::log(std::complex<double>{3, 4}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_log(std::complex<double>{3, -4}), std::log(std::complex<double>{3, -4}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_log(std::complex<double>{-3, 4}), std::log(std::complex<double>{-3, 4}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_log(std::complex<double>{-3, -4}), std::log(std::complex<double>{-3, -4}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_log(std::complex<int>{3, -4})));
+
+  static_assert(are_within_tolerance(constexpr_log(std::integral_constant<int, 2>{}), numbers::ln2_v<double>, 1e-9));
+  static_assert(are_within_tolerance(constexpr_log(internal::ScalarConstant<Likelihood::definitely, double, 2>{}), numbers::ln2_v<double>, 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_log(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 1.609437912434100374601, 1e-9));
+  static_assert(are_within_tolerance(constexpr_imag(constexpr_log(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.9272952180016122324285, 1e-9));
 }
 
 
@@ -663,6 +738,7 @@ TEST(basics, constexpr_log1p)
   EXPECT_NEAR(constexpr_log1p(1e200), std::log1p(1e200), 1e-9);
   EXPECT_NEAR(constexpr_log1p(1e200L), std::log1p(1e200L), 1e-9);
 
+  static_assert(are_within_tolerance(constexpr_log1p(std::complex<double>{e*e - 1, 0}), 2));
   EXPECT_PRED3(tolerance, std::real(constexpr_log1p(std::complex<double>{4e-21})), std::log1p(4e-21), 1e-30);
   EXPECT_PRED3(tolerance, constexpr_log1p(std::complex<double>{-4}), std::log(std::complex<double>{-3}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_log1p(std::complex<double>{3, 4}), std::log(std::complex<double>{4, 4}), 1e-9);
@@ -670,6 +746,124 @@ TEST(basics, constexpr_log1p)
   EXPECT_PRED3(tolerance, constexpr_log1p(std::complex<double>{-3, 4}), std::log(std::complex<double>{-2, 4}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_log1p(std::complex<double>{-3, -4}), std::log(std::complex<double>{-2, -4}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_log1p(std::complex<int>{3, -4})));
+
+  static_assert(are_within_tolerance(constexpr_log1p(std::integral_constant<int, 1>{}), numbers::ln2_v<double>, 1e-9));
+  static_assert(are_within_tolerance(constexpr_log1p(internal::ScalarConstant<Likelihood::definitely, double, 1>{}), numbers::ln2_v<double>, 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_log1p(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 2, 4>{})), 1.609437912434100374601, 1e-9));
+  static_assert(are_within_tolerance(constexpr_imag(constexpr_log1p(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 2, 4>{})), 0.9272952180016122324285, 1e-9));
+}
+
+
+TEST(basics, constexpr_asinh)
+{
+  constexpr auto e = numbers::e_v<double>;
+
+  if constexpr (std::numeric_limits<double>::is_iec559)
+  {
+    EXPECT_TRUE(constexpr_asinh(constexpr_NaN<double>()) != constexpr_asinh(constexpr_NaN<double>()));
+    EXPECT_TRUE(constexpr_asinh(constexpr_infinity<double>()) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_asinh(-constexpr_infinity<double>()) == -constexpr_infinity<double>());
+    EXPECT_FALSE(std::signbit(constexpr_asinh(+0.)));
+    EXPECT_TRUE(std::signbit(constexpr_asinh(-0.)));
+    EXPECT_TRUE(constexpr_asinh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_asinh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+  }
+
+  static_assert(constexpr_asinh(0) == 0);
+  static_assert(are_within_tolerance(constexpr_asinh((e - 1/e)/2), 1));
+  static_assert(are_within_tolerance(constexpr_asinh((e*e - 1/e/e)/2), 2));
+  static_assert(are_within_tolerance(constexpr_asinh((e*e*e - 1/e/e/e)/2), 3, 1e-9));
+  static_assert(are_within_tolerance(constexpr_asinh((1/e - e)/2), -1));
+  static_assert(are_within_tolerance(constexpr_asinh((1/e/e - e*e)/2), -2, 1e-9));
+  static_assert(are_within_tolerance(constexpr_asinh((1/e/e/e - e*e*e)/2), -3, 1e-9));
+  EXPECT_NEAR(constexpr_asinh(5), std::asinh(5), 1e-9);
+  EXPECT_NEAR(constexpr_asinh(-10), std::asinh(-10), 1e-9);
+
+  static_assert(are_within_tolerance(constexpr_asinh(std::complex<double>{(e*e - 1/e/e)/2, 0}), 2));
+  EXPECT_PRED3(tolerance, constexpr_asinh(std::complex<double>{3.3, -4.3}), std::asinh(std::complex<double>{3.3, -4.3}), 1e-9);
+  EXPECT_PRED3(tolerance, constexpr_asinh(std::complex<double>{10.4, 3.4}), std::asinh(std::complex<double>{10.4, 3.4}), 1e-9);
+  EXPECT_PRED3(tolerance, constexpr_asinh(std::complex<double>{-10.6, 10.6}), std::asinh(std::complex<double>{-10.6, 10.6}), 1e-9);
+  COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_asinh(std::complex<int>{3, -4})));
+
+  static_assert(are_within_tolerance(constexpr_asinh(std::integral_constant<int, 2>{}), 1.443635475178810342493, 1e-9));
+  static_assert(are_within_tolerance(constexpr_asinh(internal::ScalarConstant<Likelihood::definitely, double, 2>{}), 1.443635475178810342493, 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_asinh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 2.299914040879269649956, 1e-9));
+  static_assert(are_within_tolerance(constexpr_imag(constexpr_asinh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.9176168533514786557599, 1e-9));
+}
+
+
+TEST(basics, constexpr_acosh)
+{
+  constexpr auto e = numbers::e_v<double>;
+
+  if constexpr (std::numeric_limits<double>::is_iec559)
+  {
+    EXPECT_TRUE(constexpr_acosh(constexpr_NaN<double>()) != constexpr_acosh(constexpr_NaN<double>()));
+    EXPECT_TRUE(constexpr_acosh(-1) != constexpr_acosh(-1));
+    EXPECT_TRUE(constexpr_acosh(constexpr_infinity<double>()) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_acosh(-constexpr_infinity<double>()) != constexpr_acosh(-constexpr_infinity<double>()));
+    EXPECT_TRUE(constexpr_acosh(0.9) != constexpr_acosh(0.9));
+    EXPECT_TRUE(constexpr_acosh(-1) != constexpr_acosh(-1));
+    EXPECT_FALSE(std::signbit(constexpr_acosh(1)));
+    EXPECT_TRUE(constexpr_acosh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_acosh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+  }
+
+  static_assert(constexpr_acosh(1) == 0);
+  static_assert(are_within_tolerance(constexpr_acosh((e + 1/e)/2), 1));
+  static_assert(are_within_tolerance(constexpr_acosh((e*e + 1/e/e)/2), 2));
+  static_assert(are_within_tolerance(constexpr_acosh((e*e*e + 1/e/e/e)/2), 3, 1e-9));
+  EXPECT_NEAR(constexpr_acosh(5), std::acosh(5), 1e-9);
+  EXPECT_NEAR(constexpr_acosh(10), std::acosh(10), 1e-9);
+
+  static_assert(are_within_tolerance(constexpr_acosh(std::complex<double>{(e*e + 1/e/e)/2, 0}), 2));
+  EXPECT_PRED3(tolerance, constexpr_acosh(std::complex<double>{-2, 0}), std::acosh(std::complex<double>{-2, 0}), 1e-9);
+  EXPECT_PRED3(tolerance, constexpr_acosh(std::complex<double>{3.3, -4.3}), std::acosh(std::complex<double>{3.3, -4.3}), 1e-9);
+  EXPECT_PRED3(tolerance, constexpr_acosh(std::complex<double>{5.4, 3.4}), std::acosh(std::complex<double>{5.4, 3.4}), 1e-9);
+  EXPECT_PRED3(tolerance, constexpr_acosh(std::complex<double>{-5.6, 5.6}), std::acosh(std::complex<double>{-5.6, 5.6}), 1e-9);
+  COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_acosh(std::complex<int>{3, -4})));
+
+  static_assert(are_within_tolerance(constexpr_acosh(std::integral_constant<int, 2>{}), 1.316957896924816708625, 1e-9));
+  static_assert(are_within_tolerance(constexpr_acosh(internal::ScalarConstant<Likelihood::definitely, double, 2>{}), 1.316957896924816708625, 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_acosh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 2.305509031243476942042, 1e-9));
+  static_assert(are_within_tolerance(constexpr_imag(constexpr_acosh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.9368124611557199029125, 1e-9));
+}
+
+
+TEST(basics, constexpr_atanh)
+{
+  constexpr auto e = numbers::e_v<double>;
+
+  if constexpr (std::numeric_limits<double>::is_iec559)
+  {
+    EXPECT_TRUE(constexpr_atanh(constexpr_NaN<double>()) != constexpr_atanh(constexpr_NaN<double>()));
+    EXPECT_TRUE(constexpr_atanh(2) != constexpr_atanh(2));
+    EXPECT_TRUE(constexpr_atanh(-2) != constexpr_atanh(-2));
+    EXPECT_TRUE(constexpr_atanh(1) == constexpr_infinity<double>());
+    EXPECT_TRUE(constexpr_atanh(-1) == -constexpr_infinity<double>());
+    EXPECT_FALSE(std::signbit(constexpr_atanh(+0.)));
+    EXPECT_TRUE(std::signbit(constexpr_atanh(-0.)));
+    EXPECT_TRUE(constexpr_atanh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_atanh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
+  }
+
+  static_assert(constexpr_atanh(0) == 0);
+  static_assert(are_within_tolerance(constexpr_atanh((e*e - 1)/(e*e + 1)), 1));
+  static_assert(are_within_tolerance(constexpr_atanh((e*e*e*e - 1)/(e*e*e*e + 1)), 2));
+  static_assert(are_within_tolerance(constexpr_atanh((e*e*e*e*e*e - 1)/(e*e*e*e*e*e + 1)), 3, 1e-9));
+  static_assert(are_within_tolerance(constexpr_atanh((1 - e*e)/(1 + e*e)), -1));
+  static_assert(are_within_tolerance(constexpr_atanh((1 - e*e*e*e)/(1 + e*e*e*e)), -2));
+  static_assert(are_within_tolerance(constexpr_atanh((1 - e*e*e*e*e*e)/(1 + e*e*e*e*e*e)), -3, 1e-9));
+  EXPECT_NEAR(constexpr_atanh(0.99), std::atanh(0.99), 1e-9);
+  EXPECT_NEAR(constexpr_atanh(-0.99), std::atanh(-0.99), 1e-9);
+
+  static_assert(are_within_tolerance(constexpr_atanh(std::complex<double>{(e*e*e*e - 1)/(e*e*e*e + 1), 0}), 2));
+  EXPECT_PRED3(tolerance, constexpr_atanh(std::complex<double>{3.3, -4.3}), std::atanh(std::complex<double>{3.3, -4.3}), 1e-9);
+  EXPECT_PRED3(tolerance, constexpr_atanh(std::complex<double>{10.4, 3.4}), std::atanh(std::complex<double>{10.4, 3.4}), 1e-9);
+  EXPECT_PRED3(tolerance, constexpr_atanh(std::complex<double>{-30.6, 20.6}), std::atanh(std::complex<double>{-30.6, 20.6}), 1e-9);
+  COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_atanh(std::complex<int>{3, -4})));
+
+  static_assert(are_within_tolerance(constexpr_atanh(std::integral_constant<int, 0>{}), 0, 1e-9));
+  static_assert(are_within_tolerance(constexpr_atanh(internal::ScalarConstant<Likelihood::definitely, double, 0>{}), 0, 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_atanh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.1175009073114338884127, 1e-9));
+  static_assert(are_within_tolerance(constexpr_imag(constexpr_atanh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 1.409921049596575522531, 1e-9));
 }
 
 
@@ -707,11 +901,17 @@ TEST(basics, constexpr_asin)
   EXPECT_NEAR(constexpr_asin(0.99999), std::asin(0.99999), 1e-9);
   EXPECT_NEAR(constexpr_asin(0.99999999), std::asin(0.99999999), 1e-9);
 
+  static_assert(are_within_tolerance(constexpr_asin(std::complex<double>{numbers::sqrt2_v<double>/2, 0}), pi/4, 1e-9));
   EXPECT_PRED3(tolerance, constexpr_asin(std::complex<double>{4.1, 3.1}), std::asin(std::complex<double>{4.1, 3.1}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_asin(std::complex<double>{3.2, -4.2}), std::asin(std::complex<double>{3.2, -4.2}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_asin(std::complex<double>{-3.3, 4.3}), std::asin(std::complex<double>{-3.3, 4.3}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_asin(std::complex<double>{-9.3, 10.3}), std::asin(std::complex<double>{-9.3, 10.3}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_asin(std::complex<int>{3, -4})));
+
+  static_assert(are_within_tolerance(constexpr_asin(std::integral_constant<int, 1>{}), pi/2, 1e-9));
+  static_assert(are_within_tolerance(constexpr_asin(internal::ScalarConstant<Likelihood::definitely, double, 1>{}), pi/2, 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_asin(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.6339838656391767163188, 1e-9));
+  static_assert(are_within_tolerance(constexpr_imag(constexpr_asin(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 2.305509031243476942042, 1e-9));
 }
 
 
@@ -745,11 +945,17 @@ TEST(basics, constexpr_acos)
   EXPECT_NEAR(constexpr_acos(0.99999), std::acos(0.99999), 1e-9);
   EXPECT_NEAR(constexpr_acos(0.9999999), std::acos(0.9999999), 1e-9);
 
+  static_assert(are_within_tolerance(constexpr_acos(std::complex<double>{0.5, 0}), pi/3, 1e-9));
   EXPECT_PRED3(tolerance, constexpr_acos(std::complex<double>{4.1, 3.1}), std::acos(std::complex<double>{4.1, 3.1}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_acos(std::complex<double>{3.2, -4.2}), std::acos(std::complex<double>{3.2, -4.2}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_acos(std::complex<double>{-3.3, 4.3}), std::acos(std::complex<double>{-3.3, 4.3}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_acos(std::complex<double>{-9.3, 10.3}), std::acos(std::complex<double>{-9.3, 10.3}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_acos(std::complex<int>{3, -4})));
+
+  static_assert(are_within_tolerance(constexpr_acos(std::integral_constant<int, -1>{}), pi, 1e-9));
+  static_assert(are_within_tolerance(constexpr_acos(internal::ScalarConstant<Likelihood::definitely, double, -1>{}), pi, 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_acos(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.9368124611557199029125, 1e-9));
+  static_assert(are_within_tolerance(constexpr_imag(constexpr_acos(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), -2.305509031243476942042, 1e-9));
 }
 
 
@@ -780,12 +986,18 @@ TEST(basics, constexpr_atan)
   EXPECT_NEAR(constexpr_atan(-10.0), std::atan(-10.0), 1e-9);
   EXPECT_NEAR(constexpr_atan(100.0), std::atan(100.0), 1e-9);
 
+  static_assert(are_within_tolerance(constexpr_atan(std::complex<double>{1, 0}), pi/4, 1e-9));
   EXPECT_PRED3(tolerance, constexpr_atan(std::complex<double>{4.1, 0.}), std::atan(4.1), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_atan(std::complex<double>{4.1, 3.1}), std::atan(std::complex<double>{4.1, 3.1}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_atan(std::complex<double>{3.2, -4.2}), std::atan(std::complex<double>{3.2, -4.2}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_atan(std::complex<double>{-3.3, 4.3}), std::atan(std::complex<double>{-3.3, 4.3}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_atan(std::complex<double>{-9.3, 10.3}), std::atan(std::complex<double>{-9.3, 10.3}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_atan(std::complex<int>{3, -4})));
+
+  static_assert(are_within_tolerance(constexpr_atan(std::integral_constant<int, 1>{}), pi/4, 1e-9));
+  static_assert(are_within_tolerance(constexpr_atan(internal::ScalarConstant<Likelihood::definitely, double, 1>{}), pi/4, 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_atan(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 1.448306995231464542145, 1e-9));
+  static_assert(are_within_tolerance(constexpr_imag(constexpr_atan(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.1589971916799991743648, 1e-9));
 }
 
 
@@ -818,6 +1030,7 @@ TEST(basics, constexpr_atan2)
     EXPECT_TRUE(constexpr_atan2(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}, std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_atan2(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}, std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
   }
 
+  static_assert(constexpr_atan2(0, 0) == 0);
   static_assert(constexpr_atan2(0, 1) == 0);
   static_assert(constexpr_atan2(0, -1) == pi);
   static_assert(constexpr_atan2(1, 0) == pi/2);
@@ -827,119 +1040,33 @@ TEST(basics, constexpr_atan2)
   static_assert(are_within_tolerance(constexpr_atan2(-0.5, 0.5), -pi/4));
   static_assert(are_within_tolerance(constexpr_atan2(-1.L, -1.L), -3*piL/4));
   static_assert(are_within_tolerance(constexpr_atan2(-1.F, -1.F), -3*piF/4));
-  static_assert(constexpr_atan2(0, 0) == 0);
   EXPECT_NEAR(constexpr_atan2(-0.7, 4.5), std::atan2(-0.7, 4.5), 1e-9);
   EXPECT_NEAR(constexpr_atan2(0.9, -2.3), std::atan2(0.9, -2.3), 1e-9);
   EXPECT_NEAR(constexpr_atan2(5.0, 3.1), std::atan2(5.0, 3.1), 1e-9);
   EXPECT_NEAR(constexpr_atan2(-10.0, 9.0), std::atan2(-10.0, 9.0), 1e-9);
   EXPECT_NEAR(constexpr_atan2(100.0, 200.0), std::atan2(100.0, 200.0), 1e-9);
 
+  static_assert(constexpr_atan2(std::complex<double>{0, 0}, std::complex<double>{0, 0}) == 0.0);
+  static_assert(constexpr_atan2(std::complex<double>{0, 0}, std::complex<double>{1, 0}) == 0.0);
+  static_assert(are_within_tolerance(constexpr_atan2(std::complex<double>{0, 0}, std::complex<double>{-1, 0}), pi, 1e-9));
+  static_assert(are_within_tolerance(constexpr_atan2(std::complex<double>{1, 0}, std::complex<double>{0, 0}), pi/2, 1e-9));
+  static_assert(are_within_tolerance(constexpr_atan2(std::complex<double>{-1, 0}, std::complex<double>{0, 0}), -pi/2, 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_atan2(std::complex<double>{3.2, -4.2}, std::complex<double>{-4.1, 3.1})), -0.7993578098204363309621, 1e-9));
+  static_assert(are_within_tolerance(constexpr_imag(constexpr_atan2(std::complex<double>{3.2, -4.2}, std::complex<double>{-4.1, 3.1})), 0.1378262475816170392786, 1e-9));
   EXPECT_PRED3(tolerance, constexpr_atan2(std::complex<double>{4.1, 3.1}, std::complex<double>{2.1, 5.1}), std::atan(std::complex<double>{4.1, 3.1} / std::complex<double>{2.1, 5.1}), 1e-9);
-  EXPECT_PRED3(tolerance, constexpr_atan2(std::complex<double>{3.2, -4.2}, std::complex<double>{-4.1, 3.1}), std::atan(std::complex<double>{3.2, -4.2} / std::complex<double>{-4.1, 3.1}) + pi, 1e-9);
   EXPECT_PRED3(tolerance, constexpr_atan2(std::complex<double>{-3.3, 4.3}, std::complex<double>{2.1, 5.1}), std::atan(std::complex<double>{-3.3, 4.3} / std::complex<double>{2.1, 5.1}), 1e-9);
-  EXPECT_PRED3(tolerance, constexpr_atan2(std::complex<double>{-9.3, 10.3}, std::complex<double>{-5.1, 2.1}), std::atan(std::complex<double>{-9.3, 10.3} / std::complex<double>{-5.1, 2.1}) - pi, 1e-9);
+  EXPECT_PRED3(tolerance, constexpr_atan2(std::complex<double>{-9.3, 10.3}, std::complex<double>{-5.1, 2.1}), std::atan(std::complex<double>{-9.3, 10.3} / std::complex<double>{-5.1, 2.1}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_atan2(std::complex<double>{0., 0.}, std::complex<double>{0., 0.}), std::complex<double>{0}, 1e-9);
   EXPECT_PRED3(tolerance, constexpr_atan2(std::complex<double>{0., 3.1}, std::complex<double>{2.1, 5.1}), std::atan(std::complex<double>{0., 3.1} / std::complex<double>{2.1, 5.1}), 1e-9);
-  EXPECT_PRED3(tolerance, constexpr_atan2(std::complex<double>{0., 3.1}, std::complex<double>{-2.1, 5.1}), std::atan(std::complex<double>{0., 3.1} / std::complex<double>{-2.1, 5.1}) + pi, 1e-9);
+  EXPECT_PRED3(tolerance, constexpr_atan2(std::complex<double>{0., 3.1}, std::complex<double>{-2.1, 5.1}), std::atan(std::complex<double>{0., 3.1} / std::complex<double>{-2.1, 5.1}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_atan2(std::complex<double>{4.1, 3.1}, std::complex<double>{0., 5.1}), std::atan(std::complex<double>{4.1, 3.1} / std::complex<double>{0., 5.1}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_atan2(std::complex<double>{-4.1, 3.1}, std::complex<double>{0., 5.1}), std::atan(std::complex<double>{-4.1, 3.1} / std::complex<double>{0., 5.1}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_atan2(std::complex<int>{3, -4}, std::complex<int>{2, 5})));
-}
 
-
-TEST(basics, constexpr_asinh)
-{
-  constexpr auto e = numbers::e_v<double>;
-
-  if constexpr (std::numeric_limits<double>::is_iec559)
-  {
-    EXPECT_TRUE(constexpr_asinh(constexpr_NaN<double>()) != constexpr_asinh(constexpr_NaN<double>()));
-    EXPECT_TRUE(constexpr_asinh(constexpr_infinity<double>()) == constexpr_infinity<double>());
-    EXPECT_TRUE(constexpr_asinh(-constexpr_infinity<double>()) == -constexpr_infinity<double>());
-    EXPECT_FALSE(std::signbit(constexpr_asinh(+0.)));
-    EXPECT_TRUE(std::signbit(constexpr_asinh(-0.)));
-    EXPECT_TRUE(constexpr_asinh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_asinh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
-  }
-
-  static_assert(constexpr_asinh(0) == 0);
-  static_assert(are_within_tolerance(constexpr_asinh((e - 1/e)/2), 1));
-  static_assert(are_within_tolerance(constexpr_asinh((e*e - 1/e/e)/2), 2));
-  static_assert(are_within_tolerance(constexpr_asinh((e*e*e - 1/e/e/e)/2), 3, 1e-9));
-  static_assert(are_within_tolerance(constexpr_asinh((1/e - e)/2), -1));
-  static_assert(are_within_tolerance(constexpr_asinh((1/e/e - e*e)/2), -2, 1e-9));
-  static_assert(are_within_tolerance(constexpr_asinh((1/e/e/e - e*e*e)/2), -3, 1e-9));
-  EXPECT_NEAR(constexpr_asinh(5), std::asinh(5), 1e-9);
-  EXPECT_NEAR(constexpr_asinh(-10), std::asinh(-10), 1e-9);
-
-  EXPECT_PRED3(tolerance, constexpr_asinh(std::complex<double>{3.3, -4.3}), std::asinh(std::complex<double>{3.3, -4.3}), 1e-9);
-  EXPECT_PRED3(tolerance, constexpr_asinh(std::complex<double>{10.4, 3.4}), std::asinh(std::complex<double>{10.4, 3.4}), 1e-9);
-  EXPECT_PRED3(tolerance, constexpr_asinh(std::complex<double>{-10.6, 10.6}), std::asinh(std::complex<double>{-10.6, 10.6}), 1e-9);
-  COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_asinh(std::complex<int>{3, -4})));
-}
-
-
-TEST(basics, constexpr_acosh)
-{
-  constexpr auto e = numbers::e_v<double>;
-
-  if constexpr (std::numeric_limits<double>::is_iec559)
-  {
-    EXPECT_TRUE(constexpr_acosh(constexpr_NaN<double>()) != constexpr_acosh(constexpr_NaN<double>()));
-    EXPECT_TRUE(constexpr_acosh(-1) != constexpr_acosh(-1));
-    EXPECT_TRUE(constexpr_acosh(constexpr_infinity<double>()) == constexpr_infinity<double>());
-    EXPECT_TRUE(constexpr_acosh(-constexpr_infinity<double>()) != constexpr_acosh(-constexpr_infinity<double>()));
-    EXPECT_TRUE(constexpr_acosh(0.9) != constexpr_acosh(0.9));
-    EXPECT_TRUE(constexpr_acosh(-1) != constexpr_acosh(-1));
-    EXPECT_FALSE(std::signbit(constexpr_acosh(1)));
-    EXPECT_TRUE(constexpr_acosh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_acosh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
-  }
-
-  static_assert(constexpr_acosh(1) == 0);
-  static_assert(are_within_tolerance(constexpr_acosh((e + 1/e)/2), 1));
-  static_assert(are_within_tolerance(constexpr_acosh((e*e + 1/e/e)/2), 2));
-  static_assert(are_within_tolerance(constexpr_acosh((e*e*e + 1/e/e/e)/2), 3, 1e-9));
-  EXPECT_NEAR(constexpr_acosh(5), std::acosh(5), 1e-9);
-  EXPECT_NEAR(constexpr_acosh(10), std::acosh(10), 1e-9);
-
-  EXPECT_PRED3(tolerance, constexpr_acosh(std::complex<double>{-2, 0}), std::acosh(std::complex<double>{-2, 0}), 1e-9);
-  EXPECT_PRED3(tolerance, constexpr_acosh(std::complex<double>{3.3, -4.3}), std::acosh(std::complex<double>{3.3, -4.3}), 1e-9);
-  EXPECT_PRED3(tolerance, constexpr_acosh(std::complex<double>{5.4, 3.4}), std::acosh(std::complex<double>{5.4, 3.4}), 1e-9);
-  EXPECT_PRED3(tolerance, constexpr_acosh(std::complex<double>{-5.6, 5.6}), std::acosh(std::complex<double>{-5.6, 5.6}), 1e-9);
-  COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_acosh(std::complex<int>{3, -4})));
-
-}
-
-
-TEST(basics, constexpr_atanh)
-{
-  constexpr auto e = numbers::e_v<double>;
-
-  if constexpr (std::numeric_limits<double>::is_iec559)
-  {
-    EXPECT_TRUE(constexpr_atanh(constexpr_NaN<double>()) != constexpr_atanh(constexpr_NaN<double>()));
-    EXPECT_TRUE(constexpr_atanh(2) != constexpr_atanh(2));
-    EXPECT_TRUE(constexpr_atanh(-2) != constexpr_atanh(-2));
-    EXPECT_TRUE(constexpr_atanh(1) == constexpr_infinity<double>());
-    EXPECT_TRUE(constexpr_atanh(-1) == -constexpr_infinity<double>());
-    EXPECT_FALSE(std::signbit(constexpr_atanh(+0.)));
-    EXPECT_TRUE(std::signbit(constexpr_atanh(-0.)));
-    EXPECT_TRUE(constexpr_atanh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}) != constexpr_atanh(std::complex<double>{constexpr_NaN<double>(), constexpr_NaN<double>()}));
-  }
-
-  static_assert(constexpr_atanh(0) == 0);
-  static_assert(are_within_tolerance(constexpr_atanh((e*e - 1)/(e*e + 1)), 1));
-  static_assert(are_within_tolerance(constexpr_atanh((e*e*e*e - 1)/(e*e*e*e + 1)), 2));
-  static_assert(are_within_tolerance(constexpr_atanh((e*e*e*e*e*e - 1)/(e*e*e*e*e*e + 1)), 3, 1e-9));
-  static_assert(are_within_tolerance(constexpr_atanh((1 - e*e)/(1 + e*e)), -1));
-  static_assert(are_within_tolerance(constexpr_atanh((1 - e*e*e*e)/(1 + e*e*e*e)), -2));
-  static_assert(are_within_tolerance(constexpr_atanh((1 - e*e*e*e*e*e)/(1 + e*e*e*e*e*e)), -3, 1e-9));
-  EXPECT_NEAR(constexpr_atanh(0.99), std::atanh(0.99), 1e-9);
-  EXPECT_NEAR(constexpr_atanh(-0.99), std::atanh(-0.99), 1e-9);
-
-  EXPECT_PRED3(tolerance, constexpr_atanh(std::complex<double>{3.3, -4.3}), std::atanh(std::complex<double>{3.3, -4.3}), 1e-9);
-  EXPECT_PRED3(tolerance, constexpr_atanh(std::complex<double>{10.4, 3.4}), std::atanh(std::complex<double>{10.4, 3.4}), 1e-9);
-  EXPECT_PRED3(tolerance, constexpr_atanh(std::complex<double>{-30.6, 20.6}), std::atanh(std::complex<double>{-30.6, 20.6}), 1e-9);
-  COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_atanh(std::complex<int>{3, -4})));
+  static_assert(are_within_tolerance(constexpr_atan2(std::integral_constant<int, 1>{}, std::integral_constant<int, 0>{}), pi/2, 1e-9));
+  static_assert(are_within_tolerance(constexpr_atan2(internal::ScalarConstant<Likelihood::definitely, double, 1>{}, internal::ScalarConstant<Likelihood::definitely, double, 0>{}), pi/2, 1e-9));
+  static_assert(are_within_tolerance(constexpr_real(constexpr_atan2(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{}, internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 5, 2>{})), 0.7420289940594557537102, 1e-9));
+  static_assert(are_within_tolerance(constexpr_imag(constexpr_atan2(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{}, internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 5, 2>{})), 0.2871556773106927669533, 1e-9));
 }
 
 
@@ -1060,4 +1187,8 @@ TEST(basics, constexpr_pow)
   EXPECT_PRED3(tolerance, constexpr_pow(std::complex<double>{1, 2}, std::complex<double>{-3, 4}), std::pow(std::complex<double>{1, 2}, std::complex<double>{-3, 4}), 1e-9);
   EXPECT_PRED3(tolerance, constexpr_pow(std::complex<double>{-3, -4}, std::complex<double>{1, 2}), std::pow(std::complex<double>{-3, -4}, std::complex<double>{1, 2}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(constexpr_pow(std::complex<int>{-3, -4}, std::complex<int>{1, 2})));
+
+  static_assert(constexpr_pow(internal::ScalarConstant<Likelihood::definitely, double, 2>{}, std::integral_constant<int, 3>{}) == 8);
+  static_assert(constexpr_pow(internal::ScalarConstant<Likelihood::definitely, double, 2>{}, 3) == 8);
+  static_assert(are_within_tolerance(constexpr_pow(2, internal::ScalarConstant<Likelihood::definitely, double, 3>{}), 8, 1e-6));
 }

@@ -455,8 +455,8 @@ namespace OpenKalman
         using value_type = std::decay_t<decltype(std::declval<const Operation&>()(get_scalar_constant_value(std::declval<const Ts&>())...))>;
 
         static constexpr Likelihood status = (has_maybe_status<Ts>::value or ...) ? Likelihood::maybe : Likelihood::definitely;
-        operator value_type() const noexcept { return value; }
-        value_type operator()() const noexcept { return value; }
+        constexpr operator value_type() const noexcept { return value; }
+        constexpr value_type operator()() const noexcept { return value; }
       private:
         value_type value;
       };
@@ -531,8 +531,8 @@ namespace OpenKalman
 
       static constexpr Likelihood status = (has_maybe_status<Ts> or ...) ? Likelihood::maybe : Likelihood::definitely;
       using type = scalar_constant_operation;
-      operator value_type() const noexcept { return value; }
-      value_type operator()() const noexcept { return value; }
+      constexpr operator value_type() const noexcept { return value; }
+      constexpr value_type operator()() const noexcept { return value; }
 
     private:
 
