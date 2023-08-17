@@ -337,13 +337,19 @@ TEST(eigen3, contract)
   EXPECT_TRUE(is_near(contract(m23, M33::Identity()), m23));
   EXPECT_TRUE(is_near(contract(M22::Identity(), m23), m23));
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-  auto m11_2 = make_dense_writable_matrix_from<M11>(2); auto m10_1_2 = M1x{m11_2}; auto m01_1_2 = Mx1{m11_2}; auto m00_11_2 = Mxx{m11_2};
+  auto m11_2 = make_dense_writable_matrix_from<M11>(2);
+  M1x m10_1_2(1,1); m10_1_2 << 2;
+  Mx1 m01_1_2(1,1); m01_1_2 << 2;
+  Mxx m00_11_2(1,1); m00_11_2 << 2;
+
   auto m11_4 = make_dense_writable_matrix_from<M11>(4);
-  auto m11_5 = make_dense_writable_matrix_from<M11>(5); auto m10_1_5 = M1x{m11_5}; auto m01_1_5 = Mx1{m11_5}; auto m00_11_5 = Mxx{m11_5};
+
+  auto m11_5 = make_dense_writable_matrix_from<M11>(5);
+  M1x m10_1_5(1,1); m10_1_5 << 5;
+  Mx1 m01_1_5(1,1); m01_1_5 << 5;
+  Mxx m00_11_5(1,1); m00_11_5 << 5;
+
   auto m11_10 = make_dense_writable_matrix_from<M11>(10);
-#pragma GCC diagnostic pop
 
   EXPECT_TRUE(is_near(contract(m11_2, m11_5), m11_10));
   EXPECT_TRUE(is_near(contract(m01_1_2, m11_5), m11_10));

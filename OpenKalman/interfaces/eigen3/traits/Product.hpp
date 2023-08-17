@@ -90,50 +90,33 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (constant_diagonal_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe> and
+      if constexpr (zero_matrix<LhsType>)
+      {
+        return constant_coefficient{arg.lhs()};
+      }
+      else if constexpr (zero_matrix<RhsType>)
+      {
+        return constant_coefficient{arg.rhs()};
+      }
+      else if constexpr (constant_diagonal_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe> and
         constant_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe>)
       {
-        return internal::scalar_constant_operation {std::multiplies<>{},
-           constant_diagonal_coefficient{arg.lhs()}, constant_coefficient{arg.rhs()}};
+        return constant_diagonal_coefficient{arg.lhs()} * constant_coefficient{arg.rhs()};
       }
       else if constexpr (constant_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe> and
         constant_diagonal_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe>)
       {
-        return internal::scalar_constant_operation {std::multiplies<>{},
-          constant_coefficient{arg.lhs()}, constant_diagonal_coefficient{arg.rhs()}};
+        return constant_coefficient{arg.lhs()} * constant_diagonal_coefficient{arg.rhs()};
       }
       else
       {
-        struct Op
-        {
-          constexpr auto operator()(std::size_t dim, scalar_type_of_t<LhsType> arg1, scalar_type_of_t<RhsType> arg2) const noexcept
-          {
-            return dim * arg1 * arg2;
-          }
-        };
-
         constexpr auto dim = dynamic_dimension<LhsType, 1> ? index_dimension_of_v<RhsType, 0> : index_dimension_of_v<LhsType, 1>;
-
-        if constexpr (zero_matrix<LhsType>) return constant_coefficient{arg.lhs()};
-        else if constexpr (zero_matrix<RhsType>) return constant_coefficient{arg.rhs()};
-        else if constexpr (constant_diagonal_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe>)
-          return internal::scalar_constant_operation {std::multiplies<>{},
-            constant_diagonal_coefficient{arg.lhs()},
-            constant_coefficient{arg.rhs()}};
-        else if constexpr (constant_diagonal_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe>)
-          return internal::scalar_constant_operation {std::multiplies<>{},
-            constant_coefficient{arg.lhs()},
-            constant_diagonal_coefficient{arg.rhs()}};
-        else if constexpr (dim == dynamic_size)
-          return internal::scalar_constant_operation {Op{},
-            get_index_dimension_of<1>(arg.lhs()),
-            constant_coefficient{arg.rhs()},
-            constant_coefficient{arg.lhs()}};
+        if constexpr (dim == dynamic_size)
+          return get_index_dimension_of<1>(arg.lhs()) * (constant_coefficient{arg.lhs()} * constant_coefficient{arg.rhs()});
+        else if constexpr (constant_matrix<LhsType, CompileTimeStatus::known>)
+          return std::integral_constant<std::size_t, dim>{} * constant_coefficient{arg.lhs()} * constant_coefficient{arg.rhs()};
         else
-          return internal::scalar_constant_operation {Op{},
-            std::integral_constant<std::size_t, dim>{},
-            constant_coefficient{arg.rhs()},
-            constant_coefficient{arg.lhs()}};
+          return std::integral_constant<std::size_t, dim>{} * constant_coefficient{arg.rhs()} * constant_coefficient{arg.lhs()};
       }
     }
 

@@ -98,10 +98,10 @@ TEST(special_matrices, SelfAdjointMatrix_rank_update_1x1)
   auto m11 = M11(9);
   auto m1x_1 = m11;
   auto mx1_1 = m11;
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
+//#pragma GCC diagnostic push
+//#pragma GCC diagnostic ignored "-Warray-bounds"
   auto mxx_11 = m11;
-#pragma GCC diagnostic pop
+//#pragma GCC diagnostic pop
 
   const auto m11_2 = M11{2};
   const auto m11_25 = M11(25);

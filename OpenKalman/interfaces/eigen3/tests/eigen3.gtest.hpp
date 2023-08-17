@@ -23,7 +23,6 @@
 #include "basics/tests/tests.hpp"
 #include <complex>
 
-
 namespace OpenKalman::test
 {
 

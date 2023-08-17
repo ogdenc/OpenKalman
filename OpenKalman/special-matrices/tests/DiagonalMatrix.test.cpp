@@ -478,10 +478,10 @@ TEST(special_matrices, to_diagonal)
   auto m11 = M11 {3};
 
   EXPECT_TRUE(is_near(to_diagonal(Mx1 {m11}), m11)); static_assert(eigen_diagonal_expr<decltype(to_diagonal(Mx1 {m11}))>);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
+//#pragma GCC diagnostic push
+//#pragma GCC diagnostic ignored "-Warray-bounds"
   EXPECT_TRUE(is_near(to_diagonal(Mxx {m11}), m11)); static_assert(eigen_diagonal_expr<decltype(to_diagonal(Mxx {m11}))>);
-#pragma GCC diagnostic pop
+//#pragma GCC diagnostic pop
 
   // zero_matrix input:
   auto z31 = M31::Identity() - M31::Identity();

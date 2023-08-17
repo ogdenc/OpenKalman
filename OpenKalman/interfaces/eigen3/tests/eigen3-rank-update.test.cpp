@@ -14,7 +14,6 @@ using namespace OpenKalman;
 using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
-
 TEST(eigen3, rank_update_self_adjoint)
 {
   // u is zero:

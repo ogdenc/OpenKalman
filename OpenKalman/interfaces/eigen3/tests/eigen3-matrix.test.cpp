@@ -196,12 +196,7 @@ TEST(eigen3, get_tensor_order_of)
   EXPECT_EQ(get_tensor_order_of(Mxx {m21}), 1);
   EXPECT_EQ(get_tensor_order_of(M1x {m11}), 0);
   EXPECT_EQ(get_tensor_order_of(Mx1 {m11}), 0);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-//#pragma GCC diagnostic ignored "-Wstringop-overread"
-  EXPECT_EQ(get_tensor_order_of(Mxx {m11}), 0);
-#pragma GCC diagnostic pop
-
+  EXPECT_EQ(get_tensor_order_of(Mxx(1,1)), 0);
 }
 
   // to_euclidean is tested in ToEuclideanExpr.test.cpp.

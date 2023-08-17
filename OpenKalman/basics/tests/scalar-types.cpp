@@ -54,6 +54,18 @@ TEST(basics, ScalarConstant)
   static_assert(internal::ScalarConstant{internal::ScalarConstant<Likelihood::definitely, double, 3>{}}.status == Likelihood::definitely);
   static_assert(internal::ScalarConstant{std::integral_constant<int, 7>{}}.status == Likelihood::definitely);
   static_assert(internal::ScalarConstant{3}.status == Likelihood::definitely);
+
+  static_assert(std::decay_t<decltype(+internal::ScalarConstant<Likelihood::definitely, double, 3>{})>::value == 3);
+  static_assert(std::decay_t<decltype(-internal::ScalarConstant<Likelihood::definitely, double, 3>{})>::value == -3);
+  static_assert(std::decay_t<decltype(internal::ScalarConstant<Likelihood::definitely, double, 3>{} + std::integral_constant<int, 2>{})>::value == 5);
+  static_assert(std::decay_t<decltype(internal::ScalarConstant<Likelihood::definitely, double, 3>{} - std::integral_constant<int, 2>{})>::value == 1);
+  static_assert(std::decay_t<decltype(internal::ScalarConstant<Likelihood::definitely, double, 3>{} * std::integral_constant<int, 2>{})>::value == 6);
+  static_assert(std::decay_t<decltype(internal::ScalarConstant<Likelihood::definitely, double, 3>{} / std::integral_constant<int, 2>{})>::value == 1.5);
+
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value + internal::ScalarConstant<Likelihood::definitely, double, 3>{} == 5);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value - internal::ScalarConstant<Likelihood::definitely, double, 3>{} == -1);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value * internal::ScalarConstant<Likelihood::definitely, double, 3>{} == 6);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 3>{})>::value / internal::ScalarConstant<Likelihood::definitely, double, 2>{} == 1.5);
 }
 
 
@@ -84,7 +96,11 @@ TEST(basics, scalar_traits)
   EXPECT_EQ(get_scalar_constant_value(7), 7);
   EXPECT_EQ(get_scalar_constant_value(std::integral_constant<int, 7>{}), 7);
   EXPECT_EQ(get_scalar_constant_value([](){ return 8; }), 8);
+}
 
+
+TEST(basics, scalar_constant_operation)
+{
   static_assert(scalar_constant<internal::scalar_constant_operation<NullaryFunc>, CompileTimeStatus::known>);
   static_assert(get_scalar_constant_value(internal::scalar_constant_operation<NullaryFunc>{}) == 5.5);
   static_assert(internal::scalar_constant_operation<NullaryFunc>::status == Likelihood::definitely);
@@ -104,6 +120,19 @@ TEST(basics, scalar_traits)
   EXPECT_EQ(get_scalar_constant_value(internal::scalar_constant_operation{[](){ return 9; }}), 9);
   int k = 9; EXPECT_EQ(get_scalar_constant_value(internal::scalar_constant_operation{[&k](){ return k; }}), 9);
   EXPECT_EQ(get_scalar_constant_value(internal::scalar_constant_operation{std::plus{}, 4, 5}), 9);
+
+  auto sc3 = internal::scalar_constant_operation{std::minus<>{}, ScalarConstant<Likelihood::definitely, double, 7>{}, std::integral_constant<int, 4>{}};
+  static_assert(std::decay_t<decltype(+sc3)>::value == 3);
+  static_assert(std::decay_t<decltype(-sc3)>::value == -3);
+  static_assert(std::decay_t<decltype(sc3 + std::integral_constant<int, 2>{})>::value == 5);
+  static_assert(std::decay_t<decltype(sc3 - std::integral_constant<int, 2>{})>::value == 1);
+  static_assert(std::decay_t<decltype(sc3 * std::integral_constant<int, 2>{})>::value == 6);
+  static_assert(std::decay_t<decltype(sc3 / std::integral_constant<int, 2>{})>::value == 1.5);
+
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value + sc3 == 5);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value - sc3 == -1);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value * sc3 == 6);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 9>{})>::value / sc3 == 3);
 }
 
 

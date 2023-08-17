@@ -346,6 +346,19 @@ TEST(eigen3, Eigen_check_test_classes)
   static_assert(not constant_matrix<Cdx2_2, CompileTimeStatus::any, Likelihood::maybe>);
   static_assert(not constant_matrix<Cd22_3, CompileTimeStatus::any, Likelihood::maybe>);
 
+  constant_coefficient<C21_3> c3;
+  static_assert(std::decay_t<decltype(+c3)>::value == 3);
+  static_assert(std::decay_t<decltype(-c3)>::value == -3);
+  static_assert(std::decay_t<decltype(c3 + std::integral_constant<int, 2>{})>::value == 5);
+  static_assert(std::decay_t<decltype(c3 - std::integral_constant<int, 2>{})>::value == 1);
+  static_assert(std::decay_t<decltype(c3 * std::integral_constant<int, 2>{})>::value == 6);
+  static_assert(std::decay_t<decltype(c3 / std::integral_constant<int, 2>{})>::value == 1.5);
+
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value + c3 == 5);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value - c3 == -1);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value * c3 == 6);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 9>{})>::value / c3 == 3);
+
   static_assert(constant_diagonal_matrix<Z11, CompileTimeStatus::known>);
   static_assert(constant_diagonal_matrix<Z1x, CompileTimeStatus::known, Likelihood::maybe>);
   static_assert(constant_diagonal_matrix<Z2x, CompileTimeStatus::known, Likelihood::maybe>);
@@ -377,6 +390,26 @@ TEST(eigen3, Eigen_check_test_classes)
   static_assert(constant_diagonal_coefficient_v<Cd2x_2> == 2);
   static_assert(constant_diagonal_coefficient_v<Cdx2_2> == 2);
   static_assert(constant_diagonal_coefficient_v<Cdxx_2> == 2);
+
+  constant_diagonal_coefficient<Cd22_3> cd3;
+  static_assert(std::decay_t<decltype(+cd3)>::value == 3);
+  static_assert(std::decay_t<decltype(-cd3)>::value == -3);
+  static_assert(std::decay_t<decltype(cd3 + std::integral_constant<int, 2>{})>::value == 5);
+  static_assert(std::decay_t<decltype(cd3 - std::integral_constant<int, 2>{})>::value == 1);
+  static_assert(std::decay_t<decltype(cd3 * std::integral_constant<int, 2>{})>::value == 6);
+  static_assert(std::decay_t<decltype(cd3 / std::integral_constant<int, 2>{})>::value == 1.5);
+
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value + cd3 == 5);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value - cd3 == -1);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value * cd3 == 6);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 9>{})>::value / cd3 == 3);
+
+  auto sc3 = internal::ScalarConstant<Likelihood::definitely, double, 3>{};
+  auto sco3 = internal::scalar_constant_operation{std::minus<>{}, internal::ScalarConstant<Likelihood::definitely, double, 7>{}, std::integral_constant<int, 4>{}};
+  static_assert(std::decay_t<decltype(c3 + cd3)>::value == 6);
+  static_assert(std::decay_t<decltype(sc3 - cd3)>::value == 0);
+  static_assert(std::decay_t<decltype(c3 * sco3)>::value == 9);
+  static_assert(std::decay_t<decltype(sco3 / sc3)>::value == 1);
 
   static_assert(zero_matrix<Z21>);
   static_assert(zero_matrix<Eigen::DiagonalWrapper<Z21>>);

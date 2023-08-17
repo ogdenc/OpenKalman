@@ -213,13 +213,11 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<Arg>)
     {
-      return internal::scalar_constant_operation {std::multiplies<>{}, constant_coefficient{arg},
-        internal::index_dimension_scalar_constant_of<0>(arg)}();
+      return constant_coefficient{arg} * internal::index_dimension_scalar_constant_of<0>(arg);
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      return internal::scalar_constant_operation {std::multiplies<>{}, constant_diagonal_coefficient{arg},
-        internal::index_dimension_scalar_constant_of<0>(arg)}();
+      return constant_diagonal_coefficient{arg} * internal::index_dimension_scalar_constant_of<0>(arg);
     }
     else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg&&, 0>)
     {
@@ -273,7 +271,7 @@ namespace OpenKalman
       }
       else if constexpr ((constant_matrix<T0> and constant_matrix<T1>))
       {
-        internal::scalar_constant_operation c {std::plus<>{}, constant_coefficient{t0}, constant_coefficient{t1}};
+        auto c = constant_coefficient{t0} + constant_coefficient{t1};
         auto cm = make_constant_matrix_like<T0>(std::move(c), best_descriptor<I>(t0, t1, ts...)...);
         auto ret = sum_impl(seq, std::move(cm), std::forward<Ts>(ts)...);
         return ret;
@@ -394,14 +392,12 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<A> and constant_matrix<B>)
     {
-      internal::scalar_constant_operation ab {std::multiplies<>{}, constant_coefficient{a}, constant_coefficient{b}};
-
       auto dim_const = [](const auto& a, const auto& b) {
         if constexpr (dynamic_dimension<A, 1>) return internal::index_dimension_scalar_constant_of<0>(b);
         else return internal::index_dimension_scalar_constant_of<1>(a);
       }(a, b);
 
-      internal::scalar_constant_operation abd {std::multiplies<>{}, std::move(ab), std::move(dim_const)};
+      auto abd = constant_coefficient{a} * constant_coefficient{b} * std::move(dim_const);
       return detail::contract_constant(std::move(abd), std::forward<A>(a), std::forward<B>(b), seq);
     }
     else if constexpr (diagonal_matrix<A> and constant_matrix<B>)

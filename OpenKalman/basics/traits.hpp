@@ -183,6 +183,55 @@ namespace OpenKalman
     constexpr operator value_type() const noexcept { return value; }
 
     constexpr value_type operator()() const noexcept { return value; }
+
+    constexpr auto operator+() { return *this; }
+
+    constexpr auto operator-() { return internal::scalar_constant_operation {std::negate<>{}, *this}; }
+
+
+#ifdef __cpp_concepts
+    constexpr auto operator+(const scalar_constant<CompileTimeStatus::known> auto& arg)
+#else
+    template<typename Arg, std::enable_if_t<scalar_constant<Arg, CompileTimeStatus::known>, int> = 0>
+    constexpr auto operator+(const Arg& arg)
+#endif
+    {
+      return internal::scalar_constant_operation {std::plus<>{}, *this, arg};
+    }
+
+
+#ifdef __cpp_concepts
+    constexpr auto operator-(const scalar_constant<CompileTimeStatus::known> auto& arg)
+#else
+    template<typename Arg, std::enable_if_t<scalar_constant<Arg, CompileTimeStatus::known>, int> = 0>
+    constexpr auto operator-(const Arg& arg)
+#endif
+    {
+      return internal::scalar_constant_operation {std::minus<>{}, *this, arg};
+    }
+
+
+#ifdef __cpp_concepts
+    constexpr auto operator*(const scalar_constant<CompileTimeStatus::known> auto& arg)
+#else
+    template<typename Arg, std::enable_if_t<scalar_constant<Arg, CompileTimeStatus::known>, int> = 0>
+    constexpr auto operator*(const Arg& arg)
+#endif
+    {
+      return internal::scalar_constant_operation {std::multiplies<>{}, *this, arg};
+    }
+
+
+#ifdef __cpp_concepts
+    template<scalar_constant<CompileTimeStatus::known> Arg>
+#else
+    template<typename Arg, std::enable_if_t<scalar_constant<Arg, CompileTimeStatus::known>, int> = 0>
+#endif
+    constexpr auto operator/(const Arg& arg)
+    {
+      return internal::scalar_constant_operation {std::divides<>{}, *this, arg};
+    }
+
   };
 
 
@@ -319,6 +368,59 @@ namespace OpenKalman
     constexpr operator value_type() const noexcept { return value; }
 
     constexpr value_type operator()() const noexcept { return value; }
+
+    constexpr auto operator+() { return *this; }
+
+    constexpr auto operator-()
+    {
+      if constexpr (value == 0) return *this;
+      else return internal::scalar_constant_operation {std::negate<>{}, *this};
+    }
+
+
+#ifdef __cpp_concepts
+    constexpr auto operator+(const scalar_constant<CompileTimeStatus::known> auto& arg)
+#else
+    template<typename Arg, std::enable_if_t<scalar_constant<Arg, CompileTimeStatus::known>, int> = 0>
+    constexpr auto operator+(const Arg& arg)
+#endif
+    {
+      return internal::scalar_constant_operation {std::plus<>{}, *this, arg};
+    }
+
+
+#ifdef __cpp_concepts
+    constexpr auto operator-(const scalar_constant<CompileTimeStatus::known> auto& arg)
+#else
+    template<typename Arg, std::enable_if_t<scalar_constant<Arg, CompileTimeStatus::known>, int> = 0>
+    constexpr auto operator-(const Arg& arg)
+#endif
+    {
+      return internal::scalar_constant_operation {std::minus<>{}, *this, arg};
+    }
+
+
+#ifdef __cpp_concepts
+    constexpr auto operator*(const scalar_constant<CompileTimeStatus::known> auto& arg)
+#else
+    template<typename Arg, std::enable_if_t<scalar_constant<Arg, CompileTimeStatus::known>, int> = 0>
+    constexpr auto operator*(const Arg& arg)
+#endif
+    {
+      return internal::scalar_constant_operation {std::multiplies<>{}, *this, arg};
+    }
+
+
+#ifdef __cpp_concepts
+    template<scalar_constant<CompileTimeStatus::known> Arg>
+#else
+    template<typename Arg, std::enable_if_t<scalar_constant<Arg, CompileTimeStatus::known>, int> = 0>
+#endif
+    constexpr auto operator/(const Arg& arg)
+    {
+      return internal::scalar_constant_operation {std::divides<>{}, *this, arg};
+    }
+
   };
 
 
@@ -375,6 +477,87 @@ namespace OpenKalman
   private:
     value_type value;
   };
+
+
+  // ----------------------------------------------------------------------- //
+  //  arithmetic for constant_coefficient and constant_diagonal_coefficient  //
+  // ----------------------------------------------------------------------- //
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_internal_constant : std::false_type {};
+
+    template<typename T>
+    struct is_internal_constant<constant_coefficient<T>> : std::true_type {};
+
+    template<typename T>
+    struct is_internal_constant<constant_diagonal_coefficient<T>> : std::true_type {};
+
+    template<Likelihood b, typename C, auto...constant>
+    struct is_internal_constant<internal::ScalarConstant<b, C, constant...>> : std::true_type {};
+
+    template<typename Operation, typename...Ts>
+    struct is_internal_constant<internal::scalar_constant_operation<Operation, Ts...>> : std::true_type {};
+
+
+    template<typename T>
+#ifdef __cpp_concepts
+    concept internal_constant =
+#else
+    constexpr bool internal_constant =
+#endif
+      is_internal_constant<std::decay_t<T>>::value;
+
+  } // namespace detail
+
+
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires detail::internal_constant<Arg1> or detail::internal_constant<Arg2>
+  constexpr auto operator+(const Arg1& arg1, const Arg2& arg2)
+#else
+  template<typename Arg1, typename Arg2, std::enable_if_t<detail::internal_constant<Arg1> or detail::internal_constant<Arg2>, int> = 0>
+  constexpr auto operator+(const Arg1& arg1, const Arg2& arg2)
+#endif
+  {
+    return internal::scalar_constant_operation {std::plus<>{}, arg1, arg2};
+  }
+
+
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires detail::internal_constant<Arg1> or detail::internal_constant<Arg2>
+  constexpr auto operator-(const Arg1& arg1, const Arg2& arg2)
+#else
+  template<typename Arg1, typename Arg2, std::enable_if_t<detail::internal_constant<Arg1> or detail::internal_constant<Arg2>, int> = 0>
+  constexpr auto operator-(const Arg1& arg1, const Arg2& arg2)
+#endif
+  {
+    return internal::scalar_constant_operation {std::minus<>{}, arg1, arg2};
+  }
+
+
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires detail::internal_constant<Arg1> or detail::internal_constant<Arg2>
+  constexpr auto operator*(const Arg1& arg1, const Arg2& arg2)
+#else
+  template<typename Arg1, typename Arg2, std::enable_if_t<detail::internal_constant<Arg1> or detail::internal_constant<Arg2>, int> = 0>
+  constexpr auto operator*(const Arg1& arg1, const Arg2& arg2)
+#endif
+  {
+    return internal::scalar_constant_operation {std::multiplies<>{}, arg1, arg2};
+  }
+
+
+#ifdef __cpp_concepts
+  template<typename Arg1, typename Arg2> requires detail::internal_constant<Arg1> or detail::internal_constant<Arg2>
+  constexpr auto operator/(const Arg1& arg1, const Arg2& arg2)
+#else
+  template<typename Arg1, typename Arg2, std::enable_if_t<detail::internal_constant<Arg1> or detail::internal_constant<Arg2>, int> = 0>
+  constexpr auto operator/(const Arg1& arg1, const Arg2& arg2)
+#endif
+  {
+    return internal::scalar_constant_operation {std::divides<>{}, arg1, arg2};
+  }
 
 
   // --------------- //

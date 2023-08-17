@@ -72,11 +72,11 @@ namespace OpenKalman
 #else
     template<typename Dim, typename BinaryOperation, typename Constant, std::enable_if_t<static_index_value<Dim>, int> = 0>
 #endif
-    constexpr auto scalar_reduce_operation(Dim dim, const BinaryOperation& op, const Constant& c)
+    constexpr auto scalar_reduce_operation(const Dim& dim, const BinaryOperation& op, const Constant& c)
     {
       if constexpr (Dim::value <= 1) return c;
       else if constexpr (internal::is_plus<BinaryOperation>::value)
-        return internal::scalar_constant_operation {std::multiplies<>{}, c, dim};
+        return c * dim;
       else if constexpr (internal::is_multiplies<BinaryOperation>::value)
         return internal::constexpr_pow(c, dim);
       else return internal::scalar_constant_operation {op,
@@ -89,7 +89,7 @@ namespace OpenKalman
 #else
     template<typename Dim, typename BinaryOperation, typename Constant, std::enable_if_t<dynamic_index_value<Dim>, int> = 0>
 #endif
-    constexpr auto scalar_reduce_operation(Dim dim, const BinaryOperation& op, const Constant& c)
+    constexpr auto scalar_reduce_operation(const Dim& dim, const BinaryOperation& op, const Constant& c)
     {
       if (dim <= 1) return get_scalar_constant_value(c);
       else if constexpr (internal::is_plus<BinaryOperation>::value) return get_scalar_constant_value(c) * dim;
@@ -340,7 +340,7 @@ namespace OpenKalman
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       // \todo Handle diagonal tensors of order greater than 2 ?
-      internal::scalar_constant_operation c {std::divides<>{}, constant_diagonal_coefficient{arg}, detail::const_diagonal_matrix_dim(arg, seq)};
+      auto c = constant_diagonal_coefficient{arg} / detail::const_diagonal_matrix_dim(arg, seq);
       auto ret = detail::make_constant_matrix_reduction<index>(std::move(c), std::forward<Arg>(arg), seq);
       if constexpr (sizeof...(indices) > 0) return average_reduce<indices...>(std::move(ret));
       else return ret;
@@ -374,8 +374,7 @@ namespace OpenKalman
       return constant_coefficient{arg}();
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      return internal::scalar_constant_operation {std::divides<>{}, constant_diagonal_coefficient{arg},
-        detail::const_diagonal_matrix_dim(arg, std::make_index_sequence<max_indices_of_v<Arg>>{})};
+      return constant_diagonal_coefficient{arg} / detail::const_diagonal_matrix_dim(arg, std::make_index_sequence<max_indices_of_v<Arg>>{});
     }
     else
     {

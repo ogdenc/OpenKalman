@@ -20,10 +20,7 @@ TEST(eigen3, to_diagonal)
   auto m11 = M11 {3};
   auto m1x_1 = M1x {m11};
   auto mx1_1 = Mx1 {m11};
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-  auto mxx_11 = Mxx {m11};
-#pragma GCC diagnostic pop
+  Mxx mxx_11(1,1); mxx_11 << 3;
 
   // diagonal_matrix input:
 
@@ -125,10 +122,7 @@ TEST(eigen3, diagonal_of_1x1)
 
   auto m1x_1 = M1x {m11};
   auto mx1_1 = Mx1 {m11};
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-  auto mxx_11 = Mxx {m11};
-#pragma GCC diagnostic pop
+  Mxx mxx_11(1,1); mxx_11 = m11;
 
   EXPECT_TRUE(is_near(diagonal_of(m1x_1), m11)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(m1x_1))>);
   EXPECT_TRUE(is_near(diagonal_of(mx1_1), m11)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(mx1_1))>);

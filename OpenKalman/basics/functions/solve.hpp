@@ -107,9 +107,7 @@ namespace OpenKalman
         if constexpr (dynamic_rows<A> or dynamic_rows<B>) detail::solve_check_A_and_B_rows_match(a, b);
 
         return make_constant_matrix_like<B>(
-          internal::scalar_constant_operation {
-            std::divides<>{}, constant_coefficient{b}, internal::scalar_constant_operation {
-              std::multiplies<>{}, internal::index_dimension_scalar_constant_of<1>(a), constant_coefficient{a}}},
+          constant_coefficient{b} / (internal::index_dimension_scalar_constant_of<1>(a) * constant_coefficient{a}),
           get_index_descriptor<1>(a), get_index_descriptor<1>(b));
       }
       else if constexpr (row_dimension_of_v<A> == 1 or row_dimension_of_v<B> == 1 or

@@ -77,7 +77,7 @@ namespace OpenKalman::Eigen3
         else throw std::domain_error {"Domain error in lpnorm<0>: result is infinity"};
       }
       else if constexpr (detail::is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
-      else return internal::scalar_constant_operation {Op{}, c, internal::scalar_constant_operation {std::multiplies<>{}, dim, factor}};
+      else return internal::scalar_constant_operation {Op{}, c, dim * factor};
     }
   };
 
@@ -85,23 +85,13 @@ namespace OpenKalman::Eigen3
   template<typename XprType, typename...Args>
   struct SingleConstantPartialRedux<XprType, Eigen::internal::member_stableNorm<Args...>>
   {
-    struct Op
-    {
-      template<typename Scalar>
-      constexpr Scalar operator()(Scalar x, std::size_t dim) const noexcept
-      {
-        auto arg = internal::constexpr_abs(x);
-        return internal::constexpr_sqrt(static_cast<Scalar>(dim)) * arg;
-      }
-    };
-
     template<typename C, typename Dim, typename Factor>
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor& factor) noexcept
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
       if constexpr (zero_matrix<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
-      else if constexpr (detail::is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
-      else return internal::scalar_constant_operation {Op{}, c, internal::scalar_constant_operation {std::multiplies<>{}, dim, factor}};
+      else if constexpr (detail::is_diag_v<XprType>) return internal::constexpr_sqrt(factor) * internal::constexpr_abs(c);
+      else return internal::constexpr_sqrt(dim * factor) * internal::constexpr_abs(c);
     }
   };
 
@@ -109,23 +99,13 @@ namespace OpenKalman::Eigen3
   template<typename XprType, typename...Args>
   struct SingleConstantPartialRedux<XprType, Eigen::internal::member_hypotNorm<Args...>>
   {
-    struct Op
-    {
-      template<typename Scalar>
-      constexpr Scalar operator()(Scalar x, std::size_t dim) const noexcept
-      {
-        auto arg = internal::constexpr_abs(x);
-        return internal::constexpr_sqrt(static_cast<Scalar>(dim)) * arg;
-      }
-    };
-
     template<typename C, typename Dim, typename Factor>
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor& factor) noexcept
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
       if constexpr (zero_matrix<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
-      else if constexpr (detail::is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
-      else return internal::scalar_constant_operation {Op{}, c, internal::scalar_constant_operation {std::multiplies<>{}, dim, factor}};
+      else if constexpr (detail::is_diag_v<XprType>) return internal::constexpr_sqrt(factor) * internal::constexpr_abs(c);
+      else return internal::constexpr_sqrt(dim * factor) * internal::constexpr_abs(c);
     }
   };
 
@@ -156,7 +136,7 @@ namespace OpenKalman::Eigen3
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
       if constexpr (zero_matrix<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
       else if constexpr (detail::is_diag_v<XprType>) return scalar_constant_operation {Op{}, c, factor};
-      else return scalar_constant_operation {Op{}, c, scalar_constant_operation {std::multiplies<>{}, dim, factor}};
+      else return scalar_constant_operation {Op{}, c, dim * factor};
     }
   };
 
@@ -189,31 +169,24 @@ namespace OpenKalman::Eigen3
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
       if constexpr (zero_matrix<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
       else if constexpr (detail::is_diag_v<XprType>) return scalar_constant_operation {Op{}, c, factor};
-      else return scalar_constant_operation {Op{}, c, scalar_constant_operation {std::multiplies<>{}, dim, factor}};
+      else return scalar_constant_operation {Op{}, c, dim * factor};
     }
   };
 
   template<typename XprType, typename...Args>
   struct SingleConstantPartialRedux<Eigen::internal::member_mean<Args...>>
   {
-    template<typename O>
-    struct Op
-    {
-      template<typename Scalar>
-      constexpr Scalar operator()(Scalar x, std::size_t dim) const noexcept { return O{}(x, static_cast<Scalar>(dim)); }
-    };
-
     template<typename C, typename Dim, typename Factor>
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor& factor) noexcept
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
       if constexpr (zero_matrix<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
       else if constexpr (not detail::is_diag_v<XprType>) return c
-      else return scalar_constant_operation {Op<std::divides<>>{},
-        scalar_constant_operation {Op<std::multiplies<>>{}, c, factor}, dim};
+      else return (c * factor) / dim;
     }
   };
 # endif
+
 
   ///////////
   //  sum  //
@@ -234,7 +207,7 @@ namespace OpenKalman::Eigen3
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
       if constexpr (zero_matrix<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
       else if constexpr (detail::is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
-      else return internal::scalar_constant_operation {Op{}, c, internal::scalar_constant_operation {std::multiplies<>{}, dim, factor}};
+      else return internal::scalar_constant_operation {Op{}, c, dim * factor};
     }
   };
 
@@ -393,7 +366,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor& factor) noexcept
     {
       if constexpr (zero_matrix<XprType>) return std::false_type{};
-      else return internal::scalar_constant_operation {Op{}, c, internal::scalar_constant_operation {std::multiplies<>{}, dim, factor}};
+      else return internal::scalar_constant_operation {Op{}, c, dim * factor};
     }
   };
 
@@ -429,7 +402,7 @@ namespace OpenKalman::Eigen3
     {
       if constexpr (zero_matrix<XprType>) return std::integral_constant<Eigen::Index, 0>{};
       else if constexpr (detail::is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
-      else return internal::scalar_constant_operation {Op{}, c, internal::scalar_constant_operation {std::multiplies<>{}, dim, factor}};
+      else return internal::scalar_constant_operation {Op{}, c, dim * factor};
     }
   };
 
@@ -450,35 +423,17 @@ namespace OpenKalman::Eigen3
       }
     };
 
-    struct PowOp
-    {
-      template<typename Scalar>
-      constexpr auto operator()(Scalar x, std::size_t dim) const noexcept
-      {
-        return OpenKalman::internal::constexpr_pow(x, dim);
-      }
-    };
-
     template<typename C, typename Dim, typename Factor>
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor& factor) noexcept
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
 
       if constexpr (zero_matrix<XprType> or (detail::is_diag_v<XprType> and not one_by_one_matrix<XprType, Likelihood::maybe>))
-      {
         return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
-      }
       else if constexpr (detail::is_diag_v<XprType>)
-      {
-        auto c2 = internal::scalar_constant_operation {Op{}, c, dim};
-        if constexpr (scalar_constant<decltype(c2), CompileTimeStatus::known>)
-        {
-          if constexpr (get_scalar_constant_value(c2) == 0) return c2;
-          else return internal::scalar_constant_operation {PowOp{}, c2, factor};
-        }
-        else return internal::scalar_constant_operation {PowOp{}, c2, factor};
-      }
-      else return internal::scalar_constant_operation {PowOp{}, c, internal::scalar_constant_operation {std::multiplies<>{}, dim, factor}};
+        return internal::constexpr_pow(internal::scalar_constant_operation {Op{}, c, dim}, factor);
+      else
+        return internal::constexpr_pow(c, dim * factor);
     }
   };
 

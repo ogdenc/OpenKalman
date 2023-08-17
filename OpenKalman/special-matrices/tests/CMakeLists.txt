@@ -15,7 +15,7 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 
 add_executable(special-matrices
-        #ConstantAdapter.test.cpp
+        ConstantAdapter.test.cpp
         constant-matrix-functions.test.cpp
         #DiagonalMatrix.test.cpp
         #SelfAdjointMatrix.test.cpp

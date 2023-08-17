@@ -45,8 +45,7 @@ namespace OpenKalman
     {
       using Scalar = scalar_type_of_t<A>;
 
-      auto elem = internal::scalar_constant_operation {std::multiplies<>{}, constant_coefficient{a},
-        internal::constexpr_sqrt(internal::index_dimension_scalar_constant_of<1>(a))};
+      auto elem = constant_coefficient{a} * internal::constexpr_sqrt(internal::index_dimension_scalar_constant_of<1>(a));
 
       if constexpr (dynamic_dimension<A, 0>)
       {
@@ -119,8 +118,7 @@ namespace OpenKalman
     {
       using Scalar = scalar_type_of_t<A>;
 
-      auto elem = internal::scalar_constant_operation {std::multiplies<>{}, constant_coefficient{a},
-        internal::constexpr_sqrt(internal::index_dimension_scalar_constant_of<0>(a))};
+      auto elem = constant_coefficient{a} * internal::constexpr_sqrt(internal::index_dimension_scalar_constant_of<0>(a));
 
       if constexpr (dynamic_dimension<A, 1>)
       {

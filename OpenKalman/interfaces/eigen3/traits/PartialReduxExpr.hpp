@@ -65,9 +65,8 @@ namespace OpenKalman::interface
       }
       else
       {
-        std::integral_constant<std::size_t, factor> f;
-        internal::scalar_constant_operation d {std::divides<>{}, dim, f};
-        return Eigen3::SingleConstantPartialRedux<XprType, MemberOp>::get_constant(c, d, f);
+        internal::ScalarConstant<Likelihood::definitely, std::size_t, factor> f;
+        return Eigen3::SingleConstantPartialRedux<XprType, MemberOp>::get_constant(c, dim / f, f);
       }
     }
 
@@ -82,7 +81,7 @@ namespace OpenKalman::interface
     constexpr auto get_PartialReduxExpr_constant(const XprType& xpr, const Dim& dim)
     {
       std::conditional_t<is_diag_v<XprType>, constant_diagonal_coefficient<XprType>, constant_coefficient<XprType>> c {xpr};
-      std::integral_constant<std::size_t, 1> f;
+      internal::ScalarConstant<Likelihood::definitely, std::size_t, 1> f;
       return Eigen3::SingleConstantPartialRedux<XprType, MemberOp>::get_constant(c, dim, f);
     }
 

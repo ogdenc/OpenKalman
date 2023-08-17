@@ -422,8 +422,7 @@ namespace OpenKalman
       if constexpr (zero_matrix<decltype(arg)>) return arg;
       else
       {
-        internal::scalar_constant_operation op {std::multiplies<>{}, constant_coefficient{arg}, s};
-        return make_constant_matrix_like(arg, op);
+        return make_constant_matrix_like(arg, constant_coefficient{arg} * s);
       }
     }
 
@@ -438,8 +437,7 @@ namespace OpenKalman
       if constexpr (zero_matrix<decltype(arg)>) return arg;
       else
       {
-        internal::scalar_constant_operation op {std::multiplies<>{}, s, constant_coefficient{arg}};
-        return make_constant_matrix_like(arg, op);
+        return make_constant_matrix_like(arg, s * constant_coefficient{arg});
       }
     }
 
@@ -451,8 +449,7 @@ namespace OpenKalman
     friend auto operator/(const ConstantAdapter& arg, S s)
 #endif
     {
-      internal::scalar_constant_operation op {std::divides<>{}, constant_coefficient{arg}, s};
-      return make_constant_matrix_like(arg, op);
+      return make_constant_matrix_like(arg, constant_coefficient{arg} / s);
     }
 
   protected:

@@ -379,10 +379,8 @@ namespace OpenKalman
     constexpr auto index_dimension_scalar_constant_of(const T& t)
     {
       using Scalar = scalar_type_of_t<T>;
-      if constexpr (dynamic_dimension<T, N>)
-        return static_cast<Scalar>(get_index_dimension_of<N>(t));
-      else
-        return ScalarConstant<Likelihood::definitely, Scalar, index_dimension_of_v<T, N>>{};
+      if constexpr (dynamic_dimension<T, N>) return static_cast<Scalar>(get_index_dimension_of<N>(t));
+      else return ScalarConstant<Likelihood::definitely, Scalar, index_dimension_of_v<T, N>>{};
     }
 
 
