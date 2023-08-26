@@ -406,6 +406,44 @@ namespace OpenKalman
       else return std::integral_constant<std::size_t, index_dimension_of_v<T, N>>{};
     }
 
+
+    // ---------- //
+    //  raw_data  //
+    // ---------- //
+
+    /**
+     * \internal
+     * \brief Returns a pointer to the raw data of a directly accessible tensor or matrix.
+     */
+#ifdef __cpp_concepts
+    template<directly_accessible T>
+#else
+    template<typename T, std::enable_if_t<directly_accessible<T>, int> = 0>
+#endif
+    constexpr auto* raw_data(T& t)
+    {
+      return interface::IndexibleObjectTraits<std::decay_t<T>>::data(t);
+    }
+
+
+    // ------------- //
+    //  get_strides  //
+    // ------------- //
+
+    /**
+     * \internal
+     * \brief Returns the strides of a strided tensor or matrix.
+     */
+#ifdef __cpp_concepts
+    template<indexible T> requires (layout_of_v<T> == Layout::stride)
+#else
+    template<typename T, std::enable_if_t<indexible<T> and layout_of<T>::value == Layout::stride, int> = 0>
+#endif
+    constexpr auto strides(T&& t)
+    {
+      return interface::IndexibleObjectTraits<std::decay_t<T>>::strides(std::forward<T>(t));
+    }
+
   } // namespace internal
 
 

@@ -14,7 +14,6 @@
  */
 
 #include "special-matrices.gtest.hpp"
-
 #include <complex>
 
 using namespace OpenKalman;
@@ -23,24 +22,6 @@ using namespace OpenKalman::test;
 
 namespace
 {
-  using cdouble = std::complex<double>;
-
-  using M51 = eigen_matrix_t<double, 5, 1>;
-  using M5x = eigen_matrix_t<double, 5, dynamic_size>;
-  using M31 = eigen_matrix_t<double, 3, 1>;
-  using M13 = eigen_matrix_t<double, 1, 3>;
-  using M33 = eigen_matrix_t<double, 3, 3>;
-  using M3x = eigen_matrix_t<double, 3, dynamic_size>;
-  using Mx3 = eigen_matrix_t<double, dynamic_size, 3>;
-  using M21 = eigen_matrix_t<double, 2, 1>;
-  using M22 = eigen_matrix_t<double, 2, 2>;
-  using M2x = eigen_matrix_t<double, 2, dynamic_size>;
-  using Mx2 = eigen_matrix_t<double, dynamic_size, 2>;
-  using M11 = eigen_matrix_t<double, 1, 1>;
-  using M1x = eigen_matrix_t<double, 1, dynamic_size>;
-  using Mx1 = eigen_matrix_t<double, dynamic_size, 1>;
-  using Mxx = eigen_matrix_t<double, dynamic_size, dynamic_size>;
-
   M51 m51 {make_eigen_matrix<double, 5, 1>(1, 2, 3, 4, 5)};
 
   M31 m31 {make_eigen_matrix<double, 3, 1>(1, 2, 3)};
@@ -473,7 +454,7 @@ TEST(special_matrices, Diagonal_traits)
 
 TEST(special_matrices, to_diagonal)
 {
-  // See eigen3-diagonal.test.cpp
+  // See eigen-diagonal.test.cpp
 
   auto m11 = M11 {3};
 

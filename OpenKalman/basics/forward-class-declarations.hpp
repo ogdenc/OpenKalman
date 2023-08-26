@@ -84,7 +84,7 @@ namespace OpenKalman
     /**
    * \brief A ConstantAdapter in which all elements are 0.
    * \detail This is an Eigen-specific version of ZeroMatrix
-   * \tparam PatternMatrix An \ref native_eigen_general matrix having the size and shape of this matrix
+   * \tparam PatternMatrix A matrix, in some library, having the size and shape of this matrix
    */
 #ifdef __cpp_concepts
   template<indexible PatternMatrix, scalar_type Scalar = scalar_type_of_t<PatternMatrix>>
@@ -134,7 +134,7 @@ namespace OpenKalman
   // ------------------------------------- //
 
   /**
-   * \brief A diagonal matrix.
+   * \brief A diagonal matrix or tensor.
    * \details The matrix is guaranteed to be diagonal. It is ::self_contained iff NestedMatrix is ::self_contained.
    * Implicit conversions are available from any \ref diagonal_matrix of compatible size.
    * \tparam NestedMatrix A column vector expression defining the diagonal elements.

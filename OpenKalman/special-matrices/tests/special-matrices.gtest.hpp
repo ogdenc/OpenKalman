@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_SPECIAL_MATRICES_GTEST_HPP
 #define OPENKALMAN_SPECIAL_MATRICES_GTEST_HPP
 
-#include "interfaces/eigen3/tests/eigen3.gtest.hpp"
+#include "interfaces/eigen/tests/eigen.gtest.hpp"
 #include "special-matrices/special-matrices.hpp"
 
 

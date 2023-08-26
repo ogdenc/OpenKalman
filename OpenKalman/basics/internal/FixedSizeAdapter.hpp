@@ -256,6 +256,19 @@ namespace OpenKalman::interface
     {
       arg.set_element(arg.nested_matrix(), s, i...);
     }
+
+
+#ifdef __cpp_lib_concepts
+    template<typename Arg> requires directly_accessible<nested_matrix_of_t<Arg&>>
+#else
+    template<typename Arg, std::enable_if_t<directly_accessible<typename nested_matrix_of<Arg&>::type>, int> = 0>
+#endif
+    static constexpr auto*
+    data(Arg& arg) { return internal::raw_data(arg.nested_matrix()); }
+
+
+    static constexpr Layout layout = layout_of_v<NestedMatrix>;
+
   };
 
 

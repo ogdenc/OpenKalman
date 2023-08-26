@@ -361,6 +361,18 @@ namespace OpenKalman
 
       static constexpr bool is_writable = false;
 
+
+#ifdef __cpp_lib_concepts
+      template<typename Arg> requires has_untyped_index<Arg, 0> and directly_accessible<nested_matrix_of_t<Arg&>>
+#else
+      template<typename Arg, std::enable_if_t<has_untyped_index<Arg, 0> and directly_accessible<typename nested_matrix_of<Arg&>::type>, int> = 0>
+#endif
+      static constexpr auto*
+      data(Arg& arg) { return internal::raw_data(nested_matrix(arg)); }
+
+
+      static constexpr Layout layout = euclidean_index_descriptor<TypedIndex> ? layout_of_v<NestedMatrix> : Layout::none;
+
     };
 
   } // namespace interface

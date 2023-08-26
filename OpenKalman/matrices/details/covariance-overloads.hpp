@@ -72,7 +72,7 @@ namespace OpenKalman
       template<typename Arg>
       static decltype(auto) to_native_matrix(Arg&& arg)
       {
-        return OpenKalman::to_native_matrix(
+        return OpenKalman::to_native_matrix<nested_matrix_of_t<T>>(
           OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg))(std::forward<Arg>(arg)));
       }
 

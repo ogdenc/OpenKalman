@@ -68,33 +68,28 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<static_index_value Dim, typename BinaryOperation, typename Constant>
+    template<index_value Dim, typename BinaryOperation, typename Constant>
 #else
-    template<typename Dim, typename BinaryOperation, typename Constant, std::enable_if_t<static_index_value<Dim>, int> = 0>
+    template<typename Dim, typename BinaryOperation, typename Constant, std::enable_if_t<index_value<Dim>, int> = 0>
 #endif
     constexpr auto scalar_reduce_operation(const Dim& dim, const BinaryOperation& op, const Constant& c)
     {
-      if constexpr (Dim::value <= 1) return c;
-      else if constexpr (internal::is_plus<BinaryOperation>::value)
-        return c * dim;
-      else if constexpr (internal::is_multiplies<BinaryOperation>::value)
-        return internal::constexpr_pow(c, dim);
-      else return internal::scalar_constant_operation {op,
-        scalar_reduce_operation(std::integral_constant<std::size_t, std::size_t{dim} - 1>{}, op, c), c};
-    }
-
-
-#ifdef __cpp_concepts
-    template<dynamic_index_value Dim, typename BinaryOperation, typename Constant>
-#else
-    template<typename Dim, typename BinaryOperation, typename Constant, std::enable_if_t<dynamic_index_value<Dim>, int> = 0>
-#endif
-    constexpr auto scalar_reduce_operation(const Dim& dim, const BinaryOperation& op, const Constant& c)
-    {
-      if (dim <= 1) return get_scalar_constant_value(c);
-      else if constexpr (internal::is_plus<BinaryOperation>::value) return get_scalar_constant_value(c) * dim;
-      else if constexpr (internal::is_multiplies<BinaryOperation>::value) return std::pow(get_scalar_constant_value(c), dim);
-      else return op(scalar_reduce_operation(dim - 1, op, c), get_scalar_constant_value(c));
+      if constexpr (internal::is_plus<BinaryOperation>::value) return c * dim;
+      else if constexpr (internal::is_multiplies<BinaryOperation>::value) return internal::constexpr_pow(c, dim);
+      else
+      {
+        if constexpr (dynamic_index_value<Dim>)
+        {
+          if (get_scalar_constant_value(dim) <= 1) return get_scalar_constant_value(c);
+          else return op(scalar_reduce_operation(get_scalar_constant_value(dim) - 1, op, c), get_scalar_constant_value(c));
+        }
+        else if constexpr (Dim::value <= 1) return c;
+        else
+        {
+          auto dim_m1 = std::integral_constant<std::size_t, Dim::value - 1>{};
+          return internal::scalar_constant_operation {op, scalar_reduce_operation(dim_m1, op, c), c};
+        }
+      }
     }
 
 

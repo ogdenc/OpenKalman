@@ -1866,6 +1866,83 @@ namespace OpenKalman
         ((N == 1 and diagonal_matrix<T, Likelihood::maybe>) or (N == 0 and one_by_one_matrix<T, Likelihood::maybe>))));
 
 
+  // ------------------------- //
+  //    directly_accessible    //
+  // ------------------------- //
+
+#ifndef __cpp_lib_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct directly_accessible_impl : std::false_type {};
+
+    template<typename T>
+      struct directly_accessible_impl<T, std::enable_if_t<
+        (std::is_pointer_v<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::data(std::declval<std::decay_t<T>&>()))>)>>
+        : std::true_type {};
+  } // namespace detail
+#endif
+
+
+  /**
+   * \brief The underlying data for T is directly accessible.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept directly_accessible = indexible<T> and requires(std::decay_t<T>& a) {
+    requires std::is_pointer_v<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::data(a))>;
+  };
+#else
+  constexpr bool directly_accessible = indexible<T> and detail::directly_accessible_impl<std::decay_t<T>>::value;
+#endif
+
+
+  // ----------- //
+  //  layout_of  //
+  // ----------- //
+
+#ifndef __cpp_lib_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct has_layout : std::false_type {};
+
+    template<typename T>
+      struct has_layout<T, std::void_t<decltype(interface::IndexibleObjectTraits<T>::layout)>> : std::true_type {};
+  } // namespace detail
+#endif
+
+
+  /**
+   * \brief The row dimension of a matrix, expression, or array.
+   * \note If the row dimension is dynamic, then <code>value</code> is \ref dynamic_size.
+   * \tparam T The matrix, expression, or array.
+   */
+#ifdef __cpp_concepts
+  template<typename T>
+#else
+  template<typename T, typename = void>
+#endif
+  struct layout_of : std::integral_constant<Layout, Layout::none> {};
+
+
+#ifdef __cpp_concepts
+  template<typename T> requires requires { interface::IndexibleObjectTraits<std::decay_t<T>>::layout; }
+  struct layout_of<T>
+#else
+  template<typename T>
+  struct layout_of<T, std::enable_if_t<detail::has_layout<std::decay_t<T>>::value>>
+#endif
+    : std::integral_constant<Layout, interface::IndexibleObjectTraits<std::decay_t<T>>::layout> {};
+
+
+  /**
+   * \brief helper template for \ref layout_of.
+   */
+  template<typename T>
+  static constexpr auto layout_of_v = layout_of<T>::value;
+
+
 } // namespace OpenKalman
 
 #endif //OPENKALMAN_FORWARD_TRAITS_HPP

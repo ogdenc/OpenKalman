@@ -50,6 +50,7 @@ namespace OpenKalman::interface {}
 #include "functions/scalar_functions.hpp"
 #include "internal/math_constexpr.hpp"
 
+#include "index-values.hpp"
 #include "index-descriptors/index-descriptors.hpp"
 
 #include "IndexibleObjectTraits.hpp"

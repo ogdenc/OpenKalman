@@ -271,6 +271,31 @@ namespace OpenKalman::interface
      */
     static constexpr bool is_writable = false;
 
+
+    /**
+     * \brief If the argument has direct access to the underlying array data, return a pointer to that data.
+     */
+    template<typename Arg>
+    static constexpr auto*
+    data(Arg& arg) = delete;
+
+
+    /**
+     * \brief The layout of T.
+     */
+    static constexpr Layout layout = Layout::none;
+
+
+    /**
+     * \brief If layout is Layout::stride, this returns a tuple of strides, one for each dimension.
+     * \details This is only necessary or meaningful if layout == Layout::stride.
+     * The tuple elements may be integral constants if the values are known at compile time. Example:
+     * <code>return std::tuple {16, 4, std::integral_constant<std::size_t, 1>{}></code>
+     */
+    template<typename Arg>
+    static constexpr auto
+    strides(Arg&& arg) = delete;
+
   };
 
 } // namespace OpenKalman::interface

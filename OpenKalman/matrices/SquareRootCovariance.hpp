@@ -1014,6 +1014,19 @@ namespace OpenKalman
 
       static constexpr bool is_writable = LibraryRoutines<std::decay_t<NestedMatrix>>::is_writable;
 
+
+#ifdef __cpp_lib_concepts
+      template<typename Arg> requires one_by_one_matrix<nested_matrix_of_t<Arg&>> and directly_accessible<nested_matrix_of_t<Arg&>>
+#else
+      template<typename Arg, std::enable_if_t<one_by_one_matrix<typename nested_matrix_of<Arg&>::type> and
+        directly_accessible<typename nested_matrix_of<Arg&>::type>, int> = 0>
+#endif
+      static constexpr auto*
+      data(Arg& arg) { return internal::raw_data(arg.nested_matrix()); }
+
+
+      static constexpr Layout layout = one_by_one_matrix<NestedMatrix> ? layout_of_v<NestedMatrix> : Layout::none;
+
     };
 
   } // namespace interface

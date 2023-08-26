@@ -45,7 +45,7 @@ namespace OpenKalman::interface
     template<typename Arg>
     static decltype(auto) to_native_matrix(Arg&& arg)
     {
-      return OpenKalman::to_native_matrix(nested_matrix(std::forward<Arg>(arg)));
+      return OpenKalman::to_native_matrix<nested_matrix_of_t<T>>(nested_matrix(std::forward<Arg>(arg)));
     }
 
 

@@ -763,6 +763,19 @@ namespace OpenKalman
       }
 
       using scalar_type = scalar_type_of_t<NestedMean>;
+
+
+#ifdef __cpp_lib_concepts
+      template<typename Arg> requires directly_accessible<NestedMean>
+#else
+      template<typename Arg, std::enable_if_t<directly_accessible<NestedMean>, int> = 0>
+#endif
+      static constexpr auto*
+      data(Arg& arg) { return internal::raw_data(arg.mu()); }
+
+
+      static constexpr Layout layout = layout_of_v<NestedMean>;
+
     };
 
   } // namespace internal

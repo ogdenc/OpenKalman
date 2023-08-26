@@ -1,1 +1,2 @@
-add_subdirectory(eigen3/tests)
+add_subdirectory(eigen/tests)
+add_subdirectory(eigen-tensor/tests)

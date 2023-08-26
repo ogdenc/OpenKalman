@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Type traits as applied to special matrix classes in OpenKalman's Eigen3 interface.
+ * \brief Type traits as applied to special matrix classes in OpenKalman's Eigen interface.
  */
 
 #ifndef OPENKALMAN_SPECIAL_MATRIX_TRAITS_HPP

@@ -464,7 +464,7 @@ namespace OpenKalman
         explicit constexpr ScalarConstantImpl(const T&) {};
 
         template<typename T, std::enable_if_t<scalar_constant<T, CompileTimeStatus::known> and T::value == value, int> = 0>
-        constexpr Derived& operator=(const T&) { return *this; }
+        constexpr Derived& operator=(const T&) { return static_cast<Derived&>(*this); }
 
         constexpr auto operator+() { return static_cast<Derived&>(*this); }
 
@@ -483,7 +483,7 @@ namespace OpenKalman
         explicit constexpr ScalarConstantImpl(const T& t) : value {get_scalar_constant_value(t)} {};
 
         template<typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
-        constexpr Derived& operator=(const T& t) { value = t; return *this; }
+        constexpr Derived& operator=(const T& t) { value = t; return static_cast<Derived&>(*this); }
 
       private:
         value_type value;

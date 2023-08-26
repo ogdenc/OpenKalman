@@ -11,7 +11,7 @@
 #ifndef OPENKALMAN_COVARIANCEARITHMETIC_HPP
 #define OPENKALMAN_COVARIANCEARITHMETIC_HPP
 
-#include <interfaces/eigen3/details/eigen3-forward-declarations.hpp>
+#include <interfaces/eigen/details/eigen-forward-declarations.hpp>
 
 namespace OpenKalman
 {

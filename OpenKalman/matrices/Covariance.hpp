@@ -1132,7 +1132,7 @@ namespace OpenKalman
       static constexpr bool is_hermitian = true;
 
 
-      using scalar_type = scalar_type_of_t<nested_matrix_of_t<T>>;
+      using scalar_type = scalar_type_of_t<NestedMatrix>;
 
   #ifdef __cpp_lib_concepts
       template<typename Arg, typename...I> requires
@@ -1160,6 +1160,18 @@ namespace OpenKalman
       }
 
       static constexpr bool is_writable = LibraryRoutines<std::decay_t<NestedMatrix>>::is_writable;
+
+
+#ifdef __cpp_lib_concepts
+      template<typename Arg> requires directly_accessible<nested_matrix_of_t<Arg&>>
+#else
+      template<typename Arg, std::enable_if_t<directly_accessible<typename nested_matrix_of<Arg&>::type>, int> = 0>
+#endif
+      static constexpr auto*
+      data(Arg& arg) { return internal::raw_data(nested_matrix(arg)); }
+
+
+      static constexpr Layout layout = layout_of_v<NestedMatrix>;
 
     };
 

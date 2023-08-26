@@ -27,10 +27,18 @@ namespace OpenKalman
    * \brief A constant indicating that the relevant dimension of a matrix has a size that is dynamic.
    * \details A dynamic dimension can be set, or change, during runtime and is not known at compile time.
    */
-#ifndef __cpp_lib_span
-
   static constexpr std::size_t dynamic_size = std::numeric_limits<std::size_t>::max();
-#endif
+
+
+  /**
+   * \brief The layout format of a multidimensional array.
+   */
+  enum struct Layout : int {
+    none, ///< No storage layout (e.g., if the elements are calculated rather than stored).
+    right, ///< Row-major storage (C or C++ style): contiguous storage in which the right-most index has a stride of 1.
+    left, ///< Column-major storage (Fortran, Matlab, or Eigen style): contiguous storage in which the left-most extent has a stride of 1.
+    stride, ///< A generalization of the above: a custom stride is specified for each index.
+  };
 
 
   /**

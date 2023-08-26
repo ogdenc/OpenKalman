@@ -19,41 +19,23 @@
 namespace OpenKalman
 {
   /**
-   * \brief If it isn't already, convert Arg to a native matrix in library T.
-   * \details The new matrix will be one in which basic matrix operations are defined.
-   * \tparam T A matrix from the library to which Arg is to be converted.
+   * \brief If it isn't already, convert Arg to a native object in library T.
+   * \details The new object will be one that is treated as native by the library associated with T.
+   * \tparam T An indexible object from the library to which Arg is to be converted.
    * \tparam Arg The argument
    */
 #ifdef __cpp_concepts
-  template<indexible T, indexible Arg> requires (not std::same_as<T, Arg>)
+  template<indexible T, indexible Arg>
   inline decltype(auto)
   to_native_matrix(Arg&& arg)
 #else
-  template<typename T, typename Arg, std::enable_if_t<indexible<T> and indexible<Arg> and not std::is_same<T, Arg>::value, int> = 0>
+  template<typename T, typename Arg, std::enable_if_t<indexible<T> and indexible<Arg>, int> = 0>
   inline decltype(auto)
   to_native_matrix(Arg&& arg)
 #endif
   {
     return interface::LibraryRoutines<std::decay_t<T>>::to_native_matrix(std::forward<Arg>(arg));
   }
-
-
-  /**
-   * \overload
-   * \brief If it isn't already, convert arg into a native matrix within its library.
-   */
-#ifdef __cpp_concepts
-  inline decltype(auto)
-  to_native_matrix(indexible auto&& arg)
-#else
-  template<typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
-  inline decltype(auto)
-  to_native_matrix(Arg&& arg)
-#endif
-  {
-    return interface::LibraryRoutines<std::decay_t<decltype(arg)>>::to_native_matrix(std::forward<decltype(arg)>(arg));
-  }
-
 
 } // namespace OpenKalman
 

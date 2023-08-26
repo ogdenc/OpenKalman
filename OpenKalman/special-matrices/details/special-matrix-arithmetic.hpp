@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Arithmetic definitions for Eigen3 extensions
+ * \brief Arithmetic definitions for Eigen extensions
  * \todo remove file
  */
 

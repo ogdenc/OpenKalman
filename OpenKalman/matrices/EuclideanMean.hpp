@@ -486,6 +486,18 @@ euclidean_dimension_size_of_v<row_index_descriptor_of_t<V>> == row_dimension_of_
 
       static constexpr bool is_writable = LibraryRoutines<std::decay_t<NestedMatrix>>::is_writable;
 
+
+#ifdef __cpp_lib_concepts
+      template<typename Arg> requires directly_accessible<nested_matrix_of_t<Arg&&>> and euclidean_index_descriptor<Coeffs>
+#else
+      template<typename Arg, std::enable_if_t<directly_accessible<typename nested_matrix_of<Arg&&>::type> and euclidean_index_descriptor<Coeffs>, int> = 0>
+#endif
+      static constexpr auto*
+      data(Arg& arg) { return internal::raw_data(nested_matrix(arg)); }
+
+
+      static constexpr Layout layout = euclidean_index_descriptor<Coeffs> ? layout_of_v<NestedMatrix> : Layout::none;
+
     };
 
   } // namespace interface
