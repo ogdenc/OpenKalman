@@ -295,7 +295,7 @@ namespace OpenKalman
     }
 
     template<std::size_t...indices, typename Arg, typename Chip, std::size_t...all_indices, typename...Is>
-    constexpr auto& set_chip_impl(Arg& arg, Chip&& chip, std::index_sequence<all_indices...>, Is...is)
+    constexpr Arg& set_chip_impl(Arg& arg, Chip&& chip, std::index_sequence<all_indices...>, Is...is)
     {
       return set_block(arg, std::forward<Chip>(chip), chip_index_match<all_indices, indices...>(is...)...);
     }
@@ -325,7 +325,8 @@ namespace OpenKalman
     ((sizeof...(indices) > 0 and sizeof...(indices) == sizeof...(Is)) or
       (sizeof...(Is) == 0 and (dimension_size_of_index_is<Arg, indices, 1> and ...))), int> = 0>
 #endif
-  constexpr auto& set_chip(Arg& arg, Chip&& chip, Is...is)
+  constexpr Arg&
+  set_chip(Arg& arg, Chip&& chip, Is...is)
   {
     ([](const auto& chip){
       if constexpr (not dynamic_dimension<Chip, indices>)
@@ -353,7 +354,7 @@ namespace OpenKalman
   template<typename Arg, typename Row, typename I, std::enable_if_t<writable<Arg> and indexible<Row> and index_value<I> and
     (dynamic_rows<Arg> or not static_index_value<I> or (static_index_value_of<I>::value < row_dimension_of<Arg>::value)), int> = 0>
 #endif
-  constexpr auto&
+  constexpr Arg&
   set_row(Arg& arg, Row&& row, I i)
   {
     return set_chip<0>(arg, std::forward<Row>(row), i);
@@ -374,7 +375,7 @@ namespace OpenKalman
   template<typename Arg, typename Column, typename I, std::enable_if_t<writable<Arg> and indexible<Column> and index_value<I> and
     (dynamic_columns<Arg> or not static_index_value<I> or (static_index_value_of<I>::value < column_dimension_of<Arg>::value)), int> = 0>
 #endif
-  constexpr auto&
+  constexpr Arg&
   set_column(Arg& arg, Column&& column, I i)
   {
     return set_chip<1>(arg, std::forward<Column>(column), i);
@@ -402,7 +403,7 @@ namespace OpenKalman
 
     /**
      * \internal
-     * \brief Set only a triangle (upper or lower) or diagonal taken from another matrix to a \ref writable matrix.
+     * \brief Set only a triangular (upper or lower) or diagonal part of a matrix by copying from another matrix.
      * \note This is optional.
      * \tparam t The TriangleType (upper, lower, or diagonal)
      * \tparam A The matrix or tensor to be set
@@ -413,14 +414,15 @@ namespace OpenKalman
       maybe_has_same_shape_as<A, B> and (t != TriangleType::any) and
       (not triangular_matrix<A, TriangleType::any, Likelihood::maybe> or triangular_matrix<A, t, Likelihood::maybe> or t == TriangleType::diagonal) and
       (not triangular_matrix<B, TriangleType::any, Likelihood::maybe> or triangular_matrix<B, t, Likelihood::maybe> or t == TriangleType::diagonal)
+    constexpr index_descriptors_match<A> decltype(auto)
 #else
     template<TriangleType t, typename A, typename B, std::enable_if_t<
       square_matrix<A, Likelihood::maybe> and square_matrix<B, Likelihood::maybe> and
       maybe_has_same_shape_as<A, B> and (t != TriangleType::any) and
       (not triangular_matrix<A, TriangleType::any, Likelihood::maybe> or triangular_matrix<A, t, Likelihood::maybe> or t == TriangleType::diagonal) and
       (not triangular_matrix<B, TriangleType::any, Likelihood::maybe> or triangular_matrix<B, t, Likelihood::maybe> or t == TriangleType::diagonal), int> = 0>
-#endif
     constexpr decltype(auto)
+#endif
     set_triangle(A&& a, B&& b)
     {
       if constexpr (diagonal_adapter<A>)

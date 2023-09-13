@@ -25,14 +25,6 @@ namespace OpenKalman::interface
   struct IndexibleObjectTraits<Eigen::Transpose<MatrixType>>
     : Eigen3::IndexibleObjectTraitsBase<Eigen::Transpose<MatrixType>>
   {
-    static constexpr std::size_t max_indices = max_indices_of_v<MatrixType>;
-
-    template<std::size_t N, typename Arg>
-    static constexpr auto get_index_descriptor(const Arg& arg)
-    {
-      return OpenKalman::get_index_descriptor<N == 0 ? 1 : 0>(arg.nestedExpression());
-    }
-
     template<Likelihood b>
     static constexpr bool is_one_by_one = one_by_one_matrix<MatrixType, b>;
 

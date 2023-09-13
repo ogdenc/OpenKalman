@@ -41,15 +41,18 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Converts a matrix/array convertible to type <code>T</code> into a dense, writable matrix/array.
+     * \brief Converts Arg (if it is not already) to a native matrix operable within the library associated with T.
+     * \details The result should be in a form for which basic matrix operations can be performed within the library for T.
+     * If possible, properties such as \ref diagonal_matrix, \ref triangular_matrix, \ref hermitian_matrix,
+     * \ref constant_matrix, and \ref constant_diagonal_matrix should be preserved in the resulting object.
+     * Also, this function should accept, as arguments, all OpenKalman classes including
+     * FixedSizeAdapter (if otherwise used in the intervace), ConstantAdapter, DiagonalMatrix,
+     * SelfAdjointMatrix, TriangularMatrix, FromEuclideanExpr, ToEuclideanExpr,
+     * Matrix, Mean, EuclideanMean, Covariance, and SquareRootCovariance.
      */
-#ifdef __cpp_concepts
-    template<scalar_type Scalar, std::convertible_to<const std::remove_reference_t<T>&> Arg>
-#else
-    template<typename Scalar, typename Arg, std::enable_if_t<scalar_type<Scalar> and
-      std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
-#endif
-    static decltype(auto) convert(Arg&& arg) = delete;
+    template<typename Arg>
+    static decltype(auto)
+    to_native_matrix(Arg&& arg) = delete;
 
 
     /**
@@ -64,17 +67,8 @@ namespace OpenKalman::interface
 #else
     template<typename Scalar, typename...Ds, std::enable_if_t<scalar_type<Scalar> and (... and index_descriptor<Ds>), int> = 0>
 #endif
-    static auto make_default(Ds&&...ds) = delete;
-
-
-    /**
-     * \brief Converts Arg (if it is not already) to a native matrix operable within the library associated with T.
-     * \details The result should be in a form for which basic matrix operations can be performed within the library for T.
-     * If possible, properties such as \ref diagonal_matrix, \ref triangular_matrix, \ref hermitian_matrix,
-     * \ref constant_matrix, and \ref constant_diagonal_matrix should be preserved in the resulting object.
-     */
-    template<typename Arg>
-    static decltype(auto) to_native_matrix(Arg&& arg) = delete;
+    static auto
+    make_default(Ds&&...ds) = delete;
 
 
     /**
@@ -89,7 +83,8 @@ namespace OpenKalman::interface
     template<typename Scalar, typename...Ds, typename...Args, std::enable_if_t<scalar_type<Scalar> and
       (index_descriptor<Ds> and ...) and std::conjunction_v<std::is_convertible<Args, Scalar>...>, int> = 0>
 #endif
-    static auto make_from_elements(const std::tuple<Ds...>& d_tup, const Args ... args) = delete;
+    static auto
+    make_from_elements(const std::tuple<Ds...>& d_tup, const Args ... args) = delete;
 
 
     /**
@@ -120,7 +115,8 @@ namespace OpenKalman::interface
 #else
     template<typename D, std::enable_if_t<index_descriptor<D>, int> = 0>
 #endif
-    static constexpr auto make_identity_matrix(D&& d) = delete;
+    static constexpr auto
+    make_identity_matrix(D&& d) = delete;
 
 
     /**
@@ -139,7 +135,8 @@ namespace OpenKalman::interface
       (interface::IndexibleObjectTraits<std::decay_t<Arg>>::max_indices == sizeof...(Begin)) and
       (interface::IndexibleObjectTraits<std::decay_t<Arg>>::max_indices == sizeof...(Size)), int> = 0>
 #endif
-    static decltype(auto) get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size) = delete;
+    static decltype(auto)
+    get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size) = delete;
 
 
     /**
@@ -157,11 +154,12 @@ namespace OpenKalman::interface
       std::is_convertible_v<Arg&, std::decay_t<T>&> and
       (interface::IndexibleObjectTraits<std::decay_t<Arg>>::max_indices == sizeof...(Begin)), int> = 0>
 #endif
-    static Arg& set_block(Arg& arg, Block&& block, Begin...begin) = delete;
+    static Arg&
+    set_block(Arg& arg, Block&& block, Begin...begin) = delete;
 
 
     /**
-     * \brief Set only a triangular (or diagonal) portion taken from another matrix to a \ref writable matrix.
+     * \brief Set only a triangular (or diagonal) portion of a \ref writable matrix with elements of another matrix.
      * \note This is optional.
      * \tparam t The TriangleType (upper, lower, or diagonal)
      * \tparam A The matrix or tensor to be set
@@ -172,7 +170,8 @@ namespace OpenKalman::interface
 #else
     template<TriangleType t, typename A, typename B, std::enable_if_t<std::is_convertible_v<A&&, std::decay_t<T>&>>>
 #endif
-    static decltype(auto) set_triangle(A&& a, B&& b) = delete;
+    static decltype(auto)
+    set_triangle(A&& a, B&& b) = delete;
 
 
     /**
@@ -218,35 +217,33 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Perform an n-ary array operation on a set of n arguments, possibly with broadcasting.
-     * \details The index descriptors d_tup define the size of the resulting matrix. If any of the arguments has a
-     * lesser order than indicated by d_tup, the function must replicate the argument to fill
-     * out the full size and shape specified by Ds, as necessary, before performing the operation. For example, if
-     * d_tup is Dimensions<2> and Dimensions<2> and the sole argument is a 2-by-1 column vector, the function must
-     * replicate the argument in the horizontal direction to form a 2-by-2 matrix before performing the operation.
-     * \note This is optional and should be left undefined to the extent the native library does not provide this
-     * functionality.
-     * \param d_tup A tuple of index descriptors (of type Ds) defining the resulting tensor
-     * \tparam Operation The n-ary operation taking n arguments, each argument having the same dimensions
-     * \tparam Args A set of n arguments
-     * \return An object with size and shape defined by d_tup and with elements defined by the operation
+     * \brief Broadcast a tensor by replicating it by factors specified for each index.
+     * \details The operation may increase the rank of the tensor by specifying factors beyond the existing argument rank.
+     * \tparam Arg The tensor.
+     * \tparam Factors A set of factors indicating the increase in size of each index. There must be one factor per
+     * index, and there may also be additional factors if the tensor rank is to be expanded
      */
-    template<typename...Ds, typename Operation, typename...Args>
-    static auto n_ary_operation(const std::tuple<Ds...>& d_tup, Operation&&, Args&&...) = delete;
+    template<typename Arg, typename...Factors>
+    static auto
+    broadcast(Arg&&, const Factors&...factors) = delete;
 
 
     /**
-     * \brief Fill an array or tensor using an n-ary operation that also takes indices as arguments.
-     * \details The n-ary operation results in elements that can be index-dependent.
+     * \brief Perform an n-ary array operation on a set of n arguments.
+     * \details The index descriptors d_tup define the size of the resulting matrix.
      * \note This is optional and should be left undefined to the extent the native library does not provide this
      * functionality.
      * \param d_tup A tuple of index descriptors (of type Ds) defining the resulting tensor
-     * \tparam Operation An n-ary operation taking n arguments as well as the indices defining T
-     * \tparam Args A set of n arguments
-     * \return An object with size and shape defined by d_tup and with elements defined by the n-ary operation
+     * \tparam Operation The n-ary operation taking n scalar arguments and (optionally) <code>sizeof...(Ds)</code> indices.
+     * Examples:
+     * - <code>template<scalar_type...X> operation(const X&...)</code>
+     * - <code>template<scalar_type...X, index_value...I> operation(const X&..., I...)</code>
+     * \tparam Args A set of n indexible arguments, each having the same dimensions.
+     * \return An object with size and shape defined by d_tup and with elements defined by the operation
      */
     template<typename...Ds, typename Operation, typename...Args>
-    static auto n_ary_operation_with_indices(const std::tuple<Ds...>& d_tup, Operation&&, Args&&...) = delete;
+    static auto
+    n_ary_operation(const std::tuple<Ds...>& d_tup, Operation&&, Args&&...) = delete;
 
 
     /**
@@ -260,7 +257,8 @@ namespace OpenKalman::interface
      * (thus calling for a complete reduction), the function may return either a scalar value or a one-by-one matrix.
      */
     template<std::size_t...indices, typename BinaryFunction, typename Arg>
-    static constexpr decltype(auto) reduce(BinaryFunction&&, Arg&&) = delete;
+    static constexpr decltype(auto)
+    reduce(BinaryFunction&&, Arg&&) = delete;
 
 
     /**
@@ -323,7 +321,8 @@ namespace OpenKalman::interface
 #else
     template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
 #endif
-    static constexpr auto conjugate(Arg&&) = delete;
+    static constexpr auto
+    conjugate(Arg&&) = delete;
 
 
     /**
@@ -335,7 +334,8 @@ namespace OpenKalman::interface
 #else
     template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
 #endif
-    static constexpr auto transpose(Arg&&) = delete;
+    static constexpr auto
+    transpose(Arg&&) = delete;
 
 
     /**
@@ -347,7 +347,8 @@ namespace OpenKalman::interface
 #else
     template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
 #endif
-    static constexpr auto adjoint(Arg&&) = delete;
+    static constexpr auto
+    adjoint(Arg&&) = delete;
 
 
     /**
@@ -359,7 +360,8 @@ namespace OpenKalman::interface
 #else
     template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
 #endif
-    static constexpr auto determinant(Arg&&) = delete;
+    static constexpr auto
+    determinant(Arg&&) = delete;
 
 
     /**
@@ -372,7 +374,8 @@ namespace OpenKalman::interface
 #else
     template<typename A, typename B, std::enable_if_t<std::is_convertible_v<A, const std::remove_reference_t<T>&>, int> = 0>
 #endif
-    static constexpr auto sum(A&& a, B&& b) = delete;
+    static constexpr auto
+    sum(A&& a, B&& b) = delete;
 
 
     /**
@@ -385,7 +388,8 @@ namespace OpenKalman::interface
 #else
     template<typename A, typename B, std::enable_if_t<std::is_convertible_v<A, const std::remove_reference_t<T>&>, int> = 0>
 #endif
-    static constexpr auto contract(A&& a, B&& b) = delete;
+    static constexpr auto
+    contract(A&& a, B&& b) = delete;
 
 
     /**
@@ -399,7 +403,8 @@ namespace OpenKalman::interface
 #else
     template<bool on_the_right, typename A, typename B, std::enable_if_t<std::is_convertible_v<A, const std::remove_reference_t<T>&>, int> = 0>
 #endif
-    static constexpr A& contract_in_place(A& a, B&& b) = delete;
+    static constexpr A&
+    contract_in_place(A& a, B&& b) = delete;
 
 
     /**
@@ -415,7 +420,8 @@ namespace OpenKalman::interface
     template<TriangleType triangle_type, typename Arg, std::enable_if_t<
       std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
 #endif
-    static constexpr auto cholesky_factor(Arg&& a) = delete;
+    static constexpr auto
+    cholesky_factor(Arg&& a) = delete;
 
 
     /**
@@ -435,7 +441,8 @@ namespace OpenKalman::interface
     template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha, std::enable_if_t<
       std::is_convertible_v<A, const std::remove_reference_t<T>&>, int> = 0>
 #endif
-    static decltype(auto) rank_update_self_adjoint(A&&, U&&, const Alpha) = delete;
+    static decltype(auto)
+    rank_update_self_adjoint(A&&, U&&, const Alpha) = delete;
 
 
     /**
@@ -457,7 +464,8 @@ namespace OpenKalman::interface
     template<TriangleType triangle, typename A, typename U, typename Alpha, std::enable_if_t<
       std::is_convertible_v<A, const std::remove_reference_t<T>&>, int> = 0>
 #endif
-    static decltype(auto) rank_update_triangular(A&&, U&&, const Alpha) = delete;
+    static decltype(auto)
+    rank_update_triangular(A&&, U&&, const Alpha) = delete;
 
 
     /**
@@ -479,7 +487,8 @@ namespace OpenKalman::interface
     template<bool must_be_unique = false, bool must_be_exact = false, typename A, typename B, std::enable_if_t<
       std::is_convertible_v<A, const std::remove_reference_t<T>&>, int> = 0>
 #endif
-    static decltype(auto) solve(A&&, B&&) = delete;
+    static decltype(auto)
+    solve(A&&, B&&) = delete;
 
 
     /**
@@ -492,7 +501,8 @@ namespace OpenKalman::interface
 #else
     template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
 #endif
-    static constexpr auto LQ_decomposition(Arg&&) = delete;
+    static constexpr auto
+    LQ_decomposition(Arg&&) = delete;
 
 
     /**
@@ -505,7 +515,8 @@ namespace OpenKalman::interface
 #else
     template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::remove_reference_t<T>&>, int> = 0>
 #endif
-    static constexpr auto QR_decomposition(Arg&&) = delete;
+    static constexpr auto
+    QR_decomposition(Arg&&) = delete;
 
   };
 

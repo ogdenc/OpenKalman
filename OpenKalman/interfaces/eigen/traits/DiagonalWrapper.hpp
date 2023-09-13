@@ -25,10 +25,8 @@ namespace OpenKalman::interface
   struct IndexibleObjectTraits<Eigen::DiagonalWrapper<DiagVectorType>>
     : Eigen3::IndexibleObjectTraitsBase<Eigen::DiagonalWrapper<DiagVectorType>>
   {
-    static constexpr std::size_t max_indices = 2;
-
-    template<std::size_t N, typename Arg>
-    static constexpr auto get_index_descriptor(const Arg& arg)
+    template<typename Arg, typename N>
+    static constexpr auto get_index_descriptor(const Arg& arg, N)
     {
       if constexpr (has_dynamic_dimensions<DiagVectorType>) return static_cast<std::size_t>(arg.rows());
       else return Dimensions<index_dimension_of_v<DiagVectorType, 0> * index_dimension_of_v<DiagVectorType, 1>>{};

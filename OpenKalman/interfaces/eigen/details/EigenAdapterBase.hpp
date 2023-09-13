@@ -21,9 +21,9 @@ namespace OpenKalman::Eigen3
 {
   template<typename Derived, typename NestedMatrix>
   struct EigenAdapterBase : EigenDenseBase,
-                            std::conditional_t<std::is_base_of_v<Eigen::ArrayBase<std::decay_t<NestedMatrix>>, std::decay_t<NestedMatrix>>,
+      std::conditional_t<std::is_base_of_v<Eigen::ArrayBase<std::decay_t<NestedMatrix>>, std::decay_t<NestedMatrix>>,
       Eigen::ArrayBase<Derived>, Eigen::MatrixBase<Derived>>,
-                            Eigen::internal::no_assignment_operator // Override all Eigen assignment operators
+      Eigen::internal::no_assignment_operator // Override all Eigen assignment operators
   {
 
   private:
@@ -99,6 +99,8 @@ namespace OpenKalman::Eigen3
 
     using StorageIndex [[maybe_unused]] = typename Eigen::internal::traits<Derived>::StorageIndex;
 
+    using Index = typename Base::Index;
+
 
     enum CompileTimeTraits
     {
@@ -116,7 +118,7 @@ namespace OpenKalman::Eigen3
      * \return The number of rows at runtime.
      * \note Eigen3 requires this, particularly in Eigen::EigenBase.
      */
-    constexpr Eigen::Index rows() const
+    constexpr Index rows() const
     {
       return get_index_dimension_of<0>(static_cast<const Derived&>(*this));
     }
@@ -127,7 +129,7 @@ namespace OpenKalman::Eigen3
      * \return The number of columns at runtime.
      * \note Eigen3 requires this, particularly in Eigen::EigenBase.
      */
-    constexpr Eigen::Index cols() const
+    constexpr Index cols() const
     {
       return get_index_dimension_of<1>(static_cast<const Derived&>(*this));
     }
@@ -151,7 +153,7 @@ namespace OpenKalman::Eigen3
      * \return A matrix, of the same size and shape, containing only zero coefficients.
      */
     [[deprecated("Use make_zero_matrix_like() instead.")]]
-    static constexpr auto Zero(const Eigen::Index r, const Eigen::Index c)
+    static constexpr auto Zero(const Index r, const Index c)
     {
       return make_zero_matrix_like<Derived>(Dimensions{static_cast<std::size_t>(r)}, Dimensions{static_cast<std::size_t>(c)});
     }
@@ -178,7 +180,7 @@ namespace OpenKalman::Eigen3
      * \return An identity matrix with the same or identified number of rows and columns.
      */
     [[deprecated("Use make_identity_matrix_like() instead.")]]
-    static constexpr decltype(auto) Identity(const Eigen::Index r, const Eigen::Index c)
+    static constexpr decltype(auto) Identity(const Index r, const Index c)
     {
       if constexpr (not dynamic_dimension<Derived, 0>) if (r != index_dimension_of_v<Derived, 0>)
         throw std::invalid_argument {"In T::Identity(r, c), r (==" + std::to_string(r) +

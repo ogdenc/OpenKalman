@@ -149,25 +149,25 @@ namespace OpenKalman
   struct DiagonalMatrix;
 
 
-    namespace detail
-    {
-      template<typename T>
-      struct is_eigen_diagonal_expr : std::false_type {};
-
-      template<typename NestedMatrix>
-      struct is_eigen_diagonal_expr<DiagonalMatrix<NestedMatrix>> : std::true_type {};
-    }
-
-
-    /**
-     * \brief Specifies that T is a diagonal matrix based on the Eigen library (i.e., DiaginalMatrix).
-     */
+  namespace detail
+  {
     template<typename T>
-  #ifdef __cpp_concepts
-    concept eigen_diagonal_expr = detail::is_eigen_diagonal_expr<std::decay_t<T>>::value;
-  #else
-    constexpr bool eigen_diagonal_expr = detail::is_eigen_diagonal_expr<std::decay_t<T>>::value;
-  #endif
+    struct is_eigen_diagonal_expr : std::false_type {};
+
+    template<typename NestedMatrix>
+    struct is_eigen_diagonal_expr<DiagonalMatrix<NestedMatrix>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief Specifies that T is a diagonal matrix based on the Eigen library (i.e., DiaginalMatrix).
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_diagonal_expr = detail::is_eigen_diagonal_expr<std::decay_t<T>>::value;
+#else
+  constexpr bool eigen_diagonal_expr = detail::is_eigen_diagonal_expr<std::decay_t<T>>::value;
+#endif
 
 
   // -------------------------------------------- //
@@ -663,20 +663,43 @@ namespace OpenKalman
     struct CovarianceImpl;
 
 
-  /**
-   * \internal
-   * \brief Wraps a dynamic-sized input, immutably, in a wrapper that has one or more fixed dimensions.
-   * \tparam NestedMatrix The underlying native matrix or matrix expression.
-   * \tparam IndexDescriptors A set of index descriptors
-   */
+    /**
+     * \internal
+     * \brief Wraps a dynamic-sized input, immutably, in a wrapper that has one or more fixed dimensions.
+     * \tparam NestedMatrix The underlying native matrix or matrix expression.
+     * \tparam IndexDescriptors A set of index descriptors
+     */
 #ifdef __cpp_concepts
-  template<indexible NestedMatrix, index_descriptor...IndexDescriptors>
-    requires compatible_with_index_descriptors<NestedMatrix, IndexDescriptors...> and
-      (sizeof...(IndexDescriptors) == max_indices_of_v<NestedMatrix>) and (not std::is_reference_v<NestedMatrix>)
+    template<indexible NestedMatrix, index_descriptor...IndexDescriptors>
+      requires compatible_with_index_descriptors<NestedMatrix, IndexDescriptors...> and
+        (sizeof...(IndexDescriptors) == max_indices_of_v<NestedMatrix> or
+          (sizeof...(IndexDescriptors) == 0 and one_by_one_matrix<NestedMatrix, Likelihood::maybe>))
 #else
-  template<typename NestedMatrix, typename...IndexDescriptors>
+    template<typename NestedMatrix, typename...IndexDescriptors>
 #endif
-  struct FixedSizeAdapter;
+    struct FixedSizeAdapter;
+
+
+    namespace detail
+    {
+      template<typename T>
+      struct is_fixed_size_adapter : std::false_type {};
+
+      template<typename NestedMatrix, typename...IndexDescriptors>
+      struct is_fixed_size_adapter<FixedSizeAdapter<NestedMatrix, IndexDescriptors...>> : std::true_type {};
+    }
+
+
+    /**
+     * \brief Specifies that T is a FixedSizeAdapter.
+     */
+    template<typename T>
+#ifdef __cpp_concepts
+    concept fixed_size_adapter =
+#else
+    constexpr bool fixed_size_adapter =
+#endif
+      detail::is_fixed_size_adapter<std::decay_t<T>>::value;
 
 
   } // namespace internal

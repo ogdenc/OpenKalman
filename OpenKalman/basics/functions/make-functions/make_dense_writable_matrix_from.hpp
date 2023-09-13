@@ -18,6 +18,25 @@
 
 namespace OpenKalman
 {
+
+  namespace detail
+  {
+    template<typename M, typename Arg, typename...J>
+    static void copy_tensor_elements(M& m, const Arg& arg, std::index_sequence<>, J...j)
+    {
+      set_element(m, get_element(arg, j...), j...);
+    }
+
+
+    template<typename M, typename Arg, std::size_t I, std::size_t...Is, typename...J>
+    static void copy_tensor_elements(M& m, const Arg& arg, std::index_sequence<I, Is...>, J...j)
+    {
+      for (std::size_t i = 0; i < get_index_dimension_of<I>(arg); i++)
+        copy_tensor_elements(m, arg, std::index_sequence<Is...> {}, j..., i);
+    }
+  } // namespace detail
+
+
   /**
    * \brief Convert the argument to a dense, writable matrix of a particular scalar type.
    * \tparam Scalar The Scalar type of the new matrix, if different than that of Arg
@@ -32,8 +51,39 @@ namespace OpenKalman
 #endif
   make_dense_writable_matrix_from(Arg&& arg)
   {
-    if constexpr (writable<Arg> and std::is_same_v<Scalar, scalar_type_of_t<Arg>>) return std::forward<Arg>(arg);
-    else return interface::LibraryRoutines<std::decay_t<Arg>>::template convert<Scalar>(std::forward<Arg>(arg));
+    using M = std::decay_t<decltype(make_default_dense_writable_matrix_like<Scalar>(arg))>;
+
+    if constexpr (writable<Arg> and std::is_same_v<Scalar, scalar_type_of_t<Arg>>)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else if constexpr (std::is_constructible_v<M, Arg&&>)
+    {
+      M m {std::forward<Arg>(arg)};
+      return m;
+    }
+    else if constexpr (std::is_constructible_v<M, decltype(to_native_matrix<M>(std::declval<Arg&&>()))>)
+    {
+      M m {to_native_matrix<M>(std::forward<Arg>(arg))};
+      return m;
+    }
+    else
+    {
+      auto m {make_default_dense_writable_matrix_like<Scalar>(arg)};
+      if constexpr (std::is_assignable_v<M&, Arg&&>)
+      {
+        m = std::forward<Arg>;
+      }
+      else if constexpr (std::is_assignable_v<M&, decltype(to_native_matrix<M>(std::declval<Arg&&>()))>)
+      {
+        m = to_native_matrix<M>(std::forward<Arg>);
+      }
+      else
+      {
+        detail::copy_tensor_elements(m, arg, std::make_index_sequence<max_indices_of_v<Arg>>{});
+      }
+      return m;
+    }
   }
 
 

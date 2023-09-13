@@ -495,10 +495,23 @@ namespace OpenKalman
     {
       static constexpr std::size_t max_indices = max_indices_of_v<PatternMatrix>;
 
-      template<std::size_t N, typename Arg>
-      static constexpr auto get_index_descriptor(const Arg& arg)
+      using index_type = index_type_of_t<PatternMatrix>;
+
+      using scalar_type = typename ConstantAdapter<PatternMatrix, Scalar, constant...>::MyScalarType;
+
+      template<typename Arg, typename N>
+      static constexpr auto get_index_descriptor(Arg&& arg, N n)
       {
-        return std::get<N>(arg.my_dimensions);
+        if constexpr (static_index_value<N>)
+        {
+          return std::get<N>(std::forward<Arg>(arg).my_dimensions);
+        }
+        else
+        {
+          return std::apply(
+            [](auto&&...arg, N n){ return std::array<std::size_t, max_indices> {std::forward<decltype(arg)>(arg)...}[n]; },
+            std::forward<Arg>(arg).my_dimensions, n);
+        }
       }
 
       template<Likelihood b>
@@ -510,8 +523,6 @@ namespace OpenKalman
 
       template<typename Arg>
       static constexpr auto get_constant(const Arg& arg) { return arg.get_scalar_constant(); }
-
-      using scalar_type = typename ConstantAdapter<PatternMatrix, Scalar, constant...>::MyScalarType;
 
       template<typename Arg, typename...I>
       static constexpr auto get(Arg&& arg, I...) { return constant_coefficient_v<Arg>; }
@@ -529,22 +540,16 @@ namespace OpenKalman
       using LibraryBase = internal::library_base<Derived, PatternMatrix>;
 
 
-      template<typename S, typename...D>
-      static auto make_default(D&&...d)
-      {
-        return make_default_dense_writable_matrix_like<PatternMatrix, S>(std::forward<D>(d)...);
-      }
-
-      template<typename S, typename Arg>
-      static decltype(auto) convert(Arg&& arg)
-      {
-        return make_dense_writable_matrix_from<S>(OpenKalman::to_native_matrix<PatternMatrix>(std::forward<Arg>(arg)));
-      }
-
       template<typename Arg>
       static decltype(auto) to_native_matrix(Arg&& arg)
       {
         return OpenKalman::to_native_matrix<PatternMatrix>(std::forward<Arg>(arg));
+      }
+
+      template<typename S, typename...D>
+      static auto make_default(D&&...d)
+      {
+        return make_default_dense_writable_matrix_like<PatternMatrix, S>(std::forward<D>(d)...);
       }
 
       template<typename C, typename...D>
@@ -565,17 +570,18 @@ namespace OpenKalman
       // no to_diagonal
       // no diagonal_of
 
+      template<typename...Ds, typename Arg>
+      static decltype(auto)
+      replicate(const std::tuple<Ds...>& tup, Arg&& arg)
+      {
+        return LibraryRoutines<PatternMatrix>::replicate(tup, std::forward<Arg>(arg));
+      }
+
       template<typename...Ds, typename Op, typename...Args>
       static constexpr decltype(auto)
       n_ary_operation(const std::tuple<Ds...>& d_tup, Op&& op, Args&&...args)
       {
-        return LibraryRoutines<PatternMatrix>::template n_ary_operation(d_tup, std::forward<Op>(op), std::forward<Args>(args)...);
-      }
-
-      template<typename...Ds, typename Op, typename...Args>
-      static auto n_ary_operation_with_indices(const std::tuple<Ds...>& d_tup, Op&& op, Args&&...args)
-      {
-        return LibraryRoutines<PatternMatrix>::template n_ary_operation_with_indices(d_tup, std::forward<Op>(op), std::forward<Args>(args)...);
+        return LibraryRoutines<PatternMatrix>::n_ary_operation(d_tup, std::forward<Op>(op), std::forward<Args>(args)...);
       }
 
       template<std::size_t...indices, typename BinaryFunction, typename Arg>

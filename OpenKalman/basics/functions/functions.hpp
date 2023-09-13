@@ -23,6 +23,7 @@
 
 #include "element_functions.hpp"
 
+#include "to_native_matrix.hpp"
 #include "make-functions/make-functions.hpp"
 #include "conversion-functions/conversion-functions.hpp"
 

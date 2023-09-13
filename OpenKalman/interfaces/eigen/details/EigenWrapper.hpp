@@ -12,6 +12,7 @@
  * \internal
  * \file
  * \brief Definitions for Eigen3::EigenWrapper
+ * \todo Make this into a general OpenKalman pass-through wrapper class, and possibly combine with FixedSizeAdapter.
  */
 
 #ifndef OPENKALMAN_EIGENWRAPPER_HPP
@@ -86,6 +87,23 @@ namespace OpenKalman
 
 
       /**
+       * \brief Assign from another compatible indexible object.
+       */
+  #ifdef __cpp_concepts
+      template<indexible Arg> requires
+        std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, decltype(to_native_matrix<NestedMatrix>(std::declval<Arg&&>()))>
+  #else
+      template<typename Arg, std::enable_if_t<
+        std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, decltype(to_native_matrix<NestedMatrix>(std::declval<Arg&&>()))>, int> = 0>
+  #endif
+      auto& operator=(Arg&& arg) noexcept
+      {
+        wrapped_expression = to_native_matrix<NestedMatrix>(std::forward<Arg>(arg));
+        return *this;
+      }
+
+
+      /**
        * \brief Get the nested matrix.
        */
       decltype(auto) nested_matrix() & noexcept { return (wrapped_expression); }
@@ -99,6 +117,8 @@ namespace OpenKalman
       /// \overload
       decltype(auto) nested_matrix() const && noexcept { return (std::move(*this).wrapped_expression); }
 
+
+      using Index = index_type_of_t<NestedMatrix>;
 
       /// \internal \note Eigen3 requires this.
       using Scalar = scalar_type_of_t<NestedMatrix>;
@@ -156,7 +176,7 @@ namespace OpenKalman
        * \return The number of rows at runtime.
        * \note Eigen3 requires this, particularly in Eigen::EigenBase.
        */
-      constexpr Eigen::Index rows() const
+      constexpr Index rows() const
       {
         return get_index_dimension_of<0>(wrapped_expression);
       }
@@ -167,7 +187,7 @@ namespace OpenKalman
        * \return The number of columns at runtime.
        * \note Eigen3 requires this, particularly in Eigen::EigenBase.
        */
-      constexpr Eigen::Index cols() const
+      constexpr Index cols() const
       {
         return get_index_dimension_of<1>(wrapped_expression);
       }
@@ -202,7 +222,7 @@ namespace OpenKalman
       constexpr decltype(auto) data()
 #endif
       {
-        return raw_data(wrapped_expression);
+        return internal::raw_data(wrapped_expression);
       }
 
 
@@ -218,10 +238,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-      constexpr decltype(auto) resize(Eigen::Index newSize) requires eigen_dense_general<NestedMatrix>
+      constexpr decltype(auto) resize(Index newSize) requires eigen_dense_general<NestedMatrix>
 #else
       template<typename T = NestedMatrix, std::enable_if_t<eigen_dense_general<T>, int> = 0>
-      constexpr decltype(auto) resize(Eigen::Index newSize)
+      constexpr decltype(auto) resize(Index newSize)
 #endif
       {
         return wrapped_expression.resize(newSize);
@@ -229,10 +249,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-      constexpr decltype(auto) resize(Eigen::Index rows, Eigen::Index cols) requires eigen_dense_general<NestedMatrix>
+      constexpr decltype(auto) resize(Index rows, Index cols) requires eigen_dense_general<NestedMatrix>
 #else
       template<typename T = NestedMatrix, std::enable_if_t<eigen_dense_general<T>, int> = 0>
-      constexpr decltype(auto) resize(Eigen::Index rows, Eigen::Index cols)
+      constexpr decltype(auto) resize(Index rows, Index cols)
 #endif
       {
         return wrapped_expression.resize(rows, cols);
@@ -246,17 +266,17 @@ namespace OpenKalman
     public:
 
 #ifdef __cpp_concepts
-      auto& coeffRef(Eigen::Index row, Eigen::Index col) requires lvalue_get_element
+      auto& coeffRef(Index row, Index col) requires lvalue_get_element
 #else
       template<bool b = lvalue_get_element, std::enable_if_t<b, int> = 0>
-      auto& coeffRef(Eigen::Index row, Eigen::Index col)
+      auto& coeffRef(Index row, Index col)
 #endif
       {
         return get_element(wrapped_expression, static_cast<std::size_t>(row), static_cast<std::size_t>(col));
       }
 
 
-      constexpr decltype(auto) coeff(Eigen::Index row, Eigen::Index col) const
+      constexpr decltype(auto) coeff(Index row, Index col) const
       {
         return get_element(wrapped_expression, static_cast<std::size_t>(row), static_cast<std::size_t>(col));
       }
@@ -281,7 +301,7 @@ namespace OpenKalman
        * \return A matrix, of the same size and shape, containing only zero coefficients.
        */
       [[deprecated("Use make_zero_matrix_like() instead.")]]
-      static constexpr auto Zero(const Eigen::Index r, const Eigen::Index c)
+      static constexpr auto Zero(const Index r, const Index c)
       {
         return make_zero_matrix_like<NestedMatrix>(Dimensions{static_cast<std::size_t>(r)}, Dimensions{static_cast<std::size_t>(c)});
       }
@@ -353,12 +373,16 @@ namespace OpenKalman
     template<typename NestedMatrix>
     struct IndexibleObjectTraits<Eigen3::EigenWrapper<NestedMatrix>>
     {
-      static constexpr std::size_t max_indices = max_indices_of_v<NestedMatrix>;
+      static constexpr std::size_t max_indices = 2;
 
-      template<std::size_t N, typename Arg>
-      static constexpr auto get_index_descriptor(const Arg& arg)
+      using index_type = index_type_of_t<NestedMatrix>;
+
+      using scalar_type = scalar_type_of_t<NestedMatrix>;
+
+      template<typename Arg, typename N>
+      static constexpr auto get_index_descriptor(const Arg& arg, N n)
       {
-        return OpenKalman::get_index_descriptor<N>(nested_matrix(arg));
+        return OpenKalman::get_index_descriptor(nested_matrix(arg), n);
       }
 
       template<Likelihood b>
@@ -403,8 +427,6 @@ namespace OpenKalman
 
       static constexpr bool is_hermitian = hermitian_matrix<NestedMatrix, Likelihood::maybe>;
 
-      using scalar_type = scalar_type_of_t<NestedMatrix>;
-
 #ifdef __cpp_lib_concepts
       template<typename Arg, typename...I> requires element_gettable<decltype(nested_matrix(std::declval<Arg&&>())), sizeof...(I)>
 #else
@@ -427,8 +449,7 @@ namespace OpenKalman
       }
 
 
-      static constexpr bool is_writable =
-        static_cast<bool>(Eigen::internal::traits<std::decay_t<NestedMatrix>>::Flags & (Eigen::LvalueBit | Eigen::DirectAccessBit));
+      static constexpr bool is_writable = writable<NestedMatrix>;
 
 
 #ifdef __cpp_lib_concepts

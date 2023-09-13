@@ -28,10 +28,15 @@ namespace OpenKalman
     {
       static constexpr std::size_t max_indices = max_indices_of_v<MatrixType>;
 
-      template<std::size_t N, typename Arg>
-      static constexpr auto get_index_descriptor(const Arg& arg)
+      using index_type = index_type_of_t<MatrixType>;
+
+      using scalar_type = scalar_type_of_t<MatrixType>;
+
+
+      template<typename Arg, typename N>
+      static constexpr auto get_index_descriptor(const Arg& arg, N n)
       {
-        return OpenKalman::get_index_descriptor<N>(arg.nestedExpression());
+        return OpenKalman::get_index_descriptor(arg.nestedExpression(), n);
       }
 
       template<Likelihood b>
@@ -105,11 +110,8 @@ namespace OpenKalman
       // make_hermitian_adapter not included because SelfAdjointView is already hermitian if square.
 
 
-      using scalar_type = scalar_type_of_t<MatrixType>;
-
-
       template<typename Arg>
-      static constexpr decltype(auto) get(Arg&& arg, Eigen::Index i, Eigen::Index j)
+      static constexpr decltype(auto) get(Arg&& arg, index_type i, index_type j)
       {
         using Scalar = scalar_type_of_t<MatrixType>;
 
@@ -145,7 +147,7 @@ namespace OpenKalman
   #else
       template<typename Arg, std::enable_if_t<((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0), int> = 0>
   #endif
-      static void set(Arg& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i, Eigen::Index j)
+      static void set(Arg& arg, const scalar_type_of_t<Arg>& s, index_type i, index_type j)
       {
         if ((i > j and (UpLo & Eigen::Upper) != 0) or (i < j and (UpLo & Eigen::Lower) != 0))
         {

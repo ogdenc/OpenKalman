@@ -28,10 +28,15 @@ namespace OpenKalman
     {
       static constexpr std::size_t max_indices = max_indices_of_v<MatrixType>;
 
-      template<std::size_t N, typename Arg>
-      static constexpr auto get_index_descriptor(const Arg& arg)
+      using index_type = index_type_of_t<MatrixType>;
+
+      using scalar_type = scalar_type_of_t<MatrixType>;
+
+
+      template<typename Arg, typename N>
+      static constexpr auto get_index_descriptor(const Arg& arg, N n)
       {
-        return OpenKalman::get_index_descriptor<N>(arg.nestedExpression());
+        return OpenKalman::get_index_descriptor(arg.nestedExpression(), n);
       }
 
       template<Likelihood b>
@@ -126,11 +131,8 @@ namespace OpenKalman
       }
 
 
-      using scalar_type = scalar_type_of_t<MatrixType>;
-
-
       template<typename Arg>
-      static scalar_type_of_t<Arg> get(const Arg& arg, Eigen::Index i, Eigen::Index j)
+      static scalar_type_of_t<Arg> get(const Arg& arg, index_type i, index_type j)
       {
         if ((i > j and (Mode & Eigen::Upper) != 0) or (i < j and (Mode & Eigen::Lower) != 0)) return 0;
         else return arg.coeff(i, j);
@@ -142,7 +144,7 @@ namespace OpenKalman
   #else
       template<typename Arg, std::enable_if_t<((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0), int> = 0>
   #endif
-      static void set(Arg& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i, Eigen::Index j)
+      static void set(Arg& arg, const scalar_type_of_t<Arg>& s, index_type i, index_type j)
       {
         arg.coeffRef(i, j) = s;
       }

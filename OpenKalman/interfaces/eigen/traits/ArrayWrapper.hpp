@@ -31,12 +31,10 @@ namespace OpenKalman::interface
 
   public:
 
-    static constexpr std::size_t max_indices = max_indices_of_v<XprType>;
-
-    template<std::size_t N, typename Arg>
-    static constexpr auto get_index_descriptor(const Arg& arg)
+    template<typename Arg, typename N>
+    static constexpr auto get_index_descriptor(const Arg& arg, N n)
     {
-      return OpenKalman::get_index_descriptor<N>(arg.nestedExpression());
+      return OpenKalman::get_index_descriptor(arg.nestedExpression(), n);
     }
 
     template<Likelihood b>

@@ -21,18 +21,39 @@ namespace OpenKalman
 {
   namespace Eigen3
   {
-    template<typename NestedMatrix>
-    struct EigenTensorWrapper : Eigen::TensorBase<EigenTensorWrapper<NestedMatrix>, Eigen::ReadOnlyAccessors>
+    template<typename NestedMatrix, typename IndexType>
+    struct EigenTensorWrapper : Eigen::TensorBase<EigenTensorWrapper<NestedMatrix, IndexType>, Eigen::ReadOnlyAccessors>
     {
     private:
 
       using Base = Eigen::TensorBase<EigenTensorWrapper, Eigen::ReadOnlyAccessors>;
 
+      template<typename Arg, std::size_t...is>
+      static auto make_dim(const Arg& arg, std::index_sequence<is...>) { return Eigen::Sizes<index_dimension_of_v<Arg, is>...> {}; };
+
+#ifdef __cpp_concepts
+      template<has_dynamic_dimensions Arg, std::size_t...is>
+#else
+      template<typename Arg, std::size_t...is, std::enable_if_t<has_dynamic_dimensions<Arg>, int> = 0>
+#endif
+      static auto make_dim(const Arg& arg, std::index_sequence<is...>)
+      {
+        return Eigen::DSizes<IndexType, max_indices_of_v<Arg>> {get_index_dimension_of<is>(arg)...};
+      };
+
     public:
 
-
-      /// \internal \note Eigen3 requires this.
+      using Index = IndexType;
       using Scalar = scalar_type_of_t<NestedMatrix>;
+      using CoeffReturnType = Scalar;
+      using Dimensions = decltype(make_dim(std::declval<NestedMatrix>(), std::make_index_sequence<max_indices_of_v<NestedMatrix>>{}));
+
+      using Nested = EigenTensorWrapper;
+
+      enum {
+        IsAligned         = false,
+        Layout            = layout_of_v<NestedMatrix> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor,
+      };
 
       /* \internal
        * \brief The return type for coefficient access.
@@ -40,16 +61,23 @@ namespace OpenKalman
        * either 'const Scalar&' or simply 'Scalar' for objects that do not allow direct coefficient access.
        */
       //using CoeffReturnType = typename Base::CoeffReturnType;
-      using CoeffReturnType = std::conditional_t<(Eigen::internal::traits<std::decay_t<NestedMatrix>>::Flags & Eigen::LvalueBit) != 0x0,
-        const Scalar&, std::conditional_t<std::is_arithmetic_v<Scalar>, Scalar, const Scalar>>;
+      //using CoeffReturnType = std::conditional_t<(Eigen::internal::traits<std::decay_t<NestedMatrix>>::Flags & Eigen::LvalueBit) != 0x0,
+      //  const Scalar&, std::conditional_t<std::is_arithmetic_v<Scalar>, Scalar, const Scalar>>;
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires (not std::same_as<std::decay_t<Arg>, EigenTensorWrapper>)
+      template<typename Arg> requires (not std::same_as<std::decay_t<Arg>, EigenTensorWrapper>)
 #else
       template<typename Arg, std::enable_if_t<(not std::is_same_v<std::decay_t<Arg>, EigenTensorWrapper>), int> = 0>
 #endif
       explicit EigenTensorWrapper(Arg&& arg) : wrapped_expression {std::forward<Arg>(arg)} {}
+
+
+      EIGEN_DEVICE_FUNC
+      const auto dimensions() const
+      {
+        return make_dim(wrapped_expression, std::make_index_sequence<max_indices_of_v<NestedMatrix>>{});
+      }
 
 
       /**
@@ -74,19 +102,41 @@ namespace OpenKalman
     public:
 
 #ifdef __cpp_concepts
-      auto& coeffRef(Eigen::Index row, Eigen::Index col) requires lvalue_get_element
+      auto& coeffRef(Index row, Index col) requires lvalue_get_element
 #else
       template<bool b = lvalue_get_element, std::enable_if_t<b, int> = 0>
-      auto& coeffRef(Eigen::Index row, Eigen::Index col)
+      auto& coeffRef(Index row, Index col)
 #endif
       {
         return get_element(wrapped_expression, static_cast<std::size_t>(row), static_cast<std::size_t>(col));
       }
 
 
-      constexpr decltype(auto) coeff(Eigen::Index row, Eigen::Index col) const
+      constexpr decltype(auto) coeff(Index row, Index col) const
       {
         return get_element(wrapped_expression, static_cast<std::size_t>(row), static_cast<std::size_t>(col));
+      }
+
+
+#ifdef __cpp_concepts
+      constexpr decltype(auto) data() requires directly_accessible<NestedMatrix>
+#else
+      template<typename T = NestedMatrix, std::enable_if_t<directly_accessible<T>, int> = 0>
+      constexpr decltype(auto) data()
+#endif
+      {
+        return internal::raw_data(wrapped_expression);
+      }
+
+
+#ifdef __cpp_concepts
+      constexpr decltype(auto) data() const requires directly_accessible<NestedMatrix>
+#else
+      template<typename T = NestedMatrix, std::enable_if_t<directly_accessible<T>, int> = 0>
+      constexpr decltype(auto) data() const
+#endif
+      {
+        return internal::raw_data(wrapped_expression);
       }
 
     protected:
@@ -116,15 +166,19 @@ namespace OpenKalman
 
   namespace interface
   {
-    template<typename NestedMatrix>
-    struct IndexibleObjectTraits<Eigen3::EigenTensorWrapper<NestedMatrix>>
+    template<typename NestedMatrix, typename IndexType>
+    struct IndexibleObjectTraits<Eigen3::EigenTensorWrapper<NestedMatrix, IndexType>>
     {
       static constexpr std::size_t max_indices = max_indices_of_v<NestedMatrix>;
 
-      template<std::size_t N, typename Arg>
-      static constexpr auto get_index_descriptor(const Arg& arg)
+      using index_type = index_type_of_t<NestedMatrix>;
+
+      using scalar_type = scalar_type_of_t<NestedMatrix>;
+
+      template<typename Arg, typename N>
+      static constexpr auto get_index_descriptor(const Arg& arg, N n)
       {
-        return OpenKalman::get_index_descriptor<N>(nested_matrix(arg));
+        return OpenKalman::get_index_descriptor(nested_matrix(arg), n);
       }
 
       template<Likelihood b>
@@ -168,8 +222,6 @@ namespace OpenKalman
       static constexpr bool is_triangular_adapter = false;
 
       static constexpr bool is_hermitian = hermitian_matrix<NestedMatrix, Likelihood::maybe>;
-
-      using scalar_type = scalar_type_of_t<NestedMatrix>;
 
 #ifdef __cpp_lib_concepts
       template<typename Arg, typename...I> requires element_gettable<decltype(nested_matrix(std::declval<Arg&&>())), sizeof...(I)>
@@ -225,9 +277,9 @@ namespace Eigen::internal
   namespace detail
   {
 #ifdef __cpp_concepts
-    template<typename T>
+    template<typename T, typename IndexType>
 #else
-    template<typename T, typename = void>
+    template<typename T, typename IndexType, typename = void>
 #endif
     struct EigenTensorWrapperTraits
     {
@@ -240,11 +292,12 @@ namespace Eigen::internal
 
       using Scalar = OpenKalman::scalar_type_of_t<T>;
       using StorageKind = Dense;
-      using Index = Index;
+      using Index = IndexType;
       using Nested = T;
       static constexpr int NumDimensions = OpenKalman::max_indices_of_v<T>;
       static constexpr int Layout = ColMajor;
-      using PointerType = Scalar*;
+      template<typename U> struct MakePointer : Eigen::MakePointer<U> {};
+      using PointerType = typename MakePointer<Scalar>::Type;
       enum {
         Flags = (lvalue_get_element ? LvalueBit : 0x0),
       };
@@ -252,44 +305,26 @@ namespace Eigen::internal
 
 
 #ifdef __cpp_concepts
-    template<OpenKalman::Eigen3::eigen_tensor_general T> requires
+    template<OpenKalman::Eigen3::eigen_tensor_general T, typename IndexType> requires
       std::is_base_of_v<Eigen::TensorBase<std::decay_t<T>, ReadOnlyAccessors>, std::decay_t<T>>
-    struct EigenTensorWrapperTraits<T>
+    struct EigenTensorWrapperTraits<T, IndexType>
 #else
-    template<typename T>
-    struct EigenTensorWrapperTraits<T, std::enable_if_t<OpenKalman::Eigen3::eigen_tensor_general<T> and
+    template<typename T, typename IndexType>
+    struct EigenTensorWrapperTraits<T, IndexType, std::enable_if_t<OpenKalman::Eigen3::eigen_tensor_general<T> and
       std::is_base_of_v<Eigen::TensorBase<std::decay_t<T>, ReadOnlyAccessors>, std::decay_t<T>>>>
 #endif
-      : traits<T> {};
+      : traits<T>
+      {
+        using Index = IndexType;
+      };
 
   } // namespace detail
 
 
-  template<typename T>
-  struct traits<OpenKalman::Eigen3::EigenTensorWrapper<T>> : detail::EigenTensorWrapperTraits<std::decay_t<T>> {};
+  template<typename T, typename IndexType>
+  struct traits<OpenKalman::Eigen3::EigenTensorWrapper<T, IndexType>> : detail::EigenTensorWrapperTraits<std::decay_t<T>, IndexType> {};
 
 } // namespace Eigen::internal
-
-
-namespace OpenKalman::Eigen3
-{
-#ifdef __cpp_concepts
-  template<typename T, typename Device>
-  concept has_eigen_tensor_evaluator = requires { typename Eigen::TensorEvaluator<std::decay_t<T>, Device>; };
-#else
-  namespace detail
-  {
-    template<typename T, typename Device, typename = void>
-    struct has_eigen_tensor_evaluator_impl : std::false_type {};
-
-    template<typename T, typename Device>
-    struct has_eigen_tensor_evaluator_impl<T, Device, std::void_t<Eigen::TensorEvaluator<T, Device>>> : std::true_type {};
-  }
-
-  template<typename T, typename Device>
-  constexpr bool has_eigen_tensor_evaluator = detail::has_eigen_tensor_evaluator_impl<std::decay_t<T>, Device>::value;
-#endif
-}
 
 
 namespace Eigen
@@ -301,23 +336,50 @@ namespace Eigen
   namespace detail
   {
 #ifdef __cpp_concepts
-    template<typename ArgType, typename Device>
+    template<typename ArgType, typename IndexType, typename Device>
 #else
-    template<typename ArgType, typename Device, typename = void>
+    template<typename ArgType, typename IndexType, typename Device, typename = void>
 #endif
-    struct EigenTensorWrapperEvaluator : TensorEvaluator<OpenKalman::Eigen3::EigenWrapper<ArgType>, Device> {};
+    struct EigenTensorWrapperEvaluator : TensorEvaluator<std::decay_t<ArgType>, Device>
+    {
+      using Index = IndexType;
+      using Scalar = OpenKalman::scalar_type_of_t<ArgType>;
+      using CoeffReturnType = Scalar;
+      using PacketReturnType = typename PacketType<CoeffReturnType, Device>::type;
+      using XprType = OpenKalman::Eigen3::EigenTensorWrapper<ArgType, IndexType>;
+      using Dimensions = typename XprType::Dimensions;
+      static const int PacketSize =  PacketType<CoeffReturnType, Device>::size;
+      using TensorPointerType = typename internal::traits<XprType>::template MakePointer<Scalar>::Type;
+      using Storage = StorageMemory<Scalar, Device>;
+      using EvaluatorPointerType = typename Storage::Type;
+
+      // NumDimensions is -1 for variable dim tensors
+      static const int NumCoords = OpenKalman::max_indices_of_v<ArgType> == OpenKalman::dynamic_size ? 0 : OpenKalman::max_indices_of_v<ArgType>;
+
+      enum {
+        IsAligned          = XprType::IsAligned,
+        PacketAccess       = (PacketType<CoeffReturnType, Device>::size > 1),
+        BlockAccess        = std::is_arithmetic_v<std::decay_t<Scalar>>,
+        PreferBlockAccess  = false,
+        Layout             = XprType::Layout,
+        CoordAccess        = OpenKalman::max_indices_of_v<ArgType> > 0 and OpenKalman::max_indices_of_v<ArgType> != OpenKalman::dynamic_size,
+        RawAccess          = static_cast<bool>(OpenKalman::directly_accessible<ArgType>),
+      };
+    };
 
 
 #ifdef __cpp_concepts
-    template<typename ArgType, typename Device> requires OpenKalman::Eigen3::has_eigen_tensor_evaluator<ArgType, Device>
-    struct EigenTensorWrapperEvaluator<ArgType, Device>
+    template<typename ArgType, typename IndexType, typename Device> requires OpenKalman::Eigen3::eigen_tensor_general<ArgType>
+    struct EigenTensorWrapperEvaluator<ArgType, IndexType, Device>
 #else
-    template<typename ArgType, typename Device>
-    struct EigenTensorWrapperEvaluator<ArgType, Device, std::enable_if_t<OpenKalman::Eigen3::has_eigen_tensor_evaluator<ArgType, Device>>>
+    template<typename ArgType, typename IndexType, typename Device>
+    struct EigenTensorWrapperEvaluator<ArgType, IndexType, Device, std::enable_if_t<OpenKalman::Eigen3::eigen_tensor_general<ArgType>>>
 #endif
-      : TensorEvaluator<std::decay_t<ArgType>, Device>
+      : TensorEvaluator<std::conditional_t<std::is_lvalue_reference_v<ArgType>, std::remove_reference_t<ArgType>,
+        const std::remove_reference_t<ArgType>>, Device>
     {
-      using XprType = std::decay_t<ArgType>;
+      using XprType = std::conditional_t<std::is_lvalue_reference_v<ArgType>,
+        std::remove_reference_t<ArgType>, const std::remove_reference_t<ArgType>>;
       using Base = TensorEvaluator<XprType, Device>;
       explicit EigenTensorWrapperEvaluator(const XprType& t, const Device& device) : Base {t, device} {}
     };
@@ -325,12 +387,12 @@ namespace Eigen
   } // namespace detail
 
 
-  template<typename ArgType, typename Device>
-  struct TensorEvaluator<OpenKalman::Eigen3::EigenTensorWrapper<ArgType>, Device>
-    : detail::EigenTensorWrapperEvaluator<ArgType, Device>
+  template<typename ArgType, typename IndexType, typename Device>
+  struct TensorEvaluator<OpenKalman::Eigen3::EigenTensorWrapper<ArgType, IndexType>, Device>
+    : detail::EigenTensorWrapperEvaluator<ArgType, IndexType, Device>
   {
-    using XprType = OpenKalman::Eigen3::EigenTensorWrapper<ArgType>;
-    using Base = detail::EigenTensorWrapperEvaluator<ArgType, Device>;
+    using XprType = OpenKalman::Eigen3::EigenTensorWrapper<ArgType, IndexType>;
+    using Base = detail::EigenTensorWrapperEvaluator<ArgType, IndexType, Device>;
     explicit TensorEvaluator(const XprType& t, const Device& device) : Base {t.nested_matrix(), device} {}
   };
 

@@ -20,8 +20,9 @@ namespace OpenKalman
 {
   /**
    * \brief If it isn't already, convert Arg to a native object in library T.
-   * \details The new object will be one that is treated as native by the library associated with T.
-   * \tparam T An indexible object from the library to which Arg is to be converted.
+   * \details The new object will be one that is fully treated as native by the library associated with T and that can
+   * be an input in any OpenKalman function associated with library T.
+   * \tparam T Any indexible object from the library to which Arg is to be converted.
    * \tparam Arg The argument
    */
 #ifdef __cpp_concepts

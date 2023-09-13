@@ -53,27 +53,34 @@ namespace OpenKalman::interface
 
   public:
 
-    static constexpr std::size_t max_indices = max_indices_of_v<XprType>;
-
-    template<std::size_t N, typename Arg>
-    static constexpr auto get_index_descriptor(const Arg& arg)
+    template<typename Arg, typename N>
+    static constexpr auto get_index_descriptor(const Arg& arg, N n)
     {
-      constexpr auto dim = N == 0 ? Rows : Cols;
-      constexpr auto other_dim = N == 0 ? Cols : Rows;
-      constexpr std::size_t dimension =
-        dim != Eigen::Dynamic ? dim :
-        other_dim == Eigen::Dynamic or other_dim == 0 ? dynamic_size :
-        other_dim == index_dimension_of_v<XprType, 0> ? index_dimension_of_v<XprType, 1> :
-        other_dim == index_dimension_of_v<XprType, 1> ? index_dimension_of_v<XprType, 0> :
-        xprtypeprod != dynamic_size and xprtypeprod % other_dim == 0 ? xprtypeprod / other_dim :
-        dynamic_size;
-
-      if constexpr (dimension == dynamic_size)
+      if constexpr (static_index_value<N>)
       {
-        if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
+        constexpr auto i = static_index_value_of_v<N>;
+        constexpr auto dim = i == 0 ? Rows : Cols;
+        constexpr auto other_dim = i == 0 ? Cols : Rows;
+        constexpr std::size_t dimension =
+          dim != Eigen::Dynamic ? dim :
+          other_dim == Eigen::Dynamic or other_dim == 0 ? dynamic_size :
+          other_dim == index_dimension_of_v<XprType, 0> ? index_dimension_of_v<XprType, 1> :
+          other_dim == index_dimension_of_v<XprType, 1> ? index_dimension_of_v<XprType, 0> :
+          xprtypeprod != dynamic_size and xprtypeprod % other_dim == 0 ? xprtypeprod / other_dim :
+          dynamic_size;
+
+        if constexpr (dimension == dynamic_size)
+        {
+          if constexpr (i == 0) return static_cast<std::size_t>(arg.rows());
+          else return static_cast<std::size_t>(arg.cols());
+        }
+        else return Dimensions<dimension>{};
+      }
+      else
+      {
+        if constexpr (n == 0) return static_cast<std::size_t>(arg.rows());
         else return static_cast<std::size_t>(arg.cols());
       }
-      else return Dimensions<dimension>{};
     }
 
     template<Likelihood b>

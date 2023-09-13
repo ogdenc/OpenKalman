@@ -38,6 +38,10 @@ TEST(eigen3, cwise_nullary_operations)
   EXPECT_EQ(constant_coefficient{M1x::Identity(1, 1)}(), 1);
   EXPECT_EQ(constant_coefficient{Mx1::Identity(1, 1)}(), 1);
   EXPECT_EQ(constant_coefficient{Mxx::Identity(1, 1)}(), 1);
+  EXPECT_EQ((constant_coefficient{M22{}.NullaryExpr([]{ return 7.; })}()), 7.);
+  EXPECT_EQ((constant_coefficient{M2x{2, 2}.NullaryExpr(2, 2, []{ return 7.; })}()), 7.);
+  EXPECT_EQ((constant_coefficient{Mx2{2, 2}.NullaryExpr(2, 2, []{ return 7.; })}()), 7.);
+  EXPECT_EQ((constant_coefficient{Mxx{2, 2}.NullaryExpr(2, 2, []{ return 7.; })}()), 7.);
 
   static_assert(not zero_matrix<typename Mxx::ConstantReturnType>);
   static_assert(zero_matrix<Z11>);

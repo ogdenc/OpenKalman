@@ -31,12 +31,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible T, scalar_type Scalar = scalar_type_of_t<T>, index_descriptor...D> requires
-    (sizeof...(D) == max_indices_of_v<T>) or (sizeof...(D) == 0 and not has_dynamic_dimensions<T>)
+    (sizeof...(D) > 0 or not has_dynamic_dimensions<T>)
   constexpr writable auto
 #else
   template<typename T, typename Scalar = scalar_type_of_t<T>, typename...D, std::enable_if_t<
     indexible<T> and scalar_type<Scalar> and (index_descriptor<D> and ...) and
-    (sizeof...(D) == max_indices_of_v<T> or (sizeof...(D) == 0 and not has_dynamic_dimensions<T>)), int> = 0>
+    (sizeof...(D) > 0 or not has_dynamic_dimensions<T>), int> = 0>
   constexpr auto
 #endif
   make_default_dense_writable_matrix_like(D&&...d)
@@ -65,23 +65,16 @@ namespace OpenKalman
 #endif
   make_default_dense_writable_matrix_like(const T& t)
   {
-    if constexpr (writable<T> and std::is_same_v<Scalar, scalar_type_of_t<T>>)
-    {
-      return t;
-    }
-    else
-    {
-      using NewScalar = std::conditional_t<std::is_void_v<Scalar>, scalar_type_of_t<T>, Scalar>;
-      return std::apply(
-        [](auto&&...d) { return make_default_dense_writable_matrix_like<T, NewScalar>(std::forward<decltype(d)>(d)...); },
-        get_all_dimensions_of(t));
-    }
+    using Traits = interface::LibraryRoutines<T>;
+    return std::apply(
+      [](auto&&...d) { return Traits::template make_default<Scalar>(std::forward<decltype(d)>(d)...); },
+      get_all_dimensions_of(t));
   }
 
 
   /**
    * \overload
-   * \brief Make a default, dense, writable matrix based on an existing object.
+   * \brief Make a default, dense, writable matrix based on an existing object, with the same scalar type.
    * \param t The existing object
    */
 #ifdef __cpp_concepts
@@ -93,8 +86,7 @@ namespace OpenKalman
 #endif
   make_default_dense_writable_matrix_like(const T& t)
   {
-    if constexpr (writable<T>) return t;
-    else return make_default_dense_writable_matrix_like<scalar_type_of_t<T>>(t);
+    return make_default_dense_writable_matrix_like<scalar_type_of_t<T>>(t);
   }
 
 

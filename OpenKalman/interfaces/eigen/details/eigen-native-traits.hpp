@@ -19,8 +19,36 @@
 
 namespace Eigen::internal
 {
-  template<typename NestedMatrix, typename Rows, typename Cols, typename...IndexDescriptors>
-  struct traits<OpenKalman::internal::FixedSizeAdapter<NestedMatrix, Rows, Cols, IndexDescriptors...>>
+  template<typename NestedMatrix>
+  struct traits<OpenKalman::internal::FixedSizeAdapter<NestedMatrix>>
+    : traits<std::decay_t<NestedMatrix>>
+  {
+    enum
+    {
+      RowsAtCompileTime = 1,
+      ColsAtCompileTime = 1,
+      MaxRowsAtCompileTime = RowsAtCompileTime,
+      MaxColsAtCompileTime = ColsAtCompileTime,
+    };
+  };
+
+
+  template<typename NestedMatrix, typename Rows>
+  struct traits<OpenKalman::internal::FixedSizeAdapter<NestedMatrix, Rows>>
+    : traits<std::decay_t<NestedMatrix>>
+  {
+    enum
+    {
+      RowsAtCompileTime = OpenKalman::fixed_index_descriptor<Rows> ? static_cast<int>(OpenKalman::dimension_size_of_v<Rows>) : Eigen::Dynamic,
+      ColsAtCompileTime = 1,
+      MaxRowsAtCompileTime = RowsAtCompileTime,
+      MaxColsAtCompileTime = ColsAtCompileTime,
+    };
+  };
+
+
+  template<typename NestedMatrix, typename Rows, typename Cols>
+  struct traits<OpenKalman::internal::FixedSizeAdapter<NestedMatrix, Rows, Cols>>
     : traits<std::decay_t<NestedMatrix>>
   {
     enum
@@ -51,15 +79,13 @@ namespace Eigen::internal
   struct traits<OpenKalman::SelfAdjointMatrix<NestedMatrix, storage_triangle>>
     : traits<std::decay_t<NestedMatrix>>
   {
-    using Nested = std::decay_t<NestedMatrix>;
-    using Scalar = typename traits<Nested>::Scalar;
+    using Base = traits<std::decay_t<NestedMatrix>>;
     enum
     {
-      Flags = traits<Nested>::Flags &
-        (~DirectAccessBit) &
-        (~(OpenKalman::one_by_one_matrix<NestedMatrix> ? 0 : LinearAccessBit)) &
-        (~PacketAccessBit) &
-        (OpenKalman::complex_number<Scalar> ? ~LvalueBit : ~static_cast<decltype(LvalueBit)>(0u)),
+      Flags = Base::Flags &
+        ~DirectAccessBit &
+        ~(OpenKalman::one_by_one_matrix<NestedMatrix> ? 0x0 : LinearAccessBit | PacketAccessBit) &
+        ~(OpenKalman::complex_number<typename Base::Scalar> ? LvalueBit : 0x0),
     };
   };
 
@@ -68,10 +94,12 @@ namespace Eigen::internal
   struct traits<OpenKalman::TriangularMatrix<NestedMatrix, triangle_type>>
     : traits<std::decay_t<NestedMatrix>>
   {
-    using Nested = std::decay_t<NestedMatrix>;
+    static constexpr auto BaseFlags = traits<std::decay_t<NestedMatrix>>::Flags;
     enum
     {
-      Flags = traits<Nested>::Flags & (~DirectAccessBit) & (~LinearAccessBit) & (~PacketAccessBit),
+      Flags = BaseFlags &
+        ~DirectAccessBit &
+        ~(OpenKalman::one_by_one_matrix<NestedMatrix> ? 0x0 : LinearAccessBit | PacketAccessBit),
     };
   };
 
@@ -79,12 +107,14 @@ namespace Eigen::internal
   template<typename ArgType>
   struct traits<OpenKalman::DiagonalMatrix<ArgType>> : traits<std::decay_t<ArgType>>
   {
-    using Nested = std::decay_t<ArgType>;
+    using Base = traits<std::decay_t<ArgType>>;
     enum
     {
-      Flags = traits<Nested>::Flags & (~DirectAccessBit) & (~LinearAccessBit) & (~PacketAccessBit),
-      ColsAtCompileTime = traits<Nested>::RowsAtCompileTime,
-      MaxColsAtCompileTime = traits<Nested>::MaxRowsAtCompileTime,
+      Flags = Base::Flags &
+        ~DirectAccessBit &
+        ~(OpenKalman::one_by_one_matrix<ArgType> ? 0x0 : LinearAccessBit | PacketAccessBit),
+      ColsAtCompileTime = Base::RowsAtCompileTime,
+      MaxColsAtCompileTime = Base::MaxRowsAtCompileTime,
     };
   };
 
@@ -92,13 +122,12 @@ namespace Eigen::internal
   template<typename Coeffs, typename ArgType>
   struct traits<OpenKalman::ToEuclideanExpr<Coeffs, ArgType>> : traits<std::decay_t<ArgType>>
   {
-    using Nested = std::decay_t<ArgType>;
+    static constexpr auto BaseFlags = traits<std::decay_t<ArgType>>::Flags;
     enum
     {
-      Flags = OpenKalman::euclidean_index_descriptor<Coeffs> ?
-              traits<Nested>::Flags :
-              traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
-                (~(OpenKalman::column_dimension_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
+      Flags = OpenKalman::euclidean_index_descriptor<Coeffs> ? BaseFlags :
+        BaseFlags & ~DirectAccessBit & ~PacketAccessBit & ~LvalueBit &
+          ~(OpenKalman::vector<ArgType> ? 0 : LinearAccessBit),
       RowsAtCompileTime = [] {
         if constexpr (OpenKalman::dynamic_index_descriptor<Coeffs>) return Eigen::Dynamic;
         else return static_cast<Index>(OpenKalman::euclidean_dimension_size_of_v<Coeffs>);
@@ -111,13 +140,12 @@ namespace Eigen::internal
   template<typename Coeffs, typename ArgType>
   struct traits<OpenKalman::FromEuclideanExpr<Coeffs, ArgType>> : traits<std::decay_t<ArgType>>
   {
-    using Nested = std::decay_t<ArgType>;
+    static constexpr auto BaseFlags = traits<std::decay_t<ArgType>>::Flags;
     enum
     {
-      Flags = OpenKalman::euclidean_index_descriptor<Coeffs> ?
-              traits<Nested>::Flags :
-              traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
-                (~(OpenKalman::column_dimension_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
+      Flags = OpenKalman::euclidean_index_descriptor<Coeffs> ? BaseFlags :
+        BaseFlags & ~DirectAccessBit & ~PacketAccessBit & ~LvalueBit &
+          ~(OpenKalman::vector<ArgType> ? 0 : LinearAccessBit),
       RowsAtCompileTime = [] {
         if constexpr (OpenKalman::dynamic_index_descriptor<Coeffs>) return Eigen::Dynamic;
         else return static_cast<Index>(OpenKalman::dimension_size_of_v<Coeffs>);
@@ -129,16 +157,14 @@ namespace Eigen::internal
 
   template<typename Coeffs, typename ArgType>
   struct traits<
-    OpenKalman::FromEuclideanExpr<Coeffs, OpenKalman::ToEuclideanExpr<Coeffs, ArgType>>>
-      : traits<std::decay_t<ArgType>>
+    OpenKalman::FromEuclideanExpr<Coeffs, OpenKalman::ToEuclideanExpr<Coeffs, ArgType>>> : traits<std::decay_t<ArgType>>
   {
-    using Nested = std::decay_t<ArgType>;
+    static constexpr auto BaseFlags = traits<std::decay_t<ArgType>>::Flags;
     enum
     {
-      Flags = OpenKalman::euclidean_index_descriptor<Coeffs> ?
-              traits<Nested>::Flags :
-              traits<Nested>::Flags & (~DirectAccessBit) & (~PacketAccessBit) & (~LvalueBit) &
-                (~(OpenKalman::column_dimension_of_v<ArgType> == 1 ? 0 : LinearAccessBit)),
+      Flags = OpenKalman::euclidean_index_descriptor<Coeffs> ? BaseFlags :
+        BaseFlags & ~DirectAccessBit & ~PacketAccessBit & ~LvalueBit &
+          ~(OpenKalman::vector<ArgType> ? 0 : LinearAccessBit),
       RowsAtCompileTime = [] {
         if constexpr (OpenKalman::dynamic_index_descriptor<Coeffs>) return Eigen::Dynamic;
         else return static_cast<Index>(OpenKalman::dimension_size_of_v<Coeffs>);
@@ -149,25 +175,23 @@ namespace Eigen::internal
 
 
   template<typename TypedIndex, typename ArgType>
-  struct traits<OpenKalman::Mean<TypedIndex, ArgType>>
-    : traits<std::decay_t<ArgType>>
+  struct traits<OpenKalman::Mean<TypedIndex, ArgType>> : traits<std::decay_t<ArgType>>
   {
-    using Base = traits<std::decay_t<ArgType>>;
+    static constexpr auto BaseFlags = traits<std::decay_t<ArgType>>::Flags;
     enum
     {
-      Flags = (OpenKalman::euclidean_index_descriptor<TypedIndex> ? Base::Flags : Base::Flags & ~LvalueBit),
+      Flags = OpenKalman::euclidean_index_descriptor<TypedIndex> ? BaseFlags :
+        BaseFlags & ~DirectAccessBit & ~PacketAccessBit & ~LvalueBit,
     };
   };
 
 
   template<typename RowCoefficients, typename ColumnCoefficients, typename ArgType>
-  struct traits<OpenKalman::Matrix<RowCoefficients, ColumnCoefficients, ArgType>>
-    : traits<std::decay_t<ArgType>> {};
+  struct traits<OpenKalman::Matrix<RowCoefficients, ColumnCoefficients, ArgType>> : traits<std::decay_t<ArgType>> {};
 
 
   template<typename Coeffs, typename ArgType>
-  struct traits<OpenKalman::EuclideanMean<Coeffs, ArgType>>
-    : traits<std::decay_t<ArgType>> {};
+  struct traits<OpenKalman::EuclideanMean<Coeffs, ArgType>> : traits<std::decay_t<ArgType>> {};
 
 
   template<typename TypedIndex, typename ArgType>
@@ -177,7 +201,7 @@ namespace Eigen::internal
     using Base = traits<std::decay_t<std::conditional_t<OpenKalman::hermitian_matrix<ArgType>, ArgType, decltype(Cholesky_square(std::declval<ArgType>()))>>>;
     enum
     {
-      Flags = Base::Flags & (OpenKalman::hermitian_matrix<ArgType> ? ~0 : ~LvalueBit),
+      Flags = Base::Flags & ~(OpenKalman::hermitian_matrix<ArgType> ? 0x0 : DirectAccessBit | PacketAccessBit | LvalueBit),
     };
   };
 
@@ -189,7 +213,7 @@ namespace Eigen::internal
     using Base = traits<std::decay_t<std::conditional_t<OpenKalman::triangular_matrix<ArgType>, ArgType, decltype(Cholesky_factor(std::declval<ArgType>()))>>>;
     enum
     {
-      Flags = Base::Flags & (OpenKalman::triangular_matrix<ArgType> ? ~0 : ~LvalueBit),
+      Flags = Base::Flags & ~(OpenKalman::triangular_matrix<ArgType> ? 0x0 : DirectAccessBit | PacketAccessBit | LvalueBit),
     };
   };
 

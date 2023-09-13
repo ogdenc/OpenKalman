@@ -31,7 +31,7 @@ namespace Eigen::internal
   {
     using XprType = OpenKalman::internal::FixedSizeAdapter<NestedMatrix, IndexDescriptors...>;
     using Base = evaluator<std::decay_t<NestedMatrix>>;
-    explicit evaluator(const XprType& arg) : Base {nested_matrix(arg)} {}
+    explicit evaluator(const XprType& arg) : Base {OpenKalman::nested_matrix(arg)} {}
   };
 
 
@@ -182,6 +182,26 @@ namespace Eigen::internal
       return m_argImpl.coeff(i);
     }
 
+
+    template<int LoadMode, typename PacketType>
+    constexpr PacketType packet(Index row, Index col) const
+    {
+      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+        "Packet access is only available for one-by-one SelfAdjointMatrix");
+
+      return m_argImpl.template packet<LoadMode, PacketType>(row, col);
+    }
+
+
+    template<int LoadMode, typename PacketType>
+    constexpr PacketType packet(Index index) const
+    {
+      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+        "Linear packet access is only available for one-by-one SelfAdjointMatrix");
+
+      return m_argImpl.template packet<LoadMode, PacketType>(index);
+    }
+
   protected:
 
     NestedEvaluator m_argImpl;
@@ -225,6 +245,9 @@ namespace Eigen::internal
 
     auto& coeffRef(Index i)
     {
+      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+        "Linear (single index) element access by reference is only available for one-by-one TriangularMatrix");
+
       return m_argImpl.coeffRef(i);
     }
 
@@ -250,7 +273,30 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index i) const
     {
+      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+        "Linear (single index) element access is only available for one-by-one TriangularMatrix");
+
       return m_argImpl.coeff(i);
+    }
+
+
+    template<int LoadMode, typename PacketType>
+    constexpr PacketType packet(Index row, Index col) const
+    {
+      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+        "Packet access is only available for one-by-one TriangularMatrix");
+
+      return m_argImpl.template packet<LoadMode, PacketType>(row, col);
+    }
+
+
+    template<int LoadMode, typename PacketType>
+    constexpr PacketType packet(Index index) const
+    {
+      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+        "Linear packet access is only available for one-by-one TriangularMatrix");
+
+      return m_argImpl.template packet<LoadMode, PacketType>(index);
     }
 
   protected:
@@ -293,6 +339,14 @@ namespace Eigen::internal
       }
     }
 
+    auto& coeffRef(Index index)
+    {
+      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+        "Linear (single index) element access by reference is only available for one-by-one DiagonalMatrix");
+
+      return m_argImpl.coeffRef(index);
+    }
+
     CoeffReturnType coeff(Index row, Index col) const
     {
       if (row == col)
@@ -307,6 +361,34 @@ namespace Eigen::internal
         else
           return Scalar(0);
       }
+    }
+
+    CoeffReturnType coeff(Index index) const
+    {
+      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+        "Linear (single index) element access is only available for one-by-one DiagonalMatrix");
+
+      return m_argImpl.coeff(index);
+    }
+
+
+    template<int LoadMode, typename PacketType>
+    constexpr PacketType packet(Index row, Index col) const
+    {
+      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+        "Packet access is only available for one-by-one DiagonalMatrix");
+
+      return m_argImpl.template packet<LoadMode, PacketType>(row, col);
+    }
+
+
+    template<int LoadMode, typename PacketType>
+    constexpr PacketType packet(Index index) const
+    {
+      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+        "Linear packet access is only available for one-by-one DiagonalMatrix");
+
+      return m_argImpl.template packet<LoadMode, PacketType>(index);
     }
 
   protected:

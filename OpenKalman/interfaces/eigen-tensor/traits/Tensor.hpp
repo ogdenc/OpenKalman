@@ -10,27 +10,21 @@
 
 /**
  * \file
- * \brief Type traits as applied to Eigen::TensorFixedSize.
+ * \brief Type traits as applied to Eigen::Tensor.
  */
 
-#ifndef OPENKALMAN_EIGEN_TRAITS_TENSORFIXEDSIZE_HPP
-#define OPENKALMAN_EIGEN_TRAITS_TENSORFIXEDSIZE_HPP
+#ifndef OPENKALMAN_EIGEN_TRAITS_TENSOR_HPP
+#define OPENKALMAN_EIGEN_TRAITS_TENSOR_HPP
 
 
 namespace OpenKalman::interface
 {
-  template<typename S, typename Dims, int options, typename IndexType>
-  struct IndexibleObjectTraits<Eigen::TensorFixedSize<S, Dims, options, IndexType>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::TensorFixedSize<S, Dims, options, IndexType>>
+  template<typename Scalar, int NumIndices, int options, typename IndexType>
+  struct IndexibleObjectTraits<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>
+    : Eigen3::IndexibleObjectTraitsBase<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>
   {
     template<typename Arg, typename N>
-    static constexpr auto get_index_descriptor(const Arg& arg, N n)
-    {
-      if constexpr (static_index_value<N>)
-        return std::integral_constant<std::size_t, Eigen::internal::get<static_index_value_of_v<N>, typename Dims::Base>::value>{};
-      else
-        return arg.dimension(n);
-    }
+    static constexpr auto get_index_descriptor(const Arg& arg, N n) { return arg.dimension(n); }
 
     static constexpr bool has_runtime_parameters = true;
 
@@ -46,10 +40,10 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg, std::convertible_to<index_type_of_t<Arg>>...I> requires (sizeof...(I) == Dims::count)
+    template<typename Arg, std::convertible_to<index_type_of_t<Arg>>...I> requires (sizeof...(I) == NumIndices)
 #else
     template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, index_type_of_t<Arg>> and ...) and
-      (sizeof...(I) == Dims::count), int> = 0>
+      (sizeof...(I) == NumIndices), int> = 0>
 #endif
     static constexpr decltype(auto) get(Arg&& arg, I...i)
     {
@@ -61,22 +55,22 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg, std::convertible_to<index_type_of_t<Arg>>...I> requires (sizeof...(I) == Dims::count) and
+    template<typename Arg, std::convertible_to<index_type_of_t<Arg>>...I> requires (sizeof...(I) == NumIndices) and
       ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0)
 #else
     template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, index_type_of_t<Arg>> and ...) and
-      (sizeof...(I) == Dims::count) and ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0), int> = 0>
+      (sizeof...(I) == NumIndices) and ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0), int> = 0>
 #endif
     static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
     {
       arg.coeffRef(static_cast<index_type_of_t<Arg>>(i)...) = s;
     }
 
-
     static constexpr bool is_writable = true;
 
     template<typename Arg>
-    static constexpr auto* data(Arg& arg) { return arg.data(); }
+    static constexpr auto*
+    data(Arg& arg) { return arg.data(); }
 
     static constexpr Layout layout = options & Eigen::RowMajor ? Layout::right : Layout::left;
 
@@ -84,4 +78,4 @@ namespace OpenKalman::interface
 
 } // namespace OpenKalman::interface
 
-#endif //OPENKALMAN_EIGEN_TRAITS_TENSORFIXEDSIZE_HPP
+#endif //OPENKALMAN_EIGEN_TRAITS_TENSOR_HPP

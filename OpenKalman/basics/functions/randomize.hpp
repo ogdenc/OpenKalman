@@ -74,7 +74,7 @@ namespace OpenKalman
 
   /**
    * \brief Create a matrix with random values selected from one or more random distributions.
-   * \details This is essentially a specialized version of \ref n_ary_operation_with_indices with the unary operator
+   * \details This is essentially a specialized version of \ref n_ary_operation with the nullary operator
    * being a randomization function. The distributions are allocated to each element of the matrix, according to one
    * of the following options:
    *  - One distribution for all matrix elements. The following example constructs a 2-by-2 matrix (m) in which each
@@ -115,7 +115,7 @@ namespace OpenKalman
    * \tparam random_number_generator The random number generator (e.g., std::mt19937).
    * \tparam Ds Index descriptors for each index the result. They need not correspond to the dimensions of PatternMatrix.
    * \tparam Dists One or more distributions (e.g., std::normal_distribution<double>)
-   * \sa n_ary_operation_with_indices
+   * \sa n_ary_operation
    */
 #ifdef __cpp_concepts
   template<indexible PatternMatrix, std::size_t...indices, std::uniform_random_bit_generator random_number_generator,

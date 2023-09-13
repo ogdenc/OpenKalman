@@ -31,48 +31,34 @@ namespace OpenKalman::interface
     using LibraryBase = internal::library_base<Derived, pattern_matrix_of_t<T>>;
 
 
-    template<typename Scalar, typename...D>
-    static auto make_default(D&&...d)
-    {
-      return make_default_dense_writable_matrix_like<pattern_matrix_of_t<T>, Scalar>(std::forward<D>(d)...);
-    }
-
-
-    template<typename Scalar, typename Arg>
-    static decltype(auto) convert(Arg&& arg)
-    {
-      if constexpr (has_untyped_index<Arg, 0>)
-      {
-        return make_dense_writable_matrix_from<Scalar>(nested_matrix(std::forward<Arg>(arg)));
-      }
-      else
-      {
-        using M = std::decay_t<decltype(make_default_dense_writable_matrix_like<Scalar>(std::forward<Arg>(arg)))>;
-        // \todo Create an alternate path in case (not std::is_constructible_v<M, Arg&&>)
-        M m {std::forward<Arg>(arg)};
-        return m;
-      }
-    }
-
-
     template<typename Arg>
     static decltype(auto) to_native_matrix(Arg&& arg)
     {
-      return OpenKalman::to_native_matrix<pattern_matrix_of_t<Arg>>(std::forward<Arg>(arg));
+      return OpenKalman::to_native_matrix<nested_matrix_of_t<Arg>>(std::forward<Arg>(arg));
     }
+
+
+    template<typename Scalar, typename...D>
+    static auto make_default(D&&...d)
+    {
+      return make_default_dense_writable_matrix_like<nested_matrix_of_t<T>, Scalar>(std::forward<D>(d)...);
+    }
+
+
+    // make_from_elements not necessary because T is not a dense writable matrix.
 
 
     template<typename C, typename...D>
     static constexpr auto make_constant_matrix(C&& c, D&&...d)
     {
-      return make_constant_matrix_like<pattern_matrix_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
+      return make_constant_matrix_like<nested_matrix_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
     }
 
 
     template<typename Scalar, typename D>
     static constexpr auto make_identity_matrix(D&& d)
     {
-      return make_identity_matrix_like<pattern_matrix_of_t<T>, Scalar>(std::forward<D>(d));
+      return make_identity_matrix_like<nested_matrix_of_t<T>, Scalar>(std::forward<D>(d));
     }
 
 
@@ -111,6 +97,14 @@ namespace OpenKalman::interface
         using P = pattern_matrix_of_t<T>;
         return LibraryRoutines<P>::diagonal_of(to_native_matrix<P>(std::forward<Arg>(arg)));
       }
+    }
+
+
+    template<typename Arg, typename...Factors>
+    static auto
+    broadcast(Arg&& arg, const Factors&...factors)
+    {
+      return LibraryRoutines<std::decay_t<nested_matrix_of_t<Arg>>>::broadcast(std::forward<Arg>(arg), factors...);
     }
 
 

@@ -31,21 +31,6 @@ namespace OpenKalman::interface
 
   public:
 
-    static constexpr std::size_t max_indices = max_indices_of_v<MatrixType>;
-
-    template<std::size_t N, typename Arg>
-    static constexpr auto get_index_descriptor(const Arg& arg)
-    {
-      using T = Eigen::Replicate<MatrixType, RowFactor, ColFactor>;
-      constexpr Eigen::Index dim = N == 0 ? T::RowsAtCompileTime : T::ColsAtCompileTime;
-      if constexpr (dim == Eigen::Dynamic)
-      {
-        if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
-        else return static_cast<std::size_t>(arg.cols());
-      }
-      else return Dimensions<dim>{};
-    }
-
     template<Likelihood b>
     static constexpr bool is_one_by_one =
       (b != Likelihood::definitely or (RowFactor == 1 and ColFactor == 1)) and

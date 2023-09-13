@@ -484,12 +484,25 @@ namespace OpenKalman
     template<typename RowCoeffs, typename ColCoeffs, typename NestedMatrix>
     struct IndexibleObjectTraits<Matrix<RowCoeffs, ColCoeffs, NestedMatrix>>
     {
-      static constexpr std::size_t max_indices = 2;
+      static constexpr std::size_t max_indices = max_indices_of_v<NestedMatrix>;
 
-      template<std::size_t N, typename Arg>
-      static constexpr auto get_index_descriptor(const Arg& arg)
+      using index_type = index_type_of_t<NestedMatrix>;
+
+      using scalar_type = scalar_type_of_t<NestedMatrix>;
+
+      template<typename Arg, typename N>
+      static constexpr auto get_index_descriptor(Arg&& arg, N n)
       {
-        return std::get<N>(std::forward<Arg>(arg).my_dimensions);
+        if constexpr (static_index_value<N>)
+        {
+          return std::get<N>(std::forward<Arg>(arg).my_dimensions);
+        }
+        else
+        {
+          return std::apply(
+            [](auto&&...arg, N n){ return std::array<std::size_t, max_indices> {std::forward<decltype(arg)>(arg)...}[n]; },
+            std::forward<Arg>(arg).my_dimensions, n);
+        }
       }
 
       template<Likelihood b>
@@ -535,8 +548,6 @@ namespace OpenKalman
 
       static constexpr bool is_hermitian = equivalent_to<RowCoeffs, ColCoeffs> and hermitian_matrix<NestedMatrix>;
 
-
-      using scalar_type = scalar_type_of_t<NestedMatrix>;
 
   #ifdef __cpp_lib_concepts
       template<typename Arg, typename...I> requires element_gettable<nested_matrix_of_t<Arg&&>, sizeof...(I)>

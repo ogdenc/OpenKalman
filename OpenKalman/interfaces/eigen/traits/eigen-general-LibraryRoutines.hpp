@@ -10,182 +10,15 @@
 
 /**
  * \file
- * \brief Type traits as applied to native Eigen types.
+ * \brief Library routines for native Eigen types.
  */
 
-#ifndef OPENKALMAN_EIGEN_GENERAL_TRAITS_HPP
-#define OPENKALMAN_EIGEN_GENERAL_TRAITS_HPP
+#ifndef OPENKALMAN_EIGEN_GENERAL_LIBRARYROUTINES_HPP
+#define OPENKALMAN_EIGEN_GENERAL_LIBRARYROUTINES_HPP
 
 #include <type_traits>
 #include <tuple>
 #include <random>
-
-
-namespace OpenKalman::Eigen3
-{
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct eigen_has_linear_access : std::false_type {};
-
-    template<typename T>
-    struct eigen_has_linear_access<T, std::enable_if_t<Eigen3::eigen_dense_general<T, true>>>
-      : std::bool_constant<(Eigen::internal::evaluator<T>::Flags & Eigen::LinearAccessBit) != 0> {};
-  }
-#endif
-
-
-#ifdef __cpp_concepts
-  template<Eigen3::eigen_dense_general T>
-  struct IndexibleObjectTraitsBase<T>
-#else
-  template<typename T>
-  struct IndexibleObjectTraitsBase<T, std::enable_if_t<Eigen3::eigen_dense_general<T>>>
-#endif
-  {
-    using scalar_type = typename std::decay_t<T>::Scalar;
-
-
-#ifdef __cpp_lib_concepts
-    template<typename Arg, std::convertible_to<Eigen::Index>...I> requires (sizeof...(I) > 0) and (sizeof...(I) <= 2) and
-      (sizeof...(I) != 1 or (Eigen::internal::evaluator<std::decay_t<Arg>>::Flags & Eigen::LinearAccessBit) != 0)
-#else
-    template<typename Arg, typename...I, std::enable_if_t<(sizeof...(I) > 0) and (sizeof...(I) <= 2) and
-      (std::is_convertible_v<I, Eigen::Index> and ...) and
-      (sizeof...(I) != 1 or (Eigen::internal::evaluator<std::decay_t<Arg>>::Flags & Eigen::LinearAccessBit) != 0) , int> = 0>
-#endif
-    static constexpr decltype(auto) get(Arg&& arg, I...i)
-    {
-      if constexpr ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0)
-        return std::forward<Arg>(arg).coeffRef(static_cast<Eigen::Index>(i)...);
-      else
-        return std::forward<Arg>(arg).coeff(static_cast<Eigen::Index>(i)...);
-    }
-
-
-#ifdef __cpp_lib_concepts
-    template<typename Arg, std::convertible_to<Eigen::Index>...I> requires (sizeof...(I) > 0) and (sizeof...(I) <= 2) and
-      (sizeof...(I) != 1 or (Eigen::internal::evaluator<std::decay_t<Arg>>::Flags & Eigen::LinearAccessBit) != 0) and
-      ((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0)
-#else
-    template<typename Arg, typename...I, std::enable_if_t<(sizeof...(I) > 0) and (sizeof...(I) <= 2) and
-      (std::is_convertible_v<I, Eigen::Index> and ...) and
-      (sizeof...(I) != 1 or (Eigen::internal::evaluator<std::decay_t<Arg>>::Flags & Eigen::LinearAccessBit) != 0) and
-      ((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0), int> = 0>
-#endif
-    static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
-    {
-      arg.coeffRef(i...) = s;
-    }
-
-
-    static constexpr bool is_writable =
-      (Eigen::internal::traits<std::decay_t<T>>::Flags & (Eigen::LvalueBit | Eigen::DirectAccessBit)) != 0x0;
-
-
-#ifdef __cpp_lib_concepts
-    template<typename Arg> requires requires(Arg& arg) { requires std::is_pointer_v<decltype(arg.data())>; }
-#else
-    template<typename Arg, std::enable_if_t<std::is_pointer<decltype(std::declval<Arg&>().data())>::value, int> = 0>
-#endif
-    static constexpr auto*
-    data(Arg& arg) { return arg.data(); }
-
-
-    static constexpr Layout layout = (Eigen::internal::traits<T>::Flags & Eigen::RowMajorBit) != 0x0 ? Layout::right : Layout::left;
-
-  };
-
-
-  //---- DiagonalMatrix and DiagonalWrapper cases ----//
-
-
-#ifdef __cpp_concepts
-  template<typename T> requires Eigen3::eigen_DiagonalMatrix<T> or Eigen3::eigen_DiagonalWrapper<T>
-  struct IndexibleObjectTraitsBase<T>
-#else
-  template<typename T>
-  struct IndexibleObjectTraitsBase<T, std::enable_if_t<Eigen3::eigen_DiagonalMatrix<T> or Eigen3::eigen_DiagonalWrapper<T>>>
-#endif
-  {
-    using scalar_type = typename std::decay_t<T>::Scalar;
-
-
-#ifdef __cpp_concepts
-    template<typename Arg> requires element_gettable<decltype(nested_matrix(std::declval<const Arg&>())), 1>
-#else
-    template<typename Arg, std::enable_if_t<element_gettable<decltype(nested_matrix(std::declval<const Arg&>())), 1>, int> = 0>
-#endif
-    static scalar_type_of_t<Arg> get(const Arg& arg, Eigen::Index i)
-    {
-      return get_element(nested_matrix(arg), i);
-    }
-
-
-#ifdef __cpp_concepts
-    template<typename Arg> requires element_gettable<decltype(nested_matrix(std::declval<const Arg&>())), 1> or
-      element_gettable<decltype(nested_matrix(std::declval<const Arg&>())), 2>
-#else
-    template<typename Arg, std::enable_if_t<element_gettable<decltype(nested_matrix(std::declval<const Arg&>())), 1> or
-      element_gettable<decltype(nested_matrix(std::declval<const Arg&>())), 2>, int> = 0>
-#endif
-    static constexpr auto get(const Arg& arg, Eigen::Index i, Eigen::Index j)
-    {
-      if (i == j)
-      {
-        if constexpr (element_gettable<nested_matrix_of_t<const Arg&>, 1>)
-          return get_element(nested_matrix(arg), i);
-        else
-          return get_element(nested_matrix(arg), i, i);
-      }
-      else
-      {
-        return scalar_type_of_t<Arg>(0);
-      }
-    }
-
-
-#ifdef __cpp_concepts
-    template<typename Arg> requires element_settable<decltype(nested_matrix(std::declval<Arg&>())), 1> or
-      element_settable<nested_matrix_of_t<Arg&>, 2>
-#else
-    template<typename Arg, std::enable_if_t<element_settable<decltype(nested_matrix(std::declval<Arg&>())), 1> or
-      element_settable<typename nested_matrix_of<Arg&>::type, 2>, int> = 0>
-#endif
-    static void set(Arg& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i)
-    {
-      if constexpr (element_settable<nested_matrix_of_t<Arg&>, 1>)
-        set_element(nested_matrix(arg), s, i);
-      else
-        set_element(nested_matrix(arg), s, i, i);
-    }
-
-
-#ifdef __cpp_concepts
-    template<typename Arg> requires element_settable<decltype(nested_matrix(std::declval<Arg&>())), 1> or
-      element_settable<decltype(nested_matrix(std::declval<Arg&>())), 2>
-#else
-    template<typename Arg, std::enable_if_t<element_settable<decltype(nested_matrix(std::declval<Arg&>())), 1> or
-      element_settable<decltype(nested_matrix(std::declval<Arg&>())), 2>, int> = 0>
-#endif
-    static void set(Arg& arg, const scalar_type_of_t<Arg>& s, Eigen::Index i, Eigen::Index j)
-    {
-      if (i == j or s == 0)
-      {
-        if constexpr (element_settable<nested_matrix_of_t<Arg&>, 1>)
-          set_element(nested_matrix(arg), s, i);
-        else
-          set_element(nested_matrix(arg), s, i, i);
-      }
-      else throw std::invalid_argument {"Off-diagonal elements of DiagonalMatrix or DiagonalWrapper can only be set to zero"};
-    }
-
-    static constexpr bool is_writable = false;
-
-  };
-
-} // namespace OpenKalman::Eigen3
 
 
 namespace OpenKalman::interface
@@ -201,56 +34,6 @@ namespace OpenKalman::interface
     template<typename Derived>
     using LibraryBase = Eigen3::EigenAdapterBase<Derived, T>;
 
-  private:
-
-    template<typename Scalar, Eigen::Index...Is>
-    using dense_type = std::conditional_t<Eigen3::eigen_array_general<T, true>,
-      Eigen::Array<Scalar, Is...>, Eigen::Matrix<Scalar, Is...>>;
-
-    template<typename Scalar, std::size_t...Is>
-    using writable_type = dense_type<Scalar, (Is == dynamic_size ? Eigen::Dynamic : static_cast<Eigen::Index>(Is))...>;
-
-  public:
-
-    template<typename Scalar, typename...D>
-    static auto make_default(D&&...d)
-    {
-      using M = writable_type<Scalar, dimension_size_of_v<D>...>;
-
-      if constexpr (((dimension_size_of_v<D> == dynamic_size) or ...))
-        return M(static_cast<Eigen::Index>(get_dimension_size_of(d))...);
-      else
-        return M {};
-    }
-
-
-    template<typename Scalar, typename Arg>
-    static decltype(auto) convert(Arg&& arg)
-    {
-      using M = writable_type<Scalar, index_dimension_of_v<Arg, 0>, index_dimension_of_v<Arg, 1>>;
-
-      if constexpr (std::is_base_of_v<Eigen::PlainObjectBase<std::decay_t<Arg>>, std::decay_t<Arg>> and
-        not std::is_const_v<std::remove_reference_t<Arg>>)
-      {
-        return std::forward<Arg>(arg);
-      }
-      else if constexpr (std::is_constructible_v<M, Arg&&>)
-      {
-        return M {std::forward<Arg>(arg)};
-      }
-      else
-      {
-        auto r = get_index_dimension_of<0>(arg);
-        auto c = get_index_dimension_of<1>(arg);
-        auto m = make_default<Scalar>(r, c);
-        for (int i = 0; i < r ; ++i) for (int j = 0; j < c ; ++j)
-        {
-          set_element(m, get_element(std::forward<Arg>(arg), i, j), i, j);
-        }
-        return m;
-      }
-    }
-
 
     template<typename Arg>
     static decltype(auto) to_native_matrix(Arg&& arg)
@@ -263,32 +46,22 @@ namespace OpenKalman::interface
       {
         return std::forward<Arg>(arg).matrix();
       }
-      else if constexpr (directly_accessible<Arg> and false)
+      else if constexpr (directly_accessible<Arg>)
       {
         using Scalar = scalar_type_of_t<Arg>;
-        constexpr Eigen::Index rows = dynamic_dimension<Arg, 0> ? Eigen::Dynamic : index_dimension_of_v<Arg, 0>;
-        constexpr Eigen::Index cols = dynamic_dimension<Arg, 1> ? Eigen::Dynamic : index_dimension_of_v<Arg, 1>;
+        using index_type = index_type_of_t<Arg>;
+        constexpr index_type rows = dynamic_dimension<Arg, 0> ? Eigen::Dynamic : index_dimension_of_v<Arg, 0>;
+        constexpr index_type cols = dynamic_dimension<Arg, 1> ? Eigen::Dynamic : index_dimension_of_v<Arg, 1>;
 
-        if constexpr (layout_of_v<Arg> == Layout::right)
+        if constexpr (layout_of_v<Arg> == Layout::stride)
         {
-          using M = Eigen::Matrix<Scalar, rows, cols, Eigen::RowMajor>;
-          return Eigen::Map<M> {internal::raw_data(arg)};
-        }
-        else if constexpr (layout_of_v<Arg> == Layout::left)
-        {
-          using M = Eigen::Matrix<Scalar, rows, cols, Eigen::ColMajor>;
-          return Eigen::Map<M> {internal::raw_data(arg)};
-        }
-        else
-        {
-          static_assert(layout_of_v<Arg> == Layout::stride);
           auto [s0, s1] = internal::strides(arg);
           using S0 = decltype(s0);
           using S1 = decltype(s1);
           constexpr auto es0 = static_index_value<S0> ? static_index_value_of_v<S0> : Eigen::Dynamic;
           constexpr auto es1 = static_index_value<S1> ? static_index_value_of_v<S1> : Eigen::Dynamic;
-          auto is0 = static_cast<Eigen::Index>(s0);
-          auto is1 = static_cast<Eigen::Index>(s1);
+          auto is0 = static_cast<index_type>(s0);
+          auto is1 = static_cast<index_type>(s1);
 
           if constexpr (static_index_value<S0> and (static_index_value_of_v<S0> == 1 or (static_index_value<S1> and es0 < es1)))
           {
@@ -304,7 +77,7 @@ namespace OpenKalman::interface
           }
           else
           {
-            if (static_cast<Eigen::Index>(s1) < static_cast<Eigen::Index>(s0))
+            if (static_cast<index_type>(s1) < static_cast<index_type>(s0))
             {
               using M = Eigen::Matrix<Scalar, rows, cols, Eigen::RowMajor>;
               Eigen::Stride<es0, es1> strides {is0, is1};
@@ -318,10 +91,52 @@ namespace OpenKalman::interface
             }
           }
         }
+        else
+        {
+          constexpr auto l = layout_of_v<Arg> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor;
+          using M = Eigen::Matrix<Scalar, rows, cols, l>;
+          return Eigen::Map<M> {internal::raw_data(arg)};
+        }
       }
       else
       {
         return Eigen3::EigenWrapper {std::forward<Arg>(arg)};
+      }
+    }
+
+  private:
+
+    using index_type = index_type_of_t<T>;
+
+    template<typename Scalar, index_type...Is>
+    using dense_type = std::conditional_t<Eigen3::eigen_array_general<T, true>,
+      Eigen::Array<Scalar, Is...>, Eigen::Matrix<Scalar, Is...>>;
+
+    template<typename Scalar, std::size_t...Is>
+    using writable_type = dense_type<Scalar, (Is == dynamic_size ? Eigen::Dynamic : static_cast<index_type>(Is))...>;
+
+  public:
+
+    template<typename Scalar, typename...D>
+    static auto make_default(D&&...d)
+    {
+      if constexpr (sizeof...(D) <= 2)
+      {
+        using M = writable_type<Scalar, dimension_size_of_v<D>...>;
+
+        if constexpr (((dimension_size_of_v<D> == dynamic_size) or ...))
+          return M(static_cast<index_type>(get_dimension_size_of(d))...);
+        else
+          return M {};
+      }
+      else if constexpr ((dynamic_index_descriptor<D> or ...))
+      {
+        using Tens = Eigen::Tensor<Scalar, sizeof...(D)>;
+        return Tens {static_cast<typename Tens::Index>(get_dimension_size_of(d))...};
+      }
+      else
+      {
+        return Eigen::TensorFixedSize<Scalar, Eigen::Sizes<std::decay_t<D>::value...>> {};
       }
     }
 
@@ -363,7 +178,7 @@ namespace OpenKalman::interface
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
       using N = dense_writable_matrix_t<T, Scalar, std::decay_t<Ds>...>;
-      return N::Constant(static_cast<Eigen::Index>(get_dimension_size_of(std::forward<Ds>(ds)))..., std::forward<C>(c));
+      return N::Constant(static_cast<index_type>(get_dimension_size_of(std::forward<Ds>(ds)))..., std::forward<C>(c));
     }
 
 
@@ -377,7 +192,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        constexpr Eigen::Index n {dimension_size_of_v<D>};
+        constexpr index_type n {dimension_size_of_v<D>};
         return Eigen3::eigen_matrix_t<Scalar, n, n>::Identity();
       }
     }
@@ -389,10 +204,11 @@ namespace OpenKalman::interface
     {
       static_assert(sizeof...(Begin) == 2 and sizeof...(Size) == 2);
 
+      // \todo If Eigen implements Block for non-dense matrices, this can be changed to Eigen3::eigen_general.
       if constexpr (Eigen3::eigen_dense_general<Arg>)
       {
         using B = Eigen::Block<std::remove_reference_t<Arg>,
-          static_cast<Eigen::Index>(static_index_value<Size> ? static_index_value_of_v<Size> : Eigen::Dynamic)...>;
+          static_cast<index_type_of_t<Arg>>(static_index_value<Size> ? static_index_value_of_v<Size> : Eigen::Dynamic)...>;
 
         if constexpr ((static_index_value<Size> and ...))
           return make_self_contained<Arg>(B(arg, std::get<0>(begin), std::get<1>(begin)));
@@ -425,8 +241,8 @@ namespace OpenKalman::interface
         }
 
         using B = Eigen::Block<std::remove_reference_t<Arg>,
-          static_cast<Eigen::Index>(index_dimension_of_v<Block, 0>),
-          static_cast<Eigen::Index>(index_dimension_of_v<Block, 1>)>;
+          static_cast<index_type_of_t<Arg>>(index_dimension_of_v<Block, 0>),
+          static_cast<index_type_of_t<Arg>>(index_dimension_of_v<Block, 1>)>;
 
         if constexpr (not has_dynamic_dimensions<Block>)
           B(arg, begin...) = std::forward<Block>(block);
@@ -503,18 +319,21 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<Eigen3::eigen_dense_general Arg> requires
+    template<Eigen3::eigen_dense_general Arg> requires square_matrix<Arg> or dimension_size_of_index_is<Arg, 0, 1> or
       std::is_lvalue_reference_v<nested_matrix_of_t<Eigen::DiagonalWrapper<std::remove_reference_t<Arg>>>>
 #else
-    template<typename Arg, std::enable_if_t<Eigen3::eigen_dense_general<Arg> and
-      std::is_lvalue_reference_v<typename nested_matrix_of<Eigen::DiagonalWrapper<std::remove_reference_t<Arg>>>::type>, int> = 0>
+    template<typename Arg, std::enable_if_t<Eigen3::eigen_dense_general<Arg> and (square_matrix<Arg> or dimension_size_of_index_is<Arg, 0, 1> or
+      std::is_lvalue_reference_v<typename nested_matrix_of<Eigen::DiagonalWrapper<std::remove_reference_t<Arg>>>::type>), int> = 0>
 #endif
     static constexpr auto
-    to_diagonal(Arg& arg)
+    to_diagonal(Arg&& arg)
     {
       if constexpr (not vector<Arg>) if (not get_is_vector(arg)) throw std::invalid_argument {
         "Argument of to_diagonal must have 1 column; instead it has " + std::to_string(get_index_dimension_of<1>(arg))};
-      return Eigen::DiagonalWrapper<std::remove_reference_t<Arg>> {arg};
+      if constexpr (square_matrix<Arg> or dimension_size_of_index_is<Arg, 0, 1>)
+        return internal::FixedSizeAdapter {std::forward<Arg>(arg)};
+      else
+        return Eigen::DiagonalWrapper<std::remove_reference_t<Arg>> {arg};
     }
 
 
@@ -539,39 +358,39 @@ namespace OpenKalman::interface
     static constexpr auto
     to_diagonal(Arg&& arg)
     {
-      // If it is a column vector, the TriangularView wrapper doesn't matter, and otherwise, the following will thow an exception:
+      // If it is a column vector, the TriangularView wrapper doesn't matter, and otherwise, the following will throw an exception:
       return OpenKalman::to_diagonal(nested_matrix(std::forward<Arg>(arg)));
     }
 
   private:
 
-    template<typename Arg, typename Id>
+    template<typename D, typename Arg>
     static constexpr decltype(auto)
-    diagonal_of_impl(Arg&& arg, Id&& id)
+    diagonal_of_impl(Arg&& arg)
     {
       auto diag {[](Arg&& arg){
-        if constexpr (Eigen3::eigen_array_general<Arg, true>)
+        if constexpr (Eigen3::eigen_array_general<Arg>)
           return make_self_contained<Arg>(std::forward<Arg>(arg).matrix().diagonal());
-        else // eigen_matrix_general<Arg, true>
+        else // eigen_matrix_general<Arg>
           return make_self_contained<Arg>(std::forward<Arg>(arg).diagonal());
       }(std::forward<Arg>(arg))};
       using Diag = const std::decay_t<decltype(diag)>;
       static_assert(vector<Diag>);
 
-      using D = std::conditional_t<dynamic_dimension<Diag, 0> and fixed_index_descriptor<Id>, std::decay_t<Id>, index_descriptor_of_t<Diag, 0>>;
-
+      // If the result of .diagonal() has dynamic rows but the true dimension is known statically, wrap in FixedSizeAdapter.
       if constexpr (not dynamic_dimension<Diag, 0> or dynamic_index_descriptor<D>) return diag;
-      else return internal::FixedSizeAdapter<Diag, D, Dimensions<1>> {std::move(diag)};
+      else return internal::FixedSizeAdapter<Diag, std::decay_t<D>, Dimensions<1>> {std::move(diag)};
     }
 
   public:
 
 #ifdef __cpp_concepts
     template<Eigen3::eigen_general<true> Arg>
+    static constexpr vector decltype(auto)
 #else
     template<typename Arg, std::enable_if_t<Eigen3::eigen_general<Arg, true>, int> = 0>
-#endif
     static constexpr decltype(auto)
+#endif
     diagonal_of(Arg&& arg)
     {
       auto d = get_is_square(arg);
@@ -587,8 +406,8 @@ namespace OpenKalman::interface
         decltype(auto) diag {nested_matrix(std::forward<Arg>(arg))}; //< must be nested_matrix(...) rather than .diagonal() because of const_cast
         using Diag = decltype(diag);
         using EigenTraits = Eigen::internal::traits<std::decay_t<Diag>>;
-        constexpr Eigen::Index rows = EigenTraits::RowsAtCompileTime;
-        constexpr Eigen::Index cols = EigenTraits::ColsAtCompileTime;
+        constexpr index_type_of_t<Arg> rows = EigenTraits::RowsAtCompileTime;
+        constexpr index_type_of_t<Arg> cols = EigenTraits::ColsAtCompileTime;
 
         static_assert(cols != 1, "For Eigen::DiagonalWrapper<T> interface, T should never be a column vector "
                                  "because diagonal_of function handles this case.");
@@ -623,7 +442,7 @@ namespace OpenKalman::interface
         if constexpr (Eigen3::eigen_general<nested_matrix_of_t<Arg>, true>)
           return OpenKalman::diagonal_of(nested_matrix(std::forward<Arg>(arg)));
         else
-          return diagonal_of_impl(std::forward<Arg>(arg), *d);
+          return diagonal_of_impl<decltype(*d)>(std::forward<Arg>(arg));
       }
       else if constexpr (Eigen3::eigen_Identity<Arg>)
       {
@@ -633,125 +452,127 @@ namespace OpenKalman::interface
       }
       else
       {
-        return diagonal_of_impl(std::forward<Arg>(arg), *d);
+        return diagonal_of_impl<decltype(*d)>(std::forward<Arg>(arg));
       };
+    }
+
+
+    template<typename Arg, typename Factor0, typename Factor1 = std::integral_constant<index_type_of_t<Arg>, 1>>
+    static auto
+    broadcast(Arg&& arg, const Factor0& factor0, const Factor1& factor1 = Factor1{})
+    {
+      using Index = index_type_of_t<Arg>;
+      constexpr Index F0 = dynamic_index_value<Factor0> ? Eigen::Dynamic : static_index_value_of_v<Factor0>;
+      constexpr Index F1 = dynamic_index_value<Factor1> ? Eigen::Dynamic : static_index_value_of_v<Factor1>;
+      using R = Eigen::Replicate<std::decay_t<Arg>, F0, F1>;
+      if constexpr (dynamic_index_value<Factor0> or dynamic_index_value<Factor1>)
+        return R {std::forward<Arg>(arg), static_cast<Index>(factor0), static_cast<Index>(factor1)};
+      else
+        return R {std::forward<Arg>(arg)};
     }
 
   private:
 
-    // Convert std functions to equivalent Eigen operations for possible vectorization:
-    template<typename Op> static decltype(auto) nat_op(Op&& op) { return std::forward<Op>(op); };
-    template<typename S> static auto nat_op(const std::plus<S>& op) { return Eigen::internal::scalar_sum_op<S, S> {}; };
-    template<typename S> static auto nat_op(const std::minus<S>& op) { return Eigen::internal::scalar_difference_op<S, S> {}; };
-    template<typename S> static auto nat_op(const std::multiplies<S>& op) {return Eigen::internal::scalar_product_op<S, S> {}; };
-    template<typename S> static auto nat_op(const std::divides<S>& op) { return Eigen::internal::scalar_quotient_op<S, S> {}; };
-    template<typename S> static auto nat_op(const std::negate<S>& op) { return Eigen::internal::scalar_opposite_op<S> {}; };
-
-    using EIC = Eigen::internal::ComparisonName;
-    template<typename S> static auto nat_op(const std::equal_to<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_EQ> {}; };
-    template<typename S> static auto nat_op(const std::not_equal_to<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_NEQ> {}; };
-    template<typename S> static auto nat_op(const std::greater<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_GT> {}; };
-    template<typename S> static auto nat_op(const std::less<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_LT> {}; };
-    template<typename S> static auto nat_op(const std::greater_equal<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_GE> {}; };
-    template<typename S> static auto nat_op(const std::less_equal<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_LE> {}; };
-
-    template<typename S> static auto nat_op(const std::logical_and<S>& op) { return Eigen::internal::scalar_boolean_and_op {}; };
-    template<typename S> static auto nat_op(const std::logical_or<S>& op) { return Eigen::internal::scalar_boolean_or_op {}; };
-    template<typename S> static auto nat_op(const std::logical_not<S>& op) { return Eigen::internal::scalar_boolean_not_op<S> {}; };
+    template<typename Arg, typename...Ds, std::size_t...Is>
+    static constexpr bool is_replicatable(std::index_sequence<Is...>)
+    {
+      return (... and (
+        dynamic_dimension<Arg, Is> or dynamic_index_descriptor<std::tuple_element_t<Is, std::tuple<Ds...>>> or
+        dimension_size_of_index_is<Arg, Is, 1> or
+        dimension_size_of_index_is<Arg, Is, dimension_size_of_v<std::tuple_element_t<Is, std::tuple<Ds...>>>>));
+    }
 
 
-    template<typename...Ds, typename...ArgDs, typename Arg, std::size_t...I>
+    template<typename...Ds, typename Arg, std::size_t...I>
     static decltype(auto)
-    replicate_arg_impl(const std::tuple<Ds...>& p_tup, const std::tuple<ArgDs...>& arg_tup, Arg&& arg, std::index_sequence<I...>)
+    replicate_arg_impl(const std::tuple<Ds...>& d_tup, Arg&& arg, std::index_sequence<I...>)
     {
       using R = Eigen::Replicate<std::decay_t<Arg>,
-        (dimension_size_of_v<Ds> == dynamic_size or dimension_size_of_v<ArgDs> == dynamic_size ?
-        Eigen::Dynamic : static_cast<Eigen::Index>(dimension_size_of_v<Ds> / dimension_size_of_v<ArgDs>))...>;
+        (dimension_size_of_v<Ds> == dynamic_size or dynamic_dimension<Arg, I> ?
+        Eigen::Dynamic : static_cast<index_type_of_t<Arg>>(dimension_size_of_v<Ds> / index_dimension_of_v<Arg, I>))...>;
 
       if constexpr (((dimension_size_of_v<Ds> != dynamic_size) and ...) and
-        ((dimension_size_of_v<ArgDs> != dynamic_size) and ...))
+        ((index_dimension_of_v<Arg, I> != dynamic_size) and ...))
       {
-        if constexpr (((dimension_size_of_v<Ds> == dimension_size_of_v<ArgDs>) and ...))
+        if constexpr (((dimension_size_of_v<Ds> == index_dimension_of_v<Arg, I>) and ...))
           return std::forward<Arg>(arg);
         else
           return R {std::forward<Arg>(arg)};
       }
       else
       {
-        auto ret = R {std::forward<Arg>(arg), static_cast<Eigen::Index>(
-          get_dimension_size_of(std::get<I>(p_tup)) / get_dimension_size_of(std::get<I>(arg_tup)))...};
+        auto ret = R {std::forward<Arg>(arg), static_cast<index_type_of_t<Arg>>(
+          get_dimension_size_of(std::get<I>(d_tup)) / get_index_dimension_of<I>(arg))...};
         return ret;
       }
     }
 
 
-    template<typename...Ds, typename Arg>
+    /**
+     * \brief Replicate a tensor, if necessary, to fill another tensor of higher or equal rank.
+     * \details If Arg already has a rank equal to <code>sizeof...(Ds)</ref> return the argument unchanged.
+     * \param d_tup A tuple of index descriptors (of type Ds) defining the resulting tensor
+     * \tparam Arg The lower-rank tensor.
+     * \return A higher-rank tensor filled with Arg.
+     */
+#ifdef __cpp_concepts
+    template<typename...Ds, typename Arg> requires (sizeof...(Ds) <= 2) and
+      (is_replicatable<Arg, Ds...>(std::make_index_sequence<sizeof...(Ds)>{}))
+#else
+    template<typename...Ds, typename Arg, std::enable_if_t<(sizeof...(Ds) <= 2) and
+      (is_replicatable<Arg, Ds...>(std::make_index_sequence<sizeof...(Ds)>{}))>>
+#endif
     static decltype(auto)
-    replicate_arg(const std::tuple<Ds...>& p_tup, Arg&& arg)
+    replicate(const std::tuple<Ds...>& d_tup, Arg&& arg)
     {
-      return replicate_arg_impl(p_tup, get_all_dimensions_of(arg), std::forward<Arg>(arg), std::index_sequence_for<Ds...> {});
+      return replicate_arg_impl(d_tup, std::forward<Arg>(arg), std::index_sequence_for<Ds...> {});
     }
 
   public:
 
 #ifdef __cpp_concepts
-    template<typename...Ds, typename Operation, typename...Args> requires (sizeof...(Args) <= 3) and
-      std::invocable<Operation&&, scalar_type_of_t<Args>...> and
-      scalar_type<std::invoke_result_t<Operation&&, scalar_type_of_t<Args>...>>
+    template<typename...Ds, typename Operation, typename...Args> requires (sizeof...(Ds) <= 2) and (sizeof...(Args) <= 3) and
+      (scalar_type<std::invoke_result_t<Operation&&, scalar_type_of_t<Args>...>> or
+      (sizeof...(Args) == 0 and
+        (scalar_type<std::invoke_result_t<Operation&&, scalar_type_of_t<Args>..., std::conditional_t<true, index_type_of_t<T>, Ds>...>> or
+        scalar_type<std::invoke_result_t<Operation&&, scalar_type_of_t<Args>..., index_type_of_t<T>>>)))
 #else
-    template<typename...Ds, typename Operation, typename...Args, std::enable_if_t<(sizeof...(Args) <= 3) and
-      std::is_invocable<Operation&&, typename scalar_type_of<Args>::type...>::value and
-      scalar_type<typename std::invoke_result<Operation&&, typename scalar_type_of<Args>::type...>::type>, int> = 0>
+    template<typename...Ds, typename Operation, typename...Args, std::enable_if_t<sizeof...(Ds) <= 2 and sizeof...(Args) <= 3 and
+      (scalar_type<typename std::invoke_result<Operation&&, typename scalar_type_of<Args>::type...>::type> or (sizeof...(Args) == 0 and
+        (scalar_type<typename std::invoke_result<Operation&&, typename scalar_type_of<Args>::type..., std::conditional_t<true, typename index_type_of<T>::type, Ds>...>::type> or
+        scalar_type<typename std::invoke_result<Operation&&, typename scalar_type_of<Args>::type..., typename index_type_of<T>::type>::type>))), int> = 0>
 #endif
     static auto
     n_ary_operation(const std::tuple<Ds...>& tup, Operation&& operation, Args&&...args)
     {
-      decltype(auto) op = nat_op(std::forward<Operation>(operation));
+      decltype(auto) op = Eigen3::native_operation(std::forward<Operation>(operation));
       using Op = decltype(op);
 
       if constexpr (sizeof...(Args) == 0)
       {
         using P = dense_writable_matrix_t<T, scalar_type_of_t<T>, Ds...>;
-        Eigen::Index r = get_dimension_size_of(std::get<0>(tup));
-        Eigen::Index c = get_dimension_size_of(std::get<1>(tup));
-        return Eigen::CwiseNullaryOp<std::decay_t<Op>, P> {r, c, std::forward<Op>(op)};
+        return Eigen::CwiseNullaryOp<std::decay_t<Op>, P> {
+          static_cast<index_type_of_t<P>>(get_dimension_size_of(std::get<0>(tup))),
+          static_cast<index_type_of_t<P>>(get_dimension_size_of(std::get<1>(tup))),
+          std::forward<Op>(op)};
       }
       else if constexpr (sizeof...(Args) == 1)
       {
         return make_self_contained<Args...>(Eigen::CwiseUnaryOp {
-          replicate_arg(tup, std::forward<Args>(args))..., std::forward<Op>(op)});
+          replicate(tup, std::forward<Args>(args))..., std::forward<Op>(op)});
       }
       else if constexpr (sizeof...(Args) == 2)
       {
         return make_self_contained<Args...>(Eigen::CwiseBinaryOp<std::decay_t<Op>,
-          std::decay_t<decltype(replicate_arg(tup, std::forward<Args>(args)))>...> {
-          replicate_arg(tup, std::forward<Args>(args))..., std::forward<Op>(op)});
+          std::decay_t<decltype(replicate(tup, std::forward<Args>(args)))>...> {
+          replicate(tup, std::forward<Args>(args))..., std::forward<Op>(op)});
       }
       else
       {
         return make_self_contained<Args...>(Eigen::CwiseTernaryOp<std::decay_t<Op>,
-          std::decay_t<decltype(replicate_arg(tup, std::forward<Args>(args)))>...> {
-          replicate_arg(tup, std::forward<Args>(args))..., std::forward<Op>(op)});
+          std::decay_t<decltype(replicate(tup, std::forward<Args>(args)))>...> {
+          replicate(tup, std::forward<Args>(args))..., std::forward<Op>(op)});
       }
-    }
-
-
-#ifdef __cpp_concepts
-    template<typename...Ds, typename Operation>
-    requires std::invocable<Operation&&, typename dimension_size_of<Ds>::type...> and
-      scalar_type<std::invoke_result_t<Operation&&, typename dimension_size_of<Ds>::type...>>
-#else
-    template<typename...Ds, typename Operation, std::enable_if_t<
-      std::is_invocable<Operation&&, typename dimension_size_of<Ds>::type...>::value and
-      scalar_type<typename std::invoke_result<Operation&&, typename dimension_size_of<Ds>::type...>::type>, int> = 0>
-#endif
-    static constexpr auto
-    n_ary_operation_with_indices(const std::tuple<Ds...>& d_tup, Operation&& operation)
-    {
-      using P = dense_writable_matrix_t<T, scalar_type_of_t<T>, Ds...>;
-      Eigen::Index r = get_dimension_size_of(std::get<0>(d_tup));
-      Eigen::Index c = get_dimension_size_of(std::get<1>(d_tup));
-      return Eigen::CwiseNullaryOp<std::decay_t<Operation>, P> {r, c, std::forward<Operation>(operation)};
     }
 
 
@@ -761,7 +582,7 @@ namespace OpenKalman::interface
     {
       if constexpr (Eigen3::eigen_dense_general<Arg>)
       {
-        decltype(auto) op = nat_op(std::forward<BinaryFunction>(b));
+        decltype(auto) op = Eigen3::native_operation(std::forward<BinaryFunction>(b));
         using Op = decltype(op);
 
         if constexpr (sizeof...(indices) == 2) // reduce in both directions
@@ -1268,4 +1089,4 @@ namespace OpenKalman::interface
 
 } // namespace OpenKalman::interface
 
-#endif //OPENKALMAN_EIGEN_GENERAL_TRAITS_HPP
+#endif //OPENKALMAN_EIGEN_GENERAL_LIBRARYROUTINES_HPP

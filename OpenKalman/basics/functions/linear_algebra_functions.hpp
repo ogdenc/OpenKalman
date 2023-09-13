@@ -154,10 +154,8 @@ namespace OpenKalman
 #endif
   constexpr auto determinant(Arg&& arg) -> scalar_type_of_t<Arg>
   {
-    if constexpr (has_dynamic_dimensions<Arg>) if (get_index_descriptor<0>(arg) != get_index_descriptor<1>(arg))
-      throw std::domain_error {
-        "In determinant, rows of arg (" + std::to_string(get_index_dimension_of<0>(arg)) + ") do not match columns of arg (" +
-        std::to_string(get_index_dimension_of<1>(arg)) + ")"};
+    if constexpr (has_dynamic_dimensions<Arg>) if (not get_is_square(arg)) throw std::domain_error {
+      "In determinant(...), the argument is not a square matrix or tensor"};
 
     if constexpr (identity_matrix<Arg>)
     {
@@ -198,10 +196,8 @@ namespace OpenKalman
 #endif
   constexpr auto trace(Arg&& arg) -> scalar_type_of_t<Arg>
   {
-    if constexpr (has_dynamic_dimensions<Arg>) if (get_index_descriptor<0>(arg) != get_index_descriptor<1>(arg))
-      throw std::domain_error {
-        "In trace, rows of arg (" + std::to_string(get_index_dimension_of<0>(arg)) + ") do not match columns of arg (" +
-        std::to_string(get_index_dimension_of<1>(arg)) + ")"};
+    if constexpr (has_dynamic_dimensions<Arg>) if (not get_is_square(arg)) throw std::domain_error {
+      "In trace(...), the argument is not a square matrix or tensor"};
 
     if constexpr (identity_matrix<Arg>)
     {
@@ -211,6 +207,10 @@ namespace OpenKalman
     {
       return 0;
     }
+    else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg&&, 0>)
+    {
+      return get_element(std::forward<Arg>(arg));
+    }
     else if constexpr (constant_matrix<Arg>)
     {
       return constant_coefficient{arg} * internal::index_dimension_scalar_constant_of<0>(arg);
@@ -218,10 +218,6 @@ namespace OpenKalman
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       return constant_diagonal_coefficient{arg} * internal::index_dimension_scalar_constant_of<0>(arg);
-    }
-    else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg&&, 0>)
-    {
-      return get_element(std::forward<Arg>(arg));
     }
     else
     {

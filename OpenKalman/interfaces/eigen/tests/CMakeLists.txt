@@ -8,7 +8,11 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-find_package(Eigen3 REQUIRED CONFIG)
+if (CXX_STANDARD GREATER_EQUAL 20)
+  find_package(Eigen3 3.3.9 REQUIRED CONFIG)
+else()
+  find_package(Eigen3 3.3 REQUIRED CONFIG)
+endif()
 
 enable_testing()
 find_package(GTest REQUIRED)
@@ -20,7 +24,7 @@ add_executable(eigen3
         eigen-vector-wise.test.cpp
         eigen-matrix.test.cpp
         eigen-diagonal.test.cpp
-        eigen-elementwise-operations.test.cpp
+        eigen-nary-operations.test.cpp
         eigen-reductions.test.cpp
         eigen-blocks.test.cpp
         eigen-chipwise-operations.test.cpp

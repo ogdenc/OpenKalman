@@ -109,7 +109,7 @@ namespace OpenKalman
     else
     {
       static_assert(N == 0, "Must use correct number of indices");
-      static_assert(one_by_one_matrix<Arg, Likelihood::maybe>, "Calling get_element without indices only allowed one-by-one matrices.");
+      static_assert(one_by_one_matrix<Arg, Likelihood::maybe>, "Calling get_element without indices only allowed for one-by-one matrices.");
       if constexpr (not one_by_one_matrix<Arg>) if (get_index_dimension_of<0>(arg) != 1 or get_index_dimension_of<1>(arg) != 1)
         throw std::invalid_argument {"Wrong number of indices in arguments to get_element."};
       std::make_index_sequence<max_indices_of_v<Arg>> seq;

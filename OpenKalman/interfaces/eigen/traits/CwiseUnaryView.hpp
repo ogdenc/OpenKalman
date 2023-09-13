@@ -25,12 +25,10 @@ namespace OpenKalman::interface
   struct IndexibleObjectTraits<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
     : Eigen3::IndexibleObjectTraitsBase<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
   {
-    static constexpr std::size_t max_indices = max_indices_of_v<MatrixType>;
-
-    template<std::size_t N, typename Arg>
-    static constexpr auto get_index_descriptor(const Arg& arg)
+    template<typename Arg, typename N>
+    static constexpr auto get_index_descriptor(const Arg& arg, N n)
     {
-      return OpenKalman::get_index_descriptor<N>(arg.nestedExpression());
+      return OpenKalman::get_index_descriptor(arg.nestedExpression(), n);
     }
 
     template<Likelihood b>

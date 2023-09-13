@@ -20,8 +20,26 @@
 
 namespace OpenKalman::Eigen3
 {
+  // Default nullary traits, if NullaryOp is not specifically matched.
+  template<typename NullaryOp, typename PlainObjectType>
+  struct NullaryFunctorTraits
+  {
+    template<bool is_diag, typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
+    {
+      if constexpr (is_diag) return std::monostate {};
+      else return arg.functor()();
+    }
+
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
+
+    static constexpr bool is_hermitian = false;
+  };
+
+
   template<typename Scalar, typename PlainObjectType>
-  struct FunctorTraits<Eigen::internal::scalar_identity_op<Scalar>, PlainObjectType>
+  struct NullaryFunctorTraits<Eigen::internal::scalar_identity_op<Scalar>, PlainObjectType>
   {
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -39,7 +57,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename PlainObjectType>
-  struct FunctorTraits<Eigen::internal::linspaced_op<Scalar>, PlainObjectType>
+  struct NullaryFunctorTraits<Eigen::internal::linspaced_op<Scalar>, PlainObjectType>
   {
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg) { return std::monostate {}; }
@@ -52,7 +70,7 @@ namespace OpenKalman::Eigen3
 
 
   template<typename Scalar, typename PlainObjectType>
-  struct FunctorTraits<Eigen::internal::scalar_constant_op<Scalar>, PlainObjectType>
+  struct NullaryFunctorTraits<Eigen::internal::scalar_constant_op<Scalar>, PlainObjectType>
   {
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)

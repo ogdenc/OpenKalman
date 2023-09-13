@@ -40,20 +40,6 @@ namespace OpenKalman::interface
 
   public:
 
-    static constexpr std::size_t max_indices = max_indices_of_v<PlainObjectType>;
-
-    template<std::size_t N, typename Arg>
-    static constexpr auto get_index_descriptor(const Arg& arg)
-    {
-      constexpr Eigen::Index dim = N == 0 ? PlainObjectType::RowsAtCompileTime : PlainObjectType::ColsAtCompileTime;
-      if constexpr (dim == Eigen::Dynamic)
-      {
-        if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
-        else return static_cast<std::size_t>(arg.cols());
-      }
-      else return Dimensions<dim>{};
-    }
-
     template<Likelihood b>
     static constexpr bool is_one_by_one = one_by_one_matrix<PlainObjectType, b>;
 
@@ -71,24 +57,26 @@ namespace OpenKalman::interface
       return std::forward<Arg>(arg).functor();
     }
 
+    // convert_to_self_contained not defined
+
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::template get_constant<false>(arg);
+      return Eigen3::NullaryFunctorTraits<NullaryOp, PlainObjectType>::template get_constant<false>(arg);
     }
 
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::template get_constant<true>(arg);
+      return Eigen3::NullaryFunctorTraits<NullaryOp, PlainObjectType>::template get_constant<true>(arg);
     }
 
     template<TriangleType t, Likelihood b>
-    static constexpr bool is_triangular = Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::template is_triangular<t, b>;
+    static constexpr bool is_triangular = Eigen3::NullaryFunctorTraits<NullaryOp, PlainObjectType>::template is_triangular<t, b>;
 
     static constexpr bool is_triangular_adapter = false;
 
-    static constexpr bool is_hermitian = Eigen3::FunctorTraits<NullaryOp, PlainObjectType>::is_hermitian;
+    static constexpr bool is_hermitian = Eigen3::NullaryFunctorTraits<NullaryOp, PlainObjectType>::is_hermitian;
   };
 
 

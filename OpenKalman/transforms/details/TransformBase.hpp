@@ -29,31 +29,6 @@ namespace OpenKalman::internal
   struct TransformBase;
 
 
-  /**
-   * \internal
-   * \brief T is a non-empty tuple, pair, array, or other type that can be an argument to std::apply.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-  concept tuple_like = requires { std::tuple_size<T>() == 0; } or requires (T t) { std::get<0>(t); };
-#else
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct is_tuple_like : std::false_type {};
-
-    template<typename T>
-    struct is_tuple_like<T, std::enable_if_t<(std::tuple_size<T>() == 0)>> : std::true_type {};
-
-    template<typename T>
-    struct is_tuple_like<T, std::void_t<decltype(std::get<0>(std::declval<T>()))>> : std::true_type {};
-  }
-
-  template<typename T>
-  constexpr bool tuple_like = detail::is_tuple_like<T>::value;
-#endif
-
-
   template<typename Derived>
   struct TransformBase
   {

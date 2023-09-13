@@ -24,32 +24,41 @@ namespace OpenKalman::Eigen3
 
   /**
    * \internal
-   * \brief Traits for n-ary functors.
+   * \brief Traits for n-ary functors (n>0).
    * \tparam Operation The n-ary operation.
    * \tparam XprTypes Any argument types.
+   * \sa NullaryFunctorTraits
    */
   template<typename Operation, typename...XprTypes>
   struct FunctorTraits
   {
     /**
-     * \brief
-     * \tparam T \ref constant_coefficient or \ref constant_diagonal_coefficient
-     * \tparam Arg The n-ary operation expression (e.g., Eigen::CwiseNullaryOp, Eigen::CwiseUnaryOp, etc.
+     * \brief Return a scalar constant or std::monostate
+     * \tparam is_diag True if \ref constant_diagonal_coefficient, false if \ref constant_coefficient.
      * \return \ref scalar_constant
      */
-    template<template<typename...> typename T, typename Arg>
+    template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
       return std::monostate {};
     }
 
-    template<Likelihood b>
-    static constexpr bool is_diagonal = false;
-
-    static constexpr bool triangle_type = false;
+    template<TriangleType t, Likelihood b>
+    static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = false;
   };
+
+
+  /**
+   * \internal
+   * \brief Traits for nullary functors (n>0).
+   * \tparam Operation The n-ary operation.
+   * \tparam XprTypes Any argument types.
+   * \sa FunctorTraits
+   */
+  template<typename NullaryOp, typename PlainObjectType>
+  struct NullaryFunctorTraits;
 
 
   /**
@@ -372,7 +381,7 @@ namespace OpenKalman::Eigen3
   namespace detail
   {
     template<std::size_t size>
-    constexpr auto eigen_index_convert = size == dynamic_size ? Eigen::Dynamic : (Eigen::Index) size;
+    constexpr auto eigen_index_convert = size == dynamic_size ? Eigen::Dynamic : static_cast<Eigen::Index>(size);
   }
 
   /**
@@ -398,6 +407,30 @@ namespace OpenKalman::Eigen3
   template<typename T, typename = void>
   struct IndexibleObjectTraitsBase;
 #endif
+
+
+  /**
+   * \brief Convert std functions (e.g., std::plus) to equivalent Eigen operations for possible vectorization:
+   */
+  template<typename Op> static decltype(auto) native_operation(Op&& op) { return std::forward<Op>(op); };
+  template<typename S> static auto native_operation(const std::plus<S>& op) { return Eigen::internal::scalar_sum_op<S, S> {}; };
+  template<typename S> static auto native_operation(const std::minus<S>& op) { return Eigen::internal::scalar_difference_op<S, S> {}; };
+  template<typename S> static auto native_operation(const std::multiplies<S>& op) {return Eigen::internal::scalar_product_op<S, S> {}; };
+  template<typename S> static auto native_operation(const std::divides<S>& op) { return Eigen::internal::scalar_quotient_op<S, S> {}; };
+  template<typename S> static auto native_operation(const std::negate<S>& op) { return Eigen::internal::scalar_opposite_op<S> {}; };
+
+  using EIC = Eigen::internal::ComparisonName;
+  template<typename S> static auto native_operation(const std::equal_to<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_EQ> {}; };
+  template<typename S> static auto native_operation(const std::not_equal_to<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_NEQ> {}; };
+  template<typename S> static auto native_operation(const std::greater<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_GT> {}; };
+  template<typename S> static auto native_operation(const std::less<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_LT> {}; };
+  template<typename S> static auto native_operation(const std::greater_equal<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_GE> {}; };
+  template<typename S> static auto native_operation(const std::less_equal<S>& op) { return Eigen::internal::scalar_cmp_op<S, S, EIC::cmp_LE> {}; };
+
+  template<typename S> static auto native_operation(const std::logical_and<S>& op) { return Eigen::internal::scalar_boolean_and_op {}; };
+  template<typename S> static auto native_operation(const std::logical_or<S>& op) { return Eigen::internal::scalar_boolean_or_op {}; };
+  template<typename S> static auto native_operation(const std::logical_not<S>& op) { return Eigen::internal::scalar_boolean_not_op<S> {}; };
+
 
 } // namespace OpenKalman::Eigen3
 

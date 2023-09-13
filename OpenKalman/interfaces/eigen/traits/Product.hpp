@@ -31,23 +31,8 @@ namespace OpenKalman::interface
 
   public:
 
-    static constexpr std::size_t max_indices = 2;
-
-    template<std::size_t N, typename Arg>
-    static constexpr auto get_index_descriptor(const Arg& arg)
-    {
-      using Xpr = Eigen::Product<LhsType, RhsType>;
-      constexpr Eigen::Index dim = N == 0 ? Xpr::RowsAtCompileTime : Xpr::ColsAtCompileTime;
-
-      if constexpr (dim == Eigen::Dynamic)
-      {
-        if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
-        else return static_cast<std::size_t>(arg.cols());
-      }
-      else return Dimensions<dim>{};
-    }
-
     static constexpr bool has_runtime_parameters = false;
+
     using type = std::tuple<typename T::LhsNested, typename T::RhsNested >;
 
     template<std::size_t i, typename Arg>
@@ -64,7 +49,7 @@ namespace OpenKalman::interface
     static auto convert_to_self_contained(Arg&& arg)
     {
       using N = Eigen::Product<equivalent_self_contained_t<LhsType>, equivalent_self_contained_t<RhsType>, Option>;
-      constexpr Eigen::Index to_be_evaluated_size = self_contained<LhsType> ?
+      constexpr index_type_of_t<Arg> to_be_evaluated_size = self_contained<LhsType> ?
         RhsType::RowsAtCompileTime * RhsType::ColsAtCompileTime :
         LhsType::RowsAtCompileTime * LhsType::ColsAtCompileTime;
 
@@ -74,7 +59,7 @@ namespace OpenKalman::interface
         (LhsType::ColsAtCompileTime != Eigen::Dynamic) and
         (RhsType::RowsAtCompileTime != Eigen::Dynamic) and
         (RhsType::ColsAtCompileTime != Eigen::Dynamic) and
-        ((Eigen::Index)LhsType::RowsAtCompileTime * (Eigen::Index)RhsType::ColsAtCompileTime > to_be_evaluated_size) and
+        ((index_type_of_t<Arg>)LhsType::RowsAtCompileTime * (index_type_of_t<Arg>)RhsType::ColsAtCompileTime > to_be_evaluated_size) and
         not std::is_lvalue_reference_v<typename N::LhsNested> and
         not std::is_lvalue_reference_v<typename N::RhsNested>)
       {

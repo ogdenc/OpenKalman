@@ -31,21 +31,6 @@ namespace OpenKalman::interface
 
   public:
 
-    static constexpr std::size_t max_indices = 2;
-
-    template<std::size_t N, typename Arg>
-    static constexpr auto get_index_descriptor(const Arg& arg)
-    {
-      constexpr Eigen::Index dim = N == 0 ? Xpr::RowsAtCompileTime : Xpr::ColsAtCompileTime;
-
-      if constexpr (dim == Eigen::Dynamic)
-      {
-        if constexpr (N == 0) return static_cast<std::size_t>(arg.rows());
-        else return static_cast<std::size_t>(arg.cols());
-      }
-      else return Dimensions<dim>{};
-    }
-
     static constexpr bool has_runtime_parameters =
       Xpr::RowsAtCompileTime == Eigen::Dynamic or Xpr::ColsAtCompileTime == Eigen::Dynamic or
       Xpr::OuterStrideAtCompileTime == Eigen::Dynamic or Xpr::InnerStrideAtCompileTime == Eigen::Dynamic;

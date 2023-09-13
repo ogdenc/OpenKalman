@@ -27,10 +27,8 @@ namespace OpenKalman
     struct IndexibleObjectTraits<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
       : Eigen3::IndexibleObjectTraitsBase<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
     {
-      static constexpr std::size_t max_indices = 2;
-
-      template<std::size_t N, typename Arg>
-      static constexpr auto get_index_descriptor(const Arg& arg)
+      template<typename Arg, typename N>
+      static constexpr auto get_index_descriptor(const Arg& arg, N)
       {
         if constexpr (SizeAtCompileTime == Eigen::Dynamic) return static_cast<std::size_t>(arg.rows());
         else return Dimensions<SizeAtCompileTime>{};

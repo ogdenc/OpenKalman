@@ -61,14 +61,6 @@ namespace OpenKalman
       }
 
 
-      template<typename Scalar, typename Arg>
-      static decltype(auto) convert(Arg&& arg)
-      {
-        using Trait = LibraryRoutines<nested_matrix_of_t<T>, Scalar>;
-        return Trait::template convert<Scalar>(OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg)));
-      }
-
-
       template<typename Arg>
       static decltype(auto) to_native_matrix(Arg&& arg)
       {

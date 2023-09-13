@@ -32,25 +32,6 @@
 namespace OpenKalman
 {
 
-  // ---------------- //
-  //  max_indices_of  //
-  // ---------------- //
-
-  /**
-   * \brief The maximum number of indices of structure T.
-   * \tparam T A tensor (vector, matrix, etc.)
-   */
-  template<typename T>
-  struct max_indices_of : std::integral_constant<std::size_t, interface::IndexibleObjectTraits<std::decay_t<T>>::max_indices> {};
-
-
-  /**
-   * \brief helper template for \ref max_indices_of.
-   */
-  template<typename T>
-  static constexpr std::size_t max_indices_of_v = max_indices_of<T>::value;
-
-
   // ----------- //
   //  indexible  //
   // ----------- //
@@ -62,7 +43,7 @@ namespace OpenKalman
     struct is_indexible : std::false_type {};
 
     template<typename T>
-    struct is_indexible<T, std::enable_if_t<(max_indices_of<T>::value > 0)>>
+    struct is_indexible<T, std::void_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::max_indices)>>
       : std::true_type {};
   }
 #endif
@@ -75,10 +56,38 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept indexible = (max_indices_of_v<T> > 0);
+  concept indexible = requires { interface::IndexibleObjectTraits<std::decay_t<T>>::max_indices; };
 #else
   constexpr bool indexible = detail::is_indexible<T>::value;
 #endif
+
+
+  // ---------------- //
+  //  max_indices_of  //
+  // ---------------- //
+
+  /**
+   * \brief The maximum number of indices of structure T.
+   * \tparam T A tensor (vector, matrix, etc.)
+   */
+#ifdef __cpp_concepts
+  template<indexible T>
+  struct max_indices_of
+#else
+  template<typename T, typename = void>
+  struct max_indices_of : std::integral_constant<std::size_t, 0> {};
+
+  template<typename T>
+  struct max_indices_of<T, std::enable_if_t<indexible<T>>>
+#endif
+    : std::integral_constant<std::size_t, interface::IndexibleObjectTraits<std::decay_t<T>>::max_indices> {};
+
+
+  /**
+   * \brief helper template for \ref max_indices_of.
+   */
+  template<typename T>
+  static constexpr std::size_t max_indices_of_v = max_indices_of<T>::value;
 
 
   // ---------------- //
@@ -86,26 +95,23 @@ namespace OpenKalman
   // ---------------- //
 
   /**
-   * \brief Type scalar type (e.g., std::float, std::double, std::complex<double>) of a tensor or index descriptor.
-   * \tparam T A matrix, expression, array, or \ref index_descriptor.
+   * \brief Type scalar type (e.g., std::float, std::double, std::complex<double>) of a tensor.
+   * \tparam T A tensor or other array.
    * \internal \sa interface::IndexibleObjectTraits
    */
 #ifdef __cpp_concepts
   template<indexible T>
   struct scalar_type_of
-  {
-    using type = typename interface::IndexibleObjectTraits<std::decay_t<T>>::scalar_type;
-  };
 #else
   template<typename T, typename = void>
   struct scalar_type_of {};
 
   template<typename T>
   struct scalar_type_of<T, std::enable_if_t<indexible<T>>>
+#endif
   {
     using type = typename interface::IndexibleObjectTraits<std::decay_t<T>>::scalar_type;
   };
-#endif
 
 
   /**
@@ -113,6 +119,37 @@ namespace OpenKalman
    */
   template<typename T>
   using scalar_type_of_t = typename scalar_type_of<T>::type;
+
+
+  // --------------- //
+  //  index_type_of  //
+  // --------------- //
+
+  /**
+   * \brief Type index type (e.g., std::size_t, int) of a tensor or matrix.
+   * \tparam T A tensor or other array.
+   * \internal \sa interface::IndexibleObjectTraits
+   */
+#ifdef __cpp_concepts
+  template<indexible T>
+  struct index_type_of
+#else
+  template<typename T, typename = void>
+  struct index_type_of {};
+
+  template<typename T>
+  struct index_type_of<T, std::enable_if_t<indexible<T>>>
+#endif
+  {
+    using type = typename interface::IndexibleObjectTraits<std::decay_t<T>>::index_type;
+  };
+
+
+  /**
+   * \brief helper template for \ref scalar_type_of.
+   */
+  template<typename T>
+  using index_type_of_t = typename index_type_of<T>::type;
 
 
   // -------------------------------------------------------------------------- //
@@ -126,17 +163,42 @@ namespace OpenKalman
    * \internal \sa interface::IndexibleObjectTraits
    */
 #ifdef __cpp_concepts
-  template<indexible T, std::size_t N = 0> requires (N < max_indices_of_v<T>)
-  struct index_descriptor_of
+  template<indexible T, std::size_t N = 0>
+  struct index_descriptor_of;
 #else
   template<typename T, std::size_t N = 0, typename = void>
-  struct index_descriptor_of {};
+  struct index_descriptor_of;
+#endif
 
+
+  /**
+   * \overload
+   */
+#ifdef __cpp_concepts
+  template<indexible T, std::size_t N> requires (N < max_indices_of_v<T>)
+  struct index_descriptor_of<T, N>
+#else
   template<typename T, std::size_t N>
   struct index_descriptor_of<T, N, std::enable_if_t<indexible<T> and (N < max_indices_of_v<T>)>>
 #endif
   {
-    using type = decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::template get_index_descriptor<N>(std::declval<T>()));
+    using type = std::decay_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::
+      get_index_descriptor(std::declval<T>(), std::integral_constant<std::size_t, N>{}))>;
+  };
+
+
+  /**
+   * \overload
+   */
+#ifdef __cpp_concepts
+  template<indexible T, std::size_t N> requires (N >= max_indices_of_v<T>)
+  struct index_descriptor_of<T, N>
+#else
+  template<typename T, std::size_t N>
+  struct index_descriptor_of<T, N, std::enable_if_t<indexible<T> and (N >= max_indices_of_v<T>)>>
+#endif
+  {
+    using type = Dimensions<1>;
   };
 
 
@@ -182,14 +244,14 @@ namespace OpenKalman
    * \tparam T The matrix, expression, or array
    */
 #ifdef __cpp_concepts
-  template<indexible T, std::size_t N = 0> requires (N < max_indices_of_v<T>)
+  template<indexible T, std::size_t N = 0>
   struct index_dimension_of
 #else
   template<typename T, std::size_t N = 0, typename = void>
   struct index_dimension_of {};
 
   template<typename T, std::size_t N>
-  struct index_dimension_of<T, N, std::enable_if_t<indexible<T> and N < max_indices_of<T>::value>>
+  struct index_dimension_of<T, N, std::enable_if_t<indexible<T>>>
 #endif
     : dimension_size_of<index_descriptor_of_t<T, N>> {};
 
@@ -444,7 +506,14 @@ namespace OpenKalman
    * \tparam T A tensor (vector, matrix, etc.)
    */
   template<typename T>
+#ifdef __cpp_concepts
+  struct max_tensor_order_of : std::integral_constant<std::size_t, 0> {};
+
+  template<indexible T>
+  struct max_tensor_order_of<T>
+#else
   struct max_tensor_order_of
+#endif
     : std::integral_constant<std::size_t, detail::max_tensor_order_of_impl<max_indices_of_v<T>, T>()> {};
 
 
@@ -566,42 +635,6 @@ namespace OpenKalman
 #endif
     (indexible<Ts> and ...) and
     (detail::index_descriptors_match_impl<Ts...>(std::make_index_sequence<std::max({max_indices_of_v<Ts>...})> {}));
-
-
-  // ------------------------------------- //
-  //   compatible_with_index_descriptors   //
-  // ------------------------------------- //
-
-  namespace detail
-  {
-    template<typename T, std::size_t N, typename...Ds>
-    struct compatible_with_index_descriptors_impl : std::false_type {};
-
-    template<typename T, std::size_t N>
-    struct compatible_with_index_descriptors_impl<T, N> : std::bool_constant<N == max_indices_of_v<T>> {};
-
-    template<typename T, std::size_t N, typename D, typename...Ds>
-    struct compatible_with_index_descriptors_impl<T, N, D, Ds...> : std::bool_constant<
-#ifdef __cpp_concepts
-      (dynamic_dimension<T, N> or equivalent_to<D, index_descriptor_of_t<T, N>>) and
-#else
-      (dynamic_dimension<T, std::min(N, max_indices_of_v<T> - 1)> or equivalent_to<D, index_descriptor_of_t<T, std::min(N, max_indices_of_v<T> - 1)>>) and
-#endif
-        compatible_with_index_descriptors_impl<T, N + 1, Ds...>::value> {};
-  }
-
-
-  /**
-   * \brief \ref indexible T is compatible with \ref index_descriptor set Ds.
-   */
-  template<typename T, typename...Ds>
-#ifdef __cpp_concepts
-  concept compatible_with_index_descriptors =
-#else
-  constexpr bool compatible_with_index_descriptors =
-#endif
-    (max_indices_of_v<T> == sizeof...(Ds)) and (index_descriptor<Ds> and ...) and
-    detail::compatible_with_index_descriptors_impl<T, 0, Ds...>::value;
 
 
   // ------------- //
@@ -1018,19 +1051,19 @@ namespace OpenKalman
 
 
   /**
-   * \brief Specifies that a type is a one-by-one matrix (i.e., one row and one column).
+   * \brief Specifies that a type is a one-by-one matrix (i.e., one-dimensional in every index).
    */
   template<typename T, Likelihood b = Likelihood::definitely>
 #ifdef __cpp_concepts
-  concept one_by_one_matrix = indexible<T> and (max_indices_of_v<T> > 0) and
+  concept one_by_one_matrix = indexible<T> and
     (not requires { interface::IndexibleObjectTraits<std::decay_t<T>>::template is_one_by_one<b>; } or
       interface::IndexibleObjectTraits<std::decay_t<T>>::template is_one_by_one<b>) and
     (requires { interface::IndexibleObjectTraits<std::decay_t<T>>::template is_one_by_one<b>; } or
-      detail::has_1_by_1_dims<T, b>(std::make_index_sequence<max_indices_of_v<T>>{}));
+      max_indices_of_v<T> == 0 or detail::has_1_by_1_dims<T, b>(std::make_index_sequence<max_indices_of_v<T>>{}));
 #else
-  constexpr bool one_by_one_matrix = indexible<T> and (max_indices_of_v<T> > 0) and
+  constexpr bool one_by_one_matrix = indexible<T> and
     (detail::has_is_one_by_one_interface<T, b>::value ? detail::is_one_by_one_matrix<T, b>::value :
-      detail::has_1_by_1_dims<T, b>(std::make_index_sequence<max_indices_of_v<T>>{}));
+      max_indices_of_v<T> == 0 or detail::has_1_by_1_dims<T, b>(std::make_index_sequence<max_indices_of_v<T>>{}));
 #endif
 
 
@@ -1367,6 +1400,36 @@ namespace OpenKalman
   constexpr auto hermitian_adapter_type_of_v = hermitian_adapter_type_of<T, Ts...>::value;
 
 
+  // ------------------------------------- //
+  //   compatible_with_index_descriptors   //
+  // ------------------------------------- //
+
+  namespace detail
+  {
+    template<typename T, typename...Ds, std::size_t...IxD, std::size_t...IxT>
+    constexpr bool compatible_with_index_descriptors_impl(std::index_sequence<IxD...>, std::index_sequence<IxT...>)
+    {
+      if constexpr (sizeof...(Ds) == 0) return one_by_one_matrix<T, Likelihood::maybe>;
+      else return
+        (... and (dynamic_dimension<T, IxD> or equivalent_to<Ds, index_descriptor_of_t<T, IxD>>)) and
+        (... and (dynamic_dimension<T, IxT + sizeof...(Ds)> or equivalent_to<Dimensions<1>, index_descriptor_of_t<T, IxT + sizeof...(Ds)>>));
+    }
+  } // namespace detail
+
+
+  /**
+   * \brief \ref indexible T is compatible with \ref index_descriptor set Ds.
+   */
+  template<typename T, typename...Ds>
+#ifdef __cpp_concepts
+  concept compatible_with_index_descriptors =
+#else
+  constexpr bool compatible_with_index_descriptors =
+#endif
+    (index_descriptor<Ds> and ...) and detail::compatible_with_index_descriptors_impl<T, Ds...>(
+        std::index_sequence_for<Ds...>{}, std::make_index_sequence<max_indices_of_v<T> - sizeof...(Ds)>{});
+
+
   // ------------------------- //
   //  maybe_has_same_shape_as  //
   // ------------------------- //
@@ -1388,16 +1451,7 @@ namespace OpenKalman
     {
       return (maybe_dimensions_are_same<Is, Ts...>() and ...);
     }
-#ifndef __cpp_concepts
-
-
-    template<typename = void, typename...Ts>
-    struct maybe_has_same_shape_as_test : std::false_type {};
-
-    template<typename...Ts>
-    struct maybe_has_same_shape_as_test<std::enable_if_t<(indexible<Ts> and ...)>, Ts...> : std::true_type {};
-#endif
-  }
+  } // namespace detail
 
   /**
    * \brief Specifies that it is not ruled out, at compile time, that T has the same shape as Ts.
@@ -1406,11 +1460,12 @@ namespace OpenKalman
    */
   template<typename...Ts>
 #ifdef __cpp_concepts
-  concept maybe_has_same_shape_as = (indexible<Ts> and ...) and
-    detail::maybe_has_same_shape_as_impl<Ts...>(std::make_index_sequence<std::max({std::size_t{0}, max_indices_of_v<Ts>...})>{});
+  concept maybe_has_same_shape_as =
 #else
-  constexpr bool maybe_has_same_shape_as = detail::maybe_has_same_shape_as_test<void, Ts...>::value;
+  constexpr bool maybe_has_same_shape_as =
 #endif
+    (indexible<Ts> and ...) and
+    detail::maybe_has_same_shape_as_impl<Ts...>(std::make_index_sequence<std::max({std::size_t{0}, max_indices_of_v<Ts>...})>{});
 
 
   // ------------------- //
@@ -1691,10 +1746,13 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   concept writable =
     indexible<T> and interface::IndexibleObjectTraits<std::decay_t<T>>::is_writable and
-      (not std::is_const_v<std::remove_reference_t<T>>);
+    (not std::is_const_v<std::remove_reference_t<T>>) and std::copy_constructible<std::decay_t<T>> and
+    std::assignable_from<std::decay_t<T>&, std::decay_t<T>>;
 #else
   constexpr bool writable =
-    indexible<T> and detail::writable_impl<T>::value and (not std::is_const_v<std::remove_reference_t<T>>);
+    indexible<T> and detail::writable_impl<T>::value and (not std::is_const_v<std::remove_reference_t<T>>) and
+    std::is_copy_constructible_v<std::decay_t<T>> and std::is_move_constructible_v<std::decay_t<T>> and
+    std::is_assignable_v<std::decay_t<T>&, std::decay_t<T>>;
 #endif
 
 

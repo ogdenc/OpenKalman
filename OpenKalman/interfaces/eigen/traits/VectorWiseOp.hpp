@@ -24,12 +24,16 @@ namespace OpenKalman::interface
   template<typename ExpressionType, int Direction>
   struct IndexibleObjectTraits<Eigen::VectorwiseOp<ExpressionType, Direction>>
   {
-    static constexpr std::size_t max_indices = max_indices_of_v<ExpressionType>;
+    static constexpr std::size_t max_indices = 2;
 
-    template<std::size_t N, typename Arg>
-    static constexpr auto get_index_descriptor(const Arg& arg)
+    using index_type = index_type_of_t<ExpressionType>;
+
+    using scalar_type = scalar_type_of_t<ExpressionType>;
+
+    template<typename Arg, typename N>
+    static constexpr auto get_index_descriptor(const Arg& arg, N n)
     {
-      return OpenKalman::get_index_descriptor<N>(arg._expression());
+      return OpenKalman::get_index_descriptor(arg._expression(), n);
     }
 
     template<Likelihood b>
@@ -63,8 +67,6 @@ namespace OpenKalman::interface
     {
       return constant_coefficient {arg._expression()};
     }
-
-    using scalar_type = scalar_type_of_t<ExpressionType>;
 
     // No get or set defined.
   };

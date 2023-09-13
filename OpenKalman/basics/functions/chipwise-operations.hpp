@@ -18,10 +18,6 @@
 
 namespace OpenKalman
 {
-  // ====================== //
-  //  Chip-wise operations  //
-  // ====================== //
-
   namespace detail
   {
     template<std::size_t ix, typename Best_d>
@@ -97,12 +93,15 @@ namespace OpenKalman
 
 
   /**
-   * \brief Perform a chipwise n-ary operation on one or more arguments.
-   * \details A chipwise operation takes chips (reduced-dimension blocks) from each of the arguments (if any) and
-   * performs an operation returning a chip, and repeats the operation as necessary to fill the return tensor or matrix.
+   * \brief Perform a chipwise n-ary operation on one or more indexible arguments.
+   * \details Given an indexible object of rank <var>n</var>, a "chip" is a subset of that object, having rank in
+   * the range (0, <var>n</var>]. This function takes same-size chips from each of the arguments (if any) and
+   * performs an operation returning a chip (of the same size), for every possible chip within the result.
    * \tparam indices The reduced-dimension indices which will be replicated to fill the result
-   * \tparam Operation An operation (nullary, unary, binary, etc.).
+   * \tparam Operation An operation (unary, binary, etc.). In addition to taking one or more chips as arguments,
+   * the operation may also take <code>sizeof...(indices)</code> indices (in the same order as <code>indices</code>).
    * \tparam Args The arguments, which must be the same size.
+   * \result An object of the same size as the arguments (if any) or
    */
 #ifdef __cpp_concepts
   template<std::size_t...indices, typename Operation, indexible...Args> requires (sizeof...(Args) > 0)
@@ -203,7 +202,11 @@ namespace OpenKalman
   /**
    * \overload
    * \brief Perform a chipwise nullary operation.
-   * \tparam Is Number of dimensions corresponding to each <code>index...</code>.
+   * \details The nullary operation returns a chip, and that chip is replicated along the specified <code>indices</code>
+   * a number of times indicated by <code>Is</code>.
+   * \tparam Operation A nullary operation. The operation may optionally take, as arguments,
+   * <code>sizeof...(indices)</code> indices (in the same order as <code>indices</code>).
+   * \tparam Is Number of dimensions corresponding to each of <code>indices...</code>.
    */
 #ifdef __cpp_concepts
   template<std::size_t...indices, typename Operation, index_value...Is> requires (sizeof...(Is) == sizeof...(indices))

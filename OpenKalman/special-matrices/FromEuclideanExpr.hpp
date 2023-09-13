@@ -294,13 +294,27 @@ namespace OpenKalman
     template<typename TypedIndex, typename NestedMatrix>
     struct IndexibleObjectTraits<FromEuclideanExpr<TypedIndex, NestedMatrix>>
     {
-      static constexpr std::size_t max_indices = 2;
+      static constexpr std::size_t max_indices = max_indices_of_v<NestedMatrix>;
 
-      template<std::size_t N, typename Arg>
-      static constexpr auto get_index_descriptor(const Arg& arg)
+      using index_type = index_type_of_t<NestedMatrix>;
+
+      using scalar_type = scalar_type_of_t<NestedMatrix>;
+
+
+      template<typename Arg, typename N>
+      static constexpr auto get_index_descriptor(Arg&& arg, N n)
       {
-        if constexpr (N == 0) return std::forward<Arg>(arg).my_dimension;
-        else return OpenKalman::get_index_descriptor<N>(nested_matrix(std::forward<Arg>(arg)));
+        if constexpr (static_index_value<N>)
+        {
+          if constexpr (static_index_value_of_v<N> == 0) return std::forward<Arg>(arg).my_dimension;
+          else return OpenKalman::get_index_descriptor(nested_matrix(std::forward<Arg>(arg)), n);
+        }
+        else
+        {
+          using Scalar = scalar_type_of<Arg>;
+          if (n == 0) return DynamicTypedIndex<Scalar> {std::forward<Arg>(arg).my_dimension};
+          else return DynamicTypedIndex<Scalar> {OpenKalman::get_index_descriptor(nested_matrix(std::forward<Arg>(arg)), n)};
+        }
       }
 
       template<Likelihood b>
@@ -348,9 +362,6 @@ namespace OpenKalman
       static constexpr bool is_triangular_adapter = false;
 
       static constexpr bool is_hermitian = hermitian_matrix<NestedMatrix> and euclidean_index_descriptor<TypedIndex>;
-
-
-      using scalar_type = scalar_type_of_t<NestedMatrix>;
 
 
   #ifdef __cpp_lib_concepts

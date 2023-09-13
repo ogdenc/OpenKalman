@@ -32,34 +32,25 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief Specifies any descendant of Eigen::TensorBase.
+   * \tparam must_be_native T is required to be a native Eigen tensor.
    */
-  template<typename T>
+  template<typename T, bool must_be_native = false>
 #ifdef __cpp_concepts
   concept eigen_tensor_general =
 #else
   constexpr bool eigen_tensor_general =
 #endif
-    std::is_base_of_v<Eigen::TensorBase<std::decay_t<T>, Eigen::ReadOnlyAccessors>, std::decay_t<T>>;
-
-
-  /**
-   * \brief Specifies a native Eigen tensor object deriving from Eigen::TensorBase.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept native_eigen_tensor =
-#else
-  constexpr bool native_eigen_tensor =
-#endif
-    eigen_tensor_general<T> and (not std::is_base_of_v<EigenDenseBase, std::decay_t<T>>);
+    std::is_base_of_v<Eigen::TensorBase<std::decay_t<T>, Eigen::ReadOnlyAccessors>, std::decay_t<T>> and
+      (not must_be_native or not std::is_base_of_v<EigenDenseBase, std::decay_t<T>>);
 
 
   /**
    * \internal
    * \brief A dumb wrapper for OpenKalman classes so that they are treated exactly as native Eigen tensor types.
    * \tparam T A non-Eigen tensor class.
+   * \tparam IndexType The index type (e.g., int or std::size_t).
    */
-  template<typename T>
+  template<typename T, typename IndexType = index_type_of_t<T>>
   struct EigenTensorWrapper;
 
 
@@ -68,8 +59,8 @@ namespace OpenKalman::Eigen3
     template<typename T>
     struct is_EigenTensorWrapper : std::false_type {};
 
-    template<typename T>
-    struct is_EigenTensorWrapper<EigenTensorWrapper<T>> : std::true_type {};
+    template<typename T, typename IndexType>
+    struct is_EigenTensorWrapper<EigenTensorWrapper<T, IndexType>> : std::true_type {};
   }
 
 

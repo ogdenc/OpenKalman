@@ -83,15 +83,6 @@ namespace OpenKalman
       row_index_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...));
 #endif
 
-    template<typename T>
-    static constexpr auto make_writable_matrix(T&& t)
-    {
-      using RC = row_index_descriptor_of_t<T>;
-      using CC = column_index_descriptor_of_t<T>;
-      return Matrix<RC, CC, dense_writable_matrix_t<T, scalar_type_of_t<T>>> {std::forward<T>(t)};
-    }
-
-
     // Construct one Jacobian term.
     template<std::size_t term, typename...Inputs>
     auto jac_term(const std::tuple<Inputs...>& inputs) const
@@ -258,8 +249,8 @@ namespace OpenKalman
     auto jacobian(In&& in, Perturbations&&...ps) const
     {
       return jacobian_impl(
-        std::forward_as_tuple(make_writable_matrix(std::forward<In>(in)),
-          make_writable_matrix(std::forward<Perturbations>(ps))...),
+        std::forward_as_tuple(make_dense_writable_matrix_from(std::forward<In>(in)),
+          make_dense_writable_matrix_from(std::forward<Perturbations>(ps))...),
         std::make_index_sequence<1 + sizeof...(ps)> {});
     }
 
@@ -281,8 +272,8 @@ namespace OpenKalman
     auto hessian(In&& in, Perturbations&&...ps) const
     {
       return hessian_impl(
-        std::forward_as_tuple(make_writable_matrix(std::forward<In>(in)),
-          make_writable_matrix(std::forward<Perturbations>(ps))...),
+        std::forward_as_tuple(make_dense_writable_matrix_from(std::forward<In>(in)),
+          make_dense_writable_matrix_from(std::forward<Perturbations>(ps))...),
         std::make_index_sequence<1 + sizeof...(ps)> {});
     }
 

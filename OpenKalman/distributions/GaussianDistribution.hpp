@@ -731,12 +731,23 @@ namespace OpenKalman
     {
       static constexpr std::size_t max_indices = 1;
 
-      template<std::size_t N, typename Arg>
-      static constexpr auto get_index_descriptor(const Arg& arg)
+      using index_type = index_type_of_t<NestedMean>;
+
+      using scalar_type = scalar_type_of_t<NestedMean>;
+
+      template<typename Arg, typename N>
+      static constexpr auto get_index_descriptor(const Arg& arg, N n)
       {
-        static_assert(N == 0);
-        if constexpr (not dynamic_dimension<NestedMean, 0>) return OpenKalman::get_index_descriptor<0>(mean_of(arg));
-        else return OpenKalman::get_index_descriptor<0>(covariance_of(arg));
+        if constexpr (static_index_value<N>)
+        {
+          static_assert(static_index_value_of_v<N> == 0);
+          if constexpr (not dynamic_dimension<NestedMean, 0>) return OpenKalman::get_index_descriptor<0>(mean_of(arg));
+          else return OpenKalman::get_index_descriptor<0>(covariance_of(arg));
+        }
+        else
+        {
+          return OpenKalman::get_index_descriptor(mean_of(arg), n);
+        }
       }
 
       static constexpr bool has_runtime_parameters = false;
@@ -761,8 +772,6 @@ namespace OpenKalman
         using S = decltype(s);
         return GaussianDistribution<Coeffs, M, S, re> {std::forward<M>(m), std::forward<M>(s)};
       }
-
-      using scalar_type = scalar_type_of_t<NestedMean>;
 
 
 #ifdef __cpp_lib_concepts

@@ -27,21 +27,15 @@
 
 
 #include <Eigen/Dense>
-//#include <unsupported/Eigen/CXX11/Tensor>
+#include <unsupported/Eigen/CXX11/Tensor>
 
 
 // Note: c++20 mode requires at least Eigen version 3.3.9. See Eigen Commit 7a0a2a500, which fixes issue #2012.
-#if not EIGEN_VERSION_AT_LEAST(3,3,9)
-#define EIGEN_IS_NOT_CPLUSPLUS20_COMPATIBLE
+#if __cplusplus >= 202002L and not EIGEN_VERSION_AT_LEAST(3,3,9)
+static_assert(true, "Eigen 3.3.9 required for c++20 or higher standard.");
 #endif
 
-#ifdef EIGEN_IS_NOT_CPLUSPLUS20_COMPATIBLE
-#pragma push_macro("__cpp_concepts")
-#undef __cpp_concepts
-#endif
-
-
-#ifdef __GNUC__
+#if __cplusplus < 202002L and defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunknown-pragmas"
 #pragma GCC diagnostic ignored "-Wignored-attributes"
@@ -77,7 +71,7 @@ namespace OpenKalman::Eigen3 {}
 #include "details/EigenAdapterBase.hpp"
 #include "details/EigenWrapper.hpp"
 
-#ifdef __GNUC__
+#if __cplusplus < 202002L and defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif
 
@@ -86,10 +80,6 @@ namespace OpenKalman
 {
   using Eigen3::eigen_matrix_t;
 }
-
-#ifdef EIGEN_IS_NOT_CPLUSPLUS20_COMPATIBLE
-#pragma pop_macro("__cpp_concepts")
-#endif
 
 #include "default-overloads.hpp"
 

@@ -35,7 +35,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<square_matrix<Likelihood::maybe> Arg>
-  constexpr vector decltype(auto)
+  constexpr vector<0, Likelihood::maybe> decltype(auto)
 #else
   template<typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe>, int> = 0>
   constexpr decltype(auto)

@@ -30,13 +30,17 @@ namespace OpenKalman::interface
 
   public:
 
-    static constexpr std::size_t max_indices = std::max({max_indices_of_v<LhsType>, max_indices_of_v<RhsType>});
-
-    template<std::size_t N, typename Arg>
-    static constexpr auto get_index_descriptor(const Arg& arg)
+    template<typename Arg, typename N>
+    static constexpr auto get_index_descriptor(const Arg& arg, N n)
     {
-      if constexpr (not dynamic_dimension<LhsType, N>) return OpenKalman::get_index_descriptor<N>(arg.lhs());
-      else return OpenKalman::get_index_descriptor<N>(arg.rhs());
+      if constexpr (static_index_value<N>)
+      {
+        if constexpr (not dynamic_dimension<LhsType, static_index_value_of_v<N>>)
+          return OpenKalman::get_index_descriptor(arg.lhs(), n);
+        else
+          return OpenKalman::get_index_descriptor(arg.rhs(), n);
+      }
+      else return OpenKalman::get_index_descriptor(arg.lhs(), n);
     }
 
     template<Likelihood b>
@@ -53,6 +57,7 @@ namespace OpenKalman::interface
         square_matrix<LhsType, b> or square_matrix<RhsType, b>);
 
     static constexpr bool has_runtime_parameters = false;
+
     using type = std::tuple<typename T::LhsNested, typename T::RhsNested>;
 
     template<std::size_t i, typename Arg>
@@ -70,8 +75,7 @@ namespace OpenKalman::interface
     template<typename Arg>
     static auto convert_to_self_contained(Arg&& arg)
     {
-      using N = Eigen::CwiseBinaryOp<BinaryOp, equivalent_self_contained_t<LhsType>,
-        equivalent_self_contained_t<RhsType>>;
+      using N = Eigen::CwiseBinaryOp<BinaryOp, equivalent_self_contained_t<LhsType>, equivalent_self_contained_t<RhsType>>;
       // Do a partial evaluation as long as at least one argument is already self-contained.
       if constexpr ((self_contained<LhsType> or self_contained<RhsType>) and
         not std::is_lvalue_reference_v<typename N::LhsNested> and

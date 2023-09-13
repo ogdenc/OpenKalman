@@ -927,8 +927,12 @@ namespace OpenKalman
     {
       static constexpr std::size_t max_indices = 2;
 
-      template<std::size_t N, typename Arg>
-      static constexpr auto get_index_descriptor(const Arg& arg)
+      using index_type = index_type_of_t<NestedMatrix>;
+
+      using scalar_type = scalar_type_of_t<NestedMatrix>;
+
+      template<typename Arg, typename N>
+      static constexpr auto get_index_descriptor(Arg&& arg, N)
       {
         return std::forward<Arg>(arg).my_dimension;
       }
@@ -984,8 +988,6 @@ namespace OpenKalman
 
       static constexpr bool is_hermitian = false;
 
-
-      using scalar_type = scalar_type_of_t<nested_matrix_of_t<T>>;
 
   #ifdef __cpp_lib_concepts
       template<typename Arg, typename...I> requires

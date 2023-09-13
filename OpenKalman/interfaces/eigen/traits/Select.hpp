@@ -31,15 +31,20 @@ namespace OpenKalman::interface
 
   public:
 
-    static constexpr std::size_t max_indices = max_indices_of_v<ConditionMatrixType>;
-
-
-    template<std::size_t N, typename Arg>
-    static constexpr auto get_index_descriptor(const Arg& arg)
+    template<typename Arg, typename N>
+    static constexpr auto get_index_descriptor(const Arg& arg, N n)
     {
-      if constexpr (not dynamic_dimension<ConditionMatrixType, N>) return OpenKalman::get_index_descriptor(arg.conditionMatrix());
-      else if constexpr (not dynamic_dimension<ThenMatrixType, N>) return OpenKalman::get_index_descriptor(arg.thenMatrix());
-      else return OpenKalman::get_index_descriptor<N>(arg.elseMatrix());
+      if constexpr (static_index_value<N>)
+      {
+        constexpr auto i = static_index_value_of_v<N>;
+        if constexpr (not dynamic_dimension<ConditionMatrixType, i>) return OpenKalman::get_index_descriptor(arg.conditionMatrix(), n);
+        else if constexpr (not dynamic_dimension<ThenMatrixType, i>) return OpenKalman::get_index_descriptor(arg.thenMatrix(), n);
+        else return OpenKalman::get_index_descriptor(arg.elseMatrix(), n);
+      }
+      else
+      {
+        return OpenKalman::get_index_descriptor(arg.conditionMatrix(), n);
+      }
     }
 
 

@@ -28,24 +28,17 @@ namespace OpenKalman::interface
     using LibraryBase = internal::library_base<Derived, nested_matrix_of_t<T>>;
 
 
-    template<typename Scalar, typename...D>
-    static auto make_default(D&&...d)
-    {
-      return LibraryRoutines<nested_matrix_of_t<T>>::template make_default<Scalar>(std::forward<D>(d)...);
-    }
-
-
-    template<typename Scalar, typename Arg>
-    static decltype(auto) convert(Arg&& arg)
-    {
-      return LibraryRoutines<nested_matrix_of_t<T>>::template convert<Scalar>(nested_matrix(std::forward<Arg>(arg)));
-    }
-
-
     template<typename Arg>
     static decltype(auto) to_native_matrix(Arg&& arg)
     {
       return OpenKalman::to_native_matrix<nested_matrix_of_t<T>>(nested_matrix(std::forward<Arg>(arg)));
+    }
+
+
+    template<typename Scalar, typename...D>
+    static auto make_default(D&&...d)
+    {
+      return LibraryRoutines<nested_matrix_of_t<T>>::template make_default<Scalar>(std::forward<D>(d)...);
     }
 
 

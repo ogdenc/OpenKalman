@@ -29,15 +29,34 @@ namespace OpenKalman
    * \brief Get the index descriptor of object Arg for index N.
    */
 #ifdef __cpp_concepts
-  template<std::size_t N = 0, indexible Arg> requires (N < max_indices_of_v<Arg>)
+  template<std::size_t N = 0, indexible T>
   constexpr index_descriptor auto
 #else
-  template<std::size_t N = 0, typename Arg, std::enable_if_t<indexible<Arg> and N < max_indices_of<Arg>::value, int> = 0>
+  template<std::size_t N = 0, typename T, std::enable_if_t<indexible<T>, int> = 0>
   constexpr auto
 #endif
-  get_index_descriptor(const Arg& arg)
+  get_index_descriptor(const T& t)
   {
-    return interface::IndexibleObjectTraits<Arg>::template get_index_descriptor<N>(arg);
+    if constexpr (N < max_indices_of_v<T>)
+      return interface::IndexibleObjectTraits<T>::get_index_descriptor(t, std::integral_constant<std::size_t, N>{});
+    else
+      return Dimensions<1>{};
+  }
+
+
+  /**
+   * \overload
+   */
+#ifdef __cpp_concepts
+  template<indexible T, index_value N = std::integral_constant<std::size_t, 0>>
+  constexpr index_descriptor auto
+#else
+  template<typename T, typename N = std::integral_constant<std::size_t, 0>, std::enable_if_t<indexible<T> and index_value<N>, int> = 0>
+  constexpr auto
+#endif
+  get_index_descriptor(const T& t, N n = N{})
+  {
+    return interface::IndexibleObjectTraits<T>::get_index_descriptor(t, n);
   }
 
 
@@ -57,6 +76,21 @@ namespace OpenKalman
   get_index_dimension_of(const T& t)
   {
     return get_dimension_size_of(get_index_descriptor<N>(t));
+  }
+
+
+  /**
+   * \overload
+   */
+#ifdef __cpp_concepts
+  template<indexible T, index_value N = std::integral_constant<std::size_t, 0>>
+#else
+  template<typename T, typename N = std::integral_constant<std::size_t, 0>, std::enable_if_t<indexible<T> and index_value<N>, int> = 0>
+#endif
+  constexpr std::size_t
+  get_index_dimension_of(const T& t, N n = N{})
+  {
+    return get_dimension_size_of(get_index_descriptor(t, n));
   }
 
 
@@ -426,13 +460,13 @@ namespace OpenKalman
     }
 
 
-    // ------------- //
-    //  get_strides  //
-    // ------------- //
+    // --------- //
+    //  strides  //
+    // --------- //
 
     /**
      * \internal
-     * \brief Returns the strides of a strided tensor or matrix.
+     * \brief Returns a tuple comprising the strides of a strided tensor or matrix.
      */
 #ifdef __cpp_concepts
     template<indexible T> requires (layout_of_v<T> == Layout::stride)

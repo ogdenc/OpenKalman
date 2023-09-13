@@ -27,7 +27,11 @@ namespace OpenKalman
    * \brief A constant indicating that the relevant dimension of a matrix has a size that is dynamic.
    * \details A dynamic dimension can be set, or change, during runtime and is not known at compile time.
    */
-  static constexpr std::size_t dynamic_size = std::numeric_limits<std::size_t>::max();
+#ifdef __cpp_lib_span
+  inline constexpr std::size_t dynamic_size = std::dynamic_extent;
+#else
+  inline constexpr std::size_t dynamic_size = std::numeric_limits<std::size_t>::max();
+#endif
 
 
   /**
@@ -151,6 +155,31 @@ namespace OpenKalman
     template<typename Op, typename...Args>
     constexpr bool constexpr_n_ary_function = is_constexpr_n_ary_function<Op, void, Args...>::value;
 #endif
+
+
+    /**
+     * \internal
+     * \brief T is a non-empty tuple, pair, array, or other type that can be an argument to std::apply.
+     */
+  #ifdef __cpp_concepts
+    template<typename T>
+    concept tuple_like = requires { std::tuple_size<T>() == 0; } or requires (T t) { std::get<0>(t); };
+  #else
+    namespace detail
+    {
+      template<typename T, typename = void>
+      struct is_tuple_like : std::false_type {};
+
+      template<typename T>
+      struct is_tuple_like<T, std::enable_if_t<(std::tuple_size<T>() == 0)>> : std::true_type {};
+
+      template<typename T>
+      struct is_tuple_like<T, std::void_t<decltype(std::get<0>(std::declval<T>()))>> : std::true_type {};
+    }
+
+    template<typename T>
+    constexpr bool tuple_like = detail::is_tuple_like<T>::value;
+  #endif
 
 
   } // namespace internal

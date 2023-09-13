@@ -35,25 +35,48 @@ namespace OpenKalman::interface
   struct IndexibleObjectTraits
   {
     /**
+     * \var max_indices
      * \brief The maximum number of indices by which the elements of T are accessible.
      * \details T may optionally be accessible by fewer indices.
+     * \code
+     * static constexpr std::size_t max_indices = 0;
+     * \endcode
      */
-    static constexpr std::size_t max_indices = 0;
+
+
+    /**
+     * \typedef index_type
+     * \brief The index type of T (e.g., std::size_t, int).
+     * \details Example:
+     * \code
+     * using index_type = std::size_t;
+     * \endcode
+     */
+
+
+    /**
+     * \typedef scalar_type
+     * \brief The scalar type of T (e.g., double, int).
+     * \details Example:
+     * \code
+     * using scalar_type = double;
+     * \endcode
+     */
 
 
     /**
      * \brief Get an \ref index_descriptor for index N of an argument.
-     * \tparam N The index
      * \param arg An indexible object (tensor, matrix, vector, etc.)
+     * \param n The index (e.g., 0 (dynamic) or std::integral_constant<std::size_t, 0> (static))
      * \return an \ref index_descriptor (either fixed or dynamic)
      */
 #ifdef __cpp_concepts
-    template<std::size_t N, std::convertible_to<const std::remove_reference_t<T>&> Arg>
+    template<std::convertible_to<const std::remove_reference_t<T>&> Arg, index_value N>
     static constexpr index_descriptor auto get_index_descriptor(const Arg& arg)
 #else
-    template<std::size_t N, typename Arg, std::enable_if_t<std::is_convertible_v<Arg,
-      const std::add_lvalue_reference_t<std::decay_t<T>>>, int> = 0>
-    static constexpr auto get_index_descriptor(const Arg& arg)
+    template<typename Arg, typename N, std::enable_if_t<std::is_convertible_v<Arg,
+      const std::add_lvalue_reference_t<std::decay_t<T>>> and index_value<N>, int> = 0>
+    static constexpr auto get_index_descriptor(const Arg& arg, N n)
 #endif
     {
       return Dimensions<0>{};
@@ -223,16 +246,6 @@ namespace OpenKalman::interface
       */
      template<HermitianAdapterType t, typename Arg>
      static constexpr auto make_hermitian_adapter(Arg&& arg) = delete;
-
-
-    /**
-     * \typedef scalar_type
-     * \brief The scalar type of T (e.g., double, int).
-     * \details Example:
-     * \code
-     * using scalar_type = double;
-     * \endcode
-     */
 
 
     /**

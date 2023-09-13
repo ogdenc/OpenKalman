@@ -25,14 +25,17 @@
 namespace OpenKalman::test
 {
 
-/*#ifdef __cpp_concepts
-  template<Eigen3::eigen_dense_general Arg1, Eigen3::eigen_dense_general Arg2, typename Err> requires
-    std::is_arithmetic_v<Err> or Eigen3::eigen_dense_general<Err>
+#ifdef __cpp_concepts
+  template<Eigen3::eigen_tensor_general Arg1, Eigen3::eigen_tensor_general Arg2, typename Err> requires
+    (Eigen3::eigen_tensor_general<Arg1, true> or Eigen3::eigen_tensor_general<Arg2, true>) and
+    (std::is_arithmetic_v<Err> or Eigen3::eigen_tensor_general<Err>)
   struct TestComparison<Arg1, Arg2, Err>
 #else
   template<typename Arg1, typename Arg2, typename Err>
-  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<Eigen3::eigen_dense_general<Arg1> and Eigen3::eigen_dense_general<Arg2> and
-    (std::is_arithmetic_v<Err> or Eigen3::eigen_dense_general<Err>)>>
+  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<
+    Eigen3::eigen_tensor_general<Arg1> and Eigen3::eigen_tensor_general<Arg2> and
+    (Eigen3::eigen_tensor_general<Arg1, true> or Eigen3::eigen_tensor_general<Arg2, true>) and
+    (std::is_arithmetic_v<Err> or Eigen3::eigen_tensor_general<Err>)>>
 #endif
     : ::testing::AssertionResult
   {
@@ -42,17 +45,24 @@ namespace OpenKalman::test
     static ::testing::AssertionResult
     compare(const Arg1& arg1, const Arg2& arg2, const Err& err)
     {
+      using Scalar = scalar_type_of_t<Arg1>;
+      using T0 = Eigen::Tensor<Scalar, 0>;
+      auto diff = arg1 - arg2;
       if constexpr (std::is_arithmetic_v<Err>)
       {
-        if (arg1.matrix().isApprox(arg2.matrix(), err) or (arg1.matrix().isMuchSmallerThan(1., err) and
-          arg2.matrix().isMuchSmallerThan(1., err)))
+        auto lhs = get_element(T0{(diff * diff).sum()});
+        auto sum1 = get_element(T0{(arg1 * arg1).sum()});
+        auto sum2 = get_element(T0{(arg2 * arg2).sum()});
+        auto err2 = err * err;
+        auto rhs = err2 * std::min(sum1, sum2);
+        if (lhs <= rhs or (sum1 <= err2 and sum2 <= err2))
         {
           return ::testing::AssertionSuccess();
         }
       }
       else
       {
-        if (((arg1.array() - arg2.array()).abs() - err).maxCoeff() <= 0)
+        if (get_element(T0{(diff.abs() - err).maximum()}) <= 0)
         {
           return ::testing::AssertionSuccess();
         }
@@ -71,27 +81,33 @@ namespace OpenKalman::test
 
 
 #ifdef __cpp_concepts
-  template<indexible Arg1, indexible Arg2, typename Err> requires
-    (Eigen3::eigen_general<Arg1, true> and not Eigen3::eigen_general<Arg2, true>) or
-    (not Eigen3::eigen_general<Arg1, true> and Eigen3::eigen_general<Arg2, true>)
+  template<typename Arg1, typename Arg2, typename Err> requires
+    (not Eigen3::eigen_tensor_general<Arg1> or not Eigen3::eigen_tensor_general<Arg2>) and
+    (Eigen3::eigen_tensor_general<Arg1, true> or Eigen3::eigen_tensor_general<Arg2, true>) and
+    (Eigen3::eigen_tensor_general<Arg1> or Eigen3::eigen_general<Arg1>) and
+    (Eigen3::eigen_tensor_general<Arg2> or Eigen3::eigen_general<Arg2>) and
+    (std::is_arithmetic_v<Err> or Eigen3::eigen_tensor_general<Err>)
   struct TestComparison<Arg1, Arg2, Err>
 #else
   template<typename Arg1, typename Arg2, typename Err>
-  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<indexible<Arg1> and indexible<Arg2> and
-    ((Eigen3::eigen_general<Arg1, true> and not Eigen3::eigen_general<Arg2, true>) or
-    (not Eigen3::eigen_general<Arg1, true> and Eigen3::eigen_general<Arg2, true>))>>
+  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<
+    (not Eigen3::eigen_tensor_general<Arg1> or not Eigen3::eigen_tensor_general<Arg2>) and
+    (Eigen3::eigen_tensor_general<Arg1, true> or Eigen3::eigen_tensor_general<Arg2, true>) and
+    (Eigen3::eigen_tensor_general<Arg1> or Eigen3::eigen_general<Arg1>) and
+    (Eigen3::eigen_tensor_general<Arg2> or Eigen3::eigen_general<Arg2>) and
+    (std::is_arithmetic_v<Err> or Eigen3::eigen_tensor_general<Err>)>>
 #endif
     : ::testing::AssertionResult
   {
   private:
 
-    using A = std::conditional_t<Eigen3::eigen_general<Arg1, true>, Arg1, Arg2>;
+    using A = std::conditional_t<Eigen3::eigen_tensor_general<Arg1, true>, Arg1, Arg2>;
 
   public:
     TestComparison(const Arg1& arg1, const Arg2& arg2, const Err& err)
       : ::testing::AssertionResult {is_near(to_native_matrix<A>(arg1), to_native_matrix<A>(arg2), err)} {};
 
-  };*/
+  };
 
 
 } // namespace OpenKalman::test

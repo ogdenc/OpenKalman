@@ -428,10 +428,14 @@ namespace OpenKalman
     {
       static constexpr std::size_t max_indices = 2;
 
-      template<std::size_t N, typename Arg>
-      static constexpr auto get_index_descriptor(const Arg& arg)
+      using index_type = index_type_of_t<ColumnVector>;
+
+      using scalar_type = scalar_type_of_t<ColumnVector>;
+
+      template<typename Arg, typename N>
+      static constexpr auto get_index_descriptor(Arg&& arg, N n)
       {
-        return OpenKalman::get_index_descriptor<0>(nested_matrix(arg));
+        return OpenKalman::get_index_descriptor<0>(nested_matrix(std::forward<Arg>(arg)));
       }
 
       template<Likelihood b>
@@ -471,8 +475,6 @@ namespace OpenKalman
       template<Likelihood b>
       static constexpr bool is_diagonal_adapter = true;
 
-
-      using scalar_type = scalar_type_of_t<ColumnVector>;
 
 
 #ifdef __cpp_lib_concepts

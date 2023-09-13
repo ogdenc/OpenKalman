@@ -23,7 +23,6 @@
 #include "diagonal_of.hpp"
 #include "make_hermitian_matrix.hpp"
 #include "make_triangular_matrix.hpp"
-#include "to_native_matrix.hpp"
 #include "to_euclidean.hpp"
 #include "from_euclidean.hpp"
 #include "wrap_angles.hpp"

@@ -242,7 +242,7 @@ namespace OpenKalman
   template<typename BinaryFunction, typename Arg, std::enable_if_t<indexible<Arg> and
     std::is_invocable_r<typename scalar_type_of<Arg>::type, BinaryFunction&&,
       typename scalar_type_of<Arg>::type, typename scalar_type_of<Arg>::type>::value and
-    (detail::has_uniform_reduction_indices<Arg>(std::make_index_sequence<max_indices_of_v<Arg>> {})), int> = 0>
+    (detail::has_uniform_reduction_indices<Arg>(std::make_index_sequence<max_indices_of<Arg>::value> {})), int> = 0>
 #endif
   constexpr scalar_type_of_t<Arg>
   reduce(const BinaryFunction& b, Arg&& arg)
