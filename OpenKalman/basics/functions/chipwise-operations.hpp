@@ -21,36 +21,36 @@ namespace OpenKalman
   namespace detail
   {
     template<std::size_t ix, typename Best_d>
-    const Best_d& chipwise_descriptor_for(const Best_d& best_d) { return best_d; }
+    const Best_d& chipwise_vector_space_descriptor_for(const Best_d& best_d) { return best_d; }
 
     template<std::size_t ix, typename Best_d, typename Arg, typename...Args>
-    decltype(auto) chipwise_descriptor_for(const Best_d& best_d, const Arg& arg, const Args&...args)
+    decltype(auto) chipwise_vector_space_descriptor_for(const Best_d& best_d, const Arg& arg, const Args&...args)
     {
-      auto d = get_index_descriptor<ix>(arg);
+      auto d = get_vector_space_descriptor<ix>(arg);
       using D = decltype(d);
-      if constexpr (fixed_index_descriptor<Best_d>)
+      if constexpr (fixed_vector_space_descriptor<Best_d>)
       {
-        if constexpr (fixed_index_descriptor<D>)
+        if constexpr (fixed_vector_space_descriptor<D>)
           static_assert(dimension_size_of_v<D> == dimension_size_of_v<Best_d>,
-            "Arguments to chipwise_operation must have matching index descriptors.");
+            "Arguments to chipwise_operation must have matching vector space descriptors.");
         else
-          if (d != best_d) throw std::invalid_argument {"Arguments to chipwise_operation must have matching index descriptors."};
-        return chipwise_descriptor_for<ix>(best_d, args...);
+          if (d != best_d) throw std::invalid_argument {"Arguments to chipwise_operation must have matching vector space descriptors."};
+        return chipwise_vector_space_descriptor_for<ix>(best_d, args...);
       }
-      else // dynamic_index_descriptor<Best_d>
+      else // dynamic_vector_space_descriptor<Best_d>
       {
-        if (d != best_d) throw std::invalid_argument {"Arguments to chipwise_operation must have matching index descriptors."};
-        if constexpr (fixed_index_descriptor<D>)
-          return chipwise_descriptor_for<ix>(d, args...);
+        if (d != best_d) throw std::invalid_argument {"Arguments to chipwise_operation must have matching vector space descriptors."};
+        if constexpr (fixed_vector_space_descriptor<D>)
+          return chipwise_vector_space_descriptor_for<ix>(d, args...);
         else
-          return chipwise_descriptor_for<ix>(best_d, args...);
+          return chipwise_vector_space_descriptor_for<ix>(best_d, args...);
       }
     }
 
     template<std::size_t...ix, typename Arg, typename...Args>
     auto make_chipwise_default(std::index_sequence<ix...>, const Arg& arg, const Args&...args)
     {
-      return make_default_dense_writable_matrix_like<Arg>(chipwise_descriptor_for<ix>(get_index_descriptor<ix>(arg), args...)...);
+      return make_default_dense_writable_matrix_like<Arg>(chipwise_vector_space_descriptor_for<ix>(get_vector_space_descriptor<ix>(arg), args...)...);
     }
 
 
@@ -114,7 +114,7 @@ namespace OpenKalman
   {
     if constexpr (sizeof...(indices) > 0)
     {
-      std::make_index_sequence<std::max({max_indices_of_v<Args>...})> args_ix_seq;
+      std::make_index_sequence<std::max({index_count_v<Args>...})> args_ix_seq;
       auto m = detail::make_chipwise_default(args_ix_seq, args...);
 
       constexpr bool uses_indices = std::is_invocable_v<Operation,
@@ -133,23 +133,23 @@ namespace OpenKalman
   namespace detail
   {
     template<std::size_t op_ix, typename Ds_tup>
-    auto nullary_chipwise_descriptor(const Ds_tup& ds_tup)
+    auto nullary_chipwise_vector_space_descriptor(const Ds_tup& ds_tup)
     {
       return std::get<op_ix>(ds_tup);
     }
 
     template<std::size_t op_ix, std::size_t index, std::size_t...indices, typename Ds_tup, typename I, typename...Is>
-    auto nullary_chipwise_descriptor(const Ds_tup& ds_tup, I i, Is...is)
+    auto nullary_chipwise_vector_space_descriptor(const Ds_tup& ds_tup, I i, Is...is)
     {
-      if constexpr (op_ix == index) return internal::replicate_index_descriptor(std::get<op_ix>(ds_tup), i);
-      else return nullary_chipwise_descriptor<op_ix, indices...>(ds_tup, is...);
+      if constexpr (op_ix == index) return internal::replicate_vector_space_descriptor(std::get<op_ix>(ds_tup), i);
+      else return nullary_chipwise_vector_space_descriptor<op_ix, indices...>(ds_tup, is...);
     }
 
     template<std::size_t...indices, std::size_t...op_ix, typename OpResult, typename...Is>
     auto make_nullary_chipwise_default(std::index_sequence<op_ix...>, const OpResult& op_result, Is...is)
     {
       auto ds_tup = get_all_dimensions_of(op_result);
-      return make_default_dense_writable_matrix_like<OpResult>(nullary_chipwise_descriptor<op_ix, indices...>(ds_tup, is...)...);
+      return make_default_dense_writable_matrix_like<OpResult>(nullary_chipwise_vector_space_descriptor<op_ix, indices...>(ds_tup, is...)...);
     }
 
 
@@ -229,7 +229,7 @@ namespace OpenKalman
       "Operator must return a chip, meaning that the dimension is 1 for each of the specified indices.");
     // Note: set_chip includes a runtime check that operation() is a chip.
 
-    std::make_index_sequence<max_indices_of_v<OpResult>> op_ix_seq;
+    std::make_index_sequence<index_count_v<OpResult>> op_ix_seq;
     auto m = detail::make_nullary_chipwise_default<indices...>(op_ix_seq, op_result, is...);
     set_chip<indices...>(m, std::move(op_result), std::integral_constant<decltype(indices), 0> {}...);
 

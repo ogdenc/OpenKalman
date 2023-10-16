@@ -35,10 +35,12 @@ namespace OpenKalman::interface
 
 
   template<typename XprType, int Rows, int Cols, int Order>
-  struct IndexibleObjectTraits<Eigen::Reshaped<XprType, Rows, Cols, Order>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::Reshaped<XprType, Rows, Cols, Order>>
+  struct indexible_object_traits<Eigen::Reshaped<XprType, Rows, Cols, Order>>
+    : Eigen3::indexible_object_traits_base<Eigen::Reshaped<XprType, Rows, Cols, Order>>
   {
   private:
+
+    using Base = Eigen3::indexible_object_traits_base<Eigen::Reshaped<XprType, Rows, Cols, Order>>;
 
     static constexpr std::size_t xprtypeprod = has_dynamic_dimensions<XprType> ? dynamic_size :
       index_dimension_of_v<XprType, 0> * index_dimension_of_v<XprType, 1>;
@@ -54,7 +56,7 @@ namespace OpenKalman::interface
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_index_descriptor(const Arg& arg, N n)
+    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
     {
       if constexpr (static_index_value<N>)
       {
@@ -83,26 +85,9 @@ namespace OpenKalman::interface
       }
     }
 
-    template<Likelihood b>
-    static constexpr bool is_one_by_one =
-      (Rows == 1 and Cols == 1 and one_by_one_matrix<XprType, Likelihood::maybe>) or
-      ((Rows == 1 or Rows == Eigen::Dynamic) and (Cols == 1 or Cols == Eigen::Dynamic) and one_by_one_matrix<XprType, b>);
-
-    template<Likelihood b>
-    static constexpr bool is_square =
-      (b != Likelihood::definitely or (Rows != Eigen::Dynamic and Cols != Eigen::Dynamic) or
-        ((Rows != Eigen::Dynamic or Cols != Eigen::Dynamic) and number_of_dynamic_indices_v<XprType> <= 1)) and
-      (Rows == Eigen::Dynamic or Cols == Eigen::Dynamic or Rows == Cols) and
-      (xprtypeprod == dynamic_size or (
-        are_within_tolerance(xprtypeprod, internal::constexpr_sqrt(xprtypeprod) * internal::constexpr_sqrt(xprtypeprod)) and
-        (Rows == Eigen::Dynamic or Rows * Rows == xprtypeprod) and
-        (Cols == Eigen::Dynamic or Cols * Cols == xprtypeprod))) and
-      (Rows == Eigen::Dynamic or xprtypemax == 0 or (Rows * Rows) % xprtypemax == 0) and
-      (Cols == Eigen::Dynamic or xprtypemax == 0 or (Cols * Cols) % xprtypemax == 0);
+    using type = std::tuple<Nested_t>;
 
     static constexpr bool has_runtime_parameters = HasDirectAccess ? Rows == Eigen::Dynamic or Cols == Eigen::Dynamic : false;
-
-    using type = std::tuple<Nested_t>;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -141,6 +126,23 @@ namespace OpenKalman::interface
       }
       else return std::monostate{};
     }
+
+    template<Likelihood b>
+    static constexpr bool is_one_by_one =
+      (Rows == 1 and Cols == 1 and one_by_one_matrix<XprType, Likelihood::maybe>) or
+      ((Rows == 1 or Rows == Eigen::Dynamic) and (Cols == 1 or Cols == Eigen::Dynamic) and one_by_one_matrix<XprType, b>);
+
+    template<Likelihood b>
+    static constexpr bool is_square =
+      (b != Likelihood::definitely or (Rows != Eigen::Dynamic and Cols != Eigen::Dynamic) or
+        ((Rows != Eigen::Dynamic or Cols != Eigen::Dynamic) and dynamic_index_count_v<XprType> <= 1)) and
+      (Rows == Eigen::Dynamic or Cols == Eigen::Dynamic or Rows == Cols) and
+      (xprtypeprod == dynamic_size or (
+        are_within_tolerance(xprtypeprod, internal::constexpr_sqrt(xprtypeprod) * internal::constexpr_sqrt(xprtypeprod)) and
+        (Rows == Eigen::Dynamic or Rows * Rows == xprtypeprod) and
+        (Cols == Eigen::Dynamic or Cols * Cols == xprtypeprod))) and
+      (Rows == Eigen::Dynamic or xprtypemax == 0 or (Rows * Rows) % xprtypemax == 0) and
+      (Cols == Eigen::Dynamic or xprtypemax == 0 or (Cols * Cols) % xprtypemax == 0);
 
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b> and

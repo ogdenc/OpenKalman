@@ -46,18 +46,18 @@ namespace OpenKalman
 
       using In_Mean = typename DistributionTraits<InputDistribution>::Mean;
       using Out_Mean = std::invoke_result_t<TransformationType, In_Mean>;
-      using InputCoefficients = row_index_descriptor_of_t<In_Mean>;
-      using OutputCoefficients = row_index_descriptor_of_t<Out_Mean>;
+      using InputCoefficients = vector_space_descriptor_of_t<In_Mean, 0>;
+      using OutputCoefficients = vector_space_descriptor_of_t<Out_Mean, 0>;
       using Scalar = scalar_type_of_t<In_Mean>;
       static_assert((equivalent_to<OutputCoefficients,
         typename DistributionTraits<NoiseDistributions>::TypedIndex> and ...));
 
-      using InputMeanMatrix = dense_writable_matrix_t<In_Mean, Scalar, Dimensions<dimension_size_of_v<InputCoefficients>>, Dimensions<1>>;
-      using OutputEuclideanMeanMatrix = untyped_dense_writable_matrix_t<InputMeanMatrix, Scalar, dimension_size_of_v<OutputCoefficients>, 1>;
-      using OutputCovarianceMatrix = untyped_dense_writable_matrix_t<InputMeanMatrix, Scalar, dimension_size_of_v<OutputCoefficients>,
+      using InputMeanMatrix = dense_writable_matrix_t<In_Mean, Layout::none, Scalar, Dimensions<dimension_size_of_v<InputCoefficients>>, Dimensions<1>>;
+      using OutputEuclideanMeanMatrix = untyped_dense_writable_matrix_t<InputMeanMatrix, Layout::none, Scalar, dimension_size_of_v<OutputCoefficients>, 1>;
+      using OutputCovarianceMatrix = untyped_dense_writable_matrix_t<InputMeanMatrix, Layout::none, Scalar, dimension_size_of_v<OutputCoefficients>,
         dimension_size_of_v<OutputCoefficients>>;
       using OutputCovarianceSA = typename MatrixTraits<std::decay_t<OutputCovarianceMatrix>>::template SelfAdjointMatrixFrom<>;
-      using CrossCovarianceMatrix = untyped_dense_writable_matrix_t<InputMeanMatrix, Scalar, dimension_size_of_v<InputCoefficients>,
+      using CrossCovarianceMatrix = untyped_dense_writable_matrix_t<InputMeanMatrix, Layout::none, Scalar, dimension_size_of_v<InputCoefficients>,
         dimension_size_of_v<OutputCoefficients>>;
 
       using InputMean = Mean<InputCoefficients, InputMeanMatrix>;

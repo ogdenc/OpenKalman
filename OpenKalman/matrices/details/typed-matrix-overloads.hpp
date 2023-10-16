@@ -18,14 +18,14 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typed_matrix T>
-  struct LibraryRoutines<T>
+  struct library_interface<T>
 #else
   template<typename T>
   struct linearAlgebra<T, std::enable_if_t<typed_matrix<T>>>
 #endif
   {
     template<typename Derived>
-    using LibraryBase = internal::library_base<Derived, nested_matrix_of_t<T>>;
+    using LibraryBase = internal::library_base_t<Derived, nested_matrix_of_t<T>>;
 
 
     template<typename Arg>
@@ -35,11 +35,14 @@ namespace OpenKalman::interface
     }
 
 
-    template<typename Scalar, typename...D>
+    template<Layout layout, typename Scalar, typename...D>
     static auto make_default(D&&...d)
     {
-      return LibraryRoutines<nested_matrix_of_t<T>>::template make_default<Scalar>(std::forward<D>(d)...);
+      return library_interface<nested_matrix_of_t<T>>::template make_default<layout, Scalar>(std::forward<D>(d)...);
     }
+
+
+    // fill_with_elements not necessary because T is not a dense writable matrix.
 
 
     template<typename C, typename...D>
@@ -84,7 +87,7 @@ namespace OpenKalman::interface
     static auto
     to_diagonal(Arg&& arg) noexcept
     {
-      using C = row_index_descriptor_of_t<Arg>;
+      using C = vector_space_descriptor_of_t<Arg, 0>;
       auto b = to_diagonal(nested_matrix(std::forward<Arg>(arg)));
       return Matrix<C, C, decltype(b)>(std::move(b));
     }
@@ -94,16 +97,16 @@ namespace OpenKalman::interface
     static auto
     diagonal_of(Arg&& arg) noexcept
     {
-      using C = row_index_descriptor_of_t<Arg>;
+      using C = vector_space_descriptor_of_t<Arg, 0>;
       auto b = diagonal_of(nested_matrix(std::forward<Arg>(arg)));
       return Matrix<C, Axis, decltype(b)>(std::move(b));
     }
 
 
 #ifdef __cpp_concepts
-    template<mean Arg, index_descriptor C>
+    template<mean Arg, vector_space_descriptor C>
 #else
-    template<typename Arg, typename C, std::enable_if_t<mean<Arg> and index_descriptor<C>, int> = 0>
+    template<typename Arg, typename C, std::enable_if_t<mean<Arg> and vector_space_descriptor<C>, int> = 0>
 #endif
     constexpr decltype(auto)
     to_euclidean(Arg&& arg, const C& c) noexcept
@@ -114,9 +117,9 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<euclidean_mean Arg, index_descriptor C>
+    template<euclidean_mean Arg, vector_space_descriptor C>
 #else
-    template<typename Arg, typename C, std::enable_if_t<euclidean_mean<Arg> and index_descriptor<C>, int> = 0>
+    template<typename Arg, typename C, std::enable_if_t<euclidean_mean<Arg> and vector_space_descriptor<C>, int> = 0>
 #endif
     constexpr decltype(auto)
     from_euclidean(Arg&& arg, const C& c) noexcept
@@ -127,9 +130,9 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<mean Arg, index_descriptor C>
+    template<mean Arg, vector_space_descriptor C>
 #else
-    template<typename Arg, typename C, std::enable_if_t<mean<Arg> and index_descriptor<C>, int> = 0>
+    template<typename Arg, typename C, std::enable_if_t<mean<Arg> and vector_space_descriptor<C>, int> = 0>
 #endif
     constexpr decltype(auto)
     wrap_angles(Arg&& arg, const C& c) noexcept
@@ -141,8 +144,8 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto conjugate(Arg&& arg) noexcept
     {
-      using CRows = row_index_descriptor_of_t<Arg>;
-      using CCols = column_index_descriptor_of_t<Arg>;
+      using CRows = vector_space_descriptor_of_t<Arg, 0>;
+      using CCols = vector_space_descriptor_of_t<Arg, 1>;
       if constexpr(euclidean_transformed<Arg>)
       {
         auto b = OpenKalman::conjugate(nested_matrix(from_euclidean(std::forward<Arg>(arg))));
@@ -159,8 +162,8 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto transpose(Arg&& arg) noexcept
     {
-      using CRows = row_index_descriptor_of_t<Arg>;
-      using CCols = column_index_descriptor_of_t<Arg>;
+      using CRows = vector_space_descriptor_of_t<Arg, 0>;
+      using CCols = vector_space_descriptor_of_t<Arg, 1>;
       if constexpr(euclidean_transformed<Arg>)
       {
         auto b = OpenKalman::transpose(nested_matrix(from_euclidean(std::forward<Arg>(arg))));
@@ -177,8 +180,8 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto adjoint(Arg&& arg) noexcept
     {
-      using CRows = row_index_descriptor_of_t<Arg>;
-      using CCols = column_index_descriptor_of_t<Arg>;
+      using CRows = vector_space_descriptor_of_t<Arg, 0>;
+      using CCols = vector_space_descriptor_of_t<Arg, 1>;
       if constexpr(euclidean_transformed<Arg>)
       {
         auto b = OpenKalman::adjoint(nested_matrix(from_euclidean(std::forward<Arg>(arg))));
@@ -257,18 +260,18 @@ namespace OpenKalman
   /// Concatenate one or more typed matrices objects vertically.
 #ifdef __cpp_concepts
   template<typed_matrix V, typed_matrix ... Vs> requires (sizeof...(Vs) == 0) or
-    (equivalent_to<column_index_descriptor_of_t<V>, column_index_descriptor_of_t<Vs>> and ...)
+    (equivalent_to<vector_space_descriptor_of_t<V, 1>, vector_space_descriptor_of_t<Vs, 1>> and ...)
 #else
   template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... and typed_matrix<Vs>) and
-    ((sizeof...(Vs) == 0) or (equivalent_to<column_index_descriptor_of_t<V>,
-      column_index_descriptor_of_t<Vs>> and ...)), int> = 0>
+    ((sizeof...(Vs) == 0) or (equivalent_to<vector_space_descriptor_of_t<V, 1>,
+      vector_space_descriptor_of_t<Vs, 1>> and ...)), int> = 0>
 #endif
   constexpr decltype(auto)
   concatenate_vertical(V&& v, Vs&& ... vs) noexcept
   {
     if constexpr(sizeof...(Vs) > 0)
     {
-      using RC = concatenate_fixed_index_descriptor_t<row_index_descriptor_of_t<V>, row_index_descriptor_of_t<Vs>...>;
+      using RC = concatenate_fixed_vector_space_descriptor_t<vector_space_descriptor_of_t<V, 0>, vector_space_descriptor_of_t<Vs, 0>...>;
       return MatrixTraits<std::decay_t<V>>::template make<RC>(
         concatenate_vertical(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
     }
@@ -295,22 +298,22 @@ namespace OpenKalman
   /// Concatenate one or more matrix objects vertically.
 #ifdef __cpp_concepts
 template<typed_matrix V, typed_matrix ... Vs> requires (sizeof...(Vs) == 0) or
-    (equivalent_to<row_index_descriptor_of_t<V>, row_index_descriptor_of_t<Vs>> and ...)
+    (equivalent_to<vector_space_descriptor_of_t<V, 0>, vector_space_descriptor_of_t<Vs, 0>> and ...)
 #else
 template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... and typed_matrix<Vs>) and
-    ((sizeof...(Vs) == 0) or (equivalent_to<row_index_descriptor_of_t<V>,
-      row_index_descriptor_of_t<Vs>> and ...)), int> = 0>
+    ((sizeof...(Vs) == 0) or (equivalent_to<vector_space_descriptor_of_t<V, 0>,
+      vector_space_descriptor_of_t<Vs, 0>> and ...)), int> = 0>
 #endif
   constexpr decltype(auto)
   concatenate_horizontal(V&& v, Vs&& ... vs) noexcept
   {
     if constexpr(sizeof...(Vs) > 0)
     {
-      using RC = row_index_descriptor_of_t<V>;
-      using CC = concatenate_fixed_index_descriptor_t<column_index_descriptor_of_t<V>,
-      column_index_descriptor_of_t<Vs>...>;
+      using RC = vector_space_descriptor_of_t<V, 0>;
+      using CC = concatenate_fixed_vector_space_descriptor_t<vector_space_descriptor_of_t<V, 1>,
+      vector_space_descriptor_of_t<Vs, 1>...>;
       auto cat = concatenate_horizontal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...);
-      if constexpr(euclidean_index_descriptor<CC>)
+      if constexpr(euclidean_vector_space_descriptor<CC>)
       {
         return MatrixTraits<std::decay_t<V>>::template make<RC, CC>(std::move(cat));
       }
@@ -338,9 +341,9 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   {
     if constexpr(sizeof...(Vs) > 0)
     {
-      using RC = concatenate_fixed_index_descriptor_t<row_index_descriptor_of_t<V>, row_index_descriptor_of_t<Vs>...>;
-      using CC = concatenate_fixed_index_descriptor_t<column_index_descriptor_of_t<V>,
-        column_index_descriptor_of_t<Vs>...>;
+      using RC = concatenate_fixed_vector_space_descriptor_t<vector_space_descriptor_of_t<V, 0>, vector_space_descriptor_of_t<Vs, 0>...>;
+      using CC = concatenate_fixed_vector_space_descriptor_t<vector_space_descriptor_of_t<V, 1>,
+        vector_space_descriptor_of_t<Vs, 1>...>;
       return MatrixTraits<std::decay_t<V>>::template make<RC, CC>(
         concatenate_diagonal(nested_matrix(std::forward<V>(v)), nested_matrix(std::forward<Vs>(vs))...));
     }
@@ -390,16 +393,16 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
   /// Split typed matrix into one or more typed matrices vertically.
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor ... Cs, typed_matrix M> requires
-    prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_index_descriptor_of_t<M>>
+  template<fixed_vector_space_descriptor ... Cs, typed_matrix M> requires
+    prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
-    prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_index_descriptor_of_t<M>>, int> = 0>
+    prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>, int> = 0>
 #endif
   inline auto
   split_vertical(M&& m) noexcept
   {
-    using CC = column_index_descriptor_of_t<M>;
+    using CC = vector_space_descriptor_of_t<M, 1>;
     constexpr auto euclidean = euclidean_transformed<M>;
     return split_vertical<oin::SplitMatVertF<M, CC>, euclidean, Cs...>(nested_matrix(std::forward<M>(m)));
   }
@@ -407,16 +410,16 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
   /// Split typed matrix into one or more typed matrices horizontally.
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor ... Cs, typed_matrix M> requires
-    prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, column_index_descriptor_of_t<M>>
+  template<fixed_vector_space_descriptor ... Cs, typed_matrix M> requires
+    prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 1>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
-    prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, column_index_descriptor_of_t<M>>, int> = 0>
+    prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 1>>, int> = 0>
 #endif
   inline auto
   split_horizontal(M&& m) noexcept
   {
-    using RC = row_index_descriptor_of_t<M>;
+    using RC = vector_space_descriptor_of_t<M, 0>;
     return split_horizontal<oin::SplitMatHorizF<M, RC>, Cs...>(nested_matrix(std::forward<M>(m)));
   }
 
@@ -424,11 +427,11 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   /// Split typed matrix into one or more typed matrices horizontally. Column coefficients must all be Axis.
 #ifdef __cpp_concepts
   template<std::size_t ... cuts, typed_matrix M> requires has_untyped_index<M, 1> and (sizeof...(cuts) > 0) and
-    ((... + cuts) <= column_dimension_of_v<M>)
+    ((... + cuts) <= index_dimension_of_v<M, 1>)
 #else
   template<std::size_t ... cuts, typename M,
     std::enable_if_t<typed_matrix<M> and has_untyped_index<M, 1> and (sizeof...(cuts) > 0) and
-      ((0 + ... + cuts) <= column_dimension_of<M>::value), int> = 0>
+      ((0 + ... + cuts) <= index_dimension_of<M, 1>::value), int> = 0>
 #endif
   inline auto
   split_horizontal(M&& m) noexcept
@@ -439,15 +442,15 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
   /// Split typed matrix into one or more typed matrices diagonally.
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor ... Cs, typed_matrix M>
+  template<fixed_vector_space_descriptor ... Cs, typed_matrix M>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M>, int> = 0>
 #endif
   inline auto
   split_diagonal(M&& m) noexcept
   {
-    static_assert(prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_index_descriptor_of_t<M>>);
-    static_assert(equivalent_to<row_index_descriptor_of_t<M>::ColumnCoefficients, MatrixTraits<std::decay_t<M>>>);
+    static_assert(prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
+    static_assert(equivalent_to<vector_space_descriptor_of_t<M, 0>::ColumnCoefficients, MatrixTraits<std::decay_t<M>>>);
     return split_diagonal<oin::SplitMatDiagF<M>, Cs...>(nested_matrix(std::forward<M>(m)));
   }
 
@@ -470,7 +473,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   apply_columnwise(const Function& f, Arg& arg)
   {
     // \todo Make it so this function can accept any typed matrix with identically-typed columns.
-    using RC = row_index_descriptor_of_t<Arg>;
+    using RC = vector_space_descriptor_of_t<Arg, 0>;
     const auto f_nested = [&f](auto& col)
     {
       auto mc = MatrixTraits<std::decay_t<Arg>>::template make<RC, Axis>(std::move(col));
@@ -501,7 +504,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   inline Arg&
   apply_columnwise(const Function& f, Arg& arg)
   {
-    using RC = row_index_descriptor_of_t<Arg>;
+    using RC = vector_space_descriptor_of_t<Arg, 0>;
     const auto f_nested = [&f](auto& col, std::size_t i)
     {
       auto mc = MatrixTraits<std::decay_t<Arg>>::template make<RC, Axis>(std::move(col));
@@ -531,11 +534,11 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   {
     // \todo Make it so this function can accept any typed matrix with identically-typed columns.
     using ResultType = std::invoke_result_t<Function, decltype(column(std::declval<Arg&>(), 0))>;
-    using ResRC = row_index_descriptor_of_t<ResultType>;
-    using ResCC0 = column_index_descriptor_of_t<ResultType>;
+    using ResRC = vector_space_descriptor_of_t<ResultType, 0>;
+    using ResCC0 = vector_space_descriptor_of_t<ResultType, 1>;
     static_assert(dimension_size_of_v<ResCC0> == 1, "Function argument of apply_columnwise must return a column vector.");
-    using ResCC = replicate_fixed_index_descriptor_t<ResCC0, column_dimension_of_v<Arg>>;
-    using RC = row_index_descriptor_of_t<Arg>;
+    using ResCC = replicate_fixed_vector_space_descriptor_t<ResCC0, index_dimension_of_v<Arg, 1>>;
+    using RC = vector_space_descriptor_of_t<Arg, 0>;
     const auto f_nested = [&f](auto&& col) -> auto {
       return make_self_contained(
         nested_matrix(f(MatrixTraits<std::decay_t<Arg>>::template make<RC, Axis>(std::forward<decltype(col)>(col)))));
@@ -560,12 +563,12 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   {
     // \todo Make it so this function can accept any typed matrix with identically-typed columns.
     using ResultType = std::invoke_result_t<Function, decltype(column(std::declval<Arg&>(), 0)), std::size_t>;
-    using ResRC = row_index_descriptor_of_t<ResultType>;
-    using ResCC0 = column_index_descriptor_of_t<ResultType>;
+    using ResRC = vector_space_descriptor_of_t<ResultType, 0>;
+    using ResCC0 = vector_space_descriptor_of_t<ResultType, 1>;
     static_assert(dimension_size_of_v<ResCC0> == 1, "Function argument of apply_columnwise must return a column vector.");
-    using ResCC = replicate_fixed_index_descriptor_t<ResCC0, column_dimension_of_v<Arg>>;
+    using ResCC = replicate_fixed_vector_space_descriptor_t<ResCC0, index_dimension_of_v<Arg, 1>>;
     const auto f_nested = [&f](auto&& col, std::size_t i) -> auto {
-      using RC = row_index_descriptor_of_t<Arg>;
+      using RC = vector_space_descriptor_of_t<Arg, 0>;
       return make_self_contained(
         nested_matrix(f(MatrixTraits<std::decay_t<Arg>>::template make<RC, Axis>(std::forward<decltype(col)>(col)), i)));
     };
@@ -588,10 +591,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   {
     const auto f_nested = [&f] { return nested_matrix(f()); };
     using ResultType = std::invoke_result_t<Function>;
-    using RC = row_index_descriptor_of_t<ResultType>;
-    using CC0 = column_index_descriptor_of_t<ResultType>;
+    using RC = vector_space_descriptor_of_t<ResultType, 0>;
+    using CC0 = vector_space_descriptor_of_t<ResultType, 1>;
     static_assert(dimension_size_of_v<CC0> == 1, "Function argument of apply_columnwise must return a column vector.");
-    using CC = replicate_fixed_index_descriptor_t<CC0, count>;
+    using CC = replicate_fixed_vector_space_descriptor_t<CC0, count>;
     return MatrixTraits<std::decay_t<ResultType>>::template make<RC, CC>(apply_columnwise<count>(f_nested));
   }
 
@@ -611,10 +614,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   {
     const auto f_nested = [&f](std::size_t i) { return nested_matrix(f(i)); };
     using ResultType = std::invoke_result_t<Function, std::size_t>;
-    using RC = row_index_descriptor_of_t<ResultType>;
-    using CC0 = column_index_descriptor_of_t<ResultType>;
+    using RC = vector_space_descriptor_of_t<ResultType, 0>;
+    using CC0 = vector_space_descriptor_of_t<ResultType, 1>;
     static_assert(dimension_size_of_v<CC0> == 1, "Function argument of apply_columnwise must return a column vector.");
-    using CC = replicate_fixed_index_descriptor_t<CC0, count>;
+    using CC = replicate_fixed_vector_space_descriptor_t<CC0, count>;
     return MatrixTraits<std::decay_t<ResultType>>::template make<RC, CC>(apply_columnwise<count>(f_nested));
   }
 
@@ -632,7 +635,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   apply_coefficientwise(const Function& f, Arg& arg)
   {
     apply_coefficientwise(f, nested_matrix(arg));
-    using RC = row_index_descriptor_of_t<Arg>;
+    using RC = vector_space_descriptor_of_t<Arg, 0>;
     if constexpr(wrapped_mean<Arg>)
       nested_matrix(arg) = wrap_angles<RC>(nested_matrix(arg));
     return arg;
@@ -651,7 +654,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   apply_coefficientwise(const Function& f, Arg& arg)
   {
     apply_coefficientwise(f, nested_matrix(arg));
-    using RC = row_index_descriptor_of_t<Arg>;
+    using RC = vector_space_descriptor_of_t<Arg, 0>;
     if constexpr(wrapped_mean<Arg>)
       nested_matrix(arg) = wrap_angles<RC>(nested_matrix(arg));
     return arg;
@@ -700,8 +703,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   inline auto
   apply_coefficientwise(const Function& f)
   {
-    constexpr auto rows = row_dimension_of_v<V>;
-    constexpr auto columns = column_dimension_of_v<V>;
+    constexpr auto rows = index_dimension_of_v<V, 0>;
+    constexpr auto columns = index_dimension_of_v<V, 1>;
     using Scalar = scalar_type_of_t<V>;
     if constexpr(std::is_same_v<
       std::decay_t<std::invoke_result_t<Function>>,
@@ -727,8 +730,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   inline auto
   apply_coefficientwise(Function&& f)
   {
-    constexpr auto rows = row_dimension_of_v<V>;
-    constexpr auto columns = column_dimension_of_v<V>;
+    constexpr auto rows = index_dimension_of_v<V, 0>;
+    constexpr auto columns = index_dimension_of_v<V, 1>;
     using Scalar = scalar_type_of_t<V>;
     if constexpr(std::is_same_v<
       std::decay_t<std::invoke_result_t<Function, std::size_t, std::size_t>>,
@@ -799,16 +802,16 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     (((requires { typename std::decay_t<Dists>::result_type;  typename std::decay_t<Dists>::param_type; } or
       std::is_arithmetic_v<std::decay_t<Dists>>) and ... )) and
     ((not std::is_const_v<std::remove_reference_t<Dists>>) and ...) and
-    (sizeof...(Dists) == 1 or row_dimension_of_v<ReturnType> * column_dimension_of_v<ReturnType> == sizeof...(Dists) or
-      row_dimension_of_v<ReturnType> == sizeof...(Dists) or column_dimension_of_v<ReturnType> == sizeof...(Dists))
+    (sizeof...(Dists) == 1 or index_dimension_of_v<ReturnType, 0> * index_dimension_of_v<ReturnType, 1> == sizeof...(Dists) or
+      index_dimension_of_v<ReturnType, 0> == sizeof...(Dists) or index_dimension_of_v<ReturnType, 1> == sizeof...(Dists))
 #else
   template<typename ReturnType, typename random_number_engine = std::mt19937, typename...Dists,
     std::enable_if_t<typed_matrix<ReturnType> and (not has_dynamic_dimensions<ReturnType>) and (sizeof...(Dists) > 0) and
       ((not std::is_const_v<std::remove_reference_t<Dists>>) and ...) and
       (sizeof...(Dists) == 1 or
-        row_dimension_of<ReturnType>::value * column_dimension_of<ReturnType>::value == sizeof...(Dists) or
-        row_dimension_of<ReturnType>::value == sizeof...(Dists) or
-        column_dimension_of<ReturnType>::value == sizeof...(Dists)), int> = 0>
+        index_dimension_of<ReturnType, 0>::value * index_dimension_of<ReturnType, 1>::value == sizeof...(Dists) or
+        index_dimension_of<ReturnType, 0>::value == sizeof...(Dists) or
+        index_dimension_of<ReturnType, 1>::value == sizeof...(Dists)), int> = 0>
 #endif
   inline auto
   randomize(Dists&& ... dists)
@@ -848,8 +851,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   inline auto
   randomize(const std::size_t rows, const std::size_t columns, Dist&& dist)
   {
-    if constexpr (not dynamic_rows<ReturnType>) assert(rows == row_dimension_of_v<ReturnType>);
-    if constexpr (not dynamic_columns<ReturnType>) assert(columns == column_dimension_of_v<ReturnType>);
+    if constexpr (not dynamic_dimension<ReturnType, 0>) assert(rows == index_dimension_of_v<ReturnType, 0>);
+    if constexpr (not dynamic_dimension<ReturnType, 1>) assert(columns == index_dimension_of_v<ReturnType, 1>);
     using B = nested_matrix_of_t<ReturnType>;
     return MatrixTraits<std::decay_t<ReturnType>>::template make(randomize<B, random_number_engine>(
       rows, columns, std::forward<Dist>(dist)));

@@ -45,10 +45,10 @@ namespace OpenKalman
   {
     /// Applies the tests.
 #ifdef __cpp_concepts
-    template<transformation_input In, perturbation<row_index_descriptor_of_t<In>> ... Perturbations>
+    template<transformation_input In, perturbation<vector_space_descriptor_of_t<In, 0>> ... Perturbations>
 #else
     template<typename In, typename ... Perturbations, std::enable_if_t<transformation_input<In> and
-      (perturbation<Perturbations, row_index_descriptor_of_t<In>> and ...), int> = 0>
+      (perturbation<Perturbations, vector_space_descriptor_of_t<In, 0>> and ...), int> = 0>
 #endif
     auto operator()(In&& in, Perturbations&& ... ps) const noexcept
     {
@@ -58,10 +58,10 @@ namespace OpenKalman
 
     /// Returns a tuple of the Jacobians for the input and each perturbation term.
 #ifdef __cpp_concepts
-    template<transformation_input In, perturbation<row_index_descriptor_of_t<In>> ... Perturbations>
+    template<transformation_input In, perturbation<vector_space_descriptor_of_t<In, 0>> ... Perturbations>
 #else
     template<typename In, typename ... Perturbations, std::enable_if_t<transformation_input<In> and
-      (perturbation<Perturbations, row_index_descriptor_of_t<In>> and ...), int> = 0>
+      (perturbation<Perturbations, vector_space_descriptor_of_t<In, 0>> and ...), int> = 0>
 #endif
     auto jacobian(In&& in, Perturbations&&...ps) const
     {

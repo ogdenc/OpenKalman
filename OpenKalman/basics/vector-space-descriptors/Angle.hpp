@@ -34,7 +34,7 @@ namespace OpenKalman
   struct Angle;
 
 
-  /// Namespace for definitions relating to fixed_index_descriptors representing an angle.
+  /// Namespace for definitions relating to fixed_vector_space_descriptor representing an angle.
   namespace angle
   {
     /**
@@ -132,23 +132,23 @@ namespace OpenKalman
   namespace internal
   {
     template<typename T>
-    struct is_angle_descriptor : std::false_type {};
+    struct is_angle_vector_space_descriptor : std::false_type {};
 
     template<typename Limits>
-    struct is_angle_descriptor<Angle<Limits>> : std::true_type {};
+    struct is_angle_vector_space_descriptor<Angle<Limits>> : std::true_type {};
   }
 
 
   /**
-   * \brief T is an index descriptor of an angle.
+   * \brief T is a \ref vector_space_descriptor object representing an angle.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept angle_descriptor =
+  concept angle_vector_space_descriptor =
 #else
-  static constexpr bool angle_descriptor =
+  static constexpr bool angle_vector_space_descriptor =
 #endif
-    internal::is_angle_descriptor<T>::value;
+    internal::is_angle_vector_space_descriptor<T>::value;
 
 
   namespace interface
@@ -158,7 +158,7 @@ namespace OpenKalman
      * \brief traits for Angle.
      */
     template<typename Limits>
-    struct FixedIndexDescriptorTraits<Angle<Limits>>
+    struct FixedVectorSpaceDescriptorTraits<Angle<Limits>>
     {
       static constexpr std::size_t size = 1;
       static constexpr std::size_t euclidean_size = 2;
@@ -199,7 +199,7 @@ namespace OpenKalman
       /*
        * \details The angle corresponds to x and y coordinates on a unit circle.
        * \param local_index This is assumed to be 0.
-       * \param euclidean_start The starting location of the x and y coordinates within any larger set of index type descriptors
+       * \param euclidean_start The starting location of the x and y coordinates within any larger set of \ref vector_space_descriptor
        */
   #ifdef __cpp_concepts
       static constexpr scalar_type auto

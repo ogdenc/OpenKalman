@@ -24,29 +24,29 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typename T> requires eigen_diagonal_expr<T> or eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>
-  struct LibraryRoutines<T>
+  struct library_interface<T>
 #else
   template<typename T>
-  struct LibraryRoutines<T, std::enable_if_t<eigen_diagonal_expr<T> or eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>>>
+  struct library_interface<T, std::enable_if_t<eigen_diagonal_expr<T> or eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>>>
 #endif
-    : LibraryRoutines<std::decay_t<nested_matrix_of_t<T>>>
+    : library_interface<std::decay_t<nested_matrix_of_t<T>>>
   {
   private:
 
     using Nested = std::decay_t<nested_matrix_of_t<T>>;
-    using Base = LibraryRoutines<Nested>;
+    using Base = library_interface<Nested>;
 
   public:
 
     template<typename Derived>
-    using LibraryBase = internal::library_base<Derived, Nested>;
+    using LibraryBase = internal::library_base_t<Derived, Nested>;
 
 
     // to_native_matrix inherited
 
     // make_default inherited
 
-    // make_from_elements inherited
+    // fill_with_elements inherited
 
     // make_constant_matrix inherited
 
@@ -120,7 +120,7 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     n_ary_operation(const std::tuple<Ds...>& tup, Operation&& op, Args&&...args)
     {
-      using Traits = LibraryRoutines<std::decay_t<nested_matrix_of_t<T>>>;
+      using Traits = library_interface<std::decay_t<nested_matrix_of_t<T>>>;
       return Traits::n_ary_operation(tup, std::forward<Operation>(op), std::forward<Args>(args)...);
     }
 
@@ -129,7 +129,7 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     reduce(BinaryFunction&& b, Arg&& arg)
     {
-      using Traits = LibraryRoutines<std::decay_t<nested_matrix_of_t<T>>>;
+      using Traits = library_interface<std::decay_t<nested_matrix_of_t<T>>>;
       return Traits::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
     }
 
@@ -210,14 +210,14 @@ namespace OpenKalman::interface
     template<typename A, typename B>
     static constexpr auto sum(A&& a, B&& b)
     {
-      return LibraryRoutines<std::decay_t<nested_matrix_of_t<T>>>::sum(std::forward<A>(a), std::forward<B>(b));
+      return library_interface<std::decay_t<nested_matrix_of_t<T>>>::sum(std::forward<A>(a), std::forward<B>(b));
     }
 
 
     template<typename A, typename B>
     static constexpr auto contract(A&& a, B&& b)
     {
-      return LibraryRoutines<std::decay_t<nested_matrix_of_t<T>>>::contract(std::forward<A>(a), std::forward<B>(b));
+      return library_interface<std::decay_t<nested_matrix_of_t<T>>>::contract(std::forward<A>(a), std::forward<B>(b));
     }
 
 
@@ -225,7 +225,7 @@ namespace OpenKalman::interface
     static decltype(auto) rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
     {
       decltype(auto) n = nested_matrix(std::forward<A>(a));
-      using Trait = interface::LibraryRoutines<std::decay_t<decltype(n)>>;
+      using Trait = interface::library_interface<std::decay_t<decltype(n)>>;
       if constexpr (eigen_self_adjoint_expr<A>)
       {
         decltype(auto) m = Trait::template rank_update_self_adjoint<significant_triangle>(std::forward<decltype(n)>(n), std::forward<U>(u), alpha);
@@ -244,7 +244,7 @@ namespace OpenKalman::interface
     {
       static_assert(eigen_diagonal_expr<A>);
       using N = std::decay_t<nested_matrix_of_t<T>>;
-      return LibraryRoutines<N>::template rank_update_triangular<triangle>(std::forward<A>(a), std::forward<U>(u), alpha);
+      return library_interface<N>::template rank_update_triangular<triangle>(std::forward<A>(a), std::forward<U>(u), alpha);
     }
 
 
@@ -253,7 +253,7 @@ namespace OpenKalman::interface
     solve(A&& a, B&& b)
     {
       using N = std::decay_t<nested_matrix_of_t<T>>;
-      return LibraryRoutines<N>::template solve<must_be_unique, must_be_exact>(to_native_matrix(std::forward<A>(a)), std::forward<B>(b));
+      return library_interface<N>::template solve<must_be_unique, must_be_exact>(to_native_matrix(std::forward<A>(a)), std::forward<B>(b));
     }
 
 
@@ -262,7 +262,7 @@ namespace OpenKalman::interface
     LQ_decomposition(A&& a)
     {
       using N = std::decay_t<nested_matrix_of_t<T>>;
-      return LibraryRoutines<N>::LQ_decomposition(to_native_matrix(std::forward<A>(a)));
+      return library_interface<N>::LQ_decomposition(to_native_matrix(std::forward<A>(a)));
     }
 
 
@@ -271,7 +271,7 @@ namespace OpenKalman::interface
     QR_decomposition(A&& a)
     {
       using N = std::decay_t<nested_matrix_of_t<T>>;
-      return LibraryRoutines<N>::QR_decomposition(to_native_matrix(std::forward<A>(a)));
+      return library_interface<N>::QR_decomposition(to_native_matrix(std::forward<A>(a)));
     }
 
   };

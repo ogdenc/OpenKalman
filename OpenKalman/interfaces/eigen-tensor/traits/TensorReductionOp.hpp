@@ -21,7 +21,7 @@ namespace OpenKalman::interface
 {
   template<typename Op, typename Dims, typename XprType, template<typename> typename MakePointer>
   struct IndexibleObjectTraits<Eigen::TensorReductionOp<Op, Dims, XprType, MakePointer>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::TensorReductionOp<Op, Dims, XprType, MakePointer>>
+    : Eigen3::indexible_object_traits_base<Eigen::TensorReductionOp<Op, Dims, XprType, MakePointer>>
   {
     template<typename Arg, typename N>
     static constexpr auto get_index_descriptor(const Arg& arg, N n)

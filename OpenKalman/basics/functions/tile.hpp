@@ -86,7 +86,7 @@ namespace OpenKalman
           }
           else
           {
-            throw std::length_error {"Tile function has too many blocks to fit within specified index descriptors."};
+            throw std::length_error {"Tile function has too many blocks to fit within specified vector space descriptors."};
           }
         }
       }
@@ -96,17 +96,17 @@ namespace OpenKalman
 
   /**
    * \brief Create a matrix or tensor by tiling individual blocks.
-   * \tparam Ds A set of index descriptors for the resulting matrix or tensor.
+   * \tparam Ds A set of \ref vector_space_descriptor for the resulting matrix or tensor.
    * \tparam Block The first block
    * \tparam Blocks Subsequent blocks
    */
 #ifdef __cpp_concepts
-  template<index_descriptor...Ds, indexible Block, indexible...Blocks>
-  requires (sizeof...(Ds) >= std::max({max_indices_of_v<Block>, max_indices_of_v<Blocks>...}))
+  template<vector_space_descriptor...Ds, indexible Block, indexible...Blocks>
+  requires (sizeof...(Ds) >= std::max({index_count_v<Block>, index_count_v<Blocks>...}))
 #else
   template<typename...Ds, typename Block, typename...Blocks, std::enable_if_t<
-    (index_descriptor<Ds> and ...) and (indexible<Block> and ... and indexible<Blocks>) and
-    (sizeof...(Ds) >= std::max({max_indices_of<Block>::value, max_indices_of<Blocks>::value...})), int> = 0>
+    (vector_space_descriptor<Ds> and ...) and (indexible<Block> and ... and indexible<Blocks>) and
+    (sizeof...(Ds) >= std::max({index_count<Block>::value, index_count<Blocks>::value...})), int> = 0>
 #endif
   constexpr decltype(auto) tile(const std::tuple<Ds...>& ds_tuple, Block&& block, Blocks&&...blocks)
   {
@@ -120,7 +120,7 @@ namespace OpenKalman
         [](auto&&...d) { return make_default_dense_writable_matrix_like<Block>(std::forward<decltype(d)>(d)...); },
         ds_tuple);
 
-      auto current_position = std::tuple{(index_descriptor<Ds> ? std::size_t(0) : std::size_t(-1))...};
+      auto current_position = std::tuple{(vector_space_descriptor<Ds> ? std::size_t(0) : std::size_t(-1))...};
       decltype(current_position) current_block_size;
 
       detail::tile_impl<0>(current_position, current_block_size, std::index_sequence_for<Ds...> {}, m, block, blocks...);

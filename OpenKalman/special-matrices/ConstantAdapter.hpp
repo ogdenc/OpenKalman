@@ -30,7 +30,7 @@ namespace OpenKalman
 #else
   template<typename PatternMatrix, typename Scalar, auto...constant>
 #endif
-  struct ConstantAdapter : internal::library_base<ConstantAdapter<PatternMatrix, Scalar, constant...>, PatternMatrix>
+  struct ConstantAdapter : internal::library_base_t<ConstantAdapter<PatternMatrix, Scalar, constant...>, PatternMatrix>
   {
 
   private:
@@ -54,11 +54,11 @@ namespace OpenKalman
     constexpr auto make_all_dimensions_tuple(D&& d, Ds&&...ds)
     {
       using E = std::tuple_element_t<N, MyDimensions>;
-      if constexpr (fixed_index_descriptor<E>)
+      if constexpr (fixed_vector_space_descriptor<E>)
       {
         auto e = std::get<N>(my_dimensions);
-        if constexpr (fixed_index_descriptor<D>) static_assert(equivalent_to<D, E>);
-        else if (e != d) throw std::invalid_argument {"Invalid argument for index descriptors of a constant matrix"};
+        if constexpr (fixed_vector_space_descriptor<D>) static_assert(equivalent_to<D, E>);
+        else if (e != d) throw std::invalid_argument {"Invalid argument for vector space descriptors of a constant matrix"};
         return std::tuple_cat(std::forward_as_tuple(std::move(e)),
           make_all_dimensions_tuple<N + 1>(std::forward<Ds>(ds)...));
       }
@@ -72,8 +72,8 @@ namespace OpenKalman
   public:
 
     /**
-     * \brief Construct a ConstantAdapter, whose value is known at compile time, using a full set of index descriptors.
-     * \tparam D A set of \ref index_descriptor "index_descriptors" corresponding to class template parameters Ds.
+     * \brief Construct a ConstantAdapter, whose value is known at compile time, using a full set of \ref vector_space_descriptor objects.
+     * \tparam D A set of \ref vector_space_descriptor corresponding to class template parameters Ds.
      * \details Each D must be a constructor argument for Ds.
      * For example, the following construct a 2-by-3 constant matrix of value 5:
      * \code
@@ -83,11 +83,11 @@ namespace OpenKalman
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<index_descriptor...Ds> requires (sizeof...(Ds) > 0) and
-      scalar_constant<MyConstant, CompileTimeStatus::known> and compatible_with_index_descriptors<PatternMatrix, Ds...>
+    template<vector_space_descriptor...Ds> requires (sizeof...(Ds) > 0) and
+      scalar_constant<MyConstant, CompileTimeStatus::known> and compatible_with_vector_space_descriptor<PatternMatrix, Ds...>
 #else
-    template<typename...Ds, std::enable_if_t<(index_descriptor<Ds> and ...) and (sizeof...(Ds) > 0) and
-      scalar_constant<MyConstant, CompileTimeStatus::known> and compatible_with_index_descriptors<PatternMatrix, Ds...>, int> = 0>
+    template<typename...Ds, std::enable_if_t<(vector_space_descriptor<Ds> and ...) and (sizeof...(Ds) > 0) and
+      scalar_constant<MyConstant, CompileTimeStatus::known> and compatible_with_vector_space_descriptor<PatternMatrix, Ds...>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(Ds&&...ds) : my_dimensions {make_all_dimensions_tuple(std::forward<Ds>(ds)...)} {}
 
@@ -103,11 +103,11 @@ namespace OpenKalman
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<scalar_constant C, index_descriptor...Ds> requires std::constructible_from<MyConstant, C&&> and
-      compatible_with_index_descriptors<PatternMatrix, Ds...>
+    template<scalar_constant C, vector_space_descriptor...Ds> requires std::constructible_from<MyConstant, C&&> and
+      compatible_with_vector_space_descriptor<PatternMatrix, Ds...>
 #else
-    template<typename C, typename...Ds, std::enable_if_t<scalar_constant<C> and (index_descriptor<Ds> and ...) and
-      std::is_constructible_v<MyConstant, C&&> and compatible_with_index_descriptors<PatternMatrix, Ds...>, int> = 0>
+    template<typename C, typename...Ds, std::enable_if_t<scalar_constant<C> and (vector_space_descriptor<Ds> and ...) and
+      std::is_constructible_v<MyConstant, C&&> and compatible_with_vector_space_descriptor<PatternMatrix, Ds...>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(C&& c, Ds&&...ds) : my_constant {std::forward<C>(c)},
       my_dimensions {make_all_dimensions_tuple(std::forward<Ds>(ds)...)} {}
@@ -117,7 +117,7 @@ namespace OpenKalman
     template<std::size_t N = 0>
     constexpr auto make_dynamic_dimensions_tuple()
     {
-      if constexpr (N < max_indices_of_v<PatternMatrix>)
+      if constexpr (N < index_count_v<PatternMatrix>)
         return std::tuple_cat(std::forward_as_tuple(std::get<N>(my_dimensions)), make_dynamic_dimensions_tuple<N + 1>());
       else
         return std::tuple {};
@@ -127,7 +127,7 @@ namespace OpenKalman
     template<std::size_t N = 0, typename D, typename...Ds>
     constexpr auto make_dynamic_dimensions_tuple(D&& d, Ds&&...ds)
     {
-      if constexpr (dynamic_index_descriptor<std::tuple_element_t<N, MyDimensions>>)
+      if constexpr (dynamic_vector_space_descriptor<std::tuple_element_t<N, MyDimensions>>)
         return std::tuple_cat(std::forward_as_tuple(std::forward<D>(d)),
           make_dynamic_dimensions_tuple<N + 1>(std::forward<Ds>(ds)...));
       else
@@ -140,10 +140,9 @@ namespace OpenKalman
 
     /**
      * \overload
-     * \brief Construct a ConstantAdapter, whose value is known at compile time, using only applicable <em>dynamic</em> index descriptors.
-     * \tparam Ds A set of \ref dynamic_index_descriptor "dynamic index descriptors" corresponding to each of
-     * class template parameter Ds that is dynamic, in order of Ds. This list should omit
-     * any \ref fixed_index_descriptor "fixed index descriptors".
+     * \brief Construct a ConstantAdapter, whose value is known at compile time, using only applicable \ref dynamic_vector_space_descriptor.
+     * \tparam Ds A set of \ref dynamic_vector_space_descriptor corresponding to each of
+     * class template parameter Ds that is dynamic, in order of Ds. This list should omit any \ref fixed_vector_space_descriptor.
      * \details If PatternMatrix has no dynamic dimensions, this is a default constructor.
      * The constructor can take a number of arguments representing the number of dynamic dimensions.
      * For example, the following construct a 2-by-3 constant matrix of value 5:
@@ -155,11 +154,11 @@ namespace OpenKalman
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<dynamic_index_descriptor...Ds> requires (sizeof...(Ds) < std::tuple_size_v<MyDimensions>) and
-      (sizeof...(Ds) == number_of_dynamic_indices_v<PatternMatrix>) and scalar_constant<MyConstant, CompileTimeStatus::known>
+    template<dynamic_vector_space_descriptor...Ds> requires (sizeof...(Ds) < std::tuple_size_v<MyDimensions>) and
+      (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and scalar_constant<MyConstant, CompileTimeStatus::known>
 #else
-    template<typename...Ds, std::enable_if_t<(dynamic_index_descriptor<Ds> and ...) and
-      (sizeof...(Ds) < std::tuple_size_v<MyDimensions>) and sizeof...(Ds) == number_of_dynamic_indices_v<PatternMatrix> and
+    template<typename...Ds, std::enable_if_t<(dynamic_vector_space_descriptor<Ds> and ...) and
+      (sizeof...(Ds) < std::tuple_size_v<MyDimensions>) and sizeof...(Ds) == dynamic_index_count_v<PatternMatrix> and
       scalar_constant<MyConstant, CompileTimeStatus::known>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(Ds&&...ds) : my_dimensions {make_dynamic_dimensions_tuple(std::forward<Ds>(ds)...)} {}
@@ -177,13 +176,13 @@ namespace OpenKalman
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<scalar_constant C, dynamic_index_descriptor...Ds> requires
+    template<scalar_constant C, dynamic_vector_space_descriptor...Ds> requires
       (sizeof...(Ds) < std::tuple_size_v<MyDimensions>) and
-      (sizeof...(Ds) == number_of_dynamic_indices_v<PatternMatrix>) and std::constructible_from<MyConstant, C&&>
+      (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and std::constructible_from<MyConstant, C&&>
 #else
-    template<typename C, typename...Ds, std::enable_if_t<scalar_constant<C> and (dynamic_index_descriptor<Ds> and ...) and
+    template<typename C, typename...Ds, std::enable_if_t<scalar_constant<C> and (dynamic_vector_space_descriptor<Ds> and ...) and
       (sizeof...(Ds) < std::tuple_size_v<MyDimensions>) and
-      (sizeof...(Ds) == number_of_dynamic_indices_v<PatternMatrix>) and std::is_constructible_v<MyConstant, C&&>, int> = 0>
+      (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and std::is_constructible_v<MyConstant, C&&>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(C&& c, Ds&&...ds) : my_constant {std::forward<C>(c)},
       my_dimensions {make_dynamic_dimensions_tuple(std::forward<Ds>(ds)...)} {}
@@ -196,18 +195,18 @@ namespace OpenKalman
       if constexpr (N < std::tuple_size_v<MyDimensions>)
       {
         using E = std::tuple_element_t<N, MyDimensions>;
-        if constexpr (fixed_index_descriptor<E>)
+        if constexpr (fixed_vector_space_descriptor<E>)
         {
           auto e = std::get<N>(my_dimensions);
-          using D = index_descriptor_of_t<Arg, N>;
-          if constexpr (fixed_index_descriptor<D>) static_assert(equivalent_to<D, E>);
-          else if (e != get_index_descriptor<N>(arg))
-            throw std::invalid_argument {"Invalid argument for index descriptors of a constant matrix"};
+          using D = vector_space_descriptor_of_t<Arg, N>;
+          if constexpr (fixed_vector_space_descriptor<D>) static_assert(equivalent_to<D, E>);
+          else if (e != get_vector_space_descriptor<N>(arg))
+            throw std::invalid_argument {"Invalid argument for vector space descriptors of a constant matrix"};
           return std::tuple_cat(std::tuple{std::move(e)}, make_dimensions_tuple<N + 1>(arg));
         }
         else
         {
-          return std::tuple_cat(std::tuple{get_index_descriptor<N>(arg)}, make_dimensions_tuple<N + 1>(arg));
+          return std::tuple_cat(std::tuple{get_vector_space_descriptor<N>(arg)}, make_dimensions_tuple<N + 1>(arg));
         }
       }
       else
@@ -273,8 +272,8 @@ namespace OpenKalman
 #endif
     constexpr auto& operator=(const Arg& arg)
     {
-      if constexpr (not has_same_shape_as<Arg, PatternMatrix>) if (not get_index_descriptors_match(*this, arg))
-        throw std::invalid_argument {"Argument to ConstantAdapter assignment operator has non-matching index descriptors."};
+      if constexpr (not has_same_shape_as<Arg, PatternMatrix>) if (not get_vector_space_descriptor_match(*this, arg))
+        throw std::invalid_argument {"Argument to ConstantAdapter assignment operator has non-matching vector space descriptors."};
       my_constant = constant_coefficient {arg};
       return *this;
     }
@@ -293,12 +292,12 @@ namespace OpenKalman
       if constexpr (not maybe_has_same_shape_as<Arg, PatternMatrix>)
         return false;
       else if constexpr (constant_matrix<Arg>)
-        return get_scalar_constant_value(constant_coefficient{arg}) == get_scalar_constant_value(my_constant) and get_index_descriptors_match(*this, arg);
+        return get_scalar_constant_value(constant_coefficient{arg}) == get_scalar_constant_value(my_constant) and get_vector_space_descriptor_match(*this, arg);
       else
       {
         auto c = to_native_matrix<PatternMatrix>(*this);
         static_assert(not std::is_same_v<decltype(c), ConstantAdapter>,
-          "interface::LibraryRoutines<PatternMatrix>::to_native_matrix(*this) must define an object within the library of Arg");
+          "interface::library_interface<PatternMatrix>::to_native_matrix(*this) must define an object within the library of Arg");
         return std::move(c) == arg;
       }
     }
@@ -318,12 +317,12 @@ namespace OpenKalman
       if constexpr (not maybe_has_same_shape_as<Arg, PatternMatrix>)
         return false;
       else if constexpr (constant_matrix<Arg>)
-        return get_scalar_constant_value(constant_coefficient{arg}) == get_scalar_constant_value(c.get_scalar_constant()) and get_index_descriptors_match(arg, c);
+        return get_scalar_constant_value(constant_coefficient{arg}) == get_scalar_constant_value(c.get_scalar_constant()) and get_vector_space_descriptor_match(arg, c);
       else
       {
         auto new_c = to_native_matrix<Arg>(c);
         static_assert(not std::is_same_v<decltype(new_c), ConstantAdapter>,
-          "interface::LibraryRoutines<Arg>::to_native_matrix(c) must define an object within the library of Arg");
+          "interface::library_interface<Arg>::to_native_matrix(c) must define an object within the library of Arg");
         return arg == std::move(new_c);
       }
     }
@@ -353,12 +352,12 @@ namespace OpenKalman
      * \return The element corresponding to the indices (always the constant).
      */
 #ifdef __cpp_concepts
-    template<index_value...Is> requires (sizeof...(Is) == max_indices_of_v<PatternMatrix>) or
+    template<index_value...Is> requires (sizeof...(Is) == index_count_v<PatternMatrix>) or
       (sizeof...(Is) == 1 and max_tensor_order_of_v<PatternMatrix> == 1)
     constexpr scalar_type auto
 #else
     template<typename...Is, std::enable_if_t<
-      (index_value<Is> and ...) and (sizeof...(Is) == max_indices_of_v<PatternMatrix> or
+      (index_value<Is> and ...) and (sizeof...(Is) == index_count_v<PatternMatrix> or
       (sizeof...(Is) == 1 and max_tensor_order_of_v<PatternMatrix> == 1)), int> = 0>
     constexpr auto
 #endif
@@ -459,7 +458,7 @@ namespace OpenKalman
     MyDimensions my_dimensions;
 
 
-    friend struct interface::IndexibleObjectTraits<ConstantAdapter>;
+    friend struct interface::indexible_object_traits<ConstantAdapter>;
 
   };
 
@@ -491,16 +490,15 @@ namespace OpenKalman
   namespace interface
   {
     template<typename PatternMatrix, typename Scalar, auto...constant>
-    struct IndexibleObjectTraits<ConstantAdapter<PatternMatrix, Scalar, constant...>>
+    struct indexible_object_traits<ConstantAdapter<PatternMatrix, Scalar, constant...>>
     {
-      static constexpr std::size_t max_indices = max_indices_of_v<PatternMatrix>;
-
-      using index_type = index_type_of_t<PatternMatrix>;
-
       using scalar_type = typename ConstantAdapter<PatternMatrix, Scalar, constant...>::MyScalarType;
 
+      template<typename Arg>
+      static constexpr auto get_index_count(const Arg& arg) { return OpenKalman::get_index_count(nested_matrix(arg)); }
+
       template<typename Arg, typename N>
-      static constexpr auto get_index_descriptor(Arg&& arg, N n)
+      static constexpr auto get_vector_space_descriptor(Arg&& arg, N n)
       {
         if constexpr (static_index_value<N>)
         {
@@ -509,7 +507,7 @@ namespace OpenKalman
         else
         {
           return std::apply(
-            [](auto&&...arg, N n){ return std::array<std::size_t, max_indices> {std::forward<decltype(arg)>(arg)...}[n]; },
+            [](auto&&...arg, N n){ return std::array<std::size_t, OpenKalman::index_count_v<Arg>> {std::forward<decltype(arg)>(arg)...}[n]; },
             std::forward<Arg>(arg).my_dimensions, n);
         }
       }
@@ -534,10 +532,10 @@ namespace OpenKalman
 
 
     template<typename PatternMatrix, typename Scalar, auto...constant>
-    struct LibraryRoutines<ConstantAdapter<PatternMatrix, Scalar, constant...>>
+    struct library_interface<ConstantAdapter<PatternMatrix, Scalar, constant...>>
     {
       template<typename Derived>
-      using LibraryBase = internal::library_base<Derived, PatternMatrix>;
+      using LibraryBase = internal::library_base_t<Derived, PatternMatrix>;
 
 
       template<typename Arg>
@@ -546,11 +544,13 @@ namespace OpenKalman
         return OpenKalman::to_native_matrix<PatternMatrix>(std::forward<Arg>(arg));
       }
 
-      template<typename S, typename...D>
+      template<Layout layout, typename S, typename...D>
       static auto make_default(D&&...d)
       {
-        return make_default_dense_writable_matrix_like<PatternMatrix, S>(std::forward<D>(d)...);
+        return make_default_dense_writable_matrix_like<PatternMatrix, layout, S>(std::forward<D>(d)...);
       }
+
+      // fill_with_elements not necessary because T is not a dense writable matrix.
 
       template<typename C, typename...D>
       static constexpr auto make_constant_matrix(C&& c, D&&...d)
@@ -574,21 +574,21 @@ namespace OpenKalman
       static decltype(auto)
       replicate(const std::tuple<Ds...>& tup, Arg&& arg)
       {
-        return LibraryRoutines<PatternMatrix>::replicate(tup, std::forward<Arg>(arg));
+        return library_interface<PatternMatrix>::replicate(tup, std::forward<Arg>(arg));
       }
 
       template<typename...Ds, typename Op, typename...Args>
       static constexpr decltype(auto)
       n_ary_operation(const std::tuple<Ds...>& d_tup, Op&& op, Args&&...args)
       {
-        return LibraryRoutines<PatternMatrix>::n_ary_operation(d_tup, std::forward<Op>(op), std::forward<Args>(args)...);
+        return library_interface<PatternMatrix>::n_ary_operation(d_tup, std::forward<Op>(op), std::forward<Args>(args)...);
       }
 
       template<std::size_t...indices, typename BinaryFunction, typename Arg>
       static constexpr decltype(auto)
       reduce(BinaryFunction&& b, Arg&& arg)
       {
-        return LibraryRoutines<PatternMatrix>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
+        return library_interface<PatternMatrix>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
       }
 
       // no to_euclidean
@@ -603,13 +603,13 @@ namespace OpenKalman
       template<typename A, typename B>
       static constexpr auto sum(A&& a, B&& b)
       {
-        return LibraryRoutines<PatternMatrix>::sum(std::forward<A>(a), std::forward<B>(b));
+        return library_interface<PatternMatrix>::sum(std::forward<A>(a), std::forward<B>(b));
       }
 
       template<typename A, typename B>
       static constexpr auto contract(A&& a, B&& b)
       {
-        return LibraryRoutines<PatternMatrix>::contract(std::forward<A>(a), std::forward<B>(b));
+        return library_interface<PatternMatrix>::contract(std::forward<A>(a), std::forward<B>(b));
       }
 
       // contract_in_place is not necessary because the argument will not be writable.
@@ -619,7 +619,7 @@ namespace OpenKalman
       template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
       static decltype(auto) rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
       {
-        using Trait = interface::LibraryRoutines<PatternMatrix>;
+        using Trait = interface::library_interface<PatternMatrix>;
         return Trait::template rank_update_self_adjoint<significant_triangle>(std::forward<A>(a), std::forward<U>(u), alpha);
       }
 

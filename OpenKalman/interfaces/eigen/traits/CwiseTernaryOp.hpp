@@ -22,43 +22,40 @@
 namespace OpenKalman::interface
 {
   template<typename TernaryOp, typename Arg1, typename Arg2, typename Arg3>
-  struct IndexibleObjectTraits<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
+  struct indexible_object_traits<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
+    : Eigen3::indexible_object_traits_base<Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>>
   {
   private:
 
     using T = Eigen::CwiseTernaryOp<TernaryOp, Arg1, Arg2, Arg3>;
+    using Base = Eigen3::indexible_object_traits_base<T>;
 
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_index_descriptor(const Arg& arg, N n)
+    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
     {
       if constexpr (static_index_value<N>)
       {
         constexpr auto i = static_index_value_of_v<N>;
         if constexpr (not dynamic_dimension<Arg1, i>)
-          return OpenKalman::get_index_descriptor(arg.arg1(), n);
+          return OpenKalman::get_vector_space_descriptor(arg.arg1(), n);
         else if constexpr (not dynamic_dimension<Arg2, i>)
-          return OpenKalman::get_index_descriptor(arg.arg2(), n);
+          return OpenKalman::get_vector_space_descriptor(arg.arg2(), n);
         else
-          return OpenKalman::get_index_descriptor(arg.arg3(), n);
+          return OpenKalman::get_vector_space_descriptor(arg.arg3(), n);
       }
-      else return OpenKalman::get_index_descriptor(arg.arg1(), n);
+      else return OpenKalman::get_vector_space_descriptor(arg.arg1(), n);
     }
 
-    template<Likelihood b>
-    static constexpr bool is_one_by_one =
-      one_by_one_matrix<Arg1, Likelihood::maybe> and one_by_one_matrix<Arg2, Likelihood::maybe> and one_by_one_matrix<Arg3, Likelihood::maybe> and
-      (b != Likelihood::definitely or one_by_one_matrix<Arg1, b> or one_by_one_matrix<Arg2, b> or one_by_one_matrix<Arg3, b>);
+    using type = std::tuple<typename T::Arg1Nested, typename T::Arg2Nested, typename T::Arg3Nested>;
 
     static constexpr bool has_runtime_parameters = false;
-    using type = std::tuple<typename T::Arg1Nested, typename T::Arg2Nested, typename T::Arg3Nested>;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)
     {
-      static_assert(i < 3);
+      static_assert(i <= 2);
       if constexpr (i == 0)
         return std::forward<Arg>(arg).arg1();
       else if constexpr (i == 1)
@@ -99,6 +96,11 @@ namespace OpenKalman::interface
     {
       return Eigen3::FunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template get_constant<true>(arg);
     }
+
+    template<Likelihood b>
+    static constexpr bool is_one_by_one =
+      one_by_one_matrix<Arg1, Likelihood::maybe> and one_by_one_matrix<Arg2, Likelihood::maybe> and one_by_one_matrix<Arg3, Likelihood::maybe> and
+      (b != Likelihood::definitely or one_by_one_matrix<Arg1, b> or one_by_one_matrix<Arg2, b> or one_by_one_matrix<Arg3, b>);
 
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = Eigen3::FunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template is_triangular<t, b>;

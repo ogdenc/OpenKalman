@@ -27,22 +27,22 @@ namespace
 
   using M21 = eigen_matrix_t<double, 2, 1>;
   using M22 = eigen_matrix_t<double, 2, 2>;
-  using M2x = eigen_matrix_t<double, 2, dynamic_size>;
-  using Mx2 = eigen_matrix_t<double, dynamic_size, 2>;
+  using M2x = eigen_matrix_t<double, 2, dynamic_size_v>;
+  using Mx2 = eigen_matrix_t<double, dynamic_size_v, 2>;
   using M11 = eigen_matrix_t<double, 1, 1>;
-  using M1x = eigen_matrix_t<double, 1, dynamic_size>;
-  using Mx1 = eigen_matrix_t<double, dynamic_size, 1>;
-  using Mxx = eigen_matrix_t<double, dynamic_size, dynamic_size>;
+  using M1x = eigen_matrix_t<double, 1, dynamic_size_v>;
+  using Mx1 = eigen_matrix_t<double, dynamic_size_v, 1>;
+  using Mxx = eigen_matrix_t<double, dynamic_size_v, dynamic_size_v>;
 
   using C21 = eigen_matrix_t<cdouble, 2, 1>;
   using C22 = eigen_matrix_t<cdouble, 2, 2>;
-  using C20 = eigen_matrix_t<cdouble, 2, dynamic_size>;
-  using C02 = eigen_matrix_t<cdouble, dynamic_size, 2>;
-  using C01 = eigen_matrix_t<cdouble, dynamic_size, 1>;
-  using C00 = eigen_matrix_t<cdouble, dynamic_size, dynamic_size>;
+  using C20 = eigen_matrix_t<cdouble, 2, dynamic_size_v>;
+  using C02 = eigen_matrix_t<cdouble, dynamic_size_v, 2>;
+  using C01 = eigen_matrix_t<cdouble, dynamic_size_v, 1>;
+  using C00 = eigen_matrix_t<cdouble, dynamic_size_v, dynamic_size_v>;
 
   using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
-  using D0 = DiagonalMatrix<eigen_matrix_t<double, dynamic_size, 1>>;
+  using D0 = DiagonalMatrix<eigen_matrix_t<double, dynamic_size_v, 1>>;
 
   using L22 = SelfAdjointMatrix<M22, TriangleType::lower>;
   using L20 = SelfAdjointMatrix<M2x, TriangleType::lower>;

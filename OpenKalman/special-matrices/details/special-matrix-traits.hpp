@@ -81,7 +81,7 @@ namespace OpenKalman
     template<typename C, typename NestedMatrix, typename U> requires
       (euclidean_expr<U> and (to_euclidean_expr<U> or
         not modifiable<NestedMatrix, nested_matrix_of_t<U>> or
-        not equivalent_to<C, row_index_descriptor_of_t<U>>)) or
+        not equivalent_to<C, vector_space_descriptor_of_t<U, 0>>)) or
       (not euclidean_expr<U> and not modifiable<NestedMatrix, ToEuclideanExpr<C, std::decay_t<U>>>)
     struct is_modifiable_native<FromEuclideanExpr<C, NestedMatrix>, U>
       : std::false_type {};
@@ -96,8 +96,8 @@ namespace OpenKalman
 
     template<typename C, typename NestedMatrix, typename U>
     struct is_modifiable_native<FromEuclideanExpr<C, NestedMatrix>, U>
-      : std::bool_constant<modifiable<NestedMatrix, dense_writable_matrix_t<NestedMatrix, scalar_type_of_t<NestedMatrix>>>/* and dimension_size_of_v<C> == row_dimension_of_v<U> and
-        column_dimension_of_v<NestedMatrix> == column_dimension_of_v<U> and
+      : std::bool_constant<modifiable<NestedMatrix, dense_writable_matrix_t<NestedMatrix>>/* and dimension_size_of_v<C> == index_dimension_of_v<U, 0> and
+        index_dimension_of_v<NestedMatrix, 1> == index_dimension_of_v<U, 1> and
         std::is_same_v<scalar_type_of_t<NestedMatrix>, scalar_type_of_t<U>>*/> {};
 #endif
 
@@ -106,7 +106,7 @@ namespace OpenKalman
     template<typename C, typename NestedMatrix, typename U> requires
       (euclidean_expr<U> and (from_euclidean_expr<U> or
         not modifiable<NestedMatrix, nested_matrix_of_t<U>> or
-        not equivalent_to<C, row_index_descriptor_of_t<U>>)) or
+        not equivalent_to<C, vector_space_descriptor_of_t<U, 0>>)) or
       (not euclidean_expr<U> and not modifiable<NestedMatrix, FromEuclideanExpr<C, std::decay_t<U>>>)
     struct is_modifiable_native<ToEuclideanExpr<C, NestedMatrix>, U>
     : std::false_type {};
@@ -121,8 +121,8 @@ namespace OpenKalman
 
     template<typename C, typename NestedMatrix, typename U>
     struct is_modifiable_native<ToEuclideanExpr<C, NestedMatrix>, U, std::void_t<FromEuclideanExpr<C, std::decay_t<U>>>>
-      : std::bool_constant<modifiable<NestedMatrix, dense_writable_matrix_t<NestedMatrix, scalar_type_of_t<NestedMatrix>>>/* and euclidean_dimension_size_of_v<C> == row_dimension_of_v<U> and
-        column_dimension_of_v<NestedMatrix> == column_dimension_of_v<U> and
+      : std::bool_constant<modifiable<NestedMatrix, dense_writable_matrix_t<NestedMatrix>>/* and euclidean_dimension_size_of_v<C> == index_dimension_of_v<U, 0> and
+        index_dimension_of_v<NestedMatrix, 1> == index_dimension_of_v<U, 1> and
         std::is_same_v<scalar_type_of_t<NestedMatrix>, scalar_type_of_t<U>>*/> {};
 #endif
 

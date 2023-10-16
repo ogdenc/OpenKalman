@@ -138,7 +138,7 @@ namespace OpenKalman
    * \details The matrix is guaranteed to be diagonal. It is ::self_contained iff NestedMatrix is ::self_contained.
    * Implicit conversions are available from any \ref diagonal_matrix of compatible size.
    * \tparam NestedMatrix A column vector expression defining the diagonal elements.
-   * IndexibleObjectTraits outside the diagonal are automatically 0.
+   * indexible_object_traits outside the diagonal are automatically 0.
    * \note This has the same name as Eigen::DiagonalMatrix, and is intended as a replacement.
    */
 #ifdef __cpp_concepts
@@ -191,7 +191,7 @@ namespace OpenKalman
   template<square_matrix<Likelihood::maybe> NestedMatrix, HermitianAdapterType storage_triangle =
       triangular_matrix<NestedMatrix, TriangleType::diagonal> ? HermitianAdapterType::lower :
       triangular_matrix<NestedMatrix, TriangleType::upper> ? HermitianAdapterType::upper : HermitianAdapterType::lower> requires
-    (max_indices_of_v<NestedMatrix> <= 2) and
+    (index_count_v<NestedMatrix> <= 2) and
     (storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper) and
     (not constant_matrix<NestedMatrix> or real_axis_number<constant_coefficient<NestedMatrix>>) and
     (not constant_diagonal_matrix<NestedMatrix> or real_axis_number<constant_diagonal_coefficient<NestedMatrix>>) and
@@ -244,7 +244,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<square_matrix<Likelihood::maybe> NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
       (triangular_matrix<NestedMatrix, TriangleType::upper> ? TriangleType::upper : TriangleType::lower))>
-    requires (max_indices_of_v<NestedMatrix> <= 2)
+    requires (index_count_v<NestedMatrix> <= 2)
 #else
   template<typename NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
     (triangular_matrix<NestedMatrix, TriangleType::upper> ? TriangleType::upper : TriangleType::lower))>
@@ -288,10 +288,10 @@ namespace OpenKalman
    * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
    */
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor TypedIndex, typename NestedMatrix>
-  requires (dynamic_index_descriptor<TypedIndex> == dynamic_rows<NestedMatrix>) and
-    (not fixed_index_descriptor<TypedIndex> or euclidean_dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
-    (not dynamic_index_descriptor<TypedIndex> or
+  template<fixed_vector_space_descriptor TypedIndex, typename NestedMatrix>
+  requires (dynamic_vector_space_descriptor<TypedIndex> == dynamic_dimension<NestedMatrix, 0>) and
+    (not fixed_vector_space_descriptor<TypedIndex> or euclidean_dimension_size_of_v<TypedIndex> == index_dimension_of_v<NestedMatrix, 0>) and
+    (not dynamic_vector_space_descriptor<TypedIndex> or
       std::same_as<typename TypedIndex::Scalar, scalar_type_of_t<NestedMatrix>>)
 #else
   template<typename TypedIndex, typename NestedMatrix>
@@ -331,10 +331,10 @@ namespace OpenKalman
    * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
    */
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor TypedIndex, typename NestedMatrix> requires (not from_euclidean_expr<NestedMatrix>) and
-    (dynamic_index_descriptor<TypedIndex> == dynamic_rows<NestedMatrix>) and
-    (not fixed_index_descriptor<TypedIndex> or dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
-    (not dynamic_index_descriptor<TypedIndex> or
+  template<fixed_vector_space_descriptor TypedIndex, typename NestedMatrix> requires (not from_euclidean_expr<NestedMatrix>) and
+    (dynamic_vector_space_descriptor<TypedIndex> == dynamic_dimension<NestedMatrix, 0>) and
+    (not fixed_vector_space_descriptor<TypedIndex> or dimension_size_of_v<TypedIndex> == index_dimension_of_v<NestedMatrix, 0>) and
+    (not dynamic_vector_space_descriptor<TypedIndex> or
       std::same_as<typename TypedIndex::Scalar, scalar_type_of_t<NestedMatrix>>)
 #else
   template<typename TypedIndex, typename NestedMatrix>
@@ -390,12 +390,12 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor RowCoefficients, fixed_index_descriptor ColumnCoefficients, typed_matrix_nestable NestedMatrix>
-  requires (dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>) and
-    (dimension_size_of_v<ColumnCoefficients> == column_dimension_of_v<NestedMatrix>) and
+  template<fixed_vector_space_descriptor RowCoefficients, fixed_vector_space_descriptor ColumnCoefficients, typed_matrix_nestable NestedMatrix>
+  requires (dimension_size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
+    (dimension_size_of_v<ColumnCoefficients> == index_dimension_of_v<NestedMatrix, 1>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
-    (dynamic_index_descriptor<RowCoefficients> == dynamic_rows<NestedMatrix>) and
-    (dynamic_index_descriptor<ColumnCoefficients> == dynamic_columns<NestedMatrix>)
+    (dynamic_vector_space_descriptor<RowCoefficients> == dynamic_dimension<NestedMatrix, 0>) and
+    (dynamic_vector_space_descriptor<ColumnCoefficients> == dynamic_dimension<NestedMatrix, 1>)
 #else
   template<typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
 #endif
@@ -422,8 +422,8 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor RowCoefficients, typed_matrix_nestable NestedMatrix> requires
-  (dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>) and
+  template<fixed_vector_space_descriptor RowCoefficients, typed_matrix_nestable NestedMatrix> requires
+  (dimension_size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
   (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename RowCoefficients, typename NestedMatrix>
@@ -451,8 +451,8 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor TypedIndex, typed_matrix_nestable NestedMatrix> requires
-  (euclidean_dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<fixed_vector_space_descriptor TypedIndex, typed_matrix_nestable NestedMatrix> requires
+  (euclidean_dimension_size_of_v<TypedIndex> == index_dimension_of_v<NestedMatrix, 0>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename TypedIndex, typename NestedMatrix>
 #endif
@@ -476,8 +476,8 @@ namespace OpenKalman
    * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor TypedIndex, covariance_nestable NestedMatrix> requires
-    (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
+  template<fixed_vector_space_descriptor TypedIndex, covariance_nestable NestedMatrix> requires
+    (dimension_size_of_v<TypedIndex> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and scalar_type<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename TypedIndex, typename NestedMatrix>
@@ -504,8 +504,8 @@ namespace OpenKalman
    * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor TypedIndex, covariance_nestable NestedMatrix> requires
-    (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
+  template<fixed_vector_space_descriptor TypedIndex, covariance_nestable NestedMatrix> requires
+    (dimension_size_of_v<TypedIndex> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and scalar_type<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename TypedIndex, typename NestedMatrix>
@@ -530,12 +530,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<
-    fixed_index_descriptor TypedIndex,
+    fixed_vector_space_descriptor TypedIndex,
     typed_matrix_nestable MeanNestedMatrix,
     covariance_nestable CovarianceNestedMatrix,
     std::uniform_random_bit_generator random_number_engine = std::mt19937> requires
-      (row_dimension_of_v<MeanNestedMatrix> == row_dimension_of_v<CovarianceNestedMatrix>) and
-      (column_dimension_of_v<MeanNestedMatrix> == 1) and
+      (index_dimension_of_v<MeanNestedMatrix, 0> == index_dimension_of_v<CovarianceNestedMatrix, 0>) and
+      (index_dimension_of_v<MeanNestedMatrix, 1> == 1) and
       (std::is_same_v<scalar_type_of_t<MeanNestedMatrix>,
         scalar_type_of_t<CovarianceNestedMatrix>>)
 #else
@@ -554,155 +554,6 @@ namespace OpenKalman
     struct is_gaussian_distribution<GaussianDistribution<TypedIndex, MeanNestedMatrix, CovarianceNestedMatrix, re>>
       : std::true_type {};
   }
-
-
-  // ================== //
-  //  internal classes  //
-  // ================== //
-
-  namespace internal
-  {
-    namespace detail
-    {
-#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
-     template<typename Derived, typename LibraryObject>
-#else
-     template<typename Derived, typename LibraryObject, typename = void>
-#endif
-     struct library_base_impl { using type = std::monostate; };
-
-#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS // GCC compiler issue leads to the requires clause being false
-      template<typename Derived, typename LibraryObject> requires
-        requires { typename interface::LibraryRoutines<LibraryObject>::template LibraryBase<Derived>; }
-      struct library_base_impl<Derived, LibraryObject>
-#else
-      template<typename Derived, typename LibraryObject>
-      struct library_base_impl<Derived, LibraryObject,
-        std::void_t<typename interface::LibraryRoutines<LibraryObject>::template LibraryBase<Derived>>>
-#endif
-        { using type = typename interface::LibraryRoutines<LibraryObject>::template LibraryBase<Derived>; };
-    }
-
-
-    /**
-     * \internal
-     * \brief The base class of an object within a particular linear-algebra library.
-     * \details By default the library base is std::monostate.
-     * \tparam Derived A derived class, such as an adapter.
-     * \tparam LibraryObject A class within a particular library
-     */
-    template<typename Derived, typename LibraryObject>
-    using library_base = typename detail::library_base_impl<std::decay_t<Derived>, std::decay_t<LibraryObject>>::type;
-
-
-    /**
-     * \internal
-     * \brief Ultimate base of typed matrices and covariance matrices.
-     * \tparam Derived The fully derived matrix type.
-     * \tparam NestedMatrix The nested native matrix, which can be const or an lvalue reference, or both, or neither.
-     */
-#ifdef __cpp_concepts
-    template<typename Derived, typename NestedMatrix> requires (not std::is_rvalue_reference_v<NestedMatrix>)
-#else
-    template<typename Derived, typename NestedMatrix>
-#endif
-    struct MatrixBase;
-
-
-    /**
-     * \internal
-     * \brief Base class for means or matrices.
-     * \tparam Derived The derived class (e.g., Matrix, Mean, EuclideanMean).
-     * \tparam NestedMatrix The nested matrix.
-     * \tparam TypedIndex The \ref OpenKalman::coefficients "coefficients" representing the rows and columns of the matrix.
-     */
-#ifdef __cpp_concepts
-    template<typename Derived, typename NestedMatrix, fixed_index_descriptor...TypedIndex>
-    requires (not std::is_rvalue_reference_v<NestedMatrix>) and (sizeof...(TypedIndex) <= 2)
-#else
-    template<typename Derived, typename NestedMatrix, typename...TypedIndex>
-#endif
-    struct TypedMatrixBase;
-
-
-    /**
-     * \internal
-     * \brief An interface to a matrix, to be used for getting and setting the individual matrix elements.
-     * \tparam settable Whether the matrix elements can be set (as opposed to being read-only).
-     * \tparam Scalar the scalar type of the elements.
-     */
-    template<bool settable, typename Scalar = double>
-    struct ElementAccessor;
-
-
-    /**
-     * \internal
-     * \brief Base of Covariance and SquareRootCovariance classes.
-     * \tparam Derived The fully derived covariance type.
-     * \tparam NestedMatrix The nested native matrix, which can be const or an lvalue reference, or both, or neither.
-     */
-#ifdef __cpp_concepts
-    template<typename Derived, typename NestedMatrix>
-#else
-    template<typename Derived, typename NestedMatrix, typename = void>
-#endif
-    struct CovarianceBase;
-
-
-    /**
-     * \internal
-     * \brief Implementations for Covariance and SquareRootCovariance classes.
-     * \tparam Derived The fully derived covariance type.
-     * \tparam NestedMatrix The nested native matrix, which can be const or an lvalue reference, or both, or neither.
-     */
-#ifdef __cpp_concepts
-    template<typename Derived, typename NestedMatrix>
-#else
-    template<typename Derived, typename NestedMatrix>
-#endif
-    struct CovarianceImpl;
-
-
-    /**
-     * \internal
-     * \brief Wraps a dynamic-sized input, immutably, in a wrapper that has one or more fixed dimensions.
-     * \tparam NestedMatrix The underlying native matrix or matrix expression.
-     * \tparam IndexDescriptors A set of index descriptors
-     */
-#ifdef __cpp_concepts
-    template<indexible NestedMatrix, index_descriptor...IndexDescriptors>
-      requires compatible_with_index_descriptors<NestedMatrix, IndexDescriptors...> and
-        (sizeof...(IndexDescriptors) == max_indices_of_v<NestedMatrix> or
-          (sizeof...(IndexDescriptors) == 0 and one_by_one_matrix<NestedMatrix, Likelihood::maybe>))
-#else
-    template<typename NestedMatrix, typename...IndexDescriptors>
-#endif
-    struct FixedSizeAdapter;
-
-
-    namespace detail
-    {
-      template<typename T>
-      struct is_fixed_size_adapter : std::false_type {};
-
-      template<typename NestedMatrix, typename...IndexDescriptors>
-      struct is_fixed_size_adapter<FixedSizeAdapter<NestedMatrix, IndexDescriptors...>> : std::true_type {};
-    }
-
-
-    /**
-     * \brief Specifies that T is a FixedSizeAdapter.
-     */
-    template<typename T>
-#ifdef __cpp_concepts
-    concept fixed_size_adapter =
-#else
-    constexpr bool fixed_size_adapter =
-#endif
-      detail::is_fixed_size_adapter<std::decay_t<T>>::value;
-
-
-  } // namespace internal
 
 } // OpenKalman
 

@@ -49,7 +49,7 @@ namespace OpenKalman
       constexpr auto triangle_type = triangle_type_of_v<A>;
       auto prod {make_dense_writable_matrix_from(OpenKalman::adjoint(a))};
       constexpr bool on_the_right = triangular_matrix<A, TriangleType::upper>;
-      interface::LibraryRoutines<std::decay_t<A>>::template contract_in_place<on_the_right>(prod, std::forward<A>(a));
+      interface::library_interface<std::decay_t<A>>::template contract_in_place<on_the_right>(prod, std::forward<A>(a));
       return SelfAdjointMatrix<decltype(prod), triangle_type> {std::move(prod)};
     }
   }
@@ -80,7 +80,7 @@ namespace OpenKalman
     else if constexpr (constant_diagonal_matrix<A>)
     {
       auto sq = internal::constexpr_sqrt(constant_diagonal_coefficient{a});
-      return to_diagonal(make_constant_matrix_like<A>(sq, get_index_descriptor<0>(a), Dimensions<1>{}));
+      return to_diagonal(make_constant_matrix_like<A>(sq, get_vector_space_descriptor<0>(a), Dimensions<1>{}));
     }
     else if constexpr (constant_matrix<A>)
     {
@@ -110,11 +110,11 @@ namespace OpenKalman
       }(a);
 
       auto ret = make_triangular_matrix<triangle_type>(std::move(m));
-      using C0 = index_descriptor_of_t<A, 0>;
-      using C1 = index_descriptor_of_t<A, 1>;
-      using Cret = std::conditional_t<dynamic_index_descriptor<C0>, C1, C0>;
+      using C0 = vector_space_descriptor_of_t<A, 0>;
+      using C1 = vector_space_descriptor_of_t<A, 1>;
+      using Cret = std::conditional_t<dynamic_vector_space_descriptor<C0>, C1, C0>;
 
-      if constexpr (euclidean_index_descriptor<Cret>) return ret;
+      if constexpr (euclidean_vector_space_descriptor<Cret>) return ret;
       //else return make_square_root_covariance<Cret>(ret);
       else return ret; // \todo change to make_triangular_matrix
     }
@@ -124,7 +124,7 @@ namespace OpenKalman
     }
     else
     {
-      return interface::LibraryRoutines<std::decay_t<A>>::template cholesky_factor<triangle_type>(std::forward<A>(a));
+      return interface::library_interface<std::decay_t<A>>::template cholesky_factor<triangle_type>(std::forward<A>(a));
     }
   }
 

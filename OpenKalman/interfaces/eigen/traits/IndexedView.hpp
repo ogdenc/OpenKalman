@@ -24,8 +24,8 @@ namespace OpenKalman::interface
   // \todo: Add other interface traits.
 
   template<typename XprType, typename RowIndices, typename ColIndices>
-  struct IndexibleObjectTraits<Eigen::IndexedView<XprType, RowIndices, ColIndices>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::IndexedView<XprType, RowIndices, ColIndices>>
+  struct indexible_object_traits<Eigen::IndexedView<XprType, RowIndices, ColIndices>>
+    : Eigen3::indexible_object_traits_base<Eigen::IndexedView<XprType, RowIndices, ColIndices>>
   {
   };
 

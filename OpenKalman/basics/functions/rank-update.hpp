@@ -125,14 +125,14 @@ namespace OpenKalman
     else if constexpr (hermitian_adapter<A>)
     {
       decltype(auto) aw = detail::get_writable_square<U>(nested_matrix(std::forward<A>(a)));
-      using Trait = interface::LibraryRoutines<std::decay_t<decltype(aw)>>;
+      using Trait = interface::library_interface<std::decay_t<decltype(aw)>>;
       decltype(auto) ret = Trait::template rank_update_self_adjoint<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
       return make_hermitian_matrix<t>(std::forward<decltype(ret)>(ret));
     }
     else // hermitian_matrix but not hermitian_adapter
     {
       decltype(auto) aw = detail::get_writable_square<U>(std::forward<A>(a));
-      using Trait = interface::LibraryRoutines<std::decay_t<decltype(aw)>>;
+      using Trait = interface::library_interface<std::decay_t<decltype(aw)>>;
       decltype(auto) ret = Trait::template rank_update_self_adjoint<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
       return make_hermitian_matrix<t>(std::forward<decltype(ret)>(ret));
     }
@@ -173,7 +173,7 @@ namespace OpenKalman
 
     if constexpr (zero_matrix<U>)
     {
-      if constexpr (dynamic_rows<A> or dynamic_rows<U>) if (get_index_dimension_of<0>(a) != get_index_dimension_of<0>(u))
+      if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<U, 0>) if (get_index_dimension_of<0>(a) != get_index_dimension_of<0>(u))
         throw std::invalid_argument {"In rank_update_triangular, rows of a (" + std::to_string(get_index_dimension_of<0>(a)) +
           ") do not match rows of u (" + std::to_string(get_index_dimension_of<0>(u)) + ")"};
 
@@ -181,7 +181,7 @@ namespace OpenKalman
     }
     else if constexpr (dimension_size_of_index_is<A, 0, 1> or dimension_size_of_index_is<A, 1, 1> or dimension_size_of_index_is<U, 0, 1>)
     {
-      if constexpr (dynamic_rows<A> or dynamic_rows<U>) if (get_index_dimension_of<0>(a) != get_index_dimension_of<0>(u))
+      if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<U, 0>) if (get_index_dimension_of<0>(a) != get_index_dimension_of<0>(u))
         throw std::invalid_argument {"In rank_update_triangular, rows of a (" + std::to_string(get_index_dimension_of<0>(a)) +
           ") do not match rows of u (" + std::to_string(get_index_dimension_of<0>(u)) + ")"};
 
@@ -231,7 +231,7 @@ namespace OpenKalman
       }(std::forward<A>(a));
 
       decltype(auto) aw = detail::get_writable_square<U>(std::forward<decltype(an)>(an));
-      using Trait = interface::LibraryRoutines<std::decay_t<decltype(aw)>>;
+      using Trait = interface::library_interface<std::decay_t<decltype(aw)>>;
       decltype(auto) ret = Trait::template rank_update_triangular<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
       return make_triangular_matrix<t>(std::forward<decltype(ret)>(ret));
     }

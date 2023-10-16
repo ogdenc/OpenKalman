@@ -22,12 +22,18 @@
 namespace OpenKalman::interface
 {
   template<typename VectorType, int Size>
-  struct IndexibleObjectTraits<Eigen::VectorBlock<VectorType, Size>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::VectorBlock<VectorType, Size>>
+  struct indexible_object_traits<Eigen::VectorBlock<VectorType, Size>>
+    : Eigen3::indexible_object_traits_base<Eigen::VectorBlock<VectorType, Size>>
   {
-    static constexpr bool has_runtime_parameters = true;
+  private:
+
+    using Base = Eigen3::indexible_object_traits_base<Eigen::VectorBlock<VectorType, Size>>;
+
+  public:
 
     using type = std::tuple<typename Eigen::internal::ref_selector<VectorType>::non_const_type>;
+
+    static constexpr bool has_runtime_parameters = true;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)

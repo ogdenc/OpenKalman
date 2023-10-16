@@ -63,7 +63,7 @@ namespace OpenKalman
     constexpr decltype(auto) get_diag_element(Arg&& arg, std::index_sequence<I...> seq, std::size_t i)
     {
       //detail::check_index_bounds<false>(arg, seq, (I, i)...);
-      return interface::IndexibleObjectTraits<std::decay_t<Arg>>::get(std::forward<Arg>(arg), (I?i:i)...);
+      return interface::indexible_object_traits<std::decay_t<Arg>>::get(std::forward<Arg>(arg), (I ? i : i)...);
     }
   } // namespace detail
 
@@ -90,20 +90,20 @@ namespace OpenKalman
   {
     constexpr auto N = sizeof...(I);
 
-    if constexpr (constant_matrix<Arg> and (not one_by_one_matrix<Arg>) and (N == max_indices_of_v<Arg> or N == 0))
+    if constexpr (constant_matrix<Arg> and (not one_by_one_matrix<Arg>) and (N == index_count_v<Arg> or N == 0))
     {
       return get_scalar_constant_value(constant_coefficient {arg});
     }
     else if constexpr (internal::is_element_gettable<Arg, N>::value)
     {
       //detail::check_index_bounds<false>(arg, std::index_sequence_for<I...> {}, i...);
-      return interface::IndexibleObjectTraits<std::decay_t<Arg>>::get(std::forward<Arg>(arg), static_cast<const std::size_t>(i)...);
+      return interface::indexible_object_traits<std::decay_t<Arg>>::get(std::forward<Arg>(arg), static_cast<const std::size_t>(i)...);
     }
-    else if constexpr (N == 1 and diagonal_matrix<Arg, Likelihood::maybe> and max_indices_of_v<Arg> >= 1)
+    else if constexpr (N == 1 and diagonal_matrix<Arg, Likelihood::maybe> and index_count_v<Arg> >= 1)
     {
       if constexpr (not diagonal_matrix<Arg>) if (not get_is_square(arg))
         throw std::invalid_argument {"Wrong number of indices in arguments to get_element."};
-      std::make_index_sequence<max_indices_of_v<Arg>> seq;
+      std::make_index_sequence<index_count_v<Arg>> seq;
       return detail::get_diag_element(std::forward<Arg>(arg), seq, static_cast<const std::size_t>(i)...);
     }
     else
@@ -112,7 +112,7 @@ namespace OpenKalman
       static_assert(one_by_one_matrix<Arg, Likelihood::maybe>, "Calling get_element without indices only allowed for one-by-one matrices.");
       if constexpr (not one_by_one_matrix<Arg>) if (get_index_dimension_of<0>(arg) != 1 or get_index_dimension_of<1>(arg) != 1)
         throw std::invalid_argument {"Wrong number of indices in arguments to get_element."};
-      std::make_index_sequence<max_indices_of_v<Arg>> seq;
+      std::make_index_sequence<index_count_v<Arg>> seq;
       return detail::get_diag_element(std::forward<Arg>(arg), seq, static_cast<const std::size_t>(0));
     }
   }
@@ -124,7 +124,7 @@ namespace OpenKalman
     constexpr void set_diag_element(Arg& arg, const Scalar& s, std::index_sequence<I...> seq, std::size_t i)
     {
       //detail::check_index_bounds<true>(arg, seq, (I, i)...);
-      interface::IndexibleObjectTraits<std::decay_t<Arg>>::set(arg, s, (I?i:i)...);
+      interface::indexible_object_traits<std::decay_t<Arg>>::set(arg, s, (I ? i : i)...);
     }
   } // namespace detail
 
@@ -154,26 +154,87 @@ namespace OpenKalman
     if constexpr (internal::is_element_settable<Arg, N>::value)
     {
       //detail::check_index_bounds<true>(arg, std::index_sequence_for<I...> {}, i...);
-      interface::IndexibleObjectTraits<std::decay_t<Arg>>::set(arg, s, static_cast<const std::size_t>(i)...);
+      interface::indexible_object_traits<std::decay_t<Arg>>::set(arg, s, static_cast<const std::size_t>(i)...);
     }
     else if constexpr (N == 0 and one_by_one_matrix<Arg, Likelihood::maybe>)
     {
       if constexpr (not one_by_one_matrix<Arg>) if (get_index_dimension_of<0>(arg) != 1 or get_index_dimension_of<1>(arg) != 1)
         throw std::invalid_argument {"Wrong number of indices in arguments to set_element."};
-      std::make_index_sequence<max_indices_of_v<Arg>> seq;
+      std::make_index_sequence<index_count_v<Arg>> seq;
       detail::set_diag_element(arg, s, seq, static_cast<const std::size_t>(0));
     }
     else
     {
-      static_assert(N == 1 and diagonal_matrix<Arg, Likelihood::maybe> and max_indices_of_v<Arg> > 1,
+      static_assert(N == 1 and diagonal_matrix<Arg, Likelihood::maybe> and index_count_v<Arg> > 1,
         "Must use correct number of indices");
       if constexpr (not diagonal_matrix<Arg>)
         if (not get_is_square(arg))
           throw std::invalid_argument{"Wrong number of indices in arguments to set_element."};
-      std::make_index_sequence<max_indices_of_v<Arg>> seq;
+      std::make_index_sequence<index_count_v<Arg>> seq;
       detail::set_diag_element(arg, s, seq, static_cast<const std::size_t>(i)...);
     }
     return std::forward<Arg>(arg);
+  }
+
+
+  namespace internal
+  {
+    namespace detail
+    {
+      template<typename T, std::size_t N, std::size_t...I>
+      constexpr bool may_hold_components_impl(std::index_sequence<I...>)
+      {
+        constexpr auto dims = ((dynamic_dimension<T, I> ? 1 : index_dimension_of_v<T, I>) * ... * 1);
+        if constexpr (N == 0) return dims == 0;
+        else if constexpr (dims == 0) return false;
+        else return N % dims == 0;
+      }
+    } // namespace detail
+
+
+    template<typename T, typename...Components>
+#ifdef __cpp_concepts
+    concept may_hold_components = indexible<T> and (std::convertible_to<Components, const scalar_type_of_t<T>> and ...) and
+#else
+    constexpr bool may_hold_components = indexible<T> and (std::is_convertible_v<Components, const scalar_type_of_t<T>> and ...) and
+#endif
+      detail::may_hold_components_impl<T, sizeof...(Components)>(std::make_index_sequence<index_count_v<T>> {});
+
+  } // namespace internal
+
+
+  /**
+   * \overload
+   * \brief Set all the components of an object from a list of scalar values.
+   * \details The scalar components are listed in the specified layout order, as follows:
+   * - \ref Layout::left: column-major;
+   * - \ref Layout::right: row-major (the default).
+   * \tparam layout The \ref Layout of Args and the resulting object (\ref Layout::right if unspecified).
+   * \param arg The object to be modified.
+   * \param s Scalar values to fill the new matrix.
+   */
+#ifdef __cpp_concepts
+  template<Layout layout = Layout::right, writable Arg, scalar_type ... S>
+    requires (layout == Layout::right or layout == Layout::left) and internal::may_hold_components<Arg, S...>
+  inline writable auto
+#else
+  template<Layout layout = Layout::right, typename Arg, typename...S, std::enable_if_t<
+    writable<Arg> and (scalar_type<S> and ...) and
+    (layout == Layout::right or layout == Layout::left) and internal::may_hold_components<Arg, S...>, int> = 0>
+  inline Arg&&
+#endif
+  set_elements(Arg&& arg, S...s)
+  {
+    if constexpr (sizeof...(S) == 0)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else
+    {
+      using Scalar = scalar_type_of_t<Arg>;
+      using Trait = interface::library_interface<std::decay_t<Arg>>;
+      return Trait::template fill_with_elements<layout>(std::forward<Arg>(arg), static_cast<const Scalar>(s)...);
+    }
   }
 
 

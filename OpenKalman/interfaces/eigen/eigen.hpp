@@ -55,11 +55,11 @@ namespace OpenKalman::Eigen3 {}
 
 #include "details/eigen-forward-declarations.hpp"
 
+#include "details/eigen-functions.hpp"
+
 #include "details/eigen-matrix-traits.hpp"
 
 #include "traits/eigen-traits.hpp"
-
-#include "details/eigen-functions.hpp"
 
 #include "details/eigen-cholesky-overloads.hpp"
 

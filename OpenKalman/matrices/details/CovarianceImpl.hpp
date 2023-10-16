@@ -25,7 +25,17 @@ namespace OpenKalman::internal
   //  CovarianceImpl  //
   // ---------------- //
 
+  /**
+   * \internal
+   * \brief Implementations for Covariance and SquareRootCovariance classes.
+   * \tparam Derived The fully derived covariance type.
+   * \tparam NestedMatrix The nested native matrix, which can be const or an lvalue reference, or both, or neither.
+   */
+#ifdef __cpp_concepts
   template<typename Derived, typename NestedMatrix>
+#else
+  template<typename Derived, typename NestedMatrix>
+#endif
   struct CovarianceImpl : CovarianceBase<Derived, NestedMatrix>
   {
 

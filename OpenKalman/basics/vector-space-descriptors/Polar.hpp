@@ -31,12 +31,12 @@ namespace OpenKalman
    */
   template<typename C1 = Distance, typename C2 = angle::Radians>
 #ifdef __cpp_concepts
-  requires (distance_descriptor<C1> and angle_descriptor<C2>) or (distance_descriptor<C2> and angle_descriptor<C1>)
+  requires (distance_vector_space_descriptor<C1> and angle_vector_space_descriptor<C2>) or (distance_vector_space_descriptor<C2> and angle_vector_space_descriptor<C1>)
 #endif
   struct Polar
   {
 #ifndef __cpp_concepts
-    static_assert((distance_descriptor<C1> and angle_descriptor<C2>) or (distance_descriptor<C2> and angle_descriptor<C1>));
+    static_assert((distance_vector_space_descriptor<C1> and angle_vector_space_descriptor<C2>) or (distance_vector_space_descriptor<C2> and angle_vector_space_descriptor<C1>));
 #endif
   };
 
@@ -61,7 +61,7 @@ namespace OpenKalman
        * Cartesian coordinates representing a location on a unit half-cylinder.
        * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
        * \param euclidean_local_index A local index relative to the Euclidean-transformed coordinates (starting at 0)
-       * \param start The starting index within the index descriptor
+       * \param start The starting index within the \ref vector_space_descriptor object
        */
 #ifdef __cpp_concepts
       static constexpr scalar_type auto
@@ -172,7 +172,7 @@ namespace OpenKalman
        * \details The wrapping operation is equivalent to mapping to, and then back from, Euclidean space.
        * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
        * \param local_index A local index accessing the angle (in this case, it must be 0)
-       * \param start The starting location of the angle within any larger set of index type descriptors
+       * \param start The starting location of the angle within any larger set of \ref vector_space_descriptor
        */
 #ifdef __cpp_concepts
       static constexpr scalar_type auto
@@ -201,7 +201,7 @@ namespace OpenKalman
        * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
        * \param x The scalar value to be set.
        * \param local_index A local index accessing the angle (in this case, it must be 0)
-       * \param start The starting location of the angle within any larger set of index type descriptors
+       * \param start The starting location of the angle within any larger set of \ref vector_space_descriptor
        */
 #ifdef __cpp_concepts
       static constexpr void
@@ -246,11 +246,11 @@ namespace OpenKalman
      * \brief traits for Polar<Distance, Angle>.
      */
     template<typename Limits>
-    struct FixedIndexDescriptorTraits<Polar<Distance, Angle<Limits>>> : detail::PolarBase<Limits, 0, 1,  0, 1, 2>
+    struct FixedVectorSpaceDescriptorTraits<Polar<Distance, Angle<Limits>>> : detail::PolarBase<Limits, 0, 1,  0, 1, 2>
     {
-      using difference_type = concatenate_fixed_index_descriptor_t<
-        typename FixedIndexDescriptorTraits<Distance>::difference_type,
-        typename FixedIndexDescriptorTraits<Angle<Limits>>::difference_type>;
+      using difference_type = concatenate_fixed_vector_space_descriptor_t<
+        typename FixedVectorSpaceDescriptorTraits<Distance>::difference_type,
+        typename FixedVectorSpaceDescriptorTraits<Angle<Limits>>::difference_type>;
     };
 
 
@@ -259,11 +259,11 @@ namespace OpenKalman
      * \brief traits for Polar<Angle, Distance>.
      */
     template<typename Limits>
-    struct FixedIndexDescriptorTraits<Polar<Angle<Limits>, Distance>> : detail::PolarBase<Limits, 1, 0,  2, 0, 1>
+    struct FixedVectorSpaceDescriptorTraits<Polar<Angle<Limits>, Distance>> : detail::PolarBase<Limits, 1, 0,  2, 0, 1>
     {
-      using difference_type = concatenate_fixed_index_descriptor_t<
-        typename FixedIndexDescriptorTraits<Angle<Limits>>::difference_type,
-        typename FixedIndexDescriptorTraits<Distance>::difference_type>;
+      using difference_type = concatenate_fixed_vector_space_descriptor_t<
+        typename FixedVectorSpaceDescriptorTraits<Angle<Limits>>::difference_type,
+        typename FixedVectorSpaceDescriptorTraits<Distance>::difference_type>;
     };
 
   } // namespace interface

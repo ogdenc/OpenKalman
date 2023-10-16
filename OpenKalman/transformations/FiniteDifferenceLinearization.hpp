@@ -34,8 +34,8 @@ namespace OpenKalman
     std::invocable<Function, InDelta, PsDelta...> and
     (not wrapped_mean<std::invoke_result_t<Function, InDelta, PsDelta...>>) and
     (not std::is_reference_v<InDelta>) and (((not std::is_reference_v<PsDelta>) and ...)) and
-    ((sizeof...(PsDelta) == 0) or (equivalent_to<row_index_descriptor_of_t<PsDelta>,
-      row_index_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...))
+    ((sizeof...(PsDelta) == 0) or (equivalent_to<vector_space_descriptor_of_t<PsDelta, 0>,
+      vector_space_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>, 0>> and ...))
 #else
   template<typename Function, typename InDelta, typename ... PsDelta>
 #endif
@@ -62,8 +62,8 @@ namespace OpenKalman
     std::invocable<Function, InDelta, PsDelta...> and
     (not wrapped_mean<std::invoke_result_t<Function, InDelta, PsDelta...>>) and
     (not std::is_reference_v<InDelta>) and (((not std::is_reference_v<PsDelta>) and ...)) and
-    ((sizeof...(PsDelta) == 0) or (equivalent_to<row_index_descriptor_of_t<PsDelta>,
-      row_index_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...))
+    ((sizeof...(PsDelta) == 0) or (equivalent_to<vector_space_descriptor_of_t<PsDelta, 0>,
+      vector_space_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>, 0>> and ...))
 #else
   template<typename Function, typename InDelta, typename ... PsDelta>
 #endif
@@ -79,8 +79,8 @@ namespace OpenKalman
       "For finite difference linearization, the tests function cannot return a wrapped matrix.");
     static_assert(not std::is_reference_v<InDelta>);
     static_assert(((not std::is_reference_v<PsDelta>) and ...));
-    static_assert((sizeof...(PsDelta) == 0) or (equivalent_to<row_index_descriptor_of_t<PsDelta>,
-      row_index_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...));
+    static_assert((sizeof...(PsDelta) == 0) or (equivalent_to<vector_space_descriptor_of_t<PsDelta, 0>,
+      vector_space_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>, 0>> and ...));
 #endif
 
     // Construct one Jacobian term.
@@ -169,7 +169,7 @@ namespace OpenKalman
     template<std::size_t term, typename...Inputs, std::size_t...is>
     auto h_k(const std::tuple<Inputs...>& inputs, std::index_sequence<is...>) const
     {
-      constexpr auto j_size = row_dimension_of_v<decltype(std::get<term>(inputs))>;
+      constexpr auto j_size = index_dimension_of_v<decltype(std::get<term>(inputs)), 0>;
       using A = decltype(h_i<term, 0>(std::move(inputs), std::make_index_sequence<j_size> {}));
       return std::array<A, sizeof...(is)> {h_i<term, is>(inputs, std::make_index_sequence<j_size> {})...};
     }
@@ -180,9 +180,9 @@ namespace OpenKalman
     auto h_term(const std::tuple<Inputs...>& inputs, std::index_sequence<ks...>) const
     {
       using Term = decltype(std::get<term>(inputs));
-      const auto t = h_k<term>(inputs, std::make_index_sequence<row_dimension_of_v<Term>> {});
-      using C = row_index_descriptor_of_t<Term>;
-      using V = Matrix<C, C, dense_writable_matrix_t<Term, scalar_type_of_t<Term>, Dimensions<row_dimension_of_v<Term>>, Dimensions<row_dimension_of_v<Term>>>>;
+      const auto t = h_k<term>(inputs, std::make_index_sequence<index_dimension_of_v<Term, 0>> {});
+      using C = vector_space_descriptor_of_t<Term, 0>;
+      using V = Matrix<C, C, dense_writable_matrix_t<Term, Layout::none, scalar_type_of_t<Term>, Dimensions<index_dimension_of_v<Term, 0>>, Dimensions<index_dimension_of_v<Term, 0>>>>;
       return std::array<V, sizeof...(ks)> {
         apply_coefficientwise<V>([&t](std::size_t i, std::size_t j) { return t[i][j][ks]; })...};
     }
@@ -193,7 +193,7 @@ namespace OpenKalman
     auto hessian_impl(const std::tuple<Inputs...>& inputs, std::index_sequence<terms...>) const
     {
       static_assert(sizeof...(Inputs) == sizeof...(terms));
-      constexpr auto k_size = row_dimension_of_v<std::invoke_result_t<Function, Inputs...>>;
+      constexpr auto k_size = index_dimension_of_v<std::invoke_result_t<Function, Inputs...>, 0>;
       return std::tuple {h_term<terms>(inputs, std::make_index_sequence<k_size> {})...};
     }
 
@@ -214,17 +214,17 @@ namespace OpenKalman
 
     /// Applies the tests.
 #ifdef __cpp_concepts
-    template<transformation_input<row_index_descriptor_of_t<InDelta>> In, perturbation ... Perturbations>
+    template<transformation_input<vector_space_descriptor_of_t<InDelta, 0>> In, perturbation ... Perturbations>
       requires (sizeof...(Perturbations) <= sizeof...(PsDelta)) and (sizeof...(Perturbations) == 0 or
         (equivalent_to<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
-          row_index_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...))
+          vector_space_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>, 0>> and ...))
 #else
     template<typename In, typename ... Perturbations, std::enable_if_t<
-      transformation_input<In, row_index_descriptor_of_t<InDelta>> and
+      transformation_input<In, vector_space_descriptor_of_t<InDelta, 0>> and
       (perturbation<Perturbations> and ...) and (sizeof...(Perturbations) <= sizeof...(PsDelta)) and
       (sizeof...(Perturbations) == 0 or
         (equivalent_to<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
-          row_index_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...)), int> = 0>
+          vector_space_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>, 0>> and ...)), int> = 0>
 #endif
     auto operator()(In&& in, Perturbations&& ... ps) const
     {
@@ -234,17 +234,17 @@ namespace OpenKalman
 
     /// Returns a tuple of the Jacobians for the input and each perturbation term.
 #ifdef __cpp_concepts
-    template<transformation_input<row_index_descriptor_of_t<InDelta>> In, perturbation ... Perturbations>
+    template<transformation_input<vector_space_descriptor_of_t<InDelta, 0>> In, perturbation ... Perturbations>
     requires (sizeof...(Perturbations) <= sizeof...(PsDelta)) and (sizeof...(Perturbations) == 0 or
       (equivalent_to<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
-        row_index_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...))
+        vector_space_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>, 0>> and ...))
 #else
     template<typename In, typename ... Perturbations, std::enable_if_t<
-      transformation_input<In, row_index_descriptor_of_t<InDelta>> and
+      transformation_input<In, vector_space_descriptor_of_t<InDelta, 0>> and
       (perturbation<Perturbations> and ...) and (sizeof...(Perturbations) <= sizeof...(PsDelta)) and
       (sizeof...(Perturbations) == 0 or
         (equivalent_to<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
-          row_index_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...)), int> = 0>
+          vector_space_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>, 0>> and ...)), int> = 0>
 #endif
     auto jacobian(In&& in, Perturbations&&...ps) const
     {
@@ -257,17 +257,17 @@ namespace OpenKalman
 
     /// Returns a tuple of Hessian matrices for the input and each perturbation term.
 #ifdef __cpp_concepts
-    template<transformation_input<row_index_descriptor_of_t<InDelta>> In, perturbation ... Perturbations>
+    template<transformation_input<vector_space_descriptor_of_t<InDelta, 0>> In, perturbation ... Perturbations>
     requires (sizeof...(Perturbations) <= sizeof...(PsDelta)) and (sizeof...(Perturbations) == 0 or
       (equivalent_to<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
-        row_index_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...))
+        vector_space_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>, 0>> and ...))
 #else
     template<typename In, typename ... Perturbations, std::enable_if_t<
-      transformation_input<In, row_index_descriptor_of_t<InDelta>> and
+      transformation_input<In, vector_space_descriptor_of_t<InDelta, 0>> and
       (perturbation<Perturbations> and ...) and (sizeof...(Perturbations) <= sizeof...(PsDelta)) and
       (sizeof...(Perturbations) == 0 or
         (equivalent_to<typename oin::PerturbationTraits<Perturbations>::RowCoefficients,
-          row_index_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>>> and ...)), int> = 0>
+          vector_space_descriptor_of_t<std::tuple_element_t<0, std::tuple<PsDelta...>>, 0>> and ...)), int> = 0>
 #endif
     auto hessian(In&& in, Perturbations&&...ps) const
     {

@@ -22,12 +22,18 @@
 namespace OpenKalman::interface
 {
   template<typename MatrixType, int DiagIndex>
-  struct IndexibleObjectTraits<Eigen::Diagonal<MatrixType, DiagIndex>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::Diagonal<MatrixType, DiagIndex>>
+  struct indexible_object_traits<Eigen::Diagonal<MatrixType, DiagIndex>>
+    : Eigen3::indexible_object_traits_base<Eigen::Diagonal<MatrixType, DiagIndex>>
   {
-    static constexpr bool has_runtime_parameters = DiagIndex == Eigen::DynamicIndex;
+  private:
+
+    using Base = Eigen3::indexible_object_traits_base<Eigen::Diagonal<MatrixType, DiagIndex>>;
+
+  public:
 
     using type = std::tuple<typename Eigen::internal::ref_selector<MatrixType>::non_const_type>;
+
+    static constexpr bool has_runtime_parameters = DiagIndex == Eigen::DynamicIndex;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)

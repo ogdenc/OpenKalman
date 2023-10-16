@@ -25,15 +25,15 @@ namespace
 {
   using cdouble = std::complex<double>;
 
-  using Mxx = eigen_matrix_t<double, dynamic_size, dynamic_size>;
+  using Mxx = eigen_matrix_t<double, dynamic_size_v, dynamic_size_v>;
   using M11 = eigen_matrix_t<double, 1, 1>;
-  using M1x = eigen_matrix_t<double, 1, dynamic_size>;
-  using Mx1 = eigen_matrix_t<double, dynamic_size, 1>;
+  using M1x = eigen_matrix_t<double, 1, dynamic_size_v>;
+  using Mx1 = eigen_matrix_t<double, dynamic_size_v, 1>;
   using M23 = eigen_matrix_t<double, 2, 3>;
   using M22 = eigen_matrix_t<double, 2, 2>;
   using M21 = eigen_matrix_t<double, 2, 1>;
-  using M2x = eigen_matrix_t<double, 2, dynamic_size>;
-  using Mx2 = eigen_matrix_t<double, dynamic_size, 2>;
+  using M2x = eigen_matrix_t<double, 2, dynamic_size_v>;
+  using Mx2 = eigen_matrix_t<double, dynamic_size_v, 2>;
   using M33 = eigen_matrix_t<double, 3, 3>;
   using M31 = eigen_matrix_t<double, 3, 1>;
   using M44 = eigen_matrix_t<double, 4, 4>;
@@ -41,13 +41,13 @@ namespace
 
   using C21 = eigen_matrix_t<cdouble, 2, 1>;
   using C22 = eigen_matrix_t<cdouble, 2, 2>;
-  using C20 = eigen_matrix_t<cdouble, 2, dynamic_size>;
-  using C02 = eigen_matrix_t<cdouble, dynamic_size, 2>;
-  using C01 = eigen_matrix_t<cdouble, dynamic_size, 1>;
-  using C00 = eigen_matrix_t<cdouble, dynamic_size, dynamic_size>;
+  using C20 = eigen_matrix_t<cdouble, 2, dynamic_size_v>;
+  using C02 = eigen_matrix_t<cdouble, dynamic_size_v, 2>;
+  using C01 = eigen_matrix_t<cdouble, dynamic_size_v, 1>;
+  using C00 = eigen_matrix_t<cdouble, dynamic_size_v, dynamic_size_v>;
 
   using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
-  using D0 = DiagonalMatrix<eigen_matrix_t<double, dynamic_size, 1>>;
+  using D0 = DiagonalMatrix<eigen_matrix_t<double, dynamic_size_v, 1>>;
 
   using L22 = SelfAdjointMatrix<M22, HermitianAdapterType::lower>;
   using L20 = SelfAdjointMatrix<M2x, HermitianAdapterType::lower>;

@@ -214,20 +214,20 @@ TEST(matrices, Mean_deduction_guides)
 {
   auto a = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
   EXPECT_TRUE(is_near(Mean(a), a));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(Mean(a))>, Dimensions<2>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Mean(a)), 0>, Dimensions<2>>);
 
   auto b1 = Mat23 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(Mean(b1), Mat23 {1, 2, 3, 4, 5, 6}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(Mean(b1))>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Mean(b1)), 0>, C2>);
 
   auto b2 = Matrix<C2, Dimensions<3>, M23> {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(Mean(b2), Mat23 {1, 2, 3, 4, 5, 6}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(Mean(b2))>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Mean(b2)), 0>, C2>);
 
   auto b3 = EuclideanMean<C2, M33> {1, 2, 3, std::sqrt(3)/2, 0.5, std::sqrt(2)/2, 0.5, std::sqrt(3)/2, std::sqrt(2)/2};
   EXPECT_TRUE(is_near(Mean(b3), Mat23 {1, 2, 3, pi/6, pi/3, pi/4}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(Mean(b3))>, C2>);
-  static_assert(row_dimension_of_v<decltype(Mean(b3))> == 2);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Mean(b3)), 0>, C2>);
+  static_assert(index_dimension_of_v<decltype(Mean(b3)), 0> == 2);
 }
 
 
@@ -235,15 +235,15 @@ TEST(matrices, Mean_make_functions)
 {
   auto a = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
   EXPECT_TRUE(is_near(make_mean<C2>(a), Mat23{a}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(make_mean<C2>(a))>, C2>);
-  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(make_mean<C2>(a))>, Dimensions<3>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_mean<C2>(a)), 0>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_mean<C2>(a)), 1>, Dimensions<3>>);
 
   auto b = Mat23 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(make_mean(b), Mat23{a}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(make_mean(b))>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_mean(b)), 0>, C2>);
 
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(make_mean<C2, M23>())>, C2>);
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(make_mean<M23>())>, Dimensions<2>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_mean<C2, M23>()), 0>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_mean<M23>()), 0>, Dimensions<2>>);
 }
 
 
@@ -302,12 +302,12 @@ TEST(matrices, Mean_overloads)
   EXPECT_TRUE(is_near(to_diagonal(Mat21 {2, 3}).nested_matrix(), Mat22 {2, 0, 0, 3}));
   static_assert(diagonal_matrix<decltype(to_diagonal(Mat21 {2, 3}))>);
   static_assert(typed_matrix<decltype(to_diagonal(Mat21 {2, 3}))>);
-  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(to_diagonal(Mat21 {2, 3}))>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(to_diagonal(Mat21 {2, 3})), 1>, C2>);
 
   EXPECT_TRUE(is_near(to_diagonal(Mat21 {5, 6}).nested_matrix(), Mat22 {5, 0, 0, w_6}));
   static_assert(diagonal_matrix<decltype(to_diagonal(Mat21 {5, 6}))>);
   static_assert(typed_matrix<decltype(to_diagonal(Mat21 {5, 6}))>);
-  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(to_diagonal(Mat21 {5, 6}))>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(to_diagonal(Mat21 {5, 6})), 1>, C2>);
 
   EXPECT_TRUE(is_near(transpose(Mat23 {1, 2, 3, 4, 5, 6}).nested_matrix(), TMat32 {1, w_4, 2, w_5, 3, w_6}));
   EXPECT_TRUE(is_near(adjoint(Mat23 {1, 2, 3, 4, 5, 6}).nested_matrix(), TMat32 {1, w_4, 2, w_5, 3, w_6}));
@@ -343,17 +343,17 @@ TEST(matrices, Mean_blocks)
 {
   EXPECT_TRUE(is_near(concatenate_vertical(Mat22 {1, 2, 3, 4}, Mat12 {5, 6}), Mat32 {1, 2, 3, 4, 5, 6}));
   static_assert(mean<decltype(concatenate_vertical(Mat22 {1, 2, 3, 4}, Mat12 {5, 6}))>);
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(concatenate_vertical(Mat22 {1, 2, 3, 4}, Mat12 {5, 6}))>, C3>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_vertical(Mat22 {1, 2, 3, 4}, Mat12 {5, 6})), 0>, C3>);
 
   EXPECT_TRUE(is_near(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6}), Mat23 {1, 2, 3, 4, 5, 6}));
   static_assert(mean<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6}))>);
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6}))>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6})), 0>, C2>);
 
   EXPECT_TRUE(is_near(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, angle::Radians, M21> {3, 6}),
     Matrix<C2, TypedIndex<Axis, Axis, angle::Radians>, M23> {1, 2, 3, 4-2*pi, 5-2*pi, 6}));
   static_assert(not mean<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, angle::Radians, M21> {3, 6}))>);
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, angle::Radians, M21> {3, 6}))>, C2>);
-  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, angle::Radians, M21> {3, 6}))>, TypedIndex<Axis, Axis, angle::Radians>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, angle::Radians, M21> {3, 6})), 0>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, angle::Radians, M21> {3, 6})), 1>, TypedIndex<Axis, Axis, angle::Radians>>);
 
   EXPECT_TRUE(is_near(split_vertical(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {}));
   EXPECT_TRUE(is_near(split_horizontal(Mat23 {1, 2, 3, 4, 5, 6}), std::tuple {}));
@@ -367,10 +367,10 @@ TEST(matrices, Mean_blocks)
 
   EXPECT_TRUE(is_near(column<0>(Mat22 {1, 2, 3, 4}), Mean{1., 3}));
   EXPECT_TRUE(is_near(column<1>(Mat22 {1, 2, 3, 4}), Mean{2., 4-2*pi}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(column<0>(Mat22 {1, 2, 3, 4}))>, C2>);
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(column<1>(Mat22 {1, 2, 3, 4}))>, C2>);
-  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(column<0>(Mat22 {1, 2, 3, 4}))>, Axis>);
-  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(column<1>(Mat22 {1, 2, 3, 4}))>, Axis>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(column<0>(Mat22 {1, 2, 3, 4})), 0>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(column<1>(Mat22 {1, 2, 3, 4})), 0>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(column<0>(Mat22 {1, 2, 3, 4})), 1>, Axis>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(column<1>(Mat22 {1, 2, 3, 4})), 1>, Axis>);
 
   auto m = Mat22 {1, 2, 3, 4};
   EXPECT_TRUE(is_near(apply_columnwise([](auto& col){ col *= 2; }, m), Mat22 {2, 4, 6, 8}));
@@ -388,10 +388,10 @@ TEST(matrices, Mean_blocks)
 
   EXPECT_TRUE(is_near(apply_columnwise<2>([] { return Mat21 {1., 2}; }), Mat22 {1, 1, 2, 2}));
   EXPECT_TRUE(is_near(apply_columnwise<2>([](std::size_t i){ return Mat21 {i + 1., 2*i + 1}; }), Mat22 {1, 2, 1, 3}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Mat21()>()))>, C2>);
-  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Mat21()>()))>, Dimensions<2>>);
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Mat21(std::size_t)>()))>, C2>);
-  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Mat21(std::size_t)>()))>, Dimensions<2>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Mat21()>())), 0>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Mat21()>())), 1>, Dimensions<2>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Mat21(std::size_t)>())), 0>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Mat21(std::size_t)>())), 1>, Dimensions<2>>);
 
   const auto mat22_1234 = Mat22 {1, 2, 3, 4};
   auto n = mat22_1234;
@@ -438,22 +438,22 @@ TEST(matrices, Mean_arithmetic)
   static_assert(mean<decltype(Mat32 {2, 4, 6, 8, 10, 12} / 2, Mat32 {1, 2, 3, 4, 5, 6})>);
 
   EXPECT_TRUE(is_near(Mat22 {1, 2, 3, 4} * Mean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6}, TMat23 {9, 12, 15, 19 - 8*pi, 26 - 10*pi, 33 - 12*pi}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Mean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Mean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6}), 0>, C2>);
   static_assert(typed_matrix<decltype(Mat22 {1, 2, 3, 4} * Mean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})>);
 
   EXPECT_TRUE(is_near(Mat22 {1, 2, 3, 4} * Matrix<Dimensions<2>, Dimensions<3>, M23> {1, 2, 3, 4, 5, 6}, TMat23 {9, 12, 15, 19 - 8*pi, 26 - 10*pi, 33 - 12*pi}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Matrix<Dimensions<2>, Dimensions<3>, M23> {1, 2, 3, 4, 5, 6})>, C2>);
-  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Matrix<Dimensions<2>, Dimensions<3>, M23> {1, 2, 3, 4, 5, 6})>, Dimensions<3>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Matrix<Dimensions<2>, Dimensions<3>, M23> {1, 2, 3, 4, 5, 6}), 0>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Matrix<Dimensions<2>, Dimensions<3>, M23> {1, 2, 3, 4, 5, 6}), 1>, Dimensions<3>>);
   static_assert(typed_matrix<decltype(Mat22 {1, 2, 3, 4} * Matrix<Dimensions<2>, Dimensions<3>, M23> {1, 2, 3, 4, 5, 6})>);
 
   EXPECT_TRUE(is_near(Mat22 {1, 2, 3, 2} * Matrix<Dimensions<2>, C3, M23> {1, 2, 3, 3, 2, 1}, Matrix<Dimensions<2>, C3, M23> {7, 6, 5, 9, 10, 11}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Matrix<Dimensions<2>, C3, M23> {1, 2, 3, 4, 5, 6})>, C2>);
-  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Matrix<Dimensions<2>, C3, M23> {1, 2, 3, 4, 5, 6})>, C3>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Matrix<Dimensions<2>, C3, M23> {1, 2, 3, 4, 5, 6}), 0>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Matrix<Dimensions<2>, C3, M23> {1, 2, 3, 4, 5, 6}), 1>, C3>);
   static_assert(typed_matrix<decltype(Mat22 {1, 2, 3, 4} * Matrix<Dimensions<2>, C3, M23> {1, 2, 3, 4, 5, 6})>);
 
   EXPECT_TRUE(is_near(Mat22 {1, 2, 3, 4} * EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6}, TMat23 {9, 12, 15, 19 - 8*pi, 26 - 10*pi, 33 - 12*pi}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(Matrix<C2, Dimensions<2>, M22> {1, 2, 3, 4} * EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})>, C2>);
-  static_assert(equivalent_to<column_index_descriptor_of_t<decltype(Matrix<C2, Dimensions<2>, M22> {1, 2, 3, 4} * EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})>, Dimensions<3>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix<C2, Dimensions<2>, M22> {1, 2, 3, 4} * EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6}), 0>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix<C2, Dimensions<2>, M22> {1, 2, 3, 4} * EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6}), 1>, Dimensions<3>>);
   static_assert(typed_matrix<decltype(Mat22 {1, 2, 3, 4} * EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})>);
 
   EXPECT_TRUE(is_near(-Mat32 {1, 2, 3, 4, 5, 6}, Mat32 {-1, -2, -3, -4, -5, -6}));
@@ -501,9 +501,9 @@ TEST(matrices, Mean_angle_concatenate_split)
   using Var3 = Mean<C3>;
   auto x1 = Var3 {5., 7, 9};
   auto x2 = Var3 {3., 2, 1};
-  auto x3 = Mean<concatenate_fixed_index_descriptor_t<C3, C3>> {5., 7, 9, 3, 2, 1};
+  auto x3 = Mean<concatenate_fixed_vector_space_descriptor_t<C3, C3>> {5., 7, 9, 3, 2, 1};
   EXPECT_TRUE(is_near(concatenate(x1, x2), x3));
-  auto x4 = Mean<concatenate_fixed_index_descriptor_t<C3, C3, C3>> {5., 7, 9, 3, 2, 1, 5, 7, 9};
+  auto x4 = Mean<concatenate_fixed_vector_space_descriptor_t<C3, C3, C3>> {5., 7, 9, 3, 2, 1, 5, 7, 9};
   EXPECT_TRUE(is_near(concatenate(x1, x2, x1), x4));
   auto [x5, x6] = split_vertical<C3, C3>(x3);
   EXPECT_TRUE(is_near(nested_matrix(x5), nested_matrix(x1)));
@@ -550,7 +550,7 @@ TEST(matrices, Mean_angle_mult_TypedMatrix)
              -5, 2, -1};
   const Vm vm {2, 1, -1};
   const Rm rm {-4, -7};
-  static_assert(std::is_same_v<row_index_descriptor_of_t<decltype(make_self_contained(m*vm))>, TypedIndex<Axis, angle::Radians>>);
+  static_assert(std::is_same_v<vector_space_descriptor_of_t<decltype(make_self_contained(m*vm)), 0>, TypedIndex<Axis, angle::Radians>>);
   EXPECT_TRUE(is_near(m*vm, rm));
 }
 

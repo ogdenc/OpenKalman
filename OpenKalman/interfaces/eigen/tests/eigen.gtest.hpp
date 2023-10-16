@@ -86,7 +86,7 @@ namespace OpenKalman::test
   {
   private:
 
-    using A = std::conditional_t<Eigen3::eigen_general<Arg1, true>, Arg1, Arg2>;
+    using A = std::conditional_t<Eigen3::eigen_general<Arg1>, Arg1, Arg2>;
 
   public:
     TestComparison(const Arg1& arg1, const Arg2& arg2, const Err& err)
@@ -94,33 +94,44 @@ namespace OpenKalman::test
 
   };
 
-
   using Mxx = eigen_matrix_t<double, dynamic_size, dynamic_size>;
+  using Mx0 = eigen_matrix_t<double, dynamic_size, 0>;
   using Mx1 = eigen_matrix_t<double, dynamic_size, 1>;
   using Mx2 = eigen_matrix_t<double, dynamic_size, 2>;
   using Mx3 = eigen_matrix_t<double, dynamic_size, 3>;
   using Mx4 = eigen_matrix_t<double, dynamic_size, 4>;
   using Mx5 = eigen_matrix_t<double, dynamic_size, 5>;
 
+  using M0x = eigen_matrix_t<double, 0, dynamic_size>;
+  using M00 = eigen_matrix_t<double, 0, 0>;
+  using M01 = eigen_matrix_t<double, 0, 1>;
+  using M02 = eigen_matrix_t<double, 0, 2>;
+  using M03 = eigen_matrix_t<double, 0, 3>;
+  using M04 = eigen_matrix_t<double, 0, 4>;
+
   using M1x = eigen_matrix_t<double, 1, dynamic_size>;
+  using M10 = eigen_matrix_t<double, 1, 0>;
   using M11 = eigen_matrix_t<double, 1, 1>;
   using M12 = eigen_matrix_t<double, 1, 2>;
   using M13 = eigen_matrix_t<double, 1, 3>;
   using M14 = eigen_matrix_t<double, 1, 4>;
 
   using M2x = eigen_matrix_t<double, 2, dynamic_size>;
+  using M20 = eigen_matrix_t<double, 2, 0>;
   using M21 = eigen_matrix_t<double, 2, 1>;
   using M22 = eigen_matrix_t<double, 2, 2>;
   using M23 = eigen_matrix_t<double, 2, 3>;
   using M24 = eigen_matrix_t<double, 2, 4>;
 
   using M3x = eigen_matrix_t<double, 3, dynamic_size>;
+  using M30 = eigen_matrix_t<double, 3, 0>;
   using M31 = eigen_matrix_t<double, 3, 1>;
   using M32 = eigen_matrix_t<double, 3, 2>;
   using M33 = eigen_matrix_t<double, 3, 3>;
   using M34 = eigen_matrix_t<double, 3, 4>;
 
   using M4x = eigen_matrix_t<double, 4, dynamic_size>;
+  using M40 = eigen_matrix_t<double, 4, 0>;
   using M41 = eigen_matrix_t<double, 4, 1>;
   using M42 = eigen_matrix_t<double, 4, 2>;
   using M43 = eigen_matrix_t<double, 4, 3>;
@@ -128,6 +139,7 @@ namespace OpenKalman::test
   using M45 = eigen_matrix_t<double, 4, 5>;
 
   using M5x = eigen_matrix_t<double, 5, dynamic_size>;
+  using M50 = eigen_matrix_t<double, 5, 0>;
   using M51 = eigen_matrix_t<double, 5, 1>;
   using M52 = eigen_matrix_t<double, 5, 2>;
   using M53 = eigen_matrix_t<double, 5, 3>;

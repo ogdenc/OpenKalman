@@ -20,32 +20,28 @@
 namespace OpenKalman::interface
 {
   template<typename Indices, typename LhsXprType, typename RhsXprType, typename OutputKernelType>
-  struct IndexibleObjectTraits<Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>>
+  struct indexible_object_traits<Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>>
+    : Eigen3::indexible_object_traits_base<Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>>
   {
   private:
 
-    using T = Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>;
+    using Xpr = Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>;
+    using Base = Eigen3::indexible_object_traits_base<Xpr>;
 
   public:
 
-    using index_type = typename T::Index;
-
     template<typename Arg, typename N>
-    static constexpr auto get_index_descriptor(const Arg& arg, N n)
+    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
     {
-      return Eigen::TensorEvaluator<const Arg, Eigen::DefaultDevice>{arg, Eigen::DefaultDevice{}}.dimensions()[static_cast<index_type>(n)];
+      using IndexType = typename Xpr::Index;
+      return Eigen::TensorEvaluator<const Arg, Eigen::DefaultDevice>{arg, Eigen::DefaultDevice{}}.dimensions()[static_cast<IndexType>(n)];
     }
 
 
-    // is_one_by_one not defined
+    using type = std::tuple<typename LhsXprType::Nested, typename RhsXprType::Nested>;
 
-    // is_square not defined
 
     static constexpr bool has_runtime_parameters = true;
-
-
-    using type = std::tuple<typename LhsXprType::Nested, typename RhsXprType::Nested>;
 
 
     template<std::size_t i, typename Arg>
@@ -153,6 +149,10 @@ namespace OpenKalman::interface
     }
 
 
+    // is_one_by_one not defined
+
+    // is_square not defined
+
     //template<TriangleType t, Likelihood b>
     //static constexpr bool is_triangular = std::tuple_size_v<decltype(std::declval<T>().indices())> == 1 and
     //  triangular_matrix<LhsXprType, t, b> and triangular_matrix<RhsXprType, t, b>;
@@ -161,7 +161,7 @@ namespace OpenKalman::interface
     static constexpr bool is_triangular_adapter = false;
 
 
-    static constexpr bool is_hermitian = std::tuple_size_v<decltype(std::declval<T>().indices())> == 1 and
+    static constexpr bool is_hermitian = std::tuple_size_v<decltype(std::declval<Xpr>().indices())> == 1 and
       ((constant_diagonal_matrix<LhsXprType, CompileTimeStatus::any, Likelihood::maybe> and hermitian_matrix<RhsXprType, Likelihood::maybe>) or
       (constant_diagonal_matrix<RhsXprType, CompileTimeStatus::any, Likelihood::maybe> and hermitian_matrix<LhsXprType, Likelihood::maybe>));
 

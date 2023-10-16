@@ -53,7 +53,7 @@ namespace OpenKalman
     template<typename Arg, typename...Begin, typename...Size>
     constexpr auto block_impl(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
     {
-      // \todo Extract the correct index descriptors from Arg.
+      // \todo Extract the correct \ref vector_space_descriptor from Arg.
       if constexpr (zero_matrix<Arg>)
       {
         return std::apply([](auto...ds){ return make_zero_matrix_like<Arg>(ds...); }, size);
@@ -66,7 +66,7 @@ namespace OpenKalman
       }
       else
       {
-        return interface::LibraryRoutines<std::decay_t<Arg>>::get_block(std::forward<Arg>(arg), begin, size);
+        return interface::library_interface<std::decay_t<Arg>>::get_block(std::forward<Arg>(arg), begin, size);
       }
     }
 
@@ -81,15 +81,15 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible Arg, index_value...Begin, index_value...Size> requires
-    (sizeof...(Begin) == max_indices_of_v<Arg>) and (sizeof...(Size) == max_indices_of_v<Arg>)
+    (sizeof...(Begin) == index_count_v<Arg>) and (sizeof...(Size) == index_count_v<Arg>)
 #else
   template<typename Arg, typename...Begin, typename...Size, std::enable_if_t<
     indexible<Arg> and (index_value<Begin> and ...) and (index_value<Size> and ...) and
-    (sizeof...(Begin) == max_indices_of<Arg>::value and sizeof...(Size) == max_indices_of<Arg>::value), int> = 0>
+    (sizeof...(Begin) == index_count<Arg>::value and sizeof...(Size) == index_count<Arg>::value), int> = 0>
 #endif
   constexpr auto get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
   {
-    std::make_index_sequence<max_indices_of_v<Arg>> seq;
+    std::make_index_sequence<index_count_v<Arg>> seq;
     detail::check_block_limits(seq, seq, arg, begin);
     detail::check_block_limits(seq, seq, arg, begin, size);
 
@@ -141,11 +141,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<std::size_t...indices, indexible Arg, index_value...Begin, index_value...Size> requires
-    (sizeof...(indices) > 0) and ((indices < max_indices_of_v<Arg>) and ...) and
+    (sizeof...(indices) > 0) and ((indices < index_count_v<Arg>) and ...) and
     (sizeof...(indices) == sizeof...(Begin)) and (sizeof...(indices) == sizeof...(Size))
 #else
   template<std::size_t...indices, typename Arg, typename...Begin, typename...Size, std::enable_if_t<
-    (sizeof...(indices) > 0) and ((indices < max_indices_of_v<Arg>) and ...) and
+    (sizeof...(indices) > 0) and ((indices < index_count_v<Arg>) and ...) and
     indexible<Arg> and (index_value<Begin> and ...) and (index_value<Size> and ...) and
     (sizeof...(indices) == sizeof...(Begin) and sizeof...(indices) == sizeof...(Size)), int> = 0>
 #endif
@@ -157,7 +157,7 @@ namespace OpenKalman
     detail::check_block_limits(limits_ix_seq, indices_seq, arg, begin);
     detail::check_block_limits(limits_ix_seq, indices_seq, arg, begin, size);
 
-    auto arg_ix_seq = std::make_index_sequence<max_indices_of_v<Arg>>{};
+    auto arg_ix_seq = std::make_index_sequence<index_count_v<Arg>>{};
 
     return detail::block_impl(std::forward<Arg>(arg),
       detail::expand_block_limits<true, indices...>(arg, begin, arg_ix_seq, limits_ix_seq),
@@ -177,26 +177,26 @@ namespace OpenKalman
    * \param size A tuple specifying, for each index of Arg in order, the dimensions of the extracted block.
    */
 #ifdef __cpp_concepts
-  template<writable Arg, indexible Block, index_value...Begin> requires (sizeof...(Begin) == max_indices_of_v<Arg>)
+  template<writable Arg, indexible Block, index_value...Begin> requires (sizeof...(Begin) == index_count_v<Arg>)
 #else
   template<typename Arg, typename Block, typename...Begin, std::enable_if_t<writable<Arg> and indexible<Block> and
-    (index_value<Begin> and ...) and (sizeof...(Begin) == max_indices_of<Arg>::value), int> = 0>
+    (index_value<Begin> and ...) and (sizeof...(Begin) == index_count<Arg>::value), int> = 0>
 #endif
   constexpr Arg& set_block(Arg& arg, Block&& block, Begin...begin)
   {
-    auto seq = std::make_index_sequence<max_indices_of_v<Arg>>{};
+    auto seq = std::make_index_sequence<index_count_v<Arg>>{};
     detail::check_block_limits(seq, seq, arg, std::tuple{begin...});
     detail::check_block_limits(seq, seq, arg, std::tuple{begin...},
       std::apply([](auto&&...a){
         return std::tuple{[](auto&& a){
-          if constexpr (fixed_index_descriptor<decltype(a)>)
+          if constexpr (fixed_vector_space_descriptor<decltype(a)>)
             return std::integral_constant<std::size_t, dimension_size_of_v<decltype(a)>> {};
           else
             return get_dimension_size_of(std::forward<decltype(a)>(a));
         }(std::forward<decltype(a)>(a))...};
       }, get_all_dimensions_of(block)));
 
-    interface::LibraryRoutines<std::decay_t<Arg>>::set_block(arg, std::forward<Block>(block), begin...);
+    interface::library_interface<std::decay_t<Arg>>::set_block(arg, std::forward<Block>(block), begin...);
     return arg;
   }
 
@@ -246,12 +246,12 @@ namespace OpenKalman
    * \tparam I The type of the index of the row, which is an \index_value
    */
 #ifdef __cpp_concepts
-  template<indexible Arg, index_value I> requires dynamic_rows<Arg> or (not static_index_value<I>) or
-    (static_index_value_of_v<I> < row_dimension_of_v<Arg>)
+  template<indexible Arg, index_value I> requires dynamic_dimension<Arg, 0> or (not static_index_value<I>) or
+    (static_index_value_of_v<I> < index_dimension_of_v<Arg, 0>)
   constexpr vector<1> decltype(auto)
 #else
   template<typename Arg, typename I, std::enable_if_t<indexible<Arg> and index_value<I> and
-    (dynamic_rows<Arg> or not static_index_value<I> or (static_index_value_of<I>::value < row_dimension_of<Arg>::value)), int> = 0>
+    (dynamic_dimension<Arg, 0> or not static_index_value<I> or (static_index_value_of<I>::value < index_dimension_of<Arg, 0>::value)), int> = 0>
   constexpr decltype(auto)
 #endif
   get_row(Arg&& arg, I i)
@@ -268,12 +268,12 @@ namespace OpenKalman
    * \tparam I The type of the index of the column, which is an \index_value
    */
 #ifdef __cpp_concepts
-  template<indexible Arg, index_value I> requires dynamic_columns<Arg> or (not static_index_value<I>) or
-    (static_index_value_of_v<I> < column_dimension_of_v<Arg>)
+  template<indexible Arg, index_value I> requires dynamic_dimension<Arg, 1> or (not static_index_value<I>) or
+    (static_index_value_of_v<I> < index_dimension_of_v<Arg, 1>)
   constexpr vector<0> decltype(auto)
 #else
   template<typename Arg, typename I, std::enable_if_t<indexible<Arg> and index_value<I> and
-    (dynamic_columns<Arg> or not static_index_value<I> or (static_index_value_of<I>::value < column_dimension_of<Arg>::value)), int> = 0>
+    (dynamic_dimension<Arg, 1> or not static_index_value<I> or (static_index_value_of<I>::value < index_dimension_of<Arg, 1>::value)), int> = 0>
   constexpr decltype(auto)
 #endif
   get_column(Arg&& arg, I i)
@@ -336,7 +336,7 @@ namespace OpenKalman
     }(chip),...);
 
     return detail::set_chip_impl<indices...>(arg, std::forward<Chip>(chip),
-      std::make_index_sequence<max_indices_of_v<Arg>> {}, is...);
+      std::make_index_sequence<index_count_v<Arg>> {}, is...);
   }
 
 
@@ -348,11 +348,11 @@ namespace OpenKalman
    * \tparam I The type of the index of the row, which is an \index_value
    */
 #ifdef __cpp_concepts
-  template<writable Arg, indexible Row, index_value I> requires dynamic_rows<Arg> or (not static_index_value<I>) or
-    (static_index_value_of_v<I> < row_dimension_of_v<Arg>)
+  template<writable Arg, indexible Row, index_value I> requires dynamic_dimension<Arg, 0> or (not static_index_value<I>) or
+    (static_index_value_of_v<I> < index_dimension_of_v<Arg, 0>)
 #else
   template<typename Arg, typename Row, typename I, std::enable_if_t<writable<Arg> and indexible<Row> and index_value<I> and
-    (dynamic_rows<Arg> or not static_index_value<I> or (static_index_value_of<I>::value < row_dimension_of<Arg>::value)), int> = 0>
+    (dynamic_dimension<Arg, 0> or not static_index_value<I> or (static_index_value_of<I>::value < index_dimension_of<Arg, 0>::value)), int> = 0>
 #endif
   constexpr Arg&
   set_row(Arg& arg, Row&& row, I i)
@@ -369,11 +369,11 @@ namespace OpenKalman
    * \tparam I The type of the index of the row, which is an \index_value
    */
 #ifdef __cpp_concepts
-  template<writable Arg, indexible Column, index_value I> requires dynamic_columns<Arg> or (not static_index_value<I>) or
-    (static_index_value_of_v<I> < column_dimension_of_v<Arg>)
+  template<writable Arg, indexible Column, index_value I> requires dynamic_dimension<Arg, 1> or (not static_index_value<I>) or
+    (static_index_value_of_v<I> < index_dimension_of_v<Arg, 1>)
 #else
   template<typename Arg, typename Column, typename I, std::enable_if_t<writable<Arg> and indexible<Column> and index_value<I> and
-    (dynamic_columns<Arg> or not static_index_value<I> or (static_index_value_of<I>::value < column_dimension_of<Arg>::value)), int> = 0>
+    (dynamic_dimension<Arg, 1> or not static_index_value<I> or (static_index_value_of<I>::value < index_dimension_of<Arg, 1>::value)), int> = 0>
 #endif
   constexpr Arg&
   set_column(Arg& arg, Column&& column, I i)
@@ -396,7 +396,7 @@ namespace OpenKalman
 
       template<TriangleType t, typename A, typename B>
       struct set_triangle_trait_exists<t, A, B, std::void_t<decltype(
-          interface::LibraryRoutines<std::decay_t<A>>::template set_triangle<t>(std::declval<A>(), std::declval<B>()))>>
+          interface::library_interface<std::decay_t<A>>::template set_triangle<t>(std::declval<A>(), std::declval<B>()))>>
         : std::true_type {};
     }
 #endif
@@ -414,7 +414,7 @@ namespace OpenKalman
       maybe_has_same_shape_as<A, B> and (t != TriangleType::any) and
       (not triangular_matrix<A, TriangleType::any, Likelihood::maybe> or triangular_matrix<A, t, Likelihood::maybe> or t == TriangleType::diagonal) and
       (not triangular_matrix<B, TriangleType::any, Likelihood::maybe> or triangular_matrix<B, t, Likelihood::maybe> or t == TriangleType::diagonal)
-    constexpr index_descriptors_match<A> decltype(auto)
+    constexpr vector_space_descriptor_match<A> decltype(auto)
 #else
     template<TriangleType t, typename A, typename B, std::enable_if_t<
       square_matrix<A, Likelihood::maybe> and square_matrix<B, Likelihood::maybe> and
@@ -480,12 +480,12 @@ namespace OpenKalman
         }
       }
 #ifdef __cpp_concepts
-      else if constexpr (requires { interface::LibraryRoutines<std::decay_t<A>>::template set_triangle<t>(std::forward<A>(a), std::forward<B>(b)); })
+      else if constexpr (requires { interface::library_interface<std::decay_t<A>>::template set_triangle<t>(std::forward<A>(a), std::forward<B>(b)); })
 #else
       if constexpr (detail::set_triangle_trait_exists<t, A, B>::value)
 #endif
       {
-        return interface::LibraryRoutines<std::decay_t<A>>::template set_triangle<t>(std::forward<A>(a), std::forward<B>(b));
+        return interface::library_interface<std::decay_t<A>>::template set_triangle<t>(std::forward<A>(a), std::forward<B>(b));
       }
       else
       {

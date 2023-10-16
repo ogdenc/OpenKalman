@@ -556,22 +556,22 @@ TEST(covariance_tests, Covariance_subscripts)
 TEST(covariance_tests, Covariance_deduction_guides)
 {
   EXPECT_TRUE(is_near(Covariance(CovSA2l {9, 3, 3, 10}), Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(Covariance(CovSA2l {9, 3, 3, 10}))>, C>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Covariance(CovSA2l {9, 3, 3, 10})), 0>, C>);
 
   EXPECT_TRUE(is_near(Covariance(T2l {3, 0, 1, 3}), Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(Covariance(T2l {3, 0, 1, 3}))>, Dimensions<2>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Covariance(T2l {3, 0, 1, 3})), 0>, Dimensions<2>>);
 
   EXPECT_TRUE(is_near(Covariance(D2 {1, 2}), Mat2 {1, 0, 0, 2}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(Covariance(D2 {1, 2}))>, Dimensions<2>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Covariance(D2 {1, 2})), 0>, Dimensions<2>>);
 
   EXPECT_TRUE(is_near(Covariance(Mat2 {9, 3, 3, 10}), Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(Covariance(Mat2 {9, 3, 3, 10}))>, C>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Covariance(Mat2 {9, 3, 3, 10})), 0>, C>);
 
   EXPECT_TRUE(is_near(Covariance(make_dense_writable_matrix_from<M2>(9, 3, 3, 10)), Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(Covariance(make_dense_writable_matrix_from<M2>(9, 3, 3, 10)))>, Dimensions<2>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Covariance(make_dense_writable_matrix_from<M2>(9, 3, 3, 10))), 0>, Dimensions<2>>);
 
   EXPECT_TRUE(is_near(Covariance {9., 3, 3, 10}, Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(Covariance {9., 3, 3, 10})>, Dimensions<2>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Covariance {9., 3, 3, 10}), 0>, Dimensions<2>>);
 }
 
 
@@ -688,7 +688,7 @@ TEST(covariance_tests, Covariance_make)
   static_assert(triangular_matrix<decltype(make_covariance<C, TriangleType::lower>().get_triangular_nested_matrix()), TriangleType::lower>);
   static_assert(triangular_matrix<decltype(make_covariance<C, TriangleType::upper>().get_triangular_nested_matrix()), TriangleType::upper>);
   static_assert(hermitian_adapter<decltype(make_covariance<C>().get_self_adjoint_nested_matrix()), HermitianAdapterType::lower>);
-  static_assert(dimension_size_of_vrow_index_descriptor_of_t<decltype(make_covariance<C>())>> == 2);
+  static_assert(dimension_size_of_v<vector_space_descriptor_of_t<decltype(make_covariance<C>()), 0>> == 2);
 }
 
 
@@ -881,7 +881,7 @@ TEST(covariance_tests, Covariance_overloads)
 
 TEST(covariance_tests, Covariance_blocks)
 {
-  using C4 = concatenate_fixed_index_descriptor_t<C, C>;
+  using C4 = concatenate_fixed_vector_space_descriptor_t<C, C>;
   using M4 = eigen_matrix_t<double, 4, 4>;
   using Mat4 = Matrix<C4, C4, M4>;
   using CovSA4l = Covariance<C4, SelfAdjointMatrix<M4, TriangleType::lower>>;

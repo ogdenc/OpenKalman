@@ -22,29 +22,22 @@
 namespace OpenKalman::interface
 {
   template<typename ExpressionType, int Direction>
-  struct IndexibleObjectTraits<Eigen::VectorwiseOp<ExpressionType, Direction>>
+  struct indexible_object_traits<Eigen::VectorwiseOp<ExpressionType, Direction>>
   {
-    static constexpr std::size_t max_indices = 2;
-
-    using index_type = index_type_of_t<ExpressionType>;
-
     using scalar_type = scalar_type_of_t<ExpressionType>;
 
+    template<typename Arg>
+    static constexpr auto get_index_count(const Arg& arg) { return std::integral_constant<std::size_t, 2>{}; }
+
     template<typename Arg, typename N>
-    static constexpr auto get_index_descriptor(const Arg& arg, N n)
+    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
     {
-      return OpenKalman::get_index_descriptor(arg._expression(), n);
+      return OpenKalman::get_vector_space_descriptor(arg._expression(), n);
     }
 
-    template<Likelihood b>
-    static constexpr bool is_one_by_one = one_by_one_matrix<ExpressionType, b>;
-
-    template<Likelihood b>
-    static constexpr bool is_square = square_matrix<ExpressionType, b>;
+    using type = std::tuple<typename Eigen::VectorwiseOp<ExpressionType, Direction>::ExpressionTypeNested>;
 
     static constexpr bool has_runtime_parameters = false;
-
-    using type = std::tuple<typename Eigen::VectorwiseOp<ExpressionType, Direction>::ExpressionTypeNested>;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -67,6 +60,12 @@ namespace OpenKalman::interface
     {
       return constant_coefficient {arg._expression()};
     }
+
+    template<Likelihood b>
+    static constexpr bool is_one_by_one = one_by_one_matrix<ExpressionType, b>;
+
+    template<Likelihood b>
+    static constexpr bool is_square = square_matrix<ExpressionType, b>;
 
     // No get or set defined.
   };

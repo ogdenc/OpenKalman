@@ -10,11 +10,11 @@
 
 /**
  * \file
- * \brief Forward functions for index descriptors.
+ * \brief Forward functions for \ref vector_space_descriptor objects.
  */
 
-#ifndef OPENKALMAN_INDEX_DESCRIPTOR_FORWARD_FUNCTIONS_HPP
-#define OPENKALMAN_INDEX_DESCRIPTOR_FORWARD_FUNCTIONS_HPP
+#ifndef OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_FORWARD_FUNCTIONS_HPP
+#define OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_FORWARD_FUNCTIONS_HPP
 
 #include <type_traits>
 
@@ -26,20 +26,20 @@ namespace OpenKalman
   // ------------------------- //
 
   /**
-   * \brief Get the dimensions of \ref index_descriptor T
+   * \brief Get the dimension of \ref vector_space_descriptor T
    */
 #ifdef __cpp_concepts
-  template<index_descriptor T>
+  template<vector_space_descriptor T>
 #else
-  template<typename T, std::enable_if_t<index_descriptor<T>, int> = 0>
+  template<typename T, std::enable_if_t<vector_space_descriptor<T>, int> = 0>
 #endif
   constexpr std::size_t
   get_dimension_size_of(const T& t)
   {
-    if constexpr (fixed_index_descriptor<T>) return dimension_size_of_v<T>;
+    if constexpr (fixed_vector_space_descriptor<T>) return dimension_size_of_v<T>;
     else
     {
-      interface::DynamicIndexDescriptorTraits ret{t};
+      interface::DynamicVectorSpaceDescriptorTraits ret{t};
       return ret.get_size();
     }
   }
@@ -50,68 +50,68 @@ namespace OpenKalman
   // ----------------------------------- //
 
   /**
-   * \brief Get the Euclidean dimensions of \ref index_descriptor T
+   * \brief Get the Euclidean dimension of \ref vector_space_descriptor T
    */
 #ifdef __cpp_concepts
-  template<index_descriptor T>
+  template<vector_space_descriptor T>
 #else
-  template<typename T, std::enable_if_t<index_descriptor<T>, int> = 0>
+  template<typename T, std::enable_if_t<vector_space_descriptor<T>, int> = 0>
 #endif
   constexpr std::size_t
   get_euclidean_dimension_size_of(const T& t)
   {
-    if constexpr (fixed_index_descriptor<T>) return euclidean_dimension_size_of_v<T>;
+    if constexpr (fixed_vector_space_descriptor<T>) return euclidean_dimension_size_of_v<T>;
     else
     {
-      interface::DynamicIndexDescriptorTraits ret{t};
+      interface::DynamicVectorSpaceDescriptorTraits ret{t};
       return ret.get_euclidean_size();
     }
   }
 
 
   // ------------------------------------------- //
-  //   get_index_descriptor_component_count_of   //
+  //   get_vector_space_descriptor_component_count_of   //
   // ------------------------------------------- //
 
   /**
-   * \brief Get the dimensions of \ref index_descriptor T
+   * \brief Get the dimension of \ref vector_space_descriptor T
    */
 #ifdef __cpp_concepts
-  template<index_descriptor T>
+  template<vector_space_descriptor T>
 #else
-  template<typename T, std::enable_if_t<index_descriptor<T>, int> = 0>
+  template<typename T, std::enable_if_t<vector_space_descriptor<T>, int> = 0>
 #endif
   constexpr std::size_t
-  get_index_descriptor_component_count_of(const T& t)
+  get_vector_space_descriptor_component_count_of(const T& t)
   {
-    if constexpr (fixed_index_descriptor<T>) return index_descriptor_components_of_v<T>;
+    if constexpr (fixed_vector_space_descriptor<T>) return vector_space_descriptor_components_of_v<T>;
     else
     {
-      interface::DynamicIndexDescriptorTraits ret{t};
+      interface::DynamicVectorSpaceDescriptorTraits ret{t};
       return ret.get_component_count();
     }
   }
 
 
   // ------------------------------------- //
-  //   get_index_descriptor_is_euclidean   //
+  //   get_vector_space_descriptor_is_euclidean   //
   // ------------------------------------- //
 
   /**
-   * \brief Determine, at runtime, whether \ref index_descriptor T is untyped.
+   * \brief Determine, at runtime, whether \ref vector_space_descriptor T is untyped.
    */
 #ifdef __cpp_concepts
-  template<index_descriptor T>
+  template<vector_space_descriptor T>
 #else
-  template<typename T, std::enable_if_t<index_descriptor<T>, int> = 0>
+  template<typename T, std::enable_if_t<vector_space_descriptor<T>, int> = 0>
 #endif
   constexpr bool
-  get_index_descriptor_is_euclidean(const T& t)
+  get_vector_space_descriptor_is_euclidean(const T& t)
   {
-    if constexpr (fixed_index_descriptor<T>) return euclidean_index_descriptor<T>;
+    if constexpr (fixed_vector_space_descriptor<T>) return euclidean_vector_space_descriptor<T>;
     else
     {
-      interface::DynamicIndexDescriptorTraits ret{t};
+      interface::DynamicVectorSpaceDescriptorTraits ret{t};
       return ret.is_euclidean();
     }
   }
@@ -126,25 +126,25 @@ namespace OpenKalman
    * \param g An element getter mapping an index i of type std::size_t to an element of \ref scalar_type
    * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
    * \param euclidean_local_index A local index accessing the coordinate in Euclidean space
-   * \param start The starting location of the angle within any larger set of index type descriptors
+   * \param start The starting location of the angle within any larger set of \ref vector_space_descriptor
    */
 #ifdef __cpp_concepts
   constexpr scalar_type auto
-  to_euclidean_element(const index_descriptor auto& t, const auto& g, std::size_t euclidean_local_index, std::size_t start)
+  to_euclidean_element(const vector_space_descriptor auto& t, const auto& g, std::size_t euclidean_local_index, std::size_t start)
   requires requires (std::size_t i){ {g(i)} -> scalar_type; }
 #else
-  template<typename T, typename G, std::enable_if_t<index_descriptor<T> and
+  template<typename T, typename G, std::enable_if_t<vector_space_descriptor<T> and
     scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
   constexpr auto to_euclidean_element(const T& t, const G& g, std::size_t euclidean_local_index, std::size_t start)
 #endif
   {
     using T_d = std::decay_t<decltype(t)>;
-    if constexpr (euclidean_index_descriptor<T_d>)
+    if constexpr (euclidean_vector_space_descriptor<T_d>)
       return g(start + euclidean_local_index);
-    else if constexpr (fixed_index_descriptor<T_d>)
-      return interface::FixedIndexDescriptorTraits<T_d>::to_euclidean_element(g, euclidean_local_index, start);
+    else if constexpr (fixed_vector_space_descriptor<T_d>)
+      return interface::FixedVectorSpaceDescriptorTraits<T_d>::to_euclidean_element(g, euclidean_local_index, start);
     else
-      return interface::DynamicIndexDescriptorTraits<T_d>{t}.to_euclidean_element(g, euclidean_local_index, start);
+      return interface::DynamicVectorSpaceDescriptorTraits<T_d>{t}.to_euclidean_element(g, euclidean_local_index, start);
   }
 
 
@@ -157,11 +157,11 @@ namespace OpenKalman
    * \param g An element getter mapping an index i of type std::size_t to an element of \ref scalar_type
    * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
    * \param local_index A local index accessing the coordinate in modular space.
-   * \param euclidean_start The starting location in Euclidean space within any larger set of index type descriptors
+   * \param euclidean_start The starting location in Euclidean space within any larger set of \ref vector_space_descriptor
    */
 #ifdef __cpp_concepts
   constexpr scalar_type auto
-  from_euclidean_element(const index_descriptor auto& t, const auto& g, std::size_t local_index, std::size_t euclidean_start)
+  from_euclidean_element(const vector_space_descriptor auto& t, const auto& g, std::size_t local_index, std::size_t euclidean_start)
   requires requires (std::size_t i){ {g(i)} -> scalar_type; }
 #else
   template<typename T, typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
@@ -169,12 +169,12 @@ namespace OpenKalman
 #endif
   {
     using T_d = std::decay_t<decltype(t)>;
-    if constexpr (euclidean_index_descriptor<T_d>)
+    if constexpr (euclidean_vector_space_descriptor<T_d>)
       return g(euclidean_start + local_index);
-    else if constexpr (fixed_index_descriptor<T_d>)
-      return interface::FixedIndexDescriptorTraits<T_d>::from_euclidean_element(g, local_index, euclidean_start);
+    else if constexpr (fixed_vector_space_descriptor<T_d>)
+      return interface::FixedVectorSpaceDescriptorTraits<T_d>::from_euclidean_element(g, local_index, euclidean_start);
     else
-      return interface::DynamicIndexDescriptorTraits<T_d>{t}.from_euclidean_element(g, local_index, euclidean_start);
+      return interface::DynamicVectorSpaceDescriptorTraits<T_d>{t}.from_euclidean_element(g, local_index, euclidean_start);
   }
 
 
@@ -189,10 +189,10 @@ namespace OpenKalman
    * \param g An element getter mapping an index i of type std::size_t to an element of \ref scalar_type
    * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
    * \param local_index A local index accessing the element.
-   * \param start The starting location of the element within any larger set of index type descriptors.
+   * \param start The starting location of the element within any larger set of \ref vector_space_descriptor.
    */
 #ifdef __cpp_concepts
-  constexpr scalar_type auto wrap_get_element(const index_descriptor auto& t, const auto& g, std::size_t local_index, std::size_t start)
+  constexpr scalar_type auto wrap_get_element(const vector_space_descriptor auto& t, const auto& g, std::size_t local_index, std::size_t start)
   requires requires (std::size_t i){ {g(i)} -> scalar_type; }
 #else
   template<typename T, typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
@@ -200,12 +200,12 @@ namespace OpenKalman
 #endif
   {
     using T_d = std::decay_t<decltype(t)>;
-    if constexpr (euclidean_index_descriptor<T_d>)
+    if constexpr (euclidean_vector_space_descriptor<T_d>)
       return g(start + local_index);
-    else if constexpr (fixed_index_descriptor<T_d>)
-      return interface::FixedIndexDescriptorTraits<T_d>::wrap_get_element(g, local_index, start);
+    else if constexpr (fixed_vector_space_descriptor<T_d>)
+      return interface::FixedVectorSpaceDescriptorTraits<T_d>::wrap_get_element(g, local_index, start);
     else
-      return interface::DynamicIndexDescriptorTraits<T_d>{t}.wrap_get_element(g, local_index, start);
+      return interface::DynamicVectorSpaceDescriptorTraits<T_d>{t}.wrap_get_element(g, local_index, start);
   }
 
 
@@ -221,10 +221,10 @@ namespace OpenKalman
    * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
    * \param x The new value to be set.
    * \param local_index A local index accessing the element.
-   * \param start The starting location of the element within any larger set of index type descriptors.
+   * \param start The starting location of the element within any larger set of \ref vector_space_descriptor.
    */
 #ifdef __cpp_concepts
-  constexpr void wrap_set_element(const index_descriptor auto& t, const auto& s, const auto& g,
+  constexpr void wrap_set_element(const vector_space_descriptor auto& t, const auto& s, const auto& g,
     const std::decay_t<std::invoke_result_t<decltype(g), std::size_t>>& x, std::size_t local_index, std::size_t start)
   requires requires (std::size_t i){ s(x, i); {x} -> scalar_type; }
 #else
@@ -235,16 +235,16 @@ namespace OpenKalman
 #endif
   {
     using T_d = std::decay_t<decltype(t)>;
-    if constexpr (euclidean_index_descriptor<T_d>)
+    if constexpr (euclidean_vector_space_descriptor<T_d>)
       s(x, start + local_index);
-    else if constexpr (fixed_index_descriptor<T_d>)
-      interface::FixedIndexDescriptorTraits<T_d>::wrap_set_element(s, g, x, local_index, start);
+    else if constexpr (fixed_vector_space_descriptor<T_d>)
+      interface::FixedVectorSpaceDescriptorTraits<T_d>::wrap_set_element(s, g, x, local_index, start);
     else
-      interface::DynamicIndexDescriptorTraits<T_d>{t}.wrap_set_element(s, g, x, local_index, start);
+      interface::DynamicVectorSpaceDescriptorTraits<T_d>{t}.wrap_set_element(s, g, x, local_index, start);
   }
 
 
 } // namespace OpenKalman
 
 
-#endif //OPENKALMAN_INDEX_DESCRIPTOR_FORWARD_FUNCTIONS_HPP
+#endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_FORWARD_FUNCTIONS_HPP

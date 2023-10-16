@@ -53,8 +53,8 @@ struct Trans2
 
   auto hessian(const X& x) const
   {
-    using H = eigen_matrix_t<scalar_type_of_t<A>, column_dimension_of_v<A>, column_dimension_of_v<A>>;
-    using C = row_index_descriptor_of_t<X>;
+    using H = eigen_matrix_t<scalar_type_of_t<A>, index_dimension_of_v<A, 1>, index_dimension_of_v<A, 1>>;
+    using C = vector_space_descriptor_of_t<X, 0>;
     using MH = Matrix<C, C, H>;
     auto Arr = std::array<MH, A::RowsAtCompileTime>();
     Arr.fill(make_zero_matrix_like<MH>());
@@ -127,8 +127,8 @@ TEST(transformations, linearized_lambdas)
   auto f = [&a] (const M2& x) { return a * x; };
   auto j = [&a] (const M2& x) { return std::tuple(a); };
   auto h = [] (const M2& x) {
-    using H = eigen_matrix_t<scalar_type_of_t<A2>, column_dimension_of_v<A2>, column_dimension_of_v<A2>>;
-    using C = row_index_descriptor_of_t<M2>;
+    using H = eigen_matrix_t<scalar_type_of_t<A2>, index_dimension_of_v<A2, 1>, index_dimension_of_v<A2, 1>>;
+    using C = vector_space_descriptor_of_t<M2, 0>;
     using MH = Matrix<C, C, H>;
     auto Arr = std::array<MH, A2::RowsAtCompileTime>();
     Arr.fill(make_zero_matrix_like<MH>());

@@ -28,14 +28,14 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
   template<covariance_nestable T, typename Arg> requires
     (covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or vector<Arg>))) and
-    (row_dimension_of_v<Arg> == row_dimension_of_v<T>) and
+    (index_dimension_of_v<Arg, 0> == index_dimension_of_v<T, 0>) and
     (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
     (not diagonal_matrix<T> or diagonal_matrix<Arg> or vector<Arg>)
 #else
   template<typename T, typename Arg, typename = std::enable_if_t<
     (not std::is_same_v<T, Arg>) and covariance_nestable<T> and
     (covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or vector<Arg>))) and
-    (row_dimension_of<Arg>::value == row_dimension_of<T>::value) and
+    (index_dimension_of<Arg, 0>::value == index_dimension_of<T, 0>::value) and
     (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
     (not diagonal_matrix<T> or diagonal_matrix<Arg> or vector<Arg>)>>
 #endif
@@ -54,14 +54,14 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
   template<covariance_nestable T, typename Arg> requires
     (covariance<Arg> or (typed_matrix<Arg> and (square_matrix<Arg> or vector<Arg>))) and
-    (row_dimension_of_v<Arg> == row_dimension_of_v<T>) and
+    (index_dimension_of_v<Arg, 0> == index_dimension_of_v<T, 0>) and
     (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
     (not diagonal_matrix<T> or diagonal_matrix<Arg> or vector<Arg>)
 #else
   template<typename T, typename Arg, typename = void, typename = std::enable_if_t<
     (not std::is_same_v<T, Arg>) and covariance_nestable<T> and (not std::is_void_v<Arg>) and
     (covariance<Arg> or (typed_matrix<Arg> and (square_matrix<Arg> or vector<Arg>))) and
-    (row_dimension_of<Arg>::value == row_dimension_of<T>::value) and
+    (index_dimension_of<Arg, 0>::value == index_dimension_of<T, 0>::value) and
     (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
     (not diagonal_matrix<T> or diagonal_matrix<Arg> or vector<Arg>)>>
 #endif

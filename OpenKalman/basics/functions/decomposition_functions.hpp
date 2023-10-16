@@ -38,7 +38,7 @@ namespace OpenKalman
     }
     else if constexpr (zero_matrix<A>)
     {
-      auto dim = get_index_descriptor<0>(a);
+      auto dim = get_vector_space_descriptor<0>(a);
       return make_zero_matrix_like<A>(dim, dim);
     }
     else if constexpr (constant_matrix<A>)
@@ -60,8 +60,8 @@ namespace OpenKalman
         auto ret = make_triangular_matrix<TriangleType::lower>(std::move(m));
 
         // \todo Fix this:
-        if constexpr (euclidean_index_descriptor<index_descriptor_of_t<A, 0>>) return ret;
-        else return SquareRootCovariance {std::move(ret), get_index_descriptor<0>(a)};
+        if constexpr (euclidean_vector_space_descriptor<vector_space_descriptor_of_t<A, 0>>) return ret;
+        else return SquareRootCovariance {std::move(ret), get_vector_space_descriptor<0>(a)};
       }
       else
       {
@@ -73,20 +73,20 @@ namespace OpenKalman
         }(elem));
 
         // \todo Fix this:
-        using C = index_descriptor_of_t<A, 0>;
-        if constexpr (euclidean_index_descriptor<C>) return ret;
+        using C = vector_space_descriptor_of_t<A, 0>;
+        if constexpr (euclidean_vector_space_descriptor<C>) return ret;
         else return SquareRootCovariance {std::move(ret), C{}};
       }
     }
     else
     {
-      auto ret {interface::LibraryRoutines<std::decay_t<A>>::LQ_decomposition(std::forward<A>(a))};
+      auto ret {interface::library_interface<std::decay_t<A>>::LQ_decomposition(std::forward<A>(a))};
       static_assert(triangular_matrix<decltype(ret), TriangleType::lower, Likelihood::maybe>,
-        "Interface implementation error: interface::LibraryRoutines<T>::LQ_decomposition must return a lower triangular_matrix.");
+        "Interface implementation error: interface::library_interface<T>::LQ_decomposition must return a lower triangular_matrix.");
 
       // \todo Fix this:
-      if constexpr (euclidean_index_descriptor<index_descriptor_of_t<A, 0>>) return ret;
-      else return SquareRootCovariance {std::move(ret), get_index_descriptor<0>(a)};
+      if constexpr (euclidean_vector_space_descriptor<vector_space_descriptor_of_t<A, 0>>) return ret;
+      else return SquareRootCovariance {std::move(ret), get_vector_space_descriptor<0>(a)};
     }
   }
 
@@ -111,7 +111,7 @@ namespace OpenKalman
     }
     else if constexpr (zero_matrix<A>)
     {
-      auto dim = get_index_descriptor<1>(a);
+      auto dim = get_vector_space_descriptor<1>(a);
       return make_zero_matrix_like<A>(dim, dim);
     }
     else if constexpr (constant_matrix<A>)
@@ -133,8 +133,8 @@ namespace OpenKalman
         auto ret = make_triangular_matrix<TriangleType::upper>(std::move(m));
 
         // \todo Fix this:
-        if constexpr (euclidean_index_descriptor<index_descriptor_of_t<A, 1>>) return ret;
-        else return SquareRootCovariance {std::move(ret), get_index_descriptor<1>(a)};
+        if constexpr (euclidean_vector_space_descriptor<vector_space_descriptor_of_t<A, 1>>) return ret;
+        else return SquareRootCovariance {std::move(ret), get_vector_space_descriptor<1>(a)};
       }
       else
       {
@@ -146,20 +146,20 @@ namespace OpenKalman
         }(elem));
 
         // \todo Fix this:
-        using C = index_descriptor_of_t<A, 1>;
-        if constexpr (euclidean_index_descriptor<C>) return ret;
+        using C = vector_space_descriptor_of_t<A, 1>;
+        if constexpr (euclidean_vector_space_descriptor<C>) return ret;
         else return SquareRootCovariance {std::move(ret), C{}};
       }
     }
     else
     {
-      auto ret {interface::LibraryRoutines<std::decay_t<A>>::QR_decomposition(std::forward<A>(a))};
+      auto ret {interface::library_interface<std::decay_t<A>>::QR_decomposition(std::forward<A>(a))};
       static_assert(triangular_matrix<decltype(ret), TriangleType::upper, Likelihood::maybe>,
-        "Interface implementation error: interface::LibraryRoutines<T>::QR_decomposition must return an upper triangular_matrix.");
+        "Interface implementation error: interface::library_interface<T>::QR_decomposition must return an upper triangular_matrix.");
 
       // \todo Fix this:
-      if constexpr (euclidean_index_descriptor<index_descriptor_of_t<A, 1>>) return ret;
-      else return SquareRootCovariance {std::move(ret), get_index_descriptor<1>(a)};
+      if constexpr (euclidean_vector_space_descriptor<vector_space_descriptor_of_t<A, 1>>) return ret;
+      else return SquareRootCovariance {std::move(ret), get_vector_space_descriptor<1>(a)};
     }
   }
 

@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Traits for integral index descriptors.
+ * \brief Traits for integral \ref vector_space_descriptor.
  */
 
 #ifndef OPENKALMAN_INTEGRAL_INTERFACE_TRAITS_HPP
@@ -24,10 +24,10 @@ namespace OpenKalman::interface
    */
 #ifdef __cpp_concepts
   template<typename T, T N> requires (N >= 0) and (N != dynamic_size)
-  struct FixedIndexDescriptorTraits<std::integral_constant<T, N>>
+  struct FixedVectorSpaceDescriptorTraits<std::integral_constant<T, N>>
 #else
   template<typename T, T N>
-  struct FixedIndexDescriptorTraits<std::integral_constant<T, N>, std::enable_if_t<(N >= 0) and N != dynamic_size>>
+  struct FixedVectorSpaceDescriptorTraits<std::integral_constant<T, N>, std::enable_if_t<(N >= 0) and N != dynamic_size>>
 #endif
   {
     static constexpr std::size_t size = N;
@@ -92,13 +92,13 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<std::integral T>
-  struct DynamicIndexDescriptorTraits<T>
+  struct DynamicVectorSpaceDescriptorTraits<T>
 #else
   template<typename T>
-  struct DynamicIndexDescriptorTraits<T, std::enable_if_t<std::is_integral_v<T>>>
+  struct DynamicVectorSpaceDescriptorTraits<T, std::enable_if_t<std::is_integral_v<T>>>
 #endif
   {
-    explicit constexpr DynamicIndexDescriptorTraits(const std::decay_t<T>& t) : m_integral {t} {};
+    explicit constexpr DynamicVectorSpaceDescriptorTraits(const std::decay_t<T>& t) : m_integral {t} {};
 
     [[nodiscard]] constexpr std::size_t get_size() const { return m_integral; }
 

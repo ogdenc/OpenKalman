@@ -51,22 +51,25 @@ namespace OpenKalman::interface {}
 #include "internal/math_constexpr.hpp"
 
 #include "index-values.hpp"
-#include "index-descriptors/index-descriptors.hpp"
-
-#include "IndexibleObjectTraits.hpp"
-#include "LibraryRoutines.hpp"
+#include "vector-space-descriptors/vector-space-descriptors.hpp"
 
 #include "forward-traits.hpp"
 #include "forward-class-declarations.hpp"
+
+#include "interfaces/default/indexible_object_traits.hpp"
+#include "interfaces/default/library_interface.hpp"
 
 #include "functions/functions.hpp"
 
 #include "traits.hpp"
 
-#include "internal/MatrixBase.hpp"
-#include "internal/TypedMatrixBase.hpp"
+#include "internal/library_base.hpp"
 #include "internal/ElementAccessor.hpp"
 
+#include "internal/LibraryWrapper.hpp"
 #include "internal/FixedSizeAdapter.hpp"
+
+#include "internal/MatrixBase.hpp"
+#include "internal/TypedMatrixBase.hpp"
 
 #endif //OPENKALMAN_BASICS_HPP

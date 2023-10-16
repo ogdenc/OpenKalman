@@ -20,12 +20,18 @@
 
 namespace OpenKalman::internal
 {
+  /**
+   * \internal
+   * \brief Ultimate base of typed matrices and covariance matrices.
+   * \tparam Derived The fully derived matrix type.
+   * \tparam NestedMatrix The nested native matrix, which can be const or an lvalue reference, or both, or neither.
+   */
 #ifdef __cpp_concepts
-  template<typename Derived, typename NestedMatrix> requires (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<indexible Derived, indexible NestedMatrix> requires (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Derived, typename NestedMatrix>
 #endif
-  struct MatrixBase : internal::library_base<Derived, NestedMatrix>
+  struct MatrixBase : internal::library_base_t<Derived, NestedMatrix>
   {
 
 #ifndef __cpp_concepts

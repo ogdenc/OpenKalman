@@ -22,9 +22,15 @@
 namespace OpenKalman::interface
 {
   template<typename S, int rows, int cols, int options, int maxrows, int maxcols>
-  struct IndexibleObjectTraits<Eigen::Matrix<S, rows, cols, options, maxrows, maxcols>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::Matrix<S, rows, cols, options, maxrows, maxcols>>
+  struct indexible_object_traits<Eigen::Matrix<S, rows, cols, options, maxrows, maxcols>>
+    : Eigen3::indexible_object_traits_base<Eigen::Matrix<S, rows, cols, options, maxrows, maxcols>>
   {
+  private:
+
+    using Base = Eigen3::indexible_object_traits_base<Eigen::Matrix<S, rows, cols, options, maxrows, maxcols>>;
+
+  public:
+
     static constexpr bool has_runtime_parameters = true;
 
     using type = std::tuple<>;
@@ -36,6 +42,9 @@ namespace OpenKalman::interface
     // get_constant() not defined
 
     // get_constant_diagonal() not defined
+
+    static constexpr Layout layout = Base::row_major ? Layout::right : Layout::left;
+
   };
 
 } // namespace OpenKalman::interface

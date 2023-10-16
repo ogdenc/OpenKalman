@@ -44,21 +44,24 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<covariance T>
-    struct LibraryRoutines<T>
+    struct library_interface<T>
 #else
     template<typename T>
     struct linearAlgebra<T, std::enable_if_t<covariance<T>>>
 #endif
     {
       template<typename Derived>
-      using LibraryBase = internal::library_base<Derived, nested_matrix_of_t<T>>;
+      using LibraryBase = internal::library_base_t<Derived, nested_matrix_of_t<T>>;
 
 
-      template<typename Scalar, typename...D>
+      template<Layout layout, typename Scalar, typename...D>
       static auto make_default(D&&...d)
       {
-        return LibraryRoutines<nested_matrix_of_t<T>>::template make_default<Scalar>(std::forward<D>(d)...);
+        return library_interface<nested_matrix_of_t<T>>::template make_default<layout, Scalar>(std::forward<D>(d)...);
       }
+
+
+      // fill_with_elements not necessary because T is not a dense writable matrix.
 
 
       template<typename Arg>
@@ -110,7 +113,7 @@ namespace OpenKalman
       static auto
       diagonal_of(Arg&& arg) noexcept
       {
-        using C = row_index_descriptor_of_t<Arg>;
+        using C = vector_space_descriptor_of_t<Arg, 0>;
         auto b = make_self_contained<Arg>(diagonal_of(oin::to_covariance_nestable(std::forward<Arg>(arg))));
         return Matrix<C, Axis, decltype(b)>(std::move(b));
       }
@@ -184,7 +187,7 @@ namespace OpenKalman
       {
         auto x = make_self_contained<A, B>(OpenKalman::solve<must_be_unique, must_be_exact>(
           to_covariance_nestable(std::forward<A>(a)), nested_matrix(std::forward<B>(b))));
-        return MatrixTraits<std::decay_t<B>>::template make<row_index_descriptor_of_t<A>>(std::move(x));
+        return MatrixTraits<std::decay_t<B>>::template make<vector_space_descriptor_of_t<A, 0>>(std::move(x));
       }
 
 
@@ -220,7 +223,7 @@ namespace OpenKalman
     if constexpr(sizeof...(Ms) > 0)
     {
       using Coeffs =
-        concatenate_fixed_index_descriptor_t<row_index_descriptor_of_t<M>, row_index_descriptor_of_t<Ms>...>;
+        concatenate_fixed_vector_space_descriptor_t<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Ms, 0>...>;
       auto cat = concatenate_diagonal(nested_matrix(std::forward<M>(m)), nested_matrix(std::forward<Ms>(mN))...);
       return MatrixTraits<std::decay_t<M>>::template make<Coeffs>(std::move(cat));
     }
@@ -308,44 +311,44 @@ namespace OpenKalman
 
   /// Split Covariance or SquareRootCovariance diagonally.
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor ... Cs, covariance M>
+  template<fixed_vector_space_descriptor ... Cs, covariance M>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
   inline auto
   split_diagonal(M&& m) noexcept
   {
-    static_assert(prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, row_index_descriptor_of_t<M>>);
+    static_assert(prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
     return split_diagonal<oin::SplitCovDiagF<M>, Cs...>(nested_matrix(std::forward<M>(m)));
   }
 
 
   /// Split Covariance or SquareRootCovariance vertically. Result is a tuple of typed matrices.
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor ... Cs, covariance M>
+  template<fixed_vector_space_descriptor ... Cs, covariance M>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
   inline auto
   split_vertical(M&& m) noexcept
   {
-    using CC = row_index_descriptor_of_t<M>;
-    static_assert(prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, CC>);
+    using CC = vector_space_descriptor_of_t<M, 0>;
+    static_assert(prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, CC>);
     return split_vertical<oin::SplitCovVertF<M, CC>, Cs...>(make_dense_writable_matrix_from(std::forward<M>(m)));
   }
 
 
   /// Split Covariance or SquareRootCovariance vertically. Result is a tuple of typed matrices.
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor ... Cs, covariance M>
+  template<fixed_vector_space_descriptor ... Cs, covariance M>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
   inline auto
   split_horizontal(M&& m) noexcept
   {
-    using RC = row_index_descriptor_of_t<M>;
-    static_assert(prefix_of<concatenate_fixed_index_descriptor_t<Cs...>, RC>);
+    using RC = vector_space_descriptor_of_t<M, 0>;
+    static_assert(prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, RC>);
     return split_horizontal<oin::SplitCovHorizF<M, RC>, Cs...>(make_dense_writable_matrix_from(std::forward<M>(m)));
   }
 
@@ -354,7 +357,7 @@ namespace OpenKalman
   template<typename Function, covariance Arg> requires
     requires(Arg&& arg, const Function& f) {
       {f(column<0>(arg))} -> typed_matrix;
-      column_dimension_of_v<decltype(f(column<0>(arg)))> == 1;
+      index_dimension_of_v<decltype(f(column<0>(arg))), 1> == 1;
     }
 #else
   template<typename Function, typename Arg, std::enable_if_t<
@@ -364,7 +367,7 @@ namespace OpenKalman
   inline auto
   apply_columnwise(const Function& f, Arg&& arg)
   {
-    using C = row_index_descriptor_of_t<Arg>;
+    using C = vector_space_descriptor_of_t<Arg, 0>;
     const auto f_nested = [&f] (auto&& col) -> auto {
       return make_self_contained(nested_matrix(f(make_matrix<C, Axis>(std::forward<decltype(col)>(col)))));
     };
@@ -376,7 +379,7 @@ namespace OpenKalman
   template<typename Function, covariance Arg> requires
     requires(Arg&& arg, const Function& f, std::size_t i) {
       {f(column<0>(arg), i)} -> typed_matrix;
-      column_dimension_of_v<decltype(f(column<0>(arg), i))> == 1;
+      index_dimension_of_v<decltype(f(column<0>(arg), i)), 1> == 1;
     }
 #else
   template<typename Function, typename Arg, std::enable_if_t<
@@ -386,7 +389,7 @@ namespace OpenKalman
   inline auto
   apply_columnwise(const Function& f, Arg&& arg)
   {
-    using C = row_index_descriptor_of_t<Arg>;
+    using C = vector_space_descriptor_of_t<Arg, 0>;
     const auto f_nested = [&f] (auto&& col, std::size_t i) -> auto {
       return make_self_contained(nested_matrix(f(make_matrix<C, Axis>(std::forward<decltype(col)>(col)), i)));
     };
@@ -405,7 +408,7 @@ namespace OpenKalman
   inline auto
   apply_coefficientwise(const Function& f, Arg&& arg)
   {
-    using C = row_index_descriptor_of_t<Arg>;
+    using C = vector_space_descriptor_of_t<Arg, 0>;
     return make_matrix<C, C>(apply_coefficientwise(f, to_covariance_nestable(std::forward<Arg>(arg))));
   }
 
@@ -422,7 +425,7 @@ namespace OpenKalman
   inline auto
   apply_coefficientwise(const Function& f, Arg&& arg)
   {
-    using C = row_index_descriptor_of_t<Arg>;
+    using C = vector_space_descriptor_of_t<Arg, 0>;
     return make_matrix<C, C>(apply_coefficientwise(f, to_covariance_nestable(std::forward<Arg>(arg))));
   }
 

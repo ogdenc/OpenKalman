@@ -20,8 +20,8 @@
 #define OPENKALMAN_EIGEN_TRAITS_HPP
 
 
-#include "eigen-IndexibleObjectTraitsBase.hpp"
-#include "eigen-general-LibraryRoutines.hpp"
+#include "indexible_object_traits_base.hpp"
+#include "eigen-library-interface.hpp"
 
 #include "functors/nullary.hpp"
 #include "functors/unary.hpp"

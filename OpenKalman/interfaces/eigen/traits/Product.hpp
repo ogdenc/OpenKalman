@@ -22,18 +22,19 @@
 namespace OpenKalman::interface
 {
   template<typename LhsType, typename RhsType, int Option>
-  struct IndexibleObjectTraits<Eigen::Product<LhsType, RhsType, Option>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::Product<LhsType, RhsType, Option>>
+  struct indexible_object_traits<Eigen::Product<LhsType, RhsType, Option>>
+    : Eigen3::indexible_object_traits_base<Eigen::Product<LhsType, RhsType, Option>>
   {
   private:
 
-    using T = Eigen::Product<LhsType, RhsType>;
+    using Xpr = Eigen::Product<LhsType, RhsType>;
+    using Base = Eigen3::indexible_object_traits_base<Xpr>;
 
   public:
 
-    static constexpr bool has_runtime_parameters = false;
+    using type = std::tuple<typename Xpr::LhsNested, typename Xpr::RhsNested>;
 
-    using type = std::tuple<typename T::LhsNested, typename T::RhsNested >;
+    static constexpr bool has_runtime_parameters = false;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -49,9 +50,9 @@ namespace OpenKalman::interface
     static auto convert_to_self_contained(Arg&& arg)
     {
       using N = Eigen::Product<equivalent_self_contained_t<LhsType>, equivalent_self_contained_t<RhsType>, Option>;
-      constexpr index_type_of_t<Arg> to_be_evaluated_size = self_contained<LhsType> ?
-        RhsType::RowsAtCompileTime * RhsType::ColsAtCompileTime :
-        LhsType::RowsAtCompileTime * LhsType::ColsAtCompileTime;
+      constexpr auto to_be_evaluated_size = self_contained<LhsType> ?
+        static_cast<int>(RhsType::RowsAtCompileTime) * static_cast<int>(RhsType::ColsAtCompileTime) :
+        static_cast<int>(LhsType::RowsAtCompileTime) * static_cast<int>(LhsType::ColsAtCompileTime);
 
       // Do a partial evaluation if at least one argument is self-contained and result size > non-self-contained size.
       if constexpr ((self_contained<LhsType> or self_contained<RhsType>) and
@@ -59,7 +60,7 @@ namespace OpenKalman::interface
         (LhsType::ColsAtCompileTime != Eigen::Dynamic) and
         (RhsType::RowsAtCompileTime != Eigen::Dynamic) and
         (RhsType::ColsAtCompileTime != Eigen::Dynamic) and
-        ((index_type_of_t<Arg>)LhsType::RowsAtCompileTime * (index_type_of_t<Arg>)RhsType::ColsAtCompileTime > to_be_evaluated_size) and
+        (static_cast<int>(LhsType::RowsAtCompileTime) * static_cast<int>(RhsType::ColsAtCompileTime) > to_be_evaluated_size) and
         not std::is_lvalue_reference_v<typename N::LhsNested> and
         not std::is_lvalue_reference_v<typename N::RhsNested>)
       {

@@ -44,16 +44,16 @@ namespace OpenKalman
   template<typename Arg1, typename Arg2> requires
     ((covariance<Arg1> and (covariance<Arg2> or (typed_matrix<Arg2> and square_matrix<Arg2>))) or
       ((typed_matrix<Arg1> and square_matrix<Arg1>) and covariance<Arg2>)) and
-    equivalent_to<row_index_descriptor_of_t<Arg1>, row_index_descriptor_of_t<Arg2>>
+    equivalent_to<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     ((covariance<Arg1> and (covariance<Arg2> or (typed_matrix<Arg2> and square_matrix<Arg2>))) or
       ((typed_matrix<Arg1> and square_matrix<Arg1>) and covariance<Arg2>)) and
-    equivalent_to<row_index_descriptor_of_t<Arg1>, row_index_descriptor_of_t<Arg2>>, int> = 0>
+    equivalent_to<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>, int> = 0>
 #endif
   constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
   {
-    using C = row_index_descriptor_of_t<Arg1>;
+    using C = vector_space_descriptor_of_t<Arg1, 0>;
 
     if constexpr (zero_matrix<Arg1>)
     {
@@ -119,16 +119,16 @@ namespace OpenKalman
   template<typename Arg1, typename Arg2> requires
   ((covariance<Arg1> and (covariance<Arg2> or (typed_matrix<Arg2> and square_matrix<Arg2>))) or
     ((typed_matrix<Arg1> and square_matrix<Arg1>) and covariance<Arg2>)) and
-    equivalent_to<row_index_descriptor_of_t<Arg1>, row_index_descriptor_of_t<Arg2>>
+    equivalent_to<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     ((covariance<Arg1> and (covariance<Arg2> or (typed_matrix<Arg2> and square_matrix<Arg2>))) or
       ((typed_matrix<Arg1> and square_matrix<Arg1>) and covariance<Arg2>)) and
-    equivalent_to<row_index_descriptor_of_t<Arg1>, row_index_descriptor_of_t<Arg2>>, int> = 0>
+    equivalent_to<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>, int> = 0>
 #endif
   constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
   {
-    using C = row_index_descriptor_of_t<Arg1>;
+    using C = vector_space_descriptor_of_t<Arg1, 0>;
 
     if constexpr (zero_matrix<Arg2>)
     {
@@ -181,10 +181,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<covariance Arg1, covariance Arg2> requires
-    equivalent_to<row_index_descriptor_of_t<Arg1>, row_index_descriptor_of_t<Arg2>>
+    equivalent_to<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<covariance<Arg1> and covariance<Arg2> and
-    equivalent_to<row_index_descriptor_of_t<Arg1>, row_index_descriptor_of_t<Arg2>>, int> = 0>
+    equivalent_to<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>, int> = 0>
 #endif
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2) noexcept
   {
@@ -199,7 +199,7 @@ namespace OpenKalman
     }
     else
     {
-      using C = row_index_descriptor_of_t<Arg1>;
+      using C = vector_space_descriptor_of_t<Arg1, 0>;
 
       decltype(auto) b1 = oin::to_covariance_nestable(std::forward<Arg1>(arg1));
       decltype(auto) b2 = oin::to_covariance_nestable(std::forward<Arg2>(arg2));
@@ -228,15 +228,15 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typed_matrix M, covariance Cov> requires
-    equivalent_to<row_index_descriptor_of_t<M>::ColumnCoefficients, typename MatrixTraits<std::decay_t<Cov>>>
+    equivalent_to<vector_space_descriptor_of_t<M, 0>::ColumnCoefficients, typename MatrixTraits<std::decay_t<Cov>>>
 #else
   template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and covariance<Cov> and
-    equivalent_to<row_index_descriptor_of_t<M>::ColumnCoefficients, typename MatrixTraits<std::decay_t<Cov>>>, int> = 0>
+    equivalent_to<vector_space_descriptor_of_t<M, 0>::ColumnCoefficients, typename MatrixTraits<std::decay_t<Cov>>>, int> = 0>
 #endif
   constexpr decltype(auto) operator*(M&& m, Cov&& cov) noexcept
   {
-    using CC = row_index_descriptor_of_t<Cov>;
-    using RC = row_index_descriptor_of_t<M>;
+    using CC = vector_space_descriptor_of_t<Cov, 0>;
+    using RC = vector_space_descriptor_of_t<M, 0>;
 
     if constexpr (zero_matrix<M> or zero_matrix<Cov>)
     {
@@ -271,15 +271,15 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<covariance Cov, typed_matrix M> requires
-    equivalent_to<row_index_descriptor_of_t<Cov>, row_index_descriptor_of_t<M>>
+    equivalent_to<vector_space_descriptor_of_t<Cov, 0>, vector_space_descriptor_of_t<M, 0>>
 #else
   template<typename Cov, typename M, std::enable_if_t<covariance<Cov> and typed_matrix<M> and
-    equivalent_to<row_index_descriptor_of_t<Cov>, row_index_descriptor_of_t<M>>, int> = 0>
+    equivalent_to<vector_space_descriptor_of_t<Cov, 0>, vector_space_descriptor_of_t<M, 0>>, int> = 0>
 #endif
   constexpr decltype(auto) operator*(Cov&& cov, M&& m) noexcept
   {
-    using RC = row_index_descriptor_of_t<Cov>;
-    using CC = column_index_descriptor_of_t<M>;
+    using RC = vector_space_descriptor_of_t<Cov, 0>;
+    using CC = vector_space_descriptor_of_t<M, 1>;
 
     if constexpr (zero_matrix<Cov> or zero_matrix<M>)
     {
@@ -484,8 +484,7 @@ namespace OpenKalman
 #endif
   constexpr bool operator==(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr (std::is_same_v<dense_writable_matrix_t<Arg1, scalar_type_of_t<Arg1>>, dense_writable_matrix_t<Arg2, scalar_type_of_t<Arg2>>> and
-      equivalent_to<row_index_descriptor_of_t<Arg1>, row_index_descriptor_of_t<Arg2>>)
+    if constexpr (equivalent_to<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>)
     {
       return make_dense_writable_matrix_from(std::forward<Arg1>(arg1)) == make_dense_writable_matrix_from(std::forward<Arg2>(arg2));
     }
@@ -573,17 +572,17 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<covariance M, typed_matrix A> requires
-    equivalent_to<row_index_descriptor_of_t<A>::ColumnCoefficients, typename MatrixTraits<std::decay_t<M>>> and
+    equivalent_to<vector_space_descriptor_of_t<A, 0>::ColumnCoefficients, typename MatrixTraits<std::decay_t<M>>> and
     (not euclidean_transformed<A>)
 #else
   template<typename M, typename A, std::enable_if_t<covariance<M> and typed_matrix<A> and
-    equivalent_to<row_index_descriptor_of_t<A>::ColumnCoefficients, typename MatrixTraits<std::decay_t<M>>> and
+    equivalent_to<vector_space_descriptor_of_t<A, 0>::ColumnCoefficients, typename MatrixTraits<std::decay_t<M>>> and
     (not euclidean_transformed<A>), int> = 0>
 #endif
   inline auto
   scale(M&& m, A&& a)
   {
-    using AC = row_index_descriptor_of_t<A>;
+    using AC = vector_space_descriptor_of_t<A, 0>;
     using NestedMatrix = nested_matrix_of_t<M>;
 
     if constexpr (diagonal_matrix<NestedMatrix> or hermitian_matrix<NestedMatrix>)

@@ -597,28 +597,28 @@ TEST(covariance_tests, SquareRootCovariance_subscripts)
 TEST(covariance_tests, SquareRootCovariance_deduction_guides)
 {
   EXPECT_TRUE(is_near(SquareRootCovariance(SqCovSA2l {3, 0, 1, 3}), Mat2 {3, 0, 1, 3}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(SquareRootCovariance(SqCovSA2l {3, 0, 1, 3}))>, C>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(SquareRootCovariance(SqCovSA2l {3, 0, 1, 3})), 0>, C>);
 
   EXPECT_TRUE(is_near(SquareRootCovariance(SqCovSA2u {3, 1, 0, 3}), Mat2 {3, 1, 0, 3}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(SquareRootCovariance(SqCovSA2l {3, 1, 0, 3}))>, C>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(SquareRootCovariance(SqCovSA2l {3, 1, 0, 3})), 0>, C>);
 
   EXPECT_TRUE(is_near(SquareRootCovariance(T2l {3, 0, 1, 3}), Mat2 {3, 0, 1, 3}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(SquareRootCovariance(T2l {3, 0, 1, 3}))>, Dimensions<2>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(SquareRootCovariance(T2l {3, 0, 1, 3})), 0>, Dimensions<2>>);
 
   EXPECT_TRUE(is_near(SquareRootCovariance(T2u {3, 1, 0, 3}), Mat2 {3, 1, 0, 3}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(SquareRootCovariance(T2u {3, 1, 0, 3}))>, Dimensions<2>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(SquareRootCovariance(T2u {3, 1, 0, 3})), 0>, Dimensions<2>>);
 
   EXPECT_TRUE(is_near(SquareRootCovariance(D2 {1, 2}), Mat2 {1, 0, 0, 2}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(SquareRootCovariance(D2 {1, 2}))>, Dimensions<2>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(SquareRootCovariance(D2 {1, 2})), 0>, Dimensions<2>>);
 
   EXPECT_TRUE(is_near(SquareRootCovariance(Mat2 {3, 0, 1, 3}), Mat2 {3, 0, 1, 3}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(SquareRootCovariance(Mat2 {3, 0, 1, 3}))>, C>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(SquareRootCovariance(Mat2 {3, 0, 1, 3})), 0>, C>);
 
   EXPECT_TRUE(is_near(SquareRootCovariance(make_dense_writable_matrix_from<M2>(3, 0, 1, 3)), Mat2 {3, 0, 1, 3}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(SquareRootCovariance(make_dense_writable_matrix_from<M2>(3, 0, 1, 3)))>, Dimensions<2>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(SquareRootCovariance(make_dense_writable_matrix_from<M2>(3, 0, 1, 3))), 0>, Dimensions<2>>);
 
   EXPECT_TRUE(is_near(SquareRootCovariance {3., 0, 1, 3}, Mat2 {3, 0, 1, 3}));
-  static_assert(equivalent_to<row_index_descriptor_of_t<decltype(SquareRootCovariance {3., 0, 1, 3})>, Dimensions<2>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(SquareRootCovariance {3., 0, 1, 3}), 0>, Dimensions<2>>);
 }
 
 TEST(covariance_tests, SquareRootCovariance_make)
@@ -732,7 +732,7 @@ TEST(covariance_tests, SquareRootCovariance_make)
   static_assert(triangular_matrix<decltype(make_square_root_covariance<C, TriangleType::lower>().get_triangular_nested_matrix()), TriangleType::lower>);
   static_assert(triangular_matrix<decltype(make_square_root_covariance<C, TriangleType::upper>().get_triangular_nested_matrix()), TriangleType::upper>);
   static_assert(triangular_matrix<decltype(make_square_root_covariance<C>().get_triangular_nested_matrix()), TriangleType::lower>);
-  static_assert(dimension_size_of_vrow_index_descriptor_of_t<decltype(make_square_root_covariance<C>())>> == 2);
+  static_assert(dimension_size_of_vvector_space_descriptor_of_t<decltype(make_square_root_covariance<C>()), 0>> == 2);
 }
 
 TEST(covariance_tests, SquareRootCovariance_traits)
@@ -907,7 +907,7 @@ TEST(covariance_tests, SquareRootCovariance_overloads)
 
 TEST(covariance_tests, SquareRootCovariance_blocks)
 {
-  using C4 = concatenate_fixed_index_descriptor_t<C, C>;
+  using C4 = concatenate_fixed_vector_space_descriptor_t<C, C>;
   using M4 = eigen_matrix_t<double, 4, 4>;
   using Mat4 = Matrix<C4, C4, M4>;
   using SqCovSA4l = SquareRootCovariance<C4, SelfAdjointMatrix<M4, TriangleType::lower>>;

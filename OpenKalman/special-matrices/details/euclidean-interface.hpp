@@ -21,14 +21,14 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<euclidean_expr T>
-  struct LibraryRoutines<T>
+  struct library_interface<T>
 #else
   template<typename T>
-  struct LibraryRoutines<T, std::enable_if_t<euclidean_expr<T>>>
+  struct library_interface<T, std::enable_if_t<euclidean_expr<T>>>
 #endif
   {
     template<typename Derived>
-    using LibraryBase = internal::library_base<Derived, pattern_matrix_of_t<T>>;
+    using LibraryBase = internal::library_base_t<Derived, pattern_matrix_of_t<T>>;
 
 
     template<typename Arg>
@@ -38,14 +38,14 @@ namespace OpenKalman::interface
     }
 
 
-    template<typename Scalar, typename...D>
+    template<Layout layout, typename Scalar, typename...D>
     static auto make_default(D&&...d)
     {
-      return make_default_dense_writable_matrix_like<nested_matrix_of_t<T>, Scalar>(std::forward<D>(d)...);
+      return make_default_dense_writable_matrix_like<nested_matrix_of_t<T>, layout, Scalar>(std::forward<D>(d)...);
     }
 
 
-    // make_from_elements not necessary because T is not a dense writable matrix.
+    // fill_with_elements not necessary because T is not a dense writable matrix.
 
 
     template<typename C, typename...D>
@@ -79,7 +79,7 @@ namespace OpenKalman::interface
       else
       {
         using P = pattern_matrix_of_t<T>;
-        return LibraryRoutines<P>::to_diagonal(to_native_matrix<P>(std::forward<Arg>(arg)));
+        return library_interface<P>::to_diagonal(to_native_matrix<P>(std::forward<Arg>(arg)));
       }
     }
 
@@ -95,7 +95,7 @@ namespace OpenKalman::interface
       else
       {
         using P = pattern_matrix_of_t<T>;
-        return LibraryRoutines<P>::diagonal_of(to_native_matrix<P>(std::forward<Arg>(arg)));
+        return library_interface<P>::diagonal_of(to_native_matrix<P>(std::forward<Arg>(arg)));
       }
     }
 
@@ -104,7 +104,7 @@ namespace OpenKalman::interface
     static auto
     broadcast(Arg&& arg, const Factors&...factors)
     {
-      return LibraryRoutines<std::decay_t<nested_matrix_of_t<Arg>>>::broadcast(std::forward<Arg>(arg), factors...);
+      return library_interface<std::decay_t<nested_matrix_of_t<Arg>>>::broadcast(std::forward<Arg>(arg), factors...);
     }
 
 
@@ -113,7 +113,7 @@ namespace OpenKalman::interface
     n_ary_operation(const std::tuple<Ds...>& tup, Operation&& op, Args&&...args)
     {
       using P = pattern_matrix_of_t<T>;
-      return LibraryRoutines<P>::template n_ary_operation(tup, std::forward<Operation>(op), std::forward<Args>(args)...);
+      return library_interface<P>::template n_ary_operation(tup, std::forward<Operation>(op), std::forward<Args>(args)...);
     }
 
 
@@ -122,14 +122,14 @@ namespace OpenKalman::interface
     reduce(BinaryFunction&& b, Arg&& arg)
     {
       using P = pattern_matrix_of_t<T>;
-      return LibraryRoutines<P>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
+      return library_interface<P>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
     }
 
 
 #ifdef __cpp_concepts
-    template<from_euclidean_expr Arg, index_descriptor C>
+    template<from_euclidean_expr Arg, vector_space_descriptor C>
 #else
-    template<typename Arg, typename C, std::enable_if_t<from_euclidean_expr<Arg> and index_descriptor<C>, int> = 0>
+    template<typename Arg, typename C, std::enable_if_t<from_euclidean_expr<Arg> and vector_space_descriptor<C>, int> = 0>
 #endif
     constexpr decltype(auto)
     to_euclidean(Arg&& arg, const C&) noexcept
@@ -139,9 +139,9 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<to_euclidean_expr Arg, index_descriptor C>
+    template<to_euclidean_expr Arg, vector_space_descriptor C>
 #else
-    template<typename Arg, typename C, std::enable_if_t<to_euclidean_expr<Arg> and index_descriptor<C>, int> = 0>
+    template<typename Arg, typename C, std::enable_if_t<to_euclidean_expr<Arg> and vector_space_descriptor<C>, int> = 0>
 #endif
     constexpr decltype(auto)
     from_euclidean(Arg&& arg, const C& c) noexcept
@@ -151,9 +151,9 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<from_euclidean_expr Arg, index_descriptor C>
+    template<from_euclidean_expr Arg, vector_space_descriptor C>
 #else
-    template<typename Arg, typename C, std::enable_if_t<from_euclidean_expr<Arg> and index_descriptor<C>, int> = 0>
+    template<typename Arg, typename C, std::enable_if_t<from_euclidean_expr<Arg> and vector_space_descriptor<C>, int> = 0>
 #endif
     constexpr decltype(auto)
     wrap_angles(Arg&& arg, const C&) noexcept

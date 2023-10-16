@@ -22,10 +22,12 @@
 namespace OpenKalman::interface
 {
   template<typename NullaryOp, typename PlainObjectType>
-  struct IndexibleObjectTraits<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
+  struct indexible_object_traits<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
+    : Eigen3::indexible_object_traits_base<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>
   {
   private:
+
+    using Base = Eigen3::indexible_object_traits_base<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>;
 
     template<typename T>
     struct has_params : std::bool_constant<
@@ -40,22 +42,11 @@ namespace OpenKalman::interface
 
   public:
 
-    template<Likelihood b>
-    static constexpr bool is_one_by_one = one_by_one_matrix<PlainObjectType, b>;
-
-    template<Likelihood b>
-    static constexpr bool is_square = square_matrix<PlainObjectType, b>;
+    using type = std::tuple<>;
 
     static constexpr bool has_runtime_parameters = has_params<NullaryOp>::value;
 
-    using type = std::tuple<>;
-
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
-    {
-      static_assert(i == 0);
-      return std::forward<Arg>(arg).functor();
-    }
+    // get_nested_matrix not defined
 
     // convert_to_self_contained not defined
 
@@ -70,6 +61,12 @@ namespace OpenKalman::interface
     {
       return Eigen3::NullaryFunctorTraits<NullaryOp, PlainObjectType>::template get_constant<true>(arg);
     }
+
+    template<Likelihood b>
+    static constexpr bool is_one_by_one = one_by_one_matrix<PlainObjectType, b>;
+
+    template<Likelihood b>
+    static constexpr bool is_square = square_matrix<PlainObjectType, b>;
 
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = Eigen3::NullaryFunctorTraits<NullaryOp, PlainObjectType>::template is_triangular<t, b>;

@@ -20,15 +20,21 @@
 namespace OpenKalman::interface
 {
   template<typename Scalar, int NumIndices, int options, typename IndexType>
-  struct IndexibleObjectTraits<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>
+  struct indexible_object_traits<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>
+    : Eigen3::indexible_object_traits_base<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>
   {
-    template<typename Arg, typename N>
-    static constexpr auto get_index_descriptor(const Arg& arg, N n) { return arg.dimension(n); }
+  private:
 
-    static constexpr bool has_runtime_parameters = true;
+    using Base = Eigen3::indexible_object_traits_base<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>;
+
+  public:
+
+    template<typename Arg, typename N>
+    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n) { return arg.dimension(n); }
 
     using type = std::tuple<>;
+
+    static constexpr bool has_runtime_parameters = true;
 
     // get_nested_matrix() not defined
 
@@ -40,30 +46,30 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg, std::convertible_to<index_type_of_t<Arg>>...I> requires (sizeof...(I) == NumIndices)
+    template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == NumIndices)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, index_type_of_t<Arg>> and ...) and
+    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, IndexType> and ...) and
       (sizeof...(I) == NumIndices), int> = 0>
 #endif
     static constexpr decltype(auto) get(Arg&& arg, I...i)
     {
       if constexpr ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0)
-        return std::forward<Arg>(arg).coeffRef(static_cast<index_type_of_t<Arg>>(i)...);
+        return std::forward<Arg>(arg).coeffRef(static_cast<IndexType>(i)...);
       else
-        return std::forward<Arg>(arg).coeff(static_cast<index_type_of_t<Arg>>(i)...);
+        return std::forward<Arg>(arg).coeff(static_cast<IndexType>(i)...);
     }
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg, std::convertible_to<index_type_of_t<Arg>>...I> requires (sizeof...(I) == NumIndices) and
+    template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == NumIndices) and
       ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, index_type_of_t<Arg>> and ...) and
+    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, IndexType> and ...) and
       (sizeof...(I) == NumIndices) and ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0), int> = 0>
 #endif
     static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
     {
-      arg.coeffRef(static_cast<index_type_of_t<Arg>>(i)...) = s;
+      arg.coeffRef(static_cast<IndexType>(i)...) = s;
     }
 
     static constexpr bool is_writable = true;

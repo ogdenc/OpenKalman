@@ -98,7 +98,7 @@ namespace OpenKalman::internal
     static auto mean_weights()
     {
       using Scalar = scalar_type_of_t<Weights>;
-      constexpr auto count = row_dimension_of_v<Weights>;
+      constexpr auto count = index_dimension_of_v<Weights, 0>;
       return cat_weights<dim, Weights, Scalar>(W_m0<dim>(), std::make_index_sequence<count - 1> {});
     };
 
@@ -107,7 +107,7 @@ namespace OpenKalman::internal
     static auto covariance_weights()
     {
       using Scalar = scalar_type_of_t<Weights>;
-      constexpr auto count = row_dimension_of_v<Weights>;
+      constexpr auto count = index_dimension_of_v<Weights, 0>;
       return cat_weights<dim, Weights, Scalar>(W_c0<dim>(), std::make_index_sequence<count - 1> {});
     };
 
@@ -115,17 +115,17 @@ namespace OpenKalman::internal
 
 #ifdef __cpp_concepts
     template<std::size_t dim, typed_matrix YMeans> requires has_untyped_index<YMeans, 1> and
-      (row_dimension_of_v<YMeans> == euclidean_dimension_size_of_v<row_index_descriptor_of_t<YMeans>>)
+      (index_dimension_of_v<YMeans, 0> == euclidean_dimension_size_of_v<vector_space_descriptor_of_t<YMeans, 0>>)
 #else
     template<std::size_t dim, typename YMeans, std::enable_if_t<typed_matrix<YMeans> and has_untyped_index<YMeans, 1> and
-      (row_dimension_of<YMeans>::value == euclidean_dimension_size_of_v<row_index_descriptor_of_t<YMeans>>), int> = 0>
+      (index_dimension_of<YMeans, 0>::value == euclidean_dimension_size_of_v<vector_space_descriptor_of_t<YMeans, 0>>), int> = 0>
 #endif
     static auto
     weighted_means(YMeans&& y_means)
     {
-      static_assert(column_dimension_of_v<YMeans> == Derived::template sigma_point_count<dim>);
-      constexpr auto count = column_dimension_of_v<YMeans>;
-      using Weights = Matrix<Dimensions<count>, Axis, untyped_dense_writable_matrix_t<YMeans, scalar_type_of_t<YMeans>, count, 1>>;
+      static_assert(index_dimension_of_v<YMeans, 1> == Derived::template sigma_point_count<dim>);
+      constexpr auto count = index_dimension_of_v<YMeans, 1>;
+      using Weights = Matrix<Dimensions<count>, Axis, untyped_dense_writable_matrix_t<YMeans, Layout::none, scalar_type_of_t<YMeans>, count, 1>>;
       return make_self_contained(std::forward<YMeans>(y_means) * mean_weights<dim, Weights>());
     }
 
@@ -142,20 +142,20 @@ namespace OpenKalman::internal
      */
 #ifdef __cpp_concepts
     template<std::size_t dim, typename InputDist, bool return_cross = false, typed_matrix X, typed_matrix Y> requires
-      (column_dimension_of_v<X> == column_dimension_of_v<Y>) and
-      equivalent_to<row_index_descriptor_of_t<X>, typename DistributionTraits<InputDist>::TypedIndex>
+      (index_dimension_of_v<X, 1> == index_dimension_of_v<Y, 1>) and
+      equivalent_to<vector_space_descriptor_of_t<X, 0>, typename DistributionTraits<InputDist>::TypedIndex>
 #else
     template<std::size_t dim, typename InputDist, bool return_cross = false, typename X, typename Y, std::enable_if_t<
-      typed_matrix<X> and typed_matrix<Y> and (column_dimension_of<X>::value == column_dimension_of<Y>::value) and
-      equivalent_to<row_index_descriptor_of_t<X>, typename DistributionTraits<InputDist>::TypedIndex>,
+      typed_matrix<X> and typed_matrix<Y> and (index_dimension_of<X, 1>::value == index_dimension_of<Y, 1>::value) and
+      equivalent_to<vector_space_descriptor_of_t<X, 0>, typename DistributionTraits<InputDist>::TypedIndex>,
         int> = 0>
 #endif
     static auto
     covariance(const X& x_deviations, const Y& y_deviations)
     {
-      static_assert(column_dimension_of_v<X> == Derived::template sigma_point_count<dim>);
-      constexpr auto count = column_dimension_of_v<X>;
-      using Weights = Matrix<Dimensions<count>, Axis, untyped_dense_writable_matrix_t<X, scalar_type_of_t<X>, count, 1>>;
+      static_assert(index_dimension_of_v<X, 1> == Derived::template sigma_point_count<dim>);
+      constexpr auto count = index_dimension_of_v<X, 1>;
+      using Weights = Matrix<Dimensions<count>, Axis, untyped_dense_writable_matrix_t<X, Layout::none, scalar_type_of_t<X>, count, 1>>;
       auto weights = covariance_weights<dim, Weights>();
 
       if constexpr(cholesky_form<InputDist>)

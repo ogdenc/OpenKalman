@@ -29,16 +29,16 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename T, CompileTimeStatus c = CompileTimeStatus::any>
     concept has_get_constant_interface = requires(T t) {
-      {interface::IndexibleObjectTraits<std::decay_t<T>>::get_constant(t)} -> scalar_constant<c>;
+      {interface::indexible_object_traits<std::decay_t<T>>::get_constant(t)} -> scalar_constant<c>;
     };
 #else
     template<typename T, typename = void>
     struct get_constant_res {};
 
     template<typename T>
-    struct get_constant_res<T, std::void_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::get_constant(std::declval<T>()))>>
+    struct get_constant_res<T, std::void_t<decltype(interface::indexible_object_traits<std::decay_t<T>>::get_constant(std::declval<T>()))>>
     {
-      using type = std::decay_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::get_constant(std::declval<T>()))>;
+      using type = std::decay_t<decltype(interface::indexible_object_traits<std::decay_t<T>>::get_constant(std::declval<T>()))>;
     };
 
     template<typename T, CompileTimeStatus c, typename = void>
@@ -63,16 +63,16 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename T, CompileTimeStatus c = CompileTimeStatus::any>
     concept has_get_constant_diagonal_interface = requires(T t) {
-      {interface::IndexibleObjectTraits<std::decay_t<T>>::get_constant_diagonal(t)} -> scalar_constant<c>;
+      {interface::indexible_object_traits<std::decay_t<T>>::get_constant_diagonal(t)} -> scalar_constant<c>;
     };
 #else
     template<typename T, typename = void>
     struct get_constant_diagonal_res {};
 
     template<typename T>
-    struct get_constant_diagonal_res<T, std::void_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::get_constant_diagonal(std::declval<T>()))>>
+    struct get_constant_diagonal_res<T, std::void_t<decltype(interface::indexible_object_traits<std::decay_t<T>>::get_constant_diagonal(std::declval<T>()))>>
     {
-      using type = std::decay_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::get_constant_diagonal(std::declval<T>()))>;
+      using type = std::decay_t<decltype(interface::indexible_object_traits<std::decay_t<T>>::get_constant_diagonal(std::declval<T>()))>;
     };
 
     template<typename T, CompileTimeStatus c, typename = void>
@@ -99,7 +99,7 @@ namespace OpenKalman
     concept known_constant = detail::has_get_constant_interface<T, CompileTimeStatus::known> or
       (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::known> and
         (one_by_one_matrix<T, Likelihood::maybe> or requires(T t) {
-          requires are_within_tolerance(std::decay_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::get_constant_diagonal(t))>::value, 0);
+          requires are_within_tolerance(std::decay_t<decltype(interface::indexible_object_traits<std::decay_t<T>>::get_constant_diagonal(t))>::value, 0);
         }));
 #else
     template<typename T, typename = void>
@@ -152,7 +152,7 @@ namespace OpenKalman
   {
   private:
 
-    using Trait = interface::IndexibleObjectTraits<std::decay_t<T>>;
+    using Trait = interface::indexible_object_traits<std::decay_t<T>>;
 
   public:
 
@@ -251,7 +251,7 @@ namespace OpenKalman
   {
   private:
 
-    using Trait = interface::IndexibleObjectTraits<std::decay_t<T>>;
+    using Trait = interface::indexible_object_traits<std::decay_t<T>>;
 
   public:
 
@@ -305,7 +305,7 @@ namespace OpenKalman
       (detail::has_get_constant_interface<T, CompileTimeStatus::known> and
         (one_by_one_matrix<T, Likelihood::maybe> or (square_matrix<T, Likelihood::maybe> and
           requires(T t) {
-            requires are_within_tolerance(std::decay_t<decltype(interface::IndexibleObjectTraits<std::decay_t<T>>::get_constant(t))>::value, 0);
+            requires are_within_tolerance(std::decay_t<decltype(interface::indexible_object_traits<std::decay_t<T>>::get_constant(t))>::value, 0);
           })));
 #else
     template<typename T, typename = void>
@@ -338,7 +338,7 @@ namespace OpenKalman
 #endif
   {
   private:
-    using Trait = interface::IndexibleObjectTraits<std::decay_t<T>>;
+    using Trait = interface::indexible_object_traits<std::decay_t<T>>;
 
   public:
     constexpr constant_diagonal_coefficient() = default;
@@ -439,7 +439,7 @@ namespace OpenKalman
 #endif
   {
   private:
-    using Trait = interface::IndexibleObjectTraits<std::decay_t<T>>;
+    using Trait = interface::indexible_object_traits<std::decay_t<T>>;
 
   public:
     explicit constexpr constant_diagonal_coefficient(const std::decay_t<T>& t) : value {[](const auto& t){
@@ -604,34 +604,36 @@ namespace OpenKalman
 
   namespace detail
   {
-    template<typename T, typename Scalar, typename...D>
+    template<typename T, Layout layout, typename Scalar, typename...D>
     struct dense_writable_matrix_impl
     {
-      using type = std::decay_t<decltype(make_default_dense_writable_matrix_like<T, Scalar>(std::declval<D>()...))>;
+      using type = std::decay_t<decltype(make_default_dense_writable_matrix_like<T, layout, Scalar>(std::declval<D>()...))>;
     };
 
 
-    template<typename T, typename Scalar>
-    struct dense_writable_matrix_impl<T, Scalar>
+    template<typename T, Layout layout, typename Scalar>
+    struct dense_writable_matrix_impl<T, layout, Scalar>
     {
-      using type = std::decay_t<decltype(make_default_dense_writable_matrix_like<Scalar>(std::declval<T>()))>;
+      using type = std::decay_t<decltype(make_default_dense_writable_matrix_like<layout, Scalar>(std::declval<T>()))>;
     };
   }
 
 
   /**
-    * \brief An alias for a dense, writable matrix, patterned on parameter T.
-    * \tparam T A matrix or array from the relevant matrix library.
-    * \tparam S A scalar type (may or may not be </code>scalar_type_of_t<T></code>.
-    * \tparam D Index descriptors defining the dimensions of the new matrix.
-    * \todo Create typed Matrix if Ds are typed.
-    */
+   * \brief An alias for a dense, writable matrix, patterned on parameter T.
+   * \tparam T A matrix or array from the relevant matrix library.
+   * \tparam S A scalar type (may or may not be </code>scalar_type_of_t<T></code>.
+   * \tparam layout The /ref Layout of the result.
+   * \tparam D \ref vector_space_descriptor objects defining the dimensions of the new matrix.
+   * \todo Create typed Matrix if Ds are typed.
+   */
 #ifdef __cpp_concepts
-  template<indexible T, scalar_type S = scalar_type_of_t<T>, index_descriptor...D>
+  template<indexible T, Layout layout = Layout::none, scalar_type S = scalar_type_of_t<T>, vector_space_descriptor...D>
+    requires (layout != Layout::stride)
 #else
-  template<typename T, typename S = scalar_type_of_t<T>, typename...D>
+  template<typename T, Layout layout = Layout::none, typename S = scalar_type_of_t<T>, typename...D>
 #endif
-  using dense_writable_matrix_t = typename detail::dense_writable_matrix_impl<T, std::decay_t<S>, D...>::type;
+  using dense_writable_matrix_t = typename detail::dense_writable_matrix_impl<T, layout, std::decay_t<S>, D...>::type;
 
 
   // --------------------------------- //
@@ -641,14 +643,17 @@ namespace OpenKalman
   /**
    * \brief An alias for a dense, writable matrix, patterned on parameter T.
    * \tparam T A matrix or array from the relevant matrix library.
+   * \tparam layout The /ref Layout of the result.
+   * \tparam S A scalar type (may or may not be </code>scalar_type_of_t<T></code>.
    * \tparam D Integral values defining the dimensions of the new matrix.
    */
 #ifdef __cpp_concepts
-  template<indexible T, scalar_type S, auto...D> requires ((std::is_integral_v<decltype(D)> and D >= 0) and ...)
+  template<indexible T, Layout layout = Layout::none, scalar_type S = scalar_type_of_t<T>, std::integral auto...D> requires
+    ((std::is_integral_v<decltype(D)> and D >= 0) and ...) and (layout != Layout::stride)
 #else
-  template<typename T, typename S, auto...D>
+  template<typename T, Layout layout = Layout::none, typename S = scalar_type_of_t<T>, auto...D>
 #endif
-  using untyped_dense_writable_matrix_t = dense_writable_matrix_t<T, S, Dimensions<static_cast<const std::size_t>(D)>...>;
+  using untyped_dense_writable_matrix_t = dense_writable_matrix_t<T, layout, S, Dimensions<static_cast<const std::size_t>(D)>...>;
 
 
   // --------------------------- //
@@ -659,7 +664,7 @@ namespace OpenKalman
    * \brief An alias for type, derived from and equivalent to parameter T, that is self-contained.
    * \details Use this alias to obtain a type, equivalent to T, that can safely be returned from a function.
    * \sa self_contained, make_self_contained
-   * \internal \sa interface::IndexibleObjectTraits
+   * \internal \sa interface::indexible_object_traits
    */
   template<typename T>
   using equivalent_self_contained_t = std::remove_reference_t<decltype(make_self_contained(std::declval<T>()))>;

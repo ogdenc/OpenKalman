@@ -22,35 +22,25 @@
 namespace OpenKalman::interface
 {
   template<typename DiagVectorType>
-  struct IndexibleObjectTraits<Eigen::DiagonalWrapper<DiagVectorType>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::DiagonalWrapper<DiagVectorType>>
+  struct indexible_object_traits<Eigen::DiagonalWrapper<DiagVectorType>>
+    : Eigen3::indexible_object_traits_base<Eigen::DiagonalWrapper<DiagVectorType>>
   {
+  private:
+
+    using Base = Eigen3::indexible_object_traits_base<Eigen::DiagonalWrapper<DiagVectorType>>;
+
+  public:
+
     template<typename Arg, typename N>
-    static constexpr auto get_index_descriptor(const Arg& arg, N)
+    static constexpr auto get_vector_space_descriptor(const Arg& arg, N)
     {
       if constexpr (has_dynamic_dimensions<DiagVectorType>) return static_cast<std::size_t>(arg.rows());
       else return Dimensions<index_dimension_of_v<DiagVectorType, 0> * index_dimension_of_v<DiagVectorType, 1>>{};
     }
 
-    template<std::size_t N>
-    static constexpr std::size_t dimension = has_dynamic_dimensions<DiagVectorType> ? dynamic_size :
-      index_dimension_of_v<DiagVectorType, 0> * index_dimension_of_v<DiagVectorType, 1>;
-
-    template<std::size_t N, typename Arg>
-    static constexpr std::size_t dimension_at_runtime(const Arg& arg)
-    {
-      if constexpr (dimension<N> == dynamic_size) return static_cast<std::size_t>(arg.rows());
-      else return dimension<N>;
-    }
-
-    template<Likelihood b>
-    static constexpr bool is_one_by_one = one_by_one_matrix<DiagVectorType, b>;
-
-    template<Likelihood b>
-    static constexpr bool is_square = true;
+    using type = std::tuple<typename DiagVectorType::Nested>;
 
     static constexpr bool has_runtime_parameters = false;
-    using type = std::tuple<typename DiagVectorType::Nested>;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -76,6 +66,12 @@ namespace OpenKalman::interface
     {
       return constant_coefficient {arg.diagonal()};
     }
+
+    template<Likelihood b>
+    static constexpr bool is_one_by_one = one_by_one_matrix<DiagVectorType, b>;
+
+    template<Likelihood b>
+    static constexpr bool is_square = true;
 
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = true;

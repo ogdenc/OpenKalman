@@ -22,9 +22,15 @@
 namespace OpenKalman::interface
 {
   template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
-  struct IndexibleObjectTraits<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>
+  struct indexible_object_traits<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>
+    : Eigen3::indexible_object_traits_base<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>
   {
+  private:
+
+    using Base = Eigen3::indexible_object_traits_base<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>;
+
+  public:
+
     static constexpr bool has_runtime_parameters = true;
     using type = std::tuple<typename Eigen::internal::ref_selector<XprType>::non_const_type>;
 
@@ -42,6 +48,7 @@ namespace OpenKalman::interface
     {
       return constant_coefficient {arg.nestedExpression()};
     }
+
   };
 
 } // namespace OpenKalman::interface

@@ -58,16 +58,16 @@ namespace OpenKalman::test
 #endif
   inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
   {
-    static_assert(maybe_index_descriptors_match<Arg1, Arg2>, "Dimensions must match");
+    static_assert(maybe_vector_space_descriptor_match<Arg1, Arg2>, "Dimensions must match");
 
     if constexpr (has_dynamic_dimensions<Arg1> or has_dynamic_dimensions<Arg2>)
-      if (not get_index_descriptors_match(arg1, arg2))
+      if (not get_vector_space_descriptor_match(arg1, arg2))
     {
       auto ret = ::testing::AssertionFailure();
       ret << "Dimensions of first argument (";
-      detail::print_dimensions(ret, arg1, std::make_index_sequence<max_indices_of_v<Arg1>>{});
+      detail::print_dimensions(ret, arg1, std::make_index_sequence<index_count_v<Arg1>>{});
       ret << ") and second argument (";
-      detail::print_dimensions(ret, arg2, std::make_index_sequence<max_indices_of_v<Arg2>>{});
+      detail::print_dimensions(ret, arg2, std::make_index_sequence<index_count_v<Arg2>>{});
       return ret << ") do not match";
     }
 
@@ -109,18 +109,18 @@ namespace OpenKalman::test
   template<typename Arg1, typename Arg2, typename Err = double>
   requires detail::is_std_array_v<Arg1> and detail::is_std_array_v<Arg2> and std::is_arithmetic_v<Err> and
     (std::tuple_size_v<Arg1> == std::tuple_size_v<Arg2>) and
-    (dynamic_rows<typename Arg1::value_type> or dynamic_rows<typename Arg2::value_type> or
-      row_dimension_of_v<typename Arg1::value_type> == row_dimension_of_v<typename Arg2::value_type>) and
-    (dynamic_columns<typename Arg1::value_type> or dynamic_columns<typename Arg2::value_type> or
-      column_dimension_of_v<typename Arg1::value_type> == column_dimension_of_v<typename Arg2::value_type>)
+    (dynamic_dimension<typename Arg1::value_type, 0> or dynamic_dimension<typename Arg2::value_type, 0> or
+      index_dimension_of_v<typename Arg1::value_type, 0> == index_dimension_of_v<typename Arg2::value_type, 0>) and
+    (dynamic_dimension<typename Arg1::value_type, 1> or dynamic_dimension<typename Arg2::value_type, 1> or
+      index_dimension_of_v<typename Arg1::value_type, 1> == index_dimension_of_v<typename Arg2::value_type, 1>)
 #else
   template<typename Arg1, typename Arg2, typename Err = double, std::enable_if_t<
     detail::is_std_array_v<Arg1> and detail::is_std_array_v<Arg2> and std::is_arithmetic_v<Err> and
     (std::tuple_size<Arg1>::value == std::tuple_size<Arg2>::value) and
-    (dynamic_rows<typename Arg1::value_type> or dynamic_rows<typename Arg2::value_type> or
-      row_dimension_of<typename Arg1::value_type>::value == row_dimension_of<typename Arg2::value_type>::value) and
-    (dynamic_columns<typename Arg1::value_type> or dynamic_columns<typename Arg2::value_type> or
-      column_dimension_of<typename Arg1::value_type>::value == column_dimension_of<typename Arg2::value_type>::value),
+    (dynamic_dimension<typename Arg1::value_type, 0> or dynamic_dimension<typename Arg2::value_type, 0> or
+      index_dimension_of<typename Arg1::value_type, 0>::value == index_dimension_of<typename Arg2::value_type, 0>::value) and
+    (dynamic_dimension<typename Arg1::value_type, 1> or dynamic_dimension<typename Arg2::value_type, 1> or
+      index_dimension_of<typename Arg1::value_type, 1>::value == index_dimension_of<typename Arg2::value_type, 1>::value),
       int> = 0>
 #endif
   inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
@@ -136,15 +136,15 @@ namespace OpenKalman::test
       return TestComparison<Arg1, Arg2, Err> {arg1, arg2, err};
     }
 
-    if constexpr (dynamic_rows<std::tuple_element_t<0, Arg1>> or dynamic_rows<std::tuple_element_t<0, Arg2>>)
-      if (get_index_descriptor<0>(std::get<0>(arg1)) != get_index_descriptor<0>(std::get<0>(arg2)))
-        throw std::logic_error {"Row dimension mismatch: " + std::to_string(get_index_descriptor<0>(std::get<0>(arg1))) + " != " +
-          std::to_string(get_index_descriptor<0>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
+    if constexpr (dynamic_dimension<std::tuple_element_t<0, Arg1>, 0> or dynamic_dimension<std::tuple_element_t<0, Arg2>, 0>)
+      if (get_vector_space_descriptor<0>(std::get<0>(arg1)) != get_vector_space_descriptor<0>(std::get<0>(arg2)))
+        throw std::logic_error {"Row dimension mismatch: " + std::to_string(get_vector_space_descriptor<0>(std::get<0>(arg1))) + " != " +
+          std::to_string(get_vector_space_descriptor<0>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
 
-    if constexpr (dynamic_columns<std::tuple_element_t<0, Arg1>> or dynamic_columns<std::tuple_element_t<0, Arg2>>)
-      if (get_index_descriptor<1>(std::get<0>(arg1)) != get_index_descriptor<1>(std::get<0>(arg2)))
-        throw std::logic_error {"Column dimension mismatch: " + std::to_string(get_index_descriptor<1>(std::get<0>(arg1))) + " != " +
-          std::to_string(get_index_descriptor<1>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
+    if constexpr (dynamic_dimension<std::tuple_element_t<0, Arg1>, 1> or dynamic_dimension<std::tuple_element_t<0, Arg2>, 1>)
+      if (get_vector_space_descriptor<1>(std::get<0>(arg1)) != get_vector_space_descriptor<1>(std::get<0>(arg2)))
+        throw std::logic_error {"Column dimension mismatch: " + std::to_string(get_vector_space_descriptor<1>(std::get<0>(arg1))) + " != " +
+          std::to_string(get_vector_space_descriptor<1>(std::get<0>(arg2))) + " in is_near(array) of " + std::string {__FILE__}};
   }
 
 
@@ -222,8 +222,8 @@ namespace OpenKalman::test
     struct tuple_sizes_match<std::tuple<Arg1, Args1...>, std::tuple<Arg2, Args2...>>
     {
       static constexpr bool value =
-        (dynamic_rows<Arg1> or dynamic_rows<Arg2> or row_dimension_of_v<Arg1> == row_dimension_of_v<Arg2>) and
-        (dynamic_columns<Arg1> or dynamic_columns<Arg2> or column_dimension_of_v<Arg1> == column_dimension_of_v<Arg2>) and
+        (dynamic_dimension<Arg1, 0> or dynamic_dimension<Arg2, 0> or index_dimension_of_v<Arg1, 0> == index_dimension_of_v<Arg2, 0>) and
+        (dynamic_dimension<Arg1, 1> or dynamic_dimension<Arg2, 1> or index_dimension_of_v<Arg1, 1> == index_dimension_of_v<Arg2, 1>) and
         tuple_sizes_match<std::tuple<Args1...>, std::tuple<Args2...>>::value;
     };
 

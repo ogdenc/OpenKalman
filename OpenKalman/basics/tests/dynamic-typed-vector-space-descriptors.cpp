@@ -22,13 +22,13 @@ using numbers::pi;
 
 TEST(basics, integral)
 {
-  static_assert(index_descriptor<int>);
-  static_assert(dynamic_index_descriptor<int>);
-  static_assert(not fixed_index_descriptor<int>);
-  static_assert(euclidean_index_descriptor<int>);
-  static_assert(not composite_index_descriptor<int>);
-  static_assert(not atomic_fixed_index_descriptor<int>);
-  static_assert(euclidean_index_descriptor<int>);
+  static_assert(vector_space_descriptor<int>);
+  static_assert(dynamic_vector_space_descriptor<int>);
+  static_assert(not fixed_vector_space_descriptor<int>);
+  static_assert(euclidean_vector_space_descriptor<int>);
+  static_assert(not composite_vector_space_descriptor<int>);
+  static_assert(not atomic_fixed_vector_space_descriptor<int>);
+  static_assert(euclidean_vector_space_descriptor<int>);
   static_assert(dimension_size_of_v<int> == dynamic_size);
   static_assert(euclidean_dimension_size_of_v<int> == dynamic_size);
   static_assert(get_dimension_size_of(3) == 3);
@@ -42,13 +42,13 @@ TEST(basics, dynamic_Dimensions)
 {
   using D = Dimensions<dynamic_size>;
 
-  static_assert(index_descriptor<D>);
-  static_assert(dynamic_index_descriptor<D>);
-  static_assert(not fixed_index_descriptor<D>);
-  static_assert(euclidean_index_descriptor<D>);
-  static_assert(not composite_index_descriptor<D>);
-  static_assert(euclidean_index_descriptor<D>);
-  static_assert(not atomic_fixed_index_descriptor<D>);
+  static_assert(vector_space_descriptor<D>);
+  static_assert(dynamic_vector_space_descriptor<D>);
+  static_assert(not fixed_vector_space_descriptor<D>);
+  static_assert(euclidean_vector_space_descriptor<D>);
+  static_assert(not composite_vector_space_descriptor<D>);
+  static_assert(euclidean_vector_space_descriptor<D>);
+  static_assert(not atomic_fixed_vector_space_descriptor<D>);
   static_assert(dimension_size_of_v<D> == dynamic_size);
   static_assert(euclidean_dimension_size_of_v<D> == dynamic_size);
   static_assert(get_dimension_size_of(Dimensions {3}) == 3);
@@ -61,15 +61,15 @@ TEST(basics, dynamic_Dimensions)
 
 TEST(basics, DynamicTypedIndex_traits)
 {
-  static_assert(index_descriptor<DynamicTypedIndex<>>);
-  static_assert(index_descriptor<DynamicTypedIndex<double>>);
-  static_assert(dynamic_index_descriptor<DynamicTypedIndex<>>);
-  static_assert(dynamic_index_descriptor<DynamicTypedIndex<float>>);
-  static_assert(dynamic_index_descriptor<DynamicTypedIndex<float, long double>>);
-  static_assert(not fixed_index_descriptor<DynamicTypedIndex<>>);
-  static_assert(not euclidean_index_descriptor<DynamicTypedIndex<>>);
-  static_assert(composite_index_descriptor<DynamicTypedIndex<>>);
-  static_assert(composite_index_descriptor<DynamicTypedIndex<double, long double>>);
+  static_assert(vector_space_descriptor<DynamicTypedIndex<>>);
+  static_assert(vector_space_descriptor<DynamicTypedIndex<double>>);
+  static_assert(dynamic_vector_space_descriptor<DynamicTypedIndex<>>);
+  static_assert(dynamic_vector_space_descriptor<DynamicTypedIndex<float>>);
+  static_assert(dynamic_vector_space_descriptor<DynamicTypedIndex<float, long double>>);
+  static_assert(not fixed_vector_space_descriptor<DynamicTypedIndex<>>);
+  static_assert(not euclidean_vector_space_descriptor<DynamicTypedIndex<>>);
+  static_assert(composite_vector_space_descriptor<DynamicTypedIndex<>>);
+  static_assert(composite_vector_space_descriptor<DynamicTypedIndex<double, long double>>);
   static_assert(dimension_size_of_v<DynamicTypedIndex<>> == dynamic_size);
   static_assert(dimension_size_of_v<DynamicTypedIndex<double>> == dynamic_size);
   static_assert(euclidean_dimension_size_of_v<DynamicTypedIndex<>> == dynamic_size);
@@ -104,11 +104,11 @@ TEST(basics, DynamicTypedIndex_construct)
 TEST(basics, DynamicTypedIndex_extend)
 {
   DynamicTypedIndex d;
-  EXPECT_EQ(get_dimension_size_of(d), 0); EXPECT_EQ(get_euclidean_dimension_size_of(d), 0); EXPECT_EQ(get_index_descriptor_component_count_of(d), 0);
+  EXPECT_EQ(get_dimension_size_of(d), 0); EXPECT_EQ(get_euclidean_dimension_size_of(d), 0); EXPECT_EQ(get_vector_space_descriptor_component_count_of(d), 0);
   d.extend(Axis{});
-  EXPECT_EQ(get_dimension_size_of(d), 1); EXPECT_EQ(get_euclidean_dimension_size_of(d), 1); EXPECT_EQ(get_index_descriptor_component_count_of(d), 1);
+  EXPECT_EQ(get_dimension_size_of(d), 1); EXPECT_EQ(get_euclidean_dimension_size_of(d), 1); EXPECT_EQ(get_vector_space_descriptor_component_count_of(d), 1);
   d.extend(Dimensions{5}, Dimensions<5>{}, angle::Radians{}, TypedIndex<Axis, inclination::Radians>{}, Polar<angle::Degrees, Distance>{});
-  EXPECT_EQ(get_dimension_size_of(d), 16); EXPECT_EQ(get_euclidean_dimension_size_of(d), 19); EXPECT_EQ(get_index_descriptor_component_count_of(d), 15);
+  EXPECT_EQ(get_dimension_size_of(d), 16); EXPECT_EQ(get_euclidean_dimension_size_of(d), 19); EXPECT_EQ(get_vector_space_descriptor_component_count_of(d), 15);
 }
 
 
@@ -236,20 +236,20 @@ TEST(basics, dynamic_arithmetic)
 }
 
 
-TEST(basics, internal_replicate_index_descriptor)
+TEST(basics, internal_replicate_vector_space_descriptor)
 {
   using namespace internal;
 
   // fixed:
-  static_assert(std::is_same_v<decltype(replicate_index_descriptor(TypedIndex<angle::Radians, Axis> {}, std::integral_constant<std::size_t, 2> {})), TypedIndex<TypedIndex<angle::Radians, Axis>, TypedIndex<angle::Radians, Axis>>>);
+  static_assert(std::is_same_v<decltype(replicate_vector_space_descriptor(TypedIndex<angle::Radians, Axis> {}, std::integral_constant<std::size_t, 2> {})), TypedIndex<TypedIndex<angle::Radians, Axis>, TypedIndex<angle::Radians, Axis>>>);
 
   // dynamic:
-  auto d1 = replicate_index_descriptor(4, 3);
-  EXPECT_EQ(get_dimension_size_of(d1), 12); EXPECT_EQ(get_euclidean_dimension_size_of(d1), 12); EXPECT_EQ(get_index_descriptor_component_count_of(d1), 12);
-  auto d2 = replicate_index_descriptor(angle::Radians{}, 4);
-  EXPECT_EQ(get_dimension_size_of(d2), 4); EXPECT_EQ(get_euclidean_dimension_size_of(d2), 8); EXPECT_EQ(get_index_descriptor_component_count_of(d2), 4);
-  auto d3 = replicate_index_descriptor(Polar<Distance, angle::Radians>{}, 2);
-  EXPECT_EQ(get_dimension_size_of(d3), 4); EXPECT_EQ(get_euclidean_dimension_size_of(d3), 6); EXPECT_EQ(get_index_descriptor_component_count_of(d3), 2);
+  auto d1 = replicate_vector_space_descriptor(4, 3);
+  EXPECT_EQ(get_dimension_size_of(d1), 12); EXPECT_EQ(get_euclidean_dimension_size_of(d1), 12); EXPECT_EQ(get_vector_space_descriptor_component_count_of(d1), 12);
+  auto d2 = replicate_vector_space_descriptor(angle::Radians{}, 4);
+  EXPECT_EQ(get_dimension_size_of(d2), 4); EXPECT_EQ(get_euclidean_dimension_size_of(d2), 8); EXPECT_EQ(get_vector_space_descriptor_component_count_of(d2), 4);
+  auto d3 = replicate_vector_space_descriptor(Polar<Distance, angle::Radians>{}, 2);
+  EXPECT_EQ(get_dimension_size_of(d3), 4); EXPECT_EQ(get_euclidean_dimension_size_of(d3), 6); EXPECT_EQ(get_vector_space_descriptor_component_count_of(d3), 2);
 }
 
 

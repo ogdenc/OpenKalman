@@ -19,6 +19,9 @@
 #ifndef OPENKALMAN_FUNCTIONS_CONVERSION_FUNCTIONS_HPP
 #define OPENKALMAN_FUNCTIONS_CONVERSION_FUNCTIONS_HPP
 
+#include "make_constant_matrix_like.hpp"
+#include "make_zero_matrix_like.hpp"
+#include "make_identity_matrix_like.hpp"
 #include "to_diagonal.hpp"
 #include "diagonal_of.hpp"
 #include "make_hermitian_matrix.hpp"

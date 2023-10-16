@@ -31,13 +31,13 @@ namespace OpenKalman
 
 
   /**
-   * \brief T is an index descriptor of a distance.
+   * \brief T is a \ref vector_space_descriptor object representing a distance.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept distance_descriptor = std::same_as<T, Distance>;
+  concept distance_vector_space_descriptor = std::same_as<T, Distance>;
 #else
-  static constexpr bool distance_descriptor = std::is_same_v<T, Distance>;
+  static constexpr bool distance_vector_space_descriptor = std::is_same_v<T, Distance>;
 #endif
 
 
@@ -48,7 +48,7 @@ namespace OpenKalman
      * \brief traits for Distance.
      */
     template<>
-    struct FixedIndexDescriptorTraits<Distance>
+    struct FixedVectorSpaceDescriptorTraits<Distance>
     {
       static constexpr std::size_t size = 1;
       static constexpr std::size_t euclidean_size = 1;

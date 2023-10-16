@@ -61,12 +61,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible Arg1, indexible Arg2> requires
-    (dynamic_dimension<Arg1, 1> or dynamic_dimension<Arg2, 0> or equivalent_to<index_descriptor_of_t<Arg1, 1>, index_descriptor_of_t<Arg2, 0>>) and
+    (dynamic_dimension<Arg1, 1> or dynamic_dimension<Arg2, 0> or equivalent_to<vector_space_descriptor_of_t<Arg1, 1>, vector_space_descriptor_of_t<Arg2, 0>>) and
     (constant_adapter<Arg1> or eigen_diagonal_expr<Arg1> or eigen_triangular_expr<Arg1> or eigen_self_adjoint_expr<Arg1> or
     constant_adapter<Arg2> or eigen_diagonal_expr<Arg2> or eigen_triangular_expr<Arg2> or eigen_self_adjoint_expr<Arg2>)
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
-    (dynamic_dimension<Arg1, 1> or dynamic_dimension<Arg2, 0> or equivalent_to<typename index_descriptor_of<Arg1, 1>::type, typename index_descriptor_of<Arg2, 0>::type>) and
+    (dynamic_dimension<Arg1, 1> or dynamic_dimension<Arg2, 0> or equivalent_to<typename vector_space_descriptor_of<Arg1, 1>::type, typename vector_space_descriptor_of<Arg2, 0>::type>) and
     (constant_adapter<Arg1> or eigen_diagonal_expr<Arg1> or eigen_triangular_expr<Arg1> or eigen_self_adjoint_expr<Arg1> or
     constant_adapter<Arg2> or eigen_diagonal_expr<Arg2> or eigen_triangular_expr<Arg2> or eigen_self_adjoint_expr<Arg2>), int> = 0>
 #endif

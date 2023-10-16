@@ -42,10 +42,10 @@ namespace OpenKalman::internal
     : std::bool_constant<bool(Eigen::internal::traits<
       Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>::Flags & Eigen::LvalueBit) and
       (not has_const<XprType>::value) and
-      (BlockRows == Eigen::Dynamic or row_dimension_of_v<U> == BlockRows) and
-      (BlockRows != Eigen::Dynamic or row_dimension_of_v<U> == dynamic_size) and
-      (BlockCols == Eigen::Dynamic or column_dimension_of_v<U> == BlockCols) and
-      (BlockCols != Eigen::Dynamic or column_dimension_of_v<U> == dynamic_size) and
+      (BlockRows == Eigen::Dynamic or index_dimension_of_v<U, 0> == BlockRows) and
+      (BlockRows != Eigen::Dynamic or index_dimension_of_v<U, 0> == dynamic_size) and
+      (BlockCols == Eigen::Dynamic or index_dimension_of_v<U, 1> == BlockCols) and
+      (BlockCols != Eigen::Dynamic or index_dimension_of_v<U, 1> == dynamic_size) and
       (std::is_same_v<scalar_type_of_t<XprType>, scalar_type_of_t<U>>)> {};
 
 

@@ -11,11 +11,11 @@
 /**
  * \internal
  * \file
- * \brief Definition of the AnyAtomicIndexDescriptor class.
+ * \brief Definition of the AnyAtomicVectorSpaceDescriptor class.
  */
 
-#ifndef OPENKALMAN_ANYATOMICINDEXDESCRIPTOR_HPP
-#define OPENKALMAN_ANYATOMICINDEXDESCRIPTOR_HPP
+#ifndef OPENKALMAN_ANYATOMICVECTORTYPES_HPP
+#define OPENKALMAN_ANYATOMICVECTORTYPES_HPP
 
 #include<variant>
 #include<complex>
@@ -26,16 +26,16 @@ namespace OpenKalman::internal
 {
   /**
    * \internal
-   * \brief A type representing any atomic index descriptor, for use with DynamicTypedIndex.
-   * \tparam AllowableScalarTypes The allowable scalar types for elements associated with this index descriptor.
+   * \brief A type representing any \ref atomic_fixed_vector_space_descriptor object, for use with DynamicTypedIndex.
+   * \tparam AllowableScalarTypes The allowable scalar types for elements associated with this \ref vector_space_descriptor object.
    */
   template<typename...AllowableScalarTypes>
-  struct AnyAtomicIndexDescriptor
+  struct AnyAtomicVectorSpaceDescriptor
   {
   private:
 
     template<typename...>
-    friend struct AnyAtomicIndexDescriptor;
+    friend struct AnyAtomicVectorSpaceDescriptor;
 
     using Scalar = std::conditional_t<sizeof...(AllowableScalarTypes) == 1,
       std::tuple_element_t<0, std::tuple<AllowableScalarTypes...>>, std::variant<AllowableScalarTypes...>>;
@@ -63,7 +63,7 @@ namespace OpenKalman::internal
 
       [[nodiscard]] std::type_index get_type_index() const final { return typeid(T); }
 
-      [[nodiscard]] bool is_euclidean() const final { return euclidean_index_descriptor<T>; }
+      [[nodiscard]] bool is_euclidean() const final { return euclidean_vector_space_descriptor<T>; }
 
       [[nodiscard]] std::size_t size() const final { return dimension_size_of_v<T>; }
 
@@ -71,58 +71,58 @@ namespace OpenKalman::internal
 
       [[nodiscard]] Scalar to_euclidean_element(const Getter& g, std::size_t euclidean_local_index, std::size_t start) const final
       {
-        if constexpr (euclidean_index_descriptor<T>)
+        if constexpr (euclidean_vector_space_descriptor<T>)
           return g(start + euclidean_local_index);
         else if constexpr (sizeof...(AllowableScalarTypes) == 1)
-          return interface::FixedIndexDescriptorTraits<T>::to_euclidean_element(g, euclidean_local_index, start);
+          return interface::FixedVectorSpaceDescriptorTraits<T>::to_euclidean_element(g, euclidean_local_index, start);
         else
           return std::visit([&g, euclidean_local_index, start](auto&& arg) -> Scalar {
             using S = std::decay_t<decltype(arg)>;
             auto gv = [&g](std::size_t i){ return std::get<S>(g(i)); };
-            return {interface::FixedIndexDescriptorTraits<T>::to_euclidean_element(std::move(gv), euclidean_local_index, start)};
+            return {interface::FixedVectorSpaceDescriptorTraits<T>::to_euclidean_element(std::move(gv), euclidean_local_index, start)};
           }, g(0));
       }
 
       [[nodiscard]] Scalar from_euclidean_element(const Getter& g, std::size_t local_index, std::size_t euclidean_start) const final
       {
-        if constexpr (euclidean_index_descriptor<T>)
+        if constexpr (euclidean_vector_space_descriptor<T>)
           return g(euclidean_start + local_index);
         else if constexpr (sizeof...(AllowableScalarTypes) == 1)
-          return interface::FixedIndexDescriptorTraits<T>::from_euclidean_element(g, local_index, euclidean_start);
+          return interface::FixedVectorSpaceDescriptorTraits<T>::from_euclidean_element(g, local_index, euclidean_start);
         else
           return std::visit([&g, local_index, euclidean_start](auto&& arg) -> Scalar {
             using S = std::decay_t<decltype(arg)>;
             auto gv = [&g](std::size_t i){ return std::get<S>(g(i)); };
-            return {interface::FixedIndexDescriptorTraits<T>::from_euclidean_element(std::move(gv), local_index, euclidean_start)};
+            return {interface::FixedVectorSpaceDescriptorTraits<T>::from_euclidean_element(std::move(gv), local_index, euclidean_start)};
           }, g(0));
       }
 
       [[nodiscard]] Scalar wrap_get_element(const Getter& g, std::size_t local_index, std::size_t start) const final
       {
-        if constexpr (euclidean_index_descriptor<T>)
+        if constexpr (euclidean_vector_space_descriptor<T>)
           return g(start + local_index);
         else if constexpr (sizeof...(AllowableScalarTypes) == 1)
-          return interface::FixedIndexDescriptorTraits<T>::wrap_get_element(g, local_index, start);
+          return interface::FixedVectorSpaceDescriptorTraits<T>::wrap_get_element(g, local_index, start);
         else
           return std::visit([&g, local_index, start](auto&& arg) -> Scalar {
             using S = std::decay_t<decltype(arg)>;
             auto gv = [&g](std::size_t i){ return std::get<S>(g(i)); };
-            return {interface::FixedIndexDescriptorTraits<T>::wrap_get_element(std::move(gv), local_index, start)};
+            return {interface::FixedVectorSpaceDescriptorTraits<T>::wrap_get_element(std::move(gv), local_index, start)};
           }, g(0));
       }
 
       void wrap_set_element(const Setter& s, const Getter& g, const Scalar& x, std::size_t local_index, std::size_t start) const final
       {
-        if constexpr (euclidean_index_descriptor<T>)
+        if constexpr (euclidean_vector_space_descriptor<T>)
           s(x, start + local_index);
         else if constexpr (sizeof...(AllowableScalarTypes) == 1)
-          interface::FixedIndexDescriptorTraits<T>::wrap_set_element(s, g, x, local_index, start);
+          interface::FixedVectorSpaceDescriptorTraits<T>::wrap_set_element(s, g, x, local_index, start);
         else
           std::visit([&s, &g, local_index, start](auto&& arg) {
             using S = std::decay_t<decltype(arg)>;
             auto sv = [&s](const S& scalar, std::size_t i){ s(Scalar {scalar}, i); };
             auto gv = [&g](std::size_t i){ return std::get<S>(g(i)); };
-            interface::FixedIndexDescriptorTraits<T>::wrap_set_element(std::move(sv), std::move(gv), arg, local_index, start);
+            interface::FixedVectorSpaceDescriptorTraits<T>::wrap_set_element(std::move(sv), std::move(gv), arg, local_index, start);
           }, x);
       }
 
@@ -131,14 +131,14 @@ namespace OpenKalman::internal
   public:
 
     /**
-     * \brief Construct from a \ref fixed_index_descriptor.
+     * \brief Construct from a \ref fixed_vector_space_descriptor.
      */
 #ifdef __cpp_concepts
-    template <fixed_index_descriptor T>
+    template <fixed_vector_space_descriptor T>
 #else
-    template<typename T, std::enable_if_t<fixed_index_descriptor<T>, int> = 0>
+    template<typename T, std::enable_if_t<fixed_vector_space_descriptor<T>, int> = 0>
 #endif
-    explicit constexpr AnyAtomicIndexDescriptor(T&&) : mConcept {Model<T>::get_instance()} {}
+    explicit constexpr AnyAtomicVectorSpaceDescriptor(T&&) : mConcept {Model<T>::get_instance()} {}
 
 
     /**
@@ -148,8 +148,8 @@ namespace OpenKalman::internal
 
 
     /**
-     * \brief Whether this index descriptor is untyped
-     * \sa euclidean_index_descriptor
+     * \brief Whether this \ref vector_space_descriptor object is untyped
+     * \sa euclidean_vector_space_descriptor
      */
     [[nodiscard]] bool is_euclidean() const { return mConcept->is_euclidean(); }
 
@@ -164,7 +164,7 @@ namespace OpenKalman::internal
      * \brief Maps an element to coordinates in Euclidean space.
      * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
      * \param euclidean_local_index A local index relative to the Euclidean-transformed coordinates (starting at 0)
-     * \param start The starting index within the index descriptor
+     * \param start The starting index within the \ref vector_space_descriptor object
      */
 #ifdef __cpp_concepts
     scalar_type auto
@@ -227,7 +227,7 @@ namespace OpenKalman::internal
      * \details The wrapping operation is equivalent to mapping to, and then back from, Euclidean space.
      * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
      * \param local_index A local index relative to the original coordinates (starting at 0)
-     * \param start The starting location of the angle within any larger set of index type descriptors
+     * \param start The starting location of the angle within any larger set of \ref vector_space_descriptor
      */
 #ifdef __cpp_concepts
     scalar_type auto
@@ -261,7 +261,7 @@ namespace OpenKalman::internal
      * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
      * \param x The scalar value to be set
      * \param local_index A local index relative to the original coordinates (starting at 0)
-     * \param start The starting location of the angle within any larger set of index type descriptors
+     * \param start The starting location of the angle within any larger set of \ref vector_space_descriptor
      */
 #ifdef __cpp_concepts
     void wrap_set_element(const auto& s, const auto& g,
@@ -298,4 +298,4 @@ namespace OpenKalman::internal
 } // namespace OpenKalman::internal
 
 
-#endif //OPENKALMAN_ANYATOMICINDEXDESCRIPTOR_HPP
+#endif //OPENKALMAN_ANYATOMICVECTORTYPES_HPP

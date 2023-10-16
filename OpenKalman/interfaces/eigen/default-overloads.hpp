@@ -36,7 +36,7 @@ namespace OpenKalman
    * must equal dimension_size_of_v<RowCoefficients> * dimension_size_of_v<ColumnCoefficients>.
    */
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor RowCoefficients, fixed_index_descriptor ColumnCoefficients = RowCoefficients, scalar_type ... Args>
+  template<fixed_vector_space_descriptor RowCoefficients, fixed_vector_space_descriptor ColumnCoefficients = RowCoefficients, scalar_type ... Args>
   requires (sizeof...(Args) > 0) and (dimension_size_of_v<RowCoefficients> * dimension_size_of_v<ColumnCoefficients> == sizeof...(Args))
 #else
   template<typename RowCoefficients, typename ColumnCoefficients = RowCoefficients, typename ... Args,
@@ -78,12 +78,12 @@ namespace OpenKalman
    * \tparam ColumnCoefficients The coefficient types corresponding to the columns.
    */
 #ifdef __cpp_concepts
-  template<scalar_type Scalar, fixed_index_descriptor RowCoefficients,
-    fixed_index_descriptor ColumnCoefficients = RowCoefficients>
+  template<scalar_type Scalar, fixed_vector_space_descriptor RowCoefficients,
+    fixed_vector_space_descriptor ColumnCoefficients = RowCoefficients>
 #else
   template<typename Scalar, typename RowCoefficients, typename ColumnCoefficients = RowCoefficients,
   std::enable_if_t<scalar_type<Scalar> and
-    fixed_index_descriptor<RowCoefficients> and fixed_index_descriptor<ColumnCoefficients>, int> = 0>
+    fixed_vector_space_descriptor<RowCoefficients> and fixed_vector_space_descriptor<ColumnCoefficients>, int> = 0>
 #endif
   auto make_matrix()
   {
@@ -101,10 +101,10 @@ namespace OpenKalman
    * must be divisible by dimension_size_of_v<TypedIndex>.
    */
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor TypedIndex, scalar_type ... Args> requires
+  template<fixed_vector_space_descriptor TypedIndex, scalar_type ... Args> requires
     (sizeof...(Args) > 0) and (sizeof...(Args) % dimension_size_of_v<TypedIndex> == 0)
 #else
-  template<typename TypedIndex, typename ... Args, std::enable_if_t<fixed_index_descriptor<TypedIndex> and
+  template<typename TypedIndex, typename ... Args, std::enable_if_t<fixed_vector_space_descriptor<TypedIndex> and
     (sizeof...(Args) > 0) and (scalar_type<Args> and ...) and
     (sizeof...(Args) % dimension_size_of_v<TypedIndex> == 0), int> = 0>
 #endif
@@ -145,10 +145,10 @@ namespace OpenKalman
    * \tparam cols The number of columns.
    */
 #ifdef __cpp_concepts
-  template<scalar_type Scalar, fixed_index_descriptor TypedIndex, std::size_t cols = 1>
+  template<scalar_type Scalar, fixed_vector_space_descriptor TypedIndex, std::size_t cols = 1>
 #else
   template<typename Scalar, typename TypedIndex, std::size_t cols = 1, std::enable_if_t<
-  scalar_type<Scalar> and fixed_index_descriptor<TypedIndex>, int> = 0>
+  scalar_type<Scalar> and fixed_vector_space_descriptor<TypedIndex>, int> = 0>
 #endif
   auto make_mean()
   {
@@ -165,7 +165,7 @@ namespace OpenKalman
    * must be divisible by euclidean_dimension_size_of_v<TypedIndex>.
    */
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor TypedIndex, scalar_type ... Args> requires
+  template<fixed_vector_space_descriptor TypedIndex, scalar_type ... Args> requires
   (sizeof...(Args) > 0) and (sizeof...(Args) % euclidean_dimension_size_of_v<TypedIndex> == 0)
 #else
   template<typename TypedIndex, typename ... Args, std::enable_if_t<
@@ -209,10 +209,10 @@ namespace OpenKalman
    * \tparam cols The number of columns.
    */
 #ifdef __cpp_concepts
-  template<scalar_type Scalar, fixed_index_descriptor TypedIndex, std::size_t cols = 1>
+  template<scalar_type Scalar, fixed_vector_space_descriptor TypedIndex, std::size_t cols = 1>
 #else
   template<typename Scalar, typename TypedIndex, std::size_t cols = 1, std::enable_if_t<
-  scalar_type<Scalar> and fixed_index_descriptor<TypedIndex>, int> = 0>
+  scalar_type<Scalar> and fixed_vector_space_descriptor<TypedIndex>, int> = 0>
 #endif
   auto make_euclidean_mean()
   {
@@ -230,12 +230,12 @@ namespace OpenKalman
    * must equal dimension_size_of_v<TypedIndex> * dimension_size_of_v<TypedIndex>.
    */
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor TypedIndex, TriangleType triangle_type, scalar_type ... Args> requires
+  template<fixed_vector_space_descriptor TypedIndex, TriangleType triangle_type, scalar_type ... Args> requires
   (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
   (sizeof...(Args) > 0) and (sizeof...(Args) == dimension_size_of_v<TypedIndex> * dimension_size_of_v<TypedIndex>)
 #else
   template<typename TypedIndex, TriangleType triangle_type, typename ... Args, std::enable_if_t<
-    fixed_index_descriptor<TypedIndex> and (scalar_type<Args> and ...) and
+    fixed_vector_space_descriptor<TypedIndex> and (scalar_type<Args> and ...) and
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
     (sizeof...(Args) > 0) and (sizeof...(Args) == dimension_size_of_v<TypedIndex> * dimension_size_of_v<TypedIndex>), int> = 0>
 #endif
@@ -258,11 +258,11 @@ namespace OpenKalman
    * must equal dimension_size_of_v<TypedIndex> * dimension_size_of_v<TypedIndex>.
    */
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor TypedIndex, scalar_type ... Args> requires
+  template<fixed_vector_space_descriptor TypedIndex, scalar_type ... Args> requires
   (sizeof...(Args) > 0) and (sizeof...(Args) == dimension_size_of_v<TypedIndex> * dimension_size_of_v<TypedIndex>)
 #else
   template<typename TypedIndex, typename ... Args, std::enable_if_t<
-    fixed_index_descriptor<TypedIndex> and (scalar_type<Args> and ...) and
+    fixed_vector_space_descriptor<TypedIndex> and (scalar_type<Args> and ...) and
     (sizeof...(Args) > 0) and (sizeof...(Args) == dimension_size_of_v<TypedIndex> * dimension_size_of_v<TypedIndex>), int> = 0>
 #endif
   auto make_covariance(const Args ... args)
@@ -332,11 +332,11 @@ namespace OpenKalman
    * \tparam Scalar The scalar type (integral or floating-point).
    */
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor TypedIndex, TriangleType triangle_type, scalar_type Scalar = double>
+  template<fixed_vector_space_descriptor TypedIndex, TriangleType triangle_type, scalar_type Scalar = double>
   requires (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper)
 #else
   template<typename TypedIndex, TriangleType triangle_type, typename Scalar = double, std::enable_if_t<
-    fixed_index_descriptor<TypedIndex> and
+    fixed_vector_space_descriptor<TypedIndex> and
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
     scalar_type<Scalar>, int> = 0>
 #endif
@@ -350,16 +350,16 @@ namespace OpenKalman
 
   /**
    * \overload OpenKalman::make_covariance
-   * \brief For Eigen3: Make a writable, uninitialized Covariance, specifying the fixed_index_descriptor.
+   * \brief For Eigen3: Make a writable, uninitialized Covariance, specifying the fixed_vector_space_descriptor.
    * \note This function is imported into the OpenKalman namespace if Eigen3 is the first-included interface.
    * \tparam TypedIndex The coefficient types corresponding to the rows and columns.
    * \tparam Scalar The scalar type (integral or floating-point).
    */
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor TypedIndex, scalar_type Scalar = double>
+  template<fixed_vector_space_descriptor TypedIndex, scalar_type Scalar = double>
 #else
   template<typename TypedIndex, typename Scalar = double, std::enable_if_t<
-    fixed_index_descriptor<TypedIndex> and scalar_type<Scalar>, int> = 0>
+    fixed_vector_space_descriptor<TypedIndex> and scalar_type<Scalar>, int> = 0>
 #endif
   auto make_covariance()
   {
@@ -380,12 +380,12 @@ namespace OpenKalman
    * must equal dimension_size_of_v<TypedIndex> * dimension_size_of_v<TypedIndex>.
    */
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor TypedIndex, TriangleType triangle_type = TriangleType::lower, scalar_type ... Args>
+  template<fixed_vector_space_descriptor TypedIndex, TriangleType triangle_type = TriangleType::lower, scalar_type ... Args>
   requires (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
     (sizeof...(Args) > 0) and (sizeof...(Args) == dimension_size_of_v<TypedIndex> * dimension_size_of_v<TypedIndex>)
 #else
   template<typename TypedIndex, TriangleType triangle_type = TriangleType::lower, typename ... Args,
-    std::enable_if_t<fixed_index_descriptor<TypedIndex> and (scalar_type<Args> and ...) and
+    std::enable_if_t<fixed_vector_space_descriptor<TypedIndex> and (scalar_type<Args> and ...) and
       (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
       (sizeof...(Args) > 0) and (sizeof...(Args) == dimension_size_of_v<TypedIndex> * dimension_size_of_v<TypedIndex>), int> = 0>
 #endif
@@ -436,11 +436,11 @@ namespace OpenKalman
    * \tparam Scalar The scalar type (integral or floating-point).
    */
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor TypedIndex, TriangleType triangle_type = TriangleType::lower, scalar_type Scalar = double>
+  template<fixed_vector_space_descriptor TypedIndex, TriangleType triangle_type = TriangleType::lower, scalar_type Scalar = double>
   requires (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper)
 #else
   template<typename TypedIndex, TriangleType triangle_type = TriangleType::lower, typename Scalar = double,
-    std::enable_if_t<fixed_index_descriptor<TypedIndex> and
+    std::enable_if_t<fixed_vector_space_descriptor<TypedIndex> and
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and scalar_type<Scalar>, int> = 0>
 #endif
   auto make_square_root_covariance()
@@ -471,16 +471,16 @@ namespace OpenKalman
   // Default specialization for Eigen: the nested matrix will be an Eigen::Matrix of the appropriate size.
 #ifdef __cpp_concepts
   template<
-    fixed_index_descriptor RowCoefficients,
-    fixed_index_descriptor ColumnCoefficients = RowCoefficients,
+    fixed_vector_space_descriptor RowCoefficients,
+    fixed_vector_space_descriptor ColumnCoefficients = RowCoefficients,
     typed_matrix_nestable NestedMatrix =
       Eigen3::eigen_matrix_t<double, dimension_size_of_v<RowCoefficients>, dimension_size_of_v<ColumnCoefficients>>>
   requires
-    (dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>) and
-    (dimension_size_of_v<ColumnCoefficients> == column_dimension_of_v<NestedMatrix>) and
+    (dimension_size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
+    (dimension_size_of_v<ColumnCoefficients> == index_dimension_of_v<NestedMatrix, 1>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
-    (dynamic_index_descriptor<RowCoefficients> == dynamic_rows<NestedMatrix>) and
-    (dynamic_index_descriptor<ColumnCoefficients> == dynamic_columns<NestedMatrix>)
+    (dynamic_vector_space_descriptor<RowCoefficients> == dynamic_dimension<NestedMatrix, 0>) and
+    (dynamic_vector_space_descriptor<ColumnCoefficients> == dynamic_dimension<NestedMatrix, 1>)
 #else
   template<
     typename RowCoefficients,
@@ -506,9 +506,9 @@ namespace OpenKalman
 
   // By default when using Eigen3, a Mean is an Eigen3 column vector corresponding to the TypedIndex.
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor RowCoefficients,
+  template<fixed_vector_space_descriptor RowCoefficients,
     typed_matrix_nestable NestedMatrix = Eigen3::eigen_matrix_t<double, dimension_size_of_v<RowCoefficients>, 1>>
-  requires (dimension_size_of_v<RowCoefficients> == row_dimension_of_v<NestedMatrix>) and
+  requires (dimension_size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename RowCoefficients,
@@ -533,10 +533,10 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<
-    fixed_index_descriptor TypedIndex,
+    fixed_vector_space_descriptor TypedIndex,
     typed_matrix_nestable NestedMatrix = Eigen3::eigen_matrix_t<double, euclidean_dimension_size_of_v<TypedIndex>, 1>>
   requires
-    (euclidean_dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
+    (euclidean_dimension_size_of_v<TypedIndex> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename TypedIndex,
@@ -560,9 +560,9 @@ namespace OpenKalman
   // ---------------- //
 
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor TypedIndex, covariance_nestable NestedMatrix =
+  template<fixed_vector_space_descriptor TypedIndex, covariance_nestable NestedMatrix =
     SelfAdjointMatrix<Eigen3::eigen_matrix_t<double, dimension_size_of_v<TypedIndex>, dimension_size_of_v<TypedIndex>>>>
-  requires (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
+  requires (dimension_size_of_v<TypedIndex> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and scalar_type<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename TypedIndex, typename NestedMatrix =
@@ -591,9 +591,9 @@ namespace OpenKalman
   // --------------------- //
 
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor TypedIndex, covariance_nestable NestedMatrix =
+  template<fixed_vector_space_descriptor TypedIndex, covariance_nestable NestedMatrix =
   SelfAdjointMatrix<Eigen3::eigen_matrix_t<double, dimension_size_of_v<TypedIndex>, dimension_size_of_v<TypedIndex>>>>
-    requires (dimension_size_of_v<TypedIndex> == row_dimension_of_v<NestedMatrix>) and
+    requires (dimension_size_of_v<TypedIndex> == index_dimension_of_v<NestedMatrix, 0>) and
       (not std::is_rvalue_reference_v<NestedMatrix>) and scalar_type<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename TypedIndex, typename NestedMatrix =

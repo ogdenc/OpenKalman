@@ -113,21 +113,21 @@ namespace OpenKalman
    * \tparam indices The indices, if any, for which there is a distinct distribution. If not provided, this can in some
    * cases be inferred from the number of Dists provided.
    * \tparam random_number_generator The random number generator (e.g., std::mt19937).
-   * \tparam Ds Index descriptors for each index the result. They need not correspond to the dimensions of PatternMatrix.
+   * \tparam Ds \ref vector_space_descriptor objects for each index the result. They need not correspond to the dimensions of PatternMatrix.
    * \tparam Dists One or more distributions (e.g., std::normal_distribution<double>)
    * \sa n_ary_operation
    */
 #ifdef __cpp_concepts
   template<indexible PatternMatrix, std::size_t...indices, std::uniform_random_bit_generator random_number_generator,
-    index_descriptor...Ds, typename...Dists>
-  requires ((fixed_index_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
+    vector_space_descriptor...Ds, typename...Dists>
+  requires ((fixed_vector_space_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
     (sizeof...(Dists) == (1 * ... * dimension_size_of_v<std::tuple_element_t<indices, std::tuple<Ds...>>>)) and
     ((std::is_arithmetic_v<std::decay_t<Dists>> or
       requires { typename std::decay_t<Dists>::result_type; typename std::decay_t<Dists>::param_type; }) and ...)
 #else
   template<typename PatternMatrix, std::size_t...indices, typename random_number_generator, typename...Ds,
-    typename...Dists, std::enable_if_t<indexible<PatternMatrix> and (index_descriptor<Ds> and ...) and
-    ((fixed_index_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
+    typename...Dists, std::enable_if_t<indexible<PatternMatrix> and (vector_space_descriptor<Ds> and ...) and
+    ((fixed_vector_space_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
     (sizeof...(Dists) == (1 * ... * dimension_size_of<std::tuple_element_t<indices, std::tuple<Ds...>>>::value)) and
     ((std::is_arithmetic_v<std::decay_t<Dists>> or detail::is_std_dist<std::decay_t<Dists>>::value) and ...), int> = 0>
 #endif
@@ -145,15 +145,15 @@ namespace OpenKalman
    * \brief Create a matrix with random values, using std::mt19937 as the random number engine.
    */
 #ifdef __cpp_concepts
-  template<indexible PatternMatrix, std::size_t...indices, index_descriptor...Ds, typename...Dists>
-  requires ((fixed_index_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
+  template<indexible PatternMatrix, std::size_t...indices, vector_space_descriptor...Ds, typename...Dists>
+  requires ((fixed_vector_space_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
     (sizeof...(Dists) == (1 * ... * dimension_size_of_v<std::tuple_element_t<indices, std::tuple<Ds...>>>)) and
     ((std::is_arithmetic_v<std::decay_t<Dists>> or
       requires { typename std::decay_t<Dists>::result_type; typename std::decay_t<Dists>::param_type; }) and ...)
 #else
   template<typename PatternMatrix, std::size_t...indices, typename...Ds, typename...Dists,
-    std::enable_if_t<indexible<PatternMatrix> and (index_descriptor<Ds> and ...) and
-    ((fixed_index_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
+    std::enable_if_t<indexible<PatternMatrix> and (vector_space_descriptor<Ds> and ...) and
+    ((fixed_vector_space_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
     (sizeof...(Dists) == (1 * ... * dimension_size_of<std::tuple_element_t<indices, std::tuple<Ds...>>>::value)) and
     ((std::is_arithmetic_v<std::decay_t<Dists>> or detail::is_std_dist<std::decay_t<Dists>>::value) and ...), int> = 0>
 #endif

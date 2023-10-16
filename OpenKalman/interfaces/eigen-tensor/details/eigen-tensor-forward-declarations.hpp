@@ -50,7 +50,7 @@ namespace OpenKalman::Eigen3
    * \tparam T A non-Eigen tensor class.
    * \tparam IndexType The index type (e.g., int or std::size_t).
    */
-  template<typename T, typename IndexType = index_type_of_t<T>>
+  template<typename T>
   struct EigenTensorWrapper;
 
 
@@ -59,8 +59,8 @@ namespace OpenKalman::Eigen3
     template<typename T>
     struct is_EigenTensorWrapper : std::false_type {};
 
-    template<typename T, typename IndexType>
-    struct is_EigenTensorWrapper<EigenTensorWrapper<T, IndexType>> : std::true_type {};
+    template<typename T>
+    struct is_EigenTensorWrapper<EigenTensorWrapper<T>> : std::true_type {};
   }
 
 

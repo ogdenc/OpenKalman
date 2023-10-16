@@ -17,9 +17,9 @@ include(GoogleTest)
 add_executable(basics
         scalar-types.cpp
         basics.cpp
-        index-descriptors.cpp
-        index-descriptor-functions.cpp
-        dynamic-typed-index-descriptors.cpp
+        vector-space-descriptors.cpp
+        vector-space-descriptor-functions.cpp
+        dynamic-typed-vector-space-descriptors.cpp
     )
 
 target_link_libraries(basics ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)

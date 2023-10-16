@@ -748,8 +748,8 @@ TEST(eigen3, cwise_binary_operations)
   // general CwiseBinaryOp
   static_assert(self_contained<decltype(2 * std::declval<I22>() + std::declval<I22>())>);
   static_assert(not self_contained<decltype(2 * std::declval<I22>() + A22 {1, 2, 3, 4})>);
-  static_assert(row_dimension_of_v<std::remove_const_t<decltype(2 * std::declval<I22>() + std::declval<I22>())>> == 2);
-  static_assert(column_dimension_of_v<std::remove_const_t<decltype(2 * std::declval<I22>() + std::declval<I22>())>> == 2);
+  static_assert(index_dimension_of_v<std::remove_const_t<decltype(2 * std::declval<I22>() + std::declval<I22>())>, 0> == 2);
+  static_assert(index_dimension_of_v<std::remove_const_t<decltype(2 * std::declval<I22>() + std::declval<I22>())>, 1> == 2);
   static_assert(self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>,
     const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, A22>,
     const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, A22>>>);
@@ -916,8 +916,8 @@ TEST(eigen3, cwise_binary_operations)
   static_assert(triangular_matrix<Eigen::CwiseBinaryOp<CProd, Tuv22, Tuv22>, TriangleType::upper>);
   static_assert(triangular_matrix<Eigen::CwiseBinaryOp<CProd, M22, Tuv22>, TriangleType::upper>);
   static_assert(hermitian_matrix<Eigen::CwiseBinaryOp<CProd, Sauv22, Salv22>>);
-  static_assert(OpenKalman::interface::IndexibleObjectTraits<Eigen::CwiseBinaryOp<CProd, Sauv22, DW21>>::is_hermitian == true);
-  static_assert(OpenKalman::interface::IndexibleObjectTraits<Eigen::CwiseBinaryOp<CProd, DW21, DW21>>::is_hermitian == true);
+  static_assert(OpenKalman::interface::indexible_object_traits<Eigen::CwiseBinaryOp<CProd, Sauv22, DW21>>::is_hermitian == true);
+  static_assert(OpenKalman::interface::indexible_object_traits<Eigen::CwiseBinaryOp<CProd, DW21, DW21>>::is_hermitian == true);
 
   // scalar_min_op
   static_assert(constant_coefficient_v<decltype(cp2.min(cm2))> == -2);

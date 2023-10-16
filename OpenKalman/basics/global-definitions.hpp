@@ -24,14 +24,21 @@ namespace OpenKalman
 {
 
   /**
-   * \brief A constant indicating that the relevant dimension of a matrix has a size that is dynamic.
-   * \details A dynamic dimension can be set, or change, during runtime and is not known at compile time.
+   * \brief A constant indicating that a size or index is dynamic.
+   * \details A dynamic size or index can be set, or change, during runtime and is not known at compile time.
    */
 #ifdef __cpp_lib_span
   inline constexpr std::size_t dynamic_size = std::dynamic_extent;
 #else
   inline constexpr std::size_t dynamic_size = std::numeric_limits<std::size_t>::max();
 #endif
+
+
+  /**
+   * \brief A constant indicating that a difference in sizes or indices is dynamic.
+   * \details A dynamic difference can be set, or change, during runtime and is not known at compile time.
+   */
+  inline constexpr std::ptrdiff_t dynamic_difference = std::numeric_limits<std::ptrdiff_t>::max();
 
 
   /**

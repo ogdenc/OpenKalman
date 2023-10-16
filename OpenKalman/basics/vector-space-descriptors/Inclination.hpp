@@ -111,23 +111,23 @@ namespace OpenKalman
   namespace internal
   {
     template<typename T>
-    struct is_inclination_descriptor : std::false_type {};
+    struct is_inclination_vector_space_descriptor : std::false_type {};
 
     template<typename Limits>
-    struct is_inclination_descriptor<Inclination<Limits>> : std::true_type {};
+    struct is_inclination_vector_space_descriptor<Inclination<Limits>> : std::true_type {};
   }
 
 
   /**
-   * \brief T is an index descriptor of an inclination.
+   * \brief T is a \ref vector_space_descriptor object representing an inclination.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept inclination_descriptor =
+  concept inclination_vector_space_descriptor =
 #else
-  static constexpr bool inclination_descriptor =
+  static constexpr bool inclination_vector_space_descriptor =
 #endif
-    internal::is_inclination_descriptor<T>::value;
+    internal::is_inclination_vector_space_descriptor<T>::value;
 
 
   namespace interface
@@ -137,7 +137,7 @@ namespace OpenKalman
      * \brief traits for Inclination.
      */
     template<typename Limits>
-    struct FixedIndexDescriptorTraits<Inclination<Limits>>
+    struct FixedVectorSpaceDescriptorTraits<Inclination<Limits>>
     {
       static constexpr std::size_t size = 1;
       static constexpr std::size_t euclidean_size = 2;

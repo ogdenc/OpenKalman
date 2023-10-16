@@ -24,30 +24,28 @@ namespace OpenKalman
   namespace interface
   {
     template<typename MatrixType, unsigned int Mode>
-    struct IndexibleObjectTraits<Eigen::TriangularView<MatrixType, Mode>>
+    struct indexible_object_traits<Eigen::TriangularView<MatrixType, Mode>>
     {
-      static constexpr std::size_t max_indices = max_indices_of_v<MatrixType>;
+    private:
 
-      using index_type = index_type_of_t<MatrixType>;
+      using IndexType = typename MatrixType::Index;
+
+    public:
 
       using scalar_type = scalar_type_of_t<MatrixType>;
 
+      template<typename Arg>
+      static constexpr auto get_index_count(const Arg& arg) { return OpenKalman::get_index_count(nested_matrix(arg)); }
 
       template<typename Arg, typename N>
-      static constexpr auto get_index_descriptor(const Arg& arg, N n)
+      static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
       {
-        return OpenKalman::get_index_descriptor(arg.nestedExpression(), n);
+        return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
       }
 
-      template<Likelihood b>
-      static constexpr bool is_one_by_one = one_by_one_matrix<MatrixType, b>;
-
-      template<Likelihood b>
-      static constexpr bool is_square = square_matrix<MatrixType, b>;
+      using type = std::tuple<typename Eigen::internal::traits<Eigen::TriangularView<MatrixType, Mode>>::MatrixTypeNested>;
 
       static constexpr bool has_runtime_parameters = false;
-
-      using type = std::tuple<typename Eigen::internal::traits<Eigen::TriangularView<MatrixType, Mode>>::MatrixTypeNested>;
 
       template<std::size_t i, typename Arg>
       static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -103,6 +101,12 @@ namespace OpenKalman
         }
       }
 
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = one_by_one_matrix<MatrixType, b>;
+
+      template<Likelihood b>
+      static constexpr bool is_square = square_matrix<MatrixType, b>;
+
       template<TriangleType t, Likelihood b>
       static constexpr bool is_triangular =
         (t == TriangleType::lower and ((Mode & Eigen::Lower) != 0 or triangular_matrix<MatrixType, TriangleType::lower, b>)) or
@@ -131,22 +135,28 @@ namespace OpenKalman
       }
 
 
-      template<typename Arg>
-      static scalar_type_of_t<Arg> get(const Arg& arg, index_type i, index_type j)
+#ifdef __cpp_concepts
+      template<typename Arg> requires std::convertible_to<std::size_t, IndexType>
+#else
+      template<typename Arg, std::enable_if_t<indexible<Arg> and std::is_convertible_v<std::size_t, IndexType>, int> = 0>
+#endif
+      static scalar_type_of_t<Arg> get(const Arg& arg, std::size_t i, std::size_t j)
       {
         if ((i > j and (Mode & Eigen::Upper) != 0) or (i < j and (Mode & Eigen::Lower) != 0)) return 0;
-        else return arg.coeff(i, j);
+        else return arg.coeff(static_cast<IndexType>(i), static_cast<IndexType>(j));
       }
 
 
   #ifdef __cpp_concepts
-      template<typename Arg> requires ((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0)
+      template<typename Arg> requires std::convertible_to<std::size_t, IndexType> and
+        ((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0)
   #else
-      template<typename Arg, std::enable_if_t<((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0), int> = 0>
+      template<typename Arg, std::enable_if_t<std::is_convertible_v<std::size_t, IndexType> and
+        ((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0), int> = 0>
   #endif
-      static void set(Arg& arg, const scalar_type_of_t<Arg>& s, index_type i, index_type j)
+      static void set(Arg& arg, const scalar_type_of_t<Arg>& s, std::size_t i, std::size_t j)
       {
-        arg.coeffRef(i, j) = s;
+        arg.coeffRef(static_cast<IndexType>(i), static_cast<IndexType>(j)) = s;
       }
     };
 

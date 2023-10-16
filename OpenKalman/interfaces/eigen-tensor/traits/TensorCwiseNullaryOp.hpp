@@ -20,35 +20,39 @@
 namespace OpenKalman::interface
 {
   template<typename NullaryOp, typename XprType>
-  struct IndexibleObjectTraits<Eigen::TensorCwiseNullaryOp<NullaryOp, XprType>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::TensorCwiseNullaryOp<NullaryOp, XprType>>
+  struct indexible_object_traits<Eigen::TensorCwiseNullaryOp<NullaryOp, XprType>>
+    : Eigen3::indexible_object_traits_base<Eigen::TensorCwiseNullaryOp<NullaryOp, XprType>>
   {
+  private:
+
+    using Base = Eigen3::indexible_object_traits_base<Eigen::TensorCwiseNullaryOp<NullaryOp, XprType>>;
+
+  public:
+
     template<typename Arg, typename N>
-    static constexpr auto get_index_descriptor(const Arg& arg, N n)
+    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
     {
-      return OpenKalman::get_index_descriptor(arg.nestedExpression(), n);
+      return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
     }
-
-
-    template<Likelihood b>
-    static constexpr bool is_one_by_one = one_by_one_matrix<XprType, b>;
-
-
-    template<Likelihood b>
-    static constexpr bool is_square = square_matrix<XprType, b>;
-
-
-    static constexpr bool has_runtime_parameters = true;
 
 
     using type = std::conditional_t<has_dynamic_dimensions<XprType>, std::tuple<typename XprType::Nested>, std::tuple<>>;
 
 
-    template<std::size_t i, typename Arg>
+    static constexpr bool has_runtime_parameters = true;
+
+
+    // get_nested_matrix not defined
+
+#ifdef __cpp_concepts
+    template<std::size_t i, typename Arg> requires has_dynamic_dimensions<XprType>
+#else
+    template<std::size_t i, typename X = XprType, typename Arg, std::enable_if_t<has_dynamic_dimensions<X>, int> = 0>
+#endif
     static decltype(auto) get_nested_matrix(Arg&& arg)
     {
       static_assert(i == 0);
-      return std::forward<Arg>(arg).functor();
+      return std::forward<Arg>(arg).nestedExpression();
     }
 
 
@@ -67,6 +71,14 @@ namespace OpenKalman::interface
     {
       return Eigen3::NullaryFunctorTraits<NullaryOp, XprType>::template get_constant<true>(arg);
     }
+
+
+    template<Likelihood b>
+    static constexpr bool is_one_by_one = one_by_one_matrix<XprType, b>;
+
+
+    template<Likelihood b>
+    static constexpr bool is_square = square_matrix<XprType, b>;
 
 
     template<TriangleType t, Likelihood b>

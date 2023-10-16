@@ -22,12 +22,18 @@
 namespace OpenKalman::interface
 {
   template<typename Decomposition, typename RhsType>
-  struct IndexibleObjectTraits<Eigen::Solve<Decomposition, RhsType>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::Solve<Decomposition, RhsType>>
+  struct indexible_object_traits<Eigen::Solve<Decomposition, RhsType>>
+    : Eigen3::indexible_object_traits_base<Eigen::Solve<Decomposition, RhsType>>
   {
-    static constexpr bool has_runtime_parameters = false;
+  private:
+
+    using Base = Eigen3::indexible_object_traits_base<Eigen::Solve<Decomposition, RhsType>>;
+
+  public:
 
     using type = std::tuple<const Decomposition&, const RhsType&>;
+
+    static constexpr bool has_runtime_parameters = false;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)

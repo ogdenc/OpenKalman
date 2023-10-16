@@ -24,7 +24,7 @@ using namespace OpenKalman::test;
 namespace
 {
   using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
-  using Dx = DiagonalMatrix<eigen_matrix_t<double, dynamic_size, 1>>;
+  using Dx = DiagonalMatrix<eigen_matrix_t<double, dynamic_size_v, 1>>;
 
   using L22 = SelfAdjointMatrix<M22, HermitianAdapterType::lower>;
   using L20 = SelfAdjointMatrix<M2x, HermitianAdapterType::lower>;

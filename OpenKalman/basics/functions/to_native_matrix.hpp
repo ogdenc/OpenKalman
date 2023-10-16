@@ -35,7 +35,7 @@ namespace OpenKalman
   to_native_matrix(Arg&& arg)
 #endif
   {
-    return interface::LibraryRoutines<std::decay_t<T>>::to_native_matrix(std::forward<Arg>(arg));
+    return interface::library_interface<std::decay_t<T>>::to_native_matrix(std::forward<Arg>(arg));
   }
 
 } // namespace OpenKalman

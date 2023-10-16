@@ -159,21 +159,24 @@ namespace OpenKalman::interface
 
 
   template<typename MatrixType, typename MemberOp, int Direction>
-  struct IndexibleObjectTraits<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
+  struct indexible_object_traits<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
+    : Eigen3::indexible_object_traits_base<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
   {
-    static constexpr bool has_runtime_parameters = false;
+  private:
+
+    using Base = Eigen3::indexible_object_traits_base<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>;
+
+  public:
 
     using type = std::tuple<typename MatrixType::Nested, const MemberOp>;
+
+    static constexpr bool has_runtime_parameters = false;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)
     {
-      if constexpr (i == 0)
-        return std::forward<Arg>(arg).nestedExpression();
-      else
-        return std::forward<Arg>(arg).functor();
-      static_assert(i <= 1);
+      static_assert(i == 0);
+      return std::forward<Arg>(arg).nestedExpression();
     }
 
     // If a partial redux expression needs to be partially evaluated, it's probably faster to do a full evaluation.

@@ -28,7 +28,7 @@ TEST(eigen3, to_diagonal)
   EXPECT_TRUE(is_near(to_diagonal(Eigen::DiagonalMatrix<double, 1> {m11}), m11));
   EXPECT_TRUE(is_near(to_diagonal(m11.selfadjointView<Eigen::Lower>()), m11));
   EXPECT_TRUE(is_near(to_diagonal(m11.triangularView<Eigen::Upper>()), m11));
-  EXPECT_TRUE(is_near(to_diagonal(EigenWrapper {m11.triangularView<Eigen::Upper>()}), m11));
+  EXPECT_TRUE(is_near(to_diagonal(Eigen3::make_eigen_wrapper(m11.triangularView<Eigen::Upper>())), m11));
 
   // constant one-by-one input:
 
@@ -180,16 +180,16 @@ TEST(eigen3, diagonal_of_dense)
 
   const auto m41 = make_dense_writable_matrix_from<M41>(1, 3, 2, 4);
 
-  EXPECT_TRUE(is_near(diagonal_of(EigenWrapper {Eigen::DiagonalMatrix<double, 2> {dm2}}), m21));
-  EXPECT_TRUE(is_near(diagonal_of(EigenWrapper {Eigen::DiagonalMatrix<double, Eigen::Dynamic> {dm0_2}}), m21));
-  EXPECT_TRUE(is_near(diagonal_of(EigenWrapper {Eigen::DiagonalWrapper {m21}}), m21));
-  EXPECT_TRUE(is_near(diagonal_of(EigenWrapper {Eigen::DiagonalWrapper {m22}}), m41));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen3::make_eigen_wrapper(Eigen::DiagonalMatrix<double, 2> {dm2})), m21));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen3::make_eigen_wrapper(Eigen::DiagonalMatrix<double, Eigen::Dynamic> {dm0_2})), m21));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen3::make_eigen_wrapper(Eigen::DiagonalWrapper {m21})), m21));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen3::make_eigen_wrapper(Eigen::DiagonalWrapper {m22})), m41));
 
   EXPECT_TRUE(is_near(diagonal_of(m22), m21));
   EXPECT_TRUE(is_near(diagonal_of(m2x_2), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(m2x_2))>);
   EXPECT_TRUE(is_near(diagonal_of(mx2_2), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(mx2_2))>);
   EXPECT_TRUE(is_near(diagonal_of(mxx_22), m21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(mxx_22))>);
-  EXPECT_TRUE(is_near(diagonal_of(EigenWrapper {m22}), m21));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen3::make_eigen_wrapper(m22)), m21));
 
   EXPECT_TRUE(is_near(diagonal_of(M22 {m22}), m21));
   EXPECT_TRUE(is_near(diagonal_of(M2x {m2x_2}), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(M2x {m2x_2}))>);
@@ -211,7 +211,7 @@ TEST(eigen3, diagonal_of_self_adjoint)
   EXPECT_TRUE(is_near(diagonal_of(m20_93310.template selfadjointView<Eigen::Lower>()), m21_910));
   EXPECT_TRUE(is_near(diagonal_of(m02_93310.template selfadjointView<Eigen::Upper>()), m21_910));
   EXPECT_TRUE(is_near(diagonal_of(m00_93310.template selfadjointView<Eigen::Lower>()), m21_910));
-  EXPECT_TRUE(is_near(EigenWrapper {diagonal_of(m22_93310.template selfadjointView<Eigen::Upper>())}, m21_910));
+  EXPECT_TRUE(is_near(Eigen3::make_eigen_wrapper(diagonal_of(m22_93310.template selfadjointView<Eigen::Upper>())), m21_910));
 }
 
 
@@ -233,7 +233,7 @@ TEST(eigen3, diagonal_of_triangular)
   EXPECT_TRUE(is_near(diagonal_of(m20_3013.template triangularView<Eigen::Lower>()), m21_33));
   EXPECT_TRUE(is_near(diagonal_of(m02_3013.template triangularView<Eigen::Lower>()), m21_33));
   EXPECT_TRUE(is_near(diagonal_of(m00_3013.template triangularView<Eigen::Lower>()), m21_33));
-  EXPECT_TRUE(is_near(diagonal_of(EigenWrapper {m22_3013.template triangularView<Eigen::Lower>()}), m21_33));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen3::make_eigen_wrapper(m22_3013.template triangularView<Eigen::Lower>())), m21_33));
 
   EXPECT_TRUE(is_near(diagonal_of(m22_3103.template triangularView<Eigen::Upper>()), m21_33));
   EXPECT_TRUE(is_near(diagonal_of(m20_3103.template triangularView<Eigen::Upper>()), m21_33));

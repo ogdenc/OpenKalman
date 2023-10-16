@@ -164,20 +164,20 @@ TEST(special_matrices, ConstantAdapter_traits)
   static_assert(not element_settable<ZA03&, 2>);
   static_assert(not element_settable<ZA00&, 2>);
 
-  static_assert(dynamic_rows<ConstantAdapter<Mxx, double, 5>>);
-  static_assert(dynamic_columns<ConstantAdapter<Mxx, double, 5>>);
-  static_assert(dynamic_rows<ConstantAdapter<Mx1, double, 5>>);
-  static_assert(not dynamic_columns<ConstantAdapter<Mx1, double, 5>>);
-  static_assert(not dynamic_rows<ConstantAdapter<M1x, double, 5>>);
-  static_assert(dynamic_columns<ConstantAdapter<M1x, double, 5>>);
+  static_assert(dynamic_dimension<ConstantAdapter<Mxx, double, 5>, 0>);
+  static_assert(dynamic_dimension<ConstantAdapter<Mxx, double, 5>, 1>);
+  static_assert(dynamic_dimension<ConstantAdapter<Mx1, double, 5>, 0>);
+  static_assert(not dynamic_dimension<ConstantAdapter<Mx1, double, 5>, 1>);
+  static_assert(not dynamic_dimension<ConstantAdapter<M1x, double, 5>, 0>);
+  static_assert(dynamic_dimension<ConstantAdapter<M1x, double, 5>, 1>);
 
-  static_assert(dynamic_rows<ZA00>);
-  static_assert(dynamic_rows<ZA03>);
-  static_assert(not dynamic_rows<ZA30>);
+  static_assert(dynamic_dimension<ZA00, 0>);
+  static_assert(dynamic_dimension<ZA03, 0>);
+  static_assert(not dynamic_dimension<ZA30, 0>);
 
-  static_assert(dynamic_columns<ZA00>);
-  static_assert(not dynamic_columns<ZA03>);
-  static_assert(dynamic_columns<ZA30>);
+  static_assert(dynamic_dimension<ZA00, 1>);
+  static_assert(not dynamic_dimension<ZA03, 1>);
+  static_assert(dynamic_dimension<ZA30, 1>);
 
   static_assert(not writable<ConstantAdapter<M33, double, 7>>);
   static_assert(not writable<ZA33>);
@@ -645,7 +645,7 @@ TEST(special_matrices, diagonal_of_constant)
   EXPECT_TRUE(is_near(diagonal_of(i20_2), M21::Constant(1)));
   EXPECT_TRUE(is_near(diagonal_of(i02_2), M21::Constant(1)));
   EXPECT_TRUE(is_near(diagonal_of(i00_22), M21::Constant(1)));
-  EXPECT_TRUE(is_near(EigenWrapper {diagonal_of(i22)}, M21::Constant(1)));
+  EXPECT_TRUE(is_near(Eigen3::make_eigen_wrapper(diagonal_of(i22)), M21::Constant(1)));
 
   static_assert(constant_coefficient_v<decltype(diagonal_of(M22::Identity()))> == 1);
   static_assert(constant_coefficient_v<decltype(diagonal_of(M2x::Identity(2, 2)))> == 1);
@@ -658,8 +658,8 @@ TEST(special_matrices, diagonal_of_constant)
   EXPECT_TRUE(is_near(diagonal_of(Mxx::Identity(2, 2)), M21::Constant(1)));
 
   static_assert(constant_adapter<decltype(diagonal_of(std::declval<Eigen3::IdentityMatrix<M33>>()))>);
-  static_assert(row_dimension_of_v<decltype(diagonal_of(std::declval<Eigen3::IdentityMatrix<M33>>()))> == 3);
-  static_assert(column_dimension_of_v<decltype(diagonal_of(std::declval<Eigen3::IdentityMatrix<M33>>()))> == 1);
+  static_assert(index_dimension_of_v<decltype(diagonal_of(std::declval<Eigen3::IdentityMatrix<M33>>())), 0> == 3);
+  static_assert(index_dimension_of_v<decltype(diagonal_of(std::declval<Eigen3::IdentityMatrix<M33>>())), 1> == 1);
 
   auto z11 = M11::Identity() - M11::Identity();
 
@@ -672,7 +672,7 @@ TEST(special_matrices, diagonal_of_constant)
   EXPECT_TRUE(is_near(diagonal_of(z20_2.template triangularView<Eigen::Lower>()), M21::Zero())); static_assert(zero_matrix<decltype(diagonal_of(z20_2.template triangularView<Eigen::Lower>()))>);
   EXPECT_TRUE(is_near(diagonal_of(z02_2.template triangularView<Eigen::Upper>()), M21::Zero())); static_assert(zero_matrix<decltype(diagonal_of(z02_2.template triangularView<Eigen::Upper>()))>);
   EXPECT_TRUE(is_near(diagonal_of(z00_22.template triangularView<Eigen::Lower>()), M21::Zero())); static_assert(zero_matrix<decltype(diagonal_of(z00_22.template triangularView<Eigen::Lower>()))>);
-  EXPECT_TRUE(is_near(diagonal_of(EigenWrapper {z22.template triangularView<Eigen::Upper>()}), M21::Zero()));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen3::make_eigen_wrapper(z22.template triangularView<Eigen::Upper>())), M21::Zero()));
 
   auto c11_2 {M11::Identity() + M11::Identity()};
 
@@ -685,12 +685,19 @@ TEST(special_matrices, diagonal_of_constant)
   EXPECT_TRUE(is_near(diagonal_of(c20_2_2.template triangularView<Eigen::Lower>()), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(diagonal_of(c20_2_2.template triangularView<Eigen::Lower>()))> == 2);
   EXPECT_TRUE(is_near(diagonal_of(c02_2_2.template triangularView<Eigen::Upper>()), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(diagonal_of(c02_2_2.template triangularView<Eigen::Upper>()))> == 2);
   EXPECT_TRUE(is_near(diagonal_of(c00_22_2.template triangularView<Eigen::Lower>()), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(diagonal_of(c00_22_2.template triangularView<Eigen::Lower>()))> == 2);
-  EXPECT_TRUE(is_near(diagonal_of(EigenWrapper {c22_2.template triangularView<Eigen::Upper>()}), M21::Constant(2)));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen3::make_eigen_wrapper(c22_2.template triangularView<Eigen::Upper>())), M21::Constant(2)));
 
   EXPECT_TRUE(is_near(diagonal_of(M22::Identity().template triangularView<Eigen::Upper>()), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(M22::Identity().template triangularView<Eigen::Upper>()))> == 1);
   EXPECT_TRUE(is_near(diagonal_of(M2x::Identity(2,2).template triangularView<Eigen::Lower>()), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(M2x::Identity(2,2).template triangularView<Eigen::Lower>()))> == 1);
   EXPECT_TRUE(is_near(diagonal_of(M2x::Identity(2,2).template triangularView<Eigen::Upper>()), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(M2x::Identity(2,2).template triangularView<Eigen::Upper>()))> == 1);
   EXPECT_TRUE(is_near(diagonal_of(M2x::Identity(2,2).template triangularView<Eigen::Lower>()), M21::Constant(1))); static_assert(constant_coefficient_v<decltype(diagonal_of(M2x::Identity(2,2).template triangularView<Eigen::Lower>()))> == 1);
+}
+
+
+TEST(special_matrices, incidental_creation)
+{
+  EXPECT_NEAR(trace(M0x{M00 {}}), 0, 1e-6); // creates ConstantAdapter
+  EXPECT_NEAR(trace(Mx0{M00 {}}), 0, 1e-6); // creates ConstantAdapter
 }
 
 

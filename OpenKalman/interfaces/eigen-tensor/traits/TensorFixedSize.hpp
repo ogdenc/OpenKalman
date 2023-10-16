@@ -20,11 +20,17 @@
 namespace OpenKalman::interface
 {
   template<typename S, typename Dims, int options, typename IndexType>
-  struct IndexibleObjectTraits<Eigen::TensorFixedSize<S, Dims, options, IndexType>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::TensorFixedSize<S, Dims, options, IndexType>>
+  struct indexible_object_traits<Eigen::TensorFixedSize<S, Dims, options, IndexType>>
+    : Eigen3::indexible_object_traits_base<Eigen::TensorFixedSize<S, Dims, options, IndexType>>
   {
+  private:
+
+    using Base = Eigen3::indexible_object_traits_base<Eigen::TensorFixedSize<S, Dims, options, IndexType>>;
+
+  public:
+
     template<typename Arg, typename N>
-    static constexpr auto get_index_descriptor(const Arg& arg, N n)
+    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
     {
       if constexpr (static_index_value<N>)
         return std::integral_constant<std::size_t, Eigen::internal::get<static_index_value_of_v<N>, typename Dims::Base>::value>{};
@@ -46,30 +52,32 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg, std::convertible_to<index_type_of_t<Arg>>...I> requires (sizeof...(I) == Dims::count)
+    template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == Dims::count)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, index_type_of_t<Arg>> and ...) and
+    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, IndexType> and ...) and
       (sizeof...(I) == Dims::count), int> = 0>
 #endif
-    static constexpr decltype(auto) get(Arg&& arg, I...i)
+    static constexpr decltype(auto)
+    get(Arg&& arg, I...i)
     {
       if constexpr ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0)
-        return std::forward<Arg>(arg).coeffRef(static_cast<index_type_of_t<Arg>>(i)...);
+        return std::forward<Arg>(arg).coeffRef(static_cast<IndexType>(i)...);
       else
-        return std::forward<Arg>(arg).coeff(static_cast<index_type_of_t<Arg>>(i)...);
+        return std::forward<Arg>(arg).coeff(static_cast<IndexType>(i)...);
     }
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg, std::convertible_to<index_type_of_t<Arg>>...I> requires (sizeof...(I) == Dims::count) and
+    template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == Dims::count) and
       ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, index_type_of_t<Arg>> and ...) and
+    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, IndexType> and ...) and
       (sizeof...(I) == Dims::count) and ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0), int> = 0>
 #endif
-    static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
+    static void
+    set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
     {
-      arg.coeffRef(static_cast<index_type_of_t<Arg>>(i)...) = s;
+      arg.coeffRef(static_cast<IndexType>(i)...) = s;
     }
 
 

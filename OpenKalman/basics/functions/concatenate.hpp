@@ -38,11 +38,11 @@ namespace OpenKalman
 #else
     constexpr bool concatenate_dimensions_match =
 #endif
-      (concatenate_dimensions_match_impl<T, U, indices...>(std::make_index_sequence<max_indices_of_v<T>> {}));
+      (concatenate_dimensions_match_impl<T, U, indices...>(std::make_index_sequence<index_count_v<T>> {}));
 
 
     template<std::size_t I, std::size_t...indices, typename DTup, typename...DTups>
-    constexpr decltype(auto) concatenate_index_descriptors_impl(DTup&& d_tup, DTups&&...d_tups)
+    constexpr decltype(auto) concatenate_vector_space_descriptor_impl(DTup&& d_tup, DTups&&...d_tups)
     {
       if constexpr (((I == indices) or ...))
       {
@@ -65,9 +65,9 @@ namespace OpenKalman
 
 
     template<std::size_t...indices, std::size_t...I, typename...DTups>
-    constexpr decltype(auto) concatenate_index_descriptors(std::index_sequence<I...>, DTups&&...d_tups)
+    constexpr decltype(auto) concatenate_vector_space_descriptor(std::index_sequence<I...>, DTups&&...d_tups)
     {
-      return std::tuple {concatenate_index_descriptors_impl<I, indices...>(std::forward<DTups>(d_tups)...)...};
+      return std::tuple {concatenate_vector_space_descriptor_impl<I, indices...>(std::forward<DTups>(d_tups)...)...};
     }
 
 
@@ -101,7 +101,7 @@ namespace OpenKalman
       else
       {
         using Pattern = std::tuple_element_t<0, Args_tup>;
-        return make_zero_matrix_like<Pattern>(get_index_descriptor<all_indices>(std::get<pos>(args_tup))...);
+        return make_zero_matrix_like<Pattern>(get_vector_space_descriptor<all_indices>(std::get<pos>(args_tup))...);
       }
     }
 
@@ -199,8 +199,8 @@ namespace OpenKalman
   constexpr decltype(auto)
   concatenate(Arg&& arg, Args&&...args)
   {
-    auto seq = std::make_index_sequence<std::max({max_indices_of_v<Arg>, max_indices_of_v<Args>..., indices...})> {};
-    auto d_tup = detail::concatenate_index_descriptors<indices...>(
+    auto seq = std::make_index_sequence<std::max({index_count_v<Arg>, index_count_v<Args>..., indices...})> {};
+    auto d_tup = detail::concatenate_vector_space_descriptor<indices...>(
       seq, get_all_dimensions_of(arg), get_all_dimensions_of(args)...);
 
     if constexpr (sizeof...(Args) == 0)

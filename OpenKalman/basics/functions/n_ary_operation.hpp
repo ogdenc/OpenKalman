@@ -25,7 +25,7 @@ namespace OpenKalman
   namespace detail
   {
 
-    // Check that dimensions of arguments Args are compatible with index descriptors Ds.
+    // Check that dimensions of arguments Args are compatible with \ref vector_space_descriptor Ds.
     template<std::size_t...ixs, typename DTup, typename...Args>
     constexpr void check_n_ary_dims(std::index_sequence<ixs...>, const DTup& d_tup, const Args&...args)
     {
@@ -33,9 +33,9 @@ namespace OpenKalman
         constexpr auto ix = ixs;
         return ([](const DTup& d_tup, const auto& arg){
           using Arg = decltype(arg);
-          if constexpr (dynamic_dimension<Arg, ix> or dynamic_index_descriptor<std::tuple_element_t<ix, DTup>>)
+          if constexpr (dynamic_dimension<Arg, ix> or dynamic_vector_space_descriptor<std::tuple_element_t<ix, DTup>>)
           {
-            auto arg_d = get_index_descriptor<ix>(arg);
+            auto arg_d = get_vector_space_descriptor<ix>(arg);
             auto tup_d = std::get<ix>(d_tup);
             auto dim_arg_d = get_dimension_size_of(arg_d);
             auto dim_tup_d = get_dimension_size_of(tup_d);
@@ -47,10 +47,10 @@ namespace OpenKalman
           }
           else
           {
-            using D_Arg = index_descriptor_of_t<Arg, ix>;
+            using D_Arg = vector_space_descriptor_of_t<Arg, ix>;
             using D = std::tuple_element_t<ix, DTup>;
             static_assert(equivalent_to<D_Arg, D> or equivalent_to_uniform_dimension_type_of<D_Arg, D> or
-              (ix >= max_indices_of_v<Arg> and has_uniform_dimension_type<D>),
+              (ix >= index_count_v<Arg> and has_uniform_dimension_type<D>),
               "In argument to n_ary_operation, the dimension of each index must be either 1 or that of Ds.");
           }
         }(d_tup, args),...);
@@ -141,12 +141,12 @@ namespace OpenKalman
     template<typename T, typename DTup, typename Op, typename...Args>
 #ifdef __cpp_concepts
     requires requires(DTup d_tup, Op op, Args...args) {
-      interface::LibraryRoutines<std::decay_t<T>>::n_ary_operation(d_tup, op, std::forward<Args>(args)...);
+      interface::library_interface<std::decay_t<T>>::n_ary_operation(d_tup, op, std::forward<Args>(args)...);
     }
     struct interface_defines_n_ary_operation<T, DTup, Op, Args...>
 #else
     struct interface_defines_n_ary_operation<T, DTup, Op, std::void_t<
-      decltype(interface::LibraryRoutines<std::decay_t<T>>::n_ary_operation(
+      decltype(interface::library_interface<std::decay_t<T>>::n_ary_operation(
         std::declval<DTup>(), std::declval<Op>(), std::declval<Args>()...))>, Args...>
 #endif
       : std::true_type {};
@@ -172,12 +172,12 @@ namespace OpenKalman
       if constexpr (std::is_invocable_v<const Op&, scalar_type_of_t<std::tuple_element_t<ArgI, std::decay_t<ArgsTup>>>..., J...>)
         return op(n_ary_operation_get_element_impl(
           std::get<ArgI>(std::forward<ArgsTup>(args_tup)),
-          std::make_index_sequence<max_indices_of_v<std::tuple_element_t<ArgI, std::decay_t<ArgsTup>>>> {},
+          std::make_index_sequence<index_count_v<std::tuple_element_t<ArgI, std::decay_t<ArgsTup>>>> {},
           j...)..., j...);
       else
         return op(n_ary_operation_get_element_impl(
           std::get<ArgI>(std::forward<ArgsTup>(args_tup)),
-          std::make_index_sequence<max_indices_of_v<std::tuple_element_t<ArgI, std::decay_t<ArgsTup>>>> {},
+          std::make_index_sequence<index_count_v<std::tuple_element_t<ArgI, std::decay_t<ArgsTup>>>> {},
           j...)...);
     }
 
@@ -217,7 +217,7 @@ namespace OpenKalman
         is_invocable_with_indices<const Op&, std::add_lvalue_reference_t<scalar_type_of_t<Args>>...>(seq) and
         detail::interface_defines_n_ary_operation<PatternMatrix, std::tuple<Ds...>, const Op&, Args&&...>::value)
       {
-        using Trait = interface::LibraryRoutines<std::decay_t<PatternMatrix>>;
+        using Trait = interface::library_interface<std::decay_t<PatternMatrix>>;
         return Trait::n_ary_operation(d_tup, op, std::forward<Args>(args)...);
       }
       else // Catch-all: library does not provide for this n-ary operation.
@@ -234,7 +234,7 @@ namespace OpenKalman
         else
         {
           auto m = std::apply([](auto&&...ds){
-            return make_default_dense_writable_matrix_like<PatternMatrix, Scalar>(std::forward<decltype(ds)>(ds)...);
+            return make_default_dense_writable_matrix_like<PatternMatrix, Layout::none, Scalar>(std::forward<decltype(ds)>(ds)...);
           }, d_tup);
           std::index_sequence_for<Ds...> seq;
           n_ary_operation_iterate(m, op, std::forward_as_tuple(std::forward<Args>(args)...), seq);
@@ -307,7 +307,7 @@ namespace OpenKalman
    *     13, 16,
    *     21, 24
    *   \endcode
-   * \tparam Ds Index descriptors defining the size of the result.
+   * \tparam Ds \ref vector_space_descriptor objects defining the size of the result.
    * \tparam Operation The n-ary operation taking n arguments and, optionally, a set of indices indicating the location
    * within the result. The operation must return a scalar value.
    * \tparam Args The arguments
@@ -315,12 +315,12 @@ namespace OpenKalman
    * from each of the arguments, in the order specified.
    */
 #ifdef __cpp_concepts
-  template<index_descriptor...Ds, typename Operation, indexible...Args> requires (sizeof...(Args) > 0) and
-    (sizeof...(Ds) >= std::max({max_indices_of_v<Args>...})) and detail::n_ary_operator<Operation, sizeof...(Ds), Args...>
+  template<vector_space_descriptor...Ds, typename Operation, indexible...Args> requires (sizeof...(Args) > 0) and
+    (sizeof...(Ds) >= std::max({index_count_v<Args>...})) and detail::n_ary_operator<Operation, sizeof...(Ds), Args...>
 #else
   template<typename...Ds, typename Operation, typename...Args, std::enable_if_t<
-    (index_descriptor<Ds> and ...) and (indexible<Args> and ...) and
-    (sizeof...(Args) > 0) and (sizeof...(Ds) >= std::max({max_indices_of<Args>::value...})) and
+    (vector_space_descriptor<Ds> and ...) and (indexible<Args> and ...) and
+    (sizeof...(Args) > 0) and (sizeof...(Ds) >= std::max({index_count<Args>::value...})) and
     detail::n_ary_operator<Operation, sizeof...(Ds), Args...>, int> = 0>
 #endif
   constexpr auto
@@ -337,13 +337,13 @@ namespace OpenKalman
     template<std::size_t ix, typename Arg, typename...Args>
     constexpr auto find_max_dim(const Arg& arg, const Args&...args)
     {
-      if constexpr (sizeof...(Args) == 0) return get_index_descriptor<ix>(arg);
+      if constexpr (sizeof...(Args) == 0) return get_vector_space_descriptor<ix>(arg);
       else
       {
         auto max_d = find_max_dim<ix>(args...);
-        using Arg_D = index_descriptor_of_t<Arg, ix>;
+        using Arg_D = vector_space_descriptor_of_t<Arg, ix>;
         using Max_D = decltype(max_d);
-        if constexpr (fixed_index_descriptor<Arg_D> and fixed_index_descriptor<Max_D>)
+        if constexpr (fixed_vector_space_descriptor<Arg_D> and fixed_vector_space_descriptor<Max_D>)
         {
           constexpr auto dim_arg_d = dimension_size_of_v<Arg_D>;
           if constexpr (equivalent_to<Arg_D, Max_D> or
@@ -356,12 +356,12 @@ namespace OpenKalman
             constexpr auto dim_max_d = dimension_size_of_v<Max_D>;
             static_assert(dim_max_d != 1 or not equivalent_to_uniform_dimension_type_of<Max_D, Arg_D>,
               "The dimension of arguments to n_ary_operation are not compatible with each other for at least one index.");
-            return get_index_descriptor<ix>(arg);
+            return get_vector_space_descriptor<ix>(arg);
           }
         }
-        else if constexpr (euclidean_index_descriptor<Arg_D> and euclidean_index_descriptor<Max_D>)
+        else if constexpr (euclidean_vector_space_descriptor<Arg_D> and euclidean_vector_space_descriptor<Max_D>)
         {
-          auto arg_d = get_index_descriptor<ix>(arg);
+          auto arg_d = get_vector_space_descriptor<ix>(arg);
           auto dim_arg_d = get_dimension_size_of(arg_d);
           auto dim_max_d = get_dimension_size_of(max_d);
           if (dim_arg_d == dim_max_d or (dim_arg_d == 1 and dim_arg_d <= dim_max_d)) return dim_max_d;
@@ -371,7 +371,7 @@ namespace OpenKalman
         }
         else
         {
-          auto arg_d = get_index_descriptor<ix>(arg);
+          auto arg_d = get_vector_space_descriptor<ix>(arg);
           using Scalar = scalar_type_of_t<Arg>;
           if (internal::is_uniform_component_of(arg_d, max_d))
           {
@@ -449,15 +449,15 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename Operation, indexible...Args> requires (sizeof...(Args) > 0) and
-    detail::n_ary_operator<Operation, std::max({max_indices_of_v<Args>...}), Args...>
+    detail::n_ary_operator<Operation, std::max({index_count_v<Args>...}), Args...>
 #else
   template<typename Operation, typename...Args, std::enable_if_t<(indexible<Args> and ...) and
-    (sizeof...(Args) > 0) and detail::n_ary_operator<Operation, std::max({max_indices_of<Args>::value...}), Args...>, int> = 0>
+    (sizeof...(Args) > 0) and detail::n_ary_operator<Operation, std::max({index_count<Args>::value...}), Args...>, int> = 0>
 #endif
   constexpr auto
   n_ary_operation(const Operation& operation, Args&&...args)
   {
-    auto d_tup = detail::find_max_dims(std::make_index_sequence<std::max({max_indices_of_v<Args>...})> {}, args...);
+    auto d_tup = detail::find_max_dims(std::make_index_sequence<std::max({index_count_v<Args>...})> {}, args...);
     using Arg0 = std::tuple_element_t<0, std::tuple<Args...>>;
     return detail::n_ary_operation_impl<Arg0>(std::move(d_tup), operation, std::forward<Args>(args)...);
   }
@@ -465,8 +465,8 @@ namespace OpenKalman
 
   namespace detail
   {
-    template<typename M, typename Operation, typename Descriptors_tuple, typename Index_seq, typename K_seq, typename...Is>
-    void nullary_set_elements(M& m, Operation&& op, const Descriptors_tuple&, Index_seq, K_seq, Is...is)
+    template<typename M, typename Operation, typename Vs_tuple, typename Index_seq, typename K_seq, typename...Is>
+    void nullary_set_elements(M& m, Operation&& op, const Vs_tuple&, Index_seq, K_seq, Is...is)
     {
       constexpr auto seq = std::make_index_sequence<sizeof...(Is)> {};
       if constexpr (detail::is_invocable_with_indices<Operation&&>(seq))
@@ -477,8 +477,8 @@ namespace OpenKalman
 
 
     template<std::size_t DsIndex, std::size_t...DsIndices, typename M, typename Operation,
-      typename Descriptors_tuple, std::size_t...indices, std::size_t...Ks, typename...Is>
-    void nullary_set_elements(M& m, const Operation& op, const Descriptors_tuple& ds_tup,
+      typename Vs_tuple, std::size_t...indices, std::size_t...Ks, typename...Is>
+    void nullary_set_elements(M& m, const Operation& op, const Vs_tuple& ds_tup,
       std::index_sequence<indices...> index_seq, std::index_sequence<Ks...> k_seq, Is...is)
     {
       if constexpr (((DsIndex == indices) or ...))
@@ -498,8 +498,8 @@ namespace OpenKalman
 
 
     template<std::size_t CurrentOpIndex, std::size_t factor, typename M, typename Operations_tuple,
-      typename Descriptors_tuple, typename UniqueIndicesSeq, std::size_t...AllDsIndices, typename K_seq>
-    void nullary_iterate(M& m, const Operations_tuple& op_tup, const Descriptors_tuple& ds_tup,
+      typename Vs_tuple, typename UniqueIndicesSeq, std::size_t...AllDsIndices, typename K_seq>
+    void nullary_iterate(M& m, const Operations_tuple& op_tup, const Vs_tuple& ds_tup,
       UniqueIndicesSeq unique_indices_seq, std::index_sequence<AllDsIndices...>, K_seq k_seq)
     {
       nullary_set_elements<AllDsIndices...>(m, std::get<CurrentOpIndex>(op_tup), ds_tup, unique_indices_seq, k_seq);
@@ -507,13 +507,13 @@ namespace OpenKalman
 
 
     template<std::size_t CurrentOpIndex, std::size_t factor, std::size_t index, std::size_t...indices,
-      typename M, typename Operations_tuple, typename Descriptors_tuple, typename UniqueIndicesSeq, typename AllDsSeq,
+      typename M, typename Operations_tuple, typename Vs_tuple, typename UniqueIndicesSeq, typename AllDsSeq,
       std::size_t...Ks, std::size_t...Js, typename...J_seqs>
-    void nullary_iterate(M& m, const Operations_tuple& op_tup, const Descriptors_tuple& ds_tup,
+    void nullary_iterate(M& m, const Operations_tuple& op_tup, const Vs_tuple& ds_tup,
       UniqueIndicesSeq unique_indices_seq, AllDsSeq all_ds_seq, std::index_sequence<Ks...>, std::index_sequence<Js...>,
       J_seqs...j_seqs)
     {
-      constexpr std::size_t new_factor = factor / dimension_size_of_v<std::tuple_element_t<index, Descriptors_tuple>>;
+      constexpr std::size_t new_factor = factor / dimension_size_of_v<std::tuple_element_t<index, Vs_tuple>>;
 
       (nullary_iterate<CurrentOpIndex + new_factor * Js, new_factor, indices...>(
         m, op_tup, ds_tup, unique_indices_seq, all_ds_seq, std::index_sequence<Ks..., Js>{}, j_seqs...),...);
@@ -582,29 +582,29 @@ namespace OpenKalman
    * \tparam PatternMatrix A matrix or array corresponding to the result type. Its purpose is to indicate the
    * library from which to create a resulting matrix, and its dimensions need not match the specified dimensions Ds
    * \tparam indices The indices, if any, along which there will be a different operator for each element along that index.
-   * \tparam Ds Index descriptors for each index of the result. Index descriptors corresponding to indices must be
-   * of a \ref fixed_index_descriptor type.
+   * \tparam Ds \ref vector_space_descriptor objects for each index of the result. \ref vector_space_descriptor objects corresponding to indices must be
+   * of a \ref fixed_vector_space_descriptor type.
    * \tparam Operations The nullary operations. The number of operations must equal the product of each dimension Ds
    * corresponding to indices. The order of the operations depends on the order of indices, with the left-most index
    * being the most major, and the right-most index being the most minor. For example, if indices
    * are {0, 1} for a matrix result, the operations must be in row-major order. If the indices are {1, 0}, the
    * operations must be in column-major order.
    * Each operation may be invocable with no arguments or invocable with as many indices
-   * as there are index descriptors Ds. (If the index corresponds to one of designaged <code>indices</code>, then the
+   * as there are \ref vector_space_descriptor Ds. (If the index corresponds to one of designaged <code>indices</code>, then the
    * operation will be called with <code>std::integral_constant<std::size_t, _index_>{}</code> for that index,
    * instead of <code>std::size_t</code>.))
    * \return A matrix or array in which each component is the result of calling Operation and which has
    * dimensions corresponding to Ds
    */
   #ifdef __cpp_concepts
-  template<indexible PatternMatrix, std::size_t...indices, index_descriptor...Ds, typename...Operations>
-  requires ((fixed_index_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
+  template<indexible PatternMatrix, std::size_t...indices, vector_space_descriptor...Ds, typename...Operations>
+  requires ((fixed_vector_space_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
     (sizeof...(Operations) == (1 * ... * dimension_size_of_v<std::tuple_element_t<indices, std::tuple<Ds...>>>)) and
     (detail::n_ary_operator<Operations, sizeof...(Ds)> and ...)
   #else
   template<typename PatternMatrix, std::size_t...indices, typename...Ds, typename...Operations, std::enable_if_t<
-    indexible<PatternMatrix> and (index_descriptor<Ds> and ...) and
-    ((fixed_index_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
+    indexible<PatternMatrix> and (vector_space_descriptor<Ds> and ...) and
+    ((fixed_vector_space_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
     (sizeof...(Operations) == (1 * ... * dimension_size_of<std::tuple_element_t<indices, std::tuple<Ds...>>>::value)) and
     (detail::n_ary_operator<Operations, sizeof...(Ds)> and ...), int> = 0>
   #endif
@@ -619,16 +619,16 @@ namespace OpenKalman
       return detail::n_ary_operation_impl<PatternMatrix>(d_tup, operations...);
     }
     // One operation for each element, and the operations are not invocable with indices:
-    else if constexpr (((not dynamic_index_descriptor<Ds>) and ...) and
+    else if constexpr (((not dynamic_vector_space_descriptor<Ds>) and ...) and
       sizeof...(operations) == (dimension_size_of_v<Ds> * ...) and
       not (detail::is_invocable_with_indices<const Operations&>(std::make_index_sequence<sizeof...(Ds)> {}) or ...))
     {
-      return make_dense_writable_matrix_from<PatternMatrix, Scalar>(d_tup, operations()...);
+      return make_dense_writable_matrix_from<PatternMatrix, Layout::none, Scalar>(d_tup, operations()...);
     }
     // All other cases:
     else
     {
-      auto m = std::apply([](const auto&...ds){ return make_default_dense_writable_matrix_like<PatternMatrix, Scalar>(ds...); }, d_tup);
+      auto m = std::apply([](const auto&...ds){ return make_default_dense_writable_matrix_like<PatternMatrix, Layout::none, Scalar>(ds...); }, d_tup);
       detail::nullary_iterate<0, sizeof...(Operations), indices...>(
         m,
         std::forward_as_tuple(operations...),
@@ -685,7 +685,7 @@ namespace OpenKalman
      *   \endcode
    * \tparam PatternMatrix A matrix or array corresponding to the result type. Its purpose is to indicate the
    * library from which to create a resulting matrix, and its dimensions need not match the specified dimensions Ds.
-   * Dimensions of PatternMatrix corresponding to indices must be of a \ref fixed_index_descriptor type.
+   * Dimensions of PatternMatrix corresponding to indices must be of a \ref fixed_vector_space_descriptor type.
    * \tparam indices The indices, if any, along which there will be a different operator for each element along that index.
    * \tparam Operations The nullary operations. The number of operations must equal the product of each dimension Ds
    * corresponding to indices.
@@ -693,13 +693,13 @@ namespace OpenKalman
    * dimensions corresponding to Ds
    */
 #ifdef __cpp_concepts
-  template<indexible PatternMatrix, std::size_t...indices, index_descriptor...Ds, typename...Operations>
-  requires ((fixed_index_descriptor<index_descriptor_of_t<PatternMatrix, indices>>) and ...) and
+  template<indexible PatternMatrix, std::size_t...indices, vector_space_descriptor...Ds, typename...Operations>
+  requires ((fixed_vector_space_descriptor<vector_space_descriptor_of_t<PatternMatrix, indices>>) and ...) and
     (sizeof...(Operations) == (1 * ... * index_dimension_of_v<PatternMatrix, indices>))
 #else
   template<typename PatternMatrix, std::size_t...indices, typename...Ds, typename...Operations, std::enable_if_t<
-    indexible<PatternMatrix> and (index_descriptor<Ds> and ...) and
-    ((fixed_index_descriptor<typename index_descriptor_of<PatternMatrix, indices>::type>) and ...) and
+    indexible<PatternMatrix> and (vector_space_descriptor<Ds> and ...) and
+    ((fixed_vector_space_descriptor<typename vector_space_descriptor_of<PatternMatrix, indices>::type>) and ...) and
     (sizeof...(Operations) == (1 * ... * index_dimension_of<PatternMatrix, indices>::value)), int> = 0>
 #endif
   constexpr auto
@@ -773,17 +773,17 @@ namespace OpenKalman
    * from each of the arguments, in the order specified.
    */
   #ifdef __cpp_concepts
-  template<typename Operation, writable Arg> requires detail::n_ary_operator<Operation, max_indices_of_v<Arg>, Arg>
+  template<typename Operation, writable Arg> requires detail::n_ary_operator<Operation, index_count_v<Arg>, Arg>
   #else
   template<typename Operation, typename Arg, std::enable_if_t<writable<Arg> and
-    detail::n_ary_operator<Operation, max_indices_of_v<Arg>, Arg>, int> = 0>
+    detail::n_ary_operator<Operation, index_count_v<Arg>, Arg>, int> = 0>
   #endif
   constexpr decltype(auto)
   unary_operation_in_place(const Operation& operation, Arg&& arg)
   {
     // \todo If the native library has its own facilities for doing this, use it.
 
-    constexpr std::make_index_sequence<max_indices_of_v<Arg>> seq;
+    constexpr std::make_index_sequence<index_count_v<Arg>> seq;
     using G = decltype(detail::n_ary_get_element_0(std::declval<Arg&&>(), seq));
     static_assert(std::is_same_v<G, std::decay_t<G>&>,
       "unary_operation_in_place requires get_element(arg) to return a non-const lvalue reference.");

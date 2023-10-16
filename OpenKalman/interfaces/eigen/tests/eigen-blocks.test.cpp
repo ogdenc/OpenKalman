@@ -32,60 +32,84 @@ TEST(eigen3, element_access)
 
 TEST(eigen3, get_and_set_elements)
 {
-  auto m21 = make_dense_writable_matrix_from<M21>(1, 2);
-  auto m12 = make_dense_writable_matrix_from<M12>(1, 2);
-  auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
+  M21 m21; m21 << 1, 2;
+  M12 m12; m12 << 1, 2;
+  M22 m22; m22 << 1, 2, 3, 4;
 
   M22 el22 {m22}; // 1, 2, 3, 4
-  M2x el20_2 {m22};
-  Mx2 el02_2 {m22};
-  Mxx el00_22 {m22};
+  M2x el2x_2 {m22};
+  Mx2 elx2_2 {m22};
+  Mxx elxx_22 {m22};
 
   EXPECT_NEAR(get_element(el22, 0, 0), 1, 1e-8);
-  EXPECT_NEAR(get_element(el20_2, 0, 1), 2, 1e-8);
-  EXPECT_NEAR(get_element(el02_2, 1, 0), 3, 1e-8);
-  EXPECT_NEAR(get_element(el00_22, 1, 1), 4, 1e-8);
+  EXPECT_NEAR(get_element(el2x_2, 0, 1), 2, 1e-8);
+  EXPECT_NEAR(get_element(elx2_2, 1, 0), 3, 1e-8);
+  EXPECT_NEAR(get_element(elxx_22, 1, 1), 4, 1e-8);
 
   set_element(el22, 5.5, 1, 0); EXPECT_NEAR(get_element(el22, 1, 0), 5.5, 1e-8);
-  set_element(el20_2, 5.5, 1, 0); EXPECT_NEAR(get_element(el20_2, 1, 0), 5.5, 1e-8);
-  set_element(el02_2, 5.5, 1, 0); EXPECT_NEAR(get_element(el02_2, 1, 0), 5.5, 1e-8);
-  set_element(el00_22, 5.5, 1, 0); EXPECT_NEAR(get_element(el00_22, 1, 0), 5.5, 1e-8);
+  set_element(el2x_2, 5.5, 1, 0); EXPECT_NEAR(get_element(el2x_2, 1, 0), 5.5, 1e-8);
+  set_element(elx2_2, 5.5, 1, 0); EXPECT_NEAR(get_element(elx2_2, 1, 0), 5.5, 1e-8);
+  set_element(elxx_22, 5.5, 1, 0); EXPECT_NEAR(get_element(elxx_22, 1, 0), 5.5, 1e-8);
+
+  M22 m_5678; m_5678 << 5, 6, 7, 8;
+  set_elements(el22, 5, 6, 7, 8); EXPECT_TRUE(is_near(el22, m_5678));
+  set_elements(el2x_2, 5, 6, 7, 8); EXPECT_TRUE(is_near(el2x_2, m_5678));
+  set_elements(elx2_2, 5, 6, 7, 8); EXPECT_TRUE(is_near(elx2_2, m_5678));
+  set_elements(elxx_22, 5, 6, 7, 8); EXPECT_TRUE(is_near(elxx_22, m_5678));
+
+  M22 m_5768; m_5768 << 5, 7, 6, 8;
+  set_elements<Layout::left>(el22, 5, 6, 7, 8); EXPECT_TRUE(is_near(el22, m_5768));
+  set_elements<Layout::left>(el2x_2, 5, 6, 7, 8); EXPECT_TRUE(is_near(el2x_2, m_5768));
+  set_elements<Layout::left>(elx2_2, 5, 6, 7, 8); EXPECT_TRUE(is_near(elx2_2, m_5768));
+  set_elements<Layout::left>(elxx_22, 5, 6, 7, 8); EXPECT_TRUE(is_near(elxx_22, m_5768));
 
   M21 el21 {m21}; // 1, 2
-  M2x el20_1 {m21};
-  Mx1 el01_2 {m21};
-  Mxx el00_21 {m21};
+  M2x el2x_1 {m21};
+  Mx1 elx1_2 {m21};
+  Mxx elxx_21 {m21};
 
   EXPECT_NEAR(get_element(el21, 0, 0), 1, 1e-8);
-  EXPECT_NEAR(get_element(el20_1, 1, 0), 2, 1e-8);
-  EXPECT_NEAR(get_element(el01_2, 0, 0), 1, 1e-8);
-  EXPECT_NEAR(get_element(el00_21, 1, 0), 2, 1e-8);
+  EXPECT_NEAR(get_element(el2x_1, 1, 0), 2, 1e-8);
+  EXPECT_NEAR(get_element(elx1_2, 0, 0), 1, 1e-8);
+  EXPECT_NEAR(get_element(elxx_21, 1, 0), 2, 1e-8);
 
   set_element(el21, 5.5, 1, 0); EXPECT_NEAR(get_element(el21, 1, 0), 5.5, 1e-8);
-  set_element(el20_1, 5.5, 1, 0); EXPECT_NEAR(get_element(el20_1, 1, 0), 5.5, 1e-8);
-  set_element(el01_2, 5.5, 1, 0); EXPECT_NEAR(get_element(el01_2, 1, 0), 5.5, 1e-8);
-  set_element(el00_21, 5.5, 1, 0); EXPECT_NEAR(get_element(el00_21, 1, 0), 5.5, 1e-8);
+  set_element(el2x_1, 5.5, 1, 0); EXPECT_NEAR(get_element(el2x_1, 1, 0), 5.5, 1e-8);
+  set_element(elx1_2, 5.5, 1, 0); EXPECT_NEAR(get_element(elx1_2, 1, 0), 5.5, 1e-8);
+  set_element(elxx_21, 5.5, 1, 0); EXPECT_NEAR(get_element(elxx_21, 1, 0), 5.5, 1e-8);
 
   set_element(el21, 5.6, 1); EXPECT_NEAR(get_element(el21, 1), 5.6, 1e-8);
-  set_element(el01_2, 5.6, 1); EXPECT_NEAR(get_element(el01_2, 1), 5.6, 1e-8);
+  set_element(elx1_2, 5.6, 1); EXPECT_NEAR(get_element(elx1_2, 1), 5.6, 1e-8);
+
+  M21 m_34; m_34 << 3, 4;
+  set_elements(el21, 3, 4); EXPECT_TRUE(is_near(el21, m_34));
+  set_elements(el2x_1, 3, 4); EXPECT_TRUE(is_near(el2x_1, m_34));
+  set_elements(elx1_2, 3, 4); EXPECT_TRUE(is_near(elx1_2, m_34));
+  set_elements(elxx_21, 3, 4); EXPECT_TRUE(is_near(elxx_21, m_34));
 
   M12 el12 {m12}; // 1, 2
-  M1x el10_2 {m12};
-  Mx2 el02_1 {m12};
-  Mxx el00_12 {m12};
+  M1x el1x_2 {m12};
+  Mx2 elx2_1 {m12};
+  Mxx elxx_12 {m12};
 
   EXPECT_NEAR(get_element(el12, 0, 0), 1, 1e-8);
-  EXPECT_NEAR(get_element(el10_2, 0, 1), 2, 1e-8);
-  EXPECT_NEAR(get_element(el02_1, 0, 0), 1, 1e-8);
-  EXPECT_NEAR(get_element(el00_12, 0, 1), 2, 1e-8);
+  EXPECT_NEAR(get_element(el1x_2, 0, 1), 2, 1e-8);
+  EXPECT_NEAR(get_element(elx2_1, 0, 0), 1, 1e-8);
+  EXPECT_NEAR(get_element(elxx_12, 0, 1), 2, 1e-8);
 
   set_element(el12, 5.5, 0, 1); EXPECT_NEAR(get_element(el12, 0, 1), 5.5, 1e-8);
-  set_element(el10_2, 5.5, 0, 1); EXPECT_NEAR(get_element(el10_2, 0, 1), 5.5, 1e-8);
-  set_element(el02_1, 5.5, 0, 1); EXPECT_NEAR(get_element(el02_1, 0, 1), 5.5, 1e-8);
-  set_element(el00_12, 5.5, 0, 1); EXPECT_NEAR(get_element(el00_12, 0, 1), 5.5, 1e-8);
+  set_element(el1x_2, 5.5, 0, 1); EXPECT_NEAR(get_element(el1x_2, 0, 1), 5.5, 1e-8);
+  set_element(elx2_1, 5.5, 0, 1); EXPECT_NEAR(get_element(elx2_1, 0, 1), 5.5, 1e-8);
+  set_element(elxx_12, 5.5, 0, 1); EXPECT_NEAR(get_element(elxx_12, 0, 1), 5.5, 1e-8);
 
   set_element(el12, 5.6, 1); EXPECT_NEAR(get_element(el12, 1), 5.6, 1e-8);
-  set_element(el10_2, 5.6, 1); EXPECT_NEAR(get_element(el10_2, 1), 5.6, 1e-8);
+  set_element(el1x_2, 5.6, 1); EXPECT_NEAR(get_element(el1x_2, 1), 5.6, 1e-8);
+
+  M12 m_56; m_56 << 5, 6;
+  set_elements(el12, 5, 6); EXPECT_TRUE(is_near(el12, m_56));
+  set_elements(el1x_2, 5, 6); EXPECT_TRUE(is_near(el1x_2, m_56));
+  set_elements(elx2_1, 5, 6); EXPECT_TRUE(is_near(elx2_1, m_56));
+  set_elements(elxx_12, 5, 6); EXPECT_TRUE(is_near(elxx_12, m_56));
 
   Eigen::DiagonalMatrix<double, 2> dm2{m21};
   EXPECT_EQ(get_element(dm2, 0, 0), 1);
@@ -138,7 +162,7 @@ TEST(eigen3, get_block)
   EXPECT_TRUE(is_near(get_block<1>(m34, std::tuple{1}, std::tuple{1}), make_dense_writable_matrix_from<M31>(2, 6, 10)));
   EXPECT_TRUE(is_near(get_block<1>(Mxx{m34}, std::tuple{1}, std::tuple{N3}), make_dense_writable_matrix_from<M33>(2, 3, 4, 6, 7, 8, 10, 11, 12)));
 
-  Eigen3::EigenWrapper ewd3 {Eigen::DiagonalMatrix<double, 3>{make_dense_writable_matrix_from<M31>(1, 2, 3)}};
+  auto ewd3 = make_eigen_wrapper(Eigen::DiagonalMatrix<double, 3>{make_dense_writable_matrix_from<M31>(1, 2, 3)});
   static_assert(std::is_lvalue_reference_v<typename Eigen::internal::ref_selector<decltype(ewd3)>::non_const_type>);
   static_assert((Eigen::internal::traits<decltype(ewd3)>::Flags & Eigen::NestByRefBit) != 0x0);
 
@@ -147,10 +171,10 @@ TEST(eigen3, get_block)
   EXPECT_TRUE(is_near(get_block<0>(ewd3, std::tuple{N1}, std::tuple{N2}), make_dense_writable_matrix_from<M23>(0, 2, 0, 0, 0, 3)));
   EXPECT_TRUE(is_near(get_block<1>(ewd3, std::tuple{N1}, std::tuple{N2}), make_dense_writable_matrix_from<M32>(0, 0, 2, 0, 0, 3)));
 
-  EXPECT_TRUE(is_near(get_block(Eigen3::EigenWrapper {Eigen::DiagonalMatrix<double, 3>{make_dense_writable_matrix_from<M31>(1, 2, 3)}}, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_writable_matrix_from<M22>(1, 0, 0, 2)));
+  EXPECT_TRUE(is_near(get_block(Eigen3::make_eigen_wrapper(Eigen::DiagonalMatrix<double, 3>{make_dense_writable_matrix_from<M31>(1, 2, 3)}), std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_writable_matrix_from<M22>(1, 0, 0, 2)));
   auto d3a = Eigen::DiagonalMatrix<double, 3>{make_dense_writable_matrix_from<M31>(1, 2, 3)};
-  EXPECT_TRUE(is_near(get_block(Eigen3::EigenWrapper {d3a}, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_writable_matrix_from<M22>(1, 0, 0, 2)));
-  auto ewd3a = Eigen3::EigenWrapper {d3a};
+  EXPECT_TRUE(is_near(get_block(Eigen3::make_eigen_wrapper(d3a), std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_writable_matrix_from<M22>(1, 0, 0, 2)));
+  auto ewd3a = Eigen3::make_eigen_wrapper(d3a);
   EXPECT_TRUE(is_near(get_block(ewd3a, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_writable_matrix_from<M22>(1, 0, 0, 2)));
 
   Eigen::DiagonalMatrix<double, 3> d3 {make_dense_writable_matrix_from<M31>(1, 2, 3)};
@@ -175,7 +199,7 @@ TEST(eigen3, set_block)
     5, 6, 7, 8,
     9, 10, 11, 12);
 
-  auto ewm34 = Eigen3::EigenWrapper {m34};
+  auto ewm34 = Eigen3::make_eigen_wrapper(m34);
 
   auto m31 = make_dense_writable_matrix_from<M31>(13, 14, 15);
 
@@ -622,10 +646,10 @@ TEST(eigen3, set_triangle)
   a = a33; internal::set_triangle(a.triangularView<Eigen::Upper>(), b33);
   EXPECT_TRUE(is_near(a, u33));
 
-  a = a33; internal::set_triangle<TriangleType::lower>(EigenWrapper {a.triangularView<Eigen::Lower>()}, b33);
+  a = a33; internal::set_triangle<TriangleType::lower>(Eigen3::make_eigen_wrapper(a.triangularView<Eigen::Lower>()), b33);
   EXPECT_TRUE(is_near(a, l33));
 
-  a = a33; internal::set_triangle<TriangleType::upper>(EigenWrapper {a.triangularView<Eigen::Upper>()}, b33);
+  a = a33; internal::set_triangle<TriangleType::upper>(Eigen3::make_eigen_wrapper(a.triangularView<Eigen::Upper>()), b33);
   EXPECT_TRUE(is_near(a, u33));
 
   a = a33; internal::set_triangle<TriangleType::lower>(a.selfadjointView<Eigen::Lower>(), b33);
@@ -634,10 +658,10 @@ TEST(eigen3, set_triangle)
   a = a33; internal::set_triangle<TriangleType::upper>(a.selfadjointView<Eigen::Upper>(), b33);
   EXPECT_TRUE(is_near(a, u33));
 
-  a = a33; internal::set_triangle<TriangleType::lower>(EigenWrapper {a.selfadjointView<Eigen::Lower>()}, b33);
+  a = a33; internal::set_triangle<TriangleType::lower>(Eigen3::make_eigen_wrapper(a.selfadjointView<Eigen::Lower>()), b33);
   EXPECT_TRUE(is_near(a, l33));
 
-  a = a33; internal::set_triangle<TriangleType::upper>(EigenWrapper {a.selfadjointView<Eigen::Upper>()}, b33);
+  a = a33; internal::set_triangle<TriangleType::upper>(Eigen3::make_eigen_wrapper(a.selfadjointView<Eigen::Upper>()), b33);
   EXPECT_TRUE(is_near(a, u33));
 
   a = a33; internal::set_triangle(a, bl33);

@@ -20,17 +20,20 @@
 namespace OpenKalman::interface
 {
   template<typename PlainObjectType, int Options, template<typename> typename MakePointer>
-  struct IndexibleObjectTraits<Eigen::TensorMap<PlainObjectType, Options, MakePointer>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::TensorMap<PlainObjectType, Options, MakePointer>>
+  struct indexible_object_traits<Eigen::TensorMap<PlainObjectType, Options, MakePointer>>
+    : Eigen3::indexible_object_traits_base<Eigen::TensorMap<PlainObjectType, Options, MakePointer>>
   {
   private:
 
-    using StorageRefType = typename Eigen::TensorMap<PlainObjectType, Options, MakePointer>::StorageRefType;
+    using Xpr = Eigen::TensorMap<PlainObjectType, Options, MakePointer>;
+    using Base = Eigen3::indexible_object_traits_base<Xpr>;
+    using StorageRefType = typename Xpr::StorageRefType;
+    using IndexType = typename Xpr::Index;
 
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_index_descriptor(const Arg& arg, N n) { return arg.dimension(n); }
+    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n) { return arg.dimension(n); }
 
     static constexpr bool has_runtime_parameters = true;
 
@@ -46,28 +49,28 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg, std::convertible_to<index_type_of_t<Arg>>...I> requires (sizeof...(I) == PlainObjectType::NumDimensions)
+    template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == PlainObjectType::NumDimensions)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, index_type_of_t<Arg>> and ...) and
+    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, IndexType> and ...) and
       (sizeof...(I) == PlainObjectType::NumDimensions), int> = 0>
 #endif
     static constexpr decltype(auto) get(Arg&& arg, I...i)
     {
-      return std::forward<Arg>(arg)(static_cast<index_type_of_t<Arg>>(i)...);
+      return std::forward<Arg>(arg)(static_cast<IndexType>(i)...);
     }
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg, std::convertible_to<index_type_of_t<Arg>>...I> requires (sizeof...(I) == PlainObjectType::NumDimensions) and
+    template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == PlainObjectType::NumDimensions) and
     std::is_lvalue_reference_v<StorageRefType> and (not std::is_const_v<std::remove_reference_t<StorageRefType>>)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, index_type_of_t<Arg>> and ...) and
+    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, IndexType> and ...) and
       (sizeof...(I) == PlainObjectType::NumDimensions) and std::is_lvalue_reference<StorageRefType>::value and
       not std::is_const<typenamne std::remove_reference<StorageRefType>::type>::value, int> = 0>
 #endif
     static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
     {
-      arg(static_cast<index_type_of_t<Arg>>(i)...) = s;
+      arg(static_cast<IndexType>(i)...) = s;
     }
 
     static constexpr bool is_writable = false;

@@ -22,8 +22,8 @@
 namespace OpenKalman::interface
 {
   template<typename PlainObjectType, int Options, typename StrideType>
-  struct IndexibleObjectTraits<Eigen::Ref<PlainObjectType, Options, StrideType>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::Ref<PlainObjectType, Options, StrideType>>
+  struct indexible_object_traits<Eigen::Ref<PlainObjectType, Options, StrideType>>
+    : Eigen3::indexible_object_traits_base<Eigen::Ref<PlainObjectType, Options, StrideType>>
   {
     static constexpr bool has_runtime_parameters = false;
 
@@ -49,23 +49,6 @@ namespace OpenKalman::interface
 
 
     static constexpr Layout layout = std::is_same_v<StrideType, Eigen::Stride<0, 0>> ? layout_of_v<PlainObjectType> : Layout::stride;
-
-
-    template<typename Arg>
-    static constexpr auto
-    strides(Arg&& arg)
-    {
-      constexpr auto outer = StrideType::OuterStrideAtCompileTime;
-      constexpr auto inner = StrideType::InnerStrideAtCompileTime;
-      if constexpr (outer != Eigen::Dynamic and inner != Eigen::Dynamic)
-        return std::tuple {std::integral_constant<std::size_t, outer>{}, std::integral_constant<std::size_t, inner>{}};
-      else if constexpr (outer != Eigen::Dynamic and inner == Eigen::Dynamic)
-        return std::tuple {std::integral_constant<std::size_t, outer>{}, arg.innerStride()};
-      else if constexpr (outer == Eigen::Dynamic and inner != Eigen::Dynamic)
-        return std::tuple {arg.outerStride(), std::integral_constant<std::size_t, inner>{}};
-      else if constexpr (outer == Eigen::Dynamic and inner == Eigen::Dynamic)
-        return std::tuple {arg.outerStride(), arg.innerStride()};
-    }
 
   };
 

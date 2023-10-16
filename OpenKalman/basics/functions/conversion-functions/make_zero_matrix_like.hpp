@@ -22,17 +22,17 @@ namespace OpenKalman
    * \brief Make a \ref zero_matrix associated with a particular library.
    * \tparam T A matrix or other tensor within a particular library. Its details are not important.
    * \tparam Scalar An optional scalar type for the new zero matrix. By default, T's scalar type is used.
-   * \param Ds A set of \ref index_descriptor "index descriptors" defining the dimensions of each index.
-   * If none are provided and T has no dynamic dimensions, the function takes index descriptors from T.
+   * \param Ds A set of \ref vector_space_descriptor defining the dimensions of each index.
+   * If none are provided and T has no dynamic dimensions, the function takes \ref vector_space_descriptor from T.
    */
 #ifdef __cpp_concepts
-  template<indexible T, scalar_type Scalar = scalar_type_of_t<T>, index_descriptor...Ds> requires
-    (sizeof...(Ds) == max_indices_of_v<T>) or (sizeof...(Ds) == 0 and not has_dynamic_dimensions<T>)
+  template<indexible T, scalar_type Scalar = scalar_type_of_t<T>, vector_space_descriptor...Ds> requires
+    (sizeof...(Ds) == index_count_v<T>) or (sizeof...(Ds) == 0 and not has_dynamic_dimensions<T>)
   constexpr zero_matrix auto
 #else
   template<typename T, typename Scalar = scalar_type_of_t<T>, typename...Ds, std::enable_if_t<indexible<T> and
-    scalar_type<Scalar> and (index_descriptor<Ds> and ...) and
-    (sizeof...(Ds) == max_indices_of_v<T>) or (sizeof...(Ds) == 0 and not has_dynamic_dimensions<T>), int> = 0>
+    scalar_type<Scalar> and (vector_space_descriptor<Ds> and ...) and
+    (sizeof...(Ds) == index_count_v<T>) or (sizeof...(Ds) == 0 and not has_dynamic_dimensions<T>), int> = 0>
   constexpr auto
 #endif
   make_zero_matrix_like(Ds&&...ds)

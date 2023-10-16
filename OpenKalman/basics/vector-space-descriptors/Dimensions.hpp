@@ -44,12 +44,12 @@ namespace OpenKalman
   {
     constexpr Dimensions() = default;
 
-    /// Constructor, taking a fixed-size index descriptor.
+    /// Constructor, taking a \ref fixed_vector_space_descriptor.
 #ifdef __cpp_concepts
-    template<fixed_index_descriptor D> requires euclidean_index_descriptor<D> and
+    template<fixed_vector_space_descriptor D> requires euclidean_vector_space_descriptor<D> and
       (not std::same_as<std::decay_t<D>, Dimensions>) and (dimension_size_of_v<D> == N)
 #else
-    template<typename D, std::enable_if_t<fixed_index_descriptor<D> and euclidean_index_descriptor<D> and
+    template<typename D, std::enable_if_t<fixed_vector_space_descriptor<D> and euclidean_vector_space_descriptor<D> and
       not std::is_same_v<std::decay_t<D>, Dimensions> and dimension_size_of<D>::value == N, int> = 0>
 #endif
     explicit constexpr Dimensions(D&& d)
@@ -72,7 +72,7 @@ namespace OpenKalman
       return N;
     }
 
-    friend struct interface::FixedIndexDescriptorTraits<Dimensions<N>>;
+    friend struct interface::FixedVectorSpaceDescriptorTraits<Dimensions<N>>;
   };
 
 
@@ -87,26 +87,26 @@ namespace OpenKalman
   template<>
   struct Dimensions<dynamic_size>
   {
-    /// Constructor, taking a fixed index descriptor.
+    /// Constructor, taking a \ref fixed_vector_space_descriptor.
 #ifdef __cpp_concepts
-    template<fixed_index_descriptor D> requires euclidean_index_descriptor<D>
+    template<fixed_vector_space_descriptor D> requires euclidean_vector_space_descriptor<D>
 #else
-    template<typename D, std::enable_if_t<fixed_index_descriptor<D> and euclidean_index_descriptor<D>, int> = 0>
+    template<typename D, std::enable_if_t<fixed_vector_space_descriptor<D> and euclidean_vector_space_descriptor<D>, int> = 0>
 #endif
     explicit constexpr Dimensions(D&&) : runtime_size {dimension_size_of_v<D>}
     {}
 
 
-    /// Constructor, taking a dynamic index descriptor.
+    /// Constructor, taking a \ref dynamic_vector_space_descriptor.
 #ifdef __cpp_concepts
-    template<dynamic_index_descriptor D> requires
-      euclidean_index_descriptor<D> and (not std::same_as<std::decay_t<D>, Dimensions>)
+    template<dynamic_vector_space_descriptor D> requires
+      euclidean_vector_space_descriptor<D> and (not std::same_as<std::decay_t<D>, Dimensions>)
 #else
-    template<typename D, std::enable_if_t<dynamic_index_descriptor<D> and euclidean_index_descriptor<D> and
+    template<typename D, std::enable_if_t<dynamic_vector_space_descriptor<D> and euclidean_vector_space_descriptor<D> and
       not std::is_same_v<std::decay_t<D>, Dimensions>, int> = 0>
 #endif
     explicit constexpr Dimensions(D&& d)
-      : runtime_size {interface::DynamicIndexDescriptorTraits<std::decay_t<D>>{d}.get_size()}
+      : runtime_size {interface::DynamicVectorSpaceDescriptorTraits<std::decay_t<D>>{d}.get_size()}
     {}
 
 
@@ -126,7 +126,7 @@ namespace OpenKalman
 
     std::size_t runtime_size;
 
-    friend struct interface::DynamicIndexDescriptorTraits<Dimensions<dynamic_size>>;
+    friend struct interface::DynamicVectorSpaceDescriptorTraits<Dimensions<dynamic_size>>;
   };
 
 
@@ -135,17 +135,17 @@ namespace OpenKalman
   // ------------------ //
 
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor D> requires euclidean_index_descriptor<D>
+  template<fixed_vector_space_descriptor D> requires euclidean_vector_space_descriptor<D>
 #else
-  template<typename D, std::enable_if_t<fixed_index_descriptor<D> and euclidean_index_descriptor<D>, int> = 0>
+  template<typename D, std::enable_if_t<fixed_vector_space_descriptor<D> and euclidean_vector_space_descriptor<D>, int> = 0>
 #endif
   explicit Dimensions(D&&) -> Dimensions<dimension_size_of_v<D>>;
 
 
 #ifdef __cpp_concepts
-  template<euclidean_index_descriptor D> requires (not fixed_index_descriptor<D>)
+  template<euclidean_vector_space_descriptor D> requires (not fixed_vector_space_descriptor<D>)
 #else
-  template<typename D, std::enable_if_t<euclidean_index_descriptor<D> and (not fixed_index_descriptor<D>), int> = 0>
+  template<typename D, std::enable_if_t<euclidean_vector_space_descriptor<D> and (not fixed_vector_space_descriptor<D>), int> = 0>
 #endif
   explicit Dimensions(D&&) -> Dimensions<dynamic_size>;
 
@@ -155,7 +155,7 @@ namespace OpenKalman
   // ------ //
 
   /**
-   * \brief Alias for a 1D euclidean index descriptor.
+   * \brief Alias for a 1D euclidean \ref vector_space_descriptor object.
    */
   using Axis = Dimensions<1>;
 
@@ -172,12 +172,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<std::size_t N> requires (N != dynamic_size)
-    struct FixedIndexDescriptorTraits<Dimensions<N>>
+    struct FixedVectorSpaceDescriptorTraits<Dimensions<N>>
 #else
     template<std::size_t N>
-    struct FixedIndexDescriptorTraits<Dimensions<N>, std::enable_if_t<N != dynamic_size>>
+    struct FixedVectorSpaceDescriptorTraits<Dimensions<N>, std::enable_if_t<N != dynamic_size>>
 #endif
-      : FixedIndexDescriptorTraits<std::integral_constant<std::size_t, N>>
+      : FixedVectorSpaceDescriptorTraits<std::integral_constant<std::size_t, N>>
     {
       using difference_type = Dimensions<N>;
 
@@ -190,12 +190,12 @@ namespace OpenKalman
      * \brief traits for dynamic Dimensions.
      */
     template<>
-    struct DynamicIndexDescriptorTraits<Dimensions<dynamic_size>> : DynamicIndexDescriptorTraits<std::size_t>
+    struct DynamicVectorSpaceDescriptorTraits<Dimensions<dynamic_size>> : DynamicVectorSpaceDescriptorTraits<std::size_t>
     {
     private:
-      using Base = DynamicIndexDescriptorTraits<std::size_t>;
+      using Base = DynamicVectorSpaceDescriptorTraits<std::size_t>;
     public:
-      explicit constexpr DynamicIndexDescriptorTraits(const Dimensions<dynamic_size>& t) : Base {t.runtime_size} {};
+      explicit constexpr DynamicVectorSpaceDescriptorTraits(const Dimensions<dynamic_size>& t) : Base {t.runtime_size} {};
       [[nodiscard]] constexpr std::size_t get_size() const { return Base::get_size(); }
       [[nodiscard]] constexpr std::size_t get_euclidean_size() const { return Base::get_euclidean_size(); }
       [[nodiscard]] constexpr std::size_t get_component_count() const { return Base::get_component_count(); }

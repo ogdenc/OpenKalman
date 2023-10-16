@@ -31,11 +31,11 @@ namespace
   using M23 = eigen_matrix_t<double, 2, 3>;
   using M42 = eigen_matrix_t<double, 4, 2>;
 
-  using M3x = eigen_matrix_t<double, 3, dynamic_size>;
+  using M3x = eigen_matrix_t<double, 3, dynamic_size_v>;
   using M2x = eigen_matrix_t<double, 2, 3>;
-  using Mx3 = eigen_matrix_t<double, dynamic_size, 3>;
-  using Mx2 = eigen_matrix_t<double, dynamic_size, 2>;
-  using Mxx = eigen_matrix_t<double, dynamic_size, dynamic_size>;
+  using Mx3 = eigen_matrix_t<double, dynamic_size_v, 3>;
+  using Mx2 = eigen_matrix_t<double, dynamic_size_v, 2>;
+  using Mxx = eigen_matrix_t<double, dynamic_size_v, dynamic_size_v>;
 
   using Car = TypedIndex<Axis, angle::Radians>;
   using Cra = TypedIndex<angle::Radians, Axis>;
@@ -207,9 +207,9 @@ TEST(special_matrices, ToEuclideanExpr_overloads)
   //EXPECT_TRUE(is_near(to_euclidean<TypedIndex<angle::Radians, Axis>>(mxx_23), m33_to_ra));
 
   ConstantAdapter<eigen_matrix_t<double, 3, 4>, 5> c534 {};
-  ConstantAdapter<eigen_matrix_t<double, 3, dynamic_size>, 5> c530_4 {4};
-  ConstantAdapter<eigen_matrix_t<double, dynamic_size, 4>, 5> c504_3 {3};
-  ConstantAdapter<eigen_matrix_t<double, dynamic_size, dynamic_size>, 5> c500_34 {3, 4};
+  ConstantAdapter<eigen_matrix_t<double, 3, dynamic_size_v>, 5> c530_4 {4};
+  ConstantAdapter<eigen_matrix_t<double, dynamic_size_v, 4>, 5> c504_3 {3};
+  ConstantAdapter<eigen_matrix_t<double, dynamic_size_v, dynamic_size_v>, 5> c500_34 {3, 4};
 
   EXPECT_TRUE(is_near(to_euclidean<Dimensions<3>>(c534), c534));
   EXPECT_TRUE(is_near(to_euclidean<Dimensions<3>>(c530_4), c534));
@@ -233,9 +233,9 @@ TEST(special_matrices, ToEuclideanExpr_overloads)
   //EXPECT_TRUE(is_near(to_euclidean(DynamicTypedIndex {TypedIndex<angle::Radians, Axis, Axis>{}}, c500_34), m44_to_raa));
 
   ZeroMatrix<eigen_matrix_t<double, 2, 3>> z23;
-  ZeroMatrix<eigen_matrix_t<double, 2, dynamic_size>> z20_3 {3};
-  ZeroMatrix<eigen_matrix_t<double, dynamic_size, 3>> z03_2 {2};
-  ZeroMatrix<eigen_matrix_t<double, dynamic_size, dynamic_size>> z00_23 {2, 3};
+  ZeroMatrix<eigen_matrix_t<double, 2, dynamic_size_v>> z20_3 {3};
+  ZeroMatrix<eigen_matrix_t<double, dynamic_size_v, 3>> z03_2 {2};
+  ZeroMatrix<eigen_matrix_t<double, dynamic_size_v, dynamic_size_v>> z00_23 {2, 3};
 
   EXPECT_TRUE(is_near(to_euclidean<Dimensions<2>>(z23), z23));
   EXPECT_TRUE(is_near(to_euclidean<Dimensions<2>>(z20_3), z23));

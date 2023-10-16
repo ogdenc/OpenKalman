@@ -417,33 +417,33 @@ TEST(eigen3, Eigen_PartialReduxExpr_sum)
   EXPECT_EQ(constant_coefficient{cxb.rowwise().sum().imag()}(), 8);
   EXPECT_EQ(cxb.colwise().sum().imag()(0,0), 8);
   EXPECT_EQ(cxb.rowwise().sum().imag()(0,0), 8);
-  EXPECT_EQ(constant_coefficient{Eigen3::EigenWrapper{cxb.array().matrix()}.colwise().sum().imag()}(), 8);
-  EXPECT_EQ(constant_coefficient{Eigen3::EigenWrapper{cxb.array().matrix()}.rowwise().sum().imag()}(), 8);
+  EXPECT_EQ(constant_coefficient{Eigen3::make_eigen_wrapper(cxb.array().matrix()).colwise().sum().imag()}(), 8);
+  EXPECT_EQ(constant_coefficient{Eigen3::make_eigen_wrapper(cxb.array().matrix()).rowwise().sum().imag()}(), 8);
   EXPECT_EQ(cxb.array().matrix().colwise().sum().imag()(0,0), 8);
   EXPECT_EQ(cxb.array().matrix().rowwise().sum().imag()(0,0), 8);
-  EXPECT_EQ(Eigen3::EigenWrapper{cxb.array().matrix()}.colwise().sum().imag()(0,0), 8);
-  EXPECT_EQ(Eigen3::EigenWrapper{cxb.array().matrix()}.rowwise().sum().imag()(0,0), 8);
+  EXPECT_EQ(Eigen3::make_eigen_wrapper(cxb.array().matrix()).colwise().sum().imag()(0,0), 8);
+  EXPECT_EQ(Eigen3::make_eigen_wrapper(cxb.array().matrix()).rowwise().sum().imag()(0,0), 8);
 
-  EXPECT_EQ(constant_coefficient{Eigen3::EigenWrapper{cxb.array().matrix()}.imag().colwise().sum()}(), 8);
-  EXPECT_EQ(constant_coefficient{Eigen3::EigenWrapper{cxb.array().matrix()}.imag().rowwise().sum()}(), 8);
+  EXPECT_EQ(constant_coefficient{Eigen3::make_eigen_wrapper(cxb.array().matrix()).imag().colwise().sum()}(), 8);
+  EXPECT_EQ(constant_coefficient{Eigen3::make_eigen_wrapper(cxb.array().matrix()).imag().rowwise().sum()}(), 8);
   EXPECT_EQ(cxb.array().matrix().imag().colwise().sum()(0,0), 8);
   EXPECT_EQ(cxb.array().matrix().imag().rowwise().sum()(0,0), 8);
-  EXPECT_EQ(Eigen3::EigenWrapper{cxb.array().matrix()}.imag().colwise().sum()(0,0), 8);
-  EXPECT_EQ(Eigen3::EigenWrapper{cxb.array().matrix()}.imag().rowwise().sum()(0,0), 8);
+  EXPECT_EQ(Eigen3::make_eigen_wrapper(cxb.array().matrix()).imag().colwise().sum()(0,0), 8);
+  EXPECT_EQ(Eigen3::make_eigen_wrapper(cxb.array().matrix()).imag().rowwise().sum()(0,0), 8);
 
   static_assert(constant_coefficient_v<decltype(c22_m2.cwiseAbs2().colwise().sum())> == 8);
   static_assert(constant_matrix<decltype(c00_22_m2.cwiseAbs2().rowwise().sum()), CompileTimeStatus::unknown>);
   EXPECT_EQ(constant_coefficient{c00_22_m2.cwiseAbs2().colwise().sum()}(), 8);
 
   static_assert(constant_coefficient_v<decltype(cd22_m2.cwiseAbs2().colwise().sum())> == 4);
-  static_assert(constant_coefficient_v<decltype(Eigen3::EigenWrapper{cd22_m2.array().matrix()}.cwiseAbs2().colwise().sum())> == 4);
+  static_assert(constant_coefficient_v<decltype(Eigen3::make_eigen_wrapper(cd22_m2.array().matrix()).cwiseAbs2().colwise().sum())> == 4);
   static_assert(constant_matrix<decltype(std::declval<Cdxx_m2>().abs2().colwise().sum()), CompileTimeStatus::unknown>);
   static_assert(constant_matrix<decltype(std::declval<Cdxx_m2>().abs2().rowwise().sum()), CompileTimeStatus::unknown>);
   static_assert(constant_matrix<decltype(cd00_22_m2.cwiseAbs2().colwise().sum()), CompileTimeStatus::unknown>);
   EXPECT_EQ(constant_coefficient{cd00_22_m2.cwiseAbs2().colwise().sum()}(), 4);
   EXPECT_EQ(cd00_22_m2.cwiseAbs2().colwise().sum()(0,0), 4);
-  EXPECT_EQ(constant_coefficient{Eigen3::EigenWrapper{cxb.array().matrix()}.cwiseAbs2().colwise().sum()}(), 50);
-  EXPECT_EQ(Eigen3::EigenWrapper{cxb.array().matrix()}.cwiseAbs2().colwise().sum()(0,0), 50);
+  EXPECT_EQ(constant_coefficient{Eigen3::make_eigen_wrapper(cxb.array().matrix()).cwiseAbs2().colwise().sum()}(), 50);
+  EXPECT_EQ(Eigen3::make_eigen_wrapper(cxb.array().matrix()).cwiseAbs2().colwise().sum()(0,0), 50);
 
   // redux
 
@@ -786,7 +786,7 @@ TEST(eigen3, Eigen_PartialReduxExpr_other)
 
 TEST(eigen3, Eigen_VectorWiseOp)
 {
-  static_assert(max_indices_of_v<decltype(std::declval<M34>().colwise())> == 2);
+  static_assert(index_count_v<decltype(std::declval<M34>().colwise())> == 2);
   static_assert(std::is_same_v<scalar_type_of_t<decltype(std::declval<M34>().colwise())>, double>);
 
   static_assert(index_dimension_of_v<decltype(std::declval<M34>().rowwise()), 0> == 3);

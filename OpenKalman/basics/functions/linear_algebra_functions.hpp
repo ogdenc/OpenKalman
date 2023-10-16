@@ -57,7 +57,7 @@ namespace OpenKalman
     }
     else
     {
-      return interface::LibraryRoutines<std::decay_t<Arg>>::conjugate(std::forward<Arg>(arg));
+      return interface::library_interface<std::decay_t<Arg>>::conjugate(std::forward<Arg>(arg));
     }
   }
 
@@ -68,7 +68,7 @@ namespace OpenKalman
     constexpr decltype(auto) transpose_constant(C&& c, Arg&& arg, std::index_sequence<Is...>) noexcept
     {
       return make_constant_matrix_like<Arg>(std::forward<C>(c),
-        get_index_descriptor<1>(arg), get_index_descriptor<0>(arg), get_index_descriptor<Is + 2>(arg)...);
+        get_vector_space_descriptor<1>(arg), get_vector_space_descriptor<0>(arg), get_vector_space_descriptor<Is + 2>(arg)...);
     }
   }
 
@@ -78,9 +78,9 @@ namespace OpenKalman
    * \tparam Arg The matrix
    */
 #ifdef __cpp_concepts
-  template<indexible Arg>
+  template<indexible Arg> requires (max_tensor_order_of_v<Arg> <= 2)
 #else
-  template<typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<indexible<Arg> and (max_tensor_order_of_v<Arg> <= 2), int> = 0>
 #endif
   constexpr decltype(auto) transpose(Arg&& arg) noexcept
   {
@@ -91,12 +91,12 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<Arg>)
     {
-      constexpr std::make_index_sequence<std::max({max_indices_of_v<Arg>, static_cast<std::size_t>(2)}) - 2> seq;
+      constexpr std::make_index_sequence<std::max({index_count_v<Arg>, static_cast<std::size_t>(2)}) - 2> seq;
       return detail::transpose_constant(constant_coefficient{arg}, std::forward<Arg>(arg), seq);
     }
     else
     {
-      return interface::LibraryRoutines<std::decay_t<Arg>>::transpose(std::forward<Arg>(arg));
+      return interface::library_interface<std::decay_t<Arg>>::transpose(std::forward<Arg>(arg));
     }
   }
 
@@ -106,9 +106,9 @@ namespace OpenKalman
    * \tparam Arg The matrix
    */
 #ifdef __cpp_concepts
-  template<indexible Arg>
+  template<indexible Arg> requires (max_tensor_order_of_v<Arg> <= 2)
 #else
-  template<typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<indexible<Arg> and (max_tensor_order_of_v<Arg> <= 2), int> = 0>
 #endif
   constexpr decltype(auto) adjoint(Arg&& arg) noexcept
   {
@@ -128,17 +128,17 @@ namespace OpenKalman
     {
       if constexpr (real_axis_number<constant_coefficient<Arg>>)
         return transpose(std::forward<Arg>(arg));
-      else if constexpr (not has_dynamic_dimensions<Arg> and row_dimension_of_v<Arg> == column_dimension_of_v<Arg>)
+      else if constexpr (not has_dynamic_dimensions<Arg> and index_dimension_of_v<Arg, 0> == index_dimension_of_v<Arg, 1>)
         return conjugate(std::forward<Arg>(arg));
       else
       {
-        constexpr std::make_index_sequence<std::max({max_indices_of_v<Arg>, static_cast<std::size_t>(2)}) - 2> seq;
+        constexpr std::make_index_sequence<std::max({index_count_v<Arg>, static_cast<std::size_t>(2)}) - 2> seq;
         return detail::transpose_constant(internal::constexpr_conj(constant_coefficient{arg}), std::forward<Arg>(arg), seq);
       }
     }
     else
     {
-      return interface::LibraryRoutines<std::decay_t<Arg>>::adjoint(std::forward<Arg>(arg));
+      return interface::library_interface<std::decay_t<Arg>>::adjoint(std::forward<Arg>(arg));
     }
   }
 
@@ -148,39 +148,64 @@ namespace OpenKalman
    * \tparam Arg The matrix
    */
 #ifdef __cpp_concepts
-  template<square_matrix<Likelihood::maybe> Arg>
+  template<square_matrix<Likelihood::maybe> Arg> requires (max_tensor_order_of_v<Arg> <= 2)
+  constexpr std::convertible_to<scalar_type_of_t<Arg>> auto
 #else
-  template<typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe>, int> = 0>
+  template<typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe> and (max_tensor_order_of_v<Arg> <= 2), int> = 0>
+  constexpr auto
 #endif
-  constexpr auto determinant(Arg&& arg) -> scalar_type_of_t<Arg>
+  determinant(Arg&& arg)
   {
-    if constexpr (has_dynamic_dimensions<Arg>) if (not get_is_square(arg)) throw std::domain_error {
-      "In determinant(...), the argument is not a square matrix or tensor"};
+    constexpr auto ix = []{ if constexpr (dynamic_dimension<Arg, 0>) return 1; else return 0; }();
 
     if constexpr (identity_matrix<Arg>)
     {
-      return 1;
-    }
-    else if constexpr (constant_matrix<Arg>)
-    {
-      if constexpr (one_by_one_matrix<Arg>) return get_scalar_constant_value(constant_coefficient {arg});
-      else return 0;
+      return internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<Arg>, 1>{};
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      return internal::constexpr_pow(constant_diagonal_coefficient{arg}, internal::index_dimension_scalar_constant_of<0>(arg))();
+      return internal::constexpr_pow(constant_diagonal_coefficient{arg}, internal::index_dimension_scalar_constant_of<ix>(arg))();
     }
-    else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg&&, 0>)
+    else if constexpr (dimension_size_of_index_is<Arg, 0, 1> or dimension_size_of_index_is<Arg, 1, 1>)
     {
-      return get_element(arg);
+      if constexpr (has_dynamic_dimensions<Arg>) if (not get_is_square(arg))
+        throw std::domain_error {"Argument to 'determinant' is not a square matrix"};
+      return constant_coefficient {arg};
     }
-    else if constexpr (triangular_matrix<Arg>) // this includes diagonal case
+    else if constexpr (zero_matrix<Arg>)
+    {
+      if constexpr (has_dynamic_dimensions<Arg>) if (not get_is_square(arg))
+        throw std::domain_error {"Argument to 'determinant' is not a square matrix"};
+      return internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<Arg>, 0>{};
+    }
+    else if constexpr (dimension_size_of_index_is<Arg, 0, 0> or dimension_size_of_index_is<Arg, 1, 0>)
+    {
+      if constexpr (has_dynamic_dimensions<Arg>) if (not get_is_square(arg))
+        throw std::domain_error {"Argument to 'determinant' is not a square matrix"};
+      return internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<Arg>, 1>{};
+    }
+    else if constexpr (triangular_matrix<Arg> and not dynamic_dimension<Arg, ix> and index_dimension_of_v<Arg, ix> >= 2) // this includes the diagonal case
     {
       return reduce(std::multiplies<scalar_type_of_t<Arg>>{}, diagonal_of(std::forward<Arg>(arg)));
     }
+    else if constexpr (constant_matrix<Arg>)
+    {
+      if constexpr (has_dynamic_dimensions<Arg>)
+      {
+        auto d = get_is_square(arg);
+        if (not d) throw std::invalid_argument{"Argument of 'determinant' is not a square matrix."};
+        else if (*d >= 2) return static_cast<scalar_type_of_t<Arg>>(0);
+        else if (*d == 1) return static_cast<scalar_type_of_t<Arg>>(constant_coefficient {arg});
+        else return static_cast<scalar_type_of_t<Arg>>(1); // empty matrix
+      }
+      else
+      {
+        return internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<Arg>, 0>{};
+      }
+    }
     else
     {
-      return interface::LibraryRoutines<std::decay_t<Arg>>::determinant(std::forward<Arg>(arg));
+      return interface::library_interface<std::decay_t<Arg>>::determinant(std::forward<Arg>(arg));
     }
   }
 
@@ -189,39 +214,65 @@ namespace OpenKalman
   /**
    * \brief Take the trace of a matrix
    * \tparam Arg The matrix
+   * \todo Redefine as a particular tensor contraction.
    */
-  template<square_matrix<Likelihood::maybe> Arg>
+  template<square_matrix<Likelihood::maybe> Arg> requires (max_tensor_order_of_v<Arg> <= 2)
+  constexpr std::convertible_to<scalar_type_of_t<Arg>> auto
 #else
-  template<typename Arg, std::enable_if_t<(square_matrix<Arg, Likelihood::maybe>), int> = 0>
+  template<typename Arg, std::enable_if_t<(square_matrix<Arg, Likelihood::maybe>) and (max_tensor_order_of_v<Arg> <= 2), int> = 0>
+  constexpr auto
 #endif
-  constexpr auto trace(Arg&& arg) -> scalar_type_of_t<Arg>
+  trace(Arg&& arg)
   {
-    if constexpr (has_dynamic_dimensions<Arg>) if (not get_is_square(arg)) throw std::domain_error {
-      "In trace(...), the argument is not a square matrix or tensor"};
+    constexpr auto ix = []{ if constexpr (dynamic_dimension<Arg, 0>) return 1; else return 0; }();
 
     if constexpr (identity_matrix<Arg>)
     {
-      return get_index_dimension_of<0>(arg);
-    }
-    else if constexpr (zero_matrix<Arg>)
-    {
-      return 0;
-    }
-    else if constexpr (one_by_one_matrix<Arg> and element_gettable<Arg&&, 0>)
-    {
-      return get_element(std::forward<Arg>(arg));
-    }
-    else if constexpr (constant_matrix<Arg>)
-    {
-      return constant_coefficient{arg} * internal::index_dimension_scalar_constant_of<0>(arg);
+      return internal::index_dimension_scalar_constant_of<ix>(arg);
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      return constant_diagonal_coefficient{arg} * internal::index_dimension_scalar_constant_of<0>(arg);
+      std::multiplies<scalar_type_of_t<Arg>> op;
+      return internal::scalar_constant_operation{op, constant_diagonal_coefficient{arg}, internal::index_dimension_scalar_constant_of<ix>(arg)};
+    }
+    else if constexpr (dimension_size_of_index_is<Arg, 0, 1> or dimension_size_of_index_is<Arg, 1, 1>)
+    {
+      if constexpr (has_dynamic_dimensions<Arg>) if (not get_is_square(arg))
+        throw std::domain_error {"Argument to 'trace' is not a square matrix"};
+      return constant_coefficient {arg};
+    }
+    else if constexpr (zero_matrix<Arg> or dimension_size_of_index_is<Arg, 0, 0> or dimension_size_of_index_is<Arg, 1, 0>)
+    {
+      if constexpr (has_dynamic_dimensions<Arg>) if (not get_is_square(arg))
+        throw std::domain_error {"Argument to 'trace' is not a square matrix"};
+      return internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<Arg>, 0>{};
+    }
+    else if constexpr (constant_matrix<Arg>)
+    {
+      if constexpr (has_dynamic_dimensions<Arg>) if (not get_is_square(arg))
+        throw std::domain_error {"Argument to 'trace' is not a square matrix"};
+      std::multiplies<scalar_type_of_t<Arg>> op;
+      return internal::scalar_constant_operation{op, constant_coefficient{arg}, internal::index_dimension_scalar_constant_of<ix>(arg)};
+    }
+    else if constexpr (triangular_matrix<Arg> and not dynamic_dimension<Arg, ix> and index_dimension_of_v<Arg, ix> >= 2) // this includes the diagonal case
+    {
+      return reduce(std::plus<scalar_type_of_t<Arg>>{}, diagonal_of(std::forward<Arg>(arg)));
     }
     else
     {
-      return reduce(std::plus<scalar_type_of_t<Arg>>{}, diagonal_of(std::forward<Arg>(arg)));
+      auto diag = diagonal_of(std::forward<Arg>(arg));
+      if constexpr(dynamic_dimension<decltype(diag), 0>)
+      {
+        auto dim = get_index_dimension_of<0>(diag);
+        if (dim >= 2) return static_cast<scalar_type_of_t<Arg>>(reduce(std::plus<scalar_type_of_t<Arg>>{}, std::move(diag)));
+        else if (dim == 1) return static_cast<scalar_type_of_t<Arg>>(constant_coefficient {std::move(diag)});
+        else return static_cast<scalar_type_of_t<Arg>>(0);
+      }
+      else
+      {
+        // diag is known at compile time to have at least 2 dimensions
+        return reduce(std::plus<scalar_type_of_t<Arg>>{}, std::move(diag));
+      }
     }
   }
 
@@ -232,15 +283,15 @@ namespace OpenKalman
     static constexpr decltype(auto) contract_constant(C&& c, A&& a, B&& b, std::index_sequence<Is...>) noexcept
     {
       return make_constant_matrix_like<A>(std::forward<C>(c),
-        get_index_descriptor<0>(a), get_index_descriptor<1>(b), get_index_descriptor<Is + 2>(a)...);
+        get_vector_space_descriptor<0>(a), get_vector_space_descriptor<1>(b), get_vector_space_descriptor<Is + 2>(a)...);
     }
 
 
     template<std::size_t I, typename T, typename...Ts>
-    constexpr decltype(auto) best_descriptor(T&& t, Ts&&...ts)
+    constexpr decltype(auto) best_vector_space_descriptor(T&& t, Ts&&...ts)
     {
-       if constexpr (sizeof...(Ts) == 0 or not dynamic_dimension<T, I>) return get_index_descriptor<I>(t);
-       else return best_descriptor<I>(std::forward<Ts>(ts)...);
+       if constexpr (sizeof...(Ts) == 0 or not dynamic_dimension<T, I>) return get_vector_space_descriptor<I>(t);
+       else return best_vector_space_descriptor<I>(std::forward<Ts>(ts)...);
     }
 
 
@@ -251,10 +302,10 @@ namespace OpenKalman
     template<std::size_t...I, typename T0, typename T1, typename...Ts>
     constexpr decltype(auto) sum_impl(std::index_sequence<I...> seq, T0&& t0, T1&& t1, Ts&&...ts)
     {
-      if constexpr ((zero_matrix<T0> or zero_matrix<T1> or (constant_matrix<T0> and constant_matrix<T1>)) and not index_descriptors_match<T0, T1>)
+      if constexpr ((zero_matrix<T0> or zero_matrix<T1> or (constant_matrix<T0> and constant_matrix<T1>)) and not vector_space_descriptor_match<T0, T1>)
       {
-        if (not get_index_descriptors_match(t0, t1))
-          throw std::invalid_argument {"In sum function, index descriptors of arguments do not match"};
+        if (not get_vector_space_descriptor_match(t0, t1))
+          throw std::invalid_argument {"In sum function, vector space descriptors of arguments do not match"};
       }
 
       if constexpr (zero_matrix<T0>)
@@ -268,7 +319,7 @@ namespace OpenKalman
       else if constexpr ((constant_matrix<T0> and constant_matrix<T1>))
       {
         auto c = constant_coefficient{t0} + constant_coefficient{t1};
-        auto cm = make_constant_matrix_like<T0>(std::move(c), best_descriptor<I>(t0, t1, ts...)...);
+        auto cm = make_constant_matrix_like<T0>(std::move(c), best_vector_space_descriptor<I>(t0, t1, ts...)...);
         auto ret = sum_impl(seq, std::move(cm), std::forward<Ts>(ts)...);
         return ret;
       }
@@ -287,7 +338,7 @@ namespace OpenKalman
       }
       else
       {
-        auto ret = sum_impl(seq, interface::LibraryRoutines<std::decay_t<T0>>::sum(std::forward<T0>(t0), std::forward<T1>(t1)), std::forward<Ts>(ts)...);
+        auto ret = sum_impl(seq, interface::library_interface<std::decay_t<T0>>::sum(std::forward<T0>(t0), std::forward<T1>(t1)), std::forward<Ts>(ts)...);
         return ret;
       }
     }
@@ -298,15 +349,15 @@ namespace OpenKalman
    * \brief Element-by-element sum of one or more objects.
    */
 #ifdef __cpp_concepts
-  template<indexible...Ts> requires (sizeof...(Ts) > 0) and maybe_index_descriptors_match<Ts...>
+  template<indexible...Ts> requires (sizeof...(Ts) > 0) and maybe_vector_space_descriptor_match<Ts...>
 #else
   template<typename...Ts, std::enable_if_t<(indexible<Ts> and ...) and (sizeof...(Ts) > 0) and
-    maybe_index_descriptors_match<Ts...>, int> = 0>
+    maybe_vector_space_descriptor_match<Ts...>, int> = 0>
 #endif
   constexpr decltype(auto) sum(Ts&&...ts)
   {
-    // \todo Create a new wrapper argument that uses best_descriptor above and guarantees a set of compile-time dimensions.
-    constexpr std::make_index_sequence<std::max({max_indices_of_v<Ts>...})> seq;
+    // \todo Create a new wrapper argument that uses best_vector_space_descriptor above and guarantees a set of compile-time dimensions.
+    constexpr std::make_index_sequence<std::max({index_count_v<Ts>...})> seq;
 
     if constexpr ((... and constant_matrix<Ts>))
     {
@@ -350,7 +401,7 @@ namespace OpenKalman
     template<typename A, typename B, std::size_t...Is>
     static constexpr auto contract_dimensions(A&& a, B&& b, std::index_sequence<Is...>) noexcept
     {
-      return std::tuple {get_index_descriptor<0>(a), get_index_descriptor<1>(b), get_index_descriptor<Is + 2>(a)...};
+      return std::tuple {get_vector_space_descriptor<0>(a), get_vector_space_descriptor<1>(b), get_vector_space_descriptor<Is + 2>(a)...};
     }
   }*/
 
@@ -366,11 +417,11 @@ namespace OpenKalman
 #endif
   constexpr decltype(auto) contract(A&& a, B&& b)
   {
-    if constexpr (dynamic_dimension<A, 1> or dynamic_dimension<B, 0>) if (get_index_descriptor<1>(a) != get_index_descriptor<0>(b))
+    if constexpr (dynamic_dimension<A, 1> or dynamic_dimension<B, 0>) if (get_vector_space_descriptor<1>(a) != get_vector_space_descriptor<0>(b))
       throw std::domain_error {"In contract, columns of a (" + std::to_string(get_index_dimension_of<1>(a)) +
         ") do not match rows of b (" + std::to_string(get_index_dimension_of<0>(b)) + ")"};
 
-    constexpr std::size_t dims = std::max({max_indices_of_v<A>, max_indices_of_v<B>, static_cast<std::size_t>(2)});
+    constexpr std::size_t dims = std::max({index_count_v<A>, index_count_v<B>, static_cast<std::size_t>(2)});
     constexpr std::make_index_sequence<dims - 2> seq;
 
     if constexpr (identity_matrix<B>)
@@ -421,7 +472,7 @@ namespace OpenKalman
     }
     else
     {
-      return interface::LibraryRoutines<std::decay_t<A>>::contract(std::forward<A>(a), std::forward<B>(b));
+      return interface::library_interface<std::decay_t<A>>::contract(std::forward<A>(a), std::forward<B>(b));
     }
   }
 
@@ -434,7 +485,7 @@ namespace OpenKalman
 
       template<bool on_the_right, typename A, typename B>
       struct contract_in_place_exists<on_the_right, A, B, std::void_t<decltype(
-        interface::LibraryRoutines<std::decay_t<A>>::template contract<on_the_right>(std::declval<A&>(), std::declval<B&&>()))>>
+        interface::library_interface<std::decay_t<A>>::template contract<on_the_right>(std::declval<A&>(), std::declval<B&&>()))>>
         : std::true_type {};
     }
 #endif
@@ -455,7 +506,7 @@ namespace OpenKalman
 #endif
   constexpr A& contract_in_place(A& a, B&& b)
   {
-    if constexpr (not square_matrix<A> or not square_matrix<B> or not has_same_shape_as<A, B>) if (not get_index_descriptors_match(a, b))
+    if constexpr (not square_matrix<A> or not square_matrix<B> or not has_same_shape_as<A, B>) if (not get_vector_space_descriptor_match(a, b))
       throw std::invalid_argument {"Arguments to contract_in_place must match in size and be square matrices"};
 
     if constexpr (zero_matrix<A> or identity_matrix<B>)
@@ -477,12 +528,12 @@ namespace OpenKalman
       return a;
     }
 #ifdef __cpp_concepts
-    else if constexpr (requires { interface::LibraryRoutines<std::decay_t<A>>::template contract_in_place<on_the_right>(a, std::forward<B>(b)); })
+    else if constexpr (requires { interface::library_interface<std::decay_t<A>>::template contract_in_place<on_the_right>(a, std::forward<B>(b)); })
 #else
     else if constexpr (detail::contract_in_place_exists<on_the_right, A, B>::value)
 #endif
     {
-      return interface::LibraryRoutines<std::decay_t<A>>::template contract_in_place<on_the_right>(a, std::forward<B>(b));
+      return interface::library_interface<std::decay_t<A>>::template contract_in_place<on_the_right>(a, std::forward<B>(b));
     }
     else
     {

@@ -22,12 +22,18 @@
 namespace OpenKalman::interface
 {
   template<typename XprType>
-  struct IndexibleObjectTraits<Eigen::Inverse<XprType>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::Inverse<XprType>>
+  struct indexible_object_traits<Eigen::Inverse<XprType>>
+    : Eigen3::indexible_object_traits_base<Eigen::Inverse<XprType>>
   {
-    static constexpr bool has_runtime_parameters = false;
+  private:
+
+    using Base = Eigen3::indexible_object_traits_base<Eigen::Inverse<XprType>>;
+
+  public:
 
     using type = std::tuple<typename Eigen::Inverse<XprType>::XprTypeNested>;
+
+    static constexpr bool has_runtime_parameters = false;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)

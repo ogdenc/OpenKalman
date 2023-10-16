@@ -22,8 +22,5 @@
 #include "make_default_dense_writable_matrix_like.hpp"
 #include "make_dense_writable_matrix_from.hpp"
 #include "make_self_contained.hpp"
-#include "make_constant_matrix_like.hpp"
-#include "make_zero_matrix_like.hpp"
-#include "make_identity_matrix_like.hpp"
 
 #endif //OPENKALMAN_FUNCTIONS_MAKE_FUNCTIONS_HPP

@@ -22,13 +22,19 @@
 namespace OpenKalman::interface
 {
   template<int SizeAtCompileTime, int MaxSizeAtCompileTime, typename StorageIndex>
-  struct IndexibleObjectTraits<Eigen::PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex>>
+  struct indexible_object_traits<Eigen::PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex>>
+    : Eigen3::indexible_object_traits_base<Eigen::PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex>>
   {
-    static constexpr bool has_runtime_parameters = false;
+  private:
+
+    using Base = Eigen3::indexible_object_traits_base<Eigen::PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex>>;
+
+  public:
 
     using type = std::tuple<
       typename Eigen::PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex>::IndicesType>;
+
+    static constexpr bool has_runtime_parameters = false;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)

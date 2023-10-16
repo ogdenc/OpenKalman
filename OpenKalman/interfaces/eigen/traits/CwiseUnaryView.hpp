@@ -22,32 +22,30 @@
 namespace OpenKalman::interface
 {
   template<typename ViewOp, typename MatrixType>
-  struct IndexibleObjectTraits<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
+  struct indexible_object_traits<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
+    : Eigen3::indexible_object_traits_base<Eigen::CwiseUnaryView<ViewOp, MatrixType>>
   {
+  private:
+
+    using Base = Eigen3::indexible_object_traits_base<Eigen::CwiseUnaryView<ViewOp, MatrixType>>;
+
+  public:
+
     template<typename Arg, typename N>
-    static constexpr auto get_index_descriptor(const Arg& arg, N n)
+    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
     {
-      return OpenKalman::get_index_descriptor(arg.nestedExpression(), n);
+      return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
     }
 
-    template<Likelihood b>
-    static constexpr bool is_one_by_one = one_by_one_matrix<MatrixType, b>;
-
-    template<Likelihood b>
-    static constexpr bool is_square = square_matrix<MatrixType, b>;
+    using type = std::tuple<typename Eigen::CwiseUnaryView<ViewOp, MatrixType>::MatrixTypeNested, ViewOp>;
 
     static constexpr bool has_runtime_parameters = false;
-    using type = std::tuple<typename Eigen::CwiseUnaryView<ViewOp, MatrixType>::MatrixTypeNested, ViewOp>;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)
     {
-      if constexpr (i == 0)
-        return std::forward<Arg>(arg).nestedExpression();
-      else
-        return std::forward<Arg>(arg).functor();
-      static_assert(i <= 1);
+      static_assert(i == 0);
+      return std::forward<Arg>(arg).nestedExpression();
     }
 
     template<typename Arg>
@@ -71,6 +69,12 @@ namespace OpenKalman::interface
     {
       return Eigen3::FunctorTraits<ViewOp, MatrixType>::template get_constant<true>(arg);
     }
+
+    template<Likelihood b>
+    static constexpr bool is_one_by_one = one_by_one_matrix<MatrixType, b>;
+
+    template<Likelihood b>
+    static constexpr bool is_square = square_matrix<MatrixType, b>;
 
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = Eigen3::FunctorTraits<ViewOp, MatrixType>::template is_triangular<t, b>;

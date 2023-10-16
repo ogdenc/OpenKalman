@@ -39,7 +39,7 @@ namespace Eigen::internal
   {
     enum
     {
-      RowsAtCompileTime = OpenKalman::fixed_index_descriptor<Rows> ? static_cast<int>(OpenKalman::dimension_size_of_v<Rows>) : Eigen::Dynamic,
+      RowsAtCompileTime = OpenKalman::fixed_vector_space_descriptor<Rows> ? static_cast<int>(OpenKalman::dimension_size_of_v<Rows>) : Eigen::Dynamic,
       ColsAtCompileTime = 1,
       MaxRowsAtCompileTime = RowsAtCompileTime,
       MaxColsAtCompileTime = ColsAtCompileTime,
@@ -53,8 +53,8 @@ namespace Eigen::internal
   {
     enum
     {
-      RowsAtCompileTime = OpenKalman::fixed_index_descriptor<Rows> ? static_cast<int>(OpenKalman::dimension_size_of_v<Rows>) : Eigen::Dynamic,
-      ColsAtCompileTime = OpenKalman::fixed_index_descriptor<Cols> ? static_cast<int>(OpenKalman::dimension_size_of_v<Cols>) : Eigen::Dynamic,
+      RowsAtCompileTime = OpenKalman::fixed_vector_space_descriptor<Rows> ? static_cast<int>(OpenKalman::dimension_size_of_v<Rows>) : Eigen::Dynamic,
+      ColsAtCompileTime = OpenKalman::fixed_vector_space_descriptor<Cols> ? static_cast<int>(OpenKalman::dimension_size_of_v<Cols>) : Eigen::Dynamic,
       MaxRowsAtCompileTime = RowsAtCompileTime,
       MaxColsAtCompileTime = ColsAtCompileTime,
     };
@@ -125,11 +125,11 @@ namespace Eigen::internal
     static constexpr auto BaseFlags = traits<std::decay_t<ArgType>>::Flags;
     enum
     {
-      Flags = OpenKalman::euclidean_index_descriptor<Coeffs> ? BaseFlags :
+      Flags = OpenKalman::euclidean_vector_space_descriptor<Coeffs> ? BaseFlags :
         BaseFlags & ~DirectAccessBit & ~PacketAccessBit & ~LvalueBit &
           ~(OpenKalman::vector<ArgType> ? 0 : LinearAccessBit),
       RowsAtCompileTime = [] {
-        if constexpr (OpenKalman::dynamic_index_descriptor<Coeffs>) return Eigen::Dynamic;
+        if constexpr (OpenKalman::dynamic_vector_space_descriptor<Coeffs>) return Eigen::Dynamic;
         else return static_cast<Index>(OpenKalman::euclidean_dimension_size_of_v<Coeffs>);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
@@ -143,11 +143,11 @@ namespace Eigen::internal
     static constexpr auto BaseFlags = traits<std::decay_t<ArgType>>::Flags;
     enum
     {
-      Flags = OpenKalman::euclidean_index_descriptor<Coeffs> ? BaseFlags :
+      Flags = OpenKalman::euclidean_vector_space_descriptor<Coeffs> ? BaseFlags :
         BaseFlags & ~DirectAccessBit & ~PacketAccessBit & ~LvalueBit &
           ~(OpenKalman::vector<ArgType> ? 0 : LinearAccessBit),
       RowsAtCompileTime = [] {
-        if constexpr (OpenKalman::dynamic_index_descriptor<Coeffs>) return Eigen::Dynamic;
+        if constexpr (OpenKalman::dynamic_vector_space_descriptor<Coeffs>) return Eigen::Dynamic;
         else return static_cast<Index>(OpenKalman::dimension_size_of_v<Coeffs>);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
@@ -162,11 +162,11 @@ namespace Eigen::internal
     static constexpr auto BaseFlags = traits<std::decay_t<ArgType>>::Flags;
     enum
     {
-      Flags = OpenKalman::euclidean_index_descriptor<Coeffs> ? BaseFlags :
+      Flags = OpenKalman::euclidean_vector_space_descriptor<Coeffs> ? BaseFlags :
         BaseFlags & ~DirectAccessBit & ~PacketAccessBit & ~LvalueBit &
           ~(OpenKalman::vector<ArgType> ? 0 : LinearAccessBit),
       RowsAtCompileTime = [] {
-        if constexpr (OpenKalman::dynamic_index_descriptor<Coeffs>) return Eigen::Dynamic;
+        if constexpr (OpenKalman::dynamic_vector_space_descriptor<Coeffs>) return Eigen::Dynamic;
         else return static_cast<Index>(OpenKalman::dimension_size_of_v<Coeffs>);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
@@ -180,7 +180,7 @@ namespace Eigen::internal
     static constexpr auto BaseFlags = traits<std::decay_t<ArgType>>::Flags;
     enum
     {
-      Flags = OpenKalman::euclidean_index_descriptor<TypedIndex> ? BaseFlags :
+      Flags = OpenKalman::euclidean_vector_space_descriptor<TypedIndex> ? BaseFlags :
         BaseFlags & ~DirectAccessBit & ~PacketAccessBit & ~LvalueBit,
     };
   };

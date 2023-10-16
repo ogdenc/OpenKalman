@@ -23,8 +23,8 @@
 namespace OpenKalman
 {
   /**
-   * \brief A composite \ref fixed_index_descriptor comprising a sequence of other fixed index descriptors.
-   * \details This is the key to the wrapping functionality of OpenKalman. Each of the fixed_index_descriptor Cs... matches-up with
+   * \brief A composite \ref fixed_vector_space_descriptor comprising a sequence of other fixed \ref vector_space_descriptor.
+   * \details This is the key to the wrapping functionality of OpenKalman. Each of the fixed_vector_space_descriptor Cs... matches-up with
    * one or more of the rows or columns of a matrix. The number of coefficients per coefficient depends on the dimension
    * of the coefficient. For example, Axis, Distance, Angle, and Inclination are dimension 1, and each correspond to a
    * single coefficient. Polar is dimension 2 and corresponds to two coefficients (e.g., a distance and an angle).
@@ -33,18 +33,18 @@ namespace OpenKalman
    * \tparam Cs Any types within the concept coefficients.
    */
 #ifdef __cpp_concepts
-  template<fixed_index_descriptor...Cs>
+  template<fixed_vector_space_descriptor...Cs>
 #else
   template<typename...Cs>
 #endif
   struct TypedIndex
   {
 #ifndef __cpp_concepts
-    static_assert((fixed_index_descriptor<Cs> and ...));
+    static_assert((fixed_vector_space_descriptor<Cs> and ...));
 #endif
 
     /**
-     * \brief Prepend a set of new index descriptors to the existing set.
+     * \brief Prepend a set of new \ref vector_space_descriptor to the existing set.
      * \tparam Cnew The set of new coordinates to prepend.
      */
     template<typename ... Cnew>
@@ -73,8 +73,8 @@ namespace OpenKalman
   public:
 
     /**
-     * \brief Extract a particular index descriptor from the set of fixed index descriptors.
-     * \tparam i The index of the index descriptor.
+     * \brief Extract a particular component from the set of fixed \ref vector_space_descriptor.
+     * \tparam i The index of the \ref vector_space_descriptor component.
      */
 #ifdef __cpp_concepts
     template<std::size_t i> requires (i < sizeof...(Cs))
@@ -97,8 +97,8 @@ namespace OpenKalman
   public:
 
     /**
-     * \brief Take the first <code>count</code> index descriptors.
-     * \tparam count The number of index descriptors to take.
+     * \brief Take the first <code>count</code> \ref vector_space_descriptor.
+     * \tparam count The number of \ref vector_space_descriptor to take.
      */
 #ifdef __cpp_concepts
     template<std::size_t count> requires (count <= sizeof...(Cs))
@@ -122,8 +122,8 @@ namespace OpenKalman
   public:
 
     /**
-     * \brief Discard all remaining index descriptors after the first <code>count</code>.
-     * \tparam count The index of the first index descriptor to discard.
+     * \brief Discard all remaining \ref vector_space_descriptor after the first <code>count</code>.
+     * \tparam count The index of the first \ref vector_space_descriptor component to discard.
      */
 #ifdef __cpp_concepts
     template<std::size_t count> requires (count <= sizeof...(Cs))
@@ -142,13 +142,13 @@ namespace OpenKalman
      * \brief traits for TypedIndex.
      */
     template<typename...Cs>
-    struct FixedIndexDescriptorTraits<TypedIndex<Cs...>>
+    struct FixedVectorSpaceDescriptorTraits<TypedIndex<Cs...>>
     {
       static constexpr std::size_t size = (0 + ... + dimension_size_of_v<Cs>);
       static constexpr std::size_t euclidean_size = (0 + ... + euclidean_dimension_size_of_v<Cs>);
-      static constexpr std::size_t component_count = (0 + ... + index_descriptor_components_of<Cs>::value);
-      using difference_type = concatenate_fixed_index_descriptor_t<dimension_difference_of_t<Cs>...>;
-      static constexpr bool always_euclidean = (euclidean_index_descriptor<Cs> and ...);
+      static constexpr std::size_t component_count = (0 + ... + vector_space_descriptor_components_of<Cs>::value);
+      using difference_type = concatenate_fixed_vector_space_descriptor_t<dimension_difference_of_t<Cs>...>;
+      static constexpr bool always_euclidean = (euclidean_vector_space_descriptor<Cs> and ...);
 
       static constexpr bool operations_defined = true;
 
@@ -211,16 +211,16 @@ namespace OpenKalman
 
   #ifdef __cpp_concepts
       template<typename Scalar> static constexpr GArr<Scalar>
-      to_euclidean_array { FixedIndexDescriptorTraits<Cs>::to_euclidean_element... };
+      to_euclidean_array { FixedVectorSpaceDescriptorTraits<Cs>::to_euclidean_element... };
 
       template<typename Scalar> static constexpr GArr<Scalar>
-      from_euclidean_array { FixedIndexDescriptorTraits<Cs>::from_euclidean_element... };
+      from_euclidean_array { FixedVectorSpaceDescriptorTraits<Cs>::from_euclidean_element... };
 
       template<typename Scalar> static constexpr GArr<Scalar>
-      wrap_get_array { FixedIndexDescriptorTraits<Cs>::wrap_get_element... };
+      wrap_get_array { FixedVectorSpaceDescriptorTraits<Cs>::wrap_get_element... };
 
       template<typename Scalar> static constexpr SArr<Scalar>
-      wrap_set_array { FixedIndexDescriptorTraits<Cs>::wrap_set_element... };
+      wrap_set_array { FixedVectorSpaceDescriptorTraits<Cs>::wrap_set_element... };
   #else
     private:
 
@@ -230,19 +230,19 @@ namespace OpenKalman
     public:
 
       template<typename Scalar> static constexpr GArr<Scalar>
-      to_euclidean_array { FixedIndexDescriptorTraits<Cs>::template to_euclidean_element<Getter<Scalar>, 0>... };
+      to_euclidean_array { FixedVectorSpaceDescriptorTraits<Cs>::template to_euclidean_element<Getter<Scalar>, 0>... };
 
       template<typename Scalar> static constexpr GArr<Scalar>
-      from_euclidean_array { FixedIndexDescriptorTraits<Cs>::template from_euclidean_element<Getter<Scalar>, 0>... };
+      from_euclidean_array { FixedVectorSpaceDescriptorTraits<Cs>::template from_euclidean_element<Getter<Scalar>, 0>... };
 
       template<typename Scalar> static constexpr GArr<Scalar>
-      wrap_get_array { FixedIndexDescriptorTraits<Cs>::template wrap_get_element<Getter<Scalar>, 0>... };
+      wrap_get_array { FixedVectorSpaceDescriptorTraits<Cs>::template wrap_get_element<Getter<Scalar>, 0>... };
 
       template<typename Scalar> static constexpr SArr<Scalar>
-      wrap_set_array { FixedIndexDescriptorTraits<Cs>::template wrap_set_element<Setter<Scalar>, Getter<Scalar>, 0>... };
+      wrap_set_array { FixedVectorSpaceDescriptorTraits<Cs>::template wrap_set_element<Setter<Scalar>, Getter<Scalar>, 0>... };
   #endif
 
-      static constexpr bool euclidean_type = (euclidean_index_descriptor<Cs> and ...);
+      static constexpr bool euclidean_type = (euclidean_vector_space_descriptor<Cs> and ...);
 
     public:
 

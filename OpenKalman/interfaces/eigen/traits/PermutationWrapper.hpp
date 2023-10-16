@@ -22,12 +22,18 @@
 namespace OpenKalman::interface
 {
   template<typename IndicesType>
-  struct IndexibleObjectTraits<Eigen::PermutationWrapper<IndicesType>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::PermutationWrapper<IndicesType>>
+  struct indexible_object_traits<Eigen::PermutationWrapper<IndicesType>>
+    : Eigen3::indexible_object_traits_base<Eigen::PermutationWrapper<IndicesType>>
   {
-    static constexpr bool has_runtime_parameters = false;
+  private:
+
+    using Base = Eigen3::indexible_object_traits_base<Eigen::PermutationWrapper<IndicesType>>;
+
+  public:
 
     using type = std::tuple<typename IndicesType::Nested>;
+
+    static constexpr bool has_runtime_parameters = false;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)

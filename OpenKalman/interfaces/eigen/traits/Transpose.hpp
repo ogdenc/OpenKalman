@@ -22,18 +22,18 @@
 namespace OpenKalman::interface
 {
   template<typename MatrixType>
-  struct IndexibleObjectTraits<Eigen::Transpose<MatrixType>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::Transpose<MatrixType>>
+  struct indexible_object_traits<Eigen::Transpose<MatrixType>>
+    : Eigen3::indexible_object_traits_base<Eigen::Transpose<MatrixType>>
   {
-    template<Likelihood b>
-    static constexpr bool is_one_by_one = one_by_one_matrix<MatrixType, b>;
+  private:
 
-    template<Likelihood b>
-    static constexpr bool is_square = square_matrix<MatrixType, b>;
+    using Base = Eigen3::indexible_object_traits_base<Eigen::Transpose<MatrixType>>;
 
-    static constexpr bool has_runtime_parameters = false;
+  public:
 
     using type = std::tuple<typename Eigen::internal::ref_selector<MatrixType>::non_const_type>;
+
+    static constexpr bool has_runtime_parameters = false;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -65,6 +65,12 @@ namespace OpenKalman::interface
       return constant_diagonal_coefficient {arg.nestedExpression()};
     }
 
+    template<Likelihood b>
+    static constexpr bool is_one_by_one = one_by_one_matrix<MatrixType, b>;
+
+    template<Likelihood b>
+    static constexpr bool is_square = square_matrix<MatrixType, b>;
+
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = diagonal_matrix<MatrixType, b> or
       (t == TriangleType::lower and triangular_matrix<MatrixType, TriangleType::upper, b>) or
@@ -73,6 +79,9 @@ namespace OpenKalman::interface
     static constexpr bool is_triangular_adapter = false;
 
     static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Likelihood::maybe>;
+
+    static constexpr Layout layout = layout_of_v<MatrixType>;
+
   };
 
 

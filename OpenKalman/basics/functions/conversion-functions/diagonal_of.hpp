@@ -23,7 +23,7 @@ namespace OpenKalman
     template<typename T, std::size_t...Is, typename C, typename D0>
     constexpr auto make_constant_column_vector(std::index_sequence<Is...>, C&& c, D0&& d0)
     {
-      return make_constant_matrix_like<T>(std::forward<C>(c), std::forward<D0>(d0), Dimensions<static_cast<decltype(Is)>(1)>{}...);
+      return make_constant_matrix_like<T>(std::forward<C>(c), std::forward<D0>(d0), Dimensions<Is==Is?1:1>{}...);
     }
   }
 
@@ -42,7 +42,7 @@ namespace OpenKalman
 #endif
   diagonal_of(Arg&& arg)
   {
-    constexpr std::make_index_sequence<max_indices_of_v<Arg> - 1> seq;
+    constexpr std::make_index_sequence<index_count_v<Arg> - 1> seq;
 
     if constexpr (diagonal_adapter<Arg>)
     {
@@ -52,10 +52,20 @@ namespace OpenKalman
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (max_tensor_order_of_v<Arg> < max_indices_of_v<Arg>) // arg is a one-by-one matrix with at least one dynamic dimension
+    // arg is a one-by-one matrix with at least one dynamic dimension, or an empty matrix
+    else if constexpr (max_tensor_order_of_v<Arg> < index_count_v<Arg>)
     {
       if (not get_is_square(arg)) throw std::invalid_argument{"Argument of diagonal_of is not a square matrix."};
-      return detail::make_constant_column_vector<Arg>(seq, constant_coefficient {std::forward<Arg>(arg)}, Dimensions<1>{});
+      if constexpr (one_by_one_matrix<Arg, Likelihood::maybe>)
+      {
+        constant_coefficient c {std::forward<Arg>(arg)};
+        return detail::make_constant_column_vector<Arg>(seq, c, Dimensions<1>{});
+      }
+      else
+      {
+        internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<Arg>, 0> z;
+        return detail::make_constant_column_vector<Arg>(seq, z, Dimensions<0>{});
+      }
     }
     else if constexpr (constant_matrix<Arg>)
     {
@@ -71,7 +81,7 @@ namespace OpenKalman
     }
     else
     {
-      return interface::LibraryRoutines<std::decay_t<Arg>>::diagonal_of(std::forward<Arg>(arg));
+      return interface::library_interface<std::decay_t<Arg>>::diagonal_of(std::forward<Arg>(arg));
     }
   }
 

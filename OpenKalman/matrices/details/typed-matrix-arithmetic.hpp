@@ -22,10 +22,10 @@ namespace OpenKalman
 #endif
   inline auto operator+(V1&& v1, V2&& v2)
   {
-    using RC1 = row_index_descriptor_of_t<V1>;
-    using CC1 = column_index_descriptor_of_t<V1>;
-    static_assert(equivalent_to<row_index_descriptor_of_t<V2>, RC1>);
-    static_assert(equivalent_to<column_index_descriptor_of_t<V2>, CC1>);
+    using RC1 = vector_space_descriptor_of_t<V1, 0>;
+    using CC1 = vector_space_descriptor_of_t<V1, 1>;
+    static_assert(equivalent_to<vector_space_descriptor_of_t<V2, 0>, RC1>);
+    static_assert(equivalent_to<vector_space_descriptor_of_t<V2, 1>, CC1>);
     static_assert(euclidean_transformed<V1> == euclidean_transformed<V2>);
 
     auto b = make_self_contained<V1, V2>(nested_matrix(std::forward<V1>(v1)) + nested_matrix(std::forward<V2>(v2)));
@@ -44,10 +44,10 @@ namespace OpenKalman
 #endif
   inline auto operator-(V1&& v1, V2&& v2)
   {
-    using RC1 = row_index_descriptor_of_t<V1>;
-    using CC1 = column_index_descriptor_of_t<V1>;
-    static_assert(equivalent_to<row_index_descriptor_of_t<V2>, RC1>);
-    static_assert(equivalent_to<column_index_descriptor_of_t<V2>, CC1>);
+    using RC1 = vector_space_descriptor_of_t<V1, 0>;
+    using CC1 = vector_space_descriptor_of_t<V1, 1>;
+    static_assert(equivalent_to<vector_space_descriptor_of_t<V2, 0>, RC1>);
+    static_assert(equivalent_to<vector_space_descriptor_of_t<V2, 1>, CC1>);
     static_assert(euclidean_transformed<V1> == euclidean_transformed<V2>);
 
     auto b = make_self_contained<V1, V2>(nested_matrix(std::forward<V1>(v1)) - nested_matrix(std::forward<V2>(v2)));
@@ -67,8 +67,8 @@ namespace OpenKalman
 #endif
   inline auto operator*(V&& v, S scale)
   {
-    using RC = row_index_descriptor_of_t<V>;
-    using CC = column_index_descriptor_of_t<V>;
+    using RC = vector_space_descriptor_of_t<V, 0>;
+    using CC = vector_space_descriptor_of_t<V, 1>;
     using Sc = scalar_type_of_t<V>;
 
     auto b = make_self_contained<V>(nested_matrix(std::forward<V>(v)) * static_cast<Sc>(scale));
@@ -88,8 +88,8 @@ namespace OpenKalman
 #endif
   inline auto operator*(S scale, V&& v)
   {
-    using RC = row_index_descriptor_of_t<V>;
-    using CC = column_index_descriptor_of_t<V>;
+    using RC = vector_space_descriptor_of_t<V, 0>;
+    using CC = vector_space_descriptor_of_t<V, 1>;
     using Sc = const scalar_type_of_t<V>;
 
     auto b = make_self_contained<V>(static_cast<Sc>(scale) * nested_matrix(std::forward<V>(v)));
@@ -109,8 +109,8 @@ namespace OpenKalman
 #endif
   inline auto operator/(V&& v, S scale)
   {
-    using RC = row_index_descriptor_of_t<V>;
-    using CC = column_index_descriptor_of_t<V>;
+    using RC = vector_space_descriptor_of_t<V, 0>;
+    using CC = vector_space_descriptor_of_t<V, 1>;
     using Sc = scalar_type_of_t<V>;
 
     auto b = make_self_contained<V>(nested_matrix(std::forward<V>(v)) / static_cast<Sc>(scale));
@@ -129,9 +129,9 @@ namespace OpenKalman
 #endif
   inline auto operator*(V1&& v1, V2&& v2)
   {
-    static_assert(equivalent_to<column_index_descriptor_of_t<V1>, row_index_descriptor_of_t<V2>>);
-    using RC = row_index_descriptor_of_t<V1>;
-    using CC = column_index_descriptor_of_t<V2>;
+    static_assert(equivalent_to<vector_space_descriptor_of_t<V1, 1>, vector_space_descriptor_of_t<V2, 0>>);
+    using RC = vector_space_descriptor_of_t<V1, 0>;
+    using CC = vector_space_descriptor_of_t<V2, 1>;
 
     auto b = make_self_contained<V1, V2>(nested_matrix(std::forward<V1>(v1)) * nested_matrix(std::forward<V2>(v2)));
 
@@ -148,8 +148,8 @@ namespace OpenKalman
 #endif
   inline auto operator-(V&& v)
   {
-    using RC = row_index_descriptor_of_t<V>;
-    using CC = column_index_descriptor_of_t<V>;
+    using RC = vector_space_descriptor_of_t<V, 0>;
+    using CC = vector_space_descriptor_of_t<V, 1>;
 
     auto b = make_self_contained<V>(-nested_matrix(std::forward<V>(v)));
 
@@ -167,8 +167,8 @@ namespace OpenKalman
   constexpr bool operator==(V1&& v1, V2&& v2)
   {
     if constexpr(
-      equivalent_to<row_index_descriptor_of_t<V1>, row_index_descriptor_of_t<V2>> and
-      equivalent_to<column_index_descriptor_of_t<V1>, column_index_descriptor_of_t<V2>>)
+      equivalent_to<vector_space_descriptor_of_t<V1, 0>, vector_space_descriptor_of_t<V2, 0>> and
+      equivalent_to<vector_space_descriptor_of_t<V1, 1>, vector_space_descriptor_of_t<V2, 1>>)
     {
       return make_dense_writable_matrix_from(std::forward<V1>(v1)) == make_dense_writable_matrix_from(std::forward<V2>(v2));
     }

@@ -20,7 +20,7 @@ namespace OpenKalman
 {
 #ifdef __cpp_concepts
   template<square_matrix<Likelihood::maybe> NestedMatrix, TriangleType triangle_type>
-    requires (max_indices_of_v<NestedMatrix> <= 2)
+    requires (index_count_v<NestedMatrix> <= 2)
 #else
   template<typename NestedMatrix, TriangleType triangle_type>
 #endif
@@ -29,7 +29,7 @@ namespace OpenKalman
 
 #ifndef __cpp_concepts
     static_assert(square_matrix<NestedMatrix, Likelihood::maybe>);
-    static_assert(max_indices_of_v<NestedMatrix> <= 2);
+    static_assert(index_count_v<NestedMatrix> <= 2);
 #endif
 
   private:
@@ -361,35 +361,30 @@ namespace OpenKalman
   namespace interface
   {
     template<typename NestedMatrix, TriangleType triangle_type>
-    struct IndexibleObjectTraits<TriangularMatrix<NestedMatrix, triangle_type>>
+    struct indexible_object_traits<TriangularMatrix<NestedMatrix, triangle_type>>
     {
-      static constexpr std::size_t max_indices = 2;
-
-      using index_type = index_type_of_t<NestedMatrix>;
-
       using scalar_type = scalar_type_of_t<NestedMatrix>;
 
+      template<typename Arg>
+      static constexpr auto get_index_count(const Arg& arg) { return std::integral_constant<std::size_t, 2>{}; }
 
       template<typename Arg, typename N>
-      static constexpr auto get_index_descriptor(Arg&& arg, N n)
+      static constexpr auto get_vector_space_descriptor(Arg&& arg, N n)
       {
         if constexpr (static_index_value<N>)
         {
-          if constexpr (dynamic_dimension<NestedMatrix, 0>) return OpenKalman::get_index_descriptor<1>(nested_matrix(std::forward<Arg>(arg)));
-          else return OpenKalman::get_index_descriptor<0>(nested_matrix(arg));
+          if constexpr (dynamic_dimension<NestedMatrix, 0>) return OpenKalman::get_vector_space_descriptor<1>(nested_matrix(std::forward<Arg>(arg)));
+          else return OpenKalman::get_vector_space_descriptor<0>(nested_matrix(arg));
         }
         else
         {
-          return OpenKalman::get_index_descriptor<0>(nested_matrix(std::forward<Arg>(arg)));
+          return OpenKalman::get_vector_space_descriptor<0>(nested_matrix(std::forward<Arg>(arg)));
         }
       }
 
-      template<Likelihood b>
-      static constexpr bool is_one_by_one = one_by_one_matrix<NestedMatrix, b>;
+      using type = std::tuple<NestedMatrix>;
 
       static constexpr bool has_runtime_parameters = false;
-
-      using type = std::tuple<NestedMatrix>;
 
       template<std::size_t i, typename Arg>
       static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -401,7 +396,7 @@ namespace OpenKalman
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
-        auto n = make_self_contained(get_nested_matrix<0>(std::forward<Arg>(arg)));
+        auto n = make_self_contained(get_nested_matrix(std::forward<Arg>(arg)));
         return TriangularMatrix<decltype(n), triangle_type> {std::move(n)};
       }
 
@@ -413,6 +408,9 @@ namespace OpenKalman
         else
           return constant_diagonal_coefficient{nested_matrix(arg)};
       }
+
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = one_by_one_matrix<NestedMatrix, b>;
 
       template<TriangleType t, Likelihood>
       static constexpr bool is_triangular = t == TriangleType::any or triangle_type == TriangleType::diagonal or triangle_type == t or

@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Traits for index descriptors.
+ * \brief Traits for \ref vector_space_descriptor.
  */
 
 #ifndef OPENKALMAN_INDEX_DESCRIPTOR_INTERFACE_TRAITS_HPP
@@ -21,11 +21,11 @@
 namespace OpenKalman::interface
 {
   // ------------------------------ //
-  //   FixedIndexDescriptorTraits   //
+  //   FixedVectorSpaceDescriptorTraits   //
   // ------------------------------ //
 
   /**
-   * \brief Traits for a \ref fixed_index_descriptor.
+   * \brief Traits for a \ref fixed_vector_space_descriptor.
    * \details The traits must define all the members as indicated here.
    */
 #ifdef __cpp_concepts
@@ -34,9 +34,9 @@ namespace OpenKalman::interface
   template<typename T, typename = void>
 #endif
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-  struct FixedIndexDescriptorTraits;
+  struct FixedVectorSpaceDescriptorTraits;
 #else
-  struct FixedIndexDescriptorTraits
+  struct FixedVectorSpaceDescriptorTraits
   {
     /// \brief The number of dimensions at compile time.
     static constexpr std::size_t size = 0;
@@ -47,25 +47,25 @@ namespace OpenKalman::interface
     /// \brief The number of atomic component parts at compile time.
     static constexpr std::size_t component_count = 0;
 
-    /// \brief The type of the \ref index_descriptor when tensors having respective index_descriptors T are subtracted.
+    /// \brief The type of the \ref vector_space_descriptor when tensors having respective vector_space_descriptor T are subtracted.
     /// \details For example, subtracting two 1D vectors of type Direction yields a 1D vector of type Dimensions<1>.
     /// So if <code>T</code> is Distance, the resulting <code>difference_type</code> will be Dimensions<1>.
     using difference_type = std::decay_t<T>;
 
-    /// \brief Whether the index descriptor is known at compile time to describe Euclidean coordinates (and in this case, size == euclidean_size).
+    /// \brief Whether the \ref vector_space_descriptor object is known at compile time to describe Euclidean coordinates (and in this case, size == euclidean_size).
     static constexpr bool always_euclidean = false;
 
-    /// \brief Whether arithmetic operations (e.g., addition, subtraction) are defined for this index descriptor.
+    /// \brief Whether arithmetic operations (e.g., addition, subtraction) are defined for this \ref vector_space_descriptor object.
     static constexpr bool operations_defined = false;
 
 
     /**
      * \brief Maps an element from coordinates in modular space to coordinates in Euclidean space.
-     * \note For \ref fixed_index_descriptor, this must be a static function.
+     * \note For \ref fixed_vector_space_descriptor, this must be a static function.
      * \param g An element getter mapping an index i of type std::size_t to an element of \ref scalar_type
      * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
      * \param euclidean_local_index A local index accessing the coordinate in Euclidean space
-     * \param start The starting location of the angle within any larger set of index type descriptors
+     * \param start The starting location of the angle within any larger set of \ref vector_space_descriptor
      */
 #ifdef __cpp_concepts
     static constexpr scalar_type auto to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start)
@@ -81,7 +81,7 @@ namespace OpenKalman::interface
      * \param g An element getter mapping an index i of type std::size_t to an element of \ref scalar_type
      * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
      * \param local_index A local index accessing the coordinate in modular space.
-     * \param euclidean_start The starting location in Euclidean space within any larger set of index type descriptors
+     * \param euclidean_start The starting location in Euclidean space within any larger set of \ref vector_space_descriptor
      */
 #ifdef __cpp_concepts
     static constexpr scalar_type auto
@@ -100,7 +100,7 @@ namespace OpenKalman::interface
      * \param g An element getter mapping an index i of type std::size_t to an element of \ref scalar_type
      * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
      * \param local_index A local index accessing the element.
-     * \param start The starting location of the element within any larger set of index type descriptors.
+     * \param start The starting location of the element within any larger set of \ref vector_space_descriptor.
      */
 #ifdef __cpp_concepts
     static constexpr scalar_type auto wrap_get_element(const auto& g, std::size_t local_index, std::size_t start)
@@ -119,7 +119,7 @@ namespace OpenKalman::interface
      * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
      * \param x The new value to be set.
      * \param local_index A local index accessing the element.
-     * \param start The starting location of the element within any larger set of index type descriptors.
+     * \param start The starting location of the element within any larger set of \ref vector_space_descriptor.
      */
 #ifdef __cpp_concepts
     static constexpr void wrap_set_element(const auto& s, const auto& g,
@@ -137,11 +137,11 @@ namespace OpenKalman::interface
 
 
   // -------------------------------- //
-  //   DynamicIndexDescriptorTraits   //
+  //   DynamicVectorSpaceDescriptorTraits   //
   // -------------------------------- //
 
   /**
-   * \brief Traits for a \ref dynamic_index_descriptor.
+   * \brief Traits for a \ref dynamic_vector_space_descriptor.
    * \details The traits must define all the functions as indicated here.
    */
 #ifdef __cpp_concepts
@@ -150,36 +150,36 @@ namespace OpenKalman::interface
   template<typename T, typename = void>
 #endif
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-  struct DynamicIndexDescriptorTraits;
+  struct DynamicVectorSpaceDescriptorTraits;
 #else
-  struct DynamicIndexDescriptorTraits
+  struct DynamicVectorSpaceDescriptorTraits
   {
     /// \brief Constructs a traits objects based on a parameter for which runtime traits are needed.
     /// \param t A runtime object of type T.
-    explicit constexpr DynamicIndexDescriptorTraits(const std::decay_t<T>& t) = delete;
+    explicit constexpr DynamicVectorSpaceDescriptorTraits(const std::decay_t<T>& t) = delete;
 
     /// \brief Get the dimension size, at runtime, of t.
-    /// \details May be non-static if T is a \ref dynamic_index_descriptor.
+    /// \details May be non-static if T is a \ref dynamic_vector_space_descriptor.
     [[nodiscard]] std::size_t get_size() const = delete;
 
     /// \brief Get the dimension size, at runtime (if transforming to Euclidean space), of t.
-    /// \details May be non-static if T is a \ref dynamic_index_descriptor.
+    /// \details May be non-static if T is a \ref dynamic_vector_space_descriptor.
     [[nodiscard]] std::size_t get_euclidean_size() const = delete;
 
-    /// \brief Get the number of atomic component parts of the index descriptor.
-    /// \details May be non-static if T is a \ref dynamic_index_descriptor.
+    /// \brief Get the number of atomic component parts of the \ref vector_space_descriptor object.
+    /// \details May be non-static if T is a \ref dynamic_vector_space_descriptor.
     [[nodiscard]] std::size_t get_component_count() const = delete;
 
-    /// \brief Whether the descriptor is euclidean at runtime.
-    /// \note May be non-static if T is a \ref dynamic_index_descriptor.
+    /// \brief Whether the \ref vector_space_descriptor is euclidean at runtime.
+    /// \note May be non-static if T is a \ref dynamic_vector_space_descriptor.
     [[nodiscard]] bool is_euclidean() const = delete;
 
-    /// \brief Whether arithmetic operations (e.g., addition, subtraction) are defined for this index descriptor.
+    /// \brief Whether arithmetic operations (e.g., addition, subtraction) are defined for this \ref vector_space_descriptor object.
     static constexpr bool operations_defined = false;
 
 
     /**
-     * \copydoc interface::FixedIndexDescriptorTraits::to_euclidean_element
+     * \copydoc interface::FixedVectorSpaceDescriptorTraits::to_euclidean_element
      */
 #ifdef __cpp_concepts
     scalar_type auto to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start) const
@@ -191,7 +191,7 @@ namespace OpenKalman::interface
 
 
     /**
-     * \copydoc interface::FixedIndexDescriptorTraits::from_euclidean_element
+     * \copydoc interface::FixedVectorSpaceDescriptorTraits::from_euclidean_element
      */
 #ifdef __cpp_concepts
     scalar_type auto from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start) const
@@ -203,7 +203,7 @@ namespace OpenKalman::interface
 
 
     /**
-     * \copydoc interface::FixedIndexDescriptorTraits::wrap_get_element
+     * \copydoc interface::FixedVectorSpaceDescriptorTraits::wrap_get_element
      */
 #ifdef __cpp_concepts
     scalar_type auto wrap_get_element(const auto& g, std::size_t local_index, std::size_t start) const
@@ -215,7 +215,7 @@ namespace OpenKalman::interface
 
 
     /**
-     * \copydoc interface::FixedIndexDescriptorTraits::wrap_set_element
+     * \copydoc interface::FixedVectorSpaceDescriptorTraits::wrap_set_element
      */
 #ifdef __cpp_concepts
     void wrap_set_element(const auto& s, const auto& g,
@@ -237,7 +237,7 @@ namespace OpenKalman::interface
   // ----------------- //
 
   template<typename T>
-  DynamicIndexDescriptorTraits(T&&) -> DynamicIndexDescriptorTraits<std::decay_t<T>>;
+  DynamicVectorSpaceDescriptorTraits(T&&) -> DynamicVectorSpaceDescriptorTraits<std::decay_t<T>>;
 
 
 } // namespace OpenKalman::interface

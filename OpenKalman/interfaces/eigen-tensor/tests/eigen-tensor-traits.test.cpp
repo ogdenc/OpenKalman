@@ -175,9 +175,9 @@ TEST(eigen_tensor, tensor_to_matrix)
   static_assert(Eigen3::eigen_dense_general<Eigen3::EigenWrapper<T23>, true>);
   T23 t23;
   t23.setValues({{1, 2, 3}, {4, 5, 6}});
-  EXPECT_TRUE(is_near(Eigen3::EigenWrapper {t23}, m23));
-  EXPECT_TRUE(is_near(Eigen3::EigenWrapper {t23} + m23.reverse(), M23::Constant(7)));
-  EXPECT_TRUE(is_near(Eigen3::EigenWrapper {t23} * m23.transpose(), make_dense_writable_matrix_from<M22>(14, 32, 32, 77)));
+  EXPECT_TRUE(is_near(Eigen3::make_eigen_wrapper(t23), m23));
+  EXPECT_TRUE(is_near(Eigen3::make_eigen_wrapper(t23) + m23.reverse(), M23::Constant(7)));
+  EXPECT_TRUE(is_near(Eigen3::make_eigen_wrapper(t23) * m23.transpose(), make_dense_writable_matrix_from<M22>(14, 32, 32, 77)));
 
   static_assert(not eigen_matrix_general<T23>);
   static_assert(not eigen_array_general<T23>);

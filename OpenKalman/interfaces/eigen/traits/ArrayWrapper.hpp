@@ -22,29 +22,25 @@
 namespace OpenKalman::interface
 {
   template<typename XprType>
-  struct IndexibleObjectTraits<Eigen::ArrayWrapper<XprType>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::ArrayWrapper<XprType>>
+  struct indexible_object_traits<Eigen::ArrayWrapper<XprType>>
+    : Eigen3::indexible_object_traits_base<Eigen::ArrayWrapper<XprType>>
   {
   private:
 
+    using Base = Eigen3::indexible_object_traits_base<Eigen::ArrayWrapper<XprType>>;
     using NestedXpr = typename Eigen::ArrayWrapper<XprType>::NestedExpressionType;
 
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_index_descriptor(const Arg& arg, N n)
+    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
     {
-      return OpenKalman::get_index_descriptor(arg.nestedExpression(), n);
+      return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
     }
 
-    template<Likelihood b>
-    static constexpr bool is_one_by_one = one_by_one_matrix<XprType, b>;
-
-    template<Likelihood b>
-    static constexpr bool is_square = square_matrix<XprType, b>;
+    using type = std::tuple<NestedXpr>;
 
     static constexpr bool has_runtime_parameters = false;
-    using type = std::tuple<NestedXpr>;
 
     template<std::size_t i, typename Arg>
     static NestedXpr get_nested_matrix(Arg&& arg)
@@ -78,12 +74,21 @@ namespace OpenKalman::interface
       return constant_diagonal_coefficient {arg.nestedExpression()};
     }
 
+    template<Likelihood b>
+    static constexpr bool is_one_by_one = one_by_one_matrix<XprType, b>;
+
+    template<Likelihood b>
+    static constexpr bool is_square = square_matrix<XprType, b>;
+
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
     static constexpr bool is_triangular_adapter = false;
 
     static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+
+    static constexpr Layout layout = layout_of_v<XprType>;
+
   };
 
 } // namespace OpenKalman::interface

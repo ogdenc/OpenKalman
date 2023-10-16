@@ -20,7 +20,7 @@ namespace OpenKalman
 {
 #ifdef __cpp_concepts
   template<square_matrix<Likelihood::maybe> NestedMatrix, HermitianAdapterType storage_triangle> requires
-    (max_indices_of_v<NestedMatrix> <= 2) and
+    (index_count_v<NestedMatrix> <= 2) and
     (storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper) and
     (not constant_matrix<NestedMatrix> or real_axis_number<constant_coefficient<NestedMatrix>>) and
     (not constant_diagonal_matrix<NestedMatrix> or real_axis_number<constant_diagonal_coefficient<NestedMatrix>>) and
@@ -35,7 +35,7 @@ namespace OpenKalman
 
 #ifndef __cpp_concepts
     static_assert(square_matrix<NestedMatrix, Likelihood::maybe>);
-    static_assert(max_indices_of_v<NestedMatrix> <= 2);
+    static_assert(index_count_v<NestedMatrix> <= 2);
     static_assert(storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper);
     static_assert([]{if constexpr (constant_matrix<NestedMatrix>) return real_axis_number<constant_coefficient<NestedMatrix>>; else return true; }());
     static_assert([]{if constexpr (constant_diagonal_matrix<NestedMatrix>) return real_axis_number<constant_diagonal_coefficient<NestedMatrix>>; else return true; }());
@@ -79,7 +79,7 @@ namespace OpenKalman
     /// Construct from a diagonal matrix if NestedMatrix is diagonal.
 #ifdef __cpp_concepts
     template<diagonal_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, SelfAdjointMatrix>) and
-      diagonal_matrix<NestedMatrix> and index_descriptors_match<Arg, NestedMatrix> and
+      diagonal_matrix<NestedMatrix> and vector_space_descriptor_match<Arg, NestedMatrix> and
       requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; }
 #else
     template<typename Arg, std::enable_if_t<(not std::is_base_of_v<SelfAdjointMatrix, std::decay_t<Arg>>) and
@@ -207,10 +207,10 @@ namespace OpenKalman
     template<typename ... Args, std::enable_if_t<
       std::conjunction_v<std::is_convertible<Args, const Scalar>...> and (sizeof...(Args) > 0) and
       (std::is_constructible_v<NestedMatrix,
-        untyped_dense_writable_matrix_t<NestedMatrix, Scalar, static_cast<std::size_t>(
+        untyped_dense_writable_matrix_t<NestedMatrix, Layout::none, Scalar, static_cast<std::size_t>(
           internal::constexpr_sqrt(sizeof...(Args))), static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)))>> or
         (diagonal_matrix<NestedMatrix> and std::is_constructible_v<NestedMatrix,
-          untyped_dense_writable_matrix_t<NestedMatrix, Scalar, sizeof...(Args), 1>>)), int> = 0>
+          untyped_dense_writable_matrix_t<NestedMatrix, Layout::none, Scalar, sizeof...(Args), 1>>)), int> = 0>
 #endif
     SelfAdjointMatrix(Args ... args)
       : Base {make_dense_writable_matrix_from<NestedMatrix>(static_cast<const Scalar>(args)...)} {}
@@ -422,35 +422,30 @@ namespace OpenKalman
   namespace interface
   {
     template<typename NestedMatrix, HermitianAdapterType storage_type>
-    struct IndexibleObjectTraits<SelfAdjointMatrix<NestedMatrix, storage_type>>
+    struct indexible_object_traits<SelfAdjointMatrix<NestedMatrix, storage_type>>
     {
-      static constexpr std::size_t max_indices = 2;
-
-      using index_type = index_type_of_t<NestedMatrix>;
-
       using scalar_type = scalar_type_of_t<NestedMatrix>;
 
+      template<typename Arg>
+      static constexpr auto get_index_count(const Arg& arg) { return std::integral_constant<std::size_t, 2>{}; }
 
       template<typename Arg, typename N>
-      static constexpr auto get_index_descriptor(Arg&& arg, N n)
+      static constexpr auto get_vector_space_descriptor(Arg&& arg, N n)
       {
         if constexpr (static_index_value<N>)
         {
-          if constexpr (dynamic_dimension<NestedMatrix, 0>) return OpenKalman::get_index_descriptor<1>(nested_matrix(std::forward<Arg>(arg)));
-          else return OpenKalman::get_index_descriptor<0>(nested_matrix(std::forward<Arg>(arg)));
+          if constexpr (dynamic_dimension<NestedMatrix, 0>) return OpenKalman::get_vector_space_descriptor<1>(nested_matrix(std::forward<Arg>(arg)));
+          else return OpenKalman::get_vector_space_descriptor<0>(nested_matrix(std::forward<Arg>(arg)));
         }
         else
         {
-          return OpenKalman::get_index_descriptor<0>(nested_matrix(arg));
+          return OpenKalman::get_vector_space_descriptor<0>(nested_matrix(arg));
         }
       }
 
-      template<Likelihood b>
-      static constexpr bool is_one_by_one = one_by_one_matrix<NestedMatrix, b>;
+      using type = std::tuple<NestedMatrix>;
 
       static constexpr bool has_runtime_parameters = false;
-
-      using type = std::tuple<NestedMatrix>;
 
       template<std::size_t i, typename Arg>
       static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -462,7 +457,7 @@ namespace OpenKalman
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
-        auto n = make_self_contained(get_nested_matrix<0>(std::forward<Arg>(arg)));
+        auto n = make_self_contained(get_nested_matrix(std::forward<Arg>(arg)));
         return SelfAdjointMatrix<decltype(n), storage_type> {std::move(n)};
       }
 
@@ -477,6 +472,9 @@ namespace OpenKalman
       {
         return constant_diagonal_coefficient {nested_matrix(arg)};
       }
+
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = one_by_one_matrix<NestedMatrix, b>;
 
       template<TriangleType t, Likelihood>
       static constexpr bool is_triangular = triangular_matrix<NestedMatrix, TriangleType::diagonal, Likelihood::maybe>;

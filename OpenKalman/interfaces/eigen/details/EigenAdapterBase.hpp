@@ -31,27 +31,9 @@ namespace OpenKalman::Eigen3
     using Base = std::conditional_t<std::is_base_of_v<Eigen::ArrayBase<std::decay_t<NestedMatrix>>, std::decay_t<NestedMatrix>>,
       Eigen::ArrayBase<Derived>, Eigen::MatrixBase<Derived>>;
 
-
-#ifdef __cpp_concepts
-    template<typename T>
-#else
-    template<typename T, typename = void>
-#endif
-    struct PacketScalarImpl { using type = scalar_type_of<NestedMatrix>; };
-
-
-#ifdef __cpp_concepts
-    template<typename T> requires requires { typename T::PacketScalar; }
-    struct PacketScalarImpl<T>
-#else
-    template<typename T>
-    struct PacketScalarImpl<T, std::void_t<typename T::PacketScalar>>
-#endif
-      { using type = typename T::PacketScalar; };
-
-
   public:
 
+    EIGEN_GENERIC_PUBLIC_INTERFACE(Derived)
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(bool {has_dynamic_dimensions<NestedMatrix>})
 
 
@@ -67,50 +49,7 @@ namespace OpenKalman::Eigen3
 
     constexpr EigenAdapterBase& operator=(EigenAdapterBase&& other) { return *this; }
 
-
-    /// \internal \note Eigen3 requires this.
-    using Scalar = scalar_type_of_t<NestedMatrix>;
-
-    using PacketScalar = typename PacketScalarImpl<Derived>::type;
-
-
-    /* \internal
-     * \brief The underlying numeric type for composed scalar types.
-     * \details In cases where Scalar is e.g. std::complex<T>, T were corresponding to RealScalar.
-     */
-    using RealScalar = typename Eigen::NumTraits<Scalar>::Real;
-
-
-    /* \internal
-     * \brief The return type for coefficient access.
-     * \details Depending on whether the object allows direct coefficient access (e.g. for a MatrixXd), this type is
-     * either 'const Scalar&' or simply 'Scalar' for objects that do not allow direct coefficient access.
-     */
-    using typename Base::CoeffReturnType;
-
-    /**
-     * \internal
-     * \brief The type of *this that is used for nesting within other Eigen classes.
-     * \note Eigen3 requires this as the type used when Derived is nested.
-     */
-    using Nested = Derived;
-
-    using StorageKind [[maybe_unused]] = typename Eigen::internal::traits<Derived>::StorageKind;
-
-    using StorageIndex [[maybe_unused]] = typename Eigen::internal::traits<Derived>::StorageIndex;
-
-    using Index = typename Base::Index;
-
-
-    enum CompileTimeTraits
-    {
-      RowsAtCompileTime [[maybe_unused]] = Eigen::internal::traits<Derived>::RowsAtCompileTime,
-      ColsAtCompileTime [[maybe_unused]] = Eigen::internal::traits<Derived>::ColsAtCompileTime,
-      Flags [[maybe_unused]] = Eigen::internal::traits<Derived>::Flags,
-      SizeAtCompileTime [[maybe_unused]] = Base::SizeAtCompileTime,
-      MaxSizeAtCompileTime [[maybe_unused]] = Base::MaxSizeAtCompileTime,
-      IsVectorAtCompileTime [[maybe_unused]] = Base::IsVectorAtCompileTime,
-    };
+    using typename Base::Index;
 
 
     /**
@@ -134,8 +73,71 @@ namespace OpenKalman::Eigen3
       return get_index_dimension_of<1>(static_cast<const Derived&>(*this));
     }
 
+
+#ifdef __cpp_concepts
+    constexpr decltype(auto) data() requires directly_accessible<NestedMatrix>
+#else
+    template<typename T = NestedMatrix, std::enable_if_t<directly_accessible<T>, int> = 0>
+      constexpr decltype(auto)
+      data()
+#endif
+    {
+      return internal::raw_data(static_cast<const Derived&>(*this));
+    }
+
+
+#ifdef __cpp_concepts
+    constexpr decltype(auto) data() const requires directly_accessible<NestedMatrix>
+#else
+    template<typename T = NestedMatrix, std::enable_if_t<directly_accessible<T>, int> = 0>
+      constexpr decltype(auto)
+      data() const
+#endif
+    {
+      return internal::raw_data(static_cast<const Derived&>(*this));
+    }
+
+  private:
+
+#ifndef __cpp_concepts
+    template<typename T, typename = void>
+    struct has_outerStride : std::false_type {};
+
+    template<typename T>
+    struct has_outerStride<T, std::void_t<decltype(std::declval<T>().outerStride())>> : std::true_type {};
+
+    template<typename T, typename = void>
+    struct has_innerStride : std::false_type {};
+
+    template<typename T>
+    struct has_innerStride<T, std::void_t<decltype(std::declval<T>().innerStride())>> : std::true_type {};
+#endif
+
+  public:
+
+    constexpr Index
+    outerStride() const
+    {
+      if constexpr (layout_of_v<Derived> == Layout::stride)
+        return std::get<Base::IsRowMajor ? 0 : 1>(strides(static_cast<const Derived&>(*this)));
+      else if constexpr (Base::IsRowMajor)
+        return cols();
+      else
+        return rows();
+    }
+
+
+    constexpr Index
+    innerStride() const
+    {
+      if constexpr (layout_of_v<Derived> == Layout::stride)
+        return std::get<Base::IsRowMajor ? 1 : 0>(strides(static_cast<const Derived&>(*this)));
+      else
+        return 1;
+    }
+
+
     /**
-     * \brief Synonym for zero().
      * \note Overrides Eigen::DenseBase<Derived>::Zero.
      * \return A matrix, of the same size and shape, containing only zero coefficients.
      */
@@ -148,7 +150,6 @@ namespace OpenKalman::Eigen3
 
 
     /**
-     * \brief Synonym for zero().
      * \note Overrides Eigen::DenseBase<Derived>::Zero.
      * \return A matrix, of the same size and shape, containing only zero coefficients.
      */
@@ -160,7 +161,6 @@ namespace OpenKalman::Eigen3
 
 
     /**
-     * \brief Synonym for identity().
      * \note Overrides Eigen::DenseBase<Derived>::Identity.
      * \return An identity matrix with the same or identified number of rows and columns.
      */
@@ -175,7 +175,6 @@ namespace OpenKalman::Eigen3
 
 
     /**
-     * \brief Synonym for identity().
      * \note Overrides Eigen::DenseBase<Derived>::Identity.
      * \return An identity matrix with the same or identified number of rows and columns.
      */

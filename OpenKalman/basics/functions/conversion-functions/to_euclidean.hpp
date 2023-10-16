@@ -26,7 +26,7 @@ namespace OpenKalman
 
     template<typename Arg, typename C>
     struct to_euclidean_exists<Arg, C, std::void_t<decltype(
-        interface::LibraryRoutines<std::decay_t<Arg>>::template to_euclidean(std::declval<Arg&&>(), std::declval<const C&>()))>> :
+        interface::library_interface<std::decay_t<Arg>>::template to_euclidean(std::declval<Arg&&>(), std::declval<const C&>()))>> :
       std::true_type {};
   } // namespace detail
 #endif
@@ -36,23 +36,23 @@ namespace OpenKalman
    * \tparam Arg A matrix or tensor. I
    */
 #ifdef __cpp_concepts
-  template<wrappable Arg, index_descriptor C>
-  requires dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
-    equivalent_to<C, index_descriptor_of_t<Arg, 0>>
+  template<wrappable Arg, vector_space_descriptor C>
+  requires dynamic_vector_space_descriptor<C> or dynamic_dimension<Arg, 0> or has_untyped_index<Arg, 0> or
+    equivalent_to<C, vector_space_descriptor_of_t<Arg, 0>>
 #else
-  template<typename Arg, typename C, std::enable_if_t<wrappable<Arg> and index_descriptor<C> and
-    (dynamic_index_descriptor<C> or dynamic_rows<Arg> or has_untyped_index<Arg, 0> or
-      equivalent_to<C, index_descriptor_of_t<Arg, 0>>), int> = 0>
+  template<typename Arg, typename C, std::enable_if_t<wrappable<Arg> and vector_space_descriptor<C> and
+    (dynamic_vector_space_descriptor<C> or dynamic_dimension<Arg, 0> or has_untyped_index<Arg, 0> or
+      equivalent_to<C, vector_space_descriptor_of_t<Arg, 0>>), int> = 0>
 #endif
   constexpr decltype(auto)
   to_euclidean(Arg&& arg, const C& c) noexcept
   {
-    if constexpr (dynamic_dimension<Arg, 0> and not euclidean_index_descriptor<index_descriptor_of_t<Arg, 0>>)
-      if (not get_index_descriptor_is_euclidean(get_index_descriptor<0>(arg)) and c != get_index_descriptor<0>(arg))
-        throw std::domain_error {"In to_euclidean, specified index descriptor does not match that of the object's index 0"};
-    using Interface = interface::LibraryRoutines<std::decay_t<Arg>>;
+    if constexpr (dynamic_dimension<Arg, 0> and not euclidean_vector_space_descriptor<vector_space_descriptor_of_t<Arg, 0>>)
+      if (not get_vector_space_descriptor_is_euclidean(get_vector_space_descriptor<0>(arg)) and c != get_vector_space_descriptor<0>(arg))
+        throw std::domain_error {"In to_euclidean, specified vector space descriptor does not match that of the object's index 0"};
+    using Interface = interface::library_interface<std::decay_t<Arg>>;
 
-    if constexpr (euclidean_index_descriptor<C>)
+    if constexpr (euclidean_vector_space_descriptor<C>)
     {
       return std::forward<Arg>(arg);
     }
@@ -82,7 +82,7 @@ namespace OpenKalman
   constexpr decltype(auto)
   to_euclidean(Arg&& arg)
   {
-    return to_euclidean(std::forward<Arg>(arg), get_index_descriptor<0>(arg));
+    return to_euclidean(std::forward<Arg>(arg), get_vector_space_descriptor<0>(arg));
   }
 
 

@@ -24,30 +24,28 @@ namespace OpenKalman
   namespace interface
   {
     template<typename MatrixType, unsigned int UpLo>
-    struct IndexibleObjectTraits<Eigen::SelfAdjointView<MatrixType, UpLo>>
+    struct indexible_object_traits<Eigen::SelfAdjointView<MatrixType, UpLo>>
     {
-      static constexpr std::size_t max_indices = max_indices_of_v<MatrixType>;
+    private:
 
-      using index_type = index_type_of_t<MatrixType>;
+      using IndexType = typename MatrixType::Index;
+
+    public:
 
       using scalar_type = scalar_type_of_t<MatrixType>;
 
+      template<typename Arg>
+      static constexpr auto get_index_count(const Arg& arg) { return OpenKalman::get_index_count(nested_matrix(arg)); }
 
       template<typename Arg, typename N>
-      static constexpr auto get_index_descriptor(const Arg& arg, N n)
+      static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
       {
-        return OpenKalman::get_index_descriptor(arg.nestedExpression(), n);
+        return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
       }
 
-      template<Likelihood b>
-      static constexpr bool is_one_by_one = one_by_one_matrix<MatrixType, b>;
-
-      template<Likelihood b>
-      static constexpr bool is_square = square_matrix<MatrixType, b>;
+      using type = std::tuple<typename Eigen::SelfAdjointView<MatrixType, UpLo>::MatrixTypeNested>;
 
       static constexpr bool has_runtime_parameters = false;
-
-      using type = std::tuple<typename Eigen::SelfAdjointView<MatrixType, UpLo>::MatrixTypeNested>;
 
       template<std::size_t i, typename Arg>
       static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -85,6 +83,12 @@ namespace OpenKalman
         else return constant_diagonal_coefficient {arg.nestedExpression()};
       }
 
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = one_by_one_matrix<MatrixType, b>;
+
+      template<Likelihood b>
+      static constexpr bool is_square = square_matrix<MatrixType, b>;
+
       template<TriangleType t, Likelihood b>
       static constexpr bool is_triangular = diagonal_matrix<MatrixType, b>;
 
@@ -110,8 +114,12 @@ namespace OpenKalman
       // make_hermitian_adapter not included because SelfAdjointView is already hermitian if square.
 
 
-      template<typename Arg>
-      static constexpr decltype(auto) get(Arg&& arg, index_type i, index_type j)
+#ifdef __cpp_concepts
+      template<typename Arg> requires std::convertible_to<std::size_t, IndexType>
+#else
+      template<typename Arg, std::enable_if_t<indexible<Arg> and std::is_convertible_v<std::size_t, IndexType>, int> = 0>
+#endif
+      static constexpr decltype(auto) get(Arg&& arg, std::size_t i, std::size_t j)
       {
         using Scalar = scalar_type_of_t<MatrixType>;
 
@@ -120,46 +128,48 @@ namespace OpenKalman
           if ((i > j and (UpLo & Eigen::Upper) != 0) or (i < j and (UpLo & Eigen::Lower) != 0))
           {
             using std::conj;
-            return Scalar {conj(std::as_const(arg).nestedExpression().coeff(j, i))};
+            return Scalar {conj(std::as_const(arg).nestedExpression().coeff(static_cast<IndexType>(j), static_cast<IndexType>(i)))};
           }
-          else return Scalar {std::as_const(arg).nestedExpression().coeff(i, j)};
+          else return Scalar {std::as_const(arg).nestedExpression().coeff(static_cast<IndexType>(i), static_cast<IndexType>(j))};
         }
         else
         {
           if constexpr ((Eigen::internal::traits<Eigen::SelfAdjointView<MatrixType, UpLo>>::Flags & Eigen::LvalueBit) != 0)
           {
             if ((i > j and (UpLo & Eigen::Upper) != 0) or (i < j and (UpLo & Eigen::Lower) != 0))
-              return std::forward<Arg>(arg).nestedExpression().coeffRef(j, i);
-            else return std::forward<Arg>(arg).nestedExpression().coeffRef(i, j);
+              return std::forward<Arg>(arg).nestedExpression().coeffRef(static_cast<IndexType>(j), static_cast<IndexType>(i));
+            else return std::forward<Arg>(arg).nestedExpression().coeffRef(static_cast<IndexType>(i), static_cast<IndexType>(j));
           }
           else
           {
             if ((i > j and (UpLo & Eigen::Upper) != 0) or (i < j and (UpLo & Eigen::Lower) != 0))
-              return std::as_const(arg).nestedExpression().coeff(j, i);
-            else return std::as_const(arg).nestedExpression().coeff(i, j);
+              return std::as_const(arg).nestedExpression().coeff(static_cast<IndexType>(j), static_cast<IndexType>(i));
+            else return std::as_const(arg).nestedExpression().coeff(static_cast<IndexType>(i), static_cast<IndexType>(j));
           }
         }
       }
 
 
   #ifdef __cpp_concepts
-      template<typename Arg> requires ((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0)
+      template<typename Arg> requires std::convertible_to<std::size_t, IndexType> and
+        ((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0)
   #else
-      template<typename Arg, std::enable_if_t<((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0), int> = 0>
+      template<typename Arg, std::enable_if_t<std::is_convertible_v<std::size_t, IndexType> and
+        ((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0), int> = 0>
   #endif
-      static void set(Arg& arg, const scalar_type_of_t<Arg>& s, index_type i, index_type j)
+      static void set(Arg& arg, const scalar_type_of_t<Arg>& s, std::size_t i, std::size_t j)
       {
         if ((i > j and (UpLo & Eigen::Upper) != 0) or (i < j and (UpLo & Eigen::Lower) != 0))
         {
           if constexpr (complex_number<scalar_type_of_t<MatrixType>>)
           {
             using std::conj;
-            arg.coeffRef(j, i) = conj(s);
+            arg.coeffRef(static_cast<IndexType>(j), static_cast<IndexType>(i)) = conj(s);
           }
           else
-            arg.coeffRef(j, i) = s;
+            arg.coeffRef(static_cast<IndexType>(j), static_cast<IndexType>(i)) = s;
         }
-        else arg.coeffRef(i, j) = s;
+        else arg.coeffRef(static_cast<IndexType>(i), static_cast<IndexType>(j)) = s;
       }
     };
 

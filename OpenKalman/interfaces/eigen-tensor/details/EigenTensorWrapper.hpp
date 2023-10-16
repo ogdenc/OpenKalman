@@ -38,7 +38,7 @@ namespace OpenKalman
 #endif
       static auto make_dim(const Arg& arg, std::index_sequence<is...>)
       {
-        return Eigen::DSizes<IndexType, max_indices_of_v<Arg>> {get_index_dimension_of<is>(arg)...};
+        return Eigen::DSizes<IndexType, index_count_v<Arg>> {get_index_dimension_of<is>(arg)...};
       };
 
     public:
@@ -46,7 +46,7 @@ namespace OpenKalman
       using Index = IndexType;
       using Scalar = scalar_type_of_t<NestedMatrix>;
       using CoeffReturnType = Scalar;
-      using Dimensions = decltype(make_dim(std::declval<NestedMatrix>(), std::make_index_sequence<max_indices_of_v<NestedMatrix>>{}));
+      using Dimensions = decltype(make_dim(std::declval<NestedMatrix>(), std::make_index_sequence<index_count_v<NestedMatrix>>{}));
 
       using Nested = EigenTensorWrapper;
 
@@ -76,7 +76,7 @@ namespace OpenKalman
       EIGEN_DEVICE_FUNC
       const auto dimensions() const
       {
-        return make_dim(wrapped_expression, std::make_index_sequence<max_indices_of_v<NestedMatrix>>{});
+        return make_dim(wrapped_expression, std::make_index_sequence<index_count_v<NestedMatrix>>{});
       }
 
 
@@ -167,29 +167,22 @@ namespace OpenKalman
   namespace interface
   {
     template<typename NestedMatrix, typename IndexType>
-    struct IndexibleObjectTraits<Eigen3::EigenTensorWrapper<NestedMatrix, IndexType>>
+    struct indexible_object_traits<Eigen3::EigenTensorWrapper<NestedMatrix, IndexType>>
     {
-      static constexpr std::size_t max_indices = max_indices_of_v<NestedMatrix>;
-
-      using index_type = index_type_of_t<NestedMatrix>;
-
       using scalar_type = scalar_type_of_t<NestedMatrix>;
 
+      template<typename Arg>
+      static constexpr auto get_index_count(const Arg& arg) { return OpenKalman::get_index_count(nested_matrix(arg)); }
+
       template<typename Arg, typename N>
-      static constexpr auto get_index_descriptor(const Arg& arg, N n)
+      static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
       {
-        return OpenKalman::get_index_descriptor(nested_matrix(arg), n);
+        return OpenKalman::get_vector_space_descriptor(nested_matrix(arg), n);
       }
 
-      template<Likelihood b>
-      static constexpr bool is_one_by_one = one_by_one_matrix<NestedMatrix, b>;
-
-      template<Likelihood b>
-      static constexpr bool is_square = square_matrix<NestedMatrix, b>;
+      using type = std::tuple<NestedMatrix>;
 
       static constexpr bool has_runtime_parameters = false;
-
-      using type = std::tuple<NestedMatrix>;
 
       template<std::size_t i, typename Arg>
       static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -216,6 +209,12 @@ namespace OpenKalman
         return constant_diagonal_coefficient {arg.nested_matrix()};
       }
 
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = one_by_one_matrix<NestedMatrix, b>;
+
+      template<Likelihood b>
+      static constexpr bool is_square = square_matrix<NestedMatrix, b>;
+
       template<TriangleType t, Likelihood b>
       static constexpr bool is_triangular = triangular_matrix<NestedMatrix, t, b>;
 
@@ -223,12 +222,14 @@ namespace OpenKalman
 
       static constexpr bool is_hermitian = hermitian_matrix<NestedMatrix, Likelihood::maybe>;
 
+
 #ifdef __cpp_lib_concepts
       template<typename Arg, typename...I> requires element_gettable<decltype(nested_matrix(std::declval<Arg&&>())), sizeof...(I)>
 #else
       template<typename Arg, typename...I, std::enable_if_t<element_gettable<decltype(nested_matrix(std::declval<Arg&&>())), sizeof...(I)>, int> = 0>
 #endif
-      static constexpr decltype(auto) get(Arg&& arg, I...i)
+      static constexpr decltype(auto)
+      get(Arg&& arg, I...i)
       {
         return get_element(nested_matrix(std::forward<Arg>(arg)), i...);
       }
@@ -239,7 +240,8 @@ namespace OpenKalman
 #else
       template<typename Arg, typename Scalar, typename...I, std::enable_if_t<element_settable<decltype(nested_matrix(std::declval<Arg&>())), sizeof...(I)>, int> = 0>
 #endif
-      static constexpr void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
+      static constexpr void
+      set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
       {
         set_element(nested_matrix(arg), s, i...);
       }
@@ -294,7 +296,7 @@ namespace Eigen::internal
       using StorageKind = Dense;
       using Index = IndexType;
       using Nested = T;
-      static constexpr int NumDimensions = OpenKalman::max_indices_of_v<T>;
+      static constexpr int NumDimensions = OpenKalman::index_count_v<T>;
       static constexpr int Layout = ColMajor;
       template<typename U> struct MakePointer : Eigen::MakePointer<U> {};
       using PointerType = typename MakePointer<Scalar>::Type;
@@ -354,7 +356,9 @@ namespace Eigen
       using EvaluatorPointerType = typename Storage::Type;
 
       // NumDimensions is -1 for variable dim tensors
-      static const int NumCoords = OpenKalman::max_indices_of_v<ArgType> == OpenKalman::dynamic_size ? 0 : OpenKalman::max_indices_of_v<ArgType>;
+
+      static const int NumCoords {OpenKalman::index_count_v<ArgType> == OpenKalman::dynamic_size ?
+                                  0 : static_cast<int>(OpenKalman::index_count_v<ArgType>)};
 
       enum {
         IsAligned          = XprType::IsAligned,
@@ -362,7 +366,7 @@ namespace Eigen
         BlockAccess        = std::is_arithmetic_v<std::decay_t<Scalar>>,
         PreferBlockAccess  = false,
         Layout             = XprType::Layout,
-        CoordAccess        = OpenKalman::max_indices_of_v<ArgType> > 0 and OpenKalman::max_indices_of_v<ArgType> != OpenKalman::dynamic_size,
+        CoordAccess        = OpenKalman::index_count_v<ArgType> > 0 and OpenKalman::index_count_v<ArgType> != OpenKalman::dynamic_size,
         RawAccess          = static_cast<bool>(OpenKalman::directly_accessible<ArgType>),
       };
     };

@@ -22,6 +22,20 @@ namespace OpenKalman::internal
 
   /**
    * \internal
+   * \brief Base of Covariance and SquareRootCovariance classes.
+   * \tparam Derived The fully derived covariance type.
+   * \tparam NestedMatrix The nested native matrix, which can be const or an lvalue reference, or both, or neither.
+   */
+#ifdef __cpp_concepts
+  template<typename Derived, typename NestedMatrix>
+#else
+  template<typename Derived, typename NestedMatrix, typename = void>
+#endif
+  struct CovarianceBase;
+
+
+  /**
+   * \internal
    * \brief Covariance Cov's cholesky nested matrix and nested matrix Nested are both either triangular or self-adjoint.
    */
   template<typename Cov, typename Nested = nested_matrix_of_t<Cov>>

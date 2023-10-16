@@ -22,35 +22,19 @@
 namespace OpenKalman::interface
 {
   template<typename MatrixType, int RowFactor, int ColFactor>
-  struct IndexibleObjectTraits<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
+  struct indexible_object_traits<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
+    : Eigen3::indexible_object_traits_base<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>
   {
   private:
 
-    using T = Eigen::Replicate<MatrixType, RowFactor, ColFactor>;
+    using Xpr = Eigen::Replicate<MatrixType, RowFactor, ColFactor>;
+    using Base = Eigen3::indexible_object_traits_base<Xpr>;
 
   public:
 
-    template<Likelihood b>
-    static constexpr bool is_one_by_one =
-      (b != Likelihood::definitely or (RowFactor == 1 and ColFactor == 1)) and
-      (RowFactor == 1 or RowFactor == Eigen::Dynamic) and
-      (ColFactor == 1 or ColFactor == Eigen::Dynamic) and
-      one_by_one_matrix<MatrixType, b>;
-
-    template<Likelihood b>
-    static constexpr bool is_square =
-      (b != Likelihood::definitely or not has_dynamic_dimensions<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>) and
-      (RowFactor == Eigen::Dynamic or ColFactor == Eigen::Dynamic or
-        ((RowFactor != ColFactor or square_matrix<MatrixType, b>) and
-        (dynamic_dimension<MatrixType, 0> or RowFactor * index_dimension_of_v<MatrixType, 0> % ColFactor == 0) and
-        (dynamic_dimension<MatrixType, 1> or ColFactor * index_dimension_of_v<MatrixType, 1> % RowFactor == 0))) and
-      (has_dynamic_dimensions<MatrixType> or
-        ((RowFactor == Eigen::Dynamic or index_dimension_of_v<MatrixType, 0> * RowFactor % index_dimension_of_v<MatrixType, 1> == 0) and
-        (ColFactor == Eigen::Dynamic or index_dimension_of_v<MatrixType, 1> * ColFactor % index_dimension_of_v<MatrixType, 0> == 0)));
+    using type = std::tuple<typename Eigen::internal::traits<Xpr>::MatrixTypeNested>;
 
     static constexpr bool has_runtime_parameters = RowFactor == Eigen::Dynamic or ColFactor == Eigen::Dynamic;
-    using type = std::tuple<typename Eigen::internal::traits<T>::MatrixTypeNested>;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -91,6 +75,24 @@ namespace OpenKalman::interface
       }
       else return std::monostate {};
     }
+
+    template<Likelihood b>
+    static constexpr bool is_one_by_one =
+      (b != Likelihood::definitely or (RowFactor == 1 and ColFactor == 1)) and
+      (RowFactor == 1 or RowFactor == Eigen::Dynamic) and
+      (ColFactor == 1 or ColFactor == Eigen::Dynamic) and
+      one_by_one_matrix<MatrixType, b>;
+
+    template<Likelihood b>
+    static constexpr bool is_square =
+      (b != Likelihood::definitely or not has_dynamic_dimensions<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>) and
+      (RowFactor == Eigen::Dynamic or ColFactor == Eigen::Dynamic or
+        ((RowFactor != ColFactor or square_matrix<MatrixType, b>) and
+        (dynamic_dimension<MatrixType, 0> or RowFactor * index_dimension_of_v<MatrixType, 0> % ColFactor == 0) and
+        (dynamic_dimension<MatrixType, 1> or ColFactor * index_dimension_of_v<MatrixType, 1> % RowFactor == 0))) and
+      (has_dynamic_dimensions<MatrixType> or
+        ((RowFactor == Eigen::Dynamic or index_dimension_of_v<MatrixType, 0> * RowFactor % index_dimension_of_v<MatrixType, 1> == 0) and
+        (ColFactor == Eigen::Dynamic or index_dimension_of_v<MatrixType, 1> * ColFactor % index_dimension_of_v<MatrixType, 0> == 0)));
 
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = RowFactor == 1 and ColFactor == 1 and triangular_matrix<MatrixType, t, b>;

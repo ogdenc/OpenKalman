@@ -94,6 +94,25 @@ namespace OpenKalman
     return make_eigen_matrix<std::common_type_t<Args...>>(args...);
   }
 
+
+  namespace Eigen3
+  {
+    /**
+     * Make a \ref LibraryWrapper for the Eigen library.
+     */
+  #ifdef __cpp_concepts
+    template<indexible Arg>
+  #else
+    template<typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
+  #endif
+    inline auto
+    make_eigen_wrapper(Arg&& arg)
+    {
+      using M = Eigen::Matrix<scalar_type_of_t<Arg>, 0, 0>;
+      return internal::LibraryWrapper<Arg, M> {std::forward<Arg>(arg)};
+    }
+  } // namespace Eigen3
+
 } // namespace OpenKalman
 
 

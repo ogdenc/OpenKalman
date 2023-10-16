@@ -35,23 +35,23 @@ namespace OpenKalman
   template<typename C1 = Distance, typename C2 = angle::Radians, typename C3 = inclination::Radians>
 #ifdef __cpp_concepts
   requires
-    (distance_descriptor<C1> and angle_descriptor<C2> and inclination_descriptor<C3>) or
-    (distance_descriptor<C1> and angle_descriptor<C3> and inclination_descriptor<C2>) or
-    (distance_descriptor<C2> and angle_descriptor<C1> and inclination_descriptor<C3>) or
-    (distance_descriptor<C2> and angle_descriptor<C3> and inclination_descriptor<C1>) or
-    (distance_descriptor<C3> and angle_descriptor<C1> and inclination_descriptor<C2>) or
-    (distance_descriptor<C3> and angle_descriptor<C2> and inclination_descriptor<C1>)
+    (distance_vector_space_descriptor<C1> and angle_vector_space_descriptor<C2> and inclination_vector_space_descriptor<C3>) or
+    (distance_vector_space_descriptor<C1> and angle_vector_space_descriptor<C3> and inclination_vector_space_descriptor<C2>) or
+    (distance_vector_space_descriptor<C2> and angle_vector_space_descriptor<C1> and inclination_vector_space_descriptor<C3>) or
+    (distance_vector_space_descriptor<C2> and angle_vector_space_descriptor<C3> and inclination_vector_space_descriptor<C1>) or
+    (distance_vector_space_descriptor<C3> and angle_vector_space_descriptor<C1> and inclination_vector_space_descriptor<C2>) or
+    (distance_vector_space_descriptor<C3> and angle_vector_space_descriptor<C2> and inclination_vector_space_descriptor<C1>)
 #endif
   struct Spherical
   {
 #ifndef __cpp_concepts
     static_assert(
-      (distance_descriptor<C1> and angle_descriptor<C2> and inclination_descriptor<C3>) or
-      (distance_descriptor<C1> and angle_descriptor<C3> and inclination_descriptor<C2>) or
-      (distance_descriptor<C2> and angle_descriptor<C1> and inclination_descriptor<C3>) or
-      (distance_descriptor<C2> and angle_descriptor<C3> and inclination_descriptor<C1>) or
-      (distance_descriptor<C3> and angle_descriptor<C1> and inclination_descriptor<C2>) or
-      (distance_descriptor<C3> and angle_descriptor<C2> and inclination_descriptor<C1>));
+      (distance_vector_space_descriptor<C1> and angle_vector_space_descriptor<C2> and inclination_vector_space_descriptor<C3>) or
+      (distance_vector_space_descriptor<C1> and angle_vector_space_descriptor<C3> and inclination_vector_space_descriptor<C2>) or
+      (distance_vector_space_descriptor<C2> and angle_vector_space_descriptor<C1> and inclination_vector_space_descriptor<C3>) or
+      (distance_vector_space_descriptor<C2> and angle_vector_space_descriptor<C3> and inclination_vector_space_descriptor<C1>) or
+      (distance_vector_space_descriptor<C3> and angle_vector_space_descriptor<C1> and inclination_vector_space_descriptor<C2>) or
+      (distance_vector_space_descriptor<C3> and angle_vector_space_descriptor<C2> and inclination_vector_space_descriptor<C1>));
 #endif
   };
 
@@ -81,7 +81,7 @@ namespace OpenKalman
        * Cartesian coordinates representing a location on a unit 4D half-cylinder.
        * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
        * \param euclidean_local_index A local index relative to the Euclidean-transformed coordinates (starting at 0)
-       * \param start The starting index within the index descriptor
+       * \param start The starting index within the \ref vector_space_descriptor object
        */
 #ifdef __cpp_concepts
       static constexpr scalar_type auto
@@ -259,7 +259,7 @@ namespace OpenKalman
        * \details The wrapping operation is equivalent to mapping to, and then back from, Euclidean space.
        * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
        * \param local_index A local index accessing the angle (in this case, it must be 0)
-       * \param start The starting location of the angle within any larger set of index type descriptors
+       * \param start The starting location of the angle within any larger set of \ref vector_space_descriptor
        */
 #ifdef __cpp_concepts
       static constexpr scalar_type auto
@@ -305,7 +305,7 @@ namespace OpenKalman
        * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
        * \param x The scalar value to be set.
        * \param local_index A local index accessing the angle (in this case, it must be 0)
-       * \param start The starting location of the angle within any larger set of index type descriptors
+       * \param start The starting location of the angle within any larger set of \ref vector_space_descriptor
        */
 #ifdef __cpp_concepts
       static constexpr void
@@ -364,13 +364,13 @@ namespace OpenKalman
      * \brief traits for Spherical<Distance, Angle, Inclination>.
      */
     template<typename ALimits, typename ILimits>
-    struct FixedIndexDescriptorTraits<Spherical<Distance, Angle<ALimits>, Inclination<ILimits>>>
+    struct FixedVectorSpaceDescriptorTraits<Spherical<Distance, Angle<ALimits>, Inclination<ILimits>>>
       : detail::SphericalBase<ALimits, ILimits, 0, 1, 2>
     {
-      using difference_type = concatenate_fixed_index_descriptor_t<
-        typename FixedIndexDescriptorTraits<Distance>::difference_type,
-        typename FixedIndexDescriptorTraits<Angle<ALimits>>::difference_type,
-        typename FixedIndexDescriptorTraits<Inclination<ILimits>>::difference_type>;
+      using difference_type = concatenate_fixed_vector_space_descriptor_t<
+        typename FixedVectorSpaceDescriptorTraits<Distance>::difference_type,
+        typename FixedVectorSpaceDescriptorTraits<Angle<ALimits>>::difference_type,
+        typename FixedVectorSpaceDescriptorTraits<Inclination<ILimits>>::difference_type>;
     };
 
 
@@ -379,13 +379,13 @@ namespace OpenKalman
      * \brief traits for Spherical<Distance, Inclination, Angle>.
      */
     template<typename ILimits, typename ALimits>
-    struct FixedIndexDescriptorTraits<Spherical<Distance, Inclination<ILimits>, Angle<ALimits>>>
+    struct FixedVectorSpaceDescriptorTraits<Spherical<Distance, Inclination<ILimits>, Angle<ALimits>>>
       : detail::SphericalBase<ALimits, ILimits, 0, 2, 1>
     {
-      using difference_type = concatenate_fixed_index_descriptor_t<
-        typename FixedIndexDescriptorTraits<Distance>::difference_type,
-        typename FixedIndexDescriptorTraits<Inclination<ILimits>>::difference_type,
-        typename FixedIndexDescriptorTraits<Angle<ALimits>>::difference_type>;
+      using difference_type = concatenate_fixed_vector_space_descriptor_t<
+        typename FixedVectorSpaceDescriptorTraits<Distance>::difference_type,
+        typename FixedVectorSpaceDescriptorTraits<Inclination<ILimits>>::difference_type,
+        typename FixedVectorSpaceDescriptorTraits<Angle<ALimits>>::difference_type>;
     };
 
 
@@ -394,13 +394,13 @@ namespace OpenKalman
      * \brief traits for Spherical<Angle, Distance, Inclination>.
      */
     template<typename ALimits, typename ILimits>
-    struct FixedIndexDescriptorTraits<Spherical<Angle<ALimits>, Distance, Inclination<ILimits>>>
+    struct FixedVectorSpaceDescriptorTraits<Spherical<Angle<ALimits>, Distance, Inclination<ILimits>>>
       : detail::SphericalBase<ALimits, ILimits, 1, 0, 2>
     {
-      using difference_type = concatenate_fixed_index_descriptor_t<
-        typename FixedIndexDescriptorTraits<Angle<ALimits>>::difference_type,
-        typename FixedIndexDescriptorTraits<Distance>::difference_type,
-        typename FixedIndexDescriptorTraits<Inclination<ILimits>>::difference_type>;
+      using difference_type = concatenate_fixed_vector_space_descriptor_t<
+        typename FixedVectorSpaceDescriptorTraits<Angle<ALimits>>::difference_type,
+        typename FixedVectorSpaceDescriptorTraits<Distance>::difference_type,
+        typename FixedVectorSpaceDescriptorTraits<Inclination<ILimits>>::difference_type>;
     };
 
 
@@ -409,13 +409,13 @@ namespace OpenKalman
      * \brief traits for Spherical<Inclination, Distance, Angle>.
      */
     template<typename ILimits, typename ALimits>
-    struct FixedIndexDescriptorTraits<Spherical<Inclination<ILimits>, Distance, Angle<ALimits>>>
+    struct FixedVectorSpaceDescriptorTraits<Spherical<Inclination<ILimits>, Distance, Angle<ALimits>>>
       : detail::SphericalBase<ALimits, ILimits, 1, 2, 0>
     {
-      using difference_type = concatenate_fixed_index_descriptor_t<
-        typename FixedIndexDescriptorTraits<Inclination<ILimits>>::difference_type,
-        typename FixedIndexDescriptorTraits<Distance>::difference_type,
-        typename FixedIndexDescriptorTraits<Angle<ALimits>>::difference_type>;
+      using difference_type = concatenate_fixed_vector_space_descriptor_t<
+        typename FixedVectorSpaceDescriptorTraits<Inclination<ILimits>>::difference_type,
+        typename FixedVectorSpaceDescriptorTraits<Distance>::difference_type,
+        typename FixedVectorSpaceDescriptorTraits<Angle<ALimits>>::difference_type>;
     };
 
 
@@ -424,13 +424,13 @@ namespace OpenKalman
      * \brief traits for Spherical<Angle, Inclination, Distance>.
      */
     template<typename ALimits, typename ILimits>
-    struct FixedIndexDescriptorTraits<Spherical<Angle<ALimits>, Inclination<ILimits>, Distance>>
+    struct FixedVectorSpaceDescriptorTraits<Spherical<Angle<ALimits>, Inclination<ILimits>, Distance>>
       : detail::SphericalBase<ALimits, ILimits, 2, 0, 1>
     {
-      using difference_type = concatenate_fixed_index_descriptor_t<
-        typename FixedIndexDescriptorTraits<Angle<ALimits>>::difference_type,
-        typename FixedIndexDescriptorTraits<Inclination<ILimits>>::difference_type,
-        typename FixedIndexDescriptorTraits<Distance>::difference_type>;
+      using difference_type = concatenate_fixed_vector_space_descriptor_t<
+        typename FixedVectorSpaceDescriptorTraits<Angle<ALimits>>::difference_type,
+        typename FixedVectorSpaceDescriptorTraits<Inclination<ILimits>>::difference_type,
+        typename FixedVectorSpaceDescriptorTraits<Distance>::difference_type>;
     };
 
 
@@ -439,13 +439,13 @@ namespace OpenKalman
      * \brief traits for Spherical<Inclination, Angle, Distance>.
      */
     template<typename ILimits, typename ALimits>
-    struct FixedIndexDescriptorTraits<Spherical<Inclination<ILimits>, Angle<ALimits>, Distance>>
+    struct FixedVectorSpaceDescriptorTraits<Spherical<Inclination<ILimits>, Angle<ALimits>, Distance>>
       : detail::SphericalBase<ALimits, ILimits, 2, 1, 0>
     {
-      using difference_type = concatenate_fixed_index_descriptor_t<
-        typename FixedIndexDescriptorTraits<Inclination<ILimits>>::difference_type,
-        typename FixedIndexDescriptorTraits<Angle<ALimits>>::difference_type,
-        typename FixedIndexDescriptorTraits<Distance>::difference_type>;
+      using difference_type = concatenate_fixed_vector_space_descriptor_t<
+        typename FixedVectorSpaceDescriptorTraits<Inclination<ILimits>>::difference_type,
+        typename FixedVectorSpaceDescriptorTraits<Angle<ALimits>>::difference_type,
+        typename FixedVectorSpaceDescriptorTraits<Distance>::difference_type>;
     };
 
 

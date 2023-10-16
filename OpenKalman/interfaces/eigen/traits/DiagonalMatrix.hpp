@@ -24,26 +24,26 @@ namespace OpenKalman
   namespace interface
   {
     template<typename Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
-    struct IndexibleObjectTraits<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
-      : Eigen3::IndexibleObjectTraitsBase<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
+    struct indexible_object_traits<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
+      : Eigen3::indexible_object_traits_base<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
     {
+    private:
+
+      using Base = Eigen3::indexible_object_traits_base<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>;
+
+    public:
+
       template<typename Arg, typename N>
-      static constexpr auto get_index_descriptor(const Arg& arg, N)
+      static constexpr auto get_vector_space_descriptor(const Arg& arg, N)
       {
         if constexpr (SizeAtCompileTime == Eigen::Dynamic) return static_cast<std::size_t>(arg.rows());
         else return Dimensions<SizeAtCompileTime>{};
       }
 
-      template<Likelihood b>
-      static constexpr bool is_one_by_one = SizeAtCompileTime == 1 or (SizeAtCompileTime == Eigen::Dynamic and b == Likelihood::maybe);
-
-      template<Likelihood b>
-      static constexpr bool is_square = true;
-
-      static constexpr bool has_runtime_parameters = false;
-
       using type = std::tuple<
         typename Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>::DiagonalVectorType>;
+
+      static constexpr bool has_runtime_parameters = false;
 
       template<std::size_t i, typename Arg>
       static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -62,6 +62,12 @@ namespace OpenKalman
       // get_constant() not defined
 
       // get_constant_diagonal() not defined
+
+      template<Likelihood b>
+      static constexpr bool is_one_by_one = SizeAtCompileTime == 1 or (SizeAtCompileTime == Eigen::Dynamic and b == Likelihood::maybe);
+
+      template<Likelihood b>
+      static constexpr bool is_square = true;
 
       template<TriangleType t, Likelihood b>
       static constexpr bool is_triangular = true;

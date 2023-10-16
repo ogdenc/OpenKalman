@@ -22,43 +22,38 @@
 namespace OpenKalman::interface
 {
   template<typename ConditionMatrixType, typename ThenMatrixType, typename ElseMatrixType>
-  struct IndexibleObjectTraits<Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>>
-    : Eigen3::IndexibleObjectTraitsBase<Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>>
+  struct indexible_object_traits<Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>>
+    : Eigen3::indexible_object_traits_base<Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>>
   {
   private:
 
-    using T = Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>;
+    using Xpr = Eigen::Select<ConditionMatrixType, ThenMatrixType, ElseMatrixType>;
+    using Base = Eigen3::indexible_object_traits_base<Xpr>;
 
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_index_descriptor(const Arg& arg, N n)
+    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
     {
       if constexpr (static_index_value<N>)
       {
         constexpr auto i = static_index_value_of_v<N>;
-        if constexpr (not dynamic_dimension<ConditionMatrixType, i>) return OpenKalman::get_index_descriptor(arg.conditionMatrix(), n);
-        else if constexpr (not dynamic_dimension<ThenMatrixType, i>) return OpenKalman::get_index_descriptor(arg.thenMatrix(), n);
-        else return OpenKalman::get_index_descriptor(arg.elseMatrix(), n);
+        if constexpr (not dynamic_dimension<ConditionMatrixType, i>) return OpenKalman::get_vector_space_descriptor(arg.conditionMatrix(), n);
+        else if constexpr (not dynamic_dimension<ThenMatrixType, i>) return OpenKalman::get_vector_space_descriptor(arg.thenMatrix(), n);
+        else return OpenKalman::get_vector_space_descriptor(arg.elseMatrix(), n);
       }
       else
       {
-        return OpenKalman::get_index_descriptor(arg.conditionMatrix(), n);
+        return OpenKalman::get_vector_space_descriptor(arg.conditionMatrix(), n);
       }
     }
 
 
-    template<Likelihood b>
-    static constexpr bool is_one_by_one =
-      one_by_one_matrix<ConditionMatrixType, Likelihood::maybe> and one_by_one_matrix<ThenMatrixType, Likelihood::maybe> and one_by_one_matrix<ElseMatrixType, Likelihood::maybe> and
-      (b != Likelihood::definitely or one_by_one_matrix<ConditionMatrixType, b> or one_by_one_matrix<ThenMatrixType, b> or one_by_one_matrix<ElseMatrixType, b>);
+    using type = std::tuple<typename ConditionMatrixType::Nested, typename ThenMatrixType::Nested,
+      typename ElseMatrixType::Nested>;
 
 
     static constexpr bool has_runtime_parameters = false;
-
-
-    using type = std::tuple<typename ConditionMatrixType::Nested, typename ThenMatrixType::Nested,
-      typename ElseMatrixType::Nested>;
 
 
     template<std::size_t i, typename Arg>
@@ -137,6 +132,12 @@ namespace OpenKalman::interface
       }
       else return std::monostate{};
     }
+
+
+    template<Likelihood b>
+    static constexpr bool is_one_by_one =
+      one_by_one_matrix<ConditionMatrixType, Likelihood::maybe> and one_by_one_matrix<ThenMatrixType, Likelihood::maybe> and one_by_one_matrix<ElseMatrixType, Likelihood::maybe> and
+      (b != Likelihood::definitely or one_by_one_matrix<ConditionMatrixType, b> or one_by_one_matrix<ThenMatrixType, b> or one_by_one_matrix<ElseMatrixType, b>);
 
 
     template<TriangleType t, Likelihood b>

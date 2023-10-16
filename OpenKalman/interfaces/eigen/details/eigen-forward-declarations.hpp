@@ -263,41 +263,7 @@ namespace OpenKalman::Eigen3
   constexpr bool eigen_general =
 #endif
     (std::is_base_of_v<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>> or eigen_VectorBlock<T>) and
-      (not must_be_native or not std::is_base_of_v<EigenDenseBase, std::decay_t<T>>);
-
-
-  /**
-   * \internal
-   * \brief A dumb wrapper for OpenKalman classes so that they are treated exactly as native Eigen types.
-   * \tparam T A non-Eigen class, for which an Eigen3 trait and evaluator is defined.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-    requires (max_indices_of_v<T> <= 2)
-#endif
-  struct EigenWrapper;
-
-
-  namespace detail
-  {
-    template<typename T>
-    struct is_EigenWrapper : std::false_type {};
-
-    template<typename T>
-    struct is_EigenWrapper<EigenWrapper<T>> : std::true_type {};
-  }
-
-
-  /**
-   * \brief An instance of Eigen3::EigenWrapper<T>, for any T.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept eigen_wrapper =
-#else
-  constexpr bool eigen_wrapper =
-#endif
-    detail::is_EigenWrapper<std::decay_t<T>>::value;
+    (not must_be_native or not std::is_base_of_v<EigenDenseBase, std::decay_t<T>>);
 
 
   namespace detail
@@ -369,9 +335,46 @@ namespace OpenKalman::Eigen3
    * \tparam NestedMatrix The nested matrix on which the identity is based.
    */
   template<typename NestedMatrix>
-  using IdentityMatrix =
-    Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<
-      typename Eigen::internal::traits<std::decay_t<NestedMatrix>>::Scalar>, NestedMatrix>;
+  using IdentityMatrix = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<
+    typename Eigen::internal::traits<std::decay_t<NestedMatrix>>::Scalar>, NestedMatrix>;
+
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_eigen_LibraryWrapper : std::false_type {};
+
+    template<typename NestedObject, typename LibraryObject>
+    struct is_eigen_LibraryWrapper<internal::LibraryWrapper<NestedObject, LibraryObject>>
+      : std::bool_constant<eigen_general<LibraryObject, true>> {};
+  } // namespace detail
+
+
+  /**
+   * \internal
+   * \brief T is Eigen3::EigenWrapper<T> or internal::LibraryWrapper for a , for any T.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_wrapper =
+#else
+  constexpr bool eigen_wrapper =
+#endif
+    detail::is_eigen_LibraryWrapper<std::decay_t<T>>::value;
+
+
+  /**
+   * \internal
+   * \brief Alias for the Eigen version of LibraryWrapper.
+   * \details A dumb wrapper for OpenKalman classes so that they are treated exactly as native Eigen types.
+   * \tparam NestedObject A non-Eigen class, for which an Eigen3 trait and evaluator is defined.
+   */
+#ifdef __cpp_concepts
+  template<indexible NestedObject> requires (index_count_v<NestedObject> <= 2)
+#else
+  template<typename NestedObject>
+#endif
+  using EigenWrapper = internal::LibraryWrapper<NestedObject, Eigen::Matrix<scalar_type_of_t<NestedObject>, 0, 0>>;
 
 
   // ---------------- //
@@ -392,7 +395,7 @@ namespace OpenKalman::Eigen3
    */
   template<typename Scalar, std::size_t...dims>
   using eigen_matrix_t = std::conditional_t<sizeof...(dims) == 1,
-    Eigen::Matrix<Scalar, detail::eigen_index_convert<dims>..., static_cast<Eigen::Index>(1)>,
+    Eigen::Matrix<Scalar, detail::eigen_index_convert<dims>..., detail::eigen_index_convert<1>>,
     Eigen::Matrix<Scalar, detail::eigen_index_convert<dims>...>>;
 
 
@@ -402,10 +405,10 @@ namespace OpenKalman::Eigen3
    */
 #ifdef __cpp_concepts
   template<typename T>
-  struct IndexibleObjectTraitsBase;
+  struct indexible_object_traits_base;
 #else
   template<typename T, typename = void>
-  struct IndexibleObjectTraitsBase;
+  struct indexible_object_traits_base;
 #endif
 
 

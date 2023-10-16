@@ -26,7 +26,7 @@ namespace OpenKalman
 
     template<typename Arg>
     struct to_diagonal_exists<Arg, std::void_t<decltype(
-      interface::LibraryRoutines<std::decay_t<Arg>>::template to_diagonal(std::declval<Arg&&>()))>> : std::true_type {};
+      interface::library_interface<std::decay_t<Arg>>::template to_diagonal(std::declval<Arg&&>()))>> : std::true_type {};
   } // namespace detail
 #endif
 
@@ -45,7 +45,7 @@ namespace OpenKalman
 #endif
   to_diagonal(Arg&& arg)
   {
-    using Interface = interface::LibraryRoutines<std::decay_t<Arg>>;
+    using Interface = interface::library_interface<std::decay_t<Arg>>;
 
     if constexpr (one_by_one_matrix<Arg>)
     {

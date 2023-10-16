@@ -32,7 +32,7 @@ TEST(eigen3, reduce_matrix)
   auto m13_cust = make_dense_writable_matrix_from<M13>(6, 8, 10);
 
   EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, m23), m13_sum));
-  EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, EigenWrapper {m23}), m13_sum));
+  EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, Eigen3::make_eigen_wrapper(m23)), m13_sum));
   EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, mx3_2), m13_sum));
   EXPECT_TRUE(is_near(reduce<0>(std::multiplies<double>{}, m2x_3), m13_prod));
   EXPECT_TRUE(is_near(reduce<0>(std::multiplies<double>{}, mxx_23), m13_prod));
@@ -44,7 +44,7 @@ TEST(eigen3, reduce_matrix)
   auto m21_cust = make_dense_writable_matrix_from<M21>(8, 17);
 
   EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, m23), m21_sum));
-  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, EigenWrapper {m23}), m21_sum));
+  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, Eigen3::make_eigen_wrapper(m23)), m21_sum));
   EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, mx3_2), m21_sum));
   EXPECT_TRUE(is_near(reduce<1>(std::multiplies<double>{}, m2x_3), m21_prod));
   EXPECT_TRUE(is_near(reduce<1>(std::multiplies<double>{}, mxx_23), m21_prod));
@@ -57,12 +57,12 @@ TEST(eigen3, reduce_matrix)
 
   EXPECT_EQ((reduce(std::plus<double>{}, m23)), m11_sum);
   EXPECT_EQ((reduce(std::plus<double>{}, mx3_2)), m11_sum);
-  EXPECT_EQ((reduce<1, 0>(std::plus<double>{}, m23)), m11_sum);
+  EXPECT_EQ((reduce<1, 0>(std::plus<double>{}, m23)), M11{m11_sum});
   EXPECT_EQ((reduce(std::multiplies<double>{}, mxx_23)), m11_prod);
-  EXPECT_EQ((reduce<1, 0>(std::multiplies<double>{}, m2x_3)), m11_prod);
+  EXPECT_EQ((reduce<1, 0>(std::multiplies<double>{}, m2x_3)), M11{m11_prod});
   EXPECT_EQ((reduce(f23_cust, mxx_23)), m11_cust);
-  EXPECT_EQ((reduce<0, 1>(f23_cust, m23)), m11_cust);
-  EXPECT_EQ((reduce<1, 0>(f23_cust, mxx_23)), m11_cust);
+  EXPECT_EQ((reduce<0, 1>(f23_cust, m23)), M11{m11_cust});
+  EXPECT_EQ((reduce<1, 0>(f23_cust, mxx_23)), M11{m11_cust});
 }
 
 
@@ -80,10 +80,10 @@ TEST(eigen3, reduce_eigen_general)
   EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, m33.selfadjointView<Eigen::Upper>()), m13_sum_hu));
   EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, m33.selfadjointView<Eigen::Lower>()), m13_sum_hl));
 
-  EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, EigenWrapper {m33.triangularView<Eigen::Upper>()}), m13_sum_u));
-  EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, EigenWrapper {m33.triangularView<Eigen::Lower>()}), m13_sum_l));
-  EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, EigenWrapper {m33.selfadjointView<Eigen::Upper>()}), m13_sum_hu));
-  EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, EigenWrapper {m33.selfadjointView<Eigen::Lower>()}), m13_sum_hl));
+  EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, Eigen3::make_eigen_wrapper(m33.triangularView<Eigen::Upper>())), m13_sum_u));
+  EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, Eigen3::make_eigen_wrapper(m33.triangularView<Eigen::Lower>())), m13_sum_l));
+  EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, Eigen3::make_eigen_wrapper(m33.selfadjointView<Eigen::Upper>())), m13_sum_hu));
+  EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, Eigen3::make_eigen_wrapper(m33.selfadjointView<Eigen::Lower>())), m13_sum_hl));
 
   auto m31_sum_u = make_dense_writable_matrix_from<M31>(6, 11, 9);
   auto m31_sum_l = make_dense_writable_matrix_from<M31>(1, 9, 24);
@@ -95,10 +95,10 @@ TEST(eigen3, reduce_eigen_general)
   EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, m33.selfadjointView<Eigen::Upper>()), m31_sum_hu));
   EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, m33.selfadjointView<Eigen::Lower>()), m31_sum_hl));
 
-  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, EigenWrapper {m33.triangularView<Eigen::Upper>()}), m31_sum_u));
-  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, EigenWrapper {m33.triangularView<Eigen::Lower>()}), m31_sum_l));
-  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, EigenWrapper {m33.selfadjointView<Eigen::Upper>()}), m31_sum_hu));
-  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, EigenWrapper {m33.selfadjointView<Eigen::Lower>()}), m31_sum_hl));
+  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, Eigen3::make_eigen_wrapper(m33.triangularView<Eigen::Upper>())), m31_sum_u));
+  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, Eigen3::make_eigen_wrapper(m33.triangularView<Eigen::Lower>())), m31_sum_l));
+  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, Eigen3::make_eigen_wrapper(m33.selfadjointView<Eigen::Upper>())), m31_sum_hu));
+  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, Eigen3::make_eigen_wrapper(m33.selfadjointView<Eigen::Lower>())), m31_sum_hl));
 
   double m11_sum_u = 26;
   double m11_sum_l = 34;
@@ -110,10 +110,10 @@ TEST(eigen3, reduce_eigen_general)
   EXPECT_EQ((reduce(std::plus<double>{}, m33.selfadjointView<Eigen::Upper>())), m11_sum_hu);
   EXPECT_EQ((reduce(std::plus<double>{}, m33.selfadjointView<Eigen::Lower>())), m11_sum_hl);
 
-  EXPECT_EQ((reduce(std::plus<double>{}, EigenWrapper {m33.triangularView<Eigen::Upper>()})), m11_sum_u);
-  EXPECT_EQ((reduce(std::plus<double>{}, EigenWrapper {m33.triangularView<Eigen::Lower>()})), m11_sum_l);
-  EXPECT_EQ((reduce(std::plus<double>{}, EigenWrapper {m33.selfadjointView<Eigen::Upper>()})), m11_sum_hu);
-  EXPECT_EQ((reduce(std::plus<double>{}, EigenWrapper {m33.selfadjointView<Eigen::Lower>()})), m11_sum_hl);
+  EXPECT_EQ((reduce(std::plus<double>{}, Eigen3::make_eigen_wrapper(m33.triangularView<Eigen::Upper>()))), m11_sum_u);
+  EXPECT_EQ((reduce(std::plus<double>{}, Eigen3::make_eigen_wrapper(m33.triangularView<Eigen::Lower>()))), m11_sum_l);
+  EXPECT_EQ((reduce(std::plus<double>{}, Eigen3::make_eigen_wrapper(m33.selfadjointView<Eigen::Upper>()))), m11_sum_hu);
+  EXPECT_EQ((reduce(std::plus<double>{}, Eigen3::make_eigen_wrapper(m33.selfadjointView<Eigen::Lower>()))), m11_sum_hl);
 }
 
 
@@ -130,7 +130,7 @@ TEST(eigen3, average_matrix)
   auto m21_25 = make_eigen_matrix<double, 2, 1>(2, 5);
 
   EXPECT_TRUE(is_near(average_reduce<1>(m23), m21_25));
-  EXPECT_TRUE(is_near(average_reduce<1>(EigenWrapper {m23}), m21_25));
+  EXPECT_TRUE(is_near(average_reduce<1>(Eigen3::make_eigen_wrapper(m23)), m21_25));
   EXPECT_TRUE(is_near(average_reduce<1>(mx3_2), m21_25));
   EXPECT_TRUE(is_near(average_reduce<1>(m2x_3), m21_25));
   EXPECT_TRUE(is_near(average_reduce<1>(mxx_23), m21_25));

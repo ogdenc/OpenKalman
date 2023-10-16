@@ -10,24 +10,24 @@
 
 /**
  * \dir
- * \brief Definitions relating to index descriptor types
+ * \brief Definitions relating to \ref vector_space_descriptor.
  *
- * \dir index-descriptors/details
- * \brief Files implementing details regarding index descriptor types.
+ * \dir vector-space-descriptor/details
+ * \brief Files implementing details regarding \ref vector_space_descriptor objects.
  *
- * \dir index-descriptors/tests
+ * \dir vector-space-descriptor/tests
  * \brief Test files for coefficient types.
  *
  * \file
  * \brief Comprehensive header file including all index-type-related classes and definitions
  */
 
-#ifndef OPENKALMAN_INDEX_DESCRIPTORS_HPP
-#define OPENKALMAN_INDEX_DESCRIPTORS_HPP
+#ifndef OPENKALMAN_VECTOR_TYPES_HPP
+#define OPENKALMAN_VECTOR_TYPES_HPP
 
-#include "details/index-descriptor-interface-traits.hpp"
-#include "details/index-descriptor-forward-declarations.hpp"
-#include "basics/functions/index-descriptor-forward-functions.hpp"
+#include "details/vector-space-descriptor-interface-traits.hpp"
+#include "details/vector-space-descriptor-forward-declarations.hpp"
+#include "basics/functions/vector-space_descriptor-forward-functions.hpp"
 
 #include "details/integral-interface-traits.hpp"
 
@@ -40,10 +40,10 @@
 
 #include "TypedIndex.hpp"
 
-#include "details/AnyAtomicIndexDescriptor.hpp"
+#include "details/AnyAtomicVectorSpaceDescriptor.hpp"
 #include "DynamicTypedIndex.hpp"
 
-#include "details/index-descriptor-traits.hpp"
-#include "basics/functions/index-descriptor-functions.hpp"
+#include "details/vector-space-descriptor-traits.hpp"
+#include "basics/functions/vector-space_descriptor-functions.hpp"
 
-#endif //OPENKALMAN_INDEX_DESCRIPTORS_HPP
+#endif //OPENKALMAN_VECTOR_TYPES_HPP

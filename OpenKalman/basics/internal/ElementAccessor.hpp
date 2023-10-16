@@ -22,8 +22,18 @@ namespace OpenKalman::internal
 {
   /**
    * \internal
-   * \brief Settable ElementAccessor specialization.
+   * \brief An interface to a matrix, to be used for getting and setting the individual matrix elements.
+   * \tparam settable Whether the matrix elements can be set (as opposed to being read-only).
+   * \tparam Scalar the scalar type of the elements.
    * \todo Add a template parameter for number of coefficients, and provide distinct template instances.
+   */
+  template<bool settable, typename Scalar = double>
+  struct ElementAccessor;
+
+
+  /**
+   * \internal \overload
+   * \brief Settable ElementAccessor specialization.
    */
   template<typename Scalar>
   struct ElementAccessor<true, Scalar>
@@ -99,7 +109,7 @@ namespace OpenKalman::internal
 
 
   /**
-   * \internal
+   * \internal \overload
    * \brief Read-only ElementAccessor specialization.
    */
   template<typename Scalar>

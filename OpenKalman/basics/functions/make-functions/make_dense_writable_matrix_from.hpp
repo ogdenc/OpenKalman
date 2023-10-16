@@ -39,19 +39,21 @@ namespace OpenKalman
 
   /**
    * \brief Convert the argument to a dense, writable matrix of a particular scalar type.
+   * \tparam layout The \ref Layout of the resulting object. If this is Layout::none, the interface will decide the layout.
    * \tparam Scalar The Scalar type of the new matrix, if different than that of Arg
-   * \tparam Arg The object from which the new matrix is based
+   * \param arg The object from which the new matrix is based
    */
 #ifdef __cpp_concepts
-  template<scalar_type Scalar, indexible Arg>
+  template<Layout layout, scalar_type Scalar, indexible Arg> requires (layout != Layout::stride)
   constexpr writable decltype(auto)
 #else
-  template<typename Scalar, typename Arg, std::enable_if_t<scalar_type<Scalar> and indexible<Arg>, int> = 0>
+  template<Layout layout, typename Scalar, typename Arg, std::enable_if_t<scalar_type<Scalar> and indexible<Arg> and
+    (layout != Layout::stride), int> = 0>
   constexpr decltype(auto)
 #endif
   make_dense_writable_matrix_from(Arg&& arg)
   {
-    using M = std::decay_t<decltype(make_default_dense_writable_matrix_like<Scalar>(arg))>;
+    using M = std::decay_t<decltype(make_default_dense_writable_matrix_like<layout, Scalar>(arg))>;
 
     if constexpr (writable<Arg> and std::is_same_v<Scalar, scalar_type_of_t<Arg>>)
     {
@@ -69,7 +71,7 @@ namespace OpenKalman
     }
     else
     {
-      auto m {make_default_dense_writable_matrix_like<Scalar>(arg)};
+      auto m {make_default_dense_writable_matrix_like<layout, Scalar>(arg)};
       if constexpr (std::is_assignable_v<M&, Arg&&>)
       {
         m = std::forward<Arg>;
@@ -80,7 +82,7 @@ namespace OpenKalman
       }
       else
       {
-        detail::copy_tensor_elements(m, arg, std::make_index_sequence<max_indices_of_v<Arg>>{});
+        detail::copy_tensor_elements(m, arg, std::make_index_sequence<index_count_v<Arg>>{});
       }
       return m;
     }
@@ -90,108 +92,121 @@ namespace OpenKalman
   /**
    * \overload
    * \brief Convert the argument to a dense, writable matrix with the same scalar type as the argument.
-   * \tparam Arg The object from which the new matrix is based
+   * \tparam layout The \ref Layout of the resulting object (optional). If this is omitted or Layout::none,
+   * the interface will decide the layout.
+   * \param arg The object from which the new matrix is based
    */
 #ifdef __cpp_concepts
-  template<indexible Arg>
+  template<Layout layout = Layout::none, indexible Arg> requires (layout != Layout::stride)
   constexpr writable decltype(auto)
 #else
-  template<typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
+  template<Layout layout = Layout::none, typename Arg, std::enable_if_t<indexible<Arg> and (layout != Layout::stride), int> = 0>
   constexpr decltype(auto)
 #endif
   make_dense_writable_matrix_from(Arg&& arg)
   {
-    return make_dense_writable_matrix_from<scalar_type_of_t<Arg>>(std::forward<Arg>(arg));
+    return make_dense_writable_matrix_from<layout, scalar_type_of_t<Arg>>(std::forward<Arg>(arg));
   }
 
 
   /**
    * \overload
-   * \brief Create a dense, writable matrix from the library of which M is a member, filled with a set of scalar components
-   * \tparam M The matrix or array on which the new matrix is patterned.
-   * \tparam Scalar An optional scalar type for the new matrix. By default, M's scalar type is used.
-   * \tparam Ds Index descriptors describing the size of the resulting object.
-   * \param d_tup A tuple of index descriptors Ds
+   * \brief Create a dense, writable matrix from the library of which dummy type T is a member, filled with a set of scalar components.
+   * \details The scalar components are listed in the specified layout order, as follows:
+   * - \ref Layout::left: column-major;
+   * - \ref Layout::right: row-major;
+   * - \ref Layout::none (the default): although the elements are listed in row-major order, the layout of the resulting object is unspecified.
+   * \tparam T Any dummy type from the relevant library. Its characteristics are ignored.
+   * \tparam layout The \ref Layout of Args and the resulting object (\ref Layout::none if unspecified).
+   * \tparam Scalar An scalar type for the new matrix. By default, it is the same as T.
+   * \tparam Ds \ref vector_space_descriptor objects describing the size of the resulting object.
+   * \param d_tup A tuple of \ref vector_space_descriptor Ds
    * \param args Scalar values to fill the new matrix.
    */
 #ifdef __cpp_concepts
-  template<indexible M, scalar_type Scalar = scalar_type_of_t<M>, index_descriptor...Ds, std::convertible_to<const Scalar> ... Args>
-    requires (sizeof...(Args) > 0) and (sizeof...(Args) % ((dynamic_index_descriptor<Ds> ? 1 : dimension_size_of_v<Ds>) * ... * 1) == 0)
+  template<indexible T, Layout layout = Layout::none, scalar_type Scalar = scalar_type_of_t<T>, vector_space_descriptor...Ds, std::convertible_to<const Scalar> ... Args>
+    requires (layout != Layout::stride) and
+    (((dimension_size_of_v<Ds> == 0) or ...) ? sizeof...(Args) == 0 :
+      (sizeof...(Args) % ((dynamic_vector_space_descriptor<Ds> ? 1 : dimension_size_of_v<Ds>) * ... * 1) == 0))
   inline writable auto
 #else
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wdiv-by-zero"
-  template<typename M, typename Scalar = scalar_type_of_t<M>, typename...Ds, typename...Args, std::enable_if_t<
-    indexible<M> and scalar_type<Scalar> and (index_descriptor<Ds> and ...) and
-    (std::is_convertible_v<Args, const Scalar> and ...) and (sizeof...(Args) > 0) and
-    (sizeof...(Args) % ((dynamic_index_descriptor<Ds> ? 1 : dimension_size_of_v<Ds>) * ... * 1) == 0), int> = 0>
+  template<typename T, Layout layout = Layout::none, typename Scalar = scalar_type_of_t<T>, typename...Ds, typename...Args, std::enable_if_t<
+    indexible<T> and scalar_type<Scalar> and (vector_space_descriptor<Ds> and ...) and
+    (std::is_convertible_v<Args, const Scalar> and ...) and (layout != Layout::stride) and
+    (((dimension_size_of<Ds>::value == 0) or ...) ? sizeof...(Args) == 0 :
+      (sizeof...(Args) % ((dynamic_vector_space_descriptor<Ds> ? 1 : dimension_size_of<Ds>::value) * ... * 1) == 0)), int> = 0>
   inline auto
 #endif
   make_dense_writable_matrix_from(const std::tuple<Ds...>& d_tup, Args...args)
   {
-    using W = decltype(make_default_dense_writable_matrix_like<M>(std::declval<Ds>()...));
-    using Trait = interface::LibraryRoutines<std::decay_t<W>>;
-    return Trait::template make_from_elements<Scalar>(d_tup, static_cast<const Scalar>(args)...);
+    auto m = std::apply([](const auto&...d) { return make_default_dense_writable_matrix_like<T, layout, Scalar>(d...); }, d_tup);
+    if constexpr (sizeof...(Args) > 0)
+    {
+      constexpr Layout l = layout == Layout::none ? Layout::right : layout;
+      return set_elements<l>(std::move(m), static_cast<const Scalar>(args)...);
+    }
+    else return m;
   }
-#ifndef __cpp_concepts
-# pragma GCC diagnostic pop
-#endif
 
 
   namespace detail
   {
-    template<typename M, std::size_t...I>
-    constexpr auto count_fixed_dims(std::index_sequence<I...>)
+    template<typename T, std::size_t...Is>
+    constexpr bool zero_dimension_count_impl(std::index_sequence<Is...>)
     {
-      return ((dynamic_dimension<M, I> ? 1 : index_dimension_of_v<M, I>) * ... * 1);
+      return ((dimension_size_of_index_is<T, Is, 0> ? 1 : 0) + ...);
     }
 
 
-    template<typename M, std::size_t N>
-    constexpr bool check_make_dense_args()
-    {
-      constexpr auto dims = count_fixed_dims<M>(std::make_index_sequence<max_indices_of_v<M>> {});
-      if constexpr (dims == 0) return false;
-      else return (N % dims == 0) and number_of_dynamic_indices_v<M> <= 1;
-    }
+    template<typename T>
+    struct zero_dimension_count : std::integral_constant<std::size_t,
+      zero_dimension_count_impl<T>(std::make_index_sequence<index_count_v<T>>{})> {};
 
 
-    template<typename M, std::size_t dims, typename Scalar, std::size_t...I, typename...Args>
+    template<typename T, Layout layout, typename Scalar, std::size_t...I, typename...Args>
     inline auto make_dense_writable_matrix_from_impl(std::index_sequence<I...>, Args...args)
     {
       std::tuple d_tup {[]{
-          if constexpr (dynamic_dimension<M, I>) return Dimensions<sizeof...(Args) / dims>{};
-          else return index_descriptor_of_t<M, I> {};
+          if constexpr (dynamic_dimension<T, I>) // There will be only one dynamic dimension, at most.
+          {
+            constexpr auto dims = ((dynamic_dimension<T, I> ? 1 : index_dimension_of_v<T, I>) * ... * 1);
+            if constexpr (dims == 0) return Dimensions<0>{};
+            else return Dimensions<sizeof...(Args) / dims>{};
+          }
+          else return vector_space_descriptor_of_t<T, I> {};
         }()...};
-      return make_dense_writable_matrix_from<M, Scalar>(d_tup, args...);
+      return make_dense_writable_matrix_from<T, layout, Scalar>(d_tup, args...);
     }
-
   } // namespace detail
 
 
   /**
    * \overload
-   * \brief Create a dense, writable matrix from a set of components, with size and shape inferred from M.
-   * \details The index descriptors of the result must be unambiguously inferrable from M and the number of indices.
-   * \tparam M The matrix or array on which the new matrix is patterned.
-   * \tparam Scalar An optional scalar type for the new matrix. By default, M's scalar type is used.
+   * \brief Create a dense, writable matrix from a set of components, with size and shape inferred from dummy type T.
+   * \details The \ref vector_space_descriptor of the result must be unambiguously inferrable from T and the number of indices.
+   * \tparam T The matrix or array on which the new matrix is patterned.
+   * \tparam layout The \ref Layout of Args and the resulting object
+   * (\ref Layout::none if unspecified, which means that the values are in \ref Layout::right order but
+   * layout of the resulting object is unspecified).
+   * \tparam Scalar An scalar type for the new matrix. By default, it is the same as T.
    * \param args Scalar values to fill the new matrix.
    */
 #ifdef __cpp_concepts
-  template<indexible M, scalar_type Scalar = scalar_type_of_t<M>, std::convertible_to<const Scalar> ... Args>
-    requires (sizeof...(Args) > 0) and (detail::check_make_dense_args<M, sizeof...(Args)>())
+  template<indexible T, Layout layout = Layout::none, scalar_type Scalar = scalar_type_of_t<T>, std::convertible_to<const Scalar> ... Args>
+    requires (layout != Layout::stride) and internal::may_hold_components<T, Args...> and
+    (dynamic_index_count_v<T> + detail::zero_dimension_count<T>::value <= 1)
   inline writable auto
 #else
-  template<typename M, typename Scalar = scalar_type_of_t<M>, typename ... Args, std::enable_if_t<
-    indexible<M> and scalar_type<Scalar> and (std::is_convertible_v<Args, const Scalar> and ...) and
-    (sizeof...(Args) > 0) and (detail::check_make_dense_args<M, sizeof...(Args)>()), int> = 0>
+  template<typename T, Layout layout = Layout::none, typename Scalar = scalar_type_of_t<T>, typename ... Args, std::enable_if_t<
+    indexible<T> and scalar_type<Scalar> and (std::is_convertible_v<Args, const Scalar> and ...) and
+    (layout != Layout::stride) and internal::may_hold_components<T, Args...> and
+    (dynamic_index_count_v<T> + detail::zero_dimension_count<T>::value <= 1), int> = 0>
   inline auto
 #endif
   make_dense_writable_matrix_from(Args...args)
   {
-    constexpr std::make_index_sequence<max_indices_of_v<M>> seq;
-    constexpr auto dims = detail::count_fixed_dims<M>(seq);
-    return detail::make_dense_writable_matrix_from_impl<M, dims, Scalar>(seq, args...);
+    constexpr std::make_index_sequence<index_count_v<T>> seq;
+    return detail::make_dense_writable_matrix_from_impl<T, layout, Scalar>(seq, args...);
   }
 
 

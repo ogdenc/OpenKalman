@@ -64,30 +64,30 @@ namespace OpenKalman
         // | delta | -delta |
         static_assert(sizeof...(ds) == 0);
         auto ret = concatenate_horizontal(delta, -delta);
-        static_assert(column_dimension_of_v<decltype(ret)> == points_count);
+        static_assert(index_dimension_of_v<decltype(ret), 1> == points_count);
         return std::tuple {std::move(ret)};
       }
       else if constexpr (pos == 0)
       {
         // | delta | -delta | 0 ... |
         constexpr auto width = points_count - frame_size;
-        using Mright = Matrix<Coeffs, Dimensions<width>, untyped_dense_writable_matrix_t<M, Scalar, dim_i, width>>;
+        using Mright = Matrix<Coeffs, Dimensions<width>, untyped_dense_writable_matrix_t<M, Layout::none, Scalar, dim_i, width>>;
         const auto mright = make_zero_matrix_like<Mright>(Dimensions<dim_i>{}, Dimensions<width>{});
         auto ret = concatenate_horizontal(delta, -delta, std::move(mright));
-        static_assert(column_dimension_of_v<decltype(ret)> == points_count);
+        static_assert(index_dimension_of_v<decltype(ret), 1> == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)},
           sample_points_impl<dim, frame_size>(ds...));
       }
       else if constexpr (pos + frame_size < points_count)
       {
         // | 0 ... | delta | -delta | 0 ... |
-        using Mleft = Matrix<Coeffs, Dimensions<pos>, untyped_dense_writable_matrix_t<M, Scalar, dim_i, pos>>;
+        using Mleft = Matrix<Coeffs, Dimensions<pos>, untyped_dense_writable_matrix_t<M, Layout::none, Scalar, dim_i, pos>>;
         const auto mleft = make_zero_matrix_like<Mleft>(Dimensions<dim_i>{}, Dimensions<pos>{});
         constexpr auto width = points_count - (pos + frame_size);
-        using Mright = Matrix<Coeffs, Dimensions<width>, untyped_dense_writable_matrix_t<M, Scalar, dim_i, width>>;
+        using Mright = Matrix<Coeffs, Dimensions<width>, untyped_dense_writable_matrix_t<M, Layout::none, Scalar, dim_i, width>>;
         const auto mright = make_zero_matrix_like<Mright>(Dimensions<dim_i>{}, Dimensions<width>{});
         auto ret = concatenate_horizontal(std::move(mleft), delta, -delta, std::move(mright));
-        static_assert(column_dimension_of_v<decltype(ret)> == points_count);
+        static_assert(index_dimension_of_v<decltype(ret), 1> == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)},
           sample_points_impl<dim, pos + frame_size>(ds...));
       }
@@ -95,10 +95,10 @@ namespace OpenKalman
       {
         // | 0 ... | delta | -delta |
         static_assert(sizeof...(ds) == 0);
-        using Mleft = Matrix<Coeffs, Dimensions<pos>, untyped_dense_writable_matrix_t<M, Scalar, dim_i, pos>>;
+        using Mleft = Matrix<Coeffs, Dimensions<pos>, untyped_dense_writable_matrix_t<M, Layout::none, Scalar, dim_i, pos>>;
         const auto mleft = make_zero_matrix_like<Mleft>(Dimensions<dim_i>{}, Dimensions<pos>{});
         auto ret = concatenate_horizontal(std::move(mleft), delta, -delta);
-        static_assert(column_dimension_of_v<decltype(ret)> == points_count);
+        static_assert(index_dimension_of_v<decltype(ret), 1> == points_count);
         return std::tuple {std::move(ret)};
       }
     }
@@ -135,12 +135,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<std::size_t dim, typed_matrix YMeans> requires has_untyped_index<YMeans, 1> and
-      (row_dimension_of_v<YMeans> == euclidean_dimension_size_of_v<row_index_descriptor_of_t<YMeans>>) and
-      (column_dimension_of_v<YMeans> == dim * 2)
+      (index_dimension_of_v<YMeans, 0> == euclidean_dimension_size_of_v<vector_space_descriptor_of_t<YMeans, 0>>) and
+      (index_dimension_of_v<YMeans, 1> == dim * 2)
 #else
     template<std::size_t dim, typename YMeans, std::enable_if_t<typed_matrix<YMeans> and has_untyped_index<YMeans, 1> and
-      (row_dimension_of<YMeans>::value == euclidean_dimension_size_of_v<row_index_descriptor_of_t<YMeans>>) and
-      (column_dimension_of_v<YMeans> == dim * 2), int> = 0>
+      (index_dimension_of<YMeans, 0>::value == euclidean_dimension_size_of_v<vector_space_descriptor_of_t<YMeans, 0>>) and
+      (index_dimension_of_v<YMeans, 1> == dim * 2), int> = 0>
 #endif
     static auto
     weighted_means(YMeans&& y_means)
@@ -161,19 +161,19 @@ namespace OpenKalman
      * and the cross-covariance.
      */
     template<std::size_t dim, typename InputDist, bool return_cross = false, typed_matrix X, typed_matrix Y> requires
-      (column_dimension_of_v<X> == column_dimension_of_v<Y>) and (column_dimension_of_v<X> == dim * 2) and
-      equivalent_to<row_index_descriptor_of_t<X>, typename DistributionTraits<InputDist>::TypedIndex>
+      (index_dimension_of_v<X, 1> == index_dimension_of_v<Y, 1>) and (index_dimension_of_v<X, 1> == dim * 2) and
+      equivalent_to<vector_space_descriptor_of_t<X, 0>, typename DistributionTraits<InputDist>::TypedIndex>
 #else
     template<std::size_t dim, typename InputDist, bool return_cross = false, typename X, typename Y, std::enable_if_t<
-      typed_matrix<X> and typed_matrix<Y> and (column_dimension_of<X>::value == column_dimension_of<Y>::value) and
-      (column_dimension_of<X>::value == dim * 2) and
-      equivalent_to<row_index_descriptor_of_t<X>, typename DistributionTraits<InputDist>::TypedIndex>,
+      typed_matrix<X> and typed_matrix<Y> and (index_dimension_of<X, 1>::value == index_dimension_of<Y, 1>::value) and
+      (index_dimension_of<X, 1>::value == dim * 2) and
+      equivalent_to<vector_space_descriptor_of_t<X, 0>, typename DistributionTraits<InputDist>::TypedIndex>,
         int> = 0>
 #endif
     static auto
     covariance(const X& x_deviations, const Y& y_deviations)
     {
-      constexpr auto count = column_dimension_of_v<X>;
+      constexpr auto count = index_dimension_of_v<X, 1>;
       constexpr auto inv_weight = 1 / static_cast<scalar_type_of_t<X>>(count);
 
       if constexpr(cholesky_form<InputDist>)
