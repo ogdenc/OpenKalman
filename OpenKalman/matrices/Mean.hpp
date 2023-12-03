@@ -419,7 +419,7 @@ namespace OpenKalman
   {
     constexpr auto rows = index_dimension_of_v<M, 0>;
     using Coeffs = std::conditional_t<std::is_void_v<TypedIndex>, Dimensions<rows>, TypedIndex>;
-    decltype(auto) b = wrap_angles<Coeffs>(std::forward<M>(m)); using B = decltype(b);
+    auto&& b = wrap_angles<Coeffs>(std::forward<M>(m)); using B = decltype(b);
     return Mean<Coeffs, passable_t<B>>(std::forward<B>(b));
   }
 
@@ -517,7 +517,7 @@ namespace OpenKalman
       {
         if constexpr (static_index_value<N>)
         {
-          if constexpr (static_index_value_of_v<N> == 0) return arg.my_dimension;
+          if constexpr (n == 0_uz) return arg.my_dimension;
           else return OpenKalman::get_vector_space_descriptor(nested_matrix(arg), n);
         }
         else if constexpr (has_uniform_dimension_type<NestedMatrix> and equivalent_to<Coeffs, uniform_dimension_type_of<NestedMatrix>>)
@@ -531,7 +531,7 @@ namespace OpenKalman
         }
       }
 
-      using type = std::tuple<NestedMatrix>;
+      using dependents = std::tuple<NestedMatrix>;
 
       static constexpr bool has_runtime_parameters = false;
 
@@ -545,7 +545,7 @@ namespace OpenKalman
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
-        auto n = make_self_contained(std::forward<Arg>(arg).nested_matrix());
+        auto n = make_self_contained(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
         return Mean<Coeffs, decltype(n)> {std::move(n)};
       }
 

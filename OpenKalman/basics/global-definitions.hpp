@@ -64,7 +64,7 @@ namespace OpenKalman
 
 
   /**
-   * \brief The type of a hermitian matrix.
+   * \brief The type of a hermitian adapter, indicating which triangle of the nested matrix is used.
    * \details This type can be statically cast from \ref TriangleType so that <code>lower</code>, <code>upper</code>,
    * and <code>any</code> correspond to each other. The value <code>none</code> corresponds to TriangleType::diagonal.
    *

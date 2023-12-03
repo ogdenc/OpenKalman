@@ -739,7 +739,7 @@ namespace OpenKalman
       {
         if constexpr (static_index_value<N>)
         {
-          static_assert(static_index_value_of_v<N> == 0);
+          static_assert(n == 0_uz);
           if constexpr (not dynamic_dimension<NestedMean, 0>) return OpenKalman::get_vector_space_descriptor<0>(mean_of(arg));
           else return OpenKalman::get_vector_space_descriptor<0>(covariance_of(arg));
         }
@@ -749,7 +749,7 @@ namespace OpenKalman
         }
       }
 
-      using type = std::tuple<NestedMean, NestedCovariance>;
+      using dependents = std::tuple<NestedMean, NestedCovariance>;
 
       static constexpr bool has_runtime_parameters = false;
 
@@ -766,9 +766,9 @@ namespace OpenKalman
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
-        decltype(auto) m = make_self_contained(std::forward<Arg>(arg).mu);
+        auto&& m = make_self_contained(std::forward<Arg>(arg).mu);
         using M = decltype(m);
-        decltype(auto) s = make_self_contained(std::forward<Arg>(arg).sigma);
+        auto&& s = make_self_contained(std::forward<Arg>(arg).sigma);
         using S = decltype(s);
         return GaussianDistribution<Coeffs, M, S, re> {std::forward<M>(m), std::forward<M>(s)};
       }

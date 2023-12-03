@@ -352,7 +352,7 @@ namespace OpenKalman::Eigen3
 
   /**
    * \internal
-   * \brief T is Eigen3::EigenWrapper<T> or internal::LibraryWrapper for a , for any T.
+   * \brief T is a \ref internal::LibraryWrapper "LibraryWrapper" for T based on the Eigen library.
    */
   template<typename T>
 #ifdef __cpp_concepts

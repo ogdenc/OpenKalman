@@ -32,9 +32,33 @@ TEST(eigen3, element_access)
 
 TEST(eigen3, get_and_set_elements)
 {
+  std::integral_constant<std::size_t, 0> N0;
+  std::integral_constant<std::size_t, 1> N1;
+
+  M11 m11; m11 << 5;
   M21 m21; m21 << 1, 2;
   M12 m12; m12 << 1, 2;
   M22 m22; m22 << 1, 2, 3, 4;
+
+  M11 el11 {m11}; // 5
+  M1x el1x_1 {m11};
+  Mx1 elx1_1 {m11};
+  Mxx elxx_11 {m11};
+
+  EXPECT_NEAR(get_element(el11), 5, 1e-8);
+
+  EXPECT_NEAR(get_element(el11, 0), 5, 1e-8);
+  EXPECT_NEAR(get_element(elx1_1, 0), 5, 1e-8);
+
+  EXPECT_NEAR(get_element(el11, 0, 0), 5, 1e-8);
+  EXPECT_NEAR(get_element(el1x_1, 0, 0), 5, 1e-8);
+  EXPECT_NEAR(get_element(elx1_1, 0, 0), 5, 1e-8);
+  EXPECT_NEAR(get_element(elxx_11, 0, 0), 5, 1e-8);
+
+  EXPECT_ANY_THROW(get_element(el11, 0, 1));
+  EXPECT_ANY_THROW(get_element(el1x_1, 0, 0, 1));
+  EXPECT_ANY_THROW(get_element(elx1_1, 0, 1));
+  EXPECT_ANY_THROW(get_element(elxx_11, 0, 0, 1));
 
   M22 el22 {m22}; // 1, 2, 3, 4
   M2x el2x_2 {m22};
@@ -46,10 +70,40 @@ TEST(eigen3, get_and_set_elements)
   EXPECT_NEAR(get_element(elx2_2, 1, 0), 3, 1e-8);
   EXPECT_NEAR(get_element(elxx_22, 1, 1), 4, 1e-8);
 
+  EXPECT_NEAR(get_element(el22, N0, 0), 1, 1e-8);
+  EXPECT_NEAR(get_element(el2x_2, 0, N1), 2, 1e-8);
+  EXPECT_NEAR(get_element(elx2_2, N1, N0), 3, 1e-8);
+  EXPECT_NEAR(get_element(elxx_22, N1, N1), 4, 1e-8);
+
+  EXPECT_NEAR(get_element(el22, std::array{0, 0}), 1, 1e-8);
+  EXPECT_NEAR(get_element(el2x_2, std::array{0, 1}), 2, 1e-8);
+  EXPECT_NEAR(get_element(elx2_2, std::array{1, 0}), 3, 1e-8);
+  EXPECT_NEAR(get_element(elxx_22, std::array{1, 1}), 4, 1e-8);
+
+  EXPECT_NEAR(get_element(el22, {0, 0}), 1, 1e-8);
+  EXPECT_NEAR(get_element(el2x_2, {0, 1}), 2, 1e-8);
+  EXPECT_NEAR(get_element(elx2_2, {1, 0}), 3, 1e-8);
+  EXPECT_NEAR(get_element(elxx_22, {1, 1}), 4, 1e-8);
+
   set_element(el22, 5.5, 1, 0); EXPECT_NEAR(get_element(el22, 1, 0), 5.5, 1e-8);
   set_element(el2x_2, 5.5, 1, 0); EXPECT_NEAR(get_element(el2x_2, 1, 0), 5.5, 1e-8);
   set_element(elx2_2, 5.5, 1, 0); EXPECT_NEAR(get_element(elx2_2, 1, 0), 5.5, 1e-8);
   set_element(elxx_22, 5.5, 1, 0); EXPECT_NEAR(get_element(elxx_22, 1, 0), 5.5, 1e-8);
+
+  set_element(el22, 5.5, N1, N0); EXPECT_NEAR(get_element(el22, 1, 0), 5.5, 1e-8);
+  set_element(el2x_2, 5.5, N1, N0); EXPECT_NEAR(get_element(el2x_2, 1, 0), 5.5, 1e-8);
+  set_element(elx2_2, 5.5, N1, 0); EXPECT_NEAR(get_element(elx2_2, 1, 0), 5.5, 1e-8);
+  set_element(elxx_22, 5.5, 1, N0); EXPECT_NEAR(get_element(elxx_22, 1, 0), 5.5, 1e-8);
+
+  set_element(el22, 5.5, std::array{1, 0}); EXPECT_NEAR(get_element(el22, 1, 0), 5.5, 1e-8);
+  set_element(el2x_2, 5.5, std::array{1, 0}); EXPECT_NEAR(get_element(el2x_2, 1, 0), 5.5, 1e-8);
+  set_element(elx2_2, 5.5, std::array{1, 0}); EXPECT_NEAR(get_element(elx2_2, 1, 0), 5.5, 1e-8);
+  set_element(elxx_22, 5.5, std::array{1, 0}); EXPECT_NEAR(get_element(elxx_22, 1, 0), 5.5, 1e-8);
+
+  set_element(el22, 5.5, {1, 0}); EXPECT_NEAR(get_element(el22, 1, 0), 5.5, 1e-8);
+  set_element(el2x_2, 5.5, {1, 0}); EXPECT_NEAR(get_element(el2x_2, 1, 0), 5.5, 1e-8);
+  set_element(elx2_2, 5.5, {1, 0}); EXPECT_NEAR(get_element(elx2_2, 1, 0), 5.5, 1e-8);
+  set_element(elxx_22, 5.5, {1, 0}); EXPECT_NEAR(get_element(elxx_22, 1, 0), 5.5, 1e-8);
 
   M22 m_5678; m_5678 << 5, 6, 7, 8;
   set_elements(el22, 5, 6, 7, 8); EXPECT_TRUE(is_near(el22, m_5678));
@@ -74,8 +128,10 @@ TEST(eigen3, get_and_set_elements)
   EXPECT_NEAR(get_element(elxx_21, 1, 0), 2, 1e-8);
 
   set_element(el21, 5.5, 1, 0); EXPECT_NEAR(get_element(el21, 1, 0), 5.5, 1e-8);
+  set_element(el21, 5.5, 1); EXPECT_NEAR(get_element(el21, 1), 5.5, 1e-8);
   set_element(el2x_1, 5.5, 1, 0); EXPECT_NEAR(get_element(el2x_1, 1, 0), 5.5, 1e-8);
   set_element(elx1_2, 5.5, 1, 0); EXPECT_NEAR(get_element(elx1_2, 1, 0), 5.5, 1e-8);
+  set_element(elx1_2, 5.5, 1); EXPECT_NEAR(get_element(elx1_2, 1), 5.5, 1e-8);
   set_element(elxx_21, 5.5, 1, 0); EXPECT_NEAR(get_element(elxx_21, 1, 0), 5.5, 1e-8);
 
   set_element(el21, 5.6, 1); EXPECT_NEAR(get_element(el21, 1), 5.6, 1e-8);
@@ -102,8 +158,8 @@ TEST(eigen3, get_and_set_elements)
   set_element(elx2_1, 5.5, 0, 1); EXPECT_NEAR(get_element(elx2_1, 0, 1), 5.5, 1e-8);
   set_element(elxx_12, 5.5, 0, 1); EXPECT_NEAR(get_element(elxx_12, 0, 1), 5.5, 1e-8);
 
-  set_element(el12, 5.6, 1); EXPECT_NEAR(get_element(el12, 1), 5.6, 1e-8);
-  set_element(el1x_2, 5.6, 1); EXPECT_NEAR(get_element(el1x_2, 1), 5.6, 1e-8);
+  set_element(el12, 5.6, 0, 1); EXPECT_NEAR(get_element(el12, 0, 1), 5.6, 1e-8);
+  set_element(el1x_2, 5.6, 0, 1); EXPECT_NEAR(get_element(el1x_2, 0, 1), 5.6, 1e-8);
 
   M12 m_56; m_56 << 5, 6;
   set_elements(el12, 5, 6); EXPECT_TRUE(is_near(el12, m_56));
@@ -116,16 +172,12 @@ TEST(eigen3, get_and_set_elements)
   EXPECT_EQ(get_element(dm2, 0, 1), 0);
   EXPECT_EQ(get_element(dm2, 1, 1), 2);
   EXPECT_EQ(get_element(dm2, 1, 0), 0);
-  EXPECT_EQ(get_element(dm2, 0), 1);
-  EXPECT_EQ(get_element(dm2, 1), 2);
 
   Eigen::DiagonalMatrix<double, Eigen::Dynamic> dm0{m21};
   EXPECT_EQ(get_element(dm0, 0, 0), 1);
   EXPECT_EQ(get_element(dm0, 0, 1), 0);
   EXPECT_EQ(get_element(dm0, 1, 1), 2);
   EXPECT_EQ(get_element(dm0, 1, 0), 0);
-  EXPECT_EQ(get_element(dm0, 0), 1);
-  EXPECT_EQ(get_element(dm0, 1), 2);
 }
 
 
@@ -261,6 +313,12 @@ TEST(eigen3, set_block)
   set_block(m34, get_block(m34, std::tuple{N1, N1}, std::tuple{N1, N2}), N1, N1); EXPECT_TRUE(is_near(m34, m34_copy));
   set_block(m34, get_block(m34, std::tuple{N1, N1}, std::tuple{N1, N2}), 1, 1); EXPECT_TRUE(is_near(m34, m34_copy));
   set_block(m34, get_block(m34, std::tuple{1, 1}, std::tuple{1, 2}), 1, 1); EXPECT_TRUE(is_near(m34, m34_copy));
+
+  set_block(m34, Eigen::Block<const M34, 1, 4, false>{m34, 0, 0} * 2, 0, N0);
+  EXPECT_TRUE(is_near(m34, make_dense_writable_matrix_from<M34>(
+    2, 26, 26, 40,
+    22, 23, 24, 21,
+    16, 22, 23, 24)));
 }
 
 

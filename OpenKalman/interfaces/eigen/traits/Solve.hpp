@@ -31,7 +31,7 @@ namespace OpenKalman::interface
 
   public:
 
-    using type = std::tuple<const Decomposition&, const RhsType&>;
+    using dependents = std::tuple<const Decomposition&, const RhsType&>;
 
     static constexpr bool has_runtime_parameters = false;
 

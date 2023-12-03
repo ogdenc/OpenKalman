@@ -11,7 +11,7 @@
 /**
  * \internal
  * \file
- * \brief Definitions for Eigen3::EigenWrapper
+ * \brief Definitions for Eigen3::EigenWrapper (an alias for LibraryWrapper in the Eigen library)
  */
 
 #ifndef OPENKALMAN_EIGENWRAPPER_HPP
@@ -46,14 +46,14 @@ namespace Eigen::internal
 #else
     template<typename T, typename = void>
 #endif
-    struct EigenWrapperTraits
+    struct EigenWrapperTraitsBase
     {
     private:
 
-      using ElementRef = decltype(OpenKalman::get_element(std::declval<T&>(), 0, 0));
+      using ElementRef = decltype(OpenKalman::get_element(std::declval<std::add_lvalue_reference_t<T>>(), 0, 0));
+      static constexpr bool lvb = std::is_same_v<ElementRef, std::decay_t<ElementRef>&>;
       static constexpr auto layout_bit = OpenKalman::layout_of_v<T> == OpenKalman::Layout::right ? RowMajorBit : 0x0;
       static constexpr auto direct = OpenKalman::directly_accessible<T> ? DirectAccessBit : 0x0;
-      static constexpr bool lvalue_get_element = std::is_same_v<ElementRef, std::decay_t<ElementRef>&>;
 
 #ifdef __cpp_concepts
       template<typename Arg>
@@ -74,16 +74,16 @@ namespace Eigen::internal
       using Stride0 = std::tuple_element_t<0, typename Strides<T>::type>;
       using Stride1 = std::tuple_element_t<1, typename Strides<T>::type>;
 
-      using IndexType = typename T::Index;
+      using IndexType = typename std::decay_t<T>::Index;
 
-      static constexpr IndexType stride0 = OpenKalman::static_index_value<Stride0> ? OpenKalman::static_index_value_of_v<Stride0> : Eigen::Dynamic;
-      static constexpr IndexType stride1 = OpenKalman::static_index_value<Stride1> ? OpenKalman::static_index_value_of_v<Stride1> : Eigen::Dynamic;
+      static constexpr IndexType stride0 = OpenKalman::static_index_value<Stride0, std::ptrdiff_t> ? static_cast<std::ptrdiff_t>(Stride0{}) : Eigen::Dynamic;
+      static constexpr IndexType stride1 = OpenKalman::static_index_value<Stride1, std::ptrdiff_t> ? static_cast<std::ptrdiff_t>(Stride1{}) : Eigen::Dynamic;
 
     public:
 
       using XprKind = MatrixXpr;
       enum {
-        Flags = layout_bit | direct | (lvalue_get_element ? LvalueBit : 0x0) | (std::is_lvalue_reference_v<T> ? 0x0 : NestByRefBit),
+        Flags = layout_bit | direct | (lvb ? LvalueBit : 0x0) | (std::is_lvalue_reference_v<T> ? 0x0 : NestByRefBit),
         InnerStrideAtCompileTime = layout_bit == RowMajorBit ? stride1 : stride0,
         OuterStrideAtCompileTime = layout_bit == RowMajorBit ? stride0 : stride1,
       };
@@ -92,19 +92,27 @@ namespace Eigen::internal
 
 #ifdef __cpp_concepts
     template<OpenKalman::Eigen3::eigen_general T>
-    struct EigenWrapperTraits<T>
+    struct EigenWrapperTraitsBase<T>
 #else
     template<typename T>
-    struct EigenWrapperTraits<T, std::enable_if_t<OpenKalman::Eigen3::eigen_general<T>>>
+    struct EigenWrapperTraitsBase<T, std::enable_if_t<OpenKalman::Eigen3::eigen_general<T>>>
 #endif
-      : traits<T>
+      : traits<std::decay_t<T>>
     {
-      using ElementRef = decltype(OpenKalman::get_element(std::declval<std::remove_reference_t<T>&>(), 0, 0));
-      static constexpr bool lvb = std::is_same_v<ElementRef, std::decay_t<ElementRef>&>;
+    private:
+
+      using NestedTraits = traits<std::decay_t<T>>;
+      using GetRes = decltype(OpenKalman::get_element(std::declval<std::add_lvalue_reference_t<T>>(),
+        std::declval<std::size_t>(), std::declval<std::size_t>()));
+      static constexpr bool lvb = (NestedTraits::Flags & LvalueBit) != 0x0 and (OpenKalman::Eigen3::eigen_dense_general<T, true> or
+          (std::is_lvalue_reference_v<GetRes> and not std::is_const_v<std::remove_reference_t<GetRes>>));
       static constexpr bool nest_is_big = not std::is_lvalue_reference_v<T> and
-        ((traits<T>::Flags & NestByRefBit) != 0x0 or std::is_lvalue_reference_v<typename std::decay_t<T>::Nested>);
+        ((NestedTraits::Flags & NestByRefBit) != 0x0 or std::is_lvalue_reference_v<typename std::decay_t<T>::Nested>);
+
+    public:
+
       enum {
-        Flags = (traits<T>::Flags & ~NestByRefBit & ~LvalueBit) | (nest_is_big ? NestByRefBit : 0x0) | (lvb ? LvalueBit : 0x0),
+        Flags = (NestedTraits::Flags & ~NestByRefBit & ~LvalueBit) | (nest_is_big ? NestByRefBit : 0x0) | (lvb ? LvalueBit : 0x0),
       };
     };
 
@@ -112,7 +120,7 @@ namespace Eigen::internal
 
 
   template<typename T, typename L>
-  struct traits<OpenKalman::internal::LibraryWrapper<T, L>> : OpenKalman_detail::EigenWrapperTraits<std::decay_t<T>>
+  struct traits<OpenKalman::internal::LibraryWrapper<T, L>> : OpenKalman_detail::EigenWrapperTraitsBase<T>
   {
     static_assert(OpenKalman::Eigen3::eigen_general<L>);
     using Scalar = OpenKalman::scalar_type_of_t<T>;
@@ -135,39 +143,30 @@ namespace Eigen::internal
   namespace OpenKalman_detail
   {
 #ifdef __cpp_concepts
-    template<typename XprType>
+    template<typename XprType, typename Nested>
 #else
-    template<typename XprType, typename = void>
+    template<typename XprType, typename Nested, typename = void>
 #endif
-    struct EigenWrapperEvaluator : evaluator_base<OpenKalman::Eigen3::EigenWrapper<XprType>>
+    struct EigenWrapperEvaluatorBase : evaluator_base<XprType>
     {
-    private:
+      explicit EigenWrapperEvaluatorBase(const XprType& t) : m_xpr {const_cast<XprType&>(t)} {}
 
-      using ElementRef = decltype(OpenKalman::get_element(std::declval<XprType&>(), 0, 0));
 
-    public:
-
-      explicit EigenWrapperEvaluator(const XprType& t) : m_xpr {const_cast<XprType&>(t)} {}
-
-#ifdef __cpp_concepts
-      auto& coeffRef(Index row, Index col) requires std::same_as<ElementRef, std::decay_t<ElementRef>&>
-#else
-      template<bool nc = std::is_same_v<ElementRef, std::decay_t<ElementRef>&>, std::enable_if_t<nc, int> = 0>
       auto& coeffRef(Index row, Index col)
-#endif
       {
-        return OpenKalman::get_element(m_xpr, static_cast<std::size_t>(row), static_cast<std::size_t>(col));
+        return OpenKalman::get_element(m_xpr.nested_matrix(), static_cast<std::size_t>(row), static_cast<std::size_t>(col));
       }
 
 
       constexpr decltype(auto) coeff(Index row, Index col) const
       {
-        return OpenKalman::get_element(m_xpr, static_cast<std::size_t>(row), static_cast<std::size_t>(col));
+        return OpenKalman::get_element(m_xpr.nested_matrix(), static_cast<std::size_t>(row), static_cast<std::size_t>(col));
       }
+
 
       enum {
         CoeffReadCost = 0,
-        Flags = traits<OpenKalman::Eigen3::EigenWrapper<XprType>>::Flags,
+        Flags = traits<XprType>::Flags,
         Alignment = AlignedMax
       };
 
@@ -178,28 +177,28 @@ namespace Eigen::internal
 
 
 #ifdef __cpp_concepts
-    template<OpenKalman::Eigen3::eigen_dense_general<true> ArgType>
-    struct EigenWrapperEvaluator<ArgType>
+    template<typename XprType, OpenKalman::Eigen3::eigen_dense_general<true> Nested>
+    struct EigenWrapperEvaluatorBase<XprType, Nested>
 #else
-    template<typename ArgType>
-    struct EigenWrapperEvaluator<ArgType, std::enable_if_t<OpenKalman::Eigen3::eigen_dense_general<ArgType, true>>>
+    template<typename XprType, typename Nested>
+    struct EigenWrapperEvaluatorBase<XprType, Nested, std::enable_if_t<OpenKalman::Eigen3::eigen_dense_general<Nested, true>>>
 #endif
-      : evaluator<std::decay_t<ArgType>>
+      : evaluator<std::decay_t<Nested>>
     {
-      using XprType = std::decay_t<ArgType>;
-      explicit EigenWrapperEvaluator(const XprType& t) : evaluator<XprType> {t} {}
+      explicit EigenWrapperEvaluatorBase(const XprType& t) : evaluator<std::decay_t<Nested>> {t.nested_matrix()} {}
     };
 
   } // namespace OpenKalman_detail
 
 
   template<typename T, typename L>
-  struct evaluator<OpenKalman::internal::LibraryWrapper<T, L>> : OpenKalman_detail::EigenWrapperEvaluator<std::remove_reference_t<T>>
+  struct evaluator<OpenKalman::internal::LibraryWrapper<T, L>>
+    : OpenKalman_detail::EigenWrapperEvaluatorBase<OpenKalman::internal::LibraryWrapper<T, L>, T>
   {
     static_assert(OpenKalman::Eigen3::eigen_general<L>);
-    using XprType = OpenKalman::Eigen3::EigenWrapper<T>;
-    using Base = OpenKalman_detail::EigenWrapperEvaluator<std::remove_reference_t<T>>;
-    explicit evaluator(const XprType& t) : Base {t.nested_matrix()} {}
+    using XprType = OpenKalman::internal::LibraryWrapper<T, L>;
+    using Base = OpenKalman_detail::EigenWrapperEvaluatorBase<XprType, T>;
+    explicit evaluator(const XprType& t) : Base {t} {}
   };
 
 } // Eigen::internal

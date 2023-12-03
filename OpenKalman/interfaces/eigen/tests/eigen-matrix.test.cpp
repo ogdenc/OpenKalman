@@ -17,7 +17,15 @@ using namespace OpenKalman::test;
 
 TEST(eigen3, get_index_count)
 {
-  static_assert(static_index_value_of_v<decltype(get_index_count(std::declval<M23>()))> == 2);
+  M23 m23;
+  static_assert(decltype(get_index_count(m23))::value == 2);
+  static_assert(get_index_count(m23) == 2);
+  M00 m00;
+  static_assert(get_index_count(m00) == 2);
+  M11 m11;
+  static_assert(get_index_count(m11) == 0);
+  Mx1 mx1(0, 1);
+  static_assert(get_index_count(mx1) == 1);
 }
 
 
@@ -86,10 +94,10 @@ TEST(eigen3, get_all_dimensions_of)
 }
 
 
-TEST(eigen3, get_vector_space_descriptor_match)
+TEST(eigen3, get_has_same_shape_as)
 {
-  EXPECT_TRUE(get_vector_space_descriptor_match(M23{}, Mxx(2, 3)));
-  EXPECT_FALSE(get_vector_space_descriptor_match(M23{}, Mxx(2, 3), Mxx(2, 2)));
+  EXPECT_TRUE(get_has_same_shape_as(M23{}, Mxx(2, 3)));
+  EXPECT_FALSE(get_has_same_shape_as(M23{}, Mxx(2, 3), Mxx(2, 2)));
 }
 
 
@@ -343,7 +351,7 @@ TEST(eigen3, make_dense_writable_matrix_from)
 }
 
 
-TEST(eigen3, make_functions)
+TEST(eigen3, make_adapters)
 {
   auto m22h = make_dense_writable_matrix_from<M22>(3, 1, 1, 3);
   auto m22u = make_dense_writable_matrix_from<M22>(3, 1, 0, 3);
@@ -353,9 +361,13 @@ TEST(eigen3, make_functions)
   auto m22_upperh = Eigen::SelfAdjointView<M22, Eigen::Upper> {m22u};
   auto m22_lowerh = Eigen::SelfAdjointView<M22, Eigen::Lower> {m22l};
 
+  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::upper>(m22h), m22u));
+  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::upper>(m22h))>);
+  EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::lower>(m22h), m22l));
+  static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::lower>(m22h))>);
+
   EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::upper>(m22_uppert), m22u));
   static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::upper>(m22_uppert))>);
-
   EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::lower>(m22_lowert), m22l));
   static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::lower>(m22_lowert))>);
 
@@ -367,6 +379,25 @@ TEST(eigen3, make_functions)
   static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::lower>(m22_lowerh))>);
   EXPECT_TRUE(is_near(make_triangular_matrix<TriangleType::upper>(m22_lowerh), m22u));
   static_assert(eigen_TriangularView<decltype(make_triangular_matrix<TriangleType::upper>(m22_lowerh))>);
+
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m22u), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22l))>);
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m22l), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m22u))>);
+
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m22_upperh), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22_upperh))>);
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m22_lowerh), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m22_lowerh))>);
+
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m22_uppert), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22_uppert))>);
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m22_uppert), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22_uppert))>);
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m22_lowert), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22_lowert))>);
+  EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m22_lowert), m22h));
+  static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m22_lowert))>);
 }
 
 

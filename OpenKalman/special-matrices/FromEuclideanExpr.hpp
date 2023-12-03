@@ -296,15 +296,17 @@ namespace OpenKalman
     {
       using scalar_type = scalar_type_of_t<NestedMatrix>;
 
+
       template<typename Arg>
       static constexpr auto get_index_count(const Arg& arg) { return OpenKalman::get_index_count(nested_matrix(arg)); }
+
 
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(Arg&& arg, N n)
       {
         if constexpr (static_index_value<N>)
         {
-          if constexpr (static_index_value_of_v<N> == 0) return std::forward<Arg>(arg).my_dimension;
+          if constexpr (n == 0_uz) return std::forward<Arg>(arg).my_dimension;
           else return OpenKalman::get_vector_space_descriptor(nested_matrix(std::forward<Arg>(arg)), n);
         }
         else
@@ -315,9 +317,12 @@ namespace OpenKalman
         }
       }
 
-      using type = std::tuple<NestedMatrix>;
+
+      using dependents = std::tuple<NestedMatrix>;
+
 
       static constexpr bool has_runtime_parameters = false;
+
 
       template<std::size_t i, typename Arg>
       static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -326,12 +331,14 @@ namespace OpenKalman
         return std::forward<Arg>(arg).nested_matrix();
       }
 
+
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
         auto n = make_self_contained(get_nested_matrix(std::forward<Arg>(arg)));
         return ToEuclideanExpr<TypedIndex, decltype(n)> {std::move(n)};
       }
+
 
       template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
@@ -342,6 +349,7 @@ namespace OpenKalman
           return std::monostate {};
       }
 
+
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
@@ -351,13 +359,17 @@ namespace OpenKalman
           return std::monostate {};
       }
 
+
       template<Likelihood b>
       static constexpr bool is_one_by_one = euclidean_vector_space_descriptor<TypedIndex> and one_by_one_matrix<NestedMatrix, b>;
+
 
       template<TriangleType t, Likelihood b>
       static constexpr bool is_triangular = euclidean_vector_space_descriptor<TypedIndex> and triangular_matrix<NestedMatrix, t, b>;
 
+
       static constexpr bool is_triangular_adapter = false;
+
 
       static constexpr bool is_hermitian = hermitian_matrix<NestedMatrix> and euclidean_vector_space_descriptor<TypedIndex>;
 

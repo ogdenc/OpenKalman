@@ -20,9 +20,9 @@
 
 namespace OpenKalman
 {
-  // -------------------------- //
+  // --------------------------------- //
   //   fixed_vector_space_descriptor   //
-  // -------------------------- //
+  // --------------------------------- //
 
 #ifndef __cpp_concepts
   namespace detail
@@ -62,9 +62,9 @@ namespace OpenKalman
 #endif
 
 
-  // ---------------------------- //
+  // ----------------------------------- //
   //   dynamic_vector_space_descriptor   //
-  // ---------------------------- //
+  // ----------------------------------- //
 
 #ifndef __cpp_concepts
   namespace detail
@@ -101,9 +101,9 @@ namespace OpenKalman
 #endif
 
 
-  // -------------------- //
+  // --------------------------- //
   //   vector_space_descriptor   //
-  // -------------------- //
+  // --------------------------- //
 
   /**
    * \brief An object describing the type of (vector) space associated with a tensor index.
@@ -187,9 +187,9 @@ namespace OpenKalman
   constexpr auto euclidean_dimension_size_of_v = euclidean_dimension_size_of<T>::value;
 
 
-  // ---------------------------------- //
+  // ----------------------------------------- //
   //   vector_space_descriptor_components_of   //
-  // ---------------------------------- //
+  // ----------------------------------------- //
 
   /**
    * \brief The number of atomic component parts of a set of \ref vector_space_descriptor.
@@ -256,9 +256,9 @@ namespace OpenKalman
   using dimension_difference_of_t = typename dimension_difference_of<std::decay_t<T>>::type;
 
 
-  // ------------------------------ //
+  // ------------------------------------- //
   //   euclidean_vector_space_descriptor   //
-  // ------------------------------ //
+  // ------------------------------------- //
 
   /**
    * \brief A \ref vector_space_descriptor for a normal tensor index, which identifies non-modular coordinates in Euclidean space.
@@ -291,24 +291,26 @@ namespace OpenKalman
 #endif
 
 
-  // -------------------------------------- //
+  // --------------------------------------------- //
   //   concatenate_fixed_vector_space_descriptor   //
-  // -------------------------------------- //
+  // --------------------------------------------- //
 
   /**
    * \brief Concatenate any number of TypedIndex<...> types.
-   * \details Example: \code concatenate_fixed_vector_space_descriptor_t<TypedIndex<angle::Radians>, TypedIndex<Axis, Distance>> ==
-   * TypedIndex<angle::Radians, Axis, Distance> \endcode.
+   * \details
+   * Example:
+   * - \code concatenate_fixed_vector_space_descriptor_t<TypedIndex<angle::Radians>,
+   * TypedIndex<Axis, Distance>> == TypedIndex<angle::Radians, Axis, Distance> \endcode.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor ... Cs>
+  template<fixed_vector_space_descriptor...Cs>
 #else
-  template<typename ... Cs>
+  template<typename...Cs>
 #endif
   struct concatenate_fixed_vector_space_descriptor;
 
 
-  // Definition is in vector-type-traits.hpp
+  // Definition is in vector-space-descriptor-traits.hpp
 
 
   /**
@@ -318,9 +320,9 @@ namespace OpenKalman
   using concatenate_fixed_vector_space_descriptor_t = typename concatenate_fixed_vector_space_descriptor<Cs...>::type;
 
 
-  // ------------------------------------ //
+  // ------------------------------------------- //
   //   canonical_fixed_vector_space_descriptor   //
-  // ------------------------------------ //
+  // ------------------------------------------- //
 
   /**
    * \brief Reduce a \ref fixed_vector_space_descriptor into its canonical form.
@@ -334,7 +336,7 @@ namespace OpenKalman
   struct canonical_fixed_vector_space_descriptor;
 
 
-  // Definition is in vector-type-traits.hpp
+  // Definition is in vector-space-descriptor-traits.hpp
 
 
   /**

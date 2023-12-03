@@ -130,28 +130,6 @@ namespace OpenKalman
 #endif
 
 
-#ifdef __cpp_concepts
-    template<typename T, typename DTup, typename Op, typename...Args>
-#else
-    template<typename T, typename DTup, typename Op, typename = void, typename...Args>
-#endif
-    struct interface_defines_n_ary_operation : std::false_type {};
-
-
-    template<typename T, typename DTup, typename Op, typename...Args>
-#ifdef __cpp_concepts
-    requires requires(DTup d_tup, Op op, Args...args) {
-      interface::library_interface<std::decay_t<T>>::n_ary_operation(d_tup, op, std::forward<Args>(args)...);
-    }
-    struct interface_defines_n_ary_operation<T, DTup, Op, Args...>
-#else
-    struct interface_defines_n_ary_operation<T, DTup, Op, std::void_t<
-      decltype(interface::library_interface<std::decay_t<T>>::n_ary_operation(
-        std::declval<DTup>(), std::declval<Op>(), std::declval<Args>()...))>, Args...>
-#endif
-      : std::true_type {};
-
-
     template<typename Arg, std::size_t...I, typename...J>
     inline auto n_ary_operation_get_element_impl(Arg&& arg, std::index_sequence<I...>, J...j)
     {
@@ -161,7 +139,7 @@ namespace OpenKalman
         return get_element(std::forward<Arg>(arg), [](auto dim, const auto& j_tup){
           auto j = std::get<I>(j_tup);
           if (j < dim) return j;
-          else return 0;
+          else return 0_uz;
         }(get_index_dimension_of<I>(arg), std::tuple {j...})...);
     }
 
@@ -200,12 +178,12 @@ namespace OpenKalman
 
     template<typename PatternMatrix, typename...Ds, typename Op, typename...Args>
     static constexpr auto
-    n_ary_operation_impl(const std::tuple<Ds...>& d_tup, const Op& op, Args&&...args)
+    n_ary_operation_impl(const std::tuple<Ds...>& d_tup, Op&& op, Args&&...args)
     {
-      constexpr std::index_sequence_for<Ds...> seq {};
+      constexpr std::index_sequence_for<Ds...> seq;
 
       // constant_matrix:
-      if constexpr (sizeof...(Args) > 0 and (constant_matrix<Args> and ...) and not is_invocable_with_indices<const Op&, scalar_type_of_t<Args>...>(seq))
+      if constexpr (sizeof...(Args) > 0 and (constant_matrix<Args> and ...) and not is_invocable_with_indices<Op, scalar_type_of_t<Args>...>(seq))
       {
         internal::scalar_constant_operation c {op, constant_coefficient {std::forward<Args>(args)}...};
         return std::apply(
@@ -214,29 +192,28 @@ namespace OpenKalman
       }
       // Library handles n-ary operation.
       else if constexpr (maybe_has_same_shape_as<Args...> and
-        is_invocable_with_indices<const Op&, std::add_lvalue_reference_t<scalar_type_of_t<Args>>...>(seq) and
-        detail::interface_defines_n_ary_operation<PatternMatrix, std::tuple<Ds...>, const Op&, Args&&...>::value)
+        is_invocable_with_indices<Op, std::add_lvalue_reference_t<scalar_type_of_t<Args>>...>(seq) and
+        interface::n_ary_operation_defined_for<PatternMatrix, const std::tuple<Ds...>&, Op&&, Args&&...>)
       {
         using Trait = interface::library_interface<std::decay_t<PatternMatrix>>;
-        return Trait::n_ary_operation(d_tup, op, std::forward<Args>(args)...);
+        return Trait::n_ary_operation(d_tup, std::forward<Op>(op), std::forward<Args>(args)...);
       }
       else // Catch-all: library does not provide for this n-ary operation.
       {
         using Scalar = std::decay_t<typename n_ary_operator_traits<Op, sizeof...(Ds),
           std::add_lvalue_reference_t<scalar_type_of_t<Args>>...>::type>;
 
-        if constexpr (((dimension_size_of_v<Ds> == 1) and ...) and (element_gettable<Args&&, 2> and ...))
+        if constexpr (((dimension_size_of_v<Ds> == 1) and ...))
         {
           // one-by-one matrix
-          auto e = op(get_element(std::forward<Args>(args), std::size_t(0), std::size_t(0))...);
-          return make_dense_writable_matrix_from<PatternMatrix, Scalar>(d_tup, e);
+          auto e = op(get_element(std::forward<Args>(args))...);
+          return make_dense_writable_matrix_from<PatternMatrix, Layout::none, Scalar>(d_tup, e);
         }
         else
         {
           auto m = std::apply([](auto&&...ds){
             return make_default_dense_writable_matrix_like<PatternMatrix, Layout::none, Scalar>(std::forward<decltype(ds)>(ds)...);
           }, d_tup);
-          std::index_sequence_for<Ds...> seq;
           n_ary_operation_iterate(m, op, std::forward_as_tuple(std::forward<Args>(args)...), seq);
           return m;
         }
@@ -324,11 +301,11 @@ namespace OpenKalman
     detail::n_ary_operator<Operation, sizeof...(Ds), Args...>, int> = 0>
 #endif
   constexpr auto
-  n_ary_operation(const std::tuple<Ds...>& d_tup, const Operation& operation, Args&&...args)
+  n_ary_operation(const std::tuple<Ds...>& d_tup, Operation&& operation, Args&&...args)
   {
     detail::check_n_ary_dims(std::index_sequence_for<Ds...> {}, d_tup, args...);
-    using Arg0 = std::tuple_element_t<0, std::tuple<Args...>>; // \todo Pick the first appropriate pattern matrix, even if not the first one.
-    return detail::n_ary_operation_impl<Arg0>(d_tup, operation, std::forward<Args>(args)...);
+    using Arg0 = std::decay_t<std::tuple_element_t<0, std::tuple<Args...>>>; // \todo Pick the first appropriate pattern matrix, even if not the first one.
+    return detail::n_ary_operation_impl<Arg0>(d_tup, std::forward<Operation>(operation), std::forward<Args>(args)...);
   }
 
 
@@ -455,21 +432,21 @@ namespace OpenKalman
     (sizeof...(Args) > 0) and detail::n_ary_operator<Operation, std::max({index_count<Args>::value...}), Args...>, int> = 0>
 #endif
   constexpr auto
-  n_ary_operation(const Operation& operation, Args&&...args)
+  n_ary_operation(Operation&& operation, Args&&...args)
   {
     auto d_tup = detail::find_max_dims(std::make_index_sequence<std::max({index_count_v<Args>...})> {}, args...);
-    using Arg0 = std::tuple_element_t<0, std::tuple<Args...>>;
-    return detail::n_ary_operation_impl<Arg0>(std::move(d_tup), operation, std::forward<Args>(args)...);
+    using Arg0 = std::decay_t<std::tuple_element_t<0, std::tuple<Args...>>>;
+    return detail::n_ary_operation_impl<Arg0>(std::move(d_tup), std::forward<Operation>(operation), std::forward<Args>(args)...);
   }
 
 
   namespace detail
   {
     template<typename M, typename Operation, typename Vs_tuple, typename Index_seq, typename K_seq, typename...Is>
-    void nullary_set_elements(M& m, Operation&& op, const Vs_tuple&, Index_seq, K_seq, Is...is)
+    void nullary_set_elements(M& m, const Operation& op, const Vs_tuple&, Index_seq, K_seq, Is...is)
     {
       constexpr auto seq = std::make_index_sequence<sizeof...(Is)> {};
-      if constexpr (detail::is_invocable_with_indices<Operation&&>(seq))
+      if constexpr (detail::is_invocable_with_indices<Operation>(seq))
         set_element(m, op(is...), is...); //< Operation takes a full set of indices.
       else
         set_element(m, op(), is...); //< Operation takes no indices.
@@ -616,7 +593,7 @@ namespace OpenKalman
     // One operation for all elements combined:
     if constexpr (sizeof...(Operations) == 1)
     {
-      return detail::n_ary_operation_impl<PatternMatrix>(d_tup, operations...);
+      return detail::n_ary_operation_impl<std::decay_t<PatternMatrix>>(d_tup, operations...);
     }
     // One operation for each element, and the operations are not invocable with indices:
     else if constexpr (((not dynamic_vector_space_descriptor<Ds>) and ...) and
@@ -709,34 +686,56 @@ namespace OpenKalman
     return n_ary_operation<PatternMatrix, indices...>(d_tup, operations...);
   }
 
+
   // -------------------------- //
   //  n_ary_operation_in_place  //
   // -------------------------- //
 
   namespace detail
   {
-    template<typename Arg, std::size_t...I>
-    constexpr decltype(auto) n_ary_get_element_0(Arg&& arg, std::index_sequence<I...>)
+    template<typename Operation, typename Elem, typename...J>
+    inline void do_elem_operation_in_place_impl(const Operation& operation, Elem& elem, J...j)
     {
-      return get_element(arg, static_cast<decltype(I)>(0)...);
+      if constexpr (std::is_invocable_v<const Operation&, Elem&, J...>)
+        operation(elem, j...);
+      else
+        operation(elem);
     }
 
 
     template<typename Operation, typename Arg, typename...J>
-    inline void unary_operation_in_place_impl(const Operation& operation, Arg&& arg, std::index_sequence<>, J...j)
+    inline void do_elem_operation_in_place(const Operation& operation, Arg& arg, J...j)
     {
-      if constexpr (std::is_invocable_v<const Operation&, std::add_lvalue_reference_t<scalar_type_of_t<Arg>>, J...>)
-        operation(get_element(arg, j...), j...);
+      auto&& elem = get_element(arg, j...);
+      if constexpr (std::is_assignable_v<decltype((elem)), std::decay_t<decltype(elem)>>)
+      {
+        do_elem_operation_in_place_impl(operation, elem, j...);
+      }
       else
-        operation(get_element(arg, j...));
+      {
+        auto e {std::forward<decltype(elem)>(elem)}; // copy elem
+        static_assert(std::is_assignable_v<decltype((e)), std::decay_t<decltype(elem)>>);
+        do_elem_operation_in_place_impl(operation, e, j...);
+        set_element(arg, std::move(e), j...);
+      }
     }
 
-    template<typename Operation, typename Arg, std::size_t I, std::size_t...Is, typename...J>
-    inline void unary_operation_in_place_impl(const Operation& operation, Arg&& arg, std::index_sequence<I, Is...>, J...j)
+
+    template<typename Operation, typename Arg, typename Count, typename...J>
+    inline void unary_operation_in_place_impl(const Operation& operation, Arg& arg, const Count& count, J...j)
     {
-      for (std::size_t i = 0; i < get_index_dimension_of<I>(arg); ++i)
-        unary_operation_in_place_impl(operation, arg, std::index_sequence<Is...> {}, j..., i);
+      constexpr auto n = sizeof...(J);
+      if constexpr (n < Count::value)
+      {
+        for (std::size_t i = 0; i < get_index_dimension_of<n>(arg); ++i)
+          unary_operation_in_place_impl(operation, arg, count, j..., i);
+      }
+      else
+      {
+        do_elem_operation_in_place(operation, arg, j...);
+      }
     }
+
   } // namespace detail
 
 
@@ -766,8 +765,10 @@ namespace OpenKalman
    *     4, 6,
    *     7, 9
    *   \endcode
-   * \tparam Operation The n-ary operation taking n arguments and, optionally, a set of indices.
-   * The result of this operation is ignored, and all that matters are the side-effects.
+   * \tparam Operation The n-ary operation taking an argument and, optionally, a set of indices.
+   * The argument to the operation is a component of Arg and will be assignable as a non-const lvalue reference.
+   * The operation may either return the result (as a value or reference) or return void
+   * (in which case any changes to the component argument will be treated as an in-place modification).
    * \tparam Arg The argument, which must be non-const and writable.
    * \return A matrix or array in which each component is the result of calling Operation on corresponding components
    * from each of the arguments, in the order specified.
@@ -781,14 +782,9 @@ namespace OpenKalman
   constexpr decltype(auto)
   unary_operation_in_place(const Operation& operation, Arg&& arg)
   {
-    // \todo If the native library has its own facilities for doing this, use it.
+    // \todo If the native library has its own facilities for doing this, use them.
 
-    constexpr std::make_index_sequence<index_count_v<Arg>> seq;
-    using G = decltype(detail::n_ary_get_element_0(std::declval<Arg&&>(), seq));
-    static_assert(std::is_same_v<G, std::decay_t<G>&>,
-      "unary_operation_in_place requires get_element(arg) to return a non-const lvalue reference.");
-
-    detail::unary_operation_in_place_impl(operation, arg, seq);
+    detail::unary_operation_in_place_impl(operation, arg, get_index_count(arg));
     return std::forward<Arg>(arg);
   }
 

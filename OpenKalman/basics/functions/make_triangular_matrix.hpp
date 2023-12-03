@@ -18,20 +18,6 @@
 
 namespace OpenKalman
 {
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, TriangleType t, typename = void>
-    struct make_triangular_matrix_defined: std::false_type {};
-
-    template<typename T, TriangleType t>
-    struct make_triangular_matrix_defined<T, t, std::void_t<
-      decltype(interface::indexible_object_traits<std::decay_t<T>>::template make_triangular_matrix<t>(std::declval<T&&>()))>>
-      : std::true_type {};
-  }
-#endif
-
-
   /**
    * \brief Create a \ref triangular_matrix from a general matrix.
    * \tparam t The intended \ref TriangleType of the result.
@@ -48,8 +34,6 @@ namespace OpenKalman
 #endif
   make_triangular_matrix(Arg&& arg)
   {
-    using Traits = interface::indexible_object_traits<std::decay_t<Arg>>;
-
     if constexpr (triangular_matrix<Arg, t>)
     {
       // If Arg is already triangular of type t, pass through to the result
@@ -69,12 +53,16 @@ namespace OpenKalman
       // If Arg is a triangular adapter but was not known to be square at compile time, return a result guaranteed to be square triangular.
       return make_triangular_matrix<t>(nested_matrix(std::forward<Arg>(arg)));
     }
-# ifdef __cpp_concepts
-    else if constexpr (requires (Arg&& arg) { Traits::template make_triangular_matrix<t>(std::forward<Arg>(arg)); })
-# else
-    else if constexpr (detail::make_triangular_matrix_defined<Arg, t>::value)
-# endif
+    else if constexpr (hermitian_adapter<Arg>)
     {
+      if constexpr (hermitian_adapter<Arg, static_cast<HermitianAdapterType>(t)>)
+        return make_triangular_matrix<t>(nested_matrix(std::forward<Arg>(arg)));
+      else
+        return make_triangular_matrix<t>(adjoint(nested_matrix(std::forward<Arg>(arg))));
+    }
+    else if constexpr (interface::make_triangular_matrix_defined_for<std::decay_t<Arg>, t, Arg&&>)
+    {
+      using Traits = interface::library_interface<std::decay_t<Arg>>;
       auto new_t {Traits::template make_triangular_matrix<t>(std::forward<Arg>(arg))};
       static_assert(triangular_matrix<decltype(new_t), t>, "make_triangular_matrix interface must return a triangular matrix");
       return new_t;

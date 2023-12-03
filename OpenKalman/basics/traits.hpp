@@ -50,13 +50,6 @@ namespace OpenKalman
 
     template<typename T, CompileTimeStatus c = CompileTimeStatus::any>
     constexpr bool has_get_constant_interface = has_get_constant_interface_impl<T, c>::value;
-
-    template<typename T, typename = void>
-    struct constant_matrix_is_zero : std::false_type {};
-
-    template<typename T>
-    struct constant_matrix_is_zero<T, std::enable_if_t<are_within_tolerance(get_constant_res<T>::type::value, 0)>>
-      : std::true_type {};
 #endif
 
 
@@ -131,6 +124,7 @@ namespace OpenKalman
     struct constant_status<T, std::enable_if_t<std::decay_t<T>::status == Likelihood::maybe>>
 #endif
       : std::integral_constant<Likelihood, Likelihood::maybe> {};
+
   } // namespace detail
 
 
@@ -237,7 +231,7 @@ namespace OpenKalman
 
   /**
    * \internal
-   * \brief Specialization of \ref constant_coefficient in which the constant can be known only at runtime.
+   * \brief Specialization of \ref constant_coefficient in which the constant is unknown at compile time.
    */
 #ifdef __cpp_concepts
   template<indexible T> requires (not detail::known_constant<T>) and
@@ -253,22 +247,18 @@ namespace OpenKalman
 
     using Trait = interface::indexible_object_traits<std::decay_t<T>>;
 
+    template<typename Arg, std::size_t...Ix>
+    static constexpr auto get_zero_component(const Arg& arg, std::index_sequence<Ix...>) { return get_element(arg, static_cast<decltype(Ix)>(0)...); }
+
   public:
 
     explicit constexpr constant_coefficient(const std::decay_t<T>& t) : value {[](const auto& t){
         if constexpr (detail::has_get_constant_interface<T, CompileTimeStatus::unknown>)
-        {
           return get_scalar_constant_value(Trait::get_constant(t));
-        }
+        else if constexpr (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::unknown>)
+          return get_scalar_constant_value(Trait::get_constant_diagonal(t));
         else
-        {
-          if constexpr (not one_by_one_matrix<T>) if (not get_is_one_by_one(t)) throw std::logic_error {"Not a constant object"};
-
-          if constexpr (detail::has_get_constant_diagonal_interface<T, CompileTimeStatus::unknown>)
-            return get_scalar_constant_value(Trait::get_constant_diagonal(t));
-          else
-            return get_element(t);
-        }
+          return get_zero_component(t, std::make_index_sequence<index_count_v<T>>{});
       }(t)} {};
 
     using value_type = scalar_type_of_t<T>;
@@ -309,6 +299,14 @@ namespace OpenKalman
           })));
 #else
     template<typename T, typename = void>
+    struct constant_matrix_is_zero : std::false_type {};
+
+    template<typename T>
+    struct constant_matrix_is_zero<T, std::enable_if_t<are_within_tolerance(get_constant_res<T>::type::value, 0)>>
+      : std::true_type {};
+
+
+    template<typename T, typename = void>
     struct is_known_constant_diagonal : std::false_type {};
 
     template<typename T>
@@ -338,9 +336,11 @@ namespace OpenKalman
 #endif
   {
   private:
+
     using Trait = interface::indexible_object_traits<std::decay_t<T>>;
 
   public:
+
     constexpr constant_diagonal_coefficient() = default;
 
     explicit constexpr constant_diagonal_coefficient(const std::decay_t<T>&) {};
@@ -439,22 +439,21 @@ namespace OpenKalman
 #endif
   {
   private:
+
     using Trait = interface::indexible_object_traits<std::decay_t<T>>;
 
+    template<typename Arg, std::size_t...Ix>
+    static constexpr auto get_zero_component(const Arg& arg, std::index_sequence<Ix...>) { return get_element(arg, static_cast<decltype(Ix)>(0)...); }
+
   public:
+
     explicit constexpr constant_diagonal_coefficient(const std::decay_t<T>& t) : value {[](const auto& t){
         if constexpr (detail::has_get_constant_diagonal_interface<T>)
-        {
           return get_scalar_constant_value(Trait::get_constant_diagonal(t));
-        }
+        else if constexpr (detail::has_get_constant_interface<T>)
+          return get_scalar_constant_value(Trait::get_constant(t));
         else
-        {
-          if constexpr (not one_by_one_matrix<T>) if (not get_is_one_by_one(t)) throw std::logic_error {"Not a diagonal constant object"};
-          if constexpr (detail::has_get_constant_interface<T>)
-            return get_scalar_constant_value(Trait::get_constant(t));
-          else
-            return get_element(t);
-        }
+          return get_zero_component(t, std::make_index_sequence<index_count_v<T>>{});
       }(t)} {};
 
     using value_type = scalar_type_of_t<T>;

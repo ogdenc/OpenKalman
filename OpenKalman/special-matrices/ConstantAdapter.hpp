@@ -84,10 +84,10 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<vector_space_descriptor...Ds> requires (sizeof...(Ds) > 0) and
-      scalar_constant<MyConstant, CompileTimeStatus::known> and compatible_with_vector_space_descriptor<PatternMatrix, Ds...>
+      scalar_constant<MyConstant, CompileTimeStatus::known> and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>
 #else
     template<typename...Ds, std::enable_if_t<(vector_space_descriptor<Ds> and ...) and (sizeof...(Ds) > 0) and
-      scalar_constant<MyConstant, CompileTimeStatus::known> and compatible_with_vector_space_descriptor<PatternMatrix, Ds...>, int> = 0>
+      scalar_constant<MyConstant, CompileTimeStatus::known> and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(Ds&&...ds) : my_dimensions {make_all_dimensions_tuple(std::forward<Ds>(ds)...)} {}
 
@@ -104,10 +104,10 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<scalar_constant C, vector_space_descriptor...Ds> requires std::constructible_from<MyConstant, C&&> and
-      compatible_with_vector_space_descriptor<PatternMatrix, Ds...>
+      compatible_with_vector_space_descriptors<PatternMatrix, Ds...>
 #else
     template<typename C, typename...Ds, std::enable_if_t<scalar_constant<C> and (vector_space_descriptor<Ds> and ...) and
-      std::is_constructible_v<MyConstant, C&&> and compatible_with_vector_space_descriptor<PatternMatrix, Ds...>, int> = 0>
+      std::is_constructible_v<MyConstant, C&&> and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(C&& c, Ds&&...ds) : my_constant {std::forward<C>(c)},
       my_dimensions {make_all_dimensions_tuple(std::forward<Ds>(ds)...)} {}
@@ -272,7 +272,7 @@ namespace OpenKalman
 #endif
     constexpr auto& operator=(const Arg& arg)
     {
-      if constexpr (not has_same_shape_as<Arg, PatternMatrix>) if (not get_vector_space_descriptor_match(*this, arg))
+      if constexpr (not has_same_shape_as<Arg, PatternMatrix>) if (not get_has_same_shape_as(*this, arg))
         throw std::invalid_argument {"Argument to ConstantAdapter assignment operator has non-matching vector space descriptors."};
       my_constant = constant_coefficient {arg};
       return *this;
@@ -292,7 +292,7 @@ namespace OpenKalman
       if constexpr (not maybe_has_same_shape_as<Arg, PatternMatrix>)
         return false;
       else if constexpr (constant_matrix<Arg>)
-        return get_scalar_constant_value(constant_coefficient{arg}) == get_scalar_constant_value(my_constant) and get_vector_space_descriptor_match(*this, arg);
+        return get_scalar_constant_value(constant_coefficient{arg}) == get_scalar_constant_value(my_constant) and get_has_same_shape_as(*this, arg);
       else
       {
         auto c = to_native_matrix<PatternMatrix>(*this);
@@ -317,7 +317,7 @@ namespace OpenKalman
       if constexpr (not maybe_has_same_shape_as<Arg, PatternMatrix>)
         return false;
       else if constexpr (constant_matrix<Arg>)
-        return get_scalar_constant_value(constant_coefficient{arg}) == get_scalar_constant_value(c.get_scalar_constant()) and get_vector_space_descriptor_match(arg, c);
+        return get_scalar_constant_value(constant_coefficient{arg}) == get_scalar_constant_value(c.get_scalar_constant()) and get_has_same_shape_as(arg, c);
       else
       {
         auto new_c = to_native_matrix<Arg>(c);
@@ -517,7 +517,7 @@ namespace OpenKalman
 
       static constexpr bool has_runtime_parameters = has_dynamic_dimensions<PatternMatrix>;
 
-      using type = std::tuple<>;
+      using dependents = std::tuple<>;
 
       template<typename Arg>
       static constexpr auto get_constant(const Arg& arg) { return arg.get_scalar_constant(); }

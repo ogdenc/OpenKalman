@@ -111,7 +111,7 @@ namespace OpenKalman::interface
     constexpr decltype(auto)
     to_euclidean(Arg&& arg, const C& c) noexcept
     {
-      decltype(auto) n = OpenKalman::to_euclidean(nested_matrix(std::forward<Arg>(arg), std::forward<DC>(dc)...), c);
+      auto&& n = OpenKalman::to_euclidean(nested_matrix(std::forward<Arg>(arg), std::forward<DC>(dc)...), c);
       return make_euclidean_mean<C>(std::forward<decltype(n)>(n), c);
     }
 
@@ -124,7 +124,7 @@ namespace OpenKalman::interface
     constexpr decltype(auto)
     from_euclidean(Arg&& arg, const C& c) noexcept
     {
-      decltype(auto) n = OpenKalman::from_euclidean(nested_matrix(std::forward<Arg>(arg), c));
+      auto&& n = OpenKalman::from_euclidean(nested_matrix(std::forward<Arg>(arg), c));
       return make_mean<C>(std::forward<decltype(n)>(n), c);
     }
 
@@ -137,7 +137,7 @@ namespace OpenKalman::interface
     constexpr decltype(auto)
     wrap_angles(Arg&& arg, const C& c) noexcept
     {
-      decltype(auto) n = OpenKalman::wrap_angles(nested_matrix(std::forward<Arg>(arg), c));
+      auto&& n = OpenKalman::wrap_angles(nested_matrix(std::forward<Arg>(arg), c));
       return MatrixTraits<std::decay_t<Arg>>::make(std::forward<decltype(n)>(n), c);
     }
 

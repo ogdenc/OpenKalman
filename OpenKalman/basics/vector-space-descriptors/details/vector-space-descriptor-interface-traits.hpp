@@ -20,9 +20,9 @@
 
 namespace OpenKalman::interface
 {
-  // ------------------------------ //
+  // ------------------------------------ //
   //   FixedVectorSpaceDescriptorTraits   //
-  // ------------------------------ //
+  // ------------------------------------ //
 
   /**
    * \brief Traits for a \ref fixed_vector_space_descriptor.
@@ -136,9 +136,9 @@ namespace OpenKalman::interface
 #endif //DOXYGEN_SHOULD_SKIP_THIS
 
 
-  // -------------------------------- //
+  // -------------------------------------- //
   //   DynamicVectorSpaceDescriptorTraits   //
-  // -------------------------------- //
+  // -------------------------------------- //
 
   /**
    * \brief Traits for a \ref dynamic_vector_space_descriptor.

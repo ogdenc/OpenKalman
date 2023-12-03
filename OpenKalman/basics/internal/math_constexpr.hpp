@@ -558,11 +558,11 @@ namespace OpenKalman::internal
       }
       else
       {
-        decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+        auto&& x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
         if (x <= Scalar{0})
         {
-          if (x == Scalar{0}) return x;
+          if (x == Scalar{0}) return std::forward<decltype(x)>(x);
           else return constexpr_NaN<Scalar>();
         }
         else
@@ -570,12 +570,12 @@ namespace OpenKalman::internal
           if constexpr (std::numeric_limits<Scalar>::has_infinity)
             if (x == std::numeric_limits<Scalar>::infinity()) return std::numeric_limits<Scalar>::infinity();
 
-          Scalar next{Scalar{0.5} * x};
+          Scalar next{Scalar{0.5} * std::forward<decltype(x)>(x)};
           Scalar previous{0};
           while (next != previous)
           {
             previous = next;
-            next = Scalar{0.5} * (previous + x / previous);
+            next = Scalar{0.5} * (previous + std::forward<decltype(x)>(x) / previous);
           }
           return next;
         }
@@ -766,7 +766,7 @@ namespace OpenKalman::internal
         }
         else
         {
-          decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+          auto&& x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
           if constexpr (std::numeric_limits<Scalar>::has_infinity)
           {
@@ -778,7 +778,7 @@ namespace OpenKalman::internal
           else
           {
             int x_trunc = static_cast<int>(x) - (x < Scalar{0} ? 1 : 0);
-            Scalar x_frac{x - static_cast<Scalar>(x_trunc)};
+            Scalar x_frac{std::forward<decltype(x)>(x) - static_cast<Scalar>(x_trunc)};
             return detail::integral_exp<Scalar>(x_trunc) * detail::exp_impl<Scalar>(1, x_frac, Scalar{1}, x_frac);
           }
         }
@@ -843,7 +843,7 @@ namespace OpenKalman::internal
         }
         else
         {
-          decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+          auto&& x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
           if constexpr (std::numeric_limits<Scalar>::has_infinity)
           {
@@ -859,7 +859,7 @@ namespace OpenKalman::internal
           else
           {
             int x_trunc = static_cast<int>(x) - (x < Scalar{0} ? 1 : 0);
-            Scalar x_frac = x - static_cast<Scalar>(x_trunc);
+            Scalar x_frac = std::forward<decltype(x)>(x) - static_cast<Scalar>(x_trunc);
             auto et = detail::integral_exp<Scalar>(x_trunc) - Scalar{1};
             auto er = detail::exp_impl<Scalar>(1, x_frac, Scalar{0}, x_frac);
             return et * er + et + er;
@@ -902,7 +902,7 @@ namespace OpenKalman::internal
 
       if (arg != arg) return constexpr_NaN<Scalar>();
 
-      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+      auto&& x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
       if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
       {
@@ -910,10 +910,10 @@ namespace OpenKalman::internal
         else if (x == -std::numeric_limits<Scalar>::infinity()) return -constexpr_infinity<Scalar>();
       }
 
-      if (x == Scalar{0}) return x;
+      if (x == Scalar{0}) return std::forward<decltype(x)>(x);
       else
       {
-        decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
+        auto&& xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
         using Xf = std::decay_t<decltype(xf)>;
         auto ex = constexpr_exp(std::forward<decltype(xf)>(xf));
 
@@ -974,13 +974,13 @@ namespace OpenKalman::internal
 
       if (arg != arg) return constexpr_NaN<Scalar>();
 
-      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+      auto&& x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
       if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
         if (x == std::numeric_limits<Scalar>::infinity() or x == -std::numeric_limits<Scalar>::infinity())
           return std::numeric_limits<Scalar>::infinity();
 
-      decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
+      auto&& xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
       using Xf = std::decay_t<decltype(xf)>;
       auto ex = constexpr_exp(std::forward<decltype(xf)>(xf));
 
@@ -1040,7 +1040,7 @@ namespace OpenKalman::internal
 
       if (arg != arg) return constexpr_NaN<Scalar>();
 
-      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+      auto&& x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
       if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
       {
@@ -1051,7 +1051,7 @@ namespace OpenKalman::internal
       if (x == Scalar{0}) return x;
       else
       {
-        decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
+        auto&& xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
         using Xf = std::decay_t<decltype(xf)>;
         auto ex = constexpr_exp(std::forward<decltype(xf)>(xf));
 
@@ -1124,13 +1124,13 @@ namespace OpenKalman::internal
       }
       else
       {
-        decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+        auto&& x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
         if constexpr (std::numeric_limits<Scalar>::has_infinity)
           if (x == std::numeric_limits<Scalar>::infinity() or x == -std::numeric_limits<Scalar>::infinity())
             return constexpr_NaN<Scalar>();
 
-        auto theta{detail::scale_periodic_function(std::move(x))};
+        auto theta{detail::scale_periodic_function(std::forward<decltype(x)>(x))};
         return detail::sin_cos_impl<Scalar>(4, theta, theta, theta * theta * theta / Scalar{-6.0});
       }
     }
@@ -1182,13 +1182,13 @@ namespace OpenKalman::internal
       }
       else
       {
-        decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+        auto&& x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
         if constexpr (std::numeric_limits<Scalar>::has_infinity)
           if (x == std::numeric_limits<Scalar>::infinity() or x == -std::numeric_limits<Scalar>::infinity())
             return constexpr_NaN<Scalar>();
 
-        auto theta{detail::scale_periodic_function(std::move(x))};
+        auto theta{detail::scale_periodic_function(std::forward<decltype(x)>(x))};
         return detail::sin_cos_impl<Scalar>(3, theta, Scalar{1}, Scalar{-0.5} * theta * theta);
       }
     }
@@ -1223,7 +1223,7 @@ namespace OpenKalman::internal
 
       if (arg != arg) return constexpr_NaN<Scalar>();
 
-      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+      auto&& x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
       if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
         if (x == std::numeric_limits<Scalar>::infinity() or x == -std::numeric_limits<Scalar>::infinity())
@@ -1232,7 +1232,7 @@ namespace OpenKalman::internal
       if (x == Scalar{0}) return x;
       else
       {
-        decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
+        auto&& xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
         auto sx = constexpr_sin(xf);
         auto cx = constexpr_cos(xf);
 
@@ -1425,15 +1425,16 @@ namespace OpenKalman::internal
       }
       else
       {
-        decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+        auto&& x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
         if constexpr (std::numeric_limits<Scalar>::has_infinity)
-          if (x == std::numeric_limits<Scalar>::infinity()) return x;
+          if (x == std::numeric_limits<Scalar>::infinity()) return std::forward<decltype(x)>(x);
 
         if (x == Scalar{1}) return Scalar{+0.};
         else if (x == Scalar{0}) return -constexpr_infinity<Scalar>();
         else if (x < Scalar{0}) return constexpr_NaN<Scalar>();
-        auto [scaled, corr] = x >= Scalar{0x1p4} ? detail::log_scaling_gt(x) : detail::log_scaling_lt(x);
+        auto [scaled, corr] = x >= Scalar{0x1p4} ?
+          detail::log_scaling_gt(std::forward<decltype(x)>(x)) : detail::log_scaling_lt(std::forward<decltype(x)>(x));
         return detail::log_impl(scaled) + corr;
       }
     }
@@ -1496,19 +1497,21 @@ namespace OpenKalman::internal
       }
       else
       {
-        decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+        auto&& x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
         if constexpr (std::numeric_limits<Scalar>::has_infinity)
-          if (x == std::numeric_limits<Scalar>::infinity()) return x;
+          if (x == std::numeric_limits<Scalar>::infinity()) return std::forward<decltype(x)>(x);
 
-        if (x == Scalar{0}) return x;
+        if (x == Scalar{0}) return std::forward<decltype(x)>(x);
         else if (x == Scalar{-1}) return -constexpr_infinity<Scalar>();
         else if (x < Scalar{-1}) return constexpr_NaN<Scalar>();
+
         if (Scalar{-0x1p-3} < x and x < Scalar{0x1p-3}) return detail::log1p_impl(2, x, x, -x);
         else
         {
           auto [scaled, corr] =
-            x >= Scalar{0x1p4} ? detail::log_scaling_gt(x + Scalar{1}) : detail::log_scaling_lt(x + Scalar{1});
+            x >= Scalar{0x1p4} ? detail::log_scaling_gt(std::forward<decltype(x)>(x) + Scalar{1}) :
+              detail::log_scaling_lt(std::forward<decltype(x)>(x) + Scalar{1});
           return detail::log_impl(scaled) + corr;
         }
       }
@@ -1544,15 +1547,16 @@ namespace OpenKalman::internal
 
       if (arg != arg) return constexpr_NaN<Scalar>();
 
-      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+      auto&& x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
       if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
-        if (x == std::numeric_limits<Scalar>::infinity() or x == -std::numeric_limits<Scalar>::infinity()) return x;
+        if (x == std::numeric_limits<Scalar>::infinity() or x == -std::numeric_limits<Scalar>::infinity())
+        return std::forward<decltype(x)>(x);
 
-      if (x == Scalar{0}) return x;
+      if (x == Scalar{0}) return std::forward<decltype(x)>(x);
       else
       {
-        decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
+        auto&& xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
         using Xf = std::decay_t<decltype(xf)>;
 
 #if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 17) // Check this and later versions of clang
@@ -1606,7 +1610,7 @@ namespace OpenKalman::internal
 
       if (arg != arg) return constexpr_NaN<Scalar>();
 
-      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+      auto&& x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
       if (x == Scalar{1}) return static_cast<Scalar>(+0.);
 
@@ -1677,7 +1681,7 @@ namespace OpenKalman::internal
 
       if (arg != arg) return constexpr_NaN<Scalar>();
 
-      decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+      auto&& x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
       if constexpr (not complex_number<Scalar> and std::numeric_limits<Scalar>::has_infinity)
       {
@@ -1686,10 +1690,10 @@ namespace OpenKalman::internal
         else if (x == Scalar{-1}) return -constexpr_infinity<Scalar>();
       }
 
-      if (x == Scalar{0}) return x;
+      if (x == Scalar{0}) return std::forward<decltype(x)>(x);
       else
       {
-        decltype(auto) xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
+        auto&& xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
         using Xf = std::decay_t<decltype(xf)>;
 
 #if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 17) // Check this and later versions of clang
@@ -1745,7 +1749,7 @@ namespace OpenKalman::internal
       {
         if (arg != arg) return constexpr_NaN<Scalar>();
 
-        decltype(auto) xf = detail::convert_to_floating(std::forward<Arg>(arg));
+        auto&& xf = detail::convert_to_floating(std::forward<Arg>(arg));
         using R = std::decay_t<decltype(constexpr_real(xf))>;
 
 #if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 17) // Check this and later versions of clang
@@ -1794,7 +1798,7 @@ namespace OpenKalman::internal
       if (arg != arg) return constexpr_NaN<Scalar>();
       else if (arg == std::decay_t<Arg>{1}) return static_cast<Scalar>(+0.);
 
-      decltype(auto) xf = detail::convert_to_floating(std::forward<Arg>(arg));
+      auto&& xf = detail::convert_to_floating(std::forward<Arg>(arg));
       using Xf = std::decay_t<decltype(xf)>;
       using R = std::decay_t<decltype(constexpr_real(xf))>;
 
@@ -1881,7 +1885,7 @@ namespace OpenKalman::internal
       }
       else
       {
-        decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+        auto&& x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
 
         if constexpr (std::numeric_limits<Scalar>::has_infinity)
         {
@@ -1889,8 +1893,8 @@ namespace OpenKalman::internal
           else if (x == -std::numeric_limits<Scalar>::infinity()) return numbers::pi_v<Scalar> * Scalar{-0.5};
         }
 
-        if (x == Scalar{0}) return x;
-        else return detail::atan_impl(x);
+        if (x == Scalar{0}) return std::forward<decltype(x)>(x);
+        else return detail::atan_impl(std::forward<decltype(x)>(x));
       }
     }
   }
@@ -1925,8 +1929,8 @@ namespace OpenKalman::internal
 
       if constexpr (complex_number<Y> or complex_number<X>)
       {
-        decltype(auto) yf = detail::convert_to_floating(std::forward<Y>(y_arg));
-        decltype(auto) xf = detail::convert_to_floating(std::forward<X>(x_arg));
+        auto&& yf = detail::convert_to_floating(std::forward<Y>(y_arg));
+        auto&& xf = detail::convert_to_floating(std::forward<X>(x_arg));
 
         auto yr = constexpr_real(yf);
 
@@ -2071,15 +2075,15 @@ namespace OpenKalman::internal
       {
         if constexpr (complex_number<Scalar>)
         {
-          decltype(auto) xf = detail::convert_to_floating(std::forward<Arg>(arg));
-          decltype(auto) nf = detail::convert_to_floating(std::forward<Exponent>(exponent));
+          auto&& xf = detail::convert_to_floating(std::forward<Arg>(arg));
+          auto&& nf = detail::convert_to_floating(std::forward<Exponent>(exponent));
 
-          return detail::convert_to_output<Scalar>(constexpr_exp(constexpr_log(xf) * nf));
+          return detail::convert_to_output<Scalar>(constexpr_exp(constexpr_log(std::forward<decltype(xf)>(xf)) * std::forward<decltype(nf)>(nf)));
         }
         else
         {
-          decltype(auto) x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
-          decltype(auto) n = detail::convert_to_output<Scalar>(std::forward<Exponent>(exponent));
+          auto&& x = detail::convert_to_output<Scalar>(std::forward<Arg>(arg));
+          auto&& n = detail::convert_to_output<Scalar>(std::forward<Exponent>(exponent));
 
           if constexpr (std::numeric_limits<Scalar>::has_infinity)
           {
@@ -2105,8 +2109,8 @@ namespace OpenKalman::internal
 
           if (x > Scalar{0})
           {
-            if (n == Scalar{1}) return x;
-            else return constexpr_exp(constexpr_log(x) * n);
+            if (n == Scalar{1}) return std::forward<decltype(x)>(x);
+            else return constexpr_exp(constexpr_log(std::forward<decltype(x)>(x)) * std::forward<decltype(n)>(n));
           }
           else if (x == 0)
           {

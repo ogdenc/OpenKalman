@@ -18,19 +18,6 @@
 
 namespace OpenKalman
 {
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename Arg, typename = void>
-    struct to_diagonal_exists : std::false_type {};
-
-    template<typename Arg>
-    struct to_diagonal_exists<Arg, std::void_t<decltype(
-      interface::library_interface<std::decay_t<Arg>>::template to_diagonal(std::declval<Arg&&>()))>> : std::true_type {};
-  } // namespace detail
-#endif
-
-
   /**
    * \brief Convert a column vector into a diagonal matrix.
    * \tparam Arg A column vector matrix
@@ -45,19 +32,13 @@ namespace OpenKalman
 #endif
   to_diagonal(Arg&& arg)
   {
-    using Interface = interface::library_interface<std::decay_t<Arg>>;
-
     if constexpr (one_by_one_matrix<Arg>)
     {
       return std::forward<Arg>(arg);
     }
-#ifdef __cpp_concepts
-    else if constexpr (requires { Interface::template to_diagonal(std::forward<Arg>(arg)); })
-#else
-    else if constexpr (detail::to_diagonal_exists<Arg>::value)
-#endif
+    else if constexpr (interface::to_diagonal_defined_for<std::decay_t<Arg>, Arg&&>)
     {
-      return Interface::to_diagonal(std::forward<Arg>(arg));
+      return interface::library_interface<std::decay_t<Arg>>::to_diagonal(std::forward<Arg>(arg));
     }
     else
     {

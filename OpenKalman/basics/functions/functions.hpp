@@ -24,8 +24,29 @@
 #include "element_functions.hpp"
 
 #include "to_native_matrix.hpp"
-#include "make-functions/make-functions.hpp"
-#include "conversion-functions/conversion-functions.hpp"
+
+#include "make_default_dense_writable_matrix_like.hpp"
+#include "make_dense_writable_matrix_from.hpp"
+#include "make_self_contained.hpp"
+#include "make_constant_matrix_like.hpp"
+#include "make_zero_matrix_like.hpp"
+#include "make_identity_matrix_like.hpp"
+
+#include "to_diagonal.hpp"
+#include "diagonal_of.hpp"
+
+#include "conjugate.hpp"
+#include "transpose.hpp"
+#include "adjoint.hpp"
+
+#include "make_triangular_matrix.hpp"
+#include "make_hermitian_matrix.hpp"
+
+#include "to_covariance_nestable.hpp"
+
+#include "to_euclidean.hpp"
+#include "from_euclidean.hpp"
+#include "wrap_angles.hpp"
 
 #include "n_ary_operation.hpp"
 #include "randomize.hpp"
@@ -35,7 +56,13 @@
 #include "concatenate.hpp"
 #include "split.hpp"
 #include "chipwise-operations.hpp"
-#include "linear_algebra_functions.hpp"
+
+#include "determinant.hpp"
+#include "trace.hpp"
+#include "sum.hpp"
+#include "contract.hpp"
+#include "contract_in_place.hpp"
+
 #include "decomposition_functions.hpp"
 #include "cholesky-decomposition.hpp"
 #include "rank-update.hpp"

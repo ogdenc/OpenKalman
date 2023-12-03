@@ -166,13 +166,15 @@ namespace OpenKalman
 
   namespace interface
   {
-    template<typename NestedMatrix, typename IndexType>
-    struct indexible_object_traits<Eigen3::EigenTensorWrapper<NestedMatrix, IndexType>>
+    template<typename NestedMatrix>
+    struct indexible_object_traits<Eigen3::EigenTensorWrapper<NestedMatrix>>
     {
       using scalar_type = scalar_type_of_t<NestedMatrix>;
 
+
       template<typename Arg>
       static constexpr auto get_index_count(const Arg& arg) { return OpenKalman::get_index_count(nested_matrix(arg)); }
+
 
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
@@ -180,9 +182,12 @@ namespace OpenKalman
         return OpenKalman::get_vector_space_descriptor(nested_matrix(arg), n);
       }
 
-      using type = std::tuple<NestedMatrix>;
+
+      using dependents = std::tuple<NestedMatrix>;
+
 
       static constexpr bool has_runtime_parameters = false;
+
 
       template<std::size_t i, typename Arg>
       static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -191,11 +196,13 @@ namespace OpenKalman
         return std::forward<Arg>(arg).nested_matrix();
       }
 
+
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
-        return make_dense_writable_matrix_from(std::forward<Arg>(arg).nested_matrix());
+        return make_dense_writable_matrix_from(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
       }
+
 
       template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
@@ -203,22 +210,28 @@ namespace OpenKalman
         return constant_coefficient{arg.nested_matrix()};
       }
 
+
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
         return constant_diagonal_coefficient {arg.nested_matrix()};
       }
 
+
       template<Likelihood b>
       static constexpr bool is_one_by_one = one_by_one_matrix<NestedMatrix, b>;
+
 
       template<Likelihood b>
       static constexpr bool is_square = square_matrix<NestedMatrix, b>;
 
+
       template<TriangleType t, Likelihood b>
       static constexpr bool is_triangular = triangular_matrix<NestedMatrix, t, b>;
 
+
       static constexpr bool is_triangular_adapter = false;
+
 
       static constexpr bool is_hermitian = hermitian_matrix<NestedMatrix, Likelihood::maybe>;
 

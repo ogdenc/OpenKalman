@@ -36,7 +36,7 @@ namespace OpenKalman::interface
     {
       if constexpr (static_index_value<N>)
       {
-        if constexpr (not dynamic_dimension<LhsType, static_index_value_of_v<N>>)
+        if constexpr (not dynamic_dimension<LhsType, n>)
           return OpenKalman::get_vector_space_descriptor(arg.lhs(), n);
         else
           return OpenKalman::get_vector_space_descriptor(arg.rhs(), n);
@@ -44,7 +44,7 @@ namespace OpenKalman::interface
       else return OpenKalman::get_vector_space_descriptor(arg.lhs(), n);
     }
 
-    using type = std::tuple<typename Xpr::LhsNested, typename Xpr::RhsNested>;
+    using dependents = std::tuple<typename Xpr::LhsNested, typename Xpr::RhsNested>;
 
     static constexpr bool has_runtime_parameters = false;
 

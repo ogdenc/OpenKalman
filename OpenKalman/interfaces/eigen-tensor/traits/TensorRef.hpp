@@ -38,7 +38,7 @@ namespace OpenKalman::interface
 
     static constexpr bool has_runtime_parameters = false;
 
-    using type = std::tuple<Eigen::internal::TensorLazyBaseEvaluator<Dimensions, Scalar>*>;
+    using dependents = std::tuple<Eigen::internal::TensorLazyBaseEvaluator<Dimensions, Scalar>*>;
 
     // get_nested_matrix() not defined
 

@@ -37,7 +37,7 @@ namespace OpenKalman::interface
       return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
     }
 
-    using type = std::tuple<typename Eigen::CwiseUnaryView<ViewOp, MatrixType>::MatrixTypeNested, ViewOp>;
+    using dependents = std::tuple<typename Eigen::CwiseUnaryView<ViewOp, MatrixType>::MatrixTypeNested, ViewOp>;
 
     static constexpr bool has_runtime_parameters = false;
 

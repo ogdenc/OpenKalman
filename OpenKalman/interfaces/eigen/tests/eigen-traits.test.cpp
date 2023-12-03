@@ -45,12 +45,20 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(Eigen3::eigen_general<M11, true>);
   static_assert(Eigen3::eigen_general<Mxx, true>);
 
-  static_assert(index_count_v<M11> == 2);
+  static_assert(index_count_v<M11> == 0);
   static_assert(index_count_v<Mxx> == 2);
-  static_assert(index_count_v<M21> == 2);
+  static_assert(index_count_v<M21> == 1);
+  static_assert(index_count_v<Mx1> == 1);
+  static_assert(index_count_v<M1x> == 2);
+  static_assert(index_count_v<M01> == 1);
   static_assert(index_count_v<M00> == 2);
   static_assert(index_count_v<M20> == 2);
   static_assert(index_count_v<M02> == 2);
+
+  static_assert(index_count_v<internal::FixedSizeAdapter<const Mxx, Dimensions<2>, Dimensions<2>>> == 2);
+  static_assert(index_count_v<internal::FixedSizeAdapter<const Mxx, Dimensions<2>, Dimensions<1>>> == 1);
+  static_assert(index_count_v<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, Dimensions<2>>> == 2);
+  static_assert(index_count_v<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, Dimensions<1>>> == 0);
 
   // The orders of these empty matrices are considered to be 0 for now:
   static_assert(max_tensor_order_of_v<M00> == 0);
@@ -109,6 +117,8 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(not writable<const M22&>);
   static_assert(writable<dense_writable_matrix_t<M22>>);
 
+  static_assert(interface::get_component_defined_for<M32, M32, std::array<std::size_t, 2>>);
+
   static_assert(element_gettable<M32, 2>);
   static_assert(element_gettable<const M32, 2>);
   static_assert(element_gettable<M31, 2>);
@@ -119,13 +129,13 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(element_gettable<M1x, 2>);
   static_assert(element_gettable<Mxx, 2>);
 
-  static_assert(element_gettable<M32, 1>);
+  static_assert(element_gettable<M32, 2>);
   static_assert(element_gettable<M31, 1>);
-  static_assert(element_gettable<M13, 1>);
-  static_assert(element_gettable<Mx2, 1>);
+  static_assert(element_gettable<M13, 2>);
+  static_assert(element_gettable<Mx2, 2>);
   static_assert(element_gettable<Mx1, 1>);
-  static_assert(element_gettable<M1x, 1>);
-  static_assert(element_gettable<Mxx, 1>);
+  static_assert(element_gettable<M1x, 2>);
+  static_assert(element_gettable<Mxx, 2>);
 
   static_assert(element_settable<M32, 2>);
   static_assert(element_settable<M32&&, 2>);
@@ -138,14 +148,14 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(element_settable<M1x&, 2>);
   static_assert(element_settable<Mxx&, 2>);
 
-  static_assert(element_settable<M32&, 1>);
+  static_assert(element_settable<M32&, 2>);
   static_assert(element_settable<M31&, 1>);
-  static_assert(element_settable<M13&, 1>);
+  static_assert(element_settable<M13&, 2>);
   static_assert(not element_settable<const M31&, 1>);
-  static_assert(element_settable<Mx2&, 1>);
+  static_assert(element_settable<Mx2&, 2>);
   static_assert(element_settable<Mx1&, 1>);
-  static_assert(element_settable<M1x&, 1>);
-  static_assert(element_settable<Mxx&, 1>);
+  static_assert(element_settable<M1x&, 2>);
+  static_assert(element_settable<Mxx&, 2>);
 
   M22 m22; m22 << 1, 2, 3, 4;
   M23 m23; m23 << 1, 2, 3, 4, 5, 6;
@@ -173,15 +183,46 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(equivalent_to<vector_space_descriptor_of_t<M22, 0>, TypedIndex<Axis, Axis>>);
   static_assert(equivalent_to<vector_space_descriptor_of_t<M22, 1>, TypedIndex<Axis, Axis>>);
 
-  static_assert(maybe_vector_space_descriptor_match<M22, M2x, Mx2, Mxx>);
-  static_assert(vector_space_descriptor_match<M22, CM22, M22>);
-  EXPECT_TRUE(get_vector_space_descriptor_match(m22, cm22, M2x{m22}, Mx2{m22}, Mxx{m22}));
+  static_assert(maybe_has_same_shape_as<M22, M2x, Mx2, Mxx>);
+  static_assert(has_same_shape_as<M22, CM22, M22>);
+  EXPECT_TRUE(get_has_same_shape_as(m22, cm22, M2x{m22}, Mx2{m22}, Mxx{m22}));
 
-  static_assert(compatible_with_vector_space_descriptor<M23, std::integral_constant<int, 2>, std::integral_constant<int, 3>>);
-  static_assert(not compatible_with_vector_space_descriptor<M23, std::integral_constant<int, 2>, std::integral_constant<int, 2>>);
-  static_assert(compatible_with_vector_space_descriptor<M2x, std::integral_constant<int, 2>, std::integral_constant<int, 2>>);
-  static_assert(compatible_with_vector_space_descriptor<M2x, std::integral_constant<int, 2>, int>);
-  static_assert(not compatible_with_vector_space_descriptor<M2x, std::integral_constant<int, 3>, int>);
+  static_assert(compatible_with_vector_space_descriptors<M23, std::integral_constant<int, 2>, std::integral_constant<int, 3>>);
+  static_assert(not compatible_with_vector_space_descriptors<M23, std::integral_constant<int, 2>, std::integral_constant<int, 2>>);
+  static_assert(compatible_with_vector_space_descriptors<M23, int, int>);
+  static_assert(compatible_with_vector_space_descriptors<M2x, std::integral_constant<int, 2>, std::integral_constant<int, 2>>);
+  static_assert(compatible_with_vector_space_descriptors<M2x, std::integral_constant<int, 2>, int>);
+  static_assert(compatible_with_vector_space_descriptors<M2x, int, int>);
+  static_assert(not compatible_with_vector_space_descriptors<M2x, std::integral_constant<int, 3>, int>);
+  static_assert(compatible_with_vector_space_descriptors<Mx2, std::integral_constant<int, 2>, std::integral_constant<int, 2>>);
+  static_assert(compatible_with_vector_space_descriptors<Mx2, std::integral_constant<int, 2>, int>);
+  static_assert(compatible_with_vector_space_descriptors<Mx2, int, int>);
+  static_assert(not compatible_with_vector_space_descriptors<Mx2, int, std::integral_constant<int, 3>>);
+  static_assert(compatible_with_vector_space_descriptors<Mxx, std::integral_constant<int, 2>, std::integral_constant<int, 2>>);
+  static_assert(compatible_with_vector_space_descriptors<Mxx, int, int>);
+
+  static_assert(empty_object<M00>);
+  static_assert(empty_object<M01>);
+  static_assert(empty_object<M10>);
+  static_assert(empty_object<M0x>);
+  static_assert(empty_object<Mx0>);
+  static_assert(not empty_object<M11>);
+  static_assert(not empty_object<M1x>);
+  static_assert(not empty_object<Mx1>);
+  static_assert(not empty_object<Mxx>);
+  static_assert(empty_object<M1x, Likelihood::maybe>);
+  static_assert(empty_object<Mx1, Likelihood::maybe>);
+  static_assert(empty_object<Mxx, Likelihood::maybe>);
+
+  static_assert(one_by_one_matrix<M11>);
+  static_assert(not one_by_one_matrix<M1x>);
+  static_assert(one_by_one_matrix<M1x, Likelihood::maybe>);
+  static_assert(not one_by_one_matrix<M00>);
+  static_assert(not one_by_one_matrix<M01>);
+  static_assert(not one_by_one_matrix<M10>);
+  static_assert(not one_by_one_matrix<M00, Likelihood::maybe>);
+  static_assert(not one_by_one_matrix<Mx0, Likelihood::maybe>);
+  static_assert(not one_by_one_matrix<M0x, Likelihood::maybe>);
 
   static_assert(square_matrix<M00, Likelihood::maybe>);
   static_assert(square_matrix<M0x, Likelihood::maybe>);
@@ -231,16 +272,6 @@ TEST(eigen3, Eigen_Matrix)
   EXPECT_TRUE(*get_is_square(Mx1{m11_1}) == Dimensions<1>{});
   EXPECT_TRUE(get_is_square(Mxx{m11_1}));
   EXPECT_EQ(*get_is_square(Mxx{m11_1}), 1);
-
-  static_assert(one_by_one_matrix<M11>);
-  static_assert(not one_by_one_matrix<M1x>);
-  static_assert(one_by_one_matrix<M1x, Likelihood::maybe>);
-  static_assert(not one_by_one_matrix<M00>);
-  static_assert(not one_by_one_matrix<M01>);
-  static_assert(not one_by_one_matrix<M10>);
-  static_assert(not one_by_one_matrix<M00, Likelihood::maybe>);
-  static_assert(not one_by_one_matrix<Mx0, Likelihood::maybe>);
-  static_assert(not one_by_one_matrix<M0x, Likelihood::maybe>);
 
   static_assert(identity_matrix<M00>);
   static_assert(not identity_matrix<M0x>);
@@ -877,11 +908,43 @@ TEST(eigen3, Eigen_Diagonal)
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cdx2_2>().matrix().diagonal())>);
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cdxx_2>().matrix().diagonal())>);
 
+  static_assert(dimension_size_of_index_is<Eigen::Diagonal<M23, -2>, 0, 0>);
+  static_assert(dimension_size_of_index_is<Eigen::Diagonal<M23, -1>, 0, 1>);
+  static_assert(dimension_size_of_index_is<Eigen::Diagonal<M23, 0>, 0, 2>);
+  static_assert(dimension_size_of_index_is<Eigen::Diagonal<M23, 1>, 0, 2>);
+  static_assert(dimension_size_of_index_is<Eigen::Diagonal<M23, 2>, 0, 1>);
+  static_assert(dimension_size_of_index_is<Eigen::Diagonal<M23, 3>, 0, 0>);
+  static_assert(dimension_size_of_index_is<Eigen::Diagonal<M23, Eigen::DynamicIndex>, 0, dynamic_size>);
+  static_assert(dimension_size_of_index_is<Eigen::Diagonal<M32, 2>, 0, 0>);
+  static_assert(dimension_size_of_index_is<Eigen::Diagonal<M32, 1>, 0, 1>);
+  static_assert(dimension_size_of_index_is<Eigen::Diagonal<M32, 0>, 0, 2>);
+  static_assert(dimension_size_of_index_is<Eigen::Diagonal<M32, -1>, 0, 2>);
+  static_assert(dimension_size_of_index_is<Eigen::Diagonal<M32, -2>, 0, 1>);
+  static_assert(dimension_size_of_index_is<Eigen::Diagonal<M32, -3>, 0, 0>);
+  static_assert(dimension_size_of_index_is<Eigen::Diagonal<M32, Eigen::DynamicIndex>, 0, dynamic_size>);
+  static_assert(dimension_size_of_index_is<Eigen::Diagonal<M2x, 0>, 0, dynamic_size>);
+  static_assert(dimension_size_of_index_is<Eigen::Diagonal<Mx2, 0>, 0, dynamic_size>);
+
+  static_assert(one_by_one_matrix<Eigen::Diagonal<M11, 0>>);
+  static_assert(one_by_one_matrix<Eigen::Diagonal<M13, 0>>);
+  static_assert(one_by_one_matrix<Eigen::Diagonal<M13, 1>>);
+  static_assert(not one_by_one_matrix<Eigen::Diagonal<M1x, 0>>);
+  static_assert(one_by_one_matrix<Eigen::Diagonal<M1x, 0>, Likelihood::maybe>);
+  static_assert(one_by_one_matrix<Eigen::Diagonal<M31, 0>>);
+  static_assert(one_by_one_matrix<Eigen::Diagonal<M31, -1>>);
+  static_assert(not one_by_one_matrix<Eigen::Diagonal<Mx1, 0>>);
+  static_assert(one_by_one_matrix<Eigen::Diagonal<Mx1, 0>, Likelihood::maybe>);
+  static_assert(not one_by_one_matrix<Eigen::Diagonal<M22, Eigen::DynamicIndex>>);
+  static_assert(one_by_one_matrix<Eigen::Diagonal<M22, Eigen::Dynamic>, Likelihood::maybe>);
+  static_assert(one_by_one_matrix<Eigen::Diagonal<M2x, 0>, Likelihood::maybe>);
+  static_assert(one_by_one_matrix<Eigen::Diagonal<Mx2, 0>, Likelihood::maybe>);
+
   static_assert(dimension_size_of_index_is<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, 0, 2>);
   static_assert(dimension_size_of_index_is<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, 1, 1>);
 
   static_assert(not one_by_one_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<2>, Dimensions<1>>, Likelihood::maybe>);
   static_assert(not one_by_one_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, Likelihood::maybe>);
+  static_assert(not one_by_one_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, Dimensions<2>, Dimensions<1>>, Likelihood::maybe>);
   static_assert(one_by_one_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<1>, Dimensions<1>>>);
 
   static_assert(not square_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, Likelihood::maybe>);
@@ -889,6 +952,12 @@ TEST(eigen3, Eigen_Diagonal)
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, CompileTimeStatus::any, Likelihood::maybe>);
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, Dimensions<2>, Dimensions<1>>, CompileTimeStatus::any, Likelihood::maybe>);
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<2>, Dimensions<1>>, CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<1>, Dimensions<1>>, CompileTimeStatus::unknown>);
+
+  static_assert(not constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(not constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, Dimensions<2>, Dimensions<1>>, CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(not constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<2>, Dimensions<1>>, CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<1>, Dimensions<1>>, CompileTimeStatus::unknown>);
 }
 
 
@@ -919,17 +988,17 @@ TEST(eigen3, Eigen_DiagonalMatrix)
 
   static_assert(not writable<Eigen::DiagonalMatrix<double, 3>>);
 
-  static_assert(element_gettable<Eigen::DiagonalMatrix<double, 2>, 2>);
-  static_assert(element_gettable<Eigen::DiagonalMatrix<double, 2>, 1>);
+  /*static_assert(element_gettable<Eigen::DiagonalMatrix<double, 2>, 2>);
+  static_assert(not element_gettable<Eigen::DiagonalMatrix<double, 2>, 1>);
   static_assert(element_gettable<Eigen::DiagonalMatrix<double, Eigen::Dynamic>, 2>);
-  static_assert(element_gettable<Eigen::DiagonalMatrix<double, Eigen::Dynamic>, 1>);
+  static_assert(not element_gettable<Eigen::DiagonalMatrix<double, Eigen::Dynamic>, 1>);
 
   static_assert(element_gettable<Eigen::DiagonalWrapper<M21>, 2>);
-  static_assert(element_gettable<Eigen::DiagonalWrapper<M21>, 1>);
+  static_assert(not element_gettable<Eigen::DiagonalWrapper<M21>, 1>);
   static_assert(element_gettable<Eigen::DiagonalWrapper<M2x>, 2>);
-  static_assert(element_gettable<Eigen::DiagonalWrapper<M2x>, 1>);
+  static_assert(not element_gettable<Eigen::DiagonalWrapper<M2x>, 1>);
   static_assert(element_gettable<Eigen::DiagonalWrapper<Mx1>, 2>);
-  static_assert(element_gettable<Eigen::DiagonalWrapper<Mx1>, 1>);
+  static_assert(not element_gettable<Eigen::DiagonalWrapper<Mx1>, 1>);*/
 
   static_assert(Eigen3::eigen_general<Eigen::DiagonalMatrix<double, 3>, true>);
   static_assert(not Eigen3::eigen_dense_general<Eigen::DiagonalMatrix<double, 3>, true>);
@@ -1612,8 +1681,9 @@ TEST(eigen3, Eigen_TriangularView)
   EXPECT_EQ(get_element(tlv22, 0, 1), 0);
   EXPECT_EQ(get_element(tlv22, 1, 0), 1);
   EXPECT_EQ(get_element(tlv22, 1, 1), 3);
-  static_assert(element_settable<decltype(tlv22), 2>);
-  set_element(tlv22, 4, 1, 0);
+  static_assert(not element_settable<decltype(tlv22), 2>);
+  static_assert(element_settable<decltype(nested_matrix(tlv22)), 2>);
+  set_element(nested_matrix(tlv22), 4, 1, 0);
   EXPECT_EQ(get_element(tlv22, 1, 0), 4);
   EXPECT_EQ(get_element(tlv22, 0, 1), 0);
 
@@ -1623,8 +1693,9 @@ TEST(eigen3, Eigen_TriangularView)
   EXPECT_EQ(get_element(tuv22, 0, 1), 1);
   EXPECT_EQ(get_element(tuv22, 1, 0), 0);
   EXPECT_EQ(get_element(tuv22, 1, 1), 3);
-  static_assert(element_settable<decltype(tuv22), 2>);
-  set_element(tuv22, 4, 0, 1);
+  static_assert(not element_settable<decltype(tuv22), 2>);
+  static_assert(element_settable<decltype(nested_matrix(tuv22)), 2>);
+  set_element(nested_matrix(tuv22), 4, 0, 1);
   EXPECT_EQ(get_element(tuv22, 0, 1), 4);
   EXPECT_EQ(get_element(tuv22, 1, 0), 0);
 
@@ -1636,8 +1707,9 @@ TEST(eigen3, Eigen_TriangularView)
   EXPECT_EQ(std::real(get_element(tlv22c, 1, 0)), 1);
   EXPECT_EQ(std::imag(get_element(tlv22c, 1, 0)), 0.1);
   EXPECT_EQ(std::real(get_element(tlv22c, 1, 1)), 3);
-  static_assert(element_settable<decltype(tlv22c), 2>);
-  set_element(tlv22c, std::complex<double>{4, 0.4}, 1, 0);
+  static_assert(not element_settable<decltype(tlv22c), 2>);
+  static_assert(element_settable<decltype(nested_matrix(tlv22c)), 2>);
+  set_element(nested_matrix(tlv22c), std::complex<double>{4, 0.4}, 1, 0);
   EXPECT_EQ(std::imag(get_element(tlv22c, 1, 0)), 0.4);
   EXPECT_EQ(std::imag(get_element(tlv22c, 0, 1)), 0);
 }

@@ -262,7 +262,7 @@ namespace OpenKalman
       {
         if constexpr (static_index_value<N>)
         {
-          if constexpr (static_index_value_of_v<N> == 0) return std::forward<Arg>(arg).my_dimension;
+          if constexpr (n == 0_uz) return std::forward<Arg>(arg).my_dimension;
           else return OpenKalman::get_vector_space_descriptor(nested_matrix(std::forward<Arg>(arg)), n);
         }
         else
@@ -273,7 +273,7 @@ namespace OpenKalman
         }
       }
 
-      using type = std::tuple<NestedMatrix>;
+      using dependents = std::tuple<NestedMatrix>;
 
       static constexpr bool has_runtime_parameters = false;
 

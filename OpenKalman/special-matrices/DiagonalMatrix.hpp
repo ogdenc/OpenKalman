@@ -375,28 +375,17 @@ namespace OpenKalman
   //        Deduction guides         //
   // ------------------------------- //
 
-#if not defined(__cpp_concepts) or not OPENKALMAN_CPP_FEATURE_CONCEPTS
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct diagonal_exists : std::false_type {};
-
-    template<typename T>
-    struct diagonal_exists<T, std::void_t<decltype(diagonal_of(std::declval<T>()))>> : std::true_type {};
-  };
-#endif
-
-
   /**
    * \brief Deduce DiagonalMatrix template parameters for a column vector.
    * \tparam Arg A column vector
    */
-#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
-  template<vector<0, Likelihood::maybe> Arg> requires (not square_matrix<Arg>) or
-    (not requires(Arg&& arg) { diagonal_of(std::forward<Arg>(arg)); })
+#ifdef __cpp_concepts
+  template<vector<0, Likelihood::maybe> Arg> requires (not square_matrix<Arg, Likelihood::maybe>) or
+    (not diagonal_adapter<Arg> and not constant_diagonal_matrix<Arg> and
+      not interface::diagonal_of_defined_for<std::decay_t<Arg>, Arg&&>)
 #else
-  template<typename Arg, std::enable_if_t<vector<Arg, 0, Likelihood::maybe> and
-    (not square_matrix<Arg> or not detail::diagonal_exists<Arg>::value), int> = 0>
+  template<typename Arg, std::enable_if_t<vector<Arg, 0, Likelihood::maybe> and (not square_matrix<Arg, Likelihood::maybe> or
+    (not diagonal_adapter<Arg> and not constant_diagonal_matrix<Arg> and not interface::diagonal_of_defined_for<std::decay_t<Arg>, Arg&&>)), int> = 0>
 #endif
   explicit DiagonalMatrix(Arg&&) -> DiagonalMatrix<passable_t<Arg>>;
 
@@ -405,14 +394,16 @@ namespace OpenKalman
    * \brief Deduce DiagonalMatrix template parameters for a square matrix.
    * \tparam Arg A \ref square_matrix
    */
-#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
-  template<square_matrix<Likelihood::maybe> Arg>
-  requires (square_matrix<Arg> or not vector<Arg, 0, Likelihood::maybe>) and
-    requires(Arg&& arg) { diagonal_of(std::forward<Arg>(arg)); }
+#ifdef __cpp_concepts
+  template<square_matrix<Likelihood::maybe> Arg> requires (not vector<Arg>) and
+    (index_count_v<Arg> == dynamic_size or index_count_v<Arg> <= 2) and
+    (not vector<Arg, 0, Likelihood::maybe> or diagonal_adapter<Arg> or constant_diagonal_matrix<Arg> or
+      interface::diagonal_of_defined_for<std::decay_t<Arg>, Arg&&>)
 #else
-  template<typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe> and
-    (square_matrix<Arg> or not vector<Arg, 0, Likelihood::maybe>) and
-    detail::diagonal_exists<Arg>::value, int> = 0>
+  template<typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe> and (not vector<Arg>) and
+    (index_count<Arg>::value == dynamic_size or index_count<Arg>::value <= 2) and
+    (not vector<Arg, 0, Likelihood::maybe> or diagonal_adapter<Arg> or constant_diagonal_matrix<Arg> or
+      interface::diagonal_of_defined_for<std::decay_t<Arg>, Arg&&>), int> = 0>
 #endif
   DiagonalMatrix(Arg&&) -> DiagonalMatrix<passable_t<decltype(diagonal_of(std::declval<Arg&&>()))>>;
 
@@ -437,7 +428,7 @@ namespace OpenKalman
         return OpenKalman::get_vector_space_descriptor<0>(nested_matrix(std::forward<Arg>(arg)));
       }
 
-      using type = std::tuple<ColumnVector>;
+      using dependents = std::tuple<ColumnVector>;
 
       static constexpr bool has_runtime_parameters = false;
 

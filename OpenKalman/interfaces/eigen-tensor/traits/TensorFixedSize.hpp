@@ -33,14 +33,14 @@ namespace OpenKalman::interface
     static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
     {
       if constexpr (static_index_value<N>)
-        return std::integral_constant<std::size_t, Eigen::internal::get<static_index_value_of_v<N>, typename Dims::Base>::value>{};
+        return std::integral_constant<std::size_t, Eigen::internal::get<n, typename Dims::Base>::value>{};
       else
         return arg.dimension(n);
     }
 
     static constexpr bool has_runtime_parameters = true;
 
-    using type = std::tuple<>;
+    using dependents = std::tuple<>;
 
     // get_nested_matrix() not defined
 

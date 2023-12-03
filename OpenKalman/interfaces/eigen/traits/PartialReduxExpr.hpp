@@ -81,8 +81,12 @@ namespace OpenKalman::interface
     constexpr auto get_PartialReduxExpr_constant(const XprType& xpr, const Dim& dim)
     {
       std::conditional_t<is_diag_v<XprType>, constant_diagonal_coefficient<XprType>, constant_coefficient<XprType>> c {xpr};
-      internal::ScalarConstant<Likelihood::definitely, std::size_t, 1> f;
-      return Eigen3::SingleConstantPartialRedux<XprType, MemberOp>::get_constant(c, dim, f);
+      if constexpr (scalar_constant<decltype(c)>)
+      {
+        internal::ScalarConstant<Likelihood::definitely, std::size_t, 1> f;
+        return Eigen3::SingleConstantPartialRedux<XprType, MemberOp>::get_constant(c, dim, f);
+      }
+      else return std::monostate{};
     }
 
 
@@ -111,10 +115,10 @@ namespace OpenKalman::interface
     {
       constexpr std::size_t direction = is_EigenReplicate<XprType, Direction>::direction;
       constexpr std::size_t factor = is_EigenReplicate<XprType, Direction>::factor;
-      decltype(auto) n_xpr = is_EigenReplicate<XprType, Direction>::get_nested(xpr);
+      auto&& n_xpr = is_EigenReplicate<XprType, Direction>::get_nested(xpr);
       using NXprType = std::decay_t<decltype(n_xpr)>;
       std::conditional_t<is_diag_v<NXprType>, constant_diagonal_coefficient<NXprType>, constant_coefficient<NXprType>> c {n_xpr};
-      return get_PartialReduxExpr_replicate<MemberOp, direction, factor>(n_xpr, c, dim);
+      return get_PartialReduxExpr_replicate<MemberOp, direction, factor>(std::forward<NXprType>(n_xpr), c, dim);
     }
 
 
@@ -129,11 +133,11 @@ namespace OpenKalman::interface
     {
       constexpr std::size_t direction = is_EigenReplicate<XprType, Direction>::direction;
       constexpr std::size_t factor = is_EigenReplicate<XprType, Direction>::factor;
-      decltype(auto) n_xpr = is_EigenReplicate<XprType, Direction>::get_nested(xpr.nestedExpression());
+      auto&& n_xpr = is_EigenReplicate<XprType, Direction>::get_nested(xpr.nestedExpression());
       using NXprType = std::decay_t<decltype(n_xpr)>;
       auto uop = Eigen::CwiseUnaryOp<UnaryOp, NXprType> {n_xpr};
       auto c = Eigen3::FunctorTraits<UnaryOp, NXprType>::template get_constant<is_diag_v<XprType>>(uop);
-      return get_PartialReduxExpr_replicate<MemberOp, direction, factor>(n_xpr, c, dim);
+      return get_PartialReduxExpr_replicate<MemberOp, direction, factor>(std::forward<NXprType>(n_xpr), c, dim);
     }
 
 
@@ -148,11 +152,11 @@ namespace OpenKalman::interface
     {
       constexpr std::size_t direction = is_EigenReplicate<XprType, Direction>::direction;
       constexpr std::size_t factor = is_EigenReplicate<XprType, Direction>::factor;
-      decltype(auto) n_xpr = is_EigenReplicate<XprType, Direction>::get_nested(xpr.nestedExpression());
+      auto&& n_xpr = is_EigenReplicate<XprType, Direction>::get_nested(xpr.nestedExpression());
       using NXprType = std::decay_t<decltype(n_xpr)>;
       auto uop = Eigen::CwiseUnaryOp<ViewOp, const NXprType> {n_xpr};
       auto c = Eigen3::FunctorTraits<ViewOp, NXprType>::template get_constant<is_diag_v<XprType>>(uop);
-      return get_PartialReduxExpr_replicate<MemberOp, direction, factor>(n_xpr, c, dim);
+      return get_PartialReduxExpr_replicate<MemberOp, direction, factor>(std::forward<NXprType>(n_xpr), c, dim);
     }
 
   } // namespace detail
@@ -168,7 +172,7 @@ namespace OpenKalman::interface
 
   public:
 
-    using type = std::tuple<typename MatrixType::Nested, const MemberOp>;
+    using dependents = std::tuple<typename MatrixType::Nested, const MemberOp>;
 
     static constexpr bool has_runtime_parameters = false;
 

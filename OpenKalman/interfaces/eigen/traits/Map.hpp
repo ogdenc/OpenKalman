@@ -33,7 +33,7 @@ namespace OpenKalman::interface
   public:
 
     // Map is not self-contained in any circumstances.
-    using type = std::tuple<decltype(*std::declval<typename Xpr::PointerType>())>;
+    using dependents = std::tuple<decltype(*std::declval<typename Xpr::PointerType>())>;
 
     static constexpr bool has_runtime_parameters =
       Xpr::RowsAtCompileTime == Eigen::Dynamic or Xpr::ColsAtCompileTime == Eigen::Dynamic or

@@ -44,3 +44,20 @@ TEST(basics, global_definitions)
 }
 
 
+TEST(basics, tuple_slice)
+{
+  std::tuple t {1, "c", 5.0, 6.0};
+  static_assert(std::tuple_size_v<decltype(internal::tuple_slice<1, 1>(t))> == 0);
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<0, 1>(t)), std::tuple<int&>>);
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<1, 2>(t)), std::tuple<const char*&>>);
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<2, 3>(t)), std::tuple<double&>>);
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<3, 4>(t)), std::tuple<double&>>);
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<1, 3>(t)), std::tuple<const char*&, double&>>);
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<2, 4>(t)), std::tuple<double&, double&>>);
+
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<1, 3>(std::tuple {1, "c", 5.0, 6.0})), std::tuple<const char*&&, double&&>>);
+
+  std::array a {1, 2, 3, 4};
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<1, 3>(a)), std::tuple<int&, int&>>);
+}
+

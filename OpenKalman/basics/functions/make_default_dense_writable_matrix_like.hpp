@@ -43,7 +43,7 @@ namespace OpenKalman
   make_default_dense_writable_matrix_like(D&&...d)
 #endif
   {
-    if constexpr (sizeof...(d) == 0)
+    if constexpr (sizeof...(d) == 0 and index_count_v<T> != 0)
     {
       return std::apply(
         [](const auto&...d) {

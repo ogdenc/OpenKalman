@@ -25,10 +25,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible A> requires (not euclidean_transformed<A>)
-  constexpr triangular_matrix<TriangleType::lower, Likelihood::maybe> auto
+  constexpr triangular_matrix<TriangleType::lower, Likelihood::maybe> decltype(auto)
 #else
   template<typename A, std::enable_if_t<indexible<A> and (not euclidean_transformed<A>), int> = 0>
-  constexpr auto
+  constexpr decltype(auto)
 #endif
   LQ_decomposition(A&& a)
   {
@@ -57,7 +57,7 @@ namespace OpenKalman
         if (get_dimension_size_of(dim) == 1) m = std::move(col1);
         else m = concatenate<1>(std::move(col1), make_zero_matrix_like<A>(dim, dim - Dimensions<1>{}));
 
-        auto ret = make_triangular_matrix<TriangleType::lower>(std::move(m));
+        auto ret {make_triangular_matrix<TriangleType::lower>(std::move(m))};
 
         // \todo Fix this:
         if constexpr (euclidean_vector_space_descriptor<vector_space_descriptor_of_t<A, 0>>) return ret;
@@ -80,13 +80,26 @@ namespace OpenKalman
     }
     else
     {
-      auto ret {interface::library_interface<std::decay_t<A>>::LQ_decomposition(std::forward<A>(a))};
-      static_assert(triangular_matrix<decltype(ret), TriangleType::lower, Likelihood::maybe>,
+      decltype(auto) ret = [](A&& a) -> decltype(auto) {
+        if constexpr (interface::LQ_decomposition_defined_for<std::decay_t<A>, A&&>)
+        {
+          return interface::library_interface<std::decay_t<A>>::LQ_decomposition(std::forward<A>(a));
+        }
+        else
+        {
+          static_assert(interface::QR_decomposition_defined_for<std::decay_t<A>, A&&>,
+            "LQ_decomposition requires definition of at least one of interface::LQ_decomposition or interface::QR_decomposition");
+          return transpose(interface::library_interface<std::decay_t<A>>::QR_decomposition(transpose(std::forward<A>(a))));
+        }
+      }(std::forward<A>(a));
+      using Ret = decltype(ret);
+
+      static_assert(triangular_matrix<Ret, TriangleType::lower, Likelihood::maybe>,
         "Interface implementation error: interface::library_interface<T>::LQ_decomposition must return a lower triangular_matrix.");
 
       // \todo Fix this:
       if constexpr (euclidean_vector_space_descriptor<vector_space_descriptor_of_t<A, 0>>) return ret;
-      else return SquareRootCovariance {std::move(ret), get_vector_space_descriptor<0>(a)};
+      else return SquareRootCovariance {std::forward<Ret>(ret), get_vector_space_descriptor<0>(a)};
     }
   }
 
@@ -98,10 +111,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible A>
-  constexpr triangular_matrix<TriangleType::upper, Likelihood::maybe> auto
+  constexpr triangular_matrix<TriangleType::upper, Likelihood::maybe> decltype(auto)
 #else
   template<typename A, std::enable_if_t<indexible<A>, int> = 0>
-  constexpr auto
+  constexpr decltype(auto)
 #endif
   QR_decomposition(A&& a)
   {
@@ -130,7 +143,7 @@ namespace OpenKalman
         if (get_dimension_size_of(dim) == 1) m = std::move(row1);
         else m = concatenate<0>(std::move(row1), make_zero_matrix_like<A>(dim - Dimensions<1>{}, dim));
 
-        auto ret = make_triangular_matrix<TriangleType::upper>(std::move(m));
+        auto ret {make_triangular_matrix<TriangleType::upper>(std::move(m))};
 
         // \todo Fix this:
         if constexpr (euclidean_vector_space_descriptor<vector_space_descriptor_of_t<A, 1>>) return ret;
@@ -153,13 +166,26 @@ namespace OpenKalman
     }
     else
     {
-      auto ret {interface::library_interface<std::decay_t<A>>::QR_decomposition(std::forward<A>(a))};
-      static_assert(triangular_matrix<decltype(ret), TriangleType::upper, Likelihood::maybe>,
+      decltype(auto) ret = [](A&& a) -> decltype(auto) {
+        if constexpr (interface::QR_decomposition_defined_for<std::decay_t<A>, A&&>)
+        {
+          return interface::library_interface<std::decay_t<A>>::QR_decomposition(std::forward<A>(a));
+        }
+        else
+        {
+          static_assert(interface::LQ_decomposition_defined_for<std::decay_t<A>, A&&>,
+            "QR_decomposition requires definition of at least one of interface::QR_decomposition or interface::LQ_decomposition");
+          return transpose(interface::library_interface<std::decay_t<A>>::LQ_decomposition(transpose(std::forward<A>(a))));
+        }
+      }(std::forward<A>(a));
+      using Ret = decltype(ret);
+
+      static_assert(triangular_matrix<Ret, TriangleType::upper, Likelihood::maybe>,
         "Interface implementation error: interface::library_interface<T>::QR_decomposition must return an upper triangular_matrix.");
 
       // \todo Fix this:
       if constexpr (euclidean_vector_space_descriptor<vector_space_descriptor_of_t<A, 1>>) return ret;
-      else return SquareRootCovariance {std::move(ret), get_vector_space_descriptor<1>(a)};
+      else return SquareRootCovariance {std::forward<Ret>(ret), get_vector_space_descriptor<1>(a)};
     }
   }
 

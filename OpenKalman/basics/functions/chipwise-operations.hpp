@@ -20,6 +20,8 @@ namespace OpenKalman
 {
   namespace detail
   {
+    //-- chipwise_vector_space_descriptor_for --//
+
     template<std::size_t ix, typename Best_d>
     const Best_d& chipwise_vector_space_descriptor_for(const Best_d& best_d) { return best_d; }
 
@@ -47,37 +49,44 @@ namespace OpenKalman
       }
     }
 
+    //-- make_chipwise_default --//
+
     template<std::size_t...ix, typename Arg, typename...Args>
     auto make_chipwise_default(std::index_sequence<ix...>, const Arg& arg, const Args&...args)
     {
       return make_default_dense_writable_matrix_like<Arg>(chipwise_vector_space_descriptor_for<ix>(get_vector_space_descriptor<ix>(arg), args...)...);
     }
 
+    //-- chipwise_op_chip --//
 
-    template<bool uses_indices, std::size_t...indices,
-      std::size_t...index_ixs, typename Ix_tup, typename M, typename Op, typename...Args>
+    template<bool uses_indices, std::size_t...indices, std::size_t...indices_ix,
+      typename Ix_tup, typename M, typename Op, typename...Args>
     constexpr void
-    chipwise_op_chip(std::index_sequence<indices...>, std::index_sequence<index_ixs...>, const Ix_tup& ix_tup,
+    chipwise_op_chip(std::index_sequence<indices...>, std::index_sequence<indices_ix...>, const Ix_tup& ix_tup,
       M& m, const Op& op, Args&&...args)
     {
       if constexpr (uses_indices)
       {
-        auto chip = op(get_chip<indices...>(std::forward<Args>(args), std::get<index_ixs>(ix_tup)...)..., std::get<index_ixs>(ix_tup)...);
-        set_chip<indices...>(m, std::move(chip), std::get<index_ixs>(ix_tup)...);
+        auto chip = op(get_chip<indices...>(std::forward<Args>(args), std::get<indices_ix>(ix_tup)...)..., std::get<indices_ix>(ix_tup)...);
+        set_chip<indices...>(m, std::move(chip), std::get<indices_ix>(ix_tup)...);
       }
       else
       {
-        auto chip = op(get_chip<indices...>(std::forward<Args>(args), std::get<index_ixs>(ix_tup)...)...);
-        set_chip<indices...>(m, std::move(chip), std::get<index_ixs>(ix_tup)...);
+        auto chip = op(get_chip<indices...>(std::forward<Args>(args), std::get<indices_ix>(ix_tup)...)...);
+        set_chip<indices...>(m, std::move(chip), std::get<indices_ix>(ix_tup)...);
       }
     }
 
-    template<bool uses_indices, typename Indices_seq, typename Ix_tup, typename M, typename Op, typename...Args>
+    //-- chipwise_op --//
+
+    template<bool uses_indices, typename Indices, typename Ix_tup, typename M, typename Op, typename...Args>
     constexpr void
-    chipwise_op(Indices_seq indices_seq, const Ix_tup& ix_tup, M& m, const Op& op, Args&&...args)
+    chipwise_op(Indices indices, const Ix_tup& ix_tup, M& m, const Op& op, Args&&...args)
     {
-      std::make_index_sequence<std::tuple_size_v<Ix_tup>> index_ix_seq;
-      chipwise_op_chip<uses_indices>(indices_seq, index_ix_seq, ix_tup, m, op, std::forward<Args>(args)...);
+      constexpr auto num_indices = Indices::size();
+      static_assert(std::tuple_size_v<Ix_tup> == num_indices);
+      std::make_index_sequence<num_indices> indices_seq;
+      chipwise_op_chip<uses_indices>(indices, indices_seq, ix_tup, m, op, std::forward<Args>(args)...);
     }
 
     template<bool uses_indices, std::size_t index, std::size_t...indices,
@@ -93,15 +102,20 @@ namespace OpenKalman
 
 
   /**
-   * \brief Perform a chipwise n-ary operation on one or more indexible arguments.
-   * \details Given an indexible object of rank <var>n</var>, a "chip" is a subset of that object, having rank in
-   * the range (0, <var>n</var>]. This function takes same-size chips from each of the arguments (if any) and
+   * \brief Perform a chipwise n-ary operation (n&gt;0) on one or more indexible objects.
+   * \details Given an indexible object of order <var>k</var>, a "chip" is a subset of that object, having order in
+   * the range (0, <var>k</var>]. This function takes same-size chips from each of the arguments and
    * performs an operation returning a chip (of the same size), for every possible chip within the result.
-   * \tparam indices The reduced-dimension indices which will be replicated to fill the result
-   * \tparam Operation An operation (unary, binary, etc.). In addition to taking one or more chips as arguments,
-   * the operation may also take <code>sizeof...(indices)</code> indices (in the same order as <code>indices</code>).
+   * \tparam indices The one-dimensional indices of the chip (optionally excluding any trailing 1D indices).
+   * If omitted, the order of the chip is the same as that of the highest-order indexible argument.
+   * Note: the list of indices must be non-repeating, or a compile-time assertion will fail.
+   * \tparam Operation An n-ary operation (unary, binary, etc.) on n chips of the same size.
+   * In addition to taking one or more chips as arguments, the operation may optionally take
+   * <code>sizeof...(indices)</code> indices (in the same order as <code>indices</code>).
    * \tparam Args The arguments, which must be the same size.
-   * \result An object of the same size as the arguments (if any) or
+   * \result An object of the same size as the highest-order argument. For example, a chipwise operation between a
+   * 3&times;4 matrix and either a 3&times;1 row or 1&times;4 column vector is a 3&times;4 matrix.
+   * (The vector is replicated vertically or horizontally, respectively, to fill the size of the matrix.)
    */
 #ifdef __cpp_concepts
   template<std::size_t...indices, typename Operation, indexible...Args> requires (sizeof...(Args) > 0)
@@ -114,8 +128,7 @@ namespace OpenKalman
   {
     if constexpr (sizeof...(indices) > 0)
     {
-      std::make_index_sequence<std::max({index_count_v<Args>...})> args_ix_seq;
-      auto m = detail::make_chipwise_default(args_ix_seq, args...);
+      auto m = detail::make_chipwise_default(std::make_index_sequence<std::max({index_count_v<Args>...})>{}, args...);
 
       constexpr bool uses_indices = std::is_invocable_v<Operation,
         decltype(get_chip<indices...>(std::declval<Args>(), std::integral_constant<decltype(indices), 0>{}...))...,
@@ -126,30 +139,31 @@ namespace OpenKalman
       return m;
     }
     else
+    {
       return make_self_contained<Args...>(operation(std::forward<Args>(args)...));
+    }
   }
 
 
   namespace detail
   {
-    template<std::size_t op_ix, typename Ds_tup>
-    auto nullary_chipwise_vector_space_descriptor(const Ds_tup& ds_tup)
+    template<std::size_t op_ix, typename OpResult>
+    auto nullary_chipwise_vector_space_descriptor(const OpResult& op_result)
     {
-      return std::get<op_ix>(ds_tup);
+      return get_vector_space_descriptor<op_ix>(op_result);
     }
 
-    template<std::size_t op_ix, std::size_t index, std::size_t...indices, typename Ds_tup, typename I, typename...Is>
-    auto nullary_chipwise_vector_space_descriptor(const Ds_tup& ds_tup, I i, Is...is)
+    template<std::size_t op_ix, std::size_t index, std::size_t...indices, typename OpResult, typename I, typename...Is>
+    auto nullary_chipwise_vector_space_descriptor(const OpResult& op_result, I i, Is...is)
     {
-      if constexpr (op_ix == index) return internal::replicate_vector_space_descriptor(std::get<op_ix>(ds_tup), i);
-      else return nullary_chipwise_vector_space_descriptor<op_ix, indices...>(ds_tup, is...);
+      if constexpr (op_ix == index) return internal::replicate_vector_space_descriptor(get_vector_space_descriptor<op_ix>(op_result), i);
+      else return nullary_chipwise_vector_space_descriptor<op_ix, indices...>(op_result, is...);
     }
 
     template<std::size_t...indices, std::size_t...op_ix, typename OpResult, typename...Is>
     auto make_nullary_chipwise_default(std::index_sequence<op_ix...>, const OpResult& op_result, Is...is)
     {
-      auto ds_tup = get_all_dimensions_of(op_result);
-      return make_default_dense_writable_matrix_like<OpResult>(nullary_chipwise_vector_space_descriptor<op_ix, indices...>(ds_tup, is...)...);
+      return make_default_dense_writable_matrix_like<OpResult>(nullary_chipwise_vector_space_descriptor<op_ix, indices...>(op_result, is...)...);
     }
 
 
@@ -227,9 +241,10 @@ namespace OpenKalman
 
     static_assert((dimension_size_of_index_is<OpResult, indices, 1, Likelihood::maybe> and ...),
       "Operator must return a chip, meaning that the dimension is 1 for each of the specified indices.");
-    // Note: set_chip includes a runtime check that operation() is a chip.
+    // Note: set_chip also includes a runtime check that operation() is a chip.
 
-    std::make_index_sequence<index_count_v<OpResult>> op_ix_seq;
+    constexpr std::size_t num_result_indices = std::max({index_count_v<OpResult>, (indices + 1)...});
+    std::make_index_sequence<num_result_indices> op_ix_seq;
     auto m = detail::make_nullary_chipwise_default<indices...>(op_ix_seq, op_result, is...);
     set_chip<indices...>(m, std::move(op_result), std::integral_constant<decltype(indices), 0> {}...);
 

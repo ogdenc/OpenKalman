@@ -107,7 +107,7 @@ namespace OpenKalman::internal
   {
     if constexpr (typed_matrix<Arg> and not covariance<Arg>)
     {
-      return to_covariance_nestable<T>(std::forward<Arg>(arg).nested_matrix());
+      return to_covariance_nestable<T>(nested_matrix(std::forward<Arg>(arg)));
     }
     else if constexpr (diagonal_matrix<T>) // In this case, diagonal_matrix<Arg> or vector<Arg>.
     {
@@ -167,7 +167,7 @@ namespace OpenKalman::internal
   {
     if constexpr (typed_matrix<Arg> and not covariance<Arg>)
     {
-      return to_covariance_nestable(std::forward<Arg>(arg).nested_matrix());
+      return to_covariance_nestable(nested_matrix(std::forward<Arg>(arg)));
     }
     else if constexpr (triangular_covariance<Arg>)
     {

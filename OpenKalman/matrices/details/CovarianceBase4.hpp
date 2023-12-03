@@ -471,7 +471,7 @@ namespace OpenKalman::internal
         {
           if (arg.synchronization_direction() > 0)
           {
-            Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg).nested_matrix());
+            Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
             mark_nested_matrix_changed();
           }
           else if (arg.synchronization_direction() < 0)
@@ -483,7 +483,7 @@ namespace OpenKalman::internal
           }
           else // arg.synchronization_direction() == 0
           {
-            Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg).nested_matrix());
+            Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
             mark_synchronized();
             if (not case1or2<Arg> and synchronization_direction() <= 0)
             {
@@ -502,7 +502,7 @@ namespace OpenKalman::internal
           }
           else if (case1or2<Arg> or arg.synchronization_direction() > 0)
           {
-            cholesky_nested_link = to_covariance_nestable<CholeskyNestedMatrix>(std::forward<Arg>(arg).nested_matrix());
+            cholesky_nested_link = to_covariance_nestable<CholeskyNestedMatrix>(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
             mark_cholesky_nested_matrix_changed();
             if (synchronization_direction() > 0) synchronize_reverse();
           }
@@ -513,8 +513,7 @@ namespace OpenKalman::internal
             mark_synchronized();
             if (synchronization_direction() <= 0)
             {
-              cholesky_nested_link = to_covariance_nestable<CholeskyNestedMatrix>(
-                std::forward<Arg>(arg).nested_matrix());
+              cholesky_nested_link = to_covariance_nestable<CholeskyNestedMatrix>(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
             }
           }
         }

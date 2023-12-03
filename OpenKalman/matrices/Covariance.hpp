@@ -1084,7 +1084,7 @@ namespace OpenKalman
         return std::forward<Arg>(arg).my_dimension;
       }
 
-      using type = std::tuple<NestedMatrix>;
+      using dependents = std::tuple<NestedMatrix>;
 
       static constexpr bool has_runtime_parameters = false;
 

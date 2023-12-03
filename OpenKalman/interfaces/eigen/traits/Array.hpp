@@ -33,7 +33,7 @@ namespace OpenKalman::interface
 
     static constexpr bool has_runtime_parameters = true;
 
-    using type = std::tuple<>;
+    using dependents = std::tuple<>;
 
     // get_nested_matrix() not defined
 

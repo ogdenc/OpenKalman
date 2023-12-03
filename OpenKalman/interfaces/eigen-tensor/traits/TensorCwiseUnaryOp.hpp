@@ -45,7 +45,7 @@ namespace OpenKalman::interface
     }
 
 
-    using type = std::tuple<typename XprType::Nested>;
+    using dependents = std::tuple<typename XprType::Nested>;
 
 
     static constexpr bool has_runtime_parameters = is_bind_operator<UnaryOp>::value;

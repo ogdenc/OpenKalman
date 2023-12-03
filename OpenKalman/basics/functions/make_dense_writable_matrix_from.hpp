@@ -154,7 +154,7 @@ namespace OpenKalman
     template<typename T, std::size_t...Is>
     constexpr bool zero_dimension_count_impl(std::index_sequence<Is...>)
     {
-      return ((dimension_size_of_index_is<T, Is, 0> ? 1 : 0) + ...);
+      return ((dimension_size_of_index_is<T, Is, 0> ? 1 : 0) + ... + 0);
     }
 
 

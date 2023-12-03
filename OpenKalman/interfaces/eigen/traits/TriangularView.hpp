@@ -28,14 +28,17 @@ namespace OpenKalman
     {
     private:
 
+      using Xpr = Eigen::TriangularView<MatrixType, Mode>;
       using IndexType = typename MatrixType::Index;
 
     public:
 
       using scalar_type = scalar_type_of_t<MatrixType>;
 
+
       template<typename Arg>
       static constexpr auto get_index_count(const Arg& arg) { return OpenKalman::get_index_count(nested_matrix(arg)); }
+
 
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
@@ -43,9 +46,12 @@ namespace OpenKalman
         return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
       }
 
-      using type = std::tuple<typename Eigen::internal::traits<Eigen::TriangularView<MatrixType, Mode>>::MatrixTypeNested>;
+
+      using dependents = std::tuple<typename Eigen::internal::traits<Xpr>::MatrixTypeNested>;
+
 
       static constexpr bool has_runtime_parameters = false;
+
 
       template<std::size_t i, typename Arg>
       static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -54,11 +60,13 @@ namespace OpenKalman
         return std::forward<Arg>(arg).nestedExpression();
       }
 
+
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
         return TriangularMatrix<equivalent_self_contained_t<MatrixType>, triangle_type_of_v<Arg>> {std::forward<Arg>(arg)};
       }
+
 
       template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
@@ -68,6 +76,7 @@ namespace OpenKalman
         else
           return std::monostate{};
       }
+
 
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
@@ -101,11 +110,14 @@ namespace OpenKalman
         }
       }
 
+
       template<Likelihood b>
       static constexpr bool is_one_by_one = one_by_one_matrix<MatrixType, b>;
 
+
       template<Likelihood b>
       static constexpr bool is_square = square_matrix<MatrixType, b>;
+
 
       template<TriangleType t, Likelihood b>
       static constexpr bool is_triangular =
@@ -114,50 +126,15 @@ namespace OpenKalman
         (t == TriangleType::diagonal and triangular_matrix<MatrixType, (Mode & Eigen::Lower) ? TriangleType::upper : TriangleType::lower, b>) or
         (t == TriangleType::any and square_matrix<MatrixType, b>);
 
+
       static constexpr bool is_triangular_adapter = true;
 
-      // make_triangular_matrix not included because TriangularView is already triangular if square.
 
       static constexpr bool is_hermitian = diagonal_matrix<MatrixType> and
         (not complex_number<typename Eigen::internal::traits<MatrixType>::Scalar> or
           real_axis_number<constant_coefficient<MatrixType>> or
           real_axis_number<constant_diagonal_coefficient<MatrixType>>);
 
-      template<HermitianAdapterType t, typename Arg>
-      static constexpr auto make_hermitian_adapter(Arg&& arg)
-      {
-        constexpr auto HMode = t == HermitianAdapterType::upper ? Eigen::Upper : Eigen::Lower;
-        constexpr auto TriMode = (Mode & Eigen::Upper) != 0 ? Eigen::Upper : Eigen::Lower;
-        if constexpr (HMode == TriMode)
-          return make_self_contained<Arg>(std::forward<Arg>(arg).nestedExpression().template selfadjointView<HMode>());
-        else
-          return make_self_contained<Arg>(std::forward<Arg>(arg).nestedExpression().adjoint().template selfadjointView<HMode>());
-      }
-
-
-#ifdef __cpp_concepts
-      template<typename Arg> requires std::convertible_to<std::size_t, IndexType>
-#else
-      template<typename Arg, std::enable_if_t<indexible<Arg> and std::is_convertible_v<std::size_t, IndexType>, int> = 0>
-#endif
-      static scalar_type_of_t<Arg> get(const Arg& arg, std::size_t i, std::size_t j)
-      {
-        if ((i > j and (Mode & Eigen::Upper) != 0) or (i < j and (Mode & Eigen::Lower) != 0)) return 0;
-        else return arg.coeff(static_cast<IndexType>(i), static_cast<IndexType>(j));
-      }
-
-
-  #ifdef __cpp_concepts
-      template<typename Arg> requires std::convertible_to<std::size_t, IndexType> and
-        ((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0)
-  #else
-      template<typename Arg, std::enable_if_t<std::is_convertible_v<std::size_t, IndexType> and
-        ((std::decay_t<Arg>::Flags & Eigen::LvalueBit) != 0), int> = 0>
-  #endif
-      static void set(Arg& arg, const scalar_type_of_t<Arg>& s, std::size_t i, std::size_t j)
-      {
-        arg.coeffRef(static_cast<IndexType>(i), static_cast<IndexType>(j)) = s;
-      }
     };
 
   } // namespace interface

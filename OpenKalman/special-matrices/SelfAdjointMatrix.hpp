@@ -79,11 +79,11 @@ namespace OpenKalman
     /// Construct from a diagonal matrix if NestedMatrix is diagonal.
 #ifdef __cpp_concepts
     template<diagonal_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, SelfAdjointMatrix>) and
-      diagonal_matrix<NestedMatrix> and vector_space_descriptor_match<Arg, NestedMatrix> and
+      diagonal_matrix<NestedMatrix> and has_same_shape_as<Arg, NestedMatrix> and
       requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; }
 #else
     template<typename Arg, std::enable_if_t<(not std::is_base_of_v<SelfAdjointMatrix, std::decay_t<Arg>>) and
-      diagonal_matrix<Arg> and diagonal_matrix<NestedMatrix> and
+      diagonal_matrix<Arg> and diagonal_matrix<NestedMatrix> and has_same_shape_as<Arg, NestedMatrix> and
       std::is_constructible_v<NestedMatrix, decltype(diagonal_of(std::declval<Arg&&>()))>, int> = 0>
 #endif
     SelfAdjointMatrix(Arg&& arg) noexcept : Base {diagonal_of(std::forward<Arg>(arg))} {}
@@ -443,7 +443,7 @@ namespace OpenKalman
         }
       }
 
-      using type = std::tuple<NestedMatrix>;
+      using dependents = std::tuple<NestedMatrix>;
 
       static constexpr bool has_runtime_parameters = false;
 
@@ -481,7 +481,7 @@ namespace OpenKalman
 
       static constexpr bool is_hermitian = true;
 
-      static constexpr HermitianAdapterType adapter_type = storage_type;
+      static constexpr HermitianAdapterType hermitian_adapter_type = storage_type;
 
 
 #ifdef __cpp_lib_concepts
@@ -511,14 +511,13 @@ namespace OpenKalman
       {
         using Scalar = scalar_type_of<Arg>;
 
-        decltype(auto) n = nested_matrix(std::forward<Arg>(arg));
+        auto&& n = nested_matrix(std::forward<Arg>(arg));
         using N = decltype(n);
 
         if (hermitian_adapter<Arg, HermitianAdapterType::lower> ? i >= static_cast<I>(j) : i <= static_cast<I>(j))
         {
           if constexpr (complex_number<Scalar>)
           {
-            decltype(auto) e = get_element(std::forward<N>(n), i, j);
             if (i == j) return internal::constexpr_real(get_element(std::forward<N>(n), i, j));
           }
           return get_element(std::forward<decltype(n)>(n), i, j);

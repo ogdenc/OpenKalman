@@ -515,6 +515,42 @@ namespace OpenKalman
 
   namespace internal
   {
+    /**
+     * \internal
+     * \brief Wraps a dynamic-sized input, immutably, in a wrapper that has one or more fixed dimensions.
+     * \tparam NestedMatrix The underlying native matrix or matrix expression.
+     * \tparam Vs A set of \ref vector_space_descriptor. If this set is empty, the object is treated as a \ref one_by_one_matrix.
+     */
+  #ifdef __cpp_concepts
+    template<indexible NestedMatrix, vector_space_descriptor...Vs> requires compatible_with_vector_space_descriptors<NestedMatrix, Vs...>
+  #else
+    template<typename NestedMatrix, typename...Vs>
+  #endif
+    struct FixedSizeAdapter;
+
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_fixed_size_adapter : std::false_type {};
+
+    template<typename NestedMatrix, typename...Vs>
+    struct is_fixed_size_adapter<FixedSizeAdapter<NestedMatrix, Vs...>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief Specifies that T is a FixedSizeAdapter.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept fixed_size_adapter =
+#else
+  constexpr bool fixed_size_adapter =
+#endif
+    detail::is_fixed_size_adapter<std::decay_t<T>>::value;
+
+
     template<typename TypedIndex, typename NestedMatrix>
     struct is_triangular_covariance<SquareRootCovariance<TypedIndex, NestedMatrix>> : std::true_type {};
   }

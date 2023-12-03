@@ -415,7 +415,7 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
       {
         if constexpr (static_index_value<N>)
         {
-          if constexpr (static_index_value_of_v<N> == 0) return arg.my_dimension;
+          if constexpr (n == 0_uz) return arg.my_dimension;
           else return OpenKalman::get_vector_space_descriptor(nested_matrix(arg), n);
         }
         else if constexpr (has_uniform_dimension_type<NestedMatrix> and equivalent_to<Coeffs, uniform_dimension_type_of<NestedMatrix>>)
@@ -429,7 +429,7 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
         }
       }
 
-      using type = std::tuple<NestedMatrix>;
+      using dependents = std::tuple<NestedMatrix>;
 
       static constexpr bool has_runtime_parameters = false;
 
@@ -443,7 +443,7 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
-        auto n = make_self_contained(std::forward<Arg>(arg).nested_matrix());
+        auto n = make_self_contained(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
         return EuclideanMean<Coeffs, decltype(n)> {std::move(n)};
       }
 
@@ -481,7 +481,8 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
   #else
       template<typename Arg, typename...I, std::enable_if_t<element_gettable<typename nested_matrix_of<Arg&&>::type, sizeof...(I)>, int> = 0>
   #endif
-      static constexpr decltype(auto) get(Arg&& arg, I...i)
+      static constexpr decltype(auto)
+      get(Arg&& arg, I...i)
       {
         return get_element(nested_matrix(std::forward<Arg>(arg)), i...);
       }
@@ -492,7 +493,8 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
   #else
       template<typename Arg, typename I, typename...Is, std::enable_if_t<element_settable<typename nested_matrix_of<Arg&>::type, 1 + sizeof...(Is)>, int> = 0>
   #endif
-      static constexpr void set(Arg& arg, const scalar_type_of_t<Arg>& s, I i, Is...is)
+      static constexpr void
+      set(Arg& arg, const scalar_type_of_t<Arg>& s, I i, Is...is)
       {
         set_element(nested_matrix(arg), s, i, is...);
       }

@@ -29,9 +29,21 @@ namespace OpenKalman
     {
     private:
 
-      using Base = Eigen3::indexible_object_traits_base<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>;
+      using Xpr = Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>;
+      using Base = Eigen3::indexible_object_traits_base<Xpr>;
 
     public:
+
+      template<typename Arg>
+      static constexpr auto
+      get_index_count(const Arg& arg)
+      {
+        if constexpr (SizeAtCompileTime == 1)
+          return std::integral_constant<std::size_t, 0_uz>{};
+        else
+          return std::integral_constant<std::size_t, 2_uz>{};
+      }
+
 
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(const Arg& arg, N)
@@ -40,10 +52,13 @@ namespace OpenKalman
         else return Dimensions<SizeAtCompileTime>{};
       }
 
-      using type = std::tuple<
+
+      using dependents = std::tuple<
         typename Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>::DiagonalVectorType>;
 
+
       static constexpr bool has_runtime_parameters = false;
+
 
       template<std::size_t i, typename Arg>
       static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -52,6 +67,7 @@ namespace OpenKalman
         return std::forward<Arg>(arg).diagonal();
       }
 
+
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
@@ -59,27 +75,37 @@ namespace OpenKalman
         return DiagonalMatrix<decltype(d)> {d};
       }
 
+
       // get_constant() not defined
 
+
       // get_constant_diagonal() not defined
+
 
       template<Likelihood b>
       static constexpr bool is_one_by_one = SizeAtCompileTime == 1 or (SizeAtCompileTime == Eigen::Dynamic and b == Likelihood::maybe);
 
+
       template<Likelihood b>
       static constexpr bool is_square = true;
+
 
       template<TriangleType t, Likelihood b>
       static constexpr bool is_triangular = true;
 
+
       static constexpr bool is_triangular_adapter = false;
+
 
       template<Likelihood b>
       static constexpr bool is_diagonal_adapter = true;
 
+
       // is_hermitian not defined because matrix is diagonal;
 
+
       // make_hermitian_adapter(Arg&& arg) not defined
+
     };
 
   } // namespace interface

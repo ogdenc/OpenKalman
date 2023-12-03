@@ -365,8 +365,10 @@ namespace OpenKalman
     {
       using scalar_type = scalar_type_of_t<NestedMatrix>;
 
+
       template<typename Arg>
       static constexpr auto get_index_count(const Arg& arg) { return std::integral_constant<std::size_t, 2>{}; }
+
 
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(Arg&& arg, N n)
@@ -382,9 +384,12 @@ namespace OpenKalman
         }
       }
 
-      using type = std::tuple<NestedMatrix>;
+
+      using dependents = std::tuple<NestedMatrix>;
+
 
       static constexpr bool has_runtime_parameters = false;
+
 
       template<std::size_t i, typename Arg>
       static decltype(auto) get_nested_matrix(Arg&& arg)
@@ -393,12 +398,14 @@ namespace OpenKalman
         return std::forward<Arg>(arg).nested_matrix();
       }
 
+
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
         auto n = make_self_contained(get_nested_matrix(std::forward<Arg>(arg)));
         return TriangularMatrix<decltype(n), triangle_type> {std::move(n)};
       }
+
 
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
@@ -409,12 +416,15 @@ namespace OpenKalman
           return constant_diagonal_coefficient{nested_matrix(arg)};
       }
 
+
       template<Likelihood b>
       static constexpr bool is_one_by_one = one_by_one_matrix<NestedMatrix, b>;
+
 
       template<TriangleType t, Likelihood>
       static constexpr bool is_triangular = t == TriangleType::any or triangle_type == TriangleType::diagonal or triangle_type == t or
         triangular_matrix<NestedMatrix, t, Likelihood::maybe>;
+
 
       static constexpr bool is_triangular_adapter = true;
 

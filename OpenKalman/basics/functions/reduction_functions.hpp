@@ -31,7 +31,7 @@ namespace OpenKalman
       {
         using T = vector_space_descriptor_of_t<Arg, I>;
         if constexpr (has_uniform_dimension_type<T>) return uniform_dimension_type_of_t<T>{};
-        else return Dimensions<1>{};
+        else return Dimensions<1>{}; // \todo Can we extract the dynamic vector space descriptor?
       }
       else return get_vector_space_descriptor<I>(std::forward<Arg>(arg));
     }
@@ -93,17 +93,15 @@ namespace OpenKalman
     }
 
 
-    template<typename Arg, std::size_t...I>
-    constexpr bool has_uniform_reduction_indices(std::index_sequence<I...>)
-    {
-      return ((has_uniform_dimension_type<vector_space_descriptor_of_t<Arg, I>> or dynamic_dimension<Arg, I>) and ...);
-    }
+    template<typename Arg>
+    constexpr bool has_uniform_reduction_indices(std::index_sequence<>) { return true; }
 
-
-    template<typename Arg, std::size_t...Is>
-    constexpr auto make_1_by_1_from_scalar(scalar_type_of_t<Arg> s, std::index_sequence<Is...>)
+    template<typename Arg, std::size_t I, std::size_t...Is>
+    constexpr bool has_uniform_reduction_indices(std::index_sequence<I, Is...>)
     {
-      return make_constant_matrix_like<Arg>(s, Dimensions<Is==Is?1:1>{}...);
+      return (has_uniform_dimension_type<vector_space_descriptor_of_t<Arg, I>> or dynamic_dimension<Arg, I>) and
+        (not dimension_size_of_index_is<Arg, I, 0>) and
+        ((I != Is) and ...) and (has_uniform_reduction_indices<Arg>(std::index_sequence<Is...>{}));
     }
 
   } // namespace detail
@@ -124,44 +122,40 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<std::size_t index, std::size_t...indices, typename BinaryFunction, indexible Arg> requires
-    ((index < index_count_v<Arg>) and ... and (indices < index_count_v<Arg>)) and
     std::is_invocable_r_v<scalar_type_of_t<Arg>, BinaryFunction&&, scalar_type_of_t<Arg>, scalar_type_of_t<Arg>> and
     (detail::has_uniform_reduction_indices<Arg>(std::index_sequence<index, indices...> {}))
-  constexpr indexible auto
+  constexpr indexible decltype(auto)
 #else
-  template<std::size_t index, std::size_t...indices, typename BinaryFunction, typename Arg, std::enable_if_t<
-    indexible<Arg> and ((index < index_count<Arg>::value) and ... and (indices < index_count<Arg>::value)) and
+  template<std::size_t index, std::size_t...indices, typename BinaryFunction, typename Arg, std::enable_if_t<indexible<Arg> and
     std::is_invocable_r<typename scalar_type_of<Arg>::type, BinaryFunction&&,
       typename scalar_type_of<Arg>::type, typename scalar_type_of<Arg>::type>::value and
     (detail::has_uniform_reduction_indices<Arg>(std::index_sequence<index, indices...> {})), int> = 0>
-  constexpr auto
+  constexpr decltype(auto)
 #endif
-  reduce(const BinaryFunction& b, Arg&& arg)
+  reduce(BinaryFunction&& b, Arg&& arg)
   {
-    constexpr auto max_indices = index_count_v<Arg>;
-    constexpr std::make_index_sequence<max_indices> seq;
-
+    // \todo Check if Arg is already reduced or partially reduced.
     if constexpr (covariance<Arg>)
     {
       using RC = std::conditional_t<((index == 0) or ... or (indices == 0)),
         uniform_dimension_type_of_t<vector_space_descriptor_of_t<Arg, 0>>, vector_space_descriptor_of_t<Arg, 0>>;
       using CC = std::conditional_t<((index == 1) or ... or (indices == 1)),
         uniform_dimension_type_of_t<vector_space_descriptor_of_t<Arg, 1>>, vector_space_descriptor_of_t<Arg, 1>>;
-      auto m = reduce<index, indices...>(b, to_covariance_nestable(std::forward<Arg>(arg)));
+      auto m = reduce<index, indices...>(std::forward<BinaryFunction>(b), to_covariance_nestable(std::forward<Arg>(arg)));
       return Matrix<RC, CC, decltype(m)> {std::move(m)};
     }
     else if constexpr(mean<Arg> and ((index != 0) or ... or (indices != 0)))
     {
       using C = std::conditional_t<((index == 0) or ... or (indices == 0)),
         uniform_dimension_type_of_t<vector_space_descriptor_of_t<Arg, 0>>, vector_space_descriptor_of_t<Arg, 0>>;
-      auto m = from_euclidean<C>(reduce<index, indices...>(b, nested_matrix(to_euclidean(std::forward<Arg>(arg)))));
+      auto m = from_euclidean<C>(reduce<index, indices...>(std::forward<BinaryFunction>(b), nested_matrix(to_euclidean(std::forward<Arg>(arg)))));
       return Mean<C, decltype(m)> {std::move(m)};
     }
     else if constexpr (euclidean_transformed<Arg> and ((index != 0) or ... or (indices != 0)))
     {
       using C = std::conditional_t<((index == 0) or ... or (indices == 0)),
         uniform_dimension_type_of_t<vector_space_descriptor_of_t<Arg, 0>>, vector_space_descriptor_of_t<Arg, 0>>;
-      auto m = reduce<index, indices...>(b, nested_matrix(std::forward<Arg>(arg)));
+      auto m = reduce<index, indices...>(std::forward<BinaryFunction>(b), nested_matrix(std::forward<Arg>(arg)));
       return EuclideanMean<C, decltype(m)> {std::move(m)};
     }
     else if constexpr (typed_matrix<Arg>)
@@ -170,21 +164,23 @@ namespace OpenKalman
         uniform_dimension_type_of_t<vector_space_descriptor_of_t<Arg, 0>>, vector_space_descriptor_of_t<Arg, 0>>;
       using CC = std::conditional_t<((index == 1) or ... or (indices == 1)),
         uniform_dimension_type_of_t<vector_space_descriptor_of_t<Arg, 1>>, vector_space_descriptor_of_t<Arg, 1>>;
-      auto m = reduce<index, indices...>(b, nested_matrix(std::forward<Arg>(arg)));
+      auto m = reduce<index, indices...>(std::forward<BinaryFunction>(b), nested_matrix(std::forward<Arg>(arg)));
       return Matrix<RC, CC, decltype(m)> {std::move(m)};
     }
     else if constexpr (dimension_size_of_index_is<Arg, index, 1>)
     {
       if constexpr (sizeof...(indices) == 0) return std::forward<Arg>(arg);
-      else return reduce<indices...>(b, std::forward<Arg>(arg));
+      else return reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
     }
     else if constexpr (zero_matrix<Arg> and (internal::is_plus<BinaryFunction>::value or internal::is_multiplies<BinaryFunction>::value))
     {
+      constexpr std::make_index_sequence<index_count_v<Arg>> seq;
       return detail::make_constant_matrix_reduction<index, indices...>(
         internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<Arg>, 0>{}, std::forward<Arg>(arg), seq);
     }
     else if constexpr (constant_matrix<Arg>)
     {
+      constexpr std::make_index_sequence<index_count_v<Arg>> seq;
       auto dim = detail::count_reduced_dimensions<index, indices...>(arg, seq);
       auto c = detail::scalar_reduce_operation(dim, b, constant_coefficient{arg});
       return detail::make_constant_matrix_reduction<index, indices...>(std::move(c), std::forward<Arg>(arg), seq);
@@ -195,9 +191,10 @@ namespace OpenKalman
     //}
     else
     {
-      decltype(auto) red = interface::library_interface<std::decay_t<Arg>>::template reduce<index, indices...>(b, std::forward<Arg>(arg));
-      if constexpr (scalar_type<decltype(red)>) return detail::make_1_by_1_from_scalar<Arg>(red, seq);
-      else return std::forward<decltype(red)>(red);
+      using Lib = interface::library_interface<std::decay_t<Arg>>;
+      auto red = Lib::template reduce<index, indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
+      if constexpr (scalar_type<decltype(red)>) return make_constant_matrix_like<Arg>(std::move(red), Dimensions<1>{});
+      else return red;
     }
   }
 
@@ -206,32 +203,34 @@ namespace OpenKalman
   {
     template<typename BinaryFunction, typename Arg, std::size_t...indices>
     constexpr scalar_type_of_t<Arg>
-    reduce_all_indices(const BinaryFunction& b, Arg&& arg, std::index_sequence<indices...>)
+    reduce_all_indices(const BinaryFunction& b, const Arg& arg, std::index_sequence<indices...>)
     {
       if constexpr (zero_matrix<Arg> and (internal::is_plus<BinaryFunction>::value or internal::is_multiplies<BinaryFunction>::value))
       {
         return 0;
       }
+      else if constexpr (one_by_one_matrix<Arg>)
+      {
+        return get_element(arg, static_cast<decltype(indices)>(0)...);
+      }
       else if constexpr (constant_matrix<Arg>)
       {
         constexpr auto seq = std::make_index_sequence<index_count_v<Arg>> {};
         auto dim = count_reduced_dimensions<indices...>(arg, seq);
-        return scalar_reduce_operation(dim, b, constant_coefficient {std::forward<Arg>(arg)});
+        return scalar_reduce_operation(dim, b, constant_coefficient {arg});
       }
       else
       {
-        decltype(auto) red = interface::library_interface<std::decay_t<Arg>>::template reduce<indices...>(b, std::forward<Arg>(arg));
+        auto red = interface::library_interface<Arg>::template reduce<indices...>(b, arg);
         using Red = decltype(red);
 
         static_assert(scalar_type<Red> or one_by_one_matrix<Red, Likelihood::maybe>,
           "Incorrect library interface for total 'reduce' on all indices: must return a scalar or one-by-one matrix.");
 
         if constexpr (scalar_type<Red>)
-          return std::forward<Red>(red);
-        else if constexpr (element_gettable<Red, sizeof...(indices)>)
-          return get_element(std::forward<Red>(red), static_cast<decltype(indices)>(0)...);
+          return red;
         else
-          return interface::library_interface<std::decay_t<Red>>::trace(std::forward<Red>(red));
+          return get_element(red, static_cast<decltype(indices)>(0)...);
       }
     }
 
@@ -258,9 +257,9 @@ namespace OpenKalman
     (detail::has_uniform_reduction_indices<Arg>(std::make_index_sequence<index_count<Arg>::value> {})), int> = 0>
 #endif
   constexpr scalar_type_of_t<Arg>
-  reduce(const BinaryFunction& b, Arg&& arg)
+  reduce(const BinaryFunction& b, const Arg& arg)
   {
-    return detail::reduce_all_indices(b, std::forward<Arg>(arg), std::make_index_sequence<index_count_v<Arg>> {});
+    return detail::reduce_all_indices(b, arg, std::make_index_sequence<index_count_v<Arg>> {});
   }
 
 
@@ -290,20 +289,16 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<std::size_t index, std::size_t...indices, indexible Arg> requires
-    ((index < index_count_v<Arg>) and ... and (indices < index_count_v<Arg>)) and
     (detail::has_uniform_reduction_indices<Arg>(std::index_sequence<index, indices...> {}))
+  constexpr indexible decltype(auto)
 #else
   template<std::size_t index, std::size_t...indices, typename Arg, std::enable_if_t<indexible<Arg> and
-    ((index < index_count_v<Arg>) and ... and (indices < index_count_v<Arg>)) and
     (detail::has_uniform_reduction_indices<Arg>(std::index_sequence<index, indices...> {})), int> = 0>
+  constexpr decltype(auto)
 #endif
-  constexpr auto
   average_reduce(Arg&& arg) noexcept
   {
-    using Scalar = scalar_type_of_t<Arg>;
-    constexpr auto max_indices = index_count_v<Arg>;
-    constexpr std::make_index_sequence<max_indices> seq;
-
+    // \todo Check if Arg is already in reduced and, if so, return the argument.
     if constexpr (covariance<Arg>)
     {
       using RC = std::conditional_t<((index == 0) or ... or (indices == 0)),
@@ -343,20 +338,24 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<Arg>)
     {
+      constexpr std::make_index_sequence< index_count_v<Arg>> seq;
       return detail::make_constant_matrix_reduction<index, indices...>(constant_coefficient{arg}, std::forward<Arg>(arg), seq);
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       // \todo Handle diagonal tensors of order greater than 2 ?
+      constexpr std::make_index_sequence< index_count_v<Arg>> seq;
       auto c = constant_diagonal_coefficient{arg} / detail::const_diagonal_matrix_dim(arg, seq);
-      auto ret = detail::make_constant_matrix_reduction<index>(std::move(c), std::forward<Arg>(arg), seq);
+      auto ret {detail::make_constant_matrix_reduction<index>(std::move(c), std::forward<Arg>(arg), seq)};
       if constexpr (sizeof...(indices) > 0) return average_reduce<indices...>(std::move(ret));
       else return ret;
     }
     else
     {
-      return make_self_contained(reduce<index, indices...>(std::plus<Scalar> {}, std::forward<Arg>(arg)) /
+      using Scalar = scalar_type_of_t<Arg>;
+      auto ret = make_self_contained(reduce<index, indices...>(std::plus<Scalar> {}, std::forward<Arg>(arg)) /
         (get_index_dimension_of<index>(arg) * ... * get_index_dimension_of<indices>(arg)));
+      return ret;
     }
   }
 

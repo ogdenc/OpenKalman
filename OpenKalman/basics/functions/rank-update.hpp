@@ -38,7 +38,7 @@ namespace OpenKalman
       else
       {
         constexpr auto d = std::integral_constant<std::size_t, dim>{};
-        auto ret = make_default_dense_writable_matrix_like<A>(d, d);
+        auto ret {make_default_dense_writable_matrix_like<A>(d, d)};
         ret = std::forward<A>(a);
         return ret;
       }
@@ -73,38 +73,36 @@ namespace OpenKalman
   {
     constexpr auto t = hermitian_adapter<A> ? hermitian_adapter_type_of_v<A> : HermitianAdapterType::lower;
 
-    if constexpr (zero_matrix<U>)
+    if constexpr (zero_matrix<U> or dimension_size_of_index_is<A, 0, 1> or dimension_size_of_index_is<A, 1, 1> or dimension_size_of_index_is<U, 0, 1>)
     {
-      if constexpr ((dynamic_dimension<A, 0> and dynamic_dimension<A, 0>) or dynamic_dimension<U, 0>)
+      if constexpr ((dynamic_dimension<A, 0> and dynamic_dimension<A, 1>) or dynamic_dimension<U, 0>)
         if (get_index_dimension_of<0>(a) != get_index_dimension_of<0>(u))
           throw std::invalid_argument {"In rank_update_self_adjoint, rows of a (" + std::to_string(get_index_dimension_of<0>(a)) +
             ") do not match rows of u (" + std::to_string(get_index_dimension_of<0>(u)) + ")"};
 
-      return make_hermitian_matrix<t>(std::forward<A>(a));
-    }
-    else if constexpr (dimension_size_of_index_is<A, 0, 1> or dimension_size_of_index_is<A, 1, 1> or dimension_size_of_index_is<U, 0, 1>)
-    {
-      if constexpr ((dynamic_dimension<A, 0> and dynamic_dimension<A, 0>) or dynamic_dimension<U, 0>)
-        if (get_index_dimension_of<0>(a) != get_index_dimension_of<0>(u))
-          throw std::invalid_argument {"In rank_update_self_adjoint, rows of a (" + std::to_string(get_index_dimension_of<0>(a)) +
-            ") do not match rows of u (" + std::to_string(get_index_dimension_of<0>(u)) + ")"};
-
-      auto e = get_element(a) + alpha * get_element(contract(u, adjoint(u)));
-
-      if constexpr (element_settable<A&&, 0>)
+      if constexpr (zero_matrix<U>)
       {
-        set_element(a, e);
         return make_hermitian_matrix<t>(std::forward<A>(a));
       }
       else
       {
-        auto ret = make_dense_writable_matrix_from<A>(std::tuple{Dimensions<1>{}, Dimensions<1>{}}, e);
-        if constexpr (std::is_assignable_v<A, decltype(std::move(ret))>)
+        auto e = get_element(a) + alpha * get_element(internal::FixedSizeAdapter {contract(u, adjoint(u))});
+
+        if constexpr (element_settable<A&&, 0>)
         {
-          a = std::move(ret);
+          set_element(a, e);
           return make_hermitian_matrix<t>(std::forward<A>(a));
         }
-        else return ret;
+        else
+        {
+          auto ret {make_dense_writable_matrix_from<A>(std::tuple{}, e)};
+          if constexpr (std::is_assignable_v<A, decltype(std::move(ret))>)
+          {
+            a = std::move(ret);
+            return make_hermitian_matrix<t>(std::forward<A>(a));
+          }
+          else return ret;
+        }
       }
     }
     else if constexpr (zero_matrix<A> and diagonal_matrix<U>)
@@ -124,16 +122,16 @@ namespace OpenKalman
     }
     else if constexpr (hermitian_adapter<A>)
     {
-      decltype(auto) aw = detail::get_writable_square<U>(nested_matrix(std::forward<A>(a)));
+      auto&& aw = detail::get_writable_square<U>(nested_matrix(std::forward<A>(a)));
       using Trait = interface::library_interface<std::decay_t<decltype(aw)>>;
-      decltype(auto) ret = Trait::template rank_update_self_adjoint<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
+      auto&& ret = Trait::template rank_update_self_adjoint<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
       return make_hermitian_matrix<t>(std::forward<decltype(ret)>(ret));
     }
     else // hermitian_matrix but not hermitian_adapter
     {
-      decltype(auto) aw = detail::get_writable_square<U>(std::forward<A>(a));
+      auto&& aw = detail::get_writable_square<U>(std::forward<A>(a));
       using Trait = interface::library_interface<std::decay_t<decltype(aw)>>;
-      decltype(auto) ret = Trait::template rank_update_self_adjoint<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
+      auto&& ret = Trait::template rank_update_self_adjoint<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
       return make_hermitian_matrix<t>(std::forward<decltype(ret)>(ret));
     }
   }
@@ -186,11 +184,12 @@ namespace OpenKalman
           ") do not match rows of u (" + std::to_string(get_index_dimension_of<0>(u)) + ")"};
 
       // From here on, A is known to be a 1-by-1 matrix.
-      auto e = [](const auto& a, auto&& uterm) {
+      auto uterm = alpha * get_element(internal::FixedSizeAdapter {contract(u, adjoint(u))});
+      auto e = [](const auto& a, const auto& uterm) {
           using std::conj;
           if constexpr (complex_number<scalar_type_of<A>>) return sqrt(get_element(a) * conj(get_element(a)) + uterm);
           else return sqrt(get_element(a) * get_element(a) + uterm);
-      }(a, alpha * get_element(contract(u, adjoint(u))));
+      }(a, uterm);
 
       if constexpr (element_settable<A&&, 0>)
       {
@@ -199,7 +198,7 @@ namespace OpenKalman
       }
       else
       {
-        auto ret = make_dense_writable_matrix_from<A>(std::tuple{Dimensions<1>{}, Dimensions<1>{}}, e);
+        auto ret {make_dense_writable_matrix_from<A>(std::tuple{Dimensions<1>{}, Dimensions<1>{}}, e)};
         if constexpr (std::is_assignable_v<A, decltype(std::move(ret))>)
         {
           a = std::move(ret);
@@ -225,14 +224,14 @@ namespace OpenKalman
     }
     else
     {
-      decltype(auto) an = [](A&& a) -> decltype(auto) {
+      auto&& an = [](A&& a) -> decltype(auto) {
         if constexpr (triangular_adapter<A>) return nested_matrix(std::forward<A>(a));
         else return std::forward<A>(a);
       }(std::forward<A>(a));
 
-      decltype(auto) aw = detail::get_writable_square<U>(std::forward<decltype(an)>(an));
+      auto&& aw = detail::get_writable_square<U>(std::forward<decltype(an)>(an));
       using Trait = interface::library_interface<std::decay_t<decltype(aw)>>;
-      decltype(auto) ret = Trait::template rank_update_triangular<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
+      auto&& ret = Trait::template rank_update_triangular<t>(std::forward<decltype(aw)>(aw), std::forward<U>(u), alpha);
       return make_triangular_matrix<t>(std::forward<decltype(ret)>(ret));
     }
   }

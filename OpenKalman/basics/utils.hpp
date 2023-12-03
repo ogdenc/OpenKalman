@@ -69,6 +69,11 @@ namespace OpenKalman::internal
 
   } // namespace detail
 
+
+  // -------- //
+  //   join   //
+  // -------- //
+
   /**
    * \internal
    * \brief Joins two arrays.
@@ -87,6 +92,11 @@ namespace OpenKalman::internal
       typename detail::Counter<size_R, 0>::type());
   }
 
+
+  // ----------- //
+  //   prepend   //
+  // ----------- //
+
   /**
    * \internal
    * \brief Prepends an element to an array.
@@ -104,14 +114,18 @@ namespace OpenKalman::internal
   }
 
 
+  // --------------- //
+  //   tuple_slice   //
+  // --------------- //
+
   namespace detail
   {
-    template<std::size_t begin, typename T, std::size_t... I>
-    constexpr auto tuple_slice_impl(T&& t, std::index_sequence<I...>)
+    template<std::size_t index1, typename T, std::size_t...Is>
+    constexpr auto tuple_slice_impl(T&& t, std::index_sequence<0, Is...>)
     {
-      return std::forward_as_tuple(std::get<begin + I>(std::forward<T>(t))...);
+      return std::forward_as_tuple(std::get<index1>(std::forward<T>(t)), std::get<index1 + Is>(std::forward<T>(t))...);
     }
-  }
+  } // namespace detail
 
 
   /**
@@ -123,14 +137,22 @@ namespace OpenKalman::internal
    * \param t The tuple.
    * \return The tuple slice.
    */
-  template<std::size_t index1, std::size_t index2, typename T>
+#ifdef __cpp_concepts
+  template<std::size_t index1, std::size_t index2, tuple_like T> requires (index1 <= index2) and (index2 <= std::tuple_size_v<std::decay_t<T>>)
+#else
+  template<std::size_t index1, std::size_t index2, typename T, std::enable_if_t<tuple_like<T> and
+    (index1 <= index2) and (index2 <= std::tuple_size<std::decay_t<T>>::value), int> = 0>
+#endif
   constexpr auto tuple_slice(T&& t)
   {
-    static_assert(index1 <= index2, "Index range is invalid");
-    static_assert(index2 <= std::tuple_size_v<std::decay_t<T>>, "Index is out of bounds");
-    return detail::tuple_slice_impl<index1>(std::forward<T>(t), std::make_index_sequence<index2 - index1> {});
+    if constexpr (index1 == index2) return std::tuple {};
+    else return detail::tuple_slice_impl<index1>(std::forward<T>(t), std::make_index_sequence<index2 - index1> {});
   }
 
+
+  // ------------------- //
+  //   tuple_replicate   //
+  // ------------------- //
 
   /**
    * \internal
@@ -159,6 +181,10 @@ namespace OpenKalman::internal
     }
   }
 
+
+  // -------------------------- //
+  //   default_split_function   //
+  // -------------------------- //
 
   /**
    * \internal

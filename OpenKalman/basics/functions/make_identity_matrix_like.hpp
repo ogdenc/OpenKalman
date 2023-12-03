@@ -18,20 +18,6 @@
 
 namespace OpenKalman
 {
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename Scalar, typename D, typename = void>
-    struct make_identity_matrix_trait_defined: std::false_type {};
-
-    template<typename T, typename Scalar, typename D>
-    struct make_identity_matrix_trait_defined<T, Scalar, D, std::void_t<
-      decltype(interface::library_interface<T>::template make_identity_matrix<Scalar>(std::declval<D&&>()))>>
-      : std::true_type {};
-  }
-#endif
-
-
   /**
    * \brief Make an identity matrix based on an object of a particular library.
    * \tparam T The matrix or tensor of a particular library.
@@ -48,20 +34,10 @@ namespace OpenKalman
 #endif
   make_identity_matrix_like(D&& d)
   {
-    using Td = std::decay_t<T>;
-#ifdef __cpp_concepts
-    if constexpr (requires (D&& d) { interface::library_interface<Td>::template make_identity_matrix<Scalar>(std::forward<D>(d)); })
-#else
-    if constexpr (detail::make_identity_matrix_trait_defined<Td, Scalar, D>::value)
-#endif
-    {
-      return interface::library_interface<Td>::template make_identity_matrix<Scalar>(std::forward<D>(d));
-    }
-    else
-    {
-      // Default behavior if interface function not defined:
-      return DiagonalMatrix {make_constant_matrix_like<Td, Scalar, 1>(std::forward<D>(d), Dimensions<1>{})};
-    }
+    if constexpr (interface::make_identity_matrix_defined_for<std::decay_t<T>, Scalar, D&&>)
+      return interface::library_interface<std::decay_t<T>>::template make_identity_matrix<Scalar>(std::forward<D>(d));
+    else // Default behavior if interface function not defined:
+      return DiagonalMatrix {make_constant_matrix_like<T, Scalar, 1>(std::forward<D>(d), Dimensions<1>{})};
   }
 
 

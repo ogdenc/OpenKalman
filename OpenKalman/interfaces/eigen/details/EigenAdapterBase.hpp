@@ -21,9 +21,9 @@ namespace OpenKalman::Eigen3
 {
   template<typename Derived, typename NestedMatrix>
   struct EigenAdapterBase : EigenDenseBase,
-      std::conditional_t<std::is_base_of_v<Eigen::ArrayBase<std::decay_t<NestedMatrix>>, std::decay_t<NestedMatrix>>,
+    std::conditional_t<std::is_base_of_v<Eigen::ArrayBase<std::decay_t<NestedMatrix>>, std::decay_t<NestedMatrix>>,
       Eigen::ArrayBase<Derived>, Eigen::MatrixBase<Derived>>,
-      Eigen::internal::no_assignment_operator // Override all Eigen assignment operators
+    Eigen::internal::no_assignment_operator // Override all Eigen assignment operators
   {
 
   private:

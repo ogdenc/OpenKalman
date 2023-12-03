@@ -32,7 +32,7 @@ namespace OpenKalman::interface
 
   public:
 
-    using type = std::tuple<typename Eigen::internal::traits<Xpr>::MatrixTypeNested>;
+    using dependents = std::tuple<typename Eigen::internal::traits<Xpr>::MatrixTypeNested>;
 
     static constexpr bool has_runtime_parameters = RowFactor == Eigen::Dynamic or ColFactor == Eigen::Dynamic;
 

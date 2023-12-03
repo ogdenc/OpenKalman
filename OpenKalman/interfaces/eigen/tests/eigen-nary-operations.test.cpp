@@ -136,7 +136,7 @@ TEST(eigen3, unary_operation)
 TEST(eigen3, unary_operation_in_place)
 {
   const auto m23c = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
-  auto m23 {m23c};
+  M23 m23 {m23c};
   M2x m2x_3 {m23};
   Mx3 mx3_2 {m23};
   Mxx mxx_23 {m23};

@@ -27,11 +27,12 @@ namespace OpenKalman::interface
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::Diagonal<MatrixType, DiagIndex>>;
+    using Xpr = Eigen::Diagonal<MatrixType, DiagIndex>;
+    using Base = Eigen3::indexible_object_traits_base<Xpr>;
 
   public:
 
-    using type = std::tuple<typename Eigen::internal::ref_selector<MatrixType>::non_const_type>;
+    using dependents = std::tuple<typename Eigen::internal::ref_selector<MatrixType>::non_const_type>;
 
     static constexpr bool has_runtime_parameters = DiagIndex == Eigen::DynamicIndex;
 
@@ -70,6 +71,15 @@ namespace OpenKalman::interface
         return std::monostate{};
       }
     }
+
+
+    template<Likelihood b>
+    static constexpr bool is_one_by_one = dimension_size_of_index_is<Xpr, 0, 1, b>;
+
+
+    template<Likelihood b>
+    static constexpr bool is_square = is_one_by_one<b>;
+
   };
 
 } // namespace OpenKalman::interface

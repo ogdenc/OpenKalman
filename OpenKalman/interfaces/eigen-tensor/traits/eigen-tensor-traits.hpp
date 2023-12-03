@@ -20,6 +20,6 @@
 #define OPENKALMAN_EIGEN_TENSOR_TRAITS_HPP
 
 
-#include "eigen-tensor-general-traits.hpp"
+#include "eigen-tensor-library-interface.hpp"
 
 #endif //OPENKALMAN_EIGEN_TENSOR_TRAITS_HPP

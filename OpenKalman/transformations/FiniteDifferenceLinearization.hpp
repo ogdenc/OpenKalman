@@ -134,7 +134,7 @@ namespace OpenKalman
         col[i] = xi;
 
         // Use two separate subtractions to ensure proper wrapping:
-        auto ret = make_self_contained(((fp - f0) - (f0 - fm)) / (hi * hi));
+        auto ret {make_self_contained(((fp - f0) - (f0 - fm)) / (hi * hi))};
         return ret;
       }
       else
@@ -152,7 +152,7 @@ namespace OpenKalman
         const auto fmp = Mean {std::apply(transformation, inputs)};
         col[i] = xi;
         col[j] = xj;
-        auto ret = make_self_contained(((fpp - fpm) - (fmp - fmm)) / (4 * hi * hj));
+        auto ret {make_self_contained(((fpp - fpm) - (fmp - fmm)) / (4 * hi * hj))};
         return ret;
       }
     };

@@ -18,19 +18,6 @@
 
 namespace OpenKalman
 {
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct convert_to_self_contained_is_defined : std::false_type {};
-
-    template<typename T>
-    struct convert_to_self_contained_is_defined<T,
-      std::void_t<decltype(interface::indexible_object_traits<std::decay_t<T>>::convert_to_self_contained(std::declval<T&&>()))>>
-      : std::true_type {};
-  }
-#endif
-
   /**
    * \brief Convert to a self-contained version of Arg that can be returned in a function.
    * \details If any types Ts are included, Arg will not be converted to a self-contained version if every Ts is either
@@ -43,7 +30,7 @@ namespace OpenKalman
    * the result of the addition is returned without eager evaluation:
    * \code
    *   template<typename Arg1, typename Arg2>
-   *   decltype(auto) add(Arg1&& arg1, Arg2&& arg2)
+   *   auto add(Arg1&& arg1, Arg2&& arg2)
    *   {
    *     return make_self_contained<Arg1, Arg2>(arg1 + arg2);
    *   }
@@ -74,17 +61,15 @@ namespace OpenKalman
       // If it is not self-contained because it is an lvalue reference, simply return a copy.
       return std::decay_t<Arg> {arg};
     }
-#ifdef __cpp_concepts
-    else if constexpr (requires {interface::indexible_object_traits<std::decay_t<Arg>>::convert_to_self_contained(std::forward<Arg>(arg)); })
-#else
-    else if constexpr (detail::convert_to_self_contained_is_defined<Arg>::value)
-#endif
+    else if constexpr (interface::convert_to_self_contained_defined_for<std::decay_t<Arg>, Arg&&>)
     {
       return interface::indexible_object_traits<std::decay_t<Arg>>::convert_to_self_contained(std::forward<Arg>(arg));
     }
     else
     {
-      return make_dense_writable_matrix_from(std::forward<Arg>(arg));
+      // Ensure that copying occurs if Arg is a writable lvalue reference
+      auto ret {make_dense_writable_matrix_from(std::forward<Arg>(arg))};
+      return ret;
     }
   }
 

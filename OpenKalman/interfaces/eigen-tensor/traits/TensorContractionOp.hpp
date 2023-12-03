@@ -38,7 +38,7 @@ namespace OpenKalman::interface
     }
 
 
-    using type = std::tuple<typename LhsXprType::Nested, typename RhsXprType::Nested>;
+    using dependents = std::tuple<typename LhsXprType::Nested, typename RhsXprType::Nested>;
 
 
     static constexpr bool has_runtime_parameters = true;

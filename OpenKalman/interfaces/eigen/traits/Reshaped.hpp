@@ -60,9 +60,8 @@ namespace OpenKalman::interface
     {
       if constexpr (static_index_value<N>)
       {
-        constexpr auto i = static_index_value_of_v<N>;
-        constexpr auto dim = i == 0 ? Rows : Cols;
-        constexpr auto other_dim = i == 0 ? Cols : Rows;
+        constexpr auto dim = n == 0_uz ? Rows : Cols;
+        constexpr auto other_dim = n == 0_uz ? Cols : Rows;
         constexpr std::size_t dimension =
           dim != Eigen::Dynamic ? dim :
           other_dim == Eigen::Dynamic or other_dim == 0 ? dynamic_size :
@@ -73,19 +72,19 @@ namespace OpenKalman::interface
 
         if constexpr (dimension == dynamic_size)
         {
-          if constexpr (i == 0) return static_cast<std::size_t>(arg.rows());
+          if constexpr (n == 0_uz) return static_cast<std::size_t>(arg.rows());
           else return static_cast<std::size_t>(arg.cols());
         }
         else return Dimensions<dimension>{};
       }
       else
       {
-        if constexpr (n == 0) return static_cast<std::size_t>(arg.rows());
+        if (n == 0_uz) return static_cast<std::size_t>(arg.rows());
         else return static_cast<std::size_t>(arg.cols());
       }
     }
 
-    using type = std::tuple<Nested_t>;
+    using dependents = std::tuple<Nested_t>;
 
     static constexpr bool has_runtime_parameters = HasDirectAccess ? Rows == Eigen::Dynamic or Cols == Eigen::Dynamic : false;
 

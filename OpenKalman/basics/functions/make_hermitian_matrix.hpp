@@ -18,20 +18,6 @@
 
 namespace OpenKalman
 {
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, HermitianAdapterType t, typename = void>
-    struct make_hermitian_adapter_defined: std::false_type {};
-
-    template<typename T, HermitianAdapterType t>
-    struct make_hermitian_adapter_defined<T, t, std::void_t<
-      decltype(interface::indexible_object_traits<std::decay_t<T>>::template make_hermitian_adapter<t>(std::declval<T&&>()))>>
-      : std::true_type {};
-  }
-#endif
-
-
   /**
    * \brief Creates a \ref hermitian_matrix by, if necessary, wrapping the argument in a \ref hermitian_adapter.
    * \note The result is guaranteed to be hermitian, but is not guaranteed to be an adapter or have the requested adapter_type.
@@ -50,7 +36,6 @@ namespace OpenKalman
 #endif
   make_hermitian_matrix(Arg&& arg)
   {
-    using Traits = interface::indexible_object_traits<std::decay_t<Arg>>;
     constexpr auto transp = adapter_type == HermitianAdapterType::lower ? HermitianAdapterType::upper : HermitianAdapterType::lower;
 
     if constexpr (hermitian_matrix<Arg, Likelihood::maybe>)
@@ -74,12 +59,9 @@ namespace OpenKalman
       else
         return make_hermitian_matrix<transp>(nested_matrix(std::forward<Arg>(arg)));
     }
-# ifdef __cpp_concepts
-    else if constexpr (requires (Arg&& arg) { Traits::template make_hermitian_adapter<adapter_type>(std::forward<Arg>(arg)); })
-# else
-    else if constexpr (detail::make_hermitian_adapter_defined<Arg, adapter_type>::value)
-# endif
+    else if constexpr (interface::make_hermitian_adapter_defined_for<std::decay_t<Arg>, adapter_type, Arg>)
     {
+      using Traits = interface::library_interface<std::decay_t<Arg>>;
       auto new_h {Traits::template make_hermitian_adapter<adapter_type>(std::forward<Arg>(arg))};
       static_assert(hermitian_matrix<decltype(new_h), Likelihood::maybe>, "make_hermitian_matrix interface must return a hermitian matrix");
       if constexpr (hermitian_matrix<decltype(new_h)>) return new_h;

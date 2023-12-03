@@ -65,7 +65,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<TriangleType triangle_type, hermitian_matrix A> requires
     (triangle_type != TriangleType::diagonal or diagonal_matrix<A>)
-  constexpr triangular_matrix decltype(auto)
+  constexpr triangular_matrix<triangle_type> decltype(auto)
 #else
   template<TriangleType triangle_type, typename A, std::enable_if_t<hermitian_matrix<A> and
     (triangle_type != TriangleType::diagonal or diagonal_matrix<A>), int> = 0>
@@ -109,7 +109,7 @@ namespace OpenKalman
         }
       }(a);
 
-      auto ret = make_triangular_matrix<triangle_type>(std::move(m));
+      auto ret {make_triangular_matrix<triangle_type>(std::move(m))};
       using C0 = vector_space_descriptor_of_t<A, 0>;
       using C1 = vector_space_descriptor_of_t<A, 1>;
       using Cret = std::conditional_t<dynamic_vector_space_descriptor<C0>, C1, C0>;

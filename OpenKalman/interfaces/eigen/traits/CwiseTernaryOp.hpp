@@ -37,10 +37,9 @@ namespace OpenKalman::interface
     {
       if constexpr (static_index_value<N>)
       {
-        constexpr auto i = static_index_value_of_v<N>;
-        if constexpr (not dynamic_dimension<Arg1, i>)
+        if constexpr (not dynamic_dimension<Arg1, n>)
           return OpenKalman::get_vector_space_descriptor(arg.arg1(), n);
-        else if constexpr (not dynamic_dimension<Arg2, i>)
+        else if constexpr (not dynamic_dimension<Arg2, n>)
           return OpenKalman::get_vector_space_descriptor(arg.arg2(), n);
         else
           return OpenKalman::get_vector_space_descriptor(arg.arg3(), n);
@@ -48,7 +47,7 @@ namespace OpenKalman::interface
       else return OpenKalman::get_vector_space_descriptor(arg.arg1(), n);
     }
 
-    using type = std::tuple<typename T::Arg1Nested, typename T::Arg2Nested, typename T::Arg3Nested>;
+    using dependents = std::tuple<typename T::Arg1Nested, typename T::Arg2Nested, typename T::Arg3Nested>;
 
     static constexpr bool has_runtime_parameters = false;
 

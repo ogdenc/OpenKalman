@@ -27,9 +27,21 @@ namespace OpenKalman::interface
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::DiagonalWrapper<DiagVectorType>>;
+    using Xpr = Eigen::DiagonalWrapper<DiagVectorType>;
+    using Base = Eigen3::indexible_object_traits_base<Xpr>;
 
   public:
+
+    template<typename Arg>
+    static constexpr auto
+    get_index_count(const Arg& arg)
+    {
+      if constexpr (Arg::RowsAtCompileTime == 1 and Arg::ColsAtCompileTime == 1)
+        return std::integral_constant<std::size_t, 0_uz>{};
+      else
+        return std::integral_constant<std::size_t, 2_uz>{};
+    }
+
 
     template<typename Arg, typename N>
     static constexpr auto get_vector_space_descriptor(const Arg& arg, N)
@@ -38,21 +50,24 @@ namespace OpenKalman::interface
       else return Dimensions<index_dimension_of_v<DiagVectorType, 0> * index_dimension_of_v<DiagVectorType, 1>>{};
     }
 
-    using type = std::tuple<typename DiagVectorType::Nested>;
+    using dependents = std::tuple<typename DiagVectorType::Nested>;
+
 
     static constexpr bool has_runtime_parameters = false;
+
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)
     {
       static_assert(i == 0);
-      decltype(auto) d = std::forward<Arg>(arg).diagonal();
+      auto&& d = std::forward<Arg>(arg).diagonal();
       using D = decltype(d);
       using NCD = std::conditional_t<
         std::is_const_v<std::remove_reference_t<Arg>> or std::is_const_v<DiagVectorType>,
         D, std::conditional_t<std::is_lvalue_reference_v<D>, std::decay_t<D>&, std::decay_t<D>>>;
       return const_cast<NCD>(std::forward<decltype(d)>(d));
     }
+
 
     template<typename Arg>
     static auto convert_to_self_contained(Arg&& arg)
@@ -61,22 +76,28 @@ namespace OpenKalman::interface
       return DiagonalMatrix<decltype(d)> {d};
     }
 
+
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
       return constant_coefficient {arg.diagonal()};
     }
 
+
     template<Likelihood b>
     static constexpr bool is_one_by_one = one_by_one_matrix<DiagVectorType, b>;
+
 
     template<Likelihood b>
     static constexpr bool is_square = true;
 
+
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = true;
 
+
     static constexpr bool is_triangular_adapter = false;
+
 
     template<Likelihood b>
     static constexpr bool is_diagonal_adapter = vector<DiagVectorType, 0, b>;
@@ -84,6 +105,7 @@ namespace OpenKalman::interface
     // is_hermitian not defined because matrix is diagonal;
 
     // make_hermitian_adapter(Arg&& arg) not defined
+
   };
 
 } // namespace OpenKalman::interface

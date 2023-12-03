@@ -55,7 +55,8 @@ namespace OpenKalman
 
 
       template<Layout layout, typename Scalar, typename...D>
-      static auto make_default(D&&...d)
+      static auto
+      make_default(D&&...d)
       {
         return library_interface<nested_matrix_of_t<T>>::template make_default<layout, Scalar>(std::forward<D>(d)...);
       }
@@ -65,28 +66,32 @@ namespace OpenKalman
 
 
       template<typename Arg>
-      static decltype(auto) to_native_matrix(Arg&& arg)
+      static decltype(auto)
+      to_native_matrix(Arg&& arg)
       {
         return OpenKalman::to_native_matrix<nested_matrix_of_t<T>>(
           OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg))(std::forward<Arg>(arg)));
       }
 
       template<typename C, typename...D>
-      static constexpr auto make_constant_matrix(C&& c, D&&...d)
+      static constexpr auto
+      make_constant_matrix(C&& c, D&&...d)
       {
         return make_constant_matrix_like<nested_matrix_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
       }
 
 
       template<typename Scalar, typename D>
-      static constexpr auto make_identity_matrix(D&& d)
+      static constexpr auto
+      make_identity_matrix(D&& d)
       {
         return make_identity_matrix_like<nested_matrix_of_t<T>, Scalar>(std::forward<D>(d));
       }
 
 
       template<typename Arg, typename...Begin, typename...Size>
-      static decltype(auto) get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
+      static decltype(auto)
+      get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
       {
         /// \todo Properly wrap this
         return OpenKalman::get_block(nested_matrix(std::forward<Arg>(arg)), begin, size);
@@ -94,7 +99,8 @@ namespace OpenKalman
 
 
       template<typename Arg, typename Block, typename...Begin>
-      static Arg& set_block(Arg& arg, Block&& block, Begin...begin)
+      static Arg&
+      set_block(Arg& arg, Block&& block, Begin...begin)
       {
         /// \todo Properly wrap this
         return OpenKalman::set_block(nested_matrix(std::forward<Arg>(arg)), std::forward<Block>(block), begin...);
@@ -102,7 +108,8 @@ namespace OpenKalman
 
 
       template<TriangleType t, typename A, typename B>
-      static decltype(auto) set_triangle(A&& a, B&& b)
+      static decltype(auto)
+      set_triangle(A&& a, B&& b)
       {
         /// \todo Properly wrap this
         return OpenKalman::internal::set_triangle<t>(nested_matrix(std::forward<A>(a)), std::forward<B>(b));
@@ -160,7 +167,7 @@ namespace OpenKalman
         }
         else
         {
-          auto ret = std::forward<A>(a).rank_update(std::forward<U>(u), alpha);
+          auto ret {std::forward<A>(a).rank_update(std::forward<U>(u), alpha)};
           return ret;
         }
       }
@@ -175,7 +182,7 @@ namespace OpenKalman
         }
         else
         {
-          auto ret = std::forward<A>(a).rank_update(std::forward<U>(u), alpha);
+          auto ret {std::forward<A>(a).rank_update(std::forward<U>(u), alpha)};
           return ret;
         }
       }

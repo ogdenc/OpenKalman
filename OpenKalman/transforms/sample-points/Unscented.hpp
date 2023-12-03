@@ -156,7 +156,7 @@ namespace OpenKalman
         static_assert(sizeof...(ds) == 0);
         using M0 = Matrix<Coeffs, Axis, untyped_dense_writable_matrix_t<M, Layout::none, Scalar, dim_i, 1>>;
         const auto m0 = make_zero_matrix_like<M0>(Dimensions<dim_i>{}, Dimensions<1>{});
-        auto ret = make_self_contained(concatenate_horizontal(std::move(m0), delta, -delta));
+        auto ret {make_self_contained(concatenate_horizontal(std::move(m0), delta, -delta))};
         static_assert(index_dimension_of_v<decltype(ret), 1> == points_count);
         return std::tuple {std::move(ret)};
       }
@@ -168,7 +168,7 @@ namespace OpenKalman
         constexpr auto width = points_count - (1 + frame_size);
         using Mright = Matrix<Coeffs, Dimensions<width>, untyped_dense_writable_matrix_t<M, Layout::none, Scalar, dim_i, width>>;
         const auto mright = make_zero_matrix_like<Mright>(Dimensions<dim_i>{}, Dimensions<width>{});
-        auto ret = make_self_contained(concatenate_horizontal(std::move(m0), delta, -delta, std::move(mright)));
+        auto ret {make_self_contained(concatenate_horizontal(std::move(m0), delta, -delta, std::move(mright)))};
         static_assert(index_dimension_of_v<decltype(ret), 1> == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<dim, 1 + frame_size>(ds...));
       }
@@ -180,7 +180,7 @@ namespace OpenKalman
         constexpr auto width = points_count - (pos + frame_size);
         using Mright = Matrix<Coeffs, Dimensions<width>, untyped_dense_writable_matrix_t<M, Layout::none, Scalar, dim_i, width>>;
         const auto mright = make_zero_matrix_like<Mright>(Dimensions<dim_i>{}, Dimensions<width>{});
-        auto ret = make_self_contained(concatenate_horizontal(std::move(mleft), delta, -delta, std::move(mright)));
+        auto ret {make_self_contained(concatenate_horizontal(std::move(mleft), delta, -delta, std::move(mright)))};
         static_assert(index_dimension_of_v<decltype(ret), 1> == points_count);
         return std::tuple_cat(std::tuple {std::move(ret)}, sigma_points_impl<dim, pos + frame_size>(ds...));
       }
@@ -190,7 +190,7 @@ namespace OpenKalman
         static_assert(sizeof...(ds) == 0);
         using Mleft = Matrix<Coeffs, Dimensions<pos>, untyped_dense_writable_matrix_t<M, Layout::none, Scalar, dim_i, pos>>;
         const auto mleft = make_zero_matrix_like<Mleft>(Dimensions<dim_i>{}, Dimensions<pos>{});
-        auto ret = make_self_contained(concatenate_horizontal(std::move(mleft), delta, -delta));
+        auto ret {make_self_contained(concatenate_horizontal(std::move(mleft), delta, -delta))};
         static_assert(index_dimension_of_v<decltype(ret), 1> == points_count);
         return std::tuple {std::move(ret)};
       }

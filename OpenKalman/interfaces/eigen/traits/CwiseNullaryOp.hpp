@@ -42,7 +42,7 @@ namespace OpenKalman::interface
 
   public:
 
-    using type = std::tuple<>;
+    using dependents = std::tuple<>;
 
     static constexpr bool has_runtime_parameters = has_params<NullaryOp>::value;
 

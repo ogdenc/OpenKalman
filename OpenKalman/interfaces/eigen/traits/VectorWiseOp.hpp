@@ -35,7 +35,7 @@ namespace OpenKalman::interface
       return OpenKalman::get_vector_space_descriptor(arg._expression(), n);
     }
 
-    using type = std::tuple<typename Eigen::VectorwiseOp<ExpressionType, Direction>::ExpressionTypeNested>;
+    using dependents = std::tuple<typename Eigen::VectorwiseOp<ExpressionType, Direction>::ExpressionTypeNested>;
 
     static constexpr bool has_runtime_parameters = false;
 

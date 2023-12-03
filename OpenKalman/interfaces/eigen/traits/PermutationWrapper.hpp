@@ -31,7 +31,7 @@ namespace OpenKalman::interface
 
   public:
 
-    using type = std::tuple<typename IndicesType::Nested>;
+    using dependents = std::tuple<typename IndicesType::Nested>;
 
     static constexpr bool has_runtime_parameters = false;
 

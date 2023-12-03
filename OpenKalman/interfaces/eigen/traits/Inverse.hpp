@@ -31,7 +31,7 @@ namespace OpenKalman::interface
 
   public:
 
-    using type = std::tuple<typename Eigen::Inverse<XprType>::XprTypeNested>;
+    using dependents = std::tuple<typename Eigen::Inverse<XprType>::XprTypeNested>;
 
     static constexpr bool has_runtime_parameters = false;
 

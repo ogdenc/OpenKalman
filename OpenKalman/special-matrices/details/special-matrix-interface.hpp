@@ -207,10 +207,10 @@ namespace OpenKalman::interface
     }
 
 
-    template<typename A, typename B>
-    static constexpr auto sum(A&& a, B&& b)
+    template<typename Arg, typename...Args>
+    static constexpr auto sum(Arg&& arg, Args&&...args)
     {
-      return library_interface<std::decay_t<nested_matrix_of_t<T>>>::sum(std::forward<A>(a), std::forward<B>(b));
+      return library_interface<Nested>::sum(std::forward<Arg>(arg), std::forward<Args>(args)...);
     }
 
 
@@ -224,11 +224,11 @@ namespace OpenKalman::interface
     template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
     static decltype(auto) rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
     {
-      decltype(auto) n = nested_matrix(std::forward<A>(a));
+      auto&& n = nested_matrix(std::forward<A>(a));
       using Trait = interface::library_interface<std::decay_t<decltype(n)>>;
       if constexpr (eigen_self_adjoint_expr<A>)
       {
-        decltype(auto) m = Trait::template rank_update_self_adjoint<significant_triangle>(std::forward<decltype(n)>(n), std::forward<U>(u), alpha);
+        auto&& m = Trait::template rank_update_self_adjoint<significant_triangle>(std::forward<decltype(n)>(n), std::forward<U>(u), alpha);
         return make_hermitian_matrix<significant_triangle>(std::forward<decltype(m)>(m));
       }
       else

@@ -52,6 +52,7 @@ namespace OpenKalman
     (not constant_matrix<A> or not constant_diagonal_matrix<B> or has_dynamic_dimensions<A> or
       (index_dimension_of_v<A, 0> <= index_dimension_of_v<A, 1> and index_dimension_of_v<B, 0> <= index_dimension_of_v<A, 1>) or
       (index_dimension_of_v<A, 0> == 1 and index_dimension_of_v<B, 0> == 1) or not must_be_exact)
+  constexpr compatible_with_vector_space_descriptors<vector_space_descriptor_of_t<A, 1>, vector_space_descriptor_of_t<B, 1>> auto
   #else
   template<bool must_be_unique = false, bool must_be_exact = false, typename A, typename B, std::enable_if_t<
     (not zero_matrix<A> or not zero_matrix<B> or not must_be_unique) and
@@ -59,8 +60,8 @@ namespace OpenKalman
     (not constant_matrix<A> or not constant_diagonal_matrix<B> or has_dynamic_dimensions<A> or
       (index_dimension_of_v<A, 0> <= index_dimension_of_v<A, 1> and index_dimension_of_v<B, 0> <= index_dimension_of_v<A, 1>) or
       (index_dimension_of_v<A, 0> == 1 and index_dimension_of_v<B, 0> == 1) or not must_be_exact), int> = 0>
-  #endif
   constexpr auto
+  #endif
   solve(A&& a, B&& b)
   {
     static_assert(dynamic_dimension<A, 0> or dynamic_dimension<B, 0> or index_dimension_of_v<A, 0> == index_dimension_of_v<B, 0>,
@@ -135,7 +136,7 @@ namespace OpenKalman
         }
         else
         {
-          return std::forward<decltype(b_elem)>(b_elem) / std::forward<decltype(a_elem)>(a_elem);
+          return std::forward<decltype(b_elem)>(b_elem) / static_cast<scalar_type_of_t<B>>(std::forward<decltype(a_elem)>(a_elem));
         }
       };
       return n_ary_operation(get_all_dimensions_of(b), std::move(op), std::forward<B>(b), diagonal_of(std::forward<A>(a)));

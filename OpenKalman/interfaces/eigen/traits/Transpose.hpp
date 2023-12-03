@@ -31,7 +31,7 @@ namespace OpenKalman::interface
 
   public:
 
-    using type = std::tuple<typename Eigen::internal::ref_selector<MatrixType>::non_const_type>;
+    using dependents = std::tuple<typename Eigen::internal::ref_selector<MatrixType>::non_const_type>;
 
     static constexpr bool has_runtime_parameters = false;
 

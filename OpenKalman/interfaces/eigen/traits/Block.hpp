@@ -32,7 +32,7 @@ namespace OpenKalman::interface
   public:
 
     static constexpr bool has_runtime_parameters = true;
-    using type = std::tuple<typename Eigen::internal::ref_selector<XprType>::non_const_type>;
+    using dependents = std::tuple<typename Eigen::internal::ref_selector<XprType>::non_const_type>;
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)

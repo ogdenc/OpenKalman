@@ -39,6 +39,9 @@ TEST(eigen3, reduce_matrix)
   EXPECT_TRUE(is_near(reduce<0>(f23_cust, m23), m13_cust));
   EXPECT_TRUE(is_near(reduce<0>(f23_cust, mxx_23), m13_cust));
 
+  EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, M11{5}), M11{5}));
+  EXPECT_TRUE(is_near(reduce<0>(std::multiplies<double>{}, M11{7}), M11{7}));
+
   auto m21_sum = make_dense_writable_matrix_from<M21>(6, 15);
   auto m21_prod = make_dense_writable_matrix_from<M21>(6, 120);
   auto m21_cust = make_dense_writable_matrix_from<M21>(8, 17);
@@ -50,6 +53,9 @@ TEST(eigen3, reduce_matrix)
   EXPECT_TRUE(is_near(reduce<1>(std::multiplies<double>{}, mxx_23), m21_prod));
   EXPECT_TRUE(is_near(reduce<1>(f23_cust, m23), m21_cust));
   EXPECT_TRUE(is_near(reduce<1>(f23_cust, mxx_23), m21_cust));
+
+  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, M11{5}), M11{5}));
+  EXPECT_TRUE(is_near(reduce<1>(std::multiplies<double>{}, M11{7}), M11{7}));
 
   double m11_sum = 21;
   double m11_prod = 720;
@@ -63,6 +69,11 @@ TEST(eigen3, reduce_matrix)
   EXPECT_EQ((reduce(f23_cust, mxx_23)), m11_cust);
   EXPECT_EQ((reduce<0, 1>(f23_cust, m23)), M11{m11_cust});
   EXPECT_EQ((reduce<1, 0>(f23_cust, mxx_23)), M11{m11_cust});
+
+  EXPECT_TRUE(is_near(reduce<0, 1>(std::plus<double>{}, M11{5}), M11{5}));
+  EXPECT_TRUE(is_near(reduce<1, 0>(std::multiplies<double>{}, M11{7}), M11{7}));
+  EXPECT_EQ((reduce(std::plus<double>{}, M11{5})), 5);
+  EXPECT_EQ((reduce(std::multiplies<double>{}, M11{7})), 7);
 }
 
 

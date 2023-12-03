@@ -10,27 +10,14 @@
 
 /**
  * \file
- * \brief Definitions for \ref wrap_angles function.
+ * \brief Definitions for \ref from_euclidean function.
  */
 
-#ifndef OPENKALMAN_WRAP_ANGLES_HPP
-#define OPENKALMAN_WRAP_ANGLES_HPP
+#ifndef OPENKALMAN_FROM_EUCLIDEAN_HPP
+#define OPENKALMAN_FROM_EUCLIDEAN_HPP
 
 namespace OpenKalman
 {
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename Arg, typename C, typename = void>
-    struct wrap_angles_exists : std::false_type {};
-
-    template<typename Arg, typename C>
-    struct wrap_angles_exists<Arg, C, std::void_t<decltype(
-        interface::library_interface<std::decay_t<Arg>>::template wrap_angles(std::declval<Arg&&>(), std::declval<const C&>()))>> :
-      std::true_type {};
-  } // namespace detail
-#endif
-
 #ifdef __cpp_concepts
   template<wrappable Arg, vector_space_descriptor C>
   requires (dynamic_vector_space_descriptor<C> or dynamic_dimension<Arg, 0> or has_untyped_index<Arg, 0> or
@@ -41,31 +28,27 @@ namespace OpenKalman
       equivalent_to<C, vector_space_descriptor_of_t<Arg, 0>>), int> = 0>
 #endif
   constexpr decltype(auto)
-  wrap_angles(Arg&& arg, const C& c)
+  from_euclidean(Arg&& arg, const C& c) noexcept
   {
     if constexpr (dynamic_dimension<Arg, 0> and not euclidean_vector_space_descriptor<vector_space_descriptor_of_t<Arg, 0>>)
       if (not get_vector_space_descriptor_is_euclidean(get_vector_space_descriptor<0>(arg)) and c != get_vector_space_descriptor<0>(arg))
-        throw std::domain_error {"In wrap_angles, specified vector space descriptor does not match that of the object's index 0"};
+        throw std::domain_error {"In from_euclidean, specified vector space descriptor does not match that of the object's index 0"};
     using Interface = interface::library_interface<std::decay_t<Arg>>;
 
-    if constexpr (euclidean_vector_space_descriptor<C> or identity_matrix<Arg> or zero_matrix<Arg>)
+    if constexpr (euclidean_vector_space_descriptor<C>)
     {
       return std::forward<Arg>(arg);
     }
-#ifdef __cpp_concepts
-    else if constexpr (requires { Interface::template wrap_angles(std::forward<Arg>(arg), c); })
-#else
-    else if constexpr (detail::wrap_angles_exists<Arg, C>::value)
-#endif
+    else if constexpr (interface::from_euclidean_defined_for<std::decay_t<Arg>, Arg&&, const C&>)
     {
-      return Interface::wrap_angles(std::forward<Arg>(arg), c);
+      return Interface::from_euclidean(std::forward<Arg>(arg), c);
     }
     else
     {
       if constexpr (has_dynamic_dimensions<Arg>) if (not get_wrappable(arg))
-        throw std::domain_error {"Argument of wrap_angles is not wrappable"};
+        throw std::domain_error {"Argument of from_euclidean is not wrappable"};
 
-      return from_euclidean(to_euclidean(std::forward<Arg>(arg), c), c);
+      return FromEuclideanExpr<C, Arg>(std::forward<Arg>(arg), c);
     }
   }
 
@@ -76,12 +59,13 @@ namespace OpenKalman
   template<typename Arg, std::enable_if_t<all_fixed_indices_are_euclidean<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  wrap_angles(Arg&& arg)
+  from_euclidean(Arg&& arg)
   {
-    return wrap_angles(std::forward<Arg>(arg), get_vector_space_descriptor<0>(arg));
+    return from_euclidean(std::forward<Arg>(arg), get_vector_space_descriptor<0>(arg));
   }
+
 
 
 } // namespace OpenKalman
 
-#endif //OPENKALMAN_WRAP_ANGLES_HPP
+#endif //OPENKALMAN_FROM_EUCLIDEAN_HPP

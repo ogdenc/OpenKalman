@@ -47,7 +47,7 @@ namespace OpenKalman::interface
       return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
     }
 
-    using type = std::tuple<typename Xpr::XprTypeNested>;
+    using dependents = std::tuple<typename Xpr::XprTypeNested>;
 
     static constexpr bool has_runtime_parameters = is_bind_operator<UnaryOp>::value;
 

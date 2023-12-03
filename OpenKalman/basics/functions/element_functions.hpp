@@ -16,6 +16,12 @@
 #ifndef OPENKALMAN_ELEMENT_FUNCTIONS_HPP
 #define OPENKALMAN_ELEMENT_FUNCTIONS_HPP
 
+#ifdef __cpp_lib_ranges
+#include<ranges>
+//#else
+#include<algorithm>
+#endif
+
 namespace OpenKalman
 {
   // \todo Add functions that return stl-compatible iterators.
@@ -26,154 +32,206 @@ namespace OpenKalman
 
   namespace detail
   {
-    /*template<bool set, typename Arg, std::size_t...I, typename...Ind>
-    constexpr void check_index_bounds(const Arg& arg, std::index_sequence<I...>, Ind...i)
+    template<std::size_t N, typename Indices>
+    constexpr decltype(auto) truncate_indices(const Indices& indices)
     {
-      if constexpr (sizeof...(I) == 1)
+      if constexpr (static_range_size_v<Indices> != dynamic_size and N != dynamic_size and static_range_size_v<Indices> > N)
       {
-        std::size_t dim_i = (i,...);
-        std::size_t c = get_index_dimension_of<1>(arg);
-        if (c == 1)
-        {
-          std::size_t r = get_index_dimension_of<0>(arg);
-          if (dim_i >= r)
-            throw std::out_of_range {((std::string {set ? "s" : "g"} + "et_element:") + " Row index is " +
-            std::to_string(dim_i) + " but should be in range [0..." + std::to_string(r-1) + "].")};
-        }
-        else
-        {
-          if (dim_i >= c)
-            throw std::out_of_range {((std::string {set ? "s" : "g"} + "et_element:") + " Column index is " +
-            std::to_string(dim_i) + " but should be range [0..." + std::to_string(c-1) + "].")};
-        }
-      }
-      else
-      {
-        ((static_cast<std::size_t>(i) >= get_index_dimension_of<I>(arg) ?
-          throw std::out_of_range {(("At least one " + std::string {set ? "s" : "g"} +
-            "et_element index out of range:") + ... + (" Index " + std::to_string(I) + " is " +
-            std::to_string(i) + " and should be in range [0..." +
-            std::to_string(get_index_dimension_of<I>(arg) - 1) + "]."))} :
-          false) , ...);
-      }
-    }*/
-
-
-    template<typename Arg, std::size_t...I>
-    constexpr decltype(auto) get_diag_element(Arg&& arg, std::index_sequence<I...> seq, std::size_t i)
-    {
-      //detail::check_index_bounds<false>(arg, seq, (I, i)...);
-      return interface::indexible_object_traits<std::decay_t<Arg>>::get(std::forward<Arg>(arg), (I ? i : i)...);
-    }
-  } // namespace detail
-
-
-/**
- * \brief Get element of matrix arg using I... indices.
- * \details The number of indices I... may be 0 if there is only one element, or 1 if Arg is diagonal.
- * \tparam Arg
- * \tparam I
- * \param arg
- * \param i
- * \sa element_gettable
- * \return
- */
-#ifdef __cpp_lib_concepts
-  template<indexible Arg, std::convertible_to<const std::size_t>...I>
-  constexpr std::convertible_to<const scalar_type_of_t<Arg>> decltype(auto)
+#ifdef __cpp_lib_ranges
+        if (std::ranges::any_of(std::views::drop(indices, N), [](const auto& x){ return x != 0; }))
+          throw std::invalid_argument {"Component access: one or more trailing indices are not 0."};
+        return std::views::take(indices, N);
 #else
-  template<typename Arg, typename...I, std::enable_if_t<indexible<Arg> and
-    (std::is_convertible_v<I, const std::size_t> and ...), int> = 0>
-  constexpr decltype(auto)
+        auto ad = indices.begin();
+        std::advance(ad, N);
+        if (std::any_of(ad, indices.end(), [](const auto& x){ return x != 0; }))
+          throw std::invalid_argument {"Component access: one or more trailing indices are not 0."};
+        std::array<std::size_t, N> ret;
+        std::copy_n(indices.begin(), N, ret.begin());
+        return ret;
 #endif
-  get_element(Arg&& arg, I...i)
-  {
-    constexpr auto N = sizeof...(I);
-
-    if constexpr (constant_matrix<Arg> and (not one_by_one_matrix<Arg>) and (N == index_count_v<Arg> or N == 0))
-    {
-      return get_scalar_constant_value(constant_coefficient {arg});
+      }
+      else return indices;
     }
-    else if constexpr (internal::is_element_gettable<Arg, N>::value)
-    {
-      //detail::check_index_bounds<false>(arg, std::index_sequence_for<I...> {}, i...);
-      return interface::indexible_object_traits<std::decay_t<Arg>>::get(std::forward<Arg>(arg), static_cast<const std::size_t>(i)...);
-    }
-    else if constexpr (N == 1 and diagonal_matrix<Arg, Likelihood::maybe> and index_count_v<Arg> >= 1)
-    {
-      if constexpr (not diagonal_matrix<Arg>) if (not get_is_square(arg))
-        throw std::invalid_argument {"Wrong number of indices in arguments to get_element."};
-      std::make_index_sequence<index_count_v<Arg>> seq;
-      return detail::get_diag_element(std::forward<Arg>(arg), seq, static_cast<const std::size_t>(i)...);
-    }
-    else
-    {
-      static_assert(N == 0, "Must use correct number of indices");
-      static_assert(one_by_one_matrix<Arg, Likelihood::maybe>, "Calling get_element without indices only allowed for one-by-one matrices.");
-      if constexpr (not one_by_one_matrix<Arg>) if (get_index_dimension_of<0>(arg) != 1 or get_index_dimension_of<1>(arg) != 1)
-        throw std::invalid_argument {"Wrong number of indices in arguments to get_element."};
-      std::make_index_sequence<index_count_v<Arg>> seq;
-      return detail::get_diag_element(std::forward<Arg>(arg), seq, static_cast<const std::size_t>(0));
-    }
-  }
 
 
-  namespace detail
-  {
-    template<typename Arg, typename Scalar, std::size_t...I>
-    constexpr void set_diag_element(Arg& arg, const Scalar& s, std::index_sequence<I...> seq, std::size_t i)
+    template<typename Arg, typename Indices>
+    constexpr decltype(auto)
+    get_element_impl(Arg&& arg, const Indices& indices)
     {
-      //detail::check_index_bounds<true>(arg, seq, (I, i)...);
-      interface::indexible_object_traits<std::decay_t<Arg>>::set(arg, s, (I ? i : i)...);
+      using Trait = interface::library_interface<std::decay_t<Arg>>;
+      return Trait::get_component(std::forward<Arg>(arg), detail::truncate_indices<index_count_v<Arg>>(indices));
     }
   } // namespace detail
 
 
   /**
-   * \brief Set element to s using I... indices.
-   * \details The number of indices I... may be 0 if there is only one element, or 1 if Arg is diagonal.
-   * \tparam Arg
-   * \tparam I
-   * \param arg
-   * \param s
-   * \param i
-   * \sa element_settable
-   * \return
+   * \brief Get a component of an object at a particular set of indices.
+   * \tparam Arg The object to be accessed.
+   * \tparam Indices A sized input range containing the indices.
+   * \return a \ref scalar_constant
+   */
+#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+  template<indexible Arg, std::ranges::input_range Indices> requires index_value<std::ranges::range_value_t<Indices>> and
+    (static_range_size_v<Indices> == dynamic_size or index_count_v<Arg> == dynamic_size or static_range_size_v<Indices> >= index_count_v<Arg>) and
+    (not empty_object<Arg>)
+  constexpr scalar_constant decltype(auto)
+#else
+  template<typename Arg, typename Indices, std::enable_if_t<indexible<Arg> and index_value<decltype(*std::declval<Indices>().begin())> and
+    (static_range_size<Indices>::value == dynamic_size or index_count<Arg>::value == dynamic_size or static_range_size<Indices>::value >= index_count<Arg>::value) and
+    (not empty_object<Arg>), int> = 0>
+  constexpr decltype(auto)
+#endif
+  get_element(Arg&& arg, const Indices& indices)
+  {
+    return detail::get_element_impl(std::forward<Arg>(arg), indices);
+  }
+
+
+  /**
+   * \overload
+   * \brief Get a component of an object using an initializer list.
    */
 #ifdef __cpp_lib_concepts
-  template<indexible Arg, std::convertible_to<const std::size_t>...I> requires (not std::is_const_v<std::remove_reference_t<Arg>>)
+  template<indexible Arg, index_value Indices> requires (not empty_object<Arg>)
+  constexpr scalar_constant decltype(auto)
+#else
+  template<typename Arg, typename Indices, std::enable_if_t<indexible<Arg> and index_value<Indices> and
+    (not empty_object<Arg>), int> = 0>
+  constexpr decltype(auto)
+#endif
+  get_element(Arg&& arg, const std::initializer_list<Indices>& indices)
+  {
+    return detail::get_element_impl(std::forward<Arg>(arg), indices);
+  }
+
+
+  namespace detail
+  {
+    template<typename Arg, typename...V, std::size_t...Ix>
+    constexpr bool static_indices_within_bounds_impl(std::index_sequence<Ix...>)
+    {
+      return ([]{
+        if constexpr (static_index_value<V>) return (std::decay_t<V>::value < index_dimension_of_v<Arg, Ix>);
+        else return true;
+      }() and ...);
+    }
+
+
+    template<typename Arg, typename...I>
+    struct static_indices_within_bounds
+      : std::bool_constant<(detail::static_indices_within_bounds_impl<Arg, I...>(std::index_sequence_for<I...>{}))> {};
+
+  } // namespace detail
+
+
+  /**
+   * \overload
+   * \brief Get a component of an object using a fixed number of indices.
+   * \details The number of indices must be at least <code>index_count_v&lt;Arg&gt;</code>. If the indices are
+   * integral constants, the function performs compile-time bounds checking to the extent possible.
+   */
+#ifdef __cpp_lib_concepts
+  template<indexible Arg, index_value...I> requires (index_count_v<Arg> == dynamic_size or sizeof...(I) >= index_count_v<Arg>) and
+  (not empty_object<Arg>) and detail::static_indices_within_bounds<Arg, I...>::value
+  constexpr scalar_constant decltype(auto)
 #else
   template<typename Arg, typename...I, std::enable_if_t<indexible<Arg> and
-    (std::is_convertible_v<I, const std::size_t> and ...) and not std::is_const_v<std::remove_reference_t<Arg>>, int> = 0>
+    (index_count<Arg>::value == dynamic_size or sizeof...(I) >= index_count<Arg>::value) and
+    (not empty_object<Arg>) and detail::static_indices_within_bounds<Arg, I...>::value, int> = 0>
+  constexpr decltype(auto)
+#endif
+  get_element(Arg&& arg, I&&...i)
+  {
+    auto indices = std::array<std::size_t, sizeof...(I)> {static_cast<std::size_t>(std::forward<I>(i))...};
+    return detail::get_element_impl(std::forward<Arg>(arg), indices);
+  }
+
+
+  namespace detail
+  {
+    template<typename Arg, typename Indices>
+    constexpr Arg&&
+    set_element_impl(Arg&& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
+    {
+      using Trait = interface::library_interface<std::decay_t<Arg>>;
+      Trait::set_component(arg, s, detail::truncate_indices<index_count_v<Arg>>(indices));
+      return std::forward<Arg>(arg);
+    }
+  } // namespace detail
+
+
+  /**
+   * \brief Set a component of an object at a particular set of indices.
+   * \tparam Arg The object to be accessed.
+   * \tparam Indices An input range object containing the indices.
+   * \return The modified Arg
+   */
+#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+  template<indexible Arg, std::ranges::input_range Indices> requires
+    (not std::is_const_v<std::remove_reference_t<Arg>>) and index_value<std::ranges::range_value_t<Indices>> and
+    (static_range_size_v<Indices> == dynamic_size or index_count_v<Arg> == dynamic_size or static_range_size_v<Indices> >= index_count_v<Arg>) and
+    (not empty_object<Arg>) and
+    interface::set_component_defined_for<std::decay_t<Arg>, std::add_lvalue_reference_t<Arg>, const scalar_type_of_t<Arg>&, const Indices&>
+#else
+  template<typename Arg, typename Indices, std::enable_if_t<indexible<Arg> and
+    (not std::is_const_v<std::remove_reference_t<Arg>>) and index_value<decltype(*std::declval<Indices>().begin())> and
+    (static_range_size<Indices>::value == dynamic_size or index_count<Arg>::value == dynamic_size or static_range_size<Indices>::value >= index_count<Arg>::value) and
+    (not empty_object<Arg>) and
+    interface::set_component_defined_for<std::decay_t<Arg>, typename std::add_lvalue_reference<Arg>::type, const typename scalar_type_of<Arg>::type&, const Indices&>, int> = 0>
 #endif
   inline Arg&&
-  set_element(Arg&& arg, const scalar_type_of_t<Arg>& s, I...i)
+  set_element(Arg&& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
   {
-    constexpr auto N = sizeof...(I);
+    return detail::set_element_impl(std::forward<Arg>(arg), s, indices);
+  }
 
-    if constexpr (internal::is_element_settable<Arg, N>::value)
-    {
-      //detail::check_index_bounds<true>(arg, std::index_sequence_for<I...> {}, i...);
-      interface::indexible_object_traits<std::decay_t<Arg>>::set(arg, s, static_cast<const std::size_t>(i)...);
-    }
-    else if constexpr (N == 0 and one_by_one_matrix<Arg, Likelihood::maybe>)
-    {
-      if constexpr (not one_by_one_matrix<Arg>) if (get_index_dimension_of<0>(arg) != 1 or get_index_dimension_of<1>(arg) != 1)
-        throw std::invalid_argument {"Wrong number of indices in arguments to set_element."};
-      std::make_index_sequence<index_count_v<Arg>> seq;
-      detail::set_diag_element(arg, s, seq, static_cast<const std::size_t>(0));
-    }
-    else
-    {
-      static_assert(N == 1 and diagonal_matrix<Arg, Likelihood::maybe> and index_count_v<Arg> > 1,
-        "Must use correct number of indices");
-      if constexpr (not diagonal_matrix<Arg>)
-        if (not get_is_square(arg))
-          throw std::invalid_argument{"Wrong number of indices in arguments to set_element."};
-      std::make_index_sequence<index_count_v<Arg>> seq;
-      detail::set_diag_element(arg, s, seq, static_cast<const std::size_t>(i)...);
-    }
-    return std::forward<Arg>(arg);
+
+  /**
+   * \overload
+   * \brief Set a component of an object using an initializer list.
+   */
+#ifdef __cpp_lib_concepts
+  template<indexible Arg, index_value Indices> requires
+    (not std::is_const_v<std::remove_reference_t<Arg>>) and (not empty_object<Arg>) and
+    interface::set_component_defined_for<std::decay_t<Arg>,
+      std::add_lvalue_reference_t<Arg>, const scalar_type_of_t<Arg>&, const std::initializer_list<Indices>&>
+#else
+  template<typename Arg, typename Indices, std::enable_if_t<indexible<Arg> and index_value<Indices> and
+    (not std::is_const_v<std::remove_reference_t<Arg>>) and (not empty_object<Arg>) and
+    interface::set_component_defined_for<std::decay_t<Arg>,
+      typename std::add_lvalue_reference<Arg>::type, const typename scalar_type_of<Arg>::type&, const std::initializer_list<Indices>&>, int> = 0>
+#endif
+  inline Arg&&
+  set_element(Arg&& arg, const scalar_type_of_t<Arg>& s, const std::initializer_list<Indices>& indices)
+  {
+    return detail::set_element_impl(std::forward<Arg>(arg), s, indices);
+  }
+
+
+  /**
+   * \overload
+   * \brief Set a component of an object using a fixed number of indices.
+   * \details The number of indices must be at least <code>index_count_v&lt;Arg&gt;</code>. If the indices are
+   * integral constants, the function performs compile-time bounds checking to the extent possible.
+   */
+#ifdef __cpp_lib_concepts
+  template<indexible Arg, index_value...I> requires (not std::is_const_v<std::remove_reference_t<Arg>>) and
+    (not empty_object<Arg>) and detail::static_indices_within_bounds<Arg, I...>::value and
+    interface::set_component_defined_for<std::decay_t<Arg>,
+      std::add_lvalue_reference_t<Arg>, const scalar_type_of_t<Arg>&, const std::array<std::size_t, sizeof...(I)>&>
+#else
+  template<typename Arg, typename...I, std::enable_if_t<indexible<Arg> and (index_value<I> and ...) and
+    (not std::is_const_v<std::remove_reference_t<Arg>>) and (not empty_object<Arg>) and
+    detail::static_indices_within_bounds<Arg, I...>::value and
+    interface::set_component_defined_for<std::decay_t<Arg>, typename std::add_lvalue_reference<Arg>::type,
+      const typename scalar_type_of<Arg>::type&, const std::array<std::size_t, sizeof...(I)>&>, int> = 0>
+#endif
+  inline Arg&&
+  set_element(Arg&& arg, const scalar_type_of_t<Arg>& s, I&&...i)
+  {
+    const auto indices = std::array<std::size_t, sizeof...(I)> {static_cast<std::size_t>(std::forward<I>(i))...};
+    return detail::set_element_impl(std::forward<Arg>(arg), s, indices);
   }
 
 

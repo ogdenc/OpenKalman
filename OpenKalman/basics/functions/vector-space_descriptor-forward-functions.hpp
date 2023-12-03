@@ -69,9 +69,9 @@ namespace OpenKalman
   }
 
 
-  // ------------------------------------------- //
+  // -------------------------------------------------- //
   //   get_vector_space_descriptor_component_count_of   //
-  // ------------------------------------------- //
+  // -------------------------------------------------- //
 
   /**
    * \brief Get the dimension of \ref vector_space_descriptor T
@@ -93,9 +93,9 @@ namespace OpenKalman
   }
 
 
-  // ------------------------------------- //
+  // -------------------------------------------- //
   //   get_vector_space_descriptor_is_euclidean   //
-  // ------------------------------------- //
+  // -------------------------------------------- //
 
   /**
    * \brief Determine, at runtime, whether \ref vector_space_descriptor T is untyped.

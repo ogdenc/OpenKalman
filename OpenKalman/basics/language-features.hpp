@@ -89,4 +89,8 @@ namespace OpenKalman::numbers
 #endif
 
 
+// std::size_t literal similar and equivalent to "uz" literal defined in c++23 standard.
+constexpr std::size_t operator ""_uz(unsigned long long x) { return x; };
+
+
 #endif //OPENKALMAN_LANGUAGE_FEATURES_HPP

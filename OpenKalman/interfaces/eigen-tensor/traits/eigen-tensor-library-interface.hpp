@@ -10,72 +10,15 @@
 
 /**
  * \file
- * \brief Type traits as applied to native Eigen Tensor types.
+ * \brief Library interface for native Eigen Tensor types.
  */
 
-#ifndef OPENKALMAN_EIGEN_TENSOR_GENERAL_TRAITS_HPP
-#define OPENKALMAN_EIGEN_TENSOR_GENERAL_TRAITS_HPP
+#ifndef OPENKALMAN_EIGEN_TENSOR_LIBRARY_INTERFACE_HPP
+#define OPENKALMAN_EIGEN_TENSOR_LIBRARY_INTERFACE_HPP
 
 #include <type_traits>
 #include <tuple>
 #include <random>
-
-
-namespace OpenKalman::Eigen3
-{
-  // ------------------------------ //
-  //  indexible_object_traits_base  //
-  // ------------------------------ //
-
-#ifdef __cpp_concepts
-  template<Eigen3::eigen_tensor_general<true> T>
-  struct indexible_object_traits_base<T>
-#else
-  template<typename T>
-  struct indexible_object_traits_base<T, std::enable_if_t<Eigen3::eigen_tensor_general<T, true>>>
-#endif
-  {
-  private:
-
-    using IndexType = typename T::Index;
-
-  public:
-
-    using scalar_type = typename T::Scalar;
-
-
-#ifdef __cpp_lib_concepts
-    template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == T::NumDimensions)
-#else
-    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, IndexType> and ...) and
-      (sizeof...(I) == T::NumDimensions), int> = 0>
-#endif
-    static constexpr decltype(auto)
-    get(Arg&& arg, I...i)
-    {
-      if constexpr ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0)
-        return Eigen::TensorRef<dense_writable_matrix_t<Arg>> {std::forward<Arg>(arg)}.coeffRef(static_cast<IndexType>(i)...);
-      else
-        return Eigen::TensorRef<dense_writable_matrix_t<Arg>> {std::forward<Arg>(arg)}.coeff(static_cast<IndexType>(i)...);
-    }
-
-
-#ifdef __cpp_lib_concepts
-    template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == T::NumDimensions) and
-      ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0)
-#else
-    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, IndexType> and ...) and
-      (sizeof...(I) == T::NumDimensions) and ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0), int> = 0>
-#endif
-    static void
-    set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
-    {
-      Eigen::TensorRef<dense_writable_matrix_t<Arg>> {arg}.coeffRef(static_cast<IndexType>(i)...) = s;
-    }
-
-  };
-
-} // namespace OpenKalman::Eigen3
 
 
 // ------------------- //
@@ -94,12 +37,42 @@ namespace OpenKalman::interface
   {
   private:
 
-    using IndexType = T::Index;
+    using IndexType = typename T::Index;
 
   public:
 
     template<typename Derived>
     using LibraryBase = Eigen3::EigenTensorAdapterBase<Derived, T>;
+
+
+#ifdef __cpp_lib_concepts
+    template<std::convertible_to<IndexType>...I> requires (sizeof...(I) == T::NumDimensions)
+#else
+    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, IndexType> and ...) and
+      (sizeof...(I) == T::NumDimensions), int> = 0>
+#endif
+    static constexpr decltype(auto)
+    get_component(const T& arg, I...i)
+    {
+      if constexpr ((Eigen::internal::traits<T>::Flags & Eigen::LvalueBit) != 0)
+        return Eigen::TensorRef<dense_writable_matrix_t<T>> {std::forward<T>(arg)}.coeffRef(static_cast<IndexType>(i)...);
+      else
+        return Eigen::TensorRef<dense_writable_matrix_t<T>> {std::forward<T>(arg)}.coeff(static_cast<IndexType>(i)...);
+    }
+
+
+#ifdef __cpp_lib_concepts
+    template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == T::NumDimensions) and
+      ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0)
+#else
+    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, IndexType> and ...) and
+      (sizeof...(I) == T::NumDimensions) and ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0), int> = 0>
+#endif
+    static void
+    set_component(T& arg, const scalar_type_of_t<T>& s, I...i)
+    {
+      Eigen::TensorRef<dense_writable_matrix_t<T>> {arg}.coeffRef(static_cast<IndexType>(i)...) = s;
+    }
 
 
     template<typename Arg>
@@ -116,8 +89,8 @@ namespace OpenKalman::interface
         if constexpr (layout_of_v<Arg> == Layout::stride and internal::has_static_strides<Arg>)
         {
           auto strides = internal::strides(arg);
-          constexpr auto stride0 = static_index_value_of_v<std::tuple_element_t<0, decltype(strides)>>;
-          constexpr auto strideN = static_index_value_of_v<std::tuple_element_t<index_count_v<Arg> - 1, decltype(strides)>>;
+          constexpr std::ptrdiff_t stride0 = std::get<0>(strides);
+          constexpr std::ptrdiff_t strideN = std::get<index_count_v<Arg> - 1>(strides);
           constexpr auto l = stride0 > strideN ? Eigen::RowMajor : Eigen::ColMajor;
           using M = std::decay_t<decltype(make_default_dense_writable_matrix_like<Arg, Layout::none, Scalar>(arg))>;
           Eigen::TensorMap<M, l> map {internal::raw_data(arg)};
@@ -145,7 +118,7 @@ namespace OpenKalman::interface
     static auto make_default(D&&...d)
     {
       constexpr auto options = layout == Layout::right ? Eigen::RowMajor : Eigen::ColMajor;
-      if constexpr (((dimension_size_of_v<D> == dynamic_size) or ...))
+      if constexpr (((dynamic_vector_space_descriptor<D>) or ...))
         return Eigen::Tensor<Scalar, sizeof...(D), options, IndexType>(static_cast<IndexType>(get_dimension_size_of(d))...);
       else
         return Eigen::TensorFixedSize<Scalar, Eigen::Sizes<static_cast<std::ptrdiff_t>(dimension_size_of_v<D>)...>, options, IndexType> {};
@@ -169,25 +142,28 @@ namespace OpenKalman::interface
         m.setValues({args...});
 
       return std::forward<M>(m);
-    }
+    }*/
 
 
 #ifdef __cpp_concepts
-    template<scalar_constant<CompileTimeStatus::unknown> C, typename...Ds> requires (sizeof...(Ds) == 2)
+    template<scalar_constant<CompileTimeStatus::unknown> C, typename...Ds> requires (... and (not dynamic_vector_space_descriptor<Ds>))
     static constexpr constant_matrix<CompileTimeStatus::unknown> auto
 #else
-    template<typename C, typename...Ds, std::enable_if_t<
-      scalar_constant<C, CompileTimeStatus::unknown> and (sizeof...(Ds) == 2), int> = 0>
+    template<typename C, typename...Ds, std::enable_if_t<scalar_constant<C, CompileTimeStatus::unknown> and
+      (... and (not dynamic_vector_space_descriptor<Ds>)), int> = 0>
     static constexpr auto
 #endif
     make_constant_matrix(C&& c, Ds&&...ds)
     {
-      using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
-      using N = dense_writable_matrix_t<T, Layout::none, Scalar, std::decay_t<Ds>...>;
-      return N::Constant(static_cast<IndexType>(get_dimension_size_of(std::forward<Ds>(ds)))..., std::forward<C>(c));
+      auto value = get_scalar_constant_value(std::forward<C>(c));
+      using Scalar = std::decay_t<decltype(value)>;
+      auto m = make_default<Layout::none, Scalar>(std::forward<Ds>(ds)...);
+      // m will be a dangling reference to TensorFixedSize, but Eigen only references its static dimensions, so there is no bug
+      return Eigen::TensorCwiseNullaryOp {m, Eigen::internal::scalar_constant_op<Scalar>(value)};
     }
 
 
+    /*
     template<typename Scalar, typename D>
     static constexpr auto
     make_identity_matrix(D&& d)
@@ -213,7 +189,7 @@ namespace OpenKalman::interface
       if constexpr (Eigen3::eigen_dense_general<Arg>)
       {
         using B = Eigen::Block<std::remove_reference_t<Arg>,
-          static_cast<IndexType>(static_index_value<Size> ? static_index_value_of_v<Size> : Eigen::Dynamic)...>;
+          static_cast<IndexType>(static_index_value<Size> ? static_cast<std::size_t>(Size{}) : Eigen::Dynamic)...>;
 
         if constexpr ((static_index_value<Size> and ...))
           return make_self_contained<Arg>(B(arg, std::get<0>(begin), std::get<1>(begin)));
@@ -506,7 +482,7 @@ namespace OpenKalman::interface
     static auto
     n_ary_operation(const std::tuple<Ds...>& tup, Operation&& operation, Args&&...args)
     {
-      decltype(auto) op = nat_op(std::forward<Operation>(operation));
+      auto&& op = nat_op(std::forward<Operation>(operation));
       using Op = decltype(op);
 
       if constexpr (sizeof...(Args) == 0)
@@ -544,7 +520,7 @@ namespace OpenKalman::interface
     {
       if constexpr (Eigen3::eigen_dense_general<Arg>)
       {
-        decltype(auto) op = nat_op(std::forward<BinaryFunction>(b));
+        auto&& op = nat_op(std::forward<BinaryFunction>(b));
         using Op = decltype(op);
 
         if constexpr (sizeof...(indices) == 2) // reduce in both directions
@@ -725,7 +701,7 @@ namespace OpenKalman::interface
     static A&
     contract_in_place(A& a, B&& b)
     {
-      decltype(auto) ma = [](A& a){
+      auto&& ma = [](A& a){
         if constexpr (Eigen3::eigen_array_general<A, true>) return a.matrix();
         else return (a);
       }(a);
@@ -892,7 +868,7 @@ namespace OpenKalman::interface
 
       if constexpr (not Eigen3::eigen_matrix_general<A, true>)
       {
-        decltype(auto) n = OpenKalman::to_native_matrix(std::forward<A>(a));
+        auto&& n = OpenKalman::to_native_matrix(std::forward<A>(a));
         static_assert(Eigen3::eigen_matrix_general<decltype(n), true>);
         return solve<must_be_unique, must_be_exact>(std::forward<decltype(n)>(n), std::forward<B>(b));
       }
@@ -1051,4 +1027,4 @@ namespace OpenKalman::interface
 
 } // namespace OpenKalman::interface
 
-#endif //OPENKALMAN_EIGEN_TENSOR_GENERAL_TRAITS_HPP
+#endif //OPENKALMAN_EIGEN_TENSOR_LIBRARY_INTERFACE_HPP

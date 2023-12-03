@@ -37,9 +37,8 @@ namespace OpenKalman::interface
     {
       if constexpr (static_index_value<N>)
       {
-        constexpr auto i = static_index_value_of_v<N>;
-        if constexpr (not dynamic_dimension<ConditionMatrixType, i>) return OpenKalman::get_vector_space_descriptor(arg.conditionMatrix(), n);
-        else if constexpr (not dynamic_dimension<ThenMatrixType, i>) return OpenKalman::get_vector_space_descriptor(arg.thenMatrix(), n);
+        if constexpr (not dynamic_dimension<ConditionMatrixType, n>) return OpenKalman::get_vector_space_descriptor(arg.conditionMatrix(), n);
+        else if constexpr (not dynamic_dimension<ThenMatrixType, n>) return OpenKalman::get_vector_space_descriptor(arg.thenMatrix(), n);
         else return OpenKalman::get_vector_space_descriptor(arg.elseMatrix(), n);
       }
       else
@@ -49,7 +48,7 @@ namespace OpenKalman::interface
     }
 
 
-    using type = std::tuple<typename ConditionMatrixType::Nested, typename ThenMatrixType::Nested,
+    using dependents = std::tuple<typename ConditionMatrixType::Nested, typename ThenMatrixType::Nested,
       typename ElseMatrixType::Nested>;
 
 

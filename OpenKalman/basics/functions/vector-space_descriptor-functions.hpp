@@ -271,9 +271,9 @@ namespace OpenKalman
   namespace internal
   {
 
-    // ------------------------------ //
+    // ------------------------------------- //
     //   replicate_vector_space_descriptor   //
-    // ------------------------------ //
+    // ------------------------------------- //
 
     /**
      * \brief Replicate \ref fixed_vector_space_descriptor T some number of times.
@@ -284,9 +284,9 @@ namespace OpenKalman
     template<typename...S, typename T, typename N, std::enable_if_t<(scalar_type<S> and ...) and
       fixed_vector_space_descriptor<T> and static_index_value<N>, int> = 0>
 #endif
-    auto replicate_vector_space_descriptor(const T& t, N)
+    auto replicate_vector_space_descriptor(const T& t, N n)
     {
-      return replicate_fixed_vector_space_descriptor_t<T, static_index_value_of_v<N>> {};
+      return replicate_fixed_vector_space_descriptor_t<T, n> {};
     }
 
 
@@ -382,6 +382,30 @@ namespace OpenKalman
       else if (get_dimension_size_of(a) != 1) return false;
       else if (get_vector_space_descriptor_is_euclidean(a) and get_vector_space_descriptor_is_euclidean(c)) return true;
       else return replicate_vector_space_descriptor(a, get_dimension_size_of(c)) == c;
+    }
+
+
+    // ---------------------------------- //
+    //   remove_trailing_1D_descriptors   //
+    // ---------------------------------- //
+
+    /**
+     * \brief Remove any trailing, one-dimensional \ref vector_space_descriptor objects.
+     */
+#ifdef __cpp_concepts
+    template<tuple_like DTup>
+#else
+    template<typename DTup, std::enable_if_t<tuple_like<DTup>, int> = 0>
+#endif
+    constexpr auto remove_trailing_1D_descriptors(DTup&& d_tup)
+    {
+      constexpr auto N = std::tuple_size_v<DTup>;
+      if constexpr (N == 0)
+        return std::forward<DTup>(d_tup);
+      else if constexpr (equivalent_to<std::tuple_element_t<N - 1, std::decay_t<DTup>>, Dimensions<1>>)
+        return remove_trailing_1D_descriptors(tuple_slice<0, N - 1>(std::forward<DTup>(d_tup)));
+      else
+        return std::forward<DTup>(d_tup);
     }
 
   } // namespace internal

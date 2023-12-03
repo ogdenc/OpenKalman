@@ -109,27 +109,30 @@ TEST(eigen3, chipwise_unary)
     5,  6,  7,  8,
     9, 10, 11, 12);
 
-  EXPECT_TRUE(is_near(chipwise_operation([](const auto& c){ return c * 2; }, m34), m34 * 2));
-  EXPECT_TRUE(is_near(chipwise_operation([](const auto& c){ return c * 3; }, M3x{m34}), m34 * 3));
-  EXPECT_TRUE(is_near(chipwise_operation([](const auto& c){ return c * 4; }, Mx4{m34}), m34 * 4));
-  EXPECT_TRUE(is_near(chipwise_operation([](const auto& c){ return c * 5; }, Mxx{m34}), m34 * 5));
+  EXPECT_TRUE(is_near(chipwise_operation([](const auto& mat){ static_assert(dimension_size_of_index_is<decltype(mat), 0, 3>); return mat * 2; }, m34), m34 * 2));
+  EXPECT_TRUE(is_near(chipwise_operation([](const auto& mat){ static_assert(dimension_size_of_index_is<decltype(mat), 1, 4>); return mat * 2; }, M34{m34}), m34 * 2));
+  EXPECT_TRUE(is_near(chipwise_operation([](const auto& mat){ static_assert(dimension_size_of_index_is<decltype(mat), 0, 3> and dynamic_dimension<decltype(mat), 1>); return mat * 3; }, M3x{m34}), m34 * 3));
+  EXPECT_TRUE(is_near(chipwise_operation([](const auto& mat){ static_assert(dynamic_dimension<decltype(mat), 0> and dimension_size_of_index_is<decltype(mat), 1, 4>); return mat * 4; }, Mx4{m34}), m34 * 4));
+  EXPECT_TRUE(is_near(chipwise_operation([](const auto& mat){ static_assert(dynamic_dimension<decltype(mat), 0> and dynamic_dimension<decltype(mat), 1>); return mat * 5; }, Mxx{m34}), m34 * 5));
 
-  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c){ return c * 2; }, m34), m34 * 2));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c){ return c * 3; }, M3x{m34}), m34 * 3));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c){ return c * 4; }, Mx4{m34}), m34 * 4));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c){ return c * 5; }, Mxx{m34}), m34 * 5));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& row){ static_assert(vector<decltype(row), 1>); return row * 2; }, m34), m34 * 2));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& row){ static_assert(vector<decltype(row), 1>); return row * 2; }, M34{m34}), m34 * 2));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& row){ static_assert(vector<decltype(row), 1>); return row * 3; }, M3x{m34}), m34 * 3));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& row){ static_assert(vector<decltype(row), 1>); return row * 4; }, Mx4{m34}), m34 * 4));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& row){ static_assert(vector<decltype(row), 1>); return row * 5; }, Mxx{m34}), m34 * 5));
 
-  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c){ return c * 2; }, m34), m34 * 2));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c){ return c * 3; }, M3x{m34}), m34 * 3));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c){ return c * 4; }, Mx4{m34}), m34 * 4));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c){ return c * 5; }, Mxx{m34}), m34 * 5));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& col){ static_assert(vector<decltype(col), 0>); return col * 2; }, m34), m34 * 2));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& col){ static_assert(vector<decltype(col), 0>); return col * 2; }, M34{m34}), m34 * 2));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& col){ static_assert(vector<decltype(col), 0>); return col * 3; }, M3x{m34}), m34 * 3));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& col){ static_assert(vector<decltype(col), 0>); return col * 4; }, Mx4{m34}), m34 * 4));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& col){ static_assert(vector<decltype(col), 0>); return col * 5; }, Mxx{m34}), m34 * 5));
 
-  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& c){ return c * 2; }, m34), m34 * 2));
-  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& c){ return c * 2; }, M34{m34}), m34 * 2));
-  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& c){ return c * 4; }, Mx4{m34}), m34 * 4));
+  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& elem){ static_assert(one_by_one_matrix<decltype(elem)>); return elem * 2; }, m34), m34 * 2));
+  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& elem){ static_assert(one_by_one_matrix<decltype(elem)>); return elem * 2; }, M34{m34}), m34 * 2));
+  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& elem){ static_assert(one_by_one_matrix<decltype(elem)>); return elem * 4; }, Mx4{m34}), m34 * 4));
 
-  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& c){ return c * 3; }, M3x{m34}), m34 * 3));
-  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& c){ return c * 5; }, Mxx{m34}), m34 * 5));
+  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& elem){ static_assert(one_by_one_matrix<decltype(elem)>); return elem * 3; }, M3x{m34}), m34 * 3));
+  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& elem){ static_assert(one_by_one_matrix<decltype(elem)>); return elem * 5; }, Mxx{m34}), m34 * 5));
 }
 
 
@@ -152,22 +155,30 @@ TEST(eigen3, chipwise_unary_w_indices)
     20, 36,  56,  80,
     54, 90, 132, 180);
 
-  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c, std::size_t i){ return c * (i + 2); }, m34), m34r));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c, std::size_t i){ return c * (i + 2); }, M3x{m34}), m34r));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c, std::size_t i){ return c * (i + 2); }, Mx4{m34}), m34r));
-  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& c, std::size_t i){ return c * (i + 2); }, Mxx{m34}), m34r));
+  EXPECT_TRUE(is_near(chipwise_operation<2>([](const auto& mat, std::size_t k){ return mat * (k + 2); }, m34), m34 * 2)); // k is always 0 b/c the third index is 1D
+  EXPECT_TRUE(is_near(chipwise_operation<2>([](const auto& mat, std::size_t k){ return mat * (k + 2); }, M34{m34}), m34 * 2));
+  EXPECT_TRUE(is_near(chipwise_operation<2>([](const auto& mat, std::size_t k){ return mat * (k + 2); }, M3x{m34}), m34 * 2));
+  EXPECT_TRUE(is_near(chipwise_operation<2>([](const auto& mat, std::size_t k){ return mat * (k + 2); }, Mx4{m34}), m34 * 2));
+  EXPECT_TRUE(is_near(chipwise_operation<2>([](const auto& mat, std::size_t k){ return mat * (k + 2); }, Mxx{m34}), m34 * 2));
 
-  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c, std::size_t j){ return c * (j + 2); }, m34), m34c));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c, std::size_t j){ return c * (j + 2); }, M3x{m34}), m34c));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c, std::size_t j){ return c * (j + 2); }, Mx4{m34}), m34c));
-  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& c, std::size_t j){ return c * (j + 2); }, Mxx{m34}), m34c));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& row, std::size_t i){ return row * (i + 2); }, m34), m34r));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& row, std::size_t i){ return row * (i + 2); }, M34{m34}), m34r));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& row, std::size_t i){ return row * (i + 2); }, M3x{m34}), m34r));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& row, std::size_t i){ return row * (i + 2); }, Mx4{m34}), m34r));
+  EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& row, std::size_t i){ return row * (i + 2); }, Mxx{m34}), m34r));
 
-  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& c, std::size_t i, std::size_t j){ return c * (i + 1) * (j + 2); }, m34), m34rc));
-  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& c, std::size_t i, std::size_t j){ return c * (i + 1) * (j + 2); }, M34{m34}), m34rc));
-  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& c, std::size_t i, std::size_t j){ return c * (i + 1) * (j + 2); }, Mx4{m34}), m34rc));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& col, std::size_t j){ return col * (j + 2); }, m34), m34c));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& col, std::size_t j){ return col * (j + 2); }, M34{m34}), m34c));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& col, std::size_t j){ return col * (j + 2); }, M3x{m34}), m34c));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& col, std::size_t j){ return col * (j + 2); }, Mx4{m34}), m34c));
+  EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& col, std::size_t j){ return col * (j + 2); }, Mxx{m34}), m34c));
 
-  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& c, std::size_t j, std::size_t i){ return c * (i + 1) * (j + 2); }, M3x{m34}), m34rc));
-  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& c, std::size_t j, std::size_t i){ return c * (i + 1) * (j + 2); }, Mxx{m34}), m34rc));
+  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& elem, std::size_t i, std::size_t j){ return elem * (i + 1) * (j + 2); }, m34), m34rc));
+  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& elem, std::size_t i, std::size_t j){ return elem * (i + 1) * (j + 2); }, M34{m34}), m34rc));
+  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& elem, std::size_t i, std::size_t j){ return elem * (i + 1) * (j + 2); }, Mx4{m34}), m34rc));
+
+  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& elem, std::size_t j, std::size_t i){ return elem * (i + 1) * (j + 2); }, M3x{m34}), m34rc));
+  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& elem, std::size_t j, std::size_t i){ return elem * (i + 1) * (j + 2); }, Mxx{m34}), m34rc));
 }
 
 

@@ -20,21 +20,21 @@
 namespace OpenKalman::interface
 {
   template<typename Op, typename Dims, typename XprType, template<typename> typename MakePointer>
-  struct IndexibleObjectTraits<Eigen::TensorReductionOp<Op, Dims, XprType, MakePointer>>
+  struct indexible_object_traits<Eigen::TensorReductionOp<Op, Dims, XprType, MakePointer>>
     : Eigen3::indexible_object_traits_base<Eigen::TensorReductionOp<Op, Dims, XprType, MakePointer>>
   {
     template<typename Arg, typename N>
     static constexpr auto get_index_descriptor(const Arg& arg, N n)
     {
       if constexpr (static_index_value<N>)
-        return std::integral_constant<std::size_t, Eigen::internal::get<static_index_value_of_v<N>, typename Dims::Base>::value>{};
+        return std::integral_constant<std::size_t, Eigen::internal::get<n, typename Dims::Base>::value>{};
       else
         return arg.dimension[n]
     }
 
     static constexpr bool has_runtime_parameters = true;
 
-    using type = std::tuple<typename XprType::Nested, Op>; /// \todo add tensor reduction operations
+    using dependents = std::tuple<typename XprType::Nested, Op>; /// \todo add tensor reduction operations
 
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_matrix(Arg&& arg)

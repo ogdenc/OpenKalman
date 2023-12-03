@@ -41,9 +41,9 @@ namespace OpenKalman
   }
 
 
-  // ------------------ //
+  // ----------------------------- //
   //  get_vector_space_descriptor  //
-  // ------------------ //
+  // ----------------------------- //
 
   /**
    * \brief Get the \ref vector_space_descriptor object for index N of \ref indexible object Arg.
@@ -68,15 +68,18 @@ namespace OpenKalman
    * \overload
    */
 #ifdef __cpp_concepts
-  template<indexible T, index_value N = std::integral_constant<std::size_t, 0>>
+  template<indexible T, index_value N>
   constexpr vector_space_descriptor auto
 #else
-  template<typename T, typename N = std::integral_constant<std::size_t, 0>, std::enable_if_t<indexible<T> and index_value<N>, int> = 0>
+  template<typename T, typename N, std::enable_if_t<indexible<T> and index_value<N>, int> = 0>
   constexpr auto
 #endif
-  get_vector_space_descriptor(const T& t, N n = N{})
+  get_vector_space_descriptor(const T& t, N n)
   {
-    return interface::indexible_object_traits<T>::get_vector_space_descriptor(t, n);
+    if constexpr (static_index_value<N>) return get_vector_space_descriptor<static_cast<std::size_t>(n)>(t);
+    else if constexpr(index_count_v<T> == 0) return Dimensions<1>{};
+    else if (n < get_index_count(t)) return interface::indexible_object_traits<T>::get_vector_space_descriptor(t, n);
+    else return 1_uz;
   }
 
 
@@ -203,17 +206,17 @@ namespace OpenKalman
   }
 
 
-  // ----------------------------- //
-  //  get_vector_space_descriptor_match  //
-  // ----------------------------- //
+  // ----------------------- //
+  //  get_has_same_shape_as  //
+  // ----------------------- //
 
   namespace detail
   {
     template<std::size_t...Is>
-    constexpr bool get_vector_space_descriptor_match_impl(std::index_sequence<Is...>) { return true; }
+    constexpr bool get_get_has_same_shape_as_impl(std::index_sequence<Is...>) { return true; }
 
     template<std::size_t...Is, typename T, typename...Ts>
-    constexpr bool get_vector_space_descriptor_match_impl(std::index_sequence<Is...>, const T& t, const Ts&...ts)
+    constexpr bool get_get_has_same_shape_as_impl(std::index_sequence<Is...>, const T& t, const Ts&...ts)
     {
       return ([](auto I_const, const T& t, const Ts&...ts){
         constexpr std::size_t I = decltype(I_const)::value;
@@ -232,9 +235,9 @@ namespace OpenKalman
 #else
   template<typename...Ts, std::enable_if_t<(indexible<Ts> and ...), int> = 0>
 #endif
-  constexpr bool get_vector_space_descriptor_match(const Ts&...ts)
+  constexpr bool get_has_same_shape_as(const Ts&...ts)
   {
-    return detail::get_vector_space_descriptor_match_impl(std::make_index_sequence<std::max({index_count_v<Ts>...})> {}, ts...);
+    return detail::get_get_has_same_shape_as_impl(std::make_index_sequence<std::max({index_count_v<Ts>...})> {}, ts...);
   }
 
 
@@ -368,11 +371,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<std::size_t i = 0, typename Arg> requires
-    (i < std::tuple_size_v<typename interface::indexible_object_traits<std::decay_t<Arg>>::type>) and
+    (i < std::tuple_size_v<typename interface::indexible_object_traits<std::decay_t<Arg>>::dependents>) and
     requires(Arg&& arg) { interface::indexible_object_traits<std::decay_t<Arg>>::template get_nested_matrix<i>(std::forward<Arg>(arg)); }
 #else
   template<std::size_t i = 0, typename Arg,
-    std::enable_if_t<(i < std::tuple_size<typename interface::indexible_object_traits<std::decay_t<Arg>>::type>::value), int> = 0,
+    std::enable_if_t<(i < std::tuple_size<typename interface::indexible_object_traits<std::decay_t<Arg>>::dependents>::value), int> = 0,
     typename = std::void_t<decltype(interface::indexible_object_traits<std::decay_t<Arg>>::template get_nested_matrix<i>(std::declval<Arg&&>()))>>
 #endif
   constexpr decltype(auto)
@@ -476,7 +479,7 @@ namespace OpenKalman
 #else
     template<typename T, std::enable_if_t<directly_accessible<T>, int> = 0>
 #endif
-    constexpr auto* raw_data(T& t)
+    constexpr auto * const raw_data(T& t)
     {
       return interface::indexible_object_traits<std::decay_t<T>>::data(t);
     }
@@ -500,13 +503,13 @@ namespace OpenKalman
         }
         else
         {
-          auto curr_dim = static_cast<std::ptrdiff_t>(get_index_dimension_of<l == Layout::right ? index_count_v<T> - 1 - I : I>(t));
+          auto curr_dim = get_index_dimension_of<l == Layout::right ? index_count_v<T> - 1 - I : I>(t);
           auto next_stride = [](CurrStride curr_stride, auto curr_dim)
           {
-            if constexpr (static_index_value<CurrStride> and static_index_value<decltype(curr_dim)>)
-              return std::integral_constant<std::size_t, static_index_value_of_v<CurrStride> * static_index_value_of_v<decltype(curr_dim)>>{};
+            if constexpr (static_index_value<CurrStride, std::ptrdiff_t> and static_index_value<decltype(curr_dim)>)
+              return std::integral_constant<std::ptrdiff_t, std::decay_t<CurrStride>::value * decltype(curr_dim)::value>{};
             else
-              return curr_stride * curr_dim;
+              return static_cast<std::ptrdiff_t>(curr_stride) * static_cast<std::ptrdiff_t>(curr_dim);
           }(curr_stride, curr_dim);
 
           if constexpr (l == Layout::right)
@@ -520,8 +523,7 @@ namespace OpenKalman
 #if __cpp_generic_lambdas >= 201707L
       template<typename T>
       concept valid_stride_tuple = []<std::size_t...ix>(std::index_sequence<ix...>){
-        return ((std::is_same_v<std::decay_t<std::tuple_element_t<ix, T>>, std::ptrdiff_t> or
-          std::is_same_v<typename static_index_value_of<typename std::tuple_element_t<ix, T>>::value_type, std::ptrdiff_t>) and ...);
+        return (static_index_value<std::tuple_element_t<ix, T>, std::ptrdiff_t> and ...);
         }(std::make_index_sequence<index_count_v<T>>{});
 #endif
 
@@ -533,7 +535,7 @@ namespace OpenKalman
      * \brief Returns a tuple <code>std::tuple&lt;S...&gt;</code> comprising the strides of a strided tensor or matrix.
      * \details Each of the strides <code>S</code> satisfies one of the two concepts:
      * - <code>std::same_as&lt;std::decay_t<S>, std::ptrdiff_t*gt;</code>; or
-     * - <code>std::same_as&lt;typename static_index_value_of&lt;S&gt;>::value_type, std::ptrdiff_t*gt;</code>; or
+     * - <code>std::same_as&lt;typename std::decay_t&lt;S&gt;>::value_type, std::ptrdiff_t*gt;</code>.
      */
 #if __cpp_generic_lambdas >= 201707L
     template<indexible T> requires (layout_of_v<T> != Layout::none)
@@ -557,6 +559,7 @@ namespace OpenKalman
       }
     }
 
+
     // -------------------- //
     //  has_static_strides  //
     // -------------------- //
@@ -566,7 +569,7 @@ namespace OpenKalman
       template<typename Strides, std::size_t...ix>
       constexpr bool has_static_strides_i(std::index_sequence<ix...>)
       {
-        return (static_index_value<std::tuple_element_t<ix, Strides>> and ...);
+        return (static_index_value<std::tuple_element_t<ix, Strides>, std::ptrdiff_t> and ...);
       };
 
       template<typename Strides>
@@ -587,6 +590,166 @@ namespace OpenKalman
     constexpr bool has_static_strides =
 #endif
       detail::has_static_strides_impl<decltype(internal::strides(std::declval<T>()))>();
+
+
+    // ------------------------------ //
+    //  best_vector_space_descriptor  //
+    // ------------------------------ //
+
+    /**
+     * \brief Given one or more /ref vector_space_descriptor objects, return the "best" one (i.e., the one that is static).
+     */
+#ifdef __cpp_concepts
+    template<vector_space_descriptor D, vector_space_descriptor...Ds> requires maybe_equivalent_to<D, Ds...>
+#else
+    template<typename D, typename...Ds, std::enable_if_t<maybe_equivalent_to<D, Ds...>, int> = 0>
+#endif
+    constexpr decltype(auto) best_vector_space_descriptor(D&& d, Ds&&...ds)
+    {
+      if constexpr (sizeof...(Ds) == 0) return std::forward<D>(d);
+      else if constexpr (fixed_vector_space_descriptor<D>) return std::forward<D>(d);
+      else return best_vector_space_descriptor(std::forward<Ds>(ds)...);
+    }
+
+
+    // ------------------------- //
+    //  make_fixed_size_adapter  //
+    // ------------------------- //
+
+    namespace detail
+    {
+      template<typename...Ts>
+      using best_desc = std::decay_t<decltype(best_vector_space_descriptor(std::declval<Ts>()...))>;
+
+
+      template<typename DTup, typename Arg, std::size_t...Ix>
+      constexpr decltype(auto)
+      make_fixed_size_adapter_impl(Arg&& arg, std::index_sequence<Ix...>)
+      {
+        if constexpr (sizeof...(Ix) == 0)
+        {
+          if constexpr (index_count_v<Arg> > 0) return FixedSizeAdapter {std::forward<Arg>(arg)};
+          else return std::forward<Arg>(arg);
+        }
+        else
+        {
+          using F = FixedSizeAdapter<Arg, best_desc<vector_space_descriptor_of_t<Arg, Ix>, std::tuple_element_t<Ix, DTup>>...>;
+          if constexpr ((... or (dynamic_dimension<Arg, Ix> and not dynamic_dimension<F, Ix>)) or sizeof...(Ix) < index_count_v<Arg>)
+            return F {std::forward<Arg>(arg)};
+          else
+            return std::forward<Arg>(arg);
+        }
+      }
+    } // namespace detail
+
+
+    /**
+     * \brief Make the best possible \ref FixedSizeAdapter, if applicable, based on a set of vector space descriptors.
+     * \tparam Ds Vector space descriptors reflecting the dimensions of the new object
+     * \return (1) A fixed size adapter or (2) a reference to the argument unchanged.
+     */
+#ifdef __cpp_concepts
+    template<vector_space_descriptor...Ds, compatible_with_vector_space_descriptors<Ds...> Arg> requires
+      (index_count_v<Arg> != dynamic_size)
+#else
+    template<typename...Ds, typename Arg, std::enable_if_t<(... and vector_space_descriptor<Ds>) and
+      compatible_with_vector_space_descriptors<Arg, Ds...> and (index_count<Arg>::value != dynamic_size), int> = 0>
+#endif
+    constexpr decltype(auto)
+    make_fixed_size_adapter(Arg&& arg)
+    {
+      using DTup = decltype(remove_trailing_1D_descriptors(std::declval<std::tuple<Ds...>>()));
+      return detail::make_fixed_size_adapter_impl<DTup>(std::forward<Arg>(arg), std::make_index_sequence<std::tuple_size_v<DTup>>{});
+    }
+
+
+    // ------------------------------ //
+    //  make_fixed_size_adapter_like  //
+    // ------------------------------ //
+
+    namespace detail
+    {
+      template<std::size_t I, typename...Ts>
+      constexpr decltype(auto) best_desc_Ts_impl(const Ts&...ts)
+      {
+        return best_vector_space_descriptor(get_vector_space_descriptor<I>(ts)...);
+      }
+
+
+      template<std::size_t I, typename...Ts>
+      using best_desc_Ts = std::decay_t<decltype(best_desc_Ts_impl<I>(std::declval<Ts>()...))>;
+
+
+      template<typename...Ts, typename Arg, std::size_t...Ix>
+      constexpr decltype(auto) make_fixed_size_adapter_like_impl(Arg&& arg, std::index_sequence<Ix...>)
+      {
+        if constexpr (sizeof...(Ts) == 0) return std::forward<Arg>(arg);
+        else
+        {
+          using F = decltype(make_fixed_size_adapter<best_desc_Ts<Ix, Ts...>...>(std::declval<Arg&&>()));
+          constexpr bool better = (... or (dynamic_dimension<Arg, Ix> and not dynamic_dimension<F, Ix>));
+          if constexpr (better) return F {std::forward<Arg>(arg)};
+          else return std::forward<Arg>(arg);
+        }
+      }
+    } // namespace detail
+
+
+    /**
+     * \brief Make the best possible \ref FixedSizeAdapter, if applicable, derived from the sizes of several objects.
+     * \tparam Ts Optional indexible objects on which to base the fixed dimensions
+     * \return (1) A fixed size adapter or (2) a reference to the argument unchanged.
+     */
+#ifdef __cpp_concepts
+    template<indexible...Ts, maybe_has_same_shape_as<Ts...> Arg> requires (index_count_v<Arg> != dynamic_size)
+#else
+    template<typename...Ts, typename Arg, std::enable_if_t<(... and indexible<Ts>) and
+      maybe_has_same_shape_as<Arg, Ts...> and (index_count_v<Arg> != dynamic_size), int> = 0>
+#endif
+    constexpr decltype(auto)
+    make_fixed_size_adapter_like(Arg&& arg)
+    {
+      constexpr auto min_count = std::min({index_count_v<Arg>,
+        (index_count_v<Ts> == dynamic_size ? index_count_v<Arg> : index_count_v<Ts>)...});
+      return detail::make_fixed_size_adapter_like_impl<Ts...>(std::forward<Arg>(arg), std::make_index_sequence<min_count>{});
+    }
+
+
+    // -------------------------------- //
+    //  make_fixed_square_adapter_like  //
+    // -------------------------------- //
+
+    namespace detail
+    {
+      template<typename...Ds, typename Arg, std::size_t...Ix>
+      constexpr decltype(auto) make_fixed_square_adapter_like_impl(Arg&& arg, std::index_sequence<Ix...>)
+      {
+        using F = decltype(make_fixed_size_adapter<best_desc<Ds..., vector_space_descriptor_of_t<Arg, Ix>...>>(std::declval<Arg&&>()));
+        constexpr bool better = (... or (dynamic_dimension<Arg, Ix> and not dynamic_dimension<F, Ix>));
+        if constexpr (better) return F {std::forward<Arg>(arg)};
+        else return std::forward<Arg>(arg);
+      }
+    } // namespace detail
+
+
+    /**
+     * \brief Make the best possible \ref square_matrix, if applicable, derived from the sizes of an object and other info.
+     * \tparam Ds Optional vector space descriptors possibly reflecting the square dimension
+     * \return (1) A fixed size adapter or (2) a reference to the argument unchanged.
+     */
+#ifdef __cpp_concepts
+    template<vector_space_descriptor...Ds, square_matrix<Likelihood::maybe> Arg> requires
+      (index_count_v<Arg> != dynamic_size) and maybe_equivalent_to<Ds...>
+#else
+    template<typename...Ds, typename Arg, std::enable_if_t<
+      (... and vector_space_descriptor<Ds>) and square_matrix<Arg, Likelihood::maybe> and
+      (index_count_v<Arg> != dynamic_size) and maybe_equivalent_to<Ds...>, int> = 0>
+#endif
+    constexpr decltype(auto)
+    make_fixed_square_adapter_like(Arg&& arg)
+    {
+      return detail::make_fixed_square_adapter_like_impl<Ds...>(std::forward<Arg>(arg), std::make_index_sequence<index_count_v<Arg>>{});
+    }
 
   } // namespace internal
 

@@ -31,7 +31,7 @@ namespace OpenKalman::interface
 
   public:
 
-    using type = std::tuple<
+    using dependents = std::tuple<
       typename Eigen::PermutationMatrix<SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex>::IndicesType>;
 
     static constexpr bool has_runtime_parameters = false;

@@ -53,6 +53,9 @@ namespace OpenKalman::interface {}
 #include "index-values.hpp"
 #include "vector-space-descriptors/vector-space-descriptors.hpp"
 
+#include "interfaces/interfaces-defined.hpp"
+#include "internal/library_base.hpp"
+
 #include "forward-traits.hpp"
 #include "forward-class-declarations.hpp"
 
@@ -63,13 +66,17 @@ namespace OpenKalman::interface {}
 
 #include "traits.hpp"
 
-#include "internal/library_base.hpp"
 #include "internal/ElementAccessor.hpp"
 
 #include "internal/LibraryWrapper.hpp"
+#include "interfaces/internal/LibraryWrapper.hpp"
+
 #include "internal/FixedSizeAdapter.hpp"
+#include "interfaces/internal/FixedSizeAdapter.hpp"
 
 #include "internal/MatrixBase.hpp"
 #include "internal/TypedMatrixBase.hpp"
+
+#include "functions/make_matrix.hpp"
 
 #endif //OPENKALMAN_BASICS_HPP

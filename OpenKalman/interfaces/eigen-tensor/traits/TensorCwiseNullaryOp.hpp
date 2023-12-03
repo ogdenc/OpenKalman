@@ -10,11 +10,11 @@
 
 /**
  * \file
- * \brief Type traits as applied to Eigen::TensorCwiseUnaryOp
+ * \brief Type traits as applied to Eigen::TensorCwiseNullaryOp
  */
 
-#ifndef OPENKALMAN_EIGEN_TRAITS_TENSORCWISEUNARYOP_HPP
-#define OPENKALMAN_EIGEN_TRAITS_TENSORCWISEUNARYOP_HPP
+#ifndef OPENKALMAN_EIGEN_TRAITS_TENSORCWISENULLARYOP_HPP
+#define OPENKALMAN_EIGEN_TRAITS_TENSORCWISENULLARYOP_HPP
 
 
 namespace OpenKalman::interface
@@ -103,4 +103,4 @@ namespace OpenKalman::interface
 
 } // namespace OpenKalman::interface
 
-#endif //OPENKALMAN_EIGEN_TRAITS_TENSORCWISEUNARYOP_HPP
+#endif //OPENKALMAN_EIGEN_TRAITS_TENSORCWISENULLARYOP_HPP
