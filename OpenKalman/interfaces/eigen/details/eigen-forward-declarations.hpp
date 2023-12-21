@@ -331,7 +331,7 @@ namespace OpenKalman::Eigen3
 
   /**
    * \brief An alias for the Eigen identity matrix.
-   * \note In Eigen, this does not need to be a \ref square_matrix.
+   * \note In Eigen, this does not need to be a \ref square_shaped.
    * \tparam NestedMatrix The nested matrix on which the identity is based.
    */
   template<typename NestedMatrix>
@@ -344,9 +344,8 @@ namespace OpenKalman::Eigen3
     template<typename T>
     struct is_eigen_LibraryWrapper : std::false_type {};
 
-    template<typename NestedObject, typename LibraryObject>
-    struct is_eigen_LibraryWrapper<internal::LibraryWrapper<NestedObject, LibraryObject>>
-      : std::bool_constant<eigen_general<LibraryObject, true>> {};
+    template<typename N, typename L, typename...Ps>
+    struct is_eigen_LibraryWrapper<internal::LibraryWrapper<N, L, Ps...>> : std::bool_constant<eigen_general<L, true>> {};
   } // namespace detail
 
 
@@ -370,11 +369,12 @@ namespace OpenKalman::Eigen3
    * \tparam NestedObject A non-Eigen class, for which an Eigen3 trait and evaluator is defined.
    */
 #ifdef __cpp_concepts
-  template<indexible NestedObject> requires (index_count_v<NestedObject> <= 2)
+  template<indexible NestedObject, typename...InternalizedParameters> requires (index_count_v<NestedObject> <= 2)
 #else
-  template<typename NestedObject>
+  template<typename NestedObject, typename...InternalizedParameters>
 #endif
-  using EigenWrapper = internal::LibraryWrapper<NestedObject, Eigen::Matrix<scalar_type_of_t<NestedObject>, 0, 0>>;
+  using EigenWrapper = internal::LibraryWrapper<NestedObject, Eigen::Matrix<scalar_type_of_t<NestedObject>, 0, 0>,
+    InternalizedParameters...>;
 
 
   // ---------------- //

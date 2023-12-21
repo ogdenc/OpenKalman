@@ -80,8 +80,8 @@ namespace OpenKalman
    * \brief Whether a property is definitely known to apply at compile time (definitely) or not ruled out (maybe).
    * \details Generally, Likelihood::maybe means that there are parameters defined at runtime, such as dynamic dimensions
    * of a matrix, that might make the property apply, but this cannot be determined at compile time. For example:
-   * - <code>square_matrix<T, Likelihood::definitely></code> means that T is known at compile time to be a square matrix.
-   * - <code>square_matrix<T, Likelihood::maybe></code> means that T <em>could</em> be a square matrix, but whether it
+   * - <code>square_shaped<T, Likelihood::definitely></code> means that T is known at compile time to be a square matrix.
+   * - <code>square_shaped<T, Likelihood::maybe></code> means that T <em>could</em> be a square matrix, but whether it
    * actually <em>is</em> cannot be determined at compile time.
    */
   enum struct Likelihood : int {
@@ -164,26 +164,26 @@ namespace OpenKalman
 #endif
 
 
-    /**
-     * \internal
-     * \brief T is a non-empty tuple, pair, array, or other type that can be an argument to std::apply.
-     */
-  #ifdef __cpp_concepts
-    template<typename T>
-    concept tuple_like = requires { std::tuple_size<T>() == 0; } or requires (T t) { std::get<0>(t); };
-  #else
+#ifndef __cpp_concepts
     namespace detail
     {
       template<typename T, typename = void>
       struct is_tuple_like : std::false_type {};
 
       template<typename T>
-      struct is_tuple_like<T, std::enable_if_t<(std::tuple_size<T>() == 0)>> : std::true_type {};
-
-      template<typename T>
-      struct is_tuple_like<T, std::void_t<decltype(std::get<0>(std::declval<T>()))>> : std::true_type {};
+      struct is_tuple_like<T, std::enable_if_t<(std::tuple_size<T>::value >= 0)>> : std::true_type {};
     }
+#endif
 
+
+    /**
+     * \internal
+     * \brief T is a non-empty tuple, pair, array, or other type that can be an argument to std::apply.
+     */
+  #ifdef __cpp_concepts
+    template<typename T>
+    concept tuple_like = (std::tuple_size_v<T> >= 0);
+  #else
     template<typename T>
     constexpr bool tuple_like = detail::is_tuple_like<T>::value;
   #endif

@@ -88,17 +88,18 @@ namespace OpenKalman::interface
 
     static constexpr bool has_runtime_parameters = HasDirectAccess ? Rows == Eigen::Dynamic or Cols == Eigen::Dynamic : false;
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
+
+    template<typename Arg>
+    static decltype(auto) nested_object(Arg&& arg)
     {
-      static_assert(i == 0);
       return std::forward<Arg>(arg).nestedExpression();
     }
+
 
     template<typename Arg>
     static auto convert_to_self_contained(Arg&& arg)
     {
-      return make_dense_writable_matrix_from(std::forward<Arg>(arg));
+      return make_dense_object(std::forward<Arg>(arg));
     }
 
     template<typename Arg>
@@ -127,9 +128,9 @@ namespace OpenKalman::interface
     }
 
     template<Likelihood b>
-    static constexpr bool is_one_by_one =
-      (Rows == 1 and Cols == 1 and one_by_one_matrix<XprType, Likelihood::maybe>) or
-      ((Rows == 1 or Rows == Eigen::Dynamic) and (Cols == 1 or Cols == Eigen::Dynamic) and one_by_one_matrix<XprType, b>);
+    static constexpr bool one_dimensional =
+      (Rows == 1 and Cols == 1 and OpenKalman::one_dimensional<XprType, Likelihood::maybe>) or
+      ((Rows == 1 or Rows == Eigen::Dynamic) and (Cols == 1 or Cols == Eigen::Dynamic) and OpenKalman::one_dimensional<XprType, b>);
 
     template<Likelihood b>
     static constexpr bool is_square =
@@ -137,7 +138,7 @@ namespace OpenKalman::interface
         ((Rows != Eigen::Dynamic or Cols != Eigen::Dynamic) and dynamic_index_count_v<XprType> <= 1)) and
       (Rows == Eigen::Dynamic or Cols == Eigen::Dynamic or Rows == Cols) and
       (xprtypeprod == dynamic_size or (
-        are_within_tolerance(xprtypeprod, internal::constexpr_sqrt(xprtypeprod) * internal::constexpr_sqrt(xprtypeprod)) and
+        internal::are_within_tolerance(xprtypeprod, internal::constexpr_sqrt(xprtypeprod) * internal::constexpr_sqrt(xprtypeprod)) and
         (Rows == Eigen::Dynamic or Rows * Rows == xprtypeprod) and
         (Cols == Eigen::Dynamic or Cols * Cols == xprtypeprod))) and
       (Rows == Eigen::Dynamic or xprtypemax == 0 or (Rows * Rows) % xprtypemax == 0) and

@@ -27,21 +27,25 @@ namespace OpenKalman::interface
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>>;
+    using Xpr = Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>;
+    using Base = Eigen3::indexible_object_traits_base<Xpr>;
+    using XprTypeNested = typename Eigen::internal::ref_selector<XprType>::non_const_type;
 
   public:
 
     static constexpr bool has_runtime_parameters = true;
     using dependents = std::tuple<typename Eigen::internal::ref_selector<XprType>::non_const_type>;
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
+
+    template<typename Arg>
+    static decltype(auto) nested_object(Arg&& arg)
     {
-      static_assert(i == 0);
       return std::forward<Arg>(arg).nestedExpression();
     }
 
-    // convert_to_self_contained() not defined because Eigen::Block should always be converted to Matrix
+
+    // convert_to_self_contained not defined
+
 
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)

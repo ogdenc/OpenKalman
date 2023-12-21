@@ -224,7 +224,7 @@ namespace OpenKalman
       using HessianArrayIn = std::array<HessianMatrixIn, output_size>;
 
       HessianArrayIn a;
-      a.fill(make_zero_matrix_like(a));
+      a.fill(make_zero(a));
       return a;
     }
   }

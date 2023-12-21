@@ -81,7 +81,7 @@ TEST(matrices, EuclideanMean_class)
     std::sqrt(3)/2, 0.5, sqrt2/2}));
 
   // Construct from a typed_matrix_nestable
-  Mat23 mat23d(make_dense_writable_matrix_from<M33>(1, 2, 3, 4, 5, 6, 7, 8, 9));
+  Mat23 mat23d(make_dense_object_from<M33>(1, 2, 3, 4, 5, 6, 7, 8, 9));
   EXPECT_TRUE(is_near(mat23d, TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));
 
   // Construct from a list of coefficients
@@ -111,7 +111,7 @@ TEST(matrices, EuclideanMean_class)
     0.5, sqrt2/2, std::sqrt(3)/2}));
 
   // assign from a typed_matrix_nestable
-  mat23e = make_dense_writable_matrix_from<M33>(3, 4, 5, 6, 7, 8, 9, 10, 11);
+  mat23e = make_dense_object_from<M33>(3, 4, 5, 6, 7, 8, 9, 10, 11);
 
   // Assign from a list of coefficients (via move assignment operator)
   mat23e = {9, 8, 7, 6, 5, 4, 3, 2, 1};
@@ -138,7 +138,7 @@ TEST(matrices, EuclideanMean_class)
   EXPECT_TRUE(is_near(mat23a, M33::Zero()));
 
   // Zero
-  EXPECT_TRUE(is_near(make_zero_matrix_like<Mat23>(), M33::Zero()));
+  EXPECT_TRUE(is_near(make_zero<Mat23>(), M33::Zero()));
 
   // Identity
   EXPECT_TRUE(is_near(make_identity_matrix_like<EuclideanMean<Dimensions<2>, M22>>(), M22::Identity()));
@@ -191,7 +191,7 @@ TEST(matrices, EuclideanMean_subscripts)
 
 TEST(matrices, EuclideanMean_deduction_guides)
 {
-  auto a = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
+  auto a = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
   EXPECT_TRUE(is_near(EuclideanMean(a), a));
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(EuclideanMean(a)), 0>, Dimensions<2>>);
 
@@ -212,7 +212,7 @@ TEST(matrices, EuclideanMean_deduction_guides)
 
 TEST(matrices, EuclideanMean_make_functions)
 {
-  auto a = make_dense_writable_matrix_from<M33>(1, 2, 3, 4, 5, 6, 7, 8, 9);
+  auto a = make_dense_object_from<M33>(1, 2, 3, 4, 5, 6, 7, 8, 9);
   EXPECT_TRUE(is_near(make_euclidean_mean<C2>(a), a));
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_euclidean_mean<C2>(a)), 0>, C2>);
   EXPECT_TRUE(is_near(make_euclidean_mean<C2>(a), a));
@@ -241,21 +241,21 @@ TEST(matrices, EuclideanMean_traits)
   static_assert(identity_matrix<EuclideanMean<Dimensions<2>, I22>>);
   static_assert(not identity_matrix<EuclideanMean<angle::Radians, I22>>);
   static_assert(not identity_matrix<EuclideanMean<Dimensions<2>, M23>>);
-  static_assert(not zero_matrix<Mat23>);
-  static_assert(zero_matrix<EuclideanMean<angle::Radians, Z22>>);
-  static_assert(zero_matrix<EuclideanMean<Dimensions<2>, Z22>>);
-  static_assert(zero_matrix<EuclideanMean<C2, ZeroMatrix<eigen_matrix_t<double, 3, 3>>>>);
+  static_assert(not zero<Mat23>);
+  static_assert(zero<EuclideanMean<angle::Radians, Z22>>);
+  static_assert(zero<EuclideanMean<Dimensions<2>, Z22>>);
+  static_assert(zero<EuclideanMean<C2, ZeroMatrix<eigen_matrix_t<double, 3, 3>>>>);
 
-  EXPECT_TRUE(is_near(make_zero_matrix_like<Mat23>(), eigen_matrix_t<double, 3, 3>::Zero()));
+  EXPECT_TRUE(is_near(make_zero<Mat23>(), eigen_matrix_t<double, 3, 3>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<EuclideanMean<Dimensions<2>, I22>>(), eigen_matrix_t<double, 2, 2>::Identity()));
 }
 
 
 TEST(matrices, EuclideanMean_overloads)
 {
-  EXPECT_TRUE(is_near(nested_matrix(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9}), TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));
+  EXPECT_TRUE(is_near(nested_object(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9}), TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));
 
-  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9}), TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));
+  EXPECT_TRUE(is_near(make_dense_object_from(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9}), TM33 {1, 2, 3, 4, 5, 6, 7, 8, 9}));
 
   EXPECT_TRUE(is_near(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9} * 2), TM33 {2, 4, 6, 8, 10, 12, 14, 16, 18}));
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9} * 2))>, Mat23>);
@@ -273,18 +273,18 @@ TEST(matrices, EuclideanMean_overloads)
   using A3 = TypedIndex<angle::Radians, Axis, angle::Radians>;
   const auto mb = make_euclidean_mean<A3>(std::sqrt(3) / 2, 0.5, 5, 0.5, -std::sqrt(3) / 2);
   const auto x2 = (eigen_matrix_t<double, 3, 1> {} << pi / 6, 5, -pi / 3).finished();
-  EXPECT_TRUE(is_near(from_euclidean(mb).nested_matrix(), x2));
+  EXPECT_TRUE(is_near(from_euclidean(mb).nested_object(), x2));
 
-  EXPECT_TRUE(is_near(to_diagonal(EuclideanMean<Dimensions<2>, M21> {2, 3}).nested_matrix(), TM22 {2, 0, 0, 3}));
+  EXPECT_TRUE(is_near(to_diagonal(EuclideanMean<Dimensions<2>, M21> {2, 3}).nested_object(), TM22 {2, 0, 0, 3}));
   static_assert(diagonal_matrix<decltype(to_diagonal(EuclideanMean<Dimensions<2>, M21> {2, 3}))>);
   static_assert(typed_matrix<decltype(to_diagonal(EuclideanMean<Dimensions<2>, M21> {2, 3}))>);
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(to_diagonal(EuclideanMean<Dimensions<2>, M21> {2, 3})), 1>, Dimensions<2>>);
 
-  EXPECT_TRUE(is_near(transpose(EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6}).nested_matrix(), TM32 {1, 4, 2, 5, 3, 6}));
+  EXPECT_TRUE(is_near(transpose(EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6}).nested_object(), TM32 {1, 4, 2, 5, 3, 6}));
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(transpose(EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})), 0>, Dimensions<3>>);
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(transpose(EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})), 1>, Dimensions<2>>);
 
-  EXPECT_TRUE(is_near(adjoint(EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6}).nested_matrix(), TM32 {1, 4, 2, 5, 3, 6}));
+  EXPECT_TRUE(is_near(adjoint(EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6}).nested_object(), TM32 {1, 4, 2, 5, 3, 6}));
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(adjoint(EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})), 0>, Dimensions<3>>);
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(adjoint(EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})), 1>, Dimensions<2>>);
 
@@ -301,7 +301,7 @@ TEST(matrices, EuclideanMean_overloads)
   EXPECT_TRUE(is_near(square(QR_decomposition(EuclideanMean<Dimensions<3>, M32> {1, 4, 2, 5, 3, 6})), TM22 {14., 32, 32, 77}));
 
   using N = std::normal_distribution<double>;
-  Mat23 m = make_zero_matrix_like<Mat23>();
+  Mat23 m = make_zero<Mat23>();
   for (int i=0; i<100; i++)
   {
     m = (m * i + randomize<Mat23>(N {1.0, 0.3}, N {2.0, 0.3}, N {3.0, 0.3})) / (i + 1);

@@ -27,7 +27,7 @@ namespace OpenKalman::interface
     using scalar_type = scalar_type_of_t<ExpressionType>;
 
     template<typename Arg>
-    static constexpr auto get_index_count(const Arg& arg) { return std::integral_constant<std::size_t, 2>{}; }
+    static constexpr auto count_indices(const Arg& arg) { return std::integral_constant<std::size_t, 2>{}; }
 
     template<typename Arg, typename N>
     static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
@@ -39,12 +39,13 @@ namespace OpenKalman::interface
 
     static constexpr bool has_runtime_parameters = false;
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
+
+    template<typename Arg>
+    static decltype(auto) nested_object(Arg&& arg)
     {
-      static_assert(i == 0);
       return std::forward<Arg>(arg)._expression();
     }
+
 
     template<typename Arg>
     static auto convert_to_self_contained(Arg&& arg)
@@ -62,10 +63,10 @@ namespace OpenKalman::interface
     }
 
     template<Likelihood b>
-    static constexpr bool is_one_by_one = one_by_one_matrix<ExpressionType, b>;
+    static constexpr bool one_dimensional = OpenKalman::one_dimensional<ExpressionType, b>;
 
     template<Likelihood b>
-    static constexpr bool is_square = square_matrix<ExpressionType, b>;
+    static constexpr bool is_square = square_shaped<ExpressionType, b>;
 
     // No get or set defined.
   };

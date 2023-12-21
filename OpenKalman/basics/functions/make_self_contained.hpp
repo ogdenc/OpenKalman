@@ -61,14 +61,14 @@ namespace OpenKalman
       // If it is not self-contained because it is an lvalue reference, simply return a copy.
       return std::decay_t<Arg> {arg};
     }
-    else if constexpr (interface::convert_to_self_contained_defined_for<std::decay_t<Arg>, Arg&&>)
+    else if constexpr (interface::convert_to_self_contained_defined_for<Arg&&>)
     {
       return interface::indexible_object_traits<std::decay_t<Arg>>::convert_to_self_contained(std::forward<Arg>(arg));
     }
     else
     {
       // Ensure that copying occurs if Arg is a writable lvalue reference
-      auto ret {make_dense_writable_matrix_from(std::forward<Arg>(arg))};
+      auto ret {make_dense_object(std::forward<Arg>(arg))};
       return ret;
     }
   }

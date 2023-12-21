@@ -46,8 +46,8 @@ TEST(eigen3, Eigen_PartialReduxExpr_norms)
     get_constant(constant_coefficient{c22_m2}, std::integral_constant<std::size_t, 1>{}, std::integral_constant<std::size_t, 2>{}) == 4);
 
   static_assert(constant_matrix<decltype(c22_m2), CompileTimeStatus::known>);
-  static_assert(not zero_matrix<decltype(c22_m2)>);
-  static_assert(not one_by_one_matrix<decltype(c22_m2), Likelihood::maybe>);
+  static_assert(not zero<decltype(c22_m2)>);
+  static_assert(not one_dimensional<decltype(c22_m2), Likelihood::maybe>);
   static_assert(not constant_diagonal_matrix<decltype(c22_m2), CompileTimeStatus::any, Likelihood::maybe>);
 
   static_assert(constant_coefficient_v<decltype(c22_m2.colwise().lpNorm<1>())> == 4);
@@ -91,13 +91,13 @@ TEST(eigen3, Eigen_PartialReduxExpr_norms)
   EXPECT_EQ(constant_coefficient{cd0022_33_m2.colwise().lpNorm<1>()}(), 6);
   EXPECT_EQ(constant_coefficient{cd0022_33_m2.rowwise().lpNorm<1>()}(), 6);
 
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise().lpNorm<1>())>);
-  static_assert(zero_matrix<decltype(std::declval<Zxx>().colwise().lpNorm<1>())>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise().lpNorm<1>())>);
+  static_assert(zero<decltype(std::declval<Zxx>().colwise().lpNorm<1>())>);
   EXPECT_EQ(M22::Zero().colwise().lpNorm<1>()(0,0), 0);
 
   // lpNorm<2>
 
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(c22_m2.colwise().lpNorm<2>())>, internal::constexpr_sqrt(8.)));
+  static_assert(internal::are_within_tolerance(constant_coefficient_v<decltype(c22_m2.colwise().lpNorm<2>())>, internal::constexpr_sqrt(8.)));
   EXPECT_NEAR(constant_coefficient{c22_m2.colwise().lpNorm<2>()}(), std::sqrt(8.), 1e-9);
   EXPECT_NEAR(constant_coefficient{c00_22_m2.colwise().lpNorm<2>()}(), std::sqrt(8.), 1e-9);
   EXPECT_NEAR(c00_22_m2.colwise().lpNorm<2>()(0,0), std::sqrt(8.), 1e-9);
@@ -134,13 +134,13 @@ TEST(eigen3, Eigen_PartialReduxExpr_norms)
   EXPECT_EQ(constant_coefficient{cd0022_33_m2.colwise().lpNorm<2>()}(), 2 * numbers::sqrt3);
   EXPECT_EQ(constant_coefficient{cd0022_33_m2.rowwise().lpNorm<2>()}(), 2 * numbers::sqrt3);
 
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise().lpNorm<2>())>);
-  static_assert(zero_matrix<decltype(std::declval<Zxx>().colwise().lpNorm<2>())>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise().lpNorm<2>())>);
+  static_assert(zero<decltype(std::declval<Zxx>().colwise().lpNorm<2>())>);
   EXPECT_EQ(M22::Zero().colwise().lpNorm<2>()(0,0), 0);
 
   // lpNorm<3>
 
-  static_assert(are_within_tolerance<5>(constant_coefficient_v<decltype(c22_m2.colwise().lpNorm<3>())>, internal::constexpr_pow(16., 1./3)));
+  static_assert(internal::are_within_tolerance<5>(constant_coefficient_v<decltype(c22_m2.colwise().lpNorm<3>())>, internal::constexpr_pow(16., 1./3)));
   EXPECT_NEAR(constant_coefficient{c22_m2.colwise().lpNorm<3>()}(), (std::pow(16., 1./3)), 1e-9);
   EXPECT_NEAR(constant_coefficient{c00_22_m2.colwise().lpNorm<3>()}(), (std::pow(16., 1./3)), 1e-9);
   EXPECT_NEAR(c00_22_m2.colwise().lpNorm<3>()(0,0), (std::pow(16., 1./3)), 1e-9);
@@ -166,8 +166,8 @@ TEST(eigen3, Eigen_PartialReduxExpr_norms)
   EXPECT_EQ(constant_coefficient{cd00_22_m2.rowwise().lpNorm<3>()}(), 2);
   EXPECT_EQ(cd00_22_m2.rowwise().lpNorm<3>()(0,0), 2);
 
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise().lpNorm<3>())>);
-  static_assert(zero_matrix<decltype(std::declval<Zxx>().colwise().lpNorm<3>())>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise().lpNorm<3>())>);
+  static_assert(zero<decltype(std::declval<Zxx>().colwise().lpNorm<3>())>);
   EXPECT_EQ(M22::Zero().colwise().lpNorm<3>()(0,0), 0);
 
   // lpNorm<Eigen::Infinity>
@@ -180,8 +180,8 @@ TEST(eigen3, Eigen_PartialReduxExpr_norms)
   EXPECT_EQ(constant_coefficient{cd00_22_m2.colwise().lpNorm<Eigen::Infinity>()}(), 2);
   EXPECT_EQ(cd22_m2.colwise().lpNorm<Eigen::Infinity>()(0,0), 2);
 
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise().lpNorm<Eigen::Infinity>())>);
-  static_assert(zero_matrix<decltype(std::declval<Zxx>().colwise().lpNorm<Eigen::Infinity>())>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise().lpNorm<Eigen::Infinity>())>);
+  static_assert(zero<decltype(std::declval<Zxx>().colwise().lpNorm<Eigen::Infinity>())>);
   EXPECT_EQ(M22::Zero().colwise().lpNorm<Eigen::Infinity>()(0,0), 0);
 
   // lpNorm<0>
@@ -207,13 +207,13 @@ TEST(eigen3, Eigen_PartialReduxExpr_norms)
   EXPECT_EQ(constant_coefficient{cd00_22_m2.rowwise().lpNorm<0>()}(), INFINITY);
   EXPECT_EQ(cd00_22_m2.rowwise().lpNorm<0>()(0,0), INFINITY);
 
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise().lpNorm<0>())>);
-  static_assert(zero_matrix<decltype(std::declval<Zxx>().colwise().lpNorm<0>())>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise().lpNorm<0>())>);
+  static_assert(zero<decltype(std::declval<Zxx>().colwise().lpNorm<0>())>);
   EXPECT_EQ(M22::Zero().colwise().lpNorm<0>()(0,0), INFINITY);
 
   // stableNorm
 
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(c22_m2.colwise().stableNorm())>, internal::constexpr_sqrt(8.)));
+  static_assert(internal::are_within_tolerance(constant_coefficient_v<decltype(c22_m2.colwise().stableNorm())>, internal::constexpr_sqrt(8.)));
   EXPECT_NEAR(constant_coefficient{c00_22_m2.colwise().stableNorm()}(), std::sqrt(8.), 1e-9);
   EXPECT_NEAR(c00_22_m2.colwise().stableNorm()(0,0), std::sqrt(8.), 1e-9);
 
@@ -238,12 +238,12 @@ TEST(eigen3, Eigen_PartialReduxExpr_norms)
   EXPECT_EQ(constant_coefficient{cd00_22_m2.rowwise().stableNorm()}(), 2);
   EXPECT_EQ(cd00_22_m2.rowwise().stableNorm()(0,0), 2);
 
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise().stableNorm())>);
-  static_assert(zero_matrix<decltype(std::declval<Zxx>().colwise().stableNorm())>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise().stableNorm())>);
+  static_assert(zero<decltype(std::declval<Zxx>().colwise().stableNorm())>);
 
   // hypotNorm
 
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(c22_m2.colwise().hypotNorm())>, internal::constexpr_sqrt(8.)));
+  static_assert(internal::are_within_tolerance(constant_coefficient_v<decltype(c22_m2.colwise().hypotNorm())>, internal::constexpr_sqrt(8.)));
   EXPECT_NEAR(constant_coefficient{c00_22_m2.colwise().hypotNorm()}(), std::sqrt(8.), 1e-9);
   EXPECT_NEAR(c00_22_m2.colwise().hypotNorm()(0,0), std::sqrt(8.), 1e-9);
 
@@ -268,8 +268,8 @@ TEST(eigen3, Eigen_PartialReduxExpr_norms)
   EXPECT_EQ(constant_coefficient{cd00_22_m2.rowwise().hypotNorm()}(), 2);
   EXPECT_EQ(cd00_22_m2.rowwise().hypotNorm()(0,0), 2);
 
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise().hypotNorm())>);
-  static_assert(zero_matrix<decltype(std::declval<Zxx>().colwise().hypotNorm())>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise().hypotNorm())>);
+  static_assert(zero<decltype(std::declval<Zxx>().colwise().hypotNorm())>);
 
   // squaredNorm -- Note: Eigen version 3.4 calculates x._wise().squaredNorm() as if it were x.cwiseAbs2()._wise().sum().
 
@@ -298,12 +298,12 @@ TEST(eigen3, Eigen_PartialReduxExpr_norms)
   EXPECT_EQ(constant_coefficient{cd00_22_m2.rowwise().squaredNorm()}(), 4);
   EXPECT_EQ(cd00_22_m2.rowwise().squaredNorm()(0,0), 4);
 
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise().squaredNorm())>);
-  static_assert(zero_matrix<decltype(std::declval<Zxx>().colwise().squaredNorm())>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise().squaredNorm())>);
+  static_assert(zero<decltype(std::declval<Zxx>().colwise().squaredNorm())>);
 
   // norm -- Note: Eigen version 3.4 calculates x._wise().norm() as if it were x.cwiseAbs2()._wise().sum().sqrt().
 
-  static_assert(are_within_tolerance(constant_coefficient_v<decltype(c22_m2.colwise().norm())>, internal::constexpr_sqrt(8.)));
+  static_assert(internal::are_within_tolerance(constant_coefficient_v<decltype(c22_m2.colwise().norm())>, internal::constexpr_sqrt(8.)));
   EXPECT_NEAR(constant_coefficient{c00_22_m2.colwise().norm()}(), std::sqrt(8.), 1e-9);
   EXPECT_NEAR(c00_22_m2.colwise().norm()(0,0), std::sqrt(8.), 1e-9);
 
@@ -328,8 +328,8 @@ TEST(eigen3, Eigen_PartialReduxExpr_norms)
   EXPECT_EQ(constant_coefficient{cd00_22_m2.rowwise().norm()}(), 2);
   EXPECT_EQ(cd00_22_m2.rowwise().norm()(0,0), 2);
 
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise().norm())>);
-  static_assert(zero_matrix<decltype(std::declval<Zxx>().colwise().norm())>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise().norm())>);
+  static_assert(zero<decltype(std::declval<Zxx>().colwise().norm())>);
 }
 
 
@@ -410,8 +410,8 @@ TEST(eigen3, Eigen_PartialReduxExpr_sum)
   EXPECT_EQ(constant_coefficient{cd0022_33_m2.colwise().sum()}(), -6);
   EXPECT_EQ(constant_coefficient{cd0022_33_m2.rowwise().sum()}(), -6);
 
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise().sum())>);
-  static_assert(zero_matrix<decltype(std::declval<Zxx>().colwise().sum())>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise().sum())>);
+  static_assert(zero<decltype(std::declval<Zxx>().colwise().sum())>);
 
   EXPECT_EQ(constant_coefficient{cxb.colwise().sum().imag()}(), 8);
   EXPECT_EQ(constant_coefficient{cxb.rowwise().sum().imag()}(), 8);
@@ -472,8 +472,8 @@ TEST(eigen3, Eigen_PartialReduxExpr_sum)
   static_assert(constant_coefficient_v<decltype(cd20_2_m2.colwise().mean())> == -2);
   static_assert(not constant_matrix<decltype(cd02_2_m2.colwise().mean())>);
 
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise().mean())>);
-  static_assert(zero_matrix<decltype(std::declval<Zxx>().colwise().mean())>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise().mean())>);
+  static_assert(zero<decltype(std::declval<Zxx>().colwise().mean())>);
 #endif
 }
 
@@ -546,8 +546,8 @@ TEST(eigen3, Eigen_PartialReduxExpr_min_max)
   EXPECT_EQ(constant_coefficient{cd00_22_m2.rowwise().minCoeff()}(), -2);
   EXPECT_EQ(cd00_22_m2.rowwise().minCoeff()(0,0), -2);
 
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise().minCoeff())>);
-  static_assert(zero_matrix<decltype(std::declval<Zxx>().colwise().minCoeff())>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise().minCoeff())>);
+  static_assert(zero<decltype(std::declval<Zxx>().colwise().minCoeff())>);
 
   static_assert(constant_matrix<decltype(M22::Constant(2).colwise().redux(Eigen::internal::scalar_min_op<double, double>{})), CompileTimeStatus::unknown>);
   static_assert(constant_coefficient_v<decltype(c22_m2.colwise().redux(Eigen::internal::scalar_min_op<double, double>{}))> == -2);
@@ -597,8 +597,8 @@ TEST(eigen3, Eigen_PartialReduxExpr_min_max)
   EXPECT_EQ(constant_coefficient{cd00_22_m2.colwise().maxCoeff()}(), 0);
   EXPECT_EQ(cd00_22_m2.colwise().maxCoeff()(0,0), 0);
 
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise().maxCoeff())>);
-  static_assert(zero_matrix<decltype(std::declval<Zxx>().colwise().maxCoeff())>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise().maxCoeff())>);
+  static_assert(zero<decltype(std::declval<Zxx>().colwise().maxCoeff())>);
 
   static_assert(constant_matrix<decltype(M22::Constant(2).colwise().redux(Eigen::internal::scalar_max_op<double, double>{})), CompileTimeStatus::unknown>);
   static_assert(constant_coefficient_v<decltype(c22_m2.colwise().redux(Eigen::internal::scalar_max_op<double, double>{}))> == -2);
@@ -663,27 +663,27 @@ TEST(eigen3, Eigen_PartialReduxExpr_product)
   static_assert(constant_matrix<decltype(std::declval<Cx2_2>().colwise().prod()), CompileTimeStatus::unknown>);
   static_assert(constant_coefficient_v<decltype(std::declval<Cx2_2>().rowwise().prod())> == 4);
 
-  static_assert(zero_matrix<decltype(cd22_m2.colwise().prod())>);
-  static_assert(zero_matrix<decltype(cd20_2_m2.colwise().prod())>);
-  static_assert(zero_matrix<decltype(cd20_2_m2.rowwise().prod())>);
-  static_assert(zero_matrix<decltype(cd02_2_m2.colwise().prod())>);
-  static_assert(zero_matrix<decltype(cd02_2_m2.rowwise().prod())>);
+  static_assert(zero<decltype(cd22_m2.colwise().prod())>);
+  static_assert(zero<decltype(cd20_2_m2.colwise().prod())>);
+  static_assert(zero<decltype(cd20_2_m2.rowwise().prod())>);
+  static_assert(zero<decltype(cd02_2_m2.colwise().prod())>);
+  static_assert(zero<decltype(cd02_2_m2.rowwise().prod())>);
   EXPECT_EQ(cd20_2_m2.rowwise().prod()(0,0), 0);
   EXPECT_EQ(cd02_2_m2.colwise().prod()(0,0), 0);
   EXPECT_EQ(cd00_22_m2.colwise().prod()(0,0), 0);
   EXPECT_EQ(cd00_22_m2.rowwise().prod()(0,0), 0);
 
-  static_assert(zero_matrix<decltype(cd3322_m2.colwise().prod())>);
-  static_assert(zero_matrix<decltype(cd3322_m2.rowwise().prod())>);
-  static_assert(zero_matrix<decltype(cd3300_22_m2.colwise().prod())>);
-  static_assert(zero_matrix<decltype(cd3300_22_m2.rowwise().prod())>);
+  static_assert(zero<decltype(cd3322_m2.colwise().prod())>);
+  static_assert(zero<decltype(cd3322_m2.rowwise().prod())>);
+  static_assert(zero<decltype(cd3300_22_m2.colwise().prod())>);
+  static_assert(zero<decltype(cd3300_22_m2.rowwise().prod())>);
   EXPECT_EQ(cd3300_22_m2.colwise().prod()(0,0), 0);
   EXPECT_EQ(cd3300_22_m2.rowwise().prod()(0,0), 0);
-  static_assert(zero_matrix<decltype(cd0022_33_m2.colwise().prod())>);
-  static_assert(zero_matrix<decltype(cd0022_33_m2.rowwise().prod())>);
+  static_assert(zero<decltype(cd0022_33_m2.colwise().prod())>);
+  static_assert(zero<decltype(cd0022_33_m2.rowwise().prod())>);
 
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise().prod())>);
-  static_assert(zero_matrix<decltype(std::declval<Zxx>().colwise().prod())>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise().prod())>);
+  static_assert(zero<decltype(std::declval<Zxx>().colwise().prod())>);
 
   // redux
 
@@ -764,8 +764,8 @@ TEST(eigen3, Eigen_PartialReduxExpr_other)
   static_assert(constant_diagonal_coefficient_v<decltype(cd02_2_m2.reverse())> == -2);
   static_assert(constant_diagonal_coefficient_v<decltype(cd00_22_m2.reverse())> == -2);
 
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise().reverse())>);
-  static_assert(zero_matrix<decltype(std::declval<Zxx>().colwise().reverse())>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise().reverse())>);
+  static_assert(zero<decltype(std::declval<Zxx>().colwise().reverse())>);
 
   // replicate
 
@@ -777,10 +777,10 @@ TEST(eigen3, Eigen_PartialReduxExpr_other)
   static_assert(constant_diagonal_coefficient_v<decltype(cd02_2_m2.colwise().replicate<1>())> == -2);
   static_assert(constant_diagonal_coefficient_v<decltype(cd00_22_m2.colwise().replicate<1>())> == -2);
 
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise().replicate<2>())>);
-  static_assert(zero_matrix<decltype(std::declval<Zxx>().colwise().replicate<2>())>);
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise().replicate(2))>);
-  static_assert(zero_matrix<decltype(std::declval<Zxx>().colwise().replicate(2))>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise().replicate<2>())>);
+  static_assert(zero<decltype(std::declval<Zxx>().colwise().replicate<2>())>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise().replicate(2))>);
+  static_assert(zero<decltype(std::declval<Zxx>().colwise().replicate(2))>);
 }
 
 
@@ -797,6 +797,6 @@ TEST(eigen3, Eigen_VectorWiseOp)
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().colwise())> == 2);
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().rowwise())> == 2);
 
-  static_assert(zero_matrix<decltype(std::declval<Z22>().colwise())>);
-  static_assert(zero_matrix<decltype(std::declval<Z22>().rowwise())>);
+  static_assert(zero<decltype(std::declval<Z22>().colwise())>);
+  static_assert(zero<decltype(std::declval<Z22>().rowwise())>);
 }

@@ -25,26 +25,26 @@ namespace OpenKalman
    * \result Either either A * B (if on_the_right == true) or B * A (if on_the_right == false)
    */
 #ifdef __cpp_concepts
-  template<bool on_the_right = true, square_matrix<Likelihood::maybe> A, square_matrix<Likelihood::maybe> B> requires
-    maybe_has_same_shape_as<A, B> and (writable<A> or triangle_type_of_v<A> == triangle_type_of_v<A, B>) and
+  template<bool on_the_right = true, square_shaped<Likelihood::maybe> A, square_shaped<Likelihood::maybe> B> requires
+    maybe_same_shape_as<A, B> and (writable<A> or triangle_type_of_v<A> == triangle_type_of_v<A, B>) and
     (index_count_v<A> == dynamic_size or index_count_v<A> <= 2) and (index_count_v<B> == dynamic_size or index_count_v<B> <= 2)
 #else
   template<bool on_the_right = true, typename A, typename B, std::enable_if_t<
-    square_matrix<A, Likelihood::maybe> and square_matrix<B, Likelihood::maybe> and maybe_has_same_shape_as<A, B> and
+    square_shaped<A, Likelihood::maybe> and square_shaped<B, Likelihood::maybe> and maybe_same_shape_as<A, B> and
     (writable<A> or triangle_type_of_v<A> == triangle_type_of_v<A, B>) and
     (index_count<A>::value == dynamic_size or index_count<A>::value <= 2) and (index_count<B>::value == dynamic_size or index_count<B>::value <= 2), int> = 0>
 #endif
   constexpr A&
   contract_in_place(A& a, B&& b)
   {
-    if constexpr (not square_matrix<A> or not square_matrix<B> or not has_same_shape_as<A, B>) if (not get_has_same_shape_as(a, b))
+    if constexpr (not square_shaped<A> or not square_shaped<B> or not same_shape_as<A, B>) if (not same_shape(a, b))
       throw std::invalid_argument {"Arguments to contract_in_place must match in size and be square matrices"};
 
-    if constexpr (zero_matrix<A> or identity_matrix<B>)
+    if constexpr (zero<A> or identity_matrix<B>)
     {
       return a;
     }
-    else if constexpr (zero_matrix<B>)
+    else if constexpr (zero<B>)
     {
       return a = std::forward<B>(b);
     }

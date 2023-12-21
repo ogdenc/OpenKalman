@@ -227,7 +227,7 @@ namespace OpenKalman::test
         ret[0] = {h - x00 * h3, 0, -x02 * h3,
                   0, 0, 0,
                   -x02 * h3, 0, h - x22 * h3};
-        ret[1] = make_zero_matrix_like<MCCt>();
+        ret[1] = make_zero<MCCt>();
         ret[2] = {x02 * h42, 0, h2 - x00 * h42,
                   0, 0, 0,
                   x22 * h42 - h2, 0, -x02 * h42};

@@ -83,11 +83,11 @@ namespace OpenKalman::internal
 
     /**
      * \internal
-     * \brief Synchronize from nested_matrix to cholesky_nested_matrix.
+     * \brief Synchronize from nested_object to cholesky_nested_matrix.
      */
     void synchronize_forward() const &
     {
-      cholesky_nested = to_covariance_nestable<CholeskyNestedMatrix>(Base::nested_matrix());
+      cholesky_nested = to_covariance_nestable<CholeskyNestedMatrix>(Base::nested_object());
       synch_direction = 0;
     }
 
@@ -95,7 +95,7 @@ namespace OpenKalman::internal
     /// \internal \overload
     void synchronize_forward() const &&
     {
-      cholesky_nested = to_covariance_nestable<CholeskyNestedMatrix>(std::move(*this).nested_matrix());
+      cholesky_nested = to_covariance_nestable<CholeskyNestedMatrix>(std::move(*this).nested_object());
       synch_direction = -1;
     }
 
@@ -141,7 +141,7 @@ namespace OpenKalman::internal
 
     /**
      * \internal
-     * \brief General constructor, setting nested_matrix and leaving cholesky_nested unset.
+     * \brief General constructor, setting nested_object and leaving cholesky_nested unset.
      * \tparam Arg A \ref OpenKalman::covariance_nestable "covariance_nestable"
      */
 #ifdef __cpp_concepts
@@ -157,7 +157,7 @@ namespace OpenKalman::internal
 
     /**
      * \internal
-     * \brief General constructor, setting cholesky_nested and leaving nested_matrix unset.
+     * \brief General constructor, setting cholesky_nested and leaving nested_object unset.
      * \tparam Arg A \ref OpenKalman::covariance_nestable "covariance_nestable"
      */
 #ifdef __cpp_concepts
@@ -172,7 +172,7 @@ namespace OpenKalman::internal
 
     /**
      * \internal
-     * \brief General constructor, setting both nested_matrix and cholesky_nested.
+     * \brief General constructor, setting both nested_object and cholesky_nested.
      * \tparam N A \ref OpenKalman::covariance_nestable "covariance_nestable" for the nested matrix
      * \tparam CN A \ref OpenKalman::covariance_nestable "covariance_nestable" for the cholesky nested matrix
      */
@@ -186,9 +186,9 @@ namespace OpenKalman::internal
     /// Copy assignment operator.
     auto& operator=(const CovarianceBase3Impl& other)
     {
-      if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
+      if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
       {
-        if (synch_direction >= 0) Base::nested_matrix() = other.nested_matrix();
+        if (synch_direction >= 0) Base::nested_object() = other.nested_object();
         if (synch_direction <= 0) cholesky_nested = other.cholesky_nested_matrix();
         synch_direction = other.synch_direction;
       }
@@ -199,9 +199,9 @@ namespace OpenKalman::internal
     /// Move assignment operator.
     auto& operator=(CovarianceBase3Impl&& other) noexcept
     {
-      if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
+      if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
       {
-        if (synch_direction >= 0) Base::nested_matrix() = std::move(other.nested_matrix());
+        if (synch_direction >= 0) Base::nested_object() = std::move(other.nested_object());
         if (synch_direction <= 0) cholesky_nested = std::move(other.cholesky_nested_matrix());
         synch_direction = other.synch_direction;
       }
@@ -221,16 +221,16 @@ namespace OpenKalman::internal
 #endif
     auto& operator=(Arg&& arg) noexcept
     {
-      if constexpr(not (zero_matrix<nested_matrix_of_t<Arg>> and zero_matrix<NestedMatrix>) and
-        not (identity_matrix<nested_matrix_of_t<Arg>> and identity_matrix<NestedMatrix>))
+      if constexpr(not (zero<nested_object_of_t<Arg>> and zero<NestedMatrix>) and
+        not (identity_matrix<nested_object_of_t<Arg>> and identity_matrix<NestedMatrix>))
       {
         if constexpr (case1or2<Arg>)
         {
           // Arg is Case 1 or 2
-          if constexpr (triangular_matrix<nested_matrix_of_t<Arg>> == triangular_matrix<NestedMatrix> and
+          if constexpr (triangular_matrix<nested_object_of_t<Arg>> == triangular_matrix<NestedMatrix> and
             not diagonal_matrix<Arg>)
           {
-            Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg));
+            Base::nested_object() = to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg));
             mark_nested_matrix_changed();
           }
           else
@@ -244,7 +244,7 @@ namespace OpenKalman::internal
           // Arg is Case 3 or 4
           if (synch_direction >= 0)
           {
-            Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg));
+            Base::nested_object() = to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg));
           }
           if (synch_direction <= 0)
           {
@@ -267,12 +267,12 @@ namespace OpenKalman::internal
 #endif
     auto& operator=(Arg&& arg) noexcept
     {
-      if constexpr(not (zero_matrix<Arg> and zero_matrix<NestedMatrix>) and
+      if constexpr(not (zero<Arg> and zero<NestedMatrix>) and
         not (identity_matrix<Arg> and identity_matrix<NestedMatrix>))
       {
         if constexpr(triangular_matrix<Arg> == triangular_matrix<NestedMatrix> and not diagonal_matrix<Arg>)
         {
-          Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg));
+          Base::nested_object() = to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg));
           mark_nested_matrix_changed();
         }
         else
@@ -336,10 +336,10 @@ namespace OpenKalman::internal
     /**
      * \brief Set an element of the cholesky nested matrix.
      */
-    void set_element(const Scalar s, const std::size_t i, const std::size_t j)
+    void set_component(const Scalar s, const std::size_t i, const std::size_t j)
     {
       if (synch_direction > 0) synchronize_forward();
-      OpenKalman::set_element(cholesky_nested, s, i, j);
+      OpenKalman::set_component(cholesky_nested, s, i, j);
       mark_cholesky_nested_matrix_changed();
     }
 
@@ -347,10 +347,10 @@ namespace OpenKalman::internal
     /**
      * \brief Set an element of the cholesky nested matrix.
      */
-    void set_element(const Scalar s, const std::size_t i)
+    void set_component(const Scalar s, const std::size_t i)
     {
       if (synch_direction > 0) synchronize_forward();
-      OpenKalman::set_element(cholesky_nested, s, i);
+      OpenKalman::set_component(cholesky_nested, s, i);
       mark_cholesky_nested_matrix_changed();
     }
 

@@ -93,14 +93,14 @@ TEST(eigen3, diagonal_of_constant)
   static_assert(dimension_size_of_index_is<decltype(diagonal_of(c11_3)), 0, 1>);
   static_assert(dimension_size_of_index_is<decltype(diagonal_of(c11_3)), 1, 1>);
   EXPECT_TRUE(is_near(diagonal_of(c11_3), c11_3));
-  EXPECT_EQ(get_element(diagonal_of(c11_3)), 3);
+  EXPECT_EQ(get_component(diagonal_of(c11_3)), 3);
 
   static_assert(constant_matrix<decltype(diagonal_of(c22_3)), CompileTimeStatus::unknown>);
   static_assert(dimension_size_of_index_is<decltype(diagonal_of(c22_3)), 0, 2>);
   static_assert(dimension_size_of_index_is<decltype(diagonal_of(c22_3)), 1, 1>);
   EXPECT_TRUE(is_near(diagonal_of(c22_3), c21_3));
   EXPECT_EQ(constant_coefficient {diagonal_of(c22_3)}(), 3);
-  EXPECT_EQ(get_element(diagonal_of(c22_3), 0), 3);
+  EXPECT_EQ(get_component(diagonal_of(c22_3), 0), 3);
 
   auto cd22_3 = c21_3.asDiagonal();
 
@@ -109,18 +109,15 @@ TEST(eigen3, diagonal_of_constant)
   static_assert(dimension_size_of_index_is<decltype(diagonal_of(cd22_3)), 1, 1>);
   EXPECT_TRUE(is_near(diagonal_of(cd22_3), c21_3));
   EXPECT_EQ(constant_coefficient {diagonal_of(cd22_3)}(), 3);
-  EXPECT_EQ(get_element(diagonal_of(cd22_3), 0), 3);
+  EXPECT_EQ(get_component(diagonal_of(cd22_3), 0), 3);
 }
 
 
 TEST(eigen3, diagonal_of_dense)
 {
   auto m21 = M21 {1, 4};
-  auto m2x_1 = M2x {m21};
-  auto mx1_2 = Mx1 {m21};
-  auto mxx_21 = Mxx {m21};
 
-  auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
+  auto m22 = make_dense_object_from<M22>(1, 2, 3, 4);
   auto m2x_2 = M2x {m22};
   auto mx2_2 = Mx2 {m22};
   auto mxx_22 = Mxx {m22};
@@ -129,16 +126,41 @@ TEST(eigen3, diagonal_of_dense)
   EXPECT_TRUE(is_near(diagonal_of(m2x_2), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(m2x_2))>);
   EXPECT_TRUE(is_near(diagonal_of(mx2_2), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(mx2_2))>);
   EXPECT_TRUE(is_near(diagonal_of(mxx_22), m21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(mxx_22))>);
-  EXPECT_TRUE(is_near(diagonal_of(Eigen3::make_eigen_wrapper(m22)), m21));
 
   EXPECT_TRUE(is_near(diagonal_of(M22 {m22}), m21));
   EXPECT_TRUE(is_near(diagonal_of(M2x {m2x_2}), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(std::declval<M2x>()))>);
   EXPECT_TRUE(is_near(diagonal_of(Mx2 {mx2_2}), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(std::declval<Mx2>()))>);
   EXPECT_TRUE(is_near(diagonal_of(Mxx {mxx_22}), m21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(std::declval<Mxx>()))>);
+
+  auto a21 = Eigen::Array<double, 2, 1> {1, 4};
+
+  A22 a22 {m22};
+  auto a2x_2 = A2x {a22};
+  auto ax2_2 = Ax2 {a22};
+  auto axx_22 = Axx {a22};
+
+  EXPECT_TRUE(is_near(diagonal_of(a22), a21));
+  EXPECT_TRUE(is_near(diagonal_of(a2x_2), a21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(a2x_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(ax2_2), a21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(ax2_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(axx_22), a21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(axx_22))>);
+
+  EXPECT_TRUE(is_near(diagonal_of(m22.array()), a21));
+  EXPECT_TRUE(is_near(diagonal_of(A22 {a22}), a21));
+  EXPECT_TRUE(is_near(diagonal_of(A2x {a2x_2}), a21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(std::declval<A2x>()))>);
+  EXPECT_TRUE(is_near(diagonal_of(Ax2 {ax2_2}), a21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(std::declval<Ax2>()))>);
+  EXPECT_TRUE(is_near(diagonal_of(Axx {axx_22}), a21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(std::declval<Axx>()))>);
+
+  auto mw22 = Eigen3::make_eigen_wrapper(m22);
+
+  EXPECT_TRUE(is_near(diagonal_of(mw22), m21));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen3::make_eigen_wrapper(m22)), m21));
   EXPECT_TRUE(is_near(diagonal_of(Eigen3::make_eigen_wrapper(M22 {m22})), m21));
 
-  EXPECT_TRUE(is_near(diagonal_of(m22.array()), m21));
-  EXPECT_TRUE(is_near(diagonal_of(A22 {m22}), m21));
+  auto aw22 = Eigen3::make_eigen_wrapper(a22);
+
+  EXPECT_TRUE(is_near(diagonal_of(aw22), a21));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen3::make_eigen_wrapper(a22)), a21));
+  EXPECT_TRUE(is_near(diagonal_of(Eigen3::make_eigen_wrapper(A22 {a22})), a21));
 }
 
 
@@ -173,7 +195,7 @@ TEST(eigen3, diagonal_of_DiagonalWrapper)
   static_assert(diagonal_adapter<decltype(Eigen::DiagonalWrapper {mx1_2})>);
   static_assert(not diagonal_adapter<decltype(Eigen::DiagonalWrapper {mxx_21})>);
 
-  static_assert(std::is_assignable_v<decltype(nested_matrix(Eigen::DiagonalWrapper {m21})), M21>);
+  static_assert(std::is_assignable_v<decltype(nested_object(Eigen::DiagonalWrapper {m21})), M21>);
   static_assert(std::is_assignable_v<decltype(diagonal_of(Eigen::DiagonalWrapper {m21})), M21>);
 
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m21}), m21)); // handled by general diagonal_of function
@@ -191,12 +213,12 @@ TEST(eigen3, diagonal_of_DiagonalWrapper)
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {mx2_1}), m21));
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {mxx_12}), m21));
 
-  auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
+  auto m22 = make_dense_object_from<M22>(1, 2, 3, 4);
   auto m2x_2 = M2x {m22};
   auto mx2_2 = Mx2 {m22};
   auto mxx_22 = Mxx {m22};
 
-  const auto m41 = make_dense_writable_matrix_from<M41>(1, 3, 2, 4);
+  const auto m41 = make_dense_object_from<M41>(1, 3, 2, 4);
 
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m22}), m41));
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m2x_2}), m41));
@@ -210,12 +232,12 @@ TEST(eigen3, diagonal_of_DiagonalWrapper)
 
 TEST(eigen3, diagonal_of_SelfAdjointView)
 {
-  auto m22_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
+  auto m22_93310 = make_dense_object_from<M22>(9, 3, 3, 10);
   auto m20_93310 = M2x {m22_93310};
   auto m02_93310 = Mx2 {m22_93310};
   auto m00_93310 = Mxx {m22_93310};
 
-  auto m21_910 = make_dense_writable_matrix_from<M21>(9, 10);
+  auto m21_910 = make_dense_object_from<M21>(9, 10);
 
   EXPECT_TRUE(is_near(diagonal_of(m22_93310.template selfadjointView<Eigen::Upper>()), m21_910));
   EXPECT_TRUE(is_near(diagonal_of(m20_93310.template selfadjointView<Eigen::Lower>()), m21_910));
@@ -227,17 +249,17 @@ TEST(eigen3, diagonal_of_SelfAdjointView)
 
 TEST(eigen3, diagonal_of_TriangularView)
 {
-  auto m22_3013 = make_dense_writable_matrix_from<M22>(3, 0, 1, 3);
+  auto m22_3013 = make_dense_object_from<M22>(3, 0, 1, 3);
   auto m20_3013 = M2x {m22_3013};
   auto m02_3013 = Mx2 {m22_3013};
   auto m00_3013 = Mxx {m22_3013};
 
-  auto m22_3103 = make_dense_writable_matrix_from<M22>(3, 1, 0, 3);
+  auto m22_3103 = make_dense_object_from<M22>(3, 1, 0, 3);
   auto m20_3103 = M2x {m22_3103};
   auto m02_3103 = Mx2 {m22_3103};
   auto m00_3103 = Mxx {m22_3103};
 
-  auto m21_33 = make_dense_writable_matrix_from<M21>(3, 3);
+  auto m21_33 = make_dense_object_from<M21>(3, 3);
 
   EXPECT_TRUE(is_near(diagonal_of(m22_3013.template triangularView<Eigen::Lower>()), m21_33));
   EXPECT_TRUE(is_near(diagonal_of(m20_3013.template triangularView<Eigen::Lower>()), m21_33));

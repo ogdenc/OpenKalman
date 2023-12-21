@@ -94,12 +94,12 @@ namespace OpenKalman
       {
         if constexpr (return_cross)
           return MonteCarloSum {
-            0, make_zero_matrix_like<InputMean>(), make_zero_matrix_like<OutputEuclideanMean>(),
-            make_zero_matrix_like<OutputCovariance>(), make_zero_matrix_like<CrossCovariance>()};
+            0, make_zero<InputMean>(), make_zero<OutputEuclideanMean>(),
+            make_zero<OutputCovariance>(), make_zero<CrossCovariance>()};
         else
           return MonteCarloSum {
-            0, make_zero_matrix_like<InputMean>(), make_zero_matrix_like<OutputEuclideanMean>(),
-            make_zero_matrix_like<OutputCovariance>()};
+            0, make_zero<InputMean>(), make_zero<OutputEuclideanMean>(),
+            make_zero<OutputCovariance>()};
       }
 
 
@@ -109,10 +109,10 @@ namespace OpenKalman
         const auto x = dist();
         const auto y = trans(x, noise()...);
         if constexpr (return_cross)
-          return MonteCarloSum {1, x, to_euclidean(y), make_zero_matrix_like<OutputCovariance>(),
-            make_zero_matrix_like<CrossCovariance>()};
+          return MonteCarloSum {1, x, to_euclidean(y), make_zero<OutputCovariance>(),
+            make_zero<CrossCovariance>()};
         else
-          return MonteCarloSum {1, x, to_euclidean(y), make_zero_matrix_like<OutputCovariance>()};
+          return MonteCarloSum {1, x, to_euclidean(y), make_zero<OutputCovariance>()};
       }
 
 

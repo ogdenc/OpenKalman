@@ -51,10 +51,9 @@ namespace OpenKalman::interface
     static constexpr bool has_runtime_parameters = is_bind_operator<UnaryOp>::value;
 
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
+    template<typename Arg>
+    static decltype(auto) nested_object(Arg&& arg)
     {
-      static_assert(i == 0);
       return std::forward<Arg>(arg).nestedExpression();
     }
 
@@ -66,7 +65,7 @@ namespace OpenKalman::interface
       if constexpr (not std::is_lvalue_reference_v<typename XprType::Nested>)
         return N {make_self_contained(arg.nestedExpression()), arg.functor()};
       else
-        return make_dense_writable_matrix_from(std::forward<Arg>(arg));
+        return make_dense_object(std::forward<Arg>(arg));
     }
 
 
@@ -85,11 +84,11 @@ namespace OpenKalman::interface
 
 
     template<Likelihood b>
-    static constexpr bool is_one_by_one = one_by_one_matrix<XprType, b>;
+    static constexpr bool one_dimensional = OpenKalman::one_dimensional<XprType, b>;
 
 
     template<Likelihood b>
-    static constexpr bool is_square = square_matrix<XprType, b>;
+    static constexpr bool is_square = square_shaped<XprType, b>;
 
 
     template<TriangleType t, Likelihood b>
@@ -105,7 +104,7 @@ namespace OpenKalman::interface
     static constexpr bool is_writable = false;
 
 
-    // data() not defined
+    // raw_data() not defined
 
 
     // layout not defined

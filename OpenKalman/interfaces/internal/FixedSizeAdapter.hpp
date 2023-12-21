@@ -49,7 +49,7 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr auto get_index_count(const Arg& arg)
+    static constexpr auto count_indices(const Arg& arg)
     {
       return std::integral_constant<std::size_t, get_index_count_impl()>{};
     }
@@ -58,11 +58,11 @@ namespace OpenKalman::interface
     template<typename Arg, typename N>
     static constexpr auto get_vector_space_descriptor(const Arg& arg, const N& n)
     {
-      if constexpr (static_index_value<N>)
+      if constexpr (sizeof...(Ds) > 0 and static_index_value<N>)
       {
         using D = std::tuple_element_t<N::value, std::tuple<Ds...>>;
         if constexpr (fixed_vector_space_descriptor<D>) return std::decay_t<D> {};
-        else return OpenKalman::get_vector_space_descriptor(arg.nested_matrix(), n);
+        else return OpenKalman::get_vector_space_descriptor(arg.nested_object(), n);
       }
       else if constexpr (equivalent_to<Dimensions<1>, Ds...>)
       {
@@ -70,7 +70,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        return OpenKalman::get_vector_space_descriptor(arg.nested_matrix(), n);
+        return OpenKalman::get_vector_space_descriptor(arg.nested_object(), n);
       }
     }
 
@@ -81,18 +81,17 @@ namespace OpenKalman::interface
     static constexpr bool has_runtime_parameters = false;
 
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
+    template<typename Arg>
+    static decltype(auto) nested_object(Arg&& arg)
     {
-      static_assert(i == 0);
-      return std::forward<Arg>(arg).nested_matrix();
+      return std::forward<Arg>(arg).nested_object();
     }
 
 
     template<typename Arg>
     static auto convert_to_self_contained(Arg&& arg)
     {
-      return make_self_contained(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
+      return make_self_contained(OpenKalman::nested_object(std::forward<Arg>(arg)));
     }
 
 
@@ -103,8 +102,8 @@ namespace OpenKalman::interface
 #endif
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (constant_coefficient<NestedMatrix>::status == Likelihood::definitely or one_by_one_matrix<Xpr, Likelihood::maybe>)
-        return constant_coefficient {arg.nested_matrix()};
+      if constexpr (constant_coefficient<NestedMatrix>::status == Likelihood::definitely or one_dimensional<Xpr, Likelihood::maybe>)
+        return constant_coefficient {arg.nested_object()};
       else
         return std::monostate {};
     }
@@ -117,14 +116,14 @@ namespace OpenKalman::interface
 #endif
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (constant_coefficient<NestedMatrix>::status == Likelihood::definitely or one_by_one_matrix<Xpr, Likelihood::maybe>)
-        return constant_diagonal_coefficient {arg.nested_matrix()};
+      if constexpr (constant_coefficient<NestedMatrix>::status == Likelihood::definitely or one_dimensional<Xpr, Likelihood::maybe>)
+        return constant_diagonal_coefficient {arg.nested_object()};
       else
         return std::monostate {};
     }
 
 
-    // is_one_by_one is not necessary
+    // one_dimensional is not necessary
 
 
     // is_square is not necessary
@@ -137,10 +136,6 @@ namespace OpenKalman::interface
     static constexpr bool is_triangular_adapter = false;
 
 
-    template<Likelihood b>
-    static constexpr bool is_diagonal_adapter = false;
-
-
     static constexpr bool is_hermitian = hermitian_matrix<NestedMatrix, Likelihood::maybe>;
 
 
@@ -148,28 +143,28 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg> requires directly_accessible<nested_matrix_of_t<Arg>>
+    template<typename Arg> requires directly_accessible<nested_object_of_t<Arg>>
     static constexpr std::convertible_to<const scalar_type_of_t<Arg>> auto * const
 #else
-    template<typename Arg, std::enable_if_t<directly_accessible<typename nested_matrix_of<Arg>::type>, int> = 0>
+    template<typename Arg, std::enable_if_t<directly_accessible<typename nested_object_of<Arg>::type>, int> = 0>
     static constexpr auto * const
 #endif
-    data(Arg& arg) { return internal::raw_data(arg.nested_matrix()); }
+    raw_data(Arg& arg) { return internal::raw_data(arg.nested_object()); }
 
 
     static constexpr Layout layout = layout_of_v<NestedMatrix>;
 
 
 #ifdef __cpp_concepts
-      template<typename Arg> requires (layout == Layout::stride)
+    template<typename Arg> requires (layout == Layout::stride)
 #else
-      template<Layout l = layout, typename Arg, std::enable_if_t<l == Layout::stride, int> = 0>
+    template<Layout l = layout, typename Arg, std::enable_if_t<l == Layout::stride, int> = 0>
 #endif
-      static auto
-      strides(Arg&& arg)
-      {
-        return OpenKalman::internal::strides(get_nested_matrix<0>(std::forward<Arg>(arg)));
-      }
+    static auto
+    strides(Arg&& arg)
+    {
+      return OpenKalman::internal::strides(OpenKalman::nested_object(std::forward<Arg>(arg)));
+    }
 
   };
 
@@ -217,32 +212,32 @@ namespace OpenKalman::interface
 #endif
     get_component(Arg&& arg, const Indices& indices)
     {
-      return NestedInterface::get_component(nested_matrix(std::forward<Arg>(arg)), add_trailing_indices<index_count_v<Nested>>(indices));
+      return NestedInterface::get_component(nested_object(std::forward<Arg>(arg)), add_trailing_indices<index_count_v<Nested>>(indices));
     }
 
 
 #ifdef __cpp_lib_ranges
     template<indexible Arg, std::ranges::input_range Indices> requires index_value<std::ranges::range_value_t<Indices>> and
-      interface::set_component_defined_for<Nested, decltype(std::declval<Arg&>().nested_matrix()), const scalar_type_of_t<Arg>&, std::initializer_list<std::size_t>>
+      interface::set_component_defined_for<Nested, decltype(std::declval<Arg&>().nested_object()), const scalar_type_of_t<Arg>&, std::initializer_list<std::size_t>>
 #else
     template<typename Arg, typename Indices, std::enable_if_t<
-      interface::set_component_defined_for<Nested, typename nested_matrix_of<Arg&>::type, const typename scalar_type_of<Arg>::type&, std::initializer_list<std::size_t>>, int> = 0>
+      interface::set_component_defined_for<Nested, typename nested_object_of<Arg&>::type, const typename scalar_type_of<Arg>::type&, std::initializer_list<std::size_t>>, int> = 0>
 #endif
     static constexpr void
     set_component(Arg& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
     {
-      NestedInterface::set_component(arg.nested_matrix(), s, add_trailing_indices<index_count_v<Nested>>(indices));
+      NestedInterface::set_component(arg.nested_object(), s, add_trailing_indices<index_count_v<Nested>>(indices));
     }
 
 
 #ifdef __cpp_concepts
     template<typename A> requires
       interface::to_native_matrix_defined_for<Nested, A&&> or
-      interface::to_native_matrix_defined_for<Nested, decltype(OpenKalman::nested_matrix(std::declval<A&&>))>
+      interface::to_native_matrix_defined_for<Nested, decltype(OpenKalman::nested_object(std::declval<A&&>))>
 #else
     template<typename A, std::enable_if_t<
       interface::to_native_matrix_defined_for<Nested, A&&> or
-      interface::to_native_matrix_defined_for<Nested, typename nested_matrix_of<A&&>::type>, int> = 0>
+      interface::to_native_matrix_defined_for<Nested, typename nested_object_of<A&&>::type>, int> = 0>
 #endif
     static decltype(auto)
     to_native_matrix(A&& a)
@@ -250,15 +245,15 @@ namespace OpenKalman::interface
       if constexpr (interface::to_native_matrix_defined_for<Nested, A&&>)
         return NestedInterface::to_native_matrix(std::forward<A>(a));
       else
-        return NestedInterface::to_native_matrix(OpenKalman::nested_matrix(std::forward<A>(a)));
+        return NestedInterface::to_native_matrix(OpenKalman::nested_object(std::forward<A>(a)));
     }
 
 
     // make_default is inherited
 
-    // fill_with_elements is inherited
+    // fill_components is inherited
 
-    // make_constant_matrix is inherited
+    // make_constant is inherited
 
     // make_identity_matrix is inherited
 
@@ -266,12 +261,12 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<TriangleType t, indexible Arg> requires
       interface::make_triangular_matrix_defined_for<Nested, t, Arg&&> or
-      interface::make_triangular_matrix_defined_for<Nested, t, decltype(OpenKalman::nested_matrix(std::declval<Arg&&>()))>
+      interface::make_triangular_matrix_defined_for<Nested, t, decltype(OpenKalman::nested_object(std::declval<Arg&&>()))>
     static constexpr triangular_matrix<t> auto
 #else
     template<TriangleType t, typename Arg, std::enable_if_t<
       interface::make_triangular_matrix_defined_for<Nested, t, Arg&&> or
-      interface::make_triangular_matrix_defined_for<Nested, t, typename nested_matrix_of<Arg&&>::type>, int> = 0>
+      interface::make_triangular_matrix_defined_for<Nested, t, typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
     make_triangular_matrix(Arg&& arg)
@@ -282,7 +277,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto tri = NestedInterface::template make_triangular_matrix<t>(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
+        auto tri = NestedInterface::template make_triangular_matrix<t>(OpenKalman::nested_object(std::forward<Arg>(arg)));
         return internal::make_fixed_square_adapter_like(std::move(tri));
       }
     }
@@ -291,12 +286,12 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<HermitianAdapterType t, indexible Arg> requires
       interface::make_hermitian_adapter_defined_for<Nested, t, Arg&&> or
-      interface::make_hermitian_adapter_defined_for<Nested, t, decltype(OpenKalman::nested_matrix(std::declval<Arg&&>()))>
+      interface::make_hermitian_adapter_defined_for<Nested, t, decltype(OpenKalman::nested_object(std::declval<Arg&&>()))>
     static constexpr hermitian_matrix auto
 #else
     template<HermitianAdapterType t, typename Arg, std::enable_if_t<
       make_hermitian_adapter_defined_for<Nested, t, Arg&> or
-      make_hermitian_adapter_defined_for<Nested, t, typename nested_matrix_of<Arg&>::type>, int> = 0>
+      make_hermitian_adapter_defined_for<Nested, t, typename nested_object_of<Arg&>::type>, int> = 0>
     static constexpr auto
 #endif
     make_hermitian_adapter(Arg&& arg)
@@ -307,7 +302,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto h = NestedInterface::template make_hermitian_adapter<t>(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
+        auto h = NestedInterface::template make_hermitian_adapter<t>(OpenKalman::nested_object(std::forward<Arg>(arg)));
         return internal::make_fixed_square_adapter_like(std::move(h));
       }
     }
@@ -317,7 +312,7 @@ namespace OpenKalman::interface
     static decltype(auto)
     get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
     {
-      return NestedInterface::get_block(OpenKalman::nested_matrix(std::forward<Arg>(arg)), begin, size);
+      return NestedInterface::get_block(OpenKalman::nested_object(std::forward<Arg>(arg)), begin, size);
     };
 
 
@@ -325,7 +320,7 @@ namespace OpenKalman::interface
     static Arg&
     set_block(Arg& arg, Block&& block, const Begin&...begin)
     {
-      NestedInterface::set_block(arg.nested_matrix(), std::forward<Block>(block), begin...);
+      NestedInterface::set_block(arg.nested_object(), std::forward<Block>(block), begin...);
       return arg;
     };
 
@@ -333,11 +328,11 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<TriangleType t, typename A, typename B> requires
       interface::set_triangle_defined_for<Nested, t, A&&, B&&> or
-      interface::set_triangle_defined_for<Nested, t, decltype(OpenKalman::nested_matrix(std::declval<A&&>)), B&&>
+      interface::set_triangle_defined_for<Nested, t, decltype(OpenKalman::nested_object(std::declval<A&&>)), B&&>
 #else
     template<TriangleType t, typename A, typename B, std::enable_if_t<
       interface::set_triangle_defined_for<Nested, t, A&&, B&&> or
-      interface::set_triangle_defined_for<Nested, t, typename nested_matrix_of<A&&>::type, B&&>, int> = 0>
+      interface::set_triangle_defined_for<Nested, t, typename nested_object_of<A&&>::type, B&&>, int> = 0>
 #endif
     static decltype(auto)
     set_triangle(A&& a, B&& b)
@@ -348,9 +343,9 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto&& ret = NestedInterface::template set_triangle<t>(OpenKalman::nested_matrix(std::forward<A>(a)), std::forward<B>(b));
+        auto&& ret = NestedInterface::template set_triangle<t>(OpenKalman::nested_object(std::forward<A>(a)), std::forward<B>(b));
         using Ret = decltype(ret);
-        if constexpr (std::is_lvalue_reference_v<Ret> and std::is_same_v<Ret, decltype(OpenKalman::nested_matrix(std::declval<A&&>()))>)
+        if constexpr (std::is_lvalue_reference_v<Ret> and std::is_same_v<Ret, decltype(OpenKalman::nested_object(std::declval<A&&>()))>)
           return std::forward<A>(a);
         else
         {
@@ -366,18 +361,18 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<vector<0, Likelihood::maybe> Arg> requires
       interface::to_diagonal_defined_for<Nested, Arg&&> or
-      interface::to_diagonal_defined_for<Nested, decltype(OpenKalman::nested_matrix(std::declval<Arg&&>))>
+      interface::to_diagonal_defined_for<Nested, decltype(OpenKalman::nested_object(std::declval<Arg&&>))>
     static constexpr diagonal_matrix auto
     to_diagonal(Arg&& arg)
 #else
     template<typename Arg, std::enable_if_t<
       interface::to_diagonal_defined_for<Nested, Arg&&> or
-      interface::to_diagonal_defined_for<Nested, typename nested_matrix_of<Arg&&>::type>, int> = 0>
+      interface::to_diagonal_defined_for<Nested, typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
     to_diagonal(Arg&& arg)
 #endif
     {
-      if constexpr (one_by_one_matrix<Arg>) return std::forward<Arg>(arg);
+      if constexpr (one_dimensional<Arg>) return std::forward<Arg>(arg);
       else
       {
         if constexpr (interface::to_diagonal_defined_for<Nested, Arg&&>)
@@ -386,7 +381,7 @@ namespace OpenKalman::interface
         }
         else
         {
-          auto diag = NestedInterface::to_diagonal(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
+          auto diag = NestedInterface::to_diagonal(OpenKalman::nested_object(std::forward<Arg>(arg)));
           return internal::make_fixed_square_adapter_like<vector_space_descriptor_of_t<Arg, 0>>(std::move(diag));
         }
       }
@@ -394,7 +389,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<square_matrix<Likelihood::maybe> Arg>
+    template<square_shaped<Likelihood::maybe> Arg>
     static constexpr vector auto
 #else
     template<typename Arg>
@@ -402,7 +397,7 @@ namespace OpenKalman::interface
 #endif
     diagonal_of(Arg&& arg)
     {
-      if constexpr (one_by_one_matrix<Arg>) return std::forward<Arg>(arg);
+      if constexpr (one_dimensional<Arg>) return std::forward<Arg>(arg);
       else
       {
         if constexpr (interface::diagonal_of_defined_for<NestedInterface, Arg&&>)
@@ -411,7 +406,7 @@ namespace OpenKalman::interface
         }
         else
         {
-          auto vect = NestedInterface::diagonal_of(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
+          auto vect = NestedInterface::diagonal_of(OpenKalman::nested_object(std::forward<Arg>(arg)));
           using D = std::conditional_t<dynamic_dimension<Arg, 0>, vector_space_descriptor_of<Arg, 1>, vector_space_descriptor_of<Arg, 0>>;
           return internal::make_fixed_size_adapter<D>(std::move(vect));
         }
@@ -443,12 +438,12 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<indexible Arg, index_value...Factors> requires
       interface::broadcast_defined_for<Nested, Arg&&, const Factors&...> or
-      interface::broadcast_defined_for<Nested, decltype(OpenKalman::nested_matrix(std::declval<Arg&&>)), const Factors&...>
+      interface::broadcast_defined_for<Nested, decltype(OpenKalman::nested_object(std::declval<Arg&&>)), const Factors&...>
     static indexible auto
 #else
     template<typename Arg, typename...Factors, std::enable_if_t<
       interface::broadcast_defined_for<Nested, Arg&&, const Factors&...> or
-      interface::broadcast_defined_for<Nested, typename nested_matrix_of<Arg&&>::type, const Factors&...>, int> = 0>
+      interface::broadcast_defined_for<Nested, typename nested_object_of<Arg&&>::type, const Factors&...>, int> = 0>
     static auto
 #endif
     broadcast(Arg&& arg, const Factors&...factors)
@@ -459,7 +454,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto&& ret = NestedInterface::broadcast(OpenKalman::nested_matrix(std::forward<Arg>(arg)), factors...);
+        auto&& ret = NestedInterface::broadcast(OpenKalman::nested_object(std::forward<Arg>(arg)), factors...);
         using Ret = decltype(ret);
         auto seq = std::make_index_sequence<std::max(index_count_v<Arg>, sizeof...(factors))>{};
         return broadcast_impl(std::forward<Ret>(ret), seq, std::forward_as_tuple(factors...));
@@ -485,12 +480,12 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<vector_space_descriptor...IDs, typename Operation, indexible Arg, indexible...Args> requires
       interface::n_ary_operation_defined_for<Nested, const std::tuple<IDs...>&, Operation&&, Arg, Args...> or
-      interface::n_ary_operation_defined_for<Nested, const std::tuple<IDs...>&, Operation&&, decltype(OpenKalman::nested_matrix(std::declval<Arg&&>)), Args...>
+      interface::n_ary_operation_defined_for<Nested, const std::tuple<IDs...>&, Operation&&, decltype(OpenKalman::nested_object(std::declval<Arg&&>)), Args...>
     static indexible auto
 #else
     template<typename...IDs, typename Operation, typename Arg, typename...Args, std::enable_if_t<
       interface::n_ary_operation_defined_for<Nested, const std::tuple<IDs...>&, Operation&&, Arg, Args...> or
-      interface::n_ary_operation_defined_for<Nested, const std::tuple<IDs...>&, Operation&&, typename nested_matrix_of<Arg&&>::type, Args...>, int> = 0>
+      interface::n_ary_operation_defined_for<Nested, const std::tuple<IDs...>&, Operation&&, typename nested_object_of<Arg&&>::type, Args...>, int> = 0>
     static auto
 #endif
     n_ary_operation(const std::tuple<IDs...>& d_tup, Operation&& op, Arg&& arg, Args&&...args)
@@ -501,7 +496,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        return NestedInterface::n_ary_operation(d_tup, std::forward<Operation>(op), OpenKalman::nested_matrix(std::forward<Arg>(arg)), std::forward<Args>(args)...);
+        return NestedInterface::n_ary_operation(d_tup, std::forward<Operation>(op), OpenKalman::nested_object(std::forward<Arg>(arg)), std::forward<Args>(args)...);
       }
     }
 
@@ -509,11 +504,11 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<std::size_t...indices, typename BinaryFunction, indexible Arg> requires
       interface::reduce_defined_for<Nested, BinaryFunction&&, Arg&&, indices...> or
-      interface::reduce_defined_for<Nested, BinaryFunction&&, decltype(OpenKalman::nested_matrix(std::declval<Arg&&>)), indices...>
+      interface::reduce_defined_for<Nested, BinaryFunction&&, decltype(OpenKalman::nested_object(std::declval<Arg&&>)), indices...>
 #else
     template<std::size_t...indices, typename BinaryFunction, typename Arg, std::enable_if_t<
       interface::reduce_defined_for<Nested, BinaryFunction&&, Arg&&, indices...> or
-      interface::reduce_defined_for<Nested, BinaryFunction&&, typename nested_matrix_of<Arg&&>::type, indices...>, int> = 0>
+      interface::reduce_defined_for<Nested, BinaryFunction&&, typename nested_object_of<Arg&&>::type, indices...>, int> = 0>
 #endif
     static constexpr auto
     reduce(BinaryFunction&& op, Arg&& arg)
@@ -521,19 +516,19 @@ namespace OpenKalman::interface
       if constexpr (interface::reduce_defined_for<Nested, BinaryFunction&&, Arg&&, indices...>)
         return NestedInterface::template reduce<indices...>(std::forward<BinaryFunction>(op), std::forward<Arg>(arg));
       else
-        return NestedInterface::template reduce<indices...>(std::forward<BinaryFunction>(op), OpenKalman::nested_matrix(std::forward<Arg>(arg)));
+        return NestedInterface::template reduce<indices...>(std::forward<BinaryFunction>(op), OpenKalman::nested_object(std::forward<Arg>(arg)));
     }
 
 
 #ifdef __cpp_concepts
     template<indexible Arg, vector_space_descriptor C> requires
       interface::to_euclidean_defined_for<Nested, Arg&&, const C&> or
-      interface::to_euclidean_defined_for<Nested, decltype(OpenKalman::nested_matrix(std::declval<Arg&&>)), const C&>
+      interface::to_euclidean_defined_for<Nested, decltype(OpenKalman::nested_object(std::declval<Arg&&>)), const C&>
     static constexpr indexible auto
 #else
     template<typename Arg, typename C, std::enable_if_t<
       interface::to_euclidean_defined_for<Nested, Arg&&, const C&> or
-      interface::to_euclidean_defined_for<Nested, typename nested_matrix_of<Arg&&>::type, const C&>, int> = 0>
+      interface::to_euclidean_defined_for<Nested, typename nested_object_of<Arg&&>::type, const C&>, int> = 0>
     static constexpr auto
 #endif
     to_euclidean(Arg&& arg, const C& c)
@@ -541,19 +536,19 @@ namespace OpenKalman::interface
       if constexpr (interface::to_euclidean_defined_for<Nested, Arg&&, const C&>)
         return NestedInterface::to_euclidean(std::forward<Arg>(arg), c);
       else
-        return NestedInterface::to_euclidean(OpenKalman::nested_matrix(std::forward<Arg>(arg)), c);
+        return NestedInterface::to_euclidean(OpenKalman::nested_object(std::forward<Arg>(arg)), c);
     }
 
 
 #ifdef __cpp_concepts
     template<indexible Arg, vector_space_descriptor C> requires
       interface::from_euclidean_defined_for<Nested, Arg&&, const C&> or
-      interface::from_euclidean_defined_for<Nested, decltype(OpenKalman::nested_matrix(std::declval<Arg&&>)), const C&>
+      interface::from_euclidean_defined_for<Nested, decltype(OpenKalman::nested_object(std::declval<Arg&&>)), const C&>
     static constexpr indexible auto
 #else
     template<typename Arg, typename C, std::enable_if_t<
       interface::from_euclidean_defined_for<Nested, Arg&&, const C&> or
-      interface::from_euclidean_defined_for<Nested, typename nested_matrix_of<Arg&&>::type, const C&>, int> = 0>
+      interface::from_euclidean_defined_for<Nested, typename nested_object_of<Arg&&>::type, const C&>, int> = 0>
     static constexpr auto
 #endif
     from_euclidean(Arg&& arg, const C& c)
@@ -561,19 +556,19 @@ namespace OpenKalman::interface
       if constexpr (interface::from_euclidean_defined_for<Nested, Arg&&, const C&>)
         return NestedInterface::from_euclidean(std::forward<Arg>(arg), c);
       else
-        return NestedInterface::from_euclidean(OpenKalman::nested_matrix(std::forward<Arg>(arg)), c);
+        return NestedInterface::from_euclidean(OpenKalman::nested_object(std::forward<Arg>(arg)), c);
     }
 
 
 #ifdef __cpp_concepts
     template<indexible Arg, vector_space_descriptor C> requires
       interface::wrap_angles_defined_for<Nested, Arg&&, const C&> or
-      interface::wrap_angles_defined_for<Nested, decltype(OpenKalman::nested_matrix(std::declval<Arg&&>)), const C&>
+      interface::wrap_angles_defined_for<Nested, decltype(OpenKalman::nested_object(std::declval<Arg&&>)), const C&>
     static constexpr indexible auto
 #else
     template<typename Arg, typename C, std::enable_if_t<
       interface::wrap_angles_defined_for<Nested, Arg&&, const C&> or
-      interface::wrap_angles_defined_for<Nested, typename nested_matrix_of<Arg&&>::type, const C&>, int> = 0>
+      interface::wrap_angles_defined_for<Nested, typename nested_object_of<Arg&&>::type, const C&>, int> = 0>
     static constexpr auto
 #endif
     wrap_angles(Arg&& arg, const C& c)
@@ -581,19 +576,19 @@ namespace OpenKalman::interface
       if constexpr (interface::wrap_angles_defined_for<Nested, Arg&&, const C&>)
         return NestedInterface::wrap_angles(std::forward<Arg>(arg), c);
       else
-        return NestedInterface::wrap_angles(OpenKalman::nested_matrix(std::forward<Arg>(arg)), c);
+        return NestedInterface::wrap_angles(OpenKalman::nested_object(std::forward<Arg>(arg)), c);
     }
 
 
 #ifdef __cpp_concepts
     template<indexible Arg> requires
       interface::conjugate_defined_for<Nested, Arg&&> or
-      interface::conjugate_defined_for<Nested, decltype(OpenKalman::nested_matrix(std::declval<Arg&&>))>
+      interface::conjugate_defined_for<Nested, decltype(OpenKalman::nested_object(std::declval<Arg&&>))>
     static constexpr indexible auto
 #else
     template<typename Arg, std::enable_if_t<
       interface::conjugate_defined_for<Nested, Arg&&> or
-      interface::conjugate_defined_for<Nested, typename nested_matrix_of<Arg&&>::type>, int> = 0>
+      interface::conjugate_defined_for<Nested, typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
     conjugate(Arg&& arg)
@@ -604,7 +599,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto&& conj = NestedInterface::conjugate(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
+        auto&& conj = NestedInterface::conjugate(OpenKalman::nested_object(std::forward<Arg>(arg)));
         return internal::make_fixed_size_adapter_like<Arg>(std::forward<decltype(conj)>(conj));
       }
     }
@@ -613,12 +608,12 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<indexible Arg> requires
       interface::transpose_defined_for<Nested, Arg&&> or
-      interface::transpose_defined_for<Nested, decltype(OpenKalman::nested_matrix(std::declval<Arg&&>))>
+      interface::transpose_defined_for<Nested, decltype(OpenKalman::nested_object(std::declval<Arg&&>))>
     static constexpr indexible auto
 #else
     template<typename Arg, std::enable_if_t<
       interface::transpose_defined_for<Nested, Arg&&> or
-      interface::transpose_defined_for<Nested, typename nested_matrix_of<Arg&&>::type>, int> = 0>
+      interface::transpose_defined_for<Nested, typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
     transpose(Arg&& arg)
@@ -629,7 +624,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto trans = NestedInterface::transpose(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
+        auto trans = NestedInterface::transpose(OpenKalman::nested_object(std::forward<Arg>(arg)));
         using D0 = vector_space_descriptor_of<Arg, 1>;
         using D1 = vector_space_descriptor_of<Arg, 0>;
         return internal::make_fixed_size_adapter<D0, D1>(std::move(trans));
@@ -640,12 +635,12 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<indexible Arg> requires
       interface::adjoint_defined_for<Nested, Arg&&> or
-      interface::adjoint_defined_for<Nested, decltype(OpenKalman::nested_matrix(std::declval<Arg&&>))>
+      interface::adjoint_defined_for<Nested, decltype(OpenKalman::nested_object(std::declval<Arg&&>))>
     static constexpr indexible auto
 #else
     template<typename Arg, std::enable_if_t<
       interface::adjoint_defined_for<Nested, Arg&&> or
-      interface::adjoint_defined_for<Nested, typename nested_matrix_of<Arg&&>::type>, int> = 0>
+      interface::adjoint_defined_for<Nested, typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
     adjoint(Arg&& arg)
@@ -656,7 +651,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto adj = NestedInterface::adjoint(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
+        auto adj = NestedInterface::adjoint(OpenKalman::nested_object(std::forward<Arg>(arg)));
         using D0 = vector_space_descriptor_of<Arg, 1>;
         using D1 = vector_space_descriptor_of<Arg, 0>;
         return internal::make_fixed_size_adapter<D0, D1>(std::move(adj));
@@ -667,12 +662,12 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<indexible Arg> requires
       interface::determinant_defined_for<Nested, Arg&&> or
-      interface::determinant_defined_for<Nested, decltype(OpenKalman::nested_matrix(std::declval<Arg&&>))>
+      interface::determinant_defined_for<Nested, decltype(OpenKalman::nested_object(std::declval<Arg&&>))>
     static constexpr std::convertible_to<scalar_type_of_t<Arg>> auto
 #else
     template<typename Arg, std::enable_if_t<
       interface::determinant_defined_for<Nested, Arg&&> or
-      interface::determinant_defined_for<Nested, typename nested_matrix_of<Arg&&>::type>, int> = 0>
+      interface::determinant_defined_for<Nested, typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
     determinant(Arg&& arg)
@@ -683,7 +678,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        return NestedInterface::determinant(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
+        return NestedInterface::determinant(OpenKalman::nested_object(std::forward<Arg>(arg)));
       }
     }
 
@@ -691,11 +686,11 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<typename Arg, typename...Args> requires
       interface::sum_defined_for<Nested, Arg&&, Args&&...> or
-      interface::sum_defined_for<Nested, decltype(OpenKalman::nested_matrix(std::declval<Arg&&>)), Args&&...>
+      interface::sum_defined_for<Nested, decltype(OpenKalman::nested_object(std::declval<Arg&&>)), Args&&...>
 #else
     template<typename Arg, typename...Args, std::enable_if_t<
       interface::sum_defined_for<Nested, Arg&&, Args&&...> or
-      interface::sum_defined_for<Nested, typename nested_matrix_of<Arg&&>::type, Args&&...>, int> = 0>
+      interface::sum_defined_for<Nested, typename nested_object_of<Arg&&>::type, Args&&...>, int> = 0>
 #endif
     static auto
     sum(Arg&& arg, Args&&...args)
@@ -706,7 +701,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        return NestedInterface::sum(OpenKalman::nested_matrix(std::forward<Arg>(arg)), std::forward<Args>(args)...);
+        return NestedInterface::sum(OpenKalman::nested_object(std::forward<Arg>(arg)), std::forward<Args>(args)...);
       }
     }
 
@@ -714,11 +709,11 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<typename A, typename B> requires
       interface::contract_defined_for<Nested, A&&, B&&> or
-      interface::contract_defined_for<Nested, decltype(OpenKalman::nested_matrix(std::declval<A&&>)), B&&>
+      interface::contract_defined_for<Nested, decltype(OpenKalman::nested_object(std::declval<A&&>)), B&&>
 #else
     template<typename A, typename B, std::enable_if_t<
       interface::contract_defined_for<Nested, A&&, B&&> or
-      interface::contract_defined_for<Nested, typename nested_matrix_of<A&&>::type, B&&>, int> = 0>
+      interface::contract_defined_for<Nested, typename nested_object_of<A&&>::type, B&&>, int> = 0>
 #endif
     static auto
     contract(A&& a, B&& b)
@@ -729,7 +724,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto&& ret = NestedInterface::contract(OpenKalman::nested_matrix(std::forward<A>(a)), std::forward<B>(b));
+        auto&& ret = NestedInterface::contract(OpenKalman::nested_object(std::forward<A>(a)), std::forward<B>(b));
         using D0 = vector_space_descriptor_of<A, 0>;
         using D1 = vector_space_descriptor_of<B, 1>;
         return internal::make_fixed_size_adapter<D0, D1>(std::forward<decltype(ret)>(ret));
@@ -740,11 +735,11 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<bool on_the_right, typename A, typename B> requires
       interface::contract_in_place_defined_for<Nested, on_the_right, A&&, B&&> or
-      interface::contract_in_place_defined_for<Nested, on_the_right, decltype(OpenKalman::nested_matrix(std::declval<A&&>)), B&&>
+      interface::contract_in_place_defined_for<Nested, on_the_right, decltype(OpenKalman::nested_object(std::declval<A&&>)), B&&>
 #else
     template<bool on_the_right, typename A, typename B, std::enable_if_t<
       interface::contract_in_place_defined_for<Nested, on_the_right, A&&, B&&> or
-      interface::contract_in_place_defined_for<Nested, on_the_right, typename nested_matrix_of<A&&>::type, B&&>, int> = 0>
+      interface::contract_in_place_defined_for<Nested, on_the_right, typename nested_object_of<A&&>::type, B&&>, int> = 0>
 #endif
     static decltype(auto)
     contract_in_place(A&& a, B&& b)
@@ -755,9 +750,9 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto&& ret = NestedInterface::template contract_in_place<on_the_right>(OpenKalman::nested_matrix(std::forward<A>(a)), std::forward<B>(b));
+        auto&& ret = NestedInterface::template contract_in_place<on_the_right>(OpenKalman::nested_object(std::forward<A>(a)), std::forward<B>(b));
         using Ret = decltype(ret);
-        if constexpr (std::is_lvalue_reference_v<Ret> and std::is_same_v<Ret, decltype(OpenKalman::nested_matrix(std::declval<A&&>()))>)
+        if constexpr (std::is_lvalue_reference_v<Ret> and std::is_same_v<Ret, decltype(OpenKalman::nested_object(std::declval<A&&>()))>)
         {
           return std::forward<A>(a);
         }
@@ -774,12 +769,12 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<TriangleType triangle_type, indexible Arg> requires
       interface::cholesky_factor_defined_for<Nested, triangle_type, Arg&&> or
-      interface::cholesky_factor_defined_for<Nested, triangle_type, decltype(OpenKalman::nested_matrix(std::declval<Arg&&>()))>
+      interface::cholesky_factor_defined_for<Nested, triangle_type, decltype(OpenKalman::nested_object(std::declval<Arg&&>()))>
     static constexpr triangular_matrix<triangle_type> auto
 #else
     template<TriangleType triangle_type, typename Arg, std::enable_if_t<
       interface::cholesky_factor_defined_for<Nested, triangle_type, Arg&&> or
-      interface::cholesky_factor_defined_for<Nested, triangle_type, typename nested_matrix_of<Arg&&>::type>, int> = 0>
+      interface::cholesky_factor_defined_for<Nested, triangle_type, typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
     cholesky_factor(Arg&& arg)
@@ -790,7 +785,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto tri = NestedInterface::template cholesky_factor<triangle_type>(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
+        auto tri = NestedInterface::template cholesky_factor<triangle_type>(OpenKalman::nested_object(std::forward<Arg>(arg)));
         return internal::make_fixed_square_adapter_like(std::move(tri));
       }
     }
@@ -799,23 +794,23 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<HermitianAdapterType significant_triangle, indexible A, indexible U> requires
       interface::rank_update_self_adjoint_defined_for<Nested, significant_triangle, A&&, U&&, const scalar_type_of_t<A>&> or
-      interface::rank_update_self_adjoint_defined_for<Nested, significant_triangle, decltype(OpenKalman::nested_matrix(std::declval<A&&>())), U&&, const scalar_type_of_t<A>&>
+      interface::rank_update_self_adjoint_defined_for<Nested, significant_triangle, decltype(OpenKalman::nested_object(std::declval<A&&>())), U&&, const scalar_type_of_t<A>&>
     static constexpr hermitian_matrix auto
 #else
     template<HermitianAdapterType significant_triangle, typename A, typename U, std::enable_if_t<
       interface::rank_update_self_adjoint_defined_for<Nested, significant_triangle, A&&, U&&, const typename scalar_type_of<A>::type&> or
-      interface::rank_update_self_adjoint_defined_for<Nested, significant_triangle, typename nested_matrix_of<A&&>::type, U&&, const typename scalar_type_of<A>::type&>, int> = 0>
+      interface::rank_update_self_adjoint_defined_for<Nested, significant_triangle, typename nested_object_of<A&&>::type, U&&, const typename scalar_type_of<A>::type&>, int> = 0>
     static constexpr auto
 #endif
-    rank_update_self_adjoint(A&& a, U&& u, const scalar_type_of_t<A>& alpha)
+    rank_update_hermitian(A&& a, U&& u, const scalar_type_of_t<A>& alpha)
     {
       if constexpr (interface::rank_update_self_adjoint_defined_for<Nested, significant_triangle, A&&, U&&, const scalar_type_of_t<A>&>)
       {
-        return NestedInterface::template rank_update_self_adjoint<significant_triangle>(std::forward<A>(a), std::forward<U>(u), alpha);
+        return NestedInterface::template rank_update_hermitian<significant_triangle>(std::forward<A>(a), std::forward<U>(u), alpha);
       }
       else
       {
-        auto tri = NestedInterface::template rank_update_self_adjoint<significant_triangle>(OpenKalman::nested_matrix(std::forward<A>(a), std::forward<U>(u), alpha));
+        auto tri = NestedInterface::template rank_update_hermitian<significant_triangle>(OpenKalman::nested_object(std::forward<A>(a), std::forward<U>(u), alpha));
         return internal::make_fixed_square_adapter_like(std::move(tri));
       }
     }
@@ -824,12 +819,12 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<TriangleType triangle_type, indexible A, indexible U> requires
       interface::rank_update_triangular_defined_for<Nested, triangle_type, A&&, U&&, const scalar_type_of_t<A>&> or
-      interface::rank_update_triangular_defined_for<Nested, triangle_type, decltype(OpenKalman::nested_matrix(std::declval<A&&>())), U&&, const scalar_type_of_t<A>&>
+      interface::rank_update_triangular_defined_for<Nested, triangle_type, decltype(OpenKalman::nested_object(std::declval<A&&>())), U&&, const scalar_type_of_t<A>&>
     static constexpr triangular_matrix<triangle_type> auto
 #else
     template<TriangleType triangle_type, typename A, typename U, std::enable_if_t<
       interface::rank_update_triangular_defined_for<Nested, triangle_type, A&&, U&&, const typename scalar_type_of<A>::type&> or
-      interface::rank_update_triangular_defined_for<Nested, triangle_type, typename nested_matrix_of<A&&>::type, U&&, const typename scalar_type_of<A>::type&>, int> = 0>
+      interface::rank_update_triangular_defined_for<Nested, triangle_type, typename nested_object_of<A&&>::type, U&&, const typename scalar_type_of<A>::type&>, int> = 0>
     static constexpr auto
 #endif
     rank_update_triangular(A&& a, U&& u, const scalar_type_of_t<A>& alpha)
@@ -840,7 +835,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto tri = NestedInterface::template rank_update_triangular<triangle_type>(OpenKalman::nested_matrix(std::forward<A>(a), std::forward<U>(u), alpha));
+        auto tri = NestedInterface::template rank_update_triangular<triangle_type>(OpenKalman::nested_object(std::forward<A>(a), std::forward<U>(u), alpha));
         return internal::make_fixed_square_adapter_like(std::move(tri));
       }
     }
@@ -849,12 +844,12 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<bool must_be_unique, bool must_be_exact, typename A, typename B> requires
       interface::solve_defined_for<Nested, must_be_unique, must_be_exact, A&&, B&&> or
-      interface::solve_defined_for<Nested, must_be_unique, must_be_exact, decltype(OpenKalman::nested_matrix(std::declval<A&&>)), B&&>
+      interface::solve_defined_for<Nested, must_be_unique, must_be_exact, decltype(OpenKalman::nested_object(std::declval<A&&>)), B&&>
     static compatible_with_vector_space_descriptors<vector_space_descriptor_of_t<A, 1>, vector_space_descriptor_of_t<B, 1>> auto
 #else
     template<bool must_be_unique, bool must_be_exact, typename A, typename B, std::enable_if_t<
       interface::solve_defined_for<Nested, must_be_unique, must_be_exact, A&&, B&&> or
-      interface::solve_defined_for<Nested, must_be_unique, must_be_exact, typename nested_matrix_of<A&&>::type, B&&>, int> = 0>
+      interface::solve_defined_for<Nested, must_be_unique, must_be_exact, typename nested_object_of<A&&>::type, B&&>, int> = 0>
     static auto
 #endif
     solve(A&& a, B&& b)
@@ -865,7 +860,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto ret {NestedInterface::template solve<must_be_unique, must_be_exact>(OpenKalman::nested_matrix(std::forward<A>(a)), std::forward<B>(b))};
+        auto ret {NestedInterface::template solve<must_be_unique, must_be_exact>(OpenKalman::nested_object(std::forward<A>(a)), std::forward<B>(b))};
         using D0 = vector_space_descriptor_of<A, 1>;
         using D1 = vector_space_descriptor_of<B, 1>;
         return internal::make_fixed_size_adapter<D0, D1>(std::forward<decltype(ret)>(ret));
@@ -876,11 +871,11 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<typename A> requires
       interface::LQ_decomposition_defined_for<Nested, A&&> or
-      interface::LQ_decomposition_defined_for<Nested, decltype(OpenKalman::nested_matrix(std::declval<A&&>))>
+      interface::LQ_decomposition_defined_for<Nested, decltype(OpenKalman::nested_object(std::declval<A&&>))>
 #else
     template<typename A, std::enable_if_t<
       interface::LQ_decomposition_defined_for<Nested, A&&> or
-      interface::LQ_decomposition_defined_for<Nested, typename nested_matrix_of<A&&>::type>, int> = 0>
+      interface::LQ_decomposition_defined_for<Nested, typename nested_object_of<A&&>::type>, int> = 0>
 #endif
     static auto
     LQ_decomposition(A&& a)
@@ -891,7 +886,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto&& ret = NestedInterface::LQ_decomposition(OpenKalman::nested_matrix(std::forward<A>(a)));
+        auto&& ret = NestedInterface::LQ_decomposition(OpenKalman::nested_object(std::forward<A>(a)));
         using D0 = vector_space_descriptor_of<A, 0>;
         return internal::make_fixed_square_adapter_like<D0>(std::forward<decltype(ret)>(ret));
       }
@@ -901,11 +896,11 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<typename A> requires
       interface::QR_decomposition_defined_for<Nested, A&&> or
-      interface::QR_decomposition_defined_for<Nested, decltype(OpenKalman::nested_matrix(std::declval<A&&>))>
+      interface::QR_decomposition_defined_for<Nested, decltype(OpenKalman::nested_object(std::declval<A&&>))>
 #else
     template<typename A, std::enable_if_t<
       interface::QR_decomposition_defined_for<Nested, A&&> or
-      interface::QR_decomposition_defined_for<Nested, typename nested_matrix_of<A&&>::type>, int> = 0>
+      interface::QR_decomposition_defined_for<Nested, typename nested_object_of<A&&>::type>, int> = 0>
 #endif
     static auto
     QR_decomposition(A&& a)
@@ -916,7 +911,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto&& ret = NestedInterface::QR_decomposition(OpenKalman::nested_matrix(std::forward<A>(a)));
+        auto&& ret = NestedInterface::QR_decomposition(OpenKalman::nested_object(std::forward<A>(a)));
         using D1 = vector_space_descriptor_of<A, 1>;
         return internal::make_fixed_square_adapter_like<D1>(std::forward<decltype(ret)>(ret));
       }

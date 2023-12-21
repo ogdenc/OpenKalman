@@ -138,9 +138,10 @@ namespace OpenKalman::internal
    * \return The tuple slice.
    */
 #ifdef __cpp_concepts
-  template<std::size_t index1, std::size_t index2, tuple_like T> requires (index1 <= index2) and (index2 <= std::tuple_size_v<std::decay_t<T>>)
+  template<std::size_t index1, std::size_t index2, typename T> requires
+    tuple_like<std::decay_t<T>> and (index1 <= index2) and (index2 <= std::tuple_size_v<std::decay_t<T>>)
 #else
-  template<std::size_t index1, std::size_t index2, typename T, std::enable_if_t<tuple_like<T> and
+  template<std::size_t index1, std::size_t index2, typename T, std::enable_if_t<tuple_like<std::decay_t<T>> and
     (index1 <= index2) and (index2 <= std::tuple_size<std::decay_t<T>>::value), int> = 0>
 #endif
   constexpr auto tuple_slice(T&& t)

@@ -36,15 +36,9 @@ namespace OpenKalman::interface
 
     static constexpr bool has_runtime_parameters = false;
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
-    {
-      static_assert(i < 2);
-      if constexpr (i == 0)
-        return std::forward<Arg>(arg).lhs();
-      else
-        return std::forward<Arg>(arg).rhs();
-    }
+
+    // nested_object not defined
+
 
     template<typename Arg>
     static auto convert_to_self_contained(Arg&& arg)
@@ -68,7 +62,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        return make_dense_writable_matrix_from(std::forward<Arg>(arg));
+        return make_dense_object(std::forward<Arg>(arg));
       }
     }
 
@@ -76,33 +70,54 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (zero_matrix<LhsType>)
+      if constexpr (zero<LhsType>)
       {
         return constant_coefficient{arg.lhs()};
       }
-      else if constexpr (zero_matrix<RhsType>)
+      else if constexpr (zero<RhsType>)
       {
         return constant_coefficient{arg.rhs()};
       }
       else if constexpr (constant_diagonal_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe> and
         constant_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe>)
       {
-        return constant_diagonal_coefficient{arg.lhs()} * constant_coefficient{arg.rhs()};
+        return internal::scalar_constant_operation {
+          std::multiplies<>{},
+          constant_diagonal_coefficient{arg.lhs()},
+          constant_coefficient{arg.rhs()}};
       }
       else if constexpr (constant_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe> and
         constant_diagonal_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe>)
       {
-        return constant_coefficient{arg.lhs()} * constant_diagonal_coefficient{arg.rhs()};
+        return internal::scalar_constant_operation {
+          std::multiplies<>{},
+          constant_coefficient{arg.lhs()},
+          constant_diagonal_coefficient{arg.rhs()}};
       }
       else
       {
         constexpr auto dim = dynamic_dimension<LhsType, 1> ? index_dimension_of_v<RhsType, 0> : index_dimension_of_v<LhsType, 1>;
         if constexpr (dim == dynamic_size)
-          return get_index_dimension_of<1>(arg.lhs()) * (constant_coefficient{arg.lhs()} * constant_coefficient{arg.rhs()});
+        {
+          return internal::scalar_constant_operation {
+            std::multiplies<>{},
+            get_index_dimension_of<1>(arg.lhs()),
+            internal::scalar_constant_operation {std::multiplies<>{}, constant_coefficient{arg.lhs()}, constant_coefficient{arg.rhs()}}};
+        }
         else if constexpr (constant_matrix<LhsType, CompileTimeStatus::known>)
-          return std::integral_constant<std::size_t, dim>{} * constant_coefficient{arg.lhs()} * constant_coefficient{arg.rhs()};
+        {
+          return internal::scalar_constant_operation {
+            std::multiplies<>{},
+            internal::scalar_constant_operation {std::multiplies<>{}, std::integral_constant<std::size_t, dim>{}, constant_coefficient{arg.lhs()}},
+            constant_coefficient{arg.rhs()}};
+        }
         else
-          return std::integral_constant<std::size_t, dim>{} * constant_coefficient{arg.rhs()} * constant_coefficient{arg.lhs()};
+        {
+          return internal::scalar_constant_operation {
+            std::multiplies<>{},
+            internal::scalar_constant_operation {std::multiplies<>{}, std::integral_constant<std::size_t, dim>{}, constant_coefficient{arg.rhs()}},
+            constant_coefficient{arg.lhs()}};
+        }
       }
     }
 

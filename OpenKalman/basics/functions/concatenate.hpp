@@ -18,9 +18,6 @@
 
 namespace OpenKalman
 {
-  // ============= //
-  //  concatenate  //
-  // ============= //
 
   namespace detail
   {
@@ -75,14 +72,14 @@ namespace OpenKalman
     template<typename T, typename...Ts>
     concept constant_concatenate_arguments =
       (constant_matrix<T, CompileTimeStatus::known> and ... and constant_matrix<Ts, CompileTimeStatus::known>) and
-      (are_within_tolerance(constant_coefficient_v<T>, constant_coefficient_v<Ts>) and ...);
+      (internal::are_within_tolerance(constant_coefficient_v<T>, constant_coefficient_v<Ts>) and ...);
 #else
     template<typename T, typename = void, typename...Ts>
     struct constant_concatenate_arguments_impl : std::false_type {};
 
     template<typename T, typename...Ts>
     struct constant_concatenate_arguments_impl<T,
-      std::enable_if_t<(are_within_tolerance(constant_coefficient<T>::value, constant_coefficient<Ts>::value) and ...)>, Ts...>
+      std::enable_if_t<(internal::are_within_tolerance(constant_coefficient<T>::value, constant_coefficient<Ts>::value) and ...)>, Ts...>
       : std::true_type {};
 
     template<typename T, typename...Ts>
@@ -101,7 +98,7 @@ namespace OpenKalman
       else
       {
         using Pattern = std::tuple_element_t<0, Args_tup>;
-        return make_zero_matrix_like<Pattern>(get_vector_space_descriptor<all_indices>(std::get<pos>(args_tup))...);
+        return make_zero<Pattern>(get_vector_space_descriptor<all_indices>(std::get<pos>(args_tup))...);
       }
     }
 
@@ -201,20 +198,20 @@ namespace OpenKalman
   {
     auto seq = std::make_index_sequence<std::max({index_count_v<Arg>, index_count_v<Args>..., indices...})> {};
     auto d_tup = detail::concatenate_vector_space_descriptor<indices...>(
-      seq, get_all_dimensions_of(arg), get_all_dimensions_of(args)...);
+      seq, all_vector_space_descriptors(arg), all_vector_space_descriptors(args)...);
 
     if constexpr (sizeof...(Args) == 0)
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr ((zero_matrix<Arg> and ... and zero_matrix<Args>))
+    else if constexpr ((zero<Arg> and ... and zero<Args>))
     {
-      return std::apply([](auto&&...ds){ return make_zero_matrix_like<Arg>(std::forward<decltype(ds)>(ds)...); }, d_tup);
+      return std::apply([](auto&&...ds){ return make_zero<Arg>(std::forward<decltype(ds)>(ds)...); }, d_tup);
     }
     else if constexpr (sizeof...(indices) == 1 and detail::constant_concatenate_arguments<Arg, Args...>)
     {
       return std::apply([](auto&&...ds){
-        return make_constant_matrix_like<Arg>(constant_coefficient<Arg>{}, std::forward<decltype(ds)>(ds)...);
+        return make_constant<Arg>(constant_coefficient<Arg>{}, std::forward<decltype(ds)>(ds)...);
       }, d_tup);
     }
     else if constexpr (sizeof...(indices) == 2 and ((indices == 0) or ...) and ((indices == 1) or ...) and
@@ -227,7 +224,7 @@ namespace OpenKalman
       ((triangular_matrix<Arg, TriangleType::upper> == triangular_matrix<Args, TriangleType::upper>) and ...))
     {
       return make_triangular_matrix<triangle_type_of_v<Arg>>(
-        concatenate<0, 1>(nested_matrix(std::forward<Arg>(arg)), nested_matrix(std::forward<Args>(args))...));
+        concatenate<0, 1>(nested_object(std::forward<Arg>(arg)), nested_object(std::forward<Args>(args))...));
     }
     else if constexpr (sizeof...(indices) == 2 and ((indices == 0) or ...) and ((indices == 1) or ...) and
       (hermitian_matrix<Arg> and ... and hermitian_matrix<Args>))
@@ -235,11 +232,11 @@ namespace OpenKalman
       constexpr auto t = hermitian_adapter_type_of_v<Arg>;
       auto maybe_transpose = [](auto&& m) {
         using M = decltype(m);
-        if constexpr(t == hermitian_adapter_type_of_v<M>) return nested_matrix(std::forward<M>(m));
-        else return transpose(nested_matrix(std::forward<M>(m)));
+        if constexpr(t == hermitian_adapter_type_of_v<M>) return nested_object(std::forward<M>(m));
+        else return transpose(nested_object(std::forward<M>(m)));
       };
       return make_hermitian_matrix<t>(
-        concatenate_diagonal(nested_matrix(std::forward<Arg>(arg)), maybe_transpose(std::forward<Args>(args))...));
+        concatenate_diagonal(nested_object(std::forward<Arg>(arg)), maybe_transpose(std::forward<Args>(args))...));
     }
     else if constexpr (sizeof...(indices) == 1)
     {

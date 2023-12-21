@@ -34,7 +34,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr auto
-    get_index_count(const Arg& arg)
+    count_indices(const Arg& arg)
     {
       if constexpr (Arg::RowsAtCompileTime == 1 and Arg::ColsAtCompileTime == 1)
         return std::integral_constant<std::size_t, 0_uz>{};
@@ -56,10 +56,9 @@ namespace OpenKalman::interface
     static constexpr bool has_runtime_parameters = false;
 
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
+    template<typename Arg>
+    static decltype(auto) nested_object(Arg&& arg)
     {
-      static_assert(i == 0);
       auto&& d = std::forward<Arg>(arg).diagonal();
       using D = decltype(d);
       using NCD = std::conditional_t<
@@ -85,7 +84,7 @@ namespace OpenKalman::interface
 
 
     template<Likelihood b>
-    static constexpr bool is_one_by_one = one_by_one_matrix<DiagVectorType, b>;
+    static constexpr bool one_dimensional = OpenKalman::one_dimensional<DiagVectorType, b>;
 
 
     template<Likelihood b>
@@ -97,10 +96,6 @@ namespace OpenKalman::interface
 
 
     static constexpr bool is_triangular_adapter = false;
-
-
-    template<Likelihood b>
-    static constexpr bool is_diagonal_adapter = vector<DiagVectorType, 0, b>;
 
     // is_hermitian not defined because matrix is diagonal;
 

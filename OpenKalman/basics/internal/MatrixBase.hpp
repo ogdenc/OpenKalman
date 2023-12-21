@@ -78,7 +78,7 @@ namespace OpenKalman::internal
     constexpr auto& operator=(Arg&& arg) noexcept
     {
       static_assert(not std::is_const_v<std::remove_reference_t<NestedMatrix>>, "Nested matrix cannot be modified.");
-      if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>)
+      if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
         m_arg = std::forward<Arg>(arg);
       }
@@ -89,19 +89,19 @@ namespace OpenKalman::internal
     /**
      * \brief Get the nested matrix.
      */
-    constexpr decltype(auto) nested_matrix() & noexcept { return (m_arg); }
+    constexpr auto& nested_object() & noexcept { return m_arg; }
 
 
     /// \overload
-    constexpr decltype(auto) nested_matrix() const & noexcept { return (m_arg); }
+    constexpr const auto& nested_object() const & noexcept { return m_arg; }
 
 
     /// \overload
-    constexpr decltype(auto) nested_matrix() && noexcept { return (std::move(*this).m_arg); }
+    constexpr auto&& nested_object() && noexcept { return std::move(*this).m_arg; }
 
 
     /// \overload
-    constexpr decltype(auto) nested_matrix() const && noexcept { return (std::move(*this).m_arg); }
+    constexpr const auto&& nested_object() const && noexcept { return std::move(*this).m_arg; }
 
 
     /**
@@ -119,7 +119,7 @@ namespace OpenKalman::internal
       if constexpr (element_settable<Derived&, 2>)
         return ElementAccessor(static_cast<Derived&>(*this), i, j);
       else
-        return get_element(static_cast<Derived&>(*this), i, j);
+        return get_component(static_cast<Derived&>(*this), i, j);
     }
 
 
@@ -131,7 +131,7 @@ namespace OpenKalman::internal
       if constexpr (element_settable<Derived&&, 2>)
         return ElementAccessor(static_cast<Derived&&>(*this), i, j);
       else
-        return get_element(static_cast<Derived&&>(*this), i, j);
+        return get_component(static_cast<Derived&&>(*this), i, j);
     }
 
 
@@ -140,7 +140,7 @@ namespace OpenKalman::internal
     {
       static_assert(element_gettable<const Derived&, 2>);
 
-      return get_element(static_cast<const Derived&>(*this), i, j);
+      return get_component(static_cast<const Derived&>(*this), i, j);
     }
 
 
@@ -149,7 +149,7 @@ namespace OpenKalman::internal
     {
       static_assert(element_gettable<const Derived&&, 2>);
 
-      return get_element(static_cast<const Derived&&>(*this), i, j);
+      return get_component(static_cast<const Derived&&>(*this), i, j);
     }
 
 
@@ -169,11 +169,11 @@ namespace OpenKalman::internal
       else
       {
         if constexpr (element_gettable<Derived&, 1>)
-          return get_element(static_cast<Derived&>(*this), i);
+          return get_component(static_cast<Derived&>(*this), i);
         else
         {
           static_assert(diagonal_matrix<Derived> and element_gettable<Derived&, 2>);
-          return get_element(static_cast<Derived&>(*this), i, i);
+          return get_component(static_cast<Derived&>(*this), i, i);
         }
       }
     }
@@ -189,11 +189,11 @@ namespace OpenKalman::internal
       else
       {
         if constexpr (element_gettable<Derived&&, 1>)
-          return get_element(static_cast<Derived&&>(*this), i);
+          return get_component(static_cast<Derived&&>(*this), i);
         else
         {
           static_assert(diagonal_matrix<Derived> and element_gettable<Derived&&, 2>);
-          return get_element(static_cast<Derived&&>(*this), i, i);
+          return get_component(static_cast<Derived&&>(*this), i, i);
         }
       }
     }
@@ -203,11 +203,11 @@ namespace OpenKalman::internal
     constexpr auto operator[](std::size_t i) const &
     {
       if constexpr (element_gettable<const Derived&, 1>)
-        return get_element(static_cast<const Derived&>(*this), i);
+        return get_component(static_cast<const Derived&>(*this), i);
       else
       {
         static_assert(diagonal_matrix<Derived> and element_gettable<const Derived&, 2>);
-        return get_element(static_cast<const Derived&>(*this), i, i);
+        return get_component(static_cast<const Derived&>(*this), i, i);
       }
     }
 
@@ -216,11 +216,11 @@ namespace OpenKalman::internal
     constexpr auto operator[](std::size_t i) const &&
     {
       if constexpr (element_gettable<const Derived&&, 1>)
-        return get_element(static_cast<const Derived&&>(*this), i);
+        return get_component(static_cast<const Derived&&>(*this), i);
       else
       {
         static_assert(diagonal_matrix<Derived> and element_gettable<const Derived&&, 2>);
-        return get_element(static_cast<const Derived&&>(*this), i, i);
+        return get_component(static_cast<const Derived&&>(*this), i, i);
       }
     }
 

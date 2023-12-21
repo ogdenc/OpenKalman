@@ -49,15 +49,7 @@ namespace OpenKalman::interface
     static constexpr bool has_runtime_parameters = false;
 
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
-    {
-      if constexpr (i == 0)
-        return std::forward<Arg>(arg).lhsExpression();
-      else
-        return std::forward<Arg>(arg).rhsExpression();
-      static_assert(i <= 1);
-    }
+    // nested_object() not defined
 
 
     template<typename Arg>
@@ -73,7 +65,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        return make_dense_writable_matrix_from(std::forward<Arg>(arg));
+        return make_dense_object(std::forward<Arg>(arg));
       }
     }
 
@@ -93,18 +85,18 @@ namespace OpenKalman::interface
 
 
     template<Likelihood b>
-    static constexpr bool is_one_by_one =
-      one_by_one_matrix<LhsXprType, Likelihood::maybe> and one_by_one_matrix<RhsXprType, Likelihood::maybe> and
+    static constexpr bool one_dimensional =
+      OpenKalman::one_dimensional<LhsXprType, Likelihood::maybe> and one_dimensional<RhsXprType, Likelihood::maybe> and
       (b != Likelihood::definitely or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
-        (square_matrix<LhsXprType, b> and (dimension_size_of_index_is<RhsXprType, 0, 1> or dimension_size_of_index_is<RhsXprType, 1, 1>)) or
-        ((dimension_size_of_index_is<LhsXprType, 0, 1> or dimension_size_of_index_is<LhsXprType, 1, 1>) and square_matrix<RhsXprType, b>));
+        (square_shaped<LhsXprType, b> and (dimension_size_of_index_is<RhsXprType, 0, 1> or dimension_size_of_index_is<RhsXprType, 1, 1>)) or
+        ((dimension_size_of_index_is<LhsXprType, 0, 1> or dimension_size_of_index_is<LhsXprType, 1, 1>) and square_shaped<RhsXprType, b>));
 
 
     template<Likelihood b>
     static constexpr bool is_square =
-      square_matrix<LhsXprType, Likelihood::maybe> and square_matrix<RhsXprType, Likelihood::maybe> and
+      square_shaped<LhsXprType, Likelihood::maybe> and square_shaped<RhsXprType, Likelihood::maybe> and
       (b != Likelihood::definitely or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
-        square_matrix<LhsXprType, b> or square_matrix<RhsXprType, b>);
+        square_shaped<LhsXprType, b> or square_shaped<RhsXprType, b>);
 
 
     template<TriangleType t, Likelihood b>
@@ -120,7 +112,7 @@ namespace OpenKalman::interface
     static constexpr bool is_writable = false;
 
 
-    // data() not defined
+    // raw_data() not defined
 
 
     // layout not defined

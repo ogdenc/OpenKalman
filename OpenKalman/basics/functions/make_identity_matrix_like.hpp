@@ -37,7 +37,7 @@ namespace OpenKalman
     if constexpr (interface::make_identity_matrix_defined_for<std::decay_t<T>, Scalar, D&&>)
       return interface::library_interface<std::decay_t<T>>::template make_identity_matrix<Scalar>(std::forward<D>(d));
     else // Default behavior if interface function not defined:
-      return DiagonalMatrix {make_constant_matrix_like<T, Scalar, 1>(std::forward<D>(d), Dimensions<1>{})};
+      return DiagonalMatrix {make_constant<T, Scalar, 1>(std::forward<D>(d), Dimensions<1>{})};
   }
 
 
@@ -48,10 +48,10 @@ namespace OpenKalman
    * \tparam Scalar A scalar type for the new matrix.
    */
 #ifdef __cpp_concepts
-  template<scalar_type Scalar, square_matrix<Likelihood::maybe> T>
+  template<scalar_type Scalar, square_shaped<Likelihood::maybe> T>
   constexpr identity_matrix auto
 #else
-  template<typename Scalar, typename T, std::enable_if_t<scalar_type<Scalar> and square_matrix<T, Likelihood::maybe>, int> = 0>
+  template<typename Scalar, typename T, std::enable_if_t<scalar_type<Scalar> and square_shaped<T, Likelihood::maybe>, int> = 0>
   constexpr auto
 #endif
   make_identity_matrix_like(T&& t)
@@ -85,10 +85,10 @@ namespace OpenKalman
    * \tparam T The matrix or array on which the new zero matrix is patterned.
    */
 #ifdef __cpp_concepts
-  template<square_matrix<Likelihood::maybe> T>
+  template<square_shaped<Likelihood::maybe> T>
   constexpr identity_matrix auto
 #else
-  template<typename T, std::enable_if_t<indexible<T> and square_matrix<T, Likelihood::maybe>, int> = 0>
+  template<typename T, std::enable_if_t<indexible<T> and square_shaped<T, Likelihood::maybe>, int> = 0>
   constexpr auto
 #endif
   make_identity_matrix_like(const T& t)
@@ -104,10 +104,10 @@ namespace OpenKalman
    * \tparam Scalar A scalar type for the new matrix. The default is the scalar type of T.
    */
 #ifdef __cpp_concepts
-  template<square_matrix T, scalar_type Scalar = scalar_type_of_t<T>>
+  template<square_shaped T, scalar_type Scalar = scalar_type_of_t<T>>
   constexpr identity_matrix auto
 #else
-  template<typename T, typename Scalar = scalar_type_of_t<T>, std::enable_if_t<square_matrix<T> and scalar_type<Scalar>, int> = 0>
+  template<typename T, typename Scalar = scalar_type_of_t<T>, std::enable_if_t<square_shaped<T> and scalar_type<Scalar>, int> = 0>
   constexpr auto
 #endif
   make_identity_matrix_like()

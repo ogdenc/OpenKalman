@@ -32,7 +32,7 @@ namespace OpenKalman
 #endif
   constexpr decltype(auto) conjugate(Arg&& arg) noexcept
   {
-    if constexpr (not complex_number<scalar_type_of_t<Arg>> or zero_matrix<Arg> or identity_matrix<Arg>)
+    if constexpr (not complex_number<scalar_type_of_t<Arg>> or zero<Arg> or identity_matrix<Arg>)
     {
       return std::forward<Arg>(arg);
     }
@@ -41,14 +41,14 @@ namespace OpenKalman
       if constexpr (real_axis_number<constant_coefficient<Arg>>)
         return std::forward<Arg>(arg);
       else
-        return make_constant_matrix_like(internal::constexpr_conj(constant_coefficient{arg}), std::forward<Arg>(arg));
+        return make_constant(internal::constexpr_conj(constant_coefficient{arg}), std::forward<Arg>(arg));
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       if constexpr (real_axis_number<constant_diagonal_coefficient<Arg>>)
         return std::forward<Arg>(arg);
       else
-        return to_diagonal(make_constant_matrix_like(internal::constexpr_conj(constant_diagonal_coefficient{arg}),
+        return to_diagonal(make_constant(internal::constexpr_conj(constant_diagonal_coefficient{arg}),
           diagonal_of(std::forward<Arg>(arg))));
     }
     else if constexpr (diagonal_matrix<Arg>)

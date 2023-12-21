@@ -75,21 +75,21 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-    constexpr decltype(auto) data() requires directly_accessible<NestedMatrix>
+    constexpr decltype(auto) data() requires interface::raw_data_defined_for<Derived&>
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<directly_accessible<T>, int> = 0>
+    template<typename T = Derived&, std::enable_if_t<interface::raw_data_defined_for<T>, int> = 0>
       constexpr decltype(auto)
       data()
 #endif
     {
-      return internal::raw_data(static_cast<const Derived&>(*this));
+      return internal::raw_data(static_cast<Derived&>(*this));
     }
 
 
 #ifdef __cpp_concepts
-    constexpr decltype(auto) data() const requires directly_accessible<NestedMatrix>
+    constexpr decltype(auto) data() const requires interface::raw_data_defined_for<const Derived&>
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<directly_accessible<T>, int> = 0>
+    template<typename T = const Derived&, std::enable_if_t<interface::raw_data_defined_for<T>, int> = 0>
       constexpr decltype(auto)
       data() const
 #endif
@@ -141,11 +141,11 @@ namespace OpenKalman::Eigen3
      * \note Overrides Eigen::DenseBase<Derived>::Zero.
      * \return A matrix, of the same size and shape, containing only zero coefficients.
      */
-    [[deprecated("Use make_zero_matrix_like() instead.")]]
+    [[deprecated("Use make_zero() instead.")]]
     static constexpr auto Zero()
     {
       static_assert(not has_dynamic_dimensions<Derived>);
-      return make_zero_matrix_like<Derived>();
+      return make_zero<Derived>();
     }
 
 
@@ -153,10 +153,10 @@ namespace OpenKalman::Eigen3
      * \note Overrides Eigen::DenseBase<Derived>::Zero.
      * \return A matrix, of the same size and shape, containing only zero coefficients.
      */
-    [[deprecated("Use make_zero_matrix_like() instead.")]]
+    [[deprecated("Use make_zero() instead.")]]
     static constexpr auto Zero(const Index r, const Index c)
     {
-      return make_zero_matrix_like<Derived>(Dimensions{static_cast<std::size_t>(r)}, Dimensions{static_cast<std::size_t>(c)});
+      return make_zero<Derived>(Dimensions{static_cast<std::size_t>(r)}, Dimensions{static_cast<std::size_t>(c)});
     }
 
 
@@ -167,7 +167,7 @@ namespace OpenKalman::Eigen3
     [[deprecated("Use make_identity_matrix_like() instead.")]]
     static constexpr auto Identity()
     {
-      if constexpr(square_matrix<Derived>)
+      if constexpr(square_shaped<Derived>)
         return make_identity_matrix_like<Derived>();
       else
         return Base::Identity();
@@ -198,7 +198,7 @@ namespace OpenKalman::Eigen3
     template<typename Arg>
     constexpr auto& get_ultimate_nested_matrix_impl(Arg& arg)
     {
-      auto& b = nested_matrix(arg);
+      auto& b = nested_object(arg);
       using B = decltype(b);
       static_assert(not std::is_const_v<std::remove_reference_t<B>>);
       if constexpr(eigen_self_adjoint_expr<B> or eigen_triangular_expr<B> or

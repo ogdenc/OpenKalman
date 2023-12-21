@@ -35,12 +35,13 @@ namespace OpenKalman::interface
 
     static constexpr bool has_runtime_parameters = false;
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
+
+    template<typename Arg>
+    static decltype(auto) nested_object(Arg&& arg)
     {
-      static_assert(i == 0);
       return std::forward<Arg>(arg).indices();
     }
+
 
     template<typename Arg>
     static auto convert_to_self_contained(Arg&& arg)
@@ -49,7 +50,7 @@ namespace OpenKalman::interface
       if constexpr (not std::is_lvalue_reference_v<typename NewIndicesType::Nested>)
         return Eigen::PermutationWrapper<NewIndicesType> {make_self_contained(arg.nestedExpression()), arg.functor()};
       else
-        return make_dense_writable_matrix_from(std::forward<Arg>(arg));
+        return make_dense_object(std::forward<Arg>(arg));
     }
 
     // get_constant() not defined

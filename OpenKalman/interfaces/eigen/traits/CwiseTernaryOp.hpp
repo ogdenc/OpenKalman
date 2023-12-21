@@ -33,7 +33,8 @@ namespace OpenKalman::interface
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
+    static constexpr auto
+    get_vector_space_descriptor(const Arg& arg, N n)
     {
       if constexpr (static_index_value<N>)
       {
@@ -47,21 +48,15 @@ namespace OpenKalman::interface
       else return OpenKalman::get_vector_space_descriptor(arg.arg1(), n);
     }
 
+
     using dependents = std::tuple<typename T::Arg1Nested, typename T::Arg2Nested, typename T::Arg3Nested>;
+
 
     static constexpr bool has_runtime_parameters = false;
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
-    {
-      static_assert(i <= 2);
-      if constexpr (i == 0)
-        return std::forward<Arg>(arg).arg1();
-      else if constexpr (i == 1)
-        return std::forward<Arg>(arg).arg2();
-      else
-        return std::forward<Arg>(arg).arg3();
-    }
+
+    // nested_object not defined
+
 
     template<typename Arg>
     static auto convert_to_self_contained(Arg&& arg)
@@ -80,7 +75,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        return make_dense_writable_matrix_from(std::forward<Arg>(arg));
+        return make_dense_object(std::forward<Arg>(arg));
       }
     }
 
@@ -97,9 +92,14 @@ namespace OpenKalman::interface
     }
 
     template<Likelihood b>
-    static constexpr bool is_one_by_one =
-      one_by_one_matrix<Arg1, Likelihood::maybe> and one_by_one_matrix<Arg2, Likelihood::maybe> and one_by_one_matrix<Arg3, Likelihood::maybe> and
-      (b != Likelihood::definitely or one_by_one_matrix<Arg1, b> or one_by_one_matrix<Arg2, b> or one_by_one_matrix<Arg3, b>);
+    static constexpr bool one_dimensional =
+      OpenKalman::one_dimensional<Arg1, Likelihood::maybe> and
+      OpenKalman::one_dimensional<Arg2, Likelihood::maybe> and
+      OpenKalman::one_dimensional<Arg3, Likelihood::maybe> and
+      (b != Likelihood::definitely or
+        OpenKalman::one_dimensional<Arg1, b> or
+        OpenKalman::one_dimensional<Arg2, b> or
+        OpenKalman::one_dimensional<Arg3, b>);
 
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = Eigen3::FunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template is_triangular<t, b>;

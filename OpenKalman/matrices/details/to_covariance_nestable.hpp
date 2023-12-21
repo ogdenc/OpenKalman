@@ -21,9 +21,9 @@ namespace OpenKalman::internal
 {
 #ifdef __cpp_concepts
   template<covariance_nestable T, typename Arg>
-  requires (covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or vector<Arg>))) and
+  requires (covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_shaped<Arg> or vector<Arg>))) and
     (index_dimension_of_v<Arg, 0> == index_dimension_of_v<T, 0>) and
-    (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
+    (not zero<T> or zero<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
     (not diagonal_matrix<T> or diagonal_matrix<Arg> or vector<Arg>)
 #else
   template<typename T, typename Arg, typename>
@@ -31,7 +31,7 @@ namespace OpenKalman::internal
   constexpr decltype(auto)
   to_covariance_nestable(Arg&& arg) noexcept
   {
-    if constexpr(zero_matrix<Arg> or identity_matrix<Arg>)
+    if constexpr(zero<Arg> or identity_matrix<Arg>)
     {
       // Pass through because both T and Arg are already zero or identity.
       return std::forward<Arg>(arg);
@@ -39,7 +39,7 @@ namespace OpenKalman::internal
     else if constexpr (diagonal_matrix<T>)
     {
       // diagonal -> diagonal
-      if constexpr (vector<Arg> and not one_by_one_matrix<Arg>)
+      if constexpr (vector<Arg> and not one_dimensional<Arg>)
       {
         return MatrixTraits<std::decay_t<T>>::make(std::forward<Arg>(arg));
       }
@@ -57,15 +57,15 @@ namespace OpenKalman::internal
     else if constexpr (hermitian_matrix<T> and triangular_matrix<Arg>)
     {
       // non-diagonal triangular --> non-diagonal self-adjoint
-      static_assert(hermitian_matrix<decltype(Cholesky_square(std::declval<Arg&&>()))>);
-      return Cholesky_square(std::forward<Arg>(arg));
+      static_assert(hermitian_matrix<decltype(cholesky_square(std::declval<Arg&&>()))>);
+      return cholesky_square(std::forward<Arg>(arg));
     }
     else if constexpr (triangular_matrix<T> and hermitian_matrix<Arg>)
     {
       // non-diagonal self-adjoint --> non-diagonal triangular
       static_assert(triangle_type_of_v<T> ==
-        triangle_type_of_v<decltype(Cholesky_factor<triangle_type_of_v<T>>(std::declval<Arg&&>()))>);
-      return Cholesky_factor<triangle_type_of_v<T>>(std::forward<Arg>(arg));
+        triangle_type_of_v<decltype(cholesky_factor<triangle_type_of_v<T>>(std::declval<Arg&&>()))>);
+      return cholesky_factor<triangle_type_of_v<T>>(std::forward<Arg>(arg));
     }
     else if constexpr (triangular_matrix<T> and triangular_matrix<Arg> and
       (not triangle_type_of_v<T> == triangle_type_of_v<Arg>))
@@ -95,9 +95,9 @@ namespace OpenKalman::internal
 
 #ifdef __cpp_concepts
   template<covariance_nestable T, typename Arg> requires
-    (covariance<Arg> or (typed_matrix<Arg> and (square_matrix<Arg> or vector<Arg>))) and
+    (covariance<Arg> or (typed_matrix<Arg> and (square_shaped<Arg> or vector<Arg>))) and
     (index_dimension_of_v<Arg, 0> == index_dimension_of_v<T, 0>) and
-    (not zero_matrix<T> or zero_matrix<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
+    (not zero<T> or zero<Arg>) and (not identity_matrix<T> or identity_matrix<Arg>) and
     (not diagonal_matrix<T> or diagonal_matrix<Arg> or vector<Arg>)
 #else
   template<typename T, typename Arg, typename, typename>
@@ -107,7 +107,7 @@ namespace OpenKalman::internal
   {
     if constexpr (typed_matrix<Arg> and not covariance<Arg>)
     {
-      return to_covariance_nestable<T>(nested_matrix(std::forward<Arg>(arg)));
+      return to_covariance_nestable<T>(nested_object(std::forward<Arg>(arg)));
     }
     else if constexpr (diagonal_matrix<T>) // In this case, diagonal_matrix<Arg> or vector<Arg>.
     {
@@ -134,7 +134,7 @@ namespace OpenKalman::internal
 
 #ifdef __cpp_concepts
   template<typename Arg>
-  requires covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_matrix<Arg> or vector<Arg>))
+  requires covariance_nestable<Arg> or (typed_matrix_nestable<Arg> and (square_shaped<Arg> or vector<Arg>))
 #else
   template<typename Arg, typename>
 #endif
@@ -145,7 +145,7 @@ namespace OpenKalman::internal
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (square_matrix<Arg>)
+    else if constexpr (square_shaped<Arg>)
     {
       return make_hermitian_matrix(std::forward<Arg>(arg));
     }
@@ -158,7 +158,7 @@ namespace OpenKalman::internal
 
 
 #ifdef __cpp_concepts
-  template<typename Arg> requires covariance<Arg> or (typed_matrix<Arg> and (square_matrix<Arg> or vector<Arg>))
+  template<typename Arg> requires covariance<Arg> or (typed_matrix<Arg> and (square_shaped<Arg> or vector<Arg>))
 #else
   template<typename Arg, typename, typename>
 #endif
@@ -167,7 +167,7 @@ namespace OpenKalman::internal
   {
     if constexpr (typed_matrix<Arg> and not covariance<Arg>)
     {
-      return to_covariance_nestable(nested_matrix(std::forward<Arg>(arg)));
+      return to_covariance_nestable(nested_object(std::forward<Arg>(arg)));
     }
     else if constexpr (triangular_covariance<Arg>)
     {

@@ -122,7 +122,7 @@ namespace Eigen
   template<typename CovarianceType>
   struct CovarianceCommaInitializer
   {
-    using CovNest = OpenKalman::nested_matrix_of_t<CovarianceType>;
+    using CovNest = OpenKalman::nested_object_of_t<CovarianceType>;
     using Scalar = OpenKalman::scalar_type_of_t<CovNest>;
     static constexpr auto layout = OpenKalman::layout_of_v<CovNest>;
     using NestedMatrix = std::conditional_t<OpenKalman::diagonal_matrix<CovNest>,
@@ -173,13 +173,13 @@ namespace Eigen
       }
       else if constexpr (triangular_covariance<CovarianceType>)
       {
-        using T = std::conditional_t<triangular_matrix<CovNest>, CovNest, decltype(Cholesky_factor(std::declval<CovNest>()))>;
+        using T = std::conditional_t<triangular_matrix<CovNest>, CovNest, decltype(cholesky_factor(std::declval<CovNest>()))>;
         auto b = OpenKalman::internal::to_covariance_nestable<T>(std::move(comma_initializer).finished());
         cov = OpenKalman::internal::to_covariance_nestable<CovNest>(std::move(b));
       }
       else
       {
-        using SA = std::conditional_t<hermitian_matrix<CovNest>, CovNest, decltype(Cholesky_square(std::declval<CovNest>()))>;
+        using SA = std::conditional_t<hermitian_matrix<CovNest>, CovNest, decltype(cholesky_square(std::declval<CovNest>()))>;
         auto b = OpenKalman::internal::to_covariance_nestable<SA>(std::move(comma_initializer).finished());
         cov = OpenKalman::internal::to_covariance_nestable<CovNest>(std::move(b));
       }
@@ -195,13 +195,13 @@ namespace Eigen
       }
       else if constexpr (triangular_covariance<CovarianceType>)
       {
-        using T = std::conditional_t<triangular_matrix<CovNest>, CovNest, decltype(Cholesky_factor(std::declval<CovNest>()))>;
+        using T = std::conditional_t<triangular_matrix<CovNest>, CovNest, decltype(cholesky_factor(std::declval<CovNest>()))>;
         auto b = OpenKalman::internal::to_covariance_nestable<T>(comma_initializer.finished());
         cov = OpenKalman::internal::to_covariance_nestable<CovNest>(std::move(b));
       }
       else
       {
-        using SA = std::conditional_t<hermitian_matrix<CovNest>, CovNest, decltype(Cholesky_square(std::declval<CovNest>()))>;
+        using SA = std::conditional_t<hermitian_matrix<CovNest>, CovNest, decltype(cholesky_square(std::declval<CovNest>()))>;
         auto b = OpenKalman::internal::to_covariance_nestable<SA>(comma_initializer.finished());
         cov = OpenKalman::internal::to_covariance_nestable<CovNest>(std::move(b));
       }

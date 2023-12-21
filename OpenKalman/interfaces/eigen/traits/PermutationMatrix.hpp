@@ -36,12 +36,13 @@ namespace OpenKalman::interface
 
     static constexpr bool has_runtime_parameters = false;
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
+
+    template<typename Arg>
+    static decltype(auto) nested_object(Arg&& arg)
     {
-      static_assert(i == 0);
       return std::forward<Arg>(arg).indices();
     }
+
 
     // PermutationMatrix is always self-contained.
 

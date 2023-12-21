@@ -36,7 +36,7 @@ namespace OpenKalman
 
       template<typename Arg>
       static constexpr auto
-      get_index_count(const Arg& arg)
+      count_indices(const Arg& arg)
       {
         if constexpr (SizeAtCompileTime == 1)
           return std::integral_constant<std::size_t, 0_uz>{};
@@ -60,11 +60,13 @@ namespace OpenKalman
       static constexpr bool has_runtime_parameters = false;
 
 
-      template<std::size_t i, typename Arg>
-      static decltype(auto) get_nested_matrix(Arg&& arg)
+      template<typename Arg>
+      static decltype(auto) nested_object(Arg&& arg)
       {
-        static_assert(i == 0);
-        return std::forward<Arg>(arg).diagonal();
+        if constexpr (std::is_rvalue_reference_v<Arg&&>)
+          return std::move(arg.diagonal());
+        else
+          return arg.diagonal();
       }
 
 
@@ -83,7 +85,7 @@ namespace OpenKalman
 
 
       template<Likelihood b>
-      static constexpr bool is_one_by_one = SizeAtCompileTime == 1 or (SizeAtCompileTime == Eigen::Dynamic and b == Likelihood::maybe);
+      static constexpr bool one_dimensional = SizeAtCompileTime == 1 or (SizeAtCompileTime == Eigen::Dynamic and b == Likelihood::maybe);
 
 
       template<Likelihood b>
@@ -95,10 +97,6 @@ namespace OpenKalman
 
 
       static constexpr bool is_triangular_adapter = false;
-
-
-      template<Likelihood b>
-      static constexpr bool is_diagonal_adapter = true;
 
 
       // is_hermitian not defined because matrix is diagonal;

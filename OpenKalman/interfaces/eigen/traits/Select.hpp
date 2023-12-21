@@ -55,17 +55,7 @@ namespace OpenKalman::interface
     static constexpr bool has_runtime_parameters = false;
 
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
-    {
-      static_assert(i < 3);
-      if constexpr (i == 0)
-        return std::forward<Arg>(arg).conditionMatrix();
-      else if constexpr (i == 1)
-        return std::forward<Arg>(arg).thenMatrix();
-      else
-        return std::forward<Arg>(arg).elseMatrix();
-    }
+    // nested_object not defined
 
 
     template<typename Arg>
@@ -86,7 +76,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        return make_dense_writable_matrix_from(std::forward<Arg>(arg));
+        return make_dense_object(std::forward<Arg>(arg));
       }
     }
 
@@ -134,9 +124,14 @@ namespace OpenKalman::interface
 
 
     template<Likelihood b>
-    static constexpr bool is_one_by_one =
-      one_by_one_matrix<ConditionMatrixType, Likelihood::maybe> and one_by_one_matrix<ThenMatrixType, Likelihood::maybe> and one_by_one_matrix<ElseMatrixType, Likelihood::maybe> and
-      (b != Likelihood::definitely or one_by_one_matrix<ConditionMatrixType, b> or one_by_one_matrix<ThenMatrixType, b> or one_by_one_matrix<ElseMatrixType, b>);
+    static constexpr bool one_dimensional =
+      OpenKalman::one_dimensional<ConditionMatrixType, Likelihood::maybe> and
+      OpenKalman::one_dimensional<ThenMatrixType, Likelihood::maybe> and
+      OpenKalman::one_dimensional<ElseMatrixType, Likelihood::maybe> and
+      (b != Likelihood::definitely or
+        OpenKalman::one_dimensional<ConditionMatrixType, b> or
+        OpenKalman::one_dimensional<ThenMatrixType, b> or
+        OpenKalman::one_dimensional<ElseMatrixType, b>);
 
 
     template<TriangleType t, Likelihood b>

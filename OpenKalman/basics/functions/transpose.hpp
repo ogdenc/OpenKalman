@@ -26,7 +26,7 @@ namespace OpenKalman
     template<typename C, typename Arg, std::size_t...Is>
     constexpr decltype(auto) transpose_constant(C&& c, Arg&& arg, std::index_sequence<Is...>) noexcept
     {
-      return make_constant_matrix_like<Arg>(std::forward<C>(c),
+      return make_constant<Arg>(std::forward<C>(c),
         get_vector_space_descriptor<1>(arg), get_vector_space_descriptor<0>(arg), get_vector_space_descriptor<Is + 2>(arg)...);
     }
   }
@@ -37,14 +37,14 @@ namespace OpenKalman
    * \tparam Arg The matrix
    */
 #ifdef __cpp_concepts
-  template<indexible Arg> requires (max_tensor_order_of_v<Arg> <= 2)
+  template<indexible Arg> requires (max_tensor_order_v<Arg> <= 2)
 #else
-  template<typename Arg, std::enable_if_t<indexible<Arg> and (max_tensor_order_of_v<Arg> <= 2), int> = 0>
+  template<typename Arg, std::enable_if_t<indexible<Arg> and (max_tensor_order_v<Arg> <= 2), int> = 0>
 #endif
   constexpr decltype(auto) transpose(Arg&& arg) noexcept
   {
     if constexpr (diagonal_matrix<Arg> or (hermitian_matrix<Arg> and not complex_number<scalar_type_of_t<Arg>>) or
-      (constant_matrix<Arg> and square_matrix<Arg>))
+      (constant_matrix<Arg> and square_shaped<Arg>))
     {
       return std::forward<Arg>(arg);
     }

@@ -57,7 +57,7 @@ struct Trans2
     using C = vector_space_descriptor_of_t<X, 0>;
     using MH = Matrix<C, C, H>;
     auto Arr = std::array<MH, A::RowsAtCompileTime>();
-    Arr.fill(make_zero_matrix_like<MH>());
+    Arr.fill(make_zero<MH>());
     return std::tuple {Arr};
   }
 
@@ -131,7 +131,7 @@ TEST(transformations, linearized_lambdas)
     using C = vector_space_descriptor_of_t<M2, 0>;
     using MH = Matrix<C, C, H>;
     auto Arr = std::array<MH, A2::RowsAtCompileTime>();
-    Arr.fill(make_zero_matrix_like<MH>());
+    Arr.fill(make_zero<MH>());
     return std::tuple {Arr};
   };
   auto t = Transformation(f, j, h);

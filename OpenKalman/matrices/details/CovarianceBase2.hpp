@@ -80,7 +80,7 @@ namespace OpenKalman::internal
 
     /**
      * \internal
-     * \brief Synchronize the state from nested_matrix to cholesky_nested_matrix.
+     * \brief Synchronize the state from nested_object to cholesky_nested_matrix.
      * \details This is a no-op.
      */
     const std::function<void()> synchronize_forward;
@@ -88,7 +88,7 @@ namespace OpenKalman::internal
 
     /**
      * \internal
-     * \brief Synchronize the state from cholesky_nested_matrix to nested_matrix.
+     * \brief Synchronize the state from cholesky_nested_matrix to nested_object.
      * \details This is a no-op.
      */
     const std::function<void()> synchronize_reverse;
@@ -148,13 +148,13 @@ namespace OpenKalman::internal
      * \brief Construct from an lvalue reference to a "Case 1" \ref covariance.
      */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires case1or2<Arg> and self_contained<nested_matrix_of_t<Arg>>
+    template<covariance Arg> requires case1or2<Arg> and self_contained<nested_object_of_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and case1or2<Arg> and
-      self_contained<nested_matrix_of_t<Arg>>, int> = 0>
+      self_contained<nested_object_of_t<Arg>>, int> = 0>
 #endif
     CovarianceBase(Arg& arg)
-      : Base {arg.nested_matrix()},
+      : Base {arg.nested_object()},
         cholesky_nested_matrix {[&arg] { return arg.cholesky_nested_matrix(); }},
         synchronization_direction {[]() -> int { return 0; }},
         synchronize_forward {[] {}},
@@ -167,15 +167,15 @@ namespace OpenKalman::internal
      * \brief Construct from another "Case 2" \ref covariance.
      */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires case1or2<Arg> and (not self_contained<nested_matrix_of_t<Arg>>) and
+    template<covariance Arg> requires case1or2<Arg> and (not self_contained<nested_object_of_t<Arg>>) and
       (not std::derived_from<std::decay_t<Arg>, CovarianceBase>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and case1or2<Arg> and
-      (not self_contained<nested_matrix_of_t<Arg>>) and
+      (not self_contained<nested_object_of_t<Arg>>) and
       (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>), int> = 0>
 #endif
     CovarianceBase(Arg&& arg)
-      : Base {std::forward<Arg>(arg).nested_matrix()},
+      : Base {std::forward<Arg>(arg).nested_object()},
         cholesky_nested_matrix {std::forward<Arg>(arg).cholesky_nested_matrix},
         synchronization_direction {std::forward<Arg>(arg).synchronization_direction},
         synchronize_forward {std::forward<Arg>(arg).synchronize_forward},
@@ -188,13 +188,13 @@ namespace OpenKalman::internal
      * \brief Construct from an lvalue reference to a "Case 3" \ref covariance.
      */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires (not case1or2<Arg>) and self_contained<nested_matrix_of_t<Arg>>
+    template<covariance Arg> requires (not case1or2<Arg>) and self_contained<nested_object_of_t<Arg>>
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and (not case1or2<Arg>) and
-      self_contained<nested_matrix_of_t<Arg>>, int> = 0>
+      self_contained<nested_object_of_t<Arg>>, int> = 0>
 #endif
     CovarianceBase(Arg& arg)
-      : Base {arg.nested_matrix()},
+      : Base {arg.nested_object()},
         cholesky_nested_matrix {[&arg] { return arg.cholesky_nested; }},
         synchronization_direction {[&arg] { return arg.synch_direction; }},
         synchronize_forward {[&arg] { arg.synchronize_forward(); }},
@@ -207,13 +207,13 @@ namespace OpenKalman::internal
      * \brief Construct from an lvalue reference to "Case 4" \ref covariance.
      */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires (not case1or2<Arg>) and (not self_contained<nested_matrix_of_t<Arg>>)
+    template<covariance Arg> requires (not case1or2<Arg>) and (not self_contained<nested_object_of_t<Arg>>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and
-      (not case1or2<Arg>) and (not self_contained<nested_matrix_of_t<Arg>>), int> = 0>
+      (not case1or2<Arg>) and (not self_contained<nested_object_of_t<Arg>>), int> = 0>
 #endif
     CovarianceBase(Arg& arg)
-      : Base {arg.nested_matrix()},
+      : Base {arg.nested_object()},
         cholesky_nested_matrix {[&arg] { return arg.cholesky_nested_link; }},
         synchronization_direction {arg.synchronization_direction},
         synchronize_forward {arg.synchronize_forward},
@@ -226,15 +226,15 @@ namespace OpenKalman::internal
      * \brief Construct from an rvalue reference to a "Case 4" \ref covariance.
      */
 #ifdef __cpp_concepts
-    template<covariance Arg> requires (not case1or2<Arg>) and (not self_contained<nested_matrix_of_t<Arg>>) and
+    template<covariance Arg> requires (not case1or2<Arg>) and (not self_contained<nested_object_of_t<Arg>>) and
       std::is_rvalue_reference_v<Arg&&>
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and (not case1or2<Arg>) and
-      (not self_contained<nested_matrix_of_t<Arg>>) and std::is_rvalue_reference_v<Arg&&>, int> = 0>
+      (not self_contained<nested_object_of_t<Arg>>) and std::is_rvalue_reference_v<Arg&&>, int> = 0>
 #endif
     CovarianceBase(Arg&& arg)
-      : Base {std::move(arg).nested_matrix()},
-        cholesky_nested_matrix {[this] { return to_covariance_nestable<CholeskyNestedMatrix>(Base::nested_matrix()); }},
+      : Base {std::move(arg).nested_object()},
+        cholesky_nested_matrix {[this] { return to_covariance_nestable<CholeskyNestedMatrix>(Base::nested_object()); }},
         synchronization_direction {[]() -> int { return 0; }},
         synchronize_forward {[] {}},
         synchronize_reverse {[] {}},
@@ -253,7 +253,7 @@ namespace OpenKalman::internal
     explicit CovarianceBase(Arg&& arg) noexcept
       : Base {std::forward<Arg>(arg)},
         cholesky_nested_matrix {[this] {
-          return to_covariance_nestable<CholeskyNestedMatrix>(Base::nested_matrix());
+          return to_covariance_nestable<CholeskyNestedMatrix>(Base::nested_object());
         }},
         synchronization_direction {[]() -> int { return 0; }},
         synchronize_forward {[] {}},
@@ -265,7 +265,7 @@ namespace OpenKalman::internal
     /// Copy assignment operator.
     auto& operator=(const CovarianceBase& other)
     {
-      if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
+      if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
       {
         Base::operator=(other);
         mark_nested_matrix_changed();
@@ -277,7 +277,7 @@ namespace OpenKalman::internal
     /// Move assignment operator.
     auto& operator=(CovarianceBase&& other) noexcept
     {
-      if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
+      if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>) if (this != &other)
       {
         Base::operator=(std::move(other));
         mark_nested_matrix_changed();
@@ -314,18 +314,18 @@ namespace OpenKalman::internal
     auto operator() (std::size_t i, std::size_t j)
     {
       if constexpr (element_settable<NestedMatrix, 2>)
-        return ElementAccessor(Base::nested_matrix(), i, j,
+        return ElementAccessor(Base::nested_object(), i, j,
           [this] { if (synchronization_direction() < 0) synchronize_reverse(); },
           [this] { mark_nested_matrix_changed(); });
       else
-        return ElementAccessor(Base::nested_matrix(), i, j);
+        return ElementAccessor(Base::nested_object(), i, j);
     }
 
 
     /// \overload
     auto operator() (std::size_t i, std::size_t j) const
     {
-      return ElementAccessor(Base::nested_matrix(), i, j);
+      return ElementAccessor(Base::nested_object(), i, j);
     }
 
 
@@ -337,27 +337,27 @@ namespace OpenKalman::internal
     auto operator[] (std::size_t i)
     {
       if constexpr (element_settable<NestedMatrix, 1>)
-        return ElementAccessor(Base::nested_matrix(), i,
+        return ElementAccessor(Base::nested_object(), i,
           [this] { if (synchronization_direction() < 0) synchronize_reverse(); },
           [this] { mark_nested_matrix_changed(); });
       else
-        return ElementAccessor(Base::nested_matrix(), i);
+        return ElementAccessor(Base::nested_object(), i);
     }
 
 
     /// \overload
     auto operator[] (std::size_t i) const
     {
-      return ElementAccessor(Base::nested_matrix(), i);
+      return ElementAccessor(Base::nested_object(), i);
     }
 
 
     /**
      * \brief Set an element of the cholesky nested matrix.
      */
-    void set_element(const Scalar s, const std::size_t i, const std::size_t j)
+    void set_component(const Scalar s, const std::size_t i, const std::size_t j)
     {
-      OpenKalman::set_element(Base::nested_matrix(), s, i, j);
+      OpenKalman::set_component(Base::nested_object(), s, i, j);
       mark_nested_matrix_changed();
     }
 
@@ -365,9 +365,9 @@ namespace OpenKalman::internal
     /**
      * \brief Set an element of the cholesky nested matrix.
      */
-    void set_element(const Scalar s, const std::size_t i)
+    void set_component(const Scalar s, const std::size_t i)
     {
-      OpenKalman::set_element(Base::nested_matrix(), s, i);
+      OpenKalman::set_component(Base::nested_object(), s, i);
       mark_nested_matrix_changed();
     }
 

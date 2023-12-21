@@ -32,7 +32,7 @@ namespace OpenKalman::internal
 
 
   /**
-   * \internal \overload
+   * \internal
    * \brief Settable ElementAccessor specialization.
    */
   template<typename Scalar>
@@ -54,8 +54,8 @@ namespace OpenKalman::internal
     ElementAccessor(T& t, std::size_t i, std::size_t j, PreAccess&& pre_access = []{}, PostSet&& post_set = []{})
 #endif
       : before_access {std::forward<decltype(pre_access)>(pre_access)},
-        getter {[&t, i, j] () -> Scalar { return get_element(t, i, j); }},
-        setter {[&t, i, j] (Scalar s) {set_element(t, s, i, j); }},
+        getter {[&t, i, j] () -> Scalar { return get_component(t, i, j); }},
+        setter {[&t, i, j] (Scalar s) {set_component(t, s, i, j); }},
         after_set {std::forward<decltype(post_set)>(post_set)} {}
 
 
@@ -74,8 +74,8 @@ namespace OpenKalman::internal
     ElementAccessor(T& t, std::size_t i, PreAccess&& pre_access = []{}, PostSet&& post_set = []{})
 #endif
       : before_access {std::forward<decltype(pre_access)>(pre_access)},
-        getter {[&t, i] () -> Scalar { return get_element(t, i); }},
-        setter {[&t, i] (Scalar s) { set_element(t, s, i); }},
+        getter {[&t, i] () -> Scalar { return get_component(t, i); }},
+        setter {[&t, i] (Scalar s) { set_component(t, s, i); }},
         after_set {std::forward<decltype(post_set)>(post_set)} {}
 
 
@@ -109,7 +109,7 @@ namespace OpenKalman::internal
 
 
   /**
-   * \internal \overload
+   * \internal
    * \brief Read-only ElementAccessor specialization.
    */
   template<typename Scalar>
@@ -126,7 +126,7 @@ namespace OpenKalman::internal
     ElementAccessor(const T& t, std::size_t i, std::size_t j, PreAccess&& pre_access = []{})
 #endif
       : before_access {std::forward<decltype(pre_access)>(pre_access)},
-        getter {[&t, i, j] () -> Scalar { return get_element(t, i, j); }} {}
+        getter {[&t, i, j] () -> Scalar { return get_component(t, i, j); }} {}
 
 
 #ifdef __cpp_concepts
@@ -139,7 +139,7 @@ namespace OpenKalman::internal
     ElementAccessor(const T& t, std::size_t i, PreAccess&& pre_access = []{})
 #endif
       : before_access {std::forward<decltype(pre_access)>(pre_access)},
-        getter {[&t, i] () -> Scalar { return get_element(t, i); }} {}
+        getter {[&t, i] () -> Scalar { return get_component(t, i); }} {}
 
 
     /// Get an element.

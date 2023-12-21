@@ -25,12 +25,12 @@ namespace OpenKalman
    * \tparam Arg A square matrix.
    */
 #ifdef __cpp_concepts
-  template<HermitianAdapterType adapter_type = HermitianAdapterType::lower, square_matrix<Likelihood::maybe> Arg>
+  template<HermitianAdapterType adapter_type = HermitianAdapterType::lower, square_shaped<Likelihood::maybe> Arg>
     requires (adapter_type == HermitianAdapterType::lower) or (adapter_type == HermitianAdapterType::upper)
   constexpr hermitian_matrix decltype(auto)
 #else
   template<HermitianAdapterType adapter_type = HermitianAdapterType::lower, typename Arg, std::enable_if_t<
-    square_matrix<Arg, Likelihood::maybe> and
+    square_shaped<Arg, Likelihood::maybe> and
     (adapter_type == HermitianAdapterType::lower or adapter_type == HermitianAdapterType::upper), int> = 0>
   constexpr decltype(auto)
 #endif
@@ -43,9 +43,9 @@ namespace OpenKalman
       if constexpr (hermitian_matrix<Arg>)
         return std::forward<Arg>(arg);
       else if constexpr (hermitian_adapter<Arg, adapter_type>)
-        return make_hermitian_matrix<adapter_type>(nested_matrix(std::forward<Arg>(arg)));
+        return make_hermitian_matrix<adapter_type>(nested_object(std::forward<Arg>(arg)));
       else if constexpr (hermitian_adapter<Arg>)
-        return make_hermitian_matrix<transp>(nested_matrix(std::forward<Arg>(arg)));
+        return make_hermitian_matrix<transp>(nested_object(std::forward<Arg>(arg)));
       else
       {
         using pArg = std::conditional_t<std::is_lvalue_reference_v<Arg>, Arg, std::remove_reference_t<decltype(make_self_contained(arg))>>;
@@ -55,9 +55,9 @@ namespace OpenKalman
     else if constexpr (triangular_adapter<Arg>)
     {
       if constexpr (triangular_matrix<Arg, static_cast<TriangleType>(adapter_type), Likelihood::maybe>)
-        return make_hermitian_matrix<adapter_type>(nested_matrix(std::forward<Arg>(arg)));
+        return make_hermitian_matrix<adapter_type>(nested_object(std::forward<Arg>(arg)));
       else
-        return make_hermitian_matrix<transp>(nested_matrix(std::forward<Arg>(arg)));
+        return make_hermitian_matrix<transp>(nested_object(std::forward<Arg>(arg)));
     }
     else if constexpr (interface::make_hermitian_adapter_defined_for<std::decay_t<Arg>, adapter_type, Arg>)
     {

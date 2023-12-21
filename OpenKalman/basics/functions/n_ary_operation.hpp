@@ -131,12 +131,12 @@ namespace OpenKalman
 
 
     template<typename Arg, std::size_t...I, typename...J>
-    inline auto n_ary_operation_get_element_impl(Arg&& arg, std::index_sequence<I...>, J...j)
+    inline auto n_ary_operation_get_component_impl(Arg&& arg, std::index_sequence<I...>, J...j)
     {
       if constexpr (sizeof...(I) == sizeof...(J))
-        return get_element(std::forward<Arg>(arg), (j < get_index_dimension_of<I>(arg) ? j : 0)...);
+        return get_component(std::forward<Arg>(arg), (j < get_index_dimension_of<I>(arg) ? j : 0)...);
       else
-        return get_element(std::forward<Arg>(arg), [](auto dim, const auto& j_tup){
+        return get_component(std::forward<Arg>(arg), [](auto dim, const auto& j_tup){
           auto j = std::get<I>(j_tup);
           if (j < dim) return j;
           else return 0_uz;
@@ -145,15 +145,15 @@ namespace OpenKalman
 
 
     template<typename Op, typename ArgsTup, std::size_t...ArgI, typename...J>
-    inline auto n_ary_operation_get_element(const Op& op, ArgsTup&& args_tup, std::index_sequence<ArgI...>, J...j)
+    inline auto n_ary_operation_get_component(const Op& op, ArgsTup&& args_tup, std::index_sequence<ArgI...>, J...j)
     {
       if constexpr (std::is_invocable_v<const Op&, scalar_type_of_t<std::tuple_element_t<ArgI, std::decay_t<ArgsTup>>>..., J...>)
-        return op(n_ary_operation_get_element_impl(
+        return op(n_ary_operation_get_component_impl(
           std::get<ArgI>(std::forward<ArgsTup>(args_tup)),
           std::make_index_sequence<index_count_v<std::tuple_element_t<ArgI, std::decay_t<ArgsTup>>>> {},
           j...)..., j...);
       else
-        return op(n_ary_operation_get_element_impl(
+        return op(n_ary_operation_get_component_impl(
           std::get<ArgI>(std::forward<ArgsTup>(args_tup)),
           std::make_index_sequence<index_count_v<std::tuple_element_t<ArgI, std::decay_t<ArgsTup>>>> {},
           j...)...);
@@ -164,7 +164,7 @@ namespace OpenKalman
     inline void n_ary_operation_iterate(M& m, const Op& op, ArgsTup&& args_tup, std::index_sequence<>, J...j)
     {
       std::make_index_sequence<std::tuple_size_v<ArgsTup>> seq;
-      set_element(m, n_ary_operation_get_element(op, std::forward<ArgsTup>(args_tup), seq, j...), j...);
+      set_component(m, n_ary_operation_get_component(op, std::forward<ArgsTup>(args_tup), seq, j...), j...);
     }
 
 
@@ -187,11 +187,11 @@ namespace OpenKalman
       {
         internal::scalar_constant_operation c {op, constant_coefficient {std::forward<Args>(args)}...};
         return std::apply(
-          [](auto&&...as){ return make_constant_matrix_like<PatternMatrix>(std::forward<decltype(as)>(as)...); },
+          [](auto&&...as){ return make_constant<PatternMatrix>(std::forward<decltype(as)>(as)...); },
           std::tuple_cat(std::tuple{std::move(c)}, d_tup));
       }
       // Library handles n-ary operation.
-      else if constexpr (maybe_has_same_shape_as<Args...> and
+      else if constexpr (maybe_same_shape_as<Args...> and
         is_invocable_with_indices<Op, std::add_lvalue_reference_t<scalar_type_of_t<Args>>...>(seq) and
         interface::n_ary_operation_defined_for<PatternMatrix, const std::tuple<Ds...>&, Op&&, Args&&...>)
       {
@@ -206,13 +206,13 @@ namespace OpenKalman
         if constexpr (((dimension_size_of_v<Ds> == 1) and ...))
         {
           // one-by-one matrix
-          auto e = op(get_element(std::forward<Args>(args))...);
-          return make_dense_writable_matrix_from<PatternMatrix, Layout::none, Scalar>(d_tup, e);
+          auto e = op(get_component(std::forward<Args>(args))...);
+          return make_dense_object_from<PatternMatrix, Layout::none, Scalar>(d_tup, e);
         }
         else
         {
           auto m = std::apply([](auto&&...ds){
-            return make_default_dense_writable_matrix_like<PatternMatrix, Layout::none, Scalar>(std::forward<decltype(ds)>(ds)...);
+            return make_dense_object<PatternMatrix, Layout::none, Scalar>(std::forward<decltype(ds)>(ds)...);
           }, d_tup);
           n_ary_operation_iterate(m, op, std::forward_as_tuple(std::forward<Args>(args)...), seq);
           return m;
@@ -231,7 +231,7 @@ namespace OpenKalman
    *     auto ds32 = std::tuple {Dimensions<3>{}, Dimensions<2>{}};
    *     auto op1 = [](auto arg){return 3 * arg;};
    *     auto M = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>
-   *     auto m32 = make_dense_writable_matrix_from<M>(ds32, 1, 2, 3, 4, 5, 6);
+   *     auto m32 = make_dense_object_from<M>(ds32, 1, 2, 3, 4, 5, 6);
    *     std::cout << n_ary_operation(ds32, op1, m32) << std::endl;
    *   \endcode
    *   Output:
@@ -243,7 +243,7 @@ namespace OpenKalman
    * - Unary operation, broadcasting:
    *   \code
    *     auto ds31 = std::tuple {Dimensions<3>{}, Dimensions<1>{}};
-   *     auto m31 = make_dense_writable_matrix_from<M>(ds31, 1, 2, 3);
+   *     auto m31 = make_dense_object_from<M>(ds31, 1, 2, 3);
    *     std::cout << n_ary_operation(ds32, op1, m31) << std::endl;
    *   \endcode
    *   Output:
@@ -339,8 +339,8 @@ namespace OpenKalman
         else if constexpr (euclidean_vector_space_descriptor<Arg_D> and euclidean_vector_space_descriptor<Max_D>)
         {
           auto arg_d = get_vector_space_descriptor<ix>(arg);
-          auto dim_arg_d = get_dimension_size_of(arg_d);
-          auto dim_max_d = get_dimension_size_of(max_d);
+          std::size_t dim_arg_d = get_dimension_size_of(arg_d);
+          std::size_t dim_max_d = get_dimension_size_of(max_d);
           if (dim_arg_d == dim_max_d or (dim_arg_d == 1 and dim_arg_d <= dim_max_d)) return dim_max_d;
           else if (dim_max_d == 1 and dim_max_d <= dim_arg_d) return dim_arg_d;
           else throw std::invalid_argument {"The dimension of arguments to n_ary_operation are not compatible with "
@@ -386,8 +386,8 @@ namespace OpenKalman
    *   \code
    *     auto M = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>
    *     auto op2a = [](auto arg1, auto arg2){return 3 * arg1 + arg2;};
-   *     auto m31 = make_dense_writable_matrix_from<M>(ds31, 1, 2, 3);
-   *     auto m32 = make_dense_writable_matrix_from<M>(ds32, 1, 2, 3, 4, 5, 6);
+   *     auto m31 = make_dense_object_from<M>(ds31, 1, 2, 3);
+   *     auto m32 = make_dense_object_from<M>(ds32, 1, 2, 3, 4, 5, 6);
    *     std::cout << n_ary_operation(op2a, m31, 2 * m32) << std::endl;
    *   \endcode
    *   Output:
@@ -443,32 +443,32 @@ namespace OpenKalman
   namespace detail
   {
     template<typename M, typename Operation, typename Vs_tuple, typename Index_seq, typename K_seq, typename...Is>
-    void nullary_set_elements(M& m, const Operation& op, const Vs_tuple&, Index_seq, K_seq, Is...is)
+    void nullary_set_components(M& m, const Operation& op, const Vs_tuple&, Index_seq, K_seq, Is...is)
     {
       constexpr auto seq = std::make_index_sequence<sizeof...(Is)> {};
       if constexpr (detail::is_invocable_with_indices<Operation>(seq))
-        set_element(m, op(is...), is...); //< Operation takes a full set of indices.
+        set_component(m, op(is...), is...); //< Operation takes a full set of indices.
       else
-        set_element(m, op(), is...); //< Operation takes no indices.
+        set_component(m, op(), is...); //< Operation takes no indices.
     }
 
 
     template<std::size_t DsIndex, std::size_t...DsIndices, typename M, typename Operation,
       typename Vs_tuple, std::size_t...indices, std::size_t...Ks, typename...Is>
-    void nullary_set_elements(M& m, const Operation& op, const Vs_tuple& ds_tup,
+    void nullary_set_components(M& m, const Operation& op, const Vs_tuple& ds_tup,
       std::index_sequence<indices...> index_seq, std::index_sequence<Ks...> k_seq, Is...is)
     {
       if constexpr (((DsIndex == indices) or ...))
       {
         constexpr std::integral_constant<size_t, ((DsIndex == indices ? Ks : 0) + ...)> i;
-        nullary_set_elements<DsIndices...>(m, op, ds_tup, index_seq, k_seq, is..., i);
+        nullary_set_components<DsIndices...>(m, op, ds_tup, index_seq, k_seq, is..., i);
       }
       else
       {
         // Iterate through the dimensions of the current DsIndex and add set elements for each dimension iteratively.
         for (std::size_t i = 0; i < get_dimension_size_of(std::get<DsIndex>(ds_tup)); ++i)
         {
-          nullary_set_elements<DsIndices...>(m, op, ds_tup, index_seq, k_seq, is..., i);
+          nullary_set_components<DsIndices...>(m, op, ds_tup, index_seq, k_seq, is..., i);
         }
       }
     }
@@ -479,7 +479,7 @@ namespace OpenKalman
     void nullary_iterate(M& m, const Operations_tuple& op_tup, const Vs_tuple& ds_tup,
       UniqueIndicesSeq unique_indices_seq, std::index_sequence<AllDsIndices...>, K_seq k_seq)
     {
-      nullary_set_elements<AllDsIndices...>(m, std::get<CurrentOpIndex>(op_tup), ds_tup, unique_indices_seq, k_seq);
+      nullary_set_components<AllDsIndices...>(m, std::get<CurrentOpIndex>(op_tup), ds_tup, unique_indices_seq, k_seq);
     }
 
 
@@ -600,12 +600,12 @@ namespace OpenKalman
       sizeof...(operations) == (dimension_size_of_v<Ds> * ...) and
       not (detail::is_invocable_with_indices<const Operations&>(std::make_index_sequence<sizeof...(Ds)> {}) or ...))
     {
-      return make_dense_writable_matrix_from<PatternMatrix, Layout::none, Scalar>(d_tup, operations()...);
+      return make_dense_object_from<PatternMatrix, Layout::none, Scalar>(d_tup, operations()...);
     }
     // All other cases:
     else
     {
-      auto m = std::apply([](const auto&...ds){ return make_default_dense_writable_matrix_like<PatternMatrix, Layout::none, Scalar>(ds...); }, d_tup);
+      auto m = std::apply([](const auto&...ds){ return make_dense_object<PatternMatrix, Layout::none, Scalar>(ds...); }, d_tup);
       detail::nullary_iterate<0, sizeof...(Operations), indices...>(
         m,
         std::forward_as_tuple(operations...),
@@ -682,7 +682,7 @@ namespace OpenKalman
   constexpr auto
   n_ary_operation(const Operations&...operations)
   {
-    auto d_tup = get_all_dimensions_of<PatternMatrix>();
+    auto d_tup = all_vector_space_descriptors<PatternMatrix>();
     return n_ary_operation<PatternMatrix, indices...>(d_tup, operations...);
   }
 
@@ -706,7 +706,7 @@ namespace OpenKalman
     template<typename Operation, typename Arg, typename...J>
     inline void do_elem_operation_in_place(const Operation& operation, Arg& arg, J...j)
     {
-      auto&& elem = get_element(arg, j...);
+      auto&& elem = get_component(arg, j...);
       if constexpr (std::is_assignable_v<decltype((elem)), std::decay_t<decltype(elem)>>)
       {
         do_elem_operation_in_place_impl(operation, elem, j...);
@@ -716,7 +716,7 @@ namespace OpenKalman
         auto e {std::forward<decltype(elem)>(elem)}; // copy elem
         static_assert(std::is_assignable_v<decltype((e)), std::decay_t<decltype(elem)>>);
         do_elem_operation_in_place_impl(operation, e, j...);
-        set_element(arg, std::move(e), j...);
+        set_component(arg, std::move(e), j...);
       }
     }
 
@@ -744,7 +744,7 @@ namespace OpenKalman
    * \details Examples:
    * - In-place unary operation without indices:
    *   \code
-   *     auto m23 = make_dense_writable_matrix_from<Eigen::Matrix<double, 3, 2>>(1, 2, 3, 4, 5, 6);
+   *     auto m23 = make_dense_object_from<Eigen::Matrix<double, 3, 2>>(1, 2, 3, 4, 5, 6);
    *     auto opa = [](auto& arg){return ++arg;};
    *     std::cout << n_ary_operation(opa, m32) << std::endl;
    *   \endcode
@@ -784,7 +784,7 @@ namespace OpenKalman
   {
     // \todo If the native library has its own facilities for doing this, use them.
 
-    detail::unary_operation_in_place_impl(operation, arg, get_index_count(arg));
+    detail::unary_operation_in_place_impl(operation, arg, count_indices(arg));
     return std::forward<Arg>(arg);
   }
 

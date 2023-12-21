@@ -42,16 +42,13 @@ namespace OpenKalman::interface
     static constexpr bool has_runtime_parameters = true;
 
 
-    // get_nested_matrix not defined
-
 #ifdef __cpp_concepts
-    template<std::size_t i, typename Arg> requires has_dynamic_dimensions<XprType>
+    template<typename Arg> requires has_dynamic_dimensions<XprType>
 #else
-    template<std::size_t i, typename X = XprType, typename Arg, std::enable_if_t<has_dynamic_dimensions<X>, int> = 0>
+    template<typename X = XprType, typename Arg, std::enable_if_t<has_dynamic_dimensions<X>, int> = 0>
 #endif
-    static decltype(auto) get_nested_matrix(Arg&& arg)
+    static decltype(auto) nested_object(Arg&& arg)
     {
-      static_assert(i == 0);
       return std::forward<Arg>(arg).nestedExpression();
     }
 
@@ -74,11 +71,11 @@ namespace OpenKalman::interface
 
 
     template<Likelihood b>
-    static constexpr bool is_one_by_one = one_by_one_matrix<XprType, b>;
+    static constexpr bool one_dimensional = OpenKalman::one_dimensional<XprType, b>;
 
 
     template<Likelihood b>
-    static constexpr bool is_square = square_matrix<XprType, b>;
+    static constexpr bool is_square = square_shaped<XprType, b>;
 
 
     template<TriangleType t, Likelihood b>
@@ -94,7 +91,7 @@ namespace OpenKalman::interface
     static constexpr bool is_writable = false;
 
 
-    // data() not defined
+    // raw_data() not defined
 
 
     // layout not defined

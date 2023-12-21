@@ -30,24 +30,24 @@ namespace OpenKalman
     template<std::size_t...I, typename T0, typename T1, typename...Ts>
     constexpr decltype(auto) sum_impl(std::index_sequence<I...> seq, T0&& t0, T1&& t1, Ts&&...ts)
     {
-      if constexpr ((zero_matrix<T0> or zero_matrix<T1> or (constant_matrix<T0> and constant_matrix<T1>)) and not has_same_shape_as<T0, T1>)
+      if constexpr ((zero<T0> or zero<T1> or (constant_matrix<T0> and constant_matrix<T1>)) and not same_shape_as<T0, T1>)
       {
-        if (not get_has_same_shape_as(t0, t1))
+        if (not same_shape(t0, t1))
           throw std::invalid_argument {"In sum function, vector space descriptors of arguments do not match"};
       }
 
-      if constexpr (zero_matrix<T0>)
+      if constexpr (zero<T0>)
       {
         return sum_impl(seq, std::forward<T1>(t1), std::forward<Ts>(ts)...);
       }
-      else if constexpr (zero_matrix<T1>)
+      else if constexpr (zero<T1>)
       {
         return sum_impl(seq, std::forward<T0>(t0), std::forward<Ts>(ts)...);
       }
       else if constexpr ((constant_matrix<T0> and constant_matrix<T1>))
       {
         auto c = constant_coefficient{t0} + constant_coefficient{t1};
-        auto cm = make_constant_matrix_like<T0>(std::move(c), internal::best_vector_space_descriptor(
+        auto cm = make_constant<T0>(std::move(c), internal::best_vector_space_descriptor(
           get_vector_space_descriptor<I>(t0), get_vector_space_descriptor<I>(t1))...);
         auto ret {sum_impl(seq, std::move(cm), std::forward<Ts>(ts)...)};
         return ret;
@@ -88,10 +88,10 @@ namespace OpenKalman
    * \brief Element-by-element sum of one or more objects.
    */
 #ifdef __cpp_concepts
-  template<indexible...Ts> requires (sizeof...(Ts) > 0) and maybe_has_same_shape_as<Ts...>
+  template<indexible...Ts> requires (sizeof...(Ts) > 0) and maybe_same_shape_as<Ts...>
 #else
   template<typename...Ts, std::enable_if_t<(indexible<Ts> and ...) and (sizeof...(Ts) > 0) and
-    maybe_has_same_shape_as<Ts...>, int> = 0>
+    maybe_same_shape_as<Ts...>, int> = 0>
 #endif
   constexpr decltype(auto)
   sum(Ts&&...ts)
@@ -116,7 +116,7 @@ namespace OpenKalman
     {
       constexpr auto t = triangle_type_of_v<Ts...>;
       auto f = [](auto&& a) -> decltype(auto) {
-        if constexpr (triangular_adapter<decltype(a)>) return nested_matrix(std::forward<decltype(a)>(a));
+        if constexpr (triangular_adapter<decltype(a)>) return nested_object(std::forward<decltype(a)>(a));
         else return std::forward<decltype(a)>(a);
       };
       auto ret {make_triangular_matrix<t>(detail::sum_impl(seq, f(std::forward<Ts>(ts))...))};
@@ -128,8 +128,8 @@ namespace OpenKalman
         HermitianAdapterType::lower : hermitian_adapter_type_of_v<Ts...>;
       auto f = [](auto&& a) -> decltype(auto) {
         static_assert(hermitian_adapter_type_of_v<decltype(a)> != HermitianAdapterType::any);
-        if constexpr (hermitian_adapter_type_of_v<decltype(a)> == t) return nested_matrix(std::forward<decltype(a)>(a));
-        else if constexpr (hermitian_adapter<decltype(a)>) return transpose(nested_matrix(std::forward<decltype(a)>(a)));
+        if constexpr (hermitian_adapter_type_of_v<decltype(a)> == t) return nested_object(std::forward<decltype(a)>(a));
+        else if constexpr (hermitian_adapter<decltype(a)>) return transpose(nested_object(std::forward<decltype(a)>(a)));
         else return std::forward<decltype(a)>(a);
       };
       auto ret {make_hermitian_matrix<t>(detail::sum_impl(seq, f(std::forward<Ts>(ts))...))};

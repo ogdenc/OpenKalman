@@ -44,7 +44,7 @@ namespace OpenKalman
 
     using MyConstant = std::conditional_t<sizeof...(constant) == 0, Scalar, internal::ScalarConstant<Likelihood::definitely, Scalar, constant...>>;
     using MyScalarType = std::decay_t<decltype(get_scalar_constant_value(std::declval<MyConstant>()))>;
-    using MyDimensions = decltype(get_all_dimensions_of(std::declval<PatternMatrix>()));
+    using MyDimensions = decltype(all_vector_space_descriptors(std::declval<PatternMatrix>()));
 
     template<std::size_t N = 0>
     constexpr auto make_all_dimensions_tuple() { return std::tuple {}; }
@@ -224,11 +224,11 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<constant_matrix Arg> requires
-      (not std::derived_from<Arg, ConstantAdapter>) and maybe_has_same_shape_as<Arg, PatternMatrix> and
+      (not std::derived_from<Arg, ConstantAdapter>) and maybe_same_shape_as<Arg, PatternMatrix> and
       std::constructible_from<MyConstant, constant_coefficient<Arg>>
 #else
     template<typename Arg, std::enable_if_t<constant_matrix<Arg> and
-      (not std::is_base_of_v<ConstantAdapter, Arg>) and maybe_has_same_shape_as<Arg, PatternMatrix> and
+      (not std::is_base_of_v<ConstantAdapter, Arg>) and maybe_same_shape_as<Arg, PatternMatrix> and
       std::is_constructible_v<MyConstant, constant_coefficient<Arg>>, int> = 0>
 #endif
     constexpr ConstantAdapter(const Arg& arg) :
@@ -249,10 +249,10 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<scalar_constant C, indexible Arg> requires
-      maybe_has_same_shape_as<Arg, PatternMatrix> and std::constructible_from<MyConstant, C&&>
+      maybe_same_shape_as<Arg, PatternMatrix> and std::constructible_from<MyConstant, C&&>
 #else
     template<typename C, typename Arg, std::enable_if_t<scalar_constant<C> and indexible<Arg> and
-      maybe_has_same_shape_as<Arg, PatternMatrix> and std::is_constructible_v<MyConstant, C&&>, int> = 0>
+      maybe_same_shape_as<Arg, PatternMatrix> and std::is_constructible_v<MyConstant, C&&>, int> = 0>
 #endif
     constexpr ConstantAdapter(C&& c, const Arg& arg) :
       my_constant {std::forward<C>(c)}, my_dimensions {make_dimensions_tuple(arg)} {}
@@ -263,16 +263,16 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<constant_matrix Arg> requires
-      (not std::derived_from<Arg, ConstantAdapter>) and maybe_has_same_shape_as<Arg, PatternMatrix> and
+      (not std::derived_from<Arg, ConstantAdapter>) and maybe_same_shape_as<Arg, PatternMatrix> and
       std::assignable_from<MyConstant, constant_coefficient<Arg>>
 #else
     template<typename Arg, std::enable_if_t<constant_matrix<Arg> and
-      (not std::is_base_of_v<ConstantAdapter, Arg>) and maybe_has_same_shape_as<Arg, PatternMatrix> and
+      (not std::is_base_of_v<ConstantAdapter, Arg>) and maybe_same_shape_as<Arg, PatternMatrix> and
       std::is_assignable_v<MyConstant, constant_coefficient<Arg>>, int> = 0>
 #endif
     constexpr auto& operator=(const Arg& arg)
     {
-      if constexpr (not has_same_shape_as<Arg, PatternMatrix>) if (not get_has_same_shape_as(*this, arg))
+      if constexpr (not same_shape_as<Arg, PatternMatrix>) if (not same_shape(*this, arg))
         throw std::invalid_argument {"Argument to ConstantAdapter assignment operator has non-matching vector space descriptors."};
       my_constant = constant_coefficient {arg};
       return *this;
@@ -289,10 +289,10 @@ namespace OpenKalman
 #endif
     constexpr bool operator==(const Arg& arg) const
     {
-      if constexpr (not maybe_has_same_shape_as<Arg, PatternMatrix>)
+      if constexpr (not maybe_same_shape_as<Arg, PatternMatrix>)
         return false;
       else if constexpr (constant_matrix<Arg>)
-        return get_scalar_constant_value(constant_coefficient{arg}) == get_scalar_constant_value(my_constant) and get_has_same_shape_as(*this, arg);
+        return get_scalar_constant_value(constant_coefficient{arg}) == get_scalar_constant_value(my_constant) and same_shape(*this, arg);
       else
       {
         auto c = to_native_matrix<PatternMatrix>(*this);
@@ -314,10 +314,10 @@ namespace OpenKalman
 #endif
     friend constexpr bool operator==(const Arg& arg, const ConstantAdapter& c)
     {
-      if constexpr (not maybe_has_same_shape_as<Arg, PatternMatrix>)
+      if constexpr (not maybe_same_shape_as<Arg, PatternMatrix>)
         return false;
       else if constexpr (constant_matrix<Arg>)
-        return get_scalar_constant_value(constant_coefficient{arg}) == get_scalar_constant_value(c.get_scalar_constant()) and get_has_same_shape_as(arg, c);
+        return get_scalar_constant_value(constant_coefficient{arg}) == get_scalar_constant_value(c.get_scalar_constant()) and same_shape(arg, c);
       else
       {
         auto new_c = to_native_matrix<Arg>(c);
@@ -353,12 +353,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<index_value...Is> requires (sizeof...(Is) == index_count_v<PatternMatrix>) or
-      (sizeof...(Is) == 1 and max_tensor_order_of_v<PatternMatrix> == 1)
+      (sizeof...(Is) == 1 and max_tensor_order_v<PatternMatrix> == 1)
     constexpr scalar_type auto
 #else
     template<typename...Is, std::enable_if_t<
       (index_value<Is> and ...) and (sizeof...(Is) == index_count_v<PatternMatrix> or
-      (sizeof...(Is) == 1 and max_tensor_order_of_v<PatternMatrix> == 1)), int> = 0>
+      (sizeof...(Is) == 1 and max_tensor_order_v<PatternMatrix> == 1)), int> = 0>
     constexpr auto
 #endif
     operator()(Is...is) const
@@ -374,10 +374,10 @@ namespace OpenKalman
      * \return The element corresponding to the indices (always the constant).
      */
 #ifdef __cpp_concepts
-    template<index_value Is> requires (max_tensor_order_of_v<PatternMatrix> == 1)
+    template<index_value Is> requires (max_tensor_order_v<PatternMatrix> == 1)
     constexpr scalar_type auto
 #else
-    template<typename Is, std::enable_if_t<index_value<Is> and (max_tensor_order_of_v<PatternMatrix> == 1), int> = 0>
+    template<typename Is, std::enable_if_t<index_value<Is> and (max_tensor_order_v<PatternMatrix> == 1), int> = 0>
     constexpr auto
 #endif
     operator[](Is is) const
@@ -402,11 +402,11 @@ namespace OpenKalman
 
     friend auto operator-(const ConstantAdapter& arg)
     {
-      if constexpr (zero_matrix<ConstantAdapter>) return arg;
+      if constexpr (zero<ConstantAdapter>) return arg;
       else
       {
         internal::scalar_constant_operation op {std::negate<>{}, constant_coefficient{arg}};
-        return make_constant_matrix_like(arg, op);
+        return make_constant(arg, op);
       }
     }
 
@@ -418,10 +418,10 @@ namespace OpenKalman
     friend auto operator*(const ConstantAdapter& arg, S s)
 #endif
     {
-      if constexpr (zero_matrix<decltype(arg)>) return arg;
+      if constexpr (zero<decltype(arg)>) return arg;
       else
       {
-        return make_constant_matrix_like(arg, constant_coefficient{arg} * s);
+        return make_constant(arg, constant_coefficient{arg} * s);
       }
     }
 
@@ -433,10 +433,10 @@ namespace OpenKalman
     friend auto operator*(S s, const ConstantAdapter& arg)
 #endif
     {
-      if constexpr (zero_matrix<decltype(arg)>) return arg;
+      if constexpr (zero<decltype(arg)>) return arg;
       else
       {
-        return make_constant_matrix_like(arg, s * constant_coefficient{arg});
+        return make_constant(arg, s * constant_coefficient{arg});
       }
     }
 
@@ -448,7 +448,7 @@ namespace OpenKalman
     friend auto operator/(const ConstantAdapter& arg, S s)
 #endif
     {
-      return make_constant_matrix_like(arg, constant_coefficient{arg} / s);
+      return make_constant(arg, constant_coefficient{arg} / s);
     }
 
   protected:
@@ -495,7 +495,7 @@ namespace OpenKalman
       using scalar_type = typename ConstantAdapter<PatternMatrix, Scalar, constant...>::MyScalarType;
 
       template<typename Arg>
-      static constexpr auto get_index_count(const Arg& arg) { return OpenKalman::get_index_count(nested_matrix(arg)); }
+      static constexpr auto count_indices(const Arg& arg) { return OpenKalman::count_indices(nested_object(arg)); }
 
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(Arg&& arg, N n)
@@ -513,7 +513,7 @@ namespace OpenKalman
       }
 
       template<Likelihood b>
-      static constexpr bool is_one_by_one = one_by_one_matrix<PatternMatrix, b>;
+      static constexpr bool one_dimensional = OpenKalman::one_dimensional<PatternMatrix, b>;
 
       static constexpr bool has_runtime_parameters = has_dynamic_dimensions<PatternMatrix>;
 
@@ -547,15 +547,15 @@ namespace OpenKalman
       template<Layout layout, typename S, typename...D>
       static auto make_default(D&&...d)
       {
-        return make_default_dense_writable_matrix_like<PatternMatrix, layout, S>(std::forward<D>(d)...);
+        return make_dense_object<PatternMatrix, layout, S>(std::forward<D>(d)...);
       }
 
-      // fill_with_elements not necessary because T is not a dense writable matrix.
+      // fill_components not necessary because T is not a dense writable matrix.
 
       template<typename C, typename...D>
-      static constexpr auto make_constant_matrix(C&& c, D&&...d)
+      static constexpr auto make_constant(C&& c, D&&...d)
       {
-        return make_constant_matrix_like<PatternMatrix>(std::forward<C>(c), std::forward<D>(d)...);
+        return make_constant<PatternMatrix>(std::forward<C>(c), std::forward<D>(d)...);
       }
 
       template<typename S, typename D>
@@ -617,10 +617,10 @@ namespace OpenKalman
       // cholesky_factor is not necessary because it is handled by the general cholesky_factor function.
 
       template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
-      static decltype(auto) rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
+      static decltype(auto) rank_update_hermitian(A&& a, U&& u, const Alpha alpha)
       {
         using Trait = interface::library_interface<PatternMatrix>;
-        return Trait::template rank_update_self_adjoint<significant_triangle>(std::forward<A>(a), std::forward<U>(u), alpha);
+        return Trait::template rank_update_hermitian<significant_triangle>(std::forward<A>(a), std::forward<U>(u), alpha);
       }
 
       // rank_update_triangular is not necessary because it is handled by the general rank_update_triangular function.

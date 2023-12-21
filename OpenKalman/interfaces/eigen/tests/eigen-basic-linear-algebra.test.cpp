@@ -18,12 +18,12 @@ using namespace OpenKalman::test;
 
 TEST(eigen3, transpose_adjoint_conjugate_matrix)
 {
-  auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
+  auto m23 = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
   auto m2x_3 = M2x {m23};
   auto mx3_2 = Mx3 {m23};
   auto mxx_23 = Mxx {m23};
 
-  auto m32 = make_dense_writable_matrix_from<M32>(1, 4, 2, 5, 3, 6);
+  auto m32 = make_dense_object_from<M32>(1, 4, 2, 5, 3, 6);
 
   EXPECT_TRUE(is_near(transpose(m23), m32));
   EXPECT_TRUE(is_near(transpose(Eigen3::make_eigen_wrapper(m23)), m32));
@@ -46,9 +46,9 @@ TEST(eigen3, transpose_adjoint_conjugate_matrix)
   EXPECT_TRUE(is_near(conjugate(m2x_3), m23));
   EXPECT_TRUE(is_near(conjugate(mxx_23), m23));
 
-  auto cm23 = make_dense_writable_matrix_from<CM23>(cdouble {1,6}, cdouble {2,5}, cdouble {3,4}, cdouble {4,3}, cdouble {5,2}, cdouble {6,1});
-  auto cm32 = make_dense_writable_matrix_from<CM32>(cdouble {1,6}, cdouble {4,3}, cdouble {2,5}, cdouble {5,2}, cdouble {3,4}, cdouble {6,1});
-  auto cm32conj = make_dense_writable_matrix_from<CM32>(cdouble {1,-6}, cdouble {4,-3}, cdouble {2,-5}, cdouble {5,-2}, cdouble {3,-4}, cdouble {6,-1});
+  auto cm23 = make_dense_object_from<CM23>(cdouble {1,6}, cdouble {2,5}, cdouble {3,4}, cdouble {4,3}, cdouble {5,2}, cdouble {6,1});
+  auto cm32 = make_dense_object_from<CM32>(cdouble {1,6}, cdouble {4,3}, cdouble {2,5}, cdouble {5,2}, cdouble {3,4}, cdouble {6,1});
+  auto cm32conj = make_dense_object_from<CM32>(cdouble {1,-6}, cdouble {4,-3}, cdouble {2,-5}, cdouble {5,-2}, cdouble {3,-4}, cdouble {6,-1});
 
   EXPECT_TRUE(is_near(transpose(cm23), cm32));
   EXPECT_TRUE(is_near(transpose(Eigen3::make_eigen_wrapper(cm23)), cm32));
@@ -64,7 +64,7 @@ TEST(eigen3, transpose_adjoint_conjugate_matrix)
 
 TEST(eigen3, transpose_adjoint_conjugate_self_adjoint)
 {
-  auto m22_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
+  auto m22_93310 = make_dense_object_from<M22>(9, 3, 3, 10);
   auto m20_93310 = M2x {m22_93310};
   auto m02_93310 = Mx2 {m22_93310};
   auto m00_93310 = Mxx {m22_93310};
@@ -87,8 +87,8 @@ TEST(eigen3, transpose_adjoint_conjugate_self_adjoint)
   EXPECT_TRUE(is_near(conjugate(m02_93310.template selfadjointView<Eigen::Upper>()), m22_93310));
   EXPECT_TRUE(is_near(conjugate(m00_93310.template selfadjointView<Eigen::Lower>()), m22_93310));
 
-  auto cm22_93310 = make_dense_writable_matrix_from<CM22>(9, cdouble(3,1), cdouble(3,-1), 10);
-  auto cm22_93310_trans = make_dense_writable_matrix_from<CM22>(9, cdouble(3,-1), cdouble(3,1), 10);
+  auto cm22_93310 = make_dense_object_from<CM22>(9, cdouble(3,1), cdouble(3,-1), 10);
+  auto cm22_93310_trans = make_dense_object_from<CM22>(9, cdouble(3,-1), cdouble(3,1), 10);
 
   EXPECT_TRUE(is_near(transpose(cm22_93310.template selfadjointView<Eigen::Upper>()), cm22_93310_trans));
   EXPECT_TRUE(is_near(transpose(std::as_const(cm22_93310).template selfadjointView<Eigen::Upper>()), cm22_93310_trans));
@@ -104,12 +104,12 @@ TEST(eigen3, transpose_adjoint_conjugate_self_adjoint)
 
 TEST(eigen3, transpose_adjoint_conjugate_triangular)
 {
-  auto m22_3103 = make_dense_writable_matrix_from<M22>(3, 1, 0, 3);
+  auto m22_3103 = make_dense_object_from<M22>(3, 1, 0, 3);
   auto m20_3103 = M2x {m22_3103};
   auto m02_3103 = Mx2 {m22_3103};
   auto m00_3103 = Mxx {m22_3103};
 
-  auto m22_3013 = make_dense_writable_matrix_from<M22>(3, 0, 1, 3);
+  auto m22_3013 = make_dense_object_from<M22>(3, 0, 1, 3);
   auto m20_3013 = M2x {m22_3013};
   auto m02_3013 = Mx2 {m22_3013};
   auto m00_3013 = Mxx {m22_3013};
@@ -132,10 +132,10 @@ TEST(eigen3, transpose_adjoint_conjugate_triangular)
   EXPECT_TRUE(is_near(conjugate(m02_3103.template triangularView<Eigen::Upper>()), m22_3103));
   EXPECT_TRUE(is_near(conjugate(m00_3013.template triangularView<Eigen::Lower>()), m22_3013));
 
-  auto cm22_3013 = make_dense_writable_matrix_from<CM22>(cdouble(3,0.3), 0, cdouble(1,0.1), 3);
-  auto cm22_3103 = make_dense_writable_matrix_from<CM22>(cdouble(3,0.3), cdouble(1,0.1), 0, 3);
-  auto cm22_3013_conj = make_dense_writable_matrix_from<CM22>(cdouble(3,-0.3), 0, cdouble(1,-0.1), 3);
-  auto cm22_3103_conj = make_dense_writable_matrix_from<CM22>(cdouble(3,-0.3), cdouble(1,-0.1), 0, 3);
+  auto cm22_3013 = make_dense_object_from<CM22>(cdouble(3,0.3), 0, cdouble(1,0.1), 3);
+  auto cm22_3103 = make_dense_object_from<CM22>(cdouble(3,0.3), cdouble(1,0.1), 0, 3);
+  auto cm22_3013_conj = make_dense_object_from<CM22>(cdouble(3,-0.3), 0, cdouble(1,-0.1), 3);
+  auto cm22_3103_conj = make_dense_object_from<CM22>(cdouble(3,-0.3), cdouble(1,-0.1), 0, 3);
 
   EXPECT_TRUE(is_near(transpose(cm22_3103.template triangularView<Eigen::Upper>()), cm22_3013));
   EXPECT_TRUE(is_near(transpose(cm22_3013.template triangularView<Eigen::Lower>()), cm22_3103));
@@ -163,7 +163,7 @@ TEST(eigen3, transpose_adjoint_conjugate_diagonal)
   auto mx1_2 = Mx1 {m21};
   auto mxx_21 = Mxx {m21};
 
-  auto m22_1004 = make_dense_writable_matrix_from<M22>(1, 0, 0, 4);
+  auto m22_1004 = make_dense_object_from<M22>(1, 0, 0, 4);
 
   EXPECT_TRUE(is_near(transpose(Eigen::DiagonalMatrix<double, 2> {m21}), m22_1004));
   EXPECT_TRUE(is_near(transpose(Eigen3::make_eigen_wrapper(Eigen::DiagonalMatrix<double, 2> {m21})), m22_1004));
@@ -199,7 +199,7 @@ TEST(eigen3, transpose_adjoint_conjugate_diagonal)
 
 TEST(eigen3, trace)
 {
-  auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
+  auto m22 = make_dense_object_from<M22>(1, 2, 3, 4);
 
   EXPECT_NEAR(trace(m22), 5, 1e-6);
   EXPECT_NEAR(trace(m22.array()), 5, 1e-6);
@@ -220,7 +220,7 @@ TEST(eigen3, trace)
   EXPECT_NEAR(trace((Mx1(1,1) << 3).finished()), 3, 1e-6);
   EXPECT_NEAR(trace((Mxx(1,1) << 3).finished()), 3, 1e-6);
 
-  auto cm22 = make_dense_writable_matrix_from<CM22>(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1});
+  auto cm22 = make_dense_object_from<CM22>(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1});
 
   EXPECT_NEAR(std::real(trace(cm22)), 5, 1e-6);
   EXPECT_NEAR(std::imag(trace(cm22)), 5, 1e-6);
@@ -231,12 +231,12 @@ TEST(eigen3, trace)
   EXPECT_NEAR(std::real(trace(Eigen3::make_eigen_wrapper(cm22))), 5, 1e-6);
   EXPECT_NEAR(std::imag(trace(Eigen3::make_eigen_wrapper(cm22))), 5, 1e-6);
 
-  auto m22_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
+  auto m22_93310 = make_dense_object_from<M22>(9, 3, 3, 10);
 
   EXPECT_NEAR(trace(m22_93310.template selfadjointView<Eigen::Lower>()), 19, 1e-6);
   EXPECT_NEAR(trace(Eigen3::make_eigen_wrapper(m22_93310.template selfadjointView<Eigen::Lower>())), 19, 1e-6);
 
-  auto m22_3103 = make_dense_writable_matrix_from<M22>(3, 1, 0, 3);
+  auto m22_3103 = make_dense_object_from<M22>(3, 1, 0, 3);
 
   EXPECT_NEAR(trace(m22_3103.template triangularView<Eigen::Upper>()), 6, 1e-6);
 
@@ -248,13 +248,13 @@ TEST(eigen3, trace)
   EXPECT_NEAR(trace(Eigen::DiagonalWrapper<M21> {m21}), 5, 1e-6);
   EXPECT_NEAR(trace(Eigen3::make_eigen_wrapper(Eigen::DiagonalWrapper<M21> {m21})), 5, 1e-6);
 
-  auto cm22_93310 = make_dense_writable_matrix_from<CM22>(9, cdouble(3,1), cdouble(3,-1), 10);
+  auto cm22_93310 = make_dense_object_from<CM22>(9, cdouble(3,1), cdouble(3,-1), 10);
 
   EXPECT_NEAR(std::real(trace(cm22_93310.template selfadjointView<Eigen::Lower>())), 19, 1e-6);
   EXPECT_NEAR(std::real(trace(cm22_93310.template selfadjointView<Eigen::Upper>())), 19, 1e-6);
 
-  auto cm22_3103 = make_dense_writable_matrix_from<CM22>(cdouble(3,-1), cdouble(1,-1), 0, 3);
-  auto cm22_3013 = make_dense_writable_matrix_from<CM22>(cdouble(3,-1), 0, cdouble(1,-1), 3);
+  auto cm22_3103 = make_dense_object_from<CM22>(cdouble(3,-1), cdouble(1,-1), 0, 3);
+  auto cm22_3013 = make_dense_object_from<CM22>(cdouble(3,-1), 0, cdouble(1,-1), 3);
 
   EXPECT_NEAR(std::real(trace(cm22_3013.template triangularView<Eigen::Lower>())), 6, 1e-6);
   EXPECT_NEAR(std::imag(trace(cm22_3013.template triangularView<Eigen::Lower>())), -1, 1e-6);
@@ -265,7 +265,7 @@ TEST(eigen3, trace)
 
 TEST(eigen3, determinant)
 {
-  auto m22 = make_dense_writable_matrix_from<M22>(1, 2, 3, 4);
+  auto m22 = make_dense_object_from<M22>(1, 2, 3, 4);
 
   EXPECT_NEAR(determinant(m22), -2, 1e-6);
   EXPECT_NEAR(determinant(m22.array()), -2, 1e-6);
@@ -286,7 +286,7 @@ TEST(eigen3, determinant)
   EXPECT_NEAR(determinant((Mx1(1,1) << 2).finished()), 2, 1e-6);
   EXPECT_NEAR(determinant((Mxx(1,1) << 2).finished()), 2, 1e-6);
 
-  auto cm22 = make_dense_writable_matrix_from<CM22>(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1});
+  auto cm22 = make_dense_object_from<CM22>(cdouble {1,4}, cdouble {2,3}, cdouble {3,2}, cdouble {4,1});
 
   EXPECT_NEAR(std::real(determinant(cm22)), 0, 1e-6);
   EXPECT_NEAR(std::imag(determinant(cm22)), 4, 1e-6);
@@ -297,12 +297,12 @@ TEST(eigen3, determinant)
   EXPECT_NEAR(std::real(determinant(Eigen3::make_eigen_wrapper(cm22))), 0, 1e-6);
   EXPECT_NEAR(std::imag(determinant(Eigen3::make_eigen_wrapper(cm22))), 4, 1e-6);
 
-  auto m22_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
+  auto m22_93310 = make_dense_object_from<M22>(9, 3, 3, 10);
 
   EXPECT_NEAR(determinant(m22_93310.template selfadjointView<Eigen::Lower>()), 81, 1e-6);
   EXPECT_NEAR(determinant(Eigen3::make_eigen_wrapper(m22_93310.template selfadjointView<Eigen::Lower>())), 81, 1e-6);
 
-  auto m22_3103 = make_dense_writable_matrix_from<M22>(3, 1, 0, 3);
+  auto m22_3103 = make_dense_object_from<M22>(3, 1, 0, 3);
 
   EXPECT_NEAR(determinant(m22_3103.template triangularView<Eigen::Upper>()), 9, 1e-6);
 
@@ -314,14 +314,14 @@ TEST(eigen3, determinant)
   EXPECT_NEAR(determinant(Eigen::DiagonalWrapper<M21> {m21}), 4, 1e-6);
   EXPECT_NEAR(determinant(Eigen3::make_eigen_wrapper(Eigen::DiagonalWrapper<M21> {m21})), 4, 1e-6);
 
-  auto cm22_93310 = make_dense_writable_matrix_from<CM22>(9, cdouble(3,1), cdouble(3,-1), 10);
+  auto cm22_93310 = make_dense_object_from<CM22>(9, cdouble(3,1), cdouble(3,-1), 10);
 
   EXPECT_NEAR(std::real(determinant(cm22_93310)), 80, 1e-6);
   EXPECT_NEAR(std::real(determinant(cm22_93310.template selfadjointView<Eigen::Lower>())), 80, 1e-6);
   EXPECT_NEAR(std::real(determinant(cm22_93310.template selfadjointView<Eigen::Upper>())), 80, 1e-6);
 
-  auto cm22_3103 = make_dense_writable_matrix_from<CM22>(cdouble(3,-1), cdouble(1,-1), 0, 3);
-  auto cm22_3013 = make_dense_writable_matrix_from<CM22>(cdouble(3,-1), 0, cdouble(1,-1), 3);
+  auto cm22_3103 = make_dense_object_from<CM22>(cdouble(3,-1), cdouble(1,-1), 0, 3);
+  auto cm22_3013 = make_dense_object_from<CM22>(cdouble(3,-1), 0, cdouble(1,-1), 3);
 
   EXPECT_NEAR(std::real(determinant(cm22_3103.template triangularView<Eigen::Upper>())), 9, 1e-6);
   EXPECT_NEAR(std::imag(determinant(cm22_3103.template triangularView<Eigen::Upper>())), -3, 1e-6);
@@ -332,9 +332,9 @@ TEST(eigen3, determinant)
 
 TEST(eigen3, sum)
 {
-  auto m23a = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
-  auto m23b = make_dense_writable_matrix_from<M23>(7, 8, 9, 10, 11, 12);
-  auto m23c = make_dense_writable_matrix_from<M23>(8, 10, 12, 14, 16, 18);
+  auto m23a = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
+  auto m23b = make_dense_object_from<M23>(7, 8, 9, 10, 11, 12);
+  auto m23c = make_dense_object_from<M23>(8, 10, 12, 14, 16, 18);
 
   M2x m2x_3a {m23a};
   M2x m2x_3b {m23b};
@@ -364,17 +364,17 @@ TEST(eigen3, sum)
 
 TEST(eigen3, contract)
 {
-  auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
+  auto m23 = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
   M2x m2x_3 {m23};
   Mx3 mx3_2 {m23};
   Mxx mxx_23 {m23};
 
-  auto m34 = make_dense_writable_matrix_from<M34>(7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18);
+  auto m34 = make_dense_object_from<M34>(7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18);
   auto m3x_4 {m34};
   auto mx4_3 {m34};
   auto mxx_34 {m34};
 
-  auto m24 = make_dense_writable_matrix_from<M24>(74, 80, 86, 92, 173, 188, 203, 218);
+  auto m24 = make_dense_object_from<M24>(74, 80, 86, 92, 173, 188, 203, 218);
 
   EXPECT_TRUE(is_near(contract(m23, m34), m24));
   EXPECT_TRUE(is_near(contract(m23.array(), m34.array()), m24));
@@ -390,19 +390,19 @@ TEST(eigen3, contract)
   EXPECT_TRUE(is_near(contract(m23, M33::Identity()), m23));
   EXPECT_TRUE(is_near(contract(M22::Identity(), m23), m23));
 
-  auto m11_2 = make_dense_writable_matrix_from<M11>(2);
+  auto m11_2 = make_dense_object_from<M11>(2);
   M1x m10_1_2(1,1); m10_1_2 << 2;
   Mx1 m01_1_2(1,1); m01_1_2 << 2;
   Mxx m00_11_2(1,1); m00_11_2 << 2;
 
-  auto m11_4 = make_dense_writable_matrix_from<M11>(4);
+  auto m11_4 = make_dense_object_from<M11>(4);
 
-  auto m11_5 = make_dense_writable_matrix_from<M11>(5);
+  auto m11_5 = make_dense_object_from<M11>(5);
   M1x m10_1_5(1,1); m10_1_5 << 5;
   Mx1 m01_1_5(1,1); m01_1_5 << 5;
   Mxx m00_11_5(1,1); m00_11_5 << 5;
 
-  auto m11_10 = make_dense_writable_matrix_from<M11>(10);
+  auto m11_10 = make_dense_object_from<M11>(10);
 
   EXPECT_TRUE(is_near(contract(m11_2, m11_5), m11_10));
   EXPECT_TRUE(is_near(contract(m01_1_2, m11_5), m11_10));
@@ -460,9 +460,9 @@ TEST(eigen3, contract)
   EXPECT_TRUE(is_near(contract(m00_11_5, c01_1_2), m11_10));
   EXPECT_TRUE(is_near(contract(m00_11_5, c00_11_2), m11_10));
 
-  auto m31a = make_dense_writable_matrix_from<M31>(2, 3, 4);
+  auto m31a = make_dense_object_from<M31>(2, 3, 4);
   auto m01_3a = Mx1{m31a};
-  auto m31b = make_dense_writable_matrix_from<M31>(5, 6, 7);
+  auto m31b = make_dense_object_from<M31>(5, 6, 7);
   auto m01_3b = Mx1{m31b};
 
   auto dm3a = Eigen::DiagonalMatrix<double, 3>{m31a};
@@ -473,14 +473,14 @@ TEST(eigen3, contract)
   auto dm0_3b = Eigen::DiagonalMatrix<double, Eigen::Dynamic>{m31b};
   auto dw3b = Eigen::DiagonalWrapper{m31b};
 
-  M33 d3c {make_dense_writable_matrix_from<M31>(10, 18, 28).asDiagonal()};
+  M33 d3c {make_dense_object_from<M31>(10, 18, 28).asDiagonal()};
 
   auto c23_2 = Eigen::Replicate<decltype(c11_2), 2, 3>(c11_2);
   auto c20_3_2 = Eigen::Replicate<decltype(c11_2), 2, Eigen::Dynamic>(c11_2, 2, 3);
   auto c03_2_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, 3>(c11_2, 2, 3);
   auto c00_23_2 = Eigen::Replicate<decltype(c11_2), Eigen::Dynamic, Eigen::Dynamic>(c11_2, 2, 3);
 
-  auto m23_468 = make_dense_writable_matrix_from<M23>(4, 6, 8, 4, 6, 8);
+  auto m23_468 = make_dense_object_from<M23>(4, 6, 8, 4, 6, 8);
 
   EXPECT_TRUE(is_near(contract(c23_2, dm3a), m23_468));
   EXPECT_TRUE(is_near(contract(c20_3_2, dw3a), m23_468));
@@ -493,7 +493,7 @@ TEST(eigen3, contract)
   auto c03_3_3 = Eigen::Replicate<decltype(c11_3), Eigen::Dynamic, 3>(c11_3, 3, 3);
   auto c00_33_3 = Eigen::Replicate<decltype(c11_3), Eigen::Dynamic, Eigen::Dynamic>(c11_3, 3, 3);
 
-  auto m23_151821 = make_dense_writable_matrix_from<M33>(15, 15, 15, 18, 18, 18, 21, 21, 21);
+  auto m23_151821 = make_dense_object_from<M33>(15, 15, 15, 18, 18, 18, 21, 21, 21);
 
   EXPECT_TRUE(is_near(contract(dw3b, c33_3), m23_151821));
   EXPECT_TRUE(is_near(contract(dm3b, c30_3_3), m23_151821));

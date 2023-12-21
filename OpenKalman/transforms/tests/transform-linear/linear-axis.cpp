@@ -24,7 +24,7 @@ TEST(transform_linear, linear_additive)
   LinearTransformation g {a};
   LinearTransform t;
   GaussianDistribution input {M2(1, 2), Covariance(make_identity_matrix_like<Mat2>())};
-  GaussianDistribution noise {make_zero_matrix_like<M2>(), Covariance(make_identity_matrix_like<Mat2>())};
+  GaussianDistribution noise {make_zero<M2>(), Covariance(make_identity_matrix_like<Mat2>())};
   Mat2 P_output {5, 11,
                  11, 25};
   Mat2 cross_output {1, 3,
@@ -43,7 +43,7 @@ TEST(transform_linear, linear_dual)
   LinearTransformation g {a};
   LinearTransform t;
   GaussianDistribution input {M2(1, 2), Covariance(make_identity_matrix_like<Mat2>())};
-  GaussianDistribution noise {make_zero_matrix_like<M2>(), Covariance(make_identity_matrix_like<Mat2>())};
+  GaussianDistribution noise {make_zero<M2>(), Covariance(make_identity_matrix_like<Mat2>())};
   static_assert(OpenKalman::internal::tuple_like<decltype(std::tuple {g})>);
   auto [out1, cross] = t.transform_with_cross_covariance(input, std::tuple {g}, std::tuple {g});
   EXPECT_TRUE(is_near(mean_of(out1), M2(27, 59)));
@@ -58,7 +58,7 @@ TEST(transform_linear, linear_additive_Cholesky)
   LinearTransformation g {a};
   LinearTransform t;
   GaussianDistribution input {M2(1, 2), make_covariance<TriangleType::lower>(make_identity_matrix_like<Mat2>())};
-  GaussianDistribution noise {make_zero_matrix_like<M2>(), make_covariance<TriangleType::lower>(make_identity_matrix_like<Mat2>())};
+  GaussianDistribution noise {make_zero<M2>(), make_covariance<TriangleType::lower>(make_identity_matrix_like<Mat2>())};
   Mat2 P_output {5, 11,
                  11, 25};
   Mat2 cross_output {1, 3,
@@ -77,7 +77,7 @@ TEST(transform_linear, linear_dual_Cholesky)
   LinearTransformation g {a};
   LinearTransform t;
   GaussianDistribution input {M2(1, 2), make_covariance<TriangleType::lower>(make_identity_matrix_like<Mat2>())};
-  GaussianDistribution noise {make_zero_matrix_like<M2>(), make_covariance<TriangleType::lower>(make_identity_matrix_like<Mat2>())};
+  GaussianDistribution noise {make_zero<M2>(), make_covariance<TriangleType::lower>(make_identity_matrix_like<Mat2>())};
   auto [out1, cross] = t.transform_with_cross_covariance(input, std::tuple {g}, std::tuple {g});
   EXPECT_TRUE(is_near(mean_of(out1), M2(27, 59)));
   EXPECT_TRUE(is_near(covariance_of(out1), Mat2 {149, 325, 325, 709}));
@@ -93,7 +93,7 @@ TEST(transform_linear, linear_augmented)
   LinearTransformation g {a, an};
   LinearTransform t;
   GaussianDistribution input {M2(1, 2), Covariance(make_identity_matrix_like<Mat2>())};
-  GaussianDistribution noise {make_zero_matrix_like<M2>(), Covariance(make_identity_matrix_like<Mat2>())};
+  GaussianDistribution noise {make_zero<M2>(), Covariance(make_identity_matrix_like<Mat2>())};
   Mat2 P_output {30, 20,
                  20, 30};
   Mat2 cross_output {1, 4,
@@ -111,7 +111,7 @@ TEST(transform_linear, linear_dual_augmented)
   LinearTransformation g {a, an};
   LinearTransform t;
   GaussianDistribution input {M2(1, 2), Covariance(make_identity_matrix_like<Mat2>())};
-  GaussianDistribution noise {make_zero_matrix_like<M2>(), Covariance(make_identity_matrix_like<Mat2>())};
+  GaussianDistribution noise {make_zero<M2>(), Covariance(make_identity_matrix_like<Mat2>())};
   auto [out1, cross] = t.transform_with_cross_covariance(input, std::tuple {g, noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(mean_of(out1), M2(25, 50)));
   EXPECT_TRUE(is_near(covariance_of(out1), Mat2 {255, 530, 530, 1235}));
@@ -127,7 +127,7 @@ TEST(transform_linear, linear_augmented_Cholesky)
   LinearTransformation g {a, an};
   LinearTransform t;
   GaussianDistribution input {M2(1, 2), make_covariance<TriangleType::lower>(make_identity_matrix_like<Mat2>())};
-  GaussianDistribution noise {make_zero_matrix_like<M2>(), make_covariance<TriangleType::lower>(make_identity_matrix_like<Mat2>())};
+  GaussianDistribution noise {make_zero<M2>(), make_covariance<TriangleType::lower>(make_identity_matrix_like<Mat2>())};
   Mat2 P_output {30, 20,
                  20, 30};
   Mat2 cross_output {1, 4,
@@ -145,7 +145,7 @@ TEST(transform_linear, linear_dual_augmented_Cholesky)
   LinearTransformation g {a, an};
   LinearTransform t;
   GaussianDistribution input {M2(1, 2), make_covariance<TriangleType::lower>(make_identity_matrix_like<Mat2>())};
-  GaussianDistribution noise {make_zero_matrix_like<M2>(), make_covariance<TriangleType::lower>(make_identity_matrix_like<Mat2>())};
+  GaussianDistribution noise {make_zero<M2>(), make_covariance<TriangleType::lower>(make_identity_matrix_like<Mat2>())};
   auto [out1, cross] = t.transform_with_cross_covariance(input, std::tuple {g, noise}, std::tuple {g, noise});
   EXPECT_TRUE(is_near(mean_of(out1), M2(25, 50)));
   EXPECT_TRUE(is_near(covariance_of(out1), Mat2 {255, 530, 530, 1235}));

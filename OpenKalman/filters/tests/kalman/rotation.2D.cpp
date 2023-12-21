@@ -37,7 +37,7 @@ namespace
       auto true_state = randomize<Mean2>(std::uniform_real_distribution {5.0, 10.0});
       auto x = GaussianDistribution<Dimensions<2>, M2, Cov> { Mean2 {7.5, 7.5}, make_identity_matrix_like<Cov>() };
       auto meas_cov = Cov {0.01, 0, 0, 0.01};
-      auto r = GaussianDistribution<Dimensions<2>, M2, Cov> { make_zero_matrix_like<Mean2>(), meas_cov };
+      auto r = GaussianDistribution<Dimensions<2>, M2, Cov> { make_zero<Mean2>(), meas_cov };
       parameter_test(transform, get_t2(), x, true_state, r, 0.2, 100);
     }
   }

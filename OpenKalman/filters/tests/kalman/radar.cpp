@@ -33,7 +33,7 @@ namespace
       auto true_state = randomize<Loc2>(std::uniform_real_distribution {5.0, 10.0});
       auto x = GaussianDistribution<Dimensions<2>, M2, Cov> { Loc2 {7.5, 7.5}, make_identity_matrix_like<Cov>() };
       auto meas_cov = Cov {0.01, 0, 0, numbers::pi / 360};
-      auto r = GaussianDistribution<Polar<>, M2, Cov> { make_zero_matrix_like<Polar2>(), meas_cov };
+      auto r = GaussianDistribution<Polar<>, M2, Cov> { make_zero<Polar2>(), meas_cov };
       parameter_test(transform, Cartesian2polar, x, true_state, r, 0.3, 100);
     }
   }

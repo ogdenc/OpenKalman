@@ -17,6 +17,8 @@
 #ifndef OPENKALMAN_LIBRARYWRAPPER_HPP
 #define OPENKALMAN_LIBRARYWRAPPER_HPP
 
+#include<iostream>
+
 namespace OpenKalman::internal
 {
   /**
@@ -24,73 +26,96 @@ namespace OpenKalman::internal
    * \brief A dumb wrapper for \ref indexible objects so that they are treated exactly as native objects within a library.
    * \tparam NestedObject An indexible object that may or may not be in a library of interest.
    * \tparam LibraryObject Any object from the library to which this wrapper is to be associated.
+   * \tparam InternalizedParameters If this LibraryWrapper is not otherwise self-contained, this are a full set of
+   * arguments necessary to construct the object, which will be stored internally.
    */
 #ifdef __cpp_concepts
-  template<indexible NestedObject, indexible LibraryObject>
+  template<indexible NestedObject, indexible LibraryObject, typename...InternalizedParameters> requires
+    (... and (not std::is_reference_v<InternalizedParameters>))
 #else
-  template<typename NestedObject, typename LibraryObject = NestedObject>
+  template<typename NestedObject, typename LibraryObject, typename...InternalizedParameters>
 #endif
-  struct LibraryWrapper : internal::library_base_t<LibraryWrapper<NestedObject, LibraryObject>, LibraryObject>
+  struct LibraryWrapper : internal::library_base_t<LibraryWrapper<NestedObject, LibraryObject, InternalizedParameters...>, LibraryObject>
   {
   private:
 
     using Base = internal::library_base_t<LibraryWrapper, LibraryObject>;
 
+#ifndef __cpp_concepts
+    static_assert((... and (not std::is_reference_v<InternalizedParameters>)));
+#endif
+
   public:
 
+    /**
+     * \brief Construct from a self-contained object.
+     */
 #ifdef __cpp_concepts
-    template<typename Arg> requires (not std::same_as<std::decay_t<Arg>, LibraryWrapper>) and
-    std::constructible_from<NestedObject, Arg&&>
+    template<std::convertible_to<NestedObject> Arg> requires (not std::same_as<std::decay_t<Arg>, LibraryWrapper>) and
+      (sizeof...(InternalizedParameters) == 0)
 #else
-    template<typename Arg, std::enable_if_t<(not std::is_same_v<std::decay_t<Arg>, LibraryWrapper>) and
-      std::is_constructible_v<NestedObject, Arg&&>, int> = 0>
+    template<typename Arg, typename...Ps, std::enable_if_t<std::is_convertible_v<Arg, NestedObject> and
+      (not std::is_same_v<std::decay_t<Arg>, LibraryWrapper>) and (sizeof...(InternalizedParameters) == 0), int> = 0>
 #endif
     explicit LibraryWrapper(Arg&& arg) : wrapped_expression {std::forward<Arg>(arg)} {}
 
-  private:
 
-    template<typename Arg, typename Indices>
-    constexpr void
-    init(const Arg& arg, Indices& indices, std::size_t ix)
-    {
-      auto dim = get_index_dimension_of(wrapped_expression, ix);
-      if (ix < indices.size())
-      {
-        for (std::size_t i = 0; i < dim; ++i)
-        {
-          indices[ix] == i;
-          init(arg, indices, ix + 1);
-        }
-      }
-      else set_element(wrapped_expression, get_element(std::forward<Arg>(arg), indices), indices);
-    }
-
-  public:
-
+    /**
+     * \overload
+     * \brief Construct from a set of parameters, all of which will be stored in this object to extend their lifetime.
+     * \tparam Ps Parameters from which to construct the nested object.
+     */
 #ifdef __cpp_concepts
-    template<typename Arg> requires (not std::same_as<std::decay_t<Arg>, LibraryWrapper>) and
-    (not std::constructible_from<NestedObject, Arg&&>) and std::default_initializable<NestedObject> and
-      writable<NestedObject>
+    template<typename...Ps> requires (sizeof...(Ps) != 1 or (... and (not std::same_as<std::decay_t<Ps>, LibraryWrapper>)))
 #else
-    template<typename Arg, std::enable_if_t<(not std::is_same_v<std::decay_t<Arg>, LibraryWrapper>) and
-      (not std::is_constructible_v<NestedObject, Arg&&>) and std::is_default_constructible_v<NestedObject> and
-      writable<NestedObject>, int> = 0>
+    template<typename...Ps, std::enable_if_t<
+      (sizeof...(Ps) != 1 or (... and (not std::is_same_v<std::decay_t<Ps>, LibraryWrapper>))), int> = 0>
 #endif
-    explicit LibraryWrapper(const Arg& arg) : wrapped_expression{}
-    {
-      std::vector<std::size_t> vec {get_index_count(arg)};
-      init(arg, vec, 0);
-    }
+    explicit LibraryWrapper(Ps&&...ps) :
+      internalized_parameters {std::forward<Ps>(ps)...},
+      wrapped_expression {std::apply([](auto&&...p){ return NestedObject {std::forward<decltype(p)>(p)...}; }, internalized_parameters)} {}
+
+
+    /**
+     * \brief Move constructor.
+     */
+    //LibraryWrapper(LibraryWrapper&& arg) = default;
+
+
+    /**
+     * \brief Copy constructor when there are no internalized parameters.
+     */
+#ifdef __cpp_concepts
+    LibraryWrapper(const LibraryWrapper& arg) requires (sizeof...(InternalizedParameters) == 0)
+#else
+    template<bool params = (sizeof...(InternalizedParameters) == 0), std::enable_if_t<params, int> = 0>
+    LibraryWrapper(const LibraryWrapper& arg)
+#endif
+      = default;
+
+
+    /**
+     * \overload
+     * \brief Copy constructor when there are internalized parameters.
+     */
+#ifdef __cpp_concepts
+    LibraryWrapper(const LibraryWrapper& arg) requires (sizeof...(InternalizedParameters) > 0)
+#else
+    template<bool params = (sizeof...(InternalizedParameters) > 0), std::enable_if_t<params, int> = 0>
+    LibraryWrapper(const LibraryWrapper& arg)
+#endif
+    : internalized_parameters {arg.internalized_parameters},
+      wrapped_expression {std::apply([](auto&&...p){ return NestedObject {std::forward<decltype(p)>(p)...}; }, internalized_parameters)} {}
 
 
     /**
      * \brief Assign from another compatible indexible object.
      */
 #ifdef __cpp_concepts
-    template<indexible Arg> requires
+    template<indexible Arg> requires (sizeof...(InternalizedParameters) == 0) and
       std::assignable_from<std::add_lvalue_reference_t<NestedObject>, decltype(to_native_matrix<NestedObject>(std::declval<Arg&&>()))>
 #else
-    template<typename Arg, std::enable_if_t<
+    template<typename Arg, std::enable_if_t<(sizeof...(InternalizedParameters) == 0) and
       std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, decltype(to_native_matrix<NestedObject>(std::declval<Arg&&>()))>, int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept
@@ -101,20 +126,38 @@ namespace OpenKalman::internal
 
 
     /**
-     * \brief Get the nested matrix.
+     * \brief Move assignment operator.
      */
-    decltype(auto) nested_matrix() & noexcept { return (wrapped_expression); }
+    LibraryWrapper& operator=(LibraryWrapper&& arg) = default;
+
+
+    /**
+     * \brief Copy assignment operator.
+     */
+    LibraryWrapper& operator=(const LibraryWrapper& arg)
+    {
+      internalized_parameters = arg.internalized_parameters;
+      return *this;
+    }
+
+
+    /**
+     * \brief Get the nested object.
+     */
+    auto& nested_object() & noexcept { return wrapped_expression; }
 
     /// \overload
-    decltype(auto) nested_matrix() const & noexcept { return (wrapped_expression); }
+    const auto& nested_object() const & noexcept { return wrapped_expression; }
 
     /// \overload
-    decltype(auto) nested_matrix() && noexcept { return (std::move(*this).wrapped_expression); }
+    auto&& nested_object() && noexcept { return std::move(*this).wrapped_expression; }
 
     /// \overload
-    decltype(auto) nested_matrix() const && noexcept { return (std::move(*this).wrapped_expression); }
+    const auto&& nested_object() const && noexcept { return std::move(*this).wrapped_expression; }
 
-  protected:
+  private:
+
+    std::tuple<InternalizedParameters...> internalized_parameters;
 
     NestedObject wrapped_expression;
 

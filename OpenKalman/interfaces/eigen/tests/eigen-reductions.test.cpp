@@ -17,19 +17,19 @@ using namespace OpenKalman::test;
 
 TEST(eigen3, reduce_matrix)
 {
-  EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, make_dense_writable_matrix_from<M13>(1, 2, 3)), make_dense_writable_matrix_from<M13>(1, 2, 3)));
-  EXPECT_TRUE(is_near(reduce<1>(std::multiplies<double>{}, make_dense_writable_matrix_from<M21>(1, 4)), make_dense_writable_matrix_from<M21>(1, 4)));
+  EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, make_dense_object_from<M13>(1, 2, 3)), make_dense_object_from<M13>(1, 2, 3)));
+  EXPECT_TRUE(is_near(reduce<1>(std::multiplies<double>{}, make_dense_object_from<M21>(1, 4)), make_dense_object_from<M21>(1, 4)));
 
-  auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
+  auto m23 = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
   auto m2x_3 = M2x {m23};
   auto mx3_2 = Mx3 {m23};
   auto mxx_23 = Mxx {m23};
 
   auto f23_cust = [](const auto& arg1, const auto& arg2) { return arg1 + arg2 + 1; };
 
-  auto m13_sum = make_dense_writable_matrix_from<M13>(5, 7, 9);
-  auto m13_prod = make_dense_writable_matrix_from<M13>(4, 10, 18);
-  auto m13_cust = make_dense_writable_matrix_from<M13>(6, 8, 10);
+  auto m13_sum = make_dense_object_from<M13>(5, 7, 9);
+  auto m13_prod = make_dense_object_from<M13>(4, 10, 18);
+  auto m13_cust = make_dense_object_from<M13>(6, 8, 10);
 
   EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, m23), m13_sum));
   EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, Eigen3::make_eigen_wrapper(m23)), m13_sum));
@@ -42,9 +42,9 @@ TEST(eigen3, reduce_matrix)
   EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, M11{5}), M11{5}));
   EXPECT_TRUE(is_near(reduce<0>(std::multiplies<double>{}, M11{7}), M11{7}));
 
-  auto m21_sum = make_dense_writable_matrix_from<M21>(6, 15);
-  auto m21_prod = make_dense_writable_matrix_from<M21>(6, 120);
-  auto m21_cust = make_dense_writable_matrix_from<M21>(8, 17);
+  auto m21_sum = make_dense_object_from<M21>(6, 15);
+  auto m21_prod = make_dense_object_from<M21>(6, 120);
+  auto m21_cust = make_dense_object_from<M21>(8, 17);
 
   EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, m23), m21_sum));
   EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, Eigen3::make_eigen_wrapper(m23)), m21_sum));
@@ -79,12 +79,12 @@ TEST(eigen3, reduce_matrix)
 
 TEST(eigen3, reduce_eigen_general)
 {
-  const auto m33 = make_dense_writable_matrix_from<M33>(1, 2, 3, 4, 5, 6, 7, 8, 9);
+  const auto m33 = make_dense_object_from<M33>(1, 2, 3, 4, 5, 6, 7, 8, 9);
 
-  auto m13_sum_u = make_dense_writable_matrix_from<M13>(1, 7, 18);
-  auto m13_sum_l = make_dense_writable_matrix_from<M13>(12, 13, 9);
-  auto m13_sum_hl = make_dense_writable_matrix_from<M13>(12, 17, 24);
-  auto m13_sum_hu = make_dense_writable_matrix_from<M13>(6, 13, 18);
+  auto m13_sum_u = make_dense_object_from<M13>(1, 7, 18);
+  auto m13_sum_l = make_dense_object_from<M13>(12, 13, 9);
+  auto m13_sum_hl = make_dense_object_from<M13>(12, 17, 24);
+  auto m13_sum_hu = make_dense_object_from<M13>(6, 13, 18);
 
   EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, m33.triangularView<Eigen::Upper>()), m13_sum_u));
   EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, m33.triangularView<Eigen::Lower>()), m13_sum_l));
@@ -96,10 +96,10 @@ TEST(eigen3, reduce_eigen_general)
   EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, Eigen3::make_eigen_wrapper(m33.selfadjointView<Eigen::Upper>())), m13_sum_hu));
   EXPECT_TRUE(is_near(reduce<0>(std::plus<double>{}, Eigen3::make_eigen_wrapper(m33.selfadjointView<Eigen::Lower>())), m13_sum_hl));
 
-  auto m31_sum_u = make_dense_writable_matrix_from<M31>(6, 11, 9);
-  auto m31_sum_l = make_dense_writable_matrix_from<M31>(1, 9, 24);
-  auto m31_sum_hl = make_dense_writable_matrix_from<M31>(12, 17, 24);
-  auto m31_sum_hu = make_dense_writable_matrix_from<M31>(6, 13, 18);
+  auto m31_sum_u = make_dense_object_from<M31>(6, 11, 9);
+  auto m31_sum_l = make_dense_object_from<M31>(1, 9, 24);
+  auto m31_sum_hl = make_dense_object_from<M31>(12, 17, 24);
+  auto m31_sum_hu = make_dense_object_from<M31>(6, 13, 18);
 
   EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, m33.triangularView<Eigen::Upper>()), m31_sum_u));
   EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, m33.triangularView<Eigen::Lower>()), m31_sum_l));
@@ -133,7 +133,7 @@ TEST(eigen3, average_matrix)
   EXPECT_TRUE(is_near(average_reduce<1>(M21 {1, 4}), M21 {1, 4}));
   EXPECT_TRUE(is_near(average_reduce<0>(make_eigen_matrix<double, 1, 3>(1, 2, 3)), make_eigen_matrix<double, 1, 3>(1, 2, 3)));
 
-  auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
+  auto m23 = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
   auto m2x_3 = M2x {m23};
   auto mx3_2 = Mx3 {m23};
   auto mxx_23 = Mxx {m23};
@@ -178,7 +178,7 @@ TEST(eigen3, average_matrix)
   EXPECT_EQ(average_reduce(m2x_3), 3.5);
   EXPECT_EQ(average_reduce(mxx_23), 3.5);
 
-  auto cm23 = make_dense_writable_matrix_from<CM23>(cdouble {1,6}, cdouble {2,5}, cdouble {3,4}, cdouble {4,3}, cdouble {5,2}, cdouble {6,1});
+  auto cm23 = make_dense_object_from<CM23>(cdouble {1,6}, cdouble {2,5}, cdouble {3,4}, cdouble {4,3}, cdouble {5,2}, cdouble {6,1});
 
   EXPECT_TRUE(is_near(average_reduce<1>(cm23), make_eigen_matrix<cdouble, 2, 1>(cdouble {2,5}, cdouble {5,2})));
 

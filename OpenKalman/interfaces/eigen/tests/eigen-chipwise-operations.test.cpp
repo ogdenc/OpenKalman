@@ -22,20 +22,20 @@ TEST(eigen3, chipwise_nullary)
   auto N3 = std::integral_constant<std::size_t, 3>{};
   auto N4 = std::integral_constant<std::size_t, 4>{};
 
-  const auto m14 = make_dense_writable_matrix_from<M14>(1, 2, 3, 4);
-  const auto m34r = make_dense_writable_matrix_from<M34>(
+  const auto m14 = make_dense_object_from<M14>(1, 2, 3, 4);
+  const auto m34r = make_dense_object_from<M34>(
     1, 2, 3, 4,
     1, 2, 3, 4,
     1, 2, 3, 4);
 
-  const auto m31 = make_dense_writable_matrix_from<M31>(1, 2, 3);
-  const auto m34c = make_dense_writable_matrix_from<M34>(
+  const auto m31 = make_dense_object_from<M31>(1, 2, 3);
+  const auto m34c = make_dense_object_from<M34>(
     1, 1, 1, 1,
     2, 2, 2, 2,
     3, 3, 3, 3);
 
-  const auto m11 = make_dense_writable_matrix_from<M11>(3);
-  const auto m34rc = make_dense_writable_matrix_from<M34>(
+  const auto m11 = make_dense_object_from<M11>(3);
+  const auto m34rc = make_dense_object_from<M34>(
     3, 3, 3, 3,
     3, 3, 3, 3,
     3, 3, 3, 3);
@@ -66,20 +66,20 @@ TEST(eigen3, chipwise_nullary_w_indices)
   auto N3 = std::integral_constant<std::size_t, 3>{};
   auto N4 = std::integral_constant<std::size_t, 4>{};
 
-  const auto m14 = make_dense_writable_matrix_from<M14>(1, 2, 3, 4);
-  const auto m34r = make_dense_writable_matrix_from<M34>(
+  const auto m14 = make_dense_object_from<M14>(1, 2, 3, 4);
+  const auto m34r = make_dense_object_from<M34>(
     2, 4,  6,  8,
     3, 6,  9, 12,
     4, 8, 12, 16);
 
-  const auto m31 = make_dense_writable_matrix_from<M31>(1, 2, 3);
-  const auto m34c = make_dense_writable_matrix_from<M34>(
+  const auto m31 = make_dense_object_from<M31>(1, 2, 3);
+  const auto m34c = make_dense_object_from<M34>(
     2, 3,  4,  5,
     4, 6,  8, 10,
     6, 9, 12, 15);
 
-  const auto m11 = make_dense_writable_matrix_from<M11>(3);
-  const auto m34rc = make_dense_writable_matrix_from<M34>(
+  const auto m11 = make_dense_object_from<M11>(3);
+  const auto m34rc = make_dense_object_from<M34>(
      6,  9, 12, 15,
     12, 18, 24, 30,
     18, 27, 36, 45);
@@ -104,7 +104,7 @@ TEST(eigen3, chipwise_nullary_w_indices)
 
 TEST(eigen3, chipwise_unary)
 {
-  const auto m34 = make_dense_writable_matrix_from<M34>(
+  const auto m34 = make_dense_object_from<M34>(
     1,  2,  3,  4,
     5,  6,  7,  8,
     9, 10, 11, 12);
@@ -127,30 +127,30 @@ TEST(eigen3, chipwise_unary)
   EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& col){ static_assert(vector<decltype(col), 0>); return col * 4; }, Mx4{m34}), m34 * 4));
   EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& col){ static_assert(vector<decltype(col), 0>); return col * 5; }, Mxx{m34}), m34 * 5));
 
-  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& elem){ static_assert(one_by_one_matrix<decltype(elem)>); return elem * 2; }, m34), m34 * 2));
-  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& elem){ static_assert(one_by_one_matrix<decltype(elem)>); return elem * 2; }, M34{m34}), m34 * 2));
-  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& elem){ static_assert(one_by_one_matrix<decltype(elem)>); return elem * 4; }, Mx4{m34}), m34 * 4));
+  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& elem){ static_assert(one_dimensional<decltype(elem)>); return elem * 2; }, m34), m34 * 2));
+  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& elem){ static_assert(one_dimensional<decltype(elem)>); return elem * 2; }, M34{m34}), m34 * 2));
+  EXPECT_TRUE(is_near(chipwise_operation<0, 1>([](const auto& elem){ static_assert(one_dimensional<decltype(elem)>); return elem * 4; }, Mx4{m34}), m34 * 4));
 
-  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& elem){ static_assert(one_by_one_matrix<decltype(elem)>); return elem * 3; }, M3x{m34}), m34 * 3));
-  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& elem){ static_assert(one_by_one_matrix<decltype(elem)>); return elem * 5; }, Mxx{m34}), m34 * 5));
+  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& elem){ static_assert(one_dimensional<decltype(elem)>); return elem * 3; }, M3x{m34}), m34 * 3));
+  EXPECT_TRUE(is_near(chipwise_operation<1, 0>([](const auto& elem){ static_assert(one_dimensional<decltype(elem)>); return elem * 5; }, Mxx{m34}), m34 * 5));
 }
 
 
 TEST(eigen3, chipwise_unary_w_indices)
 {
-  const auto m34 = make_dense_writable_matrix_from<M34>(
+  const auto m34 = make_dense_object_from<M34>(
     1,  2,  3,  4,
     5,  6,  7,  8,
     9, 10, 11, 12);
-  const auto m34r = make_dense_writable_matrix_from<M34>(
+  const auto m34r = make_dense_object_from<M34>(
      2,  4,  6,  8,
     15, 18, 21, 24,
     36, 40, 44, 48);
-  const auto m34c = make_dense_writable_matrix_from<M34>(
+  const auto m34c = make_dense_object_from<M34>(
      2,  6, 12, 20,
     10, 18, 28, 40,
     18, 30, 44, 60);
-  const auto m34rc = make_dense_writable_matrix_from<M34>(
+  const auto m34rc = make_dense_object_from<M34>(
      2,  6,  12,  20,
     20, 36,  56,  80,
     54, 90, 132, 180);
@@ -184,22 +184,22 @@ TEST(eigen3, chipwise_unary_w_indices)
 
 TEST(eigen3, chipwise_binary)
 {
-  const auto m34a = make_dense_writable_matrix_from<M34>(
+  const auto m34a = make_dense_object_from<M34>(
     1,  2,  3,  4,
     5,  6,  7,  8,
     9, 10, 11, 12);
 
-  const auto m34b = make_dense_writable_matrix_from<M34>(
+  const auto m34b = make_dense_object_from<M34>(
     1, 4, 7, 10,
     2, 5, 8, 11,
     3, 6, 9, 12);
 
-  const auto mt3 = make_dense_writable_matrix_from<M33>(
+  const auto mt3 = make_dense_object_from<M33>(
     8, 7, 6,
     5, 4, 3,
     3, 1, 0);
 
-  const auto mt4 = make_dense_writable_matrix_from<M44>(
+  const auto mt4 = make_dense_object_from<M44>(
     16, 15, 14, 13,
     12, 11, 10,  9,
      8,  7,  6,  5,
@@ -230,32 +230,32 @@ TEST(eigen3, chipwise_binary)
 
 TEST(eigen3, chipwise_binary_w_indices)
 {
-  const auto m34a = make_dense_writable_matrix_from<M34>(
+  const auto m34a = make_dense_object_from<M34>(
     1,  2,  3,  4,
     5,  6,  7,  8,
     9, 10, 11, 12);
 
-  const auto m34b = make_dense_writable_matrix_from<M34>(
+  const auto m34b = make_dense_object_from<M34>(
     1, 4, 7, 10,
     2, 5, 8, 11,
     3, 6, 9, 12);
 
-  const auto mt3 = make_dense_writable_matrix_from<M33>(
+  const auto mt3 = make_dense_object_from<M33>(
     8, 7, 6,
     5, 4, 3,
     3, 1, 0);
 
-  const auto mt4 = make_dense_writable_matrix_from<M44>(
+  const auto mt4 = make_dense_object_from<M44>(
     16, 15, 14, 13,
     12, 11, 10,  9,
      8,  7,  6,  5,
      4,  3,  1,  0);
 
-  const M33 d1 {make_dense_writable_matrix_from<M31>(1, 2, 3).asDiagonal()};
-  const M33 d2 {make_dense_writable_matrix_from<M31>(2, 3, 4).asDiagonal()};
-  const M44 e1 {make_dense_writable_matrix_from<M41>(1, 2, 3, 4).asDiagonal()};
-  const M44 e2 {make_dense_writable_matrix_from<M41>(2, 3, 4, 5).asDiagonal()};
-  const M44 e3 {make_dense_writable_matrix_from<M41>(3, 4, 5, 6).asDiagonal()};
+  const M33 d1 {make_dense_object_from<M31>(1, 2, 3).asDiagonal()};
+  const M33 d2 {make_dense_object_from<M31>(2, 3, 4).asDiagonal()};
+  const M44 e1 {make_dense_object_from<M41>(1, 2, 3, 4).asDiagonal()};
+  const M44 e2 {make_dense_object_from<M41>(2, 3, 4, 5).asDiagonal()};
+  const M44 e3 {make_dense_object_from<M41>(3, 4, 5, 6).asDiagonal()};
 
   const auto m34p = d1 * m34a * mt4 + d2 * m34b * mt4;
   const auto m34q = mt3 * m34a * e2 + mt3 * m34b * e1;

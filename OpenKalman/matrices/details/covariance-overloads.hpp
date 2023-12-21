@@ -51,33 +51,33 @@ namespace OpenKalman
 #endif
     {
       template<typename Derived>
-      using LibraryBase = internal::library_base_t<Derived, nested_matrix_of_t<T>>;
+      using LibraryBase = internal::library_base_t<Derived, nested_object_of_t<T>>;
 
 
       template<Layout layout, typename Scalar, typename...D>
       static auto
       make_default(D&&...d)
       {
-        return library_interface<nested_matrix_of_t<T>>::template make_default<layout, Scalar>(std::forward<D>(d)...);
+        return library_interface<nested_object_of_t<T>>::template make_default<layout, Scalar>(std::forward<D>(d)...);
       }
 
 
-      // fill_with_elements not necessary because T is not a dense writable matrix.
+      // fill_components not necessary because T is not a dense writable matrix.
 
 
       template<typename Arg>
       static decltype(auto)
       to_native_matrix(Arg&& arg)
       {
-        return OpenKalman::to_native_matrix<nested_matrix_of_t<T>>(
+        return OpenKalman::to_native_matrix<nested_object_of_t<T>>(
           OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg))(std::forward<Arg>(arg)));
       }
 
       template<typename C, typename...D>
       static constexpr auto
-      make_constant_matrix(C&& c, D&&...d)
+      make_constant(C&& c, D&&...d)
       {
-        return make_constant_matrix_like<nested_matrix_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
+        return make_constant<nested_object_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
       }
 
 
@@ -85,7 +85,7 @@ namespace OpenKalman
       static constexpr auto
       make_identity_matrix(D&& d)
       {
-        return make_identity_matrix_like<nested_matrix_of_t<T>, Scalar>(std::forward<D>(d));
+        return make_identity_matrix_like<nested_object_of_t<T>, Scalar>(std::forward<D>(d));
       }
 
 
@@ -94,7 +94,7 @@ namespace OpenKalman
       get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
       {
         /// \todo Properly wrap this
-        return OpenKalman::get_block(nested_matrix(std::forward<Arg>(arg)), begin, size);
+        return OpenKalman::get_block(nested_object(std::forward<Arg>(arg)), begin, size);
       };
 
 
@@ -103,7 +103,7 @@ namespace OpenKalman
       set_block(Arg& arg, Block&& block, Begin...begin)
       {
         /// \todo Properly wrap this
-        return OpenKalman::set_block(nested_matrix(std::forward<Arg>(arg)), std::forward<Block>(block), begin...);
+        return OpenKalman::set_block(nested_object(std::forward<Arg>(arg)), std::forward<Block>(block), begin...);
       };
 
 
@@ -112,7 +112,7 @@ namespace OpenKalman
       set_triangle(A&& a, B&& b)
       {
         /// \todo Properly wrap this
-        return OpenKalman::internal::set_triangle<t>(nested_matrix(std::forward<A>(a)), std::forward<B>(b));
+        return OpenKalman::internal::set_triangle<t>(nested_object(std::forward<A>(a)), std::forward<B>(b));
       }
 
 
@@ -130,7 +130,7 @@ namespace OpenKalman
       static constexpr decltype(auto) conjugate(Arg&& arg) noexcept
       {
         // \todo optimize this by also copying cholesky nested matrix
-        return MatrixTraits<std::decay_t<Arg>>::make(OpenKalman::conjugate(nested_matrix(std::forward<Arg>(arg))));
+        return MatrixTraits<std::decay_t<Arg>>::make(OpenKalman::conjugate(nested_object(std::forward<Arg>(arg))));
       }
 
 
@@ -138,7 +138,7 @@ namespace OpenKalman
       static constexpr decltype(auto) transpose(Arg&& arg) noexcept
       {
         // \todo optimize this by also copying cholesky nested matrix
-        return MatrixTraits<std::decay_t<Arg>>::make(OpenKalman::transpose(nested_matrix(std::forward<Arg>(arg))));
+        return MatrixTraits<std::decay_t<Arg>>::make(OpenKalman::transpose(nested_object(std::forward<Arg>(arg))));
       }
 
 
@@ -147,7 +147,7 @@ namespace OpenKalman
       {
         // \todo optimize this by also copying cholesky nested matrix
         static_assert(triangular_covariance<Arg>);
-        return MatrixTraits<std::decay_t<Arg>>::make(OpenKalman::adjoint(nested_matrix(std::forward<Arg>(arg))));
+        return MatrixTraits<std::decay_t<Arg>>::make(OpenKalman::adjoint(nested_object(std::forward<Arg>(arg))));
       }
 
 
@@ -159,7 +159,7 @@ namespace OpenKalman
 
 
       template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
-      static decltype(auto) rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
+      static decltype(auto) rank_update_hermitian(A&& a, U&& u, const Alpha alpha)
       {
         if constexpr (std::is_same_v<A&&, std::decay_t<A>&>)
         {
@@ -193,7 +193,7 @@ namespace OpenKalman
       solve(A&& a, B&& b) noexcept
       {
         auto x = make_self_contained<A, B>(OpenKalman::solve<must_be_unique, must_be_exact>(
-          to_covariance_nestable(std::forward<A>(a)), nested_matrix(std::forward<B>(b))));
+          to_covariance_nestable(std::forward<A>(a)), nested_object(std::forward<B>(b))));
         return MatrixTraits<std::decay_t<B>>::template make<vector_space_descriptor_of_t<A, 0>>(std::move(x));
       }
 
@@ -231,7 +231,7 @@ namespace OpenKalman
     {
       using Coeffs =
         concatenate_fixed_vector_space_descriptor_t<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Ms, 0>...>;
-      auto cat = concatenate_diagonal(nested_matrix(std::forward<M>(m)), nested_matrix(std::forward<Ms>(mN))...);
+      auto cat = concatenate_diagonal(nested_object(std::forward<M>(m)), nested_object(std::forward<Ms>(mN))...);
       return MatrixTraits<std::decay_t<M>>::template make<Coeffs>(std::move(cat));
     }
     else
@@ -247,13 +247,13 @@ namespace OpenKalman
     inline auto
     split_item_impl(Arg&& arg)
     {
-      if constexpr(one_by_one_matrix<Arg> and self_adjoint_covariance<Expr> and cholesky_form<Expr>)
+      if constexpr(one_dimensional<Arg> and self_adjoint_covariance<Expr> and cholesky_form<Expr>)
       {
-        return MatrixTraits<std::decay_t<Expr>>::template make<C>(Cholesky_square(std::forward<Arg>(arg)));
+        return MatrixTraits<std::decay_t<Expr>>::template make<C>(cholesky_square(std::forward<Arg>(arg)));
       }
-      else if constexpr(one_by_one_matrix<Arg> and triangular_covariance<Expr> and not cholesky_form<Expr>)
+      else if constexpr(one_dimensional<Arg> and triangular_covariance<Expr> and not cholesky_form<Expr>)
       {
-        return MatrixTraits<std::decay_t<Expr>>::template make<C>(Cholesky_factor<TriangleType::lower>(std::forward<Arg>(arg)));
+        return MatrixTraits<std::decay_t<Expr>>::template make<C>(cholesky_factor<TriangleType::lower>(std::forward<Arg>(arg)));
       }
       else
       {
@@ -267,13 +267,13 @@ namespace OpenKalman
     template<typename Expr, typename F, typename Arg>
     inline auto split_cov_diag_impl(const F& f, Arg&& arg)
     {
-      if constexpr(one_by_one_matrix<Arg> and self_adjoint_covariance<Expr> and cholesky_form<Expr>)
+      if constexpr(one_dimensional<Arg> and self_adjoint_covariance<Expr> and cholesky_form<Expr>)
       {
-        return f(Cholesky_square(std::forward<Arg>(arg)));
+        return f(cholesky_square(std::forward<Arg>(arg)));
       }
-      else if constexpr(one_by_one_matrix<Arg> and triangular_covariance<Expr> and not cholesky_form<Expr>)
+      else if constexpr(one_dimensional<Arg> and triangular_covariance<Expr> and not cholesky_form<Expr>)
       {
-        return f(Cholesky_factor<TriangleType::lower>(std::forward<Arg>(arg)));
+        return f(cholesky_factor<TriangleType::lower>(std::forward<Arg>(arg)));
       }
       else
       {
@@ -326,7 +326,7 @@ namespace OpenKalman
   split_diagonal(M&& m) noexcept
   {
     static_assert(prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
-    return split_diagonal<oin::SplitCovDiagF<M>, Cs...>(nested_matrix(std::forward<M>(m)));
+    return split_diagonal<oin::SplitCovDiagF<M>, Cs...>(nested_object(std::forward<M>(m)));
   }
 
 
@@ -341,7 +341,7 @@ namespace OpenKalman
   {
     using CC = vector_space_descriptor_of_t<M, 0>;
     static_assert(prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, CC>);
-    return split_vertical<oin::SplitCovVertF<M, CC>, Cs...>(make_dense_writable_matrix_from(std::forward<M>(m)));
+    return split_vertical<oin::SplitCovVertF<M, CC>, Cs...>(make_dense_object(std::forward<M>(m)));
   }
 
 
@@ -356,7 +356,7 @@ namespace OpenKalman
   {
     using RC = vector_space_descriptor_of_t<M, 0>;
     static_assert(prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, RC>);
-    return split_horizontal<oin::SplitCovHorizF<M, RC>, Cs...>(make_dense_writable_matrix_from(std::forward<M>(m)));
+    return split_horizontal<oin::SplitCovHorizF<M, RC>, Cs...>(make_dense_object(std::forward<M>(m)));
   }
 
 
@@ -376,7 +376,7 @@ namespace OpenKalman
   {
     using C = vector_space_descriptor_of_t<Arg, 0>;
     const auto f_nested = [&f] (auto&& col) -> auto {
-      return make_self_contained(nested_matrix(f(make_matrix<C, Axis>(std::forward<decltype(col)>(col)))));
+      return make_self_contained(nested_object(f(make_matrix<C, Axis>(std::forward<decltype(col)>(col)))));
     };
     return make_matrix<C, C>(apply_columnwise(f_nested, to_covariance_nestable(std::forward<Arg>(arg))));
   }
@@ -398,7 +398,7 @@ namespace OpenKalman
   {
     using C = vector_space_descriptor_of_t<Arg, 0>;
     const auto f_nested = [&f] (auto&& col, std::size_t i) -> auto {
-      return make_self_contained(nested_matrix(f(make_matrix<C, Axis>(std::forward<decltype(col)>(col)), i)));
+      return make_self_contained(nested_object(f(make_matrix<C, Axis>(std::forward<decltype(col)>(col)), i)));
     };
     return make_matrix<C, C>(apply_columnwise(f_nested, to_covariance_nestable(std::forward<Arg>(arg))));
   }
@@ -444,7 +444,7 @@ namespace OpenKalman
 #endif
   inline std::ostream& operator<<(std::ostream& os, const Cov& c)
   {
-    os << make_dense_writable_matrix_from(c);
+    os << make_dense_object(c);
     return os;
   }
 

@@ -39,7 +39,7 @@ namespace OpenKalman::interface
 
     using dependents = std::tuple<>;
 
-    // get_nested_matrix() not defined
+    // nested_object() not defined
 
     // convert_to_self_contained() not defined
 
@@ -77,7 +77,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr auto*
-    data(Arg& arg) { return arg.data(); }
+    raw_data(Arg& arg) { return arg.data(); }
 
     static constexpr Layout layout = layout_of_v<PlainObjectType>;
 

@@ -44,7 +44,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename NestedMatrix, HermitianAdapterType storage_triangle, typename U> requires
       //(not hermitian_matrix<U>) or
-      (eigen_self_adjoint_expr<U> and not modifiable<NestedMatrix, nested_matrix_of_t<U>>) or
+      (eigen_self_adjoint_expr<U> and not modifiable<NestedMatrix, nested_object_of_t<U>>) or
       (not eigen_self_adjoint_expr<U> and not modifiable<NestedMatrix, U>)
     struct is_modifiable_native<SelfAdjointMatrix<NestedMatrix, storage_triangle>, U> : std::false_type {};
 #else
@@ -62,7 +62,7 @@ namespace OpenKalman
     template<typename NestedMatrix, TriangleType triangle_type, typename U> requires
       //(not triangular_matrix<U>) or
       //(triangle_type == TriangleType::diagonal and not diagonal_matrix<U>) or
-      (eigen_triangular_expr<U> and not modifiable<NestedMatrix, nested_matrix_of_t<U>>) or
+      (eigen_triangular_expr<U> and not modifiable<NestedMatrix, nested_object_of_t<U>>) or
       (not eigen_triangular_expr<U> and not modifiable<NestedMatrix, U>)
     struct is_modifiable_native<TriangularMatrix<NestedMatrix, triangle_type>, U> : std::false_type {};
 #else
@@ -80,7 +80,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename C, typename NestedMatrix, typename U> requires
       (euclidean_expr<U> and (to_euclidean_expr<U> or
-        not modifiable<NestedMatrix, nested_matrix_of_t<U>> or
+        not modifiable<NestedMatrix, nested_object_of_t<U>> or
         not equivalent_to<C, vector_space_descriptor_of_t<U, 0>>)) or
       (not euclidean_expr<U> and not modifiable<NestedMatrix, ToEuclideanExpr<C, std::decay_t<U>>>)
     struct is_modifiable_native<FromEuclideanExpr<C, NestedMatrix>, U>
@@ -105,7 +105,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename C, typename NestedMatrix, typename U> requires
       (euclidean_expr<U> and (from_euclidean_expr<U> or
-        not modifiable<NestedMatrix, nested_matrix_of_t<U>> or
+        not modifiable<NestedMatrix, nested_object_of_t<U>> or
         not equivalent_to<C, vector_space_descriptor_of_t<U, 0>>)) or
       (not euclidean_expr<U> and not modifiable<NestedMatrix, FromEuclideanExpr<C, std::decay_t<U>>>)
     struct is_modifiable_native<ToEuclideanExpr<C, NestedMatrix>, U>

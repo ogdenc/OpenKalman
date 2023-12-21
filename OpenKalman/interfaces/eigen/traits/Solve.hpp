@@ -35,15 +35,8 @@ namespace OpenKalman::interface
 
     static constexpr bool has_runtime_parameters = false;
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
-    {
-      static_assert(i < 2);
-      if constexpr (i == 0)
-        return std::forward<Arg>(arg).dec();
-      else
-        return std::forward<Arg>(arg).rhs();
-    }
+
+    // nested_object not defined
 
     // Eigen::Solve can never be self-contained.
 

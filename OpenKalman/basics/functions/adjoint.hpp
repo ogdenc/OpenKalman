@@ -26,9 +26,9 @@ namespace OpenKalman
    * \tparam Arg The matrix
    */
 #ifdef __cpp_concepts
-  template<indexible Arg> requires (max_tensor_order_of_v<Arg> <= 2)
+  template<indexible Arg> requires (max_tensor_order_v<Arg> <= 2)
 #else
-  template<typename Arg, std::enable_if_t<indexible<Arg> and (max_tensor_order_of_v<Arg> <= 2), int> = 0>
+  template<typename Arg, std::enable_if_t<indexible<Arg> and (max_tensor_order_v<Arg> <= 2), int> = 0>
 #endif
   constexpr decltype(auto) adjoint(Arg&& arg) noexcept
   {
@@ -40,7 +40,7 @@ namespace OpenKalman
     {
       return conjugate(std::forward<Arg>(arg));
     }
-    else if constexpr (zero_matrix<Arg>)
+    else if constexpr (zero<Arg>)
     {
       return transpose(std::forward<Arg>(arg));
     }

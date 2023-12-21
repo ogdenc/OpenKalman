@@ -33,6 +33,7 @@ namespace OpenKalman::interface
      * \brief The scalar type of T (e.g., double, int).
      * \details <code>OpenKalman::scalar_type&lt;scalar_type&gt;</code> must be satisfied.
      * \note Mandatory.
+     * \sa scalar_type_of
      */
     using scalar_type = double;
 
@@ -47,31 +48,33 @@ namespace OpenKalman::interface
      * one or two indices, the value should be 2 (preferably std::integral_constant<std::size_t, 2>{}).
      * \note Mandatory. The \ref indexible concept applies iff this function is defined and returns an \ref index_value.
      * \return An \ref index_value (either \ref static_index_value or \ref dynamic_index_value) representing the number of indices.
+     * \sa OpenKalman::index_count
+     * \sa OpenKalman::count_indices
      */
 #ifdef __cpp_concepts
     static constexpr index_value auto
 #else
     static constexpr auto
 #endif
-    get_index_count(const T& arg) = delete;
+    count_indices(const T& arg) = delete;
 
 
     /**
      * \brief Get the \ref vector_space_descriptor for index N of an argument.
-     * \details The implementation may assume that <code>n &lt; get_index_count(t)</code>.
+     * \details The implementation may assume that <code>n &lt; count_indices(t)</code>.
      * \note Mandatory. The simplest implementation is to return the dimension of index N as <code>std::size_t</code>
      * (if dynamic) or as <code>std::integral_constant&gt;std::size_t, ...&gt;</code> (if static).
-     * \param n An index value less than the result of \ref get_index_count
+     * \param n An index value less than the result of \ref count_indices
      * (e.g., 0 (dynamic) or <code>std::integral_constant&lt;std::size_t, 0&gt;</code> (static))
      * \return A \ref vector_space_descriptor object (either static or dynamic) for dimension <code>n</code>.
      */
 #ifdef __cpp_concepts
     static constexpr vector_space_descriptor auto
-    get_vector_space_descriptor(const T& arg, index_value auto n) = delete;
+    get_vector_space_descriptor(const T& arg, const index_value auto& n) = delete;
 #else
     template<typename N, std::enable_if_t<index_value<N>, int> = 0>
     static constexpr auto
-    get_vector_space_descriptor(const T& arg, N n) = delete;
+    get_vector_space_descriptor(const T& arg, const N& n) = delete;
 #endif
 
 
@@ -101,25 +104,17 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Gets the i-th dependency of T.
-     * /detail There is no need to check the bounds of <code>i</code>, but they should be treated as following this
-     * constraint:
-     * /code
-     *   requires (i < std::tuple_size_v<type>) and std::same_as<std::decay_t<Arg>, std::decay_t<T>>
-     * /endcode
-     * \note Optional. Also, there is no need for the example constraints on i or Arg,
-     * as OpenKalman::nested_matrix already enforces these constraints.
-     * \tparam i Index of the dependency (0 for the 1st dependency, 1 for the 2nd, etc.).
-     * \return An \ref indexible object which is the i-th dependency of T.
-     * \sa OpenKalman::nested_matrix
+     * \brief Gets the nested object for T, if it exists.
+     * /detail This should only be defined if T has a nested matrix.
+     * \sa OpenKalman::nested_object
      */
 #ifdef __cpp_concepts
-    template<std::size_t i> static indexible decltype(auto)
-    get_nested_matrix(std::convertible_to<const T&> auto&& arg) = delete;
+    static indexible decltype(auto)
+    nested_object(std::convertible_to<const T&> auto&& arg) = delete;
 #else
-    template<std::size_t i, typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const T&>, int> = 0>
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const T&>, int> = 0>
     static decltype(auto)
-    get_nested_matrix(Arg&& arg) = delete;
+    nested_object(Arg&& arg) = delete;
 #endif
 
 
@@ -132,7 +127,7 @@ namespace OpenKalman::interface
      * \note Defining this function is optional. If not defined, the default behavior is to convert to the equivalent,
      * dense, writable matrix. Also, there is no need for the example constraint on Arg, as
      * OpenKalman::make_self_contained already enforces this constraint.
-     * \ref zero_matrix.
+     * \ref zero.
      * \tparam Arg An object of type T
      * \return An equivalent self-contained version of T
      */
@@ -178,7 +173,7 @@ namespace OpenKalman::interface
      * \details This can be useful because some types may erase information about the shape of their nested objects.
      */
     template<Likelihood b>
-    static constexpr bool is_one_by_one = false;
+    static constexpr bool one_dimensional = false;
 
 
     /**
@@ -210,14 +205,6 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Whether T is a \ref diagonal_adapter (defaults to false, if omitted).
-     * \details The likelihood b is available if it is not known whether the nested matrix is a column vector
-     */
-    template<Likelihood b>
-    static constexpr bool is_diagonal_adapter = false;
-
-
-    /**
      * \brief Whether T is hermitian.
      * \note Optional. If omitted, T is not considered hermitian.
      * \details This is unnecessary if T is a square matrix and any of the following are true:
@@ -232,7 +219,7 @@ namespace OpenKalman::interface
      * \details A hermitian adapter is a (potentially) hermitian matrix formed by nesting a non-hermitian matrix within
      * an adapter that copies conjugated elements from the lower to upper triangle, or vice versa.
      * \note Optional. If omitted, T is not considered to be hermitian adapter.
-     * It is also meaningless unless \ref is_hermitian is true.
+     * It is also meaningless if \ref is_hermitian is false.
      */
     static constexpr HermitianAdapterType hermitian_adapter_type = HermitianAdapterType::any;
 
@@ -244,15 +231,15 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief If the argument has direct access to the underlying array data, return a pointer to that data.
+     * \brief If the argument has direct access to the underlying array data, return a pointer to that raw data.
      */
 #ifdef __cpp_concepts
     static constexpr std::convertible_to<const scalar_type * const> auto * const
-    data(std::convertible_to<const T> auto& arg) = delete;
+    raw_data(std::convertible_to<const T> auto& arg) = delete;
 #else
     template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const T>, int> = 0>
     static constexpr auto * const
-    data(Arg& arg) = delete;
+    raw_data(Arg& arg) = delete;
 #endif
 
 

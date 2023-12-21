@@ -84,7 +84,7 @@ namespace OpenKalman::interface
       {
         return std::forward<Arg>(arg);
       }
-      else if constexpr (directly_accessible<Arg>)
+      else if constexpr (raw_data_defined_for<decltype((arg))>)
       {
         if constexpr (layout_of_v<Arg> == Layout::stride and internal::has_static_strides<Arg>)
         {
@@ -92,7 +92,7 @@ namespace OpenKalman::interface
           constexpr std::ptrdiff_t stride0 = std::get<0>(strides);
           constexpr std::ptrdiff_t strideN = std::get<index_count_v<Arg> - 1>(strides);
           constexpr auto l = stride0 > strideN ? Eigen::RowMajor : Eigen::ColMajor;
-          using M = std::decay_t<decltype(make_default_dense_writable_matrix_like<Arg, Layout::none, Scalar>(arg))>;
+          using M = std::decay_t<decltype(make_dense_object<Layout::none, Scalar>(arg))>;
           Eigen::TensorMap<M, l> map {internal::raw_data(arg)};
           return std::apply(
             [](auto&& map, auto&&...s){
@@ -103,7 +103,7 @@ namespace OpenKalman::interface
         else
         {
           constexpr auto l = layout_of_v<Arg> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor;
-          using M = std::decay_t<decltype(make_default_dense_writable_matrix_like<Arg, Layout::none, Scalar>(arg))>;
+          using M = std::decay_t<decltype(make_dense_object<Layout::none, Scalar>(arg))>;
           return Eigen::TensorMap<M, l> {internal::raw_data(arg)};
         }
       }
@@ -134,7 +134,7 @@ namespace OpenKalman::interface
       (layout == Layout::right or or layout == Layout::left) and
       std::conjunction<std::is_convertible<Args, typename scalar_type_of<M>::type>::value...>::value, int> = 0>
 #endif
-    static M&& fill_with_elements(M&& m, const Args ... args)
+    static M&& fill_components(M&& m, const Args ... args)
     {
       if constexpr (layout == Layout::left)
         m.swap_layout.setValues({args...});
@@ -153,7 +153,7 @@ namespace OpenKalman::interface
       (... and (not dynamic_vector_space_descriptor<Ds>)), int> = 0>
     static constexpr auto
 #endif
-    make_constant_matrix(C&& c, Ds&&...ds)
+    make_constant(C&& c, Ds&&...ds)
     {
       auto value = get_scalar_constant_value(std::forward<C>(c));
       using Scalar = std::decay_t<decltype(value)>;
@@ -170,7 +170,7 @@ namespace OpenKalman::interface
     {
       if constexpr (dimension_size_of_v<D> == dynamic_size)
       {
-        return to_diagonal(make_constant_matrix_like<T, Scalar, 1>(std::forward<D>(d), Dimensions<1>{}));
+        return to_diagonal(make_constant<T, Scalar, 1>(std::forward<D>(d), Dimensions<1>{}));
       }
       else
       {
@@ -207,7 +207,7 @@ namespace OpenKalman::interface
       static_assert(sizeof...(Begin) == 2);
       if constexpr (Eigen3::eigen_wrapper<Arg>)
       {
-        set_block(nested_matrix(arg), std::forward<Block>(block), begin...);
+        set_block(nested_object(arg), std::forward<Block>(block), begin...);
         return arg;
       }
       else
@@ -249,8 +249,8 @@ namespace OpenKalman::interface
     template<typename A>
     struct pass_through_eigenwrapper<A, std::enable_if_t<Eigen3::eigen_wrapper<A>>>
 #endif
-      : std::bool_constant<Eigen3::eigen_dense_general<nested_matrix_of_t<A>> or diagonal_adapter<nested_matrix_of_t<A>> or
-        triangular_adapter<nested_matrix_of_t<A>> or hermitian_adapter<nested_matrix_of_t<A>>> {};
+      : std::bool_constant<Eigen3::eigen_dense_general<nested_object_of_t<A>> or diagonal_adapter<nested_object_of_t<A>> or
+        triangular_adapter<nested_object_of_t<A>> or hermitian_adapter<nested_object_of_t<A>>> {};
 
   public:
 
@@ -259,7 +259,7 @@ namespace OpenKalman::interface
     {
       if constexpr (Eigen3::eigen_MatrixWrapper<A> or Eigen3::eigen_ArrayWrapper<A> or pass_through_eigenwrapper<A>::value)
       {
-        return internal::set_triangle<t>(nested_matrix(std::forward<A>(a)), std::forward<B>(b));
+        return internal::set_triangle<t>(nested_object(std::forward<A>(a)), std::forward<B>(b));
       }
       else if constexpr (not Eigen3::eigen_dense_general<A>)
       {
@@ -276,7 +276,7 @@ namespace OpenKalman::interface
           }
           else
           {
-            auto aw = make_dense_writable_matrix_from(std::forward<A>(a));
+            auto aw = make_dense_object(std::forward<A>(a));
             aw.diagonal() = OpenKalman::diagonal_of(std::forward<B>(b));
             return aw;
           }
@@ -285,7 +285,7 @@ namespace OpenKalman::interface
         {
           decltype(auto) aw = [](A&& a) -> decltype(auto) {
             if constexpr (writable<A> and std::is_lvalue_reference_v<A>) return std::forward<A>(a);
-            else return make_dense_writable_matrix_from(std::forward<A>(a));
+            else return make_dense_object(std::forward<A>(a));
           }(std::forward<A>(a));
 
           auto tview = aw.template triangularView<t == TriangleType::upper ? Eigen::Upper : Eigen::Lower>();
@@ -301,15 +301,15 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
     template<Eigen3::eigen_dense_general Arg> requires
-      std::is_lvalue_reference_v<nested_matrix_of_t<Eigen::DiagonalWrapper<std::remove_reference_t<Arg>>>>
+      std::is_lvalue_reference_v<nested_object_of_t<Eigen::DiagonalWrapper<std::remove_reference_t<Arg>>>>
 #else
     template<typename Arg, std::enable_if_t<Eigen3::eigen_dense_general<Arg> and
-      std::is_lvalue_reference_v<typename nested_matrix_of<Eigen::DiagonalWrapper<std::remove_reference_t<Arg>>>::type>, int> = 0>
+      std::is_lvalue_reference_v<typename nested_object_of<Eigen::DiagonalWrapper<std::remove_reference_t<Arg>>>::type>, int> = 0>
 #endif
     static constexpr auto
     to_diagonal(Arg& arg)
     {
-      if constexpr (not vector<Arg>) if (not get_is_vector(arg)) throw std::invalid_argument {
+      if constexpr (not vector<Arg>) if (not is_vector(arg)) throw std::invalid_argument {
         "Argument of to_diagonal must have 1 column; instead it has " + std::to_string(get_index_dimension_of<1>(arg))};
       return Eigen::DiagonalWrapper<std::remove_reference_t<Arg>> {arg};
     }
@@ -324,7 +324,7 @@ namespace OpenKalman::interface
     to_diagonal(Arg&& arg)
     {
       // If it is a column vector, the SelfAdjointView wrapper doesn't matter, and otherwise, the following will throw an exception:
-      return OpenKalman::to_diagonal(nested_matrix(std::forward<Arg>(arg)));
+      return OpenKalman::to_diagonal(nested_object(std::forward<Arg>(arg)));
     }
 
 
@@ -337,7 +337,7 @@ namespace OpenKalman::interface
     to_diagonal(Arg&& arg)
     {
       // If it is a column vector, the TriangularView wrapper doesn't matter, and otherwise, the following will thow an exception:
-      return OpenKalman::to_diagonal(nested_matrix(std::forward<Arg>(arg)));
+      return OpenKalman::to_diagonal(nested_object(std::forward<Arg>(arg)));
     }
 
   private:
@@ -371,7 +371,7 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     diagonal_of(Arg&& arg)
     {
-      auto d = get_is_square(arg);
+      auto d = is_square_shaped(arg);
       if (not d) throw std::invalid_argument {"Argument of diagonal_of must be a square matrix; instead it has " +
           std::to_string(get_index_dimension_of<0>(arg)) + " rows and " +
           std::to_string(get_index_dimension_of<1>(arg)) + " columns"};
@@ -381,7 +381,7 @@ namespace OpenKalman::interface
       if constexpr (Eigen3::eigen_DiagonalWrapper<Arg>)
       {
         using Scalar = scalar_type_of_t<Arg>;
-        decltype(auto) diag {nested_matrix(std::forward<Arg>(arg))}; //< must be nested_matrix(...) rather than .diagonal() because of const_cast
+        decltype(auto) diag {nested_object(std::forward<Arg>(arg))}; //< must be nested_object(...) rather than .diagonal() because of const_cast
         using Diag = decltype(diag);
         using EigenTraits = Eigen::internal::traits<std::decay_t<Diag>>;
         constexpr auto rows = EigenTraits::RowsAtCompileTime;
@@ -399,34 +399,34 @@ namespace OpenKalman::interface
         }
         else if constexpr (rows == Eigen::Dynamic or cols == Eigen::Dynamic)
         {
-          auto d {make_dense_writable_matrix_from(std::forward<Diag>(diag))};
+          auto d {make_dense_object(std::forward<Diag>(diag))};
           using M = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
-          return M {M::Map(make_dense_writable_matrix_from(std::forward<Diag>(diag)).data(),
+          return M {M::Map(make_dense_object(std::forward<Diag>(diag)).data(),
             get_index_dimension_of<0>(diag) * get_index_dimension_of<1>(diag))};
         }
         else // rows > 1 and cols > 1
         {
           using M = Eigen::Matrix<Scalar, rows * cols, 1>;
-          return M {M::Map(make_dense_writable_matrix_from(std::forward<Diag>(diag)).data())};
+          return M {M::Map(make_dense_object(std::forward<Diag>(diag)).data())};
         }
       }
       else if constexpr (Eigen3::eigen_SelfAdjointView<Arg> or Eigen3::eigen_TriangularView<Arg>)
       {
         // Assume there are no dangling references
-        return OpenKalman::diagonal_of(nested_matrix(std::forward<Arg>(arg)));
+        return OpenKalman::diagonal_of(nested_object(std::forward<Arg>(arg)));
       }
       else if constexpr (Eigen3::eigen_wrapper<Arg>)
       {
-        if constexpr (Eigen3::eigen_general<nested_matrix_of_t<Arg>, true>)
-          return OpenKalman::diagonal_of(nested_matrix(std::forward<Arg>(arg)));
+        if constexpr (Eigen3::eigen_general<nested_object_of_t<Arg>, true>)
+          return OpenKalman::diagonal_of(nested_object(std::forward<Arg>(arg)));
         else
           return diagonal_of_impl(std::forward<Arg>(arg), *d);
       }
       else if constexpr (Eigen3::eigen_Identity<Arg>)
       {
         constexpr std::size_t dim = dynamic_dimension<Arg, 0> ? index_dimension_of_v<Arg, 1> : index_dimension_of_v<Arg, 0>;
-        if constexpr (dim == dynamic_size) return make_constant_matrix_like<Arg, Scalar, 1>(*d, Dimensions<1>{});
-        else return make_constant_matrix_like<Arg, Scalar, 1>(Dimensions<dim>{}, Dimensions<1>{});
+        if constexpr (dim == dynamic_size) return make_constant<Arg, Scalar, 1>(*d, Dimensions<1>{});
+        else return make_constant<Arg, Scalar, 1>(Dimensions<dim>{}, Dimensions<1>{});
       }
       else
       {
@@ -465,7 +465,7 @@ namespace OpenKalman::interface
     static decltype(auto)
     replicate_arg(const std::tuple<Ds...>& p_tup, Arg&& arg)
     {
-      return replicate_arg_impl(p_tup, get_all_dimensions_of(arg), std::forward<Arg>(arg), std::index_sequence_for<Ds...> {});
+      return replicate_arg_impl(p_tup, all_vector_space_descriptors(arg), std::forward<Arg>(arg), std::index_sequence_for<Ds...> {});
     }
 
   public:
@@ -563,8 +563,8 @@ namespace OpenKalman::interface
     {
       if constexpr (Eigen3::eigen_wrapper<Arg>)
       {
-        if constexpr (Eigen3::eigen_general<nested_matrix_of_t<Arg>, true>)
-          return transpose(nested_matrix(std::forward<Arg>(arg)));
+        if constexpr (Eigen3::eigen_general<nested_object_of_t<Arg>, true>)
+          return transpose(nested_object(std::forward<Arg>(arg)));
         else
           return std::forward<Arg>(arg).transpose(); // Rely on inherited Eigen transpose method
       }
@@ -586,8 +586,8 @@ namespace OpenKalman::interface
     {
       if constexpr (Eigen3::eigen_wrapper<Arg>)
       {
-        if constexpr (Eigen3::eigen_general<nested_matrix_of_t<Arg>, true>)
-          return adjoint(nested_matrix(std::forward<Arg>(arg)));
+        if constexpr (Eigen3::eigen_general<nested_object_of_t<Arg>, true>)
+          return adjoint(nested_object(std::forward<Arg>(arg)));
         else
           return std::forward<Arg>(arg).adjoint(); // Rely on inherited Eigen adjoint method
       }
@@ -648,7 +648,7 @@ namespace OpenKalman::interface
         if constexpr (Eigen3::eigen_DiagonalWrapper<A> or Eigen3::eigen_DiagonalMatrix<A>)
           return make_self_contained<A, B>(std::forward<A>(a) * OpenKalman::to_native_matrix<T>(std::forward<B>(b)));
         else
-          return make_self_contained<A, B>(OpenKalman::to_native_matrix<T>(nested_matrix(std::forward<A>(a))).asDiagonal() *
+          return make_self_contained<A, B>(OpenKalman::to_native_matrix<T>(nested_object(std::forward<A>(a))).asDiagonal() *
             OpenKalman::to_native_matrix<T>(std::forward<B>(b)));
       }
       else if constexpr (diagonal_adapter<B>)
@@ -657,32 +657,32 @@ namespace OpenKalman::interface
           return make_self_contained<A, B>(OpenKalman::to_native_matrix<T>(std::forward<A>(a)) * std::forward<B>(b));
         else
           return make_self_contained<A, B>(OpenKalman::to_native_matrix<T>(std::forward<A>(a)) *
-            OpenKalman::to_native_matrix<T>(nested_matrix(std::forward<B>(b))).asDiagonal());
+            OpenKalman::to_native_matrix<T>(nested_object(std::forward<B>(b))).asDiagonal());
       }
       else if constexpr (triangular_adapter<A>)
       {
         constexpr auto uplo = triangular_matrix<A, TriangleType::upper> ? Eigen::Upper : Eigen::Lower;
-        return make_self_contained<A, B>(OpenKalman::to_native_matrix<T>(nested_matrix(std::forward<A>(a))).template triangularView<uplo>() *
+        return make_self_contained<A, B>(OpenKalman::to_native_matrix<T>(nested_object(std::forward<A>(a))).template triangularView<uplo>() *
           OpenKalman::to_native_matrix<T>(std::forward<B>(b)));
       }
       else if constexpr (triangular_adapter<B>)
       {
         constexpr auto uplo = triangular_matrix<A, TriangleType::upper> ? Eigen::Upper : Eigen::Lower;
         auto prod = OpenKalman::to_native_matrix<T>(std::forward<A>(a));
-        prod.applyOnTheRight(OpenKalman::to_native_matrix<T>(nested_matrix(std::forward<B>(b))).template triangularView<uplo>());
+        prod.applyOnTheRight(OpenKalman::to_native_matrix<T>(nested_object(std::forward<B>(b))).template triangularView<uplo>());
         return prod;
       }
       else if constexpr (hermitian_adapter<A>)
       {
         constexpr auto uplo = hermitian_adapter<A, HermitianAdapterType::upper> ? Eigen::Upper : Eigen::Lower;
-        return make_self_contained<A, B>(OpenKalman::to_native_matrix<T>(nested_matrix(std::forward<A>(a))).template selfadjointView<uplo>() *
+        return make_self_contained<A, B>(OpenKalman::to_native_matrix<T>(nested_object(std::forward<A>(a))).template selfadjointView<uplo>() *
           OpenKalman::to_native_matrix<T>(std::forward<B>(b)));
       }
       else if constexpr (hermitian_adapter<B>)
       {
         constexpr auto uplo = triangular_matrix<A, TriangleType::upper> ? Eigen::Upper : Eigen::Lower;
         auto prod = OpenKalman::to_native_matrix<T>(std::forward<A>(a));
-        prod.applyOnTheRight(OpenKalman::to_native_matrix<T>(nested_matrix(std::forward<B>(b))).template selfadjointView<uplo>());
+        prod.applyOnTheRight(OpenKalman::to_native_matrix<T>(nested_object(std::forward<B>(b))).template selfadjointView<uplo>());
         return prod;
       }
       else
@@ -718,7 +718,7 @@ namespace OpenKalman::interface
     static constexpr auto
     cholesky_factor(A&& a) noexcept
     {
-      using NestedMatrix = std::decay_t<nested_matrix_of_t<A>>;
+      using NestedMatrix = std::decay_t<nested_object_of_t<A>>;
       using Scalar = scalar_type_of_t<A>;
       constexpr auto dim = index_dimension_of_v<A, 0>;
       using M = dense_writable_matrix_t<A>;
@@ -728,31 +728,31 @@ namespace OpenKalman::interface
       {
         // If nested matrix is a positive constant matrix, construct the Cholesky factor using a shortcut.
 
-        auto s = nested_matrix(std::forward<A>(a)).functor()();
+        auto s = nested_object(std::forward<A>(a)).functor()();
 
         if (s < Scalar(0))
         {
           // Cholesky factor elements are complex, so throw an exception.
-          throw (std::runtime_error("Cholesky_factor of constant SelfAdjointMatrix: covariance is indefinite"));
+          throw (std::runtime_error("cholesky_factor of constant SelfAdjointMatrix: covariance is indefinite"));
         }
 
         if constexpr(triangle_type == TriangleType::diagonal)
         {
           static_assert(diagonal_matrix<A>);
-          auto vec = make_constant_matrix_like<A>(square_root(s), Dimensions<dim>{}, Dimensions<1>{});
+          auto vec = make_constant<A>(square_root(s), Dimensions<dim>{}, Dimensions<1>{});
           return DiagonalMatrix<decltype(vec)> {vec};
         }
         else if constexpr(triangle_type == TriangleType::lower)
         {
-          auto col0 = make_constant_matrix_like<A>(square_root(s), Dimensions<dim>{}, Dimensions<1>{});
-          auto othercols = make_zero_matrix_like<A>(get_vector_space_descriptor<0>(a), get_vector_space_descriptor<0>(a) - 1);
+          auto col0 = make_constant<A>(square_root(s), Dimensions<dim>{}, Dimensions<1>{});
+          auto othercols = make_zero<A>(get_vector_space_descriptor<0>(a), get_vector_space_descriptor<0>(a) - 1);
           return TriangularMatrix<M, triangle_type> {concatenate_horizontal(col0, othercols)};
         }
         else
         {
           static_assert(triangle_type == TriangleType::upper);
-          auto row0 = make_constant_matrix_like<A>(square_root(s), Dimensions<1>{}, Dimensions<dim>{});
-          auto otherrows = make_zero_matrix_like<A>(get_vector_space_descriptor<0>(a) - 1, get_vector_space_descriptor<0>(a));
+          auto row0 = make_constant<A>(square_root(s), Dimensions<1>{}, Dimensions<dim>{});
+          auto otherrows = make_zero<A>(get_vector_space_descriptor<0>(a) - 1, get_vector_space_descriptor<0>(a));
           return TriangularMatrix<M, triangle_type> {concatenate_vertical(row0, otherrows)};
         }
       }
@@ -776,19 +776,19 @@ namespace OpenKalman::interface
         else [[unlikely]]
         {
           // If covariance is not positive definite, use the more robust LDLT decomposition.
-          auto LDL_x = nested_matrix(std::forward<A>(a)).ldlt();
+          auto LDL_x = nested_object(std::forward<A>(a)).ldlt();
           if ((not LDL_x.isPositive() and not LDL_x.isNegative()) or LDL_x.info() != Eigen::Success) [[unlikely]]
           {
             if (LDL_x.isPositive() and LDL_x.isNegative()) // Covariance is zero, even though decomposition failed.
             {
               if constexpr(triangle_type == TriangleType::lower)
-                b.template triangularView<Eigen::Lower>() = make_zero_matrix_like(nested_matrix(a));
+                b.template triangularView<Eigen::Lower>() = make_zero(nested_object(a));
               else
-                b.template triangularView<Eigen::Upper>() = make_zero_matrix_like(nested_matrix(a));
+                b.template triangularView<Eigen::Upper>() = make_zero(nested_object(a));
             }
             else // Covariance is indefinite, so throw an exception.
             {
-              throw (std::runtime_error("Cholesky_factor of SelfAdjointMatrix: covariance is indefinite"));
+              throw (std::runtime_error("cholesky_factor of SelfAdjointMatrix: covariance is indefinite"));
             }
           }
           else if constexpr(triangle_type == TriangleType::lower)
@@ -809,15 +809,15 @@ namespace OpenKalman::interface
 
     template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
     static decltype(auto)
-    rank_update_self_adjoint(A&& a, U&& u, const Alpha alpha)
+    rank_update_hermitian(A&& a, U&& u, const Alpha alpha)
     {
       if constexpr (OpenKalman::Eigen3::eigen_ArrayWrapper<A>)
       {
-        return rank_update_self_adjoint<significant_triangle>(nested_matrix(std::forward<A>(a)), std::forward<U>(u), alpha);
+        return rank_update_hermitian<significant_triangle>(nested_object(std::forward<A>(a)), std::forward<U>(u), alpha);
       }
       else if constexpr (OpenKalman::Eigen3::eigen_array_general<A, true>)
       {
-        return rank_update_self_adjoint<significant_triangle>(std::forward<A>(a).matrix(), std::forward<U>(u), alpha);
+        return rank_update_hermitian<significant_triangle>(std::forward<A>(a).matrix(), std::forward<U>(u), alpha);
       }
       else
       {
@@ -835,7 +835,7 @@ namespace OpenKalman::interface
     {
       if constexpr (OpenKalman::Eigen3::eigen_ArrayWrapper<A>)
       {
-        return rank_update_triangular<triangle>(nested_matrix(std::forward<A>(a)), std::forward<U>(u), alpha);
+        return rank_update_triangular<triangle>(nested_object(std::forward<A>(a)), std::forward<U>(u), alpha);
       }
       else if constexpr (OpenKalman::Eigen3::eigen_array_general<A, true>)
       {
@@ -848,7 +848,7 @@ namespace OpenKalman::interface
         using Scalar = scalar_type_of_t<A>;
         for (std::size_t i = 0; i < get_index_dimension_of<1>(u); i++)
         {
-          if (Eigen::internal::llt_inplace<Scalar, t>::rankUpdate(a, get_column(u, i), alpha) >= 0)
+          if (Eigen::internal::llt_inplace<Scalar, t>::rankUpdate(a, get_chip<1>(u, i), alpha) >= 0)
             throw (std::runtime_error("rank_update_triangular: product is not positive definite"));
         }
         return std::forward<A>(a);

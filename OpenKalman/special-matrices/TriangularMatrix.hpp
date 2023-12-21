@@ -19,7 +19,7 @@
 namespace OpenKalman
 {
 #ifdef __cpp_concepts
-  template<square_matrix<Likelihood::maybe> NestedMatrix, TriangleType triangle_type>
+  template<square_shaped<Likelihood::maybe> NestedMatrix, TriangleType triangle_type>
     requires (index_count_v<NestedMatrix> <= 2)
 #else
   template<typename NestedMatrix, TriangleType triangle_type>
@@ -28,7 +28,7 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(square_matrix<NestedMatrix, Likelihood::maybe>);
+    static_assert(square_shaped<NestedMatrix, Likelihood::maybe>);
     static_assert(index_count_v<NestedMatrix> <= 2);
 #endif
 
@@ -63,33 +63,33 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<triangular_adapter Arg> requires (not std::derived_from<std::decay_t<Arg>, TriangularMatrix>) and
       triangular_matrix<Arg, triangle_type> and (not diagonal_matrix<NestedMatrix>) and
-      dimensions_match<nested_matrix_of_t<Arg>> and
+      dimensions_match<nested_object_of_t<Arg>> and
 # if OPENKALMAN_CPP_FEATURE_CONCEPTS
-      requires(Arg&& arg) { NestedMatrix {nested_matrix(std::forward<Arg>(arg))}; } //-- not accepted in GCC 10.1.0
+      requires(Arg&& arg) { NestedMatrix {nested_object(std::forward<Arg>(arg))}; } //-- not accepted in GCC 10.1.0
 # else
-      std::constructible_from<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>
+      std::constructible_from<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>
 # endif
 #else
     template<typename Arg, std::enable_if_t<triangular_adapter<Arg> and (not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and
       (triangular_matrix<Arg, triangle_type>) and (not diagonal_matrix<NestedMatrix>) and
-      dimensions_match<typename nested_matrix_of<Arg>::type> and
-      std::is_constructible<NestedMatrix, decltype(nested_matrix(std::declval<Arg&&>()))>::value, int> = 0>
+      dimensions_match<typename nested_object_of<Arg>::type> and
+      std::is_constructible<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>::value, int> = 0>
 #endif
-    TriangularMatrix(Arg&& arg) noexcept : Base {nested_matrix(std::forward<Arg>(arg))} {}
+    TriangularMatrix(Arg&& arg) noexcept : Base {nested_object(std::forward<Arg>(arg))} {}
 
 
     /// Construct from a non-triangular or square matrix if NestedMatrix is non-diagonal.
 #ifdef __cpp_concepts
-    template<square_matrix<Likelihood::maybe> Arg> requires (not triangular_matrix<Arg, triangle_type>) and
+    template<square_shaped<Likelihood::maybe> Arg> requires (not triangular_matrix<Arg, triangle_type>) and
       (not diagonal_matrix<NestedMatrix>) and dimensions_match<Arg> and std::constructible_from<NestedMatrix, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe> and
+    template<typename Arg, std::enable_if_t<square_shaped<Arg, Likelihood::maybe> and
       (not triangular_matrix<Arg, triangle_type>) and (not diagonal_matrix<NestedMatrix>) and
       dimensions_match<Arg> and std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
     explicit TriangularMatrix(Arg&& arg) : Base {
       [](Arg&& arg) -> decltype(auto) {
-          if constexpr (has_dynamic_dimensions<Arg>) if (not get_is_square(arg)) throw std::invalid_argument {
+          if constexpr (has_dynamic_dimensions<Arg>) if (not is_square_shaped(arg)) throw std::invalid_argument {
             "Argument to TriangularMatrix must be a square matrix, but the argument has dimensions " +
             std::to_string(get_index_dimension_of<0>(arg)) + "×" + std::to_string(get_index_dimension_of<1>(arg)) +
             " in " + __func__ + " at line " + std::to_string(__LINE__) + " of " + __FILE__};
@@ -101,11 +101,11 @@ namespace OpenKalman
     /// Construct from a triangular, non-adapter matrix.
 #ifdef __cpp_concepts
     template<triangular_matrix<triangle_type> Arg> requires (not triangular_adapter<Arg>) and
-      (not has_nested_matrix<Arg> or (diagonal_matrix<NestedMatrix> and diagonal_matrix<Arg>)) and
+      (not has_nested_object<Arg> or (diagonal_matrix<NestedMatrix> and diagonal_matrix<Arg>)) and
       dimensions_match<Arg> and std::constructible_from<NestedMatrix, Arg&&>
 #else
     template<typename Arg, std::enable_if_t<triangular_matrix<Arg, triangle_type> and (not triangular_adapter<Arg>) and
-      (not has_nested_matrix<Arg> or (diagonal_matrix<NestedMatrix> and diagonal_matrix<Arg>)) and
+      (not has_nested_object<Arg> or (diagonal_matrix<NestedMatrix> and diagonal_matrix<Arg>)) and
       dimensions_match<Arg> and std::is_constructible<NestedMatrix, Arg&&>::value, int> = 0>
 #endif
     TriangularMatrix(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
@@ -126,16 +126,16 @@ namespace OpenKalman
 
     /// Construct from a non-triangular square matrix if NestedMatrix is diagonal.
 #ifdef __cpp_concepts
-    template<square_matrix<Likelihood::maybe> Arg> requires (not triangular_matrix<Arg>) and diagonal_matrix<NestedMatrix> and
+    template<square_shaped<Likelihood::maybe> Arg> requires (not triangular_matrix<Arg>) and diagonal_matrix<NestedMatrix> and
       dimensions_match<Arg> and requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; }
 #else
-    template<typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe> and
+    template<typename Arg, std::enable_if_t<square_shaped<Arg, Likelihood::maybe> and
       (not triangular_matrix<Arg>) and diagonal_matrix<NestedMatrix> and
       dimensions_match<Arg> and std::is_constructible<NestedMatrix, decltype(diagonal_of(std::declval<Arg&&>()))>::value, int> = 0>
 #endif
     explicit TriangularMatrix(Arg&& arg) : Base {
       [](Arg&& arg) -> decltype(auto) {
-          if constexpr (has_dynamic_dimensions<Arg>) if (not get_is_square(arg)) throw std::invalid_argument {
+          if constexpr (has_dynamic_dimensions<Arg>) if (not is_square_shaped(arg)) throw std::invalid_argument {
             "Argument to TriangularMatrix must be a square matrix, but the argument has dimensions " +
             std::to_string(get_index_dimension_of<0>(arg)) + "×" + std::to_string(get_index_dimension_of<1>(arg)) +
             " in " + __func__ + " at line " + std::to_string(__LINE__) + " of " + __FILE__};
@@ -153,13 +153,13 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<const Scalar>...Args> requires (sizeof...(Args) > 0) and
       (triangle_type != TriangleType::diagonal) and (not diagonal_matrix<NestedMatrix>) and
-      requires(Args...args) { NestedMatrix {make_dense_writable_matrix_from<NestedMatrix>(static_cast<const Scalar>(args)...)}; }
+      requires(Args...args) { NestedMatrix {make_dense_object_from<NestedMatrix>(static_cast<const Scalar>(args)...)}; }
 #else
     template<typename...Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
       (sizeof...(Args) > 0) and (triangle_type != TriangleType::diagonal) and (not diagonal_matrix<NestedMatrix>), int> = 0>
 #endif
     TriangularMatrix(Args...args)
-      : Base {make_dense_writable_matrix_from<NestedMatrix>(static_cast<const Scalar>(args)...)} {}
+      : Base {make_dense_object_from<NestedMatrix>(static_cast<const Scalar>(args)...)} {}
 
 
     /**
@@ -170,13 +170,13 @@ namespace OpenKalman
     template<std::convertible_to<const Scalar>...Args> requires (sizeof...(Args) > 0) and
       (triangle_type == TriangleType::diagonal or diagonal_matrix<NestedMatrix>) and
       requires(Args ... args) { NestedMatrix {
-        to_diagonal(make_dense_writable_matrix_from<NestedMatrix>(
+        to_diagonal(make_dense_object_from<NestedMatrix>(
           std::tuple<Dimensions<sizeof...(Args)>, Dimensions<1>>{}, static_cast<const Scalar>(args)...))}; }
 #else
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
       (sizeof...(Args) > 0) and (triangle_type == TriangleType::diagonal or diagonal_matrix<NestedMatrix>), int> = 0>
 #endif
-    TriangularMatrix(Args...args) : Base {to_diagonal(make_dense_writable_matrix_from<NestedMatrix>(
+    TriangularMatrix(Args...args) : Base {to_diagonal(make_dense_object_from<NestedMatrix>(
       std::tuple<Dimensions<sizeof...(Args)>, Dimensions<1>>{}, static_cast<const Scalar>(args)...))} {}
 
 
@@ -184,44 +184,44 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<triangular_matrix<triangle_type> Arg> requires
       (not std::derived_from<std::decay_t<Arg>, TriangularMatrix>) and
-      maybe_has_same_shape_as<NestedMatrix, Arg> and
+      maybe_same_shape_as<NestedMatrix, Arg> and
       (not constant_diagonal_matrix<NestedMatrix, CompileTimeStatus::known> or
         requires { requires constant_diagonal_coefficient<NestedMatrix>::value == constant_diagonal_coefficient<Arg>::value; }) and
       (not (diagonal_matrix<NestedMatrix> or triangle_type == TriangleType::diagonal) or diagonal_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<triangular_matrix<Arg, triangle_type> and
-      (not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and maybe_has_same_shape_as<NestedMatrix, Arg> and
+      (not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and maybe_same_shape_as<NestedMatrix, Arg> and
       (not constant_diagonal_matrix<NestedMatrix> or constant_diagonal_matrix<Arg>) and
       (not (diagonal_matrix<NestedMatrix> or triangle_type == TriangleType::diagonal) or diagonal_matrix<Arg>), int> = 0>
 #endif
     auto& operator=(Arg&& arg)
     {
       if constexpr (not constant_diagonal_matrix<NestedMatrix>)
-        internal::set_triangle<triangle_type>(this->nested_matrix(), std::forward<Arg>(arg));
+        internal::set_triangle<triangle_type>(this->nested_object(), std::forward<Arg>(arg));
       return *this;
     }
 
 
 #ifdef __cpp_concepts
-    template<maybe_has_same_shape_as<NestedMatrix> Arg, TriangleType t>
+    template<maybe_same_shape_as<NestedMatrix> Arg, TriangleType t>
 #else
-    template<typename Arg, TriangleType t, std::enable_if_t<maybe_has_same_shape_as<Arg, NestedMatrix>, int> = 0>
+    template<typename Arg, TriangleType t, std::enable_if_t<maybe_same_shape_as<Arg, NestedMatrix>, int> = 0>
 #endif
     auto& operator+=(const TriangularMatrix<Arg, triangle_type>& arg)
     {
-      internal::set_triangle<triangle_type>(this->nested_matrix(), this->nested_matrix() + std::forward<Arg>(arg));
+      internal::set_triangle<triangle_type>(this->nested_object(), this->nested_object() + std::forward<Arg>(arg));
       return *this;
     }
 
 
 #ifdef __cpp_concepts
-    template<maybe_has_same_shape_as<NestedMatrix> Arg, TriangleType t>
+    template<maybe_same_shape_as<NestedMatrix> Arg, TriangleType t>
 #else
-    template<typename Arg, TriangleType t, std::enable_if_t<maybe_has_same_shape_as<Arg, NestedMatrix>, int> = 0>
+    template<typename Arg, TriangleType t, std::enable_if_t<maybe_same_shape_as<Arg, NestedMatrix>, int> = 0>
 #endif
     auto& operator-=(const TriangularMatrix<Arg, triangle_type>& arg)
     {
-      internal::set_triangle<triangle_type>(this->nested_matrix(), this->nested_matrix() - std::forward<Arg>(arg));
+      internal::set_triangle<triangle_type>(this->nested_object(), this->nested_object() - std::forward<Arg>(arg));
       return *this;
     }
 
@@ -233,7 +233,7 @@ namespace OpenKalman
 #endif
     auto& operator*=(const S s)
     {
-      internal::set_triangle<triangle_type>(this->nested_matrix(), this->nested_matrix() * s);
+      internal::set_triangle<triangle_type>(this->nested_object(), this->nested_object() * s);
       return *this;
     }
 
@@ -245,19 +245,19 @@ namespace OpenKalman
 #endif
     auto& operator/=(const S s)
     {
-      internal::set_triangle<triangle_type>(this->nested_matrix(), this->nested_matrix() / s);
+      internal::set_triangle<triangle_type>(this->nested_object(), this->nested_object() / s);
       return *this;
     }
 
 
 #ifdef __cpp_concepts
-    template<maybe_has_same_shape_as<NestedMatrix> Arg>
+    template<maybe_same_shape_as<NestedMatrix> Arg>
 #else
-    template<typename Arg, std::enable_if_t<maybe_has_same_shape_as<Arg, NestedMatrix>, int> = 0>
+    template<typename Arg, std::enable_if_t<maybe_same_shape_as<Arg, NestedMatrix>, int> = 0>
 #endif
     auto& operator*=(const TriangularMatrix<Arg, triangle_type>& arg)
     {
-      contract_in_place(this->nested_matrix(), make_dense_writable_matrix_from(arg));
+      contract_in_place(this->nested_object(), make_dense_object(arg));
       return *this;
     }
 
@@ -266,17 +266,17 @@ namespace OpenKalman
     template<typename Arg> requires std::same_as<std::decay_t<Arg>, TriangularMatrix>
     friend decltype(auto) operator-(Arg&& arg)
     {
-      return make_triangular_matrix<triangle_type_of_v<Arg>>(-nested_matrix(std::forward<Arg>(arg)));
+      return make_triangular_matrix<triangle_type_of_v<Arg>>(-nested_object(std::forward<Arg>(arg)));
     }
 #else
     decltype(auto) operator-() const&
     {
-      return make_triangular_matrix<triangle_type>(-nested_matrix(*this));
+      return make_triangular_matrix<triangle_type>(-nested_object(*this));
     }
 
     decltype(auto) operator-() const&&
     {
-      return make_triangular_matrix<triangle_type>(-nested_matrix(std::move(*this)));
+      return make_triangular_matrix<triangle_type>(-nested_object(std::move(*this)));
     }
 #endif
 
@@ -289,7 +289,7 @@ namespace OpenKalman
 #endif
     friend decltype(auto) operator*(Arg&& arg, S s)
     {
-      return make_triangular_matrix<triangle_type_of_v<Arg>>(nested_matrix(std::forward<Arg>(arg)) * s);
+      return make_triangular_matrix<triangle_type_of_v<Arg>>(nested_object(std::forward<Arg>(arg)) * s);
     }
 
 
@@ -301,7 +301,7 @@ namespace OpenKalman
 #endif
     friend decltype(auto) operator*(S s, Arg&& arg)
     {
-      return make_triangular_matrix<triangle_type_of_v<Arg>>(s * nested_matrix(std::forward<Arg>(arg)));
+      return make_triangular_matrix<triangle_type_of_v<Arg>>(s * nested_object(std::forward<Arg>(arg)));
     }
 
 
@@ -313,7 +313,7 @@ namespace OpenKalman
 #endif
     friend decltype(auto) operator/(Arg&& arg, S s)
     {
-      return make_triangular_matrix<triangle_type_of_v<Arg>>(nested_matrix(std::forward<Arg>(arg)) / s);
+      return make_triangular_matrix<triangle_type_of_v<Arg>>(nested_object(std::forward<Arg>(arg)) / s);
     }
 
   };
@@ -329,7 +329,7 @@ namespace OpenKalman
   template<typename M, std::enable_if_t<triangular_matrix<M, TriangleType::any, Likelihood::maybe>, int> = 0>
 #endif
   TriangularMatrix(M&&) -> TriangularMatrix<
-    std::conditional_t<triangular_adapter<M>, passable_t<nested_matrix_of_t<M&&>>, passable_t<M>>,
+    std::conditional_t<triangular_adapter<M>, passable_t<nested_object_of_t<M&&>>, passable_t<M>>,
     triangle_type_of_v<M>>;
 
 
@@ -340,7 +340,7 @@ namespace OpenKalman
     (not triangular_matrix<M, TriangleType::any, Likelihood::maybe>), int> = 0>
 #endif
   explicit TriangularMatrix(M&&) -> TriangularMatrix<
-    std::conditional_t<hermitian_adapter<M>, passable_t<nested_matrix_of_t<M&&>>, passable_t<M>>,
+    std::conditional_t<hermitian_adapter<M>, passable_t<nested_object_of_t<M&&>>, passable_t<M>>,
     hermitian_adapter<M, HermitianAdapterType::upper> ? TriangleType::upper : TriangleType::lower>;
 
 
@@ -367,7 +367,7 @@ namespace OpenKalman
 
 
       template<typename Arg>
-      static constexpr auto get_index_count(const Arg& arg) { return std::integral_constant<std::size_t, 2>{}; }
+      static constexpr auto count_indices(const Arg& arg) { return std::integral_constant<std::size_t, 2>{}; }
 
 
       template<typename Arg, typename N>
@@ -375,12 +375,12 @@ namespace OpenKalman
       {
         if constexpr (static_index_value<N>)
         {
-          if constexpr (dynamic_dimension<NestedMatrix, 0>) return OpenKalman::get_vector_space_descriptor<1>(nested_matrix(std::forward<Arg>(arg)));
-          else return OpenKalman::get_vector_space_descriptor<0>(nested_matrix(arg));
+          if constexpr (dynamic_dimension<NestedMatrix, 0>) return OpenKalman::get_vector_space_descriptor<1>(nested_object(std::forward<Arg>(arg)));
+          else return OpenKalman::get_vector_space_descriptor<0>(nested_object(arg));
         }
         else
         {
-          return OpenKalman::get_vector_space_descriptor<0>(nested_matrix(std::forward<Arg>(arg)));
+          return OpenKalman::get_vector_space_descriptor<0>(nested_object(std::forward<Arg>(arg)));
         }
       }
 
@@ -391,18 +391,17 @@ namespace OpenKalman
       static constexpr bool has_runtime_parameters = false;
 
 
-      template<std::size_t i, typename Arg>
-      static decltype(auto) get_nested_matrix(Arg&& arg)
+      template<typename Arg>
+      static decltype(auto) nested_object(Arg&& arg)
       {
-        static_assert(i == 0);
-        return std::forward<Arg>(arg).nested_matrix();
+        return std::forward<Arg>(arg).nested_object();
       }
 
 
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
-        auto n = make_self_contained(get_nested_matrix(std::forward<Arg>(arg)));
+        auto n = make_self_contained(OpenKalman::nested_object(std::forward<Arg>(arg)));
         return TriangularMatrix<decltype(n), triangle_type> {std::move(n)};
       }
 
@@ -411,14 +410,14 @@ namespace OpenKalman
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
         if constexpr (triangle_type == TriangleType::diagonal and not diagonal_matrix<NestedMatrix>)
-          return constant_coefficient{nested_matrix(arg)};
+          return constant_coefficient{OpenKalman::nested_object(arg)};
         else
-          return constant_diagonal_coefficient{nested_matrix(arg)};
+          return constant_diagonal_coefficient{OpenKalman::nested_object(arg)};
       }
 
 
       template<Likelihood b>
-      static constexpr bool is_one_by_one = one_by_one_matrix<NestedMatrix, b>;
+      static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
 
 
       template<TriangleType t, Likelihood>
@@ -430,64 +429,64 @@ namespace OpenKalman
 
 
   #ifdef __cpp_lib_concepts
-      template<diagonal_matrix Arg, typename I> requires element_gettable<nested_matrix_of_t<Arg&&>, 1> or
-        element_gettable<nested_matrix_of_t<Arg&&>, 2>
+      template<diagonal_matrix Arg, typename I> requires element_gettable<nested_object_of_t<Arg&&>, 1> or
+        element_gettable<nested_object_of_t<Arg&&>, 2>
   #else
       template<typename Arg, typename I, std::enable_if_t<diagonal_matrix<Arg> and
-        element_gettable<typename nested_matrix_of<Arg&&>::type, 1> and
-        element_gettable<typename nested_matrix_of<Arg&&>::type, 2>, int> = 0>
+        element_gettable<typename nested_object_of<Arg&&>::type, 1> and
+        element_gettable<typename nested_object_of<Arg&&>::type, 2>, int> = 0>
   #endif
       static constexpr auto get(Arg&& arg, I i)
       {
-        if constexpr (element_gettable<nested_matrix_of_t<Arg&&>, 1>)
-          return get_element(nested_matrix(std::forward<Arg>(arg)), i);
+        if constexpr (element_gettable<nested_object_of_t<Arg&&>, 1>)
+          return get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), i);
         else
-          return get_element(nested_matrix(std::forward<Arg>(arg)), i, i);
+          return get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), i, i);
       }
 
 
   #ifdef __cpp_lib_concepts
-      template<typename Arg, typename I, typename J> requires element_gettable<nested_matrix_of_t<Arg&&>, 2>
+      template<typename Arg, typename I, typename J> requires element_gettable<nested_object_of_t<Arg&&>, 2>
   #else
       template<typename Arg, typename I, typename J, std::enable_if_t<
-        element_gettable<typename nested_matrix_of<Arg&&>::type, 2>, int> = 0>
+        element_gettable<typename nested_object_of<Arg&&>::type, 2>, int> = 0>
   #endif
       static constexpr scalar_type_of_t<Arg> get(Arg&& arg, I i, J j)
       {
         if (triangular_matrix<Arg, TriangleType::lower> ? i >= static_cast<I>(j) : i <= static_cast<I>(j))
-          return get_element(nested_matrix(std::forward<Arg>(arg)), i, j);
+          return get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), i, j);
         else
           return 0;
       }
 
 
   #ifdef __cpp_lib_concepts
-      template<diagonal_matrix Arg, typename I> requires element_settable<nested_matrix_of_t<Arg&>, 1> or
-        element_settable<nested_matrix_of_t<Arg&>, 2>
+      template<diagonal_matrix Arg, typename I> requires element_settable<nested_object_of_t<Arg&>, 1> or
+        element_settable<nested_object_of_t<Arg&>, 2>
   #else
       template<typename Arg, typename I, std::enable_if_t<diagonal_matrix<Arg> and
-        element_settable<typename nested_matrix_of<Arg&>::type, 1> and
-        element_settable<typename nested_matrix_of<Arg&>::type, 2>, int> = 0>
+        element_settable<typename nested_object_of<Arg&>::type, 1> and
+        element_settable<typename nested_object_of<Arg&>::type, 2>, int> = 0>
   #endif
       static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I i)
       {
-        if constexpr (element_settable<nested_matrix_of_t<Arg&>, 1>)
-          set_element(nested_matrix(arg), s, i);
+        if constexpr (element_settable<nested_object_of_t<Arg&>, 1>)
+          set_component(OpenKalman::nested_object(arg), s, i);
         else
-          set_element(nested_matrix(arg), s, i, static_cast<I>(1));
+          set_component(OpenKalman::nested_object(arg), s, i, static_cast<I>(1));
       }
 
 
   #ifdef __cpp_lib_concepts
-      template<typename Arg, typename I, typename J> requires element_settable<nested_matrix_of_t<Arg&>, 2>
+      template<typename Arg, typename I, typename J> requires element_settable<nested_object_of_t<Arg&>, 2>
   #else
       template<typename Arg, typename I, typename J, std::enable_if_t<
-        element_settable<typename nested_matrix_of<Arg&>::type, 2>, int> = 0>
+        element_settable<typename nested_object_of<Arg&>::type, 2>, int> = 0>
   #endif
       static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I i, J j)
       {
         if (triangular_matrix<Arg, TriangleType::lower> ? i >= static_cast<I>(j) : i <= static_cast<I>(j))
-          set_element(nested_matrix(arg), s, i, j);
+          set_component(OpenKalman::nested_object(arg), s, i, j);
         else if (s != 0)
           throw std::out_of_range("Cannot set elements of a triangular matrix to non-zero values outside the triangle.");
       }
@@ -497,16 +496,16 @@ namespace OpenKalman
 
 
 #ifdef __cpp_lib_concepts
-      template<typename Arg> requires one_by_one_matrix<nested_matrix_of_t<Arg&>> and directly_accessible<nested_matrix_of_t<Arg&>>
+      template<typename Arg> requires one_dimensional<nested_object_of_t<Arg&>> and directly_accessible<nested_object_of_t<Arg&>>
 #else
-      template<typename Arg, std::enable_if_t<one_by_one_matrix<typename nested_matrix_of<Arg&>::type> and
-        directly_accessible<typename nested_matrix_of<Arg&>::type>, int> = 0>
+      template<typename Arg, std::enable_if_t<one_dimensional<typename nested_object_of<Arg&>::type> and
+        directly_accessible<typename nested_object_of<Arg&>::type>, int> = 0>
 #endif
       static constexpr auto*
-      data(Arg& arg) { return internal::raw_data(nested_matrix(arg)); }
+      raw_data(Arg& arg) { return internal::raw_data(OpenKalman::nested_object(arg)); }
 
 
-      static constexpr Layout layout = one_by_one_matrix<NestedMatrix> ? layout_of_v<NestedMatrix> : Layout::none;
+      static constexpr Layout layout = one_dimensional<NestedMatrix> ? layout_of_v<NestedMatrix> : Layout::none;
 
     };
 

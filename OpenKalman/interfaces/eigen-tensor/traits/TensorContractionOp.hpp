@@ -44,15 +44,7 @@ namespace OpenKalman::interface
     static constexpr bool has_runtime_parameters = true;
 
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
-    {
-      if constexpr (i == 0)
-        return std::forward<Arg>(arg).lhsExpression();
-      else
-        return std::forward<Arg>(arg).rhsExpression();
-      static_assert(i <= 1);
-    }
+    // nested_object() not defined
 
 
     template<typename Arg>
@@ -68,7 +60,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        return make_dense_writable_matrix_from(std::forward<Arg>(arg));
+        return make_dense_object(std::forward<Arg>(arg));
       }
     }
 
@@ -78,11 +70,11 @@ namespace OpenKalman::interface
     {
       using Scalar = scalar_type_of_t<Arg>;
 
-      if constexpr (zero_matrix<LhsXprType>)
+      if constexpr (zero<LhsXprType>)
       {
         return constant_coefficient{arg.lhsExpression()};
       }
-      else if constexpr (zero_matrix<RhsXprType>)
+      else if constexpr (zero<RhsXprType>)
       {
         return constant_coefficient{arg.rhsExpression()};
       }
@@ -149,7 +141,7 @@ namespace OpenKalman::interface
     }
 
 
-    // is_one_by_one not defined
+    // one_dimensional not defined
 
     // is_square not defined
 
@@ -169,7 +161,7 @@ namespace OpenKalman::interface
     static constexpr bool is_writable = false;
 
 
-    // data() not defined
+    // raw_data() not defined
 
 
     // layout not defined

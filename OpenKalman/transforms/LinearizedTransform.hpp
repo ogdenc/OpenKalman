@@ -93,7 +93,7 @@ namespace OpenKalman
         static_assert(order >= 2);
 
         // Convert input distribution type to output distribution types, and initialize mean and covariance:
-        using CovIn = nested_matrix_of_t<typename DistributionTraits<Dist>::Covariance>;
+        using CovIn = nested_object_of_t<typename DistributionTraits<Dist>::Covariance>;
         using MeanOut = untyped_dense_writable_matrix_t<CovIn, Layout::none, scalar_type_of_t<CovIn>, output_dim, 1>;
         constexpr TriangleType tri = triangle_type_of_v<typename MatrixTraits<std::decay_t<CovIn>>::template TriangularMatrixFrom<>>;
         using CovOut = typename MatrixTraits<std::decay_t<CovIn>>::template SelfAdjointMatrixFrom<tri, output_dim>;

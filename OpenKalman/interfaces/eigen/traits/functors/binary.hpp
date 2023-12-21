@@ -57,12 +57,12 @@ namespace OpenKalman::Eigen3
     template<typename Op, typename LhsType, typename RhsType, bool is_diag, typename Arg>
     static constexpr auto get_constant_sum_impl(const Arg& arg)
     {
-      if constexpr (zero_matrix<LhsType>)
+      if constexpr (zero<LhsType>)
       {
         if constexpr (is_diag) return constant_diagonal_coefficient {arg.rhs()};
         else return constant_coefficient {arg.rhs()};
       }
-      else if constexpr (zero_matrix<RhsType>)
+      else if constexpr (zero<RhsType>)
       {
         if constexpr (is_diag) return constant_diagonal_coefficient {arg.lhs()};
         else return constant_coefficient {arg.lhs()};
@@ -74,11 +74,11 @@ namespace OpenKalman::Eigen3
     template<typename Op, typename LhsType, typename RhsType, bool is_diag, typename Arg>
     static constexpr auto get_constant_product_impl(const Arg& arg)
     {
-      if constexpr (zero_matrix<LhsType>)
+      if constexpr (zero<LhsType>)
       {
         return constant_coefficient {arg.lhs()};
       }
-      else if constexpr (zero_matrix<RhsType>)
+      else if constexpr (zero<RhsType>)
       {
         return constant_coefficient {arg.rhs()};
       }
@@ -119,7 +119,7 @@ namespace OpenKalman::Eigen3
       triangular_matrix<Arg1, t, b> or triangular_matrix<Arg2, t, b> or
       (((triangular_matrix<Arg1, TriangleType::lower, Likelihood::maybe> and triangular_matrix<Arg2, TriangleType::upper, Likelihood::maybe>) or
       (triangular_matrix<Arg1, TriangleType::upper, Likelihood::maybe> and triangular_matrix<Arg2, TriangleType::lower, Likelihood::maybe>))
-        and (square_matrix<Arg1, b> or square_matrix<Arg2, b>));
+        and (square_shaped<Arg1, b> or square_shaped<Arg2, b>));
 
   } // namespace detail
 
@@ -305,7 +305,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const Arg& arg)
     {
       if constexpr (is_diag) return std::monostate {};
-      else if constexpr (zero_matrix<RhsType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 1>{};
+      else if constexpr (zero<RhsType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 1>{};
       else return detail::default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
     }
 
@@ -322,12 +322,12 @@ namespace OpenKalman::Eigen3
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (zero_matrix<LhsType>)
+      if constexpr (zero<LhsType>)
       {
         if constexpr (is_diag) return internal::scalar_constant_operation {std::negate<>{}, constant_diagonal_coefficient {arg.rhs()}};
         else return internal::scalar_constant_operation {std::negate<>{}, constant_coefficient {arg.rhs()}};
       }
-      else if constexpr (zero_matrix<RhsType>)
+      else if constexpr (zero<RhsType>)
       {
         if constexpr (is_diag) return constant_diagonal_coefficient {arg.lhs()};
         else return constant_coefficient {arg.lhs()};
@@ -348,7 +348,7 @@ namespace OpenKalman::Eigen3
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (is_diag or zero_matrix<RhsType>) return std::monostate {};
+      if constexpr (is_diag or zero<RhsType>) return std::monostate {};
       else return detail::default_get_constant<std::divides<>, LhsType, RhsType, is_diag>(arg);
     }
 

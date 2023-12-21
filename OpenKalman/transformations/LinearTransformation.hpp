@@ -33,7 +33,7 @@ namespace OpenKalman
     (index_dimension_of_v<TransformationMatrix, 0> == dimension_size_of_v<OutputCoefficients>) and
     (index_dimension_of_v<TransformationMatrix, 1> == dimension_size_of_v<InputCoefficients>) and
     ((index_dimension_of_v<PerturbationTransformationMatrices, 0> == dimension_size_of_v<OutputCoefficients>) and ...) and
-    (square_matrix<PerturbationTransformationMatrices> and ...)
+    (square_shaped<PerturbationTransformationMatrices> and ...)
 #else
   template<typename InputCoefficients, typename OutputCoefficients, typename TransformationMatrix,
     typename ... PerturbationTransformationMatrices>
@@ -104,7 +104,7 @@ namespace OpenKalman
   (index_dimension_of_v<TransformationMatrix, 0> == dimension_size_of_v<OutputCoefficients>) and
     (index_dimension_of_v<TransformationMatrix, 1> == dimension_size_of_v<InputCoefficients>) and
     ((index_dimension_of_v<PerturbationTransformationMatrices, 0> == dimension_size_of_v<OutputCoefficients>) and ...) and
-    (square_matrix<PerturbationTransformationMatrices> and ...)
+    (square_shaped<PerturbationTransformationMatrices> and ...)
 #else
   template<typename InputCoefficients, typename OutputCoefficients, typename TransformationMatrix,
     typename ... PerturbationTransformationMatrices>
@@ -120,7 +120,7 @@ namespace OpenKalman
     static_assert(index_dimension_of_v<TransformationMatrix, 0> == dimension_size_of_v<OutputCoefficients>);
     static_assert(index_dimension_of_v<TransformationMatrix, 1> == dimension_size_of_v<InputCoefficients>);
     static_assert(((index_dimension_of_v<PerturbationTransformationMatrices, 0> == dimension_size_of_v<OutputCoefficients>) and ...));
-    static_assert((square_matrix<PerturbationTransformationMatrices> and ...));
+    static_assert((square_shaped<PerturbationTransformationMatrices> and ...));
 #endif
 
   private:
@@ -223,8 +223,8 @@ namespace OpenKalman
   -> LinearTransformation<
     vector_space_descriptor_of_t<T, 1>,
     vector_space_descriptor_of_t<T, 0>,
-    equivalent_self_contained_t<nested_matrix_of_t<T>>,
-    equivalent_self_contained_t<std::conditional_t<typed_matrix<Ps>, nested_matrix_of_t<Ps>, Ps>>...>;
+    equivalent_self_contained_t<nested_object_of_t<T>>,
+    equivalent_self_contained_t<std::conditional_t<typed_matrix<Ps>, nested_object_of_t<Ps>, Ps>>...>;
 
 
 #ifdef __cpp_concepts

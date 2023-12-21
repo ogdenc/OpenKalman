@@ -28,7 +28,7 @@ namespace OpenKalman
     static_assert(equivalent_to<vector_space_descriptor_of_t<V2, 1>, CC1>);
     static_assert(euclidean_transformed<V1> == euclidean_transformed<V2>);
 
-    auto b = make_self_contained<V1, V2>(nested_matrix(std::forward<V1>(v1)) + nested_matrix(std::forward<V2>(v2)));
+    auto b = make_self_contained<V1, V2>(nested_object(std::forward<V1>(v1)) + nested_object(std::forward<V2>(v2)));
 
     if constexpr (euclidean_mean<V1> and euclidean_mean<V2>) return make_euclidean_mean<RC1>(std::move(b));
     else if constexpr (mean<V1> and mean<V2>) return make_mean<RC1>(std::move(b));
@@ -50,7 +50,7 @@ namespace OpenKalman
     static_assert(equivalent_to<vector_space_descriptor_of_t<V2, 1>, CC1>);
     static_assert(euclidean_transformed<V1> == euclidean_transformed<V2>);
 
-    auto b = make_self_contained<V1, V2>(nested_matrix(std::forward<V1>(v1)) - nested_matrix(std::forward<V2>(v2)));
+    auto b = make_self_contained<V1, V2>(nested_object(std::forward<V1>(v1)) - nested_object(std::forward<V2>(v2)));
 
     if constexpr (euclidean_mean<V1> and euclidean_mean<V2>) return make_euclidean_mean<RC1>(std::move(b));
     else if constexpr (mean<V1> and mean<V2>) return make_matrix<typename RC1::difference_type, CC1>(std::move(b));
@@ -71,7 +71,7 @@ namespace OpenKalman
     using CC = vector_space_descriptor_of_t<V, 1>;
     using Sc = scalar_type_of_t<V>;
 
-    auto b = make_self_contained<V>(nested_matrix(std::forward<V>(v)) * static_cast<Sc>(scale));
+    auto b = make_self_contained<V>(nested_object(std::forward<V>(v)) * static_cast<Sc>(scale));
 
     if constexpr (euclidean_mean<V>) return make_euclidean_mean<RC>(std::move(b));
     else if constexpr (mean<V>) return make_mean<RC>(std::move(b));
@@ -92,7 +92,7 @@ namespace OpenKalman
     using CC = vector_space_descriptor_of_t<V, 1>;
     using Sc = const scalar_type_of_t<V>;
 
-    auto b = make_self_contained<V>(static_cast<Sc>(scale) * nested_matrix(std::forward<V>(v)));
+    auto b = make_self_contained<V>(static_cast<Sc>(scale) * nested_object(std::forward<V>(v)));
 
     if constexpr (euclidean_mean<V>) return make_euclidean_mean<RC>(std::move(b));
     else if constexpr (mean<V>) return make_mean<RC>(std::move(b));
@@ -113,7 +113,7 @@ namespace OpenKalman
     using CC = vector_space_descriptor_of_t<V, 1>;
     using Sc = scalar_type_of_t<V>;
 
-    auto b = make_self_contained<V>(nested_matrix(std::forward<V>(v)) / static_cast<Sc>(scale));
+    auto b = make_self_contained<V>(nested_object(std::forward<V>(v)) / static_cast<Sc>(scale));
 
     if constexpr (euclidean_mean<V>) return make_euclidean_mean<RC>(std::move(b));
     else if constexpr (mean<V>) return make_mean<RC>(std::move(b));
@@ -133,7 +133,7 @@ namespace OpenKalman
     using RC = vector_space_descriptor_of_t<V1, 0>;
     using CC = vector_space_descriptor_of_t<V2, 1>;
 
-    auto b = make_self_contained<V1, V2>(nested_matrix(std::forward<V1>(v1)) * nested_matrix(std::forward<V2>(v2)));
+    auto b = make_self_contained<V1, V2>(nested_object(std::forward<V1>(v1)) * nested_object(std::forward<V2>(v2)));
 
     if constexpr (euclidean_mean<V1> and euclidean_mean<V2>) return make_euclidean_mean<RC>(std::move(b));
     else return make_matrix<RC, CC>(std::move(b));
@@ -151,7 +151,7 @@ namespace OpenKalman
     using RC = vector_space_descriptor_of_t<V, 0>;
     using CC = vector_space_descriptor_of_t<V, 1>;
 
-    auto b = make_self_contained<V>(-nested_matrix(std::forward<V>(v)));
+    auto b = make_self_contained<V>(-nested_object(std::forward<V>(v)));
 
     if constexpr (euclidean_mean<V>) return make_euclidean_mean<RC>(std::move(b));
     else return make_matrix<RC, CC>(std::move(b));
@@ -170,7 +170,7 @@ namespace OpenKalman
       equivalent_to<vector_space_descriptor_of_t<V1, 0>, vector_space_descriptor_of_t<V2, 0>> and
       equivalent_to<vector_space_descriptor_of_t<V1, 1>, vector_space_descriptor_of_t<V2, 1>>)
     {
-      return make_dense_writable_matrix_from(std::forward<V1>(v1)) == make_dense_writable_matrix_from(std::forward<V2>(v2));
+      return make_dense_object(std::forward<V1>(v1)) == make_dense_object(std::forward<V2>(v2));
     }
     else
     {

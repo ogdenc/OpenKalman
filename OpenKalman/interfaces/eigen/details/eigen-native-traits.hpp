@@ -37,12 +37,20 @@ namespace Eigen::internal
   struct traits<OpenKalman::internal::FixedSizeAdapter<NestedMatrix, Rows>>
     : traits<std::decay_t<NestedMatrix>>
   {
+  private:
+
+    static constexpr auto rows = OpenKalman::fixed_vector_space_descriptor<Rows> ? static_cast<int>(OpenKalman::dimension_size_of_v<Rows>) : Eigen::Dynamic;
+    static constexpr auto row_major_bit = rows != 1 ? 0x0 : (traits<std::decay_t<NestedMatrix>>::Flags & RowMajorBit);
+
+  public:
+
     enum
     {
-      RowsAtCompileTime = OpenKalman::fixed_vector_space_descriptor<Rows> ? static_cast<int>(OpenKalman::dimension_size_of_v<Rows>) : Eigen::Dynamic,
+      RowsAtCompileTime = rows,
       ColsAtCompileTime = 1,
       MaxRowsAtCompileTime = RowsAtCompileTime,
       MaxColsAtCompileTime = ColsAtCompileTime,
+      Flags = (traits<std::decay_t<NestedMatrix>>::Flags & ~RowMajorBit) | row_major_bit,
     };
   };
 
@@ -51,12 +59,24 @@ namespace Eigen::internal
   struct traits<OpenKalman::internal::FixedSizeAdapter<NestedMatrix, Rows, Cols>>
     : traits<std::decay_t<NestedMatrix>>
   {
+  private:
+
+    static constexpr auto rows = OpenKalman::fixed_vector_space_descriptor<Rows> ? static_cast<int>(OpenKalman::dimension_size_of_v<Rows>) : Eigen::Dynamic;
+    static constexpr auto cols = OpenKalman::fixed_vector_space_descriptor<Cols> ? static_cast<int>(OpenKalman::dimension_size_of_v<Cols>) : Eigen::Dynamic;
+    static constexpr auto row_major_bit =
+      rows == 1 and cols != 1 ? RowMajorBit :
+      rows != 1 and cols == 1 ? 0x0 :
+      (traits<std::decay_t<NestedMatrix>>::Flags & RowMajorBit);
+
+  public:
+
     enum
     {
-      RowsAtCompileTime = OpenKalman::fixed_vector_space_descriptor<Rows> ? static_cast<int>(OpenKalman::dimension_size_of_v<Rows>) : Eigen::Dynamic,
-      ColsAtCompileTime = OpenKalman::fixed_vector_space_descriptor<Cols> ? static_cast<int>(OpenKalman::dimension_size_of_v<Cols>) : Eigen::Dynamic,
+      RowsAtCompileTime = rows,
+      ColsAtCompileTime = cols,
       MaxRowsAtCompileTime = RowsAtCompileTime,
       MaxColsAtCompileTime = ColsAtCompileTime,
+      Flags = (traits<std::decay_t<NestedMatrix>>::Flags & ~RowMajorBit) | row_major_bit,
     };
   };
 
@@ -84,7 +104,7 @@ namespace Eigen::internal
     {
       Flags = Base::Flags &
         ~DirectAccessBit &
-        ~(OpenKalman::one_by_one_matrix<NestedMatrix> ? 0x0 : LinearAccessBit | PacketAccessBit) &
+        ~(OpenKalman::one_dimensional<NestedMatrix> ? 0x0 : LinearAccessBit | PacketAccessBit) &
         ~(OpenKalman::complex_number<typename Base::Scalar> ? LvalueBit : 0x0),
     };
   };
@@ -99,7 +119,7 @@ namespace Eigen::internal
     {
       Flags = BaseFlags &
         ~DirectAccessBit &
-        ~(OpenKalman::one_by_one_matrix<NestedMatrix> ? 0x0 : LinearAccessBit | PacketAccessBit),
+        ~(OpenKalman::one_dimensional<NestedMatrix> ? 0x0 : LinearAccessBit | PacketAccessBit),
     };
   };
 
@@ -112,7 +132,7 @@ namespace Eigen::internal
     {
       Flags = Base::Flags &
         ~DirectAccessBit &
-        ~(OpenKalman::one_by_one_matrix<ArgType> ? 0x0 : LinearAccessBit | PacketAccessBit),
+        ~(OpenKalman::one_dimensional<ArgType> ? 0x0 : LinearAccessBit | PacketAccessBit),
       ColsAtCompileTime = Base::RowsAtCompileTime,
       MaxColsAtCompileTime = Base::MaxRowsAtCompileTime,
     };
@@ -196,9 +216,9 @@ namespace Eigen::internal
 
   template<typename TypedIndex, typename ArgType>
   struct traits<OpenKalman::Covariance<TypedIndex, ArgType>>
-    : traits<std::decay_t<std::conditional_t<OpenKalman::hermitian_matrix<ArgType>, ArgType, decltype(Cholesky_square(std::declval<ArgType>()))>>>
+    : traits<std::decay_t<std::conditional_t<OpenKalman::hermitian_matrix<ArgType>, ArgType, decltype(cholesky_square(std::declval<ArgType>()))>>>
   {
-    using Base = traits<std::decay_t<std::conditional_t<OpenKalman::hermitian_matrix<ArgType>, ArgType, decltype(Cholesky_square(std::declval<ArgType>()))>>>;
+    using Base = traits<std::decay_t<std::conditional_t<OpenKalman::hermitian_matrix<ArgType>, ArgType, decltype(cholesky_square(std::declval<ArgType>()))>>>;
     enum
     {
       Flags = Base::Flags & ~(OpenKalman::hermitian_matrix<ArgType> ? 0x0 : DirectAccessBit | PacketAccessBit | LvalueBit),
@@ -208,9 +228,9 @@ namespace Eigen::internal
 
   template<typename TypedIndex, typename ArgType>
   struct traits<OpenKalman::SquareRootCovariance<TypedIndex, ArgType>>
-    : traits<std::decay_t<std::conditional_t<OpenKalman::triangular_matrix<ArgType>, ArgType, decltype(Cholesky_factor(std::declval<ArgType>()))>>>
+    : traits<std::decay_t<std::conditional_t<OpenKalman::triangular_matrix<ArgType>, ArgType, decltype(cholesky_factor(std::declval<ArgType>()))>>>
   {
-    using Base = traits<std::decay_t<std::conditional_t<OpenKalman::triangular_matrix<ArgType>, ArgType, decltype(Cholesky_factor(std::declval<ArgType>()))>>>;
+    using Base = traits<std::decay_t<std::conditional_t<OpenKalman::triangular_matrix<ArgType>, ArgType, decltype(cholesky_factor(std::declval<ArgType>()))>>>;
     enum
     {
       Flags = Base::Flags & ~(OpenKalman::triangular_matrix<ArgType> ? 0x0 : DirectAccessBit | PacketAccessBit | LvalueBit),

@@ -36,7 +36,10 @@ namespace OpenKalman
 #endif
   inline auto make_matrix(M&& m)
   {
-    return Matrix<RowCoefficients, ColumnCoefficients, passable_t<M>>(std::forward<M>(m));
+    decltype(auto) m_sc = make_self_contained<M>(std::forward<M>(m));
+    using M_sc = decltype(m_sc);
+    using M2 = std::conditional_t<std::is_rvalue_reference_v<M_sc>, std::remove_reference_t<M_sc>, M_sc>;
+    return Matrix<RowCoefficients, ColumnCoefficients, M2>(std::forward<M_sc>(m_sc));
   }
 
 
@@ -56,8 +59,7 @@ namespace OpenKalman
 #endif
   inline auto make_matrix(M&& m)
   {
-    using ColumnCoefficients = Dimensions<index_dimension_of_v<M, 1>>;
-    return Matrix<RowCoefficients, ColumnCoefficients, passable_t<M>>(std::forward<M>(m));
+    return make_matrix<RowCoefficients, Dimensions<index_dimension_of_v<M, 1>>>(std::forward<M>(m));
   }
 
 
@@ -91,7 +93,7 @@ namespace OpenKalman
   inline auto make_matrix(M&& arg)
   {
     using C = vector_space_descriptor_of_t<M, 0>;
-    return make_matrix<C, C>(make_dense_writable_matrix_from(std::forward<M>(arg)));
+    return make_matrix<C, C>(make_dense_object(std::forward<M>(arg)));
   }
 
 
@@ -110,9 +112,9 @@ namespace OpenKalman
     using RowCoeffs = vector_space_descriptor_of_t<Arg, 0>;
     using ColCoeffs = vector_space_descriptor_of_t<Arg, 1>;
     if constexpr(euclidean_transformed<Arg>)
-      return make_matrix<RowCoeffs, ColCoeffs>(nested_matrix(from_euclidean<RowCoeffs>(std::forward<Arg>(arg))));
+      return make_matrix<RowCoeffs, ColCoeffs>(nested_object(from_euclidean<RowCoeffs>(std::forward<Arg>(arg))));
     else
-      return make_matrix<RowCoeffs, ColCoeffs>(nested_matrix(std::forward<Arg>(arg)));
+      return make_matrix<RowCoeffs, ColCoeffs>(nested_object(std::forward<Arg>(arg)));
   }
 
 
@@ -136,7 +138,8 @@ namespace OpenKalman
 #endif
   inline auto make_matrix()
   {
-    return Matrix<RowCoefficients, ColumnCoefficients, dense_writable_matrix_t<M>>();
+    using Mdense = std::decay_t<decltype(make_dense_object(std::declval<M>()))>;
+    return Matrix<RowCoefficients, ColumnCoefficients, Mdense>();
   }
 
 

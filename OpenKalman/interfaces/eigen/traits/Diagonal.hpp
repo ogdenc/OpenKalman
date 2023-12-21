@@ -36,14 +36,16 @@ namespace OpenKalman::interface
 
     static constexpr bool has_runtime_parameters = DiagIndex == Eigen::DynamicIndex;
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
+
+    template<typename Arg>
+    static decltype(auto) nested_object(Arg&& arg)
     {
-      static_assert(i == 0);
       return std::forward<Arg>(arg).nestedExpression();
     }
 
+
     // Rely on default for convert_to_self_contained. Should always convert to a dense, writable matrix.
+
 
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -74,11 +76,11 @@ namespace OpenKalman::interface
 
 
     template<Likelihood b>
-    static constexpr bool is_one_by_one = dimension_size_of_index_is<Xpr, 0, 1, b>;
+    static constexpr bool one_dimensional = dimension_size_of_index_is<Xpr, 0, 1, b>;
 
 
     template<Likelihood b>
-    static constexpr bool is_square = is_one_by_one<b>;
+    static constexpr bool is_square = one_dimensional<b>;
 
   };
 

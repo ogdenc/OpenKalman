@@ -32,7 +32,7 @@ namespace OpenKalman
 #endif
   to_diagonal(Arg&& arg)
   {
-    if constexpr (one_by_one_matrix<Arg>)
+    if constexpr (one_dimensional<Arg>)
     {
       return std::forward<Arg>(arg);
     }

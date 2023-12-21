@@ -33,7 +33,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr auto
-    get_index_count(const Arg& arg)
+    count_indices(const Arg& arg)
     {
       constexpr bool is_row_major = (Eigen::internal::traits<std::decay_t<typename Arg::NestedExpression>>::Flags & Eigen::RowMajorBit) != 0x0;
       return std::integral_constant<std::size_t, is_row_major ? 1 : 0>{};
@@ -46,10 +46,9 @@ namespace OpenKalman::interface
     static constexpr bool has_runtime_parameters = true;
 
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
+    template<typename Arg>
+    static decltype(auto) nested_object(Arg&& arg)
     {
-      static_assert(i == 0);
       return std::forward<Arg>(arg).nestedExpression();
     }
 

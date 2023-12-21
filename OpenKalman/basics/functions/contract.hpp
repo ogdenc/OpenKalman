@@ -24,7 +24,7 @@ namespace OpenKalman
     template<typename C, typename A, typename B, std::size_t...Is>
     static constexpr auto contract_constant(C&& c, A&& a, B&& b, std::index_sequence<Is...>) noexcept
     {
-      return make_constant_matrix_like<A>(std::forward<C>(c),
+      return make_constant<A>(std::forward<C>(c),
         get_vector_space_descriptor<0>(a), get_vector_space_descriptor<1>(b), get_vector_space_descriptor<Is + 2>(a)...);
     }
 
@@ -68,7 +68,7 @@ namespace OpenKalman
     {
       return std::forward<B>(b);
     }
-    else if constexpr (zero_matrix<A> or zero_matrix<B>)
+    else if constexpr (zero<A> or zero<B>)
     {
       using Scalar = std::decay_t<decltype(std::declval<scalar_type_of_t<A>>() * std::declval<scalar_type_of_t<B>>())>;
       return detail::contract_constant(internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{}, std::forward<A>(a), std::forward<B>(b), seq);
@@ -76,8 +76,8 @@ namespace OpenKalman
     else if constexpr (constant_matrix<A> and constant_matrix<B>)
     {
       auto dim_const = [](const auto& a, const auto& b) {
-        if constexpr (dynamic_dimension<A, 1>) return internal::index_dimension_scalar_constant_of<0>(b);
-        else return internal::index_dimension_scalar_constant_of<1>(a);
+        if constexpr (dynamic_dimension<A, 1>) return internal::index_dimension_scalar_constant<0>(b);
+        else return internal::index_dimension_scalar_constant<1>(a);
       }(a, b);
 
       auto abd = constant_coefficient{a} * constant_coefficient{b} * std::move(dim_const);

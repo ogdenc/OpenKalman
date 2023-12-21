@@ -39,7 +39,7 @@ namespace OpenKalman::interface
     /**
      * \brief Get a scalar component of Arg at a given set of indices.
      * \details The indices are are in the form of a ranged object accessible by an iterator.
-     * \tparam Indices A ranged object satisfying std::ranges::input_range, which contains exactly <code>get_index_count(arg)</code> indices.
+     * \tparam Indices A ranged object satisfying std::ranges::input_range, which contains exactly <code>count_indices(arg)</code> indices.
      * \returns an element or reference to a component of Arg, as a \ref scalar_constant (preferably as a non-const lvalue reference)
      * \note Mandatory. Also, this function, or the library, is responsible for any optional bounds checking.
      *
@@ -58,7 +58,7 @@ namespace OpenKalman::interface
      * \brief Set a component of Arg at a given set of indices to scalar value s.
      * \details The indices are are in the form of a ranged object accessible by an iterator.
      * \tparam Indices A ranged object satisfing std::ranges::input_range, which contains exactly
-     * <code>get_index_count(arg)</code> indices.
+     * <code>count_indices(arg)</code> indices.
      * \note Mandatory. Also, this function, or the library, is responsible for any optional bounds checking.
      *
      */
@@ -122,11 +122,11 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<Layout layout, writable M> requires (layout == Layout::right) or (layout == Layout::left)
     static M&&
-    fill_with_elements(M&& m, const std::convertible_to<scalar_type_of_t<M>> auto ... args) = delete;
+    fill_components(M&& m, const std::convertible_to<scalar_type_of_t<M>> auto ... args) = delete;
 #else
     template<Layout layout, typename M, typename...Args>
     static M&&
-    fill_with_elements(M&& m, const Args ... args) = delete;
+    fill_components(M&& m, const Args ... args) = delete;
 #endif
 
 
@@ -139,11 +139,11 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     static constexpr constant_matrix auto
-    make_constant_matrix(const scalar_constant auto& c, vector_space_descriptor auto&&...d) = delete;
+    make_constant(const scalar_constant auto& c, vector_space_descriptor auto&&...d) = delete;
 #else
     template<typename C, typename...D>
     static constexpr auto
-    make_constant_matrix(const C& c, D&&...d) = delete;
+    make_constant(const C& c, D&&...d) = delete;
 #endif
 
 
@@ -296,7 +296,7 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     static constexpr vector auto
-    diagonal_of(square_matrix<Likelihood::maybe> auto&& arg) = delete;
+    diagonal_of(square_shaped<Likelihood::maybe> auto&& arg) = delete;
 #else
     template<typename Arg>
     static constexpr auto
@@ -418,7 +418,7 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     template<indexible Arg>
-    static constexpr maybe_has_same_shape_as<Arg> auto
+    static constexpr maybe_same_shape_as<Arg> auto
 #else
     template<typename Arg>
     static constexpr auto
@@ -431,7 +431,7 @@ namespace OpenKalman::interface
      * \tparam Arg An object of type T
      */
 #ifdef __cpp_concepts
-    template<square_matrix<Likelihood::maybe> Arg>
+    template<square_shaped<Likelihood::maybe> Arg>
     static constexpr compatible_with_vector_space_descriptors<vector_space_descriptor_of_t<Arg, 1>, vector_space_descriptor_of_t<Arg, 0>> auto
 #else
     template<typename Arg>
@@ -446,7 +446,7 @@ namespace OpenKalman::interface
      * \tparam Arg An object of type T
      */
 #ifdef __cpp_concepts
-    template<square_matrix<Likelihood::maybe> Arg>
+    template<square_shaped<Likelihood::maybe> Arg>
     static constexpr compatible_with_vector_space_descriptors<vector_space_descriptor_of_t<Arg, 1>, vector_space_descriptor_of_t<Arg, 0>> auto
 #else
     template<typename Arg>
@@ -460,7 +460,7 @@ namespace OpenKalman::interface
      * \tparam Arg An object of type T
      */
 #ifdef __cpp_concepts
-    template<square_matrix<Likelihood::maybe> Arg>
+    template<square_shaped<Likelihood::maybe> Arg>
     static constexpr std::convertible_to<scalar_type_of_t<Arg>> auto
 #else
     template<typename Arg>
@@ -478,8 +478,8 @@ namespace OpenKalman::interface
      * (e.g., via /ref to_native_matrix).
      */
 #ifdef __cpp_concepts
-    template<indexible Arg, maybe_has_same_shape_as<Arg>...Args>
-    static constexpr maybe_has_same_shape_as<Arg> auto
+    template<indexible Arg, maybe_same_shape_as<Arg>...Args>
+    static constexpr maybe_same_shape_as<Arg> auto
 #else
     template<typename Arg, typename...Args>
     static constexpr auto
@@ -495,7 +495,7 @@ namespace OpenKalman::interface
      * (e.g., via /ref to_native_matrix).
      */
 #ifdef __cpp_concepts
-    template<indexible A, maybe_has_same_shape_as<A> B>
+    template<indexible A, maybe_same_shape_as<A> B>
     static constexpr compatible_with_vector_space_descriptors<vector_space_descriptor_of_t<A, 1>, vector_space_descriptor_of_t<B, 1>> auto
 #else
     template<typename A, typename B>
@@ -511,7 +511,7 @@ namespace OpenKalman::interface
      * \return A reference to A
      */
 #ifdef __cpp_concepts
-    template<bool on_the_right, indexible A, maybe_has_same_shape_as<A> B>
+    template<bool on_the_right, indexible A, maybe_same_shape_as<A> B>
 #else
     template<bool on_the_right, typename A, typename B>
 #endif
@@ -557,7 +557,7 @@ namespace OpenKalman::interface
     template<HermitianAdapterType significant_triangle, typename A, typename U>
     static decltype(auto)
 #endif
-    rank_update_self_adjoint(A&&, U&&, const scalar_type_of_t<A>& alpha) = delete;
+    rank_update_hermitian(A&&, U&&, const scalar_type_of_t<A>& alpha) = delete;
 
 
     /**

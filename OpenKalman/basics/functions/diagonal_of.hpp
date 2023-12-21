@@ -24,7 +24,7 @@ namespace OpenKalman
     constexpr auto
     make_constant_column_vector(C&& c, D0&& d0, std::index_sequence<Is...>)
     {
-      return make_constant_matrix_like<T>(std::forward<C>(c), std::forward<D0>(d0), Dimensions<Is==Is?1:1>{}...);
+      return make_constant<T>(std::forward<C>(c), std::forward<D0>(d0), Dimensions<Is==Is?1:1>{}...);
     }
   }
 
@@ -35,10 +35,10 @@ namespace OpenKalman
    * \returns Arg A column vector
    */
 #ifdef __cpp_concepts
-  template<square_matrix<Likelihood::maybe> Arg> requires (index_count_v<Arg> == dynamic_size) or (index_count_v<Arg> <= 2)
+  template<square_shaped<Likelihood::maybe> Arg> requires (index_count_v<Arg> == dynamic_size) or (index_count_v<Arg> <= 2)
   constexpr vector decltype(auto)
 #else
-  template<typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe> and
+  template<typename Arg, std::enable_if_t<square_shaped<Arg, Likelihood::maybe> and
     (index_count_v<Arg> == dynamic_size or index_count_v<Arg> <= 2), int> = 0>
   constexpr decltype(auto)
 #endif
@@ -46,19 +46,19 @@ namespace OpenKalman
   {
     if constexpr (diagonal_adapter<Arg>)
     {
-      return nested_matrix(std::forward<Arg>(arg));
+      return nested_object(std::forward<Arg>(arg));
     }
-    else if constexpr (one_by_one_matrix<Arg>)
+    else if constexpr (one_dimensional<Arg>)
     {
       return std::forward<Arg>(arg);
     }
     // arg is maybe a one-by-one matrix and has at least one dynamic dimension, or is an empty matrix
-    else if constexpr (one_by_one_matrix<Arg, Likelihood::maybe> and
+    else if constexpr (one_dimensional<Arg, Likelihood::maybe> and
       (dynamic_index_count_v<Arg> < index_count_v<Arg> or (dynamic_dimension<Arg, 0> and index_count_v<Arg> == 1)))
     {
-      if (not get_is_square(arg)) throw std::invalid_argument{"Argument of diagonal_of is not a square matrix."};
+      if (not is_square_shaped(arg)) throw std::invalid_argument{"Argument of diagonal_of is not a square matrix."};
       constexpr std::make_index_sequence<index_count_v<Arg> - 1> seq;
-      if constexpr (one_by_one_matrix<Arg, Likelihood::maybe>)
+      if constexpr (one_dimensional<Arg, Likelihood::maybe>)
       {
         constant_coefficient c {std::forward<Arg>(arg)};
         return detail::make_constant_column_vector<Arg>(c, Dimensions<1>{}, seq);
@@ -71,14 +71,14 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<Arg>)
     {
-      auto d = get_is_square(arg);
+      auto d = is_square_shaped(arg);
       if (not d) throw std::invalid_argument {"Argument of diagonal_of is not a square matrix."};
       constexpr std::make_index_sequence<index_count_v<Arg> - 1> seq;
       return detail::make_constant_column_vector<Arg>(constant_coefficient{std::forward<Arg>(arg)}, *d, seq);
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      auto d = get_is_square(arg);
+      auto d = is_square_shaped(arg);
       if (not d) throw std::invalid_argument {"Argument of diagonal_of is not a square matrix."};
       constexpr std::make_index_sequence<index_count_v<Arg> - 1> seq;
       return detail::make_constant_column_vector<Arg>(constant_diagonal_coefficient {std::forward<Arg>(arg)}, *d, seq);

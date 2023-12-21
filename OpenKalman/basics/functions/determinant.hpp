@@ -24,10 +24,10 @@ namespace OpenKalman
    * \tparam Arg The matrix
    */
 #ifdef __cpp_concepts
-  template<square_matrix<Likelihood::maybe> Arg> requires (max_tensor_order_of_v<Arg> <= 2)
+  template<square_shaped<Likelihood::maybe> Arg> requires (max_tensor_order_v<Arg> <= 2)
   constexpr std::convertible_to<scalar_type_of_t<Arg>> auto
 #else
-  template<typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe> and (max_tensor_order_of_v<Arg> <= 2), int> = 0>
+  template<typename Arg, std::enable_if_t<square_shaped<Arg, Likelihood::maybe> and (max_tensor_order_v<Arg> <= 2), int> = 0>
   constexpr auto
 #endif
   determinant(Arg&& arg)
@@ -40,23 +40,23 @@ namespace OpenKalman
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      return internal::constexpr_pow(constant_diagonal_coefficient{arg}, internal::index_dimension_scalar_constant_of<ix>(arg))();
+      return internal::constexpr_pow(constant_diagonal_coefficient{arg}, internal::index_dimension_scalar_constant<ix>(arg))();
     }
     else if constexpr (dimension_size_of_index_is<Arg, 0, 1> or dimension_size_of_index_is<Arg, 1, 1>)
     {
-      if constexpr (has_dynamic_dimensions<Arg>) if (not get_is_square(arg))
+      if constexpr (has_dynamic_dimensions<Arg>) if (not is_square_shaped(arg))
         throw std::domain_error {"Argument to 'determinant' is not a square matrix"};
       return constant_coefficient {arg};
     }
-    else if constexpr (zero_matrix<Arg>)
+    else if constexpr (zero<Arg>)
     {
-      if constexpr (has_dynamic_dimensions<Arg>) if (not get_is_square(arg))
+      if constexpr (has_dynamic_dimensions<Arg>) if (not is_square_shaped(arg))
         throw std::domain_error {"Argument to 'determinant' is not a square matrix"};
       return internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<Arg>, 0>{};
     }
     else if constexpr (dimension_size_of_index_is<Arg, 0, 0> or dimension_size_of_index_is<Arg, 1, 0>)
     {
-      if constexpr (has_dynamic_dimensions<Arg>) if (not get_is_square(arg))
+      if constexpr (has_dynamic_dimensions<Arg>) if (not is_square_shaped(arg))
         throw std::domain_error {"Argument to 'determinant' is not a square matrix"};
       return internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<Arg>, 1>{};
     }
@@ -68,7 +68,7 @@ namespace OpenKalman
     {
       if constexpr (has_dynamic_dimensions<Arg>)
       {
-        auto d = get_is_square(arg);
+        auto d = is_square_shaped(arg);
         if (not d) throw std::invalid_argument{"Argument of 'determinant' is not a square matrix."};
         else if (*d >= 2) return static_cast<scalar_type_of_t<Arg>>(0);
         else if (*d == 1) return static_cast<scalar_type_of_t<Arg>>(constant_coefficient {arg});

@@ -46,7 +46,7 @@ namespace OpenKalman::interface
 
     static constexpr bool has_runtime_parameters = has_params<NullaryOp>::value;
 
-    // get_nested_matrix not defined
+    // nested_object() not defined
 
     // convert_to_self_contained not defined
 
@@ -63,10 +63,10 @@ namespace OpenKalman::interface
     }
 
     template<Likelihood b>
-    static constexpr bool is_one_by_one = one_by_one_matrix<PlainObjectType, b>;
+    static constexpr bool one_dimensional = OpenKalman::one_dimensional<PlainObjectType, b>;
 
     template<Likelihood b>
-    static constexpr bool is_square = square_matrix<PlainObjectType, b>;
+    static constexpr bool is_square = square_shaped<PlainObjectType, b>;
 
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = Eigen3::NullaryFunctorTraits<NullaryOp, PlainObjectType>::template is_triangular<t, b>;

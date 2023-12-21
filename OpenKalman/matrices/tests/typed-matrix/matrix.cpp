@@ -74,7 +74,7 @@ TEST(matrices, TypedMatrix_class)
   EXPECT_TRUE(is_near(mat23_x3, Mat23 {1, 2, 3, pi/3, pi/6, pi/4}));
 
   // Construct from a regular matrix
-  Mat23 mat23d(make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6));
+  Mat23 mat23d(make_dense_object_from<M23>(1, 2, 3, 4, 5, 6));
   EXPECT_TRUE(is_near(mat23d, Mat23 {1, 2, 3, 4, 5, 6}));
 
   // Convert from a compatible covariance
@@ -134,7 +134,7 @@ TEST(matrices, TypedMatrix_class)
   EXPECT_TRUE(is_near(mat23_x3, Mat23 {3, 2, 1, pi/6, pi/4, pi/3}));
 
   // assign from a regular matrix
-  mat23e = make_dense_writable_matrix_from<M23>(3, 4, 5, 6, 7, 8);
+  mat23e = make_dense_object_from<M23>(3, 4, 5, 6, 7, 8);
 
   // Assign from a list of coefficients (via move assignment operator)
   mat23e = {6, 5, 4, 3, 2, 1};
@@ -186,7 +186,7 @@ TEST(matrices, TypedMatrix_class)
   EXPECT_TRUE(is_near(mat23a, M23::Zero()));
 
   // Zero
-  EXPECT_TRUE(is_near(make_zero_matrix_like<Mat23>(), M23::Zero()));
+  EXPECT_TRUE(is_near(make_zero<Mat23>(), M23::Zero()));
 
   // Identity
   EXPECT_TRUE(is_near(make_identity_matrix_like<Mat22>(), M22::Identity()));
@@ -236,7 +236,7 @@ TEST(matrices, TypedMatrix_subscripts)
 
 TEST(matrices, TypedMatrix_deduction_guides)
 {
-  auto a = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
+  auto a = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
   EXPECT_TRUE(is_near(Matrix(a), a));
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix(a)), 0>, Dimensions<2>>);
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix(a)), 1>, Dimensions<3>>);
@@ -267,7 +267,7 @@ TEST(matrices, TypedMatrix_deduction_guides)
 
 TEST(matrices, TypedMatrix_make_functions)
 {
-  auto a = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
+  auto a = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
   EXPECT_TRUE(is_near(make_matrix<C2, C3>(a), a));
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_matrix<C2, C3, 0>(a))>, C2>);
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_matrix<C2, C3>(a)), 1>, C3>);
@@ -308,11 +308,11 @@ TEST(matrices, TypedMatrix_traits)
   static_assert(not identity_matrix<Mat23>);
   static_assert(identity_matrix<Matrix<C2, C2, I22>>);
   static_assert(not identity_matrix<Matrix<C2, Dimensions<2>, I22>>);
-  static_assert(not zero_matrix<Mat23>);
-  static_assert(zero_matrix<Matrix<C2, C2, Z22>>);
-  static_assert(zero_matrix<Matrix<C2, C3, ZeroMatrix<eigen_matrix_t<double, 2, 3>>>>);
+  static_assert(not zero<Mat23>);
+  static_assert(zero<Matrix<C2, C2, Z22>>);
+  static_assert(zero<Matrix<C2, C3, ZeroMatrix<eigen_matrix_t<double, 2, 3>>>>);
 
-  EXPECT_TRUE(is_near(make_zero_matrix_like<Mat23>(), eigen_matrix_t<double, 2, 3>::Zero()));
+  EXPECT_TRUE(is_near(make_zero<Mat23>(), eigen_matrix_t<double, 2, 3>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<Mat22>(), eigen_matrix_t<double, 2, 2>::Identity()));
 }
 
@@ -326,9 +326,9 @@ TEST(matrices, TypedMatrix_overloads)
   EXPECT_TRUE(is_near(to_covariance_nestable<T2l>(Mat22 {3, 0, 1, 3}), Mat22 {3, 0, 1, 3}));
   EXPECT_TRUE(is_near(to_covariance_nestable<T2u>(Mat22 {3, 1, 0, 3}), Mat22 {3, 1, 0, 3}));
 
-  EXPECT_TRUE(is_near(nested_matrix(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, 4, 5, 6}));
+  EXPECT_TRUE(is_near(nested_object(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, 4, 5, 6}));
 
-  EXPECT_TRUE(is_near(make_dense_writable_matrix_from(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, 4, 5, 6}));
+  EXPECT_TRUE(is_near(make_dense_object_from(Mat23 {1, 2, 3, 4, 5, 6}), Mat23 {1, 2, 3, 4, 5, 6}));
 
   EXPECT_TRUE(is_near(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6} * 2), Mat23 {2, 4, 6, 8, 10, 12}));
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(Mat23 {1, 2, 3, 4, 5, 6} * 2))>, Mat23>);
@@ -338,14 +338,14 @@ TEST(matrices, TypedMatrix_overloads)
                             0.5, std::sqrt(3)/2, sqrt2/2,
                             std::sqrt(3)/2, 0.5, sqrt2/2}));
 
-  EXPECT_TRUE(is_near(to_diagonal(Mat21 {2, 3}).nested_matrix(), Mat22 {2, 0, 0, 3}));
+  EXPECT_TRUE(is_near(to_diagonal(Mat21 {2, 3}).nested_object(), Mat22 {2, 0, 0, 3}));
   static_assert(diagonal_matrix<decltype(to_diagonal(Mat21 {2, 3}))>);
   static_assert(typed_matrix<decltype(to_diagonal(Mat21 {2, 3}))>);
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(to_diagonal(Mat21 {2, 3})), 1>, C2>);
 
-  EXPECT_TRUE(is_near(transpose(Mat23 {1, 2, 3, 4, 5, 6}).nested_matrix(), Mat32 {1, 4, 2, 5, 3, 6}));
+  EXPECT_TRUE(is_near(transpose(Mat23 {1, 2, 3, 4, 5, 6}).nested_object(), Mat32 {1, 4, 2, 5, 3, 6}));
 
-  EXPECT_TRUE(is_near(adjoint(Mat23 {1, 2, 3, 4, 5, 6}).nested_matrix(), Mat32 {1, 4, 2, 5, 3, 6}));
+  EXPECT_TRUE(is_near(adjoint(Mat23 {1, 2, 3, 4, 5, 6}).nested_object(), Mat32 {1, 4, 2, 5, 3, 6}));
 
   EXPECT_NEAR(determinant(Mat22 {1, 2, 3, 4}), -2, 1e-6);
 
@@ -360,7 +360,7 @@ TEST(matrices, TypedMatrix_overloads)
   EXPECT_TRUE(is_near(square(QR_decomposition(Matrix<Dimensions<3>, C2, M32> {1, 4, 2, 5, 3, 6})), Mat22 {14, 32, 32, 77}));
 
   using N = std::normal_distribution<double>;
-  Mat23 m = make_zero_matrix_like<Mat23>();
+  Mat23 m = make_zero<Mat23>();
   for (int i=0; i<100; i++)
   {
     m = (m * i + randomize<Mat23>(N {1.0, 0.1}, 2.0, N {3.0, 0.1}, N {4.0, 0.1}, 5.0, N {6.0, 0.1})) / (i + 1);

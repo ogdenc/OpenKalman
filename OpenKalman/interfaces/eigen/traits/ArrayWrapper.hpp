@@ -42,15 +42,16 @@ namespace OpenKalman::interface
 
     static constexpr bool has_runtime_parameters = false;
 
-    template<std::size_t i, typename Arg>
-    static NestedXpr get_nested_matrix(Arg&& arg)
+    template<typename Arg>
+    static NestedXpr
+    nested_object(Arg&& arg)
     {
-      static_assert(i == 0);
       if constexpr (std::is_lvalue_reference_v<NestedXpr>)
         return const_cast<NestedXpr>(std::forward<Arg>(arg).nestedExpression());
       else
         return static_cast<NestedXpr>(std::forward<Arg>(arg).nestedExpression());
     }
+
 
     template<typename Arg>
     static auto convert_to_self_contained(Arg&& arg)
@@ -59,8 +60,9 @@ namespace OpenKalman::interface
       if constexpr (not std::is_lvalue_reference_v<typename N::NestedExpressionType>)
         return N {make_self_contained(arg.nestedExpression())};
       else
-        return make_dense_writable_matrix_from(std::forward<Arg>(arg));
+        return make_dense_object(std::forward<Arg>(arg));
     }
+
 
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -68,24 +70,31 @@ namespace OpenKalman::interface
       return constant_coefficient{arg.nestedExpression()};
     }
 
+
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
       return constant_diagonal_coefficient {arg.nestedExpression()};
     }
 
-    template<Likelihood b>
-    static constexpr bool is_one_by_one = one_by_one_matrix<XprType, b>;
 
     template<Likelihood b>
-    static constexpr bool is_square = square_matrix<XprType, b>;
+    static constexpr bool one_dimensional = OpenKalman::one_dimensional<XprType, b>;
+
+
+    template<Likelihood b>
+    static constexpr bool is_square = square_shaped<XprType, b>;
+
 
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
+
     static constexpr bool is_triangular_adapter = false;
 
+
     static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+
 
     static constexpr Layout layout = layout_of_v<XprType>;
 

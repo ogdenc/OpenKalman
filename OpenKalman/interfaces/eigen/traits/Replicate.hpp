@@ -36,12 +36,13 @@ namespace OpenKalman::interface
 
     static constexpr bool has_runtime_parameters = RowFactor == Eigen::Dynamic or ColFactor == Eigen::Dynamic;
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
+
+    template<typename Arg>
+    static decltype(auto) nested_object(Arg&& arg)
     {
-      static_assert(i == 0);
       return std::forward<Arg>(arg).nestedExpression();
     }
+
 
     template<typename Arg>
     static auto convert_to_self_contained(Arg&& arg)
@@ -50,7 +51,7 @@ namespace OpenKalman::interface
       if constexpr (not std::is_lvalue_reference_v<typename Eigen::internal::traits<N>::MatrixTypeNested>)
         return N {make_self_contained(arg.nestedExpression())};
       else
-        return make_dense_writable_matrix_from(std::forward<Arg>(arg));
+        return make_dense_object(std::forward<Arg>(arg));
     }
 
     template<typename Arg>
@@ -77,17 +78,17 @@ namespace OpenKalman::interface
     }
 
     template<Likelihood b>
-    static constexpr bool is_one_by_one =
+    static constexpr bool one_dimensional =
       (b != Likelihood::definitely or (RowFactor == 1 and ColFactor == 1)) and
       (RowFactor == 1 or RowFactor == Eigen::Dynamic) and
       (ColFactor == 1 or ColFactor == Eigen::Dynamic) and
-      one_by_one_matrix<MatrixType, b>;
+        OpenKalman::one_dimensional<MatrixType, b>;
 
     template<Likelihood b>
     static constexpr bool is_square =
       (b != Likelihood::definitely or not has_dynamic_dimensions<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>) and
       (RowFactor == Eigen::Dynamic or ColFactor == Eigen::Dynamic or
-        ((RowFactor != ColFactor or square_matrix<MatrixType, b>) and
+        ((RowFactor != ColFactor or square_shaped<MatrixType, b>) and
         (dynamic_dimension<MatrixType, 0> or RowFactor * index_dimension_of_v<MatrixType, 0> % ColFactor == 0) and
         (dynamic_dimension<MatrixType, 1> or ColFactor * index_dimension_of_v<MatrixType, 1> % RowFactor == 0))) and
       (has_dynamic_dimensions<MatrixType> or

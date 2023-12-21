@@ -104,28 +104,28 @@ namespace OpenKalman::internal
     template<std::convertible_to<const Scalar>...Args> requires (sizeof...(Args) > 0) and
       (not diagonal_matrix<NestedMatrix> or
         requires(Args...args) {
-          NestedMatrix {make_dense_writable_matrix_from<decltype(diagonal_of(std::declval<NestedMatrix>()))>(static_cast<const Scalar>(args)...)}; }) and
+          NestedMatrix {make_dense_object_from<decltype(diagonal_of(std::declval<NestedMatrix>()))>(static_cast<const Scalar>(args)...)}; }) and
       (diagonal_matrix<NestedMatrix> or
         requires(Args...args) {
-          NestedMatrix {make_dense_writable_matrix_from<NestedMatrix>(static_cast<const Scalar>(args)...)}; })
+          NestedMatrix {make_dense_object_from<NestedMatrix>(static_cast<const Scalar>(args)...)}; })
 #else
     template<typename ... Args, std::enable_if_t<(std::is_convertible_v<Args, const Scalar> and ...) and
       (sizeof...(Args) > 0) and diagonal_matrix<NestedMatrix> and
         (not diagonal_matrix<NestedMatrix> or
-          std::is_constructible_v<NestedMatrix, decltype(make_dense_writable_matrix_from<decltype(diagonal_of(std::declval<NestedMatrix>()))>(static_cast<const Scalar>(std::declval<Args>())...))>) and
+          std::is_constructible_v<NestedMatrix, decltype(make_dense_object_from<decltype(diagonal_of(std::declval<NestedMatrix>()))>(static_cast<const Scalar>(std::declval<Args>())...))>) and
         (diagonal_matrix<NestedMatrix> or
-          std::is_constructible_v<NestedMatrix, decltype(make_dense_writable_matrix_from<NestedMatrix>(static_cast<const Scalar>(std::declval<Args>())...))>), int> = 0>
+          std::is_constructible_v<NestedMatrix, decltype(make_dense_object_from<NestedMatrix>(static_cast<const Scalar>(std::declval<Args>())...))>), int> = 0>
 #endif
     TypedMatrixBase(Args...args)
       : Base {[](Args...args){
           if constexpr (diagonal_matrix<NestedMatrix>)
           {
             using Diag = decltype(diagonal_of(std::declval<NestedMatrix>()));
-            return make_dense_writable_matrix_from<Diag>(static_cast<const Scalar>(args)...);
+            return make_dense_object_from<Diag>(static_cast<const Scalar>(args)...);
           }
           else
           {
-            return make_dense_writable_matrix_from<NestedMatrix>(static_cast<const Scalar>(args)...);
+            return make_dense_object_from<NestedMatrix>(static_cast<const Scalar>(args)...);
           }
         }(args...)} {}
 
@@ -142,7 +142,7 @@ namespace OpenKalman::internal
 #endif
     auto& operator=(Arg&& arg)
     {
-      if constexpr (not zero_matrix<NestedMatrix> and not identity_matrix<NestedMatrix>)
+      if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
         Base::operator=(std::forward<Arg>(arg));
         return *this;
@@ -158,7 +158,7 @@ namespace OpenKalman::internal
 #endif
     auto& operator*=(const S s)
     {
-      this->nested_matrix() *= s;
+      this->nested_object() *= s;
       return *this;
     }
 
@@ -171,7 +171,7 @@ namespace OpenKalman::internal
 #endif
     auto& operator/=(const S s)
     {
-      this->nested_matrix() /= s;
+      this->nested_object() /= s;
       return *this;
     }
 

@@ -50,9 +50,9 @@ namespace OpenKalman::test
       auto diff = arg1 - arg2;
       if constexpr (std::is_arithmetic_v<Err>)
       {
-        auto lhs = get_element(T0{(diff * diff).sum()});
-        auto sum1 = get_element(T0{(arg1 * arg1).sum()});
-        auto sum2 = get_element(T0{(arg2 * arg2).sum()});
+        auto lhs = get_component(T0{(diff * diff).sum()});
+        auto sum1 = get_component(T0{(arg1 * arg1).sum()});
+        auto sum2 = get_component(T0{(arg2 * arg2).sum()});
         auto err2 = err * err;
         auto rhs = err2 * std::min(sum1, sum2);
         if (lhs <= rhs or (sum1 <= err2 and sum2 <= err2))
@@ -62,7 +62,7 @@ namespace OpenKalman::test
       }
       else
       {
-        if (get_element(T0{(diff.abs() - err).maximum()}) <= 0)
+        if (get_component(T0{(diff.abs() - err).maximum()}) <= 0)
         {
           return ::testing::AssertionSuccess();
         }

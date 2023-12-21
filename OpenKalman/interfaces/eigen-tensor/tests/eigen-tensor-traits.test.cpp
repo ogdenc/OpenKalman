@@ -40,24 +40,24 @@ TEST(eigen_tensor, Tensor)
   T4 t2222 {2, 2, 2, 2};
   t2222.setValues({{{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}}, {{{9, 10}, {11, 12}}, {{13, 14}, {15, 16}}}});
 
-  EXPECT_EQ(get_element(t2222, 0, 0, 0, 0), 1);
-  EXPECT_EQ(get_element(t2222, 1, 1, 1, 1), 16);
-  EXPECT_EQ(get_element(t2222, 0, 1, 0, 1), 6);
-  EXPECT_EQ(get_element(t2222, 1, 0, 1, 0), 11);
-  set_element(t2222, 11.5, 1, 0, 1, 0);
-  EXPECT_EQ(get_element(t2222, 1, 0, 1, 0), 11.5);
+  EXPECT_EQ(get_component(t2222, 0, 0, 0, 0), 1);
+  EXPECT_EQ(get_component(t2222, 1, 1, 1, 1), 16);
+  EXPECT_EQ(get_component(t2222, 0, 1, 0, 1), 6);
+  EXPECT_EQ(get_component(t2222, 1, 0, 1, 0), 11);
+  set_component(t2222, 11.5, 1, 0, 1, 0);
+  EXPECT_EQ(get_component(t2222, 1, 0, 1, 0), 11.5);
 
-  auto t1234 = make_default_dense_writable_matrix_like<T4>(1, 2, 3, 4);
+  auto t1234 = make_dense_object<T4>(1, 2, 3, 4);
   static_assert(std::is_same_v<std::decay_t<decltype(t1234)>, T4>);
 
   t1234.setValues({{{{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}}, {{13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24}}}});
 
-  EXPECT_EQ(get_element(t1234, 0, 0, 0, 0), 1);
-  EXPECT_EQ(get_element(t1234, 0, 1, 2, 3), 24);
-  EXPECT_EQ(get_element(t1234, 0, 0, 2, 3), 12);
-  EXPECT_EQ(get_element(t1234, 0, 1, 1, 2), 19);
-  set_element(t1234, 19.5, 0, 1, 1, 2);
-  EXPECT_EQ(get_element(t1234, 0, 1, 1, 2), 19.5);
+  EXPECT_EQ(get_component(t1234, 0, 0, 0, 0), 1);
+  EXPECT_EQ(get_component(t1234, 0, 1, 2, 3), 24);
+  EXPECT_EQ(get_component(t1234, 0, 0, 2, 3), 12);
+  EXPECT_EQ(get_component(t1234, 0, 1, 1, 2), 19);
+  set_component(t1234, 19.5, 0, 1, 1, 2);
+  EXPECT_EQ(get_component(t1234, 0, 1, 1, 2), 19.5);
 
   static_assert(layout_of_v<T4> == Layout::left);
   static_assert(layout_of_v<Eigen::Tensor<double, 4, Eigen::RowMajor>> == Layout::right);
@@ -79,14 +79,14 @@ TEST(eigen_tensor, TensorFixedSize)
   T2222 t2222;
   t2222.setValues({{{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}}, {{{9, 10}, {11, 12}}, {{13, 14}, {15, 16}}}});
 
-  EXPECT_EQ(get_element(t2222, 0, 0, 0, 0), 1);
-  EXPECT_EQ(get_element(t2222, 1, 1, 1, 1), 16);
-  EXPECT_EQ(get_element(t2222, 0, 1, 0, 1), 6);
-  EXPECT_EQ(get_element(t2222, 1, 0, 1, 0), 11);
-  set_element(t2222, 11.5, 1, 0, 1, 0);
-  EXPECT_EQ(get_element(t2222, 1, 0, 1, 0), 11.5);
+  EXPECT_EQ(get_component(t2222, 0, 0, 0, 0), 1);
+  EXPECT_EQ(get_component(t2222, 1, 1, 1, 1), 16);
+  EXPECT_EQ(get_component(t2222, 0, 1, 0, 1), 6);
+  EXPECT_EQ(get_component(t2222, 1, 0, 1, 0), 11);
+  set_component(t2222, 11.5, 1, 0, 1, 0);
+  EXPECT_EQ(get_component(t2222, 1, 0, 1, 0), 11.5);
 
-  auto t1234 = make_default_dense_writable_matrix_like<T2222>(N1{}, N2{}, N3{}, N4{});
+  auto t1234 = make_dense_object<T2222>(N1{}, N2{}, N3{}, N4{});
   using T1234 = decltype(t1234);
 
   static_assert(index_dimension_of_v<T1234, 0> == 1);
@@ -100,12 +100,12 @@ TEST(eigen_tensor, TensorFixedSize)
 
   t1234.setValues({{{{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}}, {{13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24}}}});
 
-  EXPECT_EQ(get_element(t1234, 0, 0, 0, 0), 1);
-  EXPECT_EQ(get_element(t1234, 0, 1, 2, 3), 24);
-  EXPECT_EQ(get_element(t1234, 0, 0, 2, 3), 12);
-  EXPECT_EQ(get_element(t1234, 0, 1, 1, 2), 19);
-  set_element(t1234, 19.5, 0, 1, 1, 2);
-  EXPECT_EQ(get_element(t1234, 0, 1, 1, 2), 19.5);
+  EXPECT_EQ(get_component(t1234, 0, 0, 0, 0), 1);
+  EXPECT_EQ(get_component(t1234, 0, 1, 2, 3), 24);
+  EXPECT_EQ(get_component(t1234, 0, 0, 2, 3), 12);
+  EXPECT_EQ(get_component(t1234, 0, 1, 1, 2), 19);
+  set_component(t1234, 19.5, 0, 1, 1, 2);
+  EXPECT_EQ(get_component(t1234, 0, 1, 1, 2), 19.5);
 
   static_assert(layout_of_v<T2222> == Layout::left);
   static_assert(layout_of_v<Eigen::TensorFixedSize<double, Eigen::Sizes<2,2,2,2>, Eigen::RowMajor>> == Layout::right);
@@ -136,11 +136,11 @@ TEST(eigen_tensor, TensorMap)
   static_assert(layout_of_v<S64_4d> == Layout::left);
   static_assert(directly_accessible<S64_4d>);
 
-  EXPECT_EQ(get_element(s64_4d, 0, 0, 0, 0), 0);
-  EXPECT_EQ(get_element(s64_4d, 1, 2, 1, 1), 29);
-  set_element(s64_4d, 0.5, 0, 0, 0, 0);
-  set_element(s64_4d, 29.5, 1, 2, 1, 1);
-  EXPECT_EQ(get_element(s64_4d, 1, 2, 1, 1), 29.5);
+  EXPECT_EQ(get_component(s64_4d, 0, 0, 0, 0), 0);
+  EXPECT_EQ(get_component(s64_4d, 1, 2, 1, 1), 29);
+  set_component(s64_4d, 0.5, 0, 0, 0, 0);
+  set_component(s64_4d, 29.5, 1, 2, 1, 1);
+  EXPECT_EQ(get_component(s64_4d, 1, 2, 1, 1), 29.5);
   EXPECT_EQ(*internal::raw_data(s64_4d), 0.5);
   EXPECT_EQ(internal::raw_data(s64_4d)[29], 29.5);
 
@@ -156,11 +156,11 @@ TEST(eigen_tensor, TensorMap)
   static_assert(layout_of_v<S64_2d> == Layout::right);
   static_assert(directly_accessible<S64_2d>);
 
-  EXPECT_EQ(get_element(s64_2d, 0, 0), 0.5);
-  EXPECT_EQ(get_element(s64_2d, 1, 13), 29.5);
-  set_element(s64_2d, 0.7, 0, 0);
-  set_element(s64_2d, 29.7, 1, 13);
-  EXPECT_EQ(get_element(s64_2d, 1, 13), 29.7);
+  EXPECT_EQ(get_component(s64_2d, 0, 0), 0.5);
+  EXPECT_EQ(get_component(s64_2d, 1, 13), 29.5);
+  set_component(s64_2d, 0.7, 0, 0);
+  set_component(s64_2d, 29.7, 1, 13);
+  EXPECT_EQ(get_component(s64_2d, 1, 13), 29.7);
   EXPECT_EQ(*internal::raw_data(s64_2d), 0.7);
   EXPECT_EQ(internal::raw_data(s64_2d)[29], 29.7);
 }
@@ -168,7 +168,7 @@ TEST(eigen_tensor, TensorMap)
 
 TEST(eigen_tensor, tensor_to_matrix)
 {
-  const auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
+  const auto m23 = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
 
   using T23 = Eigen::TensorFixedSize<double, Eigen::Sizes<2,3>>;
   static_assert(layout_of_v<T23> == Layout::left);
@@ -177,14 +177,14 @@ TEST(eigen_tensor, tensor_to_matrix)
   t23.setValues({{1, 2, 3}, {4, 5, 6}});
   EXPECT_TRUE(is_near(Eigen3::make_eigen_wrapper(t23), m23));
   EXPECT_TRUE(is_near(Eigen3::make_eigen_wrapper(t23) + m23.reverse(), M23::Constant(7)));
-  EXPECT_TRUE(is_near(Eigen3::make_eigen_wrapper(t23) * m23.transpose(), make_dense_writable_matrix_from<M22>(14, 32, 32, 77)));
+  EXPECT_TRUE(is_near(Eigen3::make_eigen_wrapper(t23) * m23.transpose(), make_dense_object_from<M22>(14, 32, 32, 77)));
 
   static_assert(not eigen_matrix_general<T23>);
   static_assert(not eigen_array_general<T23>);
   static_assert(directly_accessible<T23>);
   EXPECT_TRUE(is_near(to_native_matrix<M23>(t23), m23));
   EXPECT_TRUE(is_near(to_native_matrix<M23>(t23) + m23.reverse(), M23::Constant(7)));
-  EXPECT_TRUE(is_near(to_native_matrix<M23>(t23) * m23.transpose(), make_dense_writable_matrix_from<M22>(14, 32, 32, 77)));
+  EXPECT_TRUE(is_near(to_native_matrix<M23>(t23) * m23.transpose(), make_dense_object_from<M22>(14, 32, 32, 77)));
 
   using T23r = Eigen::TensorFixedSize<double, Eigen::Sizes<2,3>, Eigen::RowMajor>;
   static_assert(layout_of_v<T23r> == Layout::right);
@@ -192,46 +192,46 @@ TEST(eigen_tensor, tensor_to_matrix)
   t23r.setValues({{1, 2, 3}, {4, 5, 6}});
   EXPECT_TRUE(is_near(to_native_matrix<M23>(t23r), m23));
   EXPECT_TRUE(is_near(to_native_matrix<M23>(t23r) + m23.reverse(), M23::Constant(7)));
-  EXPECT_TRUE(is_near(to_native_matrix<M23>(t23r) * m23.transpose(), make_dense_writable_matrix_from<M22>(14, 32, 32, 77)));
+  EXPECT_TRUE(is_near(to_native_matrix<M23>(t23r) * m23.transpose(), make_dense_object_from<M22>(14, 32, 32, 77)));
 }
 
 
 TEST(eigen_tensor, matrix_to_tensor)
 {
-  static_assert(not std::is_lvalue_reference_v<decltype(nested_matrix(std::declval<Eigen3::EigenTensorWrapper<M22>>()))>);
-  static_assert(not std::is_lvalue_reference_v<decltype(nested_matrix(std::declval<Eigen3::EigenTensorWrapper<I22>>()))>);
-  static_assert(std::is_lvalue_reference_v<decltype(nested_matrix(std::declval<Eigen3::EigenTensorWrapper<M22&>>()))>);
-  static_assert(std::is_lvalue_reference_v<decltype(nested_matrix(std::declval<Eigen3::EigenTensorWrapper<I22&>>()))>);
+  static_assert(not std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen3::EigenTensorWrapper<M22>>()))>);
+  static_assert(not std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen3::EigenTensorWrapper<I22>>()))>);
+  static_assert(std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen3::EigenTensorWrapper<M22&>>()))>);
+  static_assert(std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen3::EigenTensorWrapper<I22&>>()))>);
 
-  static_assert(not std::is_lvalue_reference_v<decltype(nested_matrix(std::declval<EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>>>()))>);
-  static_assert(std::is_lvalue_reference_v<decltype(nested_matrix(std::declval<EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>&>>()))>);
-  static_assert(not std::is_lvalue_reference_v<decltype(nested_matrix(std::declval<EigenTensorWrapper<Eigen::DiagonalWrapper<M31>>>()))>);
-  static_assert(std::is_lvalue_reference_v<decltype(nested_matrix(std::declval<EigenTensorWrapper<Eigen::DiagonalWrapper<M31>&>>()))>);
+  static_assert(not std::is_lvalue_reference_v<decltype(nested_object(std::declval<EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>>>()))>);
+  static_assert(std::is_lvalue_reference_v<decltype(nested_object(std::declval<EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>&>>()))>);
+  static_assert(not std::is_lvalue_reference_v<decltype(nested_object(std::declval<EigenTensorWrapper<Eigen::DiagonalWrapper<M31>>>()))>);
+  static_assert(std::is_lvalue_reference_v<decltype(nested_object(std::declval<EigenTensorWrapper<Eigen::DiagonalWrapper<M31>&>>()))>);
 
-  static_assert(std::is_same_v<decltype(nested_matrix(std::declval<Eigen3::EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>>>())), Eigen::DiagonalMatrix<double, 3>&&>);
-  static_assert(not std::is_lvalue_reference_v<decltype(nested_matrix(std::declval<Eigen3::EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>>>()))>);
+  static_assert(std::is_same_v<decltype(nested_object(std::declval<Eigen3::EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>>>())), Eigen::DiagonalMatrix<double, 3>&&>);
+  static_assert(not std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen3::EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>>>()))>);
 
   static_assert(Eigen3::eigen_tensor_general<Eigen3::EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>>>);
 
-  static_assert(Eigen3::eigen_general<decltype(make_default_dense_writable_matrix_like<M11>(N1{}, N2{}))>);
-  static_assert(not Eigen3::eigen_tensor_general<decltype(make_default_dense_writable_matrix_like<M11>(N1{}, N2{}))>);
+  static_assert(Eigen3::eigen_general<decltype(make_dense_object<M11>(N1{}, N2{}))>);
+  static_assert(not Eigen3::eigen_tensor_general<decltype(make_dense_object<M11>(N1{}, N2{}))>);
 
   // Because there are four inputs, the result cannot be an Eigen matrix so this function returns an Eigen tensor:
-  using T1234 = decltype(make_default_dense_writable_matrix_like<M11>(N1{}, N2{}, N3{}, N4{}));
+  using T1234 = decltype(make_dense_object<M11>(N1{}, N2{}, N3{}, N4{}));
   static_assert(Eigen3::eigen_tensor_general<T1234>);
   static_assert(index_dimension_of_v<T1234, 0> == 1);
   static_assert(index_dimension_of_v<T1234, 1> == 2);
   static_assert(index_dimension_of_v<T1234, 2> == 3);
   static_assert(index_dimension_of_v<T1234, 3> == 4);
 
-  using T4mat = decltype(make_default_dense_writable_matrix_like<M11>(1, 2, 3, 4));
+  using T4mat = decltype(make_dense_object<M11>(1, 2, 3, 4));
   static_assert(Eigen3::eigen_tensor_general<T4mat>);
   static_assert(dynamic_dimension<T4mat, 0>);
   static_assert(dynamic_dimension<T4mat, 1>);
   static_assert(dynamic_dimension<T4mat, 2>);
   static_assert(dynamic_dimension<T4mat, 3>);
 
-  auto m23 = make_dense_writable_matrix_from<M23>(1, 2, 3, 4, 5, 6);
+  auto m23 = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
   using T23 = Eigen::TensorFixedSize<double, Eigen::Sizes<2,3>>;
   T23 t23;
   t23.setValues({{1, 2, 3}, {4, 5, 6}});

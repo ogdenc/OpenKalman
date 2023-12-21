@@ -117,7 +117,7 @@ namespace OpenKalman
     else
     {
       auto m = std::apply(
-        [](auto&&...d) { return make_default_dense_writable_matrix_like<Block>(std::forward<decltype(d)>(d)...); },
+        [](auto&&...d) { return make_dense_object<Block>(std::forward<decltype(d)>(d)...); },
         ds_tuple);
 
       auto current_position = std::tuple{(vector_space_descriptor<Ds> ? std::size_t(0) : std::size_t(-1))...};

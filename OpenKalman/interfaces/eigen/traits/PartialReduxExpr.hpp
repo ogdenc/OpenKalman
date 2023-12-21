@@ -26,7 +26,7 @@ namespace OpenKalman::interface
   {
     template<typename XprType>
     struct is_diag : std::bool_constant<
-      zero_matrix<XprType> or one_by_one_matrix<XprType> ? true :
+      zero<XprType> or one_dimensional<XprType> ? true :
       constant_matrix<XprType> ? false :
       constant_diagonal_matrix<XprType, CompileTimeStatus::any, Likelihood::maybe> ? true :
       constant_matrix<XprType, CompileTimeStatus::any, Likelihood::maybe> ? std::false_type{} : false> {};
@@ -59,7 +59,7 @@ namespace OpenKalman::interface
     {
       if constexpr (factor == dynamic_size)
       {
-        auto d = internal::index_dimension_value_of<direction>(xpr);
+        auto d = get_index_dimension_of<direction>(xpr);
         auto f = get_scalar_constant_value(dim) / d;
         return Eigen3::SingleConstantPartialRedux<XprType, MemberOp>::get_constant(c, d, f);
       }
@@ -100,7 +100,7 @@ namespace OpenKalman::interface
 #endif
     constexpr auto get_PartialReduxExpr_constant(const XprType& xpr, const Dim& dim)
     {
-      return get_PartialReduxExpr_constant<MemberOp, Direction>(nested_matrix(xpr), dim);
+      return get_PartialReduxExpr_constant<MemberOp, Direction>(nested_object(xpr), dim);
     }
 
 
@@ -176,12 +176,13 @@ namespace OpenKalman::interface
 
     static constexpr bool has_runtime_parameters = false;
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
+
+    template<typename Arg>
+    static decltype(auto) nested_object(Arg&& arg)
     {
-      static_assert(i == 0);
       return std::forward<Arg>(arg).nestedExpression();
     }
+
 
     // If a partial redux expression needs to be partially evaluated, it's probably faster to do a full evaluation.
     // Thus, we omit the conversion function.
@@ -192,7 +193,7 @@ namespace OpenKalman::interface
       // colwise (acting on columns) is Eigen::Vertical and rowwise (acting on rows) is Eigen::Horizontal
       constexpr std::size_t N = Direction == Eigen::Horizontal ? 1 : 0;
       const auto& x {arg.nestedExpression()};
-      auto dim = internal::index_dimension_value_of<N>(x);
+      auto dim = get_index_dimension_of<N>(x);
 
       return detail::get_PartialReduxExpr_constant<MemberOp, Direction>(x, dim);
     }

@@ -24,11 +24,11 @@ namespace OpenKalman
    * \tparam Arg A general matrix to be made triangular.
    */
 #ifdef __cpp_concepts
-  template<TriangleType t = TriangleType::lower, square_matrix<Likelihood::maybe> Arg> requires
+  template<TriangleType t = TriangleType::lower, square_shaped<Likelihood::maybe> Arg> requires
     (t == TriangleType::lower or t == TriangleType::upper or t == TriangleType::diagonal)
   constexpr triangular_matrix<t> decltype(auto)
 #else
-  template<TriangleType t = TriangleType::lower, typename Arg, std::enable_if_t<square_matrix<Arg, Likelihood::maybe> and
+  template<TriangleType t = TriangleType::lower, typename Arg, std::enable_if_t<square_shaped<Arg, Likelihood::maybe> and
     (t == TriangleType::lower or t == TriangleType::upper or t == TriangleType::diagonal), int> = 0>
   constexpr decltype(auto)
 #endif
@@ -51,14 +51,14 @@ namespace OpenKalman
     else if constexpr (triangular_adapter<Arg>)
     {
       // If Arg is a triangular adapter but was not known to be square at compile time, return a result guaranteed to be square triangular.
-      return make_triangular_matrix<t>(nested_matrix(std::forward<Arg>(arg)));
+      return make_triangular_matrix<t>(nested_object(std::forward<Arg>(arg)));
     }
     else if constexpr (hermitian_adapter<Arg>)
     {
       if constexpr (hermitian_adapter<Arg, static_cast<HermitianAdapterType>(t)>)
-        return make_triangular_matrix<t>(nested_matrix(std::forward<Arg>(arg)));
+        return make_triangular_matrix<t>(nested_object(std::forward<Arg>(arg)));
       else
-        return make_triangular_matrix<t>(adjoint(nested_matrix(std::forward<Arg>(arg))));
+        return make_triangular_matrix<t>(adjoint(nested_object(std::forward<Arg>(arg))));
     }
     else if constexpr (interface::make_triangular_matrix_defined_for<std::decay_t<Arg>, t, Arg&&>)
     {

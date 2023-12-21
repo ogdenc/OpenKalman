@@ -50,9 +50,9 @@ namespace OpenKalman::Eigen3
     }
 
     template<TriangleType t, Likelihood b>
-    static constexpr bool is_triangular = square_matrix<PlainObjectType, b>;
+    static constexpr bool is_triangular = square_shaped<PlainObjectType, b>;
 
-    static constexpr bool is_hermitian = square_matrix<PlainObjectType>;
+    static constexpr bool is_hermitian = square_shaped<PlainObjectType>;
   };
 
 
@@ -82,7 +82,7 @@ namespace OpenKalman::Eigen3
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = square_matrix<PlainObjectType> and not complex_number<Scalar>;
+    static constexpr bool is_hermitian = square_shaped<PlainObjectType> and not complex_number<Scalar>;
   };
 
 } // namespace OpenKalman::Eigen3

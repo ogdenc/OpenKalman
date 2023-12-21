@@ -52,7 +52,7 @@ namespace OpenKalman::internal
 
   protected:
     using typename Base::CholeskyNestedMatrix;
-    using Base::nested_matrix;
+    using Base::nested_object;
     using Base::cholesky_nested_matrix;
     using Base::synchronization_direction;
     using Base::synchronize_forward;
@@ -83,12 +83,12 @@ namespace OpenKalman::internal
 #endif
     auto covariance_op(const F1& f1, const F2& f2) const &
     {
-      using Derived2 = decltype(make_dense_writable_matrix_from<Derived>(f1(nested_matrix())));
+      using Derived2 = decltype(make_dense_object<Derived>(f1(nested_object())));
       using R = equivalent_self_contained_t<Derived2>;
       if (synchronization_direction() >= 0)
       {
-        R r {f1(nested_matrix())};
-        if constexpr (not case1or2<Derived, decltype(f1(nested_matrix()))>)
+        R r {f1(nested_object())};
+        if constexpr (not case1or2<Derived, decltype(f1(nested_object()))>)
         {
           if (r.synchronization_direction() > 0 and synchronization_direction() <= 0)
           {
@@ -115,12 +115,12 @@ namespace OpenKalman::internal
 #endif
     auto covariance_op(const F1& f1, const F2& f2) const &&
     {
-      using Derived2 = decltype(make_dense_writable_matrix_from<Derived>(f1(std::move(*this).nested_matrix())));
+      using Derived2 = decltype(make_dense_object<Derived>(f1(std::move(*this).nested_object())));
       using R = equivalent_self_contained_t<Derived2>;
       if (synchronization_direction() >= 0)
       {
-        R r {f1(std::move(*this).nested_matrix())};
-        if constexpr (not case1or2<Derived, decltype(f1(std::move(*this).nested_matrix()))>)
+        R r {f1(std::move(*this).nested_object())};
+        if constexpr (not case1or2<Derived, decltype(f1(std::move(*this).nested_object()))>)
         {
           if (r.synchronization_direction() > 0 and synchronization_direction() <= 0)
           {
@@ -171,7 +171,7 @@ namespace OpenKalman::internal
       if constexpr (direct_nested)
       {
         if (synchronization_direction() < 0) synchronize_reverse();
-        return nested_matrix();
+        return nested_object();
       }
       else
       {
@@ -187,7 +187,7 @@ namespace OpenKalman::internal
       if constexpr (direct_nested)
       {
         if (synchronization_direction() < 0) synchronize_reverse();
-        return nested_matrix();
+        return nested_object();
       }
       else
       {
@@ -203,7 +203,7 @@ namespace OpenKalman::internal
       if constexpr (direct_nested)
       {
         if (synchronization_direction() < 0) std::move(*this).synchronize_reverse();
-        return std::move(*this).nested_matrix();
+        return std::move(*this).nested_object();
       }
       else
       {
@@ -219,7 +219,7 @@ namespace OpenKalman::internal
       if constexpr (direct_nested)
       {
         if (synchronization_direction() < 0) std::move(*this).synchronize_reverse();
-        return std::move(*this).nested_matrix();
+        return std::move(*this).nested_object();
       }
       else
       {
@@ -299,7 +299,7 @@ namespace OpenKalman::internal
       {
         if (synchronization_direction() > 0)
         {
-          return square_root(OpenKalman::determinant(nested_matrix()));
+          return square_root(OpenKalman::determinant(nested_object()));
         }
         else
         {
@@ -310,7 +310,7 @@ namespace OpenKalman::internal
       {
         if (synchronization_direction() > 0)
         {
-          auto d = OpenKalman::determinant(nested_matrix());
+          auto d = OpenKalman::determinant(nested_object());
           return d * d;
         }
         else
@@ -334,7 +334,7 @@ namespace OpenKalman::internal
         }
         else
         {
-          return OpenKalman::determinant(nested_matrix());
+          return OpenKalman::determinant(nested_object());
         }
       }
     }
@@ -427,13 +427,13 @@ namespace OpenKalman::internal
      * \brief Set an element of the cholesky nested matrix.
      */
 #ifdef __cpp_concepts
-    void set_element(const Scalar s, const std::size_t i, const std::size_t j) requires element_settable<NestedMatrix, 2>
+    void set_component(const Scalar s, const std::size_t i, const std::size_t j) requires element_settable<NestedMatrix, 2>
 #else
     template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, 2>, int> = 0>
-    void set_element(const Scalar s, const std::size_t i, const std::size_t j)
+    void set_component(const Scalar s, const std::size_t i, const std::size_t j)
 #endif
     {
-      Base::set_element(s, i, j);
+      Base::set_component(s, i, j);
     }
 
 
@@ -441,13 +441,13 @@ namespace OpenKalman::internal
      * \brief Set an element of the cholesky nested matrix.
      */
 #ifdef __cpp_concepts
-    void set_element(const Scalar s, const std::size_t i) requires element_settable<NestedMatrix, 1>
+    void set_component(const Scalar s, const std::size_t i) requires element_settable<NestedMatrix, 1>
 #else
     template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, 1>, int> = 0>
-    void set_element(const Scalar s, const std::size_t i)
+    void set_component(const Scalar s, const std::size_t i)
 #endif
     {
-      Base::set_element(s, i);
+      Base::set_component(s, i);
     }
 
 

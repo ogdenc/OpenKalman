@@ -24,7 +24,7 @@ namespace OpenKalman::Eigen3
   {
     template<typename XprType>
     struct is_diag : std::bool_constant<
-      zero_matrix<XprType> or one_by_one_matrix<XprType> ? true :
+      zero<XprType> or one_dimensional<XprType> ? true :
       constant_matrix<XprType> ? false :
       constant_diagonal_matrix<XprType, CompileTimeStatus::any, Likelihood::maybe> ? true :
       constant_matrix<XprType, CompileTimeStatus::any, Likelihood::maybe> ? std::false_type{} : false> {};
@@ -70,7 +70,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor& factor) noexcept
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
-      if constexpr (zero_matrix<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
+      if constexpr (zero<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
       else if constexpr (p == 0)
       {
         if constexpr (std::numeric_limits<Scalar>::has_infinity) return std::numeric_limits<Scalar>::infinity();
@@ -89,7 +89,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor& factor) noexcept
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
-      if constexpr (zero_matrix<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
+      if constexpr (zero<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
       else if constexpr (detail::is_diag_v<XprType>) return internal::constexpr_sqrt(factor) * internal::constexpr_abs(c);
       else return internal::constexpr_sqrt(dim * factor) * internal::constexpr_abs(c);
     }
@@ -103,7 +103,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor& factor) noexcept
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
-      if constexpr (zero_matrix<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
+      if constexpr (zero<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
       else if constexpr (detail::is_diag_v<XprType>) return internal::constexpr_sqrt(factor) * internal::constexpr_abs(c);
       else return internal::constexpr_sqrt(dim * factor) * internal::constexpr_abs(c);
     }
@@ -134,7 +134,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor& factor) noexcept
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
-      if constexpr (zero_matrix<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
+      if constexpr (zero<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
       else if constexpr (detail::is_diag_v<XprType>) return scalar_constant_operation {Op{}, c, factor};
       else return scalar_constant_operation {Op{}, c, dim * factor};
     }
@@ -167,7 +167,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor& factor) noexcept
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
-      if constexpr (zero_matrix<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
+      if constexpr (zero<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
       else if constexpr (detail::is_diag_v<XprType>) return scalar_constant_operation {Op{}, c, factor};
       else return scalar_constant_operation {Op{}, c, dim * factor};
     }
@@ -180,7 +180,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor& factor) noexcept
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
-      if constexpr (zero_matrix<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
+      if constexpr (zero<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
       else if constexpr (not detail::is_diag_v<XprType>) return c
       else return (c * factor) / dim;
     }
@@ -205,7 +205,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor& factor) noexcept
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
-      if constexpr (zero_matrix<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
+      if constexpr (zero<XprType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
       else if constexpr (detail::is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
       else return internal::scalar_constant_operation {Op{}, c, dim * factor};
     }
@@ -241,14 +241,14 @@ namespace OpenKalman::Eigen3
     template<typename C, typename Dim, typename Factor>
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor&) noexcept
     {
-      if constexpr (zero_matrix<XprType>)
+      if constexpr (zero<XprType>)
       {
         using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
         return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
       }
       else if constexpr (detail::is_diag_v<XprType>)
       {
-        if constexpr (scalar_constant<C, CompileTimeStatus::known> and not one_by_one_matrix<XprType, Likelihood::maybe>)
+        if constexpr (scalar_constant<C, CompileTimeStatus::known> and not one_dimensional<XprType, Likelihood::maybe>)
           return internal::scalar_constant_operation {Op{}, c, std::integral_constant<std::size_t, 2>{}}; // 2 is an arbitrary number > 1
         else
           return internal::scalar_constant_operation {Op{}, c, dim};
@@ -283,14 +283,14 @@ namespace OpenKalman::Eigen3
     template<typename C, typename Dim, typename Factor>
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor&) noexcept
     {
-      if constexpr (zero_matrix<XprType>)
+      if constexpr (zero<XprType>)
       {
         using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
         return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
       }
       else if constexpr (detail::is_diag_v<XprType>)
       {
-        if constexpr (scalar_constant<C, CompileTimeStatus::known> and not one_by_one_matrix<XprType, Likelihood::maybe>)
+        if constexpr (scalar_constant<C, CompileTimeStatus::known> and not one_dimensional<XprType, Likelihood::maybe>)
           return internal::scalar_constant_operation {Op{}, c, std::integral_constant<std::size_t, 2>{}}; // 2 is an arbitrary number > 1
         else
           return internal::scalar_constant_operation {Op{}, c, dim};
@@ -328,7 +328,7 @@ namespace OpenKalman::Eigen3
     template<typename C, typename Dim, typename Factor>
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor&) noexcept
     {
-      if constexpr (zero_matrix<XprType> or (detail::is_diag_v<XprType> and not one_by_one_matrix<XprType, Likelihood::maybe>))
+      if constexpr (zero<XprType> or (detail::is_diag_v<XprType> and not one_dimensional<XprType, Likelihood::maybe>))
         return std::false_type{};
       else if constexpr (detail::is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, dim};
       else return internal::scalar_constant_operation {Op{}, c};
@@ -365,7 +365,7 @@ namespace OpenKalman::Eigen3
     template<typename C, typename Dim, typename Factor>
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor& factor) noexcept
     {
-      if constexpr (zero_matrix<XprType>) return std::false_type{};
+      if constexpr (zero<XprType>) return std::false_type{};
       else return internal::scalar_constant_operation {Op{}, c, dim * factor};
     }
   };
@@ -400,7 +400,7 @@ namespace OpenKalman::Eigen3
     template<typename C, typename Dim, typename Factor>
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor& factor) noexcept
     {
-      if constexpr (zero_matrix<XprType>) return std::integral_constant<Eigen::Index, 0>{};
+      if constexpr (zero<XprType>) return std::integral_constant<Eigen::Index, 0>{};
       else if constexpr (detail::is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
       else return internal::scalar_constant_operation {Op{}, c, dim * factor};
     }
@@ -428,7 +428,7 @@ namespace OpenKalman::Eigen3
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
 
-      if constexpr (zero_matrix<XprType> or (detail::is_diag_v<XprType> and not one_by_one_matrix<XprType, Likelihood::maybe>))
+      if constexpr (zero<XprType> or (detail::is_diag_v<XprType> and not one_dimensional<XprType, Likelihood::maybe>))
         return internal::ScalarConstant<Likelihood::definitely, Scalar, 0>{};
       else if constexpr (detail::is_diag_v<XprType>)
         return internal::constexpr_pow(internal::scalar_constant_operation {Op{}, c, dim}, factor);

@@ -38,7 +38,7 @@ namespace OpenKalman::internal
    * \internal
    * \brief Covariance Cov's cholesky nested matrix and nested matrix Nested are both either triangular or self-adjoint.
    */
-  template<typename Cov, typename Nested = nested_matrix_of_t<Cov>>
+  template<typename Cov, typename Nested = nested_object_of_t<Cov>>
 #ifdef __cpp_concepts
   concept case1or2 = (self_adjoint_covariance<Cov> and hermitian_matrix<Nested>) or
     (triangular_covariance<Cov> and triangular_matrix<Nested>);
@@ -99,32 +99,32 @@ namespace OpenKalman::internal
      */
     decltype(auto) cholesky_nested_matrix() &
     {
-      if constexpr (triangular_covariance<Derived>) return Cholesky_square(this->nested_matrix());
-      else return Cholesky_factor(this->nested_matrix());
+      if constexpr (triangular_covariance<Derived>) return cholesky_square(this->nested_object());
+      else return cholesky_factor(this->nested_object());
     }
 
 
     /// \internal \overload
     decltype(auto) cholesky_nested_matrix() const &
     {
-      if constexpr (triangular_covariance<Derived>) return Cholesky_square(this->nested_matrix());
-      else return Cholesky_factor(this->nested_matrix());
+      if constexpr (triangular_covariance<Derived>) return cholesky_square(this->nested_object());
+      else return cholesky_factor(this->nested_object());
     }
 
 
     /// \internal \overload
     decltype(auto) cholesky_nested_matrix() &&
     {
-      if constexpr (triangular_covariance<Derived>) return Cholesky_square(std::move(*this).nested_matrix());
-      else return Cholesky_factor(std::move(*this).nested_matrix());
+      if constexpr (triangular_covariance<Derived>) return cholesky_square(std::move(*this).nested_object());
+      else return cholesky_factor(std::move(*this).nested_object());
     }
 
 
     /// \internal \overload
     decltype(auto) cholesky_nested_matrix() const &&
     {
-      if constexpr (triangular_covariance<Derived>) return Cholesky_square(std::move(*this).nested_matrix());
-      else return Cholesky_factor(std::move(*this).nested_matrix());
+      if constexpr (triangular_covariance<Derived>) return cholesky_square(std::move(*this).nested_object());
+      else return cholesky_factor(std::move(*this).nested_object());
     }
 
 
@@ -137,7 +137,7 @@ namespace OpenKalman::internal
 
     /**
      * \internal
-     * \brief Synchronize the state from nested_matrix to cholesky_nested_matrix.
+     * \brief Synchronize the state from nested_object to cholesky_nested_matrix.
      * \details This is a no-op.
      */
     constexpr static void synchronize_forward() {};
@@ -145,7 +145,7 @@ namespace OpenKalman::internal
 
     /**
      * \internal
-     * \brief Synchronize the state from cholesky_nested_matrix to nested_matrix.
+     * \brief Synchronize the state from cholesky_nested_matrix to nested_object.
      * \details This is a no-op.
      */
     constexpr static void synchronize_reverse() {};
@@ -235,14 +235,14 @@ namespace OpenKalman::internal
      */
     auto operator() (std::size_t i, std::size_t j)
     {
-      return ElementAccessor(Base::nested_matrix(), i, j);
+      return ElementAccessor(Base::nested_object(), i, j);
     }
 
 
     /// \overload
     auto operator() (std::size_t i, std::size_t j) const
     {
-      return ElementAccessor(Base::nested_matrix(), i, j);
+      return ElementAccessor(Base::nested_object(), i, j);
     }
 
 
@@ -253,32 +253,32 @@ namespace OpenKalman::internal
      */
     auto operator[] (std::size_t i)
     {
-      return ElementAccessor(Base::nested_matrix(), i);
+      return ElementAccessor(Base::nested_object(), i);
     }
 
 
     /// \overload
     auto operator[] (std::size_t i) const
     {
-      return ElementAccessor(Base::nested_matrix(), i);
+      return ElementAccessor(Base::nested_object(), i);
     }
 
 
     /**
      * \brief Set an element of the cholesky nested matrix.
      */
-    void set_element(const Scalar s, const std::size_t i, const std::size_t j)
+    void set_component(const Scalar s, const std::size_t i, const std::size_t j)
     {
-      OpenKalman::set_element(Base::nested_matrix(), s, i, j);
+      OpenKalman::set_component(Base::nested_object(), s, i, j);
     }
 
 
     /**
      * \brief Set an element of the cholesky nested matrix.
      */
-    void set_element(const Scalar s, const std::size_t i)
+    void set_component(const Scalar s, const std::size_t i)
     {
-      OpenKalman::set_element(Base::nested_matrix(), s, i);
+      OpenKalman::set_component(Base::nested_object(), s, i);
     }
 
   };

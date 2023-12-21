@@ -71,11 +71,11 @@ namespace OpenKalman::internal
 
     /**
      * \internal
-     * \brief Synchronize from cholesky_nested_matrix to nested_matrix.
+     * \brief Synchronize from cholesky_nested_matrix to nested_object.
      */
     void synchronize_reverse() &
     {
-      Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(cholesky_nested);
+      Base::nested_object() = to_covariance_nestable<NestedMatrix>(cholesky_nested);
       synch_direction = 0;
     }
 
@@ -83,21 +83,21 @@ namespace OpenKalman::internal
     /// \internal \overload
     void synchronize_reverse() &&
     {
-      Base::nested_matrix() = to_covariance_nestable<NestedMatrix>(std::move(cholesky_nested));
+      Base::nested_object() = to_covariance_nestable<NestedMatrix>(std::move(cholesky_nested));
       synch_direction = 1;
     }
 
 
     /// \internal \overload
     constexpr void synchronize_reverse() const & {
-      const_cast<CovarianceBase&>(*this).nested_matrix() = to_covariance_nestable<NestedMatrix>(cholesky_nested);
+      const_cast<CovarianceBase&>(*this).nested_object() = to_covariance_nestable<NestedMatrix>(cholesky_nested);
       synch_direction = 0;
     }
 
 
     /// \internal \overload
     constexpr void synchronize_reverse() const && {
-      const_cast<CovarianceBase&>(*this).nested_matrix() =
+      const_cast<CovarianceBase&>(*this).nested_object() =
         to_covariance_nestable<NestedMatrix>(std::move(cholesky_nested));
       synch_direction = 1;
     }
@@ -117,7 +117,7 @@ namespace OpenKalman::internal
 
     /// Copy constructor.
     CovarianceBase(const CovarianceBase& other)
-      : Base {other.synch_direction < 0 ? NestedMatrix {} : NestedMatrix {other.nested_matrix()},
+      : Base {other.synch_direction < 0 ? NestedMatrix {} : NestedMatrix {other.nested_object()},
               std::is_default_constructible_v<CholeskyNestedMatrix> and other.synch_direction > 0 ?
                 CholeskyNestedMatrix {} : CholeskyNestedMatrix {other.cholesky_nested},
               other.synch_direction} {}
@@ -125,7 +125,7 @@ namespace OpenKalman::internal
 
     /// Move constructor.
     CovarianceBase(CovarianceBase&& other) noexcept
-      : Base {std::move(other).nested_matrix(), std::move(other).cholesky_nested, other.synch_direction} {}
+      : Base {std::move(other).nested_object(), std::move(other).cholesky_nested, other.synch_direction} {}
 
 
     /**
@@ -159,10 +159,10 @@ namespace OpenKalman::internal
      */
 #ifdef __cpp_concepts
     template<covariance Arg> requires case1or2<Arg> and
-      (triangular_matrix<nested_matrix_of_t<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>)
+      (triangular_matrix<nested_object_of_t<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and case1or2<Arg> and
-      (triangular_matrix<nested_matrix_of_t<Arg>> == triangular_matrix<NestedMatrix>) and
+      (triangular_matrix<nested_object_of_t<Arg>> == triangular_matrix<NestedMatrix>) and
       (not diagonal_matrix<Arg>), int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
@@ -177,10 +177,10 @@ namespace OpenKalman::internal
      */
 #ifdef __cpp_concepts
     template<covariance Arg> requires case1or2<Arg> and
-      (triangular_matrix<nested_matrix_of_t<Arg>> != triangular_matrix<NestedMatrix> or diagonal_matrix<Arg>)
+      (triangular_matrix<nested_object_of_t<Arg>> != triangular_matrix<NestedMatrix> or diagonal_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and case1or2<Arg> and
-      (triangular_matrix<nested_matrix_of_t<Arg>> != triangular_matrix<NestedMatrix> or diagonal_matrix<Arg>), int> = 0>
+      (triangular_matrix<nested_object_of_t<Arg>> != triangular_matrix<NestedMatrix> or diagonal_matrix<Arg>), int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
       : Base {to_covariance_nestable<CholeskyNestedMatrix>(std::forward<Arg>(arg)), -1} {}

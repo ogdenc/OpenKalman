@@ -137,11 +137,11 @@ namespace OpenKalman
      * or \ref covariance_nestable.
      */
 #ifdef __cpp_concepts
-    template<typename Cov> requires ((covariance<Cov> or (typed_matrix<Cov> and square_matrix<Cov>)) and
+    template<typename Cov> requires ((covariance<Cov> or (typed_matrix<Cov> and square_shaped<Cov>)) and
         equivalent_to<vector_space_descriptor_of_t<Cov, 0>, TypedIndex>) or
       (covariance_nestable<Cov> and index_dimension_of_v<Cov, 0> == dim)
 #else
-    template<typename Cov, std::enable_if_t<(covariance<Cov> or (typed_matrix<Cov> and square_matrix<Cov>)) and
+    template<typename Cov, std::enable_if_t<(covariance<Cov> or (typed_matrix<Cov> and square_shaped<Cov>)) and
         equivalent_to<vector_space_descriptor_of_t<Cov, 0>, TypedIndex>, int> = 0>
     GaussianDistribution(Mean&& mean, Cov&& cov) : mu {std::move(mean)}, sigma {cov_adapter(std::forward<Cov>(cov))} {}
 
@@ -154,7 +154,7 @@ namespace OpenKalman
     /**
      * \brief Construct from matrices representing a mean and a covariance.
      * \tparam M A \ref typed_matrix.
-     * \tparam Cov A \ref covariance or \ref square_matrix "square" \ref typed_matrix.
+     * \tparam Cov A \ref covariance or \ref square_shaped "square" \ref typed_matrix.
      */
 #ifdef __cpp_concepts
     template<typed_matrix M, typename Cov> requires vector<M> and has_untyped_index<M, 1> and
@@ -191,7 +191,7 @@ namespace OpenKalman
     /**
      * \brief Construct from matrices representing a mean and a covariance.
      * \tparam M A \ref typed_matrix_nestable.
-     * \tparam Cov A \ref covariance or \ref square_matrix "square" \ref typed_matrix.
+     * \tparam Cov A \ref covariance or \ref square_shaped "square" \ref typed_matrix.
      */
 #ifdef __cpp_concepts
     template<typed_matrix_nestable M, typename Cov> requires vector<M> and
@@ -223,16 +223,16 @@ namespace OpenKalman
     GaussianDistribution(M&& mean, Cov&& cov) : mu {std::forward<M>(mean)}, sigma {std::forward<Cov>(cov)} {}
 
 
-    /// Construct with only a \ref covariance or \ref square_matrix "square" \ref typed_matrix (mean is set to zero).
+    /// Construct with only a \ref covariance or \ref square_shaped "square" \ref typed_matrix (mean is set to zero).
 #ifdef __cpp_concepts
-    template<typename Cov> requires (covariance<Cov> or (typed_matrix<Cov> and square_matrix<Cov>)) and
+    template<typename Cov> requires (covariance<Cov> or (typed_matrix<Cov> and square_shaped<Cov>)) and
       equivalent_to<vector_space_descriptor_of_t<Cov, 0>, TypedIndex>
 #else
-    template<typename Cov, std::enable_if_t<(covariance<Cov> or (typed_matrix<Cov> and square_matrix<Cov>)) and
+    template<typename Cov, std::enable_if_t<(covariance<Cov> or (typed_matrix<Cov> and square_shaped<Cov>)) and
       equivalent_to<vector_space_descriptor_of_t<Cov, 0>, TypedIndex>, int> = 0>
 #endif
     explicit GaussianDistribution(Cov&& cov) :
-      mu {[]{ make_zero_matrix_like<MeanNestedMatrix>(get_vector_space_descriptor<0>(cov), Dimensions<1>{}); }()},
+      mu {[]{ make_zero<MeanNestedMatrix>(get_vector_space_descriptor<0>(cov), Dimensions<1>{}); }()},
       sigma {cov_adapter(std::forward<Cov>(cov))} {}
 
 
@@ -244,7 +244,7 @@ namespace OpenKalman
       covariance_nestable<Cov> and (index_dimension_of<Cov, 0>::value == dim), int> = 0>
 #endif
     explicit GaussianDistribution(Cov&& cov) :
-      mu {[]{ make_zero_matrix_like<MeanNestedMatrix>(get_vector_space_descriptor<0>(cov), Dimensions<1>{}); }()},
+      mu {[]{ make_zero<MeanNestedMatrix>(get_vector_space_descriptor<0>(cov), Dimensions<1>{}); }()},
       sigma {cov_adapter(std::forward<Cov>(cov))}{}
 
     // ---------------------- //
@@ -311,8 +311,8 @@ namespace OpenKalman
     static auto
     make(M&& m, C&& c)
     {
-      using MB = equivalent_self_contained_t<nested_matrix_of_t<M>>;
-      using CB = equivalent_self_contained_t<nested_matrix_of_t<C>>;
+      using MB = equivalent_self_contained_t<nested_object_of_t<M>>;
+      using CB = equivalent_self_contained_t<nested_object_of_t<C>>;
       return GaussianDistribution<TypedIndex, MB, CB, random_number_engine>(std::forward<M>(m), std::forward<C>(c));
     }
 
@@ -349,16 +349,16 @@ namespace OpenKalman
     {
       static constexpr auto n = sizeof...(Z);
       auto sum = (trace(transpose(z - mu) * solve(sigma, z - mu)) + ...);
-      return -0.5 * (n * (dim * interface::ScalarTraits<Scalar>::log(2 * numbers::pi_v<long double>) +
-        interface::ScalarTraits<Scalar>::log(determinant(sigma))) + sum);
+      return -0.5 * (n * (dim * interface::scalar_traits<Scalar>::log(2 * numbers::pi_v<long double>) +
+        interface::scalar_traits<Scalar>::log(determinant(sigma))) + sum);
     }
 
 
     /// Entropy of the distribution, in bits.
     Scalar entropy() const
     {
-      return 0.5 * (dim * (1 + interface::ScalarTraits<Scalar>::log2(numbers::pi_v<long double>) +
-        Scalar {numbers::log2e_v<long double>}) + interface::ScalarTraits<Scalar>::log2(determinant(sigma)));
+      return 0.5 * (dim * (1 + interface::scalar_traits<Scalar>::log2(numbers::pi_v<long double>) +
+        Scalar {numbers::log2e_v<long double>}) + interface::scalar_traits<Scalar>::log2(determinant(sigma)));
     }
 
 
@@ -387,8 +387,8 @@ namespace OpenKalman
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     vector_space_descriptor_of_t<M, 0>,
-    nested_matrix_of_t<passable_t<M>>,
-    nested_matrix_of_t<passable_t<C>>>;
+    nested_object_of_t<passable_t<M>>,
+    nested_object_of_t<passable_t<C>>>;
 
 
 #ifdef __cpp_concepts
@@ -399,8 +399,8 @@ namespace OpenKalman
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     vector_space_descriptor_of_t<M, 0>,
-    nested_matrix_of_t<passable_t<M>>,
-    nested_matrix_of_t<equivalent_self_contained_t<decltype(square(std::declval<C>()))>>>;
+    nested_object_of_t<passable_t<M>>,
+    nested_object_of_t<equivalent_self_contained_t<decltype(square(std::declval<C>()))>>>;
 
 
 #ifdef __cpp_concepts
@@ -413,8 +413,8 @@ namespace OpenKalman
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     vector_space_descriptor_of_t<M, 0>,
-    nested_matrix_of_t<passable_t<M>>,
-    decltype(to_covariance_nestable(nested_matrix(std::declval<passable_t<C>>())))>;
+    nested_object_of_t<passable_t<M>>,
+    decltype(to_covariance_nestable(nested_object(std::declval<passable_t<C>>())))>;
 
 
 #ifdef __cpp_concepts
@@ -424,7 +424,7 @@ namespace OpenKalman
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     vector_space_descriptor_of_t<M, 0>,
-    nested_matrix_of_t<passable_t<M>>,
+    nested_object_of_t<passable_t<M>>,
     passable_t<C>>;
 
 
@@ -436,7 +436,7 @@ namespace OpenKalman
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     vector_space_descriptor_of_t<C, 0>,
     passable_t<M>,
-    nested_matrix_of_t<passable_t<C>>>;
+    nested_object_of_t<passable_t<C>>>;
 
 
 #ifdef __cpp_concepts
@@ -448,7 +448,7 @@ namespace OpenKalman
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     vector_space_descriptor_of_t<C, 0>,
     passable_t<M>,
-    nested_matrix_of_t<equivalent_self_contained_t<decltype(square(std::declval<C&&>()))>>>;
+    nested_object_of_t<equivalent_self_contained_t<decltype(square(std::declval<C&&>()))>>>;
 
 
 #ifdef __cpp_concepts
@@ -461,7 +461,7 @@ namespace OpenKalman
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     vector_space_descriptor_of_t<C, 0>,
     passable_t<M>,
-    decltype(to_covariance_nestable(nested_matrix(std::declval<passable_t<C>>())))>;
+    decltype(to_covariance_nestable(nested_object(std::declval<passable_t<C>>())))>;
 
 
 #ifdef __cpp_concepts
@@ -506,20 +506,20 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<std::uniform_random_bit_generator re = std::mt19937, typed_matrix M, typename Cov> requires
-    vector<M> and has_untyped_index<M, 1> and square_matrix<Cov> and (covariance<Cov> or typed_matrix<Cov>) and
+    vector<M> and has_untyped_index<M, 1> and square_shaped<Cov> and (covariance<Cov> or typed_matrix<Cov>) and
     (equivalent_to<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Cov, 0>>)
 #else
   template<typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<(not fixed_vector_space_descriptor<re>) and
     typed_matrix<M> and vector<M> and has_untyped_index<M, 1> and
-    square_matrix<Cov> and (covariance<Cov> or typed_matrix<Cov>) and
+    square_shaped<Cov> and (covariance<Cov> or typed_matrix<Cov>) and
     (equivalent_to<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Cov, 0>>), int> = 0>
 #endif
   inline auto
   make_GaussianDistribution(M&& mean, Cov&& cov) noexcept
   {
     using C = vector_space_descriptor_of_t<M, 0>;
-    using Mb = passable_t<nested_matrix_of_t<M>>;
-    using Covb = passable_t<nested_matrix_of_t<Cov>>;
+    using Mb = passable_t<nested_object_of_t<M>>;
+    using Covb = passable_t<nested_object_of_t<Cov>>;
     return GaussianDistribution<C, Mb, Covb, re>(std::forward<M>(mean), std::forward<Cov>(cov));
   }
 
@@ -534,20 +534,20 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<std::uniform_random_bit_generator re = std::mt19937, typed_matrix M, typename Cov> requires
     vector<M> and has_untyped_index<M, 1> and
-    square_matrix<Cov> and (covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
+    square_shaped<Cov> and (covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
     (index_dimension_of_v<M, 0> == index_dimension_of_v<Cov, 0>)
 #else
   template<typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<
     (not fixed_vector_space_descriptor<re>) and typed_matrix<M> and vector<M> and has_untyped_index<M, 1> and
-    square_matrix<Cov> and (covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
+    square_shaped<Cov> and (covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
     (index_dimension_of<M, 0>::value == index_dimension_of<Cov, 0>::value), int> = 0>
 #endif
   inline auto
   make_GaussianDistribution(M&& mean, Cov&& cov) noexcept
   {
     using C = vector_space_descriptor_of_t<M, 0>;
-    using Mb = passable_t<nested_matrix_of_t<M>>;
-    auto c = nested_matrix(make_covariance<C>(std::forward<Cov>(cov)));
+    using Mb = passable_t<nested_object_of_t<M>>;
+    auto c = nested_object(make_covariance<C>(std::forward<Cov>(cov)));
     return GaussianDistribution<C, Mb, equivalent_self_contained_t<decltype(c)>, re>(std::forward<M>(mean), std::move(c));
   }
 
@@ -561,12 +561,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<std::uniform_random_bit_generator re = std::mt19937, typed_matrix_nestable M, typename Cov> requires
-    vector<M> and square_matrix<Cov> and
+    vector<M> and square_shaped<Cov> and
     (covariance<Cov> or typed_matrix<Cov> or covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
     (index_dimension_of_v<M, 0> == index_dimension_of_v<Cov, 0>)
 #else
   template<typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<
-    (not fixed_vector_space_descriptor<re>) and typed_matrix_nestable<M> and vector<M> and square_matrix<Cov> and
+    (not fixed_vector_space_descriptor<re>) and typed_matrix_nestable<M> and vector<M> and square_shaped<Cov> and
     (covariance<Cov> or typed_matrix<Cov> or covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
     (index_dimension_of<M, 0>::value == index_dimension_of<Cov, 0>::value), int> = 0>
 #endif
@@ -576,13 +576,13 @@ namespace OpenKalman
     if constexpr(covariance<Cov>)
     {
       using C = vector_space_descriptor_of_t<Cov, 0>;
-      using Covb = passable_t<nested_matrix_of_t<Cov>>;
+      using Covb = passable_t<nested_object_of_t<Cov>>;
       return GaussianDistribution<C, passable_t<M>, Covb, re>(std::forward<M>(mean), std::forward<Cov>(cov));
     }
     else if constexpr(typed_matrix<Cov>)
     {
       using C = vector_space_descriptor_of_t<Cov, 0>;
-      auto sc = nested_matrix(make_covariance(std::forward<Cov>(cov)));
+      auto sc = nested_object(make_covariance(std::forward<Cov>(cov)));
       using SC = equivalent_self_contained_t<decltype(sc)>;
       return GaussianDistribution<C, passable_t<M>, SC, re>(std::forward<M>(mean), std::move(sc));
     }
@@ -590,7 +590,7 @@ namespace OpenKalman
     {
       static_assert(covariance_nestable<Cov> or typed_matrix_nestable<Cov>);
       using C = Dimensions<index_dimension_of_v<M, 0>>;
-      auto c = nested_matrix(make_covariance<C>(std::forward<Cov>(cov)));
+      auto c = nested_object(make_covariance<C>(std::forward<Cov>(cov)));
       return GaussianDistribution<C, passable_t<M>, equivalent_self_contained_t<decltype(c)>, re>(
         std::forward<M>(mean), std::move(c));
     }
@@ -625,7 +625,7 @@ namespace OpenKalman
     else
     {
       static_assert(typed_matrix_nestable<Cov>);
-      auto c = nested_matrix(make_covariance<TypedIndex>(std::forward<Cov>(cov)));
+      auto c = nested_object(make_covariance<TypedIndex>(std::forward<Cov>(cov)));
       return GaussianDistribution<TypedIndex, passable_t<M>, equivalent_self_contained_t<decltype(c)>, re>(
         std::forward<M>(mean), std::move(c));
     }
@@ -652,7 +652,7 @@ namespace OpenKalman
   make_GaussianDistribution()
   {
     using C = vector_space_descriptor_of_t<M, 0>;
-    return GaussianDistribution<C, passable_t<nested_matrix_of_t<M>>, passable_t<nested_matrix_of_t<Cov>>, re>();
+    return GaussianDistribution<C, passable_t<nested_object_of_t<M>>, passable_t<nested_object_of_t<Cov>>, re>();
   }
 
 
@@ -681,12 +681,12 @@ namespace OpenKalman
     if constexpr(typed_matrix<M>)
     {
       using C = vector_space_descriptor_of_t<M, 0>;
-      return GaussianDistribution<C, passable_t<nested_matrix_of_t<M>>, passable_t<Cov>, re>();
+      return GaussianDistribution<C, passable_t<nested_object_of_t<M>>, passable_t<Cov>, re>();
     }
     else if constexpr(covariance<Cov>)
     {
       using C = vector_space_descriptor_of_t<Cov, 0>;
-      return GaussianDistribution<C, passable_t<M>, passable_t<nested_matrix_of_t<Cov>>, re>();
+      return GaussianDistribution<C, passable_t<M>, passable_t<nested_object_of_t<Cov>>, re>();
     }
     else
     {
@@ -732,7 +732,7 @@ namespace OpenKalman
       using scalar_type = scalar_type_of_t<NestedMean>;
 
       template<typename Arg>
-      static constexpr auto get_index_count(const Arg& arg) { return std::integral_constant<std::size_t, 1>{}; }
+      static constexpr auto count_indices(const Arg& arg) { return std::integral_constant<std::size_t, 1>{}; }
 
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
@@ -753,14 +753,10 @@ namespace OpenKalman
 
       static constexpr bool has_runtime_parameters = false;
 
-      template<std::size_t i, typename Arg>
-      static decltype(auto) get_nested_matrix(Arg&& arg)
+      template<typename Arg>
+      static decltype(auto) nested_object(Arg&& arg)
       {
-        static_assert(i < 2);
-        if constexpr (i == 0)
-          return std::forward<Arg>(arg).mu;
-        else
-          return std::forward<Arg>(arg).sigma;
+        return std::forward<Arg>(arg).mu;
       }
 
       template<typename Arg>
@@ -775,19 +771,19 @@ namespace OpenKalman
 
 
 #ifdef __cpp_lib_concepts
-      template<typename Arg> requires directly_accessible<NestedMean>
+      template<typename Arg> requires raw_data_defined_for<Mean<Coeffs, NestedMean>>
 #else
-      template<typename Arg, std::enable_if_t<directly_accessible<NestedMean>, int> = 0>
+      template<typename Arg, std::enable_if_t<raw_data_defined_for<Mean<Coeffs, NestedMean>>, int> = 0>
 #endif
-      static constexpr auto*
-      data(Arg& arg) { return internal::raw_data(arg.mu()); }
+      static constexpr auto *
+      raw_data(Arg& arg) { return internal::raw_data(arg.mu()); }
 
 
       static constexpr Layout layout = layout_of_v<NestedMean>;
 
     };
 
-  } // namespace internal
+  } // namespace interface
 
 
   template<typename Coeffs, typename NestedMean, typename NestedCovariance, typename re>
@@ -859,8 +855,8 @@ namespace OpenKalman
   {
     using Coeffs = typename DistributionTraits<T>::TypedIndex;
     using re = DistributionTraits<T>::random_number_engine;
-    auto m = make_zero_matrix_like<DistributionTraits<T>::Mean, Scalar>(Dimensions<dimension>{e...}, Dimension<1>{});
-    auto c = make_zero_matrix_like<DistributionTraits<T>::Covariance, Scalar>(Dimensions<dimension>{e...}, Dimensions<dimension>{e...});
+    auto m = make_zero<DistributionTraits<T>::Mean, Scalar>(Dimensions<dimension>{e...}, Dimension<1>{});
+    auto c = make_zero<DistributionTraits<T>::Covariance, Scalar>(Dimensions<dimension>{e...}, Dimensions<dimension>{e...});
     return make_gaussian_distribution<re>>(std::move(m), std::move(c));
   }
 
@@ -880,7 +876,7 @@ namespace OpenKalman
   {
     using Coeffs = typename DistributionTraits<T>::TypedIndex;
     using re = DistributionTraits<T>::random_number_engine;
-    auto m = make_zero_matrix_like<DistributionTraits<T>::Mean, Scalar>(Dimensions<dimension>{e...}, Dimension<1>{});
+    auto m = make_zero<DistributionTraits<T>::Mean, Scalar>(Dimensions<dimension>{e...}, Dimension<1>{});
     auto c = make_identity_matrix_like<DistributionTraits<T>::Covariance, Scalar>(Dimensions<dimension>{e...});
     return make_gaussian_distribution<re>>(std::move(m), std::move(c));
   }

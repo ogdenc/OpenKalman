@@ -37,7 +37,7 @@ namespace OpenKalman::interface
     using dependents = std::tuple<typename XprType::Nested, Op>; /// \todo add tensor reduction operations
 
     template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
+    static decltype(auto) get_nested_object(Arg&& arg)
     {
       if constexpr (i == 0)
         return std::forward<Arg>(arg).expression();

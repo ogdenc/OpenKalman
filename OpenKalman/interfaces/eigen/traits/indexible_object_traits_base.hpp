@@ -41,7 +41,7 @@ namespace OpenKalman::Eigen3
 
     template<typename Arg>
     static constexpr auto
-    get_index_count(const Arg& arg)
+    count_indices(const Arg& arg)
     {
       constexpr bool lin = (Eigen::internal::evaluator<Arg>::Flags & Eigen::LinearAccessBit) != 0x0;
       if constexpr (Arg::RowsAtCompileTime == 1 and Arg::ColsAtCompileTime == 1)
@@ -96,7 +96,7 @@ namespace OpenKalman::Eigen3
     template<typename Arg, std::enable_if_t<std::is_pointer<decltype(std::declval<Arg&>().data())>::value and direct_access, int> = 0>
 #endif
     static constexpr auto * const
-    data(Arg& arg) { return arg.data(); }
+    raw_data(Arg& arg) { return arg.data(); }
 
   private:
 

@@ -42,34 +42,42 @@ namespace OpenKalman::interface
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
+    static constexpr auto
+    get_vector_space_descriptor(const Arg& arg, N n)
     {
       return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
     }
 
+
     using dependents = std::tuple<typename Xpr::XprTypeNested>;
+
 
     static constexpr bool has_runtime_parameters = is_bind_operator<UnaryOp>::value;
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
-    {
-      static_assert(i == 1);
-      return std::forward<Arg>(arg).nestedExpression();
-    }
 
     template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
+    static decltype(auto)
+    nested_object(Arg&& arg)
+    {
+      return std::as_const(arg).nestedExpression(); // There seems to be a bug in CwiseUnaryOp when the argument is non-const.
+    }
+
+
+    template<typename Arg>
+    static auto
+    convert_to_self_contained(Arg&& arg)
     {
       using N = Eigen::CwiseUnaryOp<UnaryOp, equivalent_self_contained_t<XprType>>;
       if constexpr (not std::is_lvalue_reference_v<typename N::XprTypeNested>)
-        return N {make_self_contained(arg.nestedExpression()), arg.functor()};
+        return make_self_contained(nested_object(std::forward<Arg>(arg))).unaryExpr(arg.functor());
       else
-        return make_dense_writable_matrix_from(std::forward<Arg>(arg));
+        return make_dense_object(std::forward<Arg>(arg));
     }
 
+
     template<typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
+    static constexpr auto
+    get_constant(const Arg& arg)
     {
       return Eigen3::FunctorTraits<UnaryOp, XprType>::template get_constant<false>(arg);
     }
@@ -81,10 +89,10 @@ namespace OpenKalman::interface
     }
 
     template<Likelihood b>
-    static constexpr bool is_one_by_one = one_by_one_matrix<XprType, b>;
+    static constexpr bool one_dimensional = OpenKalman::one_dimensional<XprType, b>;
 
     template<Likelihood b>
-    static constexpr bool is_square = square_matrix<XprType, b>;
+    static constexpr bool is_square = square_shaped<XprType, b>;
 
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = Eigen3::FunctorTraits<UnaryOp, XprType>::template is_triangular<t, b>;

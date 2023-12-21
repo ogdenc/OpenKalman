@@ -135,7 +135,7 @@ namespace OpenKalman
   randomize(random_number_generator& gen, const std::tuple<Ds...>& ds_tuple, Dists&&...dists)
   {
     auto ret {n_ary_operation<PatternMatrix, indices...>(ds_tuple, detail::RandomizeOp {gen, (std::forward<Dists>(dists))}...)};
-    if constexpr (sizeof...(Dists) == 1) return make_dense_writable_matrix_from(std::move(ret));
+    if constexpr (sizeof...(Dists) == 1) return make_dense_object(std::move(ret));
     else return ret;
   }
 
@@ -214,7 +214,7 @@ namespace OpenKalman
   constexpr auto
   randomize(random_number_generator& gen, Dists&&...dists)
   {
-    auto d_tup = get_all_dimensions_of<PatternMatrix>();
+    auto d_tup = all_vector_space_descriptors<PatternMatrix>();
     return randomize<PatternMatrix, indices...>(gen, d_tup, std::forward<Dists>(dists)...);
   }
 

@@ -40,7 +40,7 @@ namespace OpenKalman::interface
 
     using dependents = std::tuple<Eigen::internal::TensorLazyBaseEvaluator<Dimensions, Scalar>*>;
 
-    // get_nested_matrix() not defined
+    // get_nested_object() not defined
 
     // convert_to_self_contained() not defined
 

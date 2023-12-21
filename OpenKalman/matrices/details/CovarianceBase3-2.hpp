@@ -68,7 +68,7 @@ namespace OpenKalman::internal
 
     /**
      * \internal
-     * \brief Synchronize from cholesky_nested_matrix to nested_matrix.
+     * \brief Synchronize from cholesky_nested_matrix to nested_object.
      */
     static constexpr void synchronize_reverse() {}
 
@@ -77,7 +77,7 @@ namespace OpenKalman::internal
     /// Copy constructor.
     CovarianceBase(const CovarianceBase& other)
       : Base {
-          other.nested_matrix(),
+          other.nested_object(),
           std::is_default_constructible_v<CholeskyNestedMatrix> and other.synch_direction > 0 ?
             CholeskyNestedMatrix {} :
             CholeskyNestedMatrix {other.cholesky_nested},
@@ -86,7 +86,7 @@ namespace OpenKalman::internal
 
     /// Move constructor.
     CovarianceBase(CovarianceBase&& other) noexcept
-      : Base {std::move(other).nested_matrix(), std::move(other).cholesky_nested, other.synch_direction} {}
+      : Base {std::move(other).nested_object(), std::move(other).cholesky_nested, other.synch_direction} {}
 
 
     /**
@@ -118,10 +118,10 @@ namespace OpenKalman::internal
      */
 #ifdef __cpp_concepts
     template<covariance Arg> requires case1or2<Arg> and
-      (triangular_matrix<nested_matrix_of_t<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>)
+      (triangular_matrix<nested_object_of_t<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and case1or2<Arg> and
-      (triangular_matrix<nested_matrix_of_t<Arg>> == triangular_matrix<NestedMatrix>) and
+      (triangular_matrix<nested_object_of_t<Arg>> == triangular_matrix<NestedMatrix>) and
       (not diagonal_matrix<Arg>), int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
@@ -136,10 +136,10 @@ namespace OpenKalman::internal
      */
 #ifdef __cpp_concepts
     template<covariance Arg> requires case1or2<Arg> and
-      (triangular_matrix<nested_matrix_of_t<Arg>> != triangular_matrix<NestedMatrix> or diagonal_matrix<Arg>)
+      (triangular_matrix<nested_object_of_t<Arg>> != triangular_matrix<NestedMatrix> or diagonal_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and case1or2<Arg> and
-      (triangular_matrix<nested_matrix_of_t<Arg>> != triangular_matrix<NestedMatrix> or diagonal_matrix<Arg>), int> = 0>
+      (triangular_matrix<nested_object_of_t<Arg>> != triangular_matrix<NestedMatrix> or diagonal_matrix<Arg>), int> = 0>
 #endif
     CovarianceBase(Arg&& arg) noexcept
       : Base {to_covariance_nestable<NestedMatrix>(arg),

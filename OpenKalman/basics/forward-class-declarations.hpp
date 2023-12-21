@@ -114,11 +114,11 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<has_nested_matrix T>
-  struct pattern_matrix_of<T> { using type = nested_matrix_of_t<T>; };
+  template<has_nested_object T>
+  struct pattern_matrix_of<T> { using type = nested_object_of_t<T>; };
 #else
   template<typename T>
-  struct pattern_matrix_of<T, std::enable_if_t<has_nested_matrix<T>>> { using type = nested_matrix_of_t<T>; };
+  struct pattern_matrix_of<T, std::enable_if_t<has_nested_object<T>>> { using type = nested_object_of_t<T>; };
 #endif
 
 
@@ -135,7 +135,7 @@ namespace OpenKalman
 
   /**
    * \brief A diagonal matrix or tensor.
-   * \details The matrix is guaranteed to be diagonal. It is ::self_contained iff NestedMatrix is ::self_contained.
+   * \details The matrix is guaranteed to be diagonal. It is \ref self_contained iff NestedMatrix is \ref self_contained.
    * Implicit conversions are available from any \ref diagonal_matrix of compatible size.
    * \tparam NestedMatrix A column vector expression defining the diagonal elements.
    * indexible_object_traits outside the diagonal are automatically 0.
@@ -178,7 +178,7 @@ namespace OpenKalman
    * \brief A hermitian matrix wrapper.
    * \details The matrix is guaranteed to be self-adjoint. It is ::self_contained iff NestedMatrix is ::self_contained.
    * Implicit conversions are available from any \ref hermitian_matrix of compatible size.
-   * \tparam NestedMatrix A nested \ref square_matrix expression, on which the self-adjoint matrix is based.
+   * \tparam NestedMatrix A nested \ref square_shaped expression, on which the self-adjoint matrix is based.
    * \tparam storage_triangle The HermitianAdapterType (\ref HermitianAdapterType::lower "lower" or
    * \ref HermitianAdapterType::upper "upper") in which the data is stored.
    * Matrix elements outside this triangle/diagonal are ignored. If the matrix is lower or upper triangular,
@@ -188,7 +188,7 @@ namespace OpenKalman
    * diagonal.
    */
 #ifdef __cpp_concepts
-  template<square_matrix<Likelihood::maybe> NestedMatrix, HermitianAdapterType storage_triangle =
+  template<square_shaped<Likelihood::maybe> NestedMatrix, HermitianAdapterType storage_triangle =
       triangular_matrix<NestedMatrix, TriangleType::diagonal> ? HermitianAdapterType::lower :
       triangular_matrix<NestedMatrix, TriangleType::upper> ? HermitianAdapterType::upper : HermitianAdapterType::lower> requires
     (index_count_v<NestedMatrix> <= 2) and
@@ -235,14 +235,14 @@ namespace OpenKalman
    * \details The matrix is guaranteed to be triangular. It is ::self_contained iff NestedMatrix is ::self_contained.
    * It may \em also be a diagonal matrix if triangle_type is TriangleType::diagonal.
    * Implicit conversions are available from any \ref triangular_matrix of compatible size.
-   * \tparam NestedMatrix A nested \ref square_matrix expression, on which the triangular matrix is based.
+   * \tparam NestedMatrix A nested \ref square_shaped expression, on which the triangular matrix is based.
    * \tparam triangle_type The TriangleType (\ref TriangleType::lower "lower", \ref TriangleType::upper "upper", or
    * \ref TriangleType::diagonal "diagonal") in which the data is stored.
    * Matrix elements outside this triangle/diagonal are ignored. Instead, 0 is automatically mapped to each element
    * not within the selected triangle or diagonal, to ensure that the matrix is triangular.
    */
 #ifdef __cpp_concepts
-  template<square_matrix<Likelihood::maybe> NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
+  template<square_shaped<Likelihood::maybe> NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
       (triangular_matrix<NestedMatrix, TriangleType::upper> ? TriangleType::upper : TriangleType::lower))>
     requires (index_count_v<NestedMatrix> <= 2)
 #else
@@ -517,9 +517,26 @@ namespace OpenKalman
   {
     /**
      * \internal
+     * \brief A dumb wrapper for \ref indexible objects so that they are treated exactly as native objects within a library.
+     * \tparam NestedObject An indexible object that may or may not be in a library of interest.
+     * \tparam LibraryObject Any object from the library to which this wrapper is to be associated.
+     * \tparam InternalizedParameters If this LibraryWrapper is not otherwise self-contained, this are a full set of
+     * arguments necessary to construct the object, which will be stored internally.
+     */
+  #ifdef __cpp_concepts
+    template<indexible NestedObject, indexible LibraryObject, typename...InternalizedParameters> requires
+      (... and (not std::is_reference_v<InternalizedParameters>))
+  #else
+    template<typename NestedObject, typename LibraryObject, typename...InternalizedParameters>
+  #endif
+    struct LibraryWrapper;
+
+
+    /**
+     * \internal
      * \brief Wraps a dynamic-sized input, immutably, in a wrapper that has one or more fixed dimensions.
      * \tparam NestedMatrix The underlying native matrix or matrix expression.
-     * \tparam Vs A set of \ref vector_space_descriptor. If this set is empty, the object is treated as a \ref one_by_one_matrix.
+     * \tparam Vs A set of \ref vector_space_descriptor. If this set is empty, the object is treated as a \ref one_dimensional.
      */
   #ifdef __cpp_concepts
     template<indexible NestedMatrix, vector_space_descriptor...Vs> requires compatible_with_vector_space_descriptors<NestedMatrix, Vs...>

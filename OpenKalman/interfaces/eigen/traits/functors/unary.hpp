@@ -446,7 +446,7 @@ namespace OpenKalman::Eigen3
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (zero_matrix<XprType> or is_diag) return std::monostate {};
+      if constexpr (zero<XprType> or is_diag) return std::monostate {};
       else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
@@ -712,7 +712,7 @@ namespace OpenKalman::Eigen3
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (zero_matrix<XprType> or is_diag) return std::monostate {};
+      if constexpr (zero<XprType> or is_diag) return std::monostate {};
       else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 

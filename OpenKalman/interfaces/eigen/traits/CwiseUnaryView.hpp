@@ -41,12 +41,13 @@ namespace OpenKalman::interface
 
     static constexpr bool has_runtime_parameters = false;
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
+
+    template<typename Arg>
+    static decltype(auto) nested_object(Arg&& arg)
     {
-      static_assert(i == 0);
       return std::forward<Arg>(arg).nestedExpression();
     }
+
 
     template<typename Arg>
     static auto convert_to_self_contained(Arg&& arg)
@@ -55,7 +56,7 @@ namespace OpenKalman::interface
       if constexpr (not std::is_lvalue_reference_v<typename N::MatrixTypeNested>)
         return N {make_self_contained(arg.nestedExpression()), arg.functor()};
       else
-        return make_dense_writable_matrix_from(std::forward<Arg>(arg));
+        return make_dense_object(std::forward<Arg>(arg));
     }
 
     template<typename Arg>
@@ -71,10 +72,10 @@ namespace OpenKalman::interface
     }
 
     template<Likelihood b>
-    static constexpr bool is_one_by_one = one_by_one_matrix<MatrixType, b>;
+    static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
     template<Likelihood b>
-    static constexpr bool is_square = square_matrix<MatrixType, b>;
+    static constexpr bool is_square = square_shaped<MatrixType, b>;
 
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = Eigen3::FunctorTraits<ViewOp, MatrixType>::template is_triangular<t, b>;

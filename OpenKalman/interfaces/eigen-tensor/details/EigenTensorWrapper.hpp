@@ -83,45 +83,45 @@ namespace OpenKalman
       /**
        * \brief Get the nested matrix.
        */
-      decltype(auto) nested_matrix() & noexcept { return (wrapped_expression); }
+      auto& nested_object() & noexcept { return (wrapped_expression); }
 
       /// \overload
-      decltype(auto) nested_matrix() const & noexcept { return (wrapped_expression); }
+      const auto& nested_object() const & noexcept { return (wrapped_expression); }
 
       /// \overload
-      decltype(auto) nested_matrix() && noexcept { return (std::move(*this).wrapped_expression); }
+      auto&& nested_object() && noexcept { return std::move(wrapped_expression); }
 
       /// \overload
-      decltype(auto) nested_matrix() const && noexcept { return (std::move(*this).wrapped_expression); }
+      const auto&& nested_object() const && noexcept { return std::move(wrapped_expression); }
 
     private:
 
-      using ElementRef = decltype(OpenKalman::get_element(std::declval<NestedMatrix>(), 0, 0));
-      static constexpr bool lvalue_get_element = std::is_same_v<ElementRef, std::decay_t<ElementRef>&>;
+      using ElementRef = decltype(OpenKalman::get_component(std::declval<NestedMatrix>(), 0, 0));
+      static constexpr bool lvalue_get_component = std::is_same_v<ElementRef, std::decay_t<ElementRef>&>;
 
     public:
 
 #ifdef __cpp_concepts
-      auto& coeffRef(Index row, Index col) requires lvalue_get_element
+      auto& coeffRef(Index row, Index col) requires lvalue_get_component
 #else
-      template<bool b = lvalue_get_element, std::enable_if_t<b, int> = 0>
+      template<bool b = lvalue_get_component, std::enable_if_t<b, int> = 0>
       auto& coeffRef(Index row, Index col)
 #endif
       {
-        return get_element(wrapped_expression, static_cast<std::size_t>(row), static_cast<std::size_t>(col));
+        return get_component(wrapped_expression, static_cast<std::size_t>(row), static_cast<std::size_t>(col));
       }
 
 
       constexpr decltype(auto) coeff(Index row, Index col) const
       {
-        return get_element(wrapped_expression, static_cast<std::size_t>(row), static_cast<std::size_t>(col));
+        return get_component(wrapped_expression, static_cast<std::size_t>(row), static_cast<std::size_t>(col));
       }
 
 
 #ifdef __cpp_concepts
-      constexpr decltype(auto) data() requires directly_accessible<NestedMatrix>
+      constexpr decltype(auto) data() requires raw_data_defined_for<NestedMatrix>
 #else
-      template<typename T = NestedMatrix, std::enable_if_t<directly_accessible<T>, int> = 0>
+      template<typename T = NestedMatrix, std::enable_if_t<raw_data_defined_for<T>, int> = 0>
       constexpr decltype(auto) data()
 #endif
       {
@@ -130,9 +130,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-      constexpr decltype(auto) data() const requires directly_accessible<NestedMatrix>
+      constexpr decltype(auto) data() const requires raw_data_defined_for<NestedMatrix>
 #else
-      template<typename T = NestedMatrix, std::enable_if_t<directly_accessible<T>, int> = 0>
+      template<typename T = NestedMatrix, std::enable_if_t<raw_data_defined_for<T>, int> = 0>
       constexpr decltype(auto) data() const
 #endif
       {
@@ -173,13 +173,13 @@ namespace OpenKalman
 
 
       template<typename Arg>
-      static constexpr auto get_index_count(const Arg& arg) { return OpenKalman::get_index_count(nested_matrix(arg)); }
+      static constexpr auto count_indices(const Arg& arg) { return OpenKalman::count_indices(nested_object(arg)); }
 
 
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
       {
-        return OpenKalman::get_vector_space_descriptor(nested_matrix(arg), n);
+        return OpenKalman::get_vector_space_descriptor(nested_object(arg), n);
       }
 
 
@@ -189,41 +189,40 @@ namespace OpenKalman
       static constexpr bool has_runtime_parameters = false;
 
 
-      template<std::size_t i, typename Arg>
-      static decltype(auto) get_nested_matrix(Arg&& arg)
+      template<typename Arg>
+      static decltype(auto) nested_object(Arg&& arg)
       {
-        static_assert(i == 0);
-        return std::forward<Arg>(arg).nested_matrix();
+        return std::forward<Arg>(arg).nested_object();
       }
 
 
       template<typename Arg>
       static auto convert_to_self_contained(Arg&& arg)
       {
-        return make_dense_writable_matrix_from(OpenKalman::nested_matrix(std::forward<Arg>(arg)));
+        return make_dense_object(OpenKalman::nested_object(std::forward<Arg>(arg)));
       }
 
 
       template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
       {
-        return constant_coefficient{arg.nested_matrix()};
+        return constant_coefficient{arg.nested_object()};
       }
 
 
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
-        return constant_diagonal_coefficient {arg.nested_matrix()};
+        return constant_diagonal_coefficient {arg.nested_object()};
       }
 
 
       template<Likelihood b>
-      static constexpr bool is_one_by_one = one_by_one_matrix<NestedMatrix, b>;
+      static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
 
 
       template<Likelihood b>
-      static constexpr bool is_square = square_matrix<NestedMatrix, b>;
+      static constexpr bool is_square = square_shaped<NestedMatrix, b>;
 
 
       template<TriangleType t, Likelihood b>
@@ -237,26 +236,26 @@ namespace OpenKalman
 
 
 #ifdef __cpp_lib_concepts
-      template<typename Arg, typename...I> requires element_gettable<decltype(nested_matrix(std::declval<Arg&&>())), sizeof...(I)>
+      template<typename Arg, typename...I> requires element_gettable<decltype(nested_object(std::declval<Arg&&>())), sizeof...(I)>
 #else
-      template<typename Arg, typename...I, std::enable_if_t<element_gettable<decltype(nested_matrix(std::declval<Arg&&>())), sizeof...(I)>, int> = 0>
+      template<typename Arg, typename...I, std::enable_if_t<element_gettable<decltype(nested_object(std::declval<Arg&&>())), sizeof...(I)>, int> = 0>
 #endif
       static constexpr decltype(auto)
       get(Arg&& arg, I...i)
       {
-        return get_element(nested_matrix(std::forward<Arg>(arg)), i...);
+        return get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), i...);
       }
 
 
 #ifdef __cpp_lib_concepts
-      template<typename Arg, typename Scalar, typename...I> requires element_settable<decltype(nested_matrix(std::declval<Arg&>())), sizeof...(I)>
+      template<typename Arg, typename Scalar, typename...I> requires element_settable<decltype(nested_object(std::declval<Arg&>())), sizeof...(I)>
 #else
-      template<typename Arg, typename Scalar, typename...I, std::enable_if_t<element_settable<decltype(nested_matrix(std::declval<Arg&>())), sizeof...(I)>, int> = 0>
+      template<typename Arg, typename Scalar, typename...I, std::enable_if_t<element_settable<decltype(nested_object(std::declval<Arg&>())), sizeof...(I)>, int> = 0>
 #endif
       static constexpr void
       set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
       {
-        set_element(nested_matrix(arg), s, i...);
+        set_component(OpenKalman::nested_object(arg), s, i...);
       }
 
 
@@ -265,12 +264,12 @@ namespace OpenKalman
 
 
 #ifdef __cpp_lib_concepts
-      template<typename Arg> requires directly_accessible<nested_matrix_of_t<Arg&>>
+      template<typename Arg> requires raw_data_defined_for<nested_object_of_t<Arg&>>
 #else
-      template<typename Arg, std::enable_if_t<directly_accessible<typename nested_matrix_of<Arg&>::type>, int> = 0>
+      template<typename Arg, std::enable_if_t<raw_data_defined_for<typename nested_object_of<Arg&>::type>, int> = 0>
 #endif
       static constexpr auto*
-      data(Arg& arg) { return internal::raw_data(arg.nested_matrix()); }
+      raw_data(Arg& arg) { return internal::raw_data(OpenKalman::nested_object(arg)); }
 
 
       static constexpr Layout layout = layout_of_v<NestedMatrix>;
@@ -300,8 +299,8 @@ namespace Eigen::internal
     {
     private:
 
-      using ElementRef = decltype(OpenKalman::get_element(std::declval<T&>(), 0, 0));
-      static constexpr bool lvalue_get_element = std::is_same_v<ElementRef, std::decay_t<ElementRef>&>;
+      using ElementRef = decltype(OpenKalman::get_component(std::declval<T&>(), 0, 0));
+      static constexpr bool lvalue_get_component = std::is_same_v<ElementRef, std::decay_t<ElementRef>&>;
 
     public:
 
@@ -314,7 +313,7 @@ namespace Eigen::internal
       template<typename U> struct MakePointer : Eigen::MakePointer<U> {};
       using PointerType = typename MakePointer<Scalar>::Type;
       enum {
-        Flags = (lvalue_get_element ? LvalueBit : 0x0),
+        Flags = (lvalue_get_component ? LvalueBit : 0x0),
       };
     };
 
@@ -410,7 +409,7 @@ namespace Eigen
   {
     using XprType = OpenKalman::Eigen3::EigenTensorWrapper<ArgType, IndexType>;
     using Base = detail::EigenTensorWrapperEvaluator<ArgType, IndexType, Device>;
-    explicit TensorEvaluator(const XprType& t, const Device& device) : Base {t.nested_matrix(), device} {}
+    explicit TensorEvaluator(const XprType& t, const Device& device) : Base {t.nested_object(), device} {}
   };
 
 } // Eigen::internal

@@ -67,7 +67,7 @@ namespace OpenKalman
     {
       return std::make_tuple(
         make_identity_matrix_like(in),
-        make_zero_matrix_like(make_identity_matrix_like(ps))...);
+        make_zero(make_identity_matrix_like(ps))...);
     }
 
   };

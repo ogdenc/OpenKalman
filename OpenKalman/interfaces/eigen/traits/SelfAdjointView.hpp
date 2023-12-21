@@ -37,7 +37,7 @@ namespace OpenKalman
 
 
       template<typename Arg>
-      static constexpr auto get_index_count(const Arg& arg) { return OpenKalman::get_index_count(nested_matrix(arg)); }
+      static constexpr auto count_indices(const Arg& arg) { return OpenKalman::count_indices(arg.nestedExpression()); }
 
 
       template<typename Arg, typename N>
@@ -53,10 +53,9 @@ namespace OpenKalman
       static constexpr bool has_runtime_parameters = false;
 
 
-      template<std::size_t i, typename Arg>
-      static decltype(auto) get_nested_matrix(Arg&& arg)
+      template<typename Arg>
+      static decltype(auto) nested_object(Arg&& arg)
       {
-        static_assert(i == 0);
         return std::forward<Arg>(arg).nestedExpression();
       }
 
@@ -94,11 +93,11 @@ namespace OpenKalman
 
 
       template<Likelihood b>
-      static constexpr bool is_one_by_one = one_by_one_matrix<MatrixType, b>;
+      static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
 
       template<Likelihood b>
-      static constexpr bool is_square = square_matrix<MatrixType, b>;
+      static constexpr bool is_square = square_shaped<MatrixType, b>;
 
 
       template<TriangleType t, Likelihood b>
@@ -129,7 +128,7 @@ namespace OpenKalman
 #else
   template<typename M, std::enable_if_t<Eigen3::eigen_SelfAdjointView<M>, int> = 0>
 #endif
-  SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<nested_matrix_of_t<M>, hermitian_adapter_type_of_v<M>>;
+  SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<nested_object_of_t<M>, hermitian_adapter_type_of_v<M>>;
 
 } // namespace OpenKalman
 

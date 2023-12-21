@@ -35,7 +35,7 @@ namespace OpenKalman
         throw std::domain_error {"In wrap_angles, specified vector space descriptor does not match that of the object's index 0"};
     using Interface = interface::library_interface<std::decay_t<Arg>>;
 
-    if constexpr (euclidean_vector_space_descriptor<C> or identity_matrix<Arg> or zero_matrix<Arg>)
+    if constexpr (euclidean_vector_space_descriptor<C> or identity_matrix<Arg> or zero<Arg>)
     {
       return std::forward<Arg>(arg);
     }

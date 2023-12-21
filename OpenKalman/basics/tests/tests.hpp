@@ -58,10 +58,10 @@ namespace OpenKalman::test
 #endif
   inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
   {
-    static_assert(maybe_has_same_shape_as<Arg1, Arg2>, "Dimensions must match");
+    static_assert(maybe_same_shape_as<Arg1, Arg2>, "Dimensions must match");
 
     if constexpr (has_dynamic_dimensions<Arg1> or has_dynamic_dimensions<Arg2>)
-      if (not get_has_same_shape_as(arg1, arg2))
+      if (not same_shape(arg1, arg2))
     {
       auto ret = ::testing::AssertionFailure();
       ret << "Dimensions of first argument (";
@@ -83,8 +83,7 @@ namespace OpenKalman::test
   struct TestComparison : ::testing::AssertionResult
   {
     TestComparison(const Arg1& A, const Arg2& B, const Err& err)
-      : ::testing::AssertionResult {
-      is_near(make_dense_writable_matrix_from(A), make_dense_writable_matrix_from(B), err)} {};
+      : ::testing::AssertionResult {is_near(make_dense_object(A), make_dense_object(B), err)} {};
   };
 
 

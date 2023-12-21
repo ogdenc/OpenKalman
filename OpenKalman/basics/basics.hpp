@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020-2021 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2023 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,6 +17,11 @@
  * \details This should be included by any OpenKalman file, including interface files.
  */
 
+#ifndef OPENKALMAN_BASICS_HPP
+#define OPENKALMAN_BASICS_HPP
+
+
+// namespaces
 
 /**
  * \brief The root namespace for OpenKalman.
@@ -38,33 +43,48 @@ namespace OpenKalman::internal {}
 namespace OpenKalman::interface {}
 
 
-#ifndef OPENKALMAN_BASICS_HPP
-#define OPENKALMAN_BASICS_HPP
+// global
 
 #include "language-features.hpp"
 #include "global-definitions.hpp"
 #include "utils.hpp"
 
-#include "internal/scalar-traits.hpp"
-#include "scalar-types.hpp"
-#include "functions/scalar_functions.hpp"
-#include "internal/math_constexpr.hpp"
 
-#include "index-values.hpp"
+// values
+
+#include "values/values.hpp"
+
+
+// vector space descriptors
+
 #include "vector-space-descriptors/vector-space-descriptors.hpp"
+
+
+// forward definitions for objects, properties, and interfaces
 
 #include "interfaces/interfaces-defined.hpp"
 #include "internal/library_base.hpp"
 
-#include "forward-traits.hpp"
+#include "property-functions/property-functions.hpp"
+
+#include "traits/forward-traits.hpp"
 #include "forward-class-declarations.hpp"
 
 #include "interfaces/default/indexible_object_traits.hpp"
 #include "interfaces/default/library_interface.hpp"
 
+
+// object functions
+
 #include "functions/functions.hpp"
 
-#include "traits.hpp"
+
+// properties and interfaces
+
+#include "traits/traits.hpp"
+
+
+// internal objects
 
 #include "internal/ElementAccessor.hpp"
 
@@ -75,8 +95,8 @@ namespace OpenKalman::interface {}
 #include "interfaces/internal/FixedSizeAdapter.hpp"
 
 #include "internal/MatrixBase.hpp"
+
 #include "internal/TypedMatrixBase.hpp"
 
-#include "functions/make_matrix.hpp"
 
 #endif //OPENKALMAN_BASICS_HPP

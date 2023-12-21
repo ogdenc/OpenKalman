@@ -160,7 +160,7 @@ namespace OpenKalman::test
   using CMx2 = eigen_matrix_t<cdouble, dynamic_size, 2>;
   using CMxx = eigen_matrix_t<cdouble, dynamic_size, dynamic_size>;
 
-  using A11 = Eigen::Array<double, 1, 1>; static_assert(one_by_one_matrix<A11>);
+  using A11 = Eigen::Array<double, 1, 1>; static_assert(one_dimensional<A11>);
   using A1x = Eigen::Array<double, 1, Eigen::Dynamic>;
   using Ax1 = Eigen::Array<double, Eigen::Dynamic, 1>;
   using Axx = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic>;
@@ -173,7 +173,7 @@ namespace OpenKalman::test
   using CA22 = Eigen::Array<cdouble, 2, 2>;
 
   using I11 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A11>; static_assert(constant_coefficient_v<I11> == 1);
-  static_assert(one_by_one_matrix<I11, Likelihood::maybe>);
+  static_assert(one_dimensional<I11, Likelihood::maybe>);
   using I1x = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A1x>; static_assert(constant_coefficient_v<I1x> == 1);
   using Ix1 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, Ax1>; static_assert(constant_coefficient_v<Ix1> == 1);
   using Ixx = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, Axx>; static_assert(constant_coefficient_v<Ixx> == 1);

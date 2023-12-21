@@ -31,7 +31,7 @@ namespace Eigen::internal
   {
     using XprType = OpenKalman::internal::FixedSizeAdapter<NestedMatrix, Vs...>;
     using Base = evaluator<std::decay_t<NestedMatrix>>;
-    explicit evaluator(const XprType& arg) : Base {OpenKalman::nested_matrix(arg)} {}
+    explicit evaluator(const XprType& arg) : Base {OpenKalman::nested_object(arg)} {}
   };
 
 
@@ -105,7 +105,7 @@ namespace Eigen::internal
     };
 
 
-    explicit evaluator(const XprType& m_arg) : m_argImpl(m_arg.nested_matrix()) {}
+    explicit evaluator(const XprType& m_arg) : m_argImpl(m_arg.nested_object()) {}
 
 
     auto& coeffRef(Index row, Index col)
@@ -130,7 +130,7 @@ namespace Eigen::internal
 
     auto& coeffRef(Index i)
     {
-      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+      static_assert(OpenKalman::one_dimensional<ArgType>,
         "Linear (single index) element access by reference is only available for one-by-one SelfAdjointMatrix");
 
       static_assert(not OpenKalman::complex_number<Scalar>,
@@ -176,7 +176,7 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index i) const
     {
-      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+      static_assert(OpenKalman::one_dimensional<ArgType>,
         "Linear (single index) element access is only available for one-by-one SelfAdjointMatrix");
 
       return m_argImpl.coeff(i);
@@ -186,7 +186,7 @@ namespace Eigen::internal
     template<int LoadMode, typename PacketType>
     constexpr PacketType packet(Index row, Index col) const
     {
-      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+      static_assert(OpenKalman::one_dimensional<ArgType>,
         "Packet access is only available for one-by-one SelfAdjointMatrix");
 
       return m_argImpl.template packet<LoadMode, PacketType>(row, col);
@@ -196,7 +196,7 @@ namespace Eigen::internal
     template<int LoadMode, typename PacketType>
     constexpr PacketType packet(Index index) const
     {
-      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+      static_assert(OpenKalman::one_dimensional<ArgType>,
         "Linear packet access is only available for one-by-one SelfAdjointMatrix");
 
       return m_argImpl.template packet<LoadMode, PacketType>(index);
@@ -230,7 +230,7 @@ namespace Eigen::internal
     //static constexpr bool is_row_major = static_cast<bool>(NestedEvaluator::Flags & RowMajorBit);
 
 
-    explicit evaluator(const XprType& m_arg) : m_argImpl {m_arg.nested_matrix()} {}
+    explicit evaluator(const XprType& m_arg) : m_argImpl {m_arg.nested_object()} {}
 
 
     auto& coeffRef(Index row, Index col)
@@ -245,7 +245,7 @@ namespace Eigen::internal
 
     auto& coeffRef(Index i)
     {
-      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+      static_assert(OpenKalman::one_dimensional<ArgType>,
         "Linear (single index) element access by reference is only available for one-by-one TriangularMatrix");
 
       return m_argImpl.coeffRef(i);
@@ -273,7 +273,7 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index i) const
     {
-      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+      static_assert(OpenKalman::one_dimensional<ArgType>,
         "Linear (single index) element access is only available for one-by-one TriangularMatrix");
 
       return m_argImpl.coeff(i);
@@ -283,7 +283,7 @@ namespace Eigen::internal
     template<int LoadMode, typename PacketType>
     constexpr PacketType packet(Index row, Index col) const
     {
-      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+      static_assert(OpenKalman::one_dimensional<ArgType>,
         "Packet access is only available for one-by-one TriangularMatrix");
 
       return m_argImpl.template packet<LoadMode, PacketType>(row, col);
@@ -293,7 +293,7 @@ namespace Eigen::internal
     template<int LoadMode, typename PacketType>
     constexpr PacketType packet(Index index) const
     {
-      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+      static_assert(OpenKalman::one_dimensional<ArgType>,
         "Linear packet access is only available for one-by-one TriangularMatrix");
 
       return m_argImpl.template packet<LoadMode, PacketType>(index);
@@ -325,7 +325,7 @@ namespace Eigen::internal
       Alignment = NestedEvaluator::Alignment
     };
 
-    explicit evaluator(const XprType& m_arg) : m_argImpl(m_arg.nested_matrix()) {}
+    explicit evaluator(const XprType& m_arg) : m_argImpl(m_arg.nested_object()) {}
 
     auto& coeffRef(Index row, Index col)
     {
@@ -341,7 +341,7 @@ namespace Eigen::internal
 
     auto& coeffRef(Index index)
     {
-      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+      static_assert(OpenKalman::one_dimensional<ArgType>,
         "Linear (single index) element access by reference is only available for one-by-one DiagonalMatrix");
 
       return m_argImpl.coeffRef(index);
@@ -365,7 +365,7 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index index) const
     {
-      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+      static_assert(OpenKalman::one_dimensional<ArgType>,
         "Linear (single index) element access is only available for one-by-one DiagonalMatrix");
 
       return m_argImpl.coeff(index);
@@ -375,7 +375,7 @@ namespace Eigen::internal
     template<int LoadMode, typename PacketType>
     constexpr PacketType packet(Index row, Index col) const
     {
-      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+      static_assert(OpenKalman::one_dimensional<ArgType>,
         "Packet access is only available for one-by-one DiagonalMatrix");
 
       return m_argImpl.template packet<LoadMode, PacketType>(row, col);
@@ -385,7 +385,7 @@ namespace Eigen::internal
     template<int LoadMode, typename PacketType>
     constexpr PacketType packet(Index index) const
     {
-      static_assert(OpenKalman::one_by_one_matrix<ArgType>,
+      static_assert(OpenKalman::one_dimensional<ArgType>,
         "Linear packet access is only available for one-by-one DiagonalMatrix");
 
       return m_argImpl.template packet<LoadMode, PacketType>(index);
@@ -476,7 +476,7 @@ namespace Eigen::internal
           (int) Eigen::internal::functor_traits<Eigen::internal::scalar_cos_op<Scalar>>::Cost)
     };
 
-    explicit evaluator(const XprType& t) : Base {t.nested_matrix()}, i_vector_space_descriptor {OpenKalman::get_vector_space_descriptor<0>(t)} {}
+    explicit evaluator(const XprType& t) : Base {t.nested_object()}, i_vector_space_descriptor {OpenKalman::get_vector_space_descriptor<0>(t)} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {
@@ -539,7 +539,7 @@ namespace Eigen::internal
         Eigen::internal::functor_traits<Eigen::internal::scalar_atan_op<Scalar>>::Cost)
     };
 
-    explicit evaluator(const XprType& t) : Base {t.nested_matrix()}, i_vector_space_descriptor {OpenKalman::get_vector_space_descriptor<0>(t)} {}
+    explicit evaluator(const XprType& t) : Base {t.nested_object()}, i_vector_space_descriptor {OpenKalman::get_vector_space_descriptor<0>(t)} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {
@@ -599,7 +599,7 @@ namespace Eigen::internal
     };
 
     template<typename Arg>
-    explicit evaluator(const Arg& t) : Base {t.nested_matrix().nested_matrix()}, i_vector_space_descriptor {OpenKalman::get_vector_space_descriptor<0>(t)} {}
+    explicit evaluator(const Arg& t) : Base {t.nested_object().nested_object()}, i_vector_space_descriptor {OpenKalman::get_vector_space_descriptor<0>(t)} {}
 
     CoeffReturnType coeff(Index row, Index col) const
     {
@@ -610,7 +610,7 @@ namespace Eigen::internal
       else
       {
         const auto g = [col, this] (std::size_t i) { return this->m_argImpl.coeff((Index) i, col); };
-        return wrap_get_element(i_vector_space_descriptor, g, (std::size_t) row, 0);
+        return get_wrapped_component(i_vector_space_descriptor, g, (std::size_t) row, 0);
       }
     }
 
@@ -623,7 +623,7 @@ namespace Eigen::internal
       else
       {
         const auto g = [this] (std::size_t i) { return this->m_argImpl.coeff((Index) i); };
-        return wrap_get_element(i_vector_space_descriptor, g, (std::size_t) row, 0);
+        return get_wrapped_component(i_vector_space_descriptor, g, (std::size_t) row, 0);
       }
     }
   };
@@ -674,7 +674,7 @@ namespace Eigen::internal
     {
       Flags = (OpenKalman::euclidean_vector_space_descriptor<TypedIndex> ? Base::Flags : Base::Flags & ~LvalueBit),
     };
-    explicit evaluator(const XprType& m) : Base(m.nested_matrix()) {}
+    explicit evaluator(const XprType& m) : Base(m.nested_object()) {}
   };
 
 
@@ -687,7 +687,7 @@ namespace Eigen::internal
   {
     using XprType = OpenKalman::Matrix<RowCoeffs, ColCoeffs, ArgType>;
     using Base = evaluator<std::decay_t<ArgType>>;
-    explicit evaluator(const XprType& m) : Base {m.nested_matrix()} {}
+    explicit evaluator(const XprType& m) : Base {m.nested_object()} {}
   };
 
 
@@ -701,7 +701,7 @@ namespace Eigen::internal
     using XprType = OpenKalman::EuclideanMean<Coeffs, ArgType>;
     using Base = evaluator<std::decay_t<ArgType>>;
     using Scalar = typename traits<std::decay_t<ArgType>>::Scalar;
-    explicit evaluator(const XprType& expression) : Base {expression.nested_matrix()} {}
+    explicit evaluator(const XprType& expression) : Base {expression.nested_object()} {}
   };
 
 

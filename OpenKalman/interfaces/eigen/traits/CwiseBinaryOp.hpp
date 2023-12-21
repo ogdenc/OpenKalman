@@ -32,7 +32,8 @@ namespace OpenKalman::interface
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
+    static constexpr auto \
+    get_vector_space_descriptor(const Arg& arg, N n)
     {
       if constexpr (static_index_value<N>)
       {
@@ -44,19 +45,15 @@ namespace OpenKalman::interface
       else return OpenKalman::get_vector_space_descriptor(arg.lhs(), n);
     }
 
+
     using dependents = std::tuple<typename Xpr::LhsNested, typename Xpr::RhsNested>;
+
 
     static constexpr bool has_runtime_parameters = false;
 
-    template<std::size_t i, typename Arg>
-    static decltype(auto) get_nested_matrix(Arg&& arg)
-    {
-      static_assert(i <= 1);
-      if constexpr (i == 0)
-        return std::forward<Arg>(arg).lhs();
-      else
-        return std::forward<Arg>(arg).rhs();
-    }
+
+    // nested_object() not defined
+
 
     template<typename Arg>
     static auto convert_to_self_contained(Arg&& arg)
@@ -71,7 +68,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        return make_dense_writable_matrix_from(std::forward<Arg>(arg));
+        return make_dense_object(std::forward<Arg>(arg));
       }
     }
 
@@ -88,17 +85,17 @@ namespace OpenKalman::interface
     }
 
     template<Likelihood b>
-    static constexpr bool is_one_by_one =
-      one_by_one_matrix<LhsType, Likelihood::maybe> and one_by_one_matrix<RhsType, Likelihood::maybe> and
+    static constexpr bool one_dimensional =
+      OpenKalman::one_dimensional<LhsType, Likelihood::maybe> and OpenKalman::one_dimensional<RhsType, Likelihood::maybe> and
       (b != Likelihood::definitely or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>> or
-        (square_matrix<LhsType, b> and (dimension_size_of_index_is<RhsType, 0, 1> or dimension_size_of_index_is<RhsType, 1, 1>)) or
-        ((dimension_size_of_index_is<LhsType, 0, 1> or dimension_size_of_index_is<LhsType, 1, 1>) and square_matrix<RhsType, b>));
+        (square_shaped<LhsType, b> and (dimension_size_of_index_is<RhsType, 0, 1> or dimension_size_of_index_is<RhsType, 1, 1>)) or
+        ((dimension_size_of_index_is<LhsType, 0, 1> or dimension_size_of_index_is<LhsType, 1, 1>) and square_shaped<RhsType, b>));
 
     template<Likelihood b>
     static constexpr bool is_square =
-      square_matrix<LhsType, Likelihood::maybe> and square_matrix<RhsType, Likelihood::maybe> and
+      square_shaped<LhsType, Likelihood::maybe> and square_shaped<RhsType, Likelihood::maybe> and
       (b != Likelihood::definitely or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>> or
-        square_matrix<LhsType, b> or square_matrix<RhsType, b>);
+        square_shaped<LhsType, b> or square_shaped<RhsType, b>);
 
     template<TriangleType t, Likelihood b>
     static constexpr bool is_triangular = Eigen3::FunctorTraits<BinaryOp, LhsType, RhsType>::template is_triangular<t, b>;
