@@ -43,7 +43,7 @@ TEST(eigen3, get_and_set_components)
   M11 el11 {m11}; // 5
   M1x el1x_1 {m11};
   Mx1 elx1_1 {m11};
-  Mxx elxx_11; elxx_11 << 5;
+  Mxx elxx_11(1, 1); elxx_11 << 5;
 
   EXPECT_NEAR(get_component(el11), 5, 1e-8);
 

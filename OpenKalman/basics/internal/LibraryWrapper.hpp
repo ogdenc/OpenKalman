@@ -73,24 +73,42 @@ namespace OpenKalman::internal
 #endif
     explicit LibraryWrapper(Ps&&...ps) :
       internalized_parameters {std::forward<Ps>(ps)...},
-      wrapped_expression {std::apply([](auto&&...p){ return NestedObject {std::forward<decltype(p)>(p)...}; }, internalized_parameters)} {}
+      wrapped_expression {std::apply([](auto&&...p){ return NestedObject {p...}; }, internalized_parameters)} {}
 
 
+#ifdef __cpp_concepts
+    /**
+     * \brief Move constructor when there are no internalized parameters.
+     */
+    LibraryWrapper(LibraryWrapper&& arg) noexcept requires (sizeof...(InternalizedParameters) == 0)
+      = default;
+
+
+    /**
+     * \overload
+     * \brief Move constructor when there are internalized parameters.
+     */
+    LibraryWrapper(LibraryWrapper&& arg) noexcept requires (sizeof...(InternalizedParameters) > 0)
+    : internalized_parameters {std::move(arg).internalized_parameters},
+      wrapped_expression {std::apply([](auto&&...p){ return NestedObject {p...}; }, internalized_parameters)} {}
+#else
     /**
      * \brief Move constructor.
      */
-    //LibraryWrapper(LibraryWrapper&& arg) = default;
+    LibraryWrapper(LibraryWrapper&& arg) noexcept
+      : internalized_parameters {std::move(arg).internalized_parameters},
+        wrapped_expression {[](LibraryWrapper&& arg, auto& params) -> decltype(auto) {
+          if constexpr (sizeof...(InternalizedParameters) == 0) return std::move(arg).wrapped_expression;
+          else return std::apply([](auto&&...p){ return NestedObject {p...}; }, params);
+        }(std::move(arg), internalized_parameters)} {}
+#endif
 
 
+#ifdef __cpp_concepts
     /**
      * \brief Copy constructor when there are no internalized parameters.
      */
-#ifdef __cpp_concepts
     LibraryWrapper(const LibraryWrapper& arg) requires (sizeof...(InternalizedParameters) == 0)
-#else
-    template<bool params = (sizeof...(InternalizedParameters) == 0), std::enable_if_t<params, int> = 0>
-    LibraryWrapper(const LibraryWrapper& arg)
-#endif
       = default;
 
 
@@ -98,14 +116,20 @@ namespace OpenKalman::internal
      * \overload
      * \brief Copy constructor when there are internalized parameters.
      */
-#ifdef __cpp_concepts
     LibraryWrapper(const LibraryWrapper& arg) requires (sizeof...(InternalizedParameters) > 0)
-#else
-    template<bool params = (sizeof...(InternalizedParameters) > 0), std::enable_if_t<params, int> = 0>
-    LibraryWrapper(const LibraryWrapper& arg)
-#endif
     : internalized_parameters {arg.internalized_parameters},
-      wrapped_expression {std::apply([](auto&&...p){ return NestedObject {std::forward<decltype(p)>(p)...}; }, internalized_parameters)} {}
+      wrapped_expression {std::apply([](auto&&...p){ return NestedObject {p...}; }, internalized_parameters)} {}
+#else
+    /**
+     * \brief Copy constructor.
+     */
+    LibraryWrapper(const LibraryWrapper& arg)
+      : internalized_parameters {arg.internalized_parameters},
+        wrapped_expression {[](const LibraryWrapper& arg, auto& params) -> decltype(auto) {
+          if constexpr (sizeof...(InternalizedParameters) == 0) return arg.wrapped_expression;
+          else return std::apply([](auto&&...p){ return NestedObject {p...}; }, params);
+        }(arg, internalized_parameters)} {}
+#endif
 
 
     /**
