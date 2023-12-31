@@ -63,14 +63,14 @@ namespace OpenKalman
    * \brief Specifies that all diagonal elements of a diagonal object are the same constant value.
    * \todo rename to scalar_matrix
    */
-  template<typename T, CompileTimeStatus c = CompileTimeStatus::any, Likelihood b = Likelihood::definitely>
+  template<typename T, ConstantType c = ConstantType::any, Qualification b = Qualification::unqualified>
 #ifdef __cpp_concepts
   concept constant_diagonal_matrix = indexible<T> and scalar_constant<constant_diagonal_coefficient<T>, c> and
-    (b == Likelihood::maybe or constant_diagonal_coefficient<T>::status == b);
+    (b == Qualification::depends_on_dynamic_shape or constant_diagonal_coefficient<T>::status == b);
 #else
   constexpr bool constant_diagonal_matrix =
     indexible<T> and scalar_constant<constant_diagonal_coefficient<T>, c> and
-    (b == Likelihood::maybe or detail::scalar_status_is<constant_diagonal_coefficient<T>, b>::value);
+    (b == Qualification::depends_on_dynamic_shape or detail::scalar_status_is<constant_diagonal_coefficient<T>, b>::value);
 #endif
 
 

@@ -157,9 +157,9 @@ namespace OpenKalman::internal
 
 
 #ifdef __cpp_concepts
-    template<one_dimensional<Likelihood::maybe> Arg>
+    template<one_dimensional<Qualification::depends_on_dynamic_shape> Arg>
 #else
-    template<typename Arg, std::enable_if_t<one_dimensional<Arg, Likelihood::maybe>, int> = 0>
+    template<typename Arg, std::enable_if_t<one_dimensional<Arg, Qualification::depends_on_dynamic_shape>, int> = 0>
 #endif
     FixedSizeAdapter(Arg&&) -> FixedSizeAdapter<Arg>;
 

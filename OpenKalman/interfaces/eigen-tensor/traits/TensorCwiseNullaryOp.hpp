@@ -70,15 +70,15 @@ namespace OpenKalman::interface
     }
 
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<XprType, b>;
 
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool is_square = square_shaped<XprType, b>;
 
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = Eigen3::NullaryFunctorTraits<NullaryOp, XprType>::template is_triangular<t, b>;
 
 

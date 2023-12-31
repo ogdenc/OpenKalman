@@ -50,7 +50,7 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (constant_diagonal_matrix<MatrixType, CompileTimeStatus::any, Likelihood::maybe>)
+      if constexpr (constant_diagonal_matrix<MatrixType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
       {
         if constexpr (DiagIndex == Eigen::DynamicIndex)
         {
@@ -62,9 +62,9 @@ namespace OpenKalman::interface
         else if constexpr (DiagIndex == 0)
           return constant_diagonal_coefficient{arg.nestedExpression()};
         else
-          return internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<MatrixType>, 0>{};
+          return internal::ScalarConstant<Qualification::unqualified, scalar_type_of_t<MatrixType>, 0>{};
       }
-      else if constexpr (constant_matrix<MatrixType, CompileTimeStatus::any, Likelihood::maybe>)
+      else if constexpr (constant_matrix<MatrixType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
       {
         return constant_coefficient{arg.nestedExpression()};
       }
@@ -75,11 +75,11 @@ namespace OpenKalman::interface
     }
 
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool one_dimensional = dimension_size_of_index_is<Xpr, 0, 1, b>;
 
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool is_square = one_dimensional<b>;
 
   };

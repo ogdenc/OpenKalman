@@ -293,14 +293,16 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<vector_space_descriptor...Ds, typename Operation, indexible...Args> requires (sizeof...(Args) > 0) and
-    (sizeof...(Ds) >= std::max({index_count_v<Args>...})) and detail::n_ary_operator<Operation, sizeof...(Ds), Args...>
+    (sizeof...(Ds) >= std::max({index_count_v<Args>...})) and detail::n_ary_operator<Operation, sizeof...(Ds), Args...> and
+    (... and (dimension_size_of_v<Ds> != 0))
+  constexpr compatible_with_vector_space_descriptors<Ds...> auto
 #else
   template<typename...Ds, typename Operation, typename...Args, std::enable_if_t<
     (vector_space_descriptor<Ds> and ...) and (indexible<Args> and ...) and
     (sizeof...(Args) > 0) and (sizeof...(Ds) >= std::max({index_count<Args>::value...})) and
-    detail::n_ary_operator<Operation, sizeof...(Ds), Args...>, int> = 0>
-#endif
+    detail::n_ary_operator<Operation, sizeof...(Ds), Args...> and (... and (dimension_size_of_v<Ds> != 0)), int> = 0>
   constexpr auto
+#endif
   n_ary_operation(const std::tuple<Ds...>& d_tup, Operation&& operation, Args&&...args)
   {
     detail::check_n_ary_dims(std::index_sequence_for<Ds...> {}, d_tup, args...);
@@ -314,17 +316,27 @@ namespace OpenKalman
     template<std::size_t ix, typename Arg, typename...Args>
     constexpr auto find_max_dim(const Arg& arg, const Args&...args)
     {
-      if constexpr (sizeof...(Args) == 0) return get_vector_space_descriptor<ix>(arg);
+      if constexpr (sizeof...(Args) == 0)
+      {
+        auto ret = get_vector_space_descriptor<ix>(arg);
+        if constexpr (dynamic_vector_space_descriptor<decltype(ret)>)
+        {
+          if (get_dimension_size_of(ret) == 0) throw std::invalid_argument {"A dimension of an arguments "
+            "to n_ary_operation is zero for at least index " + std::to_string(ix) + "."};
+        }
+        else static_assert(index_dimension_of_v<Arg, ix> != 0, "Arguments to n_ary_operation cannot have zero dimensions");
+        return ret;
+      }
       else
       {
         auto max_d = find_max_dim<ix>(args...);
         using Arg_D = vector_space_descriptor_of_t<Arg, ix>;
         using Max_D = decltype(max_d);
+
         if constexpr (fixed_vector_space_descriptor<Arg_D> and fixed_vector_space_descriptor<Max_D>)
         {
           constexpr auto dim_arg_d = dimension_size_of_v<Arg_D>;
-          if constexpr (equivalent_to<Arg_D, Max_D> or
-            (dim_arg_d == 1 and equivalent_to_uniform_dimension_type_of<Arg_D, Max_D>))
+          if constexpr (equivalent_to<Arg_D, Max_D> or (dim_arg_d == 1 and equivalent_to_uniform_dimension_type_of<Arg_D, Max_D>))
           {
             return max_d;
           }
@@ -338,13 +350,36 @@ namespace OpenKalman
         }
         else if constexpr (euclidean_vector_space_descriptor<Arg_D> and euclidean_vector_space_descriptor<Max_D>)
         {
-          auto arg_d = get_vector_space_descriptor<ix>(arg);
-          std::size_t dim_arg_d = get_dimension_size_of(arg_d);
-          std::size_t dim_max_d = get_dimension_size_of(max_d);
-          if (dim_arg_d == dim_max_d or (dim_arg_d == 1 and dim_arg_d <= dim_max_d)) return dim_max_d;
-          else if (dim_max_d == 1 and dim_max_d <= dim_arg_d) return dim_arg_d;
-          else throw std::invalid_argument {"The dimension of arguments to n_ary_operation are not compatible with "
-            "each other for at least index " + std::to_string(ix) + "."};
+          if constexpr (fixed_vector_space_descriptor<Arg_D>)
+          {
+            constexpr std::size_t a = dimension_size_of_v<Arg_D>;
+            std::size_t m = get_dimension_size_of(max_d);
+            if (a != m and a != 1 and m != 1) throw std::invalid_argument {"The dimension of arguments to n_ary_operation "
+                "are not compatible with each other for at least index " + std::to_string(ix) + "."};
+
+            if constexpr (a == 1) return max_d;
+            else return get_vector_space_descriptor<ix>(arg);
+          }
+          else if constexpr (fixed_vector_space_descriptor<Max_D>)
+          {
+            auto arg_d = get_vector_space_descriptor<ix>(arg);
+            std::size_t a = get_dimension_size_of(arg_d);
+            constexpr std::size_t m = dimension_size_of_v<Max_D>;
+            if (a != m and a != 1 and m != 1) throw std::invalid_argument {"The dimension of arguments to n_ary_operation "
+                "are not compatible with each other for at least index " + std::to_string(ix) + "."};
+
+            if constexpr (m == 1) return arg_d;
+            else return max_d;
+          }
+          else
+          {
+            std::size_t a = get_index_dimension_of<ix>(arg);
+            std::size_t m = get_dimension_size_of(max_d);
+            if (a == m or a == 1) return m;
+            else if (m == 1 and m <= a) return a;
+            else throw std::invalid_argument {"The dimension of arguments to n_ary_operation are not compatible with "
+              "each other for at least index " + std::to_string(ix) + "."};
+          }
         }
         else
         {

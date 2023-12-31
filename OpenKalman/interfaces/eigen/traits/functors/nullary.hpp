@@ -31,7 +31,7 @@ namespace OpenKalman::Eigen3
       else return arg.functor()();
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = false;
@@ -44,12 +44,12 @@ namespace OpenKalman::Eigen3
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      constexpr auto b = has_dynamic_dimensions<Arg> ? Likelihood::maybe : Likelihood::definitely;
+      constexpr auto b = has_dynamic_dimensions<Arg> ? Qualification::depends_on_dynamic_shape : Qualification::unqualified;
       if constexpr (is_diag) return internal::ScalarConstant<b, Scalar, 1>{};
       else return std::monostate {};
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = square_shaped<PlainObjectType, b>;
 
     static constexpr bool is_hermitian = square_shaped<PlainObjectType>;
@@ -62,7 +62,7 @@ namespace OpenKalman::Eigen3
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg) { return std::monostate {}; }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = false;
@@ -79,7 +79,7 @@ namespace OpenKalman::Eigen3
       else return arg.functor()();
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = square_shaped<PlainObjectType> and not complex_number<Scalar>;

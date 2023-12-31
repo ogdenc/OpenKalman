@@ -68,7 +68,7 @@ namespace OpenKalman
         static_assert(std::decay_t<Ixs>::value < index_dimension_of_v<Arg, indices>, "set_chip: indices must be in range");
     }());
 
-    static_assert((... and dimension_size_of_index_is<Chip, indices, 1, Likelihood::maybe>),
+    static_assert((... and dimension_size_of_index_is<Chip, indices, 1, Qualification::depends_on_dynamic_shape>),
       "Argument chip to set_chip must be 1D in all the specified indices.");
 
     return detail::set_chip_impl<indices...>(std::forward<Arg>(arg), std::forward<Chip>(chip),

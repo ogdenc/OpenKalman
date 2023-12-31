@@ -98,15 +98,15 @@ namespace OpenKalman
    * \brief T is a scalar constant
    * \tparam c Whether the constant is known or unknown at compile time.
    */
-  template<typename T, CompileTimeStatus c = CompileTimeStatus::any>
+  template<typename T, ConstantType c = ConstantType::any>
 #ifdef __cpp_concepts
   concept scalar_constant =
 #else
   constexpr bool scalar_constant =
 #endif
-    (c == CompileTimeStatus::any and (detail::compile_time_scalar_constant<T> or detail::runtime_scalar_constant<T>)) or
-    (c == CompileTimeStatus::known and detail::compile_time_scalar_constant<T>) or
-    (c == CompileTimeStatus::unknown and detail::runtime_scalar_constant<T>);
+    (c == ConstantType::any and (detail::compile_time_scalar_constant<T> or detail::runtime_scalar_constant<T>)) or
+    (c == ConstantType::static_constant and detail::compile_time_scalar_constant<T>) or
+    (c == ConstantType::dynamic_constant and detail::runtime_scalar_constant<T>);
 
 
 } // namespace OpenKalman

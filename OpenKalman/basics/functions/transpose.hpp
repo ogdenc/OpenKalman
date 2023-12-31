@@ -29,7 +29,21 @@ namespace OpenKalman
       return make_constant<Arg>(std::forward<C>(c),
         get_vector_space_descriptor<1>(arg), get_vector_space_descriptor<0>(arg), get_vector_space_descriptor<Is + 2>(arg)...);
     }
-  }
+  } // namespace internal
+
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename Arg, typename = void>
+    struct constant_transpose_defined_for: std::false_type {};
+
+    template<typename T, typename Arg>
+    struct constant_transpose_defined_for<T, Arg, std::enable_if_t<
+      constant_matrix<decltype(interface::library_interface<T>::transpose(std::declval<Arg>()))>>>
+      : std::true_type {};
+  } // namespace detail
+#endif
 
 
   /**
@@ -48,7 +62,16 @@ namespace OpenKalman
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (constant_matrix<Arg>)
+    else if constexpr (hermitian_matrix<Arg>)
+    {
+      return conjugate(std::forward<Arg>(arg));
+    }
+#ifdef __cpp_concepts
+    else if constexpr (constant_matrix<Arg> and
+      not requires { {interface::library_interface<std::decay_t<Arg>>::transpose(std::forward<Arg>(arg))} -> constant_matrix; })
+#else
+    else if constexpr (constant_matrix<Arg> and not detail::constant_transpose_defined_for<std::decay_t<Arg>, Arg>::value)
+#endif
     {
       constexpr std::make_index_sequence<std::max({index_count_v<Arg>, 2_uz}) - 2_uz> seq;
       return internal::transpose_constant(constant_coefficient{arg}, std::forward<Arg>(arg), seq);

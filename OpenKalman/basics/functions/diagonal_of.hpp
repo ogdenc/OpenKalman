@@ -35,10 +35,10 @@ namespace OpenKalman
    * \returns Arg A column vector
    */
 #ifdef __cpp_concepts
-  template<square_shaped<Likelihood::maybe> Arg> requires (index_count_v<Arg> == dynamic_size) or (index_count_v<Arg> <= 2)
+  template<square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires (index_count_v<Arg> == dynamic_size) or (index_count_v<Arg> <= 2)
   constexpr vector decltype(auto)
 #else
-  template<typename Arg, std::enable_if_t<square_shaped<Arg, Likelihood::maybe> and
+  template<typename Arg, std::enable_if_t<square_shaped<Arg, Qualification::depends_on_dynamic_shape> and
     (index_count_v<Arg> == dynamic_size or index_count_v<Arg> <= 2), int> = 0>
   constexpr decltype(auto)
 #endif
@@ -53,19 +53,19 @@ namespace OpenKalman
       return std::forward<Arg>(arg);
     }
     // arg is maybe a one-by-one matrix and has at least one dynamic dimension, or is an empty matrix
-    else if constexpr (one_dimensional<Arg, Likelihood::maybe> and
+    else if constexpr (one_dimensional<Arg, Qualification::depends_on_dynamic_shape> and
       (dynamic_index_count_v<Arg> < index_count_v<Arg> or (dynamic_dimension<Arg, 0> and index_count_v<Arg> == 1)))
     {
       if (not is_square_shaped(arg)) throw std::invalid_argument{"Argument of diagonal_of is not a square matrix."};
       constexpr std::make_index_sequence<index_count_v<Arg> - 1> seq;
-      if constexpr (one_dimensional<Arg, Likelihood::maybe>)
+      if constexpr (one_dimensional<Arg, Qualification::depends_on_dynamic_shape>)
       {
         constant_coefficient c {std::forward<Arg>(arg)};
         return detail::make_constant_column_vector<Arg>(c, Dimensions<1>{}, seq);
       }
       else
       {
-        internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<Arg>, 0> z;
+        internal::ScalarConstant<Qualification::unqualified, scalar_type_of_t<Arg>, 0> z;
         return detail::make_constant_column_vector<Arg>(z, Dimensions<0>{}, seq);
       }
     }

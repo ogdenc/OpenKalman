@@ -25,9 +25,9 @@ namespace OpenKalman
   {
 #ifdef __cpp_concepts
     template<typename T>
-    concept known_constant_diagonal = interface::get_constant_diagonal_defined_for<T, CompileTimeStatus::known> or
-      (interface::get_constant_defined_for<T, CompileTimeStatus::known> and
-        (one_dimensional<T, Likelihood::maybe> or (square_shaped<T, Likelihood::maybe> and
+    concept known_constant_diagonal = interface::get_constant_diagonal_defined_for<T, ConstantType::static_constant> or
+      (interface::get_constant_defined_for<T, ConstantType::static_constant> and
+        (one_dimensional<T, Qualification::depends_on_dynamic_shape> or (square_shaped<T, Qualification::depends_on_dynamic_shape> and
           requires(T t) {
             requires internal::are_within_tolerance(std::decay_t<decltype(interface::indexible_object_traits<std::decay_t<T>>::get_constant(t))>::value, 0);
           })));
@@ -36,15 +36,15 @@ namespace OpenKalman
     struct known_constant_diagonal_impl : std::false_type {};
 
     template<typename T>
-    struct known_constant_diagonal_impl<T, std::enable_if_t<interface::get_constant_defined_for<T, CompileTimeStatus::known>>>
-      : std::bool_constant<interface::get_constant_defined_for<T, CompileTimeStatus::known> and
-        (one_dimensional<T, Likelihood::maybe> or
-          (square_shaped<T, Likelihood::maybe> and internal::are_within_tolerance(
+    struct known_constant_diagonal_impl<T, std::enable_if_t<interface::get_constant_defined_for<T, ConstantType::static_constant>>>
+      : std::bool_constant<interface::get_constant_defined_for<T, ConstantType::static_constant> and
+        (one_dimensional<T, Qualification::depends_on_dynamic_shape> or
+          (square_shaped<T, Qualification::depends_on_dynamic_shape> and internal::are_within_tolerance(
             std::decay_t<decltype(interface::indexible_object_traits<std::decay_t<T>>::get_constant(std::declval<T>()))>::value, 0)))> {};
 
 
     template<typename T>
-    constexpr bool known_constant_diagonal = interface::get_constant_diagonal_defined_for<T, CompileTimeStatus::known> or
+    constexpr bool known_constant_diagonal = interface::get_constant_diagonal_defined_for<T, ConstantType::static_constant> or
       detail::known_constant_diagonal_impl<T>::value;
 #endif
   } // namespace detail
@@ -83,13 +83,13 @@ namespace OpenKalman
         return std::decay_t<decltype(Trait::get_constant(std::declval<T>()))>::value;
     }();
 
-    static constexpr Likelihood status = []{
+    static constexpr Qualification status = []{
       if constexpr (not has_dynamic_dimensions<T>)
-        return Likelihood::definitely;
+        return Qualification::unqualified;
       else if constexpr (interface::get_constant_diagonal_defined_for<T>)
         return detail::constant_status<decltype(Trait::get_constant_diagonal(std::declval<T>()))>::value;
       else
-        return Likelihood::maybe;
+        return Qualification::depends_on_dynamic_shape;
     }();
 
     constexpr operator value_type() const noexcept { return value; }
@@ -105,12 +105,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible T> requires (not detail::known_constant_diagonal<T>) and
-    (interface::get_constant_diagonal_defined_for<T, CompileTimeStatus::unknown> or one_dimensional<T, Likelihood::maybe>)
+    (interface::get_constant_diagonal_defined_for<T, ConstantType::dynamic_constant> or one_dimensional<T, Qualification::depends_on_dynamic_shape>)
   struct constant_diagonal_coefficient<T>
 #else
   template<typename T>
   struct constant_diagonal_coefficient<T, std::enable_if_t<indexible<T> and (not detail::known_constant_diagonal<T>) and
-    (interface::get_constant_diagonal_defined_for<T, CompileTimeStatus::unknown> or one_dimensional<T, Likelihood::maybe>)>>
+    (interface::get_constant_diagonal_defined_for<T, ConstantType::dynamic_constant> or one_dimensional<T, Qualification::depends_on_dynamic_shape>)>>
 #endif
   {
   private:
@@ -135,13 +135,13 @@ namespace OpenKalman
 
     using type = constant_diagonal_coefficient;
 
-    static constexpr Likelihood status = []{
+    static constexpr Qualification status = []{
       if constexpr (not has_dynamic_dimensions<T>)
-        return Likelihood::definitely;
+        return Qualification::unqualified;
       else if constexpr (interface::get_constant_diagonal_defined_for<T>)
         return detail::constant_status<decltype(Trait::get_constant_diagonal(std::declval<T>()))>::value;
       else
-        return Likelihood::maybe;
+        return Qualification::depends_on_dynamic_shape;
     }();
 
     constexpr operator value_type() const noexcept { return value; }

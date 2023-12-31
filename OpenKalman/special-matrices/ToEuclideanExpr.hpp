@@ -310,10 +310,10 @@ namespace OpenKalman
           return std::monostate {};
       }
 
-      template<Likelihood b>
+      template<Qualification b>
       static constexpr bool one_dimensional = euclidean_vector_space_descriptor<TypedIndex> and OpenKalman::one_dimensional<NestedMatrix, b>;
 
-      template<TriangleType t, Likelihood b>
+      template<TriangleType t, Qualification b>
       static constexpr bool is_triangular = euclidean_vector_space_descriptor<TypedIndex> and triangular_matrix<NestedMatrix, t, b>;
 
       static constexpr bool is_triangular_adapter = false;

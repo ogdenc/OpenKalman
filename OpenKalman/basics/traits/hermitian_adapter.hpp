@@ -45,13 +45,13 @@ namespace OpenKalman
    */
   template<typename T, HermitianAdapterType t = HermitianAdapterType::any>
 #ifdef __cpp_concepts
-  concept hermitian_adapter = hermitian_matrix<T, Likelihood::maybe> and has_nested_object<T> and
+  concept hermitian_adapter = hermitian_matrix<T, Qualification::depends_on_dynamic_shape> and has_nested_object<T> and
     (t == HermitianAdapterType::any ?
      interface::indexible_object_traits<std::decay_t<T>>::hermitian_adapter_type == HermitianAdapterType::lower or
        interface::indexible_object_traits<std::decay_t<T>>::hermitian_adapter_type == HermitianAdapterType::upper :
      interface::indexible_object_traits<std::decay_t<T>>::hermitian_adapter_type == t);
 #else
-  constexpr bool hermitian_adapter = hermitian_matrix<T, Likelihood::maybe> and has_nested_object<T> and
+  constexpr bool hermitian_adapter = hermitian_matrix<T, Qualification::depends_on_dynamic_shape> and has_nested_object<T> and
     detail::hermitian_adapter_impl<std::decay_t<T>, t>::value;
 #endif
 

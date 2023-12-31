@@ -26,8 +26,9 @@ namespace OpenKalman
   // ----------------- //
 
   /**
-   * \brief A tensor or other matrix in which all elements are a constant scalar value known at compile time.
-   * \details The constant value can be known at compile time, or alternatively, known only at runtime.
+   * \brief A tensor or other matrix in which all elements are a constant scalar value.
+   * \details The constant value can be \ref ConstantType::static_constant "static" (known at compile time), or
+   * \ref ConstantType::dynamic_constant "dynamic" (known only at runtime).
    * Examples:
    * \code
    * using T = Eigen::Matrix<double, 3, 2>; // A 3-by-2 matrix of scalar-type double.
@@ -142,7 +143,7 @@ namespace OpenKalman
    * \note This has the same name as Eigen::DiagonalMatrix, and is intended as a replacement.
    */
 #ifdef __cpp_concepts
-  template<vector<0, Likelihood::maybe> NestedMatrix>
+  template<vector<0, Qualification::depends_on_dynamic_shape> NestedMatrix>
 #else
   template<typename NestedMatrix>
 #endif
@@ -188,15 +189,15 @@ namespace OpenKalman
    * diagonal.
    */
 #ifdef __cpp_concepts
-  template<square_shaped<Likelihood::maybe> NestedMatrix, HermitianAdapterType storage_triangle =
+  template<square_shaped<Qualification::depends_on_dynamic_shape> NestedMatrix, HermitianAdapterType storage_triangle =
       triangular_matrix<NestedMatrix, TriangleType::diagonal> ? HermitianAdapterType::lower :
       triangular_matrix<NestedMatrix, TriangleType::upper> ? HermitianAdapterType::upper : HermitianAdapterType::lower> requires
     (index_count_v<NestedMatrix> <= 2) and
     (storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper) and
     (not constant_matrix<NestedMatrix> or real_axis_number<constant_coefficient<NestedMatrix>>) and
     (not constant_diagonal_matrix<NestedMatrix> or real_axis_number<constant_diagonal_coefficient<NestedMatrix>>) and
-    (not triangular_matrix<NestedMatrix, TriangleType::any, Likelihood::maybe> or
-      triangular_matrix<NestedMatrix, static_cast<TriangleType>(storage_triangle), Likelihood::maybe>)
+    (not triangular_matrix<NestedMatrix, TriangleType::any, Qualification::depends_on_dynamic_shape> or
+      triangular_matrix<NestedMatrix, static_cast<TriangleType>(storage_triangle), Qualification::depends_on_dynamic_shape>)
 #else
   template<typename NestedMatrix, HermitianAdapterType storage_triangle =
     triangular_matrix<NestedMatrix, TriangleType::diagonal> ? HermitianAdapterType::lower :
@@ -242,7 +243,7 @@ namespace OpenKalman
    * not within the selected triangle or diagonal, to ensure that the matrix is triangular.
    */
 #ifdef __cpp_concepts
-  template<square_shaped<Likelihood::maybe> NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
+  template<square_shaped<Qualification::depends_on_dynamic_shape> NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
       (triangular_matrix<NestedMatrix, TriangleType::upper> ? TriangleType::upper : TriangleType::lower))>
     requires (index_count_v<NestedMatrix> <= 2)
 #else
@@ -517,19 +518,33 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * \brief A dumb wrapper for \ref indexible objects so that they are treated exactly as native objects within a library.
+     * \brief A wrapper for \ref indexible objects so that they are treated exactly as native objects within a library.
      * \tparam NestedObject An indexible object that may or may not be in a library of interest.
      * \tparam LibraryObject Any object from the library to which this wrapper is to be associated.
-     * \tparam InternalizedParameters If this LibraryWrapper is not otherwise self-contained, this are a full set of
      * arguments necessary to construct the object, which will be stored internally.
      */
   #ifdef __cpp_concepts
-    template<indexible NestedObject, indexible LibraryObject, typename...InternalizedParameters> requires
-      (... and (not std::is_reference_v<InternalizedParameters>))
+    template<indexible NestedObject, indexible LibraryObject>
   #else
-    template<typename NestedObject, typename LibraryObject, typename...InternalizedParameters>
+    template<typename NestedObject, typename LibraryObject>
   #endif
     struct LibraryWrapper;
+
+
+    /**
+     * \internal
+     * \brief A wrapper that internalizes any reference parameters in an \ref indexible object.
+     * \tparam NestedObject An indexible object.
+     * \tparam InternalizedParameters A full set of arguments necessary to construct the object,
+     * which will be stored internally. These may optionally be lvalue-reference types,
+     * in which case only a reference is stored and the parameter is not actually internalized.
+     */
+#ifdef __cpp_concepts
+    template<indexible NestedObject, typename...InternalizedParameters>
+#else
+    template<typename NestedObject, typename...InternalizedParameters>
+#endif
+    struct SelfContainedWrapper;
 
 
     /**

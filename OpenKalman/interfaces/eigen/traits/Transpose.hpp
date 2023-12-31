@@ -65,20 +65,20 @@ namespace OpenKalman::interface
       return constant_diagonal_coefficient {arg.nestedExpression()};
     }
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool is_square = square_shaped<MatrixType, b>;
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = diagonal_matrix<MatrixType, b> or
       (t == TriangleType::lower and triangular_matrix<MatrixType, TriangleType::upper, b>) or
       (t == TriangleType::upper and triangular_matrix<MatrixType, TriangleType::lower, b>);
 
     static constexpr bool is_triangular_adapter = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Qualification::depends_on_dynamic_shape>;
 
     static constexpr Layout layout = layout_of_v<MatrixType>;
 

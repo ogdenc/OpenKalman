@@ -22,10 +22,10 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, Likelihood b, typename = void>
+    template<typename T, Qualification b, typename = void>
     struct nested_is_vector : std::false_type {};
 
-    template<typename T, Likelihood b>
+    template<typename T, Qualification b>
     struct nested_is_vector<T, b, std::enable_if_t<has_nested_object<T>>>
       : std::bool_constant<vector<nested_object_of_t<T>, 0, b>> {};
   } // namespace detail
@@ -38,7 +38,7 @@ namespace OpenKalman
    * Components outside the diagonal are zero.
    * \tparam T A matrix or tensor.
    */
-  template<typename T, Likelihood b = Likelihood::definitely>
+  template<typename T, Qualification b = Qualification::unqualified>
 #ifdef __cpp_concepts
   concept diagonal_adapter = interface::indexible_object_traits<std::decay_t<T>>::template is_triangular<TriangleType::diagonal, b> and
     vector<nested_object_of_t<T>, 0, b>;

@@ -25,7 +25,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible A>
-  constexpr triangular_matrix<TriangleType::upper, Likelihood::maybe> decltype(auto)
+  constexpr triangular_matrix<TriangleType::upper, Qualification::depends_on_dynamic_shape> decltype(auto)
 #else
   template<typename A, std::enable_if_t<indexible<A>, int> = 0>
   constexpr decltype(auto)
@@ -94,7 +94,7 @@ namespace OpenKalman
       }(std::forward<A>(a));
       using Ret = decltype(ret);
 
-      static_assert(triangular_matrix<Ret, TriangleType::upper, Likelihood::maybe>,
+      static_assert(triangular_matrix<Ret, TriangleType::upper, Qualification::depends_on_dynamic_shape>,
         "Interface implementation error: interface::library_interface<T>::QR_decomposition must return an upper triangular_matrix.");
 
       // \todo Fix this:

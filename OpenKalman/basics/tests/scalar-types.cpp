@@ -32,39 +32,39 @@ namespace
   auto tolerance = [](const auto& a, const auto& b, const auto& err){ return internal::are_within_tolerance(a, b, err); };
 
   struct NullaryFunc { constexpr auto operator()() { return 5.5; } };
-  struct ConstDefinitely : std::integral_constant<int, 6> { static constexpr auto status = Likelihood::definitely; };
-  struct ConstMaybe : std::integral_constant<int, 6> { static constexpr auto status = Likelihood::maybe; };
+  struct ConstDefinitely : std::integral_constant<int, 6> { static constexpr auto status = Qualification::unqualified; };
+  struct ConstMaybe : std::integral_constant<int, 6> { static constexpr auto status = Qualification::depends_on_dynamic_shape; };
   struct ConstNoStatus : std::integral_constant<int, 6> {};
 }
 
 
 TEST(basics, ScalarConstant)
 {
-  static_assert(internal::ScalarConstant<Likelihood::definitely, double, 3>{}() == 3);
-  static_assert(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{}() == std::complex<double>{3, 4});
-  static_assert(internal::ScalarConstant<Likelihood::maybe, std::integral_constant<int, 7>>{}() == 7);
+  static_assert(internal::ScalarConstant<Qualification::unqualified, double, 3>{}() == 3);
+  static_assert(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{}() == std::complex<double>{3, 4});
+  static_assert(internal::ScalarConstant<Qualification::depends_on_dynamic_shape, std::integral_constant<int, 7>>{}() == 7);
   static_assert(internal::ScalarConstant{std::integral_constant<int, 7>{}}.value == 7);
   static_assert(internal::ScalarConstant{3}() == 3);
   static_assert(internal::ScalarConstant{3.} == 3.);
   static_assert(std::is_same_v<decltype(internal::ScalarConstant{std::integral_constant<int, 7>{}})::value_type, int>);
   static_assert(std::is_same_v<decltype(internal::ScalarConstant{3})::value_type, int>);
   static_assert(std::is_same_v<decltype(internal::ScalarConstant{3.})::value_type, double>);
-  static_assert(internal::ScalarConstant{internal::ScalarConstant<Likelihood::maybe, double, 3>{}}.status == Likelihood::maybe);
-  static_assert(internal::ScalarConstant{internal::ScalarConstant<Likelihood::definitely, double, 3>{}}.status == Likelihood::definitely);
-  static_assert(internal::ScalarConstant{std::integral_constant<int, 7>{}}.status == Likelihood::definitely);
-  static_assert(internal::ScalarConstant{3}.status == Likelihood::definitely);
+  static_assert(internal::ScalarConstant{internal::ScalarConstant<Qualification::depends_on_dynamic_shape, double, 3>{}}.status == Qualification::depends_on_dynamic_shape);
+  static_assert(internal::ScalarConstant{internal::ScalarConstant<Qualification::unqualified, double, 3>{}}.status == Qualification::unqualified);
+  static_assert(internal::ScalarConstant{std::integral_constant<int, 7>{}}.status == Qualification::unqualified);
+  static_assert(internal::ScalarConstant{3}.status == Qualification::unqualified);
 
-  static_assert(std::decay_t<decltype(+internal::ScalarConstant<Likelihood::definitely, double, 3>{})>::value == 3);
-  static_assert(std::decay_t<decltype(-internal::ScalarConstant<Likelihood::definitely, double, 3>{})>::value == -3);
-  static_assert(std::decay_t<decltype(internal::ScalarConstant<Likelihood::definitely, double, 3>{} + std::integral_constant<int, 2>{})>::value == 5);
-  static_assert(std::decay_t<decltype(internal::ScalarConstant<Likelihood::definitely, double, 3>{} - std::integral_constant<int, 2>{})>::value == 1);
-  static_assert(std::decay_t<decltype(internal::ScalarConstant<Likelihood::definitely, double, 3>{} * std::integral_constant<int, 2>{})>::value == 6);
-  static_assert(std::decay_t<decltype(internal::ScalarConstant<Likelihood::definitely, double, 3>{} / std::integral_constant<int, 2>{})>::value == 1.5);
+  static_assert(std::decay_t<decltype(+internal::ScalarConstant<Qualification::unqualified, double, 3>{})>::value == 3);
+  static_assert(std::decay_t<decltype(-internal::ScalarConstant<Qualification::unqualified, double, 3>{})>::value == -3);
+  static_assert(std::decay_t<decltype(internal::ScalarConstant<Qualification::unqualified, double, 3>{} + std::integral_constant<int, 2>{})>::value == 5);
+  static_assert(std::decay_t<decltype(internal::ScalarConstant<Qualification::unqualified, double, 3>{} - std::integral_constant<int, 2>{})>::value == 1);
+  static_assert(std::decay_t<decltype(internal::ScalarConstant<Qualification::unqualified, double, 3>{} * std::integral_constant<int, 2>{})>::value == 6);
+  static_assert(std::decay_t<decltype(internal::ScalarConstant<Qualification::unqualified, double, 3>{} / std::integral_constant<int, 2>{})>::value == 1.5);
 
-  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value + internal::ScalarConstant<Likelihood::definitely, double, 3>{} == 5);
-  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value - internal::ScalarConstant<Likelihood::definitely, double, 3>{} == -1);
-  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value * internal::ScalarConstant<Likelihood::definitely, double, 3>{} == 6);
-  static_assert(std::decay_t<decltype(std::integral_constant<int, 3>{})>::value / internal::ScalarConstant<Likelihood::definitely, double, 2>{} == 1.5);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value + internal::ScalarConstant<Qualification::unqualified, double, 3>{} == 5);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value - internal::ScalarConstant<Qualification::unqualified, double, 3>{} == -1);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value * internal::ScalarConstant<Qualification::unqualified, double, 3>{} == 6);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 3>{})>::value / internal::ScalarConstant<Qualification::unqualified, double, 2>{} == 1.5);
 }
 
 
@@ -81,16 +81,16 @@ TEST(basics, scalar_traits)
   static_assert(floating_scalar_type<long double>);
   static_assert(not floating_scalar_type<std::complex<double>>);
   COMPLEXINTEXISTS(static_assert(not floating_scalar_type<std::complex<int>>));
-  static_assert(scalar_constant<int, CompileTimeStatus::unknown>);
-  static_assert(scalar_constant<double, CompileTimeStatus::unknown>);
-  static_assert(scalar_constant<double, CompileTimeStatus::any>);
-  static_assert(scalar_constant<std::integral_constant<int, 5>, CompileTimeStatus::known>);
-  static_assert(scalar_constant<std::integral_constant<int, 6>, CompileTimeStatus::any>);
+  static_assert(scalar_constant<int, ConstantType::dynamic_constant>);
+  static_assert(scalar_constant<double, ConstantType::dynamic_constant>);
+  static_assert(scalar_constant<double, ConstantType::any>);
+  static_assert(scalar_constant<std::integral_constant<int, 5>, ConstantType::static_constant>);
+  static_assert(scalar_constant<std::integral_constant<int, 6>, ConstantType::any>);
 
   struct return8 { constexpr auto operator()() { return 8; } };
-  static_assert(scalar_constant<return8, CompileTimeStatus::known>);
+  static_assert(scalar_constant<return8, ConstantType::static_constant>);
   struct return8r { auto operator()() { return 8; } };
-  static_assert(scalar_constant<return8r, CompileTimeStatus::unknown>);
+  static_assert(scalar_constant<return8r, ConstantType::dynamic_constant>);
 
   EXPECT_EQ(get_scalar_constant_value(7), 7);
   EXPECT_EQ(get_scalar_constant_value(std::integral_constant<int, 7>{}), 7);
@@ -100,27 +100,27 @@ TEST(basics, scalar_traits)
 
 TEST(basics, scalar_constant_operation)
 {
-  static_assert(scalar_constant<internal::scalar_constant_operation<NullaryFunc>, CompileTimeStatus::known>);
+  static_assert(scalar_constant<internal::scalar_constant_operation<NullaryFunc>, ConstantType::static_constant>);
   static_assert(get_scalar_constant_value(internal::scalar_constant_operation<NullaryFunc>{}) == 5.5);
-  static_assert(internal::scalar_constant_operation<NullaryFunc>::status == Likelihood::definitely);
-  static_assert(scalar_constant<internal::scalar_constant_operation<std::negate<>, ConstMaybe>, CompileTimeStatus::known>);
-  static_assert(scalar_constant<internal::scalar_constant_operation<std::negate<>, double>, CompileTimeStatus::unknown>);
-  static_assert(internal::scalar_constant_operation<std::negate<>, ConstDefinitely>::status == Likelihood::definitely);
-  static_assert(internal::scalar_constant_operation<std::negate<>, ConstMaybe>::status == Likelihood::maybe);
-  static_assert(internal::scalar_constant_operation<std::negate<>, ConstNoStatus>::status == Likelihood::definitely);
-  static_assert(scalar_constant<internal::scalar_constant_operation<std::multiplies<>, double, double>, CompileTimeStatus::unknown>);
+  static_assert(internal::scalar_constant_operation<NullaryFunc>::status == Qualification::unqualified);
+  static_assert(scalar_constant<internal::scalar_constant_operation<std::negate<>, ConstMaybe>, ConstantType::static_constant>);
+  static_assert(scalar_constant<internal::scalar_constant_operation<std::negate<>, double>, ConstantType::dynamic_constant>);
+  static_assert(internal::scalar_constant_operation<std::negate<>, ConstDefinitely>::status == Qualification::unqualified);
+  static_assert(internal::scalar_constant_operation<std::negate<>, ConstMaybe>::status == Qualification::depends_on_dynamic_shape);
+  static_assert(internal::scalar_constant_operation<std::negate<>, ConstNoStatus>::status == Qualification::unqualified);
+  static_assert(scalar_constant<internal::scalar_constant_operation<std::multiplies<>, double, double>, ConstantType::dynamic_constant>);
   static_assert(internal::scalar_constant_operation{std::plus{}, std::integral_constant<int, 4>{}, std::integral_constant<int, 5>{}}() == 9);
-  static_assert(internal::scalar_constant_operation<std::plus<>, ConstDefinitely, ConstDefinitely>::status == Likelihood::definitely);
-  static_assert(internal::scalar_constant_operation<std::plus<>, ConstDefinitely, ConstMaybe>::status == Likelihood::maybe);
-  static_assert(internal::scalar_constant_operation<std::plus<>, ConstNoStatus, ConstDefinitely>::status == Likelihood::definitely);
-  static_assert(internal::scalar_constant_operation<std::plus<>, ConstNoStatus, ConstMaybe>::status == Likelihood::maybe);
-  static_assert(internal::scalar_constant_operation<std::plus<>, ConstMaybe, ConstMaybe>::status == Likelihood::maybe);
-  static_assert(internal::scalar_constant_operation<std::plus<>, ConstNoStatus, ConstNoStatus>::status == Likelihood::definitely);
+  static_assert(internal::scalar_constant_operation<std::plus<>, ConstDefinitely, ConstDefinitely>::status == Qualification::unqualified);
+  static_assert(internal::scalar_constant_operation<std::plus<>, ConstDefinitely, ConstMaybe>::status == Qualification::depends_on_dynamic_shape);
+  static_assert(internal::scalar_constant_operation<std::plus<>, ConstNoStatus, ConstDefinitely>::status == Qualification::unqualified);
+  static_assert(internal::scalar_constant_operation<std::plus<>, ConstNoStatus, ConstMaybe>::status == Qualification::depends_on_dynamic_shape);
+  static_assert(internal::scalar_constant_operation<std::plus<>, ConstMaybe, ConstMaybe>::status == Qualification::depends_on_dynamic_shape);
+  static_assert(internal::scalar_constant_operation<std::plus<>, ConstNoStatus, ConstNoStatus>::status == Qualification::unqualified);
   EXPECT_EQ(get_scalar_constant_value(internal::scalar_constant_operation{[](){ return 9; }}), 9);
   int k = 9; EXPECT_EQ(get_scalar_constant_value(internal::scalar_constant_operation{[&k](){ return k; }}), 9);
   EXPECT_EQ(get_scalar_constant_value(internal::scalar_constant_operation{std::plus{}, 4, 5}), 9);
 
-  auto sc3 = internal::scalar_constant_operation{std::minus<>{}, internal::ScalarConstant<Likelihood::definitely, double, 7>{}, std::integral_constant<int, 4>{}};
+  auto sc3 = internal::scalar_constant_operation{std::minus<>{}, internal::ScalarConstant<Qualification::unqualified, double, 7>{}, std::integral_constant<int, 4>{}};
   static_assert(std::decay_t<decltype(+sc3)>::value == 3);
   static_assert(std::decay_t<decltype(-sc3)>::value == -3);
   static_assert(std::decay_t<decltype(sc3 + std::integral_constant<int, 2>{})>::value == 5);
@@ -165,13 +165,13 @@ TEST(basics, constexpr_real_imag_conj)
   EXPECT_TRUE((internal::constexpr_conj(std::complex<double>{3, 4}) == std::complex<double>{3, -4}));
 
   static_assert(internal::constexpr_real(std::integral_constant<int, 9>{}) == 9);
-  static_assert(internal::constexpr_real(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{}) == 3);
+  static_assert(internal::constexpr_real(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{}) == 3);
   static_assert(internal::constexpr_imag(std::integral_constant<int, 9>{}) == 0);
-  static_assert(internal::constexpr_imag(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{}) == 4);
+  static_assert(internal::constexpr_imag(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{}) == 4);
   static_assert(internal::constexpr_real(internal::constexpr_conj(std::integral_constant<int, 9>{})) == 9);
   static_assert(internal::constexpr_imag(internal::constexpr_conj(std::integral_constant<int, 9>{})) == 0);
-  static_assert(internal::constexpr_real(internal::constexpr_conj(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})) == 3);
-  static_assert(internal::constexpr_imag(internal::constexpr_conj(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})) == -4);
+  static_assert(internal::constexpr_real(internal::constexpr_conj(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})) == 3);
+  static_assert(internal::constexpr_imag(internal::constexpr_conj(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})) == -4);
 }
 
 
@@ -200,8 +200,8 @@ TEST(basics, constexpr_signbit)
   EXPECT_TRUE(not internal::constexpr_signbit(INFINITY));
 
   static_assert(internal::constexpr_signbit(std::integral_constant<int, -3>{}));
-  static_assert(internal::constexpr_signbit(internal::ScalarConstant<Likelihood::definitely, double, -3>{}));
-  static_assert(not internal::constexpr_signbit(internal::ScalarConstant<Likelihood::definitely, double, 3>{}));
+  static_assert(internal::constexpr_signbit(internal::ScalarConstant<Qualification::unqualified, double, -3>{}));
+  static_assert(not internal::constexpr_signbit(internal::ScalarConstant<Qualification::unqualified, double, 3>{}));
 }
 
 
@@ -226,10 +226,10 @@ TEST(basics, constexpr_copysign)
   EXPECT_FALSE(std::signbit(internal::constexpr_copysign(-0., 1.)));
 #endif
 
-  static_assert(internal::constexpr_copysign(internal::ScalarConstant<Likelihood::definitely, int, 5>{}, internal::ScalarConstant<Likelihood::definitely, int, -3>{}) == -5);
-  static_assert(internal::constexpr_copysign(internal::ScalarConstant<Likelihood::definitely, int, -5>{}, internal::ScalarConstant<Likelihood::definitely, int, 3>{}) == 5);
-  static_assert(internal::constexpr_copysign(internal::ScalarConstant<Likelihood::definitely, double, 5>{}, internal::ScalarConstant<Likelihood::definitely, double, -3>{}) == -5);
-  static_assert(internal::constexpr_copysign(internal::ScalarConstant<Likelihood::definitely, double, -5>{}, internal::ScalarConstant<Likelihood::definitely, double, 3>{}) == 5);
+  static_assert(internal::constexpr_copysign(internal::ScalarConstant<Qualification::unqualified, int, 5>{}, internal::ScalarConstant<Qualification::unqualified, int, -3>{}) == -5);
+  static_assert(internal::constexpr_copysign(internal::ScalarConstant<Qualification::unqualified, int, -5>{}, internal::ScalarConstant<Qualification::unqualified, int, 3>{}) == 5);
+  static_assert(internal::constexpr_copysign(internal::ScalarConstant<Qualification::unqualified, double, 5>{}, internal::ScalarConstant<Qualification::unqualified, double, -3>{}) == -5);
+  static_assert(internal::constexpr_copysign(internal::ScalarConstant<Qualification::unqualified, double, -5>{}, internal::ScalarConstant<Qualification::unqualified, double, 3>{}) == 5);
 }
 
 
@@ -272,7 +272,7 @@ TEST(basics, constexpr_sqrt)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_sqrt(std::complex<int>{3, 4})));
 
   static_assert(internal::constexpr_sqrt(std::integral_constant<int, 9>{}) == 3);
-  static_assert(internal::are_within_tolerance(internal::constexpr_sqrt(internal::ScalarConstant<Likelihood::definitely, double, 9>{}), 3, 1e-6));
+  static_assert(internal::are_within_tolerance(internal::constexpr_sqrt(internal::ScalarConstant<Qualification::unqualified, double, 9>{}), 3, 1e-6));
 }
 
 
@@ -299,8 +299,8 @@ TEST(basics, constexpr_abs)
   EXPECT_EQ(internal::constexpr_abs(std::complex<double>{-3, 4}), 5);
 
   static_assert(internal::constexpr_abs(std::integral_constant<int, -9>{}) == 9);
-  static_assert(internal::are_within_tolerance(internal::constexpr_abs(internal::ScalarConstant<Likelihood::definitely, double, -9>{}), 9, 1e-6));
-  static_assert(internal::constexpr_abs(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{}) == 5);
+  static_assert(internal::are_within_tolerance(internal::constexpr_abs(internal::ScalarConstant<Qualification::unqualified, double, -9>{}), 9, 1e-6));
+  static_assert(internal::constexpr_abs(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{}) == 5);
 }
 
 
@@ -344,8 +344,8 @@ TEST(basics, constexpr_exp)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_exp(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_exp(std::integral_constant<int, 2>{}), e*e, 1e-6));
-  static_assert(internal::are_within_tolerance(internal::constexpr_exp(internal::ScalarConstant<Likelihood::definitely, double, -2>{}), 1/(e*e), 1e-6));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_exp(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 2, 0>{})), e*e, 1e-6));
+  static_assert(internal::are_within_tolerance(internal::constexpr_exp(internal::ScalarConstant<Qualification::unqualified, double, -2>{}), 1/(e*e), 1e-6));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_exp(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 2, 0>{})), e*e, 1e-6));
 }
 
 
@@ -389,8 +389,8 @@ TEST(basics, constexpr_expm1)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_expm1(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_expm1(std::integral_constant<int, 2>{}), e*e - 1, 1e-6));
-  static_assert(internal::are_within_tolerance(internal::constexpr_expm1(internal::ScalarConstant<Likelihood::definitely, double, -2>{}), 1/(e*e) - 1, 1e-6));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_expm1(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 2, 0>{})), e*e - 1, 1e-6));
+  static_assert(internal::are_within_tolerance(internal::constexpr_expm1(internal::ScalarConstant<Qualification::unqualified, double, -2>{}), 1/(e*e) - 1, 1e-6));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_expm1(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 2, 0>{})), e*e - 1, 1e-6));
 }
 
 
@@ -425,10 +425,10 @@ TEST(basics, constexpr_sinh)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_sinh(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_sinh(std::integral_constant<int, 2>{}), (e*e - 1/e/e)/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_sinh(internal::ScalarConstant<Likelihood::definitely, double, -2>{}), (1/e/e - e*e)/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_sinh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 2, 0>{})), (e*e - 1/e/e)/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_sinh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, -4>{})), -6.548120040911001647767, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_sinh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, -4>{})), 7.619231720321410208487, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_sinh(internal::ScalarConstant<Qualification::unqualified, double, -2>{}), (1/e/e - e*e)/2, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_sinh(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 2, 0>{})), (e*e - 1/e/e)/2, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_sinh(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, -4>{})), -6.548120040911001647767, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_sinh(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, -4>{})), 7.619231720321410208487, 1e-9));
 }
 
 
@@ -461,10 +461,10 @@ TEST(basics, constexpr_cosh)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_cosh(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_cosh(std::integral_constant<int, 2>{}), (e*e + 1/e/e)/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_cosh(internal::ScalarConstant<Likelihood::definitely, double, -2>{}), (1/e/e + e*e)/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_cosh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 2, 0>{})), (e*e + 1/e/e)/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_cosh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, -4>{})), -6.580663040551156432561, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_cosh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, -4>{})), 7.581552742746544353716, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_cosh(internal::ScalarConstant<Qualification::unqualified, double, -2>{}), (1/e/e + e*e)/2, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_cosh(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 2, 0>{})), (e*e + 1/e/e)/2, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_cosh(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, -4>{})), -6.580663040551156432561, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_cosh(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, -4>{})), 7.581552742746544353716, 1e-9));
 }
 
 
@@ -499,9 +499,9 @@ TEST(basics, constexpr_tanh)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_tanh(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_tanh(std::integral_constant<int, 2>{}), (e*e*e*e - 1)/(e*e*e*e + 1), 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_tanh(internal::ScalarConstant<Likelihood::definitely, double, -2>{}), (1 - e*e*e*e)/(1 + e*e*e*e), 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_tanh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 1.00070953606723293933, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_tanh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.004908258067496060259079, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_tanh(internal::ScalarConstant<Qualification::unqualified, double, -2>{}), (1 - e*e*e*e)/(1 + e*e*e*e), 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_tanh(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), 1.00070953606723293933, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_tanh(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), 0.004908258067496060259079, 1e-9));
 }
 
 
@@ -558,8 +558,8 @@ TEST(basics, constexpr_sin)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_sin(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_sin(std::integral_constant<int, 2>{}), 0.909297426825681695396, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_sin(internal::ScalarConstant<Likelihood::definitely, double, 2>{}), 0.909297426825681695396, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_sin(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 2, 0>{})), 0.909297426825681695396, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_sin(internal::ScalarConstant<Qualification::unqualified, double, 2>{}), 0.909297426825681695396, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_sin(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 2, 0>{})), 0.909297426825681695396, 1e-9));
 }
 
 
@@ -613,8 +613,8 @@ TEST(basics, constexpr_cos)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_cos(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_cos(std::integral_constant<int, 2>{}), -0.4161468365471423869976, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_cos(internal::ScalarConstant<Likelihood::definitely, double, 2>{}), -0.4161468365471423869976, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_cos(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 2, 0>{})), -0.4161468365471423869976, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_cos(internal::ScalarConstant<Qualification::unqualified, double, 2>{}), -0.4161468365471423869976, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_cos(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 2, 0>{})), -0.4161468365471423869976, 1e-9));
 }
 
 
@@ -667,9 +667,9 @@ TEST(basics, constexpr_tan)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_tan(std::complex<int>{30, -2})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_tan(std::integral_constant<int, 2>{}), -2.185039863261518991643, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_tan(internal::ScalarConstant<Likelihood::definitely, double, 2>{}), -2.185039863261518991643, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_tan(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), -1.873462046294784262243E-4, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_tan(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.9993559873814731413917, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_tan(internal::ScalarConstant<Qualification::unqualified, double, 2>{}), -2.185039863261518991643, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_tan(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), -1.873462046294784262243E-4, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_tan(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), 0.9993559873814731413917, 1e-9));
 }
 
 
@@ -719,9 +719,9 @@ TEST(basics, constexpr_log)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_log(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_log(std::integral_constant<int, 2>{}), numbers::ln2_v<double>, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_log(internal::ScalarConstant<Likelihood::definitely, double, 2>{}), numbers::ln2_v<double>, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_log(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 1.609437912434100374601, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_log(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.9272952180016122324285, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_log(internal::ScalarConstant<Qualification::unqualified, double, 2>{}), numbers::ln2_v<double>, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_log(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), 1.609437912434100374601, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_log(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), 0.9272952180016122324285, 1e-9));
 }
 
 
@@ -776,9 +776,9 @@ TEST(basics, constexpr_log1p)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_log1p(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_log1p(std::integral_constant<int, 1>{}), numbers::ln2_v<double>, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_log1p(internal::ScalarConstant<Likelihood::definitely, double, 1>{}), numbers::ln2_v<double>, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_log1p(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 2, 4>{})), 1.609437912434100374601, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_log1p(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 2, 4>{})), 0.9272952180016122324285, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_log1p(internal::ScalarConstant<Qualification::unqualified, double, 1>{}), numbers::ln2_v<double>, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_log1p(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 2, 4>{})), 1.609437912434100374601, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_log1p(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 2, 4>{})), 0.9272952180016122324285, 1e-9));
 }
 
 
@@ -813,9 +813,9 @@ TEST(basics, constexpr_asinh)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_asinh(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_asinh(std::integral_constant<int, 2>{}), 1.443635475178810342493, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_asinh(internal::ScalarConstant<Likelihood::definitely, double, 2>{}), 1.443635475178810342493, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_asinh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 2.299914040879269649956, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_asinh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.9176168533514786557599, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_asinh(internal::ScalarConstant<Qualification::unqualified, double, 2>{}), 1.443635475178810342493, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_asinh(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), 2.299914040879269649956, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_asinh(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), 0.9176168533514786557599, 1e-9));
 }
 
 
@@ -850,9 +850,9 @@ TEST(basics, constexpr_acosh)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_acosh(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_acosh(std::integral_constant<int, 2>{}), 1.316957896924816708625, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_acosh(internal::ScalarConstant<Likelihood::definitely, double, 2>{}), 1.316957896924816708625, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_acosh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 2.305509031243476942042, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_acosh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.9368124611557199029125, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_acosh(internal::ScalarConstant<Qualification::unqualified, double, 2>{}), 1.316957896924816708625, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_acosh(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), 2.305509031243476942042, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_acosh(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), 0.9368124611557199029125, 1e-9));
 }
 
 
@@ -889,9 +889,9 @@ TEST(basics, constexpr_atanh)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_atanh(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_atanh(std::integral_constant<int, 0>{}), 0, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_atanh(internal::ScalarConstant<Likelihood::definitely, double, 0>{}), 0, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_atanh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.1175009073114338884127, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_atanh(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 1.409921049596575522531, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_atanh(internal::ScalarConstant<Qualification::unqualified, double, 0>{}), 0, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_atanh(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), 0.1175009073114338884127, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_atanh(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), 1.409921049596575522531, 1e-9));
 }
 
 
@@ -937,9 +937,9 @@ TEST(basics, constexpr_asin)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_asin(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_asin(std::integral_constant<int, 1>{}), pi/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_asin(internal::ScalarConstant<Likelihood::definitely, double, 1>{}), pi/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_asin(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.6339838656391767163188, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_asin(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 2.305509031243476942042, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_asin(internal::ScalarConstant<Qualification::unqualified, double, 1>{}), pi/2, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_asin(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), 0.6339838656391767163188, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_asin(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), 2.305509031243476942042, 1e-9));
 }
 
 
@@ -981,9 +981,9 @@ TEST(basics, constexpr_acos)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_acos(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_acos(std::integral_constant<int, -1>{}), pi, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_acos(internal::ScalarConstant<Likelihood::definitely, double, -1>{}), pi, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_acos(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.9368124611557199029125, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_acos(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), -2.305509031243476942042, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_acos(internal::ScalarConstant<Qualification::unqualified, double, -1>{}), pi, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_acos(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), 0.9368124611557199029125, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_acos(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), -2.305509031243476942042, 1e-9));
 }
 
 
@@ -1023,9 +1023,9 @@ TEST(basics, constexpr_atan)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_atan(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_atan(std::integral_constant<int, 1>{}), pi/4, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_atan(internal::ScalarConstant<Likelihood::definitely, double, 1>{}), pi/4, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_atan(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 1.448306995231464542145, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_atan(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{})), 0.1589971916799991743648, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_atan(internal::ScalarConstant<Qualification::unqualified, double, 1>{}), pi/4, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_atan(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), 1.448306995231464542145, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_atan(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{})), 0.1589971916799991743648, 1e-9));
 }
 
 
@@ -1092,9 +1092,9 @@ TEST(basics, constexpr_atan2)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_atan2(std::complex<int>{3, -4}, std::complex<int>{2, 5})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_atan2(std::integral_constant<int, 1>{}, std::integral_constant<int, 0>{}), pi/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_atan2(internal::ScalarConstant<Likelihood::definitely, double, 1>{}, internal::ScalarConstant<Likelihood::definitely, double, 0>{}), pi/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_atan2(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{}, internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 5, 2>{})), 0.7420289940594557537102, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_atan2(internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 3, 4>{}, internal::ScalarConstant<Likelihood::definitely, std::complex<double>, 5, 2>{})), 0.2871556773106927669533, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_atan2(internal::ScalarConstant<Qualification::unqualified, double, 1>{}, internal::ScalarConstant<Qualification::unqualified, double, 0>{}), pi/2, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_atan2(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{}, internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 5, 2>{})), 0.7420289940594557537102, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_atan2(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{}, internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 5, 2>{})), 0.2871556773106927669533, 1e-9));
 }
 
 
@@ -1216,7 +1216,7 @@ TEST(basics, constexpr_pow)
   EXPECT_PRED3(tolerance, internal::constexpr_pow(std::complex<double>{-3, -4}, std::complex<double>{1, 2}), std::pow(std::complex<double>{-3, -4}, std::complex<double>{1, 2}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_pow(std::complex<int>{-3, -4}, std::complex<int>{1, 2})));
 
-  static_assert(internal::constexpr_pow(internal::ScalarConstant<Likelihood::definitely, double, 2>{}, std::integral_constant<int, 3>{}) == 8);
-  static_assert(internal::constexpr_pow(internal::ScalarConstant<Likelihood::definitely, double, 2>{}, 3) == 8);
-  static_assert(internal::are_within_tolerance(internal::constexpr_pow(2, internal::ScalarConstant<Likelihood::definitely, double, 3>{}), 8, 1e-6));
+  static_assert(internal::constexpr_pow(internal::ScalarConstant<Qualification::unqualified, double, 2>{}, std::integral_constant<int, 3>{}) == 8);
+  static_assert(internal::constexpr_pow(internal::ScalarConstant<Qualification::unqualified, double, 2>{}, 3) == 8);
+  static_assert(internal::are_within_tolerance(internal::constexpr_pow(2, internal::ScalarConstant<Qualification::unqualified, double, 3>{}), 8, 1e-6));
 }

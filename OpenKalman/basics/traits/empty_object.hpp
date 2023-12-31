@@ -21,7 +21,7 @@ namespace OpenKalman
 {
   namespace detail
   {
-    template<typename T, Likelihood b, std::size_t...Ix>
+    template<typename T, Qualification b, std::size_t...Ix>
     constexpr bool has_0_dim(std::index_sequence<Ix...>)
     {
       return (dimension_size_of_index_is<T, Ix, 0, b> or ...);
@@ -32,13 +32,13 @@ namespace OpenKalman
   /**
    * \brief Specifies that an object is empty (i.e., at least one index is zero-dimensional).
    */
-  template<typename T, Likelihood b = Likelihood::definitely>
+  template<typename T, Qualification b = Qualification::unqualified>
 #ifdef __cpp_concepts
   concept empty_object =
 #else
   constexpr bool empty_object =
 #endif
-    indexible<T> and (index_count_v<T> != dynamic_size or b != Likelihood::definitely) and
+    indexible<T> and (index_count_v<T> != dynamic_size or b != Qualification::unqualified) and
     (index_count_v<T> == dynamic_size or detail::has_0_dim<T, b>(std::make_index_sequence<index_count_v<T>>{}));
 
 

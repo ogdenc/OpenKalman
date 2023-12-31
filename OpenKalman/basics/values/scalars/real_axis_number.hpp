@@ -24,7 +24,7 @@ namespace OpenKalman
     template<typename T>
     constexpr bool imaginary_part_is_zero()
     {
-      if constexpr (scalar_constant<T, CompileTimeStatus::known>)
+      if constexpr (scalar_constant<T, ConstantType::static_constant>)
       {
         if constexpr (complex_number<decltype(std::decay_t<T>::value)>)
         {
@@ -33,7 +33,7 @@ namespace OpenKalman
         }
         else return true;
       }
-      else if constexpr (scalar_constant<T, CompileTimeStatus::unknown>)
+      else if constexpr (scalar_constant<T, ConstantType::dynamic_constant>)
         return not complex_number<decltype(get_scalar_constant_value(std::declval<T>()))>;
       else return false;
     }

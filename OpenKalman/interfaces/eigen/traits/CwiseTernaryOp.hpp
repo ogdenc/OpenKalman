@@ -91,17 +91,17 @@ namespace OpenKalman::interface
       return Eigen3::FunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template get_constant<true>(arg);
     }
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool one_dimensional =
-      OpenKalman::one_dimensional<Arg1, Likelihood::maybe> and
-      OpenKalman::one_dimensional<Arg2, Likelihood::maybe> and
-      OpenKalman::one_dimensional<Arg3, Likelihood::maybe> and
-      (b != Likelihood::definitely or
+      OpenKalman::one_dimensional<Arg1, Qualification::depends_on_dynamic_shape> and
+      OpenKalman::one_dimensional<Arg2, Qualification::depends_on_dynamic_shape> and
+      OpenKalman::one_dimensional<Arg3, Qualification::depends_on_dynamic_shape> and
+      (b != Qualification::unqualified or
         OpenKalman::one_dimensional<Arg1, b> or
         OpenKalman::one_dimensional<Arg2, b> or
         OpenKalman::one_dimensional<Arg3, b>);
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = Eigen3::FunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template is_triangular<t, b>;
 
     static constexpr bool is_triangular_adapter = false;

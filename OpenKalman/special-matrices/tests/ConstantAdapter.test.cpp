@@ -54,13 +54,13 @@ TEST(special_matrices, ConstantAdapter_traits)
   static_assert(self_contained<ConstantAdapter<M22, std::integral_constant<int, 1>>>);
   static_assert(self_contained<ZA31>);
 
-  static_assert(constant_matrix<ConstantAdapter<M22, double, 1>, CompileTimeStatus::known>);
-  static_assert(not constant_matrix<ConstantAdapter<M22, double, 1>, CompileTimeStatus::unknown>);
-  static_assert(constant_matrix<ConstantAdapter<M22>, CompileTimeStatus::unknown>);
-  static_assert(not constant_matrix<ConstantAdapter<M22>, CompileTimeStatus::known>);
+  static_assert(constant_matrix<ConstantAdapter<M22, double, 1>, ConstantType::static_constant>);
+  static_assert(not constant_matrix<ConstantAdapter<M22, double, 1>, ConstantType::dynamic_constant>);
+  static_assert(constant_matrix<ConstantAdapter<M22>, ConstantType::dynamic_constant>);
+  static_assert(not constant_matrix<ConstantAdapter<M22>, ConstantType::static_constant>);
 
   static_assert(constant_diagonal_matrix<ZA33>);
-  static_assert(not constant_diagonal_matrix<ZA31, CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(not constant_diagonal_matrix<ZA31, ConstantType::any, Qualification::depends_on_dynamic_shape>);
 
   static_assert(zero<ConstantAdapter<M22, double, 0>>);
   static_assert(zero<ConstantAdapter<Mxx, double, 0>>);
@@ -75,9 +75,9 @@ TEST(special_matrices, ConstantAdapter_traits)
 
   static_assert(diagonal_matrix<ZA33>);
   static_assert(not diagonal_adapter<ZA33>);
-  static_assert(not diagonal_matrix<ZA31, Likelihood::maybe>);
+  static_assert(not diagonal_matrix<ZA31, Qualification::depends_on_dynamic_shape>);
   static_assert(not diagonal_matrix<ZA00>);
-  static_assert(diagonal_matrix<ZA00, Likelihood::maybe>);
+  static_assert(diagonal_matrix<ZA00, Qualification::depends_on_dynamic_shape>);
 
   static_assert(hermitian_matrix<ConstantAdapter<M22, double, 0>>);
   static_assert(hermitian_matrix<ConstantAdapter<M11, double, 5>>);
@@ -89,9 +89,9 @@ TEST(special_matrices, ConstantAdapter_traits)
 
   static_assert(hermitian_matrix<ZA33>);
   static_assert(hermitian_matrix<ZeroAdapter<CM33>>);
-  static_assert(not hermitian_matrix<ZA31, Likelihood::maybe>);
+  static_assert(not hermitian_matrix<ZA31, Qualification::depends_on_dynamic_shape>);
   static_assert(not hermitian_matrix<ZA00>);
-  static_assert(hermitian_matrix<ZA00, Likelihood::maybe>);
+  static_assert(hermitian_matrix<ZA00, Qualification::depends_on_dynamic_shape>);
 
   static_assert(triangular_matrix<ConstantAdapter<M22, double, 0>>);
   static_assert(triangular_matrix<ConstantAdapter<M11, double, 5>>);
@@ -103,46 +103,46 @@ TEST(special_matrices, ConstantAdapter_traits)
   static_assert(triangular_matrix<ZA33, TriangleType::upper>);
   static_assert(not triangular_matrix<ZA31, TriangleType::upper>);
   static_assert(not triangular_matrix<ZA00, TriangleType::upper>);
-  static_assert(triangular_matrix<ZA00, TriangleType::upper, Likelihood::maybe>);
+  static_assert(triangular_matrix<ZA00, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
 
   static_assert(triangular_matrix<ZA33, TriangleType::lower>);
   static_assert(not triangular_matrix<ZA31, TriangleType::lower>);
   static_assert(not triangular_matrix<ZA00, TriangleType::lower>);
-  static_assert(triangular_matrix<ZA00, TriangleType::lower, Likelihood::maybe>);
+  static_assert(triangular_matrix<ZA00, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
 
-  static_assert(square_shaped<ConstantAdapter<M22, double, 0>, Likelihood::maybe>);
-  static_assert(not square_shaped<ConstantAdapter<M34, double, 5>, Likelihood::maybe>);
-  static_assert(square_shaped<ConstantAdapter<M3x, double, 5>, Likelihood::maybe>);
-  static_assert(square_shaped<ConstantAdapter<Mxx, double, 5>, Likelihood::maybe>);
+  static_assert(square_shaped<ConstantAdapter<M22, double, 0>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not square_shaped<ConstantAdapter<M34, double, 5>, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<ConstantAdapter<M3x, double, 5>, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<ConstantAdapter<Mxx, double, 5>, Qualification::depends_on_dynamic_shape>);
 
   static_assert(square_shaped<ConstantAdapter<M22, double, 0>>);
   static_assert(square_shaped<ConstantAdapter<M22, double, 5>>);
   static_assert(not square_shaped<ConstantAdapter<Mxx, double, 5>>);
   static_assert(not square_shaped<ConstantAdapter<M34, double, 5>>);
 
-  static_assert(not square_shaped<ZA31, Likelihood::maybe>);
+  static_assert(not square_shaped<ZA31, Qualification::depends_on_dynamic_shape>);
   static_assert(square_shaped<ZA33>);
   static_assert(not square_shaped<ZA30>);
-  static_assert(square_shaped<ZA30, Likelihood::maybe>);
+  static_assert(square_shaped<ZA30, Qualification::depends_on_dynamic_shape>);
   static_assert(not square_shaped<ZA03>);
-  static_assert(square_shaped<ZA03, Likelihood::maybe>);
+  static_assert(square_shaped<ZA03, Qualification::depends_on_dynamic_shape>);
   static_assert(not square_shaped<ZA00>);
-  static_assert(square_shaped<ZA00, Likelihood::maybe>);
+  static_assert(square_shaped<ZA00, Qualification::depends_on_dynamic_shape>);
 
   static_assert(one_dimensional<ConstantAdapter<M11, double, 5>>);
-  static_assert(one_dimensional<ConstantAdapter<M1x, double, 5>, Likelihood::maybe>);
+  static_assert(one_dimensional<ConstantAdapter<M1x, double, 5>, Qualification::depends_on_dynamic_shape>);
   static_assert(not one_dimensional<ConstantAdapter<M1x, double, 5>>);
-  static_assert(one_dimensional<ConstantAdapter<Mxx, double, 5>, Likelihood::maybe>);
+  static_assert(one_dimensional<ConstantAdapter<Mxx, double, 5>, Qualification::depends_on_dynamic_shape>);
   static_assert(not one_dimensional<ConstantAdapter<Mxx, double, 5>>);
 
-  static_assert(not one_dimensional<ZA31, Likelihood::maybe>);
+  static_assert(not one_dimensional<ZA31, Qualification::depends_on_dynamic_shape>);
   static_assert(one_dimensional<ZA11>);
   static_assert(not one_dimensional<ZA10>);
-  static_assert(one_dimensional<ZA10, Likelihood::maybe>);
+  static_assert(one_dimensional<ZA10, Qualification::depends_on_dynamic_shape>);
   static_assert(not one_dimensional<ZA01>);
-  static_assert(one_dimensional<ZA01, Likelihood::maybe>);
+  static_assert(one_dimensional<ZA01, Qualification::depends_on_dynamic_shape>);
   static_assert(not one_dimensional<ZA00>);
-  static_assert(one_dimensional<ZA00, Likelihood::maybe>);
+  static_assert(one_dimensional<ZA00, Qualification::depends_on_dynamic_shape>);
 
   static_assert(element_gettable<ConstantAdapter<M22, double, 3>, 2>);
   static_assert(element_gettable<ConstantAdapter<M2x, double, 3>, 2>);
@@ -431,7 +431,7 @@ TEST(special_matrices, make_constant)
 
   using C534 = decltype(c534);
 
-  constexpr internal::ScalarConstant<Likelihood::definitely, double, 5> nd5;
+  constexpr internal::ScalarConstant<Qualification::unqualified, double, 5> nd5;
 
   EXPECT_TRUE(is_near(make_constant<M23>(nd5, Dimensions<2>{}, Dimensions<3>{}), M23::Constant(5)));
   EXPECT_TRUE(is_near(make_constant<Mxx>(nd5, Dimensions<2>{}, 3), M23::Constant(5)));
@@ -617,7 +617,7 @@ TEST(special_matrices, diagonal_of_constant)
   // Note: ConstantAdapter is only created when the constant is known at compile time.
   // dynamic one-by-one, known at compile time:
 
-  static_assert(square_shaped<decltype(Mxx::Identity(1, 1)), Likelihood::maybe>);
+  static_assert(square_shaped<decltype(Mxx::Identity(1, 1)), Qualification::depends_on_dynamic_shape>);
   static_assert(constant_coefficient_v<decltype(diagonal_of(M1x::Identity()))> == 1);
   static_assert(constant_coefficient_v<decltype(diagonal_of(Mx1::Identity()))> == 1);
   static_assert(constant_coefficient_v<decltype(diagonal_of(Mxx::Identity()))> == 1);
@@ -873,16 +873,16 @@ TEST(special_matrices, ConstantAdapter_arithmetic)
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 0> {} * 2.0, ConstantAdapter<M22, double, 0> {}));
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} * -2.0, ConstantAdapter<M22, double, -6> {}));
   static_assert(constant_adapter<decltype(ConstantAdapter<M22, double, 0> {} * 2.0)>);
-  static_assert(constant_matrix<decltype(ConstantAdapter<M22, double, 0> {} * 2.0), CompileTimeStatus::known>);
-  static_assert(constant_matrix<decltype(ConstantAdapter<M22, double, 3> {} * 2.0), CompileTimeStatus::unknown>);
-  static_assert(constant_matrix<decltype(ConstantAdapter<M22, double, 3> {} * N2{}), CompileTimeStatus::known>);
+  static_assert(constant_matrix<decltype(ConstantAdapter<M22, double, 0> {} * 2.0), ConstantType::static_constant>);
+  static_assert(constant_matrix<decltype(ConstantAdapter<M22, double, 3> {} * 2.0), ConstantType::dynamic_constant>);
+  static_assert(constant_matrix<decltype(ConstantAdapter<M22, double, 3> {} * N2{}), ConstantType::static_constant>);
 
   EXPECT_TRUE(is_near(3.0 * ConstantAdapter<M22, double, 0> {}, ConstantAdapter<M22, double, 0> {}));
   EXPECT_TRUE(is_near(-3.0 * ConstantAdapter<M22, double, 3> {}, ConstantAdapter<M22, double, -9> {}));
   static_assert(constant_adapter<decltype(3.0 * ConstantAdapter<M22, double, 0> {})>);
-  static_assert(constant_matrix<decltype(3.0 * ConstantAdapter<M22, double, 0> {}), CompileTimeStatus::known>);
-  static_assert(constant_matrix<decltype(3.0 * ConstantAdapter<M22, double, 2> {}), CompileTimeStatus::unknown>);
-  static_assert(constant_matrix<decltype(N2{} * ConstantAdapter<M22, double, 2> {}), CompileTimeStatus::known>);
+  static_assert(constant_matrix<decltype(3.0 * ConstantAdapter<M22, double, 0> {}), ConstantType::static_constant>);
+  static_assert(constant_matrix<decltype(3.0 * ConstantAdapter<M22, double, 2> {}), ConstantType::dynamic_constant>);
+  static_assert(constant_matrix<decltype(N2{} * ConstantAdapter<M22, double, 2> {}), ConstantType::static_constant>);
 
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 0> {} / 2.0, ConstantAdapter<M22, double, 0> {}));
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 8> {} / -2.0, ConstantAdapter<M22, double, -4> {}));
@@ -892,17 +892,17 @@ TEST(special_matrices, ConstantAdapter_arithmetic)
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} + ConstantAdapter<M22, double, 5> {}, ConstantAdapter<M22, double, 8> {}));
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} + M22::Constant(5), ConstantAdapter<M22, double, 8> {}));
   EXPECT_TRUE(is_near(M22::Constant(5) + ConstantAdapter<M22, double, 3> {}, ConstantAdapter<M22, double, 8> {}));
-  static_assert(constant_matrix<decltype(ConstantAdapter<M22, double, 3> {} + ConstantAdapter<M22, double, 5> {}), CompileTimeStatus::known>);
+  static_assert(constant_matrix<decltype(ConstantAdapter<M22, double, 3> {} + ConstantAdapter<M22, double, 5> {}), ConstantType::static_constant>);
   static_assert(not constant_adapter<decltype(ConstantAdapter<M22, double, 3> {} + ConstantAdapter<M22, double, 5> {})>);
-  static_assert(constant_matrix<decltype(M22::Constant(5) + ConstantAdapter<M22, double, 3> {}), CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<decltype(M22::Constant(5) + ConstantAdapter<M22, double, 3> {}), ConstantType::dynamic_constant>);
   static_assert(not constant_adapter<decltype(M22::Constant(5) + ConstantAdapter<M22, double, 3> {})>);
 
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} - ConstantAdapter<M22, double, 5> {}, ConstantAdapter<M22, double, -2> {}));
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} - M22::Constant(5), ConstantAdapter<M22, double, -2> {}));
   EXPECT_TRUE(is_near(M22::Constant(5) - ConstantAdapter<M22, double, 3> {}, ConstantAdapter<M22, double, 2> {}));
-  static_assert(constant_matrix<decltype(ConstantAdapter<M22, double, 3> {} - ConstantAdapter<M22, double, 5> {}), CompileTimeStatus::known>);
+  static_assert(constant_matrix<decltype(ConstantAdapter<M22, double, 3> {} - ConstantAdapter<M22, double, 5> {}), ConstantType::static_constant>);
   static_assert(not constant_adapter<decltype(ConstantAdapter<M22, double, 3> {} - ConstantAdapter<M22, double, 5> {})>);
-  static_assert(constant_matrix<decltype(M22::Constant(5) - ConstantAdapter<M22, double, 3> {}), CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<decltype(M22::Constant(5) - ConstantAdapter<M22, double, 3> {}), ConstantType::dynamic_constant>);
   static_assert(not constant_adapter<decltype(M22::Constant(5) - ConstantAdapter<M22, double, 3> {})>);
 
   EXPECT_TRUE(is_near(ConstantAdapter<M23, double, 3> {} * ConstantAdapter<M32, double, 5> {}, ConstantAdapter<M22, double, 45> {}));
@@ -911,9 +911,9 @@ TEST(special_matrices, ConstantAdapter_arithmetic)
   EXPECT_TRUE(is_near(ConstantAdapter<M34, double, 4> {} * M42::Constant(7), ConstantAdapter<M32, double, 112> {}));
   EXPECT_TRUE(is_near(M23::Constant(3) * ConstantAdapter<M32, double, 5> {}, ConstantAdapter<M22, double, 45> {}));
   EXPECT_TRUE(is_near(M34::Constant(4) * ConstantAdapter<M42, double, 7> {}, ConstantAdapter<M32, double, 112> {}));
-  static_assert(constant_matrix<decltype(ConstantAdapter<M23, double, 3> {} * ConstantAdapter<M32, double, 5> {}), CompileTimeStatus::known>);
+  static_assert(constant_matrix<decltype(ConstantAdapter<M23, double, 3> {} * ConstantAdapter<M32, double, 5> {}), ConstantType::static_constant>);
   static_assert(not constant_adapter<decltype(ConstantAdapter<M23, double, 3> {} * ConstantAdapter<M32, double, 5> {})>);
-  static_assert(constant_matrix<decltype(M23::Constant(3) * ConstantAdapter<M32, double, 5> {}), CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<decltype(M23::Constant(3) * ConstantAdapter<M32, double, 5> {}), ConstantType::dynamic_constant>);
   static_assert(not constant_adapter<decltype(M23::Constant(3) * ConstantAdapter<M32, double, 5> {})>);
 
   EXPECT_EQ((ConstantAdapter<M43, double, 3>{}.rows()), 4);

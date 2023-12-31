@@ -70,8 +70,8 @@ namespace OpenKalman
       template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
       {
-        if constexpr (zero<MatrixType> or ((Mode & Eigen::ZeroDiag) != 0 and diagonal_matrix<MatrixType, Likelihood::maybe>))
-          return internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<MatrixType>, 0>{};
+        if constexpr (zero<MatrixType> or ((Mode & Eigen::ZeroDiag) != 0 and diagonal_matrix<MatrixType, Qualification::depends_on_dynamic_shape>))
+          return internal::ScalarConstant<Qualification::unqualified, scalar_type_of_t<MatrixType>, 0>{};
         else
           return std::monostate{};
       }
@@ -81,9 +81,9 @@ namespace OpenKalman
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
         using Scalar = scalar_type_of_t<MatrixType>;
-        constexpr auto b = has_dynamic_dimensions<MatrixType> ? Likelihood::maybe : Likelihood::definitely;
+        constexpr auto b = has_dynamic_dimensions<MatrixType> ? Qualification::depends_on_dynamic_shape : Qualification::unqualified;
 
-        if constexpr (not square_shaped<MatrixType, Likelihood::maybe>)
+        if constexpr (not square_shaped<MatrixType, Qualification::depends_on_dynamic_shape>)
         {
           return std::monostate{};
         }
@@ -92,14 +92,14 @@ namespace OpenKalman
           return internal::ScalarConstant<b, Scalar, 1>{};
         }
         else if constexpr (((Mode & Eigen::UnitDiag) != 0 and
-          (((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, TriangleType::lower, Likelihood::maybe>) or
-            ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, TriangleType::upper, Likelihood::maybe>))))
+          (((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, TriangleType::lower, Qualification::depends_on_dynamic_shape>) or
+            ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, TriangleType::upper, Qualification::depends_on_dynamic_shape>))))
         {
           return internal::ScalarConstant<b, Scalar, 1>{};
         }
         else if constexpr ((Mode & Eigen::ZeroDiag) != 0 and
-          (((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, TriangleType::lower, Likelihood::maybe>) or
-            ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, TriangleType::upper, Likelihood::maybe>)))
+          (((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, TriangleType::lower, Qualification::depends_on_dynamic_shape>) or
+            ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, TriangleType::upper, Qualification::depends_on_dynamic_shape>)))
         {
           return internal::ScalarConstant<b, Scalar, 0>{};
         }
@@ -110,15 +110,15 @@ namespace OpenKalman
       }
 
 
-      template<Likelihood b>
+      template<Qualification b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
 
-      template<Likelihood b>
+      template<Qualification b>
       static constexpr bool is_square = square_shaped<MatrixType, b>;
 
 
-      template<TriangleType t, Likelihood b>
+      template<TriangleType t, Qualification b>
       static constexpr bool is_triangular =
         (t == TriangleType::lower and ((Mode & Eigen::Lower) != 0 or triangular_matrix<MatrixType, TriangleType::lower, b>)) or
         (t == TriangleType::upper and ((Mode & Eigen::Upper) != 0 or triangular_matrix<MatrixType, TriangleType::upper, b>)) or

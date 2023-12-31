@@ -34,16 +34,16 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a given index of T has a specified size.
-   * \details If <code>b == Likelihood::maybe</code>, then the concept will apply if there is a possibility that
+   * \details If <code>b == Qualification::depends_on_dynamic_shape</code>, then the concept will apply if there is a possibility that
    * the specified index of <code>T</code> is <code>value</code>.
    */
-  template<typename T, std::size_t index, std::size_t value, Likelihood b = Likelihood::definitely>
+  template<typename T, std::size_t index, std::size_t value, Qualification b = Qualification::unqualified>
 #ifdef __cpp_concepts
   concept dimension_size_of_index_is = (index_dimension_of_v<T, index> == value) or
 #else
   constexpr bool dimension_size_of_index_is = detail::dimension_size_of_index_is_impl<T, index, value>::value or
 #endif
-    (b == Likelihood::maybe and (value == dynamic_size or dynamic_dimension<T, index>));
+    (b == Qualification::depends_on_dynamic_shape and (value == dynamic_size or dynamic_dimension<T, index>));
 
 
 } // namespace OpenKalman

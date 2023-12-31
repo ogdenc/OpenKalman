@@ -24,10 +24,10 @@ namespace OpenKalman
    * \tparam Arg The matrix
    */
 #ifdef __cpp_concepts
-  template<square_shaped<Likelihood::maybe> Arg> requires (max_tensor_order_v<Arg> <= 2)
+  template<square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires (max_tensor_order_v<Arg> <= 2)
   constexpr std::convertible_to<scalar_type_of_t<Arg>> auto
 #else
-  template<typename Arg, std::enable_if_t<square_shaped<Arg, Likelihood::maybe> and (max_tensor_order_v<Arg> <= 2), int> = 0>
+  template<typename Arg, std::enable_if_t<square_shaped<Arg, Qualification::depends_on_dynamic_shape> and (max_tensor_order_v<Arg> <= 2), int> = 0>
   constexpr auto
 #endif
   determinant(Arg&& arg)
@@ -36,7 +36,7 @@ namespace OpenKalman
 
     if constexpr (identity_matrix<Arg>)
     {
-      return internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<Arg>, 1>{};
+      return internal::ScalarConstant<Qualification::unqualified, scalar_type_of_t<Arg>, 1>{};
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
@@ -52,13 +52,13 @@ namespace OpenKalman
     {
       if constexpr (has_dynamic_dimensions<Arg>) if (not is_square_shaped(arg))
         throw std::domain_error {"Argument to 'determinant' is not a square matrix"};
-      return internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<Arg>, 0>{};
+      return internal::ScalarConstant<Qualification::unqualified, scalar_type_of_t<Arg>, 0>{};
     }
     else if constexpr (dimension_size_of_index_is<Arg, 0, 0> or dimension_size_of_index_is<Arg, 1, 0>)
     {
       if constexpr (has_dynamic_dimensions<Arg>) if (not is_square_shaped(arg))
         throw std::domain_error {"Argument to 'determinant' is not a square matrix"};
-      return internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<Arg>, 1>{};
+      return internal::ScalarConstant<Qualification::unqualified, scalar_type_of_t<Arg>, 1>{};
     }
     else if constexpr (triangular_matrix<Arg> and not dynamic_dimension<Arg, ix> and index_dimension_of_v<Arg, ix> >= 2) // this includes the diagonal case
     {
@@ -76,7 +76,7 @@ namespace OpenKalman
       }
       else
       {
-        return internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<Arg>, 0>{};
+        return internal::ScalarConstant<Qualification::unqualified, scalar_type_of_t<Arg>, 0>{};
       }
     }
     else

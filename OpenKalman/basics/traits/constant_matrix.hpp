@@ -64,10 +64,10 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, Likelihood b, typename = void>
+    template<typename T, Qualification b, typename = void>
     struct scalar_status_is : std::false_type {};
 
-    template<typename T, Likelihood b>
+    template<typename T, Qualification b>
     struct scalar_status_is<T, b, std::enable_if_t<std::decay_t<T>::status == b>> : std::true_type {};
   }
 #endif
@@ -76,13 +76,13 @@ namespace OpenKalman
   /**
    * \brief Specifies that all elements of an object are the same constant value.
    */
-  template<typename T, CompileTimeStatus c = CompileTimeStatus::any, Likelihood b = Likelihood::definitely>
+  template<typename T, ConstantType c = ConstantType::any, Qualification b = Qualification::unqualified>
 #ifdef __cpp_concepts
   concept constant_matrix = indexible<T> and scalar_constant<constant_coefficient<T>, c> and
-    (b == Likelihood::maybe or constant_coefficient<T>::status == b);
+    (b == Qualification::depends_on_dynamic_shape or constant_coefficient<T>::status == b);
 #else
   constexpr bool constant_matrix = indexible<T> and scalar_constant<constant_coefficient<T>, c> and
-    (b == Likelihood::maybe or detail::scalar_status_is<constant_coefficient<T>, b>::value);
+    (b == Qualification::depends_on_dynamic_shape or detail::scalar_status_is<constant_coefficient<T>, b>::value);
 #endif
 
 

@@ -22,11 +22,11 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, Likelihood b, typename = void>
+    template<typename T, Qualification b, typename = void>
     struct is_identity_matrix : std::false_type {};
 
-    template<typename T, Likelihood b>
-    struct is_identity_matrix<T, b, std::enable_if_t<constant_diagonal_matrix<T, CompileTimeStatus::known, b>>>
+    template<typename T, Qualification b>
+    struct is_identity_matrix<T, b, std::enable_if_t<constant_diagonal_matrix<T, ConstantType::static_constant, b>>>
       : std::bool_constant<internal::are_within_tolerance(constant_diagonal_coefficient_v<T>, 1)> {};
   }
 #endif
@@ -35,15 +35,15 @@ namespace OpenKalman
    * \brief Specifies that a type is an identity matrix.
    * \details A zero-dimensional matrix is also an identity matrix.
    * \tparam b Defines what happens when one or more of the indices has dynamic dimension:
-   * - if <code>b == Likelihood::definitely</code>: T is known at compile time to be identity; or
-   * - if <code>b == Likelihood::maybe</code>: either
+   * - if <code>b == Qualification::unqualified</code>: T is known at compile time to be identity; or
+   * - if <code>b == Qualification::depends_on_dynamic_shape</code>: either
    * -- it is known at compile time that T <em>may</em> be a \ref constant_diagonal_matrix and that its value is 1; or
    * -- it is unknown at compile time whether T is a zero vector (i.e., a zero-dimensional object).
    */
-  template<typename T, Likelihood b = Likelihood::definitely>
+  template<typename T, Qualification b = Qualification::unqualified>
 #ifdef __cpp_concepts
   concept identity_matrix =
-    (constant_diagonal_matrix<T, CompileTimeStatus::known, b> and internal::are_within_tolerance(constant_diagonal_coefficient_v<T>, 1)) or
+    (constant_diagonal_matrix<T, ConstantType::static_constant, b> and internal::are_within_tolerance(constant_diagonal_coefficient_v<T>, 1)) or
 #else
   constexpr bool identity_matrix = detail::is_identity_matrix<T, b>::value or
 #endif

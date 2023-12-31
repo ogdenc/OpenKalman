@@ -25,8 +25,8 @@ TEST(eigen3, cwise_nullary_operations)
   static_assert(self_contained<const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, M22>>);
 
   static_assert(constant_coefficient_v<C11_1> == 1);
-  static_assert(constant_matrix<typename Mxx::ConstantReturnType, CompileTimeStatus::unknown>);
-  static_assert(not constant_matrix<typename Mxx::ConstantReturnType, CompileTimeStatus::known, Likelihood::maybe>);
+  static_assert(constant_matrix<typename Mxx::ConstantReturnType, ConstantType::dynamic_constant>);
+  static_assert(not constant_matrix<typename Mxx::ConstantReturnType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
   static_assert(constant_coefficient_v<Z11> == 0);
   static_assert(constant_coefficient_v<Z22> == 0);
 
@@ -54,16 +54,16 @@ TEST(eigen3, cwise_nullary_operations)
 
   static_assert(constant_diagonal_coefficient_v<C11_1> == 1);
   static_assert(constant_diagonal_coefficient_v<I22> == 1);
-  static_assert(not constant_diagonal_matrix<typename Mxx::ConstantReturnType, CompileTimeStatus::known, Likelihood::maybe>);
-  static_assert(constant_diagonal_matrix<typename Mxx::ConstantReturnType, CompileTimeStatus::unknown, Likelihood::maybe>);
-  static_assert(not constant_diagonal_matrix<typename Mxx::ConstantReturnType, CompileTimeStatus::unknown>);
+  static_assert(not constant_diagonal_matrix<typename Mxx::ConstantReturnType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_diagonal_matrix<typename Mxx::ConstantReturnType, ConstantType::dynamic_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_diagonal_matrix<typename Mxx::ConstantReturnType, ConstantType::dynamic_constant>);
   static_assert(constant_diagonal_coefficient_v<Z11> == 0);
   static_assert(constant_diagonal_coefficient_v<Z22> == 0);
 
   static_assert(constant_diagonal_matrix<typename M33::IdentityReturnType>);
-  static_assert(constant_diagonal_matrix<typename M3x::IdentityReturnType, CompileTimeStatus::known, Likelihood::maybe>);
-  static_assert(constant_diagonal_matrix<typename Mx3::IdentityReturnType, CompileTimeStatus::known, Likelihood::maybe>);
-  static_assert(constant_diagonal_matrix<typename Mxx::IdentityReturnType, CompileTimeStatus::known, Likelihood::maybe>);
+  static_assert(constant_diagonal_matrix<typename M3x::IdentityReturnType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_diagonal_matrix<typename Mx3::IdentityReturnType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_diagonal_matrix<typename Mxx::IdentityReturnType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
   static_assert(not constant_diagonal_matrix<typename M3x::IdentityReturnType>);
   static_assert(not constant_diagonal_matrix<typename Mx3::IdentityReturnType>);
   static_assert(not constant_diagonal_matrix<typename Mxx::IdentityReturnType>);
@@ -78,9 +78,9 @@ TEST(eigen3, cwise_nullary_operations)
   EXPECT_EQ(constant_diagonal_coefficient{Mxx::Constant(1, 1, 3)}(), 3);
 
   static_assert(identity_matrix<typename M33::IdentityReturnType>);
-  static_assert(identity_matrix<typename M3x::IdentityReturnType, Likelihood::maybe>);
-  static_assert(identity_matrix<typename Mx3::IdentityReturnType, Likelihood::maybe>);
-  static_assert(identity_matrix<typename Mxx::IdentityReturnType, Likelihood::maybe>);
+  static_assert(identity_matrix<typename M3x::IdentityReturnType, Qualification::depends_on_dynamic_shape>);
+  static_assert(identity_matrix<typename Mx3::IdentityReturnType, Qualification::depends_on_dynamic_shape>);
+  static_assert(identity_matrix<typename Mxx::IdentityReturnType, Qualification::depends_on_dynamic_shape>);
   static_assert(not identity_matrix<typename M3x::IdentityReturnType>);
   static_assert(not identity_matrix<typename Mx3::IdentityReturnType>);
   static_assert(not identity_matrix<typename Mxx::IdentityReturnType>);
@@ -104,15 +104,15 @@ TEST(eigen3, cwise_nullary_operations)
   static_assert(square_shaped<Z11>);
   static_assert(square_shaped<C11_1>);
 
-  static_assert(square_shaped<Z11, Likelihood::maybe>);
-  static_assert(square_shaped<Z2x, Likelihood::maybe>);
-  static_assert(not square_shaped<Z21, Likelihood::maybe>);
-  static_assert(square_shaped<C22_1, Likelihood::maybe>);
-  static_assert(not square_shaped<C21_1, Likelihood::maybe>);
+  static_assert(square_shaped<Z11, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Z2x, Qualification::depends_on_dynamic_shape>);
+  static_assert(not square_shaped<Z21, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<C22_1, Qualification::depends_on_dynamic_shape>);
+  static_assert(not square_shaped<C21_1, Qualification::depends_on_dynamic_shape>);
 
   static_assert(one_dimensional<Z11>);
-  static_assert(one_dimensional<Z1x, Likelihood::maybe>);
-  static_assert(one_dimensional<Zx1, Likelihood::maybe>);
+  static_assert(one_dimensional<Z1x, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<Zx1, Qualification::depends_on_dynamic_shape>);
   static_assert(one_dimensional<C11_1>);
 
   static_assert(not writable<Mx2::ConstantReturnType>);
@@ -145,10 +145,10 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(constant_diagonal_coefficient_v<decltype(-std::declval<C11_2>())> == -2);
   static_assert(constant_diagonal_coefficient_v<decltype(-std::declval<I22>())> == -1);
   EXPECT_EQ((constant_diagonal_coefficient{-cdm2}()), 2);
-  static_assert(not constant_matrix<decltype(-std::declval<Cd22_m1>()), CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(constant_matrix<decltype(-std::declval<Ixx>()), CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(constant_matrix<decltype(-std::declval<Cxx_m1>()), CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(not constant_matrix<decltype(-std::declval<Cdxx_m1>()), CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(not constant_matrix<decltype(-std::declval<Cd22_m1>()), ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_matrix<decltype(-std::declval<Ixx>()), ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_matrix<decltype(-std::declval<Cxx_m1>()), ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_matrix<decltype(-std::declval<Cdxx_m1>()), ConstantType::any, Qualification::depends_on_dynamic_shape>);
   static_assert(zero<decltype(-z)>);
   static_assert(identity_matrix<decltype(-std::declval<C11_m1>())>);
   static_assert(triangular_matrix<decltype(-std::declval<Tlv22>()), TriangleType::lower>);
@@ -156,7 +156,7 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(diagonal_matrix<decltype(-z)>);
   static_assert(diagonal_matrix<decltype(-std::declval<C11_m1>())>);
   static_assert(diagonal_matrix<decltype(-std::declval<I22>())>);
-  static_assert(diagonal_matrix<decltype(-std::declval<I2x>()), Likelihood::maybe>);
+  static_assert(diagonal_matrix<decltype(-std::declval<I2x>()), Qualification::depends_on_dynamic_shape>);
   static_assert(hermitian_matrix<decltype(-std::declval<Salv22>())>);
   static_assert(hermitian_matrix<decltype(-std::declval<Sauv22>())>);
   static_assert(hermitian_matrix<decltype(-z)>);
@@ -170,9 +170,9 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().abs())> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().abs())> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_m1>().abs())> == 1);
-  static_assert(not constant_matrix<decltype(std::declval<Cd22_m1>().abs()), CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(constant_matrix<decltype(std::declval<Cxx_m1>().abs()), CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(not constant_matrix<decltype(std::declval<Cdxx_m1>().abs()), CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(not constant_matrix<decltype(std::declval<Cd22_m1>().abs()), ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_matrix<decltype(std::declval<Cxx_m1>().abs()), ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_matrix<decltype(std::declval<Cdxx_m1>().abs()), ConstantType::any, Qualification::depends_on_dynamic_shape>);
   static_assert(identity_matrix<decltype((-id).abs())>);
   static_assert(identity_matrix<decltype(std::declval<C11_m1>().abs())>);
   static_assert(zero<decltype(z.abs())>);
@@ -193,9 +193,9 @@ TEST(eigen3, cwise_unary_operations)
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cdxx_2>().abs2())> == 4);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_m1>().abs2())> == 1);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cdxx_m1>().abs2())> == 1);
-  static_assert(not constant_matrix<decltype(std::declval<Cd22_m1>().abs2()), CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(constant_matrix<decltype(std::declval<Cxx_m1>().abs2()), CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(not constant_matrix<decltype(std::declval<Cdxx_m1>().abs2()), CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(not constant_matrix<decltype(std::declval<Cd22_m1>().abs2()), ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_matrix<decltype(std::declval<Cxx_m1>().abs2()), ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_matrix<decltype(std::declval<Cdxx_m1>().abs2()), ConstantType::any, Qualification::depends_on_dynamic_shape>);
   static_assert(identity_matrix<decltype((-id).abs2())>);
   static_assert(identity_matrix<decltype(std::declval<C11_m1>().abs2())>);
   static_assert(zero<decltype(z.abs2())>);
@@ -256,7 +256,7 @@ TEST(eigen3, cwise_unary_operations)
   EXPECT_EQ(constant_diagonal_coefficient{cdp2_int.shiftRight<1>()}(), cdp2_int.shiftRight<1>()(0, 0));
   EXPECT_EQ(0, cdp2_int.shiftRight<1>()(0, 1));
   EXPECT_EQ(constant_diagonal_coefficient{cdp2_int.shiftRight<1>()}(), 1);
-  static_assert(constant_diagonal_matrix<decltype(cdp2_int.shiftRight<1>()), CompileTimeStatus::unknown>);
+  static_assert(constant_diagonal_matrix<decltype(cdp2_int.shiftRight<1>()), ConstantType::dynamic_constant>);
   static_assert(triangular_matrix<decltype(std::declval<Tlv22>().cast<int>().array().shiftRight<1>()), TriangleType::lower>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().cast<int>().array().shiftRight<1>()), TriangleType::upper>);
   static_assert(diagonal_matrix<decltype(std::declval<Cd22_2>().cast<int>().shiftRight<1>())>);
@@ -270,7 +270,7 @@ TEST(eigen3, cwise_unary_operations)
   EXPECT_EQ(constant_diagonal_coefficient{cdp2_int.shiftLeft<1>()}(), cdp2_int.shiftLeft<1>()(0, 0));
   EXPECT_EQ(0, cdp2_int.shiftLeft<1>()(0, 1));
   EXPECT_EQ(constant_diagonal_coefficient{cdp2_int.shiftLeft<1>()}(), 4);
-  static_assert(constant_diagonal_matrix<decltype(cdp2_int.shiftLeft<1>()), CompileTimeStatus::unknown>);
+  static_assert(constant_diagonal_matrix<decltype(cdp2_int.shiftLeft<1>()), ConstantType::dynamic_constant>);
   static_assert(triangular_matrix<decltype(std::declval<Tlv22>().cast<int>().array().shiftLeft<1>()), TriangleType::lower>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().cast<int>().array().shiftLeft<1>()), TriangleType::upper>);
   static_assert(diagonal_matrix<decltype(std::declval<Cd22_2>().cast<int>().shiftLeft<1>())>);
@@ -695,40 +695,40 @@ TEST(eigen3, cwise_unary_operations)
   using CB1sum = Eigen::internal::bind1st_op<Eigen::internal::scalar_sum_op<double, double>>;
   EXPECT_EQ((constant_coefficient{Eigen::CwiseUnaryOp<CB1sum, decltype(cp2)>{cp2, CB1sum{3}}}()), 5);
   EXPECT_EQ((constant_coefficient{Eigen::CwiseUnaryOp<CB1sum, decltype(cm2)>{cm2, CB1sum{6}}}()), 4);
-  static_assert(constant_matrix<Eigen::CwiseUnaryOp<CB1sum, Z22>, CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<Eigen::CwiseUnaryOp<CB1sum, Z22>, ConstantType::dynamic_constant>);
   static_assert(not constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB1sum, Z22>>);
   static_assert(not constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB1sum, decltype(cdp2)>>);
-  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1sum, decltype(cp2)>, Likelihood::maybe>);
+  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1sum, decltype(cp2)>, Qualification::depends_on_dynamic_shape>);
   static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1sum, decltype(cm2)>>);
 
   using CB1prod = Eigen::internal::bind1st_op<Eigen::internal::scalar_product_op<double, double>>;
   EXPECT_EQ((constant_coefficient{Eigen::CwiseUnaryOp<CB1prod, decltype(cm2)>{cm2, CB1prod{6}}}()), -12);
   EXPECT_EQ((constant_diagonal_coefficient{Eigen::CwiseUnaryOp<CB1prod, decltype(cdp2)>{cdp2, CB1prod{3}}}()), 6);
-  static_assert(constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB1prod, I22>, CompileTimeStatus::unknown>);
+  static_assert(constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB1prod, I22>, ConstantType::dynamic_constant>);
   static_assert(zero<Eigen::CwiseUnaryOp<CB1prod, Z22>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryOp<CB1prod, I22>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryOp<CB1prod, DM2>>);
-  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1prod, decltype(cp2)>, Likelihood::maybe>);
+  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1prod, decltype(cp2)>, Qualification::depends_on_dynamic_shape>);
   static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1prod, decltype(cm2)>>);
 
   // bind2nd_op
   using CB2sum = Eigen::internal::bind2nd_op<Eigen::internal::scalar_sum_op<double, double>>;
   EXPECT_EQ((constant_coefficient{Eigen::CwiseUnaryOp<CB2sum, decltype(cp2)>{cp2, CB2sum{3}}}()), 5);
   EXPECT_EQ((constant_coefficient{Eigen::CwiseUnaryOp<CB2sum, decltype(cm2)>{cm2, CB2sum{6}}}()), 4);
-  static_assert(constant_matrix<Eigen::CwiseUnaryOp<CB2sum, Z22>, CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<Eigen::CwiseUnaryOp<CB2sum, Z22>, ConstantType::dynamic_constant>);
   static_assert(not constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB2sum, Z22>>);
   static_assert(not constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB2sum, decltype(cdp2)>>);
-  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2sum, decltype(cp2)>, Likelihood::maybe>);
+  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2sum, decltype(cp2)>, Qualification::depends_on_dynamic_shape>);
   static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2sum, decltype(cm2)>>);
 
   using CB2prod = Eigen::internal::bind2nd_op<Eigen::internal::scalar_product_op<double, double>>;
   EXPECT_EQ((constant_coefficient{Eigen::CwiseUnaryOp<CB2prod, decltype(cp2)>{cp2, CB2prod{3}}}()), 6);
   EXPECT_EQ((constant_diagonal_coefficient{Eigen::CwiseUnaryOp<CB2prod, decltype(cdm2)>{cdm2, CB2prod{6}}}()), -12);
-  static_assert(constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB2prod, I22>, CompileTimeStatus::unknown>);
+  static_assert(constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB2prod, I22>, ConstantType::dynamic_constant>);
   static_assert(zero<Eigen::CwiseUnaryOp<CB2prod, Z22>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryOp<CB2prod, I22>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryOp<CB2prod, DM2>>);
-  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2prod, decltype(cp2)>, Likelihood::maybe>);
+  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2prod, decltype(cp2)>, Qualification::depends_on_dynamic_shape>);
   static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2prod, decltype(cm2)>>);
 }
 
@@ -771,12 +771,12 @@ TEST(eigen3, cwise_binary_operations)
   static_assert(one_dimensional<decltype(std::declval<DMx>() + std::declval<M1x>())>);
   static_assert(one_dimensional<decltype(std::declval<DMx>() + std::declval<Mx1>())>);
   static_assert(one_dimensional<decltype(std::declval<Axx>() + std::declval<A11>())>);
-  static_assert(one_dimensional<decltype(std::declval<Mxx>() + std::declval<Mx1>()), Likelihood::maybe>);
+  static_assert(one_dimensional<decltype(std::declval<Mxx>() + std::declval<Mx1>()), Qualification::depends_on_dynamic_shape>);
   static_assert(not one_dimensional<decltype(std::declval<Mxx>() + std::declval<Mx1>())>);
 
   static_assert(square_shaped<decltype(std::declval<M2x>() + std::declval<Mx2>())>);
   static_assert(not square_shaped<decltype(std::declval<Mxx>() + std::declval<Mx2>())>);
-  static_assert(square_shaped<decltype(std::declval<Mxx>() + std::declval<Mx2>()), Likelihood::maybe>);
+  static_assert(square_shaped<decltype(std::declval<Mxx>() + std::declval<Mx2>()), Qualification::depends_on_dynamic_shape>);
   static_assert(square_shaped<decltype(std::declval<DMx>() + std::declval<DMx>())>);
   static_assert(square_shaped<decltype(std::declval<DMx>() + std::declval<Mxx>())>);
 
@@ -833,10 +833,10 @@ TEST(eigen3, cwise_binary_operations)
   static_assert(index_dimension_of_v<decltype(std::declval<A2x>() * std::declval<Ax2>()), 1> == 2);
 
   static_assert(not constant_matrix<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, Mxx::ConstantReturnType, Mxx>>);
-  static_assert(constant_matrix<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, Mxx::ConstantReturnType, Mxx>, CompileTimeStatus::unknown, Likelihood::maybe>);
+  static_assert(constant_matrix<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, Mxx::ConstantReturnType, Mxx>, ConstantType::dynamic_constant, Qualification::depends_on_dynamic_shape>);
 
   static_assert(not constant_matrix<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, Mxx, Mxx::ConstantReturnType>>);
-  static_assert(constant_matrix<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, Mxx, Mxx::ConstantReturnType>, CompileTimeStatus::unknown, Likelihood::maybe>);
+  static_assert(constant_matrix<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, Mxx, Mxx::ConstantReturnType>, ConstantType::dynamic_constant, Qualification::depends_on_dynamic_shape>);
 
   static_assert(constant_coefficient_v<decltype(std::declval<C21_2>() * std::declval<C21_m2>())> == -4);
   static_assert(constant_coefficient_v<decltype(std::declval<C21_2>() * std::declval<Z21>())> == 0);
@@ -854,7 +854,7 @@ TEST(eigen3, cwise_binary_operations)
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<A22>() * std::declval<Z22>())> == 0);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z22>() * std::declval<A22>())> == 0);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>() * std::declval<Cd22_3>())> == 6); // no conjugate-product test
-  static_assert(constant_diagonal_matrix<decltype(cdp2), CompileTimeStatus::unknown>);
+  static_assert(constant_diagonal_matrix<decltype(cdp2), ConstantType::dynamic_constant>);
   EXPECT_EQ((constant_diagonal_coefficient{cdp2}()), 2);
   EXPECT_EQ((constant_diagonal_coefficient{cdp2 * cdm2}()), -4);
   EXPECT_EQ((constant_diagonal_coefficient{cdp2 * z}()), 0);
@@ -871,18 +871,18 @@ TEST(eigen3, cwise_binary_operations)
   static_assert(diagonal_matrix<decltype(std::declval<Tuv22>().array() * std::declval<Tlv22>().array())>);
   static_assert(diagonal_matrix<decltype(std::declval<Tuv2x>().array() * std::declval<Tlvx2>().array())>);
   static_assert(not diagonal_matrix<decltype(std::declval<Tuvxx>().array() * std::declval<Tlvxx>().array())>);
-  static_assert(diagonal_matrix<decltype(std::declval<Tuvxx>().array() * std::declval<Tlvxx>().array()), Likelihood::maybe>);
+  static_assert(diagonal_matrix<decltype(std::declval<Tuvxx>().array() * std::declval<Tlvxx>().array()), Qualification::depends_on_dynamic_shape>);
 
   static_assert(triangular_matrix<decltype(std::declval<DW21>() * 3), TriangleType::lower>);
   static_assert(triangular_matrix<decltype(2 * std::declval<DW21>()), TriangleType::lower>);
   static_assert(triangular_matrix<decltype(std::declval<Tlv22>().array() * std::declval<Tlv22>().array()), TriangleType::lower>);
   static_assert(triangular_matrix<decltype(std::declval<Tlv2x>().array() * std::declval<Tlvx2>().array()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(std::declval<Tlvxx>().array() * std::declval<Tlvxx>().array()), TriangleType::lower, Likelihood::maybe>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlvxx>().array() * std::declval<Tlvxx>().array()), TriangleType::lower, Qualification::depends_on_dynamic_shape>);
   static_assert(triangular_matrix<decltype(std::declval<DW21>() * 3), TriangleType::upper>);
   static_assert(triangular_matrix<decltype(2 * std::declval<DW21>()), TriangleType::upper>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array() * std::declval<Tuv22>().array()), TriangleType::upper>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv2x>().array() * std::declval<Tuvx2>().array()), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuvxx>().array() * std::declval<Tuvxx>().array()), TriangleType::upper, Likelihood::maybe>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuvxx>().array() * std::declval<Tuvxx>().array()), TriangleType::upper, Qualification::depends_on_dynamic_shape>);
 
   static_assert(hermitian_matrix<decltype(std::declval<DW21>().array() * std::declval<DW21>().array())>);
   static_assert(hermitian_matrix<decltype(std::declval<DW21>() * 3)>);
@@ -993,15 +993,15 @@ TEST(eigen3, cwise_binary_operations)
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>() - std::declval<Salv22>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>() - std::declval<Salv22>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>() - std::declval<Sauv22>())>);
-  static_assert(hermitian_matrix<decltype(std::declval<Salvxx>() - std::declval<Sauvxx>()), Likelihood::maybe>);
+  static_assert(hermitian_matrix<decltype(std::declval<Salvxx>() - std::declval<Sauvxx>()), Qualification::depends_on_dynamic_shape>);
   static_assert(hermitian_matrix<decltype(std::declval<DW21>() - std::declval<DW21>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>() - std::declval<Sauv22>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>() - std::declval<Salv22>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>() - std::declval<Sauv22>())>);
-  static_assert(hermitian_matrix<decltype(std::declval<Sauvxx>() - std::declval<Sauvxx>()), Likelihood::maybe>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sauvxx>() - std::declval<Sauvxx>()), Qualification::depends_on_dynamic_shape>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>() - std::declval<Salv22>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>() - std::declval<Sauv22>())>);
-  static_assert(hermitian_matrix<decltype(std::declval<Salvxx>() - std::declval<Sauvxx>()), Likelihood::maybe>);
+  static_assert(hermitian_matrix<decltype(std::declval<Salvxx>() - std::declval<Sauvxx>()), Qualification::depends_on_dynamic_shape>);
   static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Salv22>() - std::declval<Salv22>())> == HermitianAdapterType::any);
   static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>() - std::declval<Sauv22>())> == HermitianAdapterType::any);
   static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>() - std::declval<Salv22>())> == HermitianAdapterType::any);
@@ -1011,14 +1011,14 @@ TEST(eigen3, cwise_binary_operations)
   // scalar_quotient_op
   static_assert(constant_coefficient_v<decltype(std::declval<C11_3>() / std::declval<C11_m2>())> == -1.5);
   static_assert(constant_coefficient_v<decltype(std::declval<Z11>() / std::declval<C11_3>())> == 0);
-  static_assert(not constant_matrix<decltype(std::declval<C11_3>() / std::declval<Z11>()), CompileTimeStatus::known>); // divide by zero
-  static_assert(constant_matrix<decltype(std::declval<C11_3>() / std::declval<Z11>()), CompileTimeStatus::unknown>); // divide by zero, but determined at runtime
+  static_assert(not constant_matrix<decltype(std::declval<C11_3>() / std::declval<Z11>()), ConstantType::static_constant>); // divide by zero
+  static_assert(constant_matrix<decltype(std::declval<C11_3>() / std::declval<Z11>()), ConstantType::dynamic_constant>); // divide by zero, but determined at runtime
   static_assert(constant_coefficient_v<decltype(std::declval<C21_2>() / std::declval<C21_m2>())> == -1);
   static_assert(constant_coefficient_v<decltype(std::declval<Z21>() / std::declval<C21_m2>())> == 0);
   static_assert(not constant_matrix<decltype(std::declval<C21_2>() / std::declval<Z21>())>); // divide by zero
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_3>() / std::declval<C11_m2>())> == -1.5);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z11>() / std::declval<C11_m2>())> == 0);
-  static_assert(constant_diagonal_matrix<decltype(std::declval<C11_3>().array() / std::declval<Z11>().array()), CompileTimeStatus::unknown>); // divide by zero
+  static_assert(constant_diagonal_matrix<decltype(std::declval<C11_3>().array() / std::declval<Z11>().array()), ConstantType::dynamic_constant>); // divide by zero
   static_assert(not diagonal_matrix<decltype(std::declval<DW21>().array() / std::declval<DW21>().array())>);
   static_assert(not triangular_matrix<decltype(std::declval<DW21>().array() / std::declval<DW21>().array())>);
   static_assert(hermitian_matrix<decltype(std::declval<DW21>().array() / std::declval<DW21>().array())>);

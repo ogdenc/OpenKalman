@@ -11,7 +11,7 @@
 /**
  * \internal
  * \file
- * \brief Interfaces for LibraryWrapper
+ * \brief Interfaces for \ref LibraryWrapper
  */
 
 #ifndef OPENKALMAN_INTERFACES_LIBRARYWRAPPER_HPP
@@ -23,8 +23,8 @@ namespace OpenKalman::interface
   //  indexible_object_traits  //
   // ------------------------- //
 
-  template<typename NestedObject, typename LibraryObject, typename...InternalizedParameters>
-  struct indexible_object_traits<internal::LibraryWrapper<NestedObject, LibraryObject, InternalizedParameters...>>
+  template<typename NestedObject, typename LibraryObject>
+  struct indexible_object_traits<internal::LibraryWrapper<NestedObject, LibraryObject>>
   {
     using scalar_type = scalar_type_of_t<NestedObject>;
 
@@ -40,7 +40,7 @@ namespace OpenKalman::interface
     }
 
 
-    using dependents = std::tuple<NestedObject, InternalizedParameters...>;
+    using dependents = std::tuple<NestedObject>;
 
 
     static constexpr bool has_runtime_parameters = false;
@@ -77,22 +77,22 @@ namespace OpenKalman::interface
     }
 
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedObject, b>;
 
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool is_square = square_shaped<NestedObject, b>;
 
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<NestedObject, t, b>;
 
 
     static constexpr bool is_triangular_adapter = false;
 
 
-    static constexpr bool is_hermitian = hermitian_matrix<NestedObject, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<NestedObject, Qualification::depends_on_dynamic_shape>;
 
 
     static constexpr bool is_writable = writable<NestedObject>;
@@ -128,11 +128,10 @@ namespace OpenKalman::interface
   //  library_interface  //
   // ------------------- //
 
-  template<typename NestedObject, typename LibraryObject, typename...InternalizedParameters>
-  struct library_interface<internal::LibraryWrapper<NestedObject, LibraryObject, InternalizedParameters...>>
+  template<typename NestedObject, typename LibraryObject>
+  struct library_interface<internal::LibraryWrapper<NestedObject, LibraryObject>>
     : library_interface<std::decay_t<LibraryObject>>
   {
-
 #if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
     template<indexible Arg, std::ranges::input_range Indices> requires index_value<std::ranges::range_value_t<Indices>> and
       (interface::get_component_defined_for<std::decay_t<NestedObject>, decltype(nested_object(std::declval<Arg&&>())), const Indices&> or

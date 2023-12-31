@@ -42,7 +42,7 @@ namespace OpenKalman
     struct participates_in_constant_arithmetic<internal::scalar_constant_operation<Operation, Ts...>> : std::true_type {};
 
 
-    template<Likelihood b, typename C, auto...constant>
+    template<Qualification b, typename C, auto...constant>
     struct participates_in_constant_arithmetic<internal::ScalarConstant<b, C, constant...>> : std::true_type {};
   } // namespace internal
 

@@ -28,7 +28,13 @@ add_executable(eigen3
         eigen-reductions.test.cpp
         eigen-blocks.test.cpp
         eigen-chipwise-operations.test.cpp
-        eigen-basic-linear-algebra.test.cpp
+
+        transpose-adjoint-conjugate.test.cpp
+        trace.test.cpp
+        determinant.test.cpp
+        sum.test.cpp
+
+        eigen-contract.test.cpp
         eigen-rank-update.test.cpp
         eigen-solve.test.cpp
         eigen-decomposition.test.cpp

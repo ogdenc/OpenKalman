@@ -25,7 +25,7 @@ namespace OpenKalman
     constexpr bool concatenate_dimensions_match_impl(std::index_sequence<I...>)
     {
       return (([](std::size_t i){ return ((i != indices) and ...); }(I) or
-        dimension_size_of_index_is<T, I, index_dimension_of_v<U, I>, Likelihood::maybe>) and ...);
+        dimension_size_of_index_is<T, I, index_dimension_of_v<U, I>, Qualification::depends_on_dynamic_shape>) and ...);
     }
 
 
@@ -71,7 +71,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename T, typename...Ts>
     concept constant_concatenate_arguments =
-      (constant_matrix<T, CompileTimeStatus::known> and ... and constant_matrix<Ts, CompileTimeStatus::known>) and
+      (constant_matrix<T, ConstantType::static_constant> and ... and constant_matrix<Ts, ConstantType::static_constant>) and
       (internal::are_within_tolerance(constant_coefficient_v<T>, constant_coefficient_v<Ts>) and ...);
 #else
     template<typename T, typename = void, typename...Ts>

@@ -24,11 +24,11 @@ namespace OpenKalman
    * \tparam Arg A general matrix to be made triangular.
    */
 #ifdef __cpp_concepts
-  template<TriangleType t = TriangleType::lower, square_shaped<Likelihood::maybe> Arg> requires
+  template<TriangleType t = TriangleType::lower, square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires
     (t == TriangleType::lower or t == TriangleType::upper or t == TriangleType::diagonal)
   constexpr triangular_matrix<t> decltype(auto)
 #else
-  template<TriangleType t = TriangleType::lower, typename Arg, std::enable_if_t<square_shaped<Arg, Likelihood::maybe> and
+  template<TriangleType t = TriangleType::lower, typename Arg, std::enable_if_t<square_shaped<Arg, Qualification::depends_on_dynamic_shape> and
     (t == TriangleType::lower or t == TriangleType::upper or t == TriangleType::diagonal), int> = 0>
   constexpr decltype(auto)
 #endif
@@ -43,7 +43,7 @@ namespace OpenKalman
     {
       return to_diagonal(diagonal_of(std::forward<Arg>(arg)));
     }
-    else if constexpr (triangular_matrix<Arg, TriangleType::any, Likelihood::maybe> and not triangular_matrix<Arg, t, Likelihood::maybe>)
+    else if constexpr (triangular_matrix<Arg, TriangleType::any, Qualification::depends_on_dynamic_shape> and not triangular_matrix<Arg, t, Qualification::depends_on_dynamic_shape>)
     {
       // Arg is the opposite triangle of t.
       return make_triangular_matrix<TriangleType::diagonal>(std::forward<Arg>(arg));

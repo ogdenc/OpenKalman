@@ -27,12 +27,13 @@ namespace OpenKalman::interface
   {
   private:
 
-    using Xpr = Eigen::Product<LhsType, RhsType>;
+    using Xpr = Eigen::Product<LhsType, RhsType, Option>;
     using Base = Eigen3::indexible_object_traits_base<Xpr>;
 
   public:
 
     using dependents = std::tuple<typename Xpr::LhsNested, typename Xpr::RhsNested>;
+
 
     static constexpr bool has_runtime_parameters = false;
 
@@ -78,16 +79,16 @@ namespace OpenKalman::interface
       {
         return constant_coefficient{arg.rhs()};
       }
-      else if constexpr (constant_diagonal_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe> and
-        constant_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe>)
+      else if constexpr (constant_diagonal_matrix<LhsType, ConstantType::any, Qualification::depends_on_dynamic_shape> and
+        constant_matrix<RhsType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
       {
         return internal::scalar_constant_operation {
           std::multiplies<>{},
           constant_diagonal_coefficient{arg.lhs()},
           constant_coefficient{arg.rhs()}};
       }
-      else if constexpr (constant_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe> and
-        constant_diagonal_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe>)
+      else if constexpr (constant_matrix<LhsType, ConstantType::any, Qualification::depends_on_dynamic_shape> and
+        constant_diagonal_matrix<RhsType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
       {
         return internal::scalar_constant_operation {
           std::multiplies<>{},
@@ -104,7 +105,7 @@ namespace OpenKalman::interface
             get_index_dimension_of<1>(arg.lhs()),
             internal::scalar_constant_operation {std::multiplies<>{}, constant_coefficient{arg.lhs()}, constant_coefficient{arg.rhs()}}};
         }
-        else if constexpr (constant_matrix<LhsType, CompileTimeStatus::known>)
+        else if constexpr (constant_matrix<LhsType, ConstantType::static_constant>)
         {
           return internal::scalar_constant_operation {
             std::multiplies<>{},
@@ -129,15 +130,23 @@ namespace OpenKalman::interface
         constant_diagonal_coefficient{arg.lhs()}, constant_diagonal_coefficient{arg.rhs()}};
     }
 
-    template<TriangleType t, Likelihood b>
+
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<LhsType, t, b> and triangular_matrix<RhsType, t, b>;
+
 
     static constexpr bool is_triangular_adapter = false;
 
+
     /// A constant diagonal matrix times a hermitian matrix (or vice versa) is hermitian.
     static constexpr bool is_hermitian =
-      (constant_diagonal_matrix<LhsType, CompileTimeStatus::any, Likelihood::maybe> and hermitian_matrix<RhsType, Likelihood::maybe>) or
-      (constant_diagonal_matrix<RhsType, CompileTimeStatus::any, Likelihood::maybe> and hermitian_matrix<LhsType, Likelihood::maybe>);
+      (constant_diagonal_matrix<LhsType, ConstantType::any, Qualification::depends_on_dynamic_shape> and
+        (not complex_number<scalar_type_of_t<LhsType>> or real_axis_number<constant_diagonal_coefficient<LhsType>>) and
+        hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>) or
+      (constant_diagonal_matrix<RhsType, ConstantType::any, Qualification::depends_on_dynamic_shape> and
+        (not complex_number<scalar_type_of_t<RhsType>> or real_axis_number<constant_diagonal_coefficient<RhsType>>) and
+        hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape>);
+
   };
 
 

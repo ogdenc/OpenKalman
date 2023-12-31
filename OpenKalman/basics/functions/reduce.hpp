@@ -144,7 +144,7 @@ namespace OpenKalman
     {
       constexpr std::make_index_sequence<index_count_v<Arg>> seq;
       return internal::make_constant_matrix_reduction<index, indices...>(
-        internal::ScalarConstant<Likelihood::definitely, scalar_type_of_t<Arg>, 0>{}, std::forward<Arg>(arg), seq);
+        internal::ScalarConstant<Qualification::unqualified, scalar_type_of_t<Arg>, 0>{}, std::forward<Arg>(arg), seq);
     }
     else if constexpr (constant_matrix<Arg>)
     {
@@ -192,7 +192,7 @@ namespace OpenKalman
         auto red = interface::library_interface<Arg>::template reduce<indices...>(b, arg);
         using Red = decltype(red);
 
-        static_assert(scalar_type<Red> or one_dimensional<Red, Likelihood::maybe>,
+        static_assert(scalar_type<Red> or one_dimensional<Red, Qualification::depends_on_dynamic_shape>,
           "Incorrect library interface for total 'reduce' on all indices: must return a scalar or one-by-one matrix.");
 
         if constexpr (scalar_type<Red>)

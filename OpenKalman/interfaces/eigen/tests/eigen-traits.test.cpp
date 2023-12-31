@@ -23,18 +23,18 @@ TEST(eigen3, constants)
   static_assert(not constant_matrix<Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, M22>>);
   static_assert(constant_diagonal_matrix<Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, M22>>);
 
-  static_assert(constant_matrix<Z21, CompileTimeStatus::known, Likelihood::maybe>);
-  static_assert(scalar_constant<constant_coefficient<Z21>, CompileTimeStatus::known>);
-  static_assert(not scalar_constant<constant_coefficient<Z21>, CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<Z21, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(scalar_constant<constant_coefficient<Z21>, ConstantType::static_constant>);
+  static_assert(not scalar_constant<constant_coefficient<Z21>, ConstantType::dynamic_constant>);
 
-  static_assert(constant_matrix<M11, CompileTimeStatus::unknown>);
-  static_assert(constant_matrix<M1x, CompileTimeStatus::unknown, Likelihood::maybe>);
-  static_assert(constant_matrix<Mx1, CompileTimeStatus::unknown, Likelihood::maybe>);
-  static_assert(constant_matrix<Mxx, CompileTimeStatus::unknown, Likelihood::maybe>);
-  static_assert(not constant_matrix<M21, CompileTimeStatus::known, Likelihood::maybe>);
-  static_assert(not constant_matrix<M21, CompileTimeStatus::unknown, Likelihood::maybe>);
+  static_assert(constant_matrix<M11, ConstantType::dynamic_constant>);
+  static_assert(constant_matrix<M1x, ConstantType::dynamic_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_matrix<Mx1, ConstantType::dynamic_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_matrix<Mxx, ConstantType::dynamic_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_matrix<M21, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_matrix<M21, ConstantType::dynamic_constant, Qualification::depends_on_dynamic_shape>);
   EXPECT_EQ(constant_coefficient{make_dense_object_from<M11>(5.5)}(), 5.5);
-  static_assert(constant_diagonal_matrix<Mxx, CompileTimeStatus::unknown, Likelihood::maybe>);
+  static_assert(constant_diagonal_matrix<Mxx, ConstantType::dynamic_constant, Qualification::depends_on_dynamic_shape>);
   EXPECT_EQ(constant_diagonal_coefficient{make_dense_object_from<M11>(5.5)}(), 5.5);
 
   static_assert(constant_coefficient_v<Z21> == 0);
@@ -59,10 +59,10 @@ TEST(eigen3, constants)
   static_assert(not constant_matrix<Cd2x_2>);
   static_assert(not constant_matrix<Cdx2_2>);
   static_assert(not constant_matrix<Cd22_3>);
-  static_assert(not constant_matrix<Cd22_2, CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(not constant_matrix<Cd2x_2, CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(not constant_matrix<Cdx2_2, CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(not constant_matrix<Cd22_3, CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(not constant_matrix<Cd22_2, ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_matrix<Cd2x_2, ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_matrix<Cdx2_2, ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_matrix<Cd22_3, ConstantType::any, Qualification::depends_on_dynamic_shape>);
 
   constant_coefficient<C21_3> c3;
   static_assert(std::decay_t<decltype(+c3)>::value == 3);
@@ -90,31 +90,31 @@ TEST(eigen3, constants)
   EXPECT_EQ((std::integral_constant<int, 2>{} * c3u), 6);
   EXPECT_EQ((std::integral_constant<int, 6>{} / c3u), 2);
 
-  static_assert(constant_diagonal_matrix<Z11, CompileTimeStatus::known>);
-  static_assert(constant_diagonal_matrix<Z1x, CompileTimeStatus::known, Likelihood::maybe>);
-  static_assert(constant_diagonal_matrix<Z2x, CompileTimeStatus::known, Likelihood::maybe>);
-  static_assert(constant_diagonal_matrix<Zx2, CompileTimeStatus::known, Likelihood::maybe>);
-  static_assert(constant_diagonal_matrix<Zx1, CompileTimeStatus::known, Likelihood::maybe>);
-  static_assert(constant_diagonal_matrix<Zxx, CompileTimeStatus::known, Likelihood::maybe>);
+  static_assert(constant_diagonal_matrix<Z11, ConstantType::static_constant>);
+  static_assert(constant_diagonal_matrix<Z1x, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_diagonal_matrix<Z2x, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_diagonal_matrix<Zx2, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_diagonal_matrix<Zx1, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_diagonal_matrix<Zxx, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
   static_assert(not constant_diagonal_matrix<Zx1>);
   static_assert(not constant_diagonal_matrix<Zxx>);
-  static_assert(not constant_diagonal_matrix<Z21, CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(not constant_diagonal_matrix<Z12, CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(not constant_diagonal_matrix<Z23, CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(not constant_diagonal_matrix<Z21, ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_diagonal_matrix<Z12, ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_diagonal_matrix<Z23, ConstantType::any, Qualification::depends_on_dynamic_shape>);
   static_assert(constant_diagonal_coefficient_v<C11_1> == 1);
   static_assert(constant_diagonal_coefficient_v<C11_m1> == -1);
   static_assert(constant_diagonal_coefficient_v<C11_2> == 2);
   static_assert(constant_diagonal_coefficient_v<C11_m2> == -2);
   static_assert(constant_diagonal_matrix<C11_1>);
-  static_assert(not constant_diagonal_matrix<C21_1, CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(not constant_diagonal_matrix<C2x_1, CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(not constant_diagonal_matrix<C21_1, ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_diagonal_matrix<C2x_1, ConstantType::any, Qualification::depends_on_dynamic_shape>);
   static_assert(not constant_diagonal_matrix<C1x_1>);
   static_assert(not constant_diagonal_matrix<Cx1_1>);
   static_assert(not constant_diagonal_matrix<Cxx_1>);
-  static_assert(constant_diagonal_matrix<C11_1, CompileTimeStatus::known, Likelihood::maybe>);
-  static_assert(constant_diagonal_matrix<C1x_1, CompileTimeStatus::known, Likelihood::maybe>);
-  static_assert(constant_diagonal_matrix<Cx1_1, CompileTimeStatus::known, Likelihood::maybe>);
-  static_assert(constant_diagonal_matrix<Cxx_1, CompileTimeStatus::known, Likelihood::maybe>);
+  static_assert(constant_diagonal_matrix<C11_1, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_diagonal_matrix<C1x_1, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_diagonal_matrix<Cx1_1, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_diagonal_matrix<Cxx_1, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
   static_assert(constant_diagonal_coefficient_v<I22> == 1);
   static_assert(constant_diagonal_coefficient_v<I2x> == 1);
   static_assert(constant_diagonal_coefficient_v<Cd22_2> == 2);
@@ -148,8 +148,8 @@ TEST(eigen3, constants)
   EXPECT_EQ((std::integral_constant<int, 2>{} * cd3u), 6);
   EXPECT_EQ((std::integral_constant<int, 6>{} / cd3u), 2);
 
-  auto sc3 = internal::ScalarConstant<Likelihood::definitely, double, 3>{};
-  auto sco3 = internal::scalar_constant_operation{std::minus<>{}, internal::ScalarConstant<Likelihood::definitely, double, 7>{}, std::integral_constant<int, 4>{}};
+  auto sc3 = internal::ScalarConstant<Qualification::unqualified, double, 3>{};
+  auto sco3 = internal::scalar_constant_operation{std::minus<>{}, internal::ScalarConstant<Qualification::unqualified, double, 7>{}, std::integral_constant<int, 4>{}};
   static_assert(std::decay_t<decltype(c3 + cd3)>::value == 6);
   static_assert(std::decay_t<decltype(sc3 - cd3)>::value == 0);
   static_assert(std::decay_t<decltype(c3 * sco3)>::value == 9);
@@ -165,84 +165,84 @@ TEST(eigen3, constants)
   static_assert(zero<Z11>);
   static_assert(zero<Zxx>);
 
-  static_assert(not identity_matrix<C21_1, Likelihood::maybe>);
-  static_assert(not identity_matrix<C2x_1, Likelihood::maybe>);
+  static_assert(not identity_matrix<C21_1, Qualification::depends_on_dynamic_shape>);
+  static_assert(not identity_matrix<C2x_1, Qualification::depends_on_dynamic_shape>);
   static_assert(identity_matrix<I22>);
-  static_assert(identity_matrix<I2x, Likelihood::maybe>);
-  static_assert(not identity_matrix<Cd22_2, Likelihood::maybe>);
-  static_assert(not identity_matrix<Cd22_3, Likelihood::maybe>);
+  static_assert(identity_matrix<I2x, Qualification::depends_on_dynamic_shape>);
+  static_assert(not identity_matrix<Cd22_2, Qualification::depends_on_dynamic_shape>);
+  static_assert(not identity_matrix<Cd22_3, Qualification::depends_on_dynamic_shape>);
   static_assert(identity_matrix<C11_1>);
   static_assert(not identity_matrix<C1x_1>);
   static_assert(not identity_matrix<Cx1_1>);
   static_assert(not identity_matrix<Cxx_1>);
-  static_assert(not identity_matrix<C21_1, Likelihood::maybe>);
-  static_assert(not identity_matrix<C2x_1, Likelihood::maybe>);
-  static_assert(identity_matrix<C1x_1, Likelihood::maybe>);
-  static_assert(identity_matrix<Cx1_1, Likelihood::maybe>);
-  static_assert(identity_matrix<Cxx_1, Likelihood::maybe>);
+  static_assert(not identity_matrix<C21_1, Qualification::depends_on_dynamic_shape>);
+  static_assert(not identity_matrix<C2x_1, Qualification::depends_on_dynamic_shape>);
+  static_assert(identity_matrix<C1x_1, Qualification::depends_on_dynamic_shape>);
+  static_assert(identity_matrix<Cx1_1, Qualification::depends_on_dynamic_shape>);
+  static_assert(identity_matrix<Cxx_1, Qualification::depends_on_dynamic_shape>);
 
   static_assert(identity_matrix<M00>);
   static_assert(not identity_matrix<M0x>);
-  static_assert(identity_matrix<M0x, Likelihood::maybe>);
-  static_assert(identity_matrix<Mx0, Likelihood::maybe>);
-  static_assert(identity_matrix<Mxx, Likelihood::maybe>);
-  static_assert(not identity_matrix<M11, Likelihood::maybe>);
-  static_assert(not identity_matrix<M1x, Likelihood::maybe>);
-  static_assert(not identity_matrix<Mx1, Likelihood::maybe>);
+  static_assert(identity_matrix<M0x, Qualification::depends_on_dynamic_shape>);
+  static_assert(identity_matrix<Mx0, Qualification::depends_on_dynamic_shape>);
+  static_assert(identity_matrix<Mxx, Qualification::depends_on_dynamic_shape>);
+  static_assert(not identity_matrix<M11, Qualification::depends_on_dynamic_shape>);
+  static_assert(not identity_matrix<M1x, Qualification::depends_on_dynamic_shape>);
+  static_assert(not identity_matrix<Mx1, Qualification::depends_on_dynamic_shape>);
 
-  static_assert(constant_matrix<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, Dimensions<1>>, CompileTimeStatus::unknown>);
-  static_assert(constant_matrix<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, std::size_t>, CompileTimeStatus::unknown, Likelihood::maybe>);
-  static_assert(not constant_matrix<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, std::size_t>, CompileTimeStatus::unknown>);
-  static_assert(constant_matrix<internal::FixedSizeAdapter<const Mxx, std::size_t, Dimensions<1>>, CompileTimeStatus::unknown, Likelihood::maybe>);
-  static_assert(not constant_matrix<internal::FixedSizeAdapter<const Mxx, std::size_t, Dimensions<1>>, CompileTimeStatus::unknown>);
-  static_assert(not constant_matrix<internal::FixedSizeAdapter<const M2x, Dimensions<2>, Dimensions<1>>, CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(constant_matrix<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, Dimensions<1>>, ConstantType::dynamic_constant>);
+  static_assert(constant_matrix<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, std::size_t>, ConstantType::dynamic_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_matrix<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, std::size_t>, ConstantType::dynamic_constant>);
+  static_assert(constant_matrix<internal::FixedSizeAdapter<const Mxx, std::size_t, Dimensions<1>>, ConstantType::dynamic_constant, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_matrix<internal::FixedSizeAdapter<const Mxx, std::size_t, Dimensions<1>>, ConstantType::dynamic_constant>);
+  static_assert(not constant_matrix<internal::FixedSizeAdapter<const M2x, Dimensions<2>, Dimensions<1>>, ConstantType::any, Qualification::depends_on_dynamic_shape>);
 
 }
 
 TEST(eigen3, Eigen_check_test_classes)
 {
-  static_assert(one_dimensional<Zx1, Likelihood::maybe>);
+  static_assert(one_dimensional<Zx1, Qualification::depends_on_dynamic_shape>);
   static_assert(not one_dimensional<Zx1>);
   static_assert(one_dimensional<C11_1>);
-  static_assert(one_dimensional<C1x_1, Likelihood::maybe>);
+  static_assert(one_dimensional<C1x_1, Qualification::depends_on_dynamic_shape>);
   static_assert(not one_dimensional<C1x_1>);
-  static_assert(one_dimensional<Cxx_1, Likelihood::maybe>);
+  static_assert(one_dimensional<Cxx_1, Qualification::depends_on_dynamic_shape>);
   static_assert(not one_dimensional<Cxx_1>);
   static_assert(one_dimensional<C11_m1>);
   static_assert(one_dimensional<Eigen::DiagonalWrapper<M11>>);
   static_assert(not one_dimensional<Eigen::DiagonalWrapper<M1x>>);
-  static_assert(one_dimensional<Eigen::DiagonalWrapper<M1x>, Likelihood::maybe>);
+  static_assert(one_dimensional<Eigen::DiagonalWrapper<M1x>, Qualification::depends_on_dynamic_shape>);
   static_assert(not one_dimensional<Eigen::DiagonalWrapper<Mx1>>);
-  static_assert(one_dimensional<Eigen::DiagonalWrapper<Mx1>, Likelihood::maybe>);
+  static_assert(one_dimensional<Eigen::DiagonalWrapper<Mx1>, Qualification::depends_on_dynamic_shape>);
   static_assert(not one_dimensional<Eigen::DiagonalWrapper<Mxx>>);
-  static_assert(one_dimensional<Eigen::DiagonalWrapper<Mxx>, Likelihood::maybe>);
-  static_assert(not one_dimensional<Eigen::DiagonalWrapper<M22>, Likelihood::maybe>);
-  static_assert(not one_dimensional<Eigen::DiagonalWrapper<M2x>, Likelihood::maybe>);
-  static_assert(not one_dimensional<Eigen::DiagonalWrapper<Mx2>, Likelihood::maybe>);
-  static_assert(not one_dimensional<Cd22_2, Likelihood::maybe>);
-  static_assert(not one_dimensional<Cd2x_2, Likelihood::maybe>);
-  static_assert(one_dimensional<EigenWrapper<Eigen::DiagonalWrapper<Cx1_1>>, Likelihood::maybe>);
-  static_assert(one_dimensional<EigenWrapper<Eigen::DiagonalWrapper<C1x_1>>, Likelihood::maybe>);
+  static_assert(one_dimensional<Eigen::DiagonalWrapper<Mxx>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<Eigen::DiagonalWrapper<M22>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<Eigen::DiagonalWrapper<M2x>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<Eigen::DiagonalWrapper<Mx2>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<Cd22_2, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<Cd2x_2, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<EigenWrapper<Eigen::DiagonalWrapper<Cx1_1>>, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<EigenWrapper<Eigen::DiagonalWrapper<C1x_1>>, Qualification::depends_on_dynamic_shape>);
 
   static_assert(square_shaped<M22>);
-  static_assert(square_shaped<M2x, Likelihood::maybe>);
-  static_assert(square_shaped<Mx2, Likelihood::maybe>);
-  static_assert(square_shaped<Mxx, Likelihood::maybe>);
+  static_assert(square_shaped<M2x, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Mx2, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Mxx, Qualification::depends_on_dynamic_shape>);
   static_assert(square_shaped<M11>);
-  static_assert(square_shaped<M1x, Likelihood::maybe>);
-  static_assert(square_shaped<Mx1, Likelihood::maybe>);
+  static_assert(square_shaped<M1x, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Mx1, Qualification::depends_on_dynamic_shape>);
 
-  static_assert(square_shaped<C11_m1, Likelihood::maybe>);
-  static_assert(square_shaped<Z22, Likelihood::maybe>);
-  static_assert(square_shaped<Z2x, Likelihood::maybe>);
-  static_assert(square_shaped<Zx2, Likelihood::maybe>);
-  static_assert(square_shaped<Zxx, Likelihood::maybe>);
-  static_assert(square_shaped<C22_2, Likelihood::maybe>);
-  static_assert(square_shaped<C2x_2, Likelihood::maybe>);
-  static_assert(square_shaped<Cx2_2, Likelihood::maybe>);
-  static_assert(square_shaped<Cxx_2, Likelihood::maybe>);
-  static_assert(square_shaped<DM2, Likelihood::maybe>);
-  static_assert(square_shaped<DMx, Likelihood::maybe>);
+  static_assert(square_shaped<C11_m1, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Z22, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Z2x, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Zx2, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Zxx, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<C22_2, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<C2x_2, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Cx2_2, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Cxx_2, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<DM2, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<DMx, Qualification::depends_on_dynamic_shape>);
   static_assert(square_shaped<Eigen::DiagonalWrapper<M11>>);
   static_assert(square_shaped<Eigen::DiagonalWrapper<M1x>>);
   static_assert(square_shaped<Eigen::DiagonalWrapper<Mx1>>);
@@ -265,17 +265,17 @@ TEST(eigen3, Eigen_check_test_classes)
   static_assert(square_shaped<Eigen::DiagonalWrapper<Mxx>>);
 
   static_assert(square_shaped<Tlv22>);
-  static_assert(square_shaped<Tlv2x, Likelihood::maybe>);
-  static_assert(square_shaped<Tlvx2, Likelihood::maybe>);
-  static_assert(square_shaped<Tlvxx, Likelihood::maybe>);
+  static_assert(square_shaped<Tlv2x, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Tlvx2, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Tlvxx, Qualification::depends_on_dynamic_shape>);
   static_assert(not square_shaped<Tlv2x>);
   static_assert(not square_shaped<Tlvx2>);
   static_assert(not square_shaped<Tlvxx>);
 
   static_assert(square_shaped<Salv22>);
-  static_assert(square_shaped<Salv2x, Likelihood::maybe>);
-  static_assert(square_shaped<Salvx2, Likelihood::maybe>);
-  static_assert(square_shaped<Salvxx, Likelihood::maybe>);
+  static_assert(square_shaped<Salv2x, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Salvx2, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Salvxx, Qualification::depends_on_dynamic_shape>);
   static_assert(not square_shaped<Salv2x>);
   static_assert(not square_shaped<Salvx2>);
   static_assert(not square_shaped<Salvxx>);
@@ -284,17 +284,17 @@ TEST(eigen3, Eigen_check_test_classes)
   static_assert(not diagonal_matrix<Z2x>);
   static_assert(not diagonal_matrix<Zx2>);
   static_assert(not diagonal_matrix<Zxx>);
-  static_assert(diagonal_matrix<Z22, Likelihood::maybe>);
-  static_assert(diagonal_matrix<Z2x, Likelihood::maybe>);
-  static_assert(diagonal_matrix<Zx2, Likelihood::maybe>);
-  static_assert(diagonal_matrix<Zxx, Likelihood::maybe>);
+  static_assert(diagonal_matrix<Z22, Qualification::depends_on_dynamic_shape>);
+  static_assert(diagonal_matrix<Z2x, Qualification::depends_on_dynamic_shape>);
+  static_assert(diagonal_matrix<Zx2, Qualification::depends_on_dynamic_shape>);
+  static_assert(diagonal_matrix<Zxx, Qualification::depends_on_dynamic_shape>);
   static_assert(diagonal_matrix<C11_2>);
   static_assert(diagonal_matrix<I22>);
-  static_assert(diagonal_matrix<I2x, Likelihood::maybe>);
+  static_assert(diagonal_matrix<I2x, Qualification::depends_on_dynamic_shape>);
   static_assert(diagonal_matrix<Cd22_2>);
-  static_assert(diagonal_matrix<Cd2x_2, Likelihood::maybe>);
-  static_assert(diagonal_matrix<Cdx2_2, Likelihood::maybe>);
-  static_assert(diagonal_matrix<Cdxx_2, Likelihood::maybe>);
+  static_assert(diagonal_matrix<Cd2x_2, Qualification::depends_on_dynamic_shape>);
+  static_assert(diagonal_matrix<Cdx2_2, Qualification::depends_on_dynamic_shape>);
+  static_assert(diagonal_matrix<Cdxx_2, Qualification::depends_on_dynamic_shape>);
   static_assert(diagonal_matrix<DW21>);
   static_assert(diagonal_matrix<DW2x>);
   static_assert(diagonal_matrix<DWx1>);
@@ -308,17 +308,17 @@ TEST(eigen3, Eigen_check_test_classes)
   static_assert(not diagonal_matrix<Sauvx2>);
   static_assert(not diagonal_matrix<Sauvxx>);
   static_assert(diagonal_matrix<Sadv22>);
-  static_assert(diagonal_matrix<Sadv2x, Likelihood::maybe>);
-  static_assert(diagonal_matrix<Sadvx2, Likelihood::maybe>);
-  static_assert(diagonal_matrix<Sadvxx, Likelihood::maybe>);
+  static_assert(diagonal_matrix<Sadv2x, Qualification::depends_on_dynamic_shape>);
+  static_assert(diagonal_matrix<Sadvx2, Qualification::depends_on_dynamic_shape>);
+  static_assert(diagonal_matrix<Sadvxx, Qualification::depends_on_dynamic_shape>);
   static_assert(diagonal_matrix<M11>);
   static_assert(not diagonal_matrix<M1x>);
   static_assert(not diagonal_matrix<Mx1>);
   static_assert(not diagonal_matrix<Mxx>);
-  static_assert(diagonal_matrix<M11, Likelihood::maybe>);
-  static_assert(diagonal_matrix<M1x, Likelihood::maybe>);
-  static_assert(diagonal_matrix<Mx1, Likelihood::maybe>);
-  static_assert(diagonal_matrix<Mxx, Likelihood::maybe>);
+  static_assert(diagonal_matrix<M11, Qualification::depends_on_dynamic_shape>);
+  static_assert(diagonal_matrix<M1x, Qualification::depends_on_dynamic_shape>);
+  static_assert(diagonal_matrix<Mx1, Qualification::depends_on_dynamic_shape>);
+  static_assert(diagonal_matrix<Mxx, Qualification::depends_on_dynamic_shape>);
 
   static_assert(not diagonal_adapter<M11>);
   static_assert(not diagonal_adapter<M1x>);
@@ -326,99 +326,99 @@ TEST(eigen3, Eigen_check_test_classes)
   static_assert(not diagonal_adapter<Mxx>);
   static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M21>>);
   static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M2x>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M2x>, Likelihood::maybe>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M2x>, Qualification::depends_on_dynamic_shape>);
   static_assert(diagonal_adapter<Eigen::DiagonalWrapper<Mx1>>);
   static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M1x>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M1x>, Likelihood::maybe>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M1x>, Qualification::depends_on_dynamic_shape>);
   static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<Mxx>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<Mxx>, Likelihood::maybe>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<Mxx>, Qualification::depends_on_dynamic_shape>);
   static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M21>>);
   static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M2x>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M2x>, Likelihood::maybe>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M2x>, Qualification::depends_on_dynamic_shape>);
   static_assert(diagonal_adapter<Eigen::DiagonalWrapper<Mx1>>);
   static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M1x>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M1x>, Likelihood::maybe>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M1x>, Qualification::depends_on_dynamic_shape>);
   static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<Mxx>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<Mxx>, Likelihood::maybe>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<Mxx>, Qualification::depends_on_dynamic_shape>);
   static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M22>>);
-  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M22>, Likelihood::maybe>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M22>, Qualification::depends_on_dynamic_shape>);
 
   static_assert(triangular_matrix<Z22, TriangleType::lower>);
   static_assert(not triangular_matrix<Z2x, TriangleType::lower>);
   static_assert(not triangular_matrix<Zx2, TriangleType::lower>);
   static_assert(not triangular_matrix<Zxx, TriangleType::lower>);
-  static_assert(triangular_matrix<Z2x, TriangleType::lower, Likelihood::maybe>);
-  static_assert(triangular_matrix<Zx2, TriangleType::lower, Likelihood::maybe>);
-  static_assert(triangular_matrix<Zxx, TriangleType::lower, Likelihood::maybe>);
+  static_assert(triangular_matrix<Z2x, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Zx2, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Zxx, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
   static_assert(triangular_matrix<C11_2, TriangleType::lower>);
   static_assert(not triangular_matrix<C22_2, TriangleType::lower>);
-  static_assert(not triangular_matrix<C22_2, TriangleType::lower, Likelihood::maybe>);
+  static_assert(not triangular_matrix<C22_2, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
   static_assert(triangular_matrix<I22, TriangleType::lower>);
-  static_assert(triangular_matrix<I2x, TriangleType::lower, Likelihood::maybe>);
+  static_assert(triangular_matrix<I2x, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
   static_assert(triangular_matrix<Cd22_2, TriangleType::lower>);
-  static_assert(triangular_matrix<Cd2x_2, TriangleType::lower, Likelihood::maybe>);
-  static_assert(triangular_matrix<Cdx2_2, TriangleType::lower, Likelihood::maybe>);
-  static_assert(triangular_matrix<Cdxx_2, TriangleType::lower, Likelihood::maybe>);
+  static_assert(triangular_matrix<Cd2x_2, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Cdx2_2, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Cdxx_2, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
   static_assert(triangular_matrix<DW21, TriangleType::lower>);
-  static_assert(triangular_matrix<DW2x, TriangleType::lower, Likelihood::maybe>);
-  static_assert(triangular_matrix<DWx1, TriangleType::lower, Likelihood::maybe>);
-  static_assert(triangular_matrix<DWxx, TriangleType::lower, Likelihood::maybe>);
+  static_assert(triangular_matrix<DW2x, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<DWx1, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<DWxx, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
 
   static_assert(triangular_matrix<Z22, TriangleType::upper>);
   static_assert(not triangular_matrix<Z2x, TriangleType::upper>);
   static_assert(not triangular_matrix<Zx2, TriangleType::upper>);
   static_assert(not triangular_matrix<Zxx, TriangleType::upper>);
-  static_assert(triangular_matrix<Z2x, TriangleType::upper, Likelihood::maybe>);
-  static_assert(triangular_matrix<Zx2, TriangleType::upper, Likelihood::maybe>);
-  static_assert(triangular_matrix<Zxx, TriangleType::upper, Likelihood::maybe>);
+  static_assert(triangular_matrix<Z2x, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Zx2, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Zxx, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
   static_assert(triangular_matrix<C11_2, TriangleType::upper>);
   static_assert(not triangular_matrix<C22_2, TriangleType::upper>);
-  static_assert(not triangular_matrix<C22_2, TriangleType::upper, Likelihood::maybe>);
+  static_assert(not triangular_matrix<C22_2, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
 
   static_assert(triangular_matrix<I22, TriangleType::upper>);
-  static_assert(triangular_matrix<I2x, TriangleType::upper, Likelihood::maybe>);
+  static_assert(triangular_matrix<I2x, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
   static_assert(triangular_matrix<Cd22_2, TriangleType::upper>);
-  static_assert(triangular_matrix<Cd2x_2, TriangleType::upper, Likelihood::maybe>);
-  static_assert(triangular_matrix<Cdx2_2, TriangleType::upper, Likelihood::maybe>);
-  static_assert(triangular_matrix<Cdxx_2, TriangleType::upper, Likelihood::maybe>);
+  static_assert(triangular_matrix<Cd2x_2, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Cdx2_2, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Cdxx_2, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
   static_assert(triangular_matrix<DW21, TriangleType::upper>);
-  static_assert(triangular_matrix<DW2x, TriangleType::upper, Likelihood::maybe>);
-  static_assert(triangular_matrix<DWx1, TriangleType::upper, Likelihood::maybe>);
-  static_assert(triangular_matrix<DWxx, TriangleType::upper, Likelihood::maybe>);
+  static_assert(triangular_matrix<DW2x, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<DWx1, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<DWxx, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
 
   static_assert(triangular_matrix<Tlv22, TriangleType::lower>);
-  static_assert(triangular_matrix<Tlv2x, TriangleType::lower, Likelihood::maybe>);
-  static_assert(triangular_matrix<Tlvx2, TriangleType::lower, Likelihood::maybe>);
-  static_assert(triangular_matrix<Tlvxx, TriangleType::lower, Likelihood::maybe>);
+  static_assert(triangular_matrix<Tlv2x, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Tlvx2, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Tlvxx, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
   static_assert(not triangular_matrix<Tlv2x, TriangleType::lower>);
   static_assert(not triangular_matrix<Tlvx2, TriangleType::lower>);
   static_assert(not triangular_matrix<Tlvxx, TriangleType::lower>);
   static_assert(not triangular_matrix<Tuv22, TriangleType::lower>);
 
   static_assert(triangular_matrix<Tuv22, TriangleType::upper>);
-  static_assert(triangular_matrix<Tuv2x, TriangleType::upper, Likelihood::maybe>);
-  static_assert(triangular_matrix<Tuvx2, TriangleType::upper, Likelihood::maybe>);
-  static_assert(triangular_matrix<Tuvxx, TriangleType::upper, Likelihood::maybe>);
+  static_assert(triangular_matrix<Tuv2x, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Tuvx2, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Tuvxx, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
   static_assert(not triangular_matrix<Tuv2x, TriangleType::upper>);
   static_assert(not triangular_matrix<Tuvx2, TriangleType::upper>);
   static_assert(not triangular_matrix<Tuvxx, TriangleType::upper>);
   static_assert(not triangular_matrix<Tlv22, TriangleType::upper>);
 
   static_assert(hermitian_matrix<Z22>);
-  static_assert(hermitian_matrix<Z2x, Likelihood::maybe>);
-  static_assert(hermitian_matrix<Zx2, Likelihood::maybe>);
-  static_assert(hermitian_matrix<Zxx, Likelihood::maybe>);
+  static_assert(hermitian_matrix<Z2x, Qualification::depends_on_dynamic_shape>);
+  static_assert(hermitian_matrix<Zx2, Qualification::depends_on_dynamic_shape>);
+  static_assert(hermitian_matrix<Zxx, Qualification::depends_on_dynamic_shape>);
   static_assert(not hermitian_adapter<Z22>);
   static_assert(not hermitian_adapter<Z2x>);
   static_assert(not hermitian_adapter<Zx2>);
   static_assert(not hermitian_adapter<Zxx>);
   static_assert(hermitian_matrix<C22_2>);
   static_assert(hermitian_matrix<I22>);
-  static_assert(hermitian_matrix<I2x, Likelihood::maybe>);
+  static_assert(hermitian_matrix<I2x, Qualification::depends_on_dynamic_shape>);
   static_assert(hermitian_matrix<Cd22_2>);
-  static_assert(hermitian_matrix<Cd2x_2, Likelihood::maybe>);
-  static_assert(hermitian_matrix<Cdx2_2, Likelihood::maybe>);
-  static_assert(hermitian_matrix<Cdxx_2, Likelihood::maybe>);
+  static_assert(hermitian_matrix<Cd2x_2, Qualification::depends_on_dynamic_shape>);
+  static_assert(hermitian_matrix<Cdx2_2, Qualification::depends_on_dynamic_shape>);
+  static_assert(hermitian_matrix<Cdxx_2, Qualification::depends_on_dynamic_shape>);
   static_assert(hermitian_matrix<DW21>);
   static_assert(hermitian_matrix<DW2x>);
   static_assert(hermitian_matrix<DWx1>);
@@ -676,34 +676,34 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(not empty_object<M1x>);
   static_assert(not empty_object<Mx1>);
   static_assert(not empty_object<Mxx>);
-  static_assert(empty_object<M1x, Likelihood::maybe>);
-  static_assert(empty_object<Mx1, Likelihood::maybe>);
-  static_assert(empty_object<Mxx, Likelihood::maybe>);
+  static_assert(empty_object<M1x, Qualification::depends_on_dynamic_shape>);
+  static_assert(empty_object<Mx1, Qualification::depends_on_dynamic_shape>);
+  static_assert(empty_object<Mxx, Qualification::depends_on_dynamic_shape>);
 
   static_assert(one_dimensional<M11>);
   static_assert(not one_dimensional<M1x>);
-  static_assert(one_dimensional<M1x, Likelihood::maybe>);
+  static_assert(one_dimensional<M1x, Qualification::depends_on_dynamic_shape>);
   static_assert(not one_dimensional<M00>);
   static_assert(not one_dimensional<M01>);
   static_assert(not one_dimensional<M10>);
-  static_assert(not one_dimensional<M00, Likelihood::maybe>);
-  static_assert(not one_dimensional<Mx0, Likelihood::maybe>);
-  static_assert(not one_dimensional<M0x, Likelihood::maybe>);
+  static_assert(not one_dimensional<M00, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<Mx0, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<M0x, Qualification::depends_on_dynamic_shape>);
 
-  static_assert(square_shaped<M00, Likelihood::maybe>);
-  static_assert(square_shaped<M0x, Likelihood::maybe>);
-  static_assert(square_shaped<Mx0, Likelihood::maybe>);
-  static_assert(square_shaped<M11, Likelihood::maybe>);
-  static_assert(square_shaped<M22, Likelihood::maybe>);
-  static_assert(not square_shaped<M32, Likelihood::maybe>);
-  static_assert(square_shaped<M2x, Likelihood::maybe>);
-  static_assert(square_shaped<Mx2, Likelihood::maybe>);
-  static_assert(square_shaped<Mxx, Likelihood::maybe>);
-  static_assert(square_shaped<CM22, Likelihood::maybe>);
-  static_assert(not square_shaped<CM32, Likelihood::maybe>);
-  static_assert(square_shaped<CM2x, Likelihood::maybe>);
-  static_assert(square_shaped<CMx2, Likelihood::maybe>);
-  static_assert(square_shaped<CMxx, Likelihood::maybe>);
+  static_assert(square_shaped<M00, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<M0x, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Mx0, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<M11, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<M22, Qualification::depends_on_dynamic_shape>);
+  static_assert(not square_shaped<M32, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<M2x, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Mx2, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Mxx, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<CM22, Qualification::depends_on_dynamic_shape>);
+  static_assert(not square_shaped<CM32, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<CM2x, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<CMx2, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<CMxx, Qualification::depends_on_dynamic_shape>);
 
   static_assert(square_shaped<M00>);
   static_assert(not square_shaped<M0x>);
@@ -747,17 +747,17 @@ TEST(eigen3, Eigen_Matrix)
 
   static_assert(dimension_size_of_index_is<M31, 1, 1>);
   static_assert(dimension_size_of_index_is<Mx1, 1, 1>);
-  static_assert(dimension_size_of_index_is<M3x, 1, 1, Likelihood::maybe>);
-  static_assert(dimension_size_of_index_is<Mxx, 1, 1, Likelihood::maybe>);
-  static_assert(not dimension_size_of_index_is<M32, 1, 1, Likelihood::maybe>);
-  static_assert(not dimension_size_of_index_is<Mx2, 1, 1, Likelihood::maybe>);
+  static_assert(dimension_size_of_index_is<M3x, 1, 1, Qualification::depends_on_dynamic_shape>);
+  static_assert(dimension_size_of_index_is<Mxx, 1, 1, Qualification::depends_on_dynamic_shape>);
+  static_assert(not dimension_size_of_index_is<M32, 1, 1, Qualification::depends_on_dynamic_shape>);
+  static_assert(not dimension_size_of_index_is<Mx2, 1, 1, Qualification::depends_on_dynamic_shape>);
 
   static_assert(dimension_size_of_index_is<M13, 0, 1>);
   static_assert(dimension_size_of_index_is<M1x, 0, 1>);
-  static_assert(dimension_size_of_index_is<Mx3, 0, 1, Likelihood::maybe>);
-  static_assert(dimension_size_of_index_is<Mxx, 0, 1, Likelihood::maybe>);
-  static_assert(not dimension_size_of_index_is<M23, 0, 1, Likelihood::maybe>);
-  static_assert(not dimension_size_of_index_is<M2x, 0, 1, Likelihood::maybe>);
+  static_assert(dimension_size_of_index_is<Mx3, 0, 1, Qualification::depends_on_dynamic_shape>);
+  static_assert(dimension_size_of_index_is<Mxx, 0, 1, Qualification::depends_on_dynamic_shape>);
+  static_assert(not dimension_size_of_index_is<M23, 0, 1, Qualification::depends_on_dynamic_shape>);
+  static_assert(not dimension_size_of_index_is<M2x, 0, 1, Qualification::depends_on_dynamic_shape>);
 
   M21 m21 {1, 2};
   M2x m2x_1 {m21};
@@ -772,11 +772,11 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(is_vector(m11_1));
 
   static_assert(vector<M21>);
-  static_assert(vector<M2x, 0, Likelihood::maybe>);
-  static_assert(vector<Mx1, 0, Likelihood::maybe>);
-  static_assert(vector<Mxx, 0, Likelihood::maybe>);
-  static_assert(not vector<M12, 0, Likelihood::maybe>);
-  static_assert(not vector<Mx2, 0, Likelihood::maybe>);
+  static_assert(vector<M2x, 0, Qualification::depends_on_dynamic_shape>);
+  static_assert(vector<Mx1, 0, Qualification::depends_on_dynamic_shape>);
+  static_assert(vector<Mxx, 0, Qualification::depends_on_dynamic_shape>);
+  static_assert(not vector<M12, 0, Qualification::depends_on_dynamic_shape>);
+  static_assert(not vector<Mx2, 0, Qualification::depends_on_dynamic_shape>);
   static_assert(is_vector(m21));
   EXPECT_TRUE(is_vector(m2x_1));
   static_assert(is_vector(mx1_2));
@@ -784,11 +784,11 @@ TEST(eigen3, Eigen_Matrix)
   EXPECT_FALSE(is_vector(mxx_12));
 
   static_assert(vector<M12, 1>);
-  static_assert(vector<M1x, 1, Likelihood::maybe>);
-  static_assert(vector<Mx2, 1, Likelihood::maybe>);
-  static_assert(vector<Mxx, 1, Likelihood::maybe>);
-  static_assert(not vector<M21, 1, Likelihood::maybe>);
-  static_assert(not vector<M2x, 1, Likelihood::maybe>);
+  static_assert(vector<M1x, 1, Qualification::depends_on_dynamic_shape>);
+  static_assert(vector<Mx2, 1, Qualification::depends_on_dynamic_shape>);
+  static_assert(vector<Mxx, 1, Qualification::depends_on_dynamic_shape>);
+  static_assert(not vector<M21, 1, Qualification::depends_on_dynamic_shape>);
+  static_assert(not vector<M2x, 1, Qualification::depends_on_dynamic_shape>);
   static_assert(is_vector<1>(m12));
   static_assert(is_vector<1>(m1x_2));
   EXPECT_TRUE(is_vector<1>(mx2_1));
@@ -912,7 +912,7 @@ TEST(eigen3, Eigen_Diagonal)
   static_assert(constant_coefficient_v<decltype(M2x::Identity().diagonal<-1>())> == 0);
   static_assert(constant_coefficient_v<decltype(Mx2::Identity().diagonal<1>())> == 0);
   static_assert(constant_coefficient_v<decltype(Mxx::Identity().diagonal<-1>())> == 0);
-  static_assert(constant_matrix<decltype(M22::Identity().diagonal<Eigen::DynamicIndex>()), CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<decltype(M22::Identity().diagonal<Eigen::DynamicIndex>()), ConstantType::dynamic_constant>);
 
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().matrix().diagonal())> == 2);
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().matrix().diagonal<1>())> == 2);
@@ -964,35 +964,35 @@ TEST(eigen3, Eigen_Diagonal)
   static_assert(one_dimensional<Eigen::Diagonal<M13, 0>>);
   static_assert(one_dimensional<Eigen::Diagonal<M13, 1>>);
   static_assert(not one_dimensional<Eigen::Diagonal<M1x, 0>>);
-  static_assert(one_dimensional<Eigen::Diagonal<M1x, 0>, Likelihood::maybe>);
+  static_assert(one_dimensional<Eigen::Diagonal<M1x, 0>, Qualification::depends_on_dynamic_shape>);
   static_assert(one_dimensional<Eigen::Diagonal<M31, 0>>);
   static_assert(one_dimensional<Eigen::Diagonal<M31, -1>>);
   static_assert(not one_dimensional<Eigen::Diagonal<Mx1, 0>>);
-  static_assert(one_dimensional<Eigen::Diagonal<Mx1, 0>, Likelihood::maybe>);
+  static_assert(one_dimensional<Eigen::Diagonal<Mx1, 0>, Qualification::depends_on_dynamic_shape>);
   static_assert(not one_dimensional<Eigen::Diagonal<M22, Eigen::DynamicIndex>>);
-  static_assert(one_dimensional<Eigen::Diagonal<M22, Eigen::Dynamic>, Likelihood::maybe>);
-  static_assert(one_dimensional<Eigen::Diagonal<M2x, 0>, Likelihood::maybe>);
-  static_assert(one_dimensional<Eigen::Diagonal<Mx2, 0>, Likelihood::maybe>);
+  static_assert(one_dimensional<Eigen::Diagonal<M22, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<Eigen::Diagonal<M2x, 0>, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<Eigen::Diagonal<Mx2, 0>, Qualification::depends_on_dynamic_shape>);
 
   static_assert(dimension_size_of_index_is<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, 0, 2>);
   static_assert(dimension_size_of_index_is<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, 1, 1>);
 
-  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<2>, Dimensions<1>>, Likelihood::maybe>);
-  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, Likelihood::maybe>);
-  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, Dimensions<2>, Dimensions<1>>, Likelihood::maybe>);
+  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<2>, Dimensions<1>>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, Dimensions<2>, Dimensions<1>>, Qualification::depends_on_dynamic_shape>);
   static_assert(one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<1>, Dimensions<1>>>);
 
-  static_assert(not square_shaped<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, Likelihood::maybe>);
+  static_assert(not square_shaped<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, Qualification::depends_on_dynamic_shape>);
 
-  static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, Dimensions<2>, Dimensions<1>>, CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<2>, Dimensions<1>>, CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<1>, Dimensions<1>>, CompileTimeStatus::unknown>);
+  static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, Dimensions<2>, Dimensions<1>>, ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<2>, Dimensions<1>>, ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<1>, Dimensions<1>>, ConstantType::dynamic_constant>);
 
-  static_assert(not constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(not constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, Dimensions<2>, Dimensions<1>>, CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(not constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<2>, Dimensions<1>>, CompileTimeStatus::any, Likelihood::maybe>);
-  static_assert(constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<1>, Dimensions<1>>, CompileTimeStatus::unknown>);
+  static_assert(not constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, Dimensions<2>, Dimensions<1>>, ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<2>, Dimensions<1>>, ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<1>, Dimensions<1>>, ConstantType::dynamic_constant>);
 }
 
 
@@ -1142,7 +1142,7 @@ TEST(eigen3, Eigen_Product)
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().matrix() * std::declval<C22_2>().matrix())> == 8);
   static_assert(constant_coefficient_v<decltype(std::declval<C2x_2>().matrix() * std::declval<C22_2>().matrix())> == 8);
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().matrix() * std::declval<Cx2_2>().matrix())> == 8);
-  static_assert(constant_matrix<decltype(std::declval<C2x_2>().matrix() * std::declval<Cx2_2>().matrix()), CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<decltype(std::declval<C2x_2>().matrix() * std::declval<Cx2_2>().matrix()), ConstantType::dynamic_constant>);
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().matrix() * std::declval<I22>().matrix())> == 2);
   static_assert(constant_coefficient_v<decltype(std::declval<I22>().matrix() * std::declval<C22_2>().matrix())> == 2);
   static_assert(constant_coefficient_v<decltype(std::declval<Z22>().matrix() * std::declval<Z22>().matrix())> == 0);
@@ -1179,6 +1179,12 @@ TEST(eigen3, Eigen_Product)
 
   static_assert(hermitian_matrix<decltype(std::declval<Cd22_2>().matrix() * std::declval<Sauv22>().matrix())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>().matrix() * std::declval<Cd22_2>().matrix())>);
+
+  static_assert(not hermitian_matrix<decltype((std::declval<Cd22_2>()*cdouble{1,1}).matrix() * std::declval<Salv22>().matrix())>);
+  static_assert(not hermitian_matrix<decltype(std::declval<Salv22>().matrix() * (std::declval<Cd22_2>()*cdouble{1,1}).matrix())>);
+
+  static_assert(not hermitian_matrix<decltype((std::declval<Cd22_2>()*cdouble{1,1}).matrix() * std::declval<Sauv22>().matrix())>);
+  static_assert(not hermitian_matrix<decltype(std::declval<Sauv22>().matrix() * (std::declval<Cd22_2>()*cdouble{1,1}).matrix())>);
 
   static_assert(triangular_matrix<decltype(std::declval<Cd22_2>().matrix() * std::declval<Tlv22>().matrix()), TriangleType::lower>);
   static_assert(triangular_matrix<decltype(std::declval<Tlv22>().matrix() * std::declval<Cd22_2>().matrix()), TriangleType::lower>);
@@ -1219,33 +1225,33 @@ TEST(eigen3, Eigen_Replicate)
   static_assert(std::is_same_v<typename interface::indexible_object_traits<Zxx>::scalar_type, double>);
 
   static_assert(one_dimensional<Eigen::Replicate<M11, 1, 1>>);
-  static_assert(one_dimensional<Eigen::Replicate<Mxx, 1, 1>, Likelihood::maybe>);
-  static_assert(one_dimensional<Eigen::Replicate<M1x, 1, 1>, Likelihood::maybe>);
-  static_assert(one_dimensional<Eigen::Replicate<Mx1, 1, 1>, Likelihood::maybe>);
-  static_assert(not one_dimensional<Eigen::Replicate<M2x, Eigen::Dynamic, Eigen::Dynamic>, Likelihood::maybe>);
-  static_assert(not one_dimensional<Eigen::Replicate<Mx2, Eigen::Dynamic, Eigen::Dynamic>, Likelihood::maybe>);
+  static_assert(one_dimensional<Eigen::Replicate<Mxx, 1, 1>, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<Eigen::Replicate<M1x, 1, 1>, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<Eigen::Replicate<Mx1, 1, 1>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<Eigen::Replicate<M2x, Eigen::Dynamic, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<Eigen::Replicate<Mx2, Eigen::Dynamic, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
   static_assert(not one_dimensional<Eigen::Replicate<Mxx, 1, 1>>);
-  static_assert(one_dimensional<Eigen::Replicate<M11, Eigen::Dynamic, Eigen::Dynamic>, Likelihood::maybe>);
+  static_assert(one_dimensional<Eigen::Replicate<M11, Eigen::Dynamic, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
   static_assert(not one_dimensional<Eigen::Replicate<M11, Eigen::Dynamic, Eigen::Dynamic>>);
 
   static_assert(square_shaped<Eigen::Replicate<M22, 3, 3>>);
-  static_assert(square_shaped<Eigen::Replicate<M22, Eigen::Dynamic, 3>, Likelihood::maybe>);
+  static_assert(square_shaped<Eigen::Replicate<M22, Eigen::Dynamic, 3>, Qualification::depends_on_dynamic_shape>);
   static_assert(not square_shaped<Eigen::Replicate<M22, Eigen::Dynamic, 3>>);
-  static_assert(square_shaped<Eigen::Replicate<M22, 3, Eigen::Dynamic>, Likelihood::maybe>);
+  static_assert(square_shaped<Eigen::Replicate<M22, 3, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
   static_assert(not square_shaped<Eigen::Replicate<M22, 3, Eigen::Dynamic>>);
   static_assert(square_shaped<Eigen::Replicate<M32, 2, 3>>);
-  static_assert(square_shaped<Eigen::Replicate<M32, Eigen::Dynamic, 3>, Likelihood::maybe>);
+  static_assert(square_shaped<Eigen::Replicate<M32, Eigen::Dynamic, 3>, Qualification::depends_on_dynamic_shape>);
   static_assert(not square_shaped<Eigen::Replicate<M32, Eigen::Dynamic, 3>>);
-  static_assert(square_shaped<Eigen::Replicate<M32, 2, Eigen::Dynamic>, Likelihood::maybe>);
+  static_assert(square_shaped<Eigen::Replicate<M32, 2, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
   static_assert(not square_shaped<Eigen::Replicate<M32, 2, Eigen::Dynamic>>);
-  static_assert(not square_shaped<Eigen::Replicate<M32, 5, Eigen::Dynamic>, Likelihood::maybe>);
-  static_assert(not square_shaped<Eigen::Replicate<M32, Eigen::Dynamic, 2>, Likelihood::maybe>);
-  static_assert(square_shaped<Eigen::Replicate<M3x, 2, 3>, Likelihood::maybe>);
+  static_assert(not square_shaped<Eigen::Replicate<M32, 5, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not square_shaped<Eigen::Replicate<M32, Eigen::Dynamic, 2>, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Eigen::Replicate<M3x, 2, 3>, Qualification::depends_on_dynamic_shape>);
   static_assert(not square_shaped<Eigen::Replicate<M3x, 2, 3>>);
-  static_assert(square_shaped<Eigen::Replicate<Mx2, 2, 3>, Likelihood::maybe>);
+  static_assert(square_shaped<Eigen::Replicate<Mx2, 2, 3>, Qualification::depends_on_dynamic_shape>);
   static_assert(not square_shaped<Eigen::Replicate<Mx2, 2, 3>>);
-  static_assert(not square_shaped<Eigen::Replicate<M2x, 2, 3>, Likelihood::maybe>);
-  static_assert(not square_shaped<Eigen::Replicate<Mx3, 2, 3>, Likelihood::maybe>);
+  static_assert(not square_shaped<Eigen::Replicate<M2x, 2, 3>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not square_shaped<Eigen::Replicate<Mx3, 2, 3>, Qualification::depends_on_dynamic_shape>);
 
   static_assert(constant_coefficient_v<Eigen::Replicate<Z11, 1, 2>> == 0);
   static_assert(constant_coefficient_v<decltype(z20_1)> == 0);
@@ -1253,7 +1259,7 @@ TEST(eigen3, Eigen_Replicate)
   static_assert(constant_coefficient_v<Eigen::Replicate<C2x_2, 1, 2>> == 2);
   static_assert(constant_coefficient_v<Eigen::Replicate<Cx2_2, 1, 2>> == 2);
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().replicate<5,5>())> == 2);
-  static_assert(not constant_matrix<Eigen::Replicate<Cd22_2, Eigen::Dynamic, Eigen::Dynamic>, CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(not constant_matrix<Eigen::Replicate<Cd22_2, Eigen::Dynamic, Eigen::Dynamic>, ConstantType::any, Qualification::depends_on_dynamic_shape>);
 
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().replicate<1,1>())> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Z22>().replicate<5,5>())> == 0);
@@ -1262,7 +1268,7 @@ TEST(eigen3, Eigen_Replicate)
   static_assert(not constant_diagonal_matrix<decltype(z02_2)>);
   static_assert(not constant_diagonal_matrix<decltype(z00_22)>);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_2>().replicate<1,1>())> == 2);
-  static_assert(not constant_diagonal_matrix<Eigen::Replicate<C22_2, Eigen::Dynamic, Eigen::Dynamic>, CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(not constant_diagonal_matrix<Eigen::Replicate<C22_2, Eigen::Dynamic, Eigen::Dynamic>, ConstantType::any, Qualification::depends_on_dynamic_shape>);
 
   static_assert(identity_matrix<Eigen::Replicate<I22, 1, 1>>);
 
@@ -1308,44 +1314,44 @@ TEST(eigen3, Eigen_Reshaped)
   static_assert(index_dimension_of_v<Eigen::Reshaped<Eigen::Matrix<double, 2, 8>, 4, Eigen::Dynamic>, 1> == 4);
 
   static_assert(one_dimensional<Eigen::Reshaped<Mxx, 1, 1>>);
-  static_assert(one_dimensional<Eigen::Reshaped<Mxx, Eigen::Dynamic, Eigen::Dynamic>, Likelihood::maybe>);
+  static_assert(one_dimensional<Eigen::Reshaped<Mxx, Eigen::Dynamic, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
   static_assert(one_dimensional<Eigen::Reshaped<M11, 1, 1>>);
-  static_assert(not one_dimensional<Eigen::Reshaped<Mxx, 2, 2>, Likelihood::maybe>);
-  static_assert(not one_dimensional<Eigen::Reshaped<M22, Eigen::Dynamic, Eigen::Dynamic>, Likelihood::maybe>);
-  static_assert(not one_dimensional<Eigen::Reshaped<M2x, Eigen::Dynamic, Eigen::Dynamic>, Likelihood::maybe>);
-  static_assert(not one_dimensional<Eigen::Reshaped<Mx2, Eigen::Dynamic, Eigen::Dynamic>, Likelihood::maybe>);
-  static_assert(not one_dimensional<Eigen::Reshaped<M2x, Eigen::Dynamic, 1>, Likelihood::maybe>);
-  static_assert(not one_dimensional<Eigen::Reshaped<Mx2, 1, Eigen::Dynamic>, Likelihood::maybe>);
-  static_assert(not one_dimensional<Eigen::Reshaped<M2x, 1, 1>, Likelihood::maybe>);
-  static_assert(not one_dimensional<Eigen::Reshaped<Mx2, 1, 1>, Likelihood::maybe>);
+  static_assert(not one_dimensional<Eigen::Reshaped<Mxx, 2, 2>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<Eigen::Reshaped<M22, Eigen::Dynamic, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<Eigen::Reshaped<M2x, Eigen::Dynamic, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<Eigen::Reshaped<Mx2, Eigen::Dynamic, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<Eigen::Reshaped<M2x, Eigen::Dynamic, 1>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<Eigen::Reshaped<Mx2, 1, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<Eigen::Reshaped<M2x, 1, 1>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<Eigen::Reshaped<Mx2, 1, 1>, Qualification::depends_on_dynamic_shape>);
 
   static_assert(square_shaped<Eigen::Reshaped<Mxx, 2, 2>>);
-  static_assert(square_shaped<Eigen::Reshaped<Mxx, 2, Eigen::Dynamic>, Likelihood::maybe>);
+  static_assert(square_shaped<Eigen::Reshaped<Mxx, 2, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
   static_assert(not square_shaped<Eigen::Reshaped<Mxx, 2, Eigen::Dynamic>>);
-  static_assert(square_shaped<Eigen::Reshaped<Mxx, Eigen::Dynamic, 2>, Likelihood::maybe>);
+  static_assert(square_shaped<Eigen::Reshaped<Mxx, Eigen::Dynamic, 2>, Qualification::depends_on_dynamic_shape>);
   static_assert(not square_shaped<Eigen::Reshaped<Mxx, Eigen::Dynamic, 2>>);
-  static_assert(square_shaped<Eigen::Reshaped<Mxx, Eigen::Dynamic, Eigen::Dynamic>, Likelihood::maybe>);
+  static_assert(square_shaped<Eigen::Reshaped<Mxx, Eigen::Dynamic, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
   static_assert(not square_shaped<Eigen::Reshaped<Mxx, Eigen::Dynamic, Eigen::Dynamic>>);
   static_assert(square_shaped<Eigen::Reshaped<M11, 1, 1>>);
-  static_assert(square_shaped<Eigen::Reshaped<M22, Eigen::Dynamic, Eigen::Dynamic>, Likelihood::maybe>);
+  static_assert(square_shaped<Eigen::Reshaped<M22, Eigen::Dynamic, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
   static_assert(not square_shaped<Eigen::Reshaped<M22, Eigen::Dynamic, Eigen::Dynamic>>);
-  static_assert(square_shaped<Eigen::Reshaped<M2x, Eigen::Dynamic, Eigen::Dynamic>, Likelihood::maybe>);
+  static_assert(square_shaped<Eigen::Reshaped<M2x, Eigen::Dynamic, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
   static_assert(not square_shaped<Eigen::Reshaped<M2x, Eigen::Dynamic, Eigen::Dynamic>>);
-  static_assert(square_shaped<Eigen::Reshaped<Mx2, Eigen::Dynamic, Eigen::Dynamic>, Likelihood::maybe>);
+  static_assert(square_shaped<Eigen::Reshaped<Mx2, Eigen::Dynamic, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
   static_assert(square_shaped<Eigen::Reshaped<Eigen::Matrix<double, 2, 8>, 4, Eigen::Dynamic>>);
   static_assert(square_shaped<Eigen::Reshaped<Eigen::Matrix<double, 2, 8>, Eigen::Dynamic, 4>>);
-  static_assert(square_shaped<Eigen::Reshaped<Eigen::Matrix<double, 2, 8>, Eigen::Dynamic, Eigen::Dynamic>, Likelihood::maybe>);
+  static_assert(square_shaped<Eigen::Reshaped<Eigen::Matrix<double, 2, 8>, Eigen::Dynamic, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
   static_assert(not square_shaped<Eigen::Reshaped<Eigen::Matrix<double, 2, 8>, Eigen::Dynamic, Eigen::Dynamic>>);
-  static_assert(not square_shaped<Eigen::Reshaped<Eigen::Matrix<double, 2, 9>, Eigen::Dynamic, Eigen::Dynamic>, Likelihood::maybe>);
+  static_assert(not square_shaped<Eigen::Reshaped<Eigen::Matrix<double, 2, 9>, Eigen::Dynamic, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
   static_assert(not square_shaped<Eigen::Reshaped<Mx2, Eigen::Dynamic, Eigen::Dynamic>>);
-  static_assert(not square_shaped<Eigen::Reshaped<M5x, 2, 2>, Likelihood::maybe>);
-  static_assert(not square_shaped<Eigen::Reshaped<Mx5, 2, 2>, Likelihood::maybe>);
-  static_assert(not square_shaped<Eigen::Reshaped<M2x, 1, 1>, Likelihood::maybe>);
-  static_assert(not square_shaped<Eigen::Reshaped<Mx2, 1, 1>, Likelihood::maybe>);
-  static_assert(not square_shaped<Eigen::Reshaped<M2x, Eigen::Dynamic, 1>, Likelihood::maybe>);
-  static_assert(not square_shaped<Eigen::Reshaped<Mx2, 1, Eigen::Dynamic>, Likelihood::maybe>);
-  static_assert(not square_shaped<Eigen::Reshaped<M21, Eigen::Dynamic, 1>, Likelihood::maybe>);
-  static_assert(not square_shaped<Eigen::Reshaped<M21, 2, Eigen::Dynamic>, Likelihood::maybe>);
+  static_assert(not square_shaped<Eigen::Reshaped<M5x, 2, 2>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not square_shaped<Eigen::Reshaped<Mx5, 2, 2>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not square_shaped<Eigen::Reshaped<M2x, 1, 1>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not square_shaped<Eigen::Reshaped<Mx2, 1, 1>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not square_shaped<Eigen::Reshaped<M2x, Eigen::Dynamic, 1>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not square_shaped<Eigen::Reshaped<Mx2, 1, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not square_shaped<Eigen::Reshaped<M21, Eigen::Dynamic, 1>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not square_shaped<Eigen::Reshaped<M21, 2, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
 
   static_assert(constant_coefficient_v<Eigen::Reshaped<C22_2, 2, 2>> == 2);
   static_assert(constant_coefficient_v<Eigen::Reshaped<C2x_2, 2, 2>> == 2);
@@ -1358,7 +1364,7 @@ TEST(eigen3, Eigen_Reshaped)
   static_assert(constant_coefficient_v<Eigen::Reshaped<Cxx_2, Eigen::Dynamic, Eigen::Dynamic>> == 2);
 
   static_assert(constant_diagonal_coefficient_v<Eigen::Reshaped<Cd22_2, 2, 2>> == 2);
-  static_assert(constant_diagonal_matrix<Eigen::Reshaped<Cd22_2, 2, 2>, CompileTimeStatus::known>);
+  static_assert(constant_diagonal_matrix<Eigen::Reshaped<Cd22_2, 2, 2>, ConstantType::static_constant>);
   static_assert(constant_diagonal_coefficient_v<Eigen::Reshaped<Cd2x_2, 2, Eigen::Dynamic>> == 2);
   static_assert(not constant_diagonal_matrix<Eigen::Reshaped<Cd2x_2, 2, Eigen::Dynamic>>);
   static_assert(constant_diagonal_coefficient_v<Eigen::Reshaped<Cd2x_2, Eigen::Dynamic, 2>> == 2);
@@ -1369,13 +1375,13 @@ TEST(eigen3, Eigen_Reshaped)
   static_assert(not constant_diagonal_matrix<Eigen::Reshaped<Cdx2_2, 2, Eigen::Dynamic>>);
   static_assert(constant_diagonal_coefficient_v<Eigen::Reshaped<Cdxx_2, 2, 2>> == 2);
   static_assert(not constant_diagonal_matrix<Eigen::Reshaped<Cdxx_2, 2, Eigen::Dynamic>>);
-  static_assert(constant_diagonal_matrix<Eigen::Reshaped<Cd22_2, Eigen::Dynamic, Eigen::Dynamic>, CompileTimeStatus::known, Likelihood::maybe>);
+  static_assert(constant_diagonal_matrix<Eigen::Reshaped<Cd22_2, Eigen::Dynamic, Eigen::Dynamic>, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
   static_assert(not constant_diagonal_matrix<Eigen::Reshaped<Cd22_2, Eigen::Dynamic, Eigen::Dynamic>>);
-  static_assert(constant_diagonal_matrix<Eigen::Reshaped<Cdxx_2, Eigen::Dynamic, Eigen::Dynamic>, CompileTimeStatus::known, Likelihood::maybe>);
+  static_assert(constant_diagonal_matrix<Eigen::Reshaped<Cdxx_2, Eigen::Dynamic, Eigen::Dynamic>, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
   static_assert(not constant_diagonal_matrix<Eigen::Reshaped<Cdxx_2, Eigen::Dynamic, Eigen::Dynamic>>);
-  static_assert(constant_diagonal_matrix<Eigen::Reshaped<Cdxx_2, 2, Eigen::Dynamic>, CompileTimeStatus::known, Likelihood::maybe>);
+  static_assert(constant_diagonal_matrix<Eigen::Reshaped<Cdxx_2, 2, Eigen::Dynamic>, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
   static_assert(not constant_diagonal_matrix<Eigen::Reshaped<Cdxx_2, 2, Eigen::Dynamic>>);
-  static_assert(constant_diagonal_matrix<Eigen::Reshaped<Cdxx_2, Eigen::Dynamic, 2>, CompileTimeStatus::known, Likelihood::maybe>);
+  static_assert(constant_diagonal_matrix<Eigen::Reshaped<Cdxx_2, Eigen::Dynamic, 2>, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>);
   static_assert(not constant_diagonal_matrix<Eigen::Reshaped<Cdxx_2, Eigen::Dynamic, 2>>);
 
   static_assert(zero<Eigen::Reshaped<Z22, 4, 1>>);
@@ -1383,18 +1389,18 @@ TEST(eigen3, Eigen_Reshaped)
   static_assert(zero<Eigen::Reshaped<Z23, 3, 2>>);
 
   static_assert(triangular_matrix<Eigen::Reshaped<Tlv22, 2, 2>, TriangleType::lower>);
-  static_assert(triangular_matrix<Eigen::Reshaped<Tlv2x, 2, Eigen::Dynamic>, TriangleType::lower, Likelihood::maybe>);
-  static_assert(triangular_matrix<Eigen::Reshaped<Tlv2x, Eigen::Dynamic, 2>, TriangleType::lower, Likelihood::maybe>);
-  static_assert(triangular_matrix<Eigen::Reshaped<Tlvx2, Eigen::Dynamic, 2>, TriangleType::lower, Likelihood::maybe>);
-  static_assert(triangular_matrix<Eigen::Reshaped<Tlvx2, 2, Eigen::Dynamic>, TriangleType::lower, Likelihood::maybe>);
+  static_assert(triangular_matrix<Eigen::Reshaped<Tlv2x, 2, Eigen::Dynamic>, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Eigen::Reshaped<Tlv2x, Eigen::Dynamic, 2>, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Eigen::Reshaped<Tlvx2, Eigen::Dynamic, 2>, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Eigen::Reshaped<Tlvx2, 2, Eigen::Dynamic>, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
   static_assert(triangular_matrix<Eigen::Reshaped<Tlvxx, 2, 2>, TriangleType::lower>);
   static_assert(not triangular_matrix<Eigen::Reshaped<Tlvxx, Eigen::Dynamic, 2>>);
 
   static_assert(triangular_matrix<Eigen::Reshaped<Tuv22, 2, 2>, TriangleType::upper>);
-  static_assert(triangular_matrix<Eigen::Reshaped<Tuv2x, 2, Eigen::Dynamic>, TriangleType::upper, Likelihood::maybe>);
-  static_assert(triangular_matrix<Eigen::Reshaped<Tuv2x, Eigen::Dynamic, 2>, TriangleType::upper, Likelihood::maybe>);
-  static_assert(triangular_matrix<Eigen::Reshaped<Tuvx2, Eigen::Dynamic, 2>, TriangleType::upper, Likelihood::maybe>);
-  static_assert(triangular_matrix<Eigen::Reshaped<Tuvx2, 2, Eigen::Dynamic>, TriangleType::upper, Likelihood::maybe>);
+  static_assert(triangular_matrix<Eigen::Reshaped<Tuv2x, 2, Eigen::Dynamic>, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Eigen::Reshaped<Tuv2x, Eigen::Dynamic, 2>, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Eigen::Reshaped<Tuvx2, Eigen::Dynamic, 2>, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Eigen::Reshaped<Tuvx2, 2, Eigen::Dynamic>, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
   static_assert(triangular_matrix<Eigen::Reshaped<Tuvxx, 2, 2>, TriangleType::upper>);
   static_assert(not triangular_matrix<Eigen::Reshaped<Tuvxx, Eigen::Dynamic, 2>>);
 
@@ -1402,8 +1408,8 @@ TEST(eigen3, Eigen_Reshaped)
   static_assert(not hermitian_adapter<Eigen::Reshaped<C22_2, 2, 2>>);
   static_assert(hermitian_matrix<Eigen::Reshaped<Z22, 2, 2>>);
   static_assert(hermitian_matrix<Eigen::Reshaped<C22_2, 2, 2>>);
-  static_assert(not hermitian_matrix<Eigen::Reshaped<C22_2, 4, 1>, Likelihood::maybe>);
-  static_assert(not hermitian_matrix<Eigen::Reshaped<C22_2, 1, 4>, Likelihood::maybe>);
+  static_assert(not hermitian_matrix<Eigen::Reshaped<C22_2, 4, 1>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not hermitian_matrix<Eigen::Reshaped<C22_2, 1, 4>, Qualification::depends_on_dynamic_shape>);
 }
 #endif // EIGEN_VERSION_AT_LEAST(3,4,0)
 
@@ -1416,14 +1422,14 @@ TEST(eigen3, Eigen_Reverse)
   static_assert(index_dimension_of_v<Eigen::Reverse<Mx2, Eigen::BothDirections>, 1> == 2);
 
   static_assert(one_dimensional<Eigen::Reverse<M11, Eigen::Vertical>>);
-  static_assert(one_dimensional<Eigen::Reverse<M1x, Eigen::Horizontal>, Likelihood::maybe>);
-  static_assert(one_dimensional<Eigen::Reverse<Mx1, Eigen::BothDirections>, Likelihood::maybe>);
-  static_assert(one_dimensional<Eigen::Reverse<Mxx, Eigen::Vertical>, Likelihood::maybe>);
+  static_assert(one_dimensional<Eigen::Reverse<M1x, Eigen::Horizontal>, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<Eigen::Reverse<Mx1, Eigen::BothDirections>, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<Eigen::Reverse<Mxx, Eigen::Vertical>, Qualification::depends_on_dynamic_shape>);
 
   static_assert(square_shaped<Eigen::Reverse<M22, Eigen::BothDirections>>);
-  static_assert(square_shaped<Eigen::Reverse<M2x, Eigen::BothDirections>, Likelihood::maybe>);
-  static_assert(square_shaped<Eigen::Reverse<Mx2, Eigen::BothDirections>, Likelihood::maybe>);
-  static_assert(square_shaped<Eigen::Reverse<Mxx, Eigen::BothDirections>, Likelihood::maybe>);
+  static_assert(square_shaped<Eigen::Reverse<M2x, Eigen::BothDirections>, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Eigen::Reverse<Mx2, Eigen::BothDirections>, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Eigen::Reverse<Mxx, Eigen::BothDirections>, Qualification::depends_on_dynamic_shape>);
 
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().reverse())> == 2);
   static_assert(constant_coefficient_v<decltype(std::declval<C21_2>().reverse())> == 2);
@@ -1449,16 +1455,16 @@ TEST(eigen3, Eigen_Reverse)
   static_assert(hermitian_matrix<Eigen::Reverse<C11_2, Eigen::Vertical>>);
 
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().reverse()), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuv2x>().reverse()), TriangleType::lower, Likelihood::maybe>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuvx2>().reverse()), TriangleType::lower, Likelihood::maybe>);
-  static_assert(triangular_matrix<decltype(std::declval<Tuvxx>().reverse()), TriangleType::lower, Likelihood::maybe>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuv2x>().reverse()), TriangleType::lower, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuvx2>().reverse()), TriangleType::lower, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<decltype(std::declval<Tuvxx>().reverse()), TriangleType::lower, Qualification::depends_on_dynamic_shape>);
   static_assert(triangular_matrix<Eigen::Reverse<M11, Eigen::Vertical>, TriangleType::lower>);
   static_assert(triangular_matrix<Eigen::Reverse<M11, Eigen::Horizontal>, TriangleType::lower>);
 
   static_assert(triangular_matrix<decltype(std::declval<Tlv22>().reverse()), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(std::declval<Tlv2x>().reverse()), TriangleType::upper, Likelihood::maybe>);
-  static_assert(triangular_matrix<decltype(std::declval<Tlvx2>().reverse()), TriangleType::upper, Likelihood::maybe>);
-  static_assert(triangular_matrix<decltype(std::declval<Tlvxx>().reverse()), TriangleType::upper, Likelihood::maybe>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlv2x>().reverse()), TriangleType::upper, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlvx2>().reverse()), TriangleType::upper, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<decltype(std::declval<Tlvxx>().reverse()), TriangleType::upper, Qualification::depends_on_dynamic_shape>);
   static_assert(triangular_matrix<Eigen::Reverse<M11, Eigen::Vertical>, TriangleType::upper>);
   static_assert(triangular_matrix<Eigen::Reverse<M11, Eigen::Horizontal>, TriangleType::upper>);
 }
@@ -1544,14 +1550,14 @@ TEST(eigen3, Eigen_SelfAdjointView)
   static_assert(zero<Eigen::SelfAdjointView<Eigen::MatrixWrapper<Z22>, Eigen::Upper>>);
 
   static_assert(identity_matrix<Eigen::SelfAdjointView<decltype(M33::Identity()), Eigen::Upper>>);
-  static_assert(identity_matrix<Eigen::SelfAdjointView<decltype(M3x::Identity(3, 3)), Eigen::Lower>, Likelihood::maybe>);
-  static_assert(identity_matrix<Eigen::SelfAdjointView<decltype(Mx3::Identity(3, 3)), Eigen::Upper>, Likelihood::maybe>);
-  static_assert(identity_matrix<Eigen::SelfAdjointView<decltype(Mxx::Identity(3, 3)), Eigen::Lower>, Likelihood::maybe>);
+  static_assert(identity_matrix<Eigen::SelfAdjointView<decltype(M3x::Identity(3, 3)), Eigen::Lower>, Qualification::depends_on_dynamic_shape>);
+  static_assert(identity_matrix<Eigen::SelfAdjointView<decltype(Mx3::Identity(3, 3)), Eigen::Upper>, Qualification::depends_on_dynamic_shape>);
+  static_assert(identity_matrix<Eigen::SelfAdjointView<decltype(Mxx::Identity(3, 3)), Eigen::Lower>, Qualification::depends_on_dynamic_shape>);
 
   static_assert(diagonal_matrix<Sadv22>);
-  static_assert(diagonal_matrix<Sadv2x, Likelihood::maybe>);
-  static_assert(diagonal_matrix<Sadvx2, Likelihood::maybe>);
-  static_assert(diagonal_matrix<Sadvxx, Likelihood::maybe>);
+  static_assert(diagonal_matrix<Sadv2x, Qualification::depends_on_dynamic_shape>);
+  static_assert(diagonal_matrix<Sadvx2, Qualification::depends_on_dynamic_shape>);
+  static_assert(diagonal_matrix<Sadvxx, Qualification::depends_on_dynamic_shape>);
 
   static_assert(hermitian_adapter<Eigen::SelfAdjointView<M33, Eigen::Lower>, HermitianAdapterType::lower>);
   static_assert(not hermitian_adapter<Eigen::SelfAdjointView<CM22, Eigen::Lower>, HermitianAdapterType::lower>); // the diagonal must be real
@@ -1658,19 +1664,19 @@ TEST(eigen3, Eigen_TriangularView)
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Eigen::MatrixWrapper<Cd22_2>, Eigen::Lower>> == 2);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Eigen::MatrixWrapper<Z22>, Eigen::StrictlyLower>> == 0);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Eigen::MatrixWrapper<Z2x>, Eigen::StrictlyLower>> == 0);
-  static_assert(not constant_diagonal_matrix<Eigen::TriangularView<Eigen::MatrixWrapper<Z23>, Eigen::StrictlyLower>, CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(not constant_diagonal_matrix<Eigen::TriangularView<Eigen::MatrixWrapper<Z23>, Eigen::StrictlyLower>, ConstantType::any, Qualification::depends_on_dynamic_shape>);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Eigen::MatrixWrapper<Z22>, Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Eigen::MatrixWrapper<Zx2>, Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(M22::Identity()), Eigen::StrictlyLower>> == 0);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(M2x::Identity()), Eigen::StrictlyLower>> == 0);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(Mx2::Identity()), Eigen::StrictlyLower>> == 0);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(Mxx::Identity()), Eigen::StrictlyLower>> == 0);
-  static_assert(not constant_diagonal_matrix<Eigen::TriangularView<decltype(M23::Identity()), Eigen::StrictlyLower>, CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(not constant_diagonal_matrix<Eigen::TriangularView<decltype(M23::Identity()), Eigen::StrictlyLower>, ConstantType::any, Qualification::depends_on_dynamic_shape>);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(M22::Identity()), Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(M2x::Identity()), Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(Mx2::Identity()), Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(Mxx::Identity()), Eigen::UnitLower>> == 1);
-  static_assert(not constant_diagonal_matrix<Eigen::TriangularView<decltype(M23::Identity()), Eigen::UnitUpper>, CompileTimeStatus::any, Likelihood::maybe>);
+  static_assert(not constant_diagonal_matrix<Eigen::TriangularView<decltype(M23::Identity()), Eigen::UnitUpper>, ConstantType::any, Qualification::depends_on_dynamic_shape>);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Tlv22, Eigen::UnitUpper>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Tuv22, Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<M11, Eigen::StrictlyLower>> == 0);
@@ -1679,37 +1685,37 @@ TEST(eigen3, Eigen_TriangularView)
   static_assert(zero<Eigen::TriangularView<Eigen::MatrixWrapper<Z22>, Eigen::Lower>>);
 
   static_assert(identity_matrix<Eigen::TriangularView<decltype(M33::Identity()), Eigen::Upper>>);
-  static_assert(identity_matrix<Eigen::TriangularView<decltype(M3x::Identity(3, 3)), Eigen::Lower>, Likelihood::maybe>);
-  static_assert(identity_matrix<Eigen::TriangularView<decltype(Mx3::Identity(3, 3)), Eigen::Upper>, Likelihood::maybe>);
-  static_assert(identity_matrix<Eigen::TriangularView<decltype(Mxx::Identity(3, 3)), Eigen::Lower>, Likelihood::maybe>);
+  static_assert(identity_matrix<Eigen::TriangularView<decltype(M3x::Identity(3, 3)), Eigen::Lower>, Qualification::depends_on_dynamic_shape>);
+  static_assert(identity_matrix<Eigen::TriangularView<decltype(Mx3::Identity(3, 3)), Eigen::Upper>, Qualification::depends_on_dynamic_shape>);
+  static_assert(identity_matrix<Eigen::TriangularView<decltype(Mxx::Identity(3, 3)), Eigen::Lower>, Qualification::depends_on_dynamic_shape>);
   static_assert(not identity_matrix<Eigen::TriangularView<decltype(M33::Identity()), Eigen::StrictlyUpper>>);
   static_assert(identity_matrix<Eigen::TriangularView<Eigen::MatrixWrapper<Z22>, Eigen::UnitUpper>>);
 
   static_assert(triangular_matrix<Eigen::TriangularView<M33, Eigen::Lower>, TriangleType::lower>);
-  static_assert(triangular_matrix<Eigen::TriangularView<M3x, Eigen::Lower>, TriangleType::lower, Likelihood::maybe>);
-  static_assert(triangular_matrix<Eigen::TriangularView<Mx3, Eigen::Lower>, TriangleType::lower, Likelihood::maybe>);
-  static_assert(triangular_matrix<Eigen::TriangularView<Mxx, Eigen::Lower>, TriangleType::lower, Likelihood::maybe>);
-  static_assert(triangular_matrix<Tlvx2, TriangleType::lower, Likelihood::maybe>);
+  static_assert(triangular_matrix<Eigen::TriangularView<M3x, Eigen::Lower>, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Eigen::TriangularView<Mx3, Eigen::Lower>, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Eigen::TriangularView<Mxx, Eigen::Lower>, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Tlvx2, TriangleType::lower, Qualification::depends_on_dynamic_shape>);
   static_assert(not triangular_matrix<Eigen::TriangularView<M43, Eigen::Lower>, TriangleType::lower>);
 
   static_assert(triangular_matrix<Eigen::TriangularView<M33, Eigen::Upper>, TriangleType::upper>);
-  static_assert(triangular_matrix<Eigen::TriangularView<M3x, Eigen::Upper>, TriangleType::upper, Likelihood::maybe>);
-  static_assert(triangular_matrix<Eigen::TriangularView<Mx3, Eigen::Upper>, TriangleType::upper, Likelihood::maybe>);
-  static_assert(triangular_matrix<Eigen::TriangularView<Mxx, Eigen::Upper>, TriangleType::upper, Likelihood::maybe>);
-  static_assert(triangular_matrix<Tuv2x, TriangleType::upper, Likelihood::maybe>);
+  static_assert(triangular_matrix<Eigen::TriangularView<M3x, Eigen::Upper>, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Eigen::TriangularView<Mx3, Eigen::Upper>, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Eigen::TriangularView<Mxx, Eigen::Upper>, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
+  static_assert(triangular_matrix<Tuv2x, TriangleType::upper, Qualification::depends_on_dynamic_shape>);
   static_assert(not triangular_matrix<Eigen::TriangularView<M34, Eigen::Upper>, TriangleType::upper>);
 
   static_assert(triangular_matrix<Eigen::TriangularView<Tlv22, Eigen::Upper>, TriangleType::diagonal>);
   static_assert(triangular_matrix<Eigen::TriangularView<Tuv22, Eigen::Lower>, TriangleType::diagonal>);
 
   static_assert(diagonal_matrix<Eigen::TriangularView<Tlv22, Eigen::Upper>>);
-  static_assert(diagonal_matrix<Eigen::TriangularView<Tlv2x, Eigen::Upper>, Likelihood::maybe>);
-  static_assert(diagonal_matrix<Eigen::TriangularView<Tlvx2, Eigen::Upper>, Likelihood::maybe>);
-  static_assert(diagonal_matrix<Eigen::TriangularView<Tlvxx, Eigen::Upper>, Likelihood::maybe>);
+  static_assert(diagonal_matrix<Eigen::TriangularView<Tlv2x, Eigen::Upper>, Qualification::depends_on_dynamic_shape>);
+  static_assert(diagonal_matrix<Eigen::TriangularView<Tlvx2, Eigen::Upper>, Qualification::depends_on_dynamic_shape>);
+  static_assert(diagonal_matrix<Eigen::TriangularView<Tlvxx, Eigen::Upper>, Qualification::depends_on_dynamic_shape>);
   static_assert(diagonal_matrix<Eigen::TriangularView<Tuv22, Eigen::Lower>>);
-  static_assert(diagonal_matrix<Eigen::TriangularView<Tuv2x, Eigen::Lower>, Likelihood::maybe>);
-  static_assert(diagonal_matrix<Eigen::TriangularView<Tuvx2, Eigen::Lower>, Likelihood::maybe>);
-  static_assert(diagonal_matrix<Eigen::TriangularView<Tuvxx, Eigen::Lower>, Likelihood::maybe>);
+  static_assert(diagonal_matrix<Eigen::TriangularView<Tuv2x, Eigen::Lower>, Qualification::depends_on_dynamic_shape>);
+  static_assert(diagonal_matrix<Eigen::TriangularView<Tuvx2, Eigen::Lower>, Qualification::depends_on_dynamic_shape>);
+  static_assert(diagonal_matrix<Eigen::TriangularView<Tuvxx, Eigen::Lower>, Qualification::depends_on_dynamic_shape>);
 
   static_assert(hermitian_matrix<Eigen::TriangularView<Eigen::MatrixWrapper<Cd22_2>, Eigen::Lower>>);
   static_assert(hermitian_matrix<Eigen::TriangularView<Eigen::MatrixWrapper<Cd22_2>, Eigen::Upper>>);

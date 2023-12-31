@@ -19,13 +19,13 @@
 namespace OpenKalman
 {
 #ifdef __cpp_concepts
-  template<square_shaped<Likelihood::maybe> NestedMatrix, HermitianAdapterType storage_triangle> requires
+  template<square_shaped<Qualification::depends_on_dynamic_shape> NestedMatrix, HermitianAdapterType storage_triangle> requires
     (index_count_v<NestedMatrix> <= 2) and
     (storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper) and
     (not constant_matrix<NestedMatrix> or real_axis_number<constant_coefficient<NestedMatrix>>) and
     (not constant_diagonal_matrix<NestedMatrix> or real_axis_number<constant_diagonal_coefficient<NestedMatrix>>) and
-    (not triangular_matrix<NestedMatrix, TriangleType::any, Likelihood::maybe> or
-      triangular_matrix<NestedMatrix, static_cast<TriangleType>(storage_triangle), Likelihood::maybe>)
+    (not triangular_matrix<NestedMatrix, TriangleType::any, Qualification::depends_on_dynamic_shape> or
+      triangular_matrix<NestedMatrix, static_cast<TriangleType>(storage_triangle), Qualification::depends_on_dynamic_shape>)
 #else
   template<typename NestedMatrix, HermitianAdapterType storage_triangle>
 #endif
@@ -34,13 +34,13 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(square_shaped<NestedMatrix, Likelihood::maybe>);
+    static_assert(square_shaped<NestedMatrix, Qualification::depends_on_dynamic_shape>);
     static_assert(index_count_v<NestedMatrix> <= 2);
     static_assert(storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper);
     static_assert([]{if constexpr (constant_matrix<NestedMatrix>) return real_axis_number<constant_coefficient<NestedMatrix>>; else return true; }());
     static_assert([]{if constexpr (constant_diagonal_matrix<NestedMatrix>) return real_axis_number<constant_diagonal_coefficient<NestedMatrix>>; else return true; }());
-    static_assert(not triangular_matrix<NestedMatrix, TriangleType::any, Likelihood::maybe> or
-      triangular_matrix<NestedMatrix, static_cast<TriangleType>(storage_triangle), Likelihood::maybe>);
+    static_assert(not triangular_matrix<NestedMatrix, TriangleType::any, Qualification::depends_on_dynamic_shape> or
+      triangular_matrix<NestedMatrix, static_cast<TriangleType>(storage_triangle), Qualification::depends_on_dynamic_shape>);
 #endif
 
 
@@ -108,13 +108,13 @@ namespace OpenKalman
     /// Construct from a hermitian, non-diagonal wrapper of the same storage type
 #ifdef __cpp_concepts
     template<hermitian_adapter<storage_triangle> Arg> requires (not std::derived_from<std::decay_t<Arg>, SelfAdjointMatrix>) and
-      (not diagonal_matrix<Arg>) and square_shaped<nested_object_of_t<Arg>, Likelihood::maybe> and
+      (not diagonal_matrix<Arg>) and square_shaped<nested_object_of_t<Arg>, Qualification::depends_on_dynamic_shape> and
       std::constructible_from<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>
       //alt: requires(Arg&& arg) { NestedMatrix {nested_object(std::forward<Arg>(arg))}; } -- not accepted in GCC 10
 #else
     template<typename Arg, std::enable_if_t<
       hermitian_adapter<Arg, storage_triangle> and (not std::is_base_of_v<SelfAdjointMatrix, std::decay_t<Arg>>) and
-      (not diagonal_matrix<Arg>) and square_shaped<nested_object_of_t<Arg>, Likelihood::maybe> and
+      (not diagonal_matrix<Arg>) and square_shaped<nested_object_of_t<Arg>, Qualification::depends_on_dynamic_shape> and
       std::is_constructible_v<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
 #endif
     SelfAdjointMatrix(Arg&& arg) noexcept : Base {nested_object(std::forward<Arg>(arg))} {}
@@ -124,13 +124,13 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<hermitian_adapter Arg> requires (not diagonal_matrix<Arg>) and
       (hermitian_adapter_type_of<Arg>::value != storage_triangle) and
-      square_shaped<nested_object_of_t<Arg>, Likelihood::maybe> and
+      square_shaped<nested_object_of_t<Arg>, Qualification::depends_on_dynamic_shape> and
       requires(Arg&& arg) { NestedMatrix {transpose(nested_object(std::forward<Arg>(arg)))}; }
 #else
     template<typename Arg, std::enable_if_t<
       hermitian_adapter<Arg> and (not diagonal_matrix<Arg>) and
       (hermitian_adapter_type_of<Arg>::value != storage_triangle) and
-      square_shaped<nested_object_of_t<Arg>, Likelihood::maybe> and
+      square_shaped<nested_object_of_t<Arg>, Qualification::depends_on_dynamic_shape> and
       std::is_constructible_v<NestedMatrix, decltype(transpose(nested_object(std::declval<Arg&&>())))>, int> = 0>
 #endif
     SelfAdjointMatrix(Arg&& arg) noexcept : Base {transpose(nested_object(std::forward<Arg>(arg)))} {}
@@ -164,10 +164,10 @@ namespace OpenKalman
 
     /// Construct from a non-hermitian matrix if NestedMatrix is not diagonal.
 #ifdef __cpp_concepts
-    template<square_shaped<Likelihood::maybe> Arg> requires (not hermitian_adapter<Arg>) and (not diagonal_matrix<NestedMatrix>) and
+    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires (not hermitian_adapter<Arg>) and (not diagonal_matrix<NestedMatrix>) and
       std::constructible_from<NestedMatrix, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<square_shaped<Arg, Likelihood::maybe> and
+    template<typename Arg, std::enable_if_t<square_shaped<Arg, Qualification::depends_on_dynamic_shape> and
       not hermitian_adapter<Arg> and not eigen_diagonal_expr<NestedMatrix> and
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
@@ -181,10 +181,10 @@ namespace OpenKalman
 
     /// Construct from a non-hermitian matrix if NestedMatrix is diagonal.
 #ifdef __cpp_concepts
-    template<square_shaped<Likelihood::maybe> Arg> requires (not hermitian_matrix<Arg>) and diagonal_matrix<NestedMatrix> and
+    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires (not hermitian_matrix<Arg>) and diagonal_matrix<NestedMatrix> and
       requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; }
 #else
-    template<typename Arg, std::enable_if_t<square_shaped<Arg, Likelihood::maybe> and (not hermitian_matrix<Arg>) and
+    template<typename Arg, std::enable_if_t<square_shaped<Arg, Qualification::depends_on_dynamic_shape> and (not hermitian_matrix<Arg>) and
       diagonal_matrix<NestedMatrix> and std::is_constructible_v<NestedMatrix, decltype(diagonal_of(std::declval<Arg&&>()))>, int> = 0>
 #endif
     explicit SelfAdjointMatrix(Arg&& arg) noexcept : Base {
@@ -222,8 +222,8 @@ namespace OpenKalman
      */
     auto& operator=(const SelfAdjointMatrix& other)
     {
-      if constexpr (not constant_matrix<NestedMatrix, CompileTimeStatus::known> and
-          not constant_diagonal_matrix<NestedMatrix, CompileTimeStatus::known>);
+      if constexpr (not constant_matrix<NestedMatrix, ConstantType::static_constant> and
+          not constant_diagonal_matrix<NestedMatrix, ConstantType::static_constant>);
       else if (this != &other)
       {
         if constexpr (writable<NestedMatrix>) internal::set_triangle<storage_triangle>(this->nested_object(), other.nested_object());
@@ -385,9 +385,9 @@ namespace OpenKalman
   // ------------------------------- //
 
 #ifdef __cpp_concepts
-  template<hermitian_matrix<Likelihood::maybe> M>
+  template<hermitian_matrix<Qualification::depends_on_dynamic_shape> M>
 #else
-  template<typename M, std::enable_if_t<hermitian_matrix<M, Likelihood::maybe>, int> = 0>
+  template<typename M, std::enable_if_t<hermitian_matrix<M, Qualification::depends_on_dynamic_shape>, int> = 0>
 #endif
   SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<
     std::conditional_t<hermitian_adapter<M>, passable_t<nested_object_of_t<M&&>>, passable_t<M>>,
@@ -395,10 +395,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<triangular_matrix<TriangleType::any, Likelihood::maybe> M> requires (not hermitian_matrix<M, Likelihood::maybe>)
+  template<triangular_matrix<TriangleType::any, Qualification::depends_on_dynamic_shape> M> requires (not hermitian_matrix<M, Qualification::depends_on_dynamic_shape>)
 #else
-  template<typename M, std::enable_if_t<triangular_matrix<M, TriangleType::any, Likelihood::maybe> and
-    (not hermitian_matrix<M, Likelihood::maybe>), int> = 0>
+  template<typename M, std::enable_if_t<triangular_matrix<M, TriangleType::any, Qualification::depends_on_dynamic_shape> and
+    (not hermitian_matrix<M, Qualification::depends_on_dynamic_shape>), int> = 0>
 #endif
   explicit SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<
     std::conditional_t<triangular_adapter<M>, passable_t<nested_object_of_t<M&&>>, passable_t<M>>,
@@ -406,11 +406,11 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<indexible M> requires (not hermitian_matrix<M, Likelihood::maybe>) and
-    (not triangular_matrix<M, TriangleType::any, Likelihood::maybe>)
+  template<indexible M> requires (not hermitian_matrix<M, Qualification::depends_on_dynamic_shape>) and
+    (not triangular_matrix<M, TriangleType::any, Qualification::depends_on_dynamic_shape>)
 #else
-  template<typename M, std::enable_if_t<indexible<M> and (not hermitian_matrix<M, Likelihood::maybe>) and
-      (not triangular_matrix<M, TriangleType::any, Likelihood::maybe>), int> = 0>
+  template<typename M, std::enable_if_t<indexible<M> and (not hermitian_matrix<M, Qualification::depends_on_dynamic_shape>) and
+      (not triangular_matrix<M, TriangleType::any, Qualification::depends_on_dynamic_shape>), int> = 0>
 #endif
   explicit SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<passable_t<M>, HermitianAdapterType::lower>;
 
@@ -477,11 +477,11 @@ namespace OpenKalman
         return constant_diagonal_coefficient {OpenKalman::nested_object(arg)};
       }
 
-      template<Likelihood b>
+      template<Qualification b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
 
-      template<TriangleType t, Likelihood>
-      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, TriangleType::diagonal, Likelihood::maybe>;
+      template<TriangleType t, Qualification>
+      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, TriangleType::diagonal, Qualification::depends_on_dynamic_shape>;
 
       static constexpr bool is_hermitian = true;
 

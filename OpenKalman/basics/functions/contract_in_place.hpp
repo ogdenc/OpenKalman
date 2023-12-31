@@ -25,12 +25,12 @@ namespace OpenKalman
    * \result Either either A * B (if on_the_right == true) or B * A (if on_the_right == false)
    */
 #ifdef __cpp_concepts
-  template<bool on_the_right = true, square_shaped<Likelihood::maybe> A, square_shaped<Likelihood::maybe> B> requires
+  template<bool on_the_right = true, square_shaped<Qualification::depends_on_dynamic_shape> A, square_shaped<Qualification::depends_on_dynamic_shape> B> requires
     maybe_same_shape_as<A, B> and (writable<A> or triangle_type_of_v<A> == triangle_type_of_v<A, B>) and
     (index_count_v<A> == dynamic_size or index_count_v<A> <= 2) and (index_count_v<B> == dynamic_size or index_count_v<B> <= 2)
 #else
   template<bool on_the_right = true, typename A, typename B, std::enable_if_t<
-    square_shaped<A, Likelihood::maybe> and square_shaped<B, Likelihood::maybe> and maybe_same_shape_as<A, B> and
+    square_shaped<A, Qualification::depends_on_dynamic_shape> and square_shaped<B, Qualification::depends_on_dynamic_shape> and maybe_same_shape_as<A, B> and
     (writable<A> or triangle_type_of_v<A> == triangle_type_of_v<A, B>) and
     (index_count<A>::value == dynamic_size or index_count<A>::value <= 2) and (index_count<B>::value == dynamic_size or index_count<B>::value <= 2), int> = 0>
 #endif
@@ -50,7 +50,8 @@ namespace OpenKalman
     }
     else if constexpr (diagonal_adapter<A> and diagonal_matrix<B>)
     {
-      internal::set_triangle<TriangleType::diagonal>(a, n_ary_operation(std::multiplies<>{}, diagonal_of(a), diagonal_of(std::forward<B>(b))));
+      using Scalar = std::decay_t<decltype(std::declval<scalar_type_of_t<A>>() * std::declval<scalar_type_of_t<B>>())>;
+      internal::set_triangle<TriangleType::diagonal>(a, n_ary_operation(std::multiplies<Scalar>{}, diagonal_of(a), diagonal_of(std::forward<B>(b))));
       return a;
     }
     else if constexpr (triangular_adapter<A> and triangle_type_of_v<A> == triangle_type_of_v<A, B>)

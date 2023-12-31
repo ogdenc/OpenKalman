@@ -22,6 +22,7 @@
 #include "nested_object.hpp"
 
 #include "internal/make_library_wrapper.hpp"
+#include "internal/make_self_contained_wrapper.hpp"
 
 #include "internal/make_fixed_size_adapter.hpp"
 #include "internal/make_fixed_size_adapter_like.hpp"

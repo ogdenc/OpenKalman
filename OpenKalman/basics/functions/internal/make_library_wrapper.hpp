@@ -33,23 +33,6 @@ namespace OpenKalman::internal
     return LibraryWrapper<Arg, LibraryObject> {std::forward<Arg>(arg)};
   }
 
-
-  /**
-   * \overload
-   * \brief Create a self-contained, wrapped object of type T, using constructor arguments Ps...
-   */
-#ifdef __cpp_concepts
-  template<indexible T, indexible LibraryObject, typename...Ps> requires std::constructible_from<T, std::add_lvalue_reference_t<Ps>...>
-#else
-  template<typename T, typename LibraryObject, typename...Ps, std::enable_if_t<indexible<T> and indexible<LibraryObject> and
-    std::is_constructible_v<T, std::add_lvalue_reference_t<Ps>...>, int> = 0>
-#endif
-  inline auto
-  make_library_wrapper(Ps&&...ps)
-  {
-    return LibraryWrapper<T, LibraryObject, std::remove_reference_t<Ps>...> {std::forward<Ps>(ps)...};
-  }
-
 } // namespace OpenKalman::internal
 
 

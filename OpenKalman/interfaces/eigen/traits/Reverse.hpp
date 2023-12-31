@@ -72,13 +72,13 @@ namespace OpenKalman::interface
       else return std::monostate {};
     }
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool is_square = square_shaped<MatrixType, b>;
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<MatrixType,
         t == TriangleType::upper ? TriangleType::lower :
         t == TriangleType::lower ? TriangleType::upper : t, b> and
@@ -86,8 +86,8 @@ namespace OpenKalman::interface
 
     static constexpr bool is_triangular_adapter = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Likelihood::maybe> and
-        (Direction == Eigen::BothDirections or OpenKalman::one_dimensional<MatrixType, Likelihood::maybe>);
+    static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Qualification::depends_on_dynamic_shape> and
+        (Direction == Eigen::BothDirections or OpenKalman::one_dimensional<MatrixType, Qualification::depends_on_dynamic_shape>);
   };
 
 

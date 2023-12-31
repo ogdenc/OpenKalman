@@ -40,7 +40,7 @@ namespace OpenKalman::internal
     if constexpr (static_index_value<decltype(get_index_dimension_of<N>(t))>)
     {
       constexpr std::size_t I = std::decay_t<decltype(get_index_dimension_of<N>(t))>::value;
-      return ScalarConstant<Likelihood::definitely, Scalar, I>{};
+      return ScalarConstant<Qualification::unqualified, Scalar, I>{};
     }
     else
     {

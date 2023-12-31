@@ -21,9 +21,9 @@ namespace OpenKalman
 {
   /**
    * \brief Specifies that a type is a diagonal matrix.
-   * \note A \ref diagonal_adapter is definitely a diagonal matrix, but not all diagonal matrices are diagonal adapters.
+   * \note A \ref diagonal_adapter is unqualified a diagonal matrix, but not all diagonal matrices are diagonal adapters.
    */
-  template<typename T, Likelihood b = Likelihood::definitely>
+  template<typename T, Qualification b = Qualification::unqualified>
 #ifdef __cpp_concepts
   concept diagonal_matrix =
 #else

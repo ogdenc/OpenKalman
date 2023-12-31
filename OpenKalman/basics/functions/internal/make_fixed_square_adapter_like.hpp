@@ -38,11 +38,11 @@ namespace OpenKalman::internal
    * \return (1) A fixed size adapter or (2) a reference to the argument unchanged.
    */
 #ifdef __cpp_concepts
-  template<vector_space_descriptor...Ds, square_shaped<Likelihood::maybe> Arg> requires
+  template<vector_space_descriptor...Ds, square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires
     (index_count_v<Arg> != dynamic_size) and maybe_equivalent_to<Ds...>
 #else
   template<typename...Ds, typename Arg, std::enable_if_t<
-    (... and vector_space_descriptor<Ds>) and square_shaped<Arg, Likelihood::maybe> and
+    (... and vector_space_descriptor<Ds>) and square_shaped<Arg, Qualification::depends_on_dynamic_shape> and
     (index_count_v<Arg> != dynamic_size) and maybe_equivalent_to<Ds...>, int> = 0>
 #endif
   constexpr decltype(auto)

@@ -62,10 +62,10 @@ namespace OpenKalman::interface
       return constant_coefficient {arg._expression()};
     }
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<ExpressionType, b>;
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool is_square = square_shaped<ExpressionType, b>;
 
     // No get or set defined.

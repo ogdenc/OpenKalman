@@ -71,13 +71,13 @@ namespace OpenKalman::interface
       return Eigen3::FunctorTraits<ViewOp, MatrixType>::template get_constant<true>(arg);
     }
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool is_square = square_shaped<MatrixType, b>;
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = Eigen3::FunctorTraits<ViewOp, MatrixType>::template is_triangular<t, b>;
 
     static constexpr bool is_triangular_adapter = false;

@@ -84,7 +84,7 @@ namespace Eigen::internal
   template<typename PatternMatrix, typename Scalar, auto...constant>
   struct traits<OpenKalman::ConstantAdapter<PatternMatrix, Scalar, constant...>> : traits<std::decay_t<PatternMatrix>>
   {
-    using StorageKind = Eigen::Dense;
+    using StorageKind = Dense;
     using B = traits<std::decay_t<PatternMatrix>>;
     using M = Matrix<Scalar, B::RowsAtCompileTime, B::ColsAtCompileTime>;
     enum

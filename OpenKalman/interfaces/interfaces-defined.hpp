@@ -23,7 +23,7 @@ namespace OpenKalman::interface
 {
   /**
    * \internal
-   * \brief An interface to traits of a particular array, or generalized tensor within a library.
+   * \brief An interface to traits of a particular indexible object (i.e., a matrix or generalized tensor).
    * \details This traits class must be specialized for any \ref indexible object (matrix, tensor, etc.)
    * from a linear algebra library. Each different type of objects in a library will typically have its own specialization.
    * \tparam T An object, such as a matrix, array, or tensor, with components addressable by indices.
@@ -37,15 +37,17 @@ namespace OpenKalman::interface
 
 
   /**
-   * \brief An interface to various routines from the library associated with \ref indexible object T.
+   * \brief An interface to various routines from the linear algebra library associated with \ref indexible object T.
    * \details This traits class must be specialized for any object (matrix, tensor, etc.) from a linear algebra library.
    * Typically, only one specialization would be necessary for all objects within a given library.
-   * \tparam T An \ref indexible object from a given library.
+   * \tparam LibraryObject An \ref indexible object that is native to the linear algebra library of interest.
+   * Normally, this is used simply to select the correct library for processing the arguments.
+   * But in some cases, the interface may also base the result on the properties of LibraryObject (e.g., whether it is a matrix or array).
    */
 #ifdef __cpp_concepts
-  template<typename T>
+  template<typename LibraryObject>
 #else
-  template<typename T, typename = void>
+  template<typename LibraryObject, typename = void>
 #endif
   struct library_interface;
 
@@ -183,24 +185,24 @@ namespace OpenKalman::interface
   // -------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, CompileTimeStatus c = CompileTimeStatus::any>
+  template<typename T, ConstantType c = ConstantType::any>
   concept get_constant_defined_for = requires(T t) {
     {indexible_object_traits<std::decay_t<T>>::get_constant(t)} -> scalar_constant<c>;
   };
 #else
   namespace detail
   {
-    template<typename T, CompileTimeStatus c, typename = void>
+    template<typename T, ConstantType c, typename = void>
     struct get_constant_defined_for_impl : std::false_type {};
 
-    template<typename T, CompileTimeStatus c>
+    template<typename T, ConstantType c>
     struct get_constant_defined_for_impl<T, c, std::enable_if_t<scalar_constant<
       decltype(indexible_object_traits<std::decay_t<T>>::get_constant(std::declval<T>())), c>>>
       : std::true_type {};
 
   } // namespace detail
 
-  template<typename T, CompileTimeStatus c = CompileTimeStatus::any>
+  template<typename T, ConstantType c = ConstantType::any>
   constexpr bool get_constant_defined_for = detail::get_constant_defined_for_impl<T, c>::value;
 #endif
 
@@ -210,24 +212,24 @@ namespace OpenKalman::interface
   // ----------------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, CompileTimeStatus c = CompileTimeStatus::any>
+  template<typename T, ConstantType c = ConstantType::any>
   concept get_constant_diagonal_defined_for = requires(T t) {
     {indexible_object_traits<std::decay_t<T>>::get_constant_diagonal(t)} -> scalar_constant<c>;
   };
 #else
   namespace detail
   {
-    template<typename T, CompileTimeStatus c, typename = void>
+    template<typename T, ConstantType c, typename = void>
     struct get_constant_diagonal_defined_for_impl : std::false_type {};
 
-    template<typename T, CompileTimeStatus c>
+    template<typename T, ConstantType c>
     struct get_constant_diagonal_defined_for_impl<T, c, std::enable_if_t<scalar_constant<
       decltype(indexible_object_traits<std::decay_t<T>>::get_constant_diagonal(std::declval<T>())), c>>>
       : std::true_type {};
 
   } // namespace detail
 
-  template<typename T, CompileTimeStatus c = CompileTimeStatus::any>
+  template<typename T, ConstantType c = ConstantType::any>
   constexpr bool get_constant_diagonal_defined_for = detail::get_constant_diagonal_defined_for_impl<std::decay_t<T>, c>::value;
 #endif
 
@@ -237,29 +239,29 @@ namespace OpenKalman::interface
   // ----------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, Likelihood b = Likelihood::definitely>
+  template<typename T, Qualification b = Qualification::unqualified>
   concept one_dimensional_defined_for = std::convertible_to<
     decltype(indexible_object_traits<std::decay_t<T>>::template one_dimensional<b>), bool>;
 #else
   namespace detail
   {
-    template<typename T, Likelihood b, typename = void>
+    template<typename T, Qualification b, typename = void>
     struct one_dimensional_defined_for_impl : std::false_type {};
 
-    template<typename T, Likelihood b>
+    template<typename T, Qualification b>
     struct one_dimensional_defined_for_impl<T, b, std::enable_if_t<std::is_convertible_v<
           decltype(indexible_object_traits<std::decay_t<T>>::template one_dimensional<b>), bool>>>
       : std::true_type {};
   }
 
-  template<typename T, Likelihood b = Likelihood::definitely>
+  template<typename T, Qualification b = Qualification::unqualified>
   constexpr bool one_dimensional_defined_for = detail::one_dimensional_defined_for_impl<T, b>::value;
 
 
-  template<typename T, Likelihood b, typename = void>
+  template<typename T, Qualification b, typename = void>
   struct is_explicitly_one_dimensional : std::false_type {};
 
-  template<typename T, Likelihood b>
+  template<typename T, Qualification b>
   struct is_explicitly_one_dimensional<T, b, std::enable_if_t<indexible_object_traits<std::decay_t<T>>::template one_dimensional<b>>>
     : std::true_type {};
 #endif
@@ -270,29 +272,29 @@ namespace OpenKalman::interface
   // ----------- //
 
 #ifdef __cpp_concepts
-  template<typename T, Likelihood b = Likelihood::definitely>
+  template<typename T, Qualification b = Qualification::unqualified>
   concept is_square_defined_for = std::convertible_to<
     decltype(indexible_object_traits<std::decay_t<T>>::template is_square<b>), bool>;
 #else
   namespace detail
   {
-    template<typename T, Likelihood b, typename = void>
+    template<typename T, Qualification b, typename = void>
     struct is_square_defined_for_impl : std::false_type {};
 
-    template<typename T, Likelihood b>
+    template<typename T, Qualification b>
     struct is_square_defined_for_impl<T, b, std::enable_if_t<std::is_convertible_v<
           decltype(indexible_object_traits<std::decay_t<T>>::template is_square<b>), bool>>>
       : std::true_type {};
   }
 
-  template<typename T, Likelihood b = Likelihood::definitely>
+  template<typename T, Qualification b = Qualification::unqualified>
   constexpr bool is_square_defined_for = detail::is_square_defined_for_impl<T, b>::value;
 
 
-  template<typename T, Likelihood b, typename = void>
+  template<typename T, Qualification b, typename = void>
   struct is_explicitly_square : std::false_type {};
 
-  template<typename T, Likelihood b>
+  template<typename T, Qualification b>
   struct is_explicitly_square<T, b, std::enable_if_t<indexible_object_traits<std::decay_t<T>>::template is_square<b>>>
     : std::true_type {};
 #endif
@@ -303,29 +305,29 @@ namespace OpenKalman::interface
   // --------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, TriangleType t, Likelihood b = Likelihood::definitely>
+  template<typename T, TriangleType t, Qualification b = Qualification::unqualified>
   concept is_triangular_defined_for = std::convertible_to<
     decltype(indexible_object_traits<std::decay_t<T>>::template is_triangular<b>), bool>;
 #else
   namespace detail
   {
-    template<typename T, TriangleType t, Likelihood b, typename = void>
+    template<typename T, TriangleType t, Qualification b, typename = void>
     struct is_triangular_defined_for_impl : std::false_type {};
 
-    template<typename T, TriangleType t, Likelihood b>
+    template<typename T, TriangleType t, Qualification b>
     struct is_triangular_defined_for_impl<T, t, b, std::enable_if_t<std::is_convertible_v<
           decltype(indexible_object_traits<std::decay_t<T>>::template is_triangular<b>), bool>>>
       : std::true_type {};
   }
 
-  template<typename T, TriangleType t, Likelihood b = Likelihood::definitely>
+  template<typename T, TriangleType t, Qualification b = Qualification::unqualified>
   constexpr bool is_triangular_defined_for = detail::is_triangular_defined_for_impl<T, t, b>::value;
 
 
-  template<typename T, TriangleType t, Likelihood b, typename = void>
+  template<typename T, TriangleType t, Qualification b, typename = void>
   struct is_explicitly_triangular : std::false_type {};
 
-  template<typename T, TriangleType t, Likelihood b>
+  template<typename T, TriangleType t, Qualification b>
   struct is_explicitly_triangular<T, t, b, std::enable_if_t<indexible_object_traits<std::decay_t<T>>::template is_triangular<t, b>>>
     : std::true_type {};
 #endif
@@ -633,9 +635,9 @@ namespace OpenKalman::interface
   // fill_components not defined
 
 
-  // ---------------------- //
+  // --------------- //
   //  make_constant  //
-  // ---------------------- //
+  // --------------- //
 
 #ifdef __cpp_concepts
   template<typename T, typename C, typename...Ds>

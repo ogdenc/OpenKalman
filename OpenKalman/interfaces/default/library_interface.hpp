@@ -23,14 +23,19 @@
 namespace OpenKalman::interface
 {
 #ifdef __cpp_concepts
-  template<typename T>
+  template<typename LibraryObject>
 #else
-  template<typename T, typename>
+  template<typename LibraryObject, typename>
 #endif
   struct library_interface
   {
     /**
-     * \brief A Base object within the library of T, if any, from which user-defined objects may be derived (optional).
+     * \brief The base class within the library of LibraryObject for custom wrappers (optional).
+     * \details This is used when a library requires custom objects to derive from a particular base class.
+     * For example, the Eigen library requires objects to derive from classes such as <code>Eigen::EigenBase</code>,
+     * <code>Eigen::MatrixBase</code>, or <code>Eigen::ArrayBase</code>.
+     * The particular base class within a given library can depend on the type of LibraryObject
+     * (e.g., whether LibraryObject is a matrix or array).
      */
     template<typename Derived>
     using LibraryBase = std::monostate;
@@ -72,8 +77,8 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Converts Arg (if it is not already) to a native matrix operable within the library associated with T.
-     * \details The result should be in a form for which basic matrix operations can be performed within the library for T.
+     * \brief Converts Arg (if it is not already) to a native matrix operable within the library associated with LibraryObject.
+     * \details The result should be in a form for which basic matrix operations can be performed within the library for LibraryObject.
      * If possible, properties such as \ref diagonal_matrix, \ref triangular_matrix, \ref hermitian_matrix,
      * \ref constant_matrix, and \ref constant_diagonal_matrix should be preserved in the resulting object.
      * Also, this function should accept, as arguments, all OpenKalman classes including
@@ -98,8 +103,8 @@ namespace OpenKalman::interface
      * Layout::none (which indicates the default layout for the library).
      * \tparam Scalar The scalar value of the result.
      * \param ds A list of \ref vector_space_descriptor items
-     * \return A default, potentially unitialized, dense, writable objectmatrix or array. Whether the resulting object
-     * is a matrix or array may depend on whether T is a matrix or array.
+     * \return A default, potentially uninitialized, dense, writable object.
+     * \note The interface may base the return value on any properties of LibraryObject (e.g., whether LibraryObject is a matrix or array).
      */
 #ifdef __cpp_concepts
     template<Layout layout, scalar_type Scalar> requires (layout != Layout::stride)
@@ -131,11 +136,11 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Create a \ref constant_matrix corresponding to the shape of T (optional).
+     * \brief Create a \ref constant_matrix corresponding to the shape of LibraryObject (optional).
      * \details Takes a list of \ref vector_space_descriptor items that specify the size of the resulting object
      * \param c A \ref scalar_constant (the constant known either at compile time or runtime)
      * \param d A list of \ref vector_space_descriptor items
-     * \note If this is not defined, it will return an object of type ConstantAdapter.
+     * \note If this is not defined, calls to <code>OpenKalman::make_constant</code> will return an object of type ConstantAdapter.
      */
 #ifdef __cpp_concepts
     static constexpr constant_matrix auto
@@ -148,8 +153,8 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Create an \ref identity_matrix.
-     * \note This is optional. If not defined, an identity matrix is a \ref DiagonalMatrix adapter with a constant diagonal of 1.
+     * \brief Create an \ref identity_matrix (optional).
+     * \note If not defined, an identity matrix is a \ref DiagonalMatrix adapter with a constant diagonal of 1.
      * \tparam Scalar The scalar type of the new object
      * \param d A \ref vector_space_descriptor object defining the size
      */
@@ -192,13 +197,13 @@ namespace OpenKalman::interface
      * \param arg A square matrix to be wrapped in a hermitian hermitian.
      */
 #ifdef __cpp_concepts
-   template<HermitianAdapterType t>
-   static constexpr auto
-   make_hermitian_adapter(std::convertible_to<const T&> auto&& arg) = delete;
+     template<HermitianAdapterType t>
+     static constexpr auto
+     make_hermitian_adapter(indexible auto&& arg) = delete;
 #else
-   template<HermitianAdapterType t, typename Arg>
-   static constexpr auto
-   make_hermitian_adapter(Arg&& arg) = delete;
+     template<HermitianAdapterType t, typename Arg>
+     static constexpr auto
+     make_hermitian_adapter(Arg&& arg) = delete;
 #endif
 
 
@@ -261,18 +266,14 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Convert a column vector into a diagonal matrix.
-     * \details An interface need not deal with the following situations, which are already handled by the
-     * global \ref OpenKalman::to_diagonal "to_diagonal" function:
-     * - a one-by-one matrix
-     * - a zero matrix that is known to be square at compile time
-     * The interface function <em>should</em> deal with a zero matrix of uncertain size. If the native matrix library
-     * does not have a diagonal matrix type, the interface may construct a diagonal matrix using DiagonalMatrix.
+     * \brief Convert a column vector into a diagonal matrix (optional).
+     * \note If this is not defined, calls to <code>OpenKalman::to_diagonal</code> will construct a \ref DiagonalMatrix.
+     * \details An interface need not deal with an object known to be \ref one_dimensional at compile time.
      * \tparam Arg A column vector.
      */
 #ifdef __cpp_concepts
     static constexpr diagonal_matrix auto
-    to_diagonal(vector<0, Likelihood::maybe> auto&& arg)
+    to_diagonal(vector<0, Qualification::depends_on_dynamic_shape> auto&& arg)
 #else
     template<typename Arg>
     static constexpr auto
@@ -296,7 +297,7 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     static constexpr vector auto
-    diagonal_of(square_shaped<Likelihood::maybe> auto&& arg) = delete;
+    diagonal_of(square_shaped<Qualification::depends_on_dynamic_shape> auto&& arg) = delete;
 #else
     template<typename Arg>
     static constexpr auto
@@ -413,8 +414,8 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Take the conjugate of T
-     * \tparam Arg An object of type T
+     * \brief Take the conjugate of the argument.
+     * \param arg An \ref indexible object within the same library as LibraryObject.
      */
 #ifdef __cpp_concepts
     template<indexible Arg>
@@ -423,59 +424,57 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto
 #endif
-    conjugate(Arg&&) = delete;
+    conjugate(Arg&& arg) = delete;
 
 
     /**
-     * \brief Take the transpose of T
-     * \tparam Arg An object of type T
+     * \brief Take the transpose of the argument.
+     * \param arg An \ref indexible object within the same library as LibraryObject.
      */
 #ifdef __cpp_concepts
-    template<square_shaped<Likelihood::maybe> Arg>
+    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg>
     static constexpr compatible_with_vector_space_descriptors<vector_space_descriptor_of_t<Arg, 1>, vector_space_descriptor_of_t<Arg, 0>> auto
 #else
     template<typename Arg>
     static constexpr auto
 #endif
-    transpose(Arg&&) = delete;
+    transpose(Arg&& arg) = delete;
 
 
     /**
-     * \brief Take the adjoint of T
+     * \brief Take the adjoint of the argument.
      * \note This is optional. If not defined, the adjoint will be calculated as the transpose of the conjugate.
-     * \tparam Arg An object of type T
+     * \param arg An \ref indexible object within the same library as LibraryObject.
      */
 #ifdef __cpp_concepts
-    template<square_shaped<Likelihood::maybe> Arg>
+    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg>
     static constexpr compatible_with_vector_space_descriptors<vector_space_descriptor_of_t<Arg, 1>, vector_space_descriptor_of_t<Arg, 0>> auto
 #else
     template<typename Arg>
     static constexpr auto
 #endif
-    adjoint(Arg&&) = delete;
+    adjoint(Arg&& arg) = delete;
 
 
     /**
-     * \brief Take the determinant of T
-     * \tparam Arg An object of type T
+     * \brief Take the determinant of the argument.
+     * \param arg An \ref indexible object within the same library as LibraryObject.
      */
 #ifdef __cpp_concepts
-    template<square_shaped<Likelihood::maybe> Arg>
+    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg>
     static constexpr std::convertible_to<scalar_type_of_t<Arg>> auto
 #else
     template<typename Arg>
     static constexpr auto
 #endif
-    determinant(Arg&&) = delete;
+    determinant(Arg&& arg) = delete;
 
 
     /**
      * \brief Perform an element-by-element sum of compatible tensor-like objects
      * \note: An interface should at least define this for two arguments.
-     * \param arg A tensor-like object of type T
-     * \param args Other tensor-like objects of the same dimensions as Arg
-     * Note: These objects may not necessarily be within the same library as arg, so a conversion may be necessary
-     * (e.g., via /ref to_native_matrix).
+     * \param arg An \ref indexible object within the same library as LibraryObject.
+     * \param args Other \ref indexible objects of the same dimensions as Arg (but potentially from a different library).
      */
 #ifdef __cpp_concepts
     template<indexible Arg, maybe_same_shape_as<Arg>...Args>
@@ -489,10 +488,8 @@ namespace OpenKalman::interface
 
     /**
      * \brief Perform a contraction involving two compatible tensors
-     * \param a A tensor of type T
-     * \param b Another tensor of the same dimensions as A
-     * Note: This may not necessarily be within the same library as a, so a conversion may be necessary
-     * (e.g., via /ref to_native_matrix).
+     * \param a An \ref indexible object within the same library as LibraryObject
+     * \param b Another \ref indexible object of the same dimensions as A (but potentially from a different library).
      */
 #ifdef __cpp_concepts
     template<indexible A, maybe_same_shape_as<A> B>
@@ -506,12 +503,12 @@ namespace OpenKalman::interface
 
     /**
      * \brief Perform an in-place contraction involving two compatible tensors
-     * \tparam A A tensor of type T
-     * \tparam B Another tensor of the same dimensions as A
+     * \param a A \ref writable object within the same library as LibraryObject
+     * \param b Another \ref indexible object of the same dimensions as A (but potentially from a different library).
      * \return A reference to A
      */
 #ifdef __cpp_concepts
-    template<bool on_the_right, indexible A, maybe_same_shape_as<A> B>
+    template<bool on_the_right, writable A, maybe_same_shape_as<A> B>
 #else
     template<bool on_the_right, typename A, typename B>
 #endif
@@ -522,7 +519,7 @@ namespace OpenKalman::interface
     /**
      * \brief Take the Cholesky factor of matrix Arg
      * \tparam triangle_type The \ref TriangleType of the result.
-     * \param a A matrix of type T
+     * \param a An \ref indexible object within the same library as LibraryObject
      * \return A matrix t where tt<sup>T</sup> = a (if triangle_type == TriangleType::lower) or
      * t<sup>T</sup>t = a (if triangle_type == TriangleType::upper).
      */
@@ -544,7 +541,7 @@ namespace OpenKalman::interface
      * - The update is A += αUU<sup>*</sup>, returning the updated hermitian A.
      * - If A is a non-const lvalue reference, it should be updated in place if possible. Otherwise, the function may return a new matrix.
      * \tparam significant_triangle The triangle which is significant (or TriangleType::any if both are significant)
-     * \param a A writable object (same library as type T) in which triangle t is significant.
+     * \param a A writable object (same library as type LibraryObject) in which triangle t is significant.
      * \param u The update vector or matrix.
      * Note: This may not necessarily be within the same library as a, so a conversion may be necessary
      * (e.g., via /ref to_native_matrix).
@@ -557,7 +554,7 @@ namespace OpenKalman::interface
     template<HermitianAdapterType significant_triangle, typename A, typename U>
     static decltype(auto)
 #endif
-    rank_update_hermitian(A&&, U&&, const scalar_type_of_t<A>& alpha) = delete;
+    rank_update_hermitian(A&& a, U&& u, const scalar_type_of_t<A>& alpha) = delete;
 
 
     /**
@@ -569,7 +566,7 @@ namespace OpenKalman::interface
      * - If A is upper-triangular, the update is A<sup>*</sup>A += αUU<sup>*</sup>, returning the updated A.
      * - If A is a non-const lvalue reference, it should be updated in place if possible. Otherwise, the function may return a new matrix.
      * \tparam triangle The triangle (upper or lower)
-     * \param a An object of type T, which is either triangular or dense-writable.
+     * \param a An object of type LibraryObject, which is either triangular or dense-writable.
      * \param u The update vector or matrix.
      * Note: This may not necessarily be within the same library as a, so a conversion may be necessary
      * (e.g., via /ref to_native_matrix).
@@ -636,11 +633,11 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     static constexpr triangular_matrix<TriangleType::upper> auto
-    QR_decomposition(indexible auto&&) = delete;
+    QR_decomposition(indexible auto&& arg) = delete;
 #else
     template<typename Arg>
     static constexpr auto
-    QR_decomposition(Arg&&) = delete;
+    QR_decomposition(Arg&& arg) = delete;
 #endif
 
   };

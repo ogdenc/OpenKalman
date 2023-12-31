@@ -1121,14 +1121,14 @@ namespace OpenKalman
         return constant_diagonal_coefficient {arg.nestedExpression()};
       }
 
-      template<Likelihood b>
+      template<Qualification b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
 
-      template<Likelihood b>
+      template<Qualification b>
       static constexpr bool is_square = true;
 
-      template<TriangleType t, Likelihood b>
-      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, TriangleType::diagonal, Likelihood::maybe>;
+      template<TriangleType t, Qualification b>
+      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, TriangleType::diagonal, Qualification::depends_on_dynamic_shape>;
 
       static constexpr bool is_triangular_adapter = false;
 

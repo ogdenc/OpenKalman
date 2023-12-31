@@ -78,22 +78,22 @@ namespace OpenKalman::interface
     }
 
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<XprType, b>;
 
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool is_square = square_shaped<XprType, b>;
 
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
 
     static constexpr bool is_triangular_adapter = false;
 
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
 
 
     static constexpr Layout layout = layout_of_v<XprType>;

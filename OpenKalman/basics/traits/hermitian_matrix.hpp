@@ -22,10 +22,10 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, Likelihood b, typename = void>
+    template<typename T, Qualification b, typename = void>
     struct is_inferred_hermitian_matrix : std::false_type {};
 
-    template<typename T, Likelihood b>
+    template<typename T, Qualification b>
     struct is_inferred_hermitian_matrix<T, b, std::enable_if_t<not complex_number<typename scalar_type_of<T>::type> or
       zero<T> or real_axis_number<constant_coefficient<T>> or real_axis_number<constant_diagonal_coefficient<T>>>>
       : std::true_type {};
@@ -38,16 +38,16 @@ namespace OpenKalman
    * \tparam T A matrix or tensor.
    * \tparam b Whether T must be known to be a square matrix at compile time.
    */
-  template<typename T, Likelihood b = Likelihood::definitely>
+  template<typename T, Qualification b = Qualification::unqualified>
 #ifdef __cpp_concepts
   concept hermitian_matrix = indexible<T> and
     ((interface::indexible_object_traits<std::decay_t<T>>::is_hermitian and square_shaped<T, b>) or
-      (((constant_matrix<T, CompileTimeStatus::any, b> and square_shaped<T, b>) or diagonal_matrix<T, b>) and
+      (((constant_matrix<T, ConstantType::any, b> and square_shaped<T, b>) or diagonal_matrix<T, b>) and
       (not complex_number<scalar_type_of_t<T>> or zero<T> or
           real_axis_number<constant_coefficient<T>> or real_axis_number<constant_diagonal_coefficient<T>>)));
 #else
   constexpr bool hermitian_matrix = (interface::is_explicitly_hermitian<T>::value and square_shaped<T, b>) or
-    (((constant_matrix<T, CompileTimeStatus::any, b> and square_shaped<T, b>) or diagonal_matrix<T, b>) and
+    (((constant_matrix<T, ConstantType::any, b> and square_shaped<T, b>) or diagonal_matrix<T, b>) and
       detail::is_inferred_hermitian_matrix<T, b>::value);
 #endif
 

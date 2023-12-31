@@ -43,7 +43,7 @@ namespace OpenKalman::Eigen3
       return std::monostate {};
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = false;
@@ -63,19 +63,22 @@ namespace OpenKalman::Eigen3
 
   /**
    * \internal
-   * \brief The ultimate Eigen base for OpenKalman classes.
+   * \brief The ultimate Eigen base for custom Eigen classes.
    * \details This class is used mainly to distinguish OpenKalman classes from native Eigen classes which are
    * also derived from Eigen::MatrixBase or Eigen::ArrayBase.
    */
-  struct EigenDenseBase {};
+  struct EigenCustomBase {};
 
 
   /**
    * \internal
    * \brief The ultimate base for Eigen-based adapter classes in OpenKalman.
    * \details This class adds base features required by Eigen.
+   * \tparam Derived The Derived object
+   * \tparam NestedMatrix
+   * \tparam Base The Eigen Base (e.g., <code>Eigen::MatrixBase</code>, <code>Eigen::ArrayBase</code>, etc.)
    */
-  template<typename Derived, typename NestedMatrix>
+  template<typename Derived, typename NestedMatrix, typename Base>
   struct EigenAdapterBase;
 
 
@@ -263,7 +266,7 @@ namespace OpenKalman::Eigen3
   constexpr bool eigen_general =
 #endif
     (std::is_base_of_v<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>> or eigen_VectorBlock<T>) and
-    (not must_be_native or not std::is_base_of_v<EigenDenseBase, std::decay_t<T>>);
+    (not must_be_native or not std::is_base_of_v<EigenCustomBase, std::decay_t<T>>);
 
 
   namespace detail
@@ -342,10 +345,10 @@ namespace OpenKalman::Eigen3
   namespace detail
   {
     template<typename T>
-    struct is_eigen_LibraryWrapper : std::false_type {};
+    struct is_eigen_wrapper : std::false_type {};
 
-    template<typename N, typename L, typename...Ps>
-    struct is_eigen_LibraryWrapper<internal::LibraryWrapper<N, L, Ps...>> : std::bool_constant<eigen_general<L, true>> {};
+    template<typename N, typename L>
+    struct is_eigen_wrapper<internal::LibraryWrapper<N, L>> : std::bool_constant<eigen_general<L, true>> {};
   } // namespace detail
 
 
@@ -359,22 +362,45 @@ namespace OpenKalman::Eigen3
 #else
   constexpr bool eigen_wrapper =
 #endif
-    detail::is_eigen_LibraryWrapper<std::decay_t<T>>::value;
+    detail::is_eigen_wrapper<std::decay_t<T>>::value;
 
 
   /**
    * \internal
    * \brief Alias for the Eigen version of LibraryWrapper.
-   * \details A dumb wrapper for OpenKalman classes so that they are treated exactly as native Eigen types.
+   * \details A wrapper for OpenKalman classes so that they are treated exactly as native Eigen types.
    * \tparam NestedObject A non-Eigen class, for which an Eigen3 trait and evaluator is defined.
    */
 #ifdef __cpp_concepts
-  template<indexible NestedObject, typename...InternalizedParameters> requires (index_count_v<NestedObject> <= 2)
+  template<indexible NestedObject> requires (index_count_v<NestedObject> <= 2)
 #else
-  template<typename NestedObject, typename...InternalizedParameters>
+  template<typename NestedObject>
 #endif
-  using EigenWrapper = internal::LibraryWrapper<NestedObject, Eigen::Matrix<scalar_type_of_t<NestedObject>, 0, 0>,
-    InternalizedParameters...>;
+  using EigenWrapper = internal::LibraryWrapper<NestedObject, typename Eigen::internal::plain_matrix_type_dense<
+    std::decay_t<NestedObject>, Eigen::MatrixXpr, Eigen::internal::traits<std::decay_t<NestedObject>>::Flags>::type>;
+
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_eigen_self_contained_wrapper : std::false_type {};
+
+    template<typename N, typename...Ps>
+    struct is_eigen_self_contained_wrapper<internal::SelfContainedWrapper<N, Ps...>> : std::bool_constant<eigen_general<N>> {};
+  } // namespace detail
+
+
+  /**
+   * \internal
+   * \brief T is an \ref internal::SelfContainedWrapper "SelfContainedWrapper" for T based on the Eigen library.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_self_contained_wrapper =
+#else
+  constexpr bool eigen_self_contained_wrapper =
+#endif
+    detail::is_eigen_self_contained_wrapper<std::decay_t<T>>::value;
 
 
   // ---------------- //

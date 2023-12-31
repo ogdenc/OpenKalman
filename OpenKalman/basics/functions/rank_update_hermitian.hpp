@@ -30,15 +30,15 @@ namespace OpenKalman
    * \returns an updated native, writable matrix in hermitian form.
    */
 #ifdef __cpp_concepts
-  template<hermitian_matrix<Likelihood::maybe> A, indexible U> requires
-    dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 0>, Likelihood::maybe> and
-    dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 1>, Likelihood::maybe> and
+  template<hermitian_matrix<Qualification::depends_on_dynamic_shape> A, indexible U> requires
+    dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 0>, Qualification::depends_on_dynamic_shape> and
+    dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 1>, Qualification::depends_on_dynamic_shape> and
     std::convertible_to<scalar_type_of_t<U>, const scalar_type_of_t<A>>
   inline hermitian_matrix decltype(auto)
 #else
-  template<typename A, typename U, std::enable_if_t<indexible<U> and hermitian_matrix<A, Likelihood::maybe> and
-    dimension_size_of_index_is<U, 0, index_dimension_of<A, 0>::value, Likelihood::maybe> and
-    dimension_size_of_index_is<U, 0, index_dimension_of<A, 1>::value, Likelihood::maybe> and
+  template<typename A, typename U, std::enable_if_t<indexible<U> and hermitian_matrix<A, Qualification::depends_on_dynamic_shape> and
+    dimension_size_of_index_is<U, 0, index_dimension_of<A, 0>::value, Qualification::depends_on_dynamic_shape> and
+    dimension_size_of_index_is<U, 0, index_dimension_of<A, 1>::value, Qualification::depends_on_dynamic_shape> and
     std::is_convertible_v<typename scalar_type_of<U>::type, const typename scalar_type_of<A>::type>, int> = 0>
   inline decltype(auto)
 #endif

@@ -146,10 +146,10 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<scalar_constant<CompileTimeStatus::unknown> C, typename...Ds> requires (... and (not dynamic_vector_space_descriptor<Ds>))
-    static constexpr constant_matrix<CompileTimeStatus::unknown> auto
+    template<scalar_constant<ConstantType::dynamic_constant> C, typename...Ds> requires (... and (not dynamic_vector_space_descriptor<Ds>))
+    static constexpr constant_matrix<ConstantType::dynamic_constant> auto
 #else
-    template<typename C, typename...Ds, std::enable_if_t<scalar_constant<C, CompileTimeStatus::unknown> and
+    template<typename C, typename...Ds, std::enable_if_t<scalar_constant<C, ConstantType::dynamic_constant> and
       (... and (not dynamic_vector_space_descriptor<Ds>)), int> = 0>
     static constexpr auto
 #endif

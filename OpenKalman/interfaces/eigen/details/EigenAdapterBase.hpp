@@ -19,22 +19,23 @@
 
 namespace OpenKalman::Eigen3
 {
-  template<typename Derived, typename NestedMatrix>
-  struct EigenAdapterBase : EigenDenseBase,
-    std::conditional_t<std::is_base_of_v<Eigen::ArrayBase<std::decay_t<NestedMatrix>>, std::decay_t<NestedMatrix>>,
-      Eigen::ArrayBase<Derived>, Eigen::MatrixBase<Derived>>,
+  template<typename Derived, typename NestedMatrix, typename Base>
+  struct EigenAdapterBase : Base, EigenCustomBase,
     Eigen::internal::no_assignment_operator // Override all Eigen assignment operators
   {
+    using Scalar = typename Eigen::internal::traits<Derived>::Scalar;
+    using RealScalar = typename Eigen::NumTraits<Scalar>::Real;
+    using Nested = typename Eigen::internal::ref_selector<Derived>::type;
+    using StorageKind = typename Eigen::internal::traits<Derived>::StorageKind;
+    using StorageIndex = typename Eigen::internal::traits<Derived>::StorageIndex;
+    enum CompileTimeTraits
+    {
+      RowsAtCompileTime = Eigen::internal::traits<Derived>::RowsAtCompileTime,
+      ColsAtCompileTime = Eigen::internal::traits<Derived>::ColsAtCompileTime,
+      Flags = Eigen::internal::traits<Derived>::Flags,
+    };
 
-  private:
-
-    using Base = std::conditional_t<std::is_base_of_v<Eigen::ArrayBase<std::decay_t<NestedMatrix>>, std::decay_t<NestedMatrix>>,
-      Eigen::ArrayBase<Derived>, Eigen::MatrixBase<Derived>>;
-
-  public:
-
-    EIGEN_GENERIC_PUBLIC_INTERFACE(Derived)
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(bool {has_dynamic_dimensions<NestedMatrix>})
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(bool {has_dynamic_dimensions<Derived>})
 
 
     EigenAdapterBase() = default;
@@ -75,7 +76,8 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-    constexpr decltype(auto) data() requires interface::raw_data_defined_for<Derived&>
+    constexpr decltype(auto)
+    data() requires interface::raw_data_defined_for<Derived&>
 #else
     template<typename T = Derived&, std::enable_if_t<interface::raw_data_defined_for<T>, int> = 0>
       constexpr decltype(auto)
@@ -87,7 +89,8 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_concepts
-    constexpr decltype(auto) data() const requires interface::raw_data_defined_for<const Derived&>
+    constexpr decltype(auto)
+    data() const requires interface::raw_data_defined_for<const Derived&>
 #else
     template<typename T = const Derived&, std::enable_if_t<interface::raw_data_defined_for<T>, int> = 0>
       constexpr decltype(auto)

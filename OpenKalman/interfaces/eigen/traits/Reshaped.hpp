@@ -119,22 +119,22 @@ namespace OpenKalman::interface
       }
       else if constexpr (((Rows == Eigen::Dynamic and Cols == Eigen::Dynamic) or
         (XprType::RowsAtCompileTime == Eigen::Dynamic and XprType::ColsAtCompileTime == Eigen::Dynamic)) and
-        constant_diagonal_matrix<XprType, CompileTimeStatus::any, Likelihood::maybe>)
+        constant_diagonal_matrix<XprType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
       {
         constant_diagonal_coefficient cd {arg.nestedExpression()};
-        return internal::ScalarConstant<Likelihood::maybe, std::decay_t<decltype(cd)>> {cd};
+        return internal::ScalarConstant<Qualification::depends_on_dynamic_shape, std::decay_t<decltype(cd)>> {cd};
       }
       else return std::monostate{};
     }
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool one_dimensional =
-      (Rows == 1 and Cols == 1 and OpenKalman::one_dimensional<XprType, Likelihood::maybe>) or
+      (Rows == 1 and Cols == 1 and OpenKalman::one_dimensional<XprType, Qualification::depends_on_dynamic_shape>) or
       ((Rows == 1 or Rows == Eigen::Dynamic) and (Cols == 1 or Cols == Eigen::Dynamic) and OpenKalman::one_dimensional<XprType, b>);
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool is_square =
-      (b != Likelihood::definitely or (Rows != Eigen::Dynamic and Cols != Eigen::Dynamic) or
+      (b != Qualification::unqualified or (Rows != Eigen::Dynamic and Cols != Eigen::Dynamic) or
         ((Rows != Eigen::Dynamic or Cols != Eigen::Dynamic) and dynamic_index_count_v<XprType> <= 1)) and
       (Rows == Eigen::Dynamic or Cols == Eigen::Dynamic or Rows == Cols) and
       (xprtypeprod == dynamic_size or (
@@ -144,7 +144,7 @@ namespace OpenKalman::interface
       (Rows == Eigen::Dynamic or xprtypemax == 0 or (Rows * Rows) % xprtypemax == 0) and
       (Cols == Eigen::Dynamic or xprtypemax == 0 or (Cols * Cols) % xprtypemax == 0);
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b> and
       (Rows == index_dimension_of_v<XprType, 0> or Rows == index_dimension_of_v<XprType, 1> or
         Cols == index_dimension_of_v<XprType, 1> or Cols == index_dimension_of_v<XprType, 0> or
@@ -152,7 +152,7 @@ namespace OpenKalman::interface
 
     static constexpr bool is_triangular_adapter = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe> and
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape> and
       (Rows == index_dimension_of_v<XprType, 0> or Rows == index_dimension_of_v<XprType, 1> or
         Cols == index_dimension_of_v<XprType, 1> or Cols == index_dimension_of_v<XprType, 0> or
         (Rows != Eigen::Dynamic and Rows == Cols));

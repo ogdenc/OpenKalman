@@ -73,7 +73,7 @@ namespace OpenKalman
       {
         if constexpr (not complex_number<scalar_type_of_t<MatrixType>>)
           return constant_coefficient{arg.nestedExpression()};
-        else if constexpr (constant_matrix<MatrixType, CompileTimeStatus::known, Likelihood::maybe>)
+        else if constexpr (constant_matrix<MatrixType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>)
         {
           if constexpr (real_axis_number<constant_coefficient<MatrixType>>)
             return constant_coefficient{arg.nestedExpression()};
@@ -87,27 +87,28 @@ namespace OpenKalman
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
         using Scalar = scalar_type_of_t<MatrixType>;
-        if constexpr (Eigen3::eigen_Identity<MatrixType>) return internal::ScalarConstant<Likelihood::definitely, Scalar, 1>{};
+        if constexpr (Eigen3::eigen_Identity<MatrixType>) return internal::ScalarConstant<Qualification::unqualified, Scalar, 1>{};
         else return constant_diagonal_coefficient {arg.nestedExpression()};
       }
 
 
-      template<Likelihood b>
+      template<Qualification b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
 
-      template<Likelihood b>
+      template<Qualification b>
       static constexpr bool is_square = square_shaped<MatrixType, b>;
 
 
-      template<TriangleType t, Likelihood b>
+      template<TriangleType t, Qualification b>
       static constexpr bool is_triangular = diagonal_matrix<MatrixType, b>;
 
 
       static constexpr bool is_triangular_adapter = false;
 
 
-      static constexpr bool is_hermitian = (not complex_number<typename Eigen::internal::traits<MatrixType>::Scalar>) or
+      static constexpr bool is_hermitian =
+        (not complex_number<typename Eigen::internal::traits<MatrixType>::Scalar>) or
         real_axis_number<constant_coefficient<MatrixType>> or
         real_axis_number<constant_diagonal_coefficient<MatrixType>>;
 

@@ -45,7 +45,7 @@ namespace OpenKalman
 #else
   constexpr bool triangular_adapter = detail::is_triangular_adapter<T>::value and has_nested_object<T> and
 #endif
-    has_nested_object<T> and square_shaped<T, Likelihood::maybe>;
+    has_nested_object<T> and square_shaped<T, Qualification::depends_on_dynamic_shape>;
 
 
 } // namespace OpenKalman

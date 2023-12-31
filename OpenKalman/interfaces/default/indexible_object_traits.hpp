@@ -172,7 +172,7 @@ namespace OpenKalman::interface
      * \note: Optional. If omitted, T's status as one-by-one can usually be derived from the dimensions.
      * \details This can be useful because some types may erase information about the shape of their nested objects.
      */
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool one_dimensional = false;
 
 
@@ -181,7 +181,7 @@ namespace OpenKalman::interface
      * \note: Optional. If omitted, T's status as square can usually be derived from the dimensions.
      * \details This can be useful because some types may erase information about the shape of their nested objects.
      */
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool is_square = false;
 
 
@@ -189,11 +189,11 @@ namespace OpenKalman::interface
      * \brief Whether T is triangular or diagonal, having a triangle type of t.
      * \details This trait should propagate from any nested matrices or matrices involved in any expression arguments.
      * \tparam t The \ref TriangleType
-     * \tparam b The \ref Likelihood. If <code>b == Likelihood::definitely</code>, then T's triangle type is known at compile time.
-     * If <code>b == Likelihood::maybe</code>, then T's triangle type is determined at runtime (for example, T might be
+     * \tparam b The \ref Qualification. If <code>b == Qualification::unqualified</code>, then T's triangle type is known at compile time.
+     * If <code>b == Qualification::depends_on_dynamic_shape</code>, then T's triangle type is determined at runtime (for example, T might be
      * triangular if and only iff it is a square matrix, but it is unknown whether T is square).
      */
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
 

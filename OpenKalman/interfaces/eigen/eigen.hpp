@@ -64,11 +64,15 @@ namespace OpenKalman::Eigen3 {}
 
 #include "details/eigen-comma-initializers.hpp"
 
-#include "details/eigen-native-traits.hpp"
-#include "details/eigen-native-evaluators.hpp"
+#include "native-traits/LibraryWrapper.hpp"
+#include "native-traits/SelfContainedWrapper.hpp"
+#include "native-traits/eigen-native-traits.hpp"
+
+#include "native-evaluators/LibraryWrapper.hpp"
+#include "native-evaluators/SelfContainedWrapper.hpp"
+#include "native-evaluators/eigen-native-evaluators.hpp"
 
 #include "details/EigenAdapterBase.hpp"
-#include "details/EigenWrapper.hpp"
 
 #if __cplusplus < 202002L and defined(__GNUC__)
 #pragma GCC diagnostic pop

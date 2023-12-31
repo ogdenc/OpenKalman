@@ -19,7 +19,7 @@
 namespace OpenKalman
 {
 #ifdef __cpp_concepts
-  template<square_shaped<Likelihood::maybe> NestedMatrix, TriangleType triangle_type>
+  template<square_shaped<Qualification::depends_on_dynamic_shape> NestedMatrix, TriangleType triangle_type>
     requires (index_count_v<NestedMatrix> <= 2)
 #else
   template<typename NestedMatrix, TriangleType triangle_type>
@@ -28,7 +28,7 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(square_shaped<NestedMatrix, Likelihood::maybe>);
+    static_assert(square_shaped<NestedMatrix, Qualification::depends_on_dynamic_shape>);
     static_assert(index_count_v<NestedMatrix> <= 2);
 #endif
 
@@ -40,8 +40,8 @@ namespace OpenKalman
       index_dimension_of_v<NestedMatrix, 0>;
 
     template<typename Arg>
-    static bool constexpr dimensions_match = dimension_size_of_index_is<Arg, 0, dim, Likelihood::maybe> and
-      dimension_size_of_index_is<Arg, 1, dim, Likelihood::maybe>;
+    static bool constexpr dimensions_match = dimension_size_of_index_is<Arg, 0, dim, Qualification::depends_on_dynamic_shape> and
+      dimension_size_of_index_is<Arg, 1, dim, Qualification::depends_on_dynamic_shape>;
 
   public:
 
@@ -80,10 +80,10 @@ namespace OpenKalman
 
     /// Construct from a non-triangular or square matrix if NestedMatrix is non-diagonal.
 #ifdef __cpp_concepts
-    template<square_shaped<Likelihood::maybe> Arg> requires (not triangular_matrix<Arg, triangle_type>) and
+    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires (not triangular_matrix<Arg, triangle_type>) and
       (not diagonal_matrix<NestedMatrix>) and dimensions_match<Arg> and std::constructible_from<NestedMatrix, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<square_shaped<Arg, Likelihood::maybe> and
+    template<typename Arg, std::enable_if_t<square_shaped<Arg, Qualification::depends_on_dynamic_shape> and
       (not triangular_matrix<Arg, triangle_type>) and (not diagonal_matrix<NestedMatrix>) and
       dimensions_match<Arg> and std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
@@ -126,10 +126,10 @@ namespace OpenKalman
 
     /// Construct from a non-triangular square matrix if NestedMatrix is diagonal.
 #ifdef __cpp_concepts
-    template<square_shaped<Likelihood::maybe> Arg> requires (not triangular_matrix<Arg>) and diagonal_matrix<NestedMatrix> and
+    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires (not triangular_matrix<Arg>) and diagonal_matrix<NestedMatrix> and
       dimensions_match<Arg> and requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; }
 #else
-    template<typename Arg, std::enable_if_t<square_shaped<Arg, Likelihood::maybe> and
+    template<typename Arg, std::enable_if_t<square_shaped<Arg, Qualification::depends_on_dynamic_shape> and
       (not triangular_matrix<Arg>) and diagonal_matrix<NestedMatrix> and
       dimensions_match<Arg> and std::is_constructible<NestedMatrix, decltype(diagonal_of(std::declval<Arg&&>()))>::value, int> = 0>
 #endif
@@ -185,7 +185,7 @@ namespace OpenKalman
     template<triangular_matrix<triangle_type> Arg> requires
       (not std::derived_from<std::decay_t<Arg>, TriangularMatrix>) and
       maybe_same_shape_as<NestedMatrix, Arg> and
-      (not constant_diagonal_matrix<NestedMatrix, CompileTimeStatus::known> or
+      (not constant_diagonal_matrix<NestedMatrix, ConstantType::static_constant> or
         requires { requires constant_diagonal_coefficient<NestedMatrix>::value == constant_diagonal_coefficient<Arg>::value; }) and
       (not (diagonal_matrix<NestedMatrix> or triangle_type == TriangleType::diagonal) or diagonal_matrix<Arg>)
 #else
@@ -324,9 +324,9 @@ namespace OpenKalman
   // ------------------------------- //
 
 #ifdef __cpp_concepts
-  template<triangular_matrix<TriangleType::any, Likelihood::maybe> M>
+  template<triangular_matrix<TriangleType::any, Qualification::depends_on_dynamic_shape> M>
 #else
-  template<typename M, std::enable_if_t<triangular_matrix<M, TriangleType::any, Likelihood::maybe>, int> = 0>
+  template<typename M, std::enable_if_t<triangular_matrix<M, TriangleType::any, Qualification::depends_on_dynamic_shape>, int> = 0>
 #endif
   TriangularMatrix(M&&) -> TriangularMatrix<
     std::conditional_t<triangular_adapter<M>, passable_t<nested_object_of_t<M&&>>, passable_t<M>>,
@@ -334,10 +334,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<hermitian_matrix<Likelihood::maybe> M> requires (not triangular_matrix<M, TriangleType::any, Likelihood::maybe>)
+  template<hermitian_matrix<Qualification::depends_on_dynamic_shape> M> requires (not triangular_matrix<M, TriangleType::any, Qualification::depends_on_dynamic_shape>)
 #else
-  template<typename M, std::enable_if_t<hermitian_matrix<M, Likelihood::maybe> and
-    (not triangular_matrix<M, TriangleType::any, Likelihood::maybe>), int> = 0>
+  template<typename M, std::enable_if_t<hermitian_matrix<M, Qualification::depends_on_dynamic_shape> and
+    (not triangular_matrix<M, TriangleType::any, Qualification::depends_on_dynamic_shape>), int> = 0>
 #endif
   explicit TriangularMatrix(M&&) -> TriangularMatrix<
     std::conditional_t<hermitian_adapter<M>, passable_t<nested_object_of_t<M&&>>, passable_t<M>>,
@@ -345,11 +345,11 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<indexible M> requires (not triangular_matrix<M, TriangleType::any, Likelihood::maybe>) and
-    (not hermitian_matrix<M, Likelihood::maybe>)
+  template<indexible M> requires (not triangular_matrix<M, TriangleType::any, Qualification::depends_on_dynamic_shape>) and
+    (not hermitian_matrix<M, Qualification::depends_on_dynamic_shape>)
 #else
-  template<typename M, std::enable_if_t<indexible<M> and (not triangular_matrix<M, TriangleType::any, Likelihood::maybe>) and
-      (not hermitian_matrix<M, Likelihood::maybe>), int> = 0>
+  template<typename M, std::enable_if_t<indexible<M> and (not triangular_matrix<M, TriangleType::any, Qualification::depends_on_dynamic_shape>) and
+      (not hermitian_matrix<M, Qualification::depends_on_dynamic_shape>), int> = 0>
 #endif
   explicit TriangularMatrix(M&&) -> TriangularMatrix<passable_t<M>, TriangleType::lower>;
 
@@ -416,13 +416,13 @@ namespace OpenKalman
       }
 
 
-      template<Likelihood b>
+      template<Qualification b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
 
 
-      template<TriangleType t, Likelihood>
+      template<TriangleType t, Qualification>
       static constexpr bool is_triangular = t == TriangleType::any or triangle_type == TriangleType::diagonal or triangle_type == t or
-        triangular_matrix<NestedMatrix, t, Likelihood::maybe>;
+        triangular_matrix<NestedMatrix, t, Qualification::depends_on_dynamic_shape>;
 
 
       static constexpr bool is_triangular_adapter = true;

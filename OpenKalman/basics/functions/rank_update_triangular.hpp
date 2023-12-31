@@ -33,15 +33,15 @@ namespace OpenKalman
    * \returns an updated native, writable matrix in triangular (or diagonal) form.
    */
 # ifdef __cpp_concepts
-  template<triangular_matrix<TriangleType::any, Likelihood::maybe> A, indexible U> requires
-    dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 0>, Likelihood::maybe> and
-    dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 1>, Likelihood::maybe> and
+  template<triangular_matrix<TriangleType::any, Qualification::depends_on_dynamic_shape> A, indexible U> requires
+    dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 0>, Qualification::depends_on_dynamic_shape> and
+    dimension_size_of_index_is<U, 0, index_dimension_of_v<A, 1>, Qualification::depends_on_dynamic_shape> and
     std::convertible_to<scalar_type_of_t<U>, const scalar_type_of_t<A>>
   inline triangular_matrix<triangle_type_of_v<A> == TriangleType::upper ? TriangleType::upper : TriangleType::lower> decltype(auto)
 # else
-  template<typename A, typename U, std::enable_if_t<triangular_matrix<A, TriangleType::any, Likelihood::maybe> and indexible<U> and
-    dimension_size_of_index_is<U, 0, index_dimension_of<A, 0>::value, Likelihood::maybe> and
-    dimension_size_of_index_is<U, 0, index_dimension_of<A, 1>::value, Likelihood::maybe> and
+  template<typename A, typename U, std::enable_if_t<triangular_matrix<A, TriangleType::any, Qualification::depends_on_dynamic_shape> and indexible<U> and
+    dimension_size_of_index_is<U, 0, index_dimension_of<A, 0>::value, Qualification::depends_on_dynamic_shape> and
+    dimension_size_of_index_is<U, 0, index_dimension_of<A, 1>::value, Qualification::depends_on_dynamic_shape> and
     std::is_convertible_v<scalar_type_of_t<U>, const scalar_type_of_t<A>>, int> = 0>
   inline decltype(auto)
 # endif

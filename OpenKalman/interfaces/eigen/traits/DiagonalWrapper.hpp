@@ -83,15 +83,15 @@ namespace OpenKalman::interface
     }
 
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<DiagVectorType, b>;
 
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool is_square = true;
 
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = true;
 
 

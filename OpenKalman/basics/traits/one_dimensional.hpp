@@ -21,7 +21,7 @@ namespace OpenKalman
 {
   namespace detail
   {
-    template<typename T, Likelihood b, std::size_t...Is>
+    template<typename T, Qualification b, std::size_t...Is>
     constexpr bool has_1_by_1_dims(std::index_sequence<Is...>)
     {
       return maybe_equivalent_to<vector_space_descriptor_of_t<T, Is>...> and (dimension_size_of_index_is<T, Is, 1, b> and ...);
@@ -29,17 +29,17 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<typename T, Likelihood b>
+    template<typename T, Qualification b>
 #else
-    template<typename T, Likelihood b, typename = void>
+    template<typename T, Qualification b, typename = void>
 #endif
-    struct one_dimensional_impl : std::bool_constant<b == Likelihood::maybe and detail::has_1_by_1_dims<T, b>(std::make_index_sequence<2>{})> {};
+    struct one_dimensional_impl : std::bool_constant<b == Qualification::depends_on_dynamic_shape and detail::has_1_by_1_dims<T, b>(std::make_index_sequence<2>{})> {};
 
 #ifdef __cpp_concepts
-    template<typename T, Likelihood b> requires (index_count_v<T> != dynamic_size)
+    template<typename T, Qualification b> requires (index_count_v<T> != dynamic_size)
     struct one_dimensional_impl<T, b>
 #else
-    template<typename T, Likelihood b>
+    template<typename T, Qualification b>
     struct one_dimensional_impl<T, b, std::enable_if_t<index_count<T>::value != dynamic_size>>
 #endif
       : std::bool_constant<detail::has_1_by_1_dims<T, b>(std::make_index_sequence<index_count_v<T>>{})> {};
@@ -50,7 +50,7 @@ namespace OpenKalman
    * \brief Specifies that a type is one-dimensional in every index.
    * \details Each index also must have an equivalent \ref vector_space_descriptor object.
    */
-  template<typename T, Likelihood b = Likelihood::definitely>
+  template<typename T, Qualification b = Qualification::unqualified>
 #ifdef __cpp_concepts
   concept one_dimensional = indexible<T> and
     (not interface::one_dimensional_defined_for<T, b> or interface::indexible_object_traits<std::decay_t<T>>::template one_dimensional<b>) and

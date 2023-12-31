@@ -21,28 +21,28 @@ namespace OpenKalman
 {
   namespace detail
   {
-    template<typename T, std::size_t N, Likelihood b, std::size_t...Is>
+    template<typename T, std::size_t N, Qualification b, std::size_t...Is>
     constexpr bool do_vector_impl(std::index_sequence<Is...>)
     {
-      return (... and (N == Is or (b == Likelihood::maybe and dynamic_dimension<T, Is>) or dimension_size_of_index_is<T, Is, 1>));
+      return (... and (N == Is or (b == Qualification::depends_on_dynamic_shape and dynamic_dimension<T, Is>) or dimension_size_of_index_is<T, Is, 1>));
     }
 
 
     // If index_count<T> is dynamic, at least check indices until N + 1.
 #ifdef __cpp_concepts
-    template<typename T, std::size_t N, Likelihood b>
+    template<typename T, std::size_t N, Qualification b>
 #else
-    template<typename T, std::size_t N, Likelihood b, typename = void>
+    template<typename T, std::size_t N, Qualification b, typename = void>
 #endif
     struct vector_impl : std::bool_constant<
-      b == Likelihood::maybe and detail::do_vector_impl<T, N, b>(std::make_index_sequence<N + 1> {})> {};
+      b == Qualification::depends_on_dynamic_shape and detail::do_vector_impl<T, N, b>(std::make_index_sequence<N + 1> {})> {};
 
     // If index_count<T> is static, check all indices.
 #ifdef __cpp_concepts
-    template<typename T, std::size_t N, Likelihood b> requires (index_count_v<T> != dynamic_size)
+    template<typename T, std::size_t N, Qualification b> requires (index_count_v<T> != dynamic_size)
     struct vector_impl<T, N, b>
 #else
-    template<typename T, std::size_t N, Likelihood b>
+    template<typename T, std::size_t N, Qualification b>
     struct vector_impl<T, N, b, std::enable_if_t<index_count<T>::value != dynamic_size>>
 #endif
       : std::bool_constant<detail::do_vector_impl<T, N, b>(std::make_index_sequence<index_count_v<T>> {})> {};
@@ -56,11 +56,11 @@ namespace OpenKalman
    * \details In this context, a vector is an object in which every index but one is 1D.
    * \tparam T An indexible object
    * \tparam N An index designating the "large" index (0 for a column vector, 1 for a row vector)
-   * \tparam b Whether the vector status is definitely known at compile time (Likelihood::definitely), or
-   * only known at runtime (Likelihood::maybe)
+   * \tparam b Whether the vector status is unqualified known at compile time (Qualification::unqualified), or
+   * only known at runtime (Qualification::depends_on_dynamic_shape)
    * \sa is_vector
    */
-  template<typename T, std::size_t N = 0, Likelihood b = Likelihood::definitely>
+  template<typename T, std::size_t N = 0, Qualification b = Qualification::unqualified>
 #ifdef __cpp_concepts
   concept vector =
 #else

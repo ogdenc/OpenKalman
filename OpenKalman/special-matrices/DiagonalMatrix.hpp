@@ -20,7 +20,7 @@ namespace OpenKalman
 {
 
 #ifdef __cpp_concepts
-  template<vector<0, Likelihood::maybe> NestedMatrix>
+  template<vector<0, Qualification::depends_on_dynamic_shape> NestedMatrix>
 #else
   template<typename NestedMatrix>
 #endif
@@ -28,7 +28,7 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(vector<NestedMatrix, 0, Likelihood::maybe>);
+    static_assert(vector<NestedMatrix, 0, Qualification::depends_on_dynamic_shape>);
 #endif
 
   private:
@@ -66,11 +66,11 @@ namespace OpenKalman
      * \brief Construct from a column vector
      */
 #ifdef __cpp_concepts
-    template<vector<0, Likelihood::maybe> Arg> requires (not std::derived_from<std::decay_t<Arg>, DiagonalMatrix>) and
+    template<vector<0, Qualification::depends_on_dynamic_shape> Arg> requires (not std::derived_from<std::decay_t<Arg>, DiagonalMatrix>) and
       (dynamic_dimension<Arg, 0> or dynamic_dimension<NestedMatrix, 0> or equivalent_to<vector_space_descriptor_of_t<Arg, 0>, vector_space_descriptor_of_t<NestedMatrix, 0>>) and
       std::is_constructible_v<NestedMatrix, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<vector<Arg, 0, Likelihood::maybe> and
+    template<typename Arg, std::enable_if_t<vector<Arg, 0, Qualification::depends_on_dynamic_shape> and
       (not std::is_base_of_v<DiagonalMatrix, std::decay_t<Arg>>) and
       (dynamic_dimension<Arg, 0> or dynamic_dimension<NestedMatrix, 0> or equivalent_to<vector_space_descriptor_of_t<Arg, 0>, vector_space_descriptor_of_t<NestedMatrix, 0>>), int> = 0>
 #endif
@@ -93,12 +93,12 @@ namespace OpenKalman
      * \tparam Arg
      */
 #ifdef __cpp_concepts
-    template<square_shaped<Likelihood::maybe> Arg> requires (not std::derived_from<std::decay_t<Arg>, DiagonalMatrix>) and
-      (not vector<Arg, 0, Likelihood::maybe>) and (square_dimensions_match<Arg>(std::make_index_sequence<index_count_v<Arg>>{})) and
+    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires (not std::derived_from<std::decay_t<Arg>, DiagonalMatrix>) and
+      (not vector<Arg, 0, Qualification::depends_on_dynamic_shape>) and (square_dimensions_match<Arg>(std::make_index_sequence<index_count_v<Arg>>{})) and
       requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; }
 #else
-    template<typename Arg, std::enable_if_t<square_shaped<Arg, Likelihood::maybe> and
-      (not std::is_base_of_v<DiagonalMatrix, std::decay_t<Arg>>) and (not vector<Arg, 0, Likelihood::maybe>) and
+    template<typename Arg, std::enable_if_t<square_shaped<Arg, Qualification::depends_on_dynamic_shape> and
+      (not std::is_base_of_v<DiagonalMatrix, std::decay_t<Arg>>) and (not vector<Arg, 0, Qualification::depends_on_dynamic_shape>) and
       (square_dimensions_match<Arg>(std::make_index_sequence<index_count_v<Arg>>{})), int> = 0>
 #endif
     constexpr explicit DiagonalMatrix(Arg&& arg) : Base {diagonal_of(std::forward<Arg>(arg))} {}
@@ -165,11 +165,11 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<zero Arg>
     requires (not eigen_diagonal_expr<Arg>) and (not identity_matrix<NestedMatrix>) and
-      (dynamic_dimension<Arg, 0> or dynamic_dimension<NestedMatrix, 0> or index_dimension_of_v<Arg, 0> == dim) and square_shaped<Arg, Likelihood::maybe>
+      (dynamic_dimension<Arg, 0> or dynamic_dimension<NestedMatrix, 0> or index_dimension_of_v<Arg, 0> == dim) and square_shaped<Arg, Qualification::depends_on_dynamic_shape>
 #else
     template<typename Arg, std::enable_if_t<zero<Arg> and (not eigen_diagonal_expr<Arg>) and
       (not identity_matrix<NestedMatrix>) and
-      (dynamic_dimension<Arg, 0> or dynamic_dimension<NestedMatrix, 0> or index_dimension_of<Arg, 0>::value == dim) and square_shaped<Arg, Likelihood::maybe>, int> = 0>
+      (dynamic_dimension<Arg, 0> or dynamic_dimension<NestedMatrix, 0> or index_dimension_of<Arg, 0>::value == dim) and square_shaped<Arg, Qualification::depends_on_dynamic_shape>, int> = 0>
 #endif
     constexpr auto& operator=(Arg&& arg)
     {
@@ -188,11 +188,11 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<identity_matrix Arg>
     requires (not eigen_diagonal_expr<Arg>) and (not zero<NestedMatrix>) and
-      (dynamic_dimension<Arg, 0> or dynamic_dimension<NestedMatrix, 0> or index_dimension_of_v<Arg, 0> == dim) and square_shaped<Arg, Likelihood::maybe>
+      (dynamic_dimension<Arg, 0> or dynamic_dimension<NestedMatrix, 0> or index_dimension_of_v<Arg, 0> == dim) and square_shaped<Arg, Qualification::depends_on_dynamic_shape>
 #else
     template<typename Arg, std::enable_if_t<
       identity_matrix<Arg> and (not eigen_diagonal_expr<Arg>) and (not zero<NestedMatrix>) and
-      (dynamic_dimension<Arg, 0> or dynamic_dimension<NestedMatrix, 0> or index_dimension_of<Arg, 0>::value == dim) and square_shaped<Arg, Likelihood::maybe>, int> = 0>
+      (dynamic_dimension<Arg, 0> or dynamic_dimension<NestedMatrix, 0> or index_dimension_of<Arg, 0>::value == dim) and square_shaped<Arg, Qualification::depends_on_dynamic_shape>, int> = 0>
 #endif
     constexpr auto& operator=(Arg&& arg)
     {
@@ -380,11 +380,11 @@ namespace OpenKalman
    * \tparam Arg A column vector
    */
 #ifdef __cpp_concepts
-  template<vector<0, Likelihood::maybe> Arg> requires (not square_shaped<Arg, Likelihood::maybe>) or
+  template<vector<0, Qualification::depends_on_dynamic_shape> Arg> requires (not square_shaped<Arg, Qualification::depends_on_dynamic_shape>) or
     (not diagonal_adapter<Arg> and not constant_diagonal_matrix<Arg> and
       not interface::diagonal_of_defined_for<std::decay_t<Arg>, Arg&&>)
 #else
-  template<typename Arg, std::enable_if_t<vector<Arg, 0, Likelihood::maybe> and (not square_shaped<Arg, Likelihood::maybe> or
+  template<typename Arg, std::enable_if_t<vector<Arg, 0, Qualification::depends_on_dynamic_shape> and (not square_shaped<Arg, Qualification::depends_on_dynamic_shape> or
     (not diagonal_adapter<Arg> and not constant_diagonal_matrix<Arg> and not interface::diagonal_of_defined_for<std::decay_t<Arg>, Arg&&>)), int> = 0>
 #endif
   explicit DiagonalMatrix(Arg&&) -> DiagonalMatrix<passable_t<Arg>>;
@@ -395,14 +395,14 @@ namespace OpenKalman
    * \tparam Arg A \ref square_shaped
    */
 #ifdef __cpp_concepts
-  template<square_shaped<Likelihood::maybe> Arg> requires (not vector<Arg>) and
+  template<square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires (not vector<Arg>) and
     (index_count_v<Arg> == dynamic_size or index_count_v<Arg> <= 2) and
-    (not vector<Arg, 0, Likelihood::maybe> or diagonal_adapter<Arg> or constant_diagonal_matrix<Arg> or
+    (not vector<Arg, 0, Qualification::depends_on_dynamic_shape> or diagonal_adapter<Arg> or constant_diagonal_matrix<Arg> or
       interface::diagonal_of_defined_for<std::decay_t<Arg>, Arg&&>)
 #else
-  template<typename Arg, std::enable_if_t<square_shaped<Arg, Likelihood::maybe> and (not vector<Arg>) and
+  template<typename Arg, std::enable_if_t<square_shaped<Arg, Qualification::depends_on_dynamic_shape> and (not vector<Arg>) and
     (index_count<Arg>::value == dynamic_size or index_count<Arg>::value <= 2) and
-    (not vector<Arg, 0, Likelihood::maybe> or diagonal_adapter<Arg> or constant_diagonal_matrix<Arg> or
+    (not vector<Arg, 0, Qualification::depends_on_dynamic_shape> or diagonal_adapter<Arg> or constant_diagonal_matrix<Arg> or
       interface::diagonal_of_defined_for<std::decay_t<Arg>, Arg&&>), int> = 0>
 #endif
   DiagonalMatrix(Arg&&) -> DiagonalMatrix<passable_t<decltype(diagonal_of(std::declval<Arg&&>()))>>;
@@ -454,13 +454,13 @@ namespace OpenKalman
         return constant_coefficient {arg.nested_object()};
       }
 
-      template<Likelihood b>
+      template<Qualification b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<ColumnVector, b>;
 
-      template<Likelihood b>
+      template<Qualification b>
       static constexpr bool is_square = true;
 
-      template<TriangleType t, Likelihood b>
+      template<TriangleType t, Qualification b>
       static constexpr bool is_triangular = true;
 
 

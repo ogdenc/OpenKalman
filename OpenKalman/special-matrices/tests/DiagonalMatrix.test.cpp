@@ -159,7 +159,7 @@ TEST(special_matrices, Diagonal_class)
   // construct from zero matrix, and deduction guide (from non-DiagonalMatrix diagonal)
   static_assert(zero<decltype(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, 1>>{}})>);
   static_assert(diagonal_matrix<decltype(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, 1>>{}})>);
-  static_assert(square_shaped<decltype(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, 1>>{}}), Likelihood::maybe> );
+  static_assert(square_shaped<decltype(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, 1>>{}}), Qualification::depends_on_dynamic_shape> );
   static_assert(square_shaped<decltype(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, 1>>{}})>);
 
   EXPECT_TRUE(is_near(DiagonalMatrix {ZeroMatrix<eigen_matrix_t<double, 3, 1>>{}}, M33::Zero()));
@@ -712,6 +712,23 @@ TEST(special_matrices, Diagonal_overloads)
   EXPECT_TRUE(is_near(d0_3, d0_3_offset, 0.1));
   EXPECT_FALSE(is_near(d0_3, d0_3_offset, 1e-6));
 }
+
+
+TEST(special_matrices, diagonal_contract)
+{
+  auto m33dd = make_dense_object_from<M33>(10, 0, 0, 0, 18, 0, 0, 0, 28);
+
+  EXPECT_TRUE(is_near(contract(dm3a, dm3b), m33dd)); static_assert(diagonal_matrix<decltype(contract(dm3a, dm3b))>);
+  EXPECT_TRUE(is_near(contract(dm3a, dm0_3b), m33dd)); static_assert(dimension_size_of_index_is<decltype(contract(dm3a, dm0_3b)), 0, 3>);
+  EXPECT_TRUE(is_near(contract(dm3a, dw3b), m33dd)); static_assert(diagonal_matrix<decltype(contract(dm3a, dw3b))>);
+  EXPECT_TRUE(is_near(contract(dm0_3a, dm3b), m33dd)); static_assert(dimension_size_of_index_is<decltype(contract(dm0_3a, dm3b)), 0, 3>);
+  EXPECT_TRUE(is_near(contract(dm0_3a, dm0_3b), m33dd)); static_assert(diagonal_matrix<decltype(contract(dm0_3a, dm0_3b))>);
+  EXPECT_TRUE(is_near(contract(dm0_3a, dw3b), m33dd)); static_assert(dimension_size_of_index_is<decltype(contract(dm0_3a, dw3b)), 0, 3>);
+  EXPECT_TRUE(is_near(contract(dw3a, dm3b), m33dd)); static_assert(diagonal_matrix<decltype(contract(dw3a, dm3b))>);
+  EXPECT_TRUE(is_near(contract(dw3a, dm0_3b), m33dd)); static_assert(dimension_size_of_index_is<decltype(contract(dw3a, dm0_3b)), 0, 3>);
+  EXPECT_TRUE(is_near(contract(dw3a, dw3b), m33dd)); static_assert(diagonal_matrix<decltype(contract(dw3a, dw3b))>);
+}
+
 
 TEST(special_matrices, Diagonal_blocks)
 {

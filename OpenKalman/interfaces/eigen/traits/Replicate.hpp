@@ -69,24 +69,24 @@ namespace OpenKalman::interface
       }
       else if constexpr ((RowFactor == 1 or RowFactor == Eigen::Dynamic) and
         (ColFactor == 1 or ColFactor == Eigen::Dynamic) and
-        constant_diagonal_matrix<MatrixType, CompileTimeStatus::any, Likelihood::maybe>)
+        constant_diagonal_matrix<MatrixType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
       {
         constant_diagonal_coefficient cd {arg.nestedExpression()};
-        return internal::ScalarConstant<Likelihood::maybe, std::decay_t<decltype(cd)>> {cd};
+        return internal::ScalarConstant<Qualification::depends_on_dynamic_shape, std::decay_t<decltype(cd)>> {cd};
       }
       else return std::monostate {};
     }
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool one_dimensional =
-      (b != Likelihood::definitely or (RowFactor == 1 and ColFactor == 1)) and
+      (b != Qualification::unqualified or (RowFactor == 1 and ColFactor == 1)) and
       (RowFactor == 1 or RowFactor == Eigen::Dynamic) and
       (ColFactor == 1 or ColFactor == Eigen::Dynamic) and
         OpenKalman::one_dimensional<MatrixType, b>;
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool is_square =
-      (b != Likelihood::definitely or not has_dynamic_dimensions<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>) and
+      (b != Qualification::unqualified or not has_dynamic_dimensions<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>) and
       (RowFactor == Eigen::Dynamic or ColFactor == Eigen::Dynamic or
         ((RowFactor != ColFactor or square_shaped<MatrixType, b>) and
         (dynamic_dimension<MatrixType, 0> or RowFactor * index_dimension_of_v<MatrixType, 0> % ColFactor == 0) and
@@ -95,12 +95,12 @@ namespace OpenKalman::interface
         ((RowFactor == Eigen::Dynamic or index_dimension_of_v<MatrixType, 0> * RowFactor % index_dimension_of_v<MatrixType, 1> == 0) and
         (ColFactor == Eigen::Dynamic or index_dimension_of_v<MatrixType, 1> * ColFactor % index_dimension_of_v<MatrixType, 0> == 0)));
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = RowFactor == 1 and ColFactor == 1 and triangular_matrix<MatrixType, t, b>;
 
     static constexpr bool is_triangular_adapter = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Qualification::depends_on_dynamic_shape>;
   };
 
 } // namespace OpenKalman::interface

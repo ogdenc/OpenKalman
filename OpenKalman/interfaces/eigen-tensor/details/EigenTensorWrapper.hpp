@@ -217,22 +217,22 @@ namespace OpenKalman
       }
 
 
-      template<Likelihood b>
+      template<Qualification b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
 
 
-      template<Likelihood b>
+      template<Qualification b>
       static constexpr bool is_square = square_shaped<NestedMatrix, b>;
 
 
-      template<TriangleType t, Likelihood b>
+      template<TriangleType t, Qualification b>
       static constexpr bool is_triangular = triangular_matrix<NestedMatrix, t, b>;
 
 
       static constexpr bool is_triangular_adapter = false;
 
 
-      static constexpr bool is_hermitian = hermitian_matrix<NestedMatrix, Likelihood::maybe>;
+      static constexpr bool is_hermitian = hermitian_matrix<NestedMatrix, Qualification::depends_on_dynamic_shape>;
 
 
 #ifdef __cpp_lib_concepts

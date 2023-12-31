@@ -32,7 +32,7 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (constant_matrix<PlainObjectType, CompileTimeStatus::known, Likelihood::maybe>)
+      if constexpr (constant_matrix<PlainObjectType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>)
         return constant_coefficient<PlainObjectType> {};
       else
         return std::monostate {};
@@ -41,7 +41,7 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (constant_diagonal_matrix<PlainObjectType, CompileTimeStatus::known, Likelihood::maybe>)
+      if constexpr (constant_diagonal_matrix<PlainObjectType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>)
         return constant_diagonal_coefficient<PlainObjectType> {};
       else
         return std::monostate {};

@@ -43,6 +43,7 @@ namespace OpenKalman::interface
     // get_constant() not defined
 
     // get_constant_diagonal() not defined
+
   };
 
 

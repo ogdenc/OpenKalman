@@ -143,10 +143,33 @@ namespace OpenKalman
       };
       return n_ary_operation(all_vector_space_descriptors(b), std::move(op), std::forward<B>(b), diagonal_of(std::forward<A>(a)));
     }
+    else if constexpr (not interface::solve_defined_for<std::decay_t<A>, must_be_unique, must_be_exact, A, B>)
+    {
+      return solve<must_be_unique, must_be_exact>(std::forward<A>(a), to_native_matrix<A>(std::forward<B>(b)));
+    }
     else
     {
-      return interface::library_interface<std::decay_t<A>>::template solve<must_be_unique, must_be_exact>(
+      auto x = interface::library_interface<std::decay_t<A>>::template solve<must_be_unique, must_be_exact>(
         std::forward<A>(a), std::forward<B>(b));
+
+      using V0 = vector_space_descriptor_of_t<A, 1>;
+      using V1 = vector_space_descriptor_of_t<B, 1>;
+      auto ret = internal::make_fixed_size_adapter<V0, V1>(std::move(x));
+
+      constexpr TriangleType tri = triangle_type_of_v<A, B>;
+      if constexpr (tri != TriangleType::any and square_shaped<decltype(ret)>)
+      {
+        return make_triangular_matrix<tri>(std::move(ret));
+      }
+      else if constexpr (((constant_diagonal_matrix<A> and hermitian_matrix<B>) or (constant_diagonal_matrix<B> and hermitian_matrix<A>)) and
+          not hermitian_matrix<decltype(ret)>)
+      {
+        return make_hermitian_matrix(std::move(ret));
+      }
+      else
+      {
+        return ret;
+      }
     }
   }
 

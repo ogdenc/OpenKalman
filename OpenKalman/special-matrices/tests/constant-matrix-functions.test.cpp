@@ -702,9 +702,9 @@ TEST(special_matrices, constant_solve)
   EXPECT_TRUE(is_near(solve(cxx_22, cxx_23), m23_2));
 
   static_assert(constant_coefficient_v<decltype(solve(c22, c23))> == 2);
-  static_assert(constant_matrix<decltype(solve(c2x_2, c23)), CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<decltype(solve(c2x_2, c23)), ConstantType::dynamic_constant>);
   static_assert(constant_coefficient_v<decltype(solve(cx2_2, c23))> == 2);
-  static_assert(constant_matrix<decltype(solve(cxx_22, c23)), CompileTimeStatus::unknown>);
+  static_assert(constant_matrix<decltype(solve(cxx_22, c23)), ConstantType::dynamic_constant>);
 
   auto c12_2 = Eigen::Replicate<decltype(c11_2), 1, 2> {c11_2, 1, 2};
   auto c1x_2_2 = Eigen::Replicate<decltype(c11_2), 1, Eigen::Dynamic> {c11_2, 1, 2};
@@ -910,9 +910,9 @@ TEST(special_matrices, constant_diagonalizing)
   EXPECT_TRUE(is_near(to_diagonal(zxx_21), z22));
   static_assert(diagonal_adapter<decltype(to_diagonal(z21))>);
   static_assert(diagonal_adapter<decltype(to_diagonal(zx1_2))>);
-  static_assert(diagonal_adapter<decltype(to_diagonal(z2x_1)), Likelihood::maybe>);
+  static_assert(diagonal_adapter<decltype(to_diagonal(z2x_1)), Qualification::depends_on_dynamic_shape>);
   static_assert(diagonal_matrix<decltype(to_diagonal(z2x_1))>);
-  static_assert(diagonal_adapter<decltype(to_diagonal(zxx_21)), Likelihood::maybe>);
+  static_assert(diagonal_adapter<decltype(to_diagonal(zxx_21)), Qualification::depends_on_dynamic_shape>);
   static_assert(diagonal_matrix<decltype(to_diagonal(zxx_21))>);
   static_assert(zero<decltype(to_diagonal(zxx_21))>);
 
@@ -1443,5 +1443,25 @@ TEST(special_matrices, constant_chipwise_operations)
   EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& col){ return make_self_contained(col + col.Constant(1)); }, make_zero<M3x>(Dimensions<3>{}, 3)), M33::Constant(1)));
   EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& col){ return make_self_contained(col + make_constant<double, 1>(col)); }, make_zero<Mx3>(3, Dimensions<3>{})), M33::Constant(1)));
   EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& col){ return make_self_contained(col + make_constant<double, 1>(col)); }, make_zero<Mxx>(3,3)), M33::Constant(1)));
+}
+}
+
+
+TEST(special_matrices, sum)
+{
+  // zero
+
+  static_assert(zero<decltype(sum(std::declval<C22_2>(), std::declval<Z22>(), std::declval<C22_m2>()))>);
+
+  // constant
+
+  static_assert(constant_coefficient_v<decltype(sum(std::declval<C22_m2>(), std::declval<C22_m2>()))> == -4);
+  static_assert(constant_coefficient_v<decltype(sum(std::declval<C22_1>(), std::declval<Z22>(), std::declval<C22_m2>()))> == -2);
+  static_assert(constant_coefficient_v<decltype(sum(std::declval<Z22>(), std::declval<Z22>(), std::declval<C22_1>(), std::declval<Z22>(), std::declval<C22_m2>()))> == -2);
+
+  // constant diagonal
+
+  static_assert(constant_diagonal_coefficient_v<decltype(sum(std::declval<Cd22_2>(), std::declval<Cd22_3>()))> == 5);
+  static_assert(constant_diagonal_coefficient_v<decltype(sum(std::declval<Z22>(), std::declval<Cd22_m2>(), std::declval<Cd22_3>()))> == 1);
 }
 

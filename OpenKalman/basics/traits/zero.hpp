@@ -26,7 +26,7 @@ namespace OpenKalman
     struct is_zero : std::false_type {};
 
     template<typename T>
-    struct is_zero<T, std::enable_if_t<constant_matrix<T, CompileTimeStatus::known, Likelihood::maybe>>>
+    struct is_zero<T, std::enable_if_t<constant_matrix<T, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>>>
       : std::bool_constant<internal::are_within_tolerance(constant_coefficient_v<T>, 0)> {};
   }
 #endif
@@ -37,7 +37,7 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept zero = constant_matrix<T, CompileTimeStatus::known, Likelihood::maybe> and
+  concept zero = constant_matrix<T, ConstantType::static_constant, Qualification::depends_on_dynamic_shape> and
     internal::are_within_tolerance(constant_coefficient_v<T>, 0);
 #else
   constexpr bool zero = detail::is_zero<T>::value;

@@ -20,7 +20,7 @@
 namespace OpenKalman::Eigen3
 {
   template<typename Derived, typename NestedMatrix>
-  struct EigenTensorAdapterBase : EigenDenseBase,
+  struct EigenTensorAdapterBase : EigenCustomBase,
     Eigen::TensorBase<Derived, Eigen::internal::accessors_level<std::decay_t<NestedMatrix>>::value>
   {
 

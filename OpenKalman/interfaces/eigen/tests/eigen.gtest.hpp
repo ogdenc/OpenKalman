@@ -173,7 +173,7 @@ namespace OpenKalman::test
   using CA22 = Eigen::Array<cdouble, 2, 2>;
 
   using I11 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A11>; static_assert(constant_coefficient_v<I11> == 1);
-  static_assert(one_dimensional<I11, Likelihood::maybe>);
+  static_assert(one_dimensional<I11, Qualification::depends_on_dynamic_shape>);
   using I1x = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A1x>; static_assert(constant_coefficient_v<I1x> == 1);
   using Ix1 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, Ax1>; static_assert(constant_coefficient_v<Ix1> == 1);
   using Ixx = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, Axx>; static_assert(constant_coefficient_v<Ixx> == 1);

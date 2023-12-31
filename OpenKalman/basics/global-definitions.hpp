@@ -77,44 +77,44 @@ namespace OpenKalman
 
 
   /**
-   * \brief Whether a property is definitely known to apply at compile time (definitely) or not ruled out (maybe).
-   * \details Generally, Likelihood::maybe means that there are parameters defined at runtime, such as dynamic dimensions
-   * of a matrix, that might make the property apply, but this cannot be determined at compile time. For example:
-   * - <code>square_shaped<T, Likelihood::definitely></code> means that T is known at compile time to be a square matrix.
-   * - <code>square_shaped<T, Likelihood::maybe></code> means that T <em>could</em> be a square matrix, but whether it
+   * \brief How a concept or trait is qualified.
+   * \details Qualification::depends_on_dynamic_shape means that the concept or trait may vary based on the
+   * dynamic shape of the argument, which is not known at compile time. For example:
+   * - <code>square_shaped<T, Qualification::unqualified></code> means that T is known at compile time to be a square matrix.
+   * - <code>square_shaped<T, Qualification::depends_on_dynamic_shape></code> means that T <em>could</em> be a square matrix, but whether it
    * actually <em>is</em> cannot be determined at compile time.
    */
-  enum struct Likelihood : int {
-    maybe, ///< At compile time, the property is not ruled out.
-    definitely, ///< At compile time, the property is known to apply.
+  enum struct Qualification : int {
+    unqualified, ///< At compile time, the property is known to apply.
+    depends_on_dynamic_shape, ///< The property is not ruled out and depends on the dynamic shape.
   };
 
 
-  constexpr Likelihood operator!(Likelihood x)
+  constexpr Qualification operator!(Qualification x)
   {
-    return x == Likelihood::definitely ? Likelihood::maybe : Likelihood::definitely;
+    return x == Qualification::unqualified ? Qualification::depends_on_dynamic_shape : Qualification::unqualified;
   }
 
 
-  constexpr Likelihood operator&&(Likelihood x, Likelihood y)
+  constexpr Qualification operator&&(Qualification x, Qualification y)
   {
-    return x == Likelihood::definitely and y == Likelihood::definitely ? Likelihood::definitely : Likelihood::maybe;
+    return x == Qualification::unqualified and y == Qualification::unqualified ? Qualification::unqualified : Qualification::depends_on_dynamic_shape;
   }
 
 
-  constexpr Likelihood operator||(Likelihood x, Likelihood y)
+  constexpr Qualification operator||(Qualification x, Qualification y)
   {
-    return x == Likelihood::definitely or y == Likelihood::definitely ? Likelihood::definitely : Likelihood::maybe;
+    return x == Qualification::unqualified or y == Qualification::unqualified ? Qualification::unqualified : Qualification::depends_on_dynamic_shape;
   }
 
 
   /**
-   * \brief The known/unknown status of a particular property at compile time.
+   * \brief The type of constant.
    */
-  enum struct CompileTimeStatus {
-    any, ///< The property is determined either at compile time or runtime.
-    unknown, ///< The property is unknown at compile time and is determined at runtime.
-    known, ///< The property is known at compile time.
+  enum struct ConstantType {
+    any, ///< The constant is determined either at compile time or runtime.
+    dynamic_constant, ///< The constant is unknown at compile time and is determined at runtime.
+    static_constant, ///< The constant is known at compile time.
   };
 
 

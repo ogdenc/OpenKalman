@@ -28,18 +28,18 @@ namespace OpenKalman::Eigen3
     {
       if constexpr (is_diag)
       {
-        if constexpr (std::is_default_constructible_v<Op> and constant_diagonal_matrix<XprType, CompileTimeStatus::known, Likelihood::maybe>)
+        if constexpr (std::is_default_constructible_v<Op> and constant_diagonal_matrix<XprType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>)
           return internal::scalar_constant_operation {Op{}, constant_diagonal_coefficient {arg.nestedExpression()}};
-        else if constexpr (constant_diagonal_matrix<XprType, CompileTimeStatus::any, Likelihood::maybe>)
+        else if constexpr (constant_diagonal_matrix<XprType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
           return arg.functor()(constant_diagonal_coefficient {arg.nestedExpression()}());
         else
           return std::monostate {};
       }
       else
       {
-        if constexpr (std::is_default_constructible_v<Op> and constant_matrix<XprType, CompileTimeStatus::known, Likelihood::maybe>)
+        if constexpr (std::is_default_constructible_v<Op> and constant_matrix<XprType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>)
           return internal::scalar_constant_operation {Op{}, constant_coefficient {arg.nestedExpression()}};
-        else if constexpr (constant_matrix<XprType, CompileTimeStatus::any, Likelihood::maybe>)
+        else if constexpr (constant_matrix<XprType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
           return arg.functor()(constant_coefficient {arg.nestedExpression()}());
         else
           return std::monostate {};
@@ -59,7 +59,7 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<UnaryOp, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = false;
@@ -75,10 +75,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<std::negate<>, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -93,10 +93,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -131,10 +131,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -149,10 +149,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -169,10 +169,10 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -196,10 +196,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -215,10 +215,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -233,10 +233,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 #endif
 
@@ -252,10 +252,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -270,10 +270,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = not complex_number<Scalar> and hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = not complex_number<Scalar> and hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -299,10 +299,10 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -318,10 +318,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 #endif
 
@@ -338,10 +338,10 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -356,10 +356,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -382,10 +382,10 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -409,10 +409,10 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 #endif
 
@@ -428,10 +428,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -450,10 +450,10 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -469,10 +469,10 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -487,10 +487,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -505,10 +505,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -524,10 +524,10 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -542,10 +542,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -560,10 +560,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -581,10 +581,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -603,10 +603,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 #endif
 
@@ -625,10 +625,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -647,10 +647,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 #endif
 
@@ -673,10 +673,10 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -696,10 +696,10 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 # endif
 
@@ -716,10 +716,10 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -734,10 +734,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -752,10 +752,10 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -780,10 +780,10 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -806,10 +806,10 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<Op, XprType, is_diag>(arg);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
   };
 #endif
 
@@ -818,21 +818,21 @@ namespace OpenKalman::Eigen3
   struct FunctorTraits<Eigen::internal::bind1st_op<BinaryOp>, XprType>
   {
     using CFunctor = Eigen::internal::scalar_constant_op<scalar_type_of_t<XprType>>;
-    using ConstantType = Eigen::CwiseNullaryOp<CFunctor, XprType>;
-    using BinaryOpType = Eigen::CwiseBinaryOp<BinaryOp, ConstantType, XprType>;
+    using ConstType = Eigen::CwiseNullaryOp<CFunctor, XprType>;
+    using BinaryOpType = Eigen::CwiseBinaryOp<BinaryOp, ConstType, XprType>;
 
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
       const auto& x = arg.nestedExpression();
-      BinaryOpType bin {ConstantType{x.rows(), x.cols(), CFunctor{arg.functor().m_value}}, x, arg.functor()};
-      return FunctorTraits<BinaryOp, ConstantType, XprType>::template get_constant<is_diag>(bin);
+      BinaryOpType bin {ConstType{x.rows(), x.cols(), CFunctor{arg.functor().m_value}}, x, arg.functor()};
+      return FunctorTraits<BinaryOp, ConstType, XprType>::template get_constant<is_diag>(bin);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
-    static constexpr bool is_hermitian = hermitian_matrix<BinaryOpType, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<BinaryOpType, Qualification::depends_on_dynamic_shape>;
   };
 
 
@@ -840,18 +840,18 @@ namespace OpenKalman::Eigen3
   struct FunctorTraits<Eigen::internal::bind2nd_op<BinaryOp>, XprType>
   {
     using CFunctor = Eigen::internal::scalar_constant_op<scalar_type_of_t<XprType>>;
-    using ConstantType = Eigen::CwiseNullaryOp<CFunctor, XprType>;
-    using BinaryOpType = Eigen::CwiseBinaryOp<BinaryOp, XprType, ConstantType>;
+    using ConstType = Eigen::CwiseNullaryOp<CFunctor, XprType>;
+    using BinaryOpType = Eigen::CwiseBinaryOp<BinaryOp, XprType, ConstType>;
 
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
       const auto& x = arg.nestedExpression();
-      BinaryOpType bin {x, ConstantType{x.rows(), x.cols(), CFunctor{arg.functor().m_value}}, arg.functor()};
-      return FunctorTraits<BinaryOp, XprType, ConstantType>::template get_constant<is_diag>(bin);
+      BinaryOpType bin {x, ConstType{x.rows(), x.cols(), CFunctor{arg.functor().m_value}}, arg.functor()};
+      return FunctorTraits<BinaryOp, XprType, ConstType>::template get_constant<is_diag>(bin);
     }
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<XprType, t, b>;
 
     static constexpr bool is_hermitian = hermitian_matrix<BinaryOpType>;

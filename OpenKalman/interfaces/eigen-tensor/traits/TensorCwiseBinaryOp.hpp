@@ -84,22 +84,22 @@ namespace OpenKalman::interface
     }
 
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool one_dimensional =
-      OpenKalman::one_dimensional<LhsXprType, Likelihood::maybe> and one_dimensional<RhsXprType, Likelihood::maybe> and
-      (b != Likelihood::definitely or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
+      OpenKalman::one_dimensional<LhsXprType, Qualification::depends_on_dynamic_shape> and one_dimensional<RhsXprType, Qualification::depends_on_dynamic_shape> and
+      (b != Qualification::unqualified or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
         (square_shaped<LhsXprType, b> and (dimension_size_of_index_is<RhsXprType, 0, 1> or dimension_size_of_index_is<RhsXprType, 1, 1>)) or
         ((dimension_size_of_index_is<LhsXprType, 0, 1> or dimension_size_of_index_is<LhsXprType, 1, 1>) and square_shaped<RhsXprType, b>));
 
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool is_square =
-      square_shaped<LhsXprType, Likelihood::maybe> and square_shaped<RhsXprType, Likelihood::maybe> and
-      (b != Likelihood::definitely or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
+      square_shaped<LhsXprType, Qualification::depends_on_dynamic_shape> and square_shaped<RhsXprType, Qualification::depends_on_dynamic_shape> and
+      (b != Qualification::unqualified or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
         square_shaped<LhsXprType, b> or square_shaped<RhsXprType, b>);
 
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = Eigen3::FunctorTraits<BinaryOp, LhsXprType, RhsXprType>::template is_triangular<t, b>;
 
 

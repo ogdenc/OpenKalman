@@ -62,13 +62,13 @@ namespace OpenKalman::interface
       return Eigen3::NullaryFunctorTraits<NullaryOp, PlainObjectType>::template get_constant<true>(arg);
     }
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<PlainObjectType, b>;
 
-    template<Likelihood b>
+    template<Qualification b>
     static constexpr bool is_square = square_shaped<PlainObjectType, b>;
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = Eigen3::NullaryFunctorTraits<NullaryOp, PlainObjectType>::template is_triangular<t, b>;
 
     static constexpr bool is_triangular_adapter = false;

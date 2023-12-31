@@ -26,7 +26,7 @@ namespace OpenKalman::internal
    * \tparam C A constant type
    * \tparam constant Compile-time arguments for constructing C, if any.
    */
-  template<Likelihood b, typename C, auto...constant>
+  template<Qualification b, typename C, auto...constant>
   struct ScalarConstant;
 
 
@@ -38,7 +38,7 @@ namespace OpenKalman::internal
 
 
     template<typename Derived, typename C, auto...constant>
-    struct ScalarConstantImpl<Derived, C, std::enable_if_t<(scalar_constant<C, CompileTimeStatus::known> or sizeof...(constant) > 0) and
+    struct ScalarConstantImpl<Derived, C, std::enable_if_t<(scalar_constant<C, ConstantType::static_constant> or sizeof...(constant) > 0) and
       get_scalar_constant_value(C{constant...}) == get_scalar_constant_value(C{constant...})>, constant...>
     {
       static constexpr auto value {get_scalar_constant_value(C{constant...})};
@@ -48,10 +48,10 @@ namespace OpenKalman::internal
 
       constexpr ScalarConstantImpl() = default;
 
-      template<typename T, std::enable_if_t<scalar_constant<T, CompileTimeStatus::known> and T::value == value, int> = 0>
+      template<typename T, std::enable_if_t<scalar_constant<T, ConstantType::static_constant> and T::value == value, int> = 0>
       explicit constexpr ScalarConstantImpl(const T&) {};
 
-      template<typename T, std::enable_if_t<scalar_constant<T, CompileTimeStatus::known> and T::value == value, int> = 0>
+      template<typename T, std::enable_if_t<scalar_constant<T, ConstantType::static_constant> and T::value == value, int> = 0>
       constexpr Derived& operator=(const T&) { return static_cast<Derived&>(*this); }
 
       constexpr auto operator+() { return static_cast<Derived&>(*this); }
@@ -61,7 +61,7 @@ namespace OpenKalman::internal
 
 
     template<typename Derived, typename C>
-    struct ScalarConstantImpl<Derived, C, std::enable_if_t<scalar_constant<C, CompileTimeStatus::unknown>>>
+    struct ScalarConstantImpl<Derived, C, std::enable_if_t<scalar_constant<C, ConstantType::dynamic_constant>>>
     {
       using value_type = std::decay_t<decltype(get_scalar_constant_value(std::declval<C>()))>;
       constexpr operator value_type() const noexcept { return value; }
@@ -81,34 +81,34 @@ namespace OpenKalman::internal
 
 
 #ifdef __cpp_concepts
-  template<Likelihood b, scalar_constant C, auto...constant> requires std::bool_constant<(C{constant...}, true)>::value
+  template<Qualification b, scalar_constant C, auto...constant> requires std::bool_constant<(C{constant...}, true)>::value
   struct ScalarConstant<b, C, constant...>
   {
     static constexpr auto value {get_scalar_constant_value(C{constant...})};
     using value_type = std::decay_t<decltype(value)>;
     using type = ScalarConstant;
-    static constexpr Likelihood status = b;
+    static constexpr Qualification status = b;
     constexpr operator value_type() const noexcept { return value; }
     constexpr value_type operator()() const noexcept { return value; }
 
     constexpr ScalarConstant() = default;
 
-    template<scalar_constant<CompileTimeStatus::known> T> requires (T::value == value)
+    template<scalar_constant<ConstantType::static_constant> T> requires (T::value == value)
     explicit constexpr ScalarConstant(const T&) {};
 
-    template<scalar_constant<CompileTimeStatus::known> T> requires (T::value == value)
+    template<scalar_constant<ConstantType::static_constant> T> requires (T::value == value)
     constexpr ScalarConstant& operator=(const T&) { return *this; }
   };
 
 
-  template<Likelihood b, scalar_constant<CompileTimeStatus::unknown> C>
+  template<Qualification b, scalar_constant<ConstantType::dynamic_constant> C>
   struct ScalarConstant<b, C>
   {
     using value_type = std::decay_t<decltype(get_scalar_constant_value(std::declval<C>()))>;
     constexpr operator value_type() const noexcept { return value; }
     constexpr value_type operator()() const noexcept { return value; }
     using type = ScalarConstant;
-    static constexpr Likelihood status = b;
+    static constexpr Qualification status = b;
 
     template<scalar_constant T>
     explicit constexpr ScalarConstant(const T& t) : value {get_scalar_constant_value(t)} {};
@@ -120,7 +120,7 @@ namespace OpenKalman::internal
     value_type value;
   };
 #else
-  template<Likelihood b, typename C, auto...constant>
+  template<Qualification b, typename C, auto...constant>
   struct ScalarConstant : detail::ScalarConstantImpl<ScalarConstant<b, C, constant...>, C, void, constant...>
   {
   private:
@@ -129,7 +129,7 @@ namespace OpenKalman::internal
   public:
     using Base::Base;
     using Base::operator=;
-    static constexpr Likelihood status = b;
+    static constexpr Qualification status = b;
     using type = ScalarConstant;
   };
 #endif
@@ -142,7 +142,7 @@ namespace OpenKalman::internal
     struct has_constant_status : std::false_type {};
 
     template<typename T>
-    struct has_constant_status<T, std::enable_if_t<std::is_same_v<decltype(T::status), Likelihood>>> : std::true_type {};
+    struct has_constant_status<T, std::enable_if_t<std::is_same_v<decltype(T::status), Qualification>>> : std::true_type {};
   }
 #endif
 
@@ -152,7 +152,7 @@ namespace OpenKalman::internal
    * \brief Deduction guide for \ref ScalarConstant where T has a <code>status</code> member.
    */
 #ifdef __cpp_concepts
-  template<scalar_constant T> requires requires { {T::status} -> std::same_as<Likelihood>; }
+  template<scalar_constant T> requires requires { {T::status} -> std::same_as<Qualification>; }
 #else
   template<typename T, std::enable_if_t<scalar_constant<T> and detail::has_constant_status<T>::value, int> = 0>
 #endif
@@ -164,11 +164,11 @@ namespace OpenKalman::internal
    * \brief Deduction guide for \ref ScalarConstant where T does not have a <code>status</code> member.
    */
 #ifdef __cpp_concepts
-  template<scalar_constant T> requires (not requires { {T::status} -> std::same_as<Likelihood>; })
+  template<scalar_constant T> requires (not requires { {T::status} -> std::same_as<Qualification>; })
 #else
   template<typename T, std::enable_if_t<scalar_constant<T> and not detail::has_constant_status<T>::value, int> = 0>
 #endif
-  explicit ScalarConstant(const T&) -> ScalarConstant<Likelihood::definitely, std::decay_t<T>>;
+  explicit ScalarConstant(const T&) -> ScalarConstant<Qualification::unqualified, std::decay_t<T>>;
 
 
 } // namespace OpenKalman::internal

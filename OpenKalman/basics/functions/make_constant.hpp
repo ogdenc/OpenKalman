@@ -73,12 +73,12 @@ namespace OpenKalman
    * \brief Same as above, except that the constant is derived from T, a constant object known at compile time
    */
 #ifdef __cpp_concepts
-  template<constant_matrix<CompileTimeStatus::known> T, vector_space_descriptor...Ds> requires
+  template<constant_matrix<ConstantType::static_constant> T, vector_space_descriptor...Ds> requires
     (sizeof...(Ds) != 0) or (not has_dynamic_dimensions<T>)
-  constexpr constant_matrix<CompileTimeStatus::known> auto
+  constexpr constant_matrix<ConstantType::static_constant> auto
 #else
   template<typename T, typename...Ds, std::enable_if_t<
-    constant_matrix<T, CompileTimeStatus::known> and (vector_space_descriptor<Ds> and ...) and
+    constant_matrix<T, ConstantType::static_constant> and (vector_space_descriptor<Ds> and ...) and
     (sizeof...(Ds) != 0 or not has_dynamic_dimensions<T>), int> = 0>
   constexpr auto
 #endif
@@ -120,13 +120,13 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible T, scalar_constant C, auto...constant, vector_space_descriptor...Ds> requires
-    ((scalar_constant<C, CompileTimeStatus::known> and sizeof...(constant) == 0) or requires { C {constant...}; }) and
+    ((scalar_constant<C, ConstantType::static_constant> and sizeof...(constant) == 0) or requires { C {constant...}; }) and
     (sizeof...(Ds) != 0 or not has_dynamic_dimensions<T>)
   constexpr constant_matrix auto
 #else
   template<typename T, typename C, auto...constant, typename...Ds, std::enable_if_t<
     indexible<T> and scalar_constant<C> and (vector_space_descriptor<Ds> and ...) and
-    ((scalar_constant<C, CompileTimeStatus::known> and sizeof...(constant) == 0) or std::is_constructible<C, decltype(constant)...>::value) and
+    ((scalar_constant<C, ConstantType::static_constant> and sizeof...(constant) == 0) or std::is_constructible<C, decltype(constant)...>::value) and
     (sizeof...(Ds) != 0 or not has_dynamic_dimensions<T>), int> = 0>
   constexpr auto
 #endif
@@ -136,7 +136,7 @@ namespace OpenKalman
     if constexpr (sizeof...(constant) == 0)
       return make_constant<T>(C{}, std::forward<Ds>(ds)...);
     else
-      return make_constant<T>(internal::ScalarConstant<Likelihood::definitely, Scalar, constant...>{}, std::forward<Ds>(ds)...);
+      return make_constant<T>(internal::ScalarConstant<Qualification::unqualified, Scalar, constant...>{}, std::forward<Ds>(ds)...);
   }
 
 
@@ -167,11 +167,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<scalar_constant C, auto...constant, indexible T> requires
-    ((scalar_constant<C, CompileTimeStatus::known> and sizeof...(constant) == 0) or requires { C {constant...}; })
-  constexpr constant_matrix<CompileTimeStatus::known> auto
+    ((scalar_constant<C, ConstantType::static_constant> and sizeof...(constant) == 0) or requires { C {constant...}; })
+  constexpr constant_matrix<ConstantType::static_constant> auto
 #else
   template<typename C, auto...constant, typename T, std::enable_if_t<scalar_constant<C> and indexible<T> and
-    ((scalar_constant<C, CompileTimeStatus::known> and sizeof...(constant) == 0) or std::is_constructible<C, decltype(constant)...>::value), int> = 0>
+    ((scalar_constant<C, ConstantType::static_constant> and sizeof...(constant) == 0) or std::is_constructible<C, decltype(constant)...>::value), int> = 0>
   constexpr auto
 #endif
   make_constant(const T& t)
@@ -188,7 +188,7 @@ namespace OpenKalman
  */
 #ifdef __cpp_concepts
   template<auto constant, indexible T> requires scalar_type<decltype(constant)>
-  constexpr constant_matrix<CompileTimeStatus::known> auto
+  constexpr constant_matrix<ConstantType::static_constant> auto
 #else
   template<auto constant, typename T, std::enable_if_t<scalar_type<decltype(constant)> and indexible<T>, int> = 0>
   constexpr auto

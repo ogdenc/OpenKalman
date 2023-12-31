@@ -41,7 +41,7 @@ namespace OpenKalman::Eigen3
   constexpr bool eigen_tensor_general =
 #endif
     std::is_base_of_v<Eigen::TensorBase<std::decay_t<T>, Eigen::ReadOnlyAccessors>, std::decay_t<T>> and
-      (not must_be_native or not std::is_base_of_v<EigenDenseBase, std::decay_t<T>>);
+      (not must_be_native or not std::is_base_of_v<EigenCustomBase, std::decay_t<T>>);
 
 
   /**

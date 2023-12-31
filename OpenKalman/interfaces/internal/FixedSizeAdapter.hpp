@@ -96,13 +96,13 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires constant_matrix<NestedMatrix, CompileTimeStatus::any, Likelihood::maybe>
+    template<typename Arg> requires constant_matrix<NestedMatrix, ConstantType::any, Qualification::depends_on_dynamic_shape>
 #else
-    template<typename M = NestedMatrix, typename Arg, std::enable_if_t<constant_matrix<M, CompileTimeStatus::any, Likelihood::maybe>, int> = 0>
+    template<typename M = NestedMatrix, typename Arg, std::enable_if_t<constant_matrix<M, ConstantType::any, Qualification::depends_on_dynamic_shape>, int> = 0>
 #endif
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (constant_coefficient<NestedMatrix>::status == Likelihood::definitely or one_dimensional<Xpr, Likelihood::maybe>)
+      if constexpr (constant_coefficient<NestedMatrix>::status == Qualification::unqualified or one_dimensional<Xpr, Qualification::depends_on_dynamic_shape>)
         return constant_coefficient {arg.nested_object()};
       else
         return std::monostate {};
@@ -110,13 +110,13 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires constant_diagonal_matrix<NestedMatrix, CompileTimeStatus::any, Likelihood::maybe>
+    template<typename Arg> requires constant_diagonal_matrix<NestedMatrix, ConstantType::any, Qualification::depends_on_dynamic_shape>
 #else
-    template<typename M = NestedMatrix, typename Arg, std::enable_if_t<constant_diagonal_matrix<M, CompileTimeStatus::any, Likelihood::maybe>, int> = 0>
+    template<typename M = NestedMatrix, typename Arg, std::enable_if_t<constant_diagonal_matrix<M, ConstantType::any, Qualification::depends_on_dynamic_shape>, int> = 0>
 #endif
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (constant_coefficient<NestedMatrix>::status == Likelihood::definitely or one_dimensional<Xpr, Likelihood::maybe>)
+      if constexpr (constant_coefficient<NestedMatrix>::status == Qualification::unqualified or one_dimensional<Xpr, Qualification::depends_on_dynamic_shape>)
         return constant_diagonal_coefficient {arg.nested_object()};
       else
         return std::monostate {};
@@ -129,14 +129,14 @@ namespace OpenKalman::interface
     // is_square is not necessary
 
 
-    template<TriangleType t, Likelihood b>
+    template<TriangleType t, Qualification b>
     static constexpr bool is_triangular = triangular_matrix<NestedMatrix, t, b>;
 
 
     static constexpr bool is_triangular_adapter = false;
 
 
-    static constexpr bool is_hermitian = hermitian_matrix<NestedMatrix, Likelihood::maybe>;
+    static constexpr bool is_hermitian = hermitian_matrix<NestedMatrix, Qualification::depends_on_dynamic_shape>;
 
 
     static constexpr bool is_writable = writable<NestedMatrix>;
@@ -359,7 +359,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<vector<0, Likelihood::maybe> Arg> requires
+    template<vector<0, Qualification::depends_on_dynamic_shape> Arg> requires
       interface::to_diagonal_defined_for<Nested, Arg&&> or
       interface::to_diagonal_defined_for<Nested, decltype(OpenKalman::nested_object(std::declval<Arg&&>))>
     static constexpr diagonal_matrix auto
@@ -389,7 +389,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<square_shaped<Likelihood::maybe> Arg>
+    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg>
     static constexpr vector auto
 #else
     template<typename Arg>

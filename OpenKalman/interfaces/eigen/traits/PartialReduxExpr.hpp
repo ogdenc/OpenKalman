@@ -28,8 +28,8 @@ namespace OpenKalman::interface
     struct is_diag : std::bool_constant<
       zero<XprType> or one_dimensional<XprType> ? true :
       constant_matrix<XprType> ? false :
-      constant_diagonal_matrix<XprType, CompileTimeStatus::any, Likelihood::maybe> ? true :
-      constant_matrix<XprType, CompileTimeStatus::any, Likelihood::maybe> ? std::false_type{} : false> {};
+      constant_diagonal_matrix<XprType, ConstantType::any, Qualification::depends_on_dynamic_shape> ? true :
+      constant_matrix<XprType, ConstantType::any, Qualification::depends_on_dynamic_shape> ? std::false_type{} : false> {};
 
     template<typename XprType>
     constexpr bool is_diag_v = is_diag<XprType>::value;
@@ -65,7 +65,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        internal::ScalarConstant<Likelihood::definitely, std::size_t, factor> f;
+        internal::ScalarConstant<Qualification::unqualified, std::size_t, factor> f;
         return Eigen3::SingleConstantPartialRedux<XprType, MemberOp>::get_constant(c, dim / f, f);
       }
     }
@@ -76,14 +76,15 @@ namespace OpenKalman::interface
 #else
     template<typename MemberOp, int Direction, typename XprType, typename Dim, std::enable_if_t<
       not is_EigenReplicate<XprType, Direction>::value and
-      not Eigen3::eigen_MatrixWrapper<XprType> and not Eigen3::eigen_ArrayWrapper<XprType> and not Eigen3::eigen_wrapper<XprType>, int> = 0>
+      not Eigen3::eigen_MatrixWrapper<XprType> and not Eigen3::eigen_ArrayWrapper<XprType> and
+      not Eigen3::eigen_wrapper<XprType> and not Eigen3::eigen_self_contained_wrapper<XprType>, int> = 0>
 #endif
     constexpr auto get_PartialReduxExpr_constant(const XprType& xpr, const Dim& dim)
     {
       std::conditional_t<is_diag_v<XprType>, constant_diagonal_coefficient<XprType>, constant_coefficient<XprType>> c {xpr};
       if constexpr (scalar_constant<decltype(c)>)
       {
-        internal::ScalarConstant<Likelihood::definitely, std::size_t, 1> f;
+        internal::ScalarConstant<Qualification::unqualified, std::size_t, 1> f;
         return Eigen3::SingleConstantPartialRedux<XprType, MemberOp>::get_constant(c, dim, f);
       }
       else return std::monostate{};
@@ -91,12 +92,14 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<typename MemberOp, int Direction, typename XprType, typename Dim>
-      requires Eigen3::eigen_MatrixWrapper<XprType> or Eigen3::eigen_ArrayWrapper<XprType> or Eigen3::eigen_wrapper<XprType>
+    template<typename MemberOp, int Direction, typename XprType, typename Dim> requires
+      Eigen3::eigen_MatrixWrapper<XprType> or Eigen3::eigen_ArrayWrapper<XprType> or
+      Eigen3::eigen_wrapper<XprType> or Eigen3::eigen_self_contained_wrapper<XprType>
 #else
     template<typename MemberOp, int Direction, typename XprType, typename Dim, std::enable_if_t<
       not is_EigenReplicate<XprType, Direction>::value and
-      (Eigen3::eigen_MatrixWrapper<XprType> or Eigen3::eigen_ArrayWrapper<XprType> or Eigen3::eigen_wrapper<XprType>), int> = 0>
+      (Eigen3::eigen_MatrixWrapper<XprType> or Eigen3::eigen_ArrayWrapper<XprType> or
+      Eigen3::eigen_wrapper<XprType>) or Eigen3::eigen_self_contained_wrapper<XprType>, int> = 0>
 #endif
     constexpr auto get_PartialReduxExpr_constant(const XprType& xpr, const Dim& dim)
     {

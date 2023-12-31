@@ -25,9 +25,9 @@ namespace OpenKalman
   {
 #ifdef __cpp_concepts
     template<typename T>
-    concept known_constant = interface::get_constant_defined_for<T, CompileTimeStatus::known> or
-      (interface::get_constant_diagonal_defined_for<T, CompileTimeStatus::known> and
-        (one_dimensional<T, Likelihood::maybe> or requires(T t) {
+    concept known_constant = interface::get_constant_defined_for<T, ConstantType::static_constant> or
+      (interface::get_constant_diagonal_defined_for<T, ConstantType::static_constant> and
+        (one_dimensional<T, Qualification::depends_on_dynamic_shape> or requires(T t) {
           requires internal::are_within_tolerance(std::decay_t<decltype(interface::indexible_object_traits<std::decay_t<T>>::get_constant_diagonal(t))>::value, 0);
         }));
 #else
@@ -35,12 +35,12 @@ namespace OpenKalman
     struct known_constant_impl : std::false_type {};
 
     template<typename T>
-    struct known_constant_impl<T, std::enable_if_t<interface::get_constant_diagonal_defined_for<T, CompileTimeStatus::known>>>
-      : std::bool_constant<one_dimensional<T, Likelihood::maybe> or internal::are_within_tolerance(
+    struct known_constant_impl<T, std::enable_if_t<interface::get_constant_diagonal_defined_for<T, ConstantType::static_constant>>>
+      : std::bool_constant<one_dimensional<T, Qualification::depends_on_dynamic_shape> or internal::are_within_tolerance(
           std::decay_t<decltype(interface::indexible_object_traits<std::decay_t<T>>::get_constant_diagonal(std::declval<T>()))>::value, 0)> {};
 
     template<typename T>
-    constexpr bool known_constant = interface::get_constant_defined_for<T, CompileTimeStatus::known> or known_constant_impl<T>::value;
+    constexpr bool known_constant = interface::get_constant_defined_for<T, ConstantType::static_constant> or known_constant_impl<T>::value;
 #endif
 
 
@@ -49,16 +49,16 @@ namespace OpenKalman
 #else
     template<typename T, typename = void>
 #endif
-    struct constant_status : std::integral_constant<Likelihood, Likelihood::definitely> {};
+    struct constant_status : std::integral_constant<Qualification, Qualification::unqualified> {};
 
 #ifdef __cpp_concepts
-    template<typename T> requires (std::decay_t<T>::status == Likelihood::maybe)
+    template<typename T> requires (std::decay_t<T>::status == Qualification::depends_on_dynamic_shape)
     struct constant_status<T>
 #else
     template<typename T>
-    struct constant_status<T, std::enable_if_t<std::decay_t<T>::status == Likelihood::maybe>>
+    struct constant_status<T, std::enable_if_t<std::decay_t<T>::status == Qualification::depends_on_dynamic_shape>>
 #endif
-      : std::integral_constant<Likelihood, Likelihood::maybe> {};
+      : std::integral_constant<Qualification, Qualification::depends_on_dynamic_shape> {};
 
   } // namespace detail
 
@@ -90,19 +90,19 @@ namespace OpenKalman
     using type = constant_coefficient;
 
     static constexpr value_type value = []{
-      if constexpr (interface::get_constant_defined_for<T, CompileTimeStatus::known>)
+      if constexpr (interface::get_constant_defined_for<T, ConstantType::static_constant>)
         return std::decay_t<decltype(Trait::get_constant(std::declval<T>()))>::value;
       else
         return std::decay_t<decltype(Trait::get_constant_diagonal(std::declval<T>()))>::value;
     }();
 
-    static constexpr Likelihood status = []{
+    static constexpr Qualification status = []{
       if constexpr (not has_dynamic_dimensions<T>)
-        return Likelihood::definitely;
-      else if constexpr (interface::get_constant_defined_for<T, CompileTimeStatus::known>)
+        return Qualification::unqualified;
+      else if constexpr (interface::get_constant_defined_for<T, ConstantType::static_constant>)
         return detail::constant_status<decltype(Trait::get_constant(std::declval<T>()))>::value;
       else
-        return Likelihood::maybe;
+        return Qualification::depends_on_dynamic_shape;
     }();
 
     constexpr operator value_type() const noexcept { return value; }
@@ -118,12 +118,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible T> requires (not detail::known_constant<T>) and
-    (interface::get_constant_defined_for<T, CompileTimeStatus::unknown> or one_dimensional<T, Likelihood::maybe>)
+    (interface::get_constant_defined_for<T, ConstantType::dynamic_constant> or one_dimensional<T, Qualification::depends_on_dynamic_shape>)
   struct constant_coefficient<T>
 #else
   template<typename T>
   struct constant_coefficient<T, std::enable_if_t<(not detail::known_constant<T>) and
-    (interface::get_constant_defined_for<T, CompileTimeStatus::unknown> or one_dimensional<T, Likelihood::maybe>)>>
+    (interface::get_constant_defined_for<T, ConstantType::dynamic_constant> or one_dimensional<T, Qualification::depends_on_dynamic_shape>)>>
 #endif
   {
   private:
@@ -131,14 +131,17 @@ namespace OpenKalman
     using Trait = interface::indexible_object_traits<std::decay_t<T>>;
 
     template<typename Arg, std::size_t...Ix>
-    static constexpr auto get_zero_component(const Arg& arg, std::index_sequence<Ix...>) { return get_component(arg, static_cast<decltype(Ix)>(0)...); }
+    static constexpr auto get_zero_component(const Arg& arg, std::index_sequence<Ix...>)
+    {
+      return get_component(arg, static_cast<decltype(Ix)>(0)...);
+    }
 
   public:
 
     explicit constexpr constant_coefficient(const std::decay_t<T>& t) : value {[](const auto& t){
-        if constexpr (interface::get_constant_defined_for<T, CompileTimeStatus::unknown>)
+        if constexpr (interface::get_constant_defined_for<T, ConstantType::dynamic_constant>)
           return get_scalar_constant_value(Trait::get_constant(t));
-        else if constexpr (interface::get_constant_diagonal_defined_for<T, CompileTimeStatus::unknown>)
+        else if constexpr (interface::get_constant_diagonal_defined_for<T, ConstantType::dynamic_constant>)
           return get_scalar_constant_value(Trait::get_constant_diagonal(t));
         else
           return get_zero_component(t, std::make_index_sequence<index_count_v<T>>{});
@@ -148,13 +151,13 @@ namespace OpenKalman
 
     using type = constant_coefficient;
 
-    static constexpr Likelihood status = []{
+    static constexpr Qualification status = []{
       if constexpr (not has_dynamic_dimensions<T>)
-        return Likelihood::definitely;
-      else if constexpr (interface::get_constant_defined_for<T, CompileTimeStatus::unknown>)
+        return Qualification::unqualified;
+      else if constexpr (interface::get_constant_defined_for<T, ConstantType::dynamic_constant>)
         return detail::constant_status<decltype(Trait::get_constant(std::declval<T>()))>::value;
       else
-        return Likelihood::maybe;
+        return Qualification::depends_on_dynamic_shape;
     }();
 
     constexpr operator value_type() const noexcept { return value; }

@@ -28,17 +28,17 @@ namespace OpenKalman::internal
    * \param b A matrix or tensor to be copied from, which may or may not be triangular
    */
 #ifdef __cpp_concepts
-  template<TriangleType t, square_shaped<Likelihood::maybe> A, square_shaped<Likelihood::maybe> B> requires
+  template<TriangleType t, square_shaped<Qualification::depends_on_dynamic_shape> A, square_shaped<Qualification::depends_on_dynamic_shape> B> requires
     maybe_same_shape_as<A, B> and (t != TriangleType::any) and
-    (not triangular_matrix<A, TriangleType::any, Likelihood::maybe> or triangular_matrix<A, t, Likelihood::maybe> or t == TriangleType::diagonal) and
-    (not triangular_matrix<B, TriangleType::any, Likelihood::maybe> or triangular_matrix<B, t, Likelihood::maybe> or t == TriangleType::diagonal)
+    (not triangular_matrix<A, TriangleType::any, Qualification::depends_on_dynamic_shape> or triangular_matrix<A, t, Qualification::depends_on_dynamic_shape> or t == TriangleType::diagonal) and
+    (not triangular_matrix<B, TriangleType::any, Qualification::depends_on_dynamic_shape> or triangular_matrix<B, t, Qualification::depends_on_dynamic_shape> or t == TriangleType::diagonal)
   constexpr maybe_same_shape_as<A> decltype(auto)
 #else
   template<TriangleType t, typename A, typename B, std::enable_if_t<
-    square_shaped<A, Likelihood::maybe> and square_shaped<B, Likelihood::maybe> and
+    square_shaped<A, Qualification::depends_on_dynamic_shape> and square_shaped<B, Qualification::depends_on_dynamic_shape> and
     maybe_same_shape_as<A, B> and (t != TriangleType::any) and
-    (not triangular_matrix<A, TriangleType::any, Likelihood::maybe> or triangular_matrix<A, t, Likelihood::maybe> or t == TriangleType::diagonal) and
-    (not triangular_matrix<B, TriangleType::any, Likelihood::maybe> or triangular_matrix<B, t, Likelihood::maybe> or t == TriangleType::diagonal), int> = 0>
+    (not triangular_matrix<A, TriangleType::any, Qualification::depends_on_dynamic_shape> or triangular_matrix<A, t, Qualification::depends_on_dynamic_shape> or t == TriangleType::diagonal) and
+    (not triangular_matrix<B, TriangleType::any, Qualification::depends_on_dynamic_shape> or triangular_matrix<B, t, Qualification::depends_on_dynamic_shape> or t == TriangleType::diagonal), int> = 0>
   constexpr decltype(auto)
 #endif
   set_triangle(A&& a, B&& b)
@@ -133,14 +133,14 @@ namespace OpenKalman::internal
    * \brief Derives the TriangleType from the triangle types of the arguments.
    */
 #ifdef __cpp_concepts
-  template<square_shaped<Likelihood::maybe> A, square_shaped<Likelihood::maybe> B> requires maybe_same_shape_as<A, B> and
-    (triangular_matrix<A, TriangleType::any, Likelihood::maybe> or triangular_matrix<B, TriangleType::any, Likelihood::maybe>) and
+  template<square_shaped<Qualification::depends_on_dynamic_shape> A, square_shaped<Qualification::depends_on_dynamic_shape> B> requires maybe_same_shape_as<A, B> and
+    (triangular_matrix<A, TriangleType::any, Qualification::depends_on_dynamic_shape> or triangular_matrix<B, TriangleType::any, Qualification::depends_on_dynamic_shape>) and
     (triangle_type_of_v<A> == TriangleType::any or triangle_type_of_v<B> == TriangleType::any or triangle_type_of_v<A, B> != TriangleType::any)
   constexpr maybe_same_shape_as<A> decltype(auto)
 #else
   template<typename A, typename B, std::enable_if_t<
-    square_shaped<A, Likelihood::maybe> and square_shaped<B, Likelihood::maybe> and maybe_same_shape_as<A, B> and
-    (triangular_matrix<A, TriangleType::any, Likelihood::maybe> or triangular_matrix<B, TriangleType::any, Likelihood::maybe>) and
+    square_shaped<A, Qualification::depends_on_dynamic_shape> and square_shaped<B, Qualification::depends_on_dynamic_shape> and maybe_same_shape_as<A, B> and
+    (triangular_matrix<A, TriangleType::any, Qualification::depends_on_dynamic_shape> or triangular_matrix<B, TriangleType::any, Qualification::depends_on_dynamic_shape>) and
     (triangle_type_of<A>::value == TriangleType::any or triangle_type_of<B>::value == TriangleType::any or
       triangle_type_of<A, B>::value != TriangleType::any), int> = 0>
   constexpr decltype(auto)
@@ -148,7 +148,7 @@ namespace OpenKalman::internal
   set_triangle(A&& a, B&& b)
   {
     constexpr auto t =
-      diagonal_matrix<A, Likelihood::maybe> or diagonal_matrix<B, Likelihood::maybe> ? TriangleType::diagonal :
+      diagonal_matrix<A, Qualification::depends_on_dynamic_shape> or diagonal_matrix<B, Qualification::depends_on_dynamic_shape> ? TriangleType::diagonal :
       triangle_type_of_v<A, B> != TriangleType::any ? triangle_type_of_v<A, B> :
       triangle_type_of_v<A> != TriangleType::any ? triangle_type_of_v<A> : triangle_type_of_v<B>;
     return set_triangle<t>(std::forward<A>(a), std::forward<B>(b));

@@ -48,10 +48,10 @@ namespace OpenKalman
    * \tparam Scalar A scalar type for the new matrix.
    */
 #ifdef __cpp_concepts
-  template<scalar_type Scalar, square_shaped<Likelihood::maybe> T>
+  template<scalar_type Scalar, square_shaped<Qualification::depends_on_dynamic_shape> T>
   constexpr identity_matrix auto
 #else
-  template<typename Scalar, typename T, std::enable_if_t<scalar_type<Scalar> and square_shaped<T, Likelihood::maybe>, int> = 0>
+  template<typename Scalar, typename T, std::enable_if_t<scalar_type<Scalar> and square_shaped<T, Qualification::depends_on_dynamic_shape>, int> = 0>
   constexpr auto
 #endif
   make_identity_matrix_like(T&& t)
@@ -85,10 +85,10 @@ namespace OpenKalman
    * \tparam T The matrix or array on which the new zero matrix is patterned.
    */
 #ifdef __cpp_concepts
-  template<square_shaped<Likelihood::maybe> T>
+  template<square_shaped<Qualification::depends_on_dynamic_shape> T>
   constexpr identity_matrix auto
 #else
-  template<typename T, std::enable_if_t<indexible<T> and square_shaped<T, Likelihood::maybe>, int> = 0>
+  template<typename T, std::enable_if_t<indexible<T> and square_shaped<T, Qualification::depends_on_dynamic_shape>, int> = 0>
   constexpr auto
 #endif
   make_identity_matrix_like(const T& t)
