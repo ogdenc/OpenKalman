@@ -1127,8 +1127,8 @@ namespace OpenKalman
       template<Qualification b>
       static constexpr bool is_square = true;
 
-      template<TriangleType t, Qualification b>
-      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, TriangleType::diagonal, Qualification::depends_on_dynamic_shape>;
+      template<TriangleType t>
+      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, TriangleType::diagonal>;
 
       static constexpr bool is_triangular_adapter = false;
 

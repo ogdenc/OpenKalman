@@ -54,7 +54,7 @@ namespace OpenKalman
     }
     else if constexpr (triangular_adapter<Arg>)
     {
-      if constexpr (triangular_matrix<Arg, static_cast<TriangleType>(adapter_type), Qualification::depends_on_dynamic_shape>)
+      if constexpr (triangular_matrix<Arg, static_cast<TriangleType>(adapter_type)>)
         return make_hermitian_matrix<adapter_type>(nested_object(std::forward<Arg>(arg)));
       else
         return make_hermitian_matrix<transp>(nested_object(std::forward<Arg>(arg)));

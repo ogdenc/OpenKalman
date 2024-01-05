@@ -50,21 +50,25 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (constant_diagonal_matrix<MatrixType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
+      using Scalar = scalar_type_of_t<MatrixType>;
+      if constexpr (constant_diagonal_matrix<MatrixType, ConstantType::any>)
       {
         if constexpr (DiagIndex == Eigen::DynamicIndex)
         {
-          if (arg.index() == 0)
-            return constant_diagonal_coefficient{arg.nestedExpression()}();
-          else
-            return scalar_type_of_t<MatrixType>{0};
+          if constexpr (zero<MatrixType>) return internal::ScalarConstant<Qualification::unqualified, Scalar, 0>{};
+          else if (arg.index() == 0) return static_cast<Scalar>(constant_diagonal_coefficient{arg.nestedExpression()});
+          else return Scalar(0);
         }
         else if constexpr (DiagIndex == 0)
+        {
           return constant_diagonal_coefficient{arg.nestedExpression()};
+        }
         else
-          return internal::ScalarConstant<Qualification::unqualified, scalar_type_of_t<MatrixType>, 0>{};
+        {
+          return internal::ScalarConstant<Qualification::unqualified, Scalar, 0>{};
+        }
       }
-      else if constexpr (constant_matrix<MatrixType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
+      else if constexpr (constant_matrix<MatrixType, ConstantType::any>)
       {
         return constant_coefficient{arg.nestedExpression()};
       }

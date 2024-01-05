@@ -28,11 +28,10 @@ namespace OpenKalman::Eigen3
       if constexpr (is_diag)
       {
         if constexpr (std::is_default_constructible_v<Op> and
-            constant_diagonal_matrix<LhsType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape> and
-            constant_diagonal_matrix<RhsType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>)
+            constant_diagonal_matrix<LhsType, ConstantType::static_constant> and
+            constant_diagonal_matrix<RhsType, ConstantType::static_constant>)
           return internal::scalar_constant_operation {Op{}, constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
-        else if constexpr (constant_diagonal_matrix<LhsType, ConstantType::any, Qualification::depends_on_dynamic_shape> and
-                           constant_diagonal_matrix<RhsType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
+        else if constexpr (constant_diagonal_matrix<LhsType> and constant_diagonal_matrix<RhsType>)
           return internal::scalar_constant_operation {arg.functor(), constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
         else
           return std::monostate {};
@@ -40,11 +39,10 @@ namespace OpenKalman::Eigen3
       else
       {
         if constexpr (std::is_default_constructible_v<Op> and
-            constant_matrix<LhsType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape> and
-            constant_matrix<RhsType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>)
+            constant_matrix<LhsType, ConstantType::static_constant> and
+            constant_matrix<RhsType, ConstantType::static_constant>)
           return internal::scalar_constant_operation {Op{}, constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
-        else if constexpr (constant_matrix<LhsType, ConstantType::any, Qualification::depends_on_dynamic_shape> and
-                           constant_matrix<RhsType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
+        else if constexpr (constant_matrix<LhsType> and constant_matrix<RhsType>)
         {
           return internal::scalar_constant_operation {arg.functor(), constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
         }
@@ -82,18 +80,18 @@ namespace OpenKalman::Eigen3
       {
         return constant_coefficient {arg.rhs()};
       }
-      else if constexpr (is_diag and constant_diagonal_matrix<LhsType, ConstantType::any, Qualification::depends_on_dynamic_shape> and constant_matrix<RhsType>)
+      else if constexpr (is_diag and constant_diagonal_matrix<LhsType> and constant_matrix<RhsType>)
       {
         if constexpr (std::is_default_constructible_v<Op> and
-            constant_diagonal_matrix<LhsType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape> and constant_matrix<RhsType, ConstantType::static_constant>)
+            constant_diagonal_matrix<LhsType, ConstantType::static_constant> and constant_matrix<RhsType, ConstantType::static_constant>)
           return internal::scalar_constant_operation {Op{}, constant_diagonal_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
         else
           return internal::scalar_constant_operation {arg.functor(), constant_diagonal_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
       }
-      else if constexpr (is_diag and constant_matrix<LhsType> and constant_diagonal_matrix<RhsType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
+      else if constexpr (is_diag and constant_matrix<LhsType> and constant_diagonal_matrix<RhsType>)
       {
         if constexpr (std::is_default_constructible_v<Op> and
-            constant_matrix<LhsType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape> and constant_diagonal_matrix<RhsType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>)
+            constant_matrix<LhsType, ConstantType::static_constant> and constant_diagonal_matrix<RhsType, ConstantType::static_constant>)
           return internal::scalar_constant_operation {Op{}, constant_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
         else
           return internal::scalar_constant_operation {arg.functor(), constant_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
@@ -105,21 +103,15 @@ namespace OpenKalman::Eigen3
     }
 
 
-    template<typename Arg1, typename Arg2, TriangleType t, Qualification b>
-    static constexpr bool is_triangular_sum =
-      triangular_matrix<Arg1, t, Qualification::depends_on_dynamic_shape> and triangular_matrix<Arg2, t, Qualification::depends_on_dynamic_shape> and
-      (t != TriangleType::any or
-        (triangular_matrix<Arg1, TriangleType::upper, Qualification::depends_on_dynamic_shape> and triangular_matrix<Arg2, TriangleType::upper, Qualification::depends_on_dynamic_shape>) or
-        (triangular_matrix<Arg1, TriangleType::lower, Qualification::depends_on_dynamic_shape> and triangular_matrix<Arg2, TriangleType::lower, Qualification::depends_on_dynamic_shape>)) and
-      (b != Qualification::unqualified or triangular_matrix<Arg1, t, b> or triangular_matrix<Arg2, t, b>);
+    template<typename Arg1, typename Arg2, TriangleType t>
+    static constexpr bool is_triangular_sum = triangular_matrix<Arg1, t> and triangular_matrix<Arg2, t> and
+      (t != TriangleType::any or triangle_type_of_v<Arg1, Arg2> != TriangleType::any);
 
 
-    template<typename Arg1, typename Arg2, TriangleType t, Qualification b>
-    static constexpr bool is_triangular_product =
-      triangular_matrix<Arg1, t, b> or triangular_matrix<Arg2, t, b> or
-      (((triangular_matrix<Arg1, TriangleType::lower, Qualification::depends_on_dynamic_shape> and triangular_matrix<Arg2, TriangleType::upper, Qualification::depends_on_dynamic_shape>) or
-      (triangular_matrix<Arg1, TriangleType::upper, Qualification::depends_on_dynamic_shape> and triangular_matrix<Arg2, TriangleType::lower, Qualification::depends_on_dynamic_shape>))
-        and (square_shaped<Arg1, b> or square_shaped<Arg2, b>));
+    template<typename Arg1, typename Arg2, TriangleType t>
+    static constexpr bool is_triangular_product = triangular_matrix<Arg1, t> or triangular_matrix<Arg2, t> or
+      (triangular_matrix<Arg1, TriangleType::lower> and triangular_matrix<Arg2, TriangleType::upper>) or
+      (triangular_matrix<Arg1, TriangleType::upper> and triangular_matrix<Arg2, TriangleType::lower>);
 
   } // namespace detail
 
@@ -135,7 +127,7 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<BinaryOp, LhsType, RhsType, is_diag>(arg);
     }
 
-    template<TriangleType t, Qualification b>
+    template<TriangleType t>
     static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = false;
@@ -151,8 +143,8 @@ namespace OpenKalman::Eigen3
       return detail::get_constant_sum_impl<std::plus<>, LhsType, RhsType, is_diag>(arg);
     }
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t>;
 
     static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
   };
@@ -167,8 +159,8 @@ namespace OpenKalman::Eigen3
       return detail::get_constant_product_impl<std::multiplies<>, LhsType, RhsType, is_diag>(arg);
     }
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = detail::is_triangular_product<LhsType, RhsType, t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = detail::is_triangular_product<LhsType, RhsType, t>;
 
     static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
   };
@@ -188,8 +180,8 @@ namespace OpenKalman::Eigen3
       return detail::get_constant_product_impl<Op, LhsType, RhsType, is_diag>(arg);
     }
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = detail::is_triangular_product<LhsType, RhsType, t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = detail::is_triangular_product<LhsType, RhsType, t>;
 
     static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
   };
@@ -209,8 +201,8 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
     }
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t>;
 
     static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
   };
@@ -230,8 +222,8 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
     }
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t>;
 
     static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
   };
@@ -262,7 +254,7 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
     }
 
-    template<TriangleType t, Qualification b>
+    template<TriangleType t>
     static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
@@ -286,8 +278,8 @@ namespace OpenKalman::Eigen3
       return detail::get_constant_sum_impl<Op, LhsType, RhsType, is_diag>(arg);
     }
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t>;
 
     static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
   };
@@ -309,7 +301,7 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
     }
 
-    template<TriangleType t, Qualification b>
+    template<TriangleType t>
     static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
@@ -335,8 +327,8 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<std::minus<>, LhsType, RhsType, is_diag>(arg);
     }
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t>;
 
     static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
   };
@@ -352,7 +344,7 @@ namespace OpenKalman::Eigen3
       else return detail::default_get_constant<std::divides<>, LhsType, RhsType, is_diag>(arg);
     }
 
-    template<TriangleType t, Qualification b>
+    template<TriangleType t>
     static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
@@ -368,8 +360,8 @@ namespace OpenKalman::Eigen3
       return detail::get_constant_product_impl<std::logical_and<>, LhsType, RhsType, is_diag>(arg);
     }
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = detail::is_triangular_product<LhsType, RhsType, t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = detail::is_triangular_product<LhsType, RhsType, t>;
 
     static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
   };
@@ -381,18 +373,14 @@ namespace OpenKalman::Eigen3
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (not is_diag and
-        constant_diagonal_matrix<LhsType, ConstantType::any, Qualification::depends_on_dynamic_shape> and
-        constant_matrix<RhsType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>)
+      if constexpr (not is_diag and constant_diagonal_matrix<LhsType> and constant_matrix<RhsType, ConstantType::static_constant>)
       {
-        if constexpr (constant_coefficient_v<RhsType> == true) return internal::ScalarConstant<Qualification::depends_on_dynamic_shape, bool, true>{};
+        if constexpr (constant_coefficient_v<RhsType> == true) return internal::ScalarConstant<Qualification::unqualified, bool, true>{};
         else return constant_diagonal_coefficient {arg.lhs()};
       }
-      else if constexpr (not is_diag and
-        constant_matrix<LhsType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape> and
-        constant_diagonal_matrix<RhsType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
+      else if constexpr (not is_diag and constant_matrix<LhsType, ConstantType::static_constant> and constant_diagonal_matrix<RhsType>)
       {
-        if constexpr (constant_coefficient_v<LhsType> == true) return internal::ScalarConstant<Qualification::depends_on_dynamic_shape, bool, true>{};
+        if constexpr (constant_coefficient_v<LhsType> == true) return internal::ScalarConstant<Qualification::unqualified, bool, true>{};
         else return constant_diagonal_coefficient {arg.rhs()};
       }
       else
@@ -401,8 +389,8 @@ namespace OpenKalman::Eigen3
       }
     }
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t>;
 
     static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
   };
@@ -417,7 +405,7 @@ namespace OpenKalman::Eigen3
       return detail::default_get_constant<std::not_equal_to<>, LhsType, RhsType, is_diag>(arg);
     }
 
-    template<TriangleType t, Qualification b>
+    template<TriangleType t>
     static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
@@ -439,8 +427,8 @@ namespace OpenKalman::Eigen3
       return detail::get_constant_sum_impl<Op, LhsType, RhsType, is_diag>(arg);
     }
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t>;
 
     static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
   };

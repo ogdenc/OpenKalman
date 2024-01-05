@@ -73,7 +73,7 @@ namespace OpenKalman
       {
         if constexpr (not complex_number<scalar_type_of_t<MatrixType>>)
           return constant_coefficient{arg.nestedExpression()};
-        else if constexpr (constant_matrix<MatrixType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>)
+        else if constexpr (constant_matrix<MatrixType, ConstantType::static_constant>)
         {
           if constexpr (real_axis_number<constant_coefficient<MatrixType>>)
             return constant_coefficient{arg.nestedExpression()};
@@ -100,8 +100,8 @@ namespace OpenKalman
       static constexpr bool is_square = square_shaped<MatrixType, b>;
 
 
-      template<TriangleType t, Qualification b>
-      static constexpr bool is_triangular = diagonal_matrix<MatrixType, b>;
+      template<TriangleType t>
+      static constexpr bool is_triangular = diagonal_matrix<MatrixType>;
 
 
       static constexpr bool is_triangular_adapter = false;

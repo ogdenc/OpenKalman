@@ -28,8 +28,7 @@ namespace OpenKalman::interface
     struct is_diag : std::bool_constant<
       zero<XprType> or one_dimensional<XprType> ? true :
       constant_matrix<XprType> ? false :
-      constant_diagonal_matrix<XprType, ConstantType::any, Qualification::depends_on_dynamic_shape> ? true :
-      constant_matrix<XprType, ConstantType::any, Qualification::depends_on_dynamic_shape> ? std::false_type{} : false> {};
+      constant_diagonal_matrix<XprType> ? true : false> {};
 
     template<typename XprType>
     constexpr bool is_diag_v = is_diag<XprType>::value;

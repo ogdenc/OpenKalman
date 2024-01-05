@@ -24,11 +24,11 @@ namespace OpenKalman
    * \tparam Arg A general matrix to be made triangular.
    */
 #ifdef __cpp_concepts
-  template<TriangleType t = TriangleType::lower, square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires
+  template<TriangleType t = TriangleType::lower, indexible Arg> requires
     (t == TriangleType::lower or t == TriangleType::upper or t == TriangleType::diagonal)
   constexpr triangular_matrix<t> decltype(auto)
 #else
-  template<TriangleType t = TriangleType::lower, typename Arg, std::enable_if_t<square_shaped<Arg, Qualification::depends_on_dynamic_shape> and
+  template<TriangleType t = TriangleType::lower, typename Arg, std::enable_if_t<indexible<Arg> and
     (t == TriangleType::lower or t == TriangleType::upper or t == TriangleType::diagonal), int> = 0>
   constexpr decltype(auto)
 #endif
@@ -43,15 +43,10 @@ namespace OpenKalman
     {
       return to_diagonal(diagonal_of(std::forward<Arg>(arg)));
     }
-    else if constexpr (triangular_matrix<Arg, TriangleType::any, Qualification::depends_on_dynamic_shape> and not triangular_matrix<Arg, t, Qualification::depends_on_dynamic_shape>)
+    else if constexpr (triangular_matrix<Arg, TriangleType::any> and not triangular_matrix<Arg, t>)
     {
       // Arg is the opposite triangle of t.
       return make_triangular_matrix<TriangleType::diagonal>(std::forward<Arg>(arg));
-    }
-    else if constexpr (triangular_adapter<Arg>)
-    {
-      // If Arg is a triangular adapter but was not known to be square at compile time, return a result guaranteed to be square triangular.
-      return make_triangular_matrix<t>(nested_object(std::forward<Arg>(arg)));
     }
     else if constexpr (hermitian_adapter<Arg>)
     {
@@ -63,9 +58,7 @@ namespace OpenKalman
     else if constexpr (interface::make_triangular_matrix_defined_for<std::decay_t<Arg>, t, Arg&&>)
     {
       using Traits = interface::library_interface<std::decay_t<Arg>>;
-      auto new_t {Traits::template make_triangular_matrix<t>(std::forward<Arg>(arg))};
-      static_assert(triangular_matrix<decltype(new_t), t>, "make_triangular_matrix interface must return a triangular matrix");
-      return new_t;
+      return Traits::template make_triangular_matrix<t>(std::forward<Arg>(arg));
     }
     else // Default behavior if interface function not defined:
     {

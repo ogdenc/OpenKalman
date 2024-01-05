@@ -55,22 +55,36 @@ namespace OpenKalman
   constexpr auto constant_diagonal_coefficient_v = constant_diagonal_coefficient<T>::value;
 
 
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct is_zero : std::false_type {};
+
+    template<typename T>
+    struct is_zero<T, std::enable_if_t<constant_matrix<T, ConstantType::static_constant>>>
+      : std::bool_constant<internal::are_within_tolerance(constant_coefficient_v<T>, 0)> {};
+  }
+#endif
+
+
   // -------------------------- //
   //  constant_diagonal_matrix  //
   // -------------------------- //
 
   /**
    * \brief Specifies that all diagonal elements of a diagonal object are the same constant value.
-   * \todo rename to scalar_matrix
    */
-  template<typename T, ConstantType c = ConstantType::any, Qualification b = Qualification::unqualified>
+  template<typename T, ConstantType c = ConstantType::any>
 #ifdef __cpp_concepts
-  concept constant_diagonal_matrix = indexible<T> and scalar_constant<constant_diagonal_coefficient<T>, c> and
-    (b == Qualification::depends_on_dynamic_shape or constant_diagonal_coefficient<T>::status == b);
+  concept constant_diagonal_matrix = indexible<T> and
+    (scalar_constant<constant_diagonal_coefficient<T>, c> or
+      (constant_matrix<T, ConstantType::static_constant> and internal::are_within_tolerance(constant_coefficient_v<T>, 0)) or
+      (c != ConstantType::static_constant and one_dimensional<T>));
 #else
   constexpr bool constant_diagonal_matrix =
-    indexible<T> and scalar_constant<constant_diagonal_coefficient<T>, c> and
-    (b == Qualification::depends_on_dynamic_shape or detail::scalar_status_is<constant_diagonal_coefficient<T>, b>::value);
+    (scalar_constant<constant_diagonal_coefficient<T>, c> or detail::is_zero<T>::value or
+    (c != ConstantType::static_constant and one_dimensional<T>));
 #endif
 
 

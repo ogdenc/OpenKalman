@@ -78,11 +78,12 @@ namespace OpenKalman::interface
     template<Qualification b>
     static constexpr bool is_square = square_shaped<MatrixType, b>;
 
-    template<TriangleType t, Qualification b>
+    template<TriangleType t>
     static constexpr bool is_triangular = triangular_matrix<MatrixType,
         t == TriangleType::upper ? TriangleType::lower :
-        t == TriangleType::lower ? TriangleType::upper : t, b> and
-      (Direction == Eigen::BothDirections or OpenKalman::one_dimensional<MatrixType>);
+        t == TriangleType::lower ? TriangleType::upper : t> and
+      (Direction == Eigen::BothDirections or (Direction == Eigen::Horizontal and vector<MatrixType, 0>) or
+        (Direction == Eigen::Vertical and vector<MatrixType, 1>));
 
     static constexpr bool is_triangular_adapter = false;
 

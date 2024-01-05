@@ -76,6 +76,7 @@
 #include "get_chip.hpp"
 #include "set_chip.hpp"
 #include "internal/set_triangle.hpp"
+#include "internal/clip_square_shaped.hpp"
 
 #include "tile.hpp"
 #include "concatenate.hpp"

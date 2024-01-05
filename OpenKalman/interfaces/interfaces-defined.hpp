@@ -305,30 +305,28 @@ namespace OpenKalman::interface
   // --------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, TriangleType t, Qualification b = Qualification::unqualified>
-  concept is_triangular_defined_for = std::convertible_to<
-    decltype(indexible_object_traits<std::decay_t<T>>::template is_triangular<b>), bool>;
+  template<typename T, TriangleType t>
+  concept is_triangular_defined_for = requires { indexible_object_traits<std::decay_t<T>>::template is_triangular<t>; };
 #else
   namespace detail
   {
-    template<typename T, TriangleType t, Qualification b, typename = void>
+    template<typename T, TriangleType t, typename = void>
     struct is_triangular_defined_for_impl : std::false_type {};
 
-    template<typename T, TriangleType t, Qualification b>
-    struct is_triangular_defined_for_impl<T, t, b, std::enable_if_t<std::is_convertible_v<
-          decltype(indexible_object_traits<std::decay_t<T>>::template is_triangular<b>), bool>>>
+    template<typename T, TriangleType t>
+    struct is_triangular_defined_for_impl<T, t, std::void_t<decltype(indexible_object_traits<std::decay_t<T>>::template is_triangular<t>)>>
       : std::true_type {};
   }
 
-  template<typename T, TriangleType t, Qualification b = Qualification::unqualified>
-  constexpr bool is_triangular_defined_for = detail::is_triangular_defined_for_impl<T, t, b>::value;
+  template<typename T, TriangleType t>
+  constexpr bool is_triangular_defined_for = detail::is_triangular_defined_for_impl<T, t>::value;
 
 
-  template<typename T, TriangleType t, Qualification b, typename = void>
+  template<typename T, TriangleType t, typename = void>
   struct is_explicitly_triangular : std::false_type {};
 
-  template<typename T, TriangleType t, Qualification b>
-  struct is_explicitly_triangular<T, t, b, std::enable_if_t<indexible_object_traits<std::decay_t<T>>::template is_triangular<t, b>>>
+  template<typename T, TriangleType t>
+  struct is_explicitly_triangular<T, t, std::enable_if_t<indexible_object_traits<std::decay_t<T>>::template is_triangular<t>>>
     : std::true_type {};
 #endif
 

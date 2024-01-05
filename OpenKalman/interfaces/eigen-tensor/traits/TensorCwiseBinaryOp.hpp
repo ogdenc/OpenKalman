@@ -99,8 +99,8 @@ namespace OpenKalman::interface
         square_shaped<LhsXprType, b> or square_shaped<RhsXprType, b>);
 
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = Eigen3::FunctorTraits<BinaryOp, LhsXprType, RhsXprType>::template is_triangular<t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = Eigen3::FunctorTraits<BinaryOp, LhsXprType, RhsXprType>::template is_triangular<t>;
 
 
     static constexpr bool is_triangular_adapter = false;

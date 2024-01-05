@@ -20,19 +20,6 @@
 
 namespace OpenKalman::Eigen3
 {
-  namespace detail
-  {
-    template<typename XprType>
-    struct is_diag : std::bool_constant<
-      zero<XprType> or one_dimensional<XprType> ? true :
-      constant_matrix<XprType> ? false :
-      constant_diagonal_matrix<XprType, ConstantType::any, Qualification::depends_on_dynamic_shape> ? true :
-      constant_matrix<XprType, ConstantType::any, Qualification::depends_on_dynamic_shape> ? std::false_type{} : false> {};
-
-    template<typename XprType>
-    constexpr bool is_diag_v = is_diag<XprType>::value;
-  } // namespace detail
-
 
   // Default, if MemberOp is not handled below.
   template<typename XprType, typename MemberOp>
@@ -76,7 +63,7 @@ namespace OpenKalman::Eigen3
         if constexpr (std::numeric_limits<Scalar>::has_infinity) return std::numeric_limits<Scalar>::infinity();
         else throw std::domain_error {"Domain error in lpnorm<0>: result is infinity"};
       }
-      else if constexpr (detail::is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
+      else if constexpr (constant_diagonal_matrix<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
       else return internal::scalar_constant_operation {Op{}, c, dim * factor};
     }
   };
@@ -90,7 +77,7 @@ namespace OpenKalman::Eigen3
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
       if constexpr (zero<XprType>) return internal::ScalarConstant<Qualification::unqualified, Scalar, 0>{};
-      else if constexpr (detail::is_diag_v<XprType>) return internal::constexpr_sqrt(factor) * internal::constexpr_abs(c);
+      else if constexpr (constant_diagonal_matrix<XprType>) return internal::constexpr_sqrt(factor) * internal::constexpr_abs(c);
       else return internal::constexpr_sqrt(dim * factor) * internal::constexpr_abs(c);
     }
   };
@@ -104,7 +91,7 @@ namespace OpenKalman::Eigen3
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
       if constexpr (zero<XprType>) return internal::ScalarConstant<Qualification::unqualified, Scalar, 0>{};
-      else if constexpr (detail::is_diag_v<XprType>) return internal::constexpr_sqrt(factor) * internal::constexpr_abs(c);
+      else if constexpr (constant_diagonal_matrix<XprType>) return internal::constexpr_sqrt(factor) * internal::constexpr_abs(c);
       else return internal::constexpr_sqrt(dim * factor) * internal::constexpr_abs(c);
     }
   };
@@ -123,7 +110,7 @@ namespace OpenKalman::Eigen3
         {
           auto r = internal::constexpr_real(x);
           auto i = internal::constexpr_imag(x);
-          if constexpr (detail::is_diag_v<XprType>) return r * r + i * i;
+          if constexpr (constant_diagonal_matrix<XprType>) return r * r + i * i;
           else return dim * (r * r + i * i);
         }
         else return dim * x * x;
@@ -135,7 +122,7 @@ namespace OpenKalman::Eigen3
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
       if constexpr (zero<XprType>) return internal::ScalarConstant<Qualification::unqualified, Scalar, 0>{};
-      else if constexpr (detail::is_diag_v<XprType>) return scalar_constant_operation {Op{}, c, factor};
+      else if constexpr (constant_diagonal_matrix<XprType>) return scalar_constant_operation {Op{}, c, factor};
       else return scalar_constant_operation {Op{}, c, dim * factor};
     }
   };
@@ -152,7 +139,7 @@ namespace OpenKalman::Eigen3
         {
           auto r = internal::constexpr_real(x);
           auto i = internal::constexpr_imag(x);
-          if constexpr (detail::is_diag_v<XprType>) return r * r + i * i;
+          if constexpr (constant_diagonal_matrix<XprType>) return r * r + i * i;
           return internal::constexpr_sqrt(dim * (r * r + i * i));
         }
         else
@@ -168,7 +155,7 @@ namespace OpenKalman::Eigen3
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
       if constexpr (zero<XprType>) return internal::ScalarConstant<Qualification::unqualified, Scalar, 0>{};
-      else if constexpr (detail::is_diag_v<XprType>) return scalar_constant_operation {Op{}, c, factor};
+      else if constexpr (constant_diagonal_matrix<XprType>) return scalar_constant_operation {Op{}, c, factor};
       else return scalar_constant_operation {Op{}, c, dim * factor};
     }
   };
@@ -181,7 +168,7 @@ namespace OpenKalman::Eigen3
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
       if constexpr (zero<XprType>) return internal::ScalarConstant<Qualification::unqualified, Scalar, 0>{};
-      else if constexpr (not detail::is_diag_v<XprType>) return c
+      else if constexpr (not constant_diagonal_matrix<XprType>) return c
       else return (c * factor) / dim;
     }
   };
@@ -206,7 +193,7 @@ namespace OpenKalman::Eigen3
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
       if constexpr (zero<XprType>) return internal::ScalarConstant<Qualification::unqualified, Scalar, 0>{};
-      else if constexpr (detail::is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
+      else if constexpr (constant_diagonal_matrix<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
       else return internal::scalar_constant_operation {Op{}, c, dim * factor};
     }
   };
@@ -246,7 +233,7 @@ namespace OpenKalman::Eigen3
         using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
         return internal::ScalarConstant<Qualification::unqualified, Scalar, 0>{};
       }
-      else if constexpr (detail::is_diag_v<XprType>)
+      else if constexpr (constant_diagonal_matrix<XprType>)
       {
         if constexpr (scalar_constant<C, ConstantType::static_constant> and not one_dimensional<XprType, Qualification::depends_on_dynamic_shape>)
           return internal::scalar_constant_operation {Op{}, c, std::integral_constant<std::size_t, 2>{}}; // 2 is an arbitrary number > 1
@@ -288,7 +275,7 @@ namespace OpenKalman::Eigen3
         using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
         return internal::ScalarConstant<Qualification::unqualified, Scalar, 0>{};
       }
-      else if constexpr (detail::is_diag_v<XprType>)
+      else if constexpr (constant_diagonal_matrix<XprType>)
       {
         if constexpr (scalar_constant<C, ConstantType::static_constant> and not one_dimensional<XprType, Qualification::depends_on_dynamic_shape>)
           return internal::scalar_constant_operation {Op{}, c, std::integral_constant<std::size_t, 2>{}}; // 2 is an arbitrary number > 1
@@ -328,9 +315,9 @@ namespace OpenKalman::Eigen3
     template<typename C, typename Dim, typename Factor>
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor&) noexcept
     {
-      if constexpr (zero<XprType> or (detail::is_diag_v<XprType> and not one_dimensional<XprType, Qualification::depends_on_dynamic_shape>))
+      if constexpr (zero<XprType> or (constant_diagonal_matrix<XprType> and not one_dimensional<XprType, Qualification::depends_on_dynamic_shape>))
         return std::false_type{};
-      else if constexpr (detail::is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, dim};
+      else if constexpr (constant_diagonal_matrix<XprType>) return internal::scalar_constant_operation {Op{}, c, dim};
       else return internal::scalar_constant_operation {Op{}, c};
     }
   };
@@ -401,7 +388,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const C& c, const Dim& dim, const Factor& factor) noexcept
     {
       if constexpr (zero<XprType>) return std::integral_constant<Eigen::Index, 0>{};
-      else if constexpr (detail::is_diag_v<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
+      else if constexpr (constant_diagonal_matrix<XprType>) return internal::scalar_constant_operation {Op{}, c, factor};
       else return internal::scalar_constant_operation {Op{}, c, dim * factor};
     }
   };
@@ -428,9 +415,9 @@ namespace OpenKalman::Eigen3
     {
       using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
 
-      if constexpr (zero<XprType> or (detail::is_diag_v<XprType> and not one_dimensional<XprType, Qualification::depends_on_dynamic_shape>))
+      if constexpr (zero<XprType> or (constant_diagonal_matrix<XprType> and not one_dimensional<XprType, Qualification::depends_on_dynamic_shape>))
         return internal::ScalarConstant<Qualification::unqualified, Scalar, 0>{};
-      else if constexpr (detail::is_diag_v<XprType>)
+      else if constexpr (constant_diagonal_matrix<XprType>)
         return internal::constexpr_pow(internal::scalar_constant_operation {Op{}, c, dim}, factor);
       else
         return internal::constexpr_pow(c, dim * factor);

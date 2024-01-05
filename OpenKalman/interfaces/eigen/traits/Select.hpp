@@ -84,15 +84,14 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (constant_matrix<ConditionMatrixType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
+      if constexpr (constant_matrix<ConditionMatrixType>)
       {
         if constexpr (static_cast<bool>(constant_coefficient_v<ConditionMatrixType>))
           return constant_coefficient{arg.thenMatrix()};
         else
           return constant_coefficient{arg.elseMatrix()};
       }
-      else if constexpr (constant_matrix<ThenMatrixType, ConstantType::any, Qualification::depends_on_dynamic_shape> and
-        constant_matrix<ElseMatrixType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
+      else if constexpr (constant_matrix<ThenMatrixType> and constant_matrix<ElseMatrixType>)
       {
         if constexpr (constant_coefficient_v<ThenMatrixType> == constant_coefficient_v<ElseMatrixType>)
           return constant_coefficient{arg.thenMatrix()};
@@ -105,15 +104,14 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (constant_matrix<ConditionMatrixType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
+      if constexpr (constant_matrix<ConditionMatrixType>)
       {
         if constexpr (static_cast<bool>(constant_coefficient_v<ConditionMatrixType>))
           return constant_diagonal_coefficient{arg.thenMatrix()};
         else
           return constant_diagonal_coefficient{arg.elseMatrix()};
       }
-      else if constexpr (constant_diagonal_matrix<ThenMatrixType, ConstantType::any, Qualification::depends_on_dynamic_shape> and
-        constant_diagonal_matrix<ElseMatrixType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
+      else if constexpr (constant_diagonal_matrix<ThenMatrixType> and constant_diagonal_matrix<ElseMatrixType>)
       {
         if constexpr (constant_diagonal_coefficient_v<ThenMatrixType> == constant_diagonal_coefficient_v<ElseMatrixType>)
           return constant_diagonal_coefficient{arg.thenMatrix()};
@@ -134,12 +132,12 @@ namespace OpenKalman::interface
         OpenKalman::one_dimensional<ElseMatrixType, b>);
 
 
-    template<TriangleType t, Qualification b>
+    template<TriangleType t>
     static constexpr bool is_triangular =
       [](){
-        if constexpr (constant_matrix<ConditionMatrixType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
+        if constexpr (constant_matrix<ConditionMatrixType>)
           return triangular_matrix<std::conditional_t<static_cast<bool>(constant_coefficient_v<ConditionMatrixType>),
-            ThenMatrixType, ElseMatrixType>, t, b>;
+            ThenMatrixType, ElseMatrixType>, t>;
         else return false;
       }();
 
@@ -148,16 +146,16 @@ namespace OpenKalman::interface
 
 
     static constexpr bool is_hermitian =
-      (constant_matrix<ConditionMatrixType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape> and
+      (constant_matrix<ConditionMatrixType, ConstantType::static_constant> and
         [](){
-          if constexpr (constant_matrix<ConditionMatrixType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
+          if constexpr (constant_matrix<ConditionMatrixType>)
             return hermitian_matrix<std::conditional_t<static_cast<bool>(constant_coefficient_v<ConditionMatrixType>),
               ThenMatrixType, ElseMatrixType>, Qualification::depends_on_dynamic_shape>;
           else return false;
         }()) or
       (hermitian_matrix<ConditionMatrixType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<ThenMatrixType, Qualification::depends_on_dynamic_shape> and
         hermitian_matrix<ElseMatrixType, Qualification::depends_on_dynamic_shape> and
-        (not constant_matrix<ConditionMatrixType, ConstantType::static_constant, Qualification::depends_on_dynamic_shape>));
+        (not constant_matrix<ConditionMatrixType, ConstantType::static_constant>));
   };
 
 

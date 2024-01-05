@@ -21,15 +21,17 @@ namespace OpenKalman
 {
   /**
    * \brief Specifies that a type is a diagonal matrix.
-   * \note A \ref diagonal_adapter is unqualified a diagonal matrix, but not all diagonal matrices are diagonal adapters.
+   * \details A diagonal matrix has zero components everywhere except the main diagonal. It is not necessarily a
+   * square matrix.
+   * \note A \ref diagonal_adapter is an unqualified diagonal matrix, but not all diagonal matrices are diagonal adapters.
    */
-  template<typename T, Qualification b = Qualification::unqualified>
+  template<typename T>
 #ifdef __cpp_concepts
   concept diagonal_matrix =
 #else
   constexpr bool diagonal_matrix =
 #endif
-    triangular_matrix<T, TriangleType::diagonal, b>;
+    triangular_matrix<T, TriangleType::diagonal>;
 
 
 } // namespace OpenKalman

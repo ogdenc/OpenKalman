@@ -220,8 +220,7 @@ namespace OpenKalman
       return to_diagonal(concatenate<0>(diagonal_of(std::forward<Arg>(arg), std::forward<Args>(args)...)));
     }
     else if constexpr (sizeof...(indices) == 2 and ((indices == 0) or ...) and ((indices == 1) or ...) and
-      (triangular_matrix<Arg> and ... and triangular_matrix<Args>) and
-      ((triangular_matrix<Arg, TriangleType::upper> == triangular_matrix<Args, TriangleType::upper>) and ...))
+      (triangle_type_of_v<Arg, Args...> != TriangleType::any) and (square_shaped<Arg> and ... and square_shaped<Args>))
     {
       return make_triangular_matrix<triangle_type_of_v<Arg>>(
         concatenate<0, 1>(nested_object(std::forward<Arg>(arg)), nested_object(std::forward<Args>(args))...));

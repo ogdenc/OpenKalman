@@ -21,7 +21,7 @@ namespace OpenKalman
   /**
    * \brief Take the Cholesky square of a \ref triangular_matrix.
    * \tparam A A square matrix.
-   * \return AA<sup>T</sup> (if A is lower \ref triangular_matrix) or otherwise A<sup>T</sup>A.
+   * \return AA<sup>*</sup> (if A is lower \ref triangular_matrix) or otherwise A<sup>*</sup>A.
    */
 #ifdef __cpp_concepts
   template<triangular_matrix A>
@@ -34,7 +34,7 @@ namespace OpenKalman
   {
     if constexpr (zero<A> or identity_matrix<A>)
     {
-      return std::forward<A>(a);
+      return transpose(std::forward<A>(a));
     }
     else if constexpr (diagonal_matrix<A>)
     {
@@ -43,13 +43,21 @@ namespace OpenKalman
         else return x * x;
       }, diagonal_of(std::forward<A>(a))));
     }
-    else
+    else if constexpr (square_shaped<A>)
     {
       constexpr auto triangle_type = triangle_type_of_v<A>;
       auto prod {make_dense_object(adjoint(a))};
       constexpr bool on_the_right = triangular_matrix<A, TriangleType::upper>;
       interface::library_interface<std::decay_t<A>>::template contract_in_place<on_the_right>(prod, std::forward<A>(a));
       return SelfAdjointMatrix<decltype(prod), triangle_type> {std::move(prod)};
+    }
+    else if constexpr (triangular_matrix<A, TriangleType::upper>)
+    {
+      return contract(adjoint(a), a);
+    }
+    else
+    {
+      return contract(a, adjoint(a));
     }
   }
 

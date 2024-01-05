@@ -101,8 +101,8 @@ namespace OpenKalman::interface
         OpenKalman::one_dimensional<Arg2, b> or
         OpenKalman::one_dimensional<Arg3, b>);
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = Eigen3::FunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template is_triangular<t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = Eigen3::FunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template is_triangular<t>;
 
     static constexpr bool is_triangular_adapter = false;
 

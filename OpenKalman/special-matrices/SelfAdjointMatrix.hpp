@@ -24,8 +24,7 @@ namespace OpenKalman
     (storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper) and
     (not constant_matrix<NestedMatrix> or real_axis_number<constant_coefficient<NestedMatrix>>) and
     (not constant_diagonal_matrix<NestedMatrix> or real_axis_number<constant_diagonal_coefficient<NestedMatrix>>) and
-    (not triangular_matrix<NestedMatrix, TriangleType::any, Qualification::depends_on_dynamic_shape> or
-      triangular_matrix<NestedMatrix, static_cast<TriangleType>(storage_triangle), Qualification::depends_on_dynamic_shape>)
+    (not triangular_matrix<NestedMatrix, TriangleType::any> or triangular_matrix<NestedMatrix, static_cast<TriangleType>(storage_triangle)>)
 #else
   template<typename NestedMatrix, HermitianAdapterType storage_triangle>
 #endif
@@ -39,8 +38,7 @@ namespace OpenKalman
     static_assert(storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper);
     static_assert([]{if constexpr (constant_matrix<NestedMatrix>) return real_axis_number<constant_coefficient<NestedMatrix>>; else return true; }());
     static_assert([]{if constexpr (constant_diagonal_matrix<NestedMatrix>) return real_axis_number<constant_diagonal_coefficient<NestedMatrix>>; else return true; }());
-    static_assert(not triangular_matrix<NestedMatrix, TriangleType::any, Qualification::depends_on_dynamic_shape> or
-      triangular_matrix<NestedMatrix, static_cast<TriangleType>(storage_triangle), Qualification::depends_on_dynamic_shape>);
+    static_assert(not triangular_matrix<NestedMatrix, TriangleType::any> or triangular_matrix<NestedMatrix, static_cast<TriangleType>(storage_triangle)>);
 #endif
 
 
@@ -395,9 +393,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<triangular_matrix<TriangleType::any, Qualification::depends_on_dynamic_shape> M> requires (not hermitian_matrix<M, Qualification::depends_on_dynamic_shape>)
+  template<triangular_matrix<TriangleType::any> M> requires (not hermitian_matrix<M, Qualification::depends_on_dynamic_shape>)
 #else
-  template<typename M, std::enable_if_t<triangular_matrix<M, TriangleType::any, Qualification::depends_on_dynamic_shape> and
+  template<typename M, std::enable_if_t<triangular_matrix<M, TriangleType::any> and
     (not hermitian_matrix<M, Qualification::depends_on_dynamic_shape>), int> = 0>
 #endif
   explicit SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<
@@ -407,10 +405,10 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<indexible M> requires (not hermitian_matrix<M, Qualification::depends_on_dynamic_shape>) and
-    (not triangular_matrix<M, TriangleType::any, Qualification::depends_on_dynamic_shape>)
+    (not triangular_matrix<M, TriangleType::any>)
 #else
   template<typename M, std::enable_if_t<indexible<M> and (not hermitian_matrix<M, Qualification::depends_on_dynamic_shape>) and
-      (not triangular_matrix<M, TriangleType::any, Qualification::depends_on_dynamic_shape>), int> = 0>
+      (not triangular_matrix<M, TriangleType::any>), int> = 0>
 #endif
   explicit SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<passable_t<M>, HermitianAdapterType::lower>;
 
@@ -480,8 +478,8 @@ namespace OpenKalman
       template<Qualification b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
 
-      template<TriangleType t, Qualification>
-      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, TriangleType::diagonal, Qualification::depends_on_dynamic_shape>;
+      template<TriangleType t>
+      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, TriangleType::diagonal>;
 
       static constexpr bool is_hermitian = true;
 

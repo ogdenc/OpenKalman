@@ -19,25 +19,64 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 
 add_executable(eigen3
-        eigen-traits.test.cpp
-        eigen-nary-op-traits.test.cpp
-        eigen-vector-wise.test.cpp
-        eigen-matrix.test.cpp
-        eigen-diagonal.test.cpp
-        eigen-nary-operations.test.cpp
-        eigen-reductions.test.cpp
-        eigen-blocks.test.cpp
-        eigen-chipwise-operations.test.cpp
+        traits-tests/Array.test.cpp
+        traits-tests/ArrayWrapper.test.cpp
+        traits-tests/Block.test.cpp
+        traits-tests/CwiseBinaryOp.test.cpp
+        traits-tests/CwiseNullaryOp.test.cpp
+        traits-tests/CwiseTernaryOp.test.cpp
+        traits-tests/CwiseUnaryOp.test.cpp
+        traits-tests/CwiseUnaryView.test.cpp
+        traits-tests/Diagonal.test.cpp
+        traits-tests/DiagonalMatrix.test.cpp
+        traits-tests/DiagonalWrapper.test.cpp
+        traits-tests/Homogeneous.test.cpp
+        traits-tests/IndexedView.test.cpp
+        traits-tests/Inverse.test.cpp
+        traits-tests/Map.test.cpp
+        traits-tests/Matrix.test.cpp
+        traits-tests/MatrixWrapper.test.cpp
+        traits-tests/PartialReduxExpr.test.cpp
+        traits-tests/PermutationWrapper.test.cpp
+        traits-tests/Product.test.cpp
+        traits-tests/Ref.test.cpp
+        traits-tests/Replicate.test.cpp
+        traits-tests/Reshaped.test.cpp
+        traits-tests/Reverse.test.cpp
+        traits-tests/Select.test.cpp
+        traits-tests/SelfAdjointView.test.cpp
+        traits-tests/Solve.test.cpp
+        traits-tests/Transpose.test.cpp
+        traits-tests/TriangularView.test.cpp
+        traits-tests/VectorBlock.test.cpp
+        traits-tests/VectorWiseOp.test.cpp
 
-        transpose-adjoint-conjugate.test.cpp
-        trace.test.cpp
-        determinant.test.cpp
-        sum.test.cpp
+        LibraryWrapper.test.cpp
+        FixedSizeAdapter.test.cpp
 
-        eigen-contract.test.cpp
-        eigen-rank-update.test.cpp
-        eigen-solve.test.cpp
-        eigen-decomposition.test.cpp
+        constant-objects.test.cpp
+        constant-diagonal-objects.test.cpp
+        shape-traits.test.cpp
+        special-matrix-traits.test.cpp
+
+        function-tests/property-functions.test.cpp
+        function-tests/make-functions.test.cpp
+
+        function-tests/eigen-diagonal.test.cpp
+        function-tests/eigen-nary-operations.test.cpp
+        function-tests/eigen-reductions.test.cpp
+        function-tests/eigen-blocks.test.cpp
+        function-tests/eigen-chipwise-operations.test.cpp
+
+        function-tests/transpose-adjoint-conjugate.test.cpp
+        function-tests/trace.test.cpp
+        function-tests/determinant.test.cpp
+        function-tests/sum.test.cpp
+
+        function-tests/eigen-contract.test.cpp
+        function-tests/eigen-rank-update.test.cpp
+        function-tests/eigen-solve.test.cpp
+        function-tests/eigen-decomposition.test.cpp
     )
 
 target_link_libraries(eigen3 ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)

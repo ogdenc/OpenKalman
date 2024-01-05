@@ -23,7 +23,7 @@
 #include "indexible_object_traits_base.hpp"
 #include "eigen-library-interface.hpp"
 
-#include "functors/nullary.hpp"
+#include "functors/NullaryFunctorTraits.hpp"
 #include "functors/unary.hpp"
 #include "functors/binary.hpp"
 

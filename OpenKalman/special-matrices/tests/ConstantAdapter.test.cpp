@@ -60,7 +60,7 @@ TEST(special_matrices, ConstantAdapter_traits)
   static_assert(not constant_matrix<ConstantAdapter<M22>, ConstantType::static_constant>);
 
   static_assert(constant_diagonal_matrix<ZA33>);
-  static_assert(not constant_diagonal_matrix<ZA31, ConstantType::any, Qualification::depends_on_dynamic_shape>);
+  static_assert(not constant_diagonal_matrix<ZA31>);
 
   static_assert(zero<ConstantAdapter<M22, double, 0>>);
   static_assert(zero<ConstantAdapter<Mxx, double, 0>>);

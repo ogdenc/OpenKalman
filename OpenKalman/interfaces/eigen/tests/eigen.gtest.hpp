@@ -94,102 +94,111 @@ namespace OpenKalman::test
 
   };
 
-  using Mxx = eigen_matrix_t<double, dynamic_size, dynamic_size>;
-  using Mx0 = eigen_matrix_t<double, dynamic_size, 0>;
-  using Mx1 = eigen_matrix_t<double, dynamic_size, 1>;
-  using Mx2 = eigen_matrix_t<double, dynamic_size, 2>;
-  using Mx3 = eigen_matrix_t<double, dynamic_size, 3>;
-  using Mx4 = eigen_matrix_t<double, dynamic_size, 4>;
-  using Mx5 = eigen_matrix_t<double, dynamic_size, 5>;
+  using Mxx = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>;
+  using Mx0 = Eigen::Matrix<double, Eigen::Dynamic, 0>;
+  using Mx1 = Eigen::Matrix<double, Eigen::Dynamic, 1>;
+  using Mx2 = Eigen::Matrix<double, Eigen::Dynamic, 2>;
+  using Mx3 = Eigen::Matrix<double, Eigen::Dynamic, 3>;
+  using Mx4 = Eigen::Matrix<double, Eigen::Dynamic, 4>;
+  using Mx5 = Eigen::Matrix<double, Eigen::Dynamic, 5>;
 
-  using M0x = eigen_matrix_t<double, 0, dynamic_size>;
-  using M00 = eigen_matrix_t<double, 0, 0>;
-  using M01 = eigen_matrix_t<double, 0, 1>;
-  using M02 = eigen_matrix_t<double, 0, 2>;
-  using M03 = eigen_matrix_t<double, 0, 3>;
-  using M04 = eigen_matrix_t<double, 0, 4>;
+  using M0x = Eigen::Matrix<double, 0, Eigen::Dynamic>;
+  using M00 = Eigen::Matrix<double, 0, 0>;
+  using M01 = Eigen::Matrix<double, 0, 1>;
+  using M02 = Eigen::Matrix<double, 0, 2>;
+  using M03 = Eigen::Matrix<double, 0, 3>;
+  using M04 = Eigen::Matrix<double, 0, 4>;
 
-  using M1x = eigen_matrix_t<double, 1, dynamic_size>;
-  using M10 = eigen_matrix_t<double, 1, 0>;
-  using M11 = eigen_matrix_t<double, 1, 1>;
-  using M12 = eigen_matrix_t<double, 1, 2>;
-  using M13 = eigen_matrix_t<double, 1, 3>;
-  using M14 = eigen_matrix_t<double, 1, 4>;
+  using M1x = Eigen::Matrix<double, 1, Eigen::Dynamic>;
+  using M10 = Eigen::Matrix<double, 1, 0>;
+  using M11 = Eigen::Matrix<double, 1, 1>;
+  using M12 = Eigen::Matrix<double, 1, 2>;
+  using M13 = Eigen::Matrix<double, 1, 3>;
+  using M14 = Eigen::Matrix<double, 1, 4>;
 
-  using M2x = eigen_matrix_t<double, 2, dynamic_size>;
-  using M20 = eigen_matrix_t<double, 2, 0>;
-  using M21 = eigen_matrix_t<double, 2, 1>;
-  using M22 = eigen_matrix_t<double, 2, 2>;
-  using M23 = eigen_matrix_t<double, 2, 3>;
-  using M24 = eigen_matrix_t<double, 2, 4>;
+  using M2x = Eigen::Matrix<double, 2, Eigen::Dynamic>;
+  using M20 = Eigen::Matrix<double, 2, 0>;
+  using M21 = Eigen::Matrix<double, 2, 1>;
+  using M22 = Eigen::Matrix<double, 2, 2>;
+  using M23 = Eigen::Matrix<double, 2, 3>;
+  using M24 = Eigen::Matrix<double, 2, 4>;
 
-  using M3x = eigen_matrix_t<double, 3, dynamic_size>;
-  using M30 = eigen_matrix_t<double, 3, 0>;
-  using M31 = eigen_matrix_t<double, 3, 1>;
-  using M32 = eigen_matrix_t<double, 3, 2>;
-  using M33 = eigen_matrix_t<double, 3, 3>;
-  using M34 = eigen_matrix_t<double, 3, 4>;
+  using M3x = Eigen::Matrix<double, 3, Eigen::Dynamic>;
+  using M30 = Eigen::Matrix<double, 3, 0>;
+  using M31 = Eigen::Matrix<double, 3, 1>;
+  using M32 = Eigen::Matrix<double, 3, 2>;
+  using M33 = Eigen::Matrix<double, 3, 3>;
+  using M34 = Eigen::Matrix<double, 3, 4>;
 
-  using M4x = eigen_matrix_t<double, 4, dynamic_size>;
-  using M40 = eigen_matrix_t<double, 4, 0>;
-  using M41 = eigen_matrix_t<double, 4, 1>;
-  using M42 = eigen_matrix_t<double, 4, 2>;
-  using M43 = eigen_matrix_t<double, 4, 3>;
-  using M44 = eigen_matrix_t<double, 4, 4>;
-  using M45 = eigen_matrix_t<double, 4, 5>;
+  using M4x = Eigen::Matrix<double, 4, Eigen::Dynamic>;
+  using M40 = Eigen::Matrix<double, 4, 0>;
+  using M41 = Eigen::Matrix<double, 4, 1>;
+  using M42 = Eigen::Matrix<double, 4, 2>;
+  using M43 = Eigen::Matrix<double, 4, 3>;
+  using M44 = Eigen::Matrix<double, 4, 4>;
+  using M45 = Eigen::Matrix<double, 4, 5>;
 
-  using M5x = eigen_matrix_t<double, 5, dynamic_size>;
-  using M50 = eigen_matrix_t<double, 5, 0>;
-  using M51 = eigen_matrix_t<double, 5, 1>;
-  using M52 = eigen_matrix_t<double, 5, 2>;
-  using M53 = eigen_matrix_t<double, 5, 3>;
-  using M54 = eigen_matrix_t<double, 5, 4>;
-  using M55 = eigen_matrix_t<double, 5, 5>;
+  using M5x = Eigen::Matrix<double, 5, Eigen::Dynamic>;
+  using M50 = Eigen::Matrix<double, 5, 0>;
+  using M51 = Eigen::Matrix<double, 5, 1>;
+  using M52 = Eigen::Matrix<double, 5, 2>;
+  using M53 = Eigen::Matrix<double, 5, 3>;
+  using M54 = Eigen::Matrix<double, 5, 4>;
+  using M55 = Eigen::Matrix<double, 5, 5>;
 
   using cdouble = std::complex<double>;
 
-  using CM11 = eigen_matrix_t<cdouble, 1, 1>;
-  using CM22 = eigen_matrix_t<cdouble, 2, 2>;
-  using CM23 = eigen_matrix_t<cdouble, 2, 3>;
-  using CM33 = eigen_matrix_t<cdouble, 3, 3>;
-  using CM32 = eigen_matrix_t<cdouble, 3, 2>;
-  using CM34 = eigen_matrix_t<cdouble, 3, 4>;
-  using CM43 = eigen_matrix_t<cdouble, 4, 3>;
+  using CM11 = Eigen::Matrix<cdouble, 1, 1>;
+  using CM22 = Eigen::Matrix<cdouble, 2, 2>;
+  using CM23 = Eigen::Matrix<cdouble, 2, 3>;
+  using CM33 = Eigen::Matrix<cdouble, 3, 3>;
+  using CM32 = Eigen::Matrix<cdouble, 3, 2>;
+  using CM34 = Eigen::Matrix<cdouble, 3, 4>;
+  using CM43 = Eigen::Matrix<cdouble, 4, 3>;
 
-  using CM2x = eigen_matrix_t<cdouble, 2, dynamic_size>;
-  using CMx2 = eigen_matrix_t<cdouble, dynamic_size, 2>;
-  using CMxx = eigen_matrix_t<cdouble, dynamic_size, dynamic_size>;
+  using CM2x = Eigen::Matrix<cdouble, 2, Eigen::Dynamic>;
+  using CMx2 = Eigen::Matrix<cdouble, Eigen::Dynamic, 2>;
+  using CMxx = Eigen::Matrix<cdouble, Eigen::Dynamic, Eigen::Dynamic>;
 
-  using A11 = Eigen::Array<double, 1, 1>; static_assert(one_dimensional<A11>);
-  using A1x = Eigen::Array<double, 1, Eigen::Dynamic>;
+  using Axx = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic>;
   using Ax1 = Eigen::Array<double, Eigen::Dynamic, 1>;
-  using Axx = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic>;
-
-  using A22 = Eigen::Array<double, 2, 2>;
-  using A2x = Eigen::Array<double, 2, Eigen::Dynamic>;
+  using Ax1 = Eigen::Array<double, Eigen::Dynamic, 1>;
   using Ax2 = Eigen::Array<double, Eigen::Dynamic, 2>;
-  using Axx = Eigen::Array<double, Eigen::Dynamic, Eigen::Dynamic>;
+
+  using A1x = Eigen::Array<double, 1, Eigen::Dynamic>;
+  using A11 = Eigen::Array<double, 1, 1>; static_assert(one_dimensional<A11>);
+  using A12 = Eigen::Array<double, 1, 2>;
+
+  using A2x = Eigen::Array<double, 2, Eigen::Dynamic>;
+  using A21 = Eigen::Array<double, 2, 1>;
+  using A22 = Eigen::Array<double, 2, 2>;
+  using A23 = Eigen::Array<double, 2, 3>;
 
   using CA22 = Eigen::Array<cdouble, 2, 2>;
 
-  using I11 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A11>; static_assert(constant_coefficient_v<I11> == 1);
-  static_assert(one_dimensional<I11, Qualification::depends_on_dynamic_shape>);
-  using I1x = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A1x>; static_assert(constant_coefficient_v<I1x> == 1);
-  using Ix1 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, Ax1>; static_assert(constant_coefficient_v<Ix1> == 1);
-  using Ixx = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, Axx>; static_assert(constant_coefficient_v<Ixx> == 1);
-  using I22 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A22>;
+  using Ixx = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, Axx>;
+  using Ix1 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, Ax1>;
+  using Ix2 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, Ax2>;
+
+  using I1x = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A1x>;
+  using I11 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A11>;
+  using I12 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A12>;
+
   using I2x = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A2x>;
+  using I21 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A21>;
+  using I22 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A22>;
+  using I23 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A23>;
 
   using Z11 = decltype(std::declval<I11>() - std::declval<I11>());
   using Z22 = decltype(std::declval<I22>() - std::declval<I22>());
-  using Z21 = Eigen::Replicate<Z11, 2, 1>;
-  using Z23 = Eigen::Replicate<Z11, 2, 3>;
-  using Z12 = Eigen::Replicate<Z11, 1, 2>;
-  using Z2x = Eigen::Replicate<Z11, 2, Eigen::Dynamic>;
-  using Zx2 = Eigen::Replicate<Z11, Eigen::Dynamic, 2>;
-  using Zxx = Eigen::Replicate<Z11, Eigen::Dynamic, Eigen::Dynamic>;
-  using Z1x = Eigen::Replicate<Z11, 1, Eigen::Dynamic>;
-  using Zx1 = Eigen::Replicate<Z11, Eigen::Dynamic, 1>;
+  using Z21 = decltype(std::declval<I21>() - std::declval<I21>());
+  using Z23 = decltype(std::declval<I23>() - std::declval<I23>());
+  using Z12 = decltype(std::declval<I12>() - std::declval<I12>());
+  using Z2x = decltype(std::declval<I2x>() - std::declval<I2x>());
+  using Zx2 = decltype(std::declval<Ix2>() - std::declval<Ix2>());
+  using Zxx = decltype(std::declval<Ixx>() - std::declval<Ixx>());
+  using Z1x = decltype(std::declval<I1x>() - std::declval<I1x>());
+  using Zx1 = decltype(std::declval<Ix1>() - std::declval<Ix1>());
 
   using C11_1 = I11;
   using C22_1 = Eigen::Replicate<C11_1, 2, 2>;
@@ -243,24 +252,24 @@ namespace OpenKalman::test
   using BI22 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<bool>, B22>;
 
   using Cd22_2 = decltype(std::declval<I22>() + std::declval<I22>());
-  using Cd2x_2 = Eigen::Replicate<Cd22_2, 1, Eigen::Dynamic>;
-  using Cdx2_2 = Eigen::Replicate<Cd22_2, Eigen::Dynamic, 1>;
-  using Cdxx_2 = Eigen::Replicate<Cd22_2, Eigen::Dynamic, Eigen::Dynamic>;
+  using Cd2x_2 = decltype(std::declval<I2x>() + std::declval<I2x>());
+  using Cdx2_2 = decltype(std::declval<Ix2>() + std::declval<Ix2>());
+  using Cdxx_2 = decltype(std::declval<Ixx>() + std::declval<Ixx>());
 
   using Cd22_3 = decltype(std::declval<I22>() + std::declval<I22>() + std::declval<I22>());
-  using Cd2x_3 = Eigen::Replicate<Cd22_3, 1, Eigen::Dynamic>;
-  using Cdx2_3 = Eigen::Replicate<Cd22_3, Eigen::Dynamic, 1>;
-  using Cdxx_3 = Eigen::Replicate<Cd22_3, Eigen::Dynamic, Eigen::Dynamic>;
+  using Cd2x_3 = decltype(std::declval<I2x>() + std::declval<I2x>() + std::declval<I2x>());
+  using Cdx2_3 = decltype(std::declval<Ix2>() + std::declval<Ix2>() + std::declval<Ix2>());
+  using Cdxx_3 = decltype(std::declval<Ixx>() + std::declval<Ixx>() + std::declval<Ixx>());
 
   using Cd22_m1 = decltype(-std::declval<I22>());
-  using Cd2x_m1 = Eigen::Replicate<Cd22_m1, 1, Eigen::Dynamic>;
-  using Cdx2_m1 = Eigen::Replicate<Cd22_m1, Eigen::Dynamic, 1>;
-  using Cdxx_m1 = Eigen::Replicate<Cd22_m1, Eigen::Dynamic, Eigen::Dynamic>;
+  using Cd2x_m1 = decltype(-std::declval<I2x>());
+  using Cdx2_m1 = decltype(-std::declval<Ix2>());
+  using Cdxx_m1 = decltype(-std::declval<Ixx>());
 
   using Cd22_m2 = decltype(-std::declval<Cd22_2>());
-  using Cd2x_m2 = Eigen::Replicate<Cd22_m2, 1, Eigen::Dynamic>;
-  using Cdx2_m2 = Eigen::Replicate<Cd22_m2, Eigen::Dynamic, 1>;
-  using Cdxx_m2 = Eigen::Replicate<Cd22_m2, Eigen::Dynamic, Eigen::Dynamic>;
+  using Cd2x_m2 = decltype(-std::declval<Cd2x_2>());
+  using Cdx2_m2 = decltype(-std::declval<Cdx2_2>());
+  using Cdxx_m2 = decltype(-std::declval<Cdxx_2>());
 
   using DM2 = Eigen3::EigenWrapper<Eigen::DiagonalMatrix<double, 2>>;
   using DMx = Eigen3::EigenWrapper<Eigen::DiagonalMatrix<double, Eigen::Dynamic>>;

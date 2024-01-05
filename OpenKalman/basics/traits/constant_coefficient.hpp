@@ -26,18 +26,14 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename T>
     concept known_constant = interface::get_constant_defined_for<T, ConstantType::static_constant> or
-      (interface::get_constant_diagonal_defined_for<T, ConstantType::static_constant> and
-        (one_dimensional<T, Qualification::depends_on_dynamic_shape> or requires(T t) {
-          requires internal::are_within_tolerance(std::decay_t<decltype(interface::indexible_object_traits<std::decay_t<T>>::get_constant_diagonal(t))>::value, 0);
-        }));
+      (interface::get_constant_diagonal_defined_for<T, ConstantType::static_constant> and (one_dimensional<T> or zero<T>));
 #else
     template<typename T, typename = void>
     struct known_constant_impl : std::false_type {};
 
     template<typename T>
     struct known_constant_impl<T, std::enable_if_t<interface::get_constant_diagonal_defined_for<T, ConstantType::static_constant>>>
-      : std::bool_constant<one_dimensional<T, Qualification::depends_on_dynamic_shape> or internal::are_within_tolerance(
-          std::decay_t<decltype(interface::indexible_object_traits<std::decay_t<T>>::get_constant_diagonal(std::declval<T>()))>::value, 0)> {};
+      : std::bool_constant<one_dimensional<T> or zero<T>> {};
 
     template<typename T>
     constexpr bool known_constant = interface::get_constant_defined_for<T, ConstantType::static_constant> or known_constant_impl<T>::value;

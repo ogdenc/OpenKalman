@@ -28,9 +28,9 @@ namespace OpenKalman
   template<typename T, typename...Ts>
   struct triangle_type_of
     : std::integral_constant<TriangleType,
-      (triangular_matrix<T, TriangleType::diagonal, Qualification::depends_on_dynamic_shape> and ... and triangular_matrix<Ts, TriangleType::diagonal, Qualification::depends_on_dynamic_shape>) ? TriangleType::diagonal :
-      (triangular_matrix<T, TriangleType::lower, Qualification::depends_on_dynamic_shape> and ... and triangular_matrix<Ts, TriangleType::lower, Qualification::depends_on_dynamic_shape>) ? TriangleType::lower :
-      (triangular_matrix<T, TriangleType::upper, Qualification::depends_on_dynamic_shape> and ... and triangular_matrix<Ts, TriangleType::upper, Qualification::depends_on_dynamic_shape>) ? TriangleType::upper :
+      (triangular_matrix<T, TriangleType::diagonal> and ... and triangular_matrix<Ts, TriangleType::diagonal>) ? TriangleType::diagonal :
+      (triangular_matrix<T, TriangleType::lower> and ... and triangular_matrix<Ts, TriangleType::lower>) ? TriangleType::lower :
+      (triangular_matrix<T, TriangleType::upper> and ... and triangular_matrix<Ts, TriangleType::upper>) ? TriangleType::upper :
       TriangleType::any> {};
 
 

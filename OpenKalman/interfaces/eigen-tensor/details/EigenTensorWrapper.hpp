@@ -225,8 +225,8 @@ namespace OpenKalman
       static constexpr bool is_square = square_shaped<NestedMatrix, b>;
 
 
-      template<TriangleType t, Qualification b>
-      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, t, b>;
+      template<TriangleType t>
+      static constexpr bool is_triangular = triangular_matrix<NestedMatrix, t>;
 
 
       static constexpr bool is_triangular_adapter = false;

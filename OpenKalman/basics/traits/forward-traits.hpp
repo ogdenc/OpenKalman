@@ -42,13 +42,14 @@
 #include "nested_object_of.hpp"
 #include "self_contained.hpp"
 
-#include "constant_matrix.hpp"
-#include "constant_diagonal_matrix.hpp"
-#include "identity_matrix.hpp"
-#include "zero.hpp"
-#include "empty_object.hpp"
 #include "one_dimensional.hpp"
 #include "square_shaped.hpp"
+#include "empty_object.hpp"
+
+#include "constant_matrix.hpp"
+#include "constant_diagonal_matrix.hpp"
+#include "zero.hpp"
+#include "identity_matrix.hpp"
 
 #include "triangular_matrix.hpp"
 #include "triangle_type_of.hpp"

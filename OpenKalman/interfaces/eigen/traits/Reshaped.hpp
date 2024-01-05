@@ -119,7 +119,7 @@ namespace OpenKalman::interface
       }
       else if constexpr (((Rows == Eigen::Dynamic and Cols == Eigen::Dynamic) or
         (XprType::RowsAtCompileTime == Eigen::Dynamic and XprType::ColsAtCompileTime == Eigen::Dynamic)) and
-        constant_diagonal_matrix<XprType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
+        constant_diagonal_matrix<XprType>)
       {
         constant_diagonal_coefficient cd {arg.nestedExpression()};
         return internal::ScalarConstant<Qualification::depends_on_dynamic_shape, std::decay_t<decltype(cd)>> {cd};
@@ -144,8 +144,8 @@ namespace OpenKalman::interface
       (Rows == Eigen::Dynamic or xprtypemax == 0 or (Rows * Rows) % xprtypemax == 0) and
       (Cols == Eigen::Dynamic or xprtypemax == 0 or (Cols * Cols) % xprtypemax == 0);
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = triangular_matrix<XprType, t, b> and
+    template<TriangleType t>
+    static constexpr bool is_triangular = triangular_matrix<XprType, t> and
       (Rows == index_dimension_of_v<XprType, 0> or Rows == index_dimension_of_v<XprType, 1> or
         Cols == index_dimension_of_v<XprType, 1> or Cols == index_dimension_of_v<XprType, 0> or
         (Rows != Eigen::Dynamic and Rows == Cols));

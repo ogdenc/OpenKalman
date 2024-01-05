@@ -196,8 +196,7 @@ namespace OpenKalman
     (storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper) and
     (not constant_matrix<NestedMatrix> or real_axis_number<constant_coefficient<NestedMatrix>>) and
     (not constant_diagonal_matrix<NestedMatrix> or real_axis_number<constant_diagonal_coefficient<NestedMatrix>>) and
-    (not triangular_matrix<NestedMatrix, TriangleType::any, Qualification::depends_on_dynamic_shape> or
-      triangular_matrix<NestedMatrix, static_cast<TriangleType>(storage_triangle), Qualification::depends_on_dynamic_shape>)
+    (not triangular_matrix<NestedMatrix, TriangleType::any> or triangular_matrix<NestedMatrix, static_cast<TriangleType>(storage_triangle)>)
 #else
   template<typename NestedMatrix, HermitianAdapterType storage_triangle =
     triangular_matrix<NestedMatrix, TriangleType::diagonal> ? HermitianAdapterType::lower :
@@ -232,18 +231,16 @@ namespace OpenKalman
   // ----------------------------------------- //
 
   /**
-   * \brief A triangular matrix.
-   * \details The matrix is guaranteed to be triangular. It is ::self_contained iff NestedMatrix is ::self_contained.
-   * It may \em also be a diagonal matrix if triangle_type is TriangleType::diagonal.
+   * \brief A \ref triangular_adapter, where components above or below the diagonal (or both) are zero.
+   * \details The matrix may be a diagonal matrix if triangle_type is TriangleType::diagonal.
    * Implicit conversions are available from any \ref triangular_matrix of compatible size.
-   * \tparam NestedMatrix A nested \ref square_shaped expression, on which the triangular matrix is based.
+   * \tparam NestedMatrix A nested matrix on which the triangular matrix is based. Components above or below the diagonal
+   * (or both) are ignored and will read as zero.
    * \tparam triangle_type The TriangleType (\ref TriangleType::lower "lower", \ref TriangleType::upper "upper", or
    * \ref TriangleType::diagonal "diagonal") in which the data is stored.
-   * Matrix elements outside this triangle/diagonal are ignored. Instead, 0 is automatically mapped to each element
-   * not within the selected triangle or diagonal, to ensure that the matrix is triangular.
    */
 #ifdef __cpp_concepts
-  template<square_shaped<Qualification::depends_on_dynamic_shape> NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
+  template<indexible NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
       (triangular_matrix<NestedMatrix, TriangleType::upper> ? TriangleType::upper : TriangleType::lower))>
     requires (index_count_v<NestedMatrix> <= 2)
 #else

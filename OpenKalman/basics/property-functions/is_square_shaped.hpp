@@ -43,7 +43,7 @@ namespace OpenKalman
       else
         return std::optional<decltype(dim_bestI)> {};
     }
-  }
+  } // namespace detail
 
 
   /**

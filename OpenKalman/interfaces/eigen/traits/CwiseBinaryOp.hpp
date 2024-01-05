@@ -97,8 +97,8 @@ namespace OpenKalman::interface
       (b != Qualification::unqualified or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsType, RhsType>> or
         square_shaped<LhsType, b> or square_shaped<RhsType, b>);
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = Eigen3::FunctorTraits<BinaryOp, LhsType, RhsType>::template is_triangular<t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = Eigen3::FunctorTraits<BinaryOp, LhsType, RhsType>::template is_triangular<t>;
 
     static constexpr bool is_triangular_adapter = false;
 

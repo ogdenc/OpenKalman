@@ -43,7 +43,7 @@ namespace OpenKalman::Eigen3
       return std::monostate {};
     }
 
-    template<TriangleType t, Qualification b>
+    template<TriangleType t>
     static constexpr bool is_triangular = false;
 
     static constexpr bool is_hermitian = false;

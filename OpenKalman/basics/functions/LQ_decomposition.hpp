@@ -20,12 +20,12 @@ namespace OpenKalman
 {
   /**
    * \brief Perform an LQ decomposition of matrix A=[L,0]Q, L is a lower-triangular matrix, and Q is orthogonal.
-   * \tparam A The matrix to be decomposed
-   * \returns L as a lower \ref triangular_matrix
+   * \tparam A The matrix to be decomposed satisfying <code>triangular_matrix<A, TriangleType::lower></code>
+   * \returns L as a lower \ref triangular_matrix which is also \ref square_shaped
    */
 #ifdef __cpp_concepts
   template<indexible A> requires (not euclidean_transformed<A>)
-  constexpr triangular_matrix<TriangleType::lower, Qualification::depends_on_dynamic_shape> decltype(auto)
+  constexpr triangular_matrix<TriangleType::lower> decltype(auto)
 #else
   template<typename A, std::enable_if_t<indexible<A> and (not euclidean_transformed<A>), int> = 0>
   constexpr decltype(auto)
@@ -34,12 +34,7 @@ namespace OpenKalman
   {
     if constexpr (triangular_matrix<A, TriangleType::lower>)
     {
-      return std::forward<A>(a);
-    }
-    else if constexpr (zero<A>)
-    {
-      auto dim = get_vector_space_descriptor<0>(a);
-      return make_zero<A>(dim, dim);
+      return internal::clip_square_shaped(std::forward<A>(a));
     }
     else if constexpr (constant_matrix<A>)
     {
@@ -94,7 +89,7 @@ namespace OpenKalman
       }(std::forward<A>(a));
       using Ret = decltype(ret);
 
-      static_assert(triangular_matrix<Ret, TriangleType::lower, Qualification::depends_on_dynamic_shape>,
+      static_assert(triangular_matrix<Ret, TriangleType::lower>,
         "Interface implementation error: interface::library_interface<T>::LQ_decomposition must return a lower triangular_matrix.");
 
       // \todo Fix this:

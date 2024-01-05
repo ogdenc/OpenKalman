@@ -92,7 +92,7 @@ namespace OpenKalman
       static constexpr bool is_square = true;
 
 
-      template<TriangleType t, Qualification b>
+      template<TriangleType t>
       static constexpr bool is_triangular = true;
 
 

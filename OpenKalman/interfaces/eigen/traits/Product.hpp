@@ -79,16 +79,14 @@ namespace OpenKalman::interface
       {
         return constant_coefficient{arg.rhs()};
       }
-      else if constexpr (constant_diagonal_matrix<LhsType, ConstantType::any, Qualification::depends_on_dynamic_shape> and
-        constant_matrix<RhsType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
+      else if constexpr (constant_diagonal_matrix<LhsType> and constant_matrix<RhsType>)
       {
         return internal::scalar_constant_operation {
           std::multiplies<>{},
           constant_diagonal_coefficient{arg.lhs()},
           constant_coefficient{arg.rhs()}};
       }
-      else if constexpr (constant_matrix<LhsType, ConstantType::any, Qualification::depends_on_dynamic_shape> and
-        constant_diagonal_matrix<RhsType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
+      else if constexpr (constant_matrix<LhsType> and constant_diagonal_matrix<RhsType>)
       {
         return internal::scalar_constant_operation {
           std::multiplies<>{},
@@ -131,8 +129,8 @@ namespace OpenKalman::interface
     }
 
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = triangular_matrix<LhsType, t, b> and triangular_matrix<RhsType, t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = triangular_matrix<LhsType, t> and triangular_matrix<RhsType, t>;
 
 
     static constexpr bool is_triangular_adapter = false;
@@ -140,10 +138,10 @@ namespace OpenKalman::interface
 
     /// A constant diagonal matrix times a hermitian matrix (or vice versa) is hermitian.
     static constexpr bool is_hermitian =
-      (constant_diagonal_matrix<LhsType, ConstantType::any, Qualification::depends_on_dynamic_shape> and
+      (constant_diagonal_matrix<LhsType> and
         (not complex_number<scalar_type_of_t<LhsType>> or real_axis_number<constant_diagonal_coefficient<LhsType>>) and
         hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>) or
-      (constant_diagonal_matrix<RhsType, ConstantType::any, Qualification::depends_on_dynamic_shape> and
+      (constant_diagonal_matrix<RhsType> and
         (not complex_number<scalar_type_of_t<RhsType>> or real_axis_number<constant_diagonal_coefficient<RhsType>>) and
         hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape>);
 

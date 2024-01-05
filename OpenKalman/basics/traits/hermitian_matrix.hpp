@@ -22,11 +22,11 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, Qualification b, typename = void>
+    template<typename T, typename = void>
     struct is_inferred_hermitian_matrix : std::false_type {};
 
-    template<typename T, Qualification b>
-    struct is_inferred_hermitian_matrix<T, b, std::enable_if_t<not complex_number<typename scalar_type_of<T>::type> or
+    template<typename T>
+    struct is_inferred_hermitian_matrix<T, std::enable_if_t<not complex_number<typename scalar_type_of<T>::type> or
       zero<T> or real_axis_number<constant_coefficient<T>> or real_axis_number<constant_diagonal_coefficient<T>>>>
       : std::true_type {};
   };
@@ -34,21 +34,21 @@ namespace OpenKalman
 
 
   /**
-   * \brief Specifies that a type is a hermitian matrix (assuming it is a \ref square_shaped).
+   * \brief Specifies that a type is a hermitian matrix (assuming it is \ref square_shaped).
    * \tparam T A matrix or tensor.
    * \tparam b Whether T must be known to be a square matrix at compile time.
    */
   template<typename T, Qualification b = Qualification::unqualified>
 #ifdef __cpp_concepts
-  concept hermitian_matrix = indexible<T> and
-    ((interface::indexible_object_traits<std::decay_t<T>>::is_hermitian and square_shaped<T, b>) or
-      (((constant_matrix<T, ConstantType::any, b> and square_shaped<T, b>) or diagonal_matrix<T, b>) and
+  concept hermitian_matrix = indexible<T> and square_shaped<T, b> and
+    (interface::indexible_object_traits<std::decay_t<T>>::is_hermitian or
+      ((constant_matrix<T, ConstantType::any> or diagonal_matrix<T>) and
       (not complex_number<scalar_type_of_t<T>> or zero<T> or
           real_axis_number<constant_coefficient<T>> or real_axis_number<constant_diagonal_coefficient<T>>)));
 #else
-  constexpr bool hermitian_matrix = (interface::is_explicitly_hermitian<T>::value and square_shaped<T, b>) or
-    (((constant_matrix<T, ConstantType::any, b> and square_shaped<T, b>) or diagonal_matrix<T, b>) and
-      detail::is_inferred_hermitian_matrix<T, b>::value);
+  constexpr bool hermitian_matrix = square_shaped<T, b> and
+    (interface::is_explicitly_hermitian<T>::value or
+      ((constant_matrix<T, ConstantType::any> or diagonal_matrix<T>) and detail::is_inferred_hermitian_matrix<T>::value));
 #endif
 
 

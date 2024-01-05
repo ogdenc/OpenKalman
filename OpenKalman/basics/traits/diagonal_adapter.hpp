@@ -22,12 +22,12 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, Qualification b, typename = void>
+    template<typename T, typename = void>
     struct nested_is_vector : std::false_type {};
 
-    template<typename T, Qualification b>
-    struct nested_is_vector<T, b, std::enable_if_t<has_nested_object<T>>>
-      : std::bool_constant<vector<nested_object_of_t<T>, 0, b>> {};
+    template<typename T>
+    struct nested_is_vector<T, std::enable_if_t<has_nested_object<T>>>
+      : std::bool_constant<vector<nested_object_of_t<T>, 0>> {};
   } // namespace detail
 #endif
 
@@ -38,13 +38,12 @@ namespace OpenKalman
    * Components outside the diagonal are zero.
    * \tparam T A matrix or tensor.
    */
-  template<typename T, Qualification b = Qualification::unqualified>
+  template<typename T>
 #ifdef __cpp_concepts
-  concept diagonal_adapter = interface::indexible_object_traits<std::decay_t<T>>::template is_triangular<TriangleType::diagonal, b> and
-    vector<nested_object_of_t<T>, 0, b>;
+  concept diagonal_adapter = interface::indexible_object_traits<std::decay_t<T>>::template is_triangular<TriangleType::diagonal> and
+    vector<nested_object_of_t<T>, 0>;
 #else
-  constexpr bool diagonal_adapter = interface::is_explicitly_triangular<T, TriangleType::diagonal, b>::value and
-      detail::nested_is_vector<T, b>::value;
+  constexpr bool diagonal_adapter = interface::is_explicitly_triangular<T, TriangleType::diagonal>::value and detail::nested_is_vector<T>::value;
 #endif
 
 

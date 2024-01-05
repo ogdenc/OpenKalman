@@ -85,8 +85,8 @@ namespace OpenKalman::interface
     static constexpr bool is_square = square_shaped<NestedObject, b>;
 
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = triangular_matrix<NestedObject, t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = triangular_matrix<NestedObject, t>;
 
 
     static constexpr bool is_triangular_adapter = false;

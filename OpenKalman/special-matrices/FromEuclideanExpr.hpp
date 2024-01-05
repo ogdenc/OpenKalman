@@ -363,8 +363,8 @@ namespace OpenKalman
       static constexpr bool one_dimensional = euclidean_vector_space_descriptor<TypedIndex> and OpenKalman::one_dimensional<NestedMatrix, b>;
 
 
-      template<TriangleType t, Qualification b>
-      static constexpr bool is_triangular = euclidean_vector_space_descriptor<TypedIndex> and triangular_matrix<NestedMatrix, t, b>;
+      template<TriangleType t>
+      static constexpr bool is_triangular = euclidean_vector_space_descriptor<TypedIndex> and triangular_matrix<NestedMatrix, t>;
 
 
       static constexpr bool is_triangular_adapter = false;

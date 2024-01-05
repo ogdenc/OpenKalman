@@ -67,9 +67,8 @@ namespace OpenKalman::interface
       {
         return constant_diagonal_coefficient {arg.nestedExpression()};
       }
-      else if constexpr ((RowFactor == 1 or RowFactor == Eigen::Dynamic) and
-        (ColFactor == 1 or ColFactor == Eigen::Dynamic) and
-        constant_diagonal_matrix<MatrixType, ConstantType::any, Qualification::depends_on_dynamic_shape>)
+      else if constexpr ((RowFactor == 1 or RowFactor == Eigen::Dynamic) and (ColFactor == 1 or ColFactor == Eigen::Dynamic) and
+        constant_diagonal_matrix<MatrixType>)
       {
         constant_diagonal_coefficient cd {arg.nestedExpression()};
         return internal::ScalarConstant<Qualification::depends_on_dynamic_shape, std::decay_t<decltype(cd)>> {cd};
@@ -95,8 +94,10 @@ namespace OpenKalman::interface
         ((RowFactor == Eigen::Dynamic or index_dimension_of_v<MatrixType, 0> * RowFactor % index_dimension_of_v<MatrixType, 1> == 0) and
         (ColFactor == Eigen::Dynamic or index_dimension_of_v<MatrixType, 1> * ColFactor % index_dimension_of_v<MatrixType, 0> == 0)));
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = RowFactor == 1 and ColFactor == 1 and triangular_matrix<MatrixType, t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = triangular_matrix<MatrixType, t> and (RowFactor != 0) and (ColFactor != 0) and
+      ((RowFactor == 1 and (t == TriangleType::upper or t == TriangleType::any)) or
+        (ColFactor == 1 and (t == TriangleType::lower or t == TriangleType::any)));
 
     static constexpr bool is_triangular_adapter = false;
 

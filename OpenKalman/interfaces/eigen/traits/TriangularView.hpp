@@ -70,7 +70,7 @@ namespace OpenKalman
       template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
       {
-        if constexpr (zero<MatrixType> or ((Mode & Eigen::ZeroDiag) != 0 and diagonal_matrix<MatrixType, Qualification::depends_on_dynamic_shape>))
+        if constexpr (zero<MatrixType> or ((Mode & Eigen::ZeroDiag) != 0 and diagonal_matrix<MatrixType>))
           return internal::ScalarConstant<Qualification::unqualified, scalar_type_of_t<MatrixType>, 0>{};
         else
           return std::monostate{};
@@ -91,15 +91,15 @@ namespace OpenKalman
         {
           return internal::ScalarConstant<b, Scalar, 1>{};
         }
-        else if constexpr (((Mode & Eigen::UnitDiag) != 0 and
-          (((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, TriangleType::lower, Qualification::depends_on_dynamic_shape>) or
-            ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, TriangleType::upper, Qualification::depends_on_dynamic_shape>))))
+        else if constexpr ((Mode & Eigen::UnitDiag) != 0 and (
+          ((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, TriangleType::lower>) or
+          ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, TriangleType::upper>)))
         {
           return internal::ScalarConstant<b, Scalar, 1>{};
         }
-        else if constexpr ((Mode & Eigen::ZeroDiag) != 0 and
-          (((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, TriangleType::lower, Qualification::depends_on_dynamic_shape>) or
-            ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, TriangleType::upper, Qualification::depends_on_dynamic_shape>)))
+        else if constexpr ((Mode & Eigen::ZeroDiag) != 0 and (
+          ((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, TriangleType::lower>) or
+          ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, TriangleType::upper>)))
         {
           return internal::ScalarConstant<b, Scalar, 0>{};
         }
@@ -118,12 +118,12 @@ namespace OpenKalman
       static constexpr bool is_square = square_shaped<MatrixType, b>;
 
 
-      template<TriangleType t, Qualification b>
+      template<TriangleType t>
       static constexpr bool is_triangular =
-        (t == TriangleType::lower and ((Mode & Eigen::Lower) != 0 or triangular_matrix<MatrixType, TriangleType::lower, b>)) or
-        (t == TriangleType::upper and ((Mode & Eigen::Upper) != 0 or triangular_matrix<MatrixType, TriangleType::upper, b>)) or
-        (t == TriangleType::diagonal and triangular_matrix<MatrixType, (Mode & Eigen::Lower) ? TriangleType::upper : TriangleType::lower, b>) or
-        (t == TriangleType::any and square_shaped<MatrixType, b>);
+        (t == TriangleType::any) or
+        (t == TriangleType::lower and ((Mode & Eigen::Lower) != 0 or triangular_matrix<MatrixType, TriangleType::lower>)) or
+        (t == TriangleType::upper and ((Mode & Eigen::Upper) != 0 or triangular_matrix<MatrixType, TriangleType::upper>)) or
+        (t == TriangleType::diagonal and triangular_matrix<MatrixType, (Mode & Eigen::Lower) != 0 ? TriangleType::upper : TriangleType::lower>);
 
 
       static constexpr bool is_triangular_adapter = true;

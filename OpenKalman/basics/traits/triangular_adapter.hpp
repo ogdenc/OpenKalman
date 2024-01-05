@@ -34,9 +34,8 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is a triangular adapter of triangle type triangle_type.
-   * \details If T has a dynamic shape, it is not guaranteed to be triangular because it could be non-square.
-   * \details A triangular adapter is necessarily triangular if it is a square matrix. If it is not a square matrix,
-   * only the truncated square portion of the matrix would be triangular.
+   * \details A triangular adapter takes a matrix and presents a view in which, in one or both triangular
+   * (or trapezoidal) sides on either side of the diagonal are zero. The matrix need not be square.
    * \tparam T A matrix or tensor.
    */
   template<typename T>
@@ -45,7 +44,7 @@ namespace OpenKalman
 #else
   constexpr bool triangular_adapter = detail::is_triangular_adapter<T>::value and has_nested_object<T> and
 #endif
-    has_nested_object<T> and square_shaped<T, Qualification::depends_on_dynamic_shape>;
+    has_nested_object<T>;
 
 
 } // namespace OpenKalman

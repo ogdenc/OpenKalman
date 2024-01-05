@@ -22,32 +22,27 @@ namespace OpenKalman
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<typename T, Qualification b, typename = void>
+    template<typename T, typename = void>
     struct is_identity_matrix : std::false_type {};
 
-    template<typename T, Qualification b>
-    struct is_identity_matrix<T, b, std::enable_if_t<constant_diagonal_matrix<T, ConstantType::static_constant, b>>>
+    template<typename T>
+    struct is_identity_matrix<T, std::enable_if_t<constant_diagonal_matrix<T, ConstantType::static_constant>>>
       : std::bool_constant<internal::are_within_tolerance(constant_diagonal_coefficient_v<T>, 1)> {};
   }
 #endif
 
   /**
    * \brief Specifies that a type is an identity matrix.
-   * \details A zero-dimensional matrix is also an identity matrix.
-   * \tparam b Defines what happens when one or more of the indices has dynamic dimension:
-   * - if <code>b == Qualification::unqualified</code>: T is known at compile time to be identity; or
-   * - if <code>b == Qualification::depends_on_dynamic_shape</code>: either
-   * -- it is known at compile time that T <em>may</em> be a \ref constant_diagonal_matrix and that its value is 1; or
-   * -- it is unknown at compile time whether T is a zero vector (i.e., a zero-dimensional object).
+   * \details An identity matrix must be square. A square empty matrix is also an identity matrix.
    */
-  template<typename T, Qualification b = Qualification::unqualified>
+  template<typename T>
 #ifdef __cpp_concepts
   concept identity_matrix =
-    (constant_diagonal_matrix<T, ConstantType::static_constant, b> and internal::are_within_tolerance(constant_diagonal_coefficient_v<T>, 1)) or
+    ((constant_diagonal_matrix<T, ConstantType::static_constant> and internal::are_within_tolerance(constant_diagonal_coefficient_v<T>, 1)) or
 #else
-  constexpr bool identity_matrix = detail::is_identity_matrix<T, b>::value or
+  constexpr bool identity_matrix = (detail::is_identity_matrix<T>::value or
 #endif
-    (index_count_v<T> == 2 and dimension_size_of_index_is<T, 0, 0, b> and dimension_size_of_index_is<T, 1, 0, b>);
+    (index_count_v<T> == 2 and empty_object<T>)) and square_shaped<T>;
 
 
 } // namespace OpenKalman

@@ -122,7 +122,7 @@ namespace OpenKalman
       auto ret = internal::make_fixed_size_adapter<V0, V1>(std::move(x));
 
       constexpr TriangleType tri = triangle_type_of_v<A, B>;
-      if constexpr (tri != TriangleType::any and not triangular_matrix<decltype(ret), tri> and square_shaped<decltype(ret)>)
+      if constexpr (tri != TriangleType::any and not triangular_matrix<decltype(ret), tri>)
         return make_triangular_matrix<tri>(std::move(ret));
       else
         return ret;

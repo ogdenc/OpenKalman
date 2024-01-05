@@ -22,23 +22,28 @@ namespace OpenKalman::internal
   /**
    * \internal
    * \brief Set only a triangular (upper or lower) or diagonal part of a matrix by copying from another matrix.
-   * \note This is optional.
+   * \details If a can be modified, this will likely result in an in-place update within a.
+   * To determine whether this occurred, check whether the result is a reference to a. For example, for result type R,
+   * check whether <code>std::is_reference_v<R></code> and <code>std::is_same_v<std::decay_t<R>, std::decay_t<A>></code>,
    * \tparam t The TriangleType (upper, lower, or diagonal)
    * \param a The matrix or tensor to be set
    * \param b A matrix or tensor to be copied from, which may or may not be triangular
    */
 #ifdef __cpp_concepts
-  template<TriangleType t, square_shaped<Qualification::depends_on_dynamic_shape> A, square_shaped<Qualification::depends_on_dynamic_shape> B> requires
-    maybe_same_shape_as<A, B> and (t != TriangleType::any) and
-    (not triangular_matrix<A, TriangleType::any, Qualification::depends_on_dynamic_shape> or triangular_matrix<A, t, Qualification::depends_on_dynamic_shape> or t == TriangleType::diagonal) and
-    (not triangular_matrix<B, TriangleType::any, Qualification::depends_on_dynamic_shape> or triangular_matrix<B, t, Qualification::depends_on_dynamic_shape> or t == TriangleType::diagonal)
+  template<TriangleType t, indexible A, indexible B> requires
+    (t != TriangleType::any) and (index_count_v<A> == dynamic_size or index_count_v<A> <= 2) and
+    (t != TriangleType::lower or dimension_size_of_index_is<A, 0, index_dimension_of_v<B, 0>, Qualification::depends_on_dynamic_shape>) and
+    (t != TriangleType::upper or dimension_size_of_index_is<A, 1, index_dimension_of_v<B, 1>, Qualification::depends_on_dynamic_shape>) and
+    (not triangular_matrix<A> or triangular_matrix<A, t> or t == TriangleType::diagonal) and
+    (not triangular_matrix<B> or triangular_matrix<B, t> or t == TriangleType::diagonal)
   constexpr maybe_same_shape_as<A> decltype(auto)
 #else
-  template<TriangleType t, typename A, typename B, std::enable_if_t<
-    square_shaped<A, Qualification::depends_on_dynamic_shape> and square_shaped<B, Qualification::depends_on_dynamic_shape> and
-    maybe_same_shape_as<A, B> and (t != TriangleType::any) and
-    (not triangular_matrix<A, TriangleType::any, Qualification::depends_on_dynamic_shape> or triangular_matrix<A, t, Qualification::depends_on_dynamic_shape> or t == TriangleType::diagonal) and
-    (not triangular_matrix<B, TriangleType::any, Qualification::depends_on_dynamic_shape> or triangular_matrix<B, t, Qualification::depends_on_dynamic_shape> or t == TriangleType::diagonal), int> = 0>
+  template<TriangleType t, typename A, typename B, std::enable_if_t<indexible<A> and indexible<B> and
+    (t != TriangleType::any) and (index_count<A>::value == dynamic_size or index_count<A>::value <= 2) and
+    (t != TriangleType::lower or dimension_size_of_index_is<A, 0, index_dimension_of<B, 0>::value, Qualification::depends_on_dynamic_shape>) and
+    (t != TriangleType::upper or dimension_size_of_index_is<A, 1, index_dimension_of<B, 1>::value, Qualification::depends_on_dynamic_shape>) and
+    (not triangular_matrix<A> or triangular_matrix<A, t> or t == TriangleType::diagonal) and
+    (not triangular_matrix<B> or triangular_matrix<B, t> or t == TriangleType::diagonal), int> = 0>
   constexpr decltype(auto)
 #endif
   set_triangle(A&& a, B&& b)
@@ -133,24 +138,22 @@ namespace OpenKalman::internal
    * \brief Derives the TriangleType from the triangle types of the arguments.
    */
 #ifdef __cpp_concepts
-  template<square_shaped<Qualification::depends_on_dynamic_shape> A, square_shaped<Qualification::depends_on_dynamic_shape> B> requires maybe_same_shape_as<A, B> and
-    (triangular_matrix<A, TriangleType::any, Qualification::depends_on_dynamic_shape> or triangular_matrix<B, TriangleType::any, Qualification::depends_on_dynamic_shape>) and
-    (triangle_type_of_v<A> == TriangleType::any or triangle_type_of_v<B> == TriangleType::any or triangle_type_of_v<A, B> != TriangleType::any)
+  template<indexible A, maybe_same_shape_as<A> B> requires (triangular_matrix<A> or triangular_matrix<B>) and
+    (triangle_type_of_v<A, B> != TriangleType::any or triangle_type_of_v<A> == TriangleType::any or triangle_type_of_v<B> == TriangleType::any)
   constexpr maybe_same_shape_as<A> decltype(auto)
 #else
-  template<typename A, typename B, std::enable_if_t<
-    square_shaped<A, Qualification::depends_on_dynamic_shape> and square_shaped<B, Qualification::depends_on_dynamic_shape> and maybe_same_shape_as<A, B> and
-    (triangular_matrix<A, TriangleType::any, Qualification::depends_on_dynamic_shape> or triangular_matrix<B, TriangleType::any, Qualification::depends_on_dynamic_shape>) and
-    (triangle_type_of<A>::value == TriangleType::any or triangle_type_of<B>::value == TriangleType::any or
-      triangle_type_of<A, B>::value != TriangleType::any), int> = 0>
+  template<typename A, typename B, std::enable_if_t<indexible<A> and maybe_same_shape_as<B, A> and
+    (triangular_matrix<A> or triangular_matrix<B>) and
+    (triangle_type_of<A, B>::value != TriangleType::any or triangle_type_of<A>::value == TriangleType::any or
+      triangle_type_of<B>::value == TriangleType::any), int> = 0>
   constexpr decltype(auto)
 #endif
   set_triangle(A&& a, B&& b)
   {
     constexpr auto t =
-      diagonal_matrix<A, Qualification::depends_on_dynamic_shape> or diagonal_matrix<B, Qualification::depends_on_dynamic_shape> ? TriangleType::diagonal :
+      diagonal_matrix<A> or diagonal_matrix<B> ? TriangleType::diagonal :
       triangle_type_of_v<A, B> != TriangleType::any ? triangle_type_of_v<A, B> :
-      triangle_type_of_v<A> != TriangleType::any ? triangle_type_of_v<A> : triangle_type_of_v<B>;
+      triangle_type_of_v<A> == TriangleType::any ? triangle_type_of_v<B> : triangle_type_of_v<A>;
     return set_triangle<t>(std::forward<A>(a), std::forward<B>(b));
   }
 

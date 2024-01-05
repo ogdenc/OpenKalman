@@ -61,29 +61,16 @@ namespace OpenKalman
   //  constant_matrix  //
   // ----------------- //
 
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, Qualification b, typename = void>
-    struct scalar_status_is : std::false_type {};
-
-    template<typename T, Qualification b>
-    struct scalar_status_is<T, b, std::enable_if_t<std::decay_t<T>::status == b>> : std::true_type {};
-  }
-#endif
-
-
   /**
-   * \brief Specifies that all elements of an object are the same constant value.
+   * \brief Specifies that all components of an object are the same constant value.
    */
-  template<typename T, ConstantType c = ConstantType::any, Qualification b = Qualification::unqualified>
+  template<typename T, ConstantType c = ConstantType::any>
 #ifdef __cpp_concepts
-  concept constant_matrix = indexible<T> and scalar_constant<constant_coefficient<T>, c> and
-    (b == Qualification::depends_on_dynamic_shape or constant_coefficient<T>::status == b);
+  concept constant_matrix = indexible<T> and
 #else
-  constexpr bool constant_matrix = indexible<T> and scalar_constant<constant_coefficient<T>, c> and
-    (b == Qualification::depends_on_dynamic_shape or detail::scalar_status_is<constant_coefficient<T>, b>::value);
+  constexpr bool constant_matrix =
 #endif
+    (scalar_constant<constant_coefficient<T>, c> or (c != ConstantType::static_constant and one_dimensional<T>));
 
 
 } // namespace OpenKalman

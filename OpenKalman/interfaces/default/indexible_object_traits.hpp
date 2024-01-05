@@ -186,20 +186,18 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Whether T is triangular or diagonal, having a triangle type of t.
+     * \brief Whether T is triangular or diagonal with a particular \ref TriangleType.
+     * \note Optional. Defaults to false if omitted.
      * \details This trait should propagate from any nested matrices or matrices involved in any expression arguments.
      * \tparam t The \ref TriangleType
-     * \tparam b The \ref Qualification. If <code>b == Qualification::unqualified</code>, then T's triangle type is known at compile time.
-     * If <code>b == Qualification::depends_on_dynamic_shape</code>, then T's triangle type is determined at runtime (for example, T might be
-     * triangular if and only iff it is a square matrix, but it is unknown whether T is square).
      */
-    template<TriangleType t, Qualification b>
+    template<TriangleType t>
     static constexpr bool is_triangular = false;
 
 
     /**
-     * \brief Whether T is a triangular adapter (defaults to false, if omitted).
-     * \details This is not a guarantee that the matrix is triangular, because it could be dynamically non-square.
+     * \brief Whether T is a \ref triangular_adapter.
+     * \note Optional. Defaults to false if omitted.
      */
     static constexpr bool is_triangular_adapter = false;
 

@@ -96,30 +96,24 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires constant_matrix<NestedMatrix, ConstantType::any, Qualification::depends_on_dynamic_shape>
+    template<typename Arg> requires constant_matrix<NestedMatrix>
 #else
-    template<typename M = NestedMatrix, typename Arg, std::enable_if_t<constant_matrix<M, ConstantType::any, Qualification::depends_on_dynamic_shape>, int> = 0>
+    template<typename M = NestedMatrix, typename Arg, std::enable_if_t<constant_matrix<M>, int> = 0>
 #endif
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (constant_coefficient<NestedMatrix>::status == Qualification::unqualified or one_dimensional<Xpr, Qualification::depends_on_dynamic_shape>)
-        return constant_coefficient {arg.nested_object()};
-      else
-        return std::monostate {};
+      return constant_coefficient {arg.nested_object()};
     }
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires constant_diagonal_matrix<NestedMatrix, ConstantType::any, Qualification::depends_on_dynamic_shape>
+    template<typename Arg> requires constant_diagonal_matrix<NestedMatrix> or one_dimensional<Xpr>
 #else
-    template<typename M = NestedMatrix, typename Arg, std::enable_if_t<constant_diagonal_matrix<M, ConstantType::any, Qualification::depends_on_dynamic_shape>, int> = 0>
+    template<typename M = NestedMatrix, typename Arg, std::enable_if_t<constant_diagonal_matrix<M>, int> = 0>
 #endif
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (constant_coefficient<NestedMatrix>::status == Qualification::unqualified or one_dimensional<Xpr, Qualification::depends_on_dynamic_shape>)
-        return constant_diagonal_coefficient {arg.nested_object()};
-      else
-        return std::monostate {};
+      return constant_diagonal_coefficient {arg.nested_object()};
     }
 
 
@@ -129,8 +123,8 @@ namespace OpenKalman::interface
     // is_square is not necessary
 
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = triangular_matrix<NestedMatrix, t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = triangular_matrix<NestedMatrix, t>;
 
 
     static constexpr bool is_triangular_adapter = false;

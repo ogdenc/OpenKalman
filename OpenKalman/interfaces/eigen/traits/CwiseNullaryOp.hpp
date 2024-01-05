@@ -68,8 +68,8 @@ namespace OpenKalman::interface
     template<Qualification b>
     static constexpr bool is_square = square_shaped<PlainObjectType, b>;
 
-    template<TriangleType t, Qualification b>
-    static constexpr bool is_triangular = Eigen3::NullaryFunctorTraits<NullaryOp, PlainObjectType>::template is_triangular<t, b>;
+    template<TriangleType t>
+    static constexpr bool is_triangular = Eigen3::NullaryFunctorTraits<NullaryOp, PlainObjectType>::template is_triangular<t>;
 
     static constexpr bool is_triangular_adapter = false;
 

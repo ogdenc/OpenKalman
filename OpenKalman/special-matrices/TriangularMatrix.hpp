@@ -324,9 +324,9 @@ namespace OpenKalman
   // ------------------------------- //
 
 #ifdef __cpp_concepts
-  template<triangular_matrix<TriangleType::any, Qualification::depends_on_dynamic_shape> M>
+  template<triangular_matrix<TriangleType::any> M>
 #else
-  template<typename M, std::enable_if_t<triangular_matrix<M, TriangleType::any, Qualification::depends_on_dynamic_shape>, int> = 0>
+  template<typename M, std::enable_if_t<triangular_matrix<M, TriangleType::any>, int> = 0>
 #endif
   TriangularMatrix(M&&) -> TriangularMatrix<
     std::conditional_t<triangular_adapter<M>, passable_t<nested_object_of_t<M&&>>, passable_t<M>>,
@@ -334,10 +334,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<hermitian_matrix<Qualification::depends_on_dynamic_shape> M> requires (not triangular_matrix<M, TriangleType::any, Qualification::depends_on_dynamic_shape>)
+  template<hermitian_matrix<Qualification::depends_on_dynamic_shape> M> requires (not triangular_matrix<M, TriangleType::any>)
 #else
   template<typename M, std::enable_if_t<hermitian_matrix<M, Qualification::depends_on_dynamic_shape> and
-    (not triangular_matrix<M, TriangleType::any, Qualification::depends_on_dynamic_shape>), int> = 0>
+    (not triangular_matrix<M, TriangleType::any>), int> = 0>
 #endif
   explicit TriangularMatrix(M&&) -> TriangularMatrix<
     std::conditional_t<hermitian_adapter<M>, passable_t<nested_object_of_t<M&&>>, passable_t<M>>,
@@ -345,10 +345,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<indexible M> requires (not triangular_matrix<M, TriangleType::any, Qualification::depends_on_dynamic_shape>) and
+  template<indexible M> requires (not triangular_matrix<M, TriangleType::any>) and
     (not hermitian_matrix<M, Qualification::depends_on_dynamic_shape>)
 #else
-  template<typename M, std::enable_if_t<indexible<M> and (not triangular_matrix<M, TriangleType::any, Qualification::depends_on_dynamic_shape>) and
+  template<typename M, std::enable_if_t<indexible<M> and (not triangular_matrix<M, TriangleType::any>) and
       (not hermitian_matrix<M, Qualification::depends_on_dynamic_shape>), int> = 0>
 #endif
   explicit TriangularMatrix(M&&) -> TriangularMatrix<passable_t<M>, TriangleType::lower>;
@@ -420,9 +420,9 @@ namespace OpenKalman
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
 
 
-      template<TriangleType t, Qualification>
+      template<TriangleType t>
       static constexpr bool is_triangular = t == TriangleType::any or triangle_type == TriangleType::diagonal or triangle_type == t or
-        triangular_matrix<NestedMatrix, t, Qualification::depends_on_dynamic_shape>;
+        triangular_matrix<NestedMatrix, t>;
 
 
       static constexpr bool is_triangular_adapter = true;

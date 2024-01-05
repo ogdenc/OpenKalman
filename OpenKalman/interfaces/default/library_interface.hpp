@@ -244,6 +244,7 @@ namespace OpenKalman::interface
 
     /**
      * \brief Set only a triangular (or diagonal) portion of a \ref writable matrix with elements of another matrix.
+     * \details Neither a nor b need to be square matrices.
      * \note This is optional.
      * \tparam t The TriangleType (upper, lower, or diagonal)
      * \param a The matrix or tensor to be set
