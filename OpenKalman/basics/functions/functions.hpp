@@ -27,8 +27,8 @@
 #include "internal/make_fixed_size_adapter.hpp"
 #include "internal/make_fixed_size_adapter_like.hpp"
 #include "internal/make_fixed_square_adapter_like.hpp"
+#include "internal/smallest_dimension_index.hpp"
 
-#include "internal/truncate_indices.hpp"
 #include "get_component.hpp"
 #include "set_component.hpp"
 

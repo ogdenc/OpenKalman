@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2023-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,14 +25,11 @@ namespace OpenKalman::internal
     struct sc_parameters_match : std::true_type {};
 
     template<typename S, typename...Ss, typename P, typename...Ps>
-    struct sc_parameters_match<std::tuple<S, Ss...>, std::tuple<P, Ps...>> : std::bool_constant<([]{
-      if constexpr (sizeof...(Ss) > sizeof...(Ps))
-        return false;
-      else if constexpr (not std::is_constructible_v<std::decay_t<S>, std::add_lvalue_reference_t<P>>)
-        return sc_parameters_match<std::tuple<S, Ss...>, std::tuple<Ps...>>{};
-      else
-        return sc_parameters_match<std::tuple<Ss...>, std::tuple<Ps...>>{};
-    }())> {};
+    struct sc_parameters_match<std::tuple<S, Ss...>, std::tuple<P, Ps...>> : std::bool_constant<
+      sizeof...(Ss) <= sizeof...(Ps) and
+      (std::is_constructible_v<std::decay_t<S>, std::add_lvalue_reference_t<P>> or sc_parameters_match<std::tuple<S, Ss...>, std::tuple<Ps...>>{}) and
+      (not std::is_constructible_v<std::decay_t<S>, std::add_lvalue_reference_t<P>> or sc_parameters_match<std::tuple<Ss...>, std::tuple<Ps...>>{})
+    > {};
 
 
     template<typename T, typename S_tup, typename P_tup, std::size_t...Px>

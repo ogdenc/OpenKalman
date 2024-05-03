@@ -86,7 +86,8 @@ namespace OpenKalman
       if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) detail::solve_check_A_and_B_rows_match(a, b);
       return make_zero<B>(get_vector_space_descriptor<1>(a), get_vector_space_descriptor<1>(b));
     }
-    else if constexpr (constant_diagonal_matrix<A>)
+    else if constexpr (constant_diagonal_matrix<A> or
+      (index_dimension_of_v<A, 1> == 1 and (index_dimension_of_v<A, 0> == 1 or index_dimension_of_v<B, 0> == 1)))
     {
       if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) detail::solve_check_A_and_B_rows_match(a, b);
 
@@ -95,17 +96,13 @@ namespace OpenKalman
         vector_space_descriptor_of_t<A, 0>>;
       using V1 = vector_space_descriptor_of_t<B, 1>;
 
-      if constexpr (identity_matrix<A>) return internal::make_fixed_size_adapter<V0, V1>(std::forward<B>(b));
-      else return internal::make_fixed_size_adapter<V0, V1>(make_self_contained(std::forward<B>(b) / constant_diagonal_coefficient{a}()));
+      if constexpr (identity_matrix<A> and square_shaped<A>) return internal::make_fixed_size_adapter<V0, V1>(std::forward<B>(b));
+      /// \todo Replace by a scalar division function.
+      else return internal::make_fixed_size_adapter<V0, V1>(make_self_contained(std::forward<B>(b) / internal::get_singular_component(std::forward<A>(a))));
     }
     else if constexpr (constant_matrix<A>)
     {
-      if constexpr ((index_dimension_of_v<A, 0> == 1 or index_dimension_of_v<B, 0> == 1) and index_dimension_of_v<A, 1> == 1)
-      {
-        if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) detail::solve_check_A_and_B_rows_match(a, b);
-        return make_self_contained(std::forward<B>(b) / constant_coefficient{a}());
-      }
-      else if constexpr (constant_matrix<B>)
+      if constexpr (constant_matrix<B>)
       {
         if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) detail::solve_check_A_and_B_rows_match(a, b);
 
@@ -126,8 +123,7 @@ namespace OpenKalman
           std::forward<A>(a), std::forward<B>(b));
       }
     }
-    else if constexpr (diagonal_matrix<A> or
-      ((index_dimension_of_v<A, 0> == 1 or index_dimension_of_v<B, 0> == 1) and index_dimension_of_v<A, 1> == 1))
+    else if constexpr (diagonal_matrix<A>)
     {
       auto op = [](auto&& b_elem, auto&& a_elem) {
         if (a_elem == 0)
@@ -143,7 +139,7 @@ namespace OpenKalman
       };
       return n_ary_operation(all_vector_space_descriptors(b), std::move(op), std::forward<B>(b), diagonal_of(std::forward<A>(a)));
     }
-    else if constexpr (not interface::solve_defined_for<std::decay_t<A>, must_be_unique, must_be_exact, A, B>)
+    else if constexpr (not interface::solve_defined_for<A, must_be_unique, must_be_exact, A, B>)
     {
       return solve<must_be_unique, must_be_exact>(std::forward<A>(a), to_native_matrix<A>(std::forward<B>(b)));
     }

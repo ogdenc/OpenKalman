@@ -56,7 +56,7 @@ namespace OpenKalman
         return internal::transpose_constant(internal::constexpr_conj(constant_coefficient{arg}), std::forward<Arg>(arg), seq);
       }
     }
-    else if constexpr (interface::adjoint_defined_for<std::decay_t<Arg>, Arg&&>)
+    else if constexpr (interface::adjoint_defined_for<Arg, Arg&&>)
     {
       return interface::library_interface<std::decay_t<Arg>>::adjoint(std::forward<Arg>(arg));
     }

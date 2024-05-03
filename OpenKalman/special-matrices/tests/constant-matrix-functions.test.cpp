@@ -1089,6 +1089,21 @@ TEST(special_matrices, constant_reductions)
 
   // average_reduce constant
 
+  auto i22 = M22::Identity();
+  auto i2x_2 = M2x::Identity(2, 2);
+  auto ix2_2 = Mx2::Identity(2, 2);
+  auto ixx_22 = Mxx::Identity(2, 2);
+
+  EXPECT_TRUE(is_near(average_reduce<1>(i2x_2), M21::Constant(0.5)));
+  auto rcix2_2 = average_reduce<1>(ix2_2);
+  EXPECT_TRUE(is_near(rcix2_2, M21::Constant(0.5)));
+  EXPECT_TRUE(is_near(average_reduce<1>(ix2_2), M21::Constant(0.5)));
+  EXPECT_TRUE(is_near(average_reduce<1>(ixx_22), M21::Constant(0.5)));
+
+  EXPECT_TRUE(is_near(average_reduce<1>(M2x::Identity(2, 2)), M21::Constant(0.5)));
+  EXPECT_TRUE(is_near(average_reduce<1>(Mx2::Identity(2, 2)), M21::Constant(0.5)));
+  EXPECT_TRUE(is_near(average_reduce<1>(Mxx::Identity(2, 2)), M21::Constant(0.5)));
+
   EXPECT_TRUE(is_near(average_reduce<1>(ec23), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(average_reduce<1>(ec23))> == 2);
   EXPECT_TRUE(is_near(average_reduce<1>(ec2x_3), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(average_reduce<1>(ec2x_3))> == 2);
   EXPECT_TRUE(is_near(average_reduce<1>(ecx3_2), M21::Constant(2))); static_assert(constant_coefficient_v<decltype(average_reduce<1>(ecx3_2))> == 2);

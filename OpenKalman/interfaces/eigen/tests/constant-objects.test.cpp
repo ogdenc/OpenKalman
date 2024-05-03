@@ -24,11 +24,10 @@ TEST(eigen3, constant_objects)
   static_assert(not scalar_constant<constant_coefficient<Z21>, ConstantType::dynamic_constant>);
 
   static_assert(constant_matrix<M11, ConstantType::dynamic_constant>);
-  static_assert(constant_matrix<M1x, ConstantType::dynamic_constant>);
-  static_assert(constant_matrix<Mx1, ConstantType::dynamic_constant>);
-  static_assert(constant_matrix<Mxx, ConstantType::dynamic_constant>);
-  static_assert(not constant_matrix<M21, ConstantType::static_constant>);
-  static_assert(not constant_matrix<M21, ConstantType::dynamic_constant>);
+  static_assert(not constant_matrix<M1x>);
+  static_assert(not constant_matrix<Mx1>);
+  static_assert(not constant_matrix<Mxx>);
+  static_assert(not constant_matrix<M21>);
   EXPECT_EQ(constant_coefficient{make_dense_object_from<M11>(5.5)}(), 5.5);
 
   static_assert(constant_coefficient_v<Z21> == 0);

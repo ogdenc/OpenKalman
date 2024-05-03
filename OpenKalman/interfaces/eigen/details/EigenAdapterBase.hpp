@@ -19,7 +19,7 @@
 
 namespace OpenKalman::Eigen3
 {
-  template<typename Derived, typename NestedMatrix, typename Base>
+  template<typename Derived, typename Base>
   struct EigenAdapterBase : Base, EigenCustomBase,
     Eigen::internal::no_assignment_operator // Override all Eigen assignment operators
   {
@@ -75,27 +75,15 @@ namespace OpenKalman::Eigen3
     }
 
 
-#ifdef __cpp_concepts
-    constexpr decltype(auto)
-    data() requires interface::raw_data_defined_for<Derived&>
-#else
-    template<typename T = Derived&, std::enable_if_t<interface::raw_data_defined_for<T>, int> = 0>
-      constexpr decltype(auto)
-      data()
-#endif
+    constexpr auto * const
+    data()
     {
       return internal::raw_data(static_cast<Derived&>(*this));
     }
 
 
-#ifdef __cpp_concepts
     constexpr decltype(auto)
-    data() const requires interface::raw_data_defined_for<const Derived&>
-#else
-    template<typename T = const Derived&, std::enable_if_t<interface::raw_data_defined_for<T>, int> = 0>
-      constexpr decltype(auto)
-      data() const
-#endif
+    data() const
     {
       return internal::raw_data(static_cast<const Derived&>(*this));
     }

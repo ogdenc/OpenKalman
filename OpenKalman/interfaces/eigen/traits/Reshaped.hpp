@@ -42,12 +42,12 @@ namespace OpenKalman::interface
 
     using Base = Eigen3::indexible_object_traits_base<Eigen::Reshaped<XprType, Rows, Cols, Order>>;
 
-    static constexpr std::size_t xprtypeprod = has_dynamic_dimensions<XprType> ? dynamic_size :
+    static constexpr std::size_t nested_components = has_dynamic_dimensions<XprType> ? dynamic_size :
       index_dimension_of_v<XprType, 0> * index_dimension_of_v<XprType, 1>;
 
-    static constexpr std::size_t xprtypemax = std::max(
+    static constexpr std::size_t xprtypemax = dynamic_index_count_v<XprType> < 2 ? std::max(
       dynamic_dimension<XprType, 0> ? 0 : index_dimension_of_v<XprType, 0>,
-      dynamic_dimension<XprType, 1> ? 0 : index_dimension_of_v<XprType, 1>);
+      dynamic_dimension<XprType, 1> ? 0 : index_dimension_of_v<XprType, 1>) : dynamic_size;
 
     static constexpr bool HasDirectAccess = Eigen::internal::traits<Eigen::Reshaped<XprType, Rows, Cols, Order>>::HasDirectAccess;
 
@@ -67,7 +67,7 @@ namespace OpenKalman::interface
           other_dim == Eigen::Dynamic or other_dim == 0 ? dynamic_size :
           other_dim == index_dimension_of_v<XprType, 0> ? index_dimension_of_v<XprType, 1> :
           other_dim == index_dimension_of_v<XprType, 1> ? index_dimension_of_v<XprType, 0> :
-          xprtypeprod != dynamic_size and xprtypeprod % other_dim == 0 ? xprtypeprod / other_dim :
+            nested_components != dynamic_size and nested_components % other_dim == 0 ? nested_components / other_dim :
           dynamic_size;
 
         if constexpr (dimension == dynamic_size)
@@ -86,7 +86,7 @@ namespace OpenKalman::interface
 
     using dependents = std::tuple<Nested_t>;
 
-    static constexpr bool has_runtime_parameters = HasDirectAccess ? Rows == Eigen::Dynamic or Cols == Eigen::Dynamic : false;
+    static constexpr bool has_runtime_parameters = HasDirectAccess and (Rows == Eigen::Dynamic or Cols == Eigen::Dynamic);
 
 
     template<typename Arg>
@@ -102,60 +102,54 @@ namespace OpenKalman::interface
       return make_dense_object(std::forward<Arg>(arg));
     }
 
+
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
       return constant_coefficient {arg.nestedExpression()};
     }
 
+
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (
-        (Rows != Eigen::Dynamic and (Rows == XprType::RowsAtCompileTime or Rows == XprType::ColsAtCompileTime or Rows == Cols)) or
-        (Cols != Eigen::Dynamic and (Cols == XprType::RowsAtCompileTime or Cols == XprType::ColsAtCompileTime)))
-      {
+      if constexpr ((Rows != Eigen::Dynamic and Rows == XprType::RowsAtCompileTime) or (Cols != Eigen::Dynamic and Cols == XprType::ColsAtCompileTime))
         return constant_diagonal_coefficient {arg.nestedExpression()};
-      }
-      else if constexpr (((Rows == Eigen::Dynamic and Cols == Eigen::Dynamic) or
-        (XprType::RowsAtCompileTime == Eigen::Dynamic and XprType::ColsAtCompileTime == Eigen::Dynamic)) and
-        constant_diagonal_matrix<XprType>)
-      {
-        constant_diagonal_coefficient cd {arg.nestedExpression()};
-        return internal::ScalarConstant<Qualification::depends_on_dynamic_shape, std::decay_t<decltype(cd)>> {cd};
-      }
-      else return std::monostate{};
+      else
+        return std::monostate{};
     }
+
 
     template<Qualification b>
     static constexpr bool one_dimensional =
       (Rows == 1 and Cols == 1 and OpenKalman::one_dimensional<XprType, Qualification::depends_on_dynamic_shape>) or
       ((Rows == 1 or Rows == Eigen::Dynamic) and (Cols == 1 or Cols == Eigen::Dynamic) and OpenKalman::one_dimensional<XprType, b>);
 
+
     template<Qualification b>
     static constexpr bool is_square =
       (b != Qualification::unqualified or (Rows != Eigen::Dynamic and Cols != Eigen::Dynamic) or
-        ((Rows != Eigen::Dynamic or Cols != Eigen::Dynamic) and dynamic_index_count_v<XprType> <= 1)) and
+        ((Rows != Eigen::Dynamic or Cols != Eigen::Dynamic) and not has_dynamic_dimensions<XprType>)) and
       (Rows == Eigen::Dynamic or Cols == Eigen::Dynamic or Rows == Cols) and
-      (xprtypeprod == dynamic_size or (
-        internal::are_within_tolerance(xprtypeprod, internal::constexpr_sqrt(xprtypeprod) * internal::constexpr_sqrt(xprtypeprod)) and
-        (Rows == Eigen::Dynamic or Rows * Rows == xprtypeprod) and
-        (Cols == Eigen::Dynamic or Cols * Cols == xprtypeprod))) and
-      (Rows == Eigen::Dynamic or xprtypemax == 0 or (Rows * Rows) % xprtypemax == 0) and
-      (Cols == Eigen::Dynamic or xprtypemax == 0 or (Cols * Cols) % xprtypemax == 0);
+      (nested_components == dynamic_size or (
+        internal::are_within_tolerance(nested_components, internal::constexpr_sqrt(nested_components) * internal::constexpr_sqrt(nested_components)) and
+        (Rows == Eigen::Dynamic or Rows * Rows == nested_components))) and
+      (Rows == Eigen::Dynamic or xprtypemax == dynamic_size or (Rows * Rows) % xprtypemax == 0) and
+      (Cols == Eigen::Dynamic or xprtypemax == dynamic_size or (Cols * Cols) % xprtypemax == 0);
+
 
     template<TriangleType t>
     static constexpr bool is_triangular = triangular_matrix<XprType, t> and
-      (Rows == index_dimension_of_v<XprType, 0> or Rows == index_dimension_of_v<XprType, 1> or
-        Cols == index_dimension_of_v<XprType, 1> or Cols == index_dimension_of_v<XprType, 0> or
-        (Rows != Eigen::Dynamic and Rows == Cols));
+      ((Rows != Eigen::Dynamic and Rows == XprType::RowsAtCompileTime) or (Cols != Eigen::Dynamic and Cols == XprType::ColsAtCompileTime));
+
 
     static constexpr bool is_triangular_adapter = false;
 
+
     static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape> and
-      (Rows == index_dimension_of_v<XprType, 0> or Rows == index_dimension_of_v<XprType, 1> or
-        Cols == index_dimension_of_v<XprType, 1> or Cols == index_dimension_of_v<XprType, 0> or
-        (Rows != Eigen::Dynamic and Rows == Cols));
+      ((XprType::RowsAtCompileTime == Eigen::Dynamic and XprType::ColsAtCompileTime == Eigen::Dynamic) or
+        (Rows == Eigen::Dynamic or Rows == XprType::RowsAtCompileTime or Rows == XprType::ColsAtCompileTime) and
+        (Cols == Eigen::Dynamic or Cols == XprType::ColsAtCompileTime or Cols == XprType::RowsAtCompileTime));
   };
 
 } // namespace OpenKalman::interface

@@ -72,14 +72,13 @@ TEST(eigen3, diagonal_of_1x1)
   static_assert(dynamic_dimension<decltype(diagonal_of(mxx_11)), 0>);
   static_assert(index_dimension_of_v<decltype(diagonal_of(mxx_11)), 1> == 1);
 
-  EXPECT_TRUE(is_near(diagonal_of(m1x_1), m11)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(m1x_1))>);
-  EXPECT_TRUE(is_near(diagonal_of(mx1_1), m11)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(mx1_1))>);
-  EXPECT_TRUE(is_near(diagonal_of(mxx_11), m11)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(mxx_11))>);
+  EXPECT_TRUE(is_near(diagonal_of(m1x_1), m11)); static_assert(dynamic_index_count_v<decltype(diagonal_of(m1x_1))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(mx1_1), m11)); static_assert(dynamic_index_count_v<decltype(diagonal_of(mx1_1))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(mxx_11), m11)); static_assert(dynamic_index_count_v<decltype(diagonal_of(mxx_11))> == 1);
   static_assert(constant_matrix<decltype(diagonal_of(m11)), ConstantType::dynamic_constant>);
-  static_assert(constant_matrix<decltype(diagonal_of(m1x_1)), ConstantType::dynamic_constant>);
-  static_assert(constant_matrix<decltype(diagonal_of(mx1_1)), ConstantType::dynamic_constant>);
-  static_assert(not constant_matrix<decltype(diagonal_of(mxx_11)), ConstantType::any>);
-  static_assert(constant_matrix<decltype(diagonal_of(mxx_11))>);
+  static_assert(not constant_matrix<decltype(diagonal_of(m1x_1))>);
+  static_assert(not constant_matrix<decltype(diagonal_of(mx1_1))>);
+  static_assert(not constant_matrix<decltype(diagonal_of(mxx_11))>);
 }
 
 
@@ -123,14 +122,14 @@ TEST(eigen3, diagonal_of_dense)
   auto mxx_22 = Mxx {m22};
 
   EXPECT_TRUE(is_near(diagonal_of(m22), m21));
-  EXPECT_TRUE(is_near(diagonal_of(m2x_2), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(m2x_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(mx2_2), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(mx2_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(mxx_22), m21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(mxx_22))>);
+  EXPECT_TRUE(is_near(diagonal_of(m2x_2), m21)); static_assert(dynamic_index_count_v<decltype(diagonal_of(m2x_2))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(mx2_2), m21)); static_assert(dynamic_index_count_v<decltype(diagonal_of(mx2_2))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(mxx_22), m21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(mxx_22))> == 1);
 
   EXPECT_TRUE(is_near(diagonal_of(M22 {m22}), m21));
-  EXPECT_TRUE(is_near(diagonal_of(M2x {m2x_2}), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(std::declval<M2x>()))>);
-  EXPECT_TRUE(is_near(diagonal_of(Mx2 {mx2_2}), m21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(std::declval<Mx2>()))>);
-  EXPECT_TRUE(is_near(diagonal_of(Mxx {mxx_22}), m21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(std::declval<Mxx>()))>);
+  EXPECT_TRUE(is_near(diagonal_of(M2x {m2x_2}), m21)); static_assert(dynamic_index_count_v<decltype(diagonal_of(std::declval<M2x>()))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(Mx2 {mx2_2}), m21)); static_assert(dynamic_index_count_v<decltype(diagonal_of(std::declval<Mx2>()))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(Mxx {mxx_22}), m21)); static_assert(dynamic_index_count_v<decltype(diagonal_of(std::declval<Mxx>()))> == 1);
 
   auto a21 = Eigen::Array<double, 2, 1> {1, 4};
 
@@ -140,15 +139,15 @@ TEST(eigen3, diagonal_of_dense)
   auto axx_22 = Axx {a22};
 
   EXPECT_TRUE(is_near(diagonal_of(a22), a21));
-  EXPECT_TRUE(is_near(diagonal_of(a2x_2), a21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(a2x_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(ax2_2), a21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(ax2_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(axx_22), a21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(axx_22))>);
+  EXPECT_TRUE(is_near(diagonal_of(a2x_2), a21)); static_assert(dynamic_index_count_v<decltype(diagonal_of(a2x_2))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(ax2_2), a21)); static_assert(dynamic_index_count_v<decltype(diagonal_of(ax2_2))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(axx_22), a21)); static_assert(dynamic_index_count_v<decltype(diagonal_of(axx_22))> == 1);
 
   EXPECT_TRUE(is_near(diagonal_of(m22.array()), a21));
   EXPECT_TRUE(is_near(diagonal_of(A22 {a22}), a21));
-  EXPECT_TRUE(is_near(diagonal_of(A2x {a2x_2}), a21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(std::declval<A2x>()))>);
-  EXPECT_TRUE(is_near(diagonal_of(Ax2 {ax2_2}), a21)); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(std::declval<Ax2>()))>);
-  EXPECT_TRUE(is_near(diagonal_of(Axx {axx_22}), a21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(std::declval<Axx>()))>);
+  EXPECT_TRUE(is_near(diagonal_of(A2x {a2x_2}), a21)); static_assert(dynamic_index_count_v<decltype(diagonal_of(std::declval<A2x>()))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(Ax2 {ax2_2}), a21)); static_assert(dynamic_index_count_v<decltype(diagonal_of(std::declval<Ax2>()))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(Axx {axx_22}), a21)); static_assert(dynamic_index_count_v<decltype(diagonal_of(std::declval<Axx>()))> == 1);
 
   auto mw22 = Eigen3::make_eigen_wrapper(m22);
 
@@ -161,6 +160,22 @@ TEST(eigen3, diagonal_of_dense)
   EXPECT_TRUE(is_near(diagonal_of(aw22), a21));
   EXPECT_TRUE(is_near(diagonal_of(Eigen3::make_eigen_wrapper(a22)), a21));
   EXPECT_TRUE(is_near(diagonal_of(Eigen3::make_eigen_wrapper(A22 {a22})), a21));
+}
+
+
+TEST(eigen3, diagonal_of_dense_nonsquare)
+{
+  auto m21 = M21 {1, 5};
+
+  auto m23 = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
+  auto m2x_3 = M2x {m23};
+  auto mx3_2 = Mx3 {m23};
+  auto mxx_23 = Mxx {m23};
+
+  EXPECT_TRUE(is_near(diagonal_of(m23), m21));
+  EXPECT_TRUE(is_near(diagonal_of(m2x_3), m21)); static_assert(dynamic_index_count_v<decltype(diagonal_of(m2x_3))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(mx3_2), m21)); static_assert(dynamic_index_count_v<decltype(diagonal_of(mx3_2))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(mxx_23), m21)); static_assert(dynamic_index_count_v<decltype(diagonal_of(mxx_23))> == 1);
 }
 
 

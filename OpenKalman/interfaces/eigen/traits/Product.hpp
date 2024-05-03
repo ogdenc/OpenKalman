@@ -32,11 +32,11 @@ namespace OpenKalman::interface
 
   public:
 
+    using typename Base::scalar_type;
+
     using dependents = std::tuple<typename Xpr::LhsNested, typename Xpr::RhsNested>;
 
-
     static constexpr bool has_runtime_parameters = false;
-
 
     // nested_object not defined
 
@@ -82,14 +82,14 @@ namespace OpenKalman::interface
       else if constexpr (constant_diagonal_matrix<LhsType> and constant_matrix<RhsType>)
       {
         return internal::scalar_constant_operation {
-          std::multiplies<>{},
+          std::multiplies<scalar_type>{},
           constant_diagonal_coefficient{arg.lhs()},
           constant_coefficient{arg.rhs()}};
       }
       else if constexpr (constant_matrix<LhsType> and constant_diagonal_matrix<RhsType>)
       {
         return internal::scalar_constant_operation {
-          std::multiplies<>{},
+          std::multiplies<scalar_type>{},
           constant_coefficient{arg.lhs()},
           constant_diagonal_coefficient{arg.rhs()}};
       }
@@ -99,22 +99,22 @@ namespace OpenKalman::interface
         if constexpr (dim == dynamic_size)
         {
           return internal::scalar_constant_operation {
-            std::multiplies<>{},
+            std::multiplies<scalar_type>{},
             get_index_dimension_of<1>(arg.lhs()),
-            internal::scalar_constant_operation {std::multiplies<>{}, constant_coefficient{arg.lhs()}, constant_coefficient{arg.rhs()}}};
+            internal::scalar_constant_operation {std::multiplies<scalar_type>{}, constant_coefficient{arg.lhs()}, constant_coefficient{arg.rhs()}}};
         }
         else if constexpr (constant_matrix<LhsType, ConstantType::static_constant>)
         {
           return internal::scalar_constant_operation {
-            std::multiplies<>{},
-            internal::scalar_constant_operation {std::multiplies<>{}, std::integral_constant<std::size_t, dim>{}, constant_coefficient{arg.lhs()}},
+            std::multiplies<scalar_type>{},
+            internal::scalar_constant_operation {std::multiplies<scalar_type>{}, std::integral_constant<std::size_t, dim>{}, constant_coefficient{arg.lhs()}},
             constant_coefficient{arg.rhs()}};
         }
         else
         {
           return internal::scalar_constant_operation {
-            std::multiplies<>{},
-            internal::scalar_constant_operation {std::multiplies<>{}, std::integral_constant<std::size_t, dim>{}, constant_coefficient{arg.rhs()}},
+            std::multiplies<scalar_type>{},
+            internal::scalar_constant_operation {std::multiplies<scalar_type>{}, std::integral_constant<std::size_t, dim>{}, constant_coefficient{arg.rhs()}},
             constant_coefficient{arg.lhs()}};
         }
       }
@@ -124,7 +124,7 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return internal::scalar_constant_operation {std::multiplies<>{},
+      return internal::scalar_constant_operation {std::multiplies<scalar_type>{},
         constant_diagonal_coefficient{arg.lhs()}, constant_diagonal_coefficient{arg.rhs()}};
     }
 

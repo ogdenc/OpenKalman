@@ -558,10 +558,10 @@ namespace OpenKalman
         return make_constant<PatternMatrix>(std::forward<C>(c), std::forward<D>(d)...);
       }
 
-      template<typename S, typename D>
-      static constexpr auto make_identity_matrix(D&& d)
+      template<typename S, typename...D>
+      static constexpr auto make_identity_matrix(D&&...d)
       {
-        return make_identity_matrix_like<PatternMatrix, S>(std::forward<D>(d));
+        return make_identity_matrix_like<PatternMatrix, S>(std::forward<D>(d)...);
       }
 
       // no get_block

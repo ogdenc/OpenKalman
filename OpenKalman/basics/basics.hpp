@@ -60,14 +60,15 @@ namespace OpenKalman::interface {}
 #include "vector-space-descriptors/vector-space-descriptors.hpp"
 
 
-// forward definitions for objects, properties, and interfaces
+// objects, properties, and interfaces
 
-#include "interfaces/interfaces-defined.hpp"
+#include "interfaces/object-traits-defined.hpp"
+#include "interfaces/library-interfaces-defined.hpp"
 #include "internal/library_base.hpp"
 
 #include "property-functions/property-functions.hpp"
 
-#include "traits/forward-traits.hpp"
+#include "traits/traits.hpp"
 #include "forward-class-declarations.hpp"
 
 #include "interfaces/default/indexible_object_traits.hpp"
@@ -79,9 +80,9 @@ namespace OpenKalman::interface {}
 #include "functions/functions.hpp"
 
 
-// properties and interfaces
+// function-dependent traits
 
-#include "traits/traits.hpp"
+#include "basics/traits/other-traits.hpp"
 
 
 // internal objects

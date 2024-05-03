@@ -49,7 +49,7 @@ namespace OpenKalman
     }
     else
     {
-      if constexpr (interface::make_constant_matrix_defined_for<std::decay_t<T>, C&&, Ds&&...>)
+      if constexpr (interface::make_constant_matrix_defined_for<T, C&&, Ds&&...>)
       {
         using Trait = interface::library_interface<std::decay_t<T>>;
         return Trait::template make_constant(std::forward<C>(c), std::forward<Ds>(ds)...);

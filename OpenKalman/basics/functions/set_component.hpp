@@ -33,7 +33,7 @@ namespace OpenKalman
     set_component_impl(Arg&& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
     {
       using Trait = interface::library_interface<std::decay_t<Arg>>;
-      Trait::set_component(arg, s, internal::truncate_indices<index_count_v<Arg>>(indices));
+      Trait::set_component(arg, s, internal::truncate_indices(indices, count_indices(arg)));
       return std::forward<Arg>(arg);
     }
   } // namespace detail
@@ -50,13 +50,13 @@ namespace OpenKalman
     (not std::is_const_v<std::remove_reference_t<Arg>>) and index_value<std::ranges::range_value_t<Indices>> and
     (static_range_size_v<Indices> == dynamic_size or index_count_v<Arg> == dynamic_size or static_range_size_v<Indices> >= index_count_v<Arg>) and
     (not empty_object<Arg>) and
-    interface::set_component_defined_for<std::decay_t<Arg>, std::add_lvalue_reference_t<Arg>, const scalar_type_of_t<Arg>&, const Indices&>
+    interface::set_component_defined_for<Arg, std::add_lvalue_reference_t<Arg>, const scalar_type_of_t<Arg>&, const Indices&>
 #else
   template<typename Arg, typename Indices, std::enable_if_t<indexible<Arg> and
     (not std::is_const_v<std::remove_reference_t<Arg>>) and index_value<decltype(*std::declval<Indices>().begin())> and
     (static_range_size<Indices>::value == dynamic_size or index_count<Arg>::value == dynamic_size or static_range_size<Indices>::value >= index_count<Arg>::value) and
     (not empty_object<Arg>) and
-    interface::set_component_defined_for<std::decay_t<Arg>, typename std::add_lvalue_reference<Arg>::type, const typename scalar_type_of<Arg>::type&, const Indices&>, int> = 0>
+    interface::set_component_defined_for<Arg, typename std::add_lvalue_reference<Arg>::type, const typename scalar_type_of<Arg>::type&, const Indices&>, int> = 0>
 #endif
   inline Arg&&
   set_component(Arg&& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
@@ -72,12 +72,12 @@ namespace OpenKalman
 #ifdef __cpp_lib_concepts
   template<indexible Arg, index_value Indices> requires
     (not std::is_const_v<std::remove_reference_t<Arg>>) and (not empty_object<Arg>) and
-    interface::set_component_defined_for<std::decay_t<Arg>,
+    interface::set_component_defined_for<Arg,
       std::add_lvalue_reference_t<Arg>, const scalar_type_of_t<Arg>&, const std::initializer_list<Indices>&>
 #else
   template<typename Arg, typename Indices, std::enable_if_t<indexible<Arg> and index_value<Indices> and
     (not std::is_const_v<std::remove_reference_t<Arg>>) and (not empty_object<Arg>) and
-    interface::set_component_defined_for<std::decay_t<Arg>,
+    interface::set_component_defined_for<Arg,
       typename std::add_lvalue_reference<Arg>::type, const typename scalar_type_of<Arg>::type&, const std::initializer_list<Indices>&>, int> = 0>
 #endif
   inline Arg&&
@@ -96,13 +96,13 @@ namespace OpenKalman
 #ifdef __cpp_lib_concepts
   template<indexible Arg, index_value...I> requires (not std::is_const_v<std::remove_reference_t<Arg>>) and
     (not empty_object<Arg>) and detail::static_indices_within_bounds<Arg, I...>::value and
-    interface::set_component_defined_for<std::decay_t<Arg>,
+    interface::set_component_defined_for<Arg,
       std::add_lvalue_reference_t<Arg>, const scalar_type_of_t<Arg>&, const std::array<std::size_t, sizeof...(I)>&>
 #else
   template<typename Arg, typename...I, std::enable_if_t<indexible<Arg> and (index_value<I> and ...) and
     (not std::is_const_v<std::remove_reference_t<Arg>>) and (not empty_object<Arg>) and
     detail::static_indices_within_bounds<Arg, I...>::value and
-    interface::set_component_defined_for<std::decay_t<Arg>, typename std::add_lvalue_reference<Arg>::type,
+    interface::set_component_defined_for<Arg, typename std::add_lvalue_reference<Arg>::type,
       const typename scalar_type_of<Arg>::type&, const std::array<std::size_t, sizeof...(I)>&>, int> = 0>
 #endif
   inline Arg&&

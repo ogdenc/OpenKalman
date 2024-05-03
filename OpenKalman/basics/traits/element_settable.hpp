@@ -27,10 +27,10 @@ namespace OpenKalman
   template<typename T, std::size_t N>
 #ifdef __cpp_lib_concepts
   concept element_settable = (N == dynamic_size or N >= index_count_v<T>) and (not std::is_const_v<std::remove_reference_t<T>>) and
-    interface::set_component_defined_for<std::decay_t<T>, std::remove_reference_t<T>&, const scalar_type_of_t<T>&, std::array<std::size_t, index_count_v<T>>>;
+    interface::set_component_defined_for<T, std::remove_reference_t<T>&, const scalar_type_of_t<T>&, std::array<std::size_t, index_count_v<T>>>;
 #else
   constexpr bool element_settable = (N == dynamic_size or N >= index_count_v<T>) and (not std::is_const_v<std::remove_reference_t<T>>) and
-    interface::set_component_defined_for<std::decay_t<T>, std::remove_reference_t<T>&, const typename scalar_type_of<T>::type&, std::array<std::size_t, index_count<T>::value>>;
+    interface::set_component_defined_for<T, std::remove_reference_t<T>&, const typename scalar_type_of<T>::type&, std::array<std::size_t, index_count<T>::value>>;
 #endif
 
 

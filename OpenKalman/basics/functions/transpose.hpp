@@ -70,7 +70,7 @@ namespace OpenKalman
     else if constexpr (constant_matrix<Arg> and
       not requires { {interface::library_interface<std::decay_t<Arg>>::transpose(std::forward<Arg>(arg))} -> constant_matrix; })
 #else
-    else if constexpr (constant_matrix<Arg> and not detail::constant_transpose_defined_for<std::decay_t<Arg>, Arg>::value)
+    else if constexpr (constant_matrix<Arg> and not detail::constant_transpose_defined_for<Arg, Arg>::value)
 #endif
     {
       constexpr std::make_index_sequence<std::max({index_count_v<Arg>, 2_uz}) - 2_uz> seq;

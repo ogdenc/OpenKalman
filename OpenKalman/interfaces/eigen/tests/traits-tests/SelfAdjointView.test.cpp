@@ -51,9 +51,9 @@ TEST(eigen3, Eigen_SelfAdjointView)
   static_assert(zero<Eigen::SelfAdjointView<Eigen::MatrixWrapper<Z22>, Eigen::Upper>>);
 
   static_assert(identity_matrix<Eigen::SelfAdjointView<decltype(M33::Identity()), Eigen::Upper>>);
-  static_assert(not identity_matrix<Eigen::SelfAdjointView<decltype(M3x::Identity(3, 3)), Eigen::Lower>>);
-  static_assert(not identity_matrix<Eigen::SelfAdjointView<decltype(Mx3::Identity(3, 3)), Eigen::Upper>>);
-  static_assert(not identity_matrix<Eigen::SelfAdjointView<decltype(Mxx::Identity(3, 3)), Eigen::Lower>>);
+  static_assert(identity_matrix<Eigen::SelfAdjointView<decltype(M3x::Identity(3, 3)), Eigen::Lower>>);
+  static_assert(identity_matrix<Eigen::SelfAdjointView<decltype(Mx3::Identity(3, 3)), Eigen::Upper>>);
+  static_assert(identity_matrix<Eigen::SelfAdjointView<decltype(Mxx::Identity(3, 3)), Eigen::Lower>>);
 
   static_assert(diagonal_matrix<Sadv22>);
   static_assert(diagonal_matrix<Sadv2x>);

@@ -99,11 +99,11 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg> requires directly_accessible<nested_object_of_t<Arg&>>
+    template<typename Arg> requires raw_data_defined_for<std::add_lvalue_reference_t<NestedObject>>
 #else
-    template<typename Arg, std::enable_if_t<directly_accessible<typename nested_object_of<Arg&>::type>, int> = 0>
+    template<typename NO = NestedObject, typename Arg, std::enable_if_t<raw_data_defined_for<std::add_lvalue_reference_t<NO>>, int> = 0>
 #endif
-    static constexpr auto*
+    static constexpr auto * const
     raw_data(Arg& arg) { return internal::raw_data(arg.nested_object()); }
 
 
@@ -135,11 +135,11 @@ namespace OpenKalman::interface
 
 #if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
     template<indexible Arg, std::ranges::input_range Indices> requires index_value<std::ranges::range_value_t<Indices>> and
-      interface::get_component_defined_for<std::decay_t<NestedObject>, decltype(nested_object(std::declval<Arg&&>())), const Indices&>
+      interface::get_component_defined_for<NestedObject, decltype(nested_object(std::declval<Arg&&>())), const Indices&>
     static constexpr scalar_constant decltype(auto)
 #else
     template<typename Arg, typename Indices, std::enable_if_t<
-      interface::get_component_defined_for<std::decay_t<NestedObject>, decltype(nested_object(std::declval<Arg&&>())), const Indices&>, int> = 0>
+      interface::get_component_defined_for<NestedObject, decltype(nested_object(std::declval<Arg&&>())), const Indices&>, int> = 0>
     static constexpr decltype(auto)
 #endif
     get_component(Arg&& arg, const Indices& indices)
@@ -150,10 +150,10 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_lib_ranges
     template<indexible Arg, std::ranges::input_range Indices> requires index_value<std::ranges::range_value_t<Indices>> and
-      interface::set_component_defined_for<std::decay_t<NestedObject>, decltype(nested_object(std::declval<Arg&>())), const scalar_type_of_t<Arg>&, const Indices&>
+      interface::set_component_defined_for<NestedObject, decltype(nested_object(std::declval<Arg&>())), const scalar_type_of_t<Arg>&, const Indices&>
 #else
     template<typename Arg, typename Indices, std::enable_if_t<
-      interface::set_component_defined_for<std::decay_t<NestedObject>, decltype(nested_object(std::declval<Arg&>())), const typename scalar_type_of<Arg>::type&, const Indices&>, int> = 0>
+      interface::set_component_defined_for<NestedObject, decltype(nested_object(std::declval<Arg&>())), const typename scalar_type_of<Arg>::type&, const Indices&>, int> = 0>
 #endif
     static constexpr void
     set_component(Arg& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)

@@ -31,8 +31,8 @@ namespace OpenKalman
 
 
   /**
-   * \brief Take the determinant of a matrix
-   * \tparam Arg The matrix
+   * \brief Take the determinant of a matrix.
+   * \tparam Arg A square matrix
    */
 #ifdef __cpp_concepts
   template<square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires (max_tensor_order_v<Arg> <= 2)
@@ -43,41 +43,41 @@ namespace OpenKalman
 #endif
   determinant(Arg&& arg)
   {
+    using Scalar = scalar_type_of_t<Arg>;
     constexpr auto ix = []{ if constexpr (dynamic_dimension<Arg, 0>) return 1; else return 0; }();
 
     if constexpr (identity_matrix<Arg> or empty_object<Arg>)
     {
       detail::error_if_argument_to_determinant_is_not_square(arg);
-      return internal::ScalarConstant<Qualification::unqualified, scalar_type_of_t<Arg>, 1>{};
-    }
-    else if constexpr ((constant_matrix<Arg> and not empty_object<Arg, Qualification::depends_on_dynamic_shape>))
-    {
-      detail::error_if_argument_to_determinant_is_not_square(arg);
-      return internal::ScalarConstant<Qualification::unqualified, scalar_type_of_t<Arg>, 0>{};
+      return internal::ScalarConstant<Qualification::unqualified, Scalar, 1>{};
     }
     else if constexpr (dimension_size_of_index_is<Arg, 0, 1> or dimension_size_of_index_is<Arg, 1, 1>)
     {
       // At least one of the dimensions is 1.
       detail::error_if_argument_to_determinant_is_not_square(arg);
-      return constant_coefficient {arg};
+      return internal::get_singular_component(std::forward<Arg>(arg));
+    }
+    else if constexpr (constant_matrix<Arg> and not dynamic_dimension<Arg, ix> and index_dimension_of_v<Arg, ix> >= 2)
+    {
+      detail::error_if_argument_to_determinant_is_not_square(arg);
+      return internal::ScalarConstant<Qualification::unqualified, Scalar, 0>{};
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       detail::error_if_argument_to_determinant_is_not_square(arg);
       return internal::constexpr_pow(constant_diagonal_coefficient{arg}, internal::index_dimension_scalar_constant<ix>(arg))();
     }
-    else if constexpr (triangular_matrix<Arg> and not dynamic_dimension<Arg, ix>) // Includes the diagonal case.
+    else if constexpr (triangular_matrix<Arg>) // Includes the diagonal case.
     {
       detail::error_if_argument_to_determinant_is_not_square(arg);
-      return reduce(std::multiplies<scalar_type_of_t<Arg>>{}, diagonal_of(std::forward<Arg>(arg)));
+      return reduce(std::multiplies<Scalar>{}, diagonal_of(std::forward<Arg>(arg)));
     }
     else if constexpr (constant_matrix<Arg>) // Arg could be empty or 1D at runtime, so we need to check.
     {
-      using Scalar = scalar_type_of_t<Arg>;
       auto d = is_square_shaped(arg);
       if (not d) throw std::invalid_argument{"Argument of 'determinant' is not a square matrix."};
       else if (*d >= 2) return static_cast<Scalar>(0);
-      else if (*d == 1) return static_cast<Scalar>(constant_coefficient {arg}); // 1D matrix
+      else if (*d == 1) return static_cast<Scalar>(internal::get_singular_component(std::forward<Arg>(arg))); // 1D matrix
       else return static_cast<Scalar>(1); // empty matrix
     }
     else

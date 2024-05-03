@@ -43,12 +43,12 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<typename Derived, typename LibraryObject> requires
-    interface::LibraryBase_defined_for<std::decay_t<Derived>, std::decay_t<LibraryObject>>
+    interface::LibraryBase_defined_for<Derived, std::decay_t<LibraryObject>>
   struct library_base<Derived, LibraryObject>
 #else
   template<typename Derived, typename LibraryObject>
   struct library_base<Derived, LibraryObject, std::enable_if_t<
-    interface::LibraryBase_defined_for<std::decay_t<Derived>, std::decay_t<LibraryObject>>>>
+    interface::LibraryBase_defined_for<Derived, std::decay_t<LibraryObject>>>>
 #endif
   {
     using type = typename interface::library_interface<std::decay_t<LibraryObject>>::template LibraryBase<std::decay_t<Derived>>;

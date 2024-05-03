@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Header for object traits.
+ * \brief Forward declarations for object traits.
  */
 
 #ifndef OPENKALMAN_TRAITS_HPP
@@ -18,15 +18,71 @@
 
 #include <type_traits>
 
-#include "constant_coefficient.hpp"
-#include "constant_diagonal_coefficient.hpp"
+// basic traits
 
-#include "typed_adapter.hpp"
-#include "untyped_adapter.hpp"
-#include "dense_writable_matrix_t.hpp"
-#include "untyped_dense_writable_matrix_t.hpp"
-#include "equivalent_self_contained_t.hpp"
-#include "passable_t.hpp"
-#include "internal/is_modifiable.hpp"
+#include "scalar_type_of.hpp"
+#include "indexible.hpp"
+#include "index_count.hpp"
+#include "vector_space_descriptor_of.hpp"
+#include "index_dimension_of.hpp"
+#include "dynamic_dimension.hpp"
+#include "dynamic_index_count.hpp"
+#include "has_dynamic_dimensions.hpp"
+#include "dimension_size_of_index_is.hpp"
+#include "vector.hpp"
+#include "max_tensor_order.hpp"
+
+#include "compatible_with_vector_space_descriptors.hpp"
+#include "maybe_same_shape_as.hpp"
+#include "same_shape_as.hpp"
+
+#include "has_untyped_index.hpp" // Is this necessary?
+#include "all_fixed_indices_are_euclidean.hpp" // Is this necessary?
+
+#include "wrappable.hpp"
+#include "has_nested_object.hpp"
+#include "nested_object_of.hpp"
+#include "self_contained.hpp"
+
+// shape-based traits
+
+#include "one_dimensional.hpp"
+#include "square_shaped.hpp"
+#include "empty_object.hpp"
+
+// constants:
+
+#include "internal/get_singular_component.hpp"
+#include "constant_coefficient.hpp"
+#include "constant_matrix.hpp"
+#include "zero.hpp"
+#include "constant_diagonal_coefficient.hpp"
+#include "constant_diagonal_matrix.hpp"
+#include "identity_matrix.hpp"
+
+// special matrices:
+
+#include "triangular_matrix.hpp"
+#include "triangle_type_of.hpp"
+#include "triangular_adapter.hpp"
+#include "diagonal_matrix.hpp"
+#include "diagonal_adapter.hpp"
+#include "hermitian_matrix.hpp"
+#include "hermitian_adapter.hpp"
+#include "hermitian_adapter_type_of.hpp"
+
+// other:
+
+#include "writable.hpp"
+#include "modifiable.hpp" // Is this necessary?
+
+#include "element_gettable.hpp"
+#include "element_settable.hpp"
+
+#include "directly_accessible.hpp"
+#include "layout_of.hpp"
+
+#include "object-types.hpp"
+
 
 #endif //OPENKALMAN_TRAITS_HPP

@@ -76,7 +76,7 @@ namespace OpenKalman::interface
     static constexpr bool is_writable = false;
 
     template<typename Arg>
-    static constexpr auto*
+    static constexpr auto * const
     raw_data(Arg& arg) { return arg.data(); }
 
     static constexpr Layout layout = layout_of_v<PlainObjectType>;

@@ -18,8 +18,7 @@ using namespace OpenKalman::test;
 TEST(eigen3, solve_constant_diagonal_A)
 {
   auto cd22 = M22::Identity() + M22::Identity();
-  auto c21 = Eigen::Replicate<decltype(M11::Identity() + M11::Identity()), 2, 1> {M11::Identity() + M11::Identity()};
-  auto cdxx_22 = Eigen::Replicate<decltype(c21), Eigen::Dynamic, Eigen::Dynamic> {c21}.asDiagonal();
+  auto cdxx_22 = Mxx::Identity(2, 2) + Mxx::Identity(2, 2);
 
   auto m23_x = make_eigen_matrix<double, 2, 3>(5, 7, 9, 6, 8, 10);
 

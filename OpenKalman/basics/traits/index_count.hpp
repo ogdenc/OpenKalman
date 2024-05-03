@@ -29,31 +29,57 @@ namespace OpenKalman
 #else
   template<typename T, typename = void>
 #endif
-  struct index_count : std::integral_constant<std::size_t, 0> {};
+  struct index_count;
+
+
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct static_count_indices_defined : std::false_type {};
+
+    template<typename T>
+    struct static_count_indices_defined<T, std::enable_if_t<interface::count_indices_defined_for<T>>>
+    : std::bool_constant<static_index_value<decltype(count_indices(std::declval<T>()))>> {};
+  }
+#endif
 
 
   /**
    * \overload
    */
 #ifdef __cpp_concepts
-  template<indexible T> requires requires(T t) { {count_indices(t)} -> static_index_value; }
+  template<typename T> requires requires(T t) { {count_indices(t)} -> static_index_value; }
   struct index_count<T>
 #else
   template<typename T>
-  struct index_count<T, std::enable_if_t<indexible<T> and static_index_value<decltype(count_indices(std::declval<T>()))>>>
+  struct index_count<T, std::enable_if_t<detail::static_count_indices_defined<T>::value>>
 #endif
     : std::integral_constant<std::size_t, std::decay_t<decltype(count_indices(std::declval<T>()))>::value> {};
 
 
-  /**
-   * \overload
-   */
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct dynamic_count_indices_defined : std::false_type {};
+
+    template<typename T>
+    struct dynamic_count_indices_defined<T, std::enable_if_t<interface::count_indices_defined_for<T>>>
+    : std::bool_constant<dynamic_index_value<decltype(count_indices(std::declval<T>()))>> {};
+  }
+#endif
+
+
+/**
+ * \overload
+ */
 #ifdef __cpp_concepts
-  template<indexible T> requires requires(T t) { {count_indices(t)} -> dynamic_index_value; }
+  template<typename T> requires requires(T t) { {count_indices(t)} -> dynamic_index_value; }
   struct index_count<T>
 #else
   template<typename T>
-  struct index_count<T, std::enable_if_t<indexible<T> and dynamic_index_value<decltype(count_indices(std::declval<T>()))>>>
+  struct index_count<T, std::enable_if_t<detail::dynamic_count_indices_defined<T>::value>>
 #endif
     : std::integral_constant<std::size_t, dynamic_size> {};
 

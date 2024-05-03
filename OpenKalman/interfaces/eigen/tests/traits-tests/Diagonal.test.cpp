@@ -21,15 +21,24 @@ TEST(eigen3, Eigen_Diagonal)
   static_assert(self_contained<decltype(std::declval<C22_2>().matrix().diagonal())>);
 
   static_assert(constant_coefficient_v<decltype(M22::Identity().diagonal())> == 1);
-  static_assert(constant_coefficient_v<decltype(M2x::Identity().diagonal())> == 1);
-  static_assert(constant_coefficient_v<decltype(Mx2::Identity().diagonal())> == 1);
-  static_assert(constant_coefficient_v<decltype(Mxx::Identity().diagonal())> == 1);
-
   static_assert(constant_coefficient_v<decltype(M22::Identity().diagonal<1>())> == 0);
-  static_assert(constant_coefficient_v<decltype(M2x::Identity().diagonal<-1>())> == 0);
-  static_assert(constant_coefficient_v<decltype(Mx2::Identity().diagonal<1>())> == 0);
-  static_assert(constant_coefficient_v<decltype(Mxx::Identity().diagonal<-1>())> == 0);
+  static_assert(constant_coefficient_v<decltype(M22::Identity().diagonal<-1>())> == 0);
   static_assert(constant_matrix<decltype(M22::Identity().diagonal<Eigen::DynamicIndex>()), ConstantType::dynamic_constant>);
+  static_assert(not constant_matrix<decltype(M22::Identity().diagonal<2>())>);
+
+  static_assert(constant_coefficient_v<decltype(M2x::Identity().diagonal())> == 1);
+  static_assert(constant_coefficient_v<decltype(M2x::Identity().diagonal<-1>())> == 0);
+  static_assert(constant_coefficient_v<decltype(M2x::Identity().diagonal<1>())> == 0); // may throw out-of-range exception at runtime
+  static_assert(not constant_matrix<decltype(M2x::Identity().diagonal<-2>())>);
+
+  static_assert(constant_coefficient_v<decltype(Mx2::Identity().diagonal())> == 1);
+  static_assert(constant_coefficient_v<decltype(Mx2::Identity().diagonal<1>())> == 0);
+  static_assert(constant_coefficient_v<decltype(Mx2::Identity().diagonal<-1>())> == 0); // may throw out-of-range exception at runtime
+  static_assert(not constant_matrix<decltype(Mx2::Identity().diagonal<2>())>);
+
+  static_assert(constant_coefficient_v<decltype(Mxx::Identity().diagonal())> == 1);
+  static_assert(constant_coefficient_v<decltype(Mxx::Identity().diagonal<1>())> == 0); // may throw out-of-range exception at runtime
+  static_assert(constant_coefficient_v<decltype(Mxx::Identity().diagonal<-1>())> == 0); // may throw out-of-range exception at runtime
 
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().matrix().diagonal())> == 2);
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().matrix().diagonal<1>())> == 2);
@@ -40,15 +49,18 @@ TEST(eigen3, Eigen_Diagonal)
   static_assert(constant_coefficient_v<decltype(std::declval<Cd22_2>().matrix().diagonal<-1>())> == 0);
 
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_2>().matrix().diagonal())> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C1x_2>().matrix().diagonal())> == 2);
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cx1_2>().matrix().diagonal())> == 2);
+  static_assert(not constant_diagonal_matrix<decltype(std::declval<C1x_2>().matrix().diagonal())>);
+  static_assert(not constant_diagonal_matrix<decltype(std::declval<Cx1_2>().matrix().diagonal())>);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C12_2>().matrix().diagonal())> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C21_2>().matrix().diagonal())> == 2);
 
   static_assert(not constant_diagonal_matrix<decltype(std::declval<C11_2>().matrix().diagonal<1>())>);
+  static_assert(not constant_diagonal_matrix<decltype(std::declval<C11_2>().matrix().diagonal<-1>())>);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C22_2>().matrix().diagonal<1>())> == 2);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C22_2>().matrix().diagonal<-1>())> == 2);
   static_assert(not constant_diagonal_matrix<decltype(std::declval<C22_2>().matrix().diagonal())>);
+  static_assert(not constant_diagonal_matrix<decltype(std::declval<C22_2>().matrix().diagonal<2>())>);
+  static_assert(not constant_diagonal_matrix<decltype(std::declval<C22_2>().matrix().diagonal<-2>())>);
 
   static_assert(zero<decltype(std::declval<Z23>().matrix().diagonal())>);
   static_assert(zero<decltype(std::declval<Z23>().matrix().diagonal<1>())>);

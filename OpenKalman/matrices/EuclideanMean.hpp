@@ -505,11 +505,11 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
 
 
 #ifdef __cpp_lib_concepts
-      template<typename Arg> requires directly_accessible<nested_object_of_t<Arg&&>> and euclidean_vector_space_descriptor<Coeffs>
+      template<typename Arg> requires raw_data_defined_for<NestedMatrix> and euclidean_vector_space_descriptor<Coeffs>
 #else
-      template<typename Arg, std::enable_if_t<directly_accessible<typename nested_object_of<Arg&&>::type> and euclidean_vector_space_descriptor<Coeffs>, int> = 0>
+      template<typename Arg, std::enable_if_t<raw_data_defined_for<NestedMatrix> and euclidean_vector_space_descriptor<Coeffs>, int> = 0>
 #endif
-      static constexpr auto*
+      static constexpr auto * const
       raw_data(Arg& arg) { return internal::raw_data(OpenKalman::nested_object(arg)); }
 
 

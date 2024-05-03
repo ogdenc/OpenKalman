@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2023-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -32,9 +32,6 @@ namespace
   auto tolerance = [](const auto& a, const auto& b, const auto& err){ return internal::are_within_tolerance(a, b, err); };
 
   struct NullaryFunc { constexpr auto operator()() { return 5.5; } };
-  struct ConstDefinitely : std::integral_constant<int, 6> { static constexpr auto status = Qualification::unqualified; };
-  struct ConstMaybe : std::integral_constant<int, 6> { static constexpr auto status = Qualification::depends_on_dynamic_shape; };
-  struct ConstNoStatus : std::integral_constant<int, 6> {};
 }
 
 
@@ -42,17 +39,13 @@ TEST(basics, ScalarConstant)
 {
   static_assert(internal::ScalarConstant<Qualification::unqualified, double, 3>{}() == 3);
   static_assert(internal::ScalarConstant<Qualification::unqualified, std::complex<double>, 3, 4>{}() == std::complex<double>{3, 4});
-  static_assert(internal::ScalarConstant<Qualification::depends_on_dynamic_shape, std::integral_constant<int, 7>>{}() == 7);
+  static_assert(internal::ScalarConstant<Qualification::unqualified, std::integral_constant<int, 7>>{}() == 7);
   static_assert(internal::ScalarConstant{std::integral_constant<int, 7>{}}.value == 7);
   static_assert(internal::ScalarConstant{3}() == 3);
   static_assert(internal::ScalarConstant{3.} == 3.);
   static_assert(std::is_same_v<decltype(internal::ScalarConstant{std::integral_constant<int, 7>{}})::value_type, int>);
   static_assert(std::is_same_v<decltype(internal::ScalarConstant{3})::value_type, int>);
   static_assert(std::is_same_v<decltype(internal::ScalarConstant{3.})::value_type, double>);
-  static_assert(internal::ScalarConstant{internal::ScalarConstant<Qualification::depends_on_dynamic_shape, double, 3>{}}.status == Qualification::depends_on_dynamic_shape);
-  static_assert(internal::ScalarConstant{internal::ScalarConstant<Qualification::unqualified, double, 3>{}}.status == Qualification::unqualified);
-  static_assert(internal::ScalarConstant{std::integral_constant<int, 7>{}}.status == Qualification::unqualified);
-  static_assert(internal::ScalarConstant{3}.status == Qualification::unqualified);
 
   static_assert(std::decay_t<decltype(+internal::ScalarConstant<Qualification::unqualified, double, 3>{})>::value == 3);
   static_assert(std::decay_t<decltype(-internal::ScalarConstant<Qualification::unqualified, double, 3>{})>::value == -3);
@@ -102,20 +95,9 @@ TEST(basics, scalar_constant_operation)
 {
   static_assert(scalar_constant<internal::scalar_constant_operation<NullaryFunc>, ConstantType::static_constant>);
   static_assert(get_scalar_constant_value(internal::scalar_constant_operation<NullaryFunc>{}) == 5.5);
-  static_assert(internal::scalar_constant_operation<NullaryFunc>::status == Qualification::unqualified);
-  static_assert(scalar_constant<internal::scalar_constant_operation<std::negate<>, ConstMaybe>, ConstantType::static_constant>);
   static_assert(scalar_constant<internal::scalar_constant_operation<std::negate<>, double>, ConstantType::dynamic_constant>);
-  static_assert(internal::scalar_constant_operation<std::negate<>, ConstDefinitely>::status == Qualification::unqualified);
-  static_assert(internal::scalar_constant_operation<std::negate<>, ConstMaybe>::status == Qualification::depends_on_dynamic_shape);
-  static_assert(internal::scalar_constant_operation<std::negate<>, ConstNoStatus>::status == Qualification::unqualified);
   static_assert(scalar_constant<internal::scalar_constant_operation<std::multiplies<>, double, double>, ConstantType::dynamic_constant>);
   static_assert(internal::scalar_constant_operation{std::plus{}, std::integral_constant<int, 4>{}, std::integral_constant<int, 5>{}}() == 9);
-  static_assert(internal::scalar_constant_operation<std::plus<>, ConstDefinitely, ConstDefinitely>::status == Qualification::unqualified);
-  static_assert(internal::scalar_constant_operation<std::plus<>, ConstDefinitely, ConstMaybe>::status == Qualification::depends_on_dynamic_shape);
-  static_assert(internal::scalar_constant_operation<std::plus<>, ConstNoStatus, ConstDefinitely>::status == Qualification::unqualified);
-  static_assert(internal::scalar_constant_operation<std::plus<>, ConstNoStatus, ConstMaybe>::status == Qualification::depends_on_dynamic_shape);
-  static_assert(internal::scalar_constant_operation<std::plus<>, ConstMaybe, ConstMaybe>::status == Qualification::depends_on_dynamic_shape);
-  static_assert(internal::scalar_constant_operation<std::plus<>, ConstNoStatus, ConstNoStatus>::status == Qualification::unqualified);
   EXPECT_EQ(get_scalar_constant_value(internal::scalar_constant_operation{[](){ return 9; }}), 9);
   int k = 9; EXPECT_EQ(get_scalar_constant_value(internal::scalar_constant_operation{[&k](){ return k; }}), 9);
   EXPECT_EQ(get_scalar_constant_value(internal::scalar_constant_operation{std::plus{}, 4, 5}), 9);

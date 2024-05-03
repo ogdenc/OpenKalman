@@ -232,11 +232,11 @@ namespace OpenKalman::interface
      * \brief If the argument has direct access to the underlying array data, return a pointer to that raw data.
      */
 #ifdef __cpp_concepts
-    static constexpr std::convertible_to<const scalar_type * const> auto * const
+    static constexpr scalar_type * const
     raw_data(std::convertible_to<const T> auto& arg) = delete;
 #else
     template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const T>, int> = 0>
-    static constexpr auto * const
+    static constexpr scalar_type * const
     raw_data(Arg& arg) = delete;
 #endif
 

@@ -56,7 +56,7 @@ namespace OpenKalman::internal
 
       constexpr auto operator+() { return static_cast<Derived&>(*this); }
 
-      constexpr auto operator-() { return scalar_constant_operation {std::negate<>{}, static_cast<Derived&>(*this)}; }
+      constexpr auto operator-() { return scalar_constant_operation {std::negate<value_type>{}, static_cast<Derived&>(*this)}; }
     };
 
 
@@ -85,10 +85,13 @@ namespace OpenKalman::internal
   struct ScalarConstant<b, C, constant...>
   {
     static constexpr auto value {get_scalar_constant_value(C{constant...})};
+
     using value_type = std::decay_t<decltype(value)>;
+
     using type = ScalarConstant;
-    static constexpr Qualification status = b;
+
     constexpr operator value_type() const noexcept { return value; }
+
     constexpr value_type operator()() const noexcept { return value; }
 
     constexpr ScalarConstant() = default;
@@ -105,10 +108,12 @@ namespace OpenKalman::internal
   struct ScalarConstant<b, C>
   {
     using value_type = std::decay_t<decltype(get_scalar_constant_value(std::declval<C>()))>;
+
     constexpr operator value_type() const noexcept { return value; }
+
     constexpr value_type operator()() const noexcept { return value; }
+
     using type = ScalarConstant;
-    static constexpr Qualification status = b;
 
     template<scalar_constant T>
     explicit constexpr ScalarConstant(const T& t) : value {get_scalar_constant_value(t)} {};

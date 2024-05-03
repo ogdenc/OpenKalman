@@ -49,6 +49,29 @@ namespace OpenKalman::internal
   }
 
 
+  /**
+   * \overload
+   * \internal
+   * \brief Returns a scalar constant reflecting the size of an index for a tensor or matrix.
+   * \details The return value is a known or unknown \ref scalar_constant of the same scalar type as T.
+   * \tparam T The matrix, expression, or array
+   * \tparam N An \ref index_value
+   * \internal \sa interface::indexible_object_traits
+   */
+#ifdef __cpp_concepts
+  template<interface::count_indices_defined_for T, index_value N> requires
+    interface::get_vector_space_descriptor_defined_for<T> and interface::scalar_type_defined_for<T>
+#else
+  template<typename T, typename N, std::enable_if_t<interface::count_indices_defined_for<T> and index_value<N> and
+    interface::get_vector_space_descriptor_defined_for<T> and interface::scalar_type_defined_for<T>, int> = 0>
+#endif
+  constexpr auto index_dimension_scalar_constant(const T& t, const N& n)
+  {
+    if constexpr (static_index_value<N>) return index_dimension_scalar_constant<N::value>(t);
+    else return static_cast<typename interface::indexible_object_traits<std::decay_t<T>>::scalar_type>(get_index_dimension_of(t, n));
+  }
+
+
 } // namespace OpenKalman::internal
 
 #endif //OPENKALMAN_INDEX_DIMENSION_SCALAR_CONSTANT_HPP

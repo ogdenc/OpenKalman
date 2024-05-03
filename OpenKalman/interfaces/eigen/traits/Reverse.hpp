@@ -88,7 +88,7 @@ namespace OpenKalman::interface
     static constexpr bool is_triangular_adapter = false;
 
     static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Qualification::depends_on_dynamic_shape> and
-        (Direction == Eigen::BothDirections or OpenKalman::one_dimensional<MatrixType, Qualification::depends_on_dynamic_shape>);
+        (Direction == Eigen::BothDirections or vector<MatrixType, 0> or vector<MatrixType, 1>);
   };
 
 

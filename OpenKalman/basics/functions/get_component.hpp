@@ -26,10 +26,6 @@ namespace OpenKalman
 {
   // \todo Add functions that return stl-compatible iterators.
 
-  // =================== //
-  //  Element functions  //
-  // =================== //
-
   namespace detail
   {
     template<typename Arg, typename Indices>
@@ -37,7 +33,7 @@ namespace OpenKalman
     get_component_impl(Arg&& arg, const Indices& indices)
     {
       using Trait = interface::library_interface<std::decay_t<Arg>>;
-      return Trait::get_component(std::forward<Arg>(arg), internal::truncate_indices<index_count_v<Arg>>(indices));
+      return Trait::get_component(std::forward<Arg>(arg), internal::truncate_indices(indices, count_indices(arg)));
     }
   } // namespace detail
 

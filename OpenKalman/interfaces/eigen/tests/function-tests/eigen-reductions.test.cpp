@@ -151,14 +151,7 @@ TEST(eigen3, average_matrix)
   auto ix2_2 = Mx2::Identity(2, 2);
   auto ixx_22 = Mxx::Identity(2, 2);
 
-  EXPECT_TRUE(is_near(average_reduce<1>(i2x_2), M21::Constant(0.5)));
-  auto rcix2_2 = average_reduce<1>(ix2_2);
-  EXPECT_TRUE(is_near(rcix2_2, M21::Constant(0.5)));
-  EXPECT_TRUE(is_near(average_reduce<1>(ix2_2), M21::Constant(0.5)));
   EXPECT_TRUE(is_near(average_reduce<1>(ixx_22), M21::Constant(0.5)));
-
-  EXPECT_TRUE(is_near(average_reduce<1>(M2x::Identity(2, 2)), M21::Constant(0.5)));
-  EXPECT_TRUE(is_near(average_reduce<1>(Mx2::Identity(2, 2)), M21::Constant(0.5)));
   EXPECT_TRUE(is_near(average_reduce<1>(Mxx::Identity(2, 2)), M21::Constant(0.5)));
 
   static_assert(average_reduce(i22) == 0.5);

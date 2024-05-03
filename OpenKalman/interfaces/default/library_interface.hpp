@@ -136,9 +136,9 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Create a \ref constant_matrix corresponding to the shape of LibraryObject (optional).
+     * \brief Create a \ref constant_matrix of a given shape (optional).
      * \details Takes a list of \ref vector_space_descriptor items that specify the size of the resulting object
-     * \param c A \ref scalar_constant (the constant known either at compile time or runtime)
+     * \param c A \ref scalar_constant (either static or dynamic)
      * \param d A list of \ref vector_space_descriptor items
      * \note If this is not defined, calls to <code>OpenKalman::make_constant</code> will return an object of type ConstantAdapter.
      */
@@ -153,7 +153,8 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Create an \ref identity_matrix (optional).
+     * \brief Create a generalized \ref identity_matrix of a given shape(optional).
+     * \details This is a generalized identity matrix that need not be square, but every non-diagonal element must be zero.
      * \note If not defined, an identity matrix is a \ref DiagonalMatrix adapter with a constant diagonal of 1.
      * \tparam Scalar The scalar type of the new object
      * \param d A \ref vector_space_descriptor object defining the size
@@ -161,11 +162,11 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<scalar_type Scalar>
     static constexpr identity_matrix auto
-    make_identity_matrix(vector_space_descriptor auto&& d) = delete;
+    make_identity_matrix(vector_space_descriptor auto&&...d) = delete;
 #else
-    template<typename Scalar, typename D>
+    template<typename Scalar, typename...D>
     static constexpr auto
-    make_identity_matrix(D&& d) = delete;
+    make_identity_matrix(D&&...d) = delete;
 #endif
 
 
@@ -433,7 +434,7 @@ namespace OpenKalman::interface
      * \param arg An \ref indexible object within the same library as LibraryObject.
      */
 #ifdef __cpp_concepts
-    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg>
+    template<indexible Arg>
     static constexpr compatible_with_vector_space_descriptors<vector_space_descriptor_of_t<Arg, 1>, vector_space_descriptor_of_t<Arg, 0>> auto
 #else
     template<typename Arg>
@@ -448,7 +449,7 @@ namespace OpenKalman::interface
      * \param arg An \ref indexible object within the same library as LibraryObject.
      */
 #ifdef __cpp_concepts
-    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg>
+    template<indexible Arg>
     static constexpr compatible_with_vector_space_descriptors<vector_space_descriptor_of_t<Arg, 1>, vector_space_descriptor_of_t<Arg, 0>> auto
 #else
     template<typename Arg>

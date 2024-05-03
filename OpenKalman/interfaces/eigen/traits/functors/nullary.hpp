@@ -44,15 +44,14 @@ namespace OpenKalman::Eigen3
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      constexpr auto b = has_dynamic_dimensions<Arg> ? Qualification::depends_on_dynamic_shape : Qualification::unqualified;
-      if constexpr (is_diag) return internal::ScalarConstant<b, Scalar, 1>{};
+      if constexpr (is_diag) return internal::ScalarConstant<Qualification::unqualified, Scalar, 1>{};
       else return std::monostate {};
     }
 
     template<TriangleType t>
     static constexpr bool is_triangular = true;
 
-    static constexpr bool is_hermitian = square_shaped<PlainObjectType>;
+    static constexpr bool is_hermitian = true;
   };
 
 
@@ -82,7 +81,7 @@ namespace OpenKalman::Eigen3
     template<TriangleType t>
     static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = square_shaped<PlainObjectType> and not complex_number<Scalar>;
+    static constexpr bool is_hermitian = not complex_number<Scalar>;
   };
 
 } // namespace OpenKalman::Eigen3

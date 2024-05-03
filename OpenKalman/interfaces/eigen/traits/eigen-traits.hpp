@@ -23,9 +23,12 @@
 #include "indexible_object_traits_base.hpp"
 #include "eigen-library-interface.hpp"
 
-#include "functors/NullaryFunctorTraits.hpp"
+#include "functors/nullary.hpp"
 #include "functors/unary.hpp"
 #include "functors/binary.hpp"
+#include "functors/ternary.hpp"
+#include "functors/redux.hpp"
+#include "functors/functor_composition.hpp"
 
 #include "Array.hpp"
 #include "ArrayWrapper.hpp"
@@ -67,7 +70,6 @@
 #include "VectorBlock.hpp"
 #include "VectorWiseOp.hpp"
 
-#include "functors/redux.hpp"
 #include "PartialReduxExpr.hpp"
 
 

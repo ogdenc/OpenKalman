@@ -32,7 +32,7 @@ namespace OpenKalman::interface
 #endif
   {
     template<typename Derived>
-    using LibraryBase = Eigen3::EigenAdapterBase<Derived, T,
+    using LibraryBase = Eigen3::EigenAdapterBase<Derived,
       std::conditional_t<Eigen3::eigen_array_general<T>, Eigen::ArrayBase<Derived>,
       std::conditional_t<Eigen3::eigen_matrix_general<T>, Eigen::MatrixBase<Derived>, Eigen::EigenBase<Derived>>>>;
 
@@ -354,30 +354,37 @@ namespace OpenKalman::interface
     {
       auto value = get_scalar_constant_value(std::forward<C>(c));
       using Scalar = std::decay_t<decltype(value)>;
-      using N = dense_writable_matrix_t<T, Layout::none, Scalar, std::decay_t<Ds>...>;
-      if constexpr (sizeof...(Ds) == 2)
-        return N::Constant(static_cast<typename N::Index>(get_dimension_size_of(std::forward<Ds>(ds)))..., value);
+      using M = dense_writable_matrix_t<T, Layout::none, Scalar, std::decay_t<Ds>...>;
+      if constexpr ((fixed_vector_space_descriptor<Ds> and ...))
+        return M::Constant(value);
+      else if constexpr (sizeof...(Ds) == 2)
+        return M::Constant(static_cast<typename M::Index>(get_dimension_size_of(std::forward<Ds>(ds)))..., value);
       else if constexpr (sizeof...(Ds) == 1)
-        return N::Constant(static_cast<typename N::Index>(get_dimension_size_of(std::forward<Ds>(ds)))..., 1, value);
+        return M::Constant(static_cast<typename M::Index>(get_dimension_size_of(std::forward<Ds>(ds)))..., 1, value);
       else // sizeof...(Ds) == 0
-        return N::Constant(value);
+        return M::Constant(1, 1, value);
       // Note: We don't address orders greater than 2 because Eigen::Tensor's constant has substantial limitations.
     }
 
 
-    template<typename Scalar, typename D>
+#ifdef __cpp_concepts
+    template<typename Scalar, typename...Ds> requires (sizeof...(Ds) <= 2)
+    static constexpr identity_matrix auto
+#else
+    template<typename Scalar, typename...Ds, std::enable_if_t<(sizeof...(Ds) <= 2)>>
     static constexpr auto
-    make_identity_matrix(D&& d)
+#endif
+    make_identity_matrix(Ds&&...ds)
     {
-      if constexpr (dimension_size_of_v<D> == dynamic_size)
-      {
-        return to_diagonal(make_constant<T, Scalar, 1>(std::forward<D>(d), Dimensions<1>{}));
-      }
-      else
-      {
-        constexpr auto n {static_cast<int>(dimension_size_of_v<D>)};
-        return Eigen::Matrix<Scalar, n, n>::Identity();
-      }
+      using M = dense_writable_matrix_t<T, Layout::none, Scalar, std::decay_t<Ds>...>;
+      if constexpr ((fixed_vector_space_descriptor<Ds> and ...))
+        return M::Identity();
+      else if constexpr (sizeof...(Ds) == 2)
+        return M::Identity(static_cast<typename M::Index>(get_dimension_size_of(std::forward<Ds>(ds)))...);
+      else if constexpr (sizeof...(Ds) == 1)
+        return M::Identity(static_cast<typename M::Index>(get_dimension_size_of(std::forward<Ds>(ds)))..., 1);
+      else // sizeof...(Ds) == 0
+        return M::Identity(1, 1);
     }
 
 
@@ -501,7 +508,7 @@ namespace OpenKalman::interface
         auto [b0, b1] = [](Eigen::Index bs0, Eigen::Index bs1, const auto&...){ return std::tuple {bs0, bs1}; }
           (static_cast<std::size_t>(begin)..., 0_uz, 0_uz);
 
-        if constexpr (Eigen3::eigen_block<Block>)
+        if constexpr (Eigen3::eigen_Block<Block>)
         {
           if (std::addressof(arg) == std::addressof(block.nestedExpression()) and b0 == block.startRow() and b1 == block.startCol())
             return arg;
@@ -660,11 +667,6 @@ namespace OpenKalman::interface
 #endif
     diagonal_of(Arg&& arg)
     {
-      auto d = is_square_shaped(arg);
-      if (not d) throw std::invalid_argument {"Argument of diagonal_of must be a square matrix; instead it has " +
-          std::to_string(get_index_dimension_of<0>(arg)) + " rows and " +
-          std::to_string(get_index_dimension_of<1>(arg)) + " columns"};
-
       using Scalar = scalar_type_of_t<Arg>;
 
       if constexpr (Eigen3::eigen_DiagonalWrapper<Arg>)
@@ -707,9 +709,9 @@ namespace OpenKalman::interface
       }
       else if constexpr (Eigen3::eigen_Identity<Arg>)
       {
-        constexpr std::size_t dim = dynamic_dimension<Arg, 0> ? index_dimension_of_v<Arg, 1> : index_dimension_of_v<Arg, 0>;
-        if constexpr (dim == dynamic_size) return make_constant<Arg, Scalar, 1>(*d);
-        else return make_constant<Arg, Scalar, 1>(Dimensions<dim>{});
+        auto f = [](const auto& a, const auto& b) { return std::min(a, b); };
+        auto dim = internal::scalar_constant_operation{f, get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)};
+        return make_constant<Arg, Scalar, 1>(dim);
       }
       else if constexpr (Eigen3::eigen_matrix_general<Arg>)
       {
@@ -1020,11 +1022,10 @@ namespace OpenKalman::interface
     {
       constexpr HermitianAdapterType h = hermitian_adapter_type_of_v<A, B> == HermitianAdapterType::any ?
         HermitianAdapterType::lower : hermitian_adapter_type_of_v<A, B>;
-      constexpr bool tri = triangle_type_of_v<A, B> != TriangleType::any;
 
       auto f = [](auto&& x) -> decltype(auto) {
         constexpr bool herm = hermitian_matrix<A> and hermitian_matrix<B>;
-        if constexpr ((tri and triangular_adapter<decltype(x)>) or (herm and hermitian_adapter<decltype(x), h>))
+        if constexpr ((triangle_type_of_v<A, B> != TriangleType::any and triangular_adapter<decltype(x)>) or (herm and hermitian_adapter<decltype(x), h>))
           return nested_object(std::forward<decltype(x)>(x));
         else if constexpr (herm and hermitian_adapter<decltype(x)>)
           return transpose(nested_object(std::forward<decltype(x)>(x)));
@@ -1035,7 +1036,7 @@ namespace OpenKalman::interface
       using Sum = std::decay_t<decltype(f(std::forward<A>(a)) + f(std::forward<B>(b)))>;
       auto s {internal::make_self_contained_wrapper<Sum, typename Sum::Lhs, typename Sum::Rhs>(std::forward<A>(a), std::forward<B>(b))};
 
-      if constexpr (tri) return make_triangular_matrix<triangle_type_of_v<A, B>>(std::move(s));
+      if constexpr (triangle_type_of_v<A, B> != TriangleType::any) return make_triangular_matrix<triangle_type_of_v<A, B>>(std::move(s));
       else if constexpr (hermitian_matrix<A> and hermitian_matrix<B>) return make_hermitian_matrix<h>(std::move(s));
       else return s;
     }

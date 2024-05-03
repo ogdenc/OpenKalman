@@ -33,12 +33,12 @@ namespace OpenKalman::interface
 
     // Truncate any trailing ℝ¹ dimensions
     template<std::size_t N = sizeof...(Ds)>
-    static constexpr auto get_index_count_impl()
+    static constexpr auto count_indices_impl()
     {
       if constexpr (N == 0)
         return N;
       else if constexpr (equivalent_to<Dimensions<1>, std::tuple_element_t<N - 1, std::tuple<Ds...>>>)
-        return get_index_count_impl<N - 1>();
+        return count_indices_impl<N - 1>();
       else
         return N;
     }
@@ -49,9 +49,9 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr auto count_indices(const Arg& arg)
+    static constexpr auto count_indices(const Arg&)
     {
-      return std::integral_constant<std::size_t, get_index_count_impl()>{};
+      return std::integral_constant<std::size_t, count_indices_impl()>{};
     }
 
 
@@ -62,7 +62,7 @@ namespace OpenKalman::interface
       {
         using D = std::tuple_element_t<N::value, std::tuple<Ds...>>;
         if constexpr (fixed_vector_space_descriptor<D>) return std::decay_t<D> {};
-        else return OpenKalman::get_vector_space_descriptor(arg.nested_object(), n);
+        else return OpenKalman::get_vector_space_descriptor(OpenKalman::nested_object(arg), n);
       }
       else if constexpr (equivalent_to<Dimensions<1>, Ds...>)
       {
@@ -70,7 +70,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        return OpenKalman::get_vector_space_descriptor(arg.nested_object(), n);
+        return OpenKalman::get_vector_space_descriptor(OpenKalman::nested_object(arg), n);
       }
     }
 
@@ -96,24 +96,26 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires constant_matrix<NestedMatrix>
+    template<typename Arg> requires constant_matrix<NestedMatrix> or (... and equivalent_to<Ds, Dimensions<1>>)
 #else
-    template<typename M = NestedMatrix, typename Arg, std::enable_if_t<constant_matrix<M>, int> = 0>
+    template<typename M = NestedMatrix, typename Arg, std::enable_if_t<
+      constant_matrix<M> or (... and equivalent_to<Ds, Dimensions<1>>), int> = 0>
 #endif
     static constexpr auto get_constant(const Arg& arg)
     {
-      return constant_coefficient {arg.nested_object()};
+      if constexpr (constant_matrix<NestedMatrix>) return constant_coefficient {OpenKalman::nested_object(arg)};
+      else return internal::get_singular_component(arg);
     }
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires constant_diagonal_matrix<NestedMatrix> or one_dimensional<Xpr>
+    template<typename Arg> requires constant_diagonal_matrix<NestedMatrix>
 #else
     template<typename M = NestedMatrix, typename Arg, std::enable_if_t<constant_diagonal_matrix<M>, int> = 0>
 #endif
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return constant_diagonal_coefficient {arg.nested_object()};
+      return constant_diagonal_coefficient {OpenKalman::nested_object(arg)};
     }
 
 
@@ -137,13 +139,15 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg> requires directly_accessible<nested_object_of_t<Arg>>
-    static constexpr std::convertible_to<const scalar_type_of_t<Arg>> auto * const
+    template<typename Arg> requires raw_data_defined_for<NestedMatrix>
 #else
-    template<typename Arg, std::enable_if_t<directly_accessible<typename nested_object_of<Arg>::type>, int> = 0>
-    static constexpr auto * const
+    template<typename N = NestedMatrix, typename Arg, std::enable_if_t<raw_data_defined_for<N>, int> = 0>
 #endif
-    raw_data(Arg& arg) { return internal::raw_data(arg.nested_object()); }
+    static constexpr auto * const
+    raw_data(Arg& arg)
+    {
+      return internal::raw_data(OpenKalman::nested_object(arg));
+    }
 
 
     static constexpr Layout layout = layout_of_v<NestedMatrix>;
@@ -220,7 +224,7 @@ namespace OpenKalman::interface
     static constexpr void
     set_component(Arg& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
     {
-      NestedInterface::set_component(arg.nested_object(), s, add_trailing_indices<index_count_v<Nested>>(indices));
+      NestedInterface::set_component(OpenKalman::nested_object(arg), s, add_trailing_indices<index_count_v<Nested>>(indices));
     }
 
 
@@ -314,7 +318,7 @@ namespace OpenKalman::interface
     static Arg&
     set_block(Arg& arg, Block&& block, const Begin&...begin)
     {
-      NestedInterface::set_block(arg.nested_object(), std::forward<Block>(block), begin...);
+      NestedInterface::set_block(OpenKalman::nested_object(arg), std::forward<Block>(block), begin...);
       return arg;
     };
 
@@ -383,7 +387,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg>
+    template<indexible Arg>
     static constexpr vector auto
 #else
     template<typename Arg>
@@ -391,18 +395,29 @@ namespace OpenKalman::interface
 #endif
     diagonal_of(Arg&& arg)
     {
-      if constexpr (one_dimensional<Arg>) return std::forward<Arg>(arg);
+      if constexpr (one_dimensional<Arg>)
+      {
+        return std::forward<Arg>(arg);
+      }
+      else if constexpr (interface::diagonal_of_defined_for<NestedInterface, Arg&&>)
+      {
+        return NestedInterface::diagonal_of(std::forward<Arg>(arg));
+      }
       else
       {
-        if constexpr (interface::diagonal_of_defined_for<NestedInterface, Arg&&>)
+        auto vect = NestedInterface::diagonal_of(OpenKalman::nested_object(std::forward<Arg>(arg)));
+        if constexpr (dynamic_dimension<decltype(vect), 0>)
         {
-          return NestedInterface::diagonal_of(std::forward<Arg>(arg));
+          auto ix = internal::smallest_dimension_index(arg);
+          using Ix = std::decay_t<decltype(ix)>;
+          if constexpr (static_index_value<Ix>)
+            return internal::make_fixed_size_adapter<index_dimension_of<decltype(vect), Ix::value>>(std::move(vect));
+          else
+            return vect;
         }
         else
         {
-          auto vect = NestedInterface::diagonal_of(OpenKalman::nested_object(std::forward<Arg>(arg)));
-          using D = std::conditional_t<dynamic_dimension<Arg, 0>, vector_space_descriptor_of<Arg, 1>, vector_space_descriptor_of<Arg, 0>>;
-          return internal::make_fixed_size_adapter<D>(std::move(vect));
+          return vect;
         }
       }
     }

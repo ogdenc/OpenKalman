@@ -42,19 +42,19 @@ TEST(eigen3, Eigen_TriangularView)
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Eigen::MatrixWrapper<Cd22_2>, Eigen::Lower>> == 2);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Eigen::MatrixWrapper<Z22>, Eigen::StrictlyLower>> == 0);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Eigen::MatrixWrapper<Z2x>, Eigen::StrictlyLower>> == 0);
-  static_assert(not constant_diagonal_matrix<Eigen::TriangularView<Eigen::MatrixWrapper<Z23>, Eigen::StrictlyLower>>);
+  static_assert(constant_diagonal_matrix<Eigen::TriangularView<Eigen::MatrixWrapper<Z23>, Eigen::StrictlyLower>>);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Eigen::MatrixWrapper<Z22>, Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Eigen::MatrixWrapper<Zx2>, Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(M22::Identity()), Eigen::StrictlyLower>> == 0);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(M2x::Identity()), Eigen::StrictlyLower>> == 0);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(Mx2::Identity()), Eigen::StrictlyLower>> == 0);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(Mxx::Identity()), Eigen::StrictlyLower>> == 0);
-  static_assert(not constant_diagonal_matrix<Eigen::TriangularView<decltype(M23::Identity()), Eigen::StrictlyLower>>);
+  static_assert(constant_diagonal_matrix<Eigen::TriangularView<decltype(M23::Identity()), Eigen::StrictlyLower>>);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(M22::Identity()), Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(M2x::Identity()), Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(Mx2::Identity()), Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(Mxx::Identity()), Eigen::UnitLower>> == 1);
-  static_assert(not constant_diagonal_matrix<Eigen::TriangularView<decltype(M23::Identity()), Eigen::UnitUpper>>);
+  static_assert(constant_diagonal_matrix<Eigen::TriangularView<decltype(M23::Identity()), Eigen::UnitUpper>>);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Tlv22, Eigen::UnitUpper>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Tuv22, Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<M11, Eigen::StrictlyLower>> == 0);
@@ -63,9 +63,9 @@ TEST(eigen3, Eigen_TriangularView)
   static_assert(zero<Eigen::TriangularView<Eigen::MatrixWrapper<Z22>, Eigen::Lower>>);
 
   static_assert(identity_matrix<Eigen::TriangularView<decltype(M33::Identity()), Eigen::Upper>>);
-  static_assert(not identity_matrix<Eigen::TriangularView<decltype(M3x::Identity(3, 3)), Eigen::Lower>>);
-  static_assert(not identity_matrix<Eigen::TriangularView<decltype(Mx3::Identity(3, 3)), Eigen::Upper>>);
-  static_assert(not identity_matrix<Eigen::TriangularView<decltype(Mxx::Identity(3, 3)), Eigen::Lower>>);
+  static_assert(identity_matrix<Eigen::TriangularView<decltype(M3x::Identity(3, 3)), Eigen::Lower>>);
+  static_assert(identity_matrix<Eigen::TriangularView<decltype(Mx3::Identity(3, 3)), Eigen::Upper>>);
+  static_assert(identity_matrix<Eigen::TriangularView<decltype(Mxx::Identity(3, 3)), Eigen::Lower>>);
   static_assert(not identity_matrix<Eigen::TriangularView<decltype(M33::Identity()), Eigen::StrictlyUpper>>);
   static_assert(identity_matrix<Eigen::TriangularView<Eigen::MatrixWrapper<Z22>, Eigen::UnitUpper>>);
 

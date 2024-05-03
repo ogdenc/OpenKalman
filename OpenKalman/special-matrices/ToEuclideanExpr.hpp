@@ -373,11 +373,11 @@ namespace OpenKalman
 
 
 #ifdef __cpp_lib_concepts
-      template<typename Arg> requires has_untyped_index<Arg, 0> and directly_accessible<nested_object_of_t<Arg&>>
+      template<typename Arg> requires has_untyped_index<Arg, 0> and raw_data_defined_for<nested_object_of_t<Arg&>>
 #else
-      template<typename Arg, std::enable_if_t<has_untyped_index<Arg, 0> and directly_accessible<typename nested_object_of<Arg&>::type>, int> = 0>
+      template<typename Arg, std::enable_if_t<has_untyped_index<Arg, 0> and raw_data_defined_for<typename nested_object_of<Arg&>::type>, int> = 0>
 #endif
-      static constexpr auto*
+      static constexpr auto * const
       raw_data(Arg& arg) { return internal::raw_data(OpenKalman::nested_object(arg)); }
 
 

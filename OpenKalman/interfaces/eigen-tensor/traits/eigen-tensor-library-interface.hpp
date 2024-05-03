@@ -164,18 +164,18 @@ namespace OpenKalman::interface
 
 
     /*
-    template<typename Scalar, typename D>
+    template<typename Scalar, typename D, typename...Ds>
     static constexpr auto
-    make_identity_matrix(D&& d)
+    make_identity_matrix(D&& d, Ds&&...ds)
     {
-      if constexpr (dimension_size_of_v<D> == dynamic_size)
+      if constexpr (((dimension_size_of_v<D> == dynamic_size) or ... or (dimension_size_of_v<Ds> == dynamic_size)))
       {
         return to_diagonal(make_constant<T, Scalar, 1>(std::forward<D>(d), Dimensions<1>{}));
       }
       else
       {
         constexpr std::size_t n {dimension_size_of_v<D>};
-        return Eigen3::eigen_matrix_t<Scalar, n, n>::Identity();
+        return Eigen3::eigen_matrix_t<Scalar, std::size_t n {dimension_size_of_v<D>}...>::Identity();
       }
     }
 
@@ -214,7 +214,7 @@ namespace OpenKalman::interface
       {
         static_assert(Eigen3::eigen_dense_general<Arg>);
 
-        if constexpr (Eigen3::eigen_block<Block>)
+        if constexpr (Eigen3::eigen_Block<Block>)
         {
           if (std::addressof(arg) == std::addressof(block.nestedExpression()) and
               std::get<0>(std::tuple{begin...}) == block.startRow() and std::get<1>(std::tuple{begin...}) == block.startCol())

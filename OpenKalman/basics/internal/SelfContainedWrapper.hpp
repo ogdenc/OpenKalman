@@ -74,7 +74,7 @@ namespace OpenKalman::internal
     template<indexible Arg> requires
       std::assignable_from<std::add_lvalue_reference_t<NestedObject>, decltype(to_native_matrix<NestedObject>(std::declval<Arg&&>()))>
 #else
-    template<typename Arg, std::enable_if_t<(
+    template<typename Arg, std::enable_if_t<
       std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, decltype(to_native_matrix<NestedObject>(std::declval<Arg&&>()))>, int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept

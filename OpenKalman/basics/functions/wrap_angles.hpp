@@ -39,7 +39,7 @@ namespace OpenKalman
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (interface::wrap_angles_defined_for<std::decay_t<Arg>, Arg&&, const C&>)
+    else if constexpr (interface::wrap_angles_defined_for<Arg, Arg&&, const C&>)
     {
       return Interface::wrap_angles(std::forward<Arg>(arg), c);
     }

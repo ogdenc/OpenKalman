@@ -43,7 +43,7 @@ namespace OpenKalman
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (interface::to_euclidean_defined_for<std::decay_t<Arg>, Arg&&, const C&>)
+    else if constexpr (interface::to_euclidean_defined_for<Arg, Arg&&, const C&>)
     {
       return Interface::to_euclidean(std::forward<Arg>(arg), c);
     }

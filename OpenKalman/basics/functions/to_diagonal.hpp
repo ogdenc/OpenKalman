@@ -36,7 +36,7 @@ namespace OpenKalman
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (interface::to_diagonal_defined_for<std::decay_t<Arg>, Arg&&>)
+    else if constexpr (interface::to_diagonal_defined_for<Arg, Arg&&>)
     {
       return interface::library_interface<std::decay_t<Arg>>::to_diagonal(std::forward<Arg>(arg));
     }

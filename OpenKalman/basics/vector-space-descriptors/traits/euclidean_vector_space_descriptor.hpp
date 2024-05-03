@@ -47,8 +47,8 @@ namespace OpenKalman
       : std::bool_constant<interface::fixed_vector_space_descriptor_traits<T>::always_euclidean> {};
 
     template<typename T>
-    struct is_euclidean_vector_space_descriptor<T, std::enable_if_t<vector_space_descriptor<T> and not fixed_vector_space_descriptor<T> and
-      interface::dynamic_vector_space_descriptor_traits<std::decay_t<T>>::is_euclidean()>> : std::true_type {};
+    struct is_euclidean_vector_space_descriptor<T, std::enable_if_t<dynamic_vector_space_descriptor<T>>>
+      : std::bool_constant<interface::dynamic_vector_space_descriptor_traits<std::decay_t<T>>::is_euclidean()> {};
   }
 
   template<typename T>

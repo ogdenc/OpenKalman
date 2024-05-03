@@ -63,7 +63,7 @@ namespace OpenKalman
   constexpr bool square_shaped = one_dimensional<T, b> or (indexible<T> and
     (not interface::is_square_defined_for<T, b> or interface::is_explicitly_square<T, b>::value) and
     (interface::is_square_defined_for<T, b> or detail::square_shaped_impl<T, b>::value or
-      (b == Qualification::unqualified and interface::is_explicitly_triangular<T, TriangleType::any, b>::value)));
+      (b == Qualification::unqualified and interface::is_explicitly_triangular<T, TriangleType::any>::value)));
 #endif
 
 

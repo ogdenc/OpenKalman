@@ -102,7 +102,7 @@ namespace OpenKalman::internal
         return make_hermitian_matrix<HermitianAdapterType::lower>(std::forward<B>(b));
       }
     }
-    else if constexpr (interface::set_triangle_defined_for<std::decay_t<A>, t, A&&, B&&>)
+    else if constexpr (interface::set_triangle_defined_for<A, t, A&&, B&&>)
     {
       return interface::library_interface<std::decay_t<A>>::template set_triangle<t>(std::forward<A>(a), std::forward<B>(b));
     }

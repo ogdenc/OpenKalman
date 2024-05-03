@@ -76,13 +76,13 @@ namespace OpenKalman
     else
     {
       decltype(auto) ret = [](A&& a) -> decltype(auto) {
-        if constexpr (interface::QR_decomposition_defined_for<std::decay_t<A>, A&&>)
+        if constexpr (interface::QR_decomposition_defined_for<A, A&&>)
         {
           return interface::library_interface<std::decay_t<A>>::QR_decomposition(std::forward<A>(a));
         }
         else
         {
-          static_assert(interface::LQ_decomposition_defined_for<std::decay_t<A>, A&&>,
+          static_assert(interface::LQ_decomposition_defined_for<A, A&&>,
             "QR_decomposition requires definition of at least one of interface::QR_decomposition or interface::LQ_decomposition");
           return transpose(interface::library_interface<std::decay_t<A>>::LQ_decomposition(transpose(std::forward<A>(a))));
         }

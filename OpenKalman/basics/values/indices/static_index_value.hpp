@@ -27,8 +27,9 @@ namespace OpenKalman
     struct is_static_index_value : std::false_type {};
 
     template<typename T, typename Z>
-    struct is_static_index_value<T, Z, std::enable_if_t<std::is_convertible<decltype(std::decay_t<T>::value), const Z>::value>>
-      : std::bool_constant<std::decay_t<T>::value >= 0 and static_cast<Z>(std::decay_t<T>{}) == static_cast<Z>(std::decay_t<T>::value)> {};
+    struct is_static_index_value<T, Z, std::enable_if_t<
+      std::is_default_constructible_v<std::decay_t<T>> and std::is_convertible_v<T, Z> and std::is_convertible_v<decltype(std::decay_t<T>::value), Z>>>
+      : std::bool_constant<(std::decay_t<T>::value >= 0) and (not std::is_same_v<std::decay_t<T>, std::size_t> or std::decay_t<T>::value != dynamic_size)> {};
   }
 #endif
 
@@ -39,8 +40,8 @@ namespace OpenKalman
    */
   template<typename T, typename Z = std::size_t>
 #ifdef __cpp_concepts
-  concept static_index_value = (std::decay_t<T>::value >= 0) and
-    std::bool_constant<static_cast<Z>(std::decay_t<T>{}) == static_cast<Z>(std::decay_t<T>::value)>::value;
+  concept static_index_value = std::default_initializable<std::decay_t<T>> and std::convertible_to<T, Z> and
+    (std::decay_t<T>::value >= 0) and (not std::same_as<std::decay_t<T>, std::size_t> or std::decay_t<T>::value != dynamic_size);
 #else
   constexpr bool static_index_value = detail::is_static_index_value<T, Z>::value;
 #endif

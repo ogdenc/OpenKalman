@@ -55,7 +55,7 @@ namespace OpenKalman
     {}
 
     template<typename Int>
-    explicit constexpr operator std::integral_constant<Int, N>()
+    constexpr operator std::integral_constant<Int, N>()
     {
       return std::integral_constant<Int, N>{};
     }
@@ -66,7 +66,7 @@ namespace OpenKalman
 #else
     template<typename Int, std::enable_if_t<std::is_integral_v<Int>, int> = 0>
 #endif
-    explicit constexpr operator Int()
+    constexpr operator Int()
     {
       return N;
     }
@@ -113,7 +113,7 @@ namespace OpenKalman
 #else
     template<typename Int, std::enable_if_t<std::is_integral_v<Int>, int> = 0>
 #endif
-    explicit constexpr operator Int()
+    constexpr operator Int()
     {
       return runtime_size;
     }
@@ -191,8 +191,11 @@ namespace OpenKalman
     struct dynamic_vector_space_descriptor_traits<Dimensions<dynamic_size>> : dynamic_vector_space_descriptor_traits<std::size_t>
     {
     private:
+
       using Base = dynamic_vector_space_descriptor_traits<std::size_t>;
+
     public:
+
       explicit constexpr dynamic_vector_space_descriptor_traits(const Dimensions<dynamic_size>& t) : Base {t.runtime_size} {};
       [[nodiscard]] constexpr std::size_t get_size() const { return Base::get_size(); }
       [[nodiscard]] constexpr std::size_t get_euclidean_size() const { return Base::get_euclidean_size(); }

@@ -86,9 +86,7 @@ namespace OpenKalman
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
-        using Scalar = scalar_type_of_t<MatrixType>;
-        if constexpr (Eigen3::eigen_Identity<MatrixType>) return internal::ScalarConstant<Qualification::unqualified, Scalar, 1>{};
-        else return constant_diagonal_coefficient {arg.nestedExpression()};
+        return constant_diagonal_coefficient {arg.nestedExpression()};
       }
 
 

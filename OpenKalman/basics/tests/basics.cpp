@@ -34,13 +34,8 @@ namespace
 
 TEST(basics, global_definitions)
 {
-#ifdef __cpp_concepts
-  static_assert(internal::is_constexpr_n_ary_function<std::plus<void>, C, C>::value);
-  static_assert(not internal::is_constexpr_n_ary_function<std::plus<void>, double, double>::value);
-#else
-  static_assert(internal::is_constexpr_n_ary_function<std::plus<void>, void, C, C>::value);
-  static_assert(not internal::is_constexpr_n_ary_function<std::plus<void>, void, double, double>::value);
-#endif
+  static_assert(internal::constexpr_n_ary_function<std::plus<void>, C, C>);
+  static_assert(not internal::constexpr_n_ary_function<std::plus<void>, double, double>);
 }
 
 

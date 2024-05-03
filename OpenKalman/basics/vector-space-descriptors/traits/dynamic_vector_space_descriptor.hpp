@@ -43,7 +43,7 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept dynamic_vector_space_descriptor =
+  concept dynamic_vector_space_descriptor = (not fixed_vector_space_descriptor<T>) and
     requires(const interface::dynamic_vector_space_descriptor_traits<std::decay_t<T>>& t) {
       {t.get_size()} -> std::convertible_to<std::size_t>;
       {t.get_euclidean_size()} -> std::convertible_to<std::size_t>;
@@ -51,7 +51,8 @@ namespace OpenKalman
       {t.is_euclidean()} -> std::convertible_to<bool>;
     };
 #else
-  constexpr bool dynamic_vector_space_descriptor = detail::is_dynamic_vector_space_descriptor<std::decay_t<T>>::value;
+  constexpr bool dynamic_vector_space_descriptor = (not fixed_vector_space_descriptor<T>) and
+    detail::is_dynamic_vector_space_descriptor<std::decay_t<T>>::value;
 #endif
 
 

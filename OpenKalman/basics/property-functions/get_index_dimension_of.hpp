@@ -23,11 +23,11 @@ namespace OpenKalman
    * \brief Get the runtime dimensions of index N of \ref indexible T
    */
 #ifdef __cpp_concepts
-  template<interface::count_indices_defined_for T, index_value N = std::integral_constant<std::size_t, 0>>
+  template<interface::get_vector_space_descriptor_defined_for T, index_value N = std::integral_constant<std::size_t, 0>>
   constexpr index_value auto
 #else
   template<typename T, typename N = std::integral_constant<std::size_t, 0>, std::enable_if_t<
-    interface::count_indices_defined_for<T> and index_value<N>, int> = 0>
+    interface::get_vector_space_descriptor_defined_for<T> and index_value<N>, int> = 0>
   constexpr auto
 #endif
   get_index_dimension_of(const T& t, N n = N{})
@@ -40,10 +40,10 @@ namespace OpenKalman
    * \overload
    */
 #ifdef __cpp_concepts
-  template<std::size_t N, interface::count_indices_defined_for T>
+  template<std::size_t N, interface::get_vector_space_descriptor_defined_for T>
   constexpr index_value auto
 #else
-  template<std::size_t N, typename T, std::enable_if_t<interface::count_indices_defined_for<T>, int> = 0>
+  template<std::size_t N, typename T, std::enable_if_t<interface::get_vector_space_descriptor_defined_for<T>, int> = 0>
   constexpr auto
 #endif
   get_index_dimension_of(const T& t)

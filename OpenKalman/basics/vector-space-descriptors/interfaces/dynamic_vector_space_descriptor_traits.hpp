@@ -127,17 +127,17 @@ namespace OpenKalman::interface
 
   /**
    * \internal
-   * \brief traits for dynamic std::integral_constant.
+   * \brief traits for a \ref dynamic_index_value.
    */
 #ifdef __cpp_concepts
-  template<std::integral T>
+  template<dynamic_index_value T>
   struct dynamic_vector_space_descriptor_traits<T>
 #else
   template<typename T>
-  struct dynamic_vector_space_descriptor_traits<T, std::enable_if_t<std::is_integral_v<T>>>
+  struct dynamic_vector_space_descriptor_traits<T, std::enable_if_t<dynamic_index_value<T>>>
 #endif
   {
-    explicit constexpr dynamic_vector_space_descriptor_traits(const std::decay_t<T>& t) : m_integral {t} {};
+    explicit constexpr dynamic_vector_space_descriptor_traits(const T& t) : m_integral {t} {};
 
     [[nodiscard]] constexpr std::size_t get_size() const { return m_integral; }
 
@@ -199,7 +199,8 @@ namespace OpenKalman::interface
     }
 
   private:
-    const std::decay_t<T>& m_integral;
+
+    const T& m_integral;
 
   };
 

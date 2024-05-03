@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2023-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -20,222 +20,332 @@
 
 namespace OpenKalman::Eigen3
 {
-  namespace detail
+
+  // Default binary functor traits
+  template<typename Operation>
+  struct BinaryFunctorTraits
   {
-    template<typename Op, typename LhsType, typename RhsType, bool is_diag, typename Arg>
-    static constexpr auto default_get_constant(const Arg& arg)
-    {
-      if constexpr (is_diag)
-      {
-        if constexpr (std::is_default_constructible_v<Op> and
-            constant_diagonal_matrix<LhsType, ConstantType::static_constant> and
-            constant_diagonal_matrix<RhsType, ConstantType::static_constant>)
-          return internal::scalar_constant_operation {Op{}, constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
-        else if constexpr (constant_diagonal_matrix<LhsType> and constant_diagonal_matrix<RhsType>)
-          return internal::scalar_constant_operation {arg.functor(), constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
-        else
-          return std::monostate {};
-      }
-      else
-      {
-        if constexpr (std::is_default_constructible_v<Op> and
-            constant_matrix<LhsType, ConstantType::static_constant> and
-            constant_matrix<RhsType, ConstantType::static_constant>)
-          return internal::scalar_constant_operation {Op{}, constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
-        else if constexpr (constant_matrix<LhsType> and constant_matrix<RhsType>)
-        {
-          return internal::scalar_constant_operation {arg.functor(), constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
-        }
-        else
-          return std::monostate {};
-      }
-    }
+    /// Construct Operation or (preferably) an equivalent constexpr operation equivalent to Operation.
+    template<typename...Args>
+    static constexpr auto constexpr_operation() = delete;
+
+    /// Whether binary functor type.
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::normal;
+
+    /// Whether the operation applied to a hermitian matrix always yields a hermitian matrix.
+    static constexpr bool preserves_hermitian = false;
+  };
 
 
-    template<typename Op, typename LhsType, typename RhsType, bool is_diag, typename Arg>
-    static constexpr auto get_constant_sum_impl(const Arg& arg)
+  // --------------- //
+  //  stl operators  //
+  // --------------- //
+
+  template<typename Scalar>
+  struct BinaryFunctorTraits<std::plus<Scalar>>
+  {
+    static constexpr auto constexpr_operation() { return std::plus<Scalar>{}; };
+    static constexpr bool preserves_constant_diagonal = true;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::sum;
+    static constexpr bool preserves_hermitian = true;
+  };
+
+
+  template<typename Scalar>
+  struct BinaryFunctorTraits<std::minus<Scalar>>
+  {
+    static constexpr auto constexpr_operation() { return std::minus<Scalar>{}; };
+    static constexpr bool preserves_constant_diagonal = true;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::sum;
+    static constexpr bool preserves_hermitian = true;
+  };
+
+
+  template<typename Scalar>
+  struct BinaryFunctorTraits<std::multiplies<Scalar>>
+  {
+    static constexpr auto constexpr_operation() { return std::multiplies<Scalar>{}; };
+    static constexpr bool preserves_constant_diagonal = true;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::product;
+    static constexpr bool preserves_hermitian = true;
+  };
+
+
+  template<typename Scalar>
+  struct BinaryFunctorTraits<std::divides<Scalar>>
+  {
+    static constexpr auto constexpr_operation() { return std::divides<Scalar>{}; };
+    static constexpr bool preserves_constant_diagonal = false;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::normal;
+    static constexpr bool preserves_hermitian = true;
+  };
+
+
+  template<typename Scalar>
+  struct BinaryFunctorTraits<std::logical_and<Scalar>>
+  {
+    static constexpr auto constexpr_operation() { return std::logical_and<Scalar>{}; };
+    static constexpr bool preserves_constant_diagonal = true;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::product;
+    static constexpr bool preserves_hermitian = true;
+  };
+
+
+  template<typename Scalar>
+  struct BinaryFunctorTraits<std::logical_or<Scalar>>
+  {
+    static constexpr auto constexpr_operation() { return std::logical_or<Scalar>{}; };
+    static constexpr bool preserves_constant_diagonal = true;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::sum;
+    static constexpr bool preserves_hermitian = true;
+
+    template<typename LhsType, typename RhsType, typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (zero<LhsType>)
+      if constexpr (constant_matrix<RhsType, ConstantType::static_constant>)
       {
-        if constexpr (is_diag) return constant_diagonal_coefficient {arg.rhs()};
-        else return constant_coefficient {arg.rhs()};
-      }
-      else if constexpr (zero<RhsType>)
-      {
-        if constexpr (is_diag) return constant_diagonal_coefficient {arg.lhs()};
+        if constexpr (constant_coefficient_v<RhsType> == true) return constant_coefficient {arg.rhs()};
         else return constant_coefficient {arg.lhs()};
       }
-      else return default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
-    }
-
-
-    template<typename Op, typename LhsType, typename RhsType, bool is_diag, typename Arg>
-    static constexpr auto get_constant_product_impl(const Arg& arg)
-    {
-      if constexpr (zero<LhsType>)
+      else if constexpr (constant_matrix<LhsType, ConstantType::static_constant>)
       {
-        return constant_coefficient {arg.lhs()};
-      }
-      else if constexpr (zero<RhsType>)
-      {
-        return constant_coefficient {arg.rhs()};
-      }
-      else if constexpr (is_diag and constant_diagonal_matrix<LhsType> and constant_matrix<RhsType>)
-      {
-        if constexpr (std::is_default_constructible_v<Op> and
-            constant_diagonal_matrix<LhsType, ConstantType::static_constant> and constant_matrix<RhsType, ConstantType::static_constant>)
-          return internal::scalar_constant_operation {Op{}, constant_diagonal_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
-        else
-          return internal::scalar_constant_operation {arg.functor(), constant_diagonal_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
-      }
-      else if constexpr (is_diag and constant_matrix<LhsType> and constant_diagonal_matrix<RhsType>)
-      {
-        if constexpr (std::is_default_constructible_v<Op> and
-            constant_matrix<LhsType, ConstantType::static_constant> and constant_diagonal_matrix<RhsType, ConstantType::static_constant>)
-          return internal::scalar_constant_operation {Op{}, constant_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
-        else
-          return internal::scalar_constant_operation {arg.functor(), constant_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
+        if constexpr (constant_coefficient_v<LhsType> == true) return constant_coefficient {arg.lhs()};
+        else return constant_coefficient {arg.rhs()};
       }
       else
       {
-        return default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
+        return std::monostate{};
       }
     }
 
-
-    template<typename Arg1, typename Arg2, TriangleType t>
-    static constexpr bool is_triangular_sum = triangular_matrix<Arg1, t> and triangular_matrix<Arg2, t> and
-      (t != TriangleType::any or triangle_type_of_v<Arg1, Arg2> != TriangleType::any);
-
-
-    template<typename Arg1, typename Arg2, TriangleType t>
-    static constexpr bool is_triangular_product = triangular_matrix<Arg1, t> or triangular_matrix<Arg2, t> or
-      (triangular_matrix<Arg1, TriangleType::lower> and triangular_matrix<Arg2, TriangleType::upper>) or
-      (triangular_matrix<Arg1, TriangleType::upper> and triangular_matrix<Arg2, TriangleType::lower>);
-
-  } // namespace detail
-
-
-  // Default binary traits, if BinaryOp is not specifically matched.
-  template<typename BinaryOp, typename LhsType, typename RhsType>
-  struct FunctorTraits<BinaryOp, LhsType, RhsType>
-  {
-    template<bool is_diag, typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
+    template<typename LhsType, typename RhsType, typename Arg>
+    static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (is_diag) return std::monostate {};
-      else return detail::default_get_constant<BinaryOp, LhsType, RhsType, is_diag>(arg);
-    }
-
-    template<TriangleType t>
-    static constexpr bool is_triangular = false;
-
-    static constexpr bool is_hermitian = false;
-  };
-
-
-  template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<Eigen::internal::scalar_sum_op<Scalar1, Scalar2>, LhsType, RhsType>
-  {
-    template<bool is_diag, typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
-    {
-      return detail::get_constant_sum_impl<std::plus<>, LhsType, RhsType, is_diag>(arg);
-    }
-
-    template<TriangleType t>
-    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
-  };
-
-
-  template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<Eigen::internal::scalar_product_op<Scalar1, Scalar2>, LhsType, RhsType>
-  {
-    template<bool is_diag, typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
-    {
-      return detail::get_constant_product_impl<std::multiplies<>, LhsType, RhsType, is_diag>(arg);
-    }
-
-    template<TriangleType t>
-    static constexpr bool is_triangular = detail::is_triangular_product<LhsType, RhsType, t>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
-  };
-
-
-  template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<Eigen::internal::scalar_conj_product_op<Scalar1, Scalar2>, LhsType, RhsType>
-  {
-    struct Op
-    {
-      constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return constexpr_conj(arg1) * arg2; }
-    };
-
-    template<bool is_diag, typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
-    {
-      return detail::get_constant_product_impl<Op, LhsType, RhsType, is_diag>(arg);
-    }
-
-    template<TriangleType t>
-    static constexpr bool is_triangular = detail::is_triangular_product<LhsType, RhsType, t>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
-  };
-
-
-  template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<Eigen::internal::scalar_min_op<Scalar1, Scalar2>, LhsType, RhsType>
-  {
-    struct Op
-    {
-      constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return std::min(arg1, arg2); }
-    };
-
-    template<bool is_diag, typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
-    {
-      return detail::default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
-    }
-
-    template<TriangleType t>
-    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
-  };
-
-
-  template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<Eigen::internal::scalar_max_op<Scalar1, Scalar2>, LhsType, RhsType>
-  {
-    struct Op
-    {
-      constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return std::max(arg1, arg2); }
-    };
-
-    template<bool is_diag, typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
-    {
-      return detail::default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
-    }
-
-    template<TriangleType t>
-    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
-  };
-
-
-  template<typename LhsScalar, typename RhsScalar, Eigen::internal::ComparisonName cmp, typename LhsType, typename RhsType>
-  struct FunctorTraits<Eigen::internal::scalar_cmp_op<LhsScalar, RhsScalar, cmp>, LhsType, RhsType>
-  {
-    struct Op
-    {
-      constexpr auto operator()(LhsScalar a, RhsScalar b) const noexcept
+      if constexpr (constant_diagonal_matrix<RhsType, ConstantType::static_constant>)
       {
+        if constexpr (constant_diagonal_coefficient_v<RhsType> == true and diagonal_matrix<LhsType>)
+          return constant_diagonal_coefficient {arg.rhs()};
+        else if constexpr (constant_diagonal_coefficient_v<RhsType> == false)
+          return constant_diagonal_coefficient {arg.lhs()};
+        else
+          return std::monostate{};
+      }
+      else if constexpr (constant_diagonal_matrix<LhsType, ConstantType::static_constant>)
+      {
+        if constexpr (constant_diagonal_coefficient_v<LhsType> == true and diagonal_matrix<RhsType>)
+          return constant_diagonal_coefficient {arg.lhs()};
+        else if constexpr (constant_diagonal_coefficient_v<LhsType> == false)
+          return constant_diagonal_coefficient {arg.rhs()};
+        else
+          return std::monostate{};
+      }
+      else
+      {
+        return std::monostate{};
+      }
+    }
+  };
+
+
+  template<typename Scalar>
+  struct BinaryFunctorTraits<std::equal_to<Scalar>>
+  {
+    static constexpr auto constexpr_operation() { return std::equal_to<Scalar>{}; };
+    static constexpr bool preserves_constant_diagonal = false;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::normal;
+    static constexpr bool preserves_hermitian = true;
+  };
+
+
+  template<typename Scalar>
+  struct BinaryFunctorTraits<std::not_equal_to<Scalar>>
+  {
+    static constexpr auto constexpr_operation() { return std::not_equal_to<Scalar>{}; };
+    static constexpr bool preserves_constant_diagonal = true;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::sum;
+    static constexpr bool preserves_hermitian = true;
+  };
+
+
+  template<typename Scalar>
+  struct BinaryFunctorTraits<std::greater<Scalar>>
+  {
+    static constexpr auto constexpr_operation() { return std::greater<Scalar>{}; };
+    static constexpr bool preserves_constant_diagonal = true;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::sum;
+    static constexpr bool preserves_hermitian = true;
+  };
+
+
+  template<typename Scalar>
+  struct BinaryFunctorTraits<std::less<Scalar>>
+  {
+    static constexpr auto constexpr_operation() { return std::less<Scalar>{}; };
+    static constexpr bool preserves_constant_diagonal = true;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::sum;
+    static constexpr bool preserves_hermitian = true;
+  };
+
+
+  template<typename Scalar>
+  struct BinaryFunctorTraits<std::greater_equal<Scalar>>
+  {
+    static constexpr auto constexpr_operation() { return std::greater_equal<Scalar>{}; };
+    static constexpr bool preserves_constant_diagonal = false;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::normal;
+    static constexpr bool preserves_hermitian = true;
+  };
+
+
+  template<typename Scalar>
+  struct BinaryFunctorTraits<std::less_equal<Scalar>>
+  {
+    static constexpr auto constexpr_operation() { return std::less_equal<Scalar>{}; };
+    static constexpr bool preserves_constant_diagonal = false;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::normal;
+    static constexpr bool preserves_hermitian = true;
+  };
+
+
+  // ----------------- //
+  //  Eigen operators  //
+  // ----------------- //
+
+  template<typename Scalar1, typename Scalar2>
+  struct BinaryFunctorTraits<Eigen::internal::scalar_sum_op<Scalar1, Scalar2>>
+    : BinaryFunctorTraits<std::plus<std::common_type_t<Scalar1, Scalar2>>> {};
+
+
+  template<typename Scalar1, typename Scalar2>
+  struct BinaryFunctorTraits<Eigen::internal::scalar_product_op<Scalar1, Scalar2>>
+    : BinaryFunctorTraits<std::multiplies<std::common_type_t<Scalar1, Scalar2>>> {};
+
+
+  template<typename Scalar1, typename Scalar2>
+  struct BinaryFunctorTraits<Eigen::internal::scalar_conj_product_op<Scalar1, Scalar2>>
+  {
+    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return internal::constexpr_conj(arg1) * arg2; } };
+    static constexpr auto constexpr_operation() { return Op{}; }
+    static constexpr bool preserves_constant_diagonal = true;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::product;
+    static constexpr bool preserves_hermitian = true;
+  };
+
+
+  template<typename Scalar1, typename Scalar2>
+  struct BinaryFunctorTraits<Eigen::internal::scalar_min_op<Scalar1, Scalar2>>
+  {
+    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return std::min(arg1, arg2); } };
+    static constexpr auto constexpr_operation() { return Op{}; }
+    static constexpr bool preserves_constant_diagonal = true;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::sum;
+    static constexpr bool preserves_hermitian = true;
+
+    template<typename LhsType, typename RhsType, typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
+    {
+      if constexpr (constant_matrix<LhsType, ConstantType::static_constant> and constant_diagonal_matrix<RhsType, ConstantType::static_constant>)
+      {
+        if constexpr (constant_coefficient_v<LhsType> < 0 and constant_coefficient_v<LhsType> < constant_diagonal_coefficient_v<RhsType>)
+          return constant_coefficient {arg.lhs()};
+        else return std::monostate{};
+      }
+      else if constexpr (constant_diagonal_matrix<LhsType, ConstantType::static_constant> and constant_matrix<RhsType, ConstantType::static_constant>)
+      {
+        if constexpr (constant_coefficient_v<RhsType> < 0 and constant_coefficient_v<RhsType> < constant_diagonal_coefficient_v<LhsType>)
+          return constant_coefficient {arg.rhs()};
+        else return std::monostate{};
+      }
+      else
+      {
+        return internal::scalar_constant_operation {constexpr_operation(), constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
+      }
+    }
+
+    template<typename LhsType, typename RhsType, typename Arg>
+    static constexpr auto get_constant_diagonal(const Arg& arg)
+    {
+      if constexpr (constant_matrix<LhsType, ConstantType::static_constant> and constant_diagonal_matrix<RhsType, ConstantType::static_constant>)
+      {
+        if constexpr (constant_coefficient_v<LhsType> > 0 and constant_coefficient_v<LhsType> > constant_diagonal_coefficient_v<RhsType>)
+          return constant_diagonal_coefficient {arg.rhs()};
+        else return std::monostate{};
+      }
+      else if constexpr (constant_diagonal_matrix<LhsType, ConstantType::static_constant> and constant_matrix<RhsType, ConstantType::static_constant>)
+      {
+        if constexpr (constant_coefficient_v<RhsType> > 0 and constant_coefficient_v<RhsType> > constant_diagonal_coefficient_v<LhsType>)
+          return constant_diagonal_coefficient {arg.lhs()};
+        else return std::monostate{};
+      }
+      else
+      {
+        return internal::scalar_constant_operation {constexpr_operation(),
+          constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
+      }
+    }
+  };
+
+
+  template<typename Scalar1, typename Scalar2>
+  struct BinaryFunctorTraits<Eigen::internal::scalar_max_op<Scalar1, Scalar2>>
+  {
+    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return std::max(arg1, arg2); } };
+    static constexpr auto constexpr_operation() { return Op{}; }
+    static constexpr bool preserves_constant_diagonal = true;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::sum;
+    static constexpr bool preserves_hermitian = true;
+
+    template<typename LhsType, typename RhsType, typename Arg>
+    static constexpr auto get_constant(const Arg& arg)
+    {
+      if constexpr (constant_matrix<LhsType, ConstantType::static_constant> and constant_diagonal_matrix<RhsType, ConstantType::static_constant>)
+      {
+        if constexpr (constant_coefficient_v<LhsType> > 0 and constant_coefficient_v<LhsType> > constant_diagonal_coefficient_v<RhsType>)
+          return constant_coefficient {arg.lhs()};
+        else return std::monostate{};
+      }
+      else if constexpr (constant_diagonal_matrix<LhsType, ConstantType::static_constant> and constant_matrix<RhsType, ConstantType::static_constant>)
+      {
+        if constexpr (constant_coefficient_v<RhsType> > 0 and constant_coefficient_v<RhsType> > constant_diagonal_coefficient_v<LhsType>)
+          return constant_coefficient {arg.rhs()};
+        else return std::monostate{};
+      }
+      else
+      {
+        return internal::scalar_constant_operation {constexpr_operation(),
+          constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
+      }
+    }
+
+    template<typename LhsType, typename RhsType, typename Arg>
+    static constexpr auto get_constant_diagonal(const Arg& arg)
+    {
+      if constexpr (constant_matrix<LhsType, ConstantType::static_constant> and constant_diagonal_matrix<RhsType, ConstantType::static_constant>)
+      {
+        if constexpr (constant_coefficient_v<LhsType> < 0 and constant_coefficient_v<LhsType> < constant_diagonal_coefficient_v<RhsType>)
+          return constant_diagonal_coefficient {arg.rhs()};
+        else return std::monostate{};
+      }
+      else if constexpr (constant_diagonal_matrix<LhsType, ConstantType::static_constant> and constant_matrix<RhsType, ConstantType::static_constant>)
+      {
+        if constexpr (constant_coefficient_v<RhsType> < 0 and constant_coefficient_v<RhsType> < constant_diagonal_coefficient_v<LhsType>)
+          return constant_diagonal_coefficient {arg.lhs()};
+        else return std::monostate{};
+      }
+      else
+      {
+        return internal::scalar_constant_operation {constexpr_operation(),
+          constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
+      }
+    }
+  };
+
+
+  template<typename LhsScalar, typename RhsScalar, Eigen::internal::ComparisonName cmp>
+  struct BinaryFunctorTraits<Eigen::internal::scalar_cmp_op<LhsScalar, RhsScalar, cmp>>
+  {
+    struct Op {
+      constexpr auto operator()(LhsScalar a, RhsScalar b) const noexcept {
         if constexpr (cmp == Eigen::internal::ComparisonName::cmp_EQ) return a == b;
         else if constexpr (cmp == Eigen::internal::ComparisonName::cmp_LT) return a < b;
         else if constexpr (cmp == Eigen::internal::ComparisonName::cmp_LE) return a <= b;
@@ -246,191 +356,74 @@ namespace OpenKalman::Eigen3
         else return Eigen::internal::scalar_cmp_op<LhsScalar, RhsScalar, cmp> {}(a, b); // Failsafe, but not a constexpr function.
       }
     };
-
-    template<bool is_diag, typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
-    {
-      if constexpr (is_diag) return std::monostate {};
-      else return detail::default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
-    }
-
-    template<TriangleType t>
-    static constexpr bool is_triangular = false;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
+    static constexpr auto constexpr_operation() { return Op{}; }
+    static constexpr bool preserves_constant_diagonal = false;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::normal;
+    static constexpr bool preserves_hermitian = true;
   };
 
 
-  template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<Eigen::internal::scalar_hypot_op<Scalar1, Scalar2>, LhsType, RhsType>
+  template<typename Scalar1, typename Scalar2>
+  struct BinaryFunctorTraits<Eigen::internal::scalar_hypot_op<Scalar1, Scalar2>>
   {
-    struct Op
-    {
-      constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept
-      {
-        return OpenKalman::internal::constexpr_sqrt(arg1 * arg1 + arg2 * arg2);
-      }
-    };
-
-    template<bool is_diag, typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
-    {
-      return detail::get_constant_sum_impl<Op, LhsType, RhsType, is_diag>(arg);
-    }
-
-    template<TriangleType t>
-    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
+    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return internal::constexpr_sqrt(arg1 * arg1 + arg2 * arg2); } };
+    static constexpr auto constexpr_operation() { return Op{}; }
+    static constexpr bool preserves_constant_diagonal = true;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::sum;
+    static constexpr bool preserves_hermitian = true;
   };
 
 
-  template<typename Scalar, typename Exponent, typename LhsType, typename RhsType>
-  struct FunctorTraits<Eigen::internal::scalar_pow_op<Scalar, Exponent>, LhsType, RhsType>
+  template<typename Scalar, typename Exponent>
+  struct BinaryFunctorTraits<Eigen::internal::scalar_pow_op<Scalar, Exponent>>
   {
-    struct Op
-    {
-      constexpr auto operator()(Scalar arg1, Exponent arg2) const noexcept { return internal::constexpr_pow(arg1, arg2); }
-    };
-
-    template<bool is_diag, typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
-    {
-      if constexpr (is_diag) return std::monostate {};
-      else if constexpr (zero<RhsType>) return internal::ScalarConstant<Qualification::unqualified, Scalar, 1>{};
-      else return detail::default_get_constant<Op, LhsType, RhsType, is_diag>(arg);
-    }
-
-    template<TriangleType t>
-    static constexpr bool is_triangular = false;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
+    struct Op { constexpr auto operator()(Scalar arg1, Exponent arg2) const noexcept { return internal::constexpr_pow(arg1, arg2); } };
+    static constexpr auto constexpr_operation() { return Op{}; }
+    static constexpr bool preserves_constant_diagonal = false;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::normal;
+    static constexpr bool preserves_hermitian = true;
   };
 
 
-  template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<Eigen::internal::scalar_difference_op<Scalar1, Scalar2>, LhsType, RhsType>
-  {
-    template<bool is_diag, typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
-    {
-      if constexpr (zero<LhsType>)
-      {
-        if constexpr (is_diag) return internal::scalar_constant_operation {std::negate<>{}, constant_diagonal_coefficient {arg.rhs()}};
-        else return internal::scalar_constant_operation {std::negate<>{}, constant_coefficient {arg.rhs()}};
-      }
-      else if constexpr (zero<RhsType>)
-      {
-        if constexpr (is_diag) return constant_diagonal_coefficient {arg.lhs()};
-        else return constant_coefficient {arg.lhs()};
-      }
-      else return detail::default_get_constant<std::minus<>, LhsType, RhsType, is_diag>(arg);
-    }
-
-    template<TriangleType t>
-    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
-  };
+  template<typename Scalar1, typename Scalar2>
+  struct BinaryFunctorTraits<Eigen::internal::scalar_difference_op<Scalar1, Scalar2>>
+    : BinaryFunctorTraits<std::minus<std::common_type_t<Scalar1, Scalar2>>> {};
 
 
-  template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<Eigen::internal::scalar_quotient_op<Scalar1, Scalar2>, LhsType, RhsType>
-  {
-    template<bool is_diag, typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
-    {
-      if constexpr (is_diag or zero<RhsType>) return std::monostate {};
-      else return detail::default_get_constant<std::divides<>, LhsType, RhsType, is_diag>(arg);
-    }
-
-    template<TriangleType t>
-    static constexpr bool is_triangular = false;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
-  };
+  template<typename Scalar1, typename Scalar2>
+  struct BinaryFunctorTraits<Eigen::internal::scalar_quotient_op<Scalar1, Scalar2>>
+    : BinaryFunctorTraits<std::divides<std::common_type_t<Scalar1, Scalar2>>> {};
 
 
-  template<typename LhsType, typename RhsType>
-  struct FunctorTraits<Eigen::internal::scalar_boolean_and_op, LhsType, RhsType>
-  {
-    template<bool is_diag, typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
-    {
-      return detail::get_constant_product_impl<std::logical_and<>, LhsType, RhsType, is_diag>(arg);
-    }
-
-    template<TriangleType t>
-    static constexpr bool is_triangular = detail::is_triangular_product<LhsType, RhsType, t>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
-  };
+  template<>
+  struct BinaryFunctorTraits<Eigen::internal::scalar_boolean_and_op> : BinaryFunctorTraits<std::logical_and<bool>> {};
 
 
-  template<typename LhsType, typename RhsType>
-  struct FunctorTraits<Eigen::internal::scalar_boolean_or_op, LhsType, RhsType>
-  {
-    template<bool is_diag, typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
-    {
-      if constexpr (not is_diag and constant_diagonal_matrix<LhsType> and constant_matrix<RhsType, ConstantType::static_constant>)
-      {
-        if constexpr (constant_coefficient_v<RhsType> == true) return internal::ScalarConstant<Qualification::unqualified, bool, true>{};
-        else return constant_diagonal_coefficient {arg.lhs()};
-      }
-      else if constexpr (not is_diag and constant_matrix<LhsType, ConstantType::static_constant> and constant_diagonal_matrix<RhsType>)
-      {
-        if constexpr (constant_coefficient_v<LhsType> == true) return internal::ScalarConstant<Qualification::unqualified, bool, true>{};
-        else return constant_diagonal_coefficient {arg.rhs()};
-      }
-      else
-      {
-        return detail::get_constant_sum_impl<std::logical_or<>, LhsType, RhsType, is_diag>(arg);
-      }
-    }
-
-    template<TriangleType t>
-    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
-  };
+  template<>
+  struct BinaryFunctorTraits<Eigen::internal::scalar_boolean_or_op> : BinaryFunctorTraits<std::logical_or<bool>> {};
 
 
-  template<typename LhsType, typename RhsType>
-  struct FunctorTraits<Eigen::internal::scalar_boolean_xor_op, LhsType, RhsType>
-  {
-    template<bool is_diag, typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
-    {
-      return detail::default_get_constant<std::not_equal_to<>, LhsType, RhsType, is_diag>(arg);
-    }
+  template<>
+  struct BinaryFunctorTraits<Eigen::internal::scalar_boolean_xor_op> : BinaryFunctorTraits<std::not_equal_to<bool>> {};
 
-    template<TriangleType t>
-    static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
-  };
+  template<typename Scalar>
+  struct BinaryFunctorTraits<Eigen::numext::not_equal_to<Scalar>> : BinaryFunctorTraits<std::not_equal_to<bool>> {};
+
+
+  template<typename Scalar>
+  struct BinaryFunctorTraits<Eigen::numext::equal_to<Scalar>> : BinaryFunctorTraits<std::equal_to<bool>> {};
 
 
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
-  template<typename Scalar1, typename Scalar2, typename LhsType, typename RhsType>
-  struct FunctorTraits<Eigen::internal::scalar_absolute_difference_op<Scalar1, Scalar2>, LhsType, RhsType>
+  template<typename Scalar1, typename Scalar2>
+  struct BinaryFunctorTraits<Eigen::internal::scalar_absolute_difference_op<Scalar1, Scalar2>>
   {
-    struct Op
-    {
-      constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return arg2 > arg1 ? arg2 - arg1 : arg1 - arg2; }
-    };
-
-    template<bool is_diag, typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
-    {
-      return detail::get_constant_sum_impl<Op, LhsType, RhsType, is_diag>(arg);
-    }
-
-    template<TriangleType t>
-    static constexpr bool is_triangular = detail::is_triangular_sum<LhsType, RhsType, t>;
-
-    static constexpr bool is_hermitian = hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;
+    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return arg2 > arg1 ? arg2 - arg1 : arg1 - arg2; } };
+    static constexpr auto constexpr_operation() { return Op{}; }
+    static constexpr bool preserves_constant_diagonal = true;
+    static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::sum;
+    static constexpr bool preserves_hermitian = true;
   };
 #endif
 

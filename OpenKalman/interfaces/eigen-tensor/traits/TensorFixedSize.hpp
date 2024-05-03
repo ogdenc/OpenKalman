@@ -84,7 +84,8 @@ namespace OpenKalman::interface
     static constexpr bool is_writable = true;
 
     template<typename Arg>
-    static constexpr auto* raw_data(Arg& arg) { return arg.data(); }
+    static constexpr auto * const
+    raw_data(Arg& arg) { return arg.data(); }
 
     static constexpr Layout layout = options & Eigen::RowMajor ? Layout::right : Layout::left;
 

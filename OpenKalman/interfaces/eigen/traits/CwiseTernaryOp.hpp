@@ -82,13 +82,15 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return Eigen3::FunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template get_constant<false>(arg);
+      using Traits = Eigen3::TernaryFunctorTraits<TernaryOp, Arg1, Arg2, Arg3>;
+      return Traits::template get_constant<false>(arg);
     }
 
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return Eigen3::FunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template get_constant<true>(arg);
+      using Traits = Eigen3::TernaryFunctorTraits<TernaryOp, Arg1, Arg2, Arg3>;
+      return Traits::template get_constant<true>(arg);
     }
 
     template<Qualification b>
@@ -102,11 +104,11 @@ namespace OpenKalman::interface
         OpenKalman::one_dimensional<Arg3, b>);
 
     template<TriangleType t>
-    static constexpr bool is_triangular = Eigen3::FunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template is_triangular<t>;
+    static constexpr bool is_triangular = Eigen3::TernaryFunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::template is_triangular<t>;
 
     static constexpr bool is_triangular_adapter = false;
 
-    static constexpr bool is_hermitian = Eigen3::FunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::is_hermitian;
+    static constexpr bool is_hermitian = Eigen3::TernaryFunctorTraits<TernaryOp, Arg1, Arg2, Arg3>::is_hermitian;
   };
 
 } // namespace OpenKalman::interface

@@ -293,13 +293,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<vector_space_descriptor...Ds, typename Operation, indexible...Args> requires (sizeof...(Args) > 0) and
-    (sizeof...(Ds) >= std::max({index_count_v<Args>...})) and detail::n_ary_operator<Operation, sizeof...(Ds), Args...> and
-    (... and (dimension_size_of_v<Ds> != 0))
+    detail::n_ary_operator<Operation, sizeof...(Ds), Args...> and (... and (dimension_size_of_v<Ds> != 0))
   constexpr compatible_with_vector_space_descriptors<Ds...> auto
 #else
   template<typename...Ds, typename Operation, typename...Args, std::enable_if_t<
-    (vector_space_descriptor<Ds> and ...) and (indexible<Args> and ...) and
-    (sizeof...(Args) > 0) and (sizeof...(Ds) >= std::max({index_count<Args>::value...})) and
+    (vector_space_descriptor<Ds> and ...) and (indexible<Args> and ...) and (sizeof...(Args) > 0) and
     detail::n_ary_operator<Operation, sizeof...(Ds), Args...> and (... and (dimension_size_of_v<Ds> != 0)), int> = 0>
   constexpr auto
 #endif

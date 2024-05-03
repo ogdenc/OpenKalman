@@ -382,10 +382,10 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<vector<0, Qualification::depends_on_dynamic_shape> Arg> requires (not square_shaped<Arg, Qualification::depends_on_dynamic_shape>) or
     (not diagonal_adapter<Arg> and not constant_diagonal_matrix<Arg> and
-      not interface::diagonal_of_defined_for<std::decay_t<Arg>, Arg&&>)
+      not interface::diagonal_of_defined_for<Arg, Arg&&>)
 #else
   template<typename Arg, std::enable_if_t<vector<Arg, 0, Qualification::depends_on_dynamic_shape> and (not square_shaped<Arg, Qualification::depends_on_dynamic_shape> or
-    (not diagonal_adapter<Arg> and not constant_diagonal_matrix<Arg> and not interface::diagonal_of_defined_for<std::decay_t<Arg>, Arg&&>)), int> = 0>
+    (not diagonal_adapter<Arg> and not constant_diagonal_matrix<Arg> and not interface::diagonal_of_defined_for<Arg, Arg&&>)), int> = 0>
 #endif
   explicit DiagonalMatrix(Arg&&) -> DiagonalMatrix<passable_t<Arg>>;
 
@@ -398,12 +398,12 @@ namespace OpenKalman
   template<square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires (not vector<Arg>) and
     (index_count_v<Arg> == dynamic_size or index_count_v<Arg> <= 2) and
     (not vector<Arg, 0, Qualification::depends_on_dynamic_shape> or diagonal_adapter<Arg> or constant_diagonal_matrix<Arg> or
-      interface::diagonal_of_defined_for<std::decay_t<Arg>, Arg&&>)
+      interface::diagonal_of_defined_for<Arg, Arg&&>)
 #else
   template<typename Arg, std::enable_if_t<square_shaped<Arg, Qualification::depends_on_dynamic_shape> and (not vector<Arg>) and
     (index_count<Arg>::value == dynamic_size or index_count<Arg>::value <= 2) and
     (not vector<Arg, 0, Qualification::depends_on_dynamic_shape> or diagonal_adapter<Arg> or constant_diagonal_matrix<Arg> or
-      interface::diagonal_of_defined_for<std::decay_t<Arg>, Arg&&>), int> = 0>
+      interface::diagonal_of_defined_for<Arg, Arg&&>), int> = 0>
 #endif
   DiagonalMatrix(Arg&&) -> DiagonalMatrix<passable_t<decltype(diagonal_of(std::declval<Arg&&>()))>>;
 
@@ -550,7 +550,7 @@ namespace OpenKalman
       template<typename Arg, std::enable_if_t<one_dimensional<typename nested_object_of<Arg&>::type> and
         directly_accessible<typename nested_object_of<Arg&>::type>, int> = 0>
 #endif
-      static constexpr auto*
+      static constexpr auto * const
       raw_data(Arg& arg) { return internal::raw_data(nested_object(arg)); }
 
 

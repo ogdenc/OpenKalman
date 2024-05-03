@@ -31,7 +31,7 @@ namespace OpenKalman
 
 
   /**
-   * \brief Return a tuple of \ref vector_space_descriptor defining the dimensions of T.
+   * \brief Return a tuple of \ref vector_space_descriptor items defining the dimensions of T.
    * \tparam T A matrix or array
    */
 #ifdef __cpp_concepts

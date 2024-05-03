@@ -26,25 +26,25 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename T>
     concept vector_space_descriptor_arithmetic_defined =
-      interface::fixed_vector_space_descriptor_traits<T>::operations_defined or interface::dynamic_vector_space_descriptor_traits<T>::operations_defined;
+      interface::fixed_vector_space_descriptor_traits<std::decay_t<T>>::operations_defined or interface::dynamic_vector_space_descriptor_traits<std::decay_t<T>>::operations_defined;
 #else
     template<typename T, typename = void>
     struct fixed_vector_space_descriptor_arithmetic_defined : std::false_type {};
 
     template<typename T>
     struct fixed_vector_space_descriptor_arithmetic_defined<T, std::enable_if_t<
-      interface::fixed_vector_space_descriptor_traits<T>::operations_defined>> : std::true_type {};
+      interface::fixed_vector_space_descriptor_traits<std::decay_t<T>>::operations_defined>> : std::true_type {};
 
     template<typename T, typename = void>
     struct dynamic_vector_space_descriptor_arithmetic_defined : std::false_type {};
 
     template<typename T>
     struct dynamic_vector_space_descriptor_arithmetic_defined<T, std::enable_if_t<
-      interface::dynamic_vector_space_descriptor_traits<T>::operations_defined>> : std::true_type {};
+      interface::dynamic_vector_space_descriptor_traits<std::decay_t<T>>::operations_defined>> : std::true_type {};
 
     template<typename T>
     constexpr bool vector_space_descriptor_arithmetic_defined =
-      fixed_vector_space_descriptor_arithmetic_defined<T>::value or dynamic_vector_space_descriptor_arithmetic_defined<T>::value;
+      fixed_vector_space_descriptor_arithmetic_defined<std::decay_t<T>>::value or dynamic_vector_space_descriptor_arithmetic_defined<std::decay_t<T>>::value;
 #endif
   } // namespace detail
 
@@ -89,8 +89,8 @@ namespace OpenKalman
     (detail::vector_space_descriptor_arithmetic_defined<T> or detail::vector_space_descriptor_arithmetic_defined<U>)
 #else
   template<typename T, typename U, std::enable_if_t<euclidean_vector_space_descriptor<T> and euclidean_vector_space_descriptor<U> and
-    ((dimension_size_of<T>::value == dynamic_size) or (dimension_size_of<U>::value == dynamic_size) or
-      (dimension_size_of<T>::value > dimension_size_of<U>::value)) and
+    (dimension_size_of<T>::value == dynamic_size or dimension_size_of<U>::value == dynamic_size or
+      dimension_size_of<T>::value > dimension_size_of<U>::value) and
       (detail::vector_space_descriptor_arithmetic_defined<T> or detail::vector_space_descriptor_arithmetic_defined<U>), int> = 0>
 #endif
   constexpr auto operator-(const T& t, const U& u) noexcept

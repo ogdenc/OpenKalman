@@ -138,20 +138,20 @@ namespace OpenKalman::interface
 
   /**
    * \internal
-   * \brief traits for fixed std::integral_constant.
+   * \brief traits for a \ref static_index_value.
    */
 #ifdef __cpp_concepts
-  template<typename T, T N> requires (N >= 0) and (N != dynamic_size)
-  struct fixed_vector_space_descriptor_traits<std::integral_constant<T, N>>
+  template<static_index_value T>
+  struct fixed_vector_space_descriptor_traits<T>
 #else
-  template<typename T, T N>
-  struct fixed_vector_space_descriptor_traits<std::integral_constant<T, N>, std::enable_if_t<(N >= 0) and N != dynamic_size>>
+  template<typename T>
+  struct fixed_vector_space_descriptor_traits<T, std::enable_if_t<static_index_value<T>>>
 #endif
   {
-    static constexpr std::size_t size = N;
-    static constexpr std::size_t euclidean_size = N;
-    static constexpr std::size_t component_count = N;
-    using difference_type = std::integral_constant<T, N>;
+    static constexpr std::size_t size = static_cast<std::size_t>(T{});
+    static constexpr std::size_t euclidean_size = size;
+    static constexpr std::size_t component_count = size;
+    using difference_type = T;
     static constexpr bool always_euclidean = true;
 
 

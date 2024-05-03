@@ -52,10 +52,10 @@ namespace OpenKalman::interface
     }
 
 
-    template<typename Scalar, typename D>
-    static constexpr auto make_identity_matrix(D&& d)
+    template<typename Scalar, typename...D>
+    static constexpr auto make_identity_matrix(D&&...d)
     {
-      return make_identity_matrix_like<nested_object_of_t<T>, Scalar>(std::forward<D>(d));
+      return make_identity_matrix_like<nested_object_of_t<T>, Scalar>(std::forward<D>(d)...);
     }
 
 

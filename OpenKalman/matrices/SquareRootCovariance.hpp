@@ -1017,12 +1017,11 @@ namespace OpenKalman
 
 
 #ifdef __cpp_lib_concepts
-      template<typename Arg> requires one_dimensional<nested_object_of_t<Arg&>> and directly_accessible<nested_object_of_t<Arg&>>
+      template<typename Arg> requires one_dimensional<NestedMatrix> and raw_data_defined_for<NestedMatrix>
 #else
-      template<typename Arg, std::enable_if_t<one_dimensional<typename nested_object_of<Arg&>::type> and
-        directly_accessible<typename nested_object_of<Arg&>::type>, int> = 0>
+      template<typename Arg, std::enable_if_t<one_dimensional<NestedMatrix> and raw_data_defined_for<NestedMatrix>, int> = 0>
 #endif
-      static constexpr auto*
+      static constexpr auto * const
       raw_data(Arg& arg) { return internal::raw_data(arg.nested_object()); }
 
 

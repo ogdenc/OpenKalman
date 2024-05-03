@@ -20,62 +20,49 @@ namespace OpenKalman
 {
   /**
    * \brief Make an identity matrix based on an object of a particular library.
-   * \tparam T The matrix or tensor of a particular library.
+   * \tparam T Any matrix or tensor within the relevant library.
    * \tparam Scalar An optional scalar type for the new zero matrix. By default, T's scalar type is used.
-   * \param D A set of \ref vector_space_descriptor defining the dimensions of each index.
+   * \param Ds A set of \ref vector_space_descriptor items defining the dimensions of each index.
    */
 #ifdef __cpp_concepts
-  template<indexible T, scalar_type Scalar = scalar_type_of_t<T>, vector_space_descriptor D>
+  template<indexible T, scalar_type Scalar = scalar_type_of_t<T>, vector_space_descriptor D, vector_space_descriptor...Ds>
   constexpr identity_matrix auto
 #else
-  template<typename T, typename Scalar = typename scalar_type_of<T>::type, typename D, std::enable_if_t<
-    indexible<T> and scalar_type<Scalar> and vector_space_descriptor<D>, int> = 0>
+  template<typename T, typename Scalar = typename scalar_type_of<T>::type, typename D, typename...Ds, std::enable_if_t<
+    indexible<T> and scalar_type<Scalar> and (vector_space_descriptor<D> and ... and vector_space_descriptor<Ds>), int> = 0>
   constexpr auto
 #endif
-  make_identity_matrix_like(D&& d)
+  make_identity_matrix_like(D&& d, Ds&&...ds)
   {
-    if constexpr (interface::make_identity_matrix_defined_for<std::decay_t<T>, Scalar, D&&>)
-      return interface::library_interface<std::decay_t<T>>::template make_identity_matrix<Scalar>(std::forward<D>(d));
+    if constexpr (interface::make_identity_matrix_defined_for<T, Scalar, D&&, Ds&&...>)
+      return interface::library_interface<std::decay_t<T>>::template make_identity_matrix<Scalar>(std::forward<D>(d), std::forward<Ds>(ds)...);
     else // Default behavior if interface function not defined:
-      return DiagonalMatrix {make_constant<T, Scalar, 1>(std::forward<D>(d), Dimensions<1>{})};
+    {
+      auto c = make_constant<T, Scalar, 1>(std::forward<D>(d), Dimensions<1>{});
+      return DiagonalMatrix {c, d, ds...};
+    }
   }
 
 
   /**
    * \overload
    * \brief Make an identity matrix based on the argument, specifying a new scalar type.
-   * \tparam T The matrix or array on which the new zero matrix is patterned.
+   * \tparam T The matrix or array on which the new zero matrix is patterned. It need not be square.
    * \tparam Scalar A scalar type for the new matrix.
+   * \return An identity matrix of the same dimensions as T (even if not square).
    */
 #ifdef __cpp_concepts
-  template<scalar_type Scalar, square_shaped<Qualification::depends_on_dynamic_shape> T>
+  template<scalar_type Scalar, indexible T>
   constexpr identity_matrix auto
 #else
-  template<typename Scalar, typename T, std::enable_if_t<scalar_type<Scalar> and square_shaped<T, Qualification::depends_on_dynamic_shape>, int> = 0>
+  template<typename Scalar, typename T, std::enable_if_t<scalar_type<Scalar> and indexible<T>, int> = 0>
   constexpr auto
 #endif
   make_identity_matrix_like(T&& t)
   {
-    if constexpr (identity_matrix<T> and std::is_same_v<Scalar, scalar_type_of_t<T>>)
-    {
-      return std::forward<T>(t);
-    }
-    else if constexpr (has_dynamic_dimensions<T>)
-    {
-      if (get_index_dimension_of<0>(t) != get_index_dimension_of<1>(t)) throw std::invalid_argument {
-        "Argument of make_identity_matrix_like must be square; instead it has " +
-        std::to_string(get_index_dimension_of<0>(t)) + " rows and " +
-        std::to_string(get_index_dimension_of<1>(t)) + " columns"};
-
-      if constexpr (dynamic_dimension<T, 0>)
-        return make_identity_matrix_like<T, Scalar>(get_vector_space_descriptor<1>(t));
-      else
-        return make_identity_matrix_like<T, Scalar>(get_vector_space_descriptor<0>(t));
-    }
-    else
-    {
-      return make_identity_matrix_like<T, Scalar>(get_vector_space_descriptor<0>(t));
-    }
+    if constexpr (identity_matrix<T> and std::is_same_v<Scalar, scalar_type_of_t<T>>) return std::forward<T>(t);
+    else return std::apply([](auto&&...ds){ return make_identity_matrix_like<T, Scalar>(ds...); },
+      all_vector_space_descriptors(std::forward<T>(t)));
   }
 
 
@@ -83,12 +70,13 @@ namespace OpenKalman
    * \overload
    * \brief Make an identity matrix based on the argument.
    * \tparam T The matrix or array on which the new zero matrix is patterned.
+   * \return An identity matrix of the same dimensions as T (even if not square).
    */
 #ifdef __cpp_concepts
-  template<square_shaped<Qualification::depends_on_dynamic_shape> T>
+  template<indexible T>
   constexpr identity_matrix auto
 #else
-  template<typename T, std::enable_if_t<indexible<T> and square_shaped<T, Qualification::depends_on_dynamic_shape>, int> = 0>
+  template<typename T, std::enable_if_t<indexible<T>, int> = 0>
   constexpr auto
 #endif
   make_identity_matrix_like(const T& t)
@@ -102,6 +90,7 @@ namespace OpenKalman
    * \brief Make an identity matrix based on T, which has fixed size, specifying a new scalar type.
    * \tparam T The matrix or array on which the new zero matrix is patterned.
    * \tparam Scalar A scalar type for the new matrix. The default is the scalar type of T.
+   * \return An identity matrix of the same dimensions as T (even if not square).
    */
 #ifdef __cpp_concepts
   template<square_shaped T, scalar_type Scalar = scalar_type_of_t<T>>
@@ -112,7 +101,8 @@ namespace OpenKalman
 #endif
   make_identity_matrix_like()
   {
-    return make_identity_matrix_like<T, Scalar>(Dimensions<index_dimension_of_v<T, 0>>{});
+    return std::apply([](auto&&...ds){ return make_identity_matrix_like<T, Scalar>(ds...); },
+      all_vector_space_descriptors<T>());
   }
 
 } // namespace OpenKalman
