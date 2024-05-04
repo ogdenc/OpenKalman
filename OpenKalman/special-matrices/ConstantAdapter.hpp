@@ -42,7 +42,7 @@ namespace OpenKalman
     static_assert(sizeof...(constant) == 0 or std::is_constructible_v<Scalar, decltype(constant)...>);
 #endif
 
-    using MyConstant = std::conditional_t<sizeof...(constant) == 0, Scalar, internal::ScalarConstant<Qualification::unqualified, Scalar, constant...>>;
+    using MyConstant = std::conditional_t<sizeof...(constant) == 0, Scalar, internal::ScalarConstant<Scalar, constant...>>;
     using MyScalarType = std::decay_t<decltype(get_scalar_constant_value(std::declval<MyConstant>()))>;
     using MyDimensions = decltype(all_vector_space_descriptors(std::declval<PatternMatrix>()));
 

@@ -431,7 +431,7 @@ TEST(special_matrices, make_constant)
 
   using C534 = decltype(c534);
 
-  constexpr internal::ScalarConstant<Qualification::unqualified, double, 5> nd5;
+  constexpr internal::ScalarConstant<double, 5> nd5;
 
   EXPECT_TRUE(is_near(make_constant<M23>(nd5, Dimensions<2>{}, Dimensions<3>{}), M23::Constant(5)));
   EXPECT_TRUE(is_near(make_constant<Mxx>(nd5, Dimensions<2>{}, 3), M23::Constant(5)));

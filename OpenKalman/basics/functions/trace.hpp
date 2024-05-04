@@ -36,7 +36,7 @@ namespace OpenKalman
   {
     if constexpr (zero<Arg> or empty_object<Arg>)
     {
-      return internal::ScalarConstant<Qualification::unqualified, scalar_type_of_t<Arg>, 0>{};
+      return internal::ScalarConstant<scalar_type_of_t<Arg>, 0>{};
     }
     else if constexpr (identity_matrix<Arg>)
     {

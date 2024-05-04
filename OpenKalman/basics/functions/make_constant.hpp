@@ -136,7 +136,7 @@ namespace OpenKalman
     if constexpr (sizeof...(constant) == 0)
       return make_constant<T>(C{}, std::forward<Ds>(ds)...);
     else
-      return make_constant<T>(internal::ScalarConstant<Qualification::unqualified, Scalar, constant...>{}, std::forward<Ds>(ds)...);
+      return make_constant<T>(internal::ScalarConstant<Scalar, constant...>{}, std::forward<Ds>(ds)...);
   }
 
 

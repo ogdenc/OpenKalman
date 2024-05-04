@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,11 +22,10 @@ namespace OpenKalman::internal
   /**
    * \internal
    * \brief A defined scalar constant
-   * \tparam b The likelihood that the result is a constant
    * \tparam C A constant type
    * \tparam constant Compile-time arguments for constructing C, if any.
    */
-  template<Qualification b, typename C, auto...constant>
+  template<typename C, auto...constant>
   struct ScalarConstant;
 
 
@@ -81,8 +80,8 @@ namespace OpenKalman::internal
 
 
 #ifdef __cpp_concepts
-  template<Qualification b, scalar_constant C, auto...constant> requires std::bool_constant<(C{constant...}, true)>::value
-  struct ScalarConstant<b, C, constant...>
+  template<scalar_constant C, auto...constant> requires std::bool_constant<(C{constant...}, true)>::value
+  struct ScalarConstant<C, constant...>
   {
     static constexpr auto value {get_scalar_constant_value(C{constant...})};
 
@@ -104,8 +103,8 @@ namespace OpenKalman::internal
   };
 
 
-  template<Qualification b, scalar_constant<ConstantType::dynamic_constant> C>
-  struct ScalarConstant<b, C>
+  template<scalar_constant<ConstantType::dynamic_constant> C>
+  struct ScalarConstant<C>
   {
     using value_type = std::decay_t<decltype(get_scalar_constant_value(std::declval<C>()))>;
 
@@ -125,8 +124,8 @@ namespace OpenKalman::internal
     value_type value;
   };
 #else
-  template<Qualification b, typename C, auto...constant>
-  struct ScalarConstant : detail::ScalarConstantImpl<ScalarConstant<b, C, constant...>, C, void, constant...>
+  template<typename C, auto...constant>
+  struct ScalarConstant : detail::ScalarConstantImpl<ScalarConstant<C, constant...>, C, void, constant...>
   {
   private:
     static_assert(scalar_constant<C>);
@@ -134,7 +133,6 @@ namespace OpenKalman::internal
   public:
     using Base::Base;
     using Base::operator=;
-    static constexpr Qualification status = b;
     using type = ScalarConstant;
   };
 #endif
@@ -154,26 +152,14 @@ namespace OpenKalman::internal
 
   /**
    * \internal
-   * \brief Deduction guide for \ref ScalarConstant where T has a <code>status</code> member.
+   * \brief Deduction guide for \ref ScalarConstant where T is a scalar constant.
    */
 #ifdef __cpp_concepts
-  template<scalar_constant T> requires requires { {T::status} -> std::same_as<Qualification>; }
+  template<scalar_constant T>
 #else
-  template<typename T, std::enable_if_t<scalar_constant<T> and detail::has_constant_status<T>::value, int> = 0>
+  template<typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
 #endif
-  explicit ScalarConstant(const T&) -> ScalarConstant<T::status, std::decay_t<T>>;
-
-
-  /**
-   * \internal
-   * \brief Deduction guide for \ref ScalarConstant where T does not have a <code>status</code> member.
-   */
-#ifdef __cpp_concepts
-  template<scalar_constant T> requires (not requires { {T::status} -> std::same_as<Qualification>; })
-#else
-  template<typename T, std::enable_if_t<scalar_constant<T> and not detail::has_constant_status<T>::value, int> = 0>
-#endif
-  explicit ScalarConstant(const T&) -> ScalarConstant<Qualification::unqualified, std::decay_t<T>>;
+  explicit ScalarConstant(const T&) -> ScalarConstant<std::decay_t<T>>;
 
 
 } // namespace OpenKalman::internal

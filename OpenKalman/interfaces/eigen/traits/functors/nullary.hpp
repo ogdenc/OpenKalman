@@ -44,7 +44,7 @@ namespace OpenKalman::Eigen3
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (is_diag) return internal::ScalarConstant<Qualification::unqualified, Scalar, 1>{};
+      if constexpr (is_diag) return internal::ScalarConstant<Scalar, 1>{};
       else return std::monostate {};
     }
 

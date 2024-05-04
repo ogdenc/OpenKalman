@@ -144,7 +144,7 @@ namespace OpenKalman
     {
       constexpr std::make_index_sequence<index_count_v<Arg>> seq;
       return internal::make_constant_matrix_reduction<index, indices...>(
-        internal::ScalarConstant<Qualification::unqualified, scalar_type_of_t<Arg>, 0>{}, std::forward<Arg>(arg), seq);
+        internal::ScalarConstant<scalar_type_of_t<Arg>, 0>{}, std::forward<Arg>(arg), seq);
     }
     else if constexpr (constant_matrix<Arg>)
     {

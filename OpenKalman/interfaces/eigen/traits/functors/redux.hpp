@@ -100,7 +100,7 @@ namespace OpenKalman::Eigen3
       else if constexpr (detail::const_is_zero<C>::value)
 #endif
       {
-        return internal::ScalarConstant<Qualification::unqualified, ResultType, 0>{};
+        return internal::ScalarConstant<ResultType, 0>{};
       }
       else if constexpr (not at_least_square)
       {
@@ -189,7 +189,7 @@ namespace OpenKalman::Eigen3
 #else
       if constexpr (detail::const_is_zero<C>::value)
 #endif
-        return internal::ScalarConstant<Qualification::unqualified, ResultType, 0>{};
+        return internal::ScalarConstant<ResultType, 0>{};
       else
         return internal::scalar_constant_operation{Op{}, c,
           internal::scalar_constant_operation{std::multiplies<std::size_t>{}, factor, dim}};
@@ -204,7 +204,7 @@ namespace OpenKalman::Eigen3
 #else
       if constexpr (detail::const_is_zero<C>::value)
 #endif
-        return internal::ScalarConstant<Qualification::unqualified, ResultType, 0>{};
+        return internal::ScalarConstant<ResultType, 0>{};
       else if constexpr (at_least_square)
         return internal::scalar_constant_operation{Op{}, c, factor};
       else
@@ -244,7 +244,7 @@ namespace OpenKalman::Eigen3
 #else
       if constexpr (detail::const_is_zero<C>::value)
 #endif
-        return internal::ScalarConstant<Qualification::unqualified, ResultType, 0>{};
+        return internal::ScalarConstant<ResultType, 0>{};
       else
         return internal::scalar_constant_operation{Op{}, c,
           internal::scalar_constant_operation{std::multiplies<std::size_t>{}, factor, dim}};
@@ -280,7 +280,7 @@ namespace OpenKalman::Eigen3
 #else
       if constexpr (detail::const_is_zero<C>::value)
 #endif
-        return internal::ScalarConstant<Qualification::unqualified, ResultType, 0>{};
+        return internal::ScalarConstant<ResultType, 0>{};
       else if constexpr (at_least_square)
         return (c * factor) / dim;
       else
@@ -305,7 +305,7 @@ namespace OpenKalman::Eigen3
   #else
         if constexpr (detail::const_is_zero<C>::value)
   #endif
-        return internal::ScalarConstant<Qualification::unqualified, Scalar, 0>{};
+        return internal::ScalarConstant<Scalar, 0>{};
       else
         return internal::scalar_constant_operation{std::multiplies<Scalar>{}, c,
           internal::scalar_constant_operation{std::multiplies<Scalar>{}, factor, dim}};
@@ -320,7 +320,7 @@ namespace OpenKalman::Eigen3
 #else
       if constexpr (detail::const_is_zero<C>::value)
 #endif
-        return internal::ScalarConstant<Qualification::unqualified, Scalar, 0>{};
+        return internal::ScalarConstant<Scalar, 0>{};
       else if constexpr (at_least_square)
         return internal::scalar_constant_operation{std::multiplies<Scalar>{}, c, factor};
       else
@@ -384,7 +384,7 @@ namespace OpenKalman::Eigen3
       else if constexpr (scalar_constant<C, ConstantType::static_constant>)
       {
         if constexpr (C::value < 0) return std::monostate{};
-        else return internal::ScalarConstant<Qualification::unqualified, ResultType, 0>{};
+        else return internal::ScalarConstant<ResultType, 0>{};
       }
       else return std::monostate{};
     }
@@ -440,7 +440,7 @@ namespace OpenKalman::Eigen3
       else if constexpr (scalar_constant<C, ConstantType::static_constant>)
       {
         if constexpr (C::value > 0) return std::monostate{};
-        else return internal::ScalarConstant<Qualification::unqualified, ResultType, 0>{};
+        else return internal::ScalarConstant<ResultType, 0>{};
       }
       else return std::monostate{};
     }
@@ -631,7 +631,7 @@ namespace OpenKalman::Eigen3
 #else
         if constexpr (detail::const_is_zero<C>::value)
 #endif
-        return internal::ScalarConstant<Qualification::unqualified, ResultType, 0>{};
+        return internal::ScalarConstant<ResultType, 0>{};
       else
         return internal::scalar_constant_operation{Op{}, c,
           internal::scalar_constant_operation{std::multiplies<std::size_t>{}, factor, dim}};
@@ -641,7 +641,7 @@ namespace OpenKalman::Eigen3
     template<bool at_least_square, typename C, typename Factor, typename Dim>
     static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim) noexcept
     {
-      return internal::ScalarConstant<Qualification::unqualified, ResultType, 0>{};
+      return internal::ScalarConstant<ResultType, 0>{};
     }
   };
 
