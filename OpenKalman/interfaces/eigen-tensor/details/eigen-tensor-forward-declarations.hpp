@@ -44,36 +44,75 @@ namespace OpenKalman::Eigen3
       (not must_be_native or not std::is_base_of_v<EigenCustomBase, std::decay_t<T>>);
 
 
+  namespace detail
+  {
+    template<typename T>
+    struct is_eigen_tensor_wrapper : std::false_type {};
+
+    template<typename N, typename L>
+    struct is_eigen_tensor_wrapper<OpenKalman::internal::LibraryWrapper<N, L>> : std::bool_constant<eigen_tensor_general<L, true>> {};
+  } // namespace detail
+
+
   /**
    * \internal
-   * \brief A dumb wrapper for OpenKalman classes so that they are treated exactly as native Eigen tensor types.
-   * \tparam T A non-Eigen tensor class.
-   * \tparam IndexType The index type (e.g., int or std::size_t).
+   * \brief T is a \ref internal::LibraryWrapper "LibraryWrapper" for T that is a tensor based on the Eigen library.
    */
   template<typename T>
-  struct EigenTensorWrapper;
+#ifdef __cpp_concepts
+  concept eigen_tensor_wrapper =
+#else
+  constexpr bool eigen_tensor_wrapper =
+#endif
+  detail::is_eigen_tensor_wrapper<std::decay_t<T>>::value;
 
 
   namespace detail
   {
-    template<typename T>
-    struct is_EigenTensorWrapper : std::false_type {};
+    template<typename>
+    struct eigen_sizes;
 
-    template<typename T>
-    struct is_EigenTensorWrapper<EigenTensorWrapper<T>> : std::true_type {};
-  }
+    template<typename...Ds>
+    struct eigen_sizes<std::tuple<Ds...>> { using type = Eigen::Sizes<static_cast<std::ptrdiff_t>(dimension_size_of_v<Ds>)...>; };
+
+  } // namespace detail
 
 
   /**
-   * \brief An instance of Eigen3::EigenTensorWrapper<T>, for any T.
+   * \internal
+   * \brief Alias for the Eigen tensor version of LibraryWrapper.
+   * \details A wrapper for OpenKalman classes so that they are treated exactly as native Eigen tensor types.
+   * \tparam NestedObject A non-Eigen class, for which an Eigen3 trait and evaluator is defined.
    */
+#ifdef __cpp_concepts
+  template<indexible NestedObject>
+#else
+  template<typename NestedObject>
+#endif
+  using EigenTensorWrapper = OpenKalman::internal::LibraryWrapper<NestedObject, std::conditional_t<has_dynamic_dimensions<NestedObject>,
+    Eigen::Tensor<
+      scalar_type_of_t<NestedObject>,
+      static_cast<int>(index_count_v<NestedObject>),
+      layout_of_v<NestedObject> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor,
+      Eigen::DenseIndex>,
+    Eigen::TensorFixedSize<
+      scalar_type_of_t<NestedObject>,
+      typename detail::eigen_sizes<std::decay_t<decltype(all_vector_space_descriptors(std::declval<NestedObject>()))>>::type,
+      layout_of_v<NestedObject> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor,
+      Eigen::DenseIndex>>>;
+
+
+  /**
+   * \brief Trait object providing get and set routines for Eigen tensors
+   */
+#ifdef __cpp_concepts
   template<typename T>
-  #ifdef __cpp_concepts
-  concept eigen_tensor_wrapper =
-  #else
-  constexpr bool eigen_tensor_wrapper =
-  #endif
-    detail::is_EigenTensorWrapper<std::decay_t<T>>::value;
+  struct indexible_object_traits_tensor_base;
+#else
+  template<typename T, typename = void>
+  struct indexible_object_traits_tensor_base;
+#endif
+
 
 } // namespace OpenKalman::Eigen3
 

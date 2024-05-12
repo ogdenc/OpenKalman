@@ -21,11 +21,11 @@ namespace OpenKalman::interface
 {
   template<typename Scalar, int NumIndices, int options, typename IndexType>
   struct indexible_object_traits<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>
-    : Eigen3::indexible_object_traits_base<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>
+    : Eigen3::indexible_object_traits_tensor_base<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>;
+    using Base = Eigen3::indexible_object_traits_tensor_base<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>;
 
   public:
 

@@ -18,14 +18,51 @@
 #define OPENKALMAN_EIGEN_NATIVE_TRAITS_LIBRARYWRAPPER_HPP
 
 
-namespace OpenKalman::Eigen3::detail
+namespace OpenKalman::Eigen3::internal
 {
 #ifdef __cpp_concepts
-  template<typename T>
+  template<OpenKalman::Eigen3::eigen_general T, OpenKalman::Eigen3::eigen_general L>
+  struct native_traits<OpenKalman::internal::LibraryWrapper<T, L>>
 #else
-  template<typename T, typename = void>
+  template<typename T, typename L>
+  struct native_traits<OpenKalman::internal::LibraryWrapper<T, L>, std::enable_if_t<
+    OpenKalman::Eigen3::eigen_general<T> and OpenKalman::Eigen3::eigen_general<L>>>
 #endif
-  struct EigenWrapperTraitsBase
+    : Eigen::internal::traits<std::decay_t<T>>
+  {
+  private:
+
+    using NestedTraits = Eigen::internal::traits<std::decay_t<T>>;
+    using GetRes = decltype(OpenKalman::get_component(std::declval<std::add_lvalue_reference_t<T>>(),
+      std::declval<std::size_t>(), std::declval<std::size_t>()));
+
+    static constexpr auto lvalue_bit = (NestedTraits::Flags & Eigen::LvalueBit) != 0x0 and (OpenKalman::Eigen3::eigen_dense_general<T, true> or
+      (std::is_lvalue_reference_v<GetRes> and not std::is_const_v<std::remove_reference_t<GetRes>>)) ? Eigen::LvalueBit : 0x0;
+
+  public:
+
+    using XprKind = std::conditional_t<OpenKalman::Eigen3::eigen_array_general<T, true>, Eigen::ArrayXpr, Eigen::MatrixXpr>;
+    using Scalar = OpenKalman::scalar_type_of_t<T>;
+    using StorageKind = Eigen::Dense;
+    using StorageIndex = Eigen::Index;
+    enum {
+      Flags = (NestedTraits::Flags & ~Eigen::NestByRefBit & ~Eigen::LvalueBit) | lvalue_bit,
+      RowsAtCompileTime = OpenKalman::dynamic_dimension<T, 0> ? Eigen::Dynamic : static_cast<Eigen::Index>(OpenKalman::index_dimension_of_v<T, 0>),
+      ColsAtCompileTime = OpenKalman::dynamic_dimension<T, 1> ? Eigen::Dynamic : static_cast<Eigen::Index>(OpenKalman::index_dimension_of_v<T, 1>),
+      MaxRowsAtCompileTime [[maybe_unused]] = RowsAtCompileTime,
+      MaxColsAtCompileTime [[maybe_unused]] = ColsAtCompileTime,
+    };
+  };
+
+
+#ifdef __cpp_concepts
+  template<typename T, OpenKalman::Eigen3::eigen_general L> requires (not OpenKalman::Eigen3::eigen_general<T>)
+  struct native_traits<OpenKalman::internal::LibraryWrapper<T, L>>
+#else
+  template<typename T, typename L>
+  struct native_traits<OpenKalman::internal::LibraryWrapper<T, L>, std::enable_if_t<
+    not OpenKalman::Eigen3::eigen_general<T> and OpenKalman::Eigen3::eigen_general<L>>>
+#endif
   {
   private:
 
@@ -46,7 +83,7 @@ namespace OpenKalman::Eigen3::detail
     struct Strides<Arg>
 #else
     template<typename Arg>
-    struct Strides<Arg, std::enable_if_t<(OpenKalman::layout_of_v<Arg> == OpenKalman::Layout::none)>>
+  struct Strides<Arg, std::enable_if_t<(OpenKalman::layout_of_v<Arg> == OpenKalman::Layout::none)>>
 #endif
     { using type = std::tuple<std::size_t, std::size_t>; };
 
@@ -61,69 +98,21 @@ namespace OpenKalman::Eigen3::detail
   public:
 
     using XprKind = Eigen::MatrixXpr;
-    enum {
-      Flags = layout_bit | direct | lvalue_bit,
-      InnerStrideAtCompileTime = layout_bit == Eigen::RowMajorBit ? stride1 : stride0,
-      OuterStrideAtCompileTime = layout_bit == Eigen::RowMajorBit ? stride0 : stride1,
-    };
-  };
-
-
-#ifdef __cpp_concepts
-  template<OpenKalman::Eigen3::eigen_general T>
-  struct EigenWrapperTraitsBase<T>
-#else
-  template<typename T>
-  struct EigenWrapperTraitsBase<T, std::enable_if_t<OpenKalman::Eigen3::eigen_general<T>>>
-#endif
-    : Eigen::internal::traits<std::decay_t<T>>
-  {
-  private:
-
-    using NestedTraits = Eigen::internal::traits<std::decay_t<T>>;
-    using GetRes = decltype(OpenKalman::get_component(std::declval<std::add_lvalue_reference_t<T>>(),
-      std::declval<std::size_t>(), std::declval<std::size_t>()));
-
-    static constexpr auto lvalue_bit = (NestedTraits::Flags & Eigen::LvalueBit) != 0x0 and (OpenKalman::Eigen3::eigen_dense_general<T, true> or
-        (std::is_lvalue_reference_v<GetRes> and not std::is_const_v<std::remove_reference_t<GetRes>>)) ? Eigen::LvalueBit : 0x0;
-
-  public:
-
-    using XprKind = std::conditional_t<OpenKalman::Eigen3::eigen_array_general<T, true>, Eigen::ArrayXpr, Eigen::MatrixXpr>;
-    enum {
-      Flags = (NestedTraits::Flags & ~Eigen::LvalueBit) | lvalue_bit,
-    };
-  };
-
-} // namespace OpenKalman::Eigen3:detail
-
-
-namespace Eigen::internal
-{
-
-  template<typename T, typename L>
-  struct traits<OpenKalman::internal::LibraryWrapper<T, L>> : OpenKalman::Eigen3::detail::EigenWrapperTraitsBase<T>
-  {
-  private:
-
-    using Base = OpenKalman::Eigen3::detail::EigenWrapperTraitsBase<T>;
-
-  public:
-
-    static_assert(OpenKalman::Eigen3::eigen_general<L>);
     using Scalar = OpenKalman::scalar_type_of_t<T>;
     using StorageKind = Eigen::Dense;
-    using StorageIndex = Index;
+    using StorageIndex = Eigen::Index;
     enum {
-      Flags = (Base::Flags & ~NestByRefBit),
-      RowsAtCompileTime = OpenKalman::dynamic_dimension<T, 0> ? Eigen::Dynamic : static_cast<Index>(OpenKalman::index_dimension_of_v<T, 0>),
-      ColsAtCompileTime = OpenKalman::dynamic_dimension<T, 1> ? Eigen::Dynamic : static_cast<Index>(OpenKalman::index_dimension_of_v<T, 1>),
+      Flags = (layout_bit | direct | lvalue_bit) & ~Eigen::NestByRefBit,
+      InnerStrideAtCompileTime = layout_bit == Eigen::RowMajorBit ? stride1 : stride0,
+      OuterStrideAtCompileTime = layout_bit == Eigen::RowMajorBit ? stride0 : stride1,
+      RowsAtCompileTime = OpenKalman::dynamic_dimension<T, 0> ? Eigen::Dynamic : static_cast<Eigen::Index>(OpenKalman::index_dimension_of_v<T, 0>),
+      ColsAtCompileTime = OpenKalman::dynamic_dimension<T, 1> ? Eigen::Dynamic : static_cast<Eigen::Index>(OpenKalman::index_dimension_of_v<T, 1>),
       MaxRowsAtCompileTime [[maybe_unused]] = RowsAtCompileTime,
       MaxColsAtCompileTime [[maybe_unused]] = ColsAtCompileTime,
     };
   };
 
+} // OpenKalman::Eigen3::internal
 
-} // Eigen::internal
 
 #endif //OPENKALMAN_EIGEN_NATIVE_TRAITS_LIBRARYWRAPPER_HPP

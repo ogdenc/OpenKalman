@@ -21,57 +21,57 @@ TEST(eigen3, make_dense_object)
   static_assert(dimension_size_of_index_is<decltype(m23c), 0, 2>);
   static_assert(dimension_size_of_index_is<decltype(m23c), 1, 3>);
   static_assert(layout_of_v<decltype(m23c)> == Layout::left);
-  EXPECT_EQ(std::get<0>(internal::strides(m23c)), 1);
-  EXPECT_EQ(std::get<1>(internal::strides(m23c)), 2);
+  EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(m23c)), 1);
+  EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(m23c)), 2);
 
   auto m2xc_3 = make_dense_object<M11, Layout::left>(Dimensions<2>{}, 3);
   static_assert(dimension_size_of_index_is<decltype(m2xc_3), 0, 2>);
   static_assert(dynamic_dimension<decltype(m2xc_3), 1>);
   static_assert(layout_of_v<decltype(m2xc_3)> == Layout::left);
-  EXPECT_EQ(std::get<0>(internal::strides(m2xc_3)), 1);
-  EXPECT_EQ(std::get<1>(internal::strides(m2xc_3)), 2);
+  EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(m2xc_3)), 1);
+  EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(m2xc_3)), 2);
 
   auto mx3c_2 = make_dense_object<M11, Layout::left>(2, Dimensions<3>{});
   static_assert(dynamic_dimension<decltype(mx3c_2), 0>);
   static_assert(dimension_size_of_index_is<decltype(mx3c_2), 1, 3>);
   static_assert(layout_of_v<decltype(mx3c_2)> == Layout::left);
-  EXPECT_EQ(std::get<0>(internal::strides(mx3c_2)), 1);
-  EXPECT_EQ(std::get<1>(internal::strides(mx3c_2)), 2);
+  EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(mx3c_2)), 1);
+  EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(mx3c_2)), 2);
 
   auto mxxc_23 = make_dense_object<M11, Layout::left>(2, 3);
   static_assert(dynamic_dimension<decltype(mxxc_23), 0>);
   static_assert(dynamic_dimension<decltype(mxxc_23), 1>);
   static_assert(layout_of_v<decltype(mxxc_23)> == Layout::left);
-  EXPECT_EQ(std::get<0>(internal::strides(mxxc_23)), 1);
-  EXPECT_EQ(std::get<1>(internal::strides(mxxc_23)), 2);
+  EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(mxxc_23)), 1);
+  EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(mxxc_23)), 2);
 
   auto m23r = make_dense_object<M11, Layout::right>(Dimensions<2>{}, Dimensions<3>{});
   static_assert(dimension_size_of_index_is<decltype(m23r), 0, 2>);
   static_assert(dimension_size_of_index_is<decltype(m23r), 1, 3>);
   static_assert(layout_of_v<decltype(m23r)> == Layout::right);
-  EXPECT_EQ(std::get<0>(internal::strides(m23r)), 3);
-  EXPECT_EQ(std::get<1>(internal::strides(m23r)), 1);
+  EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(m23r)), 3);
+  EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(m23r)), 1);
 
   auto m2xr_3 = make_dense_object<M11, Layout::right>(Dimensions<2>{}, 3);
   static_assert(dimension_size_of_index_is<decltype(m2xr_3), 0, 2>);
   static_assert(dynamic_dimension<decltype(m2xr_3), 1>);
   static_assert(layout_of_v<decltype(m2xr_3)> == Layout::right);
-  EXPECT_EQ(std::get<0>(internal::strides(m2xr_3)), 3);
-  EXPECT_EQ(std::get<1>(internal::strides(m2xr_3)), 1);
+  EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(m2xr_3)), 3);
+  EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(m2xr_3)), 1);
 
   auto mx3r_2 = make_dense_object<M11, Layout::right>(2, Dimensions<3>{});
   static_assert(dynamic_dimension<decltype(mx3r_2), 0>);
   static_assert(dimension_size_of_index_is<decltype(mx3r_2), 1, 3>);
   static_assert(layout_of_v<decltype(mx3r_2)> == Layout::right);
-  EXPECT_EQ(std::get<0>(internal::strides(mx3r_2)), 3);
-  EXPECT_EQ(std::get<1>(internal::strides(mx3r_2)), 1);
+  EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(mx3r_2)), 3);
+  EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(mx3r_2)), 1);
 
   auto mxxr_23 = make_dense_object<M11, Layout::right>(2, 3);
   static_assert(dynamic_dimension<decltype(mxxr_23), 0>);
   static_assert(dynamic_dimension<decltype(mxxr_23), 1>);
   static_assert(layout_of_v<decltype(mxxr_23)> == Layout::right);
-  EXPECT_EQ(std::get<0>(internal::strides(mxxr_23)), 3);
-  EXPECT_EQ(std::get<1>(internal::strides(mxxr_23)), 1);
+  EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(mxxr_23)), 3);
+  EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(mxxr_23)), 1);
 
   auto m11c = make_dense_object<M11, Layout::left>(Dimensions<1>{}, Dimensions<1>{});
   static_assert(layout_of_v<decltype(m11c)> == Layout::left);

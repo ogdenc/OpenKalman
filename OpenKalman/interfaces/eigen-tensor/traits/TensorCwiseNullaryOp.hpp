@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2023-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,11 +21,11 @@ namespace OpenKalman::interface
 {
   template<typename NullaryOp, typename XprType>
   struct indexible_object_traits<Eigen::TensorCwiseNullaryOp<NullaryOp, XprType>>
-    : Eigen3::indexible_object_traits_base<Eigen::TensorCwiseNullaryOp<NullaryOp, XprType>>
+    : Eigen3::indexible_object_traits_tensor_base<Eigen::TensorCwiseNullaryOp<NullaryOp, XprType>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::TensorCwiseNullaryOp<NullaryOp, XprType>>;
+    using Base = Eigen3::indexible_object_traits_tensor_base<Eigen::TensorCwiseNullaryOp<NullaryOp, XprType>>;
 
   public:
 
@@ -35,12 +35,9 @@ namespace OpenKalman::interface
       return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
     }
 
+    using dependents = std::conditional_t<has_dynamic_dimensions<XprType>, std::tuple<typename XprType::Nested>, std::tuple<>>;
 
-    using type = std::conditional_t<has_dynamic_dimensions<XprType>, std::tuple<typename XprType::Nested>, std::tuple<>>;
-
-
-    static constexpr bool has_runtime_parameters = true;
-
+    static constexpr bool has_runtime_parameters = has_dynamic_dimensions<XprType>;
 
 #ifdef __cpp_concepts
     template<typename Arg> requires has_dynamic_dimensions<XprType>
@@ -52,9 +49,7 @@ namespace OpenKalman::interface
       return std::forward<Arg>(arg).nestedExpression();
     }
 
-
     // convert_to_self_contained not defined
-
 
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -62,39 +57,24 @@ namespace OpenKalman::interface
       return Eigen3::NullaryFunctorTraits<NullaryOp, XprType>::template get_constant<false>(arg);
     }
 
-
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
       return Eigen3::NullaryFunctorTraits<NullaryOp, XprType>::template get_constant<true>(arg);
     }
 
-
     template<Qualification b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<XprType, b>;
-
 
     template<Qualification b>
     static constexpr bool is_square = square_shaped<XprType, b>;
 
-
     template<TriangleType t>
     static constexpr bool is_triangular = Eigen3::NullaryFunctorTraits<NullaryOp, XprType>::template is_triangular<t>;
 
-
     static constexpr bool is_triangular_adapter = false;
 
-
     static constexpr bool is_hermitian = Eigen3::NullaryFunctorTraits<NullaryOp, XprType>::is_hermitian;
-
-
-    static constexpr bool is_writable = false;
-
-
-    // raw_data() not defined
-
-
-    // layout not defined
 
   };
 

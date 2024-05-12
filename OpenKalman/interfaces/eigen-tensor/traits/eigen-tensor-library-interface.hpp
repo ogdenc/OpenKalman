@@ -37,7 +37,7 @@ namespace OpenKalman::interface
   {
   private:
 
-    using IndexType = typename T::Index;
+    using IndexType = typename Eigen::internal::traits<T>::Index;
 
   public:
 
@@ -46,32 +46,82 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_concepts
-    template<std::convertible_to<IndexType>...I> requires (sizeof...(I) == T::NumDimensions)
+    template<indexible Arg, std::size_t NumIndices> requires (NumIndices == index_count_v<Arg>)
+    static constexpr scalar_constant decltype(auto)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, IndexType> and ...) and
-      (sizeof...(I) == T::NumDimensions), int> = 0>
-#endif
+    template <typename Arg, std::size_t NumIndices, std::enable_if_t<NumIndices == index_count_v<Arg>, int> = 0>
     static constexpr decltype(auto)
-    get_component(const T& arg, I...i)
+#endif
+    get_component(Arg&& arg, const std::array<IndexType, NumIndices>& indices)
     {
       if constexpr ((Eigen::internal::traits<T>::Flags & Eigen::LvalueBit) != 0)
-        return Eigen::TensorRef<dense_writable_matrix_t<T>> {std::forward<T>(arg)}.coeffRef(static_cast<IndexType>(i)...);
+        return Eigen::TensorRef<dense_writable_matrix_t<T>> {std::forward<Arg>(arg)}.coeffRef(indices);
       else
-        return Eigen::TensorRef<dense_writable_matrix_t<T>> {std::forward<T>(arg)}.coeff(static_cast<IndexType>(i)...);
+        return Eigen::TensorRef<dense_writable_matrix_t<T>> {std::forward<Arg>(arg)}.coeff(indices);
+    }
+
+  private:
+
+    template<std::size_t ix_count, typename I, typename End, typename...Ixs>
+    static constexpr decltype(auto)
+    make_ix_array(I i, const End& end, Ixs...indices)
+    {
+      if constexpr (ix_count == 0)
+      {
+        if (i != end) throw std::logic_error("Too many indices on component access");
+        return std::array<IndexType, sizeof...(Ixs)> {indices...};
+      }
+      else
+      {
+        if (i == end) throw std::logic_error("Not enough indices on component access");
+        auto this_ix {*i};
+        return make_ix_array<ix_count - 1>(++i, end, indices..., static_cast<IndexType>(this_ix));
+      }
+    }
+
+  public:
+
+#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+    template<indexible Arg, std::ranges::input_range Indices> requires
+      std::convertible_to<std::ranges::range_value_t<Indices>, const typename std::decay_t<Arg>::Index>
+    static constexpr scalar_constant decltype(auto)
+#else
+    template<typename Arg, typename Indices>
+    static constexpr decltype(auto)
+#endif
+    get_component(Arg&& arg, const Indices& indices)
+    {
+      constexpr std::size_t ix_count = Eigen::internal::traits<T>::NumDimensions;
+      return get_component(std::forward<Arg>(arg), make_ix_array<ix_count>(indices.begin(), indices.end()));
     }
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == T::NumDimensions) and
+    template<indexible Arg, std::size_t NumIndices> requires (NumIndices == index_count_v<Arg>)
+    static constexpr scalar_constant decltype(auto)
+#else
+    template <typename Arg, std::size_t NumIndices, std::enable_if_t<NumIndices == index_count_v<Arg>, int> = 0>
+    static constexpr decltype(auto)
+#endif
+    set_component(Arg& arg, const scalar_type_of_t<T>& s, const std::array<IndexType, NumIndices>& indices)
+    {
+      Eigen::TensorRef<dense_writable_matrix_t<T>> {arg}.coeffRef(indices) = s;
+    }
+
+
+#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+    template<indexible Arg, std::ranges::input_range Indices> requires
+      std::convertible_to<std::ranges::range_value_t<Indices>, const typename std::decay_t<Arg>::Index> and
       ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, IndexType> and ...) and
-      (sizeof...(I) == T::NumDimensions) and ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0), int> = 0>
+    template<typename Arg, typename Indices, std::enable_if_t<
+      ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0), int> = 0>
 #endif
     static void
-    set_component(T& arg, const scalar_type_of_t<T>& s, I...i)
+    set_component(Arg& arg, const scalar_type_of_t<T>& s, const Indices& indices)
     {
-      Eigen::TensorRef<dense_writable_matrix_t<T>> {arg}.coeffRef(static_cast<IndexType>(i)...) = s;
+      constexpr std::size_t ix_count = Eigen::internal::traits<T>::NumDimensions;
+      return set_component(arg, s, make_ix_array<ix_count>(indices.begin(), indices.end()));
     }
 
 

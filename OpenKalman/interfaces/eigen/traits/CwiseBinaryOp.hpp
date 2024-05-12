@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2023-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,7 +16,6 @@
 #ifndef OPENKALMAN_EIGEN_TRAITS_CWISEBINARYOP_HPP
 #define OPENKALMAN_EIGEN_TRAITS_CWISEBINARYOP_HPP
 
-#include <type_traits>
 
 namespace OpenKalman::interface
 {
@@ -222,6 +221,7 @@ namespace OpenKalman::interface
 
     static constexpr bool is_hermitian = Traits::preserves_hermitian and
       hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;;
+
   };
 
 

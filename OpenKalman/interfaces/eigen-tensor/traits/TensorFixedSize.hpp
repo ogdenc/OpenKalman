@@ -21,11 +21,11 @@ namespace OpenKalman::interface
 {
   template<typename S, typename Dims, int options, typename IndexType>
   struct indexible_object_traits<Eigen::TensorFixedSize<S, Dims, options, IndexType>>
-    : Eigen3::indexible_object_traits_base<Eigen::TensorFixedSize<S, Dims, options, IndexType>>
+    : Eigen3::indexible_object_traits_tensor_base<Eigen::TensorFixedSize<S, Dims, options, IndexType>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::TensorFixedSize<S, Dims, options, IndexType>>;
+    using Base = Eigen3::indexible_object_traits_tensor_base<Eigen::TensorFixedSize<S, Dims, options, IndexType>>;
 
   public:
 

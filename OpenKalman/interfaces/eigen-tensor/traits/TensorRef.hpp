@@ -21,11 +21,11 @@ namespace OpenKalman::interface
 {
   template<typename PlainObjectType>
   struct IndexibleObjectTraits<Eigen::TensorRef<PlainObjectType>>
-    : Eigen3::indexible_object_traits_base<Eigen::TensorRef<PlainObjectType>>
+    : Eigen3::indexible_object_traits_tensor_base<Eigen::TensorRef<PlainObjectType>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::TensorRef<PlainObjectType>>;
+    using Base = Eigen3::indexible_object_traits_tensor_base<Eigen::TensorRef<PlainObjectType>>;
     using Base::max_indices;
     using Dimensions = PlainObjectType::Dimensions;
     using Scalar = Eigen::internal::traits<PlainObjectType>::Scalar;

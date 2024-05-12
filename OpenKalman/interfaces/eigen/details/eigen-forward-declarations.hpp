@@ -552,7 +552,6 @@ namespace OpenKalman::Eigen3
     Eigen::Matrix<Scalar, detail::eigen_index_convert<dims>...>>;
 
 
-
   /**
    * \brief Trait object providing get and set routines
    */

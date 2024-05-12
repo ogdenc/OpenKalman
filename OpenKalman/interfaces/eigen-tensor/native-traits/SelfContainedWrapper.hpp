@@ -11,28 +11,23 @@
 /**
  * \internal
  * \file
- * \brief Eigen traits relating to \ref SelfContainedWrapper
+ * \brief Native Eigen traits relating to \ref SelfContainedWrapper holding a tensor
  */
 
-#ifndef OPENKALMAN_EIGEN_NATIVE_TRAITS_SELFCONTAINEDWRAPPER_HPP
-#define OPENKALMAN_EIGEN_NATIVE_TRAITS_SELFCONTAINEDWRAPPER_HPP
+#ifndef OPENKALMAN_EIGEN_TENSOR_NATIVE_TRAITS_SELFCONTAINEDWRAPPER_HPP
+#define OPENKALMAN_EIGEN_TENSOR_NATIVE_TRAITS_SELFCONTAINEDWRAPPER_HPP
 
 namespace OpenKalman::Eigen3::internal
 {
 #ifdef __cpp_concepts
-  template<OpenKalman::Eigen3::eigen_general T, typename...Ps>
+  template<OpenKalman::Eigen3::eigen_tensor_general T, typename...Ps>
   struct native_traits<OpenKalman::internal::SelfContainedWrapper<T, Ps...>>
 #else
   template<typename T, typename...Ps>
-  struct native_traits<OpenKalman::internal::SelfContainedWrapper<T, Ps...>, std::enable_if_t<OpenKalman::Eigen3::eigen_general<T>>>
+  struct native_traits<OpenKalman::internal::SelfContainedWrapper<T, Ps...>, std::enable_if_t<OpenKalman::Eigen3::eigen_tensor_general<T>>>
 #endif
-    : Eigen::internal::traits<std::decay_t<T>>
-  {
-    enum {
-      Flags = (Eigen::internal::traits<std::decay_t<T>>::Flags & ~Eigen::NestByRefBit),
-    };
-  };
+    : Eigen::internal::traits<std::decay_t<T>> {};
 
 } // OpenKalman::Eigen3::internal
 
-#endif //OPENKALMAN_EIGEN_NATIVE_TRAITS_SELFCONTAINEDWRAPPER_HPP
+#endif //OPENKALMAN_EIGEN_TENSOR_NATIVE_TRAITS_SELFCONTAINEDWRAPPER_HPP

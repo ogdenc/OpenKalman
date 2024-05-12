@@ -80,7 +80,8 @@ namespace OpenKalman
     {
       return std::tuple {std::decay_t<decltype(get_vector_space_descriptor<I>(std::declval<T>()))>{}...};
     }
-  }
+
+  } // namespace detail
 
 
   /**

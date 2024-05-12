@@ -11,7 +11,6 @@
 #include "eigen-tensor.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
 using numbers::pi;
@@ -172,7 +171,7 @@ TEST(eigen_tensor, tensor_to_matrix)
 
   using T23 = Eigen::TensorFixedSize<double, Eigen::Sizes<2,3>>;
   static_assert(layout_of_v<T23> == Layout::left);
-  static_assert(Eigen3::eigen_dense_general<Eigen3::EigenWrapper<T23>, true>);
+  static_assert(Eigen3::eigen_dense_general<Eigen3::EigenTensorWrapper<T23>, true>);
   T23 t23;
   t23.setValues({{1, 2, 3}, {4, 5, 6}});
   EXPECT_TRUE(is_near(Eigen3::make_eigen_wrapper(t23), m23));

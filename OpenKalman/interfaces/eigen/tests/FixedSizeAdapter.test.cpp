@@ -11,7 +11,6 @@
 #include "interfaces/eigen/tests/eigen.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
 

@@ -32,10 +32,10 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(index_count_v<M20> == 2);
   static_assert(index_count_v<M02> == 2);
 
-  static_assert(index_count_v<internal::FixedSizeAdapter<const Mxx, Dimensions<2>, Dimensions<2>>> == 2);
-  static_assert(index_count_v<internal::FixedSizeAdapter<const Mxx, Dimensions<2>, Dimensions<1>>> == 1);
-  static_assert(index_count_v<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, Dimensions<2>>> == 2);
-  static_assert(index_count_v<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, Dimensions<1>>> == 0);
+  static_assert(index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx, Dimensions<2>, Dimensions<2>>> == 2);
+  static_assert(index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx, Dimensions<2>, Dimensions<1>>> == 1);
+  static_assert(index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx, Dimensions<1>, Dimensions<2>>> == 2);
+  static_assert(index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx, Dimensions<1>, Dimensions<1>>> == 0);
 
   // The orders of these empty matrices are considered to be 0 for now:
   static_assert(max_tensor_order_v<M00> == 0);
@@ -80,10 +80,10 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(dynamic_index_count_v<Mx2> == 1);
   static_assert(dynamic_index_count_v<Mxx> == 2);
 
-  static_assert(dynamic_index_count_v<internal::FixedSizeAdapter<const Mxx, Dimensions<2>, Dimensions<2>>> == 0);
-  static_assert(dynamic_index_count_v<internal::FixedSizeAdapter<const Mxx, Dimensions<2>, std::size_t>> == 1);
-  static_assert(dynamic_index_count_v<internal::FixedSizeAdapter<const Mxx, std::size_t, std::size_t>> == 2);
-  static_assert(dynamic_index_count_v<internal::FixedSizeAdapter<const Mxx>> == 0);
+  static_assert(dynamic_index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx, Dimensions<2>, Dimensions<2>>> == 0);
+  static_assert(dynamic_index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx, Dimensions<2>, std::size_t>> == 1);
+  static_assert(dynamic_index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx, std::size_t, std::size_t>> == 2);
+  static_assert(dynamic_index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx>> == 0);
 
   static_assert(std::is_same_v<dense_writable_matrix_t<M33>, M33>);
   static_assert(std::is_same_v<dense_writable_matrix_t<M3x>, M3x>);

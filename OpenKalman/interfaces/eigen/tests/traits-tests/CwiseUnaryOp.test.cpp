@@ -11,7 +11,6 @@
 #include "interfaces/eigen/tests/eigen.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
 namespace
@@ -73,12 +72,12 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_abs_op)
   static_assert(constant_coefficient_v<Ident11> == 1);
   using C211 = const Eigen::Replicate<const Eigen::CwiseBinaryOp<Eigen::internal::scalar_sum_op<double>, Ident11, Ident11>, 2, 2>;
   static_assert(constant_coefficient_v<C211> == 2);
-  using Traits = UnaryFunctorTraits<Eigen::internal::scalar_abs_op<double>>;
+  using Traits = Eigen3::UnaryFunctorTraits<Eigen::internal::scalar_abs_op<double>>;
   static_assert(Traits::constexpr_operation()(-2) == 2);
   static_assert(Eigen3::constexpr_unary_operation_defined<Eigen::internal::scalar_abs_op<double>>);
   auto c22 = constant_coefficient {cp2.abs().nestedExpression()};
   static_assert(std::decay_t<decltype(c22)>::value == 2);
-  static_assert(internal::scalar_constant_operation {Traits::constexpr_operation(), c22} == 2);
+  static_assert(OpenKalman::internal::scalar_constant_operation {Traits::constexpr_operation(), c22} == 2);
   static_assert(constant_coefficient_v<const Eigen::CwiseUnaryOp<Eigen::internal::scalar_abs_op<double>, C211>> == 2);
 
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().abs())> == 2);
@@ -752,7 +751,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_functor_composition)
   EXPECT_EQ(constant_coefficient {c11_2.unaryExpr(abs_negate)}, 2);
 
 #ifdef __cpp_concepts
-  auto abs_negate2 = Eigen3::functor_composition {[](const auto& x){ return internal::constexpr_abs(x); }, std::negate<double>{}};
+  auto abs_negate2 = Eigen3::functor_composition {[](const auto& x){ return OpenKalman::internal::constexpr_abs(x); }, std::negate<double>{}};
   static_assert(abs_negate2(5.0) == 5.0);
   static_assert(constant_coefficient_v<const Eigen::CwiseUnaryOp<decltype(abs_negate2), C11_2>> == 2);
   EXPECT_EQ(constant_coefficient {c11_2.unaryExpr(abs_negate2)}, 2);

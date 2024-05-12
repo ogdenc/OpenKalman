@@ -64,9 +64,8 @@ namespace OpenKalman::Eigen3 {}
 
 #include "details/eigen-comma-initializers.hpp"
 
-#include "native-traits/LibraryWrapper.hpp"
-#include "native-traits/SelfContainedWrapper.hpp"
 #include "native-traits/eigen-native-traits.hpp"
+#include "native-traits/eigen-general-native-traits.hpp"
 
 #include "native-evaluators/LibraryWrapper.hpp"
 #include "native-evaluators/SelfContainedWrapper.hpp"

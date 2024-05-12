@@ -78,14 +78,14 @@ namespace OpenKalman::Eigen3
     constexpr auto * const
     data()
     {
-      return internal::raw_data(static_cast<Derived&>(*this));
+      return OpenKalman::internal::raw_data(static_cast<Derived&>(*this));
     }
 
 
     constexpr decltype(auto)
     data() const
     {
-      return internal::raw_data(static_cast<const Derived&>(*this));
+      return OpenKalman::internal::raw_data(static_cast<const Derived&>(*this));
     }
 
   private:

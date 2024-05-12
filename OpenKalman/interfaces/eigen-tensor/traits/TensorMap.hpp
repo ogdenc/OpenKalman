@@ -21,12 +21,12 @@ namespace OpenKalman::interface
 {
   template<typename PlainObjectType, int Options, template<typename> typename MakePointer>
   struct indexible_object_traits<Eigen::TensorMap<PlainObjectType, Options, MakePointer>>
-    : Eigen3::indexible_object_traits_base<Eigen::TensorMap<PlainObjectType, Options, MakePointer>>
+    : Eigen3::indexible_object_traits_tensor_base<Eigen::TensorMap<PlainObjectType, Options, MakePointer>>
   {
   private:
 
     using Xpr = Eigen::TensorMap<PlainObjectType, Options, MakePointer>;
-    using Base = Eigen3::indexible_object_traits_base<Xpr>;
+    using Base = Eigen3::indexible_object_traits_tensor_base<Xpr>;
     using StorageRefType = typename Xpr::StorageRefType;
     using IndexType = typename Xpr::Index;
 

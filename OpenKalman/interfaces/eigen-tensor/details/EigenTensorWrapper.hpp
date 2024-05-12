@@ -12,6 +12,7 @@
  * \internal
  * \file
  * \brief Definitions for Eigen3::EigenTensorWrapper
+ * \todo Delete as probably not necessary
  */
 
 #ifndef OPENKALMAN_EIGENTENSORWRAPPER_HPP
