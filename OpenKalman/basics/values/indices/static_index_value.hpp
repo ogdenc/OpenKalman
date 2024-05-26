@@ -28,8 +28,10 @@ namespace OpenKalman
 
     template<typename T, typename Z>
     struct is_static_index_value<T, Z, std::enable_if_t<
-      std::is_default_constructible_v<std::decay_t<T>> and std::is_convertible_v<T, Z> and std::is_convertible_v<decltype(std::decay_t<T>::value), Z>>>
-      : std::bool_constant<(std::decay_t<T>::value >= 0) and (not std::is_same_v<std::decay_t<T>, std::size_t> or std::decay_t<T>::value != dynamic_size)> {};
+      std::is_default_constructible_v<std::decay_t<T>> and std::is_convertible_v<T, Z> and
+        std::is_convertible_v<decltype(std::decay_t<T>::value), Z> and std::is_convertible_v<decltype(std::decay_t<T>::value), long int>>>
+      : std::bool_constant<(static_cast<long int>(std::decay_t<T>::value) >= 0) and
+          (not std::is_same_v<decltype(std::decay_t<T>::value), std::size_t> or static_cast<std::size_t>(std::decay_t<T>::value) != dynamic_size)> {};
   }
 #endif
 
@@ -40,8 +42,12 @@ namespace OpenKalman
    */
   template<typename T, typename Z = std::size_t>
 #ifdef __cpp_concepts
-  concept static_index_value = std::default_initializable<std::decay_t<T>> and std::convertible_to<T, Z> and
-    (std::decay_t<T>::value >= 0) and (not std::same_as<std::decay_t<T>, std::size_t> or std::decay_t<T>::value != dynamic_size);
+  concept static_index_value =
+    requires {
+      {std::decay_t<T>::value} -> std::convertible_to<Z>;
+      {std::decay_t<T>{}} -> std::convertible_to<Z>;
+    } and (not std::is_signed_v<decltype(std::decay_t<T>::value)> or static_cast<long int>(std::decay_t<T>::value) >= 0) and
+    (not std::same_as<decltype(std::decay_t<T>::value), std::size_t> or std::decay_t<T>::value != dynamic_size);
 #else
   constexpr bool static_index_value = detail::is_static_index_value<T, Z>::value;
 #endif

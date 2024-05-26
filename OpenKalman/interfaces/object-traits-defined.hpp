@@ -64,7 +64,7 @@ namespace OpenKalman::interface
   // --------------- //
 
 #ifdef __cpp_concepts
-  template<typename T>
+   template<typename T>
   concept count_indices_defined_for = requires (T t) {
     {indexible_object_traits<std::decay_t<T>>::count_indices(t)} -> index_value;
   };

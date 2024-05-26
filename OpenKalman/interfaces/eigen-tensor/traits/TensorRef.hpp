@@ -20,21 +20,21 @@
 namespace OpenKalman::interface
 {
   template<typename PlainObjectType>
-  struct IndexibleObjectTraits<Eigen::TensorRef<PlainObjectType>>
+  struct indexible_object_traits<Eigen::TensorRef<PlainObjectType>>
     : Eigen3::indexible_object_traits_tensor_base<Eigen::TensorRef<PlainObjectType>>
   {
   private:
 
     using Base = Eigen3::indexible_object_traits_tensor_base<Eigen::TensorRef<PlainObjectType>>;
     using Base::max_indices;
-    using Dimensions = PlainObjectType::Dimensions;
-    using Scalar = Eigen::internal::traits<PlainObjectType>::Scalar;
-    using Index = Eigen::internal::traits<PlainObjectType>::Index;
+    using Dimensions = typename PlainObjectType::Dimensions;
+    using Scalar = typename Eigen::internal::traits<PlainObjectType>::Scalar;
+    using Index = typename Eigen::internal::traits<PlainObjectType>::Index;
 
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_index_descriptor(const Arg& arg, N n) { return arg.dimension(n); }
+    static constexpr std::size_t get_index_descriptor(const Arg& arg, N n) { return arg.dimension(n); }
 
     static constexpr bool has_runtime_parameters = false;
 
@@ -50,10 +50,10 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg, std::convertible_to<Index>...I> requires (sizeof...(I) == max_indices_of_v<PlainObjectType>)
+    template<typename Arg, std::convertible_to<Index>...I> requires (sizeof...(I) == index_count_v<PlainObjectType>)
 #else
     template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, Index> and ...) and
-      (sizeof...(I) == max_indices_of_v<PlainObjectType>), int> = 0>
+      (sizeof...(I) == index_count<PlainObjectType>::value), int> = 0>
 #endif
     static constexpr decltype(auto) get(Arg&& arg, I...i)
     {
@@ -65,11 +65,11 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg, std::convertible_to<Index>...I> requires (sizeof...(I) == max_indices_of_v<PlainObjectType>) and
+    template<typename Arg, std::convertible_to<Index>...I> requires (sizeof...(I) == index_count_v<PlainObjectType>) and
       ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0)
 #else
     template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, Index> and ...) and
-      (sizeof...(I) == max_indices_of_v<PlainObjectType>) and ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0), int> = 0>
+      (sizeof...(I) == index_count<PlainObjectType>::value) and ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0), int> = 0>
 #endif
     static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
     {

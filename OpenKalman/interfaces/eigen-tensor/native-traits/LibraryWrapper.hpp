@@ -40,7 +40,7 @@ namespace OpenKalman::Eigen3::internal
     not OpenKalman::Eigen3::eigen_tensor_general<T> and OpenKalman::Eigen3::eigen_tensor_general<L>>>
 #endif
   {
-    using Scalar = scalar_type_of<T>;
+    using Scalar = scalar_type_of_t<T>;
     using StorageKind = Eigen::Dense;
     using Index = Eigen::Index;
     static const int NumDimensions = index_count_v<T>;

@@ -232,14 +232,14 @@ namespace OpenKalman::interface
           {
             using M = Eigen::Matrix<Scalar, rows, cols, Eigen::ColMajor>;
             Eigen::Stride<es1, es0> strides {is1, is0};
-            return Eigen::Map<M, Eigen::Unaligned, decltype(strides)> {strides};
+            return Eigen::Map<const M, Eigen::Unaligned, decltype(strides)> {strides};
           }
           else if constexpr (static_index_value<S1, std::ptrdiff_t> and
             (es1 == 1 or (static_index_value<S0, std::ptrdiff_t> and es1 < es0)))
           {
             using M = Eigen::Matrix<Scalar, rows, cols, Eigen::RowMajor>;
             Eigen::Stride<es0, es1> strides {is0, is1};
-            return Eigen::Map<M, Eigen::Unaligned, decltype(strides)> {strides};
+            return Eigen::Map<const M, Eigen::Unaligned, decltype(strides)> {strides};
           }
           else
           {
@@ -247,13 +247,13 @@ namespace OpenKalman::interface
             {
               using M = Eigen::Matrix<Scalar, rows, cols, Eigen::RowMajor>;
               Eigen::Stride<es0, es1> strides {is0, is1};
-              return Eigen::Map<M, Eigen::Unaligned, decltype(strides)> {strides};
+              return Eigen::Map<const M, Eigen::Unaligned, decltype(strides)> {strides};
             }
             else
             {
               using M = Eigen::Matrix<Scalar, rows, cols, Eigen::ColMajor>;
               Eigen::Stride<es1, es0> strides {is1, is0};
-              return Eigen::Map<M, Eigen::Unaligned, decltype(strides)> {strides};
+              return Eigen::Map<const M, Eigen::Unaligned, decltype(strides)> {strides};
             }
           }
         }
@@ -261,7 +261,7 @@ namespace OpenKalman::interface
         {
           constexpr auto l = layout_of_v<Arg> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor;
           using M = Eigen::Matrix<Scalar, rows, cols, l>;
-          return Eigen::Map<M> {internal::raw_data(arg)};
+          return Eigen::Map<const M> {internal::raw_data(arg)};
         }
       }
       else

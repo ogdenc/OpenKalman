@@ -33,7 +33,7 @@ namespace OpenKalman::interface
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n) { return arg.dimension(n); }
+    static constexpr std::size_t get_vector_space_descriptor(const Arg& arg, N n) { return arg.dimension(n); }
 
     static constexpr bool has_runtime_parameters = true;
 
@@ -66,7 +66,7 @@ namespace OpenKalman::interface
 #else
     template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, IndexType> and ...) and
       (sizeof...(I) == PlainObjectType::NumDimensions) and std::is_lvalue_reference<StorageRefType>::value and
-      not std::is_const<typenamne std::remove_reference<StorageRefType>::type>::value, int> = 0>
+      not std::is_const<typename std::remove_reference<StorageRefType>::type>::value, int> = 0>
 #endif
     static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
     {

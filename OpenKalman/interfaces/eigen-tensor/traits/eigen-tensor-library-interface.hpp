@@ -55,9 +55,9 @@ namespace OpenKalman::interface
     get_component(Arg&& arg, const std::array<IndexType, NumIndices>& indices)
     {
       if constexpr ((Eigen::internal::traits<T>::Flags & Eigen::LvalueBit) != 0)
-        return Eigen::TensorRef<dense_writable_matrix_t<T>> {std::forward<Arg>(arg)}.coeffRef(indices);
+        return Eigen::TensorEvaluator<std::remove_reference_t<Arg>, Eigen::DefaultDevice> {std::forward<Arg>(arg), Eigen::DefaultDevice{}}.coeffRef(indices);
       else
-        return Eigen::TensorRef<dense_writable_matrix_t<T>> {std::forward<Arg>(arg)}.coeff(indices);
+        return Eigen::TensorEvaluator<std::remove_reference_t<Arg>, Eigen::DefaultDevice> {std::forward<Arg>(arg), Eigen::DefaultDevice{}}.coeff(indices);
     }
 
   private:
@@ -97,39 +97,65 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_concepts
-    template<indexible Arg, std::size_t NumIndices> requires (NumIndices == index_count_v<Arg>)
-    static constexpr scalar_constant decltype(auto)
+    template<indexible Arg, std::size_t NumIndices> requires (NumIndices == index_count_v<Arg>) and (not std::is_const_v<Arg>)
 #else
-    template <typename Arg, std::size_t NumIndices, std::enable_if_t<NumIndices == index_count_v<Arg>, int> = 0>
-    static constexpr decltype(auto)
+    template <typename Arg, std::size_t NumIndices, std::enable_if_t<NumIndices == index_count<Arg>::value and
+      not std::is_const<Arg>::value, int> = 0>
 #endif
+    static void
     set_component(Arg& arg, const scalar_type_of_t<T>& s, const std::array<IndexType, NumIndices>& indices)
     {
-      Eigen::TensorRef<dense_writable_matrix_t<T>> {arg}.coeffRef(indices) = s;
+      Eigen::TensorEvaluator<Arg, Eigen::DefaultDevice> {arg, Eigen::DefaultDevice{}}.coeffRef(indices) = s;
     }
 
 
 #if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
     template<indexible Arg, std::ranges::input_range Indices> requires
       std::convertible_to<std::ranges::range_value_t<Indices>, const typename std::decay_t<Arg>::Index> and
-      ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0)
+      ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0) and (not std::is_const_v<Arg>)
 #else
     template<typename Arg, typename Indices, std::enable_if_t<
-      ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0), int> = 0>
+      ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0)  and (not std::is_const_v<Arg>), int> = 0>
 #endif
     static void
     set_component(Arg& arg, const scalar_type_of_t<T>& s, const Indices& indices)
     {
       constexpr std::size_t ix_count = Eigen::internal::traits<T>::NumDimensions;
-      return set_component(arg, s, make_ix_array<ix_count>(indices.begin(), indices.end()));
+      set_component(arg, s, make_ix_array<ix_count>(indices.begin(), indices.end()));
+    }
+
+  private:
+
+    template<auto l, typename Arg, std::size_t...Is>
+    static constexpr auto
+    make_TensorMap_impl(const Arg& arg, std::index_sequence<Is...>)
+    {
+      using M = Eigen::TensorFixedSize<scalar_type_of_t<Arg>, Eigen::Sizes<static_cast<std::ptrdiff_t>(index_dimension_of_v<Arg, Is>)...>, l, IndexType>;
+      return Eigen::TensorMap<const M, l> {internal::raw_data(arg), index_dimension_of_v<Arg, Is>...};
     }
 
 
-    template<typename Arg>
-    static decltype(auto) to_native_matrix(Arg&& arg)
+    template<auto l, typename Arg>
+    static constexpr auto
+    make_TensorMap(const Arg& arg)
     {
-      using Scalar = scalar_type_of_t<Arg>;
+      if constexpr (has_dynamic_dimensions<Arg>)
+      {
+        using M = Eigen::Tensor<scalar_type_of_t<Arg>, index_count_v<Arg>, l, IndexType>;
+        return Eigen::TensorMap<const M, l>{internal::raw_data(arg)};
+      }
+      else
+      {
+        return make_TensorMap_impl<l>(arg, std::make_index_sequence<index_count_v<Arg>>{});
+      }
+    }
 
+  public:
+
+    template<typename Arg>
+    static decltype(auto)
+    to_native_matrix(Arg&& arg)
+    {
       if constexpr (Eigen3::eigen_tensor_general<Arg>)
       {
         return std::forward<Arg>(arg);
@@ -142,19 +168,16 @@ namespace OpenKalman::interface
           constexpr std::ptrdiff_t stride0 = std::get<0>(strides);
           constexpr std::ptrdiff_t strideN = std::get<index_count_v<Arg> - 1>(strides);
           constexpr auto l = stride0 > strideN ? Eigen::RowMajor : Eigen::ColMajor;
-          using M = std::decay_t<decltype(make_dense_object<Layout::none, Scalar>(arg))>;
-          Eigen::TensorMap<M, l> map {internal::raw_data(arg)};
           return std::apply(
             [](auto&& map, auto&&...s){
               return Eigen::TensorStridingOp {map, std::array<std::size_t, index_count_v<Arg>>{s...}};
             },
-            std::tuple_cat(std::forward_as_tuple(std::move(map)), std::move(strides)));
+            std::tuple_cat(make_TensorMap<l>(arg), std::move(strides)));
         }
         else
         {
           constexpr auto l = layout_of_v<Arg> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor;
-          using M = std::decay_t<decltype(make_dense_object<Layout::none, Scalar>(arg))>;
-          return Eigen::TensorMap<M, l> {internal::raw_data(arg)};
+          return make_TensorMap<l>(arg);
         }
       }
       else

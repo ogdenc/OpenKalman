@@ -503,8 +503,18 @@ namespace OpenKalman::Eigen3
 #else
   template<typename NestedObject>
 #endif
-  using EigenWrapper = internal::LibraryWrapper<NestedObject, typename Eigen::internal::plain_matrix_type_dense<
-    std::decay_t<NestedObject>, Eigen::MatrixXpr, Eigen::internal::traits<std::decay_t<NestedObject>>::Flags>::type>;
+  using EigenWrapper = internal::LibraryWrapper<NestedObject,
+    std::conditional_t<eigen_array_general<NestedObject>,
+      Eigen::Array<
+        scalar_type_of_t<NestedObject>,
+        dynamic_dimension<NestedObject, 0> ? Eigen::Dynamic : static_cast<int>(index_dimension_of_v<NestedObject, 0>),
+        dynamic_dimension<NestedObject, 1> ? Eigen::Dynamic : static_cast<int>(index_dimension_of_v<NestedObject, 1>),
+        layout_of_v<NestedObject> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor>,
+      Eigen::Matrix<
+        scalar_type_of_t<NestedObject>,
+        dynamic_dimension<NestedObject, 0> ? Eigen::Dynamic : static_cast<int>(index_dimension_of_v<NestedObject, 0>),
+        dynamic_dimension<NestedObject, 1> ? Eigen::Dynamic : static_cast<int>(index_dimension_of_v<NestedObject, 1>),
+        layout_of_v<NestedObject> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor>>>;
 
 
   namespace detail

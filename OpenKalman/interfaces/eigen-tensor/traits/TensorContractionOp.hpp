@@ -21,17 +21,17 @@ namespace OpenKalman::interface
 {
   template<typename Indices, typename LhsXprType, typename RhsXprType, typename OutputKernelType>
   struct indexible_object_traits<Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>>
-    : Eigen3::indexible_object_traits_base<Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>>
+    : Eigen3::indexible_object_traits_tensor_base<Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>>
   {
   private:
 
     using Xpr = Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>;
-    using Base = Eigen3::indexible_object_traits_base<Xpr>;
+    using Base = Eigen3::indexible_object_traits_tensor_base<Xpr>;
 
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
+    static constexpr std::size_t get_vector_space_descriptor(const Arg& arg, N n)
     {
       using IndexType = typename Xpr::Index;
       return Eigen::TensorEvaluator<const Arg, Eigen::DefaultDevice>{arg, Eigen::DefaultDevice{}}.dimensions()[static_cast<IndexType>(n)];

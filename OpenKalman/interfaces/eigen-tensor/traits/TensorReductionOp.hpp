@@ -29,7 +29,7 @@ namespace OpenKalman::interface
       if constexpr (static_index_value<N>)
         return std::integral_constant<std::size_t, Eigen::internal::get<n, typename Dims::Base>::value>{};
       else
-        return arg.dimension[n]
+        return static_cast<std::size_t>(arg.dimension[n]);
     }
 
     static constexpr bool has_runtime_parameters = true;

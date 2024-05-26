@@ -43,8 +43,8 @@ namespace OpenKalman
    * \brief Three-way comparison for a non-built-in \ref vector_space_descriptor.
    * \details A comparison of A and B is a partial ordering based on whether or not A is a prefix of B.
    */
-  template<vector_space_descriptor A, vector_space_descriptor B>
-  constexpr auto operator<=>(const A& a, const B& b) requires (not std::integral<A>) or (not std::integral<B>)
+  template<vector_space_descriptor A, vector_space_descriptor B> requires (not index_value<A>) or (not index_value<B>)
+  constexpr auto operator<=>(const A& a, const B& b)
   {
     if constexpr (fixed_vector_space_descriptor<A> and fixed_vector_space_descriptor<B>)
     {
@@ -87,8 +87,8 @@ namespace OpenKalman
   /**
    * \brief Equality comparison for non-built-in \ref vector_space_descriptor.
    */
-  constexpr bool operator==(const vector_space_descriptor auto& a, const vector_space_descriptor auto& b)
-    requires (not std::integral<decltype(a)>) or (not std::integral<decltype(b)>)
+  template<vector_space_descriptor A, vector_space_descriptor B> requires (not index_value<A>) or (not index_value<B>)
+  constexpr bool operator==(const A& a, const B& b)
   {
     return std::is_eq(a <=> b);
   }
@@ -97,7 +97,7 @@ namespace OpenKalman
    * \brief Equivalence comparison for a non-built-in \ref vector_space_descriptor.
    */
   template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B> and
-      (not std::is_integral_v<A> or not std::is_integral_v<B>), int> = 0>
+      (not index_value<A> or not index_value<B>), int> = 0>
   constexpr bool operator==(const A& a, const B& b)
   {
     if constexpr (fixed_vector_space_descriptor<A> and fixed_vector_space_descriptor<B>)
@@ -117,7 +117,7 @@ namespace OpenKalman
    * \brief Compares \ref vector_space_descriptor objects for non-equivalence.
    */
   template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B> and
-    (not std::is_integral_v<A> or not std::is_integral_v<B>), int> = 0>
+    (not index_value<A> or not index_value<B>), int> = 0>
   constexpr bool operator!=(const A& a, const B& b)
   {
     return not operator==(a, b);
@@ -128,7 +128,7 @@ namespace OpenKalman
    * \brief Determine whether one \ref vector_space_descriptor object is less than another.
    */
   template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B> and
-    (not std::is_integral_v<A> or not std::is_integral_v<B>), int> = 0>
+    (not index_value<A> or not index_value<B>), int> = 0>
   constexpr bool operator<(const A& a, const B& b)
   {
     if constexpr (fixed_vector_space_descriptor<A> and fixed_vector_space_descriptor<B>)
@@ -148,7 +148,7 @@ namespace OpenKalman
    * \brief Determine whether one \ref vector_space_descriptor object is greater than another.
    */
   template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B> and
-    (not std::is_integral_v<A> or not std::is_integral_v<B>), int> = 0>
+    (not index_value<A> or not index_value<B>), int> = 0>
   constexpr bool operator>(const A& a, const B& b)
   {
     if constexpr (fixed_vector_space_descriptor<A> and fixed_vector_space_descriptor<B>)
@@ -168,7 +168,7 @@ namespace OpenKalman
    * \brief Determine whether one \ref vector_space_descriptor object is less than or equal to another.
    */
   template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B> and
-    (not std::is_integral_v<A> or not std::is_integral_v<B>), int> = 0>
+    (not index_value<A> or not index_value<B>), int> = 0>
   constexpr bool operator<=(const A& a, const B& b)
   {
     return operator<(a, b) or operator==(a, b);
@@ -179,7 +179,7 @@ namespace OpenKalman
    * \brief Determine whether one \ref vector_space_descriptor object is greater than or equal to another.
    */
   template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B> and
-    (not std::is_integral_v<A> or not std::is_integral_v<B>), int> = 0>
+    (not index_value<A> or not index_value<B>), int> = 0>
   constexpr bool operator>=(const A& a, const B& b)
   {
     return operator>(a, b) or operator==(a, b);

@@ -79,6 +79,13 @@ TEST(eigen3, make_dense_object)
   static_assert(layout_of_v<decltype(mx1c_3)> == Layout::left);
   auto m1xc_3 = make_dense_object<M11, Layout::right>(Dimensions<1>{}, 3);
   static_assert(layout_of_v<decltype(m1xc_3)> == Layout::right);
+
+  auto m23y = make_dense_object<M11, Layout::left>(m23c);
+  static_assert(dimension_size_of_index_is<decltype(m23y), 0, 2>);
+  static_assert(dimension_size_of_index_is<decltype(m23y), 1, 3>);
+  static_assert(layout_of_v<decltype(m23y)> == Layout::left);
+  EXPECT_EQ(std::get<0>(OpenKalman::internal::strides(m23y)), 1);
+  EXPECT_EQ(std::get<1>(OpenKalman::internal::strides(m23y)), 2);
 }
 
 

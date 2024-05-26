@@ -30,7 +30,7 @@ namespace OpenKalman::interface
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n) { return arg.dimension(n); }
+    static constexpr std::size_t get_vector_space_descriptor(const Arg& arg, N n) { return arg.dimension(n); }
 
     using dependents = std::tuple<>;
 

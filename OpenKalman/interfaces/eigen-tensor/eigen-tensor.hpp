@@ -38,12 +38,14 @@
 
 #include "details/eigen-tensor-forward-declarations.hpp"
 
+#include "functions/make_eigen_tensor_wrapper.hpp"
+
 #include "traits/eigen-tensor-traits.hpp"
 
 #include "native-traits/eigen-native-tensor-traits.hpp"
+#include "native-evaluators/LibraryWrapper.hpp"
 
 #include "details/EigenTensorAdapterBase.hpp"
-//#include "details/EigenTensorWrapper.hpp" // Probably not necessary
 
 
 #endif //OPENKALMAN_EIGEN_TENSOR_HPP

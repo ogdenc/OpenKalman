@@ -87,9 +87,10 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
   template<indexible NestedObject>
 #else
-  template<typename NestedObject>
+    template<typename NestedObject>
 #endif
-  using EigenTensorWrapper = OpenKalman::internal::LibraryWrapper<NestedObject, std::conditional_t<has_dynamic_dimensions<NestedObject>,
+  using EigenTensorWrapper = OpenKalman::internal::LibraryWrapper<NestedObject, std::conditional_t<
+    has_dynamic_dimensions<NestedObject>,
     Eigen::Tensor<
       scalar_type_of_t<NestedObject>,
       static_cast<int>(index_count_v<NestedObject>),

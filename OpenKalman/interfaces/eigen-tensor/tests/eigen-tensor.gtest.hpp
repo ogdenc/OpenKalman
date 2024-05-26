@@ -46,13 +46,13 @@ namespace OpenKalman::test
     compare(const Arg1& arg1, const Arg2& arg2, const Err& err)
     {
       using Scalar = scalar_type_of_t<Arg1>;
-      using T0 = Eigen::Tensor<Scalar, 0>;
       auto diff = arg1 - arg2;
+      using T0 = Eigen::Tensor<Scalar, 0>;
       if constexpr (std::is_arithmetic_v<Err>)
       {
-        auto lhs = get_component(T0{(diff * diff).sum()});
-        auto sum1 = get_component(T0{(arg1 * arg1).sum()});
-        auto sum2 = get_component(T0{(arg2 * arg2).sum()});
+        auto lhs = T0{(diff.square()).sum()}.coeff(0);
+        auto sum1 = T0{(arg1.square()).sum()}.coeff(0);
+        auto sum2 = T0{(arg2.square()).sum()}.coeff(0);
         auto err2 = err * err;
         auto rhs = err2 * std::min(sum1, sum2);
         if (lhs <= rhs or (sum1 <= err2 and sum2 <= err2))
@@ -62,7 +62,7 @@ namespace OpenKalman::test
       }
       else
       {
-        if (get_component(T0{(diff.abs() - err).maximum()}) <= 0)
+        if (T0{(diff.abs() - err).maximum()}.coeff(0) <= 0)
         {
           return ::testing::AssertionSuccess();
         }

@@ -27,7 +27,7 @@ namespace OpenKalman::Eigen3
   struct indexible_object_traits_tensor_base<T>
 #else
   template<typename T>
-  struct indexible_object_traits_base<T, std::enable_if_t<Eigen3::eigen_tensor_general<T>>>
+  struct indexible_object_traits_tensor_base<T, std::enable_if_t<Eigen3::eigen_tensor_general<T>>>
 #endif
   {
     using scalar_type = typename Eigen::internal::traits<T>::Scalar;
