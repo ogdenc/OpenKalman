@@ -74,7 +74,7 @@ namespace OpenKalman
     }
     else
     {
-      return DynamicTypedIndex {std::forward<T>(t), std::forward<U>(u)};
+      return DynamicDescriptor {std::forward<T>(t), std::forward<U>(u)};
     }
   }
 

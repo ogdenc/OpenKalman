@@ -209,10 +209,10 @@ namespace OpenKalman
     /// Add a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
     template<distribution Arg> requires (euclidean_vector_space_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>)
+      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>)
 #else
     template<typename Arg, std::enable_if_t<distribution<Arg> and (euclidean_vector_space_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>), int> = 0>
+      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>), int> = 0>
 #endif
     auto& operator+=(const Arg& arg) noexcept
     {
@@ -249,10 +249,10 @@ namespace OpenKalman
     /// Subtract a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
     template<distribution Arg> requires (euclidean_vector_space_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>)
+      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>)
 #else
     template<typename Arg, std::enable_if_t<distribution<Arg> and (euclidean_vector_space_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>), int> = 0>
+      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>), int> = 0>
 #endif
     auto& operator-=(const Arg& arg) noexcept
     {
@@ -353,7 +353,7 @@ namespace OpenKalman
           return std::get<0>(std::forward<Arg>(arg).my_dimensions);
         else
           return std::apply(
-            [](const auto&...ds, N n){ return std::array {DynamicTypedIndex<scalar_type>{ds}...}[n]; },
+            [](const auto&...ds, N n){ return std::array {DynamicDescriptor<scalar_type>{ds}...}[n]; },
             arg.my_dimensions, n);
       }
 

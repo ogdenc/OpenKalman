@@ -26,7 +26,7 @@ namespace OpenKalman::internal
 {
   /**
    * \internal
-   * \brief A type representing any \ref atomic_fixed_vector_space_descriptor object, for use with DynamicTypedIndex.
+   * \brief A type representing any \ref atomic_fixed_vector_space_descriptor object, for use with DynamicDescriptor.
    * \tparam AllowableScalarTypes The allowable scalar types for elements associated with this \ref vector_space_descriptor object.
    */
   template<typename...AllowableScalarTypes>

@@ -577,7 +577,7 @@ namespace OpenKalman
       raw_data(Arg& arg) { return internal::raw_data(nested_object(arg)); }
 
 
-      static constexpr Layout layout = one_dimensional<NestedMatrix> ? layout_of_v<NestedMatrix> : Layout::none;
+      static constexpr Layout layout = OpenKalman::one_dimensional<NestedMatrix> ? layout_of_v<NestedMatrix> : Layout::none;
 
     };
 

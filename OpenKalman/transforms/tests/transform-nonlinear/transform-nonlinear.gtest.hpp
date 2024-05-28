@@ -36,7 +36,7 @@ namespace OpenKalman::test
     const auto res1 = is_near(
       f2(mean_of(output)),
       Mean {f2(mean_of(output_rot)) +
-        make_mean<typename DistributionTraits<AngleRotDist>::TypedIndex>(0, numbers::pi)},
+        make_mean<typename DistributionTraits<AngleRotDist>::FixedDescriptor>(0, numbers::pi)},
       1e-4);
     const auto res2 = is_near(covariance_of(output), covariance_of(output_rot), 1e-3);
     const auto res3 = is_near(cross, -cross_rot, 1e-4);

@@ -19,7 +19,7 @@ using numbers::pi;
 
 namespace
 {
-  using Axis2 = TypedIndex<Axis, Axis>;
+  using Axis2 = FixedDescriptor<Axis, Axis>;
 
   using ZA11 = ZeroAdapter<M11>;
   using ZA10 = ZeroAdapter<M1x>;
@@ -60,7 +60,8 @@ TEST(special_matrices, ConstantAdapter_traits)
   static_assert(not constant_matrix<ConstantAdapter<M22>, ConstantType::static_constant>);
 
   static_assert(constant_diagonal_matrix<ZA33>);
-  static_assert(not constant_diagonal_matrix<ZA31>);
+  static_assert(constant_diagonal_matrix<ZA31>);
+  static_assert(constant_diagonal_matrix<ZA13>);
 
   static_assert(zero<ConstantAdapter<M22, double, 0>>);
   static_assert(zero<ConstantAdapter<Mxx, double, 0>>);
@@ -75,9 +76,8 @@ TEST(special_matrices, ConstantAdapter_traits)
 
   static_assert(diagonal_matrix<ZA33>);
   static_assert(not diagonal_adapter<ZA33>);
-  static_assert(not diagonal_matrix<ZA31, Qualification::depends_on_dynamic_shape>);
-  static_assert(not diagonal_matrix<ZA00>);
-  static_assert(diagonal_matrix<ZA00, Qualification::depends_on_dynamic_shape>);
+  static_assert(diagonal_matrix<ZA31>);
+  static_assert(diagonal_matrix<ZA00>);
 
   static_assert(hermitian_matrix<ConstantAdapter<M22, double, 0>>);
   static_assert(hermitian_matrix<ConstantAdapter<M11, double, 5>>);

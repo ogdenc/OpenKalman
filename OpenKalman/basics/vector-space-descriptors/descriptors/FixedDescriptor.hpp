@@ -10,11 +10,11 @@
 
 /**
  * \file
- * \brief Definitions for TypedIndex class specializations and associated aliases.
+ * \brief Definitions for FixedDescriptor class specializations and associated aliases.
  */
 
-#ifndef OPENKALMAN_COEFFICIENTS_HPP
-#define OPENKALMAN_COEFFICIENTS_HPP
+#ifndef OPENKALMAN_FIXEDDESCRIPTOR_HPP
+#define OPENKALMAN_FIXEDDESCRIPTOR_HPP
 
 #include <array>
 #include <functional>
@@ -29,7 +29,7 @@ namespace OpenKalman
    * of the coefficient. For example, Axis, Distance, Angle, and Inclination are dimension 1, and each correspond to a
    * single coefficient. Polar is dimension 2 and corresponds to two coefficients (e.g., a distance and an angle).
    * Spherical is dimension 3 and corresponds to three coefficients.
-   * Example: <code>TypedIndex&lt;Axis, angle::Radians&gt;</code>
+   * Example: <code>FixedDescriptor&lt;Axis, angle::Radians&gt;</code>
    * \tparam Cs Any types within the concept coefficients.
    */
 #ifdef __cpp_concepts
@@ -37,7 +37,7 @@ namespace OpenKalman
 #else
   template<typename...Cs>
 #endif
-  struct TypedIndex
+  struct FixedDescriptor
   {
 #ifndef __cpp_concepts
     static_assert((fixed_vector_space_descriptor<Cs> and ...));
@@ -48,7 +48,7 @@ namespace OpenKalman
      * \tparam Cnew The set of new coordinates to prepend.
      */
     template<typename ... Cnew>
-    using Prepend = TypedIndex<Cnew..., Cs ...>;
+    using Prepend = FixedDescriptor<Cnew..., Cs ...>;
 
 
     /**
@@ -56,7 +56,7 @@ namespace OpenKalman
      * \tparam Cnew The set of new coordinates to append.
      */
     template<typename ... Cnew>
-    using Append = TypedIndex<Cs ..., Cnew ...>;
+    using Append = FixedDescriptor<Cs ..., Cnew ...>;
 
 
   private:
@@ -65,7 +65,7 @@ namespace OpenKalman
     struct Select_impl;
 
     template<std::size_t i, typename D, typename...Ds>
-    struct Select_impl<i, D, Ds...> { using type = typename TypedIndex<Ds...>::template Select<i - 1>; };
+    struct Select_impl<i, D, Ds...> { using type = typename FixedDescriptor<Ds...>::template Select<i - 1>; };
 
     template<typename D, typename...Ds>
     struct Select_impl<0, D, Ds...> { using type = D; };
@@ -86,13 +86,13 @@ namespace OpenKalman
   private:
 
     template<std::size_t count, typename...Ds>
-    struct Take_impl { using type = TypedIndex<>; };
+    struct Take_impl { using type = FixedDescriptor<>; };
 
     template<std::size_t count, typename D, typename...Ds>
-    struct Take_impl<count, D, Ds...> { using type = typename TypedIndex<Ds...>::template Take<count - 1>::template Prepend<D>; };
+    struct Take_impl<count, D, Ds...> { using type = typename FixedDescriptor<Ds...>::template Take<count - 1>::template Prepend<D>; };
 
     template<typename D, typename...Ds>
-    struct Take_impl<0, D, Ds...> { using type = TypedIndex<>; };
+    struct Take_impl<0, D, Ds...> { using type = FixedDescriptor<>; };
 
   public:
 
@@ -111,13 +111,13 @@ namespace OpenKalman
   private:
 
     template<std::size_t count, typename...Ds>
-    struct Discard_impl { using type = TypedIndex<>; };
+    struct Discard_impl { using type = FixedDescriptor<>; };
 
     template<std::size_t count, typename D, typename...Ds>
-    struct Discard_impl<count, D, Ds...> { using type = typename TypedIndex<Ds...>::template Discard<count - 1>; };
+    struct Discard_impl<count, D, Ds...> { using type = typename FixedDescriptor<Ds...>::template Discard<count - 1>; };
 
     template<typename D, typename...Ds>
-    struct Discard_impl<0, D, Ds...> { using type = TypedIndex<D, Ds...>; };
+    struct Discard_impl<0, D, Ds...> { using type = FixedDescriptor<D, Ds...>; };
 
   public:
 
@@ -139,10 +139,10 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * \brief traits for TypedIndex.
+     * \brief traits for FixedDescriptor.
      */
     template<typename...Cs>
-    struct fixed_vector_space_descriptor_traits<TypedIndex<Cs...>>
+    struct fixed_vector_space_descriptor_traits<FixedDescriptor<Cs...>>
     {
       static constexpr std::size_t size = (0 + ... + dimension_size_of_v<Cs>);
       static constexpr std::size_t euclidean_size = (0 + ... + euclidean_dimension_size_of_v<Cs>);
@@ -170,7 +170,7 @@ namespace OpenKalman
       {
         if constexpr (t < sizeof...(Cs))
         {
-          using C = typename TypedIndex<Cs...>::template Select<t>;
+          using C = typename FixedDescriptor<Cs...>::template Select<t>;
           constexpr auto i_size = dimension_size_of_v<C>;
           constexpr auto e_size = euclidean_dimension_size_of_v<C>;
           if constexpr (local_index >= (euclidean ? e_size : i_size))
@@ -317,4 +317,4 @@ namespace OpenKalman
 }// namespace OpenKalman
 
 
-#endif //OPENKALMAN_COEFFICIENTS_HPP
+#endif //OPENKALMAN_FIXEDDESCRIPTOR_HPP

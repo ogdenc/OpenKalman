@@ -83,10 +83,11 @@ namespace OpenKalman
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<vector_space_descriptor...Ds> requires (sizeof...(Ds) > 0) and
+    template<vector_space_descriptor...Ds> requires (sizeof...(Ds) > 0) and (sizeof...(Ds) == std::tuple_size_v<MyDimensions>) and
       scalar_constant<MyConstant, ConstantType::static_constant> and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>
 #else
-    template<typename...Ds, std::enable_if_t<(vector_space_descriptor<Ds> and ...) and (sizeof...(Ds) > 0) and
+    template<typename...Ds, std::enable_if_t<
+      (vector_space_descriptor<Ds> and ...) and (sizeof...(Ds) > 0) and (sizeof...(Ds) == std::tuple_size_v<MyDimensions>) and
       scalar_constant<MyConstant, ConstantType::static_constant> and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(Ds&&...ds) : my_dimensions {make_all_dimensions_tuple(std::forward<Ds>(ds)...)} {}
@@ -104,10 +105,11 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<scalar_constant C, vector_space_descriptor...Ds> requires std::constructible_from<MyConstant, C&&> and
-      compatible_with_vector_space_descriptors<PatternMatrix, Ds...>
+      (sizeof...(Ds) == std::tuple_size_v<MyDimensions>) and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>
 #else
-    template<typename C, typename...Ds, std::enable_if_t<scalar_constant<C> and (vector_space_descriptor<Ds> and ...) and
-      std::is_constructible_v<MyConstant, C&&> and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>, int> = 0>
+    template<typename C, typename...Ds, std::enable_if_t<
+      scalar_constant<C> and (vector_space_descriptor<Ds> and ...) and std::is_constructible_v<MyConstant, C&&> and
+      (sizeof...(Ds) == std::tuple_size_v<MyDimensions>) and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(C&& c, Ds&&...ds) : my_constant {std::forward<C>(c)},
       my_dimensions {make_all_dimensions_tuple(std::forward<Ds>(ds)...)} {}
@@ -457,8 +459,8 @@ namespace OpenKalman
 
     MyDimensions my_dimensions;
 
-
     friend struct interface::indexible_object_traits<ConstantAdapter>;
+    friend struct interface::library_interface<ConstantAdapter>;
 
   };
 
@@ -492,42 +494,68 @@ namespace OpenKalman
     template<typename PatternMatrix, typename Scalar, auto...constant>
     struct indexible_object_traits<ConstantAdapter<PatternMatrix, Scalar, constant...>>
     {
-      using scalar_type = typename ConstantAdapter<PatternMatrix, Scalar, constant...>::MyScalarType;
+    private:
+
+      using XprType = ConstantAdapter<PatternMatrix, Scalar, constant...>;
+
+    public:
+
+      using scalar_type = typename XprType::MyScalarType;
+
 
       template<typename Arg>
-      static constexpr auto count_indices(const Arg& arg) { return OpenKalman::count_indices(nested_object(arg)); }
+      static constexpr auto count_indices(const Arg& arg) { return std::tuple_size<typename XprType::MyDimensions>{}; }
+
 
       template<typename Arg, typename N>
-      static constexpr auto get_vector_space_descriptor(Arg&& arg, N n)
+      static constexpr auto get_vector_space_descriptor(Arg&& arg, const N& n)
       {
         if constexpr (static_index_value<N>)
         {
-          return std::get<N>(std::forward<Arg>(arg).my_dimensions);
+          return std::get<N::value>(std::forward<Arg>(arg).my_dimensions);
         }
         else
         {
           return std::apply(
-            [](auto&&...arg, N n){ return std::array<std::size_t, OpenKalman::index_count_v<Arg>> {std::forward<decltype(arg)>(arg)...}[n]; },
+            [](auto&&...arg, const N& n){
+              return std::array<std::size_t, OpenKalman::index_count_v<Arg>> {std::forward<decltype(arg)>(arg)...}[n];
+            },
             std::forward<Arg>(arg).my_dimensions, n);
         }
       }
 
-      template<Qualification b>
-      static constexpr bool one_dimensional = OpenKalman::one_dimensional<PatternMatrix, b>;
+
+      using dependents = std::tuple<>;
+
 
       static constexpr bool has_runtime_parameters = has_dynamic_dimensions<PatternMatrix>;
 
-      using dependents = std::tuple<>;
+
+      // No nested_object defined
+
+
+      // No convert_to_self_contained defined
+
 
       template<typename Arg>
       static constexpr auto get_constant(const Arg& arg) { return arg.get_scalar_constant(); }
 
-      template<typename Arg, typename...I>
-      static constexpr auto get(Arg&& arg, I...) { return constant_coefficient_v<Arg>; }
 
-      // No set defined  because ConstantAdapter is not writable.
+      // No get_constant_diagonal defined
+
+
+      template<Qualification b>
+      static constexpr bool one_dimensional = OpenKalman::one_dimensional<PatternMatrix, b>;
+
+
+      // No is_square, is_triangular, is_triangular_adapter, or is_hermitian, or hermitian_adapter_type defined
+
 
       static constexpr bool is_writable = false;
+
+
+      // No raw_data, layout, or strides defined.
+
     };
 
 
@@ -538,11 +566,19 @@ namespace OpenKalman
       using LibraryBase = internal::library_base_t<Derived, PatternMatrix>;
 
 
+      template<typename Arg, typename Indices>
+      static constexpr auto get_component(Arg&& arg, const Indices&) { return std::forward<Arg>(arg).get_scalar_constant(); }
+
+
+      // No set_component defined  because ConstantAdapter is not writable.
+
+
       template<typename Arg>
       static decltype(auto) to_native_matrix(Arg&& arg)
       {
         return OpenKalman::to_native_matrix<PatternMatrix>(std::forward<Arg>(arg));
       }
+
 
       template<Layout layout, typename S, typename...D>
       static auto make_default(D&&...d)
@@ -550,7 +586,9 @@ namespace OpenKalman
         return make_dense_object<PatternMatrix, layout, S>(std::forward<D>(d)...);
       }
 
+
       // fill_components not necessary because T is not a dense writable matrix.
+
 
       template<typename C, typename...D>
       static constexpr auto make_constant(C&& c, D&&...d)
@@ -558,17 +596,20 @@ namespace OpenKalman
         return make_constant<PatternMatrix>(std::forward<C>(c), std::forward<D>(d)...);
       }
 
+
       template<typename S, typename...D>
       static constexpr auto make_identity_matrix(D&&...d)
       {
         return make_identity_matrix_like<PatternMatrix, S>(std::forward<D>(d)...);
       }
 
+
       // no get_block
       // no set_block
       // no set_triangle
       // no to_diagonal
       // no diagonal_of
+
 
       template<typename...Ds, typename Arg>
       static decltype(auto)
@@ -577,6 +618,7 @@ namespace OpenKalman
         return library_interface<PatternMatrix>::replicate(tup, std::forward<Arg>(arg));
       }
 
+
       template<typename...Ds, typename Op, typename...Args>
       static constexpr decltype(auto)
       n_ary_operation(const std::tuple<Ds...>& d_tup, Op&& op, Args&&...args)
@@ -584,12 +626,14 @@ namespace OpenKalman
         return library_interface<PatternMatrix>::n_ary_operation(d_tup, std::forward<Op>(op), std::forward<Args>(args)...);
       }
 
+
       template<std::size_t...indices, typename BinaryFunction, typename Arg>
       static constexpr decltype(auto)
       reduce(BinaryFunction&& b, Arg&& arg)
       {
         return library_interface<PatternMatrix>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
       }
+
 
       // no to_euclidean
       // no from_euclidean
@@ -600,11 +644,13 @@ namespace OpenKalman
       // adjoint is not necessary because it is handled by the general adjoint function.
       // determinant is not necessary because it is handled by the general determinant function.
 
+
       template<typename A, typename B>
       static constexpr auto sum(A&& a, B&& b)
       {
         return library_interface<PatternMatrix>::sum(std::forward<A>(a), std::forward<B>(b));
       }
+
 
       template<typename A, typename B>
       static constexpr auto contract(A&& a, B&& b)
@@ -612,9 +658,11 @@ namespace OpenKalman
         return library_interface<PatternMatrix>::contract(std::forward<A>(a), std::forward<B>(b));
       }
 
+
       // contract_in_place is not necessary because the argument will not be writable.
 
       // cholesky_factor is not necessary because it is handled by the general cholesky_factor function.
+
 
       template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
       static decltype(auto) rank_update_hermitian(A&& a, U&& u, const Alpha alpha)
@@ -622,6 +670,7 @@ namespace OpenKalman
         using Trait = interface::library_interface<PatternMatrix>;
         return Trait::template rank_update_hermitian<significant_triangle>(std::forward<A>(a), std::forward<U>(u), alpha);
       }
+
 
       // rank_update_triangular is not necessary because it is handled by the general rank_update_triangular function.
 

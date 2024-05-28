@@ -31,10 +31,10 @@ namespace OpenKalman
   namespace internal
   {
     template<typename T>
-    struct is_DynamicTypedIndex : std::false_type {};
+    struct is_DynamicDescriptor : std::false_type {};
 
     template<typename...AllowableScalarTypes>
-    struct is_DynamicTypedIndex<DynamicTypedIndex<AllowableScalarTypes...>> : std::true_type {};
+    struct is_DynamicDescriptor<DynamicDescriptor<AllowableScalarTypes...>> : std::true_type {};
   } // namespace detail
 
 
@@ -63,14 +63,14 @@ namespace OpenKalman
     {
       return static_cast<std::size_t>(get_dimension_size_of(a)) <=> static_cast<std::size_t>(get_dimension_size_of(b));
     }
-    else if constexpr (internal::is_DynamicTypedIndex<A>::value)
+    else if constexpr (internal::is_DynamicDescriptor<A>::value)
     {
       if (a.partially_matches(b))
         return std::partial_ordering {static_cast<std::size_t>(get_dimension_size_of(a)) <=> static_cast<std::size_t>(get_dimension_size_of(b))};
       else
         return std::partial_ordering::unordered;
     }
-    else if constexpr (internal::is_DynamicTypedIndex<B>::value)
+    else if constexpr (internal::is_DynamicDescriptor<B>::value)
     {
       if (b.partially_matches(a))
         return std::partial_ordering {static_cast<std::size_t>(get_dimension_size_of(a)) <=> static_cast<std::size_t>(get_dimension_size_of(b))};
@@ -104,9 +104,9 @@ namespace OpenKalman
       return equivalent_to<A, B>;
     else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
       return static_cast<std::size_t>(get_dimension_size_of(a)) == static_cast<std::size_t>(get_dimension_size_of(b));
-    else if constexpr (internal::is_DynamicTypedIndex<A>::value)
+    else if constexpr (internal::is_DynamicDescriptor<A>::value)
       return a.partially_matches(b) and static_cast<std::size_t>(get_dimension_size_of(a)) == static_cast<std::size_t>(get_dimension_size_of(b));
-    else if constexpr (internal::is_DynamicTypedIndex<B>::value)
+    else if constexpr (internal::is_DynamicDescriptor<B>::value)
       return b.partially_matches(a) and static_cast<std::size_t>(get_dimension_size_of(a)) == static_cast<std::size_t>(get_dimension_size_of(b));
     else
       return false;
@@ -135,9 +135,9 @@ namespace OpenKalman
       return prefix_of<A, B>;
     else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
       return static_cast<std::size_t>(get_dimension_size_of(a)) < static_cast<std::size_t>(get_dimension_size_of(b));
-    else if constexpr (internal::is_DynamicTypedIndex<A>::value)
+    else if constexpr (internal::is_DynamicDescriptor<A>::value)
       return a.partially_matches(b) and static_cast<std::size_t>(get_dimension_size_of(a)) < static_cast<std::size_t>(get_dimension_size_of(b));
-    else if constexpr (internal::is_DynamicTypedIndex<B>::value)
+    else if constexpr (internal::is_DynamicDescriptor<B>::value)
       return b.partially_matches(a) and static_cast<std::size_t>(get_dimension_size_of(a)) < static_cast<std::size_t>(get_dimension_size_of(b));
     else
       return false;
@@ -155,9 +155,9 @@ namespace OpenKalman
       return prefix_of<B, A>;
     else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
       return static_cast<std::size_t>(get_dimension_size_of(a)) > static_cast<std::size_t>(get_dimension_size_of(b));
-    else if constexpr (internal::is_DynamicTypedIndex<A>::value)
+    else if constexpr (internal::is_DynamicDescriptor<A>::value)
       return a.partially_matches(b) and static_cast<std::size_t>(get_dimension_size_of(a)) > static_cast<std::size_t>(get_dimension_size_of(b));
-    else if constexpr (internal::is_DynamicTypedIndex<B>::value)
+    else if constexpr (internal::is_DynamicDescriptor<B>::value)
       return b.partially_matches(a) and static_cast<std::size_t>(get_dimension_size_of(a)) > static_cast<std::size_t>(get_dimension_size_of(b));
     else
       return false;

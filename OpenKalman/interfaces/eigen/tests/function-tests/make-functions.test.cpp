@@ -111,8 +111,8 @@ TEST(eigen3, make_dense_object_from)
   static_assert(index_dimension_of_v<decltype(make_dense_object_from<M2x>(1, 2)), 1> == 1);
   static_assert(index_dimension_of_v<decltype(make_dense_object_from<Mx2>(1, 2)), 0> == 1);
   static_assert(dynamic_dimension<decltype(make_dense_object_from<Mxx>(std::tuple{2, 1}, 1, 2)), 0>);
-  static_assert(index_dimension_of_v<decltype(make_dense_object_from<Mxx>(std::tuple{Dimensions<2>{}, TypedIndex<>{}})), 0> == 2);
-  static_assert(index_dimension_of_v<decltype(make_dense_object_from<Mxx>(std::tuple{Dimensions<2>{}, TypedIndex<>{}})), 1> == 0);
+  static_assert(index_dimension_of_v<decltype(make_dense_object_from<Mxx>(std::tuple{Dimensions<2>{}, FixedDescriptor<>{}})), 0> == 2);
+  static_assert(index_dimension_of_v<decltype(make_dense_object_from<Mxx>(std::tuple{Dimensions<2>{}, FixedDescriptor<>{}})), 1> == 0);
 
   EXPECT_TRUE(is_near(make_eigen_matrix<double, 2, 2>(1, 2, 3, 4), m22));
   EXPECT_TRUE(is_near(make_eigen_matrix<double>(1, 2), M21 {1, 2}));

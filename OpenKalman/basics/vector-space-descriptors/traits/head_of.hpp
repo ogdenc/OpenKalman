@@ -30,15 +30,15 @@ namespace OpenKalman
 
 
     template<>
-    struct head_tail_id_split<TypedIndex<>>  { using head = TypedIndex<>; using tail = TypedIndex<>; };
+    struct head_tail_id_split<FixedDescriptor<>>  { using head = FixedDescriptor<>; using tail = FixedDescriptor<>; };
 
 
     template<typename C>
-    struct head_tail_id_split<TypedIndex<C>> { using head = C; using tail = TypedIndex<>; };
+    struct head_tail_id_split<FixedDescriptor<C>> { using head = C; using tail = FixedDescriptor<>; };
 
 
     template<typename C0, typename...Cs>
-    struct head_tail_id_split<TypedIndex<C0, Cs...>> { using head = C0; using tail = TypedIndex<Cs...>; };
+    struct head_tail_id_split<FixedDescriptor<C0, Cs...>> { using head = C0; using tail = FixedDescriptor<Cs...>; };
 
 
   #ifdef __cpp_concepts
@@ -48,7 +48,7 @@ namespace OpenKalman
     template<typename C>
     struct head_tail_id_split<C, std::enable_if_t<atomic_fixed_vector_space_descriptor<C>>>
   #endif
-    { using head = C; using tail = TypedIndex<>; };
+    { using head = C; using tail = FixedDescriptor<>; };
 
   } // namespace detail
 

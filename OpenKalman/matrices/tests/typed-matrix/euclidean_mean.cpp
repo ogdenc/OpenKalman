@@ -28,8 +28,8 @@ using M42 = eigen_matrix_t<double, 4, 2>;
 using M43 = eigen_matrix_t<double, 4, 3>;
 using I22 = Eigen3::IdentityMatrix<M22>;
 using Z22 = ZeroMatrix<eigen_matrix_t<double, 2, 2>>;
-using C2 = TypedIndex<Axis, angle::Radians>;
-using C3 = TypedIndex<Axis, angle::Radians, Axis>;
+using C2 = FixedDescriptor<Axis, angle::Radians>;
+using C3 = FixedDescriptor<Axis, angle::Radians, Axis>;
 using Mat12 = EuclideanMean<Axis, M12>;
 using Mat13 = EuclideanMean<Axis, M13>;
 using Mat21 = EuclideanMean<C2, M31>;
@@ -270,7 +270,7 @@ TEST(matrices, EuclideanMean_overloads)
   const auto ma = make_euclidean_mean(-2., 5, 3);
   EXPECT_TRUE(is_near(from_euclidean(ma), ma));
 
-  using A3 = TypedIndex<angle::Radians, Axis, angle::Radians>;
+  using A3 = FixedDescriptor<angle::Radians, Axis, angle::Radians>;
   const auto mb = make_euclidean_mean<A3>(std::sqrt(3) / 2, 0.5, 5, 0.5, -std::sqrt(3) / 2);
   const auto x2 = (eigen_matrix_t<double, 3, 1> {} << pi / 6, 5, -pi / 3).finished();
   EXPECT_TRUE(is_near(from_euclidean(mb).nested_object(), x2));

@@ -63,10 +63,10 @@
 #include "descriptors/Polar.hpp"
 #include "descriptors/Spherical.hpp"
 
-#include "descriptors/TypedIndex.hpp"
+#include "descriptors/FixedDescriptor.hpp"
 
 #include "descriptors/details/AnyAtomicVectorSpaceDescriptor.hpp"
-#include "descriptors/DynamicTypedIndex.hpp"
+#include "descriptors/DynamicDescriptor.hpp"
 
 // traits:
 

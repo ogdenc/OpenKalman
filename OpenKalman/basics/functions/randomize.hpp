@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -73,11 +73,11 @@ namespace OpenKalman
 
 
   /**
-   * \brief Create a matrix with random values selected from one or more random distributions.
+   * \brief Create an indexible object with random values selected from one or more random distributions.
    * \details This is essentially a specialized version of \ref n_ary_operation with the nullary operator
-   * being a randomization function. The distributions are allocated to each element of the matrix, according to one
+   * being a randomization function. The distributions are allocated to each element of the object, according to one
    * of the following options:
-   *  - One distribution for all matrix elements. The following example constructs a 2-by-2 matrix (m) in which each
+   *  - One distribution for all elements. The following example constructs a 2-by-2 matrix (m) in which each
    *  element is a random value selected based on a distribution with mean 1.0 and standard deviation 0.3:
    *   \code
    *     using N = std::normal_distribution<double>;
@@ -85,7 +85,7 @@ namespace OpenKalman
    *     auto g = std::mt19937 {};
    *     Mat m = randomize<Mat>(g, std::tuple {2, 2}, N {1.0, 0.3}));
    *   \endcode
-   *  - One distribution for each matrix element. The following code constructs a 2-by-2 matrix m containing
+   *  - One distribution for each element. The following code constructs a 2-by-2 matrix m containing
    *  random values around mean 1.0, 2.0, 3.0, and 4.0 (in row-major order), with standard deviations of
    *  0.3, 0.3, 0.0 (by default, since no s.d. is specified as a parameter), and 0.3:
    *   \code
@@ -108,7 +108,7 @@ namespace OpenKalman
    *     auto p = randomize<Eigen::Matrix<double, 2, 3>, 1>(g, std::tuple {2, Dimensions<3>{}},
    *       N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
    *   \endcode
-   * \tparam PatternMatrix A matrix or array corresponding to the result type. Its dimensions need not match the
+   * \tparam PatternMatrix An indexible object corresponding to the result type. Its dimensions need not match the
    * specified dimensions Ds
    * \tparam indices The indices, if any, for which there is a distinct distribution. If not provided, this can in some
    * cases be inferred from the number of Dists provided.
@@ -142,7 +142,7 @@ namespace OpenKalman
 
   /**
    * \overload
-   * \brief Create a matrix with random values, using std::mt19937 as the random number engine.
+   * \brief Create an indexible object with random values, using std::mt19937 as the random number engine.
    */
 #ifdef __cpp_concepts
   template<indexible PatternMatrix, std::size_t...indices, vector_space_descriptor...Ds, typename...Dists>
@@ -167,7 +167,7 @@ namespace OpenKalman
 
   /**
    * \overload
-   * \brief Fill a fixed-sized matrix with random values selected from one or more random distributions.
+   * \brief Fill a fixed-sized indexible object with random values selected from one or more random distributions.
    * \details The distributions are allocated to each element of the matrix, according to one of the following options:
    *  - One distribution for all matrix elements. The following example constructs a 2-by-2 matrix (m) in which each
    *  element is a random value selected based on a distribution with mean 1.0 and standard deviation 0.3:
@@ -221,7 +221,7 @@ namespace OpenKalman
 
   /**
    * \overload
-   * \brief Fill a fixed-sized matrix with random values using std::mt19937 as the random number generator.
+   * \brief Fill a fixed-sized indexible object with random values using std::mt19937 as the random number generator.
    */
 #ifdef __cpp_concepts
   template<indexible PatternMatrix, std::size_t...indices, typename...Dists>

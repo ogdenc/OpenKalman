@@ -55,6 +55,9 @@ namespace OpenKalman::interface
     /// \note May be non-static if T is a \ref dynamic_vector_space_descriptor.
     [[nodiscard]] bool is_euclidean() const = delete;
 
+    /// \brief Whether the \ref vector_space_descriptor object is known at compile time to describe Euclidean coordinates.
+    static constexpr bool always_euclidean = false;
+
     /// \brief Whether arithmetic operations (e.g., addition, subtraction) are defined for this \ref vector_space_descriptor object.
     static constexpr bool operations_defined = false;
 
@@ -145,8 +148,9 @@ namespace OpenKalman::interface
 
     [[nodiscard]] constexpr std::size_t get_component_count() const { return m_integral; }
 
-    static constexpr bool is_euclidean() { return true; }
+    [[nodiscard]] constexpr bool is_euclidean() const { return true; }
 
+    static constexpr bool always_euclidean = true;
 
 #ifdef __cpp_concepts
     static constexpr scalar_type auto to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start)

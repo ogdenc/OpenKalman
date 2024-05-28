@@ -56,10 +56,10 @@ namespace OpenKalman
    * \brief Specifies that a set of \ref vector_space_descriptor objects may be equivalent based on what is known at compile time.
    * \details Sets of coefficients are equivalent if they are treated functionally the same.
    * - Any coefficient or group of coefficients is equivalent to itself.
-   * - TypedIndex<As...> is equivalent to TypedIndex<Bs...>, if each As is equivalent to its respective Bs.
-   * - TypedIndex<A> is equivalent to A, and vice versa.
+   * - FixedDescriptor<As...> is equivalent to FixedDescriptor<Bs...>, if each As is equivalent to its respective Bs.
+   * - FixedDescriptor<A> is equivalent to A, and vice versa.
    * \par Example:
-   * <code>equivalent_to&lt;Axis, TypedIndex&lt;Axis&gt;&gt;</code>
+   * <code>equivalent_to&lt;Axis, FixedDescriptor&lt;Axis&gt;&gt;</code>
    */
   template<typename...Ts>
 #ifdef __cpp_concepts

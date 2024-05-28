@@ -62,7 +62,7 @@ namespace
   using CMx2 = eigen_matrix_t<cdouble, dynamic_size, 2>;
   using CMxx = eigen_matrix_t<cdouble, dynamic_size, dynamic_size>;
 
-  using Axis2 = TypedIndex<Axis, Axis>;
+  using Axis2 = FixedDescriptor<Axis, Axis>;
 
   using ZA11 = ZeroAdapter<M11>;
   using ZA10 = ZeroAdapter<M1x>;

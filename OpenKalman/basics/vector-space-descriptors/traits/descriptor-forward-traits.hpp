@@ -21,11 +21,11 @@
 namespace OpenKalman
 {
   /**
-   * \brief Concatenate any number of TypedIndex<...> types.
+   * \brief Concatenate any number of FixedDescriptor<...> types.
    * \details
    * Example:
-   * - \code concatenate_fixed_vector_space_descriptor_t<TypedIndex<angle::Radians>,
-   * TypedIndex<Axis, Distance>> == TypedIndex<angle::Radians, Axis, Distance> \endcode.
+   * - \code concatenate_fixed_vector_space_descriptor_t<FixedDescriptor<angle::Radians>,
+   * FixedDescriptor<Axis, Distance>> == FixedDescriptor<angle::Radians, Axis, Distance> \endcode.
    */
 #ifdef __cpp_concepts
   template<fixed_vector_space_descriptor...Cs>

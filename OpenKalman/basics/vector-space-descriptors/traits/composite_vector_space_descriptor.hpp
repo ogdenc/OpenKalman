@@ -27,18 +27,18 @@ namespace OpenKalman
     struct is_composite_vector_space_descriptor : std::false_type {};
 
     template<typename...C>
-    struct is_composite_vector_space_descriptor<TypedIndex<C...>> : std::true_type {};
+    struct is_composite_vector_space_descriptor<FixedDescriptor<C...>> : std::true_type {};
 
     template<typename...AllowableScalarTypes>
-    struct is_composite_vector_space_descriptor<DynamicTypedIndex<AllowableScalarTypes...>> : std::true_type {};
+    struct is_composite_vector_space_descriptor<DynamicDescriptor<AllowableScalarTypes...>> : std::true_type {};
   }
 
 
   /**
    * \brief T is a \ref composite_vector_space_descriptor.
    * \details A composite \ref vector_space_descriptor object is a container for other \ref vector_space_descriptor, and can either be
-   * TypedIndex or DynamicTypedIndex.
-   * \sa TypedIndex, DynamicTypedIndex.
+   * FixedDescriptor or DynamicDescriptor.
+   * \sa FixedDescriptor, DynamicDescriptor.
    */
   template<typename T>
 #ifdef __cpp_concepts

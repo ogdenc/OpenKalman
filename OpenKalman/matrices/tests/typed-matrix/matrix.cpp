@@ -24,8 +24,8 @@ using M32 = eigen_matrix_t<double, 3, 2>;
 using M33 = eigen_matrix_t<double, 3, 3>;
 using I22 = Eigen3::IdentityMatrix<M22>;
 using Z22 = ZeroMatrix<eigen_matrix_t<double, 2, 2>>;
-using C2 = TypedIndex<Axis, angle::Radians>;
-using C3 = TypedIndex<Axis, angle::Radians, Axis>;
+using C2 = FixedDescriptor<Axis, angle::Radians>;
+using C3 = FixedDescriptor<Axis, angle::Radians, Axis>;
 using Mat12 = Matrix<Axis, C2, M12>;
 using Mat21 = Matrix<C2, Axis, M21>;
 using Mat22 = Matrix<C2, C2, M22>;
@@ -383,8 +383,8 @@ TEST(matrices, TypedMatrix_blocks)
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6})), 1>, C3>);
 
   EXPECT_TRUE(is_near(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4}), Mat33 {1, 2, 0, 0, 0, 3, 0, 0, 4}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4})), 0>, TypedIndex<Axis, Axis, angle::Radians>>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4})), 1>, TypedIndex<Axis, angle::Radians, Axis>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4})), 0>, FixedDescriptor<Axis, Axis, angle::Radians>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4})), 1>, FixedDescriptor<Axis, angle::Radians, Axis>>);
 
   EXPECT_TRUE(is_near(split_vertical(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {}));
   EXPECT_TRUE(is_near(split_horizontal(Mat23 {1, 2, 3, 4, 5, 6}), std::tuple {}));
@@ -421,9 +421,9 @@ TEST(matrices, TypedMatrix_blocks)
   EXPECT_TRUE(is_near(apply_columnwise<2>([] { return Matrix<C2, angle::Radians> {1., 2}; }), Mat22 {1, 1, 2, 2}));
   EXPECT_TRUE(is_near(apply_columnwise<2>([](std::size_t i){ return Matrix<C2, angle::Radians> {i + 1., 2*i + 1}; }), Mat22 {1, 2, 1, 3}));
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>()>())), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>()>())), 1>, TypedIndex<angle::Radians, angle::Radians>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>()>())), 1>, FixedDescriptor<angle::Radians, angle::Radians>>);
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>(std::size_t)>())), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>(std::size_t)>())), 1>, TypedIndex<angle::Radians, angle::Radians>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>(std::size_t)>())), 1>, FixedDescriptor<angle::Radians, angle::Radians>>);
 
   const auto mat22_1234 = Mat22x {1, 2, 3, 4};
   auto n = mat22_1234

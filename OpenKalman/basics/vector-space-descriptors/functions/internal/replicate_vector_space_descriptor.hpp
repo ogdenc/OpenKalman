@@ -52,8 +52,8 @@ namespace OpenKalman::internal
   auto replicate_vector_space_descriptor(const T& t, N n)
   {
     auto ret = [](const T& t){
-      if constexpr (sizeof...(AllowableScalarTypes) > 0) return DynamicTypedIndex<AllowableScalarTypes...> {t};
-      else return DynamicTypedIndex {t};
+      if constexpr (sizeof...(AllowableScalarTypes) > 0) return DynamicDescriptor<AllowableScalarTypes...> {t};
+      else return DynamicDescriptor {t};
     }(t);
     for (std::size_t i = 1; i < static_cast<std::size_t>(n); ++i) ret.extend(t);
     return ret;

@@ -43,27 +43,27 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typename C>
-    struct is_prefix_of<TypedIndex<>, C>
+    struct is_prefix_of<FixedDescriptor<>, C>
 #else
     template<typename C>
-    struct is_prefix_of<TypedIndex<>, C, std::enable_if_t<not equivalent_to<TypedIndex<>, C>>>
+    struct is_prefix_of<FixedDescriptor<>, C, std::enable_if_t<not equivalent_to<FixedDescriptor<>, C>>>
 #endif
       : std::true_type {};
 
 
     template<typename C1, typename...Cs>
-    struct is_prefix_of<C1, TypedIndex<C1, Cs...>> : std::true_type {};
+    struct is_prefix_of<C1, FixedDescriptor<C1, Cs...>> : std::true_type {};
 
 
 #ifdef __cpp_concepts
     template<typename C, typename...C1, typename...C2>
-    struct is_prefix_of<TypedIndex<C, C1...>, TypedIndex<C, C2...>>
+    struct is_prefix_of<FixedDescriptor<C, C1...>, FixedDescriptor<C, C2...>>
 #else
     template<typename C, typename...C1, typename...C2>
-    struct is_prefix_of<TypedIndex<C, C1...>, TypedIndex<C, C2...>, std::enable_if_t<
-      (not equivalent_to<TypedIndex<C, C1...>, TypedIndex<C, C2...>>)>>
+    struct is_prefix_of<FixedDescriptor<C, C1...>, FixedDescriptor<C, C2...>, std::enable_if_t<
+      (not equivalent_to<FixedDescriptor<C, C1...>, FixedDescriptor<C, C2...>>)>>
 #endif
-      : std::bool_constant<is_prefix_of<TypedIndex<C1...>, TypedIndex<C2...>>::value> {};
+      : std::bool_constant<is_prefix_of<FixedDescriptor<C1...>, FixedDescriptor<C2...>>::value> {};
 
   } // namespace detail
 
@@ -71,11 +71,11 @@ namespace OpenKalman
   /**
    * \brief T is a prefix of U, where T and U are sets of coefficients.
    * \details If T is a prefix of U, then U is equivalent_to concatenating T with the remaining part of U.
-   * C is a prefix of TypedIndex<C, Cs...> for any typed \ref vector_space_descriptor Cs.
+   * C is a prefix of FixedDescriptor<C, Cs...> for any typed \ref vector_space_descriptor Cs.
    * T is a prefix of U if equivalent_to<T, U>.
-   * TypedIndex<> is a prefix of any set of coefficients.
+   * FixedDescriptor<> is a prefix of any set of coefficients.
    * \par Example:
-   * <code>prefix_of&lt;TypedIndex&lt;Axis&gt;, TypedIndex&lt;Axis, angle::Radians&gt;&gt;</code>
+   * <code>prefix_of&lt;FixedDescriptor&lt;Axis&gt;, FixedDescriptor&lt;Axis, angle::Radians&gt;&gt;</code>
    */
   template<typename T, typename U>
 #ifdef __cpp_concepts

@@ -49,13 +49,13 @@ namespace OpenKalman
      **/
 #ifdef __cpp_concepts
     template<distribution InputDist, distribution ... NoiseDists> requires
-      (equivalent_to<typename DistributionTraits<InputDist>::TypedIndex,
-        typename DistributionTraits<NoiseDists>::TypedIndex>and ...)
+      (equivalent_to<typename DistributionTraits<InputDist>::FixedDescriptor,
+        typename DistributionTraits<NoiseDists>::FixedDescriptor>and ...)
 #else
     template<typename InputDist, typename ... NoiseDists,
       std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>) and
-        (equivalent_to<typename DistributionTraits<InputDist>::TypedIndex,
-        typename DistributionTraits<NoiseDists>::TypedIndex>and ...), int> = 0>
+        (equivalent_to<typename DistributionTraits<InputDist>::FixedDescriptor,
+        typename DistributionTraits<NoiseDists>::FixedDescriptor>and ...), int> = 0>
 #endif
     auto operator()(const InputDist& x, const NoiseDists& ...ns) const
     {
@@ -75,13 +75,13 @@ namespace OpenKalman
      **/
 #ifdef __cpp_concepts
     template<distribution InputDist, distribution ... NoiseDists> requires
-      (equivalent_to<typename DistributionTraits<InputDist>::TypedIndex,
-        typename DistributionTraits<NoiseDists>::TypedIndex>and ...)
+      (equivalent_to<typename DistributionTraits<InputDist>::FixedDescriptor,
+        typename DistributionTraits<NoiseDists>::FixedDescriptor>and ...)
 #else
     template<typename InputDist, typename ... NoiseDists,
       std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>) and
-        (equivalent_to<typename DistributionTraits<InputDist>::TypedIndex,
-        typename DistributionTraits<NoiseDists>::TypedIndex>and ...), int> = 0>
+        (equivalent_to<typename DistributionTraits<InputDist>::FixedDescriptor,
+        typename DistributionTraits<NoiseDists>::FixedDescriptor>and ...), int> = 0>
 #endif
     auto transform_with_cross_covariance(const InputDist& x, const NoiseDists& ...ns) const
     {

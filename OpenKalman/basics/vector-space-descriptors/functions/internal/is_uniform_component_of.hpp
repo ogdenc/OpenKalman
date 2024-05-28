@@ -50,7 +50,7 @@ namespace OpenKalman::internal
 #else
   template<typename A, typename...S, std::enable_if_t<vector_space_descriptor<A>, int> = 0>
 #endif
-  constexpr bool is_uniform_component_of(const A& a, const DynamicTypedIndex<S...>& c)
+  constexpr bool is_uniform_component_of(const A& a, const DynamicDescriptor<S...>& c)
   {
     if (get_dimension_size_of(a) != 1) return false;
     else if (get_vector_space_descriptor_is_euclidean(a) and get_vector_space_descriptor_is_euclidean(c)) return true;
@@ -67,7 +67,7 @@ namespace OpenKalman::internal
 #else
   template<typename...T, typename C, std::enable_if_t<vector_space_descriptor<C>, int> = 0>
 #endif
-  constexpr bool is_uniform_component_of(const DynamicTypedIndex<T...>& a, const C& c)
+  constexpr bool is_uniform_component_of(const DynamicDescriptor<T...>& a, const C& c)
   {
     if (get_dimension_size_of(a) != 1) return false;
     else if (get_vector_space_descriptor_is_euclidean(a) and get_vector_space_descriptor_is_euclidean(c)) return true;
@@ -80,7 +80,7 @@ namespace OpenKalman::internal
    * \overload
    */
   template<typename...T, typename...S>
-  constexpr bool is_uniform_component_of(const DynamicTypedIndex<T...>& a, const DynamicTypedIndex<S...>& c)
+  constexpr bool is_uniform_component_of(const DynamicDescriptor<T...>& a, const DynamicDescriptor<S...>& c)
   {
     if constexpr (((not std::is_same_v<T, S>) or ...)) return false;
     else if (get_dimension_size_of(a) != 1) return false;

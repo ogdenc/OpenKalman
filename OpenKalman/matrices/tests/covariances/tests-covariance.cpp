@@ -14,7 +14,7 @@ using namespace OpenKalman;
 using namespace OpenKalman::test;
 
 using M2 = eigen_matrix_t<double, 2, 2>;
-using C = TypedIndex<angle::Radians, Axis>;
+using C = FixedDescriptor<angle::Radians, Axis>;
 using Mat2 = Matrix<C, C, M2>;
 using Mat2col = Matrix<C, Axis, eigen_matrix_t<double, 2, 1>>;
 using SA2l = SelfAdjointMatrix<M2, TriangleType::lower>;

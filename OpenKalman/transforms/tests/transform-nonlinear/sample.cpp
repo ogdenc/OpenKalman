@@ -17,7 +17,7 @@ using numbers::pi;
 
 inline namespace
 {
-  using C2 = TypedIndex<Axis, Axis>;
+  using C2 = FixedDescriptor<Axis, Axis>;
   using M2 = Mean<C2>;
   using Mat2 = Matrix<C2,C2>;
   Mat2 a {1, 2,

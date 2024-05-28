@@ -385,13 +385,13 @@ namespace OpenKalman
           using Scalar = scalar_type_of_t<Arg>;
           if (internal::is_uniform_component_of(arg_d, max_d))
           {
-            if constexpr (internal::is_DynamicTypedIndex<Max_D>::value) return DynamicTypedIndex {max_d};
-            else return DynamicTypedIndex<Scalar> {max_d};
+            if constexpr (internal::is_DynamicDescriptor<Max_D>::value) return DynamicDescriptor {max_d};
+            else return DynamicDescriptor<Scalar> {max_d};
           }
           else if (internal::is_uniform_component_of(max_d, arg_d))
           {
-            if constexpr (internal::is_DynamicTypedIndex<Max_D>::value) return DynamicTypedIndex {arg_d};
-            else return DynamicTypedIndex<Scalar> {arg_d};
+            if constexpr (internal::is_DynamicDescriptor<Max_D>::value) return DynamicDescriptor {arg_d};
+            else return DynamicDescriptor<Scalar> {arg_d};
           }
           else throw std::invalid_argument {"The dimension of arguments to n_ary_operation are not compatible with "
             "each other for at least index " + std::to_string(ix) + "."};

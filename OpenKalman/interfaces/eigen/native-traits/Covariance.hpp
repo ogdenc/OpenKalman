@@ -20,11 +20,11 @@
 namespace OpenKalman::Eigen3::internal
 {
 #ifdef __cpp_concepts
-  template<typename TypedIndex, OpenKalman::Eigen3::eigen_general NestedMatrix>
-  struct native_traits<OpenKalman::Covariance<TypedIndex, NestedMatrix>>
+  template<typename FixedDescriptor, OpenKalman::Eigen3::eigen_general NestedMatrix>
+  struct native_traits<OpenKalman::Covariance<FixedDescriptor, NestedMatrix>>
 #else
-  template<typename TypedIndex, typename NestedMatrix>
-  struct native_traits<OpenKalman::Covariance<TypedIndex, NestedMatrix>, std::enable_if_t<OpenKalman::Eigen3::eigen_general<NestedMatrix>>>
+  template<typename FixedDescriptor, typename NestedMatrix>
+  struct native_traits<OpenKalman::Covariance<FixedDescriptor, NestedMatrix>, std::enable_if_t<OpenKalman::Eigen3::eigen_general<NestedMatrix>>>
 #endif
     : Eigen::internal::traits<std::decay_t<std::conditional_t<OpenKalman::hermitian_matrix<NestedMatrix>, NestedMatrix, decltype(cholesky_square(std::declval<NestedMatrix>()))>>>
   {

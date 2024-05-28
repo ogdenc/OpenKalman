@@ -496,7 +496,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_lib_concepts
-      template<typename Arg> requires one_dimensional<nested_object_of_t<Arg&>> and raw_data_defined_for<nested_object_of_t<Arg&>>
+      template<typename Arg> requires OpenKalman::one_dimensional<nested_object_of_t<Arg&>> and raw_data_defined_for<nested_object_of_t<Arg&>>
 #else
       template<typename Arg, std::enable_if_t<one_dimensional<typename nested_object_of<Arg&>::type> and
         raw_data_defined_for<typename nested_object_of<Arg&>::type>, int> = 0>
@@ -505,7 +505,7 @@ namespace OpenKalman
       raw_data(Arg& arg) { return internal::raw_data(OpenKalman::nested_object(arg)); }
 
 
-      static constexpr Layout layout = one_dimensional<NestedMatrix> ? layout_of_v<NestedMatrix> : Layout::none;
+      static constexpr Layout layout = OpenKalman::one_dimensional<NestedMatrix> ? layout_of_v<NestedMatrix> : Layout::none;
 
     };
 

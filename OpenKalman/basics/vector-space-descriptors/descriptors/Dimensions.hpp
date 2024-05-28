@@ -97,15 +97,19 @@ namespace OpenKalman
 
     /// Constructor, taking a \ref dynamic_vector_space_descriptor.
 #ifdef __cpp_concepts
-    template<dynamic_vector_space_descriptor D> requires
-      euclidean_vector_space_descriptor<D> and (not std::same_as<std::decay_t<D>, Dimensions>)
+    template<dynamic_vector_space_descriptor D> requires (not std::same_as<std::decay_t<D>, Dimensions>)
 #else
-    template<typename D, std::enable_if_t<dynamic_vector_space_descriptor<D> and euclidean_vector_space_descriptor<D> and
-      not std::is_same_v<std::decay_t<D>, Dimensions>, int> = 0>
+    template<typename D, std::enable_if_t<dynamic_vector_space_descriptor<D> and not std::is_same_v<std::decay_t<D>, Dimensions>, int> = 0>
 #endif
     explicit constexpr Dimensions(D&& d)
       : runtime_size {interface::dynamic_vector_space_descriptor_traits<std::decay_t<D>>{d}.get_size()}
-    {}
+    {
+      if constexpr (not euclidean_vector_space_descriptor<D>)
+      {
+        if (not interface::dynamic_vector_space_descriptor_traits<std::decay_t<D>>{d}.is_euclidean())
+          throw std::invalid_argument{"Argument of 'Dimensions' constructor must be a euclidean vector space descriptor."};
+      }
+    }
 
 
 #ifdef __cpp_concepts
@@ -141,9 +145,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<euclidean_vector_space_descriptor D> requires (not fixed_vector_space_descriptor<D>)
+  template<dynamic_vector_space_descriptor D>
 #else
-  template<typename D, std::enable_if_t<euclidean_vector_space_descriptor<D> and (not fixed_vector_space_descriptor<D>), int> = 0>
+  template<typename D, std::enable_if_t<dynamic_vector_space_descriptor<D>, int> = 0>
 #endif
   explicit Dimensions(D&&) -> Dimensions<dynamic_size>;
 

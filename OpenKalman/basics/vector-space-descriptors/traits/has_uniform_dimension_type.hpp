@@ -43,23 +43,23 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
     template<typename C> requires (dimension_size_of_v<C> == 1)
-    struct uniform_fixed_dimension_impl<TypedIndex<C>>
+    struct uniform_fixed_dimension_impl<FixedDescriptor<C>>
 #else
     template<typename C>
-    struct uniform_fixed_dimension_impl<TypedIndex<C>, std::enable_if_t<dimension_size_of_v<C> == 1>>
+    struct uniform_fixed_dimension_impl<FixedDescriptor<C>, std::enable_if_t<dimension_size_of_v<C> == 1>>
 #endif
       : uniform_fixed_dimension_impl<C> {};
 
 
 #ifdef __cpp_concepts
     template<atomic_fixed_vector_space_descriptor C, fixed_vector_space_descriptor...Cs> requires (dimension_size_of_v<C> == 1) and
-      (sizeof...(Cs) > 0) and std::same_as<C, typename uniform_fixed_dimension_impl<TypedIndex<Cs...>>::uniform_type>
-    struct uniform_fixed_dimension_impl<TypedIndex<C, Cs...>>
+      (sizeof...(Cs) > 0) and std::same_as<C, typename uniform_fixed_dimension_impl<FixedDescriptor<Cs...>>::uniform_type>
+    struct uniform_fixed_dimension_impl<FixedDescriptor<C, Cs...>>
 #else
     template<typename C, typename...Cs>
-    struct uniform_fixed_dimension_impl<TypedIndex<C, Cs...>, std::enable_if_t<
+    struct uniform_fixed_dimension_impl<FixedDescriptor<C, Cs...>, std::enable_if_t<
       atomic_fixed_vector_space_descriptor<C> and (... and fixed_vector_space_descriptor<Cs>) and (dimension_size_of_v<C> == 1) and
-        (sizeof...(Cs) > 0) and std::is_same<C, typename uniform_fixed_dimension_impl<TypedIndex<Cs...>>::uniform_type>::value>>
+        (sizeof...(Cs) > 0) and std::is_same<C, typename uniform_fixed_dimension_impl<FixedDescriptor<Cs...>>::uniform_type>::value>>
 #endif
       : std::true_type { using uniform_type = C; };
 

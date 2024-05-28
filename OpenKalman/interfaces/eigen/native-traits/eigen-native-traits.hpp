@@ -76,9 +76,9 @@ namespace Eigen::internal
     : OpenKalman::Eigen3::internal::native_traits<OpenKalman::FromEuclideanExpr<Coeffs, NestedMatrix>> {};
 
 
-  template<typename TypedIndex, typename NestedMatrix>
-  struct traits<OpenKalman::Mean<TypedIndex, NestedMatrix>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::Mean<TypedIndex, NestedMatrix>> {};
+  template<typename FixedDescriptor, typename NestedMatrix>
+  struct traits<OpenKalman::Mean<FixedDescriptor, NestedMatrix>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::Mean<FixedDescriptor, NestedMatrix>> {};
 
 
   template<typename RowCoefficients, typename ColumnCoefficients, typename ArgType>
@@ -91,14 +91,14 @@ namespace Eigen::internal
     : traits<std::decay_t<NestedMatrix>> {};
 
 
-  template<typename TypedIndex, typename NestedMatrix>
-  struct traits<OpenKalman::Covariance<TypedIndex, NestedMatrix>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::Covariance<TypedIndex, NestedMatrix>> {};
+  template<typename FixedDescriptor, typename NestedMatrix>
+  struct traits<OpenKalman::Covariance<FixedDescriptor, NestedMatrix>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::Covariance<FixedDescriptor, NestedMatrix>> {};
 
 
-  template<typename TypedIndex, typename NestedMatrix>
-  struct traits<OpenKalman::SquareRootCovariance<TypedIndex, NestedMatrix>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::SquareRootCovariance<TypedIndex, NestedMatrix>> {};
+  template<typename FixedDescriptor, typename NestedMatrix>
+  struct traits<OpenKalman::SquareRootCovariance<FixedDescriptor, NestedMatrix>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::SquareRootCovariance<FixedDescriptor, NestedMatrix>> {};
 
 
 }

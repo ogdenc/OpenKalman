@@ -404,9 +404,9 @@ namespace Eigen::internal
   namespace detail
   {
 #ifdef __cpp_concepts
-    template<OpenKalman::vector_space_descriptor TypedIndex, typename XprType, typename Nested, typename NestedEvaluator>
+    template<OpenKalman::vector_space_descriptor FixedDescriptor, typename XprType, typename Nested, typename NestedEvaluator>
 #else
-    template<typename TypedIndex, typename XprType, typename Nested, typename NestedEvaluator, typename = void>
+    template<typename FixedDescriptor, typename XprType, typename Nested, typename NestedEvaluator, typename = void>
 #endif
     struct Evaluator_EuclideanExpr_Base : evaluator_base<XprType>
     {
@@ -428,12 +428,12 @@ namespace Eigen::internal
 
 
 #ifdef __cpp_concepts
-    template<OpenKalman::euclidean_vector_space_descriptor TypedIndex, typename XprType, typename Nested, typename NestedEvaluator>
-    struct Evaluator_EuclideanExpr_Base<TypedIndex, XprType, Nested, NestedEvaluator>
+    template<OpenKalman::euclidean_vector_space_descriptor FixedDescriptor, typename XprType, typename Nested, typename NestedEvaluator>
+    struct Evaluator_EuclideanExpr_Base<FixedDescriptor, XprType, Nested, NestedEvaluator>
 #else
-    template<typename TypedIndex, typename XprType, typename Nested, typename NestedEvaluator>
-    struct Evaluator_EuclideanExpr_Base<TypedIndex, XprType, Nested, NestedEvaluator,
-      std::enable_if_t<OpenKalman::euclidean_vector_space_descriptor<TypedIndex>>>
+    template<typename FixedDescriptor, typename XprType, typename Nested, typename NestedEvaluator>
+    struct Evaluator_EuclideanExpr_Base<FixedDescriptor, XprType, Nested, NestedEvaluator,
+      std::enable_if_t<OpenKalman::euclidean_vector_space_descriptor<FixedDescriptor>>>
 #endif
       : NestedEvaluator
     {
@@ -450,7 +450,7 @@ namespace Eigen::internal
   /**
    * \internal
    * \brief Evaluator for ToEuclideanExpr
-   * \tparam Coeffs TypedIndex types
+   * \tparam Coeffs FixedDescriptor types
    * \tparam ArgType Type of the nested expression
    */
   template<typename Coeffs, typename ArgType>
@@ -514,7 +514,7 @@ namespace Eigen::internal
   /**
    * \internal
    * \brief General evaluator for FromEuclideanExpr
-   * \tparam Coeffs TypedIndex types
+   * \tparam Coeffs FixedDescriptor types
    * \tparam ArgType Type of the nested expression
    */
   template<typename Coeffs, typename ArgType>
@@ -573,7 +573,7 @@ namespace Eigen::internal
    * \internal
    * \brief Specialized evaluator for FromEuclideanExpr that has a nested ToEuclideanExpr.
    * \details This amounts to wrapping angles.
-   * \tparam Coeffs TypedIndex types
+   * \tparam Coeffs FixedDescriptor types
    * \tparam ArgType Type of the nested expression
    */
   template<typename Coeffs, typename ArgType>
@@ -665,14 +665,14 @@ namespace Eigen::internal
   //  Mean  //
   // ------ //
 
-  template<typename TypedIndex, typename ArgType>
-  struct evaluator<OpenKalman::Mean<TypedIndex, ArgType>> : evaluator<std::decay_t<ArgType>>
+  template<typename FixedDescriptor, typename ArgType>
+  struct evaluator<OpenKalman::Mean<FixedDescriptor, ArgType>> : evaluator<std::decay_t<ArgType>>
   {
-    using XprType = OpenKalman::Mean<TypedIndex, ArgType>;
+    using XprType = OpenKalman::Mean<FixedDescriptor, ArgType>;
     using Base = evaluator<std::decay_t<ArgType>>;
     enum
     {
-      Flags = (OpenKalman::euclidean_vector_space_descriptor<TypedIndex> ? Base::Flags : Base::Flags & ~LvalueBit),
+      Flags = (OpenKalman::euclidean_vector_space_descriptor<FixedDescriptor> ? Base::Flags : Base::Flags & ~LvalueBit),
     };
     explicit evaluator(const XprType& m) : Base(m.nested_object()) {}
   };
@@ -709,12 +709,12 @@ namespace Eigen::internal
   //  Covariance  //
   // ------------ //
 
-  template<typename TypedIndex, typename ArgType>
-  struct evaluator<OpenKalman::Covariance<TypedIndex, ArgType>>
+  template<typename FixedDescriptor, typename ArgType>
+  struct evaluator<OpenKalman::Covariance<FixedDescriptor, ArgType>>
     : evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
-      std::declval<const OpenKalman::Covariance<TypedIndex, ArgType>&>()))>>
+      std::declval<const OpenKalman::Covariance<FixedDescriptor, ArgType>&>()))>>
   {
-    using XprType = OpenKalman::Covariance<TypedIndex, ArgType>;
+    using XprType = OpenKalman::Covariance<FixedDescriptor, ArgType>;
     using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
       std::declval<const XprType&>()))>>;
     enum
@@ -729,12 +729,12 @@ namespace Eigen::internal
   //  SquareRootCovariance  //
   // ---------------------- //
 
-  template<typename TypedIndex, typename ArgType>
-  struct evaluator<OpenKalman::SquareRootCovariance<TypedIndex, ArgType>>
+  template<typename FixedDescriptor, typename ArgType>
+  struct evaluator<OpenKalman::SquareRootCovariance<FixedDescriptor, ArgType>>
     : evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
-      std::declval<const OpenKalman::SquareRootCovariance<TypedIndex, ArgType>&>()))>>
+      std::declval<const OpenKalman::SquareRootCovariance<FixedDescriptor, ArgType>&>()))>>
   {
-    using XprType = OpenKalman::SquareRootCovariance<TypedIndex, ArgType>;
+    using XprType = OpenKalman::SquareRootCovariance<FixedDescriptor, ArgType>;
     using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
       std::declval<const XprType&>()))>>;
     enum

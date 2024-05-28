@@ -10,11 +10,11 @@
 
 /**
  * \file
- * \brief Definition of the DynamicTypedIndex class.
+ * \brief Definition of the DynamicDescriptor class.
  */
 
-#ifndef OPENKALMAN_DYNAMICTYPEDINDEX_HPP
-#define OPENKALMAN_DYNAMICTYPEDINDEX_HPP
+#ifndef OPENKALMAN_DYNAMICDESCRIPTOR_HPP
+#define OPENKALMAN_DYNAMICDESCRIPTOR_HPP
 
 #include <vector>
 #include <tuple>
@@ -33,7 +33,7 @@ namespace OpenKalman
 #else
   template<typename...AllowableScalarTypes>
 #endif
-  struct DynamicTypedIndex
+  struct DynamicDescriptor
   {
   private:
 #ifndef __cpp_concepts
@@ -45,7 +45,7 @@ namespace OpenKalman
 #else
     template<typename...>
 #endif
-    friend struct DynamicTypedIndex;
+    friend struct DynamicDescriptor;
 
 
     using AtomicType = std::conditional_t<sizeof...(AllowableScalarTypes) == 0,
@@ -58,26 +58,26 @@ namespace OpenKalman
     /**
      * \brief Default constructor.
      */
-    DynamicTypedIndex() = default;
+    DynamicDescriptor() = default;
 
 
     /**
      * \brief Constructor taking any number of \ref vector_space_descriptor Cs.
      * \details \ref vector_space_descriptor objects Cs can be either fixed or dynamic. If dynamic, the vector_space_descriptor must be either
-     * untyped or the same type as this DynamicTypedIndex.
+     * untyped or the same type as this DynamicDescriptor.
      * \tparam Cs A list of sets of \ref vector_space_descriptor for a set of indices.
      */
 #ifdef __cpp_concepts
     template<vector_space_descriptor...Cs> requires (sizeof...(Cs) > 0) and
-      (sizeof...(Cs) != 1 or (not std::same_as<Cs, DynamicTypedIndex> and ...)) and
+      (sizeof...(Cs) != 1 or (not std::same_as<Cs, DynamicDescriptor> and ...)) and
       (sizeof...(Cs) == 1 or ((fixed_vector_space_descriptor<Cs> or dynamic_vector_space_descriptor<Cs>) and ...))
 #else
     template<typename...Cs, std::enable_if_t<(vector_space_descriptor<Cs> and ...) and (sizeof...(Cs) > 0) and
-      (sizeof...(Cs) != 1 or (not std::is_same_v<Cs, DynamicTypedIndex> and ...)) and
+      (sizeof...(Cs) != 1 or (not std::is_same_v<Cs, DynamicDescriptor> and ...)) and
       (sizeof...(Cs) == 1 or ((fixed_vector_space_descriptor<Cs> or dynamic_vector_space_descriptor<Cs>) and ...)),
       int> = 0>
 #endif
-    explicit DynamicTypedIndex(Cs&&...cs)
+    explicit DynamicDescriptor(Cs&&...cs)
     {
       dynamic_types.reserve((0 + ... + get_vector_space_descriptor_component_count_of(cs)));
       index_table.reserve((0 + ... + get_dimension_size_of(cs)));
@@ -87,38 +87,38 @@ namespace OpenKalman
 
 
     /**
-     * \brief Constructor taking another DynamicTypedIndex and other list of \ref vector_space_descriptor objects.
+     * \brief Constructor taking another DynamicDescriptor and other list of \ref vector_space_descriptor objects.
      * \details This forwards to the copy or move constructors and then extends by the additional \ref vector_space_descriptor.
-     * \param c A DynamicTypedIndex object
+     * \param c A DynamicDescriptor object
      * \param cn A first \ref vector_space_descriptor.
      * \param cs A list of \ref vector_space_descriptor objects.
      */
 #ifdef __cpp_concepts
-    DynamicTypedIndex(auto&& c, vector_space_descriptor auto&& c0, vector_space_descriptor auto&&...cn)
-    requires std::same_as<std::decay_t<decltype(c)>, DynamicTypedIndex>
+    DynamicDescriptor(auto&& c, vector_space_descriptor auto&& c0, vector_space_descriptor auto&&...cn)
+    requires std::same_as<std::decay_t<decltype(c)>, DynamicDescriptor>
 #else
     template<typename C, typename C0, typename...Cn, std::enable_if_t<
-      std::is_same_v<std::decay_t<C>, DynamicTypedIndex> and (vector_space_descriptor<Cn> and ...), int> = 0>
-    DynamicTypedIndex(C&& c, C0&& c0, Cn&&...cn)
+      std::is_same_v<std::decay_t<C>, DynamicDescriptor> and (vector_space_descriptor<Cn> and ...), int> = 0>
+    DynamicDescriptor(C&& c, C0&& c0, Cn&&...cn)
 #endif
-      : DynamicTypedIndex(std::forward<decltype(c)>(c))
+      : DynamicDescriptor(std::forward<decltype(c)>(c))
     {
       extend(std::forward<decltype(c0)>(c0), std::forward<decltype(cn)>(cn)...);
     }
 
 
     /**
-     * \brief Extend the DynamicTypedIndex by appending to the end of the list.
+     * \brief Extend the DynamicDescriptor by appending to the end of the list.
      * \tparam Cs One or more \ref vector_space_descriptor objects
      */
 #ifdef __cpp_concepts
     template<vector_space_descriptor...Cs> requires (sizeof...(Cs) > 0) and
-      ((fixed_vector_space_descriptor<Cs> or euclidean_vector_space_descriptor<Cs> or std::same_as<std::decay_t<Cs>, DynamicTypedIndex>) and ...)
+      ((fixed_vector_space_descriptor<Cs> or euclidean_vector_space_descriptor<Cs> or std::same_as<std::decay_t<Cs>, DynamicDescriptor>) and ...)
 #else
     template<typename...Cs, std::enable_if_t<(vector_space_descriptor<Cs> and ...) and (sizeof...(Cs) > 0) and
-      ((fixed_vector_space_descriptor<Cs> or euclidean_vector_space_descriptor<Cs> or std::is_same_v<std::decay_t<Cs>, DynamicTypedIndex>) and ...), int> = 0>
+      ((fixed_vector_space_descriptor<Cs> or euclidean_vector_space_descriptor<Cs> or std::is_same_v<std::decay_t<Cs>, DynamicDescriptor>) and ...), int> = 0>
 #endif
-    DynamicTypedIndex& extend(Cs&&...cs)
+    DynamicDescriptor& extend(Cs&&...cs)
     {
       if (auto N = (0 + ... + get_vector_space_descriptor_component_count_of(cs)); N > 1)
       {
@@ -184,7 +184,7 @@ namespace OpenKalman
 
 
     template<typename...Cs>
-    void fill_tables_fixed(std::size_t i, std::size_t i_e, std::size_t t, const TypedIndex<Cs...>&)
+    void fill_tables_fixed(std::size_t i, std::size_t i_e, std::size_t t, const FixedDescriptor<Cs...>&)
     {
       (dynamic_types.emplace_back(AtomicType {Cs{}}), ...);
       extend_table_fixed<false, 0, Cs...>(i, t, i_e);
@@ -207,7 +207,7 @@ namespace OpenKalman
         }
         fill_tables(i, i_e, t, std::forward<Cs>(cs)...);
       }
-      else // C is DynamicTypedIndex<T>.
+      else // C is DynamicDescriptor<T>.
       {
         auto new_i = i + c.index_table.size();
         auto new_i_e = i_e + c.euclidean_index_table.size();
@@ -256,26 +256,26 @@ namespace OpenKalman
     // ---------- comparison ---------- //
 
     template<typename It, typename EndIt, std::size_t N>
-    static constexpr bool partial_compare(It it, EndIt endit, const Dimensions<N>&, TypedIndex<>)
+    static constexpr bool partial_compare(It it, EndIt endit, const Dimensions<N>&, FixedDescriptor<>)
     {
       return it == endit or it->is_euclidean();
     }
 
     template<typename It, typename EndIt, std::size_t N, typename C, typename...Cs>
-    static constexpr bool partial_compare(It it, EndIt endit, const Dimensions<N>& d, TypedIndex<C, Cs...>)
+    static constexpr bool partial_compare(It it, EndIt endit, const Dimensions<N>& d, FixedDescriptor<C, Cs...>)
     {
       if (it->is_euclidean())
       {
         std::size_t it_size = it->size();
         std::size_t d_size = get_dimension_size_of(d);
         if (it_size == d_size)
-          return partial_compare(++it, endit, TypedIndex<C, Cs...> {});
+          return partial_compare(++it, endit, FixedDescriptor<C, Cs...> {});
         else if (it_size < d_size)
-          return partial_compare(++it, endit, Dimensions {static_cast<std::size_t>(d_size - it_size)}, TypedIndex<C, Cs...> {});
+          return partial_compare(++it, endit, Dimensions {static_cast<std::size_t>(d_size - it_size)}, FixedDescriptor<C, Cs...> {});
         else // it_size > d_size
         {
           if constexpr (euclidean_vector_space_descriptor<C>)
-            return partial_compare(it, endit, Dimensions {d_size + dimension_size_of_v<C>}, TypedIndex<Cs...> {});
+            return partial_compare(it, endit, Dimensions {d_size + dimension_size_of_v<C>}, FixedDescriptor<Cs...> {});
           else
             return false;
         }
@@ -284,21 +284,21 @@ namespace OpenKalman
     }
 
     template<typename It, typename EndIt>
-    static constexpr bool partial_compare(It, EndIt, TypedIndex<>) { return true; }
+    static constexpr bool partial_compare(It, EndIt, FixedDescriptor<>) { return true; }
 
     template<typename It, typename EndIt, typename C, typename...Cs>
-    static constexpr bool partial_compare(It it, EndIt endit, TypedIndex<C, Cs...>)
+    static constexpr bool partial_compare(It it, EndIt endit, FixedDescriptor<C, Cs...>)
     {
       if (it == endit) return true;
       else
       {
         if constexpr (euclidean_vector_space_descriptor<C>)
         {
-          return partial_compare(it, endit, Dimensions {dimension_size_of_v<C>}, TypedIndex<Cs...> {});
+          return partial_compare(it, endit, Dimensions {dimension_size_of_v<C>}, FixedDescriptor<Cs...> {});
         }
         else
         {
-          if (it->get_type_index() == std::type_index {typeid(C)}) return partial_compare(++it, endit, TypedIndex<Cs...> {});
+          if (it->get_type_index() == std::type_index {typeid(C)}) return partial_compare(++it, endit, FixedDescriptor<Cs...> {});
           else return false;
         }
       }
@@ -319,7 +319,7 @@ namespace OpenKalman
       if constexpr (fixed_vector_space_descriptor<Arg>)
         return partial_compare(dynamic_types.begin(), dynamic_types.end(), canonical_fixed_vector_space_descriptor_t<Arg> {});
       else
-        return partial_compare(dynamic_types.begin(), dynamic_types.end(), Dimensions<dynamic_size>(get_dimension_size_of(arg)), TypedIndex<> {});
+        return partial_compare(dynamic_types.begin(), dynamic_types.end(), Dimensions<dynamic_size>(get_dimension_size_of(arg)), FixedDescriptor<> {});
     }
 
 
@@ -327,7 +327,7 @@ namespace OpenKalman
      * \overload
      */
     template<typename...S>
-    bool partially_matches(const DynamicTypedIndex<S...>& arg) const
+    bool partially_matches(const DynamicDescriptor<S...>& arg) const
     {
       // \todo Do a more sophisticated comparison.
       auto i = begin();
@@ -351,7 +351,7 @@ namespace OpenKalman
 
     // ---------- friends ---------- //
 
-  friend struct interface::dynamic_vector_space_descriptor_traits<DynamicTypedIndex>;
+  friend struct interface::dynamic_vector_space_descriptor_traits<DynamicDescriptor>;
 
 
   private:
@@ -374,17 +374,17 @@ namespace OpenKalman
    * \tparam Cs Constructor arguments
    */
   template<typename...Cs>
-  DynamicTypedIndex(Cs&&...) -> DynamicTypedIndex<>;
+  DynamicDescriptor(Cs&&...) -> DynamicDescriptor<>;
 
   /**
-   * \brief Deduce scalar type when the constructor's first argument is a DynamicTypedIndex.
+   * \brief Deduce scalar type when the constructor's first argument is a DynamicDescriptor.
    */
   template<typename...S, typename C, typename...Cs>
-  DynamicTypedIndex(DynamicTypedIndex<S...>&&, C&&, Cs&&...) -> DynamicTypedIndex<S...>;
+  DynamicDescriptor(DynamicDescriptor<S...>&&, C&&, Cs&&...) -> DynamicDescriptor<S...>;
 
   /// \overload
   template<typename...S, typename C, typename...Cs>
-  DynamicTypedIndex(const DynamicTypedIndex<S...>&, C&&, Cs&&...) -> DynamicTypedIndex<S...>;
+  DynamicDescriptor(const DynamicDescriptor<S...>&, C&&, Cs&&...) -> DynamicDescriptor<S...>;
 
 
   namespace detail
@@ -423,18 +423,18 @@ namespace OpenKalman
   {
     /**
      * \internal
-     * \brief traits for DynamicTypedIndex.
+     * \brief traits for DynamicDescriptor.
      */
     template<typename...AllowableScalarTypes>
-    struct dynamic_vector_space_descriptor_traits<DynamicTypedIndex<AllowableScalarTypes...>>
+    struct dynamic_vector_space_descriptor_traits<DynamicDescriptor<AllowableScalarTypes...>>
     {
     private:
 
-      using AtomicType = typename DynamicTypedIndex<AllowableScalarTypes...>::AtomicType;
+      using AtomicType = typename DynamicDescriptor<AllowableScalarTypes...>::AtomicType;
 
     public:
 
-      explicit constexpr dynamic_vector_space_descriptor_traits(const DynamicTypedIndex<AllowableScalarTypes...>& t)
+      explicit constexpr dynamic_vector_space_descriptor_traits(const DynamicDescriptor<AllowableScalarTypes...>& t)
         : m_vector_space_descriptor {t} {};
 
       constexpr std::size_t get_size() const { return m_vector_space_descriptor.index_table.size(); }
@@ -449,6 +449,8 @@ namespace OpenKalman
           if (not i->is_euclidean()) return false;
         return true;
       }
+
+      static constexpr bool always_euclidean = false;
 
       static constexpr bool operations_defined = true;
 
@@ -537,7 +539,7 @@ namespace OpenKalman
 
     private:
 
-      const DynamicTypedIndex<AllowableScalarTypes...>& m_vector_space_descriptor;
+      const DynamicDescriptor<AllowableScalarTypes...>& m_vector_space_descriptor;
 
     };
 
@@ -547,4 +549,4 @@ namespace OpenKalman
 } // namespace OpenKalman
 
 
-#endif //OPENKALMAN_DYNAMICTYPEDINDEX_HPP
+#endif //OPENKALMAN_DYNAMICDESCRIPTOR_HPP

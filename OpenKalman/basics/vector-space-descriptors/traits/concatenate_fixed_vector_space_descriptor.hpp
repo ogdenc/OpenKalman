@@ -24,7 +24,7 @@ namespace OpenKalman
   template<>
   struct concatenate_fixed_vector_space_descriptor<>
   {
-    using type = TypedIndex<>;
+    using type = FixedDescriptor<>;
   };
 
   template<typename C, typename...Cs>
@@ -34,7 +34,7 @@ namespace OpenKalman
   };
 
   template<typename...C, typename...Cs>
-  struct concatenate_fixed_vector_space_descriptor<TypedIndex<C...>, Cs...>
+  struct concatenate_fixed_vector_space_descriptor<FixedDescriptor<C...>, Cs...>
   {
     using type = typename concatenate_fixed_vector_space_descriptor<Cs...>::type::template Prepend<C...>;
   };
