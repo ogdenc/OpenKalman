@@ -185,6 +185,7 @@ namespace OpenKalman
    * \tparam Arg First object to be concatenated
    * \tparam Args Other objects to be concatenated
    * \return The concatenated object
+   * \todo Deal with case where there are a dynamic number of indices
    */
 #ifdef __cpp_concepts
   template<std::size_t...indices, indexible Arg, detail::concatenate_dimensions_match<Arg>...Args>

@@ -10,6 +10,7 @@
 
 /**
  * \file
+ * \internal
  * \brief Definition for \ref head_of.
  */
 
@@ -17,7 +18,7 @@
 #define OPENKALMAN_HEAD_OF_HPP
 
 
-namespace OpenKalman
+namespace OpenKalman::internal
 {
   namespace detail
   {
@@ -54,6 +55,7 @@ namespace OpenKalman
 
 
   /**
+   * \internal
    * \brief Type trait extracting the head of a \ref fixed_vector_space_descriptor.
    */
 #ifdef __cpp_concepts
@@ -75,12 +77,13 @@ namespace OpenKalman
 
 
   /**
+   * \internal
    * \brief Helper for \ref head_of.
    */
   template<typename T>
   using head_of_t = typename head_of<T>::type;
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::internal
 
 #endif //OPENKALMAN_HEAD_OF_HPP

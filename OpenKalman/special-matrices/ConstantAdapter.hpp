@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -35,25 +35,83 @@ namespace OpenKalman
 
   private:
 
-
 #ifndef __cpp_concepts
     static_assert(indexible<PatternMatrix>);
     static_assert(scalar_constant<Scalar>);
     static_assert(sizeof...(constant) == 0 or std::is_constructible_v<Scalar, decltype(constant)...>);
 #endif
 
-    using MyConstant = std::conditional_t<sizeof...(constant) == 0, Scalar, internal::ScalarConstant<Scalar, constant...>>;
+    using MyConstant = std::conditional_t<sizeof...(constant) == 0, Scalar, values::ScalarConstant<Scalar, constant...>>;
     using MyScalarType = std::decay_t<decltype(get_scalar_constant_value(std::declval<MyConstant>()))>;
-    using MyDimensions = decltype(all_vector_space_descriptors(std::declval<PatternMatrix>()));
 
-    template<std::size_t N = 0>
+
+#ifdef __cpp_concepts
+    template<typename P = PatternMatrix>
+#else
+    template<typename P = PatternMatrix, typename = void>
+#endif
+    struct MyDimensions
+    { using type = decltype(all_vector_space_descriptors(std::declval<PatternMatrix>())); };
+
+
+    template<typename P>
+#ifdef __cpp_concepts
+    requires (index_count_v<P> == dynamic_size)
+    struct MyDimensions<P>
+#else
+    struct MyDimensions<P, std::enable_if_t<index_count_v<P> == dynamic_size>>
+#endif
+    { using type = std::vector<DynamicDescriptor<MyScalarType>>; };
+
+    using MyDimensions_t = typename MyDimensions<>::type;
+
+  public:
+
+    /**
+     * \brief Construct a ConstantAdapter, whose value is known at compile time, using a dynamic range of
+     * \ref vector_space_descriptor objects.
+     * \tparam D A set of \ref vector_space_descriptor corresponding to class template parameters Ds.
+     */
+#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+    template<std::ranges::input_range Ds> requires vector_space_descriptor<std::ranges::range_value_t<Ds>> and
+      (index_count_v<PatternMatrix> == dynamic_size)
+#else
+    template<typename Ds, std::enable_if_t<vector_space_descriptor<decltype(*std::declval<Indices>().begin())> and
+      (index_count_v<PatternMatrix> == dynamic_size), int> = 0>
+#endif
+    explicit constexpr ConstantAdapter(Ds&& ds)
+    {
+      std::copy(ds.begin(), ds.end(), my_dimensions.begin());
+    }
+
+
+    /**
+     * \overload
+     * \brief Same as above, except also specifying a \ref scalar_constant.
+     */
+#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+      template<scalar_constant C, std::ranges::input_range Ds> requires std::constructible_from<MyConstant, C&&> and
+        vector_space_descriptor<std::ranges::range_value_t<Ds>> and (index_count_v<PatternMatrix> == dynamic_size)
+#else
+      template<typename C, typename Ds, std::enable_if_t<scalar_constant<C> and std::is_constructible_v<MyConstant, C&&> and
+        vector_space_descriptor<decltype(*std::declval<Indices>().begin())> and
+        (index_count_v<PatternMatrix> == dynamic_size), int> = 0>
+#endif
+    explicit constexpr ConstantAdapter(C&& c, Ds&& ds) : my_constant {std::forward<C>(c)}
+    {
+      std::copy(ds.begin(), ds.end(), my_dimensions.begin());
+    }
+
+private:
+
+  template<std::size_t N = 0>
     constexpr auto make_all_dimensions_tuple() { return std::tuple {}; }
 
 
     template<std::size_t N = 0, typename D, typename...Ds>
     constexpr auto make_all_dimensions_tuple(D&& d, Ds&&...ds)
     {
-      using E = std::tuple_element_t<N, MyDimensions>;
+      using E = std::tuple_element_t<N, MyDimensions_t>;
       if constexpr (fixed_vector_space_descriptor<E>)
       {
         auto e = std::get<N>(my_dimensions);
@@ -83,14 +141,15 @@ namespace OpenKalman
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<vector_space_descriptor...Ds> requires (sizeof...(Ds) > 0) and (sizeof...(Ds) == std::tuple_size_v<MyDimensions>) and
+    template<vector_space_descriptor...Ds> requires (sizeof...(Ds) > 0) and (sizeof...(Ds) == std::tuple_size_v<MyDimensions_t>) and
       scalar_constant<MyConstant, ConstantType::static_constant> and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>
 #else
     template<typename...Ds, std::enable_if_t<
-      (vector_space_descriptor<Ds> and ...) and (sizeof...(Ds) > 0) and (sizeof...(Ds) == std::tuple_size_v<MyDimensions>) and
+      (vector_space_descriptor<Ds> and ...) and (sizeof...(Ds) > 0) and (sizeof...(Ds) == std::tuple_size_v<MyDimensions_t>) and
       scalar_constant<MyConstant, ConstantType::static_constant> and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>, int> = 0>
 #endif
-    explicit constexpr ConstantAdapter(Ds&&...ds) : my_dimensions {make_all_dimensions_tuple(std::forward<Ds>(ds)...)} {}
+    explicit constexpr ConstantAdapter(Ds&&...ds)
+      : my_dimensions {make_all_dimensions_tuple(std::forward<Ds>(ds)...)} {}
 
 
     /**
@@ -105,14 +164,14 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<scalar_constant C, vector_space_descriptor...Ds> requires std::constructible_from<MyConstant, C&&> and
-      (sizeof...(Ds) == std::tuple_size_v<MyDimensions>) and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>
+      (sizeof...(Ds) == std::tuple_size_v<MyDimensions_t>) and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>
 #else
     template<typename C, typename...Ds, std::enable_if_t<
       scalar_constant<C> and (vector_space_descriptor<Ds> and ...) and std::is_constructible_v<MyConstant, C&&> and
-      (sizeof...(Ds) == std::tuple_size_v<MyDimensions>) and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>, int> = 0>
+      (sizeof...(Ds) == std::tuple_size_v<MyDimensions_t>) and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>, int> = 0>
 #endif
-    explicit constexpr ConstantAdapter(C&& c, Ds&&...ds) : my_constant {std::forward<C>(c)},
-      my_dimensions {make_all_dimensions_tuple(std::forward<Ds>(ds)...)} {}
+    explicit constexpr ConstantAdapter(C&& c, Ds&&...ds)
+      : my_constant {std::forward<C>(c)}, my_dimensions {make_all_dimensions_tuple(std::forward<Ds>(ds)...)} {}
 
   private:
 
@@ -129,7 +188,7 @@ namespace OpenKalman
     template<std::size_t N = 0, typename D, typename...Ds>
     constexpr auto make_dynamic_dimensions_tuple(D&& d, Ds&&...ds)
     {
-      if constexpr (dynamic_vector_space_descriptor<std::tuple_element_t<N, MyDimensions>>)
+      if constexpr (dynamic_vector_space_descriptor<std::tuple_element_t<N, MyDimensions_t>>)
         return std::tuple_cat(std::forward_as_tuple(std::forward<D>(d)),
           make_dynamic_dimensions_tuple<N + 1>(std::forward<Ds>(ds)...));
       else
@@ -156,11 +215,11 @@ namespace OpenKalman
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<dynamic_vector_space_descriptor...Ds> requires (sizeof...(Ds) < std::tuple_size_v<MyDimensions>) and
+    template<dynamic_vector_space_descriptor...Ds> requires (sizeof...(Ds) < std::tuple_size_v<MyDimensions_t>) and
       (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and scalar_constant<MyConstant, ConstantType::static_constant>
 #else
     template<typename...Ds, std::enable_if_t<(dynamic_vector_space_descriptor<Ds> and ...) and
-      (sizeof...(Ds) < std::tuple_size_v<MyDimensions>) and sizeof...(Ds) == dynamic_index_count_v<PatternMatrix> and
+      (sizeof...(Ds) < std::tuple_size_v<MyDimensions_t>) and sizeof...(Ds) == dynamic_index_count_v<PatternMatrix> and
       scalar_constant<MyConstant, ConstantType::static_constant>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(Ds&&...ds) : my_dimensions {make_dynamic_dimensions_tuple(std::forward<Ds>(ds)...)} {}
@@ -179,11 +238,11 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<scalar_constant C, dynamic_vector_space_descriptor...Ds> requires
-      (sizeof...(Ds) < std::tuple_size_v<MyDimensions>) and
+      (sizeof...(Ds) < std::tuple_size_v<MyDimensions_t>) and
       (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and std::constructible_from<MyConstant, C&&>
 #else
     template<typename C, typename...Ds, std::enable_if_t<scalar_constant<C> and (dynamic_vector_space_descriptor<Ds> and ...) and
-      (sizeof...(Ds) < std::tuple_size_v<MyDimensions>) and
+      (sizeof...(Ds) < std::tuple_size_v<MyDimensions_t>) and
       (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and std::is_constructible_v<MyConstant, C&&>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(C&& c, Ds&&...ds) : my_constant {std::forward<C>(c)},
@@ -194,9 +253,9 @@ namespace OpenKalman
     template<std::size_t N = 0, typename Arg>
     constexpr auto make_dimensions_tuple(const Arg& arg)
     {
-      if constexpr (N < std::tuple_size_v<MyDimensions>)
+      if constexpr (N < std::tuple_size_v<MyDimensions_t>)
       {
-        using E = std::tuple_element_t<N, MyDimensions>;
+        using E = std::tuple_element_t<N, MyDimensions_t>;
         if constexpr (fixed_vector_space_descriptor<E>)
         {
           auto e = std::get<N>(my_dimensions);
@@ -407,7 +466,7 @@ namespace OpenKalman
       if constexpr (zero<ConstantAdapter>) return arg;
       else
       {
-        internal::scalar_constant_operation op {std::negate<>{}, constant_coefficient{arg}};
+        values::scalar_constant_operation op {std::negate<>{}, constant_coefficient{arg}};
         return make_constant(arg, op);
       }
     }
@@ -457,7 +516,7 @@ namespace OpenKalman
 
     MyConstant my_constant;
 
-    MyDimensions my_dimensions;
+    MyDimensions_t my_dimensions;
 
     friend struct interface::indexible_object_traits<ConstantAdapter>;
     friend struct interface::library_interface<ConstantAdapter>;
@@ -501,26 +560,37 @@ namespace OpenKalman
     public:
 
       using scalar_type = typename XprType::MyScalarType;
+      using MyDims = typename XprType::MyDimensions_t;
 
 
       template<typename Arg>
-      static constexpr auto count_indices(const Arg& arg) { return std::tuple_size<typename XprType::MyDimensions>{}; }
+      static constexpr auto count_indices(const Arg& arg)
+      {
+        if constexpr (index_count_v<PatternMatrix> == dynamic_size)
+          return std::forward<Arg>(arg).my_dimensions.size();
+        else
+          return std::tuple_size<MyDims>{};
+      }
 
 
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(Arg&& arg, const N& n)
       {
-        if constexpr (static_index_value<N>)
+        if constexpr (index_count_v<PatternMatrix> == dynamic_size)
+        {
+          return std::forward<Arg>(arg).my_dimensions[static_cast<typename MyDims::size_type>(n)];
+        }
+        else if constexpr (static_index_value<N>)
         {
           return std::get<N::value>(std::forward<Arg>(arg).my_dimensions);
         }
         else
         {
           return std::apply(
-            [](auto&&...arg, const N& n){
+            [](const N& n, auto&&...arg){
               return std::array<std::size_t, OpenKalman::index_count_v<Arg>> {std::forward<decltype(arg)>(arg)...}[n];
             },
-            std::forward<Arg>(arg).my_dimensions, n);
+            std::tuple_cat(std::forward_as_tuple(n), std::forward<Arg>(arg).my_dimensions));
         }
       }
 
@@ -593,7 +663,7 @@ namespace OpenKalman
       template<typename C, typename...D>
       static constexpr auto make_constant(C&& c, D&&...d)
       {
-        return make_constant<PatternMatrix>(std::forward<C>(c), std::forward<D>(d)...);
+        return OpenKalman::make_constant<PatternMatrix>(std::forward<C>(c), std::forward<D>(d)...);
       }
 
 

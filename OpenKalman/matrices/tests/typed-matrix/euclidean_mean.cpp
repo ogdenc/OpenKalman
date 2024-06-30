@@ -27,7 +27,7 @@ using M33 = eigen_matrix_t<double, 3, 3>;
 using M42 = eigen_matrix_t<double, 4, 2>;
 using M43 = eigen_matrix_t<double, 4, 3>;
 using I22 = Eigen3::IdentityMatrix<M22>;
-using Z22 = ZeroMatrix<eigen_matrix_t<double, 2, 2>>;
+using Z22 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>;
 using C2 = FixedDescriptor<Axis, angle::Radians>;
 using C3 = FixedDescriptor<Axis, angle::Radians, Axis>;
 using Mat12 = EuclideanMean<Axis, M12>;
@@ -244,7 +244,7 @@ TEST(matrices, EuclideanMean_traits)
   static_assert(not zero<Mat23>);
   static_assert(zero<EuclideanMean<angle::Radians, Z22>>);
   static_assert(zero<EuclideanMean<Dimensions<2>, Z22>>);
-  static_assert(zero<EuclideanMean<C2, ZeroMatrix<eigen_matrix_t<double, 3, 3>>>>);
+  static_assert(zero<EuclideanMean<C2, ZeroAdapter<eigen_matrix_t<double, 3, 3>>>>);
 
   EXPECT_TRUE(is_near(make_zero<Mat23>(), eigen_matrix_t<double, 3, 3>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<EuclideanMean<Dimensions<2>, I22>>(), eigen_matrix_t<double, 2, 2>::Identity()));

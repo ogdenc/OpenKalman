@@ -273,14 +273,6 @@ namespace OpenKalman::interface
 
   template<typename T, Qualification b = Qualification::unqualified>
   constexpr bool is_square_defined_for = detail::is_square_defined_for_impl<T, b>::value;
-
-
-  template<typename T, Qualification b, typename = void>
-  struct is_explicitly_square : std::false_type {};
-
-  template<typename T, Qualification b>
-  struct is_explicitly_square<T, b, std::enable_if_t<indexible_object_traits<std::decay_t<T>>::template is_square<b>>>
-    : std::true_type {};
 #endif
 
 
@@ -304,14 +296,6 @@ namespace OpenKalman::interface
 
   template<typename T, TriangleType t>
   constexpr bool is_triangular_defined_for = detail::is_triangular_defined_for_impl<T, t>::value;
-
-
-  template<typename T, TriangleType t, typename = void>
-  struct is_explicitly_triangular : std::false_type {};
-
-  template<typename T, TriangleType t>
-  struct is_explicitly_triangular<T, t, std::enable_if_t<indexible_object_traits<std::decay_t<T>>::template is_triangular<t>>>
-    : std::true_type {};
 #endif
 
 

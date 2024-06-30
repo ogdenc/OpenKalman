@@ -60,31 +60,31 @@ namespace OpenKalman::Eigen3::detail
 
       auto f = [](const auto& dim, const auto& n_dim) {
         if constexpr (F::value != dynamic_size) return F{};
-        else return internal::scalar_constant_operation {std::divides<std::size_t>{}, dim, n_dim};
+        else return values::scalar_constant_operation {std::divides<std::size_t>{}, dim, n_dim};
       }(dim, n_dim);
 
       decltype(auto) new_dim = [](const auto& dim, const auto& n_dim) -> decltype(auto) {
         if constexpr (scalar_constant<decltype(dim), ConstantType::static_constant> and F::value != dynamic_size and
             not scalar_constant<decltype(n_dim), ConstantType::static_constant>)
-          return internal::scalar_constant_operation {std::divides<std::size_t>{}, dim, F{}};
+          return values::scalar_constant_operation {std::divides<std::size_t>{}, dim, F{}};
         else
           return n_dim;
       }(dim, n_dim);
 
-      auto new_f = internal::scalar_constant_operation{std::multiplies<std::size_t>{}, factor, f};
+      auto new_f = values::scalar_constant_operation{std::multiplies<std::size_t>{}, factor, f};
       return get_constant_redux<MemberOp, direction>(n_xpr, new_f, new_dim, std::forward<Func>(func));
     }
     else
     {
       if constexpr (constant_matrix<XprType>)
       {
-        auto c = internal::scalar_constant_operation {std::forward<Func>(func), constant_coefficient {xpr}};
+        auto c = values::scalar_constant_operation {std::forward<Func>(func), constant_coefficient {xpr}};
         return Eigen3::ReduxTraits<MemberOp, direction>::get_constant(c, factor, dim);
       }
       else if constexpr (constant_diagonal_matrix<XprType>)
       {
         constexpr bool als = at_least_square<decltype(dim), decltype(get_index_dimension_of<direction == 1 ? 0 : 1>(xpr))>;
-        auto c = internal::scalar_constant_operation {std::forward<Func>(func), constant_diagonal_coefficient {xpr}};
+        auto c = values::scalar_constant_operation {std::forward<Func>(func), constant_diagonal_coefficient {xpr}};
         return Eigen3::ReduxTraits<MemberOp, direction>::template get_constant_diagonal<als>(c, factor, dim);
       }
       else

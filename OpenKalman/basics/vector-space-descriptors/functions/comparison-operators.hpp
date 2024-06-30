@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
- * Kalman filters and other recursive filters.
+ * Kalman filters and b recursive filters.
  *
- * Copyright (c) 2020-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,11 +10,11 @@
 
 /**
  * \file
- * \brief Comparison operators for \ref vector_space_descriptor objects.
+ * \brief Implementation for \ref VectorSpaceDescriptorComparisonBase.
  */
 
-#ifndef OPENKALMAN_VECTOR_SPACE_DESCRIPTORS_COMPARISON_OPERATORS_HPP
-#define OPENKALMAN_VECTOR_SPACE_DESCRIPTORS_COMPARISON_OPERATORS_HPP
+#ifndef OPENKALMAN_COMPARISON_OPERATORS_HPP
+#define OPENKALMAN_COMPARISON_OPERATORS_HPP
 
 #include <type_traits>
 
@@ -22,28 +22,13 @@
 #include <compare>
 #endif
 
-namespace OpenKalman
+namespace OpenKalman::vector_space_descriptors
 {
-  // -------------- //
-  //   Comparison   //
-  // -------------- //
-
-  namespace internal
-  {
-    template<typename T>
-    struct is_DynamicDescriptor : std::false_type {};
-
-    template<typename...AllowableScalarTypes>
-    struct is_DynamicDescriptor<DynamicDescriptor<AllowableScalarTypes...>> : std::true_type {};
-  } // namespace detail
-
-
-#if defined(__cpp_concepts) and defined(__cpp_impl_three_way_comparison)
   /**
-   * \brief Three-way comparison for a non-built-in \ref vector_space_descriptor.
-   * \details A comparison of A and B is a partial ordering based on whether or not A is a prefix of B.
+   * Comparison operator for library-defined \ref vector_space_descriptor objects
    */
-  template<vector_space_descriptor A, vector_space_descriptor B> requires (not index_value<A>) or (not index_value<B>)
+#if defined(__cpp_concepts) and defined(__cpp_impl_three_way_comparison)
+  template<vector_space_descriptor A, vector_space_descriptor B>
   constexpr auto operator<=>(const A& a, const B& b)
   {
     if constexpr (fixed_vector_space_descriptor<A> and fixed_vector_space_descriptor<B>)
@@ -52,9 +37,9 @@ namespace OpenKalman
         return dimension_size_of_v<A> <=> dimension_size_of_v<B>;
       else if constexpr (equivalent_to<A, B>)
         return std::partial_ordering::equivalent;
-      else if constexpr (prefix_of<A, B>)
+      else if constexpr (internal::prefix_of<A, B>)
         return std::partial_ordering::less;
-      else if constexpr (prefix_of<B, A>)
+      else if constexpr (internal::prefix_of<B, A>)
         return std::partial_ordering::greater;
       else
         return std::partial_ordering::unordered;
@@ -62,20 +47,6 @@ namespace OpenKalman
     else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
     {
       return static_cast<std::size_t>(get_dimension_size_of(a)) <=> static_cast<std::size_t>(get_dimension_size_of(b));
-    }
-    else if constexpr (internal::is_DynamicDescriptor<A>::value)
-    {
-      if (a.partially_matches(b))
-        return std::partial_ordering {static_cast<std::size_t>(get_dimension_size_of(a)) <=> static_cast<std::size_t>(get_dimension_size_of(b))};
-      else
-        return std::partial_ordering::unordered;
-    }
-    else if constexpr (internal::is_DynamicDescriptor<B>::value)
-    {
-      if (b.partially_matches(a))
-        return std::partial_ordering {static_cast<std::size_t>(get_dimension_size_of(a)) <=> static_cast<std::size_t>(get_dimension_size_of(b))};
-      else
-        return std::partial_ordering::unordered;
     }
     else
     {
@@ -85,109 +56,68 @@ namespace OpenKalman
 
 
   /**
-   * \brief Equality comparison for non-built-in \ref vector_space_descriptor.
+   * Equality operator for library-defined \ref vector_space_descriptor objects
    */
-  template<vector_space_descriptor A, vector_space_descriptor B> requires (not index_value<A>) or (not index_value<B>)
+  template<vector_space_descriptor A, vector_space_descriptor B>
   constexpr bool operator==(const A& a, const B& b)
   {
     return std::is_eq(a <=> b);
   }
 #else
-  /**
-   * \brief Equivalence comparison for a non-built-in \ref vector_space_descriptor.
-   */
-  template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B> and
-      (not index_value<A> or not index_value<B>), int> = 0>
+  template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B>, int> = 0>
   constexpr bool operator==(const A& a, const B& b)
   {
     if constexpr (fixed_vector_space_descriptor<A> and fixed_vector_space_descriptor<B>)
       return equivalent_to<A, B>;
     else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
       return static_cast<std::size_t>(get_dimension_size_of(a)) == static_cast<std::size_t>(get_dimension_size_of(b));
-    else if constexpr (internal::is_DynamicDescriptor<A>::value)
-      return a.partially_matches(b) and static_cast<std::size_t>(get_dimension_size_of(a)) == static_cast<std::size_t>(get_dimension_size_of(b));
-    else if constexpr (internal::is_DynamicDescriptor<B>::value)
-      return b.partially_matches(a) and static_cast<std::size_t>(get_dimension_size_of(a)) == static_cast<std::size_t>(get_dimension_size_of(b));
     else
       return false;
   }
 
+  template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B>, int> = 0>
+  constexpr bool operator<=(const A& a, const B& b)
+  {
+    if constexpr (fixed_vector_space_descriptor<A> and fixed_vector_space_descriptor<B>)
+      return internal::prefix_of<A, B>;
+    else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
+      return static_cast<std::size_t>(get_dimension_size_of(a)) <= static_cast<std::size_t>(get_dimension_size_of(b));
+    else
+      return false;
+  }
 
-  /**
-   * \brief Compares \ref vector_space_descriptor objects for non-equivalence.
-   */
-  template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B> and
-    (not index_value<A> or not index_value<B>), int> = 0>
+  template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B>, int> = 0>
+  constexpr bool operator>=(const A& a, const B& b)
+  {
+    if constexpr (fixed_vector_space_descriptor<A> and fixed_vector_space_descriptor<B>)
+      return internal::prefix_of<B, A>;
+    else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
+      return static_cast<std::size_t>(get_dimension_size_of(a)) >= static_cast<std::size_t>(get_dimension_size_of(b));
+    else
+      return false;
+  }
+
+  template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B>, int> = 0>
   constexpr bool operator!=(const A& a, const B& b)
   {
     return not operator==(a, b);
   }
 
-
-  /**
-   * \brief Determine whether one \ref vector_space_descriptor object is less than another.
-   */
-  template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B> and
-    (not index_value<A> or not index_value<B>), int> = 0>
+  template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B>, int> = 0>
   constexpr bool operator<(const A& a, const B& b)
   {
-    if constexpr (fixed_vector_space_descriptor<A> and fixed_vector_space_descriptor<B>)
-      return prefix_of<A, B>;
-    else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
-      return static_cast<std::size_t>(get_dimension_size_of(a)) < static_cast<std::size_t>(get_dimension_size_of(b));
-    else if constexpr (internal::is_DynamicDescriptor<A>::value)
-      return a.partially_matches(b) and static_cast<std::size_t>(get_dimension_size_of(a)) < static_cast<std::size_t>(get_dimension_size_of(b));
-    else if constexpr (internal::is_DynamicDescriptor<B>::value)
-      return b.partially_matches(a) and static_cast<std::size_t>(get_dimension_size_of(a)) < static_cast<std::size_t>(get_dimension_size_of(b));
-    else
-      return false;
+    return operator<=(a, b) and not operator==(a, b);
   }
 
-
-  /**
-   * \brief Determine whether one \ref vector_space_descriptor object is greater than another.
-   */
-  template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B> and
-    (not index_value<A> or not index_value<B>), int> = 0>
+  template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B>, int> = 0>
   constexpr bool operator>(const A& a, const B& b)
   {
-    if constexpr (fixed_vector_space_descriptor<A> and fixed_vector_space_descriptor<B>)
-      return prefix_of<B, A>;
-    else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
-      return static_cast<std::size_t>(get_dimension_size_of(a)) > static_cast<std::size_t>(get_dimension_size_of(b));
-    else if constexpr (internal::is_DynamicDescriptor<A>::value)
-      return a.partially_matches(b) and static_cast<std::size_t>(get_dimension_size_of(a)) > static_cast<std::size_t>(get_dimension_size_of(b));
-    else if constexpr (internal::is_DynamicDescriptor<B>::value)
-      return b.partially_matches(a) and static_cast<std::size_t>(get_dimension_size_of(a)) > static_cast<std::size_t>(get_dimension_size_of(b));
-    else
-      return false;
-  }
-
-
-  /**
-   * \brief Determine whether one \ref vector_space_descriptor object is less than or equal to another.
-   */
-  template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B> and
-    (not index_value<A> or not index_value<B>), int> = 0>
-  constexpr bool operator<=(const A& a, const B& b)
-  {
-    return operator<(a, b) or operator==(a, b);
-  }
-
-
-  /**
-   * \brief Determine whether one \ref vector_space_descriptor object is greater than or equal to another.
-   */
-  template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B> and
-    (not index_value<A> or not index_value<B>), int> = 0>
-  constexpr bool operator>=(const A& a, const B& b)
-  {
-    return operator>(a, b) or operator==(a, b);
+    return operator>=(a, b) and not operator==(a, b);
   }
 #endif
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::vector_space_descriptors
 
 
-#endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTORS_COMPARISON_OPERATORS_HPP
+#endif //OPENKALMAN_COMPARISON_OPERATORS_HPP

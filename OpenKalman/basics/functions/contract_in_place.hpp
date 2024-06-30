@@ -51,7 +51,7 @@ namespace OpenKalman
     else if constexpr (diagonal_adapter<A> and diagonal_matrix<B>)
     {
       using Scalar = std::decay_t<decltype(std::declval<scalar_type_of_t<A>>() * std::declval<scalar_type_of_t<B>>())>;
-      internal::set_triangle<TriangleType::diagonal>(a, n_ary_operation(std::multiplies<Scalar>{}, diagonal_of(a), diagonal_of(std::forward<B>(b))));
+      internal::set_triangle<TriangleType::diagonal>(a, to_diagonal(n_ary_operation(std::multiplies<Scalar>{}, diagonal_of(a), diagonal_of(std::forward<B>(b)))));
       return a;
     }
     else if constexpr (triangular_adapter<A> and triangle_type_of_v<A> == triangle_type_of_v<A, B>)

@@ -258,7 +258,7 @@ namespace OpenKalman::Eigen3
       }
       else
       {
-        return internal::scalar_constant_operation {constexpr_operation(), constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
+        return values::scalar_constant_operation {constexpr_operation(), constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
       }
     }
 
@@ -279,7 +279,7 @@ namespace OpenKalman::Eigen3
       }
       else
       {
-        return internal::scalar_constant_operation {constexpr_operation(),
+        return values::scalar_constant_operation {constexpr_operation(),
           constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
       }
     }
@@ -312,7 +312,7 @@ namespace OpenKalman::Eigen3
       }
       else
       {
-        return internal::scalar_constant_operation {constexpr_operation(),
+        return values::scalar_constant_operation {constexpr_operation(),
           constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
       }
     }
@@ -334,7 +334,7 @@ namespace OpenKalman::Eigen3
       }
       else
       {
-        return internal::scalar_constant_operation {constexpr_operation(),
+        return values::scalar_constant_operation {constexpr_operation(),
           constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
       }
     }

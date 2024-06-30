@@ -176,9 +176,6 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index i) const
     {
-      static_assert(OpenKalman::one_dimensional<ArgType>,
-        "Linear (single index) element access is only available for one-by-one SelfAdjointMatrix");
-
       return m_argImpl.coeff(i);
     }
 
@@ -186,9 +183,6 @@ namespace Eigen::internal
     template<int LoadMode, typename PacketType>
     constexpr PacketType packet(Index row, Index col) const
     {
-      static_assert(OpenKalman::one_dimensional<ArgType>,
-        "Packet access is only available for one-by-one SelfAdjointMatrix");
-
       return m_argImpl.template packet<LoadMode, PacketType>(row, col);
     }
 
@@ -196,9 +190,6 @@ namespace Eigen::internal
     template<int LoadMode, typename PacketType>
     constexpr PacketType packet(Index index) const
     {
-      static_assert(OpenKalman::one_dimensional<ArgType>,
-        "Linear packet access is only available for one-by-one SelfAdjointMatrix");
-
       return m_argImpl.template packet<LoadMode, PacketType>(index);
     }
 

@@ -10,6 +10,7 @@
 
 /**
  * \file
+ * \internal
  * \brief Definition for \ref tail_of.
  */
 
@@ -17,9 +18,10 @@
 #define OPENKALMAN_TAIL_OF_HPP
 
 
-namespace OpenKalman
+namespace OpenKalman::internal
 {
   /**
+   * \internal
    * \brief Type trait extracting the tail of a \ref fixed_vector_space_descriptor.
    */
   #ifdef __cpp_concepts
@@ -27,7 +29,7 @@ namespace OpenKalman
   #else
   template<typename T, typename = void>
   #endif
-  struct tail_of ;
+  struct tail_of;
 
 
 #ifdef __cpp_concepts
@@ -41,12 +43,13 @@ namespace OpenKalman
 
 
   /**
+   * \internal
    * \brief Helper for \ref tail_of.
    */
   template<typename T>
   using tail_of_t = typename tail_of<T>::type;
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::internal
 
 #endif //OPENKALMAN_TAIL_OF_HPP

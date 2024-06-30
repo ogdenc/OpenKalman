@@ -66,18 +66,10 @@ namespace OpenKalman
       : Base {} {}
 
 
-    /// Copy constructor.
-    SelfAdjointMatrix(const SelfAdjointMatrix& other) : Base {other} {}
-
-
-    /// Move constructor.
-    SelfAdjointMatrix(SelfAdjointMatrix&& other) noexcept : Base {std::move(other)} {}
-
-
     /// Construct from a diagonal matrix if NestedMatrix is diagonal.
 #ifdef __cpp_concepts
     template<diagonal_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, SelfAdjointMatrix>) and
-      diagonal_matrix<NestedMatrix> and same_shape_as<Arg, NestedMatrix> and
+      diagonal_matrix<NestedMatrix> and maybe_same_shape_as<Arg, NestedMatrix> and
       requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; }
 #else
     template<typename Arg, std::enable_if_t<(not std::is_base_of_v<SelfAdjointMatrix, std::decay_t<Arg>>) and
@@ -212,35 +204,6 @@ namespace OpenKalman
 #endif
     SelfAdjointMatrix(Args ... args)
       : Base {make_dense_object_from<NestedMatrix>(static_cast<const Scalar>(args)...)} {}
-
-
-    /** Copy assignment operator
-     * \param other Another SelfAdjointMatrix
-     * \return Reference to this.
-     */
-    auto& operator=(const SelfAdjointMatrix& other)
-    {
-      if constexpr (not constant_matrix<NestedMatrix, ConstantType::static_constant> and
-          not constant_diagonal_matrix<NestedMatrix, ConstantType::static_constant>);
-      else if (this != &other)
-      {
-        if constexpr (writable<NestedMatrix>) internal::set_triangle<storage_triangle>(this->nested_object(), other.nested_object());
-        else Base::operator=(other);
-      }
-
-      return *this;
-    }
-
-
-    /** Move assignment operator
-     * \param other A SelfAdjointMatrix temporary value.
-     * \return Reference to this.
-     */
-    auto& operator=(SelfAdjointMatrix&& other) noexcept
-    {
-      Base::operator=(std::move(other));
-      return *this;
-    }
 
 
     /// Assign from another \ref hermitian_matrix.
@@ -431,15 +394,9 @@ namespace OpenKalman
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(Arg&& arg, N n)
       {
-        if constexpr (static_index_value<N>)
-        {
-          if constexpr (dynamic_dimension<NestedMatrix, 0>) return OpenKalman::get_vector_space_descriptor<1>(nested_object(std::forward<Arg>(arg)));
-          else return OpenKalman::get_vector_space_descriptor<0>(nested_object(std::forward<Arg>(arg)));
-        }
-        else
-        {
-          return OpenKalman::get_vector_space_descriptor<0>(nested_object(arg));
-        }
+        return internal::best_vector_space_descriptor(
+          OpenKalman::get_vector_space_descriptor<0>(nested_object(arg)),
+          OpenKalman::get_vector_space_descriptor<1>(nested_object(arg)));
       }
 
 
@@ -484,86 +441,6 @@ namespace OpenKalman
       static constexpr bool is_hermitian = true;
 
       static constexpr HermitianAdapterType hermitian_adapter_type = storage_type;
-
-
-#ifdef __cpp_lib_concepts
-    template<diagonal_matrix Arg, typename I> requires element_gettable<nested_object_of_t<Arg&&>, 1> or
-      element_gettable<nested_object_of_t<Arg&&>, 2>
-#else
-    template<typename Arg, typename I, std::enable_if_t<diagonal_matrix<Arg> and
-      element_gettable<typename nested_object_of<Arg&&>::type, 1> and
-      element_gettable<typename nested_object_of<Arg&&>::type, 2>, int> = 0>
-#endif
-      static constexpr auto get(Arg&& arg, I i)
-      {
-        if constexpr (element_gettable<nested_object_of_t<Arg&&>, 1>)
-          return get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), i);
-        else
-          return get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), i, i);
-      }
-
-
-  #ifdef __cpp_lib_concepts
-      template<typename Arg, typename I, typename J> requires element_gettable<nested_object_of_t<Arg&&>, 2>
-  #else
-      template<typename Arg, typename I, typename J, std::enable_if_t<
-        element_gettable<typename nested_object_of<Arg&&>::type, 2>, int> = 0>
-  #endif
-      static constexpr scalar_type_of_t<Arg> get(Arg&& arg, I i, J j)
-      {
-        using Scalar = scalar_type_of<Arg>;
-
-        auto&& n = nested_object(std::forward<Arg>(arg));
-        using N = decltype(n);
-
-        if (hermitian_adapter<Arg, HermitianAdapterType::lower> ? i >= static_cast<I>(j) : i <= static_cast<I>(j))
-        {
-          if constexpr (complex_number<Scalar>)
-          {
-            if (i == j) return internal::constexpr_real(get_component(std::forward<N>(n), i, j));
-          }
-          return get_component(std::forward<decltype(n)>(n), i, j);
-        }
-        else
-        {
-          if constexpr (complex_number<Scalar>)
-            return internal::constexpr_conj(get_component(std::forward<N>(n), j, i));
-          else
-            return get_component(std::forward<N>(n), j, i);
-        }
-      }
-
-
-#ifdef __cpp_lib_concepts
-    template<diagonal_matrix Arg, typename I> requires element_settable<nested_object_of_t<Arg&>, 1> or
-      element_settable<nested_object_of_t<Arg&>, 2>
-#else
-    template<typename Arg, typename I, std::enable_if_t<diagonal_matrix<Arg> and
-      element_settable<typename nested_object_of<Arg&>::type, 1> and
-      element_settable<typename nested_object_of<Arg&>::type, 2>, int> = 0>
-#endif
-      static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I i)
-      {
-        if constexpr (element_settable<nested_object_of_t<Arg&>, 1>)
-          set_component(nested_object(arg), s, i);
-        else
-          set_component(nested_object(arg), s, i, static_cast<I>(1));
-      }
-
-
-  #ifdef __cpp_lib_concepts
-      template<typename Arg, typename I, typename J> requires element_settable<nested_object_of_t<Arg&>, 2>
-  #else
-      template<typename Arg, typename I, typename J, std::enable_if_t<element_settable<typename nested_object_of<Arg&>::type, 2>, int> = 0>
-  #endif
-      static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I i, J j)
-      {
-        if (hermitian_adapter<Arg, HermitianAdapterType::lower> ? i >= static_cast<I>(j) : i <= static_cast<I>(j))
-          set_component(nested_object(arg), s, i, j);
-        else
-          set_component(nested_object(arg), internal::constexpr_conj(s), j, i);
-      }
-
 
       static constexpr bool is_writable = false;
 

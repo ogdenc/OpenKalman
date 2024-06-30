@@ -394,10 +394,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   /// Split typed matrix into one or more typed matrices vertically.
 #ifdef __cpp_concepts
   template<fixed_vector_space_descriptor ... Cs, typed_matrix M> requires
-    prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>
+    internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
-    prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>, int> = 0>
+    internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>, int> = 0>
 #endif
   inline auto
   split_vertical(M&& m) noexcept
@@ -411,10 +411,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   /// Split typed matrix into one or more typed matrices horizontally.
 #ifdef __cpp_concepts
   template<fixed_vector_space_descriptor ... Cs, typed_matrix M> requires
-    prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 1>>
+    internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 1>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
-    prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 1>>, int> = 0>
+    internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 1>>, int> = 0>
 #endif
   inline auto
   split_horizontal(M&& m) noexcept
@@ -449,7 +449,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   inline auto
   split_diagonal(M&& m) noexcept
   {
-    static_assert(prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
+    static_assert(internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
     static_assert(equivalent_to<vector_space_descriptor_of_t<M, 0>::ColumnCoefficients, MatrixTraits<std::decay_t<M>>>);
     return split_diagonal<oin::SplitMatDiagF<M>, Cs...>(nested_object(std::forward<M>(m)));
   }

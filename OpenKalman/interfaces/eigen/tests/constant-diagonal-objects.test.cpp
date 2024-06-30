@@ -77,8 +77,8 @@ TEST(eigen3, constant_diagonal_objects)
   EXPECT_EQ((std::integral_constant<int, 6>{} / cd3u), 2);
 
   constant_coefficient<C21_3> c3;
-  auto sc3 = internal::ScalarConstant<double, 3>{};
-  auto sco3 = internal::scalar_constant_operation{std::minus<>{}, internal::ScalarConstant<double, 7>{}, std::integral_constant<int, 4>{}};
+  auto sc3 = values::ScalarConstant<double, 3>{};
+  auto sco3 = values::scalar_constant_operation{std::minus<>{}, values::ScalarConstant<double, 7>{}, std::integral_constant<int, 4>{}};
   static_assert(std::decay_t<decltype(c3 + cd3)>::value == 6);
   static_assert(std::decay_t<decltype(sc3 - cd3)>::value == 0);
   static_assert(std::decay_t<decltype(c3 * sco3)>::value == 9);

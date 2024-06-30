@@ -69,7 +69,7 @@ namespace OpenKalman::interface
           if (DiagIndex >= arg.nestedExpression().cols()) throw std::out_of_range{"DiagIndex in Eigen::Diagonal is too high for MatrixType."};
         }
 
-        return internal::ScalarConstant<Scalar, 0>{};
+        return values::ScalarConstant<Scalar, 0>{};
       }
       else if constexpr (constant_diagonal_matrix<MatrixType> and DiagIndex == Eigen::DynamicIndex)
       {

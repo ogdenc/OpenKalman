@@ -84,15 +84,14 @@ namespace OpenKalman
 
     /**
    * \brief A ConstantAdapter in which all elements are 0.
-   * \detail This is an Eigen-specific version of ZeroMatrix
-   * \tparam PatternMatrix A matrix, in some library, having the size and shape of this matrix
+   * \tparam PatternObject An indexible object, in some library, defining the shape of the resulting zero object
    */
 #ifdef __cpp_concepts
-  template<indexible PatternMatrix, scalar_type Scalar = scalar_type_of_t<PatternMatrix>>
+  template<indexible PatternObject, scalar_type Scalar = scalar_type_of_t<PatternObject>>
 #else
-  template<typename PatternMatrix, typename Scalar = scalar_type_of_t<PatternMatrix>>
+  template<typename PatternObject, typename Scalar = scalar_type_of_t<PatternObject>>
 #endif
-  using ZeroAdapter = ConstantAdapter<PatternMatrix, Scalar, 0>;
+  using ZeroAdapter = ConstantAdapter<PatternObject, Scalar, 0>;
 
 
   // ---------------------------------------- //
@@ -177,7 +176,7 @@ namespace OpenKalman
 
   /**
    * \brief A hermitian matrix wrapper.
-   * \details The matrix is guaranteed to be self-adjoint. It is ::self_contained iff NestedMatrix is ::self_contained.
+   * \details The matrix is guaranteed to be hermitian. It is ::self_contained iff NestedMatrix is ::self_contained.
    * Implicit conversions are available from any \ref hermitian_matrix of compatible size.
    * \tparam NestedMatrix A nested \ref square_shaped expression, on which the self-adjoint matrix is based.
    * \tparam storage_triangle The HermitianAdapterType (\ref HermitianAdapterType::lower "lower" or

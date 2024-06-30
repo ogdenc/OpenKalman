@@ -23,7 +23,7 @@ using M23 = eigen_matrix_t<double, 2, 3>;
 using M32 = eigen_matrix_t<double, 3, 2>;
 using M33 = eigen_matrix_t<double, 3, 3>;
 using I22 = Eigen3::IdentityMatrix<M22>;
-using Z22 = ZeroMatrix<eigen_matrix_t<double, 2, 2>>;
+using Z22 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>;
 using C2 = FixedDescriptor<Axis, angle::Radians>;
 using C3 = FixedDescriptor<Axis, angle::Radians, Axis>;
 using Mat12 = Mean<Axis, M12>;
@@ -262,7 +262,7 @@ TEST(matrices, Mean_traits)
   static_assert(not identity_matrix<Mean<Dimensions<2>, M23>>);
   static_assert(not zero<Mat23>);
   static_assert(zero<Mean<C2, Z22>>);
-  static_assert(zero<Mean<C2, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>>);
+  static_assert(zero<Mean<C2, ZeroAdapter<eigen_matrix_t<double, 2, 2>>>>);
 
   EXPECT_TRUE(is_near(make_zero<Mat23>(), eigen_matrix_t<double, 2, 3>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<Mat22>(), eigen_matrix_t<double, 2, 2>::Identity()));

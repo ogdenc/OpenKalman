@@ -47,6 +47,10 @@ namespace OpenKalman
     {
       return nested_object(std::forward<Arg>(arg));
     }
+    else if constexpr (diagonal_adapter<Arg, 1>)
+    {
+      return transpose(nested_object(std::forward<Arg>(arg)));
+    }
     else if constexpr (one_dimensional<Arg>)
     {
       return std::forward<Arg>(arg);

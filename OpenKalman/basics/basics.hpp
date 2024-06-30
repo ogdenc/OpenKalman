@@ -31,6 +31,13 @@ namespace OpenKalman {}
 
 /**
  * \internal
+ * \brief The root namespace for OpenKalman interface types.
+ */
+namespace OpenKalman::interface {}
+
+
+/**
+ * \internal
  * \brief Namespace for internal definitions, not intended for use outside of OpenKalman development.
  */
 namespace OpenKalman::internal {}
@@ -38,9 +45,16 @@ namespace OpenKalman::internal {}
 
 /**
  * \internal
- * \brief The root namespace for OpenKalman interface types.
+ * \brief The root namespace for OpenKalman values (e.g., \ref constant_coefficient, \ref constant_diagonal_coefficient).
  */
-namespace OpenKalman::interface {}
+namespace OpenKalman::values {}
+
+
+/**
+ * \brief The root namespace for OpenKalman \ref vector_space_descriptor objects.
+ */
+namespace OpenKalman::vector_space_descriptors {}
+namespace OpenKalman { using namespace vector_space_descriptors; }
 
 
 // global

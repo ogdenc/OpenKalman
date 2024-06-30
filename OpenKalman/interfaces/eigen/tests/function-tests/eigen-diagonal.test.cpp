@@ -181,6 +181,9 @@ TEST(eigen3, diagonal_of_dense_nonsquare)
 
 TEST(eigen3, diagonal_of_DiagonalMatrix)
 {
+  static_assert(diagonal_adapter<Eigen::DiagonalMatrix<double, 2>>);
+  static_assert(diagonal_adapter<Eigen::DiagonalMatrix<double, Eigen::Dynamic>>);
+
   auto m21 = M21 {1, 4};
   auto mx1_2 = Mx1 {m21};
 
@@ -200,15 +203,25 @@ TEST(eigen3, diagonal_of_DiagonalMatrix)
 
 TEST(eigen3, diagonal_of_DiagonalWrapper)
 {
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M21>>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M21>, 1>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M12>>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M12>, 1>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<Mx1>>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<Mx1>, 1>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M1x>>);
+  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M1x>, 1>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M2x>>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M2x>, 1>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<Mx2>>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<Mx2>, 1>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<Mxx>>);
+  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<Mxx>, 1>);
+
   auto m21 = M21 {1, 4};
   auto m2x_1 = M2x {m21};
   auto mx1_2 = Mx1 {m21};
   auto mxx_21 = Mxx {m21};
-
-  static_assert(diagonal_adapter<decltype(Eigen::DiagonalWrapper {m21})>);
-  static_assert(not diagonal_adapter<decltype(Eigen::DiagonalWrapper {m2x_1})>);
-  static_assert(diagonal_adapter<decltype(Eigen::DiagonalWrapper {mx1_2})>);
-  static_assert(not diagonal_adapter<decltype(Eigen::DiagonalWrapper {mxx_21})>);
 
   static_assert(std::is_assignable_v<decltype(nested_object(Eigen::DiagonalWrapper {m21})), M21>);
   static_assert(std::is_assignable_v<decltype(diagonal_of(Eigen::DiagonalWrapper {m21})), M21>);
@@ -222,6 +235,9 @@ TEST(eigen3, diagonal_of_DiagonalWrapper)
   auto m1x_2 = M1x {m12};
   auto mx2_1 = Mx2 {m12};
   auto mxx_12 = Mxx {m12};
+
+  static_assert(std::is_assignable_v<decltype(nested_object(Eigen::DiagonalWrapper {m12})), M12>);
+  static_assert(std::is_assignable_v<decltype(diagonal_of(Eigen::DiagonalWrapper {m12})), M21>);
 
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m12}), m21));
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m1x_2}), m21));

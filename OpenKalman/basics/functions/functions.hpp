@@ -43,11 +43,12 @@
 #include "make_zero.hpp"
 #include "make_identity_matrix_like.hpp"
 
+#include "transpose.hpp"
+
 #include "to_diagonal.hpp"
 #include "diagonal_of.hpp"
 
 #include "conjugate.hpp"
-#include "transpose.hpp"
 #include "adjoint.hpp"
 
 #include "make_triangular_matrix.hpp"

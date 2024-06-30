@@ -26,7 +26,6 @@ namespace OpenKalman::internal
   // ---------------------- //
 
   // no_assignment_operator is a private base class of Cwise___Operator, Select, DiagonalWrapper, and a few others.
-  // This also includes ZeroMatrix, which derives from CwiseNullaryOperator.
 #ifdef __cpp_concepts
   template<typename T, typename U> requires std::is_base_of_v<Eigen::internal::no_assignment_operator, T>
   struct is_modifiable_native<T, U>

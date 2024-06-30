@@ -151,12 +151,12 @@ namespace OpenKalman::interface
       std::convertible_to<std::ranges::range_value_t<Indices>, const typename Arg::Index> and
       std::assignable_from<decltype(get_coeff(std::declval<Arg&>(), 0, 0)), const scalar_type_of_t<Arg>&> and
       ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0) and
-      (not diagonal_adapter<Arg>) and (not triangular_adapter<Arg>)
+      (not Eigen3::eigen_DiagonalWrapper<Arg>) and (not Eigen3::eigen_TriangularView<Arg>)
 #else
     template<typename Arg, typename Indices, std::enable_if_t<(not std::is_const_v<Arg>) and
       std::is_assignable<decltype(get_coeff(std::declval<Arg&>(), 0, 0)), const scalar_type_of_t<Arg>&>::value and
       (Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0 and
-      (not diagonal_adapter<Arg>) and (not triangular_adapter<Arg>), int> = 0>
+      (not Eigen3::eigen_DiagonalWrapper<Arg>) and (not Eigen3::eigen_TriangularView<Arg>), int> = 0>
 #endif
     static void
     set_component(Arg& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
@@ -556,7 +556,8 @@ namespace OpenKalman::interface
     template<typename A>
     struct pass_through_eigenwrapper<A, std::enable_if_t<Eigen3::eigen_wrapper<A> or Eigen3::eigen_self_contained_wrapper<A>>>
 #endif
-      : std::bool_constant<Eigen3::eigen_dense_general<nested_object_of_t<A>> or diagonal_adapter<nested_object_of_t<A>> or
+      : std::bool_constant<Eigen3::eigen_dense_general<nested_object_of_t<A>> or
+        diagonal_adapter<nested_object_of_t<A>> or diagonal_adapter<nested_object_of_t<A>, 1> or
         triangular_adapter<nested_object_of_t<A>> or hermitian_adapter<nested_object_of_t<A>>> {};
 
   public:
@@ -710,7 +711,7 @@ namespace OpenKalman::interface
       else if constexpr (Eigen3::eigen_Identity<Arg>)
       {
         auto f = [](const auto& a, const auto& b) { return std::min(a, b); };
-        auto dim = internal::scalar_constant_operation{f, get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)};
+        auto dim = values::scalar_constant_operation{f, get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)};
         return make_constant<Arg, Scalar, 1>(dim);
       }
       else if constexpr (Eigen3::eigen_matrix_general<Arg>)
@@ -1084,7 +1085,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<bool on_the_right, writable A, indexible B> requires Eigen3::eigen_dense_general<A>
 #else
-    template<bool on_the_right, typename A, typename B, std::enable_if_t<writable<A> and Eigen3::eigen_dense_general<A>,int> = 0>
+    template<bool on_the_right, typename A, typename B, std::enable_if_t<writable<A> and Eigen3::eigen_dense_general<A>, int> = 0>
 #endif
     static A&
     contract_in_place(A& a, B&& b)
@@ -1102,56 +1103,61 @@ namespace OpenKalman::interface
     }
 
 
-    template<TriangleType triangle_type, typename A>
+#ifdef __cpp_concepts
+    template<TriangleType triangle_type, Eigen3::eigen_SelfAdjointView A>
+#else
+    template<TriangleType triangle_type, typename A, std::enable_if_t<Eigen3::eigen_SelfAdjointView<A>, int> = 0>
+#endif
     static constexpr auto
     cholesky_factor(A&& a) noexcept
     {
       using NestedMatrix = std::decay_t<nested_object_of_t<A>>;
       using Scalar = scalar_type_of_t<A>;
-      constexpr auto dim = index_dimension_of_v<A, 0>;
-      using M = dense_writable_matrix_t<A>;
+      auto dim = *is_square_shaped(a);
 
-      if constexpr (std::is_same_v<
-        const NestedMatrix, const typename Eigen::MatrixBase<NestedMatrix>::ConstantReturnType>)
+      if constexpr (constant_matrix<NestedMatrix>)
       {
         // If nested matrix is a positive constant matrix, construct the Cholesky factor using a shortcut.
 
-        auto s = nested_object(std::forward<A>(a)).functor()();
+        auto s = constant_coefficient {a};
 
-        if (s < Scalar(0))
+        if (get_scalar_constant_value(s) < Scalar(0))
         {
           // Cholesky factor elements are complex, so throw an exception.
-          throw (std::runtime_error("cholesky_factor of constant SelfAdjointMatrix: covariance is indefinite"));
+          throw (std::runtime_error("cholesky_factor of constant SelfAdjointMatrix: result is indefinite"));
         }
 
         if constexpr(triangle_type == TriangleType::diagonal)
         {
           static_assert(diagonal_matrix<A>);
-          auto vec = make_constant<A>(square_root(s), Dimensions<dim>{}, Dimensions<1>{});
-          return DiagonalMatrix<decltype(vec)> {vec};
+          return to_diagonal(make_constant<A>(internal::constexpr_sqrt(s), dim, Dimensions<1>{}));
         }
         else if constexpr(triangle_type == TriangleType::lower)
         {
-          auto col0 = make_constant<A>(square_root(s), Dimensions<dim>{}, Dimensions<1>{});
-          auto othercols = make_zero<A>(get_vector_space_descriptor<0>(a), get_vector_space_descriptor<0>(a) - 1);
-          return TriangularMatrix<M, triangle_type> {concatenate_horizontal(col0, othercols)};
+          auto euc_dim = get_dimension_size_of(dim);
+          auto col0 = make_constant<A>(internal::constexpr_sqrt(s), euc_dim, Dimensions<1>{});
+          auto othercols = make_zero<A>(euc_dim, euc_dim - Dimensions<1>{});
+          return make_matrix(OpenKalman::make_triangular_matrix<triangle_type>(concatenate_horizontal(col0, othercols)), dim, dim);
         }
         else
         {
           static_assert(triangle_type == TriangleType::upper);
-          auto row0 = make_constant<A>(square_root(s), Dimensions<1>{}, Dimensions<dim>{});
-          auto otherrows = make_zero<A>(get_vector_space_descriptor<0>(a) - 1, get_vector_space_descriptor<0>(a));
-          return TriangularMatrix<M, triangle_type> {concatenate_vertical(row0, otherrows)};
+          auto euc_dim = get_dimension_size_of(dim);
+          auto row0 = make_constant<A>(internal::constexpr_sqrt(s), Dimensions<1>{}, dim);
+          auto otherrows = make_zero<A>(euc_dim - Dimensions<1>{}, euc_dim);
+          return make_matrix(OpenKalman::make_triangular_matrix<triangle_type>(concatenate_vertical(row0, otherrows)), dim, dim);
         }
       }
       else
       {
         // For the general case, perform an LLT Cholesky decomposition.
+        using M = dense_writable_matrix_t<A>;
         M b;
-        auto LL_x = a.view().llt();
+        auto LL_x = a.llt();
         if (LL_x.info() == Eigen::Success)
         {
-          if constexpr(triangle_type == hermitian_adapter_type_of_v<A>)
+          if constexpr((triangle_type == TriangleType::upper and hermitian_adapter_type_of_v<A> == HermitianAdapterType::upper) or
+            triangle_type == TriangleType::lower and hermitian_adapter_type_of_v<A> == HermitianAdapterType::lower)
           {
             b = std::move(LL_x.matrixLLT());
           }

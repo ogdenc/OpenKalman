@@ -36,7 +36,7 @@ namespace OpenKalman
   {
     if constexpr (zero<Arg> or empty_object<Arg>)
     {
-      return internal::ScalarConstant<scalar_type_of_t<Arg>, 0>{};
+      return values::ScalarConstant<scalar_type_of_t<Arg>, 0>{};
     }
     else if constexpr (identity_matrix<Arg>)
     {
@@ -50,13 +50,13 @@ namespace OpenKalman
     {
       std::multiplies<scalar_type_of_t<Arg>> op;
       auto n = internal::index_dimension_scalar_constant(arg, internal::smallest_dimension_index(arg));
-      return internal::scalar_constant_operation{op, constant_coefficient{arg}, n};
+      return values::scalar_constant_operation{op, constant_coefficient{arg}, n};
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       std::multiplies<scalar_type_of_t<Arg>> op;
       auto n = internal::index_dimension_scalar_constant(arg, internal::smallest_dimension_index(arg));
-      return internal::scalar_constant_operation{op, constant_diagonal_coefficient{arg}, n};
+      return values::scalar_constant_operation{op, constant_diagonal_coefficient{arg}, n};
     }
     else if constexpr (triangular_matrix<Arg>) // Includes the diagonal case.
     {

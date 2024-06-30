@@ -78,6 +78,45 @@ namespace
 }
 
 
+TEST(special_matrices, cholesky_diagonal)
+{
+  // constant diagonal
+  static_assert(constant_diagonal_coefficient{cholesky_factor<TriangleType::lower>(to_diagonal(make_constant<M41>(std::integral_constant<int, 4>{})))} == 2);
+
+  // constant
+  EXPECT_TRUE(is_near(cholesky_factor<TriangleType::lower>(make_constant<M22>(std::integral_constant<int, 4>{})), M22{2, 2, 0, 0}));
+
+  auto d22 = Eigen::DiagonalMatrix<double, 2> {9, 16};
+  const auto d22_sqrt = Eigen::DiagonalMatrix<double, 2> {3, 4};
+
+  EXPECT_TRUE(is_near(cholesky_factor<TriangleType::lower>(d22), d22_sqrt));
+  EXPECT_TRUE(is_near(cholesky_factor<TriangleType::upper>(d22), d22_sqrt));
+
+  EXPECT_TRUE(is_near(cholesky_square(d22_sqrt), d22));
+  EXPECT_TRUE(is_near(cholesky_square(d22_sqrt), d22));
+}
+
+
+TEST(special_matrices, cholesky_hermitian)
+{
+  auto m22_93310 = make_dense_object_from<M22>(9, 3, 3, 10);
+  auto hl22 = Eigen::SelfAdjointView<M22, Eigen::Lower> {m22_93310};
+  auto hu22 = Eigen::SelfAdjointView<M22, Eigen::Upper> {m22_93310};
+  auto m22_3013 = make_dense_object_from<M22>(3, 0, 1, 3);
+  auto m22_3103 = make_dense_object_from<M22>(3, 1, 0, 3);
+  auto tl22 = Eigen::TriangularView<M22, Eigen::Lower> {m22_3013};
+  auto tu22 = Eigen::TriangularView<M22, Eigen::Upper> {m22_3103};
+
+  EXPECT_TRUE(is_near(cholesky_factor<TriangleType::lower>(hl22), tl22));
+  EXPECT_TRUE(is_near(cholesky_factor<TriangleType::upper>(hl22), tu22));
+  EXPECT_TRUE(is_near(cholesky_factor<TriangleType::lower>(hu22), tl22));
+  EXPECT_TRUE(is_near(cholesky_factor<TriangleType::upper>(hu22), tu22));
+}
+
+
+// \todo Add triangular and hermitian cholesky tests
+
+
 TEST(special_matrices, decompositions_constant)
 {
   auto z11 = M11::Identity() - M11::Identity();

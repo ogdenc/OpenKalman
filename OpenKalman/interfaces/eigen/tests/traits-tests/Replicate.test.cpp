@@ -32,7 +32,7 @@ TEST(eigen3, Eigen_Replicate)
   static_assert(index_dimension_of_v<Zxx, 1> == dynamic_size);
   EXPECT_EQ(get_vector_space_descriptor<0>(zxx_21), 2);
   EXPECT_EQ(get_vector_space_descriptor<1>(zxx_21), 1);
-  static_assert(std::is_same_v<typename interface::indexible_object_traits<Zxx>::scalar_type, double>);
+  static_assert(std::is_same_v<typename interface::indexible_object_traits<std::decay_t<Zxx>>::scalar_type, double>);
 
   static_assert(one_dimensional<Eigen::Replicate<M11, 1, 1>>);
   static_assert(one_dimensional<Eigen::Replicate<Mxx, 1, 1>, Qualification::depends_on_dynamic_shape>);

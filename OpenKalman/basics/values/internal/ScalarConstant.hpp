@@ -10,6 +10,7 @@
 
 /**
  * \file
+ * \internal
  * \brief Definition of \ref ScalarConstant.
  */
 
@@ -17,7 +18,7 @@
 #define OPENKALMAN_SCALARCONSTANT_HPP
 
 
-namespace OpenKalman::internal
+namespace OpenKalman::values
 {
   /**
    * \internal
@@ -29,7 +30,7 @@ namespace OpenKalman::internal
   struct ScalarConstant;
 
 
-#ifndef __cpp_concepts
+#if not defined(__cpp_concepts) or not defined(__cpp_impl_three_way_comparison)
   namespace detail
   {
     template<typename Derived, typename C, typename = void, auto...constant>
@@ -79,7 +80,7 @@ namespace OpenKalman::internal
 #endif
 
 
-#ifdef __cpp_concepts
+#if defined(__cpp_concepts) and defined(__cpp_impl_three_way_comparison)
   template<scalar_constant C, auto...constant> requires std::bool_constant<(C{constant...}, true)>::value
   struct ScalarConstant<C, constant...>
   {
@@ -100,6 +101,21 @@ namespace OpenKalman::internal
 
     template<scalar_constant<ConstantType::static_constant> T> requires (T::value == value)
     constexpr ScalarConstant& operator=(const T&) { return *this; }
+
+    template<scalar_constant A, scalar_constant B> requires
+    std::same_as<A, ScalarConstant> or std::same_as<B, ScalarConstant>
+    friend constexpr auto operator<=>(const A& a, const B& b)
+    {
+      if constexpr (std::same_as<A, ScalarConstant>) return value <=> get_scalar_constant_value(b);
+      else return get_scalar_constant_value(a) <=> value;
+    }
+
+    template<scalar_constant A, scalar_constant B> requires
+    std::same_as<A, ScalarConstant> or std::same_as<B, ScalarConstant>
+    friend constexpr auto operator==(const A& a, const B& b)
+    {
+      return std::is_eq(a <=> b);
+    }
   };
 
 
@@ -120,6 +136,20 @@ namespace OpenKalman::internal
     template<scalar_constant T>
     constexpr ScalarConstant& operator=(const T& t) { value = t; return *this; }
 
+    template<scalar_constant A, scalar_constant B> requires
+      std::same_as<A, ScalarConstant> or std::same_as<B, ScalarConstant>
+    friend constexpr auto operator<=>(const A& a, const B& b)
+    {
+      return get_scalar_constant_value(a) <=> get_scalar_constant_value(b);
+    }
+
+    template<scalar_constant A, scalar_constant B> requires
+    std::same_as<A, ScalarConstant> or std::same_as<B, ScalarConstant>
+    friend constexpr auto operator==(const A& a, const B& b)
+    {
+      return std::is_eq(a <=> b);
+    }
+
   private:
     value_type value;
   };
@@ -134,19 +164,50 @@ namespace OpenKalman::internal
     using Base::Base;
     using Base::operator=;
     using type = ScalarConstant;
+
+    template<typename A, typename B, std::enable_if_t<scalar_constant<A> and scalar_constant<B> and
+      (std::is_same_v<A, ScalarConstant> or std::is_same_v<B, ScalarConstant>), int> = 0>
+    friend constexpr auto operator==(const A& a, const B& b)
+    {
+      return get_scalar_constant_value(a) == get_scalar_constant_value(b);
+    }
+
+    template<typename A, typename B, std::enable_if_t<scalar_constant<A> and scalar_constant<B> and
+      (std::is_same_v<A, ScalarConstant> or std::is_same_v<B, ScalarConstant>), int> = 0>
+    friend constexpr auto operator!=(const A& a, const B& b)
+    {
+      return get_scalar_constant_value(a) != get_scalar_constant_value(b);
+    }
+
+    template<typename A, typename B, std::enable_if_t<scalar_constant<A> and scalar_constant<B> and
+      (std::is_same_v<A, ScalarConstant> or std::is_same_v<B, ScalarConstant>), int> = 0>
+    friend constexpr auto operator<(const A& a, const B& b)
+    {
+      return get_scalar_constant_value(a) < get_scalar_constant_value(b);
+    }
+
+    template<typename A, typename B, std::enable_if_t<scalar_constant<A> and scalar_constant<B> and
+      (std::is_same_v<A, ScalarConstant> or std::is_same_v<B, ScalarConstant>), int> = 0>
+    friend constexpr auto operator>(const A& a, const B& b)
+    {
+      return get_scalar_constant_value(a) > get_scalar_constant_value(b);
+    }
+
+    template<typename A, typename B, std::enable_if_t<scalar_constant<A> and scalar_constant<B> and
+      (std::is_same_v<A, ScalarConstant> or std::is_same_v<B, ScalarConstant>), int> = 0>
+    friend constexpr auto operator<=(const A& a, const B& b)
+    {
+      return get_scalar_constant_value(a) <= get_scalar_constant_value(b);
+    }
+
+    template<typename A, typename B, std::enable_if_t<scalar_constant<A> and scalar_constant<B> and
+      (std::is_same_v<A, ScalarConstant> or std::is_same_v<B, ScalarConstant>), int> = 0>
+    friend constexpr auto operator>=(const A& a, const B& b)
+    {
+      return get_scalar_constant_value(a) >= get_scalar_constant_value(b);
+    }
+
   };
-#endif
-
-
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct has_constant_status : std::false_type {};
-
-    template<typename T>
-    struct has_constant_status<T, std::enable_if_t<std::is_same_v<decltype(T::status), Qualification>>> : std::true_type {};
-  }
 #endif
 
 
@@ -162,6 +223,6 @@ namespace OpenKalman::internal
   explicit ScalarConstant(const T&) -> ScalarConstant<std::decay_t<T>>;
 
 
-} // namespace OpenKalman::internal
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_SCALARCONSTANT_HPP

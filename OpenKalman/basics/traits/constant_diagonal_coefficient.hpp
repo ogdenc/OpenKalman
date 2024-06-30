@@ -18,7 +18,7 @@
 
 #include <type_traits>
 
-namespace OpenKalman
+namespace OpenKalman::values
 {
   /**
    * \brief The constant associated with T, assuming T is a \ref constant_diagonal_matrix.
@@ -163,13 +163,14 @@ namespace OpenKalman
   };
 
 
-  namespace internal
-  {
-    template<typename T>
-    struct participates_in_constant_arithmetic<constant_diagonal_coefficient<T>> : std::true_type {};
-  } // namespace internal
+} // namespace OpenKalman::values
 
 
-} // namespace OpenKalman
+namespace OpenKalman
+{
+  using values::constant_diagonal_coefficient;
+  using values::constant_diagonal_coefficient_v;
+}
+
 
 #endif //OPENKALMAN_CONSTANT_DIAGONAL_COEFFICIENT_HPP

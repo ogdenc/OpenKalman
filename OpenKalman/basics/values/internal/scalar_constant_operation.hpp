@@ -10,6 +10,7 @@
 
 /**
  * \file
+ * \internal
  * \brief Definition of \ref scalar_constant_operation.
  */
 
@@ -17,7 +18,7 @@
 #define OPENKALMAN_SCALAR_CONSTANT_OPERATION_HPP
 
 
-namespace OpenKalman::internal
+namespace OpenKalman::values
 {
 #ifndef __cpp_concepts
   template<typename Operation, typename...Ts> struct scalar_constant_operation;
@@ -35,7 +36,7 @@ namespace OpenKalman::internal
     // n-ary, all arguments calculable at compile time
     template<typename Operation, typename...Ts>
     struct scalar_constant_operation_impl<Operation, std::enable_if_t<
-      (scalar_constant<Ts, ConstantType::static_constant> and ...) and constexpr_n_ary_function<Operation, Ts...>>, Ts...>
+      (scalar_constant<Ts, ConstantType::static_constant> and ...) and internal::constexpr_n_ary_function<Operation, Ts...>>, Ts...>
     {
       constexpr scalar_constant_operation_impl() = default;
       explicit constexpr scalar_constant_operation_impl(const Operation&, const Ts&...) {};
@@ -54,7 +55,7 @@ namespace OpenKalman::internal
     struct scalar_constant_operation_impl<Operation, std::enable_if_t<(scalar_constant<Ts> and ...) and
       std::is_invocable_v<const Operation&, decltype(get_scalar_constant_value(std::declval<const Ts&>()))...> and
       (not (scalar_constant<Ts, ConstantType::static_constant> and ...) or
-      not std::is_default_constructible_v<Operation> or not constexpr_n_ary_function<Operation, Ts...>)>, Ts...>
+      not std::is_default_constructible_v<Operation> or not internal::constexpr_n_ary_function<Operation, Ts...>)>, Ts...>
     {
       explicit constexpr scalar_constant_operation_impl(const Operation& op, const Ts&...ts)
         : value {op(get_scalar_constant_value(ts)...)} {};
@@ -91,7 +92,7 @@ namespace OpenKalman::internal
    * \brief An operation involving some number of static \ref scalar_constant values.
    */
   template<typename Operation, scalar_constant<ConstantType::static_constant>...Ts> requires
-    constexpr_n_ary_function<Operation, Ts...>
+    internal::constexpr_n_ary_function<Operation, Ts...>
   struct scalar_constant_operation<Operation, Ts...>
   {
     constexpr scalar_constant_operation() = default;
@@ -101,6 +102,7 @@ namespace OpenKalman::internal
     using type = scalar_constant_operation;
     constexpr operator value_type() const noexcept { return value; }
     constexpr value_type operator()() const noexcept { return value; }
+
   };
 
 
@@ -110,7 +112,7 @@ namespace OpenKalman::internal
    */
   template<typename Operation, scalar_constant...Ts> requires
     requires(const Operation& op, const Ts&...ts) { op(get_scalar_constant_value(ts)...); } and
-    (not (scalar_constant<Ts, ConstantType::static_constant> and ...) or not constexpr_n_ary_function<Operation, Ts...>)
+    (not (scalar_constant<Ts, ConstantType::static_constant> and ...) or not internal::constexpr_n_ary_function<Operation, Ts...>)
   struct scalar_constant_operation<Operation, Ts...>
   {
     explicit constexpr scalar_constant_operation(const Operation& op, const Ts&...ts) : value {op(get_scalar_constant_value(ts)...)} {};
@@ -157,6 +159,6 @@ namespace OpenKalman::internal
   constexpr auto scalar_constant_operation_v = scalar_constant_operation<Operation, Ts...>::value;
 
 
-} // namespace OpenKalman::internal
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_SCALAR_CONSTANT_OPERATION_HPP

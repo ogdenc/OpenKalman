@@ -42,9 +42,9 @@ namespace OpenKalman
     if constexpr (euclidean_vector_space_descriptor<T_d>)
       return g(start + local_index);
     else if constexpr (fixed_vector_space_descriptor<T_d>)
-      return interface::fixed_vector_space_descriptor_traits<T_d>::get_wrapped_component(g, local_index, start);
+      return fixed_vector_space_descriptor_traits<T_d>::get_wrapped_component(g, local_index, start);
     else
-      return interface::dynamic_vector_space_descriptor_traits<T_d>{t}.get_wrapped_component(g, local_index, start);
+      return dynamic_vector_space_descriptor_traits<T_d>{t}.get_wrapped_component(g, local_index, start);
   }
 
 

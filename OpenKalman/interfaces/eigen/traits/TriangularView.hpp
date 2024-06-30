@@ -71,7 +71,7 @@ namespace OpenKalman
       static constexpr auto get_constant(const Arg& arg)
       {
         if constexpr (zero<MatrixType> or ((Mode & Eigen::ZeroDiag) != 0 and diagonal_matrix<MatrixType>))
-          return internal::ScalarConstant<scalar_type_of_t<MatrixType>, 0>{};
+          return values::ScalarConstant<scalar_type_of_t<MatrixType>, 0>{};
         else
           return std::monostate{};
       }
@@ -86,13 +86,13 @@ namespace OpenKalman
           ((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, TriangleType::lower>) or
           ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, TriangleType::upper>)))
         {
-          return internal::ScalarConstant<Scalar, 1>{};
+          return values::ScalarConstant<Scalar, 1>{};
         }
         else if constexpr ((Mode & Eigen::ZeroDiag) != 0 and (
           ((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, TriangleType::lower>) or
           ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, TriangleType::upper>)))
         {
-          return internal::ScalarConstant<Scalar, 0>{};
+          return values::ScalarConstant<Scalar, 0>{};
         }
         else
         {

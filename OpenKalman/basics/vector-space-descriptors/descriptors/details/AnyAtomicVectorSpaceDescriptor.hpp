@@ -74,12 +74,12 @@ namespace OpenKalman::internal
         if constexpr (euclidean_vector_space_descriptor<T>)
           return g(start + euclidean_local_index);
         else if constexpr (sizeof...(AllowableScalarTypes) == 1)
-          return interface::fixed_vector_space_descriptor_traits<T>::to_euclidean_element(g, euclidean_local_index, start);
+          return fixed_vector_space_descriptor_traits<T>::to_euclidean_element(g, euclidean_local_index, start);
         else
           return std::visit([&g, euclidean_local_index, start](auto&& arg) -> Scalar {
             using S = std::decay_t<decltype(arg)>;
             auto gv = [&g](std::size_t i){ return std::get<S>(g(i)); };
-            return {interface::fixed_vector_space_descriptor_traits<T>::to_euclidean_element(std::move(gv), euclidean_local_index, start)};
+            return {fixed_vector_space_descriptor_traits<T>::to_euclidean_element(std::move(gv), euclidean_local_index, start)};
           }, g(0));
       }
 
@@ -88,12 +88,12 @@ namespace OpenKalman::internal
         if constexpr (euclidean_vector_space_descriptor<T>)
           return g(euclidean_start + local_index);
         else if constexpr (sizeof...(AllowableScalarTypes) == 1)
-          return interface::fixed_vector_space_descriptor_traits<T>::from_euclidean_element(g, local_index, euclidean_start);
+          return fixed_vector_space_descriptor_traits<T>::from_euclidean_element(g, local_index, euclidean_start);
         else
           return std::visit([&g, local_index, euclidean_start](auto&& arg) -> Scalar {
             using S = std::decay_t<decltype(arg)>;
             auto gv = [&g](std::size_t i){ return std::get<S>(g(i)); };
-            return {interface::fixed_vector_space_descriptor_traits<T>::from_euclidean_element(std::move(gv), local_index, euclidean_start)};
+            return {fixed_vector_space_descriptor_traits<T>::from_euclidean_element(std::move(gv), local_index, euclidean_start)};
           }, g(0));
       }
 
@@ -102,12 +102,12 @@ namespace OpenKalman::internal
         if constexpr (euclidean_vector_space_descriptor<T>)
           return g(start + local_index);
         else if constexpr (sizeof...(AllowableScalarTypes) == 1)
-          return interface::fixed_vector_space_descriptor_traits<T>::get_wrapped_component(g, local_index, start);
+          return fixed_vector_space_descriptor_traits<T>::get_wrapped_component(g, local_index, start);
         else
           return std::visit([&g, local_index, start](auto&& arg) -> Scalar {
             using S = std::decay_t<decltype(arg)>;
             auto gv = [&g](std::size_t i){ return std::get<S>(g(i)); };
-            return {interface::fixed_vector_space_descriptor_traits<T>::get_wrapped_component(std::move(gv), local_index, start)};
+            return {fixed_vector_space_descriptor_traits<T>::get_wrapped_component(std::move(gv), local_index, start)};
           }, g(0));
       }
 
@@ -116,13 +116,13 @@ namespace OpenKalman::internal
         if constexpr (euclidean_vector_space_descriptor<T>)
           s(x, start + local_index);
         else if constexpr (sizeof...(AllowableScalarTypes) == 1)
-          interface::fixed_vector_space_descriptor_traits<T>::set_wrapped_component(s, g, x, local_index, start);
+          fixed_vector_space_descriptor_traits<T>::set_wrapped_component(s, g, x, local_index, start);
         else
           std::visit([&s, &g, local_index, start](auto&& arg) {
             using S = std::decay_t<decltype(arg)>;
             auto sv = [&s](const S& scalar, std::size_t i){ s(Scalar {scalar}, i); };
             auto gv = [&g](std::size_t i){ return std::get<S>(g(i)); };
-            interface::fixed_vector_space_descriptor_traits<T>::set_wrapped_component(std::move(sv), std::move(gv), arg, local_index, start);
+            fixed_vector_space_descriptor_traits<T>::set_wrapped_component(std::move(sv), std::move(gv), arg, local_index, start);
           }, x);
       }
 
@@ -144,7 +144,7 @@ namespace OpenKalman::internal
     /**
      * \brief Get the std::type_index for the underlying atomic index descritpr.
      */
-    std::type_index get_type_index() const { return mConcept->get_type_index(); }
+    [[nodiscard]] std::type_index get_type_index() const { return mConcept->get_type_index(); }
 
 
     /**

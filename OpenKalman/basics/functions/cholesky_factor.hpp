@@ -21,22 +21,25 @@ namespace OpenKalman
 {
   /**
    * \brief Take the Cholesky factor of a matrix.
-   * \tparam A A square matrix.
+   * \tparam A A hermitian matrix.
    * \tparam triangle_type Either TriangleType::upper, TriangleType::lower, or TriangleType::diagonal
-   * (if A is a \ref diagonal_matrix).
+   * (only if A is a \ref diagonal_matrix).
    * \return T, where the argument is in the form A = TT<sup>T</sup>.
    */
 #ifdef __cpp_concepts
-  template<TriangleType triangle_type, hermitian_matrix A> requires
+  template<TriangleType triangle_type, hermitian_matrix<Qualification::depends_on_dynamic_shape> A> requires
     (triangle_type != TriangleType::diagonal or diagonal_matrix<A>)
   constexpr triangular_matrix<triangle_type> decltype(auto)
 #else
-  template<TriangleType triangle_type, typename A, std::enable_if_t<hermitian_matrix<A> and
+  template<TriangleType triangle_type, typename A, std::enable_if_t<hermitian_matrix<A, Qualification::depends_on_dynamic_shape> and
     (triangle_type != TriangleType::diagonal or diagonal_matrix<A>), int> = 0>
   constexpr decltype(auto)
 #endif
   cholesky_factor(A&& a)
   {
+    if constexpr (not square_shaped<A>)
+      if (not is_square_shaped(a)) throw std::invalid_argument {"Argument to cholesky_factor must be a square matrix"};
+
     if constexpr (zero<A> or identity_matrix<A>)
     {
       return std::forward<A>(a);
@@ -44,32 +47,26 @@ namespace OpenKalman
     else if constexpr (constant_diagonal_matrix<A>)
     {
       auto sq = internal::constexpr_sqrt(constant_diagonal_coefficient{a});
-      return to_diagonal(make_constant<A>(sq, get_vector_space_descriptor<0>(a), Dimensions<1>{}));
+      return to_diagonal(make_constant<A>(sq, get_vector_space_descriptor<0>(a)));
     }
     else if constexpr (constant_matrix<A>)
     {
       auto m = [](const auto& a){
-        auto euclidean_id_a = [](const A& a) {
-          constexpr auto N0 = index_dimension_of_v<A, 0>;
-          constexpr auto N1 = index_dimension_of_v<A, 1>;
-          if constexpr (N0 != dynamic_size) return Dimensions<N0> {};
-          else if constexpr (N1 != dynamic_size) return Dimensions<N1> {};
-          else return Dimensions {get_dimension_size_of<0>(a)};
-        }(a);
-
         auto sq = internal::constexpr_sqrt(constant_coefficient{a});
+        auto dim = *is_square_shaped(a);
+        using D = std::decay_t<decltype(dim)>;
+        auto d1 = []{ if constexpr (has_uniform_dimension_type<D>) return uniform_dimension_type_of_t<D>{}; else return Dimensions<1>{}; }();
 
-        constexpr Dimensions<1> D1;
         if constexpr (triangle_type == TriangleType::lower)
         {
-          auto col0 = make_constant<A>(sq, euclidean_id_a, D1);
-          return concatenate<1>(col0, make_zero<A>(euclidean_id_a, euclidean_id_a - D1));
+          auto col0 = make_constant<A>(sq, dim, d1);
+          return concatenate<1>(col0, make_zero<A>(dim, get_dimension_size_of(dim) - d1));
         }
         else
         {
           static_assert(triangle_type == TriangleType::upper);
-          auto row0 = make_constant<A>(sq, D1, euclidean_id_a);
-          return concatenate<0>(row0, make_zero<A>(euclidean_id_a - D1, euclidean_id_a));
+          auto row0 = make_constant<A>(sq, d1, dim);
+          return concatenate<0>(row0, make_zero<A>(get_dimension_size_of(dim) - d1, dim));
         }
       }(a);
 
@@ -89,7 +86,7 @@ namespace OpenKalman
     }
     else
     {
-      return interface::library_interface<std::decay_t<A>>::template cholesky_factor<triangle_type>(std::forward<A>(a));
+     return interface::library_interface<std::decay_t<A>>::template cholesky_factor<triangle_type>(std::forward<A>(a));
     }
   }
 
@@ -102,10 +99,10 @@ namespace OpenKalman
   * # TriangleType::lower, by default.
   */
 #ifdef __cpp_concepts
-  template<hermitian_matrix A> requires hermitian_adapter<A> or diagonal_matrix<A>
+  template<hermitian_matrix<Qualification::depends_on_dynamic_shape> A>
   constexpr triangular_matrix decltype(auto)
 #else
-  template<typename A, std::enable_if_t<hermitian_adapter<A> or diagonal_matrix<A>, int> = 0>
+  template<typename A, std::enable_if_t<hermitian_matrix<A, Qualification::depends_on_dynamic_shape>, int> = 0>
   constexpr decltype(auto)
 #endif
   cholesky_factor(A&& a)

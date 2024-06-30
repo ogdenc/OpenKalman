@@ -119,18 +119,8 @@ TEST(eigen3, special_matrix_traits)
   static_assert(not diagonal_adapter<Mx1>);
   static_assert(not diagonal_adapter<Mxx>);
   static_assert(not diagonal_adapter<DM2>);
-  static_assert(diagonal_adapter<Eigen::DiagonalMatrix<double, 2>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalMatrix<double, Eigen::Dynamic>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<M21>>);
-  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M2x>>);
   static_assert(not diagonal_adapter<DW2x>);
-  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M2x>>);
-  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M1x>>);
-  static_assert(diagonal_adapter<Eigen::DiagonalWrapper<Mx1>>);
   static_assert(not diagonal_adapter<DWxx>);
-  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<Mxx>>);
-  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M22>>);
-  static_assert(not diagonal_adapter<Eigen::DiagonalWrapper<M22>>);
 
   static_assert(hermitian_matrix<Z22>);
   static_assert(hermitian_matrix<Z2x, Qualification::depends_on_dynamic_shape>);

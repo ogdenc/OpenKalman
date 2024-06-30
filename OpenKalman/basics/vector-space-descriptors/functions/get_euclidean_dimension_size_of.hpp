@@ -35,7 +35,7 @@ namespace OpenKalman
     if constexpr (fixed_vector_space_descriptor<T>) return euclidean_dimension_size_of_v<T>;
     else
     {
-      interface::dynamic_vector_space_descriptor_traits ret{t};
+      dynamic_vector_space_descriptor_traits ret{t};
       return ret.get_euclidean_size();
     }
   }

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -67,27 +67,8 @@ namespace OpenKalman::internal
     constexpr explicit MatrixBase(Arg&& arg) noexcept : m_arg {std::forward<Arg>(arg)} {}
 
 
-    /** \internal
-     * \brief Assign from a nestable type.
-     */
-#ifdef __cpp_concepts
-    template<typename Arg> requires (not std::derived_from<std::decay_t<Arg>, MatrixBase>)
-#else
-    template<typename Arg, std::enable_if_t<not std::is_base_of_v<MatrixBase, std::decay_t<Arg>>, int> = 0>
-#endif
-    constexpr auto& operator=(Arg&& arg) noexcept
-    {
-      static_assert(not std::is_const_v<std::remove_reference_t<NestedMatrix>>, "Nested matrix cannot be modified.");
-      if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
-      {
-        m_arg = std::forward<Arg>(arg);
-      }
-      return *this;
-    }
-
-
     /**
-     * \brief Get the nested matrix.
+     * \brief Get the nested object.
      */
     constexpr auto& nested_object() & noexcept { return m_arg; }
 
@@ -105,7 +86,7 @@ namespace OpenKalman::internal
 
 
     /**
-     * Access the coefficient at row i and column j
+     * Access the component at row i and column j
      * \param i The row.
      * \param j The column.
      * \return If <code>element_settable<Derived&, 2></code>, the element is settable. Therefore,
@@ -154,7 +135,7 @@ namespace OpenKalman::internal
 
 
     /**
-     * Access the coefficient at row i
+     * Access the component at row i
      * \param i The row.
      * \return If <code>element_settable<Derived&, 1></code>, the element is settable. Therefore,
      * this function returns an object that can be assigned the coefficient to be set.

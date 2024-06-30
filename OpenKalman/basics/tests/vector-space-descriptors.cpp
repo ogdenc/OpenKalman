@@ -21,6 +21,7 @@ using namespace OpenKalman;
 
 TEST(basics, integral_constant)
 {
+  static_assert(dimension_size_of_v<std::integral_constant<std::size_t, 0>> == 0);
   static_assert(dimension_size_of_v<std::integral_constant<std::size_t, 3>> == 3);
   static_assert(dimension_size_of_v<std::integral_constant<int, 3>> == 3);
   static_assert(euclidean_dimension_size_of_v<std::integral_constant<std::size_t, 3>> == 3);
@@ -41,6 +42,7 @@ TEST(basics, integral_constant)
 
 TEST(basics, fixed_Dimensions)
 {
+  static_assert(dimension_size_of_v<Dimensions<0>> == 0);
   static_assert(dimension_size_of_v<Dimensions<3>> == 3);
   static_assert(euclidean_dimension_size_of_v<Dimensions<3>> == 3);
   static_assert(vector_space_descriptor_components_of_v<Dimensions<3>> == 3);
@@ -248,6 +250,15 @@ TEST(basics, canonical_fixed_vector_space_descriptor)
 }
 
 
+TEST(basics, reverse_fixed_vector_space_descriptor)
+{
+  static_assert(std::is_same_v<reverse_fixed_vector_space_descriptor_t<FixedDescriptor<>>, FixedDescriptor<>>);
+  static_assert(std::is_same_v<reverse_fixed_vector_space_descriptor_t<FixedDescriptor<Dimensions<3>, Dimensions<2>>>, FixedDescriptor<Dimensions<2>, Dimensions<3>>>);
+  static_assert(std::is_same_v<reverse_fixed_vector_space_descriptor_t<FixedDescriptor<angle::Radians, Dimensions<1>, Dimensions<2>>>, FixedDescriptor<Dimensions<2>, Dimensions<1>, angle::Radians>>);
+  static_assert(std::is_same_v<reverse_fixed_vector_space_descriptor_t<FixedDescriptor<Spherical<Distance, angle::Radians, inclination::Radians>, Axis>>, FixedDescriptor<Axis, Spherical<Distance, angle::Radians, inclination::Radians>>>);
+}
+
+
 TEST(basics, equivalent_to)
 {
   static_assert(equivalent_to<>);
@@ -293,10 +304,12 @@ TEST(basics, maybe_equivalent_to)
 
 TEST(basics, prefix_of)
 {
+  using namespace internal;
   static_assert(prefix_of<FixedDescriptor<>, Axis>);
   static_assert(prefix_of<FixedDescriptor<>, Dimensions<2>>);
   static_assert(prefix_of<FixedDescriptor<>, FixedDescriptor<Axis>>);
   static_assert(prefix_of<FixedDescriptor<>, FixedDescriptor<Axis, angle::Radians>>);
+  static_assert(prefix_of<FixedDescriptor<Axis, angle::Radians>, FixedDescriptor<Axis, angle::Radians>>);
   static_assert(prefix_of<FixedDescriptor<Axis>, FixedDescriptor<Axis, angle::Radians>>);
   static_assert(prefix_of<FixedDescriptor<Axis>, FixedDescriptor<Dimensions<2>, angle::Radians>>);
   static_assert(prefix_of<Axis, FixedDescriptor<Axis, angle::Radians>>);
@@ -309,8 +322,55 @@ TEST(basics, prefix_of)
 }
 
 
+TEST(basics, suffix_of)
+{
+  using namespace internal;
+  static_assert(suffix_of<FixedDescriptor<>, Axis>);
+  static_assert(suffix_of<FixedDescriptor<>, Dimensions<2>>);
+  static_assert(suffix_of<FixedDescriptor<>, FixedDescriptor<Axis>>);
+  static_assert(suffix_of<FixedDescriptor<>, FixedDescriptor<Axis, angle::Radians>>);
+  static_assert(suffix_of<FixedDescriptor<Axis, angle::Radians>, FixedDescriptor<Axis, angle::Radians>>);
+  static_assert(suffix_of<FixedDescriptor<Axis>, FixedDescriptor<angle::Radians, Axis>>);
+  static_assert(suffix_of<FixedDescriptor<Axis>, FixedDescriptor<angle::Radians, Dimensions<2>>>);
+  static_assert(suffix_of<Axis, FixedDescriptor<angle::Radians, Axis>>);
+  static_assert(suffix_of<Axis, FixedDescriptor<angle::Radians, Dimensions<2>>>);
+  static_assert(suffix_of<angle::Radians, FixedDescriptor<Axis, angle::Radians>>);
+  static_assert(suffix_of<FixedDescriptor<angle::Radians>, FixedDescriptor<Axis, angle::Radians>>);
+  static_assert(suffix_of<FixedDescriptor<Axis, angle::Radians>, FixedDescriptor<Axis, Axis, angle::Radians>>);
+  static_assert(suffix_of<FixedDescriptor<Axis, angle::Radians, Axis>, FixedDescriptor<Axis, Axis, angle::Radians, Axis>>);
+  static_assert(not suffix_of<FixedDescriptor<Axis, angle::Radians, angle::Radians>, FixedDescriptor<Axis, angle::Radians, Axis>>);
+}
+
+
+TEST(basics, base_of)
+{
+  // either prefix_of or suffix_of
+  using namespace internal;
+  static_assert(equivalent_to<base_of_t<FixedDescriptor<>, Axis>, Axis>);
+  static_assert(equivalent_to<base_of_t<FixedDescriptor<>, Dimensions<2>>, Dimensions<2>>);
+  static_assert(equivalent_to<base_of_t<FixedDescriptor<>, FixedDescriptor<Axis>>, Axis>);
+  static_assert(equivalent_to<base_of_t<FixedDescriptor<>, FixedDescriptor<Axis, angle::Radians>>, FixedDescriptor<Axis, angle::Radians>>);
+  static_assert(equivalent_to<base_of_t<FixedDescriptor<Axis, angle::Radians>, FixedDescriptor<FixedDescriptor<Axis>, angle::Radians>>, FixedDescriptor<>>);
+
+  // prefix_of
+  static_assert(equivalent_to<base_of_t<Axis, FixedDescriptor<Axis, angle::Radians>>, angle::Radians>);
+  static_assert(equivalent_to<base_of_t<Axis, FixedDescriptor<Dimensions<2>, angle::Radians>>, FixedDescriptor<Axis, angle::Radians>>);
+  static_assert(equivalent_to<base_of_t<Axis, FixedDescriptor<Axis, angle::Radians>>, angle::Radians>);
+  static_assert(equivalent_to<base_of_t<Axis, FixedDescriptor<Dimensions<2>, angle::Radians>>, FixedDescriptor<Axis, angle::Radians>>);
+  static_assert(equivalent_to<base_of_t<FixedDescriptor<Axis, angle::Radians>, FixedDescriptor<Axis, angle::Radians, Axis>>, Axis>);
+
+  // suffix_of
+  static_assert(equivalent_to<base_of_t<Axis, FixedDescriptor<angle::Radians, Axis>>, angle::Radians>);
+  static_assert(equivalent_to<base_of_t<Axis, FixedDescriptor<angle::Radians, Dimensions<2>>>, FixedDescriptor<angle::Radians, Axis>>);
+  static_assert(equivalent_to<base_of_t<angle::Radians, FixedDescriptor<Axis, angle::Radians>>, Axis>);
+  static_assert(equivalent_to<base_of_t<FixedDescriptor<Axis, angle::Radians>, FixedDescriptor<Axis, Axis, angle::Radians>>, Axis>);
+  static_assert(equivalent_to<base_of_t<FixedDescriptor<Axis, angle::Radians, Axis>, FixedDescriptor<Axis, Axis, angle::Radians, Axis>>, Axis>);
+}
+
+
 TEST(basics, head_of)
 {
+  using namespace internal;
   static_assert(equivalent_to<head_of_t<FixedDescriptor<>>, FixedDescriptor<>>);
   static_assert(equivalent_to<head_of_t<Axis>, Axis>);
   static_assert(equivalent_to<head_of_t<FixedDescriptor<Axis, Distance>>, Axis>);
@@ -321,6 +381,7 @@ TEST(basics, head_of)
 
 TEST(basics, tail_of)
 {
+  using namespace internal;
   static_assert(equivalent_to<tail_of_t<FixedDescriptor<>>, FixedDescriptor<>>);
   static_assert(equivalent_to<tail_of_t<Axis>, FixedDescriptor<>>);
   static_assert(equivalent_to<tail_of_t<FixedDescriptor<Axis, Distance>>, Distance>);
@@ -354,6 +415,26 @@ TEST(basics, has_uniform_dimension_type)
 TEST(basics, comparison)
 {
   // Note: some tests cannot be static_assert because of a bug in GCC 10.0
+#if OPENKALMAN_CPP_FEATURE_CONCEPTS
+  static_assert(Dimensions<3>{} == Dimensions<3>{});
+  static_assert(Dimensions<3>{} <= Dimensions<3>{});
+  static_assert(Dimensions<3>{} >= Dimensions<3>{});
+  static_assert((Dimensions<3>{} != Dimensions<4>{}));
+  static_assert((Dimensions<3>{} < Dimensions<4>{}));
+  static_assert((Dimensions<3>{} <= Dimensions<4>{}));
+  static_assert((Dimensions<4>{} > Dimensions<3>{}));
+  static_assert((Dimensions<4>{} >= Dimensions<3>{}));
+
+  static_assert((Dimensions<3>{} == FixedDescriptor<Axis, Axis, Axis>{}));
+  static_assert((Dimensions<3>{} <= FixedDescriptor<Axis, Axis, Axis>{}));
+  static_assert((Dimensions<3>{} <= FixedDescriptor<Axis, Axis, Axis, Axis>{}));
+  static_assert((Dimensions<3>{} < FixedDescriptor<Axis, Axis, Axis, Axis>{}));
+  static_assert((Dimensions<4>{} >= FixedDescriptor<Axis, Axis, Axis, Axis>{}));
+  static_assert((Dimensions<4>{} >= FixedDescriptor<Axis, Axis, Axis>{}));
+  static_assert((Dimensions<4>{} > FixedDescriptor<Axis, Axis, Axis>{}));
+
+  EXPECT_TRUE(FixedDescriptor<> {} == FixedDescriptor<> {});
+#else
   EXPECT_TRUE(Dimensions<3>{} == Dimensions<3>{});
   EXPECT_TRUE(Dimensions<3>{} <= Dimensions<3>{});
   EXPECT_TRUE(Dimensions<3>{} >= Dimensions<3>{});
@@ -372,6 +453,7 @@ TEST(basics, comparison)
   EXPECT_TRUE((Dimensions<4>{} > FixedDescriptor<Axis, Axis, Axis>{}));
 
   EXPECT_TRUE(FixedDescriptor<> {} == FixedDescriptor<> {});
+#endif
   static_assert(FixedDescriptor<Axis, angle::Radians>{} == FixedDescriptor<Axis, angle::Radians>{});
   static_assert(FixedDescriptor<Axis, angle::Radians>{} <= FixedDescriptor<Axis, angle::Radians>{});
   static_assert(FixedDescriptor<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{} == FixedDescriptor<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{});
@@ -393,11 +475,15 @@ TEST(basics, comparison)
 
 TEST(basics, fixed_arithmetic)
 {
-  // Note: some tests cannot be static_assert because of a bug in GCC 10.0
-  EXPECT_TRUE(Dimensions<3>{} + Dimensions<4>{} == Dimensions<7>{});
-  EXPECT_TRUE((FixedDescriptor<Axis, Axis>{} + FixedDescriptor<Axis, Axis, Axis>{} == Dimensions<5>{}));
-  EXPECT_TRUE(Dimensions<7>{} - Dimensions<4>{} == Dimensions<3>{});
-  static_assert(Polar<Distance, angle::Radians>{} + Dimensions<2>{} == FixedDescriptor<Polar<Distance, angle::Radians>, Axis, Axis>{});
+  static_assert(Dimensions<3>{} + Dimensions<4>{} == Dimensions<7>{});
+  static_assert(FixedDescriptor<Axis, Axis>{} + FixedDescriptor<Axis, Axis, Axis>{} == Dimensions<5>{});
+  static_assert(Polar<Distance, angle::Radians>{} + Dimensions<2>{} == FixedDescriptor<Polar<Distance, angle::Radians>, Dimensions<2>>{});
+
+  static_assert(Dimensions<7>{} - Dimensions<7>{} == Dimensions<0>{});
+  static_assert(Dimensions<7>{} - Dimensions<4>{} == Dimensions<3>{});
+  static_assert(FixedDescriptor<Distance, Distance, Distance>{} - Distance{} == FixedDescriptor<Distance, Distance>{});
+  static_assert(FixedDescriptor<Axis, angle::Radians, Distance>{} - Distance{} == FixedDescriptor<Axis, angle::Radians>{});
+  static_assert(FixedDescriptor<Distance, angle::Radians, Dimensions<3>>{} - Dimensions<2>{} == FixedDescriptor<Distance, angle::Radians, Axis>{});
 }
 
 
@@ -414,4 +500,16 @@ TEST(basics, remove_trailing_1D_descriptors)
   static_assert(std::is_same_v<decltype(internal::remove_trailing_1D_descriptors(std::declval<D12311>())), D123>);
   static_assert(std::is_same_v<decltype(internal::remove_trailing_1D_descriptors(std::declval<D111>())), std::tuple<>>);
   static_assert(std::is_same_v<decltype(internal::remove_trailing_1D_descriptors(std::declval<A111>())), std::tuple<>>);
+}
+
+
+TEST(basics, internal_split_head_tail_fixed)
+{
+  static_assert(std::get<0>(internal::split_head_tail(Dimensions<7>{})) == Axis{});
+  static_assert(std::get<1>(internal::split_head_tail(Dimensions<7>{})) == Dimensions<6>{});
+
+  static_assert(std::get<0>(internal::split_head_tail(FixedDescriptor<Axis, angle::Radians, Distance>{})) == Axis{});
+  static_assert(std::get<1>(internal::split_head_tail(FixedDescriptor<Axis, angle::Radians, Distance>{})) == FixedDescriptor<angle::Radians, Distance>{});
+  static_assert(std::get<0>(internal::split_head_tail(FixedDescriptor<angle::Radians, Axis, Distance>{})) == angle::Radians{});
+  static_assert(std::get<1>(internal::split_head_tail(FixedDescriptor<angle::Radians, Axis, Distance>{})) == FixedDescriptor<Axis, Distance>{});
 }

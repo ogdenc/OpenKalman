@@ -48,13 +48,16 @@ namespace OpenKalman::internal
 #endif
   set_triangle(A&& a, B&& b)
   {
-    if constexpr (diagonal_adapter<A>)
+    if constexpr (diagonal_adapter<A> or diagonal_adapter<A, 1>)
     {
       static_assert(t == TriangleType::diagonal);
       using N = decltype(nested_object(a));
       if constexpr (writable<N> and std::is_lvalue_reference_v<N>)
       {
-        nested_object(a) = diagonal_of(std::forward<B>(b));
+        if constexpr (diagonal_adapter<A, 1>)
+          nested_object(a) = transpose(diagonal_of(std::forward<B>(b)));
+        else
+          nested_object(a) = diagonal_of(std::forward<B>(b));
         return std::forward<A>(a);
       }
       else

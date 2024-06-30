@@ -18,7 +18,7 @@
 #ifndef OPENKALMAN_DIMENSIONS_HPP
 #define OPENKALMAN_DIMENSIONS_HPP
 
-namespace OpenKalman
+namespace OpenKalman::vector_space_descriptors
 {
   /**
    * \brief A structure representing the dimensions associated with of a particular index.
@@ -43,6 +43,7 @@ namespace OpenKalman
   {
     constexpr Dimensions() = default;
 
+
     /// Constructor, taking a \ref fixed_vector_space_descriptor.
 #ifdef __cpp_concepts
     template<fixed_vector_space_descriptor D> requires euclidean_vector_space_descriptor<D> and
@@ -51,8 +52,9 @@ namespace OpenKalman
     template<typename D, std::enable_if_t<fixed_vector_space_descriptor<D> and euclidean_vector_space_descriptor<D> and
       not std::is_same_v<std::decay_t<D>, Dimensions> and dimension_size_of<D>::value == N, int> = 0>
 #endif
-    explicit constexpr Dimensions(D&& d)
+    explicit constexpr Dimensions(D&&)
     {}
+
 
     template<typename Int>
     constexpr operator std::integral_constant<Int, N>()
@@ -71,7 +73,8 @@ namespace OpenKalman
       return N;
     }
 
-    friend struct interface::fixed_vector_space_descriptor_traits<Dimensions<N>>;
+
+    friend struct fixed_vector_space_descriptor_traits<Dimensions<N>>;
   };
 
 
@@ -102,11 +105,11 @@ namespace OpenKalman
     template<typename D, std::enable_if_t<dynamic_vector_space_descriptor<D> and not std::is_same_v<std::decay_t<D>, Dimensions>, int> = 0>
 #endif
     explicit constexpr Dimensions(D&& d)
-      : runtime_size {interface::dynamic_vector_space_descriptor_traits<std::decay_t<D>>{d}.get_size()}
+      : runtime_size {dynamic_vector_space_descriptor_traits<std::decay_t<D>>{d}.get_size()}
     {
       if constexpr (not euclidean_vector_space_descriptor<D>)
       {
-        if (not interface::dynamic_vector_space_descriptor_traits<std::decay_t<D>>{d}.is_euclidean())
+        if (not dynamic_vector_space_descriptor_traits<std::decay_t<D>>{d}.is_euclidean())
           throw std::invalid_argument{"Argument of 'Dimensions' constructor must be a euclidean vector space descriptor."};
       }
     }
@@ -128,7 +131,7 @@ namespace OpenKalman
 
     std::size_t runtime_size;
 
-    friend struct interface::dynamic_vector_space_descriptor_traits<Dimensions<dynamic_size>>;
+    friend struct dynamic_vector_space_descriptor_traits<Dimensions<dynamic_size>>;
   };
 
 
@@ -162,56 +165,45 @@ namespace OpenKalman
   using Axis = Dimensions<1>;
 
 
-  // -------- //
-  //  traits  //
-  // -------- //
+  // ----------- //
+  //  interface  //
+  // ----------- //
 
-  namespace interface
-  {
-    /**
-     * \internal
-     * \brief traits for fixed Dimensions.
-     */
+  /**
+   * \internal
+   * \brief traits for fixed Dimensions.
+   */
 #ifdef __cpp_concepts
-    template<std::size_t N> requires (N != dynamic_size)
-    struct fixed_vector_space_descriptor_traits<Dimensions<N>>
+  template<std::size_t N> requires (N != dynamic_size)
+  struct fixed_vector_space_descriptor_traits<Dimensions<N>>
 #else
-    template<std::size_t N>
-    struct fixed_vector_space_descriptor_traits<Dimensions<N>, std::enable_if_t<N != dynamic_size>>
+  template<std::size_t N>
+  struct fixed_vector_space_descriptor_traits<Dimensions<N>, std::enable_if_t<N != dynamic_size>>
 #endif
-      : fixed_vector_space_descriptor_traits<std::integral_constant<std::size_t, N>>
-    {
-      using difference_type = Dimensions<N>;
-
-      static constexpr bool operations_defined = true;
-    };
+    : fixed_vector_space_descriptor_traits<std::integral_constant<std::size_t, N>>
+  {
+    using difference_type = Dimensions<N>;
+  };
 
 
-    /**
-     * \internal
-     * \brief traits for dynamic Dimensions.
-     */
-    template<>
-    struct dynamic_vector_space_descriptor_traits<Dimensions<dynamic_size>> : dynamic_vector_space_descriptor_traits<std::size_t>
-    {
-    private:
+  /**
+   * \internal
+   * \brief traits for dynamic Dimensions.
+   */
+  template<>
+  struct dynamic_vector_space_descriptor_traits<Dimensions<dynamic_size>> : dynamic_vector_space_descriptor_traits<std::size_t>
+  {
+  private:
 
-      using Base = dynamic_vector_space_descriptor_traits<std::size_t>;
+    using Base = dynamic_vector_space_descriptor_traits<std::size_t>;
 
-    public:
+  public:
 
-      explicit constexpr dynamic_vector_space_descriptor_traits(const Dimensions<dynamic_size>& t) : Base {t.runtime_size} {};
-      [[nodiscard]] constexpr std::size_t get_size() const { return Base::get_size(); }
-      [[nodiscard]] constexpr std::size_t get_euclidean_size() const { return Base::get_euclidean_size(); }
-      [[nodiscard]] constexpr std::size_t get_component_count() const { return Base::get_component_count(); }
-
-      static constexpr bool operations_defined = true;
-    };
-
-  } // namespace interface
+    explicit constexpr dynamic_vector_space_descriptor_traits(const Dimensions<dynamic_size>& t) : Base {t.runtime_size} {};
+  };
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::vector_space_descriptors
 
 
 #endif //OPENKALMAN_DIMENSIONS_HPP

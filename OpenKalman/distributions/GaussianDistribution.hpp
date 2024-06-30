@@ -921,11 +921,11 @@ namespace OpenKalman
   /// Split distribution.
 #ifdef __cpp_concepts
   template<fixed_vector_space_descriptor ... Cs, gaussian_distribution D> requires
-    prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, typename DistributionTraits<D>::FixedDescriptor>
+    internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, typename DistributionTraits<D>::FixedDescriptor>
 #else
   template<typename ... Cs, typename D, std::enable_if_t<
     (fixed_vector_space_descriptor<Cs> and ...) and gaussian_distribution<D> and
-    prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, typename DistributionTraits<D>::FixedDescriptor>, int> = 0>
+    internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, typename DistributionTraits<D>::FixedDescriptor>, int> = 0>
 #endif
   inline auto
   split(D&& d) noexcept

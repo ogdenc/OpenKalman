@@ -37,27 +37,27 @@ namespace
 
 TEST(basics, ScalarConstant)
 {
-  static_assert(internal::ScalarConstant<double, 3>{}() == 3);
-  static_assert(internal::ScalarConstant<std::complex<double>, 3, 4>{}() == std::complex<double>{3, 4});
-  static_assert(internal::ScalarConstant<std::integral_constant<int, 7>>{}() == 7);
-  static_assert(internal::ScalarConstant{std::integral_constant<int, 7>{}}.value == 7);
-  static_assert(internal::ScalarConstant{3}() == 3);
-  static_assert(internal::ScalarConstant{3.} == 3.);
-  static_assert(std::is_same_v<decltype(internal::ScalarConstant{std::integral_constant<int, 7>{}})::value_type, int>);
-  static_assert(std::is_same_v<decltype(internal::ScalarConstant{3})::value_type, int>);
-  static_assert(std::is_same_v<decltype(internal::ScalarConstant{3.})::value_type, double>);
+  static_assert(values::ScalarConstant<double, 3>{}() == 3);
+  static_assert(values::ScalarConstant<std::complex<double>, 3, 4>{}() == std::complex<double>{3, 4});
+  static_assert(values::ScalarConstant<std::integral_constant<int, 7>>{}() == 7);
+  static_assert(values::ScalarConstant{std::integral_constant<int, 7>{}}.value == 7);
+  static_assert(values::ScalarConstant{3}() == 3);
+  static_assert(values::ScalarConstant{3.} == 3.);
+  static_assert(std::is_same_v<decltype(values::ScalarConstant{std::integral_constant<int, 7>{}})::value_type, int>);
+  static_assert(std::is_same_v<decltype(values::ScalarConstant{3})::value_type, int>);
+  static_assert(std::is_same_v<decltype(values::ScalarConstant{3.})::value_type, double>);
 
-  static_assert(std::decay_t<decltype(+internal::ScalarConstant<double, 3>{})>::value == 3);
-  static_assert(std::decay_t<decltype(-internal::ScalarConstant<double, 3>{})>::value == -3);
-  static_assert(std::decay_t<decltype(internal::ScalarConstant<double, 3>{} + std::integral_constant<int, 2>{})>::value == 5);
-  static_assert(std::decay_t<decltype(internal::ScalarConstant<double, 3>{} - std::integral_constant<int, 2>{})>::value == 1);
-  static_assert(std::decay_t<decltype(internal::ScalarConstant<double, 3>{} * std::integral_constant<int, 2>{})>::value == 6);
-  static_assert(std::decay_t<decltype(internal::ScalarConstant<double, 3>{} / std::integral_constant<int, 2>{})>::value == 1.5);
+  static_assert(std::decay_t<decltype(+values::ScalarConstant<double, 3>{})>::value == 3);
+  static_assert(std::decay_t<decltype(-values::ScalarConstant<double, 3>{})>::value == -3);
+  static_assert(std::decay_t<decltype(values::ScalarConstant<double, 3>{} + std::integral_constant<int, 2>{})>::value == 5);
+  static_assert(std::decay_t<decltype(values::ScalarConstant<double, 3>{} - std::integral_constant<int, 2>{})>::value == 1);
+  static_assert(std::decay_t<decltype(values::ScalarConstant<double, 3>{} * std::integral_constant<int, 2>{})>::value == 6);
+  static_assert(std::decay_t<decltype(values::ScalarConstant<double, 3>{} / std::integral_constant<int, 2>{})>::value == 1.5);
 
-  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value + internal::ScalarConstant<double, 3>{} == 5);
-  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value - internal::ScalarConstant<double, 3>{} == -1);
-  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value * internal::ScalarConstant<double, 3>{} == 6);
-  static_assert(std::decay_t<decltype(std::integral_constant<int, 3>{})>::value / internal::ScalarConstant<double, 2>{} == 1.5);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value + values::ScalarConstant<double, 3>{} == 5);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value - values::ScalarConstant<double, 3>{} == -1);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 2>{})>::value * values::ScalarConstant<double, 3>{} == 6);
+  static_assert(std::decay_t<decltype(std::integral_constant<int, 3>{})>::value / values::ScalarConstant<double, 2>{} == 1.5);
 }
 
 
@@ -93,16 +93,16 @@ TEST(basics, scalar_traits)
 
 TEST(basics, scalar_constant_operation)
 {
-  static_assert(scalar_constant<internal::scalar_constant_operation<NullaryFunc>, ConstantType::static_constant>);
-  static_assert(get_scalar_constant_value(internal::scalar_constant_operation<NullaryFunc>{}) == 5.5);
-  static_assert(scalar_constant<internal::scalar_constant_operation<std::negate<>, double>, ConstantType::dynamic_constant>);
-  static_assert(scalar_constant<internal::scalar_constant_operation<std::multiplies<>, double, double>, ConstantType::dynamic_constant>);
-  static_assert(internal::scalar_constant_operation{std::plus{}, std::integral_constant<int, 4>{}, std::integral_constant<int, 5>{}}() == 9);
-  EXPECT_EQ(get_scalar_constant_value(internal::scalar_constant_operation{[](){ return 9; }}), 9);
-  int k = 9; EXPECT_EQ(get_scalar_constant_value(internal::scalar_constant_operation{[&k](){ return k; }}), 9);
-  EXPECT_EQ(get_scalar_constant_value(internal::scalar_constant_operation{std::plus{}, 4, 5}), 9);
+  static_assert(scalar_constant<values::scalar_constant_operation<NullaryFunc>, ConstantType::static_constant>);
+  static_assert(get_scalar_constant_value(values::scalar_constant_operation<NullaryFunc>{}) == 5.5);
+  static_assert(scalar_constant<values::scalar_constant_operation<std::negate<>, double>, ConstantType::dynamic_constant>);
+  static_assert(scalar_constant<values::scalar_constant_operation<std::multiplies<>, double, double>, ConstantType::dynamic_constant>);
+  static_assert(values::scalar_constant_operation{std::plus{}, std::integral_constant<int, 4>{}, std::integral_constant<int, 5>{}}() == 9);
+  EXPECT_EQ(get_scalar_constant_value(values::scalar_constant_operation{[](){ return 9; }}), 9);
+  int k = 9; EXPECT_EQ(get_scalar_constant_value(values::scalar_constant_operation{[&k](){ return k; }}), 9);
+  EXPECT_EQ(get_scalar_constant_value(values::scalar_constant_operation{std::plus{}, 4, 5}), 9);
 
-  auto sc3 = internal::scalar_constant_operation{std::minus<>{}, internal::ScalarConstant<double, 7>{}, std::integral_constant<int, 4>{}};
+  auto sc3 = values::scalar_constant_operation{std::minus<>{}, values::ScalarConstant<double, 7>{}, std::integral_constant<int, 4>{}};
   static_assert(std::decay_t<decltype(+sc3)>::value == 3);
   static_assert(std::decay_t<decltype(-sc3)>::value == -3);
   static_assert(std::decay_t<decltype(sc3 + std::integral_constant<int, 2>{})>::value == 5);
@@ -147,13 +147,13 @@ TEST(basics, constexpr_real_imag_conj)
   EXPECT_TRUE((internal::constexpr_conj(std::complex<double>{3, 4}) == std::complex<double>{3, -4}));
 
   static_assert(internal::constexpr_real(std::integral_constant<int, 9>{}) == 9);
-  static_assert(internal::constexpr_real(internal::ScalarConstant<std::complex<double>, 3, 4>{}) == 3);
+  static_assert(internal::constexpr_real(values::ScalarConstant<std::complex<double>, 3, 4>{}) == 3);
   static_assert(internal::constexpr_imag(std::integral_constant<int, 9>{}) == 0);
-  static_assert(internal::constexpr_imag(internal::ScalarConstant<std::complex<double>, 3, 4>{}) == 4);
+  static_assert(internal::constexpr_imag(values::ScalarConstant<std::complex<double>, 3, 4>{}) == 4);
   static_assert(internal::constexpr_real(internal::constexpr_conj(std::integral_constant<int, 9>{})) == 9);
   static_assert(internal::constexpr_imag(internal::constexpr_conj(std::integral_constant<int, 9>{})) == 0);
-  static_assert(internal::constexpr_real(internal::constexpr_conj(internal::ScalarConstant<std::complex<double>, 3, 4>{})) == 3);
-  static_assert(internal::constexpr_imag(internal::constexpr_conj(internal::ScalarConstant<std::complex<double>, 3, 4>{})) == -4);
+  static_assert(internal::constexpr_real(internal::constexpr_conj(values::ScalarConstant<std::complex<double>, 3, 4>{})) == 3);
+  static_assert(internal::constexpr_imag(internal::constexpr_conj(values::ScalarConstant<std::complex<double>, 3, 4>{})) == -4);
 }
 
 
@@ -182,8 +182,8 @@ TEST(basics, constexpr_signbit)
   EXPECT_TRUE(not internal::constexpr_signbit(INFINITY));
 
   static_assert(internal::constexpr_signbit(std::integral_constant<int, -3>{}));
-  static_assert(internal::constexpr_signbit(internal::ScalarConstant<double, -3>{}));
-  static_assert(not internal::constexpr_signbit(internal::ScalarConstant<double, 3>{}));
+  static_assert(internal::constexpr_signbit(values::ScalarConstant<double, -3>{}));
+  static_assert(not internal::constexpr_signbit(values::ScalarConstant<double, 3>{}));
 }
 
 
@@ -208,10 +208,10 @@ TEST(basics, constexpr_copysign)
   EXPECT_FALSE(std::signbit(internal::constexpr_copysign(-0., 1.)));
 #endif
 
-  static_assert(internal::constexpr_copysign(internal::ScalarConstant<int, 5>{}, internal::ScalarConstant<int, -3>{}) == -5);
-  static_assert(internal::constexpr_copysign(internal::ScalarConstant<int, -5>{}, internal::ScalarConstant<int, 3>{}) == 5);
-  static_assert(internal::constexpr_copysign(internal::ScalarConstant<double, 5>{}, internal::ScalarConstant<double, -3>{}) == -5);
-  static_assert(internal::constexpr_copysign(internal::ScalarConstant<double, -5>{}, internal::ScalarConstant<double, 3>{}) == 5);
+  static_assert(internal::constexpr_copysign(values::ScalarConstant<int, 5>{}, values::ScalarConstant<int, -3>{}) == -5);
+  static_assert(internal::constexpr_copysign(values::ScalarConstant<int, -5>{}, values::ScalarConstant<int, 3>{}) == 5);
+  static_assert(internal::constexpr_copysign(values::ScalarConstant<double, 5>{}, values::ScalarConstant<double, -3>{}) == -5);
+  static_assert(internal::constexpr_copysign(values::ScalarConstant<double, -5>{}, values::ScalarConstant<double, 3>{}) == 5);
 }
 
 
@@ -254,7 +254,7 @@ TEST(basics, constexpr_sqrt)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_sqrt(std::complex<int>{3, 4})));
 
   static_assert(internal::constexpr_sqrt(std::integral_constant<int, 9>{}) == 3);
-  static_assert(internal::are_within_tolerance(internal::constexpr_sqrt(internal::ScalarConstant<double, 9>{}), 3, 1e-6));
+  static_assert(internal::are_within_tolerance(internal::constexpr_sqrt(values::ScalarConstant<double, 9>{}), 3, 1e-6));
 }
 
 
@@ -281,8 +281,8 @@ TEST(basics, constexpr_abs)
   EXPECT_EQ(internal::constexpr_abs(std::complex<double>{-3, 4}), 5);
 
   static_assert(internal::constexpr_abs(std::integral_constant<int, -9>{}) == 9);
-  static_assert(internal::are_within_tolerance(internal::constexpr_abs(internal::ScalarConstant<double, -9>{}), 9, 1e-6));
-  static_assert(internal::constexpr_abs(internal::ScalarConstant<std::complex<double>, 3, 4>{}) == 5);
+  static_assert(internal::are_within_tolerance(internal::constexpr_abs(values::ScalarConstant<double, -9>{}), 9, 1e-6));
+  static_assert(internal::constexpr_abs(values::ScalarConstant<std::complex<double>, 3, 4>{}) == 5);
 }
 
 
@@ -326,8 +326,8 @@ TEST(basics, constexpr_exp)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_exp(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_exp(std::integral_constant<int, 2>{}), e*e, 1e-6));
-  static_assert(internal::are_within_tolerance(internal::constexpr_exp(internal::ScalarConstant<double, -2>{}), 1/(e*e), 1e-6));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_exp(internal::ScalarConstant<std::complex<double>, 2, 0>{})), e*e, 1e-6));
+  static_assert(internal::are_within_tolerance(internal::constexpr_exp(values::ScalarConstant<double, -2>{}), 1/(e*e), 1e-6));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_exp(values::ScalarConstant<std::complex<double>, 2, 0>{})), e*e, 1e-6));
 }
 
 
@@ -371,8 +371,8 @@ TEST(basics, constexpr_expm1)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_expm1(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_expm1(std::integral_constant<int, 2>{}), e*e - 1, 1e-6));
-  static_assert(internal::are_within_tolerance(internal::constexpr_expm1(internal::ScalarConstant<double, -2>{}), 1/(e*e) - 1, 1e-6));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_expm1(internal::ScalarConstant<std::complex<double>, 2, 0>{})), e*e - 1, 1e-6));
+  static_assert(internal::are_within_tolerance(internal::constexpr_expm1(values::ScalarConstant<double, -2>{}), 1/(e*e) - 1, 1e-6));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_expm1(values::ScalarConstant<std::complex<double>, 2, 0>{})), e*e - 1, 1e-6));
 }
 
 
@@ -407,10 +407,10 @@ TEST(basics, constexpr_sinh)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_sinh(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_sinh(std::integral_constant<int, 2>{}), (e*e - 1/e/e)/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_sinh(internal::ScalarConstant<double, -2>{}), (1/e/e - e*e)/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_sinh(internal::ScalarConstant<std::complex<double>, 2, 0>{})), (e*e - 1/e/e)/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_sinh(internal::ScalarConstant<std::complex<double>, 3, -4>{})), -6.548120040911001647767, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_sinh(internal::ScalarConstant<std::complex<double>, 3, -4>{})), 7.619231720321410208487, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_sinh(values::ScalarConstant<double, -2>{}), (1/e/e - e*e)/2, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_sinh(values::ScalarConstant<std::complex<double>, 2, 0>{})), (e*e - 1/e/e)/2, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_sinh(values::ScalarConstant<std::complex<double>, 3, -4>{})), -6.548120040911001647767, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_sinh(values::ScalarConstant<std::complex<double>, 3, -4>{})), 7.619231720321410208487, 1e-9));
 }
 
 
@@ -443,10 +443,10 @@ TEST(basics, constexpr_cosh)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_cosh(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_cosh(std::integral_constant<int, 2>{}), (e*e + 1/e/e)/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_cosh(internal::ScalarConstant<double, -2>{}), (1/e/e + e*e)/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_cosh(internal::ScalarConstant<std::complex<double>, 2, 0>{})), (e*e + 1/e/e)/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_cosh(internal::ScalarConstant<std::complex<double>, 3, -4>{})), -6.580663040551156432561, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_cosh(internal::ScalarConstant<std::complex<double>, 3, -4>{})), 7.581552742746544353716, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_cosh(values::ScalarConstant<double, -2>{}), (1/e/e + e*e)/2, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_cosh(values::ScalarConstant<std::complex<double>, 2, 0>{})), (e*e + 1/e/e)/2, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_cosh(values::ScalarConstant<std::complex<double>, 3, -4>{})), -6.580663040551156432561, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_cosh(values::ScalarConstant<std::complex<double>, 3, -4>{})), 7.581552742746544353716, 1e-9));
 }
 
 
@@ -481,9 +481,9 @@ TEST(basics, constexpr_tanh)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_tanh(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_tanh(std::integral_constant<int, 2>{}), (e*e*e*e - 1)/(e*e*e*e + 1), 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_tanh(internal::ScalarConstant<double, -2>{}), (1 - e*e*e*e)/(1 + e*e*e*e), 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_tanh(internal::ScalarConstant<std::complex<double>, 3, 4>{})), 1.00070953606723293933, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_tanh(internal::ScalarConstant<std::complex<double>, 3, 4>{})), 0.004908258067496060259079, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_tanh(values::ScalarConstant<double, -2>{}), (1 - e*e*e*e)/(1 + e*e*e*e), 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_tanh(values::ScalarConstant<std::complex<double>, 3, 4>{})), 1.00070953606723293933, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_tanh(values::ScalarConstant<std::complex<double>, 3, 4>{})), 0.004908258067496060259079, 1e-9));
 }
 
 
@@ -540,8 +540,8 @@ TEST(basics, constexpr_sin)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_sin(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_sin(std::integral_constant<int, 2>{}), 0.909297426825681695396, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_sin(internal::ScalarConstant<double, 2>{}), 0.909297426825681695396, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_sin(internal::ScalarConstant<std::complex<double>, 2, 0>{})), 0.909297426825681695396, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_sin(values::ScalarConstant<double, 2>{}), 0.909297426825681695396, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_sin(values::ScalarConstant<std::complex<double>, 2, 0>{})), 0.909297426825681695396, 1e-9));
 }
 
 
@@ -595,8 +595,8 @@ TEST(basics, constexpr_cos)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_cos(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_cos(std::integral_constant<int, 2>{}), -0.4161468365471423869976, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_cos(internal::ScalarConstant<double, 2>{}), -0.4161468365471423869976, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_cos(internal::ScalarConstant<std::complex<double>, 2, 0>{})), -0.4161468365471423869976, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_cos(values::ScalarConstant<double, 2>{}), -0.4161468365471423869976, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_cos(values::ScalarConstant<std::complex<double>, 2, 0>{})), -0.4161468365471423869976, 1e-9));
 }
 
 
@@ -649,9 +649,9 @@ TEST(basics, constexpr_tan)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_tan(std::complex<int>{30, -2})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_tan(std::integral_constant<int, 2>{}), -2.185039863261518991643, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_tan(internal::ScalarConstant<double, 2>{}), -2.185039863261518991643, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_tan(internal::ScalarConstant<std::complex<double>, 3, 4>{})), -1.873462046294784262243E-4, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_tan(internal::ScalarConstant<std::complex<double>, 3, 4>{})), 0.9993559873814731413917, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_tan(values::ScalarConstant<double, 2>{}), -2.185039863261518991643, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_tan(values::ScalarConstant<std::complex<double>, 3, 4>{})), -1.873462046294784262243E-4, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_tan(values::ScalarConstant<std::complex<double>, 3, 4>{})), 0.9993559873814731413917, 1e-9));
 }
 
 
@@ -701,9 +701,9 @@ TEST(basics, constexpr_log)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_log(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_log(std::integral_constant<int, 2>{}), numbers::ln2_v<double>, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_log(internal::ScalarConstant<double, 2>{}), numbers::ln2_v<double>, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_log(internal::ScalarConstant<std::complex<double>, 3, 4>{})), 1.609437912434100374601, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_log(internal::ScalarConstant<std::complex<double>, 3, 4>{})), 0.9272952180016122324285, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_log(values::ScalarConstant<double, 2>{}), numbers::ln2_v<double>, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_log(values::ScalarConstant<std::complex<double>, 3, 4>{})), 1.609437912434100374601, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_log(values::ScalarConstant<std::complex<double>, 3, 4>{})), 0.9272952180016122324285, 1e-9));
 }
 
 
@@ -758,9 +758,9 @@ TEST(basics, constexpr_log1p)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_log1p(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_log1p(std::integral_constant<int, 1>{}), numbers::ln2_v<double>, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_log1p(internal::ScalarConstant<double, 1>{}), numbers::ln2_v<double>, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_log1p(internal::ScalarConstant<std::complex<double>, 2, 4>{})), 1.609437912434100374601, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_log1p(internal::ScalarConstant<std::complex<double>, 2, 4>{})), 0.9272952180016122324285, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_log1p(values::ScalarConstant<double, 1>{}), numbers::ln2_v<double>, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_log1p(values::ScalarConstant<std::complex<double>, 2, 4>{})), 1.609437912434100374601, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_log1p(values::ScalarConstant<std::complex<double>, 2, 4>{})), 0.9272952180016122324285, 1e-9));
 }
 
 
@@ -795,9 +795,9 @@ TEST(basics, constexpr_asinh)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_asinh(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_asinh(std::integral_constant<int, 2>{}), 1.443635475178810342493, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_asinh(internal::ScalarConstant<double, 2>{}), 1.443635475178810342493, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_asinh(internal::ScalarConstant<std::complex<double>, 3, 4>{})), 2.299914040879269649956, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_asinh(internal::ScalarConstant<std::complex<double>, 3, 4>{})), 0.9176168533514786557599, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_asinh(values::ScalarConstant<double, 2>{}), 1.443635475178810342493, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_asinh(values::ScalarConstant<std::complex<double>, 3, 4>{})), 2.299914040879269649956, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_asinh(values::ScalarConstant<std::complex<double>, 3, 4>{})), 0.9176168533514786557599, 1e-9));
 }
 
 
@@ -832,9 +832,9 @@ TEST(basics, constexpr_acosh)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_acosh(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_acosh(std::integral_constant<int, 2>{}), 1.316957896924816708625, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_acosh(internal::ScalarConstant<double, 2>{}), 1.316957896924816708625, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_acosh(internal::ScalarConstant<std::complex<double>, 3, 4>{})), 2.305509031243476942042, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_acosh(internal::ScalarConstant<std::complex<double>, 3, 4>{})), 0.9368124611557199029125, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_acosh(values::ScalarConstant<double, 2>{}), 1.316957896924816708625, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_acosh(values::ScalarConstant<std::complex<double>, 3, 4>{})), 2.305509031243476942042, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_acosh(values::ScalarConstant<std::complex<double>, 3, 4>{})), 0.9368124611557199029125, 1e-9));
 }
 
 
@@ -871,9 +871,9 @@ TEST(basics, constexpr_atanh)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_atanh(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_atanh(std::integral_constant<int, 0>{}), 0, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_atanh(internal::ScalarConstant<double, 0>{}), 0, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_atanh(internal::ScalarConstant<std::complex<double>, 3, 4>{})), 0.1175009073114338884127, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_atanh(internal::ScalarConstant<std::complex<double>, 3, 4>{})), 1.409921049596575522531, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_atanh(values::ScalarConstant<double, 0>{}), 0, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_atanh(values::ScalarConstant<std::complex<double>, 3, 4>{})), 0.1175009073114338884127, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_atanh(values::ScalarConstant<std::complex<double>, 3, 4>{})), 1.409921049596575522531, 1e-9));
 }
 
 
@@ -919,9 +919,9 @@ TEST(basics, constexpr_asin)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_asin(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_asin(std::integral_constant<int, 1>{}), pi/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_asin(internal::ScalarConstant<double, 1>{}), pi/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_asin(internal::ScalarConstant<std::complex<double>, 3, 4>{})), 0.6339838656391767163188, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_asin(internal::ScalarConstant<std::complex<double>, 3, 4>{})), 2.305509031243476942042, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_asin(values::ScalarConstant<double, 1>{}), pi/2, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_asin(values::ScalarConstant<std::complex<double>, 3, 4>{})), 0.6339838656391767163188, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_asin(values::ScalarConstant<std::complex<double>, 3, 4>{})), 2.305509031243476942042, 1e-9));
 }
 
 
@@ -963,9 +963,9 @@ TEST(basics, constexpr_acos)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_acos(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_acos(std::integral_constant<int, -1>{}), pi, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_acos(internal::ScalarConstant<double, -1>{}), pi, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_acos(internal::ScalarConstant<std::complex<double>, 3, 4>{})), 0.9368124611557199029125, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_acos(internal::ScalarConstant<std::complex<double>, 3, 4>{})), -2.305509031243476942042, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_acos(values::ScalarConstant<double, -1>{}), pi, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_acos(values::ScalarConstant<std::complex<double>, 3, 4>{})), 0.9368124611557199029125, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_acos(values::ScalarConstant<std::complex<double>, 3, 4>{})), -2.305509031243476942042, 1e-9));
 }
 
 
@@ -1005,9 +1005,9 @@ TEST(basics, constexpr_atan)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_atan(std::complex<int>{3, -4})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_atan(std::integral_constant<int, 1>{}), pi/4, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_atan(internal::ScalarConstant<double, 1>{}), pi/4, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_atan(internal::ScalarConstant<std::complex<double>, 3, 4>{})), 1.448306995231464542145, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_atan(internal::ScalarConstant<std::complex<double>, 3, 4>{})), 0.1589971916799991743648, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_atan(values::ScalarConstant<double, 1>{}), pi/4, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_atan(values::ScalarConstant<std::complex<double>, 3, 4>{})), 1.448306995231464542145, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_atan(values::ScalarConstant<std::complex<double>, 3, 4>{})), 0.1589971916799991743648, 1e-9));
 }
 
 
@@ -1074,9 +1074,9 @@ TEST(basics, constexpr_atan2)
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_atan2(std::complex<int>{3, -4}, std::complex<int>{2, 5})));
 
   static_assert(internal::are_within_tolerance(internal::constexpr_atan2(std::integral_constant<int, 1>{}, std::integral_constant<int, 0>{}), pi/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_atan2(internal::ScalarConstant<double, 1>{}, internal::ScalarConstant<double, 0>{}), pi/2, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_atan2(internal::ScalarConstant<std::complex<double>, 3, 4>{}, internal::ScalarConstant<std::complex<double>, 5, 2>{})), 0.7420289940594557537102, 1e-9));
-  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_atan2(internal::ScalarConstant<std::complex<double>, 3, 4>{}, internal::ScalarConstant<std::complex<double>, 5, 2>{})), 0.2871556773106927669533, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_atan2(values::ScalarConstant<double, 1>{}, values::ScalarConstant<double, 0>{}), pi/2, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_real(internal::constexpr_atan2(values::ScalarConstant<std::complex<double>, 3, 4>{}, values::ScalarConstant<std::complex<double>, 5, 2>{})), 0.7420289940594557537102, 1e-9));
+  static_assert(internal::are_within_tolerance(internal::constexpr_imag(internal::constexpr_atan2(values::ScalarConstant<std::complex<double>, 3, 4>{}, values::ScalarConstant<std::complex<double>, 5, 2>{})), 0.2871556773106927669533, 1e-9));
 }
 
 
@@ -1198,7 +1198,7 @@ TEST(basics, constexpr_pow)
   EXPECT_PRED3(tolerance, internal::constexpr_pow(std::complex<double>{-3, -4}, std::complex<double>{1, 2}), std::pow(std::complex<double>{-3, -4}, std::complex<double>{1, 2}), 1e-9);
   COMPLEXINTEXISTS(EXPECT_NO_THROW(internal::constexpr_pow(std::complex<int>{-3, -4}, std::complex<int>{1, 2})));
 
-  static_assert(internal::constexpr_pow(internal::ScalarConstant<double, 2>{}, std::integral_constant<int, 3>{}) == 8);
-  static_assert(internal::constexpr_pow(internal::ScalarConstant<double, 2>{}, 3) == 8);
-  static_assert(internal::are_within_tolerance(internal::constexpr_pow(2, internal::ScalarConstant<double, 3>{}), 8, 1e-6));
+  static_assert(internal::constexpr_pow(values::ScalarConstant<double, 2>{}, std::integral_constant<int, 3>{}) == 8);
+  static_assert(internal::constexpr_pow(values::ScalarConstant<double, 2>{}, 3) == 8);
+  static_assert(internal::are_within_tolerance(internal::constexpr_pow(2, values::ScalarConstant<double, 3>{}), 8, 1e-6));
 }

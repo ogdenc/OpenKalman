@@ -124,7 +124,7 @@ namespace OpenKalman::interface
     {
       if constexpr (std::tuple_size_v<decltype(arg.indices())> == 1)
       {
-        return internal::scalar_constant_operation {std::multiplies<>{},
+        return values::scalar_constant_operation {std::multiplies<>{},
           constant_diagonal_coefficient{arg.lhs()}, constant_diagonal_coefficient{arg.rhs()}};
       }
       else

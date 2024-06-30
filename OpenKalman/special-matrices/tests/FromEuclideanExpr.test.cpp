@@ -124,13 +124,13 @@ TEST(special_matrices, FromEuclideanExpr_class)
   EXPECT_TRUE(is_near(d4, m));
   From42 d5 {make_zero_matrix_like<M42>()};
   EXPECT_TRUE(is_near(d5, mat3(0, 0, 0, 0, 0, 0)));
-  From42 d6 {ZeroMatrix<eigen_matrix_t<double, 4, 2>>()};
+  From42 d6 {ZeroAdapter<eigen_matrix_t<double, 4, 2>>()};
   EXPECT_TRUE(is_near(d6, mat3(0, 0, 0, 0, 0, 0)));
-  From42 d7 = From42(ZeroMatrix<eigen_matrix_t<double, 4, 2>>());
+  From42 d7 = From42(ZeroAdapter<eigen_matrix_t<double, 4, 2>>());
   EXPECT_TRUE(is_near(d7, mat3(0, 0, 0, 0, 0, 0)));
   From42 d8 {1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4};
   EXPECT_TRUE(is_near(d8, m));
-  EXPECT_TRUE(is_near(From42(ZeroMatrix<eigen_matrix_t<double, 4, 2>>()), mat3(0, 0, 0, 0, 0, 0)));
+  EXPECT_TRUE(is_near(From42(ZeroAdapter<eigen_matrix_t<double, 4, 2>>()), mat3(0, 0, 0, 0, 0, 0)));
   FromTo32 d9 {1, 2, pi/6, pi/3, 3, 4};
   EXPECT_TRUE(is_near(d9.nested_matrix(), mat4(1, 2, std::sqrt(3)/2, 0.5, 0.5, std::sqrt(3)/2, 3, 4)));
   EXPECT_TRUE(is_near(d9, mat3(1, 2, pi/6, pi/3, 3, 4)));
@@ -292,17 +292,17 @@ TEST(special_matrices, FromEuclideanExpr_overloads)
   //EXPECT_TRUE(is_near(from_euclidean(DynamicTypedIndex {FixedDescriptor<angle::Radians, Axis>{}}, c504_3), m24_from_ra));
   //EXPECT_TRUE(is_near(from_euclidean(DynamicTypedIndex {FixedDescriptor<angle::Radians, Axis>{}}, c500_34), m24_from_ra));
 
-  ZeroMatrix<eigen_matrix_t<double, 2, 3>> z23;
-  ZeroMatrix<eigen_matrix_t<double, 2, dynamic_size_v>> z20_3 {3};
-  ZeroMatrix<eigen_matrix_t<double, dynamic_size_v, 3>> z03_2 {2};
-  ZeroMatrix<eigen_matrix_t<double, dynamic_size_v, dynamic_size_v>> z00_23 {2, 3};
+  ZeroAdapter<eigen_matrix_t<double, 2, 3>> z23;
+  ZeroAdapter<eigen_matrix_t<double, 2, dynamic_size_v>> z20_3 {3};
+  ZeroAdapter<eigen_matrix_t<double, dynamic_size_v, 3>> z03_2 {2};
+  ZeroAdapter<eigen_matrix_t<double, dynamic_size_v, dynamic_size_v>> z00_23 {2, 3};
 
   EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(z23), z23));
   EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(z20_3), z23));
   EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(z03_2), z23));
   EXPECT_TRUE(is_near(from_euclidean<Dimensions<2>>(z00_23), z23));
 
-  ZeroMatrix<eigen_matrix_t<double, 1, 3>> z13;
+  ZeroAdapter<eigen_matrix_t<double, 1, 3>> z13;
 
   EXPECT_TRUE(is_near(from_euclidean<FixedDescriptor<angle::Radians>>(z23), z13));
   EXPECT_TRUE(is_near(from_euclidean<FixedDescriptor<angle::Radians>>(z20_3), z13));

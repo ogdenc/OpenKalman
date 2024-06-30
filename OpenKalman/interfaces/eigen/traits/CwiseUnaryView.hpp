@@ -39,7 +39,7 @@ namespace OpenKalman::interface
       return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
     }
 
-    using dependents = std::tuple<typename Eigen::CwiseUnaryView<ViewOp, MatrixType>::MatrixTypeNested, ViewOp>;
+    using dependents = std::tuple<typename Eigen::CwiseUnaryView<ViewOp, MatrixType>::MatrixTypeNested>;
 
     static constexpr bool has_runtime_parameters = false;
 
@@ -85,13 +85,13 @@ namespace OpenKalman::interface
         return Traits::template get_constant(arg);
 #ifdef __cpp_concepts
       else if constexpr (Eigen3::constexpr_unary_operation_defined<ViewOp>)
-        return internal::scalar_constant_operation {Traits::constexpr_operation(), constant_coefficient {arg.nestedExpression()}};
+        return values::scalar_constant_operation {Traits::constexpr_operation(), constant_coefficient {arg.nestedExpression()}};
 #else
       else if constexpr (Eigen3::constexpr_unary_operation_defined<ViewOp> and constant_matrix<MatrixType, ConstantType::static_constant>)
-        return internal::scalar_constant_operation {Traits::constexpr_operation(), constant_coefficient<MatrixType>{}};
+        return values::scalar_constant_operation {Traits::constexpr_operation(), constant_coefficient<MatrixType>{}};
 #endif
       else
-        return internal::scalar_constant_operation {arg.functor(), constant_coefficient {arg.nestedExpression()}};
+        return values::scalar_constant_operation {arg.functor(), constant_coefficient {arg.nestedExpression()}};
     }
 
   private:
@@ -119,9 +119,9 @@ namespace OpenKalman::interface
       else if constexpr (not Traits::preserves_triangle)
         return std::monostate{};
       else if constexpr (Eigen3::constexpr_unary_operation_defined<ViewOp>)
-        return internal::scalar_constant_operation {Traits::constexpr_operation(), constant_diagonal_coefficient{arg.nestedExpression()}};
+        return values::scalar_constant_operation {Traits::constexpr_operation(), constant_diagonal_coefficient{arg.nestedExpression()}};
       else
-        return internal::scalar_constant_operation {arg.functor(), constant_diagonal_coefficient{arg.nestedExpression()}};
+        return values::scalar_constant_operation {arg.functor(), constant_diagonal_coefficient{arg.nestedExpression()}};
     }
 
 

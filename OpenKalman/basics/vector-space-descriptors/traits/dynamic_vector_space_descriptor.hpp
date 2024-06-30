@@ -28,10 +28,10 @@ namespace OpenKalman
 
     template<typename T>
     struct is_dynamic_vector_space_descriptor<T, std::enable_if_t<
-      std::is_convertible<decltype(std::declval<interface::dynamic_vector_space_descriptor_traits<std::decay_t<T>>>().get_size()), std::size_t>::value and
-      std::is_convertible<decltype(std::declval<interface::dynamic_vector_space_descriptor_traits<std::decay_t<T>>>().get_euclidean_size()), std::size_t>::value and
-      std::is_convertible<decltype(std::declval<interface::dynamic_vector_space_descriptor_traits<std::decay_t<T>>>().get_component_count()), std::size_t>::value and
-      std::is_convertible<decltype(std::declval<interface::dynamic_vector_space_descriptor_traits<std::decay_t<T>>>().is_euclidean()), bool>::value
+      std::is_convertible<decltype(std::declval<dynamic_vector_space_descriptor_traits<std::decay_t<T>>>().get_size()), std::size_t>::value and
+      std::is_convertible<decltype(std::declval<dynamic_vector_space_descriptor_traits<std::decay_t<T>>>().get_euclidean_size()), std::size_t>::value and
+      std::is_convertible<decltype(std::declval<dynamic_vector_space_descriptor_traits<std::decay_t<T>>>().get_component_count()), std::size_t>::value and
+      std::is_convertible<decltype(std::declval<dynamic_vector_space_descriptor_traits<std::decay_t<T>>>().is_euclidean()), bool>::value
       >> : std::true_type {};
   }
 #endif
@@ -39,12 +39,12 @@ namespace OpenKalman
 
   /**
    * \brief A set of \ref vector_space_descriptor for which the number of dimensions is defined at runtime.
-   * \details This includes any object for which interface::dynamic_vector_space_descriptor_traits is defined.
+   * \details This includes any object for which dynamic_vector_space_descriptor_traits is defined.
    */
   template<typename T>
 #ifdef __cpp_concepts
   concept dynamic_vector_space_descriptor = (not fixed_vector_space_descriptor<T>) and
-    requires(const interface::dynamic_vector_space_descriptor_traits<std::decay_t<T>>& t) {
+    requires(const dynamic_vector_space_descriptor_traits<std::decay_t<T>>& t) {
       {t.get_size()} -> std::convertible_to<std::size_t>;
       {t.get_euclidean_size()} -> std::convertible_to<std::size_t>;
       {t.get_component_count()} -> std::convertible_to<std::size_t>;

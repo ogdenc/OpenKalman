@@ -32,6 +32,7 @@ TEST(basics, integral)
   static_assert(dimension_size_of_v<int> == dynamic_size);
   static_assert(euclidean_dimension_size_of_v<int> == dynamic_size);
   static_assert(get_dimension_size_of(3) == 3);
+  EXPECT_EQ(get_dimension_size_of(0), 0);
   EXPECT_EQ(get_dimension_size_of(3), 3);
   static_assert(get_euclidean_dimension_size_of(3) == 3);
   EXPECT_EQ(get_euclidean_dimension_size_of(3), 3);
@@ -51,6 +52,7 @@ TEST(basics, dynamic_Dimensions)
   static_assert(not atomic_fixed_vector_space_descriptor<D>);
   static_assert(dimension_size_of_v<D> == dynamic_size);
   static_assert(euclidean_dimension_size_of_v<D> == dynamic_size);
+  static_assert(get_dimension_size_of(Dimensions {0}) == 0);
   static_assert(get_dimension_size_of(Dimensions {3}) == 3);
   static_assert(get_euclidean_dimension_size_of(Dimensions{3}) == 3);
   static_assert(get_dimension_size_of(Dimensions<dynamic_size> {Axis {}}) == 1);
@@ -79,6 +81,8 @@ TEST(basics, DynamicDescriptor_traits)
 
 TEST(basics, DynamicDescriptor_construct)
 {
+  EXPECT_EQ(get_dimension_size_of(DynamicDescriptor {}), 0);
+  EXPECT_EQ(get_dimension_size_of(DynamicDescriptor {Dimensions<0>{}}), 0);
   EXPECT_EQ(get_dimension_size_of(DynamicDescriptor {Axis{}}), 1);
   EXPECT_EQ(get_dimension_size_of(DynamicDescriptor {angle::Degrees{}}), 1);
   EXPECT_EQ(get_euclidean_dimension_size_of(DynamicDescriptor {angle::Degrees{}}), 2);
@@ -114,6 +118,7 @@ TEST(basics, DynamicDescriptor_extend)
 
 TEST(basics, dynamic_comparison)
 {
+  static_assert(Dimensions{0} == Dimensions{0});
   static_assert(Dimensions{3} == Dimensions{3});
   static_assert(Dimensions{3} == Dimensions{3});
   static_assert(Dimensions{3} <= Dimensions{3});
@@ -223,16 +228,35 @@ TEST(basics, dynamic_comparison)
 
   EXPECT_TRUE((DynamicDescriptor<double> {FixedDescriptor<Axis, angle::Radians, Distance> {}} == DynamicDescriptor<float> {FixedDescriptor<Axis, angle::Radians, Distance> {}}));
   EXPECT_TRUE((DynamicDescriptor {FixedDescriptor<Axis, angle::Radians, Distance> {}} == DynamicDescriptor<long double> {FixedDescriptor<Axis, angle::Radians, Distance> {}}));
+  EXPECT_TRUE((DynamicDescriptor<double> {FixedDescriptor<Axis, angle::Radians, Distance> {}} < DynamicDescriptor<float> {FixedDescriptor<Axis, angle::Radians, Distance, Axis> {}}));
+  EXPECT_TRUE((DynamicDescriptor<double> {FixedDescriptor<Axis, angle::Radians, Distance, Axis> {}} > DynamicDescriptor<float> {FixedDescriptor<Axis, angle::Radians, Distance> {}}));
+  EXPECT_TRUE((DynamicDescriptor<double> {FixedDescriptor<Axis, angle::Radians, Distance> {}} <= DynamicDescriptor<float> {FixedDescriptor<Axis, angle::Radians, Distance, Axis> {}}));
+  EXPECT_TRUE((DynamicDescriptor<double> {FixedDescriptor<Axis, angle::Radians, Distance, Axis> {}} >= DynamicDescriptor<float> {FixedDescriptor<Axis, angle::Radians, Distance> {}}));
+  EXPECT_TRUE((DynamicDescriptor<double> {FixedDescriptor<Axis, angle::Radians, Distance, Axis> {}} != DynamicDescriptor<float> {FixedDescriptor<Axis, angle::Radians, Distance> {}}));
 }
 
 
 TEST(basics, dynamic_arithmetic)
 {
   EXPECT_TRUE(Dimensions{3} + Dimensions{4} == Dimensions{7});
-  EXPECT_TRUE(Dimensions{7} - Dimensions{4} == Dimensions{3});
   EXPECT_TRUE((DynamicDescriptor {Axis{}, angle::Radians{}} + DynamicDescriptor {angle::Degrees{}, Axis{}} == DynamicDescriptor {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}}));
   EXPECT_TRUE((DynamicDescriptor {Axis{}, angle::Radians{}} + FixedDescriptor<angle::Degrees, Axis>{} == DynamicDescriptor {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}}));
   EXPECT_TRUE((FixedDescriptor<Axis, angle::Radians>{} + DynamicDescriptor {angle::Degrees{}, Axis{}} == DynamicDescriptor {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}}));
+
+  EXPECT_TRUE(Dimensions{7} - Dimensions{7} == Dimensions{0});
+  EXPECT_TRUE(Dimensions{7} - Dimensions{4} == Dimensions{3});
+
+  EXPECT_TRUE((DynamicDescriptor {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}} - FixedDescriptor<>{} == DynamicDescriptor {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}}));
+  EXPECT_TRUE((DynamicDescriptor {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}} - FixedDescriptor<Axis>{} == DynamicDescriptor {Axis{}, angle::Radians{}, angle::Degrees{}}));
+  EXPECT_TRUE((DynamicDescriptor {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}} - FixedDescriptor<angle::Degrees, Axis>{} == DynamicDescriptor {Axis{}, angle::Radians{}}));
+
+  EXPECT_TRUE((DynamicDescriptor {Dimensions{7}} - Dimensions{4} == Dimensions{3}));
+  EXPECT_TRUE((DynamicDescriptor {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}} - Dimensions{1} == DynamicDescriptor {Axis{}, angle::Radians{}, angle::Degrees{}}));
+
+  EXPECT_TRUE((DynamicDescriptor {Dimensions{7}} - DynamicDescriptor {Dimensions{4}} == Dimensions{3}));
+  EXPECT_TRUE((DynamicDescriptor {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}} - DynamicDescriptor {Axis{}} == DynamicDescriptor {Axis{}, angle::Radians{}, angle::Degrees{}}));
+  EXPECT_TRUE((DynamicDescriptor {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}} - DynamicDescriptor {angle::Degrees{}, Axis{}} == DynamicDescriptor {Axis{}, angle::Radians{}}));
+  EXPECT_TRUE((DynamicDescriptor {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}} - DynamicDescriptor {angle::Degrees{}, Axis{}} == FixedDescriptor<Axis, angle::Radians>{}));
 }
 
 
@@ -286,4 +310,16 @@ TEST(basics, internal_is_uniform_component_of)
   auto a10 = DynamicDescriptor {Dimensions<10> {}};
   static_assert(not is_uniform_component_of(d1, f2));
   static_assert(not is_uniform_component_of(Dimensions<2> {}, a10));
+}
+
+
+TEST(basics, internal_split_head_tail_dynamic)
+{
+  EXPECT_TRUE((std::get<0>(internal::split_head_tail(Dimensions{7})) == Axis{}));
+  EXPECT_TRUE((std::get<1>(internal::split_head_tail(Dimensions{7})) == Dimensions{6}));
+
+  EXPECT_TRUE((std::get<0>(internal::split_head_tail(DynamicDescriptor {Axis{}, angle::Radians{}, Distance{}})) == Axis{}));
+  EXPECT_TRUE((std::get<1>(internal::split_head_tail(DynamicDescriptor {Axis{}, angle::Radians{}, Distance{}})) == DynamicDescriptor {angle::Radians{}, Distance{}}));
+  EXPECT_TRUE((std::get<0>(internal::split_head_tail(DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}})) == angle::Radians{}));
+  EXPECT_TRUE((std::get<1>(internal::split_head_tail(DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}})) == DynamicDescriptor {Axis{}, Distance{}}));
 }

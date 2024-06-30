@@ -42,6 +42,105 @@ namespace OpenKalman::interface
     using LibraryBase = internal::library_base_t<Derived, Nested>;
 
 
+#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+    template<indexible Arg, std::ranges::input_range Indices> requires
+      std::convertible_to<std::ranges::range_value_t<Indices>, const typename std::decay_t<Arg>::Index>
+    static constexpr scalar_constant decltype(auto)
+#else
+    template<typename Arg, typename Indices>
+    static constexpr decltype(auto)
+#endif
+    get_component(Arg&& arg, const Indices& indices)
+    {
+      constexpr std::size_t N = static_range_size_v<Indices>;
+      static_assert(N == dynamic_size or N <= 2);
+
+      using Scalar = scalar_type_of_t<Arg>;
+      auto it = indices.begin();
+      std::size_t i {*it};
+      std::size_t j {N == 1 ? 1 : *++it};
+
+      if constexpr (eigen_diagonal_expr<Arg>)
+      {
+        if (i == j)
+          return OpenKalman::get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), indices);
+        else
+          return static_cast<Scalar>(0);
+      }
+      else if constexpr (eigen_triangular_expr<Arg>)
+      {
+        if (triangular_matrix<Arg, TriangleType::lower> ? i >= j : j >= i)
+          return OpenKalman::get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), indices);
+        else
+          return static_cast<Scalar>(0);
+      }
+      else
+      {
+        static_assert(eigen_self_adjoint_expr<Arg>);
+
+        if constexpr (complex_number<Scalar>)
+        {
+          if (i == j)
+            return internal::constexpr_real(OpenKalman::get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), indices));
+          else if (hermitian_adapter<Arg, HermitianAdapterType::lower> ? i > j : j > i)
+            return OpenKalman::get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), indices);
+          else
+            return internal::constexpr_conj(OpenKalman::get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), j, i));
+        }
+        else
+        {
+          if (hermitian_adapter<Arg, HermitianAdapterType::lower> ? i >= j : j >= i)
+            return OpenKalman::get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), indices);
+          else
+            return OpenKalman::get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), j, i);
+        }
+      }
+    }
+
+
+#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+    template<indexible Arg, std::ranges::input_range Indices> requires (not std::is_const_v<Arg>) and
+    std::convertible_to<std::ranges::range_value_t<Indices>, const typename Arg::Index>
+#else
+    template<typename Arg, typename Indices, std::enable_if_t<(not std::is_const_v<Arg>), int> = 0>
+#endif
+    static void
+    set_component(Arg& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
+    {
+      constexpr std::size_t N = static_range_size_v<Indices>;
+      static_assert(N == dynamic_size or N <= 2);
+
+      using Scalar = scalar_type_of_t<Arg>;
+      auto it = indices.begin();
+      std::size_t i {*it};
+      std::size_t j {N == 1 ? 1 : *++it};
+
+      if constexpr (eigen_diagonal_expr<Arg>)
+      {
+        if (i == j)
+          OpenKalman::set_component(arg, s, indices);
+        else
+          if (s != static_cast<Scalar>(0)) throw std::out_of_range("Cannot set non-diagonal element of a diagonal matrix to a non-zero value.");
+      }
+      else if constexpr (eigen_triangular_expr<Arg>)
+      {
+        if (triangular_matrix<Arg, TriangleType::lower> ? i >= j : j >= i)
+          OpenKalman::set_component(arg, s, indices);
+        else
+          if (s != static_cast<Scalar>(0)) throw std::out_of_range("Cannot set elements of a triangular matrix to non-zero values outside the triangle.");
+      }
+      else
+      {
+        static_assert(eigen_self_adjoint_expr<Arg>);
+
+        if (hermitian_adapter<Arg, HermitianAdapterType::lower> ? i >= j : j >= i)
+          OpenKalman::set_component(arg, s, indices);
+        else
+          OpenKalman::set_component(arg, internal::constexpr_conj(s), j, i);
+      }
+    }
+
+
     // to_native_matrix inherited
 
     // make_default inherited
@@ -51,6 +150,10 @@ namespace OpenKalman::interface
     // make_constant inherited
 
     // make_identity_matrix inherited
+
+    // make_triangular_matrix inherited
+
+    // make_hermitian_adapter inherited
 
 
     template<typename Arg, typename...Begin, typename...Size>
@@ -70,7 +173,8 @@ namespace OpenKalman::interface
 
 
     template<TriangleType t, typename A, typename B>
-    static A& set_triangle(A& a, B&& b)
+    static A&
+    set_triangle(A& a, B&& b)
     {
       if constexpr (eigen_triangular_expr<A>)
       {
@@ -113,7 +217,7 @@ namespace OpenKalman::interface
     }
 
 
-    // replicate inherited
+    // broadcast
 
 
     template<typename...Ds, typename Operation, typename...Args>
@@ -134,11 +238,14 @@ namespace OpenKalman::interface
     }
 
     // to_euclidean not defined
+
     // from_euclidean not defined
+
     // wrap_angles not defined
 
     template<typename Arg>
-    static constexpr decltype(auto) conjugate(Arg&& arg) noexcept
+    static constexpr decltype(auto)
+    conjugate(Arg&& arg) noexcept
     {
       if constexpr (eigen_self_adjoint_expr<Arg>)
       {
@@ -156,7 +263,8 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr decltype(auto) transpose(Arg&& arg) noexcept
+    static constexpr decltype(auto)
+    transpose(Arg&& arg) noexcept
     {
       if constexpr (eigen_self_adjoint_expr<Arg>)
       {
@@ -188,7 +296,8 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr decltype(auto) adjoint(Arg&& arg) noexcept
+    static constexpr decltype(auto)
+    adjoint(Arg&& arg) noexcept
     {
       // Global conjugate function already handles SelfAdjointMatrix and DiagonalMatrix
       static_assert(eigen_triangular_expr<Arg>);
@@ -199,7 +308,8 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr auto determinant(Arg&& arg) noexcept
+    static constexpr auto
+    determinant(Arg&& arg) noexcept
     {
       // The general determinant function already handles TriangularMatrix and DiagonalMatrix.
       static_assert(eigen_self_adjoint_expr<Arg>);
@@ -208,21 +318,52 @@ namespace OpenKalman::interface
 
 
     template<typename Arg, typename...Args>
-    static constexpr auto sum(Arg&& arg, Args&&...args)
+    static constexpr auto
+    sum(Arg&& arg, Args&&...args)
     {
       return library_interface<Nested>::sum(std::forward<Arg>(arg), std::forward<Args>(args)...);
     }
 
 
     template<typename A, typename B>
-    static constexpr auto contract(A&& a, B&& b)
+    static constexpr auto
+    contract(A&& a, B&& b)
     {
       return library_interface<std::decay_t<nested_object_of_t<T>>>::contract(std::forward<A>(a), std::forward<B>(b));
     }
 
 
+    // contract_in_place
+
+
+    template<TriangleType triangle_type, typename A>
+    static constexpr auto
+    cholesky_factor(A&& a) noexcept
+    {
+      static_assert(not eigen_diagonal_expr<A>); // DiagonalMatrix case should be handled by cholesky_factor function
+
+      if constexpr (eigen_self_adjoint_expr<A>)
+      {
+        constexpr HermitianAdapterType h = triangle_type == TriangleType::upper ? HermitianAdapterType::upper : HermitianAdapterType::lower;
+        if constexpr (hermitian_adapter<A, h>)
+          return cholesky_factor<triangle_type>(nested_object(std::forward<A>(a)));
+        else
+          return cholesky_factor<triangle_type>(adjoint(nested_object(std::forward<A>(a))));
+      }
+      else
+      {
+        static_assert(eigen_triangular_expr<A>);
+        if constexpr (triangular_matrix<A, triangle_type>)
+          return OpenKalman::cholesky_factor<triangle_type>(nested_object(std::forward<A>(a)));
+        else
+          return OpenKalman::cholesky_factor<triangle_type>(to_diagonal(diagonal_of(std::forward<A>(a))));
+      }
+    }
+
+
     template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
-    static decltype(auto) rank_update_hermitian(A&& a, U&& u, const Alpha alpha)
+    static decltype(auto)
+    rank_update_hermitian(A&& a, U&& u, const Alpha alpha)
     {
       auto&& n = nested_object(std::forward<A>(a));
       using Trait = interface::library_interface<std::decay_t<decltype(n)>>;
@@ -240,7 +381,8 @@ namespace OpenKalman::interface
 
 
     template<TriangleType triangle, typename A, typename U, typename Alpha>
-    static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
+    static decltype(auto)
+    rank_update_triangular(A&& a, U&& u, const Alpha alpha)
     {
       static_assert(eigen_diagonal_expr<A>);
       using N = std::decay_t<nested_object_of_t<T>>;

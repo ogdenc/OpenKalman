@@ -77,7 +77,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_abs_op)
   static_assert(Eigen3::constexpr_unary_operation_defined<Eigen::internal::scalar_abs_op<double>>);
   auto c22 = constant_coefficient {cp2.abs().nestedExpression()};
   static_assert(std::decay_t<decltype(c22)>::value == 2);
-  static_assert(OpenKalman::internal::scalar_constant_operation {Traits::constexpr_operation(), c22} == 2);
+  static_assert(OpenKalman::values::scalar_constant_operation {Traits::constexpr_operation(), c22} == 2);
   static_assert(constant_coefficient_v<const Eigen::CwiseUnaryOp<Eigen::internal::scalar_abs_op<double>, C211>> == 2);
 
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().abs())> == 2);

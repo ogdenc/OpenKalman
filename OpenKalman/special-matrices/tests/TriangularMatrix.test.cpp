@@ -102,8 +102,8 @@ TEST(special_matrices, TriangularMatrix_static_checks)
 
   // \todo Fill in other traits
   
-  static_assert(modifiable<Tl<M22>, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>);
-  static_assert(modifiable<Tu<M22>, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>);
+  static_assert(modifiable<Tl<M22>, ZeroAdapter<eigen_matrix_t<double, 2, 2>>>);
+  static_assert(modifiable<Tu<M22>, ZeroAdapter<eigen_matrix_t<double, 2, 2>>>);
   static_assert(modifiable<Tl<M22>, Eigen3::IdentityMatrix<M22>>);
   static_assert(modifiable<Tu<M22>, Eigen3::IdentityMatrix<M22>>);
   static_assert(not modifiable<Tu<M22::IdentityReturnType>, Tu<M22::IdentityReturnType>>);
@@ -320,10 +320,10 @@ TEST(special_matrices, TriangularMatrix_class)
   u4 = mu.triangularView<Eigen::Upper>(); // assign from rvalue reference to TriangularBase derived object
   EXPECT_TRUE(is_near(u4, mu));
   //
-  l4 = ZeroMatrix<eigen_matrix_t<double, 2, 2>> {};
-  EXPECT_TRUE(is_near(l4, ZeroMatrix<eigen_matrix_t<double, 2, 2>> {}));
-  u4 = ZeroMatrix<eigen_matrix_t<double, 2, 2>> {};
-  EXPECT_TRUE(is_near(u4, ZeroMatrix<eigen_matrix_t<double, 2, 2>> {}));
+  l4 = ZeroAdapter<eigen_matrix_t<double, 2, 2>> {};
+  EXPECT_TRUE(is_near(l4, ZeroAdapter<eigen_matrix_t<double, 2, 2>> {}));
+  u4 = ZeroAdapter<eigen_matrix_t<double, 2, 2>> {};
+  EXPECT_TRUE(is_near(u4, ZeroAdapter<eigen_matrix_t<double, 2, 2>> {}));
   //
   l4 = M22::Identity();
   EXPECT_TRUE(is_near(l4, M22::Identity()));
@@ -977,7 +977,7 @@ TEST(special_matrices, TriangularMatrix_arithmetic_lower)
   auto mb = Lower {1., 0, 2, 3};
   auto d = DiagonalMatrix<eigen_matrix_t<double, 2, 1>> {1, 3};
   auto i = M22::Identity();
-  auto z = ZeroMatrix<eigen_matrix_t<double, 2, 2>> {};
+  auto z = ZeroAdapter<eigen_matrix_t<double, 2, 2>> {};
 
   EXPECT_TRUE(is_near(ma + mb, mat22(5, 0, 7, 9))); static_assert(triangular_matrix<decltype(ma + mb), TriangleType::lower>);
   EXPECT_TRUE(is_near(ma + d, mat22(5, 0, 5, 9))); static_assert(triangular_matrix<decltype(ma + d), TriangleType::lower>);
@@ -1027,7 +1027,7 @@ TEST(special_matrices, TriangularMatrix_arithmetic_upper)
   auto mb = Upper {1., 2, 0, 3};
   auto d = DiagonalMatrix<eigen_matrix_t<double, 2, 1>> {1, 3};
   auto i = M22::Identity();
-  auto z = ZeroMatrix<eigen_matrix_t<double, 2, 2>> {};
+  auto z = ZeroAdapter<eigen_matrix_t<double, 2, 2>> {};
   EXPECT_TRUE(is_near(ma + mb, mat22(5, 7, 0, 9))); static_assert(triangular_matrix<decltype(ma + mb), TriangleType::upper>);
   EXPECT_TRUE(is_near(ma + d, mat22(5, 5, 0, 9))); static_assert(triangular_matrix<decltype(ma + d), TriangleType::upper>);
   EXPECT_TRUE(is_near(d + ma, mat22(5, 5, 0, 9))); static_assert(triangular_matrix<decltype(d + ma), TriangleType::upper>);

@@ -23,7 +23,7 @@
 #include <concepts>
 #endif
 
-namespace OpenKalman
+namespace OpenKalman::vector_space_descriptors
 {
   template<typename Limits>
 #ifdef __cpp_concepts
@@ -129,7 +129,158 @@ namespace OpenKalman
   };
 
 
-  namespace internal
+  /**
+   * \internal
+   * \brief traits for Angle.
+   */
+  template<typename Limits>
+  struct fixed_vector_space_descriptor_traits<Angle<Limits>>
+  {
+    static constexpr std::size_t size = 1;
+
+
+    static constexpr std::size_t euclidean_size = 2;
+
+
+    static constexpr std::size_t component_count = 1;
+
+
+    using difference_type = Angle<Limits>;
+
+
+    static constexpr bool always_euclidean = false;
+
+
+    /*
+     * \details The angle corresponds to x and y coordinates on a unit circle.
+     * By convention, the minimum angle limit Limits<Scalar::min corresponds to the point (-1,0) in Euclidean space,
+     * and the angle is scaled so that the difference between Limits<Scalar>::min and Limits<<Scalar>::max is 2&pi;,
+     * so Limits<Scalar>::max wraps back to the point (-1, 0).
+     * \param euclidean_local_index A local index accessing either the x (if 0) or y (if 1) coordinate in Euclidean space
+     */
+#ifdef __cpp_concepts
+    static constexpr scalar_type auto
+    to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start)
+    requires requires (std::size_t i){ {g(i)} -> scalar_type; }
+#else
+    template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    static constexpr auto
+    to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start)
+#endif
+    {
+      using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
+      using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
+      const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
+      const Scalar mid { R{Limits::max + Limits::min} * R{0.5}};
+
+      Scalar theta = cf * (g(start) - mid); // Convert to radians
+
+      using std::cos, std::sin;
+      if (euclidean_local_index == 0) return cos(theta);
+      else return sin(theta);
+    }
+
+
+    /*
+     * \details The angle corresponds to x and y coordinates on a unit circle.
+     * \param local_index This is assumed to be 0.
+     * \param euclidean_start The starting location of the x and y coordinates within any larger set of \ref vector_space_descriptor
+     */
+#ifdef __cpp_concepts
+    static constexpr scalar_type auto
+    from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start)
+    requires requires (std::size_t i){ {g(i)} -> scalar_type; }
+#else
+    template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    static constexpr auto
+    from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start)
+#endif
+    {
+      using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
+      using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
+      const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
+      const Scalar mid { R{Limits::max + Limits::min} * R{0.5}};
+
+      Scalar x = g(euclidean_start);
+      Scalar y = g(euclidean_start + 1);
+
+      if constexpr (complex_number<Scalar>) return internal::constexpr_atan2(y, x) / cf + mid;
+      else { using std::atan2; return atan2(y, x) / cf + mid; }
+    }
+
+
+  private:
+
+#ifdef __cpp_concepts
+    static constexpr auto wrap_impl(auto&& a) -> std::decay_t<decltype(a)>
+#else
+    template<typename Scalar>
+    static constexpr std::decay_t<Scalar> wrap_impl(Scalar&& a)
+#endif
+    {
+      auto ap = internal::constexpr_real(a);
+      if (not (ap < Limits::min) and ap < Limits::max)
+      {
+        return std::forward<decltype(a)>(a);
+      }
+      else
+      {
+        using R = std::decay_t<decltype(ap)>;
+        constexpr R period {Limits::max - Limits::min};
+        using std::fmod;
+        R ar {fmod(ap - R{Limits::min}, period)};
+        if (ar < 0) return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar + period);
+        else return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar);
+      }
+    }
+
+  public:
+
+    /*
+     * \param local_index This is assumed to be 0.
+     */
+#ifdef __cpp_concepts
+    static constexpr scalar_type auto
+    get_wrapped_component(const auto& g, std::size_t local_index, std::size_t start)
+    requires requires (std::size_t i){ {g(i)} -> scalar_type; }
+#else
+    template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    static constexpr auto
+    get_wrapped_component(const G& g, std::size_t local_index, std::size_t start)
+#endif
+    {
+      return wrap_impl(g(start));
+    }
+
+
+    /**
+     * \param local_index This is assumed to be 0.
+     */
+#ifdef __cpp_concepts
+    static constexpr void
+    set_wrapped_component(const auto& s, const auto& g,
+      const std::decay_t<std::invoke_result_t<decltype(g), std::size_t>>& x, std::size_t local_index, std::size_t start)
+    requires requires (std::size_t i){ s(x, i); {x} -> scalar_type; }
+#else
+    template<typename S, typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type> and
+      std::is_invocable<S, typename std::invoke_result<G, std::size_t>::type, std::size_t>::value, int> = 0>
+    static constexpr void
+    set_wrapped_component(const S& s, const G& g, const std::decay_t<typename std::invoke_result<G, std::size_t>::type>& x,
+      std::size_t local_index, std::size_t start)
+#endif
+    {
+      s(wrap_impl(x), start);
+    }
+
+  };
+
+
+} // namespace OpenKalman::vector_space_descriptors
+
+
+namespace OpenKalman
+{
+  namespace detail
   {
     template<typename T>
     struct is_angle_vector_space_descriptor : std::false_type {};
@@ -148,152 +299,9 @@ namespace OpenKalman
 #else
   static constexpr bool angle_vector_space_descriptor =
 #endif
-    internal::is_angle_vector_space_descriptor<T>::value;
+    detail::is_angle_vector_space_descriptor<T>::value;
 
-
-  namespace interface
-  {
-    /**
-     * \internal
-     * \brief traits for Angle.
-     */
-    template<typename Limits>
-    struct fixed_vector_space_descriptor_traits<Angle<Limits>>
-    {
-      static constexpr std::size_t size = 1;
-      static constexpr std::size_t euclidean_size = 2;
-      static constexpr std::size_t component_count = 1;
-      using difference_type = Angle<Limits>;
-      static constexpr bool always_euclidean = false;
-
-      /*
-       * \details The angle corresponds to x and y coordinates on a unit circle.
-       * By convention, the minimum angle limit Limits<Scalar::min corresponds to the point (-1,0) in Euclidean space,
-       * and the angle is scaled so that the difference between Limits<Scalar>::min and Limits<<Scalar>::max is 2&pi;,
-       * so Limits<Scalar>::max wraps back to the point (-1, 0).
-       * \param euclidean_local_index A local index accessing either the x (if 0) or y (if 1) coordinate in Euclidean space
-       */
-  #ifdef __cpp_concepts
-      static constexpr scalar_type auto
-      to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start)
-      requires requires (std::size_t i){ {g(i)} -> scalar_type; }
-  #else
-      template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
-      static constexpr auto
-      to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start)
-  #endif
-      {
-        using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
-        using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
-        const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
-        const Scalar mid { R{Limits::max + Limits::min} * R{0.5}};
-
-        Scalar theta = cf * (g(start) - mid); // Convert to radians
-
-        using std::cos, std::sin;
-        if (euclidean_local_index == 0) return cos(theta);
-        else return sin(theta);
-      }
-
-
-      /*
-       * \details The angle corresponds to x and y coordinates on a unit circle.
-       * \param local_index This is assumed to be 0.
-       * \param euclidean_start The starting location of the x and y coordinates within any larger set of \ref vector_space_descriptor
-       */
-  #ifdef __cpp_concepts
-      static constexpr scalar_type auto
-      from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start)
-      requires requires (std::size_t i){ {g(i)} -> scalar_type; }
-  #else
-      template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
-      static constexpr auto
-      from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start)
-  #endif
-      {
-        using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
-        using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
-        const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
-        const Scalar mid { R{Limits::max + Limits::min} * R{0.5}};
-
-        Scalar x = g(euclidean_start);
-        Scalar y = g(euclidean_start + 1);
-
-        if constexpr (complex_number<Scalar>) return internal::constexpr_atan2(y, x) / cf + mid;
-        else { using std::atan2; return atan2(y, x) / cf + mid; }
-      }
-
-
-    private:
-
-  #ifdef __cpp_concepts
-      static constexpr auto wrap_impl(auto&& a) -> std::decay_t<decltype(a)>
-  #else
-      template<typename Scalar>
-      static constexpr std::decay_t<Scalar> wrap_impl(Scalar&& a)
-  #endif
-      {
-        auto ap = internal::constexpr_real(a);
-        if (not (ap < Limits::min) and ap < Limits::max)
-        {
-          return std::forward<decltype(a)>(a);
-        }
-        else
-        {
-          using R = std::decay_t<decltype(ap)>;
-          constexpr R period {Limits::max - Limits::min};
-          using std::fmod;
-          R ar {fmod(ap - R{Limits::min}, period)};
-          if (ar < 0) return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar + period);
-          else return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar);
-        }
-      }
-
-    public:
-
-      /*
-       * \param local_index This is assumed to be 0.
-       */
-  #ifdef __cpp_concepts
-      static constexpr scalar_type auto
-      get_wrapped_component(const auto& g, std::size_t local_index, std::size_t start)
-      requires requires (std::size_t i){ {g(i)} -> scalar_type; }
-  #else
-      template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
-      static constexpr auto
-      get_wrapped_component(const G& g, std::size_t local_index, std::size_t start)
-  #endif
-      {
-        return wrap_impl(g(start));
-      }
-
-
-      /**
-       * \param local_index This is assumed to be 0.
-       */
-  #ifdef __cpp_concepts
-      static constexpr void
-      set_wrapped_component(const auto& s, const auto& g,
-        const std::decay_t<std::invoke_result_t<decltype(g), std::size_t>>& x, std::size_t local_index, std::size_t start)
-      requires requires (std::size_t i){ s(x, i); {x} -> scalar_type; }
-  #else
-      template<typename S, typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type> and
-        std::is_invocable<S, typename std::invoke_result<G, std::size_t>::type, std::size_t>::value, int> = 0>
-      static constexpr void
-      set_wrapped_component(const S& s, const G& g, const std::decay_t<typename std::invoke_result<G, std::size_t>::type>& x,
-        std::size_t local_index, std::size_t start)
-  #endif
-      {
-        s(wrap_impl(x), start);
-      }
-
-    };
-
-
-  } // namespace interface
-
-
-} // namespace OpenKalman
+}
 
 
 #endif //OPENKALMAN_ANGLE_HPP

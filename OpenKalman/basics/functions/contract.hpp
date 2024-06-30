@@ -78,7 +78,7 @@ namespace OpenKalman
     }
     else if constexpr (zero<A> or zero<B>)
     {
-      return detail::contract_constant(internal::ScalarConstant<Scalar, 0>{}, std::forward<A>(a), std::forward<B>(b), seq);
+      return detail::contract_constant(values::ScalarConstant<Scalar, 0>{}, std::forward<A>(a), std::forward<B>(b), seq);
     }
     else if constexpr (constant_matrix<A> and constant_matrix<B>)
     {

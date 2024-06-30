@@ -125,14 +125,14 @@ TEST(special_matrices, SelfAdjointMatrix_static_checks)
 
   static_assert(not OpenKalman::internal::has_const<SAl<M22>>::value);
   static_assert(OpenKalman::internal::has_const<SAl<const M22>>::value);
-  static_assert(maybe_has_same_shape_as<SAl<M22>, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>);
-  static_assert(not maybe_has_same_shape_as<SAl<M22>, ZeroMatrix<eigen_matrix_t<double, 3, 3>>>);
+  static_assert(maybe_has_same_shape_as<SAl<M22>, ZeroAdapter<eigen_matrix_t<double, 2, 2>>>);
+  static_assert(not maybe_has_same_shape_as<SAl<M22>, ZeroAdapter<eigen_matrix_t<double, 3, 3>>>);
 
   static_assert(modifiable<SAl<M22>, ConstantAdapter<eigen_matrix_t<double, 2, 2>, 7>>);
   static_assert(modifiable<SAu<M22>, ConstantAdapter<eigen_matrix_t<double, 2, 2>, 7>>);
   
-  static_assert(modifiable<SAl<M22>, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>);
-  static_assert(modifiable<SAu<M22>, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>);
+  static_assert(modifiable<SAl<M22>, ZeroAdapter<eigen_matrix_t<double, 2, 2>>>);
+  static_assert(modifiable<SAu<M22>, ZeroAdapter<eigen_matrix_t<double, 2, 2>>>);
   static_assert(modifiable<SAl<M22>, Eigen3::IdentityMatrix<M22>>);
   static_assert(modifiable<SAu<M22>, Eigen3::IdentityMatrix<M22>>);
   static_assert(modifiable<SAl<M22>, D<M21>>);
@@ -1093,7 +1093,7 @@ TEST(special_matrices, SelfAdjointMatrix_arithmetic_lower)
   auto mb = L22 {1., 2, 2, 3};
   auto d = DiagonalMatrix<eigen_matrix_t<double, 2, 1>> {1, 3};
   auto i = M22::Identity();
-  auto z = ZeroMatrix<eigen_matrix_t<double, 2, 2>> {};
+  auto z = ZeroAdapter<eigen_matrix_t<double, 2, 2>> {};
 
   EXPECT_TRUE(is_near(ma + mb, mat22(5, 7, 7, 9))); static_assert(hermitian_matrix<decltype(ma + mb)>);
   EXPECT_TRUE(is_near(ma + d, mat22(5, 5, 5, 9))); static_assert(hermitian_matrix<decltype(ma + d)>);
@@ -1150,7 +1150,7 @@ TEST(special_matrices, SelfAdjointMatrix_arithmetic_upper)
   auto mb = U22 {1., 2, 2, 3};
   auto d = DiagonalMatrix<eigen_matrix_t<double, 2, 1>> {1, 3};
   auto i = M22::Identity();
-  auto z = ZeroMatrix<eigen_matrix_t<double, 2, 2>> {};
+  auto z = ZeroAdapter<eigen_matrix_t<double, 2, 2>> {};
   EXPECT_TRUE(is_near(ma + mb, mat22(5, 7, 7, 9))); static_assert(hermitian_matrix<decltype(ma + mb)>);
   EXPECT_TRUE(is_near(ma + d, mat22(5, 5, 5, 9))); static_assert(hermitian_matrix<decltype(ma + d)>);
   EXPECT_TRUE(is_near(d + ma, mat22(5, 5, 5, 9))); static_assert(hermitian_matrix<decltype(d + ma)>);

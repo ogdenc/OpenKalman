@@ -373,15 +373,9 @@ namespace OpenKalman
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(Arg&& arg, N n)
       {
-        if constexpr (static_index_value<N>)
-        {
-          if constexpr (dynamic_dimension<NestedMatrix, 0>) return OpenKalman::get_vector_space_descriptor<1>(nested_object(std::forward<Arg>(arg)));
-          else return OpenKalman::get_vector_space_descriptor<0>(nested_object(arg));
-        }
-        else
-        {
-          return OpenKalman::get_vector_space_descriptor<0>(nested_object(std::forward<Arg>(arg)));
-        }
+        return internal::best_vector_space_descriptor(
+          OpenKalman::get_vector_space_descriptor<0>(nested_object(arg)),
+          OpenKalman::get_vector_space_descriptor<1>(nested_object(arg)));
       }
 
 
@@ -426,70 +420,6 @@ namespace OpenKalman
 
 
       static constexpr bool is_triangular_adapter = true;
-
-
-  #ifdef __cpp_lib_concepts
-      template<diagonal_matrix Arg, typename I> requires element_gettable<nested_object_of_t<Arg&&>, 1> or
-        element_gettable<nested_object_of_t<Arg&&>, 2>
-  #else
-      template<typename Arg, typename I, std::enable_if_t<diagonal_matrix<Arg> and
-        element_gettable<typename nested_object_of<Arg&&>::type, 1> and
-        element_gettable<typename nested_object_of<Arg&&>::type, 2>, int> = 0>
-  #endif
-      static constexpr auto get(Arg&& arg, I i)
-      {
-        if constexpr (element_gettable<nested_object_of_t<Arg&&>, 1>)
-          return get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), i);
-        else
-          return get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), i, i);
-      }
-
-
-  #ifdef __cpp_lib_concepts
-      template<typename Arg, typename I, typename J> requires element_gettable<nested_object_of_t<Arg&&>, 2>
-  #else
-      template<typename Arg, typename I, typename J, std::enable_if_t<
-        element_gettable<typename nested_object_of<Arg&&>::type, 2>, int> = 0>
-  #endif
-      static constexpr scalar_type_of_t<Arg> get(Arg&& arg, I i, J j)
-      {
-        if (triangular_matrix<Arg, TriangleType::lower> ? i >= static_cast<I>(j) : i <= static_cast<I>(j))
-          return get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), i, j);
-        else
-          return 0;
-      }
-
-
-  #ifdef __cpp_lib_concepts
-      template<diagonal_matrix Arg, typename I> requires element_settable<nested_object_of_t<Arg&>, 1> or
-        element_settable<nested_object_of_t<Arg&>, 2>
-  #else
-      template<typename Arg, typename I, std::enable_if_t<diagonal_matrix<Arg> and
-        element_settable<typename nested_object_of<Arg&>::type, 1> and
-        element_settable<typename nested_object_of<Arg&>::type, 2>, int> = 0>
-  #endif
-      static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I i)
-      {
-        if constexpr (element_settable<nested_object_of_t<Arg&>, 1>)
-          set_component(OpenKalman::nested_object(arg), s, i);
-        else
-          set_component(OpenKalman::nested_object(arg), s, i, static_cast<I>(1));
-      }
-
-
-  #ifdef __cpp_lib_concepts
-      template<typename Arg, typename I, typename J> requires element_settable<nested_object_of_t<Arg&>, 2>
-  #else
-      template<typename Arg, typename I, typename J, std::enable_if_t<
-        element_settable<typename nested_object_of<Arg&>::type, 2>, int> = 0>
-  #endif
-      static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I i, J j)
-      {
-        if (triangular_matrix<Arg, TriangleType::lower> ? i >= static_cast<I>(j) : i <= static_cast<I>(j))
-          set_component(OpenKalman::nested_object(arg), s, i, j);
-        else if (s != 0)
-          throw std::out_of_range("Cannot set elements of a triangular matrix to non-zero values outside the triangle.");
-      }
 
 
       static constexpr bool is_writable = false;

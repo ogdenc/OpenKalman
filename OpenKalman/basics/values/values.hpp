@@ -27,8 +27,8 @@
 #include "scalars/floating_scalar_type.hpp"
 #include "scalars/scalar_constant.hpp"
 
-#include "scalars/real_axis_number.hpp"
 #include "scalars/get_scalar_constant_value.hpp"
+#include "scalars/real_axis_number.hpp"
 
 #include "internal/scalar_constant_operation.hpp"
 #include "internal/ScalarConstant.hpp"

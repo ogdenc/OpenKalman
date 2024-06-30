@@ -126,15 +126,15 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const Eigen::CwiseUnaryOp<UnaryOp, XprType>& arg)
     {
       if constexpr (constant_matrix<XprType, ConstantType::static_constant>)
-        return internal::scalar_constant_operation<UnaryOp, constant_coefficient<XprType>>{};
+        return values::scalar_constant_operation<UnaryOp, constant_coefficient<XprType>>{};
       else
-        return internal::scalar_constant_operation {arg.functor(), constant_coefficient {arg.nestedExpression()}};
+        return values::scalar_constant_operation {arg.functor(), constant_coefficient {arg.nestedExpression()}};
     }
 
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return internal::scalar_constant_operation {arg.functor(), constant_diagonal_coefficient {arg.nestedExpression()}};
+      return values::scalar_constant_operation {arg.functor(), constant_diagonal_coefficient {arg.nestedExpression()}};
     }
 
   };

@@ -29,6 +29,7 @@ namespace OpenKalman::interface
 #endif
   struct library_interface
   {
+#ifdef DOXYGEN_SHOULD_SKIP_THIS
     /**
      * \brief The base class within the library of LibraryObject for custom wrappers (optional).
      * \details This is used when a library requires custom objects to derive from a particular base class.
@@ -39,6 +40,7 @@ namespace OpenKalman::interface
      */
     template<typename Derived>
     using LibraryBase = std::monostate;
+#endif
 
 
     /**
@@ -275,16 +277,12 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     static constexpr diagonal_matrix auto
-    to_diagonal(vector<0, Qualification::depends_on_dynamic_shape> auto&& arg)
+    to_diagonal(vector<0, Qualification::depends_on_dynamic_shape> auto&& arg) = delete;
 #else
     template<typename Arg>
     static constexpr auto
-    to_diagonal(Arg&& arg)
+    to_diagonal(Arg&& arg) = delete;
 #endif
-    {
-      using N = std::remove_reference_t<decltype(make_self_contained(arg))>;
-      return DiagonalMatrix<N> {std::forward<decltype(arg)>(arg)};
-    }
 
 
     /**
@@ -521,7 +519,8 @@ namespace OpenKalman::interface
     /**
      * \brief Take the Cholesky factor of matrix Arg
      * \tparam triangle_type The \ref TriangleType of the result.
-     * \param a An \ref indexible object within the same library as LibraryObject
+     * \param a An \ref indexible object within the same library as LibraryObject. It need not be hermitian, but
+     * components outside the triangle defined by triangle_type will be ignored, and instead
      * \return A matrix t where tt<sup>T</sup> = a (if triangle_type == TriangleType::lower) or
      * t<sup>T</sup>t = a (if triangle_type == TriangleType::upper).
      */
