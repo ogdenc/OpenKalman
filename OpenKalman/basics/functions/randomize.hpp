@@ -135,7 +135,7 @@ namespace OpenKalman
   randomize(random_number_generator& gen, const std::tuple<Ds...>& ds_tuple, Dists&&...dists)
   {
     auto ret {n_ary_operation<PatternMatrix, indices...>(ds_tuple, detail::RandomizeOp {gen, (std::forward<Dists>(dists))}...)};
-    if constexpr (sizeof...(Dists) == 1) return make_dense_object(std::move(ret));
+    if constexpr (sizeof...(Dists) == 1) return to_dense_object(std::move(ret));
     else return ret;
   }
 

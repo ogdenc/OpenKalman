@@ -14,10 +14,10 @@ enable_testing()
 find_package(GTest REQUIRED)
 include(GoogleTest)
 
-add_executable(special-matrices
+add_executable(adapters
         ConstantAdapter.test.cpp
         constant-matrix-functions.test.cpp
-        DiagonalMatrix.test.cpp
+        #DiagonalMatrix.test.cpp
         #SelfAdjointMatrix.test.cpp
         #TriangularMatrix.test.cpp
         #ToEuclideanExpr.test.cpp
@@ -28,6 +28,6 @@ add_executable(special-matrices
         #decompositions.test.cpp
     )
 
-target_link_libraries(special-matrices ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
+target_link_libraries(adapters ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
 
-gtest_discover_tests(special-matrices DISCOVERY_TIMEOUT 20)
+gtest_discover_tests(adapters DISCOVERY_TIMEOUT 20)

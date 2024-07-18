@@ -30,7 +30,10 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr auto count_indices(const Arg& arg) { return OpenKalman::count_indices(arg.nested_object()); }
+    static constexpr auto count_indices(const Arg& arg)
+    {
+      return OpenKalman::count_indices(arg.nested_object());
+    }
 
 
     template<typename Arg, typename N>
@@ -44,23 +47,6 @@ namespace OpenKalman::interface
 
 
     static constexpr bool has_runtime_parameters = false;
-
-
-    template<typename Arg>
-    static constexpr decltype(auto) nested_object(Arg&& arg)
-    {
-      return std::forward<Arg>(arg).nested_object();
-    }
-
-
-    template<typename Arg>
-    static decltype(auto) convert_to_self_contained(Arg&& arg)
-    {
-      if constexpr (std::is_lvalue_reference_v<NestedObject>)
-        return make_dense_object(OpenKalman::nested_object(std::forward<Arg>(arg)));
-      else
-        return std::forward<Arg>(arg);
-    }
 
 
     template<typename Arg>
@@ -101,7 +87,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_lib_concepts
     template<typename Arg> requires raw_data_defined_for<std::add_lvalue_reference_t<NestedObject>>
 #else
-    template<typename NO = NestedObject, typename Arg, std::enable_if_t<raw_data_defined_for<std::add_lvalue_reference_t<NO>>, int> = 0>
+    template<typename NO = BaseObject, typename Arg, std::enable_if_t<raw_data_defined_for<std::add_lvalue_reference_t<NO>>, int> = 0>
 #endif
     static constexpr auto * const
     raw_data(Arg& arg) { return internal::raw_data(arg.nested_object()); }
@@ -111,14 +97,14 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<typename Arg> requires (layout != Layout::none)
+    template<typename Arg> requires strides_defined_for<NestedObject>
 #else
-    template<Layout l = layout, typename Arg, std::enable_if_t<l != Layout::none, int> = 0>
+    template<typename Arg, std::enable_if_t<strides_defined_for<NestedObject>, int> = 0>
 #endif
     static auto
     strides(Arg&& arg)
     {
-      return OpenKalman::internal::strides(OpenKalman::nested_object(std::forward<Arg>(arg)));
+      return OpenKalman::internal::strides(std::forward<Arg>(arg).nested_object());
     }
 
   };
@@ -132,25 +118,24 @@ namespace OpenKalman::interface
   struct library_interface<internal::SelfContainedWrapper<NestedObject, InternalizedParameters...>>
     : library_interface<std::decay_t<NestedObject>>
   {
-
 #if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
     template<indexible Arg, std::ranges::input_range Indices> requires index_value<std::ranges::range_value_t<Indices>> and
-      interface::get_component_defined_for<NestedObject, decltype(nested_object(std::declval<Arg&&>())), const Indices&>
+      interface::get_component_defined_for<NestedObject, decltype(std::declval<Arg&&>().nested_object()), const Indices&>
     static constexpr scalar_constant decltype(auto)
 #else
     template<typename Arg, typename Indices, std::enable_if_t<
-      interface::get_component_defined_for<NestedObject, decltype(nested_object(std::declval<Arg&&>())), const Indices&>, int> = 0>
+      interface::get_component_defined_for<NestedObject, decltype(std::declval<Arg&&>().nested_object()), const Indices&>, int> = 0>
     static constexpr decltype(auto)
 #endif
     get_component(Arg&& arg, const Indices& indices)
     {
-      return library_interface<std::decay_t<NestedObject>>::get_component(nested_object(std::forward<Arg>(arg)), indices);
+      return library_interface<std::decay_t<NestedObject>>::get_component(std::forward<Arg>(arg).nested_object(), indices);
     }
 
 
 #ifdef __cpp_lib_ranges
     template<indexible Arg, std::ranges::input_range Indices> requires index_value<std::ranges::range_value_t<Indices>> and
-      interface::set_component_defined_for<NestedObject, decltype(nested_object(std::declval<Arg&>())), const scalar_type_of_t<Arg>&, const Indices&>
+      interface::set_component_defined_for<NestedObject, decltype(std::declval<Arg&>().nested_object()), const scalar_type_of_t<Arg>&, const Indices&>
 #else
     template<typename Arg, typename Indices, std::enable_if_t<
       interface::set_component_defined_for<NestedObject, decltype(nested_object(std::declval<Arg&>())), const typename scalar_type_of<Arg>::type&, const Indices&>, int> = 0>
@@ -158,7 +143,7 @@ namespace OpenKalman::interface
     static constexpr void
     set_component(Arg& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
     {
-      library_interface<std::decay_t<NestedObject>>::set_component(nested_object(arg), s, indices);
+      library_interface<std::decay_t<NestedObject>>::set_component(arg.nested_object(), s, indices);
     }
 
   };

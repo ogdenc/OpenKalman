@@ -83,7 +83,7 @@ namespace OpenKalman::test
   struct TestComparison : ::testing::AssertionResult
   {
     TestComparison(const Arg1& A, const Arg2& B, const Err& err)
-      : ::testing::AssertionResult {is_near(make_dense_object(A), make_dense_object(B), err)} {};
+      : ::testing::AssertionResult {is_near(to_dense_object(A), to_dense_object(B), err)} {};
   };
 
 

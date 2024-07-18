@@ -54,8 +54,8 @@ namespace OpenKalman
       }
       else if constexpr ((constant_matrix<T0> and constant_matrix<T1>))
       {
-        constexpr std::make_index_sequence<std::max({index_count_v<Ts>...})> seq;
-        auto ret {sum_impl(seq, sum_constants(seq, std::forward<T0>(t0), std::forward<T1>(t1)), std::forward<Ts>(ts)...)};
+        constexpr std::make_index_sequence<std::max(index_count_v<T0>, index_count_v<T1>)> seq;
+        auto ret {sum_impl(sum_constants(seq, std::forward<T0>(t0), std::forward<T1>(t1)), std::forward<Ts>(ts)...)};
         return ret;
       }
       else if constexpr (constant_matrix<T0> and sizeof...(Ts) > 0) // Shift T0 right and hope that it will combine with another constant

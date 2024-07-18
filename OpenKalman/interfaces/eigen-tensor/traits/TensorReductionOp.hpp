@@ -46,7 +46,6 @@ namespace OpenKalman::interface
       static_assert(i <= 1);
     }
 
-    // convert_to_self_contained() not defined
 
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)

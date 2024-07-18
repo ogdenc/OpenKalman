@@ -531,16 +531,14 @@ namespace OpenKalman
 
     /**
      * \internal
-     * \brief A wrapper that internalizes any reference parameters in an \ref indexible object.
-     * \tparam NestedObject An indexible object.
-     * \tparam InternalizedParameters A full set of arguments necessary to construct the object,
-     * which will be stored internally. These may optionally be lvalue-reference types,
-     * in which case only a reference is stored and the parameter is not actually internalized.
+     * \brief A wrapper that contains an \ref indexible_object and internalizes any of its reference parameters.
+     * \tparam NestedObject An indexible object to be made self-contained.
+     * \tparam Parameters A full set of arguments to be stored in the wrapper.
      */
 #ifdef __cpp_concepts
-    template<indexible NestedObject, typename...InternalizedParameters>
+    template<indexible NestedObject, typename...Parameters>
 #else
-    template<typename NestedObject, typename...InternalizedParameters>
+    template<typename NestedObject, typename...Parameters>
 #endif
     struct SelfContainedWrapper;
 
@@ -549,10 +547,12 @@ namespace OpenKalman
      * \internal
      * \brief Wraps a dynamic-sized input, immutably, in a wrapper that has one or more fixed dimensions.
      * \tparam NestedMatrix The underlying native matrix or matrix expression.
-     * \tparam Vs A set of \ref vector_space_descriptor. If this set is empty, the object is treated as a \ref one_dimensional.
+     * \tparam Vs A set of \ref vector_space_descriptor objects, preferably but not necessarily of fixed dimensions.
+     * If this set is empty, the object is treated as a \ref one_dimensional.
      */
   #ifdef __cpp_concepts
-    template<indexible NestedMatrix, vector_space_descriptor...Vs> requires compatible_with_vector_space_descriptors<NestedMatrix, Vs...>
+    template<indexible NestedMatrix, vector_space_descriptor...Vs> requires
+      compatible_with_vector_space_descriptors<NestedMatrix, Vs...>
   #else
     template<typename NestedMatrix, typename...Vs>
   #endif
@@ -570,6 +570,7 @@ namespace OpenKalman
 
 
   /**
+   * \internal
    * \brief Specifies that T is a FixedSizeAdapter.
    */
   template<typename T>
@@ -583,7 +584,8 @@ namespace OpenKalman
 
     template<typename Descriptor, typename NestedMatrix>
     struct is_triangular_covariance<SquareRootCovariance<Descriptor, NestedMatrix>> : std::true_type {};
-  }
+
+  } // namespace internal
 
 
   /**

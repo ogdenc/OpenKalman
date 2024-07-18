@@ -13,7 +13,7 @@
  * \brief Tests relating to Eigen3::DiagonalMatrix.
  */
 
-#include "special-matrices.gtest.hpp"
+#include "adapters.gtest.hpp"
 #include <complex>
 
 using namespace OpenKalman;
@@ -64,7 +64,7 @@ namespace
 }
 
 
-TEST(special_matrices, Diagonal_static_checks)
+TEST(adapters, Diagonal_static_checks)
 {
   static_assert(not writable<D<M31>>);
   static_assert(not writable<D<M31&>>);
@@ -88,7 +88,7 @@ TEST(special_matrices, Diagonal_static_checks)
 }
 
 
-TEST(special_matrices, Diagonal_class)
+TEST(adapters, Diagonal_class)
 {
   // default constructor and comma expression, .nested_object()
   D3 d3a;
@@ -335,76 +335,60 @@ TEST(special_matrices, Diagonal_class)
   dxa_3 *= dxb_3;
   EXPECT_TRUE(is_near(dxa_3, D3 {1., 4, 9}));
 
-  EXPECT_TRUE(is_near(d3a.square_root(), m33));
-  EXPECT_TRUE(is_near(d3a.square(), DiagonalMatrix<M31> {1., 16, 81}));
-  EXPECT_TRUE(is_near(dxa_3.square_root(), m33));
-  EXPECT_TRUE(is_near(dxa_3.square(), DiagonalMatrix<M31> {1., 16, 81}));
-
-  EXPECT_EQ((D3::rows()), 3);
-  EXPECT_EQ((D3::cols()), 3);
   EXPECT_EQ((dx_3.rows()), 3);
   EXPECT_EQ((dx_3.cols()), 3);
 }
 
-TEST(special_matrices, Diagonal_subscripts)
+TEST(adapters, Diagonal_subscripts)
 {
-  static_assert(element_gettable<D3, 2>);
-  static_assert(element_gettable<D3, 1>);
-  static_assert(not element_gettable<D3, 3>);
-  static_assert(element_settable<D3&, 2>);
-  static_assert(element_settable<D3&, 1>);
+  static_assert(writable_by_component<D3&>);
+  static_assert(writable_by_component<D3&>);
 
-  static_assert(element_gettable<Dx, 2>);
-  static_assert(element_gettable<Dx, 1>);
-  static_assert(not element_gettable<Dx, 3>);
-  static_assert(element_settable<Dx&, 2>);
-  static_assert(element_settable<Dx&, 1>);
+  static_assert(writable_by_component<Dx&>);
+  static_assert(writable_by_component<Dx&>);
 
   D3 d3a {1, 2, 3};
   Dx dxa_3 {1, 2, 3};
   bool test;
 
-  set_component(d3a, 5.5, 0);
-  EXPECT_NEAR(get_component(d3a, 0), 5.5, 1e-8);
+  set_component(d3a, 5.5, 0, 0);
+  EXPECT_NEAR(get_component(d3a, 0, 0), 5.5, 1e-8);
   set_component(d3a, 6.5, 1, 1);
-  EXPECT_NEAR(get_component(d3a, 1), 6.5, 1e-8);
+  EXPECT_NEAR(get_component(d3a, 1, 1), 6.5, 1e-8);
   test = false;
   try { set_component(d3a, 8.5, 2, 0); } catch (const std::out_of_range& e) { test = true; }
   EXPECT_TRUE(test);
   EXPECT_NEAR(get_component(d3a, 2, 0), 0, 1e-8);
-  set_component(d3a, 7.5, 2);
+  set_component(d3a, 7.5, 2, 2);
 
-  set_component(dxa_3, 5.5, 0);
-  EXPECT_NEAR(get_component(dxa_3, 0), 5.5, 1e-8);
+  set_component(dxa_3, 5.5, 0, 0);
+  EXPECT_NEAR(get_component(dxa_3, 0, 0), 5.5, 1e-8);
   set_component(dxa_3, 6.5, 1, 1);
-  EXPECT_NEAR(get_component(dxa_3, 1), 6.5, 1e-8);
+  EXPECT_NEAR(get_component(dxa_3, 1, 1), 6.5, 1e-8);
   test = false;
   try { set_component(dxa_3, 8.5, 2, 0); } catch (const std::out_of_range& e) { test = true; }
   EXPECT_TRUE(test);
   EXPECT_NEAR(get_component(dxa_3, 2, 0), 0, 1e-8);
-  set_component(dxa_3, 7.5, 2);
+  set_component(dxa_3, 7.5, 2, 2);
 
-  d3a(0) = 5;
-  d3a(1) = 6;
-  d3a(2, 2) = 7;
+  d3a(0, 0) = 5;
+  d3a({1, 1}) = 6;
+  d3a(std::vector<std::size_t> {2, 2}) = 7;
   test = false;
   try { d3a(1, 0) = 3; } catch (const std::out_of_range& e) { test = true; }
   EXPECT_TRUE(test);
 
-  dxa_3(0) = 5;
-  dxa_3(1) = 6;
+  dxa_3(0, 0) = 5;
+  dxa_3(1, 1) = 6;
   dxa_3(2, 2) = 7;
   test = false;
   try { dxa_3(1, 0) = 3; } catch (const std::out_of_range& e) { test = true; }
   EXPECT_TRUE(test);
 
   EXPECT_TRUE(is_near(d3a, DiagonalMatrix<M31> {5., 6, 7}));
-  EXPECT_NEAR(d3a(0), 5, 1e-6);
-  EXPECT_NEAR(d3a(1), 6, 1e-6);
-  EXPECT_NEAR(d3a(2), 7, 1e-6);
-  EXPECT_NEAR(d3a[0], 5, 1e-6);
-  EXPECT_NEAR(d3a[1], 6, 1e-6);
-  EXPECT_NEAR(d3a[2], 7, 1e-6);
+  EXPECT_NEAR(d3a(0, 0), 5, 1e-6);
+  EXPECT_NEAR(d3a(1, 1), 6, 1e-6);
+  EXPECT_NEAR(d3a(2, 2), 7, 1e-6);
   EXPECT_NEAR(d3a(0, 0), 5, 1e-6);
   EXPECT_NEAR(d3a(0, 1), 0, 1e-6);
   EXPECT_NEAR(d3a(0, 2), 0, 1e-6);
@@ -416,12 +400,9 @@ TEST(special_matrices, Diagonal_subscripts)
   EXPECT_NEAR(d3a(2, 2), 7, 1e-6);
 
   EXPECT_TRUE(is_near(dxa_3, DiagonalMatrix<M31> {5., 6, 7}));
-  EXPECT_NEAR(dxa_3(0), 5, 1e-6);
-  EXPECT_NEAR(dxa_3(1), 6, 1e-6);
-  EXPECT_NEAR(dxa_3(2), 7, 1e-6);
-  EXPECT_NEAR(dxa_3[0], 5, 1e-6);
-  EXPECT_NEAR(dxa_3[1], 6, 1e-6);
-  EXPECT_NEAR(dxa_3[2], 7, 1e-6);
+  EXPECT_NEAR(dxa_3(0, 0), 5, 1e-6);
+  EXPECT_NEAR(dxa_3(1, 1), 6, 1e-6);
+  EXPECT_NEAR(dxa_3(2, 2), 7, 1e-6);
   EXPECT_NEAR(dxa_3(0, 0), 5, 1e-6);
   EXPECT_NEAR(dxa_3(0, 1), 0, 1e-6);
   EXPECT_NEAR(dxa_3(0, 2), 0, 1e-6);
@@ -439,10 +420,20 @@ TEST(special_matrices, Diagonal_subscripts)
   EXPECT_NEAR((Dx {1., 2, 3}).nested_object()[0], 1, 1e-6);
   EXPECT_NEAR((Dx {1., 2, 3}).nested_object()[1], 2, 1e-6);
   EXPECT_NEAR((Dx {1., 2, 3}).nested_object()[2], 3, 1e-6);
+
+  D1 d1a {3};
+  Dx dxa_1 {3};
+
+  EXPECT_NEAR(d1a(0, 0), 5, 1e-6);
+  EXPECT_NEAR(d1a(0), 5, 1e-6);
+  EXPECT_NEAR(d1a[0], 5, 1e-6);
+  EXPECT_NEAR(d1a({0, 0}), 5, 1e-6);
+  EXPECT_NEAR(d1a(std::array<std::size_t, 2>{0, 0}), 5, 1e-6);
+  EXPECT_NEAR(d1a(std::array<std::size_t, 1>{0}), 5, 1e-6);
 }
 
 
-TEST(special_matrices, Diagonal_traits)
+TEST(adapters, Diagonal_traits)
 {
   static_assert(diagonal_matrix<decltype(DiagonalMatrix<M11>{2.})>);
   static_assert(diagonal_matrix<decltype(DiagonalMatrix<M21>{2, 3})>);
@@ -466,7 +457,7 @@ TEST(special_matrices, Diagonal_traits)
 }
 
 
-TEST(special_matrices, to_diagonal)
+TEST(adapters, to_diagonal)
 {
   // See eigen-diagonal.test.cpp
 
@@ -485,7 +476,7 @@ TEST(special_matrices, to_diagonal)
   EXPECT_TRUE(is_near(to_diagonal(z31), M33::Zero()));
 }
 
-TEST(special_matrices, diagonal_make_triangular_matrix)
+TEST(adapters, diagonal_make_triangular_matrix)
 {
   auto m22h = make_dense_object_from<M22>(3, 1, 1, 3);
   auto m22d = make_dense_object_from<M22>(3, 0, 0, 3);
@@ -506,7 +497,7 @@ TEST(special_matrices, diagonal_make_triangular_matrix)
   static_assert(eigen_diagonal_expr<decltype(make_triangular_matrix<TriangleType::diagonal>(m22h))>);
 }
 
-TEST(special_matrices, diagonal_make_functions)
+TEST(adapters, diagonal_make_functions)
 {
   auto m22 = M22 {};
   auto m2x_2 = M2x {m22};
@@ -630,7 +621,7 @@ TEST(special_matrices, diagonal_make_functions)
   EXPECT_TRUE(is_near(make_zero(dx_3), M33::Zero()));
 }
 
-TEST(special_matrices, Diagonal_overloads)
+TEST(adapters, Diagonal_overloads)
 {
   EXPECT_TRUE(is_near(make_dense_object_from(d3), m33));
   EXPECT_TRUE(is_near(make_dense_object_from(dx_3), m33));
@@ -728,7 +719,7 @@ TEST(special_matrices, Diagonal_overloads)
 }
 
 
-TEST(special_matrices, diagonal_contract)
+TEST(adapters, diagonal_contract)
 {
   auto m33dd = make_dense_object_from<M33>(10, 0, 0, 0, 18, 0, 0, 0, 28);
 
@@ -744,7 +735,7 @@ TEST(special_matrices, diagonal_contract)
 }
 
 
-TEST(special_matrices, Diagonal_blocks)
+TEST(adapters, Diagonal_blocks)
 {
   EXPECT_TRUE(is_near(concatenate_diagonal(d3, D2 {4, 5}), d5));
   EXPECT_TRUE(is_near(concatenate_diagonal(d3, Dx {4, 5}), d5));
@@ -899,7 +890,7 @@ TEST(special_matrices, Diagonal_blocks)
       2, 3, 7)));
 }
 
-TEST(special_matrices, Diagonal_arithmetic)
+TEST(adapters, Diagonal_arithmetic)
 {
   auto d3a = d3;
   auto d3b = DiagonalMatrix<M31> {4., 5, 6};
@@ -998,7 +989,7 @@ TEST(special_matrices, Diagonal_arithmetic)
     7, 16, 27)));
 }
 
-TEST(special_matrices, Diagonal_references)
+TEST(adapters, Diagonal_references)
 {
   DiagonalMatrix<const M31> n {4, 5, 6};
   DiagonalMatrix<M31> x = d3;

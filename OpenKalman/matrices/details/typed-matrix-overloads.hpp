@@ -867,7 +867,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 #endif
   inline std::ostream& operator<<(std::ostream& os, const V& v)
   {
-    os << make_dense_object(v);
+    os << to_dense_object(v);
     return os;
   }
 

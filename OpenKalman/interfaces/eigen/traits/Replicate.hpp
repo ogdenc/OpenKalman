@@ -47,20 +47,11 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      using N = Eigen::Replicate<equivalent_self_contained_t<MatrixType>, RowFactor, ColFactor>;
-      if constexpr (not std::is_lvalue_reference_v<typename Eigen::internal::traits<N>::MatrixTypeNested>)
-        return N {make_self_contained(arg.nestedExpression())};
-      else
-        return make_dense_object(std::forward<Arg>(arg));
-    }
-
-    template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
       return constant_coefficient {arg.nestedExpression()};
     }
+
 
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
@@ -69,12 +60,14 @@ namespace OpenKalman::interface
       else return std::monostate {};
     }
 
+
     template<Qualification b>
     static constexpr bool one_dimensional =
       (b != Qualification::unqualified or (RowFactor == 1 and ColFactor == 1)) and
       (RowFactor == 1 or RowFactor == Eigen::Dynamic) and
       (ColFactor == 1 or ColFactor == Eigen::Dynamic) and
         OpenKalman::one_dimensional<MatrixType, b>;
+
 
     template<Qualification b>
     static constexpr bool is_square =
@@ -87,17 +80,21 @@ namespace OpenKalman::interface
         ((RowFactor == Eigen::Dynamic or index_dimension_of_v<MatrixType, 0> * RowFactor % index_dimension_of_v<MatrixType, 1> == 0) and
         (ColFactor == Eigen::Dynamic or index_dimension_of_v<MatrixType, 1> * ColFactor % index_dimension_of_v<MatrixType, 0> == 0)));
 
+
     template<TriangleType t>
     static constexpr bool is_triangular = triangular_matrix<MatrixType, t> and
       ((RowFactor == 1 and ColFactor != 0 and (t == TriangleType::upper or t == TriangleType::any)) or
         (ColFactor == 1 and RowFactor != 0 and (t == TriangleType::lower or t == TriangleType::any)) or
         (RowFactor == 1 and ColFactor == 1 and t == TriangleType::diagonal));
 
+
     static constexpr bool is_triangular_adapter = false;
+
 
     static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Qualification::depends_on_dynamic_shape> and
       ((RowFactor == 1 and ColFactor == 1) or not complex_number<scalar_type> or
         real_axis_number<constant_coefficient<MatrixType>> or real_axis_number<constant_diagonal_coefficient<MatrixType>>);
+
   };
 
 } // namespace OpenKalman::interface

@@ -134,34 +134,31 @@ namespace OpenKalman::internal
   };
 
 
-  // ----------------- //
-  //  Deduction Guide  //
-  // ----------------- //
+  // ------------------ //
+  //  Deduction Guides  //
+  // ------------------ //
 
 #ifdef __cpp_concepts
-    template<indexible Arg, vector_space_descriptor...Ids> requires (not fixed_size_adapter<Arg>) and (sizeof...(Ids) > 0)
+    template<indexible Arg, vector_space_descriptor...Ids> requires (not fixed_size_adapter<Arg>)
 #else
-    template<typename Arg, typename...Ids, std::enable_if_t<indexible<Arg> and not fixed_size_adapter<Arg> and
-      (... and vector_space_descriptor<Ids>) and (sizeof...(Ids) > 0), int> = 0>
+    template<typename Arg, typename...Ids, std::enable_if_t<indexible<Arg> and (... and vector_space_descriptor<Ids>) and
+      (not fixed_size_adapter<Arg>), int> = 0>
 #endif
     FixedSizeAdapter(Arg&&, const Ids&...) -> FixedSizeAdapter<Arg, Ids...>;
 
 
-#ifdef __cpp_concepts
-    template<fixed_size_adapter Arg, fixed_vector_space_descriptor...Ids> requires (sizeof...(Ids) > 0)
+#if defined(__cpp_concepts) and defined(__cpp_lib_remove_cvref)
+    template<fixed_size_adapter Arg, vector_space_descriptor...Ids> requires (sizeof...(Ids) > 0)
 #else
     template<typename Arg, typename...Ids, std::enable_if_t<fixed_size_adapter<Arg> and
-      (... and fixed_vector_space_descriptor<Ids>) and (sizeof...(Ids) > 0), int> = 0>
+      (... and vector_space_descriptor<Ids>) and (sizeof...(Ids) > 0), int> = 0>
 #endif
-    FixedSizeAdapter(Arg&&, const Ids&...) -> FixedSizeAdapter<nested_object_of_t<Arg>, Ids...>;
-
-
-#ifdef __cpp_concepts
-    template<one_dimensional<Qualification::depends_on_dynamic_shape> Arg>
-#else
-    template<typename Arg, std::enable_if_t<one_dimensional<Arg, Qualification::depends_on_dynamic_shape>, int> = 0>
-#endif
-    FixedSizeAdapter(Arg&&) -> FixedSizeAdapter<Arg>;
+    FixedSizeAdapter(Arg&&, const Ids&...) -> FixedSizeAdapter<
+      std::conditional_t<
+        std::is_lvalue_reference_v<nested_object_of_t<Arg>>,
+        nested_object_of_t<Arg>,
+        std::decay_t<nested_object_of_t<Arg>>>,
+      Ids...>;
 
 
 } // namespace OpenKalman::internal

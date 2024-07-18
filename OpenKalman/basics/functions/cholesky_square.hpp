@@ -41,7 +41,10 @@ namespace OpenKalman
     }
     else if constexpr (diagonal_matrix<A>)
     {
-      return to_diagonal(n_ary_operation([](const auto x){ return x * internal::constexpr_conj(x); }, diagonal_of(std::forward<A>(a))));
+      return to_diagonal(n_ary_operation([](const auto x){
+        if constexpr (complex_number<scalar_type_of_t<A>>) return x * internal::constexpr_conj(x);
+        else return x * x;
+      }, diagonal_of(std::forward<A>(a))));
     }
     else if constexpr (triangular_matrix<A, TriangleType::upper>)
     {

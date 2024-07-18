@@ -29,9 +29,9 @@
 #include "ToEuclideanExpr.hpp"
 #include "FromEuclideanExpr.hpp"
 
-#include "details/special-matrix-traits.hpp"
-#include "details/special-matrix-interface.hpp"
+#include "details/adapters-traits.hpp"
+#include "details/adapters-interface.hpp"
 #include "details/euclidean-interface.hpp"
-#include "details/special-matrix-arithmetic.hpp"
+#include "details/adapters-arithmetic.hpp"
 
 #endif //OPENKALMAN_SPECIAL_MATRICES_HPP

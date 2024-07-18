@@ -286,13 +286,6 @@ namespace OpenKalman
 
 
       template<typename Arg>
-      static auto convert_to_self_contained(Arg&& arg)
-      {
-        auto n = make_self_contained(OpenKalman::nested_object(std::forward<Arg>(arg)));
-        return FromEuclideanExpr<FixedDescriptor, decltype(n)> {std::move(n)};
-      }
-
-      template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
       {
         if constexpr (euclidean_vector_space_descriptor<NestedMatrix>)
@@ -300,6 +293,7 @@ namespace OpenKalman
         else
           return std::monostate {};
       }
+
 
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
@@ -310,13 +304,17 @@ namespace OpenKalman
           return std::monostate {};
       }
 
+
       template<Qualification b>
       static constexpr bool one_dimensional = euclidean_vector_space_descriptor<FixedDescriptor> and OpenKalman::one_dimensional<NestedMatrix, b>;
+
 
       template<TriangleType t>
       static constexpr bool is_triangular = euclidean_vector_space_descriptor<FixedDescriptor> and triangular_matrix<NestedMatrix, t>;
 
+
       static constexpr bool is_triangular_adapter = false;
+
 
       static constexpr bool is_hermitian = hermitian_matrix<NestedMatrix> and euclidean_vector_space_descriptor<FixedDescriptor>;
 

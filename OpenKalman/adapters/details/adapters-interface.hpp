@@ -45,11 +45,10 @@ namespace OpenKalman::interface
 #if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
     template<indexible Arg, std::ranges::input_range Indices> requires
       std::convertible_to<std::ranges::range_value_t<Indices>, const typename std::decay_t<Arg>::Index>
-    static constexpr scalar_constant decltype(auto)
 #else
     template<typename Arg, typename Indices>
-    static constexpr decltype(auto)
 #endif
+    static constexpr scalar_type_of_t<Arg>
     get_component(Arg&& arg, const Indices& indices)
     {
       constexpr std::size_t N = static_range_size_v<Indices>;
@@ -160,7 +159,7 @@ namespace OpenKalman::interface
     static auto
     get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
     {
-      auto dense = make_dense_object<scalar_type_of_t<Arg>>(std::forward<Arg>(arg));
+      auto dense = to_dense_object<scalar_type_of_t<Arg>>(std::forward<Arg>(arg));
       static_assert(not eigen_diagonal_expr<decltype(dense)> and not eigen_triangular_expr<decltype(dense)> and
         not eigen_self_adjoint_expr<decltype(dense)>);
       return OpenKalman::get_block(std::move(dense), begin, size);
@@ -313,7 +312,7 @@ namespace OpenKalman::interface
     {
       // The general determinant function already handles TriangularMatrix and DiagonalMatrix.
       static_assert(eigen_self_adjoint_expr<Arg>);
-      return OpenKalman::determinant(make_dense_object(std::forward<Arg>(arg)));
+      return OpenKalman::determinant(to_dense_object(std::forward<Arg>(arg)));
     }
 
 

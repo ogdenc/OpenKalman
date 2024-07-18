@@ -50,17 +50,6 @@ namespace OpenKalman::interface
       return std::forward<Arg>(arg).nestedExpression();
     }
 
-
-    template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      using N = Eigen::CwiseUnaryView<ViewOp, equivalent_self_contained_t<MatrixType>>;
-      if constexpr (not std::is_lvalue_reference_v<typename N::MatrixTypeNested>)
-        return N {make_self_contained(arg.nestedExpression()), arg.functor()};
-      else
-        return make_dense_object(std::forward<Arg>(arg));
-    }
-
   private:
 
 #ifndef __cpp_concepts

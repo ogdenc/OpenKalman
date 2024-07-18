@@ -70,13 +70,13 @@ namespace OpenKalman
     /**
      * \brief Construct a ConstantAdapter, whose value is known at compile time, using a dynamic range of
      * \ref vector_space_descriptor objects.
-     * \tparam D A set of \ref vector_space_descriptor corresponding to class template parameters Ds.
+     * \tparam Ds A set of \ref vector_space_descriptor corresponding to class template parameters Ds.
      */
 #if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
     template<std::ranges::input_range Ds> requires vector_space_descriptor<std::ranges::range_value_t<Ds>> and
       (index_count_v<PatternMatrix> == dynamic_size)
 #else
-    template<typename Ds, std::enable_if_t<vector_space_descriptor<decltype(*std::declval<Indices>().begin())> and
+    template<typename Ds, std::enable_if_t<vector_space_descriptor<decltype(*std::declval<Ds>().begin())> and
       (index_count_v<PatternMatrix> == dynamic_size), int> = 0>
 #endif
     explicit constexpr ConstantAdapter(Ds&& ds)
@@ -94,7 +94,7 @@ namespace OpenKalman
         vector_space_descriptor<std::ranges::range_value_t<Ds>> and (index_count_v<PatternMatrix> == dynamic_size)
 #else
       template<typename C, typename Ds, std::enable_if_t<scalar_constant<C> and std::is_constructible_v<MyConstant, C&&> and
-        vector_space_descriptor<decltype(*std::declval<Indices>().begin())> and
+        vector_space_descriptor<decltype(*std::declval<Ds>().begin())> and
         (index_count_v<PatternMatrix> == dynamic_size), int> = 0>
 #endif
     explicit constexpr ConstantAdapter(C&& c, Ds&& ds) : my_constant {std::forward<C>(c)}
@@ -135,17 +135,18 @@ private:
      * \details Each D must be a constructor argument for Ds.
      * For example, the following construct a 2-by-3 constant matrix of value 5:
      * \code
+     * ConstantAdapter<eigen_matrix_t<double, 1, 1>, 5>()
      * ConstantAdapter<eigen_matrix_t<double, 2, 3>, 5>(2, std::integral_constant<int, 3>{})
      * ConstantAdapter<eigen_matrix_t<double, Eigen::Dynamic, 3>, 5>(2, 3)
      * ConstantAdapter<eigen_matrix_t<double, Eigen::Dynamic, Eigen::Dynamic>, 5>(2, 3)
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<vector_space_descriptor...Ds> requires (sizeof...(Ds) > 0) and (sizeof...(Ds) == std::tuple_size_v<MyDimensions_t>) and
+    template<vector_space_descriptor...Ds> requires (sizeof...(Ds) == std::tuple_size_v<MyDimensions_t>) and
       scalar_constant<MyConstant, ConstantType::static_constant> and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>
 #else
     template<typename...Ds, std::enable_if_t<
-      (vector_space_descriptor<Ds> and ...) and (sizeof...(Ds) > 0) and (sizeof...(Ds) == std::tuple_size_v<MyDimensions_t>) and
+      (vector_space_descriptor<Ds> and ...) and (sizeof...(Ds) == std::tuple_size_v<MyDimensions_t>) and
       scalar_constant<MyConstant, ConstantType::static_constant> and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(Ds&&...ds)
@@ -582,7 +583,8 @@ private:
         }
         else if constexpr (static_index_value<N>)
         {
-          return std::get<N::value>(std::forward<Arg>(arg).my_dimensions);
+          if constexpr (N::value >= index_count_v<PatternMatrix>) return Dimensions<1>{};
+          else return std::get<N::value>(std::forward<Arg>(arg).my_dimensions);
         }
         else
         {
@@ -602,9 +604,6 @@ private:
 
 
       // No nested_object defined
-
-
-      // No convert_to_self_contained defined
 
 
       template<typename Arg>
@@ -637,21 +636,24 @@ private:
 
 
       template<typename Arg, typename Indices>
-      static constexpr auto get_component(Arg&& arg, const Indices&) { return std::forward<Arg>(arg).get_scalar_constant(); }
+      static constexpr auto
+      get_component(Arg&& arg, const Indices&) { return std::forward<Arg>(arg).get_scalar_constant(); }
 
 
       // No set_component defined  because ConstantAdapter is not writable.
 
 
       template<typename Arg>
-      static decltype(auto) to_native_matrix(Arg&& arg)
+      static decltype(auto)
+      to_native_matrix(Arg&& arg)
       {
         return OpenKalman::to_native_matrix<PatternMatrix>(std::forward<Arg>(arg));
       }
 
 
       template<Layout layout, typename S, typename...D>
-      static auto make_default(D&&...d)
+      static auto
+      make_default(D&&...d)
       {
         return make_dense_object<PatternMatrix, layout, S>(std::forward<D>(d)...);
       }
@@ -661,14 +663,16 @@ private:
 
 
       template<typename C, typename...D>
-      static constexpr auto make_constant(C&& c, D&&...d)
+      static constexpr auto
+      make_constant(C&& c, D&&...d)
       {
         return OpenKalman::make_constant<PatternMatrix>(std::forward<C>(c), std::forward<D>(d)...);
       }
 
 
       template<typename S, typename...D>
-      static constexpr auto make_identity_matrix(D&&...d)
+      static constexpr auto
+      make_identity_matrix(D&&...d)
       {
         return make_identity_matrix_like<PatternMatrix, S>(std::forward<D>(d)...);
       }

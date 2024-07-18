@@ -75,7 +75,7 @@ namespace OpenKalman::internal
       }
       else
       {
-        auto aw = make_dense_object(nested_object(std::forward<A>(a)));
+        auto aw = to_dense_object(nested_object(std::forward<A>(a)));
         set_triangle<t>(aw, std::forward<B>(b));
         return make_triangular_matrix<triangle_type_of_v<A>>(std::move(aw));
       }
@@ -111,7 +111,7 @@ namespace OpenKalman::internal
     }
     else
     {
-      decltype(auto) aw = make_dense_object(std::forward<A>(a));
+      decltype(auto) aw = to_dense_object(std::forward<A>(a));
 
       if constexpr (t == TriangleType::upper)
       {

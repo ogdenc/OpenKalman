@@ -23,6 +23,7 @@ namespace OpenKalman
    * \brief Specifies that a type has components addressable by N indices.
    * \details This concept should include anything for which get_component(...) is properly defined with N std::size_t arguments.
    * \sa get_component
+   * \deprecated
    */
   template<typename T, std::size_t N>
 #ifdef __cpp_lib_concepts

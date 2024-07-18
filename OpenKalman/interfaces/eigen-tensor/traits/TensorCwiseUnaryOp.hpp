@@ -61,18 +61,6 @@ namespace OpenKalman::interface
       return std::forward<Arg>(arg).nestedExpression();
     }
 
-
-    template<typename Arg>
-    static auto
-    convert_to_self_contained(Arg&& arg)
-    {
-      using N = Eigen::TensorCwiseUnaryOp<UnaryOp, equivalent_self_contained_t<XprType>>;
-      if constexpr (not std::is_lvalue_reference_v<typename XprType::Nested>)
-        return N {make_self_contained(nested_object(std::forward<Arg>(arg))), arg.functor()};
-      else
-        return make_dense_object(std::forward<Arg>(arg));
-    }
-
   private:
 
 #ifndef __cpp_concepts

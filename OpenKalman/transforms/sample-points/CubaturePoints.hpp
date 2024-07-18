@@ -57,7 +57,7 @@ namespace OpenKalman
       constexpr auto dim_i = index_dimension_of_v<D, 0>;
       constexpr auto frame_size = dim_i * 2;
       constexpr Scalar n = dim;
-      const auto delta = make_matrix<Coeffs, Dimensions<dim_i>>(make_dense_object(square_root(n * covariance_of(d))));
+      const auto delta = make_matrix<Coeffs, Dimensions<dim_i>>(to_dense_object(square_root(n * covariance_of(d))));
 
       if constexpr(frame_size == points_count)
       {

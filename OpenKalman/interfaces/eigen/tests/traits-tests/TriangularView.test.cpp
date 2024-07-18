@@ -104,8 +104,8 @@ TEST(eigen3, Eigen_TriangularView)
   EXPECT_EQ(get_component(tlv22, 0, 1), 0);
   EXPECT_EQ(get_component(tlv22, 1, 0), 1);
   EXPECT_EQ(get_component(tlv22, 1, 1), 3);
-  static_assert(not element_settable<decltype(tlv22), 2>);
-  static_assert(element_settable<decltype(nested_object(tlv22)), 2>);
+  static_assert(not writable_by_component<decltype(tlv22)>);
+  static_assert(writable_by_component<decltype(nested_object(tlv22))>);
   set_component(nested_object(tlv22), 4, 1, 0);
   EXPECT_EQ(get_component(tlv22, 1, 0), 4);
   EXPECT_EQ(get_component(tlv22, 0, 1), 0);
@@ -116,8 +116,8 @@ TEST(eigen3, Eigen_TriangularView)
   EXPECT_EQ(get_component(tuv22, 0, 1), 1);
   EXPECT_EQ(get_component(tuv22, 1, 0), 0);
   EXPECT_EQ(get_component(tuv22, 1, 1), 3);
-  static_assert(not element_settable<decltype(tuv22), 2>);
-  static_assert(element_settable<decltype(nested_object(tuv22)), 2>);
+  static_assert(not writable_by_component<decltype(tuv22)>);
+  static_assert(writable_by_component<decltype(nested_object(tuv22))>);
   set_component(nested_object(tuv22), 4, 0, 1);
   EXPECT_EQ(get_component(tuv22, 0, 1), 4);
   EXPECT_EQ(get_component(tuv22, 1, 0), 0);
@@ -130,8 +130,8 @@ TEST(eigen3, Eigen_TriangularView)
   EXPECT_EQ(std::real(get_component(tlv22c, 1, 0)), 1);
   EXPECT_EQ(std::imag(get_component(tlv22c, 1, 0)), 0.1);
   EXPECT_EQ(std::real(get_component(tlv22c, 1, 1)), 3);
-  static_assert(not element_settable<decltype(tlv22c), 2>);
-  static_assert(element_settable<decltype(nested_object(tlv22c)), 2>);
+  static_assert(not writable_by_component<decltype(tlv22c)>);
+  static_assert(writable_by_component<decltype(nested_object(tlv22c))>);
   set_component(nested_object(tlv22c), std::complex<double>{4, 0.4}, 1, 0);
   EXPECT_EQ(std::imag(get_component(tlv22c, 1, 0)), 0.4);
   EXPECT_EQ(std::imag(get_component(tlv22c, 0, 1)), 0);

@@ -46,16 +46,6 @@ namespace OpenKalman::interface
       return std::forward<Arg>(arg)._expression();
     }
 
-
-    template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      using N = Eigen::VectorwiseOp<equivalent_self_contained_t<ExpressionType>, Direction>;
-      static_assert(self_contained<typename N::ExpressionTypeNested>,
-        "This VectorWiseOp expression cannot be made self-contained");
-      return N {make_self_contained(arg._expression())};
-    }
-
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {

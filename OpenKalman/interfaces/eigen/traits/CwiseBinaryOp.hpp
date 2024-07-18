@@ -54,24 +54,6 @@ namespace OpenKalman::interface
 
     // nested_object() not defined
 
-
-    template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      using N = Eigen::CwiseBinaryOp<BinaryOp, equivalent_self_contained_t<LhsType>, equivalent_self_contained_t<RhsType>>;
-      // Do a partial evaluation as long as at least one argument is already self-contained.
-      if constexpr ((self_contained<LhsType> or self_contained<RhsType>) and
-        not std::is_lvalue_reference_v<typename N::LhsNested> and
-        not std::is_lvalue_reference_v<typename N::RhsNested>)
-      {
-        return N {make_self_contained(arg.lhs()), make_self_contained(arg.rhs()), arg.functor()};
-      }
-      else
-      {
-        return make_dense_object(std::forward<Arg>(arg));
-      }
-    }
-
   private:
 
 #ifndef __cpp_concepts

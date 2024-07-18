@@ -31,7 +31,7 @@ namespace OpenKalman
     template<typename T, Layout layout, typename Scalar>
     struct dense_writable_matrix_impl<T, layout, Scalar>
     {
-      using type = std::decay_t<decltype(make_dense_object<layout, Scalar>(std::declval<T>()))>;
+      using type = std::decay_t<decltype(to_dense_object<layout, Scalar>(std::declval<T>()))>;
     };
   }
 

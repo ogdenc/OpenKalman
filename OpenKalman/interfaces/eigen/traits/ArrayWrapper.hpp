@@ -54,17 +54,6 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      using N = Eigen::ArrayWrapper<equivalent_self_contained_t<XprType>>;
-      if constexpr (not std::is_lvalue_reference_v<typename N::NestedExpressionType>)
-        return N {make_self_contained(arg.nestedExpression())};
-      else
-        return make_dense_object(std::forward<Arg>(arg));
-    }
-
-
-    template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
       return constant_coefficient{arg.nestedExpression()};

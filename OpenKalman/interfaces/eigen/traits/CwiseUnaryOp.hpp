@@ -61,18 +61,6 @@ namespace OpenKalman::interface
       return std::as_const(arg).nestedExpression(); // There seems to be a bug in CwiseUnaryOp when the argument is non-const.
     }
 
-
-    template<typename Arg>
-    static auto
-    convert_to_self_contained(Arg&& arg)
-    {
-      using N = Eigen::CwiseUnaryOp<UnaryOp, equivalent_self_contained_t<XprType>>;
-      if constexpr (not std::is_lvalue_reference_v<typename N::XprTypeNested>)
-        return make_self_contained(nested_object(std::forward<Arg>(arg))).unaryExpr(arg.functor());
-      else
-        return make_dense_object(std::forward<Arg>(arg));
-    }
-
   private:
 
 #ifndef __cpp_concepts

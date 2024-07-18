@@ -80,7 +80,7 @@ TEST(eigen3, make_dense_object)
   auto m1xc_3 = make_dense_object<M11, Layout::right>(Dimensions<1>{}, 3);
   static_assert(layout_of_v<decltype(m1xc_3)> == Layout::right);
 
-  auto m23y = make_dense_object<M11, Layout::left>(m23c);
+  auto m23y = to_dense_object<M11, Layout::left>(m23c);
   static_assert(dimension_size_of_index_is<decltype(m23y), 0, 2>);
   static_assert(dimension_size_of_index_is<decltype(m23y), 1, 3>);
   static_assert(layout_of_v<decltype(m23y)> == Layout::left);
@@ -128,7 +128,7 @@ TEST(eigen3, make_dense_object_from)
   EXPECT_TRUE(is_near(make_eigen_matrix(1., 2), M21 {1, 2}));
   EXPECT_TRUE(is_near(make_eigen_matrix(1., 2, 3, 4), (eigen_matrix_t<double, 4, 1> {} << 1, 2, 3, 4).finished()));
 
-  EXPECT_TRUE(is_near(make_dense_object(m22), m22));
+  EXPECT_TRUE(is_near(to_dense_object(m22), m22));
 
   EXPECT_TRUE(is_near(make_eigen_matrix<double, 1, 1>(4), eigen_matrix_t<double, 1, 1>(4)));
   EXPECT_TRUE(is_near(make_eigen_matrix<double>(4), eigen_matrix_t<double, 1, 1>(4)));
@@ -138,30 +138,30 @@ TEST(eigen3, make_dense_object_from)
   auto m02_93310 = Mx2 {m22_93310};
   auto m00_93310 = Mxx {m22_93310};
 
-  EXPECT_TRUE(is_near(make_dense_object(m22_93310.template selfadjointView<Eigen::Upper>()), m22_93310));
-  EXPECT_TRUE(is_near(make_dense_object(m20_93310.template selfadjointView<Eigen::Lower>()), m22_93310));
-  EXPECT_TRUE(is_near(make_dense_object(m02_93310.template selfadjointView<Eigen::Upper>()), m22_93310));
-  EXPECT_TRUE(is_near(make_dense_object(m00_93310.template selfadjointView<Eigen::Lower>()), m22_93310));
+  EXPECT_TRUE(is_near(to_dense_object(m22_93310.template selfadjointView<Eigen::Upper>()), m22_93310));
+  EXPECT_TRUE(is_near(to_dense_object(m20_93310.template selfadjointView<Eigen::Lower>()), m22_93310));
+  EXPECT_TRUE(is_near(to_dense_object(m02_93310.template selfadjointView<Eigen::Upper>()), m22_93310));
+  EXPECT_TRUE(is_near(to_dense_object(m00_93310.template selfadjointView<Eigen::Lower>()), m22_93310));
 
   auto m22_3013 = make_dense_object_from<M22>(3, 0, 1, 3);
   auto m20_3013 = M2x {m22_3013};
   auto m02_3013 = Mx2 {m22_3013};
   auto m00_3013 = Mxx {m22_3013};
 
-  EXPECT_TRUE(is_near(make_dense_object(m22_3013.template triangularView<Eigen::Lower>()), m22_3013));
-  EXPECT_TRUE(is_near(make_dense_object(m20_3013.template triangularView<Eigen::Lower>()), m22_3013));
-  EXPECT_TRUE(is_near(make_dense_object(m02_3013.template triangularView<Eigen::Lower>()), m22_3013));
-  EXPECT_TRUE(is_near(make_dense_object(m00_3013.template triangularView<Eigen::Lower>()), m22_3013));
+  EXPECT_TRUE(is_near(to_dense_object(m22_3013.template triangularView<Eigen::Lower>()), m22_3013));
+  EXPECT_TRUE(is_near(to_dense_object(m20_3013.template triangularView<Eigen::Lower>()), m22_3013));
+  EXPECT_TRUE(is_near(to_dense_object(m02_3013.template triangularView<Eigen::Lower>()), m22_3013));
+  EXPECT_TRUE(is_near(to_dense_object(m00_3013.template triangularView<Eigen::Lower>()), m22_3013));
 
   auto m22_3103 = make_dense_object_from<M22>(3, 1, 0, 3);
   auto m20_3103 = M2x {m22_3103};
   auto m02_3103 = Mx2 {m22_3103};
   auto m00_3103 = Mxx {m22_3103};
 
-  EXPECT_TRUE(is_near(make_dense_object(m22_3103.template triangularView<Eigen::Upper>()), m22_3103));
-  EXPECT_TRUE(is_near(make_dense_object(m20_3103.template triangularView<Eigen::Upper>()), m22_3103));
-  EXPECT_TRUE(is_near(make_dense_object(m02_3103.template triangularView<Eigen::Upper>()), m22_3103));
-  EXPECT_TRUE(is_near(make_dense_object(m00_3103.template triangularView<Eigen::Upper>()), m22_3103));
+  EXPECT_TRUE(is_near(to_dense_object(m22_3103.template triangularView<Eigen::Upper>()), m22_3103));
+  EXPECT_TRUE(is_near(to_dense_object(m20_3103.template triangularView<Eigen::Upper>()), m22_3103));
+  EXPECT_TRUE(is_near(to_dense_object(m02_3103.template triangularView<Eigen::Upper>()), m22_3103));
+  EXPECT_TRUE(is_near(to_dense_object(m00_3103.template triangularView<Eigen::Upper>()), m22_3103));
 
   auto m21 = M21 {1, 4};
   auto m2x_1 = M2x {m21};
@@ -170,15 +170,15 @@ TEST(eigen3, make_dense_object_from)
 
   auto m22_1004 = make_dense_object_from<M22>(1, 0, 0, 4);
 
-  EXPECT_TRUE(is_near(make_dense_object(Eigen::DiagonalMatrix<double, 2> {m21}), m22_1004));
-  EXPECT_TRUE(is_near(make_dense_object(Eigen::DiagonalMatrix<double, 2> {m2x_1}), m22_1004));
-  EXPECT_TRUE(is_near(make_dense_object(Eigen::DiagonalMatrix<double, Eigen::Dynamic> {mx1_2}), m22_1004));
-  EXPECT_TRUE(is_near(make_dense_object(Eigen::DiagonalMatrix<double, Eigen::Dynamic> {mxx_21}), m22_1004));
+  EXPECT_TRUE(is_near(to_dense_object(Eigen::DiagonalMatrix<double, 2> {m21}), m22_1004));
+  EXPECT_TRUE(is_near(to_dense_object(Eigen::DiagonalMatrix<double, 2> {m2x_1}), m22_1004));
+  EXPECT_TRUE(is_near(to_dense_object(Eigen::DiagonalMatrix<double, Eigen::Dynamic> {mx1_2}), m22_1004));
+  EXPECT_TRUE(is_near(to_dense_object(Eigen::DiagonalMatrix<double, Eigen::Dynamic> {mxx_21}), m22_1004));
 
-  EXPECT_TRUE(is_near(make_dense_object(Eigen::DiagonalWrapper<M21> {m21}), m22_1004));
-  EXPECT_TRUE(is_near(make_dense_object(Eigen::DiagonalWrapper<M2x> {m2x_1}), m22_1004));
-  EXPECT_TRUE(is_near(make_dense_object(Eigen::DiagonalWrapper<Mx1> {mx1_2}), m22_1004));
-  EXPECT_TRUE(is_near(make_dense_object(Eigen::DiagonalWrapper<Mxx> {mxx_21}), m22_1004));
+  EXPECT_TRUE(is_near(to_dense_object(Eigen::DiagonalWrapper<M21> {m21}), m22_1004));
+  EXPECT_TRUE(is_near(to_dense_object(Eigen::DiagonalWrapper<M2x> {m2x_1}), m22_1004));
+  EXPECT_TRUE(is_near(to_dense_object(Eigen::DiagonalWrapper<Mx1> {mx1_2}), m22_1004));
+  EXPECT_TRUE(is_near(to_dense_object(Eigen::DiagonalWrapper<Mxx> {mxx_21}), m22_1004));
 
   auto m2x_2 = M2x {m22};
   auto mx2_2 = Mx2 {m22};
@@ -186,10 +186,10 @@ TEST(eigen3, make_dense_object_from)
 
   auto m44_1324 = make_dense_object_from<M44>(1, 0, 0, 0, 0, 3, 0, 0, 0, 0, 2, 0, 0, 0, 0, 4);
 
-  EXPECT_TRUE(is_near(make_dense_object(Eigen::DiagonalWrapper<M22> {m22}), m44_1324));
-  EXPECT_TRUE(is_near(make_dense_object(Eigen::DiagonalWrapper<M2x> {m2x_2}), m44_1324));
-  EXPECT_TRUE(is_near(make_dense_object(Eigen::DiagonalWrapper<Mx2> {mx2_2}), m44_1324));
-  EXPECT_TRUE(is_near(make_dense_object(Eigen::DiagonalWrapper<Mxx> {mxx_22}), m44_1324));
+  EXPECT_TRUE(is_near(to_dense_object(Eigen::DiagonalWrapper<M22> {m22}), m44_1324));
+  EXPECT_TRUE(is_near(to_dense_object(Eigen::DiagonalWrapper<M2x> {m2x_2}), m44_1324));
+  EXPECT_TRUE(is_near(to_dense_object(Eigen::DiagonalWrapper<Mx2> {mx2_2}), m44_1324));
+  EXPECT_TRUE(is_near(to_dense_object(Eigen::DiagonalWrapper<Mxx> {mxx_22}), m44_1324));
 
   static_assert(layout_of_v<decltype(make_dense_object_from<M22, Layout::left, double>(1, 2, 3, 4))> == Layout::left);
   static_assert(layout_of_v<decltype(make_dense_object_from<M22, Layout::right, double>(1, 2, 3, 4))> == Layout::right);

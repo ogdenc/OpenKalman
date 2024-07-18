@@ -29,7 +29,7 @@ TEST(eigen_tensor, Tensor)
   using T4 = Eigen::Tensor<double, 4>;
   static_assert(std::is_same_v<scalar_type_of_t<T4>, double>);
   static_assert(element_gettable<T4, 4>);
-  static_assert(element_settable<T4, 4>);
+  static_assert(writable_by_component<T4, 4>);
   static_assert(writable<T4>);
   static_assert(dynamic_dimension<T4, 0>);
   static_assert(dynamic_dimension<T4, 1>);
@@ -94,7 +94,7 @@ TEST(eigen_tensor, TensorFixedSize)
   static_assert(index_dimension_of_v<T1234, 3> == 4);
 
   static_assert(element_gettable<T1234, 4>);
-  static_assert(element_settable<T1234, 4>);
+  static_assert(writable_by_component<T1234, 4>);
   static_assert(writable<T1234>);
 
   t1234.setValues({{{{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}}, {{13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24}}}});
@@ -126,7 +126,7 @@ TEST(eigen_tensor, TensorMap)
 
   static_assert(std::is_same_v<scalar_type_of_t<S64_4d>, double>);
   static_assert(element_gettable<S64_4d, 4>);
-  static_assert(element_settable<S64_4d, 4>);
+  static_assert(writable_by_component<S64_4d, 4>);
   static_assert(not writable<S64_4d>);
   static_assert(dynamic_dimension<S64_4d, 0>);
   static_assert(dynamic_dimension<S64_4d, 1>);
@@ -148,7 +148,7 @@ TEST(eigen_tensor, TensorMap)
 
   static_assert(std::is_same_v<scalar_type_of_t<S64_2d>, double>);
   static_assert(element_gettable<S64_2d, 2>);
-  static_assert(element_settable<S64_2d, 2>);
+  static_assert(writable_by_component<S64_2d, 2>);
   static_assert(not writable<S64_2d>);
   static_assert(dynamic_dimension<S64_2d, 0>);
   static_assert(dynamic_dimension<S64_2d, 1>);

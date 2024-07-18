@@ -36,7 +36,7 @@ namespace OpenKalman
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (diagonal_matrix<Arg>)
+    else if constexpr (diagonal_matrix<Arg> and square_shaped<Arg>)
     {
       return conjugate(std::forward<Arg>(arg));
     }
@@ -62,8 +62,7 @@ namespace OpenKalman
     }
     else
     {
-      return interface::library_interface<std::decay_t<Arg>>::transpose(
-        interface::library_interface<std::decay_t<Arg>>::conjugate(std::forward<Arg>(arg)));
+      return transpose(conjugate(std::forward<Arg>(arg)));
     }
   }
 

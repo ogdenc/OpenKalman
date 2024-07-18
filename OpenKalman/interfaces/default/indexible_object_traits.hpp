@@ -125,29 +125,6 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Converts an object of type T into an equivalent, self-contained object (i.e., no external dependencies).
-     * \detail The resulting type must be equivalent to T, including in shape and scalar type. But it must be
-     * self-contained, so that it has external dependencies accessible only by lvalue references. The result must be
-     * guaranteed to be returnable from a function without causing a dangling reference. If possible, this should
-     * preserve the traits of T, such as whether it is a \ref triangular_matrix, \ref diagonal_matrix, or
-     * \note Defining this function is optional. If not defined, the default behavior is to convert to the equivalent,
-     * dense, writable matrix. Also, there is no need for the example constraint on Arg, as
-     * OpenKalman::make_self_contained already enforces this constraint.
-     * \ref zero.
-     * \tparam Arg An object of type T
-     * \return An equivalent self-contained version of T
-     */
-#ifdef __cpp_concepts
-    static indexible decltype(auto)
-    convert_to_self_contained(std::convertible_to<const T&> auto&& arg) = delete;
-#else
-    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const T&>, int> = 0>
-    static decltype(auto)
-    convert_to_self_contained(Arg&& arg) = delete;
-#endif
-
-
-    /**
      * \brief If all components of the argument share the same constant value, return that constant.
      * \note: Optional.
      * \returns A \ref scalar_constant (or, if no constant, some empty class such as std::monostate).
@@ -249,6 +226,7 @@ namespace OpenKalman::interface
 
     /**
      * \brief If the argument has direct access to the underlying array data, return a pointer to that raw data.
+     * \details This could be a
      */
 #ifdef __cpp_concepts
 #ifdef DOXYGEN_SHOULD_SKIP_THIS

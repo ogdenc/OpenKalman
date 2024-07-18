@@ -29,6 +29,8 @@ namespace OpenKalman::interface
 
     using Base = Eigen3::indexible_object_traits_base<Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>>;
 
+    using NullaryTraits = Eigen3::NullaryFunctorTraits<NullaryOp, PlainObjectType>;
+
     template<typename T>
     struct has_params : std::bool_constant<
       Eigen::CwiseNullaryOp<NullaryOp, PlainObjectType>::RowsAtCompileTime == Eigen::Dynamic or
@@ -48,32 +50,38 @@ namespace OpenKalman::interface
 
     // nested_object() not defined
 
-    // convert_to_self_contained not defined
 
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return Eigen3::NullaryFunctorTraits<NullaryOp, PlainObjectType>::template get_constant<false>(arg);
+      return NullaryTraits::template get_constant(arg);
     }
+
 
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return Eigen3::NullaryFunctorTraits<NullaryOp, PlainObjectType>::template get_constant<true>(arg);
+      return NullaryTraits::template get_constant_diagonal(arg);
     }
+
 
     template<Qualification b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<PlainObjectType, b>;
 
+
     template<Qualification b>
     static constexpr bool is_square = square_shaped<PlainObjectType, b>;
 
+
     template<TriangleType t>
-    static constexpr bool is_triangular = Eigen3::NullaryFunctorTraits<NullaryOp, PlainObjectType>::template is_triangular<t>;
+    static constexpr bool is_triangular = NullaryTraits::template is_triangular<t>;
+
 
     static constexpr bool is_triangular_adapter = false;
 
-    static constexpr bool is_hermitian = Eigen3::NullaryFunctorTraits<NullaryOp, PlainObjectType>::is_hermitian;
+
+    static constexpr bool is_hermitian = NullaryTraits::is_hermitian;
+
   };
 
 

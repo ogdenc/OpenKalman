@@ -59,29 +59,6 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      using N = Eigen::Select<equivalent_self_contained_t<ConditionMatrixType>,
-        equivalent_self_contained_t<ThenMatrixType>, equivalent_self_contained_t<ElseMatrixType>>;
-      // Do a partial evaluation as long as at least two arguments are already self-contained.
-      if constexpr (
-        ((self_contained<ConditionMatrixType> ? 1 : 0) + (self_contained<ThenMatrixType> ? 1 : 0) +
-          (self_contained<ElseMatrixType> ? 1 : 0) >= 2) and
-        not std::is_lvalue_reference_v<typename equivalent_self_contained_t<ConditionMatrixType>::Nested> and
-        not std::is_lvalue_reference_v<typename equivalent_self_contained_t<ThenMatrixType>::Nested> and
-        not std::is_lvalue_reference_v<typename equivalent_self_contained_t<ElseMatrixType>::Nested>)
-      {
-        return N {make_self_contained(arg.arg1()), make_self_contained(arg.arg2()), make_self_contained(arg.arg3()),
-                  arg.functor()};
-      }
-      else
-      {
-        return make_dense_object(std::forward<Arg>(arg));
-      }
-    }
-
-
-    template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
       if constexpr (constant_matrix<ConditionMatrixType>)

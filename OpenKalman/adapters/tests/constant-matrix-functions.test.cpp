@@ -8,7 +8,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  */
 
-#include "special-matrices.gtest.hpp"
+#include "adapters.gtest.hpp"
 #include <complex>
 
 using namespace OpenKalman;
@@ -19,49 +19,6 @@ using numbers::pi;
 
 namespace
 {
-  using M11 = eigen_matrix_t<double, 1, 1>;
-  using M12 = eigen_matrix_t<double, 1, 2>;
-  using M13 = eigen_matrix_t<double, 1, 3>;
-  using M14 = eigen_matrix_t<double, 1, 4>;
-  using M21 = eigen_matrix_t<double, 2, 1>;
-  using M22 = eigen_matrix_t<double, 2, 2>;
-  using M23 = eigen_matrix_t<double, 2, 3>;
-  using M24 = eigen_matrix_t<double, 2, 4>;
-  using M31 = eigen_matrix_t<double, 3, 1>;
-  using M32 = eigen_matrix_t<double, 3, 2>;
-  using M33 = eigen_matrix_t<double, 3, 3>;
-  using M34 = eigen_matrix_t<double, 3, 4>;
-  using M42 = eigen_matrix_t<double, 4, 2>;
-  using M43 = eigen_matrix_t<double, 4, 3>;
-  using M44 = eigen_matrix_t<double, 4, 4>;
-  using M55 = eigen_matrix_t<double, 5, 5>;
-
-  using Mxx = eigen_matrix_t<double, dynamic_size, dynamic_size>;
-  using M1x = eigen_matrix_t<double, 1, dynamic_size>;
-  using Mx1 = eigen_matrix_t<double, dynamic_size, 1>;
-  using M2x = eigen_matrix_t<double, 2, dynamic_size>;
-  using Mx2 = eigen_matrix_t<double, dynamic_size, 2>;
-  using M3x = eigen_matrix_t<double, 3, dynamic_size>;
-  using Mx3 = eigen_matrix_t<double, dynamic_size, 3>;
-  using Mx4 = eigen_matrix_t<double, dynamic_size, 4>;
-  using M4x = eigen_matrix_t<double, 4, dynamic_size>;
-  using M5x = eigen_matrix_t<double, 5, dynamic_size>;
-  using Mx5 = eigen_matrix_t<double, dynamic_size, 5>;
-
-  using cdouble = std::complex<double>;
-
-  using CM11 = eigen_matrix_t<cdouble, 1, 1>;
-  using CM22 = eigen_matrix_t<cdouble, 2, 2>;
-  using CM23 = eigen_matrix_t<cdouble, 2, 3>;
-  using CM32 = eigen_matrix_t<cdouble, 3, 2>;
-  using CM33 = eigen_matrix_t<cdouble, 3, 3>;
-  using CM34 = eigen_matrix_t<cdouble, 3, 4>;
-  using CM43 = eigen_matrix_t<cdouble, 4, 3>;
-
-  using CM2x = eigen_matrix_t<cdouble, 2, dynamic_size>;
-  using CMx2 = eigen_matrix_t<cdouble, dynamic_size, 2>;
-  using CMxx = eigen_matrix_t<cdouble, dynamic_size, dynamic_size>;
-
   using Axis2 = FixedDescriptor<Axis, Axis>;
 
   using ZA11 = ZeroAdapter<M11>;
@@ -84,7 +41,7 @@ namespace
 }
 
 
-TEST(special_matrices, ConstantAdapter_functions)
+TEST(adapters, ConstantAdapter_functions)
 {
   ConstantAdapter<M34, double, 5> c534 {};
   ConstantAdapter<M3x, double, 5> c53x_4 {4};
@@ -140,11 +97,11 @@ TEST(special_matrices, ConstantAdapter_functions)
 
   // \todo rank_update
 
-  M23 m23_66 = make_eigen_matrix<double, 2, 3>(6, 14, 22, 6, 14, 22);
+  M23 m23_66 = make_dense_object_from<M23>(6, 14, 22, 6, 14, 22);
   M2x m20_3_66 {2,3}; m20_3_66 = m23_66;
   Mx3 m03_2_66 {2,3}; m03_2_66 = m23_66;
   Mxx m00_23_66 {2,3}; m00_23_66 = m23_66;
-  auto m23_12 = make_eigen_matrix<double, 2, 3>(1.5, 3.5, 5.5, 1.5, 3.5, 5.5);
+  auto m23_12 = make_dense_object_from<M23>(1.5, 3.5, 5.5, 1.5, 3.5, 5.5);
 
   EXPECT_TRUE(is_near(solve(ConstantAdapter<M22, double, 2> {}, m23_66), m23_12));
   EXPECT_TRUE(is_near(solve(ConstantAdapter<M22, double, 2> {}, m00_23_66), m23_12));
@@ -190,7 +147,7 @@ TEST(special_matrices, ConstantAdapter_functions)
   ConstantAdapter<M2x, double, 6> c2x_3_6 {3};
   ConstantAdapter<Mx3, double, 6> cx3_2_6 {2};
   ConstantAdapter<Mxx, double, 6> cxx_23_6 {2, 3};
-  auto m23_15 = make_eigen_matrix<double, 2, 3>(1.5, 1.5, 1.5, 1.5, 1.5, 1.5);
+  auto m23_15 = make_dense_object_from<M23>(1.5, 1.5, 1.5, 1.5, 1.5, 1.5);
 
   EXPECT_TRUE(is_near(solve(ConstantAdapter<M22, double, 2> {}, c23_6), m23_15));
   EXPECT_TRUE(is_near(solve(ConstantAdapter<M22, double, 2> {}, cxx_23_6), m23_15));
@@ -227,10 +184,10 @@ TEST(special_matrices, ConstantAdapter_functions)
   EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {1, 1}, Mx1(m11_8)), M11(4)));
   EXPECT_TRUE(is_near(solve(ConstantAdapter<Mxx, double, 2> {1, 1}, Mxx(m11_8)), M11(4)));
 
-  EXPECT_TRUE(is_near(solve(M11::Identity(), make_eigen_matrix<double, 1, 1>(8)), make_eigen_matrix<double, 1, 1>(8)));
+  EXPECT_TRUE(is_near(solve(M11::Identity(), make_dense_object_from<M11>(8)), make_dense_object_from<M11>(8)));
 
-  EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<eigen_matrix_t<double, 5, 3>, double, 7> ()), LQ_decomposition(make_eigen_matrix<double, 5, 3>(7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7)).cwiseAbs()));
-  auto lq332 = make_self_contained(LQ_decomposition(make_eigen_matrix<double, 3, 2>(3, 3, 3, 3, 3, 3)).cwiseAbs());
+  EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<eigen_matrix_t<double, 5, 3>, double, 7> ()), to_dense_object(LQ_decomposition(M53::Constant(7))).cwiseAbs()));
+  auto lq332 = make_self_contained(to_dense_object(LQ_decomposition(M32::Constant(3))).cwiseAbs());
   EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<M32, double, 3> ()), lq332));
   auto lqzc3x_2 = LQ_decomposition(ConstantAdapter<M3x, double, 3> {2});
   EXPECT_TRUE(is_near(lqzc3x_2, lq332));
@@ -250,8 +207,8 @@ TEST(special_matrices, ConstantAdapter_functions)
   EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<Mx2, double> (3., 3)), lq332));
   EXPECT_TRUE(is_near(LQ_decomposition(ConstantAdapter<Mxx, double> (3., 3, 2)), lq332));
 
-  EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<eigen_matrix_t<double, 3, 5>, double, 7> ()), QR_decomposition(make_eigen_matrix<double, 3, 5>(7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7)).cwiseAbs()));
-  auto qr323 = make_self_contained(QR_decomposition(make_eigen_matrix<double, 2, 3>(3, 3, 3, 3, 3, 3)).cwiseAbs());
+  EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<eigen_matrix_t<double, 3, 5>, double, 7> ()), to_dense_object(QR_decomposition(M35::Constant(7))).cwiseAbs()));
+  auto qr323 = make_self_contained(to_dense_object(QR_decomposition(M23::Constant(3))).cwiseAbs());
   EXPECT_TRUE(is_near(QR_decomposition(ConstantAdapter<M23, double, 3> ()), qr323));
   auto qrzc2x_3 = QR_decomposition(ConstantAdapter<M2x, double, 3> {3});
   EXPECT_TRUE(is_near(qrzc2x_3, qr323));
@@ -273,7 +230,7 @@ TEST(special_matrices, ConstantAdapter_functions)
 }
 
 
-TEST(special_matrices, ZeroAdapter_functions)
+TEST(adapters, ZeroAdapter_functions)
 {
   // to_euclidean is tested in ToEuclideanExpr.test.cpp.
   // from_euclidean is tested in FromEuclideanExpr.test.cpp.
@@ -471,7 +428,7 @@ TEST(special_matrices, ZeroAdapter_functions)
 }
 
 
-TEST(special_matrices, constant_rank_update)
+TEST(adapters, constant_rank_update)
 {
   auto c11_2 {M11::Identity() + M11::Identity()};
 
@@ -538,7 +495,7 @@ TEST(special_matrices, constant_rank_update)
   EXPECT_TRUE(is_near(rank_update_hermitian(d01_2_9, dxx_21_2, 4), m22_25));
   EXPECT_TRUE(is_near(rank_update_hermitian(d00_21_9, dxx_21_2, 4), m22_25));
 
-  auto m1034 = make_eigen_matrix<double, 2, 2>(1, 0, 3, 4);
+  auto m1034 = make_dense_object_from<M22>(1, 0, 3, 4);
   auto m1034_2 = m1034 * adjoint(m1034);
 
   ZA22 z22 {Dimensions<2>(), Dimensions<2>()};
@@ -569,7 +526,7 @@ TEST(special_matrices, constant_rank_update)
 }
 
 
-TEST(special_matrices, constant_solve)
+TEST(adapters, constant_solve)
 {
   // B is zero
 
@@ -644,7 +601,7 @@ TEST(special_matrices, constant_solve)
 
   // A is zero
 
-  auto m23_56 = make_eigen_matrix<double, 2, 3>(5, 7, 9, 6, 8, 10);
+  auto m23_56 = make_dense_object_from<M23>(5, 7, 9, 6, 8, 10);
   auto m20_3_56 = M2x {m23_56};
   auto m03_2_56 = Mx3 {m23_56};
   auto m00_23_56 = Mxx {m23_56};
@@ -759,7 +716,7 @@ TEST(special_matrices, constant_solve)
 }
 
 
-TEST(special_matrices, constant_decompositions)
+TEST(adapters, constant_decompositions)
 {
   ZA22 z22 {Dimensions<2>(), Dimensions<2>()};
   ZeroAdapter<M32> z32;
@@ -786,7 +743,7 @@ TEST(special_matrices, constant_decompositions)
 }
 
 
-TEST(special_matrices, constant_diagonalizing)
+TEST(adapters, constant_diagonalizing)
 {
   auto ez11 = M11::Identity() - M11::Identity();
 
@@ -801,8 +758,8 @@ TEST(special_matrices, constant_diagonalizing)
   auto ezxx_21 = Eigen::Replicate<decltype(ez11), Eigen::Dynamic, Eigen::Dynamic> {ez11, 2, 1};
 
   EXPECT_TRUE(is_near(diagonal_of(ez22), ez21));
-  EXPECT_TRUE(is_near(diagonal_of(ez2x_2), ez21)); static_assert(zero<decltype(diagonal_of(ez2x_2))>); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(ez2x_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(ezx2_2), ez21)); static_assert(zero<decltype(diagonal_of(ezx2_2))>); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(ezx2_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(ez2x_2), ez21)); static_assert(zero<decltype(diagonal_of(ez2x_2))>); static_assert(has_dynamic_dimensions<decltype(diagonal_of(ez2x_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(ezx2_2), ez21)); static_assert(zero<decltype(diagonal_of(ezx2_2))>); static_assert(has_dynamic_dimensions<decltype(diagonal_of(ezx2_2))>);
   EXPECT_TRUE(is_near(diagonal_of(ezxx_22), ez21)); static_assert(zero<decltype(diagonal_of(ezxx_22))>); static_assert(has_dynamic_dimensions<decltype(diagonal_of(ezxx_22))>);
 
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {ez21}), ez21)); static_assert(zero<decltype(diagonal_of(Eigen::DiagonalWrapper {ez21}))>);
@@ -828,8 +785,8 @@ TEST(special_matrices, constant_diagonalizing)
   auto ecxx_22_2 = Eigen::Replicate<decltype(ec11_2), Eigen::Dynamic, Eigen::Dynamic>(ec11_2, 2, 2);
 
   EXPECT_TRUE(is_near(diagonal_of(ec22_2), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(ec22_2))> == 2); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(ec22_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(ec2x_2_2), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(ec2x_2_2))> == 2); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(ec2x_2_2))>);
-  EXPECT_TRUE(is_near(diagonal_of(ecx2_2_2), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(ecx2_2_2))> == 2); static_assert(not has_dynamic_dimensions<decltype(diagonal_of(ecx2_2_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(ec2x_2_2), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(ec2x_2_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(ec2x_2_2))>);
+  EXPECT_TRUE(is_near(diagonal_of(ecx2_2_2), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(ecx2_2_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(ecx2_2_2))>);
   EXPECT_TRUE(is_near(diagonal_of(ecxx_22_2), ec21_2)); static_assert(constant_coefficient_v<decltype(diagonal_of(ecxx_22_2))> == 2); static_assert(has_dynamic_dimensions<decltype(diagonal_of(ecxx_22_2))>);
 
   auto d21_2 = ec21_2.asDiagonal();
@@ -910,10 +867,8 @@ TEST(special_matrices, constant_diagonalizing)
   EXPECT_TRUE(is_near(to_diagonal(zxx_21), z22));
   static_assert(diagonal_adapter<decltype(to_diagonal(z21))>);
   static_assert(diagonal_adapter<decltype(to_diagonal(zx1_2))>);
-  static_assert(diagonal_adapter<decltype(to_diagonal(z2x_1)), Qualification::depends_on_dynamic_shape>);
-  static_assert(diagonal_matrix<decltype(to_diagonal(z2x_1))>);
-  static_assert(diagonal_adapter<decltype(to_diagonal(zxx_21)), Qualification::depends_on_dynamic_shape>);
-  static_assert(diagonal_matrix<decltype(to_diagonal(zxx_21))>);
+  static_assert(diagonal_adapter<decltype(to_diagonal(z2x_1))>);
+  static_assert(diagonal_adapter<decltype(to_diagonal(zxx_21))>);
   static_assert(zero<decltype(to_diagonal(zxx_21))>);
 
   EXPECT_TRUE(is_near(diagonal_of(z22), z21));
@@ -924,7 +879,7 @@ TEST(special_matrices, constant_diagonalizing)
 }
 
 
-TEST(special_matrices, constant_elementwise)
+TEST(adapters, constant_elementwise)
 {
   auto m23 = make_dense_object_from<M23>(5.5, 5.5, 5.5, 5.5, 5.5, 5.5);
   EXPECT_TRUE(is_near(n_ary_operation<Mxx>(std::tuple {Dimensions<2>{}, Dimensions<3>{}}, []{return 5.5;}), m23));
@@ -940,7 +895,7 @@ TEST(special_matrices, constant_elementwise)
 }
 
 
-TEST(special_matrices, constant_reductions)
+TEST(adapters, constant_reductions)
 {
   // reduce zero
 
@@ -1013,8 +968,13 @@ TEST(special_matrices, constant_reductions)
   double non_constexpr_dummy = 0.0;
   EXPECT_TRUE(is_near(reduce<1, 0>([&](auto a, auto b){ return non_constexpr_dummy + a + b; }, ec23), 6 * ec11));
 
+#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges) and not defined (__clang__)
   static_assert(reduce(std::plus<double>{}, ec11) == 2);
   static_assert(reduce(std::multiplies<double>{}, ec11) == 2);
+#else
+  EXPECT_EQ(reduce(std::plus<double>{}, ec11), 2);
+  EXPECT_EQ(reduce(std::multiplies<double>{}, ec11), 2);
+#endif
   static_assert(reduce(std::plus<double>{}, ec13) == 6);
   static_assert(reduce(std::multiplies<double>{}, ec13) == 8);
   static_assert(reduce(std::plus<double>{}, ec21) == 4);
@@ -1028,7 +988,7 @@ TEST(special_matrices, constant_reductions)
 
   auto efc11 = (M11::Identity() + M11::Identity()).array() / (M11::Identity() + M11::Identity() + M11::Identity()).array();
   using EFC11 = decltype(efc11);
-  static_assert(are_within_tolerance(constant_coefficient_v<EFC11>, 2./3));
+  static_assert(OpenKalman::internal::are_within_tolerance(constant_coefficient_v<EFC11>, 2./3));
 
   auto efc23 = Eigen::Replicate<EFC11, 2, 3> {efc11};
   auto efc2x_3 = Eigen::Replicate<EFC11, 2, Eigen::Dynamic> {efc11, 2, 3};
@@ -1043,8 +1003,8 @@ TEST(special_matrices, constant_reductions)
   EXPECT_TRUE(is_near(reduce<0>(std::multiplies<double>{}, efc2x_3), 2./3 * efc13));
   EXPECT_TRUE(is_near(reduce<0>(std::multiplies<double>{}, efcxx_23), 2./3 * efc13));
 
-  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, efc23), 3 * efc21)); static_assert(are_within_tolerance(constant_coefficient_v<decltype(reduce<1>(std::plus<double>{}, efc23))>, 2));
-  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, efcx3_2), 3 * efc21)); static_assert(are_within_tolerance(constant_coefficient_v<decltype(reduce<1>(std::plus<double>{}, efcx3_2))>, 2));
+  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, efc23), 3 * efc21)); static_assert(OpenKalman::internal::are_within_tolerance(constant_coefficient_v<decltype(reduce<1>(std::plus<double>{}, efc23))>, 2));
+  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, efcx3_2), 3 * efc21)); static_assert(OpenKalman::internal::are_within_tolerance(constant_coefficient_v<decltype(reduce<1>(std::plus<double>{}, efcx3_2))>, 2));
   EXPECT_TRUE(is_near(reduce<1>(std::multiplies<double>{}, efc2x_3), 4./9 * efc21));
   EXPECT_TRUE(is_near(reduce<1>(std::multiplies<double>{}, efcxx_23), 4./9 * efc21));
 
@@ -1054,14 +1014,19 @@ TEST(special_matrices, constant_reductions)
   EXPECT_NEAR((reduce(std::multiplies<double>{}, efcxx_23)), 64./729, 1e-9);
   EXPECT_TRUE(is_near(reduce<1, 0>(std::multiplies<double>{}, efc2x_3), 32./243 * efc11));
 
-  static_assert(are_within_tolerance(reduce(std::plus<double>{}, efc11), 2./3));
-  static_assert(are_within_tolerance(reduce(std::multiplies<double>{}, efc11), 2./3));
-  static_assert(are_within_tolerance(reduce(std::plus<double>{}, efc13), 2));
-  static_assert(are_within_tolerance(reduce(std::multiplies<double>{}, efc13), 8./27));
-  static_assert(are_within_tolerance(reduce(std::plus<double>{}, efc21), 4./3));
-  static_assert(are_within_tolerance(reduce(std::multiplies<double>{}, efc21), 4./9));
-  static_assert(are_within_tolerance(reduce(std::plus<double>{}, efc23), 4));
-  static_assert(are_within_tolerance(reduce(std::multiplies<double>{}, efc23), 64./729));
+#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges) and not defined (__clang__)
+  static_assert(OpenKalman::internal::are_within_tolerance(reduce(std::plus<double>{}, efc11), 2./3));
+  static_assert(OpenKalman::internal::are_within_tolerance(reduce(std::multiplies<double>{}, efc11), 2./3));
+#else
+  EXPECT_NEAR(reduce(std::plus<double>{}, efc11), 2./3, 1e-9);
+  EXPECT_NEAR(reduce(std::multiplies<double>{}, efc11), 2./3, 1e-9);
+#endif
+  static_assert(OpenKalman::internal::are_within_tolerance(reduce(std::plus<double>{}, efc13), 2));
+  static_assert(OpenKalman::internal::are_within_tolerance(reduce(std::multiplies<double>{}, efc13), 8./27));
+  static_assert(OpenKalman::internal::are_within_tolerance(reduce(std::plus<double>{}, efc21), 4./3));
+  static_assert(OpenKalman::internal::are_within_tolerance(reduce(std::multiplies<double>{}, efc21), 4./9));
+  static_assert(OpenKalman::internal::are_within_tolerance(reduce(std::plus<double>{}, efc23), 4));
+  static_assert(OpenKalman::internal::are_within_tolerance(reduce(std::multiplies<double>{}, efc23), 64./729));
 
   // average_reduce zero
 
@@ -1094,6 +1059,7 @@ TEST(special_matrices, constant_reductions)
   auto ix2_2 = Mx2::Identity(2, 2);
   auto ixx_22 = Mxx::Identity(2, 2);
 
+  EXPECT_TRUE(is_near(average_reduce<1>(i22), M21::Constant(0.5)));
   EXPECT_TRUE(is_near(average_reduce<1>(i2x_2), M21::Constant(0.5)));
   auto rcix2_2 = average_reduce<1>(ix2_2);
   EXPECT_TRUE(is_near(rcix2_2, M21::Constant(0.5)));
@@ -1219,7 +1185,7 @@ TEST(special_matrices, constant_reductions)
 }
 
 
-TEST(special_matrices, constant_element_functions)
+TEST(adapters, constant_element_functions)
 {
   ZA22 z22 {Dimensions<2>(), Dimensions<2>()};
   ZA20 z2x_2 {Dimensions<2>(), 2};
@@ -1248,19 +1214,12 @@ TEST(special_matrices, constant_element_functions)
   EXPECT_NEAR(get_component(zxx_21, 1, 0), 0, 1e-6);
 
   EXPECT_NEAR(get_component(z21, 0), 0, 1e-8);
-  EXPECT_NEAR(get_component(z2x_1, 1), 0, 1e-6);
   EXPECT_NEAR(get_component(zx1_2, 0), 0, 1e-6);
-  EXPECT_NEAR(get_component(zxx_21, 1), 0, 1e-6);
 
   EXPECT_NEAR(get_component(z12, 0, 0), 0, 1e-8);
   EXPECT_NEAR(get_component(z1x_2, 0, 1), 0, 1e-6);
   EXPECT_NEAR(get_component(zx2_1, 0, 0), 0, 1e-6);
   EXPECT_NEAR(get_component(zxx_12, 0, 1), 0, 1e-6);
-
-  EXPECT_NEAR(get_component(z12, 0), 0, 1e-8);
-  EXPECT_NEAR(get_component(z1x_2, 1), 0, 1e-6);
-  EXPECT_NEAR(get_component(zx2_1, 0), 0, 1e-6);
-  EXPECT_NEAR(get_component(zxx_12, 1), 0, 1e-6);
 
   EXPECT_NEAR(get_component(ConstantAdapter<M22, double, 5> {}, 1, 0), 5, 1e-8);
 
@@ -1379,16 +1338,16 @@ TEST(special_matrices, constant_element_functions)
   static_assert(zero<decltype(rzv34)>);
 
   EXPECT_TRUE(is_near(get_chip<0>(make_zero<M33>(Dimensions<3>{}, Dimensions<3>{}), N1), make_dense_object_from<M13>(0., 0, 0)));
-  EXPECT_TRUE(is_near(get_chip<0>(make_zero<M33>(Dimensions<3>{}, Dimensions<3>{}), 2), make_eigen_matrix<double, 1, 3>(0., 0, 0)));
-  EXPECT_TRUE(is_near(get_chip<0>(make_zero<M3x>(Dimensions<3>{}, 3), 2), make_eigen_matrix<double, 1, 3>(0., 0, 0)));
-  EXPECT_TRUE(is_near(get_chip<0>(make_zero<Mx3>(3, Dimensions<3>{}), 2), make_eigen_matrix<double, 1, 3>(0., 0, 0)));
-  EXPECT_TRUE(is_near(get_chip<0>(make_zero<Mxx>(3,3), 2), make_eigen_matrix<double, 1, 3>(0., 0, 0)));
+  EXPECT_TRUE(is_near(get_chip<0>(make_zero<M33>(Dimensions<3>{}, Dimensions<3>{}), 2), make_dense_object_from<M13>(0., 0, 0)));
+  EXPECT_TRUE(is_near(get_chip<0>(make_zero<M3x>(Dimensions<3>{}, 3), 2), make_dense_object_from<M13>(0., 0, 0)));
+  EXPECT_TRUE(is_near(get_chip<0>(make_zero<Mx3>(3, Dimensions<3>{}), 2), make_dense_object_from<M13>(0., 0, 0)));
+  EXPECT_TRUE(is_near(get_chip<0>(make_zero<Mxx>(3,3), 2), make_dense_object_from<M13>(0., 0, 0)));
 
   // \todo tile
 }
 
 
-TEST(special_matrices, constant_concatenate)
+TEST(adapters, constant_concatenate)
 {
   // General diagonal concatenate relies on constructing zero matrices.
   auto m23 = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
@@ -1415,7 +1374,7 @@ TEST(special_matrices, constant_concatenate)
 }
 
 
-TEST(special_matrices, constant_split)
+TEST(adapters, constant_split)
 {
   auto tup_z33_z23 = std::tuple {make_zero<M33>(), make_zero<M23>()};
 
@@ -1447,7 +1406,7 @@ TEST(special_matrices, constant_split)
 }
 
 
-TEST(special_matrices, constant_chipwise_operations)
+TEST(adapters, constant_chipwise_operations)
 {
   EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& row){ return make_self_contained(row + row.Constant(1)); }, make_zero<M33>(Dimensions<3>{}, Dimensions<3>{})), M33::Constant(1)));
   EXPECT_TRUE(is_near(chipwise_operation<0>([](const auto& row){ return make_self_contained(row + make_constant<double, 1>(row)); }, make_zero<M3x>(Dimensions<3>{}, 3)), M33::Constant(1)));
@@ -1459,10 +1418,9 @@ TEST(special_matrices, constant_chipwise_operations)
   EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& col){ return make_self_contained(col + make_constant<double, 1>(col)); }, make_zero<Mx3>(3, Dimensions<3>{})), M33::Constant(1)));
   EXPECT_TRUE(is_near(chipwise_operation<1>([](const auto& col){ return make_self_contained(col + make_constant<double, 1>(col)); }, make_zero<Mxx>(3,3)), M33::Constant(1)));
 }
-}
 
 
-TEST(special_matrices, sum)
+TEST(adapters, sum)
 {
   // zero
 
@@ -1471,8 +1429,8 @@ TEST(special_matrices, sum)
   // constant
 
   static_assert(constant_coefficient_v<decltype(sum(std::declval<C22_m2>(), std::declval<C22_m2>()))> == -4);
-  static_assert(constant_coefficient_v<decltype(sum(std::declval<C22_1>(), std::declval<Z22>(), std::declval<C22_m2>()))> == -2);
-  static_assert(constant_coefficient_v<decltype(sum(std::declval<Z22>(), std::declval<Z22>(), std::declval<C22_1>(), std::declval<Z22>(), std::declval<C22_m2>()))> == -2);
+  static_assert(constant_coefficient_v<decltype(sum(std::declval<C22_1>(), std::declval<Z22>(), std::declval<C22_m2>()))> == -1);
+  static_assert(constant_coefficient_v<decltype(sum(std::declval<Z22>(), std::declval<Z22>(), std::declval<C22_1>(), std::declval<Z22>(), std::declval<C22_m2>()))> == -1);
 
   // constant diagonal
 

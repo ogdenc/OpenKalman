@@ -41,8 +41,6 @@ namespace OpenKalman::interface
 
     // nested_object() not defined
 
-    // convert_to_self_contained() not defined
-
     // get_constant() not defined
 
     // get_constant_diagonal() not defined

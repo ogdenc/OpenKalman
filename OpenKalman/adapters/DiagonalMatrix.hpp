@@ -367,16 +367,20 @@ namespace OpenKalman
     {
       using scalar_type = scalar_type_of_t<ColumnVector>;
 
+
       template<typename Arg>
       static constexpr auto count_indices(const Arg& arg) { return std::integral_constant<std::size_t, 2>{}; }
 
+
       template<typename Arg, typename N>
-      static constexpr auto get_vector_space_descriptor(Arg&& arg, N n)
+      static constexpr auto get_vector_space_descriptor(Arg&& arg, N)
       {
-        return OpenKalman::get_vector_space_descriptor<0>(nested_object(std::forward<Arg>(arg)));
+        return OpenKalman::get_vector_space_descriptor<0>(std::forward<Arg>(arg).nested_object());
       }
 
+
       using dependents = std::tuple<ColumnVector>;
+
 
       static constexpr bool has_runtime_parameters = false;
 
@@ -385,13 +389,6 @@ namespace OpenKalman
       static decltype(auto) nested_object(Arg&& arg)
       {
         return std::forward<Arg>(arg).nested_object();
-      }
-
-
-      template<typename Arg>
-      static auto convert_to_self_contained(Arg&& arg)
-      {
-        return DiagonalMatrix {make_self_contained(OpenKalman::nested_object(std::forward<Arg>(arg)))};
       }
 
       // get_constant(const Arg& arg) not defined

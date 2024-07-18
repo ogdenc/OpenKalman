@@ -119,25 +119,25 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(element_gettable<M1x, 2>);
   static_assert(element_gettable<Mxx, 2>);
 
-  static_assert(element_settable<M32, 2>);
-  static_assert(element_settable<M32&&, 2>);
-  static_assert(not element_settable<const M32&, 2>);
-  static_assert(element_settable<M31&, 2>);
-  static_assert(element_settable<M13&, 2>);
-  static_assert(element_settable<M3x&, 2>);
-  static_assert(element_settable<Mx2&, 2>);
-  static_assert(element_settable<Mx1&, 2>);
-  static_assert(element_settable<M1x&, 2>);
-  static_assert(element_settable<Mxx&, 2>);
+  static_assert(writable_by_component<M32>);
+  static_assert(writable_by_component<M32&&>);
+  static_assert(not writable_by_component<const M32&>);
+  static_assert(writable_by_component<M31&>);
+  static_assert(writable_by_component<M13&>);
+  static_assert(writable_by_component<M3x&>);
+  static_assert(writable_by_component<Mx2&>);
+  static_assert(writable_by_component<Mx1&>);
+  static_assert(writable_by_component<M1x&>);
+  static_assert(writable_by_component<Mxx&>);
 
-  static_assert(element_settable<M32&, 2>);
-  static_assert(element_settable<M31&, 1>);
-  static_assert(element_settable<M13&, 2>);
-  static_assert(not element_settable<const M31&, 1>);
-  static_assert(element_settable<Mx2&, 2>);
-  static_assert(element_settable<Mx1&, 1>);
-  static_assert(element_settable<M1x&, 2>);
-  static_assert(element_settable<Mxx&, 2>);
+  static_assert(writable_by_component<M32&, std::vector<std::size_t>>);
+  static_assert(writable_by_component<M31&, std::vector<std::size_t>>);
+  static_assert(writable_by_component<M13&, std::vector<std::size_t>>);
+  static_assert(not writable_by_component<const M31&, std::vector<std::size_t>>);
+  static_assert(writable_by_component<Mx2&, std::vector<std::size_t>>);
+  static_assert(writable_by_component<Mx1&, std::vector<std::size_t>>);
+  static_assert(writable_by_component<M1x&, std::vector<std::size_t>>);
+  static_assert(writable_by_component<Mxx&, std::vector<std::size_t>>);
 
   M22 m22; m22 << 1, 2, 3, 4;
   M23 m23; m23 << 1, 2, 3, 4, 5, 6;

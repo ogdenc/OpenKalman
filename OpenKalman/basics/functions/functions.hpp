@@ -21,8 +21,6 @@
 
 #include "nested_object.hpp"
 
-#include "internal/make_self_contained_wrapper.hpp"
-
 #include "internal/make_fixed_size_adapter.hpp"
 #include "internal/make_fixed_size_adapter_like.hpp"
 #include "internal/make_fixed_square_adapter_like.hpp"
@@ -37,6 +35,7 @@
 #include "to_native_matrix.hpp"
 
 #include "make_dense_object.hpp"
+#include "to_dense_object.hpp"
 #include "make_dense_object_from.hpp"
 #include "make_self_contained.hpp"
 #include "make_constant.hpp"

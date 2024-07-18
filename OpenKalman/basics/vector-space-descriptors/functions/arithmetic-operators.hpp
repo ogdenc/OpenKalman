@@ -70,12 +70,12 @@ namespace OpenKalman::vector_space_descriptors
    */
 #ifdef __cpp_concepts
   template<euclidean_vector_space_descriptor T, euclidean_vector_space_descriptor U> requires
-    dynamic_vector_space_descriptor<T> and dynamic_vector_space_descriptor<U> and
+    (dynamic_vector_space_descriptor<T> or dynamic_vector_space_descriptor<U>) and
     (not scalar_constant<T> or not scalar_constant<U>)
 #else
   template<typename T, typename U, std::enable_if_t<
     euclidean_vector_space_descriptor<T> and euclidean_vector_space_descriptor<U> and
-    dynamic_vector_space_descriptor<T> and dynamic_vector_space_descriptor<U> and
+    (dynamic_vector_space_descriptor<T> or dynamic_vector_space_descriptor<U>) and
     (not scalar_constant<T> or not scalar_constant<U>), int> = 0>
 #endif
   constexpr auto operator-(const T& t, const U& u)

@@ -34,6 +34,7 @@ namespace OpenKalman::interface
 
     using dependents = std::tuple<typename Eigen::internal::ref_selector<MatrixType>::non_const_type>;
 
+
     static constexpr bool has_runtime_parameters = DiagIndex == Eigen::DynamicIndex;
 
 
@@ -42,9 +43,6 @@ namespace OpenKalman::interface
     {
       return std::forward<Arg>(arg).nestedExpression();
     }
-
-
-    // Rely on default for convert_to_self_contained. Should always convert to a dense, writable matrix.
 
 
     template<typename Arg>

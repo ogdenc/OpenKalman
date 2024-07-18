@@ -13,7 +13,7 @@
  * \brief Tests relating to Eigen3::ToEuclideanExpr.
  */
 
-#include "special-matrices.gtest.hpp"
+#include "adapters.gtest.hpp"
 
 using namespace OpenKalman;
 using namespace OpenKalman::Eigen3;

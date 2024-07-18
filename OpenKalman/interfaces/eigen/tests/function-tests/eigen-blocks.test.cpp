@@ -59,6 +59,11 @@ TEST(eigen3, get_and_set_components)
   EXPECT_ANY_THROW(get_component(elx1_1, 0, 1));
   EXPECT_ANY_THROW(get_component(elxx_11, 0, 0, 1));
 
+  set_component(el11, 5.5); EXPECT_NEAR(get_component(el11), 5.5, 1e-8);
+  set_component(el1x_1, 5.5, 0, 0); EXPECT_NEAR(get_component(el1x_1, 0, 0), 5.5, 1e-8);
+  set_component(elx1_1, 5.5, 0); EXPECT_NEAR(get_component(elx1_1, 0), 5.5, 1e-8);
+  set_component(elxx_11, 5.5, 0, 0); EXPECT_NEAR(get_component(elxx_11, 0, 0), 5.5, 1e-8);
+
   M22 el22 {m22}; // 1, 2, 3, 4
   M2x el2x_2 {m22};
   Mx2 elx2_2 {m22};
@@ -462,7 +467,7 @@ TEST(eigen3, concatenate_horizontal)
 }
 
 
-// concatenate_diagonal is in special_matrices tests because it involves constructing zero matrices.
+// concatenate_diagonal is in adapters tests because it involves constructing zero matrices.
 
 
 TEST(eigen3, split_vertical)

@@ -341,7 +341,7 @@ namespace OpenKalman
   {
     using CC = vector_space_descriptor_of_t<M, 0>;
     static_assert(internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, CC>);
-    return split_vertical<oin::SplitCovVertF<M, CC>, Cs...>(make_dense_object(std::forward<M>(m)));
+    return split_vertical<oin::SplitCovVertF<M, CC>, Cs...>(to_dense_object(std::forward<M>(m)));
   }
 
 
@@ -356,7 +356,7 @@ namespace OpenKalman
   {
     using RC = vector_space_descriptor_of_t<M, 0>;
     static_assert(internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, RC>);
-    return split_horizontal<oin::SplitCovHorizF<M, RC>, Cs...>(make_dense_object(std::forward<M>(m)));
+    return split_horizontal<oin::SplitCovHorizF<M, RC>, Cs...>(to_dense_object(std::forward<M>(m)));
   }
 
 
@@ -444,7 +444,7 @@ namespace OpenKalman
 #endif
   inline std::ostream& operator<<(std::ostream& os, const Cov& c)
   {
-    os << make_dense_object(c);
+    os << to_dense_object(c);
     return os;
   }
 

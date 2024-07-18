@@ -952,13 +952,6 @@ namespace OpenKalman
 
 
       template<typename Arg>
-      static auto convert_to_self_contained(Arg&& arg)
-      {
-        auto n = make_self_contained(OpenKalman::nested_object(std::forward<Arg>(arg)));
-        return SquareRootCovariance<Coeffs, decltype(n)> {std::move(n)};
-      }
-
-      template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
       {
         if constexpr (zero<NestedMatrix>)
@@ -967,23 +960,29 @@ namespace OpenKalman
           return std::monostate {};
       }
 
+
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
         return constant_diagonal_coefficient {arg.nestedExpression()};
       }
 
+
       template<Qualification b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
 
+
       template<Qualification b>
       static constexpr bool is_square = true;
+
 
       template<TriangleType t>
       static constexpr bool is_triangular = triangular_matrix<NestedMatrix, t> or
         hermitian_adapter<NestedMatrix, t == TriangleType::upper ? HermitianAdapterType::upper : HermitianAdapterType::lower>;
 
+
       static constexpr bool is_triangular_adapter = false;
+
 
       static constexpr bool is_hermitian = false;
 
@@ -1003,10 +1002,10 @@ namespace OpenKalman
 
   #ifdef __cpp_lib_concepts
       template<typename Arg, typename...I> requires
-        element_settable<decltype(std::declval<Arg&>().get_triangular_nested_matrix()), sizeof...(I)>
+        writable_by_component<decltype(std::declval<Arg&>().get_triangular_nested_matrix()), sizeof...(I)>
   #else
       template<typename Arg, typename...I, std::enable_if_t<
-        element_settable<decltype(std::declval<Arg&>().get_triangular_nested_matrix()), sizeof...(I)>, int> = 0>
+        writable_by_component<decltype(std::declval<Arg&>().get_triangular_nested_matrix()), sizeof...(I)>, int> = 0>
   #endif
       static constexpr void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
       {

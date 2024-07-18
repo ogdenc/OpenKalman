@@ -17,7 +17,7 @@
 #define OPENKALMAN_GAUSSIANDISTRIBUTION_HPP
 
 #include <iostream>
-#include <special-matrices/details/special-matrix-interface.hpp>
+#include <adapters/details/adapters-interface.hpp>
 
 
 namespace OpenKalman
@@ -749,24 +749,17 @@ namespace OpenKalman
         }
       }
 
+
       using dependents = std::tuple<NestedMean, NestedCovariance>;
 
+
       static constexpr bool has_runtime_parameters = false;
+
 
       template<typename Arg>
       static decltype(auto) nested_object(Arg&& arg)
       {
         return std::forward<Arg>(arg).mu;
-      }
-
-      template<typename Arg>
-      static auto convert_to_self_contained(Arg&& arg)
-      {
-        auto&& m = make_self_contained(std::forward<Arg>(arg).mu);
-        using M = decltype(m);
-        auto&& s = make_self_contained(std::forward<Arg>(arg).sigma);
-        using S = decltype(s);
-        return GaussianDistribution<Coeffs, M, S, re> {std::forward<M>(m), std::forward<M>(s)};
       }
 
 

@@ -71,9 +71,7 @@ namespace OpenKalman
       }
       else
       {
-        using D = std::decay_t<decltype(d)>;
-        auto ret {internal::make_fixed_size_adapter<D>(interface::library_interface<std::decay_t<Arg>>::diagonal_of(std::forward<Arg>(arg)))};
-        return ret;
+        return internal::make_fixed_size_adapter(interface::library_interface<std::decay_t<Arg>>::diagonal_of(std::forward<Arg>(arg)), d);
       }
     }
   }

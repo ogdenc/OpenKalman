@@ -91,8 +91,9 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typename T>
-  concept get_vector_space_descriptor_defined_for = requires (T t, std::integral_constant<std::size_t, 0> n) {
-    {indexible_object_traits<std::decay_t<T>>::get_vector_space_descriptor(t, n)} -> vector_space_descriptor;
+  concept get_vector_space_descriptor_defined_for = requires (T t) {
+    {indexible_object_traits<std::decay_t<T>>::get_vector_space_descriptor(
+      t, std::integral_constant<std::size_t, 0>{})} -> vector_space_descriptor;
   };
 #else
   namespace detail
@@ -135,32 +136,6 @@ namespace OpenKalman::interface
 
   template<typename T>
   constexpr bool nested_object_defined_for = detail::nested_object_defined_for_impl<T>::value;
-#endif
-
-
-  // --------------------------- //
-  //  convert_to_self_contained  //
-  // --------------------------- //
-
-#ifdef __cpp_concepts
-  template<typename T>
-  concept convert_to_self_contained_defined_for = requires (T&& t) {
-    {indexible_object_traits<std::decay_t<T>>::convert_to_self_contained(std::forward<T>(t))} -> count_indices_defined_for;
-  };
-#else
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct convert_to_self_contained_defined_for_impl : std::false_type {};
-
-    template<typename T>
-    struct convert_to_self_contained_defined_for_impl<T, std::enable_if_t<
-      count_indices_defined_for<decltype(indexible_object_traits<std::decay_t<T>>::convert_to_self_contained(std::declval<T&&>()))>>>
-      : std::true_type {};
-  }
-
-  template<typename T>
-  constexpr bool convert_to_self_contained_defined_for = detail::convert_to_self_contained_defined_for_impl<T>::value;
 #endif
 
 
@@ -420,7 +395,7 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typename T>
-  concept raw_data_defined_for = requires (T t) { indexible_object_traits<std::decay_t<T>>::raw_data(t); };
+  concept raw_data_defined_for = requires (T t) { *indexible_object_traits<std::decay_t<T>>::raw_data(t); };
 #else
   namespace detail
   {
@@ -428,7 +403,7 @@ namespace OpenKalman::interface
     struct raw_data_defined_for_impl : std::false_type {};
 
     template<typename T>
-    struct raw_data_defined_for_impl<T, std::void_t<decltype(indexible_object_traits<std::decay_t<T>>::raw_data(std::declval<T>()))>>
+    struct raw_data_defined_for_impl<T, std::void_t<decltype(*indexible_object_traits<std::decay_t<T>>::raw_data(std::declval<T>()))>>
       : std::true_type {};
   }
 
@@ -469,9 +444,7 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typename T>
-  concept strides_defined_for = requires (T t) {
-    requires std::is_pointer_v<decltype(indexible_object_traits<std::decay_t<T>>::strides(t))>;
-  };
+  concept strides_defined_for = requires (T t) { indexible_object_traits<std::decay_t<T>>::strides(t); };
 #else
   namespace detail
   {
@@ -479,8 +452,7 @@ namespace OpenKalman::interface
     struct strides_defined_for_impl : std::false_type {};
 
     template<typename T>
-    struct strides_defined_for_impl<T, std::enable_if_t<
-        (std::is_pointer_v<decltype(indexible_object_traits<std::decay_t<T>>::strides(std::declval<T>()))>)>>
+    struct strides_defined_for_impl<T, std::void_t<decltype(indexible_object_traits<std::decay_t<T>>::strides(std::declval<T>()))>>
       : std::true_type {};
   }
 

@@ -61,14 +61,6 @@ namespace OpenKalman
 
 
       template<typename Arg>
-      static auto convert_to_self_contained(Arg&& arg)
-      {
-        constexpr auto t = hermitian_adapter_type_of_v<Arg>;
-        return SelfAdjointMatrix<equivalent_self_contained_t<MatrixType>, t> {std::forward<Arg>(arg)};
-      }
-
-
-      template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
       {
         if constexpr (not complex_number<scalar_type_of_t<MatrixType>>)

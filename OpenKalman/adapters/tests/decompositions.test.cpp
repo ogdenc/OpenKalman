@@ -13,7 +13,7 @@
  * \brief Tests for decomposition functions.
  */
 
-#include "special-matrices.gtest.hpp"
+#include "adapters.gtest.hpp"
 
 #include <complex>
 

@@ -489,17 +489,12 @@ TEST(basics, fixed_arithmetic)
 
 TEST(basics, remove_trailing_1D_descriptors)
 {
-  using D123 = std::tuple<Dimensions<1>&&, Dimensions<2>&&, Dimensions<3>&&>;
-  using D1231 = std::tuple<Dimensions<1>, Dimensions<2>, Dimensions<3>, Dimensions<1>>;
-  using D12311 = std::tuple<Dimensions<1>, Dimensions<2>, Dimensions<3>, Dimensions<1>, Dimensions<1>>;
-  using D111 = std::tuple<Dimensions<1>, Dimensions<1>, Dimensions<1>>;
-  using A111 = std::array<Dimensions<1>, 3>;
-  static_assert(std::is_same_v<decltype(internal::remove_trailing_1D_descriptors(std::tuple<>{})), std::tuple<>>);
-  static_assert(std::is_same_v<decltype(internal::remove_trailing_1D_descriptors(std::declval<D123>())), D123>);
-  static_assert(std::is_same_v<decltype(internal::remove_trailing_1D_descriptors(std::declval<D1231>())), D123>);
-  static_assert(std::is_same_v<decltype(internal::remove_trailing_1D_descriptors(std::declval<D12311>())), D123>);
-  static_assert(std::is_same_v<decltype(internal::remove_trailing_1D_descriptors(std::declval<D111>())), std::tuple<>>);
-  static_assert(std::is_same_v<decltype(internal::remove_trailing_1D_descriptors(std::declval<A111>())), std::tuple<>>);
+  using D123 = std::tuple<Dimensions<1>, Dimensions<2>, Dimensions<3>>;
+  static_assert(std::is_same_v<decltype(internal::remove_trailing_1D_descriptors()), std::tuple<>>);
+  static_assert(std::is_same_v<decltype(internal::remove_trailing_1D_descriptors(Dimensions<1>{}, Dimensions<2>{}, Dimensions<3>{})), D123>);
+  static_assert(std::is_same_v<decltype(internal::remove_trailing_1D_descriptors(Dimensions<1>{}, Dimensions<2>{}, Dimensions<3>{}, Dimensions<1>{})), D123>);
+  static_assert(std::is_same_v<decltype(internal::remove_trailing_1D_descriptors(Dimensions<1>{}, Dimensions<2>{}, Dimensions<3>{}, Dimensions<1>{}, Dimensions<1>{})), D123>);
+  static_assert(std::is_same_v<decltype(internal::remove_trailing_1D_descriptors(Dimensions<1>{}, Dimensions<1>{}, Dimensions<1>{})), std::tuple<>>);
 }
 
 

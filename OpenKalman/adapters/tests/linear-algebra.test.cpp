@@ -13,7 +13,7 @@
  * \brief Tests for linear algebra functions.
  */
 
-#include "special-matrices.gtest.hpp"
+#include "adapters.gtest.hpp"
 
 #include <complex>
 

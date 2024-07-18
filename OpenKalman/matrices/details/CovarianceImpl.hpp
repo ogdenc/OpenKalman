@@ -83,7 +83,7 @@ namespace OpenKalman::internal
 #endif
     auto covariance_op(const F1& f1, const F2& f2) const &
     {
-      using Derived2 = decltype(make_dense_object<Derived>(f1(nested_object())));
+      using Derived2 = decltype(to_dense_object<Derived>(f1(nested_object())));
       using R = equivalent_self_contained_t<Derived2>;
       if (synchronization_direction() >= 0)
       {
@@ -115,7 +115,7 @@ namespace OpenKalman::internal
 #endif
     auto covariance_op(const F1& f1, const F2& f2) const &&
     {
-      using Derived2 = decltype(make_dense_object<Derived>(f1(std::move(*this).nested_object())));
+      using Derived2 = decltype(to_dense_object<Derived>(f1(std::move(*this).nested_object())));
       using R = equivalent_self_contained_t<Derived2>;
       if (synchronization_direction() >= 0)
       {
@@ -348,9 +348,9 @@ namespace OpenKalman::internal
      */
 #ifdef __cpp_concepts
     auto operator() (std::size_t i, std::size_t j)
-    requires element_settable<NestedMatrix, 2> and element_gettable<NestedMatrix, 2>
+    requires writable_by_component<NestedMatrix, 2> and element_gettable<NestedMatrix, 2>
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, 2> and element_gettable<T, 2>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<writable_by_component<T, 2> and element_gettable<T, 2>, int> = 0>
     auto operator() (std::size_t i, std::size_t j)
 #endif
     {
@@ -376,9 +376,9 @@ namespace OpenKalman::internal
      * \return An ElementAccessor object.
      */
 #ifdef __cpp_concepts
-    auto operator[] (std::size_t i) requires element_settable<NestedMatrix, 1> and element_gettable<NestedMatrix, 1>
+    auto operator[] (std::size_t i) requires writable_by_component<NestedMatrix, 1> and element_gettable<NestedMatrix, 1>
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, 1> and element_gettable<T, 1>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<writable_by_component<T, 1> and element_gettable<T, 1>, int> = 0>
     auto operator[] (std::size_t i)
 #endif
     {
@@ -400,9 +400,9 @@ namespace OpenKalman::internal
 
     /// \overload
 #ifdef __cpp_concepts
-    auto operator() (std::size_t i) requires element_settable<NestedMatrix, 1> and element_gettable<NestedMatrix, 1>
+    auto operator() (std::size_t i) requires writable_by_component<NestedMatrix, 1> and element_gettable<NestedMatrix, 1>
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, 1> and element_gettable<T, 1>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<writable_by_component<T, 1> and element_gettable<T, 1>, int> = 0>
     auto operator() (std::size_t i)
 #endif
     {
@@ -427,9 +427,9 @@ namespace OpenKalman::internal
      * \brief Set an element of the cholesky nested matrix.
      */
 #ifdef __cpp_concepts
-    void set_component(const Scalar s, const std::size_t i, const std::size_t j) requires element_settable<NestedMatrix, 2>
+    void set_component(const Scalar s, const std::size_t i, const std::size_t j) requires writable_by_component<NestedMatrix, 2>
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, 2>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<writable_by_component<T, 2>, int> = 0>
     void set_component(const Scalar s, const std::size_t i, const std::size_t j)
 #endif
     {
@@ -441,9 +441,9 @@ namespace OpenKalman::internal
      * \brief Set an element of the cholesky nested matrix.
      */
 #ifdef __cpp_concepts
-    void set_component(const Scalar s, const std::size_t i) requires element_settable<NestedMatrix, 1>
+    void set_component(const Scalar s, const std::size_t i) requires writable_by_component<NestedMatrix, 1>
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<element_settable<T, 1>, int> = 0>
+    template<typename T = NestedMatrix, std::enable_if_t<writable_by_component<T, 1>, int> = 0>
     void set_component(const Scalar s, const std::size_t i)
 #endif
     {

@@ -86,132 +86,218 @@ namespace OpenKalman::internal
 
 
     /**
-     * Access the component at row i and column j
-     * \param i The row.
-     * \param j The column.
-     * \return If <code>element_settable<Derived&, 2></code>, the element is settable. Therefore,
-     * this function returns an object that can be assigned the coefficient to be set.
-     * Otherwise, it will return the (non-settable) coefficient as a value.
+     * \brief Access a component at a set of indices.
+     * \return If <code>writable_by_component<Derived, Indices></code>, the component can be directly assigned.
      */
-    constexpr auto operator()(std::size_t i, std::size_t j) &
+#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+    template<std::ranges::input_range Indices> requires index_value<std::ranges::range_value_t<Indices>> and
+      (static_range_size_v<Indices> == dynamic_size or index_count_v<Derived> == dynamic_size or
+        static_range_size_v<Indices> >= index_count_v<Derived>)
+#else
+    template<typename Indices, std::enable_if_t<index_value<decltype(*std::declval<Indices>().begin())> and
+      (static_range_size<Indices>::value == dynamic_size or index_count<Derived>::value == dynamic_size or
+        static_range_size<Indices>::value >= index_count<Derived>::value), int> = 0>
+#endif
+    constexpr auto operator()(const Indices& indices) &
     {
-      static_assert(element_gettable<Derived&, 2>);
-
-      if constexpr (element_settable<Derived&, 2>)
-        return ElementAccessor(static_cast<Derived&>(*this), i, j);
-      else
-        return get_component(static_cast<Derived&>(*this), i, j);
+      if constexpr (writable_by_component<Derived, Indices>) return ElementAccessor(static_cast<Derived&>(*this), indices);
+      else return get_component(static_cast<Derived&>(*this), indices);
     }
 
 
     /// \overload
-    constexpr auto operator()(std::size_t i, std::size_t j) &&
+#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+    template<std::ranges::input_range Indices> requires index_value<std::ranges::range_value_t<Indices>> and
+      (static_range_size_v<Indices> == dynamic_size or index_count_v<Derived> == dynamic_size or
+        static_range_size_v<Indices> >= index_count_v<Derived>)
+#else
+    template<typename Indices, std::enable_if_t<index_value<decltype(*std::declval<Indices>().begin())> and
+      (static_range_size<Indices>::value == dynamic_size or index_count<Derived>::value == dynamic_size or
+        static_range_size<Indices>::value >= index_count<Derived>::value), int> = 0>
+#endif
+    constexpr auto operator()(const Indices& indices) &&
     {
-      static_assert(element_gettable<Derived&&, 2>);
-
-      if constexpr (element_settable<Derived&&, 2>)
-        return ElementAccessor(static_cast<Derived&&>(*this), i, j);
-      else
-        return get_component(static_cast<Derived&&>(*this), i, j);
+      if constexpr (writable_by_component<Derived&&>) return ElementAccessor(static_cast<Derived&&>(*this), indices);
+      else return get_component(static_cast<Derived&&>(*this), indices);
     }
 
 
     /// \overload
-    constexpr auto operator()(std::size_t i, std::size_t j) const &
+#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+    template<std::ranges::input_range Indices> requires index_value<std::ranges::range_value_t<Indices>> and
+      (static_range_size_v<Indices> == dynamic_size or index_count_v<Derived> == dynamic_size or
+        static_range_size_v<Indices> >= index_count_v<Derived>)
+#else
+    template<typename Indices, std::enable_if_t<index_value<decltype(*std::declval<Indices>().begin())> and
+      (static_range_size<Indices>::value == dynamic_size or index_count<Derived>::value == dynamic_size or
+        static_range_size<Indices>::value >= index_count<Derived>::value), int> = 0>
+#endif
+    constexpr auto operator()(const Indices& indices) const &
     {
-      static_assert(element_gettable<const Derived&, 2>);
-
-      return get_component(static_cast<const Derived&>(*this), i, j);
+      return get_component(static_cast<const Derived&>(*this), indices);
     }
 
 
     /// \overload
-    constexpr auto operator()(std::size_t i, std::size_t j) const &&
+#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+    template<std::ranges::input_range Indices> requires index_value<std::ranges::range_value_t<Indices>> and
+      (static_range_size_v<Indices> == dynamic_size or index_count_v<Derived> == dynamic_size or
+        static_range_size_v<Indices> >= index_count_v<Derived>)
+#else
+    template<typename Indices, std::enable_if_t<index_value<decltype(*std::declval<Indices>().begin())> and
+      (static_range_size<Indices>::value == dynamic_size or index_count<Derived>::value == dynamic_size or
+        static_range_size<Indices>::value >= index_count<Derived>::value), int> = 0>
+#endif
+    constexpr auto operator()(const Indices& indices) const &&
     {
-      static_assert(element_gettable<const Derived&&, 2>);
-
-      return get_component(static_cast<const Derived&&>(*this), i, j);
+      return get_component(static_cast<const Derived&&>(*this), indices);
     }
 
 
     /**
-     * Access the component at row i
-     * \param i The row.
-     * \return If <code>element_settable<Derived&, 1></code>, the element is settable. Therefore,
-     * this function returns an object that can be assigned the coefficient to be set.
-     * Otherwise, it will return the (non-settable) coefficient as a value.
+     * \brief Access a component at a set of indices.
+     * \return If <code>writable_by_component<Derived></code>, the component can be directly assigned.
      */
-    constexpr auto operator[](std::size_t i) &
+#ifdef __cpp_lib_concepts
+    template<index_value...I> requires
+      (index_count_v<Derived> == dynamic_size or sizeof...(I) >= index_count_v<Derived>) and
+      internal::static_indices_within_bounds<Derived, I...>::value
+#else
+    template<typename...I, std::enable_if_t<(index_value<I> and ...) and
+      (index_count<Derived>::value == dynamic_size or sizeof...(I) >= index_count<Derived>::value) and
+    internal::static_indices_within_bounds<Derived, I...>::value, int> = 0>
+#endif
+    constexpr auto operator()(I&&...i) &
     {
-      if constexpr (element_settable<Derived&, 1>)
-        return ElementAccessor(static_cast<Derived&>(*this), i);
-      else if constexpr (diagonal_matrix<Derived> and element_settable<Derived&, 2>)
-        return ElementAccessor(static_cast<Derived&>(*this), i, i);
-      else
-      {
-        if constexpr (element_gettable<Derived&, 1>)
-          return get_component(static_cast<Derived&>(*this), i);
-        else
-        {
-          static_assert(diagonal_matrix<Derived> and element_gettable<Derived&, 2>);
-          return get_component(static_cast<Derived&>(*this), i, i);
-        }
-      }
+      const auto indices = std::array<std::size_t, sizeof...(I)> {static_cast<std::size_t>(std::forward<I>(i))...};
+      if constexpr (writable_by_component<Derived, std::array<std::size_t, sizeof...(I)>>)
+        return ElementAccessor(static_cast<Derived&>(*this), indices);
+      else return get_component(static_cast<Derived&>(*this), indices);
     }
 
 
     /// \overload
-    constexpr auto operator[](std::size_t i) &&
+#ifdef __cpp_lib_concepts
+    template<index_value...I> requires
+      (index_count_v<Derived> == dynamic_size or sizeof...(I) >= index_count_v<Derived>) and
+      internal::static_indices_within_bounds<Derived, I...>::value
+#else
+    template<typename...I, std::enable_if_t<(index_value<I> and ...) and
+      (index_count<Derived>::value == dynamic_size or sizeof...(I) >= index_count<Derived>::value) and
+      internal::static_indices_within_bounds<Derived, I...>::value, int> = 0>
+#endif
+    constexpr auto operator()(I&&...i) &&
     {
-      if constexpr (element_settable<Derived&&, 1>)
-        return ElementAccessor(static_cast<Derived&&>(*this), i);
-      else if constexpr (diagonal_matrix<Derived> and element_settable<Derived&&, 2>)
-        return ElementAccessor(static_cast<Derived&&>(*this), i, i);
-      else
-      {
-        if constexpr (element_gettable<Derived&&, 1>)
-          return get_component(static_cast<Derived&&>(*this), i);
-        else
-        {
-          static_assert(diagonal_matrix<Derived> and element_gettable<Derived&&, 2>);
-          return get_component(static_cast<Derived&&>(*this), i, i);
-        }
-      }
+      const auto indices = std::array<std::size_t, sizeof...(I)> {static_cast<std::size_t>(std::forward<I>(i))...};
+      if constexpr (writable_by_component<Derived, std::array<std::size_t, sizeof...(I)>>)
+        return ElementAccessor(static_cast<Derived&&>(*this), indices);
+      else return get_component(static_cast<Derived&&>(*this), indices);
     }
 
 
     /// \overload
-    constexpr auto operator[](std::size_t i) const &
+#ifdef __cpp_lib_concepts
+    template<index_value...I> requires
+      (index_count_v<Derived> == dynamic_size or sizeof...(I) >= index_count_v<Derived>) and
+      internal::static_indices_within_bounds<Derived, I...>::value
+#else
+    template<typename...I, std::enable_if_t<(index_value<I> and ...) and
+      (index_count<Derived>::value == dynamic_size or sizeof...(I) >= index_count<Derived>::value) and
+      internal::static_indices_within_bounds<Derived, I...>::value, int> = 0>
+#endif
+    constexpr auto operator()(I&&...i) const &
     {
-      if constexpr (element_gettable<const Derived&, 1>)
-        return get_component(static_cast<const Derived&>(*this), i);
-      else
-      {
-        static_assert(diagonal_matrix<Derived> and element_gettable<const Derived&, 2>);
-        return get_component(static_cast<const Derived&>(*this), i, i);
-      }
+      const auto indices = std::array<std::size_t, sizeof...(I)> {static_cast<std::size_t>(std::forward<I>(i))...};
+      return get_component(static_cast<const Derived&>(*this), indices);
     }
 
 
     /// \overload
-    constexpr auto operator[](std::size_t i) const &&
+#ifdef __cpp_lib_concepts
+    template<index_value...I> requires
+      (index_count_v<Derived> == dynamic_size or sizeof...(I) >= index_count_v<Derived>) and
+      internal::static_indices_within_bounds<Derived, I...>::value
+#else
+    template<typename...I, std::enable_if_t<(index_value<I> and ...) and
+      (index_count<Derived>::value == dynamic_size or sizeof...(I) >= index_count<Derived>::value) and
+      internal::static_indices_within_bounds<Derived, I...>::value, int> = 0>
+#endif
+    constexpr auto operator()(I&&...i) const &&
     {
-      if constexpr (element_gettable<const Derived&&, 1>)
-        return get_component(static_cast<const Derived&&>(*this), i);
-      else
-      {
-        static_assert(diagonal_matrix<Derived> and element_gettable<const Derived&&, 2>);
-        return get_component(static_cast<const Derived&&>(*this), i, i);
-      }
+      const auto indices = std::array<std::size_t, sizeof...(I)> {static_cast<std::size_t>(std::forward<I>(i))...};
+      return get_component(static_cast<const Derived&&>(*this), indices);
+    }
+
+
+    /**
+     * \brief Access the component at index i
+     * \return If <code>writable_by_component<Derived></code>, the component can be directly assigned.
+     */
+#ifdef __cpp_lib_concepts
+    template<index_value I> requires (index_count_v<Derived> == dynamic_size or 1 >= index_count_v<Derived>) and
+      internal::static_indices_within_bounds<Derived, I>::value
+#else
+    template<typename I, std::enable_if_t<(index_value<I>) and
+      (index_count<Derived>::value == dynamic_size or 1 >= index_count<Derived>::value) and
+      internal::static_indices_within_bounds<Derived, I>::value, int> = 0>
+#endif
+    constexpr auto operator[](I&& i) &
+    {
+      const auto indices = std::array<std::size_t, 1> {static_cast<std::size_t>(std::forward<I>(i))};
+      if constexpr (writable_by_component<Derived, std::array<std::size_t, 1>>)
+        return ElementAccessor(static_cast<Derived&>(*this), indices);
+      else return get_component(static_cast<Derived&>(*this), indices);
     }
 
 
     /// \overload
-    constexpr auto operator()(std::size_t i) { return operator[](i); }
+#ifdef __cpp_lib_concepts
+    template<index_value I> requires (index_count_v<Derived> == dynamic_size or 1 >= index_count_v<Derived>) and
+      internal::static_indices_within_bounds<Derived, I>::value
+#else
+    template<typename I, std::enable_if_t<(index_value<I>) and
+      (index_count<Derived>::value == dynamic_size or 1 >= index_count<Derived>::value) and
+      internal::static_indices_within_bounds<Derived, I>::value, int> = 0>
+#endif
+    constexpr auto operator[](I&& i) &&
+    {
+      const auto indices = std::array<std::size_t, 1> {static_cast<std::size_t>(std::forward<I>(i))};
+      if constexpr (writable_by_component<Derived, std::array<std::size_t, 1>>)
+        return ElementAccessor(static_cast<Derived&&>(*this), indices);
+      else return get_component(static_cast<Derived&&>(*this), indices);
+    }
 
 
     /// \overload
-    constexpr auto operator()(std::size_t i) const { return operator[](i); }
+#ifdef __cpp_lib_concepts
+    template<index_value I> requires (index_count_v<Derived> == dynamic_size or 1 >= index_count_v<Derived>) and
+      internal::static_indices_within_bounds<Derived, I>::value
+#else
+    template<typename I, std::enable_if_t<(index_value<I>) and
+      (index_count<Derived>::value == dynamic_size or 1 >= index_count<Derived>::value) and
+      internal::static_indices_within_bounds<Derived, I>::value, int> = 0>
+#endif
+    constexpr auto operator[](I&& i) const &
+    {
+      const auto indices = std::array<std::size_t, 1> {static_cast<std::size_t>(std::forward<I>(i))};
+      return get_component(static_cast<const Derived&>(*this), indices);
+    }
+
+
+    /// \overload
+#ifdef __cpp_lib_concepts
+    template<index_value I> requires (index_count_v<Derived> == dynamic_size or 1 >= index_count_v<Derived>) and
+      internal::static_indices_within_bounds<Derived, I>::value
+#else
+    template<typename I, std::enable_if_t<(index_value<I>) and
+      (index_count<Derived>::value == dynamic_size or 1 >= index_count<Derived>::value) and
+      internal::static_indices_within_bounds<Derived, I>::value, int> = 0>
+#endif
+    constexpr auto operator[](I&& i) const &&
+    {
+      const auto indices = std::array<std::size_t, 1> {static_cast<std::size_t>(std::forward<I>(i))};
+      return get_component(static_cast<const Derived&&>(*this), indices);
+    }
 
   private:
 

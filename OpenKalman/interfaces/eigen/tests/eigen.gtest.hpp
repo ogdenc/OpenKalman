@@ -129,6 +129,7 @@ namespace OpenKalman::test
   using M32 = Eigen::Matrix<double, 3, 2>;
   using M33 = Eigen::Matrix<double, 3, 3>;
   using M34 = Eigen::Matrix<double, 3, 4>;
+  using M35 = Eigen::Matrix<double, 3, 5>;
 
   using M4x = Eigen::Matrix<double, 4, Eigen::Dynamic>;
   using M40 = Eigen::Matrix<double, 4, 0>;

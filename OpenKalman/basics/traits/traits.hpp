@@ -76,8 +76,8 @@
 #include "writable.hpp"
 #include "modifiable.hpp" // Is this necessary?
 
-#include "element_gettable.hpp"
-#include "element_settable.hpp"
+#include "element_gettable.hpp" // deprecated
+#include "writable_by_component.hpp"
 
 #include "directly_accessible.hpp"
 #include "layout_of.hpp"

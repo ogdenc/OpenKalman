@@ -91,14 +91,15 @@ namespace OpenKalman
     {
       if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) detail::solve_check_A_and_B_rows_match(a, b);
 
-      using V0 = std::conditional_t<dynamic_dimension<A, 0>,
-        std::conditional_t<dynamic_dimension<A, 1>, vector_space_descriptor_of_t<B, 0>, vector_space_descriptor_of_t<A, 1>>,
-        vector_space_descriptor_of_t<A, 0>>;
-      using V1 = vector_space_descriptor_of_t<B, 1>;
+      auto v0 = internal::best_vector_space_descriptor(get_vector_space_descriptor<0>(b), get_vector_space_descriptor<0>(a), get_vector_space_descriptor<1>(a));
+      auto v1 = get_vector_space_descriptor<1>(b);
 
-      if constexpr (identity_matrix<A> and square_shaped<A>) return internal::make_fixed_size_adapter<V0, V1>(std::forward<B>(b));
-      /// \todo Replace by a scalar division function.
-      else return internal::make_fixed_size_adapter<V0, V1>(make_self_contained(std::forward<B>(b) / internal::get_singular_component(std::forward<A>(a))));
+      if constexpr (identity_matrix<A> and square_shaped<A>)
+        return internal::make_fixed_size_adapter(std::forward<B>(b), v0, v1);
+      else
+        /// \todo Replace by a scalar division function.
+        return internal::make_fixed_size_adapter(
+          make_self_contained(std::forward<B>(b) / internal::get_singular_component(std::forward<A>(a))), v0, v1);
     }
     else if constexpr (constant_matrix<A>)
     {
@@ -148,9 +149,7 @@ namespace OpenKalman
       auto x = interface::library_interface<std::decay_t<A>>::template solve<must_be_unique, must_be_exact>(
         std::forward<A>(a), std::forward<B>(b));
 
-      using V0 = vector_space_descriptor_of_t<A, 1>;
-      using V1 = vector_space_descriptor_of_t<B, 1>;
-      auto ret = internal::make_fixed_size_adapter<V0, V1>(std::move(x));
+      auto ret = internal::make_fixed_size_adapter(std::move(x), get_vector_space_descriptor<1>(a), get_vector_space_descriptor<1>(b));
 
       constexpr TriangleType tri = triangle_type_of_v<A, B>;
       if constexpr (tri != TriangleType::any and square_shaped<decltype(ret)>)

@@ -226,14 +226,14 @@ namespace OpenKalman::interface
     static decltype(auto)
     rank_update_hermitian(A&& a, U&& u, const Alpha alpha)
     {
-      return OpenKalman::rank_update_hermitian<significant_triangle>(make_hermitian_matrix(make_dense_object(std::forward<A>(a))), std::forward<U>(u), alpha);
+      return OpenKalman::rank_update_hermitian<significant_triangle>(make_hermitian_matrix(to_dense_object(std::forward<A>(a))), std::forward<U>(u), alpha);
     }
 
 
     template<TriangleType triangle, typename A, typename U, typename Alpha>
     static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
     {
-      return OpenKalman::rank_update_triangular(make_triangular_matrix<triangle>(make_dense_object(std::forward<A>(a))), std::forward<U>(u), alpha);
+      return OpenKalman::rank_update_triangular(make_triangular_matrix<triangle>(to_dense_object(std::forward<A>(a))), std::forward<U>(u), alpha);
     }
 
 
@@ -250,7 +250,7 @@ namespace OpenKalman::interface
     static inline auto
     LQ_decomposition(A&& a)
     {
-      return LQ_decomposition(make_dense_object(std::forward<A>(a)));
+      return LQ_decomposition(to_dense_object(std::forward<A>(a)));
     }
 
 
@@ -258,7 +258,7 @@ namespace OpenKalman::interface
     static inline auto
     QR_decomposition(A&& a)
     {
-      return QR_decomposition(make_dense_object(std::forward<A>(a)));
+      return QR_decomposition(to_dense_object(std::forward<A>(a)));
     }
 
   };

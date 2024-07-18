@@ -42,33 +42,6 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      using N = Eigen::Product<equivalent_self_contained_t<LhsType>, equivalent_self_contained_t<RhsType>, Option>;
-      constexpr auto to_be_evaluated_size = self_contained<LhsType> ?
-        static_cast<int>(RhsType::RowsAtCompileTime) * static_cast<int>(RhsType::ColsAtCompileTime) :
-        static_cast<int>(LhsType::RowsAtCompileTime) * static_cast<int>(LhsType::ColsAtCompileTime);
-
-      // Do a partial evaluation if at least one argument is self-contained and result size > non-self-contained size.
-      if constexpr ((self_contained<LhsType> or self_contained<RhsType>) and
-        (LhsType::RowsAtCompileTime != Eigen::Dynamic) and
-        (LhsType::ColsAtCompileTime != Eigen::Dynamic) and
-        (RhsType::RowsAtCompileTime != Eigen::Dynamic) and
-        (RhsType::ColsAtCompileTime != Eigen::Dynamic) and
-        (static_cast<int>(LhsType::RowsAtCompileTime) * static_cast<int>(RhsType::ColsAtCompileTime) > to_be_evaluated_size) and
-        not std::is_lvalue_reference_v<typename N::LhsNested> and
-        not std::is_lvalue_reference_v<typename N::RhsNested>)
-      {
-        return N {make_self_contained(arg.lhs()), make_self_contained(arg.rhs())};
-      }
-      else
-      {
-        return make_dense_object(std::forward<Arg>(arg));
-      }
-    }
-
-
-    template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
       if constexpr (zero<LhsType>)

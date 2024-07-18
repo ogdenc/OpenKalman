@@ -59,16 +59,6 @@ namespace OpenKalman::interface
     }
 
 
-    template<typename Arg>
-    static decltype(auto) convert_to_self_contained(Arg&& arg)
-    {
-      if constexpr (std::is_lvalue_reference_v<NestedObject>)
-        return make_dense_object(to_native_matrix<LibraryObject>(OpenKalman::nested_object(std::forward<Arg>(arg))));
-      else
-        return std::forward<Arg>(arg);
-    }
-
-
     static constexpr auto get_constant(const Xpr& arg)
     {
       return constant_coefficient{arg.nested_object()};

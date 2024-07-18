@@ -379,7 +379,29 @@ namespace OpenKalman::Eigen3
 #else
   constexpr bool eigen_VectorBlock =
 #endif
-    detail::is_eigen_VectorBlock<std::decay_t<T>>::value;
+  detail::is_eigen_VectorBlock<std::decay_t<T>>::value;
+
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_eigen_SelfContainedWrapper : std::false_type {};
+
+    template<typename BaseObject, typename...InternalizedParameters>
+    struct is_eigen_SelfContainedWrapper<OpenKalman::internal::SelfContainedWrapper<BaseObject, InternalizedParameters...>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief Specifies whether T is internal::SelfContainedWrapper
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_SelfContainedWrapper =
+#else
+  constexpr bool eigen_SelfContainedWrapper =
+#endif
+    detail::is_eigen_SelfContainedWrapper<std::decay_t<T>>::value;
 
 
   /**
@@ -392,18 +414,23 @@ namespace OpenKalman::Eigen3
 #else
   constexpr bool eigen_general =
 #endif
-    (std::is_base_of_v<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>> or eigen_VectorBlock<T>) and
-    (not must_be_native or not std::is_base_of_v<EigenCustomBase, std::decay_t<T>>);
+    ((std::is_base_of_v<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>> or eigen_VectorBlock<T>) and
+      (not must_be_native or not std::is_base_of_v<EigenCustomBase, std::decay_t<T>>)) or
+    (not must_be_native and eigen_SelfContainedWrapper<T>);
 
 
   namespace detail
   {
     template<typename T>
-    struct is_eigen_matrix_VectorBlock : std::false_type {};
+    struct is_derived_eigen_matrix : std::false_type {};
 
     template<typename T, int Size>
-    struct is_eigen_matrix_VectorBlock<Eigen::VectorBlock<T, Size>>
+    struct is_derived_eigen_matrix<Eigen::VectorBlock<T, Size>>
       : std::is_base_of<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> {};
+
+    template<typename BaseObject, typename...InternalizedParameters>
+    struct is_derived_eigen_matrix<OpenKalman::internal::SelfContainedWrapper<BaseObject, InternalizedParameters...>>
+      : std::is_base_of<Eigen::MatrixBase<BaseObject>, BaseObject> {};
   }
 
 
@@ -418,17 +445,21 @@ namespace OpenKalman::Eigen3
   constexpr bool eigen_matrix_general =
 #endif
     (eigen_general<T, must_be_native> and std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>>) or
-      detail::is_eigen_matrix_VectorBlock<std::decay_t<T>>::value;
+      detail::is_derived_eigen_matrix<std::decay_t<T>>::value;
 
 
   namespace detail
   {
     template<typename T>
-    struct is_eigen_array_VectorBlock : std::false_type {};
+    struct is_derived_eigen_array : std::false_type {};
 
     template<typename T, int Size>
-    struct is_eigen_array_VectorBlock<Eigen::VectorBlock<T, Size>>
+    struct is_derived_eigen_array<Eigen::VectorBlock<T, Size>>
       : std::is_base_of<Eigen::ArrayBase<std::decay_t<T>>, std::decay_t<T>> {};
+
+    template<typename BaseObject, typename...InternalizedParameters>
+    struct is_derived_eigen_array<OpenKalman::internal::SelfContainedWrapper<BaseObject, InternalizedParameters...>>
+      : std::is_base_of<Eigen::ArrayBase<BaseObject>, BaseObject> {};
   }
 
 
@@ -443,7 +474,7 @@ namespace OpenKalman::Eigen3
   constexpr bool eigen_array_general =
 #endif
     (eigen_general<T, must_be_native> and std::is_base_of_v<Eigen::ArrayBase<std::decay_t<T>>, std::decay_t<T>>) or
-      detail::is_eigen_array_VectorBlock<std::decay_t<T>>::value;
+      detail::is_derived_eigen_array<std::decay_t<T>>::value;
 
 
   /**

@@ -13,11 +13,11 @@
  * \brief Basic utilities for OpenKalman special matrix testing.
  */
 
-#ifndef OPENKALMAN_SPECIAL_MATRICES_GTEST_HPP
-#define OPENKALMAN_SPECIAL_MATRICES_GTEST_HPP
+#ifndef OPENKALMAN_ADAPTERS_GTEST_HPP
+#define OPENKALMAN_ADAPTERS_GTEST_HPP
 
 #include "interfaces/eigen/tests/eigen.gtest.hpp"
-#include "special-matrices/special-matrices.hpp"
+#include "adapters/adapters.hpp"
 
 
-#endif //OPENKALMAN_SPECIAL_MATRICES_GTEST_HPP
+#endif //OPENKALMAN_ADAPTERS_GTEST_HPP

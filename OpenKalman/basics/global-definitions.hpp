@@ -181,12 +181,12 @@ namespace OpenKalman
      * \internal
      * \brief T is a non-empty tuple, pair, array, or other type that can be an argument to std::apply.
      */
-  #ifdef __cpp_concepts
+  #if defined(__cpp_concepts) and defined(__cpp_lib_remove_cvref)
     template<typename T>
-    concept tuple_like = (std::tuple_size_v<T> >= 0);
+    concept tuple_like = requires { typename std::tuple_size<std::remove_cvref<T>>; };
   #else
     template<typename T>
-    constexpr bool tuple_like = detail::is_tuple_like<T>::value;
+    constexpr bool tuple_like = detail::is_tuple_like<std::decay_t<T>>::value;
   #endif
 
 

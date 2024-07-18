@@ -414,17 +414,11 @@ namespace OpenKalman
 
 
       template<typename Arg>
-      static auto convert_to_self_contained(Arg&& arg)
-      {
-        auto n = make_self_contained(OpenKalman::nested_object(std::forward<Arg>(arg)));
-        return SelfAdjointMatrix<decltype(n), storage_type> {std::move(n)};
-      }
-
-      template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
       {
         return constant_coefficient{OpenKalman::nested_object(arg)};
       }
+
 
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
@@ -432,15 +426,20 @@ namespace OpenKalman
         return constant_diagonal_coefficient {OpenKalman::nested_object(arg)};
       }
 
+
       template<Qualification b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
+
 
       template<TriangleType t>
       static constexpr bool is_triangular = triangular_matrix<NestedMatrix, TriangleType::diagonal>;
 
+
       static constexpr bool is_hermitian = true;
 
+
       static constexpr HermitianAdapterType hermitian_adapter_type = storage_type;
+
 
       static constexpr bool is_writable = false;
 

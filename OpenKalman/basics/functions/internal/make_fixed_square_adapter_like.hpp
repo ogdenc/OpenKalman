@@ -21,10 +21,15 @@ namespace OpenKalman::internal
 {
   namespace detail
   {
+    template<typename...Ts>
+    using best_desc = std::decay_t<decltype(best_vector_space_descriptor(std::declval<Ts>()...))>;
+
+
     template<typename...Ds, typename Arg, std::size_t...Ix>
     constexpr decltype(auto) make_fixed_square_adapter_like_impl(Arg&& arg, std::index_sequence<Ix...>)
     {
-      using F = decltype(make_fixed_size_adapter<best_desc<Ds..., vector_space_descriptor_of_t<Arg, Ix>...>>(std::declval<Arg&&>()));
+      using F = decltype(make_fixed_size_adapter(std::declval<Arg&&>(),
+        best_vector_space_descriptor(std::declval<Ds>()..., get_vector_space_descriptor<Ix>(arg)...)));
       constexpr bool better = (... or (dynamic_dimension<Arg, Ix> and not dynamic_dimension<F, Ix>));
       if constexpr (better) return F {std::forward<Arg>(arg)};
       else return std::forward<Arg>(arg);

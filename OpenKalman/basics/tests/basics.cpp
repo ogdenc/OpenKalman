@@ -50,7 +50,8 @@ TEST(basics, tuple_slice)
   static_assert(std::is_same_v<decltype(internal::tuple_slice<1, 3>(t)), std::tuple<const char*&, double&>>);
   static_assert(std::is_same_v<decltype(internal::tuple_slice<2, 4>(t)), std::tuple<double&, double&>>);
 
-  static_assert(std::is_same_v<decltype(internal::tuple_slice<1, 3>(std::tuple {1, "c", 5.0, 6.0})), std::tuple<const char*&&, double&&>>);
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<1, 3>(std::tuple {1, "c", 5.0, 6.0})), std::tuple<const char*, double>>);
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<2, 4>(std::tuple {1, "c", 5.0, 6.0})), std::tuple<double, double>>);
 
   std::array a {1, 2, 3, 4};
   static_assert(std::is_same_v<decltype(internal::tuple_slice<1, 3>(a)), std::tuple<int&, int&>>);

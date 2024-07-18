@@ -442,13 +442,6 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
 
 
       template<typename Arg>
-      static auto convert_to_self_contained(Arg&& arg)
-      {
-        auto n = make_self_contained(OpenKalman::nested_object(std::forward<Arg>(arg)));
-        return EuclideanMean<Coeffs, decltype(n)> {std::move(n)};
-      }
-
-      template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
       {
         if constexpr (euclidean_vector_space_descriptor<Coeffs>)
@@ -456,6 +449,7 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
         else
           return std::monostate {};
       }
+
 
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
@@ -466,13 +460,17 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
           return std::monostate {};
       }
 
+
       template<Qualification b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
+
 
       template<TriangleType t>
       static constexpr bool is_triangular = euclidean_vector_space_descriptor<Coeffs> and triangular_matrix<NestedMatrix, t>;
 
+
       static constexpr bool is_triangular_adapter = false;
+
 
       static constexpr bool is_hermitian = euclidean_vector_space_descriptor<Coeffs> and hermitian_matrix<NestedMatrix>;
 
@@ -490,9 +488,9 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
 
 
   #ifdef __cpp_lib_concepts
-      template<typename Arg, typename I, typename...Is> requires element_settable<nested_object_of_t<Arg&>, 1 + sizeof...(Is)>
+      template<typename Arg, typename I, typename...Is> requires writable_by_component<nested_object_of_t<Arg&>, 1 + sizeof...(Is)>
   #else
-      template<typename Arg, typename I, typename...Is, std::enable_if_t<element_settable<typename nested_object_of<Arg&>::type, 1 + sizeof...(Is)>, int> = 0>
+      template<typename Arg, typename I, typename...Is, std::enable_if_t<writable_by_component<typename nested_object_of<Arg&>::type, 1 + sizeof...(Is)>, int> = 0>
   #endif
       static constexpr void
       set(Arg& arg, const scalar_type_of_t<Arg>& s, I i, Is...is)

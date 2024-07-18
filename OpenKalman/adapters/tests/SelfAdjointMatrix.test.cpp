@@ -13,7 +13,7 @@
  * \brief Tests relating to Eigen3::SelfAdjointMatrix.
  */
 
-#include "special-matrices.gtest.hpp"
+#include "adapters.gtest.hpp"
 
 #include <complex>
 

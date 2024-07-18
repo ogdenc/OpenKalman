@@ -61,13 +61,6 @@ namespace OpenKalman
 
 
       template<typename Arg>
-      static auto convert_to_self_contained(Arg&& arg)
-      {
-        return TriangularMatrix<equivalent_self_contained_t<MatrixType>, triangle_type_of_v<Arg>> {std::forward<Arg>(arg)};
-      }
-
-
-      template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
       {
         if constexpr (zero<MatrixType> or ((Mode & Eigen::ZeroDiag) != 0 and diagonal_matrix<MatrixType>))

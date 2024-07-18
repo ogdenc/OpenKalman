@@ -69,14 +69,6 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      auto d {make_self_contained(OpenKalman::diagonal_of(std::forward<Arg>(arg)))};
-      return DiagonalMatrix<decltype(d)> {d};
-    }
-
-
-    template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
       return constant_coefficient {arg.diagonal()};

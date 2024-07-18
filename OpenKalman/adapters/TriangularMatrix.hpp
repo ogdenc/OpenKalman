@@ -257,7 +257,7 @@ namespace OpenKalman
 #endif
     auto& operator*=(const TriangularMatrix<Arg, triangle_type>& arg)
     {
-      contract_in_place(this->nested_object(), make_dense_object(arg));
+      contract_in_place(this->nested_object(), to_dense_object(arg));
       return *this;
     }
 
@@ -389,14 +389,6 @@ namespace OpenKalman
       static decltype(auto) nested_object(Arg&& arg)
       {
         return std::forward<Arg>(arg).nested_object();
-      }
-
-
-      template<typename Arg>
-      static auto convert_to_self_contained(Arg&& arg)
-      {
-        auto n = make_self_contained(OpenKalman::nested_object(std::forward<Arg>(arg)));
-        return TriangularMatrix<decltype(n), triangle_type> {std::move(n)};
       }
 
 

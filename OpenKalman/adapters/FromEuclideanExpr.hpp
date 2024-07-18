@@ -170,7 +170,7 @@ namespace OpenKalman
     static auto to_euclidean_noalias(Arg&& arg)
     {
       if constexpr (euclidean_dimension_size_of_v<FixedDescriptor> > dimension_size_of_v<FixedDescriptor>)
-        return make_dense_object(to_euclidean<FixedDescriptor>(std::forward<Arg>(arg))); //< Prevent aliasing
+        return to_dense_object(to_euclidean<FixedDescriptor>(std::forward<Arg>(arg))); //< Prevent aliasing
       else
         return to_euclidean<FixedDescriptor>(make_self_contained<Arg>(std::forward<Arg>(arg)));
     }
@@ -328,14 +328,6 @@ namespace OpenKalman
       static decltype(auto) nested_object(Arg&& arg)
       {
         return std::forward<Arg>(arg).nested_object();
-      }
-
-
-      template<typename Arg>
-      static auto convert_to_self_contained(Arg&& arg)
-      {
-        auto n = make_self_contained(OpenKalman::nested_object(std::forward<Arg>(arg)));
-        return ToEuclideanExpr<FixedDescriptor, decltype(n)> {std::move(n)};
       }
 
 

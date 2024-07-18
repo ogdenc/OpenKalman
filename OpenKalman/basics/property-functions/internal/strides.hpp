@@ -51,32 +51,52 @@ namespace OpenKalman::internal
       }
     }
 
+
+    template<typename T, std::size_t...Is>
+    constexpr bool strides_tuple_impl(std::index_sequence<Is...>)
+    {
+      return (... and (std::is_convertible_v<std::tuple_element_t<Is, T>, std::ptrdiff_t> or
+        static_index_value<std::tuple_element_t<Is, T>, std::ptrdiff_t>));
+    }
+
+    template<typename T>
+#ifdef __cpp_concepts
+    concept strides_tuple =
+#else
+    constexpr bool concept strides_tuple =
+#endif
+      strides_tuple_impl<T>(std::make_index_sequence<std::tuple_size_v<T>>{});
+
   } // namespace detail
 
 
   /**
    * \internal
    * \brief Returns a tuple <code>std::tuple&lt;S...&gt;</code> comprising the strides of a strided tensor or matrix.
-   * \details Each of the strides <code>S</code> satisfies one of the two concepts:
-   * - <code>std::same_as&lt;std::decay_t<S>, std::ptrdiff_t*gt;</code>; or
-   * - <code>std::same_as&lt;typename std::decay_t&lt;S&gt;>::value_type, std::ptrdiff_t*gt;</code>.
+   * \details Each of the strides <code>S</code> satisfies one of the following:
+   * - <code>std::convertible_to&lt;S, std::ptrdiff_t&gt;</code>; or
+   * - <code>static_index_value&lt;S, std::ptrdiff_t&gt;</code>.
    */
 #ifdef __cpp_concepts
   template<interface::count_indices_defined_for T> requires interface::layout_defined_for<T> and
     (interface::indexible_object_traits<std::decay_t<T>>::layout != Layout::stride or interface::strides_defined_for<T>) and
     (interface::indexible_object_traits<std::decay_t<T>>::layout != Layout::none)
+  detail::strides_tuple auto
 #else
   template<typename T, std::enable_if_t<interface::count_indices_defined_for<T> and interface::layout_defined_for<T> and
     (interface::indexible_object_traits<std::decay_t<T>>::layout != Layout::stride or interface::strides_defined_for<T>) and
     (interface::indexible_object_traits<std::decay_t<T>>::layout != Layout::none), int> = 0>
-#endif
   auto
+#endif
   strides(const T& t)
   {
     constexpr Layout l = interface::indexible_object_traits<std::decay_t<T>>::layout;
 
     if constexpr (l == Layout::stride)
     {
+#ifndef __cpp_concepts
+      static_assert(detail::strides_tuple<decltype(interface::indexible_object_traits<std::decay_t<T>>::strides(t))>;
+#endif
       return interface::indexible_object_traits<std::decay_t<T>>::strides(t);
     }
     else if constexpr (static_index_value<decltype(count_indices(t))>)

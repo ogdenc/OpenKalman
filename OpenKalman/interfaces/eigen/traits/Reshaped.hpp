@@ -97,13 +97,6 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      return make_dense_object(std::forward<Arg>(arg));
-    }
-
-
-    template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
       return constant_coefficient {arg.nestedExpression()};

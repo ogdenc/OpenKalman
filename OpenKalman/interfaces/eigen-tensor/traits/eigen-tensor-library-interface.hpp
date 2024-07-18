@@ -349,7 +349,7 @@ namespace OpenKalman::interface
           }
           else
           {
-            auto aw = make_dense_object(std::forward<A>(a));
+            auto aw = to_dense_object(std::forward<A>(a));
             aw.diagonal() = OpenKalman::diagonal_of(std::forward<B>(b));
             return aw;
           }
@@ -358,7 +358,7 @@ namespace OpenKalman::interface
         {
           decltype(auto) aw = [](A&& a) -> decltype(auto) {
             if constexpr (writable<A> and std::is_lvalue_reference_v<A>) return std::forward<A>(a);
-            else return make_dense_object(std::forward<A>(a));
+            else return to_dense_object(std::forward<A>(a));
           }(std::forward<A>(a));
 
           auto tview = aw.template triangularView<t == TriangleType::upper ? Eigen::Upper : Eigen::Lower>();
@@ -472,15 +472,15 @@ namespace OpenKalman::interface
         }
         else if constexpr (rows == Eigen::Dynamic or cols == Eigen::Dynamic)
         {
-          auto d {make_dense_object(std::forward<Diag>(diag))};
+          auto d {to_dense_object(std::forward<Diag>(diag))};
           using M = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
-          return M {M::Map(make_dense_object(std::forward<Diag>(diag)).data(),
+          return M {M::Map(to_dense_object(std::forward<Diag>(diag)).data(),
             get_index_dimension_of<0>(diag) * get_index_dimension_of<1>(diag))};
         }
         else // rows > 1 and cols > 1
         {
           using M = Eigen::Matrix<Scalar, rows * cols, 1>;
-          return M {M::Map(make_dense_object(std::forward<Diag>(diag)).data())};
+          return M {M::Map(to_dense_object(std::forward<Diag>(diag)).data())};
         }
       }
       else if constexpr (Eigen3::eigen_SelfAdjointView<Arg> or Eigen3::eigen_TriangularView<Arg>)

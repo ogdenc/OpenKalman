@@ -28,17 +28,13 @@ namespace OpenKalman::internal
     }
 
 
-    template<std::size_t I, typename...Ts>
-    using best_desc_Ts = std::decay_t<decltype(best_desc_Ts_impl<I>(std::declval<Ts>()...))>;
-
-
     template<typename...Ts, typename Arg, std::size_t...Ix>
     constexpr decltype(auto) make_fixed_size_adapter_like_impl(Arg&& arg, std::index_sequence<Ix...>)
     {
       if constexpr (sizeof...(Ts) == 0) return std::forward<Arg>(arg);
       else
       {
-        using F = decltype(make_fixed_size_adapter<best_desc_Ts<Ix, Ts...>...>(std::declval<Arg&&>()));
+        using F = decltype(make_fixed_size_adapter(std::declval<Arg&&>(), best_desc_Ts_impl<Ix>(std::declval<Ts>()...)...));
         constexpr bool better = (... or (dynamic_dimension<Arg, Ix> and not dynamic_dimension<F, Ix>));
         if constexpr (better) return F {std::forward<Arg>(arg)};
         else return std::forward<Arg>(arg);

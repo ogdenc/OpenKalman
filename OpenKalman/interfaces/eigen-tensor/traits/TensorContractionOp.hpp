@@ -48,24 +48,6 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      using N = Eigen::TensorContractionOp<Indices, equivalent_self_contained_t<LhsXprType>, equivalent_self_contained_t<RhsXprType>, OutputKernelType>;
-      // Do a partial evaluation as long as at least one argument is already self-contained.
-      if constexpr ((self_contained<LhsXprType> or self_contained<RhsXprType>) and
-        not std::is_lvalue_reference_v<typename LhsXprType::Nested> and
-        not std::is_lvalue_reference_v<typename RhsXprType::Nested>)
-      {
-        return N {make_self_contained(arg.lhsExpression()), make_self_contained(arg.rhsExpression()), arg.indices(), arg.outputKernel()};
-      }
-      else
-      {
-        return make_dense_object(std::forward<Arg>(arg));
-      }
-    }
-
-
-    template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
       using Scalar = scalar_type_of_t<Arg>;

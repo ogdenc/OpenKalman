@@ -43,8 +43,8 @@ TEST(eigen3, to_diagonal)
 
   EXPECT_TRUE(is_near(to_diagonal(M11 {m11}), m11)); static_assert(std::is_same_v<decltype(to_diagonal(M11 {m11})), M11&&>);
   EXPECT_TRUE(is_near(to_diagonal(M1x {m11}), m11)); static_assert(not has_dynamic_dimensions<decltype(to_diagonal(M1x {m11}))>);
-  // to_diagonal(M1x {m11}) must create OpenKalman::DiagonalMatrix. See special-matrices/tests/DiagonalMatrix.test.cpp
-  // to_diagonal(Mxx {m11}) must create OpenKalman::DiagonalMatrix. See special-matrices/tests/DiagonalMatrix.test.cpp
+  // to_diagonal(M1x {m11}) must create OpenKalman::DiagonalMatrix. See adapters/tests/DiagonalMatrix.test.cpp
+  // to_diagonal(Mxx {m11}) must create OpenKalman::DiagonalMatrix. See adapters/tests/DiagonalMatrix.test.cpp
 }
 
 
@@ -67,14 +67,25 @@ TEST(eigen3, diagonal_of_1x1)
   auto mx1_1 = Mx1 {m11};
   Mxx mxx_11(1,1); mxx_11 = m11;
 
+  // note: m1x_1, etc., could have a zero dimension
+  static_assert(index_count_v<decltype(diagonal_of(m11))> == 0);
+  static_assert(index_count_v<decltype(diagonal_of(m1x_1))> == 1);
+  static_assert(index_count_v<decltype(diagonal_of(mx1_1))> == 1);
   static_assert(index_count_v<decltype(diagonal_of(mxx_11))> == 1);
+
+  static_assert(dynamic_index_count_v<decltype(diagonal_of(m11))> == 0);
+  static_assert(dynamic_index_count_v<decltype(diagonal_of(m1x_1))> == 1);
+  static_assert(dynamic_index_count_v<decltype(diagonal_of(mx1_1))> == 1);
   static_assert(dynamic_index_count_v<decltype(diagonal_of(mxx_11))> == 1);
+
   static_assert(dynamic_dimension<decltype(diagonal_of(mxx_11)), 0>);
   static_assert(index_dimension_of_v<decltype(diagonal_of(mxx_11)), 1> == 1);
 
-  EXPECT_TRUE(is_near(diagonal_of(m1x_1), m11)); static_assert(dynamic_index_count_v<decltype(diagonal_of(m1x_1))> == 1);
-  EXPECT_TRUE(is_near(diagonal_of(mx1_1), m11)); static_assert(dynamic_index_count_v<decltype(diagonal_of(mx1_1))> == 1);
-  EXPECT_TRUE(is_near(diagonal_of(mxx_11), m11)); static_assert(dynamic_index_count_v<decltype(diagonal_of(mxx_11))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(m11), m11));
+  EXPECT_TRUE(is_near(diagonal_of(m1x_1), m11));
+  EXPECT_TRUE(is_near(diagonal_of(mx1_1), m11));
+  EXPECT_TRUE(is_near(diagonal_of(mxx_11), m11));
+
   static_assert(constant_matrix<decltype(diagonal_of(m11)), ConstantType::dynamic_constant>);
   static_assert(not constant_matrix<decltype(diagonal_of(m1x_1))>);
   static_assert(not constant_matrix<decltype(diagonal_of(mx1_1))>);
@@ -121,10 +132,20 @@ TEST(eigen3, diagonal_of_dense)
   auto mx2_2 = Mx2 {m22};
   auto mxx_22 = Mxx {m22};
 
+  static_assert(index_count_v<decltype(diagonal_of(m22))> == 1);
+  static_assert(index_count_v<decltype(diagonal_of(m2x_2))> == 1);
+  static_assert(index_count_v<decltype(diagonal_of(mx2_2))> == 1);
+  static_assert(index_count_v<decltype(diagonal_of(mxx_22))> == 1);
+
+  static_assert(dynamic_index_count_v<decltype(diagonal_of(m22))> == 0);
+  static_assert(dynamic_index_count_v<decltype(diagonal_of(m2x_2))> == 1);
+  static_assert(dynamic_index_count_v<decltype(diagonal_of(mx2_2))> == 1);
+  static_assert(dynamic_index_count_v<decltype(diagonal_of(mxx_22))> == 1);
+
   EXPECT_TRUE(is_near(diagonal_of(m22), m21));
-  EXPECT_TRUE(is_near(diagonal_of(m2x_2), m21)); static_assert(dynamic_index_count_v<decltype(diagonal_of(m2x_2))> == 1);
-  EXPECT_TRUE(is_near(diagonal_of(mx2_2), m21)); static_assert(dynamic_index_count_v<decltype(diagonal_of(mx2_2))> == 1);
-  EXPECT_TRUE(is_near(diagonal_of(mxx_22), m21)); static_assert(has_dynamic_dimensions<decltype(diagonal_of(mxx_22))> == 1);
+  EXPECT_TRUE(is_near(diagonal_of(m2x_2), m21));
+  EXPECT_TRUE(is_near(diagonal_of(mx2_2), m21));
+  EXPECT_TRUE(is_near(diagonal_of(mxx_22), m21));
 
   EXPECT_TRUE(is_near(diagonal_of(M22 {m22}), m21));
   EXPECT_TRUE(is_near(diagonal_of(M2x {m2x_2}), m21)); static_assert(dynamic_index_count_v<decltype(diagonal_of(std::declval<M2x>()))> == 1);
@@ -237,7 +258,6 @@ TEST(eigen3, diagonal_of_DiagonalWrapper)
   auto mxx_12 = Mxx {m12};
 
   static_assert(std::is_assignable_v<decltype(nested_object(Eigen::DiagonalWrapper {m12})), M12>);
-  static_assert(std::is_assignable_v<decltype(diagonal_of(Eigen::DiagonalWrapper {m12})), M21>);
 
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m12}), m21));
   EXPECT_TRUE(is_near(diagonal_of(Eigen::DiagonalWrapper {m1x_2}), m21));

@@ -144,12 +144,12 @@ namespace OpenKalman
 
       if constexpr (triangular_matrix<B, TriangleType::upper>)
       {
-        auto b = make_dense_object(adjoint(nested_object(std::forward<Arg2>(arg2))));
+        auto b = to_dense_object(adjoint(nested_object(std::forward<Arg2>(arg2))));
         return make_covariance<C>(make_self_contained(rank_update(std::move(a), std::move(b), Scalar(-1))));
       }
       else
       {
-        auto b = make_dense_object(nested_object(std::forward<Arg2>(arg2)));
+        auto b = to_dense_object(nested_object(std::forward<Arg2>(arg2)));
         return make_covariance<C>(make_self_contained(rank_update(std::move(a), std::move(b), Scalar(-1))));
       }
     }
@@ -345,7 +345,7 @@ namespace OpenKalman
         {
           return MatrixTraits<std::decay_t<M>>::make(B {rank_update(
             make_zero(nested_object(m)),
-            make_dense_object(nested_object(std::forward<M>(m))),
+            to_dense_object(nested_object(std::forward<M>(m))),
             static_cast<Scalar>(s))});
         }
         else
@@ -418,7 +418,7 @@ namespace OpenKalman
         {
           return MatrixTraits<std::decay_t<M>>::make(B {rank_update(
             make_zero(nested_object(m)),
-            make_dense_object(nested_object(std::forward<M>(m))),
+            to_dense_object(nested_object(std::forward<M>(m))),
             1 / static_cast<Scalar>(s))});
         }
         else
@@ -486,7 +486,7 @@ namespace OpenKalman
   {
     if constexpr (equivalent_to<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>)
     {
-      return make_dense_object(std::forward<Arg1>(arg1)) == make_dense_object(std::forward<Arg2>(arg2));
+      return to_dense_object(std::forward<Arg1>(arg1)) == to_dense_object(std::forward<Arg2>(arg2));
     }
     else
     {

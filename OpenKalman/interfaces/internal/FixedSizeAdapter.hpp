@@ -88,13 +88,6 @@ namespace OpenKalman::interface
     }
 
 
-    template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      return make_self_contained(OpenKalman::nested_object(std::forward<Arg>(arg)));
-    }
-
-
 #ifdef __cpp_concepts
     template<typename Arg> requires constant_matrix<NestedMatrix> or (... and equivalent_to<Ds, Dimensions<1>>)
 #else
@@ -405,20 +398,9 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto vect = NestedInterface::diagonal_of(OpenKalman::nested_object(std::forward<Arg>(arg)));
-        if constexpr (dynamic_dimension<decltype(vect), 0>)
-        {
-          auto ix = internal::smallest_dimension_index(arg);
-          using Ix = std::decay_t<decltype(ix)>;
-          if constexpr (static_index_value<Ix>)
-            return internal::make_fixed_size_adapter<index_dimension_of<decltype(vect), Ix::value>>(std::move(vect));
-          else
-            return vect;
-        }
-        else
-        {
-          return vect;
-        }
+        return internal::make_fixed_size_adapter(
+          NestedInterface::diagonal_of(OpenKalman::nested_object(std::forward<Arg>(arg))),
+          get_vector_space_descriptor(arg, internal::smallest_dimension_index(arg)));
       }
     }
 
@@ -439,7 +421,7 @@ namespace OpenKalman::interface
     static constexpr auto broadcast_impl(Arg&& arg, std::index_sequence<Is...>, const Factors_tup& factors_tup)
     {
       constexpr auto N = std::tuple_size_v<Factors_tup>;
-      return internal::make_fixed_size_adapter<decltype(broadcast_for_index<Is>(arg, factors_tup))...>(std::forward<Arg>(arg));
+      return internal::make_fixed_size_adapter(std::forward<Arg>(arg), broadcast_for_index<Is>(arg, factors_tup)...);
     }
 
   public:
@@ -633,10 +615,10 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto trans = NestedInterface::transpose(OpenKalman::nested_object(std::forward<Arg>(arg)));
-        using D0 = vector_space_descriptor_of<Arg, 1>;
-        using D1 = vector_space_descriptor_of<Arg, 0>;
-        return internal::make_fixed_size_adapter<D0, D1>(std::move(trans));
+        return internal::make_fixed_size_adapter(
+          NestedInterface::transpose(OpenKalman::nested_object(std::forward<Arg>(arg))),
+          get_vector_space_descriptor<1>(arg),
+          get_vector_space_descriptor<0>(arg));
       }
     }
 
@@ -660,10 +642,10 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto adj = NestedInterface::adjoint(OpenKalman::nested_object(std::forward<Arg>(arg)));
-        using D0 = vector_space_descriptor_of<Arg, 1>;
-        using D1 = vector_space_descriptor_of<Arg, 0>;
-        return internal::make_fixed_size_adapter<D0, D1>(std::move(adj));
+        return internal::make_fixed_size_adapter(
+          NestedInterface::adjoint(OpenKalman::nested_object(std::forward<Arg>(arg))),
+          get_vector_space_descriptor<1>(arg),
+          get_vector_space_descriptor<0>(arg));
       }
     }
 
@@ -733,10 +715,10 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto&& ret = NestedInterface::contract(OpenKalman::nested_object(std::forward<A>(a)), std::forward<B>(b));
-        using D0 = vector_space_descriptor_of<A, 0>;
-        using D1 = vector_space_descriptor_of<B, 1>;
-        return internal::make_fixed_size_adapter<D0, D1>(std::forward<decltype(ret)>(ret));
+        return internal::make_fixed_size_adapter(
+          NestedInterface::contract(OpenKalman::nested_object(std::forward<A>(a)), std::forward<B>(b)),
+          get_vector_space_descriptor<0>(a),
+          get_vector_space_descriptor<1>(b));
       }
     }
 
@@ -765,11 +747,19 @@ namespace OpenKalman::interface
         {
           return std::forward<A>(a);
         }
+        else if constexpr (on_the_right)
+        {
+          return internal::make_fixed_size_adapter(
+            std::forward<Ret>(ret),
+            get_vector_space_descriptor<0>(a),
+            get_vector_space_descriptor<1>(b));
+        }
         else
         {
-          using D0 = std::conditional_t<on_the_right, vector_space_descriptor_of<A, 0>, vector_space_descriptor_of<B, 0>>;
-          using D1 = std::conditional_t<on_the_right, vector_space_descriptor_of<B, 1>, vector_space_descriptor_of<A, 1>>;
-          return internal::make_fixed_size_adapter<D0, D1>(std::forward<Ret>(ret));
+          return internal::make_fixed_size_adapter(
+            std::forward<Ret>(ret),
+            get_vector_space_descriptor<0>(b),
+            get_vector_space_descriptor<1>(a));
         }
       }
     }
@@ -869,10 +859,10 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto ret {NestedInterface::template solve<must_be_unique, must_be_exact>(OpenKalman::nested_object(std::forward<A>(a)), std::forward<B>(b))};
-        using D0 = vector_space_descriptor_of<A, 1>;
-        using D1 = vector_space_descriptor_of<B, 1>;
-        return internal::make_fixed_size_adapter<D0, D1>(std::forward<decltype(ret)>(ret));
+        return internal::make_fixed_size_adapter(
+          NestedInterface::template solve<must_be_unique, must_be_exact>(OpenKalman::nested_object(std::forward<A>(a)), std::forward<B>(b)),
+          get_vector_space_descriptor<1>(a),
+          get_vector_space_descriptor<1>(b));
       }
     }
 
