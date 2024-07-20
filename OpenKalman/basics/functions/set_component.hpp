@@ -33,7 +33,7 @@ namespace OpenKalman
     set_component_impl(Arg&& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
     {
       using Trait = interface::library_interface<std::decay_t<Arg>>;
-      Trait::set_component(arg, s, internal::truncate_indices<index_count_v<Arg>>(indices));
+      Trait::set_component(arg, s, internal::truncate_indices(indices, count_indices(arg)));
       return std::forward<Arg>(arg);
     }
   } // namespace detail
@@ -46,17 +46,15 @@ namespace OpenKalman
    * \return The modified Arg
    */
 #if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
-  template<indexible Arg, std::ranges::input_range Indices> requires
-    (not std::is_const_v<std::remove_reference_t<Arg>>) and index_value<std::ranges::range_value_t<Indices>> and
-    (static_range_size_v<Indices> == dynamic_size or index_count_v<Arg> == dynamic_size or static_range_size_v<Indices> >= index_count_v<Arg>) and
-    (not empty_object<Arg>) and
-    interface::set_component_defined_for<std::decay_t<Arg>, std::add_lvalue_reference_t<Arg>, const scalar_type_of_t<Arg>&, const Indices&>
+  template<typename Arg, std::ranges::input_range Indices> requires writable_by_component<Arg, Indices> and
+    index_value<std::ranges::range_value_t<Indices>> and
+    (static_range_size_v<Indices> == dynamic_size or index_count_v<Arg> == dynamic_size or
+      static_range_size_v<Indices> >= index_count_v<Arg>)
 #else
-  template<typename Arg, typename Indices, std::enable_if_t<indexible<Arg> and
-    (not std::is_const_v<std::remove_reference_t<Arg>>) and index_value<decltype(*std::declval<Indices>().begin())> and
-    (static_range_size<Indices>::value == dynamic_size or index_count<Arg>::value == dynamic_size or static_range_size<Indices>::value >= index_count<Arg>::value) and
-    (not empty_object<Arg>) and
-    interface::set_component_defined_for<std::decay_t<Arg>, typename std::add_lvalue_reference<Arg>::type, const typename scalar_type_of<Arg>::type&, const Indices&>, int> = 0>
+  template<typename Arg, typename Indices, std::enable_if_t<writable_by_component<Arg, Indices> and
+    index_value<decltype(*std::declval<Indices>().begin())> and
+    (static_range_size<Indices>::value == dynamic_size or index_count<Arg>::value == dynamic_size or
+      static_range_size<Indices>::value >= index_count<Arg>::value), int> = 0>
 #endif
   inline Arg&&
   set_component(Arg&& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
@@ -70,15 +68,10 @@ namespace OpenKalman
    * \brief Set a component of an object using an initializer list.
    */
 #ifdef __cpp_lib_concepts
-  template<indexible Arg, index_value Indices> requires
-    (not std::is_const_v<std::remove_reference_t<Arg>>) and (not empty_object<Arg>) and
-    interface::set_component_defined_for<std::decay_t<Arg>,
-      std::add_lvalue_reference_t<Arg>, const scalar_type_of_t<Arg>&, const std::initializer_list<Indices>&>
+  template<typename Arg, index_value Indices> requires writable_by_component<Arg, std::initializer_list<Indices>>
 #else
-  template<typename Arg, typename Indices, std::enable_if_t<indexible<Arg> and index_value<Indices> and
-    (not std::is_const_v<std::remove_reference_t<Arg>>) and (not empty_object<Arg>) and
-    interface::set_component_defined_for<std::decay_t<Arg>,
-      typename std::add_lvalue_reference<Arg>::type, const typename scalar_type_of<Arg>::type&, const std::initializer_list<Indices>&>, int> = 0>
+  template<typename Arg, typename Indices, std::enable_if_t<index_value<Indices> and
+    writable_by_component<Arg, std::initializer_list<Indices>>, int> = 0>
 #endif
   inline Arg&&
   set_component(Arg&& arg, const scalar_type_of_t<Arg>& s, const std::initializer_list<Indices>& indices)
@@ -94,16 +87,14 @@ namespace OpenKalman
    * integral constants, the function performs compile-time bounds checking to the extent possible.
    */
 #ifdef __cpp_lib_concepts
-  template<indexible Arg, index_value...I> requires (not std::is_const_v<std::remove_reference_t<Arg>>) and
-    (not empty_object<Arg>) and detail::static_indices_within_bounds<Arg, I...>::value and
-    interface::set_component_defined_for<std::decay_t<Arg>,
-      std::add_lvalue_reference_t<Arg>, const scalar_type_of_t<Arg>&, const std::array<std::size_t, sizeof...(I)>&>
+  template<typename Arg, index_value...I> requires writable_by_component<Arg, std::array<std::size_t, sizeof...(I)>> and
+    (index_count_v<Arg> == dynamic_size or sizeof...(I) >= index_count_v<Arg>) and
+    internal::static_indices_within_bounds<Arg, I...>::value
 #else
-  template<typename Arg, typename...I, std::enable_if_t<indexible<Arg> and (index_value<I> and ...) and
-    (not std::is_const_v<std::remove_reference_t<Arg>>) and (not empty_object<Arg>) and
-    detail::static_indices_within_bounds<Arg, I...>::value and
-    interface::set_component_defined_for<std::decay_t<Arg>, typename std::add_lvalue_reference<Arg>::type,
-      const typename scalar_type_of<Arg>::type&, const std::array<std::size_t, sizeof...(I)>&>, int> = 0>
+  template<typename Arg, typename...I, std::enable_if_t<
+    (index_value<I> and ...) and writable_by_component<Arg, std::array<std::size_t, sizeof...(I)>> and
+    (index_count<Arg>::value == dynamic_size or sizeof...(I) >= index_count<Arg>::value) and
+    internal::static_indices_within_bounds<Arg, I...>::value, int> = 0>
 #endif
   inline Arg&&
   set_component(Arg&& arg, const scalar_type_of_t<Arg>& s, I&&...i)

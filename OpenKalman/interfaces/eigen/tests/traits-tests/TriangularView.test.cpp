@@ -42,19 +42,19 @@ TEST(eigen3, Eigen_TriangularView)
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Eigen::MatrixWrapper<Cd22_2>, Eigen::Lower>> == 2);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Eigen::MatrixWrapper<Z22>, Eigen::StrictlyLower>> == 0);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Eigen::MatrixWrapper<Z2x>, Eigen::StrictlyLower>> == 0);
-  static_assert(not constant_diagonal_matrix<Eigen::TriangularView<Eigen::MatrixWrapper<Z23>, Eigen::StrictlyLower>>);
+  static_assert(constant_diagonal_matrix<Eigen::TriangularView<Eigen::MatrixWrapper<Z23>, Eigen::StrictlyLower>>);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Eigen::MatrixWrapper<Z22>, Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Eigen::MatrixWrapper<Zx2>, Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(M22::Identity()), Eigen::StrictlyLower>> == 0);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(M2x::Identity()), Eigen::StrictlyLower>> == 0);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(Mx2::Identity()), Eigen::StrictlyLower>> == 0);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(Mxx::Identity()), Eigen::StrictlyLower>> == 0);
-  static_assert(not constant_diagonal_matrix<Eigen::TriangularView<decltype(M23::Identity()), Eigen::StrictlyLower>>);
+  static_assert(constant_diagonal_matrix<Eigen::TriangularView<decltype(M23::Identity()), Eigen::StrictlyLower>>);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(M22::Identity()), Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(M2x::Identity()), Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(Mx2::Identity()), Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<decltype(Mxx::Identity()), Eigen::UnitLower>> == 1);
-  static_assert(not constant_diagonal_matrix<Eigen::TriangularView<decltype(M23::Identity()), Eigen::UnitUpper>>);
+  static_assert(constant_diagonal_matrix<Eigen::TriangularView<decltype(M23::Identity()), Eigen::UnitUpper>>);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Tlv22, Eigen::UnitUpper>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<Tuv22, Eigen::UnitLower>> == 1);
   static_assert(constant_diagonal_coefficient_v<Eigen::TriangularView<M11, Eigen::StrictlyLower>> == 0);
@@ -63,9 +63,9 @@ TEST(eigen3, Eigen_TriangularView)
   static_assert(zero<Eigen::TriangularView<Eigen::MatrixWrapper<Z22>, Eigen::Lower>>);
 
   static_assert(identity_matrix<Eigen::TriangularView<decltype(M33::Identity()), Eigen::Upper>>);
-  static_assert(not identity_matrix<Eigen::TriangularView<decltype(M3x::Identity(3, 3)), Eigen::Lower>>);
-  static_assert(not identity_matrix<Eigen::TriangularView<decltype(Mx3::Identity(3, 3)), Eigen::Upper>>);
-  static_assert(not identity_matrix<Eigen::TriangularView<decltype(Mxx::Identity(3, 3)), Eigen::Lower>>);
+  static_assert(identity_matrix<Eigen::TriangularView<decltype(M3x::Identity(3, 3)), Eigen::Lower>>);
+  static_assert(identity_matrix<Eigen::TriangularView<decltype(Mx3::Identity(3, 3)), Eigen::Upper>>);
+  static_assert(identity_matrix<Eigen::TriangularView<decltype(Mxx::Identity(3, 3)), Eigen::Lower>>);
   static_assert(not identity_matrix<Eigen::TriangularView<decltype(M33::Identity()), Eigen::StrictlyUpper>>);
   static_assert(identity_matrix<Eigen::TriangularView<Eigen::MatrixWrapper<Z22>, Eigen::UnitUpper>>);
 
@@ -104,8 +104,8 @@ TEST(eigen3, Eigen_TriangularView)
   EXPECT_EQ(get_component(tlv22, 0, 1), 0);
   EXPECT_EQ(get_component(tlv22, 1, 0), 1);
   EXPECT_EQ(get_component(tlv22, 1, 1), 3);
-  static_assert(not element_settable<decltype(tlv22), 2>);
-  static_assert(element_settable<decltype(nested_object(tlv22)), 2>);
+  static_assert(not writable_by_component<decltype(tlv22)>);
+  static_assert(writable_by_component<decltype(nested_object(tlv22))>);
   set_component(nested_object(tlv22), 4, 1, 0);
   EXPECT_EQ(get_component(tlv22, 1, 0), 4);
   EXPECT_EQ(get_component(tlv22, 0, 1), 0);
@@ -116,8 +116,8 @@ TEST(eigen3, Eigen_TriangularView)
   EXPECT_EQ(get_component(tuv22, 0, 1), 1);
   EXPECT_EQ(get_component(tuv22, 1, 0), 0);
   EXPECT_EQ(get_component(tuv22, 1, 1), 3);
-  static_assert(not element_settable<decltype(tuv22), 2>);
-  static_assert(element_settable<decltype(nested_object(tuv22)), 2>);
+  static_assert(not writable_by_component<decltype(tuv22)>);
+  static_assert(writable_by_component<decltype(nested_object(tuv22))>);
   set_component(nested_object(tuv22), 4, 0, 1);
   EXPECT_EQ(get_component(tuv22, 0, 1), 4);
   EXPECT_EQ(get_component(tuv22, 1, 0), 0);
@@ -130,8 +130,8 @@ TEST(eigen3, Eigen_TriangularView)
   EXPECT_EQ(std::real(get_component(tlv22c, 1, 0)), 1);
   EXPECT_EQ(std::imag(get_component(tlv22c, 1, 0)), 0.1);
   EXPECT_EQ(std::real(get_component(tlv22c, 1, 1)), 3);
-  static_assert(not element_settable<decltype(tlv22c), 2>);
-  static_assert(element_settable<decltype(nested_object(tlv22c)), 2>);
+  static_assert(not writable_by_component<decltype(tlv22c)>);
+  static_assert(writable_by_component<decltype(nested_object(tlv22c))>);
   set_component(nested_object(tlv22c), std::complex<double>{4, 0.4}, 1, 0);
   EXPECT_EQ(std::imag(get_component(tlv22c, 1, 0)), 0.4);
   EXPECT_EQ(std::imag(get_component(tlv22c, 0, 1)), 0);

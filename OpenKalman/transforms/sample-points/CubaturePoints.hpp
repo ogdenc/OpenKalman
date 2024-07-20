@@ -51,13 +51,13 @@ namespace OpenKalman
     sample_points_impl(const D& d, const Ds&...ds)
     {
       using Scalar = typename DistributionTraits<D>::Scalar;
-      using Coeffs = typename DistributionTraits<D>::TypedIndex;
+      using Coeffs = typename DistributionTraits<D>::FixedDescriptor;
       using M = typename DistributionTraits<D>::Mean;
       constexpr auto points_count = dim * 2;
       constexpr auto dim_i = index_dimension_of_v<D, 0>;
       constexpr auto frame_size = dim_i * 2;
       constexpr Scalar n = dim;
-      const auto delta = make_matrix<Coeffs, Dimensions<dim_i>>(make_dense_object(square_root(n * covariance_of(d))));
+      const auto delta = make_matrix<Coeffs, Dimensions<dim_i>>(to_dense_object(square_root(n * covariance_of(d))));
 
       if constexpr(frame_size == points_count)
       {
@@ -162,12 +162,12 @@ namespace OpenKalman
      */
     template<std::size_t dim, typename InputDist, bool return_cross = false, typed_matrix X, typed_matrix Y> requires
       (index_dimension_of_v<X, 1> == index_dimension_of_v<Y, 1>) and (index_dimension_of_v<X, 1> == dim * 2) and
-      equivalent_to<vector_space_descriptor_of_t<X, 0>, typename DistributionTraits<InputDist>::TypedIndex>
+      equivalent_to<vector_space_descriptor_of_t<X, 0>, typename DistributionTraits<InputDist>::FixedDescriptor>
 #else
     template<std::size_t dim, typename InputDist, bool return_cross = false, typename X, typename Y, std::enable_if_t<
       typed_matrix<X> and typed_matrix<Y> and (index_dimension_of<X, 1>::value == index_dimension_of<Y, 1>::value) and
       (index_dimension_of<X, 1>::value == dim * 2) and
-      equivalent_to<vector_space_descriptor_of_t<X, 0>, typename DistributionTraits<InputDist>::TypedIndex>,
+      equivalent_to<vector_space_descriptor_of_t<X, 0>, typename DistributionTraits<InputDist>::FixedDescriptor>,
         int> = 0>
 #endif
     static auto

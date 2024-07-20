@@ -52,10 +52,10 @@ namespace OpenKalman::interface
     }
 
 
-    template<typename Scalar, typename D>
-    static constexpr auto make_identity_matrix(D&& d)
+    template<typename Scalar, typename...D>
+    static constexpr auto make_identity_matrix(D&&...d)
     {
-      return make_identity_matrix_like<nested_object_of_t<T>, Scalar>(std::forward<D>(d));
+      return make_identity_matrix_like<nested_object_of_t<T>, Scalar>(std::forward<D>(d)...);
     }
 
 
@@ -394,10 +394,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   /// Split typed matrix into one or more typed matrices vertically.
 #ifdef __cpp_concepts
   template<fixed_vector_space_descriptor ... Cs, typed_matrix M> requires
-    prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>
+    internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
-    prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>, int> = 0>
+    internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>, int> = 0>
 #endif
   inline auto
   split_vertical(M&& m) noexcept
@@ -411,10 +411,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   /// Split typed matrix into one or more typed matrices horizontally.
 #ifdef __cpp_concepts
   template<fixed_vector_space_descriptor ... Cs, typed_matrix M> requires
-    prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 1>>
+    internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 1>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
-    prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 1>>, int> = 0>
+    internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 1>>, int> = 0>
 #endif
   inline auto
   split_horizontal(M&& m) noexcept
@@ -449,7 +449,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   inline auto
   split_diagonal(M&& m) noexcept
   {
-    static_assert(prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
+    static_assert(internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
     static_assert(equivalent_to<vector_space_descriptor_of_t<M, 0>::ColumnCoefficients, MatrixTraits<std::decay_t<M>>>);
     return split_diagonal<oin::SplitMatDiagF<M>, Cs...>(nested_object(std::forward<M>(m)));
   }
@@ -777,8 +777,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
    *  in which elements in each row are selected according to the three (o) or two (p) listed distribution
    *  parameters:
    *   \code
-   *     auto o = randomize<Matrix<Dimensions<3>, TypedIndex<angle::Radians, angle::Radians>, Eigen::Matrix<double, 3, 2>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
-   *     auto p = randomize<Matrix<Dimensions<2>, TypedIndex<angle::Radians, angle::Radians>, Eigen::Matrix<double, 2, 2>>>(N {1.0, 0.3}, N {2.0, 0.3})));
+   *     auto o = randomize<Matrix<Dimensions<3>, FixedDescriptor<angle::Radians, angle::Radians>, Eigen::Matrix<double, 3, 2>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
+   *     auto p = randomize<Matrix<Dimensions<2>, FixedDescriptor<angle::Radians, angle::Radians>, Eigen::Matrix<double, 2, 2>>>(N {1.0, 0.3}, N {2.0, 0.3})));
    *   \endcode
    *   Note that in the case of p, there is an ambiguity as to whether the listed distributions correspond to rows
    *   or columns. In case of such an ambiguity, this function assumes that the parameters correspond to the rows.
@@ -786,7 +786,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
    *  - One distribution for each column. The following code constructs 2-by-3 matrix m
    *  in which elements in each column are selected according to the three listed distribution parameters:
    *   \code
-   *     auto m = randomize<Matrix<TypedIndex<angle::Radians, angle::Radians>, Dimensions<3>, Eigen::Matrix<double, 2, 3>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
+   *     auto m = randomize<Matrix<FixedDescriptor<angle::Radians, angle::Radians>, Dimensions<3>, Eigen::Matrix<double, 2, 3>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
    *   \endcode
    *
    * \tparam ReturnType The return type reflecting the size of the matrix to be filled. The actual result will be
@@ -867,7 +867,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 #endif
   inline std::ostream& operator<<(std::ostream& os, const V& v)
   {
-    os << make_dense_object(v);
+    os << to_dense_object(v);
     return os;
   }
 

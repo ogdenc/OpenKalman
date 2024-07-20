@@ -249,8 +249,8 @@ namespace OpenKalman
     auto jacobian(In&& in, Perturbations&&...ps) const
     {
       return jacobian_impl(
-        std::forward_as_tuple(make_dense_object(std::forward<In>(in)),
-          make_dense_object(std::forward<Perturbations>(ps))...),
+        std::forward_as_tuple(to_dense_object(std::forward<In>(in)),
+          to_dense_object(std::forward<Perturbations>(ps))...),
         std::make_index_sequence<1 + sizeof...(ps)> {});
     }
 
@@ -272,8 +272,8 @@ namespace OpenKalman
     auto hessian(In&& in, Perturbations&&...ps) const
     {
       return hessian_impl(
-        std::forward_as_tuple(make_dense_object(std::forward<In>(in)),
-          make_dense_object(std::forward<Perturbations>(ps))...),
+        std::forward_as_tuple(to_dense_object(std::forward<In>(in)),
+          to_dense_object(std::forward<Perturbations>(ps))...),
         std::make_index_sequence<1 + sizeof...(ps)> {});
     }
 

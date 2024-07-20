@@ -120,10 +120,16 @@ namespace OpenKalman::internal
 
   namespace detail
   {
+    template<typename...Ts>
+    auto make_sub_tuple(Ts&&...ts)
+    {
+      return std::tuple<Ts...>(std::forward<Ts>(ts)...);
+    }
+
     template<std::size_t index1, typename T, std::size_t...Is>
     constexpr auto tuple_slice_impl(T&& t, std::index_sequence<0, Is...>)
     {
-      return std::forward_as_tuple(std::get<index1>(std::forward<T>(t)), std::get<index1 + Is>(std::forward<T>(t))...);
+      return make_sub_tuple(std::get<index1>(std::forward<T>(t)), std::get<index1 + Is>(std::forward<T>(t))...);
     }
   } // namespace detail
 
@@ -138,16 +144,16 @@ namespace OpenKalman::internal
    * \return The tuple slice.
    */
 #ifdef __cpp_concepts
-  template<std::size_t index1, std::size_t index2, typename T> requires
-    tuple_like<std::decay_t<T>> and (index1 <= index2) and (index2 <= std::tuple_size_v<std::decay_t<T>>)
+  template<std::size_t index1, std::size_t index2, tuple_like T> requires
+    (index1 <= index2) and (index2 <= std::tuple_size_v<std::remove_reference_t<T>>)
 #else
-  template<std::size_t index1, std::size_t index2, typename T, std::enable_if_t<tuple_like<std::decay_t<T>> and
-    (index1 <= index2) and (index2 <= std::tuple_size<std::decay_t<T>>::value), int> = 0>
+  template<std::size_t index1, std::size_t index2, typename T, std::enable_if_t<tuple_like<T> and
+    (index1 <= index2) and (index2 <= std::tuple_size<std::remove_reference_t<T>>::value), int> = 0>
 #endif
   constexpr auto tuple_slice(T&& t)
   {
-    if constexpr (index1 == index2) return std::tuple {};
-    else return detail::tuple_slice_impl<index1>(std::forward<T>(t), std::make_index_sequence<index2 - index1> {});
+    if constexpr (index1 == index2) return std::tuple{};
+    else return detail::tuple_slice_impl<index1>(std::forward<T>(t), std::make_index_sequence<index2 - index1>{});
   }
 
 
@@ -176,9 +182,8 @@ namespace OpenKalman::internal
     }
     else
     {
-      auto r = std::make_tuple(t);
-      auto rs = tuple_replicate<N - 1>(std::forward<T>(t));
-      return std::tuple_cat(std::move(r), std::move(rs));
+      auto r = std::make_tuple(t); //< Make a copy.
+      return std::tuple_cat(std::move(r), tuple_replicate<N - 1>(std::forward<T>(t)));
     }
   }
 

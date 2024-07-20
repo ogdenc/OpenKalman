@@ -11,16 +11,15 @@
 #include "interfaces/eigen/tests/eigen.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
 
 TEST(eigen3, FixedSizeAdapter)
 {
   static_assert(constant_matrix<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, Dimensions<1>>, ConstantType::dynamic_constant>);
-  static_assert(not constant_matrix<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, std::size_t>, ConstantType::dynamic_constant>);
-  static_assert(not constant_matrix<internal::FixedSizeAdapter<const Mxx, std::size_t, Dimensions<1>>, ConstantType::dynamic_constant>);
-  static_assert(not constant_matrix<internal::FixedSizeAdapter<const Mxx, std::size_t, std::size_t>, ConstantType::dynamic_constant>);
+  static_assert(not constant_matrix<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, std::size_t>>);
+  static_assert(not constant_matrix<internal::FixedSizeAdapter<const Mxx, std::size_t, Dimensions<1>>>);
+  static_assert(not constant_matrix<internal::FixedSizeAdapter<const Mxx, std::size_t, std::size_t>>);
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const M2x, Dimensions<2>, Dimensions<1>>>);
 
   static_assert(dimension_size_of_index_is<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, Dimensions<2>, Dimensions<1>>, 0, 2>);

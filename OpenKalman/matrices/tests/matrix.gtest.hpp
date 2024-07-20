@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_MATRIX_GTEST_HPP
 #define OPENKALMAN_MATRIX_GTEST_HPP
 
-#include "special-matrices/tests/special-matrices.gtest.hpp"
+#include "adapters/tests/adapters.gtest.hpp"
 #include "matrices/matrices.hpp"
 
 

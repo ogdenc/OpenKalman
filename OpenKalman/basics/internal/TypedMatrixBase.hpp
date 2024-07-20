@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2018-2021 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2018-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,21 +25,21 @@ namespace OpenKalman::internal
    * \brief Base class for means or matrices.
    * \tparam Derived The derived class (e.g., Matrix, Mean, EuclideanMean).
    * \tparam NestedMatrix The nested matrix.
-   * \tparam TypedIndex The \ref OpenKalman::coefficients "coefficients" representing the rows and columns of the matrix.
+   * \tparam Descriptors The \ref OpenKalman::vector_space_descriptor "vector space descriptors" representing the rows and columns of the matrix.
    */
 #ifdef __cpp_concepts
-  template<indexible Derived, indexible NestedMatrix, fixed_vector_space_descriptor...TypedIndex>
-  requires (not std::is_rvalue_reference_v<NestedMatrix>) and (sizeof...(TypedIndex) <= 2)
+  template<indexible Derived, indexible NestedMatrix, fixed_vector_space_descriptor...Descriptors>
+  requires (not std::is_rvalue_reference_v<NestedMatrix>) and (sizeof...(Descriptors) <= 2)
 #else
-  template<typename Derived, typename NestedMatrix, typename...TypedIndex>
+  template<typename Derived, typename NestedMatrix, typename...Descriptors>
 #endif
   struct TypedMatrixBase : MatrixBase<Derived, NestedMatrix>
   {
 
 #ifndef __cpp_concepts
-    static_assert((fixed_vector_space_descriptor<TypedIndex> and ...));
+    static_assert((fixed_vector_space_descriptor<Descriptors> and ...));
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
-    static_assert(sizeof...(TypedIndex) <= 2);
+    static_assert(sizeof...(Descriptors) <= 2);
 #endif
 
   private:
@@ -71,12 +71,12 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
     template<typed_matrix_nestable Arg> requires (index_dimension_of_v<Arg, 0> == index_dimension_of_v<NestedMatrix, 0>) and
       (index_dimension_of_v<Arg, 1> == index_dimension_of_v<NestedMatrix, 1>) and
-      (fixed_vector_space_descriptor<TypedIndex> and ...) and std::constructible_from<NestedMatrix, Arg&&>
+      (fixed_vector_space_descriptor<Descriptors> and ...) and std::constructible_from<NestedMatrix, Arg&&>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and
       (index_dimension_of<Arg, 0>::value == index_dimension_of<NestedMatrix, 0>::value) and
       (index_dimension_of<Arg, 1>::value == index_dimension_of<NestedMatrix, 1>::value) and
-      (fixed_vector_space_descriptor<TypedIndex> and ...) and std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
+      (fixed_vector_space_descriptor<Descriptors> and ...) and std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
     TypedMatrixBase(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
 
@@ -87,13 +87,13 @@ namespace OpenKalman::internal
     requires (index_dimension_of_v<Arg, 0> == index_dimension_of_v<NestedMatrix, 0>) and
       (index_dimension_of_v<Arg, 1> == index_dimension_of_v<NestedMatrix, 1>) and
       std::constructible_from<NestedMatrix, Arg&&> and
-      ((dynamic_vector_space_descriptor<Cs> or dynamic_vector_space_descriptor<TypedIndex> or equivalent_to<Cs, TypedIndex>) and ...)
+      ((dynamic_vector_space_descriptor<Cs> or dynamic_vector_space_descriptor<Descriptors> or equivalent_to<Cs, Descriptors>) and ...)
 #else
     template<typename Arg, typename...Cs, std::enable_if_t<typed_matrix_nestable<Arg> and (vector_space_descriptor<Cs> and ...) and
       (index_dimension_of<Arg, 0>::value == index_dimension_of<NestedMatrix, 0>::value) and
       (index_dimension_of<Arg, 1>::value == index_dimension_of<NestedMatrix, 1>::value) and
       std::is_constructible_v<NestedMatrix, Arg&&> and
-      ((dynamic_vector_space_descriptor<Cs> or dynamic_vector_space_descriptor<TypedIndex> or equivalent_to<Cs, TypedIndex>) and ...), int> = 0>
+      ((dynamic_vector_space_descriptor<Cs> or dynamic_vector_space_descriptor<Descriptors> or equivalent_to<Cs, Descriptors>) and ...), int> = 0>
 #endif
     TypedMatrixBase(Arg&& arg, const Cs&...cs) noexcept
       : Base {std::forward<Arg>(arg)}, my_dimensions {cs...} {}
@@ -177,7 +177,7 @@ namespace OpenKalman::internal
 
   private:
 
-    std::tuple<TypedIndex...> my_dimensions;
+    std::tuple<Descriptors...> my_dimensions;
 
 #ifdef __cpp_concepts
     template<typename T> friend struct interface::indexible_object_traits;

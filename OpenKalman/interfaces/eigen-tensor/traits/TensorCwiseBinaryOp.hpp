@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2023-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Type traits as applied to Eigen::TensorCwiseBinaryOp
+ * \brief Traits for Eigen::TensorCwiseBinaryOp
  */
 
 #ifndef OPENKALMAN_EIGEN_TRAITS_TENSORCWISEBINARYOP_HPP
@@ -21,16 +21,19 @@ namespace OpenKalman::interface
 {
   template<typename BinaryOp, typename LhsXprType, typename RhsXprType>
   struct indexible_object_traits<Eigen::TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>>
-    : Eigen3::indexible_object_traits_base<Eigen::TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>>
+    : Eigen3::indexible_object_traits_tensor_base<Eigen::TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>>;
+    using Xpr = Eigen::TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>;
+    using Base = Eigen3::indexible_object_traits_tensor_base<Eigen::TensorCwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>>;
+    using Traits = Eigen3::BinaryFunctorTraits<std::decay_t<BinaryOp>>;
 
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
+    static constexpr auto
+    get_vector_space_descriptor(const Arg& arg, N n)
     {
       if constexpr (static_index_value<N>)
       {
@@ -51,42 +54,127 @@ namespace OpenKalman::interface
 
     // nested_object() not defined
 
+  private:
 
-    template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      using N = Eigen::TensorCwiseBinaryOp<BinaryOp, equivalent_self_contained_t<LhsXprType>, equivalent_self_contained_t<RhsXprType>>;
-      // Do a partial evaluation as long as at least one argument is already self-contained.
-      if constexpr ((self_contained<LhsXprType> or self_contained<RhsXprType>) and
-        not std::is_lvalue_reference_v<typename LhsXprType::Nested> and
-        not std::is_lvalue_reference_v<typename RhsXprType::Nested>)
-      {
-        return N {make_self_contained(arg.lhsExpression()), make_self_contained(arg.rhsExpression()), arg.functor()};
-      }
-      else
-      {
-        return make_dense_object(std::forward<Arg>(arg));
-      }
-    }
+#ifndef __cpp_concepts
+    template<typename T = Traits, typename = void>
+    struct custom_get_constant_defined : std::false_type {};
 
+    template<typename T>
+    struct custom_get_constant_defined<T, std::void_t<decltype(T::template get_constant<LhsXprType, RhsXprType>(std::declval<const Xpr&>()))>>
+      : std::true_type {};
+
+    template<typename T = Traits, typename = void>
+    struct constexpr_operation_defined : std::false_type {};
+
+    template<typename T>
+    struct constexpr_operation_defined<T, std::void_t<decltype(T::constexpr_operation())>>
+      : std::true_type {};
+#endif
+
+  public:
 
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      return Eigen3::FunctorTraits<BinaryOp, LhsXprType, RhsXprType>::template get_constant<false>(arg);
+#ifdef __cpp_concepts
+      if constexpr (requires { Traits::template get_constant<LhsXprType, RhsXprType>(arg); })
+#else
+        if constexpr (custom_get_constant_defined<>::value)
+#endif
+        return Traits::template get_constant<LhsXprType, RhsXprType>(arg);
+      else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum and zero<LhsXprType>)
+        return constant_coefficient {arg.rhsExpression()};
+      else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum and zero<RhsXprType>)
+        return constant_coefficient {arg.lhsExpression()};
+      else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::product and zero<LhsXprType>)
+        return constant_coefficient {arg.lhsExpression()};
+      else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::product and zero<RhsXprType>)
+        return constant_coefficient {arg.rhsExpression()};
+#ifdef __cpp_concepts
+      else if constexpr (requires { Traits::constexpr_operation(); })
+#else
+        else if constexpr (constexpr_operation_defined<>::value)
+#endif
+        return values::scalar_constant_operation {Traits::constexpr_operation(),
+          constant_coefficient {arg.lhsExpression()}, constant_coefficient {arg.rhsExpression()}};
+      else
+        return values::scalar_constant_operation {arg.functor(),
+          constant_coefficient {arg.lhsExpression()}, constant_coefficient {arg.rhsExpression()}};
     }
 
+  private:
+
+#ifndef __cpp_concepts
+    template<typename T = Traits, typename = void>
+    struct custom_get_constant_diagonal_defined : std::false_type {};
+
+    template<typename T>
+    struct custom_get_constant_diagonal_defined<T, std::void_t<decltype(T::template get_constant_diagonal<LhsXprType, RhsXprType>(std::declval<const Xpr&>()))>>
+      : std::true_type {};
+#endif
+
+  public:
 
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return Eigen3::FunctorTraits<BinaryOp, LhsXprType, RhsXprType>::template get_constant<true>(arg);
+#ifdef __cpp_concepts
+      if constexpr (requires { Traits::template get_constant_diagonal<LhsXprType, RhsXprType>(arg); })
+#else
+      if constexpr (custom_get_constant_diagonal_defined<>::value)
+#endif
+        return Traits::template get_constant_diagonal<LhsXprType, RhsXprType>(arg);
+      else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum and zero<LhsXprType>)
+        return constant_diagonal_coefficient {arg.rhsExpression()};
+      else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum and zero<RhsXprType>)
+        return constant_diagonal_coefficient {arg.lhsExpression()};
+      else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::product and zero<LhsXprType>)
+        return constant_coefficient {arg.lhsExpression()};
+      else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::product and zero<RhsXprType>)
+        return constant_coefficient {arg.rhsExpression()};
+      else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::product)
+      {
+        auto c_left = [](const Arg& arg){
+            if constexpr (constant_matrix<LhsXprType>) return constant_coefficient {arg.lhsExpression()};
+            else return constant_diagonal_coefficient {arg.lhsExpression()};
+        }(arg);
+        auto c_right = [](const Arg& arg){
+            if constexpr (constant_matrix<RhsXprType>) return constant_coefficient {arg.rhsExpression()};
+            else return constant_diagonal_coefficient {arg.rhsExpression()};
+        }(arg);
+#ifdef __cpp_concepts
+        if constexpr (requires { Traits::constexpr_operation(); })
+#else
+        if constexpr (constexpr_operation_defined<>::value)
+#endif
+          return values::scalar_constant_operation {Traits::constexpr_operation(), c_left, c_right};
+        else
+          return values::scalar_constant_operation {arg.functor(), c_left, c_right};
+      }
+      else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum or Traits::preserves_constant_diagonal)
+      {
+#ifdef __cpp_concepts
+        if constexpr (requires { Traits::constexpr_operation(); })
+#else
+        if constexpr (constexpr_operation_defined<>::value)
+#endif
+          return values::scalar_constant_operation {Traits::constexpr_operation(),
+            constant_diagonal_coefficient {arg.lhsExpression()}, constant_diagonal_coefficient {arg.rhsExpression()}};
+        else
+          return values::scalar_constant_operation {arg.functor(),
+            constant_diagonal_coefficient {arg.lhsExpression()}, constant_diagonal_coefficient {arg.rhsExpression()}};
+      }
+      else
+      {
+        return std::monostate{};
+      }
     }
 
 
     template<Qualification b>
     static constexpr bool one_dimensional =
-      OpenKalman::one_dimensional<LhsXprType, Qualification::depends_on_dynamic_shape> and one_dimensional<RhsXprType, Qualification::depends_on_dynamic_shape> and
+      OpenKalman::one_dimensional<LhsXprType, Qualification::depends_on_dynamic_shape> and OpenKalman::one_dimensional<RhsXprType, Qualification::depends_on_dynamic_shape> and
       (b != Qualification::unqualified or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
         (square_shaped<LhsXprType, b> and (dimension_size_of_index_is<RhsXprType, 0, 1> or dimension_size_of_index_is<RhsXprType, 1, 1>)) or
         ((dimension_size_of_index_is<LhsXprType, 0, 1> or dimension_size_of_index_is<LhsXprType, 1, 1>) and square_shaped<RhsXprType, b>));
@@ -99,23 +187,22 @@ namespace OpenKalman::interface
         square_shaped<LhsXprType, b> or square_shaped<RhsXprType, b>);
 
 
-    template<TriangleType t>
-    static constexpr bool is_triangular = Eigen3::FunctorTraits<BinaryOp, LhsXprType, RhsXprType>::template is_triangular<t>;
-
-
     static constexpr bool is_triangular_adapter = false;
 
 
-    static constexpr bool is_hermitian = Eigen3::FunctorTraits<BinaryOp, LhsXprType, RhsXprType>::is_hermitian;
+    template<TriangleType t>
+    static constexpr bool is_triangular =
+      Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum ?
+      triangular_matrix<LhsXprType, t> and triangular_matrix<RhsXprType, t> and
+      (t != TriangleType::any or triangle_type_of_v<LhsXprType, RhsXprType> != TriangleType::any) :
+      Traits::binary_functor_type == Eigen3::BinaryFunctorType::product and
+      (triangular_matrix<LhsXprType, t> or triangular_matrix<RhsXprType, t> or
+       (triangular_matrix<LhsXprType, TriangleType::lower> and triangular_matrix<RhsXprType, TriangleType::upper>) or
+       (triangular_matrix<LhsXprType, TriangleType::upper> and triangular_matrix<RhsXprType, TriangleType::lower>));
 
 
-    static constexpr bool is_writable = false;
-
-
-    // raw_data() not defined
-
-
-    // layout not defined
+    static constexpr bool is_hermitian = Traits::preserves_hermitian and
+      hermitian_matrix<LhsXprType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsXprType, Qualification::depends_on_dynamic_shape>;;
 
   };
 

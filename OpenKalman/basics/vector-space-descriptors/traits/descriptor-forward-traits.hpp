@@ -21,11 +21,11 @@
 namespace OpenKalman
 {
   /**
-   * \brief Concatenate any number of TypedIndex<...> types.
+   * \brief Concatenate any number of FixedDescriptor<...> types.
    * \details
    * Example:
-   * - \code concatenate_fixed_vector_space_descriptor_t<TypedIndex<angle::Radians>,
-   * TypedIndex<Axis, Distance>> == TypedIndex<angle::Radians, Axis, Distance> \endcode.
+   * - \code concatenate_fixed_vector_space_descriptor_t<FixedDescriptor<angle::Radians>,
+   * FixedDescriptor<Axis, Distance>> == FixedDescriptor<angle::Radians, Axis, Distance> \endcode.
    */
 #ifdef __cpp_concepts
   template<fixed_vector_space_descriptor...Cs>
@@ -43,7 +43,7 @@ namespace OpenKalman
 
 
   /**
-   * \brief Reduce a \ref fixed_vector_space_descriptor into its canonical form.
+   * \brief Reduce a \ref fixed_vector_space_descriptor into its expanded canonical form.
    * \sa canonical_fixed_vector_space_descriptor_t
    */
 #ifdef __cpp_concepts
@@ -59,6 +59,24 @@ namespace OpenKalman
    */
   template<typename T>
   using canonical_fixed_vector_space_descriptor_t = typename canonical_fixed_vector_space_descriptor<T>::type;
+
+
+  /**
+   * \brief Reverse the order of a \ref vector_space_descriptor.
+   */
+#ifdef __cpp_concepts
+  template<fixed_vector_space_descriptor T>
+#else
+  template<typename T>
+#endif
+  struct reverse_fixed_vector_space_descriptor;
+
+
+  /**
+   * \brief Helper template for \ref reverse_fixed_vector_space_descriptor.
+   */
+  template<typename T>
+  using reverse_fixed_vector_space_descriptor_t = typename reverse_fixed_vector_space_descriptor<T>::type;
 
 
 } // namespace OpenKalman

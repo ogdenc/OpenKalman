@@ -15,11 +15,11 @@ using namespace OpenKalman::test;
 
 inline namespace
 {
-  using C2 = TypedIndex<Axis, Axis>;
+  using C2 = FixedDescriptor<Axis, Axis>;
   using M22 = eigen_matrix_t<double, 2, 2>;
   using CovSA2 = Covariance <C2, SelfAdjointMatrix<M22>>;
   using CovT2 = Covariance <C2, TriangularMatrix<M22>>;
-  using C3 = TypedIndex<Axis, Axis, Axis>;
+  using C3 = FixedDescriptor<Axis, Axis, Axis>;
   using M33 = eigen_matrix_t<double, 3, 3>;
   using CovSA3 = Covariance <C3, SelfAdjointMatrix<M33>>;
   using CovT3 = Covariance <C3, TriangularMatrix<M33>>;

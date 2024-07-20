@@ -59,11 +59,11 @@ namespace OpenKalman
       }
       else
       {
-        auto e = get_component(a) + alpha * get_component(internal::FixedSizeAdapter {contract(u, adjoint(u))});
+        auto e = get_component(a) + alpha * get_component(internal::make_fixed_size_adapter(contract(u, adjoint(u))));
 
-        if constexpr (element_settable<A&&, 0>)
+        if constexpr (writable_by_component<A&&>)
         {
-          set_component(a, e);
+          set_component(a, e, 0, 0);
           return make_hermitian_matrix<t>(std::forward<A>(a));
         }
         else

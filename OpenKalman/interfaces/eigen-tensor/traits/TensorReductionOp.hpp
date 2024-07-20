@@ -21,7 +21,7 @@ namespace OpenKalman::interface
 {
   template<typename Op, typename Dims, typename XprType, template<typename> typename MakePointer>
   struct indexible_object_traits<Eigen::TensorReductionOp<Op, Dims, XprType, MakePointer>>
-    : Eigen3::indexible_object_traits_base<Eigen::TensorReductionOp<Op, Dims, XprType, MakePointer>>
+    : Eigen3::indexible_object_traits_tensor_base<Eigen::TensorReductionOp<Op, Dims, XprType, MakePointer>>
   {
     template<typename Arg, typename N>
     static constexpr auto get_index_descriptor(const Arg& arg, N n)
@@ -29,7 +29,7 @@ namespace OpenKalman::interface
       if constexpr (static_index_value<N>)
         return std::integral_constant<std::size_t, Eigen::internal::get<n, typename Dims::Base>::value>{};
       else
-        return arg.dimension[n]
+        return static_cast<std::size_t>(arg.dimension[n]);
     }
 
     static constexpr bool has_runtime_parameters = true;
@@ -46,7 +46,6 @@ namespace OpenKalman::interface
       static_assert(i <= 1);
     }
 
-    // convert_to_self_contained() not defined
 
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)

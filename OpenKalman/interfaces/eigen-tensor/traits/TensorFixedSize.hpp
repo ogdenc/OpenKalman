@@ -21,11 +21,11 @@ namespace OpenKalman::interface
 {
   template<typename S, typename Dims, int options, typename IndexType>
   struct indexible_object_traits<Eigen::TensorFixedSize<S, Dims, options, IndexType>>
-    : Eigen3::indexible_object_traits_base<Eigen::TensorFixedSize<S, Dims, options, IndexType>>
+    : Eigen3::indexible_object_traits_tensor_base<Eigen::TensorFixedSize<S, Dims, options, IndexType>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::TensorFixedSize<S, Dims, options, IndexType>>;
+    using Base = Eigen3::indexible_object_traits_tensor_base<Eigen::TensorFixedSize<S, Dims, options, IndexType>>;
 
   public:
 
@@ -35,7 +35,7 @@ namespace OpenKalman::interface
       if constexpr (static_index_value<N>)
         return std::integral_constant<std::size_t, Eigen::internal::get<n, typename Dims::Base>::value>{};
       else
-        return arg.dimension(n);
+        return static_cast<std::size_t>(arg.dimension(n));
     }
 
     static constexpr bool has_runtime_parameters = true;
@@ -43,8 +43,6 @@ namespace OpenKalman::interface
     using dependents = std::tuple<>;
 
     // nested_object() not defined
-
-    // convert_to_self_contained() not defined
 
     // get_constant() not defined
 
@@ -84,7 +82,8 @@ namespace OpenKalman::interface
     static constexpr bool is_writable = true;
 
     template<typename Arg>
-    static constexpr auto* raw_data(Arg& arg) { return arg.data(); }
+    static constexpr auto * const
+    raw_data(Arg& arg) { return arg.data(); }
 
     static constexpr Layout layout = options & Eigen::RowMajor ? Layout::right : Layout::left;
 

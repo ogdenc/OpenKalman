@@ -27,15 +27,25 @@ namespace OpenKalman
    * \tparam T The matrix, expression, or array
    */
 #ifdef __cpp_concepts
-  template<indexible T, std::size_t N = 0>
+  template<typename T, std::size_t N = 0>
 #else
   template<typename T, std::size_t N = 0, typename = void>
 #endif
-  struct index_dimension_of : std::integral_constant<std::size_t, dynamic_size> {};
+  struct index_dimension_of;
 
 
 #ifdef __cpp_concepts
-  template<indexible T, std::size_t N> requires requires(T t) { {get_index_dimension_of<N>(t)} -> static_index_value; }
+  template<typename T, std::size_t N> requires requires(T t) { {get_index_dimension_of<N>(t)} -> dynamic_index_value; }
+  struct index_dimension_of<T, N>
+#else
+  template<typename T, std::size_t N>
+  struct index_dimension_of<T, N, std::enable_if_t<indexible<T> and dynamic_index_value<decltype(get_index_dimension_of<N>(std::declval<T>()))>>>
+#endif
+    : std::integral_constant<std::size_t, dynamic_size> {};
+
+
+#ifdef __cpp_concepts
+  template<typename T, std::size_t N> requires requires(T t) { {get_index_dimension_of<N>(t)} -> static_index_value; }
   struct index_dimension_of<T, N>
 #else
   template<typename T, std::size_t N>

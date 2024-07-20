@@ -23,9 +23,9 @@ using M23 = eigen_matrix_t<double, 2, 3>;
 using M32 = eigen_matrix_t<double, 3, 2>;
 using M33 = eigen_matrix_t<double, 3, 3>;
 using I22 = Eigen3::IdentityMatrix<M22>;
-using Z22 = ZeroMatrix<eigen_matrix_t<double, 2, 2>>;
-using C2 = TypedIndex<Axis, angle::Radians>;
-using C3 = TypedIndex<Axis, angle::Radians, Axis>;
+using Z22 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>;
+using C2 = FixedDescriptor<Axis, angle::Radians>;
+using C3 = FixedDescriptor<Axis, angle::Radians, Axis>;
 using Mat12 = Mean<Axis, M12>;
 using Mat21 = Mean<C2, M21>;
 using Mat22 = Mean<C2, M22>;
@@ -184,22 +184,22 @@ TEST(matrices, Mean_subscripts)
   static_assert(element_gettable<Matrix<C2, Axis, M21>, 2>);
   static_assert(element_gettable<Matrix<C2, Axis, M21>, 1>);
 
-  static_assert(element_settable<Mat23&, 2>);
-  static_assert(not element_settable<Mat23&, 1>);
-  static_assert(not element_settable<const Mat23&, 2>);
-  static_assert(not element_settable<const Mat23&, 1>);
-  static_assert(element_settable<Mat21&, 2>);
-  static_assert(element_settable<Mat21&, 1>);
-  static_assert(not element_settable<const Mat21&, 2>);
-  static_assert(not element_settable<const Mat21&, 1>);
-  static_assert(element_settable<Matrix<C3, C2, M32>&, 2>);
-  static_assert(not element_settable<Matrix<C3, C2, M32>&, 1>);
-  static_assert(not element_settable<Matrix<C3, C2, const M32>&, 2>);
-  static_assert(not element_settable<Matrix<C3, C2, const M32>&, 1>);
-  static_assert(element_settable<Matrix<C2, Axis, M21>&, 2>);
-  static_assert(element_settable<Matrix<C2, Axis, M21>&, 1>);
-  static_assert(not element_settable<Matrix<C2, Axis, const M21>&, 2>);
-  static_assert(not element_settable<Matrix<C2, Axis, const M21>&, 1>);
+  static_assert(writable_by_component<Mat23&, 2>);
+  static_assert(not writable_by_component<Mat23&, 1>);
+  static_assert(not writable_by_component<const Mat23&, 2>);
+  static_assert(not writable_by_component<const Mat23&, 1>);
+  static_assert(writable_by_component<Mat21&, 2>);
+  static_assert(writable_by_component<Mat21&, 1>);
+  static_assert(not writable_by_component<const Mat21&, 2>);
+  static_assert(not writable_by_component<const Mat21&, 1>);
+  static_assert(writable_by_component<Matrix<C3, C2, M32>&, 2>);
+  static_assert(not writable_by_component<Matrix<C3, C2, M32>&, 1>);
+  static_assert(not writable_by_component<Matrix<C3, C2, const M32>&, 2>);
+  static_assert(not writable_by_component<Matrix<C3, C2, const M32>&, 1>);
+  static_assert(writable_by_component<Matrix<C2, Axis, M21>&, 2>);
+  static_assert(writable_by_component<Matrix<C2, Axis, M21>&, 1>);
+  static_assert(not writable_by_component<Matrix<C2, Axis, const M21>&, 2>);
+  static_assert(not writable_by_component<Matrix<C2, Axis, const M21>&, 1>);
 
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(0, 0), 1, 1e-6);
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(0, 1), 2, 1e-6);
@@ -262,7 +262,7 @@ TEST(matrices, Mean_traits)
   static_assert(not identity_matrix<Mean<Dimensions<2>, M23>>);
   static_assert(not zero<Mat23>);
   static_assert(zero<Mean<C2, Z22>>);
-  static_assert(zero<Mean<C2, ZeroMatrix<eigen_matrix_t<double, 2, 2>>>>);
+  static_assert(zero<Mean<C2, ZeroAdapter<eigen_matrix_t<double, 2, 2>>>>);
 
   EXPECT_TRUE(is_near(make_zero<Mat23>(), eigen_matrix_t<double, 2, 3>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<Mat22>(), eigen_matrix_t<double, 2, 2>::Identity()));
@@ -294,7 +294,7 @@ TEST(matrices, Mean_overloads)
   const auto ma = make_mean(-2., 5, 3);
   EXPECT_TRUE(is_near(to_euclidean(ma), ma));
 
-  using A3 = TypedIndex<angle::Radians, Axis, angle::Radians>;
+  using A3 = FixedDescriptor<angle::Radians, Axis, angle::Radians>;
   const auto mb = make_mean<A3>(pi / 6, 5, -pi / 3);
   const auto x2 = (eigen_matrix_t<double, 5, 1> {} << std::sqrt(3) / 2, 0.5, 5, 0.5, -std::sqrt(3) / 2).finished();
   EXPECT_TRUE(is_near(to_euclidean(mb).nested_object(), x2));
@@ -350,10 +350,10 @@ TEST(matrices, Mean_blocks)
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6})), 0>, C2>);
 
   EXPECT_TRUE(is_near(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, angle::Radians, M21> {3, 6}),
-    Matrix<C2, TypedIndex<Axis, Axis, angle::Radians>, M23> {1, 2, 3, 4-2*pi, 5-2*pi, 6}));
+    Matrix<C2, FixedDescriptor<Axis, Axis, angle::Radians>, M23> {1, 2, 3, 4-2*pi, 5-2*pi, 6}));
   static_assert(not mean<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, angle::Radians, M21> {3, 6}))>);
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, angle::Radians, M21> {3, 6})), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, angle::Radians, M21> {3, 6})), 1>, TypedIndex<Axis, Axis, angle::Radians>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Matrix<C2, angle::Radians, M21> {3, 6})), 1>, FixedDescriptor<Axis, Axis, angle::Radians>>);
 
   EXPECT_TRUE(is_near(split_vertical(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {}));
   EXPECT_TRUE(is_near(split_horizontal(Mat23 {1, 2, 3, 4, 5, 6}), std::tuple {}));
@@ -465,13 +465,13 @@ TEST(matrices, Mean_arithmetic)
 
 TEST(matrices, Mean_angles_construct_coefficients)
 {
-  const auto v0 = make_mean<TypedIndex<angle::Radians, Axis>>(eigen_matrix_t<double, 2, 1>(0.5, 2));
+  const auto v0 = make_mean<FixedDescriptor<angle::Radians, Axis>>(eigen_matrix_t<double, 2, 1>(0.5, 2));
   EXPECT_EQ(v0[0], 0.5);
   EXPECT_EQ(v0[1], 2);
-  const auto v1 = make_mean<TypedIndex<Axis, angle::Radians>>(6., 7);
+  const auto v1 = make_mean<FixedDescriptor<Axis, angle::Radians>>(6., 7);
   EXPECT_EQ(v1[0], 6);
   EXPECT_EQ(v1[1], 7-2*pi);
-  const auto v2 = make_mean<TypedIndex<angle::Radians, Axis, angle::Radians>>(7., 8, 9);
+  const auto v2 = make_mean<FixedDescriptor<angle::Radians, Axis, angle::Radians>>(7., 8, 9);
   EXPECT_EQ(v2[0], 7-2*pi);
   EXPECT_EQ(v2[1], 8);
   EXPECT_EQ(v2[2], 9-2*pi);
@@ -479,17 +479,17 @@ TEST(matrices, Mean_angles_construct_coefficients)
   m33 << 9, 3, 1,
     3, 8 - pi*2, 2,
     7, 1, 8;
-  auto v3 = make_mean<double, TypedIndex<Axis, angle::Radians, Axis>, 3>();
+  auto v3 = make_mean<double, FixedDescriptor<Axis, angle::Radians, Axis>, 3>();
   v3 << 9, 3, 1,
     3, 8, 2,
     7, 1, 8;
   EXPECT_TRUE(is_near(nested_object(v3), m33));
-  auto v3_1 = make_mean<TypedIndex<Axis, angle::Radians, Axis>>(9., 3, 1, 3, 8, 2, 7, 1, 8);
+  auto v3_1 = make_mean<FixedDescriptor<Axis, angle::Radians, Axis>>(9., 3, 1, 3, 8, 2, 7, 1, 8);
   EXPECT_TRUE(is_near(v3_1, m33));
   auto v3_2 = v3;
   EXPECT_TRUE(is_near(v3_2, m33));
   static_assert(std::is_same_v<nested_object_of_t<decltype(v3)>, decltype(m33)>);
-  auto v3_3 = make_mean<double, TypedIndex<Axis, angle::Radians, Axis>, 3>();
+  auto v3_3 = make_mean<double, FixedDescriptor<Axis, angle::Radians, Axis>, 3>();
   v3_3 << make_dense_object_from(v3);
   EXPECT_TRUE(is_near(v3_3, m33));
 }
@@ -497,7 +497,7 @@ TEST(matrices, Mean_angles_construct_coefficients)
 
 TEST(matrices, Mean_angle_concatenate_split)
 {
-  using C3 = TypedIndex<angle::Radians, Axis, angle::Radians>;
+  using C3 = FixedDescriptor<angle::Radians, Axis, angle::Radians>;
   using Var3 = Mean<C3>;
   auto x1 = Var3 {5., 7, 9};
   auto x2 = Var3 {3., 2, 1};
@@ -511,11 +511,11 @@ TEST(matrices, Mean_angle_concatenate_split)
   EXPECT_TRUE(is_near(x6, x2));
   const Var3 y1 {pi / 6, 2, pi / 3};
   const Var3 y2 {pi / 4, 3, pi / 4};
-  const Mean<TypedIndex<angle::Radians, Axis, angle::Radians, angle::Radians, Axis, angle::Radians>>
+  const Mean<FixedDescriptor<angle::Radians, Axis, angle::Radians, angle::Radians, Axis, angle::Radians>>
     y3 {pi / 6, 2, pi / 3, pi / 4, 3, pi / 4};
   EXPECT_TRUE(is_near(concatenate(y1, y2), y3));
   EXPECT_TRUE(is_near(split_vertical<C3, C3>(y3), std::tuple(y1, y2)));
-  const Mean<TypedIndex<angle::Radians, Axis, angle::Radians, angle::Radians, Axis, angle::Radians, angle::Radians, Axis, angle::Radians>>
+  const Mean<FixedDescriptor<angle::Radians, Axis, angle::Radians, angle::Radians, Axis, angle::Radians, angle::Radians, Axis, angle::Radians>>
     y4 {pi / 6, 2, pi / 3, pi / 4, 3, pi / 4, pi / 6, 2, pi / 3};
   EXPECT_TRUE(is_near(concatenate(y1, y2, y1), y4));
   EXPECT_TRUE(is_near(split_vertical<C3, C3, C3>(y4), std::tuple(y1, y2, y1)));
@@ -524,7 +524,7 @@ TEST(matrices, Mean_angle_concatenate_split)
 
 TEST(matrices, Mean_angle_Euclidean_conversion)
 {
-  using Var3 = Mean<TypedIndex<angle::Radians, Axis, angle::Radians>>;
+  using Var3 = Mean<FixedDescriptor<angle::Radians, Axis, angle::Radians>>;
   const Var3 x1 {pi / 6, 5, -pi / 3};
   const Var3 x1p {pi / 5.99999999, 5, -pi / 2.99999999};
   const auto ma = (eigen_matrix_t<double, 3, 1> {} << pi / 6, 5, -pi / 3).finished();
@@ -543,21 +543,21 @@ TEST(matrices, Mean_angle_Euclidean_conversion)
 
 TEST(matrices, Mean_angle_mult_TypedMatrix)
 {
-  using M = Matrix<TypedIndex<Axis, angle::Radians>, TypedIndex<Axis, angle::Radians, Axis>>;
-  using Vm = Mean<TypedIndex<Axis, angle::Radians, Axis>>;
-  using Rm = Matrix<TypedIndex<Axis, angle::Radians>, Axis>;
+  using M = Matrix<FixedDescriptor<Axis, angle::Radians>, FixedDescriptor<Axis, angle::Radians, Axis>>;
+  using Vm = Mean<FixedDescriptor<Axis, angle::Radians, Axis>>;
+  using Rm = Matrix<FixedDescriptor<Axis, angle::Radians>, Axis>;
   const M m {1, -2, 4,
              -5, 2, -1};
   const Vm vm {2, 1, -1};
   const Rm rm {-4, -7};
-  static_assert(std::is_same_v<vector_space_descriptor_of_t<decltype(make_self_contained(m*vm)), 0>, TypedIndex<Axis, angle::Radians>>);
+  static_assert(std::is_same_v<vector_space_descriptor_of_t<decltype(make_self_contained(m*vm)), 0>, FixedDescriptor<Axis, angle::Radians>>);
   EXPECT_TRUE(is_near(m*vm, rm));
 }
 
 
 TEST(matrices, Mean_angle_arithmetic)
 {
-  using C = TypedIndex<angle::Radians, Axis, angle::Radians, Axis, Axis>;
+  using C = FixedDescriptor<angle::Radians, Axis, angle::Radians, Axis, Axis>;
   using Var3 = Mean<C>;
   Var3 v1 {1, 2, 3, 4, 5};
   Var3 v2 {2, 4, -6, 8, -10};
@@ -597,7 +597,7 @@ TEST(matrices, Mean_angle_arithmetic)
 
 TEST(matrices, Mean_angle_arithmetic_Euclidean)
 {
-  using Var3 = Mean<TypedIndex<angle::Radians, Axis, angle::Radians>>;
+  using Var3 = Mean<FixedDescriptor<angle::Radians, Axis, angle::Radians>>;
   Var3 x1 {pi / 6, 5, -pi / 3};
   Var3 x2 {2 * pi, 0, 6 * pi};
   auto x1e = to_euclidean(x1);
@@ -623,7 +623,7 @@ TEST(matrices, Mean_angle_arithmetic_Euclidean)
 
 TEST(matrices, Mean_angle2pi_arithmetic_Euclidean)
 {
-  using Var3 = Mean<TypedIndex<angle::PositiveRadians, Axis, angle::PositiveRadians>>;
+  using Var3 = Mean<FixedDescriptor<angle::PositiveRadians, Axis, angle::PositiveRadians>>;
   const Var3 x1 {pi / 6, 5, pi * 5 / 3};
   const Var3 x2 {2 * pi, 0, 6 * pi};
   const auto x1e = to_euclidean(x1);
@@ -643,7 +643,7 @@ TEST(matrices, Mean_angle2pi_arithmetic_Euclidean)
 
 TEST(matrices, Mean_angle2deg_arithmetic_Euclidean)
 {
-  using Var3 = Mean<TypedIndex<angle::PositiveDegrees, Axis, angle::PositiveDegrees>>;
+  using Var3 = Mean<FixedDescriptor<angle::PositiveDegrees, Axis, angle::PositiveDegrees>>;
   const Var3 x1 {30, 5, 300};
   const Var3 x2 {360, 0, 1080};
   const auto x1e = to_euclidean(x1);
@@ -663,8 +663,8 @@ TEST(matrices, Mean_angle2deg_arithmetic_Euclidean)
 
 TEST(matrices, Mean_angle_columns)
 {
-  using Var3 = Mean<TypedIndex<angle::Radians, Axis>, eigen_matrix_t<double, 2, 2>>;
-  using TVar3 = Matrix<TypedIndex<angle::Radians, Axis>, Dimensions<2>, eigen_matrix_t<double, 2, 2>>;
+  using Var3 = Mean<FixedDescriptor<angle::Radians, Axis>, eigen_matrix_t<double, 2, 2>>;
+  using TVar3 = Matrix<FixedDescriptor<angle::Radians, Axis>, Dimensions<2>, eigen_matrix_t<double, 2, 2>>;
   Var3 v1 {1, 2, 3, 4};
   Var3 v2 {6, 4, -6, 8};
   Var3 v3 {7 - pi*2, 6 - pi*2, -3, 12};
@@ -680,7 +680,7 @@ TEST(matrices, Mean_angle_columns)
 
 TEST(matrices, Mean_angle_columns_Euclidean)
 {
-  using Var3 = Mean<TypedIndex<angle::Radians, Axis>, eigen_matrix_t<double, 2, 2>>;
+  using Var3 = Mean<FixedDescriptor<angle::Radians, Axis>, eigen_matrix_t<double, 2, 2>>;
   Var3 x1 {pi / 6, -pi / 3, 5, 2};
   Var3 x2 {2 * pi, 6 * pi, 0, 0};
   const auto x1e = to_euclidean(x1);
@@ -884,7 +884,7 @@ TEST(matrices, Wrap_spherical)
 
 TEST(matrices, Wrap_angle_polar)
 {
-  using R = Mean<TypedIndex<angle::Radians, Polar<Distance, angle::Radians>>>;
+  using R = Mean<FixedDescriptor<angle::Radians, Polar<Distance, angle::Radians>>>;
   EXPECT_TRUE(is_near(R {pi/4, 1., pi/6} + R {-pi/2, 0.5, pi}, R {-pi/4, 1.5, -pi*5/6}));
   EXPECT_TRUE(is_near(R {pi/4, 1., pi/6} + R {pi/4, -1.5, -pi/2}, R {pi/2, 2.5, pi*2/3}));
   EXPECT_TRUE(is_near(R {-pi/2, 1., pi*5/6} + R {pi/3, -0.5, pi/2}, R {-pi/6, 1.5, pi/3}));
@@ -908,7 +908,7 @@ TEST(matrices, Wrap_angle_polar)
   EXPECT_NEAR(get_component(x0, 1), 1.5, 1e-6);
   EXPECT_NEAR(get_component(x0, 2), -5*pi/6, 1e-6);
 
-  using Q = Mean<TypedIndex<Polar<angle::Radians, Distance>, angle::Radians>>;
+  using Q = Mean<FixedDescriptor<Polar<angle::Radians, Distance>, angle::Radians>>;
   EXPECT_TRUE(is_near(Q {pi/6, 1, pi/4} + Q {pi, 0.5, -pi/2}, Q {-pi*5/6, 1.5, -pi/4}));
   EXPECT_TRUE(is_near(Q {pi/6, 1, pi/4} + Q {-pi/2, -1.5, pi/4}, Q {pi*2/3, 2.5, pi/2}));
   EXPECT_TRUE(is_near(Q {pi*5/6, 1., -pi/2} + Q {pi/2, -0.5, pi/3}, Q {pi/3, 1.5, -pi/6}));

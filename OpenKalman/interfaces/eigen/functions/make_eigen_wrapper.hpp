@@ -20,7 +20,6 @@ namespace OpenKalman::Eigen3
 {
   /**
    * Make a \ref LibraryWrapper for the Eigen library.
-   * \tparam Ps Parameters to be stored, if any
    */
 #ifdef __cpp_concepts
   template<indexible Arg>
@@ -30,9 +29,7 @@ namespace OpenKalman::Eigen3
   inline auto
   make_eigen_wrapper(Arg&& arg)
   {
-    using M = typename Eigen::internal::plain_matrix_type_dense<
-      std::decay_t<Arg>, Eigen::MatrixXpr, Eigen::internal::traits<std::decay_t<Arg>>::Flags>::type;
-    return internal::make_library_wrapper<Arg, M>(std::forward<Arg>(arg));
+    return EigenWrapper<Arg> {std::forward<Arg>(arg)};
   }
 
 } // namespace OpenKalman::Eigen3

@@ -51,7 +51,12 @@ namespace OpenKalman::interface
      * \brief The real part, if complex.
      * \details This is optional, and need only be defined if there is not otherwise a constexpr definition of real(t).
      */
-    static constexpr auto real(std::decay_t<T> t) = delete;
+#ifdef __cpp_concepts
+    template<std::convertible_to<const std::decay_t<T>&> Arg>
+#else
+    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const std::decay_t<T>&>, int> = 0>
+#endif
+    static constexpr auto real(Arg&& arg) = delete;
 
 
     /*

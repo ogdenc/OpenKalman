@@ -201,10 +201,10 @@ namespace OpenKalman
     /// Add a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
     template<distribution Arg> requires euclidean_vector_space_descriptor<RowCoefficients> and
-      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>)
+      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>)
 #else
     template<typename Arg, std::enable_if_t<distribution<Arg> and euclidean_vector_space_descriptor<RowCoefficients> and
-      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>), int> = 0>
+      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>), int> = 0>
 #endif
     auto& operator+=(const Arg& arg) noexcept
     {
@@ -243,10 +243,10 @@ namespace OpenKalman
     /// Subtract a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
     template<distribution Arg> requires euclidean_vector_space_descriptor<RowCoefficients> and
-      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>)
+      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>)
 #else
     template<typename Arg, std::enable_if_t<distribution<Arg> and euclidean_vector_space_descriptor<RowCoefficients> and
-      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>), int> = 0>
+      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>), int> = 0>
 #endif
     auto& operator-=(const Arg& arg) noexcept
     {
@@ -307,19 +307,19 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
 
   /**
    * \brief Make a EuclideanMean from a typed_matrix_nestable, specifying the row coefficients.
-   * \tparam TypedIndex The coefficient types corresponding to the rows.
+   * \tparam FixedDescriptor The coefficient types corresponding to the rows.
    * \tparam M A typed_matrix_nestable with size matching ColumnCoefficients.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor TypedIndex, typed_matrix_nestable M> requires
-    (euclidean_dimension_size_of_v<TypedIndex> == index_dimension_of_v<M, 0>)
+  template<fixed_vector_space_descriptor FixedDescriptor, typed_matrix_nestable M> requires
+    (euclidean_dimension_size_of_v<FixedDescriptor> == index_dimension_of_v<M, 0>)
 #else
-  template<typename TypedIndex, typename M, std::enable_if_t<fixed_vector_space_descriptor<TypedIndex> and
-    typed_matrix_nestable<M> and (euclidean_dimension_size_of_v<TypedIndex> == index_dimension_of<M, 0>::value), int> = 0>
+  template<typename FixedDescriptor, typename M, std::enable_if_t<fixed_vector_space_descriptor<FixedDescriptor> and
+    typed_matrix_nestable<M> and (euclidean_dimension_size_of_v<FixedDescriptor> == index_dimension_of<M, 0>::value), int> = 0>
 #endif
   auto make_euclidean_mean(M&& arg) noexcept
   {
-    return EuclideanMean<TypedIndex, passable_t<M>>(std::forward<M>(arg));
+    return EuclideanMean<FixedDescriptor, passable_t<M>>(std::forward<M>(arg));
   }
 
 
@@ -362,20 +362,20 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
   /**
    * \overload
    * \brief Make a default, self-contained EuclideanMean.
-   * \tparam TypedIndex The coefficient types corresponding to the rows.
+   * \tparam FixedDescriptor The coefficient types corresponding to the rows.
    * \tparam M a typed_matrix_nestable on which the new matrix is based. It will be converted to a self_contained type
    * if it is not already self-contained.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor TypedIndex, typed_matrix_nestable M> requires
-    (euclidean_dimension_size_of_v<TypedIndex> == index_dimension_of_v<M, 0>)
+  template<fixed_vector_space_descriptor FixedDescriptor, typed_matrix_nestable M> requires
+    (euclidean_dimension_size_of_v<FixedDescriptor> == index_dimension_of_v<M, 0>)
 #else
-  template<typename TypedIndex, typename M, std::enable_if_t<fixed_vector_space_descriptor<TypedIndex> and
-    typed_matrix_nestable<M> and (euclidean_dimension_size_of_v<TypedIndex> == index_dimension_of<M, 0>::value), int> = 0>
+  template<typename FixedDescriptor, typename M, std::enable_if_t<fixed_vector_space_descriptor<FixedDescriptor> and
+    typed_matrix_nestable<M> and (euclidean_dimension_size_of_v<FixedDescriptor> == index_dimension_of<M, 0>::value), int> = 0>
 #endif
   auto make_euclidean_mean()
   {
-    return EuclideanMean<TypedIndex, dense_writable_matrix_t<M>>();
+    return EuclideanMean<FixedDescriptor, dense_writable_matrix_t<M>>();
   }
 
 
@@ -424,8 +424,8 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
         }
         else
         {
-          if (n == 0) return DynamicTypedIndex<scalar_type> {arg.my_dimension};
-          else return DynamicTypedIndex<scalar_type> {OpenKalman::get_vector_space_descriptor(nested_object(arg), n)};
+          if (n == 0) return DynamicDescriptor<scalar_type> {arg.my_dimension};
+          else return DynamicDescriptor<scalar_type> {OpenKalman::get_vector_space_descriptor(nested_object(arg), n)};
         }
       }
 
@@ -442,13 +442,6 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
 
 
       template<typename Arg>
-      static auto convert_to_self_contained(Arg&& arg)
-      {
-        auto n = make_self_contained(OpenKalman::nested_object(std::forward<Arg>(arg)));
-        return EuclideanMean<Coeffs, decltype(n)> {std::move(n)};
-      }
-
-      template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
       {
         if constexpr (euclidean_vector_space_descriptor<Coeffs>)
@@ -456,6 +449,7 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
         else
           return std::monostate {};
       }
+
 
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
@@ -466,13 +460,17 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
           return std::monostate {};
       }
 
+
       template<Qualification b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
+
 
       template<TriangleType t>
       static constexpr bool is_triangular = euclidean_vector_space_descriptor<Coeffs> and triangular_matrix<NestedMatrix, t>;
 
+
       static constexpr bool is_triangular_adapter = false;
+
 
       static constexpr bool is_hermitian = euclidean_vector_space_descriptor<Coeffs> and hermitian_matrix<NestedMatrix>;
 
@@ -490,9 +488,9 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
 
 
   #ifdef __cpp_lib_concepts
-      template<typename Arg, typename I, typename...Is> requires element_settable<nested_object_of_t<Arg&>, 1 + sizeof...(Is)>
+      template<typename Arg, typename I, typename...Is> requires writable_by_component<nested_object_of_t<Arg&>, 1 + sizeof...(Is)>
   #else
-      template<typename Arg, typename I, typename...Is, std::enable_if_t<element_settable<typename nested_object_of<Arg&>::type, 1 + sizeof...(Is)>, int> = 0>
+      template<typename Arg, typename I, typename...Is, std::enable_if_t<writable_by_component<typename nested_object_of<Arg&>::type, 1 + sizeof...(Is)>, int> = 0>
   #endif
       static constexpr void
       set(Arg& arg, const scalar_type_of_t<Arg>& s, I i, Is...is)
@@ -505,11 +503,11 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
 
 
 #ifdef __cpp_lib_concepts
-      template<typename Arg> requires directly_accessible<nested_object_of_t<Arg&&>> and euclidean_vector_space_descriptor<Coeffs>
+      template<typename Arg> requires raw_data_defined_for<NestedMatrix> and euclidean_vector_space_descriptor<Coeffs>
 #else
-      template<typename Arg, std::enable_if_t<directly_accessible<typename nested_object_of<Arg&&>::type> and euclidean_vector_space_descriptor<Coeffs>, int> = 0>
+      template<typename Arg, std::enable_if_t<raw_data_defined_for<NestedMatrix> and euclidean_vector_space_descriptor<Coeffs>, int> = 0>
 #endif
-      static constexpr auto*
+      static constexpr auto * const
       raw_data(Arg& arg) { return internal::raw_data(OpenKalman::nested_object(arg)); }
 
 

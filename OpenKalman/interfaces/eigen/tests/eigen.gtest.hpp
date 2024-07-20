@@ -129,6 +129,7 @@ namespace OpenKalman::test
   using M32 = Eigen::Matrix<double, 3, 2>;
   using M33 = Eigen::Matrix<double, 3, 3>;
   using M34 = Eigen::Matrix<double, 3, 4>;
+  using M35 = Eigen::Matrix<double, 3, 5>;
 
   using M4x = Eigen::Matrix<double, 4, Eigen::Dynamic>;
   using M40 = Eigen::Matrix<double, 4, 0>;
@@ -173,6 +174,7 @@ namespace OpenKalman::test
   using A21 = Eigen::Array<double, 2, 1>;
   using A22 = Eigen::Array<double, 2, 2>;
   using A23 = Eigen::Array<double, 2, 3>;
+  using A32 = Eigen::Array<double, 3, 2>;
 
   using CA22 = Eigen::Array<cdouble, 2, 2>;
 
@@ -188,6 +190,7 @@ namespace OpenKalman::test
   using I21 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A21>;
   using I22 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A22>;
   using I23 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A23>;
+  using I32 = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A32>;
 
   using Z11 = decltype(std::declval<I11>() - std::declval<I11>());
   using Z22 = decltype(std::declval<I22>() - std::declval<I22>());

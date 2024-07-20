@@ -27,9 +27,9 @@ using M33 = eigen_matrix_t<double, 3, 3>;
 using M42 = eigen_matrix_t<double, 4, 2>;
 using M43 = eigen_matrix_t<double, 4, 3>;
 using I22 = Eigen3::IdentityMatrix<M22>;
-using Z22 = ZeroMatrix<eigen_matrix_t<double, 2, 2>>;
-using C2 = TypedIndex<Axis, angle::Radians>;
-using C3 = TypedIndex<Axis, angle::Radians, Axis>;
+using Z22 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>;
+using C2 = FixedDescriptor<Axis, angle::Radians>;
+using C3 = FixedDescriptor<Axis, angle::Radians, Axis>;
 using Mat12 = EuclideanMean<Axis, M12>;
 using Mat13 = EuclideanMean<Axis, M13>;
 using Mat21 = EuclideanMean<C2, M31>;
@@ -160,22 +160,22 @@ TEST(matrices, EuclideanMean_subscripts)
   static_assert(element_gettable<Matrix<C2, Axis, M21>, 2>);
   static_assert(element_gettable<Matrix<C2, Axis, M21>, 1>);
 
-  static_assert(element_settable<Mat23&, 2>);
-  static_assert(not element_settable<Mat23&, 1>);
-  static_assert(not element_settable<const Mat23&, 2>);
-  static_assert(not element_settable<const Mat23&, 1>);
-  static_assert(element_settable<Mat21&, 2>);
-  static_assert(element_settable<Mat21&, 1>);
-  static_assert(not element_settable<const Mat21&, 2>);
-  static_assert(not element_settable<const Mat21&, 1>);
-  static_assert(element_settable<Matrix<C3, C2, M32>&, 2>);
-  static_assert(not element_settable<Matrix<C3, C2, M32>&, 1>);
-  static_assert(not element_settable<Matrix<C3, C2, const M32>&, 2>);
-  static_assert(not element_settable<Matrix<C3, C2, const M32>&, 1>);
-  static_assert(element_settable<Matrix<C2, Axis, M21>&, 2>);
-  static_assert(element_settable<Matrix<C2, Axis, M21>&, 1>);
-  static_assert(not element_settable<Matrix<C2, Axis, const M21>&, 2>);
-  static_assert(not element_settable<Matrix<C2, Axis, const M21>&, 1>);
+  static_assert(writable_by_component<Mat23&, 2>);
+  static_assert(not writable_by_component<Mat23&, 1>);
+  static_assert(not writable_by_component<const Mat23&, 2>);
+  static_assert(not writable_by_component<const Mat23&, 1>);
+  static_assert(writable_by_component<Mat21&, 2>);
+  static_assert(writable_by_component<Mat21&, 1>);
+  static_assert(not writable_by_component<const Mat21&, 2>);
+  static_assert(not writable_by_component<const Mat21&, 1>);
+  static_assert(writable_by_component<Matrix<C3, C2, M32>&, 2>);
+  static_assert(not writable_by_component<Matrix<C3, C2, M32>&, 1>);
+  static_assert(not writable_by_component<Matrix<C3, C2, const M32>&, 2>);
+  static_assert(not writable_by_component<Matrix<C3, C2, const M32>&, 1>);
+  static_assert(writable_by_component<Matrix<C2, Axis, M21>&, 2>);
+  static_assert(writable_by_component<Matrix<C2, Axis, M21>&, 1>);
+  static_assert(not writable_by_component<Matrix<C2, Axis, const M21>&, 2>);
+  static_assert(not writable_by_component<Matrix<C2, Axis, const M21>&, 1>);
 
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9})(0, 0), 1, 1e-6);
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6, 7, 8, 9})(0, 1), 2, 1e-6);
@@ -244,7 +244,7 @@ TEST(matrices, EuclideanMean_traits)
   static_assert(not zero<Mat23>);
   static_assert(zero<EuclideanMean<angle::Radians, Z22>>);
   static_assert(zero<EuclideanMean<Dimensions<2>, Z22>>);
-  static_assert(zero<EuclideanMean<C2, ZeroMatrix<eigen_matrix_t<double, 3, 3>>>>);
+  static_assert(zero<EuclideanMean<C2, ZeroAdapter<eigen_matrix_t<double, 3, 3>>>>);
 
   EXPECT_TRUE(is_near(make_zero<Mat23>(), eigen_matrix_t<double, 3, 3>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<EuclideanMean<Dimensions<2>, I22>>(), eigen_matrix_t<double, 2, 2>::Identity()));
@@ -270,7 +270,7 @@ TEST(matrices, EuclideanMean_overloads)
   const auto ma = make_euclidean_mean(-2., 5, 3);
   EXPECT_TRUE(is_near(from_euclidean(ma), ma));
 
-  using A3 = TypedIndex<angle::Radians, Axis, angle::Radians>;
+  using A3 = FixedDescriptor<angle::Radians, Axis, angle::Radians>;
   const auto mb = make_euclidean_mean<A3>(std::sqrt(3) / 2, 0.5, 5, 0.5, -std::sqrt(3) / 2);
   const auto x2 = (eigen_matrix_t<double, 3, 1> {} << pi / 6, 5, -pi / 3).finished();
   EXPECT_TRUE(is_near(from_euclidean(mb).nested_object(), x2));

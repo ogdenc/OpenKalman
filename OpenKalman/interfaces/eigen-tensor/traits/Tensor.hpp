@@ -21,24 +21,22 @@ namespace OpenKalman::interface
 {
   template<typename Scalar, int NumIndices, int options, typename IndexType>
   struct indexible_object_traits<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>
-    : Eigen3::indexible_object_traits_base<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>
+    : Eigen3::indexible_object_traits_tensor_base<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>;
+    using Base = Eigen3::indexible_object_traits_tensor_base<Eigen::Tensor<Scalar, NumIndices, options, IndexType>>;
 
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n) { return arg.dimension(n); }
+    static constexpr std::size_t get_vector_space_descriptor(const Arg& arg, N n) { return arg.dimension(n); }
 
     using dependents = std::tuple<>;
 
     static constexpr bool has_runtime_parameters = true;
 
     // nested_object() not defined
-
-    // convert_to_self_contained() not defined
 
     // get_constant() not defined
 
@@ -75,7 +73,7 @@ namespace OpenKalman::interface
     static constexpr bool is_writable = true;
 
     template<typename Arg>
-    static constexpr auto*
+    static constexpr auto * const
     raw_data(Arg& arg) { return arg.data(); }
 
     static constexpr Layout layout = options & Eigen::RowMajor ? Layout::right : Layout::left;

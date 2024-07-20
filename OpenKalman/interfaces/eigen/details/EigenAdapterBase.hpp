@@ -19,7 +19,7 @@
 
 namespace OpenKalman::Eigen3
 {
-  template<typename Derived, typename NestedMatrix, typename Base>
+  template<typename Derived, typename Base>
   struct EigenAdapterBase : Base, EigenCustomBase,
     Eigen::internal::no_assignment_operator // Override all Eigen assignment operators
   {
@@ -53,12 +53,31 @@ namespace OpenKalman::Eigen3
     using typename Base::Index;
 
 
+    constexpr decltype(auto) coeff(Eigen::Index row, Eigen::Index col) const
+    {
+      return OpenKalman::get_component(static_cast<const Derived&>(*this), static_cast<std::size_t>(row), static_cast<std::size_t>(col));
+    }
+
+
+    auto& coeffRef(Eigen::Index row, Eigen::Index col) const
+    {
+      return coeff(row, col);
+    }
+
+
+    auto& coeffRef(Eigen::Index row, Eigen::Index col)
+    {
+      return OpenKalman::get_component(static_cast<Derived&>(*this), static_cast<std::size_t>(row), static_cast<std::size_t>(col));
+    }
+
+
     /**
      * \internal
      * \return The number of rows at runtime.
      * \note Eigen3 requires this, particularly in Eigen::EigenBase.
      */
-    constexpr Index rows() const
+    constexpr Index
+    rows() const
     {
       return get_index_dimension_of<0>(static_cast<const Derived&>(*this));
     }
@@ -69,35 +88,24 @@ namespace OpenKalman::Eigen3
      * \return The number of columns at runtime.
      * \note Eigen3 requires this, particularly in Eigen::EigenBase.
      */
-    constexpr Index cols() const
+    constexpr Index
+    cols() const
     {
       return get_index_dimension_of<1>(static_cast<const Derived&>(*this));
     }
 
 
-#ifdef __cpp_concepts
-    constexpr decltype(auto)
-    data() requires interface::raw_data_defined_for<Derived&>
-#else
-    template<typename T = Derived&, std::enable_if_t<interface::raw_data_defined_for<T>, int> = 0>
-      constexpr decltype(auto)
-      data()
-#endif
+    constexpr auto * const
+    data()
     {
-      return internal::raw_data(static_cast<Derived&>(*this));
+      return OpenKalman::internal::raw_data(static_cast<Derived&>(*this));
     }
 
 
-#ifdef __cpp_concepts
     constexpr decltype(auto)
-    data() const requires interface::raw_data_defined_for<const Derived&>
-#else
-    template<typename T = const Derived&, std::enable_if_t<interface::raw_data_defined_for<T>, int> = 0>
-      constexpr decltype(auto)
-      data() const
-#endif
+    data() const
     {
-      return internal::raw_data(static_cast<const Derived&>(*this));
+      return OpenKalman::internal::raw_data(static_cast<const Derived&>(*this));
     }
 
   private:

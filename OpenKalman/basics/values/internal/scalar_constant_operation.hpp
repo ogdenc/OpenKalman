@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,6 +10,7 @@
 
 /**
  * \file
+ * \internal
  * \brief Definition of \ref scalar_constant_operation.
  */
 
@@ -17,7 +18,7 @@
 #define OPENKALMAN_SCALAR_CONSTANT_OPERATION_HPP
 
 
-namespace OpenKalman::internal
+namespace OpenKalman::values
 {
 #ifndef __cpp_concepts
   template<typename Operation, typename...Ts> struct scalar_constant_operation;
@@ -25,14 +26,6 @@ namespace OpenKalman::internal
 
   namespace detail
   {
-    template<typename Operation, typename = void, typename...Ts>
-    struct scalar_op_constexpr : std::false_type {};
-
-    template<typename Operation, typename...Ts>
-    struct scalar_op_constexpr<Operation, std::void_t<
-      std::bool_constant<(Operation{}(std::decay_t<Ts>::value...), true)>>, Ts...> : std::true_type {};
-
-
     template<typename Operation, typename = void, typename...Ts>
     struct scalar_constant_operation_impl
     {
@@ -43,28 +36,17 @@ namespace OpenKalman::internal
     // n-ary, all arguments calculable at compile time
     template<typename Operation, typename...Ts>
     struct scalar_constant_operation_impl<Operation, std::enable_if_t<
-      (scalar_constant<Ts, ConstantType::static_constant> and ...) and scalar_op_constexpr<Operation, void, Ts...>::value>, Ts...>
+      (scalar_constant<Ts, ConstantType::static_constant> and ...) and internal::constexpr_n_ary_function<Operation, Ts...>>, Ts...>
     {
-    private:
-
-      template<typename U, typename = void>
-      struct has_maybe_status : std::false_type {};
-
-      template<typename U>
-      struct has_maybe_status<U, std::enable_if_t<U::status == Qualification::depends_on_dynamic_shape>> : std::true_type {};
-
-    public:
-
       constexpr scalar_constant_operation_impl() = default;
       explicit constexpr scalar_constant_operation_impl(const Operation&, const Ts&...) {};
       static constexpr auto value = Operation{}(Ts::value...);
       using value_type = std::decay_t<decltype(value)>;
       using type = scalar_constant_operation<Operation, Ts...>;
-      static constexpr Qualification status = (has_maybe_status<Ts>::value or ...) ? Qualification::depends_on_dynamic_shape : Qualification::unqualified;
       constexpr operator value_type() const noexcept { return value; }
       constexpr value_type operator()() const noexcept { return value; }
       constexpr auto operator+() { return static_cast<type&>(*this); }
-      constexpr auto operator-() { return scalar_constant_operation {std::negate<>{}, static_cast<type&>(*this)}; }
+      constexpr auto operator-() { return scalar_constant_operation {std::negate<value_type>{}, static_cast<type&>(*this)}; }
     };
 
 
@@ -73,28 +55,18 @@ namespace OpenKalman::internal
     struct scalar_constant_operation_impl<Operation, std::enable_if_t<(scalar_constant<Ts> and ...) and
       std::is_invocable_v<const Operation&, decltype(get_scalar_constant_value(std::declval<const Ts&>()))...> and
       (not (scalar_constant<Ts, ConstantType::static_constant> and ...) or
-      not std::is_default_constructible_v<Operation> or not scalar_op_constexpr<Operation, void, Ts...>::value)>, Ts...>
+      not std::is_default_constructible_v<Operation> or not internal::constexpr_n_ary_function<Operation, Ts...>)>, Ts...>
     {
-    private:
-
-      template<typename U, typename = void>
-      struct has_maybe_status : std::false_type {};
-
-      template<typename U>
-      struct has_maybe_status<U, std::enable_if_t<U::status == Qualification::depends_on_dynamic_shape>> : std::true_type {};
-
-    public:
-
       explicit constexpr scalar_constant_operation_impl(const Operation& op, const Ts&...ts)
         : value {op(get_scalar_constant_value(ts)...)} {};
 
       using value_type = std::decay_t<decltype(std::declval<const Operation&>()(get_scalar_constant_value(std::declval<const Ts&>())...))>;
       using type = scalar_constant_operation<Operation, Ts...>;
-
-      static constexpr Qualification status = (has_maybe_status<Ts>::value or ...) ? Qualification::depends_on_dynamic_shape : Qualification::unqualified;
       constexpr operator value_type() const noexcept { return value; }
       constexpr value_type operator()() const noexcept { return value; }
+
     private:
+
       value_type value;
     };
   }
@@ -117,54 +89,34 @@ namespace OpenKalman::internal
 
   /**
    * \internal
-   * \brief An operation involving some number of compile-time \ref scalar_constant values.
+   * \brief An operation involving some number of static \ref scalar_constant values.
    */
   template<typename Operation, scalar_constant<ConstantType::static_constant>...Ts> requires
-    requires { typename std::bool_constant<(Operation{}(std::decay_t<Ts>::value...), true)>; }
+    internal::constexpr_n_ary_function<Operation, Ts...>
   struct scalar_constant_operation<Operation, Ts...>
   {
-  private:
-
-    template<typename U>
-    static constexpr bool has_maybe_status = requires { requires U::status == Qualification::depends_on_dynamic_shape; };
-
-  public:
-
     constexpr scalar_constant_operation() = default;
     explicit constexpr scalar_constant_operation(const Operation&, const Ts&...) {};
     static constexpr auto value = Operation{}(Ts::value...);
     using value_type = std::decay_t<decltype(value)>;
-    static constexpr Qualification status = (has_maybe_status<Ts> or ...) ? Qualification::depends_on_dynamic_shape : Qualification::unqualified;
     using type = scalar_constant_operation;
     constexpr operator value_type() const noexcept { return value; }
     constexpr value_type operator()() const noexcept { return value; }
+
   };
 
 
   /**
    * \internal
-   * \brief An operation involving some number of \ref scalar_constant values, which is not calculable at compile time.
+   * \brief An operation involving some number of \ref scalar_constant values, not all of which are static.
    */
   template<typename Operation, scalar_constant...Ts> requires
     requires(const Operation& op, const Ts&...ts) { op(get_scalar_constant_value(ts)...); } and
-    (not (scalar_constant<Ts, ConstantType::static_constant> and ...) or
-    not requires { typename std::bool_constant<(Operation{}(std::decay_t<Ts>::value...), true)>; })
+    (not (scalar_constant<Ts, ConstantType::static_constant> and ...) or not internal::constexpr_n_ary_function<Operation, Ts...>)
   struct scalar_constant_operation<Operation, Ts...>
   {
-  private:
-
-    template<typename U>
-    static constexpr bool has_maybe_status = requires { requires U::status == Qualification::depends_on_dynamic_shape; };
-
-  public:
-
-    explicit constexpr scalar_constant_operation(const Operation& op, const Ts&...ts)
-      : value {op(get_scalar_constant_value(ts)...)} {};
-
-    using value_type =
-      std::decay_t<decltype(std::declval<const Operation&>()(get_scalar_constant_value(std::declval<const Ts&>())...))>;
-
-    static constexpr Qualification status = (has_maybe_status<Ts> or ...) ? Qualification::depends_on_dynamic_shape : Qualification::unqualified;
+    explicit constexpr scalar_constant_operation(const Operation& op, const Ts&...ts) : value {op(get_scalar_constant_value(ts)...)} {};
+    using value_type = std::decay_t<decltype(std::declval<const Operation&>()(get_scalar_constant_value(std::declval<const Ts&>())...))>;
     using type = scalar_constant_operation;
     constexpr operator value_type() const noexcept { return value; }
     constexpr value_type operator()() const noexcept { return value; }
@@ -207,6 +159,6 @@ namespace OpenKalman::internal
   constexpr auto scalar_constant_operation_v = scalar_constant_operation<Operation, Ts...>::value;
 
 
-} // namespace OpenKalman::internal
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_SCALAR_CONSTANT_OPERATION_HPP

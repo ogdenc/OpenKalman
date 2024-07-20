@@ -93,7 +93,7 @@ namespace OpenKalman
   inline auto make_matrix(M&& arg)
   {
     using C = vector_space_descriptor_of_t<M, 0>;
-    return make_matrix<C, C>(make_dense_object(std::forward<M>(arg)));
+    return make_matrix<C, C>(to_dense_object(std::forward<M>(arg)));
   }
 
 
@@ -138,7 +138,7 @@ namespace OpenKalman
 #endif
   inline auto make_matrix()
   {
-    using Mdense = std::decay_t<decltype(make_dense_object(std::declval<M>()))>;
+    using Mdense = std::decay_t<decltype(to_dense_object(std::declval<M>()))>;
     return Matrix<RowCoefficients, ColumnCoefficients, Mdense>();
   }
 

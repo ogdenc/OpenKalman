@@ -18,151 +18,91 @@
 
 #include <type_traits>
 
+namespace OpenKalman::Eigen3::detail
+{
+#ifdef __cpp_concepts
+  template<typename Dim, typename OtherDim>
+  concept at_least_square = (std::decay_t<Dim>::value >= std::decay_t<OtherDim>::value);
+#else
+  template<typename Dim, typename OtherDim, typename = void>
+    struct at_least_square_impl : std::false_type {};
+
+    template<typename Dim, typename OtherDim>
+    struct at_least_square_impl<Dim, OtherDim, std::enable_if_t<
+      scalar_constant<Dim, ConstantType::static_constant> and scalar_constant<OtherDim, ConstantType::static_constant>>>
+      : std::bool_constant<std::decay_t<Dim>::value >= std::decay_t<OtherDim>::value> {};
+
+    template<typename Dim, typename OtherDim>
+    constexpr bool at_least_square = at_least_square_impl<Dim, OtherDim>::value;
+#endif
+
+
+  template<typename MemberOp, std::size_t direction, typename XprType, typename Factor, typename DirDim, typename Func>
+  constexpr auto get_constant_redux(const XprType& xpr, const Factor& factor, const DirDim& dir_dim, Func&& func)
+  {
+    decltype(auto) dim = internal::best_vector_space_descriptor(dir_dim, get_index_dimension_of<direction>(xpr));
+
+    if constexpr (Eigen3::eigen_MatrixWrapper<XprType> or Eigen3::eigen_ArrayWrapper<XprType> or
+      internal::fixed_size_adapter<XprType> or Eigen3::eigen_self_contained_wrapper<XprType> or Eigen3::eigen_wrapper<XprType>)
+    {
+      return get_constant_redux<MemberOp, direction>(nested_object(xpr), factor, dim, std::forward<Func>(func));
+    }
+    else if constexpr (Eigen3::eigen_CwiseUnaryOp<XprType> or Eigen3::eigen_CwiseUnaryView<XprType>)
+    {
+      auto new_func = Eigen3::functor_composition {std::forward<Func>(func), xpr.functor()};
+      return get_constant_redux<MemberOp, direction>(xpr.nestedExpression(), factor, dim, std::move(new_func));
+    }
+    else if constexpr (Eigen3::eigen_Replicate<XprType>)
+    {
+      using F = eigen_Replicate_factor<XprType, direction>;
+      const auto& n_xpr = xpr.nestedExpression();
+      auto n_dim = get_index_dimension_of<direction>(n_xpr);
+
+      auto f = [](const auto& dim, const auto& n_dim) {
+        if constexpr (F::value != dynamic_size) return F{};
+        else return values::scalar_constant_operation {std::divides<std::size_t>{}, dim, n_dim};
+      }(dim, n_dim);
+
+      decltype(auto) new_dim = [](const auto& dim, const auto& n_dim) -> decltype(auto) {
+        if constexpr (scalar_constant<decltype(dim), ConstantType::static_constant> and F::value != dynamic_size and
+            not scalar_constant<decltype(n_dim), ConstantType::static_constant>)
+          return values::scalar_constant_operation {std::divides<std::size_t>{}, dim, F{}};
+        else
+          return n_dim;
+      }(dim, n_dim);
+
+      auto new_f = values::scalar_constant_operation{std::multiplies<std::size_t>{}, factor, f};
+      return get_constant_redux<MemberOp, direction>(n_xpr, new_f, new_dim, std::forward<Func>(func));
+    }
+    else
+    {
+      if constexpr (constant_matrix<XprType>)
+      {
+        auto c = values::scalar_constant_operation {std::forward<Func>(func), constant_coefficient {xpr}};
+        return Eigen3::ReduxTraits<MemberOp, direction>::get_constant(c, factor, dim);
+      }
+      else if constexpr (constant_diagonal_matrix<XprType>)
+      {
+        constexpr bool als = at_least_square<decltype(dim), decltype(get_index_dimension_of<direction == 1 ? 0 : 1>(xpr))>;
+        auto c = values::scalar_constant_operation {std::forward<Func>(func), constant_diagonal_coefficient {xpr}};
+        return Eigen3::ReduxTraits<MemberOp, direction>::template get_constant_diagonal<als>(c, factor, dim);
+      }
+      else
+      {
+        return std::monostate {};
+      }
+    }
+  }
+
+} // namespace OpenKalman::Eigen3::detail
+
 
 namespace OpenKalman::interface
 {
 
-  namespace detail
-  {
-    template<typename XprType>
-    struct is_diag : std::bool_constant<
-      zero<XprType> or one_dimensional<XprType> ? true :
-      constant_matrix<XprType> ? false :
-      constant_diagonal_matrix<XprType> ? true : false> {};
-
-    template<typename XprType>
-    constexpr bool is_diag_v = is_diag<XprType>::value;
-
-
-    template<typename XprType, int Direction>
-    struct is_EigenReplicate : std::false_type {};
-
-    template<typename MatrixType, int RowFactor, int ColFactor, int Direction>
-    struct is_EigenReplicate<Eigen::Replicate<MatrixType, RowFactor, ColFactor>, Direction> : std::true_type
-    {
-    private:
-      static constexpr int Efactor = Direction == Eigen::Horizontal ? ColFactor : RowFactor;
-    public:
-      static constexpr std::size_t direction = Direction == Eigen::Horizontal ? 1 : 0;
-      static constexpr std::size_t factor = Efactor == Eigen::Dynamic ? dynamic_size : Efactor;
-      static constexpr auto get_nested(const Eigen::Replicate<MatrixType, RowFactor, ColFactor>& xpr) { return xpr.nestedExpression(); }
-    };
-
-    template<typename XprType, int Direction>
-    struct is_EigenReplicate<const XprType, Direction> : is_EigenReplicate<XprType, Direction> {};
-
-
-    template<typename MemberOp, std::size_t direction, std::size_t factor,
-      typename XprType, typename C, typename Dim>
-    constexpr auto get_PartialReduxExpr_replicate(const XprType& xpr, const C& c, const Dim& dim)
-    {
-      if constexpr (factor == dynamic_size)
-      {
-        auto d = get_index_dimension_of<direction>(xpr);
-        auto f = get_scalar_constant_value(dim) / d;
-        return Eigen3::SingleConstantPartialRedux<XprType, MemberOp>::get_constant(c, d, f);
-      }
-      else
-      {
-        internal::ScalarConstant<Qualification::unqualified, std::size_t, factor> f;
-        return Eigen3::SingleConstantPartialRedux<XprType, MemberOp>::get_constant(c, dim / f, f);
-      }
-    }
-
-
-#ifdef __cpp_concepts
-    template<typename MemberOp, int Direction, typename XprType, typename Dim>
-#else
-    template<typename MemberOp, int Direction, typename XprType, typename Dim, std::enable_if_t<
-      not is_EigenReplicate<XprType, Direction>::value and
-      not Eigen3::eigen_MatrixWrapper<XprType> and not Eigen3::eigen_ArrayWrapper<XprType> and
-      not Eigen3::eigen_wrapper<XprType> and not Eigen3::eigen_self_contained_wrapper<XprType>, int> = 0>
-#endif
-    constexpr auto get_PartialReduxExpr_constant(const XprType& xpr, const Dim& dim)
-    {
-      std::conditional_t<is_diag_v<XprType>, constant_diagonal_coefficient<XprType>, constant_coefficient<XprType>> c {xpr};
-      if constexpr (scalar_constant<decltype(c)>)
-      {
-        internal::ScalarConstant<Qualification::unqualified, std::size_t, 1> f;
-        return Eigen3::SingleConstantPartialRedux<XprType, MemberOp>::get_constant(c, dim, f);
-      }
-      else return std::monostate{};
-    }
-
-
-#ifdef __cpp_concepts
-    template<typename MemberOp, int Direction, typename XprType, typename Dim> requires
-      Eigen3::eigen_MatrixWrapper<XprType> or Eigen3::eigen_ArrayWrapper<XprType> or
-      Eigen3::eigen_wrapper<XprType> or Eigen3::eigen_self_contained_wrapper<XprType>
-#else
-    template<typename MemberOp, int Direction, typename XprType, typename Dim, std::enable_if_t<
-      not is_EigenReplicate<XprType, Direction>::value and
-      (Eigen3::eigen_MatrixWrapper<XprType> or Eigen3::eigen_ArrayWrapper<XprType> or
-      Eigen3::eigen_wrapper<XprType>) or Eigen3::eigen_self_contained_wrapper<XprType>, int> = 0>
-#endif
-    constexpr auto get_PartialReduxExpr_constant(const XprType& xpr, const Dim& dim)
-    {
-      return get_PartialReduxExpr_constant<MemberOp, Direction>(nested_object(xpr), dim);
-    }
-
-
-#ifdef __cpp_concepts
-    template<typename MemberOp, int Direction, typename XprType, typename Dim>
-      requires is_EigenReplicate<XprType, Direction>::value
-#else
-    template<typename MemberOp, int Direction, typename XprType, typename Dim, std::enable_if_t<
-      is_EigenReplicate<XprType, Direction>::value, int> = 0>
-#endif
-    constexpr auto get_PartialReduxExpr_constant(const XprType& xpr, const Dim& dim)
-    {
-      constexpr std::size_t direction = is_EigenReplicate<XprType, Direction>::direction;
-      constexpr std::size_t factor = is_EigenReplicate<XprType, Direction>::factor;
-      auto&& n_xpr = is_EigenReplicate<XprType, Direction>::get_nested(xpr);
-      using NXprType = std::decay_t<decltype(n_xpr)>;
-      std::conditional_t<is_diag_v<NXprType>, constant_diagonal_coefficient<NXprType>, constant_coefficient<NXprType>> c {n_xpr};
-      return get_PartialReduxExpr_replicate<MemberOp, direction, factor>(std::forward<NXprType>(n_xpr), c, dim);
-    }
-
-
-#ifdef __cpp_concepts
-    template<typename MemberOp, int Direction, typename UnaryOp, typename XprType, typename Dim>
-      requires is_EigenReplicate<XprType, Direction>::value
-#else
-    template<typename MemberOp, int Direction, typename UnaryOp, typename XprType, typename Dim, std::enable_if_t<
-      is_EigenReplicate<XprType, Direction>::value, int> = 0>
-#endif
-    constexpr auto get_PartialReduxExpr_constant(const Eigen::CwiseUnaryOp<UnaryOp, XprType>& xpr, const Dim& dim)
-    {
-      constexpr std::size_t direction = is_EigenReplicate<XprType, Direction>::direction;
-      constexpr std::size_t factor = is_EigenReplicate<XprType, Direction>::factor;
-      auto&& n_xpr = is_EigenReplicate<XprType, Direction>::get_nested(xpr.nestedExpression());
-      using NXprType = std::decay_t<decltype(n_xpr)>;
-      auto uop = Eigen::CwiseUnaryOp<UnaryOp, NXprType> {n_xpr};
-      auto c = Eigen3::FunctorTraits<UnaryOp, NXprType>::template get_constant<is_diag_v<XprType>>(uop);
-      return get_PartialReduxExpr_replicate<MemberOp, direction, factor>(std::forward<NXprType>(n_xpr), c, dim);
-    }
-
-
-#ifdef __cpp_concepts
-    template<typename MemberOp, int Direction, typename ViewOp, typename XprType, typename Dim>
-      requires is_EigenReplicate<XprType, Direction>::value
-#else
-    template<typename MemberOp, int Direction, typename ViewOp, typename XprType, typename Dim, std::enable_if_t<
-      is_EigenReplicate<XprType, Direction>::value, int> = 0>
-#endif
-    constexpr auto get_PartialReduxExpr_constant(const Eigen::CwiseUnaryView<ViewOp, XprType>& xpr, const Dim& dim)
-    {
-      constexpr std::size_t direction = is_EigenReplicate<XprType, Direction>::direction;
-      constexpr std::size_t factor = is_EigenReplicate<XprType, Direction>::factor;
-      auto&& n_xpr = is_EigenReplicate<XprType, Direction>::get_nested(xpr.nestedExpression());
-      using NXprType = std::decay_t<decltype(n_xpr)>;
-      auto uop = Eigen::CwiseUnaryOp<ViewOp, const NXprType> {n_xpr};
-      auto c = Eigen3::FunctorTraits<ViewOp, NXprType>::template get_constant<is_diag_v<XprType>>(uop);
-      return get_PartialReduxExpr_replicate<MemberOp, direction, factor>(std::forward<NXprType>(n_xpr), c, dim);
-    }
-
-  } // namespace detail
-
+  // ------------------------- //
+  //  indexible_object_traits  //
+  // ------------------------- //
 
   template<typename MatrixType, typename MemberOp, int Direction>
   struct indexible_object_traits<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>
@@ -171,6 +111,14 @@ namespace OpenKalman::interface
   private:
 
     using Base = Eigen3::indexible_object_traits_base<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>;
+
+#if __cplusplus < 202002L
+    struct Op
+    {
+      template<typename Scalar>
+      constexpr Scalar&& operator()(Scalar&& arg) const noexcept { return std::forward<Scalar>(arg); }
+    };
+#endif
 
   public:
 
@@ -193,12 +141,17 @@ namespace OpenKalman::interface
     static constexpr auto get_constant(const Arg& arg)
     {
       // colwise (acting on columns) is Eigen::Vertical and rowwise (acting on rows) is Eigen::Horizontal
-      constexpr std::size_t N = Direction == Eigen::Horizontal ? 1 : 0;
-      const auto& x {arg.nestedExpression()};
-      auto dim = get_index_dimension_of<N>(x);
-
-      return detail::get_PartialReduxExpr_constant<MemberOp, Direction>(x, dim);
+      constexpr std::size_t direction = Direction == Eigen::Horizontal ? 1 : 0;
+      const auto& x = arg.nestedExpression();
+      auto dim = get_index_dimension_of<direction>(x);
+      std::integral_constant<std::size_t, 1> f;
+#if __cplusplus >= 202002L
+      return OpenKalman::Eigen3::detail::get_constant_redux<MemberOp, direction>(x, f, dim, std::identity{});
+#else
+      return OpenKalman::Eigen3::detail::get_constant_redux<MemberOp, direction>(x, f, dim, Op{});
+#endif
     }
+
   };
 
 } // namespace OpenKalman::interface

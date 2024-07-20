@@ -42,17 +42,6 @@ namespace OpenKalman::interface
       return std::forward<Arg>(arg).nestedExpression();
     }
 
-
-    template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      using N = Eigen::Inverse<equivalent_self_contained_t<XprType>>;
-      if constexpr (not std::is_lvalue_reference_v<typename N::XprTypeNested>)
-        return N {make_self_contained(arg.nestedExpression())};
-      else
-        return make_dense_object(std::forward<Arg>(arg));
-    }
-
     // get_constant() not defined
 
     // get_constant_diagonal() not defined

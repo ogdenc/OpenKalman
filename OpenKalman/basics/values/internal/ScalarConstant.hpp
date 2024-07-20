@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,6 +10,7 @@
 
 /**
  * \file
+ * \internal
  * \brief Definition of \ref ScalarConstant.
  */
 
@@ -17,20 +18,19 @@
 #define OPENKALMAN_SCALARCONSTANT_HPP
 
 
-namespace OpenKalman::internal
+namespace OpenKalman::values
 {
   /**
    * \internal
    * \brief A defined scalar constant
-   * \tparam b The likelihood that the result is a constant
    * \tparam C A constant type
    * \tparam constant Compile-time arguments for constructing C, if any.
    */
-  template<Qualification b, typename C, auto...constant>
+  template<typename C, auto...constant>
   struct ScalarConstant;
 
 
-#ifndef __cpp_concepts
+#if not defined(__cpp_concepts) or not defined(__cpp_impl_three_way_comparison)
   namespace detail
   {
     template<typename Derived, typename C, typename = void, auto...constant>
@@ -56,7 +56,7 @@ namespace OpenKalman::internal
 
       constexpr auto operator+() { return static_cast<Derived&>(*this); }
 
-      constexpr auto operator-() { return scalar_constant_operation {std::negate<>{}, static_cast<Derived&>(*this)}; }
+      constexpr auto operator-() { return scalar_constant_operation {std::negate<value_type>{}, static_cast<Derived&>(*this)}; }
     };
 
 
@@ -80,15 +80,18 @@ namespace OpenKalman::internal
 #endif
 
 
-#ifdef __cpp_concepts
-  template<Qualification b, scalar_constant C, auto...constant> requires std::bool_constant<(C{constant...}, true)>::value
-  struct ScalarConstant<b, C, constant...>
+#if defined(__cpp_concepts) and defined(__cpp_impl_three_way_comparison)
+  template<scalar_constant C, auto...constant> requires std::bool_constant<(C{constant...}, true)>::value
+  struct ScalarConstant<C, constant...>
   {
     static constexpr auto value {get_scalar_constant_value(C{constant...})};
+
     using value_type = std::decay_t<decltype(value)>;
+
     using type = ScalarConstant;
-    static constexpr Qualification status = b;
+
     constexpr operator value_type() const noexcept { return value; }
+
     constexpr value_type operator()() const noexcept { return value; }
 
     constexpr ScalarConstant() = default;
@@ -98,17 +101,34 @@ namespace OpenKalman::internal
 
     template<scalar_constant<ConstantType::static_constant> T> requires (T::value == value)
     constexpr ScalarConstant& operator=(const T&) { return *this; }
+
+    template<scalar_constant A, scalar_constant B> requires
+    std::same_as<A, ScalarConstant> or std::same_as<B, ScalarConstant>
+    friend constexpr auto operator<=>(const A& a, const B& b)
+    {
+      if constexpr (std::same_as<A, ScalarConstant>) return value <=> get_scalar_constant_value(b);
+      else return get_scalar_constant_value(a) <=> value;
+    }
+
+    template<scalar_constant A, scalar_constant B> requires
+    std::same_as<A, ScalarConstant> or std::same_as<B, ScalarConstant>
+    friend constexpr auto operator==(const A& a, const B& b)
+    {
+      return std::is_eq(a <=> b);
+    }
   };
 
 
-  template<Qualification b, scalar_constant<ConstantType::dynamic_constant> C>
-  struct ScalarConstant<b, C>
+  template<scalar_constant<ConstantType::dynamic_constant> C>
+  struct ScalarConstant<C>
   {
     using value_type = std::decay_t<decltype(get_scalar_constant_value(std::declval<C>()))>;
+
     constexpr operator value_type() const noexcept { return value; }
+
     constexpr value_type operator()() const noexcept { return value; }
+
     using type = ScalarConstant;
-    static constexpr Qualification status = b;
 
     template<scalar_constant T>
     explicit constexpr ScalarConstant(const T& t) : value {get_scalar_constant_value(t)} {};
@@ -116,12 +136,26 @@ namespace OpenKalman::internal
     template<scalar_constant T>
     constexpr ScalarConstant& operator=(const T& t) { value = t; return *this; }
 
+    template<scalar_constant A, scalar_constant B> requires
+      std::same_as<A, ScalarConstant> or std::same_as<B, ScalarConstant>
+    friend constexpr auto operator<=>(const A& a, const B& b)
+    {
+      return get_scalar_constant_value(a) <=> get_scalar_constant_value(b);
+    }
+
+    template<scalar_constant A, scalar_constant B> requires
+    std::same_as<A, ScalarConstant> or std::same_as<B, ScalarConstant>
+    friend constexpr auto operator==(const A& a, const B& b)
+    {
+      return std::is_eq(a <=> b);
+    }
+
   private:
     value_type value;
   };
 #else
-  template<Qualification b, typename C, auto...constant>
-  struct ScalarConstant : detail::ScalarConstantImpl<ScalarConstant<b, C, constant...>, C, void, constant...>
+  template<typename C, auto...constant>
+  struct ScalarConstant : detail::ScalarConstantImpl<ScalarConstant<C, constant...>, C, void, constant...>
   {
   private:
     static_assert(scalar_constant<C>);
@@ -129,48 +163,66 @@ namespace OpenKalman::internal
   public:
     using Base::Base;
     using Base::operator=;
-    static constexpr Qualification status = b;
     using type = ScalarConstant;
+
+    template<typename A, typename B, std::enable_if_t<scalar_constant<A> and scalar_constant<B> and
+      (std::is_same_v<A, ScalarConstant> or std::is_same_v<B, ScalarConstant>), int> = 0>
+    friend constexpr auto operator==(const A& a, const B& b)
+    {
+      return get_scalar_constant_value(a) == get_scalar_constant_value(b);
+    }
+
+    template<typename A, typename B, std::enable_if_t<scalar_constant<A> and scalar_constant<B> and
+      (std::is_same_v<A, ScalarConstant> or std::is_same_v<B, ScalarConstant>), int> = 0>
+    friend constexpr auto operator!=(const A& a, const B& b)
+    {
+      return get_scalar_constant_value(a) != get_scalar_constant_value(b);
+    }
+
+    template<typename A, typename B, std::enable_if_t<scalar_constant<A> and scalar_constant<B> and
+      (std::is_same_v<A, ScalarConstant> or std::is_same_v<B, ScalarConstant>), int> = 0>
+    friend constexpr auto operator<(const A& a, const B& b)
+    {
+      return get_scalar_constant_value(a) < get_scalar_constant_value(b);
+    }
+
+    template<typename A, typename B, std::enable_if_t<scalar_constant<A> and scalar_constant<B> and
+      (std::is_same_v<A, ScalarConstant> or std::is_same_v<B, ScalarConstant>), int> = 0>
+    friend constexpr auto operator>(const A& a, const B& b)
+    {
+      return get_scalar_constant_value(a) > get_scalar_constant_value(b);
+    }
+
+    template<typename A, typename B, std::enable_if_t<scalar_constant<A> and scalar_constant<B> and
+      (std::is_same_v<A, ScalarConstant> or std::is_same_v<B, ScalarConstant>), int> = 0>
+    friend constexpr auto operator<=(const A& a, const B& b)
+    {
+      return get_scalar_constant_value(a) <= get_scalar_constant_value(b);
+    }
+
+    template<typename A, typename B, std::enable_if_t<scalar_constant<A> and scalar_constant<B> and
+      (std::is_same_v<A, ScalarConstant> or std::is_same_v<B, ScalarConstant>), int> = 0>
+    friend constexpr auto operator>=(const A& a, const B& b)
+    {
+      return get_scalar_constant_value(a) >= get_scalar_constant_value(b);
+    }
+
   };
 #endif
 
 
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct has_constant_status : std::false_type {};
-
-    template<typename T>
-    struct has_constant_status<T, std::enable_if_t<std::is_same_v<decltype(T::status), Qualification>>> : std::true_type {};
-  }
-#endif
-
-
   /**
    * \internal
-   * \brief Deduction guide for \ref ScalarConstant where T has a <code>status</code> member.
+   * \brief Deduction guide for \ref ScalarConstant where T is a scalar constant.
    */
 #ifdef __cpp_concepts
-  template<scalar_constant T> requires requires { {T::status} -> std::same_as<Qualification>; }
+  template<scalar_constant T>
 #else
-  template<typename T, std::enable_if_t<scalar_constant<T> and detail::has_constant_status<T>::value, int> = 0>
+  template<typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
 #endif
-  explicit ScalarConstant(const T&) -> ScalarConstant<T::status, std::decay_t<T>>;
+  explicit ScalarConstant(const T&) -> ScalarConstant<std::decay_t<T>>;
 
 
-  /**
-   * \internal
-   * \brief Deduction guide for \ref ScalarConstant where T does not have a <code>status</code> member.
-   */
-#ifdef __cpp_concepts
-  template<scalar_constant T> requires (not requires { {T::status} -> std::same_as<Qualification>; })
-#else
-  template<typename T, std::enable_if_t<scalar_constant<T> and not detail::has_constant_status<T>::value, int> = 0>
-#endif
-  explicit ScalarConstant(const T&) -> ScalarConstant<Qualification::unqualified, std::decay_t<T>>;
-
-
-} // namespace OpenKalman::internal
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_SCALARCONSTANT_HPP

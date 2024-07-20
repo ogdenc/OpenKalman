@@ -41,7 +41,7 @@ namespace OpenKalman
   template<typename T>
   struct dimension_difference_of<T, std::enable_if_t<fixed_vector_space_descriptor<T>>>
 #endif
-  { using type = typename interface::fixed_vector_space_descriptor_traits<std::decay_t<T>>::difference_type; };
+  { using type = typename fixed_vector_space_descriptor_traits<std::decay_t<T>>::difference_type; };
 
 
   /**

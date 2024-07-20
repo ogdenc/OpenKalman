@@ -141,26 +141,27 @@ namespace OpenKalman
     //  constexpr_n_ary_function //
     // ------------------------- //
 
+#ifndef __cpp_concepts
+    namespace detail
+    {
+      template<typename Op, typename Void, typename...Args>
+      struct is_constexpr_n_ary_function : std::false_type {};
+
+      template<typename Op, typename...Args>
+      struct is_constexpr_n_ary_function<Op, std::void_t<std::bool_constant<(Op{}(std::decay_t<Args>::value...), true)>>, Args...>
+        : std::true_type {};
+    } // namespace detail
+#endif
+
+
+    /**
+     * Operation Op is constexpr when applied to arguments Args
+     */
+    template<typename Op, typename...Args>
 #ifdef __cpp_concepts
-    template<typename Op, typename...Args>
-    struct is_constexpr_n_ary_function : std::false_type {};
-
-    template<typename Op, typename...Args>
-    requires requires { typename std::bool_constant<0 == Op{}(std::decay_t<Args>::value...)>; }
-    struct is_constexpr_n_ary_function<Op, Args...> : std::true_type {};
-
-    template<typename Op, typename...Args>
-    concept constexpr_n_ary_function = is_constexpr_n_ary_function<Op, Args...>::value;
+    concept constexpr_n_ary_function = requires { typename std::bool_constant<(Op{}(std::decay_t<Args>::value...), true)>; };
 #else
-    template<typename Op, typename = void, typename...Args>
-    struct is_constexpr_n_ary_function : std::false_type {};
-
-    template<typename Op, typename...Args>
-    struct is_constexpr_n_ary_function<Op, std::void_t<std::bool_constant<0 == Op{}(std::decay_t<Args>::value...)>>, Args...>
-      : std::true_type {};
-
-    template<typename Op, typename...Args>
-    constexpr bool constexpr_n_ary_function = is_constexpr_n_ary_function<Op, void, Args...>::value;
+    constexpr bool constexpr_n_ary_function = detail::is_constexpr_n_ary_function<Op, void, Args...>::value;
 #endif
 
 
@@ -180,12 +181,12 @@ namespace OpenKalman
      * \internal
      * \brief T is a non-empty tuple, pair, array, or other type that can be an argument to std::apply.
      */
-  #ifdef __cpp_concepts
+  #if defined(__cpp_concepts) and defined(__cpp_lib_remove_cvref)
     template<typename T>
-    concept tuple_like = (std::tuple_size_v<T> >= 0);
+    concept tuple_like = requires { typename std::tuple_size<std::remove_cvref<T>>; };
   #else
     template<typename T>
-    constexpr bool tuple_like = detail::is_tuple_like<T>::value;
+    constexpr bool tuple_like = detail::is_tuple_like<std::decay_t<T>>::value;
   #endif
 
 

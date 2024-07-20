@@ -35,6 +35,7 @@
 #include "internal/raw_data.hpp"
 #include "internal/strides.hpp"
 #include "internal/has_static_strides.hpp"
+#include "internal/truncate_indices.hpp"
 
 
 #endif //OPENKALMAN_PROPERTIES_FUNCTIONS_HPP

@@ -33,21 +33,21 @@ namespace OpenKalman
       euclidean_vector_space_descriptor<C>,
       std::conditional_t<
         dimension_size_of_v<C> == 1,
-        TypedIndex<Dimensions<1>>,
+        FixedDescriptor<Dimensions<1>>,
         replicate_fixed_vector_space_descriptor_t<Dimensions<1>, dimension_size_of_v<C>>>,
-      TypedIndex<C>>;
+      FixedDescriptor<C>>;
   };
 
 
   template<typename...Cs>
-  struct canonical_fixed_vector_space_descriptor<TypedIndex<TypedIndex<Cs...>>>
+  struct canonical_fixed_vector_space_descriptor<FixedDescriptor<FixedDescriptor<Cs...>>>
   {
-    using type = typename canonical_fixed_vector_space_descriptor<TypedIndex<Cs...>>::type;
+    using type = typename canonical_fixed_vector_space_descriptor<FixedDescriptor<Cs...>>::type;
   };
 
 
   template<typename...Cs>
-  struct canonical_fixed_vector_space_descriptor<TypedIndex<Cs...>>
+  struct canonical_fixed_vector_space_descriptor<FixedDescriptor<Cs...>>
   {
     using type = concatenate_fixed_vector_space_descriptor_t<typename canonical_fixed_vector_space_descriptor<Cs>::type...>;
   };

@@ -62,14 +62,19 @@ TEST(eigen3, Eigen_Reverse)
   static_assert(not diagonal_matrix<Eigen::Reverse<Cd22_2, Eigen::Vertical>>);
   static_assert(not diagonal_matrix<Eigen::Reverse<Cd22_2, Eigen::Horizontal>>);
 
-  static_assert(diagonal_matrix<Eigen::Reverse<DW21, Eigen::Horizontal>>);
-  static_assert(diagonal_matrix<Eigen::Reverse<DW21, Eigen::Vertical>>);
-  static_assert(diagonal_matrix<Eigen::Reverse<DW2x, Eigen::Horizontal>>);
-  static_assert(diagonal_matrix<Eigen::Reverse<DW2x, Eigen::Vertical>>);
-  static_assert(diagonal_matrix<Eigen::Reverse<DWx1, Eigen::Horizontal>>);
-  static_assert(diagonal_matrix<Eigen::Reverse<DWx1, Eigen::Vertical>>);
-  static_assert(diagonal_matrix<Eigen::Reverse<DWxx, Eigen::Horizontal>>);
-  static_assert(diagonal_matrix<Eigen::Reverse<DWxx, Eigen::Vertical>>);
+  static_assert(diagonal_matrix<Eigen::Reverse<DW21, Eigen::BothDirections>>);
+  static_assert(diagonal_matrix<Eigen::Reverse<DW2x, Eigen::BothDirections>>);
+  static_assert(diagonal_matrix<Eigen::Reverse<DWx1, Eigen::BothDirections>>);
+  static_assert(diagonal_matrix<Eigen::Reverse<DWxx, Eigen::BothDirections>>);
+
+  static_assert(not diagonal_matrix<Eigen::Reverse<DW21, Eigen::Horizontal>>);
+  static_assert(not diagonal_matrix<Eigen::Reverse<DW21, Eigen::Vertical>>);
+  static_assert(not diagonal_matrix<Eigen::Reverse<DW2x, Eigen::Horizontal>>);
+  static_assert(not diagonal_matrix<Eigen::Reverse<DW2x, Eigen::Vertical>>);
+  static_assert(not diagonal_matrix<Eigen::Reverse<DWx1, Eigen::Horizontal>>);
+  static_assert(not diagonal_matrix<Eigen::Reverse<DWx1, Eigen::Vertical>>);
+  static_assert(not diagonal_matrix<Eigen::Reverse<DWxx, Eigen::Horizontal>>);
+  static_assert(not diagonal_matrix<Eigen::Reverse<DWxx, Eigen::Vertical>>);
 
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>().reverse())>);
   static_assert(hermitian_matrix<Eigen::Reverse<C11_2, Eigen::Vertical>>);

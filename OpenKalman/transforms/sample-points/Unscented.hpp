@@ -142,13 +142,13 @@ namespace OpenKalman
     sigma_points_impl(const D& d, const Ds&...ds)
     {
       using Scalar = typename DistributionTraits<D>::Scalar;
-      using Coeffs = typename DistributionTraits<D>::TypedIndex;
+      using Coeffs = typename DistributionTraits<D>::FixedDescriptor;
       using M = typename DistributionTraits<D>::Mean;
       constexpr auto points_count = sigma_point_count<dim>;
       constexpr auto dim_i = index_dimension_of_v<D, 0>;
       constexpr auto frame_size = dim_i * 2;
       constexpr Scalar gamma_L = alpha * alpha * (Parameters::template kappa<dim> + dim);
-      const auto delta = make_matrix<Coeffs, Dimensions<dim_i>>(make_dense_object(square_root(gamma_L * covariance_of(d))));
+      const auto delta = make_matrix<Coeffs, Dimensions<dim_i>>(to_dense_object(square_root(gamma_L * covariance_of(d))));
 
       if constexpr(1 + frame_size == points_count)
       {

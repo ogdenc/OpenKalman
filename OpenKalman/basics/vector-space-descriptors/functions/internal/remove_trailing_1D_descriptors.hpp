@@ -25,21 +25,26 @@ namespace OpenKalman::internal
   /**
    * \internal
    * \brief Remove any trailing, one-dimensional \ref vector_space_descriptor objects.
+   * \return A tuple containing the resulting, potentially shortened, list of vector space descriptors
    */
 #ifdef __cpp_concepts
-  template<tuple_like DTup> requires tuple_like<std::decay_t<DTup>>
+  template<vector_space_descriptor...Ds>
 #else
-  template<typename DTup, std::enable_if_t<tuple_like<std::decay_t<DTup>>, int> = 0>
+  template<typename...Ds, std::enable_if_t<(... and vector_space_descriptor<Ds>), int> = 0>
 #endif
-  constexpr auto remove_trailing_1D_descriptors(DTup&& d_tup)
+  constexpr auto
+  remove_trailing_1D_descriptors(Ds&&...ds)
   {
-    constexpr auto N = std::tuple_size_v<DTup>;
+    constexpr auto N = sizeof...(Ds);
+    using Tup = std::tuple<Ds...>;
     if constexpr (N == 0)
-      return std::forward<DTup>(d_tup);
-    else if constexpr (equivalent_to<std::tuple_element_t<N - 1, std::decay_t<DTup>>, Dimensions<1>>)
-      return remove_trailing_1D_descriptors(tuple_slice<0, N - 1>(std::forward<DTup>(d_tup)));
+      return Tup {std::forward<Ds>(ds)...};
+    else if constexpr (equivalent_to<std::tuple_element_t<N - 1, Tup>, Dimensions<1>>)
+      return std::apply([](auto&&...ds2){
+        return remove_trailing_1D_descriptors(std::forward<decltype(ds2)>(ds2)...);
+      }, tuple_slice<0, N - 1>(std::forward_as_tuple(std::forward<Ds>(ds)...)));
     else
-      return std::forward<DTup>(d_tup);
+      return Tup {std::forward<Ds>(ds)...};
   }
 
 

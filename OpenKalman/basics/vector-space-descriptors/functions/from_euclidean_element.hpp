@@ -41,9 +41,9 @@ namespace OpenKalman
     if constexpr (euclidean_vector_space_descriptor<T_d>)
       return g(euclidean_start + local_index);
     else if constexpr (fixed_vector_space_descriptor<T_d>)
-      return interface::fixed_vector_space_descriptor_traits<T_d>::from_euclidean_element(g, local_index, euclidean_start);
+      return fixed_vector_space_descriptor_traits<T_d>::from_euclidean_element(g, local_index, euclidean_start);
     else
-      return interface::dynamic_vector_space_descriptor_traits<T_d>{t}.from_euclidean_element(g, local_index, euclidean_start);
+      return dynamic_vector_space_descriptor_traits<T_d>{t}.from_euclidean_element(g, local_index, euclidean_start);
   }
 
 

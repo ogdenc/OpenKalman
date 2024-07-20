@@ -48,13 +48,16 @@ namespace OpenKalman::internal
 #endif
   set_triangle(A&& a, B&& b)
   {
-    if constexpr (diagonal_adapter<A>)
+    if constexpr (diagonal_adapter<A> or diagonal_adapter<A, 1>)
     {
       static_assert(t == TriangleType::diagonal);
       using N = decltype(nested_object(a));
       if constexpr (writable<N> and std::is_lvalue_reference_v<N>)
       {
-        nested_object(a) = diagonal_of(std::forward<B>(b));
+        if constexpr (diagonal_adapter<A, 1>)
+          nested_object(a) = transpose(diagonal_of(std::forward<B>(b)));
+        else
+          nested_object(a) = diagonal_of(std::forward<B>(b));
         return std::forward<A>(a);
       }
       else
@@ -72,7 +75,7 @@ namespace OpenKalman::internal
       }
       else
       {
-        auto aw = make_dense_object(nested_object(std::forward<A>(a)));
+        auto aw = to_dense_object(nested_object(std::forward<A>(a)));
         set_triangle<t>(aw, std::forward<B>(b));
         return make_triangular_matrix<triangle_type_of_v<A>>(std::move(aw));
       }
@@ -102,13 +105,13 @@ namespace OpenKalman::internal
         return make_hermitian_matrix<HermitianAdapterType::lower>(std::forward<B>(b));
       }
     }
-    else if constexpr (interface::set_triangle_defined_for<std::decay_t<A>, t, A&&, B&&>)
+    else if constexpr (interface::set_triangle_defined_for<A, t, A&&, B&&>)
     {
       return interface::library_interface<std::decay_t<A>>::template set_triangle<t>(std::forward<A>(a), std::forward<B>(b));
     }
     else
     {
-      decltype(auto) aw = make_dense_object(std::forward<A>(a));
+      decltype(auto) aw = to_dense_object(std::forward<A>(a));
 
       if constexpr (t == TriangleType::upper)
       {

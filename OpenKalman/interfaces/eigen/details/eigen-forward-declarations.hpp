@@ -24,41 +24,50 @@ namespace OpenKalman::Eigen3
 
   /**
    * \internal
-   * \brief Traits for n-ary functors (n>0).
-   * \tparam Operation The n-ary operation.
-   * \tparam XprTypes Any argument types.
-   * \sa NullaryFunctorTraits
+   * \brief Traits for nullary functors.
+   * \tparam Operation The nullary operation.
+   * \tparam PlainObjectType A matrix for which the shape of the result is based.
    */
-  template<typename Operation, typename...XprTypes>
-  struct FunctorTraits
-  {
-    /**
-     * \brief Return a scalar constant or std::monostate
-     * \tparam is_diag True if \ref constant_diagonal_coefficient, false if \ref constant_coefficient.
-     * \return \ref scalar_constant
-     */
-    template<bool is_diag, typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
-    {
-      return std::monostate {};
-    }
+  template<typename NullaryOp, typename PlainObjectType>
+  struct NullaryFunctorTraits;
 
-    template<TriangleType t>
-    static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = false;
+  /**
+   * \internal
+   * \brief Traits for unary functors.
+   * \tparam Operation The unary operation.
+   */
+  template<typename Operation>
+  struct UnaryFunctorTraits;
+
+
+  /**
+   * \internal
+   * \brief The type of binary functor.
+   */
+  enum struct BinaryFunctorType: int {
+    normal, ///< A normal binary functor.
+    sum, ///< The result of the operation is triangular if the arguments are either both upper- or both lower-triangular.
+    product, ///< The result of the operation is triangular if either argument is triangular.
   };
 
 
   /**
    * \internal
-   * \brief Traits for nullary functors (n>0).
-   * \tparam Operation The n-ary operation.
-   * \tparam XprTypes Any argument types.
-   * \sa FunctorTraits
+   * \brief Traits for binary functors.
+   * \tparam Operation The binary operation.
    */
-  template<typename NullaryOp, typename PlainObjectType>
-  struct NullaryFunctorTraits;
+  template<typename Operation>
+  struct BinaryFunctorTraits;
+
+
+  /**
+   * \internal
+   * \brief Traits for ternary functors.
+   * \tparam Operation The ternary operation.
+   */
+  template<typename Operation, typename Arg1, typename Arg2, typename Arg3>
+  struct TernaryFunctorTraits;
 
 
   /**
@@ -75,10 +84,9 @@ namespace OpenKalman::Eigen3
    * \brief The ultimate base for Eigen-based adapter classes in OpenKalman.
    * \details This class adds base features required by Eigen.
    * \tparam Derived The Derived object
-   * \tparam NestedMatrix
    * \tparam Base The Eigen Base (e.g., <code>Eigen::MatrixBase</code>, <code>Eigen::ArrayBase</code>, etc.)
    */
-  template<typename Derived, typename NestedMatrix, typename Base>
+  template<typename Derived, typename Base>
   struct EigenAdapterBase;
 
 
@@ -89,137 +97,145 @@ namespace OpenKalman::Eigen3
   namespace detail
   {
     template<typename T>
-    struct is_eigen_Block : std::false_type {};
+    struct is_ArrayWrapper : std::false_type {};
+
+    template<typename XprType>
+    struct is_ArrayWrapper<Eigen::ArrayWrapper<XprType>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief T is of type Eigen::ArrayWrapper.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_ArrayWrapper =
+#else
+  constexpr bool eigen_ArrayWrapper =
+#endif
+    detail::is_ArrayWrapper<std::decay_t<T>>::value;
+
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_Block : std::false_type {};
 
     template<typename XprType, int BlockRows, int BlockCols, bool InnerPanel>
-    struct is_eigen_Block<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>> : std::true_type {};
+    struct is_Block<Eigen::Block<XprType, BlockRows, BlockCols, InnerPanel>> : std::true_type {};
+  }
 
 
+  /**
+   * \brief Specifies whether T is Eigen::Block
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_Block =
+#else
+  constexpr bool eigen_Block =
+#endif
+    detail::is_Block<std::decay_t<T>>::value;
+
+
+  namespace detail
+  {
     template<typename T>
-    struct is_eigen_VectorBlock : std::false_type {};
+    struct is_CwiseUnaryOp : std::false_type {};
 
-    template<typename T, int Size>
-    struct is_eigen_VectorBlock<Eigen::VectorBlock<T, Size>> : std::true_type {};
+    template<typename UnaryOp, typename XprType>
+    struct is_CwiseUnaryOp<Eigen::CwiseUnaryOp<UnaryOp, XprType>> : std::true_type {};
+  }
 
 
+  /**
+   * \brief Specifies whether T is Eigen::CwiseUnaryOp
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_CwiseUnaryOp =
+#else
+  constexpr bool eigen_CwiseUnaryOp =
+#endif
+    detail::is_CwiseUnaryOp<std::decay_t<T>>::value;
+
+
+  namespace detail
+  {
     template<typename T>
-    struct is_eigen_SelfAdjointView : std::false_type {};
+    struct is_CwiseUnaryView : std::false_type {};
 
-    template<typename MatrixType, unsigned int UpLo>
-    struct is_eigen_SelfAdjointView<Eigen::SelfAdjointView<MatrixType, UpLo>> : std::true_type {};
+    template<typename ViewOp, typename XprType>
+    struct is_CwiseUnaryView<Eigen::CwiseUnaryView<ViewOp, XprType>> : std::true_type {};
+  }
 
 
+  /**
+   * \brief Specifies whether T is Eigen::CwiseUnaryView
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_CwiseUnaryView =
+#else
+  constexpr bool eigen_CwiseUnaryView =
+#endif
+  detail::is_CwiseUnaryView<std::decay_t<T>>::value;
+
+
+  namespace detail
+  {
     template<typename T>
-    struct is_eigen_TriangularView : std::false_type {};
-
-    template<typename MatrixType, unsigned int UpLo>
-    struct is_eigen_TriangularView<Eigen::TriangularView<MatrixType, UpLo>> : std::true_type {};
-
-
-    template<typename T>
-    struct is_eigen_DiagonalMatrix : std::false_type {};
+    struct is_DiagonalMatrix : std::false_type {};
 
     template<typename Scalar, int SizeAtCompileTime, int MaxSizeAtCompileTime>
-    struct is_eigen_DiagonalMatrix<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
+    struct is_DiagonalMatrix<Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>>
       : std::true_type {};
+  }
 
 
+  /**
+   * \brief T is of type Eigen::DiagonalMatrix.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_DiagonalMatrix =
+#else
+  constexpr bool eigen_DiagonalMatrix =
+#endif
+    detail::is_DiagonalMatrix<std::decay_t<T>>::value;
+
+
+  namespace detail
+  {
     template<typename T>
-    struct is_eigen_DiagonalWrapper : std::false_type {};
+    struct is_DiagonalWrapper : std::false_type {};
 
     template<typename DiagonalVectorType>
-    struct is_eigen_DiagonalWrapper<Eigen::DiagonalWrapper<DiagonalVectorType>> : std::true_type {};
+    struct is_DiagonalWrapper<Eigen::DiagonalWrapper<DiagonalVectorType>> : std::true_type {};
+  }
 
 
+  /**
+   * \brief T is of type Eigen::DiagonalMatrix.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_DiagonalWrapper =
+#else
+  constexpr bool eigen_DiagonalWrapper =
+#endif
+    detail::is_DiagonalWrapper<std::decay_t<T>>::value;
+
+
+  namespace detail
+  {
     template<typename T>
     struct is_eigen_Identity : std::false_type {};
 
     template<typename Scalar, typename Arg>
     struct is_eigen_Identity<Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<Scalar>, Arg>>
       : std::true_type {};
-
-
-    template<typename T>
-    struct is_eigen_MatrixWrapper : std::false_type {};
-
-    template<typename XprType>
-    struct is_eigen_MatrixWrapper<Eigen::MatrixWrapper<XprType>> : std::true_type {};
-
-
-    template<typename T>
-    struct is_eigen_ArrayWrapper : std::false_type {};
-
-    template<typename XprType>
-    struct is_eigen_ArrayWrapper<Eigen::ArrayWrapper<XprType>> : std::true_type {};
   }
-
-
-    /**
-     * \brief Specifies whether T is Eigen::Block
-     */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept eigen_block =
-#else
-  constexpr bool eigen_block =
-#endif
-    detail::is_eigen_Block<std::decay_t<T>>::value;
-
-
-  /**
-   * \brief Specifies whether T is Eigen::VectorBlock
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept eigen_VectorBlock =
-#else
-  constexpr bool eigen_VectorBlock =
-#endif
-    detail::is_eigen_VectorBlock<std::decay_t<T>>::value;
-
-
-  /**
-   * \brief T is of type Eigen::SelfAdjointView.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept eigen_SelfAdjointView = detail::is_eigen_SelfAdjointView<std::decay_t<T>>::value;
-#else
-  constexpr bool eigen_SelfAdjointView = detail::is_eigen_SelfAdjointView<std::decay_t<T>>::value;
-#endif
-
-
-  /**
-   * \brief T is of type Eigen::TriangularView.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept eigen_TriangularView = detail::is_eigen_TriangularView<std::decay_t<T>>::value;
-#else
-  constexpr bool eigen_TriangularView = detail::is_eigen_TriangularView<std::decay_t<T>>::value;
-#endif
-
-
-  /**
-   * \brief T is of type Eigen::DiagonalMatrix.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept eigen_DiagonalMatrix = detail::is_eigen_DiagonalMatrix<std::decay_t<T>>::value;
-#else
-  constexpr bool eigen_DiagonalMatrix = detail::is_eigen_DiagonalMatrix<std::decay_t<T>>::value;
-#endif
-
-
-  /**
-   * \brief T is of type Eigen::DiagonalMatrix.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept eigen_DiagonalWrapper = detail::is_eigen_DiagonalWrapper<std::decay_t<T>>::value;
-#else
-  constexpr bool eigen_DiagonalWrapper = detail::is_eigen_DiagonalWrapper<std::decay_t<T>>::value;
-#endif
 
 
   /**
@@ -233,8 +249,18 @@ namespace OpenKalman::Eigen3
 #endif
 
 
+  namespace detail
+  {
+    template<typename T>
+    struct is_eigen_MatrixWrapper : std::false_type {};
+
+    template<typename XprType>
+    struct is_eigen_MatrixWrapper<Eigen::MatrixWrapper<XprType>> : std::true_type {};
+  }
+
+
   /**
-   * \brief T is of type Eigen::DiagonalMatrix.
+   * \brief T is of type Eigen::MatrixWrapper.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -244,15 +270,138 @@ namespace OpenKalman::Eigen3
 #endif
 
 
+  namespace detail
+  {
+    template<typename T>
+    struct is_eigen_Replicate : std::false_type {};
+
+    template<typename MatrixType, int RowFactor, int ColFactor>
+    struct is_eigen_Replicate<Eigen::Replicate<MatrixType, RowFactor, ColFactor>> : std::true_type
+    {
+    private:
+
+      template<std::size_t direction>
+      static constexpr std::size_t efactor = direction == 1 ? ColFactor : RowFactor;
+
+    public:
+
+      template<std::size_t direction>
+      static constexpr std::size_t factor = efactor<direction> == Eigen::Dynamic ? dynamic_size : efactor<direction>;
+    };
+  }
+
+
   /**
-   * \brief T is of type Eigen::DiagonalMatrix.
+   * \brief T is of type Eigen::Replicate.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept eigen_ArrayWrapper = detail::is_eigen_ArrayWrapper<std::decay_t<T>>::value;
+  concept eigen_Replicate =
 #else
-  constexpr bool eigen_ArrayWrapper = detail::is_eigen_ArrayWrapper<std::decay_t<T>>::value;
+  constexpr bool eigen_Replicate =
 #endif
+    detail::is_eigen_Replicate<std::decay_t<T>>::value;
+
+
+  /**
+   * \brief The replication factor for Eigen::Replicate in a given direction.
+   */
+  template<typename T, std::size_t direction>
+  struct eigen_Replicate_factor
+    : std::integral_constant<std::size_t, detail::is_eigen_Replicate<std::decay_t<T>>::template factor<direction>> {};
+
+
+  /**
+   * \brief Helper template for eigen_Replicate_factor.
+   */
+  template<typename T, std::size_t direction>
+  constexpr auto eigen_Replicate_factor_v = eigen_Replicate_factor<T, direction>::value;
+
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_eigen_SelfAdjointView : std::false_type {};
+
+    template<typename MatrixType, unsigned int UpLo>
+    struct is_eigen_SelfAdjointView<Eigen::SelfAdjointView<MatrixType, UpLo>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief T is of type Eigen::SelfAdjointView.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_SelfAdjointView = detail::is_eigen_SelfAdjointView<std::decay_t<T>>::value;
+#else
+  constexpr bool eigen_SelfAdjointView = detail::is_eigen_SelfAdjointView<std::decay_t<T>>::value;
+#endif
+
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_eigen_TriangularView : std::false_type {};
+
+    template<typename MatrixType, unsigned int UpLo>
+    struct is_eigen_TriangularView<Eigen::TriangularView<MatrixType, UpLo>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief T is of type Eigen::TriangularView.
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_TriangularView = detail::is_eigen_TriangularView<std::decay_t<T>>::value;
+#else
+  constexpr bool eigen_TriangularView = detail::is_eigen_TriangularView<std::decay_t<T>>::value;
+#endif
+
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_eigen_VectorBlock : std::false_type {};
+
+    template<typename T, int Size>
+    struct is_eigen_VectorBlock<Eigen::VectorBlock<T, Size>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief Specifies whether T is Eigen::VectorBlock
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_VectorBlock =
+#else
+  constexpr bool eigen_VectorBlock =
+#endif
+  detail::is_eigen_VectorBlock<std::decay_t<T>>::value;
+
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_eigen_SelfContainedWrapper : std::false_type {};
+
+    template<typename BaseObject, typename...InternalizedParameters>
+    struct is_eigen_SelfContainedWrapper<OpenKalman::internal::SelfContainedWrapper<BaseObject, InternalizedParameters...>> : std::true_type {};
+  }
+
+
+  /**
+   * \brief Specifies whether T is internal::SelfContainedWrapper
+   */
+  template<typename T>
+#ifdef __cpp_concepts
+  concept eigen_SelfContainedWrapper =
+#else
+  constexpr bool eigen_SelfContainedWrapper =
+#endif
+    detail::is_eigen_SelfContainedWrapper<std::decay_t<T>>::value;
 
 
   /**
@@ -265,18 +414,23 @@ namespace OpenKalman::Eigen3
 #else
   constexpr bool eigen_general =
 #endif
-    (std::is_base_of_v<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>> or eigen_VectorBlock<T>) and
-    (not must_be_native or not std::is_base_of_v<EigenCustomBase, std::decay_t<T>>);
+    ((std::is_base_of_v<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>> or eigen_VectorBlock<T>) and
+      (not must_be_native or not std::is_base_of_v<EigenCustomBase, std::decay_t<T>>)) or
+    (not must_be_native and eigen_SelfContainedWrapper<T>);
 
 
   namespace detail
   {
     template<typename T>
-    struct is_eigen_matrix_VectorBlock : std::false_type {};
+    struct is_derived_eigen_matrix : std::false_type {};
 
     template<typename T, int Size>
-    struct is_eigen_matrix_VectorBlock<Eigen::VectorBlock<T, Size>>
+    struct is_derived_eigen_matrix<Eigen::VectorBlock<T, Size>>
       : std::is_base_of<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> {};
+
+    template<typename BaseObject, typename...InternalizedParameters>
+    struct is_derived_eigen_matrix<OpenKalman::internal::SelfContainedWrapper<BaseObject, InternalizedParameters...>>
+      : std::is_base_of<Eigen::MatrixBase<BaseObject>, BaseObject> {};
   }
 
 
@@ -291,17 +445,21 @@ namespace OpenKalman::Eigen3
   constexpr bool eigen_matrix_general =
 #endif
     (eigen_general<T, must_be_native> and std::is_base_of_v<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>>) or
-      detail::is_eigen_matrix_VectorBlock<std::decay_t<T>>::value;
+      detail::is_derived_eigen_matrix<std::decay_t<T>>::value;
 
 
   namespace detail
   {
     template<typename T>
-    struct is_eigen_array_VectorBlock : std::false_type {};
+    struct is_derived_eigen_array : std::false_type {};
 
     template<typename T, int Size>
-    struct is_eigen_array_VectorBlock<Eigen::VectorBlock<T, Size>>
+    struct is_derived_eigen_array<Eigen::VectorBlock<T, Size>>
       : std::is_base_of<Eigen::ArrayBase<std::decay_t<T>>, std::decay_t<T>> {};
+
+    template<typename BaseObject, typename...InternalizedParameters>
+    struct is_derived_eigen_array<OpenKalman::internal::SelfContainedWrapper<BaseObject, InternalizedParameters...>>
+      : std::is_base_of<Eigen::ArrayBase<BaseObject>, BaseObject> {};
   }
 
 
@@ -316,7 +474,7 @@ namespace OpenKalman::Eigen3
   constexpr bool eigen_array_general =
 #endif
     (eigen_general<T, must_be_native> and std::is_base_of_v<Eigen::ArrayBase<std::decay_t<T>>, std::decay_t<T>>) or
-      detail::is_eigen_array_VectorBlock<std::decay_t<T>>::value;
+      detail::is_derived_eigen_array<std::decay_t<T>>::value;
 
 
   /**
@@ -376,8 +534,18 @@ namespace OpenKalman::Eigen3
 #else
   template<typename NestedObject>
 #endif
-  using EigenWrapper = internal::LibraryWrapper<NestedObject, typename Eigen::internal::plain_matrix_type_dense<
-    std::decay_t<NestedObject>, Eigen::MatrixXpr, Eigen::internal::traits<std::decay_t<NestedObject>>::Flags>::type>;
+  using EigenWrapper = internal::LibraryWrapper<NestedObject,
+    std::conditional_t<eigen_array_general<NestedObject>,
+      Eigen::Array<
+        scalar_type_of_t<NestedObject>,
+        dynamic_dimension<NestedObject, 0> ? Eigen::Dynamic : static_cast<int>(index_dimension_of_v<NestedObject, 0>),
+        dynamic_dimension<NestedObject, 1> ? Eigen::Dynamic : static_cast<int>(index_dimension_of_v<NestedObject, 1>),
+        layout_of_v<NestedObject> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor>,
+      Eigen::Matrix<
+        scalar_type_of_t<NestedObject>,
+        dynamic_dimension<NestedObject, 0> ? Eigen::Dynamic : static_cast<int>(index_dimension_of_v<NestedObject, 0>),
+        dynamic_dimension<NestedObject, 1> ? Eigen::Dynamic : static_cast<int>(index_dimension_of_v<NestedObject, 1>),
+        layout_of_v<NestedObject> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor>>>;
 
 
   namespace detail
@@ -423,7 +591,6 @@ namespace OpenKalman::Eigen3
   using eigen_matrix_t = std::conditional_t<sizeof...(dims) == 1,
     Eigen::Matrix<Scalar, detail::eigen_index_convert<dims>..., detail::eigen_index_convert<1>>,
     Eigen::Matrix<Scalar, detail::eigen_index_convert<dims>...>>;
-
 
 
   /**

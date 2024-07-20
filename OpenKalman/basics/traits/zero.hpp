@@ -37,8 +37,8 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept zero = (constant_matrix<T, ConstantType::static_constant> and internal::are_within_tolerance(constant_coefficient_v<T>, 0)) or
-    (one_dimensional<T> and constant_diagonal_matrix<T, ConstantType::static_constant> and internal::are_within_tolerance(constant_diagonal_coefficient_v<T>, 0));
+  concept zero =
+    constant_matrix<T, ConstantType::static_constant> and internal::are_within_tolerance(constant_coefficient_v<T>, 0);
 #else
   constexpr bool zero = detail::is_zero<T>::value;
 #endif

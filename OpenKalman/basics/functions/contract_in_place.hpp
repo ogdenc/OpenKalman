@@ -51,7 +51,7 @@ namespace OpenKalman
     else if constexpr (diagonal_adapter<A> and diagonal_matrix<B>)
     {
       using Scalar = std::decay_t<decltype(std::declval<scalar_type_of_t<A>>() * std::declval<scalar_type_of_t<B>>())>;
-      internal::set_triangle<TriangleType::diagonal>(a, n_ary_operation(std::multiplies<Scalar>{}, diagonal_of(a), diagonal_of(std::forward<B>(b))));
+      internal::set_triangle<TriangleType::diagonal>(a, to_diagonal(n_ary_operation(std::multiplies<Scalar>{}, diagonal_of(a), diagonal_of(std::forward<B>(b)))));
       return a;
     }
     else if constexpr (triangular_adapter<A> and triangle_type_of_v<A> == triangle_type_of_v<A, B>)
@@ -59,7 +59,7 @@ namespace OpenKalman
       internal::set_triangle<triangle_type_of_v<A>>(a, contract(a, std::forward<B>(b)));
       return a;
     }
-    else if constexpr (interface::contract_in_place_defined_for<std::decay_t<A>, on_the_right, A&, B&&>)
+    else if constexpr (interface::contract_in_place_defined_for<A, on_the_right, A&, B&&>)
     {
       return interface::library_interface<std::decay_t<A>>::template contract_in_place<on_the_right>(a, std::forward<B>(b));
     }

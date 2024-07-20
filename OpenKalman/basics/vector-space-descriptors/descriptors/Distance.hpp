@@ -20,7 +20,7 @@
 #include <array>
 #include <functional>
 
-namespace OpenKalman
+namespace OpenKalman::vector_space_descriptors
 {
   /**
    * \struct Distance
@@ -41,111 +41,104 @@ namespace OpenKalman
 #endif
 
 
-  namespace interface
+  /**
+   * \internal
+   * \brief traits for Distance.
+   */
+  template<>
+  struct fixed_vector_space_descriptor_traits<Distance>
   {
-    /**
-     * \internal
-     * \brief traits for Distance.
+    static constexpr std::size_t size = 1;
+    static constexpr std::size_t euclidean_size = 1;
+    static constexpr std::size_t component_count = 1;
+    using difference_type = Dimensions<1>;
+    static constexpr bool always_euclidean = false;
+
+    /*
+     * \brief Maps an element to positive coordinates in 1D Euclidean space.
+     * \param euclidean_local_index This is assumed to be 0.
      */
-    template<>
-    struct fixed_vector_space_descriptor_traits<Distance>
+#ifdef __cpp_concepts
+    static constexpr scalar_type auto
+    to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start)
+    requires requires (std::size_t i){ {g(i)} -> scalar_type; }
+#else
+    template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    static constexpr auto
+    to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start)
+#endif
     {
-      static constexpr std::size_t size = 1;
-      static constexpr std::size_t euclidean_size = 1;
-      static constexpr std::size_t component_count = 1;
-      using difference_type = Dimensions<1>;
-      static constexpr bool always_euclidean = false;
+      return g(start);
+    }
 
-      static constexpr bool operations_defined = true;
 
-      /*
-       * \brief Maps an element to positive coordinates in 1D Euclidean space.
-       * \param euclidean_local_index This is assumed to be 0.
-       */
+    /*
+     * \brief Maps a coordinate in positive 1D Euclidean space to an element.
+     * \details The resulting distance should always be positive, so this function takes the absolute value.
+     * \param local_index This is assumed to be 0.
+     */
 #ifdef __cpp_concepts
-      static constexpr scalar_type auto
-      to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start)
-      requires requires (std::size_t i){ {g(i)} -> scalar_type; }
+    static constexpr scalar_type auto
+    from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start)
+    requires requires (std::size_t i){ {g(i)} -> scalar_type; }
 #else
-      template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
-      static constexpr auto
-      to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start)
+    template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    static constexpr auto
+    from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start)
 #endif
-      {
-        return g(start);
-      }
+    {
+      auto x = g(euclidean_start);
+      // The distance component may need to be wrapped to the positive half of the real axis:
+      using std::abs;
+      return internal::update_real_part(x, abs(internal::constexpr_real(x)));
+    }
 
 
-      /*
-       * \brief Maps a coordinate in positive 1D Euclidean space to an element.
-       * \details The resulting distance should always be positive, so this function takes the absolute value.
-       * \param local_index This is assumed to be 0.
-       */
+    /*
+     * \details The wrapping operation is equivalent to taking the absolute value.
+     * \param local_index This is assumed to be 0.
+     */
 #ifdef __cpp_concepts
-      static constexpr scalar_type auto
-      from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start)
-      requires requires (std::size_t i){ {g(i)} -> scalar_type; }
+    static constexpr scalar_type auto
+    get_wrapped_component(const auto& g, std::size_t local_index, std::size_t start)
+    requires requires (std::size_t i){ {g(i)} -> scalar_type; }
 #else
-      template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
-      static constexpr auto
-      from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start)
+    template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    static constexpr auto
+    get_wrapped_component(const G& g, std::size_t local_index, std::size_t start)
 #endif
-      {
-        auto x = g(euclidean_start);
-        // The distance component may need to be wrapped to the positive half of the real axis:
-        using std::abs;
-        return internal::update_real_part(x, abs(internal::constexpr_real(x)));
-      }
+    {
+      auto x = g(start);
+      using std::abs;
+      return internal::update_real_part(x, abs(internal::constexpr_real(x)));
+    }
 
 
-      /*
-       * \details The wrapping operation is equivalent to taking the absolute value.
-       * \param local_index This is assumed to be 0.
-       */
+    /*
+     * \details The operation is equivalent to setting and then changing to the absolute value.
+     * \param local_index This is assumed to be 0.
+     */
 #ifdef __cpp_concepts
-      static constexpr scalar_type auto
-      get_wrapped_component(const auto& g, std::size_t local_index, std::size_t start)
-      requires requires (std::size_t i){ {g(i)} -> scalar_type; }
+    static constexpr void
+    set_wrapped_component(const auto& s, const auto& g,
+      const std::decay_t<std::invoke_result_t<decltype(g), std::size_t>>& x, std::size_t local_index, std::size_t start)
+    requires requires (std::size_t i){ s(x, i); {x} -> scalar_type; }
 #else
-      template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
-      static constexpr auto
-      get_wrapped_component(const G& g, std::size_t local_index, std::size_t start)
+    template<typename S, typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type> and
+      std::is_invocable<S, typename std::invoke_result<G, std::size_t>::type, std::size_t>::value, int> = 0>
+    static constexpr void
+    set_wrapped_component(const S& s, const G& g, const std::decay_t<typename std::invoke_result<G, std::size_t>::type>& x,
+      std::size_t local_index, std::size_t start)
 #endif
-      {
-        auto x = g(start);
-        using std::abs;
-        return internal::update_real_part(x, abs(internal::constexpr_real(x)));
-      }
+    {
+      using std::abs;
+      s(internal::update_real_part(x, abs(internal::constexpr_real(x))), start);
+    }
+
+  };
 
 
-      /*
-       * \details The operation is equivalent to setting and then changing to the absolute value.
-       * \param local_index This is assumed to be 0.
-       */
-#ifdef __cpp_concepts
-      static constexpr void
-      set_wrapped_component(const auto& s, const auto& g,
-        const std::decay_t<std::invoke_result_t<decltype(g), std::size_t>>& x, std::size_t local_index, std::size_t start)
-      requires requires (std::size_t i){ s(x, i); {x} -> scalar_type; }
-#else
-      template<typename S, typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type> and
-        std::is_invocable<S, typename std::invoke_result<G, std::size_t>::type, std::size_t>::value, int> = 0>
-      static constexpr void
-      set_wrapped_component(const S& s, const G& g, const std::decay_t<typename std::invoke_result<G, std::size_t>::type>& x,
-        std::size_t local_index, std::size_t start)
-  #endif
-      {
-        using std::abs;
-        s(internal::update_real_part(x, abs(internal::constexpr_real(x))), start);
-      }
-
-    };
-
-
-  } // namespace interface
-
-
-} // namespace OpenKalman
+} // namespace OpenKalman::vector_space_descriptors
 
 
 #endif //OPENKALMAN_DISTANCE_HPP

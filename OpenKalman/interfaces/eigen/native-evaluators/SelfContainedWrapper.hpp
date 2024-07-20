@@ -24,6 +24,7 @@ namespace Eigen::internal
   struct evaluator<OpenKalman::internal::SelfContainedWrapper<T, Ps...>> : evaluator<std::decay_t<T>>
   {
     using XprType = OpenKalman::internal::SelfContainedWrapper<T, Ps...>;
+
     explicit evaluator(const XprType& t) : evaluator<std::decay_t<T>> {t.nested_object()} {}
   };
 

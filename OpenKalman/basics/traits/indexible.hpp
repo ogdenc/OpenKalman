@@ -31,7 +31,7 @@ namespace OpenKalman
 #else
   constexpr bool indexible =
 #endif
-    interface::count_indices_defined_for<T>;
+    interface::count_indices_defined_for<std::decay_t<T>>;
 
 
 } // namespace OpenKalman

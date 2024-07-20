@@ -32,10 +32,10 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(index_count_v<M20> == 2);
   static_assert(index_count_v<M02> == 2);
 
-  static_assert(index_count_v<internal::FixedSizeAdapter<const Mxx, Dimensions<2>, Dimensions<2>>> == 2);
-  static_assert(index_count_v<internal::FixedSizeAdapter<const Mxx, Dimensions<2>, Dimensions<1>>> == 1);
-  static_assert(index_count_v<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, Dimensions<2>>> == 2);
-  static_assert(index_count_v<internal::FixedSizeAdapter<const Mxx, Dimensions<1>, Dimensions<1>>> == 0);
+  static_assert(index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx, Dimensions<2>, Dimensions<2>>> == 2);
+  static_assert(index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx, Dimensions<2>, Dimensions<1>>> == 1);
+  static_assert(index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx, Dimensions<1>, Dimensions<2>>> == 2);
+  static_assert(index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx, Dimensions<1>, Dimensions<1>>> == 0);
 
   // The orders of these empty matrices are considered to be 0 for now:
   static_assert(max_tensor_order_v<M00> == 0);
@@ -80,10 +80,10 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(dynamic_index_count_v<Mx2> == 1);
   static_assert(dynamic_index_count_v<Mxx> == 2);
 
-  static_assert(dynamic_index_count_v<internal::FixedSizeAdapter<const Mxx, Dimensions<2>, Dimensions<2>>> == 0);
-  static_assert(dynamic_index_count_v<internal::FixedSizeAdapter<const Mxx, Dimensions<2>, std::size_t>> == 1);
-  static_assert(dynamic_index_count_v<internal::FixedSizeAdapter<const Mxx, std::size_t, std::size_t>> == 2);
-  static_assert(dynamic_index_count_v<internal::FixedSizeAdapter<const Mxx>> == 0);
+  static_assert(dynamic_index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx, Dimensions<2>, Dimensions<2>>> == 0);
+  static_assert(dynamic_index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx, Dimensions<2>, std::size_t>> == 1);
+  static_assert(dynamic_index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx, std::size_t, std::size_t>> == 2);
+  static_assert(dynamic_index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx>> == 0);
 
   static_assert(std::is_same_v<dense_writable_matrix_t<M33>, M33>);
   static_assert(std::is_same_v<dense_writable_matrix_t<M3x>, M3x>);
@@ -119,25 +119,25 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(element_gettable<M1x, 2>);
   static_assert(element_gettable<Mxx, 2>);
 
-  static_assert(element_settable<M32, 2>);
-  static_assert(element_settable<M32&&, 2>);
-  static_assert(not element_settable<const M32&, 2>);
-  static_assert(element_settable<M31&, 2>);
-  static_assert(element_settable<M13&, 2>);
-  static_assert(element_settable<M3x&, 2>);
-  static_assert(element_settable<Mx2&, 2>);
-  static_assert(element_settable<Mx1&, 2>);
-  static_assert(element_settable<M1x&, 2>);
-  static_assert(element_settable<Mxx&, 2>);
+  static_assert(writable_by_component<M32>);
+  static_assert(writable_by_component<M32&&>);
+  static_assert(not writable_by_component<const M32&>);
+  static_assert(writable_by_component<M31&>);
+  static_assert(writable_by_component<M13&>);
+  static_assert(writable_by_component<M3x&>);
+  static_assert(writable_by_component<Mx2&>);
+  static_assert(writable_by_component<Mx1&>);
+  static_assert(writable_by_component<M1x&>);
+  static_assert(writable_by_component<Mxx&>);
 
-  static_assert(element_settable<M32&, 2>);
-  static_assert(element_settable<M31&, 1>);
-  static_assert(element_settable<M13&, 2>);
-  static_assert(not element_settable<const M31&, 1>);
-  static_assert(element_settable<Mx2&, 2>);
-  static_assert(element_settable<Mx1&, 1>);
-  static_assert(element_settable<M1x&, 2>);
-  static_assert(element_settable<Mxx&, 2>);
+  static_assert(writable_by_component<M32&, std::vector<std::size_t>>);
+  static_assert(writable_by_component<M31&, std::vector<std::size_t>>);
+  static_assert(writable_by_component<M13&, std::vector<std::size_t>>);
+  static_assert(not writable_by_component<const M31&, std::vector<std::size_t>>);
+  static_assert(writable_by_component<Mx2&, std::vector<std::size_t>>);
+  static_assert(writable_by_component<Mx1&, std::vector<std::size_t>>);
+  static_assert(writable_by_component<M1x&, std::vector<std::size_t>>);
+  static_assert(writable_by_component<Mxx&, std::vector<std::size_t>>);
 
   M22 m22; m22 << 1, 2, 3, 4;
   M23 m23; m23 << 1, 2, 3, 4, 5, 6;
@@ -162,8 +162,8 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(equivalent_to<vector_space_descriptor_of_t<M11, 1>, Axis>);
   static_assert(std::is_same_v<vector_space_descriptor_of<M22, 0>::type, Dimensions<2>>);
   static_assert(std::is_same_v<vector_space_descriptor_of<M22, 1>::type, Dimensions<2>>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<M22, 0>, TypedIndex<Axis, Axis>>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<M22, 1>, TypedIndex<Axis, Axis>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<M22, 0>, FixedDescriptor<Axis, Axis>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<M22, 1>, FixedDescriptor<Axis, Axis>>);
 
   static_assert(maybe_same_shape_as<M22, M2x, Mx2, Mxx>);
   static_assert(same_shape_as<M22, CM22, M22>);

@@ -40,7 +40,7 @@ namespace OpenKalman
   template<typename T>
   struct vector_space_descriptor_components_of<T, std::enable_if_t<fixed_vector_space_descriptor<T>>>
 #endif
-    : std::integral_constant<std::size_t, interface::fixed_vector_space_descriptor_traits<std::decay_t<T>>::component_count> {};
+    : std::integral_constant<std::size_t, fixed_vector_space_descriptor_traits<std::decay_t<T>>::component_count> {};
 
 
   /**

@@ -257,7 +257,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_real(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else if constexpr (complex_number<Arg>)
     {
@@ -319,7 +319,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_imag(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else if constexpr (complex_number<Arg>)
     {
@@ -365,7 +365,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_conj(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -451,7 +451,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_signbit(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -495,7 +495,7 @@ namespace OpenKalman::internal
         using S = std::decay_t<decltype(get_scalar_constant_value(sgn))>;
         constexpr auto operator()(const M& m, const S& s) const { return constexpr_copysign(m, s); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Mag>(mag), std::forward<Sgn>(sgn)};
+      return values::scalar_constant_operation {Op{}, std::forward<Mag>(mag), std::forward<Sgn>(sgn)};
     }
     else
     {
@@ -535,7 +535,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_sqrt(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -611,7 +611,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_abs(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -733,7 +733,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_exp(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -810,7 +810,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_expm1(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -892,7 +892,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_sinh(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -964,7 +964,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_cosh(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -1030,7 +1030,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_tanh(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -1097,7 +1097,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_sin(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -1155,7 +1155,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_cos(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -1213,7 +1213,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_tan(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -1406,7 +1406,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_log(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -1476,7 +1476,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_log1p(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -1537,7 +1537,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_asinh(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -1600,7 +1600,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_acosh(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -1671,7 +1671,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_atanh(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -1737,7 +1737,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_asin(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -1787,7 +1787,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_acos(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -1868,7 +1868,7 @@ namespace OpenKalman::internal
         using A = std::decay_t<decltype(get_scalar_constant_value(arg))>;
         constexpr auto operator()(const A& a) const { return constexpr_atan(a); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg)};
     }
     else
     {
@@ -1917,7 +1917,7 @@ namespace OpenKalman::internal
         using XA = std::decay_t<decltype(get_scalar_constant_value(x_arg))>;
         constexpr auto operator()(const YA& y, const XA& x) const { return constexpr_atan2(y, x); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Y>(y_arg), std::forward<X>(x_arg)};
+      return values::scalar_constant_operation {Op{}, std::forward<Y>(y_arg), std::forward<X>(x_arg)};
     }
     else
     {
@@ -2034,7 +2034,7 @@ namespace OpenKalman::internal
         using E = std::decay_t<decltype(get_scalar_constant_value(exponent))>;
         constexpr auto operator()(const A& a, const E& e) const { return constexpr_pow(a, e); }
       };
-      return scalar_constant_operation {Op{}, std::forward<Arg>(arg), std::forward<Exponent>(exponent)};
+      return values::scalar_constant_operation {Op{}, std::forward<Arg>(arg), std::forward<Exponent>(exponent)};
     }
     else
     {

@@ -51,9 +51,9 @@ TEST(eigen3, Eigen_SelfAdjointView)
   static_assert(zero<Eigen::SelfAdjointView<Eigen::MatrixWrapper<Z22>, Eigen::Upper>>);
 
   static_assert(identity_matrix<Eigen::SelfAdjointView<decltype(M33::Identity()), Eigen::Upper>>);
-  static_assert(not identity_matrix<Eigen::SelfAdjointView<decltype(M3x::Identity(3, 3)), Eigen::Lower>>);
-  static_assert(not identity_matrix<Eigen::SelfAdjointView<decltype(Mx3::Identity(3, 3)), Eigen::Upper>>);
-  static_assert(not identity_matrix<Eigen::SelfAdjointView<decltype(Mxx::Identity(3, 3)), Eigen::Lower>>);
+  static_assert(identity_matrix<Eigen::SelfAdjointView<decltype(M3x::Identity(3, 3)), Eigen::Lower>>);
+  static_assert(identity_matrix<Eigen::SelfAdjointView<decltype(Mx3::Identity(3, 3)), Eigen::Upper>>);
+  static_assert(identity_matrix<Eigen::SelfAdjointView<decltype(Mxx::Identity(3, 3)), Eigen::Lower>>);
 
   static_assert(diagonal_matrix<Sadv22>);
   static_assert(diagonal_matrix<Sadv2x>);
@@ -81,7 +81,7 @@ TEST(eigen3, Eigen_SelfAdjointView)
   EXPECT_EQ(get_component(salv22, 1, 0), 3);
   EXPECT_EQ(get_component(salv22, 1, 1), 10);
   static_assert(std::is_lvalue_reference_v<decltype(get_component(salv22, 0, 1))>);
-  static_assert(element_settable<decltype(salv22), 2>);
+  static_assert(writable_by_component<decltype(salv22)>);
   set_component(salv22, 4, 0, 1);
   EXPECT_EQ(get_component(salv22, 0, 1), 4);
   EXPECT_EQ(get_component(salv22, 1, 0), 4);
@@ -93,7 +93,7 @@ TEST(eigen3, Eigen_SelfAdjointView)
   EXPECT_EQ(get_component(sauv22, 1, 0), 3);
   EXPECT_EQ(get_component(sauv22, 1, 1), 10);
   static_assert(std::is_lvalue_reference_v<decltype(get_component(sauv22, 1, 0))>);
-  static_assert(element_settable<decltype(sauv22), 2>);
+  static_assert(writable_by_component<decltype(sauv22)>);
   set_component(sauv22, 4, 1, 0);
   EXPECT_EQ(get_component(sauv22, 0, 1), 4);
   EXPECT_EQ(get_component(sauv22, 1, 0), 4);
@@ -107,7 +107,7 @@ TEST(eigen3, Eigen_SelfAdjointView)
   EXPECT_EQ(std::imag(get_component(salv22c, 1, 0)), 0.3);
   EXPECT_EQ(std::real(get_component(salv22c, 1, 1)), 10);
   static_assert(not std::is_lvalue_reference_v<decltype(get_component(salv22c, 0, 1))>);
-  static_assert(element_settable<decltype(salv22c), 2>);
+  static_assert(writable_by_component<decltype(salv22c)>);
   set_component(salv22c, std::complex<double>{4, 0.4}, 0, 1);
   EXPECT_EQ(std::imag(get_component(salv22c, 0, 1)), 0.4);
   EXPECT_EQ(std::imag(get_component(salv22c, 1, 0)), -0.4);

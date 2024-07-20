@@ -61,7 +61,7 @@ namespace OpenKalman::detail
   struct EigenWrapperEvaluatorBase<XprType, Nested>
 #else
   template<typename XprType, typename Nested>
-  struct EigenWrapperEvaluatorBase<XprType, Nested, std::void_t<typename Eigen::internal::evaluator<std::decay_t<Nested>>>>
+  struct EigenWrapperEvaluatorBase<XprType, Nested, std::enable_if_t<OpenKalman::Eigen3::eigen_dense_general<Nested>>>
 #endif
     : Eigen::internal::evaluator<std::decay_t<Nested>>
   {

@@ -109,14 +109,14 @@ namespace OpenKalman
     template<covariance Arg> requires
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, ColumnCoefficients> and
-      requires(Arg&& arg) { NestedMatrix {make_dense_object(std::forward<Arg>(arg))}; }
+      requires(Arg&& arg) { NestedMatrix {to_dense_object(std::forward<Arg>(arg))}; }
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, ColumnCoefficients> and
       std::is_constructible_v<NestedMatrix, dense_writable_matrix_t<Arg>>, int> = 0>
 #endif
-    Matrix(Arg&& arg) noexcept : Base {make_dense_object(std::forward<Arg>(arg))} {}
+    Matrix(Arg&& arg) noexcept : Base {to_dense_object(std::forward<Arg>(arg))} {}
 
 
     /// Assign from a compatible \ref OpenKalman::typed_matrix "typed_matrix".
@@ -209,10 +209,10 @@ namespace OpenKalman
     /// Add a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
     template<distribution Arg> requires (euclidean_vector_space_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>)
+      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>)
 #else
     template<typename Arg, std::enable_if_t<distribution<Arg> and (euclidean_vector_space_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>), int> = 0>
+      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>), int> = 0>
 #endif
     auto& operator+=(const Arg& arg) noexcept
     {
@@ -249,10 +249,10 @@ namespace OpenKalman
     /// Subtract a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
     template<distribution Arg> requires (euclidean_vector_space_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>)
+      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>)
 #else
     template<typename Arg, std::enable_if_t<distribution<Arg> and (euclidean_vector_space_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::TypedIndex, RowCoefficients>), int> = 0>
+      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>), int> = 0>
 #endif
     auto& operator-=(const Arg& arg) noexcept
     {
@@ -353,7 +353,7 @@ namespace OpenKalman
           return std::get<0>(std::forward<Arg>(arg).my_dimensions);
         else
           return std::apply(
-            [](const auto&...ds, N n){ return std::array {DynamicTypedIndex<scalar_type>{ds}...}[n]; },
+            [](const auto&...ds, N n){ return std::array {DynamicDescriptor<scalar_type>{ds}...}[n]; },
             arg.my_dimensions, n);
       }
 
@@ -370,17 +370,11 @@ namespace OpenKalman
 
 
       template<typename Arg>
-      static auto convert_to_self_contained(Arg&& arg)
-      {
-        auto n = make_self_contained(OpenKalman::nested_object(std::forward<Arg>(arg)));
-        return Matrix<RowCoeffs, ColCoeffs, decltype(n)> {std::move(n)};
-      }
-
-      template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
       {
         return constant_coefficient{arg.nestedExpression()};
       }
+
 
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
@@ -391,13 +385,17 @@ namespace OpenKalman
           return std::monostate {};
       }
 
+
       template<Qualification b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
+
 
       template<TriangleType t>
       static constexpr bool is_triangular = equivalent_to<RowCoeffs, ColCoeffs> and triangular_matrix<NestedMatrix, t>;
 
+
       static constexpr bool is_triangular_adapter = false;
+
 
       static constexpr bool is_hermitian = equivalent_to<RowCoeffs, ColCoeffs> and hermitian_matrix<NestedMatrix>;
 
@@ -414,9 +412,9 @@ namespace OpenKalman
 
 
   #ifdef __cpp_lib_concepts
-      template<typename Arg, typename I, typename...Is> requires element_settable<nested_object_of_t<Arg&>, 1 + sizeof...(Is)>
+      template<typename Arg, typename I, typename...Is> requires writable_by_component<nested_object_of_t<Arg&>, 1 + sizeof...(Is)>
   #else
-      template<typename Arg, typename I, typename...Is, std::enable_if_t<element_settable<typename nested_object_of<Arg&>::type, 1 + sizeof...(Is)>, int> = 0>
+      template<typename Arg, typename I, typename...Is, std::enable_if_t<writable_by_component<typename nested_object_of<Arg&>::type, 1 + sizeof...(Is)>, int> = 0>
   #endif
       static constexpr void set(Arg& arg, const scalar_type_of_t<Arg>& s, I i, Is...is)
       {
@@ -428,11 +426,11 @@ namespace OpenKalman
 
 
 #ifdef __cpp_lib_concepts
-      template<typename Arg> requires directly_accessible<nested_object_of_t<Arg&>>
+      template<typename Arg> requires raw_data_defined_for<NestedMatrix>
 #else
-      template<typename Arg, std::enable_if_t<directly_accessible<typename nested_object_of<Arg&>::type>, int> = 0>
+      template<typename Arg, std::enable_if_t<raw_data_defined_for<NestedMatrix>, int> = 0>
 #endif
-      static constexpr auto*
+      static constexpr auto * const
       raw_data(Arg& arg) { return internal::raw_data(nested_object(arg)); }
 
 

@@ -54,8 +54,8 @@ namespace OpenKalman
       }
       else if constexpr ((constant_matrix<T0> and constant_matrix<T1>))
       {
-        constexpr std::make_index_sequence<std::max({index_count_v<Ts>...})> seq;
-        auto ret {sum_impl(seq, sum_constants(seq, std::forward<T0>(t0), std::forward<T1>(t1)), std::forward<Ts>(ts)...)};
+        constexpr std::make_index_sequence<std::max(index_count_v<T0>, index_count_v<T1>)> seq;
+        auto ret {sum_impl(sum_constants(seq, std::forward<T0>(t0), std::forward<T1>(t1)), std::forward<Ts>(ts)...)};
         return ret;
       }
       else if constexpr (constant_matrix<T0> and sizeof...(Ts) > 0) // Shift T0 right and hope that it will combine with another constant
@@ -71,23 +71,23 @@ namespace OpenKalman
         auto ret {sum_impl(to_diagonal(sum_impl(diagonal_of(std::forward<T0>(t0)), diagonal_of(std::forward<T1>(t1)))), std::forward<Ts>(ts)...)};
         return ret;
       }
-      else if constexpr (interface::sum_defined_for<std::decay_t<T0>, T0&&, T1&&, Ts&&...>)
+      else if constexpr (interface::sum_defined_for<T0, T0&&, T1&&, Ts&&...>)
       {
         return interface::library_interface<std::decay_t<T0>>::sum(std::forward<T0>(t0), std::forward<T1>(t1), std::forward<Ts>(ts)...);
       }
-      else if constexpr (interface::sum_defined_for<std::decay_t<T0>, T0&&, T1&&>)
+      else if constexpr (interface::sum_defined_for<T0, T0&&, T1&&>)
       {
         return sum_impl(interface::library_interface<std::decay_t<T0>>::sum(std::forward<T0>(t0), std::forward<T1>(t1)), std::forward<Ts>(ts)...);
       }
-      else if constexpr (interface::sum_defined_for<std::decay_t<T1>, T1&&, T0&&>)
+      else if constexpr (interface::sum_defined_for<T1, T1&&, T0&&>)
       {
         return sum_impl(interface::library_interface<std::decay_t<T1>>::sum(std::forward<T1>(t1), std::forward<T0>(t0)), std::forward<Ts>(ts)...);
       }
-      else if constexpr (interface::sum_defined_for<std::decay_t<T0>, T0&&, decltype(to_native_matrix<T0>(std::declval<T1&&>()))>)
+      else if constexpr (interface::sum_defined_for<T0, T0&&, decltype(to_native_matrix<T0>(std::declval<T1&&>()))>)
       {
         return sum_impl(interface::library_interface<std::decay_t<T0>>::sum(std::forward<T0>(t0), to_native_matrix<T0>(std::forward<T1>(t1))), std::forward<Ts>(ts)...);
       }
-      else if constexpr (interface::sum_defined_for<std::decay_t<T1>, T1&&, decltype(to_native_matrix<T1>(std::declval<T0&&>()))>)
+      else if constexpr (interface::sum_defined_for<T1, T1&&, decltype(to_native_matrix<T1>(std::declval<T0&&>()))>)
       {
         return sum_impl(interface::library_interface<std::decay_t<T1>>::sum(std::forward<T1>(t1), to_native_matrix<T1>(std::forward<T0>(t0))), std::forward<Ts>(ts)...);
       }

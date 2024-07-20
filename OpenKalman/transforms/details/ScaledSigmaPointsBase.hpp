@@ -143,11 +143,11 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
     template<std::size_t dim, typename InputDist, bool return_cross = false, typed_matrix X, typed_matrix Y> requires
       (index_dimension_of_v<X, 1> == index_dimension_of_v<Y, 1>) and
-      equivalent_to<vector_space_descriptor_of_t<X, 0>, typename DistributionTraits<InputDist>::TypedIndex>
+      equivalent_to<vector_space_descriptor_of_t<X, 0>, typename DistributionTraits<InputDist>::FixedDescriptor>
 #else
     template<std::size_t dim, typename InputDist, bool return_cross = false, typename X, typename Y, std::enable_if_t<
       typed_matrix<X> and typed_matrix<Y> and (index_dimension_of<X, 1>::value == index_dimension_of<Y, 1>::value) and
-      equivalent_to<vector_space_descriptor_of_t<X, 0>, typename DistributionTraits<InputDist>::TypedIndex>,
+      equivalent_to<vector_space_descriptor_of_t<X, 0>, typename DistributionTraits<InputDist>::FixedDescriptor>,
         int> = 0>
 #endif
     static auto

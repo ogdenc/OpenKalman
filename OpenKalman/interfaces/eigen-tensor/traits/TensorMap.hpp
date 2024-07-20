@@ -21,27 +21,25 @@ namespace OpenKalman::interface
 {
   template<typename PlainObjectType, int Options, template<typename> typename MakePointer>
   struct indexible_object_traits<Eigen::TensorMap<PlainObjectType, Options, MakePointer>>
-    : Eigen3::indexible_object_traits_base<Eigen::TensorMap<PlainObjectType, Options, MakePointer>>
+    : Eigen3::indexible_object_traits_tensor_base<Eigen::TensorMap<PlainObjectType, Options, MakePointer>>
   {
   private:
 
     using Xpr = Eigen::TensorMap<PlainObjectType, Options, MakePointer>;
-    using Base = Eigen3::indexible_object_traits_base<Xpr>;
+    using Base = Eigen3::indexible_object_traits_tensor_base<Xpr>;
     using StorageRefType = typename Xpr::StorageRefType;
     using IndexType = typename Xpr::Index;
 
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n) { return arg.dimension(n); }
+    static constexpr std::size_t get_vector_space_descriptor(const Arg& arg, N n) { return arg.dimension(n); }
 
     static constexpr bool has_runtime_parameters = true;
 
     using dependents = std::tuple<>;
 
     // nested_object() not defined
-
-    // convert_to_self_contained() not defined
 
     // get_constant() not defined
 
@@ -66,7 +64,7 @@ namespace OpenKalman::interface
 #else
     template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, IndexType> and ...) and
       (sizeof...(I) == PlainObjectType::NumDimensions) and std::is_lvalue_reference<StorageRefType>::value and
-      not std::is_const<typenamne std::remove_reference<StorageRefType>::type>::value, int> = 0>
+      not std::is_const<typename std::remove_reference<StorageRefType>::type>::value, int> = 0>
 #endif
     static void set(Arg& arg, const scalar_type_of_t<Arg>& s, I...i)
     {
@@ -76,7 +74,7 @@ namespace OpenKalman::interface
     static constexpr bool is_writable = false;
 
     template<typename Arg>
-    static constexpr auto*
+    static constexpr auto * const
     raw_data(Arg& arg) { return arg.data(); }
 
     static constexpr Layout layout = layout_of_v<PlainObjectType>;

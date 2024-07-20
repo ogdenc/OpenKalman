@@ -31,6 +31,13 @@ namespace OpenKalman {}
 
 /**
  * \internal
+ * \brief The root namespace for OpenKalman interface types.
+ */
+namespace OpenKalman::interface {}
+
+
+/**
+ * \internal
  * \brief Namespace for internal definitions, not intended for use outside of OpenKalman development.
  */
 namespace OpenKalman::internal {}
@@ -38,9 +45,16 @@ namespace OpenKalman::internal {}
 
 /**
  * \internal
- * \brief The root namespace for OpenKalman interface types.
+ * \brief The root namespace for OpenKalman values (e.g., \ref constant_coefficient, \ref constant_diagonal_coefficient).
  */
-namespace OpenKalman::interface {}
+namespace OpenKalman::values {}
+
+
+/**
+ * \brief The root namespace for OpenKalman \ref vector_space_descriptor objects.
+ */
+namespace OpenKalman::vector_space_descriptors {}
+namespace OpenKalman { using namespace vector_space_descriptors; }
 
 
 // global
@@ -60,14 +74,15 @@ namespace OpenKalman::interface {}
 #include "vector-space-descriptors/vector-space-descriptors.hpp"
 
 
-// forward definitions for objects, properties, and interfaces
+// objects, properties, and interfaces
 
-#include "interfaces/interfaces-defined.hpp"
+#include "interfaces/object-traits-defined.hpp"
+#include "interfaces/library-interfaces-defined.hpp"
 #include "internal/library_base.hpp"
 
 #include "property-functions/property-functions.hpp"
 
-#include "traits/forward-traits.hpp"
+#include "traits/traits.hpp"
 #include "forward-class-declarations.hpp"
 
 #include "interfaces/default/indexible_object_traits.hpp"
@@ -79,9 +94,9 @@ namespace OpenKalman::interface {}
 #include "functions/functions.hpp"
 
 
-// properties and interfaces
+// function-dependent traits
 
-#include "traits/traits.hpp"
+#include "basics/traits/other-traits.hpp"
 
 
 // internal objects

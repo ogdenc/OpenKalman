@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,7 +31,7 @@ namespace OpenKalman
     template<typename T, Layout layout, typename Scalar>
     struct dense_writable_matrix_impl<T, layout, Scalar>
     {
-      using type = std::decay_t<decltype(make_dense_object<layout, Scalar>(std::declval<T>()))>;
+      using type = std::decay_t<decltype(to_dense_object<layout, Scalar>(std::declval<T>()))>;
     };
   }
 
@@ -41,8 +41,7 @@ namespace OpenKalman
    * \tparam T A matrix or array from the relevant matrix library.
    * \tparam S A scalar type (may or may not be </code>scalar_type_of_t<T></code>.
    * \tparam layout The /ref Layout of the result.
-   * \tparam D \ref vector_space_descriptor objects defining the dimensions of the new matrix.
-   * \todo Create typed Matrix if Ds are typed.
+   * \tparam D \ref vector_space_descriptor objects defining the dimensions of the new matrix. This will be derived from T if omitted.
    */
 #ifdef __cpp_concepts
   template<indexible T, Layout layout = Layout::none, scalar_type S = scalar_type_of_t<T>, vector_space_descriptor...D>

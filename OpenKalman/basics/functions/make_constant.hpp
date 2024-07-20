@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -49,7 +49,7 @@ namespace OpenKalman
     }
     else
     {
-      if constexpr (interface::make_constant_matrix_defined_for<std::decay_t<T>, C&&, Ds&&...>)
+      if constexpr (interface::make_constant_matrix_defined_for<T, C&&, Ds&&...>)
       {
         using Trait = interface::library_interface<std::decay_t<T>>;
         return Trait::template make_constant(std::forward<C>(c), std::forward<Ds>(ds)...);
@@ -58,33 +58,13 @@ namespace OpenKalman
       {
         // Default behavior if interface function not defined:
         using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
-        auto new_dims = internal::remove_trailing_1D_descriptors(std::forward_as_tuple(std::forward<Ds>(ds)...));
+        auto new_dims = internal::remove_trailing_1D_descriptors(std::forward<Ds>(ds)...);
         return std::apply([](C&& c, auto&&...ads){
             using U = std::decay_t<decltype(make_dense_object<T, Layout::none, Scalar>(std::declval<decltype(ads)>()...))>;
             return ConstantAdapter<U, std::decay_t<C>> {std::forward<C>(c), std::forward<decltype(ads)>(ads)...};
           }, std::tuple_cat(std::forward_as_tuple(std::forward<C>(c)), std::move(new_dims)));
       }
     }
-  }
-
-
-  /**
-   * \overload
-   * \brief Same as above, except that the constant is derived from T, a constant object known at compile time
-   */
-#ifdef __cpp_concepts
-  template<constant_matrix<ConstantType::static_constant> T, vector_space_descriptor...Ds> requires
-    (sizeof...(Ds) != 0) or (not has_dynamic_dimensions<T>)
-  constexpr constant_matrix<ConstantType::static_constant> auto
-#else
-  template<typename T, typename...Ds, std::enable_if_t<
-    constant_matrix<T, ConstantType::static_constant> and (vector_space_descriptor<Ds> and ...) and
-    (sizeof...(Ds) != 0 or not has_dynamic_dimensions<T>), int> = 0>
-  constexpr auto
-#endif
-  make_constant(Ds&&...ds)
-  {
-    return make_constant<T>(constant_coefficient<T>{}, std::forward<Ds>(ds)...);
   }
 
 
@@ -136,7 +116,7 @@ namespace OpenKalman
     if constexpr (sizeof...(constant) == 0)
       return make_constant<T>(C{}, std::forward<Ds>(ds)...);
     else
-      return make_constant<T>(internal::ScalarConstant<Qualification::unqualified, Scalar, constant...>{}, std::forward<Ds>(ds)...);
+      return make_constant<T>(values::ScalarConstant<Scalar, constant...>{}, std::forward<Ds>(ds)...);
   }
 
 

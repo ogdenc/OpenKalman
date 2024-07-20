@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -65,7 +65,7 @@ namespace OpenKalman::internal
     template<indexible Arg> requires (not std::same_as<std::decay_t<Arg>, LibraryWrapper>) and
       std::assignable_from<std::add_lvalue_reference_t<NestedObject>, decltype(to_native_matrix<NestedObject>(std::declval<Arg&&>()))>
 #else
-    template<typename Arg, std::enable_if_t<(not std::same_as<std::decay_t<Arg>, LibraryWrapper>) and
+    template<typename Arg, std::enable_if_t<(not std::is_same_v<std::decay_t<Arg>, LibraryWrapper>) and
       std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, decltype(to_native_matrix<NestedObject>(std::declval<Arg&&>()))>, int> = 0>
 #endif
     auto& operator=(Arg&& arg) noexcept
@@ -104,10 +104,10 @@ namespace OpenKalman::internal
     const auto& nested_object() const & noexcept { return wrapped_expression; }
 
     /// \overload
-    auto&& nested_object() && noexcept { return std::move(*this).wrapped_expression; }
+    NestedObject&& nested_object() && noexcept { return std::move(*this).wrapped_expression; }
 
     /// \overload
-    const auto&& nested_object() const && noexcept { return std::move(*this).wrapped_expression; }
+    const NestedObject&& nested_object() const && noexcept { return std::move(*this).wrapped_expression; }
 
   private:
 

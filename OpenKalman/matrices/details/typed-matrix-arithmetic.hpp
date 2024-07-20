@@ -170,7 +170,7 @@ namespace OpenKalman
       equivalent_to<vector_space_descriptor_of_t<V1, 0>, vector_space_descriptor_of_t<V2, 0>> and
       equivalent_to<vector_space_descriptor_of_t<V1, 1>, vector_space_descriptor_of_t<V2, 1>>)
     {
-      return make_dense_object(std::forward<V1>(v1)) == make_dense_object(std::forward<V2>(v2));
+      return to_dense_object(std::forward<V1>(v1)) == to_dense_object(std::forward<V2>(v2));
     }
     else
     {

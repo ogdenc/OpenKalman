@@ -185,7 +185,7 @@ namespace OpenKalman
       // constant_matrix:
       if constexpr (sizeof...(Args) > 0 and (constant_matrix<Args> and ...) and not is_invocable_with_indices<Op, scalar_type_of_t<Args>...>(seq))
       {
-        internal::scalar_constant_operation c {op, constant_coefficient {std::forward<Args>(args)}...};
+        values::scalar_constant_operation c {op, constant_coefficient {std::forward<Args>(args)}...};
         return std::apply(
           [](auto&&...as){ return make_constant<PatternMatrix>(std::forward<decltype(as)>(as)...); },
           std::tuple_cat(std::tuple{std::move(c)}, d_tup));
@@ -293,13 +293,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<vector_space_descriptor...Ds, typename Operation, indexible...Args> requires (sizeof...(Args) > 0) and
-    (sizeof...(Ds) >= std::max({index_count_v<Args>...})) and detail::n_ary_operator<Operation, sizeof...(Ds), Args...> and
-    (... and (dimension_size_of_v<Ds> != 0))
+    detail::n_ary_operator<Operation, sizeof...(Ds), Args...> and (... and (dimension_size_of_v<Ds> != 0))
   constexpr compatible_with_vector_space_descriptors<Ds...> auto
 #else
   template<typename...Ds, typename Operation, typename...Args, std::enable_if_t<
-    (vector_space_descriptor<Ds> and ...) and (indexible<Args> and ...) and
-    (sizeof...(Args) > 0) and (sizeof...(Ds) >= std::max({index_count<Args>::value...})) and
+    (vector_space_descriptor<Ds> and ...) and (indexible<Args> and ...) and (sizeof...(Args) > 0) and
     detail::n_ary_operator<Operation, sizeof...(Ds), Args...> and (... and (dimension_size_of_v<Ds> != 0)), int> = 0>
   constexpr auto
 #endif
@@ -384,16 +382,18 @@ namespace OpenKalman
         else
         {
           auto arg_d = get_vector_space_descriptor<ix>(arg);
-          using Scalar = scalar_type_of_t<Arg>;
+          //using Scalar = scalar_type_of_t<Arg>;
           if (internal::is_uniform_component_of(arg_d, max_d))
           {
-            if constexpr (internal::is_DynamicTypedIndex<Max_D>::value) return DynamicTypedIndex {max_d};
-            else return DynamicTypedIndex<Scalar> {max_d};
+            //if constexpr (internal::is_DynamicDescriptor<Max_D>::value) return DynamicDescriptor {max_d};
+            //else return DynamicDescriptor<Scalar> {max_d};
+            return max_d;
           }
           else if (internal::is_uniform_component_of(max_d, arg_d))
           {
-            if constexpr (internal::is_DynamicTypedIndex<Max_D>::value) return DynamicTypedIndex {arg_d};
-            else return DynamicTypedIndex<Scalar> {arg_d};
+            //if constexpr (internal::is_DynamicDescriptor<Max_D>::value) return DynamicDescriptor {arg_d};
+            //else return DynamicDescriptor<Scalar> {arg_d};
+            return arg_d;
           }
           else throw std::invalid_argument {"The dimension of arguments to n_ary_operation are not compatible with "
             "each other for at least index " + std::to_string(ix) + "."};

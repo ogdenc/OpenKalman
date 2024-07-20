@@ -50,7 +50,7 @@ namespace OpenKalman
       using OutputCoefficients = vector_space_descriptor_of_t<Out_Mean, 0>;
       using Scalar = scalar_type_of_t<In_Mean>;
       static_assert((equivalent_to<OutputCoefficients,
-        typename DistributionTraits<NoiseDistributions>::TypedIndex> and ...));
+        typename DistributionTraits<NoiseDistributions>::FixedDescriptor> and ...));
 
       using InputMeanMatrix = dense_writable_matrix_t<In_Mean, Layout::none, Scalar, Dimensions<dimension_size_of_v<InputCoefficients>>, Dimensions<1>>;
       using OutputEuclideanMeanMatrix = untyped_dense_writable_matrix_t<InputMeanMatrix, Layout::none, Scalar, dimension_size_of_v<OutputCoefficients>, 1>;

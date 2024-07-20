@@ -21,17 +21,17 @@ namespace OpenKalman::interface
 {
   template<typename Indices, typename LhsXprType, typename RhsXprType, typename OutputKernelType>
   struct indexible_object_traits<Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>>
-    : Eigen3::indexible_object_traits_base<Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>>
+    : Eigen3::indexible_object_traits_tensor_base<Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>>
   {
   private:
 
     using Xpr = Eigen::TensorContractionOp<Indices, LhsXprType, RhsXprType, OutputKernelType>;
-    using Base = Eigen3::indexible_object_traits_base<Xpr>;
+    using Base = Eigen3::indexible_object_traits_tensor_base<Xpr>;
 
   public:
 
     template<typename Arg, typename N>
-    static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
+    static constexpr std::size_t get_vector_space_descriptor(const Arg& arg, N n)
     {
       using IndexType = typename Xpr::Index;
       return Eigen::TensorEvaluator<const Arg, Eigen::DefaultDevice>{arg, Eigen::DefaultDevice{}}.dimensions()[static_cast<IndexType>(n)];
@@ -45,24 +45,6 @@ namespace OpenKalman::interface
 
 
     // nested_object() not defined
-
-
-    template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      using N = Eigen::TensorContractionOp<Indices, equivalent_self_contained_t<LhsXprType>, equivalent_self_contained_t<RhsXprType>, OutputKernelType>;
-      // Do a partial evaluation as long as at least one argument is already self-contained.
-      if constexpr ((self_contained<LhsXprType> or self_contained<RhsXprType>) and
-        not std::is_lvalue_reference_v<typename LhsXprType::Nested> and
-        not std::is_lvalue_reference_v<typename RhsXprType::Nested>)
-      {
-        return N {make_self_contained(arg.lhsExpression()), make_self_contained(arg.rhsExpression()), arg.indices(), arg.outputKernel()};
-      }
-      else
-      {
-        return make_dense_object(std::forward<Arg>(arg));
-      }
-    }
 
 
     template<typename Arg>
@@ -124,7 +106,7 @@ namespace OpenKalman::interface
     {
       if constexpr (std::tuple_size_v<decltype(arg.indices())> == 1)
       {
-        return internal::scalar_constant_operation {std::multiplies<>{},
+        return values::scalar_constant_operation {std::multiplies<>{},
           constant_diagonal_coefficient{arg.lhs()}, constant_diagonal_coefficient{arg.rhs()}};
       }
       else

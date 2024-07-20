@@ -14,7 +14,7 @@ using namespace OpenKalman;
 using namespace OpenKalman::test;
 
 using M2 = eigen_matrix_t<double, 2, 2>;
-using C = TypedIndex<angle::Radians, Axis>;
+using C = FixedDescriptor<angle::Radians, Axis>;
 using Mat2 = Matrix<C, C, M2>;
 using Mat2col = Matrix<C, Axis, eigen_matrix_t<double, 2, 1>>;
 using SA2l = SelfAdjointMatrix<M2, TriangleType::lower>;
@@ -24,7 +24,7 @@ using T2u = TriangularMatrix<M2, TriangleType::upper>;
 using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
 using D1 = eigen_matrix_t<double, 1, 1>;
 using I2 = Eigen3::IdentityMatrix<M2>;
-using Z2 = ZeroMatrix<eigen_matrix_t<double, 2, 2>>;
+using Z2 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>;
 using CovSA2l = Covariance<C, SA2l>;
 using CovSA2u = Covariance<C, SA2u>;
 using CovT2l = Covariance<C, T2l>;
@@ -43,7 +43,7 @@ using SqCovI2 = SquareRootCovariance<C, I2>;
 using SqCovZ2 = SquareRootCovariance<C, Z2>;
 
 inline I2 i2 = M2::Identity();
-inline Z2 z2 = ZeroMatrix<eigen_matrix_t<double, 2, 2>>();
+inline Z2 z2 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>();
 inline auto covi2 = CovI2(i2);
 inline auto covz2 = CovZ2(z2);
 inline auto sqcovi2 = SqCovI2(i2);

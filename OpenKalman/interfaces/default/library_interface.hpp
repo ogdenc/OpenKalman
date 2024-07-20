@@ -29,6 +29,7 @@ namespace OpenKalman::interface
 #endif
   struct library_interface
   {
+#ifdef DOXYGEN_SHOULD_SKIP_THIS
     /**
      * \brief The base class within the library of LibraryObject for custom wrappers (optional).
      * \details This is used when a library requires custom objects to derive from a particular base class.
@@ -39,6 +40,7 @@ namespace OpenKalman::interface
      */
     template<typename Derived>
     using LibraryBase = std::monostate;
+#endif
 
 
     /**
@@ -136,9 +138,9 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Create a \ref constant_matrix corresponding to the shape of LibraryObject (optional).
+     * \brief Create a \ref constant_matrix of a given shape (optional).
      * \details Takes a list of \ref vector_space_descriptor items that specify the size of the resulting object
-     * \param c A \ref scalar_constant (the constant known either at compile time or runtime)
+     * \param c A \ref scalar_constant (either static or dynamic)
      * \param d A list of \ref vector_space_descriptor items
      * \note If this is not defined, calls to <code>OpenKalman::make_constant</code> will return an object of type ConstantAdapter.
      */
@@ -153,7 +155,8 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Create an \ref identity_matrix (optional).
+     * \brief Create a generalized \ref identity_matrix of a given shape(optional).
+     * \details This is a generalized identity matrix that need not be square, but every non-diagonal element must be zero.
      * \note If not defined, an identity matrix is a \ref DiagonalMatrix adapter with a constant diagonal of 1.
      * \tparam Scalar The scalar type of the new object
      * \param d A \ref vector_space_descriptor object defining the size
@@ -161,11 +164,11 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<scalar_type Scalar>
     static constexpr identity_matrix auto
-    make_identity_matrix(vector_space_descriptor auto&& d) = delete;
+    make_identity_matrix(vector_space_descriptor auto&&...d) = delete;
 #else
-    template<typename Scalar, typename D>
+    template<typename Scalar, typename...D>
     static constexpr auto
-    make_identity_matrix(D&& d) = delete;
+    make_identity_matrix(D&&...d) = delete;
 #endif
 
 
@@ -274,16 +277,12 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     static constexpr diagonal_matrix auto
-    to_diagonal(vector<0, Qualification::depends_on_dynamic_shape> auto&& arg)
+    to_diagonal(vector<0, Qualification::depends_on_dynamic_shape> auto&& arg) = delete;
 #else
     template<typename Arg>
     static constexpr auto
-    to_diagonal(Arg&& arg)
+    to_diagonal(Arg&& arg) = delete;
 #endif
-    {
-      using N = std::remove_reference_t<decltype(make_self_contained(arg))>;
-      return DiagonalMatrix<N> {std::forward<decltype(arg)>(arg)};
-    }
 
 
     /**
@@ -433,7 +432,7 @@ namespace OpenKalman::interface
      * \param arg An \ref indexible object within the same library as LibraryObject.
      */
 #ifdef __cpp_concepts
-    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg>
+    template<indexible Arg>
     static constexpr compatible_with_vector_space_descriptors<vector_space_descriptor_of_t<Arg, 1>, vector_space_descriptor_of_t<Arg, 0>> auto
 #else
     template<typename Arg>
@@ -448,7 +447,7 @@ namespace OpenKalman::interface
      * \param arg An \ref indexible object within the same library as LibraryObject.
      */
 #ifdef __cpp_concepts
-    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg>
+    template<indexible Arg>
     static constexpr compatible_with_vector_space_descriptors<vector_space_descriptor_of_t<Arg, 1>, vector_space_descriptor_of_t<Arg, 0>> auto
 #else
     template<typename Arg>
@@ -520,7 +519,8 @@ namespace OpenKalman::interface
     /**
      * \brief Take the Cholesky factor of matrix Arg
      * \tparam triangle_type The \ref TriangleType of the result.
-     * \param a An \ref indexible object within the same library as LibraryObject
+     * \param a An \ref indexible object within the same library as LibraryObject. It need not be hermitian, but
+     * components outside the triangle defined by triangle_type will be ignored, and instead
      * \return A matrix t where tt<sup>T</sup> = a (if triangle_type == TriangleType::lower) or
      * t<sup>T</sup>t = a (if triangle_type == TriangleType::upper).
      */

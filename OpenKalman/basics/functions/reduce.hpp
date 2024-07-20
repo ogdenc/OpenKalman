@@ -67,7 +67,7 @@ namespace OpenKalman
         else
         {
           auto dim_m1 = std::integral_constant<std::size_t, Dim::value - 1>{};
-          return internal::scalar_constant_operation {op, scalar_reduce_operation(dim_m1, op, c), c};
+          return values::scalar_constant_operation {op, scalar_reduce_operation(dim_m1, op, c), c};
         }
       }
     }
@@ -144,7 +144,7 @@ namespace OpenKalman
     {
       constexpr std::make_index_sequence<index_count_v<Arg>> seq;
       return internal::make_constant_matrix_reduction<index, indices...>(
-        internal::ScalarConstant<Qualification::unqualified, scalar_type_of_t<Arg>, 0>{}, std::forward<Arg>(arg), seq);
+        values::ScalarConstant<scalar_type_of_t<Arg>, 0>{}, std::forward<Arg>(arg), seq);
     }
     else if constexpr (constant_matrix<Arg>)
     {

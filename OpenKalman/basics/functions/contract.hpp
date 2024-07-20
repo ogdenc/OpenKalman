@@ -62,23 +62,23 @@ namespace OpenKalman
 
     using Scalar = std::decay_t<decltype(std::declval<scalar_type_of_t<A>>() * std::declval<scalar_type_of_t<B>>())>;
 
-    if constexpr (identity_matrix<B>)
+    if constexpr (identity_matrix<B> and square_shaped<B>)
     {
       if constexpr (dynamic_dimension<A, 1> and not dynamic_dimension<B, 1>)
-        return internal::make_fixed_size_adapter<vector_space_descriptor_of_t<A, 0>, vector_space_descriptor_of_t<B, 1>>(std::forward<A>(a));
+        return internal::make_fixed_size_adapter(std::forward<A>(a), get_vector_space_descriptor<0>(a), get_vector_space_descriptor<1>(b));
       else
         return std::forward<A>(a);
     }
-    else if constexpr (identity_matrix<A>)
+    else if constexpr (identity_matrix<A> and square_shaped<A>)
     {
       if constexpr (dynamic_dimension<B, 0> and not dynamic_dimension<A, 0>)
-        return internal::make_fixed_size_adapter<vector_space_descriptor_of_t<A, 0>, vector_space_descriptor_of_t<B, 1>>(std::forward<B>(b));
+        return internal::make_fixed_size_adapter(std::forward<B>(b), get_vector_space_descriptor<0>(a), get_vector_space_descriptor<1>(b));
       else
         return std::forward<B>(b);
     }
     else if constexpr (zero<A> or zero<B>)
     {
-      return detail::contract_constant(internal::ScalarConstant<Qualification::unqualified, Scalar, 0>{}, std::forward<A>(a), std::forward<B>(b), seq);
+      return detail::contract_constant(values::ScalarConstant<Scalar, 0>{}, std::forward<A>(a), std::forward<B>(b), seq);
     }
     else if constexpr (constant_matrix<A> and constant_matrix<B>)
     {
@@ -113,13 +113,10 @@ namespace OpenKalman
       auto ret {to_diagonal(n_ary_operation(std::multiplies<Scalar>{}, diagonal_of(std::forward<A>(a)), diagonal_of(std::forward<B>(b))))};
       return ret;
     }
-    else if constexpr (interface::contract_defined_for<std::decay_t<A>, A, B>)
+    else if constexpr (interface::contract_defined_for<A, A, B>)
     {
       auto x = interface::library_interface<std::decay_t<A>>::contract(std::forward<A>(a), std::forward<B>(b));
-
-      using V0 = vector_space_descriptor_of_t<A, 0>;
-      using V1 = vector_space_descriptor_of_t<B, 1>;
-      auto ret = internal::make_fixed_size_adapter<V0, V1>(std::move(x));
+      auto ret = internal::make_fixed_size_adapter(std::move(x), get_vector_space_descriptor<0>(a), get_vector_space_descriptor<1>(b));
 
       constexpr TriangleType tri = triangle_type_of_v<A, B>;
       if constexpr (tri != TriangleType::any and not triangular_matrix<decltype(ret), tri>)
@@ -128,11 +125,11 @@ namespace OpenKalman
         return ret;
     }
     else if constexpr ((hermitian_matrix<A> or hermitian_matrix<B>) and
-      interface::contract_defined_for<std::decay_t<B>, decltype(adjoint(std::declval<B>())), decltype(adjoint(std::declval<A>()))>)
+      interface::contract_defined_for<B, decltype(adjoint(std::declval<B>())), decltype(adjoint(std::declval<A>()))>)
     {
       return adjoint(interface::library_interface<std::decay_t<B>>::contract(adjoint(std::forward<B>(b)), adjoint(std::forward<A>(a))));
     }
-    else if constexpr (interface::contract_defined_for<std::decay_t<B>, decltype(transpose(std::declval<B>())), decltype(transpose(std::declval<A>()))>)
+    else if constexpr (interface::contract_defined_for<B, decltype(transpose(std::declval<B>())), decltype(transpose(std::declval<A>()))>)
     {
       return transpose(interface::library_interface<std::decay_t<B>>::contract(transpose(std::forward<B>(b)), transpose(std::forward<A>(a))));
     }

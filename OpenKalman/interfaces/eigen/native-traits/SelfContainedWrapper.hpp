@@ -17,16 +17,22 @@
 #ifndef OPENKALMAN_EIGEN_NATIVE_TRAITS_SELFCONTAINEDWRAPPER_HPP
 #define OPENKALMAN_EIGEN_NATIVE_TRAITS_SELFCONTAINEDWRAPPER_HPP
 
-namespace Eigen::internal
+namespace OpenKalman::Eigen3::internal
 {
+#ifdef __cpp_concepts
+  template<OpenKalman::Eigen3::eigen_general T, typename...Ps>
+  struct native_traits<OpenKalman::internal::SelfContainedWrapper<T, Ps...>>
+#else
   template<typename T, typename...Ps>
-  struct traits<OpenKalman::internal::SelfContainedWrapper<T, Ps...>> : traits<std::decay_t<T>>
+  struct native_traits<OpenKalman::internal::SelfContainedWrapper<T, Ps...>, std::enable_if_t<OpenKalman::Eigen3::eigen_general<T>>>
+#endif
+    : Eigen::internal::traits<std::decay_t<T>>
   {
     enum {
-      Flags = (std::decay_t<T>::Flags & ~NestByRefBit),
+      Flags = (Eigen::internal::traits<std::decay_t<T>>::Flags & ~Eigen::NestByRefBit),
     };
   };
 
-} // Eigen::internal
+} // OpenKalman::Eigen3::internal
 
 #endif //OPENKALMAN_EIGEN_NATIVE_TRAITS_SELFCONTAINEDWRAPPER_HPP

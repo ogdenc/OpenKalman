@@ -30,7 +30,7 @@ namespace OpenKalman
     {
       return ([](auto I_const, const T& t, const Ts&...ts){
         constexpr std::size_t I = decltype(I_const)::value;
-        return ((get_vector_space_descriptor<I>(t) == get_vector_space_descriptor<I>(ts)) and ...);
+        return ((get_vector_space_descriptor<I>(t)  == get_vector_space_descriptor<I>(ts)) and ...);
       }(std::integral_constant<std::size_t, Is>{}, t, ts...) and ...);
     }
 

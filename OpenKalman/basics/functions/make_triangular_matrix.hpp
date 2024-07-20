@@ -55,7 +55,7 @@ namespace OpenKalman
       else
         return make_triangular_matrix<t>(adjoint(nested_object(std::forward<Arg>(arg))));
     }
-    else if constexpr (interface::make_triangular_matrix_defined_for<std::decay_t<Arg>, t, Arg&&>)
+    else if constexpr (interface::make_triangular_matrix_defined_for<Arg, t, Arg&&>)
     {
       using Traits = interface::library_interface<std::decay_t<Arg>>;
       return Traits::template make_triangular_matrix<t>(std::forward<Arg>(arg));

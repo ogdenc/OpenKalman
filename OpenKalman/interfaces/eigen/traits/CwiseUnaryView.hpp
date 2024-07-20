@@ -27,7 +27,9 @@ namespace OpenKalman::interface
   {
   private:
 
-    using Base = Eigen3::indexible_object_traits_base<Eigen::CwiseUnaryView<ViewOp, MatrixType>>;
+    using Xpr = Eigen::CwiseUnaryView<ViewOp, MatrixType>;
+    using Base = Eigen3::indexible_object_traits_base<Xpr>;
+    using Traits = Eigen3::UnaryFunctorTraits<std::decay_t<ViewOp>>;
 
   public:
 
@@ -37,7 +39,7 @@ namespace OpenKalman::interface
       return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
     }
 
-    using dependents = std::tuple<typename Eigen::CwiseUnaryView<ViewOp, MatrixType>::MatrixTypeNested, ViewOp>;
+    using dependents = std::tuple<typename Eigen::CwiseUnaryView<ViewOp, MatrixType>::MatrixTypeNested>;
 
     static constexpr bool has_runtime_parameters = false;
 
@@ -48,41 +50,86 @@ namespace OpenKalman::interface
       return std::forward<Arg>(arg).nestedExpression();
     }
 
+  private:
 
-    template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
+#ifndef __cpp_concepts
+    template<typename T, typename = void>
+    struct custom_get_constant_defined : std::false_type {};
+
+    template<typename T>
+    struct custom_get_constant_defined<T, std::void_t<decltype(T::template get_constant(std::declval<const Xpr&>()))>>
+      : std::true_type {};
+#endif
+
+  public:
+
+    static constexpr auto
+    get_constant(const Xpr& arg)
     {
-      using N = Eigen::CwiseUnaryView<ViewOp, equivalent_self_contained_t<MatrixType>>;
-      if constexpr (not std::is_lvalue_reference_v<typename N::MatrixTypeNested>)
-        return N {make_self_contained(arg.nestedExpression()), arg.functor()};
+#ifdef __cpp_concepts
+      if constexpr (requires { Traits::get_constant(arg); })
+#else
+      if constexpr (custom_get_constant_defined<Traits>::value)
+#endif
+        return Traits::template get_constant(arg);
+#ifdef __cpp_concepts
+      else if constexpr (Eigen3::constexpr_unary_operation_defined<ViewOp>)
+        return values::scalar_constant_operation {Traits::constexpr_operation(), constant_coefficient {arg.nestedExpression()}};
+#else
+      else if constexpr (Eigen3::constexpr_unary_operation_defined<ViewOp> and constant_matrix<MatrixType, ConstantType::static_constant>)
+        return values::scalar_constant_operation {Traits::constexpr_operation(), constant_coefficient<MatrixType>{}};
+#endif
       else
-        return make_dense_object(std::forward<Arg>(arg));
+        return values::scalar_constant_operation {arg.functor(), constant_coefficient {arg.nestedExpression()}};
     }
 
-    template<typename Arg>
-    static constexpr auto get_constant(const Arg& arg)
+  private:
+
+#ifndef __cpp_concepts
+    template<typename T, typename = void>
+    struct custom_get_constant_diagonal_defined : std::false_type {};
+
+    template<typename T>
+    struct custom_get_constant_diagonal_defined<T, std::void_t<decltype(T::template get_constant_diagonal<MatrixType>(std::declval<const Xpr&>()))>>
+      : std::true_type {};
+#endif
+
+  public:
+
+    static constexpr auto
+    get_constant_diagonal(const Xpr& arg)
     {
-      return Eigen3::FunctorTraits<ViewOp, MatrixType>::template get_constant<false>(arg);
+#ifdef __cpp_concepts
+      if constexpr (requires { Traits::get_constant_diagonal(arg); })
+#else
+      if constexpr (custom_get_constant_diagonal_defined<Traits>::value)
+#endif
+        return Traits::template get_constant_diagonal<MatrixType>(arg);
+      else if constexpr (not Traits::preserves_triangle)
+        return std::monostate{};
+      else if constexpr (Eigen3::constexpr_unary_operation_defined<ViewOp>)
+        return values::scalar_constant_operation {Traits::constexpr_operation(), constant_diagonal_coefficient{arg.nestedExpression()}};
+      else
+        return values::scalar_constant_operation {arg.functor(), constant_diagonal_coefficient{arg.nestedExpression()}};
     }
 
-    template<typename Arg>
-    static constexpr auto get_constant_diagonal(const Arg& arg)
-    {
-      return Eigen3::FunctorTraits<ViewOp, MatrixType>::template get_constant<true>(arg);
-    }
 
     template<Qualification b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
+
     template<Qualification b>
     static constexpr bool is_square = square_shaped<MatrixType, b>;
 
-    template<TriangleType t>
-    static constexpr bool is_triangular = Eigen3::FunctorTraits<ViewOp, MatrixType>::template is_triangular<t>;
 
     static constexpr bool is_triangular_adapter = false;
 
-    static constexpr bool is_hermitian = Eigen3::FunctorTraits<ViewOp, MatrixType>::is_hermitian;
+
+    template<TriangleType t>
+    static constexpr bool is_triangular = Traits::preserves_triangle and triangular_matrix<MatrixType, t>;
+
+
+    static constexpr bool is_hermitian = Traits ::preserves_hermitian and hermitian_matrix<MatrixType, Qualification::depends_on_dynamic_shape>;
   };
 
 

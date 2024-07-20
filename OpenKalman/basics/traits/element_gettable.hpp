@@ -23,14 +23,15 @@ namespace OpenKalman
    * \brief Specifies that a type has components addressable by N indices.
    * \details This concept should include anything for which get_component(...) is properly defined with N std::size_t arguments.
    * \sa get_component
+   * \deprecated
    */
   template<typename T, std::size_t N>
 #ifdef __cpp_lib_concepts
   concept element_gettable = (N == dynamic_size or N >= index_count_v<T>) and
-    interface::get_component_defined_for<std::decay_t<T>, T, std::array<std::size_t, index_count_v<T>>>;
+    interface::get_component_defined_for<T, T, std::array<std::size_t, index_count_v<T>>>;
 #else
   constexpr bool element_gettable = (N == dynamic_size or N >= index_count_v<T>) and
-    interface::get_component_defined_for<std::decay_t<T>, T, std::array<std::size_t, index_count<T>::value>>;
+    interface::get_component_defined_for<T, T, std::array<std::size_t, index_count<T>::value>>;
 #endif
 
 

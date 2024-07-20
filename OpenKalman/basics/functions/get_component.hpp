@@ -26,10 +26,6 @@ namespace OpenKalman
 {
   // \todo Add functions that return stl-compatible iterators.
 
-  // =================== //
-  //  Element functions  //
-  // =================== //
-
   namespace detail
   {
     template<typename Arg, typename Indices>
@@ -37,7 +33,7 @@ namespace OpenKalman
     get_component_impl(Arg&& arg, const Indices& indices)
     {
       using Trait = interface::library_interface<std::decay_t<Arg>>;
-      return Trait::get_component(std::forward<Arg>(arg), internal::truncate_indices<index_count_v<Arg>>(indices));
+      return Trait::get_component(std::forward<Arg>(arg), internal::truncate_indices(indices, count_indices(arg)));
     }
   } // namespace detail
 
@@ -93,13 +89,16 @@ namespace OpenKalman
         else return true;
       }() and ...);
     }
+  } // namespace detail
 
 
+  namespace internal
+  {
     template<typename Arg, typename...I>
     struct static_indices_within_bounds
-      : std::bool_constant<(detail::static_indices_within_bounds_impl<Arg, I...>(std::index_sequence_for<I...>{}))> {};
+      : std::bool_constant<(OpenKalman::detail::static_indices_within_bounds_impl<Arg, I...>(std::index_sequence_for<I...>{}))> {};
 
-  } // namespace detail
+  } // namespace internal
 
 
   /**
@@ -110,12 +109,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_lib_concepts
   template<indexible Arg, index_value...I> requires (index_count_v<Arg> == dynamic_size or sizeof...(I) >= index_count_v<Arg>) and
-  (not empty_object<Arg>) and detail::static_indices_within_bounds<Arg, I...>::value
+  (not empty_object<Arg>) and internal::static_indices_within_bounds<Arg, I...>::value
   constexpr scalar_constant decltype(auto)
 #else
   template<typename Arg, typename...I, std::enable_if_t<indexible<Arg> and
     (index_count<Arg>::value == dynamic_size or sizeof...(I) >= index_count<Arg>::value) and
-    (not empty_object<Arg>) and detail::static_indices_within_bounds<Arg, I...>::value, int> = 0>
+    (not empty_object<Arg>) and internal::static_indices_within_bounds<Arg, I...>::value, int> = 0>
   constexpr decltype(auto)
 #endif
   get_component(Arg&& arg, I&&...i)

@@ -27,11 +27,13 @@ namespace OpenKalman::interface
   {
   private:
 
+    using Xpr = Eigen::Transpose<MatrixType>;
     using Base = Eigen3::indexible_object_traits_base<Eigen::Transpose<MatrixType>>;
 
   public:
 
-    using dependents = std::tuple<typename Eigen::internal::ref_selector<MatrixType>::non_const_type>;
+    using dependents = std::tuple<typename Xpr::MatrixTypeNested>;
+
 
     static constexpr bool has_runtime_parameters = false;
 
@@ -42,16 +44,6 @@ namespace OpenKalman::interface
       return std::forward<Arg>(arg).nestedExpression();
     }
 
-    template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      using M = equivalent_self_contained_t<MatrixType>;
-      using N = Eigen::Transpose<M>;
-      if constexpr (not std::is_lvalue_reference_v<typename Eigen::internal::ref_selector<M>::non_const_type>)
-        return N {make_self_contained(arg.nestedExpression())};
-      else
-        return make_dense_object(std::forward<Arg>(arg));
-    }
 
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
@@ -59,26 +51,33 @@ namespace OpenKalman::interface
       return constant_coefficient{arg.nestedExpression()};
     }
 
+
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
       return constant_diagonal_coefficient {arg.nestedExpression()};
     }
 
+
     template<Qualification b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
+
     template<Qualification b>
     static constexpr bool is_square = square_shaped<MatrixType, b>;
+
 
     template<TriangleType t>
     static constexpr bool is_triangular = diagonal_matrix<MatrixType> or
       (t == TriangleType::lower and triangular_matrix<MatrixType, TriangleType::upper>) or
       (t == TriangleType::upper and triangular_matrix<MatrixType, TriangleType::lower>);
 
+
     static constexpr bool is_triangular_adapter = false;
 
+
     static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Qualification::depends_on_dynamic_shape>;
+
 
     static constexpr Layout layout = layout_of_v<MatrixType>;
 

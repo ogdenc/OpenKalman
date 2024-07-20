@@ -23,9 +23,9 @@ using M23 = eigen_matrix_t<double, 2, 3>;
 using M32 = eigen_matrix_t<double, 3, 2>;
 using M33 = eigen_matrix_t<double, 3, 3>;
 using I22 = Eigen3::IdentityMatrix<M22>;
-using Z22 = ZeroMatrix<eigen_matrix_t<double, 2, 2>>;
-using C2 = TypedIndex<Axis, angle::Radians>;
-using C3 = TypedIndex<Axis, angle::Radians, Axis>;
+using Z22 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>;
+using C2 = FixedDescriptor<Axis, angle::Radians>;
+using C3 = FixedDescriptor<Axis, angle::Radians, Axis>;
 using Mat12 = Matrix<Axis, C2, M12>;
 using Mat21 = Matrix<C2, Axis, M21>;
 using Mat22 = Matrix<C2, C2, M22>;
@@ -208,22 +208,22 @@ TEST(matrices, TypedMatrix_subscripts)
   static_assert(element_gettable<Matrix<C2, Axis, M21>, 2>);
   static_assert(element_gettable<Matrix<C2, Axis, M21>, 1>);
 
-  static_assert(element_settable<Mat23&, 2>);
-  static_assert(not element_settable<Mat23&, 1>);
-  static_assert(not element_settable<const Mat23&, 2>);
-  static_assert(not element_settable<const Mat23&, 1>);
-  static_assert(element_settable<Mat21&, 2>);
-  static_assert(element_settable<Mat21&, 1>);
-  static_assert(not element_settable<const Mat21&, 2>);
-  static_assert(not element_settable<const Mat21&, 1>);
-  static_assert(element_settable<Matrix<C3, C2, M32>&, 2>);
-  static_assert(not element_settable<Matrix<C3, C2, M32>&, 1>);
-  static_assert(not element_settable<Matrix<C3, C2, const M32>&, 2>);
-  static_assert(not element_settable<Matrix<C3, C2, const M32>&, 1>);
-  static_assert(element_settable<Matrix<C2, Axis, M21>&, 2>);
-  static_assert(element_settable<Matrix<C2, Axis, M21>&, 1>);
-  static_assert(not element_settable<Matrix<C2, Axis, const M21>&, 2>);
-  static_assert(not element_settable<Matrix<C2, Axis, const M21>&, 1>);
+  static_assert(writable_by_component<Mat23&, 2>);
+  static_assert(not writable_by_component<Mat23&, 1>);
+  static_assert(not writable_by_component<const Mat23&, 2>);
+  static_assert(not writable_by_component<const Mat23&, 1>);
+  static_assert(writable_by_component<Mat21&, 2>);
+  static_assert(writable_by_component<Mat21&, 1>);
+  static_assert(not writable_by_component<const Mat21&, 2>);
+  static_assert(not writable_by_component<const Mat21&, 1>);
+  static_assert(writable_by_component<Matrix<C3, C2, M32>&, 2>);
+  static_assert(not writable_by_component<Matrix<C3, C2, M32>&, 1>);
+  static_assert(not writable_by_component<Matrix<C3, C2, const M32>&, 2>);
+  static_assert(not writable_by_component<Matrix<C3, C2, const M32>&, 1>);
+  static_assert(writable_by_component<Matrix<C2, Axis, M21>&, 2>);
+  static_assert(writable_by_component<Matrix<C2, Axis, M21>&, 1>);
+  static_assert(not writable_by_component<Matrix<C2, Axis, const M21>&, 2>);
+  static_assert(not writable_by_component<Matrix<C2, Axis, const M21>&, 1>);
 
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(0, 0), 1, 1e-6);
   EXPECT_NEAR((Mat23 {1, 2, 3, 4, 5, 6})(0, 1), 2, 1e-6);
@@ -310,7 +310,7 @@ TEST(matrices, TypedMatrix_traits)
   static_assert(not identity_matrix<Matrix<C2, Dimensions<2>, I22>>);
   static_assert(not zero<Mat23>);
   static_assert(zero<Matrix<C2, C2, Z22>>);
-  static_assert(zero<Matrix<C2, C3, ZeroMatrix<eigen_matrix_t<double, 2, 3>>>>);
+  static_assert(zero<Matrix<C2, C3, ZeroAdapter<eigen_matrix_t<double, 2, 3>>>>);
 
   EXPECT_TRUE(is_near(make_zero<Mat23>(), eigen_matrix_t<double, 2, 3>::Zero()));
   EXPECT_TRUE(is_near(make_identity_matrix_like<Mat22>(), eigen_matrix_t<double, 2, 2>::Identity()));
@@ -383,8 +383,8 @@ TEST(matrices, TypedMatrix_blocks)
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6})), 1>, C3>);
 
   EXPECT_TRUE(is_near(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4}), Mat33 {1, 2, 0, 0, 0, 3, 0, 0, 4}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4})), 0>, TypedIndex<Axis, Axis, angle::Radians>>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4})), 1>, TypedIndex<Axis, angle::Radians, Axis>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4})), 0>, FixedDescriptor<Axis, Axis, angle::Radians>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4})), 1>, FixedDescriptor<Axis, angle::Radians, Axis>>);
 
   EXPECT_TRUE(is_near(split_vertical(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {}));
   EXPECT_TRUE(is_near(split_horizontal(Mat23 {1, 2, 3, 4, 5, 6}), std::tuple {}));
@@ -421,9 +421,9 @@ TEST(matrices, TypedMatrix_blocks)
   EXPECT_TRUE(is_near(apply_columnwise<2>([] { return Matrix<C2, angle::Radians> {1., 2}; }), Mat22 {1, 1, 2, 2}));
   EXPECT_TRUE(is_near(apply_columnwise<2>([](std::size_t i){ return Matrix<C2, angle::Radians> {i + 1., 2*i + 1}; }), Mat22 {1, 2, 1, 3}));
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>()>())), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>()>())), 1>, TypedIndex<angle::Radians, angle::Radians>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>()>())), 1>, FixedDescriptor<angle::Radians, angle::Radians>>);
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>(std::size_t)>())), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>(std::size_t)>())), 1>, TypedIndex<angle::Radians, angle::Radians>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>(std::size_t)>())), 1>, FixedDescriptor<angle::Radians, angle::Radians>>);
 
   const auto mat22_1234 = Mat22x {1, 2, 3, 4};
   auto n = mat22_1234

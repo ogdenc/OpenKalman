@@ -27,7 +27,7 @@ namespace OpenKalman
 
     template<typename T>
     struct is_inferred_hermitian_matrix<T, std::enable_if_t<not complex_number<typename scalar_type_of<T>::type> or
-      zero<T> or real_axis_number<constant_coefficient<T>> or real_axis_number<constant_diagonal_coefficient<T>>>>
+      real_axis_number<constant_coefficient<T>> or real_axis_number<constant_diagonal_coefficient<T>>>>
       : std::true_type {};
   };
 #endif
@@ -43,8 +43,8 @@ namespace OpenKalman
   concept hermitian_matrix = indexible<T> and square_shaped<T, b> and
     (interface::indexible_object_traits<std::decay_t<T>>::is_hermitian or
       ((constant_matrix<T, ConstantType::any> or diagonal_matrix<T>) and
-      (not complex_number<scalar_type_of_t<T>> or zero<T> or
-          real_axis_number<constant_coefficient<T>> or real_axis_number<constant_diagonal_coefficient<T>>)));
+      (not complex_number<scalar_type_of_t<T>> or
+        real_axis_number<constant_coefficient<T>> or real_axis_number<constant_diagonal_coefficient<T>>)));
 #else
   constexpr bool hermitian_matrix = square_shaped<T, b> and
     (interface::is_explicitly_hermitian<T>::value or

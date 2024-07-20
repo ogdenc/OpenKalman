@@ -39,7 +39,6 @@ TEST(eigen3, Eigen_Product)
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<C11_2>().matrix() * std::declval<C11_1>().matrix())> == 2);
 
   static_assert(scalar_constant<std::integral_constant<long long unsigned int, 2>>);
-  static_assert(not OpenKalman::detail::internal_constant<std::integral_constant<long long unsigned int, 2>>);
 
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().matrix() * std::declval<Cd22_3>().matrix())> == 6);
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().matrix() * std::declval<I22>().matrix())> == 2);

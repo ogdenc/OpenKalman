@@ -57,7 +57,7 @@ add_executable(eigen3
         constant-objects.test.cpp
         constant-diagonal-objects.test.cpp
         shape-traits.test.cpp
-        special-matrix-traits.test.cpp
+        adapters-traits.test.cpp
 
         function-tests/property-functions.test.cpp
         function-tests/make-functions.test.cpp

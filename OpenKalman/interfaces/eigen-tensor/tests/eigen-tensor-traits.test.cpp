@@ -11,7 +11,6 @@
 #include "eigen-tensor.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
 using numbers::pi;
@@ -30,7 +29,7 @@ TEST(eigen_tensor, Tensor)
   using T4 = Eigen::Tensor<double, 4>;
   static_assert(std::is_same_v<scalar_type_of_t<T4>, double>);
   static_assert(element_gettable<T4, 4>);
-  static_assert(element_settable<T4, 4>);
+  static_assert(writable_by_component<T4, 4>);
   static_assert(writable<T4>);
   static_assert(dynamic_dimension<T4, 0>);
   static_assert(dynamic_dimension<T4, 1>);
@@ -95,7 +94,7 @@ TEST(eigen_tensor, TensorFixedSize)
   static_assert(index_dimension_of_v<T1234, 3> == 4);
 
   static_assert(element_gettable<T1234, 4>);
-  static_assert(element_settable<T1234, 4>);
+  static_assert(writable_by_component<T1234, 4>);
   static_assert(writable<T1234>);
 
   t1234.setValues({{{{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}}, {{13, 14, 15, 16}, {17, 18, 19, 20}, {21, 22, 23, 24}}}});
@@ -127,7 +126,7 @@ TEST(eigen_tensor, TensorMap)
 
   static_assert(std::is_same_v<scalar_type_of_t<S64_4d>, double>);
   static_assert(element_gettable<S64_4d, 4>);
-  static_assert(element_settable<S64_4d, 4>);
+  static_assert(writable_by_component<S64_4d, 4>);
   static_assert(not writable<S64_4d>);
   static_assert(dynamic_dimension<S64_4d, 0>);
   static_assert(dynamic_dimension<S64_4d, 1>);
@@ -149,7 +148,7 @@ TEST(eigen_tensor, TensorMap)
 
   static_assert(std::is_same_v<scalar_type_of_t<S64_2d>, double>);
   static_assert(element_gettable<S64_2d, 2>);
-  static_assert(element_settable<S64_2d, 2>);
+  static_assert(writable_by_component<S64_2d, 2>);
   static_assert(not writable<S64_2d>);
   static_assert(dynamic_dimension<S64_2d, 0>);
   static_assert(dynamic_dimension<S64_2d, 1>);
@@ -172,15 +171,18 @@ TEST(eigen_tensor, tensor_to_matrix)
 
   using T23 = Eigen::TensorFixedSize<double, Eigen::Sizes<2,3>>;
   static_assert(layout_of_v<T23> == Layout::left);
-  static_assert(Eigen3::eigen_dense_general<Eigen3::EigenWrapper<T23>, true>);
+  static_assert(Eigen3::eigen_tensor_general<Eigen3::EigenTensorWrapper<T23>, false>);
+  static_assert(not Eigen3::eigen_tensor_general<Eigen3::EigenTensorWrapper<T23>, true>);
+  static_assert(Eigen3::eigen_dense_general<Eigen3::EigenWrapper<T23>, false>);
+  static_assert(not Eigen3::eigen_dense_general<Eigen3::EigenWrapper<T23>, true>);
   T23 t23;
   t23.setValues({{1, 2, 3}, {4, 5, 6}});
   EXPECT_TRUE(is_near(Eigen3::make_eigen_wrapper(t23), m23));
   EXPECT_TRUE(is_near(Eigen3::make_eigen_wrapper(t23) + m23.reverse(), M23::Constant(7)));
   EXPECT_TRUE(is_near(Eigen3::make_eigen_wrapper(t23) * m23.transpose(), make_dense_object_from<M22>(14, 32, 32, 77)));
 
-  static_assert(not eigen_matrix_general<T23>);
-  static_assert(not eigen_array_general<T23>);
+  static_assert(not Eigen3::eigen_matrix_general<T23>);
+  static_assert(not Eigen3::eigen_array_general<T23>);
   static_assert(directly_accessible<T23>);
   EXPECT_TRUE(is_near(to_native_matrix<M23>(t23), m23));
   EXPECT_TRUE(is_near(to_native_matrix<M23>(t23) + m23.reverse(), M23::Constant(7)));
@@ -203,15 +205,16 @@ TEST(eigen_tensor, matrix_to_tensor)
   static_assert(std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen3::EigenTensorWrapper<M22&>>()))>);
   static_assert(std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen3::EigenTensorWrapper<I22&>>()))>);
 
-  static_assert(not std::is_lvalue_reference_v<decltype(nested_object(std::declval<EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>>>()))>);
-  static_assert(std::is_lvalue_reference_v<decltype(nested_object(std::declval<EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>&>>()))>);
-  static_assert(not std::is_lvalue_reference_v<decltype(nested_object(std::declval<EigenTensorWrapper<Eigen::DiagonalWrapper<M31>>>()))>);
-  static_assert(std::is_lvalue_reference_v<decltype(nested_object(std::declval<EigenTensorWrapper<Eigen::DiagonalWrapper<M31>&>>()))>);
+  static_assert(not std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen3::EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>>>()))>);
+  static_assert(std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen3::EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>&>>()))>);
+  static_assert(not std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen3::EigenTensorWrapper<Eigen::DiagonalWrapper<M31>>>()))>);
+  static_assert(std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen3::EigenTensorWrapper<Eigen::DiagonalWrapper<M31>&>>()))>);
 
   static_assert(std::is_same_v<decltype(nested_object(std::declval<Eigen3::EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>>>())), Eigen::DiagonalMatrix<double, 3>&&>);
   static_assert(not std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen3::EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>>>()))>);
 
-  static_assert(Eigen3::eigen_tensor_general<Eigen3::EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>>>);
+  static_assert(Eigen3::eigen_tensor_general<Eigen3::EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>>, false>);
+  static_assert(not Eigen3::eigen_tensor_general<Eigen3::EigenTensorWrapper<Eigen::DiagonalMatrix<double, 3>>, true>);
 
   static_assert(Eigen3::eigen_general<decltype(make_dense_object<M11>(N1{}, N2{}))>);
   static_assert(not Eigen3::eigen_tensor_general<decltype(make_dense_object<M11>(N1{}, N2{}))>);
@@ -235,13 +238,13 @@ TEST(eigen_tensor, matrix_to_tensor)
   using T23 = Eigen::TensorFixedSize<double, Eigen::Sizes<2,3>>;
   T23 t23;
   t23.setValues({{1, 2, 3}, {4, 5, 6}});
-  EXPECT_TRUE(is_near(Eigen3::EigenTensorWrapper {m23}, t23));
-  EXPECT_TRUE(is_near(Eigen3::EigenTensorWrapper {m23} + t23.reverse(std::array{true, true}), t23.constant(7)));
+  EXPECT_TRUE(is_near(Eigen3::make_eigen_tensor_wrapper(m23), t23));
+  EXPECT_TRUE(is_near(Eigen3::make_eigen_tensor_wrapper(m23) + t23.reverse(std::array{true, true}), t23.constant(7)));
 
   using T32 = Eigen::TensorFixedSize<double, Eigen::Sizes<3,2>>;
   T32 t32;
   t32.setValues({{1, 4}, {2, 5}, {3, 6}});
   Eigen::TensorFixedSize<double, Eigen::Sizes<2,2>> t22;  t22.setValues({{14, 32}, {32, 77}});
-  EXPECT_TRUE(is_near(Eigen3::EigenTensorWrapper {m23}.contract(t32, std::array{std::pair{1, 0}}), t22));
+  EXPECT_TRUE(is_near(Eigen3::make_eigen_tensor_wrapper(m23).contract(t32, std::array{std::pair{1, 0}}), t22));
 }
 

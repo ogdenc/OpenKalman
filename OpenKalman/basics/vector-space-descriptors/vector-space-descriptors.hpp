@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020-2021 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -55,6 +55,7 @@
 #include "functions/set_wrapped_component.hpp"
 
 // objects:
+#include "interfaces/integral_interfaces.hpp"
 
 #include "descriptors/Dimensions.hpp"
 #include "descriptors/Distance.hpp"
@@ -63,10 +64,10 @@
 #include "descriptors/Polar.hpp"
 #include "descriptors/Spherical.hpp"
 
-#include "descriptors/TypedIndex.hpp"
+#include "descriptors/FixedDescriptor.hpp"
 
 #include "descriptors/details/AnyAtomicVectorSpaceDescriptor.hpp"
-#include "descriptors/DynamicTypedIndex.hpp"
+#include "descriptors/DynamicDescriptor.hpp"
 
 // traits:
 
@@ -76,12 +77,18 @@
 #include "traits/concatenate_fixed_vector_space_descriptor.hpp"
 #include "traits/replicate_fixed_vector_space_descriptor.hpp"
 #include "traits/canonical_fixed_vector_space_descriptor.hpp"
+#include "traits/reverse_fixed_vector_space_descriptor.hpp"
 
 #include "traits/maybe_equivalent_to.hpp"
 #include "traits/equivalent_to.hpp"
-#include "traits/prefix_of.hpp"
-#include "traits/head_of.hpp"
-#include "traits/tail_of.hpp"
+
+#include "traits/internal/is_prefix.hpp"
+#include "traits/internal/prefix_of.hpp"
+#include "traits/internal/suffix_of.hpp"
+#include "traits/internal/base_of.hpp"
+#include "traits/internal/head_of.hpp"
+#include "traits/internal/tail_of.hpp"
+
 #include "traits/has_uniform_dimension_type.hpp"
 #include "traits/uniform_dimension_type_of.hpp"
 #include "traits/equivalent_to_uniform_dimension_type_of.hpp"
@@ -95,6 +102,7 @@
 #include "functions/internal/is_uniform_component_of.hpp"
 #include "functions/internal/remove_trailing_1D_descriptors.hpp"
 #include "functions/internal/best_vector_space_descriptor.hpp"
+#include "functions/internal/split_head_tail.hpp"
 
 
 #endif //OPENKALMAN_VECTOR_TYPES_HPP

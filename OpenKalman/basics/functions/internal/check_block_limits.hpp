@@ -28,7 +28,7 @@ namespace OpenKalman::internal
       if constexpr (((limit_ix >= std::tuple_size_v<Limits>) or ...)) return;
       else if constexpr (((static_index_value<std::tuple_element_t<limit_ix, Limits>>) and ...) and not dynamic_dimension<Arg, index>)
       {
-        constexpr std::size_t block_limit = (std::size_t {std::tuple_element_t<limit_ix, Limits>{}} + ... + 0_uz);
+        constexpr std::size_t block_limit = (static_cast<std::size_t>(std::decay_t<std::tuple_element_t<limit_ix, Limits>>::value) + ... + 0_uz);
         static_assert(block_limit <= index_dimension_of_v<Arg, index>, "Block limits must be in range");
       }
       /*else // Not necessary: the matrix/tensor library should check runtime limits.

@@ -33,7 +33,18 @@ namespace OpenKalman
 #else
     template<typename T, Qualification b, typename = void>
 #endif
-    struct one_dimensional_impl : std::bool_constant<b == Qualification::depends_on_dynamic_shape and detail::has_1_by_1_dims<T, b>(std::make_index_sequence<2>{})> {};
+    struct one_dimensional_impl : std::false_type {};
+
+
+#ifdef __cpp_concepts
+    template<typename T, Qualification b> requires (index_count_v<T> == dynamic_size)
+    struct one_dimensional_impl<T, b>
+#else
+    template<typename T, Qualification b>
+    struct one_dimensional_impl<T, b, std::enable_if_t<index_count<T>::value == dynamic_size>>
+#endif
+      : std::bool_constant<b == Qualification::depends_on_dynamic_shape and detail::has_1_by_1_dims<T, b>(std::make_index_sequence<2>{})> {};
+
 
 #ifdef __cpp_concepts
     template<typename T, Qualification b> requires (index_count_v<T> != dynamic_size)

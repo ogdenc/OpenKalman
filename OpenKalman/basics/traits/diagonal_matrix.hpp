@@ -23,7 +23,7 @@ namespace OpenKalman
    * \brief Specifies that a type is a diagonal matrix.
    * \details A diagonal matrix has zero components everywhere except the main diagonal. It is not necessarily a
    * square matrix.
-   * \note A \ref diagonal_adapter is an unqualified diagonal matrix, but not all diagonal matrices are diagonal adapters.
+   * \note A \ref diagonal_adapter is an diagonal matrix, but not all diagonal matrices are diagonal adapters.
    */
   template<typename T>
 #ifdef __cpp_concepts

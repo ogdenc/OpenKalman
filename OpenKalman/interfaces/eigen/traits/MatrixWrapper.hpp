@@ -54,20 +54,11 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      using N = Eigen::MatrixWrapper<equivalent_self_contained_t<XprType>>;
-      if constexpr (not std::is_lvalue_reference_v<typename N::NestedExpressionType>)
-        return make_self_contained(arg.nestedExpression()).matrix();
-      else
-        return make_dense_object(std::forward<Arg>(arg));
-    }
-
-    template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
       return constant_coefficient{arg.nestedExpression()};
     }
+
 
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
@@ -75,16 +66,21 @@ namespace OpenKalman::interface
       return constant_diagonal_coefficient {arg.nestedExpression()};
     }
 
+
     template<Qualification b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<XprType, b>;
+
 
     template<Qualification b>
     static constexpr bool is_square = square_shaped<XprType, b>;
 
+
     template<TriangleType t>
     static constexpr bool is_triangular = triangular_matrix<XprType, t>;
 
+
     static constexpr bool is_triangular_adapter = false;
+
 
     static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
 

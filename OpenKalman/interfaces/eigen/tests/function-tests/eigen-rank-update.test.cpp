@@ -34,7 +34,7 @@ TEST(eigen3, rank_update_hermitian)
   EXPECT_TRUE(is_near(rank_update_hermitian(hu22, z22, 4), m22_93310));
   EXPECT_TRUE(is_near(m22, m22_93310));
 
-  // a is 1-by-1 (Dymamic requires creating a special matrix. Tests are in special_matrices tests.):
+  // a is 1-by-1 (Dymamic requires creating a special matrix. Tests are in adapters tests.):
 
   const auto m11_2 = M11(2);
   const auto m14_1 = make_dense_object_from<M14>(1, 1, 1, 1);
@@ -82,7 +82,7 @@ TEST(eigen3, rank_update_triangular)
   EXPECT_TRUE(is_near(rank_update_triangular(tu22, z22, 4), m22_3103));
   EXPECT_TRUE(is_near(m22, m22_3103));
 
-  // a is 1-by-1 (Dymamic requires creating a special matrix. Tests are in special_matrices tests.):
+  // a is 1-by-1 (Dymamic requires creating a special matrix. Tests are in adapters tests.):
 
   const auto m11_2 = M11(2);
   const auto m14_1 = make_dense_object_from<M14>(1, 1, 1, 1);

@@ -61,17 +61,10 @@ namespace OpenKalman
 
 
       template<typename Arg>
-      static auto convert_to_self_contained(Arg&& arg)
-      {
-        return TriangularMatrix<equivalent_self_contained_t<MatrixType>, triangle_type_of_v<Arg>> {std::forward<Arg>(arg)};
-      }
-
-
-      template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
       {
         if constexpr (zero<MatrixType> or ((Mode & Eigen::ZeroDiag) != 0 and diagonal_matrix<MatrixType>))
-          return internal::ScalarConstant<Qualification::unqualified, scalar_type_of_t<MatrixType>, 0>{};
+          return values::ScalarConstant<scalar_type_of_t<MatrixType>, 0>{};
         else
           return std::monostate{};
       }
@@ -81,27 +74,18 @@ namespace OpenKalman
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
         using Scalar = scalar_type_of_t<MatrixType>;
-        constexpr auto b = has_dynamic_dimensions<MatrixType> ? Qualification::depends_on_dynamic_shape : Qualification::unqualified;
 
-        if constexpr (not square_shaped<MatrixType, Qualification::depends_on_dynamic_shape>)
-        {
-          return std::monostate{};
-        }
-        else if constexpr ((Mode & Eigen::ZeroDiag) == 0 and Eigen3::eigen_Identity<MatrixType>)
-        {
-          return internal::ScalarConstant<b, Scalar, 1>{};
-        }
-        else if constexpr ((Mode & Eigen::UnitDiag) != 0 and (
+        if constexpr ((Mode & Eigen::UnitDiag) != 0 and (
           ((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, TriangleType::lower>) or
           ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, TriangleType::upper>)))
         {
-          return internal::ScalarConstant<b, Scalar, 1>{};
+          return values::ScalarConstant<Scalar, 1>{};
         }
         else if constexpr ((Mode & Eigen::ZeroDiag) != 0 and (
           ((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, TriangleType::lower>) or
           ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, TriangleType::upper>)))
         {
-          return internal::ScalarConstant<b, Scalar, 0>{};
+          return values::ScalarConstant<Scalar, 0>{};
         }
         else
         {
@@ -129,10 +113,8 @@ namespace OpenKalman
       static constexpr bool is_triangular_adapter = true;
 
 
-      static constexpr bool is_hermitian = diagonal_matrix<MatrixType> and
-        (not complex_number<typename Eigen::internal::traits<MatrixType>::Scalar> or
-          real_axis_number<constant_coefficient<MatrixType>> or
-          real_axis_number<constant_diagonal_coefficient<MatrixType>>);
+      static constexpr bool is_hermitian = diagonal_matrix<MatrixType> and (not complex_number<scalar_type> or
+        real_axis_number<constant_coefficient<MatrixType>> or real_axis_number<constant_diagonal_coefficient<MatrixType>>);
 
     };
 

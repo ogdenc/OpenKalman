@@ -21,14 +21,11 @@
 
 #include "nested_object.hpp"
 
-#include "internal/make_library_wrapper.hpp"
-#include "internal/make_self_contained_wrapper.hpp"
-
 #include "internal/make_fixed_size_adapter.hpp"
 #include "internal/make_fixed_size_adapter_like.hpp"
 #include "internal/make_fixed_square_adapter_like.hpp"
+#include "internal/smallest_dimension_index.hpp"
 
-#include "internal/truncate_indices.hpp"
 #include "get_component.hpp"
 #include "set_component.hpp"
 
@@ -38,17 +35,19 @@
 #include "to_native_matrix.hpp"
 
 #include "make_dense_object.hpp"
+#include "to_dense_object.hpp"
 #include "make_dense_object_from.hpp"
 #include "make_self_contained.hpp"
 #include "make_constant.hpp"
 #include "make_zero.hpp"
 #include "make_identity_matrix_like.hpp"
 
+#include "transpose.hpp"
+
 #include "to_diagonal.hpp"
 #include "diagonal_of.hpp"
 
 #include "conjugate.hpp"
-#include "transpose.hpp"
 #include "adjoint.hpp"
 
 #include "make_triangular_matrix.hpp"

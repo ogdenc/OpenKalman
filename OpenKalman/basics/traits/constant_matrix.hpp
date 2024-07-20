@@ -19,58 +19,16 @@
 
 namespace OpenKalman
 {
-  // ---------------------- //
-  //  constant_coefficient  //
-  // ---------------------- //
-
-  /**
-   * \brief The constant associated with T, assuming T is a \ref constant_matrix.
-   * \details Before using this value, always check if T is a \ref constant_matrix, because
-   * the value may be defined in some cases where T is not actually a constant matrix.
-   */
-#ifdef __cpp_concepts
-  template<indexible T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct constant_coefficient
-  {
-    explicit constexpr constant_coefficient(const std::decay_t<T>&) {};
-  };
-
-
-  /**
-   * \brief Deduction guide for \ref constant_coefficient.
-   */
-  template<typename T>
-  explicit constant_coefficient(const T&) -> constant_coefficient<T>;
-
-
-  /**
-   * \brief Helper template for constant_coefficient.
-   */
-#ifdef __cpp_concepts
-  template<indexible T>
-#else
-  template<typename T>
-#endif
-  constexpr auto constant_coefficient_v = constant_coefficient<T>::value;
-
-
-  // ----------------- //
-  //  constant_matrix  //
-  // ----------------- //
-
   /**
    * \brief Specifies that all components of an object are the same constant value.
    */
   template<typename T, ConstantType c = ConstantType::any>
 #ifdef __cpp_concepts
-  concept constant_matrix = indexible<T> and
+  concept constant_matrix =
 #else
   constexpr bool constant_matrix =
 #endif
-    (scalar_constant<constant_coefficient<T>, c> or (c != ConstantType::static_constant and one_dimensional<T>));
+    indexible<T> and scalar_constant<constant_coefficient<T>, c>;
 
 
 } // namespace OpenKalman

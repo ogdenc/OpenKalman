@@ -313,7 +313,7 @@ namespace OpenKalman::internal
      */
     auto operator() (std::size_t i, std::size_t j)
     {
-      if constexpr (element_settable<NestedMatrix, 2>)
+      if constexpr (writable_by_component<NestedMatrix, 2>)
         return ElementAccessor(Base::nested_object(), i, j,
           [this] { if (synchronization_direction() < 0) synchronize_reverse(); },
           [this] { mark_nested_matrix_changed(); });
@@ -336,7 +336,7 @@ namespace OpenKalman::internal
      */
     auto operator[] (std::size_t i)
     {
-      if constexpr (element_settable<NestedMatrix, 1>)
+      if constexpr (writable_by_component<NestedMatrix, 1>)
         return ElementAccessor(Base::nested_object(), i,
           [this] { if (synchronization_direction() < 0) synchronize_reverse(); },
           [this] { mark_nested_matrix_changed(); });

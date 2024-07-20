@@ -15,7 +15,7 @@ using namespace OpenKalman::test;
 
 inline namespace
 {
-  using C2 = TypedIndex<Axis, Axis>;
+  using C2 = FixedDescriptor<Axis, Axis>;
   using M22 = eigen_matrix_t<double, 2, 2>;
   using CovSA2 = Covariance <C2, SelfAdjointMatrix<M22>>;
   using CovT2 = Covariance <C2, TriangularMatrix<M22>>;

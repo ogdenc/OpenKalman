@@ -23,35 +23,13 @@ namespace OpenKalman::internal
 
   namespace detail
   {
-    template<typename Arg>
-    constexpr auto get_smallest_dimension(const Arg& arg) { return std::integral_constant<std::size_t, 1>{}; }
-
-
-    template<std::size_t I, std::size_t...Is, typename Arg>
-    constexpr auto get_smallest_dimension(const Arg& arg)
-    {
-      auto dim0 = get_index_dimension_of<I>(arg);
-      auto dim = get_smallest_dimension<Is...>(arg);
-      if constexpr (static_index_value<decltype(dim0)> and static_index_value<decltype(dim0)>)
-      {
-        if constexpr (dim0 > dim) return dim;
-        else return dim0;
-      }
-      else
-      {
-        if (dim0 > dim) return static_cast<std::size_t>(dim);
-        else return static_cast<std::size_t>(dim0);
-      }
-    }
-
-
     template<std::size_t...Ix, typename Arg>
     constexpr decltype(auto) clip_square_shaped_impl(std::index_sequence<Ix...>, Arg&& arg)
     {
-      auto dim = get_smallest_dimension<Ix...>(arg);
-      auto ret {make_fixed_size_adapter<decltype(dim)>(get_block(std::forward<Arg>(arg),
+      auto dim = get_index_dimension_of(arg, smallest_dimension_index(arg));
+      auto ret {get_block(std::forward<Arg>(arg),
         std::forward_as_tuple(std::integral_constant<std::size_t, static_cast<decltype(Ix)>(0)>{}...),
-        std::forward_as_tuple((Ix>=0?dim:dim)...)))};
+        std::forward_as_tuple((Ix==0?dim:dim)...))};
       return ret;
     }
 
@@ -62,16 +40,21 @@ namespace OpenKalman::internal
    * \internal
    * \brief Given inputs to a rank update function, return a writable square matrix
    */
-  template<typename Arg>
 #ifdef __cpp_concepts
-  constexpr square_shaped decltype(auto)
+  template<indexible Arg>
+  constexpr square_shaped<Qualification::depends_on_dynamic_shape> decltype(auto)
 #else
+  template<typename Arg>
   constexpr decltype(auto)
 #endif
   clip_square_shaped(Arg&& arg)
   {
     if constexpr (square_shaped<Arg>) return std::forward<Arg>(arg);
-    else return detail::clip_square_shaped_impl(std::make_index_sequence<index_count_v<Arg>>{}, std::forward<Arg>(arg));
+    else
+    {
+      static_assert(index_count_v<Arg> <= 2);
+      return detail::clip_square_shaped_impl(std::make_index_sequence<index_count_v<Arg>>{}, std::forward<Arg>(arg));
+    }
   }
 
 } // namespace OpenKalman::internal

@@ -11,7 +11,6 @@
 #include "interfaces/eigen/tests/eigen.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
 
@@ -22,11 +21,11 @@ TEST(eigen3, element_access)
   EXPECT_NEAR(m22(0, 0), 1, 1e-6);
   EXPECT_NEAR(m22(0, 1), 2, 1e-6);
 
-  auto d1 = make_eigen_matrix<double, 3, 1>(1, 2, 3);
+  auto d1 = Eigen3::make_eigen_matrix<double, 3, 1>(1, 2, 3);
   EXPECT_NEAR(d1(1), 2, 1e-6);
   d1(0) = 5;
   d1(2, 0) = 7;
-  EXPECT_TRUE(is_near(d1, make_eigen_matrix<double, 3, 1>(5, 2, 7)));
+  EXPECT_TRUE(is_near(d1, Eigen3::make_eigen_matrix<double, 3, 1>(5, 2, 7)));
 }
 
 
@@ -59,6 +58,11 @@ TEST(eigen3, get_and_set_components)
   EXPECT_ANY_THROW(get_component(el1x_1, 0, 0, 1));
   EXPECT_ANY_THROW(get_component(elx1_1, 0, 1));
   EXPECT_ANY_THROW(get_component(elxx_11, 0, 0, 1));
+
+  set_component(el11, 5.5); EXPECT_NEAR(get_component(el11), 5.5, 1e-8);
+  set_component(el1x_1, 5.5, 0, 0); EXPECT_NEAR(get_component(el1x_1, 0, 0), 5.5, 1e-8);
+  set_component(elx1_1, 5.5, 0); EXPECT_NEAR(get_component(elx1_1, 0), 5.5, 1e-8);
+  set_component(elxx_11, 5.5, 0, 0); EXPECT_NEAR(get_component(elxx_11, 0, 0), 5.5, 1e-8);
 
   M22 el22 {m22}; // 1, 2, 3, 4
   M2x el2x_2 {m22};
@@ -214,7 +218,7 @@ TEST(eigen3, get_block)
   EXPECT_TRUE(is_near(get_block<1>(m34, std::tuple{1}, std::tuple{1}), make_dense_object_from<M31>(2, 6, 10)));
   EXPECT_TRUE(is_near(get_block<1>(Mxx{m34}, std::tuple{1}, std::tuple{N3}), make_dense_object_from<M33>(2, 3, 4, 6, 7, 8, 10, 11, 12)));
 
-  auto ewd3 = make_eigen_wrapper(Eigen::DiagonalMatrix<double, 3>{make_dense_object_from<M31>(1, 2, 3)});
+  auto ewd3 = Eigen3::make_eigen_wrapper(Eigen::DiagonalMatrix<double, 3>{make_dense_object_from<M31>(1, 2, 3)});
   static_assert(not std::is_lvalue_reference_v<typename Eigen::internal::ref_selector<decltype(ewd3)>::non_const_type>);
   static_assert((Eigen::internal::traits<decltype(ewd3)>::Flags & Eigen::NestByRefBit) == 0x0);
 
@@ -463,7 +467,7 @@ TEST(eigen3, concatenate_horizontal)
 }
 
 
-// concatenate_diagonal is in special_matrices tests because it involves constructing zero matrices.
+// concatenate_diagonal is in adapters tests because it involves constructing zero matrices.
 
 
 TEST(eigen3, split_vertical)
@@ -474,25 +478,25 @@ TEST(eigen3, split_vertical)
   EXPECT_TRUE(is_near(split<0>(Mx2 {m22}), std::tuple {}));
   EXPECT_TRUE(is_near(split<0>(Mxx {m22}), std::tuple {}));
 
-  auto x1 = make_eigen_matrix<double, 5, 3>(
+  auto x1 = Eigen3::make_eigen_matrix<double, 5, 3>(
     1, 0, 0,
     0, 2, 0,
     0, 0, 3,
     4, 0, 0,
     0, 5, 0);
 
-  auto m33 = make_eigen_matrix<double, 3, 3>(
+  auto m33 = Eigen3::make_eigen_matrix<double, 3, 3>(
     1, 0, 0,
     0, 2, 0,
     0, 0, 3);
 
-  auto tup_m33_m23 = std::tuple {m33, make_eigen_matrix<double, 2, 3>(
+  auto tup_m33_m23 = std::tuple {m33, Eigen3::make_eigen_matrix<double, 2, 3>(
     4, 0, 0,
     0, 5, 0)};
 
-  auto tup_m23_m23 = std::tuple {make_eigen_matrix<double, 2, 3>(
+  auto tup_m23_m23 = std::tuple {Eigen3::make_eigen_matrix<double, 2, 3>(
     1, 0, 0,
-    0, 2, 0), make_eigen_matrix<double, 2, 3>(
+    0, 2, 0), Eigen3::make_eigen_matrix<double, 2, 3>(
     0, 0, 3,
     4, 0, 0)};
 
@@ -512,7 +516,7 @@ TEST(eigen3, split_vertical)
 
 TEST(eigen3, split_horizontal)
 {
-  auto m22_12 = make_eigen_matrix<double, 2, 2>(
+  auto m22_12 = Eigen3::make_eigen_matrix<double, 2, 2>(
     1, 0,
     0, 2);
 
@@ -522,17 +526,17 @@ TEST(eigen3, split_horizontal)
   EXPECT_TRUE(is_near(split<1>(Mx2 {m22_12}), std::tuple {}));
   EXPECT_TRUE(is_near(split<1>(Mxx {m22_12}), std::tuple {}));
 
-  const auto b1 = make_eigen_matrix<double, 3, 5>(
+  const auto b1 = Eigen3::make_eigen_matrix<double, 3, 5>(
     1, 0, 0, 0, 0,
     0, 2, 0, 4, 0,
     0, 0, 3, 0, 5);
 
-  auto m33 = make_eigen_matrix<double, 3, 3>(
+  auto m33 = Eigen3::make_eigen_matrix<double, 3, 3>(
     1, 0, 0,
     0, 2, 0,
     0, 0, 3);
 
-  auto tup_m33_m32 = std::tuple {m33, make_eigen_matrix<double, 3, 2>(
+  auto tup_m33_m32 = std::tuple {m33, Eigen3::make_eigen_matrix<double, 3, 2>(
     0, 0,
     4, 0,
     0, 5)};
@@ -543,10 +547,10 @@ TEST(eigen3, split_horizontal)
   EXPECT_TRUE(is_near(split<1>(eigen_matrix_t<double, dynamic_size, 5> {b1}, std::tuple{Dimensions{3}}, std::tuple{Dimensions{2}}), tup_m33_m32));
   EXPECT_TRUE(is_near(split<1>(eigen_matrix_t<double, dynamic_size, dynamic_size> {b1}, 3, 2), tup_m33_m32));
 
-  auto tup_m32_m32 = std::tuple {make_eigen_matrix<double, 3, 2>(
+  auto tup_m32_m32 = std::tuple {Eigen3::make_eigen_matrix<double, 3, 2>(
     1, 0,
     0, 2,
-    0, 0), make_eigen_matrix<double, 3, 2>(
+    0, 0), Eigen3::make_eigen_matrix<double, 3, 2>(
     0, 0,
     0, 4,
     3, 0)};
@@ -561,7 +565,7 @@ TEST(eigen3, split_horizontal)
 
 TEST(eigen3, split_diagonal_symmetric)
 {
-  auto m22_12 = make_eigen_matrix<double, 2, 2>(
+  auto m22_12 = Eigen3::make_eigen_matrix<double, 2, 2>(
     1, 2,
     4, 5);
 
@@ -571,19 +575,19 @@ TEST(eigen3, split_diagonal_symmetric)
   EXPECT_TRUE(is_near(split<0, 1>(Mx2 {m22_12}), std::tuple {}));
   EXPECT_TRUE(is_near(split<0, 1>(Mxx {m22_12}), std::tuple {}));
 
-  auto m55 = make_eigen_matrix<double, 5, 5>(
+  auto m55 = Eigen3::make_eigen_matrix<double, 5, 5>(
     1, 2, 3, 0, 0,
     4, 5, 6, 0, 0,
     7, 8, 9, 0, 0,
     0, 0, 0, 10, 11,
     0, 0, 0, 12, 13);
 
-  auto m33 = make_eigen_matrix<double, 3, 3>(
+  auto m33 = Eigen3::make_eigen_matrix<double, 3, 3>(
     1, 2, 3,
     4, 5, 6,
     7, 8, 9);
 
-  auto tup_m33_m22 = std::tuple {m33, make_eigen_matrix<double, 2, 2>(
+  auto tup_m33_m22 = std::tuple {m33, Eigen3::make_eigen_matrix<double, 2, 2>(
     10, 11,
     12, 13)};
 
@@ -593,7 +597,7 @@ TEST(eigen3, split_diagonal_symmetric)
   EXPECT_TRUE(is_near(split<0, 1>(Mx5 {m55}, Dimensions<3>{}, 2), tup_m33_m22));
   EXPECT_TRUE(is_near(split<0, 1>(Mxx {m55}, Dimensions<3>{}, Dimensions<2>{}), tup_m33_m22));
 
-  auto tup_m22_m22 = std::tuple {m22_12, make_eigen_matrix<double, 2, 2>(
+  auto tup_m22_m22 = std::tuple {m22_12, Eigen3::make_eigen_matrix<double, 2, 2>(
     9, 0,
     0, 10)};
 
@@ -607,17 +611,17 @@ TEST(eigen3, split_diagonal_symmetric)
 
 TEST(eigen3, split_diagonal_asymmetric)
 {
-  auto m45 = make_eigen_matrix<double, 4, 5>(
+  auto m45 = Eigen3::make_eigen_matrix<double, 4, 5>(
     1, 2, 3, 0, 0,
     4, 5, 6, 0, 0,
     0, 0, 0, 7, 8,
     0, 0, 0, 9, 10);
 
-  auto m23 = make_eigen_matrix<double, 2, 3>(
+  auto m23 = Eigen3::make_eigen_matrix<double, 2, 3>(
     1, 2, 3,
     4, 5, 6);
 
-  auto tup_m23_m22 = std::tuple {m23, make_eigen_matrix<double, 2, 2>(
+  auto tup_m23_m22 = std::tuple {m23, Eigen3::make_eigen_matrix<double, 2, 2>(
     7, 8,
     9, 10)};
 
@@ -627,9 +631,9 @@ TEST(eigen3, split_diagonal_asymmetric)
   EXPECT_TRUE(is_near(split<0, 1>(Mx5 {m45}, std::tuple{Dimensions<2>{}, Dimensions<3>{}}, std::tuple {Dimensions<2>{}, 2}), tup_m23_m22));
   EXPECT_TRUE(is_near(split<0, 1>(Mxx {m45}, std::tuple{2, 3}, std::tuple {2, 2}), tup_m23_m22));
 
-  auto m12_12 = make_eigen_matrix<double, 1, 2>(1, 2);
+  auto m12_12 = Eigen3::make_eigen_matrix<double, 1, 2>(1, 2);
 
-  auto tup_m22_m22 = std::tuple {m12_12, make_eigen_matrix<double, 2, 2>(
+  auto tup_m22_m22 = std::tuple {m12_12, Eigen3::make_eigen_matrix<double, 2, 2>(
     6, 0,
     0, 7)};
 

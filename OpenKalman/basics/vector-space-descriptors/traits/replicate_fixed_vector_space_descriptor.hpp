@@ -43,7 +43,7 @@ namespace OpenKalman
     template<typename T, std::size_t...I>
     static constexpr auto replicate_inds(std::index_sequence<I...>)
     {
-      return TypedIndex<std::conditional_t<(I==I), T, T>...> {};
+      return FixedDescriptor<std::conditional_t<(I==I), T, T>...> {};
     };
 
   public:

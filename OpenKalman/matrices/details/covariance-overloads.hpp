@@ -81,11 +81,11 @@ namespace OpenKalman
       }
 
 
-      template<typename Scalar, typename D>
+      template<typename Scalar, typename...D>
       static constexpr auto
-      make_identity_matrix(D&& d)
+      make_identity_matrix(D&&...d)
       {
-        return make_identity_matrix_like<nested_object_of_t<T>, Scalar>(std::forward<D>(d));
+        return make_identity_matrix_like<nested_object_of_t<T>, Scalar>(std::forward<D>(d)...);
       }
 
 
@@ -325,7 +325,7 @@ namespace OpenKalman
   inline auto
   split_diagonal(M&& m) noexcept
   {
-    static_assert(prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
+    static_assert(internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
     return split_diagonal<oin::SplitCovDiagF<M>, Cs...>(nested_object(std::forward<M>(m)));
   }
 
@@ -340,8 +340,8 @@ namespace OpenKalman
   split_vertical(M&& m) noexcept
   {
     using CC = vector_space_descriptor_of_t<M, 0>;
-    static_assert(prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, CC>);
-    return split_vertical<oin::SplitCovVertF<M, CC>, Cs...>(make_dense_object(std::forward<M>(m)));
+    static_assert(internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, CC>);
+    return split_vertical<oin::SplitCovVertF<M, CC>, Cs...>(to_dense_object(std::forward<M>(m)));
   }
 
 
@@ -355,8 +355,8 @@ namespace OpenKalman
   split_horizontal(M&& m) noexcept
   {
     using RC = vector_space_descriptor_of_t<M, 0>;
-    static_assert(prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, RC>);
-    return split_horizontal<oin::SplitCovHorizF<M, RC>, Cs...>(make_dense_object(std::forward<M>(m)));
+    static_assert(internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, RC>);
+    return split_horizontal<oin::SplitCovHorizF<M, RC>, Cs...>(to_dense_object(std::forward<M>(m)));
   }
 
 
@@ -444,7 +444,7 @@ namespace OpenKalman
 #endif
   inline std::ostream& operator<<(std::ostream& os, const Cov& c)
   {
-    os << make_dense_object(c);
+    os << to_dense_object(c);
     return os;
   }
 

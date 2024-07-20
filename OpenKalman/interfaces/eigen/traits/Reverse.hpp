@@ -50,20 +50,11 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static auto convert_to_self_contained(Arg&& arg)
-    {
-      using M = equivalent_self_contained_t<MatrixType>;
-      if constexpr (not std::is_lvalue_reference_v<typename M::Nested>)
-        return Eigen::Reverse<M, Direction> {make_self_contained(arg.nestedExpression())};
-      else
-        return make_dense_object(std::forward<Arg>(arg));
-    }
-
-    template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
       return constant_coefficient {arg.nestedExpression()};
     }
+
 
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
@@ -72,11 +63,14 @@ namespace OpenKalman::interface
       else return std::monostate {};
     }
 
+
     template<Qualification b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
+
     template<Qualification b>
     static constexpr bool is_square = square_shaped<MatrixType, b>;
+
 
     template<TriangleType t>
     static constexpr bool is_triangular = triangular_matrix<MatrixType,
@@ -85,10 +79,12 @@ namespace OpenKalman::interface
       (Direction == Eigen::BothDirections or (Direction == Eigen::Horizontal and vector<MatrixType, 0>) or
         (Direction == Eigen::Vertical and vector<MatrixType, 1>));
 
+
     static constexpr bool is_triangular_adapter = false;
 
+
     static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Qualification::depends_on_dynamic_shape> and
-        (Direction == Eigen::BothDirections or OpenKalman::one_dimensional<MatrixType, Qualification::depends_on_dynamic_shape>);
+        (Direction == Eigen::BothDirections or vector<MatrixType, 0> or vector<MatrixType, 1>);
   };
 
 
