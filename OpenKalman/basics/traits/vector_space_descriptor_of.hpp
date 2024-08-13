@@ -28,12 +28,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typename T, std::size_t N = 0>
-  struct vector_space_descriptor_of
 #else
   template<typename T, std::size_t N = 0, typename = void>
-  struct vector_space_descriptor_of
 #endif
-  {};
+  struct vector_space_descriptor_of {};
 
 
   /**

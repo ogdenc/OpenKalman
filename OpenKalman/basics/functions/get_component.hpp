@@ -112,7 +112,7 @@ namespace OpenKalman
   (not empty_object<Arg>) and internal::static_indices_within_bounds<Arg, I...>::value
   constexpr scalar_constant decltype(auto)
 #else
-  template<typename Arg, typename...I, std::enable_if_t<indexible<Arg> and
+  template<typename Arg, typename...I, std::enable_if_t<indexible<Arg> and (... and index_value<I>) and
     (index_count<Arg>::value == dynamic_size or sizeof...(I) >= index_count<Arg>::value) and
     (not empty_object<Arg>) and internal::static_indices_within_bounds<Arg, I...>::value, int> = 0>
   constexpr decltype(auto)

@@ -663,6 +663,70 @@ TEST(special_matrices, SelfAdjointMatrix_overloads)
   static_assert(std::is_same_v<std::decay_t<decltype(make_self_contained(U22 {9, 3, 3, 10} * 2))>, U22>);
   //
   //
+  EXPECT_TRUE(is_near(diagonal_of(L22 {9., 3, 3, 10}), make_eigen_matrix<double, 2, 1>(9., 10)));
+  EXPECT_TRUE(is_near(diagonal_of(U22 {9., 3, 3, 10}), make_eigen_matrix<double, 2, 1>(9., 10)));
+  //
+  EXPECT_TRUE(is_near(transpose(L22 {9., 3, 3, 10}), mat22(9., 3, 3, 10)));
+  EXPECT_TRUE(is_near(transpose(U22 {9., 3, 3, 10}), mat22(9., 3, 3, 10)));
+  EXPECT_TRUE(is_near(transpose(CL22 {9., cdouble(3,-1), cdouble(3,1), 10}), make_dense_writable_matrix_from<C22>(9., cdouble(3,1), cdouble(3,-1), 10)));
+  EXPECT_TRUE(is_near(transpose(CU22 {9., cdouble(3,-1), cdouble(3,1), 10}), make_dense_writable_matrix_from<C22>(9., cdouble(3,1), cdouble(3,-1), 10)));
+  //
+  EXPECT_TRUE(is_near(adjoint(L22 {9., 3, 3, 10}), mat22(9., 3, 3, 10)));
+  EXPECT_TRUE(is_near(adjoint(U22 {9., 3, 3, 10}), mat22(9., 3, 3, 10)));
+  EXPECT_TRUE(is_near(adjoint(CL22 {9., cdouble(3,-1), cdouble(3,1), 10}), make_dense_writable_matrix_from<C22>(9., cdouble(3,-1), cdouble(3,1), 10)));
+  EXPECT_TRUE(is_near(adjoint(CU22 {9., cdouble(3,-1), cdouble(3,1), 10}), make_dense_writable_matrix_from<C22>(9., cdouble(3,-1), cdouble(3,1), 10)));
+  //
+  EXPECT_NEAR(determinant(L22 {9., 3, 3, 10}), 81, 1e-6);
+  EXPECT_NEAR(determinant(U22 {9., 3, 3, 10}), 81, 1e-6);
+  //
+  EXPECT_NEAR(trace(L22 {9., 3, 3, 10}), 19, 1e-6);
+  EXPECT_NEAR(trace(U22 {9., 3, 3, 10}), 19, 1e-6);
+  //
+  EXPECT_TRUE(is_near(average_reduce<1>(L22 {9., 3, 3, 10}), make_eigen_matrix(6., 6.5)));
+  EXPECT_TRUE(is_near(average_reduce<1>(U22 {9., 3, 3, 10}), make_eigen_matrix(6., 6.5)));
+  //
+  EXPECT_TRUE(is_near(average_reduce<0>(L22 {9., 3, 3, 10}), make_eigen_matrix<double, 1, 2>(6., 6.5)));
+  EXPECT_TRUE(is_near(average_reduce<0>(U22 {9., 3, 3, 10}), make_eigen_matrix<double, 1, 2>(6., 6.5)));
+  //
+}
+
+
+TEST(special_matrices, SelfAdjointMatrix_solve)
+{
+  EXPECT_TRUE(is_near(solve(L22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix(1., 2)));
+  EXPECT_TRUE(is_near(solve(U22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix(1., 2)));
+  //
+  EXPECT_TRUE(is_near(solve(L22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix<double, 2, 1>(1, 2)));
+  EXPECT_TRUE(is_near(solve(U22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix<double, 2, 1>(1, 2)));
+}
+
+
+TEST(special_matrices, SelfAdjointMatrix_decompositions)
+{
+  EXPECT_TRUE(is_near(Cholesky_square(LQ_decomposition(L22 {9., 3, 3, 10})), mat22(90., 57, 57, 109)));
+  EXPECT_TRUE(is_near(Cholesky_square(LQ_decomposition(U22 {9., 3, 3, 10})), mat22(90., 57, 57, 109)));
+  //
+  EXPECT_TRUE(is_near(Cholesky_square(QR_decomposition(L22 {9., 3, 3, 10})), mat22(90., 57, 57, 109)));
+  EXPECT_TRUE(is_near(Cholesky_square(QR_decomposition(U22 {9., 3, 3, 10})), mat22(90., 57, 57, 109)));
+
+
+  auto m22_93310 = make_dense_object_from<M22>(9, 3, 3, 10);
+  auto hl22 = Eigen::SelfAdjointView<M22, Eigen::Lower> {m22_93310};
+  auto hu22 = Eigen::SelfAdjointView<M22, Eigen::Upper> {m22_93310};
+  auto m22_3013 = make_dense_object_from<M22>(3, 0, 1, 3);
+  auto m22_3103 = make_dense_object_from<M22>(3, 1, 0, 3);
+  auto tl22 = Eigen::TriangularView<M22, Eigen::Lower> {m22_3013};
+  auto tu22 = Eigen::TriangularView<M22, Eigen::Upper> {m22_3103};
+
+  EXPECT_TRUE(is_near(cholesky_square(tl22), hl22));
+  EXPECT_TRUE(is_near(cholesky_square(tl22), hu22));
+  EXPECT_TRUE(is_near(cholesky_square(tu22), hl22));
+  EXPECT_TRUE(is_near(cholesky_square(tu22), hu22));
+
+  EXPECT_TRUE(is_near(cholesky_square(std::move(tl22)), hl22));
+  EXPECT_TRUE(is_near(cholesky_square(std::move(tu22)), hu22));
+  //
+  //
   EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<decltype(M22::Identity()), TriangleType::lower>(M22::Identity())), M22::Identity()));
   EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<decltype(M22::Identity()), TriangleType::upper>(M22::Identity())), M22::Identity()));
   static_assert(identity_matrix<decltype(Cholesky_square(SelfAdjointMatrix<decltype(M22::Identity()), TriangleType::lower>(M22::Identity())))>);
@@ -755,53 +819,6 @@ TEST(special_matrices, SelfAdjointMatrix_overloads)
   static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::upper>(L22 {0., 0, 0, 0})), TriangleType::upper>);
   static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::lower>(L22 {0., 0, 0, 0})), TriangleType::lower>);
   static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::upper>(U22 {0., 0, 0, 0})), TriangleType::upper>);
-  //
-  //
-  EXPECT_TRUE(is_near(diagonal_of(L22 {9., 3, 3, 10}), make_eigen_matrix<double, 2, 1>(9., 10)));
-  EXPECT_TRUE(is_near(diagonal_of(U22 {9., 3, 3, 10}), make_eigen_matrix<double, 2, 1>(9., 10)));
-  //
-  EXPECT_TRUE(is_near(transpose(L22 {9., 3, 3, 10}), mat22(9., 3, 3, 10)));
-  EXPECT_TRUE(is_near(transpose(U22 {9., 3, 3, 10}), mat22(9., 3, 3, 10)));
-  EXPECT_TRUE(is_near(transpose(CL22 {9., cdouble(3,-1), cdouble(3,1), 10}), make_dense_writable_matrix_from<C22>(9., cdouble(3,1), cdouble(3,-1), 10)));
-  EXPECT_TRUE(is_near(transpose(CU22 {9., cdouble(3,-1), cdouble(3,1), 10}), make_dense_writable_matrix_from<C22>(9., cdouble(3,1), cdouble(3,-1), 10)));
-  //
-  EXPECT_TRUE(is_near(adjoint(L22 {9., 3, 3, 10}), mat22(9., 3, 3, 10)));
-  EXPECT_TRUE(is_near(adjoint(U22 {9., 3, 3, 10}), mat22(9., 3, 3, 10)));
-  EXPECT_TRUE(is_near(adjoint(CL22 {9., cdouble(3,-1), cdouble(3,1), 10}), make_dense_writable_matrix_from<C22>(9., cdouble(3,-1), cdouble(3,1), 10)));
-  EXPECT_TRUE(is_near(adjoint(CU22 {9., cdouble(3,-1), cdouble(3,1), 10}), make_dense_writable_matrix_from<C22>(9., cdouble(3,-1), cdouble(3,1), 10)));
-  //
-  EXPECT_NEAR(determinant(L22 {9., 3, 3, 10}), 81, 1e-6);
-  EXPECT_NEAR(determinant(U22 {9., 3, 3, 10}), 81, 1e-6);
-  //
-  EXPECT_NEAR(trace(L22 {9., 3, 3, 10}), 19, 1e-6);
-  EXPECT_NEAR(trace(U22 {9., 3, 3, 10}), 19, 1e-6);
-  //
-  EXPECT_TRUE(is_near(average_reduce<1>(L22 {9., 3, 3, 10}), make_eigen_matrix(6., 6.5)));
-  EXPECT_TRUE(is_near(average_reduce<1>(U22 {9., 3, 3, 10}), make_eigen_matrix(6., 6.5)));
-  //
-  EXPECT_TRUE(is_near(average_reduce<0>(L22 {9., 3, 3, 10}), make_eigen_matrix<double, 1, 2>(6., 6.5)));
-  EXPECT_TRUE(is_near(average_reduce<0>(U22 {9., 3, 3, 10}), make_eigen_matrix<double, 1, 2>(6., 6.5)));
-  //
-}
-
-
-TEST(special_matrices, SelfAdjointMatrix_solve)
-{
-  EXPECT_TRUE(is_near(solve(L22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix(1., 2)));
-  EXPECT_TRUE(is_near(solve(U22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix(1., 2)));
-  //
-  EXPECT_TRUE(is_near(solve(L22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix<double, 2, 1>(1, 2)));
-  EXPECT_TRUE(is_near(solve(U22 {9., 3, 3, 10}, make_eigen_matrix<double, 2, 1>(15, 23)), make_eigen_matrix<double, 2, 1>(1, 2)));
-}
-
-
-TEST(special_matrices, SelfAdjointMatrix_decompositions)
-{
-  EXPECT_TRUE(is_near(Cholesky_square(LQ_decomposition(L22 {9., 3, 3, 10})), mat22(90., 57, 57, 109)));
-  EXPECT_TRUE(is_near(Cholesky_square(LQ_decomposition(U22 {9., 3, 3, 10})), mat22(90., 57, 57, 109)));
-  //
-  EXPECT_TRUE(is_near(Cholesky_square(QR_decomposition(L22 {9., 3, 3, 10})), mat22(90., 57, 57, 109)));
-  EXPECT_TRUE(is_near(Cholesky_square(QR_decomposition(U22 {9., 3, 3, 10})), mat22(90., 57, 57, 109)));
 }
 
 

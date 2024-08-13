@@ -86,6 +86,9 @@
 #include "trace.hpp"
 #include "sum.hpp"
 
+#include "scalar_product.hpp"
+#include "scalar_quotient.hpp"
+
 #include "contract.hpp"
 #include "contract_in_place.hpp"
 

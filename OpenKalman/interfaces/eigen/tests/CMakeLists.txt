@@ -72,6 +72,7 @@ add_executable(eigen3
         function-tests/trace.test.cpp
         function-tests/determinant.test.cpp
         function-tests/sum.test.cpp
+        function-tests/scalar-product-quotient.test.cpp
 
         function-tests/eigen-contract.test.cpp
         function-tests/eigen-rank-update.test.cpp

@@ -81,13 +81,13 @@ namespace OpenKalman::internal
    * \return An \ref index_value
    */
 #ifdef __cpp_concepts
-  template<indexible Arg, index_value N = std::integral_constant<std::size_t, 2>>
+  template<indexible Arg, index_value N = std::integral_constant<std::size_t, index_count_v<Arg> == dynamic_size ? 2 : index_count_v<Arg>>>
   constexpr index_value auto
 #else
-  template<typename Arg, typename N = std::integral_constant<std::size_t, 2>>
+  template<typename Arg, typename N = std::integral_constant<std::size_t, index_count_v<Arg> == dynamic_size ? 2 : index_count_v<Arg>>>
   constexpr auto
 #endif
-  smallest_dimension_index(const Arg& arg, const N& n = std::integral_constant<std::size_t, 2>{})
+  smallest_dimension_index(const Arg& arg, const N& n = N{})
   {
     if constexpr (static_index_value<N>) static_assert(N::value > 0);
 

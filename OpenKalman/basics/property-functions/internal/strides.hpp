@@ -63,7 +63,7 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
     concept strides_tuple =
 #else
-    constexpr bool concept strides_tuple =
+    constexpr bool strides_tuple =
 #endif
       strides_tuple_impl<T>(std::make_index_sequence<std::tuple_size_v<T>>{});
 
@@ -95,7 +95,7 @@ namespace OpenKalman::internal
     if constexpr (l == Layout::stride)
     {
 #ifndef __cpp_concepts
-      static_assert(detail::strides_tuple<decltype(interface::indexible_object_traits<std::decay_t<T>>::strides(t))>;
+      static_assert(detail::strides_tuple<decltype(interface::indexible_object_traits<std::decay_t<T>>::strides(t))>);
 #endif
       return interface::indexible_object_traits<std::decay_t<T>>::strides(t);
     }

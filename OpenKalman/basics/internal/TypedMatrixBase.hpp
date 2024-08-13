@@ -33,7 +33,7 @@ namespace OpenKalman::internal
 #else
   template<typename Derived, typename NestedMatrix, typename...Descriptors>
 #endif
-  struct TypedMatrixBase : MatrixBase<Derived, NestedMatrix>
+  struct TypedMatrixBase : AdapterBase<Derived, NestedMatrix>
   {
 
 #ifndef __cpp_concepts
@@ -44,7 +44,7 @@ namespace OpenKalman::internal
 
   private:
 
-    using Base = MatrixBase<Derived, NestedMatrix>;
+    using Base = AdapterBase<Derived, NestedMatrix>;
 
   protected:
 

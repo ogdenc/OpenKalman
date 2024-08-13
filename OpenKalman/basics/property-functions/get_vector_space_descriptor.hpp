@@ -28,12 +28,13 @@ namespace OpenKalman
 #endif
     struct count_is_zero : std::false_type {};
 
+
 #ifdef __cpp_concepts
     template<typename T> requires (std::decay_t<decltype(count_indices(std::declval<const T&>()))>::value == 0)
     struct count_is_zero<T>
 #else
     template<typename T>
-    struct count_is_zero<T, std::enable_if_t<std::decay_t<decltype(count_indices(std::declval<T>()))>::value == 0>>
+    struct count_is_zero<T, std::enable_if_t<std::decay_t<decltype(count_indices(std::declval<const T&>()))>::value == 0>>
 #endif
       : std::true_type {};
   } // namespace detail
@@ -43,11 +44,11 @@ namespace OpenKalman
    * \brief Get the \ref vector_space_descriptor object for index N of \ref indexible object T.
    */
 #ifdef __cpp_concepts
-  template<interface::count_indices_defined_for T, index_value N> requires
+  template<typename T, index_value N> requires
     interface::get_vector_space_descriptor_defined_for<T> or detail::count_is_zero<T>::value
   constexpr vector_space_descriptor auto
 #else
-  template<typename T, typename N, std::enable_if_t<interface::count_indices_defined_for<T> and index_value<N> and
+  template<typename T, typename N, std::enable_if_t<index_value<N> and
     (interface::get_vector_space_descriptor_defined_for<T> or detail::count_is_zero<T>::value), int> = 0>
   constexpr auto
 #endif
@@ -79,11 +80,11 @@ namespace OpenKalman
    * \tparam N An index value known at compile time.
    */
 #ifdef __cpp_concepts
-  template<std::size_t N = 0, interface::count_indices_defined_for T> requires
+  template<std::size_t N = 0, typename T> requires
     interface::get_vector_space_descriptor_defined_for<T> or detail::count_is_zero<T>::value
   constexpr vector_space_descriptor auto
 #else
-  template<std::size_t N = 0, typename T, std::enable_if_t<interface::count_indices_defined_for<T> and
+  template<std::size_t N = 0, typename T, std::enable_if_t<
     (interface::get_vector_space_descriptor_defined_for<T> or detail::count_is_zero<T>::value), int> = 0>
   constexpr auto
 #endif

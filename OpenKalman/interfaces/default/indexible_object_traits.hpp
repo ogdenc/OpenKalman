@@ -37,7 +37,6 @@ namespace OpenKalman::interface
      * \sa scalar_type_of
      */
     using scalar_type = double;
-#endif
 
 
     /**
@@ -80,7 +79,6 @@ namespace OpenKalman::interface
 #endif
 
 
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
     /**
      * \typedef type
      * \brief A tuple with elements corresponding to each dependent object.
@@ -93,10 +91,8 @@ namespace OpenKalman::interface
      * \note Optional. If this is not defined, T will be considered non-self-contained.
      */
      using dependents = std::tuple<>;
-#endif
 
 
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
     /**
      * \brief Indicates whether type T stores any internal runtime parameters.
      * \details An example of an internal runtime parameter might be indices for start locations, or sizes, for an
@@ -106,7 +102,6 @@ namespace OpenKalman::interface
      * any nested matrices, themselves, have internal runtime parameters.
      */
     static constexpr bool has_runtime_parameters = false;
-#endif
 
 
     /**
@@ -150,7 +145,6 @@ namespace OpenKalman::interface
     get_constant_diagonal(const T& arg) = delete;
 
 
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
     /**
      * \brief Whether T is \ref one-dimensional in all indices.
      * \note: Optional. If omitted, T's status as one-by-one can usually be derived from the dimensions.
@@ -158,10 +152,8 @@ namespace OpenKalman::interface
      */
     template<Qualification b>
     static constexpr bool one_dimensional = false;
-#endif
 
 
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
     /**
      * \brief Whether all dimensions of T are the same and type-equivalent (optional).
      * \note: Optional. If omitted, T's status as square can usually be derived from the dimensions.
@@ -169,10 +161,8 @@ namespace OpenKalman::interface
      */
     template<Qualification b>
     static constexpr bool is_square = false;
-#endif
 
 
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
     /**
      * \brief Whether T is triangular or diagonal with a particular \ref TriangleType.
      * \note Optional. Defaults to false if omitted.
@@ -181,18 +171,15 @@ namespace OpenKalman::interface
      */
     template<TriangleType t>
     static constexpr bool is_triangular = false;
-#endif
 
 
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
     /**
      * \brief Whether T is a \ref triangular_adapter.
      * \note Optional. Defaults to false if omitted.
      */
     static constexpr bool is_triangular_adapter = false;
-#endif
 
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
+
     /**
      * \brief Whether T is hermitian.
      * \note Optional. If omitted, T is not considered hermitian.
@@ -201,10 +188,8 @@ namespace OpenKalman::interface
      * - T is a \ref constant_matrix or \ref constant_diagonal_matrix in which the constant is real
      */
     static constexpr bool is_hermitian = false;
-#endif
 
 
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
     /**
      * \brief If T is a \ref hermitian adapter, this specifies its \ref HermitianAdapterType.
      * \details A hermitian adapter is a (potentially) hermitian matrix formed by nesting a non-hermitian matrix within
@@ -213,45 +198,33 @@ namespace OpenKalman::interface
      * It is also meaningless if \ref is_hermitian is false.
      */
     static constexpr HermitianAdapterType hermitian_adapter_type = HermitianAdapterType::any;
-#endif
 
 
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
     /**
      * \brief Whether T is a writable, self-contained matrix or array.
      */
     static constexpr bool is_writable = false;
-#endif
 
 
     /**
      * \brief If the argument has direct access to the underlying array data, return a pointer to that raw data.
      * \details This could be a
      */
-#ifdef __cpp_concepts
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
-    static constexpr scalar_type * const
+#ifdef __cpp_lib_concepts
+    template<std::convertible_to<const T&> Arg> requires requires(Arg&& arg) { {*std::forward<Arg>(arg).data()} -> scalar_constant; } and direct_access
+    static constexpr scalar_type decltype(auto)
 #else
-    static constexpr auto * const
+    template<typename Arg, std::enable_if_t<
+      std::is_convertible_v<Arg, const T> and scalar_constant<decltype(*std::declval<Arg&&>().data())> and direct_access, int> = 0>
+    static constexpr auto decltype(auto)
 #endif
-    raw_data(std::convertible_to<const T> auto& arg) = delete;
-#else
-    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const T>, int> = 0>
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
-    static constexpr scalar_type * const
-#else
-    static constexpr auto * const
-#endif
-    raw_data(Arg& arg) = delete;
-#endif
+    raw_data(Arg&& arg) = delete;
 
 
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
     /**
      * \brief The layout of T.
      */
     static constexpr Layout layout = Layout::none;
-#endif
 
 
     /**
@@ -267,6 +240,7 @@ namespace OpenKalman::interface
     static constexpr auto
     strides(const T& arg) = delete;
 
+#endif
   };
 
 } // namespace OpenKalman::interface

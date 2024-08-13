@@ -57,21 +57,23 @@ namespace OpenKalman
     }
     else
     {
-      auto d = get_vector_space_descriptor(arg, internal::smallest_dimension_index(arg));
-
       if constexpr (constant_matrix<Arg>)
       {
-        constexpr std::make_index_sequence<index_count_v<Arg> - 1> seq;
-        return detail::make_constant_column_vector<Arg>(constant_coefficient{std::forward<Arg>(arg)}, d, seq);
+        return detail::make_constant_column_vector<Arg>(
+          constant_coefficient{std::forward<Arg>(arg)},
+          get_vector_space_descriptor(arg, internal::smallest_dimension_index(arg)),
+          std::make_index_sequence<index_count_v<Arg> - 1>{});
       }
       else if constexpr (constant_diagonal_matrix<Arg>)
       {
-        constexpr std::make_index_sequence<index_count_v<Arg> - 1> seq;
-        return detail::make_constant_column_vector<Arg>(constant_diagonal_coefficient {std::forward<Arg>(arg)}, d, seq);
+        return detail::make_constant_column_vector<Arg>(
+          constant_diagonal_coefficient {std::forward<Arg>(arg)},
+          get_vector_space_descriptor(arg, internal::smallest_dimension_index(arg)),
+          std::make_index_sequence<index_count_v<Arg> - 1>{});
       }
       else
       {
-        return internal::make_fixed_size_adapter(interface::library_interface<std::decay_t<Arg>>::diagonal_of(std::forward<Arg>(arg)), d);
+        return interface::library_interface<std::decay_t<Arg>>::diagonal_of(std::forward<Arg>(arg));
       }
     }
   }

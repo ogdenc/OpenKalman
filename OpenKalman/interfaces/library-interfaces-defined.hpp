@@ -599,9 +599,7 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typename T, typename...Args>
-  concept sum_defined_for = requires(Args...args) {
-    library_interface<std::decay_t<T>>::sum(std::forward<Args>(args)...);
-  };
+  concept sum_defined_for = requires(Args...args) { library_interface<std::decay_t<T>>::sum(std::forward<Args>(args)...); };
 #else
   namespace detail
   {
@@ -616,6 +614,54 @@ namespace OpenKalman::interface
 
   template<typename T, typename...Args>
   constexpr bool sum_defined_for = detail::sum_defined_for_impl<T, void, Args...>::value;
+#endif
+
+
+  // ---------------- //
+  //  scalar_product  //
+  // ---------------- //
+
+#ifdef __cpp_concepts
+  template<typename T, typename Arg, typename S>
+  concept scalar_product_defined_for = requires(Arg arg, S s) { library_interface<std::decay_t<T>>::scalar_product(std::forward<Arg>(arg), std::forward<S>(s)); };
+#else
+  namespace detail
+  {
+    template<typename T, typename Arg, typename S, typename = void>
+    struct scalar_product_defined_for_impl : std::false_type {};
+
+    template<typename T, typename Arg, typename S>
+    struct scalar_product_defined_for_impl<T, Arg, S, std::void_t<decltype(
+        library_interface<std::decay_t<T>>::scalar_product(std::declval<Arg>(), std::declval<S>()))>>
+      : std::true_type {};
+  }
+
+  template<typename T, typename Arg, typename S>
+  constexpr bool scalar_product_defined_for = detail::scalar_product_defined_for_impl<T, Arg, S>::value;
+#endif
+
+
+  // ---------------- //
+  //  scalar_product  //
+  // ---------------- //
+
+#ifdef __cpp_concepts
+  template<typename T, typename Arg, typename S>
+  concept scalar_quotient_defined_for = requires(Arg arg, S s) { library_interface<std::decay_t<T>>::scalar_quotient(std::forward<Arg>(arg), std::forward<S>(s)); };
+#else
+  namespace detail
+  {
+    template<typename T, typename Arg, typename S, typename = void>
+    struct scalar_quotient_defined_for_impl : std::false_type {};
+
+    template<typename T, typename Arg, typename S>
+    struct scalar_quotient_defined_for_impl<T, Arg, S, std::void_t<decltype(
+        library_interface<std::decay_t<T>>::scalar_quotient(std::declval<Arg>(), std::declval<S>()))>>
+      : std::true_type {};
+  }
+
+  template<typename T, typename Arg, typename S>
+  constexpr bool scalar_quotient_defined_for = detail::scalar_quotient_defined_for_impl<T, Arg, S>::value;
 #endif
 
 

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -185,14 +185,35 @@ namespace OpenKalman::interface
       }
     }
 
+  private:
+
+    template<typename Arg>
+    static decltype(auto)
+    wrap_if_nests_by_reference(Arg&& arg)
+    {
+      if constexpr (Eigen3::eigen_general<Arg>)
+      {
+        constexpr auto Flags = Eigen::internal::traits<std::remove_reference_t<Arg>>::Flags;
+        if constexpr (std::is_lvalue_reference_v<Arg> and static_cast<bool>(Flags & Eigen::NestByRefBit))
+          return std::forward<Arg>(arg);
+        else
+          return Eigen3::make_eigen_wrapper(std::forward<Arg>(arg));
+      }
+      else
+      {
+        return Eigen3::make_eigen_wrapper(std::forward<Arg>(arg));
+      }
+    }
+
+  public:
 
     template<typename Arg>
     static decltype(auto)
     to_native_matrix(Arg&& arg)
     {
-      if constexpr (Eigen3::eigen_matrix_general<Arg>)
+      if constexpr (internal::library_wrapper<Arg>)
       {
-        return std::forward<Arg>(arg);
+        return to_native_matrix(OpenKalman::nested_object(std::forward<Arg>(arg)));
       }
       else if constexpr (Eigen3::eigen_ArrayWrapper<Arg>)
       {
@@ -200,20 +221,13 @@ namespace OpenKalman::interface
       }
       else if constexpr (Eigen3::eigen_array_general<Arg>)
       {
-        using MW = Eigen::MatrixWrapper<std::remove_reference_t<Arg>>;
-        using Nested = typename MW::NestedExpressionType;
-        if constexpr (not std::is_lvalue_reference_v<Arg> and std::is_lvalue_reference_v<Nested>)
-        {
-          std::tuple<std::remove_reference_t<Arg>> tup {std::forward<Arg>(arg)};
-          auto& [ref] {tup};
-          return internal::SelfContainedWrapper<MW, std::remove_reference_t<Arg>>(std::move(tup), ref);
-        }
-        else
-        {
-          return MW {arg}; // Eigen::MatrixWrapper constructor expects an lvalue reference
-        }
+        return wrap_if_nests_by_reference(std::forward<Arg>(arg)).matrix();
       }
-      else if constexpr (directly_accessible<Arg>)
+      else if constexpr (Eigen3::eigen_matrix_general<Arg>)
+      {
+        return wrap_if_nests_by_reference(std::forward<Arg>(arg));
+      }
+      else if constexpr (not Eigen3::eigen_general<Arg> and directly_accessible<Arg> and std::is_lvalue_reference_v<Arg>)
       {
         using Scalar = scalar_type_of_t<Arg>;
         constexpr int rows = dynamic_dimension<Arg, 0> ? Eigen::Dynamic : index_dimension_of_v<Arg, 0>;
@@ -241,14 +255,14 @@ namespace OpenKalman::interface
           {
             using M = Eigen::Matrix<Scalar, rows, cols, Eigen::ColMajor>;
             Eigen::Stride<es1, es0> strides {is1, is0};
-            return Eigen::Map<const M, Eigen::Unaligned, decltype(strides)> {strides};
+            return Eigen::Map<const M, Eigen::Unaligned, decltype(strides)> {internal::raw_data(arg), rows, cols, strides};
           }
           else if constexpr (static_index_value<S1, std::ptrdiff_t> and
             (es1 == 1 or (static_index_value<S0, std::ptrdiff_t> and es1 < es0)))
           {
             using M = Eigen::Matrix<Scalar, rows, cols, Eigen::RowMajor>;
             Eigen::Stride<es0, es1> strides {is0, is1};
-            return Eigen::Map<const M, Eigen::Unaligned, decltype(strides)> {strides};
+            return Eigen::Map<const M, Eigen::Unaligned, decltype(strides)> {internal::raw_data(arg), rows, cols, strides};
           }
           else
           {
@@ -256,13 +270,13 @@ namespace OpenKalman::interface
             {
               using M = Eigen::Matrix<Scalar, rows, cols, Eigen::RowMajor>;
               Eigen::Stride<es0, es1> strides {is0, is1};
-              return Eigen::Map<const M, Eigen::Unaligned, decltype(strides)> {strides};
+              return Eigen::Map<const M, Eigen::Unaligned, decltype(strides)> {internal::raw_data(arg), rows, cols, strides};
             }
             else
             {
               using M = Eigen::Matrix<Scalar, rows, cols, Eigen::ColMajor>;
               Eigen::Stride<es1, es0> strides {is1, is0};
-              return Eigen::Map<const M, Eigen::Unaligned, decltype(strides)> {strides};
+              return Eigen::Map<const M, Eigen::Unaligned, decltype(strides)> {internal::raw_data(arg), rows, cols, strides};
             }
           }
         }
@@ -270,7 +284,7 @@ namespace OpenKalman::interface
         {
           constexpr auto l = layout_of_v<Arg> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor;
           using M = Eigen::Matrix<Scalar, rows, cols, l>;
-          return Eigen::Map<const M> {internal::raw_data(arg)};
+          return Eigen::Map<const M> {internal::raw_data(arg), rows, cols};
         }
       }
       else
@@ -413,11 +427,9 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<HermitianAdapterType t, Eigen3::eigen_dense_general Arg> requires std::is_lvalue_reference_v<Arg> or
-      (not std::is_lvalue_reference_v<typename Eigen::internal::ref_selector<std::remove_reference_t<Arg>>::non_const_type>)
+    template<HermitianAdapterType t, Eigen3::eigen_dense_general Arg> requires std::is_lvalue_reference_v<Arg>
 #else
-    template<HermitianAdapterType t, typename Arg, std::enable_if_t<Eigen3::eigen_dense_general<Arg> and (std::is_lvalue_reference_v<Arg> or
-      not std::is_lvalue_reference_v<typename Eigen::internal::ref_selector<std::remove_reference_t<Arg>>::non_const_type>), int> = 0>
+    template<HermitianAdapterType t, typename Arg, std::enable_if_t<Eigen3::eigen_dense_general<Arg> and std::is_lvalue_reference_v<Arg>, int> = 0>
 #endif
     static constexpr auto
     make_hermitian_adapter(Arg&& arg)
@@ -434,69 +446,67 @@ namespace OpenKalman::interface
       static_assert(0 < sizeof...(Begin) and sizeof...(Begin) <= 2);
       static_assert(sizeof...(Begin) == sizeof...(Size));
 
-      // \todo If Eigen implements Block for non-dense matrices, this can be changed to Eigen3::eigen_general.
-      if constexpr (Eigen3::eigen_dense_general<Arg>)
-      {
-        auto b0 = [](const auto& begin){
-          using Begin0 = std::decay_t<decltype(std::get<0>(begin))>;
-          if constexpr (static_index_value<Begin0>) return std::integral_constant<Eigen::Index, Begin0::value>{};
-          else return static_cast<Eigen::Index>(std::get<0>(begin));
-        }(begin);
+      auto b0 = [](const auto& begin){
+        using Begin0 = std::decay_t<decltype(std::get<0>(begin))>;
+        if constexpr (static_index_value<Begin0>) return std::integral_constant<Eigen::Index, Begin0::value>{};
+        else return static_cast<Eigen::Index>(std::get<0>(begin));
+      }(begin);
 
-        auto b1 = [](const auto& begin){
-          if constexpr (sizeof...(Begin) < 2) return std::integral_constant<Eigen::Index, 0>{};
-          else
-          {
-            using Begin1 = std::decay_t<decltype(std::get<1>(begin))>;
-            if constexpr (static_index_value<Begin1>) return std::integral_constant<Eigen::Index, Begin1::value>{};
-            else return static_cast<Eigen::Index>(std::get<1>(begin));
-          }
-        }(begin);
-
-        auto s0 = [](const auto& size){
-          using Size0 = std::decay_t<decltype(std::get<0>(size))>;
-          if constexpr (static_index_value<Size0>) return std::integral_constant<Eigen::Index, Size0::value>{};
-          else return static_cast<Eigen::Index>(std::get<0>(size));
-        }(size);
-
-        auto s1 = [](const auto& size){
-          if constexpr (sizeof...(Size) < 2) return std::integral_constant<Eigen::Index, 1>{};
-          else
-          {
-            using Size1 = std::decay_t<decltype(std::get<1>(size))>;
-            if constexpr (static_index_value<Size1>) return std::integral_constant<Eigen::Index, Size1::value>{};
-            else return static_cast<Eigen::Index>(std::get<1>(size));
-          }
-        }(size);
-
-        constexpr int S0 = static_cast<int>(static_index_value<decltype(s0), Eigen::Index> ? static_cast<Eigen::Index>(s0) : Eigen::Dynamic);
-        constexpr int S1 = static_cast<int>(static_index_value<decltype(s1), Eigen::Index> ? static_cast<Eigen::Index>(s1) : Eigen::Dynamic);
-        using XprType = std::remove_reference_t<Arg>;
-        using B = Eigen::Block<XprType, S0, S1>;
-        using X = typename Eigen::internal::ref_selector<XprType>::non_const_type;
-
-        if constexpr (not std::is_lvalue_reference_v<Arg> and std::is_lvalue_reference_v<X>)
-        {
-          using N = std::remove_reference_t<X>;
-          std::tuple<N> tup {std::forward<Arg>(arg)};
-          auto& ref {std::get<0>(tup)};
-          if constexpr ((static_index_value<Size> and ...))
-            return internal::SelfContainedWrapper<B, N>(std::move(tup), ref, std::move(b0), std::move(b1));
-          else
-            return internal::SelfContainedWrapper<B, N>(std::move(tup), ref, std::move(b0), std::move(b1), std::move(s0), std::move(s1));
-        }
+      auto b1 = [](const auto& begin){
+        if constexpr (sizeof...(Begin) < 2) return std::integral_constant<Eigen::Index, 0>{};
         else
         {
-          if constexpr ((static_index_value<Size> and ...))
-            return B {arg, std::move(b0), std::move(b1)}; // Eigen::Block constructor expects to copy an lvalue reference.
-          else
-            return B {arg, std::move(b0), std::move(b1), std::move(s0), std::move(s1)};
+          using Begin1 = std::decay_t<decltype(std::get<1>(begin))>;
+          if constexpr (static_index_value<Begin1>) return std::integral_constant<Eigen::Index, Begin1::value>{};
+          else return static_cast<Eigen::Index>(std::get<1>(begin));
         }
+      }(begin);
+
+      auto s0 = [](const auto& size){
+        using Size0 = std::decay_t<decltype(std::get<0>(size))>;
+        if constexpr (static_index_value<Size0>) return std::integral_constant<Eigen::Index, Size0::value>{};
+        else return static_cast<Eigen::Index>(std::get<0>(size));
+      }(size);
+
+      auto s1 = [](const auto& size){
+        if constexpr (sizeof...(Size) < 2) return std::integral_constant<Eigen::Index, 1>{};
+        else
+        {
+          using Size1 = std::decay_t<decltype(std::get<1>(size))>;
+          if constexpr (static_index_value<Size1>) return std::integral_constant<Eigen::Index, Size1::value>{};
+          else return static_cast<Eigen::Index>(std::get<1>(size));
+        }
+      }(size);
+
+      constexpr int S0 = static_cast<int>(static_index_value<decltype(s0), Eigen::Index> ? static_cast<Eigen::Index>(s0) : Eigen::Dynamic);
+      constexpr int S1 = static_cast<int>(static_index_value<decltype(s1), Eigen::Index> ? static_cast<Eigen::Index>(s1) : Eigen::Dynamic);
+
+      decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
+      using M = decltype(m);
+      using XprType = std::remove_reference_t<std::conditional_t<std::is_lvalue_reference_v<M>, M, const M>>;
+
+      constexpr auto Flags = Eigen::internal::traits<std::remove_reference_t<M>>::Flags;
+
+      if constexpr (directly_accessible<M> and not (std::is_lvalue_reference_v<M> and static_cast<bool>(Flags & Eigen::NestByRefBit)))
+      {
+        // workaround for Eigen::Block's special treatment of directly accessible nested types:
+        auto rep {std::forward<M>(m).template replicate<1,1>()};
+        using B = Eigen::Block<const decltype(rep), S0, S1>;
+        if constexpr ((static_index_value<Size> and ...))
+          return B {std::move(rep), std::move(b0), std::move(b1)};
+        else
+          return B {std::move(rep), std::move(b0), std::move(b1), std::move(s0), std::move(s1)};
       }
       else
       {
-        return get_block(to_native_matrix(std::forward<Arg>(arg)), begin, size);
+        using B = Eigen::Block<XprType, S0, S1>;
+        if constexpr ((static_index_value<Size> and ...))
+          return B {std::forward<M>(m), std::move(b0), std::move(b1)};
+        else
+          return B {std::forward<M>(m), std::move(b0), std::move(b1), std::move(s0), std::move(s1)};
       }
+
+
     }
 
 
@@ -632,6 +642,10 @@ namespace OpenKalman::interface
       {
         return internal::make_fixed_size_adapter(std::forward<Arg>(arg)); // Make one-dimensional matrix
       }
+      else if constexpr (Eigen3::eigen_array_general<Arg>)
+      {
+        return arg.matrix().asDiagonal();
+      }
       else
       {
         return arg.asDiagonal();
@@ -720,20 +734,10 @@ namespace OpenKalman::interface
       }
       else if constexpr (Eigen3::eigen_matrix_general<Arg>)
       {
-        using XprType = std::remove_reference_t<Arg>;
-        using Xpr = Eigen::Diagonal<XprType, 0>;
-        using NestedXpr = typename Eigen::internal::ref_selector<XprType>::non_const_type;
-        if constexpr (not std::is_lvalue_reference_v<Arg> and std::is_lvalue_reference_v<NestedXpr>)
-        {
-          using N = std::remove_reference_t<Arg>;
-          std::tuple<N> tup {std::forward<Arg>(arg)};
-          auto& [ref] {tup};
-          return internal::SelfContainedWrapper<Xpr, N> {std::move(tup), ref};
-        }
-        else
-        {
-          return to_dense_object(Xpr {arg}); // Argument in this case must be an lvalue reference.
-        }
+        decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
+        using M = decltype(m);
+        using MatrixType = std::remove_reference_t<std::conditional_t<std::is_lvalue_reference_v<M>, M, const M>>;
+        return Eigen::Diagonal<MatrixType, 0> {std::forward<M>(m)};
       }
       else
       {
@@ -756,25 +760,14 @@ namespace OpenKalman::interface
       }();
 
       using IndexType = typename std::decay_t<Arg>::Index;
-      using R = Eigen::Replicate<std::decay_t<Arg>, F0, F1>;
-      using NestedXpr = typename Eigen::internal::ref_selector<std::decay_t<Arg>>::type;
-      if constexpr (not std::is_lvalue_reference_v<Arg> and std::is_lvalue_reference_v<NestedXpr>)
-      {
-        using N = std::remove_reference_t<NestedXpr>;
-        std::tuple<N> tup {std::forward<Arg>(arg)};
-        auto& [ref] {tup};
-        if constexpr (static_index_value<Factor0> and static_index_value<Factor1>)
-          return internal::SelfContainedWrapper<R, N> {std::move(tup), ref};
-        else
-          return internal::SelfContainedWrapper<R, N> {std::move(tup), ref, static_cast<IndexType>(factor0), static_cast<IndexType>(factor1)};
-      }
+
+      decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
+      using M = decltype(m);
+      using R = Eigen::Replicate<std::remove_reference_t<M>, F0, F1>;
+      if constexpr (static_index_value<Factor0> and static_index_value<Factor1>)
+        return R {std::forward<M>(m)};
       else
-      {
-        if constexpr (static_index_value<Factor0> and static_index_value<Factor1>)
-          return R {std::forward<Arg>(arg)};
-        else
-          return R {std::forward<Arg>(arg), static_cast<IndexType>(factor0), static_cast<IndexType>(factor1)};
-      }
+        return R {std::forward<M>(m), static_cast<IndexType>(factor0), static_cast<IndexType>(factor1)};
     }
 
   private:
@@ -803,9 +796,8 @@ namespace OpenKalman::interface
           return std::tuple {(dimension_size_of_v<Ds> == dynamic_size or dynamic_dimension<Arg, Ix_Ds> ?
             Eigen::Dynamic : static_cast<int>(dimension_size_of_v<Ds> / index_dimension_of_v<Arg, Ix_Ds>))...};
       }();
-
-      using R = Eigen::Replicate<std::decay_t<Arg>, std::get<0>(factors), std::get<1>(factors)>;
-      using NestedXpr = typename Eigen::internal::ref_selector<std::decay_t<Arg>>::type;
+      constexpr auto F0 = std::get<0>(factors);
+      constexpr auto F1 = std::get<1>(factors);
 
       if constexpr (not (dynamic_vector_space_descriptor<Ds> or ...) and not (dynamic_dimension<Arg, Ix_Ds> or ...))
       {
@@ -813,16 +805,11 @@ namespace OpenKalman::interface
         {
           return std::forward<Arg>(arg);
         }
-        else if constexpr (not std::is_lvalue_reference_v<Arg> and std::is_lvalue_reference_v<NestedXpr>)
-        {
-          using N = std::remove_reference_t<NestedXpr>;
-          std::tuple<N> tup {std::forward<Arg>(arg)};
-          auto& [ref] {tup};
-          return internal::SelfContainedWrapper<R, N> {std::move(tup), ref};
-        }
         else
         {
-          return R {std::forward<Arg>(arg)};
+          decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
+          using M = decltype(m);
+          return Eigen::Replicate<std::remove_reference_t<M>, F0, F1> {std::forward<M>(m)};
         }
       }
       else
@@ -836,17 +823,9 @@ namespace OpenKalman::interface
             return std::tuple {static_cast<int>(get_dimension_size_of(std::get<Ix_Ds>(d_tup)) / get_index_dimension_of<Ix_Ds>(arg))...};
         }(d_tup, arg);
 
-        if constexpr (not std::is_lvalue_reference_v<Arg> and std::is_lvalue_reference_v<NestedXpr>)
-        {
-          using N = std::remove_reference_t<NestedXpr>;
-          std::tuple<N> tup {std::forward<Arg>(arg)};
-          auto& [ref] {tup};
-          return internal::SelfContainedWrapper<R, N> {std::move(tup), ref, f0, f1};
-        }
-        else
-        {
-          return R {std::forward<Arg>(arg), f0, f1};
-        }
+        decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
+        using M = decltype(m);
+        return Eigen::Replicate<std::remove_reference_t<M>, F0, F1> {std::forward<M>(m), f0, f1};
       }
     }
 
@@ -883,101 +862,17 @@ namespace OpenKalman::interface
     }
 
 
-    template<typename CW, typename Arg1, typename Arg2, typename...Ops>
-    static auto
-    binary_op_impl(Arg1&& arg1, Arg2&& arg2, Ops&&...ops)
-    {
-      using Nested1 = typename CW::LhsNested;
-      using Nested2 = typename CW::RhsNested;
-      using N1 = std::remove_reference_t<Nested1>;
-      using N2 = std::remove_reference_t<Nested2>;
-      constexpr bool wrap1 = not std::is_lvalue_reference_v<Arg1> and std::is_lvalue_reference_v<Nested1>;
-      constexpr bool wrap2 = not std::is_lvalue_reference_v<Arg2> and std::is_lvalue_reference_v<Nested2>;
-      if constexpr (wrap1 and wrap2)
-      {
-        std::tuple<N1, N2> t {std::forward<Arg1>(arg1), std::forward<Arg2>(arg2)};
-        auto& [ref1, ref2] {t};
-        return internal::SelfContainedWrapper<CW, N1, N2>(std::move(t), ref1, ref2, std::forward<Ops>(ops)...);
-      }
-      else if constexpr (wrap1)
-      {
-        std::tuple<N1> t {std::forward<Arg1>(arg1)};
-        auto& [ref1] {t};
-        return internal::SelfContainedWrapper<CW, N1>(std::move(t), ref1, std::forward<Arg2>(arg2), std::forward<Ops>(ops)...);
-      }
-      else if constexpr (wrap2)
-      {
-        std::tuple<N2> t {std::forward<Arg2>(arg2)};
-        auto& [ref2] {t};
-        return internal::SelfContainedWrapper<CW, N2>(std::move(t), std::forward<Arg1>(arg1), ref2, std::forward<Ops>(ops)...);
-      }
-      else
-      {
-        return CW {std::forward<Arg1>(arg1), std::forward<Arg2>(arg2), std::forward<Ops>(ops)...};
-      }
-    }
+    template<typename Op, typename...Args>
+    struct EigenNaryOp;
 
+    template<typename Op, typename Arg>
+    struct EigenNaryOp<Op, Arg> { using type = Eigen::CwiseUnaryOp<Op, Arg>; };
 
-    template<typename CW, typename Arg1, typename Arg2, typename Arg3, typename...Ops>
-    static auto
-    ternary_op_impl(Arg1&& arg1, Arg2&& arg2, Arg3&& arg3, Ops&&...ops)
-    {
-      using Nested1 = typename CW::Arg1Nested;
-      using Nested2 = typename CW::Arg2Nested;
-      using Nested3 = typename CW::Arg3Nested;
-      using N1 = std::remove_reference_t<Nested1>;
-      using N2 = std::remove_reference_t<Nested2>;
-      using N3 = std::remove_reference_t<Nested3>;
-      constexpr bool wrap1 = not std::is_lvalue_reference_v<Arg1> and std::is_lvalue_reference_v<Nested1>;
-      constexpr bool wrap2 = not std::is_lvalue_reference_v<Arg2> and std::is_lvalue_reference_v<Nested2>;
-      constexpr bool wrap3 = not std::is_lvalue_reference_v<Arg3> and std::is_lvalue_reference_v<Nested3>;
-      if constexpr (wrap1 and wrap2 and wrap3)
-      {
-        std::tuple<N1, N2, N3> t {std::forward<Arg1>(arg1), std::forward<Arg2>(arg2), std::forward<Arg3>(arg3)};
-        auto& [ref1, ref2, ref3] {t};
-        return internal::SelfContainedWrapper<CW, N1, N2, N3>(std::move(t), ref1, ref2, ref3, std::forward<Ops>(ops)...);
-      }
-      else if constexpr (wrap1 and wrap2)
-      {
-        std::tuple<N1, N2> t {std::forward<decltype(arg1)>(arg1), std::forward<decltype(arg2)>(arg2)};
-        auto& [ref1, ref2] {t};
-        return internal::SelfContainedWrapper<CW, N1, N2>(std::move(t), ref1, ref2, std::forward<decltype(arg3)>(arg3), std::forward<Ops>(ops)...);
-      }
-      else if constexpr (wrap1 and wrap3)
-      {
-        std::tuple<N1, N3> t {std::forward<decltype(arg1)>(arg1), std::forward<decltype(arg3)>(arg3)};
-        auto& [ref1, ref3] {t};
-        return internal::SelfContainedWrapper<CW, N1, N3>(std::move(t), ref1, std::forward<decltype(arg2)>(arg2), ref3, std::forward<Ops>(ops)...);
-      }
-      else if constexpr (wrap2 and wrap3)
-      {
-        std::tuple<N2, N3> t {std::forward<decltype(arg2)>(arg2), std::forward<decltype(arg3)>(arg3)};
-        auto& [ref2, ref3] {t};
-        return internal::SelfContainedWrapper<CW, N2, N3>(std::move(t), std::forward<decltype(arg1)>(arg1), ref2, ref3, std::forward<Ops>(ops)...);
-      }
-      else if constexpr (wrap1)
-      {
-        std::tuple<N1> t {std::forward<decltype(arg1)>(arg1)};
-        auto& [ref1] {t};
-        return internal::SelfContainedWrapper<CW, N1>(std::move(t), ref1, std::forward<decltype(arg2)>(arg2), std::forward<decltype(arg3)>(arg3), std::forward<Ops>(ops)...);
-      }
-      else if constexpr (wrap2)
-      {
-        std::tuple<N2> t {std::forward<decltype(arg2)>(arg2)};
-        auto& [ref2] {t};
-        return internal::SelfContainedWrapper<CW, N2>(std::move(t), std::forward<decltype(arg1)>(arg1), ref2, std::forward<decltype(arg3)>(arg3), std::forward<Ops>(ops)...);
-      }
-      else if constexpr (wrap3)
-      {
-        std::tuple<N3> t {std::forward<decltype(arg3)>(arg3)};
-        auto& [ref3] {t};
-        return internal::SelfContainedWrapper<CW, N3>(std::move(t), std::forward<decltype(arg1)>(arg1), std::forward<decltype(arg2)>(arg2), ref3, std::forward<Ops>(ops)...);
-      }
-      else
-      {
-        return CW {std::forward<Arg1>(arg1), std::forward<Arg2>(arg2), std::forward<Arg3>(arg3), std::forward<Ops>(ops)...};
-      }
-    }
+    template<typename Op, typename Arg1, typename Arg2>
+    struct EigenNaryOp<Op, Arg1, Arg2> { using type = Eigen::CwiseBinaryOp<Op, Arg1, Arg2>; };
+
+    template<typename Op, typename Arg1, typename Arg2, typename Arg3>
+    struct EigenNaryOp<Op, Arg1, Arg2, Arg3> { using type = Eigen::CwiseTernaryOp<Op, Arg1, Arg2, Arg3>; };
 
 
     template<typename...Ds, typename Operation, typename...Args>
@@ -998,32 +893,8 @@ namespace OpenKalman::interface
       }
       else
       {
-        if constexpr (sizeof...(Args) == 1)
-        {
-          using CW = Eigen::CwiseUnaryOp<std::decay_t<Op>, std::remove_reference_t<decltype(replicate(tup, std::forward<Args>(args)))>...>;
-          using NestedXpr = typename CW::XprTypeNested;
-          if constexpr (((not std::is_lvalue_reference_v<Args>) and ... and std::is_lvalue_reference_v<NestedXpr>))
-          {
-            using N = std::remove_reference_t<NestedXpr>;
-            std::tuple<N> t {replicate(tup, std::forward<Args>(args))...};
-            auto& [ref] {t};
-            return internal::SelfContainedWrapper<CW, N>(std::move(t), ref, std::forward<Op>(op));
-          }
-          else
-          {
-            return CW {replicate(tup, std::forward<Args>(args))..., std::forward<Op>(op)};
-          }
-        }
-        else if constexpr (sizeof...(Args) == 2)
-        {
-          using CW = Eigen::CwiseBinaryOp<std::decay_t<Op>, std::remove_reference_t<decltype(replicate(tup, std::forward<Args>(args)))>...>;
-          return binary_op_impl<CW>(replicate(tup, std::forward<Args>(args))..., std::forward<Op>(op));
-        }
-        else
-        {
-          using CW = Eigen::CwiseTernaryOp<std::decay_t<Op>, std::remove_reference_t<decltype(replicate(tup, std::forward<Args>(args)))>...>;
-          return ternary_op_impl<CW>(replicate(tup, std::forward<Args>(args))..., std::forward<Op>(op));
-        }
+        using CW = typename EigenNaryOp<std::decay_t<Op>, std::remove_reference_t<decltype(replicate(tup, std::declval<Args&&>()))>...>::type;
+        return CW {replicate(tup, std::forward<Args>(args))..., std::forward<Op>(op)};
       }
     }
 
@@ -1076,20 +947,10 @@ namespace OpenKalman::interface
         {
           constexpr auto dir = ((indices == 0) and ...) ? Eigen::Vertical : Eigen::Horizontal;
           using ROp = Eigen::internal::member_redux<std::decay_t<Op>, scalar_type_of_t<Arg>>;
-          using XprType = std::decay_t<Arg>;
-          using R = Eigen::PartialReduxExpr<XprType, ROp, dir>;
-          using NestedXpr = typename XprType::Nested;
-          if constexpr (not std::is_lvalue_reference_v<Arg> and std::is_lvalue_reference_v<NestedXpr>)
-          {
-            using N = std::remove_reference_t<NestedXpr>;
-            std::tuple<N> tup {std::forward<Arg>(arg)};
-            auto& [ref] {tup};
-            return internal::SelfContainedWrapper<R, N>(std::move(tup), ref, ROp{std::forward<Op>(op)});
-          }
-          else
-          {
-            return R {std::forward<Arg>(arg), ROp{std::forward<Op>(op)}};
-          }
+          decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
+          using M = decltype(m);
+          using MatrixType = std::remove_reference_t<std::conditional_t<std::is_lvalue_reference_v<M>, M, const M>>;
+          return Eigen::PartialReduxExpr<MatrixType, ROp, dir> {std::forward<M>(m), ROp{std::forward<Op>(op)}};
         }
       }
       else
@@ -1111,21 +972,10 @@ namespace OpenKalman::interface
     {
       if constexpr (Eigen3::eigen_dense_general<Arg>)
       {
-        using XprType = std::remove_reference_t<Arg>;
         using UnaryOp = Eigen::internal::scalar_conjugate_op<scalar_type_of_t<Arg>>;
-        using Xpr = Eigen::CwiseUnaryOp<UnaryOp, XprType>;
-        using NestedXpr = typename Xpr::XprTypeNested;
-        if constexpr (not std::is_lvalue_reference_v<Arg> and std::is_lvalue_reference_v<NestedXpr>)
-        {
-          using N = std::remove_reference_t<NestedXpr>;
-          std::tuple<N> tup {std::forward<Arg>(arg)};
-          auto& [ref] {tup};
-          return internal::SelfContainedWrapper<Xpr, N>(std::move(tup), ref);
-        }
-        else
-        {
-          return Xpr {std::forward<Arg>(arg)};
-        }
+        decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
+        using M = decltype(m);
+        return Eigen::CwiseUnaryOp<UnaryOp, std::remove_reference_t<M>> {std::forward<M>(m)};
       }
       else if constexpr (Eigen3::eigen_TriangularView<Arg> or Eigen3::eigen_SelfAdjointView<Arg>)
       {
@@ -1149,20 +999,10 @@ namespace OpenKalman::interface
     {
       if constexpr (Eigen3::eigen_matrix_general<Arg>)
       {
-        using MatrixType = std::remove_reference_t<Arg>;
-        using Xpr = Eigen::Transpose<MatrixType>;
-        using NestedXpr = typename Eigen::internal::ref_selector<MatrixType>::non_const_type;
-        if constexpr (not std::is_lvalue_reference_v<Arg> and std::is_lvalue_reference_v<NestedXpr>)
-        {
-          using N = std::remove_reference_t<NestedXpr>;
-          std::tuple<N> tup {std::forward<Arg>(arg)};
-          auto& [ref] {tup};
-          return internal::SelfContainedWrapper<Xpr, N>(std::move(tup), ref);
-        }
-        else
-        {
-          return Xpr {arg}; // Argument in this case must be an lvalue reference.
-        }
+        decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
+        using M = decltype(m);
+        using MatrixType = std::remove_reference_t<std::conditional_t<std::is_lvalue_reference_v<M>, M, const M>>;
+        return Eigen::Transpose<MatrixType> {std::forward<M>(m)};
       }
       else if constexpr (Eigen3::eigen_TriangularView<Arg> or Eigen3::eigen_SelfAdjointView<Arg>)
       {
@@ -1239,9 +1079,14 @@ namespace OpenKalman::interface
           return std::forward<decltype(x)>(x);
       };
 
-      using Sum = std::decay_t<decltype(f(std::forward<A>(a)) + f(std::forward<B>(b)))>;
       auto op = Eigen::internal::scalar_sum_op<scalar_type_of_t<A>, scalar_type_of_t<B>>{};
-      auto s {binary_op_impl<Sum>(f(std::forward<A>(a)), f(std::forward<B>(b)), std::move(op))};
+
+      decltype(auto) a_wrap = to_native_matrix(f(std::forward<A>(a)));
+      using AWrap = decltype(a_wrap);
+      decltype(auto) b_wrap = to_native_matrix(f(std::forward<B>(b)));
+      using BWrap = decltype(b_wrap);
+      using CW = Eigen::CwiseBinaryOp<decltype(op), std::remove_reference_t<AWrap>, std::remove_reference_t<BWrap>>;
+      CW s {std::forward<AWrap>(a_wrap), std::forward<BWrap>(b_wrap), std::move(op)};
 
       if constexpr (triangle_type_of_v<A, B> != TriangleType::any) return OpenKalman::make_triangular_matrix<triangle_type_of_v<A, B>>(std::move(s));
       else if constexpr (hermitian_matrix<A> and hermitian_matrix<B>) return make_hermitian_matrix<h>(std::move(s));
@@ -1250,12 +1095,67 @@ namespace OpenKalman::interface
 
   private:
 
+    template<typename Op, typename Arg, typename S>
+    static constexpr auto
+    scalar_op_impl(Arg&& arg, S&& s)
+    {
+      using Scalar = scalar_type_of_t<Arg>;
+      using ConstOp = Eigen::internal::scalar_constant_op<Scalar>;
+      using PlainObjectType = std::decay_t<Arg>;
+      using Index = typename PlainObjectType::Index;
+      auto c {Eigen::CwiseNullaryOp<ConstOp, PlainObjectType> {
+        static_cast<Index>(get_index_dimension_of<0>(arg)),
+        static_cast<Index>(get_index_dimension_of<1>(arg)),
+        ConstOp {static_cast<Scalar>(get_scalar_constant_value(s))}}};
+      decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
+      using M = decltype(m);
+      using CW = Eigen::CwiseBinaryOp<Op, std::remove_reference_t<M>, decltype(c)>;
+      return CW {std::forward<M>(m), c};
+    }
+
+  public:
+
+#ifdef __cpp_concepts
+    template<indexible Arg, scalar_constant S>
+    static constexpr maybe_same_shape_as<Arg> auto
+#else
+    template<typename Arg, typename S>
+    static constexpr auto
+#endif
+    scalar_product(Arg&& arg, S&& s)
+    {
+      using Scalar = scalar_type_of_t<Arg>;
+      using Op = Eigen::internal::scalar_product_op<Scalar, Scalar>;
+      return scalar_op_impl<Op>(std::forward<Arg>(arg), std::forward<S>(s));
+    }
+
+
+#ifdef __cpp_concepts
+    template<indexible Arg, scalar_constant S>
+    static constexpr maybe_same_shape_as<Arg> auto
+#else
+    template<typename Arg, typename S>
+    static constexpr auto
+#endif
+    scalar_quotient(Arg&& arg, S&& s)
+    {
+      using Scalar = scalar_type_of_t<Arg>;
+      using Op = Eigen::internal::scalar_quotient_op<Scalar, Scalar>;
+      return scalar_op_impl<Op>(std::forward<Arg>(arg), std::forward<S>(s));
+    }
+
+  private:
+
     template<bool lazy_evaluation = false, typename A, typename B>
     static constexpr auto
     make_product(A&& a, B&& b)
     {
-      using Prod = Eigen::Product<std::decay_t<A>, std::decay_t<B>, lazy_evaluation ? Eigen::LazyProduct : 0x0>;
-      return binary_op_impl<Prod>(std::forward<A>(a), std::forward<B>(b));
+      decltype(auto) a_wrap = to_native_matrix(std::forward<A>(a));
+      using AWrap = decltype(a_wrap);
+      decltype(auto) b_wrap = to_native_matrix(std::forward<B>(b));
+      using BWrap = decltype(b_wrap);
+      using Prod = Eigen::Product<std::remove_reference_t<AWrap>, std::remove_reference_t<BWrap>, lazy_evaluation ? Eigen::LazyProduct : 0x0>;
+      return Prod {std::forward<AWrap>(a_wrap), std::forward<BWrap>(b_wrap)};
     }
 
   public:
@@ -1464,31 +1364,9 @@ namespace OpenKalman::interface
 
       if constexpr (Eigen3::eigen_TriangularView<A>)
       {
-        using NA = std::decay_t<A>;
-        using NB = std::remove_reference_t<B>;
-        using Xpr = Eigen::Solve<NA, NB>;
-        if constexpr (not std::is_lvalue_reference_v<A> and not std::is_lvalue_reference_v<B>)
-        {
-          std::tuple<NA, NB> tup {std::forward<A>(a), std::forward<B>(b)};
-          auto& [ref_a, ref_b] = tup;
-          return internal::SelfContainedWrapper<Xpr, NA, NB>(std::move(tup), ref_a, ref_b);
-        }
-        else if constexpr (not std::is_lvalue_reference_v<A>)
-        {
-          std::tuple<NA> tup {std::forward<A>(a)};
-          auto& [ref_a] = tup;
-          return internal::SelfContainedWrapper<Xpr, NA>(std::move(tup), ref_a, std::forward<B>(b));
-        }
-        else if constexpr (not std::is_lvalue_reference_v<B>)
-        {
-          std::tuple<NB> tup {std::forward<B>(b)};
-          auto& [ref_b] = tup;
-          return internal::SelfContainedWrapper<Xpr, NB>(std::move(tup), std::forward<A>(a), ref_b);
-        }
-        else
-        {
-          Xpr {std::forward<A>(a), std::forward<B>(b)};
-        }
+        auto ret {Eigen::Solve {std::forward<A>(a), std::forward<B>(b)}};
+        if constexpr (std::is_lvalue_reference_v<A> and std::is_lvalue_reference_v<B>) return ret;
+        else return to_dense_object(std::move(ret));
       }
       else if constexpr (Eigen3::eigen_SelfAdjointView<A>)
       {
@@ -1515,11 +1393,11 @@ namespace OpenKalman::interface
       }
       else if constexpr (Eigen3::eigen_matrix_general<A>)
       {
+        using Mat = Eigen3::eigen_matrix_t<Scalar, a_rows, a_cols>;
         if constexpr (must_be_exact or must_be_unique)
         {
           auto a_cols_rt = get_index_dimension_of<1>(a);
-          using QR = Eigen::ColPivHouseholderQR<Eigen3::eigen_matrix_t<Scalar, a_rows, a_cols>>;
-          QR qr {std::forward<A>(a)};
+          Eigen::ColPivHouseholderQR<Mat> qr {std::forward<A>(a)};
 
           if constexpr (must_be_unique)
           {
@@ -1527,24 +1405,11 @@ namespace OpenKalman::interface
               "unique solution, but A is rank-deficient, so result X is not unique"};
           }
 
-          using NB = std::remove_reference_t<B>;
-          using Xpr = Eigen::Solve<QR, NB>;
-          auto res = [](QR&& qr, B&& b){
-            if constexpr (not std::is_lvalue_reference_v<B>)
-            {
-              std::tuple<QR, NB> tup {std::move(qr), std::forward<B>(b)};
-              auto& [ref_qr, ref_b] {tup};
-              return internal::SelfContainedWrapper<Xpr, NB>(std::move(tup), ref_qr, ref_b);
-            }
-            else
-            {
-              return Xpr {std::move(qr), std::forward<B>(b)};
-            }
-          }(std::move(qr), std::forward<B>(b));
+          auto res {to_dense_object(Eigen::Solve {std::move(qr), std::forward<B>(b)})};
 
           if constexpr (must_be_exact)
           {
-            bool a_solution_exists = (a*static_cast<Xpr&>(res)).isApprox(b, a_cols_rt * std::numeric_limits<scalar_type_of_t<A>>::epsilon());
+            bool a_solution_exists = (a * res).isApprox(b, a_cols_rt * std::numeric_limits<scalar_type_of_t<A>>::epsilon());
 
             if (a_solution_exists) return res;
             else throw std::runtime_error {"solve function requests an exact solution, "
@@ -1557,19 +1422,8 @@ namespace OpenKalman::interface
         }
         else
         {
-          using QR = Eigen::HouseholderQR<Eigen3::eigen_matrix_t<Scalar, a_rows, a_cols>>;
-          using NB = std::remove_reference_t<B>;
-          using Xpr = Eigen::Solve<QR, NB>;
-          if constexpr (not std::is_lvalue_reference_v<B>)
-          {
-            std::tuple<QR, NB> tup {std::forward<A>(a), std::forward<B>(b)};
-            auto& [ref_qr, ref_b] {tup};
-            return internal::SelfContainedWrapper<Xpr, NB>(std::move(tup), ref_qr, ref_b);
-          }
-          else
-          {
-            return Xpr {QR {std::forward<A>(a)}, std::forward<B>(b)};
-          }
+          Eigen::HouseholderQR<Mat> qr {std::forward<A>(a)};
+          return to_dense_object(Eigen::Solve {std::move(qr), std::forward<B>(b)});
         }
       }
       else

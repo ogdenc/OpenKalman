@@ -387,8 +387,8 @@ namespace OpenKalman::Eigen3
     template<typename T>
     struct is_eigen_SelfContainedWrapper : std::false_type {};
 
-    template<typename BaseObject, typename...InternalizedParameters>
-    struct is_eigen_SelfContainedWrapper<OpenKalman::internal::SelfContainedWrapper<BaseObject, InternalizedParameters...>> : std::true_type {};
+    template<typename BaseObject, typename...Parameters>
+    struct is_eigen_SelfContainedWrapper<OpenKalman::internal::SelfContainedWrapper<BaseObject, Parameters...>> : std::true_type {};
   }
 
 
@@ -498,54 +498,6 @@ namespace OpenKalman::Eigen3
   template<typename NestedMatrix>
   using IdentityMatrix = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<
     typename Eigen::internal::traits<std::decay_t<NestedMatrix>>::Scalar>, NestedMatrix>;
-
-
-  namespace detail
-  {
-    template<typename T>
-    struct is_eigen_wrapper : std::false_type {};
-
-    template<typename N, typename L>
-    struct is_eigen_wrapper<internal::LibraryWrapper<N, L>> : std::bool_constant<eigen_general<L, true>> {};
-  } // namespace detail
-
-
-  /**
-   * \internal
-   * \brief T is a \ref internal::LibraryWrapper "LibraryWrapper" for T based on the Eigen library.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept eigen_wrapper =
-#else
-  constexpr bool eigen_wrapper =
-#endif
-    detail::is_eigen_wrapper<std::decay_t<T>>::value;
-
-
-  /**
-   * \internal
-   * \brief Alias for the Eigen version of LibraryWrapper.
-   * \details A wrapper for OpenKalman classes so that they are treated exactly as native Eigen types.
-   * \tparam NestedObject A non-Eigen class, for which an Eigen3 trait and evaluator is defined.
-   */
-#ifdef __cpp_concepts
-  template<indexible NestedObject> requires (index_count_v<NestedObject> <= 2)
-#else
-  template<typename NestedObject>
-#endif
-  using EigenWrapper = internal::LibraryWrapper<NestedObject,
-    std::conditional_t<eigen_array_general<NestedObject>,
-      Eigen::Array<
-        scalar_type_of_t<NestedObject>,
-        dynamic_dimension<NestedObject, 0> ? Eigen::Dynamic : static_cast<int>(index_dimension_of_v<NestedObject, 0>),
-        dynamic_dimension<NestedObject, 1> ? Eigen::Dynamic : static_cast<int>(index_dimension_of_v<NestedObject, 1>),
-        layout_of_v<NestedObject> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor>,
-      Eigen::Matrix<
-        scalar_type_of_t<NestedObject>,
-        dynamic_dimension<NestedObject, 0> ? Eigen::Dynamic : static_cast<int>(index_dimension_of_v<NestedObject, 0>),
-        dynamic_dimension<NestedObject, 1> ? Eigen::Dynamic : static_cast<int>(index_dimension_of_v<NestedObject, 1>),
-        layout_of_v<NestedObject> == Layout::right ? Eigen::RowMajor : Eigen::ColMajor>>>;
 
 
   namespace detail

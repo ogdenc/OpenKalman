@@ -47,10 +47,6 @@ namespace OpenKalman::Eigen3::internal
     using StorageIndex = Eigen::Index;
     enum {
       Flags = (NestedTraits::Flags & ~Eigen::NestByRefBit & ~Eigen::LvalueBit) | lvalue_bit,
-      RowsAtCompileTime = OpenKalman::dynamic_dimension<T, 0> ? Eigen::Dynamic : static_cast<Eigen::Index>(OpenKalman::index_dimension_of_v<T, 0>),
-      ColsAtCompileTime = OpenKalman::dynamic_dimension<T, 1> ? Eigen::Dynamic : static_cast<Eigen::Index>(OpenKalman::index_dimension_of_v<T, 1>),
-      MaxRowsAtCompileTime [[maybe_unused]] = RowsAtCompileTime,
-      MaxColsAtCompileTime [[maybe_unused]] = ColsAtCompileTime,
     };
   };
 

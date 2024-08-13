@@ -27,10 +27,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible Arg> requires (max_tensor_order_v<Arg> <= 2)
-  constexpr std::convertible_to<scalar_type_of_t<Arg>> auto
+  constexpr std::convertible_to<scalar_type_of_t<Arg>> decltype(auto)
 #else
   template<typename Arg, std::enable_if_t<(indexible<Arg>) and (max_tensor_order_v<Arg> <= 2), int> = 0>
-  constexpr auto
+  constexpr decltype(auto)
 #endif
   trace(Arg&& arg)
   {
@@ -50,13 +50,13 @@ namespace OpenKalman
     {
       std::multiplies<scalar_type_of_t<Arg>> op;
       auto n = internal::index_dimension_scalar_constant(arg, internal::smallest_dimension_index(arg));
-      return values::scalar_constant_operation{op, constant_coefficient{arg}, n};
+      return values::scalar_constant_operation{op, constant_coefficient{std::forward<Arg>(arg)}, n};
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       std::multiplies<scalar_type_of_t<Arg>> op;
       auto n = internal::index_dimension_scalar_constant(arg, internal::smallest_dimension_index(arg));
-      return values::scalar_constant_operation{op, constant_diagonal_coefficient{arg}, n};
+      return values::scalar_constant_operation{op, constant_diagonal_coefficient{std::forward<Arg>(arg)}, n};
     }
     else if constexpr (triangular_matrix<Arg>) // Includes the diagonal case.
     {
@@ -65,21 +65,21 @@ namespace OpenKalman
     else // General case in which we have to add up the diagonal elements.
     {
       using Scalar = scalar_type_of_t<Arg>;
-      auto diag = diagonal_of(std::forward<Arg>(arg));
+      decltype(auto) diag {diagonal_of(std::forward<Arg>(arg))};
       if constexpr(dynamic_dimension<decltype(diag), 0>)
       {
         auto dim = get_index_dimension_of<0>(diag);
-        if (dim >= 2) return static_cast<Scalar>(reduce(std::plus<Scalar>{}, std::move(diag)));
-        else if (dim == 1) return static_cast<Scalar>(internal::get_singular_component(std::move(diag)));
+        if (dim >= 2) return static_cast<Scalar>(reduce(std::plus<Scalar>{}, std::forward<decltype(diag)>(diag)));
+        else if (dim == 1) return static_cast<Scalar>(internal::get_singular_component(std::forward<decltype(diag)>(diag)));
         else return static_cast<Scalar>(0); // d == 0 (empty vector)
       }
       else if constexpr (index_dimension_of_v<decltype(diag), 0> == 1)
       {
-        return internal::get_singular_component(std::move(diag));
+        return internal::get_singular_component(std::forward<decltype(diag)>(diag));
       }
       else
       {
-        return reduce(std::plus<Scalar>{}, std::move(diag));
+        return reduce(std::plus<Scalar>{}, std::forward<decltype(diag)>(diag));
       }
     }
   }

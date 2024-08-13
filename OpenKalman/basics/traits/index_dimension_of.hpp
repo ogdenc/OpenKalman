@@ -31,27 +31,17 @@ namespace OpenKalman
 #else
   template<typename T, std::size_t N = 0, typename = void>
 #endif
-  struct index_dimension_of;
+  struct index_dimension_of {};
 
 
+  template<typename T, std::size_t N>
 #ifdef __cpp_concepts
-  template<typename T, std::size_t N> requires requires(T t) { {get_index_dimension_of<N>(t)} -> dynamic_index_value; }
+  requires requires { typename vector_space_descriptor_of_t<T, N>; }
   struct index_dimension_of<T, N>
 #else
-  template<typename T, std::size_t N>
-  struct index_dimension_of<T, N, std::enable_if_t<indexible<T> and dynamic_index_value<decltype(get_index_dimension_of<N>(std::declval<T>()))>>>
+  struct index_dimension_of<T, N, std::void_t<typename vector_space_descriptor_of<T, N>::type>>
 #endif
-    : std::integral_constant<std::size_t, dynamic_size> {};
-
-
-#ifdef __cpp_concepts
-  template<typename T, std::size_t N> requires requires(T t) { {get_index_dimension_of<N>(t)} -> static_index_value; }
-  struct index_dimension_of<T, N>
-#else
-  template<typename T, std::size_t N>
-  struct index_dimension_of<T, N, std::enable_if_t<indexible<T> and static_index_value<decltype(get_index_dimension_of<N>(std::declval<T>()))>>>
-#endif
-    : std::integral_constant<std::size_t, std::decay_t<decltype(get_index_dimension_of<N>(std::declval<T>()))>::value> {};
+    : std::integral_constant<std::size_t, dimension_size_of_v<vector_space_descriptor_of_t<T, N>>> {};
 
 
   /**

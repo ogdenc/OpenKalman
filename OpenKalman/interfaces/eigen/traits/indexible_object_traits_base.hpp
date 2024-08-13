@@ -91,12 +91,12 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg> requires requires(Arg& arg) { requires std::is_pointer_v<decltype(arg.data())>; } and direct_access
+    template<typename Arg> requires requires(Arg&& arg) { {*std::forward<Arg>(arg).data()} -> scalar_constant; } and direct_access
 #else
-    template<typename Arg, std::enable_if_t<std::is_pointer<decltype(std::declval<Arg&>().data())>::value and direct_access, int> = 0>
+    template<typename Arg, std::enable_if_t<scalar_constant<decltype(*std::declval<Arg&&>().data())> and direct_access, int> = 0>
 #endif
-    static constexpr auto * const
-    raw_data(Arg& arg) { return arg.data(); }
+    static constexpr decltype(auto)
+    raw_data(Arg&& arg) { return std::forward<Arg>(arg).data(); }
 
   private:
 

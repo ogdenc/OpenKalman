@@ -26,11 +26,11 @@ namespace OpenKalman::internal
 #else
   template<typename NestedObject, typename LibraryObject>
 #endif
-  struct LibraryWrapper : internal::library_base_t<LibraryWrapper<NestedObject, LibraryObject>, LibraryObject>
+  struct LibraryWrapper : AdapterBase<LibraryWrapper<NestedObject, LibraryObject>, NestedObject, LibraryObject>
   {
   private:
 
-    using Base = internal::library_base_t<LibraryWrapper, LibraryObject>;
+    using Base = AdapterBase<LibraryWrapper, NestedObject, LibraryObject>;
 
   public:
 
@@ -38,12 +38,13 @@ namespace OpenKalman::internal
      * \brief Construct from a non-library object.
      */
 #ifdef __cpp_concepts
-    template<std::convertible_to<NestedObject> Arg> requires (not std::same_as<std::decay_t<Arg>, LibraryWrapper>)
+    template<indexible Arg> requires std::constructible_from<Base, Arg&&> and
+      (not std::is_base_of_v<LibraryWrapper, std::decay_t<Arg>>)
 #else
-    template<typename Arg, typename...Ps, std::enable_if_t<std::is_convertible_v<Arg, NestedObject> and
-      (not std::is_same_v<std::decay_t<Arg>, LibraryWrapper>), int> = 0>
+    template<typename Arg, std::enable_if_t<indexible<Arg> and std::is_constructible_v<Base, Arg&&> and
+      (not std::is_base_of_v<LibraryWrapper, std::decay_t<Arg>>), int> = 0>
 #endif
-    explicit LibraryWrapper(Arg&& arg) : wrapped_expression {std::forward<Arg>(arg)} {}
+    explicit LibraryWrapper(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
 
     /**
@@ -59,28 +60,11 @@ namespace OpenKalman::internal
 
 
     /**
-     * \brief Assign from another compatible indexible object.
-     */
-#ifdef __cpp_concepts
-    template<indexible Arg> requires (not std::same_as<std::decay_t<Arg>, LibraryWrapper>) and
-      std::assignable_from<std::add_lvalue_reference_t<NestedObject>, decltype(to_native_matrix<NestedObject>(std::declval<Arg&&>()))>
-#else
-    template<typename Arg, std::enable_if_t<(not std::is_same_v<std::decay_t<Arg>, LibraryWrapper>) and
-      std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, decltype(to_native_matrix<NestedObject>(std::declval<Arg&&>()))>, int> = 0>
-#endif
-    auto& operator=(Arg&& arg) noexcept
-    {
-      wrapped_expression = to_native_matrix<NestedObject>(std::forward<Arg>(arg));
-      return *this;
-    }
-
-
-    /**
      * \brief Move assignment operator.
      */
     LibraryWrapper& operator=(LibraryWrapper&& arg)
     {
-      if (this != &arg) wrapped_expression = std::move(arg);
+      if (this != &arg) this->nested_object() = std::move(arg).nested_object();
       return *this;
     }
 
@@ -90,28 +74,26 @@ namespace OpenKalman::internal
      */
     LibraryWrapper& operator=(const LibraryWrapper& arg)
     {
-      if (this != &arg) wrapped_expression = arg;
+      if (this != &arg) this->nested_object() = arg.nested_object();
       return *this;
     }
 
 
     /**
-     * \brief Get the nested object.
+     * \brief Assign from another compatible indexible object.
      */
-    auto& nested_object() & noexcept { return wrapped_expression; }
-
-    /// \overload
-    const auto& nested_object() const & noexcept { return wrapped_expression; }
-
-    /// \overload
-    NestedObject&& nested_object() && noexcept { return std::move(*this).wrapped_expression; }
-
-    /// \overload
-    const NestedObject&& nested_object() const && noexcept { return std::move(*this).wrapped_expression; }
-
-  private:
-
-    NestedObject wrapped_expression;
+#ifdef __cpp_concepts
+    template<indexible Arg> requires (not std::is_base_of_v<LibraryWrapper, std::decay_t<Arg>>) and
+      std::assignable_from<std::add_lvalue_reference_t<NestedObject>, decltype(to_native_matrix<NestedObject>(std::declval<Arg&&>()))>
+#else
+    template<typename Arg, std::enable_if_t<(not std::is_base_of_v<LibraryWrapper, std::decay_t<Arg>>) and
+      std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, decltype(to_native_matrix<NestedObject>(std::declval<Arg&&>()))>, int> = 0>
+#endif
+    LibraryWrapper& operator=(Arg&& arg) noexcept
+    {
+      this->nested_object() = to_native_matrix<NestedObject>(std::forward<Arg>(arg));
+      return *this;
+    }
 
   };
 

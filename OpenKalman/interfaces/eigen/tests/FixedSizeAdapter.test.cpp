@@ -41,6 +41,33 @@ TEST(eigen3, FixedSizeAdapter)
   static_assert(not constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, Dimensions<2>, Dimensions<1>>>);
   static_assert(not constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<2>, Dimensions<1>>>);
   static_assert(constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<1>, Dimensions<1>>, ConstantType::dynamic_constant>);
-
 }
 
+
+TEST(eigen3, make_fixed_size_adapter)
+{
+  auto m22 = make_dense_object_from<M22>(1, 2, 3, 4);
+  auto m2x_2 = M2x {m22};
+  auto mx2_2 = Mx2 {m22};
+  auto mxx_22 = Mxx {m22};
+
+  static_assert(not internal::fixed_size_adapter<decltype(internal::make_fixed_size_adapter<Dimensions<2>, Dimensions<2>>(std::declval<M22>()))>);
+  static_assert(internal::fixed_size_adapter<decltype(internal::make_fixed_size_adapter<Dimensions<2>, Dimensions<2>>(std::declval<M2x>()))>);
+  static_assert(internal::fixed_size_adapter<decltype(internal::make_fixed_size_adapter<Dimensions<2>, Dimensions<2>>(std::declval<Mx2>()))>);
+  static_assert(internal::fixed_size_adapter<decltype(internal::make_fixed_size_adapter<Dimensions<2>, Dimensions<2>>(std::declval<Mxx>()))>);
+
+  static_assert(square_shaped<decltype(internal::make_fixed_size_adapter<Dimensions<2>, Dimensions<2>>(std::declval<M2x>()))>);
+  static_assert(square_shaped<decltype(internal::make_fixed_size_adapter<Dimensions<2>, Dimensions<2>>(std::declval<Mx2>()))>);
+  static_assert(square_shaped<decltype(internal::make_fixed_size_adapter<Dimensions<2>, Dimensions<2>>(std::declval<Mxx>()))>);
+
+  static_assert(internal::fixed_size_adapter<decltype(internal::make_fixed_size_adapter<Dimensions<2>>(std::declval<M2x>()))>);
+  static_assert(index_dimension_of_v<decltype(internal::make_fixed_size_adapter<Dimensions<2>>(std::declval<M2x>())), 0> == 2);
+  static_assert(index_dimension_of_v<decltype(internal::make_fixed_size_adapter<Dimensions<2>>(std::declval<M2x>())), 1> == 1);
+  static_assert(index_dimension_of_v<decltype(internal::make_fixed_size_adapter<Dimensions<2>>(std::declval<Mxx>())), 0> == 2);
+  static_assert(index_dimension_of_v<decltype(internal::make_fixed_size_adapter<Dimensions<2>>(std::declval<Mxx>())), 1> == 1);
+  static_assert(index_dimension_of_v<decltype(internal::make_fixed_size_adapter(std::declval<Mxx>())), 0> == 1);
+  static_assert(index_dimension_of_v<decltype(internal::make_fixed_size_adapter(std::declval<Mxx>())), 1> == 1);
+  static_assert(index_dimension_of_v<decltype(internal::make_fixed_size_adapter(std::declval<Mxx>())), 2> == 1);
+
+  static_assert(not internal::fixed_size_adapter<decltype(internal::make_fixed_size_adapter<Dimensions<dynamic_size>>(std::declval<Mx1>()))>);
+}

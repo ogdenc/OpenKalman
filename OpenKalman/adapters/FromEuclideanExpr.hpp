@@ -250,7 +250,7 @@ namespace OpenKalman
 #endif
     auto& operator*=(const S scale)
     {
-      this->nested_object() = to_euclidean_noalias(*this * scale);
+      this->nested_object() = to_euclidean_noalias(scalar_product(*this, scale));
       return *this;
     }
 
@@ -266,7 +266,7 @@ namespace OpenKalman
 #endif
     auto& operator/=(const S scale)
     {
-      this->nested_object() = to_euclidean_noalias(*this / scale);
+      this->nested_object() = to_euclidean_noalias(scalar_quotient(*this, scale));
       return *this;
     }
 

@@ -40,7 +40,6 @@ namespace OpenKalman::interface
      */
     template<typename Derived>
     using LibraryBase = std::monostate;
-#endif
 
 
     /**
@@ -487,6 +486,40 @@ namespace OpenKalman::interface
 
 
     /**
+     * \brief Multiple an object by a scalar value.
+     * \param arg An \ref indexible object within the same library as LibraryObject.
+     * \param s A scalar value.
+     * \note This is optional. If not defined, the library will use n_ary_operation with a constant.
+     */
+#ifdef __cpp_concepts
+    template<indexible Arg, scalar_constant S> requires
+      requires(S s) { {get_scalar_constant_value(s)} -> std::convertible_to<scalar_type_of_t<Arg>>; }
+    static constexpr maybe_same_shape_as<Arg> auto
+#else
+    template<typename Arg, typename S>
+    static constexpr auto
+#endif
+    scalar_product(Arg&& arg, S&& s) = delete;
+
+
+    /**
+     * \brief Divide an object by a scalar value.
+     * \param arg An \ref indexible object within the same library as LibraryObject.
+     * \param s A scalar value.
+     * \note This is optional. If not defined, the library will use n_ary_operation with a constant.
+     */
+#ifdef __cpp_concepts
+    template<indexible Arg, scalar_constant S> requires
+      requires(S s) { {get_scalar_constant_value(s)} -> std::convertible_to<scalar_type_of_t<Arg>>; }
+    static constexpr maybe_same_shape_as<Arg> auto
+#else
+    template<typename Arg, typename S>
+    static constexpr auto
+#endif
+    scalar_quotient(Arg&& arg, S&& s) = delete;
+
+
+    /**
      * \brief Perform a contraction involving two compatible tensors
      * \param a An \ref indexible object within the same library as LibraryObject
      * \param b Another \ref indexible object of the same dimensions as A (but potentially from a different library).
@@ -641,6 +674,7 @@ namespace OpenKalman::interface
     QR_decomposition(Arg&& arg) = delete;
 #endif
 
+#endif // DOXYGEN_SHOULD_SKIP_THIS
   };
 
 

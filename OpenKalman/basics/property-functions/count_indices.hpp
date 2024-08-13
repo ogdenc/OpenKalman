@@ -21,13 +21,13 @@ namespace OpenKalman
 {
   /**
    * \brief Get the number of indices available to address the components of an \ref indexible object.
-   * \note \code requires interface::count_indices_defined_for<T>\endcode
    * \sa index_count
    */
-  template<typename T>
 #ifdef __cpp_concepts
+  template<interface::count_indices_defined_for T>
   constexpr index_value auto
 #else
+  template<typename T, std::enable_if_t<interface::count_indices_defined_for<T>, int> = 0>
   constexpr auto
 #endif
   count_indices(const T& t)

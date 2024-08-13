@@ -42,7 +42,9 @@ TEST(basics, global_definitions)
 TEST(basics, tuple_slice)
 {
   std::tuple t {1, "c", 5.0, 6.0};
-  static_assert(std::tuple_size_v<decltype(internal::tuple_slice<1, 1>(t))> == 0);
+  static_assert(std::tuple_size_v<decltype(internal::tuple_slice<0, 0>(t))> == 0);
+  static_assert(std::tuple_size_v<decltype(internal::tuple_slice<2, 2>(t))> == 0);
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<0, 0>(t)), std::tuple<>>);
   static_assert(std::is_same_v<decltype(internal::tuple_slice<0, 1>(t)), std::tuple<int&>>);
   static_assert(std::is_same_v<decltype(internal::tuple_slice<1, 2>(t)), std::tuple<const char*&>>);
   static_assert(std::is_same_v<decltype(internal::tuple_slice<2, 3>(t)), std::tuple<double&>>);

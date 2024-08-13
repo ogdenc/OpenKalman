@@ -395,7 +395,7 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typename T>
-  concept raw_data_defined_for = requires (T t) { *indexible_object_traits<std::decay_t<T>>::raw_data(t); };
+  concept raw_data_defined_for = requires (T t) { {*indexible_object_traits<std::decay_t<T>>::raw_data(t)} -> scalar_constant; };
 #else
   namespace detail
   {
@@ -403,7 +403,8 @@ namespace OpenKalman::interface
     struct raw_data_defined_for_impl : std::false_type {};
 
     template<typename T>
-    struct raw_data_defined_for_impl<T, std::void_t<decltype(*indexible_object_traits<std::decay_t<T>>::raw_data(std::declval<T>()))>>
+    struct raw_data_defined_for_impl<T, std::enable_if_t<
+        scalar_constant<decltype(*indexible_object_traits<std::decay_t<T>>::raw_data(std::declval<T>()))>>>
       : std::true_type {};
   }
 

@@ -211,7 +211,7 @@ namespace OpenKalman
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
     auto& operator*=(const S scale)
     {
-      this->nested_object() = from_euclidean<FixedDescriptor>(*this * scale);
+      this->nested_object() = from_euclidean<FixedDescriptor>(scalar_product(*this, scale));
       return *this;
     }
 
@@ -224,7 +224,7 @@ namespace OpenKalman
 #endif
     auto& operator/=(const S scale)
     {
-      this->nested_object() = from_euclidean<FixedDescriptor>(*this / scale);
+      this->nested_object() = from_euclidean<FixedDescriptor>(scalar_quotient(*this, scale));
       return *this;
     }
 

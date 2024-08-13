@@ -121,15 +121,13 @@ namespace OpenKalman::internal
   namespace detail
   {
     template<typename...Ts>
-    auto make_sub_tuple(Ts&&...ts)
-    {
-      return std::tuple<Ts...>(std::forward<Ts>(ts)...);
-    }
+    auto make_sub_tuple(Ts&&...ts) { return std::tuple<Ts...>(std::forward<Ts>(ts)...); }
+
 
     template<std::size_t index1, typename T, std::size_t...Is>
-    constexpr auto tuple_slice_impl(T&& t, std::index_sequence<0, Is...>)
+    constexpr auto tuple_slice_impl(T&& t, std::index_sequence<Is...>)
     {
-      return make_sub_tuple(std::get<index1>(std::forward<T>(t)), std::get<index1 + Is>(std::forward<T>(t))...);
+      return make_sub_tuple(std::get<index1 + Is>(std::forward<T>(t))...);
     }
   } // namespace detail
 
@@ -152,8 +150,7 @@ namespace OpenKalman::internal
 #endif
   constexpr auto tuple_slice(T&& t)
   {
-    if constexpr (index1 == index2) return std::tuple{};
-    else return detail::tuple_slice_impl<index1>(std::forward<T>(t), std::make_index_sequence<index2 - index1>{});
+    return detail::tuple_slice_impl<index1>(std::forward<T>(t), std::make_index_sequence<index2 - index1>{});
   }
 
 

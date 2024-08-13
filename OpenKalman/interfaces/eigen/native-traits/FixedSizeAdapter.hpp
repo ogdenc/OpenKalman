@@ -50,8 +50,9 @@ namespace OpenKalman::Eigen3::internal
   {
   private:
 
+    using BaseTraits = Eigen::internal::traits<std::decay_t<NestedMatrix>>;
     static constexpr auto rows = OpenKalman::fixed_vector_space_descriptor<Rows> ? static_cast<int>(OpenKalman::dimension_size_of_v<Rows>) : Eigen::Dynamic;
-    static constexpr auto row_major_bit = rows != 1 ? 0x0 : (Eigen::internal::traits<std::decay_t<NestedMatrix>>::Flags & Eigen::RowMajorBit);
+    static constexpr auto row_major_bit = rows != 1 ? 0x0 : (BaseTraits::Flags & Eigen::RowMajorBit);
 
   public:
 
@@ -61,7 +62,7 @@ namespace OpenKalman::Eigen3::internal
       ColsAtCompileTime = 1,
       MaxRowsAtCompileTime = RowsAtCompileTime,
       MaxColsAtCompileTime = ColsAtCompileTime,
-      Flags = (Eigen::internal::traits<std::decay_t<NestedMatrix>>::Flags & ~Eigen::RowMajorBit) | row_major_bit,
+      Flags = (BaseTraits::Flags & ~Eigen::RowMajorBit) | row_major_bit,
     };
   };
 
@@ -78,12 +79,13 @@ namespace OpenKalman::Eigen3::internal
   {
   private:
 
+    using BaseTraits = Eigen::internal::traits<std::decay_t<NestedMatrix>>;
     static constexpr auto rows = OpenKalman::fixed_vector_space_descriptor<Rows> ? static_cast<int>(OpenKalman::dimension_size_of_v<Rows>) : Eigen::Dynamic;
     static constexpr auto cols = OpenKalman::fixed_vector_space_descriptor<Cols> ? static_cast<int>(OpenKalman::dimension_size_of_v<Cols>) : Eigen::Dynamic;
     static constexpr auto row_major_bit =
       rows == 1 and cols != 1 ? Eigen::RowMajorBit :
       rows != 1 and cols == 1 ? 0x0 :
-      (Eigen::internal::traits<std::decay_t<NestedMatrix>>::Flags & Eigen::RowMajorBit);
+      (BaseTraits::Flags & Eigen::RowMajorBit);
 
   public:
 
@@ -93,7 +95,7 @@ namespace OpenKalman::Eigen3::internal
       ColsAtCompileTime = cols,
       MaxRowsAtCompileTime = RowsAtCompileTime,
       MaxColsAtCompileTime = ColsAtCompileTime,
-      Flags = (Eigen::internal::traits<std::decay_t<NestedMatrix>>::Flags & ~Eigen::RowMajorBit) | row_major_bit,
+      Flags = (BaseTraits::Flags & ~Eigen::RowMajorBit) | row_major_bit,
     };
   };
 

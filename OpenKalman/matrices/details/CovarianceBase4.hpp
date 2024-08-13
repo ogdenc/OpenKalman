@@ -40,11 +40,11 @@ namespace OpenKalman::internal
   struct CovarianceBase<Derived, NestedMatrix, std::enable_if_t<
     (not case1or2<Derived, NestedMatrix>) and (not self_contained<NestedMatrix>)>>
 #endif
-  : MatrixBase<Derived, NestedMatrix>
+  : AdapterBase<Derived, NestedMatrix>
   {
   private:
 
-    using Base = MatrixBase<Derived, NestedMatrix>;
+    using Base = AdapterBase<Derived, NestedMatrix>;
 
     using Scalar = scalar_type_of_t<NestedMatrix>;
 

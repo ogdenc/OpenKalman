@@ -17,6 +17,7 @@
 #ifndef OPENKALMAN_SELFCONTAINEDWRAPPER_HPP
 #define OPENKALMAN_SELFCONTAINEDWRAPPER_HPP
 
+#include<memory>
 
 namespace OpenKalman::internal
 {
@@ -25,7 +26,7 @@ namespace OpenKalman::internal
 #else
   template<typename NestedObject, typename...Parameters>
 #endif
-  struct SelfContainedWrapper : internal::library_base_t<SelfContainedWrapper<NestedObject, Parameters...>, NestedObject>
+  struct SelfContainedWrapper : AdapterBase<SelfContainedWrapper<NestedObject, Parameters...>, NestedObject>
   {
   private:
 
@@ -36,84 +37,61 @@ namespace OpenKalman::internal
     struct is_SelfContainedWrapper<SelfContainedWrapper<N, Ps...>> : std::true_type {};
 
     static_assert(not is_SelfContainedWrapper<NestedObject>::value);
+    static_assert(not std::is_reference_v<NestedObject>);
+    static_assert((... and (not std::is_reference_v<Parameters>)));
+
+    using Base = AdapterBase<SelfContainedWrapper, NestedObject>;
 
   public:
 
     /**
-     * \brief Construct from a set of parameters, some of which may be stored in this object to extend their lifetimes.
-     * \param p_tup A tuple of instances of Parameters, which will be internalized
-     * \tparam Args Arguments to the constructor of BaseObject, which may include references to elements of p_tup.
+     * \brief Construct from a set of arguments, some of which may be references or pointers to managed parameters.
+     * \param parameters Pointers to any the parameters to be internalized. The wrapper takes ownership of the pointer
+     * and manages its storage. The pointer will be deleted when this wrapper is deleted.
+     * \tparam Arg An instance of NestedObject, which may include references to the parameters.
      */
-    template<typename...Args>
-    explicit SelfContainedWrapper(std::tuple<Parameters...>&& p_tup, Args&&...args)
-      : internalized_parameters {std::move(p_tup)}, nested {std::forward<Args>(args)...} {}
-
-
-    /**
-     * \brief Move constructor.
-     */
-    SelfContainedWrapper(SelfContainedWrapper&& arg) noexcept = default;
-
-
-    /**
-     * \brief Copy constructor. (Does not copy the internalized parameters.)
-     */
-    SelfContainedWrapper(const SelfContainedWrapper& arg)
-      : internalized_parameters {}, nested {arg.nested} {}
-
-
-    /**
-     * \brief Move assignment operator.
-     */
-    SelfContainedWrapper& operator=(SelfContainedWrapper&& arg) = default;
-
-
-    /**
-     * \brief Copy assignment operator. (Does not copy the internalized parameters.)
-     */
-    SelfContainedWrapper& operator=(const SelfContainedWrapper& arg)
-    {
-      nested = arg.nested;
-      internalized_parameters.reset();
-    }
-
-
-    /**
-     * \brief Get the nested object.
-     */
-    [[nodiscard]] NestedObject& nested_object() & noexcept { return nested; }
-
-    /// \overload
-    [[nodiscard]] const NestedObject& nested_object() const & noexcept { return nested; }
-
-    /// \overload
-    [[nodiscard]] NestedObject&& nested_object() && noexcept { return std::move(*this).nested; }
-
-    /// \overload
-    [[nodiscard]] const NestedObject&& nested_object() const && noexcept { return std::move(*this).nested; }
+#ifdef __cpp_concepts
+    template<typename Arg> requires
+      std::constructible_from<Base, Arg&&> and (not std::is_base_of_v<SelfContainedWrapper, std::decay_t<Arg>>)
+#else
+    template<typename Arg, std::enable_if_t<std::is_constructible_v<Base, Arg&&> and
+      (not std::is_base_of_v<SelfContainedWrapper, std::decay_t<Arg>>), int> = 0>
+#endif
+    explicit SelfContainedWrapper(Arg&& arg, Parameters*...parameters)
+      : Base {std::forward<Arg>(arg)}, internalized_parameters {parameters...} {}
 
 
     /**
      * \brief Convert to the nested object
      */
-    operator NestedObject() & noexcept { return nested; }
+    operator NestedObject() & noexcept { return this->nested_object(); }
 
     /// \overload
-    operator NestedObject() const & noexcept { return nested; }
+    operator NestedObject() const & noexcept { return this->nested_object(); }
 
     /// \overload
-    operator NestedObject() && noexcept { return std::move(*this).nested; }
+    operator NestedObject() && noexcept { return std::move(*this).nested_object(); }
 
     /// \overload
-    operator NestedObject() const && noexcept { return std::move(*this).nested; }
+    operator NestedObject() const && noexcept { return std::move(*this).nested_object(); }
 
   private:
 
-    std::optional<std::tuple<Parameters...>> internalized_parameters;
-
-    NestedObject nested;
+    std::tuple<std::shared_ptr<Parameters>...> internalized_parameters;
 
   };
+
+
+  // ------------------ //
+  //  Deduction Guide  //
+  // ------------------ //
+
+#ifdef __cpp_concepts
+  template<indexible Arg, typename...Ps>
+#else
+  template<typename Arg, typename...Ps>
+#endif
+  SelfContainedWrapper(Arg&&, Ps*...) -> SelfContainedWrapper<std::remove_reference_t<Arg>, std::remove_reference_t<Ps>...>;
 
 
 } // namespace OpenKalman::internal

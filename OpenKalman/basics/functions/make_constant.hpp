@@ -28,7 +28,6 @@ namespace OpenKalman
    * \tparam T An \indexible object (matrix or tensor) from a particular library.
    * \tparam C A \ref scalar_constant
    * \tparam Ds A set of \ref vector_space_descriptor defining the dimensions of each index.
-   * If no \ref vector_space_descriptor are provided, they will be derived from T if T has no dynamic dimensions.
    */
 #ifdef __cpp_concepts
   template<indexible T, scalar_constant C, vector_space_descriptor...Ds> requires
@@ -42,28 +41,20 @@ namespace OpenKalman
 #endif
   make_constant(C&& c, Ds&&...ds)
   {
-    if constexpr (sizeof...(Ds) == 0)
+    if constexpr (interface::make_constant_matrix_defined_for<T, C&&, Ds&&...>)
     {
-      return std::apply([](auto&&...ads){ return make_constant<T>(std::forward<decltype(ads)>(ads)...); },
-        std::tuple_cat(std::forward_as_tuple(std::forward<C>(c)), all_vector_space_descriptors<T>()));
+      using Trait = interface::library_interface<std::decay_t<T>>;
+      return Trait::template make_constant(std::forward<C>(c), std::forward<Ds>(ds)...);
     }
     else
     {
-      if constexpr (interface::make_constant_matrix_defined_for<T, C&&, Ds&&...>)
-      {
-        using Trait = interface::library_interface<std::decay_t<T>>;
-        return Trait::template make_constant(std::forward<C>(c), std::forward<Ds>(ds)...);
-      }
-      else
-      {
-        // Default behavior if interface function not defined:
-        using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
-        auto new_dims = internal::remove_trailing_1D_descriptors(std::forward<Ds>(ds)...);
-        return std::apply([](C&& c, auto&&...ads){
-            using U = std::decay_t<decltype(make_dense_object<T, Layout::none, Scalar>(std::declval<decltype(ads)>()...))>;
-            return ConstantAdapter<U, std::decay_t<C>> {std::forward<C>(c), std::forward<decltype(ads)>(ads)...};
-          }, std::tuple_cat(std::forward_as_tuple(std::forward<C>(c)), std::move(new_dims)));
-      }
+      // Default behavior if interface function not defined:
+      using Scalar = std::decay_t<decltype(get_scalar_constant_value(c))>;
+      auto new_dims = internal::remove_trailing_1D_descriptors(std::forward<Ds>(ds)...);
+      return std::apply([](C&& c, auto&&...ads){
+          using U = std::decay_t<decltype(make_dense_object<T, Layout::none, Scalar>(std::declval<decltype(ads)>()...))>;
+          return ConstantAdapter<U, std::decay_t<C>> {std::forward<C>(c), std::forward<decltype(ads)>(ads)...};
+        }, std::tuple_cat(std::forward_as_tuple(std::forward<C>(c)), std::move(new_dims)));
     }
   }
 
@@ -84,8 +75,12 @@ namespace OpenKalman
 #endif
   make_constant(const T& t, C&& c)
   {
-    return std::apply([](auto&&...ads){ return make_constant<T>(std::forward<decltype(ads)>(ads)...); },
-      std::tuple_cat(std::forward_as_tuple(std::forward<C>(c)), all_vector_space_descriptors(t)));
+    if constexpr (has_dynamic_dimensions<T>)
+      return std::apply([](auto&&...ads){ return make_constant<T>(std::forward<decltype(ads)>(ads)...); },
+        std::tuple_cat(std::forward_as_tuple(std::forward<C>(c)), all_vector_space_descriptors(t)));
+    else
+      return std::apply([](auto&&...ads){ return make_constant<T>(std::forward<decltype(ads)>(ads)...); },
+        std::tuple_cat(std::forward_as_tuple(std::forward<C>(c)), all_vector_space_descriptors<T>()));
   }
 
 

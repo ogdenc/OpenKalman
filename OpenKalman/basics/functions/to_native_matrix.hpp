@@ -26,11 +26,12 @@ namespace OpenKalman
    * \tparam Arg The argument
    */
 #ifdef __cpp_concepts
-  template<indexible T, indexible Arg>
+  template<indexible T, indexible Arg> requires interface::to_native_matrix_defined_for<T, Arg>
   inline decltype(auto)
   to_native_matrix(Arg&& arg)
 #else
-  template<typename T, typename Arg, std::enable_if_t<indexible<T> and indexible<Arg>, int> = 0>
+  template<typename T, typename Arg, std::enable_if_t<indexible<T> and indexible<Arg> and
+    interface::to_native_matrix_defined_for<T, Arg>, int> = 0>
   inline decltype(auto)
   to_native_matrix(Arg&& arg)
 #endif

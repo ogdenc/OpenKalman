@@ -93,14 +93,14 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg> requires raw_data_defined_for<NestedObject>
+    template<typename Arg> requires requires(Arg&& arg) { {OpenKalman::nested_object(std::forward<Arg>(arg))} -> raw_data_defined_for; }
 #else
-    template<typename X = NestedObject, typename Arg, std::enable_if_t<raw_data_defined_for<X>, int> = 0>
+    template<typename Arg, std::enable_if_t<raw_data_defined_for<decltype(OpenKalman::nested_object(std::declval<Arg&&>()))>, int> = 0>
 #endif
-    static constexpr auto * const
-    raw_data(Arg& arg)
+    static constexpr decltype(auto)
+    raw_data(Arg&& arg)
     {
-      return internal::raw_data(OpenKalman::nested_object(arg));
+      return internal::raw_data(OpenKalman::nested_object(std::forward<Arg>(arg)));
     }
 
 

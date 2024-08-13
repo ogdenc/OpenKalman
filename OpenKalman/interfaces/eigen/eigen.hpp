@@ -56,7 +56,7 @@ namespace OpenKalman::Eigen3 {}
 #include "details/eigen-forward-declarations.hpp"
 
 #include "functions/make_eigen_matrix.hpp"
-#include "functions/make_eigen_wrapper.hpp"
+#include "functions/eigen-wrapper.hpp"
 
 #include "details/eigen-matrix-traits.hpp"
 
@@ -67,8 +67,6 @@ namespace OpenKalman::Eigen3 {}
 #include "native-traits/eigen-native-traits.hpp"
 #include "native-traits/eigen-general-native-traits.hpp"
 
-#include "native-evaluators/LibraryWrapper.hpp"
-#include "native-evaluators/SelfContainedWrapper.hpp"
 #include "native-evaluators/eigen-native-evaluators.hpp"
 
 #include "details/EigenAdapterBase.hpp"

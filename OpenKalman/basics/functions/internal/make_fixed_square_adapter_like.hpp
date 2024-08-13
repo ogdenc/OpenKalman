@@ -28,8 +28,7 @@ namespace OpenKalman::internal
     template<typename...Ds, typename Arg, std::size_t...Ix>
     constexpr decltype(auto) make_fixed_square_adapter_like_impl(Arg&& arg, std::index_sequence<Ix...>)
     {
-      using F = decltype(make_fixed_size_adapter(std::declval<Arg&&>(),
-        best_vector_space_descriptor(std::declval<Ds>()..., get_vector_space_descriptor<Ix>(arg)...)));
+      using F = decltype(make_fixed_size_adapter<decltype(best_vector_space_descriptor(std::declval<Ds>()..., get_vector_space_descriptor<Ix>(arg)...))>(std::declval<Arg&&>()));
       constexpr bool better = (... or (dynamic_dimension<Arg, Ix> and not dynamic_dimension<F, Ix>));
       if constexpr (better) return F {std::forward<Arg>(arg)};
       else return std::forward<Arg>(arg);

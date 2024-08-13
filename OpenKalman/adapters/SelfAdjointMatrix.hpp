@@ -29,7 +29,7 @@ namespace OpenKalman
   template<typename NestedMatrix, HermitianAdapterType storage_triangle>
 #endif
   struct SelfAdjointMatrix
-    : OpenKalman::internal::MatrixBase<SelfAdjointMatrix<NestedMatrix, storage_triangle>, NestedMatrix>
+    : OpenKalman::internal::AdapterBase<SelfAdjointMatrix<NestedMatrix, storage_triangle>, NestedMatrix>
   {
 
 #ifndef __cpp_concepts
@@ -44,7 +44,7 @@ namespace OpenKalman
 
   private:
 
-    using Base = OpenKalman::internal::MatrixBase<SelfAdjointMatrix, NestedMatrix>;
+    using Base = OpenKalman::internal::AdapterBase<SelfAdjointMatrix, NestedMatrix>;
 
     static constexpr auto dim = dynamic_dimension<NestedMatrix, 0> ? index_dimension_of_v<NestedMatrix, 1> :
       index_dimension_of_v<NestedMatrix, 0>;
@@ -265,7 +265,7 @@ namespace OpenKalman
 #endif
     auto& operator*=(const S s)
     {
-      if constexpr (writable<NestedMatrix>) internal::set_triangle<storage_triangle>(this->nested_object(), this->nested_object() * s);
+      if constexpr (writable<NestedMatrix>) internal::set_triangle<storage_triangle>(this->nested_object(), scalar_product(this->nested_object(), s));
       else Base::operator*=(s);
       return *this;
     }
@@ -278,7 +278,7 @@ namespace OpenKalman
 #endif
     auto& operator/=(const S s)
     {
-      if constexpr (writable<NestedMatrix>) internal::set_triangle<storage_triangle>(this->nested_object(), this->nested_object() / s);
+      if constexpr (writable<NestedMatrix>) internal::set_triangle<storage_triangle>(this->nested_object(), scalar_quotient(this->nested_object(), s));
       else Base::operator/=(s);
       return *this;
     }

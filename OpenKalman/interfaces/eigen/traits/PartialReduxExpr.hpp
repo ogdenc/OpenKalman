@@ -40,7 +40,7 @@ namespace OpenKalman::Eigen3::detail
   template<typename MemberOp, std::size_t direction, typename XprType, typename Factor, typename DirDim, typename Func>
   constexpr auto get_constant_redux(const XprType& xpr, const Factor& factor, const DirDim& dir_dim, Func&& func)
   {
-    decltype(auto) dim = internal::best_vector_space_descriptor(dir_dim, get_index_dimension_of<direction>(xpr));
+    auto dim = internal::best_vector_space_descriptor(dir_dim, get_index_dimension_of<direction>(xpr));
 
     if constexpr (Eigen3::eigen_MatrixWrapper<XprType> or Eigen3::eigen_ArrayWrapper<XprType> or
       internal::fixed_size_adapter<XprType> or Eigen3::eigen_self_contained_wrapper<XprType> or Eigen3::eigen_wrapper<XprType>)
@@ -63,7 +63,7 @@ namespace OpenKalman::Eigen3::detail
         else return values::scalar_constant_operation {std::divides<std::size_t>{}, dim, n_dim};
       }(dim, n_dim);
 
-      decltype(auto) new_dim = [](const auto& dim, const auto& n_dim) -> decltype(auto) {
+      auto new_dim = [](const auto& dim, const auto& n_dim) {
         if constexpr (scalar_constant<decltype(dim), ConstantType::static_constant> and F::value != dynamic_size and
             not scalar_constant<decltype(n_dim), ConstantType::static_constant>)
           return values::scalar_constant_operation {std::divides<std::size_t>{}, dim, F{}};

@@ -87,7 +87,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_lib_concepts
     template<typename Arg> requires raw_data_defined_for<std::add_lvalue_reference_t<NestedObject>>
 #else
-    template<typename NO = BaseObject, typename Arg, std::enable_if_t<raw_data_defined_for<std::add_lvalue_reference_t<NO>>, int> = 0>
+    template<typename NO = NestedObject, typename Arg, std::enable_if_t<raw_data_defined_for<std::add_lvalue_reference_t<NO>>, int> = 0>
 #endif
     static constexpr auto * const
     raw_data(Arg& arg) { return internal::raw_data(arg.nested_object()); }

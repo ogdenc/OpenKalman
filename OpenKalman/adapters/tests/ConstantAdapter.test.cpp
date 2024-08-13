@@ -703,10 +703,72 @@ TEST(adapters, diagonal_of_constant)
 }
 
 
-TEST(adapters, incidental_creation)
+TEST(adapters, trace)
 {
   EXPECT_NEAR(trace(M0x{M00 {}}), 0, 1e-6); // creates ConstantAdapter
   EXPECT_NEAR(trace(Mx0{M00 {}}), 0, 1e-6); // creates ConstantAdapter
+}
+
+
+TEST(adapters, scalar_product)
+{
+  auto m23a = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
+  auto c22_2 = (M11::Identity() + M11::Identity()).replicate<2,2>();
+  auto cxx_22_2 = (M11::Identity() + M11::Identity()).replicate(2,2);
+
+  // Constant * compile-time value
+  static_assert(constant_coefficient_v<decltype(scalar_product(std::declval<C22_2>(), std::integral_constant<int, 5>{}))> == 10);
+  static_assert(constant_coefficient_v<decltype(scalar_product(std::declval<Cxx_2>(), std::integral_constant<int, 5>{}))> == 10);
+
+  // Constant diagonal * anything
+  static_assert(constant_diagonal_matrix<decltype(scalar_product(std::declval<Cd22_2>(), std::declval<double>())), ConstantType::dynamic_constant>);
+  static_assert(constant_diagonal_matrix<decltype(scalar_product(std::declval<Cdxx_2>(), std::declval<double>())), ConstantType::dynamic_constant>);
+  EXPECT_TRUE(constant_diagonal_coefficient{scalar_product(M22::Identity() + M22::Identity(), 5)} == 10);
+  EXPECT_TRUE(constant_diagonal_coefficient{scalar_product(Mxx::Identity(2, 2) + Mxx::Identity(2, 2), 5)} == 10);
+  static_assert(constant_diagonal_coefficient_v<decltype(scalar_product(std::declval<Cd22_2>(), std::integral_constant<int, 5>{}))> == 10);
+  static_assert(constant_diagonal_coefficient_v<decltype(scalar_product(std::declval<Cdxx_2>(), std::integral_constant<int, 5>{}))> == 10);
+
+  // Any object * compile-time 0
+  static_assert(zero<decltype(scalar_product(std::declval<M23>(), std::integral_constant<int, 0>{}))>);
+  EXPECT_TRUE(constant_coefficient{scalar_product(m23a, std::integral_constant<int, 0>{})} == 0);
+  EXPECT_TRUE(constant_coefficient{scalar_product(M23{m23a}, std::integral_constant<int, 0>{})} == 0);
+  static_assert(constant_coefficient_v<decltype(scalar_product(std::declval<C22_2>(), std::integral_constant<int, 2>{}))> == 4);
+
+  // Any object * compile-time 1
+  EXPECT_TRUE(is_near(scalar_product(m23a, std::integral_constant<int, 1>{}), m23a));
+  static_assert(constant_coefficient_v<decltype(scalar_product(std::declval<C22_2>(), std::integral_constant<int, 1>{}))> == 2);
+
+  // Any object * compile-time constant
+  EXPECT_TRUE(is_near(scalar_product(m23a, std::integral_constant<int, 5>{}), m23a * 5));
+  EXPECT_TRUE(is_near(scalar_product(M23{m23a}, std::integral_constant<int, 5>{}), m23a * 5));
+}
+
+
+TEST(adapters, scalar_quotient)
+{
+  auto m23a = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
+  auto c22_2 = (M11::Identity() + M11::Identity()).replicate<2,2>();
+  auto cxx_22_2 = (M11::Identity() + M11::Identity()).replicate(2,2);
+
+  // Constant / compile-time value
+  static_assert(constant_coefficient_v<decltype(scalar_quotient(std::declval<C22_2>(), std::integral_constant<int, 2>{}))> == 1);
+  static_assert(constant_coefficient_v<decltype(scalar_quotient(std::declval<Cxx_2>(), std::integral_constant<int, 2>{}))> == 1);
+
+  // Constant diagonal / anything
+  static_assert(constant_diagonal_matrix<decltype(scalar_quotient(std::declval<Cd22_2>(), std::declval<double>())), ConstantType::dynamic_constant>);
+  static_assert(constant_diagonal_matrix<decltype(scalar_quotient(std::declval<Cdxx_2>(), std::declval<double>())), ConstantType::dynamic_constant>);
+  EXPECT_TRUE(constant_diagonal_coefficient{scalar_quotient(M22::Identity() + M22::Identity(), 2)} == 1);
+  EXPECT_TRUE(constant_diagonal_coefficient{scalar_quotient(Mxx::Identity(2, 2) + Mxx::Identity(2, 2), 2)} == 1);
+  static_assert(constant_diagonal_coefficient_v<decltype(scalar_quotient(std::declval<Cd22_2>(), std::integral_constant<int, 2>{}))> == 1);
+  static_assert(constant_diagonal_coefficient_v<decltype(scalar_quotient(std::declval<Cdxx_2>(), std::integral_constant<int, 2>{}))> == 1);
+
+  // Any object / compile-time 1
+  EXPECT_TRUE(is_near(scalar_quotient(m23a, std::integral_constant<int, 1>{}), m23a));
+  static_assert(constant_coefficient_v<decltype(scalar_quotient(std::declval<C22_2>(), std::integral_constant<int, 1>{}))> == 2);
+
+  // Any object / compile-time constant
+  EXPECT_TRUE(is_near(scalar_quotient(m23a, std::integral_constant<int, 5>{}), m23a / 5));
+  EXPECT_TRUE(is_near(scalar_quotient(M23{m23a}, std::integral_constant<int, 5>{}), m23a / 5));
 }
 
 

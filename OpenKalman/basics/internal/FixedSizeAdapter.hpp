@@ -19,45 +19,62 @@
 namespace OpenKalman::internal
 {
 #ifdef __cpp_concepts
-  template<indexible NestedMatrix, vector_space_descriptor...Vs> requires compatible_with_vector_space_descriptors<NestedMatrix, Vs...>
+  template<indexible NestedObject, vector_space_descriptor...Vs> requires
+    compatible_with_vector_space_descriptors<NestedObject, Vs...> and internal::not_more_fixed_than<NestedObject, Vs...>
 #else
-  template<typename NestedMatrix, typename...Vs>
+  template<typename NestedObject, typename...Vs>
 #endif
-  struct FixedSizeAdapter : library_base_t<FixedSizeAdapter<NestedMatrix, Vs...>, NestedMatrix>
+  struct FixedSizeAdapter : AdapterBase<FixedSizeAdapter<NestedObject, Vs...>, const NestedObject>
   {
+  private:
 
 #ifndef __cpp_concepts
-    static_assert(indexible<NestedMatrix>);
+    static_assert(indexible<NestedObject>);
     static_assert((vector_space_descriptor<Vs> and ...));
-    static_assert(compatible_with_vector_space_descriptors<NestedMatrix, Vs...>);
+    static_assert(compatible_with_vector_space_descriptors<NestedObject, Vs...>);
+    static_assert(internal::not_more_fixed_than<NestedObject, Vs...>);
 #endif
+
+    using Base = AdapterBase<FixedSizeAdapter, const NestedObject>;
+
+  public:
+
+    /**
+     * \brief Default constructor.
+     */
+#ifdef __cpp_concepts
+    constexpr FixedSizeAdapter() noexcept requires std::default_initializable<Base>
+#else
+    template<typename T = Base, std::enable_if_t<std::is_default_constructible<T>::value, int> = 0>
+    constexpr FixedSizeAdapter() noexcept
+#endif
+      : Base {} {}
 
 
     /**
-     * \brief Construct from compatible indexible object.
+     * \brief Construct from a compatible indexible object.
      */
 #ifdef __cpp_concepts
-    template<compatible_with_vector_space_descriptors<Vs...> Arg>
-      requires (not std::derived_from<std::decay_t<Arg>, FixedSizeAdapter>)
+    template<compatible_with_vector_space_descriptors<Vs...> Arg> requires
+      (not fixed_size_adapter<Arg>) and std::constructible_from<Base, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<(not std::is_base_of_v<FixedSizeAdapter, std::decay_t<Arg>>) and
-      compatible_with_vector_space_descriptors<Arg, Vs...>, int> = 0>
+    template<typename Arg, std::enable_if_t<compatible_with_vector_space_descriptors<Arg, Vs...> and
+      (not fixed_size_adapter<Arg>) and std::is_constructible_v<Base, Arg&&>, int> = 0>
 #endif
-    explicit FixedSizeAdapter(Arg&& arg) noexcept : m_arg {std::forward<Arg>(arg)} {}
+    explicit FixedSizeAdapter(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
 
 
     /**
-     * \brief Construct from compatible indexible object based on a set of compatible \ref vector_space_descriptor.
+     * \overload
      */
 #ifdef __cpp_concepts
-    template<compatible_with_vector_space_descriptors<Vs...> Arg, vector_space_descriptor...Ids>
-      requires (not fixed_size_adapter<Arg>) and (sizeof...(Ids) > 0)
+    template<compatible_with_vector_space_descriptors<Vs...> Arg> requires
+      (not fixed_size_adapter<Arg>) and (sizeof...(Vs) > 0) and std::constructible_from<Base, Arg&&>
 #else
-    template<typename Arg, typename...Ids, std::enable_if_t<(not fixed_size_adapter<Arg>) and
-      compatible_with_vector_space_descriptors<Arg, Vs...> and (... and vector_space_descriptor<Ids>) and
-      (sizeof...(Ids) > 0), int> = 0>
+    template<typename Arg, std::enable_if_t<compatible_with_vector_space_descriptors<Arg, Vs...> and
+      (not fixed_size_adapter<Arg>) and (sizeof...(Vs) > 0) and std::is_constructible_v<Base, Arg&&>, int> = 0>
 #endif
-    FixedSizeAdapter(Arg&& arg, const Ids&...) noexcept : m_arg {std::forward<Arg>(arg)} {}
+    FixedSizeAdapter(Arg&& arg, const Vs&...) noexcept : Base {std::forward<Arg>(arg)} {}
 
 
     /**
@@ -65,71 +82,25 @@ namespace OpenKalman::internal
      * \brief Construct from another FixedSizeAdapter using a set of compatible \ref vector_space_descriptor objects.
      */
 #ifdef __cpp_concepts
-    template<fixed_size_adapter Arg, vector_space_descriptor...Ids> requires
-      compatible_with_vector_space_descriptors<Arg, Vs...> and (sizeof...(Ids) > 0)
+    template<compatible_with_vector_space_descriptors<Vs...> Arg> requires
+      fixed_size_adapter<Arg> and (sizeof...(Vs) > 0 or not std::is_base_of_v<std::decay_t<Arg>, FixedSizeAdapter>) and
+      std::constructible_from<Base, Arg&&>
 #else
-    template<typename Arg, typename...Ids, std::enable_if_t<fixed_size_adapter<Arg> and (... and vector_space_descriptor<Ids>) and
-      compatible_with_vector_space_descriptors<Arg, Vs...> and (sizeof...(Ids) > 0), int> = 0>
+    template<typename Arg, typename...Ids, std::enable_if_t<
+      compatible_with_vector_space_descriptors<Arg, Vs...> and fixed_size_adapter<Arg> and
+      (sizeof...(Vs) > 0 or not std::is_base_of_v<FixedSizeAdapter, std::decay_t<Arg>>) and
+      std::is_constructible_v<Base, Arg&&>, int> = 0>
 #endif
-    FixedSizeAdapter(Arg&& arg, const Ids&...) noexcept : m_arg {std::forward<Arg>(arg).nested_object()} {}
-
-
-    /**
-     * \brief Assign from another compatible indexible object.
-     */
-#ifdef __cpp_concepts
-    template<compatible_with_vector_space_descriptors<Vs...> Arg>
-#else
-    template<typename Arg, std::enable_if_t<compatible_with_vector_space_descriptors<Arg, Vs...>, int> = 0>
-#endif
-    auto& operator=(Arg&& arg) noexcept
-    {
-      m_arg = to_native_matrix<NestedMatrix>(std::forward<Arg>(arg));
-      return *this;
-    }
+    FixedSizeAdapter(Arg&& arg, const Vs&...) noexcept : Base {std::forward<Arg>(arg).nested_object()} {}
 
 
     /**
      * \brief Get the nested object.
      */
-    const auto& nested_object() const & noexcept { return m_arg; }
+    const auto& nested_object() const & { return Base::nested_object(); }
 
     /// \overload
-    const auto&& nested_object() const && noexcept { return std::move(*this).m_arg; }
-
-
-    /**
-     * \brief Increment from another indexible object.
-     */
-#ifdef __cpp_concepts
-    template<compatible_with_vector_space_descriptors<Vs...> Arg>
-#else
-    template<typename Arg, std::enable_if_t<compatible_with_vector_space_descriptors<Arg, Vs...>, int> = 0>
-#endif
-    auto& operator+=(Arg&& arg) noexcept
-    {
-      this->nested_object() += to_native_matrix<NestedMatrix>(std::forward<Arg>(arg));
-      return *this;
-    }
-
-
-    /**
-     * \brief Decrement from another indexible object.
-     */
-#ifdef __cpp_concepts
-    template<compatible_with_vector_space_descriptors<Vs...> Arg>
-#else
-    template<typename Arg, std::enable_if_t<compatible_with_vector_space_descriptors<Arg, Vs...>, int> = 0>
-#endif
-    auto& operator-=(Arg&& arg) noexcept
-    {
-      this->nested_object() -= to_native_matrix<NestedMatrix>(std::forward<Arg>(arg));
-      return *this;
-    }
-
-  private:
-
-    NestedMatrix m_arg; //< The nested matrix.
+    auto nested_object() const && noexcept { return Base::nested_object(); }
 
   };
 
@@ -147,18 +118,19 @@ namespace OpenKalman::internal
     FixedSizeAdapter(Arg&&, const Ids&...) -> FixedSizeAdapter<Arg, Ids...>;
 
 
-#if defined(__cpp_concepts) and defined(__cpp_lib_remove_cvref)
-    template<fixed_size_adapter Arg, vector_space_descriptor...Ids> requires (sizeof...(Ids) > 0)
+#ifdef __cpp_concepts
+    template<fixed_size_adapter Arg, vector_space_descriptor Id, vector_space_descriptor...Ids>
 #else
-    template<typename Arg, typename...Ids, std::enable_if_t<fixed_size_adapter<Arg> and
-      (... and vector_space_descriptor<Ids>) and (sizeof...(Ids) > 0), int> = 0>
+    template<typename Arg, typename Id, typename...Ids, std::enable_if_t<
+      fixed_size_adapter<Arg> and (... and vector_space_descriptor<Ids>), int> = 0>
 #endif
-    FixedSizeAdapter(Arg&&, const Ids&...) -> FixedSizeAdapter<
-      std::conditional_t<
-        std::is_lvalue_reference_v<nested_object_of_t<Arg>>,
-        nested_object_of_t<Arg>,
-        std::decay_t<nested_object_of_t<Arg>>>,
-      Ids...>;
+    FixedSizeAdapter(Arg&&, const Id&, const Ids&...) ->
+      FixedSizeAdapter<
+        std::conditional_t<
+          std::is_lvalue_reference_v<nested_object_of_t<Arg&&>>,
+          nested_object_of_t<Arg&&>,
+          std::remove_reference_t<nested_object_of_t<Arg&&>>>,
+        Id, Ids...>;
 
 
 } // namespace OpenKalman::internal

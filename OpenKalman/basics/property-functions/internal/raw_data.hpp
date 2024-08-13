@@ -19,18 +19,28 @@
 
 namespace OpenKalman::internal
 {
+#ifdef __cpp_lib_concepts
+  namespace detail
+  {
+    template<typename T>
+    concept raw_data_result = requires(T t) { {*t} -> scalar_constant; };
+  }
+#endif
+
+
   /**
    * \internal
    * \brief Returns a pointer to the raw data of a directly accessible tensor or matrix.
    */
 #ifdef __cpp_concepts
-  template<interface::raw_data_defined_for T>
+  template<interface::raw_data_defined_for Arg>
+  constexpr detail::raw_data_result decltype(auto) raw_data(Arg&& arg)
 #else
-  template<typename T, std::enable_if_t<interface::raw_data_defined_for<T>, int> = 0>
+  template<typename Arg, std::enable_if_t<interface::raw_data_defined_for<Arg>, int> = 0>
+  constexpr decltype(auto) raw_data(Arg&& arg)
 #endif
-  constexpr auto * const raw_data(T&& t)
   {
-    return interface::indexible_object_traits<std::decay_t<T>>::raw_data(std::forward<T>(t));
+    return interface::indexible_object_traits<std::decay_t<Arg>>::raw_data(std::forward<Arg>(arg));
   }
 
 

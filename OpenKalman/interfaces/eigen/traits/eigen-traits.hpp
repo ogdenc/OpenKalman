@@ -51,6 +51,7 @@
 #include "Map.hpp"
 #include "Matrix.hpp"
 #include "MatrixWrapper.hpp"
+#include "NestByValue.hpp"
 #include "PermutationMatrix.hpp"
 #include "PermutationWrapper.hpp"
 #include "Product.hpp"

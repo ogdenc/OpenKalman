@@ -84,7 +84,6 @@ namespace OpenKalman::interface
 
     static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape>;
 
-    // make_hermitian_adapter(Arg&& arg) not defined
 
     static constexpr Layout layout = layout_of_v<XprType>;
   };

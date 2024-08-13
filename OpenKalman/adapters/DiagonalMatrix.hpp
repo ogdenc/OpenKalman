@@ -24,7 +24,7 @@ namespace OpenKalman
 #else
   template<typename NestedMatrix>
 #endif
-  struct DiagonalMatrix : OpenKalman::internal::MatrixBase<DiagonalMatrix<NestedMatrix>, NestedMatrix>
+  struct DiagonalMatrix : OpenKalman::internal::AdapterBase<DiagonalMatrix<NestedMatrix>, NestedMatrix>
   {
 
 #ifndef __cpp_concepts
@@ -33,7 +33,7 @@ namespace OpenKalman
 
   private:
 
-    using Base = OpenKalman::internal::MatrixBase<DiagonalMatrix, NestedMatrix>;
+    using Base = OpenKalman::internal::AdapterBase<DiagonalMatrix, NestedMatrix>;
 
     static constexpr auto dim = index_dimension_of_v<NestedMatrix, 0>;
 
@@ -293,7 +293,7 @@ namespace OpenKalman
 #endif
     friend decltype(auto) operator*(Arg&& arg, S s)
     {
-      return to_diagonal(nested_object(std::forward<Arg>(arg)) * s);
+      return to_diagonal(scalar_product(nested_object(std::forward<Arg>(arg)), s));
     }
 
 
@@ -305,7 +305,7 @@ namespace OpenKalman
 #endif
     friend decltype(auto) operator*(S s, Arg&& arg)
     {
-      return to_diagonal(s * nested_object(std::forward<Arg>(arg)));
+      return to_diagonal(scalar_product(nested_object(std::forward<Arg>(arg)), s));
     }
 
 
@@ -317,7 +317,7 @@ namespace OpenKalman
 #endif
     friend decltype(auto) operator/(Arg&& arg, S s)
     {
-      return to_diagonal(nested_object(std::forward<Arg>(arg)) / s);
+      return to_diagonal(scalar_quotient(nested_object(std::forward<Arg>(arg)), s));
     }
 
   };

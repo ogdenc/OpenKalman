@@ -529,11 +529,36 @@ namespace OpenKalman
     struct LibraryWrapper;
 
 
+    namespace detail
+    {
+      template<typename T>
+      struct is_library_wrapper : std::false_type {};
+
+      template<typename N, typename L>
+      struct is_library_wrapper<internal::LibraryWrapper<N, L>> : std::true_type {};
+    } // namespace detail
+
+
     /**
      * \internal
-     * \brief A wrapper that contains an \ref indexible_object and internalizes any of its reference parameters.
+     * \brief T is a \ref internal::LibraryWrapper "LibraryWrapper".
+     */
+    template<typename T>
+#ifdef __cpp_concepts
+    concept library_wrapper =
+#else
+    constexpr bool library_wrapper =
+#endif
+      detail::is_library_wrapper<std::decay_t<T>>::value;
+
+
+    /**
+     * \internal
+     * \brief A wrapper that contains an \ref indexible_object and manages storage of any reference parameters.
+     * \details This wrapper manages a set of pointers to Parameters. If this object is copied, each copy shares
+     * management of the pointers through std::shared_ptr.
      * \tparam NestedObject An indexible object to be made self-contained.
-     * \tparam Parameters A full set of arguments to be stored in the wrapper.
+     * \tparam Parameters A set of parameters that are accessed by reference in NestedObject.
      */
 #ifdef __cpp_concepts
     template<indexible NestedObject, typename...Parameters>
@@ -551,10 +576,10 @@ namespace OpenKalman
      * If this set is empty, the object is treated as a \ref one_dimensional.
      */
   #ifdef __cpp_concepts
-    template<indexible NestedMatrix, vector_space_descriptor...Vs> requires
-      compatible_with_vector_space_descriptors<NestedMatrix, Vs...>
+    template<indexible NestedObject, vector_space_descriptor...Vs> requires
+      compatible_with_vector_space_descriptors<NestedObject, Vs...> and internal::not_more_fixed_than<NestedObject, Vs...>
   #else
-    template<typename NestedMatrix, typename...Vs>
+    template<typename NestedObject, typename...Vs>
   #endif
     struct FixedSizeAdapter;
 

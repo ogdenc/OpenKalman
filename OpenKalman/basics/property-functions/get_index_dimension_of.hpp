@@ -23,11 +23,12 @@ namespace OpenKalman
    * \brief Get the runtime dimensions of index N of \ref indexible T
    */
 #ifdef __cpp_concepts
-  template<interface::get_vector_space_descriptor_defined_for T, index_value N = std::integral_constant<std::size_t, 0>>
+  template<typename T, index_value N = std::integral_constant<std::size_t, 0>> requires
+    requires(T t, N n) { {get_vector_space_descriptor(t, n)} -> vector_space_descriptor; }
   constexpr index_value auto
 #else
   template<typename T, typename N = std::integral_constant<std::size_t, 0>, std::enable_if_t<
-    interface::get_vector_space_descriptor_defined_for<T> and index_value<N>, int> = 0>
+    vector_space_descriptor<decltype(get_vector_space_descriptor(std::declval<T>(), std::declval<N>()))>, int> = 0>
   constexpr auto
 #endif
   get_index_dimension_of(const T& t, N n = N{})
@@ -40,10 +41,11 @@ namespace OpenKalman
    * \overload
    */
 #ifdef __cpp_concepts
-  template<std::size_t N, interface::get_vector_space_descriptor_defined_for T>
+  template<std::size_t N, typename T> requires requires(T t) { {get_vector_space_descriptor<N>(t)} -> vector_space_descriptor; }
   constexpr index_value auto
 #else
-  template<std::size_t N, typename T, std::enable_if_t<interface::get_vector_space_descriptor_defined_for<T>, int> = 0>
+  template<std::size_t N, typename T, std::enable_if_t<
+    vector_space_descriptor<decltype(get_vector_space_descriptor<N>(std::declval<T>()))>, int> = 0>
   constexpr auto
 #endif
   get_index_dimension_of(const T& t)

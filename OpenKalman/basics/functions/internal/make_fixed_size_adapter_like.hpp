@@ -34,7 +34,7 @@ namespace OpenKalman::internal
       if constexpr (sizeof...(Ts) == 0) return std::forward<Arg>(arg);
       else
       {
-        using F = decltype(make_fixed_size_adapter(std::declval<Arg&&>(), best_desc_Ts_impl<Ix>(std::declval<Ts>()...)...));
+        using F = decltype(make_fixed_size_adapter<decltype(best_desc_Ts_impl<Ix>(std::declval<Ts>()...))...>(std::declval<Arg&&>()));
         constexpr bool better = (... or (dynamic_dimension<Arg, Ix> and not dynamic_dimension<F, Ix>));
         if constexpr (better) return F {std::forward<Arg>(arg)};
         else return std::forward<Arg>(arg);

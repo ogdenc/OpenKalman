@@ -24,7 +24,7 @@ namespace OpenKalman
 #else
   template<typename NestedMatrix, TriangleType triangle_type>
 #endif
-  struct TriangularMatrix : OpenKalman::internal::MatrixBase<TriangularMatrix<NestedMatrix, triangle_type>, NestedMatrix>
+  struct TriangularMatrix : OpenKalman::internal::AdapterBase<TriangularMatrix<NestedMatrix, triangle_type>, NestedMatrix>
   {
 
 #ifndef __cpp_concepts
@@ -34,7 +34,7 @@ namespace OpenKalman
 
   private:
 
-    using Base = OpenKalman::internal::MatrixBase<TriangularMatrix, NestedMatrix>;
+    using Base = OpenKalman::internal::AdapterBase<TriangularMatrix, NestedMatrix>;
 
     static constexpr auto dim = dynamic_dimension<NestedMatrix, 0> ? index_dimension_of_v<NestedMatrix, 1> :
       index_dimension_of_v<NestedMatrix, 0>;
@@ -233,7 +233,7 @@ namespace OpenKalman
 #endif
     auto& operator*=(const S s)
     {
-      internal::set_triangle<triangle_type>(this->nested_object(), this->nested_object() * s);
+      internal::set_triangle<triangle_type>(this->nested_object(), scalar_product(this->nested_object(), s));
       return *this;
     }
 
@@ -245,7 +245,7 @@ namespace OpenKalman
 #endif
     auto& operator/=(const S s)
     {
-      internal::set_triangle<triangle_type>(this->nested_object(), this->nested_object() / s);
+      internal::set_triangle<triangle_type>(this->nested_object(), scalar_quotient(this->nested_object(), s));
       return *this;
     }
 

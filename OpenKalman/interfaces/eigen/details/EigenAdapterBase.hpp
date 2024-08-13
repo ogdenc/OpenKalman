@@ -95,8 +95,11 @@ namespace OpenKalman::Eigen3
     }
 
 
-    constexpr auto * const
+    constexpr decltype(auto)
     data()
+#ifdef __cpp_lib_concepts
+    requires interface::raw_data_defined_for<Derived&>
+#endif
     {
       return OpenKalman::internal::raw_data(static_cast<Derived&>(*this));
     }
@@ -104,6 +107,9 @@ namespace OpenKalman::Eigen3
 
     constexpr decltype(auto)
     data() const
+#ifdef __cpp_lib_concepts
+    requires interface::raw_data_defined_for<const Derived&>
+#endif
     {
       return OpenKalman::internal::raw_data(static_cast<const Derived&>(*this));
     }

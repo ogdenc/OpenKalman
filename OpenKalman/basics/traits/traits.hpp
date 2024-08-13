@@ -32,10 +32,6 @@
 #include "vector.hpp"
 #include "max_tensor_order.hpp"
 
-#include "compatible_with_vector_space_descriptors.hpp"
-#include "maybe_same_shape_as.hpp"
-#include "same_shape_as.hpp"
-
 #include "has_untyped_index.hpp" // Is this necessary?
 #include "all_fixed_indices_are_euclidean.hpp" // Is this necessary?
 
@@ -45,6 +41,11 @@
 #include "self_contained.hpp"
 
 // shape-based traits
+
+#include "compatible_with_vector_space_descriptors.hpp"
+#include "internal/not_more_fixed_than.hpp"
+#include "maybe_same_shape_as.hpp"
+#include "same_shape_as.hpp"
 
 #include "one_dimensional.hpp"
 #include "square_shaped.hpp"

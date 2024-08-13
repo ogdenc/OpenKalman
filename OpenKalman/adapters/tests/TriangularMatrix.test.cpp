@@ -717,6 +717,8 @@ TEST(special_matrices, TriangularMatrix_overloads)
   EXPECT_TRUE(is_near(average_reduce<0>(Lower {3., 0, 1, 3}), make_eigen_matrix<double, 1, 2>(2, 1.5)));
   EXPECT_TRUE(is_near(average_reduce<0>(Upper {3., 1, 0, 3}), make_eigen_matrix<double, 1, 2>(1.5, 2)));
 }
+
+
 TEST(special_matrices, TriangularMatrix_solve)
 {
   EXPECT_TRUE(is_near(solve(Lower {3., 0, 1, 3}, make_eigen_matrix<double, 2, 1>(3, 7)), make_eigen_matrix(1., 2)));
@@ -724,6 +726,40 @@ TEST(special_matrices, TriangularMatrix_solve)
   //
   EXPECT_TRUE(is_near(solve(Lower {3., 0, 1, 3}, make_eigen_matrix<double, 2, 1>(3, 7)), make_eigen_matrix<double, 2, 1>(1, 2)));
   EXPECT_TRUE(is_near(solve(Upper {3., 1, 0, 3}, make_eigen_matrix<double, 2, 1>(3, 9)), make_eigen_matrix<double, 2, 1>(0, 3)));
+
+  auto m22_3104 = make_dense_object_from<M22>(3, 1, 0, 4);
+  auto m2x_3104 = M2x {m22_3104};
+  auto mx2_3104 = Mx2 {m22_3104};
+  auto mxx_3104 = Mxx {m22_3104};
+
+  auto m22_5206 = make_dense_object_from<M22>(5, 2, 0, 6);
+
+  auto m22_1512024 = make_eigen_matrix<double, 2, 2>(15, 12, 0, 24);
+  auto m2x_1512024 = M2x {m22_1512024};
+  auto mx2_1512024 = Mx2 {m22_1512024};
+  auto mxx_1512024 = Mxx {m22_1512024};
+
+  static_assert(triangular_matrix<decltype(solve(m22_3104.template triangularView<Eigen::Upper>(), m22_1512024.template triangularView<Eigen::Upper>())), TriangleType::upper>);
+  EXPECT_TRUE(is_near(solve(m22_3104.template triangularView<Eigen::Upper>(), m22_1512024.template triangularView<Eigen::Upper>()), m22_5206));
+  EXPECT_TRUE(is_near(solve(m22_3104.template triangularView<Eigen::Upper>(), m2x_1512024.template triangularView<Eigen::Upper>()), m22_5206));
+  EXPECT_TRUE(is_near(solve(m22_3104.template triangularView<Eigen::Upper>(), mx2_1512024.template triangularView<Eigen::Upper>()), m22_5206));
+  EXPECT_TRUE(is_near(solve(m22_3104.template triangularView<Eigen::Upper>(), mxx_1512024.template triangularView<Eigen::Upper>()), m22_5206));
+
+  EXPECT_TRUE(is_near(solve(m2x_3104.template triangularView<Eigen::Upper>(), m22_1512024.template triangularView<Eigen::Upper>()), m22_5206));
+  EXPECT_TRUE(is_near(solve(m2x_3104.template triangularView<Eigen::Upper>(), m2x_1512024.template triangularView<Eigen::Upper>()), m22_5206));
+  EXPECT_TRUE(is_near(solve(m2x_3104.template triangularView<Eigen::Upper>(), mx2_1512024.template triangularView<Eigen::Upper>()), m22_5206));
+  EXPECT_TRUE(is_near(solve(m2x_3104.template triangularView<Eigen::Upper>(), mxx_1512024.template triangularView<Eigen::Upper>()), m22_5206));
+
+  EXPECT_TRUE(is_near(solve(mx2_3104.template triangularView<Eigen::Upper>(), m22_1512024.template triangularView<Eigen::Upper>()), m22_5206));
+  EXPECT_TRUE(is_near(solve(mx2_3104.template triangularView<Eigen::Upper>(), m2x_1512024.template triangularView<Eigen::Upper>()), m22_5206));
+  EXPECT_TRUE(is_near(solve(mx2_3104.template triangularView<Eigen::Upper>(), mx2_1512024.template triangularView<Eigen::Upper>()), m22_5206));
+  static_assert(triangular_matrix<decltype(solve(mx2_3104.template triangularView<Eigen::Upper>(), mx2_1512024.template triangularView<Eigen::Upper>())), TriangleType::upper>);
+  EXPECT_TRUE(is_near(solve(mx2_3104.template triangularView<Eigen::Upper>(), mxx_1512024.template triangularView<Eigen::Upper>()), m22_5206));
+
+  EXPECT_TRUE(is_near(solve(mxx_3104.template triangularView<Eigen::Upper>(), m22_1512024.template triangularView<Eigen::Upper>()), m22_5206));
+  EXPECT_TRUE(is_near(solve(mxx_3104.template triangularView<Eigen::Upper>(), m2x_1512024.template triangularView<Eigen::Upper>()), m22_5206));
+  EXPECT_TRUE(is_near(solve(mxx_3104.template triangularView<Eigen::Upper>(), mx2_1512024.template triangularView<Eigen::Upper>()), m22_5206));
+  EXPECT_TRUE(is_near(solve(mxx_3104.template triangularView<Eigen::Upper>(), mxx_1512024.template triangularView<Eigen::Upper>()), m22_5206));
 }
 
 

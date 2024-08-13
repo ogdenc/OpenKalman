@@ -22,7 +22,7 @@ namespace OpenKalman
   namespace detail
   {
     template<typename T, std::size_t N, std::size_t...IxT>
-    constexpr bool compatible_ext_impl(std::index_sequence<IxT...>)
+    constexpr bool compatible_ext(std::index_sequence<IxT...>)
     {
       return (... and (maybe_equivalent_to<vector_space_descriptor_of_t<T, N + IxT>, Dimensions<1>>));
     }
@@ -31,10 +31,11 @@ namespace OpenKalman
     template<typename T, typename...Ds, std::size_t...IxD>
     constexpr bool compatible_impl(std::index_sequence<IxD...>)
     {
-      constexpr auto N = sizeof...(Ds);
+      constexpr std::size_t N = sizeof...(Ds);
       constexpr bool Dsmatch = (... and (maybe_equivalent_to<vector_space_descriptor_of_t<T, IxD>, Ds>));
-      if constexpr (N < index_count_v<T>)
-        return Dsmatch and compatible_ext_impl<T, N>(std::make_index_sequence<index_count_v<T> - N>{});
+
+      if constexpr (index_count_v<T> != dynamic_size and N < index_count_v<T>)
+        return Dsmatch and compatible_ext<T, N>(std::make_index_sequence<index_count_v<T> - N>{});
       else
         return Dsmatch;
     }
@@ -43,6 +44,7 @@ namespace OpenKalman
 
   /**
    * \brief \ref indexible T is compatible with \ref vector_space_descriptor set Ds.
+   * \details If T has a fixed number of indices, then any trailing indices beyond the set of Ds must be compatible with Dimensions<1>.
    */
   template<typename T, typename...Ds>
 #ifdef __cpp_concepts
@@ -50,7 +52,7 @@ namespace OpenKalman
 #else
   constexpr bool compatible_with_vector_space_descriptors =
 #endif
-    (vector_space_descriptor<Ds> and ...) and (index_count_v<T> != dynamic_size) and
+    indexible<T> and (vector_space_descriptor<Ds> and ...) and
       detail::compatible_impl<T, Ds...>(std::index_sequence_for<Ds...>{});
 
 

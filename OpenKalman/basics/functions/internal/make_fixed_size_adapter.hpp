@@ -21,19 +21,32 @@ namespace OpenKalman::internal
 {
   namespace detail
   {
-    template<typename Arg, typename DTup, std::size_t...Ix>
-    constexpr decltype(auto)
-    make_fixed_size_adapter_impl(Arg&& arg, DTup&& d_tup, std::index_sequence<Ix...> seq)
+    template<typename Arg, std::size_t N, std::size_t...offset>
+    constexpr bool an_extended_dim_is_dynamic_impl(std::index_sequence<offset...>)
     {
-      if constexpr (fixed_size_adapter<Arg>)
+      return ((... or (dynamic_dimension<Arg, N + offset>)));
+    }
+
+    template<typename Arg, std::size_t N>
+    constexpr bool an_extended_dim_is_dynamic()
+    {
+      if constexpr (index_count_v<Arg> != dynamic_size and index_count_v<Arg> > N)
+        return an_extended_dim_is_dynamic_impl<Arg, N>(std::make_index_sequence<index_count_v<Arg> - N>{});
+      else
+        return false;
+    }
+
+
+    template<typename DTup, typename Arg, std::size_t...Ix>
+    constexpr decltype(auto)
+    make_fixed_size_adapter_impl(Arg&& arg, std::index_sequence<Ix...> seq)
+    {
+      if constexpr ((... or (dynamic_vector_space_descriptor<std::tuple_element_t<Ix, DTup>> != dynamic_dimension<Arg, Ix>)) or
+        an_extended_dim_is_dynamic<Arg, sizeof...(Ix)>())
       {
-        return make_fixed_size_adapter_impl(nested_object(std::forward<Arg>(arg)),
-          std::forward_as_tuple(best_vector_space_descriptor(get_vector_space_descriptor(arg, Ix), std::get<Ix>(d_tup))...), seq);
-      }
-      else if constexpr ((... or (dynamic_dimension<Arg, Ix> and not dynamic_dimension<DTup, Ix>)) or sizeof...(Ix) < index_count_v<Arg>)
-      {
-        return FixedSizeAdapter {std::forward<Arg>(arg),
-          best_vector_space_descriptor(get_vector_space_descriptor(arg, Ix), std::get<Ix>(d_tup))...};
+        return FixedSizeAdapter<Arg,
+          decltype(best_vector_space_descriptor(get_vector_space_descriptor(std::declval<Arg>(), Ix),
+            std::get<Ix>(std::declval<DTup>())))...> {std::forward<Arg>(arg)};
       }
       else
       {
@@ -49,18 +62,25 @@ namespace OpenKalman::internal
    * \return (1) A fixed size adapter or (2) a reference to the argument unchanged.
    */
 #ifdef __cpp_concepts
-  template<indexible Arg, vector_space_descriptor...Ds> requires
-    compatible_with_vector_space_descriptors<Arg, Ds...> and (index_count_v<Arg> != dynamic_size)
+  template<vector_space_descriptor...Ds, compatible_with_vector_space_descriptors<Ds...> Arg> requires
+    internal::not_more_fixed_than<Arg, Ds...>
 #else
-  template<typename Arg, typename...Ds, std::enable_if_t<(... and vector_space_descriptor<Ds>) and
-    compatible_with_vector_space_descriptors<Arg, Ds...> and (index_count<Arg>::value != dynamic_size), int> = 0>
+  template<typename...Ds, typename Arg, std::enable_if_t<(... and vector_space_descriptor<Ds>) and
+    compatible_with_vector_space_descriptors<Arg, Ds...> and internal::not_more_fixed_than<Arg, Ds...>, int> = 0>
 #endif
   constexpr decltype(auto)
-  make_fixed_size_adapter(Arg&& arg, Ds&&...ds)
+  make_fixed_size_adapter(Arg&& arg)
   {
-    auto d_tup {remove_trailing_1D_descriptors(std::forward<Ds>(ds)...)};
-    std::make_index_sequence<std::tuple_size_v<decltype(d_tup)>> seq {};
-    return detail::make_fixed_size_adapter_impl(std::forward<Arg>(arg), std::move(d_tup), seq);
+    if constexpr (fixed_size_adapter<Arg>)
+    {
+      return make_fixed_size_adapter<Ds...>(nested_object(std::forward<Arg>(arg)));
+    }
+    else
+    {
+      using DTup = std::decay_t<decltype(remove_trailing_1D_descriptors(std::declval<Ds>()...))>;
+      std::make_index_sequence<std::tuple_size_v<DTup>> seq {};
+      return detail::make_fixed_size_adapter_impl<DTup>(std::forward<Arg>(arg), seq);
+    }
   }
 
 

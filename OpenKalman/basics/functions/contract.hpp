@@ -65,14 +65,14 @@ namespace OpenKalman
     if constexpr (identity_matrix<B> and square_shaped<B>)
     {
       if constexpr (dynamic_dimension<A, 1> and not dynamic_dimension<B, 1>)
-        return internal::make_fixed_size_adapter(std::forward<A>(a), get_vector_space_descriptor<0>(a), get_vector_space_descriptor<1>(b));
+        return internal::make_fixed_size_adapter<vector_space_descriptor_of_t<A, 0>, vector_space_descriptor_of_t<B, 1>>(std::forward<A>(a));
       else
         return std::forward<A>(a);
     }
     else if constexpr (identity_matrix<A> and square_shaped<A>)
     {
       if constexpr (dynamic_dimension<B, 0> and not dynamic_dimension<A, 0>)
-        return internal::make_fixed_size_adapter(std::forward<B>(b), get_vector_space_descriptor<0>(a), get_vector_space_descriptor<1>(b));
+        return internal::make_fixed_size_adapter<vector_space_descriptor_of_t<A, 0>, vector_space_descriptor_of_t<B, 1>>(std::forward<B>(b));
       else
         return std::forward<B>(b);
     }
@@ -116,7 +116,7 @@ namespace OpenKalman
     else if constexpr (interface::contract_defined_for<A, A, B>)
     {
       auto x = interface::library_interface<std::decay_t<A>>::contract(std::forward<A>(a), std::forward<B>(b));
-      auto ret = internal::make_fixed_size_adapter(std::move(x), get_vector_space_descriptor<0>(a), get_vector_space_descriptor<1>(b));
+      auto ret = internal::make_fixed_size_adapter<vector_space_descriptor_of_t<A, 0>, vector_space_descriptor_of_t<B, 1>>(std::move(x));
 
       constexpr TriangleType tri = triangle_type_of_v<A, B>;
       if constexpr (tri != TriangleType::any and not triangular_matrix<decltype(ret), tri>)
