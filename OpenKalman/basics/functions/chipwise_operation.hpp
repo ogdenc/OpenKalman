@@ -140,7 +140,7 @@ namespace OpenKalman
     }
     else
     {
-      return make_self_contained<Args...>(operation(std::forward<Args>(args)...));
+      return operation(std::forward<Args>(args)...);
     }
   }
 
@@ -234,8 +234,8 @@ namespace OpenKalman
     constexpr bool uses_indices = std::is_invocable_v<Operation, std::integral_constant<decltype(indices), 0>...>;
 
     auto op_result = [](const Operation& operation){
-        if constexpr (uses_indices) return make_self_contained(operation(std::integral_constant<decltype(indices), 0> {}...));
-        else return make_self_contained(operation());
+        if constexpr (uses_indices) return operation(std::integral_constant<decltype(indices), 0> {}...);
+        else return operation();
       }(operation);
     using OpResult = decltype(op_result);
 

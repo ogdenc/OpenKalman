@@ -97,7 +97,7 @@ namespace OpenKalman
       not std::is_base_of_v<GaussianDistribution, std::decay_t<Arg>> and
       equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, FixedDescriptor>, int> = 0>
 #endif
-    GaussianDistribution(Arg&& arg) noexcept
+    GaussianDistribution(Arg&& arg)
       : mu {std::forward<Arg>(arg).mu}, sigma {std::forward<Arg>(arg).sigma} {}
 
 
@@ -259,7 +259,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<gaussian_distribution<Arg> and
       equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, FixedDescriptor>, int> = 0>
 #endif
-    GaussianDistribution& operator=(Arg&& arg) noexcept
+    GaussianDistribution& operator=(Arg&& arg)
     {
       if constexpr (std::is_same_v<std::decay_t<Arg>, GaussianDistribution>) if (this == &arg) return *this;
       mu = std::forward<Arg>(arg).mu;
@@ -328,9 +328,9 @@ namespace OpenKalman
         std::normal_distribution {0.0, 1.0});
       auto s = square_root(sigma);
       if constexpr(triangular_matrix<decltype(s), TriangleType::upper>)
-        return make_self_contained(Matrix {mu} + transpose(std::move(s)) * std::move(norm));
+        return sum(Matrix {mu}, contract(transpose(std::move(s)), std::move(norm)));
       else
-        return make_self_contained(Matrix {mu} + std::move(s) * std::move(norm));
+        return sum(Matrix {mu}, contract(std::move(s), std::move(norm)));
     }
 
 
@@ -491,7 +491,7 @@ namespace OpenKalman
   template<typename D, std::enable_if_t<gaussian_distribution<D>, int> = 0>
 #endif
   inline auto
-  make_GaussianDistribution(D&& dist) noexcept
+  make_GaussianDistribution(D&& dist)
   {
     return GaussianDistribution {std::forward<D>(dist)};
   }
@@ -515,7 +515,7 @@ namespace OpenKalman
     (equivalent_to<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Cov, 0>>), int> = 0>
 #endif
   inline auto
-  make_GaussianDistribution(M&& mean, Cov&& cov) noexcept
+  make_GaussianDistribution(M&& mean, Cov&& cov)
   {
     using C = vector_space_descriptor_of_t<M, 0>;
     using Mb = passable_t<nested_object_of_t<M>>;
@@ -543,7 +543,7 @@ namespace OpenKalman
     (index_dimension_of<M, 0>::value == index_dimension_of<Cov, 0>::value), int> = 0>
 #endif
   inline auto
-  make_GaussianDistribution(M&& mean, Cov&& cov) noexcept
+  make_GaussianDistribution(M&& mean, Cov&& cov)
   {
     using C = vector_space_descriptor_of_t<M, 0>;
     using Mb = passable_t<nested_object_of_t<M>>;
@@ -571,7 +571,7 @@ namespace OpenKalman
     (index_dimension_of<M, 0>::value == index_dimension_of<Cov, 0>::value), int> = 0>
 #endif
   inline auto
-  make_GaussianDistribution(M&& mean, Cov&& cov) noexcept
+  make_GaussianDistribution(M&& mean, Cov&& cov)
   {
     if constexpr(covariance<Cov>)
     {
@@ -614,7 +614,7 @@ namespace OpenKalman
     (covariance_nestable<Cov> or typed_matrix_nestable<Cov>), int> = 0>
 #endif
   inline auto
-  make_GaussianDistribution(M&& mean, Cov&& cov) noexcept
+  make_GaussianDistribution(M&& mean, Cov&& cov)
   {
     static_assert(index_dimension_of_v<M, 0> == index_dimension_of_v<Cov, 0>);
     if constexpr(covariance_nestable<Cov>)
@@ -750,12 +750,6 @@ namespace OpenKalman
       }
 
 
-      using dependents = std::tuple<NestedMean, NestedCovariance>;
-
-
-      static constexpr bool has_runtime_parameters = false;
-
-
       template<typename Arg>
       static decltype(auto) nested_object(Arg&& arg)
       {
@@ -797,7 +791,7 @@ namespace OpenKalman
       std::enable_if_t<fixed_vector_space_descriptor<C> and typed_matrix_nestable<M> and covariance_nestable<Cov> and
       vector<M> and (index_dimension_of<M, 0>::value == index_dimension_of<Cov, 0>::value), int> = 0>
 #endif
-    static auto make(M&& mean, Cov&& covariance) noexcept
+    static auto make(M&& mean, Cov&& covariance)
     {
       return make_GaussianDistribution<C, random_number_engine>(std::forward<M>(mean), std::forward<Cov>(covariance));
     }
@@ -815,7 +809,7 @@ namespace OpenKalman
   template<typename Arg, std::enable_if_t<gaussian_distribution<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  mean_of(Arg&& arg) noexcept
+  mean_of(Arg&& arg)
   {
     return (std::forward<Arg>(arg).mu);
   }
@@ -827,7 +821,7 @@ namespace OpenKalman
   template<typename Arg, std::enable_if_t<gaussian_distribution<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  covariance_of(Arg&& arg) noexcept
+  covariance_of(Arg&& arg)
   {
     return (std::forward<Arg>(arg).sigma);
   }
@@ -921,7 +915,7 @@ namespace OpenKalman
     internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, typename DistributionTraits<D>::FixedDescriptor>, int> = 0>
 #endif
   inline auto
-  split(D&& d) noexcept
+  split(D&& d)
   {
     using Coeffs = typename DistributionTraits<D>::FixedDescriptor;
     if constexpr(sizeof...(Cs) == 1 and equivalent_to<concatenate_fixed_vector_space_descriptor_t<Cs...>, Coeffs>)

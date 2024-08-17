@@ -21,7 +21,7 @@ namespace OpenKalman
   namespace detail
   {
     template<typename C, typename A, typename B, std::size_t...Is>
-    static constexpr auto contract_constant(C&& c, A&& a, B&& b, std::index_sequence<Is...>) noexcept
+    static constexpr auto contract_constant(C&& c, A&& a, B&& b, std::index_sequence<Is...>)
     {
       return make_constant<A>(std::forward<C>(c),
         get_vector_space_descriptor<0>(a), get_vector_space_descriptor<1>(b), get_vector_space_descriptor<Is + 2>(a)...);
@@ -30,7 +30,7 @@ namespace OpenKalman
 
     /* // Only for use with alternate code below
     template<typename A, typename B, std::size_t...Is>
-    static constexpr auto contract_dimensions(A&& a, B&& b, std::index_sequence<Is...>) noexcept
+    static constexpr auto contract_dimensions(A&& a, B&& b, std::index_sequence<Is...>)
     {
       return std::tuple {get_vector_space_descriptor<0>(a), get_vector_space_descriptor<1>(b), get_vector_space_descriptor<Is + 2>(a)...};
     }

@@ -70,7 +70,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static auto
-    to_diagonal(Arg&& arg) noexcept
+    to_diagonal(Arg&& arg)
     {
       if constexpr( has_untyped_index<Arg, 0>)
       {
@@ -86,7 +86,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static auto
-    diagonal_of(Arg&& arg) noexcept
+    diagonal_of(Arg&& arg)
     {
       if constexpr(has_untyped_index<Arg, 0>)
       {
@@ -132,7 +132,7 @@ namespace OpenKalman::interface
     template<typename Arg, typename C, std::enable_if_t<from_euclidean_expr<Arg> and vector_space_descriptor<C>, int> = 0>
 #endif
     constexpr decltype(auto)
-    to_euclidean(Arg&& arg, const C&) noexcept
+    to_euclidean(Arg&& arg, const C&)
     {
       return nested_object(std::forward<Arg>(arg));
     }
@@ -144,7 +144,7 @@ namespace OpenKalman::interface
     template<typename Arg, typename C, std::enable_if_t<to_euclidean_expr<Arg> and vector_space_descriptor<C>, int> = 0>
 #endif
     constexpr decltype(auto)
-    from_euclidean(Arg&& arg, const C& c) noexcept
+    from_euclidean(Arg&& arg, const C& c)
     {
       return FromEuclideanExpr<C, Arg> {std::forward<Arg>(arg), c};
     }
@@ -156,7 +156,7 @@ namespace OpenKalman::interface
     template<typename Arg, typename C, std::enable_if_t<from_euclidean_expr<Arg> and vector_space_descriptor<C>, int> = 0>
 #endif
     constexpr decltype(auto)
-    wrap_angles(Arg&& arg, const C&) noexcept
+    wrap_angles(Arg&& arg, const C&)
     {
       return std::forward<Arg>(arg);
     }
@@ -164,7 +164,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr decltype(auto)
-    conjugate(Arg&& arg) noexcept
+    conjugate(Arg&& arg)
     {
       if constexpr(has_untyped_index<Arg, 0>)
       {
@@ -179,7 +179,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr decltype(auto)
-    transpose(Arg&& arg) noexcept
+    transpose(Arg&& arg)
     {
       if constexpr(has_untyped_index<Arg, 0>)
       {
@@ -194,7 +194,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr decltype(auto)
-    adjoint(Arg&& arg) noexcept
+    adjoint(Arg&& arg)
     {
       if constexpr(has_untyped_index<Arg, 0>)
       {
@@ -209,7 +209,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr auto
-    determinant(Arg&& arg) noexcept
+    determinant(Arg&& arg)
     {
       if constexpr(has_untyped_index<Arg, 0>)
       {
@@ -239,7 +239,7 @@ namespace OpenKalman::interface
 
     template<bool must_be_unique, bool must_be_exact, typename A, typename B>
     static constexpr decltype(auto)
-    solve(A&& a, B&& b) noexcept
+    solve(A&& a, B&& b)
     {
       return OpenKalman::solve<must_be_unique, must_be_exact>(
         to_native_matrix<T>(std::forward<A>(a)), std::forward<B>(b));

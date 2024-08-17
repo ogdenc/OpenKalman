@@ -20,7 +20,8 @@ namespace OpenKalman::internal
 {
 #ifdef __cpp_concepts
   template<indexible NestedObject, vector_space_descriptor...Vs> requires
-    compatible_with_vector_space_descriptors<NestedObject, Vs...> and internal::not_more_fixed_than<NestedObject, Vs...>
+    compatible_with_vector_space_descriptors<NestedObject, Vs...> and
+    internal::not_more_fixed_than<NestedObject, Vs...> and internal::less_fixed_than<NestedObject, Vs...>
 #else
   template<typename NestedObject, typename...Vs>
 #endif
@@ -33,22 +34,14 @@ namespace OpenKalman::internal
     static_assert((vector_space_descriptor<Vs> and ...));
     static_assert(compatible_with_vector_space_descriptors<NestedObject, Vs...>);
     static_assert(internal::not_more_fixed_than<NestedObject, Vs...>);
+    static_assert(internal::less_fixed_than<NestedObject, Vs...>);
 #endif
 
     using Base = AdapterBase<FixedSizeAdapter, const NestedObject>;
 
   public:
 
-    /**
-     * \brief Default constructor.
-     */
-#ifdef __cpp_concepts
-    constexpr FixedSizeAdapter() noexcept requires std::default_initializable<Base>
-#else
-    template<typename T = Base, std::enable_if_t<std::is_default_constructible<T>::value, int> = 0>
-    constexpr FixedSizeAdapter() noexcept
-#endif
-      : Base {} {}
+    using Base::Base;
 
 
     /**
@@ -61,7 +54,7 @@ namespace OpenKalman::internal
     template<typename Arg, std::enable_if_t<compatible_with_vector_space_descriptors<Arg, Vs...> and
       (not fixed_size_adapter<Arg>) and std::is_constructible_v<Base, Arg&&>, int> = 0>
 #endif
-    explicit FixedSizeAdapter(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
+    constexpr explicit FixedSizeAdapter(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
 
     /**
@@ -74,7 +67,7 @@ namespace OpenKalman::internal
     template<typename Arg, std::enable_if_t<compatible_with_vector_space_descriptors<Arg, Vs...> and
       (not fixed_size_adapter<Arg>) and (sizeof...(Vs) > 0) and std::is_constructible_v<Base, Arg&&>, int> = 0>
 #endif
-    FixedSizeAdapter(Arg&& arg, const Vs&...) noexcept : Base {std::forward<Arg>(arg)} {}
+    constexpr FixedSizeAdapter(Arg&& arg, const Vs&...) : Base {std::forward<Arg>(arg)} {}
 
 
     /**
@@ -84,23 +77,25 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
     template<compatible_with_vector_space_descriptors<Vs...> Arg> requires
       fixed_size_adapter<Arg> and (sizeof...(Vs) > 0 or not std::is_base_of_v<std::decay_t<Arg>, FixedSizeAdapter>) and
-      std::constructible_from<Base, Arg&&>
+      internal::not_more_fixed_than<NestedObject, Vs...> and internal::less_fixed_than<Arg, Vs...> and
+      std::constructible_from<Base, nested_object_of_t<Arg&&>>
 #else
     template<typename Arg, typename...Ids, std::enable_if_t<
       compatible_with_vector_space_descriptors<Arg, Vs...> and fixed_size_adapter<Arg> and
       (sizeof...(Vs) > 0 or not std::is_base_of_v<FixedSizeAdapter, std::decay_t<Arg>>) and
-      std::is_constructible_v<Base, Arg&&>, int> = 0>
+      internal::not_more_fixed_than<NestedObject, Vs...> and internal::less_fixed_than<Arg, Vs...> and
+      std::is_constructible_v<Base, nested_object_of_t<Arg&&>>, int> = 0>
 #endif
-    FixedSizeAdapter(Arg&& arg, const Vs&...) noexcept : Base {std::forward<Arg>(arg).nested_object()} {}
+    constexpr FixedSizeAdapter(Arg&& arg, const Vs&...) : Base {nested_object(std::forward<Arg>(arg))} {}
 
 
     /**
      * \brief Get the nested object.
      */
-    const auto& nested_object() const & { return Base::nested_object(); }
+    constexpr decltype(auto) nested_object() const & { return Base::nested_object(); }
 
     /// \overload
-    auto nested_object() const && noexcept { return Base::nested_object(); }
+    constexpr decltype(auto) nested_object() const && { return std::move(static_cast<const Base&&>(*this)).nested_object(); }
 
   };
 

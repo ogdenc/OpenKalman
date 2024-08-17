@@ -225,25 +225,7 @@ TEST(eigen3, contract)
   EXPECT_TRUE(is_near(contract(c31_2.asDiagonal(), m33.template triangularView<Eigen::Upper>()), make_dense_object_from<M33>(2, 4, 6, 0, 10, 12, 0, 0, 18)));
   static_assert(triangular_matrix<decltype(contract(c31_2.asDiagonal(), m33.template triangularView<Eigen::Upper>())), TriangleType::upper>);
 
-  // triangular * triangular
-
-  EXPECT_TRUE(is_near(contract(m33.template triangularView<Eigen::Upper>(), m33.template triangularView<Eigen::Upper>()),
-    make_dense_object_from<M33>(1, 12, 42, 0, 25, 84, 0, 0, 81)));
-  static_assert(triangular_matrix<decltype(contract(m33.template triangularView<Eigen::Upper>(),
-    m33.template triangularView<Eigen::Upper>())), TriangleType::upper>);
-  EXPECT_TRUE(is_near(contract(m33.template triangularView<Eigen::Lower>(), m33.template triangularView<Eigen::Lower>()),
-    make_dense_object_from<M33>(1, 0, 0, 24, 25, 0, 102, 112, 81)));
-  static_assert(triangular_matrix<decltype(contract(m33.template triangularView<Eigen::Lower>(),
-    m33.template triangularView<Eigen::Lower>())), TriangleType::lower>);
-
-  EXPECT_TRUE(is_near(contract(m3x_3.template triangularView<Eigen::Upper>(), mx3_3.template triangularView<Eigen::Upper>()),
-    make_dense_object_from<M33>(1, 12, 42, 0, 25, 84, 0, 0, 81)));
-  static_assert(triangular_matrix<decltype(contract(m3x_3.template triangularView<Eigen::Upper>(),
-    mx3_3.template triangularView<Eigen::Upper>())), TriangleType::upper>);
-  EXPECT_TRUE(is_near(contract(m3x_3.template triangularView<Eigen::Lower>(), mx3_3.template triangularView<Eigen::Lower>()),
-    make_dense_object_from<M33>(1, 0, 0, 24, 25, 0, 102, 112, 81)));
-  static_assert(triangular_matrix<decltype(contract(m3x_3.template triangularView<Eigen::Lower>(),
-    mx3_3.template triangularView<Eigen::Lower>())), TriangleType::lower>);
+  // triangular * triangular -- tested as part of adapters
 
   // hermitian * matrix
 

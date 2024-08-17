@@ -48,13 +48,6 @@ namespace OpenKalman::interface
     }
 
 
-    using dependents = std::tuple<typename ConditionMatrixType::Nested, typename ThenMatrixType::Nested,
-      typename ElseMatrixType::Nested>;
-
-
-    static constexpr bool has_runtime_parameters = false;
-
-
     // nested_object not defined
 
 

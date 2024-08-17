@@ -22,8 +22,5 @@
 #include "untyped_adapter.hpp"
 #include "dense_writable_matrix_t.hpp"
 #include "untyped_dense_writable_matrix_t.hpp"
-#include "equivalent_self_contained_t.hpp"
-#include "passable_t.hpp"
-#include "internal/is_modifiable.hpp"
 
 #endif //OPENKALMAN_OTHER_TRAITS_HPP

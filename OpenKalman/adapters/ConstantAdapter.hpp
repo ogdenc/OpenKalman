@@ -597,12 +597,6 @@ private:
       }
 
 
-      using dependents = std::tuple<>;
-
-
-      static constexpr bool has_runtime_parameters = has_dynamic_dimensions<PatternMatrix>;
-
-
       // No nested_object defined
 
 

@@ -50,7 +50,7 @@ namespace OpenKalman
     template<typename In, typename ... Perturbations, std::enable_if_t<transformation_input<In> and
       (perturbation<Perturbations, vector_space_descriptor_of_t<In, 0>> and ...), int> = 0>
 #endif
-    auto operator()(In&& in, Perturbations&& ... ps) const noexcept
+    auto operator()(In&& in, Perturbations&& ... ps) const
     {
       return make_self_contained((std::forward<In>(in) + ... + std::forward<Perturbations>(ps)));
     }

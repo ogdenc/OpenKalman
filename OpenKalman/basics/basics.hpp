@@ -108,9 +108,6 @@ namespace OpenKalman { using namespace vector_space_descriptors; }
 #include "internal/LibraryWrapper.hpp"
 #include "interfaces/internal/LibraryWrapper.hpp"
 
-#include "internal/SelfContainedWrapper.hpp"
-#include "interfaces/internal/SelfContainedWrapper.hpp"
-
 #include "internal/FixedSizeAdapter.hpp"
 #include "interfaces/internal/FixedSizeAdapter.hpp"
 

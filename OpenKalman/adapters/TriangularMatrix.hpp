@@ -75,7 +75,7 @@ namespace OpenKalman
       dimensions_match<typename nested_object_of<Arg>::type> and
       std::is_constructible<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>::value, int> = 0>
 #endif
-    TriangularMatrix(Arg&& arg) noexcept : Base {nested_object(std::forward<Arg>(arg))} {}
+    TriangularMatrix(Arg&& arg) : Base {nested_object(std::forward<Arg>(arg))} {}
 
 
     /// Construct from a non-triangular or square matrix if NestedMatrix is non-diagonal.
@@ -108,7 +108,7 @@ namespace OpenKalman
       (not has_nested_object<Arg> or (diagonal_matrix<NestedMatrix> and diagonal_matrix<Arg>)) and
       dimensions_match<Arg> and std::is_constructible<NestedMatrix, Arg&&>::value, int> = 0>
 #endif
-    TriangularMatrix(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
+    TriangularMatrix(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
 
     /// Construct from a diagonal matrix if NestedMatrix is diagonal.
@@ -121,7 +121,7 @@ namespace OpenKalman
       diagonal_matrix<NestedMatrix> and dimensions_match<Arg> and (not std::is_constructible_v<NestedMatrix, Arg&&>) and
       std::is_constructible<NestedMatrix, decltype(diagonal_of(std::declval<Arg&&>()))>::value, int> = 0>
 #endif
-    TriangularMatrix(Arg&& arg) noexcept : Base {diagonal_of(std::forward<Arg>(arg))} {}
+    TriangularMatrix(Arg&& arg) : Base {diagonal_of(std::forward<Arg>(arg))} {}
 
 
     /// Construct from a non-triangular square matrix if NestedMatrix is diagonal.
@@ -377,12 +377,6 @@ namespace OpenKalman
           OpenKalman::get_vector_space_descriptor<0>(nested_object(arg)),
           OpenKalman::get_vector_space_descriptor<1>(nested_object(arg)));
       }
-
-
-      using dependents = std::tuple<NestedMatrix>;
-
-
-      static constexpr bool has_runtime_parameters = false;
 
 
       template<typename Arg>

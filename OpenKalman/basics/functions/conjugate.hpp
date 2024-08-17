@@ -30,7 +30,7 @@ namespace OpenKalman
 #else
   template<typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
 #endif
-  constexpr decltype(auto) conjugate(Arg&& arg) noexcept
+  constexpr decltype(auto) conjugate(Arg&& arg)
   {
     if constexpr (not complex_number<scalar_type_of_t<Arg>> or zero<Arg> or identity_matrix<Arg>)
     {

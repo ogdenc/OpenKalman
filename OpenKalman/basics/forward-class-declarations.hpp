@@ -135,7 +135,7 @@ namespace OpenKalman
 
   /**
    * \brief A diagonal matrix or tensor.
-   * \details The matrix is guaranteed to be diagonal. It is \ref self_contained iff NestedMatrix is \ref self_contained.
+   * \details The matrix is guaranteed to be diagonal.
    * Implicit conversions are available from any \ref diagonal_matrix of compatible size.
    * \tparam NestedMatrix A column vector expression defining the diagonal elements.
    * indexible_object_traits outside the diagonal are automatically 0.
@@ -176,7 +176,7 @@ namespace OpenKalman
 
   /**
    * \brief A hermitian matrix wrapper.
-   * \details The matrix is guaranteed to be hermitian. It is ::self_contained iff NestedMatrix is ::self_contained.
+   * \details The matrix is guaranteed to be hermitian.
    * Implicit conversions are available from any \ref hermitian_matrix of compatible size.
    * \tparam NestedMatrix A nested \ref square_shaped expression, on which the self-adjoint matrix is based.
    * \tparam storage_triangle The HermitianAdapterType (\ref HermitianAdapterType::lower "lower" or
@@ -577,7 +577,8 @@ namespace OpenKalman
      */
   #ifdef __cpp_concepts
     template<indexible NestedObject, vector_space_descriptor...Vs> requires
-      compatible_with_vector_space_descriptors<NestedObject, Vs...> and internal::not_more_fixed_than<NestedObject, Vs...>
+      compatible_with_vector_space_descriptors<NestedObject, Vs...> and
+      internal::not_more_fixed_than<NestedObject, Vs...> and internal::less_fixed_than<NestedObject, Vs...>
   #else
     template<typename NestedObject, typename...Vs>
   #endif

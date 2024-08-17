@@ -49,12 +49,6 @@ namespace OpenKalman::interface
     }
 
 
-    using dependents = std::tuple<typename T::Arg1Nested, typename T::Arg2Nested, typename T::Arg3Nested>;
-
-
-    static constexpr bool has_runtime_parameters = false;
-
-
     // nested_object not defined
 
 

@@ -44,10 +44,6 @@ namespace OpenKalman::interface
 
   public:
 
-    using dependents = std::tuple<>;
-
-    static constexpr bool has_runtime_parameters = has_params<NullaryOp>::value;
-
     // nested_object() not defined
 
 

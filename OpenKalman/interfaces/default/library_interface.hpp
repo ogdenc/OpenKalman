@@ -119,6 +119,20 @@ namespace OpenKalman::interface
 
 
     /**
+     * \brief Assign (copy or move) the elements of an indexible object to a writable object.
+     * \tparam To The \ref writable object to be assigned.
+     * \tparam From The indexible object to be assigned.
+     */
+#ifdef __cpp_concepts
+    template<writable To, indexible From>
+#else
+    template<typename To, typename From, std::enable_if_t<writable<To> and indexible<From>, int> = 0>
+#endif
+    static void
+    assign(M& a, From&& b) = delete;
+
+
+    /**
      * \brief Fill a writable matrix with a list of elements.
      * \tparam M The \ref writable object to be filled.
      * \tparam layout The \ref Layout of the listed elements, which may be \ref Layout::left or \ref Layout::right.
@@ -127,12 +141,13 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     template<Layout layout, writable M> requires (layout == Layout::right) or (layout == Layout::left)
-    static M&&
-    fill_components(M&& m, const std::convertible_to<scalar_type_of_t<M>> auto ... args) = delete;
+    static void
+    fill_components(M& m, const std::convertible_to<scalar_type_of_t<M>> auto ... args) = delete;
 #else
-    template<Layout layout, typename M, typename...Args>
-    static M&&
-    fill_components(M&& m, const Args ... args) = delete;
+    template<Layout layout, typename M, typename...Args, std::enable_if_t<
+      writable<M> and (layout == Layout::right) or (layout == Layout::left), int> = 0>
+    static void
+    fill_components(M& m, const Args ... args) = delete;
 #endif
 
 

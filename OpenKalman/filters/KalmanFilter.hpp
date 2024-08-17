@@ -56,7 +56,7 @@ namespace OpenKalman
       const auto K_adj = solve(adjoint(P_yy), adjoint(P_xy));
       const auto K = adjoint(K_adj);
       // K * P_yy == P_xy, or K == P_xy * inverse(P_yy)
-      auto out_x_mean = make_self_contained(mean_of(Nx) + K * (Mean {z} - y));
+      auto out_x_mean = sum(mean_of(Nx), contract(K, (Mean {z} - y)));
       using re = typename DistributionTraits<XDistribution>::random_number_engine;
 
       if constexpr (cholesky_form<YDistribution>)

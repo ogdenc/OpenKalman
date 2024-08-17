@@ -36,10 +36,7 @@ namespace OpenKalman
 #endif
   inline auto make_matrix(M&& m)
   {
-    decltype(auto) m_sc = make_self_contained<M>(std::forward<M>(m));
-    using M_sc = decltype(m_sc);
-    using M2 = std::conditional_t<std::is_rvalue_reference_v<M_sc>, std::remove_reference_t<M_sc>, M_sc>;
-    return Matrix<RowCoefficients, ColumnCoefficients, M2>(std::forward<M_sc>(m_sc));
+    return Matrix<RowCoefficients, ColumnCoefficients, M>(std::forward<M>(m));
   }
 
 
@@ -123,7 +120,7 @@ namespace OpenKalman
    * \brief Make a default, self-contained Matrix object.
    * \tparam RowCoefficients The coefficient types corresponding to the rows.
    * \tparam ColumnCoefficients The coefficient types corresponding to the columns.
-   * \tparam M a typed_matrix_nestable on which the new matrix is based. It will be converted to a self_contained type
+   * \tparam M a typed_matrix_nestable on which the new matrix is based.
    * if it is not already self-contained.
    */
 #ifdef __cpp_concepts
@@ -146,7 +143,7 @@ namespace OpenKalman
   /**
    * \overload
    * \brief Make a self-contained Matrix object with default Axis coefficients.
-   * \tparam M a typed_matrix_nestable on which the new matrix is based. It will be converted to a self_contained type
+   * \tparam M a typed_matrix_nestable on which the new matrix is based.
    * if it is not already self-contained.
    */
 #ifdef __cpp_concepts

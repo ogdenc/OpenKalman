@@ -114,9 +114,9 @@ namespace OpenKalman::values
         return std::decay_t<decltype(Trait::get_constant(std::declval<T>()))>::value;
     }();
 
-    constexpr operator value_type() const noexcept { return value; }
+    constexpr operator value_type() const { return value; }
 
-    constexpr value_type operator()() const noexcept { return value; }
+    constexpr value_type operator()() const { return value; }
   };
 
 
@@ -153,9 +153,9 @@ namespace OpenKalman::values
 
     using type = constant_diagonal_coefficient;
 
-    constexpr operator value_type() const noexcept { return m_value; }
+    constexpr operator value_type() const { return m_value; }
 
-    constexpr value_type operator()() const noexcept { return m_value; }
+    constexpr value_type operator()() const { return m_value; }
 
   private:
 

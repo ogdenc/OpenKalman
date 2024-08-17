@@ -85,7 +85,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static auto
-    to_diagonal(Arg&& arg) noexcept
+    to_diagonal(Arg&& arg)
     {
       using C = vector_space_descriptor_of_t<Arg, 0>;
       auto b = to_diagonal(nested_object(std::forward<Arg>(arg)));
@@ -95,7 +95,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static auto
-    diagonal_of(Arg&& arg) noexcept
+    diagonal_of(Arg&& arg)
     {
       using C = vector_space_descriptor_of_t<Arg, 0>;
       auto b = diagonal_of(nested_object(std::forward<Arg>(arg)));
@@ -109,7 +109,7 @@ namespace OpenKalman::interface
     template<typename Arg, typename C, std::enable_if_t<mean<Arg> and vector_space_descriptor<C>, int> = 0>
 #endif
     constexpr decltype(auto)
-    to_euclidean(Arg&& arg, const C& c) noexcept
+    to_euclidean(Arg&& arg, const C& c)
     {
       auto&& n = OpenKalman::to_euclidean(nested_object(std::forward<Arg>(arg), std::forward<DC>(dc)...), c);
       return make_euclidean_mean<C>(std::forward<decltype(n)>(n), c);
@@ -122,7 +122,7 @@ namespace OpenKalman::interface
     template<typename Arg, typename C, std::enable_if_t<euclidean_mean<Arg> and vector_space_descriptor<C>, int> = 0>
 #endif
     constexpr decltype(auto)
-    from_euclidean(Arg&& arg, const C& c) noexcept
+    from_euclidean(Arg&& arg, const C& c)
     {
       auto&& n = OpenKalman::from_euclidean(nested_object(std::forward<Arg>(arg), c));
       return make_mean<C>(std::forward<decltype(n)>(n), c);
@@ -135,14 +135,14 @@ namespace OpenKalman::interface
     template<typename Arg, typename C, std::enable_if_t<mean<Arg> and vector_space_descriptor<C>, int> = 0>
 #endif
     constexpr decltype(auto)
-    wrap_angles(Arg&& arg, const C& c) noexcept
+    wrap_angles(Arg&& arg, const C& c)
     {
       auto&& n = OpenKalman::wrap_angles(nested_object(std::forward<Arg>(arg), c));
       return MatrixTraits<std::decay_t<Arg>>::make(std::forward<decltype(n)>(n), c);
     }
 
     template<typename Arg>
-    static constexpr auto conjugate(Arg&& arg) noexcept
+    static constexpr auto conjugate(Arg&& arg)
     {
       using CRows = vector_space_descriptor_of_t<Arg, 0>;
       using CCols = vector_space_descriptor_of_t<Arg, 1>;
@@ -160,7 +160,7 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr auto transpose(Arg&& arg) noexcept
+    static constexpr auto transpose(Arg&& arg)
     {
       using CRows = vector_space_descriptor_of_t<Arg, 0>;
       using CCols = vector_space_descriptor_of_t<Arg, 1>;
@@ -178,7 +178,7 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr auto adjoint(Arg&& arg) noexcept
+    static constexpr auto adjoint(Arg&& arg)
     {
       using CRows = vector_space_descriptor_of_t<Arg, 0>;
       using CCols = vector_space_descriptor_of_t<Arg, 1>;
@@ -196,7 +196,7 @@ namespace OpenKalman::interface
 
 
     template<typename Arg>
-    static constexpr auto determinant(Arg&& arg) noexcept
+    static constexpr auto determinant(Arg&& arg)
     {
       return OpenKalman::determinant(nested_object(std::forward<Arg>(arg)));
     }
@@ -226,7 +226,7 @@ namespace OpenKalman::interface
 
     template<bool must_be_unique, bool must_be_exact, typename A, typename B>
     inline auto
-    solve(A&& a, B&& b) noexcept
+    solve(A&& a, B&& b)
     {
       auto x = OpenKalman::solve<must_be_unique, must_be_exact>(
         nested_object(std::forward<A>(a)), nested_object(std::forward<B>(b)));
@@ -267,7 +267,7 @@ namespace OpenKalman
       vector_space_descriptor_of_t<Vs, 1>> and ...)), int> = 0>
 #endif
   constexpr decltype(auto)
-  concatenate_vertical(V&& v, Vs&& ... vs) noexcept
+  concatenate_vertical(V&& v, Vs&& ... vs)
   {
     if constexpr(sizeof...(Vs) > 0)
     {
@@ -289,7 +289,7 @@ namespace OpenKalman
   template<typename ... Vs, std::enable_if_t<(typed_matrix<Vs> and ...), int> = 0>
 #endif
   constexpr decltype(auto)
-  concatenate(Vs&& ... vs) noexcept
+  concatenate(Vs&& ... vs)
   {
     return concatenate_vertical(std::forward<Vs>(vs)...);
   };
@@ -305,7 +305,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       vector_space_descriptor_of_t<Vs, 0>> and ...)), int> = 0>
 #endif
   constexpr decltype(auto)
-  concatenate_horizontal(V&& v, Vs&& ... vs) noexcept
+  concatenate_horizontal(V&& v, Vs&& ... vs)
   {
     if constexpr(sizeof...(Vs) > 0)
     {
@@ -337,7 +337,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     (typed_matrix<V> and ... and typed_matrix<Vs>), int> = 0>
 #endif
   constexpr decltype(auto)
-  concatenate_diagonal(V&& v, Vs&& ... vs) noexcept
+  concatenate_diagonal(V&& v, Vs&& ... vs)
   {
     if constexpr(sizeof...(Vs) > 0)
     {
@@ -400,7 +400,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>, int> = 0>
 #endif
   inline auto
-  split_vertical(M&& m) noexcept
+  split_vertical(M&& m)
   {
     using CC = vector_space_descriptor_of_t<M, 1>;
     constexpr auto euclidean = euclidean_transformed<M>;
@@ -417,7 +417,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 1>>, int> = 0>
 #endif
   inline auto
-  split_horizontal(M&& m) noexcept
+  split_horizontal(M&& m)
   {
     using RC = vector_space_descriptor_of_t<M, 0>;
     return split_horizontal<oin::SplitMatHorizF<M, RC>, Cs...>(nested_object(std::forward<M>(m)));
@@ -434,7 +434,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       ((0 + ... + cuts) <= index_dimension_of<M, 1>::value), int> = 0>
 #endif
   inline auto
-  split_horizontal(M&& m) noexcept
+  split_horizontal(M&& m)
   {
     return split_horizontal<Dimensions<cuts>...>(std::forward<M>(m));
   }
@@ -447,7 +447,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M>, int> = 0>
 #endif
   inline auto
-  split_diagonal(M&& m) noexcept
+  split_diagonal(M&& m)
   {
     static_assert(internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
     static_assert(equivalent_to<vector_space_descriptor_of_t<M, 0>::ColumnCoefficients, MatrixTraits<std::decay_t<M>>>);
@@ -461,13 +461,13 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   template<typename Function, typed_matrix Arg> requires has_untyped_index<Arg, 1> and
     requires(const Function& f, std::decay_t<decltype(column(std::declval<Arg>(), 0))>& col) { f(col); } and
     (not std::is_const_v<std::remove_reference_t<nested_object_of_t<Arg>>>) and
-    modifiable<nested_object_of_t<Arg>, nested_object_of_t<Arg>>
+    std::assignable_from<std::add_lvalue_reference_t<nested_object_of_t<Arg&>>, nested_object_of_t<Arg&&>>
 #else
   template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and has_untyped_index<Arg, 1> and
     std::is_invocable_v<const Function&,
       std::decay_t<decltype(column(std::declval<Arg&>(), 0))>& > and
     (not std::is_const_v<std::remove_reference_t<nested_object_of_t<Arg>>>) and
-    modifiable<nested_object_of_t<Arg>, nested_object_of_t<Arg>>, int> = 0>
+    std::is_assignable_v<std::add_lvalue_reference_t<nested_object_of_t<Arg&>>, nested_object_of_t<Arg&&>>, int> = 0>
 #endif
   inline Arg&
   apply_columnwise(const Function& f, Arg& arg)
@@ -493,13 +493,13 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
       f(col, i);
     } and
     (not std::is_const_v<std::remove_reference_t<nested_object_of_t<Arg>>>) and
-    modifiable<nested_object_of_t<Arg>, nested_object_of_t<Arg>>
+    std::assignable_from<std::add_lvalue_reference_t<nested_object_of_t<Arg&>>, nested_object_of_t<Arg&&>>
 #else
   template<typename Function, typename Arg, std::enable_if_t<typed_matrix<Arg> and has_untyped_index<Arg, 1> and
     std::is_invocable_v<Function,
     std::decay_t<decltype(column(std::declval<Arg&>(), 0))>&, std::size_t> and
     (not std::is_const_v<std::remove_reference_t<nested_object_of_t<Arg>>>) and
-    modifiable<nested_object_of_t<Arg>, nested_object_of_t<Arg>>, int> = 0>
+    std::is_assignable_v<std::add_lvalue_reference_t<nested_object_of_t<Arg&>>, nested_object_of_t<Arg&&>>, int> = 0>
 #endif
   inline Arg&
   apply_columnwise(const Function& f, Arg& arg)

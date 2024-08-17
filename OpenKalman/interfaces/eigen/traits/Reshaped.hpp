@@ -84,10 +84,6 @@ namespace OpenKalman::interface
       }
     }
 
-    using dependents = std::tuple<Nested_t>;
-
-    static constexpr bool has_runtime_parameters = HasDirectAccess and (Rows == Eigen::Dynamic or Cols == Eigen::Dynamic);
-
 
     template<typename Arg>
     static decltype(auto) nested_object(Arg&& arg)

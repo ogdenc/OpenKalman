@@ -62,8 +62,7 @@ namespace OpenKalman
     }
     else // Default behavior if interface function not defined:
     {
-      using pArg = std::conditional_t<std::is_lvalue_reference_v<Arg>, Arg, std::remove_reference_t<decltype(make_self_contained(arg))>>;
-      return TriangularMatrix<pArg, t> {std::forward<Arg>(arg)};
+      return TriangularMatrix<Arg, t> {std::forward<Arg>(arg)};
     }
   }
 

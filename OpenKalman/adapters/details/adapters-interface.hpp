@@ -13,8 +13,8 @@
  * \brief Interface for DiagonalMatrix, TriangularMatrix, and SelfAdjointMatrix.
  */
 
-#ifndef OPENKALMAN_SPECIAL_MATRIX_INTERFACE_HPP
-#define OPENKALMAN_SPECIAL_MATRIX_INTERFACE_HPP
+#ifndef OPENKALMAN_ADAPTERS_INTERFACE_HPP
+#define OPENKALMAN_ADAPTERS_INTERFACE_HPP
 
 #include <complex>
 
@@ -199,7 +199,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static decltype(auto)
-    to_diagonal(Arg&& arg) noexcept
+    to_diagonal(Arg&& arg)
     {
       // Note: the interface only needs to handle constant and dynamic-sized zero matrices.
       return DiagonalMatrix {std::forward<Arg>(arg)};
@@ -208,7 +208,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static decltype(auto)
-    diagonal_of(Arg&& arg) noexcept
+    diagonal_of(Arg&& arg)
     {
       // Note: the global diagonal_of function already handles all zero and constant cases.
       if constexpr (eigen_diagonal_expr<Arg>) return nested_object(std::forward<Arg>(arg));
@@ -244,7 +244,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr decltype(auto)
-    conjugate(Arg&& arg) noexcept
+    conjugate(Arg&& arg)
     {
       if constexpr (eigen_self_adjoint_expr<Arg>)
       {
@@ -263,7 +263,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr decltype(auto)
-    transpose(Arg&& arg) noexcept
+    transpose(Arg&& arg)
     {
       if constexpr (eigen_self_adjoint_expr<Arg>)
       {
@@ -296,7 +296,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr decltype(auto)
-    adjoint(Arg&& arg) noexcept
+    adjoint(Arg&& arg)
     {
       // Global conjugate function already handles SelfAdjointMatrix and DiagonalMatrix
       static_assert(eigen_triangular_expr<Arg>);
@@ -308,7 +308,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr auto
-    determinant(Arg&& arg) noexcept
+    determinant(Arg&& arg)
     {
       // The general determinant function already handles TriangularMatrix and DiagonalMatrix.
       static_assert(eigen_self_adjoint_expr<Arg>);
@@ -337,7 +337,7 @@ namespace OpenKalman::interface
 
     template<TriangleType triangle_type, typename A>
     static constexpr auto
-    cholesky_factor(A&& a) noexcept
+    cholesky_factor(A&& a)
     {
       static_assert(not eigen_diagonal_expr<A>); // DiagonalMatrix case should be handled by cholesky_factor function
 
@@ -421,4 +421,4 @@ namespace OpenKalman::interface
 } // namespace OpenKalman::interface
 
 
-#endif //OPENKALMAN_SPECIAL_MATRIX_INTERFACE_HPP
+#endif //OPENKALMAN_ADAPTERS_INTERFACE_HPP

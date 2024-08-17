@@ -37,10 +37,6 @@ namespace OpenKalman::interface
       return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
     }
 
-    using dependents = std::tuple<const ExpressionType>;
-
-    static constexpr bool has_runtime_parameters = false;
-
 
     template<typename Arg>
     static const ExpressionType& nested_object(Arg&& arg)

@@ -75,12 +75,6 @@ namespace OpenKalman::interface
     }
 
 
-    using dependents = std::tuple<NestedMatrix>;
-
-
-    static constexpr bool has_runtime_parameters = false;
-
-
     template<typename Arg>
     static decltype(auto) nested_object(Arg&& arg)
     {

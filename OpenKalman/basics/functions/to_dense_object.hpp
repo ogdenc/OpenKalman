@@ -20,21 +20,6 @@ namespace OpenKalman
 {
   namespace detail
   {
-    template<typename M, typename Arg, typename...J>
-    static void copy_tensor_elements(M& m, const Arg& arg, std::index_sequence<>, J...j)
-    {
-      set_component(m, get_component(arg, j...), j...);
-    }
-
-
-    template<typename M, typename Arg, std::size_t I, std::size_t...Is, typename...J>
-    static void copy_tensor_elements(M& m, const Arg& arg, std::index_sequence<I, Is...>, J...j)
-    {
-      for (std::size_t i = 0; i < get_index_dimension_of<I>(arg); i++)
-        copy_tensor_elements(m, arg, std::index_sequence<Is...> {}, j..., i);
-    }
-
-
     template<typename T, Layout layout, typename Scalar, typename Arg>
     constexpr auto
     make_default_based_on_arg(const Arg& arg)
@@ -66,29 +51,19 @@ namespace OpenKalman
 #endif
   to_dense_object(Arg&& arg)
   {
-    using N = decltype(to_native_matrix<T>(std::declval<Arg&&>()));
-
-    if constexpr (writable<N>)
+    if constexpr (writable<Arg>)
+    {
+      return std::forward<Arg>(arg);
+    }
+    else if constexpr (writable<decltype(to_native_matrix<T>(std::declval<Arg&&>()))>)
     {
       return to_native_matrix<T>(std::forward<Arg>(arg));
     }
     else
     {
-      using M = std::decay_t<decltype(detail::make_default_based_on_arg<T, layout, Scalar>(arg))>;
-
-      if constexpr (std::is_constructible_v<M, N>)
-      {
-        return M {to_native_matrix<M>(std::forward<Arg>(arg))};
-      }
-      else
-      {
-        auto m {detail::make_default_based_on_arg<T, layout, Scalar>(arg)};
-
-        if constexpr (std::is_assignable_v<M&, N>) m = to_native_matrix<M>(std::forward<Arg>);
-        else detail::copy_tensor_elements(m, arg, std::make_index_sequence<index_count_v<Arg>>{});
-
-        return m;
-      }
+      auto m {detail::make_default_based_on_arg<T, layout, Scalar>(arg)};
+      assign(m, std::forward<Arg>(arg));
+      return m;
     }
   }
 

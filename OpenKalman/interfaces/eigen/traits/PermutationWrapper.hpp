@@ -31,11 +31,6 @@ namespace OpenKalman::interface
 
   public:
 
-    using dependents = std::tuple<typename IndicesType::Nested>;
-
-    static constexpr bool has_runtime_parameters = false;
-
-
     template<typename Arg>
     static decltype(auto) nested_object(Arg&& arg)
     {

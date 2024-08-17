@@ -69,7 +69,7 @@ namespace OpenKalman
 
     // A function that makes a self-contained covariance from a nested matrix.
     template<typename C = FixedDescriptor, typename Arg>
-    static auto make(Arg&& arg) noexcept
+    static auto make(Arg&& arg)
     {
       return SquareRootCovariance<C, std::decay_t<Arg>>(std::forward<Arg>(arg));
     }
@@ -86,7 +86,7 @@ namespace OpenKalman
       (not diagonal_matrix<M> or identity_matrix<M> or zero<M>) and
       (hermitian_matrix<nested_object_of_t<M>> == hermitian_matrix<NestedMatrix>), int> = 0>
 #endif
-    SquareRootCovariance(M&& m) noexcept : Base {std::forward<M>(m)} {}
+    SquareRootCovariance(M&& m) : Base {std::forward<M>(m)} {}
 
 
   public:
@@ -116,7 +116,7 @@ namespace OpenKalman
       (triangle_type_of<M>::value == triangle_type_of<SquareRootCovariance>::value) and
       std::is_constructible_v<Base, M&&>, int> = 0>
 #endif
-    SquareRootCovariance(M&& m) noexcept : Base {std::forward<M>(m)} {}
+    SquareRootCovariance(M&& m) : Base {std::forward<M>(m)} {}
 
 
     /**
@@ -128,7 +128,7 @@ namespace OpenKalman
     template<typename M, std::enable_if_t<covariance_nestable<M> and
       std::is_constructible_v<Base, M&&>, int> = 0>
 #endif
-    explicit SquareRootCovariance(M&& m) noexcept : Base {std::forward<M>(m)} {}
+    explicit SquareRootCovariance(M&& m) : Base {std::forward<M>(m)} {}
 
 
     /**
@@ -148,7 +148,7 @@ namespace OpenKalman
       std::is_constructible_v<Base,
         decltype(oin::to_covariance_nestable<NestedTriangular>(std::declval<M&&>()))>, int> = 0>
 #endif
-    explicit SquareRootCovariance(M&& m) noexcept
+    explicit SquareRootCovariance(M&& m)
       : Base {oin::to_covariance_nestable<NestedTriangular>(std::forward<M>(m))} {}
 
 
@@ -168,7 +168,7 @@ namespace OpenKalman
       std::is_constructible_v<Base,
         decltype(oin::to_covariance_nestable<NestedTriangular>(std::declval<M&&>()))>, int> = 0>
 #endif
-    explicit SquareRootCovariance(M&& m) noexcept
+    explicit SquareRootCovariance(M&& m)
       : Base {oin::to_covariance_nestable<NestedTriangular>(std::forward<M>(m))} {}
 
 
@@ -198,15 +198,15 @@ namespace OpenKalman
     template<triangular_covariance Arg> requires (not std::derived_from<std::decay_t<Arg>, SquareRootCovariance>) and
       (triangle_type_of_v<Arg> == triangle_type_of_v<SquareRootCovariance>) and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, FixedDescriptor> and
-      modifiable<NestedMatrix, nested_object_of_t<Arg>>
+      std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, nested_object_of_t<Arg&&>>
 #else
     template<typename Arg, std::enable_if_t<triangular_covariance<Arg> and
       (not std::is_base_of_v<SquareRootCovariance, std::decay_t<Arg>>) and
       (triangle_type_of<Arg>::value == triangle_type_of<SquareRootCovariance>::value) and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, FixedDescriptor> and
-      modifiable<NestedMatrix, nested_object_of_t<Arg>>, int> = 0>
+      std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, nested_object_of_t<Arg&&>>, int> = 0>
 #endif
-    auto& operator=(Arg&& other) noexcept
+    auto& operator=(Arg&& other)
     {
       if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
@@ -222,13 +222,13 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires square_shaped<Arg> and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, FixedDescriptor> and
-      modifiable<NestedMatrix, NestedTriangular>
+      std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, NestedTriangular>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and square_shaped<Arg> and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, FixedDescriptor> and
-      modifiable<NestedMatrix, NestedTriangular>, int> = 0>
+      std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, NestedTriangular>, int> = 0>
 #endif
-    auto& operator=(Arg&& other) noexcept
+    auto& operator=(Arg&& other)
     {
       if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
@@ -242,11 +242,12 @@ namespace OpenKalman
      * \brief Assign from a compatible \ref covariance_nestable.
      */
 #ifdef __cpp_concepts
-    template<covariance_nestable Arg> requires modifiable<NestedMatrix, Arg>
+    template<covariance_nestable Arg> requires std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<covariance_nestable<Arg> and modifiable<NestedMatrix, Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<covariance_nestable<Arg> and
+      std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, int> = 0>
 #endif
-    auto& operator=(Arg&& other) noexcept
+    auto& operator=(Arg&& other)
     {
       if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
@@ -261,12 +262,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix_nestable Arg> requires (not covariance_nestable<Arg>) and square_shaped<Arg> and
-      modifiable<NestedMatrix, NestedTriangular>
+      std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, NestedTriangular>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
-      square_shaped<Arg> and modifiable<NestedMatrix, NestedTriangular>, int> = 0>
+      square_shaped<Arg> and std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, NestedTriangular>, int> = 0>
 #endif
-    auto& operator=(Arg&& other) noexcept
+    auto& operator=(Arg&& other)
     {
       if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
@@ -669,7 +670,7 @@ namespace OpenKalman
     covariance_nestable<Arg> and (dimension_size_of_v<FixedDescriptor> == index_dimension_of<Arg, 0>::value), int> = 0>
 #endif
   inline auto
-  make_square_root_covariance(Arg&& arg) noexcept
+  make_square_root_covariance(Arg&& arg)
   {
     return SquareRootCovariance<FixedDescriptor, passable_t<Arg>>(std::forward<Arg>(arg));
   }
@@ -687,7 +688,7 @@ namespace OpenKalman
   template<typename Arg, std::enable_if_t<covariance_nestable<Arg>, int> = 0>
 #endif
   inline auto
-  make_square_root_covariance(Arg&& arg) noexcept
+  make_square_root_covariance(Arg&& arg)
   {
     using C = Dimensions<index_dimension_of_v<Arg, 0>>;
     return make_square_root_covariance<C>(std::forward<Arg>(arg));
@@ -714,7 +715,7 @@ namespace OpenKalman
     (dimension_size_of_v<FixedDescriptor> == index_dimension_of<Arg, 1>::value), int> = 0>
 #endif
   inline auto
-  make_square_root_covariance(Arg&& arg) noexcept
+  make_square_root_covariance(Arg&& arg)
   {
     using T = typename MatrixTraits<std::decay_t<Arg>>::template TriangularMatrixFrom<triangle_type>;
     return SquareRootCovariance<FixedDescriptor, T>(std::forward<Arg>(arg));
@@ -737,7 +738,7 @@ namespace OpenKalman
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and square_shaped<Arg>, int> = 0>
 #endif
   inline auto
-  make_square_root_covariance(Arg&& arg) noexcept
+  make_square_root_covariance(Arg&& arg)
   {
     using C = Dimensions<index_dimension_of_v<Arg, 0>>;
     return make_square_root_covariance<C, triangle_type>(std::forward<Arg>(arg));
@@ -835,7 +836,7 @@ namespace OpenKalman
   template<typename Arg, std::enable_if_t<triangular_covariance<Arg>, int> = 0>
 #endif
   inline auto
-  make_square_root_covariance(Arg&& arg) noexcept
+  make_square_root_covariance(Arg&& arg)
   {
     using C = vector_space_descriptor_of_t<Arg, 0>;
     return SquareRootCovariance<C, nested_object_of_t<Arg>>(std::forward<Arg>(arg));
@@ -872,7 +873,7 @@ namespace OpenKalman
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and square_shaped<Arg>, int> = 0>
 #endif
   inline auto
-  make_square_root_covariance(Arg&& arg) noexcept
+  make_square_root_covariance(Arg&& arg)
   {
     using C = vector_space_descriptor_of_t<Arg, 0>;
     return make_square_root_covariance<C, triangle_type>(nested_object(std::forward<Arg>(arg)));
@@ -935,10 +936,6 @@ namespace OpenKalman
       {
         return std::forward<Arg>(arg).my_dimension;
       }
-
-      using dependents = std::tuple<NestedMatrix>;
-
-      static constexpr bool has_runtime_parameters = false;
 
 
       template<typename Arg>

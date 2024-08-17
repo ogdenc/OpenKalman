@@ -47,7 +47,7 @@ namespace OpenKalman
     (internal::has_uniform_reduction_indices<Arg>(std::index_sequence<index, indices...> {})) and (not empty_object<Arg>), int> = 0>
   constexpr decltype(auto)
 #endif
-  average_reduce(Arg&& arg) noexcept
+  average_reduce(Arg&& arg)
   {
     // \todo Check if Arg is already in reduced and, if so, return the argument.
     if constexpr (covariance<Arg>)
@@ -104,9 +104,8 @@ namespace OpenKalman
     else
     {
       using Scalar = scalar_type_of_t<Arg>;
-      auto ret = make_self_contained(reduce<index, indices...>(std::plus<Scalar> {}, std::forward<Arg>(arg)) /
+      return scalar_quotient(reduce<index, indices...>(std::plus<Scalar> {}, std::forward<Arg>(arg)),
         (get_index_dimension_of<index>(arg) * ... * get_index_dimension_of<indices>(arg)));
-      return ret;
     }
   }
 
@@ -124,7 +123,7 @@ namespace OpenKalman
     internal::has_uniform_reduction_indices<Arg>(std::make_index_sequence<index_count_v<Arg>> {}) and (not empty_object<Arg>), int> = 0>
 #endif
   constexpr scalar_type_of_t<Arg>
-  average_reduce(Arg&& arg) noexcept
+  average_reduce(Arg&& arg)
   {
     if constexpr (zero<Arg>)
       return 0;

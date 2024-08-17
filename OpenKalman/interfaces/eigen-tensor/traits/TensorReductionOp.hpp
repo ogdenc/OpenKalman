@@ -32,10 +32,6 @@ namespace OpenKalman::interface
         return static_cast<std::size_t>(arg.dimension[n]);
     }
 
-    static constexpr bool has_runtime_parameters = true;
-
-    using dependents = std::tuple<typename XprType::Nested, Op>; /// \todo add tensor reduction operations
-
     template<std::size_t i, typename Arg>
     static decltype(auto) get_nested_object(Arg&& arg)
     {

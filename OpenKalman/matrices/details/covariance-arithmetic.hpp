@@ -70,23 +70,19 @@ namespace OpenKalman
       auto&& e2 = nested_object(std::forward<Arg2>(arg2)); using E2 = decltype(e2);
       if constexpr (triangular_matrix<E1, TriangleType::upper> and triangular_matrix<E2, TriangleType::upper>)
       {
-        return make_covariance<C>(make_self_contained<E1, E2>(
-          QR_decomposition(concatenate_vertical(std::forward<E1>(e1), std::forward<E2>(e2)))));
+        return make_covariance<C>(QR_decomposition(concatenate_vertical(std::forward<E1>(e1), std::forward<E2>(e2))));
       }
       else if constexpr (triangular_matrix<E1, TriangleType::upper> and triangular_matrix<E2, TriangleType::lower>)
       {
-        return make_covariance<C>(make_self_contained<E1, E2>(
-          QR_decomposition(concatenate_vertical(std::forward<E1>(e1), adjoint(std::forward<E2>(e2))))));
+        return make_covariance<C>(QR_decomposition(concatenate_vertical(std::forward<E1>(e1), adjoint(std::forward<E2>(e2)))));
       }
       else if constexpr (triangular_matrix<E1, TriangleType::lower> and triangular_matrix<E2, TriangleType::upper>)
       {
-        return make_covariance<C>(make_self_contained<E1, E2>(
-          LQ_decomposition(concatenate_horizontal(std::forward<E1>(e1), adjoint(std::forward<E2>(e2))))));
+        return make_covariance<C>(LQ_decomposition(concatenate_horizontal(std::forward<E1>(e1), adjoint(std::forward<E2>(e2)))));
       }
       else
       {
-        return make_covariance<C>(make_self_contained<E1, E2>(
-          LQ_decomposition(concatenate_horizontal(std::forward<E1>(e1), std::forward<E2>(e2)))));
+        return make_covariance<C>(LQ_decomposition(concatenate_horizontal(std::forward<E1>(e1), std::forward<E2>(e2))));
       }
     }
     else
@@ -186,7 +182,7 @@ namespace OpenKalman
   template<typename Arg1, typename Arg2, std::enable_if_t<covariance<Arg1> and covariance<Arg2> and
     equivalent_to<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>, int> = 0>
 #endif
-  constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2) noexcept
+  constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2)
   {
 
     if constexpr (zero<Arg1> or identity_matrix<Arg2>)
@@ -233,7 +229,7 @@ namespace OpenKalman
   template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and covariance<Cov> and
     equivalent_to<vector_space_descriptor_of_t<M, 0>::ColumnCoefficients, typename MatrixTraits<std::decay_t<Cov>>>, int> = 0>
 #endif
-  constexpr decltype(auto) operator*(M&& m, Cov&& cov) noexcept
+  constexpr decltype(auto) operator*(M&& m, Cov&& cov)
   {
     using CC = vector_space_descriptor_of_t<Cov, 0>;
     using RC = vector_space_descriptor_of_t<M, 0>;
@@ -276,7 +272,7 @@ namespace OpenKalman
   template<typename Cov, typename M, std::enable_if_t<covariance<Cov> and typed_matrix<M> and
     equivalent_to<vector_space_descriptor_of_t<Cov, 0>, vector_space_descriptor_of_t<M, 0>>, int> = 0>
 #endif
-  constexpr decltype(auto) operator*(Cov&& cov, M&& m) noexcept
+  constexpr decltype(auto) operator*(Cov&& cov, M&& m)
   {
     using RC = vector_space_descriptor_of_t<Cov, 0>;
     using CC = vector_space_descriptor_of_t<M, 1>;
@@ -317,7 +313,7 @@ namespace OpenKalman
   template<typename M, typename S, std::enable_if_t<
     covariance<M> and std::is_convertible_v<S, typename scalar_type_of<M>::type>, int> = 0>
 #endif
-  inline auto operator*(M&& m, const S s) noexcept
+  inline auto operator*(M&& m, const S s)
   {
     using Scalar = const scalar_type_of_t<M>;
     if constexpr (zero<M>)
@@ -379,7 +375,7 @@ namespace OpenKalman
   template<typename S, typename M, std::enable_if_t<
     std::is_convertible_v<S, typename scalar_type_of<M>::type> and covariance<M>, int> = 0>
 #endif
-  inline auto operator*(const S s, M&& m) noexcept
+  inline auto operator*(const S s, M&& m)
   {
     return operator*(std::forward<M>(m), s);
   }
@@ -455,7 +451,7 @@ namespace OpenKalman
 #else
   template<typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
-  constexpr auto operator-(M&& m) noexcept
+  constexpr auto operator-(M&& m)
   {
     if constexpr (zero<M>)
     {

@@ -179,9 +179,6 @@ TEST(adapters, ConstantAdapter_traits)
 
   static_assert(not writable<ConstantAdapter<M33, double, 7>>);
   static_assert(not writable<ZA33>);
-
-  static_assert(modifiable<M31, ConstantAdapter<M31, double, 7>>);
-  static_assert(modifiable<M33, ZA33>);
 }
 
 

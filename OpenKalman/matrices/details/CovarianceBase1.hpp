@@ -195,7 +195,7 @@ namespace OpenKalman::internal
     template<typename Arg, std::enable_if_t<covariance<Arg> and
       (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>), int> = 0>
 #endif
-    CovarianceBase(Arg&& arg) noexcept : Base {to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg))} {}
+    CovarianceBase(Arg&& arg) : Base {to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg))} {}
 
 
     /**
@@ -206,7 +206,7 @@ namespace OpenKalman::internal
 #else
     template<typename Arg, std::enable_if_t<covariance_nestable<Arg>, int> = 0>
 #endif
-    explicit CovarianceBase(Arg&& arg) noexcept : Base {to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg))} {}
+    explicit CovarianceBase(Arg&& arg) : Base {to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg))} {}
 
 
     /**
@@ -220,7 +220,7 @@ namespace OpenKalman::internal
     template<typename Arg, std::enable_if_t<(covariance<Arg> or covariance_nestable<Arg>) and
       (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>), int> = 0>
 #endif
-    auto& operator=(Arg&& arg) noexcept
+    auto& operator=(Arg&& arg)
     {
       Base::operator=(to_covariance_nestable<NestedMatrix>(std::forward<Arg>(arg)));
       return *this;

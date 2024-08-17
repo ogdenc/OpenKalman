@@ -32,12 +32,6 @@ namespace OpenKalman::interface
 
   public:
 
-    using dependents = std::tuple<typename Eigen::internal::ref_selector<MatrixType>::non_const_type>;
-
-
-    static constexpr bool has_runtime_parameters = DiagIndex == Eigen::DynamicIndex;
-
-
     template<typename Arg>
     static decltype(auto) nested_object(Arg&& arg)
     {

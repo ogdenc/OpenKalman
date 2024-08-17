@@ -78,12 +78,11 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto evaluator = Eigen::internal::evaluator<std::decay_t<Arg>>(std::forward<Arg>(arg));
+        auto evaluator = Eigen::internal::evaluator<std::decay_t<Arg>>(arg);
         constexpr bool use_coeffRef = (Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0 and
           std::is_lvalue_reference_v<Arg> and not std::is_const_v<std::remove_reference_t<Arg>>;
         if constexpr (use_coeffRef) return evaluator.coeffRef(i, j);
-        else if constexpr (std::is_lvalue_reference_v<Arg>) return evaluator.coeff(i, j);
-        else return Scalar {std::move(evaluator.coeff(i, j))};
+        else return evaluator.coeff(i, j);
       }
     }
 
@@ -211,7 +210,11 @@ namespace OpenKalman::interface
     static decltype(auto)
     to_native_matrix(Arg&& arg)
     {
-      if constexpr (internal::library_wrapper<Arg>)
+      if constexpr (Eigen3::eigen_wrapper<Arg>)
+      {
+        return std::forward<Arg>(arg);
+      }
+      else if constexpr (internal::library_wrapper<Arg>)
       {
         return to_native_matrix(OpenKalman::nested_object(std::forward<Arg>(arg)));
       }
@@ -349,6 +352,28 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
+    template<writable To, indexible From> requires (std::assignable_from<To&, From&&>)
+#else
+    template<typename To, typename From, std::enable_if_t<writable<To> and indexible<From> and
+      std::is_assignable_v<To&, From&&>, int> = 0>
+#endif
+    static void assign(To& a, From&& b)
+    {
+      if constexpr (Eigen3::eigen_DiagonalWrapper<From>)
+      {
+        if constexpr (vector<nested_object_of_t<From>>)
+          a = std::forward<From>(b);
+        else
+          a = diagonal_of(std::forward<From>(b)).asDiagonal();
+      }
+      else
+      {
+        a = std::forward<From>(b);
+      }
+    }
+
+
+#ifdef __cpp_concepts
     template<Layout layout, writable M, std::convertible_to<scalar_type_of_t<M>> Arg, std::convertible_to<scalar_type_of_t<M>> ... Args>
       requires (layout == Layout::right) or (layout == Layout::left)
 #else
@@ -357,11 +382,10 @@ namespace OpenKalman::interface
       std::conjunction<std::is_convertible<Arg, typename scalar_type_of<M>::type>,
           std::is_convertible<Args, typename scalar_type_of<M>::type>...>::value, int> = 0>
 #endif
-    static M&& fill_components(M&& m, const Arg arg, const Args ... args)
+    static void fill_components(M& m, const Arg arg, const Args ... args)
     {
       if constexpr (layout == Layout::left) ((m.transpose() << arg), ... , args);
       else ((m << arg), ... , args);
-      return std::forward<M>(m);
     }
 
 
@@ -483,7 +507,6 @@ namespace OpenKalman::interface
 
       decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
       using M = decltype(m);
-      using XprType = std::remove_reference_t<std::conditional_t<std::is_lvalue_reference_v<M>, M, const M>>;
 
       constexpr auto Flags = Eigen::internal::traits<std::remove_reference_t<M>>::Flags;
 
@@ -499,6 +522,8 @@ namespace OpenKalman::interface
       }
       else
       {
+        using M_noref = std::remove_reference_t<M>;
+        using XprType = std::conditional_t<std::is_lvalue_reference_v<M>, M_noref, const M_noref>;
         using B = Eigen::Block<XprType, S0, S1>;
         if constexpr ((static_index_value<Size> and ...))
           return B {std::forward<M>(m), std::move(b0), std::move(b1)};
@@ -723,7 +748,6 @@ namespace OpenKalman::interface
       }
       else if constexpr (Eigen3::eigen_SelfAdjointView<Arg> or Eigen3::eigen_TriangularView<Arg>)
       {
-        // Assume there are no dangling references
         return OpenKalman::diagonal_of(nested_object(std::forward<Arg>(arg)));
       }
       else if constexpr (Eigen3::eigen_Identity<Arg>)
@@ -732,16 +756,17 @@ namespace OpenKalman::interface
         auto dim = values::scalar_constant_operation{f, get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)};
         return make_constant<Arg, Scalar, 1>(dim);
       }
-      else if constexpr (Eigen3::eigen_matrix_general<Arg>)
+      else if constexpr (Eigen3::eigen_dense_general<Arg>)
       {
         decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
         using M = decltype(m);
-        using MatrixType = std::remove_reference_t<std::conditional_t<std::is_lvalue_reference_v<M>, M, const M>>;
+        using M_noref = std::remove_reference_t<M>;
+        using MatrixType = std::conditional_t<std::is_lvalue_reference_v<M>, M_noref, const M_noref>;
         return Eigen::Diagonal<MatrixType, 0> {std::forward<M>(m)};
       }
       else
       {
-        return diagonal_of(to_native_matrix(std::forward<Arg>(arg)));
+        return OpenKalman::diagonal_of(to_native_matrix(std::forward<Arg>(arg)));
       }
     }
 
@@ -949,7 +974,8 @@ namespace OpenKalman::interface
           using ROp = Eigen::internal::member_redux<std::decay_t<Op>, scalar_type_of_t<Arg>>;
           decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
           using M = decltype(m);
-          using MatrixType = std::remove_reference_t<std::conditional_t<std::is_lvalue_reference_v<M>, M, const M>>;
+          using M_noref = std::remove_reference_t<M>;
+          using MatrixType = std::conditional_t<std::is_lvalue_reference_v<M>, M_noref, const M_noref>;
           return Eigen::PartialReduxExpr<MatrixType, ROp, dir> {std::forward<M>(m), ROp{std::forward<Op>(op)}};
         }
       }
@@ -968,7 +994,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr decltype(auto)
-    conjugate(Arg&& arg) noexcept
+    conjugate(Arg&& arg)
     {
       if constexpr (Eigen3::eigen_dense_general<Arg>)
       {
@@ -995,13 +1021,14 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr decltype(auto)
-    transpose(Arg&& arg) noexcept
+    transpose(Arg&& arg)
     {
       if constexpr (Eigen3::eigen_matrix_general<Arg>)
       {
         decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
         using M = decltype(m);
-        using MatrixType = std::remove_reference_t<std::conditional_t<std::is_lvalue_reference_v<M>, M, const M>>;
+        using M_noref = std::remove_reference_t<M>;
+        using MatrixType = std::conditional_t<std::is_lvalue_reference_v<M>, M_noref, const M_noref>;
         return Eigen::Transpose<MatrixType> {std::forward<M>(m)};
       }
       else if constexpr (Eigen3::eigen_TriangularView<Arg> or Eigen3::eigen_SelfAdjointView<Arg>)
@@ -1010,13 +1037,15 @@ namespace OpenKalman::interface
       }
       else if constexpr (triangular_matrix<Arg>)
       {
-        return OpenKalman::transpose(TriangularMatrix {std::forward<Arg>(arg)});
+        static_assert(triangle_type_of_v<Arg> == TriangleType::upper or triangle_type_of_v<Arg> == TriangleType::lower);
+        constexpr auto t = triangular_matrix<Arg, TriangleType::upper> ? TriangleType::lower : TriangleType::upper;
+        return OpenKalman::make_triangular_matrix<t>(transpose(to_native_matrix(std::forward<Arg>(arg))));
       }
       else
       {
         return transpose(to_native_matrix(std::forward<Arg>(arg)));
       }
-      // Note: the global transpose function already handles zero, constant, constant-diagonal, and symmetric cases.
+      // Note: the global transpose function already handles zero, constant, diagonal, constant-diagonal, and symmetric cases.
     }
 
 
@@ -1026,7 +1055,7 @@ namespace OpenKalman::interface
     template<typename Arg, std::enable_if_t<not Eigen3::eigen_dense_general<Arg>, int> = 0>
 #endif
     static constexpr decltype(auto)
-    adjoint(Arg&& arg) noexcept
+    adjoint(Arg&& arg)
     {
       if constexpr (Eigen3::eigen_TriangularView<Arg> or Eigen3::eigen_SelfAdjointView<Arg>)
       {
@@ -1034,7 +1063,9 @@ namespace OpenKalman::interface
       }
       else if constexpr (triangular_matrix<Arg>)
       {
-        return OpenKalman::adjoint(TriangularMatrix {std::forward<Arg>(arg)});
+        static_assert(triangle_type_of_v<Arg> == TriangleType::upper or triangle_type_of_v<Arg> == TriangleType::lower);
+        constexpr auto t = triangular_matrix<Arg, TriangleType::upper> ? TriangleType::lower : TriangleType::upper;
+        return OpenKalman::make_triangular_matrix<t>(OpenKalman::adjoint(to_native_matrix(std::forward<Arg>(arg))));
       }
       else
       {
@@ -1046,7 +1077,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr auto
-    determinant(Arg&& arg) noexcept
+    determinant(Arg&& arg)
     {
       if constexpr (Eigen3::eigen_matrix_general<Arg, true>)
         return std::forward<Arg>(arg).determinant();
@@ -1095,22 +1126,22 @@ namespace OpenKalman::interface
 
   private:
 
-    template<typename Op, typename Arg, typename S>
+    template<typename Arg, typename S, typename Op>
     static constexpr auto
-    scalar_op_impl(Arg&& arg, S&& s)
+    scalar_op_impl(Arg&& arg, S&& s, Op&& op)
     {
       using Scalar = scalar_type_of_t<Arg>;
       using ConstOp = Eigen::internal::scalar_constant_op<Scalar>;
-      using PlainObjectType = std::decay_t<Arg>;
+      decltype(auto) m {to_native_matrix(std::forward<Arg>(arg))};
+      using M = decltype(m);
+      using PlainObjectType = dense_writable_matrix_t<M>;
       using Index = typename PlainObjectType::Index;
       auto c {Eigen::CwiseNullaryOp<ConstOp, PlainObjectType> {
-        static_cast<Index>(get_index_dimension_of<0>(arg)),
-        static_cast<Index>(get_index_dimension_of<1>(arg)),
+        static_cast<Index>(get_index_dimension_of<0>(m)),
+        static_cast<Index>(get_index_dimension_of<1>(m)),
         ConstOp {static_cast<Scalar>(get_scalar_constant_value(s))}}};
-      decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
-      using M = decltype(m);
       using CW = Eigen::CwiseBinaryOp<Op, std::remove_reference_t<M>, decltype(c)>;
-      return CW {std::forward<M>(m), c};
+      return CW {std::forward<M>(m), c, std::forward<Op>(op)};
     }
 
   public:
@@ -1126,7 +1157,7 @@ namespace OpenKalman::interface
     {
       using Scalar = scalar_type_of_t<Arg>;
       using Op = Eigen::internal::scalar_product_op<Scalar, Scalar>;
-      return scalar_op_impl<Op>(std::forward<Arg>(arg), std::forward<S>(s));
+      return scalar_op_impl(std::forward<Arg>(arg), std::forward<S>(s), Op{});
     }
 
 
@@ -1141,45 +1172,43 @@ namespace OpenKalman::interface
     {
       using Scalar = scalar_type_of_t<Arg>;
       using Op = Eigen::internal::scalar_quotient_op<Scalar, Scalar>;
-      return scalar_op_impl<Op>(std::forward<Arg>(arg), std::forward<S>(s));
+      return scalar_op_impl(std::forward<Arg>(arg), std::forward<S>(s), Op{});
     }
 
-  private:
-
-    template<bool lazy_evaluation = false, typename A, typename B>
-    static constexpr auto
-    make_product(A&& a, B&& b)
-    {
-      decltype(auto) a_wrap = to_native_matrix(std::forward<A>(a));
-      using AWrap = decltype(a_wrap);
-      decltype(auto) b_wrap = to_native_matrix(std::forward<B>(b));
-      using BWrap = decltype(b_wrap);
-      using Prod = Eigen::Product<std::remove_reference_t<AWrap>, std::remove_reference_t<BWrap>, lazy_evaluation ? Eigen::LazyProduct : 0x0>;
-      return Prod {std::forward<AWrap>(a_wrap), std::forward<BWrap>(b_wrap)};
-    }
-
-  public:
 
 #ifdef __cpp_concepts
-  template<indexible A, indexible B> requires Eigen3::eigen_matrix_general<B> or
-    (Eigen3::eigen_matrix_general<A> and (Eigen3::eigen_DiagonalWrapper<B> or Eigen3::eigen_DiagonalMatrix<B>))
+  template<Eigen3::eigen_general A, Eigen3::eigen_general B>
 #else
-    template<typename A, typename B, std::enable_if_t<(indexible<A> and indexible<B>) and (Eigen3::eigen_matrix_general<B> or
-      (Eigen3::eigen_matrix_general<A> and (Eigen3::eigen_DiagonalWrapper<B> or Eigen3::eigen_DiagonalMatrix<B>))), int> = 0>
+  template<typename A, typename B, std::enable_if_t<(Eigen3::eigen_general<A> and Eigen3::eigen_general<B>), int> = 0>
 #endif
     static constexpr auto
     contract(A&& a, B&& b)
     {
-      if constexpr ((Eigen3::eigen_matrix_general<A> and (Eigen3::eigen_DiagonalWrapper<B> or Eigen3::eigen_DiagonalMatrix<B>)) or
-        ((Eigen3::eigen_DiagonalWrapper<A> or Eigen3::eigen_DiagonalMatrix<A>) and Eigen3::eigen_matrix_general<B>))
+      if constexpr (diagonal_matrix<A> and not Eigen3::eigen_DiagonalWrapper<A> and not Eigen3::eigen_DiagonalMatrix<A>)
       {
-        return make_product<true>(std::forward<A>(a), std::forward<B>(b));
+        return contract(to_native_matrix(diagonal_of(std::forward<A>(a))).asDiagonal(), std::forward<B>(b));
       }
-      else if constexpr (Eigen3::eigen_matrix_general<A> or
-        Eigen3::eigen_TriangularView<A> or Eigen3::eigen_SelfAdjointView<A> or
-        Eigen3::eigen_DiagonalWrapper<A> or Eigen3::eigen_DiagonalMatrix<A>)
+      else if constexpr (diagonal_matrix<B> and not Eigen3::eigen_DiagonalWrapper<B> and not Eigen3::eigen_DiagonalMatrix<B>)
       {
-        return make_product(std::forward<A>(a), std::forward<B>(b));
+        return contract(std::forward<A>(a), to_native_matrix(diagonal_of(std::forward<B>(b))).asDiagonal());
+      }
+      else if constexpr (diagonal_matrix<A> or diagonal_matrix<B>)
+      {
+        decltype(auto) a_wrap = to_native_matrix(std::forward<A>(a));
+        using AWrap = decltype(a_wrap);
+        decltype(auto) b_wrap = to_native_matrix(std::forward<B>(b));
+        using BWrap = decltype(b_wrap);
+        using Prod = Eigen::Product<std::remove_reference_t<AWrap>, std::remove_reference_t<BWrap>, Eigen::LazyProduct>;
+        return Prod {std::forward<AWrap>(a_wrap), std::forward<BWrap>(b_wrap)};
+      }
+      else if constexpr (not Eigen3::eigen_matrix_general<B>)
+      {
+        return contract(std::forward<A>(a), to_native_matrix(std::forward<B>(b)));
+      }
+      else if constexpr (Eigen3::eigen_matrix_general<A> or Eigen3::eigen_TriangularView<A> or Eigen3::eigen_SelfAdjointView<A>)
+      {
+        using Prod = Eigen::Product<std::remove_reference_t<A>, std::remove_reference_t<B>, Eigen::DefaultProduct>;
+        return to_dense_object(Prod {std::forward<A>(a), std::forward<B>(b)});
       }
       else
       {
@@ -1215,7 +1244,7 @@ namespace OpenKalman::interface
     template<TriangleType triangle_type, typename A, std::enable_if_t<Eigen3::eigen_SelfAdjointView<A>, int> = 0>
 #endif
     static constexpr auto
-    cholesky_factor(A&& a) noexcept
+    cholesky_factor(A&& a)
     {
       using NestedMatrix = std::decay_t<nested_object_of_t<A>>;
       using Scalar = scalar_type_of_t<A>;
@@ -1397,7 +1426,7 @@ namespace OpenKalman::interface
         if constexpr (must_be_exact or must_be_unique)
         {
           auto a_cols_rt = get_index_dimension_of<1>(a);
-          Eigen::ColPivHouseholderQR<Mat> qr {std::forward<A>(a)};
+          auto qr {Eigen::ColPivHouseholderQR<Mat> {std::forward<A>(a)}};
 
           if constexpr (must_be_unique)
           {
@@ -1422,8 +1451,7 @@ namespace OpenKalman::interface
         }
         else
         {
-          Eigen::HouseholderQR<Mat> qr {std::forward<A>(a)};
-          return to_dense_object(Eigen::Solve {std::move(qr), std::forward<B>(b)});
+          return to_dense_object(Eigen::Solve {Eigen::HouseholderQR<Mat> {std::forward<A>(a)}, std::forward<B>(b)});
         }
       }
       else

@@ -76,7 +76,7 @@ namespace OpenKalman
       diagonal_matrix<Arg> and diagonal_matrix<NestedMatrix> and same_shape_as<Arg, NestedMatrix> and
       std::is_constructible_v<NestedMatrix, decltype(diagonal_of(std::declval<Arg&&>()))>, int> = 0>
 #endif
-    SelfAdjointMatrix(Arg&& arg) noexcept : Base {diagonal_of(std::forward<Arg>(arg))} {}
+    SelfAdjointMatrix(Arg&& arg) : Base {diagonal_of(std::forward<Arg>(arg))} {}
 
 
     /// Construct from a diagonal matrix if NestedMatrix is not diagonal.
@@ -92,7 +92,7 @@ namespace OpenKalman
         not std::is_constructible_v<NestedMatrix, decltype(diagonal_of(std::declval<Arg&&>()))>) and
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
-    SelfAdjointMatrix(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
+    SelfAdjointMatrix(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
 
     /// Construct from a hermitian, non-diagonal wrapper of the same storage type
@@ -107,7 +107,7 @@ namespace OpenKalman
       (not diagonal_matrix<Arg>) and square_shaped<nested_object_of_t<Arg>, Qualification::depends_on_dynamic_shape> and
       std::is_constructible_v<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
 #endif
-    SelfAdjointMatrix(Arg&& arg) noexcept : Base {nested_object(std::forward<Arg>(arg))} {}
+    SelfAdjointMatrix(Arg&& arg) : Base {nested_object(std::forward<Arg>(arg))} {}
 
 
     /// Construct from a hermitian, non-diagonal wrapper of the opposite storage type
@@ -123,7 +123,7 @@ namespace OpenKalman
       square_shaped<nested_object_of_t<Arg>, Qualification::depends_on_dynamic_shape> and
       std::is_constructible_v<NestedMatrix, decltype(transpose(nested_object(std::declval<Arg&&>())))>, int> = 0>
 #endif
-    SelfAdjointMatrix(Arg&& arg) noexcept : Base {transpose(nested_object(std::forward<Arg>(arg)))} {}
+    SelfAdjointMatrix(Arg&& arg) : Base {transpose(nested_object(std::forward<Arg>(arg)))} {}
 
 
     /// Construct from a hermitian matrix of the same storage type and is not a wrapper
@@ -136,7 +136,7 @@ namespace OpenKalman
       (not has_nested_object<Arg>) and (hermitian_adapter_type_of<Arg>::value == storage_triangle) and
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
-    SelfAdjointMatrix(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
+    SelfAdjointMatrix(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
 
     /// Construct from a hermitian matrix, of the opposite storage type, that is not a wrapper
@@ -149,7 +149,7 @@ namespace OpenKalman
       (not has_nested_object<Arg>) and (hermitian_adapter_type_of<Arg>::value != storage_triangle) and
       std::is_constructible_v<NestedMatrix, decltype(transpose(std::declval<Arg&&>()))>, int> = 0>
 #endif
-    SelfAdjointMatrix(Arg&& arg) noexcept : Base {transpose(std::forward<Arg>(arg))} {}
+    SelfAdjointMatrix(Arg&& arg) : Base {transpose(std::forward<Arg>(arg))} {}
 
 
     /// Construct from a non-hermitian matrix if NestedMatrix is not diagonal.
@@ -161,7 +161,7 @@ namespace OpenKalman
       not hermitian_adapter<Arg> and not eigen_diagonal_expr<NestedMatrix> and
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
-    explicit SelfAdjointMatrix(Arg&& arg) noexcept : Base {
+    explicit SelfAdjointMatrix(Arg&& arg) : Base {
       [](Arg&& arg) -> decltype(auto) {
         if constexpr (dynamic_dimension<Arg, 0> and dim != dynamic_size) assert(get_index_dimension_of<0>(arg) == dim);
         if constexpr (dynamic_dimension<Arg, 1> and dim != dynamic_size) assert(get_index_dimension_of<1>(arg) == dim);
@@ -177,7 +177,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<square_shaped<Arg, Qualification::depends_on_dynamic_shape> and (not hermitian_matrix<Arg>) and
       diagonal_matrix<NestedMatrix> and std::is_constructible_v<NestedMatrix, decltype(diagonal_of(std::declval<Arg&&>()))>, int> = 0>
 #endif
-    explicit SelfAdjointMatrix(Arg&& arg) noexcept : Base {
+    explicit SelfAdjointMatrix(Arg&& arg) : Base {
       [](Arg&& arg) -> decltype(auto) {
         if constexpr (dynamic_dimension<Arg, 0> and dim != dynamic_size) assert(get_index_dimension_of<0>(arg) == dim);
         if constexpr (dynamic_dimension<Arg, 1> and dim != dynamic_size) assert(get_index_dimension_of<1>(arg) == dim);
@@ -398,12 +398,6 @@ namespace OpenKalman
           OpenKalman::get_vector_space_descriptor<0>(nested_object(arg)),
           OpenKalman::get_vector_space_descriptor<1>(nested_object(arg)));
       }
-
-
-      using dependents = std::tuple<NestedMatrix>;
-
-
-      static constexpr bool has_runtime_parameters = false;
 
 
       template<typename Arg>

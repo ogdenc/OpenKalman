@@ -161,7 +161,7 @@ namespace OpenKalman
       oin::linear_transformation_input<T, OutputCoefficients, InputCoefficients> and
       (oin::linear_transformation_input<Ps, OutputCoefficients> and ...), int> = 0>
 #endif
-    LinearTransformation(T&& mat, Ps&& ... p_mats) noexcept
+    LinearTransformation(T&& mat, Ps&& ... p_mats)
       : transformation_matrices {std::forward<T>(mat), std::forward<Ps>(p_mats)...} {}
 
 

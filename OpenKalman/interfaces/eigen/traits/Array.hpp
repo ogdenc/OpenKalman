@@ -31,10 +31,6 @@ namespace OpenKalman::interface
 
   public:
 
-    static constexpr bool has_runtime_parameters = true;
-
-    using dependents = std::tuple<>;
-
     // nested_object() not defined
 
     // get_constant not defined

@@ -29,7 +29,6 @@
 #include "ToEuclideanExpr.hpp"
 #include "FromEuclideanExpr.hpp"
 
-#include "details/adapters-traits.hpp"
 #include "details/adapters-interface.hpp"
 #include "details/euclidean-interface.hpp"
 #include "details/adapters-arithmetic.hpp"

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,7 +31,7 @@ namespace OpenKalman::internal
 
 
   /**
-   * \brief \ref indexible T's vector space descriptors are not more fixed than the set Ds.
+   * \brief \ref indexible T's vector space descriptors are not more fixed than the set Ds for any of Ds.
    */
   template<typename T, typename...Ds>
 #ifdef __cpp_concepts

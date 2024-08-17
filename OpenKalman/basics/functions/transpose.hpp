@@ -24,7 +24,7 @@ namespace OpenKalman
   namespace internal
   {
     template<typename C, typename Arg, std::size_t...Is>
-    constexpr decltype(auto) transpose_constant(C&& c, Arg&& arg, std::index_sequence<Is...>) noexcept
+    constexpr decltype(auto) transpose_constant(C&& c, Arg&& arg, std::index_sequence<Is...>)
     {
       return make_constant<Arg>(std::forward<C>(c),
         get_vector_space_descriptor<1>(arg), get_vector_space_descriptor<0>(arg), get_vector_space_descriptor<Is + 2>(arg)...);
@@ -55,7 +55,7 @@ namespace OpenKalman
 #else
   template<typename Arg, std::enable_if_t<indexible<Arg> and (max_tensor_order_v<Arg> <= 2), int> = 0>
 #endif
-  constexpr decltype(auto) transpose(Arg&& arg) noexcept
+  constexpr decltype(auto) transpose(Arg&& arg)
   {
     if constexpr (((diagonal_matrix<Arg> or constant_matrix<Arg>) and square_shaped<Arg>) or
       (hermitian_matrix<Arg> and not complex_number<scalar_type_of_t<Arg>>))

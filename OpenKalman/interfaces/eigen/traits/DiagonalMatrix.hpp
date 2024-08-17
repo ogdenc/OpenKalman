@@ -53,13 +53,6 @@ namespace OpenKalman
       }
 
 
-      using dependents = std::tuple<
-        typename Eigen::DiagonalMatrix<Scalar, SizeAtCompileTime, MaxSizeAtCompileTime>::DiagonalVectorType>;
-
-
-      static constexpr bool has_runtime_parameters = false;
-
-
       template<typename Arg>
       static decltype(auto) nested_object(Arg&& arg)
       {

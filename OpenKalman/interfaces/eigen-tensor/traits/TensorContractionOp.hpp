@@ -38,12 +38,6 @@ namespace OpenKalman::interface
     }
 
 
-    using dependents = std::tuple<typename LhsXprType::Nested, typename RhsXprType::Nested>;
-
-
-    static constexpr bool has_runtime_parameters = true;
-
-
     // nested_object() not defined
 
 

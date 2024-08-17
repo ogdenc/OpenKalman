@@ -34,10 +34,6 @@ namespace OpenKalman::interface
 
     using typename Base::scalar_type;
 
-    using dependents = std::tuple<typename Eigen::internal::traits<Xpr>::MatrixTypeNested>;
-
-    static constexpr bool has_runtime_parameters = RowFactor == Eigen::Dynamic or ColFactor == Eigen::Dynamic;
-
 
     template<typename Arg>
     static decltype(auto) nested_object(Arg&& arg)

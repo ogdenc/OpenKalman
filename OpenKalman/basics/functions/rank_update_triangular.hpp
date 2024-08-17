@@ -66,12 +66,12 @@ namespace OpenKalman
           ") do not match rows of u (" + std::to_string(get_index_dimension_of<0>(u)) + ")"};
 
       // From here on, A is known to be a 1-by-1 matrix.
-      auto uterm = alpha * get_component(internal::make_fixed_size_adapter(contract(u, adjoint(u))));
-      auto e = [](const auto& a, const auto& uterm) {
+
+      auto e = [](auto ax, const auto& uterm) {
           using std::conj;
-          if constexpr (complex_number<scalar_type_of<A>>) return sqrt(get_component(a) * conj(get_component(a)) + uterm);
-          else return sqrt(get_component(a) * get_component(a) + uterm);
-      }(a, uterm);
+          if constexpr (complex_number<scalar_type_of<A>>) return sqrt(ax * conj(ax) + uterm);
+          else return sqrt(ax * ax + uterm);
+      }(internal::get_singular_component(a), alpha * internal::get_singular_component(contract(u, adjoint(u))));
 
       if constexpr (writable_by_component<A&&>)
       {

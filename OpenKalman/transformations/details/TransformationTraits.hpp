@@ -201,7 +201,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<perturbation<Arg>, int> = 0>
 #endif
     inline auto
-    get_perturbation(Arg&& arg) noexcept
+    get_perturbation(Arg&& arg)
     {
       if constexpr(gaussian_distribution<Arg>)
         return std::forward<Arg>(arg)();

@@ -53,24 +53,6 @@ namespace OpenKalman::Eigen3
     using typename Base::Index;
 
 
-    constexpr decltype(auto) coeff(Eigen::Index row, Eigen::Index col) const
-    {
-      return OpenKalman::get_component(static_cast<const Derived&>(*this), static_cast<std::size_t>(row), static_cast<std::size_t>(col));
-    }
-
-
-    auto& coeffRef(Eigen::Index row, Eigen::Index col) const
-    {
-      return coeff(row, col);
-    }
-
-
-    auto& coeffRef(Eigen::Index row, Eigen::Index col)
-    {
-      return OpenKalman::get_component(static_cast<Derived&>(*this), static_cast<std::size_t>(row), static_cast<std::size_t>(col));
-    }
-
-
     /**
      * \internal
      * \return The number of rows at runtime.

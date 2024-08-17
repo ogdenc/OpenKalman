@@ -58,8 +58,6 @@ namespace OpenKalman::Eigen3 {}
 #include "functions/make_eigen_matrix.hpp"
 #include "functions/eigen-wrapper.hpp"
 
-#include "details/eigen-matrix-traits.hpp"
-
 #include "traits/eigen-traits.hpp"
 
 #include "details/eigen-comma-initializers.hpp"

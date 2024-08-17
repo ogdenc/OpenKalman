@@ -23,9 +23,6 @@ TEST(eigen3, Eigen_DiagonalMatrix)
   static_assert(index_dimension_of_v<DM2, 1> == 2);
   static_assert(index_dimension_of_v<DMx, 1> == dynamic_size);
 
-  static_assert(self_contained<DM2>);
-  static_assert(self_contained<DMx>);
-
   static_assert(square_shaped<DMx>);
 
   static_assert(diagonal_matrix<DM2>);

@@ -48,12 +48,6 @@ namespace OpenKalman::interface
     }
 
 
-    using dependents = std::tuple<typename XprType::Nested>;
-
-
-    static constexpr bool has_runtime_parameters = is_bind_operator<UnaryOp>::value;
-
-
     template<typename Arg>
     static decltype(auto)
     nested_object(Arg&& arg)

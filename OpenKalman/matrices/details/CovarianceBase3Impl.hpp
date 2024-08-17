@@ -151,7 +151,7 @@ namespace OpenKalman::internal
     template<typename Arg, std::enable_if_t<(triangular_matrix<Arg> == triangular_matrix<NestedMatrix>) and
       (not diagonal_matrix<Arg>), int> = 0>
 #endif
-    CovarianceBase3Impl(Arg&& arg, int sd) noexcept
+    CovarianceBase3Impl(Arg&& arg, int sd)
       : Base {std::forward<Arg>(arg)}, cholesky_nested {}, synch_direction {sd} {}
 
 
@@ -166,7 +166,7 @@ namespace OpenKalman::internal
     template<typename Arg, std::enable_if_t<(triangular_matrix<Arg> != triangular_matrix<NestedMatrix>) or
       diagonal_matrix<Arg>, int> = 0>
 #endif
-    CovarianceBase3Impl(Arg&& arg, int sd) noexcept
+    CovarianceBase3Impl(Arg&& arg, int sd)
       : Base {}, cholesky_nested {std::forward<Arg>(arg)}, synch_direction {sd} {}
 
 
@@ -177,7 +177,7 @@ namespace OpenKalman::internal
      * \tparam CN A \ref OpenKalman::covariance_nestable "covariance_nestable" for the cholesky nested matrix
      */
     template<typename N, typename CN>
-    CovarianceBase3Impl(N&& n, CN&& cn, int sd) noexcept
+    CovarianceBase3Impl(N&& n, CN&& cn, int sd)
       : Base {std::forward<N>(n)}, cholesky_nested {std::forward<CN>(cn)}, synch_direction {sd} {}
 
 
@@ -219,7 +219,7 @@ namespace OpenKalman::internal
     template<typename Arg, std::enable_if_t<covariance<Arg> and
       (not std::is_base_of_v<CovarianceBase3Impl, std::decay_t<Arg>>), int> = 0>
 #endif
-    auto& operator=(Arg&& arg) noexcept
+    auto& operator=(Arg&& arg)
     {
       if constexpr(not (zero<nested_object_of_t<Arg>> and zero<NestedMatrix>) and
         not (identity_matrix<nested_object_of_t<Arg>> and identity_matrix<NestedMatrix>))
@@ -265,7 +265,7 @@ namespace OpenKalman::internal
 #else
     template<typename Arg, std::enable_if_t<covariance_nestable<Arg>, int> = 0>
 #endif
-    auto& operator=(Arg&& arg) noexcept
+    auto& operator=(Arg&& arg)
     {
       if constexpr(not (zero<Arg> and zero<NestedMatrix>) and
         not (identity_matrix<Arg> and identity_matrix<NestedMatrix>))

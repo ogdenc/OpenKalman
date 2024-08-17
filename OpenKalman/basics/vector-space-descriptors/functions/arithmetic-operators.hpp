@@ -59,7 +59,7 @@ namespace OpenKalman::vector_space_descriptors
   template<typename T, typename U, std::enable_if_t<fixed_vector_space_descriptor<T> and internal::suffix_of<U, T> and
     not (scalar_constant<T> and scalar_constant<U>), int> = 0>
 #endif
-  constexpr auto operator-(const T& t, const U& u) noexcept
+  constexpr auto operator-(const T& t, const U& u)
   {
     return internal::base_of_t<U, T> {};
   }

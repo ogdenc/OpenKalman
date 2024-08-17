@@ -32,14 +32,6 @@ namespace OpenKalman::interface
 
   public:
 
-    // Map is not self-contained in any circumstances.
-    using dependents = std::tuple<decltype(*std::declval<typename Xpr::PointerType>())>;
-
-    static constexpr bool has_runtime_parameters =
-      Xpr::RowsAtCompileTime == Eigen::Dynamic or Xpr::ColsAtCompileTime == Eigen::Dynamic or
-      Xpr::OuterStrideAtCompileTime == Eigen::Dynamic or Xpr::InnerStrideAtCompileTime == Eigen::Dynamic;
-
-
     template<typename Arg>
     static decltype(auto) nested_object(Arg&& arg)
     {

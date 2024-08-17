@@ -64,7 +64,7 @@ namespace OpenKalman
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, FixedDescriptor> and
       std::is_constructible_v<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
 #endif
-    FromEuclideanExpr(Arg&& arg) noexcept : Base {nested_object(std::forward<Arg>(arg))} {}
+    FromEuclideanExpr(Arg&& arg) : Base {nested_object(std::forward<Arg>(arg))} {}
 
 
     /**
@@ -78,7 +78,7 @@ namespace OpenKalman
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, FixedDescriptor> and
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
-    explicit FromEuclideanExpr(Arg&& other) noexcept : Base {std::forward<Arg>(other)} {}
+    explicit FromEuclideanExpr(Arg&& other) : Base {std::forward<Arg>(other)} {}
 
 
     /**
@@ -90,7 +90,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<indexible<Arg> and (not euclidean_expr<Arg>) and
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
-    explicit FromEuclideanExpr(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
+    explicit FromEuclideanExpr(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
 
     /// Construct from compatible matrix object and a \ref vector_space_descriptor object.
@@ -103,7 +103,7 @@ namespace OpenKalman
       (not euclidean_expr<Arg>) and std::is_constructible_v<NestedMatrix, Arg&&> and
       (dynamic_vector_space_descriptor<C> or dynamic_vector_space_descriptor<FixedDescriptor> or equivalent_to<C, FixedDescriptor>), int> = 0>
 #endif
-    explicit FromEuclideanExpr(Arg&& arg, const FixedDescriptor& c) noexcept : Base {std::forward<Arg>(arg), c} {}
+    explicit FromEuclideanExpr(Arg&& arg, const FixedDescriptor& c) : Base {std::forward<Arg>(arg), c} {}
 
 
 #ifndef __cpp_concepts
@@ -124,16 +124,15 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<from_euclidean_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, FromEuclideanExpr>) and
       (equivalent_to<vector_space_descriptor_of_t<Arg, 0>, FixedDescriptor>) and
-      (index_dimension_of_v<Arg, 1> == columns) and
-      modifiable<NestedMatrix, nested_object_of_t<Arg>>
+      (index_dimension_of_v<Arg, 1> == columns) and std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, nested_object_of_t<Arg&&>>
 #else
     template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg> and
       (not std::is_base_of_v<FromEuclideanExpr, std::decay_t<Arg>>) and
       (equivalent_to<vector_space_descriptor_of_t<Arg, 0>, FixedDescriptor>) and
       (index_dimension_of<Arg, 1>::value == columns) and
-      modifiable<NestedMatrix, nested_object_of_t<Arg>>, int> = 0>
+      std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, nested_object_of_t<Arg&&>>, int> = 0>
 #endif
-    auto& operator=(Arg&& arg) noexcept
+    auto& operator=(Arg&& arg)
     {
       if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
@@ -149,13 +148,13 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<indexible Arg> requires (not euclidean_expr<Arg>) and
       (index_dimension_of_v<Arg, 0> == dimension_size_of_v<FixedDescriptor>) and (index_dimension_of_v<Arg, 1> == columns) and
-      modifiable<NestedMatrix, decltype(to_euclidean<FixedDescriptor>(std::declval<Arg&&>()))>
+      std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, decltype(to_euclidean<FixedDescriptor>(std::declval<Arg&&>()))>
 #else
     template<typename Arg, std::enable_if_t<indexible<Arg> and (not euclidean_expr<Arg>) and
       (index_dimension_of<Arg, 0>::value == dimension_size_of_v<FixedDescriptor>) and (index_dimension_of<Arg, 1>::value == columns) and
-      modifiable<NestedMatrix, decltype(to_euclidean<FixedDescriptor>(std::declval<Arg&&>()))>, int> = 0>
+      std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, decltype(to_euclidean<FixedDescriptor>(std::declval<Arg&&>()))>, int> = 0>
 #endif
-    auto& operator=(Arg&& arg) noexcept
+    auto& operator=(Arg&& arg)
     {
       if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
@@ -172,7 +171,7 @@ namespace OpenKalman
       if constexpr (euclidean_dimension_size_of_v<FixedDescriptor> > dimension_size_of_v<FixedDescriptor>)
         return to_dense_object(to_euclidean<FixedDescriptor>(std::forward<Arg>(arg))); //< Prevent aliasing
       else
-        return to_euclidean<FixedDescriptor>(make_self_contained<Arg>(std::forward<Arg>(arg)));
+        return to_euclidean<FixedDescriptor>(std::forward<Arg>(arg));
     }
 
   public:
@@ -185,7 +184,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg> and (index_dimension_of<Arg, 1>::value == columns) and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, FixedDescriptor>, int> = 0>
 #endif
-    auto& operator+=(const Arg& arg) noexcept
+    auto& operator+=(const Arg& arg)
     {
       this->nested_object() = to_euclidean_noalias(*this + arg);
       return *this;
@@ -201,7 +200,7 @@ namespace OpenKalman
       (index_dimension_of<Arg, 1>::value == columns) and
       (index_dimension_of<Arg, 0>::value == dimension_size_of_v<FixedDescriptor>), int> = 0>
 #endif
-    auto& operator+=(const Arg& arg) noexcept
+    auto& operator+=(const Arg& arg)
     {
       this->nested_object() = to_euclidean_noalias(*this + arg);
       return *this;
@@ -216,7 +215,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg> and (index_dimension_of<Arg, 1>::value == columns) and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, FixedDescriptor>, int> = 0>
 #endif
-    auto& operator-=(const Arg& arg) noexcept
+    auto& operator-=(const Arg& arg)
     {
       this->nested_object() = to_euclidean_noalias(*this - arg);
       return *this;
@@ -232,7 +231,7 @@ namespace OpenKalman
       (index_dimension_of<Arg, 1>::value == columns) and
       (index_dimension_of<Arg, 0>::value == dimension_size_of_v<FixedDescriptor>), int> = 0>
 #endif
-    auto& operator-=(const Arg& arg) noexcept
+    auto& operator-=(const Arg& arg)
     {
       this->nested_object() = to_euclidean_noalias(*this - arg);
       return *this;
@@ -316,12 +315,6 @@ namespace OpenKalman
           else return DynamicDescriptor<Scalar> {OpenKalman::get_vector_space_descriptor(nested_object(std::forward<Arg>(arg)), n)};
         }
       }
-
-
-      using dependents = std::tuple<NestedMatrix>;
-
-
-      static constexpr bool has_runtime_parameters = false;
 
 
       template<typename Arg>

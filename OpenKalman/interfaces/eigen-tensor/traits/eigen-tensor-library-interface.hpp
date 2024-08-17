@@ -623,7 +623,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr decltype(auto)
-    conjugate(Arg&& arg) noexcept
+    conjugate(Arg&& arg)
     {
       // The global conjugate function already handles DiagonalMatrix and DiagonalWrapper
       return std::forward<Arg>(arg).conjugate();
@@ -632,7 +632,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr decltype(auto)
-    transpose(Arg&& arg) noexcept
+    transpose(Arg&& arg)
     {
       if constexpr (Eigen3::eigen_wrapper<Arg>)
       {
@@ -655,7 +655,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr decltype(auto)
-    adjoint(Arg&& arg) noexcept
+    adjoint(Arg&& arg)
     {
       if constexpr (Eigen3::eigen_wrapper<Arg>)
       {
@@ -678,7 +678,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr auto
-    determinant(Arg&& arg) noexcept
+    determinant(Arg&& arg)
     {
       if constexpr (Eigen3::eigen_matrix_general<Arg, true>)
         return std::forward<Arg>(arg).determinant();
@@ -789,7 +789,7 @@ namespace OpenKalman::interface
 
     template<TriangleType triangle_type, typename A>
     static constexpr auto
-    cholesky_factor(A&& a) noexcept
+    cholesky_factor(A&& a)
     {
       using NestedMatrix = std::decay_t<nested_object_of_t<A>>;
       using Scalar = scalar_type_of_t<A>;

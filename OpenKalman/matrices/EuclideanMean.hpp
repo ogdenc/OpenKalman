@@ -65,7 +65,7 @@ namespace OpenKalman
       (equivalent_to<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients>) and
       std::is_constructible_v<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
 #endif
-    EuclideanMean(Arg&& arg) noexcept : Base {nested_object(std::forward<Arg>(arg))} {}
+    EuclideanMean(Arg&& arg) : Base {nested_object(std::forward<Arg>(arg))} {}
 
 
     /// Construct from a compatible non-Euclidean-transformed typed matrix.
@@ -81,7 +81,7 @@ namespace OpenKalman
       std::is_constructible_v<NestedMatrix,
         decltype(to_euclidean<RowCoefficients>(nested_object(std::declval<Arg&&>())))>, int> = 0>
 #endif
-    EuclideanMean(Arg&& arg) noexcept
+    EuclideanMean(Arg&& arg)
       : Base {to_euclidean<RowCoefficients>(nested_object(std::forward<Arg>(arg)))} {}
 
 
@@ -96,7 +96,7 @@ namespace OpenKalman
       (index_dimension_of<Arg, 1>::value == index_dimension_of<NestedMatrix, 1>::value) and
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
-    EuclideanMean(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
+    EuclideanMean(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
 
     /**
@@ -107,15 +107,15 @@ namespace OpenKalman
     template<typed_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, EuclideanMean>) and
       (euclidean_transformed<Arg> or euclidean_vector_space_descriptor<RowCoefficients>) and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      has_untyped_index<Arg, 1> and modifiable<NestedMatrix, nested_object_of_t<Arg>>
+      has_untyped_index<Arg, 1> and std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, nested_object_of_t<Arg&&>>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
       (not std::is_base_of_v<EuclideanMean, std::decay_t<Arg>>) and
       (euclidean_transformed<Arg> or euclidean_vector_space_descriptor<RowCoefficients>) and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      has_untyped_index<Arg, 1> and modifiable<NestedMatrix, nested_object_of_t<Arg>>, int> = 0>
+      has_untyped_index<Arg, 1> and std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, nested_object_of_t<Arg&&>>, int> = 0>
 #endif
-    auto& operator=(Arg&& other) noexcept
+    auto& operator=(Arg&& other)
     {
       if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
@@ -133,15 +133,15 @@ namespace OpenKalman
     template<typed_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, EuclideanMean>) and
       (not euclidean_transformed<Arg> and fixed_vector_space_descriptor<RowCoefficients>) and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      has_untyped_index<Arg, 1> and modifiable<NestedMatrix, nested_object_of_t<Arg>>
+      has_untyped_index<Arg, 1> and std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, nested_object_of_t<Arg&&>>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
       (not std::is_base_of_v<EuclideanMean, std::decay_t<Arg>>) and
       (not euclidean_transformed<Arg> and fixed_vector_space_descriptor<RowCoefficients>) and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      has_untyped_index<Arg, 1> and modifiable<NestedMatrix, nested_object_of_t<Arg>>, int> = 0>
+      has_untyped_index<Arg, 1> and std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, nested_object_of_t<Arg&&>>, int> = 0>
 #endif
-    auto& operator=(Arg&& other) noexcept
+    auto& operator=(Arg&& other)
     {
       if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
@@ -155,11 +155,11 @@ namespace OpenKalman
      * \brief Assign from a compatible \ref OpenKalman::typed_matrix_nestable "typed_matrix_nestable".
      */
 #ifdef __cpp_concepts
-    template<typed_matrix_nestable Arg> requires modifiable<NestedMatrix, Arg>
+    template<typed_matrix_nestable Arg> requires std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and modifiable<NestedMatrix, Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, Arg&&>, int> = 0>
 #endif
-    auto& operator=(Arg&& arg) noexcept
+    auto& operator=(Arg&& arg)
     {
       if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
@@ -191,7 +191,7 @@ namespace OpenKalman
       equivalent_to<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
       (euclidean_vector_space_descriptor<RowCoefficients> or euclidean_transformed<Arg>), int> = 0>
 #endif
-    auto& operator+=(Arg&& other) noexcept
+    auto& operator+=(Arg&& other)
     {
       this->nested_object() += nested_object(std::forward<Arg>(other));
       return *this;
@@ -206,7 +206,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<distribution<Arg> and euclidean_vector_space_descriptor<RowCoefficients> and
       (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>), int> = 0>
 #endif
-    auto& operator+=(const Arg& arg) noexcept
+    auto& operator+=(const Arg& arg)
     {
       apply_columnwise([&arg](auto& col){ col += arg().nested_object(); }, this->nested_object());
       return *this;
@@ -233,7 +233,7 @@ namespace OpenKalman
       equivalent_to<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
       (euclidean_vector_space_descriptor<RowCoefficients> or euclidean_transformed<Arg>), int> = 0>
 #endif
-    auto& operator-=(Arg&& other) noexcept
+    auto& operator-=(Arg&& other)
     {
       this->nested_object() -= nested_object(std::forward<Arg>(other));
       return *this;
@@ -248,7 +248,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<distribution<Arg> and euclidean_vector_space_descriptor<RowCoefficients> and
       (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>), int> = 0>
 #endif
-    auto& operator-=(const Arg& arg) noexcept
+    auto& operator-=(const Arg& arg)
     {
       apply_columnwise([&arg](auto& col){ col -= arg().nested_object(); }, this->nested_object());
       return *this;
@@ -257,7 +257,7 @@ namespace OpenKalman
   protected:
 
     template<typename C = RowCoefficients, typename Arg>
-    static auto make(Arg&& arg) noexcept
+    static auto make(Arg&& arg)
     {
       return EuclideanMean<C, std::decay_t<Arg>>(std::forward<Arg>(arg));
     }
@@ -317,7 +317,7 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
   template<typename FixedDescriptor, typename M, std::enable_if_t<fixed_vector_space_descriptor<FixedDescriptor> and
     typed_matrix_nestable<M> and (euclidean_dimension_size_of_v<FixedDescriptor> == index_dimension_of<M, 0>::value), int> = 0>
 #endif
-  auto make_euclidean_mean(M&& arg) noexcept
+  auto make_euclidean_mean(M&& arg)
   {
     return EuclideanMean<FixedDescriptor, passable_t<M>>(std::forward<M>(arg));
   }
@@ -332,7 +332,7 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
 #else
   template<typename M, std::enable_if_t<typed_matrix_nestable<M>, int> = 0>
 #endif
-  auto make_euclidean_mean(M&& m) noexcept
+  auto make_euclidean_mean(M&& m)
   {
     using Coeffs = Dimensions<index_dimension_of_v<M, 0>>;
     return make_mean<Coeffs>(std::forward<M>(m));
@@ -349,7 +349,7 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
 #else
   template<typename Arg, std::enable_if_t<typed_matrix<Arg> and has_untyped_index<Arg, 1>, int> = 0>
 #endif
-  inline auto make_euclidean_mean(Arg&& arg) noexcept
+  inline auto make_euclidean_mean(Arg&& arg)
   {
     using C = vector_space_descriptor_of_t<Arg, 0>;
     if constexpr(euclidean_transformed<Arg>)
@@ -428,10 +428,6 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
           else return DynamicDescriptor<scalar_type> {OpenKalman::get_vector_space_descriptor(nested_object(arg), n)};
         }
       }
-
-      using dependents = std::tuple<NestedMatrix>;
-
-      static constexpr bool has_runtime_parameters = false;
 
 
       template<typename Arg>

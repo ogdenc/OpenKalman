@@ -43,8 +43,8 @@ namespace OpenKalman::values
     {
       static constexpr auto value {get_scalar_constant_value(C{constant...})};
       using value_type = std::decay_t<decltype(value)>;
-      constexpr operator value_type() const noexcept { return value; }
-      constexpr value_type operator()() const noexcept { return value; }
+      constexpr operator value_type() const { return value; }
+      constexpr value_type operator()() const { return value; }
 
       constexpr ScalarConstantImpl() = default;
 
@@ -64,8 +64,8 @@ namespace OpenKalman::values
     struct ScalarConstantImpl<Derived, C, std::enable_if_t<scalar_constant<C, ConstantType::dynamic_constant>>>
     {
       using value_type = std::decay_t<decltype(get_scalar_constant_value(std::declval<C>()))>;
-      constexpr operator value_type() const noexcept { return value; }
-      constexpr value_type operator()() const noexcept { return value; }
+      constexpr operator value_type() const { return value; }
+      constexpr value_type operator()() const { return value; }
 
       template<typename T, std::enable_if_t<scalar_constant<T>, int> = 0>
       explicit constexpr ScalarConstantImpl(const T& t) : value {get_scalar_constant_value(t)} {};
@@ -90,9 +90,9 @@ namespace OpenKalman::values
 
     using type = ScalarConstant;
 
-    constexpr operator value_type() const noexcept { return value; }
+    constexpr operator value_type() const { return value; }
 
-    constexpr value_type operator()() const noexcept { return value; }
+    constexpr value_type operator()() const { return value; }
 
     constexpr ScalarConstant() = default;
 
@@ -124,9 +124,9 @@ namespace OpenKalman::values
   {
     using value_type = std::decay_t<decltype(get_scalar_constant_value(std::declval<C>()))>;
 
-    constexpr operator value_type() const noexcept { return value; }
+    constexpr operator value_type() const { return value; }
 
-    constexpr value_type operator()() const noexcept { return value; }
+    constexpr value_type operator()() const { return value; }
 
     using type = ScalarConstant;
 

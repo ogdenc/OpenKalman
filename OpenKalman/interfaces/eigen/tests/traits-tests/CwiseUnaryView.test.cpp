@@ -20,11 +20,7 @@ TEST(eigen3, Eigen_CwiseUnaryView)
   auto cxa = Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<cdouble>, CA22> {2, 2, std::complex<double>{1, 2}}; // Constant complex
   auto cxb = Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<cdouble>, CA22> {2, 2, std::complex<double>{3, 4}}; // Constant complex
 
-  static_assert(self_contained<const M22>);
-
   // scalar_real_ref_op
-  static_assert(not self_contained<decltype(std::declval<CA22>().real())>);
-  static_assert(self_contained<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, C22_2>>);
   static_assert(OpenKalman::Eigen3::constexpr_unary_operation_defined<Eigen::internal::scalar_real_ref_op<double>>);
   static_assert(Eigen3::UnaryFunctorTraits<Eigen::internal::scalar_real_ref_op<double>>::constexpr_operation()(5) == 5);
   static_assert(constant_coefficient_v<Eigen::CwiseUnaryView<Eigen::internal::scalar_real_ref_op<double>, decltype(M11::Identity())>> == 1);
@@ -48,7 +44,6 @@ TEST(eigen3, Eigen_CwiseUnaryView)
   static_assert(hermitian_matrix<decltype(cxa.real())>);
 
   // scalar_imag_ref_op
-  static_assert(not self_contained<decltype(std::declval<CA22>().imag())>);
   static_assert(constant_matrix<decltype(cxa.imag())>);
   EXPECT_EQ(constant_coefficient{cxa.imag()}(), 2);
   static_assert(constant_matrix<Eigen::CwiseUnaryView<Eigen::internal::scalar_imag_ref_op<cdouble>, decltype(cxb)>>);

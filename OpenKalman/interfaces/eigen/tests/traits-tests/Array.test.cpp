@@ -19,7 +19,6 @@ TEST(eigen3, Eigen_Array)
 {
   static_assert(eigen_array_general<Eigen::Array<double, 3, 2, true>>);
   static_assert(not eigen_matrix_general<Eigen::Array<double, 3, 2, true>>);
-  static_assert(self_contained<Eigen::Array<double, 3, 2>>);
   static_assert(index_dimension_of_v<Eigen::Array<double, 3, 2>, 0> == 3);
   static_assert(index_dimension_of_v<Eigen::Array<double, 3, 2>, 1> == 2);
   static_assert(not square_shaped<Eigen::Array<double, 2, 1>>);

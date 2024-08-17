@@ -40,7 +40,7 @@ namespace OpenKalman::internal
     (not diagonal_matrix<T> or diagonal_matrix<Arg> or vector<Arg>)>>
 #endif
   constexpr decltype(auto)
-  to_covariance_nestable(Arg&&) noexcept;
+  to_covariance_nestable(Arg&&);
 
 
   /**
@@ -66,7 +66,7 @@ namespace OpenKalman::internal
     (not diagonal_matrix<T> or diagonal_matrix<Arg> or vector<Arg>)>>
 #endif
   constexpr decltype(auto)
-  to_covariance_nestable(Arg&&) noexcept;
+  to_covariance_nestable(Arg&&);
 
 
   /**
@@ -82,7 +82,7 @@ namespace OpenKalman::internal
       (typed_matrix_nestable<Arg> and (square_shaped<Arg> or vector<Arg>))>>
 #endif
   constexpr decltype(auto)
-  to_covariance_nestable(Arg&&) noexcept;
+  to_covariance_nestable(Arg&&);
 
 
   /**
@@ -98,7 +98,7 @@ namespace OpenKalman::internal
     (typed_matrix<Arg> and (square_shaped<Arg> or vector<Arg>))>>
 #endif
   constexpr decltype(auto)
-  to_covariance_nestable(Arg&&) noexcept;
+  to_covariance_nestable(Arg&&);
 
 
 } // namespace OpenKalman::internal

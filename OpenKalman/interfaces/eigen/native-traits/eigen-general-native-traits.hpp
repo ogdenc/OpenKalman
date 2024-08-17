@@ -18,7 +18,6 @@
 #define OPENKALMAN_EIGEN_GENERAL_NATIVE_TRAITS_HPP
 
 #include "LibraryWrapper.hpp"
-#include "SelfContainedWrapper.hpp"
 #include "FixedSizeAdapter.hpp"
 #include "ConstantAdapter.hpp"
 #include "HermitianAdapter.hpp"

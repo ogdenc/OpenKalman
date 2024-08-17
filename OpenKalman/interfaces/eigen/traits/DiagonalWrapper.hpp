@@ -50,11 +50,6 @@ namespace OpenKalman::interface
       else return Dimensions<index_dimension_of_v<DiagVectorType, 0> * index_dimension_of_v<DiagVectorType, 1>>{};
     }
 
-    using dependents = std::tuple<typename DiagVectorType::Nested>;
-
-
-    static constexpr bool has_runtime_parameters = false;
-
 
     template<typename Arg>
     static decltype(auto) nested_object(Arg&& arg)

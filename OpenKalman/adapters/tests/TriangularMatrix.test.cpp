@@ -719,6 +719,28 @@ TEST(special_matrices, TriangularMatrix_overloads)
 }
 
 
+TEST(special_matrices, TriangularMatrix_contract)
+{
+  EXPECT_TRUE(is_near(contract(m33.template triangularView<Eigen::Upper>(), m33.template triangularView<Eigen::Upper>()),
+    make_dense_object_from<M33>(1, 12, 42, 0, 25, 84, 0, 0, 81)));
+  static_assert(triangular_matrix<decltype(contract(m33.template triangularView<Eigen::Upper>(),
+    m33.template triangularView<Eigen::Upper>())), TriangleType::upper>);
+  EXPECT_TRUE(is_near(contract(m33.template triangularView<Eigen::Lower>(), m33.template triangularView<Eigen::Lower>()),
+    make_dense_object_from<M33>(1, 0, 0, 24, 25, 0, 102, 112, 81)));
+  static_assert(triangular_matrix<decltype(contract(m33.template triangularView<Eigen::Lower>(),
+    m33.template triangularView<Eigen::Lower>())), TriangleType::lower>);
+
+  EXPECT_TRUE(is_near(contract(m3x_3.template triangularView<Eigen::Upper>(), mx3_3.template triangularView<Eigen::Upper>()),
+    make_dense_object_from<M33>(1, 12, 42, 0, 25, 84, 0, 0, 81)));
+  static_assert(triangular_matrix<decltype(contract(m3x_3.template triangularView<Eigen::Upper>(),
+    mx3_3.template triangularView<Eigen::Upper>())), TriangleType::upper>);
+  EXPECT_TRUE(is_near(contract(m3x_3.template triangularView<Eigen::Lower>(), mx3_3.template triangularView<Eigen::Lower>()),
+    make_dense_object_from<M33>(1, 0, 0, 24, 25, 0, 102, 112, 81)));
+  static_assert(triangular_matrix<decltype(contract(m3x_3.template triangularView<Eigen::Lower>(),
+    mx3_3.template triangularView<Eigen::Lower>())), TriangleType::lower>);
+}
+
+
 TEST(special_matrices, TriangularMatrix_solve)
 {
   EXPECT_TRUE(is_near(solve(Lower {3., 0, 1, 3}, make_eigen_matrix<double, 2, 1>(3, 7)), make_eigen_matrix(1., 2)));

@@ -28,7 +28,29 @@ namespace OpenKalman
           "the first operand has " + std::to_string(get_index_dimension_of<0>(a)) + " rows and the second operand has " +
           std::to_string(get_index_dimension_of<0>(b)) + " rows"};
     }
-  }
+
+
+    template<typename A, typename B, typename Arg>
+    decltype(auto) wrap_solve_result_impl(Arg&& arg)
+    {
+      constexpr TriangleType tri = triangle_type_of_v<A, B>;
+      if constexpr (tri != TriangleType::any)
+        return make_triangular_matrix<tri>(std::forward<Arg>(arg));
+      else if constexpr (((constant_diagonal_matrix<A> and hermitian_matrix<B>) or (constant_diagonal_matrix<B> and hermitian_matrix<A>)))
+        return make_hermitian_matrix(std::forward<Arg>(arg));
+      else
+        return std::forward<Arg>(arg);
+    }
+
+
+    template<typename A, typename B, typename Arg>
+    decltype(auto) wrap_solve_result(Arg&& arg)
+    {
+      using V0 = vector_space_descriptor_of_t<A, 1>;
+      using V1 = vector_space_descriptor_of_t<B, 1>;
+      return internal::make_fixed_size_adapter<V0, V1>(wrap_solve_result_impl<A, B>(std::forward<Arg>(arg)));
+    }
+  } // namespace detail
 
 
   /**
@@ -111,27 +133,21 @@ namespace OpenKalman
       else
         return internal::make_fixed_size_adapter<V0, V1>(scalar_quotient(std::forward<B>(b), constant_diagonal_coefficient{std::forward<A>(a)}));
     }
-    else if constexpr (constant_matrix<A>)
+    else if constexpr (constant_matrix<A> and (constant_matrix<B>))
     {
-      if constexpr (constant_matrix<B>)
-      {
-        if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) detail::solve_check_A_and_B_rows_match(a, b);
+      if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) detail::solve_check_A_and_B_rows_match(a, b);
 
-        return make_constant<B>(
-          constant_coefficient{b} / (internal::index_dimension_scalar_constant<1>(a) * constant_coefficient{a}),
-          get_vector_space_descriptor<1>(a), get_vector_space_descriptor<1>(b));
-      }
-      else if constexpr (index_dimension_of_v<A, 0> == 1 or index_dimension_of_v<B, 0> == 1 or
-        (not must_be_exact and (not must_be_unique or
-          (not has_dynamic_dimensions<A> and index_dimension_of_v<A, 0> >= index_dimension_of_v<A, 1>))))
-      {
-        if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) detail::solve_check_A_and_B_rows_match(a, b);
-        return scalar_quotient(std::forward<B>(b), internal::index_dimension_scalar_constant<1>(a) * constant_coefficient{a});
-      }
-      else //< The solution will be non-exact unless every row of b is identical.
-      {
-        return Interface::template solve<must_be_unique, must_be_exact>(std::forward<A>(a), std::forward<B>(b));
-      }
+      return make_constant<B>(
+        constant_coefficient{b} / (internal::index_dimension_scalar_constant<1>(a) * constant_coefficient{a}),
+        get_vector_space_descriptor<1>(a), get_vector_space_descriptor<1>(b));
+    }
+    else if constexpr (constant_matrix<A> and (index_dimension_of_v<A, 0> == 1 or index_dimension_of_v<B, 0> == 1 or
+      (not must_be_exact and (not must_be_unique or (not has_dynamic_dimensions<A> and index_dimension_of_v<A, 0> >= index_dimension_of_v<A, 1>)))))
+    {
+      if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) detail::solve_check_A_and_B_rows_match(a, b);
+
+      return detail::wrap_solve_result<A, B>(
+        scalar_quotient(std::forward<B>(b), internal::index_dimension_scalar_constant<1>(a) * constant_coefficient{a}));
     }
     else if constexpr (diagonal_matrix<A> and square_shaped<A>)
     {
@@ -148,32 +164,18 @@ namespace OpenKalman
         }
       };
 
-      return n_ary_operation(all_vector_space_descriptors(b), std::move(op), std::forward<B>(b), diagonal_of(std::forward<A>(a)));
+      return detail::wrap_solve_result<A, B>(
+        n_ary_operation(all_vector_space_descriptors(b), std::move(op), std::forward<B>(b), diagonal_of(std::forward<A>(a))));
     }
     else if constexpr (interface::solve_defined_for<A, must_be_unique, must_be_exact, A, B>)
     {
-      using V0 = vector_space_descriptor_of_t<A, 1>;
-      using V1 = vector_space_descriptor_of_t<B, 1>;
-      auto ret = internal::make_fixed_size_adapter<V0, V1>(
+      return detail::wrap_solve_result<A, B>(
         Interface::template solve<must_be_unique, must_be_exact>(std::forward<A>(a), std::forward<B>(b)));
-
-      constexpr TriangleType tri = triangle_type_of_v<A, B>;
-      if constexpr (tri != TriangleType::any)
-      {
-        return make_triangular_matrix<tri>(std::move(ret));
-      }
-      else if constexpr (((constant_diagonal_matrix<A> and hermitian_matrix<B>) or (constant_diagonal_matrix<B> and hermitian_matrix<A>)))
-      {
-        return make_hermitian_matrix(std::move(ret));
-      }
-      else
-      {
-        return ret;
-      }
     }
     else
     {
-      return solve<must_be_unique, must_be_exact>(std::forward<A>(a), to_native_matrix<A>(std::forward<B>(b)));
+      return detail::wrap_solve_result<A, B>(
+        Interface::template solve<must_be_unique, must_be_exact>(std::forward<A>(a), to_native_matrix<A>(std::forward<B>(b))));
     }
   }
 

@@ -62,7 +62,6 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_opposite_op)
   static_assert(not hermitian_matrix<decltype(cxa)>);
   static_assert(not hermitian_matrix<decltype(-cxb)>);
   static_assert(not writable<decltype(-std::declval<M22>())>);
-  static_assert(not modifiable<decltype(-std::declval<M33>()), M33>);
 }
 
 

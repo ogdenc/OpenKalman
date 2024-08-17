@@ -25,10 +25,6 @@ namespace OpenKalman::interface
   struct indexible_object_traits<Eigen::Ref<PlainObjectType, Options, StrideType>>
     : Eigen3::indexible_object_traits_base<Eigen::Ref<PlainObjectType, Options, StrideType>>
   {
-    static constexpr bool has_runtime_parameters = false;
-
-    // Ref is not self-contained in any circumstances.
-
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {

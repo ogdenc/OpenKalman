@@ -35,10 +35,6 @@ namespace OpenKalman::interface
       return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
     }
 
-    using dependents = std::conditional_t<has_dynamic_dimensions<XprType>, std::tuple<typename XprType::Nested>, std::tuple<>>;
-
-    static constexpr bool has_runtime_parameters = has_dynamic_dimensions<XprType>;
-
 #ifdef __cpp_concepts
     template<typename Arg> requires has_dynamic_dimensions<XprType>
 #else

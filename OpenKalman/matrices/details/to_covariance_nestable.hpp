@@ -29,7 +29,7 @@ namespace OpenKalman::internal
   template<typename T, typename Arg, typename>
 #endif
   constexpr decltype(auto)
-  to_covariance_nestable(Arg&& arg) noexcept
+  to_covariance_nestable(Arg&& arg)
   {
     if constexpr(zero<Arg> or identity_matrix<Arg>)
     {
@@ -103,7 +103,7 @@ namespace OpenKalman::internal
   template<typename T, typename Arg, typename, typename>
 #endif
   constexpr decltype(auto)
-  to_covariance_nestable(Arg&& arg) noexcept
+  to_covariance_nestable(Arg&& arg)
   {
     if constexpr (typed_matrix<Arg> and not covariance<Arg>)
     {
@@ -139,7 +139,7 @@ namespace OpenKalman::internal
   template<typename Arg, typename>
 #endif
   constexpr decltype(auto)
-  to_covariance_nestable(Arg&& arg) noexcept
+  to_covariance_nestable(Arg&& arg)
   {
     if constexpr (covariance_nestable<Arg>)
     {
@@ -163,7 +163,7 @@ namespace OpenKalman::internal
   template<typename Arg, typename, typename>
 #endif
   constexpr decltype(auto)
-  to_covariance_nestable(Arg&& arg) noexcept
+  to_covariance_nestable(Arg&& arg)
   {
     if constexpr (typed_matrix<Arg> and not covariance<Arg>)
     {

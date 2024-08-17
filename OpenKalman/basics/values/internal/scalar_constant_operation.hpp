@@ -43,8 +43,8 @@ namespace OpenKalman::values
       static constexpr auto value = Operation{}(Ts::value...);
       using value_type = std::decay_t<decltype(value)>;
       using type = scalar_constant_operation<Operation, Ts...>;
-      constexpr operator value_type() const noexcept { return value; }
-      constexpr value_type operator()() const noexcept { return value; }
+      constexpr operator value_type() const { return value; }
+      constexpr value_type operator()() const { return value; }
       constexpr auto operator+() { return static_cast<type&>(*this); }
       constexpr auto operator-() { return scalar_constant_operation {std::negate<value_type>{}, static_cast<type&>(*this)}; }
     };
@@ -62,8 +62,8 @@ namespace OpenKalman::values
 
       using value_type = std::decay_t<decltype(std::declval<const Operation&>()(get_scalar_constant_value(std::declval<const Ts&>())...))>;
       using type = scalar_constant_operation<Operation, Ts...>;
-      constexpr operator value_type() const noexcept { return value; }
-      constexpr value_type operator()() const noexcept { return value; }
+      constexpr operator value_type() const { return value; }
+      constexpr value_type operator()() const { return value; }
 
     private:
 
@@ -100,8 +100,8 @@ namespace OpenKalman::values
     static constexpr auto value = Operation{}(Ts::value...);
     using value_type = std::decay_t<decltype(value)>;
     using type = scalar_constant_operation;
-    constexpr operator value_type() const noexcept { return value; }
-    constexpr value_type operator()() const noexcept { return value; }
+    constexpr operator value_type() const { return value; }
+    constexpr value_type operator()() const { return value; }
 
   };
 
@@ -118,8 +118,8 @@ namespace OpenKalman::values
     explicit constexpr scalar_constant_operation(const Operation& op, const Ts&...ts) : value {op(get_scalar_constant_value(ts)...)} {};
     using value_type = std::decay_t<decltype(std::declval<const Operation&>()(get_scalar_constant_value(std::declval<const Ts&>())...))>;
     using type = scalar_constant_operation;
-    constexpr operator value_type() const noexcept { return value; }
-    constexpr value_type operator()() const noexcept { return value; }
+    constexpr operator value_type() const { return value; }
+    constexpr value_type operator()() const { return value; }
 
   private:
 

@@ -38,12 +38,12 @@
 #include "wrappable.hpp"
 #include "has_nested_object.hpp"
 #include "nested_object_of.hpp"
-#include "self_contained.hpp"
 
 // shape-based traits
 
 #include "compatible_with_vector_space_descriptors.hpp"
 #include "internal/not_more_fixed_than.hpp"
+#include "internal/less_fixed_than.hpp"
 #include "maybe_same_shape_as.hpp"
 #include "same_shape_as.hpp"
 
@@ -75,7 +75,6 @@
 // other:
 
 #include "writable.hpp"
-#include "modifiable.hpp" // Is this necessary?
 
 #include "element_gettable.hpp" // deprecated
 #include "writable_by_component.hpp"

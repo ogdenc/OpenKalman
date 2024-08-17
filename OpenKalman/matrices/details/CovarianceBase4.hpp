@@ -152,10 +152,10 @@ namespace OpenKalman::internal
 
     void maybe_synchronize_reverse()
     {
-      if constexpr (modifiable<NestedMatrix, decltype(to_covariance_nestable<NestedMatrix>(cholesky_nested_store))>)
+      if constexpr (std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, decltype(to_covariance_nestable<NestedMatrix>(cholesky_nested_store))>)
         Base::nested_object() = to_covariance_nestable<NestedMatrix>(cholesky_nested_store);
       else
-        throw (std::logic_error("CovarianceBase4 maybe_synchronize_reverse: NestedMatrix is not modifiable"));
+        throw (std::logic_error("CovarianceBase4 maybe_synchronize_reverse: NestedMatrix is not assignable"));
     }
 
   public:
@@ -165,7 +165,7 @@ namespace OpenKalman::internal
 
 
     /// Move constructor.
-    CovarianceBase(CovarianceBase&& other) = default;
+    CovarianceBase(CovarianceBase&& other) noexcept = default;
 
 
     /**
@@ -184,7 +184,7 @@ namespace OpenKalman::internal
       (triangular_matrix<nested_object_of_t<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>),
       int> = 0>
 #endif
-    CovarianceBase(Arg& arg) noexcept
+    CovarianceBase(Arg& arg)
       : Base {arg.nested_object()},
         owns_cholesky_nested {true},
         cholesky_nested_store {},
@@ -216,7 +216,7 @@ namespace OpenKalman::internal
       (triangular_matrix<nested_object_of_t<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>),
       int> = 0>
 #endif
-    CovarianceBase(Arg& arg) noexcept
+    CovarianceBase(Arg& arg)
       : Base {arg.nested_object()},
         owns_cholesky_nested {true},
         cholesky_nested_store {},
@@ -253,7 +253,7 @@ namespace OpenKalman::internal
       (triangular_matrix<nested_object_of_t<Arg>> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>) and
       std::is_rvalue_reference_v<Arg&&>, int> = 0>
 #endif
-    CovarianceBase(Arg&& arg) noexcept
+    CovarianceBase(Arg&& arg)
       : Base {std::move(arg).nested_object()},
         owns_cholesky_nested {true},
         cholesky_nested_store {},
@@ -288,7 +288,7 @@ namespace OpenKalman::internal
       (not case1or2<Arg>) and self_contained<nested_object_of_t<Arg>> and
       (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>), int> = 0>
 #endif
-    CovarianceBase(Arg& arg) noexcept
+    CovarianceBase(Arg& arg)
       : Base {arg.nested_object()},
         owns_cholesky_nested {false},
         cholesky_nested_store {},
@@ -316,7 +316,7 @@ namespace OpenKalman::internal
       (not case1or2<Arg>) and (not self_contained<nested_object_of_t<Arg>>) and
       (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>), int> = 0>
 #endif
-    CovarianceBase(Arg& arg) noexcept
+    CovarianceBase(Arg& arg)
       : Base {arg.nested_object()},
         owns_cholesky_nested {false},
         cholesky_nested_store {},
@@ -344,7 +344,7 @@ namespace OpenKalman::internal
       (not case1or2<Arg>) and (not self_contained<nested_object_of_t<Arg>>) and
       (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>) and std::is_rvalue_reference_v<Arg&&>, int> = 0>
 #endif
-    CovarianceBase(Arg&& arg) noexcept
+    CovarianceBase(Arg&& arg)
       : Base {std::move(arg).nested_object()},
         owns_cholesky_nested {arg.owns_cholesky_nested},
         cholesky_nested_store {std::move(arg).cholesky_nested_store},
@@ -379,7 +379,7 @@ namespace OpenKalman::internal
     template<typename Arg, std::enable_if_t<covariance_nestable<Arg> and
       (triangular_matrix<Arg> == triangular_matrix<NestedMatrix>) and (not diagonal_matrix<Arg>), int> = 0>
 #endif
-    explicit CovarianceBase(Arg&& arg) noexcept
+    explicit CovarianceBase(Arg&& arg)
       : Base {std::forward<Arg>(arg)},
         owns_cholesky_nested {true},
         cholesky_nested_store {},
@@ -461,7 +461,7 @@ namespace OpenKalman::internal
     template<typename Arg, std::enable_if_t<covariance<Arg> and
       (not std::is_base_of_v<CovarianceBase, std::decay_t<Arg>>), int> = 0>
 #endif
-    auto& operator=(Arg&& arg) noexcept
+    auto& operator=(Arg&& arg)
     {
       if constexpr(not (zero<nested_object_of_t<Arg>> and zero<NestedMatrix>) and
         not (identity_matrix<nested_object_of_t<Arg>> and identity_matrix<NestedMatrix>))
@@ -530,7 +530,7 @@ namespace OpenKalman::internal
 #else
     template<typename Arg, std::enable_if_t<covariance_nestable<Arg>, int> = 0>
 #endif
-    auto& operator=(Arg&& arg) noexcept
+    auto& operator=(Arg&& arg)
     {
       if constexpr(not (zero<Arg> and zero<NestedMatrix>) and
         not (identity_matrix<Arg> and identity_matrix<NestedMatrix>))

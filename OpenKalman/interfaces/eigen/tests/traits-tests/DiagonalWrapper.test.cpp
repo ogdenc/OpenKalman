@@ -45,8 +45,6 @@ TEST(eigen3, Eigen_DiagonalWrapper)
   static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::DiagonalWrapper<Mx1>>, Mxx>);
   static_assert(std::is_same_v<dense_writable_matrix_t<Eigen::DiagonalWrapper<Mxx>>, Mxx>);
 
-  static_assert(not self_contained<Eigen::DiagonalWrapper<M31>>);
-
   static_assert(constant_coefficient_v<decltype(std::declval<C11_2>().matrix().asDiagonal())> == 2);
   static_assert(constant_coefficient_v<decltype(std::declval<Z21>().matrix().asDiagonal())> == 0);
   static_assert(not constant_matrix<decltype(std::declval<C21_2>().matrix().asDiagonal())>);

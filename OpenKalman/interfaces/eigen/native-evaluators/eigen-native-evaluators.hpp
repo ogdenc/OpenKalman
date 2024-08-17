@@ -18,7 +18,6 @@
 #define OPENKALMAN_EIGEN_NATIVE_EVALUATORS_HPP
 
 #include "LibraryWrapper.hpp"
-#include "SelfContainedWrapper.hpp"
 #include "FixedSizeAdapter.hpp"
 
 #include "ConstantAdapter.hpp"

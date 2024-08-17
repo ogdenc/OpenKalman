@@ -80,31 +80,6 @@ namespace OpenKalman::interface
 
 
     /**
-     * \typedef type
-     * \brief A tuple with elements corresponding to each dependent object.
-     * \details If the object is linked within T by an lvalue reference, the element should be an lvalue reference.
-     * Examples:
-     * \code
-     *   using dependents = std::tuple<>; //< T has no dependencies
-     *   using dependents = std::tuple<Arg1, Arg2&>; //< T stores Arg1 and a reference to Arg2
-     * \endcode
-     * \note Optional. If this is not defined, T will be considered non-self-contained.
-     */
-     using dependents = std::tuple<>;
-
-
-    /**
-     * \brief Indicates whether type T stores any internal runtime parameters.
-     * \details An example of an internal runtime parameter might be indices for start locations, or sizes, for an
-     * expression representing a block or sub-matrix within a matrix. If unknown, the value of <code>true</code> is
-     * the safest and will prevent unintended dangling references.
-     * \note Optional. If this is not defined, T will be treated as if it is defined and true. This parameter can ignore whether
-     * any nested matrices, themselves, have internal runtime parameters.
-     */
-    static constexpr bool has_runtime_parameters = false;
-
-
-    /**
      * \brief Gets the nested object for T, if it exists.
      * /detail This should only be defined if T has a nested matrix.
      * \sa OpenKalman::nested_object

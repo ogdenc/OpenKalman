@@ -31,11 +31,6 @@ namespace OpenKalman::interface
 
   public:
 
-    using dependents = std::tuple<const Decomposition&, const RhsType&>;
-
-    static constexpr bool has_runtime_parameters = false;
-
-
     // nested_object not defined
 
     // Eigen::Solve can never be self-contained.

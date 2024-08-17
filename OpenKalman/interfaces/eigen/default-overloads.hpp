@@ -172,7 +172,7 @@ namespace OpenKalman
     (sizeof...(Args) > 0) and (scalar_type<Args> and ...) and
     (sizeof...(Args) % euclidean_dimension_size_of_v<FixedDescriptor> == 0), int> = 0>
 #endif
-  auto make_euclidean_mean(const Args ... args) noexcept
+  auto make_euclidean_mean(const Args ... args)
   {
     using Scalar = std::decay_t<std::common_type_t<Args...>>;
     constexpr std::size_t dim = euclidean_dimension_size_of_v<FixedDescriptor>;
@@ -194,7 +194,7 @@ namespace OpenKalman
   template<typename ... Args, std::enable_if_t<
     (sizeof...(Args) > 0) and (scalar_type<Args> and ...), int> = 0>
 #endif
-  auto make_euclidean_mean(const Args ... args) noexcept
+  auto make_euclidean_mean(const Args ... args)
   {
     return make_euclidean_mean<Dimensions<sizeof...(Args)>>(args...);
   }
@@ -293,7 +293,7 @@ namespace OpenKalman
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
     (sizeof...(Args) == static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)))), int> = 0>
 #endif
-  auto make_covariance(const Args ... args) noexcept
+  auto make_covariance(const Args ... args)
   {
     constexpr auto dim = static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)));
     using FixedDescriptor = OpenKalman::Dimensions<dim>;
@@ -315,7 +315,7 @@ namespace OpenKalman
   template<typename ... Args, std::enable_if_t<(sizeof...(Args) > 0) and (scalar_type<Args> and ...) and
   (sizeof...(Args) == static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)))), int> = 0>
 #endif
-  auto make_covariance(const Args ... args) noexcept
+  auto make_covariance(const Args ... args)
   {
     constexpr auto dim = static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)));
     using FixedDescriptor = OpenKalman::Dimensions<dim>;
@@ -419,7 +419,7 @@ namespace OpenKalman
     (sizeof...(Args) == static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))) *
       static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)))), int> = 0>
 #endif
-  auto make_square_root_covariance(const Args ... args) noexcept
+  auto make_square_root_covariance(const Args ... args)
   {
     constexpr auto dim = static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)));
     using FixedDescriptor = OpenKalman::Dimensions<dim>;

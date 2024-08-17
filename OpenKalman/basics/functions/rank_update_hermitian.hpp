@@ -57,9 +57,9 @@ namespace OpenKalman
       {
         return make_hermitian_matrix<t>(std::forward<A>(a));
       }
-      else
+      else // A is known to be a 1-by-1 matrix.
       {
-        auto e = get_component(a) + alpha * get_component(internal::make_fixed_size_adapter(contract(u, adjoint(u))));
+        auto e = internal::get_singular_component(a) + alpha * internal::get_singular_component(contract(u, adjoint(u)));
 
         if constexpr (writable_by_component<A&&>)
         {

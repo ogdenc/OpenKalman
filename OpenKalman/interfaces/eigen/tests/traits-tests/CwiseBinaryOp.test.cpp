@@ -29,19 +29,8 @@ namespace
 
 TEST(eigen3, Eigen_CwiseBinaryOp_general)
 {
-  static_assert(self_contained<decltype(2 * std::declval<I22>() + std::declval<I22>())>);
-  static_assert(not self_contained<decltype(2 * std::declval<I22>() + A22 {1, 2, 3, 4})>);
   static_assert(index_dimension_of_v<std::remove_const_t<decltype(2 * std::declval<I22>() + std::declval<I22>())>, 0> == 2);
   static_assert(index_dimension_of_v<std::remove_const_t<decltype(2 * std::declval<I22>() + std::declval<I22>())>, 1> == 2);
-  static_assert(self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>,
-    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, A22>,
-    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, A22>>>);
-  static_assert(self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>,
-    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, A22>,
-    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, A22>>>);
-  static_assert(not self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, const A22, const A22>>);
-  static_assert(not self_contained<Eigen::CwiseBinaryOp<Eigen::internal::scalar_product_op<double, double>, const A22,
-    const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, A22>>>);
 }
 
 
@@ -111,7 +100,6 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_sum_op)
   static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Salv22>() + std::declval<Sauv22>())> == HermitianAdapterType::any);
 
   static_assert(not writable<decltype(std::declval<M22>() + std::declval<M22>())>);
-  static_assert(not modifiable<decltype(std::declval<M33>() + std::declval<M33>()), M33>);
 }
 
 
@@ -192,7 +180,6 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_product_op)
   static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Salv22>().array() * std::declval<Sauv22>().array())> == HermitianAdapterType::any);
 
   static_assert(not writable<decltype(std::declval<I22>() * 2)>);
-  static_assert(not modifiable<decltype(M33::Identity() * 2), decltype(M33::Identity() * 2)>);
 }
 
 

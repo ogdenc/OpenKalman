@@ -68,7 +68,7 @@ namespace OpenKalman
 
     // A function that makes a covariance from a nested matrix.
     template<typename C = FixedDescriptor, typename Arg>
-    static auto make(Arg&& arg) noexcept
+    static auto make(Arg&& arg)
     {
       return Covariance<C, std::decay_t<Arg>>(std::forward<Arg>(arg));
     }
@@ -85,7 +85,7 @@ namespace OpenKalman
       (not diagonal_matrix<M> or identity_matrix<M> or zero<M>) and
       (hermitian_matrix<nested_object_of_t<M>> == hermitian_matrix<NestedMatrix>), int> = 0>
 #endif
-    Covariance(M&& m) noexcept : Base {std::forward<M>(m)} {}
+    Covariance(M&& m) : Base {std::forward<M>(m)} {}
 
   public:
 
@@ -113,7 +113,7 @@ namespace OpenKalman
     template<typename M, std::enable_if_t<self_adjoint_covariance<M> and
       (not std::is_base_of_v<Covariance, std::decay_t<M>>) and std::is_constructible_v<Base, M&&>, int> = 0>
 #endif
-    Covariance(M&& m) noexcept : Base {std::forward<M>(m)} {}
+    Covariance(M&& m) : Base {std::forward<M>(m)} {}
 
 
     /**
@@ -124,7 +124,7 @@ namespace OpenKalman
 #else
     template<typename M, std::enable_if_t<covariance_nestable<M> and std::is_constructible_v<Base, M&&>, int> = 0>
 #endif
-    explicit Covariance(M&& m) noexcept : Base {std::forward<M>(m)} {}
+    explicit Covariance(M&& m) : Base {std::forward<M>(m)} {}
 
 
     /**
@@ -144,7 +144,7 @@ namespace OpenKalman
       std::is_constructible_v<Base,
         decltype(oin::to_covariance_nestable<NestedSelfAdjoint>(std::declval<M&&>()))>, int> = 0>
 #endif
-    explicit Covariance(M&& m) noexcept
+    explicit Covariance(M&& m)
       : Base {oin::to_covariance_nestable<NestedSelfAdjoint>(std::forward<M>(m))} {}
 
 
@@ -165,7 +165,7 @@ namespace OpenKalman
       std::is_constructible_v<Base,
         decltype(oin::to_covariance_nestable<NestedSelfAdjoint>(std::declval<M&&>()))>, int> = 0>
 #endif
-    explicit Covariance(M&& m) noexcept
+    explicit Covariance(M&& m)
       : Base {oin::to_covariance_nestable<NestedSelfAdjoint>(std::forward<M>(m))} {}
 
 
@@ -198,13 +198,13 @@ namespace OpenKalman
     template<self_adjoint_covariance Arg>
     requires (not std::derived_from<std::decay_t<Arg>, Covariance>) and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, FixedDescriptor> and
-      modifiable<NestedMatrix, nested_object_of_t<Arg>>
+      std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, nested_object_of_t<Arg&&>>
 #else
     template<typename Arg, std::enable_if_t<(not std::is_base_of_v<Covariance, std::decay_t<Arg>>) and
       (self_adjoint_covariance<Arg> and equivalent_to<vector_space_descriptor_of_t<Arg, 0>, FixedDescriptor> and
-      modifiable<NestedMatrix, nested_object_of_t<Arg>>, int> = 0>
+      std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, nested_object_of_t<Arg&&>>, int> = 0>
 #endif
-    auto& operator=(Arg&& arg) noexcept
+    auto& operator=(Arg&& arg)
     {
       if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
@@ -221,13 +221,13 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires square_shaped<Arg> and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, FixedDescriptor> and
-      modifiable<NestedMatrix, NestedSelfAdjoint>
+      std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, NestedSelfAdjoint>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and square_shaped<Arg> and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, FixedDescriptor> and
-      modifiable<NestedMatrix, NestedSelfAdjoint>, int> = 0>
+      std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, NestedSelfAdjoint>, int> = 0>
 #endif
-    auto& operator=(Arg&& other) noexcept
+    auto& operator=(Arg&& other)
     {
       if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
@@ -239,11 +239,12 @@ namespace OpenKalman
 
     /// Assign from a compatible \ref OpenKalman::covariance_nestable "covariance_nestable".
 #ifdef __cpp_concepts
-    template<covariance_nestable Arg> requires modifiable<NestedMatrix, Arg>
+    template<covariance_nestable Arg> requires std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<(covariance_nestable<Arg>) and modifiable<NestedMatrix, Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<(covariance_nestable<Arg>) and
+      std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, Arg&&>, int> = 0>
 #endif
-    auto& operator=(Arg&& other) noexcept
+    auto& operator=(Arg&& other)
     {
       if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
@@ -259,12 +260,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix_nestable Arg> requires (not covariance_nestable<Arg>) and square_shaped<Arg> and
-      modifiable<NestedMatrix, NestedSelfAdjoint>
+      std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, NestedSelfAdjoint>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and (not covariance_nestable<Arg>) and
-      square_shaped<Arg> and modifiable<NestedMatrix, NestedSelfAdjoint>, int> = 0>
+      square_shaped<Arg> and std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, NestedSelfAdjoint>, int> = 0>
 #endif
-    auto& operator=(Arg&& other) noexcept
+    auto& operator=(Arg&& other)
     {
       if constexpr (not zero<NestedMatrix> and not identity_matrix<NestedMatrix>)
       {
@@ -731,7 +732,7 @@ namespace OpenKalman
     covariance_nestable<Arg> and (dimension_size_of_v<FixedDescriptor> == index_dimension_of<Arg, 0>::value), int> = 0>
 #endif
   inline auto
-  make_covariance(Arg&& arg) noexcept
+  make_covariance(Arg&& arg)
   {
     return Covariance<FixedDescriptor, passable_t<Arg>> {std::forward<Arg>(arg)};
   }
@@ -758,7 +759,7 @@ namespace OpenKalman
     (triangle_type != TriangleType::diagonal or diagonal_matrix<Arg>), int> = 0>
 #endif
   inline auto
-  make_covariance(Arg&& arg) noexcept
+  make_covariance(Arg&& arg)
   {
     return Covariance<FixedDescriptor, passable_t<Arg>> {std::forward<Arg>(arg)};
   }
@@ -776,7 +777,7 @@ namespace OpenKalman
   template<typename Arg, std::enable_if_t<covariance_nestable<Arg>, int> = 0>
 #endif
   inline auto
-  make_covariance(Arg&& arg) noexcept
+  make_covariance(Arg&& arg)
   {
     using C = Dimensions<index_dimension_of_v<Arg, 0>>;
     return make_covariance<C>(std::forward<Arg>(arg));
@@ -803,7 +804,7 @@ namespace OpenKalman
     (dimension_size_of_v<FixedDescriptor> == index_dimension_of<Arg, 1>::value), int> = 0>
 #endif
   inline auto
-  make_covariance(Arg&& arg) noexcept
+  make_covariance(Arg&& arg)
   {
     using T = typename MatrixTraits<std::decay_t<Arg>>::template TriangularMatrixFrom<triangle_type>;
     return Covariance<FixedDescriptor, T> {std::forward<Arg>(arg)};
@@ -826,7 +827,7 @@ namespace OpenKalman
     (dimension_size_of_v<FixedDescriptor> == index_dimension_of<Arg, 1>::value), int> = 0>
 #endif
   inline auto
-  make_covariance(Arg&& arg) noexcept
+  make_covariance(Arg&& arg)
   {
     using SA = typename MatrixTraits<std::decay_t<Arg>>::template SelfAdjointMatrixFrom<>;
     return make_covariance<FixedDescriptor, SA>(oin::to_covariance_nestable<SA>(std::forward<Arg>(arg)));
@@ -848,7 +849,7 @@ namespace OpenKalman
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and square_shaped<Arg>, int> = 0>
 #endif
   inline auto
-  make_covariance(Arg&& arg) noexcept
+  make_covariance(Arg&& arg)
   {
     using C = Dimensions<index_dimension_of_v<Arg, 0>>;
     return make_covariance<C, triangle_type>(std::forward<Arg>(arg));
@@ -867,7 +868,7 @@ namespace OpenKalman
     square_shaped<Arg>, int> = 0>
 #endif
   inline auto
-  make_covariance(Arg&& arg) noexcept
+  make_covariance(Arg&& arg)
   {
     using C = Dimensions<index_dimension_of_v<Arg, 0>>;
     return make_covariance<C>(std::forward<Arg>(arg));
@@ -966,7 +967,7 @@ namespace OpenKalman
   template<typename Arg, std::enable_if_t<self_adjoint_covariance<Arg>, int> = 0>
 #endif
   inline auto
-  make_covariance(Arg&& arg) noexcept
+  make_covariance(Arg&& arg)
   {
     using C = vector_space_descriptor_of_t<Arg, 0>;
     return Covariance<C, nested_object_of_t<Arg>>(std::forward<Arg>(arg));
@@ -1001,7 +1002,7 @@ namespace OpenKalman
   template<typename Arg, std::enable_if_t<typed_matrix<Arg> and square_shaped<Arg>, int> = 0>
 #endif
   inline auto
-  make_covariance(Arg&& arg) noexcept
+  make_covariance(Arg&& arg)
   {
     using C = vector_space_descriptor_of_t<Arg, 0>;
     return make_covariance<C>(nested_object(std::forward<Arg>(arg)));
@@ -1020,7 +1021,7 @@ namespace OpenKalman
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and square_shaped<Arg>, int> = 0>
 #endif
   inline auto
-  make_covariance(Arg&& arg) noexcept
+  make_covariance(Arg&& arg)
   {
     using C = vector_space_descriptor_of_t<Arg, 0>;
     return make_covariance<C, triangle_type>(nested_object(std::forward<Arg>(arg)));
@@ -1083,10 +1084,6 @@ namespace OpenKalman
       {
         return std::forward<Arg>(arg).my_dimension;
       }
-
-      using dependents = std::tuple<NestedMatrix>;
-
-      static constexpr bool has_runtime_parameters = false;
 
 
       template<typename Arg>

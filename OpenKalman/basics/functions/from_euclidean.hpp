@@ -28,7 +28,7 @@ namespace OpenKalman
       equivalent_to<C, vector_space_descriptor_of_t<Arg, 0>>), int> = 0>
 #endif
   constexpr decltype(auto)
-  from_euclidean(Arg&& arg, const C& c) noexcept
+  from_euclidean(Arg&& arg, const C& c)
   {
     if constexpr (dynamic_dimension<Arg, 0> and not euclidean_vector_space_descriptor<vector_space_descriptor_of_t<Arg, 0>>)
       if (not get_vector_space_descriptor_is_euclidean(get_vector_space_descriptor<0>(arg)) and c != get_vector_space_descriptor<0>(arg))

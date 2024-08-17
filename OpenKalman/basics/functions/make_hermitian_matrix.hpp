@@ -47,10 +47,7 @@ namespace OpenKalman
       else if constexpr (hermitian_adapter<Arg>)
         return make_hermitian_matrix<transp>(nested_object(std::forward<Arg>(arg)));
       else
-      {
-        using pArg = std::conditional_t<std::is_lvalue_reference_v<Arg>, Arg, std::remove_reference_t<decltype(make_self_contained(arg))>>;
-        return SelfAdjointMatrix<pArg, adapter_type> {std::forward<Arg>(arg)};
-      }
+        return SelfAdjointMatrix<Arg, adapter_type> {std::forward<Arg>(arg)};
     }
     else if constexpr (triangular_adapter<Arg>)
     {
@@ -70,8 +67,7 @@ namespace OpenKalman
     else
     {
       // Default behavior if interface function not defined:
-      using pArg = std::conditional_t<std::is_lvalue_reference_v<Arg>, Arg, std::remove_reference_t<decltype(make_self_contained(arg))>>;
-      return SelfAdjointMatrix<pArg, adapter_type> {std::forward<Arg>(arg)};
+      return SelfAdjointMatrix<Arg, adapter_type> {std::forward<Arg>(arg)};
     }
   }
 

@@ -37,54 +37,74 @@ namespace OpenKalman::internal
   {
 
 #ifndef __cpp_concepts
+    static_assert(indexible<NestedObject>);
+    static_assert(indexible<LibraryObject>);
     static_assert(not std::is_rvalue_reference_v<NestedObject>);
 #endif
 
 
     /**
-     * \internal
      * \brief Default constructor.
      */
 #ifdef __cpp_concepts
-    constexpr AdapterBase() noexcept requires self_contained<NestedObject> and std::default_initializable<NestedObject>
+    constexpr AdapterBase() requires std::default_initializable<NestedObject>
 #else
-    template<typename T = NestedObject, std::enable_if_t<self_contained<T> and
-      std::is_default_constructible<NestedObject>::value, int> = 0>
-    constexpr AdapterBase() noexcept
+    template<typename T = NestedObject, std::enable_if_t<std::is_default_constructible<T>::value, int> = 0>
+    constexpr AdapterBase()
 #endif
-      : m_arg {} {}
+      : m_nested_object {} {}
 
 
     /**
-     * \internal
      * \brief Construct from a compatible indexible type.
      */
-#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS
-    template<typename Arg> requires (not std::is_base_of_v<AdapterBase, std::decay_t<Arg>>) and
+#if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS_2
+    template<indexible Arg> requires (not std::is_base_of_v<AdapterBase, std::decay_t<Arg>>) and
       std::constructible_from<NestedObject, Arg&&>
+    constexpr explicit AdapterBase(Arg&& arg) : m_nested_object {std::forward<Arg>(arg)} {}
 #else
-    template<typename Arg, std::enable_if_t<not std::is_base_of_v<AdapterBase, std::decay_t<Arg>> and
-      std::is_constructible_v<NestedObject, Arg&&>, int> = 0>
+    template<typename Arg, std::enable_if_t<indexible<Arg> and (not std::is_base_of_v<AdapterBase, std::decay_t<Arg>>), int> = 0>
+    constexpr explicit AdapterBase(Arg&& arg, typename std::enable_if<std::is_constructible<NestedObject, Arg&&>::value>::type* = 0)
+      : m_nested_object {std::forward<Arg>(arg)} {}
 #endif
-    constexpr explicit AdapterBase(Arg&& arg) noexcept : m_arg {std::forward<Arg>(arg)} {}
 
+  protected:
+
+    /**
+     * \internal
+     * \brief Assign from another compatible indexible object.
+     */
+#ifdef __cpp_concepts
+    template<indexible Arg> requires (not std::is_base_of_v<AdapterBase, std::decay_t<Arg>>) and
+      std::assignable_from<std::add_lvalue_reference_t<NestedObject>, Arg&&>
+#else
+    template<typename Arg, std::enable_if_t<(not std::is_base_of_v<AdapterBase, std::decay_t<Arg>>) and
+      std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, Arg&&>, int> = 0>
+#endif
+    constexpr AdapterBase& operator=(Arg&& arg)
+    {
+      m_nested_object = std::forward<Arg>(arg);
+      return *this;
+    }
+
+  public:
 
     /**
      * \brief Get the nested object.
      */
-    constexpr NestedObject&  nested_object() & noexcept { return m_arg; }
+    constexpr NestedObject& nested_object() & { return m_nested_object; }
 
 
     /// \overload
-    constexpr const NestedObject&  nested_object() const & noexcept { return m_arg; }
+    constexpr const NestedObject& nested_object() const & { return m_nested_object; }
 
 
     /// \overload
-    constexpr NestedObject&& nested_object() && noexcept { return std::move(*this).m_arg; }
+    constexpr NestedObject&& nested_object() && { return std::move(*this).m_nested_object; }
 
 
     /// \overload
-    constexpr const NestedObject&& nested_object() const && noexcept { return std::move(*this).m_arg; }
+    constexpr const NestedObject&& nested_object() const && { return std::move(*this).m_nested_object; }
 
 
     /**
@@ -275,7 +295,7 @@ namespace OpenKalman::internal
 
   private:
 
-    NestedObject m_arg; //< The nested matrix.
+    NestedObject m_nested_object; //< The nested matrix.
 
   };
 

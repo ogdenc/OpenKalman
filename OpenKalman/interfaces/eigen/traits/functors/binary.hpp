@@ -224,7 +224,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar1, typename Scalar2>
   struct BinaryFunctorTraits<Eigen::internal::scalar_conj_product_op<Scalar1, Scalar2>>
   {
-    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return internal::constexpr_conj(arg1) * arg2; } };
+    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const { return internal::constexpr_conj(arg1) * arg2; } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_constant_diagonal = true;
     static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::product;
@@ -235,7 +235,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar1, typename Scalar2>
   struct BinaryFunctorTraits<Eigen::internal::scalar_min_op<Scalar1, Scalar2>>
   {
-    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return std::min(arg1, arg2); } };
+    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const { return std::min(arg1, arg2); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_constant_diagonal = true;
     static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::sum;
@@ -289,7 +289,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar1, typename Scalar2>
   struct BinaryFunctorTraits<Eigen::internal::scalar_max_op<Scalar1, Scalar2>>
   {
-    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return std::max(arg1, arg2); } };
+    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const { return std::max(arg1, arg2); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_constant_diagonal = true;
     static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::sum;
@@ -345,7 +345,7 @@ namespace OpenKalman::Eigen3
   struct BinaryFunctorTraits<Eigen::internal::scalar_cmp_op<LhsScalar, RhsScalar, cmp>>
   {
     struct Op {
-      constexpr auto operator()(LhsScalar a, RhsScalar b) const noexcept {
+      constexpr auto operator()(LhsScalar a, RhsScalar b) const {
         if constexpr (cmp == Eigen::internal::ComparisonName::cmp_EQ) return a == b;
         else if constexpr (cmp == Eigen::internal::ComparisonName::cmp_LT) return a < b;
         else if constexpr (cmp == Eigen::internal::ComparisonName::cmp_LE) return a <= b;
@@ -366,7 +366,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar1, typename Scalar2>
   struct BinaryFunctorTraits<Eigen::internal::scalar_hypot_op<Scalar1, Scalar2>>
   {
-    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return internal::constexpr_sqrt(arg1 * arg1 + arg2 * arg2); } };
+    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const { return internal::constexpr_sqrt(arg1 * arg1 + arg2 * arg2); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_constant_diagonal = true;
     static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::sum;
@@ -377,7 +377,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar, typename Exponent>
   struct BinaryFunctorTraits<Eigen::internal::scalar_pow_op<Scalar, Exponent>>
   {
-    struct Op { constexpr auto operator()(Scalar arg1, Exponent arg2) const noexcept { return internal::constexpr_pow(arg1, arg2); } };
+    struct Op { constexpr auto operator()(Scalar arg1, Exponent arg2) const { return internal::constexpr_pow(arg1, arg2); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_constant_diagonal = false;
     static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::normal;
@@ -419,7 +419,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar1, typename Scalar2>
   struct BinaryFunctorTraits<Eigen::internal::scalar_absolute_difference_op<Scalar1, Scalar2>>
   {
-    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const noexcept { return arg2 > arg1 ? arg2 - arg1 : arg1 - arg2; } };
+    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const { return arg2 > arg1 ? arg2 - arg1 : arg1 - arg2; } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_constant_diagonal = true;
     static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::sum;

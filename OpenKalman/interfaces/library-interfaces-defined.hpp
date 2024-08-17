@@ -143,6 +143,33 @@ namespace OpenKalman::interface
 
   // make_default not defined
 
+
+  // -------- //
+  //  assign  //
+  // -------- //
+
+#ifdef __cpp_concepts
+  template<typename T, typename To, typename From>
+  concept assign_defined_for = requires(To a, From b) {
+    library_interface<std::decay_t<T>>::assign(std::forward<To>(a), std::forward<From>(b));
+  };
+#else
+  namespace detail
+  {
+    template<typename T, typename To, typename From, typename = void>
+    struct assign_defined_for_impl : std::false_type {};
+
+    template<typename T, typename To, typename From>
+    struct assign_defined_for_impl<T, To, From, std::void_t<decltype(
+        library_interface<std::decay_t<T>>::assign(std::declval<To>(), std::declval<From>()))>>
+      : std::true_type {};
+  }
+
+  template<typename T, typename To, typename From>
+  constexpr bool assign_defined_for = detail::assign_defined_for_impl<T, To, From>::value;
+#endif
+
+
   // fill_components not defined
 
 
@@ -743,9 +770,9 @@ namespace OpenKalman::interface
 #endif
 
 
-  // -------------------------- //
+  // ----------------------- //
   //  rank_update_hermitian  //
-  // -------------------------- //
+  // ----------------------- //
 
 #ifdef __cpp_concepts
   template<typename T, HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>

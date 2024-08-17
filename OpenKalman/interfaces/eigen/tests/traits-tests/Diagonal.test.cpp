@@ -17,9 +17,6 @@ using namespace OpenKalman::test;
 
 TEST(eigen3, Eigen_Diagonal)
 {
-  static_assert(not self_contained<decltype(std::declval<M22>().diagonal())>);
-  static_assert(self_contained<decltype(std::declval<C22_2>().matrix().diagonal())>);
-
   static_assert(constant_coefficient_v<decltype(M22::Identity().diagonal())> == 1);
   static_assert(constant_coefficient_v<decltype(M22::Identity().diagonal<1>())> == 0);
   static_assert(constant_coefficient_v<decltype(M22::Identity().diagonal<-1>())> == 0);

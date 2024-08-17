@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,6 +17,7 @@ using namespace OpenKalman::test;
 
 TEST(eigen3, Eigen_Solve)
 {
-  static_assert(not self_contained<Eigen::Solve<Eigen::PartialPivLU<M31>, M31>>);
+  static_assert(index_dimension_of_v<Eigen::Solve<Eigen::PartialPivLU<M14>, M13>, 0> == 4);
+  static_assert(index_dimension_of_v<Eigen::Solve<Eigen::PartialPivLU<M14>, M13>, 1> == 3);
 }
 

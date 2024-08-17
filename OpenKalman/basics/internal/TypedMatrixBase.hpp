@@ -78,7 +78,7 @@ namespace OpenKalman::internal
       (index_dimension_of<Arg, 1>::value == index_dimension_of<NestedMatrix, 1>::value) and
       (fixed_vector_space_descriptor<Descriptors> and ...) and std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
-    TypedMatrixBase(Arg&& arg) noexcept : Base {std::forward<Arg>(arg)} {}
+    TypedMatrixBase(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
 
     /// Construct from a typed_matrix_nestable and a \ref vector_space_descriptor object set.
@@ -95,7 +95,7 @@ namespace OpenKalman::internal
       std::is_constructible_v<NestedMatrix, Arg&&> and
       ((dynamic_vector_space_descriptor<Cs> or dynamic_vector_space_descriptor<Descriptors> or equivalent_to<Cs, Descriptors>) and ...), int> = 0>
 #endif
-    TypedMatrixBase(Arg&& arg, const Cs&...cs) noexcept
+    TypedMatrixBase(Arg&& arg, const Cs&...cs)
       : Base {std::forward<Arg>(arg)}, my_dimensions {cs...} {}
 
 

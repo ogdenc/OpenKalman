@@ -28,7 +28,7 @@ namespace OpenKalman::test
         static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 0>, Axis > and ...));
         static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 1>, Axis > and ...));
 
-        return make_self_contained(((transpose(x) * x) + ... + ps));
+        return sum(((transpose(x) * x), ... , ps));
       },
       [](const auto& x, const auto& ...ps) // Jacobians
       {
@@ -63,8 +63,7 @@ namespace OpenKalman::test
         static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 0>, Axis > and ...));
         static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 1>, Axis > and ...));
 
-        return make_self_contained((apply_coefficientwise([](const auto& c) { return std::sqrt(c); }, adjoint(x) * x) +
-          ... + ps));
+        return sum(apply_coefficientwise([](const auto& c) { return std::sqrt(c); }, adjoint(x) * x), ps...);
       },
       [](const auto& x, const auto& ...ps) // Jacobians
       {
@@ -73,7 +72,7 @@ namespace OpenKalman::test
         static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 0>, Axis > and ...));
         static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 1>, Axis > and ...));
 
-        return std::make_tuple(make_self_contained(adjoint(x) / std::sqrt(trace(adjoint(x) * x))),
+        return std::make_tuple(scalar_quotient(adjoint(x), std::sqrt(trace(adjoint(x) * x))),
           Matrix<Axis, Axis, untyped_dense_writable_matrix_t<decltype(ps), Layout::none, scalar_type_of_t<decltype(ps)>, 1, 1>> {1.}...);
       },
       [](const auto& x, const auto& ...ps) // Hessians

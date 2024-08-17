@@ -26,13 +26,13 @@ namespace OpenKalman::Eigen3
   struct ReduxTraits
   {
     template<typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant(const C&, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant(const C&, const Factor& factor, const Dim& dim)
     {
       return std::monostate{};
     }
 
     template<bool at_least_square, typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant_diagonal(const C&, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant_diagonal(const C&, const Factor& factor, const Dim& dim)
     {
       return std::monostate{};
     }
@@ -68,7 +68,7 @@ namespace OpenKalman::Eigen3
     struct Op
     {
       template<typename X>
-      constexpr Scalar operator()(X x, std::size_t dim) const noexcept
+      constexpr Scalar operator()(X x, std::size_t dim) const
       {
         auto abs_x = internal::constexpr_abs(x);
         if constexpr (p == 1) return static_cast<Scalar>(dim) * abs_x;
@@ -81,12 +81,12 @@ namespace OpenKalman::Eigen3
     struct OpInf
     {
       template<typename X>
-      constexpr Scalar operator()(X x) const noexcept { return internal::constexpr_abs(x); }
+      constexpr Scalar operator()(X x) const { return internal::constexpr_abs(x); }
     };
 
 
     template<bool diag, bool at_least_square, typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant_impl(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant_impl(const C& c, const Factor& factor, const Dim& dim)
     {
       if constexpr (p == 0)
       {
@@ -124,14 +124,14 @@ namespace OpenKalman::Eigen3
   public:
 
     template<typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim)
     {
       return get_constant_impl<false, true>(c, factor, dim);
     }
 
 
     template<bool at_least_square, typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim)
     {
       return get_constant_impl<true, at_least_square>(c, factor, dim);
     }
@@ -167,7 +167,7 @@ namespace OpenKalman::Eigen3
     struct Op
     {
       template<typename Scalar>
-      constexpr Scalar operator()(Scalar x, std::size_t dim) const noexcept
+      constexpr Scalar operator()(Scalar x, std::size_t dim) const
       {
         if constexpr (complex_number<Scalar>)
         {
@@ -182,7 +182,7 @@ namespace OpenKalman::Eigen3
 
 
     template<typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim)
     {
 #ifdef __cpp_concepts
       if constexpr (requires { requires get_scalar_constant_value(C{}) == 0; })
@@ -197,7 +197,7 @@ namespace OpenKalman::Eigen3
 
 
     template<bool at_least_square, typename C, typename Factor>
-    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim&) noexcept
+    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim&)
     {
 #ifdef __cpp_concepts
       if constexpr (requires { requires get_scalar_constant_value(C{}) == 0; })
@@ -219,7 +219,7 @@ namespace OpenKalman::Eigen3
     struct Op
     {
       template<typename Scalar>
-      constexpr Scalar operator()(Scalar x, std::size_t dim) const noexcept
+      constexpr Scalar operator()(Scalar x, std::size_t dim) const
       {
         if constexpr (complex_number<Scalar>)
         {
@@ -237,7 +237,7 @@ namespace OpenKalman::Eigen3
     };
 
     template<typename XprType, typename Factor, typename Dim>
-    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim)
     {
 #ifdef __cpp_concepts
       if constexpr (requires { requires get_scalar_constant_value(C{}) == 0; })
@@ -252,7 +252,7 @@ namespace OpenKalman::Eigen3
 
 
     template<bool at_least_square, typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim)
     {
       if constexpr (at_least_square)
         return values::scalar_constant_operation{Op{}, c, factor};
@@ -266,14 +266,14 @@ namespace OpenKalman::Eigen3
   struct ReduxTraits<Eigen::internal::member_mean<Args...>, direction>
   {
     template<typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim&) noexcept
+    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim&)
     {
       return c;
     }
 
 
     template<bool at_least_square, typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim)
     {
 #ifdef __cpp_concepts
       if constexpr (requires { requires get_scalar_constant_value(C{}) == 0; })
@@ -298,7 +298,7 @@ namespace OpenKalman::Eigen3
   struct ReduxTraits<Eigen::internal::member_redux<std::plus<T>, Scalar>, direction>
   {
     template<typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim)
     {
   #ifdef __cpp_concepts
       if constexpr (requires { requires get_scalar_constant_value(C{}) == 0; })
@@ -313,7 +313,7 @@ namespace OpenKalman::Eigen3
 
 
     template<bool at_least_square, typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim)
     {
 #ifdef __cpp_concepts
       if constexpr (requires { requires get_scalar_constant_value(C{}) == 0; })
@@ -359,7 +359,7 @@ namespace OpenKalman::Eigen3
     struct Op
     {
       template<typename X, typename Dim>
-      constexpr auto operator()(X x, Dim dim) const noexcept
+      constexpr auto operator()(X x, Dim dim) const
       {
         if (dim > 1) return std::min<ResultType>(x, 0);
         else return x;
@@ -368,14 +368,14 @@ namespace OpenKalman::Eigen3
 
 
     template<typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim)
     {
       return c;
     }
 
 
     template<bool at_least_square, typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim)
     {
       if constexpr (at_least_square)
       {
@@ -415,7 +415,7 @@ namespace OpenKalman::Eigen3
     struct Op
     {
       template<typename X, typename Dim>
-      constexpr auto operator()(X x, Dim dim) const noexcept
+      constexpr auto operator()(X x, Dim dim) const
       {
         if (dim > 1) return std::max<ResultType>(x, 0);
         else return x;
@@ -424,14 +424,14 @@ namespace OpenKalman::Eigen3
 
 
     template<typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim)
     {
       return c;
     }
 
 
     template<bool at_least_square, typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim)
     {
       if constexpr (at_least_square)
       {
@@ -471,19 +471,19 @@ namespace OpenKalman::Eigen3
     struct Op
     {
       template<typename X>
-      constexpr bool operator()(X x) const noexcept { return static_cast<bool>(x); }
+      constexpr bool operator()(X x) const { return static_cast<bool>(x); }
     };
 
 
     template<typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant(const C& c, const Factor&, const Dim&) noexcept
+    static constexpr auto get_constant(const C& c, const Factor&, const Dim&)
     {
       return values::scalar_constant_operation {Op{}, c};
     }
 
 
     template<bool at_least_square, typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant_diagonal(const C&, const Factor&, const Dim&) noexcept
+    static constexpr auto get_constant_diagonal(const C&, const Factor&, const Dim&)
     {
       return std::false_type{};
     }
@@ -523,19 +523,19 @@ namespace OpenKalman::Eigen3
     struct Op
     {
       template<typename X>
-      constexpr bool operator()(X x) const noexcept { return static_cast<bool>(x); }
+      constexpr bool operator()(X x) const { return static_cast<bool>(x); }
     };
 
 
     template<typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim)
     {
       return values::scalar_constant_operation {Op{}, c};
     }
 
 
     template<bool at_least_square, typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim)
     {
       if constexpr (at_least_square)
         return values::scalar_constant_operation {Op{}, c};
@@ -578,7 +578,7 @@ namespace OpenKalman::Eigen3
     struct Op
     {
       template<typename X>
-      constexpr Eigen::Index operator()(X x, std::size_t dim) const noexcept
+      constexpr Eigen::Index operator()(X x, std::size_t dim) const
       {
         return static_cast<bool>(x) ? static_cast<Eigen::Index>(dim) : Eigen::Index{0};
       }
@@ -586,7 +586,7 @@ namespace OpenKalman::Eigen3
 
 
     template<typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim)
     {
       return values::scalar_constant_operation {Op{}, c,
         values::scalar_constant_operation{std::multiplies<std::size_t>{}, dim, factor}};
@@ -594,7 +594,7 @@ namespace OpenKalman::Eigen3
 
 
     template<bool at_least_square, typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim&) noexcept
+    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim&)
     {
       if constexpr (at_least_square)
         return values::scalar_constant_operation {Op{}, c, factor};
@@ -619,12 +619,12 @@ namespace OpenKalman::Eigen3
     struct Op
     {
       template<typename X>
-      constexpr Scalar operator()(X x, std::size_t dim) const noexcept { return internal::constexpr_pow(x, dim); }
+      constexpr Scalar operator()(X x, std::size_t dim) const { return internal::constexpr_pow(x, dim); }
     };
 
 
     template<typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim)
     {
 #ifdef __cpp_concepts
       if constexpr (requires { requires get_scalar_constant_value(C{}) == 0; })
@@ -639,7 +639,7 @@ namespace OpenKalman::Eigen3
 
 
     template<bool at_least_square, typename C, typename Factor, typename Dim>
-    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim) noexcept
+    static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim)
     {
       return values::ScalarConstant<ResultType, 0>{};
     }

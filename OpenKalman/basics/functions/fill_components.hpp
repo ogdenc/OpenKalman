@@ -32,7 +32,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<Layout layout = Layout::right, writable Arg, scalar_type ... S>
     requires (layout == Layout::right or layout == Layout::left) and internal::may_hold_components<Arg, S...>
-  inline writable auto
+  inline Arg&&
 #else
   template<Layout layout = Layout::right, typename Arg, typename...S, std::enable_if_t<
     writable<Arg> and (scalar_type<S> and ...) and
@@ -49,7 +49,8 @@ namespace OpenKalman
     {
       using Scalar = scalar_type_of_t<Arg>;
       using Trait = interface::library_interface<std::decay_t<Arg>>;
-      return Trait::template fill_components<layout>(std::forward<Arg>(arg), static_cast<const Scalar>(s)...);
+      Trait::template fill_components<layout>(arg, static_cast<const Scalar>(s)...);
+      return std::forward<Arg>(arg);
     }
   }
 

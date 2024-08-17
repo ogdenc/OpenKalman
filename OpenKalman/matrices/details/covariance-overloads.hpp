@@ -21,7 +21,7 @@ namespace OpenKalman
   template<typename Arg, std::enable_if_t<self_adjoint_covariance<Arg>, int> = 0>
 #endif
   inline auto
-  square_root(Arg&& arg) noexcept
+  square_root(Arg&& arg)
   {
     return std::forward<Arg>(arg).square_root();
   }
@@ -33,7 +33,7 @@ namespace OpenKalman
   template<typename Arg, std::enable_if_t<triangular_covariance<Arg>, int> = 0>
 #endif
   inline auto
-  square(Arg&& arg) noexcept
+  square(Arg&& arg)
   {
     return std::forward<Arg>(arg).square();
   }
@@ -118,7 +118,7 @@ namespace OpenKalman
 
       template<typename Arg>
       static auto
-      diagonal_of(Arg&& arg) noexcept
+      diagonal_of(Arg&& arg)
       {
         using C = vector_space_descriptor_of_t<Arg, 0>;
         auto b = make_self_contained<Arg>(diagonal_of(oin::to_covariance_nestable(std::forward<Arg>(arg))));
@@ -127,7 +127,7 @@ namespace OpenKalman
 
 
       template<typename Arg>
-      static constexpr decltype(auto) conjugate(Arg&& arg) noexcept
+      static constexpr decltype(auto) conjugate(Arg&& arg)
       {
         // \todo optimize this by also copying cholesky nested matrix
         return MatrixTraits<std::decay_t<Arg>>::make(OpenKalman::conjugate(nested_object(std::forward<Arg>(arg))));
@@ -135,7 +135,7 @@ namespace OpenKalman
 
 
       template<typename Arg>
-      static constexpr decltype(auto) transpose(Arg&& arg) noexcept
+      static constexpr decltype(auto) transpose(Arg&& arg)
       {
         // \todo optimize this by also copying cholesky nested matrix
         return MatrixTraits<std::decay_t<Arg>>::make(OpenKalman::transpose(nested_object(std::forward<Arg>(arg))));
@@ -143,7 +143,7 @@ namespace OpenKalman
 
 
       template<typename Arg>
-      static constexpr decltype(auto) adjoint(Arg&& arg) noexcept
+      static constexpr decltype(auto) adjoint(Arg&& arg)
       {
         // \todo optimize this by also copying cholesky nested matrix
         static_assert(triangular_covariance<Arg>);
@@ -152,7 +152,7 @@ namespace OpenKalman
 
 
       template<typename Arg>
-      static constexpr auto determinant(Arg&& arg) noexcept
+      static constexpr auto determinant(Arg&& arg)
       {
         return std::forward<Arg>(arg).determinant();
       }
@@ -190,7 +190,7 @@ namespace OpenKalman
 
       template<bool must_be_unique, bool must_be_exact, typename A, typename B>
       inline auto
-      solve(A&& a, B&& b) noexcept
+      solve(A&& a, B&& b)
       {
         auto x = make_self_contained<A, B>(OpenKalman::solve<must_be_unique, must_be_exact>(
           to_covariance_nestable(std::forward<A>(a)), nested_object(std::forward<B>(b))));
@@ -225,7 +225,7 @@ namespace OpenKalman
   template<typename M, typename ... Ms, std::enable_if_t<(covariance<M> and ... and covariance<Ms>), int> = 0>
 #endif
   constexpr decltype(auto)
-  concatenate(M&& m, Ms&& ... mN) noexcept
+  concatenate(M&& m, Ms&& ... mN)
   {
     if constexpr(sizeof...(Ms) > 0)
     {
@@ -323,7 +323,7 @@ namespace OpenKalman
   template<typename ... Cs, typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
   inline auto
-  split_diagonal(M&& m) noexcept
+  split_diagonal(M&& m)
   {
     static_assert(internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
     return split_diagonal<oin::SplitCovDiagF<M>, Cs...>(nested_object(std::forward<M>(m)));
@@ -337,7 +337,7 @@ namespace OpenKalman
   template<typename ... Cs, typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
   inline auto
-  split_vertical(M&& m) noexcept
+  split_vertical(M&& m)
   {
     using CC = vector_space_descriptor_of_t<M, 0>;
     static_assert(internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, CC>);
@@ -352,7 +352,7 @@ namespace OpenKalman
   template<typename ... Cs, typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
   inline auto
-  split_horizontal(M&& m) noexcept
+  split_horizontal(M&& m)
   {
     using RC = vector_space_descriptor_of_t<M, 0>;
     static_assert(internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, RC>);

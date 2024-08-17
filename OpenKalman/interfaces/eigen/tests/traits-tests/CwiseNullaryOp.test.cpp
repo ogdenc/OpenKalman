@@ -20,9 +20,6 @@ using numbers::pi;
 TEST(eigen3, Eigen_CwiseNullaryOp)
 {
   static_assert(eigen_matrix_general<M33::ConstantReturnType, true>);
-  static_assert(self_contained<typename M33::ConstantReturnType>);
-  static_assert(self_contained<typename M33::IdentityReturnType>);
-  static_assert(self_contained<const Eigen::CwiseNullaryOp<Eigen::internal::scalar_constant_op<double>, M22>>);
 
   static_assert(constant_coefficient_v<C11_1> == 1);
   static_assert(constant_matrix<typename Mxx::ConstantReturnType, ConstantType::dynamic_constant>);
@@ -133,10 +130,5 @@ TEST(eigen3, Eigen_CwiseNullaryOp)
 
   static_assert(not writable<Mx2::ConstantReturnType>);
   static_assert(not writable<M2x::IdentityReturnType>);
-
-  static_assert(not modifiable<M33::ConstantReturnType, M33>);
-  static_assert(not modifiable<M33::IdentityReturnType, M33>);
-  static_assert(not modifiable<M33::ConstantReturnType, M33::ConstantReturnType>);
-  static_assert(not modifiable<M33::IdentityReturnType, M33::IdentityReturnType>);
 }
 

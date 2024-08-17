@@ -19,8 +19,6 @@ TEST(eigen3, Eigen_ArrayWrapper)
 {
   static_assert(eigen_array_general<Eigen::ArrayWrapper<M32>, true>);
   static_assert(not eigen_matrix_general<Eigen::ArrayWrapper<M32>, true>);
-  static_assert(self_contained<Eigen::ArrayWrapper<I22>>);
-  static_assert(not self_contained<Eigen::ArrayWrapper<M32>>);
 
   static_assert(std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen::ArrayWrapper<M32>>()))>);
   static_assert(not std::is_lvalue_reference_v<decltype(nested_object(std::declval<Eigen::ArrayWrapper<I22>>()))>);

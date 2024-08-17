@@ -116,16 +116,11 @@ namespace OpenKalman::interface
     struct Op
     {
       template<typename Scalar>
-      constexpr Scalar&& operator()(Scalar&& arg) const noexcept { return std::forward<Scalar>(arg); }
+      constexpr Scalar&& operator()(Scalar&& arg) const { return std::forward<Scalar>(arg); }
     };
 #endif
 
   public:
-
-    using dependents = std::tuple<typename MatrixType::Nested, const MemberOp>;
-
-    static constexpr bool has_runtime_parameters = false;
-
 
     template<typename Arg>
     static decltype(auto) nested_object(Arg&& arg)

@@ -30,7 +30,7 @@ namespace OpenKalman
 #else
   template<typename Arg, std::enable_if_t<indexible<Arg> and (max_tensor_order_v<Arg> <= 2), int> = 0>
 #endif
-  constexpr decltype(auto) adjoint(Arg&& arg) noexcept
+  constexpr decltype(auto) adjoint(Arg&& arg)
   {
     if constexpr (hermitian_matrix<Arg>)
     {

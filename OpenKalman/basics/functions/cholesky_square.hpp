@@ -30,7 +30,7 @@ namespace OpenKalman
   template<typename A, std::enable_if_t<triangular_matrix<A> and square_shaped<A, Qualification::depends_on_dynamic_shape>, int> = 0>
   constexpr decltype(auto)
 #endif
-  cholesky_square(A&& a) noexcept
+  cholesky_square(A&& a)
   {
     if constexpr (not square_shaped<A>)
       if (not is_square_shaped(a)) throw std::invalid_argument {"Argument to cholesky_square must be a square matrix"};

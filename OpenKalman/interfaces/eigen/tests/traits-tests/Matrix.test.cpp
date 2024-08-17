@@ -82,8 +82,6 @@ TEST(eigen3, Eigen_Matrix)
 
   static_assert(dynamic_index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx, Dimensions<2>, Dimensions<2>>> == 0);
   static_assert(dynamic_index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx, Dimensions<2>, std::size_t>> == 1);
-  static_assert(dynamic_index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx, std::size_t, std::size_t>> == 2);
-  static_assert(dynamic_index_count_v<OpenKalman::internal::FixedSizeAdapter<const Mxx>> == 0);
 
   static_assert(std::is_same_v<dense_writable_matrix_t<M33>, M33>);
   static_assert(std::is_same_v<dense_writable_matrix_t<M3x>, M3x>);
@@ -316,11 +314,5 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(eigen_matrix_general<CM22, true>);
   static_assert(eigen_matrix_general<CMxx, true>);
   static_assert(not eigen_matrix_general<double, true>);
-
-  //static_assert(modifiable<M33, M33>);
-  //static_assert(not modifiable<M33, M31>);
-  //static_assert(not modifiable<M33, eigen_matrix_t<int, 3, 3>>);
-  //static_assert(not modifiable<const M33, M33>);
-  //static_assert(modifiable<M33, Eigen3::IdentityMatrix<M33>>);
 }
 

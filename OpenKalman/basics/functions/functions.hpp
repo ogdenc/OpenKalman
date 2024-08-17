@@ -35,9 +35,9 @@
 #include "to_native_matrix.hpp"
 
 #include "make_dense_object.hpp"
+#include "assign.hpp"
 #include "to_dense_object.hpp"
 #include "make_dense_object_from.hpp"
-#include "make_self_contained.hpp"
 #include "make_constant.hpp"
 #include "make_zero.hpp"
 #include "make_identity_matrix_like.hpp"
@@ -64,6 +64,9 @@
 #include "n_ary_operation.hpp"
 #include "randomize.hpp"
 
+#include "scalar_product.hpp"
+#include "scalar_quotient.hpp"
+
 #include "internal/make_constant_matrix_reduction.hpp"
 #include "internal/has_uniform_reduction_indices.hpp"
 #include "reduce.hpp"
@@ -85,9 +88,6 @@
 #include "determinant.hpp"
 #include "trace.hpp"
 #include "sum.hpp"
-
-#include "scalar_product.hpp"
-#include "scalar_quotient.hpp"
 
 #include "contract.hpp"
 #include "contract_in_place.hpp"

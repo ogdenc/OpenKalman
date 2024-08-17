@@ -38,10 +38,6 @@ namespace OpenKalman::interface
       return OpenKalman::get_vector_space_descriptor(arg.nestedExpression(), n);
     }
 
-    using dependents = std::tuple<NestedXpr>;
-
-    static constexpr bool has_runtime_parameters = false;
-
 
     template<typename Arg>
     static NestedXpr nested_object(Arg&& arg)

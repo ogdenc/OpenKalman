@@ -36,10 +36,6 @@ namespace OpenKalman::interface
     template<typename Arg, typename N>
     static constexpr std::size_t get_index_descriptor(const Arg& arg, N n) { return arg.dimension(n); }
 
-    static constexpr bool has_runtime_parameters = false;
-
-    using dependents = std::tuple<Eigen::internal::TensorLazyBaseEvaluator<Dimensions, Scalar>*>;
-
     // get_nested_object() not defined
 
     // get_constant() not defined

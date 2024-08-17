@@ -20,16 +20,9 @@ TEST(eigen3, Eigen_Reshaped)
 {
   static_assert(eigen_matrix_general<Eigen::Reshaped<M32, 2, 3, Eigen::RowMajor>, true>);
   static_assert(eigen_array_general<Eigen::Reshaped<Eigen::ArrayWrapper<M32>, 2, 3, Eigen::RowMajor>, true>);
-  static_assert(self_contained<Eigen::Reshaped<I22, 1, 2, Eigen::RowMajor>>);
-  static_assert(self_contained<Eigen::Reshaped<I22, 1, 2, Eigen::ColMajor>>);
-  static_assert(self_contained<Eigen::Reshaped<I22, Eigen::Dynamic, 2, Eigen::RowMajor>>);
-  static_assert(self_contained<Eigen::Reshaped<Ixx, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>);
-  static_assert(not self_contained<Eigen::Reshaped<M32, 2, 3, Eigen::RowMajor>>);
-  static_assert(not self_contained<Eigen::Reshaped<M32, 2, Eigen::Dynamic, Eigen::RowMajor>>);
-  static_assert(not self_contained<Eigen::Reshaped<Mxx, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>);
   auto m32 = make_eigen_matrix<double, 3, 2>(1, 4, 2, 5, 3, 6);
   auto m23 = make_eigen_matrix<double, 2, 3>(1, 4, 2, 5, 3, 6);
-  EXPECT_TRUE(is_near(make_self_contained(m32.reshaped<Eigen::RowMajor>(2, 3)), m23));
+  EXPECT_TRUE(is_near(m32.reshaped<Eigen::RowMajor>(2, 3), m23));
 
   static_assert(index_dimension_of_v<Eigen::Reshaped<Mxx, 3, Eigen::Dynamic>, 0> == 3);
   static_assert(index_dimension_of_v<Eigen::Reshaped<Mxx, Eigen::Dynamic, 4>, 1> == 4);

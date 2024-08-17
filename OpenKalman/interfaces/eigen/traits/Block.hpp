@@ -33,10 +33,6 @@ namespace OpenKalman::interface
 
   public:
 
-    static constexpr bool has_runtime_parameters = true;
-    using dependents = std::tuple<typename Eigen::internal::ref_selector<XprType>::non_const_type>;
-
-
     template<typename Arg>
     static decltype(auto) nested_object(Arg&& arg)
     {
