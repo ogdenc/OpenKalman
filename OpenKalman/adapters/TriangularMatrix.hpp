@@ -61,7 +61,7 @@ namespace OpenKalman
 
     /// Construct from a triangular adapter if NestedMatrix is non-diagonal.
 #ifdef __cpp_concepts
-    template<triangular_adapter Arg> requires (not std::derived_from<std::decay_t<Arg>, TriangularMatrix>) and
+    template<triangular_adapter Arg> requires (not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and
       triangular_matrix<Arg, triangle_type> and (not diagonal_matrix<NestedMatrix>) and
       dimensions_match<nested_object_of_t<Arg>> and
 # if OPENKALMAN_CPP_FEATURE_CONCEPTS
@@ -113,7 +113,7 @@ namespace OpenKalman
 
     /// Construct from a diagonal matrix if NestedMatrix is diagonal.
 #ifdef __cpp_concepts
-    template<diagonal_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, TriangularMatrix>) and
+    template<diagonal_matrix Arg> requires (not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and
       diagonal_matrix<NestedMatrix> and dimensions_match<Arg> and (not std::constructible_from<NestedMatrix, Arg&&>) and
       requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; }
 #else
@@ -183,14 +183,14 @@ namespace OpenKalman
     /// Assign from another \ref triangular_matrix.
 #ifdef __cpp_concepts
     template<triangular_matrix<triangle_type> Arg> requires
-      (not std::derived_from<std::decay_t<Arg>, TriangularMatrix>) and
-      maybe_same_shape_as<NestedMatrix, Arg> and
+      (not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and
+      vector_space_descriptors_may_match_with<NestedMatrix, Arg> and
       (not constant_diagonal_matrix<NestedMatrix, ConstantType::static_constant> or
         requires { requires constant_diagonal_coefficient<NestedMatrix>::value == constant_diagonal_coefficient<Arg>::value; }) and
       (not (diagonal_matrix<NestedMatrix> or triangle_type == TriangleType::diagonal) or diagonal_matrix<Arg>)
 #else
     template<typename Arg, std::enable_if_t<triangular_matrix<Arg, triangle_type> and
-      (not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and maybe_same_shape_as<NestedMatrix, Arg> and
+      (not std::is_base_of_v<TriangularMatrix, std::decay_t<Arg>>) and vector_space_descriptors_may_match_with<NestedMatrix, Arg> and
       (not constant_diagonal_matrix<NestedMatrix> or constant_diagonal_matrix<Arg>) and
       (not (diagonal_matrix<NestedMatrix> or triangle_type == TriangleType::diagonal) or diagonal_matrix<Arg>), int> = 0>
 #endif
@@ -203,9 +203,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<maybe_same_shape_as<NestedMatrix> Arg, TriangleType t>
+    template<vector_space_descriptors_may_match_with<NestedMatrix> Arg, TriangleType t>
 #else
-    template<typename Arg, TriangleType t, std::enable_if_t<maybe_same_shape_as<Arg, NestedMatrix>, int> = 0>
+    template<typename Arg, TriangleType t, std::enable_if_t<vector_space_descriptors_may_match_with<Arg, NestedMatrix>, int> = 0>
 #endif
     auto& operator+=(const TriangularMatrix<Arg, triangle_type>& arg)
     {
@@ -215,9 +215,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<maybe_same_shape_as<NestedMatrix> Arg, TriangleType t>
+    template<vector_space_descriptors_may_match_with<NestedMatrix> Arg, TriangleType t>
 #else
-    template<typename Arg, TriangleType t, std::enable_if_t<maybe_same_shape_as<Arg, NestedMatrix>, int> = 0>
+    template<typename Arg, TriangleType t, std::enable_if_t<vector_space_descriptors_may_match_with<Arg, NestedMatrix>, int> = 0>
 #endif
     auto& operator-=(const TriangularMatrix<Arg, triangle_type>& arg)
     {
@@ -251,9 +251,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<maybe_same_shape_as<NestedMatrix> Arg>
+    template<vector_space_descriptors_may_match_with<NestedMatrix> Arg>
 #else
-    template<typename Arg, std::enable_if_t<maybe_same_shape_as<Arg, NestedMatrix>, int> = 0>
+    template<typename Arg, std::enable_if_t<vector_space_descriptors_may_match_with<Arg, NestedMatrix>, int> = 0>
 #endif
     auto& operator*=(const TriangularMatrix<Arg, triangle_type>& arg)
     {

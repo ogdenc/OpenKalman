@@ -58,10 +58,10 @@ namespace OpenKalman::test
 #endif
   inline ::testing::AssertionResult is_near(const Arg1& arg1, const Arg2& arg2, const Err& err = 1e-6)
   {
-    static_assert(maybe_same_shape_as<Arg1, Arg2>, "Dimensions must match");
+    static_assert(vector_space_descriptors_may_match_with<Arg1, Arg2>, "Dimensions must match");
 
     if constexpr (has_dynamic_dimensions<Arg1> or has_dynamic_dimensions<Arg2>)
-      if (not same_shape(arg1, arg2))
+      if (not vector_space_descriptors_match(arg1, arg2))
     {
       auto ret = ::testing::AssertionFailure();
       ret << "Dimensions of first argument (";

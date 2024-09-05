@@ -42,7 +42,7 @@ namespace OpenKalman::interface
     using LibraryBase = internal::library_base_t<Derived, Nested>;
 
 
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+#ifdef __cpp_lib_ranges
     template<indexible Arg, std::ranges::input_range Indices> requires
       std::convertible_to<std::ranges::range_value_t<Indices>, const typename std::decay_t<Arg>::Index>
 #else
@@ -97,7 +97,7 @@ namespace OpenKalman::interface
     }
 
 
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+#ifdef __cpp_lib_ranges
     template<indexible Arg, std::ranges::input_range Indices> requires (not std::is_const_v<Arg>) and
     std::convertible_to<std::ranges::range_value_t<Indices>, const typename Arg::Index>
 #else
@@ -157,44 +157,21 @@ namespace OpenKalman::interface
 
     template<typename Arg, typename...Begin, typename...Size>
     static auto
-    get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
+    get_slice(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
     {
       auto dense = to_dense_object<scalar_type_of_t<Arg>>(std::forward<Arg>(arg));
       static_assert(not eigen_diagonal_expr<decltype(dense)> and not eigen_triangular_expr<decltype(dense)> and
         not eigen_self_adjoint_expr<decltype(dense)>);
-      return OpenKalman::get_block(std::move(dense), begin, size);
+      return OpenKalman::get_slice(std::move(dense), begin, size);
     }
 
 
     template<typename Arg, typename Block, typename...Begin>
     static constexpr Arg&
-    set_block(Arg& arg, Block&& block, Begin...begin) = delete;
+    set_slice(Arg& arg, Block&& block, Begin...begin) = delete;
 
 
-    template<TriangleType t, typename A, typename B>
-    static A&
-    set_triangle(A& a, B&& b)
-    {
-      if constexpr (eigen_triangular_expr<A>)
-      {
-        return OpenKalman::internal::set_triangle<t>(nested_object(a), std::forward<B>(b));
-      }
-      else if constexpr (eigen_self_adjoint_expr<A>)
-      {
-        if constexpr ((t == TriangleType::upper and not hermitian_adapter<A, HermitianAdapterType::upper>) or
-          (t == TriangleType::lower and not hermitian_adapter<A, HermitianAdapterType::lower>))
-          OpenKalman::internal::set_triangle<t>(nested_object(a), adjoint(std::forward<B>(b)));
-        else
-          OpenKalman::internal::set_triangle<t>(nested_object(a), std::forward<B>(b));
-      }
-      else
-      {
-        static_assert(eigen_diagonal_expr<A>);
-        static_assert(diagonal_matrix<B>);
-        nested_object(a) = diagonal_of(std::forward<B>(b));
-      }
-      return a;
-    }
+    // set_triangle not defined because it is handled by global set_triangle function
 
 
     template<typename Arg>

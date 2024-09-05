@@ -38,7 +38,7 @@
 
 #include "traits/dimension_size_of.hpp"
 #include "traits/euclidean_dimension_size_of.hpp"
-#include "traits/vector_space_descriptor_components_of.hpp"
+#include "traits/vector_space_component_count.hpp"
 #include "traits/dimension_difference_of.hpp"
 #include "traits/euclidean_vector_space_descriptor.hpp"
 
@@ -86,12 +86,13 @@
 #include "traits/internal/prefix_of.hpp"
 #include "traits/internal/suffix_of.hpp"
 #include "traits/internal/base_of.hpp"
-#include "traits/internal/head_of.hpp"
-#include "traits/internal/tail_of.hpp"
+#include "traits/internal/split_head_tail_fixed.hpp"
+#include "traits/internal/fixed_vector_space_descriptor_slice.hpp"
 
-#include "traits/has_uniform_dimension_type.hpp"
-#include "traits/uniform_dimension_type_of.hpp"
-#include "traits/equivalent_to_uniform_dimension_type_of.hpp"
+#include "traits/internal/uniform_vector_space_descriptor_query.hpp"
+#include "traits/uniform_vector_space_descriptor.hpp"
+#include "traits/uniform_vector_space_descriptor_component_of.hpp"
+#include "traits/equivalent_to_uniform_vector_space_descriptor_component_of.hpp"
 
 // functions:
 
@@ -102,7 +103,8 @@
 #include "functions/internal/is_uniform_component_of.hpp"
 #include "functions/internal/remove_trailing_1D_descriptors.hpp"
 #include "functions/internal/best_vector_space_descriptor.hpp"
-#include "functions/internal/split_head_tail.hpp"
+
+#include "functions/get_vector_space_descriptor_slice.hpp"
 
 
 #endif //OPENKALMAN_VECTOR_TYPES_HPP

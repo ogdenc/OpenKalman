@@ -20,7 +20,8 @@
 namespace OpenKalman
 {
   /**
-   * \brief The maximum number of indices of structure T. If dynamic, the result is OpenKalman::dynamic_size.
+   * \brief The minimum number of indices need to access all the components of an object.
+   * \details If dynamic, the result is OpenKalman::dynamic_size.
    * \internal \sa interface::indexible_object_traits::count_indices
    * \tparam T A tensor (vector, matrix, etc.)
    */

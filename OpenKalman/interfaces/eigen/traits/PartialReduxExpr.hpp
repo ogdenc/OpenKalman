@@ -43,7 +43,7 @@ namespace OpenKalman::Eigen3::detail
     auto dim = internal::best_vector_space_descriptor(dir_dim, get_index_dimension_of<direction>(xpr));
 
     if constexpr (Eigen3::eigen_MatrixWrapper<XprType> or Eigen3::eigen_ArrayWrapper<XprType> or
-      internal::fixed_size_adapter<XprType> or Eigen3::eigen_self_contained_wrapper<XprType> or Eigen3::eigen_wrapper<XprType>)
+      internal::fixed_size_adapter<XprType> or Eigen3::eigen_wrapper<XprType>)
     {
       return get_constant_redux<MemberOp, direction>(nested_object(xpr), factor, dim, std::forward<Func>(func));
     }

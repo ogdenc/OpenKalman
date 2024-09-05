@@ -69,11 +69,11 @@ namespace OpenKalman::vector_space_descriptors
      */
 #ifdef __cpp_concepts
     template<vector_space_descriptor...Cs> requires (sizeof...(Cs) > 0) and
-      (sizeof...(Cs) != 1 or (not std::same_as<Cs, DynamicDescriptor> and ...)) and
+      (sizeof...(Cs) != 1 or (not std::is_base_of_v<DynamicDescriptor, Cs> and ...)) and
       (sizeof...(Cs) == 1 or ((fixed_vector_space_descriptor<Cs> or dynamic_vector_space_descriptor<Cs>) and ...))
 #else
     template<typename...Cs, std::enable_if_t<(vector_space_descriptor<Cs> and ...) and (sizeof...(Cs) > 0) and
-      (sizeof...(Cs) != 1 or (not std::is_same_v<Cs, DynamicDescriptor> and ...)) and
+      (sizeof...(Cs) != 1 or (not std::is_base_of_v<DynamicDescriptor, Cs> and ...)) and
       (sizeof...(Cs) == 1 or ((fixed_vector_space_descriptor<Cs> or dynamic_vector_space_descriptor<Cs>) and ...)),
       int> = 0>
 #endif
@@ -88,22 +88,42 @@ namespace OpenKalman::vector_space_descriptors
 
     /**
      * \brief Constructor taking another DynamicDescriptor and other list of \ref vector_space_descriptor objects.
-     * \details This forwards to the copy or move constructors and then extends by the additional \ref vector_space_descriptor.
+     * \details This forwards the first argument to the move or forward constructor and then extends by adding the other arguments.
      * \param c A DynamicDescriptor object
      * \param cn A first \ref vector_space_descriptor.
      * \param cs A list of \ref vector_space_descriptor objects.
      */
 #ifdef __cpp_concepts
-    DynamicDescriptor(auto&& c, vector_space_descriptor auto&& c0, vector_space_descriptor auto&&...cn)
-    requires std::same_as<std::decay_t<decltype(c)>, DynamicDescriptor>
+    template<typename C, vector_space_descriptor C0, vector_space_descriptor...Cn> requires
+      std::derived_from<std::decay_t<C>, DynamicDescriptor>
 #else
     template<typename C, typename C0, typename...Cn, std::enable_if_t<
-      std::is_same_v<std::decay_t<C>, DynamicDescriptor> and (vector_space_descriptor<Cn> and ...), int> = 0>
-    DynamicDescriptor(C&& c, C0&& c0, Cn&&...cn)
+      std::is_base_of_v<DynamicDescriptor, std::decay_t<C>> and (vector_space_descriptor<Cn> and ...), int> = 0>
 #endif
-      : DynamicDescriptor(std::forward<decltype(c)>(c))
+    DynamicDescriptor(C&& c, C0&& c0, Cn&&...cn) : DynamicDescriptor(std::forward<C>(c))
     {
-      extend(std::forward<decltype(c0)>(c0), std::forward<decltype(cn)>(cn)...);
+      extend(std::forward<C0>(c0), std::forward<Cn>(cn)...);
+    }
+
+
+    /**
+     * \brief Assign from another \ref vector_space_descriptor.
+     */
+#ifdef __cpp_concepts
+    template<vector_space_descriptor D> requires (not std::is_base_of_v<DynamicDescriptor, D>)
+#else
+    template<typename D, std::enable_if_t<vector_space_descriptor<D> and (not std::is_base_of_v<DynamicDescriptor, D>), int> = 0>
+#endif
+    constexpr DynamicDescriptor& operator=(const D& d)
+    {
+      dynamic_types.clear();
+      index_table.clear();
+      euclidean_index_table.clear();
+      dynamic_types.reserve(get_vector_space_descriptor_component_count_of(d));
+      index_table.reserve(get_dimension_size_of(d));
+      euclidean_index_table.reserve(get_euclidean_dimension_size_of(d));
+      fill_tables(0, 0, 0, d);
+      return *this;
     }
 
 
@@ -124,8 +144,10 @@ namespace OpenKalman::vector_space_descriptors
       {
         if (dynamic_types.capacity() < dynamic_types.size() + N)
           dynamic_types.reserve(dynamic_types.capacity() * 2);
+
         if (index_table.capacity() < (index_table.size() + ... + get_dimension_size_of(cs)))
           index_table.reserve(index_table.capacity() * 2);
+
         if (euclidean_index_table.capacity() < (euclidean_index_table.size() + ... + get_euclidean_dimension_size_of(cs)))
           euclidean_index_table.reserve(euclidean_index_table.capacity() * 2);
       }
@@ -240,7 +262,7 @@ namespace OpenKalman::vector_space_descriptors
         using red_C = canonical_fixed_vector_space_descriptor_t<std::decay_t<C>>;
         fill_tables_fixed(i, i_e, t, red_C {});
         fill_tables(i + dimension_size_of_v<C>, i_e + euclidean_dimension_size_of_v<C>,
-          t + vector_space_descriptor_components_of<red_C>::value, std::forward<Cs>(cs)...);
+          t + vector_space_component_count<red_C>::value, std::forward<Cs>(cs)...);
       }
       else // dynamic_vector_space_descriptor<C>
       {
@@ -607,31 +629,67 @@ namespace OpenKalman::vector_space_descriptors
 
 
     /**
-     * \overload
      * \brief Split the object into head and tail parts.
      */
-    template<typename...S>
+#ifdef __cpp_concepts
+  template<index_value Offset, index_value Extent> requires
+    (dynamic_index_value<Offset> or Offset::value >= 0) and (dynamic_index_value<Extent> or Extent::value >= 0)
+#else
+  template<typename Offset, typename Extent>
+#endif
     constexpr auto
-    split_head_tail() const
+    slice(const Offset& offset, const Extent& extent) const
     {
-      auto i = dynamic_types.begin();
-      auto ii = index_table.begin();
-      auto ie = euclidean_index_table.begin();
+      //std::cout << "size: " << std::size(index_table) << "; offset: " << offset << "; extent: " << extent << std::endl;
+      //for (const auto& [i, local, e_start] : index_table)
+      //  std::cout << "(" << i << ", " << local << ", " << e_start << ")" << std::endl;
 
-      if (i == dynamic_types.end())
-        throw std::invalid_argument {"split_head_tail error: vector space descriptor is size 0"};
+      DynamicDescriptor ret;
 
-      DynamicDescriptor tail;
-      tail.dynamic_types.assign(++i, dynamic_types.end());
-      tail.index_table.assign(++ii, index_table.end());
-      tail.euclidean_index_table.assign(++ie, euclidean_index_table.end());
+      auto i_first = index_table.begin() + offset;
+      auto i_last = i_first + extent;
 
-      DynamicDescriptor head;
-      head.dynamic_types.assign(dynamic_types.begin(), i);
-      head.index_table.assign(index_table.begin(), ii);
-      head.euclidean_index_table.assign(euclidean_index_table.begin(), ie);
+      if (i_first != index_table.end())
+      {
+        if (std::get<1>(*i_first) != 0)
+          throw std::invalid_argument {"DynamicDescriptor slice: offset does not coincide with a sub-descriptor boundary"};
 
-      return std::tuple {std::move(head), std::move(tail)};
+        if (extent > 0)
+        {
+          if (i_last != index_table.end() and std::get<1>(*i_last) != 0)
+            throw std::invalid_argument {"DynamicDescriptor slice: offset + extent does not coincide with a sub-descriptor boundary"};
+
+          std::size_t t_first_val = std::get<0>(*i_first);
+          auto t_first = dynamic_types.begin() + t_first_val;
+          auto t_last = i_last == index_table.end() ? dynamic_types.end() : dynamic_types.begin() + std::get<0>(*i_last);
+
+          std::size_t e_first_val = std::get<2>(*i_first);
+          auto e_first = euclidean_index_table.begin() + e_first_val;
+          auto e_last = i_last == index_table.end() ? euclidean_index_table.end() : euclidean_index_table.begin() + std::get<2>(*i_last);
+
+          ret.dynamic_types.assign(t_first, t_last);
+
+          ret.index_table.reserve(extent);
+          for (auto i = i_first; i != i_last; i++)
+          {
+            ret.index_table.emplace_back(
+              std::get<0>(*i) - t_first_val,
+              std::get<1>(*i),
+              std::get<2>(*i) - e_first_val);
+          }
+
+          ret.euclidean_index_table.reserve(std::distance(e_first, e_last));
+          for (auto e = e_first; e != e_last; e++)
+          {
+            ret.euclidean_index_table.emplace_back(
+              std::get<0>(*e) - t_first_val,
+              std::get<1>(*e),
+              std::get<2>(*e) - offset);
+          }
+        }
+      }
+
+      return ret;
     }
 
 
@@ -788,12 +846,6 @@ namespace OpenKalman::vector_space_descriptors
     }
 
 
-    /**
-     * \brief Maps a coordinate in Euclidean space to an element.
-     * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
-     * \param local_index A local index relative to the original coordinates (starting at 0)
-     * \param start The starting index within the Euclidean-transformed indices
-     */
 #ifdef __cpp_concepts
     scalar_type auto
     from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start) const
@@ -809,13 +861,6 @@ namespace OpenKalman::vector_space_descriptors
     }
 
 
-    /**
-     * \brief Perform modular wrapping of an element.
-     * \details The wrapping operation is equivalent to mapping to, and then back from, Euclidean space.
-     * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
-     * \param local_index A local index relative to the original coordinates (starting at 0)
-     * \param start The starting location of the angle within any larger set of \ref vector_space_descriptor
-     */
 #ifdef __cpp_concepts
       scalar_type auto
       get_wrapped_component(const auto& g, std::size_t local_index, std::size_t start) const
@@ -831,15 +876,6 @@ namespace OpenKalman::vector_space_descriptors
     }
 
 
-    /**
-     * \brief Set an element and then perform any necessary modular wrapping.
-     * \details The operation is equivalent to setting the angle and then mapping to, and then back from, Euclidean space.
-     * \param s An element setter (<code>std::function&lt;void(std::size_t, Scalar)&rt;</code>)
-     * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
-     * \param x The scalar value to be set
-     * \param local_index A local index relative to the original coordinates (starting at 0)
-     * \param start The starting location of the angle within any larger set of \ref vector_space_descriptor
-     */
 #ifdef __cpp_concepts
     void
     set_wrapped_component(const auto& s, const auto& g,

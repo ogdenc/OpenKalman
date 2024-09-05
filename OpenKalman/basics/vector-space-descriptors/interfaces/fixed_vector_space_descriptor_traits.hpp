@@ -33,33 +33,24 @@ namespace OpenKalman::vector_space_descriptors
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
     /// \brief The number of dimensions at compile time.
     static constexpr std::size_t size = 0;
-#endif
 
 
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
     /// \brief The number of dimensions after transforming to Euclidean space.
     static constexpr std::size_t euclidean_size = 0;
-#endif
 
 
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
     /// \brief The number of atomic component parts at compile time.
     static constexpr std::size_t component_count = 0;
-#endif
 
 
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
     /// \brief The type of the \ref vector_space_descriptor when \ref indexible objects having respective vector_space_descriptor T are subtracted.
     /// \details For example, subtracting two 1D vectors of type Direction yields a 1D vector of type Dimensions<1>.
     /// So if <code>T</code> is Distance, the resulting <code>difference_type</code> will be Dimensions<1>.
     using difference_type = std::decay_t<T>;
-#endif
 
 
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
     /// \brief Whether the \ref vector_space_descriptor object is known at compile time to describe Euclidean coordinates (and in this case, size == euclidean_size).
     static constexpr bool always_euclidean = false;
-#endif
 
 
     /**
@@ -77,7 +68,7 @@ namespace OpenKalman::vector_space_descriptors
 #else
     template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
     static constexpr auto
-    to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start) = delete;
+    to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start);
 #endif
 
 
@@ -95,7 +86,7 @@ namespace OpenKalman::vector_space_descriptors
 #else
     template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
     static constexpr auto
-    from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start) = delete;
+    from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start);
 #endif
 
 
@@ -115,7 +106,7 @@ namespace OpenKalman::vector_space_descriptors
 #else
     template<typename G, std::enable_if_t<scalar_type<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
     static constexpr auto
-    get_wrapped_component(const G& g, std::size_t local_index, std::size_t start) = delete;
+    get_wrapped_component(const G& g, std::size_t local_index, std::size_t start);
 #endif
 
 
@@ -141,6 +132,8 @@ namespace OpenKalman::vector_space_descriptors
     set_wrapped_component(const S& s, const G& g, const std::decay_t<typename std::invoke_result<G, std::size_t>::type>& x,
       std::size_t local_index, std::size_t start) = delete;
 #endif
+
+#endif // DOXYGEN_SHOULD_SKIP_THIS
 
   };
 

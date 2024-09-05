@@ -50,10 +50,6 @@ TEST(adapters, ConstantAdapter_traits)
   static_assert(indexible<ConstantAdapter<M22, double, 1>>);
   static_assert(indexible<ZA31>);
 
-  static_assert(self_contained<ConstantAdapter<M22, double, 1>>);
-  static_assert(self_contained<ConstantAdapter<M22, std::integral_constant<int, 1>>>);
-  static_assert(self_contained<ZA31>);
-
   static_assert(constant_matrix<ConstantAdapter<M22, double, 1>, ConstantType::static_constant>);
   static_assert(not constant_matrix<ConstantAdapter<M22, double, 1>, ConstantType::dynamic_constant>);
   static_assert(constant_matrix<ConstantAdapter<M22>, ConstantType::dynamic_constant>);
@@ -168,6 +164,10 @@ TEST(adapters, ConstantAdapter_traits)
   static_assert(not dynamic_dimension<ConstantAdapter<Mx1, double, 5>, 1>);
   static_assert(not dynamic_dimension<ConstantAdapter<M1x, double, 5>, 0>);
   static_assert(dynamic_dimension<ConstantAdapter<M1x, double, 5>, 1>);
+
+  static_assert(get_vector_space_descriptor(ConstantAdapter<M23, double, 5>{}, std::integral_constant<std::size_t, 0>{}) == 2);
+  static_assert(get_vector_space_descriptor(ConstantAdapter<M23, double, 5>{}, std::integral_constant<std::size_t, 1>{}) == 3);
+  static_assert(get_vector_space_descriptor(ConstantAdapter<M23, double, 5>{}, std::integral_constant<std::size_t, 2>{}) == 1);
 
   static_assert(dynamic_dimension<ZA00, 0>);
   static_assert(dynamic_dimension<ZA03, 0>);

@@ -27,7 +27,7 @@ namespace OpenKalman::internal
     constexpr decltype(auto) clip_square_shaped_impl(std::index_sequence<Ix...>, Arg&& arg)
     {
       auto dim = get_index_dimension_of(arg, smallest_dimension_index(arg));
-      auto ret {get_block(std::forward<Arg>(arg),
+      auto ret {get_slice(std::forward<Arg>(arg),
         std::forward_as_tuple(std::integral_constant<std::size_t, static_cast<decltype(Ix)>(0)>{}...),
         std::forward_as_tuple((Ix==0?dim:dim)...))};
       return ret;

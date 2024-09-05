@@ -25,7 +25,7 @@ namespace OpenKalman::internal
    * \brief An interface to a matrix, to be used for getting and setting the individual components.
    * \tparam Object The object to be reference.
    */
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+#ifdef __cpp_lib_ranges
   template<indexible Object, std::ranges::input_range Indices> requires writable_by_component<Object, Indices> and
     index_value<std::ranges::range_value_t<Indices>>
 #else
@@ -36,7 +36,7 @@ namespace OpenKalman::internal
     using Scalar = scalar_type_of_t<Object>;
 
 
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+#ifdef __cpp_lib_ranges
     template<typename Arg, std::invocable PreAccess, std::invocable PostSet> requires
       (static_range_size_v<Indices> == dynamic_size or index_count_v<Arg> == dynamic_size or
         static_range_size_v<Indices> >= index_count_v<Arg>) and std::same_as<Scalar, scalar_type_of_t<Arg>>

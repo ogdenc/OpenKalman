@@ -28,19 +28,19 @@ namespace OpenKalman
    * Trailing 1D indices my be omitted.
    */
 #ifdef __cpp_concepts
-  template<indexible T, Layout layout = Layout::none, scalar_type Scalar = scalar_type_of_t<T>>
-    requires (layout != Layout::stride)
+  template<indexible T, Layout layout = Layout::none, scalar_type Scalar = scalar_type_of_t<T>, vector_space_descriptor...D>
+    requires (layout != Layout::stride) and interface::make_default_defined_for<T, layout, Scalar, D&&...>
   constexpr writable auto
-  make_dense_object(vector_space_descriptor auto&&...d)
 #else
   template<typename T, Layout layout = Layout::none, typename Scalar = scalar_type_of_t<T>, typename...D, std::enable_if_t<
-    indexible<T> and scalar_type<Scalar> and (vector_space_descriptor<D> and ...) and (layout != Layout::stride), int> = 0>
+    indexible<T> and scalar_type<Scalar> and (vector_space_descriptor<D> and ...) and (layout != Layout::stride) and
+    interface::make_default_defined_for<T, layout, Scalar, D&&...>, int> = 0>
   constexpr auto
-  make_dense_object(D&&...d)
 #endif
+  make_dense_object(D&&...d)
   {
     using Traits = interface::library_interface<std::decay_t<T>>;
-    return Traits::template make_default<layout, Scalar>(std::forward<decltype(d)>(d)...);
+    return Traits::template make_default<layout, Scalar>(std::forward<D>(d)...);
   }
 
 

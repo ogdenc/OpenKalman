@@ -20,7 +20,6 @@
 #include "interfaces/eigen/native-traits/eigen-native-traits.hpp"
 
 #include "LibraryWrapper.hpp"
-#include "SelfContainedWrapper.hpp"
 #include "FixedSizeAdapter.hpp"
 #include "ConstantAdapter.hpp"
 #include "SelfAdjointMatrix.hpp"

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2018-2021 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2018-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Tests for coefficient types
+ * \brief Tests for \ref dynamic_vector_space_descriptor objects
  */
 
 #include <gtest/gtest.h>
@@ -88,6 +88,7 @@ TEST(basics, DynamicDescriptor_construct)
   EXPECT_EQ(get_euclidean_dimension_size_of(DynamicDescriptor {angle::Degrees{}}), 2);
   EXPECT_EQ(get_dimension_size_of(DynamicDescriptor {Dimensions<5>{}}), 5);
   EXPECT_EQ(get_dimension_size_of(DynamicDescriptor {Dimensions{5}}), 5);
+  EXPECT_EQ(get_dimension_size_of(DynamicDescriptor {Polar<Distance, angle::Radians>{}}), 2);
   EXPECT_EQ(get_dimension_size_of(DynamicDescriptor {Polar<Distance, angle::PositiveRadians>{}}), 2);
   EXPECT_EQ(get_euclidean_dimension_size_of(DynamicDescriptor {Polar<angle::PositiveDegrees, Distance>{}}), 3);
   EXPECT_EQ(get_dimension_size_of(DynamicDescriptor {Spherical<Distance, inclination::Radians, angle::PositiveDegrees>{}}), 3);
@@ -236,6 +237,39 @@ TEST(basics, dynamic_comparison)
 }
 
 
+TEST(basics, dynamic_assignment)
+{
+  static_assert(std::is_assignable_v<std::size_t&, Dimensions<10>>);
+  static_assert(std::is_assignable_v<int&, Dimensions<10>>);
+  static_assert(not std::is_assignable_v<Dimensions<10>&, std::size_t>);
+  static_assert(std::is_assignable_v<Dimensions<dynamic_size>&, Dimensions<11>>);
+  static_assert(std::is_assignable_v<Dimensions<dynamic_size>&, DynamicDescriptor<double>>);
+  static_assert(std::is_assignable_v<DynamicDescriptor<double>&, Dimensions<dynamic_size>>);
+  static_assert(std::is_assignable_v<DynamicDescriptor<double>&, Polar<>>);
+
+  static_assert(std::is_assignable_v<Polar<>&, Polar<>>);
+
+  Dimensions<dynamic_size> dim {5};
+  EXPECT_EQ(dim, 5);
+  dim = 6;
+  EXPECT_EQ(dim, 6);
+  dim = Dimensions<7>{};
+  EXPECT_EQ(dim, 7);
+  dim = DynamicDescriptor<double> {Dimensions<3>{}, Dimensions<5>{}};
+  EXPECT_EQ(dim, 8);
+  EXPECT_ANY_THROW((dim = DynamicDescriptor<double> {Dimensions<3>{}, Polar<>{}}));
+  EXPECT_EQ(dim, 8);
+
+  DynamicDescriptor<double> dyn;
+  dyn = 5;
+  EXPECT_EQ(dyn, 5);
+  dyn = Dimensions<6>{};
+  EXPECT_EQ(dyn, 6);
+  dyn = Polar<>{};
+  EXPECT_TRUE(dyn == Polar<>{});
+}
+
+
 TEST(basics, dynamic_arithmetic)
 {
   EXPECT_TRUE(Dimensions{3} + Dimensions{4} == Dimensions{7});
@@ -313,13 +347,76 @@ TEST(basics, internal_is_uniform_component_of)
 }
 
 
-TEST(basics, internal_split_head_tail_dynamic)
+TEST(basics, slice_vector_space_descriptor_dynamic)
 {
-  EXPECT_TRUE((std::get<0>(internal::split_head_tail(Dimensions{7})) == Axis{}));
-  EXPECT_TRUE((std::get<1>(internal::split_head_tail(Dimensions{7})) == Dimensions{6}));
+  using namespace internal;
 
-  EXPECT_TRUE((std::get<0>(internal::split_head_tail(DynamicDescriptor {Axis{}, angle::Radians{}, Distance{}})) == Axis{}));
-  EXPECT_TRUE((std::get<1>(internal::split_head_tail(DynamicDescriptor {Axis{}, angle::Radians{}, Distance{}})) == DynamicDescriptor {angle::Radians{}, Distance{}}));
-  EXPECT_TRUE((std::get<0>(internal::split_head_tail(DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}})) == angle::Radians{}));
-  EXPECT_TRUE((std::get<1>(internal::split_head_tail(DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}})) == DynamicDescriptor {Axis{}, Distance{}}));
+  EXPECT_TRUE((DynamicDescriptor {}.slice(0, 0) == DynamicDescriptor{}));
+
+  EXPECT_TRUE((DynamicDescriptor {Axis{}, angle::Radians{}, Distance{}}.slice(0, 1) == Axis{}));
+  EXPECT_TRUE((DynamicDescriptor {Axis{}, angle::Radians{}, Distance{}}.slice(1, 1) == DynamicDescriptor {angle::Radians{}}));
+  EXPECT_TRUE((DynamicDescriptor {Axis{}, angle::Radians{}, Distance{}}.slice(1, 2) == DynamicDescriptor {angle::Radians{}, Distance{}}));
+  EXPECT_TRUE((DynamicDescriptor {Axis{}, angle::Radians{}, Distance{}}.slice(0, 3) == DynamicDescriptor {Axis{}, angle::Radians{}, Distance{}}));
+
+  EXPECT_TRUE((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(0, 0) == DynamicDescriptor{}));
+  EXPECT_TRUE((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(0, 1) == angle::Radians{}));
+  EXPECT_TRUE((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(0, 2) == DynamicDescriptor {angle::Radians{}, Axis{}}));
+  EXPECT_TRUE((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(0, 3) == DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}}));
+  EXPECT_ANY_THROW((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(0, 4)));
+  EXPECT_TRUE((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(0, 5) == DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}));
+
+  EXPECT_TRUE((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(1, 0) == DynamicDescriptor{}));
+  EXPECT_TRUE((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(1, 1) == Axis{}));
+  EXPECT_TRUE((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(1, 2) == DynamicDescriptor {Axis{}, Distance{}}));
+  EXPECT_ANY_THROW((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(1, 3)));
+  EXPECT_TRUE((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(1, 4) == DynamicDescriptor {Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}));
+
+  EXPECT_TRUE((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(2, 0) == DynamicDescriptor{}));
+  EXPECT_TRUE((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(2, 1) == Distance{}));
+  EXPECT_ANY_THROW((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(2, 2)));
+  EXPECT_TRUE((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(2, 3) == DynamicDescriptor {Distance{}, Polar<Distance, angle::Radians>{}}));
+
+  EXPECT_TRUE((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(3, 0) == DynamicDescriptor {}));
+  EXPECT_ANY_THROW((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(3, 1)));
+  EXPECT_TRUE((DynamicDescriptor {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(3, 2) == Polar<Distance, angle::Radians>{}));
+
+  EXPECT_TRUE((DynamicDescriptor {Polar<Distance, angle::Radians>{}, Axis{}}.slice(0, 2) == Polar<Distance, angle::Radians>{}));
+  EXPECT_TRUE((DynamicDescriptor {Polar<Distance, angle::Radians>{}, Axis{}}.slice(2, 1) == Axis{}));
 }
+
+
+TEST(basics, get_vector_space_descriptor_slice_dynamic)
+{
+  using namespace internal;
+
+  static_assert(get_vector_space_descriptor_slice(Dimensions{7}, 0, 7) == Dimensions<7>{});
+  static_assert(get_vector_space_descriptor_slice(Dimensions{7}, 1, 6) == Dimensions<6>{});
+  static_assert(get_vector_space_descriptor_slice(Dimensions{7}, 2, 3) == Dimensions<3>{});
+  static_assert(get_vector_space_descriptor_slice(Dimensions{7}, 2, 0) == Dimensions<0>{});
+
+  EXPECT_TRUE((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 0, 6) == FixedDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}));
+  EXPECT_ANY_THROW((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 0, 7)));
+  EXPECT_ANY_THROW((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, -1, 7)));
+  EXPECT_TRUE((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 0, 0) == FixedDescriptor<>{}));
+  EXPECT_TRUE((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 1, 5) == FixedDescriptor<Axis, Distance, Polar<Distance, angle::Radians>, Axis>{}));
+  EXPECT_TRUE((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 1, 4) == FixedDescriptor<Axis, Distance, Polar<Distance, angle::Radians>>{}));
+  EXPECT_ANY_THROW((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 1, 3)));
+  EXPECT_TRUE((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 1, 2) == FixedDescriptor<Axis, Distance>{}));
+  EXPECT_TRUE((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 1, 1) == FixedDescriptor<Axis>{}));
+  EXPECT_TRUE((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 1, 0) == FixedDescriptor<>{}));
+  EXPECT_TRUE((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 2, 4) == FixedDescriptor<Distance, Polar<Distance, angle::Radians>, Axis>{}));
+  EXPECT_ANY_THROW((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 2, 5)));
+  EXPECT_TRUE((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 2, 3) == FixedDescriptor<Distance, Polar<Distance, angle::Radians>>{}));
+  EXPECT_ANY_THROW((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 2, 2)));
+  EXPECT_TRUE((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 2, 1) == FixedDescriptor<Distance>{}));
+  EXPECT_TRUE((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 2, 0) == FixedDescriptor<>{}));
+  EXPECT_TRUE((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 3, 3) == FixedDescriptor<Polar<Distance, angle::Radians>, Axis>{}));
+  EXPECT_TRUE((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 3, 2) == FixedDescriptor<Polar<Distance, angle::Radians>>{}));
+  EXPECT_ANY_THROW((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 3, 1)));
+  EXPECT_TRUE((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 3, 0) == FixedDescriptor<>{}));
+  EXPECT_TRUE((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 5, 1) == FixedDescriptor<Axis>{}));
+  EXPECT_TRUE((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 5, 0) == FixedDescriptor<>{}));
+  EXPECT_TRUE((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 6, 0) == FixedDescriptor<>{}));
+  EXPECT_ANY_THROW((get_vector_space_descriptor_slice(DynamicDescriptor {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 7, -1)));
+}
+

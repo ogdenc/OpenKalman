@@ -41,11 +41,13 @@
 
 // shape-based traits
 
-#include "compatible_with_vector_space_descriptors.hpp"
 #include "internal/not_more_fixed_than.hpp"
 #include "internal/less_fixed_than.hpp"
-#include "maybe_same_shape_as.hpp"
-#include "same_shape_as.hpp"
+#include "internal/maybe_same_shape_as_vector_space_descriptors.hpp"
+
+#include "compatible_with_vector_space_descriptors.hpp"
+#include "vector_space_descriptors_may_match_with.hpp"
+#include "vector_space_descriptors_match_with.hpp"
 
 #include "one_dimensional.hpp"
 #include "square_shaped.hpp"

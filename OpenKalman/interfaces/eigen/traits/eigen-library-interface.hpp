@@ -19,7 +19,6 @@
 #include <type_traits>
 #include <tuple>
 #include <random>
-#include <iostream>
 
 namespace OpenKalman::interface
 {
@@ -111,9 +110,9 @@ namespace OpenKalman::interface
 
   public:
 
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
-  template<indexible Arg, std::ranges::input_range Indices> requires std::convertible_to<std::ranges::range_value_t<Indices>, const typename std::decay_t<Arg>::Index>
-    static constexpr scalar_constant decltype(auto)
+#ifdef __cpp_lib_ranges
+  template<typename Arg, std::ranges::input_range Indices> requires std::convertible_to<std::ranges::range_value_t<Indices>, const typename std::decay_t<Arg>::Index>
+  static constexpr scalar_constant decltype(auto)
 #else
     template<typename Arg, typename Indices>
     static constexpr decltype(auto)
@@ -145,8 +144,8 @@ namespace OpenKalman::interface
     }
 
 
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
-    template<indexible Arg, std::ranges::input_range Indices> requires (not std::is_const_v<Arg>) and
+#ifdef __cpp_lib_ranges
+    template<typename Arg, std::ranges::input_range Indices> requires (not std::is_const_v<Arg>) and
       std::convertible_to<std::ranges::range_value_t<Indices>, const typename Arg::Index> and
       std::assignable_from<decltype(get_coeff(std::declval<Arg&>(), 0, 0)), const scalar_type_of_t<Arg>&> and
       ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0) and
@@ -313,6 +312,27 @@ namespace OpenKalman::interface
   public:
 
 #ifdef __cpp_concepts
+    template<typename To, Eigen3::eigen_general From> requires (std::assignable_from<To&, From&&>)
+#else
+    template<typename To, typename From, std::enable_if_t<Eigen3::eigen_general<From> and std::is_assignable_v<To&, From&&>, int> = 0>
+#endif
+    static void assign(To& a, From&& b)
+    {
+      if constexpr (Eigen3::eigen_DiagonalWrapper<From>)
+      {
+        if constexpr (vector<nested_object_of_t<From>>)
+          a = std::forward<From>(b);
+        else
+          a = diagonal_of(std::forward<From>(b)).asDiagonal();
+      }
+      else
+      {
+        a = std::forward<From>(b);
+      }
+    }
+
+
+#ifdef __cpp_concepts
     template<Layout layout, scalar_type Scalar, vector_space_descriptor...D>
 #else
     template<Layout layout, typename Scalar, typename...D, std::enable_if_t<scalar_type<Scalar> and
@@ -352,40 +372,18 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<writable To, indexible From> requires (std::assignable_from<To&, From&&>)
-#else
-    template<typename To, typename From, std::enable_if_t<writable<To> and indexible<From> and
-      std::is_assignable_v<To&, From&&>, int> = 0>
-#endif
-    static void assign(To& a, From&& b)
-    {
-      if constexpr (Eigen3::eigen_DiagonalWrapper<From>)
-      {
-        if constexpr (vector<nested_object_of_t<From>>)
-          a = std::forward<From>(b);
-        else
-          a = diagonal_of(std::forward<From>(b)).asDiagonal();
-      }
-      else
-      {
-        a = std::forward<From>(b);
-      }
-    }
-
-
-#ifdef __cpp_concepts
-    template<Layout layout, writable M, std::convertible_to<scalar_type_of_t<M>> Arg, std::convertible_to<scalar_type_of_t<M>> ... Args>
+    template<Layout layout, writable Arg, std::convertible_to<scalar_type_of_t<Arg>> S, std::convertible_to<scalar_type_of_t<Arg>>...Ss>
       requires (layout == Layout::right) or (layout == Layout::left)
 #else
-    template<Layout layout, typename M, typename Arg, typename...Args, std::enable_if_t<writable<M> and
+    template<Layout layout, typename Arg, typename S, typename...Ss, std::enable_if_t<writable<M> and
       (layout == Layout::right or layout == Layout::left) and
-      std::conjunction<std::is_convertible<Arg, typename scalar_type_of<M>::type>,
-          std::is_convertible<Args, typename scalar_type_of<M>::type>...>::value, int> = 0>
+      std::conjunction<std::is_convertible<S, typename scalar_type_of<Arg>::type>,
+          std::is_convertible<Ss, typename scalar_type_of<Arg>::type>...>::value, int> = 0>
 #endif
-    static void fill_components(M& m, const Arg arg, const Args ... args)
+    static void fill_components(Arg& arg, const S s, const Ss ... ss)
     {
-      if constexpr (layout == Layout::left) ((m.transpose() << arg), ... , args);
-      else ((m << arg), ... , args);
+      if constexpr (layout == Layout::left) ((arg.transpose() << s), ... , ss);
+      else ((arg << s), ... , ss);
     }
 
 
@@ -418,7 +416,7 @@ namespace OpenKalman::interface
     template<typename Scalar, typename...Ds> requires (sizeof...(Ds) <= 2)
     static constexpr identity_matrix auto
 #else
-    template<typename Scalar, typename...Ds, std::enable_if_t<(sizeof...(Ds) <= 2)>>
+    template<typename Scalar, typename...Ds, std::enable_if_t<(sizeof...(Ds) <= 2), int> = 0>
     static constexpr auto
 #endif
     make_identity_matrix(Ds&&...ds)
@@ -463,13 +461,14 @@ namespace OpenKalman::interface
     }
 
 
-    template<typename Arg, typename...Begin, typename...Size>
+#ifdef __cpp_concepts
+    template<typename Arg, typename...Begin, typename...Size> requires (sizeof...(Begin) <= 2)
+#else
+    template<typename Arg, typename...Begin, typename...Size, std::enable_if_t<(sizeof...(Begin) <= 2), int> = 0>
+#endif
     static auto
-    get_block(Arg&& arg, const std::tuple<Begin...>& begin, const std::tuple<Size...>& size)
+    get_slice(Arg&& arg, const std::tuple<Begin...>& begin, const std::tuple<Size...>& size)
     {
-      static_assert(0 < sizeof...(Begin) and sizeof...(Begin) <= 2);
-      static_assert(sizeof...(Begin) == sizeof...(Size));
-
       auto b0 = [](const auto& begin){
         using Begin0 = std::decay_t<decltype(std::get<0>(begin))>;
         if constexpr (static_index_value<Begin0>) return std::integral_constant<Eigen::Index, Begin0::value>{};
@@ -530,122 +529,110 @@ namespace OpenKalman::interface
         else
           return B {std::forward<M>(m), std::move(b0), std::move(b1), std::move(s0), std::move(s1)};
       }
-
-
     }
 
 
-    template<typename Arg, typename Block, typename...Begin>
-    static constexpr Arg&
-    set_block(Arg& arg, Block&& block, const Begin&...begin)
+#ifdef __cpp_concepts
+    template<Eigen3::eigen_dense_general Arg, Eigen3::eigen_general Block, typename...Begin> requires (sizeof...(Begin) <= 2)
+#else
+    template<typename Arg, typename Block, typename...Begin, std::enable_if_t<
+      Eigen3::eigen_dense_general<Arg> and Eigen3::eigen_general<Block> and (sizeof...(Begin) <= 2), int> = 0>
+#endif
+    static void
+    set_slice(Arg& arg, Block&& block, const Begin&...begin)
     {
-      static_assert(0 < sizeof...(Begin) and sizeof...(Begin) <= 2);
+      auto [b0, b1] = [](Eigen::Index bs0, Eigen::Index bs1, const auto&...){ return std::tuple {bs0, bs1}; }
+        (static_cast<std::size_t>(begin)..., 0_uz, 0_uz);
 
-      if constexpr (Eigen3::eigen_wrapper<Arg> or Eigen3::eigen_self_contained_wrapper<Arg>)
+      if constexpr (Eigen3::eigen_Block<Block>)
       {
-        set_block(nested_object(arg), std::forward<Block>(block), begin...);
-        return arg;
+        if (std::addressof(arg) == std::addressof(block.nestedExpression()) and b0 == block.startRow() and b1 == block.startCol())
+          return;
+      }
+
+      constexpr auto Bx0 = static_cast<int>(index_dimension_of_v<Block, 0>);
+      constexpr auto Bx1 = static_cast<int>(index_dimension_of_v<Block, 1>);
+      using Bk = Eigen::Block<std::remove_reference_t<Arg>, Bx0, Bx1>;
+
+      if constexpr (not has_dynamic_dimensions<Block>)
+      {
+        Bk {arg, b0, b1} = std::forward<Block>(block);
       }
       else
       {
-        static_assert(Eigen3::eigen_dense_general<Arg>);
-
-        auto [b0, b1] = [](Eigen::Index bs0, Eigen::Index bs1, const auto&...){ return std::tuple {bs0, bs1}; }
-          (static_cast<std::size_t>(begin)..., 0_uz, 0_uz);
-
-        if constexpr (Eigen3::eigen_Block<Block>)
-        {
-          if (std::addressof(arg) == std::addressof(block.nestedExpression()) and b0 == block.startRow() and b1 == block.startCol())
-            return arg;
-        }
-
-        constexpr auto Bx0 = static_cast<int>(index_dimension_of_v<Block, 0>);
-        constexpr auto Bx1 = static_cast<int>(index_dimension_of_v<Block, 1>);
-        using Bk = Eigen::Block<std::remove_reference_t<Arg>, Bx0, Bx1>;
-
-        if constexpr (not has_dynamic_dimensions<Block>)
-        {
-          if constexpr (std::is_assignable_v<Bk&, Block&&>)
-            Bk {arg, b0, b1} = std::forward<Block>(block);
-          else
-            Bk {arg, b0, b1} = to_native_matrix(std::forward<Block>(block));
-        }
-        else
-        {
-          auto s0 = static_cast<Eigen::Index>(get_index_dimension_of<0>(block));
-          auto s1 = static_cast<Eigen::Index>(get_index_dimension_of<1>(block));
-
-          if constexpr (std::is_assignable_v<Bk&, Block&&>)
-            Bk {arg, b0, b1, s0, s1} = std::forward<Block>(block);
-          else
-            Bk {arg, b0, b1, s0, s1} = to_native_matrix(std::forward<Block>(block));
-        }
-
-        return arg;
+        auto s0 = static_cast<Eigen::Index>(get_index_dimension_of<0>(block));
+        auto s1 = static_cast<Eigen::Index>(get_index_dimension_of<1>(block));
+        Bk {arg, b0, b1, s0, s1} = std::forward<Block>(block);
       }
     }
 
-  private:
 
 #ifdef __cpp_concepts
-    template<typename A>
+    template<TriangleType t, Eigen3::eigen_SelfAdjointView A, Eigen3::eigen_general B> requires (not hermitian_matrix<A>) and
+      set_triangle_defined_for<T, t, decltype(OpenKalman::nested_object(std::declval<A>())), B&&>
 #else
-    template<typename A, typename = void>
+    template<TriangleType t, typename A, typename B, std::enable_if_t<
+      Eigen3::eigen_general<B> and Eigen3::eigen_SelfAdjointView<A> and (not hermitian_matrix<A>) and
+      set_triangle_defined_for<T, t, decltype(OpenKalman::nested_object(std::declval<A>())), B&&>, int> = 0>
 #endif
-    struct pass_through_eigenwrapper : std::false_type {};
-
-#ifdef __cpp_concepts
-    template<typename A> requires Eigen3::eigen_wrapper<A> or Eigen3::eigen_self_contained_wrapper<A>
-    struct pass_through_eigenwrapper<A>
-#else
-    template<typename A>
-    struct pass_through_eigenwrapper<A, std::enable_if_t<Eigen3::eigen_wrapper<A> or Eigen3::eigen_self_contained_wrapper<A>>>
-#endif
-      : std::bool_constant<Eigen3::eigen_dense_general<nested_object_of_t<A>> or
-        diagonal_adapter<nested_object_of_t<A>> or diagonal_adapter<nested_object_of_t<A>, 1> or
-        triangular_adapter<nested_object_of_t<A>> or hermitian_adapter<nested_object_of_t<A>>> {};
-
-  public:
-
-    template<TriangleType t, typename A, typename B>
-    static decltype(auto)
+    static void
     set_triangle(A&& a, B&& b)
     {
-      if constexpr (Eigen3::eigen_MatrixWrapper<A> or Eigen3::eigen_ArrayWrapper<A> or pass_through_eigenwrapper<A>::value)
-      {
-        return internal::set_triangle<t>(nested_object(std::forward<A>(a)), std::forward<B>(b));
-      }
-      else if constexpr (not Eigen3::eigen_dense_general<A>)
-      {
-        return set_triangle<t>(to_native_matrix(std::forward<A>(a)), std::forward<B>(b));
-      }
+      // A SelfAdjointView won't always be a hermitian_adapter
+      if constexpr ((t == TriangleType::lower and interface::indexible_object_traits<T>::hermitian_adapter_type == HermitianAdapterType::upper) or
+          (t == TriangleType::upper and interface::indexible_object_traits<T>::hermitian_adapter_type == HermitianAdapterType::lower))
+        internal::set_triangle<t>(OpenKalman::nested_object(std::forward<A>(a)), OpenKalman::adjoint(std::forward<B>(b)));
       else
-      {
-        decltype(auto) aw = to_dense_object(std::forward<A>(a));
+        internal::set_triangle<t>(OpenKalman::nested_object(std::forward<A>(a)), std::forward<B>(b));
+    }
 
-        auto awview = [](auto&& aw) {
-          if constexpr (t == TriangleType::diagonal) return aw.diagonal();
-          else return aw.template triangularView<t == TriangleType::upper ? Eigen::Upper : Eigen::Lower>();
-        }(std::forward<decltype(aw)>(aw));
 
-        if constexpr (t == TriangleType::diagonal)
-        {
-          auto&& bdiag = OpenKalman::diagonal_of(std::forward<B>(b));
-          if constexpr (std::is_assignable_v<decltype((awview)), decltype(bdiag)>)
-            awview = std::forward<decltype(bdiag)>(bdiag);
-          else
-            awview = to_native_matrix(std::forward<decltype(bdiag)>(bdiag));
-        }
-        else
-        {
-          if constexpr (std::is_assignable_v<decltype((awview)), B&&>)
-            awview = std::forward<B>(b);
-          else
-            awview = to_native_matrix(std::forward<B>(b));
-        }
+#ifdef __cpp_concepts
+    template<TriangleType t, typename A, Eigen3::eigen_general B> requires
+      (diagonal_adapter<A> or t == TriangleType::diagonal) and
+      std::assignable_from<decltype(OpenKalman::diagonal_of(std::declval<A&&>())), decltype(OpenKalman::diagonal_of(std::declval<B&&>()))>
+#else
+    template<TriangleType t, typename A, typename B, std::enable_if_t<
+      Eigen3::eigen_general<B> and (diagonal_adapter<A> or t == TriangleType::diagonal) and
+      std::is_assignable_v<decltype(OpenKalman::diagonal_of(std::declval<A&&>())), decltype(OpenKalman::diagonal_of(std::declval<B&&>()))>, int> = 0>
+#endif
+    static void
+    set_triangle(A&& a, B&& b)
+    {
+      assign(OpenKalman::diagonal_of(std::forward<A>(a)), OpenKalman::diagonal_of(std::forward<B>(b)));
+    }
 
-        return aw;
-      }
+
+#ifdef __cpp_concepts
+    template<TriangleType t, typename A, Eigen3::eigen_general B> requires
+      (Eigen3::eigen_MatrixWrapper<A> or Eigen3::eigen_ArrayWrapper<A>) and
+      set_triangle_defined_for<T, t, decltype(OpenKalman::nested_object(std::declval<A>())), B&&>
+#else
+    template<TriangleType t, typename A, typename B, std::enable_if_t<Eigen3::eigen_general<B> and
+      (Eigen3::eigen_MatrixWrapper<A> or Eigen3::eigen_ArrayWrapper<A>) and
+      set_triangle_defined_for<T, t, decltype(OpenKalman::nested_object(std::declval<A>())), B&&>, int> = 0>
+#endif
+    static void
+    set_triangle(A&& a, B&& b)
+    {
+      internal::set_triangle<t>(OpenKalman::nested_object(std::forward<A>(a)), std::forward<B>(b));
+    }
+
+
+#ifdef __cpp_concepts
+    template<TriangleType t, Eigen3::eigen_dense_general A, Eigen3::eigen_general B> requires
+      (not Eigen3::eigen_MatrixWrapper<A>) and (not Eigen3::eigen_ArrayWrapper<A>) and
+      writable<A&&> and (t != TriangleType::diagonal)
+#else
+    template<TriangleType t, typename A, typename B, std::enable_if_t<
+      Eigen3::eigen_dense_general<A> and Eigen3::eigen_general<B> and
+      (not Eigen3::eigen_MatrixWrapper<A>) and (not Eigen3::eigen_ArrayWrapper<A>) and
+      writable<A&&> and (t != TriangleType::diagonal), int> = 0>
+#endif
+    static void
+    set_triangle(A&& a, B&& b)
+    {
+      a.template triangularView<t == TriangleType::upper ? Eigen::Upper : Eigen::Lower>() = std::forward<B>(b);
     }
 
 
@@ -679,27 +666,27 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<Eigen3::eigen_SelfAdjointView Arg>
+    template<Eigen3::eigen_SelfAdjointView Arg> requires (hermitian_adapter_type_of_v<Arg> == HermitianAdapterType::lower)
 #else
     template<typename Arg, std::enable_if_t<Eigen3::eigen_SelfAdjointView<Arg>, int> = 0>
 #endif
     static constexpr auto
     to_diagonal(Arg&& arg)
     {
-      // If it is a column vector, the SelfAdjointView wrapper doesn't matter, and otherwise, the following will throw an exception:
+      // If it is a column vector, a "lower SelfAdjointView wrapper is irrelevant
       return OpenKalman::to_diagonal(nested_object(std::forward<Arg>(arg)));
     }
 
 
 #ifdef __cpp_concepts
-    template<Eigen3::eigen_TriangularView Arg>
+    template<Eigen3::eigen_TriangularView Arg> requires (triangle_type_of_v<Arg> == TriangleType::lower)
 #else
-    template<typename Arg, std::enable_if_t<Eigen3::eigen_TriangularView<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<Eigen3::eigen_TriangularView<Arg> and (triangle_type_of_v<Arg> == TriangleType::lower), int> = 0>
 #endif
     static constexpr auto
     to_diagonal(Arg&& arg)
     {
-      // If it is a column vector, the TriangularView wrapper doesn't matter, and otherwise, the following will throw an exception:
+      // If it is a column vector, a "lower" TriangularView wrapper is irrelevant
       return OpenKalman::to_diagonal(nested_object(std::forward<Arg>(arg)));
     }
 
@@ -947,14 +934,16 @@ namespace OpenKalman::interface
       if constexpr ((euclidean_vector_space_descriptor<Ds> and ...) and (all_fixed_indices_are_euclidean<Args> and ...))
         return ret;
       else
-        return make_matrix<Ds...>(std::move(ret));
+        return std::apply(
+          [](auto&& ret, auto&&...ds) { return make_vector_space_adapter(std::forward<decltype(ret)>(ret), std::forward<decltype(ds)>(ds)...); },
+          std::tuple_cat(std::forward_as_tuple(std::move(ret)), tup));
     }
 
 
 #ifdef __cpp_concepts
-    template<std::size_t...indices, typename BinaryFunction, typename Arg> requires (sizeof...(indices) <= 2)
+    template<std::size_t...indices, typename BinaryFunction, typename Arg> requires ((indices <= 1) and ...)
 #else
-    template<std::size_t...indices, typename BinaryFunction, typename Arg, std::enable_if_t<(sizeof...(indices) <= 2), int> = 0>
+    template<std::size_t...indices, typename BinaryFunction, typename Arg, std::enable_if_t<((indices <= 1) and ...), int> = 0>
 #endif
     static auto
     reduce(BinaryFunction&& b, Arg&& arg)
@@ -964,7 +953,7 @@ namespace OpenKalman::interface
         auto&& op = Eigen3::native_operation(std::forward<BinaryFunction>(b));
         using Op = decltype(op);
 
-        if constexpr (sizeof...(indices) == index_count_v<Arg>)
+        if constexpr (((indices == 0) or ...) and ((indices == 1) or ...))
         {
           return std::forward<Arg>(arg).redux(std::forward<Op>(op)); // Complete reduction, which will be a scalar.
         }
@@ -1148,7 +1137,7 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
     template<indexible Arg, scalar_constant S>
-    static constexpr maybe_same_shape_as<Arg> auto
+    static constexpr vector_space_descriptors_may_match_with<Arg> auto
 #else
     template<typename Arg, typename S>
     static constexpr auto
@@ -1163,7 +1152,7 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
     template<indexible Arg, scalar_constant S>
-    static constexpr maybe_same_shape_as<Arg> auto
+    static constexpr vector_space_descriptors_may_match_with<Arg> auto
 #else
     template<typename Arg, typename S>
     static constexpr auto
@@ -1218,23 +1207,38 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<bool on_the_right, writable A, indexible B> requires Eigen3::eigen_dense_general<A>
+    template<bool on_the_right, writable A, indexible B> requires Eigen3::eigen_dense_general<A> or
+      Eigen3::eigen_DiagonalMatrix<A> or Eigen3::eigen_DiagonalWrapper<A>
 #else
-    template<bool on_the_right, typename A, typename B, std::enable_if_t<writable<A> and Eigen3::eigen_dense_general<A>, int> = 0>
+    template<bool on_the_right, typename A, typename B, std::enable_if_t<writable<A> and
+      (Eigen3::eigen_dense_general<A> or Eigen3::eigen_DiagonalMatrix<A> or (Eigen3::eigen_DiagonalWrapper<A> and diagonal_adapter<A, 0>)), int> = 0>
 #endif
     static A&
     contract_in_place(A& a, B&& b)
     {
-      auto&& ma = [](A& a) -> decltype(auto) {
-        if constexpr (Eigen3::eigen_array_general<A>) return a.matrix();
-        else return (a);
-      }(a);
-
-      if constexpr (on_the_right)
-        return ma.applyOnTheRight(OpenKalman::to_native_matrix<T>(std::forward<B>(b)));
+      if constexpr (Eigen3::eigen_DiagonalMatrix<A> or Eigen3::eigen_DiagonalWrapper<A>)
+      {
+        static_assert(diagonal_matrix<B>);
+        nested_object(a) = diagonal_of(a).array() * diagonal_of(std::forward<B>(b)).array();
+      }
+      else if constexpr (Eigen3::eigen_TriangularView<A>)
+      {
+        static_assert(triangular_matrix<B, triangle_type_of_v<A>>);
+        nested_object(a) = contract(a, std::forward<B>(b));
+      }
       else
-        return ma.applyOnTheLeft(OpenKalman::to_native_matrix<T>(std::forward<B>(b)));
-      return a;
+      {
+        auto&& ma = [](A& a) -> decltype(auto) {
+          if constexpr (Eigen3::eigen_array_general<A>) return a.matrix();
+          else return (a);
+        }(a);
+
+        if constexpr (on_the_right)
+          return ma.applyOnTheRight(OpenKalman::to_native_matrix<T>(std::forward<B>(b)));
+        else
+          return ma.applyOnTheLeft(OpenKalman::to_native_matrix<T>(std::forward<B>(b)));
+        return a;
+      }
     }
 
 
@@ -1272,7 +1276,7 @@ namespace OpenKalman::interface
           auto euc_dim = get_dimension_size_of(dim);
           auto col0 = make_constant<A>(internal::constexpr_sqrt(s), euc_dim, Dimensions<1>{});
           auto othercols = make_zero<A>(euc_dim, euc_dim - Dimensions<1>{});
-          return make_matrix(OpenKalman::make_triangular_matrix<triangle_type>(concatenate_horizontal(col0, othercols)), dim, dim);
+          return make_vector_space_adapter(OpenKalman::make_triangular_matrix<triangle_type>(concatenate_horizontal(col0, othercols)), dim, dim);
         }
         else
         {
@@ -1280,7 +1284,7 @@ namespace OpenKalman::interface
           auto euc_dim = get_dimension_size_of(dim);
           auto row0 = make_constant<A>(internal::constexpr_sqrt(s), Dimensions<1>{}, dim);
           auto otherrows = make_zero<A>(euc_dim - Dimensions<1>{}, euc_dim);
-          return make_matrix(OpenKalman::make_triangular_matrix<triangle_type>(concatenate_vertical(row0, otherrows)), dim, dim);
+          return make_vector_space_adapter(OpenKalman::make_triangular_matrix<triangle_type>(concatenate_vertical(row0, otherrows)), dim, dim);
         }
       }
       else

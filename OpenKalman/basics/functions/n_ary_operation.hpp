@@ -49,8 +49,8 @@ namespace OpenKalman
           {
             using D_Arg = vector_space_descriptor_of_t<Arg, ix>;
             using D = std::tuple_element_t<ix, DTup>;
-            static_assert(equivalent_to<D_Arg, D> or equivalent_to_uniform_dimension_type_of<D_Arg, D> or
-              (ix >= index_count_v<Arg> and has_uniform_dimension_type<D>),
+            static_assert(equivalent_to<D_Arg, D> or equivalent_to_uniform_vector_space_descriptor_component_of<D_Arg, D> or
+              (ix >= index_count_v<Arg> and uniform_vector_space_descriptor<D>),
               "In argument to n_ary_operation, the dimension of each index must be either 1 or that of Ds.");
           }
         }(d_tup, args),...);
@@ -191,7 +191,7 @@ namespace OpenKalman
           std::tuple_cat(std::tuple{std::move(c)}, d_tup));
       }
       // Library handles n-ary operation.
-      else if constexpr (maybe_same_shape_as<Args...> and
+      else if constexpr (vector_space_descriptors_may_match_with<Args...> and
         is_invocable_with_indices<Op, std::add_lvalue_reference_t<scalar_type_of_t<Args>>...>(seq) and
         interface::n_ary_operation_defined_for<PatternMatrix, const std::tuple<Ds...>&, Op&&, Args&&...>)
       {
@@ -334,14 +334,14 @@ namespace OpenKalman
         if constexpr (fixed_vector_space_descriptor<Arg_D> and fixed_vector_space_descriptor<Max_D>)
         {
           constexpr auto dim_arg_d = dimension_size_of_v<Arg_D>;
-          if constexpr (equivalent_to<Arg_D, Max_D> or (dim_arg_d == 1 and equivalent_to_uniform_dimension_type_of<Arg_D, Max_D>))
+          if constexpr (equivalent_to<Arg_D, Max_D> or (dim_arg_d == 1 and equivalent_to_uniform_vector_space_descriptor_component_of<Arg_D, Max_D>))
           {
             return max_d;
           }
           else
           {
             constexpr auto dim_max_d = dimension_size_of_v<Max_D>;
-            static_assert(dim_max_d != 1 or not equivalent_to_uniform_dimension_type_of<Max_D, Arg_D>,
+            static_assert(dim_max_d != 1 or not equivalent_to_uniform_vector_space_descriptor_component_of<Max_D, Arg_D>,
               "The dimension of arguments to n_ary_operation are not compatible with each other for at least one index.");
             return get_vector_space_descriptor<ix>(arg);
           }

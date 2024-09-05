@@ -20,9 +20,9 @@
 namespace OpenKalman
 {
   /**
-   * \brief Specifies that a type is a diagonal matrix.
-   * \details A diagonal matrix has zero components everywhere except the main diagonal. It is not necessarily a
-   * square matrix.
+   * \brief Specifies that a type is a diagonal matrix or tensor.
+   * \details A diagonal matrix has zero components everywhere except the main diagonal. It is not necessarily square.
+   * For rank >2 tensors, every rank-2 slice comprising dimensions 0 and 1 must be diagonal.
    * \note A \ref diagonal_adapter is an diagonal matrix, but not all diagonal matrices are diagonal adapters.
    */
   template<typename T>

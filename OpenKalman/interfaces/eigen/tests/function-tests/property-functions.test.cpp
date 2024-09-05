@@ -93,10 +93,10 @@ TEST(eigen3, all_vector_space_descriptors)
 }
 
 
-TEST(eigen3, same_shape)
+TEST(eigen3, vector_space_descriptors_match)
 {
-  EXPECT_TRUE(same_shape(M23{}, Mxx(2, 3)));
-  EXPECT_FALSE(same_shape(M23{}, Mxx(2, 3), Mxx(2, 2)));
+  EXPECT_TRUE(vector_space_descriptors_match(M23{}, Mxx(2, 3)));
+  EXPECT_FALSE(vector_space_descriptors_match(M23{}, Mxx(2, 3), Mxx(2, 2)));
 }
 
 

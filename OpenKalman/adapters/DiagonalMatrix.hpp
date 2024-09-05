@@ -67,13 +67,13 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<vector<0, Qualification::depends_on_dynamic_shape> Arg> requires
-      (not std::derived_from<std::decay_t<Arg>, DiagonalMatrix>) and
-      maybe_same_shape_as<NestedMatrix, Arg> and (vector<Arg> or not diagonal_matrix<Arg>) and
+      (not std::is_base_of_v<DiagonalMatrix, std::decay_t<Arg>>) and
+      vector_space_descriptors_may_match_with<NestedMatrix, Arg> and (vector<Arg> or not diagonal_matrix<Arg>) and
       std::constructible_from<NestedMatrix, Arg&&>
 #else
     template<typename Arg, std::enable_if_t<vector<Arg, 0, Qualification::depends_on_dynamic_shape> and
       (not std::is_base_of_v<DiagonalMatrix, std::decay_t<Arg>>) and
-      maybe_same_shape_as<NestedMatrix, Arg> and (vector<Arg> or not diagonal_matrix<Arg>) and
+      vector_space_descriptors_may_match_with<NestedMatrix, Arg> and (vector<Arg> or not diagonal_matrix<Arg>) and
       std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
 #endif
     constexpr explicit DiagonalMatrix(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
@@ -95,7 +95,7 @@ namespace OpenKalman
      * \tparam Arg
      */
 #ifdef __cpp_concepts
-    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires (not std::derived_from<std::decay_t<Arg>, DiagonalMatrix>) and
+    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires (not std::is_base_of_v<DiagonalMatrix, std::decay_t<Arg>>) and
       (not vector<Arg, 0, Qualification::depends_on_dynamic_shape> or (not vector<Arg> and diagonal_matrix<Arg>)) and
       (square_dimensions_match<Arg>(std::make_index_sequence<index_count_v<Arg>>{})) and
       requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; }
@@ -161,15 +161,15 @@ namespace OpenKalman
 
     /// Assign from another \ref diagonal_matrix.
 #ifdef __cpp_concepts
-    template<diagonal_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, DiagonalMatrix>) and
-      maybe_same_shape_as<NestedMatrix, decltype(diagonal_of(std::declval<Arg>()))> and
+    template<diagonal_matrix Arg> requires (not std::is_base_of_v<DiagonalMatrix, std::decay_t<Arg>>) and
+      vector_space_descriptors_may_match_with<NestedMatrix, decltype(diagonal_of(std::declval<Arg>()))> and
       (not constant_matrix<NestedMatrix> or constant_diagonal_matrix<Arg>) and
       (not requires { requires constant_coefficient<NestedMatrix>::value != constant_diagonal_coefficient<Arg>::value; }) and
       std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, decltype(diagonal_of(std::declval<Arg>()))>
 #else
     template<typename Arg, std::enable_if_t<
       diagonal_matrix<Arg> and (not std::is_base_of<DiagonalMatrix, std::decay_t<Arg>>::value) and
-      maybe_same_shape_as<NestedMatrix, decltype(diagonal_of(std::declval<Arg>()))> and
+      vector_space_descriptors_may_match_with<NestedMatrix, decltype(diagonal_of(std::declval<Arg>()))> and
       (not constant_matrix<NestedMatrix> or constant_diagonal_matrix<Arg>) and constants_match<Arg>::value and
       std::is_assignable<std::add_lvalue_reference_t<NestedMatrix>, decltype(diagonal_of(std::declval<Arg>()))>::value, int> = 0>
 #endif
@@ -177,8 +177,8 @@ namespace OpenKalman
     {
       using Arg_diag = decltype(diagonal_of(std::declval<Arg>()));
 
-      if constexpr (not same_shape_as<NestedMatrix, Arg_diag>)
-        if (not same_shape(this->nested_object(), diagonal_of(std::declval<Arg>())))
+      if constexpr (not vector_space_descriptors_match_with<NestedMatrix, Arg_diag>)
+        if (not vector_space_descriptors_match(this->nested_object(), diagonal_of(std::declval<Arg>())))
           throw std::invalid_argument {"Argument to DiagonalMatrix assignment operator has non-matching vector space descriptors."};
 
       if constexpr (constant_matrix<NestedMatrix>)

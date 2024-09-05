@@ -13,8 +13,8 @@
  * \brief Definition for \ref get_vector_space_descriptor_component_count_of.
  */
 
-#ifndef OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_FORWARD_FUNCTIONS_HPP
-#define OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_FORWARD_FUNCTIONS_HPP
+#ifndef OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_COMPONENT_COUNT_OF_HPP
+#define OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_COMPONENT_COUNT_OF_HPP
 
 #include <type_traits>
 
@@ -32,7 +32,7 @@ namespace OpenKalman
   constexpr std::size_t
   get_vector_space_descriptor_component_count_of(const T& t)
   {
-    if constexpr (fixed_vector_space_descriptor<T>) return vector_space_descriptor_components_of_v<T>;
+    if constexpr (fixed_vector_space_descriptor<T>) return vector_space_component_count_v<T>;
     else
     {
       dynamic_vector_space_descriptor_traits ret{t};
@@ -44,4 +44,4 @@ namespace OpenKalman
 } // namespace OpenKalman
 
 
-#endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_FORWARD_FUNCTIONS_HPP
+#endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_COMPONENT_COUNT_OF_HPP

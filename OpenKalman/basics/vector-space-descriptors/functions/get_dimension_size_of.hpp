@@ -33,7 +33,7 @@ namespace OpenKalman
   {
     if constexpr (fixed_vector_space_descriptor<T>)
     {
-      return std::integral_constant<std::size_t, fixed_vector_space_descriptor_traits<std::decay_t<T>>::size> {};
+      return dimension_size_of<T> {};
     }
     else
     {

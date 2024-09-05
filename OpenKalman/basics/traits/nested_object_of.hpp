@@ -20,15 +20,23 @@
 namespace OpenKalman
 {
   /**
-   * \brief A wrapper type's nested matrix, if it exists.
-   * \details For example, for OpenKalman::Mean<RowCoefficients, M>, the nested matrix type is M.
-   * \tparam T A wrapper type that has a nested matrix.
+   * \brief A wrapper type's nested object type, if it exists.
+   * \details For example, for OpenKalman::TriangularMatrix<M, TriangleType::lower>, the nested object type is M.
+   * \tparam T A wrapper type that has a nested object.
    * \internal \sa interface::indexible_object_traits
    */
 #ifdef __cpp_concepts
   template<typename T>
 #else
   template<typename T, typename = void>
+#endif
+  struct nested_object_of;
+
+
+#ifdef __cpp_concepts
+  template<typename T>
+#else
+  template<typename T, typename>
 #endif
   struct nested_object_of {};
 

@@ -51,7 +51,7 @@ namespace OpenKalman
     if constexpr (sizeof...(Args) > 0)
     {
       constexpr Layout l = layout == Layout::none ? Layout::right : layout;
-      return fill_components<l>(std::move(m), static_cast<const Scalar>(args)...);
+      return fill_components<l>(m, static_cast<const Scalar>(args)...);
     }
     else return m;
   }

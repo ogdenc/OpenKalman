@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2018-2021 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2018-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -58,38 +58,15 @@ namespace OpenKalman::vector_space_descriptors
     template<typename ... Cnew>
     using Append = FixedDescriptor<Cs ..., Cnew ...>;
 
-
-  private:
-
-    template<std::size_t i, typename...Ds>
-    struct Select_impl;
-
-    template<std::size_t i, typename D, typename...Ds>
-    struct Select_impl<i, D, Ds...> { using type = typename FixedDescriptor<Ds...>::template Select<i - 1>; };
-
-    template<typename D, typename...Ds>
-    struct Select_impl<0, D, Ds...> { using type = D; };
-
-  public:
-
-    /**
-     * \brief Extract a particular component from the set of fixed \ref vector_space_descriptor.
-     * \tparam i The index of the \ref vector_space_descriptor component.
-     */
-#ifdef __cpp_concepts
-    template<std::size_t i> requires (i < sizeof...(Cs))
-#else
-    template<std::size_t i, std::enable_if_t<(i < sizeof...(Cs)), int> = 0>
-#endif
-    using Select = typename Select_impl<i, Cs...>::type;
-
   private:
 
     template<std::size_t count, typename...Ds>
     struct Take_impl { using type = FixedDescriptor<>; };
 
+
     template<std::size_t count, typename D, typename...Ds>
     struct Take_impl<count, D, Ds...> { using type = typename FixedDescriptor<Ds...>::template Take<count - 1>::template Prepend<D>; };
+
 
     template<typename D, typename...Ds>
     struct Take_impl<0, D, Ds...> { using type = FixedDescriptor<>; };
@@ -111,28 +88,55 @@ namespace OpenKalman::vector_space_descriptors
   private:
 
     template<std::size_t count, typename...Ds>
-    struct Discard_impl { using type = FixedDescriptor<>; };
+    struct Drop_impl { using type = FixedDescriptor<>; };
+
 
     template<std::size_t count, typename D, typename...Ds>
-    struct Discard_impl<count, D, Ds...> { using type = typename FixedDescriptor<Ds...>::template Discard<count - 1>; };
+    struct Drop_impl<count, D, Ds...> { using type = typename FixedDescriptor<Ds...>::template Drop<count - 1>; };
+
 
     template<typename D, typename...Ds>
-    struct Discard_impl<0, D, Ds...> { using type = FixedDescriptor<D, Ds...>; };
+    struct Drop_impl<0, D, Ds...> { using type = FixedDescriptor<D, Ds...>; };
 
   public:
 
     /**
-     * \brief Discard all remaining \ref vector_space_descriptor after the first <code>count</code>.
-     * \tparam count The index of the first \ref vector_space_descriptor component to discard.
+     * \brief Drop the first <code>count</code> \ref vector_space_descriptor objects.
      */
 #ifdef __cpp_concepts
     template<std::size_t count> requires (count <= sizeof...(Cs))
 #else
     template<std::size_t count, std::enable_if_t<(count <= sizeof...(Cs)), int> = 0>
 #endif
-    using Discard = typename Discard_impl<count, Cs...>::type;
+    using Drop = typename Drop_impl<count, Cs...>::type;
 
-  };
+  private:
+
+    template<std::size_t i, typename...Ds>
+    struct Select_impl;
+
+
+    template<std::size_t i, typename D, typename...Ds>
+    struct Select_impl<i, D, Ds...> { using type = typename FixedDescriptor<Ds...>::template Select<i - 1>; };
+
+
+    template<typename D, typename...Ds>
+    struct Select_impl<0, D, Ds...> { using type = D; };
+
+  public:
+
+    /**
+     * \brief Extract a particular component from the set of fixed \ref vector_space_descriptor.
+     * \tparam i The index of the \ref vector_space_descriptor component.
+     */
+#ifdef __cpp_concepts
+    template<std::size_t i> requires (i < sizeof...(Cs))
+#else
+    template<std::size_t i, std::enable_if_t<(i < sizeof...(Cs)), int> = 0>
+#endif
+    using Select = typename Select_impl<i, Cs...>::type;
+
+  }; // struct FixedDescriptor
 
 
   /**
@@ -148,7 +152,7 @@ namespace OpenKalman::vector_space_descriptors
     static constexpr std::size_t euclidean_size = (0 + ... + euclidean_dimension_size_of_v<Cs>);
 
 
-    static constexpr std::size_t component_count = (0 + ... + vector_space_descriptor_components_of<Cs>::value);
+    static constexpr std::size_t component_count = (0 + ... + vector_space_component_count<Cs>::value);
 
 
     using difference_type = concatenate_fixed_vector_space_descriptor_t<dimension_difference_of_t<Cs>...>;
@@ -164,8 +168,8 @@ namespace OpenKalman::vector_space_descriptors
      * \internal
      * \tparam euclidean Whether the relevant vector is in Euclidean space (true) or not (false)
      * \tparam i The row index
-     * \tparam t The component index within fixed_types
-     * \tparam local_index The local index for indices associated with each of fixed_types (resets to 0 when t increments)
+     * \tparam t The component index within the list of descriptors
+     * \tparam local_index The local index for indices associated with each of descriptors (resets to 0 when t increments)
      * \tparam start The start location in the corresponding euclidean or non-euclidean vector
      * \return An array of arrays of {t, local_index, start}
      */

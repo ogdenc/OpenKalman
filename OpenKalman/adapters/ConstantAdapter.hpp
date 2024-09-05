@@ -17,6 +17,7 @@
 #define OPENKALMAN_CONSTANTADAPTER_HPP
 
 #include <type_traits>
+#include <algorithm>
 
 namespace OpenKalman
 {
@@ -72,7 +73,7 @@ namespace OpenKalman
      * \ref vector_space_descriptor objects.
      * \tparam Ds A set of \ref vector_space_descriptor corresponding to class template parameters Ds.
      */
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+#ifdef __cpp_lib_ranges
     template<std::ranges::input_range Ds> requires vector_space_descriptor<std::ranges::range_value_t<Ds>> and
       (index_count_v<PatternMatrix> == dynamic_size)
 #else
@@ -89,7 +90,7 @@ namespace OpenKalman
      * \overload
      * \brief Same as above, except also specifying a \ref scalar_constant.
      */
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+#ifdef __cpp_lib_ranges
       template<scalar_constant C, std::ranges::input_range Ds> requires std::constructible_from<MyConstant, C&&> and
         vector_space_descriptor<std::ranges::range_value_t<Ds>> and (index_count_v<PatternMatrix> == dynamic_size)
 #else
@@ -286,11 +287,11 @@ private:
      */
 #ifdef __cpp_concepts
     template<constant_matrix Arg> requires
-      (not std::derived_from<Arg, ConstantAdapter>) and maybe_same_shape_as<Arg, PatternMatrix> and
+      (not std::derived_from<Arg, ConstantAdapter>) and vector_space_descriptors_may_match_with<Arg, PatternMatrix> and
       std::constructible_from<MyConstant, constant_coefficient<Arg>>
 #else
     template<typename Arg, std::enable_if_t<constant_matrix<Arg> and
-      (not std::is_base_of_v<ConstantAdapter, Arg>) and maybe_same_shape_as<Arg, PatternMatrix> and
+      (not std::is_base_of_v<ConstantAdapter, Arg>) and vector_space_descriptors_may_match_with<Arg, PatternMatrix> and
       std::is_constructible_v<MyConstant, constant_coefficient<Arg>>, int> = 0>
 #endif
     constexpr ConstantAdapter(const Arg& arg) :
@@ -311,10 +312,10 @@ private:
      */
 #ifdef __cpp_concepts
     template<scalar_constant C, indexible Arg> requires
-      maybe_same_shape_as<Arg, PatternMatrix> and std::constructible_from<MyConstant, C&&>
+      vector_space_descriptors_may_match_with<Arg, PatternMatrix> and std::constructible_from<MyConstant, C&&>
 #else
     template<typename C, typename Arg, std::enable_if_t<scalar_constant<C> and indexible<Arg> and
-      maybe_same_shape_as<Arg, PatternMatrix> and std::is_constructible_v<MyConstant, C&&>, int> = 0>
+      vector_space_descriptors_may_match_with<Arg, PatternMatrix> and std::is_constructible_v<MyConstant, C&&>, int> = 0>
 #endif
     constexpr ConstantAdapter(C&& c, const Arg& arg) :
       my_constant {std::forward<C>(c)}, my_dimensions {make_dimensions_tuple(arg)} {}
@@ -325,16 +326,16 @@ private:
      */
 #ifdef __cpp_concepts
     template<constant_matrix Arg> requires
-      (not std::derived_from<Arg, ConstantAdapter>) and maybe_same_shape_as<Arg, PatternMatrix> and
+      (not std::derived_from<Arg, ConstantAdapter>) and vector_space_descriptors_may_match_with<Arg, PatternMatrix> and
       std::assignable_from<MyConstant, constant_coefficient<Arg>>
 #else
     template<typename Arg, std::enable_if_t<constant_matrix<Arg> and
-      (not std::is_base_of_v<ConstantAdapter, Arg>) and maybe_same_shape_as<Arg, PatternMatrix> and
+      (not std::is_base_of_v<ConstantAdapter, Arg>) and vector_space_descriptors_may_match_with<Arg, PatternMatrix> and
       std::is_assignable_v<MyConstant, constant_coefficient<Arg>>, int> = 0>
 #endif
     constexpr auto& operator=(const Arg& arg)
     {
-      if constexpr (not same_shape_as<Arg, PatternMatrix>) if (not same_shape(*this, arg))
+      if constexpr (not vector_space_descriptors_match_with<Arg, PatternMatrix>) if (not vector_space_descriptors_match(*this, arg))
         throw std::invalid_argument {"Argument to ConstantAdapter assignment operator has non-matching vector space descriptors."};
       my_constant = constant_coefficient {arg};
       return *this;
@@ -351,10 +352,10 @@ private:
 #endif
     constexpr bool operator==(const Arg& arg) const
     {
-      if constexpr (not maybe_same_shape_as<Arg, PatternMatrix>)
+      if constexpr (not vector_space_descriptors_may_match_with<Arg, PatternMatrix>)
         return false;
       else if constexpr (constant_matrix<Arg>)
-        return get_scalar_constant_value(constant_coefficient{arg}) == get_scalar_constant_value(my_constant) and same_shape(*this, arg);
+        return get_scalar_constant_value(constant_coefficient{arg}) == get_scalar_constant_value(my_constant) and vector_space_descriptors_match(*this, arg);
       else
       {
         auto c = to_native_matrix<PatternMatrix>(*this);
@@ -376,10 +377,10 @@ private:
 #endif
     friend constexpr bool operator==(const Arg& arg, const ConstantAdapter& c)
     {
-      if constexpr (not maybe_same_shape_as<Arg, PatternMatrix>)
+      if constexpr (not vector_space_descriptors_may_match_with<Arg, PatternMatrix>)
         return false;
       else if constexpr (constant_matrix<Arg>)
-        return get_scalar_constant_value(constant_coefficient{arg}) == get_scalar_constant_value(c.get_scalar_constant()) and same_shape(arg, c);
+        return get_scalar_constant_value(constant_coefficient{arg}) == get_scalar_constant_value(c.get_scalar_constant()) and vector_space_descriptors_match(arg, c);
       else
       {
         auto new_c = to_native_matrix<Arg>(c);
@@ -586,13 +587,15 @@ private:
           if constexpr (N::value >= index_count_v<PatternMatrix>) return Dimensions<1>{};
           else return std::get<N::value>(std::forward<Arg>(arg).my_dimensions);
         }
+        else if (n >= std::tuple_size_v<MyDims>)
+        {
+          return 1_uz;
+        }
         else
         {
           return std::apply(
-            [](const N& n, auto&&...arg){
-              return std::array<std::size_t, OpenKalman::index_count_v<Arg>> {std::forward<decltype(arg)>(arg)...}[n];
-            },
-            std::tuple_cat(std::forward_as_tuple(n), std::forward<Arg>(arg).my_dimensions));
+            [](auto&&...ds){ return std::array<std::size_t, std::tuple_size_v<MyDims>> {std::forward<decltype(ds)>(ds)...}; },
+            std::forward<Arg>(arg).my_dimensions)[n];
         }
       }
 
@@ -672,8 +675,8 @@ private:
       }
 
 
-      // no get_block
-      // no set_block
+      // no get_slice
+      // no set_slice
       // no set_triangle
       // no to_diagonal
       // no diagonal_of

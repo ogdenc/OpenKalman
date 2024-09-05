@@ -30,13 +30,15 @@ namespace OpenKalman
    * \param s Scalar values to fill the new matrix.
    */
 #ifdef __cpp_concepts
-  template<Layout layout = Layout::right, writable Arg, scalar_type ... S>
-    requires (layout == Layout::right or layout == Layout::left) and internal::may_hold_components<Arg, S...>
+  template<Layout layout = Layout::right, indexible Arg, scalar_type ... S> requires
+    (layout == Layout::right or layout == Layout::left) and internal::may_hold_components<Arg, S...> and
+    (sizeof...(S) == 0 or interface::fill_components_defined_for<Arg, layout, std::add_lvalue_reference_t<Arg>, S...>)
   inline Arg&&
 #else
   template<Layout layout = Layout::right, typename Arg, typename...S, std::enable_if_t<
-    writable<Arg> and (scalar_type<S> and ...) and
-    (layout == Layout::right or layout == Layout::left) and internal::may_hold_components<Arg, S...>, int> = 0>
+    indexible<Arg> and (scalar_type<S> and ...) and (layout == Layout::right or layout == Layout::left) and
+    internal::may_hold_components<Arg, S...> and
+    (sizeof...(S) == 0 or interface::fill_components_defined_for<Arg, layout, std::add_lvalue_reference_t<Arg>, S...>), int> = 0>
   inline Arg&&
 #endif
   fill_components(Arg&& arg, S...s)

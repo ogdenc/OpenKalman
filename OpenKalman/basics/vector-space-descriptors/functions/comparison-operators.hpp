@@ -25,7 +25,8 @@
 namespace OpenKalman::vector_space_descriptors
 {
   /**
-   * Comparison operator for library-defined \ref vector_space_descriptor objects
+   * \brief Comparison operator for library-defined \ref vector_space_descriptor objects
+   * \details Comparison of dynamic non-euclidean descriptors is defined elsewhere.
    */
 #if defined(__cpp_concepts) and defined(__cpp_impl_three_way_comparison)
   template<vector_space_descriptor A, vector_space_descriptor B>

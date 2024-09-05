@@ -21,6 +21,8 @@ namespace OpenKalman
 {
   /**
    * \brief Specifies that all diagonal elements of a diagonal object are the same constant value.
+   * \details A constant diagonal matrix is also a \ref diagonal_matrix. It is not necessarily square.
+   * If T is a rank >2 tensor, every rank-2 slice comprising dimensions 0 and 1 must be constant diagonal matrix.
    */
   template<typename T, ConstantType c = ConstantType::any>
 #ifdef __cpp_concepts

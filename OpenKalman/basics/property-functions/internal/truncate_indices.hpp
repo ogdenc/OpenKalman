@@ -17,15 +17,14 @@
 #ifndef OPENKALMAN_ELEMENT_FUNCTIONS_HPP
 #define OPENKALMAN_ELEMENT_FUNCTIONS_HPP
 
-#ifdef __cpp_lib_ranges
+#if defined(__cpp_lib_ranges) and not defined (__clang__)
 #include<ranges>
-//#else
-#include<algorithm>
 #endif
+#include<algorithm>
 
 namespace OpenKalman::internal
 {
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges) and not defined (__clang__)
+#if defined(__cpp_lib_ranges) and not defined (__clang__)
   template<std::ranges::input_range Indices, index_value MinCount>
   constexpr decltype(auto) truncate_indices(const Indices& indices, const MinCount& min_count)
   {

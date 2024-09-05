@@ -141,9 +141,6 @@ namespace OpenKalman::interface
 #endif
 
 
-  // make_default not defined
-
-
   // -------- //
   //  assign  //
   // -------- //
@@ -170,7 +167,56 @@ namespace OpenKalman::interface
 #endif
 
 
-  // fill_components not defined
+  // -------------- //
+  //  make_default  //
+  // -------------- //
+
+#ifdef __cpp_concepts
+  template<typename T, Layout layout, typename Scalar, typename...D>
+  concept make_default_defined_for = requires(D...d) {
+    library_interface<std::decay_t<T>>::template make_default<layout, Scalar>(std::forward<D>(d)...);
+  };
+#else
+  namespace detail
+  {
+    template<typename T, Layout layout, typename Scalar, typename = void, typename...D>
+    struct make_default_defined_for_impl : std::false_type {};
+
+    template<typename T, Layout layout, typename Scalar, typename...D>
+    struct make_default_defined_for_impl<T, layout, Scalar, std::void_t<decltype(
+        library_interface<std::decay_t<T>>::template make_default<layout, Scalar>(std::declval<D>()...))>, D...>
+      : std::true_type {};
+  }
+
+  template<typename T, Layout layout, typename Scalar, typename...D>
+  constexpr bool make_default_defined_for = detail::make_default_defined_for_impl<T, layout, Scalar, void, D...>::value;
+#endif
+
+
+  // ----------------- //
+  //  fill_components  //
+  // ----------------- //
+
+#ifdef __cpp_concepts
+  template<typename T, Layout layout, typename Arg, typename...Scalars>
+  concept fill_components_defined_for = requires(Arg arg, Scalars...scalars) {
+    library_interface<std::decay_t<T>>::template fill_components<layout>(std::forward<Arg>(arg), std::forward<Scalars>(scalars)...);
+  };
+#else
+  namespace detail
+  {
+    template<typename T, Layout layout, typename Arg, typename = void, typename...Scalars>
+    struct fill_components_defined_for_impl : std::false_type {};
+
+    template<typename T, Layout layout, typename Arg, typename...Scalars>
+    struct fill_components_defined_for_impl<T, layout, Arg, std::void_t<decltype(
+        library_interface<std::decay_t<T>>::template fill_components<layout>(std::declval<Arg>(), std::declval<Scalars>()...))>, Scalars...>
+      : std::true_type {};
+  }
+
+  template<typename T, Layout layout, typename Arg, typename...Scalars>
+  constexpr bool fill_components_defined_for = detail::fill_components_defined_for_impl<T, layout, Arg, void, Scalars...>::value;
+#endif
 
 
   // --------------- //
@@ -216,7 +262,7 @@ namespace OpenKalman::interface
 
     template<typename T, typename Scalar, typename...Ds>
     struct make_identity_matrix_defined_for_impl<T, Scalar, std::void_t<
-      decltype(library_interface<std::decay_t<T>>::template make_identity_matrix<Scalar>(std::declval<Ds&&>()...))>, Ds...>
+      decltype(library_interface<std::decay_t<T>>::template make_identity_matrix<Scalar>(std::declval<Ds>()...))>, Ds...>
       : std::true_type {};
   }
 
@@ -277,9 +323,56 @@ namespace OpenKalman::interface
 #endif
 
 
-  // get_block not defined
+  // ----------- //
+  //  get_slice  //
+  // ----------- //
 
-  // set_block not defined
+#ifdef __cpp_concepts
+  template<typename T, typename Arg, typename BeginTup, typename SizeTup>
+  concept get_slice_defined_for = requires(Arg arg, BeginTup begin_tup, SizeTup size_tup) {
+    library_interface<std::decay_t<T>>::set_slice(std::forward<Arg>(arg), begin_tup, size_tup);
+  };
+#else
+  namespace detail
+  {
+    template<typename T, typename Arg, typename BeginTup, typename SizeTup, typename = void>
+    struct get_slice_defined_for_impl : std::false_type {};
+
+    template<typename T, typename Arg, typename BeginTup, typename SizeTup>
+    struct get_slice_defined_for_impl<T, Arg, BeginTup, SizeTup, std::void_t<decltype(
+        library_interface<std::decay_t<T>>::set_slice(std::declval<Arg>(), std::declval<BeginTup>(), std::declval<SizeTup>()))>>
+      : std::true_type {};
+  }
+
+  template<typename T, typename Arg, typename BeginTup, typename SizeTup>
+  constexpr bool get_slice_defined_for = detail::get_slice_defined_for_impl<T, Arg, BeginTup, SizeTup>::value;
+#endif
+
+
+  // ----------- //
+  //  set_slice  //
+  // ----------- //
+
+#ifdef __cpp_concepts
+  template<typename T, typename Arg, typename Block, typename...Begin>
+  concept set_slice_defined_for = requires(Arg arg, Block block, Begin...begin) {
+    library_interface<std::decay_t<T>>::set_slice(std::forward<Arg>(arg), std::forward<Block>(block), std::forward<Begin>(begin)...);
+  };
+#else
+  namespace detail
+  {
+    template<typename T, typename Arg, typename Block, typename = void, typename...Begin>
+    struct set_slice_defined_for_impl : std::false_type {};
+
+    template<typename T, typename Arg, typename Block, typename...Begin>
+    struct set_slice_defined_for_impl<T, Arg, Block, std::void_t<decltype(
+        library_interface<std::decay_t<T>>::set_slice(std::declval<Arg>(), std::declval<Block>(), std::declval<Begin>()...))>, Begin...>
+      : std::true_type {};
+  }
+
+  template<typename T, typename Arg, typename Block, typename...Begin>
+  constexpr bool set_slice_defined_for = detail::set_slice_defined_for_impl<T, Arg, Block, Begin...>::value;
+#endif
 
 
   // -------------- //
@@ -299,7 +392,7 @@ namespace OpenKalman::interface
 
     template<typename T, TriangleType triangle_type, typename A, typename B>
     struct set_triangle_defined_for_impl<T, triangle_type, A, B, std::void_t<decltype(
-        library_interface<std::decay_t<A>>::template set_triangle<triangle_type>(std::declval<A>(), std::declval<B>()))>>
+        library_interface<std::decay_t<T>>::template set_triangle<triangle_type>(std::declval<A>(), std::declval<B>()))>>
       : std::true_type {};
   }
 

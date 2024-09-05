@@ -40,6 +40,10 @@ TEST(eigen3, FixedSizeAdapter)
   static_assert(not constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, Dimensions<2>, Dimensions<1>>>);
   static_assert(not constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<2>, Dimensions<1>>>);
   static_assert(constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, Dimensions<1>, Dimensions<1>>, ConstantType::dynamic_constant>);
+
+  EXPECT_EQ(get_vector_space_descriptor(internal::FixedSizeAdapter<Mxx, Dimensions<2>, Dimensions<3>>{}, std::integral_constant<std::size_t, 0>{}), 2);
+  EXPECT_EQ(get_vector_space_descriptor(internal::FixedSizeAdapter<Mxx, Dimensions<2>, Dimensions<3>>{}, std::integral_constant<std::size_t, 1>{}), 3);
+  EXPECT_EQ(get_vector_space_descriptor(internal::FixedSizeAdapter<Mxx, Dimensions<2>, Dimensions<3>>{}, std::integral_constant<std::size_t, 2>{}), 1);
 }
 
 

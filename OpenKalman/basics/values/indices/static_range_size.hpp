@@ -42,7 +42,7 @@ namespace OpenKalman
   /**
    * \brief The static size of a range (e.g., an index range). If this value is not static, the result is OpenKalman::dynamic_size.
    */
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+#ifdef __cpp_lib_ranges
   template<typename T>
 #else
   template<typename T, typename = void>
@@ -53,7 +53,7 @@ namespace OpenKalman
   /**
    * \overload
    */
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+#ifdef __cpp_lib_ranges
   template<typename T> requires std::ranges::sized_range<std::decay_t<T>> and
     requires { typename std::bool_constant<(std::ranges::size(std::decay_t<T>{}), true)>; }
   struct static_range_size<T> : std::integral_constant<std::size_t, std::ranges::size(std::decay_t<T>{})> {};
@@ -68,7 +68,7 @@ namespace OpenKalman
   /**
    * \overload
    */
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+#ifdef __cpp_lib_ranges
   template<typename T> requires std::ranges::sized_range<std::decay_t<T>> and
     (not requires { typename std::bool_constant<(std::ranges::size(std::decay_t<T>{}), true)>; })
   struct static_range_size<T>

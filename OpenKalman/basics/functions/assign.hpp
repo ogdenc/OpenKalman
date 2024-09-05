@@ -21,17 +21,17 @@ namespace OpenKalman
   namespace detail
   {
     template<typename M, typename Arg, typename...J>
-    static void copy_tensor_elements(M& m, const Arg& arg, std::index_sequence<>, J...j)
+    static void copy_tensor_elements(M& m, Arg&& arg, std::index_sequence<>, J...j)
     {
-      set_component(m, get_component(arg, j...), j...);
+      set_component(m, get_component(std::forward<Arg>(arg), j...), j...);
     }
 
 
     template<typename M, typename Arg, std::size_t I, std::size_t...Is, typename...J>
-    static void copy_tensor_elements(M& m, const Arg& arg, std::index_sequence<I, Is...>, J...j)
+    static void copy_tensor_elements(M& m, Arg&& arg, std::index_sequence<I, Is...>, J...j)
     {
       for (std::size_t i = 0; i < get_index_dimension_of<I>(arg); i++)
-        copy_tensor_elements(m, arg, std::index_sequence<Is...> {}, j..., i);
+        copy_tensor_elements(m, std::forward<Arg>(arg), std::index_sequence<Is...> {}, j..., i);
     }
   } // namespace detail
 
@@ -43,9 +43,9 @@ namespace OpenKalman
    * \return the assigned object as modified
    */
 #ifdef __cpp_concepts
-  template<writable To, indexible From>
+  template<indexible To, vector_space_descriptors_may_match_with<To> From>
 #else
-  template<typename To, typename From, std::enable_if_t<writable<To> and indexible<From>, int> = 0>
+  template<typename To, typename From, std::enable_if_t<indexible<To> and vector_space_descriptors_may_match_with<From, To>, int> = 0>
 #endif
   constexpr To&&
   assign(To&& a, From&& b)
@@ -53,6 +53,10 @@ namespace OpenKalman
     if constexpr (interface::assign_defined_for<To, std::add_lvalue_reference_t<To>, From&&>)
     {
       interface::library_interface<std::decay_t<To>>::assign(a, std::forward<From>(b));
+    }
+    else if constexpr (interface::assign_defined_for<To, std::add_lvalue_reference_t<To>, decltype(to_native_matrix<To>(std::declval<From&&>()))>)
+    {
+      interface::library_interface<std::decay_t<To>>::assign(a, to_native_matrix<To>(std::forward<From>(b)));
     }
     else if constexpr (std::is_assignable_v<std::add_lvalue_reference_t<To>, From&&>)
     {
@@ -62,9 +66,10 @@ namespace OpenKalman
     {
       a = to_native_matrix<To>(std::forward<From>(b));
     }
+    // \todo include the case where A is \ref directly_accessible
     else
     {
-      detail::copy_tensor_elements(a, b, std::make_index_sequence<index_count_v<To>>{});
+      detail::copy_tensor_elements(a, std::forward<From>(b), std::make_index_sequence<index_count_v<To>>{});
     }
     return std::forward<To>(a);
   }

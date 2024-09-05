@@ -35,6 +35,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is a hermitian matrix (assuming it is \ref square_shaped).
+   * \details For rank >2 tensors, this must be applicable on every rank-2 slice comprising dimensions 0 and 1.
    * \tparam T A matrix or tensor.
    * \tparam b Whether T must be known to be a square matrix at compile time.
    */

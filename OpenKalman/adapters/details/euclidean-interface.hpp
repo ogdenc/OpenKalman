@@ -62,10 +62,10 @@ namespace OpenKalman::interface
     }
 
 
-    // get_block
+    // get_slice
 
 
-    // set_block
+    // set_slice
 
 
     template<typename Arg>

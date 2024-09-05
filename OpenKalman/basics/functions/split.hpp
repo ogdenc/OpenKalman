@@ -56,7 +56,7 @@ namespace OpenKalman
       auto block_size = get_dimension_size_of(d);
       auto begin_tup = std::tuple{split_dummy<indices>(begin)...};
       auto size_tup = std::tuple{split_dummy<indices>(block_size)...};
-      auto block = get_block<indices...>(std::forward<Arg>(arg), begin_tup, size_tup);
+      auto block = get_slice<indices...>(std::forward<Arg>(arg), begin_tup, size_tup);
       auto new_blocks_tup = std::tuple_cat(blocks_tup, std::tuple {std::move(block)});
       return split_symmetric<indices...>(std::forward<Arg>(arg), begin + block_size, std::move(new_blocks_tup), std::forward<Ds>(ds)...);
     }
@@ -116,7 +116,7 @@ namespace OpenKalman
       Ds_tup&& ds_tup, Ds_tups&&...ds_tups)
     {
       auto size_tup = std::tuple{get_dimension_size_of(std::get<indices_ix>(ds_tup))...};
-      auto block = get_block<indices...>(std::forward<Arg>(arg), begin_tup, size_tup);
+      auto block = get_slice<indices...>(std::forward<Arg>(arg), begin_tup, size_tup);
       auto new_blocks_tup = std::tuple_cat(blocks_tup, std::tuple {std::move(block)});
       auto new_begin_tup = std::tuple{std::get<indices_ix>(begin_tup) + std::get<indices_ix>(size_tup)...};
       return split_impl<indices...>(std::forward<Arg>(arg), new_begin_tup, std::move(new_blocks_tup), seq, std::forward<Ds_tups>(ds_tups)...);

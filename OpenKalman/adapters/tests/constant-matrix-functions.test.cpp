@@ -423,8 +423,8 @@ TEST(adapters, ZeroAdapter_functions)
   EXPECT_TRUE(is_near(contract(make_constant<M23, double, 2>(), make_constant<M33, double, 3>()), ec23_18));
   static_assert(constant_coefficient_v<decltype(contract(make_constant<M23, double, 2>(), make_constant<M33, double, 3>()))> == 18);
 
-  EXPECT_TRUE(is_near(contract(m23, make_identity_matrix_like<M33>()), m23));
-  EXPECT_TRUE(is_near(contract(make_identity_matrix_like<M22>(), m23), m23));
+  EXPECT_TRUE(is_near(contract(m23, make_identity_matrix_like(m33)), m23));
+  EXPECT_TRUE(is_near(contract(make_identity_matrix_like(m22), m23), m23));
 }
 
 
@@ -968,7 +968,7 @@ TEST(adapters, constant_reductions)
   double non_constexpr_dummy = 0.0;
   EXPECT_TRUE(is_near(reduce<1, 0>([&](auto a, auto b){ return non_constexpr_dummy + a + b; }, ec23), 6 * ec11));
 
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges) and not defined (__clang__)
+#if defined(__cpp_lib_ranges) and not defined (__clang__)
   static_assert(reduce(std::plus<double>{}, ec11) == 2);
   static_assert(reduce(std::multiplies<double>{}, ec11) == 2);
 #else
@@ -1014,7 +1014,7 @@ TEST(adapters, constant_reductions)
   EXPECT_NEAR((reduce(std::multiplies<double>{}, efcxx_23)), 64./729, 1e-9);
   EXPECT_TRUE(is_near(reduce<1, 0>(std::multiplies<double>{}, efc2x_3), 32./243 * efc11));
 
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges) and not defined (__clang__)
+#if defined(__cpp_lib_ranges) and not defined (__clang__)
   static_assert(OpenKalman::internal::are_within_tolerance(reduce(std::plus<double>{}, efc11), 2./3));
   static_assert(OpenKalman::internal::are_within_tolerance(reduce(std::multiplies<double>{}, efc11), 2./3));
 #else
@@ -1231,7 +1231,7 @@ TEST(adapters, constant_element_functions)
   EXPECT_NEAR((get_component(cxx, 1, 1)), 5, 1e-6);
   EXPECT_NEAR((get_component(ConstantAdapter<Mx1, double, 7> {3}, 0)), 7, 1e-6);
 
-  // get_block
+  // get_slice
 
   std::integral_constant<std::size_t, 0> N0;
   std::integral_constant<std::size_t, 1> N1;
@@ -1240,39 +1240,39 @@ TEST(adapters, constant_element_functions)
 
   auto z34 = make_zero<M34>();
 
-  EXPECT_TRUE(is_near(get_block(z34, std::tuple{N0, N0}, std::tuple{N2, N2}), make_zero<M22>()));
-  EXPECT_TRUE(is_near(get_block(z34, std::tuple{N1, N1}, std::tuple{2, N3}), make_zero<M23>()));
-  EXPECT_TRUE(is_near(get_block(z34, std::tuple{0, 0}, std::tuple{2, N2}), make_zero<M22>()));
-  EXPECT_TRUE(is_near(get_block(z34, std::tuple{0, 0}, std::tuple{2, N2}), make_zero<M22>()));
-  EXPECT_TRUE(is_near(get_block<1, 0>(z34, std::tuple{N0, N0}, std::tuple{N3, N2}), make_zero<M23>()));
-  EXPECT_TRUE(is_near(get_block<0>(z34, std::tuple{N0}, std::tuple{N2}), make_zero<M24>()));
-  EXPECT_TRUE(is_near(get_block<0>(z34, std::tuple{1}, std::tuple{1}), make_zero<M14>()));
-  EXPECT_TRUE(is_near(get_block<1>(z34, std::tuple{N0}, std::tuple{N2}), make_zero<M32>()));
-  EXPECT_TRUE(is_near(get_block<1>(z34, std::tuple{1}, std::tuple{1}), make_zero<M31>()));
+  EXPECT_TRUE(is_near(get_slice(z34, std::tuple{N0, N0}, std::tuple{N2, N2}), make_zero<M22>()));
+  EXPECT_TRUE(is_near(get_slice(z34, std::tuple{N1, N1}, std::tuple{2, N3}), make_zero<M23>()));
+  EXPECT_TRUE(is_near(get_slice(z34, std::tuple{0, 0}, std::tuple{2, N2}), make_zero<M22>()));
+  EXPECT_TRUE(is_near(get_slice(z34, std::tuple{0, 0}, std::tuple{2, N2}), make_zero<M22>()));
+  EXPECT_TRUE(is_near(get_slice<1, 0>(z34, std::tuple{N0, N0}, std::tuple{N3, N2}), make_zero<M23>()));
+  EXPECT_TRUE(is_near(get_slice<0>(z34, std::tuple{N0}, std::tuple{N2}), make_zero<M24>()));
+  EXPECT_TRUE(is_near(get_slice<0>(z34, std::tuple{1}, std::tuple{1}), make_zero<M14>()));
+  EXPECT_TRUE(is_near(get_slice<1>(z34, std::tuple{N0}, std::tuple{N2}), make_zero<M32>()));
+  EXPECT_TRUE(is_near(get_slice<1>(z34, std::tuple{1}, std::tuple{1}), make_zero<M31>()));
 
   auto c34 = make_constant<M34, double, 3>();
 
-  EXPECT_TRUE(is_near(get_block(c34, std::tuple{N0, N0}, std::tuple{N2, N2}), make_constant<M22, double, 3>()));
-  EXPECT_TRUE(is_near(get_block(c34, std::tuple{N1, N1}, std::tuple{2, N3}), make_constant<M23, double, 3>()));
-  EXPECT_TRUE(is_near(get_block(c34, std::tuple{0, 0}, std::tuple{2, N2}), make_constant<M22, double, 3>()));
-  EXPECT_TRUE(is_near(get_block(c34, std::tuple{0, 0}, std::tuple{2, N2}), make_constant<M22, double, 3>()));
-  EXPECT_TRUE(is_near(get_block<1, 0>(c34, std::tuple{N0, N0}, std::tuple{N3, N2}), make_constant<M23, double, 3>()));
-  EXPECT_TRUE(is_near(get_block<0>(c34, std::tuple{N0}, std::tuple{N2}), make_constant<M24, double, 3>()));
-  EXPECT_TRUE(is_near(get_block<0>(c34, std::tuple{1}, std::tuple{1}), make_constant<M14, double, 3>()));
-  EXPECT_TRUE(is_near(get_block<1>(c34, std::tuple{N0}, std::tuple{N2}), make_constant<M32, double, 3>()));
-  EXPECT_TRUE(is_near(get_block<1>(c34, std::tuple{1}, std::tuple{1}), make_constant<M31, double, 3>()));
+  EXPECT_TRUE(is_near(get_slice(c34, std::tuple{N0, N0}, std::tuple{N2, N2}), make_constant<M22, double, 3>()));
+  EXPECT_TRUE(is_near(get_slice(c34, std::tuple{N1, N1}, std::tuple{2, N3}), make_constant<M23, double, 3>()));
+  EXPECT_TRUE(is_near(get_slice(c34, std::tuple{0, 0}, std::tuple{2, N2}), make_constant<M22, double, 3>()));
+  EXPECT_TRUE(is_near(get_slice(c34, std::tuple{0, 0}, std::tuple{2, N2}), make_constant<M22, double, 3>()));
+  EXPECT_TRUE(is_near(get_slice<1, 0>(c34, std::tuple{N0, N0}, std::tuple{N3, N2}), make_constant<M23, double, 3>()));
+  EXPECT_TRUE(is_near(get_slice<0>(c34, std::tuple{N0}, std::tuple{N2}), make_constant<M24, double, 3>()));
+  EXPECT_TRUE(is_near(get_slice<0>(c34, std::tuple{1}, std::tuple{1}), make_constant<M14, double, 3>()));
+  EXPECT_TRUE(is_near(get_slice<1>(c34, std::tuple{N0}, std::tuple{N2}), make_constant<M32, double, 3>()));
+  EXPECT_TRUE(is_near(get_slice<1>(c34, std::tuple{1}, std::tuple{1}), make_constant<M31, double, 3>()));
 
   auto c34r = make_constant<M34>(3.);
 
-  EXPECT_TRUE(is_near(get_block(c34r, std::tuple{N0, N0}, std::tuple{N2, N2}), make_constant<M22>(3.)));
-  EXPECT_TRUE(is_near(get_block(c34r, std::tuple{N1, N1}, std::tuple{2, N3}), make_constant<M23>(3.)));
-  EXPECT_TRUE(is_near(get_block(c34r, std::tuple{0, 0}, std::tuple{2, N2}), make_constant<M22>(3.)));
-  EXPECT_TRUE(is_near(get_block(c34r, std::tuple{0, 0}, std::tuple{2, N2}), make_constant<M22>(3.)));
-  EXPECT_TRUE(is_near(get_block<1, 0>(c34r, std::tuple{N0, N0}, std::tuple{N3, N2}), make_constant<M23>(3.)));
-  EXPECT_TRUE(is_near(get_block<0>(c34r, std::tuple{N0}, std::tuple{N2}), make_constant<M24>(3.)));
-  EXPECT_TRUE(is_near(get_block<0>(c34r, std::tuple{1}, std::tuple{1}), make_constant<M14>(3.)));
-  EXPECT_TRUE(is_near(get_block<1>(c34r, std::tuple{N0}, std::tuple{N2}), make_constant<M32>(3.)));
-  EXPECT_TRUE(is_near(get_block<1>(c34r, std::tuple{1}, std::tuple{1}), make_constant<M31>(3.)));
+  EXPECT_TRUE(is_near(get_slice(c34r, std::tuple{N0, N0}, std::tuple{N2, N2}), make_constant<M22>(3.)));
+  EXPECT_TRUE(is_near(get_slice(c34r, std::tuple{N1, N1}, std::tuple{2, N3}), make_constant<M23>(3.)));
+  EXPECT_TRUE(is_near(get_slice(c34r, std::tuple{0, 0}, std::tuple{2, N2}), make_constant<M22>(3.)));
+  EXPECT_TRUE(is_near(get_slice(c34r, std::tuple{0, 0}, std::tuple{2, N2}), make_constant<M22>(3.)));
+  EXPECT_TRUE(is_near(get_slice<1, 0>(c34r, std::tuple{N0, N0}, std::tuple{N3, N2}), make_constant<M23>(3.)));
+  EXPECT_TRUE(is_near(get_slice<0>(c34r, std::tuple{N0}, std::tuple{N2}), make_constant<M24>(3.)));
+  EXPECT_TRUE(is_near(get_slice<0>(c34r, std::tuple{1}, std::tuple{1}), make_constant<M14>(3.)));
+  EXPECT_TRUE(is_near(get_slice<1>(c34r, std::tuple{N0}, std::tuple{N2}), make_constant<M32>(3.)));
+  EXPECT_TRUE(is_near(get_slice<1>(c34r, std::tuple{1}, std::tuple{1}), make_constant<M31>(3.)));
 
   // get_chip
 

@@ -35,7 +35,7 @@ namespace OpenKalman::vector_space_descriptors
   // ------------ //
 
   /**
-   * \brief The dimension or size associated with a given index known at compile time.
+   * \brief Case in which the dimension or size associated with a given index is known at compile time.
    * \tparam N The dimension as known at compile time
    */
   template<std::size_t N>
@@ -83,35 +83,44 @@ namespace OpenKalman::vector_space_descriptors
   // -------------- //
 
   /**
-   * \brief The dimension or size associated with a given dynamic index known only at runtime.
+   * \brief Case where the dimension or size associated with a given dynamic index is known only at runtime.
    */
   template<>
   struct Dimensions<dynamic_size>
   {
-    /// Constructor, taking a \ref fixed_vector_space_descriptor.
+    /// Construct from a \ref euclidean_vector_space_descriptor or \ref dynamic_vector_space_descriptor.
 #ifdef __cpp_concepts
-    template<fixed_vector_space_descriptor D> requires euclidean_vector_space_descriptor<D>
+    template<typename D> requires (euclidean_vector_space_descriptor<D> or dynamic_vector_space_descriptor<D>) and
+      (not std::is_base_of_v<Dimensions, D>)
 #else
-    template<typename D, std::enable_if_t<fixed_vector_space_descriptor<D> and euclidean_vector_space_descriptor<D>, int> = 0>
+    template<typename D, std::enable_if_t<euclidean_vector_space_descriptor<D> and
+      (not std::is_base_of_v<Dimensions, D>), int> = 0>
 #endif
-    explicit constexpr Dimensions(D&&) : runtime_size {dimension_size_of_v<D>}
-    {}
-
-
-    /// Constructor, taking a \ref dynamic_vector_space_descriptor.
-#ifdef __cpp_concepts
-    template<dynamic_vector_space_descriptor D> requires (not std::same_as<std::decay_t<D>, Dimensions>)
-#else
-    template<typename D, std::enable_if_t<dynamic_vector_space_descriptor<D> and not std::is_same_v<std::decay_t<D>, Dimensions>, int> = 0>
-#endif
-    explicit constexpr Dimensions(D&& d)
-      : runtime_size {dynamic_vector_space_descriptor_traits<std::decay_t<D>>{d}.get_size()}
+    explicit constexpr Dimensions(const D& d) : runtime_size {get_dimension_size_of(d)}
     {
       if constexpr (not euclidean_vector_space_descriptor<D>)
-      {
-        if (not dynamic_vector_space_descriptor_traits<std::decay_t<D>>{d}.is_euclidean())
-          throw std::invalid_argument{"Argument of 'Dimensions' constructor must be a euclidean vector space descriptor."};
-      }
+        if (not get_vector_space_descriptor_is_euclidean(d))
+          throw std::invalid_argument{"Argument of dynamic 'Dimensions' constructor must be a euclidean vector space descriptor."};
+    }
+
+
+    /**
+     * \brief Assign from another \ref euclidean_vector_space_descriptor or \ref dynamic_vector_space_descriptor.
+     */
+#ifdef __cpp_concepts
+    template<typename D> requires (euclidean_vector_space_descriptor<D> or dynamic_vector_space_descriptor<D>) and
+      (not std::is_base_of_v<Dimensions, D>)
+#else
+    template<typename D, std::enable_if_t<(euclidean_vector_space_descriptor<D> or dynamic_vector_space_descriptor<D>) and
+      (not std::is_base_of_v<Dimensions, D>), int> = 0>
+#endif
+    constexpr Dimensions& operator=(const D& d)
+    {
+      if constexpr (not euclidean_vector_space_descriptor<D>)
+        if (not get_vector_space_descriptor_is_euclidean(d))
+          throw std::invalid_argument{"Argument of dynamic 'Dimensions' assignment operator must be a euclidean vector space descriptor."};
+      runtime_size = get_dimension_size_of(d);
+      return *this;
     }
 
 

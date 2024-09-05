@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -21,7 +21,8 @@ namespace OpenKalman
 {
   /**
    * \brief Specifies that a set of \ref vector_space_descriptor objects are known at compile time to be equivalent.
-   * \details Sets of coefficients are equivalent if they are treated functionally the same.
+   * \details Every descriptor in the set must be equivalent to every other descriptor in the set.
+   * Sets of coefficients are equivalent if they are treated functionally the same.
    * - Any coefficient or group of coefficients is equivalent to itself.
    * - FixedDescriptor<As...> is equivalent to FixedDescriptor<Bs...>, if each As is equivalent to its respective Bs.
    * - FixedDescriptor<A> is equivalent to A, and vice versa.

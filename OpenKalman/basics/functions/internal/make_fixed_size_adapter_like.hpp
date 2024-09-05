@@ -49,10 +49,10 @@ namespace OpenKalman::internal
    * \return (1) A fixed size adapter or (2) a reference to the argument unchanged.
    */
 #ifdef __cpp_concepts
-  template<indexible...Ts, maybe_same_shape_as<Ts...> Arg> requires (index_count_v<Arg> != dynamic_size)
+  template<indexible...Ts, vector_space_descriptors_may_match_with<Ts...> Arg> requires (index_count_v<Arg> != dynamic_size)
 #else
   template<typename...Ts, typename Arg, std::enable_if_t<(... and indexible<Ts>) and
-    maybe_same_shape_as<Arg, Ts...> and (index_count_v<Arg> != dynamic_size), int> = 0>
+    vector_space_descriptors_may_match_with<Arg, Ts...> and (index_count_v<Arg> != dynamic_size), int> = 0>
 #endif
   constexpr decltype(auto)
   make_fixed_size_adapter_like(Arg&& arg)

@@ -33,7 +33,7 @@ namespace OpenKalman
 
 
   /**
-   * \brief Specifies that a type is a diagonal adapter.
+   * \brief Specifies that a type is a diagonal matrix adapter.
    * \details This is an adapter that takes a \ref vector and produces a \ref diagonal_matrix.
    * Components outside the diagonal are zero.
    * \tparam T A matrix or tensor.

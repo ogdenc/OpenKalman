@@ -139,7 +139,6 @@ namespace OpenKalman
    * Implicit conversions are available from any \ref diagonal_matrix of compatible size.
    * \tparam NestedMatrix A column vector expression defining the diagonal elements.
    * indexible_object_traits outside the diagonal are automatically 0.
-   * \note This has the same name as Eigen::DiagonalMatrix, and is intended as a replacement.
    */
 #ifdef __cpp_concepts
   template<vector<0, Qualification::depends_on_dynamic_shape> NestedMatrix>
@@ -554,22 +553,6 @@ namespace OpenKalman
 
     /**
      * \internal
-     * \brief A wrapper that contains an \ref indexible_object and manages storage of any reference parameters.
-     * \details This wrapper manages a set of pointers to Parameters. If this object is copied, each copy shares
-     * management of the pointers through std::shared_ptr.
-     * \tparam NestedObject An indexible object to be made self-contained.
-     * \tparam Parameters A set of parameters that are accessed by reference in NestedObject.
-     */
-#ifdef __cpp_concepts
-    template<indexible NestedObject, typename...Parameters>
-#else
-    template<typename NestedObject, typename...Parameters>
-#endif
-    struct SelfContainedWrapper;
-
-
-    /**
-     * \internal
      * \brief Wraps a dynamic-sized input, immutably, in a wrapper that has one or more fixed dimensions.
      * \tparam NestedMatrix The underlying native matrix or matrix expression.
      * \tparam Vs A set of \ref vector_space_descriptor objects, preferably but not necessarily of fixed dimensions.
@@ -610,6 +593,49 @@ namespace OpenKalman
 
     template<typename Descriptor, typename NestedMatrix>
     struct is_triangular_covariance<SquareRootCovariance<Descriptor, NestedMatrix>> : std::true_type {};
+
+  } // namespace internal
+
+
+  /**
+   * \brief An adapter that adds vector space descriptors for each index.
+   * \details Any vector space descriptors associated with NestedObject are overwritten.
+   * \tparam Arg An \ref indexible object.
+   * \taram Vs A set of \ref vector_space_descriptor objects
+   */
+#ifdef __cpp_concepts
+  template<indexible NestedObject, vector_space_descriptor...Vs>
+  requires internal::not_more_fixed_than<NestedObject, Vs...> and (not internal::less_fixed_than<NestedObject, Vs...>) and
+    internal::maybe_same_shape_as_vector_space_descriptors<NestedObject, Vs...>
+#else
+  template<typename NestedObject, typename...Vs>
+#endif
+  struct VectorSpaceAdapter;
+
+
+  namespace internal
+  {
+    namespace detail
+    {
+      template<typename T>
+      struct is_vector_space_adapter : std::false_type {};
+
+      template<typename NestedObject, typename...Vs>
+      struct is_vector_space_adapter<VectorSpaceAdapter<NestedObject, Vs...>> : std::true_type {};
+    } // namespace detail
+
+
+  /**
+   * \internal
+   * \brief Specifies that T is a VectorSpaceAdapter.
+   */
+    template<typename T>
+  #ifdef __cpp_concepts
+    concept vector_space_adapter =
+  #else
+    constexpr bool vector_space_adapter =
+  #endif
+      detail::is_vector_space_adapter<std::decay_t<T>>::value;
 
   } // namespace internal
 

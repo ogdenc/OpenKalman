@@ -22,7 +22,7 @@ namespace OpenKalman
   /**
    * \brief Specifies that a type is a triangular matrix (upper, lower, or diagonal).
    * \details A triangular matrix need not be \ref square_shaped, but it must be zero either above or below the diagonal (or both).
-   * The vector space descriptors are not taken into consideration, so they do not necessarily need to match.
+   * For rank >2 tensors, this must be applicable on every rank-2 slice comprising dimensions 0 and 1.
    * \note One-dimensional matrices or vectors are considered to be triangular, and a vector is triangular if
    * every component other than its first component is zero.
    * \tparam T A matrix or tensor.

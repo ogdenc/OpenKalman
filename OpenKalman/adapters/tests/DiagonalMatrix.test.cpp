@@ -619,6 +619,14 @@ TEST(adapters, diagonal_make_functions)
   EXPECT_TRUE(is_near(make_zero(dx_3), M33::Zero(3, 3)));
   EXPECT_TRUE(is_near(make_zero<D3>(), M33::Zero()));
   EXPECT_TRUE(is_near(make_zero(dx_3), M33::Zero()));
+
+  EXPECT_TRUE(is_near(make_diagonal_matrix(c531), make_dense_object_from<M33>(5, 0, 0, 0, 5, 0, 0, 0, 5)));
+  EXPECT_TRUE(is_near(make_diagonal_matrix(c531, Dimensions<3>{}), make_dense_object_from<M33>(5, 0, 0, 0, 5, 0, 0, 0, 5)));
+  EXPECT_TRUE(is_near(make_diagonal_matrix(c531, Dimensions{3}), make_dense_object_from<M33>(5, 0, 0, 0, 5, 0, 0, 0, 5)));
+  EXPECT_TRUE(is_near(make_diagonal_matrix(c531, Dimensions<4>{}), make_dense_object_from<M44>(5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0)));
+  EXPECT_TRUE(is_near(make_diagonal_matrix(c531, Dimensions{4}), make_dense_object_from<M44>(5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0)));
+  EXPECT_TRUE(is_near(make_diagonal_matrix(c531, Dimensions<3>{}, Dimensions<4>{}), make_dense_object_from<M34>(5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 5, 0)));
+  EXPECT_TRUE(is_near(make_diagonal_matrix(c531, Dimensions{3}, Dimensions{4}), make_dense_object_from<M34>(5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 5, 0)));
 }
 
 TEST(adapters, Diagonal_overloads)

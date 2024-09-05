@@ -103,15 +103,18 @@ namespace OpenKalman { using namespace vector_space_descriptors; }
 
 #include "internal/ElementAccessor.hpp"
 
-#include "internal/AdapterBase.hpp"
+#include "adapters/internal/AdapterBase.hpp"
 
-#include "internal/LibraryWrapper.hpp"
-#include "interfaces/internal/LibraryWrapper.hpp"
+#include "adapters/internal/LibraryWrapper.hpp"
+#include "adapters/interfaces/LibraryWrapper.hpp"
 
-#include "internal/FixedSizeAdapter.hpp"
-#include "interfaces/internal/FixedSizeAdapter.hpp"
+#include "adapters/internal/FixedSizeAdapter.hpp"
+#include "adapters/interfaces/FixedSizeAdapter.hpp"
 
-#include "internal/TypedMatrixBase.hpp"
+#include "adapters/VectorSpaceAdapter.hpp"
+#include "adapters/interfaces/VectorSpaceAdapter.hpp"
+
+#include "adapters/internal/TypedMatrixBase.hpp"
 
 
 #endif //OPENKALMAN_BASICS_HPP

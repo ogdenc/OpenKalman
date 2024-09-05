@@ -97,16 +97,16 @@ TEST(eigen3, shape_traits)
   static_assert(not square_shaped<Salvx2>);
   static_assert(not square_shaped<Salvxx>);
 
-  static_assert(maybe_same_shape_as<>);
-  static_assert(maybe_same_shape_as<M32>);
-  static_assert(maybe_same_shape_as<M32, Mx2, M3x>);
-  static_assert(maybe_same_shape_as<M2x, M23, Mx3>);
-  static_assert(maybe_same_shape_as<M2x, Z23>);
-  static_assert(maybe_same_shape_as<M2x, Mx3>);
+  static_assert(vector_space_descriptors_may_match_with<>);
+  static_assert(vector_space_descriptors_may_match_with<M32>);
+  static_assert(vector_space_descriptors_may_match_with<M32, Mx2, M3x>);
+  static_assert(vector_space_descriptors_may_match_with<M2x, M23, Mx3>);
+  static_assert(vector_space_descriptors_may_match_with<M2x, Z23>);
+  static_assert(vector_space_descriptors_may_match_with<M2x, Mx3>);
 
-  static_assert(same_shape_as<M32, M32>);
-  static_assert(not same_shape_as<M32, Mx2>);
-  static_assert(not same_shape_as<Mx2, M32>);
-  static_assert(same_shape_as<M22, Salv22, M22, Z22>);
+  static_assert(vector_space_descriptors_match_with<M32, M32>);
+  static_assert(not vector_space_descriptors_match_with<M32, Mx2>);
+  static_assert(not vector_space_descriptors_match_with<Mx2, M32>);
+  static_assert(vector_space_descriptors_match_with<M22, Salv22, M22, Z22>);
 }
 

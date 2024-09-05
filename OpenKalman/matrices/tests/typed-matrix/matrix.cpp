@@ -268,27 +268,27 @@ TEST(matrices, TypedMatrix_deduction_guides)
 TEST(matrices, TypedMatrix_make_functions)
 {
   auto a = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
-  EXPECT_TRUE(is_near(make_matrix<C2, C3>(a), a));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_matrix<C2, C3, 0>(a))>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_matrix<C2, C3>(a)), 1>, C3>);
-  EXPECT_TRUE(is_near(make_matrix<C2>(a), a));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_matrix<C2, 0>(a))>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_matrix<C2>(a)), 1>, Dimensions<3>>);
+  EXPECT_TRUE(is_near(make_vector_space_adapter<C2, C3>(a), a));
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, C3, 0>(a))>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, C3>(a)), 1>, C3>);
+  EXPECT_TRUE(is_near(make_vector_space_adapter<C2>(a), a));
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, 0>(a))>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2>(a)), 1>, Dimensions<3>>);
 
   auto b = Mat23 {1, 2, 3, 4, 5, 6};
-  EXPECT_TRUE(is_near(make_matrix(b), a));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_matrix(b)), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_matrix(b)), 1>, C3>);
+  EXPECT_TRUE(is_near(make_vector_space_adapter(b), a));
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(b)), 0>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(b)), 1>, C3>);
 
   auto c = Covariance<C2, SelfAdjointMatrix<M22, TriangleType::lower>> {9, 3, 3, 10};
-  EXPECT_TRUE(is_near(make_matrix(c), Mat22 {9, 3, 3, 10}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_matrix(c)), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_matrix(c)), 1>, C2>);
+  EXPECT_TRUE(is_near(make_vector_space_adapter(c), Mat22 {9, 3, 3, 10}));
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(c)), 0>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(c)), 1>, C2>);
 
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_matrix<C2, C3, M23>()), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_matrix<C2, C3, M23>()), 1>, C3>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_matrix<M23>()), 0>, Dimensions<2>>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_matrix<M23>()), 1>, Dimensions<3>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, C3, M23>()), 0>, C2>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, C3, M23>()), 1>, C3>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<M23>()), 0>, Dimensions<2>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<M23>()), 1>, Dimensions<3>>);
 }
 
 

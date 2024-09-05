@@ -43,7 +43,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<indexible Arg, scalar_constant S> requires
     requires(S s) { {get_scalar_constant_value(s)} -> std::convertible_to<scalar_type_of_t<Arg>>; }
-  static constexpr maybe_same_shape_as<Arg> auto
+  static constexpr vector_space_descriptors_may_match_with<Arg> auto
 #else
   template<typename Arg, typename S>
   static constexpr auto

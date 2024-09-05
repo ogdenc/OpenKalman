@@ -81,7 +81,7 @@ namespace OpenKalman::interface
 
   public:
 
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+#ifdef __cpp_lib_ranges
     template<indexible Arg, std::ranges::input_range Indices> requires
       std::convertible_to<std::ranges::range_value_t<Indices>, const typename std::decay_t<Arg>::Index>
     static constexpr scalar_constant decltype(auto)
@@ -109,7 +109,7 @@ namespace OpenKalman::interface
     }
 
 
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+#ifdef __cpp_lib_ranges
     template<indexible Arg, std::ranges::input_range Indices> requires
       std::convertible_to<std::ranges::range_value_t<Indices>, const typename std::decay_t<Arg>::Index> and
       ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0x0) and (not std::is_const_v<Arg>)
@@ -156,11 +156,15 @@ namespace OpenKalman::interface
     static decltype(auto)
     to_native_matrix(Arg&& arg)
     {
-      if constexpr (Eigen3::eigen_tensor_general<Arg>)
+      if constexpr (Eigen3::eigen_tensor_wrapper<Arg>)
       {
         return std::forward<Arg>(arg);
       }
-      else if constexpr (raw_data_defined_for<decltype((arg))>)
+      else if constexpr (internal::library_wrapper<Arg>)
+      {
+        return to_native_matrix(OpenKalman::nested_object(std::forward<Arg>(arg)));
+      }
+      else if constexpr (not Eigen3::eigen_tensor_general<Arg> and directly_accessible<Arg> and std::is_lvalue_reference_v<Arg>)
       {
         if constexpr (layout_of_v<Arg> == Layout::stride and internal::has_static_strides<Arg>)
         {
@@ -182,8 +186,19 @@ namespace OpenKalman::interface
       }
       else
       {
-        return Eigen3::EigenTensorWrapper<std::decay_t<Arg>> {std::forward<Arg>(arg)};
+        return Eigen3::make_eigen_tensor_wrapper(std::forward<Arg>(arg));
       }
+    }
+
+
+#ifdef __cpp_concepts
+    template<typename To, Eigen3::eigen_tensor_general From> requires (std::assignable_from<To&, From&&>)
+#else
+    template<typename To, typename From, std::enable_if_t<Eigen3::eigen_tensor_general<From> and std::is_assignable_v<To&, From&&>, int> = 0>
+#endif
+    static void assign(To& a, From&& b)
+    {
+      a = std::forward<From>(b);
     }
 
 
@@ -198,24 +213,21 @@ namespace OpenKalman::interface
     }
 
 
-/*
 #ifdef __cpp_concepts
-    template<Layout layout, writable M, std::convertible_to<scalar_type_of_t<M>> ... Args>
+    template<Layout layout, writable Arg, std::convertible_to<scalar_type_of_t<Arg>> ... Scalars>
       requires (layout == Layout::right) or (layout == Layout::left)
 #else
-    template<Layout layout, typename M, typename...Args, std::enable_if_t<writable<M> and
+    template<Layout layout, typename Arg, typename...Scalars, std::enable_if_t<writable<Arg> and
       (layout == Layout::right or or layout == Layout::left) and
-      std::conjunction<std::is_convertible<Args, typename scalar_type_of<M>::type>::value...>::value, int> = 0>
+      std::conjunction<std::is_convertible<Scalars, typename scalar_type_of<Arg>::type>::value...>::value, int> = 0>
 #endif
-    static M&& fill_components(M&& m, const Args ... args)
+    static void fill_components(Arg& arg, const Scalars ... scalars)
     {
       if constexpr (layout == Layout::left)
-        m.swap_layout.setValues({args...});
+        arg.swap_layout().setValues({scalars...});
       else
-        m.setValues({args...});
-
-      return std::forward<M>(m);
-    }*/
+        arg.setValues({scalars...});
+    }
 
 
 #ifdef __cpp_concepts
@@ -236,76 +248,39 @@ namespace OpenKalman::interface
     }
 
 
-    /*
-    template<typename Scalar, typename D, typename...Ds>
-    static constexpr auto
-    make_identity_matrix(D&& d, Ds&&...ds)
-    {
-      if constexpr (((dimension_size_of_v<D> == dynamic_size) or ... or (dimension_size_of_v<Ds> == dynamic_size)))
-      {
-        return to_diagonal(make_constant<T, Scalar, 1>(std::forward<D>(d), Dimensions<1>{}));
-      }
-      else
-      {
-        constexpr std::size_t n {dimension_size_of_v<D>};
-        return Eigen3::eigen_matrix_t<Scalar, std::size_t n {dimension_size_of_v<D>}...>::Identity();
-      }
-    }
+    // make_identity_matrix not defined
 
 
     template<typename Arg, typename...Begin, typename...Size>
     static auto
-    get_block(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
+    get_slice(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
     {
-      static_assert(sizeof...(Begin) == 2 and sizeof...(Size) == 2);
-
-      if constexpr (Eigen3::eigen_dense_general<Arg>)
-      {
-        using B = Eigen::Block<std::remove_reference_t<Arg>,
-          static_cast<IndexType>(static_index_value<Size> ? static_cast<std::size_t>(Size{}) : Eigen::Dynamic)...>;
-
-        if constexpr ((static_index_value<Size> and ...))
-          return make_self_contained<Arg>(B(arg, std::get<0>(begin), std::get<1>(begin)));
-        else
-          return make_self_contained<Arg>(B(arg, std::get<0>(begin), std::get<1>(begin), std::get<0>(size), std::get<1>(size)));
-      }
-      else return make_self_contained(get_block(Eigen3::make_eigen_wrapper(std::forward<Arg>(arg)), begin, size));
+      auto offsets = std::apply([](auto&&...a) {
+        return std::array<std::size_t, sizeof...(Begin)> {std::forward<decltype(a)>(a)...};
+      }, begin);
+      auto extents = std::apply([](auto&&...a) {
+        return std::array<std::size_t, sizeof...(Size)> {std::forward<decltype(a)>(a)...};
+      }, size);
+      return to_native_matrix(std::forward<Arg>(arg)).slice(offsets, extents);
     }
 
 
-    template<typename Arg, typename Block, typename...Begin>
-    static constexpr Arg&
-    set_block(Arg& arg, Block&& block, Begin...begin)
+#ifdef __cpp_concepts
+    template<Eigen3::eigen_tensor_general<true> Arg, Eigen3::eigen_tensor_general Block, typename...Begin>
+#else
+    template<typename Arg, typename Block, typename...Begin, std::enable_if_t<
+      Eigen3::eigen_tensor_general<Arg, true> and Eigen3::eigen_tensor_general<Block>, int> = 0>
+#endif
+    static constexpr void
+    set_slice(Arg& arg, Block&& block, Begin...begin)
     {
-      static_assert(sizeof...(Begin) == 2);
-      if constexpr (Eigen3::eigen_wrapper<Arg>)
-      {
-        set_block(nested_object(arg), std::forward<Block>(block), begin...);
-        return arg;
-      }
-      else
-      {
-        static_assert(Eigen3::eigen_dense_general<Arg>);
-
-        if constexpr (Eigen3::eigen_Block<Block>)
-        {
-          if (std::addressof(arg) == std::addressof(block.nestedExpression()) and
-              std::get<0>(std::tuple{begin...}) == block.startRow() and std::get<1>(std::tuple{begin...}) == block.startCol())
-            return arg;
-        }
-
-        using B = Eigen::Block<std::remove_reference_t<Arg>,
-          static_cast<IndexType>(index_dimension_of_v<Block, 0>),
-          static_cast<IndexType>(index_dimension_of_v<Block, 1>)>;
-
-        if constexpr (not has_dynamic_dimensions<Block>)
-          B(arg, begin...) = std::forward<Block>(block);
-        else
-          B(arg, begin..., get_index_dimension_of<0>(block), get_index_dimension_of<1>(block)) = std::forward<Block>(block);
-        return arg;
-      }
+      auto offsets = std::array {static_cast<std::size_t>(begin)...};
+      auto extents = std::apply([](auto&&...a) {
+        return std::array {get_dimension_size_of(std::forward<decltype(a)>(a))...}; }, all_vector_space_descriptors(block));
+      arg.slice(offsets, extents) = std::forward<Block>(block);
     }
 
+    /*
   private:
 
 #ifdef __cpp_concepts

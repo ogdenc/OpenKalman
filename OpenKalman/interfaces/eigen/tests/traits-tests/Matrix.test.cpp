@@ -163,9 +163,9 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(equivalent_to<vector_space_descriptor_of_t<M22, 0>, FixedDescriptor<Axis, Axis>>);
   static_assert(equivalent_to<vector_space_descriptor_of_t<M22, 1>, FixedDescriptor<Axis, Axis>>);
 
-  static_assert(maybe_same_shape_as<M22, M2x, Mx2, Mxx>);
-  static_assert(same_shape_as<M22, CM22, M22>);
-  EXPECT_TRUE(same_shape(m22, cm22, M2x{m22}, Mx2{m22}, Mxx{m22}));
+  static_assert(vector_space_descriptors_may_match_with<M22, M2x, Mx2, Mxx>);
+  static_assert(vector_space_descriptors_match_with<M22, CM22, M22>);
+  EXPECT_TRUE(vector_space_descriptors_match(m22, cm22, M2x{m22}, Mx2{m22}, Mxx{m22}));
 
   static_assert(compatible_with_vector_space_descriptors<M23, std::integral_constant<int, 2>, std::integral_constant<int, 3>>);
   static_assert(not compatible_with_vector_space_descriptors<M23, std::integral_constant<int, 2>, std::integral_constant<int, 2>>);

@@ -33,13 +33,16 @@
 #include "fill_components.hpp"
 
 #include "to_native_matrix.hpp"
+#include "assign.hpp"
+#include "internal/assignable.hpp"
 
 #include "make_dense_object.hpp"
-#include "assign.hpp"
 #include "to_dense_object.hpp"
 #include "make_dense_object_from.hpp"
+
 #include "make_constant.hpp"
 #include "make_zero.hpp"
+#include "make_diagonal_matrix.hpp"
 #include "make_identity_matrix_like.hpp"
 
 #include "transpose.hpp"
@@ -59,7 +62,7 @@
 #include "from_euclidean.hpp"
 #include "wrap_angles.hpp"
 
-#include "make_matrix.hpp"
+#include "make_vector_space_adapter.hpp"
 
 #include "n_ary_operation.hpp"
 #include "randomize.hpp"
@@ -67,14 +70,15 @@
 #include "scalar_product.hpp"
 #include "scalar_quotient.hpp"
 
-#include "internal/make_constant_matrix_reduction.hpp"
-#include "internal/has_uniform_reduction_indices.hpp"
+#include "internal/get_reduced_vector_space_descriptor.hpp"
+#include "internal/indices_are_uniform.hpp"
+#include "internal/count_reduced_dimensions.hpp"
 #include "reduce.hpp"
 #include "average_reduce.hpp"
 
 #include "internal/check_block_limits.hpp"
-#include "get_block.hpp"
-#include "set_block.hpp"
+#include "get_slice.hpp"
+#include "set_slice.hpp"
 #include "get_chip.hpp"
 #include "set_chip.hpp"
 #include "internal/set_triangle.hpp"

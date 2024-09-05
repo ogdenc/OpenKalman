@@ -45,7 +45,7 @@ namespace OpenKalman
    * \tparam Indices An input range object containing the indices.
    * \return The modified Arg
    */
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+#ifdef __cpp_lib_ranges
   template<typename Arg, std::ranges::input_range Indices> requires writable_by_component<Arg, Indices> and
     index_value<std::ranges::range_value_t<Indices>> and
     (static_range_size_v<Indices> == dynamic_size or index_count_v<Arg> == dynamic_size or

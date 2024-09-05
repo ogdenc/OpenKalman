@@ -22,42 +22,31 @@ namespace OpenKalman
   /**
    * \brief In-place matrix multiplication of A * B, storing the result in A
    * \tparam on_the_right Whether the application is on the right (true) or on the left (false)
-   * \result Either either A * B (if on_the_right == true) or B * A (if on_the_right == false)
+   * \result Either A * B (if on_the_right == true) or B * A (if on_the_right == false)
    */
 #ifdef __cpp_concepts
   template<bool on_the_right = true, square_shaped<Qualification::depends_on_dynamic_shape> A, square_shaped<Qualification::depends_on_dynamic_shape> B> requires
-    maybe_same_shape_as<A, B> and (writable<A> or triangle_type_of_v<A> == triangle_type_of_v<A, B>) and
+    vector_space_descriptors_may_match_with<A, B> and (not triangular_matrix<A> or triangle_type_of_v<A> == triangle_type_of_v<A, B>) and
     (index_count_v<A> == dynamic_size or index_count_v<A> <= 2) and (index_count_v<B> == dynamic_size or index_count_v<B> <= 2)
 #else
   template<bool on_the_right = true, typename A, typename B, std::enable_if_t<
-    square_shaped<A, Qualification::depends_on_dynamic_shape> and square_shaped<B, Qualification::depends_on_dynamic_shape> and maybe_same_shape_as<A, B> and
-    (writable<A> or triangle_type_of_v<A> == triangle_type_of_v<A, B>) and
+    square_shaped<A, Qualification::depends_on_dynamic_shape> and square_shaped<B, Qualification::depends_on_dynamic_shape> and
+    vector_space_descriptors_may_match_with<A, B> and (not triangular_matrix<A> or triangle_type_of<A>::value == triangle_type_of<A, B>::value) and
     (index_count<A>::value == dynamic_size or index_count<A>::value <= 2) and (index_count<B>::value == dynamic_size or index_count<B>::value <= 2), int> = 0>
 #endif
-  constexpr A&
-  contract_in_place(A& a, B&& b)
+  constexpr A&&
+  contract_in_place(A&& a, B&& b)
   {
-    if constexpr (not square_shaped<A> or not square_shaped<B> or not same_shape_as<A, B>) if (not same_shape(a, b))
+    if constexpr (not square_shaped<A> or not square_shaped<B> or not vector_space_descriptors_match_with<A, B>) if (not vector_space_descriptors_match(a, b))
       throw std::invalid_argument {"Arguments to contract_in_place must match in size and be square matrices"};
 
     if constexpr (zero<A> or identity_matrix<B>)
     {
-      return a;
+      ;
     }
-    else if constexpr (zero<B>)
+    else if constexpr (zero<B> and writable<A>)
     {
-      return a = std::forward<B>(b);
-    }
-    else if constexpr (diagonal_adapter<A> and diagonal_matrix<B>)
-    {
-      using Scalar = std::decay_t<decltype(std::declval<scalar_type_of_t<A>>() * std::declval<scalar_type_of_t<B>>())>;
-      internal::set_triangle<TriangleType::diagonal>(a, to_diagonal(n_ary_operation(std::multiplies<Scalar>{}, diagonal_of(a), diagonal_of(std::forward<B>(b)))));
-      return a;
-    }
-    else if constexpr (triangular_adapter<A> and triangle_type_of_v<A> == triangle_type_of_v<A, B>)
-    {
-      internal::set_triangle<triangle_type_of_v<A>>(a, contract(a, std::forward<B>(b)));
-      return a;
+      assign(a, std::forward<B>(b));
     }
     else if constexpr (interface::contract_in_place_defined_for<A, on_the_right, A&, B&&>)
     {
@@ -65,8 +54,9 @@ namespace OpenKalman
     }
     else
     {
-      a = contract(a, std::forward<B>(b));
+      assign(a, to_dense_object(contract(a, std::forward<B>(b))));
     }
+    return std::forward<A>(a);
   }
 
 

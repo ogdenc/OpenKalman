@@ -25,7 +25,7 @@
 #include "get_index_dimension_of.hpp"
 #include "tensor_order.hpp"
 #include "all_vector_space_descriptors.hpp"
-#include "same_shape.hpp"
+#include "vector_space_descriptors_match.hpp"
 #include "is_square_shaped.hpp"
 #include "is_one_dimensional.hpp"
 #include "is_vector.hpp"

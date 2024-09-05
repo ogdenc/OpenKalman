@@ -36,11 +36,6 @@ namespace Eigen::internal
     : OpenKalman::Eigen3::internal::native_traits<OpenKalman::internal::LibraryWrapper<T, L>> {};
 
 
-  template<typename T, typename...Ps>
-  struct traits<OpenKalman::internal::SelfContainedWrapper<T, Ps...>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::internal::SelfContainedWrapper<T, Ps...>> {};
-
-
   template<typename NestedMatrix, typename...Vs>
   struct traits<OpenKalman::internal::FixedSizeAdapter<NestedMatrix, Vs...>>
     : OpenKalman::Eigen3::internal::native_traits<OpenKalman::internal::FixedSizeAdapter<NestedMatrix, Vs...>> {};

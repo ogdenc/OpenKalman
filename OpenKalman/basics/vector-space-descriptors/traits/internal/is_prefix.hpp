@@ -84,8 +84,24 @@ namespace OpenKalman::internal
    * \details Whether T is a prefix of U is indicated by the bool <code>is_prefix::value<>.
    * If T is a prefix of U, <code>typename is_prefix::base<> is an alias for the base.
    */
+#ifdef __cpp_concepts
   template<typename T, typename U>
-  struct is_prefix : detail::is_prefix_impl<
+  struct is_prefix
+#else
+  template<typename T, typename U, typename = void>
+  struct is_prefix
+#endif
+  : std::false_type {};
+
+
+#ifdef __cpp_concepts
+  template<fixed_vector_space_descriptor T, fixed_vector_space_descriptor U>
+  struct is_prefix<T, U>
+#else
+  template<typename T, typename U>
+  struct is_prefix<T, U, std::enable_if_t<fixed_vector_space_descriptor<T> and fixed_vector_space_descriptor<U>>>
+#endif
+  : detail::is_prefix_impl<
     canonical_fixed_vector_space_descriptor_t<std::decay_t<T>>,
     canonical_fixed_vector_space_descriptor_t<std::decay_t<U>>>
   {};

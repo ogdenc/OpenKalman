@@ -34,7 +34,7 @@ namespace OpenKalman
     template<std::size_t...indices, typename Arg, typename Chip, std::size_t...all_indices, typename...Is>
     constexpr Arg& set_chip_impl(Arg&& arg, Chip&& chip, std::index_sequence<all_indices...>, Is...is)
     {
-      return set_block(std::forward<Arg>(arg), std::forward<Chip>(chip), chip_index_match<all_indices, indices...>(is...)...);
+      return set_slice(std::forward<Arg>(arg), std::forward<Chip>(chip), chip_index_match<all_indices, indices...>(is...)...);
     }
   } // namespace detail
 

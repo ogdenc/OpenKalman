@@ -24,11 +24,11 @@ namespace OpenKalman
    * \brief Addition involving ConstantAdapter, DiagonalMatrix, TriangularMatrix, or SelfAdjointMatrix.
    */
 #ifdef __cpp_concepts
-  template<indexible Arg1, maybe_same_shape_as Arg2> requires
+  template<indexible Arg1, vector_space_descriptors_may_match_with Arg2> requires
     (constant_adapter<Arg1> or eigen_diagonal_expr<Arg1> or eigen_triangular_expr<Arg1> or eigen_self_adjoint_expr<Arg1>) or
     (constant_adapter<Arg2> or eigen_diagonal_expr<Arg2> or eigen_triangular_expr<Arg2> or eigen_self_adjoint_expr<Arg2>)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<maybe_same_shape_as<Arg1, Arg2> and
+  template<typename Arg1, typename Arg2, std::enable_if_t<vector_space_descriptors_may_match_with<Arg1, Arg2> and
     (constant_adapter<Arg1> or eigen_diagonal_expr<Arg1> or eigen_triangular_expr<Arg1> or eigen_self_adjoint_expr<Arg1>) or
     (constant_adapter<Arg2> or eigen_diagonal_expr<Arg2> or eigen_triangular_expr<Arg2> or eigen_self_adjoint_expr<Arg2>), int> = 0>
 #endif
@@ -42,11 +42,11 @@ namespace OpenKalman
    * \brief Subtraction involving ConstantAdapter, DiagonalMatrix, TriangularMatrix, or SelfAdjointMatrix.
    */
 #ifdef __cpp_concepts
-  template<indexible Arg1, maybe_same_shape_as Arg2> requires
+  template<indexible Arg1, vector_space_descriptors_may_match_with Arg2> requires
     (constant_adapter<Arg1> or eigen_diagonal_expr<Arg1> or eigen_triangular_expr<Arg1> or eigen_self_adjoint_expr<Arg1>) or
     (constant_adapter<Arg2> or eigen_diagonal_expr<Arg2> or eigen_triangular_expr<Arg2> or eigen_self_adjoint_expr<Arg2>)
 #else
-  template<typename Arg1, typename Arg2, std::enable_if_t<maybe_same_shape_as<Arg1, Arg2> and
+  template<typename Arg1, typename Arg2, std::enable_if_t<vector_space_descriptors_may_match_with<Arg1, Arg2> and
     (constant_adapter<Arg1> or eigen_diagonal_expr<Arg1> or eigen_triangular_expr<Arg1> or eigen_self_adjoint_expr<Arg1>) or
     (constant_adapter<Arg2> or eigen_diagonal_expr<Arg2> or eigen_triangular_expr<Arg2> or eigen_self_adjoint_expr<Arg2>), int> = 0>
 #endif

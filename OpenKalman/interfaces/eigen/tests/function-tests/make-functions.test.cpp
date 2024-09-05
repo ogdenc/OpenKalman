@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -196,7 +196,7 @@ TEST(eigen3, make_dense_object_from)
 }
 
 
-TEST(eigen3, make_adapters)
+TEST(eigen3, make_special)
 {
   auto m22h = make_dense_object_from<M22>(3, 1, 1, 3);
   auto m22u = make_dense_object_from<M22>(3, 1, 0, 3);
@@ -243,5 +243,29 @@ TEST(eigen3, make_adapters)
   static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m22_lowert))>);
   EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m22_lowert), m22h));
   static_assert(eigen_SelfAdjointView<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m22_lowert))>);
+
+  EXPECT_TRUE(is_near(make_identity_matrix_like(M33{}), M33::Identity()));
+  static_assert(identity_matrix<decltype(make_identity_matrix_like(M33{}))>);
+  EXPECT_TRUE(is_near(make_identity_matrix_like(M34{}), M34::Identity()));
+  static_assert(identity_matrix<decltype(make_identity_matrix_like(M34{}))>);
+  EXPECT_TRUE(is_near(make_identity_matrix_like(M43{}), M43::Identity()));
+  static_assert(identity_matrix<decltype(make_identity_matrix_like(M43{}))>);
+  static_assert(std::is_same_v<scalar_type_of_t<decltype(make_identity_matrix_like<int>(M43{}))>, int>);
+
+  EXPECT_TRUE(is_near(make_identity_matrix_like<M00>(Dimensions<3>{}, Dimensions<3>{}), M33::Identity()));
+  static_assert(identity_matrix<decltype(make_identity_matrix_like<M00>(Dimensions<3>{}, Dimensions<3>{}))>);
+  EXPECT_TRUE(is_near(make_identity_matrix_like<M00>(Dimensions<3>{}, Dimensions<4>{}), M34::Identity()));
+  static_assert(identity_matrix<decltype(make_identity_matrix_like<M00>(Dimensions<3>{}, Dimensions<4>{}))>);
+  EXPECT_TRUE(is_near(make_identity_matrix_like<M00>(Dimensions<4>{}, Dimensions<3>{}), M43::Identity()));
+  static_assert(identity_matrix<decltype(make_identity_matrix_like<M00>(Dimensions<4>{}, Dimensions<3>{}))>);
+  EXPECT_TRUE(is_near(make_identity_matrix_like<M00>(Dimensions<3>{}, Dimensions{3}), M3x::Identity(3, 3)));
+  static_assert(identity_matrix<decltype(make_identity_matrix_like<M00>(Dimensions<3>{}, Dimensions{3}))>);
+  EXPECT_TRUE(is_near(make_identity_matrix_like<M00>(Dimensions<3>{}, Dimensions{4}), M3x::Identity(3, 4)));
+  static_assert(identity_matrix<decltype(make_identity_matrix_like<M00>(Dimensions<3>{}, Dimensions{4}))>);
+  EXPECT_TRUE(is_near(make_identity_matrix_like<M00>(Dimensions{3}, Dimensions{4}), Mxx::Identity(3, 4)));
+  static_assert(identity_matrix<decltype(make_identity_matrix_like<M00>(Dimensions{3}, Dimensions{4}))>);
+
+  EXPECT_TRUE(is_near(make_identity_matrix_like<M00>(Dimensions<3>{}, Dimensions<3>{}, Dimensions<1>{}), M33::Identity()));
+  static_assert(identity_matrix<decltype(make_identity_matrix_like<M00>(Dimensions<3>{}, Dimensions<3>{}, Dimensions<1>{}))>);
 }
 

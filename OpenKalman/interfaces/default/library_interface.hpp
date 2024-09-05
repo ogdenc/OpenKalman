@@ -50,7 +50,7 @@ namespace OpenKalman::interface
      * \note Mandatory. Also, this function, or the library, is responsible for any optional bounds checking.
      *
      */
-#if defined(__cpp_lib_concepts) and defined(__cpp_lib_ranges)
+#ifdef __cpp_lib_ranges
     template<indexible Arg, std::ranges::input_range Indices> requires index_value<std::ranges::range_value_t<Indices>>
     static constexpr scalar_constant decltype(auto)
 #else
@@ -80,12 +80,10 @@ namespace OpenKalman::interface
     /**
      * \brief Converts Arg (if it is not already) to a native matrix operable within the library associated with LibraryObject.
      * \details The result should be in a form for which basic matrix operations can be performed within the library for LibraryObject.
+     * This should be a lightweight transformation that does not require copying of elements.
      * If possible, properties such as \ref diagonal_matrix, \ref triangular_matrix, \ref hermitian_matrix,
      * \ref constant_matrix, and \ref constant_diagonal_matrix should be preserved in the resulting object.
-     * Also, this function should accept, as arguments, all OpenKalman classes including
-     * FixedSizeAdapter (if otherwise used in the interface), ConstantAdapter, DiagonalMatrix,
-     * SelfAdjointMatrix, TriangularMatrix, FromEuclideanExpr, ToEuclideanExpr,
-     * Matrix, Mean, EuclideanMean, Covariance, and SquareRootCovariance.
+     * \note if not defined, a call to \ref OpenKalman::to_native_matrix will construct a \ref LibraryWrapper.
      */
 #ifdef __cpp_concepts
     static decltype(auto)
@@ -95,6 +93,20 @@ namespace OpenKalman::interface
     static decltype(auto)
     to_native_matrix(Arg&& arg) = delete;
 #endif
+
+
+    /**
+     * \brief Assign (copy or move) the elements of an indexible object to another indexible object.
+     * \tparam To The \ref indexible object to be assigned.
+     * \tparam From The \ref indexible object from which to assign.
+     */
+#ifdef __cpp_concepts
+    template<writable To, indexible From>
+#else
+    template<typename To, typename From, std::enable_if_t<indexible<To> and indexible<From>, int> = 0>
+#endif
+    static void
+    assign(M& a, From&& b) = delete;
 
 
     /**
@@ -119,35 +131,21 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Assign (copy or move) the elements of an indexible object to a writable object.
-     * \tparam To The \ref writable object to be assigned.
-     * \tparam From The indexible object to be assigned.
-     */
-#ifdef __cpp_concepts
-    template<writable To, indexible From>
-#else
-    template<typename To, typename From, std::enable_if_t<writable<To> and indexible<From>, int> = 0>
-#endif
-    static void
-    assign(M& a, From&& b) = delete;
-
-
-    /**
      * \brief Fill a writable matrix with a list of elements.
-     * \tparam M The \ref writable object to be filled.
+     * \tparam Arg The \ref writable object to be filled.
      * \tparam layout The \ref Layout of the listed elements, which may be \ref Layout::left or \ref Layout::right.
-     * \param args A set of scalar values representing the elements. There must be exactly the right number of elements
-     * to fill M.
+     * \param scalars A set of scalar values representing the elements. There must be exactly the right number of elements
+     * to fill Arg.
      */
 #ifdef __cpp_concepts
-    template<Layout layout, writable M> requires (layout == Layout::right) or (layout == Layout::left)
+    template<Layout layout, writable Arg> requires (layout == Layout::right) or (layout == Layout::left)
     static void
-    fill_components(M& m, const std::convertible_to<scalar_type_of_t<M>> auto ... args) = delete;
+    fill_components(Arg& arg, const std::convertible_to<scalar_type_of_t<Arg>> auto ... scalars) = delete;
 #else
-    template<Layout layout, typename M, typename...Args, std::enable_if_t<
-      writable<M> and (layout == Layout::right) or (layout == Layout::left), int> = 0>
+    template<Layout layout, typename Arg, typename...Scalars, std::enable_if_t<
+      writable<Arg> and (layout == Layout::right) or (layout == Layout::left), int> = 0>
     static void
-    fill_components(M& m, const Args ... args) = delete;
+    fill_components(Arg& arg, const Scalars...scalars) = delete;
 #endif
 
 
@@ -237,7 +235,7 @@ namespace OpenKalman::interface
     template<typename Arg, typename...Begin, typename...Size>
     static decltype(auto)
 #endif
-    get_block(Arg&& arg, const std::tuple<Begin...>& begin, const std::tuple<Size...>& size) = delete;
+    get_slice(Arg&& arg, const std::tuple<Begin...>& begin, const std::tuple<Size...>& size) = delete;
 
 
     /**
@@ -250,13 +248,13 @@ namespace OpenKalman::interface
      * \returns An lvalue reference to arg.
      */
 #ifdef __cpp_concepts
-    template<indexible Arg, indexible Block, index_value...Begin> requires
+    template<writable Arg, indexible Block, index_value...Begin> requires
       (index_count_v<Block> == sizeof...(Begin)) and (index_count_v<Arg> == sizeof...(Begin))
 #else
     template<typename Arg, typename Block, typename...Begin>
 #endif
-    static Arg&
-    set_block(Arg& arg, Block&& block, const Begin&...begin) = delete;
+    static void
+    set_slice(Arg& arg, Block&& block, const Begin&...begin) = delete;
 
 
     /**
@@ -266,25 +264,21 @@ namespace OpenKalman::interface
      * \tparam t The TriangleType (upper, lower, or diagonal)
      * \param a The matrix or tensor to be set
      * \param b A matrix or tensor to be copied from, which may or may not be triangular.
-     * Note: This may not necessarily be within the same library as arg, so a conversion may be necessary
-     * (e.g., via /ref to_native_matrix).
      * \return a as altered
-     * Note: This object may not necessarily be within the same library as a, so a conversion may be necessary
-     * (e.g., via /ref to_native_matrix).
      */
 #ifdef __cpp_concepts
     template<TriangleType t>
-    static indexible decltype(auto)
-    set_triangle(indexible auto&& a, indexible auto&& b) = delete;
+    static void
+    set_triangle(writable auto& a, indexible auto&& b) = delete;
 #else
-    template<TriangleType t, typename A, typename B>
-    static decltype(auto)
-    set_triangle(A&& a, B&& b) = delete;
+    template<TriangleType t, typename A, typename B, std::enable_if_t<writable<A> and indexible<B>, int> = 0>
+    static void
+    set_triangle(A& a, B&& b) = delete;
 #endif
 
 
     /**
-     * \brief Convert a column vector into a diagonal matrix (optional).
+     * \brief Convert a column vector (or column slice for rank>2 tensors) into a diagonal matrix (optional).
      * \note If this is not defined, calls to <code>OpenKalman::to_diagonal</code> will construct a \ref DiagonalMatrix.
      * \details An interface need not deal with an object known to be \ref one_dimensional at compile time.
      * \tparam Arg A column vector.
@@ -300,7 +294,7 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Extract a column vector comprising the diagonal elements of a square matrix.
+     * \brief Extract a column vector (or column slice for rank>2 tensors) comprising the diagonal elements.
      * \details An interface need not deal with the following situations, which are already handled by the
      * global \ref OpenKalman::diagonal_of "diagonal_of" function:
      * - an identity matrix
@@ -433,7 +427,7 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     template<indexible Arg>
-    static constexpr maybe_same_shape_as<Arg> auto
+    static constexpr vector_space_descriptors_may_match_with<Arg> auto
 #else
     template<typename Arg>
     static constexpr auto
@@ -491,8 +485,8 @@ namespace OpenKalman::interface
      * \param args Other \ref indexible objects of the same dimensions as Arg (but potentially from a different library).
      */
 #ifdef __cpp_concepts
-    template<indexible Arg, maybe_same_shape_as<Arg>...Args>
-    static constexpr maybe_same_shape_as<Arg> auto
+    template<indexible Arg, vector_space_descriptors_may_match_with<Arg>...Args>
+    static constexpr vector_space_descriptors_may_match_with<Arg> auto
 #else
     template<typename Arg, typename...Args>
     static constexpr auto
@@ -509,7 +503,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<indexible Arg, scalar_constant S> requires
       requires(S s) { {get_scalar_constant_value(s)} -> std::convertible_to<scalar_type_of_t<Arg>>; }
-    static constexpr maybe_same_shape_as<Arg> auto
+    static constexpr vector_space_descriptors_may_match_with<Arg> auto
 #else
     template<typename Arg, typename S>
     static constexpr auto
@@ -526,7 +520,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<indexible Arg, scalar_constant S> requires
       requires(S s) { {get_scalar_constant_value(s)} -> std::convertible_to<scalar_type_of_t<Arg>>; }
-    static constexpr maybe_same_shape_as<Arg> auto
+    static constexpr vector_space_descriptors_may_match_with<Arg> auto
 #else
     template<typename Arg, typename S>
     static constexpr auto
@@ -540,7 +534,7 @@ namespace OpenKalman::interface
      * \param b Another \ref indexible object of the same dimensions as A (but potentially from a different library).
      */
 #ifdef __cpp_concepts
-    template<indexible A, maybe_same_shape_as<A> B>
+    template<indexible A, vector_space_descriptors_may_match_with<A> B>
     static constexpr compatible_with_vector_space_descriptors<vector_space_descriptor_of_t<A, 1>, vector_space_descriptor_of_t<B, 1>> auto
 #else
     template<typename A, typename B>
@@ -556,7 +550,7 @@ namespace OpenKalman::interface
      * \return A reference to A
      */
 #ifdef __cpp_concepts
-    template<bool on_the_right, writable A, maybe_same_shape_as<A> B>
+    template<bool on_the_right, writable A, vector_space_descriptors_may_match_with<A> B>
 #else
     template<bool on_the_right, typename A, typename B>
 #endif

@@ -47,7 +47,7 @@ namespace OpenKalman
     }());
 
     if constexpr (sizeof...(indices) == 0) return std::forward<Arg>(arg);
-    else return get_block<indices...>(
+    else return get_slice<indices...>(
       std::forward<Arg>(arg),
       std::tuple{ixs...}, // begin points
       std::tuple{(std::integral_constant<decltype(indices), 1> {})...}); // block sizes (always 1 in each collapsed dimension)

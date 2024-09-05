@@ -185,7 +185,7 @@ TEST(eigen3, get_and_set_components)
 }
 
 
-TEST(eigen3, get_block)
+TEST(eigen3, get_slice)
 {
   auto N0 = std::integral_constant<std::size_t, 0>{};
   auto N1 = std::integral_constant<std::size_t, 1>{};
@@ -197,53 +197,53 @@ TEST(eigen3, get_block)
     5, 6, 7, 8,
     9, 10, 11, 12);
 
-  EXPECT_TRUE(is_near(get_block(m34, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_object_from<M22>(1, 2, 5, 6)));
-  EXPECT_TRUE(is_near(get_block(M34{m34}, std::tuple{N1, N1}, std::tuple{2, N3}), make_dense_object_from<M23>(6, 7, 8, 10, 11, 12)));
-  EXPECT_TRUE(is_near(get_block(m34, std::tuple{N1, 1}, std::tuple{N2, 2}), make_dense_object_from<M22>(6, 7, 10, 11)));
-  EXPECT_TRUE(is_near(get_block(m34, std::tuple{0, 0}, std::tuple{2, N2}), make_dense_object_from<M22>(1, 2, 5, 6)));
-  EXPECT_TRUE(is_near(get_block(M3x{m34}, std::tuple{0, N0}, std::tuple{2, 2}), make_dense_object_from<M22>(1, 2, 5, 6)));
-  EXPECT_TRUE(is_near(get_block(Mxx{m34}, std::tuple{0, 0}, std::tuple{2, 2}), make_dense_object_from<M22>(1, 2, 5, 6)));
-  EXPECT_TRUE(is_near(get_block(Mxx{m34}, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_object_from<M22>(1, 2, 5, 6)));
+  EXPECT_TRUE(is_near(get_slice(m34, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_object_from<M22>(1, 2, 5, 6)));
+  EXPECT_TRUE(is_near(get_slice(M34{m34}, std::tuple{N1, N1}, std::tuple{2, N3}), make_dense_object_from<M23>(6, 7, 8, 10, 11, 12)));
+  EXPECT_TRUE(is_near(get_slice(m34, std::tuple{N1, 1}, std::tuple{N2, 2}), make_dense_object_from<M22>(6, 7, 10, 11)));
+  EXPECT_TRUE(is_near(get_slice(m34, std::tuple{0, 0}, std::tuple{2, N2}), make_dense_object_from<M22>(1, 2, 5, 6)));
+  EXPECT_TRUE(is_near(get_slice(M3x{m34}, std::tuple{0, N0}, std::tuple{2, 2}), make_dense_object_from<M22>(1, 2, 5, 6)));
+  EXPECT_TRUE(is_near(get_slice(Mxx{m34}, std::tuple{0, 0}, std::tuple{2, 2}), make_dense_object_from<M22>(1, 2, 5, 6)));
+  EXPECT_TRUE(is_near(get_slice(Mxx{m34}, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_object_from<M22>(1, 2, 5, 6)));
 
-  EXPECT_TRUE(is_near(get_block<0, 1>(Mxx{m34}, std::tuple{N0, N0}, std::tuple{N2, N3}), make_dense_object_from<M23>(1, 2, 3, 5, 6, 7)));
-  EXPECT_TRUE(is_near(get_block<1, 0>(Mxx{m34}, std::tuple{N0, N0}, std::tuple{N3, N2}), make_dense_object_from<M23>(1, 2, 3, 5, 6, 7)));
+  EXPECT_TRUE(is_near(get_slice<0, 1>(Mxx{m34}, std::tuple{N0, N0}, std::tuple{N2, N3}), make_dense_object_from<M23>(1, 2, 3, 5, 6, 7)));
+  EXPECT_TRUE(is_near(get_slice<1, 0>(Mxx{m34}, std::tuple{N0, N0}, std::tuple{N3, N2}), make_dense_object_from<M23>(1, 2, 3, 5, 6, 7)));
 
-  EXPECT_TRUE(is_near(get_block<0>(m34, std::tuple{N0}, std::tuple{N2}), make_dense_object_from<M24>(1, 2, 3, 4, 5, 6, 7, 8)));
-  EXPECT_TRUE(is_near(get_block<0>(m34, std::tuple{N1}, std::tuple{2}), make_dense_object_from<M24>(5, 6, 7, 8, 9, 10, 11, 12)));
-  EXPECT_TRUE(is_near(get_block<0>(m34, std::tuple{1}, std::tuple{1}), make_dense_object_from<M14>(5, 6, 7, 8)));
-  EXPECT_TRUE(is_near(get_block<0>(Mxx{m34}, std::tuple{1}, std::tuple{N2}), make_dense_object_from<M24>(5, 6, 7, 8, 9, 10, 11, 12)));
+  EXPECT_TRUE(is_near(get_slice<0>(m34, std::tuple{N0}, std::tuple{N2}), make_dense_object_from<M24>(1, 2, 3, 4, 5, 6, 7, 8)));
+  EXPECT_TRUE(is_near(get_slice<0>(m34, std::tuple{N1}, std::tuple{2}), make_dense_object_from<M24>(5, 6, 7, 8, 9, 10, 11, 12)));
+  EXPECT_TRUE(is_near(get_slice<0>(m34, std::tuple{1}, std::tuple{1}), make_dense_object_from<M14>(5, 6, 7, 8)));
+  EXPECT_TRUE(is_near(get_slice<0>(Mxx{m34}, std::tuple{1}, std::tuple{N2}), make_dense_object_from<M24>(5, 6, 7, 8, 9, 10, 11, 12)));
 
-  EXPECT_TRUE(is_near(get_block<1>(m34, std::tuple{N0}, std::tuple{N2}), make_dense_object_from<M32>(1, 2, 5, 6, 9, 10)));
-  EXPECT_TRUE(is_near(get_block<1>(m34, std::tuple{N1}, std::tuple{2}), make_dense_object_from<M32>(2, 3, 6, 7, 10, 11)));
-  EXPECT_TRUE(is_near(get_block<1>(m34, std::tuple{1}, std::tuple{1}), make_dense_object_from<M31>(2, 6, 10)));
-  EXPECT_TRUE(is_near(get_block<1>(Mxx{m34}, std::tuple{1}, std::tuple{N3}), make_dense_object_from<M33>(2, 3, 4, 6, 7, 8, 10, 11, 12)));
+  EXPECT_TRUE(is_near(get_slice<1>(m34, std::tuple{N0}, std::tuple{N2}), make_dense_object_from<M32>(1, 2, 5, 6, 9, 10)));
+  EXPECT_TRUE(is_near(get_slice<1>(m34, std::tuple{N1}, std::tuple{2}), make_dense_object_from<M32>(2, 3, 6, 7, 10, 11)));
+  EXPECT_TRUE(is_near(get_slice<1>(m34, std::tuple{1}, std::tuple{1}), make_dense_object_from<M31>(2, 6, 10)));
+  EXPECT_TRUE(is_near(get_slice<1>(Mxx{m34}, std::tuple{1}, std::tuple{N3}), make_dense_object_from<M33>(2, 3, 4, 6, 7, 8, 10, 11, 12)));
 
   auto ewd3 = Eigen3::make_eigen_wrapper(Eigen::DiagonalMatrix<double, 3>{make_dense_object_from<M31>(1, 2, 3)});
   static_assert(not std::is_lvalue_reference_v<typename Eigen::internal::ref_selector<decltype(ewd3)>::non_const_type>);
   static_assert((Eigen::internal::traits<decltype(ewd3)>::Flags & Eigen::NestByRefBit) == 0x0);
 
-  EXPECT_TRUE(is_near(get_block(ewd3, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_object_from<M22>(1, 0, 0, 2)));
-  EXPECT_TRUE(is_near(get_block(ewd3, std::tuple{0, 0}, std::tuple{2, 2}), make_dense_object_from<M22>(1, 0, 0, 2)));
-  EXPECT_TRUE(is_near(get_block<0>(ewd3, std::tuple{N1}, std::tuple{N2}), make_dense_object_from<M23>(0, 2, 0, 0, 0, 3)));
-  EXPECT_TRUE(is_near(get_block<1>(ewd3, std::tuple{N1}, std::tuple{N2}), make_dense_object_from<M32>(0, 0, 2, 0, 0, 3)));
+  EXPECT_TRUE(is_near(get_slice(ewd3, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_object_from<M22>(1, 0, 0, 2)));
+  EXPECT_TRUE(is_near(get_slice(ewd3, std::tuple{0, 0}, std::tuple{2, 2}), make_dense_object_from<M22>(1, 0, 0, 2)));
+  EXPECT_TRUE(is_near(get_slice<0>(ewd3, std::tuple{N1}, std::tuple{N2}), make_dense_object_from<M23>(0, 2, 0, 0, 0, 3)));
+  EXPECT_TRUE(is_near(get_slice<1>(ewd3, std::tuple{N1}, std::tuple{N2}), make_dense_object_from<M32>(0, 0, 2, 0, 0, 3)));
 
-  EXPECT_TRUE(is_near(get_block(Eigen3::make_eigen_wrapper(Eigen::DiagonalMatrix<double, 3>{make_dense_object_from<M31>(1, 2, 3)}), std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_object_from<M22>(1, 0, 0, 2)));
+  EXPECT_TRUE(is_near(get_slice(Eigen3::make_eigen_wrapper(Eigen::DiagonalMatrix<double, 3>{make_dense_object_from<M31>(1, 2, 3)}), std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_object_from<M22>(1, 0, 0, 2)));
   auto d3a = Eigen::DiagonalMatrix<double, 3>{make_dense_object_from<M31>(1, 2, 3)};
-  EXPECT_TRUE(is_near(get_block(Eigen3::make_eigen_wrapper(d3a), std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_object_from<M22>(1, 0, 0, 2)));
+  EXPECT_TRUE(is_near(get_slice(Eigen3::make_eigen_wrapper(d3a), std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_object_from<M22>(1, 0, 0, 2)));
   auto ewd3a = Eigen3::make_eigen_wrapper(d3a);
-  EXPECT_TRUE(is_near(get_block(ewd3a, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_object_from<M22>(1, 0, 0, 2)));
+  EXPECT_TRUE(is_near(get_slice(ewd3a, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_object_from<M22>(1, 0, 0, 2)));
 
   Eigen::DiagonalMatrix<double, 3> d3 {make_dense_object_from<M31>(1, 2, 3)};
 
-  EXPECT_TRUE(is_near(get_block(d3, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_object_from<M22>(1, 0, 0, 2)));
-  EXPECT_TRUE(is_near(get_block(d3, std::tuple{0, 0}, std::tuple{2, 2}), make_dense_object_from<M22>(1, 0, 0, 2)));
-  EXPECT_TRUE(is_near(get_block<0>(d3, std::tuple{N1}, std::tuple{N2}), make_dense_object_from<M23>(0, 2, 0, 0, 0, 3)));
-  EXPECT_TRUE(is_near(get_block<1>(d3, std::tuple{N1}, std::tuple{N2}), make_dense_object_from<M32>(0, 0, 2, 0, 0, 3)));
-  EXPECT_TRUE(is_near(get_block(Eigen::DiagonalMatrix<double, 3>{make_dense_object_from<M31>(1, 2, 3)}, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_object_from<M22>(1, 0, 0, 2)));
+  EXPECT_TRUE(is_near(get_slice(d3, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_object_from<M22>(1, 0, 0, 2)));
+  EXPECT_TRUE(is_near(get_slice(d3, std::tuple{0, 0}, std::tuple{2, 2}), make_dense_object_from<M22>(1, 0, 0, 2)));
+  EXPECT_TRUE(is_near(get_slice<0>(d3, std::tuple{N1}, std::tuple{N2}), make_dense_object_from<M23>(0, 2, 0, 0, 0, 3)));
+  EXPECT_TRUE(is_near(get_slice<1>(d3, std::tuple{N1}, std::tuple{N2}), make_dense_object_from<M32>(0, 0, 2, 0, 0, 3)));
+  EXPECT_TRUE(is_near(get_slice(Eigen::DiagonalMatrix<double, 3>{make_dense_object_from<M31>(1, 2, 3)}, std::tuple{N0, N0}, std::tuple{N2, N2}), make_dense_object_from<M22>(1, 0, 0, 2)));
 }
 
 
-TEST(eigen3, set_block)
+TEST(eigen3, set_slice)
 {
   auto N0 = std::integral_constant<std::size_t, 0>{};
   auto N1 = std::integral_constant<std::size_t, 1>{};
@@ -259,13 +259,13 @@ TEST(eigen3, set_block)
 
   auto m31 = make_dense_object_from<M31>(13, 14, 15);
 
-  set_block(m34, m31, N0, N1);
+  set_slice(m34, m31, N0, N1);
   EXPECT_TRUE(is_near(m34, make_dense_object_from<M34>(
     1, 13, 3, 4,
     5, 14, 7, 8,
     9, 15, 11, 12)));
 
-  set_block(ewm34, m31, N0, 2);
+  set_slice(ewm34, m31, N0, 2);
   EXPECT_TRUE(is_near(m34, make_dense_object_from<M34>(
     1, 13, 13, 4,
     5, 14, 14, 8,
@@ -273,13 +273,13 @@ TEST(eigen3, set_block)
 
   auto m14 = make_dense_object_from<M14>(16, 17, 18, 19);
 
-  set_block(m34, m14, 1, N0);
+  set_slice(m34, m14, 1, N0);
   EXPECT_TRUE(is_near(m34, make_dense_object_from<M34>(
     1, 13, 13, 4,
     16, 17, 18, 19,
     9, 15, 15, 12)));
 
-  set_block(m34, m14, 2, 0);
+  set_slice(m34, m14, 2, 0);
   EXPECT_TRUE(is_near(m34, make_dense_object_from<M34>(
     1, 13, 13, 4,
     16, 17, 18, 19,
@@ -287,13 +287,13 @@ TEST(eigen3, set_block)
 
   auto m21 = make_dense_object_from<M21>(20, 21);
 
-  set_block(m34, m21, N1, N1);
+  set_slice(m34, m21, N1, N1);
   EXPECT_TRUE(is_near(m34, make_dense_object_from<M34>(
     1, 13, 13, 4,
     16, 20, 18, 19,
     16, 21, 18, 19)));
 
-  set_block(m34, m21, 0, N3);
+  set_slice(m34, m21, 0, N3);
   EXPECT_TRUE(is_near(m34, make_dense_object_from<M34>(
     1, 13, 13, 20,
     16, 20, 18, 21,
@@ -301,24 +301,24 @@ TEST(eigen3, set_block)
 
   auto m13 = make_dense_object_from<M13>(22, 23, 24);
 
-  set_block(m34, m13, N2, 1);
+  set_slice(m34, m13, N2, 1);
   EXPECT_TRUE(is_near(m34, make_dense_object_from<M34>(
     1, 13, 13, 20,
     16, 20, 18, 21,
     16, 22, 23, 24)));
 
-  set_block(m34, m13, 1, 0);
+  set_slice(m34, m13, 1, 0);
   EXPECT_TRUE(is_near(m34, make_dense_object_from<M34>(
     1, 13, 13, 20,
     22, 23, 24, 21,
     16, 22, 23, 24)));
 
   const auto m34_copy = m34;
-  set_block(m34, get_block(m34, std::tuple{N1, N1}, std::tuple{N1, N2}), N1, N1); EXPECT_TRUE(is_near(m34, m34_copy));
-  set_block(m34, get_block(m34, std::tuple{N1, N1}, std::tuple{N1, N2}), 1, 1); EXPECT_TRUE(is_near(m34, m34_copy));
-  set_block(m34, get_block(m34, std::tuple{1, 1}, std::tuple{1, 2}), 1, 1); EXPECT_TRUE(is_near(m34, m34_copy));
+  set_slice(m34, get_slice(m34, std::tuple{N1, N1}, std::tuple{N1, N2}), N1, N1); EXPECT_TRUE(is_near(m34, m34_copy));
+  set_slice(m34, get_slice(m34, std::tuple{N1, N1}, std::tuple{N1, N2}), 1, 1); EXPECT_TRUE(is_near(m34, m34_copy));
+  set_slice(m34, get_slice(m34, std::tuple{1, 1}, std::tuple{1, 2}), 1, 1); EXPECT_TRUE(is_near(m34, m34_copy));
 
-  set_block(m34, Eigen::Block<const M34, 1, 4, false>{m34, 0, 0} * 2, 0, N0);
+  set_slice(m34, Eigen::Block<const M34, 1, 4, false>{m34, 0, 0} * 2, 0, N0);
   EXPECT_TRUE(is_near(m34, make_dense_object_from<M34>(
     2, 26, 26, 40,
     22, 23, 24, 21,

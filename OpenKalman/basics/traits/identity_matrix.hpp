@@ -34,16 +34,17 @@ namespace OpenKalman
   /**
    * \brief Specifies that a type is an identity matrix.
    * \details This is a generalized identity matrix which may be rectangular (with zeros in all non-diagonal components.
-   * An empty matrix is also an identity matrix.
+   * For rank >2 tensors, every rank-2 slice comprising dimensions 0 and 1 must be an identity matrix as defined here.
+   * Every \ref empty_object is also an identity matrix.
    */
   template<typename T>
 #ifdef __cpp_concepts
   concept identity_matrix =
     (constant_diagonal_matrix<T, ConstantType::static_constant> and internal::are_within_tolerance(constant_diagonal_coefficient_v<T>, 1)) or
 #else
-  constexpr bool identity_matrix = detail::is_identity_matrix<T>::value or
+    constexpr bool identity_matrix = detail::is_identity_matrix<T>::value or
 #endif
-    (index_count_v<T> == 2 and empty_object<T>);
+    empty_object<T>;
 
 
 } // namespace OpenKalman

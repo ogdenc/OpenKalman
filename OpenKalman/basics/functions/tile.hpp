@@ -41,7 +41,7 @@ namespace OpenKalman
 
       if constexpr (direction == sizeof...(dims) - 1)
       {
-        set_block(arg, std::forward<Block>(block), std::get<dims>(current_position)...);
+        set_slice(arg, std::forward<Block>(block), std::get<dims>(current_position)...);
 
         if (cur_pos > 0 and ((dims != direction and get_index_dimension_of<dims>(block) != std::get<dims>(current_block_size)) or ...))
           throw std::length_error {"Block argument to tile function is not the right tile size."};

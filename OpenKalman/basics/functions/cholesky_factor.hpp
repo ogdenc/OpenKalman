@@ -53,20 +53,19 @@ namespace OpenKalman
     {
       auto m = [](const auto& a){
         auto sq = internal::constexpr_sqrt(constant_coefficient{a});
-        auto dim = *is_square_shaped(a);
-        using D = std::decay_t<decltype(dim)>;
-        auto d1 = []{ if constexpr (has_uniform_dimension_type<D>) return uniform_dimension_type_of_t<D>{}; else return Dimensions<1>{}; }();
+        auto v = *is_square_shaped(a);
+        auto dim = get_dimension_size_of(v);
 
         if constexpr (triangle_type == TriangleType::lower)
         {
-          auto col0 = make_constant<A>(sq, dim, d1);
-          return concatenate<1>(col0, make_zero<A>(dim, get_dimension_size_of(dim) - d1));
+          auto col0 = make_constant<A>(sq, dim, Dimensions<1>{});
+          return make_vector_space_adapter(concatenate<1>(col0, make_zero<A>(dim, dim - Dimensions<1>{})), v, v);
         }
         else
         {
           static_assert(triangle_type == TriangleType::upper);
-          auto row0 = make_constant<A>(sq, d1, dim);
-          return concatenate<0>(row0, make_zero<A>(get_dimension_size_of(dim) - d1, dim));
+          auto row0 = make_constant<A>(sq, Dimensions<1>{}, dim);
+          return make_vector_space_adapter(concatenate<0>(row0, make_zero<A>(dim - Dimensions<1>{}, dim)), v, v);
         }
       }(a);
 

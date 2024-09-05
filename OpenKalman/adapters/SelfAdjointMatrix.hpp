@@ -68,12 +68,12 @@ namespace OpenKalman
 
     /// Construct from a diagonal matrix if NestedMatrix is diagonal.
 #ifdef __cpp_concepts
-    template<diagonal_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, SelfAdjointMatrix>) and
-      diagonal_matrix<NestedMatrix> and maybe_same_shape_as<Arg, NestedMatrix> and
+    template<diagonal_matrix Arg> requires (not std::is_base_of_v<SelfAdjointMatrix, std::decay_t<Arg>>) and
+      diagonal_matrix<NestedMatrix> and vector_space_descriptors_may_match_with<Arg, NestedMatrix> and
       requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; }
 #else
     template<typename Arg, std::enable_if_t<(not std::is_base_of_v<SelfAdjointMatrix, std::decay_t<Arg>>) and
-      diagonal_matrix<Arg> and diagonal_matrix<NestedMatrix> and same_shape_as<Arg, NestedMatrix> and
+      diagonal_matrix<Arg> and diagonal_matrix<NestedMatrix> and vector_space_descriptors_match_with<Arg, NestedMatrix> and
       std::is_constructible_v<NestedMatrix, decltype(diagonal_of(std::declval<Arg&&>()))>, int> = 0>
 #endif
     SelfAdjointMatrix(Arg&& arg) : Base {diagonal_of(std::forward<Arg>(arg))} {}
@@ -81,7 +81,7 @@ namespace OpenKalman
 
     /// Construct from a diagonal matrix if NestedMatrix is not diagonal.
 #ifdef __cpp_concepts
-    template<diagonal_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, SelfAdjointMatrix>) and
+    template<diagonal_matrix Arg> requires (not std::is_base_of_v<SelfAdjointMatrix, std::decay_t<Arg>>) and
       (not diagonal_matrix<NestedMatrix> or
         not requires(Arg&& arg) { NestedMatrix {diagonal_of(std::forward<Arg>(arg))}; }) and
       std::constructible_from<NestedMatrix, Arg&&>
@@ -97,7 +97,7 @@ namespace OpenKalman
 
     /// Construct from a hermitian, non-diagonal wrapper of the same storage type
 #ifdef __cpp_concepts
-    template<hermitian_adapter<storage_triangle> Arg> requires (not std::derived_from<std::decay_t<Arg>, SelfAdjointMatrix>) and
+    template<hermitian_adapter<storage_triangle> Arg> requires (not std::is_base_of_v<SelfAdjointMatrix, std::decay_t<Arg>>) and
       (not diagonal_matrix<Arg>) and square_shaped<nested_object_of_t<Arg>, Qualification::depends_on_dynamic_shape> and
       std::constructible_from<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>
       //alt: requires(Arg&& arg) { NestedMatrix {nested_object(std::forward<Arg>(arg))}; } -- not accepted in GCC 10
@@ -208,12 +208,12 @@ namespace OpenKalman
 
     /// Assign from another \ref hermitian_matrix.
 #ifdef __cpp_concepts
-    template<hermitian_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, SelfAdjointMatrix>) and
-      maybe_same_shape_as<NestedMatrix, Arg> and (not diagonal_matrix<NestedMatrix> or diagonal_matrix<Arg>) and
+    template<hermitian_matrix Arg> requires (not std::is_base_of_v<SelfAdjointMatrix, std::decay_t<Arg>>) and
+      vector_space_descriptors_may_match_with<NestedMatrix, Arg> and (not diagonal_matrix<NestedMatrix> or diagonal_matrix<Arg>) and
       (writable<NestedMatrix> or std::assignable_from<NestedMatrix, Arg&&>)
 #else
     template<typename Arg, std::enable_if_t<hermitian_matrix<Arg> and
-      (not std::is_base_of_v<SelfAdjointMatrix, std::decay_t<Arg>>) and maybe_same_shape_as<NestedMatrix, Arg> and
+      (not std::is_base_of_v<SelfAdjointMatrix, std::decay_t<Arg>>) and vector_space_descriptors_may_match_with<NestedMatrix, Arg> and
       (not diagonal_matrix<NestedMatrix> or diagonal_matrix<Arg>) and
       (writable<NestedMatrix> or std::is_assignable_v<NestedMatrix, Arg&&>), int> = 0>
 #endif
@@ -227,10 +227,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<maybe_same_shape_as<NestedMatrix> Arg, HermitianAdapterType t> requires diagonal_matrix<Arg> or
+    template<vector_space_descriptors_may_match_with<NestedMatrix> Arg, HermitianAdapterType t> requires diagonal_matrix<Arg> or
       (not diagonal_matrix<NestedMatrix>)
 #else
-    template<typename Arg, HermitianAdapterType t, std::enable_if_t<maybe_same_shape_as<Arg, NestedMatrix> and
+    template<typename Arg, HermitianAdapterType t, std::enable_if_t<vector_space_descriptors_may_match_with<Arg, NestedMatrix> and
       (diagonal_matrix<Arg> or (not diagonal_matrix<NestedMatrix>)), int> = 0>
 #endif
     auto& operator+=(const SelfAdjointMatrix<Arg, t>& arg)
@@ -243,10 +243,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<maybe_same_shape_as<NestedMatrix> Arg, HermitianAdapterType t> requires diagonal_matrix<Arg> or
+    template<vector_space_descriptors_may_match_with<NestedMatrix> Arg, HermitianAdapterType t> requires diagonal_matrix<Arg> or
       (not diagonal_matrix<NestedMatrix>)
 #else
-    template<typename Arg, HermitianAdapterType t, std::enable_if_t<maybe_same_shape_as<Arg, NestedMatrix> and
+    template<typename Arg, HermitianAdapterType t, std::enable_if_t<vector_space_descriptors_may_match_with<Arg, NestedMatrix> and
       (diagonal_matrix<Arg> or (not diagonal_matrix<NestedMatrix>)), int> = 0>
 #endif
     auto& operator-=(const SelfAdjointMatrix<Arg, t>& arg)

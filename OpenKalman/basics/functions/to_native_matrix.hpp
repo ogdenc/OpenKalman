@@ -19,24 +19,26 @@
 namespace OpenKalman
 {
   /**
-   * \brief If it isn't already, convert Arg to a native object in library T.
-   * \details The new object will be one that is fully treated as native by the library associated with T and that can
-   * be an input in any OpenKalman function associated with library T.
-   * \tparam T Any indexible object from the library to which Arg is to be converted. It's shape or scalar type are irrelevant.
+   * \brief If it isn't already, convert Arg to a native object in the library associated with LibraryObject.
+   * \details The new object will be one that is fully treated as native by the library associated with LibraryObject and
+   * that can be an input in any OpenKalman function associated with library LibraryObject.
+   * \tparam LibraryObject Any indexible object from the library to which Arg is to be converted. It's shape or scalar type are irrelevant.
    * \tparam Arg The argument
    */
 #ifdef __cpp_concepts
-  template<indexible T, indexible Arg> requires interface::to_native_matrix_defined_for<T, Arg>
+  template<indexible LibraryObject, indexible Arg>
   inline decltype(auto)
   to_native_matrix(Arg&& arg)
 #else
-  template<typename T, typename Arg, std::enable_if_t<indexible<T> and indexible<Arg> and
-    interface::to_native_matrix_defined_for<T, Arg>, int> = 0>
+  template<typename LibraryObject, typename Arg, std::enable_if_t<indexible<LibraryObject> and indexible<Arg>, int> = 0>
   inline decltype(auto)
   to_native_matrix(Arg&& arg)
 #endif
   {
-    return interface::library_interface<std::decay_t<T>>::to_native_matrix(std::forward<Arg>(arg));
+    if constexpr (interface::to_native_matrix_defined_for<LibraryObject, Arg>)
+      return interface::library_interface<std::decay_t<LibraryObject>>::to_native_matrix(std::forward<Arg>(arg));
+    else
+      return internal::LibraryWrapper<Arg, LibraryObject> {std::forward<Arg>(arg)};
   }
 
 } // namespace OpenKalman

@@ -108,7 +108,8 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief If the argument is diagonal and all diagonal components share the same constant value, return that constant.
+     * \brief If the argument is a \ref diagonal_matrix and all diagonal components share the same constant value, return that constant.
+     * \details If T is a rank >2 tensor, every rank-2 slice comprising dimensions 0 and 1 must be constant diagonal matrix.
      * \note: Optional.
      * \returns A \ref scalar_constant (or, if no constant diagonal, some empty class such as std::monostate).
      */

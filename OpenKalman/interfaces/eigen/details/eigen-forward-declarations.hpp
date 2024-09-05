@@ -382,28 +382,6 @@ namespace OpenKalman::Eigen3
   detail::is_eigen_VectorBlock<std::decay_t<T>>::value;
 
 
-  namespace detail
-  {
-    template<typename T>
-    struct is_eigen_SelfContainedWrapper : std::false_type {};
-
-    template<typename BaseObject, typename...Parameters>
-    struct is_eigen_SelfContainedWrapper<OpenKalman::internal::SelfContainedWrapper<BaseObject, Parameters...>> : std::true_type {};
-  }
-
-
-  /**
-   * \brief Specifies whether T is internal::SelfContainedWrapper
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept eigen_SelfContainedWrapper =
-#else
-  constexpr bool eigen_SelfContainedWrapper =
-#endif
-    detail::is_eigen_SelfContainedWrapper<std::decay_t<T>>::value;
-
-
   /**
    * \brief Specifies any descendant of Eigen::EigenBase.
    * \tparam must_be_native T is required to be a native Eigen object.
@@ -414,9 +392,8 @@ namespace OpenKalman::Eigen3
 #else
   constexpr bool eigen_general =
 #endif
-    ((std::is_base_of_v<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>> or eigen_VectorBlock<T>) and
-      (not must_be_native or not std::is_base_of_v<EigenCustomBase, std::decay_t<T>>)) or
-    (not must_be_native and eigen_SelfContainedWrapper<T>);
+    (std::is_base_of_v<Eigen::EigenBase<std::decay_t<T>>, std::decay_t<T>> or eigen_VectorBlock<T>) and
+      (not must_be_native or not std::is_base_of_v<EigenCustomBase, std::decay_t<T>>);
 
 
   namespace detail
@@ -427,10 +404,6 @@ namespace OpenKalman::Eigen3
     template<typename T, int Size>
     struct is_derived_eigen_matrix<Eigen::VectorBlock<T, Size>>
       : std::is_base_of<Eigen::MatrixBase<std::decay_t<T>>, std::decay_t<T>> {};
-
-    template<typename BaseObject, typename...InternalizedParameters>
-    struct is_derived_eigen_matrix<OpenKalman::internal::SelfContainedWrapper<BaseObject, InternalizedParameters...>>
-      : std::is_base_of<Eigen::MatrixBase<BaseObject>, BaseObject> {};
   }
 
 
@@ -456,10 +429,6 @@ namespace OpenKalman::Eigen3
     template<typename T, int Size>
     struct is_derived_eigen_array<Eigen::VectorBlock<T, Size>>
       : std::is_base_of<Eigen::ArrayBase<std::decay_t<T>>, std::decay_t<T>> {};
-
-    template<typename BaseObject, typename...InternalizedParameters>
-    struct is_derived_eigen_array<OpenKalman::internal::SelfContainedWrapper<BaseObject, InternalizedParameters...>>
-      : std::is_base_of<Eigen::ArrayBase<BaseObject>, BaseObject> {};
   }
 
 
@@ -498,29 +467,6 @@ namespace OpenKalman::Eigen3
   template<typename NestedMatrix>
   using IdentityMatrix = Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<
     typename Eigen::internal::traits<std::decay_t<NestedMatrix>>::Scalar>, NestedMatrix>;
-
-
-  namespace detail
-  {
-    template<typename T>
-    struct is_eigen_self_contained_wrapper : std::false_type {};
-
-    template<typename N, typename...Ps>
-    struct is_eigen_self_contained_wrapper<internal::SelfContainedWrapper<N, Ps...>> : std::bool_constant<eigen_general<N>> {};
-  } // namespace detail
-
-
-  /**
-   * \internal
-   * \brief T is an \ref internal::SelfContainedWrapper "SelfContainedWrapper" for T based on the Eigen library.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept eigen_self_contained_wrapper =
-#else
-  constexpr bool eigen_self_contained_wrapper =
-#endif
-    detail::is_eigen_self_contained_wrapper<std::decay_t<T>>::value;
 
 
   // ---------------- //

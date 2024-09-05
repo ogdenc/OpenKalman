@@ -39,9 +39,9 @@ namespace OpenKalman
     template<typename T0, typename T1, typename...Ts>
     constexpr decltype(auto) sum_impl(T0&& t0, T1&& t1, Ts&&...ts)
     {
-      if constexpr ((zero<T0> or zero<T1> or (constant_matrix<T0> and constant_matrix<T1>)) and not same_shape_as<T0, T1>)
+      if constexpr ((zero<T0> or zero<T1> or (constant_matrix<T0> and constant_matrix<T1>)) and not vector_space_descriptors_match_with<T0, T1>)
       {
-        if (not same_shape(t0, t1)) throw std::invalid_argument {"In sum function, vector space descriptors of arguments do not match"};
+        if (not vector_space_descriptors_match(t0, t1)) throw std::invalid_argument {"In sum function, vector space descriptors of arguments do not match"};
       }
 
       if constexpr (zero<T0>)
@@ -103,10 +103,10 @@ namespace OpenKalman
    * \brief Element-by-element sum of one or more objects.
    */
 #ifdef __cpp_concepts
-  template<indexible...Ts> requires (sizeof...(Ts) > 0) and maybe_same_shape_as<Ts...>
+  template<indexible...Ts> requires (sizeof...(Ts) > 0) and vector_space_descriptors_may_match_with<Ts...>
 #else
   template<typename...Ts, std::enable_if_t<(indexible<Ts> and ...) and (sizeof...(Ts) > 0) and
-    maybe_same_shape_as<Ts...>, int> = 0>
+    vector_space_descriptors_may_match_with<Ts...>, int> = 0>
 #endif
   constexpr decltype(auto)
   sum(Ts&&...ts)
