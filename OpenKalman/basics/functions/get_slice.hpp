@@ -105,13 +105,13 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<std::size_t...indices, indexible Arg, index_value...Begin, index_value...Size> requires
-    (sizeof...(Begin) == sizeof...(Size)) and internal::indices_are_uniform<Arg, indices...> and
+    (sizeof...(Begin) == sizeof...(Size)) and internal::has_uniform_fixed_vector_space_descriptors<Arg, indices...> and
     (sizeof...(indices) == 0 or sizeof...(indices) == sizeof...(Begin))
   constexpr compatible_with_vector_space_descriptors<Size...> decltype(auto)
 #else
   template<std::size_t...indices, typename Arg, typename...Begin, typename...Size, std::enable_if_t<
     indexible<Arg> and (index_value<Begin> and ...) and (index_value<Size> and ...) and
-    (sizeof...(Begin) == sizeof...(Size)) and internal::indices_are_uniform<Arg, indices...> and
+    (sizeof...(Begin) == sizeof...(Size)) and internal::has_uniform_fixed_vector_space_descriptors<Arg, indices...> and
     (sizeof...(indices) == 0 or sizeof...(indices) == sizeof...(Begin)), int> = 0>
   constexpr decltype(auto)
 #endif

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -360,7 +360,7 @@ namespace OpenKalman::interface
     /**
      * \brief Use a binary function to reduce a tensor across one or more of its indices.
      * \details The binary function is assumed to be associative, so any order of operation is permissible.
-     * \tparam indices The indices to be reduced. There will be at least one index.
+     * \tparam indices The indices to be reduced. There will be at least one index. The order does not matter.
      * \param op A binary function invocable with two values of type <code>scalar_type_of_t<Arg></code>
      * (e.g. std::plus, std::multiplies)
      * \param arg An object to be reduced
@@ -377,33 +377,33 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Convert Arg to a set of coordinates in Euclidean space, based on \ref vector_space_descriptor C.
+     * \brief Project the (potentially wrapped)vector space associated with index 0 to a Euclidean space for applying directional statistics.
      * \note This is optional. If not defined, the public \ref OpenKalman::to_euclidean "to_euclidean" function
      * will construct a \ref ToEuclideanExpr object.
      */
 #ifdef __cpp_concepts
-    template<indexible Arg, vector_space_descriptor C>
+    template<indexible Arg>
     static constexpr indexible auto
 #else
-    template<typename Arg, typename C>
+    template<typename Arg>
     static constexpr auto
 #endif
-    to_euclidean(Arg&& arg, const C& c) = delete;
+    to_euclidean(Arg&& arg) = delete;
 
 
     /**
-     * \brief Convert Arg from a set of coordinates in Euclidean space, based on \ref vector_space_descriptor C.
+     * \brief Project a Euclidean space associated with index 0 to a (potentially wrapped) vector space after applying directional statistics
      * \note This is optional. If not defined, the public \ref OpenKalman::from_euclidean "from_euclidean" function
      * will construct a \ref FromEuclideanExpr object.
      */
 #ifdef __cpp_concepts
-    template<indexible Arg, vector_space_descriptor C>
+    template<indexible Arg>
     static constexpr indexible auto
 #else
-    template<typename Arg, typename C>
+    template<typename Arg>
     static constexpr auto
 #endif
-    from_euclidean(Arg&& arg, const C& c) = delete;
+    from_euclidean(Arg&& arg) = delete;
 
 
     /**

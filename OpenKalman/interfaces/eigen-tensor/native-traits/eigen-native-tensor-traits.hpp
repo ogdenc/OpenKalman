@@ -21,6 +21,7 @@
 
 #include "LibraryWrapper.hpp"
 #include "FixedSizeAdapter.hpp"
+#include "VectorSpaceAdapter.hpp"
 #include "ConstantAdapter.hpp"
 #include "SelfAdjointMatrix.hpp"
 #include "TriangularMatrix.hpp"

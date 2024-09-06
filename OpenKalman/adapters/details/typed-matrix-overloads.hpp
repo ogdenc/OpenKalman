@@ -104,41 +104,41 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<mean Arg, vector_space_descriptor C>
+    template<mean Arg>
 #else
-    template<typename Arg, typename C, std::enable_if_t<mean<Arg> and vector_space_descriptor<C>, int> = 0>
+    template<typename Arg, std::enable_if_t<mean<Arg> and vector_space_descriptor<C>, int> = 0>
 #endif
     constexpr decltype(auto)
-    to_euclidean(Arg&& arg, const C& c)
+    to_euclidean(Arg&& arg)
     {
-      auto&& n = OpenKalman::to_euclidean(nested_object(std::forward<Arg>(arg), std::forward<DC>(dc)...), c);
-      return make_euclidean_mean<C>(std::forward<decltype(n)>(n), c);
+      auto&& n = OpenKalman::to_euclidean(nested_object(std::forward<Arg>(arg), std::forward<DC>(dc)...));
+      return make_euclidean_mean(std::forward<decltype(n)>(n));
     }
 
 
 #ifdef __cpp_concepts
-    template<euclidean_mean Arg, vector_space_descriptor C>
+    template<euclidean_mean Arg>
 #else
-    template<typename Arg, typename C, std::enable_if_t<euclidean_mean<Arg> and vector_space_descriptor<C>, int> = 0>
+    template<typename Arg, std::enable_if_t<euclidean_mean<Arg>, int> = 0>
 #endif
     constexpr decltype(auto)
-    from_euclidean(Arg&& arg, const C& c)
+    from_euclidean(Arg&& arg)
     {
-      auto&& n = OpenKalman::from_euclidean(nested_object(std::forward<Arg>(arg), c));
-      return make_mean<C>(std::forward<decltype(n)>(n), c);
+      auto&& n = OpenKalman::from_euclidean(nested_object(std::forward<Arg>(arg)));
+      return make_mean(std::forward<decltype(n)>(n));
     }
 
 
 #ifdef __cpp_concepts
-    template<mean Arg, vector_space_descriptor C>
+    template<mean Arg>
 #else
-    template<typename Arg, typename C, std::enable_if_t<mean<Arg> and vector_space_descriptor<C>, int> = 0>
+    template<typename Arg, std::enable_if_t<mean<Arg>, int> = 0>
 #endif
     constexpr decltype(auto)
-    wrap_angles(Arg&& arg, const C& c)
+    wrap_angles(Arg&& arg)
     {
-      auto&& n = OpenKalman::wrap_angles(nested_object(std::forward<Arg>(arg), c));
-      return MatrixTraits<std::decay_t<Arg>>::make(std::forward<decltype(n)>(n), c);
+      auto&& n = OpenKalman::wrap_angles(nested_object(std::forward<Arg>(arg)));
+      return MatrixTraits<std::decay_t<Arg>>::make(std::forward<decltype(n)>(n));
     }
 
     template<typename Arg>

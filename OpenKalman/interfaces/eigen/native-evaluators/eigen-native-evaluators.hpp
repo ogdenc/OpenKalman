@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,6 +19,7 @@
 
 #include "LibraryWrapper.hpp"
 #include "FixedSizeAdapter.hpp"
+#include "VectorSpaceAdapter.hpp"
 
 #include "ConstantAdapter.hpp"
 #include "HermitianAdapter.hpp"
@@ -70,7 +71,7 @@ namespace Eigen::internal
       explicit Evaluator_EuclideanExpr_Base(const Nested& t) : NestedEvaluator {t} {}
     };
 
-  }
+  } // namespace detail
 
 
   // ----------------- //

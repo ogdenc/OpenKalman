@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -37,6 +37,7 @@ namespace OpenKalman
     struct count_is_zero<T, std::enable_if_t<std::decay_t<decltype(count_indices(std::declval<const T&>()))>::value == 0>>
 #endif
       : std::true_type {};
+
   } // namespace detail
 
 
@@ -65,12 +66,20 @@ namespace OpenKalman
       else
         return Dimensions<1>{};
     }
-    else
+    else if constexpr (euclidean_vector_space_descriptor<decltype(interface::indexible_object_traits<T>::get_vector_space_descriptor(t, n))>)
     {
       if (n < count_indices(t))
         return static_cast<std::size_t>(interface::indexible_object_traits<T>::get_vector_space_descriptor(t, n));
       else
         return 1_uz;
+    }
+    else
+    {
+      using Scalar = typename interface::indexible_object_traits<std::decay_t<T>>::scalar_type;
+      if (n < count_indices(t))
+        return DynamicDescriptor<Scalar>{interface::indexible_object_traits<T>::get_vector_space_descriptor(t, n)};
+      else
+        return DynamicDescriptor<Scalar>{Dimensions<1>{}};
     }
   }
 

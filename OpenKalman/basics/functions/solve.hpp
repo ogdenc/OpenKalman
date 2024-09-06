@@ -138,7 +138,7 @@ namespace OpenKalman
       if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) detail::solve_check_A_and_B_rows_match(a, b);
 
       return make_constant<B>(
-        constant_coefficient{b} / (internal::index_dimension_scalar_constant<1>(a) * constant_coefficient{a}),
+        constant_coefficient{b} / (internal::index_to_scalar_constant<scalar_type_of_t<A>>(get_index_dimension_of<1>(a)) * constant_coefficient{a}),
         get_vector_space_descriptor<1>(a), get_vector_space_descriptor<1>(b));
     }
     else if constexpr (constant_matrix<A> and (index_dimension_of_v<A, 0> == 1 or index_dimension_of_v<B, 0> == 1 or
@@ -147,7 +147,7 @@ namespace OpenKalman
       if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) detail::solve_check_A_and_B_rows_match(a, b);
 
       return detail::wrap_solve_result<A, B>(
-        scalar_quotient(std::forward<B>(b), internal::index_dimension_scalar_constant<1>(a) * constant_coefficient{a}));
+        scalar_quotient(std::forward<B>(b), internal::index_to_scalar_constant<scalar_type_of_t<A>>(get_index_dimension_of<1>(a)) * constant_coefficient{a}));
     }
     else if constexpr (diagonal_matrix<A> and square_shaped<A>)
     {

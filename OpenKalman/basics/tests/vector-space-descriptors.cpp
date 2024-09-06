@@ -391,27 +391,27 @@ TEST(basics, base_of)
 }
 
 
-TEST(basics, uniform_vector_space_descriptor)
+TEST(basics, uniform_fixed_vector_space_descriptor)
 {
-  static_assert(not uniform_vector_space_descriptor<Dimensions<0>>);
-  static_assert(std::is_same_v<uniform_vector_space_descriptor_component_of_t<Dimensions<1>>, Axis>);
-  static_assert(std::is_same_v<uniform_vector_space_descriptor_component_of_t<Dimensions<5>>, Axis>);
-  static_assert(std::is_same_v<uniform_vector_space_descriptor_component_of_t<std::integral_constant<std::size_t, 5>>, Axis>);
-  static_assert(std::is_same_v<uniform_vector_space_descriptor_component_of_t<std::size_t>, Axis>);
+  static_assert(not uniform_fixed_vector_space_descriptor<Dimensions<0>>);
+  static_assert(std::is_same_v<uniform_fixed_vector_space_descriptor_component_of_t<Dimensions<1>>, Axis>);
+  static_assert(std::is_same_v<uniform_fixed_vector_space_descriptor_component_of_t<Dimensions<5>>, Axis>);
+  static_assert(std::is_same_v<uniform_fixed_vector_space_descriptor_component_of_t<std::integral_constant<std::size_t, 5>>, Axis>);
+  static_assert(std::is_same_v<uniform_fixed_vector_space_descriptor_component_of_t<std::size_t>, Axis>);
 
-  static_assert(std::is_same_v<uniform_vector_space_descriptor_component_of_t<Axis>, Axis>);
-  static_assert(std::is_same_v<uniform_vector_space_descriptor_component_of_t<Distance>, Distance>);
-  static_assert(std::is_same_v<uniform_vector_space_descriptor_component_of_t<angle::Radians>, angle::Radians>);
-  static_assert(std::is_same_v<uniform_vector_space_descriptor_component_of_t<inclination::Radians>, inclination::Radians>);
-  static_assert(not uniform_vector_space_descriptor<Polar<>>);
-  static_assert(not uniform_vector_space_descriptor<Spherical<>>);
+  static_assert(std::is_same_v<uniform_fixed_vector_space_descriptor_component_of_t<Axis>, Axis>);
+  static_assert(std::is_same_v<uniform_fixed_vector_space_descriptor_component_of_t<Distance>, Distance>);
+  static_assert(std::is_same_v<uniform_fixed_vector_space_descriptor_component_of_t<angle::Radians>, angle::Radians>);
+  static_assert(std::is_same_v<uniform_fixed_vector_space_descriptor_component_of_t<inclination::Radians>, inclination::Radians>);
+  static_assert(not uniform_fixed_vector_space_descriptor<Polar<>>);
+  static_assert(not uniform_fixed_vector_space_descriptor<Spherical<>>);
 
-  static_assert(not uniform_vector_space_descriptor<FixedDescriptor<>>);
-  static_assert(std::is_same_v<uniform_vector_space_descriptor_component_of_t<FixedDescriptor<Axis>>, Axis>);
-  static_assert(not uniform_vector_space_descriptor<FixedDescriptor<Axis, angle::Radians>>);
-  static_assert(std::is_same_v<uniform_vector_space_descriptor_component_of_t<FixedDescriptor<Axis, Axis>>, Axis>);
-  static_assert(std::is_same_v<uniform_vector_space_descriptor_component_of_t<FixedDescriptor<angle::Radians, angle::Radians>>, angle::Radians>);
-  static_assert(not uniform_vector_space_descriptor<FixedDescriptor<Polar<>, Polar<>>>);
+  static_assert(not uniform_fixed_vector_space_descriptor<FixedDescriptor<>>);
+  static_assert(std::is_same_v<uniform_fixed_vector_space_descriptor_component_of_t<FixedDescriptor<Axis>>, Axis>);
+  static_assert(not uniform_fixed_vector_space_descriptor<FixedDescriptor<Axis, angle::Radians>>);
+  static_assert(std::is_same_v<uniform_fixed_vector_space_descriptor_component_of_t<FixedDescriptor<Axis, Axis>>, Axis>);
+  static_assert(std::is_same_v<uniform_fixed_vector_space_descriptor_component_of_t<FixedDescriptor<angle::Radians, angle::Radians>>, angle::Radians>);
+  static_assert(not uniform_fixed_vector_space_descriptor<FixedDescriptor<Polar<>, Polar<>>>);
 }
 
 
@@ -519,6 +519,25 @@ TEST(basics, split_head_tail_fixed)
   static_assert(std::is_same_v<split_head_tail_fixed_t<FixedDescriptor<Axis, Polar<Distance, angle::Radians>>>, std::tuple<Axis, Polar<Distance, angle::Radians>>>);
   static_assert(std::is_same_v<split_head_tail_fixed_t<FixedDescriptor<Polar<Distance, angle::Radians>, Axis>>, std::tuple<Polar<Distance, angle::Radians>, Axis>>);
   static_assert(std::is_same_v<split_head_tail_fixed_t<FixedDescriptor<FixedDescriptor<Axis, Distance>, Axis>>, std::tuple<Axis, FixedDescriptor<Distance, Axis>>>);
+}
+
+
+TEST(basics, smallest_vector_space_descriptor_fixed)
+{
+  static_assert(internal::smallest_vector_space_descriptor(Dimensions<3>{}, Dimensions<4>{}) == Dimensions<3>{});
+  static_assert(internal::smallest_vector_space_descriptor(Dimensions<3>{}, angle::Radians{}) == angle::Radians{});
+  static_assert(internal::smallest_vector_space_descriptor(Dimensions<1>{}, angle::Radians{}) == Dimensions<1>{});
+  static_assert(internal::smallest_vector_space_descriptor(angle::Radians{}, Dimensions<1>{}, angle::Degrees{}) == angle::Radians{});
+}
+
+
+TEST(basics, largest_vector_space_descriptor_fixed)
+{
+  static_assert(internal::largest_vector_space_descriptor(Dimensions<3>{}, Dimensions<4>{}) == Dimensions<4>{});
+  static_assert(internal::largest_vector_space_descriptor(Dimensions<3>{}, angle::Radians{}) == Dimensions<3>{});
+  static_assert(internal::largest_vector_space_descriptor(Dimensions<2>{}, Spherical<>{}) == Spherical<>{});
+  static_assert(internal::largest_vector_space_descriptor(Dimensions<1>{}, angle::Radians{}) == Dimensions<1>{});
+  static_assert(internal::largest_vector_space_descriptor(angle::Radians{}, Dimensions<1>{}, angle::Degrees{}) == angle::Radians{});
 }
 
 

@@ -40,7 +40,7 @@ namespace OpenKalman
     {
       using Scalar = scalar_type_of_t<A>;
 
-      auto elem = constant_coefficient{a} * internal::constexpr_sqrt(internal::index_dimension_scalar_constant<0>(a));
+      auto elem = constant_coefficient{a} * internal::constexpr_sqrt(internal::index_to_scalar_constant<Scalar>(get_index_dimension_of<0>(a)));
 
       if constexpr (dynamic_dimension<A, 1>)
       {

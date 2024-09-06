@@ -44,6 +44,7 @@ namespace OpenKalman
 
   /**
    * \overload
+   * \brief Create an adapter in which all vector space descriptors are fixed.
    */
 #ifdef __cpp_concepts
   template<fixed_vector_space_descriptor...Ds, indexible Arg> requires (not has_dynamic_dimensions<Arg>) and

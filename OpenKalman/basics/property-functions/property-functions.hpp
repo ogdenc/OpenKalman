@@ -31,7 +31,6 @@
 #include "is_vector.hpp"
 #include "get_wrappable.hpp"
 
-#include "internal/index_dimension_scalar_constant.hpp"
 #include "internal/raw_data.hpp"
 #include "internal/strides.hpp"
 #include "internal/has_static_strides.hpp"

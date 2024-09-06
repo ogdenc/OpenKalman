@@ -24,7 +24,6 @@
 #include "internal/make_fixed_size_adapter.hpp"
 #include "internal/make_fixed_size_adapter_like.hpp"
 #include "internal/make_fixed_square_adapter_like.hpp"
-#include "internal/smallest_dimension_index.hpp"
 
 #include "get_component.hpp"
 #include "set_component.hpp"
@@ -71,7 +70,6 @@
 #include "scalar_quotient.hpp"
 
 #include "internal/get_reduced_vector_space_descriptor.hpp"
-#include "internal/indices_are_uniform.hpp"
 #include "internal/count_reduced_dimensions.hpp"
 #include "reduce.hpp"
 #include "average_reduce.hpp"

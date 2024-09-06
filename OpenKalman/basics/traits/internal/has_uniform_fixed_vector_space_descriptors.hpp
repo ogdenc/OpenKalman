@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -11,11 +11,11 @@
 /**
  * \file
  * \internal
- * \brief Definition for \ref indices_are_uniform function.
+ * \brief Definition for \ref has_uniform_fixed_vector_space_descriptors function.
  */
 
-#ifndef OPENKALMAN_INDICES_ARE_UNIFORM_HPP
-#define OPENKALMAN_INDICES_ARE_UNIFORM_HPP
+#ifndef OPENKALMAN_HAS_UNIFORM_FIXED_VECTOR_SPACE_DESCRIPTORS_HPP
+#define OPENKALMAN_HAS_UNIFORM_FIXED_VECTOR_SPACE_DESCRIPTORS_HPP
 
 namespace OpenKalman::internal
 {
@@ -24,7 +24,7 @@ namespace OpenKalman::internal
     template<typename Arg, std::size_t...Is>
     constexpr bool indices_are_uniform_impl(std::index_sequence<Is...>)
     {
-      return (... and uniform_vector_space_descriptor<vector_space_descriptor_of_t<Arg, Is>>);
+      return (... and uniform_fixed_vector_space_descriptor<vector_space_descriptor_of_t<Arg, Is>>);
     }
   } // namespace detail
 
@@ -36,9 +36,9 @@ namespace OpenKalman::internal
    */
   template<typename Arg, std::size_t...indices>
 #ifdef __cpp_concepts
-  concept indices_are_uniform =
+  concept has_uniform_fixed_vector_space_descriptors =
 #else
-  constexpr bool indices_are_uniform =
+  constexpr bool has_uniform_fixed_vector_space_descriptors =
 #endif
     indexible<Arg> and
     (sizeof...(indices) == 0 or detail::indices_are_uniform_impl<Arg>(std::index_sequence<indices...>{})) and
@@ -47,4 +47,4 @@ namespace OpenKalman::internal
 
 } // namespace OpenKalman::internal
 
-#endif //OPENKALMAN_INDICES_ARE_UNIFORM_HPP
+#endif //OPENKALMAN_HAS_UNIFORM_FIXED_VECTOR_SPACE_DESCRIPTORS_HPP

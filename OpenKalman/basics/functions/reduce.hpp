@@ -110,7 +110,7 @@ namespace OpenKalman
         if constexpr (scalar_type<decltype(red)>)
           return make_constant<Arg>(std::move(red), internal::get_reduced_vector_space_descriptor<Ix, indices...>(arg)...);
         else
-          return make_vector_space_adapter(std::move(red), internal::get_reduced_vector_space_descriptor<Ix, indices...>(arg)...);
+          return red;
       }
     }
 
@@ -131,12 +131,12 @@ namespace OpenKalman
    * \returns A vector or tensor with reduced dimensions.
    */
 #ifdef __cpp_concepts
-  template<std::size_t index, std::size_t...indices, typename BinaryFunction, internal::indices_are_uniform<index, indices...> Arg> requires
+  template<std::size_t index, std::size_t...indices, typename BinaryFunction, internal::has_uniform_fixed_vector_space_descriptors<index, indices...> Arg> requires
     std::is_invocable_r_v<scalar_type_of_t<Arg>, BinaryFunction&&, scalar_type_of_t<Arg>, scalar_type_of_t<Arg>>
   constexpr indexible decltype(auto)
 #else
   template<std::size_t index, std::size_t...indices, typename BinaryFunction, typename Arg, std::enable_if_t<
-    internal::indices_are_uniform<Arg, index, indices...> and
+    internal::has_uniform_fixed_vector_space_descriptors<Arg, index, indices...> and
     std::is_invocable_r<typename scalar_type_of<Arg>::type, BinaryFunction&&, typename scalar_type_of<Arg>::type, typename scalar_type_of<Arg>::type>::value, int> = 0>
   constexpr decltype(auto)
 #endif
@@ -169,10 +169,10 @@ namespace OpenKalman
    * \returns A scalar representing a complete reduction.
    */
 #ifdef __cpp_concepts
-  template<typename BinaryFunction, internal::indices_are_uniform Arg> requires
+  template<typename BinaryFunction, internal::has_uniform_fixed_vector_space_descriptors Arg> requires
     std::is_invocable_r_v<scalar_type_of_t<Arg>, BinaryFunction&&, scalar_type_of_t<Arg>, scalar_type_of_t<Arg>>
 #else
-  template<typename BinaryFunction, typename Arg, std::enable_if_t<internal::indices_are_uniform<Arg> and
+  template<typename BinaryFunction, typename Arg, std::enable_if_t<internal::has_uniform_fixed_vector_space_descriptors<Arg> and
     std::is_invocable_r<typename scalar_type_of<Arg>::type, BinaryFunction&&,
       typename scalar_type_of<Arg>::type, typename scalar_type_of<Arg>::type>::value, int> = 0>
 #endif

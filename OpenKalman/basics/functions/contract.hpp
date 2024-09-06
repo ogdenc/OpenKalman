@@ -83,8 +83,8 @@ namespace OpenKalman
     else if constexpr (constant_matrix<A> and constant_matrix<B>)
     {
       auto dim_const = [](const auto& a, const auto& b) {
-        if constexpr (dynamic_dimension<A, 1>) return internal::index_dimension_scalar_constant<0>(b);
-        else return internal::index_dimension_scalar_constant<1>(a);
+        if constexpr (dynamic_dimension<A, 1>) return internal::index_to_scalar_constant<Scalar>(get_index_dimension_of<0>(b));
+        else return internal::index_to_scalar_constant<Scalar>(get_index_dimension_of<1>(a));
       }(a, b);
 
       auto abd = constant_coefficient{a} * constant_coefficient{b} * std::move(dim_const);

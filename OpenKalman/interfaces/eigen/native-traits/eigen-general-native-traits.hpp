@@ -19,6 +19,7 @@
 
 #include "LibraryWrapper.hpp"
 #include "FixedSizeAdapter.hpp"
+#include "VectorSpaceAdapter.hpp"
 #include "ConstantAdapter.hpp"
 #include "HermitianAdapter.hpp"
 #include "TriangularAdapter.hpp"

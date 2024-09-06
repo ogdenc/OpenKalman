@@ -48,12 +48,12 @@ namespace OpenKalman
    * \returns A vector or tensor with reduced dimensions.
    */
 #ifdef __cpp_concepts
-  template<std::size_t index, std::size_t...indices, internal::indices_are_uniform<index, indices...> Arg> requires
+  template<std::size_t index, std::size_t...indices, internal::has_uniform_fixed_vector_space_descriptors<index, indices...> Arg> requires
     (not empty_object<Arg>)
   constexpr indexible decltype(auto)
 #else
   template<std::size_t index, std::size_t...indices, typename Arg, std::enable_if_t<
-    internal::indices_are_uniform<Arg, index, indices...> and (not empty_object<Arg>), int> = 0>
+    internal::has_uniform_fixed_vector_space_descriptors<Arg, index, indices...> and (not empty_object<Arg>), int> = 0>
   constexpr decltype(auto)
 #endif
   average_reduce(Arg&& arg)
@@ -77,9 +77,9 @@ namespace OpenKalman
    * \returns A scalar representing the average of all components.
    */
 #ifdef __cpp_concepts
-  template<internal::indices_are_uniform Arg>
+  template<internal::has_uniform_fixed_vector_space_descriptors Arg>
 #else
-  template<typename Arg, std::enable_if_t<internal::indices_are_uniform<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<internal::has_uniform_fixed_vector_space_descriptors<Arg>, int> = 0>
 #endif
   constexpr scalar_type_of_t<Arg>
   average_reduce(Arg&& arg)
@@ -94,20 +94,11 @@ namespace OpenKalman
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      auto smallest_ix = internal::smallest_dimension_index(arg, std::integral_constant<std::size_t, 2>{});
       // Arg cannot be a zero matrix, so the denominator should never be zero.
-      if constexpr (static_index_value<decltype(smallest_ix)>)
-      {
-        return values::scalar_constant_operation {
-          std::divides<scalar_type_of_t<Arg>>{},
-          constant_diagonal_coefficient{arg},
-          get_vector_space_descriptor<smallest_ix() == 0 ? 1 : 0>(arg)};
-      }
-      else
-      {
-        std::size_t denom = smallest_ix() == 0 ? get_vector_space_descriptor<1>(arg) : get_vector_space_descriptor<0>(arg);
-        return constant_diagonal_coefficient{arg} / denom;
-      }
+      return values::scalar_constant_operation {
+        std::divides<scalar_type_of_t<Arg>>{},
+        constant_diagonal_coefficient{arg},
+        internal::largest_vector_space_descriptor<scalar_type_of_t<Arg>>(get_vector_space_descriptor<0>(arg), get_vector_space_descriptor<1>(arg))};
     }
     else
     {

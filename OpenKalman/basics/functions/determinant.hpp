@@ -65,7 +65,7 @@ namespace OpenKalman
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       detail::error_if_argument_to_determinant_is_not_square(arg);
-      return internal::constexpr_pow(constant_diagonal_coefficient{arg}, internal::index_dimension_scalar_constant<ix>(arg))();
+      return internal::constexpr_pow(constant_diagonal_coefficient{arg}, internal::index_to_scalar_constant<Scalar>(get_index_dimension_of<ix>(arg)))();
     }
     else if constexpr (triangular_matrix<Arg>) // Includes the diagonal case.
     {

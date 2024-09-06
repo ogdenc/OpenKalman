@@ -318,7 +318,13 @@ namespace OpenKalman::interface
     static decltype(auto)
     get_slice(Arg&& arg, const BeginTup& begin_tup, const std::tuple<Size...>& size_tup)
     {
-      return NestedInterface::get_slice(nested_object(std::forward<Arg>(arg)), begin_tup, size_tup);
+      return std::apply([](auto&& a, auto&&...vs, const auto&...offset, const auto&...extent){
+        return make_vector_space_adapter(std::forward<decltype(a)>(a), get_vector_space_descriptor_slice(std::forward<decltype(vs)>(vs), offset, extent)...);
+        }, std::tuple_cat(
+          std::forward_as_tuple(NestedInterface::get_slice(nested_object(std::forward<Arg>(arg)), begin_tup, size_tup)),
+          std::forward<Arg>(arg).my_descriptors,
+          begin_tup,
+          size_tup));
     };
 
 
@@ -361,10 +367,29 @@ namespace OpenKalman::interface
 #endif
     to_diagonal(Arg&& arg)
     {
-      using D = vector_space_descriptor_of_t<Arg, 0>;
-      return internal::make_fixed_square_adapter_like<D>(NestedInterface::to_diagonal(nested_object(std::forward<Arg>(arg))));
+      return std::apply([](auto&& a, auto&& v, auto&&...vs){
+        return make_vector_space_adapter(
+          std::forward<decltype(a)>(a),
+          std::forward<decltype(v)>(v),
+          std::forward<decltype(v)>(v),
+          std::forward<decltype(vs)>(vs)...);
+        }, std::tuple_cat(
+          std::forward_as_tuple(NestedInterface::to_diagonal(nested_object(std::forward<Arg>(arg)))),
+          std::forward<Arg>(arg).my_descriptors),
+          std::tuple{Dimensions<1>{}});
     }
 
+  private:
+
+    template<typename Arg, typename V0, typename V1, typename...Vs>
+    static constexpr decltype(auto)
+    diagonal_of_impl(Arg&& arg, V0&& v0, V1&& v1, const Vs&...vs)
+    {
+      auto d0 = internal::smallest_vector_space_descriptor<scalar_type_of_t<Arg>>(std::forward<V0>(v0), std::forward<V1>(v1));
+      return make_vector_space_adapter(std::forward<Arg>(arg), d0, vs...);
+    }
+
+  public:
 
 #ifdef __cpp_concepts
     template<indexible Arg> requires
@@ -377,8 +402,8 @@ namespace OpenKalman::interface
 #endif
     diagonal_of(Arg&& arg)
     {
-      using D = decltype(get_vector_space_descriptor(arg, internal::smallest_dimension_index(arg)));
-      return internal::make_fixed_size_adapter<D>(NestedInterface::diagonal_of(nested_object(std::forward<Arg>(arg))));
+      return diagonal_of_impl(std::forward<Arg>(arg),
+        std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{Dimensions<1>{}, Dimensions<1>{}}));
     }
 
   private:
@@ -398,7 +423,7 @@ namespace OpenKalman::interface
     static constexpr auto broadcast_impl(Arg&& arg, std::index_sequence<Is...>, const Factors_tup& factors_tup)
     {
       constexpr auto N = std::tuple_size_v<Factors_tup>;
-      return internal::make_fixed_size_adapter<decltype(broadcast_for_index<Is>(arg, factors_tup))...>(std::forward<Arg>(arg));
+      return make_vector_space_adapter(std::forward<Arg>(arg), broadcast_for_index<Is>(arg, factors_tup)...);
     }
 
   public:
@@ -422,11 +447,11 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<vector_space_descriptor...IDs, typename Operation, indexible...Args> requires
+    template<vector_space_descriptor...IDs, typename Operation> requires
       interface::n_ary_operation_defined_for<NestedInterface, const std::tuple<IDs...>&, Operation&&>
     static indexible auto
 #else
-    template<typename...IDs, typename Operation, typename...Args, std::enable_if_t<
+    template<typename...IDs, typename Operation, std::enable_if_t<
       interface::n_ary_operation_defined_for<NestedInterface, const std::tuple<IDs...>&, Operation&&>, int> = 0>
     static auto
 #endif
@@ -447,10 +472,26 @@ namespace OpenKalman::interface
 #endif
     n_ary_operation(const std::tuple<IDs...>& d_tup, Operation&& op, Arg&& arg, Args&&...args)
     {
-      return internal::make_fixed_size_adapter<IDs...>(
-        NestedInterface::n_ary_operation(d_tup, std::forward<Operation>(op), nested_object(std::forward<Arg>(arg)), std::forward<Args>(args)...));
+      return std::apply([](auto&& a, auto&&...vs){
+        return make_vector_space_adapter(std::forward<decltype(a)>(a), std::forward<decltype(vs)>(vs)...);
+        }, std::tuple_cat(
+          std::forward_as_tuple(NestedInterface::n_ary_operation(d_tup, std::forward<Operation>(op), nested_object(std::forward<Arg>(arg)), std::forward<Args>(args)...)),
+          d_tup));
     }
 
+  private:
+
+    template<std::size_t...indices, typename Arg, typename...Vs, std::size_t...Ix>
+    static constexpr decltype(auto)
+    reduce_impl(Arg&& arg, const std::tuple<Vs...>& tup_vs, std::index_sequence<Ix...> seq)
+    {
+      return make_vector_space_adapter(std::forward<Arg>(arg),
+        ([]{ constexpr auto I = Ix; return ((I == indices) or ...); } ?
+          uniform_fixed_vector_space_descriptor_component_of_t<vector_space_descriptor_of_t<Vs, Ix>>{} :
+          std::get<Ix>(tup_vs))...);
+    }
+
+  public:
 
 #ifdef __cpp_concepts
     template<std::size_t...indices, typename BinaryFunction, indexible Arg> requires
@@ -462,67 +503,70 @@ namespace OpenKalman::interface
     static constexpr auto
     reduce(BinaryFunction&& op, Arg&& arg)
     {
-      return NestedInterface::template reduce<indices...>(std::forward<BinaryFunction>(op), nested_object(std::forward<Arg>(arg)));
+      return reduce_impl<indices...>(
+        NestedInterface::template reduce<indices...>(std::forward<BinaryFunction>(op), nested_object(std::forward<Arg>(arg))),
+        std::forward<Arg>(arg).my_descriptors,
+        std::index_sequence_for<Ds...>{});
     }
 
 
 #ifdef __cpp_concepts
-    template<indexible Arg, vector_space_descriptor C> requires
-      interface::to_euclidean_defined_for<NestedObject, Arg&&, const C&> or
-      interface::to_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>, const C&>
+    template<indexible Arg> requires
+      interface::to_euclidean_defined_for<NestedObject, Arg&&> or
+      interface::to_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>>
     static constexpr indexible auto
 #else
-    template<typename Arg, typename C, std::enable_if_t<
-      interface::to_euclidean_defined_for<NestedObject, Arg&&, const C&> or
-      interface::to_euclidean_defined_for<NestedObject, typename nested_object_of<Arg&&>::type, const C&>, int> = 0>
+    template<typename Arg, std::enable_if_t<
+      interface::to_euclidean_defined_for<NestedObject, Arg&&> or
+      interface::to_euclidean_defined_for<NestedObject, typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
-    to_euclidean(Arg&& arg, const C& c)
+    to_euclidean(Arg&& arg)
     {
-      if constexpr (interface::to_euclidean_defined_for<NestedObject, Arg&&, const C&>)
-        return NestedInterface::to_euclidean(std::forward<Arg>(arg), c);
+      if constexpr (interface::to_euclidean_defined_for<NestedObject, Arg&&>)
+        return NestedInterface::to_euclidean(std::forward<Arg>(arg));
       else
-        return NestedInterface::to_euclidean(nested_object(std::forward<Arg>(arg)), c);
+        return NestedInterface::to_euclidean(nested_object(std::forward<Arg>(arg)));
     }
 
 
 #ifdef __cpp_concepts
-    template<indexible Arg, vector_space_descriptor C> requires
-      interface::from_euclidean_defined_for<NestedObject, Arg&&, const C&> or
-      interface::from_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>, const C&>
+    template<indexible Arg, vector_space_descriptor V> requires
+      interface::from_euclidean_defined_for<NestedObject, Arg&&, const V&> or
+      interface::from_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>, const V&>
     static constexpr indexible auto
 #else
-    template<typename Arg, typename C, std::enable_if_t<
-      interface::from_euclidean_defined_for<NestedObject, Arg&&, const C&> or
-      interface::from_euclidean_defined_for<NestedObject, typename nested_object_of<Arg&&>::type, const C&>, int> = 0>
+    template<typename Arg, typename V, std::enable_if_t<
+      interface::from_euclidean_defined_for<NestedObject, Arg&&, const V&> or
+      interface::from_euclidean_defined_for<NestedObject, typename nested_object_of<Arg&&>::type, const V&>, int> = 0>
     static constexpr auto
 #endif
-    from_euclidean(Arg&& arg, const C& c)
+    from_euclidean(Arg&& arg, const V& v)
     {
-      if constexpr (interface::from_euclidean_defined_for<NestedObject, Arg&&, const C&>)
-        return NestedInterface::from_euclidean(std::forward<Arg>(arg), c);
+      if constexpr (interface::from_euclidean_defined_for<NestedObject, Arg&&, const V&>)
+        return NestedInterface::from_euclidean(std::forward<Arg>(arg), v);
       else
-        return NestedInterface::from_euclidean(nested_object(std::forward<Arg>(arg)), c);
+        return NestedInterface::from_euclidean(nested_object(std::forward<Arg>(arg)), v);
     }
 
 
 #ifdef __cpp_concepts
-    template<indexible Arg, vector_space_descriptor C> requires
-      interface::wrap_angles_defined_for<NestedObject, Arg&&, const C&> or
-      interface::wrap_angles_defined_for<NestedObject, nested_object_of_t<Arg&&>, const C&>
+    template<indexible Arg> requires
+      interface::wrap_angles_defined_for<NestedObject, Arg&&> or
+      interface::wrap_angles_defined_for<NestedObject, nested_object_of_t<Arg&&>>
     static constexpr indexible auto
 #else
-    template<typename Arg, typename C, std::enable_if_t<
-      interface::wrap_angles_defined_for<NestedObject, Arg&&, const C&> or
-      interface::wrap_angles_defined_for<NestedObject, typename nested_object_of<Arg&&>::type, const C&>, int> = 0>
+    template<typename Arg, std::enable_if_t<
+      interface::wrap_angles_defined_for<NestedObject, Arg&&> or
+      interface::wrap_angles_defined_for<NestedObject, typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
-    wrap_angles(Arg&& arg, const C& c)
+    wrap_angles(Arg&& arg)
     {
-      if constexpr (interface::wrap_angles_defined_for<NestedObject, Arg&&, const C&>)
-        return NestedInterface::wrap_angles(std::forward<Arg>(arg), c);
+      if constexpr (interface::wrap_angles_defined_for<NestedObject, Arg&&>)
+        return NestedInterface::wrap_angles(std::forward<Arg>(arg));
       else
-        return NestedInterface::wrap_angles(nested_object(std::forward<Arg>(arg)), c);
+        return NestedInterface::wrap_angles(nested_object(std::forward<Arg>(arg)));
     }
 
 

@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref equivalent_to_uniform_vector_space_descriptor_component_of.
+ * \brief Definition for \ref equivalent_to_uniform_fixed_vector_space_descriptor_component_of.
  */
 
 #ifndef OPENKALMAN_INDEX_DESCRIPTOR_TRAITS_HPP
@@ -26,11 +26,11 @@ namespace OpenKalman
   namespace detail
   {
     template<typename T, typename C, typename = void>
-    struct equivalent_to_uniform_vector_space_descriptor_component_of_impl : std::false_type {};
+    struct equivalent_to_uniform_fixed_vector_space_descriptor_component_of_impl : std::false_type {};
 
     template<typename T, typename C>
-    struct equivalent_to_uniform_vector_space_descriptor_component_of_impl<T, C, std::enable_if_t<
-      equivalent_to<T, typename uniform_vector_space_descriptor_component_of<C>::type>>> : std::true_type {};
+    struct equivalent_to_uniform_fixed_vector_space_descriptor_component_of_impl<T, C, std::enable_if_t<
+      equivalent_to<T, typename uniform_fixed_vector_space_descriptor_component_of<C>::type>>> : std::true_type {};
   }
 #endif
 
@@ -38,13 +38,13 @@ namespace OpenKalman
   /**
    * \brief T is equivalent to the uniform dimension type of C.
    * \tparam T A 1D \ref atomic_fixed_vector_space_descriptor
-   * \tparam C a \ref uniform_vector_space_descriptor
+   * \tparam C a \ref uniform_fixed_vector_space_descriptor
    */
   template<typename T, typename C>
 #ifdef __cpp_concepts
-  concept equivalent_to_uniform_vector_space_descriptor_component_of = equivalent_to<T, uniform_vector_space_descriptor_component_of_t<C>>;
+  concept equivalent_to_uniform_fixed_vector_space_descriptor_component_of = equivalent_to<T, uniform_fixed_vector_space_descriptor_component_of_t<C>>;
 #else
-  constexpr bool equivalent_to_uniform_vector_space_descriptor_component_of = detail::equivalent_to_uniform_vector_space_descriptor_component_of_impl<T, C>::value;
+  constexpr bool equivalent_to_uniform_fixed_vector_space_descriptor_component_of = detail::equivalent_to_uniform_fixed_vector_space_descriptor_component_of_impl<T, C>::value;
 #endif
 
 } // namespace OpenKalman

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -20,13 +20,14 @@ namespace OpenKalman
 {
   namespace detail
   {
-    template<typename T, typename C, typename D0, std::size_t...Is>
-    constexpr auto
-    make_constant_column_vector(C&& c, D0&& d0, std::index_sequence<Is...>)
+    template<typename T, typename C, typename V0, typename V1, typename...Vs>
+    static constexpr decltype(auto)
+    constant_diagonal_of_impl(C&& c, V0&& v0, V1&& v1, const Vs&...vs)
     {
-      return make_constant<T>(std::forward<C>(c), std::forward<D0>(d0), Dimensions<Is==Is?1:1>{}...);
+      auto d0 = internal::smallest_vector_space_descriptor<scalar_type_of_t<T>>(std::forward<V0>(v0), std::forward<V1>(v1));
+      return make_constant<T>(std::forward<C>(c), d0, vs...);
     }
-  }
+  } // namespace detail
 
 
   /**
@@ -55,26 +56,21 @@ namespace OpenKalman
     {
       return std::forward<Arg>(arg);
     }
+    else if constexpr (constant_matrix<Arg>)
+    {
+      return detail::constant_diagonal_of_impl<Arg>(
+        constant_coefficient {std::forward<Arg>(arg)},
+        std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{Dimensions<1>{}, Dimensions<1>{}}));
+    }
+    else if constexpr (constant_diagonal_matrix<Arg>)
+    {
+      return detail::constant_diagonal_of_impl<Arg>(
+        constant_diagonal_coefficient {std::forward<Arg>(arg)},
+        std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{Dimensions<1>{}, Dimensions<1>{}}));
+    }
     else
     {
-      if constexpr (constant_matrix<Arg>)
-      {
-        return detail::make_constant_column_vector<Arg>(
-          constant_coefficient{std::forward<Arg>(arg)},
-          get_vector_space_descriptor(arg, internal::smallest_dimension_index(arg)),
-          std::make_index_sequence<index_count_v<Arg> - 1>{});
-      }
-      else if constexpr (constant_diagonal_matrix<Arg>)
-      {
-        return detail::make_constant_column_vector<Arg>(
-          constant_diagonal_coefficient {std::forward<Arg>(arg)},
-          get_vector_space_descriptor(arg, internal::smallest_dimension_index(arg)),
-          std::make_index_sequence<index_count_v<Arg> - 1>{});
-      }
-      else
-      {
-        return interface::library_interface<std::decay_t<Arg>>::diagonal_of(std::forward<Arg>(arg));
-      }
+      return interface::library_interface<std::decay_t<Arg>>::diagonal_of(std::forward<Arg>(arg));
     }
   }
 

@@ -418,7 +418,7 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
           if constexpr (n == 0_uz) return arg.my_dimension;
           else return OpenKalman::get_vector_space_descriptor(nested_object(arg), n);
         }
-        else if constexpr (uniform_vector_space_descriptor<NestedMatrix> and equivalent_to<Coeffs, uniform_vector_space_descriptor_component_of<NestedMatrix>>)
+        else if constexpr (uniform_fixed_vector_space_descriptor<NestedMatrix> and equivalent_to<Coeffs, uniform_fixed_vector_space_descriptor_component_of<NestedMatrix>>)
         {
           return arg.my_dimension;
         }

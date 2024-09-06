@@ -347,6 +347,18 @@ TEST(basics, internal_is_uniform_component_of)
 }
 
 
+TEST(basics, smallest_vector_space_descriptor_dynamic)
+{
+  static_assert(internal::smallest_vector_space_descriptor(Dimensions<3>{}, 4) == 3);
+  static_assert(internal::smallest_vector_space_descriptor(Dimensions<4>{}, 3) == 3);
+  static_assert(internal::smallest_vector_space_descriptor(3, 4, 5) == 3);
+
+  EXPECT_TRUE((internal::smallest_vector_space_descriptor(DynamicDescriptor{Dimensions<3>{}}, DynamicDescriptor{Dimensions<4>{}}) == 3));
+  EXPECT_TRUE((internal::smallest_vector_space_descriptor(DynamicDescriptor{Dimensions<3>{}}, DynamicDescriptor{Dimensions<4>{}}) == 3));
+  EXPECT_TRUE((internal::smallest_vector_space_descriptor(DynamicDescriptor{angle::Radians{}, Dimensions<3>{}}, DynamicDescriptor{Dimensions<4>{}, angle::Degrees{}}) == DynamicDescriptor{angle::Radians{}, Dimensions<3>{}}));
+}
+
+
 TEST(basics, slice_vector_space_descriptor_dynamic)
 {
   using namespace internal;

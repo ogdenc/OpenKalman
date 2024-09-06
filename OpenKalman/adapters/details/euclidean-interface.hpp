@@ -127,36 +127,36 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<from_euclidean_expr Arg, vector_space_descriptor C>
+    template<from_euclidean_expr Arg>
 #else
-    template<typename Arg, typename C, std::enable_if_t<from_euclidean_expr<Arg> and vector_space_descriptor<C>, int> = 0>
+    template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg>, int> = 0>
 #endif
     constexpr decltype(auto)
-    to_euclidean(Arg&& arg, const C&)
+    to_euclidean(Arg&& arg)
     {
       return nested_object(std::forward<Arg>(arg));
     }
 
 
 #ifdef __cpp_concepts
-    template<to_euclidean_expr Arg, vector_space_descriptor C>
+    template<to_euclidean_expr Arg>
 #else
-    template<typename Arg, typename C, std::enable_if_t<to_euclidean_expr<Arg> and vector_space_descriptor<C>, int> = 0>
+    template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg>, int> = 0>
 #endif
     constexpr decltype(auto)
-    from_euclidean(Arg&& arg, const C& c)
+    from_euclidean(Arg&& arg)
     {
-      return FromEuclideanExpr<C, Arg> {std::forward<Arg>(arg), c};
+      return FromEuclideanExpr<Arg> {std::forward<Arg>(arg)};
     }
 
 
 #ifdef __cpp_concepts
-    template<from_euclidean_expr Arg, vector_space_descriptor C>
+    template<from_euclidean_expr Arg>
 #else
-    template<typename Arg, typename C, std::enable_if_t<from_euclidean_expr<Arg> and vector_space_descriptor<C>, int> = 0>
+    template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg>, int> = 0>
 #endif
     constexpr decltype(auto)
-    wrap_angles(Arg&& arg, const C&)
+    wrap_angles(Arg&& arg)
     {
       return std::forward<Arg>(arg);
     }

@@ -40,7 +40,8 @@ namespace OpenKalman
     }
     else if constexpr (identity_matrix<Arg>)
     {
-      return internal::index_dimension_scalar_constant(arg, internal::smallest_dimension_index(arg));
+      return internal::index_to_scalar_constant<scalar_type_of_t<Arg>>(
+        internal::smallest_vector_space_descriptor(get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)));
     }
     else if constexpr (one_dimensional<Arg>)
     {
@@ -49,13 +50,15 @@ namespace OpenKalman
     else if constexpr (constant_matrix<Arg>)
     {
       std::multiplies<scalar_type_of_t<Arg>> op;
-      auto n = internal::index_dimension_scalar_constant(arg, internal::smallest_dimension_index(arg));
+      auto n = internal::index_to_scalar_constant<scalar_type_of_t<Arg>>(
+        internal::smallest_vector_space_descriptor(get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)));;
       return values::scalar_constant_operation{op, constant_coefficient{std::forward<Arg>(arg)}, n};
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       std::multiplies<scalar_type_of_t<Arg>> op;
-      auto n = internal::index_dimension_scalar_constant(arg, internal::smallest_dimension_index(arg));
+      auto n = internal::index_to_scalar_constant<scalar_type_of_t<Arg>>(
+        internal::smallest_vector_space_descriptor(get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)));;
       return values::scalar_constant_operation{op, constant_diagonal_coefficient{std::forward<Arg>(arg)}, n};
     }
     else if constexpr (triangular_matrix<Arg>) // Includes the diagonal case.

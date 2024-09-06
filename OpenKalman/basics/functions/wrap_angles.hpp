@@ -19,49 +19,33 @@
 namespace OpenKalman
 {
 #ifdef __cpp_concepts
-  template<wrappable Arg, vector_space_descriptor C>
-  requires (dynamic_vector_space_descriptor<C> or dynamic_dimension<Arg, 0> or has_untyped_index<Arg, 0> or
-    equivalent_to<C, vector_space_descriptor_of_t<Arg, 0>>)
+  template<wrappable Arg>
 #else
-  template<typename Arg, typename C, std::enable_if_t<wrappable<Arg> and vector_space_descriptor<C> and
-    (dynamic_vector_space_descriptor<C> or dynamic_dimension<Arg, 0> or has_untyped_index<Arg, 0> or
-      equivalent_to<C, vector_space_descriptor_of_t<Arg, 0>>), int> = 0>
+  template<typename Arg, std::enable_if_t<wrappable<Arg>, int> = 0>
 #endif
   constexpr decltype(auto)
-  wrap_angles(Arg&& arg, const C& c)
+  wrap_angles(Arg&& arg)
   {
     if constexpr (dynamic_dimension<Arg, 0> and not euclidean_vector_space_descriptor<vector_space_descriptor_of_t<Arg, 0>>)
-      if (not get_vector_space_descriptor_is_euclidean(get_vector_space_descriptor<0>(arg)) and c != get_vector_space_descriptor<0>(arg))
+      if (not get_vector_space_descriptor_is_euclidean(get_vector_space_descriptor<0>(arg)))
         throw std::domain_error {"In wrap_angles, specified vector space descriptor does not match that of the object's index 0"};
     using Interface = interface::library_interface<std::decay_t<Arg>>;
 
-    if constexpr (euclidean_vector_space_descriptor<C> or identity_matrix<Arg> or zero<Arg>)
+    if constexpr (euclidean_vector_space_descriptor<vector_space_descriptor_of_t<Arg, 0>> or identity_matrix<Arg> or zero<Arg>)
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (interface::wrap_angles_defined_for<Arg, Arg&&, const C&>)
+    else if constexpr (interface::wrap_angles_defined_for<Arg, Arg&&>)
     {
-      return Interface::wrap_angles(std::forward<Arg>(arg), c);
+      return Interface::wrap_angles(std::forward<Arg>(arg), get_vector_space_descriptor<0>(arg));
     }
     else
     {
       if constexpr (has_dynamic_dimensions<Arg>) if (not get_wrappable(arg))
         throw std::domain_error {"Argument of wrap_angles is not wrappable"};
 
-      return from_euclidean(to_euclidean(std::forward<Arg>(arg), c), c);
+      return from_euclidean(to_euclidean(std::forward<Arg>(arg), get_vector_space_descriptor<0>(arg)), get_vector_space_descriptor<0>(arg));
     }
-  }
-
-
-#ifdef __cpp_concepts
-  template<all_fixed_indices_are_euclidean Arg>
-#else
-  template<typename Arg, std::enable_if_t<all_fixed_indices_are_euclidean<Arg>, int> = 0>
-#endif
-  constexpr decltype(auto)
-  wrap_angles(Arg&& arg)
-  {
-    return wrap_angles(std::forward<Arg>(arg), get_vector_space_descriptor<0>(arg));
   }
 
 

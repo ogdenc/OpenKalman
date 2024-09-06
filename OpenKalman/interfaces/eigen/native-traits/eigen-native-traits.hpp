@@ -20,9 +20,9 @@
 namespace OpenKalman::Eigen3::internal
 {
 #ifdef __cpp_concepts
-  template<typename NestedMatrix>
+  template<typename NestedObject>
 #else
-  template<typename NestedMatrix, typename = void>
+  template<typename NestedObject, typename = void>
 #endif
   struct native_traits;
 
@@ -36,9 +36,14 @@ namespace Eigen::internal
     : OpenKalman::Eigen3::internal::native_traits<OpenKalman::internal::LibraryWrapper<T, L>> {};
 
 
-  template<typename NestedMatrix, typename...Vs>
-  struct traits<OpenKalman::internal::FixedSizeAdapter<NestedMatrix, Vs...>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::internal::FixedSizeAdapter<NestedMatrix, Vs...>> {};
+  template<typename NestedObject, typename...Vs>
+  struct traits<OpenKalman::internal::FixedSizeAdapter<NestedObject, Vs...>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::internal::FixedSizeAdapter<NestedObject, Vs...>> {};
+
+
+  template<typename NestedObject, typename...Vs>
+  struct traits<OpenKalman::VectorSpaceAdapter<NestedObject, Vs...>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::VectorSpaceAdapter<NestedObject, Vs...>> {};
 
 
   template<typename PatternMatrix, typename Scalar, auto...constant>
@@ -46,34 +51,39 @@ namespace Eigen::internal
     : OpenKalman::Eigen3::internal::native_traits<OpenKalman::ConstantAdapter<PatternMatrix, Scalar, constant...>> {};
 
 
-  template<typename NestedMatrix, OpenKalman::HermitianAdapterType storage_triangle>
-  struct traits<OpenKalman::SelfAdjointMatrix<NestedMatrix, storage_triangle>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::SelfAdjointMatrix<NestedMatrix, storage_triangle>> {};
+  template<typename NestedObject, OpenKalman::HermitianAdapterType storage_triangle>
+  struct traits<OpenKalman::SelfAdjointMatrix<NestedObject, storage_triangle>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::SelfAdjointMatrix<NestedObject, storage_triangle>> {};
 
 
-  template<typename NestedMatrix, OpenKalman::TriangleType triangle_type>
-  struct traits<OpenKalman::TriangularMatrix<NestedMatrix, triangle_type>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::TriangularMatrix<NestedMatrix, triangle_type>> {};
+  template<typename NestedObject, OpenKalman::TriangleType triangle_type>
+  struct traits<OpenKalman::TriangularMatrix<NestedObject, triangle_type>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::TriangularMatrix<NestedObject, triangle_type>> {};
 
 
-  template<typename NestedMatrix>
-  struct traits<OpenKalman::DiagonalMatrix<NestedMatrix>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::DiagonalMatrix<NestedMatrix>> {};
+  template<typename NestedObject>
+  struct traits<OpenKalman::DiagonalMatrix<NestedObject>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::DiagonalMatrix<NestedObject>> {};
 
 
-  template<typename Coeffs, typename NestedMatrix>
-  struct traits<OpenKalman::ToEuclideanExpr<Coeffs, NestedMatrix>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::ToEuclideanExpr<Coeffs, NestedMatrix>> {};
+  template<typename Coeffs, typename NestedObject>
+  struct traits<OpenKalman::ToEuclideanExpr<Coeffs, NestedObject>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::ToEuclideanExpr<Coeffs, NestedObject>> {};
 
 
-  template<typename Coeffs, typename NestedMatrix>
-  struct traits<OpenKalman::FromEuclideanExpr<Coeffs, NestedMatrix>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::FromEuclideanExpr<Coeffs, NestedMatrix>> {};
+  template<typename Coeffs, typename NestedObject>
+  struct traits<OpenKalman::FromEuclideanExpr<Coeffs, NestedObject>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::FromEuclideanExpr<Coeffs, NestedObject>> {};
 
+  
+  
+  
+  
+  
 
-  template<typename FixedDescriptor, typename NestedMatrix>
-  struct traits<OpenKalman::Mean<FixedDescriptor, NestedMatrix>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::Mean<FixedDescriptor, NestedMatrix>> {};
+  template<typename FixedDescriptor, typename NestedObject>
+  struct traits<OpenKalman::Mean<FixedDescriptor, NestedObject>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::Mean<FixedDescriptor, NestedObject>> {};
 
 
   template<typename RowCoefficients, typename ColumnCoefficients, typename ArgType>
@@ -81,19 +91,19 @@ namespace Eigen::internal
     : traits<std::decay_t<ArgType>> {};
 
 
-  template<typename Coeffs, typename NestedMatrix>
-  struct traits<OpenKalman::EuclideanMean<Coeffs, NestedMatrix>>
-    : traits<std::decay_t<NestedMatrix>> {};
+  template<typename Coeffs, typename NestedObject>
+  struct traits<OpenKalman::EuclideanMean<Coeffs, NestedObject>>
+    : traits<std::decay_t<NestedObject>> {};
 
 
-  template<typename FixedDescriptor, typename NestedMatrix>
-  struct traits<OpenKalman::Covariance<FixedDescriptor, NestedMatrix>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::Covariance<FixedDescriptor, NestedMatrix>> {};
+  template<typename FixedDescriptor, typename NestedObject>
+  struct traits<OpenKalman::Covariance<FixedDescriptor, NestedObject>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::Covariance<FixedDescriptor, NestedObject>> {};
 
 
-  template<typename FixedDescriptor, typename NestedMatrix>
-  struct traits<OpenKalman::SquareRootCovariance<FixedDescriptor, NestedMatrix>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::SquareRootCovariance<FixedDescriptor, NestedMatrix>> {};
+  template<typename FixedDescriptor, typename NestedObject>
+  struct traits<OpenKalman::SquareRootCovariance<FixedDescriptor, NestedObject>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::SquareRootCovariance<FixedDescriptor, NestedObject>> {};
 
 
 }
