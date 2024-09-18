@@ -447,36 +447,32 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<vector_space_descriptor...IDs, typename Operation> requires
-      interface::n_ary_operation_defined_for<NestedInterface, const std::tuple<IDs...>&, Operation&&>
+    template<vector_space_descriptor...Vs, typename Operation> requires
+      interface::n_ary_operation_defined_for<NestedInterface, const std::tuple<Vs...>&, Operation&&>
     static indexible auto
 #else
-    template<typename...IDs, typename Operation, std::enable_if_t<
-      interface::n_ary_operation_defined_for<NestedInterface, const std::tuple<IDs...>&, Operation&&>, int> = 0>
+    template<typename...Vs, typename Operation, std::enable_if_t<
+      interface::n_ary_operation_defined_for<NestedInterface, const std::tuple<Vs...>&, Operation&&>, int> = 0>
     static auto
 #endif
-    n_ary_operation(const std::tuple<IDs...>& d_tup, Operation&& op)
+    n_ary_operation(const std::tuple<Vs...>& d_tup, Operation&& op)
     {
       return NestedInterface::n_ary_operation(d_tup, std::forward<Operation>(op));
     }
 
 
 #ifdef __cpp_concepts
-    template<vector_space_descriptor...IDs, typename Operation, indexible Arg, indexible...Args> requires
-      interface::n_ary_operation_defined_for<NestedObject, const std::tuple<IDs...>&, Operation&&, nested_object_of_t<Arg&&>, Args...>
+    template<vector_space_descriptor...Vs, typename Operation, indexible Arg, indexible...Args> requires
+      interface::n_ary_operation_defined_for<NestedObject, const std::tuple<Vs...>&, Operation&&, nested_object_of_t<Arg&&>, Args...>
     static indexible auto
 #else
-    template<typename...IDs, typename Operation, typename Arg, typename...Args, std::enable_if_t<
-      interface::n_ary_operation_defined_for<NestedObject, const std::tuple<IDs...>&, Operation&&, typename nested_object_of<Arg&&>::type, Args...>, int> = 0>
+    template<typename...Vs, typename Operation, typename Arg, typename...Args, std::enable_if_t<
+      interface::n_ary_operation_defined_for<NestedObject, const std::tuple<Vs...>&, Operation&&, typename nested_object_of<Arg&&>::type, Args...>, int> = 0>
     static auto
 #endif
-    n_ary_operation(const std::tuple<IDs...>& d_tup, Operation&& op, Arg&& arg, Args&&...args)
+    n_ary_operation(const std::tuple<Vs...>& d_tup, Operation&& op, Arg&& arg, Args&&...args)
     {
-      return std::apply([](auto&& a, auto&&...vs){
-        return make_vector_space_adapter(std::forward<decltype(a)>(a), std::forward<decltype(vs)>(vs)...);
-        }, std::tuple_cat(
-          std::forward_as_tuple(NestedInterface::n_ary_operation(d_tup, std::forward<Operation>(op), nested_object(std::forward<Arg>(arg)), std::forward<Args>(args)...)),
-          d_tup));
+      return NestedInterface::n_ary_operation(d_tup, std::forward<Operation>(op), nested_object(std::forward<Arg>(arg)), std::forward<Args>(args)...);
     }
 
   private:

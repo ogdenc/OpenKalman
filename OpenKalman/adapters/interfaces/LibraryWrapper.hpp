@@ -393,51 +393,62 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<indexible Arg> requires interface::to_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>>
+    template<indexible Arg> requires
+      interface::to_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>> or
+      interface::to_euclidean_defined_for<NestedObject, Arg&&>
     static constexpr indexible auto
 #else
     template<typename Arg, std::enable_if_t<
-      interface::to_euclidean_defined_for<NestedObject, typename nested_object_of<Arg&&>::type>, int> = 0>
+      interface::to_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>> or
+      interface::to_euclidean_defined_for<NestedObject, Arg&&>, int> = 0>
     static constexpr auto
 #endif
     to_euclidean(Arg&& arg)
     {
-      return OpenKalman::to_native_matrix<LibraryObject>(NestedInterface::to_euclidean(nested_object(std::forward<Arg>(arg))));
+      if constexpr (interface::to_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>>)
+        return OpenKalman::to_native_matrix<LibraryObject>(NestedInterface::to_euclidean(nested_object(std::forward<Arg>(arg))));
+      else
+        return NestedInterface::to_euclidean(std::forward<Arg>(arg));
     }
 
 
 #ifdef __cpp_concepts
     template<indexible Arg, vector_space_descriptor V> requires
-      interface::from_euclidean_defined_for<NestedObject, Arg&&, const V&> or
-      interface::from_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>, const V&>
+      interface::from_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>, const V&> or
+      interface::from_euclidean_defined_for<NestedObject, Arg&&, const V&>
     static constexpr indexible auto
 #else
     template<typename Arg, typename V, std::enable_if_t<
-      interface::from_euclidean_defined_for<NestedObject, Arg&&, const V&> or
-      interface::from_euclidean_defined_for<NestedObject, typename nested_object_of<Arg&&>::type, const V&>, int> = 0>
+      interface::from_euclidean_defined_for<NestedObject, typename nested_object_of<Arg&&>::type, const V&> or
+      interface::from_euclidean_defined_for<NestedObject, Arg&&, const V&>, int> = 0>
     static constexpr auto
 #endif
     from_euclidean(Arg&& arg, const V& v)
     {
-      if constexpr (interface::from_euclidean_defined_for<NestedObject, Arg&&, const V&>)
-        return NestedInterface::from_euclidean(std::forward<Arg>(arg), v);
+      if constexpr (interface::from_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>, const V&>)
+        return OpenKalman::to_native_matrix<LibraryObject>(NestedInterface::from_euclidean(nested_object(std::forward<Arg>(arg)), v));
       else
-        return NestedInterface::from_euclidean(nested_object(std::forward<Arg>(arg)), v);
+        return NestedInterface::from_euclidean(std::forward<Arg>(arg), v);
     }
 
 
 #ifdef __cpp_concepts
     template<indexible Arg> requires
-      interface::wrap_angles_defined_for<NestedObject, nested_object_of_t<Arg&&>>
+      interface::wrap_angles_defined_for<NestedObject, nested_object_of_t<Arg&&>> or
+      interface::wrap_angles_defined_for<NestedObject, Arg&&>
     static constexpr indexible auto
 #else
     template<typename Arg, std::enable_if_t<
-      interface::wrap_angles_defined_for<NestedObject, typename nested_object_of<Arg&&>::type>, int> = 0>
+      interface::wrap_angles_defined_for<NestedObject, typename nested_object_of<Arg&&>::type> or
+      interface::wrap_angles_defined_for<NestedObject, Arg&&>, int> = 0>
     static constexpr auto
 #endif
     wrap_angles(Arg&& arg)
     {
-      return OpenKalman::to_native_matrix<LibraryObject>(NestedInterface::wrap_angles(nested_object(std::forward<Arg>(arg))));
+      if constexpr (interface::wrap_angles_defined_for<NestedObject, nested_object_of_t<Arg&&>>)
+        return OpenKalman::to_native_matrix<LibraryObject>(NestedInterface::wrap_angles(nested_object(std::forward<Arg>(arg))));
+      else
+        return NestedInterface::wrap_angles(std::forward<Arg>(arg));
     }
 
 

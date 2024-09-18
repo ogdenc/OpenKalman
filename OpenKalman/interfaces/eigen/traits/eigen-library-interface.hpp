@@ -758,9 +758,9 @@ namespace OpenKalman::interface
     }
 
 
-    template<typename Arg, typename Factor0, typename Factor1 = std::integral_constant<std::size_t, 1>>
+    template<typename Arg, typename Factor0 = std::integral_constant<std::size_t, 1>, typename Factor1 = std::integral_constant<std::size_t, 1>>
     static auto
-    broadcast(Arg&& arg, const Factor0& factor0, const Factor1& factor1 = Factor1{})
+    broadcast(Arg&& arg, const Factor0& factor0 = Factor0{}, const Factor1& factor1 = Factor1{})
     {
       constexpr int F0 = []{
         if constexpr (static_index_value<Factor0>) return static_cast<std::size_t>(Factor0{});
@@ -784,86 +784,6 @@ namespace OpenKalman::interface
 
   private:
 
-    template<typename Arg, typename...Ds, std::size_t...Is>
-    static constexpr bool is_replicatable(std::index_sequence<Is...>)
-    {
-      return (... and (
-        dynamic_dimension<Arg, Is> or dynamic_vector_space_descriptor<std::tuple_element_t<Is, std::tuple<Ds...>>> or
-        dimension_size_of_index_is<Arg, Is, 1> or
-        dimension_size_of_index_is<Arg, Is, dimension_size_of_v<std::tuple_element_t<Is, std::tuple<Ds...>>>>));
-    }
-
-
-    template<typename...Ds, typename Arg, std::size_t...Ix_Ds>
-    static decltype(auto)
-    replicate_arg_impl(const std::tuple<Ds...>& d_tup, Arg&& arg, std::index_sequence<Ix_Ds...>)
-    {
-      constexpr auto factors = []{
-        if constexpr (sizeof...(Ds) == 0)
-          return std::tuple {1, 1};
-        else if constexpr (sizeof...(Ds) == 1)
-          return std::tuple {(dimension_size_of_v<Ds> == dynamic_size or dynamic_dimension<Arg, Ix_Ds> ?
-            Eigen::Dynamic : static_cast<int>(dimension_size_of_v<Ds> / index_dimension_of_v<Arg, Ix_Ds>))..., 1};
-        else
-          return std::tuple {(dimension_size_of_v<Ds> == dynamic_size or dynamic_dimension<Arg, Ix_Ds> ?
-            Eigen::Dynamic : static_cast<int>(dimension_size_of_v<Ds> / index_dimension_of_v<Arg, Ix_Ds>))...};
-      }();
-      constexpr auto F0 = std::get<0>(factors);
-      constexpr auto F1 = std::get<1>(factors);
-
-      if constexpr (not (dynamic_vector_space_descriptor<Ds> or ...) and not (dynamic_dimension<Arg, Ix_Ds> or ...))
-      {
-        if constexpr ((dimension_size_of_index_is<Arg, Ix_Ds, dimension_size_of_v<Ds>> and ...))
-        {
-          return std::forward<Arg>(arg);
-        }
-        else
-        {
-          decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
-          using M = decltype(m);
-          return Eigen::Replicate<std::remove_reference_t<M>, F0, F1> {std::forward<M>(m)};
-        }
-      }
-      else
-      {
-        auto [f0, f1] = [](const auto& d_tup, const auto& arg){
-          if constexpr (sizeof...(Ds) == 0)
-            return std::tuple {1, 1};
-          else if constexpr (sizeof...(Ds) == 1)
-            return std::tuple {static_cast<int>(get_dimension_size_of(std::get<Ix_Ds>(d_tup)) / get_index_dimension_of<Ix_Ds>(arg))..., 1};
-          else
-            return std::tuple {static_cast<int>(get_dimension_size_of(std::get<Ix_Ds>(d_tup)) / get_index_dimension_of<Ix_Ds>(arg))...};
-        }(d_tup, arg);
-
-        decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
-        using M = decltype(m);
-        return Eigen::Replicate<std::remove_reference_t<M>, F0, F1> {std::forward<M>(m), f0, f1};
-      }
-    }
-
-
-    /**
-     * \internal
-     * \brief Replicate an object, if necessary, to expand any 1D indices to fill a particular shape.
-     * \details If Arg already has the shape defined by <code>sizeof...(Ds)</ref> return the argument unchanged.
-     * \param d_tup A tuple of \ref vector_space_descriptor (of type Ds) defining the resulting tensor.
-     * Any trailing omitted descriptors will be considered as \ref Dimension<1>.
-     * \tparam Arg The argument to be replicated.
-     */
-#ifdef __cpp_concepts
-    template<typename...Ds, typename Arg> requires (sizeof...(Ds) <= 2) and
-      (is_replicatable<Arg, Ds...>(std::make_index_sequence<sizeof...(Ds)>{}))
-#else
-    template<typename...Ds, typename Arg, std::enable_if_t<(sizeof...(Ds) <= 2) and
-      (is_replicatable<Arg, Ds...>(std::make_index_sequence<sizeof...(Ds)>{}))>>
-#endif
-    static decltype(auto)
-    replicate(const std::tuple<Ds...>& d_tup, Arg&& arg)
-    {
-      return replicate_arg_impl(d_tup, std::forward<Arg>(arg), std::index_sequence_for<Ds...> {});
-    }
-
-
     // Only to be used in a non-evaluated context
     template<typename Op, typename...S>
     static constexpr auto dummy_op(Op op, S...s)
@@ -886,30 +806,6 @@ namespace OpenKalman::interface
     template<typename Op, typename Arg1, typename Arg2, typename Arg3>
     struct EigenNaryOp<Op, Arg1, Arg2, Arg3> { using type = Eigen::CwiseTernaryOp<Op, Arg1, Arg2, Arg3>; };
 
-
-    template<typename...Ds, typename Operation, typename...Args>
-    static auto
-    n_ary_operation_impl(const std::tuple<Ds...>& tup, Operation&& operation, Args&&...args)
-    {
-      decltype(auto) op = Eigen3::native_operation(std::forward<Operation>(operation));
-      using Op = decltype(op);
-      using Scalar = decltype(dummy_op(operation, std::declval<scalar_type_of_t<Args>>()...));
-
-      if constexpr (sizeof...(Args) == 0)
-      {
-        using P = dense_writable_matrix_t<T, Layout::none, Scalar, Ds...>;
-        return Eigen::CwiseNullaryOp<std::remove_reference_t<Op>, P> {
-          static_cast<typename P::Index>(get_dimension_size_of(std::get<0>(tup))),
-          static_cast<typename P::Index>(get_dimension_size_of(std::get<1>(tup))),
-          std::forward<Op>(op)};
-      }
-      else
-      {
-        using CW = typename EigenNaryOp<std::decay_t<Op>, std::remove_reference_t<decltype(replicate(tup, std::declval<Args&&>()))>...>::type;
-        return CW {replicate(tup, std::forward<Args>(args))..., std::forward<Op>(op)};
-      }
-    }
-
   public:
 
 #ifdef __cpp_concepts
@@ -930,13 +826,24 @@ namespace OpenKalman::interface
     static auto
     n_ary_operation(const std::tuple<Ds...>& tup, Operation&& operation, Args&&...args)
     {
-      auto ret {n_ary_operation_impl(tup, std::forward<Operation>(operation), std::forward<Args>(args)...)};
-      if constexpr ((euclidean_vector_space_descriptor<Ds> and ...) and (all_fixed_indices_are_euclidean<Args> and ...))
-        return ret;
+      decltype(auto) op = Eigen3::native_operation(std::forward<Operation>(operation));
+      using Op = decltype(op);
+      using Scalar = decltype(dummy_op(operation, std::declval<scalar_type_of_t<Args>>()...));
+
+      if constexpr (sizeof...(Args) == 0)
+      {
+        using P = dense_writable_matrix_t<T, Layout::none, Scalar, Ds...>;
+        return Eigen::CwiseNullaryOp<std::remove_reference_t<Op>, P> {
+          static_cast<typename P::Index>(get_dimension_size_of(std::get<0>(tup))),
+          static_cast<typename P::Index>(get_dimension_size_of(std::get<1>(tup))),
+          std::forward<Op>(op)};
+      }
       else
-        return std::apply(
-          [](auto&& ret, auto&&...ds) { return make_vector_space_adapter(std::forward<decltype(ret)>(ret), std::forward<decltype(ds)>(ds)...); },
-          std::tuple_cat(std::forward_as_tuple(std::move(ret)), tup));
+      {
+        auto seq = std::index_sequence_for<Ds...>{};
+        using CW = typename EigenNaryOp<std::decay_t<Op>, std::remove_reference_t<Args>...>::type;
+        return CW {std::forward<Args>(args)..., std::forward<Op>(op)};
+      }
     }
 
 

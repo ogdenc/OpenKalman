@@ -176,6 +176,19 @@ namespace OpenKalman
     }
 
 
+    /// Replicate an object, if necessary, to expand any 1D indices to fill a particular shape.
+    template<typename...Ds, typename Arg, std::size_t...Ix_Ds>
+    static decltype(auto)
+    replicate_arg(const std::tuple<Ds...>& d_tup, Arg&& arg, std::index_sequence<Ix_Ds...>)
+    {
+      OpenKalman::broadcast(std::forward<Arg>(arg),
+        values::scalar_constant_operation {
+          std::divides<scalar_type_of_t<Arg>>{},
+          get_dimension_size_of(std::get<Ix_Ds>(d_tup)),
+          get_index_dimension_of<Ix_Ds>(arg)}...);
+    }
+
+
     template<typename PatternMatrix, typename...Ds, typename Op, typename...Args>
     static constexpr auto
     n_ary_operation_impl(const std::tuple<Ds...>& d_tup, Op&& op, Args&&...args)
@@ -191,12 +204,14 @@ namespace OpenKalman
           std::tuple_cat(std::tuple{std::move(c)}, d_tup));
       }
       // Library handles n-ary operation.
-      else if constexpr (vector_space_descriptors_may_match_with<Args...> and
-        is_invocable_with_indices<Op, std::add_lvalue_reference_t<scalar_type_of_t<Args>>...>(seq) and
+      else if constexpr (is_invocable_with_indices<Op, std::add_lvalue_reference_t<scalar_type_of_t<Args>>...>(seq) and
         interface::n_ary_operation_defined_for<PatternMatrix, const std::tuple<Ds...>&, Op&&, Args&&...>)
       {
-        using Trait = interface::library_interface<std::decay_t<PatternMatrix>>;
-        return Trait::n_ary_operation(d_tup, std::forward<Op>(op), std::forward<Args>(args)...);
+        using Interface = interface::library_interface<std::decay_t<PatternMatrix>>;
+        auto ret {Interface::n_ary_operation(d_tup, std::forward<Op>(op), replicate_arg(d_tup, std::forward<Args>(args), seq)...)};
+        return std::apply([](auto&& a, auto&&...vs){
+          return make_vector_space_adapter(std::forward<decltype(a)>(a), std::forward<decltype(vs)>(vs)...);
+          }, std::tuple_cat(std::forward_as_tuple(std::move(ret)), d_tup));
       }
       else // Catch-all: library does not provide for this n-ary operation.
       {

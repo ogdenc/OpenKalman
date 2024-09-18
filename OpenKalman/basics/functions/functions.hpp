@@ -63,6 +63,7 @@
 
 #include "make_vector_space_adapter.hpp"
 
+#include "broadcast.hpp"
 #include "n_ary_operation.hpp"
 #include "randomize.hpp"
 

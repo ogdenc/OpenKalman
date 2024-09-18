@@ -319,7 +319,6 @@ namespace OpenKalman::interface
      * \param arg The object.
      * \param factors A set of factors indicating the increase in size of each index. There must be one factor per
      * index, and there may also be additional factors if the tensor order is to be expanded
-     * \todo Connect this with a general function and possibly with n_ary_operation
      */
 #ifdef __cpp_concepts
     static indexible auto
@@ -341,7 +340,7 @@ namespace OpenKalman::interface
      * Examples:
      * - <code>template<scalar_type...X> operation(const X&...)</code>
      * - <code>template<scalar_type...X, index_value...I> operation(const X&..., I...)</code>
-     * \param args A set of n indexible arguments, each having the same dimensions.
+     * \param args A set of n indexible arguments, each having the same vector space descriptors.
      * \return An object with size and shape defined by d_tup and with elements defined by the operation
      * \todo Eliminate the Ds?
      */

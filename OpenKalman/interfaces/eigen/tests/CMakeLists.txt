@@ -63,6 +63,7 @@ add_executable(eigen3
         function-tests/make-functions.test.cpp
 
         function-tests/eigen-diagonal.test.cpp
+        function-tests/eigen-broadcast.test.cpp
         function-tests/eigen-nary-operations.test.cpp
         function-tests/eigen-reductions.test.cpp
         function-tests/eigen-blocks.test.cpp

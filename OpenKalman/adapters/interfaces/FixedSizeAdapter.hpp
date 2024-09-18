@@ -513,11 +513,12 @@ namespace OpenKalman::interface
 
   private:
 
-    template<typename V0, typename V, typename...Vs, typename Arg>
+    template<typename V0, typename...Vs, typename Arg>
     static constexpr decltype(auto)
-    wrapping_projection_impl(Arg&& arg)
+    to_euclidean_impl(Arg&& arg)
     {
-      return internal::make_fixed_size_adapter<V0, Vs...>(std::forward<Arg>(arg));
+      using V = Dimensions<euclidean_dimension_size_of_v<V0>>;
+      return internal::make_fixed_size_adapter<V, Vs...>(std::forward<Arg>(arg));
     }
 
   public:
@@ -532,9 +533,19 @@ namespace OpenKalman::interface
 #endif
     to_euclidean(Arg&& arg)
     {
-      return wrapping_projection_impl<Dimensions<1>, Ds...>(NestedInterface::to_euclidean(nested_object(std::forward<Arg>(arg)));
+      return to_euclidean_impl<Ds...>(NestedInterface::to_euclidean(nested_object(std::forward<Arg>(arg))));
     }
 
+  private:
+
+    template<typename V0, typename V, typename...Vs, typename Arg>
+    static constexpr decltype(auto)
+    from_euclidean_impl(Arg&& arg)
+    {
+      return internal::make_fixed_size_adapter<V0, Vs...>(std::forward<Arg>(arg));
+    }
+
+  public:
 
 #ifdef __cpp_concepts
     template<indexible Arg, vector_space_descriptor V> requires
@@ -547,7 +558,7 @@ namespace OpenKalman::interface
 #endif
     from_euclidean(Arg&& arg, V&& v)
     {
-      return wrapping_projection_impl<V, Ds...>(NestedInterface::from_euclidean(nested_object(std::forward<Arg>(arg)), std::forward<V>(v)));
+      return from_euclidean_impl<V, Ds...>(NestedInterface::from_euclidean(nested_object(std::forward<Arg>(arg)), std::forward<V>(v)));
     }
 
 
