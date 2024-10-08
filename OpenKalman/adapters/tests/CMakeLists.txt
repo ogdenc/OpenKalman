@@ -20,6 +20,7 @@ add_executable(adapters
         #DiagonalMatrix.test.cpp
         #SelfAdjointMatrix.test.cpp
         #TriangularMatrix.test.cpp
+        #VectorSpaceAdapter.test.cpp
         #ToEuclideanExpr.test.cpp
         #FromEuclideanExpr.test.cpp
         #rank-update.test.cpp
