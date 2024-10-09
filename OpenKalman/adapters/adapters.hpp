@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020-2021 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,17 +10,23 @@
 
 /**
  * \dir
- * \brief Files relating to matrices.
+ * \brief Files relating to adapters.
  *
- * \dir matrices/details
- * \brief Support files for matrices.
+ * \dir adapters/details
+ * \brief Support files for adapters.
+ *
+ * \dir adapters/interfaces
+ * \brief Interfaces for adapters.
+ *
+ * \dir adapters/tests
+ * \brief Tests for adapters.
  *
  * \file
- * A meta-header file including all the headers relating to OpenKalman typed matrices.
+ * Includes header files for all adapter types.
  */
 
-#ifndef OPENKALMAN_SPECIAL_MATRICES_HPP
-#define OPENKALMAN_SPECIAL_MATRICES_HPP
+#ifndef OPENKALMAN_ADAPTERS_HPP
+#define OPENKALMAN_ADAPTERS_HPP
 
 #include "ConstantAdapter.hpp"
 #include "DiagonalMatrix.hpp"
@@ -28,9 +34,11 @@
 #include "TriangularMatrix.hpp"
 #include "ToEuclideanExpr.hpp"
 #include "FromEuclideanExpr.hpp"
+#include "VectorSpaceAdapter.hpp"
 
-#include "details/adapters-interface.hpp"
-#include "details/euclidean-interface.hpp"
+#include "interfaces/adapters-interface.hpp"
+#include "interfaces/euclidean-interface.hpp"
+
 #include "details/adapters-arithmetic.hpp"
 
-#endif //OPENKALMAN_SPECIAL_MATRICES_HPP
+#endif OPENKALMAN_ADAPTERS_HPP

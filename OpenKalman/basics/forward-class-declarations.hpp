@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2021 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -271,28 +271,63 @@ namespace OpenKalman
 #endif
 
 
-  // ----------------------- //
-  //  Typed matrix adapters  //
-  // ----------------------- //
+  // ------------------------------------------ //
+  //  VectorSpaceAdapter; vector_space_adapter  //
+  // ------------------------------------------ //
+
+  /**
+   * \brief An adapter that adds vector space descriptors for each index.
+   * \details Any vector space descriptors associated with NestedObject are overwritten.
+   * \tparam Arg An \ref indexible object.
+   * \taram Vs A set of \ref vector_space_descriptor objects
+   */
+#ifdef __cpp_concepts
+  template<indexible NestedObject, vector_space_descriptor...Vs>
+  requires internal::not_more_fixed_than<NestedObject, Vs...> and (not internal::less_fixed_than<NestedObject, Vs...>) and
+    internal::maybe_same_shape_as_vector_space_descriptors<NestedObject, Vs...>
+#else
+  template<typename NestedObject, typename...Vs>
+#endif
+  struct VectorSpaceAdapter;
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_vector_space_adapter : std::false_type {};
+
+    template<typename NestedObject, typename...Vs>
+    struct is_vector_space_adapter<VectorSpaceAdapter<NestedObject, Vs...>> : std::true_type {};
+  } // namespace detail
+
+
+  /**
+   * \internal
+   * \brief Specifies that T is a VectorSpaceAdapter.
+   */
+    template<typename T>
+  #ifdef __cpp_concepts
+    concept vector_space_adapter =
+  #else
+    constexpr bool vector_space_adapter =
+  #endif
+      detail::is_vector_space_adapter<std::decay_t<T>>::value;
+
 
   // -------------------------------------------------------- //
   //  FromEuclideanExpr, from_euclidean_expr, euclidean_expr  //
   // -------------------------------------------------------- //
 
   /**
-   * \brief An expression that transforms angular or other modular coefficients back from Euclidean space.
+   * \brief An expression that transforms angular or other modular vector space descriptors back from Euclidean space.
    * \details This is the counterpart expression to ToEuclideanExpr.
+   * \tparam NestedObject The pre-transformed column vector, or set of column vectors in the form of a matrix.
    * \tparam Descriptor The \ref vector_space_descriptor of the first index.
-   * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor Descriptor, typename NestedMatrix>
-  requires (dynamic_vector_space_descriptor<Descriptor> == dynamic_dimension<NestedMatrix, 0>) and
-    (not fixed_vector_space_descriptor<Descriptor> or euclidean_dimension_size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
-    (not dynamic_vector_space_descriptor<Descriptor> or
-      std::same_as<typename Descriptor::Scalar, scalar_type_of_t<NestedMatrix>>)
+  template<indexible NestedObject, vector_space_descriptor D> requires 
+    maybe_equivalent_to<vector_space_descriptor_of<NestedObject, 0>, Dimensions<euclidean_dimension_size_of_v<D>>>
 #else
-  template<typename Descriptor, typename NestedMatrix>
+  template<typename NestedMatrix, typename D>
 #endif
   struct FromEuclideanExpr;
 
@@ -302,8 +337,8 @@ namespace OpenKalman
     template<typename T>
     struct is_from_euclidean_expr : std::false_type {};
 
-    template<typename Descriptor, typename NestedMatrix>
-    struct is_from_euclidean_expr<FromEuclideanExpr<Descriptor, NestedMatrix>> : std::true_type {};
+    template<typename NestedMatrix, typename D>
+    struct is_from_euclidean_expr<FromEuclideanExpr<NestedMatrix, D>> : std::true_type {};
   }
 
 
@@ -323,19 +358,14 @@ namespace OpenKalman
   // ------------------------------------ //
 
   /**
-   * \brief An expression that transforms coefficients into Euclidean space for proper wrapping.
+   * \brief An expression that transforms vector space descriptors into Euclidean space for application of directional statistics.
    * \details This is the counterpart expression to FromEuclideanExpr.
-   * \tparam Descriptor The \ref vector_space_descriptor of the first index.
-   * \tparam NestedMatrix The pre-transformed column vector, or set of column vectors in the form of a matrix.
+   * \tparam NestedObject The pre-transformed column vector, or set of column vectors in the form of a matrix.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor Descriptor, typename NestedMatrix> requires (not from_euclidean_expr<NestedMatrix>) and
-    (dynamic_vector_space_descriptor<Descriptor> == dynamic_dimension<NestedMatrix, 0>) and
-    (not fixed_vector_space_descriptor<Descriptor> or dimension_size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
-    (not dynamic_vector_space_descriptor<Descriptor> or
-      std::same_as<typename Descriptor::Scalar, scalar_type_of_t<NestedMatrix>>)
+  template<indexible NestedObject> requires (not from_euclidean_expr<NestedMatrix>) 
 #else
-  template<typename Descriptor, typename NestedMatrix>
+  template<typename NestedMatrix>
 #endif
   struct ToEuclideanExpr;
 
@@ -345,8 +375,8 @@ namespace OpenKalman
     template<typename T>
     struct is_to_euclidean_expr : std::false_type {};
 
-    template<typename Descriptor, typename NestedMatrix>
-    struct is_to_euclidean_expr<ToEuclideanExpr<Descriptor, NestedMatrix>> : std::true_type {};
+    template<typename NestedObject>
+    struct is_to_euclidean_expr<ToEuclideanExpr<NestedObject>> : std::true_type {};
   }
 
 
@@ -371,6 +401,10 @@ namespace OpenKalman
   constexpr bool euclidean_expr = from_euclidean_expr<T> or to_euclidean_expr<T>;
 #endif
 
+
+  // --------------------- //
+  //  Deprecated adapters  //
+  // --------------------- //
 
   /**
    * \brief A matrix with typed rows and columns.
@@ -511,6 +545,10 @@ namespace OpenKalman
   struct SquareRootCovariance;
 
 
+  // ------------------- //
+  //  Internal adapters  //
+  // ------------------- //
+
   namespace internal
   {
     /**
@@ -593,49 +631,6 @@ namespace OpenKalman
 
     template<typename Descriptor, typename NestedMatrix>
     struct is_triangular_covariance<SquareRootCovariance<Descriptor, NestedMatrix>> : std::true_type {};
-
-  } // namespace internal
-
-
-  /**
-   * \brief An adapter that adds vector space descriptors for each index.
-   * \details Any vector space descriptors associated with NestedObject are overwritten.
-   * \tparam Arg An \ref indexible object.
-   * \taram Vs A set of \ref vector_space_descriptor objects
-   */
-#ifdef __cpp_concepts
-  template<indexible NestedObject, vector_space_descriptor...Vs>
-  requires internal::not_more_fixed_than<NestedObject, Vs...> and (not internal::less_fixed_than<NestedObject, Vs...>) and
-    internal::maybe_same_shape_as_vector_space_descriptors<NestedObject, Vs...>
-#else
-  template<typename NestedObject, typename...Vs>
-#endif
-  struct VectorSpaceAdapter;
-
-
-  namespace internal
-  {
-    namespace detail
-    {
-      template<typename T>
-      struct is_vector_space_adapter : std::false_type {};
-
-      template<typename NestedObject, typename...Vs>
-      struct is_vector_space_adapter<VectorSpaceAdapter<NestedObject, Vs...>> : std::true_type {};
-    } // namespace detail
-
-
-  /**
-   * \internal
-   * \brief Specifies that T is a VectorSpaceAdapter.
-   */
-    template<typename T>
-  #ifdef __cpp_concepts
-    concept vector_space_adapter =
-  #else
-    constexpr bool vector_space_adapter =
-  #endif
-      detail::is_vector_space_adapter<std::decay_t<T>>::value;
 
   } // namespace internal
 
