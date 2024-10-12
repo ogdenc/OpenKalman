@@ -321,13 +321,13 @@ namespace OpenKalman
    * \brief An expression that transforms angular or other modular vector space descriptors back from Euclidean space.
    * \details This is the counterpart expression to ToEuclideanExpr.
    * \tparam NestedObject The pre-transformed column vector, or set of column vectors in the form of a matrix.
-   * \tparam Descriptor The \ref vector_space_descriptor of the first index.
+   * \tparam RowDescriptor The \ref vector_space_descriptor of the first index.
    */
 #ifdef __cpp_concepts
-  template<indexible NestedObject, vector_space_descriptor D> requires 
-    maybe_equivalent_to<vector_space_descriptor_of<NestedObject, 0>, Dimensions<euclidean_dimension_size_of_v<D>>>
+  template<indexible NestedObject, vector_space_descriptor RowDescriptor> requires 
+    maybe_equivalent_to<vector_space_descriptor_of<NestedObject, 0>, Dimensions<euclidean_dimension_size_of_v<RowDescriptor> >>>
 #else
-  template<typename NestedMatrix, typename D>
+  template<typename NestedMatrix, typename RowDescriptor> >
 #endif
   struct FromEuclideanExpr;
 

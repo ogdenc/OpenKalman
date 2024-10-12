@@ -14,13 +14,13 @@
 namespace OpenKalman
 {
 #ifdef __cpp_concepts
-  template<indexible NestedObject, vector_space_descriptor...Vs>
-  requires internal::not_more_fixed_than<NestedObject, Vs...> and (not internal::less_fixed_than<NestedObject, Vs...>) and
+  template<indexible NestedObject, vector_space_descriptor...Vs> requires 
+    internal::not_more_fixed_than<NestedObject, Vs...> and (not internal::less_fixed_than<NestedObject, Vs...>) and
     internal::maybe_same_shape_as_vector_space_descriptors<NestedObject, Vs...>
 #else
   template<typename NestedObject, typename...Vs>
 #endif
-  struct VectorSpaceAdapter : internal::AdapterBase<VectorSpaceAdapter<NestedObject, Vs...>, const NestedObject>
+  struct VectorSpaceAdapter : internal::AdapterBase<VectorSpaceAdapter<NestedObject, Vs...>, NestedObject>
   {
   private:
 
@@ -32,7 +32,7 @@ namespace OpenKalman
     static_assert(internal::maybe_same_shape_as_vector_space_descriptors<NestedObject, Vs...>);
 #endif
 
-    using Base = internal::AdapterBase<VectorSpaceAdapter, const NestedObject>;
+    using Base = internal::AdapterBase<VectorSpaceAdapter, NestedObject>;
 
   public:
 
@@ -51,35 +51,37 @@ namespace OpenKalman
 
     /**
      * \brief Construct from a compatible indexible object.
-     * \tparam Arg An \ref indexible object
-     * \tparam Ds A set of \ref vector_space_descriptor objects, which must be \ref equivalent_to those of the VectorSpaceAdapter
+     * \tparam Arg An \ref indexible object. Any of its vector space descriptors will be overwritten.
+     * \param vs A set of \ref vector_space_descriptor objects
      */
 #ifdef __cpp_concepts
-    template<internal::maybe_same_shape_as_vector_space_descriptors<Vs...> Arg, equivalent_to<Vs>...Ds> requires
-      (not internal::vector_space_adapter<Arg>) and std::constructible_from<Base, Arg&&>
+    template<internal::maybe_same_shape_as_vector_space_descriptors<Vs...> Arg> requires
+      (not internal::vector_space_adapter<Arg>) and std::constructible_from<Base, Arg&&> 
 #else
     template<typename Arg, typename...Ds, std::enable_if_t<
-      internal::maybe_same_shape_as_vector_space_descriptors<Arg, Vs...> and (... and equivalent_to<Ds, Vs>) and
+      internal::maybe_same_shape_as_vector_space_descriptors<Arg, Vs...> and 
       (not internal::vector_space_adapter<Arg>) and std::is_constructible_v<Base, Arg&&>, int> = 0>
 #endif
-    constexpr VectorSpaceAdapter(Arg&& arg, Ds&&...ds)
-      : Base {std::forward<Arg>(arg)}, my_descriptors {std::forward<Ds>(ds)...} {}
+    constexpr VectorSpaceAdapter(Arg&& arg, const std::decay_t<Vs>&...vs)
+      : Base {std::forward<Arg>(arg)}, my_descriptors {vs...} {}
 
 
     /**
      * \overload
-     * \brief Construct from another VectorSpaceAdapter, but replace the vector space descriptors.
+     * \brief Construct from another VectorSpaceAdapter, overwriting its vector space descriptors.
      */
 #ifdef __cpp_concepts
-    template<internal::maybe_same_shape_as_vector_space_descriptors<Vs...> Arg, equivalent_to<Vs>...Ds> requires
-      internal::vector_space_adapter<Arg> and std::constructible_from<Base, nested_object_of_t<Arg&&>>
+    template<internal::maybe_same_shape_as_vector_space_descriptors<Vs...> Arg> requires 
+      (sizeof...(Vs) > 0 or not std::is_base_of_v<VectorSpaceAdapter, std::decay_t<Arg>>) and 
+      internal::vector_space_adapter<Arg> and std::constructible_from<Base, nested_object_of_t<Arg&&>> 
 #else
-    template<typename Arg, typename...Ds, std::enable_if_t<
-      internal::maybe_same_shape_as_vector_space_descriptors<Arg, Vs...> and (... and equivalent_to<Ds, Vs>) and
+    template<typename Arg, typename...Ds, std::enable_if_t<(sizeof...(Vs) > 0) and 
+      (sizeof...(Vs) > 0 or not std::is_base_of_v<VectorSpaceAdapter, std::decay_t<Arg>>) and 
+      internal::maybe_same_shape_as_vector_space_descriptors<Arg, Vs...> and (... and maybe_equivalent_to<Ds, Vs>) and
       internal::vector_space_adapter<Arg> and std::is_constructible_v<Base, typename nested_object_of<Arg&&>::type>, int> = 0>
 #endif
-    constexpr VectorSpaceAdapter(Arg&& arg, Ds&&...ds)
-      : Base {nested_object(std::forward<Arg>(arg))}, my_descriptors {std::forward<Ds>(ds)...} {}
+    constexpr VectorSpaceAdapter(Arg&& arg, const std::decay_t<Vs>&...vs)
+      : Base {nested_object(std::forward<Arg>(arg))}, my_descriptors {vs...} {}
 
 
     /**
@@ -87,11 +89,14 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<internal::maybe_same_shape_as_vector_space_descriptors<Vs...> Arg> requires
+      (not std::is_base_of_v<VectorSpaceAdapter, std::decay_t<Arg>>) and 
       std::assignable_from<std::add_lvalue_reference_t<NestedObject>, Arg&&> and
       requires(Arg&& arg) { {count_indices(arg)} -> static_index_value; } and
       requires(std::tuple<std::decay_t<Vs>...> my_descriptors, Arg&& arg) { my_descriptors = all_vector_space_descriptors(arg); }
 #else
-    template<typename Arg, std::enable_if_t<internal::maybe_same_shape_as_vector_space_descriptors<Arg, Vs...> and
+    template<typename Arg, std::enable_if_t<
+      (not std::is_base_of_v<VectorSpaceAdapter, std::decay_t<Arg>>) and 
+      internal::maybe_same_shape_as_vector_space_descriptors<Arg, Vs...> and
       std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, Arg&&> and
       static_index_value<decltype(count_indices(std::declval<Arg&&>()))> and
       std::is_assignable_v<std::tuple<std::decay_t<Vs>...>, decltype(all_vector_space_descriptors(std::declval<Arg&&>()))>, int> = 0>

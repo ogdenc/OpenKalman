@@ -20,44 +20,52 @@ namespace OpenKalman
 {
 
 #ifdef __cpp_concepts
-  template<indexible NestedObject, vector_space_descriptor Descriptor> requires 
-    maybe_equivalent_to<vector_space_descriptor_of<NestedObject, 0>, Dimensions<euclidean_dimension_size_of_v<Descriptor>>>
+  template<indexible NestedObject, vector_space_descriptor RowDescriptor> requires 
+    maybe_equivalent_to<vector_space_descriptor_of<NestedObject, 0>, Dimensions<euclidean_dimension_size_of_v<RowDescriptor>>>
 #else
-  template<typename NestedObject, typename Descriptor>
+  template<typename NestedObject, typename RowDescriptor>
 #endif
-  struct FromEuclideanExpr : OpenKalman::internal::TypedMatrixBase<
-    FromEuclideanExpr<NestedObject, Descriptor>, NestedObject, Descriptor>
+  struct FromEuclideanExpr : internal::AdapterBase<FromEuclideanExpr<NestedObject, RowDescriptor>, NestedObject>
   {
 
+  private:
+
 #ifndef __cpp_concepts
-    static_assert(vector_space_descriptor<Descriptor>);
-    static_assert(maybe_equivalent_to<vector_space_descriptor_of<NestedObject, 0>, Dimensions<euclidean_dimension_size_of_v<Descriptor>>>);
+    static_assert(vector_space_descriptor<RowDescriptor>);
+    static_assert(maybe_equivalent_to<vector_space_descriptor_of<NestedObject, 0>, Dimensions<euclidean_dimension_size_of_v<RowDescriptor>>>);
 #endif
 
     using Scalar = scalar_type_of_t<NestedObject>;
 
-  private:
-
-    static constexpr auto columns = index_dimension_of_v<NestedObject, 1>; ///< Number of columns.
-
-    using Base = OpenKalman::internal::TypedMatrixBase<FromEuclideanExpr, NestedObject, Descriptor>;
+    using Base = internal::AdapterBase<FromEuclideanExpr, NestedObject>;
 
   public:
 
-    using Base::Base;
+    /**
+     * \brief Default constructor.
+     */
+#ifdef __cpp_concepts
+    constexpr FromEuclideanExpr() requires std::default_initializable<Base> and fixed_vector_space_descriptor<RowDescriptor>
+#else
+    template<typename B = Base, std::enable_if_t<
+      std::is_default_constructible_v<B> and fixed_vector_space_descriptor<RowDescriptor>, int> = 0>
+    constexpr FromEuclideanExpr()
+#endif
+    {}
+
 
     /**
      * Convert from a compatible from-euclidean expression.
      */
 #ifdef __cpp_concepts
     template<from_euclidean_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, FromEuclideanExpr>) and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, Descriptor> and
+      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor> and
       std::constructible_from<NestedObject, decltype(nested_object(std::declval<Arg&&>()))>
       //alt: requires(Arg&& arg) { NestedObject {nested_object(std::forward<Arg>(arg))}; } -- not accepted in GCC 10
 #else
     template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg> and
       (not std::is_base_of_v<FromEuclideanExpr, std::decay_t<Arg>>) and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, Descriptor> and
+      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor> and
       std::is_constructible_v<NestedObject, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
 #endif
     FromEuclideanExpr(Arg&& arg) : Base {nested_object(std::forward<Arg>(arg))} {}
@@ -67,11 +75,11 @@ namespace OpenKalman
      * Construct from a compatible to-euclidean expression.
      */
 #ifdef __cpp_concepts
-    template<to_euclidean_expr Arg> requires equivalent_to<vector_space_descriptor_of_t<Arg, 0>, Descriptor> and
+    template<to_euclidean_expr Arg> requires equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor> and
       std::constructible_from<NestedObject, Arg&&>
 #else
     template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, Descriptor> and
+      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor> and
       std::is_constructible_v<NestedObject, Arg&&>, int> = 0>
 #endif
     explicit FromEuclideanExpr(Arg&& other) : Base {std::forward<Arg>(other)} {}
@@ -93,13 +101,13 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<indexible Arg, vector_space_descriptor C> requires (not euclidean_expr<Arg>) and
       std::constructible_from<NestedObject, Arg&&> and
-      (dynamic_vector_space_descriptor<C> or dynamic_vector_space_descriptor<Descriptor> or equivalent_to<C, Descriptor>)
+      (dynamic_vector_space_descriptor<C> or dynamic_vector_space_descriptor<RowDescriptor> or equivalent_to<C, RowDescriptor>)
 #else
     template<typename Arg, typename C, std::enable_if_t<indexible<Arg> and vector_space_descriptor<C> and
       (not euclidean_expr<Arg>) and std::is_constructible_v<NestedObject, Arg&&> and
-      (dynamic_vector_space_descriptor<C> or dynamic_vector_space_descriptor<Descriptor> or equivalent_to<C, Descriptor>), int> = 0>
+      (dynamic_vector_space_descriptor<C> or dynamic_vector_space_descriptor<RowDescriptor> or equivalent_to<C, RowDescriptor>), int> = 0>
 #endif
-    explicit FromEuclideanExpr(Arg&& arg, const Descriptor& c) : Base {std::forward<Arg>(arg), c} {}
+    explicit FromEuclideanExpr(Arg&& arg, const RowDescriptor& c) : Base {std::forward<Arg>(arg), c} {}
 
 
 #ifndef __cpp_concepts
@@ -109,7 +117,7 @@ namespace OpenKalman
      */
     template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
       sizeof...(Args) == columns *
-        (to_euclidean_expr<NestedObject> ? dimension_size_of_v<Descriptor> : euclidean_dimension_size_of_v<Descriptor>), int> = 0>
+        (to_euclidean_expr<NestedObject> ? dimension_size_of_v<RowDescriptor> : euclidean_dimension_size_of_v<RowDescriptor>), int> = 0>
     FromEuclideanExpr(Args ... args) : Base {make_dense_object_from<NestedObject>(static_cast<const Scalar>(args)...)} {}
 #endif
 
@@ -119,12 +127,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<from_euclidean_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, FromEuclideanExpr>) and
-      (equivalent_to<vector_space_descriptor_of_t<Arg, 0>, Descriptor>) and
+      (equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor>) and
       (index_dimension_of_v<Arg, 1> == columns) and std::assignable_from<std::add_lvalue_reference_t<NestedObject>, nested_object_of_t<Arg&&>>
 #else
     template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg> and
       (not std::is_base_of_v<FromEuclideanExpr, std::decay_t<Arg>>) and
-      (equivalent_to<vector_space_descriptor_of_t<Arg, 0>, Descriptor>) and
+      (equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor>) and
       (index_dimension_of<Arg, 1>::value == columns) and
       std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, nested_object_of_t<Arg&&>>, int> = 0>
 #endif
@@ -143,18 +151,18 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<indexible Arg> requires (not euclidean_expr<Arg>) and
-      (index_dimension_of_v<Arg, 0> == dimension_size_of_v<Descriptor>) and (index_dimension_of_v<Arg, 1> == columns) and
-      std::assignable_from<std::add_lvalue_reference_t<NestedObject>, decltype(to_euclidean<Descriptor>(std::declval<Arg&&>()))>
+      (index_dimension_of_v<Arg, 0> == dimension_size_of_v<RowDescriptor>) and (index_dimension_of_v<Arg, 1> == columns) and
+      std::assignable_from<std::add_lvalue_reference_t<NestedObject>, decltype(to_euclidean<RowDescriptor>(std::declval<Arg&&>()))>
 #else
     template<typename Arg, std::enable_if_t<indexible<Arg> and (not euclidean_expr<Arg>) and
-      (index_dimension_of<Arg, 0>::value == dimension_size_of_v<Descriptor>) and (index_dimension_of<Arg, 1>::value == columns) and
-      std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, decltype(to_euclidean<Descriptor>(std::declval<Arg&&>()))>, int> = 0>
+      (index_dimension_of<Arg, 0>::value == dimension_size_of_v<RowDescriptor>) and (index_dimension_of<Arg, 1>::value == columns) and
+      std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, decltype(to_euclidean<RowDescriptor>(std::declval<Arg&&>()))>, int> = 0>
 #endif
     auto& operator=(Arg&& arg)
     {
       if constexpr (not zero<NestedObject> and not identity_matrix<NestedObject>)
       {
-        this->nested_object() = to_euclidean<Descriptor>(std::forward<Arg>(arg));
+        this->nested_object() = to_euclidean<RowDescriptor>(std::forward<Arg>(arg));
       }
       return *this;
     }
@@ -164,10 +172,10 @@ namespace OpenKalman
     template<typename Arg>
     static auto to_euclidean_noalias(Arg&& arg)
     {
-      if constexpr (euclidean_dimension_size_of_v<Descriptor> > dimension_size_of_v<Descriptor>)
-        return to_dense_object(to_euclidean<Descriptor>(std::forward<Arg>(arg))); //< Prevent aliasing
+      if constexpr (euclidean_dimension_size_of_v<RowDescriptor> > dimension_size_of_v<RowDescriptor>)
+        return to_dense_object(to_euclidean<RowDescriptor>(std::forward<Arg>(arg))); //< Prevent aliasing
       else
-        return to_euclidean<Descriptor>(std::forward<Arg>(arg));
+        return to_euclidean<RowDescriptor>(std::forward<Arg>(arg));
     }
 
   public:
@@ -175,10 +183,10 @@ namespace OpenKalman
     /// Increment from another \ref from_euclidean_expr.
 #ifdef __cpp_concepts
     template<from_euclidean_expr Arg> requires (index_dimension_of_v<Arg, 1> == columns) and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, Descriptor>
+      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor>
 #else
     template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg> and (index_dimension_of<Arg, 1>::value == columns) and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, Descriptor>, int> = 0>
+      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor>, int> = 0>
 #endif
     auto& operator+=(const Arg& arg)
     {
@@ -190,11 +198,11 @@ namespace OpenKalman
     /// Increment from another \ref matrix.
 #ifdef __cpp_concepts
     template<indexible Arg> requires (not euclidean_expr<Arg>) and (index_dimension_of_v<Arg, 1> == columns) and
-      (index_dimension_of_v<Arg, 0> == dimension_size_of_v<Descriptor>)
+      (index_dimension_of_v<Arg, 0> == dimension_size_of_v<RowDescriptor>)
 #else
     template<typename Arg, std::enable_if_t<indexible<Arg> and (not euclidean_expr<Arg>) and
       (index_dimension_of<Arg, 1>::value == columns) and
-      (index_dimension_of<Arg, 0>::value == dimension_size_of_v<Descriptor>), int> = 0>
+      (index_dimension_of<Arg, 0>::value == dimension_size_of_v<RowDescriptor>), int> = 0>
 #endif
     auto& operator+=(const Arg& arg)
     {
@@ -206,10 +214,10 @@ namespace OpenKalman
     /// Decrement from another \ref from_euclidean_expr.
 #ifdef __cpp_concepts
     template<from_euclidean_expr Arg> requires (index_dimension_of_v<Arg, 1> == columns) and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, Descriptor>
+      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor>
 #else
     template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg> and (index_dimension_of<Arg, 1>::value == columns) and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, Descriptor>, int> = 0>
+      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor>, int> = 0>
 #endif
     auto& operator-=(const Arg& arg)
     {
@@ -221,11 +229,11 @@ namespace OpenKalman
     /// Decrement from another \ref matrix.
 #ifdef __cpp_concepts
     template<indexible Arg> requires (not euclidean_expr<Arg>) and (index_dimension_of_v<Arg, 1> == columns) and
-      (index_dimension_of_v<Arg, 0> == dimension_size_of_v<Descriptor>)
+      (index_dimension_of_v<Arg, 0> == dimension_size_of_v<RowDescriptor>)
 #else
     template<typename Arg, std::enable_if_t<indexible<Arg> and (not euclidean_expr<Arg>) and
       (index_dimension_of<Arg, 1>::value == columns) and
-      (index_dimension_of<Arg, 0>::value == dimension_size_of_v<Descriptor>), int> = 0>
+      (index_dimension_of<Arg, 0>::value == dimension_size_of_v<RowDescriptor>), int> = 0>
 #endif
     auto& operator-=(const Arg& arg)
     {
@@ -265,7 +273,15 @@ namespace OpenKalman
       return *this;
     }
 
-  };
+
+  protected:
+
+    std::decay_t<RowDescriptor> row_descriptor;
+
+    friend struct interface::indexible_object_traits<VectorSpaceAdapter>;
+    friend struct interface::library_interface<VectorSpaceAdapter>;
+
+  }; // struct FromEuclideanExpr
 
 
   // ------------------------------- //
@@ -286,8 +302,8 @@ namespace OpenKalman
 
   namespace interface
   {
-    template<typename Descriptor, typename NestedObject>
-    struct indexible_object_traits<FromEuclideanExpr<Descriptor, NestedObject>>
+    template<typename RowDescriptor, typename NestedObject>
+    struct indexible_object_traits<FromEuclideanExpr<RowDescriptor, NestedObject>>
     {
       using scalar_type = scalar_type_of_t<NestedObject>;
 
@@ -341,17 +357,17 @@ namespace OpenKalman
 
 
       template<Qualification b>
-      static constexpr bool one_dimensional = euclidean_vector_space_descriptor<Descriptor> and OpenKalman::one_dimensional<NestedObject, b>;
+      static constexpr bool one_dimensional = euclidean_vector_space_descriptor<RowDescriptor> and OpenKalman::one_dimensional<NestedObject, b>;
 
 
       template<TriangleType t>
-      static constexpr bool is_triangular = euclidean_vector_space_descriptor<Descriptor> and triangular_matrix<NestedObject, t>;
+      static constexpr bool is_triangular = euclidean_vector_space_descriptor<RowDescriptor> and triangular_matrix<NestedObject, t>;
 
 
       static constexpr bool is_triangular_adapter = false;
 
 
-      static constexpr bool is_hermitian = hermitian_matrix<NestedObject> and euclidean_vector_space_descriptor<Descriptor>;
+      static constexpr bool is_hermitian = hermitian_matrix<NestedObject> and euclidean_vector_space_descriptor<RowDescriptor>;
 
 
   #ifdef __cpp_lib_concepts
@@ -434,7 +450,7 @@ namespace OpenKalman
       raw_data(Arg& arg) { return internal::raw_data(nested_object(arg)); }
 
 
-      static constexpr Layout layout = euclidean_vector_space_descriptor<Descriptor> ? layout_of_v<NestedObject> : Layout::none;
+      static constexpr Layout layout = euclidean_vector_space_descriptor<RowDescriptor> ? layout_of_v<NestedObject> : Layout::none;
 
     };
 

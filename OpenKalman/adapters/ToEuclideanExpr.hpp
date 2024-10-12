@@ -25,9 +25,10 @@ namespace OpenKalman
 #else
   template<typename NestedObject>
 #endif
-  struct ToEuclideanExpr 
-    : OpenKalman::internal::TypedMatrixBase<ToEuclideanExpr<NestedObject>, NestedObject, vector_space_descriptor_of<NestedObject, 0>>
+  struct ToEuclideanExpr : internal::AdapterBase<ToEuclideanExpr<NestedObject>, NestedObject>
   {
+
+  private:
 
 #ifndef __cpp_concepts
     static_assert(not from_euclidean_expr<NestedObject>);
@@ -35,32 +36,23 @@ namespace OpenKalman
 
     using Scalar = scalar_type_of_t<NestedObject>;
 
-  private:
-
-    static constexpr auto columns = index_dimension_of_v<NestedObject, 1>; ///< Number of columns.
-
-    using Base = OpenKalman::internal::TypedMatrixBase<ToEuclideanExpr, NestedObject, vector_space_descriptor_of<NestedObject, 0>>;
+    using Base = internal::AdapterBase<ToEuclideanExpr, NestedObject>;
 
   public:
 
-    using Base::Base;
-
-    /// Construct from a compatible to-Euclidean expression.
+    /**
+     * \brief Default constructor.
+     */
 #ifdef __cpp_concepts
-    template<to_euclidean_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, ToEuclideanExpr>) and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, Descriptor> and
-      std::constructible_from<NestedObject, decltype(nested_object(std::declval<Arg&&>()))>
-      //alt: requires(Arg&& arg) { NestedObject {nested_object(std::forward<Arg>(arg))}; } -- not accepted in GCC 10
+    constexpr ToEuclideanExpr() requires std::default_initializable<Base>
 #else
-    template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg> and
-      (not std::is_base_of_v<ToEuclideanExpr, std::decay_t<Arg>>) and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, Descriptor> and
-      std::is_constructible_v<NestedObject, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
+    template<typename B = Base, std::enable_if_t<std::is_default_constructible_v<B>, int> = 0>
+    constexpr ToEuclideanExpr()
 #endif
-    ToEuclideanExpr(Arg&& arg) : Base {nested_object(std::forward<Arg>(arg))} {}
+    {}
 
 
-    /// Construct from compatible matrix object.
+    /// Construct from compatible \ref indexible object.
 #ifdef __cpp_concepts
     template<indexible Arg> requires (not to_euclidean_expr<Arg>) and std::constructible_from<NestedObject, Arg&&>
 #else
@@ -70,60 +62,16 @@ namespace OpenKalman
     explicit ToEuclideanExpr(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
 
-    /// Construct from compatible matrix object and a \ref vector_space_descriptor object.
+    /// Assign from a compatible \ref indexible object.
 #ifdef __cpp_concepts
-    template<indexible Arg, vector_space_descriptor C> requires (not to_euclidean_expr<Arg>) and
-      std::constructible_from<NestedObject, Arg&&> and
-      (dynamic_vector_space_descriptor<C> or dynamic_vector_space_descriptor<Descriptor> or equivalent_to<C, Descriptor>)
-#else
-    template<typename Arg, typename C, std::enable_if_t<indexible<Arg> and vector_space_descriptor<C> and
-      (not to_euclidean_expr<Arg>) and std::is_constructible_v<NestedObject, Arg&&> and
-      (dynamic_vector_space_descriptor<C> or dynamic_vector_space_descriptor<Descriptor> or equivalent_to<C, Descriptor>), int> = 0>
-#endif
-    explicit ToEuclideanExpr(Arg&& arg, const Descriptor& c) : Base {std::forward<Arg>(arg), c} {}
-
-
-#ifndef __cpp_concepts
-    /**
-     * /brief Construct from a list of coefficients.
-     * /note If c++ concepts are available, this functionality is inherited from the base class.
-     */
-    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
-      (sizeof...(Args) == columns * dimension_size_of_v<Descriptor>), int> = 0>
-    ToEuclideanExpr(Args ... args) : Base {make_dense_object_from<NestedObject>(static_cast<const Scalar>(args)...)} {}
-#endif
-
-
-    /// Assign from a compatible to-Euclidean expression.
-#ifdef __cpp_concepts
-    template<to_euclidean_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, ToEuclideanExpr>) and
-      (equivalent_to<vector_space_descriptor_of_t<Arg, 0>, Descriptor>) and
-      (index_dimension_of_v<Arg, 1> == columns) and
-      std::assignable_from<std::add_lvalue_reference_t<NestedObject>, nested_object_of_t<Arg&&>>#else
-    template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg> and
-      (not std::is_base_of_v<ToEuclideanExpr, std::decay_t<Arg>>) and
-      (equivalent_to<vector_space_descriptor_of_t<Arg, 0>, Descriptor>) and
-      (index_dimension_of<Arg, 1>::value == columns) and
-      std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, nested_object_of_t<Arg&&>>, int> = 0>
-#endif
-    auto& operator=(Arg&& other)
-    {
-      if constexpr (not zero<NestedObject> and not identity_matrix<NestedObject>)
-      {
-        this->nested_object() = nested_object(std::forward<Arg>(other));
-      }
-      return *this;
-    }
-
-
-    /// Assign from a general Eigen matrix.
-#ifdef __cpp_concepts
-    template<indexible Arg> requires (not to_euclidean_expr<Arg>) and
+    template<indexible Arg> requires 
+      (not std::is_base_of_v<ToEuclideanExpr, std::decay_t<Arg>>) and 
       (index_dimension_of_v<Arg, 0> == euclidean_dimension_size_of_v<Descriptor>) and
       (index_dimension_of_v<Arg, 1> == columns) and
       std::assignable_from<std::add_lvalue_reference_t<NestedObject>, decltype(from_euclidean<Descriptor>(std::declval<Arg>()))>
 #else
-    template<typename Arg, std::enable_if_t<indexible<Arg> and (not to_euclidean_expr<Arg>) and
+    template<typename Arg, std::enable_if_t<indexible<Arg> and 
+      (not std::is_base_of_v<ToEuclideanExpr, std::decay_t<Arg>>) and 
       (index_dimension_of<Arg, 0>::value == euclidean_dimension_size_of_v<Descriptor>) and (index_dimension_of<Arg, 1>::value == columns) and
       std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, decltype(from_euclidean<Descriptor>(std::declval<Arg>()))>, int> = 0>
 #endif
