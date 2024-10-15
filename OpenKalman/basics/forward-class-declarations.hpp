@@ -290,27 +290,31 @@ namespace OpenKalman
 #endif
   struct VectorSpaceAdapter;
 
-  namespace detail
+  namespace internal
   {
+    namespace detail
+    {
+      template<typename T>
+      struct is_vector_space_adapter : std::false_type {};
+
+      template<typename NestedObject, typename...Vs>
+      struct is_vector_space_adapter<VectorSpaceAdapter<NestedObject, Vs...>> : std::true_type {};
+    } // namespace detail
+
+
+    /**
+     * \internal
+     * \brief Specifies that T is a VectorSpaceAdapter.
+     */
     template<typename T>
-    struct is_vector_space_adapter : std::false_type {};
-
-    template<typename NestedObject, typename...Vs>
-    struct is_vector_space_adapter<VectorSpaceAdapter<NestedObject, Vs...>> : std::true_type {};
-  } // namespace detail
-
-
-  /**
-   * \internal
-   * \brief Specifies that T is a VectorSpaceAdapter.
-   */
-    template<typename T>
-  #ifdef __cpp_concepts
+#ifdef __cpp_concepts
     concept vector_space_adapter =
-  #else
+#else
     constexpr bool vector_space_adapter =
-  #endif
+#endif
       detail::is_vector_space_adapter<std::decay_t<T>>::value;
+
+  } // namespace internal
 
 
   // -------------------------------------------------------- //
@@ -325,9 +329,9 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible NestedObject, vector_space_descriptor RowDescriptor> requires 
-    maybe_equivalent_to<vector_space_descriptor_of<NestedObject, 0>, Dimensions<euclidean_dimension_size_of_v<RowDescriptor> >>>
+    maybe_equivalent_to<vector_space_descriptor_of<NestedObject, 0>, Dimensions<euclidean_dimension_size_of_v<RowDescriptor>>>
 #else
-  template<typename NestedMatrix, typename RowDescriptor> >
+  template<typename NestedMatrix, typename RowDescriptor>
 #endif
   struct FromEuclideanExpr;
 
@@ -363,9 +367,9 @@ namespace OpenKalman
    * \tparam NestedObject The pre-transformed column vector, or set of column vectors in the form of a matrix.
    */
 #ifdef __cpp_concepts
-  template<indexible NestedObject> requires (not from_euclidean_expr<NestedMatrix>) 
+  template<indexible NestedObject> requires (not from_euclidean_expr<NestedObject>)
 #else
-  template<typename NestedMatrix>
+  template<typename NestedObject>
 #endif
   struct ToEuclideanExpr;
 

@@ -114,7 +114,5 @@ namespace OpenKalman { using namespace vector_space_descriptors; }
 #include "adapters/VectorSpaceAdapter.hpp"
 #include "adapters/interfaces/VectorSpaceAdapter.hpp"
 
-#include "adapters/internal/TypedMatrixBase.hpp"
-
 
 #endif //OPENKALMAN_BASICS_HPP

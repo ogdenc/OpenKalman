@@ -28,7 +28,7 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
   template<scalar_type Scalar, index_value Arg>
 #else
-  template<typename Scalar, typename Arg, std::enable_if_t<scalar_type<Scalar>, index_value<Arg>, int> = 0>
+  template<typename Scalar, typename Arg, std::enable_if_t<scalar_type<Scalar> and index_value<Arg>, int> = 0>
 #endif
   constexpr auto
   index_to_scalar_constant(Arg&& arg)
