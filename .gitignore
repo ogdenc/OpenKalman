@@ -43,4 +43,4 @@ Makefile
 
 # Unversioned files
 .idea/
-OpenKalman/
+/OpenKalman/
