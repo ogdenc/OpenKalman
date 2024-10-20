@@ -1,11 +1,17 @@
 var searchData=
 [
-  ['eigen3base_366',['Eigen3Base',['../struct_open_kalman_1_1_eigen3_1_1internal_1_1_eigen3_base.html',1,'OpenKalman::Eigen3::internal']]],
-  ['eigen3matrixbase_367',['Eigen3MatrixBase',['../struct_open_kalman_1_1_eigen3_1_1internal_1_1_eigen3_matrix_base.html',1,'OpenKalman::Eigen3::internal']]],
-  ['elementsetter_368',['ElementSetter',['../struct_open_kalman_1_1internal_1_1_element_setter.html',1,'OpenKalman::internal']]],
-  ['euclideanmean_369',['EuclideanMean',['../struct_open_kalman_1_1_euclidean_mean.html',1,'OpenKalman']]],
-  ['euclideanmean_3c_20outputcoefficients_2c_20outputeuclideanmeanmatrix_20_3e_370',['EuclideanMean&lt; OutputCoefficients, OutputEuclideanMeanMatrix &gt;',['../struct_open_kalman_1_1_euclidean_mean.html',1,'OpenKalman']]],
-  ['evaluator_3c_20openkalman_3a_3aeigen3_3a_3afromeuclideanexpr_3c_20coefficients_2c_20argtype_20_3e_20_3e_371',['evaluator&lt; OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, ArgType &gt; &gt;',['../struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_from_euclidean_expr_3_01_c3d0d14969db7718f8c6a763debfd6966.html',1,'Eigen::internal']]],
-  ['evaluator_3c_20openkalman_3a_3aeigen3_3a_3afromeuclideanexpr_3c_20coefficients_2c_20openkalman_3a_3aeigen3_3a_3atoeuclideanexpr_3c_20coefficients_2c_20argtype_20_3e_20_3e_20_3e_372',['evaluator&lt; OpenKalman::Eigen3::FromEuclideanExpr&lt; Coefficients, OpenKalman::Eigen3::ToEuclideanExpr&lt; Coefficients, ArgType &gt; &gt; &gt;',['../struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_from_euclidean_expr_3_01_c1197a1d12be34607e8682b3c0e469bb3.html',1,'Eigen::internal']]],
-  ['evaluator_3c_20openkalman_3a_3aeigen3_3a_3atoeuclideanexpr_3c_20coefficients_2c_20argtype_20_3e_20_3e_373',['evaluator&lt; OpenKalman::Eigen3::ToEuclideanExpr&lt; Coefficients, ArgType &gt; &gt;',['../struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_to_euclidean_expr_3_01_coe85b734b43baed46435269b60f3d32211.html',1,'Eigen::internal']]]
+  ['diagonalcommainitializer_905',['DiagonalCommaInitializer',['../structEigen_1_1DiagonalCommaInitializer.html',1,'Eigen']]],
+  ['diagonalmatrix_906',['DiagonalMatrix',['../structOpenKalman_1_1DiagonalMatrix.html',1,'OpenKalman']]],
+  ['dimension_5fdifference_5fof_907',['dimension_difference_of',['../structOpenKalman_1_1dimension__difference__of.html',1,'OpenKalman']]],
+  ['dimension_5fsize_5fof_908',['dimension_size_of',['../structOpenKalman_1_1dimension__size__of.html',1,'OpenKalman']]],
+  ['dimensions_909',['Dimensions',['../structOpenKalman_1_1vector__space__descriptors_1_1Dimensions.html',1,'OpenKalman::vector_space_descriptors']]],
+  ['dimensions_3c_20dynamic_5fsize_20_3e_910',['Dimensions&lt; dynamic_size &gt;',['../structOpenKalman_1_1vector__space__descriptors_1_1Dimensions_3_01dynamic__size_01_4.html',1,'OpenKalman::vector_space_descriptors']]],
+  ['distance_911',['Distance',['../structOpenKalman_1_1vector__space__descriptors_1_1Distance.html',1,'OpenKalman::vector_space_descriptors']]],
+  ['dynamic_5findex_5fcount_912',['dynamic_index_count',['../structOpenKalman_1_1dynamic__index__count.html',1,'OpenKalman']]],
+  ['dynamic_5fvector_5fspace_5fdescriptor_5ftraits_913',['dynamic_vector_space_descriptor_traits',['../structOpenKalman_1_1vector__space__descriptors_1_1dynamic__vector__space__descriptor__traits.html',1,'OpenKalman::vector_space_descriptors']]],
+  ['dynamic_5fvector_5fspace_5fdescriptor_5ftraits_3c_20dimensions_3c_20dynamic_5fsize_20_3e_20_3e_914',['dynamic_vector_space_descriptor_traits&lt; Dimensions&lt; dynamic_size &gt; &gt;',['../structOpenKalman_1_1vector__space__descriptors_1_1dynamic__vector__space__descriptor__traits_3_0550a13199b18a0e1c2d13ab633cbbed2.html',1,'OpenKalman::vector_space_descriptors']]],
+  ['dynamic_5fvector_5fspace_5fdescriptor_5ftraits_3c_20dynamicdescriptor_3c_20allowablescalartypes_2e_2e_2e_20_3e_20_3e_915',['dynamic_vector_space_descriptor_traits&lt; DynamicDescriptor&lt; AllowableScalarTypes... &gt; &gt;',['../structOpenKalman_1_1vector__space__descriptors_1_1dynamic__vector__space__descriptor__traits_3_0d293d6f5e8bf8d7e7ca5d06c256e2d7e.html',1,'OpenKalman::vector_space_descriptors']]],
+  ['dynamic_5fvector_5fspace_5fdescriptor_5ftraits_3c_20std_3a_3asize_5ft_20_3e_916',['dynamic_vector_space_descriptor_traits&lt; std::size_t &gt;',['../structOpenKalman_1_1vector__space__descriptors_1_1dynamic__vector__space__descriptor__traits.html',1,'OpenKalman::vector_space_descriptors']]],
+  ['dynamicdescriptor_917',['DynamicDescriptor',['../structOpenKalman_1_1vector__space__descriptors_1_1DynamicDescriptor.html',1,'OpenKalman::vector_space_descriptors']]],
+  ['dynamicdescriptor_3c_20allowablescalartypes_2e_2e_2e_20_3e_918',['DynamicDescriptor&lt; AllowableScalarTypes... &gt;',['../structOpenKalman_1_1vector__space__descriptors_1_1DynamicDescriptor.html',1,'OpenKalman::vector_space_descriptors']]]
 ];

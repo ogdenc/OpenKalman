@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['radians_696',['Radians',['../namespace_open_kalman_1_1angle.html#a83281632e5031d7542ef229623b292a9',1,'OpenKalman::angle::Radians()'],['../namespace_open_kalman_1_1inclination.html#a1c9ff89f6677584a7a265b6201053dea',1,'OpenKalman::inclination::Radians()']]],
-  ['replicate_697',['Replicate',['../namespace_open_kalman.html#ac66c8a3d2e7e2449a727d370262995ef',1,'OpenKalman']]]
+  ['library_5fbase_5ft_1739',['library_base_t',['../namespaceOpenKalman_1_1internal.html#a69f493a2a5958dae2d278df2df8f7e1b',1,'OpenKalman::internal']]]
 ];

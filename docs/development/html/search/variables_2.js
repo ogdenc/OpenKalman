@@ -1,10 +1,20 @@
 var searchData=
 [
-  ['cholesky_5fform_621',['cholesky_form',['../namespace_open_kalman.html#a2562e4c0918dc2cbf74de6a97d9388cf',1,'OpenKalman']]],
-  ['coefficient_5fclass_622',['coefficient_class',['../namespace_open_kalman_1_1internal.html#a21b0d5cafdda4517d6b87ed8be8e35cc',1,'OpenKalman::internal']]],
-  ['coefficients_623',['coefficients',['../namespace_open_kalman.html#af847ece5eb2e6d50df847573c505b852',1,'OpenKalman']]],
-  ['column_5fvector_624',['column_vector',['../namespace_open_kalman.html#a77f3b5f0d758aec7db59022e845abed1',1,'OpenKalman']]],
-  ['columns_625',['columns',['../struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a1c9ba1d46f32d73896f7796183ea7177',1,'OpenKalman::internal::TypedMatrixBase']]],
-  ['covariance_626',['covariance',['../namespace_open_kalman.html#acc62cd53d66b676058de97da3caaca3b',1,'OpenKalman']]],
-  ['covariance_5fnestable_627',['covariance_nestable',['../namespace_open_kalman.html#a19898d83f3f0b722b834acac97f7c17e',1,'OpenKalman']]]
+  ['case1or2_1599',['case1or2',['../namespaceOpenKalman_1_1internal.html#a4ae123d3eaded4a4e2a91952806a757a',1,'OpenKalman::internal']]],
+  ['cholesky_5fform_1600',['cholesky_form',['../namespaceOpenKalman.html#a14db5d6f9c808b45eb7f9e8bb78ab5d6',1,'OpenKalman']]],
+  ['cholesky_5fnested_5fmatrix_1601',['cholesky_nested_matrix',['../namespaceOpenKalman_1_1internal.html#a4a12318189d27bf63162fc70d1b84143',1,'OpenKalman::internal']]],
+  ['columncoefficients_1602',['ColumnCoefficients',['../namespaceOpenKalman.html#a30391ef8ac72c2cbb79acee7ab1fd90f',1,'OpenKalman']]],
+  ['compatible_5fwith_5fvector_5fspace_5fdescriptors_1603',['compatible_with_vector_space_descriptors',['../namespaceOpenKalman.html#ab5e3e6ab58b992bd11790bba514bd032',1,'OpenKalman']]],
+  ['compile_5ftime_5fscalar_5fconstant_1604',['compile_time_scalar_constant',['../scalar__constant_8hpp.html#a384289bd3c57977c79671df60256e544',1,'OpenKalman::detail']]],
+  ['complex_5fnumber_1605',['complex_number',['../namespaceOpenKalman.html#a43cdde4b102bbb681e3dc62a9e767cb6',1,'OpenKalman']]],
+  ['composite_5fvector_5fspace_5fdescriptor_1606',['composite_vector_space_descriptor',['../namespaceOpenKalman.html#ab07fe14df356f0f5e28afcfc7c47ad86',1,'OpenKalman']]],
+  ['constant_5fadapter_1607',['constant_adapter',['../namespaceOpenKalman.html#a8bc30bf9b131fc1d4e0895845363541f',1,'OpenKalman']]],
+  ['constant_5fcoefficient_5fv_1608',['constant_coefficient_v',['../namespaceOpenKalman_1_1values.html#a0afacfe3e0d53616ceb751eff6b31a91',1,'OpenKalman::values']]],
+  ['constant_5fdiagonal_5fcoefficient_5fv_1609',['constant_diagonal_coefficient_v',['../namespaceOpenKalman_1_1values.html#ae25ff3fbbe6613920fc58475b0384aef',1,'OpenKalman::values']]],
+  ['constant_5fdiagonal_5fmatrix_1610',['constant_diagonal_matrix',['../namespaceOpenKalman.html#ac7d4806449fe50fb0c787b48fe79a439',1,'OpenKalman']]],
+  ['constant_5fmatrix_1611',['constant_matrix',['../namespaceOpenKalman.html#afbdfdebaaf3e96ae0c9fbe36ce3b2721',1,'OpenKalman']]],
+  ['constexpr_5fn_5fary_5ffunction_1612',['constexpr_n_ary_function',['../namespaceOpenKalman_1_1internal.html#a280ed55f2694998e5fe6da8892370d24',1,'OpenKalman::internal']]],
+  ['constexpr_5funary_5foperation_5fdefined_1613',['constexpr_unary_operation_defined',['../namespaceOpenKalman_1_1Eigen3.html#a2e20e4e8549d87f07682eada2aa50bba',1,'OpenKalman::Eigen3']]],
+  ['covariance_1614',['covariance',['../namespaceOpenKalman.html#a7f321ae7c589c6f337efe84ccd948586',1,'OpenKalman']]],
+  ['covariance_5fnestable_1615',['covariance_nestable',['../namespaceOpenKalman.html#addb015187a4dc31623f1917928e0ce69',1,'OpenKalman']]]
 ];

@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['untyped_5fcolumns_676',['untyped_columns',['../namespace_open_kalman.html#a11e454bc99a03d730955077ca215479e',1,'OpenKalman']]],
-  ['upper_5ftriangular_5fmatrix_677',['upper_triangular_matrix',['../namespace_open_kalman.html#a5456de7a2e027daca692a5c72dc3540e',1,'OpenKalman']]],
-  ['upper_5ftriangular_5fstorage_678',['upper_triangular_storage',['../namespace_open_kalman_1_1_eigen3.html#a09c496030189ca9962086c11cc19ef41',1,'OpenKalman::Eigen3']]]
+  ['real_5faxis_5fnumber_1693',['real_axis_number',['../namespaceOpenKalman.html#a6865fd1e6b35c6be70b2f464dfd6497b',1,'OpenKalman']]],
+  ['runtime_5fscalar_5fconstant_1694',['runtime_scalar_constant',['../scalar__constant_8hpp.html#a0ddec66af09b858a2b6f2ff83e0f60b2',1,'OpenKalman::detail']]]
 ];

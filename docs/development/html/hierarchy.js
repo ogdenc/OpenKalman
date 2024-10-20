@@ -1,182 +1,206 @@
 var hierarchy =
 [
-    [ "OpenKalman::Angle< Limits >", "struct_open_kalman_1_1_angle.html", null ],
-    [ "OpenKalman::Axis", "struct_open_kalman_1_1_axis.html", null ],
-    [ "OpenKalman::angle::limits::Circle< Scalar >", "struct_open_kalman_1_1angle_1_1limits_1_1_circle.html", null ],
-    [ "OpenKalman::Coefficients< Cs >", "struct_open_kalman_1_1_coefficients.html", null ],
-    [ "OpenKalman::Coefficients< C, Cs ... >", "struct_open_kalman_1_1_coefficients_3_01_c_00_01_cs_01_8_8_8_01_4.html", null ],
-    [ "OpenKalman::Coefficients<>", "struct_open_kalman_1_1_coefficients_3_4.html", null ],
-    [ "OpenKalman::internal::CovarianceBase< Derived, NestedMatrix, typename >", "struct_open_kalman_1_1internal_1_1_covariance_base.html", null ],
-    [ "OpenKalman::internal::CovarianceBase< Covariance< Coefficients, CovarianceNestedMatrix >, CovarianceNestedMatrix >", "struct_open_kalman_1_1internal_1_1_covariance_base.html", [
-      [ "OpenKalman::Covariance< Coefficients, CovarianceNestedMatrix >", "struct_open_kalman_1_1_covariance.html", null ]
+    [ "OpenKalman::internal::AnyAtomicVectorSpaceDescriptor< AllowableScalarTypes >", "structOpenKalman_1_1internal_1_1AnyAtomicVectorSpaceDescriptor.html", null ],
+    [ "OpenKalman::internal::base_of< T, U >", "structOpenKalman_1_1internal_1_1base__of.html", null ],
+    [ "OpenKalman::Eigen3::BinaryFunctorTraits< Operation >", "structOpenKalman_1_1Eigen3_1_1BinaryFunctorTraits.html", null ],
+    [ "OpenKalman::Eigen3::BinaryFunctorTraits< std::divides< std::common_type_t< Scalar1, Scalar2 > > >", "structOpenKalman_1_1Eigen3_1_1BinaryFunctorTraits.html", null ],
+    [ "OpenKalman::Eigen3::BinaryFunctorTraits< std::equal_to< bool > >", "structOpenKalman_1_1Eigen3_1_1BinaryFunctorTraits.html", null ],
+    [ "OpenKalman::Eigen3::BinaryFunctorTraits< std::logical_and< bool > >", "structOpenKalman_1_1Eigen3_1_1BinaryFunctorTraits.html", null ],
+    [ "OpenKalman::Eigen3::BinaryFunctorTraits< std::logical_or< bool > >", "structOpenKalman_1_1Eigen3_1_1BinaryFunctorTraits.html", null ],
+    [ "OpenKalman::Eigen3::BinaryFunctorTraits< std::minus< std::common_type_t< Scalar1, Scalar2 > > >", "structOpenKalman_1_1Eigen3_1_1BinaryFunctorTraits.html", null ],
+    [ "OpenKalman::Eigen3::BinaryFunctorTraits< std::multiplies< std::common_type_t< Scalar1, Scalar2 > > >", "structOpenKalman_1_1Eigen3_1_1BinaryFunctorTraits.html", null ],
+    [ "OpenKalman::Eigen3::BinaryFunctorTraits< std::not_equal_to< bool > >", "structOpenKalman_1_1Eigen3_1_1BinaryFunctorTraits.html", null ],
+    [ "OpenKalman::Eigen3::BinaryFunctorTraits< std::plus< std::common_type_t< Scalar1, Scalar2 > > >", "structOpenKalman_1_1Eigen3_1_1BinaryFunctorTraits.html", null ],
+    [ "OpenKalman::canonical_fixed_vector_space_descriptor< T >", "structOpenKalman_1_1canonical__fixed__vector__space__descriptor.html", null ],
+    [ "OpenKalman::concatenate_fixed_vector_space_descriptor< Cs >", "structOpenKalman_1_1concatenate__fixed__vector__space__descriptor.html", null ],
+    [ "OpenKalman::values::constant_coefficient< T >", "structOpenKalman_1_1values_1_1constant__coefficient.html", null ],
+    [ "OpenKalman::values::constant_coefficient< T >", "structOpenKalman_1_1values_1_1constant__coefficient_3_01T_01_4.html", null ],
+    [ "OpenKalman::values::constant_diagonal_coefficient< T >", "structOpenKalman_1_1values_1_1constant__diagonal__coefficient.html", null ],
+    [ "OpenKalman::values::constant_diagonal_coefficient< T >", "structOpenKalman_1_1values_1_1constant__diagonal__coefficient_3_01T_01_4.html", null ],
+    [ "OpenKalman::internal::CovarianceBase< Derived, NestedMatrix >", "structOpenKalman_1_1internal_1_1CovarianceBase.html", null ],
+    [ "OpenKalman::internal::CovarianceBase3Impl< Derived, NestedMatrix >", "structOpenKalman_1_1internal_1_1CovarianceBase3Impl.html", null ],
+    [ "OpenKalman::internal::CovarianceBase< Derived, NestedMatrix >", "structOpenKalman_1_1internal_1_1CovarianceBase_3_01Derived_00_01NestedMatrix_01_4.html", [
+      [ "OpenKalman::internal::CovarianceImpl< Derived, NestedMatrix >", "structOpenKalman_1_1internal_1_1CovarianceImpl.html", null ]
     ] ],
-    [ "OpenKalman::internal::CovarianceBase< Covariance< Coefficients, NestedMatrix >, NestedMatrix >", "struct_open_kalman_1_1internal_1_1_covariance_base.html", [
-      [ "OpenKalman::Covariance< Coefficients, NestedMatrix >", "struct_open_kalman_1_1_covariance.html", null ]
+    [ "Eigen::CovarianceCommaInitializer< CovarianceType >", "structEigen_1_1CovarianceCommaInitializer.html", null ],
+    [ "OpenKalman::CubaturePoints", "structOpenKalman_1_1CubaturePoints.html", null ],
+    [ "Eigen::DiagonalCommaInitializer< XprType >", "structEigen_1_1DiagonalCommaInitializer.html", null ],
+    [ "OpenKalman::DiagonalMatrix< NestedMatrix >", "structOpenKalman_1_1DiagonalMatrix.html", null ],
+    [ "OpenKalman::dimension_difference_of< T >", "structOpenKalman_1_1dimension__difference__of.html", null ],
+    [ "OpenKalman::dimension_size_of< T >", "structOpenKalman_1_1dimension__size__of.html", null ],
+    [ "OpenKalman::vector_space_descriptors::Dimensions< N >", "structOpenKalman_1_1vector__space__descriptors_1_1Dimensions.html", null ],
+    [ "OpenKalman::vector_space_descriptors::Dimensions< dynamic_size >", "structOpenKalman_1_1vector__space__descriptors_1_1Dimensions_3_01dynamic__size_01_4.html", null ],
+    [ "OpenKalman::vector_space_descriptors::Distance", "structOpenKalman_1_1vector__space__descriptors_1_1Distance.html", null ],
+    [ "OpenKalman::dynamic_index_count< T >", "structOpenKalman_1_1dynamic__index__count.html", null ],
+    [ "OpenKalman::vector_space_descriptors::dynamic_vector_space_descriptor_traits< T >", "structOpenKalman_1_1vector__space__descriptors_1_1dynamic__vector__space__descriptor__traits.html", null ],
+    [ "OpenKalman::vector_space_descriptors::dynamic_vector_space_descriptor_traits< DynamicDescriptor< AllowableScalarTypes... > >", "structOpenKalman_1_1vector__space__descriptors_1_1dynamic__vector__space__descriptor__traits_3_0d293d6f5e8bf8d7e7ca5d06c256e2d7e.html", null ],
+    [ "OpenKalman::vector_space_descriptors::dynamic_vector_space_descriptor_traits< std::size_t >", "structOpenKalman_1_1vector__space__descriptors_1_1dynamic__vector__space__descriptor__traits.html", [
+      [ "OpenKalman::vector_space_descriptors::dynamic_vector_space_descriptor_traits< Dimensions< dynamic_size > >", "structOpenKalman_1_1vector__space__descriptors_1_1dynamic__vector__space__descriptor__traits_3_0550a13199b18a0e1c2d13ab633cbbed2.html", null ]
     ] ],
-    [ "OpenKalman::internal::CovarianceBase< Covariance< OutputCoefficients, OutputCovarianceSA >, OutputCovarianceSA >", "struct_open_kalman_1_1internal_1_1_covariance_base.html", [
-      [ "OpenKalman::Covariance< OutputCoefficients, OutputCovarianceSA >", "struct_open_kalman_1_1_covariance.html", null ]
+    [ "OpenKalman::vector_space_descriptors::DynamicDescriptor< AllowableScalarTypes >", "structOpenKalman_1_1vector__space__descriptors_1_1DynamicDescriptor.html", null ],
+    [ "OpenKalman::vector_space_descriptors::DynamicDescriptor< AllowableScalarTypes... >", "structOpenKalman_1_1vector__space__descriptors_1_1DynamicDescriptor.html", null ],
+    [ "OpenKalman::Eigen3::eigen_Replicate_factor< T, direction >", "structOpenKalman_1_1Eigen3_1_1eigen__Replicate__factor.html", null ],
+    [ "OpenKalman::Eigen3::EigenCustomBase", "structOpenKalman_1_1Eigen3_1_1EigenCustomBase.html", [
+      [ "OpenKalman::Eigen3::EigenAdapterBase< Derived, Base >", "structOpenKalman_1_1Eigen3_1_1EigenAdapterBase.html", null ],
+      [ "OpenKalman::Eigen3::EigenTensorAdapterBase< Derived, NestedMatrix >", "structOpenKalman_1_1Eigen3_1_1EigenTensorAdapterBase.html", null ]
     ] ],
-    [ "OpenKalman::internal::CovarianceBase< SquareRootCovariance< Coefficients, NestedMatrix >, NestedMatrix >", "struct_open_kalman_1_1internal_1_1_covariance_base.html", [
-      [ "OpenKalman::SquareRootCovariance< Coefficients, NestedMatrix >", "struct_open_kalman_1_1_square_root_covariance.html", null ]
+    [ "OpenKalman::internal::ElementAccessor< Object, Indices >", "structOpenKalman_1_1internal_1_1ElementAccessor.html", null ],
+    [ "OpenKalman::euclidean_dimension_size_of< T >", "structOpenKalman_1_1euclidean__dimension__size__of.html", null ],
+    [ "Eigen::internal::evaluator< OpenKalman::FromEuclideanExpr< Coeffs, ArgType > >", "structEigen_1_1internal_1_1evaluator_3_01OpenKalman_1_1FromEuclideanExpr_3_01Coeffs_00_01ArgType_01_4_01_4.html", null ],
+    [ "Eigen::internal::evaluator< OpenKalman::FromEuclideanExpr< Coeffs, OpenKalman::ToEuclideanExpr< Coeffs, ArgType > > >", "structEigen_1_1internal_1_1evaluator_3_01OpenKalman_1_1FromEuclideanExpr_3_01Coeffs_00_01OpenKal7cc3813c55a36ea4e5bc88c67e8b4a99.html", null ],
+    [ "Eigen::internal::evaluator< OpenKalman::ToEuclideanExpr< Coeffs, ArgType > >", "structEigen_1_1internal_1_1evaluator_3_01OpenKalman_1_1ToEuclideanExpr_3_01Coeffs_00_01ArgType_01_4_01_4.html", null ],
+    [ "OpenKalman::internal::fixed_vector_space_descriptor_slice< T, offset, extent >", "structOpenKalman_1_1internal_1_1fixed__vector__space__descriptor__slice.html", null ],
+    [ "OpenKalman::vector_space_descriptors::fixed_vector_space_descriptor_traits< T >", "structOpenKalman_1_1vector__space__descriptors_1_1fixed__vector__space__descriptor__traits.html", null ],
+    [ "OpenKalman::vector_space_descriptors::fixed_vector_space_descriptor_traits< Angle< Limits > >", "structOpenKalman_1_1vector__space__descriptors_1_1fixed__vector__space__descriptor__traits_3_01Angle_3_01Limits_01_4_01_4.html", null ],
+    [ "OpenKalman::vector_space_descriptors::fixed_vector_space_descriptor_traits< Distance >", "structOpenKalman_1_1vector__space__descriptors_1_1fixed__vector__space__descriptor__traits_3_01Distance_01_4.html", null ],
+    [ "OpenKalman::vector_space_descriptors::fixed_vector_space_descriptor_traits< FixedDescriptor< Cs... > >", "structOpenKalman_1_1vector__space__descriptors_1_1fixed__vector__space__descriptor__traits_3_01F5e370a563c25c6ef6720cd045d206afa.html", null ],
+    [ "OpenKalman::vector_space_descriptors::fixed_vector_space_descriptor_traits< Inclination< Limits > >", "structOpenKalman_1_1vector__space__descriptors_1_1fixed__vector__space__descriptor__traits_3_01Inclination_3_01Limits_01_4_01_4.html", null ],
+    [ "OpenKalman::vector_space_descriptors::fixed_vector_space_descriptor_traits< Polar< Angle< Limits >, Distance > >", "structOpenKalman_1_1vector__space__descriptors_1_1fixed__vector__space__descriptor__traits_3_01P23d2f7952a2f30cec90eec730c7428fb.html", null ],
+    [ "OpenKalman::vector_space_descriptors::fixed_vector_space_descriptor_traits< Polar< Distance, Angle< Limits > > >", "structOpenKalman_1_1vector__space__descriptors_1_1fixed__vector__space__descriptor__traits_3_01P2796c200746ab4a238df052adb1f68c1.html", null ],
+    [ "OpenKalman::vector_space_descriptors::fixed_vector_space_descriptor_traits< Spherical< Angle< ALimits >, Distance, Inclination< ILimits > > >", "structOpenKalman_1_1vector__space__descriptors_1_1fixed__vector__space__descriptor__traits_3_01S0285b8fe747996e392e65ffd54017c98.html", null ],
+    [ "OpenKalman::vector_space_descriptors::fixed_vector_space_descriptor_traits< Spherical< Angle< ALimits >, Inclination< ILimits >, Distance > >", "structOpenKalman_1_1vector__space__descriptors_1_1fixed__vector__space__descriptor__traits_3_01S3b5843d513c6fb2c6a6ba4b2db00de85.html", null ],
+    [ "OpenKalman::vector_space_descriptors::fixed_vector_space_descriptor_traits< Spherical< Distance, Angle< ALimits >, Inclination< ILimits > > >", "structOpenKalman_1_1vector__space__descriptors_1_1fixed__vector__space__descriptor__traits_3_01S1be82d0050d5cf788709ae69a76fe99d.html", null ],
+    [ "OpenKalman::vector_space_descriptors::fixed_vector_space_descriptor_traits< Spherical< Distance, Inclination< ILimits >, Angle< ALimits > > >", "structOpenKalman_1_1vector__space__descriptors_1_1fixed__vector__space__descriptor__traits_3_01S718a3463f82076d1b11681cf64db7dbd.html", null ],
+    [ "OpenKalman::vector_space_descriptors::fixed_vector_space_descriptor_traits< Spherical< Inclination< ILimits >, Angle< ALimits >, Distance > >", "structOpenKalman_1_1vector__space__descriptors_1_1fixed__vector__space__descriptor__traits_3_01S2065221a707f04515e7d00cb0a2e1e7d.html", null ],
+    [ "OpenKalman::vector_space_descriptors::fixed_vector_space_descriptor_traits< Spherical< Inclination< ILimits >, Distance, Angle< ALimits > > >", "structOpenKalman_1_1vector__space__descriptors_1_1fixed__vector__space__descriptor__traits_3_01S65ae3e60da6ce5957edba83268ec34fe.html", null ],
+    [ "OpenKalman::vector_space_descriptors::FixedDescriptor< Cs >", "structOpenKalman_1_1vector__space__descriptors_1_1FixedDescriptor.html", null ],
+    [ "OpenKalman::internal::FixedSizeAdapter< NestedObject, Vs >", "structOpenKalman_1_1internal_1_1FixedSizeAdapter.html", null ],
+    [ "OpenKalman::FromEuclideanExpr< NestedObject, RowDescriptor >", "structOpenKalman_1_1FromEuclideanExpr.html", null ],
+    [ "OpenKalman::Eigen3::functor_composition< F1, F2 >", "structOpenKalman_1_1Eigen3_1_1functor__composition.html", null ],
+    [ "OpenKalman::hermitian_adapter_type_of< T, Ts >", "structOpenKalman_1_1hermitian__adapter__type__of.html", null ],
+    [ "OpenKalman::index_count< T >", "structOpenKalman_1_1index__count.html", null ],
+    [ "OpenKalman::index_dimension_of< T, N >", "structOpenKalman_1_1index__dimension__of.html", null ],
+    [ "OpenKalman::interface::indexible_object_traits< T >", "structOpenKalman_1_1interface_1_1indexible__object__traits.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< T >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::Array< Scalar, Rows, Cols, Options, MaxRows, MaxCols > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::ArrayWrapper< XprType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::Block< XprType, BlockRows, BlockCols, InnerPanel > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::CwiseBinaryOp< BinaryOp, LhsType, RhsType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::CwiseNullaryOp< NullaryOp, PlainObjectType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::CwiseTernaryOp< TernaryOp, Arg1, Arg2, Arg3 > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::CwiseUnaryOp< UnaryOp, XprType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::CwiseUnaryView< ViewOp, MatrixType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::Diagonal< MatrixType, DiagIndex > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::DiagonalMatrix< Scalar, SizeAtCompileTime, MaxSizeAtCompileTime > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::DiagonalWrapper< DiagVectorType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::Homogeneous< MatrixType, Direction > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::IndexedView< XprType, RowIndices, ColIndices > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::Inverse< XprType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::Map< PlainObjectType, MapOptions, StrideType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::Matrix< S, rows, cols, options, maxrows, maxcols > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::MatrixWrapper< XprType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::NestByValue< ExpressionType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::PartialReduxExpr< MatrixType, MemberOp, Direction > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::PermutationMatrix< SizeAtCompileTime, MaxSizeAtCompileTime, StorageIndex > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::PermutationWrapper< IndicesType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::Product< LhsType, RhsType, Option > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::Ref< PlainObjectType, Options, StrideType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::Replicate< MatrixType, RowFactor, ColFactor > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::Reshaped< XprType, Rows, Cols, Order > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::Reverse< MatrixType, Direction > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::Select< ConditionMatrixType, ThenMatrixType, ElseMatrixType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::Solve< Decomposition, RhsType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::Transpose< MatrixType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_base< Eigen::VectorBlock< VectorType, Size > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_tensor_base< T >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__tensor__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_tensor_base< Eigen::Tensor< Scalar, NumIndices, options, IndexType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__tensor__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_tensor_base< Eigen::TensorContractionOp< Indices, LhsXprType, RhsXprType, OutputKernelType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__tensor__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_tensor_base< Eigen::TensorCwiseBinaryOp< BinaryOp, LhsXprType, RhsXprType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__tensor__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_tensor_base< Eigen::TensorCwiseNullaryOp< NullaryOp, XprType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__tensor__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_tensor_base< Eigen::TensorCwiseUnaryOp< UnaryOp, XprType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__tensor__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_tensor_base< Eigen::TensorFixedSize< S, Dims, options, IndexType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__tensor__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_tensor_base< Eigen::TensorMap< PlainObjectType, Options, MakePointer > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__tensor__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_tensor_base< Eigen::TensorReductionOp< Op, Dims, XprType, MakePointer > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__tensor__base.html", null ],
+    [ "OpenKalman::Eigen3::indexible_object_traits_tensor_base< Eigen::TensorRef< PlainObjectType > >", "structOpenKalman_1_1Eigen3_1_1indexible__object__traits__tensor__base.html", null ],
+    [ "OpenKalman::internal::is_linearized_function< T, order >", "structOpenKalman_1_1internal_1_1is__linearized__function.html", null ],
+    [ "OpenKalman::internal::is_prefix< T, U >", "structOpenKalman_1_1internal_1_1is__prefix.html", null ],
+    [ "OpenKalman::KalmanFilter< Transform >", "structOpenKalman_1_1KalmanFilter.html", null ],
+    [ "OpenKalman::KalmanFilter< ProcessTransform >", "structOpenKalman_1_1KalmanFilter.html", [
+      [ "OpenKalman::KalmanFilter< ProcessTransform, MeasurementTransform >", "structOpenKalman_1_1KalmanFilter_3_01ProcessTransform_00_01MeasurementTransform_01_4.html", null ]
     ] ],
-    [ "Eigen::CovarianceCommaInitializer< CovarianceType >", "struct_eigen_1_1_covariance_comma_initializer.html", null ],
-    [ "OpenKalman::internal::default_split_function", "struct_open_kalman_1_1internal_1_1default__split__function.html", null ],
-    [ "OpenKalman::angle::limits::Degrees< Scalar >", "struct_open_kalman_1_1angle_1_1limits_1_1_degrees.html", null ],
-    [ "OpenKalman::inclination::limits::Degrees< Scalar >", "struct_open_kalman_1_1inclination_1_1limits_1_1_degrees.html", null ],
-    [ "Eigen::DiagonalCommaInitializer< XprType >", "struct_eigen_1_1_diagonal_comma_initializer.html", null ],
-    [ "OpenKalman::Distance", "struct_open_kalman_1_1_distance.html", null ],
-    [ "OpenKalman::DistributionTraits< T, typename >", "struct_open_kalman_1_1_distribution_traits.html", null ],
-    [ "OpenKalman::Eigen3::internal::Eigen3Base< Derived >", "struct_open_kalman_1_1_eigen3_1_1internal_1_1_eigen3_base.html", [
-      [ "OpenKalman::Eigen3::internal::Eigen3MatrixBase< Derived, ArgType >", "struct_open_kalman_1_1_eigen3_1_1internal_1_1_eigen3_matrix_base.html", null ]
+    [ "OpenKalman::KalmanFilter< Transform >", "structOpenKalman_1_1KalmanFilter_3_01Transform_01_4.html", null ],
+    [ "OpenKalman::layout_of< T >", "structOpenKalman_1_1layout__of.html", null ],
+    [ "OpenKalman::internal::library_base< Derived, LibraryObject >", "structOpenKalman_1_1internal_1_1library__base.html", null ],
+    [ "OpenKalman::internal::library_base< Derived, LibraryObject >", "structOpenKalman_1_1internal_1_1library__base_3_01Derived_00_01LibraryObject_01_4.html", null ],
+    [ "OpenKalman::interface::library_interface< LibraryObject >", "structOpenKalman_1_1interface_1_1library__interface.html", null ],
+    [ "OpenKalman::interface::library_interface< std::decay_t< Nested > >", "structOpenKalman_1_1interface_1_1library__interface.html", null ],
+    [ "OpenKalman::interface::library_interface< std::decay_t< nested_object_of_t< T > > >", "structOpenKalman_1_1interface_1_1library__interface.html", null ],
+    [ "OpenKalman::internal::LibraryWrapper< NestedObject, LibraryObject >", "structOpenKalman_1_1internal_1_1LibraryWrapper.html", null ],
+    [ "OpenKalman::vector_space_descriptors::angle::Limits< Limits >", "structOpenKalman_1_1vector__space__descriptors_1_1angle_1_1Limits.html", null ],
+    [ "OpenKalman::vector_space_descriptors::inclination::Limits< Limits >", "structOpenKalman_1_1vector__space__descriptors_1_1inclination_1_1Limits.html", null ],
+    [ "OpenKalman::max_tensor_order< T >", "structOpenKalman_1_1max__tensor__order.html", null ],
+    [ "Eigen::MeanCommaInitializer< Derived, XprType >", "structEigen_1_1MeanCommaInitializer.html", null ],
+    [ "OpenKalman::internal::needs_additive_correction< T, F >", "structOpenKalman_1_1internal_1_1needs__additive__correction.html", null ],
+    [ "OpenKalman::nested_object_of< T >", "structOpenKalman_1_1nested__object__of.html", null ],
+    [ "OpenKalman::Eigen3::NullaryFunctorTraits< NullaryOp, PlainObjectType >", "structOpenKalman_1_1Eigen3_1_1NullaryFunctorTraits.html", null ],
+    [ "OpenKalman::pattern_matrix_of< T >", "structOpenKalman_1_1pattern__matrix__of.html", null ],
+    [ "OpenKalman::internal::PerturbationTraits< T >", "structOpenKalman_1_1internal_1_1PerturbationTraits.html", null ],
+    [ "OpenKalman::vector_space_descriptors::angle::PositiveRadiansLimits< Limits >", "structOpenKalman_1_1vector__space__descriptors_1_1angle_1_1PositiveRadiansLimits.html", null ],
+    [ "OpenKalman::vector_space_descriptors::angle::RadiansLimits< Limits >", "structOpenKalman_1_1vector__space__descriptors_1_1angle_1_1RadiansLimits.html", null ],
+    [ "OpenKalman::vector_space_descriptors::inclination::RadiansLimits< Limits >", "structOpenKalman_1_1vector__space__descriptors_1_1inclination_1_1RadiansLimits.html", null ],
+    [ "OpenKalman::internal::remove_rvalue_reference< T >", "structOpenKalman_1_1internal_1_1remove__rvalue__reference.html", null ],
+    [ "OpenKalman::reverse_fixed_vector_space_descriptor< T >", "structOpenKalman_1_1reverse__fixed__vector__space__descriptor.html", null ],
+    [ "OpenKalman::values::scalar_constant_operation< Operation, Ts >", "structOpenKalman_1_1values_1_1scalar__constant__operation.html", null ],
+    [ "OpenKalman::values::scalar_constant_operation< Operation, Ts... >", "structOpenKalman_1_1values_1_1scalar__constant__operation_3_01Operation_00_01Ts_8_8_8_01_4.html", null ],
+    [ "OpenKalman::interface::scalar_traits< T >", "structOpenKalman_1_1interface_1_1scalar__traits.html", null ],
+    [ "OpenKalman::interface::scalar_traits< std::complex< T > >", "structOpenKalman_1_1interface_1_1scalar__traits_3_01std_1_1complex_3_01T_01_4_01_4.html", null ],
+    [ "OpenKalman::interface::scalar_traits< T >", "structOpenKalman_1_1interface_1_1scalar__traits_3_01T_01_4.html", null ],
+    [ "OpenKalman::scalar_type_of< T >", "structOpenKalman_1_1scalar__type__of.html", null ],
+    [ "OpenKalman::scalar_type_of< T >", "structOpenKalman_1_1scalar__type__of_3_01T_01_4.html", null ],
+    [ "OpenKalman::values::ScalarConstant< C, constant >", "structOpenKalman_1_1values_1_1ScalarConstant.html", null ],
+    [ "OpenKalman::internal::ScaledSigmaPointsBase< Derived >", "structOpenKalman_1_1internal_1_1ScaledSigmaPointsBase.html", null ],
+    [ "OpenKalman::internal::ScaledSigmaPointsBase< SphericalSimplex< SphericalSimplexParameters > >", "structOpenKalman_1_1internal_1_1ScaledSigmaPointsBase.html", [
+      [ "OpenKalman::SphericalSimplex< Parameters >", "structOpenKalman_1_1SphericalSimplex.html", null ]
     ] ],
-    [ "OpenKalman::internal::ElementSetter< read_only, T >", "struct_open_kalman_1_1internal_1_1_element_setter.html", null ],
-    [ "Eigen::internal::evaluator< OpenKalman::Eigen3::FromEuclideanExpr< Coefficients, ArgType > >", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_from_euclidean_expr_3_01_c3d0d14969db7718f8c6a763debfd6966.html", null ],
-    [ "Eigen::internal::evaluator< OpenKalman::Eigen3::FromEuclideanExpr< Coefficients, OpenKalman::Eigen3::ToEuclideanExpr< Coefficients, ArgType > > >", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_from_euclidean_expr_3_01_c1197a1d12be34607e8682b3c0e469bb3.html", null ],
-    [ "Eigen::internal::evaluator< OpenKalman::Eigen3::ToEuclideanExpr< Coefficients, ArgType > >", "struct_eigen_1_1internal_1_1evaluator_3_01_open_kalman_1_1_eigen3_1_1_to_euclidean_expr_3_01_coe85b734b43baed46435269b60f3d32211.html", null ],
-    [ "OpenKalman::GaussianDistribution< Coefficients, MeanNestedMatrix, CovarianceNestedMatrix, random_number_engine >", "struct_open_kalman_1_1_gaussian_distribution.html", null ],
-    [ "OpenKalman::IdentityTransformation", "struct_open_kalman_1_1_identity_transformation.html", null ],
-    [ "OpenKalman::Inclination< Limits >", "struct_open_kalman_1_1_inclination.html", null ],
-    [ "OpenKalman::internal::is_atomic_coefficient_group< T >", "struct_open_kalman_1_1internal_1_1is__atomic__coefficient__group.html", null ],
-    [ "OpenKalman::internal::is_cholesky_form< T, typename >", "struct_open_kalman_1_1internal_1_1is__cholesky__form.html", null ],
-    [ "OpenKalman::internal::is_cholesky_form< DistributionTraits< T >::Covariance >", "struct_open_kalman_1_1internal_1_1is__cholesky__form.html", null ],
-    [ "OpenKalman::internal::is_composite_coefficients< T >", "struct_open_kalman_1_1internal_1_1is__composite__coefficients.html", null ],
-    [ "OpenKalman::internal::is_covariance_nestable< T, typename >", "struct_open_kalman_1_1internal_1_1is__covariance__nestable.html", null ],
-    [ "OpenKalman::internal::is_covariance_nestable< T, std::enable_if_t< Eigen3::eigen_self_adjoint_expr< T > or Eigen3::eigen_triangular_expr< T > or Eigen3::eigen_diagonal_expr< T > or Eigen3::eigen_zero_expr< T > or(Eigen3::eigen_native< T > and(triangular_matrix< T > or self_adjoint_matrix< T >))> >", "struct_open_kalman_1_1internal_1_1is__covariance__nestable_3_01_t_00_01std_1_1enable__if__t_3_019f9c9e8bc026e92da6357639d2d62b62.html", null ],
-    [ "OpenKalman::internal::is_diagonal_matrix< T, typename >", "struct_open_kalman_1_1internal_1_1is__diagonal__matrix.html", null ],
-    [ "OpenKalman::internal::is_diagonal_matrix< nested_matrix_t< T > >", "struct_open_kalman_1_1internal_1_1is__diagonal__matrix.html", null ],
-    [ "OpenKalman::internal::is_element_gettable< T, N, typename >", "struct_open_kalman_1_1internal_1_1is__element__gettable.html", null ],
-    [ "OpenKalman::internal::is_element_gettable< nested_matrix_t< T >, N >", "struct_open_kalman_1_1internal_1_1is__element__gettable.html", null ],
-    [ "OpenKalman::internal::is_element_settable< T, N, typename >", "struct_open_kalman_1_1internal_1_1is__element__settable.html", null ],
-    [ "OpenKalman::internal::is_element_settable< nested_matrix_t< T >, N >", "struct_open_kalman_1_1internal_1_1is__element__settable.html", null ],
-    [ "OpenKalman::internal::is_equivalent_to< T, U, typename >", "struct_open_kalman_1_1internal_1_1is__equivalent__to.html", null ],
-    [ "OpenKalman::internal::is_identity_matrix< T, typename >", "struct_open_kalman_1_1internal_1_1is__identity__matrix.html", null ],
-    [ "OpenKalman::internal::is_identity_matrix< nested_matrix_t< T > >", "struct_open_kalman_1_1internal_1_1is__identity__matrix.html", null ],
-    [ "OpenKalman::is_linearized_function< T, order, typename >", "struct_open_kalman_1_1is__linearized__function.html", null ],
-    [ "OpenKalman::is_linearized_function< T, order >", "struct_open_kalman_1_1is__linearized__function.html", null ],
-    [ "OpenKalman::internal::is_lower_triangular_matrix< T, typename >", "struct_open_kalman_1_1internal_1_1is__lower__triangular__matrix.html", null ],
-    [ "OpenKalman::internal::is_lower_triangular_matrix< nested_matrix_t< T > >", "struct_open_kalman_1_1internal_1_1is__lower__triangular__matrix.html", null ],
-    [ "OpenKalman::internal::is_prefix_of< T, U, typename >", "struct_open_kalman_1_1internal_1_1is__prefix__of.html", null ],
-    [ "OpenKalman::internal::is_self_adjoint_matrix< T, typename >", "struct_open_kalman_1_1internal_1_1is__self__adjoint__matrix.html", null ],
-    [ "OpenKalman::internal::is_self_adjoint_matrix< DistributionTraits< T >::Covariance >", "struct_open_kalman_1_1internal_1_1is__self__adjoint__matrix.html", null ],
-    [ "OpenKalman::internal::is_self_adjoint_matrix< nested_matrix_t< T > >", "struct_open_kalman_1_1internal_1_1is__self__adjoint__matrix.html", null ],
-    [ "OpenKalman::internal::is_self_contained< T, typename >", "struct_open_kalman_1_1internal_1_1is__self__contained.html", null ],
-    [ "OpenKalman::internal::is_self_contained< nested_matrix_t< T > >", "struct_open_kalman_1_1internal_1_1is__self__contained.html", null ],
-    [ "OpenKalman::internal::is_typed_matrix_nestable< T, typename >", "struct_open_kalman_1_1internal_1_1is__typed__matrix__nestable.html", null ],
-    [ "OpenKalman::internal::is_typed_matrix_nestable< T, std::enable_if_t< Eigen3::eigen_self_adjoint_expr< T > or Eigen3::eigen_triangular_expr< T > or Eigen3::eigen_diagonal_expr< T > or Eigen3::eigen_zero_expr< T > or Eigen3::to_euclidean_expr< T > or Eigen3::from_euclidean_expr< T > or Eigen3::eigen_native< T > > >", "struct_open_kalman_1_1internal_1_1is__typed__matrix__nestable_3_01_t_00_01std_1_1enable__if__t_32dbed0aa175715214ab738f9650787c2.html", null ],
-    [ "OpenKalman::internal::is_upper_triangular_matrix< T, typename >", "struct_open_kalman_1_1internal_1_1is__upper__triangular__matrix.html", null ],
-    [ "OpenKalman::internal::is_upper_triangular_matrix< nested_matrix_t< T > >", "struct_open_kalman_1_1internal_1_1is__upper__triangular__matrix.html", null ],
-    [ "OpenKalman::internal::is_zero_matrix< T, typename >", "struct_open_kalman_1_1internal_1_1is__zero__matrix.html", null ],
-    [ "OpenKalman::internal::is_zero_matrix< nested_matrix_t< T > >", "struct_open_kalman_1_1internal_1_1is__zero__matrix.html", null ],
-    [ "OpenKalman::KalmanFilter< Transform >", "struct_open_kalman_1_1_kalman_filter.html", null ],
-    [ "OpenKalman::KalmanFilter< ProcessTransform >", "struct_open_kalman_1_1_kalman_filter.html", [
-      [ "OpenKalman::KalmanFilter< ProcessTransform, MeasurementTransform >", "struct_open_kalman_1_1_kalman_filter_3_01_process_transform_00_01_measurement_transform_01_4.html", null ]
+    [ "OpenKalman::internal::ScaledSigmaPointsBase< Unscented< UnscentedParametersStateEstimation > >", "structOpenKalman_1_1internal_1_1ScaledSigmaPointsBase.html", [
+      [ "OpenKalman::Unscented< Parameters >", "structOpenKalman_1_1Unscented.html", null ]
     ] ],
-    [ "OpenKalman::KalmanFilter< Transform >", "struct_open_kalman_1_1_kalman_filter_3_01_transform_01_4.html", null ],
-    [ "OpenKalman::LinearTransformation< InputCoefficients, OutputCoefficients, TransformationMatrix, PerturbationTransformationMatrices >", "struct_open_kalman_1_1_linear_transformation.html", null ],
-    [ "OpenKalman::internal::MatrixBase< Derived, NestedMatrix >", "struct_open_kalman_1_1internal_1_1_matrix_base.html", [
-      [ "OpenKalman::internal::CovarianceBase< Derived, NestedMatrix, std::enable_if_t< case1or2< Derived, NestedMatrix > and self_contained< NestedMatrix > > >", "struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_nested_matrix_00_01std_1_1de90ce7a7fbe8695140a7eff85c685f2.html", null ],
-      [ "OpenKalman::internal::CovarianceBase< Derived, NestedMatrix, std::enable_if_t< case1or2< Derived, NestedMatrix > and(not self_contained< NestedMatrix >)> >", "struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_nested_matrix_00_01std_1_140b10e2d94bdd984b10c5028cc94eb1a.html", null ],
-      [ "OpenKalman::internal::CovarianceBase< Derived, NestedMatrix, std::enable_if_t<(not case1or2< Derived, NestedMatrix >) and self_contained< NestedMatrix > > >", "struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_nested_matrix_00_01std_1_152503e0e2fdd8a717653d68b8871d849.html", null ],
-      [ "OpenKalman::internal::TypedMatrixBase< Derived, RowCoefficients, ColumnCoefficients, NestedMatrix >", "struct_open_kalman_1_1internal_1_1_typed_matrix_base.html", null ]
-    ] ],
-    [ "OpenKalman::internal::MatrixBase< DiagonalMatrix< NestedMatrix >, NestedMatrix >", "struct_open_kalman_1_1internal_1_1_matrix_base.html", [
-      [ "OpenKalman::Eigen3::DiagonalMatrix< NestedMatrix >", "struct_open_kalman_1_1_eigen3_1_1_diagonal_matrix.html", null ]
-    ] ],
-    [ "OpenKalman::internal::MatrixBase< EuclideanMean< OutputCoefficients, OutputEuclideanMeanMatrix >, OutputEuclideanMeanMatrix >", "struct_open_kalman_1_1internal_1_1_matrix_base.html", [
-      [ "OpenKalman::internal::TypedMatrixBase< EuclideanMean< OutputCoefficients, OutputEuclideanMeanMatrix >, OutputCoefficients, Axes< MatrixTraits< OutputEuclideanMeanMatrix >::columns >, OutputEuclideanMeanMatrix >", "struct_open_kalman_1_1internal_1_1_typed_matrix_base.html", [
-        [ "OpenKalman::EuclideanMean< OutputCoefficients, OutputEuclideanMeanMatrix >", "struct_open_kalman_1_1_euclidean_mean.html", null ]
-      ] ]
-    ] ],
-    [ "OpenKalman::internal::MatrixBase< EuclideanMean< RowCoefficients, NestedMatrix >, NestedMatrix >", "struct_open_kalman_1_1internal_1_1_matrix_base.html", [
-      [ "OpenKalman::internal::TypedMatrixBase< EuclideanMean< RowCoefficients, NestedMatrix >, RowCoefficients, Axes< MatrixTraits< NestedMatrix >::columns >, NestedMatrix >", "struct_open_kalman_1_1internal_1_1_typed_matrix_base.html", [
-        [ "OpenKalman::EuclideanMean< RowCoefficients, NestedMatrix >", "struct_open_kalman_1_1_euclidean_mean.html", null ]
-      ] ]
-    ] ],
-    [ "OpenKalman::internal::MatrixBase< FromEuclideanExpr< Coefficients, NestedMatrix >, NestedMatrix >", "struct_open_kalman_1_1internal_1_1_matrix_base.html", [
-      [ "OpenKalman::Eigen3::FromEuclideanExpr< Coefficients, NestedMatrix >", "struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html", null ]
-    ] ],
-    [ "OpenKalman::internal::MatrixBase< Matrix< InputCoefficients, OutputCoefficients, CrossCovarianceMatrix >, CrossCovarianceMatrix >", "struct_open_kalman_1_1internal_1_1_matrix_base.html", [
-      [ "OpenKalman::internal::TypedMatrixBase< Matrix< InputCoefficients, OutputCoefficients, CrossCovarianceMatrix >, InputCoefficients, OutputCoefficients, CrossCovarianceMatrix >", "struct_open_kalman_1_1internal_1_1_typed_matrix_base.html", [
-        [ "OpenKalman::Matrix< InputCoefficients, OutputCoefficients, CrossCovarianceMatrix >", "struct_open_kalman_1_1_matrix.html", null ]
-      ] ]
-    ] ],
-    [ "OpenKalman::internal::MatrixBase< Matrix< RowCoefficients, ColumnCoefficients, NestedMatrix >, NestedMatrix >", "struct_open_kalman_1_1internal_1_1_matrix_base.html", [
-      [ "OpenKalman::internal::TypedMatrixBase< Matrix< RowCoefficients, ColumnCoefficients, NestedMatrix >, RowCoefficients, ColumnCoefficients, NestedMatrix >", "struct_open_kalman_1_1internal_1_1_typed_matrix_base.html", [
-        [ "OpenKalman::Matrix< RowCoefficients, ColumnCoefficients, NestedMatrix >", "struct_open_kalman_1_1_matrix.html", null ]
-      ] ]
-    ] ],
-    [ "OpenKalman::internal::MatrixBase< Mean< Coefficients, MeanNestedMatrix >, MeanNestedMatrix >", "struct_open_kalman_1_1internal_1_1_matrix_base.html", [
-      [ "OpenKalman::internal::TypedMatrixBase< Mean< Coefficients, MeanNestedMatrix >, Coefficients, Axes< MatrixTraits< MeanNestedMatrix >::columns >, MeanNestedMatrix >", "struct_open_kalman_1_1internal_1_1_typed_matrix_base.html", [
-        [ "OpenKalman::Mean< Coefficients, MeanNestedMatrix >", "struct_open_kalman_1_1_mean.html", null ]
-      ] ]
-    ] ],
-    [ "OpenKalman::internal::MatrixBase< Mean< InputCoefficients, InputMeanMatrix >, InputMeanMatrix >", "struct_open_kalman_1_1internal_1_1_matrix_base.html", [
-      [ "OpenKalman::internal::TypedMatrixBase< Mean< InputCoefficients, InputMeanMatrix >, InputCoefficients, Axes< MatrixTraits< InputMeanMatrix >::columns >, InputMeanMatrix >", "struct_open_kalman_1_1internal_1_1_typed_matrix_base.html", [
-        [ "OpenKalman::Mean< InputCoefficients, InputMeanMatrix >", "struct_open_kalman_1_1_mean.html", null ]
-      ] ]
-    ] ],
-    [ "OpenKalman::internal::MatrixBase< Mean< RowCoefficients, NestedMatrix >, NestedMatrix >", "struct_open_kalman_1_1internal_1_1_matrix_base.html", [
-      [ "OpenKalman::internal::TypedMatrixBase< Mean< RowCoefficients, NestedMatrix >, RowCoefficients, Axes< MatrixTraits< NestedMatrix >::columns >, NestedMatrix >", "struct_open_kalman_1_1internal_1_1_typed_matrix_base.html", [
-        [ "OpenKalman::Mean< RowCoefficients, NestedMatrix >", "struct_open_kalman_1_1_mean.html", null ]
-      ] ]
-    ] ],
-    [ "OpenKalman::internal::MatrixBase< SelfAdjointMatrix< NestedMatrix, storage_triangle >, NestedMatrix >", "struct_open_kalman_1_1internal_1_1_matrix_base.html", [
-      [ "OpenKalman::Eigen3::SelfAdjointMatrix< NestedMatrix, storage_triangle >", "struct_open_kalman_1_1_eigen3_1_1_self_adjoint_matrix.html", null ]
-    ] ],
-    [ "OpenKalman::internal::MatrixBase< ToEuclideanExpr< Coefficients, NestedMatrix >, NestedMatrix >", "struct_open_kalman_1_1internal_1_1_matrix_base.html", [
-      [ "OpenKalman::Eigen3::ToEuclideanExpr< Coefficients, NestedMatrix >", "struct_open_kalman_1_1_eigen3_1_1_to_euclidean_expr.html", null ]
-    ] ],
-    [ "OpenKalman::internal::MatrixBase< TriangularMatrix< NestedMatrix, triangle_type >, NestedMatrix >", "struct_open_kalman_1_1internal_1_1_matrix_base.html", [
-      [ "OpenKalman::Eigen3::TriangularMatrix< NestedMatrix, triangle_type >", "struct_open_kalman_1_1_eigen3_1_1_triangular_matrix.html", null ]
-    ] ],
-    [ "OpenKalman::MatrixTraits< T, typename >", "struct_open_kalman_1_1_matrix_traits.html", null ],
-    [ "OpenKalman::MatrixTraits< DistributionTraits< Noise >::Mean >", "struct_open_kalman_1_1_matrix_traits.html", null ],
-    [ "OpenKalman::MatrixTraits< M >", "struct_open_kalman_1_1_matrix_traits.html", null ],
-    [ "OpenKalman::MatrixTraits< Noise >", "struct_open_kalman_1_1_matrix_traits.html", null ],
-    [ "Eigen::MeanCommaInitializer< Derived, XprType >", "struct_eigen_1_1_mean_comma_initializer.html", null ],
-    [ "OpenKalman::Polar< C1, C2 >", "struct_open_kalman_1_1_polar.html", null ],
-    [ "OpenKalman::angle::limits::PositiveDegrees< Scalar >", "struct_open_kalman_1_1angle_1_1limits_1_1_positive_degrees.html", null ],
-    [ "OpenKalman::angle::limits::PositiveRadians< Scalar >", "struct_open_kalman_1_1angle_1_1limits_1_1_positive_radians.html", null ],
-    [ "OpenKalman::inclination::limits::Radians< Scalar >", "struct_open_kalman_1_1inclination_1_1limits_1_1_radians.html", null ],
-    [ "OpenKalman::angle::limits::Radians< Scalar >", "struct_open_kalman_1_1angle_1_1limits_1_1_radians.html", null ],
-    [ "OpenKalman::Spherical< C1, C2, C3 >", "struct_open_kalman_1_1_spherical.html", null ],
-    [ "OpenKalman::Transformation< Function, TaylorDerivatives >", "struct_open_kalman_1_1_transformation.html", null ],
-    [ "OpenKalman::Transformation< Function >", "struct_open_kalman_1_1_transformation.html", null ],
-    [ "OpenKalman::Transformation< Function, JacobianFunction >", "struct_open_kalman_1_1_transformation.html", null ],
-    [ "OpenKalman::TransformBase< Derived >", "struct_open_kalman_1_1_transform_base.html", [
-      [ "OpenKalman::internal::LinearTransformBase< Derived >", "struct_open_kalman_1_1internal_1_1_linear_transform_base.html", null ]
-    ] ],
-    [ "OpenKalman::TransformBase< IdentityTransform >", "struct_open_kalman_1_1_transform_base.html", [
-      [ "OpenKalman::IdentityTransform", "struct_open_kalman_1_1_identity_transform.html", null ]
-    ] ],
-    [ "OpenKalman::TransformBase< LinearizedTransform< 1 > >", "struct_open_kalman_1_1_transform_base.html", [
-      [ "OpenKalman::internal::LinearTransformBase< LinearizedTransform< 1 > >", "struct_open_kalman_1_1internal_1_1_linear_transform_base.html", [
-        [ "OpenKalman::LinearizedTransform< order >", "struct_open_kalman_1_1_linearized_transform.html", null ]
-      ] ]
-    ] ],
-    [ "OpenKalman::TransformBase< LinearTransform >", "struct_open_kalman_1_1_transform_base.html", [
-      [ "OpenKalman::internal::LinearTransformBase< LinearTransform >", "struct_open_kalman_1_1internal_1_1_linear_transform_base.html", [
-        [ "OpenKalman::LinearTransform", "struct_open_kalman_1_1_linear_transform.html", null ]
-      ] ]
-    ] ],
-    [ "OpenKalman::TransformBase< MonteCarloTransform >", "struct_open_kalman_1_1_transform_base.html", [
-      [ "OpenKalman::MonteCarloTransform", "struct_open_kalman_1_1_monte_carlo_transform.html", null ]
-    ] ],
-    [ "OpenKalman::TransformBase< RecursiveLeastSquaresTransform< double > >", "struct_open_kalman_1_1_transform_base.html", [
-      [ "OpenKalman::RecursiveLeastSquaresTransform< Scalar >", "struct_open_kalman_1_1_recursive_least_squares_transform.html", null ]
-    ] ],
-    [ "OpenKalman::TransformBase< SamplePointsTransform< SamplePointsType > >", "struct_open_kalman_1_1_transform_base.html", [
-      [ "OpenKalman::SamplePointsTransform< SamplePointsType >", "struct_open_kalman_1_1_sample_points_transform.html", null ]
-    ] ],
-    [ "OpenKalman::LinearTransform::TransformFunction< LinTransformation >", "struct_open_kalman_1_1_linear_transform_1_1_transform_function.html", null ],
-    [ "OpenKalman::UnscentedParametersParameterEstimation", "struct_open_kalman_1_1_unscented_parameters_parameter_estimation.html", null ],
-    [ "OpenKalman::UnscentedParametersStateEstimation", "struct_open_kalman_1_1_unscented_parameters_state_estimation.html", null ],
-    [ "std::vector< T >", null, [
-      [ "OpenKalman::ParticleDistribution< double, OtherProperties... >", "struct_open_kalman_1_1_particle_distribution.html", null ],
-      [ "OpenKalman::ParticleDistribution< ContinuousDistribution< continuous_dimensions, false, double >, double, OtherProperties... >", "struct_open_kalman_1_1_particle_distribution.html", [
-        [ "OpenKalman::MixtureOfContinuousDistributions< ContinuousDistribution, continuous_dimensions, Scalar, OtherProperties >", "struct_open_kalman_1_1_mixture_of_continuous_distributions.html", null ]
+    [ "OpenKalman::internal::split_head_tail_fixed< T >", "structOpenKalman_1_1internal_1_1split__head__tail__fixed.html", null ],
+    [ "OpenKalman::static_range_size< T, typename >", "structOpenKalman_1_1static__range__size.html", null ],
+    [ "OpenKalman::static_range_size< T, std::enable_if_t< detail::is_sized_range< std::decay_t< T > >::value and detail::static_range_size_impl< std::decay_t< T > >::value > >", "structOpenKalman_1_1static__range__size_3_01T_00_01std_1_1enable__if__t_3_01detail_1_1is__sized_4c6f3b6b73cebe4c0fbfeb80307a91be.html", null ],
+    [ "OpenKalman::static_range_size< T, std::enable_if_t< detail::is_sized_range< std::decay_t< T > >::value and(not detail::static_range_size_impl< std::decay_t< T >>::value)> >", "structOpenKalman_1_1static__range__size_3_01T_00_01std_1_1enable__if__t_3_01detail_1_1is__sized_e333a5a410f48f18498d2f3c4b5505d9.html", null ],
+    [ "OpenKalman::Eigen3::TernaryFunctorTraits< Operation, Arg1, Arg2, Arg3 >", "structOpenKalman_1_1Eigen3_1_1TernaryFunctorTraits.html", null ],
+    [ "OpenKalman::Transformation< Function, TaylorDerivatives >", "structOpenKalman_1_1Transformation.html", null ],
+    [ "OpenKalman::Transformation< Function >", "structOpenKalman_1_1Transformation.html", null ],
+    [ "OpenKalman::Transformation< Function, JacobianFunction >", "structOpenKalman_1_1Transformation.html", null ],
+    [ "OpenKalman::internal::TransformBase< Derived >", "structOpenKalman_1_1internal_1_1TransformBase.html", [
+      [ "OpenKalman::internal::LinearTransformBase< LinearTransform >", "structOpenKalman_1_1internal_1_1LinearTransformBase.html", [
+        [ "OpenKalman::LinearTransform", "classOpenKalman_1_1LinearTransform.html", null ]
       ] ],
-      [ "OpenKalman::ParticleDistribution< Properties >", "struct_open_kalman_1_1_particle_distribution.html", null ]
+      [ "OpenKalman::internal::LinearTransformBase< LinearizedTransform< order > >", "structOpenKalman_1_1internal_1_1LinearTransformBase.html", [
+        [ "OpenKalman::LinearizedTransform< order >", "classOpenKalman_1_1LinearizedTransform.html", null ]
+      ] ],
+      [ "OpenKalman::internal::LinearTransformBase< Derived >", "structOpenKalman_1_1internal_1_1LinearTransformBase.html", null ]
     ] ],
-    [ "OpenKalman::Eigen3::ZeroMatrix< Scalar, rows, columns >", "struct_open_kalman_1_1_eigen3_1_1_zero_matrix.html", null ]
+    [ "OpenKalman::internal::TransformBase< IdentityTransform >", "structOpenKalman_1_1internal_1_1TransformBase.html", [
+      [ "OpenKalman::IdentityTransform", "structOpenKalman_1_1IdentityTransform.html", null ]
+    ] ],
+    [ "OpenKalman::internal::TransformBase< MonteCarloTransform >", "structOpenKalman_1_1internal_1_1TransformBase.html", [
+      [ "OpenKalman::MonteCarloTransform", "structOpenKalman_1_1MonteCarloTransform.html", null ]
+    ] ],
+    [ "OpenKalman::internal::TransformBase< RecursiveLeastSquaresTransform< double > >", "structOpenKalman_1_1internal_1_1TransformBase.html", [
+      [ "OpenKalman::RecursiveLeastSquaresTransform< Scalar >", "structOpenKalman_1_1RecursiveLeastSquaresTransform.html", null ]
+    ] ],
+    [ "OpenKalman::internal::TransformBase< SamplePointsTransform< SamplePointsType > >", "structOpenKalman_1_1internal_1_1TransformBase.html", [
+      [ "OpenKalman::SamplePointsTransform< SamplePointsType >", "structOpenKalman_1_1SamplePointsTransform.html", null ]
+    ] ],
+    [ "OpenKalman::triangle_type_of< T, Ts >", "structOpenKalman_1_1triangle__type__of.html", null ],
+    [ "OpenKalman::Eigen3::UnaryFunctorTraits< Operation >", "structOpenKalman_1_1Eigen3_1_1UnaryFunctorTraits.html", null ],
+    [ "OpenKalman::Eigen3::UnaryFunctorTraits< Eigen::internal::scalar_abs_op< Scalar > >", "structOpenKalman_1_1Eigen3_1_1UnaryFunctorTraits.html", null ],
+    [ "OpenKalman::Eigen3::UnaryFunctorTraits< Eigen::internal::scalar_imag_op< Scalar > >", "structOpenKalman_1_1Eigen3_1_1UnaryFunctorTraits.html", null ],
+    [ "OpenKalman::Eigen3::UnaryFunctorTraits< Eigen::internal::scalar_real_op< Scalar > >", "structOpenKalman_1_1Eigen3_1_1UnaryFunctorTraits.html", null ],
+    [ "OpenKalman::Eigen3::UnaryFunctorTraits< std::logical_not< Scalar > >", "structOpenKalman_1_1Eigen3_1_1UnaryFunctorTraits.html", null ],
+    [ "OpenKalman::Eigen3::UnaryFunctorTraits< std::negate< Scalar > >", "structOpenKalman_1_1Eigen3_1_1UnaryFunctorTraits.html", null ],
+    [ "OpenKalman::uniform_fixed_vector_space_descriptor_component_of< T >", "structOpenKalman_1_1uniform__fixed__vector__space__descriptor__component__of.html", null ],
+    [ "OpenKalman::UnscentedParametersParameterEstimation", "structOpenKalman_1_1UnscentedParametersParameterEstimation.html", null ],
+    [ "OpenKalman::UnscentedParametersStateEstimation", "structOpenKalman_1_1UnscentedParametersStateEstimation.html", null ],
+    [ "std::vector< T >", null, [
+      [ "OpenKalman::ParticleDistribution< double, OtherProperties... >", "structOpenKalman_1_1ParticleDistribution.html", null ],
+      [ "OpenKalman::ParticleDistribution< ContinuousDistribution< continuous_dimensions, false, double >, double, OtherProperties... >", "structOpenKalman_1_1ParticleDistribution.html", [
+        [ "OpenKalman::MixtureOfContinuousDistributions< ContinuousDistribution, continuous_dimensions, Scalar, OtherProperties >", "structOpenKalman_1_1MixtureOfContinuousDistributions.html", null ]
+      ] ],
+      [ "OpenKalman::ParticleDistribution< Properties >", "structOpenKalman_1_1ParticleDistribution.html", null ]
+    ] ],
+    [ "OpenKalman::vector_space_component_count< T >", "structOpenKalman_1_1vector__space__component__count.html", null ],
+    [ "OpenKalman::vector_space_descriptor_of< T, N >", "structOpenKalman_1_1vector__space__descriptor__of.html", null ]
 ];

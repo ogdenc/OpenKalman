@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['gaussian_5fdistribution_458',['gaussian_distribution',['../namespace_open_kalman.html#af9367eb4d7b08c961db76037c1926531',1,'OpenKalman']]]
+  ['gaussian_5fdistribution_1325',['gaussian_distribution',['../namespaceOpenKalman.html#a2e676386d6ed5b7749578d8a4e966d96',1,'OpenKalman']]]
 ];

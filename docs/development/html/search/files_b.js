@@ -1,4 +1,31 @@
 var searchData=
 [
-  ['polar_2ehpp_518',['Polar.hpp',['../_polar_8hpp.html',1,'']]]
+  ['make_5fcomplex_5fnumber_2ehpp_1272',['make_complex_number.hpp',['../make__complex__number_8hpp.html',1,'']]],
+  ['make_5fconstant_2ehpp_1273',['make_constant.hpp',['../make__constant_8hpp.html',1,'']]],
+  ['make_5fdense_5fobject_2ehpp_1274',['make_dense_object.hpp',['../make__dense__object_8hpp.html',1,'']]],
+  ['make_5fdense_5fobject_5ffrom_2ehpp_1275',['make_dense_object_from.hpp',['../make__dense__object__from_8hpp.html',1,'']]],
+  ['make_5fdiagonal_5fmatrix_2ehpp_1276',['make_diagonal_matrix.hpp',['../make__diagonal__matrix_8hpp.html',1,'']]],
+  ['make_5feigen_5fmatrix_2ehpp_1277',['make_eigen_matrix.hpp',['../make__eigen__matrix_8hpp.html',1,'']]],
+  ['make_5feigen_5ftensor_5fwrapper_2ehpp_1278',['make_eigen_tensor_wrapper.hpp',['../make__eigen__tensor__wrapper_8hpp.html',1,'']]],
+  ['make_5ffixed_5fsize_5fadapter_2ehpp_1279',['make_fixed_size_adapter.hpp',['../make__fixed__size__adapter_8hpp.html',1,'']]],
+  ['make_5ffixed_5fsize_5fadapter_5flike_2ehpp_1280',['make_fixed_size_adapter_like.hpp',['../make__fixed__size__adapter__like_8hpp.html',1,'']]],
+  ['make_5ffixed_5fsquare_5fadapter_5flike_2ehpp_1281',['make_fixed_square_adapter_like.hpp',['../make__fixed__square__adapter__like_8hpp.html',1,'']]],
+  ['make_5fhermitian_5fmatrix_2ehpp_1282',['make_hermitian_matrix.hpp',['../make__hermitian__matrix_8hpp.html',1,'']]],
+  ['make_5fidentity_5fmatrix_5flike_2ehpp_1283',['make_identity_matrix_like.hpp',['../make__identity__matrix__like_8hpp.html',1,'']]],
+  ['make_5ftriangular_5fmatrix_2ehpp_1284',['make_triangular_matrix.hpp',['../make__triangular__matrix_8hpp.html',1,'']]],
+  ['make_5fvector_5fspace_5fadapter_2ehpp_1285',['make_vector_space_adapter.hpp',['../make__vector__space__adapter_8hpp.html',1,'']]],
+  ['make_5fwritable_5fsquare_5fmatrix_2ehpp_1286',['make_writable_square_matrix.hpp',['../make__writable__square__matrix_8hpp.html',1,'']]],
+  ['make_5fzero_2ehpp_1287',['make_zero.hpp',['../make__zero_8hpp.html',1,'']]],
+  ['map_2ehpp_1288',['Map.hpp',['../Map_8hpp.html',1,'']]],
+  ['matrices_2ehpp_1289',['matrices.hpp',['../matrices_8hpp.html',1,'']]],
+  ['matrix_2egtest_2ehpp_1290',['matrix.gtest.hpp',['../matrix_8gtest_8hpp.html',1,'']]],
+  ['matrix_2ehpp_1291',['Matrix.hpp',['../interfaces_2eigen_2traits_2Matrix_8hpp.html',1,'']]],
+  ['matrixwrapper_2ehpp_1292',['MatrixWrapper.hpp',['../MatrixWrapper_8hpp.html',1,'']]],
+  ['max_5ftensor_5forder_2ehpp_1293',['max_tensor_order.hpp',['../max__tensor__order_8hpp.html',1,'']]],
+  ['may_5fhold_5fcomponents_2ehpp_1294',['may_hold_components.hpp',['../may__hold__components_8hpp.html',1,'']]],
+  ['maybe_5fequivalent_5fto_2ehpp_1295',['maybe_equivalent_to.hpp',['../maybe__equivalent__to_8hpp.html',1,'']]],
+  ['maybe_5fsame_5fshape_5fas_5fvector_5fspace_5fdescriptors_2ehpp_1296',['maybe_same_shape_as_vector_space_descriptors.hpp',['../maybe__same__shape__as__vector__space__descriptors_8hpp.html',1,'']]],
+  ['mct_2e2x2_2ecpp_1297',['MCT.2x2.cpp',['../MCT_82x2_8cpp.html',1,'']]],
+  ['mean_2ehpp_1298',['Mean.hpp',['../interfaces_2eigen-tensor_2native-traits_2Mean_8hpp.html',1,'(Global Namespace)'],['../interfaces_2eigen_2native-traits_2Mean_8hpp.html',1,'(Global Namespace)'],['../adapters_2Mean_8hpp.html',1,'(Global Namespace)']]],
+  ['montecarlotransform_2ehpp_1299',['MonteCarloTransform.hpp',['../MonteCarloTransform_8hpp.html',1,'']]]
 ];

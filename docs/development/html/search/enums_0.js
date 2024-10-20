@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['triangletype_702',['TriangleType',['../namespace_open_kalman.html#ab6c606169452d88f33b64e3b1ae18fa2',1,'OpenKalman']]]
+  ['binaryfunctortype_1757',['BinaryFunctorType',['../namespaceOpenKalman_1_1Eigen3.html#a3af8bb9144ede7184bd9b62d835af5d7',1,'OpenKalman::Eigen3']]]
 ];

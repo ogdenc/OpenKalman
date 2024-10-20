@@ -1,7 +1,21 @@
 var searchData=
 [
-  ['unscented_2ehpp_0',['Unscented.hpp',['../_unscented_8hpp.html',1,'']]],
-  ['ut_2e2x1_2ecpp_1',['UT.2x1.cpp',['../_u_t_82x1_8cpp.html',1,'']]],
-  ['ut_2e2x2_2ecpp_2',['UT.2x2.cpp',['../_u_t_82x2_8cpp.html',1,'']]],
-  ['utils_2ehpp_3',['utils.hpp',['../utils_8hpp.html',1,'']]]
+  ['radar_2ecpp_1320',['radar.cpp',['../radar_8cpp.html',1,'']]],
+  ['randomize_2ehpp_1321',['randomize.hpp',['../randomize_8hpp.html',1,'']]],
+  ['rank_2dupdate_2etest_2ecpp_1322',['rank-update.test.cpp',['../rank-update_8test_8cpp.html',1,'']]],
+  ['rank_5fupdate_5fhermitian_2ehpp_1323',['rank_update_hermitian.hpp',['../rank__update__hermitian_8hpp.html',1,'']]],
+  ['rank_5fupdate_5ftriangular_2ehpp_1324',['rank_update_triangular.hpp',['../rank__update__triangular_8hpp.html',1,'']]],
+  ['raw_5fdata_2ehpp_1325',['raw_data.hpp',['../raw__data_8hpp.html',1,'']]],
+  ['real_5faxis_5fnumber_2ehpp_1326',['real_axis_number.hpp',['../real__axis__number_8hpp.html',1,'']]],
+  ['recursiveleastsquarestransform_2ehpp_1327',['RecursiveLeastSquaresTransform.hpp',['../RecursiveLeastSquaresTransform_8hpp.html',1,'']]],
+  ['reduce_2ehpp_1328',['reduce.hpp',['../reduce_8hpp.html',1,'']]],
+  ['redux_2ehpp_1329',['redux.hpp',['../redux_8hpp.html',1,'']]],
+  ['ref_2ehpp_1330',['Ref.hpp',['../Ref_8hpp.html',1,'']]],
+  ['remove_5ftrailing_5f1d_5fdescriptors_2ehpp_1331',['remove_trailing_1D_descriptors.hpp',['../remove__trailing__1D__descriptors_8hpp.html',1,'']]],
+  ['replicate_2ehpp_1332',['Replicate.hpp',['../Replicate_8hpp.html',1,'']]],
+  ['replicate_5ffixed_5fvector_5fspace_5fdescriptor_2ehpp_1333',['replicate_fixed_vector_space_descriptor.hpp',['../replicate__fixed__vector__space__descriptor_8hpp.html',1,'']]],
+  ['replicate_5fvector_5fspace_5fdescriptor_2ehpp_1334',['replicate_vector_space_descriptor.hpp',['../replicate__vector__space__descriptor_8hpp.html',1,'']]],
+  ['reshaped_2ehpp_1335',['Reshaped.hpp',['../Reshaped_8hpp.html',1,'']]],
+  ['reverse_2ehpp_1336',['Reverse.hpp',['../Reverse_8hpp.html',1,'']]],
+  ['reverse_5ffixed_5fvector_5fspace_5fdescriptor_2ehpp_1337',['reverse_fixed_vector_space_descriptor.hpp',['../reverse__fixed__vector__space__descriptor_8hpp.html',1,'']]]
 ];

@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['mean_464',['mean',['../namespace_open_kalman.html#a2745b3bfff7250ac8d9e0dc79902508c',1,'OpenKalman']]],
-  ['mu_465',['mu',['../struct_open_kalman_1_1_gaussian_distribution.html#a7a76400dfec28069879578eebec3cd10',1,'OpenKalman::GaussianDistribution']]]
+  ['less_5ffixed_5fthan_1338',['less_fixed_than',['../namespaceOpenKalman_1_1internal.html#a22f7a8daa8f3c006b00dd41ca4329a4c',1,'OpenKalman::internal']]],
+  ['linearized_5ffunction_1339',['linearized_function',['../namespaceOpenKalman.html#a530caeba987ecaa553e5b8430818ee20',1,'OpenKalman']]]
 ];

@@ -1,8 +1,9 @@
 var searchData=
 [
-  ['to_5fcovariance_5fnestable_2ehpp_356',['to_covariance_nestable.hpp',['../to__covariance__nestable_8hpp.html',1,'']]],
-  ['toeuclideanexpr_2ehpp_357',['ToEuclideanExpr.hpp',['../_to_euclidean_expr_8hpp.html',1,'']]],
-  ['traits_2ehpp_358',['traits.hpp',['../traits_8hpp.html',1,'']]],
-  ['transformations_2ehpp_359',['transformations.hpp',['../transformations_8hpp.html',1,'']]],
-  ['transforms_2ehpp_360',['transforms.hpp',['../transforms_8hpp.html',1,'']]]
+  ['object_2dtraits_2ddefined_2ehpp_1037',['object-traits-defined.hpp',['../object-traits-defined_8hpp.html',1,'']]],
+  ['object_2dtypes_2ehpp_1038',['object-types.hpp',['../object-types_8hpp.html',1,'']]],
+  ['one_5fdimensional_2ehpp_1039',['one_dimensional.hpp',['../one__dimensional_8hpp.html',1,'']]],
+  ['openkalman_2deigen3_2ehpp_1040',['OpenKalman-Eigen3.hpp',['../OpenKalman-Eigen3_8hpp.html',1,'']]],
+  ['openkalman_2ehpp_1041',['OpenKalman.hpp',['../OpenKalman_8hpp.html',1,'']]],
+  ['other_2dtraits_2ehpp_1042',['other-traits.hpp',['../other-traits_8hpp.html',1,'']]]
 ];

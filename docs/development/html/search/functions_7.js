@@ -1,5 +1,11 @@
 var searchData=
 [
-  ['jacobian_552',['jacobian',['../struct_open_kalman_1_1_identity_transformation.html#ad88e2351a1b0c63265391d709b1ae86c',1,'OpenKalman::IdentityTransformation']]],
-  ['join_553',['join',['../namespace_open_kalman_1_1internal.html#ab4c55d1d16722622d8e01a474f69faea',1,'OpenKalman::internal']]]
+  ['identity_1511',['Identity',['../structOpenKalman_1_1Eigen3_1_1EigenAdapterBase.html#ac4cc2b713f7e98e188442cef5d1174e3',1,'OpenKalman::Eigen3::EigenAdapterBase::Identity()'],['../structOpenKalman_1_1Eigen3_1_1EigenAdapterBase.html#a9a54aefaac1624b7a16f2013acda3bf6',1,'OpenKalman::Eigen3::EigenAdapterBase::Identity(const Index r, const Index c)']]],
+  ['index_5fto_5fscalar_5fconstant_1512',['index_to_scalar_constant',['../namespaceOpenKalman_1_1internal.html#a65a5e183d7f4469655bd68b1ab741f89',1,'OpenKalman::internal']]],
+  ['inverse_5fscale_1513',['inverse_scale',['../namespaceOpenKalman.html#aab8da59cacacdde8a92007912d373070',1,'OpenKalman']]],
+  ['is_5feuclidean_1514',['is_euclidean',['../structOpenKalman_1_1internal_1_1AnyAtomicVectorSpaceDescriptor.html#a1a999d9b6930e113dfab8699988d6ad9',1,'OpenKalman::internal::AnyAtomicVectorSpaceDescriptor::is_euclidean()'],['../structOpenKalman_1_1vector__space__descriptors_1_1dynamic__vector__space__descriptor__traits.html#adeab042f3d844f76ab1ea1ed369b7c8e',1,'OpenKalman::vector_space_descriptors::dynamic_vector_space_descriptor_traits::is_euclidean()']]],
+  ['is_5fone_5fdimensional_1515',['is_one_dimensional',['../namespaceOpenKalman.html#a1e0a0786d9c0a6ca9f3a2edc2fc89bed',1,'OpenKalman']]],
+  ['is_5fsquare_5fshaped_1516',['is_square_shaped',['../namespaceOpenKalman.html#ae863fa1c417402776c130e558369c6d4',1,'OpenKalman']]],
+  ['is_5funiform_5fcomponent_5fof_1517',['is_uniform_component_of',['../namespaceOpenKalman_1_1internal.html#abd563c31b65ad19e88361a50d3bc2834',1,'OpenKalman::internal::is_uniform_component_of(const A &amp;a, const C &amp;c)'],['../namespaceOpenKalman_1_1internal.html#a637f33a234e062d90535deee3939e798',1,'OpenKalman::internal::is_uniform_component_of(const A &amp;a, const DynamicDescriptor&lt; S... &gt; &amp;c)'],['../namespaceOpenKalman_1_1internal.html#addf8a3890d4e79906fee3007fad0d695',1,'OpenKalman::internal::is_uniform_component_of(const DynamicDescriptor&lt; T... &gt; &amp;a, const C &amp;c)'],['../namespaceOpenKalman_1_1internal.html#a536fa64e570739f58f06b1ea5049df94',1,'OpenKalman::internal::is_uniform_component_of(const DynamicDescriptor&lt; T... &gt; &amp;a, const DynamicDescriptor&lt; S... &gt; &amp;c)']]],
+  ['is_5fvector_1518',['is_vector',['../namespaceOpenKalman.html#a2f295961ec96698496f7ebbfd4de505e',1,'OpenKalman']]]
 ];

@@ -1,8 +1,8 @@
 var dir_8e165afbe38f450978dea55f275fdab2 =
 [
-    [ "CubaturePoints.hpp", "_cubature_points_8hpp.html", [
-      [ "OpenKalman::CubaturePoints", "struct_open_kalman_1_1_cubature_points.html", null ]
+    [ "CubaturePoints.hpp", "CubaturePoints_8hpp.html", [
+      [ "CubaturePoints", "structOpenKalman_1_1CubaturePoints.html", "structOpenKalman_1_1CubaturePoints" ]
     ] ],
-    [ "SphericalSimplex.hpp", "_spherical_simplex_8hpp.html", "_spherical_simplex_8hpp" ],
-    [ "Unscented.hpp", "_unscented_8hpp.html", "_unscented_8hpp" ]
+    [ "SphericalSimplex.hpp", "SphericalSimplex_8hpp.html", "SphericalSimplex_8hpp" ],
+    [ "Unscented.hpp", "Unscented_8hpp.html", "Unscented_8hpp" ]
 ];

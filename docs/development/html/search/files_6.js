@@ -1,4 +1,20 @@
 var searchData=
 [
-  ['gaussiandistribution_2ehpp_510',['GaussianDistribution.hpp',['../_gaussian_distribution_8hpp.html',1,'']]]
+  ['gaussiandistribution_2ehpp_1211',['GaussianDistribution.hpp',['../GaussianDistribution_8hpp.html',1,'']]],
+  ['get_5fchip_2ehpp_1212',['get_chip.hpp',['../get__chip_8hpp.html',1,'']]],
+  ['get_5fcomponent_2ehpp_1213',['get_component.hpp',['../get__component_8hpp.html',1,'']]],
+  ['get_5fdimension_5fsize_5fof_2ehpp_1214',['get_dimension_size_of.hpp',['../get__dimension__size__of_8hpp.html',1,'']]],
+  ['get_5feuclidean_5fdimension_5fsize_5fof_2ehpp_1215',['get_euclidean_dimension_size_of.hpp',['../get__euclidean__dimension__size__of_8hpp.html',1,'']]],
+  ['get_5findex_5fdimension_5fof_2ehpp_1216',['get_index_dimension_of.hpp',['../get__index__dimension__of_8hpp.html',1,'']]],
+  ['get_5freduced_5fvector_5fspace_5fdescriptor_2ehpp_1217',['get_reduced_vector_space_descriptor.hpp',['../get__reduced__vector__space__descriptor_8hpp.html',1,'']]],
+  ['get_5fscalar_5fconstant_5fvalue_2ehpp_1218',['get_scalar_constant_value.hpp',['../get__scalar__constant__value_8hpp.html',1,'']]],
+  ['get_5fsingular_5fcomponent_2ehpp_1219',['get_singular_component.hpp',['../get__singular__component_8hpp.html',1,'']]],
+  ['get_5fslice_2ehpp_1220',['get_slice.hpp',['../get__slice_8hpp.html',1,'']]],
+  ['get_5fvector_5fspace_5fdescriptor_2ehpp_1221',['get_vector_space_descriptor.hpp',['../get__vector__space__descriptor_8hpp.html',1,'']]],
+  ['get_5fvector_5fspace_5fdescriptor_5fcomponent_5fcount_5fof_2ehpp_1222',['get_vector_space_descriptor_component_count_of.hpp',['../get__vector__space__descriptor__component__count__of_8hpp.html',1,'']]],
+  ['get_5fvector_5fspace_5fdescriptor_5fis_5feuclidean_2ehpp_1223',['get_vector_space_descriptor_is_euclidean.hpp',['../get__vector__space__descriptor__is__euclidean_8hpp.html',1,'']]],
+  ['get_5fvector_5fspace_5fdescriptor_5fslice_2ehpp_1224',['get_vector_space_descriptor_slice.hpp',['../get__vector__space__descriptor__slice_8hpp.html',1,'']]],
+  ['get_5fwrappable_2ehpp_1225',['get_wrappable.hpp',['../get__wrappable_8hpp.html',1,'']]],
+  ['get_5fwrapped_5fcomponent_2ehpp_1226',['get_wrapped_component.hpp',['../get__wrapped__component_8hpp.html',1,'']]],
+  ['global_2ddefinitions_2ehpp_1227',['global-definitions.hpp',['../global-definitions_8hpp.html',1,'']]]
 ];

@@ -1,6 +1,15 @@
 var searchData=
 [
-  ['diagonal_5fmatrix_628',['diagonal_matrix',['../namespace_open_kalman.html#acda49202b6dd92195051ed9db5fcdcaf',1,'OpenKalman']]],
-  ['dimension_629',['dimension',['../struct_open_kalman_1_1_angle.html#a9b7bc2bb26bfb3ef9a632afbd4bb5f53',1,'OpenKalman::Angle::dimension()'],['../struct_open_kalman_1_1_axis.html#a78da33b4bb590bfba0e89eb96e9375d3',1,'OpenKalman::Axis::dimension()'],['../struct_open_kalman_1_1_coefficients_3_4.html#ab51302ec01440b085cbec75b94763bdd',1,'OpenKalman::Coefficients&lt;&gt;::dimension()'],['../struct_open_kalman_1_1_coefficients_3_01_c_00_01_cs_01_8_8_8_01_4.html#aaa9e890c98c43820ac4d08db6cbf132d',1,'OpenKalman::Coefficients&lt; C, Cs ... &gt;::dimension()'],['../struct_open_kalman_1_1_distance.html#a3946cfc5c97e5e9cf974fbcd0ef6542a',1,'OpenKalman::Distance::dimension()'],['../struct_open_kalman_1_1_inclination.html#a6309020e84f2efb2550d12f7b0047ae3',1,'OpenKalman::Inclination::dimension()'],['../struct_open_kalman_1_1internal_1_1_typed_matrix_base.html#a6f6927478466b2c2b407d1b1e597fed9',1,'OpenKalman::internal::TypedMatrixBase::dimension()']]],
-  ['distribution_630',['distribution',['../namespace_open_kalman.html#a80760930fc0db06999a2dce3dd4b53f0',1,'OpenKalman']]]
+  ['diagonal_5fadapter_1616',['diagonal_adapter',['../namespaceOpenKalman.html#a0f76b1d29292737f93f8ad1918b52e6e',1,'OpenKalman']]],
+  ['diagonal_5fmatrix_1617',['diagonal_matrix',['../namespaceOpenKalman.html#aabd606b45e391ddbb67fa785798b1a89',1,'OpenKalman']]],
+  ['dimension_5fsize_5fof_5findex_5fis_1618',['dimension_size_of_index_is',['../namespaceOpenKalman.html#acb4ff0c32c70ea24cfc42faaa4ae58d2',1,'OpenKalman']]],
+  ['dimension_5fsize_5fof_5fv_1619',['dimension_size_of_v',['../namespaceOpenKalman.html#a592e04b6d486227e1e469eaceae0e17a',1,'OpenKalman']]],
+  ['directly_5faccessible_1620',['directly_accessible',['../namespaceOpenKalman.html#a9d830f257cdd77081cdd30cb0cb60a43',1,'OpenKalman']]],
+  ['distance_5fvector_5fspace_5fdescriptor_1621',['distance_vector_space_descriptor',['../namespaceOpenKalman_1_1vector__space__descriptors.html#a947ab249f8f5f2429a536d30ec9a2f41',1,'OpenKalman::vector_space_descriptors']]],
+  ['distribution_1622',['distribution',['../namespaceOpenKalman.html#ae1fd1f9ea5bea9c8f9454beeb3898dc0',1,'OpenKalman']]],
+  ['dynamic_5fdifference_1623',['dynamic_difference',['../namespaceOpenKalman.html#a9cbebc790f8ee12c06f75126504fd1e2',1,'OpenKalman']]],
+  ['dynamic_5fdimension_1624',['dynamic_dimension',['../namespaceOpenKalman.html#a6e91b2f6875a87b261fa4929a5ab00c8',1,'OpenKalman']]],
+  ['dynamic_5findex_5fvalue_1625',['dynamic_index_value',['../namespaceOpenKalman.html#a04ca7c438cbddb3fd487e299c4d185ea',1,'OpenKalman']]],
+  ['dynamic_5fsize_1626',['dynamic_size',['../namespaceOpenKalman.html#a0f663d3bacbc3dc52fb0eb3c0412b514',1,'OpenKalman']]],
+  ['dynamic_5fvector_5fspace_5fdescriptor_1627',['dynamic_vector_space_descriptor',['../namespaceOpenKalman.html#a31eae8386d50ed98dc96326732ef9234',1,'OpenKalman']]]
 ];

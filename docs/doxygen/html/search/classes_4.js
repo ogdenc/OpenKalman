@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['fromeuclideanexpr_266',['FromEuclideanExpr',['../struct_open_kalman_1_1_eigen3_1_1_from_euclidean_expr.html',1,'OpenKalman::Eigen3']]]
+  ['hermitian_5fadapter_5ftype_5fof_735',['hermitian_adapter_type_of',['../structOpenKalman_1_1hermitian__adapter__type__of.html',1,'OpenKalman']]]
 ];

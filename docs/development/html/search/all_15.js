@@ -1,7 +1,27 @@
 var searchData=
 [
-  ['wrap_5fangles_334',['wrap_angles',['../namespace_open_kalman_1_1_eigen3.html#a8d390585998024a682e322f235c0c708',1,'OpenKalman::Eigen3']]],
-  ['wrap_5fget_335',['wrap_get',['../namespace_open_kalman_1_1internal.html#a1bb5189beb193b164ecd64555f77652f',1,'OpenKalman::internal']]],
-  ['wrap_5fset_336',['wrap_set',['../namespace_open_kalman_1_1internal.html#ad8998a156055ed41512ca22a174a1d58',1,'OpenKalman::internal']]],
-  ['wrapped_5fmean_337',['wrapped_mean',['../namespace_open_kalman.html#ae2d3de4ef2635e290fd9640db5721563',1,'OpenKalman']]]
+  ['values_2ehpp_845',['values.hpp',['../values_8hpp.html',1,'']]],
+  ['vector_846',['vector',['../namespaceOpenKalman.html#ab737b3bbdad3ee74c92a344a6a18c447',1,'OpenKalman']]],
+  ['vector_2dspace_2ddescriptor_2dfunctions_2ecpp_847',['vector-space-descriptor-functions.cpp',['../vector-space-descriptor-functions_8cpp.html',1,'']]],
+  ['vector_2dspace_2ddescriptors_2ecpp_848',['vector-space-descriptors.cpp',['../vector-space-descriptors_8cpp.html',1,'']]],
+  ['vector_2dspace_2ddescriptors_2ehpp_849',['vector-space-descriptors.hpp',['../vector-space-descriptors_8hpp.html',1,'']]],
+  ['vector_2ehpp_850',['vector.hpp',['../vector_8hpp.html',1,'']]],
+  ['vector_5fspace_5fadapter_851',['vector_space_adapter',['../namespaceOpenKalman_1_1internal.html#a4b6311f02a74889924a1b78bb289151c',1,'OpenKalman::internal']]],
+  ['vector_5fspace_5fcomponent_5fcount_852',['vector_space_component_count',['../structOpenKalman_1_1vector__space__component__count.html',1,'OpenKalman']]],
+  ['vector_5fspace_5fcomponent_5fcount_2ehpp_853',['vector_space_component_count.hpp',['../vector__space__component__count_8hpp.html',1,'']]],
+  ['vector_5fspace_5fcomponent_5fcount_5fv_854',['vector_space_component_count_v',['../namespaceOpenKalman.html#a4a2b1b4b09a3b012e95b054965dad682',1,'OpenKalman']]],
+  ['vector_5fspace_5fdescriptor_855',['vector_space_descriptor',['../namespaceOpenKalman.html#a6aa798b43668ea60705a78485a84a200',1,'OpenKalman']]],
+  ['vector_5fspace_5fdescriptor_2ehpp_856',['vector_space_descriptor.hpp',['../vector__space__descriptor_8hpp.html',1,'']]],
+  ['vector_5fspace_5fdescriptor_5fof_857',['vector_space_descriptor_of',['../structOpenKalman_1_1vector__space__descriptor__of.html',1,'OpenKalman']]],
+  ['vector_5fspace_5fdescriptor_5fof_2ehpp_858',['vector_space_descriptor_of.hpp',['../vector__space__descriptor__of_8hpp.html',1,'']]],
+  ['vector_5fspace_5fdescriptor_5fof_5ft_859',['vector_space_descriptor_of_t',['../namespaceOpenKalman.html#ad41181972b06178290c0a128453ed5ed',1,'OpenKalman']]],
+  ['vector_5fspace_5fdescriptors_5fmatch_860',['vector_space_descriptors_match',['../namespaceOpenKalman.html#a4a1397f4d7afcc945903cb94f2058064',1,'OpenKalman']]],
+  ['vector_5fspace_5fdescriptors_5fmatch_2ehpp_861',['vector_space_descriptors_match.hpp',['../vector__space__descriptors__match_8hpp.html',1,'']]],
+  ['vector_5fspace_5fdescriptors_5fmatch_5fwith_862',['vector_space_descriptors_match_with',['../namespaceOpenKalman.html#af06c81bf543e750616dc3cb2115885d8',1,'OpenKalman']]],
+  ['vector_5fspace_5fdescriptors_5fmatch_5fwith_2ehpp_863',['vector_space_descriptors_match_with.hpp',['../vector__space__descriptors__match__with_8hpp.html',1,'']]],
+  ['vector_5fspace_5fdescriptors_5fmay_5fmatch_5fwith_864',['vector_space_descriptors_may_match_with',['../namespaceOpenKalman.html#a71866768ca1d2b98352a34f58eac26a4',1,'OpenKalman']]],
+  ['vector_5fspace_5fdescriptors_5fmay_5fmatch_5fwith_2ehpp_865',['vector_space_descriptors_may_match_with.hpp',['../vector__space__descriptors__may__match__with_8hpp.html',1,'']]],
+  ['vectorblock_2ehpp_866',['VectorBlock.hpp',['../VectorBlock_8hpp.html',1,'']]],
+  ['vectorspaceadapter_2ehpp_867',['VectorSpaceAdapter.hpp',['../interfaces_2eigen-tensor_2native-traits_2VectorSpaceAdapter_8hpp.html',1,'(Global Namespace)'],['../interfaces_2eigen_2native-traits_2VectorSpaceAdapter_8hpp.html',1,'(Global Namespace)'],['../interfaces_2eigen_2native-evaluators_2VectorSpaceAdapter_8hpp.html',1,'(Global Namespace)'],['../adapters_2interfaces_2VectorSpaceAdapter_8hpp.html',1,'(Global Namespace)']]],
+  ['vectorwiseop_2ehpp_868',['VectorWiseOp.hpp',['../VectorWiseOp_8hpp.html',1,'']]]
 ];

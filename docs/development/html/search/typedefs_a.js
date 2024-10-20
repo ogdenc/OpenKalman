@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['take_0',['Take',['../struct_open_kalman_1_1_coefficients_3_4.html#addc310f5e4d9807958795808fb6f72f3',1,'OpenKalman::Coefficients&lt;&gt;::Take()'],['../struct_open_kalman_1_1_coefficients_3_01_c_00_01_cs_01_8_8_8_01_4.html#aace949e8dc70ee9c59afbaf1d7d3f14c',1,'OpenKalman::Coefficients&lt; C, Cs ... &gt;::Take()']]]
+  ['scalar_1750',['Scalar',['../structOpenKalman_1_1internal_1_1CovarianceImpl.html#a75807722a3bf5879701050b8c87c2ac2',1,'OpenKalman::internal::CovarianceImpl']]],
+  ['scalar_5ftype_5fof_5ft_1751',['scalar_type_of_t',['../namespaceOpenKalman.html#abecbd87443fa0938b5d8f10271761dce',1,'OpenKalman']]],
+  ['split_5fhead_5ftail_5ffixed_5ft_1752',['split_head_tail_fixed_t',['../namespaceOpenKalman_1_1internal.html#af0ba5899f343ce666da4e34bae46a42e',1,'OpenKalman::internal']]]
 ];

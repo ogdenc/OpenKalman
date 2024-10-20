@@ -1,6 +1,20 @@
 var searchData=
 [
-  ['angle_2ehpp_0',['Angle.hpp',['../_angle_8hpp.html',1,'']]],
-  ['artillery_2ecpp_1',['artillery.cpp',['../artillery_8cpp.html',1,'']]],
-  ['axis_2ehpp_2',['Axis.hpp',['../_axis_8hpp.html',1,'']]]
+  ['adapters_2darithmetic_2ehpp_831',['adapters-arithmetic.hpp',['../adapters-arithmetic_8hpp.html',1,'']]],
+  ['adapters_2dinterface_2ehpp_832',['adapters-interface.hpp',['../adapters-interface_8hpp.html',1,'']]],
+  ['adapters_2egtest_2ehpp_833',['adapters.gtest.hpp',['../adapters_8gtest_8hpp.html',1,'']]],
+  ['adapters_2ehpp_834',['adapters.hpp',['../adapters_8hpp.html',1,'']]],
+  ['adjoint_2ehpp_835',['adjoint.hpp',['../adjoint_8hpp.html',1,'']]],
+  ['all_5ffixed_5findices_5fare_5feuclidean_2ehpp_836',['all_fixed_indices_are_euclidean.hpp',['../all__fixed__indices__are__euclidean_8hpp.html',1,'']]],
+  ['all_5fvector_5fspace_5fdescriptors_2ehpp_837',['all_vector_space_descriptors.hpp',['../all__vector__space__descriptors_8hpp.html',1,'']]],
+  ['angle_2ehpp_838',['Angle.hpp',['../Angle_8hpp.html',1,'']]],
+  ['are_5fwithin_5ftolerance_2ehpp_839',['are_within_tolerance.hpp',['../are__within__tolerance_8hpp.html',1,'']]],
+  ['arithmetic_2doperators_2ehpp_840',['arithmetic-operators.hpp',['../arithmetic-operators_8hpp.html',1,'']]],
+  ['array_2ehpp_841',['Array.hpp',['../Array_8hpp.html',1,'']]],
+  ['arraywrapper_2ehpp_842',['ArrayWrapper.hpp',['../ArrayWrapper_8hpp.html',1,'']]],
+  ['artillery_2ecpp_843',['artillery.cpp',['../artillery_8cpp.html',1,'']]],
+  ['assign_2ehpp_844',['assign.hpp',['../assign_8hpp.html',1,'']]],
+  ['assignable_2ehpp_845',['assignable.hpp',['../assignable_8hpp.html',1,'']]],
+  ['atomic_5ffixed_5fvector_5fspace_5fdescriptor_2ehpp_846',['atomic_fixed_vector_space_descriptor.hpp',['../atomic__fixed__vector__space__descriptor_8hpp.html',1,'']]],
+  ['average_5freduce_2ehpp_847',['average_reduce.hpp',['../average__reduce_8hpp.html',1,'']]]
 ];

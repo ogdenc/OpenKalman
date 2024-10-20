@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['append_486',['Append',['../struct_open_kalman_1_1_coefficients_3_4.html#ab2bcf10ba8edbbf75c7aad6748892ae6',1,'OpenKalman::Coefficients&lt;&gt;::Append()'],['../struct_open_kalman_1_1_coefficients_3_01_c_00_01_cs_01_8_8_8_01_4.html#a77bd726aaae6984b922ee54b01c32a29',1,'OpenKalman::Coefficients&lt; C, Cs ... &gt;::Append()']]],
-  ['axes_487',['Axes',['../namespace_open_kalman.html#ad7fbe21f478b7b06ac97b6eb6f5967c3',1,'OpenKalman']]]
+  ['append_1376',['Append',['../structOpenKalman_1_1vector__space__descriptors_1_1FixedDescriptor.html#a27f9096a4d27f322df81906923bd3474',1,'OpenKalman::vector_space_descriptors::FixedDescriptor']]],
+  ['axis_1377',['Axis',['../namespaceOpenKalman_1_1vector__space__descriptors.html#ad493abd40cb8f785ad005b91f3b34058',1,'OpenKalman::vector_space_descriptors']]]
 ];

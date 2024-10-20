@@ -31,7 +31,7 @@ var NAVTREE =
       [ "Namespace List", "namespaces.html", "namespaces_dup" ],
       [ "Namespace Members", "namespacemembers.html", [
         [ "All", "namespacemembers.html", "namespacemembers_dup" ],
-        [ "Functions", "namespacemembers_func.html", null ],
+        [ "Functions", "namespacemembers_func.html", "namespacemembers_func" ],
         [ "Variables", "namespacemembers_vars.html", null ],
         [ "Typedefs", "namespacemembers_type.html", null ],
         [ "Enumerations", "namespacemembers_enum.html", null ]
@@ -42,29 +42,30 @@ var NAVTREE =
       [ "Class Index", "classes.html", null ],
       [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
       [ "Class Members", "functions.html", [
-        [ "All", "functions.html", "functions_dup" ],
-        [ "Functions", "functions_func.html", "functions_func" ],
+        [ "All", "functions.html", null ],
+        [ "Functions", "functions_func.html", null ],
         [ "Variables", "functions_vars.html", null ],
-        [ "Typedefs", "functions_type.html", null ]
+        [ "Typedefs", "functions_type.html", null ],
+        [ "Related Functions", "functions_rela.html", null ]
       ] ]
     ] ],
     [ "Files", "files.html", [
-      [ "File List", "files.html", "files_dup" ],
-      [ "Globals", "globals.html", [
-        [ "All", "globals.html", null ],
-        [ "Macros", "globals_defs.html", null ]
-      ] ]
+      [ "File List", "files.html", "files_dup" ]
     ] ]
   ] ]
 ];
 
 var NAVTREEINDEX =
 [
-"_angle_8hpp.html",
-"functions_func_j.html",
-"namespace_open_kalman_1_1angle.html#aae34d8777386110733617fcd3ec26631",
-"struct_open_kalman_1_1_euclidean_mean.html#a41231959c74bd40f1848e187f802c179",
-"struct_open_kalman_1_1internal_1_1_covariance_base_3_01_derived_00_01_nested_matrix_00_01std_1_140b10e2d94bdd984b10c5028cc94eb1a.html#ab57f7858bc263b8479ae2a719d90b8fd"
+"AdapterBase_8hpp.html",
+"TensorMap_8hpp_source.html",
+"default-overloads_8hpp.html",
+"forward-class-declarations_8hpp.html#a8bc30bf9b131fc1d4e0895845363541f",
+"linear-algebra_8test_8cpp_source.html",
+"namespaceOpenKalman.html#a76d1a2a695e2247ebce3e5ed48c4703b",
+"namespaceOpenKalman_1_1internal.html#ae3fa9448425ee25e526df70f18d65771",
+"split_8hpp_source.html",
+"structOpenKalman_1_1vector__space__descriptors_1_1dynamic__vector__space__descriptor__traits.html#a3a695e14e0e40434b0345ad07fec9982"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

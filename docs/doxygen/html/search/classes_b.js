@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['radians_297',['Radians',['../struct_open_kalman_1_1inclination_1_1limits_1_1_radians.html',1,'OpenKalman::inclination::limits::Radians&lt; Scalar &gt;'],['../struct_open_kalman_1_1angle_1_1limits_1_1_radians.html',1,'OpenKalman::angle::limits::Radians&lt; Scalar &gt;']]],
-  ['recursiveleastsquarestransform_298',['RecursiveLeastSquaresTransform',['../struct_open_kalman_1_1_recursive_least_squares_transform.html',1,'OpenKalman']]]
+  ['radianslimits_802',['RadiansLimits',['../structOpenKalman_1_1vector__space__descriptors_1_1angle_1_1RadiansLimits.html',1,'OpenKalman::vector_space_descriptors::angle::RadiansLimits&lt; Limits &gt;'],['../structOpenKalman_1_1vector__space__descriptors_1_1inclination_1_1RadiansLimits.html',1,'OpenKalman::vector_space_descriptors::inclination::RadiansLimits&lt; Limits &gt;']]],
+  ['recursiveleastsquarestransform_803',['RecursiveLeastSquaresTransform',['../structOpenKalman_1_1RecursiveLeastSquaresTransform.html',1,'OpenKalman']]],
+  ['remove_5frvalue_5freference_804',['remove_rvalue_reference',['../structOpenKalman_1_1internal_1_1remove__rvalue__reference.html',1,'OpenKalman::internal']]],
+  ['reverse_5ffixed_5fvector_5fspace_5fdescriptor_805',['reverse_fixed_vector_space_descriptor',['../structOpenKalman_1_1reverse__fixed__vector__space__descriptor.html',1,'OpenKalman']]]
 ];

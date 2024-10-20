@@ -1,7 +1,5 @@
 var searchData=
 [
-  ['zero_0',['Zero',['../struct_open_kalman_1_1_eigen3_1_1internal_1_1_eigen3_base.html#a51b2e731ddca8584668ef6eaabda97b0',1,'OpenKalman::Eigen3::internal::Eigen3Base']]],
-  ['zero_1',['zero',['../struct_open_kalman_1_1_eigen3_1_1internal_1_1_eigen3_base.html#a4654c1ba30e2acfc5491c3f9c885fbc4',1,'OpenKalman::Eigen3::internal::Eigen3Base::zero()'],['../struct_open_kalman_1_1internal_1_1_matrix_base.html#a256bfd0ebdf11afa3eea6d8647dc1874',1,'OpenKalman::internal::MatrixBase::zero()']]],
-  ['zero_5fhessian_2',['zero_hessian',['../namespace_open_kalman.html#a82c83df8efb22e49dd3e6f5ea119caef',1,'OpenKalman::zero_hessian()'],['../namespace_open_kalman.html#ac32f98e2f9ea9d21f58ac57b49ee011e',1,'OpenKalman::zero_hessian(In &amp;&amp;, Perturbations &amp;&amp;...)']]],
-  ['zeromatrix_3',['ZeroMatrix',['../namespace_open_kalman_1_1_eigen3.html#a6c5bccc557addd0936e673cf3fa81226',1,'OpenKalman::Eigen3']]]
+  ['zero_1590',['Zero',['../structOpenKalman_1_1Eigen3_1_1EigenAdapterBase.html#a7fb8e4e96ef9a4f17e895c8c0a90b4ca',1,'OpenKalman::Eigen3::EigenAdapterBase::Zero()'],['../structOpenKalman_1_1Eigen3_1_1EigenAdapterBase.html#a66afb291fd1a36bcd759e5355812cea5',1,'OpenKalman::Eigen3::EigenAdapterBase::Zero(const Index r, const Index c)']]],
+  ['zero_5fhessian_1591',['zero_hessian',['../namespaceOpenKalman.html#a82c83df8efb22e49dd3e6f5ea119caef',1,'OpenKalman::zero_hessian()'],['../namespaceOpenKalman.html#ac32f98e2f9ea9d21f58ac57b49ee011e',1,'OpenKalman::zero_hessian(In &amp;&amp;, Perturbations &amp;&amp;...)']]]
 ];

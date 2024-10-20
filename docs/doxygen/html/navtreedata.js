@@ -31,7 +31,7 @@ var NAVTREE =
       [ "Namespace List", "namespaces.html", "namespaces_dup" ],
       [ "Namespace Members", "namespacemembers.html", [
         [ "All", "namespacemembers.html", "namespacemembers_dup" ],
-        [ "Functions", "namespacemembers_func.html", null ],
+        [ "Functions", "namespacemembers_func.html", "namespacemembers_func" ],
         [ "Variables", "namespacemembers_vars.html", null ],
         [ "Typedefs", "namespacemembers_type.html", null ],
         [ "Enumerations", "namespacemembers_enum.html", null ]
@@ -42,8 +42,8 @@ var NAVTREE =
       [ "Class Index", "classes.html", null ],
       [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
       [ "Class Members", "functions.html", [
-        [ "All", "functions.html", "functions_dup" ],
-        [ "Functions", "functions_func.html", "functions_func" ],
+        [ "All", "functions.html", null ],
+        [ "Functions", "functions_func.html", null ],
         [ "Variables", "functions_vars.html", null ],
         [ "Typedefs", "functions_type.html", null ]
       ] ]
@@ -56,10 +56,14 @@ var NAVTREE =
 
 var NAVTREEINDEX =
 [
-"_angle_8hpp.html",
-"functions_h.html",
-"namespacemembers_o.html",
-"struct_open_kalman_1_1_gaussian_distribution.html#a7a76400dfec28069879578eebec3cd10"
+"",
+"VectorWiseOp_8hpp_source.html",
+"dir_1c0e3a596fedf5671906751962b188a3.html",
+"get__euclidean__dimension__size__of_8hpp.html#a570fd6d4fef957a9b29c64dc11ba5c63",
+"may__hold__components_8hpp.html",
+"namespaceOpenKalman.html#ac377108d3e0c6c35f2995db9adf16ec6",
+"rotation_83D_8cpp_source.html",
+"traits_8hpp_source.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

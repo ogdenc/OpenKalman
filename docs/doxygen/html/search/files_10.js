@@ -1,7 +1,19 @@
 var searchData=
 [
-  ['unscented_2ehpp_0',['Unscented.hpp',['../_unscented_8hpp.html',1,'']]],
-  ['ut_2e2x1_2ecpp_1',['UT.2x1.cpp',['../_u_t_82x1_8cpp.html',1,'']]],
-  ['ut_2e2x2_2ecpp_2',['UT.2x2.cpp',['../_u_t_82x2_8cpp.html',1,'']]],
-  ['utils_2ehpp_3',['utils.hpp',['../utils_8hpp.html',1,'']]]
+  ['radar_2ecpp_1051',['radar.cpp',['../radar_8cpp.html',1,'']]],
+  ['randomize_2ehpp_1052',['randomize.hpp',['../randomize_8hpp.html',1,'']]],
+  ['rank_2dupdate_2etest_2ecpp_1053',['rank-update.test.cpp',['../rank-update_8test_8cpp.html',1,'']]],
+  ['rank_5fupdate_5fhermitian_2ehpp_1054',['rank_update_hermitian.hpp',['../rank__update__hermitian_8hpp.html',1,'']]],
+  ['rank_5fupdate_5ftriangular_2ehpp_1055',['rank_update_triangular.hpp',['../rank__update__triangular_8hpp.html',1,'']]],
+  ['raw_5fdata_2ehpp_1056',['raw_data.hpp',['../raw__data_8hpp.html',1,'']]],
+  ['real_5faxis_5fnumber_2ehpp_1057',['real_axis_number.hpp',['../real__axis__number_8hpp.html',1,'']]],
+  ['recursiveleastsquarestransform_2ehpp_1058',['RecursiveLeastSquaresTransform.hpp',['../RecursiveLeastSquaresTransform_8hpp.html',1,'']]],
+  ['reduce_2ehpp_1059',['reduce.hpp',['../reduce_8hpp.html',1,'']]],
+  ['redux_2ehpp_1060',['redux.hpp',['../redux_8hpp.html',1,'']]],
+  ['ref_2ehpp_1061',['Ref.hpp',['../Ref_8hpp.html',1,'']]],
+  ['replicate_2ehpp_1062',['Replicate.hpp',['../Replicate_8hpp.html',1,'']]],
+  ['replicate_5ffixed_5fvector_5fspace_5fdescriptor_2ehpp_1063',['replicate_fixed_vector_space_descriptor.hpp',['../replicate__fixed__vector__space__descriptor_8hpp.html',1,'']]],
+  ['reshaped_2ehpp_1064',['Reshaped.hpp',['../Reshaped_8hpp.html',1,'']]],
+  ['reverse_2ehpp_1065',['Reverse.hpp',['../Reverse_8hpp.html',1,'']]],
+  ['reverse_5ffixed_5fvector_5fspace_5fdescriptor_2ehpp_1066',['reverse_fixed_vector_space_descriptor.hpp',['../reverse__fixed__vector__space__descriptor_8hpp.html',1,'']]]
 ];
