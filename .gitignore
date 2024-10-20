@@ -43,5 +43,5 @@ Makefile
 
 # Unversioned files
 .idea/
-/docs/doxygen
-/docs/development
+/docs/doxygen/html
+/docs/development/html
