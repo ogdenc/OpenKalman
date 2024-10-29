@@ -17,6 +17,8 @@
 #define OPENKALMAN_LIBRARY_INTERFACES_DEFINED_HPP
 
 #include <type_traits>
+#include <utility>
+#include "basics/global-definitions.hpp"
 
 
 namespace OpenKalman::interface
@@ -323,6 +325,84 @@ namespace OpenKalman::interface
 #endif
 
 
+  // -------------- //
+  //  to_euclidean  //
+  // -------------- //
+
+#ifdef __cpp_concepts
+  template<typename T, typename Arg>
+  concept to_euclidean_defined_for = requires (Arg arg) {
+      library_interface<std::decay_t<T>>::to_euclidean(std::forward<Arg>(arg));
+    };
+#else
+  namespace detail
+  {
+    template<typename T, typename Arg, typename = void>
+    struct to_euclidean_defined_for_impl: std::false_type {};
+
+    template<typename T, typename Arg>
+    struct to_euclidean_defined_for_impl<T, Arg, std::void_t<
+      decltype(library_interface<std::decay_t<T>>::to_euclidean(std::declval<Arg>()))>>
+      : std::true_type {};
+  }
+
+  template<typename T, typename Arg>
+  constexpr bool to_euclidean_defined_for = detail::to_euclidean_defined_for_impl<T, Arg>::value;
+#endif
+
+
+  // ---------------- //
+  //  from_euclidean  //
+  // ---------------- //
+
+#ifdef __cpp_concepts
+  template<typename T, typename Arg, typename V>
+  concept from_euclidean_defined_for = requires (Arg arg, V v) {
+      library_interface<std::decay_t<T>>::from_euclidean(std::forward<Arg>(arg), std::forward<V>(v));
+    };
+#else
+  namespace detail
+  {
+    template<typename T, typename Arg, typename V, typename = void>
+    struct from_euclidean_defined_for_impl: std::false_type {};
+
+    template<typename T, typename Arg, typename V>
+    struct from_euclidean_defined_for_impl<T, Arg, V, std::void_t<
+      decltype(library_interface<std::decay_t<T>>::from_euclidean(std::declval<Arg>(), std::declval<V>()))>>
+      : std::true_type {};
+  }
+
+  template<typename T, typename Arg, typename V>
+  constexpr bool from_euclidean_defined_for = detail::from_euclidean_defined_for_impl<T, Arg, V>::value;
+#endif
+
+
+  // ------------- //
+  //  wrap_angles  //
+  // ------------- //
+
+#ifdef __cpp_concepts
+  template<typename T, typename Arg>
+  concept wrap_angles_defined_for = requires (Arg arg) {
+      library_interface<std::decay_t<T>>::wrap_angles(std::forward<Arg>(arg));
+    };
+#else
+  namespace detail
+  {
+    template<typename T, typename Arg, typename = void>
+    struct wrap_angles_defined_for_impl: std::false_type {};
+
+    template<typename T, typename Arg>
+    struct wrap_angles_defined_for_impl<T, Arg, std::void_t<
+      decltype(library_interface<std::decay_t<T>>::wrap_angles(std::declval<Arg>()))>>
+      : std::true_type {};
+  }
+
+  template<typename T, typename Arg>
+  constexpr bool wrap_angles_defined_for = detail::wrap_angles_defined_for_impl<T, Arg>::value;
+#endif
+
+
   // ----------- //
   //  get_slice  //
   // ----------- //
@@ -528,84 +608,6 @@ namespace OpenKalman::interface
 
   template<typename T, typename BinaryFunction, typename Arg, std::size_t...indices>
   constexpr bool reduce_defined_for = detail::reduce_defined_for_impl<T, BinaryFunction, Arg, void, indices...>::value;
-#endif
-
-
-  // -------------- //
-  //  to_euclidean  //
-  // -------------- //
-
-#ifdef __cpp_concepts
-  template<typename T, typename Arg>
-  concept to_euclidean_defined_for = requires (Arg arg) {
-      library_interface<std::decay_t<T>>::to_euclidean(std::forward<Arg>(arg));
-    };
-#else
-  namespace detail
-  {
-    template<typename T, typename Arg, typename = void>
-    struct to_euclidean_defined_for_impl: std::false_type {};
-
-    template<typename T, typename Arg>
-    struct to_euclidean_defined_for_impl<T, Arg, std::void_t<
-      decltype(library_interface<std::decay_t<T>>::to_euclidean(std::declval<Arg>()))>>
-      : std::true_type {};
-  }
-
-  template<typename T, typename Arg>
-  constexpr bool to_euclidean_defined_for = detail::to_euclidean_defined_for_impl<T, Arg>::value;
-#endif
-
-
-  // ---------------- //
-  //  from_euclidean  //
-  // ---------------- //
-
-#ifdef __cpp_concepts
-  template<typename T, typename Arg, typename V>
-  concept from_euclidean_defined_for = requires (Arg arg, V v) {
-      library_interface<std::decay_t<T>>::from_euclidean(std::forward<Arg>(arg), std::forward<V>(v));
-    };
-#else
-  namespace detail
-  {
-    template<typename T, typename Arg, typename V, typename = void>
-    struct from_euclidean_defined_for_impl: std::false_type {};
-
-    template<typename T, typename Arg, typename V>
-    struct from_euclidean_defined_for_impl<T, Arg, V, std::void_t<
-      decltype(library_interface<std::decay_t<T>>::from_euclidean(std::declval<Arg>(), std::declval<V>()))>>
-      : std::true_type {};
-  }
-
-  template<typename T, typename Arg, typename V>
-  constexpr bool from_euclidean_defined_for = detail::from_euclidean_defined_for_impl<T, Arg, V>::value;
-#endif
-
-
-  // ------------- //
-  //  wrap_angles  //
-  // ------------- //
-
-#ifdef __cpp_concepts
-  template<typename T, typename Arg>
-  concept wrap_angles_defined_for = requires (Arg arg) {
-      library_interface<std::decay_t<T>>::wrap_angles(std::forward<Arg>(arg));
-    };
-#else
-  namespace detail
-  {
-    template<typename T, typename Arg, typename = void>
-    struct wrap_angles_defined_for_impl: std::false_type {};
-
-    template<typename T, typename Arg>
-    struct wrap_angles_defined_for_impl<T, Arg, std::void_t<
-      decltype(library_interface<std::decay_t<T>>::wrap_angles(std::declval<Arg>()))>>
-      : std::true_type {};
-  }
-
-  template<typename T, typename Arg>
-  constexpr bool wrap_angles_defined_for = detail::wrap_angles_defined_for_impl<T, Arg>::value;
 #endif
 
 

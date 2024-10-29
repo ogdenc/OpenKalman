@@ -19,6 +19,7 @@
 #include <type_traits>
 #include <tuple>
 #include <random>
+#include "interfaces/eigen/details/eigen-forward-declarations.hpp"
 
 namespace OpenKalman::interface
 {
@@ -461,6 +462,13 @@ namespace OpenKalman::interface
     }
 
 
+    // to_euclidean not defined--rely on default
+
+    // from_euclidean not defined--rely on default
+
+    // wrap_angles not defined--rely on default
+
+
 #ifdef __cpp_concepts
     template<typename Arg, typename...Begin, typename...Size> requires (sizeof...(Begin) <= 2)
 #else
@@ -880,12 +888,6 @@ namespace OpenKalman::interface
         return reduce<indices...>(std::forward<BinaryFunction>(b), to_native_matrix(std::forward<Arg>(arg)));
       }
     }
-
-    // to_euclidean not defined--rely on default
-
-    // from_euclidean not defined--rely on default
-
-    // wrap_angles not defined--rely on default
 
 
     template<typename Arg>

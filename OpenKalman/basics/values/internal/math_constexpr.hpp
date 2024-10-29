@@ -19,6 +19,8 @@
 #include <cstdint>
 #include <limits>
 #include <stdexcept>
+#include "basics/values/internal/make_complex_number.hpp"
+#include "basics/values/scalars/scalar_constant.hpp"
 
 
 #ifdef __cpp_lib_is_constant_evaluated

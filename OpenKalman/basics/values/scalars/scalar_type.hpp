@@ -16,7 +16,9 @@
 #ifndef OPENKALMAN_SCALAR_TYPE_HPP
 #define OPENKALMAN_SCALAR_TYPE_HPP
 
+#include <limits>
 #include <type_traits>
+#include "basics/values/scalars/complex_number.hpp"
 
 namespace OpenKalman
 {

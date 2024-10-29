@@ -12,15 +12,17 @@ project(OpenKalman
         DESCRIPTION "An open-source, heading-only library for Kalman filters and other recursive filters"
         LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 include_directories(${PROJECT_SOURCE_DIR}/OpenKalman)
 
 find_package(Threads)
 
-find_package(OpenMP)
-if(OpenMP_CXX_FOUND)
-  include_directories(SYSTEM ${OpenMP_CXX_INCLUDE_DIRS})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-endif()
+#find_package(OpenMP)
+#if(OpenMP_CXX_FOUND)
+#  include_directories(SYSTEM ${OpenMP_CXX_INCLUDE_DIRS})
+#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+#endif()
 
 #find_package(OpenCV REQUIRED)
 #include_directories(SYSTEM ${OPENCV_INCLUDE_DIRS})

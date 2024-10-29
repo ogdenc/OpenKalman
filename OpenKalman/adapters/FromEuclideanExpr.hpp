@@ -16,23 +16,25 @@
 #ifndef OPENKALMAN_FROMEUCLIDEANEXPR_HPP
 #define OPENKALMAN_FROMEUCLIDEANEXPR_HPP
 
+#include "basics/traits/traits.hpp"
+
 namespace OpenKalman
 {
 
 #ifdef __cpp_concepts
-  template<indexible NestedObject, vector_space_descriptor RowDescriptor> requires 
-    maybe_equivalent_to<vector_space_descriptor_of<NestedObject, 0>, Dimensions<euclidean_dimension_size_of_v<RowDescriptor>>>
+  template<has_untyped_index<0> NestedObject, vector_space_descriptor V0>
 #else
-  template<typename NestedObject, typename RowDescriptor>
+  template<typename NestedObject, typename V0>
 #endif
-  struct FromEuclideanExpr : internal::AdapterBase<FromEuclideanExpr<NestedObject, RowDescriptor>, NestedObject>
+  struct FromEuclideanExpr : internal::AdapterBase<FromEuclideanExpr<NestedObject, V0>, NestedObject>
   {
 
   private:
 
 #ifndef __cpp_concepts
-    static_assert(vector_space_descriptor<RowDescriptor>);
-    static_assert(maybe_equivalent_to<vector_space_descriptor_of<NestedObject, 0>, Dimensions<euclidean_dimension_size_of_v<RowDescriptor>>>);
+    static_assert(indexible<NestedObject>);
+    static_assert(vector_space_descriptor<V0>);
+    static_assert(has_untyped_index<NestedObject, 0>);
 #endif
 
     using Scalar = scalar_type_of_t<NestedObject>;
@@ -45,238 +47,64 @@ namespace OpenKalman
      * \brief Default constructor.
      */
 #ifdef __cpp_concepts
-    constexpr FromEuclideanExpr() requires std::default_initializable<Base> and fixed_vector_space_descriptor<RowDescriptor>
+    constexpr FromEuclideanExpr() requires std::default_initializable<Base> and fixed_vector_space_descriptor<V0>
 #else
-    template<typename B = Base, std::enable_if_t<
-      std::is_default_constructible_v<B> and fixed_vector_space_descriptor<RowDescriptor>, int> = 0>
+    template<typename B = Base, std::enable_if_t<std::is_default_constructible_v<B> and fixed_vector_space_descriptor<V0>, int> = 0>
     constexpr FromEuclideanExpr()
 #endif
     {}
 
 
     /**
-     * Convert from a compatible from-euclidean expression.
+     * Construct from a compatible \ref indexible object.
      */
 #ifdef __cpp_concepts
-    template<from_euclidean_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, FromEuclideanExpr>) and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor> and
-      std::constructible_from<NestedObject, decltype(nested_object(std::declval<Arg&&>()))>
-      //alt: requires(Arg&& arg) { NestedObject {nested_object(std::forward<Arg>(arg))}; } -- not accepted in GCC 10
+    template<indexible Arg, vector_space_descriptor D0> requires
+      std::constructible_from<NestedObject, Arg&&> and std::constructible_from<std::decay_t<V0>, D0>
 #else
-    template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg> and
-      (not std::is_base_of_v<FromEuclideanExpr, std::decay_t<Arg>>) and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor> and
-      std::is_constructible_v<NestedObject, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
+    template<typename Arg, typename D0, std::enable_if_t<indexible<Arg> and vector_space_descriptor<C> and
+      std::is_constructible_v<NestedObject, Arg&&> and std::is_constructible_v<std::decay_t<V0>, D0>, int> = 0>
 #endif
-    FromEuclideanExpr(Arg&& arg) : Base {nested_object(std::forward<Arg>(arg))} {}
+    explicit FromEuclideanExpr(Arg&& arg, const D0& d0) : Base {std::forward<Arg>(arg)}, vector_space_descriptor_index_0{d0} {}
 
 
     /**
-     * Construct from a compatible to-euclidean expression.
+     * Construct from a compatible \ref indexible object if the vector space descriptor of index 0 is fixed.
      */
 #ifdef __cpp_concepts
-    template<to_euclidean_expr Arg> requires equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor> and
-      std::constructible_from<NestedObject, Arg&&>
+    template<indexible Arg> requires std::constructible_from<NestedObject, Arg&&> and fixed_index_descriptor<V0>
 #else
-    template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor> and
-      std::is_constructible_v<NestedObject, Arg&&>, int> = 0>
-#endif
-    explicit FromEuclideanExpr(Arg&& other) : Base {std::forward<Arg>(other)} {}
-
-
-    /**
-     * Construct from compatible matrix object.
-     */
-#ifdef __cpp_concepts
-    template<indexible Arg> requires (not euclidean_expr<Arg>) and std::constructible_from<NestedObject, Arg&&>
-#else
-    template<typename Arg, std::enable_if_t<indexible<Arg> and (not euclidean_expr<Arg>) and
-      std::is_constructible_v<NestedObject, Arg&&>, int> = 0>
+    template<typename Arg, typename D0, std::enable_if_t<indexible<Arg> and
+      std::is_constructible_v<NestedObject, Arg&&> and fixed_index_descriptor<V0>, int> = 0>
 #endif
     explicit FromEuclideanExpr(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
 
-    /// Construct from compatible matrix object and a \ref vector_space_descriptor object.
-#ifdef __cpp_concepts
-    template<indexible Arg, vector_space_descriptor C> requires (not euclidean_expr<Arg>) and
-      std::constructible_from<NestedObject, Arg&&> and
-      (dynamic_vector_space_descriptor<C> or dynamic_vector_space_descriptor<RowDescriptor> or equivalent_to<C, RowDescriptor>)
-#else
-    template<typename Arg, typename C, std::enable_if_t<indexible<Arg> and vector_space_descriptor<C> and
-      (not euclidean_expr<Arg>) and std::is_constructible_v<NestedObject, Arg&&> and
-      (dynamic_vector_space_descriptor<C> or dynamic_vector_space_descriptor<RowDescriptor> or equivalent_to<C, RowDescriptor>), int> = 0>
-#endif
-    explicit FromEuclideanExpr(Arg&& arg, const RowDescriptor& c) : Base {std::forward<Arg>(arg), c} {}
-
-
-#ifndef __cpp_concepts
     /**
-     * /brief Construct from a list of coefficients.
-     * /note If c++ concepts are available, this functionality is inherited from the base class.
-     */
-    template<typename ... Args, std::enable_if_t<std::conjunction_v<std::is_convertible<Args, const Scalar>...> and
-      sizeof...(Args) == columns *
-        (to_euclidean_expr<NestedObject> ? dimension_size_of_v<RowDescriptor> : euclidean_dimension_size_of_v<RowDescriptor>), int> = 0>
-    FromEuclideanExpr(Args ... args) : Base {make_dense_object_from<NestedObject>(static_cast<const Scalar>(args)...)} {}
-#endif
-
-
-    /**
-     * Assign from a compatible from-Euclidean expression.
+     * Assign from a compatible \ref indexible object.
      */
 #ifdef __cpp_concepts
-    template<from_euclidean_expr Arg> requires (not std::derived_from<std::decay_t<Arg>, FromEuclideanExpr>) and
-      (equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor>) and
-      (index_dimension_of_v<Arg, 1> == columns) and std::assignable_from<std::add_lvalue_reference_t<NestedObject>, nested_object_of_t<Arg&&>>
+    template<indexible Arg> requires (not std::is_base_of_v<FromEuclideanExpr, std::decay_t<Arg>>) and
+      std::assignable_from<std::add_lvalue_reference_t<NestedObject>, decltype(to_euclidean(std::declval<Arg&&>()))>
 #else
-    template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg> and
-      (not std::is_base_of_v<FromEuclideanExpr, std::decay_t<Arg>>) and
-      (equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor>) and
-      (index_dimension_of<Arg, 1>::value == columns) and
-      std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, nested_object_of_t<Arg&&>>, int> = 0>
+    template<typename Arg, std::enable_if_t<indexible<Arg> and (not std::is_base_of_v<ToEuclideanExpr, std::decay_t<Arg>>) and
+      std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, decltype(to_euclidean(std::declval<Arg&&>()))>, int> = 0>
 #endif
     auto& operator=(Arg&& arg)
     {
-      if constexpr (not zero<NestedObject> and not identity_matrix<NestedObject>)
-      {
-        this->nested_object() = nested_object(std::forward<Arg>(arg));
-      }
-      return *this;
-    }
-
-
-    /**
-     * Assign from a general Eigen matrix.
-     */
-#ifdef __cpp_concepts
-    template<indexible Arg> requires (not euclidean_expr<Arg>) and
-      (index_dimension_of_v<Arg, 0> == dimension_size_of_v<RowDescriptor>) and (index_dimension_of_v<Arg, 1> == columns) and
-      std::assignable_from<std::add_lvalue_reference_t<NestedObject>, decltype(to_euclidean<RowDescriptor>(std::declval<Arg&&>()))>
-#else
-    template<typename Arg, std::enable_if_t<indexible<Arg> and (not euclidean_expr<Arg>) and
-      (index_dimension_of<Arg, 0>::value == dimension_size_of_v<RowDescriptor>) and (index_dimension_of<Arg, 1>::value == columns) and
-      std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, decltype(to_euclidean<RowDescriptor>(std::declval<Arg&&>()))>, int> = 0>
-#endif
-    auto& operator=(Arg&& arg)
-    {
-      if constexpr (not zero<NestedObject> and not identity_matrix<NestedObject>)
-      {
-        this->nested_object() = to_euclidean<RowDescriptor>(std::forward<Arg>(arg));
-      }
-      return *this;
-    }
-
-  private:
-
-    template<typename Arg>
-    static auto to_euclidean_noalias(Arg&& arg)
-    {
-      if constexpr (euclidean_dimension_size_of_v<RowDescriptor> > dimension_size_of_v<RowDescriptor>)
-        return to_dense_object(to_euclidean<RowDescriptor>(std::forward<Arg>(arg))); //< Prevent aliasing
+      using TArg = decltype(to_euclidean(std::declval<Arg>()));
+      if constexpr ((zero<NestedObject> and zero<TArg>) or (identity_matrix<NestedObject> and identity_matrix<TArg>))
+      {}
       else
-        return to_euclidean<RowDescriptor>(std::forward<Arg>(arg));
-    }
-
-  public:
-
-    /// Increment from another \ref from_euclidean_expr.
-#ifdef __cpp_concepts
-    template<from_euclidean_expr Arg> requires (index_dimension_of_v<Arg, 1> == columns) and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor>
-#else
-    template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg> and (index_dimension_of<Arg, 1>::value == columns) and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor>, int> = 0>
-#endif
-    auto& operator+=(const Arg& arg)
-    {
-      this->nested_object() = to_euclidean_noalias(*this + arg);
+      {
+        this->nested_object() = to_euclidean(std::forward<Arg>(arg));
+      }
       return *this;
     }
-
-
-    /// Increment from another \ref matrix.
-#ifdef __cpp_concepts
-    template<indexible Arg> requires (not euclidean_expr<Arg>) and (index_dimension_of_v<Arg, 1> == columns) and
-      (index_dimension_of_v<Arg, 0> == dimension_size_of_v<RowDescriptor>)
-#else
-    template<typename Arg, std::enable_if_t<indexible<Arg> and (not euclidean_expr<Arg>) and
-      (index_dimension_of<Arg, 1>::value == columns) and
-      (index_dimension_of<Arg, 0>::value == dimension_size_of_v<RowDescriptor>), int> = 0>
-#endif
-    auto& operator+=(const Arg& arg)
-    {
-      this->nested_object() = to_euclidean_noalias(*this + arg);
-      return *this;
-    }
-
-
-    /// Decrement from another \ref from_euclidean_expr.
-#ifdef __cpp_concepts
-    template<from_euclidean_expr Arg> requires (index_dimension_of_v<Arg, 1> == columns) and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor>
-#else
-    template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg> and (index_dimension_of<Arg, 1>::value == columns) and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowDescriptor>, int> = 0>
-#endif
-    auto& operator-=(const Arg& arg)
-    {
-      this->nested_object() = to_euclidean_noalias(*this - arg);
-      return *this;
-    }
-
-
-    /// Decrement from another \ref matrix.
-#ifdef __cpp_concepts
-    template<indexible Arg> requires (not euclidean_expr<Arg>) and (index_dimension_of_v<Arg, 1> == columns) and
-      (index_dimension_of_v<Arg, 0> == dimension_size_of_v<RowDescriptor>)
-#else
-    template<typename Arg, std::enable_if_t<indexible<Arg> and (not euclidean_expr<Arg>) and
-      (index_dimension_of<Arg, 1>::value == columns) and
-      (index_dimension_of<Arg, 0>::value == dimension_size_of_v<RowDescriptor>), int> = 0>
-#endif
-    auto& operator-=(const Arg& arg)
-    {
-      this->nested_object() = to_euclidean_noalias(*this - arg);
-      return *this;
-    }
-
-
-    /**
-     * Multiply by a scale factor.
-     * \param scale The scale factor.
-     */
-#ifdef __cpp_concepts
-    template<std::convertible_to<Scalar> S>
-#else
-    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
-#endif
-    auto& operator*=(const S scale)
-    {
-      this->nested_object() = to_euclidean_noalias(scalar_product(*this, scale));
-      return *this;
-    }
-
-
-    /**
-     * Divide by a scale factor.
-     * \param scale The scale factor.
-     */
-#ifdef __cpp_concepts
-    template<std::convertible_to<Scalar> S>
-#else
-    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
-#endif
-    auto& operator/=(const S scale)
-    {
-      this->nested_object() = to_euclidean_noalias(scalar_quotient(*this, scale));
-      return *this;
-    }
-
 
   protected:
 
-    std::decay_t<RowDescriptor> row_descriptor;
+    std::decay_t<V0> vector_space_descriptor_index_0;
 
     friend struct interface::indexible_object_traits<VectorSpaceAdapter>;
     friend struct interface::library_interface<VectorSpaceAdapter>;
@@ -284,16 +112,16 @@ namespace OpenKalman
   }; // struct FromEuclideanExpr
 
 
-  // ------------------------------- //
-  //        Deduction Guides         //
-  // ------------------------------- //
+  // ------------------------------ //
+  //        Deduction Guide         //
+  // ------------------------------ //
 
 #ifdef __cpp_concepts
-  template<indexible Arg, vector_space_descriptor C>
+  template<indexible Arg, vector_space_descriptor V>
 #else
-  template<typename Arg, typename C, std::enable_if_t<indexible<Arg> and vector_space_descriptor<C>, int> = 0>
+  template<typename Arg, typename V, std::enable_if_t<indexible<Arg> and vector_space_descriptor<V>, int> = 0>
 #endif
-  FromEuclideanExpr(Arg&&, const C&) -> FromEuclideanExpr<C, passable_t<Arg>>;
+  FromEuclideanExpr(Arg&&, const V&) -> FromEuclideanExpr<Arg, V>;
 
 
   // ------------------------- //
@@ -302,8 +130,13 @@ namespace OpenKalman
 
   namespace interface
   {
-    template<typename RowDescriptor, typename NestedObject>
-    struct indexible_object_traits<FromEuclideanExpr<RowDescriptor, NestedObject>>
+
+    // --------------------------- //
+    //   indexible_object_traits   //
+    // --------------------------- //
+
+    template<typename NestedObject, typename V0>
+    struct indexible_object_traits<FromEuclideanExpr<NestedObject, V0>>
     {
       using scalar_type = scalar_type_of_t<NestedObject>;
 
@@ -313,146 +146,417 @@ namespace OpenKalman
 
 
       template<typename Arg, typename N>
-      static constexpr auto get_vector_space_descriptor(Arg&& arg, N n)
+      static constexpr auto
+      get_vector_space_descriptor(Arg&& arg, const N& n)
       {
         if constexpr (static_index_value<N>)
         {
-          if constexpr (n == 0_uz) return std::forward<Arg>(arg).my_dimension;
+          if constexpr (n == 0_uz) return std::forward<Arg>(arg).vector_space_descriptor_index_0;
           else return OpenKalman::get_vector_space_descriptor(nested_object(std::forward<Arg>(arg)), n);
         }
         else
         {
-          using Scalar = scalar_type_of<Arg>;
-          if (n == 0) return DynamicDescriptor<Scalar> {std::forward<Arg>(arg).my_dimension};
-          else return DynamicDescriptor<Scalar> {OpenKalman::get_vector_space_descriptor(nested_object(std::forward<Arg>(arg)), n)};
+          using Desc = DynamicDescriptor<scalar_type_of<Arg>>;
+          if (n == 0) return Desc {std::forward<Arg>(arg).vector_space_descriptor_index_0};
+          else return Desc {OpenKalman::get_vector_space_descriptor(nested_object(std::forward<Arg>(arg)), n)};
         }
       }
 
 
       template<typename Arg>
-      static decltype(auto) nested_object(Arg&& arg)
+      static decltype(auto)
+      nested_object(Arg&& arg)
       {
         return std::forward<Arg>(arg).nested_object();
       }
 
 
       template<typename Arg>
-      static constexpr auto get_constant(const Arg& arg)
+      static constexpr auto
+      get_constant(const Arg& arg)
       {
-        if constexpr (euclidean_vector_space_descriptor<NestedObject>)
-          return constant_coefficient{arg.nestedExpression()};
+        if constexpr (euclidean_vector_space_descriptor<V0>)
+          return constant_coefficient {arg.nested_object()};
         else
           return std::monostate {};
       }
 
 
       template<typename Arg>
-      static constexpr auto get_constant_diagonal(const Arg& arg)
+      static constexpr auto
+      get_constant_diagonal(const Arg& arg)
       {
-        if constexpr (euclidean_vector_space_descriptor<NestedObject>)
-          return constant_diagonal_coefficient {arg.nestedExpression()};
+        if constexpr (euclidean_vector_space_descriptor<V0>)
+          return constant_diagonal_coefficient {arg.nested_object()};
         else
           return std::monostate {};
       }
 
 
       template<Qualification b>
-      static constexpr bool one_dimensional = euclidean_vector_space_descriptor<RowDescriptor> and OpenKalman::one_dimensional<NestedObject, b>;
+      static constexpr bool
+      one_dimensional = euclidean_vector_space_descriptor<V0> and OpenKalman::one_dimensional<NestedObject, b>;
+
+
+      template<Qualification b>
+      static constexpr bool
+      is_square = euclidean_vector_space_descriptor<V0> and square_shaped<NestedObject, b>;
 
 
       template<TriangleType t>
-      static constexpr bool is_triangular = euclidean_vector_space_descriptor<RowDescriptor> and triangular_matrix<NestedObject, t>;
+      static constexpr bool
+      is_triangular = euclidean_vector_space_descriptor<V0> and triangular_matrix<NestedObject, t>;
 
 
-      static constexpr bool is_triangular_adapter = false;
+      static constexpr bool
+      is_triangular_adapter = false;
 
 
-      static constexpr bool is_hermitian = hermitian_matrix<NestedObject> and euclidean_vector_space_descriptor<RowDescriptor>;
+      static constexpr bool
+      is_hermitian = euclidean_vector_space_descriptor<V0> and hermitian_matrix<NestedObject>;
 
 
-  #ifdef __cpp_lib_concepts
-      template<typename Arg, typename I, typename...Is> requires element_gettable<nested_object_of_t<Arg&&>, 1 + sizeof...(Is)>
-  #else
-      template<typename Arg, typename I, typename...Is, std::enable_if_t<element_gettable<typename nested_object_of<Arg&&>::type, 1 + sizeof...(Is)>, int> = 0>
-  #endif
-      static constexpr auto get(Arg&& arg, I i, Is...is)
-      {
-        if constexpr (has_untyped_index<Arg, 0>)
-        {
-          if constexpr (to_euclidean_expr<nested_object_of_t<Arg>>)
-            return get_component(OpenKalman::nested_object(nested_object(std::forward<Arg>(arg))), i, is...);
-          else
-            return get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), i, is...);
-        }
-        else
-        {
-          auto g {[&arg, is...](std::size_t ix) { return get_component(nested_object(std::forward<Arg>(arg)), ix, is...); }};
-          if constexpr (to_euclidean_expr<nested_object_of_t<Arg>>)
-            return get_wrapped_component(get_vector_space_descriptor<0>(arg), g, i, 0);
-          else
-            return from_euclidean_element(get_vector_space_descriptor<0>(arg), g, i, 0);
-        }
-      }
-
-
-      /**
-       * \internal
-       * \brief Set element (i, j) of arg in FromEuclideanExpr(ToEuclideanExpr(arg)) to s.
-       * \details This function sets the nested matrix, not the wrapped resulting matrix.
-       * For example, if the coefficient is Polar<Distance, angle::Radians> and the initial value of a
-       * single-column vector is {-1., pi/2}, then set_component(arg, pi/4, 1, 0) will replace p/2 with pi/4 to
-       * yield {-1., pi/4} in the nested matrix. The resulting wrapped expression will yield {1., -3*pi/4}.
-       * \tparam Arg The matrix to set.
-       * \tparam Scalar The value to set the coefficient to.
-       * \param i The row of the coefficient.
-       * \param j The column of the coefficient.
-       */
-  #ifdef __cpp_lib_concepts
-      template<typename Arg, typename I, typename...Is> requires element_gettable<nested_object_of_t<Arg&>, 1 + sizeof...(Is)> and
-        (has_untyped_index<Arg, 0> or (from_euclidean_expr<Arg> and to_euclidean_expr<nested_object_of_t<Arg>>))
-  #else
-      template<typename Arg, typename I, typename...Is, std::enable_if_t<
-        element_gettable<typename nested_object_of<Arg&>::type, 1 + sizeof...(Is)> and
-        (has_untyped_index<Arg, 0> or (from_euclidean_expr<Arg> and to_euclidean_expr<nested_object_of_t<Arg>>)), int> = 0>
-  #endif
-      static constexpr void set(Arg& arg, const scalar_type_of_t<Arg>& s, I i, Is...is)
-      {
-        if constexpr (has_untyped_index<Arg, 0>)
-        {
-          set_component(nested_object(nested_object(arg)), s, i, is...);
-        }
-        else if constexpr (to_euclidean_expr<nested_object_of_t<Arg>>)
-        {
-          auto s {[&arg, is...](const scalar_type_of_t<Arg>& x, std::size_t i) {
-            return set_component(nested_object(nested_object(arg)), x, i, is...);
-          }};
-          auto g {[&arg, is...](std::size_t ix) {
-            return get_component(nested_object(nested_object(arg)), ix, is...);
-          }};
-          set_wrapped_component(get_vector_space_descriptor<0>(arg), s, g, s, i, 0);
-        }
-        else
-        {
-          set_component(nested_object(arg), s, i, is...);
-        }
-      }
+    // hermitian_adapter_type is omitted
 
 
       static constexpr bool is_writable = false;
 
 
 #ifdef __cpp_lib_concepts
-      template<typename Arg> requires has_untyped_index<Arg, 0> and raw_data_defined_for<nested_object_of_t<Arg&>>
+      template<typename Arg> requires euclidean_vector_space_descriptor<V0> and raw_data_defined_for<nested_object_of_t<Arg&>>
 #else
-      template<typename Arg, std::enable_if_t<has_untyped_index<Arg, 0> and raw_data_defined_for<typename nested_object_of<Arg&>::type>, int> = 0>
+      template<typename Arg, std::enable_if_t<euclidean_vector_space_descriptor<V0> and raw_data_defined_for<typename nested_object_of<Arg&>::type>, int> = 0>
 #endif
       static constexpr auto * const
-      raw_data(Arg& arg) { return internal::raw_data(nested_object(arg)); }
+      raw_data(Arg& arg)
+      {
+        return internal::raw_data(nested_object(arg));
+      }
 
 
-      static constexpr Layout layout = euclidean_vector_space_descriptor<RowDescriptor> ? layout_of_v<NestedObject> : Layout::none;
+      static constexpr Layout
+      layout = euclidean_vector_space_descriptor<V0> ? layout_of_v<NestedObject> : Layout::none;
+
+
+#ifdef __cpp_concepts
+      template<typename Arg> requires (layout != Layout::none)
+#else
+      template<Layout l = layout, typename Arg, std::enable_if_t<l != Layout::none, int> = 0>
+#endif
+      static auto
+      strides(Arg&& arg)
+      {
+        return OpenKalman::internal::strides(OpenKalman::nested_object(std::forward<Arg>(arg)));
+      }
 
     };
+
+
+    // --------------------- //
+    //   library_interface   //
+    // --------------------- //
+
+    template<typename NestedObject, typename V0>
+    struct library_interface<FromEuclideanExpr<NestedObject, V0>>
+    {
+    private:
+
+      using NestedInterface = library_interface<NestedObject>;
+
+    public:
+
+      template<typename Derived>
+      using LibraryBase = internal::library_base_t<Derived, pattern_matrix_of_t<T>>;
+
+
+#ifdef __cpp_lib_ranges
+      template<indexible Arg, std::ranges::input_range Indices> requires index_value<std::ranges::range_value_t<Indices>>
+      static constexpr scalar_constant decltype(auto)
+#else
+      template<typename Arg, typename Indices>
+      static constexpr decltype(auto)
+#endif
+      get_component(Arg&& arg, const Indices& indices)
+      {
+        if constexpr (euclidean_vector_space_descriptor<V0>)
+          {
+            if constexpr (to_euclidean_expr<nested_object_of_t<Arg>>)
+              return get_component(OpenKalman::nested_object(nested_object(std::forward<Arg>(arg))), i, is...);
+            else
+              return NestedInterface::get_component(nested_object(std::forward<Arg>(arg)), indices);
+          }
+          else
+          {
+            auto g {[&arg, is...](std::size_t ix) { return get_component(nested_object(std::forward<Arg>(arg)), ix, is...); }};
+            if constexpr (to_euclidean_expr<nested_object_of_t<Arg>>)
+              return get_wrapped_component(get_vector_space_descriptor<0>(arg), g, i, 0);
+            else
+              return from_euclidean_element(get_vector_space_descriptor<0>(arg), g, i, 0);
+          }
+      }
+
+
+#ifdef __cpp_lib_ranges
+      template<indexible Arg, std::ranges::input_range Indices> requires index_value<std::ranges::range_value_t<Indices>>
+#else
+      template<typename Arg, typename Indices>
+#endif
+      static void
+      set_component(Arg& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
+      {
+        if constexpr (has_untyped_index<Arg, 0>)
+          {
+            set_component(nested_object(nested_object(arg)), s, i, is...);
+          }
+          else if constexpr (to_euclidean_expr<nested_object_of_t<Arg>>)
+          {
+            auto s {[&arg, is...](const scalar_type_of_t<Arg>& x, std::size_t i) {
+              return set_component(nested_object(nested_object(arg)), x, i, is...);
+            }};
+            auto g {[&arg, is...](std::size_t ix) {
+              return get_component(nested_object(nested_object(arg)), ix, is...);
+            }};
+            set_wrapped_component(get_vector_space_descriptor<0>(arg), s, g, s, i, 0);
+          }
+          else
+          {
+            set_component(nested_object(arg), s, i, is...);
+          }
+      }
+
+
+      template<typename Arg>
+      static decltype(auto) to_native_matrix(Arg&& arg)
+      {
+        return OpenKalman::to_native_matrix<nested_object_of_t<Arg>>(std::forward<Arg>(arg));
+      }
+
+
+      template<Layout layout, typename Scalar, typename...D>
+      static auto make_default(D&&...d)
+      {
+        return make_dense_object<nested_object_of_t<T>, layout, Scalar>(std::forward<D>(d)...);
+      }
+
+
+      // fill_components not necessary because T is not a dense writable matrix.
+
+
+      template<typename C, typename...D>
+      static constexpr auto make_constant(C&& c, D&&...d)
+      {
+        return make_constant<nested_object_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
+      }
+
+
+      template<typename Scalar, typename...D>
+      static constexpr auto make_identity_matrix(D&&...d)
+      {
+        return make_identity_matrix_like<nested_object_of_t<T>, Scalar>(std::forward<D>(d)...);
+      }
+
+
+      // get_slice
+
+
+      // set_slice
+
+
+      template<typename Arg>
+      static auto
+      to_diagonal(Arg&& arg)
+      {
+        if constexpr( has_untyped_index<Arg, 0>)
+        {
+          return to_diagonal(nested_object(std::forward<Arg>(arg)));
+        }
+        else
+        {
+          using P = pattern_matrix_of_t<T>;
+          return library_interface<P>::to_diagonal(to_native_matrix<P>(std::forward<Arg>(arg)));
+        }
+      }
+
+
+      template<typename Arg>
+      static auto
+      diagonal_of(Arg&& arg)
+      {
+        if constexpr(has_untyped_index<Arg, 0>)
+        {
+          return diagonal_of(nested_object(std::forward<Arg>(arg)));
+        }
+        else
+        {
+          using P = pattern_matrix_of_t<T>;
+          return library_interface<P>::diagonal_of(to_native_matrix<P>(std::forward<Arg>(arg)));
+        }
+      }
+
+
+      template<typename Arg, typename...Factors>
+      static auto
+      broadcast(Arg&& arg, const Factors&...factors)
+      {
+        return library_interface<std::decay_t<nested_object_of_t<Arg>>>::broadcast(std::forward<Arg>(arg), factors...);
+      }
+
+
+      template<typename...Ds, typename Operation, typename...Args>
+      static constexpr decltype(auto)
+      n_ary_operation(const std::tuple<Ds...>& tup, Operation&& op, Args&&...args)
+      {
+        using P = pattern_matrix_of_t<T>;
+        return library_interface<P>::template n_ary_operation(tup, std::forward<Operation>(op), std::forward<Args>(args)...);
+      }
+
+
+      template<std::size_t...indices, typename BinaryFunction, typename Arg>
+      static constexpr decltype(auto)
+      reduce(BinaryFunction&& b, Arg&& arg)
+      {
+        using P = pattern_matrix_of_t<T>;
+        return library_interface<P>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
+      }
+
+
+#ifdef __cpp_concepts
+      template<from_euclidean_expr Arg>
+#else
+      template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg>, int> = 0>
+#endif
+      constexpr decltype(auto)
+      to_euclidean(Arg&& arg)
+      {
+        return nested_object(std::forward<Arg>(arg));
+      }
+
+
+#ifdef __cpp_concepts
+      template<to_euclidean_expr Arg>
+#else
+      template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg>, int> = 0>
+#endif
+      constexpr decltype(auto)
+      from_euclidean(Arg&& arg)
+      {
+        return FromEuclideanExpr<Arg> {std::forward<Arg>(arg)};
+      }
+
+
+#ifdef __cpp_concepts
+      template<from_euclidean_expr Arg>
+#else
+      template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg>, int> = 0>
+#endif
+      constexpr decltype(auto)
+      wrap_angles(Arg&& arg)
+      {
+        return std::forward<Arg>(arg);
+      }
+
+
+      template<typename Arg>
+      static constexpr decltype(auto)
+      conjugate(Arg&& arg)
+      {
+        if constexpr(has_untyped_index<Arg, 0>)
+        {
+          return OpenKalman::conjugate(nested_object(std::forward<Arg>(arg)));
+        }
+        else
+        {
+          return std::forward<Arg>(arg).conjugate(); //< \todo Generalize this.
+        }
+      }
+
+
+      template<typename Arg>
+      static constexpr decltype(auto)
+      transpose(Arg&& arg)
+      {
+        if constexpr(has_untyped_index<Arg, 0>)
+        {
+          return OpenKalman::transpose(nested_object(std::forward<Arg>(arg)));
+        }
+        else
+        {
+          return std::forward<Arg>(arg).transpose(); //< \todo Generalize this.
+        }
+      }
+
+
+      template<typename Arg>
+      static constexpr decltype(auto)
+      adjoint(Arg&& arg)
+      {
+        if constexpr(has_untyped_index<Arg, 0>)
+        {
+          return OpenKalman::adjoint(nested_object(std::forward<Arg>(arg)));
+        }
+        else
+        {
+          return std::forward<Arg>(arg).adjoint(); //< \todo Generalize this.
+        }
+      }
+
+
+      template<typename Arg>
+      static constexpr auto
+      determinant(Arg&& arg)
+      {
+        if constexpr(has_untyped_index<Arg, 0>)
+        {
+          return OpenKalman::determinant(nested_object(std::forward<Arg>(arg)));
+        }
+        else
+        {
+          return arg.determinant(); //< \todo Generalize this.
+        }
+      }
+
+
+      template<HermitianAdapterType significant_triangle, typename A, typename U, typename Alpha>
+      static decltype(auto)
+      rank_update_hermitian(A&& a, U&& u, const Alpha alpha)
+      {
+        return OpenKalman::rank_update_hermitian<significant_triangle>(make_hermitian_matrix(to_dense_object(std::forward<A>(a))), std::forward<U>(u), alpha);
+      }
+
+
+      template<TriangleType triangle, typename A, typename U, typename Alpha>
+      static decltype(auto) rank_update_triangular(A&& a, U&& u, const Alpha alpha)
+      {
+        return OpenKalman::rank_update_triangular(make_triangular_matrix<triangle>(to_dense_object(std::forward<A>(a))), std::forward<U>(u), alpha);
+      }
+
+
+      template<bool must_be_unique, bool must_be_exact, typename A, typename B>
+      static constexpr decltype(auto)
+      solve(A&& a, B&& b)
+      {
+        return OpenKalman::solve<must_be_unique, must_be_exact>(
+          to_native_matrix<T>(std::forward<A>(a)), std::forward<B>(b));
+      }
+
+
+      template<typename A>
+      static inline auto
+      LQ_decomposition(A&& a)
+      {
+        return LQ_decomposition(to_dense_object(std::forward<A>(a)));
+      }
+
+
+      template<typename A>
+      static inline auto
+      QR_decomposition(A&& a)
+      {
+        return QR_decomposition(to_dense_object(std::forward<A>(a)));
+      }
+
+    };
+
 
   } // namespace interface
 

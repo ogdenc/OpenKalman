@@ -16,6 +16,9 @@
 #ifndef OPENKALMAN_SCALAR_ARITHMETIC_HPP
 #define OPENKALMAN_SCALAR_ARITHMETIC_HPP
 
+#include "basics/global-definitions.hpp"
+#include "basics/values/scalars/scalar_constant.hpp"
+#include "basics/values/internal/scalar_constant_operation.hpp"
 
 namespace OpenKalman::values
 {

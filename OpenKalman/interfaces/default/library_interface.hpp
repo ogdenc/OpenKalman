@@ -222,6 +222,54 @@ namespace OpenKalman::interface
 #endif
 
 
+     /**
+      * \brief Project the vector space associated with index 0 to a Euclidean space for applying directional statistics.
+      * \note This is optional.
+      * If not defined, the \ref OpenKalman::to_euclidean "to_euclidean" function will construct a ToEuclideanExpr object.
+      * In this case, the library should be able to accept the ToEuclideanExpr object as native.
+      */
+ #ifdef __cpp_concepts
+     template<indexible Arg>
+     static constexpr indexible auto
+ #else
+     template<typename Arg>
+     static constexpr auto
+ #endif
+     to_euclidean(Arg&& arg) = delete;
+
+
+     /**
+      * \brief Project the Euclidean vector space associated with index 0 to \ref vector_space_descriptor v after applying directional statistics
+      * \param v The new \ref vector_space_descriptor for index 0.
+      * \note This is optional.
+      * If not defined, the \ref OpenKalman::from_euclidean "from_euclidean" function will construct a FromEuclideanExpr object.
+      * In this case, the library should be able to accept FromEuclideanExpr object as native.
+      */
+ #ifdef __cpp_concepts
+     template<indexible Arg, vector_space_descriptor V>
+     static constexpr indexible auto
+ #else
+     template<typename Arg, typename V>
+     static constexpr auto
+ #endif
+     from_euclidean(Arg&& arg, const V& v) = delete;
+
+
+     /**
+      * \brief Wrap Arg based on \ref vector_space_descriptor V.
+      * \note This is optional. If not defined, the public \ref OpenKalman::wrap_angles "wrap_angles" function
+      * will call <code>from_euclidean(to_euclidean(std::forward<Arg>(arg)), get_vector_space_descriptor<0>(arg))</code>.
+      */
+ #ifdef __cpp_concepts
+     template<indexible Arg>
+     static constexpr indexible auto
+ #else
+     template<typename Arg>
+     static constexpr auto
+ #endif
+     wrap_angles(Arg&& arg) = delete;
+
+
     /**
      * \brief Get a block from a matrix or tensor.
      * \param begin A tuple corresponding to each of indices, each element specifying the beginning \ref index_value.
@@ -373,51 +421,6 @@ namespace OpenKalman::interface
 #endif
     static constexpr auto
     reduce(BinaryFunction&& op, Arg&& arg) = delete;
-
-
-    /**
-     * \brief Project the (potentially wrapped)vector space associated with index 0 to a Euclidean space for applying directional statistics.
-     * \note This is optional. If not defined, the public \ref OpenKalman::to_euclidean "to_euclidean" function
-     * will construct a \ref ToEuclideanExpr object.
-     */
-#ifdef __cpp_concepts
-    template<indexible Arg>
-    static constexpr indexible auto
-#else
-    template<typename Arg>
-    static constexpr auto
-#endif
-    to_euclidean(Arg&& arg) = delete;
-
-
-    /**
-     * \brief Project a Euclidean space associated with index 0 to a (potentially wrapped) vector space after applying directional statistics
-     * \note This is optional. If not defined, the public \ref OpenKalman::from_euclidean "from_euclidean" function
-     * will construct a \ref FromEuclideanExpr object.
-     */
-#ifdef __cpp_concepts
-    template<indexible Arg>
-    static constexpr indexible auto
-#else
-    template<typename Arg>
-    static constexpr auto
-#endif
-    from_euclidean(Arg&& arg) = delete;
-
-
-    /**
-     * \brief Wrap Arg based on \ref vector_space_descriptor C.
-     * \note This is optional. If not defined, the public \ref OpenKalman::wrap_angles "wrap_angles" function
-     * will call <code>from_euclidean(to_euclidean(std::forward<Arg>(arg), c), c)</code>.
-     */
-#ifdef __cpp_concepts
-    template<indexible Arg, vector_space_descriptor C>
-    static constexpr indexible auto
-#else
-    template<typename Arg, typename C>
-    static constexpr auto
-#endif
-    wrap_angles(Arg&& arg, const C& c) = delete;
 
 
     /**

@@ -17,6 +17,7 @@
 #define OPENKALMAN_SCALAR_TRAITS_HPP
 
 #include <complex>
+#include "basics/language-features.hpp"
 
 namespace OpenKalman::interface
 {

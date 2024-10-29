@@ -19,6 +19,7 @@
 #include <array>
 #include <tuple>
 #include <utility>
+#include "basics/global-definitions.hpp"
 
 namespace OpenKalman::internal
 {

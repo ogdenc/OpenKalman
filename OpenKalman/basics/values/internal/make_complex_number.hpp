@@ -17,7 +17,8 @@
 #ifndef OPENKALMAN_MAKE_COMPLEX_NUMBER_HPP
 #define OPENKALMAN_MAKE_COMPLEX_NUMBER_HPP
 
-#include <complex>
+#include "basics/values/scalars/complex_number.hpp"
+#include "basics/values/scalars/scalar_type.hpp"
 
 namespace OpenKalman::internal
 {

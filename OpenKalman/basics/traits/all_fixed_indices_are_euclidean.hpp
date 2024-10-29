@@ -29,7 +29,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that every fixed-size index of T is euclidean.
-   * \details No fixed_size index of T is modular (e.g., Angle, Polar, Spherical, etc.).
+   * \details No fixed_size index of T is, e.g., Angle, Polar, Spherical, etc.
    */
 #ifdef __cpp_concepts
   template<typename T>

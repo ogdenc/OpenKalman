@@ -55,7 +55,7 @@ namespace OpenKalman
         auto ret {make_triangular_matrix<TriangleType::upper>(std::move(m))};
 
         // \todo Fix this:
-        if constexpr (euclidean_vector_space_descriptor<vector_space_descriptor_of_t<A, 1>>) return ret;
+        if constexpr (has_untyped_index<A, 1>) return ret;
         else return SquareRootCovariance {std::move(ret), get_vector_space_descriptor<1>(a)};
       }
       else
@@ -93,7 +93,7 @@ namespace OpenKalman
         "Interface implementation error: interface::library_interface<T>::QR_decomposition must return an upper triangular_matrix.");
 
       // \todo Fix this:
-      if constexpr (euclidean_vector_space_descriptor<vector_space_descriptor_of_t<A, 1>>) return ret;
+      if constexpr (has_untyped_index<A, 1>) return ret;
       else return SquareRootCovariance {std::forward<Ret>(ret), get_vector_space_descriptor<1>(a)};
     }
   }

@@ -19,6 +19,7 @@
 #include <type_traits>
 #include <cstdint>
 #include <limits>
+#include <functional>
 
 namespace OpenKalman
 {

@@ -37,7 +37,6 @@
 #include "VectorSpaceAdapter.hpp"
 
 #include "interfaces/adapters-interface.hpp"
-#include "interfaces/euclidean-interface.hpp"
 
 #include "details/adapters-arithmetic.hpp"
 

@@ -81,6 +81,6 @@ add_executable(eigen3
         function-tests/eigen-decomposition.test.cpp
     )
 
-target_link_libraries(eigen3 ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
+target_link_libraries(eigen3 GTest::gtest_main Eigen3::Eigen Threads::Threads)
 
 gtest_discover_tests(eigen3 DISCOVERY_TIMEOUT 20)

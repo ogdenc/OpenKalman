@@ -19,42 +19,49 @@
 namespace OpenKalman
 {
   /**
-   * \brief Project a Euclidean space associated with index 0 to a (potentially wrapped) vector space after applying directional statistics
+   * \brief Project the Euclidean vector space associated with index 0 to \ref vector_space_descriptor v after applying directional statistics
    * \tparam Arg A matrix or tensor.
    * \tparam V The new vector space descriptor of index 0.
    */
 #ifdef __cpp_concepts
-  template<wrappable Arg, vector_space_descriptor V>
-  requires (dynamic_vector_space_descriptor<V> or dynamic_dimension<Arg, 0> or has_untyped_index<Arg, 0> or
-    equivalent_to<V, vector_space_descriptor_of_t<Arg, 0>>)
+  template<has_untyped_index<0> Arg, vector_space_descriptor V>
+  constexpr indexible decltype(auto)
 #else
-  template<typename Arg, typename V, std::enable_if_t<wrappable<Arg> and vector_space_descriptor<V> and
-    (dynamic_vector_space_descriptor<V> or dynamic_dimension<Arg, 0> or has_untyped_index<Arg, 0> or
-      equivalent_to<V, vector_space_descriptor_of_t<Arg, 0>>), int> = 0>
-#endif
+  template<typename Arg, typename V, std::enable_if_t<has_untyped_index<Arg, 0> and vector_space_descriptor<V>, int> = 0>
   constexpr decltype(auto)
-  from_euclidean(Arg&& arg, V&& v)
+#endif
+  from_euclidean(Arg&& arg, const V& v)
   {
-    if constexpr (dynamic_dimension<Arg, 0> and not euclidean_vector_space_descriptor<vector_space_descriptor_of_t<Arg, 0>>)
-      if (not get_vector_space_descriptor_is_euclidean(get_vector_space_descriptor<0>(arg)) and v != get_vector_space_descriptor<0>(arg))
-        throw std::domain_error {"In from_euclidean, specified vector space descriptor does not match that of the object's index 0"};
-    using Interface = interface::library_interface<std::decay_t<Arg>>;
-
     if constexpr (euclidean_vector_space_descriptor<V>)
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (interface::from_euclidean_defined_for<Arg, Arg&&, V&&>)
+    else if constexpr (interface::from_euclidean_defined_for<Arg, Arg&&, const V&>)
     {
-      return Interface::from_euclidean(std::forward<Arg>(arg), std::forward<V>(v));
+      return interface::library_interface<std::decay_t<Arg>>::from_euclidean(std::forward<Arg>(arg), v);
     }
     else
     {
-      if constexpr (has_dynamic_dimensions<Arg>) if (not get_wrappable(arg))
-        throw std::domain_error {"Argument of from_euclidean is not wrappable"};
-
-      return FromEuclideanExpr<V, Arg>(std::forward<Arg>(arg), std::forward<V>(v));
+      return FromEuclideanExpr {std::forward<Arg>(arg), v};
     }
+  }
+
+
+  /**
+   * \brief Project the Euclidean vector space associated with index 0 to \ref vector_space_descriptor v after applying directional statistics
+   * \tparam Arg A matrix or tensor.
+   * \tparam V The new vector space descriptor of index 0.
+   */
+#ifdef __cpp_concepts
+  template<fixed_vector_space_descriptor V, has_untyped_index<0> Arg>
+  constexpr indexible decltype(auto)
+#else
+  template<typename V, typename Arg, std::enable_if_t<fixed_vector_space_descriptor<V> and has_untyped_index<Arg, 0>, int> = 0>
+  constexpr decltype(auto)
+#endif
+  from_euclidean(Arg&& arg)
+  {
+    return from_euclidean(std::forward<Arg>(arg), V{});
   }
 
 

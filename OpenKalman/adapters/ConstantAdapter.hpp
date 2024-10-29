@@ -71,7 +71,7 @@ namespace OpenKalman
     /**
      * \brief Construct a ConstantAdapter, whose value is known at compile time, using a dynamic range of
      * \ref vector_space_descriptor objects.
-     * \tparam Ds A set of \ref vector_space_descriptor corresponding to class template parameters Ds.
+     * \tparam Ds A set of \ref vector_space_descriptor objects corresponding to PatternMatrix.
      */
 #ifdef __cpp_lib_ranges
     template<std::ranges::input_range Ds> requires vector_space_descriptor<std::ranges::range_value_t<Ds>> and
@@ -132,8 +132,8 @@ private:
 
     /**
      * \brief Construct a ConstantAdapter, whose value is known at compile time, using a full set of \ref vector_space_descriptor objects.
-     * \tparam D A set of \ref vector_space_descriptor corresponding to class template parameters Ds.
-     * \details Each D must be a constructor argument for Ds.
+     * \tparam Ds A set of \ref vector_space_descriptor objects corresponding to PatternMatrix.
+     * \details
      * For example, the following construct a 2-by-3 constant matrix of value 5:
      * \code
      * ConstantAdapter<eigen_matrix_t<double, 1, 1>, 5>()

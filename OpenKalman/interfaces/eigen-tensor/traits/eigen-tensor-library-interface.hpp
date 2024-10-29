@@ -19,6 +19,7 @@
 #include <type_traits>
 #include <tuple>
 #include <random>
+#include "interfaces/eigen-tensor/details/eigen-tensor-forward-declarations.hpp"
 
 
 // ------------------- //

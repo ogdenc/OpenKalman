@@ -16,6 +16,10 @@
 #ifndef OPENKALMAN_SCALAR_CONSTANT_HPP
 #define OPENKALMAN_SCALAR_CONSTANT_HPP
 
+#include <concepts>
+#include <type_traits>
+#include "basics/global-definitions.hpp"
+#include "scalar_type.hpp"
 
 namespace OpenKalman
 {

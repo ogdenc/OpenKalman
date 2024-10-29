@@ -17,6 +17,8 @@
 #ifndef OPENKALMAN_SCALAR_CONSTANT_OPERATION_HPP
 #define OPENKALMAN_SCALAR_CONSTANT_OPERATION_HPP
 
+#include "basics/global-definitions.hpp"
+#include "basics/values/scalars/scalar_constant.hpp"
 
 namespace OpenKalman::values
 {

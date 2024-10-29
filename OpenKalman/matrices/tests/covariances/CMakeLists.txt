@@ -8,7 +8,7 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-find_package(Eigen3 REQUIRED CONFIG)
+find_package(Eigen3 REQUIRED)
 
 enable_testing()
 find_package(GTest REQUIRED)
@@ -23,6 +23,6 @@ add_executable(covariances
         tests-covariance-refs.cpp
     )
 
-target_link_libraries(covariances ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
+target_link_libraries(covariances GTest::gtest_main Eigen3::Eigen Threads::Threads)
 
 gtest_discover_tests(covariances DISCOVERY_TIMEOUT 10)

@@ -17,7 +17,7 @@
 #ifndef OPENKALMAN_ARE_WITHIN_TOLERANCE_HPP
 #define OPENKALMAN_ARE_WITHIN_TOLERANCE_HPP
 
-#include <complex>
+#include "basics/values/scalars/complex_number.hpp"
 
 namespace OpenKalman::internal
 {

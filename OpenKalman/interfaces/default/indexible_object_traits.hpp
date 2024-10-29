@@ -127,7 +127,8 @@ namespace OpenKalman::interface
      * \details This can be useful because some types may erase information about the shape of their nested objects.
      */
     template<Qualification b>
-    static constexpr bool one_dimensional = false;
+    static constexpr bool
+    one_dimensional = false;
 
 
     /**
@@ -136,7 +137,8 @@ namespace OpenKalman::interface
      * \details This can be useful because some types may erase information about the shape of their nested objects.
      */
     template<Qualification b>
-    static constexpr bool is_square = false;
+    static constexpr bool
+    is_square = false;
 
 
     /**
@@ -146,14 +148,16 @@ namespace OpenKalman::interface
      * \tparam t The \ref TriangleType
      */
     template<TriangleType t>
-    static constexpr bool is_triangular = false;
+    static constexpr bool
+    is_triangular = false;
 
 
     /**
      * \brief Whether T is a \ref triangular_adapter.
      * \note Optional. Defaults to false if omitted.
      */
-    static constexpr bool is_triangular_adapter = false;
+    static constexpr bool
+    is_triangular_adapter = false;
 
 
     /**
@@ -163,7 +167,8 @@ namespace OpenKalman::interface
      * - <code>scalar_type_of_t&lt;T&rt;</code> is real (not complex), or
      * - T is a \ref constant_matrix or \ref constant_diagonal_matrix in which the constant is real
      */
-    static constexpr bool is_hermitian = false;
+    static constexpr bool
+    is_hermitian = false;
 
 
     /**
@@ -173,13 +178,15 @@ namespace OpenKalman::interface
      * \note Optional. If omitted, T is not considered to be hermitian adapter.
      * It is also meaningless if \ref is_hermitian is false.
      */
-    static constexpr HermitianAdapterType hermitian_adapter_type = HermitianAdapterType::any;
+    static constexpr HermitianAdapterType
+    hermitian_adapter_type = HermitianAdapterType::any;
 
 
     /**
      * \brief Whether T is a writable, self-contained matrix or array.
      */
-    static constexpr bool is_writable = false;
+    static constexpr bool
+    is_writable = false;
 
 
     /**
@@ -200,7 +207,8 @@ namespace OpenKalman::interface
     /**
      * \brief The layout of T.
      */
-    static constexpr Layout layout = Layout::none;
+    static constexpr Layout
+    layout = Layout::none;
 
 
     /**

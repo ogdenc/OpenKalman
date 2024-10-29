@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-23 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-24 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,9 +16,11 @@
 #ifndef OPENKALMAN_REAL_AXIS_NUMBER_HPP
 #define OPENKALMAN_REAL_AXIS_NUMBER_HPP
 
+#include "basics/global-definitions.hpp"
+#include "basics/values/scalars/scalar_constant.hpp"
+
 namespace OpenKalman
 {
-
   namespace detail
   {
     template<typename T>

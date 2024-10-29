@@ -16,6 +16,8 @@
 #ifndef OPENKALMAN_COMPLEX_NUMBER_HPP
 #define OPENKALMAN_COMPLEX_NUMBER_HPP
 
+#include <type_traits>
+#include "basics/values/internal/scalar_traits.hpp"
 
 namespace OpenKalman
 {

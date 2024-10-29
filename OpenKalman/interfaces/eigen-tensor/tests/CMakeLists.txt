@@ -23,6 +23,6 @@ add_executable(eigen3-tensor
         eigen-tensor-nary-operations.test.cpp
     )
 
-target_link_libraries(eigen3-tensor ${GTEST_BOTH_LIBRARIES} Eigen3::Eigen Threads::Threads)
+target_link_libraries(eigen3-tensor GTest::gtest_main Eigen3::Eigen Threads::Threads)
 
 gtest_discover_tests(eigen3-tensor DISCOVERY_TIMEOUT 20)

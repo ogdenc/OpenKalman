@@ -18,6 +18,7 @@
 
 #include <type_traits>
 #include <random>
+#include "basics/traits/traits.hpp"
 
 namespace OpenKalman
 {
