@@ -173,12 +173,12 @@ namespace OpenKalman::interface
 
   private:
 
-    template<std::size_t N, typename Indices>
+    template<typename Object, typename Indices>
     static constexpr decltype(auto) add_trailing_indices(const Indices& indices)
     {
-      constexpr auto M = static_range_size_v<Indices>;
-      if constexpr (M != dynamic_size and N != dynamic_size and N > M)
+      if constexpr (not static_range_size<Indices, Object>)
       {
+        constexpr auto N = index_count_v<Object>; //< We know N is not dynamic_size because static_range_size is not satisfied.
         std::array<std::size_t, N> ret;
         std::fill(std::copy(indices.begin(), indices.end(), ret.begin()), ret.end(), 0);
         return ret;
@@ -199,7 +199,7 @@ namespace OpenKalman::interface
 #endif
     get_component(Arg&& arg, const Indices& indices)
     {
-      return NestedInterface::get_component(nested_object(std::forward<Arg>(arg)), add_trailing_indices<index_count_v<NestedObject>>(indices));
+      return NestedInterface::get_component(nested_object(std::forward<Arg>(arg)), add_trailing_indices<NestedObject>(indices));
     }
 
 
@@ -213,7 +213,7 @@ namespace OpenKalman::interface
     static constexpr void
     set_component(Arg& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
     {
-      NestedInterface::set_component(nested_object(arg), s, add_trailing_indices<index_count_v<NestedObject>>(indices));
+      NestedInterface::set_component(nested_object(arg), s, add_trailing_indices<NestedObject>(indices));
     }
 
 

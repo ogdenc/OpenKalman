@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -41,19 +41,34 @@ namespace OpenKalman::vector_space_descriptors
   template<std::size_t N>
   struct Dimensions
   {
+    /// Default constructor
     constexpr Dimensions() = default;
 
 
-    /// Constructor, taking a \ref fixed_vector_space_descriptor.
+    /// Constructor, taking a static \ref euclidean_vector_space_descriptor.
 #ifdef __cpp_concepts
-    template<fixed_vector_space_descriptor D> requires euclidean_vector_space_descriptor<D> and
-      (not std::same_as<std::decay_t<D>, Dimensions>) and (dimension_size_of_v<D> == N)
+    template<typename D> requires (not std::same_as<std::decay_t<D>, Dimensions>) and 
+      ((euclidean_vector_space_descriptor<D> and fixed_vector_space_descriptor<D> and dimension_size_of_v<D> == N) or 
+      dynamic_vector_space_descriptor<D>)
 #else
-    template<typename D, std::enable_if_t<fixed_vector_space_descriptor<D> and euclidean_vector_space_descriptor<D> and
-      not std::is_same_v<std::decay_t<D>, Dimensions> and dimension_size_of<D>::value == N, int> = 0>
+    template<typename D, std::enable_if_t<
+      (not std::same_as<std::decay_t<D>, Dimensions>) and 
+      ((euclidean_vector_space_descriptor<D> and fixed_vector_space_descriptor<D> and dimension_size_of_v<D> == N) or 
+      dynamic_vector_space_descriptor<D>), int> = 0>
 #endif
-    explicit constexpr Dimensions(D&&)
-    {}
+    explicit constexpr Dimensions(D&& d)
+    {
+      if constexpr (dynamic_vector_space_descriptor<D>)
+      {
+        if constexpr (not euclidean_vector_space_descriptor<D>)
+        {
+          if (not get_vector_space_descriptor_is_euclidean(d))
+            throw std::invalid_argument{"Argument of dynamic 'Dimensions' constructor must be a euclidean vector space descriptor."};
+        }
+        if (get_dimension_size_of(d) != N)
+          throw std::invalid_argument{"Dynamic argument to static 'Dimensions' constructor has the wrong size."};
+      }
+    }
 
 
     template<typename Int>
@@ -73,8 +88,6 @@ namespace OpenKalman::vector_space_descriptors
       return N;
     }
 
-
-    friend struct fixed_vector_space_descriptor_traits<Dimensions<N>>;
   };
 
 
@@ -93,7 +106,7 @@ namespace OpenKalman::vector_space_descriptors
     template<typename D> requires (euclidean_vector_space_descriptor<D> or dynamic_vector_space_descriptor<D>) and
       (not std::is_base_of_v<Dimensions, D>)
 #else
-    template<typename D, std::enable_if_t<euclidean_vector_space_descriptor<D> and
+    template<typename D, std::enable_if_t<(euclidean_vector_space_descriptor<D> or dynamic_vector_space_descriptor<D>) and
       (not std::is_base_of_v<Dimensions, D>), int> = 0>
 #endif
     explicit constexpr Dimensions(const D& d) : runtime_size {get_dimension_size_of(d)}
@@ -135,8 +148,6 @@ namespace OpenKalman::vector_space_descriptors
     }
 
   protected:
-
-    Dimensions() = delete;
 
     std::size_t runtime_size;
 

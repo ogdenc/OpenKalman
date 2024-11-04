@@ -35,9 +35,9 @@ namespace Eigen::internal
   namespace detail
   {
 #ifdef __cpp_concepts
-    template<OpenKalman::vector_space_descriptor FixedDescriptor, typename XprType, typename Nested, typename NestedEvaluator>
+    template<OpenKalman::vector_space_descriptor V0, typename XprType, typename Nested, typename NestedEvaluator>
 #else
-    template<typename FixedDescriptor, typename XprType, typename Nested, typename NestedEvaluator, typename = void>
+    template<typename V0, typename XprType, typename Nested, typename NestedEvaluator, typename = void>
 #endif
     struct Evaluator_EuclideanExpr_Base : evaluator_base<XprType>
     {
@@ -59,12 +59,12 @@ namespace Eigen::internal
 
 
 #ifdef __cpp_concepts
-    template<OpenKalman::euclidean_vector_space_descriptor FixedDescriptor, typename XprType, typename Nested, typename NestedEvaluator>
-    struct Evaluator_EuclideanExpr_Base<FixedDescriptor, XprType, Nested, NestedEvaluator>
+    template<OpenKalman::euclidean_vector_space_descriptor V0, typename XprType, typename Nested, typename NestedEvaluator>
+    struct Evaluator_EuclideanExpr_Base<V0, XprType, Nested, NestedEvaluator>
 #else
-    template<typename FixedDescriptor, typename XprType, typename Nested, typename NestedEvaluator>
-    struct Evaluator_EuclideanExpr_Base<FixedDescriptor, XprType, Nested, NestedEvaluator,
-      std::enable_if_t<OpenKalman::euclidean_vector_space_descriptor<FixedDescriptor>>>
+    template<typename V0, typename XprType, typename Nested, typename NestedEvaluator>
+    struct Evaluator_EuclideanExpr_Base<V0, XprType, Nested, NestedEvaluator,
+      std::enable_if_t<OpenKalman::euclidean_vector_space_descriptor<V0>>>
 #endif
       : NestedEvaluator
     {
@@ -81,28 +81,27 @@ namespace Eigen::internal
   /**
    * \internal
    * \brief Evaluator for ToEuclideanExpr
-   * \tparam Coeffs FixedDescriptor types
-   * \tparam ArgType Type of the nested expression
    */
-  template<typename Coeffs, typename ArgType>
-  struct evaluator<OpenKalman::ToEuclideanExpr<Coeffs, ArgType>>
-    : detail::Evaluator_EuclideanExpr_Base<Coeffs, OpenKalman::ToEuclideanExpr<Coeffs, ArgType>,
+  template<typename ArgType>
+  struct evaluator<OpenKalman::ToEuclideanExpr<ArgType>>
+    : detail::Evaluator_EuclideanExpr_Base<OpenKalman::vector_space_descriptor_of<ArgType, 0>, OpenKalman::ToEuclideanExpr<ArgType>,
     std::decay_t<ArgType>, evaluator<std::decay_t<ArgType>>>
   {
-    using XprType = OpenKalman::ToEuclideanExpr<Coeffs, ArgType>;
+	using V0 = OpenKalman::vector_space_descriptor_of<ArgType, 0>; 
+    using XprType = OpenKalman::ToEuclideanExpr<ArgType>;
     using Nested = std::decay_t<ArgType>;
     using NestedEvaluator = evaluator<Nested>;
-    using Base = detail::Evaluator_EuclideanExpr_Base<Coeffs, XprType, Nested, NestedEvaluator>;
+    using Base = detail::Evaluator_EuclideanExpr_Base<V0, XprType, Nested, NestedEvaluator>;
     using typename Base::CoeffReturnType;
     using Scalar = typename traits<Nested>::Scalar;
     static constexpr auto count = Nested::ColsAtCompileTime;
 
-    Coeffs i_vector_space_descriptor;
+    V0 i_vector_space_descriptor;
 
     enum
     {
       CoeffReadCost = NestedEvaluator::CoeffReadCost + (
-        OpenKalman::euclidean_vector_space_descriptor<Coeffs> ? 0 :
+        OpenKalman::euclidean_vector_space_descriptor<V0> ? 0 :
         (int) Eigen::internal::functor_traits<Eigen::internal::scalar_sin_op<Scalar>>::Cost +
           (int) Eigen::internal::functor_traits<Eigen::internal::scalar_cos_op<Scalar>>::Cost)
     };
@@ -111,7 +110,7 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr (OpenKalman::euclidean_vector_space_descriptor<Coeffs>)
+      if constexpr (OpenKalman::euclidean_vector_space_descriptor<V0>)
       {
         return Base::coeff(row, col);
       }
@@ -124,7 +123,7 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row) const
     {
-      if constexpr (OpenKalman::euclidean_vector_space_descriptor<Coeffs>)
+      if constexpr (OpenKalman::euclidean_vector_space_descriptor<V0>)
       {
         return Base::coeff(row);
       }
@@ -145,28 +144,26 @@ namespace Eigen::internal
   /**
    * \internal
    * \brief General evaluator for FromEuclideanExpr
-   * \tparam Coeffs FixedDescriptor types
-   * \tparam ArgType Type of the nested expression
    */
-  template<typename Coeffs, typename ArgType>
-  struct evaluator<OpenKalman::FromEuclideanExpr<Coeffs, ArgType>>
-    : detail::Evaluator_EuclideanExpr_Base<Coeffs, OpenKalman::FromEuclideanExpr<Coeffs, ArgType>,
+  template<typename ArgType, typename V0>
+  struct evaluator<OpenKalman::FromEuclideanExpr<ArgType, V0>>
+    : detail::Evaluator_EuclideanExpr_Base<V0, OpenKalman::FromEuclideanExpr<ArgType, V0>,
     std::decay_t<ArgType>, evaluator<std::decay_t<ArgType>>>
   {
-    using XprType = OpenKalman::FromEuclideanExpr<Coeffs, ArgType>;
+    using XprType = OpenKalman::FromEuclideanExpr<ArgType, V0>;
     using Nested = std::decay_t<ArgType>;
     using NestedEvaluator = evaluator<Nested>;
-    using Base = detail::Evaluator_EuclideanExpr_Base<Coeffs, XprType, Nested, NestedEvaluator>;
+    using Base = detail::Evaluator_EuclideanExpr_Base<V0, XprType, Nested, NestedEvaluator>;
     using typename Base::CoeffReturnType;
     using Scalar = typename traits<Nested>::Scalar;
     static constexpr auto count = Nested::ColsAtCompileTime;
 
-    Coeffs i_vector_space_descriptor;
+    V0 i_vector_space_descriptor;
 
     enum
     {
       CoeffReadCost = NestedEvaluator::CoeffReadCost + (
-        OpenKalman::euclidean_vector_space_descriptor<Coeffs> ? 0 :
+        OpenKalman::euclidean_vector_space_descriptor<V0> ? 0 :
         Eigen::internal::functor_traits<Eigen::internal::scalar_atan_op<Scalar>>::Cost)
     };
 
@@ -174,7 +171,7 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr (OpenKalman::euclidean_vector_space_descriptor<Coeffs>)
+      if constexpr (OpenKalman::euclidean_vector_space_descriptor<V0>)
       {
         return Base::coeff(row, col);
       }
@@ -187,7 +184,7 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row) const
     {
-      if constexpr (OpenKalman::euclidean_vector_space_descriptor<Coeffs>)
+      if constexpr (OpenKalman::euclidean_vector_space_descriptor<V0>)
       {
         return Base::coeff(row);
       }
@@ -204,25 +201,23 @@ namespace Eigen::internal
    * \internal
    * \brief Specialized evaluator for FromEuclideanExpr that has a nested ToEuclideanExpr.
    * \details This amounts to wrapping angles.
-   * \tparam Coeffs FixedDescriptor types
-   * \tparam ArgType Type of the nested expression
    */
-  template<typename Coeffs, typename ArgType>
+  template<typename ArgType, typename V0>
   struct evaluator<
-    OpenKalman::FromEuclideanExpr<Coeffs, OpenKalman::ToEuclideanExpr<Coeffs, ArgType>>>
-      : detail::Evaluator_EuclideanExpr_Base<Coeffs,
-        OpenKalman::FromEuclideanExpr<Coeffs, OpenKalman::ToEuclideanExpr<Coeffs, ArgType>>,
+    OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>>
+      : detail::Evaluator_EuclideanExpr_Base<V0,
+        OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>,
         std::decay_t<ArgType>, evaluator<std::decay_t<ArgType>>>
   {
-    using XprType = OpenKalman::FromEuclideanExpr<Coeffs, OpenKalman::ToEuclideanExpr<Coeffs, ArgType>>;
+    using XprType = OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>;
     using Nested = std::decay_t<ArgType>;
     using NestedEvaluator = evaluator<Nested>;
-    using Base = detail::Evaluator_EuclideanExpr_Base<Coeffs, XprType, Nested, NestedEvaluator>;
+    using Base = detail::Evaluator_EuclideanExpr_Base<V0, XprType, Nested, NestedEvaluator>;
     using typename Base::CoeffReturnType;
     using Scalar = typename traits<Nested>::Scalar;
     static constexpr auto count = Nested::ColsAtCompileTime;
 
-    Coeffs i_vector_space_descriptor;
+    V0 i_vector_space_descriptor;
 
     enum
     {
@@ -234,7 +229,7 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row, Index col) const
     {
-      if constexpr (OpenKalman::euclidean_vector_space_descriptor<Coeffs>)
+      if constexpr (OpenKalman::euclidean_vector_space_descriptor<V0>)
       {
         return Base::coeff(row, col);
       }
@@ -247,7 +242,7 @@ namespace Eigen::internal
 
     CoeffReturnType coeff(Index row) const
     {
-      if constexpr (OpenKalman::euclidean_vector_space_descriptor<Coeffs>)
+      if constexpr (OpenKalman::euclidean_vector_space_descriptor<V0>)
       {
         return Base::coeff(row);
       }
@@ -260,34 +255,32 @@ namespace Eigen::internal
   };
 
 
-  template<typename Coeffs, typename ArgType>
+  template<typename ArgType, typename V0>
   struct evaluator<
-    OpenKalman::FromEuclideanExpr<Coeffs, const OpenKalman::ToEuclideanExpr<Coeffs, ArgType>>>
-    : evaluator<OpenKalman::FromEuclideanExpr<Coeffs, OpenKalman::ToEuclideanExpr<Coeffs, ArgType>>>
+    OpenKalman::FromEuclideanExpr<const OpenKalman::ToEuclideanExpr<ArgType>, V0>>
+    : evaluator<OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>>
   {
-    using Base = evaluator<OpenKalman::FromEuclideanExpr<Coeffs,
-      OpenKalman::ToEuclideanExpr<Coeffs, ArgType>>>;
+    using Base = evaluator<OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>>;
     using Base::Base;
   };
 
 
-  template<typename Coeffs, typename ArgType>
+  template<typename ArgType, typename V0>
   struct evaluator<
-    OpenKalman::FromEuclideanExpr<Coeffs, OpenKalman::ToEuclideanExpr<Coeffs, ArgType>&>>
-    : evaluator<OpenKalman::FromEuclideanExpr<Coeffs, OpenKalman::ToEuclideanExpr<Coeffs, ArgType>>>
+    OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>&, V0>>
+    : evaluator<OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>>
   {
-    using Base = evaluator<OpenKalman::FromEuclideanExpr<Coeffs, OpenKalman::ToEuclideanExpr<Coeffs, ArgType>>>;
+    using Base = evaluator<OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>>;
     using Base::Base;
   };
 
 
-  template<typename Coeffs, typename ArgType>
+  template<typename ArgType, typename V0>
   struct evaluator<
-    OpenKalman::FromEuclideanExpr<Coeffs, const OpenKalman::ToEuclideanExpr<Coeffs, ArgType>&>>
-    : evaluator<OpenKalman::FromEuclideanExpr<Coeffs, OpenKalman::ToEuclideanExpr<Coeffs, ArgType>>>
+    OpenKalman::FromEuclideanExpr<const OpenKalman::ToEuclideanExpr<ArgType>&, V0>>
+    : evaluator<OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>>
   {
-    using Base = evaluator<OpenKalman::FromEuclideanExpr<Coeffs,
-      OpenKalman::ToEuclideanExpr<Coeffs, ArgType>>>;
+    using Base = evaluator<OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<ArgType>, V0>>;
     using Base::Base;
   };
 

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020-2021 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -26,8 +26,8 @@ namespace OpenKalman::internal
    * \tparam Object The object to be reference.
    */
 #ifdef __cpp_lib_ranges
-  template<indexible Object, std::ranges::input_range Indices> requires writable_by_component<Object, Indices> and
-    index_value<std::ranges::range_value_t<Indices>>
+  template<indexible Object, static_range_size<Object> Indices> requires 
+    writable_by_component<Object, Indices> and index_value<std::ranges::range_value_t<Indices>>
 #else
   template<typename Object, typename Indices>
 #endif
@@ -38,14 +38,10 @@ namespace OpenKalman::internal
 
 #ifdef __cpp_lib_ranges
     template<typename Arg, std::invocable PreAccess, std::invocable PostSet> requires
-      (static_range_size_v<Indices> == dynamic_size or index_count_v<Arg> == dynamic_size or
-        static_range_size_v<Indices> >= index_count_v<Arg>) and std::same_as<Scalar, scalar_type_of_t<Arg>>
+      std::same_as<Scalar, scalar_type_of_t<Arg>>
 #else
     template<typename Arg, typename PreAccess, typename PostSet, std::enable_if_t<
       std::is_invocable_v<PreAccess> and std::is_invocable_v<PostSet> and
-      index_value<decltype(*std::declval<Indices>().begin())> and
-      (static_range_size<Indices>::value == dynamic_size or index_count<Arg>::value == dynamic_size or
-        static_range_size<Indices>::value >= index_count<Arg>::value) and
       std::is_same_v<Scalar, typename scalar_type_of<Arg>::type>, int> = 0>
 #endif
     ElementAccessor(Arg&& arg, Indices&& indices, PreAccess&& pre_access = []{}, PostSet&& post_set = []{})

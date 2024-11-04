@@ -43,6 +43,26 @@ namespace OpenKalman::vector_space_descriptors
     static_assert((fixed_vector_space_descriptor<Cs> and ...));
 #endif
 
+    /// Default constructor
+    constexpr FixedDescriptor() = default;
+
+
+    /// Conversion constructor
+#ifdef __cpp_concepts
+    template<maybe_equivalent_to<FixedDescriptor> D> requires (not std::same_as<std::decay_t<D>, FixedDescriptor>)
+#else
+    template<typename D, std::enable_if_t<
+      maybe_equivalent_to<D, FixedDescriptor> and not std::is_same_v<std::decay_t<D>, FixedDescriptor>, int> = 0>
+#endif
+    explicit constexpr FixedDescriptor(D&& d)
+    {
+      if constexpr (dynamic_vector_space_descriptor<D>)
+      {
+        if (d != FixedDescriptor{}) throw std::invalid_argument{"Dynamic argument of 'FixedDescriptor' constructor is not an equivalent vector space descriptor."};
+      }
+    }
+
+
     /**
      * \brief Prepend a set of new \ref vector_space_descriptor to the existing set.
      * \tparam Cnew The set of new coordinates to prepend.

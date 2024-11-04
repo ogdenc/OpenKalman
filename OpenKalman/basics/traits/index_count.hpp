@@ -72,9 +72,9 @@ namespace OpenKalman
 #endif
 
 
-/**
- * \overload
- */
+  /**
+   * \overload
+   */
 #ifdef __cpp_concepts
   template<typename T> requires requires(T t) { {count_indices(t)} -> dynamic_index_value; }
   struct index_count<T>

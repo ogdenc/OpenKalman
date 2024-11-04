@@ -90,25 +90,37 @@ namespace OpenKalman::internal
     /**
      * \brief Get the nested object.
      */
+#ifdef __cpp_explicit_this_parameter 
+    template<typename Self>
+    constexpr NestedObject& nested_object(this Self&& self) { return std::forward<Self>(self).m_nested_object; }
+#else
     constexpr NestedObject& nested_object() & { return m_nested_object; }
-
 
     /// \overload
     constexpr const NestedObject& nested_object() const & { return m_nested_object; }
 
-
     /// \overload
     constexpr NestedObject&& nested_object() && { return std::move(*this).m_nested_object; }
 
-
     /// \overload
     constexpr const NestedObject&& nested_object() const && { return std::move(*this).m_nested_object; }
+#endif
 
 
     /**
      * \brief Access a component at a set of indices.
      * \return If <code>writable_by_component<Derived, Indices></code>, the component can be directly assigned.
      */
+#ifdef __cpp_explicit_this_parameter 
+    template<typename Self, typename Indices> requires
+      requires(Self&& self, const Indices& indices) {
+        {get_component(std::forward<Self>(self), indices)} -> scalar_constant; }
+    constexpr scalar_constant auto operator[](this Self&& self, const Indices& indices) 
+    {
+      if constexpr (writable_by_component<Self, Indices>) return ElementAccessor(std::forward<Self>(self), indices);
+      else return get_component(std::forward<Self>(self), indices);
+    }
+#else
 #ifdef __cpp_lib_concepts
     template<typename Indices> requires
       requires(Derived& derived, const Indices& indices) {{get_component(derived, indices)} -> scalar_constant; }
@@ -116,12 +128,11 @@ namespace OpenKalman::internal
     template<typename Indices, std::enable_if_t<
       scalar_constant<decltype(get_component(std::declval<Derived&>(), std::declval<const Indices&>()))>, int> = 0>
 #endif
-    constexpr auto operator()(const Indices& indices) &
+    constexpr auto operator[](const Indices& indices) &
     {
       if constexpr (writable_by_component<Derived, Indices>) return ElementAccessor(static_cast<Derived&>(*this), indices);
       else return get_component(static_cast<Derived&>(*this), indices);
     }
-
 
     /// \overload
 #ifdef __cpp_lib_concepts
@@ -131,12 +142,11 @@ namespace OpenKalman::internal
     template<typename Indices, std::enable_if_t<
       scalar_constant<decltype(get_component(std::declval<Derived&&>(), std::declval<const Indices&>()))>, int> = 0>
 #endif
-    constexpr auto operator()(const Indices& indices) &&
+    constexpr auto operator[](const Indices& indices) &&
     {
       if constexpr (writable_by_component<Derived&&>) return ElementAccessor(static_cast<Derived&&>(*this), indices);
       else return get_component(static_cast<Derived&&>(*this), indices);
     }
-
 
     /// \overload
 #ifdef __cpp_lib_concepts
@@ -146,11 +156,10 @@ namespace OpenKalman::internal
     template<typename Indices, std::enable_if_t<
       scalar_constant<decltype(get_component(std::declval<const Derived&>(), std::declval<const Indices&>()))>, int> = 0>
 #endif
-    constexpr auto operator()(const Indices& indices) const &
+    constexpr auto operator[](const Indices& indices) const &
     {
       return get_component(static_cast<const Derived&>(*this), indices);
     }
-
 
     /// \overload
 #ifdef __cpp_lib_concepts
@@ -160,136 +169,30 @@ namespace OpenKalman::internal
     template<typename Indices, std::enable_if_t<
       scalar_constant<decltype(get_component(std::declval<const Derived&&>(), std::declval<const Indices&>()))>, int> = 0>
 #endif
-    constexpr auto operator()(const Indices& indices) const &&
+    constexpr auto operator[](const Indices& indices) const &&
     {
       return get_component(static_cast<const Derived&&>(*this), indices);
     }
+#endif
 
 
+#if defined(__cpp_explicit_this_parameter) and defined(__cpp_multidimensional_subscript)
     /**
      * \brief Access a component at a set of indices.
      * \return If <code>writable_by_component<Derived></code>, the component can be directly assigned.
      */
-#ifdef __cpp_lib_concepts
-    template<index_value...I> requires
-      requires(Derived& derived, std::array<std::size_t, sizeof...(I)>& indices) {{get_component(derived, indices)} -> scalar_constant; }
-#else
-    template<typename...I, std::enable_if_t<
-      scalar_constant<decltype(get_component(std::declval<Derived&>(), std::declval<std::array<std::size_t, sizeof...(I)>&>()))>, int> = 0>
-#endif
-    constexpr auto operator()(I&&...i) &
+    template<typename Self, index_value...I> requires
+      requires(Self&& self, const std::array<std::size_t, sizeof...(I)>& indices) { 
+        {get_component(std::forward<Self>(self), indices)} -> scalar_constant; }
+    constexpr scalar_constant auto operator[](this Self&& self, I&&...i) 
     {
       auto indices = std::array<std::size_t, sizeof...(I)> {static_cast<std::size_t>(std::forward<I>(i))...};
-      if constexpr (writable_by_component<Derived, std::array<std::size_t, sizeof...(I)>>)
-        return ElementAccessor(static_cast<Derived&>(*this), indices);
-      else return get_component(static_cast<Derived&>(*this), indices);
+      if constexpr (writable_by_component<Self, std::array<std::size_t, sizeof...(I)>>)
+        return ElementAccessor(std::forward<Self>(self), {static_cast<std::size_t>(std::forward<I>(i))...});
+      else 
+        return get_component(std::forward<Self>(self), indices);
     }
-
-
-    /// \overload
-#ifdef __cpp_lib_concepts
-    template<index_value...I> requires
-      requires(Derived&& derived, std::array<std::size_t, sizeof...(I)>& indices) {{get_component(derived, indices)} -> scalar_constant; }
-#else
-    template<typename...I, std::enable_if_t<
-      scalar_constant<decltype(get_component(std::declval<Derived&&>(), std::declval<std::array<std::size_t, sizeof...(I)>&>()))>, int> = 0>
 #endif
-    constexpr auto operator()(I&&...i) &&
-    {
-      auto indices = std::array<std::size_t, sizeof...(I)> {static_cast<std::size_t>(std::forward<I>(i))...};
-      if constexpr (writable_by_component<Derived, std::array<std::size_t, sizeof...(I)>>)
-        return ElementAccessor(static_cast<Derived&&>(*this), indices);
-      else return get_component(static_cast<Derived&&>(*this), indices);
-    }
-
-
-    /// \overload
-#ifdef __cpp_lib_concepts
-    template<index_value...I> requires
-      requires(const Derived& derived, std::array<std::size_t, sizeof...(I)>& indices) {{get_component(derived, indices)} -> scalar_constant; }
-#else
-    template<typename...I, std::enable_if_t<
-      scalar_constant<decltype(get_component(std::declval<const Derived&>(), std::declval<std::array<std::size_t, sizeof...(I)>&>()))>, int> = 0>
-#endif
-    constexpr auto operator()(I&&...i) const &
-    {
-      auto indices = std::array<std::size_t, sizeof...(I)> {static_cast<std::size_t>(std::forward<I>(i))...};
-      return get_component(static_cast<const Derived&>(*this), indices);
-    }
-
-
-    /// \overload
-#ifdef __cpp_lib_concepts
-    template<index_value...I> requires
-      requires(const Derived&& derived, std::array<std::size_t, sizeof...(I)>& indices) {{get_component(derived, indices)} -> scalar_constant; }
-#else
-    template<typename...I, std::enable_if_t<
-      scalar_constant<decltype(get_component(std::declval<const Derived&&>(), std::declval<std::array<std::size_t, sizeof...(I)>&>()))>, int> = 0>
-#endif
-    constexpr auto operator()(I&&...i) const &&
-    {
-      auto indices = std::array<std::size_t, sizeof...(I)> {static_cast<std::size_t>(std::forward<I>(i))...};
-      return get_component(static_cast<const Derived&&>(*this), indices);
-    }
-
-
-    /**
-     * \brief Access the component at a set of indices
-     * \return If <code>writable_by_component<Derived></code>, the component can be directly assigned.
-     */
-#ifdef __cpp_lib_concepts
-    template<index_value...I> requires
-      requires(Derived& derived, std::array<std::size_t, sizeof...(I)>& indices) {{get_component(derived, indices)} -> scalar_constant; }
-#else
-    template<typename...I, std::enable_if_t<
-      scalar_constant<decltype(get_component(std::declval<Derived&>(), std::declval<std::array<std::size_t, sizeof...(I)>&>()))>, int> = 0>
-#endif
-    constexpr auto operator[](I&&...i) &
-    {
-      return operator()(std::forward<I>(i)...);
-    }
-
-
-    /// \overload
-#ifdef __cpp_lib_concepts
-    template<index_value...I> requires
-      requires(Derived&& derived, std::array<std::size_t, sizeof...(I)>& indices) {{get_component(derived, indices)} -> scalar_constant; }
-#else
-    template<typename...I, std::enable_if_t<
-      scalar_constant<decltype(get_component(std::declval<Derived&&>(), std::declval<std::array<std::size_t, sizeof...(I)>&>()))>, int> = 0>
-#endif
-    constexpr auto operator[](I&&...i) &&
-    {
-      return operator()(std::forward<I>(i)...);
-    }
-
-
-    /// \overload
-#ifdef __cpp_lib_concepts
-    template<index_value...I> requires
-      requires(const Derived& derived, std::array<std::size_t, sizeof...(I)>& indices) {{get_component(derived, indices)} -> scalar_constant; }
-#else
-    template<typename...I, std::enable_if_t<
-      scalar_constant<decltype(get_component(std::declval<const Derived&>(), std::declval<std::array<std::size_t, sizeof...(I)>&>()))>, int> = 0>
-#endif
-    constexpr auto operator[](I&&...i) const &
-    {
-      return operator()(std::forward<I>(i)...);
-    }
-
-
-    /// \overload
-#ifdef __cpp_lib_concepts
-    template<index_value...I> requires
-      requires(const Derived&& derived, std::array<std::size_t, sizeof...(I)>& indices) {{get_component(derived, indices)} -> scalar_constant; }
-#else
-    template<typename...I, std::enable_if_t<
-      scalar_constant<decltype(get_component(std::declval<const Derived&&>(), std::declval<std::array<std::size_t, sizeof...(I)>&>()))>, int> = 0>
-#endif
-    constexpr auto operator[](I&&...i) const &&
-    {
-      return operator()(std::forward<I>(i)...);
-    }
 
   private:
 

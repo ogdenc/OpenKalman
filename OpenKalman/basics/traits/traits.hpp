@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -47,6 +47,7 @@
 #include "internal/has_uniform_fixed_vector_space_descriptors.hpp"
 
 #include "compatible_with_vector_space_descriptors.hpp"
+#include "compatible_with_vector_space_descriptor_collection.hpp"
 #include "vector_space_descriptors_may_match_with.hpp"
 #include "vector_space_descriptors_match_with.hpp"
 
@@ -80,6 +81,7 @@
 #include "writable.hpp"
 
 #include "element_gettable.hpp" // deprecated
+#include "basics/values/indices/static_range_size.hpp"
 #include "writable_by_component.hpp"
 
 #include "directly_accessible.hpp"

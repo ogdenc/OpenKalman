@@ -38,6 +38,26 @@ namespace OpenKalman::vector_space_descriptors
 #ifndef __cpp_concepts
     static_assert((distance_vector_space_descriptor<C1> and angle_vector_space_descriptor<C2>) or (distance_vector_space_descriptor<C2> and angle_vector_space_descriptor<C1>));
 #endif
+
+    /// Default constructor
+    constexpr Polar() = default;
+
+
+    /// Conversion constructor
+#ifdef __cpp_concepts
+    template<maybe_equivalent_to<Polar> D> requires (not std::same_as<std::decay_t<D>, Polar>)
+#else
+    template<typename D, std::enable_if_t<
+      maybe_equivalent_to<D, Polar> and not std::is_same_v<std::decay_t<D>, Polar>, int> = 0>
+#endif
+    explicit constexpr Polar(D&& d)
+    {
+      if constexpr (dynamic_vector_space_descriptor<D>)
+      {
+        if (d != Polar{}) throw std::invalid_argument{"Dynamic argument of 'Polar' constructor is not a polar vector space descriptor."};
+      }
+    }
+
   };
 
 } // namespace OpenKalman::vector_space_descriptors

@@ -112,7 +112,8 @@ namespace OpenKalman::interface
   public:
 
 #ifdef __cpp_lib_ranges
-  template<typename Arg, std::ranges::input_range Indices> requires std::convertible_to<std::ranges::range_value_t<Indices>, const typename std::decay_t<Arg>::Index>
+  template<typename Arg, std::ranges::input_range Indices> requires 
+    std::convertible_to<std::ranges::range_value_t<Indices>, const typename std::decay_t<Arg>::Index>
   static constexpr scalar_constant decltype(auto)
 #else
     template<typename Arg, typename Indices>

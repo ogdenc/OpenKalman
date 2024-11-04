@@ -20,24 +20,24 @@
 namespace OpenKalman::Eigen3::internal
 {
 #ifdef __cpp_concepts
-  template<typename Coeffs, OpenKalman::Eigen3::eigen_general NestedMatrix>
-  struct native_traits<OpenKalman::FromEuclideanExpr<Coeffs, NestedMatrix>>
+  template<OpenKalman::Eigen3::eigen_general NestedObject, typename V0>
+  struct native_traits<OpenKalman::FromEuclideanExpr<NestedObject, V0>>
 #else
-  template<typename Coeffs, typename NestedMatrix>
-  struct native_traits<OpenKalman::FromEuclideanExpr<Coeffs, NestedMatrix>, std::enable_if_t<
-    OpenKalman::Eigen3::eigen_general<NestedMatrix>>>
+  template<typename NestedObject, typename V0>
+  struct native_traits<OpenKalman::FromEuclideanExpr<NestedObject, V0>, std::enable_if_t<
+    OpenKalman::Eigen3::eigen_general<NestedObject>>>
 #endif
-    : Eigen::internal::traits<std::decay_t<NestedMatrix>>
+    : Eigen::internal::traits<std::decay_t<NestedObject>>
   {
-    static constexpr auto BaseFlags = Eigen::internal::traits<std::decay_t<NestedMatrix>>::Flags;
+    static constexpr auto BaseFlags = Eigen::internal::traits<std::decay_t<NestedObject>>::Flags;
     enum
     {
-      Flags = OpenKalman::euclidean_vector_space_descriptor<Coeffs> ? BaseFlags :
+      Flags = OpenKalman::euclidean_vector_space_descriptor<V0> ? BaseFlags :
               BaseFlags & ~Eigen::DirectAccessBit & ~Eigen::PacketAccessBit & ~Eigen::LvalueBit &
-              ~(OpenKalman::vector<NestedMatrix> ? 0 : Eigen::LinearAccessBit),
+              ~(OpenKalman::vector<NestedObject> ? 0 : Eigen::LinearAccessBit),
       RowsAtCompileTime = [] {
-          if constexpr (OpenKalman::dynamic_vector_space_descriptor<Coeffs>) return Eigen::Dynamic;
-          else return static_cast<Eigen::Index>(OpenKalman::dimension_size_of_v<Coeffs>);
+          if constexpr (OpenKalman::dynamic_vector_space_descriptor<V0>) return Eigen::Dynamic;
+          else return static_cast<Eigen::Index>(OpenKalman::dimension_size_of_v<V0>);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };
@@ -45,24 +45,24 @@ namespace OpenKalman::Eigen3::internal
 
 
 #ifdef __cpp_concepts
-  template<typename Coeffs, OpenKalman::Eigen3::eigen_general NestedMatrix>
-  struct native_traits<OpenKalman::FromEuclideanExpr<Coeffs, OpenKalman::ToEuclideanExpr<Coeffs, NestedMatrix>>>
+  template<OpenKalman::Eigen3::eigen_general NestedObject, typename V0>
+  struct native_traits<OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<NestedObject>, V0>>
 #else
-    template<typename Coeffs, typename NestedMatrix>
-  struct native_traits<OpenKalman::FromEuclideanExpr<Coeffs, OpenKalman::ToEuclideanExpr<Coeffs, NestedMatrix>>, std::enable_if_t<
-    OpenKalman::Eigen3::eigen_general<NestedMatrix>>>
+    template<typename NestedObject, typename V0>
+  struct native_traits<OpenKalman::FromEuclideanExpr<OpenKalman::ToEuclideanExpr<NestedObject>, V0>, std::enable_if_t<
+    OpenKalman::Eigen3::eigen_general<NestedObject>>>
 #endif
-    : Eigen::internal::traits<std::decay_t<NestedMatrix>>
+    : Eigen::internal::traits<std::decay_t<NestedObject>>
   {
-    static constexpr auto BaseFlags = Eigen::internal::traits<std::decay_t<NestedMatrix>>::Flags;
+    static constexpr auto BaseFlags = Eigen::internal::traits<std::decay_t<NestedObject>>::Flags;
     enum
     {
-      Flags = OpenKalman::euclidean_vector_space_descriptor<Coeffs> ? BaseFlags :
+      Flags = OpenKalman::euclidean_vector_space_descriptor<V0> ? BaseFlags :
               BaseFlags & ~Eigen::DirectAccessBit & ~Eigen::PacketAccessBit & ~Eigen::LvalueBit &
-              ~(OpenKalman::vector<NestedMatrix> ? 0 : Eigen::LinearAccessBit),
+              ~(OpenKalman::vector<NestedObject> ? 0 : Eigen::LinearAccessBit),
       RowsAtCompileTime = [] {
-          if constexpr (OpenKalman::dynamic_vector_space_descriptor<Coeffs>) return Eigen::Dynamic;
-          else return static_cast<Eigen::Index>(OpenKalman::dimension_size_of_v<Coeffs>);
+          if constexpr (OpenKalman::dynamic_vector_space_descriptor<V0>) return Eigen::Dynamic;
+          else return static_cast<Eigen::Index>(OpenKalman::dimension_size_of_v<V0>);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };

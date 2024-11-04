@@ -126,6 +126,26 @@ namespace OpenKalman::vector_space_descriptors
     static_assert(Limits::min <= 0);
     static_assert(Limits::max > 0);
 #endif
+
+    /// Default constructor
+    constexpr Angle() = default;
+
+
+    /// Conversion constructor
+#ifdef __cpp_concepts
+    template<maybe_equivalent_to<Angle> D> requires (not std::same_as<std::decay_t<D>, Angle>)
+#else
+    template<typename D, std::enable_if_t<
+      maybe_equivalent_to<D, Angle> and not std::is_same_v<std::decay_t<D>, Angle>, int> = 0>
+#endif
+    explicit constexpr Angle(D&& d)
+    {
+      if constexpr (dynamic_vector_space_descriptor<D>)
+      {
+        if (d != Angle{}) throw std::invalid_argument{"Dynamic argument of 'Angle' constructor is not an angle vector space descriptor."};
+      }
+    }
+
   };
 
 

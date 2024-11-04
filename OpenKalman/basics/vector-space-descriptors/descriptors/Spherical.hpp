@@ -53,6 +53,26 @@ namespace OpenKalman::vector_space_descriptors
       (distance_vector_space_descriptor<C3> and angle_vector_space_descriptor<C1> and inclination_vector_space_descriptor<C2>) or
       (distance_vector_space_descriptor<C3> and angle_vector_space_descriptor<C2> and inclination_vector_space_descriptor<C1>));
 #endif
+
+    /// Default constructor
+    constexpr Distance() = default;
+
+
+    /// Conversion constructor
+#ifdef __cpp_concepts
+    template<maybe_equivalent_to<Spherical> D> requires (not std::same_as<std::decay_t<D>, Spherical>)
+#else
+    template<typename D, std::enable_if_t<
+      maybe_equivalent_to<D, Spherical> and not std::is_same_v<std::decay_t<D>, Spherical>, int> = 0>
+#endif
+    explicit constexpr Spherical(D&& d)
+    {
+      if constexpr (dynamic_vector_space_descriptor<D>)
+      {
+        if (d != Spherical{}) throw std::invalid_argument{"Dynamic argument of 'Spherical' constructor is not a spherical vector space descriptor."};
+      }
+    }
+
   };
 
 } // namespace OpenKalman::vector_space_descriptors

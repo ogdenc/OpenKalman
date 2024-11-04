@@ -94,6 +94,9 @@
 #include "traits/uniform_fixed_vector_space_descriptor_component_of.hpp"
 #include "traits/equivalent_to_uniform_fixed_vector_space_descriptor_component_of.hpp"
 
+#include "traits/vector_space_descriptor_tuple.hpp"
+#include "traits/vector_space_descriptor_collection.hpp"
+
 // functions:
 
 #include "functions/comparison-operators.hpp"

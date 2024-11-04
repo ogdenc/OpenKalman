@@ -51,13 +51,10 @@ namespace OpenKalman::interface
     static constexpr scalar_type_of_t<Arg>
     get_component(Arg&& arg, const Indices& indices)
     {
-      constexpr std::size_t N = static_range_size_v<Indices>;
-      static_assert(N == dynamic_size or N <= 2);
-
       using Scalar = scalar_type_of_t<Arg>;
       auto it = indices.begin();
       std::size_t i {*it};
-      std::size_t j {N == 1 ? 1 : *++it};
+      std::size_t j {++it == indices.end() ? 1 : *it};
 
       if constexpr (eigen_diagonal_expr<Arg>)
       {
@@ -106,13 +103,10 @@ namespace OpenKalman::interface
     static void
     set_component(Arg& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
     {
-      constexpr std::size_t N = static_range_size_v<Indices>;
-      static_assert(N == dynamic_size or N <= 2);
-
       using Scalar = scalar_type_of_t<Arg>;
       auto it = indices.begin();
       std::size_t i {*it};
-      std::size_t j {N == 1 ? 1 : *++it};
+      std::size_t j {++it == indices.end() ? 1 : *it};
 
       if constexpr (eigen_diagonal_expr<Arg>)
       {

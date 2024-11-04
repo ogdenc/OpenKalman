@@ -20,24 +20,25 @@
 namespace OpenKalman::Eigen3::internal
 {
 #ifdef __cpp_concepts
-  template<typename Coeffs, OpenKalman::Eigen3::eigen_general NestedMatrix>
-  struct native_traits<OpenKalman::ToEuclideanExpr<Coeffs, NestedMatrix>>
+  template<OpenKalman::Eigen3::eigen_general NestedObject>
+  struct native_traits<OpenKalman::ToEuclideanExpr<NestedObject>>
 #else
-  template<typename Coeffs, typename NestedMatrix>
-  struct native_traits<OpenKalman::ToEuclideanExpr<Coeffs, NestedMatrix>, std::enable_if_t<
-    OpenKalman::Eigen3::eigen_general<NestedMatrix>>>
+  template<typename NestedObject>
+  struct native_traits<OpenKalman::ToEuclideanExpr<NestedObject>, std::enable_if_t<
+    OpenKalman::Eigen3::eigen_general<NestedObject>>>
 #endif
-    : Eigen::internal::traits<std::decay_t<NestedMatrix>>
+    : Eigen::internal::traits<std::decay_t<NestedObject>>
   {
-    static constexpr auto BaseFlags = Eigen::internal::traits<std::decay_t<NestedMatrix>>::Flags;
+    static constexpr auto BaseFlags = Eigen::internal::traits<std::decay_t<NestedObject>>::Flags;
+	using V0 = vector_space_descriptor_of<NestedObject, 0>; 
     enum
     {
-      Flags = OpenKalman::euclidean_vector_space_descriptor<Coeffs> ? BaseFlags :
+      Flags = OpenKalman::euclidean_vector_space_descriptor<V0> ? BaseFlags :
               BaseFlags & ~Eigen::DirectAccessBit & ~Eigen::PacketAccessBit & ~Eigen::LvalueBit &
-              ~(OpenKalman::vector<NestedMatrix> ? 0 : Eigen::LinearAccessBit),
+              ~(OpenKalman::vector<NestedObject> ? 0 : Eigen::LinearAccessBit),
       RowsAtCompileTime = [] {
-          if constexpr (OpenKalman::dynamic_vector_space_descriptor<Coeffs>) return Eigen::Dynamic;
-          else return static_cast<Eigen::Index>(OpenKalman::euclidean_dimension_size_of_v<Coeffs>);
+          if constexpr (OpenKalman::dynamic_vector_space_descriptor<V0>) return Eigen::Dynamic;
+          else return static_cast<Eigen::Index>(OpenKalman::euclidean_dimension_size_of_v<V0>);
       }(),
       MaxRowsAtCompileTime = RowsAtCompileTime,
     };

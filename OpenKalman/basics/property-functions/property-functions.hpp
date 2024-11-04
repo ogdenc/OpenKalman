@@ -20,6 +20,8 @@
 #define OPENKALMAN_PROPERTIES_FUNCTIONS_HPP
 
 
+#include "internal/VectorSpaceDescriptorRange"
+
 #include "count_indices.hpp"
 #include "get_vector_space_descriptor.hpp"
 #include "get_index_dimension_of.hpp"

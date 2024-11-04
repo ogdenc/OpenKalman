@@ -45,14 +45,11 @@ namespace OpenKalman
    * \return a \ref scalar_constant
    */
 #ifdef __cpp_lib_ranges
-  template<indexible Arg, std::ranges::input_range Indices> requires index_value<std::ranges::range_value_t<Indices>> and
-    (static_range_size_v<Indices> == dynamic_size or index_count_v<Arg> == dynamic_size or static_range_size_v<Indices> >= index_count_v<Arg>) and
-    (not empty_object<Arg>)
+  template<indexible Arg, static_range_size<Arg> Indices> requires (not empty_object<Arg>)
   constexpr scalar_constant decltype(auto)
 #else
-  template<typename Arg, typename Indices, std::enable_if_t<indexible<Arg> and index_value<decltype(*std::declval<Indices>().begin())> and
-    (static_range_size<Indices>::value == dynamic_size or index_count<Arg>::value == dynamic_size or static_range_size<Indices>::value >= index_count<Arg>::value) and
-    (not empty_object<Arg>), int> = 0>
+  template<typename Arg, typename Indices, std::enable_if_t<
+    static_range_size<Indices, Arg> and (not empty_object<Arg>), int> = 0>
   constexpr decltype(auto)
 #endif
   get_component(Arg&& arg, const Indices& indices)
@@ -61,42 +58,24 @@ namespace OpenKalman
   }
 
 
-  /**
-   * \overload
-   * \brief Get a component of an object using an initializer list.
-   */
-#ifdef __cpp_lib_concepts
-  template<indexible Arg, index_value Indices> requires (not empty_object<Arg>)
-  constexpr scalar_constant decltype(auto)
-#else
-  template<typename Arg, typename Indices, std::enable_if_t<indexible<Arg> and index_value<Indices> and
-    (not empty_object<Arg>), int> = 0>
-  constexpr decltype(auto)
-#endif
-  get_component(Arg&& arg, const std::initializer_list<Indices>& indices)
-  {
-    return detail::get_component_impl(std::forward<Arg>(arg), indices);
-  }
-
-
-  namespace detail
-  {
-    template<typename Arg, typename...V, std::size_t...Ix>
-    constexpr bool static_indices_within_bounds_impl(std::index_sequence<Ix...>)
-    {
-      return ([]{
-        if constexpr (static_index_value<V>) return (std::decay_t<V>::value < index_dimension_of_v<Arg, Ix>);
-        else return true;
-      }() and ...);
-    }
-  } // namespace detail
-
-
   namespace internal
   {
+    namespace detail
+    {
+      template<typename Arg, typename...V, std::size_t...Ix>
+      constexpr bool static_indices_within_bounds_impl(std::index_sequence<Ix...>)
+      {
+        return ([]{
+          if constexpr (static_index_value<V>) return (std::decay_t<V>::value < index_dimension_of_v<Arg, Ix>);
+          else return true;
+        }() and ...);
+      }
+    } // namespace detail
+
+
     template<typename Arg, typename...I>
     struct static_indices_within_bounds
-      : std::bool_constant<(OpenKalman::detail::static_indices_within_bounds_impl<Arg, I...>(std::index_sequence_for<I...>{}))> {};
+      : std::bool_constant<(detail::static_indices_within_bounds_impl<Arg, I...>(std::index_sequence_for<I...>{}))> {};
 
   } // namespace internal
 
@@ -108,8 +87,9 @@ namespace OpenKalman
    * integral constants, the function performs compile-time bounds checking to the extent possible.
    */
 #ifdef __cpp_lib_concepts
-  template<indexible Arg, index_value...I> requires (index_count_v<Arg> == dynamic_size or sizeof...(I) >= index_count_v<Arg>) and
-  (not empty_object<Arg>) and internal::static_indices_within_bounds<Arg, I...>::value
+  template<indexible Arg, index_value...I> requires 
+    (index_count_v<Arg> == dynamic_size or sizeof...(I) >= index_count_v<Arg>) and
+    (not empty_object<Arg>) and internal::static_indices_within_bounds<Arg, I...>::value
   constexpr scalar_constant decltype(auto)
 #else
   template<typename Arg, typename...I, std::enable_if_t<indexible<Arg> and (... and index_value<I>) and
@@ -119,8 +99,7 @@ namespace OpenKalman
 #endif
   get_component(Arg&& arg, I&&...i)
   {
-    auto indices = std::array<std::size_t, sizeof...(I)> {static_cast<std::size_t>(std::forward<I>(i))...};
-    return detail::get_component_impl(std::forward<Arg>(arg), indices);
+    return detail::get_component_impl(std::forward<Arg>(arg), {static_cast<std::size_t>(std::forward<I>(i))...});
   }
 
 

@@ -59,21 +59,21 @@ namespace OpenKalman
     }
 
 
-    template<typename Arg, typename...Begin, typename...Size>
-    constexpr auto get_slice_impl(Arg&& arg, const std::tuple<Begin...>& begin, const std::tuple<Size...>& size)
+    template<typename Arg, typename...Begin, typename...Size, std::size_t...Ix>
+    constexpr auto get_slice_impl(Arg&& arg, const std::tuple<Begin...>& begin, const std::tuple<Size...>& size, std::index_sequence<Ix...> seq)
     {
       if constexpr (zero<Arg>)
       {
         return std::apply([](auto&&...ds){
           return make_zero<Arg>(std::forward<decltype(ds)>(ds)...);
-          }, get_slice_descriptors(std::forward<Arg>(arg), begin, size));
+          }, get_slice_descriptors(std::forward<Arg>(arg), begin, size, seq));
       }
       else if constexpr (constant_matrix<Arg>)
       {
         return std::apply(
           [](const auto& c, auto&&...ds){
             return make_constant<Arg>(c, std::forward<decltype(ds)>(ds)...);
-            }, std::tuple_cat(std::tuple{constant_coefficient{arg}}, get_slice_descriptors(std::forward<Arg>(arg), begin, size)));
+            }, std::tuple_cat(std::tuple{constant_coefficient{arg}}, get_slice_descriptors(std::forward<Arg>(arg), begin, size, seq)));
       }
       else
       {
@@ -82,7 +82,7 @@ namespace OpenKalman
             return make_vector_space_adapter(std::forward<decltype(a)>(a), std::forward<decltype(ds)>(ds)...);
             }, std::tuple_cat(
               std::forward_as_tuple(interface::library_interface<std::decay_t<Arg>>::get_slice(std::forward<Arg>(arg), begin, size)),
-              get_slice_descriptors(std::forward<Arg>(arg), begin, size)));
+              get_slice_descriptors(std::forward<Arg>(arg), begin, size, seq)));
       }
       // \todo If arg is directly_accessible and the library interface is not defined, extract the block from the raw data.
     }
@@ -107,7 +107,7 @@ namespace OpenKalman
   template<std::size_t...indices, indexible Arg, index_value...Begin, index_value...Size> requires
     (sizeof...(Begin) == sizeof...(Size)) and internal::has_uniform_fixed_vector_space_descriptors<Arg, indices...> and
     (sizeof...(indices) == 0 or sizeof...(indices) == sizeof...(Begin))
-  constexpr compatible_with_vector_space_descriptors<Size...> decltype(auto)
+  constexpr indexible decltype(auto)
 #else
   template<std::size_t...indices, typename Arg, typename...Begin, typename...Size, std::enable_if_t<
     indexible<Arg> and (index_value<Begin> and ...) and (index_value<Size> and ...) and
@@ -137,7 +137,8 @@ namespace OpenKalman
         auto arg_ix_seq = std::make_index_sequence<index_count_v<Arg>>{};
         return detail::get_slice_impl(std::forward<Arg>(arg),
           detail::expand_block_limits<true, indices...>(arg_ix_seq, begin_seq, arg, begin),
-          detail::expand_block_limits<false, indices...>(arg_ix_seq, begin_seq, arg, size));
+          detail::expand_block_limits<false, indices...>(arg_ix_seq, begin_seq, arg, size),
+		  begin_seq);
       }
     }
   }

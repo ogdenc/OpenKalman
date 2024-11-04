@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,7 +24,7 @@
 
 namespace OpenKalman
 {
-  // \todo Add functions that return stl-compatible iterators.
+  // \todo Add functions that return stl ranges.
 
   namespace detail
   {
@@ -46,35 +46,13 @@ namespace OpenKalman
    * \return The modified Arg
    */
 #ifdef __cpp_lib_ranges
-  template<typename Arg, std::ranges::input_range Indices> requires writable_by_component<Arg, Indices> and
-    index_value<std::ranges::range_value_t<Indices>> and
-    (static_range_size_v<Indices> == dynamic_size or index_count_v<Arg> == dynamic_size or
-      static_range_size_v<Indices> >= index_count_v<Arg>)
+  template<indexible Arg, static_range_size<Arg> Indices> requires writable_by_component<Arg, Indices> 
 #else
-  template<typename Arg, typename Indices, std::enable_if_t<writable_by_component<Arg, Indices> and
-    index_value<decltype(*std::declval<Indices>().begin())> and
-    (static_range_size<Indices>::value == dynamic_size or index_count<Arg>::value == dynamic_size or
-      static_range_size<Indices>::value >= index_count<Arg>::value), int> = 0>
+  template<typename Arg, typename Indices, std::enable_if_t<
+    indexible<Arg> and static_range_size<Indices, Arg> and writable_by_component<Arg, Indices>, int> = 0>
 #endif
   inline Arg&&
   set_component(Arg&& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
-  {
-    return detail::set_component_impl(std::forward<Arg>(arg), s, indices);
-  }
-
-
-  /**
-   * \overload
-   * \brief Set a component of an object using an initializer list.
-   */
-#ifdef __cpp_lib_concepts
-  template<typename Arg, index_value Indices> requires writable_by_component<Arg, std::initializer_list<Indices>>
-#else
-  template<typename Arg, typename Indices, std::enable_if_t<index_value<Indices> and
-    writable_by_component<Arg, std::initializer_list<Indices>>, int> = 0>
-#endif
-  inline Arg&&
-  set_component(Arg&& arg, const scalar_type_of_t<Arg>& s, const std::initializer_list<Indices>& indices)
   {
     return detail::set_component_impl(std::forward<Arg>(arg), s, indices);
   }
@@ -99,8 +77,7 @@ namespace OpenKalman
   inline Arg&&
   set_component(Arg&& arg, const scalar_type_of_t<Arg>& s, I&&...i)
   {
-    const auto indices = std::array<std::size_t, sizeof...(I)> {static_cast<std::size_t>(std::forward<I>(i))...};
-    return detail::set_component_impl(std::forward<Arg>(arg), s, indices);
+    return detail::set_component_impl(std::forward<Arg>(arg), s, {static_cast<std::size_t>(std::forward<I>(i))...});
   }
 
 

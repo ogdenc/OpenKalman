@@ -42,7 +42,6 @@
 #include "indices/static_index_value.hpp"
 #include "indices/dynamic_index_value.hpp"
 #include "indices/index_value.hpp"
-#include "indices/static_range_size.hpp"
 
 #include "internal/index_to_scalar_constant.hpp"
 

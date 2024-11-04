@@ -66,14 +66,14 @@ namespace Eigen::internal
     : OpenKalman::Eigen3::internal::native_traits<OpenKalman::DiagonalMatrix<NestedObject>> {};
 
 
-  template<typename Coeffs, typename NestedObject>
-  struct traits<OpenKalman::ToEuclideanExpr<Coeffs, NestedObject>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::ToEuclideanExpr<Coeffs, NestedObject>> {};
+  template<typename NestedObject>
+  struct traits<OpenKalman::ToEuclideanExpr<NestedObject>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::ToEuclideanExpr<NestedObject>> {};
 
 
-  template<typename Coeffs, typename NestedObject>
-  struct traits<OpenKalman::FromEuclideanExpr<Coeffs, NestedObject>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::FromEuclideanExpr<Coeffs, NestedObject>> {};
+  template<typename NestedObject, typename V0>
+  struct traits<OpenKalman::FromEuclideanExpr<NestedObject, V0>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::FromEuclideanExpr<NestedObject, V0>> {};
 
   
   

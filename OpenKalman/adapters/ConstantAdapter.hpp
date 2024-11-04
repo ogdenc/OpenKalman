@@ -45,93 +45,236 @@ namespace OpenKalman
     using MyConstant = std::conditional_t<sizeof...(constant) == 0, Scalar, values::ScalarConstant<Scalar, constant...>>;
     using MyScalarType = std::decay_t<decltype(get_scalar_constant_value(std::declval<MyConstant>()))>;
 
-
-#ifdef __cpp_concepts
-    template<typename P = PatternMatrix>
-#else
-    template<typename P = PatternMatrix, typename = void>
-#endif
-    struct MyDimensions
-    { using type = decltype(all_vector_space_descriptors(std::declval<PatternMatrix>())); };
+    using AllDescriptorsType = decltype(all_vector_space_descriptors(std::declval<PatternMatrix>()));
+    using DescriptorCollection = std::conditional_t<
+      vector_space_descriptor_tuple<AllDescriptorsType>, 
+      AllDescriptorsType, 
+      std::vector<DynamicDescriptor<MyScalarType>>>;
 
 
-    template<typename P>
-#ifdef __cpp_concepts
-    requires (index_count_v<P> == dynamic_size)
-    struct MyDimensions<P>
-#else
-    struct MyDimensions<P, std::enable_if_t<index_count_v<P> == dynamic_size>>
-#endif
-    { using type = std::vector<DynamicDescriptor<MyScalarType>>; };
+    template<std::size_t N = 0>
+    constexpr auto make_descriptors_tuple() 
+    { 
+      if constexpr (N >= std::tuple_size_v<DescriptorCollection>) 
+        return std::tuple {}; 
+      else 
+        return std::tuple_cat(
+          std::forward_as_tuple(std::tuple_element_t<N, DescriptorCollection>{}), 
+          make_descriptors_tuple<N + 1>());
+    }
 
-    using MyDimensions_t = typename MyDimensions<>::type;
+    template<std::size_t N = 0, typename D, typename...Ds>
+    constexpr auto make_descriptors_tuple(D&& d, Ds&&...ds)
+    {
+      if constexpr (N >= std::tuple_size_v<DescriptorCollection>) 
+      {
+        if constexpr (dynamic_vector_space_descriptor<D>) if (d != Axis{}) throw std::invalid_argument {
+          "Too many elements in vector space descriptors_collection_tuple argument of a constant adapter"};
+        return make_descriptors_tuple<N + 1>(std::forward<Ds>(ds)...); 
+      }
+      else if constexpr (fixed_vector_space_descriptor<std::tuple_element_t<N, DescriptorCollection>>)
+      {
+        using E = std::tuple_element_t<N, DescriptorCollection>;
+        if constexpr (dynamic_vector_space_descriptor<D>) if (d != E{}) throw std::invalid_argument {
+          "Invalid dynamic element in vector_space_descriptor_tuple argument of a constant adapter"};
+        return std::tuple_cat(std::forward_as_tuple(E{}),
+          make_descriptors_tuple<N + 1>(std::forward<Ds>(ds)...));
+      }
+      else // if constexpr (dynamic_vector_space_descriptor<std::tuple_element_t<N, DescriptorCollection>>)
+      {
+        return std::tuple_cat(std::forward_as_tuple(std::forward<D>(d)),
+          make_descriptors_tuple<N + 1>(std::forward<Ds>(ds)...));
+      }
+    }
+    
+    
+    template<std::size_t N = 0, typename Iterator, typename Sentinel>
+    constexpr auto make_descriptors_tuple_from_range(Iterator it, const Sentinel& end)
+    {
+      if constexpr (N >= std::tuple_size_v<DescriptorCollection>)
+      {
+        for (; it != end; ++it) if (*it != Axis{}) throw std::invalid_argument {
+          "Too many elements in vector space descriptors_collection range argument of a constant adapter"};
+        return std::tuple {};
+      }
+      else if constexpr (fixed_vector_space_descriptor<std::tuple_element_t<N, DescriptorCollection>>)
+      {
+        using E = std::tuple_element_t<N, DescriptorCollection>;
+        if (it == end)
+        {
+          if (not equivalent_to<E, Axis>) throw std::invalid_argument {
+            "Too few elements in vector space descriptors_collection range argument of a constant adapter"};
+          return std::tuple_cat(std::forward_as_tuple(E{}),
+            make_descriptors_tuple_from_range<N + 1>(std::move(it), end));
+        }
+        else
+        {
+          if constexpr (dynamic_vector_space_descriptor<decltype(*it)>) 
+            if (*it != E{}) throw std::invalid_argument {
+              "Invalid dynamic element in vector_space_descriptor_collection range argument of a constant adapter"};
+          return std::tuple_cat(std::forward_as_tuple(E{}),
+            make_descriptors_tuple_from_range<N + 1>(++it, end));
+        }
+      }
+      else // if constexpr (dynamic_vector_space_descriptor<std::tuple_element_t<N, DescriptorCollection>>)
+      {
+        using E = std::tuple_element_t<N, DescriptorCollection>;
+        if (it == end) throw std::invalid_argument {
+          "Too few elements in vector space descriptors_collection range argument of a constant adapter"};
+        std::tuple_element_t<N, DescriptorCollection> e {*it};
+        return std::tuple_cat(std::forward_as_tuple(std::move(e)),
+          make_descriptors_tuple_from_range<N + 1>(++it, end));
+      }
+    }
+    
+    
+    template<typename Descriptors>
+    constexpr auto make_descriptors_collection(Descriptors&& descriptors)
+    {
+      if constexpr (vector_space_descriptor_tuple<Descriptors>)
+      {
+        return std::apply([](auto&& D, auto&&...Ds){ 
+            return make_descriptors_tuple(std::forward<D>(d), std::forward<Ds>(ds)...); 
+          }, std::forward<Descriptors>(descriptors));
+      }
+      else if constexpr (vector_space_descriptor_tuple<DescriptorCollection>)
+      {
+        return make_descriptors_tuple_from_range(descriptors.begin(), descriptors.end()); 
+      }
+      else
+      {
+        DescriptorCollection ret;
+        std::copy(descriptors.begin(), descriptors.end(), ret.begin());
+        return ret;
+      }
+    }
 
   public:
 
     /**
-     * \brief Construct a ConstantAdapter, whose value is known at compile time, using a dynamic range of
-     * \ref vector_space_descriptor objects.
-     * \tparam Ds A set of \ref vector_space_descriptor objects corresponding to PatternMatrix.
+     * \brief Construct from \ref scalar_constant and a \ref vector_space_descriptor_collection
      */
 #ifdef __cpp_lib_ranges
-    template<std::ranges::input_range Ds> requires vector_space_descriptor<std::ranges::range_value_t<Ds>> and
-      (index_count_v<PatternMatrix> == dynamic_size)
+    template<scalar_constant C, vector_space_descriptor_collection Descriptors> requires 
+      std::constructible_from<MyConstant, C&&> and 
+      compatible_with_vector_space_descriptor_collection<PatternMatrix, Descriptors>
 #else
-    template<typename Ds, std::enable_if_t<vector_space_descriptor<decltype(*std::declval<Ds>().begin())> and
-      (index_count_v<PatternMatrix> == dynamic_size), int> = 0>
+    template<typename C, typename Descriptors, std::enable_if_t<
+      scalar_constant<C> and vector_space_descriptor_collection<Descriptors> and 
+      std::is_constructible_v<MyConstant, C&&> and 
+      compatible_with_vector_space_descriptor_collection<PatternMatrix, Descriptors>, int> = 0>
 #endif
-    explicit constexpr ConstantAdapter(Ds&& ds)
-    {
-      std::copy(ds.begin(), ds.end(), my_dimensions.begin());
-    }
+    explicit constexpr ConstantAdapter(C&& c, Descriptors&& descriptors) 
+      : my_constant {std::forward<C>(c)}, 
+        descriptor_collection {make_descriptors_collection(std::forward<Descriptors>(descriptors))} {}
 
 
     /**
      * \overload
-     * \brief Same as above, except also specifying a \ref scalar_constant.
+     * \brief Same as above, where the constant is known at compile time.
      */
 #ifdef __cpp_lib_ranges
-      template<scalar_constant C, std::ranges::input_range Ds> requires std::constructible_from<MyConstant, C&&> and
-        vector_space_descriptor<std::ranges::range_value_t<Ds>> and (index_count_v<PatternMatrix> == dynamic_size)
+    template<vector_space_descriptor_collection Descriptors> requires 
+      static_constant<MyConstant, ConstantType::static_constant> and 
+      compatible_with_vector_space_descriptor_collection<PatternMatrix, Descriptors>
 #else
-      template<typename C, typename Ds, std::enable_if_t<scalar_constant<C> and std::is_constructible_v<MyConstant, C&&> and
-        vector_space_descriptor<decltype(*std::declval<Ds>().begin())> and
-        (index_count_v<PatternMatrix> == dynamic_size), int> = 0>
+    template<typename Descriptors, std::enable_if_t<
+      vector_space_descriptor_collection<Descriptors> and 
+      static_constant<MyConstant, ConstantType::static_constant> and 
+      compatible_with_vector_space_descriptor_collection<PatternMatrix, Descriptors>, int> = 0>
 #endif
-    explicit constexpr ConstantAdapter(C&& c, Ds&& ds) : my_constant {std::forward<C>(c)}
-    {
-      std::copy(ds.begin(), ds.end(), my_dimensions.begin());
-    }
+    explicit constexpr ConstantAdapter(Descriptors&& descriptors) 
+      : descriptor_collection {make_descriptors_collection(std::forward<Descriptors>(descriptors))} {}
 
-private:
+  
+    /**
+     * \brief Construct based on a \ref scalar_constant and the shape of an \ref indexible reference object.
+     * \details 
+     * The following constructs a 2-by-3 ConstantAdapter with constant 5.
+     * \code
+     * ConstantAdapter {std::integral_constant<int, 5>{}, eigen_matrix_t<double, 2, 3>{})
+     * ConstantAdapter {std::integral_constant<int, 5>{}, eigen_matrix_t<double, 2, Eigen::Dynamic>(2, 3))
+     * ConstantAdapter {5, eigen_matrix_t<double, 2, 3>{})
+     * ConstantAdapter {5, eigen_matrix_t<double, Eigen::Dynamic, 3>(2, 3))
+     * \endcode
+     */
+#ifdef __cpp_concepts
+    template<scalar_constant C, vector_space_descriptors_may_match_with<PatternMatrix> Arg> requires
+      std::constructible_from<MyConstant, C&&>
+#else
+    template<typename C, typename Arg, std::enable_if_t<
+      scalar_constant<C> and vector_space_descriptors_may_match_with<Arg, PatternMatrix> and 
+      std::is_constructible_v<MyConstant, C&&>, int> = 0>
+#endif
+    constexpr ConstantAdapter(C&& c, const Arg& arg) :
+      my_constant {std::forward<C>(c)}, 
+      descriptor_collection {make_descriptors_collection(all_vector_space_descriptors(arg))} {}
 
-  template<std::size_t N = 0>
-    constexpr auto make_all_dimensions_tuple() { return std::tuple {}; }
-
-
-    template<std::size_t N = 0, typename D, typename...Ds>
-    constexpr auto make_all_dimensions_tuple(D&& d, Ds&&...ds)
-    {
-      using E = std::tuple_element_t<N, MyDimensions_t>;
-      if constexpr (fixed_vector_space_descriptor<E>)
-      {
-        auto e = std::get<N>(my_dimensions);
-        if constexpr (fixed_vector_space_descriptor<D>) static_assert(equivalent_to<D, E>);
-        else if (e != d) throw std::invalid_argument {"Invalid argument for vector space descriptors of a constant matrix"};
-        return std::tuple_cat(std::forward_as_tuple(std::move(e)),
-          make_all_dimensions_tuple<N + 1>(std::forward<Ds>(ds)...));
-      }
-      else
-      {
-        return std::tuple_cat(std::forward_as_tuple(std::forward<D>(d)),
-          make_all_dimensions_tuple<N + 1>(std::forward<Ds>(ds)...));
-      }
-    }
-
-  public:
 
     /**
-     * \brief Construct a ConstantAdapter, whose value is known at compile time, using a full set of \ref vector_space_descriptor objects.
+     * \overload 
+     * \brief Same as above, where the constant is known at compile time.
+     */
+#ifdef __cpp_concepts
+    template<vector_space_descriptors_may_match_with<PatternMatrix> Arg> requires
+      (not std::is_base_of_v<ConstantAdapter, Arg>) and 
+      static_constant<MyConstant, ConstantType::static_constant> 
+#else
+    template<typename Arg, std::enable_if_t<
+      vector_space_descriptors_may_match_with<Arg, PatternMatrix> and 
+      (not std::is_base_of_v<ConstantAdapter, Arg>) and 
+      static_constant<MyConstant, ConstantType::static_constant>, int> = 0>
+#endif
+    constexpr ConstantAdapter(const Arg& arg) :
+      descriptor_collection {make_descriptors_collection(all_vector_space_descriptors(arg))} {}
+
+
+    /**
+     * \brief Construct from another constant object.
+     */
+#ifdef __cpp_concepts
+    template<constant_matrix Arg> requires
+      (not std::is_base_of_v<ConstantAdapter, Arg>) and 
+      vector_space_descriptors_may_match_with<Arg, PatternMatrix> and
+      std::constructible_from<MyConstant, constant_coefficient<Arg>>
+#else
+    template<typename Arg, std::enable_if_t<constant_matrix<Arg> and
+      (not std::is_base_of_v<ConstantAdapter, Arg>) and 
+      vector_space_descriptors_may_match_with<Arg, PatternMatrix> and
+      std::is_constructible_v<MyConstant, constant_coefficient<Arg>>, int> = 0>
+#endif
+    constexpr ConstantAdapter(const Arg& arg) :
+      my_constant {constant_coefficient {arg}}, 
+      descriptor_collection {make_descriptors_collection(all_vector_space_descriptors(arg))} {}
+
+
+    /**
+     * \brief Construct using a full set of \ref vector_space_descriptor objects.
+     * \details For example, the following construct a 2-by-3 constant matrix of value 5:
+     * \code
+     * ConstantAdapter<eigen_matrix_t<double, 2, 3>, 5>(std::integral_constant<int, 5>{}, 2, 3)
+     * ConstantAdapter<eigen_matrix_t<double, Eigen::Dynamic, 3>>(5., 2, 3)
+     * ConstantAdapter<eigen_matrix_t<double, Eigen::Dynamic, Eigen::Dynamic>>(5., 2, 3)
+     * \endcode
+     */
+#ifdef __cpp_concepts
+    template<scalar_constant C, vector_space_descriptor...Ds> requires 
+      std::constructible_from<MyConstant, C&&> and
+      compatible_with_vector_space_descriptors<PatternMatrix, Ds...>
+#else
+    template<typename C, typename...Ds, std::enable_if_t<
+      scalar_constant<C> and (vector_space_descriptor<Ds> and ...) and 
+      std::is_constructible_v<MyConstant, C&&> and
+      compatible_with_vector_space_descriptors<PatternMatrix, Ds...>, int> = 0>
+#endif
+    explicit constexpr ConstantAdapter(C&& c, Ds&&...ds)
+      : my_constant {std::forward<C>(c)}, 
+        descriptor_collection {make_descriptors_collection(std::forward_as_tuple(std::forward<Ds>(ds)...))} {}
+
+
+    /**
+     * \overload
+     * \brief Same as above, where the constant is known at compile time.
      * \tparam Ds A set of \ref vector_space_descriptor objects corresponding to PatternMatrix.
      * \details
      * For example, the following construct a 2-by-3 constant matrix of value 5:
@@ -143,37 +286,17 @@ private:
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<vector_space_descriptor...Ds> requires (sizeof...(Ds) == std::tuple_size_v<MyDimensions_t>) and
-      scalar_constant<MyConstant, ConstantType::static_constant> and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>
+    template<vector_space_descriptor...Ds> requires 
+      static_constant<MyConstant, ConstantType::static_constant> and 
+      compatible_with_vector_space_descriptors<PatternMatrix, Ds...>
 #else
     template<typename...Ds, std::enable_if_t<
-      (vector_space_descriptor<Ds> and ...) and (sizeof...(Ds) == std::tuple_size_v<MyDimensions_t>) and
-      scalar_constant<MyConstant, ConstantType::static_constant> and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>, int> = 0>
+      (vector_space_descriptor<Ds> and ...) and 
+      static_constant<MyConstant, ConstantType::static_constant> and 
+      compatible_with_vector_space_descriptors<PatternMatrix, Ds...>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(Ds&&...ds)
-      : my_dimensions {make_all_dimensions_tuple(std::forward<Ds>(ds)...)} {}
-
-
-    /**
-     * \overload
-     * \brief Same as above, except also specifying a \ref scalar_constant.
-     * \details For example, the following construct a 2-by-3 constant matrix of value 5:
-     * \code
-     * ConstantAdapter<eigen_matrix_t<double, 2, 3>, 5>(std::integral_constant<int, 5>{}, 2, 3)
-     * ConstantAdapter<eigen_matrix_t<double, Eigen::Dynamic, 3>>(5., 2, 3)
-     * ConstantAdapter<eigen_matrix_t<double, Eigen::Dynamic, Eigen::Dynamic>>(5., 2, 3)
-     * \endcode
-     */
-#ifdef __cpp_concepts
-    template<scalar_constant C, vector_space_descriptor...Ds> requires std::constructible_from<MyConstant, C&&> and
-      (sizeof...(Ds) == std::tuple_size_v<MyDimensions_t>) and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>
-#else
-    template<typename C, typename...Ds, std::enable_if_t<
-      scalar_constant<C> and (vector_space_descriptor<Ds> and ...) and std::is_constructible_v<MyConstant, C&&> and
-      (sizeof...(Ds) == std::tuple_size_v<MyDimensions_t>) and compatible_with_vector_space_descriptors<PatternMatrix, Ds...>, int> = 0>
-#endif
-    explicit constexpr ConstantAdapter(C&& c, Ds&&...ds)
-      : my_constant {std::forward<C>(c)}, my_dimensions {make_all_dimensions_tuple(std::forward<Ds>(ds)...)} {}
+      : descriptor_collection {make_descriptors_collection(std::forward_as_tuple(std::forward<Ds>(ds)...))} {}
 
   private:
 
@@ -181,7 +304,7 @@ private:
     constexpr auto make_dynamic_dimensions_tuple()
     {
       if constexpr (N < index_count_v<PatternMatrix>)
-        return std::tuple_cat(std::forward_as_tuple(std::get<N>(my_dimensions)), make_dynamic_dimensions_tuple<N + 1>());
+        return std::tuple_cat(std::forward_as_tuple(std::get<N>(descriptor_collection)), make_dynamic_dimensions_tuple<N + 1>());
       else
         return std::tuple {};
     }
@@ -190,47 +313,23 @@ private:
     template<std::size_t N = 0, typename D, typename...Ds>
     constexpr auto make_dynamic_dimensions_tuple(D&& d, Ds&&...ds)
     {
-      if constexpr (dynamic_vector_space_descriptor<std::tuple_element_t<N, MyDimensions_t>>)
+      if constexpr (dynamic_vector_space_descriptor<std::tuple_element_t<N, DescriptorCollection>>)
         return std::tuple_cat(std::forward_as_tuple(std::forward<D>(d)),
           make_dynamic_dimensions_tuple<N + 1>(std::forward<Ds>(ds)...));
       else
-        return std::tuple_cat(std::forward_as_tuple(std::get<N>(my_dimensions)),
+        return std::tuple_cat(std::forward_as_tuple(std::get<N>(descriptor_collection)),
           make_dynamic_dimensions_tuple<N + 1>(std::forward<D>(d), std::forward<Ds>(ds)...));
     }
-
 
   public:
 
     /**
-     * \overload
-     * \brief Construct a ConstantAdapter, whose value is known at compile time, using only applicable \ref dynamic_vector_space_descriptor.
+     * \brief Construct using only applicable \ref dynamic_vector_space_descriptor.
      * \tparam Ds A set of \ref dynamic_vector_space_descriptor corresponding to each of
      * class template parameter Ds that is dynamic, in order of Ds. This list should omit any \ref fixed_vector_space_descriptor.
      * \details If PatternMatrix has no dynamic dimensions, this is a default constructor.
      * The constructor can take a number of arguments representing the number of dynamic dimensions.
      * For example, the following construct a 2-by-3 constant matrix of value 5:
-     * \code
-     * ConstantAdapter<eigen_matrix_t<double, dynamic_size, dynamic_size>, 5>(2, 3) // Dynamic rows and columns.
-     * ConstantAdapter<eigen_matrix_t<double, 2, dynamic_size>, 5>(3) // Fixed rows and dynamic columns.
-     * ConstantAdapter<eigen_matrix_t<double, dynamic_size, 3>, 5>(2) // Dynamic rows and fixed columns.
-     * ConstantAdapter<eigen_matrix_t<double, 2, 3>, 5>() // Fixed rows and columns.
-     * \endcode
-     */
-#ifdef __cpp_concepts
-    template<dynamic_vector_space_descriptor...Ds> requires (sizeof...(Ds) < std::tuple_size_v<MyDimensions_t>) and
-      (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and scalar_constant<MyConstant, ConstantType::static_constant>
-#else
-    template<typename...Ds, std::enable_if_t<(dynamic_vector_space_descriptor<Ds> and ...) and
-      (sizeof...(Ds) < std::tuple_size_v<MyDimensions_t>) and sizeof...(Ds) == dynamic_index_count_v<PatternMatrix> and
-      scalar_constant<MyConstant, ConstantType::static_constant>, int> = 0>
-#endif
-    explicit constexpr ConstantAdapter(Ds&&...ds) : my_dimensions {make_dynamic_dimensions_tuple(std::forward<Ds>(ds)...)} {}
-
-
-    /**
-     * \overload
-     * \brief Same as above, except specifying a \ref scalar_constant.
-     * \details For example, the following construct a 2-by-3 constant matrix of value 5:
      * \code
      * ConstantAdapter<eigen_matrix_t<double, 2, dynamic_size>, 5>(std::integral_constant<int, 5>{}, 3) // Fixed rows and dynamic columns.
      * ConstantAdapter<eigen_matrix_t<double, 2, 3>>(5) // Fixed rows and columns.
@@ -240,103 +339,71 @@ private:
      */
 #ifdef __cpp_concepts
     template<scalar_constant C, dynamic_vector_space_descriptor...Ds> requires
-      (sizeof...(Ds) < std::tuple_size_v<MyDimensions_t>) and
-      (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and std::constructible_from<MyConstant, C&&>
+      vector_space_descriptor_tuple<DescriptorCollection> and 
+      (dynamic_index_count_v<PatternMatrix> != dynamic_size) and 
+      (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and 
+      std::constructible_from<MyConstant, C&&>
 #else
-    template<typename C, typename...Ds, std::enable_if_t<scalar_constant<C> and (dynamic_vector_space_descriptor<Ds> and ...) and
-      (sizeof...(Ds) < std::tuple_size_v<MyDimensions_t>) and
-      (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and std::is_constructible_v<MyConstant, C&&>, int> = 0>
+    template<typename C, typename...Ds, std::enable_if_t<
+      scalar_constant<C> and (dynamic_vector_space_descriptor<Ds> and ...) and
+      vector_space_descriptor_tuple<DescriptorCollection> and 
+      (dynamic_index_count_v<PatternMatrix> != dynamic_size) and 
+      (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and 
+      std::is_constructible_v<MyConstant, C&&>, int> = 0>
 #endif
-    explicit constexpr ConstantAdapter(C&& c, Ds&&...ds) : my_constant {std::forward<C>(c)},
-      my_dimensions {make_dynamic_dimensions_tuple(std::forward<Ds>(ds)...)} {}
-
-  private:
-
-    template<std::size_t N = 0, typename Arg>
-    constexpr auto make_dimensions_tuple(const Arg& arg)
-    {
-      if constexpr (N < std::tuple_size_v<MyDimensions_t>)
-      {
-        using E = std::tuple_element_t<N, MyDimensions_t>;
-        if constexpr (fixed_vector_space_descriptor<E>)
-        {
-          auto e = std::get<N>(my_dimensions);
-          using D = vector_space_descriptor_of_t<Arg, N>;
-          if constexpr (fixed_vector_space_descriptor<D>) static_assert(equivalent_to<D, E>);
-          else if (e != get_vector_space_descriptor<N>(arg))
-            throw std::invalid_argument {"Invalid argument for vector space descriptors of a constant matrix"};
-          return std::tuple_cat(std::tuple{std::move(e)}, make_dimensions_tuple<N + 1>(arg));
-        }
-        else
-        {
-          return std::tuple_cat(std::tuple{get_vector_space_descriptor<N>(arg)}, make_dimensions_tuple<N + 1>(arg));
-        }
-      }
-      else
-      {
-        return std::tuple {};
-      }
-    }
-
-
-  public:
-
-    /**
-     * \overload
-     * \brief Construct a ConstantMatrix from another \ref constant_matrix.
-     */
-#ifdef __cpp_concepts
-    template<constant_matrix Arg> requires
-      (not std::derived_from<Arg, ConstantAdapter>) and vector_space_descriptors_may_match_with<Arg, PatternMatrix> and
-      std::constructible_from<MyConstant, constant_coefficient<Arg>>
-#else
-    template<typename Arg, std::enable_if_t<constant_matrix<Arg> and
-      (not std::is_base_of_v<ConstantAdapter, Arg>) and vector_space_descriptors_may_match_with<Arg, PatternMatrix> and
-      std::is_constructible_v<MyConstant, constant_coefficient<Arg>>, int> = 0>
-#endif
-    constexpr ConstantAdapter(const Arg& arg) :
-      my_constant {constant_coefficient {arg}}, my_dimensions {make_dimensions_tuple(arg)} {}
+    explicit constexpr ConstantAdapter(C&& c, Ds&&...ds) 
+      : my_constant {std::forward<C>(c)},
+        descriptor_collection {make_dynamic_dimensions_tuple(std::forward<Ds>(ds)...)} {}
 
 
     /**
      * \overload
-     * \brief Construct a ConstantAdapter based on a library object and a \ref scalar_constant known at compile time.
-     * \details This is for use with the corresponding deduction guide.
-     * The following constructs a 2-by-3 ConstantAdapter with constant 5 (known at compile time, or at runtime, respectively).
+     * \brief Same as above, where the constant is known at compile time.
+     * \details For example, the following construct a 2-by-3 constant matrix of value 5:
      * \code
-     * ConstantAdapter {std::integral_constant<int, 5>{}, eigen_matrix_t<double, 2, 3>{})
-     * ConstantAdapter {std::integral_constant<int, 5>{}, eigen_matrix_t<double, 2, Eigen::Dynamic>(2, 3))
-     * ConstantAdapter {5, eigen_matrix_t<double, 2, 3>{})
-     * ConstantAdapter {5, eigen_matrix_t<double, Eigen::Dynamic, 3>(2, 3))
+     * ConstantAdapter<eigen_matrix_t<double, dynamic_size, dynamic_size>, 5>(2, 3) // Dynamic rows and columns.
+     * ConstantAdapter<eigen_matrix_t<double, 2, dynamic_size>, 5>(3) // Fixed rows and dynamic columns.
+     * ConstantAdapter<eigen_matrix_t<double, dynamic_size, 3>, 5>(2) // Dynamic rows and fixed columns.
+     * ConstantAdapter<eigen_matrix_t<double, 2, 3>, 5>() // Fixed rows and columns.
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<scalar_constant C, indexible Arg> requires
-      vector_space_descriptors_may_match_with<Arg, PatternMatrix> and std::constructible_from<MyConstant, C&&>
+    template<dynamic_vector_space_descriptor...Ds> requires
+      vector_space_descriptor_tuple<DescriptorCollection> and 
+      (dynamic_index_count_v<PatternMatrix> != dynamic_size) and 
+      (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and 
+      scalar_constant<MyConstant, ConstantType::static_constant>
 #else
-    template<typename C, typename Arg, std::enable_if_t<scalar_constant<C> and indexible<Arg> and
-      vector_space_descriptors_may_match_with<Arg, PatternMatrix> and std::is_constructible_v<MyConstant, C&&>, int> = 0>
+    template<typename...Ds, std::enable_if_t<
+      scalar_constant<C> and (dynamic_vector_space_descriptor<Ds> and ...) and
+      vector_space_descriptor_tuple<DescriptorCollection> and 
+      (dynamic_index_count_v<PatternMatrix> != dynamic_size) and 
+      (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and 
+      scalar_constant<MyConstant, ConstantType::static_constant>, int> = 0>
 #endif
-    constexpr ConstantAdapter(C&& c, const Arg& arg) :
-      my_constant {std::forward<C>(c)}, my_dimensions {make_dimensions_tuple(arg)} {}
+    explicit constexpr ConstantAdapter(Ds&&...ds) 
+      : descriptor_collection {make_dynamic_dimensions_tuple(std::forward<Ds>(ds)...)} {}
 
 
     /**
-     * \brief Assign from another compatible \ref constant_matrix.
+     * \brief Assign from a compatible \ref constant_matrix.
      */
 #ifdef __cpp_concepts
     template<constant_matrix Arg> requires
-      (not std::derived_from<Arg, ConstantAdapter>) and vector_space_descriptors_may_match_with<Arg, PatternMatrix> and
+      (not std::derived_from<Arg, ConstantAdapter>) and 
+      vector_space_descriptors_may_match_with<Arg, PatternMatrix> and
       std::assignable_from<MyConstant, constant_coefficient<Arg>>
 #else
     template<typename Arg, std::enable_if_t<constant_matrix<Arg> and
-      (not std::is_base_of_v<ConstantAdapter, Arg>) and vector_space_descriptors_may_match_with<Arg, PatternMatrix> and
+      (not std::is_base_of_v<ConstantAdapter, Arg>) and 
+      vector_space_descriptors_may_match_with<Arg, PatternMatrix> and
       std::is_assignable_v<MyConstant, constant_coefficient<Arg>>, int> = 0>
 #endif
     constexpr auto& operator=(const Arg& arg)
     {
-      if constexpr (not vector_space_descriptors_match_with<Arg, PatternMatrix>) if (not vector_space_descriptors_match(*this, arg))
-        throw std::invalid_argument {"Argument to ConstantAdapter assignment operator has non-matching vector space descriptors."};
+      if constexpr (not vector_space_descriptors_match_with<Arg, PatternMatrix>) 
+        if (not vector_space_descriptors_match(*this, arg)) throw std::invalid_argument {
+          "Argument to ConstantAdapter assignment operator has non-matching vector space descriptors."};
       my_constant = constant_coefficient {arg};
       return *this;
     }
@@ -409,41 +476,36 @@ private:
 
 
     /**
-     * \brief Element accessor.
-     * \note Does not do any runtime bounds checking.
-     * \param is The indices
+     * \brief Access a component at a set of indices.
      * \return The element corresponding to the indices (always the constant).
      */
-#ifdef __cpp_concepts
-    template<index_value...Is> requires (sizeof...(Is) == index_count_v<PatternMatrix>) or
-      (sizeof...(Is) == 1 and max_tensor_order_v<PatternMatrix> == 1)
-    constexpr scalar_type auto
+#ifdef __cpp_lib_ranges
+    template<static_range_size<PatternMatrix> Indices> requires (not empty_object<PatternMatrix>)
+    constexpr scalar_constant auto
 #else
-    template<typename...Is, std::enable_if_t<
-      (index_value<Is> and ...) and (sizeof...(Is) == index_count_v<PatternMatrix> or
-      (sizeof...(Is) == 1 and max_tensor_order_v<PatternMatrix> == 1)), int> = 0>
+    template<typename Indices, std::enable_if_t<
+      static_range_size<Indices, PatternMatrix> and (not empty_object<PatternMatrix>), int> = 0>
     constexpr auto
 #endif
-    operator()(Is...is) const
+    operator[](const Indices& indices) const 
     {
       return get_scalar_constant_value(my_constant);
     }
 
 
     /**
-     * \brief Element accessor (single index).
-     * \note Does not do any runtime bounds checking.
-     * \param is The index
+     * \brief Access a component at a set of indices.
      * \return The element corresponding to the indices (always the constant).
      */
-#ifdef __cpp_concepts
-    template<index_value Is> requires (max_tensor_order_v<PatternMatrix> == 1)
-    constexpr scalar_type auto
+#ifdef __cpp_lib_ranges
+    template<static_range_size<PatternMatrix> Indices> requires (not empty_object<PatternMatrix>)
+    constexpr scalar_constant auto
 #else
-    template<typename Is, std::enable_if_t<index_value<Is> and (max_tensor_order_v<PatternMatrix> == 1), int> = 0>
+    template<typename Indices, std::enable_if_t<
+      static_range_size<Indices, PatternMatrix> and (not empty_object<PatternMatrix>), int> = 0>
     constexpr auto
 #endif
-    operator[](Is is) const
+    operator()(const Indices& indices) const 
     {
       return get_scalar_constant_value(my_constant);
     }
@@ -518,7 +580,7 @@ private:
 
     MyConstant my_constant;
 
-    MyDimensions_t my_dimensions;
+    DescriptorCollection descriptor_collection;
 
     friend struct interface::indexible_object_traits<ConstantAdapter>;
     friend struct interface::library_interface<ConstantAdapter>;
@@ -569,7 +631,7 @@ private:
       static constexpr auto count_indices(const Arg& arg)
       {
         if constexpr (index_count_v<PatternMatrix> == dynamic_size)
-          return std::forward<Arg>(arg).my_dimensions.size();
+          return std::forward<Arg>(arg).descriptor_collection.size();
         else
           return std::tuple_size<MyDims>{};
       }
@@ -580,12 +642,12 @@ private:
       {
         if constexpr (index_count_v<PatternMatrix> == dynamic_size)
         {
-          return std::forward<Arg>(arg).my_dimensions[static_cast<typename MyDims::size_type>(n)];
+          return std::forward<Arg>(arg).descriptor_collection[static_cast<typename MyDims::size_type>(n)];
         }
         else if constexpr (static_index_value<N>)
         {
           if constexpr (N::value >= index_count_v<PatternMatrix>) return Dimensions<1>{};
-          else return std::get<N::value>(std::forward<Arg>(arg).my_dimensions);
+          else return std::get<N::value>(std::forward<Arg>(arg).descriptor_collection);
         }
         else if (n >= std::tuple_size_v<MyDims>)
         {
@@ -595,7 +657,7 @@ private:
         {
           return std::apply(
             [](auto&&...ds){ return std::array<std::size_t, std::tuple_size_v<MyDims>> {std::forward<decltype(ds)>(ds)...}; },
-            std::forward<Arg>(arg).my_dimensions)[n];
+            std::forward<Arg>(arg).descriptor_collection)[n];
         }
       }
 
