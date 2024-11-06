@@ -38,11 +38,11 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_lib_ranges
-  concept vector_space_descriptor_collection = vector_space_descriptor_tuple or 
+  concept vector_space_descriptor_collection = vector_space_descriptor_tuple<T> or 
       (std::ranges::input_range<T> and vector_space_descriptor<std::ranges::range_value_t<T>>);
 #else
   constexpr bool vector_space_descriptor_collection = 
-    vector_space_descriptor_tuple or detail::is_descriptor_range<T>::value;
+    vector_space_descriptor_tuple<T> or detail::is_descriptor_range<T>::value;
 #endif
 
 

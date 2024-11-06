@@ -20,13 +20,11 @@
 #define OPENKALMAN_PROPERTIES_FUNCTIONS_HPP
 
 
-#include "internal/VectorSpaceDescriptorRange"
-
 #include "count_indices.hpp"
 #include "get_vector_space_descriptor.hpp"
 #include "get_index_dimension_of.hpp"
 #include "tensor_order.hpp"
-#include "all_vector_space_descriptors.hpp"
+
 #include "vector_space_descriptors_match.hpp"
 #include "is_square_shaped.hpp"
 #include "is_one_dimensional.hpp"

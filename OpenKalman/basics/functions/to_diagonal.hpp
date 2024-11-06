@@ -19,15 +19,14 @@
 namespace OpenKalman
 {
   /**
-   * \brief Convert a column vector into a diagonal matrix.
-   * \tparam Arg A column vector matrix
-   * \returns A diagonal matrix
+   * \brief Convert an \ref indexible object into a \ref diagonal matrix.
+   * \returns A \ref diagonal matrix
    */
 #ifdef __cpp_concepts
-  template<vector<0, Qualification::depends_on_dynamic_shape> Arg>
+  template<indexible Arg>
   constexpr diagonal_matrix decltype(auto)
 #else
-  template<typename Arg, std::enable_if_t<vector<Arg, 0, Qualification::depends_on_dynamic_shape>, int> = 0>
+  template<typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
   constexpr decltype(auto)
 #endif
   to_diagonal(Arg&& arg)

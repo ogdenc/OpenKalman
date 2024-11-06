@@ -129,6 +129,13 @@ namespace OpenKalman::interface
 
     using NestedInterface = library_interface<std::decay_t<NestedObject>>;
     using LibraryInterface = library_interface<std::decay_t<LibraryObject>>;
+    
+    template<indexible Arg> 
+    static constexpr decltype(auto)
+    to_LibraryObject_native(Arg&& arg)
+    {
+      return OpenKalman::to_native_matrix<LibraryObject>(std::forward<Arg>(arg));
+    }
 
   public:
 
@@ -271,7 +278,7 @@ namespace OpenKalman::interface
     static decltype(auto)
     get_slice(Arg&& arg, const BeginTup& begin_tup, const SizeTup& size_tup)
     {
-      return OpenKalman::to_native_matrix<LibraryObject>(NestedInterface::get_slice(nested_object(std::forward<Arg>(arg)), begin_tup, size_tup));
+      return to_LibraryObject_native(NestedInterface::get_slice(nested_object(std::forward<Arg>(arg)), begin_tup, size_tup));
     };
 
 
@@ -318,16 +325,27 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<indexible Arg> requires interface::diagonal_of_defined_for<NestedObject, nested_object_of_t<Arg&&>>
-    static constexpr vector auto
+    template<indexible Arg> requires diagonal_adapter<NestedObject> or 
+      (diagonal_adapter<NestedObject, 1> and 
+        interface::transpose_defined_for<NestedObject, decltype(nested_object(nested_object(std::declval<Arg>())))>) or 
+      interface::diagonal_of_defined_for<NestedObject, nested_object_of_t<Arg&&>>
+    static constexpr indexible auto
 #else
-    template<typename Arg, std::enable_if_t<
+    template<typename Arg, std::enable_if_t<diagonal_adapter<NestedObject> or 
+      (diagonal_adapter<NestedObject, 1> and 
+        interface::transpose_defined_for<NestedObject, decltype(nested_object(nested_object(std::declval<Arg>())))>) or 
       interface::diagonal_of_defined_for<NestedObject, typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
     diagonal_of(Arg&& arg)
     {
-      return OpenKalman::to_native_matrix<LibraryObject>(NestedInterface::diagonal_of(nested_object(std::forward<Arg>(arg))));
+      if constexpr (diagonal_adapter<NestedObject>)
+        return to_LibraryObject_native(nested_object(nested_object(std::forward<Arg>(arg))));
+      else if constexpr (diagonal_adapter<NestedObject, 1> and 
+          interface::transpose_defined_for<NestedObject, decltype(nested_object(nested_object(std::declval<Arg>())))>)
+        return to_LibraryObject_native(NestedInterface::transpose(nested_object(nested_object(std::forward<Arg>(arg)))));
+      else 
+        return to_LibraryObject_native(NestedInterface::diagonal_of(nested_object(std::forward<Arg>(arg))));
     }
 
 
@@ -342,7 +360,7 @@ namespace OpenKalman::interface
 #endif
     broadcast(Arg&& arg, const Factors&...factors)
     {
-      return OpenKalman::to_native_matrix<LibraryObject>(NestedInterface::broadcast(nested_object(std::forward<Arg>(arg)), factors...));
+      return to_LibraryObject_native(NestedInterface::broadcast(nested_object(std::forward<Arg>(arg)), factors...));
     }
 
 
@@ -372,7 +390,7 @@ namespace OpenKalman::interface
 #endif
     n_ary_operation(const std::tuple<IDs...>& d_tup, Operation&& op, Arg&& arg, Args&&...args)
     {
-      return OpenKalman::to_native_matrix<LibraryObject>(
+      return to_LibraryObject_native(
         NestedInterface::n_ary_operation(d_tup, std::forward<Operation>(op), nested_object(std::forward<Arg>(arg)), std::forward<Args>(args)...));
     }
 
@@ -387,7 +405,7 @@ namespace OpenKalman::interface
     static constexpr auto
     reduce(BinaryFunction&& op, Arg&& arg)
     {
-      return OpenKalman::to_native_matrix<LibraryObject>(
+      return to_LibraryObject_native(
         NestedInterface::template reduce<indices...>(std::forward<BinaryFunction>(op), nested_object(std::forward<Arg>(arg))));
     }
 
@@ -406,7 +424,7 @@ namespace OpenKalman::interface
     to_euclidean(Arg&& arg)
     {
       if constexpr (interface::to_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>>)
-        return OpenKalman::to_native_matrix<LibraryObject>(NestedInterface::to_euclidean(nested_object(std::forward<Arg>(arg))));
+        return to_LibraryObject_native(NestedInterface::to_euclidean(nested_object(std::forward<Arg>(arg))));
       else
         return NestedInterface::to_euclidean(std::forward<Arg>(arg));
     }
@@ -426,7 +444,7 @@ namespace OpenKalman::interface
     from_euclidean(Arg&& arg, const V& v)
     {
       if constexpr (interface::from_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>, const V&>)
-        return OpenKalman::to_native_matrix<LibraryObject>(NestedInterface::from_euclidean(nested_object(std::forward<Arg>(arg)), v));
+        return to_LibraryObject_native(NestedInterface::from_euclidean(nested_object(std::forward<Arg>(arg)), v));
       else
         return NestedInterface::from_euclidean(std::forward<Arg>(arg), v);
     }
@@ -446,7 +464,7 @@ namespace OpenKalman::interface
     wrap_angles(Arg&& arg)
     {
       if constexpr (interface::wrap_angles_defined_for<NestedObject, nested_object_of_t<Arg&&>>)
-        return OpenKalman::to_native_matrix<LibraryObject>(NestedInterface::wrap_angles(nested_object(std::forward<Arg>(arg))));
+        return to_LibraryObject_native(NestedInterface::wrap_angles(nested_object(std::forward<Arg>(arg))));
       else
         return NestedInterface::wrap_angles(std::forward<Arg>(arg));
     }

@@ -188,7 +188,7 @@ namespace OpenKalman::internal
     {
       auto indices = std::array<std::size_t, sizeof...(I)> {static_cast<std::size_t>(std::forward<I>(i))...};
       if constexpr (writable_by_component<Self, std::array<std::size_t, sizeof...(I)>>)
-        return ElementAccessor(std::forward<Self>(self), {static_cast<std::size_t>(std::forward<I>(i))...});
+        return ElementAccessor(std::forward<Self>(self), indices);
       else 
         return get_component(std::forward<Self>(self), indices);
     }

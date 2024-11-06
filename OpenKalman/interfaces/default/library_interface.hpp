@@ -333,7 +333,7 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     static constexpr diagonal_matrix auto
-    to_diagonal(vector<0, Qualification::depends_on_dynamic_shape> auto&& arg) = delete;
+    to_diagonal(indexible auto&& arg) = delete;
 #else
     template<typename Arg>
     static constexpr auto
@@ -349,10 +349,9 @@ namespace OpenKalman::interface
      * - a zero matrix
      * - a constant matrix or constant-diagonal matrix
      * \param arg A square matrix.
-     * \returns A column vector
      */
 #ifdef __cpp_concepts
-    static constexpr vector auto
+    static constexpr indexible auto
     diagonal_of(square_shaped<Qualification::depends_on_dynamic_shape> auto&& arg) = delete;
 #else
     template<typename Arg>

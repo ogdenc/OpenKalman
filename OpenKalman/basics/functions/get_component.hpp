@@ -58,6 +58,23 @@ namespace OpenKalman
   }
 
 
+  /**
+   * \overload 
+   * \brief Get a component of an object at an initializer list of indices.
+   */
+#ifdef __cpp_lib_ranges
+  template<indexible Arg, index_value Ix> requires (not empty_object<Arg>)
+  constexpr scalar_constant decltype(auto)
+#else
+  template<typename Arg, typename Ix, std::enable_if_t<index_value<Ix> and (not empty_object<Arg>), int> = 0>
+  constexpr decltype(auto)
+#endif
+  get_component(Arg&& arg, const std::initializer_list<Ix>& indices)
+  {
+    return detail::get_component_impl(std::forward<Arg>(arg), indices);
+  }
+
+
   namespace internal
   {
     namespace detail
@@ -66,8 +83,10 @@ namespace OpenKalman
       constexpr bool static_indices_within_bounds_impl(std::index_sequence<Ix...>)
       {
         return ([]{
-          if constexpr (static_index_value<V>) return (std::decay_t<V>::value < index_dimension_of_v<Arg, Ix>);
-          else return true;
+          if constexpr (static_index_value<V>) 
+            return (std::decay_t<V>::value >= 0 and std::decay_t<V>::value < index_dimension_of_v<Arg, Ix>);
+          else 
+            return true;
         }() and ...);
       }
     } // namespace detail
@@ -99,7 +118,11 @@ namespace OpenKalman
 #endif
   get_component(Arg&& arg, I&&...i)
   {
-    return detail::get_component_impl(std::forward<Arg>(arg), {static_cast<std::size_t>(std::forward<I>(i))...});
+    if constexpr (sizeof...(I) == 0)
+      return detail::get_component_impl(std::forward<Arg>(arg), std::array<std::size_t, 0> {});
+    else
+      return detail::get_component_impl(std::forward<Arg>(arg), 
+        std::array {static_cast<std::common_type_t<I...>>(std::forward<I>(i))...});
   }
 
 

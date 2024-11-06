@@ -44,6 +44,9 @@
 
 #include "traits/descriptor-forward-traits.hpp"
 
+#include "traits/maybe_equivalent_to.hpp"
+#include "traits/equivalent_to.hpp"
+
 #include "functions/get_dimension_size_of.hpp"
 #include "functions/get_euclidean_dimension_size_of.hpp"
 #include "functions/get_vector_space_descriptor_component_count_of.hpp"
@@ -78,9 +81,6 @@
 #include "traits/replicate_fixed_vector_space_descriptor.hpp"
 #include "traits/canonical_fixed_vector_space_descriptor.hpp"
 #include "traits/reverse_fixed_vector_space_descriptor.hpp"
-
-#include "traits/maybe_equivalent_to.hpp"
-#include "traits/equivalent_to.hpp"
 
 #include "traits/internal/is_prefix.hpp"
 #include "traits/internal/prefix_of.hpp"

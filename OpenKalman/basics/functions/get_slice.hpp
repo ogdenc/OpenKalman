@@ -91,7 +91,6 @@ namespace OpenKalman
 
 
   /**
-   * \overload
    * \brief Extract a slice from a matrix or tensor.
    * \details If indices are specified, only those indices will be subsetted. Otherwise, the Begin and Size parameters
    * are taken in index order. Any omitting trailing indices (for which there are no Begin or Size parameters) are included whole.

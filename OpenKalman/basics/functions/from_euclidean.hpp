@@ -24,10 +24,12 @@ namespace OpenKalman
    * \tparam V The new vector space descriptor of index 0.
    */
 #ifdef __cpp_concepts
-  template<has_untyped_index<0> Arg, vector_space_descriptor V>
+  template<indexible Arg, vector_space_descriptor V> requires 
+    euclidean_vector_space_descriptor<vector_space_descriptor_of_t<Arg, 0>>
   constexpr indexible decltype(auto)
 #else
-  template<typename Arg, typename V, std::enable_if_t<has_untyped_index<Arg, 0> and vector_space_descriptor<V>, int> = 0>
+  template<typename Arg, typename V, std::enable_if_t<
+    euclidean_vector_space_descriptor<vector_space_descriptor_of_t<Arg, 0>> and vector_space_descriptor<V>, int> = 0>
   constexpr decltype(auto)
 #endif
   from_euclidean(Arg&& arg, const V& v)

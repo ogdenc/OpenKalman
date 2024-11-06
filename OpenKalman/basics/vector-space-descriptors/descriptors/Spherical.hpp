@@ -55,7 +55,7 @@ namespace OpenKalman::vector_space_descriptors
 #endif
 
     /// Default constructor
-    constexpr Distance() = default;
+    constexpr Spherical() = default;
 
 
     /// Conversion constructor

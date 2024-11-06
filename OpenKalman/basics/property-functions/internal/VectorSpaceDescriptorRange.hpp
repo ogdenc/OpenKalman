@@ -25,17 +25,18 @@ namespace OpenKalman::internal
     struct Iterator
     {
       using difference_type = std::ptrdiff_t;
-      using value_type = vector_space_descriptor_of_t<Indexible, 0>; static_assert(dynamic_vector_space_descriptor<value_type>);
+      using value_type = std::decay_t<decltype(get_vector_space_descriptor<0>(std::declval<Indexible>()))>; 
+      static_assert(dynamic_vector_space_descriptor<value_type>);
       constexpr Iterator(const std::size_t p) : pos{p} {}
       constexpr value_type operator*() const { return get_vector_space_descriptor(my_indexible, pos); } 
       constexpr auto& operator++() noexcept { ++pos; return *this; }
       constexpr auto operator++(int) noexcept { auto temp = *this; ++*this; return temp; }
       constexpr auto& operator--() noexcept { --pos; return *this; }
       constexpr auto operator--(int) noexcept { auto temp = *this; --*this; return temp; }
-      constexpr auto& operator+=(const difference_type other) noexcept { pos += other.pos; return *this; }
-      constexpr auto& operator-=(const difference_type other) noexcept { pos -= other; return *this; }
-      constexpr auto operator+(const difference_type other) const noexcept { return Iterator {pos + other}; }
-      constexpr auto operator-(const difference_type other) const noexcept { return Iterator {pos - other}; }
+      constexpr auto& operator+=(const difference_type diff) noexcept { pos += diff; return *this; }
+      constexpr auto& operator-=(const difference_type diff) noexcept { pos -= diff; return *this; }
+      constexpr auto operator+(const difference_type diff) const noexcept { return Iterator {pos + diff}; }
+      constexpr auto operator-(const difference_type diff) const noexcept { return Iterator {pos - diff}; }
       constexpr auto operator+(const Iterator& other) const noexcept { return Iterator {pos + other.pos}; }
       constexpr difference_type operator-(const Iterator& other) const noexcept { return pos - other.pos; }
       constexpr value_type operator[](difference_type offset) const { return get_vector_space_descriptor(my_indexible, pos + offset); }

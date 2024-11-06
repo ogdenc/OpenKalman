@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_ALL_VECTOR_SPACE_DESCRIPTORS_HPP
 #define OPENKALMAN_ALL_VECTOR_SPACE_DESCRIPTORS_HPP
 
+#include "basics/property-functions/internal/VectorSpaceDescriptorRange.hpp"
 
 namespace OpenKalman
 {
@@ -35,28 +36,19 @@ namespace OpenKalman
      \details This will be a \ref vector_space_descriptor_collection in the form of a std::tuple or a std::vector.
    */
 #ifdef __cpp_concepts
-  template<interface::count_indices_defined_for T> requires interface::get_vector_space_descriptor_defined_for<T> 
+  template<indexible T> requires interface::get_vector_space_descriptor_defined_for<T> 
   constexpr vector_space_descriptor_collection decltype(auto) 
 #else
   template<typename T, std::enable_if_t<
-    interface::count_indices_defined_for<T> and interface::get_vector_space_descriptor_defined_for<T>, int> = 0>
+    indexible<T> and interface::get_vector_space_descriptor_defined_for<T>, int> = 0>
   constexpr decltype(auto) 
 #endif
   all_vector_space_descriptors(const T& t)
   {
-#ifdef __cpp_concepts
-    if constexpr (requires(const T& t) { {count_indices(t)} -> static_index_value; })
-#else
-    if constexpr (static_index_value<decltype(count_indices(std::declval<const T&>()))>)
-#endif
-    {
-      constexpr std::make_index_sequence<std::decay_t<decltype(count_indices(t))>::value> seq;
-      return detail::all_vector_space_descriptors_impl(t, seq);
-    }
-    else 
-    {
+    if constexpr (index_count_v<T> == dynamic_size)
       return internal::VectorSpaceDescriptorRange<T> {t};
-    }
+    else 
+      return detail::all_vector_space_descriptors_impl(t, std::make_index_sequence<index_count_v<T>>{});
   }
 
 
@@ -77,18 +69,16 @@ namespace OpenKalman
    * \details This overload is only enabled if all vector space descriptors are static.
    */
 #ifdef __cpp_concepts
-  template<interface::count_indices_defined_for T> requires interface::get_vector_space_descriptor_defined_for<T> and
-    requires(const T& t) { {count_indices(t)} -> static_index_value; } and (not has_dynamic_dimensions<T>) 
+  template<indexible T> requires (index_count_v<T> != dynamic_size) and (not has_dynamic_dimensions<T>) 
   constexpr vector_space_descriptor_tuple auto 
 #else
-  template<typename T, std::enable_if_t<interface::count_indices_defined_for<T> and
-    interface::get_vector_space_descriptor_defined_for<T> and static_index_value<decltype(count_indices(std::declval<const T&>()))> and
+  template<typename T, std::enable_if_t<indexible<T> and (index_count<T>::value != dynamic_size) and 
     (not has_dynamic_dimensions<T>), int> = 0>
   constexpr auto 
 #endif
   all_vector_space_descriptors()
   {
-    constexpr std::make_index_sequence<std::decay_t<decltype(count_indices(std::declval<T>()))>::value> seq;
+    constexpr std::make_index_sequence<index_count_v<T>> seq;
     return detail::all_vector_space_descriptors_impl<T>(seq);
   }
 

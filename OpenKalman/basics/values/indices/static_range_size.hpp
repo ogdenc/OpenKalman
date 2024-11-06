@@ -20,25 +20,24 @@
 
 namespace OpenKalman
 {
-#ifndef __cpp_concepts
   namespace detail
   {
-    template<typename Indices, typename = void>
-    struct is_sized_range : std::false_type {};
+#ifdef __cpp_lib_span
+    template<typename Range, typename Indexible>
+    struct index_range_for_impl : std::false_type {};
 
-    template<typename Indices>
-    struct is_sized_range<Indices, std::void_t<
-      decltype(std::size(std::declval<Indices>())), decltype(*std::declval<Indices>().begin())>> : std::true_type {};
+    template<typename T, std::size_t Extent, typename Indexible>
+    struct index_range_for_impl<std::span<T, Extent>, Indexible> 
+      : std::bool_constant<(Extent == std::dynamic_extent or Extent >= index_count_v<Indexible>)> {};
+#else
+    template<typename Range, typename Indexible, typename = void>
+    struct index_range_for_impl : std::false_type {};
 
-
-    template<typename Indices, std::size_t N, typename = void>
-    struct static_range_size_impl : std::false_type {};
-
-    template<typename Indices, std::size_t N>
-    struct static_range_size_impl<Indices, std::void_t<
-      decltype(std::bool_constant<std::size(std::declval<Indices>()) >= N>)>> : std::true_type {};
-  }
+    template<typename Range, typename Indexible>
+    struct index_range_for_impl<Range, Indexible, std::void_t<std::tuple_size<T>::type>>
+      : std::bool_constant<std::tuple_size_v<T> >= index_count_v<Indexible>> {};
 #endif
+  }
 
 
   /**
@@ -46,19 +45,18 @@ namespace OpenKalman
    * \todo Rename to "index_range_for"
    */
   template<typename Indices, typename T>
-#ifdef __cpp_lib_ranges
+#if defined(__cpp_lib_ranges) and defined(__cpp_lib_span)
   concept static_range_size =
     indexible<T> and std::ranges::input_range<std::decay_t<Indices>> and 
     index_value<std::ranges::range_value_t<Indices>> and 
     interface::get_component_defined_for<T, T, Indices> and 
-    (index_count_t<T> == dynamic_size or not std::ranges::sized_range<std::decay_t<Indices>> or 
-      requires(std::decay_t<Indices> indices) { requires std::ranges::size(indices) >= index_count_t<T>; }) 
+    (index_count_v<T> == dynamic_size or
+      detail::index_range_for_impl<decltype(std::span{std::declval<std::add_lvalue_reference_t<Indices>>()}), T>::value);
+#else
   constexpr bool static_range_size = 
     indexible<T> and index_value<decltype(*std::declval<Indices>().begin())> and 
-    index_value<std::ranges::range_value_t<Indices>> and 
     interface::get_component_defined_for<T, T, Indices> and 
-    (index_count_t<T> == dynamic_size or not detail::is_sized_range<std::decay_t<Indices>>::value or 
-      detail::static_range_size_impl<std::decay_t<Indices>, index_count_t<T>>::value>)
+    (index_count_v<T> == dynamic_size or detail::index_range_for_impl<Indices, T>::value);
 #endif
 
 } // namespace OpenKalman

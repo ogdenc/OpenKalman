@@ -25,7 +25,7 @@ namespace OpenKalman
    * \sa set_component
    */
   template<typename T, typename Indices =
-    std::conditional_t<index_count_v<T> == dynamic_size, std::array<std::size_t, index_count_v<T>>, std::vector<std::size_t>>>
+    std::conditional_t<index_count_v<T> == dynamic_size, std::vector<std::size_t>, std::array<std::size_t, index_count_v<T>>>>
 #ifdef __cpp_lib_concepts
   concept writable_by_component = 
     indexible<T> and static_range_size<Indices, T> and 

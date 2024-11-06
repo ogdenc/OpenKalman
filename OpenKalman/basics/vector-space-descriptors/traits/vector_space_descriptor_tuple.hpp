@@ -37,11 +37,11 @@ namespace OpenKalman
 
  
 #ifdef __cpp_concepts
-    template<tuple_like T>
+    template<internal::tuple_like T>
     struct is_descriptor_tuple<T> 
 #else
     template<typename T>
-    struct is_descriptor_tuple<T, std::enable_if_t<tuple_like<T>>> 
+    struct is_descriptor_tuple<T, std::enable_if_t<internal::tuple_like<T>>> 
 #endif
       : std::bool_constant<is_descriptor_tuple_impl<T>(std::make_index_sequence<std::tuple_size_v<T>>{})> {}; 
  

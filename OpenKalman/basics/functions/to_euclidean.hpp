@@ -31,11 +31,7 @@ namespace OpenKalman
 #endif
   to_euclidean(Arg&& arg)
   {
-    if constexpr (from_euclidean_expr<Arg>)
-    {
-      return nested_object(std::forward<Arg>(arg));
-    }
-    if constexpr (has_untyped_index<Arg, 0>)
+    if constexpr (euclidean_vector_space_descriptor<vector_space_descriptor_of_t<Arg, 0>>)
     {
       return std::forward<Arg>(arg);
     }

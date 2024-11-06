@@ -392,18 +392,28 @@ namespace OpenKalman::interface
   public:
 
 #ifdef __cpp_concepts
-    template<indexible Arg> requires
+    template<indexible Arg> requires diagonal_adapter<NestedObject> or 
+      (diagonal_adapter<NestedObject, 1> and 
+        interface::transpose_defined_for<NestedObject, decltype(nested_object(nested_object(std::declval<Arg>())))>) or 
       interface::diagonal_of_defined_for<NestedObject, nested_object_of_t<Arg&&>>
     static constexpr vector auto
 #else
-    template<typename Arg, std::enable_if_t<
+    template<typename Arg, std::enable_if_t<diagonal_adapter<NestedObject> or 
+      (diagonal_adapter<NestedObject, 1> and 
+        interface::transpose_defined_for<NestedObject, decltype(nested_object(nested_object(std::declval<Arg>())))>) or 
       interface::diagonal_of_defined_for<NestedObject, typename nested_object_of<Arg&&>::type>, int> = 0>
     static constexpr auto
 #endif
     diagonal_of(Arg&& arg)
     {
-      return diagonal_of_impl(std::forward<Arg>(arg),
-        std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{Dimensions<1>{}, Dimensions<1>{}}));
+      if constexpr (diagonal_adapter<NestedObject>)
+        return diagonal_of_impl(nested_object(nested_object(std::forward<Arg>(arg))));
+      else if constexpr (diagonal_adapter<NestedObject, 1> and 
+          interface::transpose_defined_for<NestedObject, decltype(nested_object(nested_object(std::declval<Arg>())))>)
+        return diagonal_of_impl(NestedInterface::transpose(nested_object(nested_object(std::forward<Arg>(arg)))));
+      else 
+        return diagonal_of_impl(NestedInterface::diagonal_of(nested_object(std::forward<Arg>(arg))),
+          std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{Axis{}, Axis{}}));
     }
 
   private:

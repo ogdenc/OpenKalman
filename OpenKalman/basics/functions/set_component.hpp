@@ -40,6 +40,7 @@ namespace OpenKalman
 
 
   /**
+   * \overload
    * \brief Set a component of an object at a particular set of indices.
    * \tparam Arg The object to be accessed.
    * \tparam Indices An input range object containing the indices.
@@ -53,6 +54,22 @@ namespace OpenKalman
 #endif
   inline Arg&&
   set_component(Arg&& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
+  {
+    return detail::set_component_impl(std::forward<Arg>(arg), s, indices);
+  }
+
+
+  /**
+   * \brief Set a component of an object at an initializer list of indices.
+   */
+#ifdef __cpp_lib_ranges
+  template<indexible Arg, index_value Ix> requires writable_by_component<Arg, const std::initializer_list<Ix>&> 
+#else
+  template<typename Arg, typename Ix, std::enable_if_t<
+    indexible<Arg> and index_value<Ix> and writable_by_component<Arg, const std::initializer_list<Ix>&>, int> = 0>
+#endif
+  inline Arg&&
+  set_component(Arg&& arg, const scalar_type_of_t<Arg>& s, const std::initializer_list<Ix>& indices)
   {
     return detail::set_component_impl(std::forward<Arg>(arg), s, indices);
   }
@@ -77,7 +94,11 @@ namespace OpenKalman
   inline Arg&&
   set_component(Arg&& arg, const scalar_type_of_t<Arg>& s, I&&...i)
   {
-    return detail::set_component_impl(std::forward<Arg>(arg), s, {static_cast<std::size_t>(std::forward<I>(i))...});
+    if constexpr (sizeof...(I) == 0)
+      return detail::set_component_impl(std::forward<Arg>(arg), s, std::array<std::size_t, 0> {});
+    else
+      return detail::set_component_impl(std::forward<Arg>(arg), s, 
+        std::array {static_cast<std::common_type_t<I...>>(std::forward<I>(i))...});
   }
 
 

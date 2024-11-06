@@ -28,6 +28,8 @@
 #include "get_component.hpp"
 #include "set_component.hpp"
 
+#include "basics/property-functions/all_vector_space_descriptors.hpp"
+
 #include "internal/may_hold_components.hpp"
 #include "fill_components.hpp"
 

@@ -494,24 +494,6 @@ namespace OpenKalman
 
 
     /**
-     * \brief Access a component at a set of indices.
-     * \return The element corresponding to the indices (always the constant).
-     */
-#ifdef __cpp_lib_ranges
-    template<static_range_size<PatternMatrix> Indices> requires (not empty_object<PatternMatrix>)
-    constexpr scalar_constant auto
-#else
-    template<typename Indices, std::enable_if_t<
-      static_range_size<Indices, PatternMatrix> and (not empty_object<PatternMatrix>), int> = 0>
-    constexpr auto
-#endif
-    operator()(const Indices& indices) const 
-    {
-      return get_scalar_constant_value(my_constant);
-    }
-
-
-    /**
      * \brief Get the \ref scalar_constant associated with this object.
      */
 #ifdef __cpp_concepts

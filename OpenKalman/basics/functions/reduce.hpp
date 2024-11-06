@@ -77,7 +77,7 @@ namespace OpenKalman
       else if constexpr (diagonal_matrix<Arg> and internal::is_plus<BinaryFunction>::value and
         not dynamic_dimension<Arg, 0> and not dynamic_dimension<Arg, 1> and
           ((((indices == 1) or ...) and index_dimension_of_v<Arg, 1> >= index_dimension_of_v<Arg, 0>) or
-            ((indices == 0) or ...) and ((indices == 1) or ...)))
+            (((indices == 0) or ...) and ((indices == 1) or ...))))
       {
         return reduce_impl(std::forward<BinaryFunction>(b), diagonal_of(std::forward<Arg>(arg)), delete_reduction_index<1>(indices_seq), seq);
       }
