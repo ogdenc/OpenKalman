@@ -47,9 +47,9 @@ namespace OpenKalman
      * \brief Default constructor.
      */
 #ifdef __cpp_concepts
-    constexpr FromEuclideanExpr() requires std::default_initializable<Base> and fixed_vector_space_descriptor<V0>
+    constexpr FromEuclideanExpr() requires std::default_initializable<Base> and static_vector_space_descriptor<V0>
 #else
-    template<typename B = Base, std::enable_if_t<std::is_default_constructible_v<B> and fixed_vector_space_descriptor<V0>, int> = 0>
+    template<typename B = Base, std::enable_if_t<std::is_default_constructible_v<B> and static_vector_space_descriptor<V0>, int> = 0>
     constexpr FromEuclideanExpr()
 #endif
     {}
@@ -335,24 +335,24 @@ namespace OpenKalman
       template<Layout layout, typename Scalar, typename...D>
       static auto make_default(D&&...d)
       {
-        return make_dense_object<nested_object_of_t<T>, layout, Scalar>(std::forward<D>(d)...);
+        return make_dense_object<NestedObject, layout, Scalar>(std::forward<D>(d)...);
       }
 
 
       // fill_components not necessary because T is not a dense writable matrix.
 
 
-      template<typename C, typename...D>
-      static constexpr auto make_constant(C&& c, D&&...d)
+      template<typename C, typename D>
+      static constexpr auto make_constant(C&& c, D&& d)
       {
-        return make_constant<nested_object_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
+        return make_constant<NestedObject>(std::forward<C>(c), std::forward<D>(d));
       }
 
 
       template<typename Scalar, typename...D>
       static constexpr auto make_identity_matrix(D&&...d)
       {
-        return make_identity_matrix_like<nested_object_of_t<T>, Scalar>(std::forward<D>(d)...);
+        return make_identity_matrix_like<NestedObject, Scalar>(std::forward<D>(d)...);
       }
 
 
@@ -372,8 +372,7 @@ namespace OpenKalman
         }
         else
         {
-          using P = pattern_matrix_of_t<T>;
-          return library_interface<P>::to_diagonal(to_native_matrix<P>(std::forward<Arg>(arg)));
+          return library_interface<NestedObject>::to_diagonal(to_native_matrix<NestedObject>(std::forward<Arg>(arg)));
         }
       }
 
@@ -388,8 +387,7 @@ namespace OpenKalman
         }
         else
         {
-          using P = pattern_matrix_of_t<T>;
-          return library_interface<P>::diagonal_of(to_native_matrix<P>(std::forward<Arg>(arg)));
+          return library_interface<NestedObject>::diagonal_of(to_native_matrix<NestedObject>(std::forward<Arg>(arg)));
         }
       }
 
@@ -406,8 +404,7 @@ namespace OpenKalman
       static constexpr decltype(auto)
       n_ary_operation(const std::tuple<Ds...>& tup, Operation&& op, Args&&...args)
       {
-        using P = pattern_matrix_of_t<T>;
-        return library_interface<P>::template n_ary_operation(tup, std::forward<Operation>(op), std::forward<Args>(args)...);
+        return library_interface<NestedObject>::template n_ary_operation(tup, std::forward<Operation>(op), std::forward<Args>(args)...);
       }
 
 
@@ -415,44 +412,26 @@ namespace OpenKalman
       static constexpr decltype(auto)
       reduce(BinaryFunction&& b, Arg&& arg)
       {
-        using P = pattern_matrix_of_t<T>;
-        return library_interface<P>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
+        return library_interface<NestedObject>::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
       }
 
 
-#ifdef __cpp_concepts
-      template<from_euclidean_expr Arg>
-#else
-      template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg>, int> = 0>
-#endif
+      template<typename Arg>
       constexpr decltype(auto)
       to_euclidean(Arg&& arg)
       {
-        return nested_object(std::forward<Arg>(arg));
+        return nested_object(std::forward<Arg>(arg)); //< from- and then to- is an identity.
       }
 
 
-#ifdef __cpp_concepts
-      template<to_euclidean_expr Arg>
-#else
-      template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg>, int> = 0>
-#endif
-      constexpr decltype(auto)
-      from_euclidean(Arg&& arg)
-      {
-        return FromEuclideanExpr<Arg> {std::forward<Arg>(arg)};
-      }
+      // from_euclidean not included. Double application of from_euclidean does not make sense.
 
 
-#ifdef __cpp_concepts
-      template<from_euclidean_expr Arg>
-#else
-      template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg>, int> = 0>
-#endif
+      template<typename Arg>
       constexpr decltype(auto)
       wrap_angles(Arg&& arg)
       {
-        return std::forward<Arg>(arg);
+        return std::forward<Arg>(arg); //< A FromEuclideanExpr is already wrapped
       }
 
 

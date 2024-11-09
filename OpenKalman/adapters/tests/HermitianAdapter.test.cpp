@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020-2021 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Tests relating to Eigen3::SelfAdjointMatrix.
+ * \brief Tests relating to HermitianAdapter.
  */
 
 #include "adapters.gtest.hpp"
@@ -41,32 +41,32 @@ namespace
   using C01 = eigen_matrix_t<cdouble, dynamic_size_v, 1>;
   using C00 = eigen_matrix_t<cdouble, dynamic_size_v, dynamic_size_v>;
 
-  using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
-  using D0 = DiagonalMatrix<eigen_matrix_t<double, dynamic_size_v, 1>>;
+  using D2 = DiagonalAdapter<eigen_matrix_t<double, 2, 1>>;
+  using D0 = DiagonalAdapter<eigen_matrix_t<double, dynamic_size_v, 1>>;
 
-  using L22 = SelfAdjointMatrix<M22, TriangleType::lower>;
-  using L20 = SelfAdjointMatrix<M2x, TriangleType::lower>;
-  using L02 = SelfAdjointMatrix<Mx2, TriangleType::lower>;
-  using L00 = SelfAdjointMatrix<Mxx, TriangleType::lower>;
+  using L22 = HermitianAdapter<M22, TriangleType::lower>;
+  using L20 = HermitianAdapter<M2x, TriangleType::lower>;
+  using L02 = HermitianAdapter<Mx2, TriangleType::lower>;
+  using L00 = HermitianAdapter<Mxx, TriangleType::lower>;
 
-  using U22 = SelfAdjointMatrix<M22, TriangleType::upper>;
-  using U20 = SelfAdjointMatrix<M2x, TriangleType::upper>;
-  using U02 = SelfAdjointMatrix<Mx2, TriangleType::upper>;
-  using U00 = SelfAdjointMatrix<Mxx, TriangleType::upper>;
+  using U22 = HermitianAdapter<M22, TriangleType::upper>;
+  using U20 = HermitianAdapter<M2x, TriangleType::upper>;
+  using U02 = HermitianAdapter<Mx2, TriangleType::upper>;
+  using U00 = HermitianAdapter<Mxx, TriangleType::upper>;
   
-  using CL22 = SelfAdjointMatrix<C22, TriangleType::lower>;
-  using CU22 = SelfAdjointMatrix<C22, TriangleType::upper>;
+  using CL22 = HermitianAdapter<C22, TriangleType::lower>;
+  using CU22 = HermitianAdapter<C22, TriangleType::upper>;
 
-  using DM22 = SelfAdjointMatrix<M22, TriangleType::diagonal>;
-  using DM20 = SelfAdjointMatrix<M2x, TriangleType::diagonal>;
-  using DM02 = SelfAdjointMatrix<Mx2, TriangleType::diagonal>;
-  using DM00 = SelfAdjointMatrix<Mxx, TriangleType::diagonal>;
+  using DM22 = HermitianAdapter<M22, TriangleType::diagonal>;
+  using DM20 = HermitianAdapter<M2x, TriangleType::diagonal>;
+  using DM02 = HermitianAdapter<Mx2, TriangleType::diagonal>;
+  using DM00 = HermitianAdapter<Mxx, TriangleType::diagonal>;
   
-  using DD2 = SelfAdjointMatrix<D2, TriangleType::diagonal>;
-  using DD0 = SelfAdjointMatrix<D0, TriangleType::diagonal>;
+  using DD2 = HermitianAdapter<D2, TriangleType::diagonal>;
+  using DD0 = HermitianAdapter<D0, TriangleType::diagonal>;
   
-  using DL2 = SelfAdjointMatrix<D2, TriangleType::lower>;
-  using DL0 = SelfAdjointMatrix<D0, TriangleType::lower>;
+  using DL2 = HermitianAdapter<D2, TriangleType::lower>;
+  using DL0 = HermitianAdapter<D0, TriangleType::lower>;
 
   template<typename...Args>
   inline auto mat22(Args...args) { return make_dense_writable_matrix_from<M22>(args...); }
@@ -74,11 +74,11 @@ namespace
   auto m_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
   auto m_4225 = make_dense_writable_matrix_from<M22>(4, 2, 2, 5);
 
-  template<typename T> using D = DiagonalMatrix<T>;
-  template<typename T> using Tl = TriangularMatrix<T, TriangleType::lower>;
-  template<typename T> using Tu = TriangularMatrix<T, TriangleType::upper>;
-  template<typename T> using SAl = SelfAdjointMatrix<T, TriangleType::lower>;
-  template<typename T> using SAu = SelfAdjointMatrix<T, TriangleType::upper>;
+  template<typename T> using D = DiagonalAdapter<T>;
+  template<typename T> using Tl = TriangularAdapter<T, TriangleType::lower>;
+  template<typename T> using Tu = TriangularAdapter<T, TriangleType::upper>;
+  template<typename T> using SAl = HermitianAdapter<T, TriangleType::lower>;
+  template<typename T> using SAu = HermitianAdapter<T, TriangleType::upper>;
 }
 
 TEST(special_matrices, SelfAdjointMatrix_static_checks)
@@ -115,9 +115,9 @@ TEST(special_matrices, SelfAdjointMatrix_static_checks)
   static_assert(square_matrix<U00>);
   static_assert(square_matrix<DM00>);
 
-  static_assert(one_by_one_matrix<SelfAdjointMatrix<M11, TriangleType::upper>>);
-  static_assert(one_by_one_matrix<SelfAdjointMatrix<M1x, TriangleType::upper>>);
-  static_assert(one_by_one_matrix<SelfAdjointMatrix<Mx1, TriangleType::upper>>);
+  static_assert(one_by_one_matrix<HermitianAdapter<M11, TriangleType::upper>>);
+  static_assert(one_by_one_matrix<HermitianAdapter<M1x, TriangleType::upper>>);
+  static_assert(one_by_one_matrix<HermitianAdapter<Mx1, TriangleType::upper>>);
   static_assert(not one_by_one_matrix<U00>);
   static_assert(one_by_one_matrix<U00, Likelihood::maybe>);
 
@@ -225,14 +225,14 @@ TEST(special_matrices, SelfAdjointMatrix_class)
   U22 u4 {U22{9, 3, 3, 10}}; // move constructor
   EXPECT_TRUE(is_near(u4, m_93310));
   //
-  L22 l5 = SelfAdjointMatrix<decltype(M22::Zero()), TriangleType::lower>(M22::Zero()); // compatible sa-matrix
+  L22 l5 = HermitianAdapter<decltype(M22::Zero()), TriangleType::lower>(M22::Zero()); // compatible sa-matrix
   EXPECT_TRUE(is_near(l5, M22::Zero()));
-  U22 u5 = SelfAdjointMatrix<decltype(M22::Zero()), TriangleType::upper>(M22::Zero()); // compatible sa-matrix
+  U22 u5 = HermitianAdapter<decltype(M22::Zero()), TriangleType::upper>(M22::Zero()); // compatible sa-matrix
   EXPECT_TRUE(is_near(u5, M22::Zero()));
   //
-  L22 l6 = SelfAdjointMatrix<decltype(M22::Zero()), TriangleType::upper>(M22::Zero()); // opposite sa-matrix
+  L22 l6 = HermitianAdapter<decltype(M22::Zero()), TriangleType::upper>(M22::Zero()); // opposite sa-matrix
   EXPECT_TRUE(is_near(l6, M22::Zero()));
-  U22 u6 = SelfAdjointMatrix<decltype(M22::Zero()), TriangleType::lower>(M22::Zero()); // opposite sa-matrix
+  U22 u6 = HermitianAdapter<decltype(M22::Zero()), TriangleType::lower>(M22::Zero()); // opposite sa-matrix
   EXPECT_TRUE(is_near(u6, M22::Zero()));
   //
   L22 l7 {m_93310.selfadjointView<Eigen::Lower>()};
@@ -289,9 +289,9 @@ TEST(special_matrices, SelfAdjointMatrix_class)
   u5 = U22 {9., 3, 3, 10}; // move assignment
   EXPECT_TRUE(is_near(u5, m_93310));
   //
-  l2 = SelfAdjointMatrix<decltype(M22::Zero()), TriangleType::lower>(M22::Zero()); // copy assignment from compatible sa-matrix
+  l2 = HermitianAdapter<decltype(M22::Zero()), TriangleType::lower>(M22::Zero()); // copy assignment from compatible sa-matrix
   EXPECT_TRUE(is_near(l2, M22::Zero()));
-  u2 = SelfAdjointMatrix<decltype(M22::Zero()), TriangleType::upper>(M22::Zero()); // copy assignment from compatible sa-matrix
+  u2 = HermitianAdapter<decltype(M22::Zero()), TriangleType::upper>(M22::Zero()); // copy assignment from compatible sa-matrix
   EXPECT_TRUE(is_near(u2, M22::Zero()));
   //
   l2 = U22 {9., 3, 3, 10}; // copy assignment from opposite sa-matrix;
@@ -462,11 +462,11 @@ TEST(special_matrices, SelfAdjointMatrix_subscripts)
   static_assert(not element_settable<const DL2&, 2>);
   static_assert(not element_settable<const DL2&, 1>);
 
-  static_assert(not element_settable<SelfAdjointMatrix<const M22, TriangleType::lower>&, 2>);
-  static_assert(not element_settable<SelfAdjointMatrix<const D2, TriangleType::lower>&, 2>);
-  static_assert(not element_settable<SelfAdjointMatrix<const D2, TriangleType::lower>&, 1>);
-  static_assert(not element_settable<SelfAdjointMatrix<DiagonalMatrix<const eigen_matrix_t<double, 2, 1>>, TriangleType::lower>&, 2>);
-  static_assert(not element_settable<SelfAdjointMatrix<DiagonalMatrix<const eigen_matrix_t<double, 2, 1>>, TriangleType::lower>&, 1>);
+  static_assert(not element_settable<HermitianAdapter<const M22, TriangleType::lower>&, 2>);
+  static_assert(not element_settable<HermitianAdapter<const D2, TriangleType::lower>&, 2>);
+  static_assert(not element_settable<HermitianAdapter<const D2, TriangleType::lower>&, 1>);
+  static_assert(not element_settable<HermitianAdapter<DiagonalAdapter<const eigen_matrix_t<double, 2, 1>>, TriangleType::lower>&, 2>);
+  static_assert(not element_settable<HermitianAdapter<DiagonalAdapter<const eigen_matrix_t<double, 2, 1>>, TriangleType::lower>&, 1>);
 
   auto l1 = L22 {9, 3, 3, 10};
   set_element(l1, 3.1, 1, 0);
@@ -528,9 +528,9 @@ TEST(special_matrices, SelfAdjointMatrix_subscripts)
   EXPECT_TRUE(test);
   EXPECT_TRUE(is_near(d9c, mat22(7.1, 0, 0, 8.1)));
   //
-  EXPECT_NEAR((SelfAdjointMatrix<eigen_matrix_t<double, 1, 1>, TriangleType::diagonal> {7.})(0), 7., 1e-6);
-  EXPECT_NEAR((SelfAdjointMatrix<eigen_matrix_t<double, 1, 1>, TriangleType::lower> {7.})(0), 7., 1e-6);
-  EXPECT_NEAR((SelfAdjointMatrix<eigen_matrix_t<double, 1, 1>, TriangleType::upper> {7.})(0), 7., 1e-6);
+  EXPECT_NEAR((HermitianAdapter<eigen_matrix_t<double, 1, 1>, TriangleType::diagonal> {7.})(0), 7., 1e-6);
+  EXPECT_NEAR((HermitianAdapter<eigen_matrix_t<double, 1, 1>, TriangleType::lower> {7.})(0), 7., 1e-6);
+  EXPECT_NEAR((HermitianAdapter<eigen_matrix_t<double, 1, 1>, TriangleType::upper> {7.})(0), 7., 1e-6);
   EXPECT_NEAR((DM22 {9, 10})(0), 9, 1e-6);
   EXPECT_NEAR((DM22 {9, 10})(1), 10, 1e-6);
   EXPECT_NEAR((DD2 {9, 10})(0), 9, 1e-6);
@@ -601,14 +601,14 @@ TEST(special_matrices, make_hermitian_matrix)
   auto m20_lowerh = Eigen::SelfAdjointView<M2x, Eigen::Lower> {m20h};
 
   EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m20_upperh), m22h));
-  static_assert(eigen_self_adjoint_expr<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m20_upperh))>);
+  static_assert(internal::hermitian_expr<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m20_upperh))>);
   EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m20_upperh), m22h));
-  static_assert(eigen_self_adjoint_expr<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m20_upperh))>);
+  static_assert(internal::hermitian_expr<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m20_upperh))>);
   static_assert(hermitian_adapter<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m20_upperh)), HermitianAdapterType::upper>);
   EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::lower>(m20_lowerh), m22h));
-  static_assert(eigen_self_adjoint_expr<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m20_lowerh))>);
+  static_assert(internal::hermitian_expr<decltype(make_hermitian_matrix<HermitianAdapterType::lower>(m20_lowerh))>);
   EXPECT_TRUE(is_near(make_hermitian_matrix<HermitianAdapterType::upper>(m20_lowerh), m22h));
-  static_assert(eigen_self_adjoint_expr<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m20_lowerh))>);
+  static_assert(internal::hermitian_expr<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m20_lowerh))>);
   static_assert(hermitian_adapter<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(m20_lowerh)), HermitianAdapterType::lower>);
 
   static_assert(zero_matrix<decltype(make_hermitian_matrix<HermitianAdapterType::upper>(make_zero_matrix_like<M22>()))>);
@@ -632,8 +632,8 @@ TEST(special_matrices, make_hermitian_matrix)
 
 TEST(special_matrices, SelfAdjointMatrix_traits)
 {
-  using Dl = SelfAdjointMatrix<M22, TriangleType::lower>;
-  using Du = SelfAdjointMatrix<M22, TriangleType::upper>;
+  using Dl = HermitianAdapter<M22, TriangleType::lower>;
+  using Du = HermitianAdapter<M22, TriangleType::upper>;
   //
   EXPECT_TRUE(is_near(make_zero_matrix_like<Dl>(), M22::Zero()));
   EXPECT_TRUE(is_near(make_zero_matrix_like<Du>(), M22::Zero()));
@@ -646,9 +646,9 @@ TEST(special_matrices, SelfAdjointMatrix_traits)
   static_assert(diagonal_matrix<DM22>);
   static_assert(diagonal_matrix<DD2>);
   static_assert(diagonal_matrix<DL2>);
-  static_assert(zero_matrix<decltype(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::lower>(make_zero_matrix_like<M22>()))>);
-  static_assert(zero_matrix<decltype(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::upper>(make_zero_matrix_like<M22>()))>);
-  static_assert(identity_matrix<decltype(SelfAdjointMatrix<decltype(make_identity_matrix_like<M22>()), TriangleType::lower>(make_identity_matrix_like<M22>()))>);
+  static_assert(zero_matrix<decltype(HermitianAdapter<decltype(make_zero_matrix_like<M22>()), TriangleType::lower>(make_zero_matrix_like<M22>()))>);
+  static_assert(zero_matrix<decltype(HermitianAdapter<decltype(make_zero_matrix_like<M22>()), TriangleType::upper>(make_zero_matrix_like<M22>()))>);
+  static_assert(identity_matrix<decltype(HermitianAdapter<decltype(make_identity_matrix_like<M22>()), TriangleType::lower>(make_identity_matrix_like<M22>()))>);
 }
 
 
@@ -727,48 +727,48 @@ TEST(special_matrices, SelfAdjointMatrix_decompositions)
   EXPECT_TRUE(is_near(cholesky_square(std::move(tu22)), hu22));
   //
   //
-  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<decltype(M22::Identity()), TriangleType::lower>(M22::Identity())), M22::Identity()));
-  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<decltype(M22::Identity()), TriangleType::upper>(M22::Identity())), M22::Identity()));
-  static_assert(identity_matrix<decltype(Cholesky_square(SelfAdjointMatrix<decltype(M22::Identity()), TriangleType::lower>(M22::Identity())))>);
-  static_assert(identity_matrix<decltype(Cholesky_square(SelfAdjointMatrix<decltype(M22::Identity()), TriangleType::upper>(M22::Identity())))>);
+  EXPECT_TRUE(is_near(Cholesky_square(HermitianAdapter<decltype(M22::Identity()), TriangleType::lower>(M22::Identity())), M22::Identity()));
+  EXPECT_TRUE(is_near(Cholesky_square(HermitianAdapter<decltype(M22::Identity()), TriangleType::upper>(M22::Identity())), M22::Identity()));
+  static_assert(identity_matrix<decltype(Cholesky_square(HermitianAdapter<decltype(M22::Identity()), TriangleType::lower>(M22::Identity())))>);
+  static_assert(identity_matrix<decltype(Cholesky_square(HermitianAdapter<decltype(M22::Identity()), TriangleType::upper>(M22::Identity())))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::lower>(make_zero_matrix_like<M22>())), M22::Zero()));
-  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::upper>(make_zero_matrix_like<M22>())), M22::Zero()));
-  static_assert(zero_matrix<decltype(Cholesky_square(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::lower>(make_zero_matrix_like<M22>())))>);
-  static_assert(zero_matrix<decltype(Cholesky_square(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::upper>(make_zero_matrix_like<M22>())))>);
+  EXPECT_TRUE(is_near(Cholesky_square(HermitianAdapter<decltype(make_zero_matrix_like<M22>()), TriangleType::lower>(make_zero_matrix_like<M22>())), M22::Zero()));
+  EXPECT_TRUE(is_near(Cholesky_square(HermitianAdapter<decltype(make_zero_matrix_like<M22>()), TriangleType::upper>(make_zero_matrix_like<M22>())), M22::Zero()));
+  static_assert(zero_matrix<decltype(Cholesky_square(HermitianAdapter<decltype(make_zero_matrix_like<M22>()), TriangleType::lower>(make_zero_matrix_like<M22>())))>);
+  static_assert(zero_matrix<decltype(Cholesky_square(HermitianAdapter<decltype(make_zero_matrix_like<M22>()), TriangleType::upper>(make_zero_matrix_like<M22>())))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<decltype(DiagonalMatrix{2, 3}), TriangleType::lower>(DiagonalMatrix{2, 3})), DiagonalMatrix{4, 9}));
-  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<decltype(DiagonalMatrix{2, 3}), TriangleType::upper>(DiagonalMatrix{2, 3})), DiagonalMatrix{4, 9}));
-  static_assert(eigen_diagonal_expr<decltype(Cholesky_square(SelfAdjointMatrix<decltype(DiagonalMatrix{2, 3}), TriangleType::lower>(DiagonalMatrix{2, 3})))>);
-  static_assert(eigen_diagonal_expr<decltype(Cholesky_square(SelfAdjointMatrix<decltype(DiagonalMatrix{2, 3}), TriangleType::upper>(DiagonalMatrix{2, 3})))>);
+  EXPECT_TRUE(is_near(Cholesky_square(HermitianAdapter<decltype(DiagonalAdapter{2, 3}), TriangleType::lower>(DiagonalAdapter{2, 3})), DiagonalAdapter{4, 9}));
+  EXPECT_TRUE(is_near(Cholesky_square(HermitianAdapter<decltype(DiagonalAdapter{2, 3}), TriangleType::upper>(DiagonalAdapter{2, 3})), DiagonalAdapter{4, 9}));
+  static_assert(internal::diagonal_expr<decltype(Cholesky_square(HermitianAdapter<decltype(DiagonalAdapter{2, 3}), TriangleType::lower>(DiagonalAdapter{2, 3})))>);
+  static_assert(internal::diagonal_expr<decltype(Cholesky_square(HermitianAdapter<decltype(DiagonalAdapter{2, 3}), TriangleType::upper>(DiagonalAdapter{2, 3})))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<M22, TriangleType::diagonal>(make_dense_writable_matrix_from<M22>(3, 0, 1, 3))), DiagonalMatrix{9., 9}));
-  static_assert(eigen_diagonal_expr<decltype(Cholesky_square(SelfAdjointMatrix<M22, TriangleType::diagonal>(make_dense_writable_matrix_from<M22>(3, 0, 1, 3))))>);
+  EXPECT_TRUE(is_near(Cholesky_square(HermitianAdapter<M22, TriangleType::diagonal>(make_dense_writable_matrix_from<M22>(3, 0, 1, 3))), DiagonalAdapter{9., 9}));
+  static_assert(internal::diagonal_expr<decltype(Cholesky_square(HermitianAdapter<M22, TriangleType::diagonal>(make_dense_writable_matrix_from<M22>(3, 0, 1, 3))))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<eigen_matrix_t<double, 1, 1>, TriangleType::lower>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(81)));
-  EXPECT_TRUE(is_near(Cholesky_square(SelfAdjointMatrix<eigen_matrix_t<double, 1, 1>, TriangleType::upper>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(81)));
+  EXPECT_TRUE(is_near(Cholesky_square(HermitianAdapter<eigen_matrix_t<double, 1, 1>, TriangleType::lower>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(81)));
+  EXPECT_TRUE(is_near(Cholesky_square(HermitianAdapter<eigen_matrix_t<double, 1, 1>, TriangleType::upper>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(81)));
   //
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<decltype(M22::Identity()), TriangleType::lower>(M22::Identity())), M22::Identity()));
-  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<decltype(M22::Identity()), TriangleType::upper>(M22::Identity())), M22::Identity()));
-  static_assert(identity_matrix<decltype(Cholesky_factor(SelfAdjointMatrix<decltype(M22::Identity()), TriangleType::lower>(M22::Identity())))>);
-  static_assert(identity_matrix<decltype(Cholesky_factor(SelfAdjointMatrix<decltype(M22::Identity()), TriangleType::upper>(M22::Identity())))>);
+  EXPECT_TRUE(is_near(Cholesky_factor(HermitianAdapter<decltype(M22::Identity()), TriangleType::lower>(M22::Identity())), M22::Identity()));
+  EXPECT_TRUE(is_near(Cholesky_factor(HermitianAdapter<decltype(M22::Identity()), TriangleType::upper>(M22::Identity())), M22::Identity()));
+  static_assert(identity_matrix<decltype(Cholesky_factor(HermitianAdapter<decltype(M22::Identity()), TriangleType::lower>(M22::Identity())))>);
+  static_assert(identity_matrix<decltype(Cholesky_factor(HermitianAdapter<decltype(M22::Identity()), TriangleType::upper>(M22::Identity())))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::lower>(make_zero_matrix_like<M22>())), M22::Zero()));
-  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::upper>(make_zero_matrix_like<M22>())), M22::Zero()));
-  static_assert(zero_matrix<decltype(Cholesky_factor(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::lower>(make_zero_matrix_like<M22>())))>);
-  static_assert(zero_matrix<decltype(Cholesky_factor(SelfAdjointMatrix<decltype(make_zero_matrix_like<M22>()), TriangleType::upper>(make_zero_matrix_like<M22>())))>);
+  EXPECT_TRUE(is_near(Cholesky_factor(HermitianAdapter<decltype(make_zero_matrix_like<M22>()), TriangleType::lower>(make_zero_matrix_like<M22>())), M22::Zero()));
+  EXPECT_TRUE(is_near(Cholesky_factor(HermitianAdapter<decltype(make_zero_matrix_like<M22>()), TriangleType::upper>(make_zero_matrix_like<M22>())), M22::Zero()));
+  static_assert(zero_matrix<decltype(Cholesky_factor(HermitianAdapter<decltype(make_zero_matrix_like<M22>()), TriangleType::lower>(make_zero_matrix_like<M22>())))>);
+  static_assert(zero_matrix<decltype(Cholesky_factor(HermitianAdapter<decltype(make_zero_matrix_like<M22>()), TriangleType::upper>(make_zero_matrix_like<M22>())))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<decltype(DiagonalMatrix{4, 9}), TriangleType::lower>(DiagonalMatrix{4, 9})), DiagonalMatrix{2, 3}));
-  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<decltype(DiagonalMatrix{4, 9}), TriangleType::upper>(DiagonalMatrix{4, 9})), DiagonalMatrix{2, 3}));
-  static_assert(eigen_diagonal_expr<decltype(Cholesky_factor(SelfAdjointMatrix<decltype(DiagonalMatrix{4, 9}), TriangleType::lower>(DiagonalMatrix{4, 9})))>);
-  static_assert(eigen_diagonal_expr<decltype(Cholesky_factor(SelfAdjointMatrix<decltype(DiagonalMatrix{4, 9}), TriangleType::upper>(DiagonalMatrix{4, 9})))>);
+  EXPECT_TRUE(is_near(Cholesky_factor(HermitianAdapter<decltype(DiagonalAdapter{4, 9}), TriangleType::lower>(DiagonalAdapter{4, 9})), DiagonalAdapter{2, 3}));
+  EXPECT_TRUE(is_near(Cholesky_factor(HermitianAdapter<decltype(DiagonalAdapter{4, 9}), TriangleType::upper>(DiagonalAdapter{4, 9})), DiagonalAdapter{2, 3}));
+  static_assert(internal::diagonal_expr<decltype(Cholesky_factor(HermitianAdapter<decltype(DiagonalAdapter{4, 9}), TriangleType::lower>(DiagonalAdapter{4, 9})))>);
+  static_assert(internal::diagonal_expr<decltype(Cholesky_factor(HermitianAdapter<decltype(DiagonalAdapter{4, 9}), TriangleType::upper>(DiagonalAdapter{4, 9})))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<M22, TriangleType::diagonal>(make_dense_writable_matrix_from<M22>(9, 3, 3, 9))), DiagonalMatrix{3., 3}));
-  static_assert(eigen_diagonal_expr<decltype(Cholesky_factor(SelfAdjointMatrix<M22, TriangleType::diagonal>(make_dense_writable_matrix_from<M22>(9, 3, 3, 9))))>);
+  EXPECT_TRUE(is_near(Cholesky_factor(HermitianAdapter<M22, TriangleType::diagonal>(make_dense_writable_matrix_from<M22>(9, 3, 3, 9))), DiagonalAdapter{3., 3}));
+  static_assert(internal::diagonal_expr<decltype(Cholesky_factor(HermitianAdapter<M22, TriangleType::diagonal>(make_dense_writable_matrix_from<M22>(9, 3, 3, 9))))>);
   //
-  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<eigen_matrix_t<double, 1, 1>, TriangleType::lower>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(3)));
-  EXPECT_TRUE(is_near(Cholesky_factor(SelfAdjointMatrix<eigen_matrix_t<double, 1, 1>, TriangleType::upper>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(Cholesky_factor(HermitianAdapter<eigen_matrix_t<double, 1, 1>, TriangleType::lower>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(3)));
+  EXPECT_TRUE(is_near(Cholesky_factor(HermitianAdapter<eigen_matrix_t<double, 1, 1>, TriangleType::upper>(eigen_matrix_t<double, 1, 1>(9))), eigen_matrix_t<double, 1, 1>(3)));
   //
   EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::lower>(U22 {9., 3, 3, 10}), mat22(3., 0, 1, 3)));
   EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::upper>(L22 {9., 3, 3, 10}), mat22(3., 1, 0, 3)));
@@ -791,24 +791,24 @@ TEST(special_matrices, SelfAdjointMatrix_decompositions)
 
   // Constant semidefinite case:
   using Const922 = ConstantAdapter<eigen_matrix_t<double, 2, 2>, 9>;
-  EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::lower>(SelfAdjointMatrix<Const922, TriangleType::lower> {Const922 {}}), mat22(3., 0, 3, 0)));
-  EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::upper>(SelfAdjointMatrix<Const922, TriangleType::upper> {Const922 {}}), mat22(3., 3, 0, 0)));
-  EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::lower>(SelfAdjointMatrix<Const922, TriangleType::lower> {Const922 {}}), mat22(3., 0, 3, 0)));
-  EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::upper>(SelfAdjointMatrix<Const922, TriangleType::upper> {Const922 {}}), mat22(3., 3, 0, 0)));
-  static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::lower>(SelfAdjointMatrix<Const922, TriangleType::lower> {Const922 {}})), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::upper>(SelfAdjointMatrix<Const922, TriangleType::upper> {Const922 {}})), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::lower>(SelfAdjointMatrix<Const922, TriangleType::upper> {Const922 {}})), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::upper>(SelfAdjointMatrix<Const922, TriangleType::lower> {Const922 {}})), TriangleType::upper>);
+  EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::lower>(HermitianAdapter<Const922, TriangleType::lower> {Const922 {}}), mat22(3., 0, 3, 0)));
+  EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::upper>(HermitianAdapter<Const922, TriangleType::upper> {Const922 {}}), mat22(3., 3, 0, 0)));
+  EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::lower>(HermitianAdapter<Const922, TriangleType::lower> {Const922 {}}), mat22(3., 0, 3, 0)));
+  EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::upper>(HermitianAdapter<Const922, TriangleType::upper> {Const922 {}}), mat22(3., 3, 0, 0)));
+  static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::lower>(HermitianAdapter<Const922, TriangleType::lower> {Const922 {}})), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::upper>(HermitianAdapter<Const922, TriangleType::upper> {Const922 {}})), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::lower>(HermitianAdapter<Const922, TriangleType::upper> {Const922 {}})), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::upper>(HermitianAdapter<Const922, TriangleType::lower> {Const922 {}})), TriangleType::upper>);
 
   using M2Const = typename M22::ConstantReturnType;
-  EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::lower>(SelfAdjointMatrix<M2Const, TriangleType::lower>(M22::Constant(9))), mat22(3., 0, 3, 0)));
-  EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::upper>(SelfAdjointMatrix<M2Const, TriangleType::upper>(M22::Constant(9))), mat22(3., 3, 0, 0)));
-  EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::lower>(SelfAdjointMatrix<M2Const, TriangleType::lower>(M22::Constant(9))), mat22(3., 0, 3, 0)));
-  EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::upper>(SelfAdjointMatrix<M2Const, TriangleType::upper>(M22::Constant(9))), mat22(3., 3, 0, 0)));
-  static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::lower>(SelfAdjointMatrix<M2Const, TriangleType::lower>(M22::Constant(9)))), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::upper>(SelfAdjointMatrix<M2Const, TriangleType::upper>(M22::Constant(9)))), TriangleType::upper>);
-  static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::lower>(SelfAdjointMatrix<M2Const, TriangleType::upper>(M22::Constant(9)))), TriangleType::lower>);
-  static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::upper>(SelfAdjointMatrix<M2Const, TriangleType::lower>(M22::Constant(9)))), TriangleType::upper>);
+  EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::lower>(HermitianAdapter<M2Const, TriangleType::lower>(M22::Constant(9))), mat22(3., 0, 3, 0)));
+  EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::upper>(HermitianAdapter<M2Const, TriangleType::upper>(M22::Constant(9))), mat22(3., 3, 0, 0)));
+  EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::lower>(HermitianAdapter<M2Const, TriangleType::lower>(M22::Constant(9))), mat22(3., 0, 3, 0)));
+  EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::upper>(HermitianAdapter<M2Const, TriangleType::upper>(M22::Constant(9))), mat22(3., 3, 0, 0)));
+  static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::lower>(HermitianAdapter<M2Const, TriangleType::lower>(M22::Constant(9)))), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::upper>(HermitianAdapter<M2Const, TriangleType::upper>(M22::Constant(9)))), TriangleType::upper>);
+  static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::lower>(HermitianAdapter<M2Const, TriangleType::upper>(M22::Constant(9)))), TriangleType::lower>);
+  static_assert(triangular_matrix<decltype(Cholesky_factor<TriangleType::upper>(HermitianAdapter<M2Const, TriangleType::lower>(M22::Constant(9)))), TriangleType::upper>);
 
   // Zero (positive and negative semidefinite) case:
   EXPECT_TRUE(is_near(Cholesky_factor<TriangleType::lower>(U22 {0., 0, 0, 0}), mat22(0., 0, 0, 0)));
@@ -824,19 +824,19 @@ TEST(special_matrices, SelfAdjointMatrix_decompositions)
 
 TEST(special_matrices, SelfAdjointMatrix_blocks_lower)
 {
-  auto ma = SelfAdjointMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::lower> {1, 2, 3,
+  auto ma = HermitianAdapter<eigen_matrix_t<double, 3, 3>, TriangleType::lower> {1, 2, 3,
                                                                                   2, 4, 5,
                                                                                   3, 5, 6};
-  auto mb = SelfAdjointMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::lower> {4, 5, 6,
+  auto mb = HermitianAdapter<eigen_matrix_t<double, 3, 3>, TriangleType::lower> {4, 5, 6,
                                                                                   5, 7, 8,
                                                                                   6, 8, 9};
-  EXPECT_TRUE(is_near(concatenate_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, mb),
-    SelfAdjointMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
+  EXPECT_TRUE(is_near(concatenate_diagonal(HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, mb),
+    HermitianAdapter<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
                                                                           2, 3, 0, 0, 0,
                                                                           0, 0, 4, 5, 6,
                                                                           0, 0, 5, 7, 8,
                                                                           0, 0, 6, 8, 9}));
-  static_assert(hermitian_adapter<decltype(concatenate_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, mb)), HermitianAdapterType::lower>);
+  static_assert(hermitian_adapter<decltype(concatenate_diagonal(HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, mb)), HermitianAdapterType::lower>);
 
   EXPECT_TRUE(is_near(concatenate_vertical(ma, mb),
     make_eigen_matrix<6,3>(1., 2, 3,
@@ -849,31 +849,31 @@ TEST(special_matrices, SelfAdjointMatrix_blocks_lower)
     make_eigen_matrix<3,6>(1., 2, 3, 4, 5, 6,
                             2, 4, 5, 5, 7, 8,
                             3, 5, 6, 6, 8, 9)));
-  EXPECT_TRUE(is_near(split_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple {}));
+  EXPECT_TRUE(is_near(split_diagonal(HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple {}));
   EXPECT_TRUE(is_near(split_diagonal<2, 3>(
-    SelfAdjointMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
+    HermitianAdapter<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
                                                                           2, 3, 0, 0, 0,
                                                                           0, 0, 4, 5, 6,
                                                                           0, 0, 5, 7, 8,
                                                                           0, 0, 6, 8, 9}),
-      std::tuple {SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, mb}));
-  const auto a1 = SelfAdjointMatrix<const eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
+      std::tuple {HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, mb}));
+  const auto a1 = HermitianAdapter<const eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
                                                                                               2, 3, 0, 0, 0,
                                                                                               0, 0, 4, 5, 6,
                                                                                               0, 0, 5, 7, 8,
                                                                                               0, 0, 6, 8, 9};
-  EXPECT_TRUE(is_near(split_diagonal<2, 3>(a1), std::tuple {SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, mb}));
+  EXPECT_TRUE(is_near(split_diagonal<2, 3>(a1), std::tuple {HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, mb}));
   EXPECT_TRUE(is_near(split_diagonal<2, 2>(
-    SelfAdjointMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
+    HermitianAdapter<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
                                                                           2, 3, 0, 0, 0,
                                                                           0, 0, 4, 5, 6,
                                                                           0, 0, 5, 7, 8,
                                                                           0, 0, 6, 8, 9}),
-    std::tuple {SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3},
-               SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {4., 5, 5, 7}}));
-  EXPECT_TRUE(is_near(split_vertical(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple {}));
+    std::tuple {HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3},
+               HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {4., 5, 5, 7}}));
+  EXPECT_TRUE(is_near(split_vertical(HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple {}));
   EXPECT_TRUE(is_near(split_vertical<2, 3>(
-    SelfAdjointMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1, 2, 0, 0, 0,
+    HermitianAdapter<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1, 2, 0, 0, 0,
                                                                           2, 3, 0, 0, 0,
                                                                           0, 0, 4, 5, 6,
                                                                           0, 0, 5, 7, 8,
@@ -884,7 +884,7 @@ TEST(special_matrices, SelfAdjointMatrix_blocks_lower)
                                        0, 0, 5, 7, 8,
                                        0, 0, 6, 8, 9)}));
   EXPECT_TRUE(is_near(split_vertical<2, 2>(
-    SelfAdjointMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1, 2, 0, 0, 0,
+    HermitianAdapter<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1, 2, 0, 0, 0,
                                                                           2, 3, 0, 0, 0,
                                                                           0, 0, 4, 5, 6,
                                                                           0, 0, 5, 7, 8,
@@ -893,9 +893,9 @@ TEST(special_matrices, SelfAdjointMatrix_blocks_lower)
                                         2, 3, 0, 0, 0),
                make_eigen_matrix<2,5>(0., 0, 4, 5, 6,
                                        0, 0, 5, 7, 8)}));
-  EXPECT_TRUE(is_near(split_horizontal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple {}));
+  EXPECT_TRUE(is_near(split_horizontal(HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}), std::tuple {}));
   EXPECT_TRUE(is_near(split_horizontal<2, 3>(
-    SelfAdjointMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1, 2, 0, 0, 0,
+    HermitianAdapter<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1, 2, 0, 0, 0,
                                                                           2, 3, 0, 0, 0,
                                                                           0, 0, 4, 5, 6,
                                                                           0, 0, 5, 7, 8,
@@ -903,7 +903,7 @@ TEST(special_matrices, SelfAdjointMatrix_blocks_lower)
     std::tuple {make_eigen_matrix<5,2>(1., 2, 2, 3, 0, 0, 0, 0, 0, 0),
                make_eigen_matrix<5,3>(0., 0, 0, 0, 0, 0, 4, 5, 6, 5, 7, 8, 6, 8, 9)}));
   EXPECT_TRUE(is_near(split_horizontal<2, 2>(
-    SelfAdjointMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1, 2, 0, 0, 0,
+    HermitianAdapter<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1, 2, 0, 0, 0,
                                                                           2, 3, 0, 0, 0,
                                                                           0, 0, 4, 5, 6,
                                                                           0, 0, 5, 7, 8,
@@ -953,19 +953,19 @@ TEST(special_matrices, SelfAdjointMatrix_blocks_lower)
 
 TEST(special_matrices, SelfAdjointMatrix_blocks_upper)
 {
-  auto ma = SelfAdjointMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::upper> {1, 2, 3,
+  auto ma = HermitianAdapter<eigen_matrix_t<double, 3, 3>, TriangleType::upper> {1, 2, 3,
                                                                                       2, 4, 5,
                                                                                       3, 5, 6};
-  auto mb = SelfAdjointMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::upper> {4., 5, 6,
+  auto mb = HermitianAdapter<eigen_matrix_t<double, 3, 3>, TriangleType::upper> {4., 5, 6,
                                                                                       5, 7, 8,
                                                                                       6, 8, 9};
-  EXPECT_TRUE(is_near(concatenate_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, mb),
-    SelfAdjointMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
+  EXPECT_TRUE(is_near(concatenate_diagonal(HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, mb),
+    HermitianAdapter<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}));
-  static_assert(hermitian_adapter<decltype(concatenate_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, mb)), HermitianAdapterType::upper>);
+  static_assert(hermitian_adapter<decltype(concatenate_diagonal(HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, mb)), HermitianAdapterType::upper>);
 
   EXPECT_TRUE(is_near(concatenate_vertical(ma, mb),
     make_eigen_matrix<6,3>(1., 2, 3,
@@ -978,31 +978,31 @@ TEST(special_matrices, SelfAdjointMatrix_blocks_upper)
     make_eigen_matrix<3,6>(1., 2, 3, 4, 5, 6,
                                     2, 4, 5, 5, 7, 8,
                                     3, 5, 6, 6, 8, 9)));
-  EXPECT_TRUE(is_near(split_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple {}));
+  EXPECT_TRUE(is_near(split_diagonal(HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple {}));
   EXPECT_TRUE(is_near(split_diagonal<2, 3>(
-    SelfAdjointMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
+    HermitianAdapter<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}),
-    std::tuple {SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, mb}));
-  const auto a1 = SelfAdjointMatrix<const eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
+    std::tuple {HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, mb}));
+  const auto a1 = HermitianAdapter<const eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
                                                                                                   2, 3, 0, 0, 0,
                                                                                                   0, 0, 4, 5, 6,
                                                                                                   0, 0, 5, 7, 8,
                                                                                                   0, 0, 6, 8, 9};
-  EXPECT_TRUE(is_near(split_diagonal<2, 3>(a1), std::tuple {SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, mb}));
+  EXPECT_TRUE(is_near(split_diagonal<2, 3>(a1), std::tuple {HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, mb}));
   EXPECT_TRUE(is_near(split_diagonal<2, 2>(
-    SelfAdjointMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
+    HermitianAdapter<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}),
-    std::tuple {SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3},
-               SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {4., 5, 5, 7}}));
-  EXPECT_TRUE(is_near(split_vertical(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple {}));
+    std::tuple {HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3},
+               HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {4., 5, 5, 7}}));
+  EXPECT_TRUE(is_near(split_vertical(HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple {}));
   EXPECT_TRUE(is_near(split_vertical<2, 3>(
-    SelfAdjointMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
+    HermitianAdapter<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
@@ -1013,7 +1013,7 @@ TEST(special_matrices, SelfAdjointMatrix_blocks_upper)
                                                0, 0, 5, 7, 8,
                                                0, 0, 6, 8, 9)}));
   EXPECT_TRUE(is_near(split_vertical<2, 2>(
-    SelfAdjointMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
+    HermitianAdapter<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
@@ -1022,9 +1022,9 @@ TEST(special_matrices, SelfAdjointMatrix_blocks_upper)
                                                2, 3, 0, 0, 0),
                make_eigen_matrix<2,5>(0., 0, 4, 5, 6,
                                                0, 0, 5, 7, 8)}));
-  EXPECT_TRUE(is_near(split_horizontal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple {}));
+  EXPECT_TRUE(is_near(split_horizontal(HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}), std::tuple {}));
   EXPECT_TRUE(is_near(split_horizontal<2, 3>(
-    SelfAdjointMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
+    HermitianAdapter<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
@@ -1032,7 +1032,7 @@ TEST(special_matrices, SelfAdjointMatrix_blocks_upper)
     std::tuple {make_eigen_matrix<5,2>(1., 2, 2, 3, 0, 0, 0, 0, 0, 0),
                make_eigen_matrix<5,3>(0., 0, 0, 0, 0, 0, 4, 5, 6, 5, 7, 8, 6, 8, 9)}));
   EXPECT_TRUE(is_near(split_horizontal<2, 2>(
-    SelfAdjointMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
+    HermitianAdapter<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1, 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
@@ -1066,20 +1066,20 @@ TEST(special_matrices, SelfAdjointMatrix_blocks_upper)
 
 TEST(special_matrices, SelfAdjointMatrix_blocks_mixed)
 {
-  auto ma = SelfAdjointMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::upper> {1, 2, 3,
+  auto ma = HermitianAdapter<eigen_matrix_t<double, 3, 3>, TriangleType::upper> {1, 2, 3,
                                                                                       2, 4, 5,
                                                                                       3, 5, 6};
-  auto mb = SelfAdjointMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::lower> {4., 5, 6,
+  auto mb = HermitianAdapter<eigen_matrix_t<double, 3, 3>, TriangleType::lower> {4., 5, 6,
                                                                                       5, 7, 8,
                                                                                       6, 8, 9};
-  EXPECT_TRUE(is_near(concatenate_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, mb),
-    SelfAdjointMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
+  EXPECT_TRUE(is_near(concatenate_diagonal(HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, mb),
+    HermitianAdapter<eigen_matrix_t<double, 5, 5>, TriangleType::upper> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
                                                                               0, 0, 6, 8, 9}));
-  static_assert(hermitian_adapter<decltype(concatenate_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, mb)), HermitianAdapterType::upper>);
-  static_assert(hermitian_adapter<decltype(concatenate_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, ma)), HermitianAdapterType::lower>);
+  static_assert(hermitian_adapter<decltype(concatenate_diagonal(HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {1., 2, 2, 3}, mb)), HermitianAdapterType::upper>);
+  static_assert(hermitian_adapter<decltype(concatenate_diagonal(HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, ma)), HermitianAdapterType::lower>);
 
   EXPECT_TRUE(is_near(concatenate_vertical(ma, mb),
     make_eigen_matrix<6,3>(1., 2, 3,
@@ -1092,11 +1092,11 @@ TEST(special_matrices, SelfAdjointMatrix_blocks_mixed)
     make_eigen_matrix<3,6>(1., 2, 3, 4, 5, 6,
                                     2, 4, 5, 5, 7, 8,
                                     3, 5, 6, 6, 8, 9)));
-  auto mc = SelfAdjointMatrix<eigen_matrix_t<double, 3, 3>, TriangleType::upper> {4., 5, 6,
+  auto mc = HermitianAdapter<eigen_matrix_t<double, 3, 3>, TriangleType::upper> {4., 5, 6,
                                                                                       5, 7, 8,
                                                                                       6, 8, 9};
-  EXPECT_TRUE(is_near(concatenate_diagonal(SelfAdjointMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, mc),
-    SelfAdjointMatrix<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
+  EXPECT_TRUE(is_near(concatenate_diagonal(HermitianAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {1., 2, 2, 3}, mc),
+    HermitianAdapter<eigen_matrix_t<double, 5, 5>, TriangleType::lower> {1., 2, 0, 0, 0,
                                                                               2, 3, 0, 0, 0,
                                                                               0, 0, 4, 5, 6,
                                                                               0, 0, 5, 7, 8,
@@ -1108,7 +1108,7 @@ TEST(special_matrices, SelfAdjointMatrix_arithmetic_lower)
 {
   auto ma = L22 {4., 5, 5, 6};
   auto mb = L22 {1., 2, 2, 3};
-  auto d = DiagonalMatrix<eigen_matrix_t<double, 2, 1>> {1, 3};
+  auto d = DiagonalAdapter<eigen_matrix_t<double, 2, 1>> {1, 3};
   auto i = M22::Identity();
   auto z = ZeroAdapter<eigen_matrix_t<double, 2, 2>> {};
 
@@ -1134,12 +1134,12 @@ TEST(special_matrices, SelfAdjointMatrix_arithmetic_lower)
   static_assert(hermitian_matrix<decltype(ma / 0)>);
   EXPECT_TRUE(is_near(-ma, mat22(-4, -5, -5, -6)));  static_assert(hermitian_matrix<decltype(-ma)>);
 
-  EXPECT_TRUE(is_near(SelfAdjointMatrix<decltype(i), TriangleType::diagonal> {i} * 2, mat22(2, 0, 0, 2)));
-  static_assert(diagonal_matrix<decltype(SelfAdjointMatrix<decltype(i), TriangleType::diagonal> {i} * 2)>);
-  EXPECT_TRUE(is_near(2 * SelfAdjointMatrix<decltype(i), TriangleType::diagonal> {i}, mat22(2, 0, 0, 2)));
-  static_assert(diagonal_matrix<decltype(2 * SelfAdjointMatrix<decltype(i), TriangleType::diagonal> {i})>);
-  EXPECT_TRUE(is_near(SelfAdjointMatrix<decltype(i), TriangleType::diagonal> {i} / 0.5, mat22(2, 0, 0, 2)));
-  static_assert(diagonal_matrix<decltype(SelfAdjointMatrix<decltype(i), TriangleType::diagonal> {i} / 2)>);
+  EXPECT_TRUE(is_near(HermitianAdapter<decltype(i), TriangleType::diagonal> {i} * 2, mat22(2, 0, 0, 2)));
+  static_assert(diagonal_matrix<decltype(HermitianAdapter<decltype(i), TriangleType::diagonal> {i} * 2)>);
+  EXPECT_TRUE(is_near(2 * HermitianAdapter<decltype(i), TriangleType::diagonal> {i}, mat22(2, 0, 0, 2)));
+  static_assert(diagonal_matrix<decltype(2 * HermitianAdapter<decltype(i), TriangleType::diagonal> {i})>);
+  EXPECT_TRUE(is_near(HermitianAdapter<decltype(i), TriangleType::diagonal> {i} / 0.5, mat22(2, 0, 0, 2)));
+  static_assert(diagonal_matrix<decltype(HermitianAdapter<decltype(i), TriangleType::diagonal> {i} / 2)>);
 
   EXPECT_TRUE(is_near(ma * mb, mat22(14, 23, 17, 28)));
   EXPECT_TRUE(is_near(ma * d, mat22(4, 15, 5, 18)));
@@ -1150,8 +1150,8 @@ TEST(special_matrices, SelfAdjointMatrix_arithmetic_lower)
   EXPECT_TRUE(is_near(z * ma, z));  static_assert(zero_matrix<decltype(z * ma)>);
   EXPECT_TRUE(is_near(L22{make_dense_writable_matrix_from<L22>(mat22(1, 2, 3, 4)} * (ma * mat22(1, 3, 2, 4))), mat22(48, 110, 110, 252)));
 
-  auto tl1 = TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {2, 0, 1, 2};
-  auto tu1 = TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {2, 1, 0, 2};
+  auto tl1 = TriangularAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {2, 0, 1, 2};
+  auto tu1 = TriangularAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {2, 1, 0, 2};
   EXPECT_TRUE(is_near(ma * tl1, mat22(13, 10, 16, 12)));
   EXPECT_TRUE(is_near(ma * tu1, mat22(8, 14, 10, 17)));
   EXPECT_TRUE(is_near(tl1 * ma, mat22(8, 10, 14, 17)));
@@ -1165,7 +1165,7 @@ TEST(special_matrices, SelfAdjointMatrix_arithmetic_upper)
 {
   auto ma = U22 {4., 5, 5, 6};
   auto mb = U22 {1., 2, 2, 3};
-  auto d = DiagonalMatrix<eigen_matrix_t<double, 2, 1>> {1, 3};
+  auto d = DiagonalAdapter<eigen_matrix_t<double, 2, 1>> {1, 3};
   auto i = M22::Identity();
   auto z = ZeroAdapter<eigen_matrix_t<double, 2, 2>> {};
   EXPECT_TRUE(is_near(ma + mb, mat22(5, 7, 7, 9))); static_assert(hermitian_matrix<decltype(ma + mb)>);
@@ -1198,8 +1198,8 @@ TEST(special_matrices, SelfAdjointMatrix_arithmetic_upper)
   EXPECT_TRUE(is_near(ma * z, z));  static_assert(zero_matrix<decltype(ma * z)>);
   EXPECT_TRUE(is_near(z * ma, z));  static_assert(zero_matrix<decltype(z * ma)>);
 
-  auto tl1 = TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {2, 0, 1, 2};
-  auto tu1 = TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {2, 1, 0, 2};
+  auto tl1 = TriangularAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {2, 0, 1, 2};
+  auto tu1 = TriangularAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {2, 1, 0, 2};
   EXPECT_TRUE(is_near(ma * tl1, mat22(13, 10, 16, 12)));
   EXPECT_TRUE(is_near(ma * tu1, mat22(8, 14, 10, 17)));
   EXPECT_TRUE(is_near(tl1 * ma, mat22(8, 10, 14, 17)));
@@ -1213,8 +1213,8 @@ TEST(special_matrices, SelfAdjointMatrix_arithmetic_mixed)
 {
   auto ma = U22 {4., 5, 5, 6};
   auto mb = L22 {1., 2, 2, 3};
-  auto tl1 = TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {2, 0, 1, 2};
-  auto tu1 = TriangularMatrix<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {2, 1, 0, 2};
+  auto tl1 = TriangularAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::lower> {2, 0, 1, 2};
+  auto tu1 = TriangularAdapter<eigen_matrix_t<double, 2, 2>, TriangleType::upper> {2, 1, 0, 2};
   EXPECT_TRUE(is_near(ma + mb, mat22(5., 7, 7, 9))); static_assert(hermitian_adapter<decltype(ma + mb), HermitianAdapterType::upper>);
   EXPECT_TRUE(is_near(mb + ma, mat22(5., 7, 7, 9))); static_assert(hermitian_adapter<decltype(mb + ma), HermitianAdapterType::lower>);
   EXPECT_TRUE(is_near(ma - mb, mat22(3, 3, 3, 3))); static_assert(hermitian_adapter<decltype(ma - mb), HermitianAdapterType::upper>);
@@ -1235,20 +1235,20 @@ TEST(special_matrices, SelfAdjointMatrix_arithmetic_mixed)
 
 TEST(special_matrices, SelfAdjointMatrix_references)
 {
-  SelfAdjointMatrix<M22, TriangleType::lower> x {m_4225};
-  SelfAdjointMatrix<M22&, TriangleType::lower> x_lvalue = x;
+  HermitianAdapter<M22, TriangleType::lower> x {m_4225};
+  HermitianAdapter<M22&, TriangleType::lower> x_lvalue = x;
   EXPECT_TRUE(is_near(x_lvalue, m_4225));
-  x = SelfAdjointMatrix<M22, TriangleType::lower> {m_93310};
+  x = HermitianAdapter<M22, TriangleType::lower> {m_93310};
   EXPECT_TRUE(is_near(x_lvalue, m_93310));
-  x_lvalue = SelfAdjointMatrix<M22, TriangleType::lower> {m_4225};
+  x_lvalue = HermitianAdapter<M22, TriangleType::lower> {m_4225};
   EXPECT_TRUE(is_near(x, m_4225));
-  EXPECT_TRUE(is_near(SelfAdjointMatrix<M22&, TriangleType::lower> {m_4225}.nested_matrix(), mat22(4, 2, 2, 5)));
+  EXPECT_TRUE(is_near(HermitianAdapter<M22&, TriangleType::lower> {m_4225}.nested_matrix(), mat22(4, 2, 2, 5)));
   //
-  using V = SelfAdjointMatrix<eigen_matrix_t<double, 3, 3>>;
+  using V = HermitianAdapter<eigen_matrix_t<double, 3, 3>>;
   V v1 {1., 2, 3,
         2, 4, -6,
         3, -6, -3};
-  SelfAdjointMatrix<eigen_matrix_t<double, 3, 3>&> v2 = v1;
+  HermitianAdapter<eigen_matrix_t<double, 3, 3>&> v2 = v1;
   EXPECT_TRUE(is_near(v1, v2));
   v1(1,0) = 4.1;
   EXPECT_EQ(v2(1,0), 4.1);
@@ -1256,12 +1256,12 @@ TEST(special_matrices, SelfAdjointMatrix_references)
   v2(0, 2) = 5.2;
   EXPECT_EQ(v1(0,2), 5.2);
   EXPECT_EQ(v1(2,0), 5.2);
-  SelfAdjointMatrix<eigen_matrix_t<double, 3, 3>> v3 = std::move(v2);
+  HermitianAdapter<eigen_matrix_t<double, 3, 3>> v3 = std::move(v2);
   EXPECT_EQ(v3(1,0), 4.1);
-  SelfAdjointMatrix<const eigen_matrix_t<double, 3, 3>&> v4 = v3;
+  HermitianAdapter<const eigen_matrix_t<double, 3, 3>&> v4 = v3;
   v3(2,1) = 7.3;
   EXPECT_EQ(v4(2,1), 7.3);
-  SelfAdjointMatrix<eigen_matrix_t<double, 3, 3>> v5 = v3;
+  HermitianAdapter<eigen_matrix_t<double, 3, 3>> v5 = v3;
   v3(1,1) = 8.4;
   EXPECT_EQ(v3(1,1), 8.4);
   EXPECT_EQ(v5(1,1), 4);

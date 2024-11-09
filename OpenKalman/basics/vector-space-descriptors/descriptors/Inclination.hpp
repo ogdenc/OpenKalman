@@ -133,7 +133,7 @@ namespace OpenKalman::vector_space_descriptors
    * \brief traits for Inclination.
    */
   template<typename Limits>
-  struct fixed_vector_space_descriptor_traits<Inclination<Limits>>
+  struct static_vector_space_descriptor_traits<Inclination<Limits>>
   {
     static constexpr std::size_t size = 1;
     static constexpr std::size_t euclidean_size = 2;

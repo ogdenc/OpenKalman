@@ -226,24 +226,24 @@ namespace OpenKalman::interface
   // --------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, typename C, typename...Ds>
-  concept make_constant_matrix_defined_for = requires (C c, Ds...ds) {
-      library_interface<std::decay_t<T>>::make_constant(std::forward<C>(c), std::forward<Ds>(ds)...);
+  template<typename T, typename C, typename Ds>
+  concept make_constant_defined_for = requires (C c, Ds ds) {
+      library_interface<std::decay_t<T>>::make_constant(std::forward<C>(c), std::forward<Ds>(ds));
     };
 #else
   namespace detail
   {
-    template<typename T, typename C, typename = void, typename...Ds>
+    template<typename T, typename C, typename Ds, typename = void>
     struct make_constant_matrix_defined_for_impl: std::false_type {};
 
-    template<typename T, typename C, typename...Ds>
-    struct make_constant_matrix_defined_for_impl<T, C, std::void_t<
-      decltype(library_interface<std::decay_t<T>>::make_constant(std::declval<C>(), std::declval<Ds>()...))>, Ds...>
+    template<typename T, typename C, typename Ds>
+    struct make_constant_matrix_defined_for_impl<T, C, Ds, std::void_t<
+      decltype(library_interface<std::decay_t<T>>::make_constant(std::declval<C>(), std::declval<Ds>()))>>
       : std::true_type {};
   }
 
-  template<typename T, typename C, typename...Ds>
-  constexpr bool make_constant_matrix_defined_for = detail::make_constant_matrix_defined_for_impl<T, C, void, Ds...>::value;
+  template<typename T, typename C, typename Ds>
+  constexpr bool make_constant_defined_for = detail::make_constant_matrix_defined_for_impl<T, C, Ds>::value;
 #endif
 
 
@@ -252,24 +252,24 @@ namespace OpenKalman::interface
   // ---------------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, typename Scalar, typename...Ds>
-  concept make_identity_matrix_defined_for = requires (Ds...ds) {
-      library_interface<std::decay_t<T>>::template make_identity_matrix<Scalar>(std::forward<Ds>(ds)...);
+  template<typename T, typename Scalar, typename Ds>
+  concept make_identity_matrix_defined_for = requires (Ds ds) {
+      library_interface<std::decay_t<T>>::template make_identity_matrix<Scalar>(std::forward<Ds>(ds));
     };
 #else
   namespace detail
   {
-    template<typename T, typename Scalar, typename = void, typename...Ds>
+    template<typename T, typename Scalar, typename Ds, typename = void>
     struct make_identity_matrix_defined_for_impl: std::false_type {};
 
-    template<typename T, typename Scalar, typename...Ds>
-    struct make_identity_matrix_defined_for_impl<T, Scalar, std::void_t<
-      decltype(library_interface<std::decay_t<T>>::template make_identity_matrix<Scalar>(std::declval<Ds>()...))>, Ds...>
+    template<typename T, typename Scalar, typename Ds>
+    struct make_identity_matrix_defined_for_impl<T, Scalar, Ds, std::void_t<
+      decltype(library_interface<std::decay_t<T>>::template make_identity_matrix<Scalar>(std::declval<Ds>()))>>
       : std::true_type {};
   }
 
-  template<typename T, typename Scalar, typename...Ds>
-  constexpr bool make_identity_matrix_defined_for = detail::make_identity_matrix_defined_for_impl<T, Scalar, void, Ds...>::value;
+  template<typename T, typename Scalar, typename Ds>
+  constexpr bool make_identity_matrix_defined_for = detail::make_identity_matrix_defined_for_impl<T, Scalar, Ds>::value;
 #endif
 
 

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2021 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2021-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -179,7 +179,7 @@ namespace OpenKalman
       struct is_tuple_like : std::false_type {};
 
       template<typename T>
-      struct is_tuple_like<T, std::enable_if_t<(std::tuple_size<T>::value >= 0)>> : std::true_type {};
+      struct is_tuple_like<T, std::void_t<typename std::tuple_size<T>::value_type>> : std::true_type {};
     }
 #endif
 
@@ -190,7 +190,7 @@ namespace OpenKalman
      */
   #if defined(__cpp_concepts) and defined(__cpp_lib_remove_cvref)
     template<typename T>
-    concept tuple_like = requires { typename std::tuple_size<std::remove_cvref<T>>; };
+    concept tuple_like = requires { typename std::tuple_size<std::remove_cvref_t<T>>::value_type; };
   #else
     template<typename T>
     constexpr bool tuple_like = detail::is_tuple_like<std::decay_t<T>>::value;

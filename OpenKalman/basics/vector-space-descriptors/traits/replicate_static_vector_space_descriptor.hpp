@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref replicate_fixed_vector_space_descriptor.
+ * \brief Definition for \ref replicate_static_vector_space_descriptor.
  */
 
 #ifndef OPENKALMAN_REPLICATE_FIXED_VECTOR_SPACE_DESCRIPTOR_HPP
@@ -27,23 +27,23 @@ namespace OpenKalman
    * \tparam N The number of times to repeat coefficient C.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor C, std::size_t N> requires (N != dynamic_size)
+  template<static_vector_space_descriptor C, std::size_t N> requires (N != dynamic_size)
 #else
   template<typename C, std::size_t N>
 #endif
-  struct replicate_fixed_vector_space_descriptor
+  struct replicate_static_vector_space_descriptor
   {
   private:
 
 #ifndef __cpp_concepts
-    static_assert(fixed_vector_space_descriptor<C>);
+    static_assert(static_vector_space_descriptor<C>);
     static_assert(N != dynamic_size);
 #endif
 
     template<typename T, std::size_t...I>
     static constexpr auto replicate_inds(std::index_sequence<I...>)
     {
-      return FixedDescriptor<std::conditional_t<I>=0, T, T>...> {};
+      return StaticDescriptor<std::conditional_t<I>=0, T, T>...> {};
     };
 
   public:
@@ -53,10 +53,10 @@ namespace OpenKalman
 
 
   /**
-   * \brief Helper template for \ref replicate_fixed_vector_space_descriptor.
+   * \brief Helper template for \ref replicate_static_vector_space_descriptor.
    */
   template<typename C, std::size_t N>
-  using replicate_fixed_vector_space_descriptor_t = typename replicate_fixed_vector_space_descriptor<C, N>::type;
+  using replicate_static_vector_space_descriptor_t = typename replicate_static_vector_space_descriptor<C, N>::type;
 
 
 } // namespace OpenKalman

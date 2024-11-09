@@ -404,7 +404,7 @@ namespace OpenKalman::interface
       using Diag = const std::decay_t<decltype(diag)>;
       static_assert(vector<Diag>);
 
-      using D = std::conditional_t<dynamic_dimension<Diag, 0> and fixed_vector_space_descriptor<Id>, std::decay_t<Id>, vector_space_descriptor_of_t<Diag, 0>>;
+      using D = std::conditional_t<dynamic_dimension<Diag, 0> and static_vector_space_descriptor<Id>, std::decay_t<Id>, vector_space_descriptor_of_t<Diag, 0>>;
 
       if constexpr (not dynamic_dimension<Diag, 0> or dynamic_vector_space_descriptor<D>) return diag;
       else return internal::FixedSizeAdapter<Diag, D, Dimensions<1>> {std::move(diag)};
@@ -601,7 +601,7 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     conjugate(Arg&& arg)
     {
-      // The global conjugate function already handles DiagonalMatrix and DiagonalWrapper
+      // The global conjugate function already handles Eigen::DiagonalMatrix and Eigen::DiagonalWrapper
       return std::forward<Arg>(arg).conjugate();
     }
 
@@ -622,7 +622,7 @@ namespace OpenKalman::interface
       else if constexpr (Eigen3::eigen_array_general<Arg, true>)
         return std::forward<Arg>(arg).matrix().transpose();
       else if constexpr (triangular_matrix<Arg>)
-        return OpenKalman::transpose(TriangularMatrix {std::forward<Arg>(arg)});
+        return OpenKalman::transpose(TriangularAdapter {std::forward<Arg>(arg)});
       else
         return Eigen3::make_eigen_wrapper(std::forward<Arg>(arg)).transpose();
       // Note: the global transpose function already handles zero, constant, constant-diagonal, and symmetric cases.
@@ -645,7 +645,7 @@ namespace OpenKalman::interface
       else if constexpr (Eigen3::eigen_array_general<Arg, true>)
         return std::forward<Arg>(arg).matrix().adjoint();
       else if constexpr (triangular_matrix<Arg>)
-        return OpenKalman::adjoint(TriangularMatrix {std::forward<Arg>(arg)});
+        return OpenKalman::adjoint(TriangularAdapter {std::forward<Arg>(arg)});
       else
         return Eigen3::make_eigen_wrapper(std::forward<Arg>(arg)).adjoint();
       // Note: the global adjoint function already handles zero, constant, diagonal, non-complex, and hermitian cases.
@@ -662,7 +662,7 @@ namespace OpenKalman::interface
         return std::forward<Arg>(arg).matrix().determinant();
       else
         return Eigen3::make_eigen_wrapper(std::forward<Arg>(arg)).determinant();
-      // Note: the global determinant function already handles TriangularView, DiagonalMatrix, and DiagonalWrapper
+      // Note: the global determinant function already handles Eigen::TriangularView, Eigen::DiagonalMatrix, and Eigen::DiagonalWrapper
     }
 
 
@@ -782,27 +782,27 @@ namespace OpenKalman::interface
         if (s < Scalar(0))
         {
           // Cholesky factor elements are complex, so throw an exception.
-          throw (std::runtime_error("cholesky_factor of constant SelfAdjointMatrix: covariance is indefinite"));
+          throw (std::runtime_error("cholesky_factor of constant HermitianAdapter: covariance is indefinite"));
         }
 
         if constexpr(triangle_type == TriangleType::diagonal)
         {
           static_assert(diagonal_matrix<A>);
           auto vec = make_constant<A>(square_root(s), Dimensions<dim>{}, Dimensions<1>{});
-          return DiagonalMatrix<decltype(vec)> {vec};
+          return DiagonalAdapter<decltype(vec)> {vec};
         }
         else if constexpr(triangle_type == TriangleType::lower)
         {
           auto col0 = make_constant<A>(square_root(s), Dimensions<dim>{}, Dimensions<1>{});
           auto othercols = make_zero<A>(get_vector_space_descriptor<0>(a), get_vector_space_descriptor<0>(a) - 1);
-          return TriangularMatrix<M, triangle_type> {concatenate_horizontal(col0, othercols)};
+          return TriangularAdapter<M, triangle_type> {concatenate_horizontal(col0, othercols)};
         }
         else
         {
           static_assert(triangle_type == TriangleType::upper);
           auto row0 = make_constant<A>(square_root(s), Dimensions<1>{}, Dimensions<dim>{});
           auto otherrows = make_zero<A>(get_vector_space_descriptor<0>(a) - 1, get_vector_space_descriptor<0>(a));
-          return TriangularMatrix<M, triangle_type> {concatenate_vertical(row0, otherrows)};
+          return TriangularAdapter<M, triangle_type> {concatenate_vertical(row0, otherrows)};
         }
       }
       else
@@ -837,7 +837,7 @@ namespace OpenKalman::interface
             }
             else // Covariance is indefinite, so throw an exception.
             {
-              throw (std::runtime_error("cholesky_factor of SelfAdjointMatrix: covariance is indefinite"));
+              throw (std::runtime_error("cholesky_factor of HermitianAdapter: covariance is indefinite"));
             }
           }
           else if constexpr(triangle_type == TriangleType::lower)
@@ -851,7 +851,7 @@ namespace OpenKalman::interface
               LDL_x.vectorD().cwiseSqrt().asDiagonal() * LDL_x.matrixU().toDenseMatrix();
           }
         }
-        return TriangularMatrix<M, triangle_type> {std::move(b)};
+        return TriangularAdapter<M, triangle_type> {std::move(b)};
       }
     }
 

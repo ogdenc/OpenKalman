@@ -49,8 +49,8 @@ namespace OpenKalman
           {
             using D_Arg = vector_space_descriptor_of_t<Arg, ix>;
             using D = std::tuple_element_t<ix, DTup>;
-            static_assert(equivalent_to<D_Arg, D> or equivalent_to_uniform_fixed_vector_space_descriptor_component_of<D_Arg, D> or
-              (ix >= index_count_v<Arg> and uniform_fixed_vector_space_descriptor<D>),
+            static_assert(equivalent_to<D_Arg, D> or equivalent_to_uniform_static_vector_space_descriptor_component_of<D_Arg, D> or
+              (ix >= index_count_v<Arg> and uniform_static_vector_space_descriptor<D>),
               "In argument to n_ary_operation, the dimension of each index must be either 1 or that of Ds.");
           }
         }(d_tup, args),...);
@@ -346,24 +346,24 @@ namespace OpenKalman
         using Arg_D = vector_space_descriptor_of_t<Arg, ix>;
         using Max_D = decltype(max_d);
 
-        if constexpr (fixed_vector_space_descriptor<Arg_D> and fixed_vector_space_descriptor<Max_D>)
+        if constexpr (static_vector_space_descriptor<Arg_D> and static_vector_space_descriptor<Max_D>)
         {
           constexpr auto dim_arg_d = dimension_size_of_v<Arg_D>;
-          if constexpr (equivalent_to<Arg_D, Max_D> or (dim_arg_d == 1 and equivalent_to_uniform_fixed_vector_space_descriptor_component_of<Arg_D, Max_D>))
+          if constexpr (equivalent_to<Arg_D, Max_D> or (dim_arg_d == 1 and equivalent_to_uniform_static_vector_space_descriptor_component_of<Arg_D, Max_D>))
           {
             return max_d;
           }
           else
           {
             constexpr auto dim_max_d = dimension_size_of_v<Max_D>;
-            static_assert(dim_max_d != 1 or not equivalent_to_uniform_fixed_vector_space_descriptor_component_of<Max_D, Arg_D>,
+            static_assert(dim_max_d != 1 or not equivalent_to_uniform_static_vector_space_descriptor_component_of<Max_D, Arg_D>,
               "The dimension of arguments to n_ary_operation are not compatible with each other for at least one index.");
             return get_vector_space_descriptor<ix>(arg);
           }
         }
         else if constexpr (euclidean_vector_space_descriptor<Arg_D> and euclidean_vector_space_descriptor<Max_D>)
         {
-          if constexpr (fixed_vector_space_descriptor<Arg_D>)
+          if constexpr (static_vector_space_descriptor<Arg_D>)
           {
             constexpr std::size_t a = dimension_size_of_v<Arg_D>;
             std::size_t m = get_dimension_size_of(max_d);
@@ -373,7 +373,7 @@ namespace OpenKalman
             if constexpr (a == 1) return max_d;
             else return get_vector_space_descriptor<ix>(arg);
           }
-          else if constexpr (fixed_vector_space_descriptor<Max_D>)
+          else if constexpr (static_vector_space_descriptor<Max_D>)
           {
             auto arg_d = get_vector_space_descriptor<ix>(arg);
             std::size_t a = get_dimension_size_of(arg_d);
@@ -610,7 +610,7 @@ namespace OpenKalman
    * library from which to create a resulting matrix, and its dimensions need not match the specified dimensions Ds
    * \tparam indices The indices, if any, along which there will be a different operator for each element along that index.
    * \tparam Ds \ref vector_space_descriptor objects for each index of the result. \ref vector_space_descriptor objects corresponding to indices must be
-   * of a \ref fixed_vector_space_descriptor type.
+   * of a \ref static_vector_space_descriptor type.
    * \tparam Operations The nullary operations. The number of operations must equal the product of each dimension Ds
    * corresponding to indices. The order of the operations depends on the order of indices, with the left-most index
    * being the most major, and the right-most index being the most minor. For example, if indices
@@ -625,13 +625,13 @@ namespace OpenKalman
    */
   #ifdef __cpp_concepts
   template<indexible PatternMatrix, std::size_t...indices, vector_space_descriptor...Ds, typename...Operations>
-  requires ((fixed_vector_space_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
+  requires ((static_vector_space_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
     (sizeof...(Operations) == (1 * ... * dimension_size_of_v<std::tuple_element_t<indices, std::tuple<Ds...>>>)) and
     (detail::n_ary_operator<Operations, sizeof...(Ds)> and ...)
   #else
   template<typename PatternMatrix, std::size_t...indices, typename...Ds, typename...Operations, std::enable_if_t<
     indexible<PatternMatrix> and (vector_space_descriptor<Ds> and ...) and
-    ((fixed_vector_space_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
+    ((static_vector_space_descriptor<std::tuple_element_t<indices, std::tuple<Ds...>>>) and ...) and
     (sizeof...(Operations) == (1 * ... * dimension_size_of<std::tuple_element_t<indices, std::tuple<Ds...>>>::value)) and
     (detail::n_ary_operator<Operations, sizeof...(Ds)> and ...), int> = 0>
   #endif
@@ -712,7 +712,7 @@ namespace OpenKalman
      *   \endcode
    * \tparam PatternMatrix A matrix or array corresponding to the result type. Its purpose is to indicate the
    * library from which to create a resulting matrix, and its dimensions need not match the specified dimensions Ds.
-   * Dimensions of PatternMatrix corresponding to indices must be of a \ref fixed_vector_space_descriptor type.
+   * Dimensions of PatternMatrix corresponding to indices must be of a \ref static_vector_space_descriptor type.
    * \tparam indices The indices, if any, along which there will be a different operator for each element along that index.
    * \tparam Operations The nullary operations. The number of operations must equal the product of each dimension Ds
    * corresponding to indices.
@@ -721,12 +721,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible PatternMatrix, std::size_t...indices, vector_space_descriptor...Ds, typename...Operations>
-  requires ((fixed_vector_space_descriptor<vector_space_descriptor_of_t<PatternMatrix, indices>>) and ...) and
+  requires ((static_vector_space_descriptor<vector_space_descriptor_of_t<PatternMatrix, indices>>) and ...) and
     (sizeof...(Operations) == (1 * ... * index_dimension_of_v<PatternMatrix, indices>))
 #else
   template<typename PatternMatrix, std::size_t...indices, typename...Ds, typename...Operations, std::enable_if_t<
     indexible<PatternMatrix> and (vector_space_descriptor<Ds> and ...) and
-    ((fixed_vector_space_descriptor<typename vector_space_descriptor_of<PatternMatrix, indices>::type>) and ...) and
+    ((static_vector_space_descriptor<typename vector_space_descriptor_of<PatternMatrix, indices>::type>) and ...) and
     (sizeof...(Operations) == (1 * ... * index_dimension_of<PatternMatrix, indices>::value)), int> = 0>
 #endif
   constexpr auto

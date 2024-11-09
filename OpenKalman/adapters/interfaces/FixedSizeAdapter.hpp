@@ -61,7 +61,7 @@ namespace OpenKalman::interface
       if constexpr (sizeof...(Ds) > 0 and static_index_value<N>)
       {
         using D = std::tuple_element_t<N::value, std::tuple<Ds...>>;
-        if constexpr (fixed_vector_space_descriptor<D>) return std::decay_t<D> {};
+        if constexpr (static_vector_space_descriptor<D>) return std::decay_t<D> {};
         else return OpenKalman::get_vector_space_descriptor(nested_object(arg), n);
       }
       else if constexpr (equivalent_to<Dimensions<1>, Ds...>)
@@ -176,9 +176,9 @@ namespace OpenKalman::interface
     template<typename Object, typename Indices>
     static constexpr decltype(auto) add_trailing_indices(const Indices& indices)
     {
-      if constexpr (not static_range_size<Indices, Object>)
+      if constexpr (not index_range_for<Indices, Object>)
       {
-        constexpr auto N = index_count_v<Object>; //< We know N is not dynamic_size because static_range_size is not satisfied.
+        constexpr auto N = index_count_v<Object>; //< We know N is not dynamic_size because index_range_for is not satisfied.
         std::array<std::size_t, N> ret;
         std::fill(std::copy(indices.begin(), indices.end(), ret.begin()), ret.end(), 0);
         return ret;
@@ -244,16 +244,16 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<Layout layout, typename Scalar, typename...D> requires
-      interface::make_default_defined_for<NestedObject, layout, Scalar, D&&...>
+    template<Layout layout, typename Scalar, typename D> requires
+      interface::make_default_defined_for<NestedObject, layout, Scalar, D&&>
 #else
-    template<Layout layout, typename Scalar, typename...D, std::enable_if_t<
-      interface::make_default_defined_for<NestedObject, layout, Scalar, D&&...>, int> = 0>
+    template<Layout layout, typename Scalar, typename D, std::enable_if_t<
+      interface::make_default_defined_for<NestedObject, layout, Scalar, D&&>, int> = 0>
 #endif
     static auto
-    make_default(D&&...d)
+    make_default(D&& d)
     {
-      return NestedInterface::template make_default<layout, Scalar>(std::forward<D>(d)...);
+      return NestedInterface::template make_default<layout, Scalar>(std::forward<D>(d));
     }
 
 
@@ -272,26 +272,26 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<typename C, typename...D> requires interface::make_constant_matrix_defined_for<NestedObject, C&&, D&&...>
+    template<typename C, typename D> requires interface::make_constant_defined_for<NestedObject, C&&, D&&>
 #else
-    template<typename C, typename...D, std::enable_if_t<interface::make_constant_matrix_defined_for<NestedObject, C&&, D&&...>, int> = 0>
+    template<typename C, typename D, std::enable_if_t<interface::make_constant_defined_for<NestedObject, C&&, D&&>, int> = 0>
 #endif
     static constexpr auto
-    make_constant(C&& c, D&&...d)
+    make_constant(C&& c, D&& d)
     {
-      return NestedInterface::make_constant(std::forward<C>(c), std::forward<D>(d)...);
+      return NestedInterface::make_constant(std::forward<C>(c), std::forward<D>(d));
     }
 
 
 #ifdef __cpp_concepts
-    template<typename Scalar, typename...D> requires interface::make_identity_matrix_defined_for<NestedObject, Scalar, D&&...>
+    template<typename Scalar, typename D> requires interface::make_identity_matrix_defined_for<NestedObject, Scalar, D&&>
 #else
-    template<typename Scalar, typename...D, std::enable_if_t<interface::make_identity_matrix_defined_for<NestedObject, Scalar, D&&...>, int> = 0>
+    template<typename Scalar, typename D, std::enable_if_t<interface::make_identity_matrix_defined_for<NestedObject, Scalar, D&&>, int> = 0>
 #endif
     static constexpr auto
-    make_identity_matrix(D&&...d)
+    make_identity_matrix(D&& d)
     {
-      return NestedInterface::make_identity_matrix(std::forward<D>(d)...);
+      return NestedInterface::make_identity_matrix(std::forward<D>(d));
     }
 
 
@@ -390,7 +390,7 @@ namespace OpenKalman::interface
     diagonal_of_impl(Arg&& arg, const std::tuple<V0, V1, Vs...>&)
     {
       using D0 = decltype(internal::smallest_vector_space_descriptor<scalar_type_of_t<Arg>>(std::declval<V0>(), std::declval<V1>()));
-      return make_fixed_size_adapter<D0, Vs...>(std::forward<Arg>(arg));
+      return OpenKalman::internal::make_fixed_size_adapter<D0, Vs...>(std::forward<Arg>(arg));
     }
 
   public:
@@ -492,14 +492,17 @@ namespace OpenKalman::interface
 
   private:
 
+    template<std::size_t Ix, std::size_t...indices>
+    static constexpr bool matching_Ix() { return ((Ix == indices) or ...); }
+
     template<std::size_t...indices, typename Arg, std::size_t...Ix>
     static constexpr decltype(auto)
     reduce_impl(Arg&& arg, std::index_sequence<Ix...> seq)
     {
       return internal::make_fixed_size_adapter<
         std::conditional_t<
-          []{ constexpr auto I = Ix; return ((I == indices) or ...); },
-          uniform_fixed_vector_space_descriptor_component_of_t<vector_space_descriptor_of_t<Arg, Ix>>,
+          matching_Ix<Ix, indices...>(),
+          uniform_static_vector_space_descriptor_component_of_t<vector_space_descriptor_of_t<Arg, Ix>>,
           Ds>...>
         (std::forward<Arg>(arg));
     }

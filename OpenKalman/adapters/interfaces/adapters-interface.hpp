@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Interface for DiagonalMatrix, TriangularMatrix, and SelfAdjointMatrix.
+ * \brief Interface for DiagonalAdapter, TriangularAdapter, and HermitianAdapter.
  */
 
 #ifndef OPENKALMAN_ADAPTERS_INTERFACE_HPP
@@ -23,11 +23,11 @@ namespace OpenKalman::interface
 {
 
 #ifdef __cpp_concepts
-  template<typename T> requires eigen_diagonal_expr<T> or eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>
+  template<typename T> requires OpenKalman::internal::diagonal_expr<T> or OpenKalman::internal::triangular_expr<T> or OpenKalman::internal::hermitian_expr<T>
   struct library_interface<T>
 #else
   template<typename T>
-  struct library_interface<T, std::enable_if_t<eigen_diagonal_expr<T> or eigen_triangular_expr<T> or eigen_self_adjoint_expr<T>>>
+  struct library_interface<T, std::enable_if_t<OpenKalman::internal::diagonal_expr<T> or OpenKalman::internal::triangular_expr<T> or OpenKalman::internal::hermitian_expr<T>>>
 #endif
     : library_interface<std::decay_t<nested_object_of_t<T>>>
   {
@@ -56,14 +56,14 @@ namespace OpenKalman::interface
       std::size_t i {*it};
       std::size_t j {++it == indices.end() ? 1 : *it};
 
-      if constexpr (eigen_diagonal_expr<Arg>)
+      if constexpr (OpenKalman::internal::diagonal_expr<Arg>)
       {
         if (i == j)
           return OpenKalman::get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), indices);
         else
           return static_cast<Scalar>(0);
       }
-      else if constexpr (eigen_triangular_expr<Arg>)
+      else if constexpr (OpenKalman::internal::triangular_expr<Arg>)
       {
         if (triangular_matrix<Arg, TriangleType::lower> ? i >= j : j >= i)
           return OpenKalman::get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), indices);
@@ -72,7 +72,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        static_assert(eigen_self_adjoint_expr<Arg>);
+        static_assert(OpenKalman::internal::hermitian_expr<Arg>);
 
         if constexpr (complex_number<Scalar>)
         {
@@ -108,14 +108,14 @@ namespace OpenKalman::interface
       std::size_t i {*it};
       std::size_t j {++it == indices.end() ? 1 : *it};
 
-      if constexpr (eigen_diagonal_expr<Arg>)
+      if constexpr (OpenKalman::internal::diagonal_expr<Arg>)
       {
         if (i == j)
           OpenKalman::set_component(arg, s, indices);
         else
           if (s != static_cast<Scalar>(0)) throw std::out_of_range("Cannot set non-diagonal element of a diagonal matrix to a non-zero value.");
       }
-      else if constexpr (eigen_triangular_expr<Arg>)
+      else if constexpr (OpenKalman::internal::triangular_expr<Arg>)
       {
         if (triangular_matrix<Arg, TriangleType::lower> ? i >= j : j >= i)
           OpenKalman::set_component(arg, s, indices);
@@ -124,7 +124,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        static_assert(eigen_self_adjoint_expr<Arg>);
+        static_assert(OpenKalman::internal::hermitian_expr<Arg>);
 
         if (hermitian_adapter<Arg, HermitianAdapterType::lower> ? i >= j : j >= i)
           OpenKalman::set_component(arg, s, indices);
@@ -154,8 +154,8 @@ namespace OpenKalman::interface
     get_slice(Arg&& arg, std::tuple<Begin...> begin, std::tuple<Size...> size)
     {
       auto dense = to_dense_object<scalar_type_of_t<Arg>>(std::forward<Arg>(arg));
-      static_assert(not eigen_diagonal_expr<decltype(dense)> and not eigen_triangular_expr<decltype(dense)> and
-        not eigen_self_adjoint_expr<decltype(dense)>);
+      static_assert(not OpenKalman::internal::diagonal_expr<decltype(dense)> and not OpenKalman::internal::triangular_expr<decltype(dense)> and
+        not OpenKalman::internal::hermitian_expr<decltype(dense)>);
       return OpenKalman::get_slice(std::move(dense), begin, size);
     }
 
@@ -173,7 +173,7 @@ namespace OpenKalman::interface
     to_diagonal(Arg&& arg)
     {
       // Note: the interface only needs to handle constant and dynamic-sized zero matrices.
-      return DiagonalMatrix {std::forward<Arg>(arg)};
+      return DiagonalAdapter {std::forward<Arg>(arg)};
     }
 
 
@@ -182,7 +182,7 @@ namespace OpenKalman::interface
     diagonal_of(Arg&& arg)
     {
       // Note: the global diagonal_of function already handles all zero and constant cases.
-      if constexpr (eigen_diagonal_expr<Arg>) return nested_object(std::forward<Arg>(arg));
+      if constexpr (OpenKalman::internal::diagonal_expr<Arg>) return nested_object(std::forward<Arg>(arg));
       else return OpenKalman::diagonal_of(nested_object(std::forward<Arg>(arg)));
     }
 
@@ -217,18 +217,18 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     conjugate(Arg&& arg)
     {
-      if constexpr (eigen_self_adjoint_expr<Arg>)
+      if constexpr (OpenKalman::internal::hermitian_expr<Arg>)
       {
         constexpr auto t = hermitian_adapter_type_of_v<Arg>;
         return make_hermitian_matrix<t>(OpenKalman::conjugate(nested_object(std::forward<Arg>(arg))));
       }
       else
       {
-        static_assert(eigen_triangular_expr<Arg>);
+        static_assert(OpenKalman::internal::triangular_expr<Arg>);
         constexpr auto t = triangle_type_of_v<Arg>;
         return make_triangular_matrix<t>(OpenKalman::conjugate(nested_object(std::forward<Arg>(arg))));
       }
-      // Global conjugate function already handles DiagonalMatrix
+      // Global conjugate function already handles DiagonalAdapter
     }
 
 
@@ -236,7 +236,7 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     transpose(Arg&& arg)
     {
-      if constexpr (eigen_self_adjoint_expr<Arg>)
+      if constexpr (OpenKalman::internal::hermitian_expr<Arg>)
       {
         if constexpr (hermitian_matrix<nested_object_of_t<Arg>>)
         {
@@ -250,7 +250,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        static_assert(eigen_triangular_expr<Arg>);
+        static_assert(OpenKalman::internal::triangular_expr<Arg>);
         if constexpr (triangular_matrix<nested_object_of_t<Arg>>)
         {
           return OpenKalman::transpose(nested_object(std::forward<Arg>(arg)));
@@ -261,7 +261,7 @@ namespace OpenKalman::interface
           return make_triangular_matrix<t>(OpenKalman::transpose(nested_object(std::forward<Arg>(arg))));
         }
       }
-      // Global transpose function already handles DiagonalMatrix
+      // Global transpose function already handles DiagonalAdapter
     }
 
 
@@ -269,8 +269,8 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     adjoint(Arg&& arg)
     {
-      // Global conjugate function already handles SelfAdjointMatrix and DiagonalMatrix
-      static_assert(eigen_triangular_expr<Arg>);
+      // Global conjugate function already handles HermitianAdapter and DiagonalAdapter
+      static_assert(OpenKalman::internal::triangular_expr<Arg>);
 
       constexpr auto t = triangular_matrix<Arg, TriangleType::lower> ? TriangleType::upper : TriangleType::lower;
       return make_triangular_matrix<t>(OpenKalman::adjoint(nested_object(std::forward<Arg>(arg))));
@@ -281,8 +281,8 @@ namespace OpenKalman::interface
     static constexpr auto
     determinant(Arg&& arg)
     {
-      // The general determinant function already handles TriangularMatrix and DiagonalMatrix.
-      static_assert(eigen_self_adjoint_expr<Arg>);
+      // The general determinant function already handles TriangularAdapter and DiagonalAdapter.
+      static_assert(OpenKalman::internal::hermitian_expr<Arg>);
       return OpenKalman::determinant(to_dense_object(std::forward<Arg>(arg)));
     }
 
@@ -310,9 +310,9 @@ namespace OpenKalman::interface
     static constexpr auto
     cholesky_factor(A&& a)
     {
-      static_assert(not eigen_diagonal_expr<A>); // DiagonalMatrix case should be handled by cholesky_factor function
+      static_assert(not OpenKalman::internal::diagonal_expr<A>); // DiagonalAdapter case should be handled by cholesky_factor function
 
-      if constexpr (eigen_self_adjoint_expr<A>)
+      if constexpr (OpenKalman::internal::hermitian_expr<A>)
       {
         constexpr HermitianAdapterType h = triangle_type == TriangleType::upper ? HermitianAdapterType::upper : HermitianAdapterType::lower;
         if constexpr (hermitian_adapter<A, h>)
@@ -322,7 +322,7 @@ namespace OpenKalman::interface
       }
       else
       {
-        static_assert(eigen_triangular_expr<A>);
+        static_assert(OpenKalman::internal::triangular_expr<A>);
         if constexpr (triangular_matrix<A, triangle_type>)
           return OpenKalman::cholesky_factor<triangle_type>(nested_object(std::forward<A>(a)));
         else
@@ -337,14 +337,14 @@ namespace OpenKalman::interface
     {
       auto&& n = nested_object(std::forward<A>(a));
       using Trait = interface::library_interface<std::decay_t<decltype(n)>>;
-      if constexpr (eigen_self_adjoint_expr<A>)
+      if constexpr (OpenKalman::internal::hermitian_expr<A>)
       {
         auto&& m = Trait::template rank_update_hermitian<significant_triangle>(std::forward<decltype(n)>(n), std::forward<U>(u), alpha);
         return make_hermitian_matrix<significant_triangle>(std::forward<decltype(m)>(m));
       }
       else
       {
-        static_assert(eigen_diagonal_expr<A>);
+        static_assert(OpenKalman::internal::diagonal_expr<A>);
         return Trait::template rank_update_hermitian<significant_triangle>(to_native_matrix(std::forward<A>(a)), std::forward<U>(u), alpha);
       }
     }
@@ -354,7 +354,7 @@ namespace OpenKalman::interface
     static decltype(auto)
     rank_update_triangular(A&& a, U&& u, const Alpha alpha)
     {
-      static_assert(eigen_diagonal_expr<A>);
+      static_assert(OpenKalman::internal::diagonal_expr<A>);
       using N = std::decay_t<nested_object_of_t<T>>;
       return library_interface<N>::template rank_update_triangular<triangle>(std::forward<A>(a), std::forward<U>(u), alpha);
     }

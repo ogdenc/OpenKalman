@@ -20,27 +20,35 @@
 
 namespace OpenKalman::internal
 {
+#if not defined(__cpp_concepts) or __cpp_generic_lambdas < 201707L
   namespace detail
   {
-    template<typename T, typename...Ds, std::size_t...IxD>
-    static constexpr bool not_more_fixed_than_impl(std::index_sequence<IxD...>)
+    template<typename T, typename Descriptors, std::size_t...Ix>
+    static constexpr bool not_more_fixed_than_impl(std::index_sequence<Ix...>)
     {
-      return (... and (dynamic_dimension<T, IxD> or fixed_vector_space_descriptor<Ds>));
+      return (... and (dynamic_dimension<T, Ix> or static_vector_space_descriptor<std::tuple_element_t<Ix, Descriptors>>));
     }
   } // namespace detail
+#endif
 
 
   /**
-   * \brief \ref indexible T's vector space descriptors are not more fixed than the set Ds for any of Ds.
+   * \brief \ref indexible T's vector space descriptors are not more fixed than the specified \ref vectors_space_descriptor_collection.
    */
-  template<typename T, typename...Ds>
-#ifdef __cpp_concepts
+  template<typename T, typename Descriptors>
+#if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
   concept not_more_fixed_than =
+    indexible<T> and vector_space_descriptor_collection<Descriptors> and
+      (not vector_space_descriptor_tuple<Descriptors> or
+        []<std::size_t...Ix>(std::index_sequence<Ix...>)
+          { return (... and (dynamic_dimension<T, Ix> or static_vector_space_descriptor<std::tuple_element_t<Ix, Descriptors>>)); }
+          (std::make_index_sequence<std::tuple_size_v<Descriptors>>{}));
 #else
   constexpr bool not_more_fixed_than =
+    indexible<T> and vector_space_descriptor_collection<Descriptors> and
+    (not vector_space_descriptor_tuple<Descriptors> or
+      detail::not_more_fixed_than_impl<T, Descriptors>(std::make_index_sequence<std::tuple_size_v<Descriptors>>{}));
 #endif
-    indexible<T> and (vector_space_descriptor<Ds> and ...) and
-      detail::not_more_fixed_than_impl<T, Ds...>(std::index_sequence_for<Ds...>{});
 
 } // namespace OpenKalman::internal
 

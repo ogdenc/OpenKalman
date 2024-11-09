@@ -27,12 +27,12 @@
 
 // interfaces:
 
-#include "interfaces/fixed_vector_space_descriptor_traits.hpp"
+#include "interfaces/static_vector_space_descriptor_traits.hpp"
 #include "interfaces/dynamic_vector_space_descriptor_traits.hpp"
 
 // forward definitions:
 
-#include "traits/fixed_vector_space_descriptor.hpp"
+#include "traits/static_vector_space_descriptor.hpp"
 #include "traits/dynamic_vector_space_descriptor.hpp"
 #include "traits/vector_space_descriptor.hpp"
 
@@ -67,7 +67,7 @@
 #include "descriptors/Polar.hpp"
 #include "descriptors/Spherical.hpp"
 
-#include "descriptors/FixedDescriptor.hpp"
+#include "descriptors/StaticDescriptor.hpp"
 
 #include "descriptors/details/AnyAtomicVectorSpaceDescriptor.hpp"
 #include "descriptors/DynamicDescriptor.hpp"
@@ -75,27 +75,31 @@
 // traits:
 
 #include "traits/composite_vector_space_descriptor.hpp"
-#include "traits/atomic_fixed_vector_space_descriptor.hpp"
+#include "traits/atomic_static_vector_space_descriptor.hpp"
 
-#include "traits/concatenate_fixed_vector_space_descriptor.hpp"
-#include "traits/replicate_fixed_vector_space_descriptor.hpp"
-#include "traits/canonical_fixed_vector_space_descriptor.hpp"
-#include "traits/reverse_fixed_vector_space_descriptor.hpp"
+#include "traits/concatenate_static_vector_space_descriptor.hpp"
+#include "traits/replicate_static_vector_space_descriptor.hpp"
+#include "traits/canonical_static_vector_space_descriptor.hpp"
+#include "traits/reverse_static_vector_space_descriptor.hpp"
 
 #include "traits/internal/is_prefix.hpp"
 #include "traits/internal/prefix_of.hpp"
 #include "traits/internal/suffix_of.hpp"
 #include "traits/internal/base_of.hpp"
 #include "traits/internal/split_head_tail_fixed.hpp"
-#include "traits/internal/fixed_vector_space_descriptor_slice.hpp"
+#include "traits/internal/static_vector_space_descriptor_slice.hpp"
 
-#include "traits/internal/uniform_fixed_vector_space_descriptor_query.hpp"
-#include "traits/uniform_fixed_vector_space_descriptor.hpp"
-#include "traits/uniform_fixed_vector_space_descriptor_component_of.hpp"
-#include "traits/equivalent_to_uniform_fixed_vector_space_descriptor_component_of.hpp"
+#include "traits/internal/uniform_static_vector_space_descriptor_query.hpp"
+#include "traits/uniform_static_vector_space_descriptor.hpp"
+#include "traits/uniform_static_vector_space_descriptor_component_of.hpp"
+#include "traits/equivalent_to_uniform_static_vector_space_descriptor_component_of.hpp"
 
 #include "traits/vector_space_descriptor_tuple.hpp"
+#include "traits/euclidean_vector_space_descriptor_tuple.hpp"
 #include "traits/vector_space_descriptor_collection.hpp"
+#include "traits/euclidean_vector_space_descriptor_collection.hpp"
+#include "traits/static_vector_space_descriptor_tuple.hpp"
+#include "traits/static_vector_space_descriptor_collection.hpp"
 
 // functions:
 
@@ -108,6 +112,8 @@
 #include "functions/internal/best_vector_space_descriptor.hpp"
 #include "functions/internal/smallest_vector_space_descriptor.hpp"
 #include "functions/internal/largest_vector_space_descriptor.hpp"
+
+#include "functions/internal/to_euclidean_vector_space_descriptor_collection.hpp"
 
 #include "functions/get_vector_space_descriptor_slice.hpp"
 

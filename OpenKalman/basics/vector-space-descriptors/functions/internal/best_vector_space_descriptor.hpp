@@ -30,7 +30,7 @@ namespace OpenKalman::internal
   constexpr decltype(auto) best_vector_space_descriptor(D&& d, Ds&&...ds)
   {
     if constexpr (sizeof...(Ds) == 0) return std::forward<D>(d);
-    else if constexpr (fixed_vector_space_descriptor<D>) return std::forward<D>(d);
+    else if constexpr (static_vector_space_descriptor<D>) return std::forward<D>(d);
     else return best_vector_space_descriptor(std::forward<Ds>(ds)...);
   }
 

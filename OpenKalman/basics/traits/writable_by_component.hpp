@@ -28,13 +28,13 @@ namespace OpenKalman
     std::conditional_t<index_count_v<T> == dynamic_size, std::vector<std::size_t>, std::array<std::size_t, index_count_v<T>>>>
 #ifdef __cpp_lib_concepts
   concept writable_by_component = 
-    indexible<T> and static_range_size<Indices, T> and 
+    indexible<T> and index_range_for<Indices, T> and
     (not std::is_const_v<std::remove_reference_t<T>>) and (not empty_object<T>) and
     interface::set_component_defined_for<
       T, std::add_lvalue_reference_t<T>, const scalar_type_of_t<T>&, const Indices&>;
 #else
   constexpr bool writable_by_component = 
-    indexible<T> and static_range_size<Indices, T> and 
+    indexible<T> and index_range_for<Indices, T> and
     (not std::is_const_v<std::remove_reference_t<T>>) and (not empty_object<T>) and
     interface::set_component_defined_for<
       T, std::add_lvalue_reference_t<T>, const typename scalar_type_of<T>::type&, const Indices&>;

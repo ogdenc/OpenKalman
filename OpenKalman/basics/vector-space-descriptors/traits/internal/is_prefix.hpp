@@ -39,41 +39,41 @@ namespace OpenKalman::internal
     template<typename C, typename D>
     struct is_prefix_impl<C, D, std::enable_if_t<equivalent_to<C, D>>>
 #endif
-      : std::true_type { using base = FixedDescriptor<>; };
+      : std::true_type { using base = StaticDescriptor<>; };
 
 
     template<typename C>
 #ifdef __cpp_concepts
-    struct is_prefix_impl<FixedDescriptor<>, C>
+    struct is_prefix_impl<StaticDescriptor<>, C>
 #else
-    struct is_prefix_impl<FixedDescriptor<>, C, std::enable_if_t<not equivalent_to<FixedDescriptor<>, C>>>
+    struct is_prefix_impl<StaticDescriptor<>, C, std::enable_if_t<not equivalent_to<StaticDescriptor<>, C>>>
 #endif
       : std::true_type { using base = C; };
 
 
 #ifdef __cpp_concepts
     template<typename B, equivalent_to<B> C, typename...Cs>
-    struct is_prefix_impl<B, FixedDescriptor<C, Cs...>>
+    struct is_prefix_impl<B, StaticDescriptor<C, Cs...>>
 #else
     template<typename B, typename C, typename...Cs>
-    struct is_prefix_impl<B, FixedDescriptor<C, Cs...>, std::enable_if_t<equivalent_to<B, C> and
-      not equivalent_to<B, FixedDescriptor<C, Cs...>> and not std::is_same_v<B, FixedDescriptor<>>>>
+    struct is_prefix_impl<B, StaticDescriptor<C, Cs...>, std::enable_if_t<equivalent_to<B, C> and
+      not equivalent_to<B, StaticDescriptor<C, Cs...>> and not std::is_same_v<B, StaticDescriptor<>>>>
 #endif
-      : std::true_type { using base = FixedDescriptor<Cs...>; };
+      : std::true_type { using base = StaticDescriptor<Cs...>; };
 
 
 #ifdef __cpp_concepts
     template<typename C, typename...Cs, equivalent_to<C> D, typename...Ds> requires
-      is_prefix_impl<FixedDescriptor<Cs...>, FixedDescriptor<Ds...>>::value
-    struct is_prefix_impl<FixedDescriptor<C, Cs...>, FixedDescriptor<D, Ds...>>
+      is_prefix_impl<StaticDescriptor<Cs...>, StaticDescriptor<Ds...>>::value
+    struct is_prefix_impl<StaticDescriptor<C, Cs...>, StaticDescriptor<D, Ds...>>
 #else
     template<typename C, typename...Cs, typename D, typename...Ds>
-    struct is_prefix_impl<FixedDescriptor<C, Cs...>, FixedDescriptor<D, Ds...>, std::enable_if_t<
-      equivalent_to<C, D> and is_prefix_impl<FixedDescriptor<Cs...>, FixedDescriptor<Ds...>>::value and
-      not equivalent_to<FixedDescriptor<C, Cs...>, FixedDescriptor<D, Ds...>> and
-      not equivalent_to<FixedDescriptor<C, Cs...>, D>>>
+    struct is_prefix_impl<StaticDescriptor<C, Cs...>, StaticDescriptor<D, Ds...>, std::enable_if_t<
+      equivalent_to<C, D> and is_prefix_impl<StaticDescriptor<Cs...>, StaticDescriptor<Ds...>>::value and
+      not equivalent_to<StaticDescriptor<C, Cs...>, StaticDescriptor<D, Ds...>> and
+      not equivalent_to<StaticDescriptor<C, Cs...>, D>>>
 #endif
-      : is_prefix_impl<FixedDescriptor<Cs...>, FixedDescriptor<Ds...>> {};
+      : is_prefix_impl<StaticDescriptor<Cs...>, StaticDescriptor<Ds...>> {};
 
   } // namespace detail
 
@@ -95,15 +95,15 @@ namespace OpenKalman::internal
 
 
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor T, fixed_vector_space_descriptor U>
+  template<static_vector_space_descriptor T, static_vector_space_descriptor U>
   struct is_prefix<T, U>
 #else
   template<typename T, typename U>
-  struct is_prefix<T, U, std::enable_if_t<fixed_vector_space_descriptor<T> and fixed_vector_space_descriptor<U>>>
+  struct is_prefix<T, U, std::enable_if_t<static_vector_space_descriptor<T> and static_vector_space_descriptor<U>>>
 #endif
   : detail::is_prefix_impl<
-    canonical_fixed_vector_space_descriptor_t<std::decay_t<T>>,
-    canonical_fixed_vector_space_descriptor_t<std::decay_t<U>>>
+    canonical_static_vector_space_descriptor_t<std::decay_t<T>>,
+    canonical_static_vector_space_descriptor_t<std::decay_t<U>>>
   {};
 
 

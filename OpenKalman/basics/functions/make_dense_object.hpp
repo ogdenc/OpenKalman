@@ -19,7 +19,7 @@
 namespace OpenKalman
 {
   /**
-   * \brief Make a default, dense, writable matrix based on a list of Dimensions describing the sizes of each index.
+   * \brief Make a default, dense, writable matrix with a set of \ref vector_space_descriptor objects defining the dimensions.
    * \details The result will be uninitialized.
    * \tparam T A dummy matrix or array from the relevant library (size, shape, and layout are ignored)
    * \tparam layout The \ref Layout of the resulting object. If this is Layout::none, it will be the default layout for the library of T.
@@ -28,19 +28,24 @@ namespace OpenKalman
    * Trailing 1D indices my be omitted.
    */
 #ifdef __cpp_concepts
-  template<indexible T, Layout layout = Layout::none, scalar_type Scalar = scalar_type_of_t<T>, vector_space_descriptor...D>
-    requires (layout != Layout::stride) and interface::make_default_defined_for<T, layout, Scalar, D&&...>
+  template<indexible T, Layout layout = Layout::none, scalar_type Scalar = scalar_type_of_t<T>, vector_space_descriptor_collection D>
+    requires (layout != Layout::stride) and interface::make_default_defined_for<T, layout, Scalar, D&&>
   constexpr writable auto
 #else
-  template<typename T, Layout layout = Layout::none, typename Scalar = scalar_type_of_t<T>, typename...D, std::enable_if_t<
-    indexible<T> and scalar_type<Scalar> and (vector_space_descriptor<D> and ...) and (layout != Layout::stride) and
-    interface::make_default_defined_for<T, layout, Scalar, D&&...>, int> = 0>
+  template<typename T, Layout layout = Layout::none, typename Scalar = scalar_type_of_t<T>, typename D, std::enable_if_t<
+    indexible<T> and scalar_type<Scalar> and vector_space_descriptor_collection<D> and (layout != Layout::stride) and
+    interface::make_default_defined_for<T, layout, Scalar, D&&>, int> = 0>
   constexpr auto
 #endif
-  make_dense_object(D&&...d)
+  make_dense_object(D&& d)
   {
     using Traits = interface::library_interface<std::decay_t<T>>;
-    return Traits::template make_default<layout, Scalar>(std::forward<D>(d)...);
+    if constexpr (euclidean_vector_space_descriptor_collection<D>)
+      return Traits::template make_default<layout, Scalar>(std::forward<D>(d));
+    else
+      return make_vector_space_adapter(
+        Traits::template make_default<layout, Scalar>(internal::to_euclidean_vector_space_descriptor_collection(d)),
+        std::forward<D>(d));
   }
 
 

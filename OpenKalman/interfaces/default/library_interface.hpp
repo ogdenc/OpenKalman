@@ -110,23 +110,22 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Makes a default, potentially uninitialized, dense, writable matrix or array
-     * \details Takes a list of \ref vector_space_descriptor objects that specify the size of the resulting object
+     * \brief Make a default, potentially uninitialized, dense, writable matrix or array within the library.
+     * \details Takes a \ref euclidean_vector_space_descriptor_collection that specifies the dimensions of the resulting object
      * \tparam layout the \ref Layout of the result, which may be Layout::left, Layout::right, or
      * Layout::none (which indicates the default layout for the library).
      * \tparam Scalar The scalar value of the result.
-     * \param ds A list of \ref vector_space_descriptor items
      * \return A default, potentially uninitialized, dense, writable object.
      * \note The interface may base the return value on any properties of LibraryObject (e.g., whether LibraryObject is a matrix or array).
      */
 #ifdef __cpp_concepts
     template<Layout layout, scalar_type Scalar> requires (layout != Layout::stride)
     static auto
-    make_default(vector_space_descriptor auto&&...ds) = delete;
+    make_default(euclidean_vector_space_descriptor_collection auto&& descriptors) = delete;
 #else
-    template<Layout layout, typename Scalar, typename...Ds>
+    template<Layout layout, typename Scalar, typename Descriptors>
     static auto
-    make_default(Ds&&...ds) = delete;
+    make_default(Descriptors&& descriptors) = delete;
 #endif
 
 
@@ -151,36 +150,36 @@ namespace OpenKalman::interface
 
     /**
      * \brief Create a \ref constant_matrix of a given shape (optional).
-     * \details Takes a list of \ref vector_space_descriptor items that specify the size of the resulting object
+     * \details Takes a \ref euclidean_vector_space_descriptor_collection that specifies the dimensions of the resulting object
      * \param c A \ref scalar_constant (either static or dynamic)
-     * \param d A list of \ref vector_space_descriptor items
+     * \param d A \ref euclidean_vector_space_descriptor_collection
      * \note If this is not defined, calls to <code>OpenKalman::make_constant</code> will return an object of type ConstantAdapter.
      */
 #ifdef __cpp_concepts
     static constexpr constant_matrix auto
-    make_constant(const scalar_constant auto& c, vector_space_descriptor auto&&...d) = delete;
+    make_constant(const scalar_constant auto& c, euclidean_vector_space_descriptor_collection auto&& d) = delete;
 #else
-    template<typename C, typename...D>
+    template<typename C, typename D>
     static constexpr auto
-    make_constant(const C& c, D&&...d) = delete;
+    make_constant(const C& c, D&& d) = delete;
 #endif
 
 
     /**
-     * \brief Create a generalized \ref identity_matrix of a given shape(optional).
+     * \brief Create a generalized \ref identity_matrix of a given shape (optional).
      * \details This is a generalized identity matrix that need not be square, but every non-diagonal element must be zero.
-     * \note If not defined, an identity matrix is a \ref DiagonalMatrix adapter with a constant diagonal of 1.
+     * \note If not defined, an identity matrix is a \ref DiagonalAdapter with a constant diagonal of 1.
      * \tparam Scalar The scalar type of the new object
      * \param d A \ref vector_space_descriptor object defining the size
      */
 #ifdef __cpp_concepts
     template<scalar_type Scalar>
     static constexpr identity_matrix auto
-    make_identity_matrix(vector_space_descriptor auto&&...d) = delete;
+    make_identity_matrix(euclidean_vector_space_descriptor_collection auto&& d) = delete;
 #else
-    template<typename Scalar, typename...D>
+    template<typename Scalar, typename D>
     static constexpr auto
-    make_identity_matrix(D&&...d) = delete;
+    make_identity_matrix(D&& d) = delete;
 #endif
 
 
@@ -188,7 +187,7 @@ namespace OpenKalman::interface
      * \brief Create a \ref triangular_matrix from a square matrix.
      * \details This is used by the function OpenKalman::make_triangular_matrix. This can be left undefined if
      * - Arg is already triangular and of a TriangleType compatible with t, or
-     * - the intended result is for Arg to be wrapped in an \ref Eigen::TriangularMatrix (which will happen automatically).
+     * - the intended result is for Arg to be wrapped in an \ref Eigen::TriangularAdapter (which will happen automatically).
      * \tparam t The intended \ref TriangleType of the result.
      * \param arg A square matrix to be wrapped in a triangular adapter.
      */
@@ -207,7 +206,7 @@ namespace OpenKalman::interface
      * \brief Make a hermitian adapter.
      * \details This is used by the function OpenKalman::make_hermitian_matrix. This can be left undefined if
      * - Arg is already hermitian and of a HermitianAdapterType compatible with t, or
-     * - the intended result is for Arg to be wrapped in an \ref Eigen::SelfAdjointMatrix (which will happen automatically).
+     * - the intended result is for Arg to be wrapped in an \ref Eigen::HermitianAdapter (which will happen automatically).
      * \tparam t The intended \ref HermitianAdapterType of the result.
      * \param arg A square matrix to be wrapped in a hermitian hermitian.
      */
@@ -327,7 +326,7 @@ namespace OpenKalman::interface
 
     /**
      * \brief Convert a column vector (or column slice for rank>2 tensors) into a diagonal matrix (optional).
-     * \note If this is not defined, calls to <code>OpenKalman::to_diagonal</code> will construct a \ref DiagonalMatrix.
+     * \note If this is not defined, calls to <code>OpenKalman::to_diagonal</code> will construct a \ref DiagonalAdapter.
      * \details An interface need not deal with an object known to be \ref one_dimensional at compile time.
      * \tparam Arg A column vector.
      */

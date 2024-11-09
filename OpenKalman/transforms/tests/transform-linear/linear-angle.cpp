@@ -16,7 +16,7 @@ using namespace OpenKalman::test;
 
 using numbers::pi;
 
-using C2 = FixedDescriptor<Polar<>>;
+using C2 = StaticDescriptor<Polar<>>;
 using M2 = Mean<C2>;
 using Mat2 = Matrix<C2, C2>;
 using Cov2 = Covariance<C2>;

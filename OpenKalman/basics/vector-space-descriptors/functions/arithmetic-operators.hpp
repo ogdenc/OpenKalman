@@ -32,12 +32,12 @@ namespace OpenKalman::vector_space_descriptors
 #endif
   constexpr auto operator+(T&& t, U&& u)
   {
-    if constexpr (fixed_vector_space_descriptor<T> and fixed_vector_space_descriptor<U>)
+    if constexpr (static_vector_space_descriptor<T> and static_vector_space_descriptor<U>)
     {
       if constexpr (euclidean_vector_space_descriptor<T> and euclidean_vector_space_descriptor<U>)
         return Dimensions<dimension_size_of_v<T> + dimension_size_of_v<U>>{};
       else
-        return concatenate_fixed_vector_space_descriptor_t<T, U> {};
+        return concatenate_static_vector_space_descriptor_t<T, U> {};
     }
     else if constexpr (euclidean_vector_space_descriptor<T> and euclidean_vector_space_descriptor<U>)
     {
@@ -51,12 +51,12 @@ namespace OpenKalman::vector_space_descriptors
 
 
   /**
-   * \brief Subtract two \ref fixed_vector_space_descriptor values.
+   * \brief Subtract two \ref static_vector_space_descriptor values.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor T, internal::suffix_of<T> U> requires (not scalar_constant<T>) or (not scalar_constant<U>)
+  template<static_vector_space_descriptor T, internal::suffix_of<T> U> requires (not scalar_constant<T>) or (not scalar_constant<U>)
 #else
-  template<typename T, typename U, std::enable_if_t<fixed_vector_space_descriptor<T> and internal::suffix_of<U, T> and
+  template<typename T, typename U, std::enable_if_t<static_vector_space_descriptor<T> and internal::suffix_of<U, T> and
     not (scalar_constant<T> and scalar_constant<U>), int> = 0>
 #endif
   constexpr auto operator-(const T& t, const U& u)

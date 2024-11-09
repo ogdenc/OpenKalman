@@ -45,46 +45,46 @@ namespace
 
 TEST(kalman, radar_2d_linearized1_SA)
 {
-  radar_2D<SelfAdjointMatrix<M22>>(LinearizedTransform<1>());
+  radar_2D<HermitianAdapter<M22>>(LinearizedTransform<1>());
 }
 
 TEST(kalman, radar_2d_linearized1_T)
 {
-  radar_2D<TriangularMatrix<M22>>(LinearizedTransform<1>());
+  radar_2D<TriangularAdapter<M22>>(LinearizedTransform<1>());
 }
 
 TEST(kalman, radar_2d_linearized2_SA)
 {
-  radar_2D<SelfAdjointMatrix<M22>>(LinearizedTransform<2>());
+  radar_2D<HermitianAdapter<M22>>(LinearizedTransform<2>());
 }
 
 TEST(kalman, radar_2d_cubature_SA)
 {
-  radar_2D<SelfAdjointMatrix<M22>>(CubatureTransform());
+  radar_2D<HermitianAdapter<M22>>(CubatureTransform());
 }
 
 TEST(kalman, radar_2d_cubature_T)
 {
-  radar_2D<TriangularMatrix<M22>>(CubatureTransform());
+  radar_2D<TriangularAdapter<M22>>(CubatureTransform());
 }
 
 TEST(kalman, radar_2d_unscented_SA)
 {
-  radar_2D<SelfAdjointMatrix<M22>>(UnscentedTransform());
+  radar_2D<HermitianAdapter<M22>>(UnscentedTransform());
 }
 
 TEST(kalman, radar_2d_unscented_T)
 {
-  radar_2D<TriangularMatrix<M22>>(UnscentedTransform());
+  radar_2D<TriangularAdapter<M22>>(UnscentedTransform());
 }
 
 TEST(kalman, radar_2d_simplex_SA)
 {
-  radar_2D<SelfAdjointMatrix<M22>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
+  radar_2D<HermitianAdapter<M22>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
 }
 
 TEST(kalman, radar_2d_simplex_T)
 {
-  radar_2D<TriangularMatrix<M22>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
+  radar_2D<TriangularAdapter<M22>>(SamplePointsTransform<SphericalSimplexSigmaPoints>());
 }
 

@@ -45,10 +45,10 @@ namespace OpenKalman::interface
     // fill_components not necessary because T is not a dense writable matrix.
 
 
-    template<typename C, typename...D>
-    static constexpr auto make_constant(C&& c, D&&...d)
+    template<typename C, typename D>
+    static constexpr auto make_constant(C&& c, D&& d)
     {
-      return make_constant<nested_object_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
+      return make_constant<nested_object_of_t<T>>(std::forward<C>(c), std::forward<D>(d));
     }
 
 
@@ -271,7 +271,7 @@ namespace OpenKalman
   {
     if constexpr(sizeof...(Vs) > 0)
     {
-      using RC = concatenate_fixed_vector_space_descriptor_t<vector_space_descriptor_of_t<V, 0>, vector_space_descriptor_of_t<Vs, 0>...>;
+      using RC = concatenate_static_vector_space_descriptor_t<vector_space_descriptor_of_t<V, 0>, vector_space_descriptor_of_t<Vs, 0>...>;
       return MatrixTraits<std::decay_t<V>>::template make<RC>(
         concatenate_vertical(nested_object(std::forward<V>(v)), nested_object(std::forward<Vs>(vs))...));
     }
@@ -310,7 +310,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     if constexpr(sizeof...(Vs) > 0)
     {
       using RC = vector_space_descriptor_of_t<V, 0>;
-      using CC = concatenate_fixed_vector_space_descriptor_t<vector_space_descriptor_of_t<V, 1>,
+      using CC = concatenate_static_vector_space_descriptor_t<vector_space_descriptor_of_t<V, 1>,
       vector_space_descriptor_of_t<Vs, 1>...>;
       auto cat = concatenate_horizontal(nested_object(std::forward<V>(v)), nested_object(std::forward<Vs>(vs))...);
       if constexpr(euclidean_vector_space_descriptor<CC>)
@@ -341,8 +341,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   {
     if constexpr(sizeof...(Vs) > 0)
     {
-      using RC = concatenate_fixed_vector_space_descriptor_t<vector_space_descriptor_of_t<V, 0>, vector_space_descriptor_of_t<Vs, 0>...>;
-      using CC = concatenate_fixed_vector_space_descriptor_t<vector_space_descriptor_of_t<V, 1>,
+      using RC = concatenate_static_vector_space_descriptor_t<vector_space_descriptor_of_t<V, 0>, vector_space_descriptor_of_t<Vs, 0>...>;
+      using CC = concatenate_static_vector_space_descriptor_t<vector_space_descriptor_of_t<V, 1>,
         vector_space_descriptor_of_t<Vs, 1>...>;
       return MatrixTraits<std::decay_t<V>>::template make<RC, CC>(
         concatenate_diagonal(nested_object(std::forward<V>(v)), nested_object(std::forward<Vs>(vs))...));
@@ -393,11 +393,11 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
   /// Split typed matrix into one or more typed matrices vertically.
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor ... Cs, typed_matrix M> requires
-    internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>
+  template<static_vector_space_descriptor ... Cs, typed_matrix M> requires
+    internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
-    internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>, int> = 0>
+    internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>, int> = 0>
 #endif
   inline auto
   split_vertical(M&& m)
@@ -410,11 +410,11 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
   /// Split typed matrix into one or more typed matrices horizontally.
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor ... Cs, typed_matrix M> requires
-    internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 1>>
+  template<static_vector_space_descriptor ... Cs, typed_matrix M> requires
+    internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 1>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
-    internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 1>>, int> = 0>
+    internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 1>>, int> = 0>
 #endif
   inline auto
   split_horizontal(M&& m)
@@ -442,14 +442,14 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
 
   /// Split typed matrix into one or more typed matrices diagonally.
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor ... Cs, typed_matrix M>
+  template<static_vector_space_descriptor ... Cs, typed_matrix M>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M>, int> = 0>
 #endif
   inline auto
   split_diagonal(M&& m)
   {
-    static_assert(internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
+    static_assert(internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
     static_assert(equivalent_to<vector_space_descriptor_of_t<M, 0>::ColumnCoefficients, MatrixTraits<std::decay_t<M>>>);
     return split_diagonal<oin::SplitMatDiagF<M>, Cs...>(nested_object(std::forward<M>(m)));
   }
@@ -537,7 +537,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResRC = vector_space_descriptor_of_t<ResultType, 0>;
     using ResCC0 = vector_space_descriptor_of_t<ResultType, 1>;
     static_assert(dimension_size_of_v<ResCC0> == 1, "Function argument of apply_columnwise must return a column vector.");
-    using ResCC = replicate_fixed_vector_space_descriptor_t<ResCC0, index_dimension_of_v<Arg, 1>>;
+    using ResCC = replicate_static_vector_space_descriptor_t<ResCC0, index_dimension_of_v<Arg, 1>>;
     using RC = vector_space_descriptor_of_t<Arg, 0>;
     const auto f_nested = [&f](auto&& col) -> auto {
       return make_self_contained(
@@ -566,7 +566,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using ResRC = vector_space_descriptor_of_t<ResultType, 0>;
     using ResCC0 = vector_space_descriptor_of_t<ResultType, 1>;
     static_assert(dimension_size_of_v<ResCC0> == 1, "Function argument of apply_columnwise must return a column vector.");
-    using ResCC = replicate_fixed_vector_space_descriptor_t<ResCC0, index_dimension_of_v<Arg, 1>>;
+    using ResCC = replicate_static_vector_space_descriptor_t<ResCC0, index_dimension_of_v<Arg, 1>>;
     const auto f_nested = [&f](auto&& col, std::size_t i) -> auto {
       using RC = vector_space_descriptor_of_t<Arg, 0>;
       return make_self_contained(
@@ -594,7 +594,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using RC = vector_space_descriptor_of_t<ResultType, 0>;
     using CC0 = vector_space_descriptor_of_t<ResultType, 1>;
     static_assert(dimension_size_of_v<CC0> == 1, "Function argument of apply_columnwise must return a column vector.");
-    using CC = replicate_fixed_vector_space_descriptor_t<CC0, count>;
+    using CC = replicate_static_vector_space_descriptor_t<CC0, count>;
     return MatrixTraits<std::decay_t<ResultType>>::template make<RC, CC>(apply_columnwise<count>(f_nested));
   }
 
@@ -617,7 +617,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     using RC = vector_space_descriptor_of_t<ResultType, 0>;
     using CC0 = vector_space_descriptor_of_t<ResultType, 1>;
     static_assert(dimension_size_of_v<CC0> == 1, "Function argument of apply_columnwise must return a column vector.");
-    using CC = replicate_fixed_vector_space_descriptor_t<CC0, count>;
+    using CC = replicate_static_vector_space_descriptor_t<CC0, count>;
     return MatrixTraits<std::decay_t<ResultType>>::template make<RC, CC>(apply_columnwise<count>(f_nested));
   }
 
@@ -777,8 +777,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
    *  in which elements in each row are selected according to the three (o) or two (p) listed distribution
    *  parameters:
    *   \code
-   *     auto o = randomize<Matrix<Dimensions<3>, FixedDescriptor<angle::Radians, angle::Radians>, Eigen::Matrix<double, 3, 2>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
-   *     auto p = randomize<Matrix<Dimensions<2>, FixedDescriptor<angle::Radians, angle::Radians>, Eigen::Matrix<double, 2, 2>>>(N {1.0, 0.3}, N {2.0, 0.3})));
+   *     auto o = randomize<Matrix<Dimensions<3>, StaticDescriptor<angle::Radians, angle::Radians>, Eigen::Matrix<double, 3, 2>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
+   *     auto p = randomize<Matrix<Dimensions<2>, StaticDescriptor<angle::Radians, angle::Radians>, Eigen::Matrix<double, 2, 2>>>(N {1.0, 0.3}, N {2.0, 0.3})));
    *   \endcode
    *   Note that in the case of p, there is an ambiguity as to whether the listed distributions correspond to rows
    *   or columns. In case of such an ambiguity, this function assumes that the parameters correspond to the rows.
@@ -786,7 +786,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
    *  - One distribution for each column. The following code constructs 2-by-3 matrix m
    *  in which elements in each column are selected according to the three listed distribution parameters:
    *   \code
-   *     auto m = randomize<Matrix<FixedDescriptor<angle::Radians, angle::Radians>, Dimensions<3>, Eigen::Matrix<double, 2, 3>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
+   *     auto m = randomize<Matrix<StaticDescriptor<angle::Radians, angle::Radians>, Dimensions<3>, Eigen::Matrix<double, 2, 3>>>(N {1.0, 0.3}, 2.0, N {3.0, 0.3})));
    *   \endcode
    *
    * \tparam ReturnType The return type reflecting the size of the matrix to be filled. The actual result will be

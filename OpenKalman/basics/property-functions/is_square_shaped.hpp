@@ -28,7 +28,7 @@ namespace OpenKalman
     constexpr auto get_best_square_index()
     {
       if constexpr (i + 1 >= count) return i;
-      else if constexpr (fixed_vector_space_descriptor<decltype(get_vector_space_descriptor<i>(std::declval<T>()))>) return i;
+      else if constexpr (static_vector_space_descriptor<decltype(get_vector_space_descriptor<i>(std::declval<T>()))>) return i;
       else return get_best_square_index<count, T, i + 1>();
     }
 

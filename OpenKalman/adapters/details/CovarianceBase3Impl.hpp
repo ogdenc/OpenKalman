@@ -47,7 +47,7 @@ namespace OpenKalman::internal
       typename MatrixTraits<std::decay_t<NestedMatrix>>::template DiagonalMatrixFrom<>,
       std::conditional_t<triangular_matrix<NestedMatrix>,
         typename MatrixTraits<std::decay_t<NestedMatrix>>::template SelfAdjointMatrixFrom<>,
-        typename MatrixTraits<std::decay_t<NestedMatrix>>::template TriangularMatrixFrom<>>>;
+        typename MatrixTraits<std::decay_t<NestedMatrix>>::template TriangularAdapterFrom<>>>;
 
 
     // The cholesky nested matrix one would expect given whether the covariance is a square root.

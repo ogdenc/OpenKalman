@@ -22,7 +22,7 @@ namespace OpenKalman
   /**
    * \brief An object describing the type of (vector) space associated with a tensor index.
    * \details Such an object is a trait defining the number of dimensions and whether each dimension is modular.
-   * This includes anything that is either a \ref fixed_vector_space_descriptor or a \ref dynamic_vector_space_descriptor.
+   * This includes anything that is either a \ref static_vector_space_descriptor or a \ref dynamic_vector_space_descriptor.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -30,7 +30,7 @@ namespace OpenKalman
 #else
   constexpr bool vector_space_descriptor =
 #endif
-    fixed_vector_space_descriptor<T> or dynamic_vector_space_descriptor<T>;
+    static_vector_space_descriptor<T> or dynamic_vector_space_descriptor<T>;
 
 
 } // namespace OpenKalman

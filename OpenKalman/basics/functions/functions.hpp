@@ -37,6 +37,8 @@
 #include "assign.hpp"
 #include "internal/assignable.hpp"
 
+#include "make_vector_space_adapter.hpp"
+
 #include "make_dense_object.hpp"
 #include "to_dense_object.hpp"
 #include "make_dense_object_from.hpp"
@@ -44,6 +46,8 @@
 #include "make_constant.hpp"
 #include "make_zero.hpp"
 #include "make_diagonal_matrix.hpp"
+
+#include "internal/make_constant_diagonal_from_descriptors.hpp"
 #include "make_identity_matrix_like.hpp"
 
 #include "transpose.hpp"
@@ -62,8 +66,6 @@
 #include "to_euclidean.hpp"
 #include "from_euclidean.hpp"
 #include "wrap_angles.hpp"
-
-#include "make_vector_space_adapter.hpp"
 
 #include "broadcast.hpp"
 #include "n_ary_operation.hpp"

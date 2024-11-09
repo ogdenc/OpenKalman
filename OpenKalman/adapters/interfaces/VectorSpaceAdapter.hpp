@@ -227,16 +227,16 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<Layout layout, typename Scalar, typename...D> requires
-      interface::make_default_defined_for<NestedObject, layout, Scalar, D&&...>
+    template<Layout layout, typename Scalar, typename D> requires
+      interface::make_default_defined_for<NestedObject, layout, Scalar, D&&>
 #else
-    template<Layout layout, typename Scalar, typename...D, std::enable_if_t<
-      interface::make_default_defined_for<NestedObject, layout, Scalar, D&&...>, int> = 0>
+    template<Layout layout, typename Scalar, typename D, std::enable_if_t<
+      interface::make_default_defined_for<NestedObject, layout, Scalar, D&&>, int> = 0>
 #endif
     static auto
-    make_default(D&&...d)
+    make_default(D&& d)
     {
-      return NestedInterface::template make_default<layout, Scalar>(std::forward<D>(d)...);
+      return NestedInterface::template make_default<layout, Scalar>(std::forward<D>(d));
     }
 
 
@@ -255,26 +255,26 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<typename C, typename...D> requires interface::make_constant_matrix_defined_for<NestedObject, C&&, D&&...>
+    template<typename C, typename D> requires interface::make_constant_defined_for<NestedObject, C&&, D&&>
 #else
-    template<typename C, typename...D, std::enable_if_t<interface::make_constant_matrix_defined_for<NestedObject, C&&, D&&...>, int> = 0>
+    template<typename C, typename D, std::enable_if_t<interface::make_constant_defined_for<NestedObject, C&&, D&&>, int> = 0>
 #endif
     static constexpr auto
-    make_constant(C&& c, D&&...d)
+    make_constant(C&& c, D&& d)
     {
-      return NestedInterface::make_constant(std::forward<C>(c), std::forward<D>(d)...);
+      return NestedInterface::make_constant(std::forward<C>(c), std::forward<D>(d));
     }
 
 
 #ifdef __cpp_concepts
-    template<typename Scalar, typename...D> requires interface::make_identity_matrix_defined_for<NestedObject, Scalar, D&&...>
+    template<typename Scalar, typename D> requires interface::make_identity_matrix_defined_for<NestedObject, Scalar, D&&>
 #else
-    template<typename Scalar, typename...D, std::enable_if_t<interface::make_identity_matrix_defined_for<NestedObject, Scalar, D&&...>, int> = 0>
+    template<typename Scalar, typename D, std::enable_if_t<interface::make_identity_matrix_defined_for<NestedObject, Scalar, D&&>, int> = 0>
 #endif
     static constexpr auto
-    make_identity_matrix(D&&...d)
+    make_identity_matrix(D&& d)
     {
-      return NestedInterface::make_identity_matrix(std::forward<D>(d)...);
+      return NestedInterface::make_identity_matrix(std::forward<D>(d));
     }
 
 
@@ -493,7 +493,7 @@ namespace OpenKalman::interface
     {
       return make_vector_space_adapter(std::forward<Arg>(arg),
         ([]{ constexpr auto I = Ix; return ((I == indices) or ...); } ?
-          uniform_fixed_vector_space_descriptor_component_of_t<vector_space_descriptor_of_t<Vs, Ix>>{} :
+          uniform_static_vector_space_descriptor_component_of_t<vector_space_descriptor_of_t<Vs, Ix>>{} :
           std::get<Ix>(tup_vs))...);
     }
 

@@ -91,7 +91,7 @@ namespace OpenKalman::test
 
   namespace
   {
-    using C2t = FixedDescriptor<Axis, Axis>;
+    using C2t = StaticDescriptor<Axis, Axis>;
     using M2t = Mean<C2t, eigen_matrix_t < double, 2, 1>>;
     using M22t = Matrix <C2t, C2t, eigen_matrix_t<double, 2, 2>>;
   }
@@ -188,7 +188,7 @@ namespace OpenKalman::test
 
   namespace
   {
-    using Cyl = FixedDescriptor<Polar<>, Axis>;
+    using Cyl = StaticDescriptor<Polar<>, Axis>;
     using MC1t = Matrix <Cyl, Axis, eigen_matrix_t<double, 3, 1>>;
     using MS1t = Matrix <Spherical<>, Axis, eigen_matrix_t<double, 3, 1>>;
     using MSCt = Matrix <Spherical<>, Cyl, eigen_matrix_t<double, 3, 3>>;

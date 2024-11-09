@@ -41,7 +41,7 @@ namespace OpenKalman
     }
     else
     {
-      return DiagonalMatrix {std::forward<Arg>(arg)};
+      return DiagonalAdapter {std::forward<Arg>(arg)};
     }
   }
 

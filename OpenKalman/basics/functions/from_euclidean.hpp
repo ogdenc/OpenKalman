@@ -49,24 +49,6 @@ namespace OpenKalman
   }
 
 
-  /**
-   * \brief Project the Euclidean vector space associated with index 0 to \ref vector_space_descriptor v after applying directional statistics
-   * \tparam Arg A matrix or tensor.
-   * \tparam V The new vector space descriptor of index 0.
-   */
-#ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor V, has_untyped_index<0> Arg>
-  constexpr indexible decltype(auto)
-#else
-  template<typename V, typename Arg, std::enable_if_t<fixed_vector_space_descriptor<V> and has_untyped_index<Arg, 0>, int> = 0>
-  constexpr decltype(auto)
-#endif
-  from_euclidean(Arg&& arg)
-  {
-    return from_euclidean(std::forward<Arg>(arg), V{});
-  }
-
-
 } // namespace OpenKalman
 
 #endif //OPENKALMAN_FROM_EUCLIDEAN_HPP

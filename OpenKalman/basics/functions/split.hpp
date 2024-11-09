@@ -35,7 +35,7 @@ namespace OpenKalman
       }
       else
       {
-        static_assert(internal::prefix_of<FixedDescriptor<std::decay_t<Ds>...>, vector_space_descriptor_of_t<Arg, index>>,
+        static_assert(internal::prefix_of<StaticDescriptor<std::decay_t<Ds>...>, vector_space_descriptor_of_t<Arg, index>>,
           "Concatenated vector space descriptors provided to split function must be a prefix of the argument's vector space descriptor");
       }
     }

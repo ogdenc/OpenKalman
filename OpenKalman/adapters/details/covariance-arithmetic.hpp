@@ -330,7 +330,7 @@ namespace OpenKalman
       }
       else
       {
-        using B = typename MatrixTraits<std::decay_t<nested_object_of_t<M>>>::template TriangularMatrixFrom<>;
+        using B = typename MatrixTraits<std::decay_t<nested_object_of_t<M>>>::template TriangularAdapterFrom<>;
 
         if (s > Scalar(0))
         {
@@ -403,7 +403,7 @@ namespace OpenKalman
       }
       else
       {
-        using B = typename MatrixTraits<std::decay_t<nested_object_of_t<M>>>::template TriangularMatrixFrom<>;
+        using B = typename MatrixTraits<std::decay_t<nested_object_of_t<M>>>::template TriangularAdapterFrom<>;
 
         if (s > Scalar(0))
         {

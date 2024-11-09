@@ -13,7 +13,7 @@
 using namespace OpenKalman;
 using namespace OpenKalman::test;
 
-using Axis2 = FixedDescriptor<Axis, Axis>;
+using Axis2 = StaticDescriptor<Axis, Axis>;
 using M2 = Mean<Axis2>;
 using Mat2 = Matrix<Axis2, Axis2>;
 
@@ -86,8 +86,8 @@ TEST(transform_linear, linearized_augmented_order2)
   EXPECT_TRUE(is_near(out3, GaussianDistribution {M2(5, 10), Mat2 {39, 41, 41, 79}}));
   EXPECT_TRUE(is_near(cross3, Mat2 {4, 11, 5, 10}));
 
-  const GaussianDistribution input4 {M2(1, 2), DiagonalMatrix(1., 1)};
-  const GaussianDistribution noise4 {make_zero<M2>(), DiagonalMatrix(1., 1)};
+  const GaussianDistribution input4 {M2(1, 2), DiagonalAdapter(1., 1)};
+  const GaussianDistribution noise4 {make_zero<M2>(), DiagonalAdapter(1., 1)};
   auto [out4, cross4] = t.transform_with_cross_covariance(input4, g, noise4);
   EXPECT_TRUE(is_near(out4, GaussianDistribution {M2(5, 10), Mat2 {30, 20, 20, 30}}));
   EXPECT_TRUE(is_near(cross4, Mat2 {1, 4, 2, 3}));

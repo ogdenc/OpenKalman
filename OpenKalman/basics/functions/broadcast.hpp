@@ -41,7 +41,7 @@ namespace OpenKalman
   template<indexible Arg, index_value...Factors> 
   constexpr indexible decltype(auto)
 #else
-  template<typename Arg, typename...Factors, std::enable_if_t<indexible<Arg> and (... and index_value<Factors>)), int> = 0>
+  template<typename Arg, typename...Factors, std::enable_if_t<indexible<Arg> and (... and index_value<Factors>), int> = 0>
   constexpr decltype(auto)
 #endif
   broadcast(Arg&& arg, const Factors&...factors)

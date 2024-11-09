@@ -43,8 +43,8 @@ TEST(eigen3, to_diagonal)
 
   EXPECT_TRUE(is_near(to_diagonal(M11 {m11}), m11)); static_assert(std::is_same_v<decltype(to_diagonal(M11 {m11})), M11&&>);
   EXPECT_TRUE(is_near(to_diagonal(M1x {m11}), m11)); static_assert(not has_dynamic_dimensions<decltype(to_diagonal(M1x {m11}))>);
-  // to_diagonal(M1x {m11}) must create OpenKalman::DiagonalMatrix. See adapters/tests/DiagonalMatrix.test.cpp
-  // to_diagonal(Mxx {m11}) must create OpenKalman::DiagonalMatrix. See adapters/tests/DiagonalMatrix.test.cpp
+  // to_diagonal(M1x {m11}) must create OpenKalman::DiagonalAdapter. See adapters/tests/DiagonalAdapter.test.cpp
+  // to_diagonal(Mxx {m11}) must create OpenKalman::DiagonalAdapter. See adapters/tests/DiagonalAdapter.test.cpp
 }
 
 

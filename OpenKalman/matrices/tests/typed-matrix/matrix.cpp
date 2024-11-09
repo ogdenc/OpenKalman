@@ -24,8 +24,8 @@ using M32 = eigen_matrix_t<double, 3, 2>;
 using M33 = eigen_matrix_t<double, 3, 3>;
 using I22 = Eigen3::IdentityMatrix<M22>;
 using Z22 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>;
-using C2 = FixedDescriptor<Axis, angle::Radians>;
-using C3 = FixedDescriptor<Axis, angle::Radians, Axis>;
+using C2 = StaticDescriptor<Axis, angle::Radians>;
+using C3 = StaticDescriptor<Axis, angle::Radians, Axis>;
 using Mat12 = Matrix<Axis, C2, M12>;
 using Mat21 = Matrix<C2, Axis, M21>;
 using Mat22 = Matrix<C2, C2, M22>;
@@ -33,10 +33,10 @@ using Mat23 = Matrix<C2, C3, M23>;
 using Mat32 = Matrix<C3, C2, M32>;
 using Mat33 = Matrix<C3, C3, M33>;
 
-using SA2l = SelfAdjointMatrix<M22, TriangleType::lower>;
-using SA2u = SelfAdjointMatrix<M22, TriangleType::upper>;
-using T2l = TriangularMatrix<M22, TriangleType::lower>;
-using T2u = TriangularMatrix<M22, TriangleType::upper>;
+using SA2l = HermitianAdapter<M22, TriangleType::lower>;
+using SA2u = HermitianAdapter<M22, TriangleType::upper>;
+using T2l = TriangularAdapter<M22, TriangleType::lower>;
+using T2u = TriangularAdapter<M22, TriangleType::upper>;
 
 inline I22 i22 = M22::Identity();
 inline Z22 z22 = Z22();
@@ -78,15 +78,15 @@ TEST(matrices, TypedMatrix_class)
   EXPECT_TRUE(is_near(mat23d, Mat23 {1, 2, 3, 4, 5, 6}));
 
   // Convert from a compatible covariance
-  Mat22 mat22a_1(Covariance<C2, SelfAdjointMatrix<M22, TriangleType::lower>> {9, 3, 3, 10});
+  Mat22 mat22a_1(Covariance<C2, HermitianAdapter<M22, TriangleType::lower>> {9, 3, 3, 10});
   EXPECT_TRUE(is_near(mat22a_1, Mat22 {9, 3, 3, 10}));
-  Mat22 mat22a_2(Covariance<C2, SelfAdjointMatrix<M22, TriangleType::upper>> {9, 3, 3, 10});
+  Mat22 mat22a_2(Covariance<C2, HermitianAdapter<M22, TriangleType::upper>> {9, 3, 3, 10});
   EXPECT_TRUE(is_near(mat22a_2, Mat22 {9, 3, 3, 10}));
-  Mat22 mat22a_3(Covariance<C2, SelfAdjointMatrix<M22, TriangleType::lower>> {9, 3, 3, 10});
+  Mat22 mat22a_3(Covariance<C2, HermitianAdapter<M22, TriangleType::lower>> {9, 3, 3, 10});
   EXPECT_TRUE(is_near(mat22a_3, Mat22 {9, 3, 3, 10}));
-  Mat22 mat22a_4(Covariance<C2, TriangularMatrix<M22, TriangleType::upper>> {9, 3, 3, 10});
+  Mat22 mat22a_4(Covariance<C2, TriangularAdapter<M22, TriangleType::upper>> {9, 3, 3, 10});
   EXPECT_TRUE(is_near(mat22a_4, Mat22 {9, 3, 3, 10}));
-  Mat22 mat22a_5(Covariance<C2, DiagonalMatrix<M21>> {9, 10});
+  Mat22 mat22a_5(Covariance<C2, DiagonalAdapter<M21>> {9, 10});
   EXPECT_TRUE(is_near(mat22a_5, Mat22 {9, 0, 0, 10}));
   Mat22 mat22a_6(covi22);
   EXPECT_TRUE(is_near(mat22a_6, Mat22 {1, 0, 0, 1}));
@@ -94,15 +94,15 @@ TEST(matrices, TypedMatrix_class)
   EXPECT_TRUE(is_near(mat22a_7, Mat22 {0, 0, 0, 0}));
 
   // Convert from a compatible square root covariance
-  Mat22 mat22b_1(SquareRootCovariance<C2, SelfAdjointMatrix<M22, TriangleType::lower>> {3, 0, 1, 3});
+  Mat22 mat22b_1(SquareRootCovariance<C2, HermitianAdapter<M22, TriangleType::lower>> {3, 0, 1, 3});
   EXPECT_TRUE(is_near(mat22b_1, Mat22 {3, 0, 1, 3}));
-  Mat22 mat22b_2(SquareRootCovariance<C2, SelfAdjointMatrix<M22, TriangleType::upper>> {3, 1, 0, 3});
+  Mat22 mat22b_2(SquareRootCovariance<C2, HermitianAdapter<M22, TriangleType::upper>> {3, 1, 0, 3});
   EXPECT_TRUE(is_near(mat22b_2, Mat22 {3, 1, 0, 3}));
-  Mat22 mat22b_3(SquareRootCovariance<C2, SelfAdjointMatrix<M22, TriangleType::lower>> {3, 0, 1, 3});
+  Mat22 mat22b_3(SquareRootCovariance<C2, HermitianAdapter<M22, TriangleType::lower>> {3, 0, 1, 3});
   EXPECT_TRUE(is_near(mat22b_3, Mat22 {3, 0, 1, 3}));
-  Mat22 mat22b_4(SquareRootCovariance<C2, TriangularMatrix<M22, TriangleType::upper>> {3, 1, 0, 3});
+  Mat22 mat22b_4(SquareRootCovariance<C2, TriangularAdapter<M22, TriangleType::upper>> {3, 1, 0, 3});
   EXPECT_TRUE(is_near(mat22b_4, Mat22 {3, 1, 0, 3}));
-  Mat22 mat22b_5(SquareRootCovariance<C2, DiagonalMatrix<M21>> {3, 4});
+  Mat22 mat22b_5(SquareRootCovariance<C2, DiagonalAdapter<M21>> {3, 4});
   EXPECT_TRUE(is_near(mat22b_5, Mat22 {3, 0, 0, 4}));
   Mat22 mat22b_6(sqcovi22);
   EXPECT_TRUE(is_near(mat22b_6, Mat22 {1, 0, 0, 1}));
@@ -258,7 +258,7 @@ TEST(matrices, TypedMatrix_deduction_guides)
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix(b3)), 0>, C2>);
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix(b3)), 1>, Dimensions<3>>);
 
-  auto c = Covariance<C2, SelfAdjointMatrix<M22, TriangleType::lower>> {9, 3, 3, 10};
+  auto c = Covariance<C2, HermitianAdapter<M22, TriangleType::lower>> {9, 3, 3, 10};
   EXPECT_TRUE(is_near(Matrix(c), Mat22 {9, 3, 3, 10}));
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix(c)), 0>, C2>);
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix(c)), 1>, C2>);
@@ -280,7 +280,7 @@ TEST(matrices, TypedMatrix_make_functions)
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(b)), 0>, C2>);
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(b)), 1>, C3>);
 
-  auto c = Covariance<C2, SelfAdjointMatrix<M22, TriangleType::lower>> {9, 3, 3, 10};
+  auto c = Covariance<C2, HermitianAdapter<M22, TriangleType::lower>> {9, 3, 3, 10};
   EXPECT_TRUE(is_near(make_vector_space_adapter(c), Mat22 {9, 3, 3, 10}));
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(c)), 0>, C2>);
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(c)), 1>, C2>);
@@ -383,8 +383,8 @@ TEST(matrices, TypedMatrix_blocks)
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6})), 1>, C3>);
 
   EXPECT_TRUE(is_near(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4}), Mat33 {1, 2, 0, 0, 0, 3, 0, 0, 4}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4})), 0>, FixedDescriptor<Axis, Axis, angle::Radians>>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4})), 1>, FixedDescriptor<Axis, angle::Radians, Axis>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4})), 0>, StaticDescriptor<Axis, Axis, angle::Radians>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4})), 1>, StaticDescriptor<Axis, angle::Radians, Axis>>);
 
   EXPECT_TRUE(is_near(split_vertical(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {}));
   EXPECT_TRUE(is_near(split_horizontal(Mat23 {1, 2, 3, 4, 5, 6}), std::tuple {}));
@@ -421,9 +421,9 @@ TEST(matrices, TypedMatrix_blocks)
   EXPECT_TRUE(is_near(apply_columnwise<2>([] { return Matrix<C2, angle::Radians> {1., 2}; }), Mat22 {1, 1, 2, 2}));
   EXPECT_TRUE(is_near(apply_columnwise<2>([](std::size_t i){ return Matrix<C2, angle::Radians> {i + 1., 2*i + 1}; }), Mat22 {1, 2, 1, 3}));
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>()>())), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>()>())), 1>, FixedDescriptor<angle::Radians, angle::Radians>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>()>())), 1>, StaticDescriptor<angle::Radians, angle::Radians>>);
   static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>(std::size_t)>())), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>(std::size_t)>())), 1>, FixedDescriptor<angle::Radians, angle::Radians>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<Matrix<C2, angle::Radians>(std::size_t)>())), 1>, StaticDescriptor<angle::Radians, angle::Radians>>);
 
   const auto mat22_1234 = Mat22x {1, 2, 3, 4};
   auto n = mat22_1234

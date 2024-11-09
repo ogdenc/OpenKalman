@@ -26,7 +26,7 @@ namespace OpenKalman::internal
    * \tparam Object The object to be reference.
    */
 #ifdef __cpp_lib_ranges
-  template<indexible Object, static_range_size<Object> Indices> requires 
+  template<indexible Object, index_range_for<Object> Indices> requires
     writable_by_component<Object, Indices> and index_value<std::ranges::range_value_t<Indices>>
 #else
   template<typename Object, typename Indices>

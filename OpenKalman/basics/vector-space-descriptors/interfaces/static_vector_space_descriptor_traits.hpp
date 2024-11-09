@@ -11,24 +11,24 @@
 /**
  * \internal
  * \file
- * \brief Defaults for \ref fixed_vector_space_descriptor_traits.
+ * \brief Defaults for \ref static_vector_space_descriptor_traits.
  */
 
-#ifndef OPENKALMAN_FIXED_VECTOR_SPACE_DESCRIPTOR_TRAITS_HPP
-#define OPENKALMAN_FIXED_VECTOR_SPACE_DESCRIPTOR_TRAITS_HPP
+#ifndef OPENKALMAN_STATIC_VECTOR_SPACE_DESCRIPTOR_TRAITS_HPP
+#define OPENKALMAN_STATIC_VECTOR_SPACE_DESCRIPTOR_TRAITS_HPP
 
 
 namespace OpenKalman::vector_space_descriptors
 {
   /**
-   * \brief Interfaces for a \ref fixed_vector_space_descriptor.
+   * \brief Interfaces for a \ref static_vector_space_descriptor.
    */
 #ifdef __cpp_concepts
   template<typename T>
 #else
   template<typename T, typename = void>
 #endif
-  struct fixed_vector_space_descriptor_traits
+  struct static_vector_space_descriptor_traits
   {
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
     /// \brief The number of dimensions at compile time.
@@ -55,7 +55,7 @@ namespace OpenKalman::vector_space_descriptors
 
     /**
      * \brief Maps an element from coordinates in modular space to coordinates in Euclidean space.
-     * \note For \ref fixed_vector_space_descriptor, this must be a static function.
+     * \note For \ref static_vector_space_descriptor, this must be a static function.
      * \param g An element getter mapping an index i of type std::size_t to an element of \ref scalar_type
      * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
      * \param euclidean_local_index A local index accessing the coordinate in Euclidean space
@@ -140,4 +140,4 @@ namespace OpenKalman::vector_space_descriptors
 
 } // namespace OpenKalman::vector_space_descriptors
 
-#endif //OPENKALMAN_FIXED_VECTOR_SPACE_DESCRIPTOR_TRAITS_HPP
+#endif //OPENKALMAN_STATIC_VECTOR_SPACE_DESCRIPTOR_TRAITS_HPP

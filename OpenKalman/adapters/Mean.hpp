@@ -25,7 +25,7 @@ namespace OpenKalman
 
   /// A typed vector.
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor RowCoefficients, typed_matrix_nestable NestedMatrix> requires
+  template<static_vector_space_descriptor RowCoefficients, typed_matrix_nestable NestedMatrix> requires
     (dimension_size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
@@ -36,7 +36,7 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(fixed_vector_space_descriptor<RowCoefficients>);
+    static_assert(static_vector_space_descriptor<RowCoefficients>);
     static_assert(typed_matrix_nestable<NestedMatrix>);
     static_assert(dimension_size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
@@ -254,10 +254,10 @@ namespace OpenKalman
 
     /// Add a stochastic value to each column of the mean, based on a distribution.
 #ifdef __cpp_concepts
-    template<distribution Arg> requires (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>)
+    template<distribution Arg> requires (equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>)
 #else
     template<typename Arg, std::enable_if_t<distribution<Arg> and
-      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>), int> = 0>
+      (equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>), int> = 0>
 #endif
     auto& operator+=(const Arg& arg)
     {
@@ -307,10 +307,10 @@ namespace OpenKalman
 
     /// Subtract a stochastic value to each column of the mean, based on a distribution.
 #ifdef __cpp_concepts
-    template<distribution Arg> requires (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>)
+    template<distribution Arg> requires (equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>)
 #else
     template<typename Arg, std::enable_if_t<distribution<Arg> and
-      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>), int> = 0>
+      (equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>), int> = 0>
 #endif
     auto& operator-=(const Arg& arg)
     {
@@ -406,21 +406,21 @@ namespace OpenKalman
   // ----------------------------- //
 
   /**
-   * \brief Make a Mean from a typed_matrix_nestable, specifying the row fixed_vector_space_descriptor.
-   * \tparam FixedDescriptor The coefficient types corresponding to the rows.
+   * \brief Make a Mean from a typed_matrix_nestable, specifying the row static_vector_space_descriptor.
+   * \tparam StaticDescriptor The coefficient types corresponding to the rows.
    * \tparam M A typed_matrix_nestable with size matching ColumnCoefficients.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor FixedDescriptor, typed_matrix_nestable M> requires
-    (dimension_size_of_v<FixedDescriptor> == index_dimension_of_v<M, 0>)
+  template<static_vector_space_descriptor StaticDescriptor, typed_matrix_nestable M> requires
+    (dimension_size_of_v<StaticDescriptor> == index_dimension_of_v<M, 0>)
 #else
-  template<typename FixedDescriptor, typename M, std::enable_if_t<fixed_vector_space_descriptor<FixedDescriptor> and
-    typed_matrix_nestable<M> and (dimension_size_of_v<FixedDescriptor> == index_dimension_of<M, 0>::value), int> = 0>
+  template<typename StaticDescriptor, typename M, std::enable_if_t<static_vector_space_descriptor<StaticDescriptor> and
+    typed_matrix_nestable<M> and (dimension_size_of_v<StaticDescriptor> == index_dimension_of<M, 0>::value), int> = 0>
 #endif
   inline auto make_mean(M&& m)
   {
     constexpr auto rows = index_dimension_of_v<M, 0>;
-    using Coeffs = std::conditional_t<std::is_void_v<FixedDescriptor>, Dimensions<rows>, FixedDescriptor>;
+    using Coeffs = std::conditional_t<std::is_void_v<StaticDescriptor>, Dimensions<rows>, StaticDescriptor>;
     auto&& b = wrap_angles<Coeffs>(std::forward<M>(m)); using B = decltype(b);
     return Mean<Coeffs, passable_t<B>>(std::forward<B>(b));
   }
@@ -428,7 +428,7 @@ namespace OpenKalman
 
   /**
    * \overload
-   * \brief Make a Mean from a typed_matrix_nestable object, with default Axis fixed_vector_space_descriptor.
+   * \brief Make a Mean from a typed_matrix_nestable object, with default Axis static_vector_space_descriptor.
    */
 #ifdef __cpp_concepts
   template<typed_matrix_nestable M>
@@ -465,27 +465,27 @@ namespace OpenKalman
   /**
    * \overload
    * \brief Make a default, self-contained Mean.
-   * \tparam FixedDescriptor The coefficient types corresponding to the rows.
+   * \tparam StaticDescriptor The coefficient types corresponding to the rows.
    * \tparam M a typed_matrix_nestable on which the new matrix is based. It will be converted to a self_contained type
    * if it is not already self-contained.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor FixedDescriptor, typed_matrix_nestable M> requires
-    (index_dimension_of_v<M, 0> == dimension_size_of_v<FixedDescriptor>)
+  template<static_vector_space_descriptor StaticDescriptor, typed_matrix_nestable M> requires
+    (index_dimension_of_v<M, 0> == dimension_size_of_v<StaticDescriptor>)
 #else
-  template<typename FixedDescriptor, typename M, std::enable_if_t<
-    fixed_vector_space_descriptor<FixedDescriptor> and typed_matrix_nestable<M> and
-    (index_dimension_of<M, 0>::value == dimension_size_of_v<FixedDescriptor>), int> = 0>
+  template<typename StaticDescriptor, typename M, std::enable_if_t<
+    static_vector_space_descriptor<StaticDescriptor> and typed_matrix_nestable<M> and
+    (index_dimension_of<M, 0>::value == dimension_size_of_v<StaticDescriptor>), int> = 0>
 #endif
   inline auto make_mean()
   {
-    return Mean<FixedDescriptor, dense_writable_matrix_t<M>>();
+    return Mean<StaticDescriptor, dense_writable_matrix_t<M>>();
   }
 
 
   /**
    * \overload
-   * \brief Make a self-contained Mean with default Axis fixed_vector_space_descriptor.
+   * \brief Make a self-contained Mean with default Axis static_vector_space_descriptor.
    * \tparam M a typed_matrix_nestable on which the new mean is based. It will be converted to a self_contained type
    * if it is not already self-contained.
    */
@@ -522,7 +522,7 @@ namespace OpenKalman
           if constexpr (n == 0_uz) return arg.my_dimension;
           else return OpenKalman::get_vector_space_descriptor(nested_object(arg), n);
         }
-        else if constexpr (uniform_fixed_vector_space_descriptor<NestedMatrix> and equivalent_to<Coeffs, uniform_fixed_vector_space_descriptor_component_of<NestedMatrix>>)
+        else if constexpr (uniform_static_vector_space_descriptor<NestedMatrix> and equivalent_to<Coeffs, uniform_static_vector_space_descriptor_component_of<NestedMatrix>>)
         {
           return arg.my_dimension;
         }

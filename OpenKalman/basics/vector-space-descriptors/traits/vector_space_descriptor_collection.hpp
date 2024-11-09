@@ -30,19 +30,19 @@ namespace OpenKalman
       : std::true_type {}; 
   } // namespace detail
 #endif 
-	
-	
+
+
   /**
    * \brief An object describing a collection of /ref vector_space_descriptor objects.
    * \details This will be a \ref vector_space_descriptor_tuple or a dynamic range over a collection such as std::vector.
    */
   template<typename T>
-#ifdef __cpp_lib_ranges
-  concept vector_space_descriptor_collection = vector_space_descriptor_tuple<T> or 
-      (std::ranges::input_range<T> and vector_space_descriptor<std::ranges::range_value_t<T>>);
+#if defined(__cpp_lib_ranges) and defined(__cpp_lib_remove_cvref)
+  concept vector_space_descriptor_collection = internal::collection<T> and
+    (vector_space_descriptor_tuple<T> or vector_space_descriptor<std::ranges::range_value_t<std::decay_t<T>>>);
 #else
-  constexpr bool vector_space_descriptor_collection = 
-    vector_space_descriptor_tuple<T> or detail::is_descriptor_range<T>::value;
+  constexpr bool vector_space_descriptor_collection = internal::collection<T> and
+    (vector_space_descriptor_tuple<T> or detail::is_descriptor_range<std::decay_t<T>>::value);
 #endif
 
 

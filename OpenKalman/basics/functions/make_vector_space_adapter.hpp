@@ -25,20 +25,22 @@ namespace OpenKalman
    * \taram Ds A set of \ref vector_space_descriptor objects
    */
 #ifdef __cpp_concepts
-  template<indexible Arg, vector_space_descriptor...Ds> requires
-    internal::not_more_fixed_than<Arg, Ds...> and (not internal::less_fixed_than<Arg, Ds...>) and
-    internal::maybe_same_shape_as_vector_space_descriptors<Arg, Ds...>
+  template<indexible Arg, vector_space_descriptor_collection Descriptors> requires
+    internal::not_more_fixed_than<Arg, Descriptors> and (not internal::less_fixed_than<Arg, Descriptors>) and
+    internal::maybe_same_shape_as_vector_space_descriptors<Arg, Descriptors>
 #else
-  template<typename Arg, typename...Ds, std::enable_if_t<indexible<Arg> and (... and fixed_vector_space_descriptor<Ds>) and
-    internal::not_more_fixed_than<Arg, Ds...> and (not internal::less_fixed_than<Arg, Ds...>) and
-    internal::maybe_same_shape_as_vector_space_descriptors<Arg, Ds...>, int> = 0>
+  template<typename Arg, typename Descriptors, std::enable_if_t<
+    indexible<Arg> and vector_space_descriptor_collection<Descriptors> and
+    internal::not_more_fixed_than<Arg, Descriptors> and (not internal::less_fixed_than<Arg, Descriptors>) and
+    internal::maybe_same_shape_as_vector_space_descriptors<Arg, Descriptors>, int> = 0>
 #endif
-  inline auto make_vector_space_adapter(Arg&& arg, Ds&&...ds)
+  inline auto make_vector_space_adapter(Arg&& arg, Descriptors&& descriptors)
   {
-    if constexpr (compatible_with_vector_space_descriptors<Arg, Ds...> and not (... or dynamic_vector_space_descriptor<Ds>))
+    if constexpr (static_vector_space_descriptor_tuple<Descriptors> and
+        compatible_with_vector_space_descriptor_collection<Arg, Descriptors>)
       return std::forward<Arg>(arg);
     else
-      return VectorSpaceAdapter {std::forward<Arg>(arg), std::forward<Ds>(ds)...};
+      return VectorSpaceAdapter {std::forward<Arg>(arg), std::forward<Descriptors>(descriptors)};
   }
 
 
@@ -47,17 +49,17 @@ namespace OpenKalman
    * \brief Create an adapter in which all vector space descriptors are fixed.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor...Ds, indexible Arg> requires (not has_dynamic_dimensions<Arg>) and
-    (sizeof...(Ds) > 0) and internal::maybe_same_shape_as_vector_space_descriptors<Arg, Ds...>
+  template<static_vector_space_descriptor...Ds, indexible Arg> requires (not has_dynamic_dimensions<Arg>) and
+    (sizeof...(Ds) > 0) and internal::maybe_same_shape_as_vector_space_descriptors<Arg, std::tuple<Ds...>>
 #else
   template<typename...Ds, typename Arg, std::enable_if_t<
-    indexible<Arg> and (... and fixed_vector_space_descriptor<Ds>) and
+    indexible<Arg> and (... and static_vector_space_descriptor<Ds>) and
     (not has_dynamic_dimensions<Arg>) and (sizeof...(Ds) > 0) and
-    internal::maybe_same_shape_as_vector_space_descriptors<Arg, Ds...>, int> = 0>
+    internal::maybe_same_shape_as_vector_space_descriptors<Arg, std::tuple<Ds...>>, int> = 0>
 #endif
   inline auto make_vector_space_adapter(Arg&& arg)
   {
-    return make_vector_space_adapter(std::forward<Arg>(arg), Ds{}...);
+    return make_vector_space_adapter(std::forward<Arg>(arg), std::tuple<Ds...>{});
   }
 
 

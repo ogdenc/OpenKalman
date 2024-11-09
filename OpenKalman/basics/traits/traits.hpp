@@ -44,7 +44,7 @@
 #include "internal/not_more_fixed_than.hpp"
 #include "internal/less_fixed_than.hpp"
 #include "internal/maybe_same_shape_as_vector_space_descriptors.hpp"
-#include "internal/has_uniform_fixed_vector_space_descriptors.hpp"
+#include "internal/has_uniform_static_vector_space_descriptors.hpp"
 
 #include "compatible_with_vector_space_descriptors.hpp"
 #include "compatible_with_vector_space_descriptor_collection.hpp"
@@ -81,7 +81,7 @@
 #include "writable.hpp"
 
 #include "element_gettable.hpp" // deprecated
-#include "basics/values/indices/static_range_size.hpp"
+#include "index_range_for.hpp"
 #include "writable_by_component.hpp"
 
 #include "directly_accessible.hpp"

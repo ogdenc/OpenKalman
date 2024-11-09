@@ -145,7 +145,7 @@ TEST(eigen3, contract)
   EXPECT_TRUE(is_near(contract(c03_2_2, dm3a), m23_468));
   EXPECT_TRUE(is_near(contract(c00_23_2, dw3a), m23_468));
 
-  // diagonal * diagonal -- Must create OpenKalman::DiagonalMatrix, and is tested in that context.
+  // diagonal * diagonal -- Must create OpenKalman::DiagonalAdapter, and is tested in that context.
 
   // regular matrices
 

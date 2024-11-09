@@ -200,8 +200,8 @@ namespace OpenKalman::Eigen3
       auto& b = nested_object(arg);
       using B = decltype(b);
       static_assert(not std::is_const_v<std::remove_reference_t<B>>);
-      if constexpr(eigen_self_adjoint_expr<B> or eigen_triangular_expr<B> or
-        eigen_diagonal_expr<B> or euclidean_expr<B>)
+      if constexpr(OpenKalman::internal::hermitian_expr<B> or OpenKalman::internal::triangular_expr<B> or
+        OpenKalman::internal::diagonal_expr<B> or euclidean_expr<B>)
       {
         return get_ultimate_nested_matrix(b);
       }
@@ -215,12 +215,12 @@ namespace OpenKalman::Eigen3
     template<typename Arg>
     constexpr auto& get_ultimate_nested_matrix(Arg& arg)
     {
-      if constexpr(eigen_self_adjoint_expr<Arg>)
+      if constexpr(OpenKalman::internal::hermitian_expr<Arg>)
       {
         if constexpr (hermitian_adapter_type_of_v<Arg> == TriangleType::diagonal) return arg;
         else return get_ultimate_nested_matrix_impl(arg);
       }
-      else if constexpr(eigen_triangular_expr<Arg>)
+      else if constexpr(OpenKalman::internal::triangular_expr<Arg>)
       {
         if constexpr(triangular_matrix<Arg, TriangleType::diagonal>) return arg;
         else return get_ultimate_nested_matrix_impl(arg);
@@ -254,7 +254,7 @@ namespace OpenKalman::Eigen3
         {
           return Eigen::MeanCommaInitializer<Derived, Xpr> {xpr, static_cast<const Scalar&>(s)};
         }
-        else if constexpr((eigen_self_adjoint_expr<Xpr> or eigen_triangular_expr<Xpr>)
+        else if constexpr((OpenKalman::internal::hermitian_expr<Xpr> or OpenKalman::internal::triangular_expr<Xpr>)
           and diagonal_matrix<Xpr>)
         {
           return Eigen::DiagonalCommaInitializer {xpr, static_cast<const Scalar&>(s)};
@@ -287,7 +287,7 @@ namespace OpenKalman::Eigen3
         {
           return Eigen::MeanCommaInitializer<Derived, Xpr> {xpr, other};
         }
-        else if constexpr ((eigen_self_adjoint_expr<Xpr> or eigen_triangular_expr<Xpr>)
+        else if constexpr ((OpenKalman::internal::hermitian_expr<Xpr> or OpenKalman::internal::triangular_expr<Xpr>)
           and diagonal_matrix<Xpr>)
         {
           return Eigen::DiagonalCommaInitializer {xpr, other};

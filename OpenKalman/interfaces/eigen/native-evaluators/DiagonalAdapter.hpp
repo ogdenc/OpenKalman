@@ -20,10 +20,10 @@
 namespace Eigen::internal
 {
   template<typename ArgType>
-  struct evaluator<OpenKalman::DiagonalMatrix<ArgType>>
-    : evaluator_base<OpenKalman::DiagonalMatrix<ArgType>>
+  struct evaluator<OpenKalman::DiagonalAdapter<ArgType>>
+    : evaluator_base<OpenKalman::DiagonalAdapter<ArgType>>
   {
-    using XprType = OpenKalman::DiagonalMatrix<ArgType>;
+    using XprType = OpenKalman::DiagonalAdapter<ArgType>;
     using CoeffReturnType = typename std::decay_t<ArgType>::CoeffReturnType;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
     using Scalar = typename traits<std::decay_t<ArgType>>::Scalar;
@@ -51,7 +51,7 @@ namespace Eigen::internal
     auto& coeffRef(Index index)
     {
       static_assert(OpenKalman::one_dimensional<ArgType>,
-        "Linear (single index) element access by reference is only available for one-by-one DiagonalMatrix");
+        "Linear (single index) element access by reference is only available for one-by-one DiagonalAdapter");
 
       return m_argImpl.coeffRef(index);
     }
@@ -75,7 +75,7 @@ namespace Eigen::internal
     CoeffReturnType coeff(Index index) const
     {
       static_assert(OpenKalman::one_dimensional<ArgType>,
-        "Linear (single index) element access is only available for one-by-one DiagonalMatrix");
+        "Linear (single index) element access is only available for one-by-one DiagonalAdapter");
 
       return m_argImpl.coeff(index);
     }
@@ -85,7 +85,7 @@ namespace Eigen::internal
     constexpr PacketType packet(Index row, Index col) const
     {
       static_assert(OpenKalman::one_dimensional<ArgType>,
-        "Packet access is only available for one-by-one DiagonalMatrix");
+        "Packet access is only available for one-by-one DiagonalAdapter");
 
       return m_argImpl.template packet<LoadMode, PacketType>(row, col);
     }
@@ -95,7 +95,7 @@ namespace Eigen::internal
     constexpr PacketType packet(Index index) const
     {
       static_assert(OpenKalman::one_dimensional<ArgType>,
-        "Linear packet access is only available for one-by-one DiagonalMatrix");
+        "Linear packet access is only available for one-by-one DiagonalAdapter");
 
       return m_argImpl.template packet<LoadMode, PacketType>(index);
     }

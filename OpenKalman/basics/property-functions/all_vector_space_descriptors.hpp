@@ -65,7 +65,7 @@ namespace OpenKalman
 
   /**
    * \overload
-   * \brief Return a collection of \ref fixed_vector_space_descriptor objects associated with T.
+   * \brief Return a collection of \ref static_vector_space_descriptor objects associated with T.
    * \details This overload is only enabled if all vector space descriptors are static.
    */
 #ifdef __cpp_concepts

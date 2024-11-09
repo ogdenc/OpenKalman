@@ -266,11 +266,11 @@ namespace OpenKalman::vector_space_descriptors
    * \brief traits for Polar<Distance, Angle>.
    */
   template<typename Limits>
-  struct fixed_vector_space_descriptor_traits<Polar<Distance, Angle<Limits>>> : detail::PolarBase<Limits, 0, 1,  0, 1, 2>
+  struct static_vector_space_descriptor_traits<Polar<Distance, Angle<Limits>>> : detail::PolarBase<Limits, 0, 1,  0, 1, 2>
   {
-    using difference_type = concatenate_fixed_vector_space_descriptor_t<
-      typename fixed_vector_space_descriptor_traits<Distance>::difference_type,
-      typename fixed_vector_space_descriptor_traits<Angle<Limits>>::difference_type>;
+    using difference_type = concatenate_static_vector_space_descriptor_t<
+      typename static_vector_space_descriptor_traits<Distance>::difference_type,
+      typename static_vector_space_descriptor_traits<Angle<Limits>>::difference_type>;
   };
 
 
@@ -279,11 +279,11 @@ namespace OpenKalman::vector_space_descriptors
    * \brief traits for Polar<Angle, Distance>.
    */
   template<typename Limits>
-  struct fixed_vector_space_descriptor_traits<Polar<Angle<Limits>, Distance>> : detail::PolarBase<Limits, 1, 0,  2, 0, 1>
+  struct static_vector_space_descriptor_traits<Polar<Angle<Limits>, Distance>> : detail::PolarBase<Limits, 1, 0,  2, 0, 1>
   {
-    using difference_type = concatenate_fixed_vector_space_descriptor_t<
-      typename fixed_vector_space_descriptor_traits<Angle<Limits>>::difference_type,
-      typename fixed_vector_space_descriptor_traits<Distance>::difference_type>;
+    using difference_type = concatenate_static_vector_space_descriptor_t<
+      typename static_vector_space_descriptor_traits<Angle<Limits>>::difference_type,
+      typename static_vector_space_descriptor_traits<Distance>::difference_type>;
   };
 
 

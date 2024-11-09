@@ -72,7 +72,7 @@ namespace OpenKalman
           "Too many elements in vector space descriptors_collection_tuple argument of a constant adapter"};
         return make_descriptors_tuple<N + 1>(std::forward<Ds>(ds)...); 
       }
-      else if constexpr (fixed_vector_space_descriptor<std::tuple_element_t<N, DescriptorCollection>>)
+      else if constexpr (static_vector_space_descriptor<std::tuple_element_t<N, DescriptorCollection>>)
       {
         using E = std::tuple_element_t<N, DescriptorCollection>;
         if constexpr (dynamic_vector_space_descriptor<D>) if (d != E{}) throw std::invalid_argument {
@@ -97,7 +97,7 @@ namespace OpenKalman
           "Too many elements in vector space descriptors_collection range argument of a constant adapter"};
         return std::tuple {};
       }
-      else if constexpr (fixed_vector_space_descriptor<std::tuple_element_t<N, DescriptorCollection>>)
+      else if constexpr (static_vector_space_descriptor<std::tuple_element_t<N, DescriptorCollection>>)
       {
         using E = std::tuple_element_t<N, DescriptorCollection>;
         if (it == end)
@@ -326,7 +326,7 @@ namespace OpenKalman
     /**
      * \brief Construct using only applicable \ref dynamic_vector_space_descriptor.
      * \tparam Ds A set of \ref dynamic_vector_space_descriptor corresponding to each of
-     * class template parameter Ds that is dynamic, in order of Ds. This list should omit any \ref fixed_vector_space_descriptor.
+     * class template parameter Ds that is dynamic, in order of Ds. This list should omit any \ref static_vector_space_descriptor.
      * \details If PatternMatrix has no dynamic dimensions, this is a default constructor.
      * The constructor can take a number of arguments representing the number of dynamic dimensions.
      * For example, the following construct a 2-by-3 constant matrix of value 5:
@@ -480,11 +480,11 @@ namespace OpenKalman
      * \return The element corresponding to the indices (always the constant).
      */
 #ifdef __cpp_lib_ranges
-    template<static_range_size<PatternMatrix> Indices> requires (not empty_object<PatternMatrix>)
+    template<index_range_for<PatternMatrix> Indices> requires (not empty_object<PatternMatrix>)
     constexpr scalar_constant auto
 #else
     template<typename Indices, std::enable_if_t<
-      static_range_size<Indices, PatternMatrix> and (not empty_object<PatternMatrix>), int> = 0>
+      index_range_for<Indices, PatternMatrix> and (not empty_object<PatternMatrix>), int> = 0>
     constexpr auto
 #endif
     operator[](const Indices& indices) const 
@@ -703,11 +703,11 @@ namespace OpenKalman
       // fill_components not necessary because T is not a dense writable matrix.
 
 
-      template<typename C, typename...D>
+      template<typename C, typename D>
       static constexpr auto
-      make_constant(C&& c, D&&...d)
+      make_constant(C&& c, D&& d)
       {
-        return OpenKalman::make_constant<PatternMatrix>(std::forward<C>(c), std::forward<D>(d)...);
+        return OpenKalman::make_constant<PatternMatrix>(std::forward<C>(c), std::forward<D>(d));
       }
 
 

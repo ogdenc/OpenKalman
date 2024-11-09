@@ -35,13 +35,13 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor T>
+  template<static_vector_space_descriptor T>
   struct dimension_difference_of<T>
 #else
   template<typename T>
-  struct dimension_difference_of<T, std::enable_if_t<fixed_vector_space_descriptor<T>>>
+  struct dimension_difference_of<T, std::enable_if_t<static_vector_space_descriptor<T>>>
 #endif
-  { using type = typename fixed_vector_space_descriptor_traits<std::decay_t<T>>::difference_type; };
+  { using type = typename static_vector_space_descriptor_traits<std::decay_t<T>>::difference_type; };
 
 
   /**

@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref concatenate_fixed_vector_space_descriptor.
+ * \brief Definition for \ref concatenate_static_vector_space_descriptor.
  */
 
 #ifndef OPENKALMAN_CONCATENATE_FIXED_VECTOR_SPACE_DESCRIPTOR_HPP
@@ -22,21 +22,21 @@
 namespace OpenKalman
 {
   template<>
-  struct concatenate_fixed_vector_space_descriptor<>
+  struct concatenate_static_vector_space_descriptor<>
   {
-    using type = FixedDescriptor<>;
+    using type = StaticDescriptor<>;
   };
 
   template<typename C, typename...Cs>
-  struct concatenate_fixed_vector_space_descriptor<C, Cs...>
+  struct concatenate_static_vector_space_descriptor<C, Cs...>
   {
-    using type = typename concatenate_fixed_vector_space_descriptor<Cs...>::type::template Prepend<C>;
+    using type = typename concatenate_static_vector_space_descriptor<Cs...>::type::template Prepend<C>;
   };
 
   template<typename...C, typename...Cs>
-  struct concatenate_fixed_vector_space_descriptor<FixedDescriptor<C...>, Cs...>
+  struct concatenate_static_vector_space_descriptor<StaticDescriptor<C...>, Cs...>
   {
-    using type = typename concatenate_fixed_vector_space_descriptor<Cs...>::type::template Prepend<C...>;
+    using type = typename concatenate_static_vector_space_descriptor<Cs...>::type::template Prepend<C...>;
   };
 
 

@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref reverse_fixed_vector_space_descriptor.
+ * \brief Definition for \ref reverse_static_vector_space_descriptor.
  */
 
 #ifndef OPENKALMAN_REVERSE_FIXED_VECTOR_SPACE_DESCRIPTOR_HPP
@@ -22,27 +22,27 @@
 namespace OpenKalman
 {
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor T>
+  template<static_vector_space_descriptor T>
 #else
   template<typename T>
 #endif
-  struct reverse_fixed_vector_space_descriptor
+  struct reverse_static_vector_space_descriptor
   {
 #ifndef __cpp_concepts
-    static_assert(fixed_vector_space_descriptor<T>);
+    static_assert(static_vector_space_descriptor<T>);
 #endif
     using type = T;
   };
 
 
   template<>
-  struct reverse_fixed_vector_space_descriptor<FixedDescriptor<>> { using type = FixedDescriptor<>; };
+  struct reverse_static_vector_space_descriptor<StaticDescriptor<>> { using type = StaticDescriptor<>; };
 
 
   template<typename C, typename...Cs>
-  struct reverse_fixed_vector_space_descriptor<FixedDescriptor<C, Cs...>>
+  struct reverse_static_vector_space_descriptor<StaticDescriptor<C, Cs...>>
   {
-    using type = concatenate_fixed_vector_space_descriptor_t<typename reverse_fixed_vector_space_descriptor<FixedDescriptor<Cs...>>::type, FixedDescriptor<C>>;
+    using type = concatenate_static_vector_space_descriptor_t<typename reverse_static_vector_space_descriptor<StaticDescriptor<Cs...>>::type, StaticDescriptor<C>>;
   };
 
 

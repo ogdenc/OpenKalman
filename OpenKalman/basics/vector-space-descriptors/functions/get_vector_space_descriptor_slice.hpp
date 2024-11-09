@@ -33,16 +33,16 @@ namespace OpenKalman
 
     template<typename T, typename Offset, typename Extent>
     struct slice_is_within_range<T, Offset, Extent, std::enable_if_t<
-        fixed_vector_space_descriptor<T> and static_index_value<Offset> and dynamic_index_value<Extent>>>
+        static_vector_space_descriptor<T> and static_index_value<Offset> and dynamic_index_value<Extent>>>
       : std::bool_constant<Offset::value >= 0 and Offset::value <= dimension_size_of_v<T>> {};
 
     template<typename T, typename Offset, typename Extent>
     struct slice_is_within_range<T, Offset, Extent, std::enable_if_t<
-        fixed_vector_space_descriptor<T> and dynamic_index_value<Offset> and static_index_value<Extent>>>
+        static_vector_space_descriptor<T> and dynamic_index_value<Offset> and static_index_value<Extent>>>
       : std::bool_constant<Extent::value >= 0 and Extent::value <= dimension_size_of_v<T>> {};
 
     template<typename T, typename Offset, typename Extent>
-    struct slice_is_within_range<T, Offset, Extent, std::void_t<typename internal::fixed_vector_space_descriptor_slice<T, Offset::value, Extent::value>::type>>
+    struct slice_is_within_range<T, Offset, Extent, std::void_t<typename internal::static_vector_space_descriptor_slice<T, Offset::value, Extent::value>::type>>
       : std::true_type {};
 
     template<typename T, typename Offset, typename Extent>
@@ -99,7 +99,7 @@ namespace OpenKalman
     (dynamic_vector_space_descriptor<T> or
       ((dynamic_index_value<Offset> or Offset::value <= dimension_size_of_v<T>) and
       (dynamic_index_value<Extent> or Extent::value <= dimension_size_of_v<T>) and
-      (dynamic_index_value<Offset> or dynamic_index_value<Extent> or requires { typename internal::fixed_vector_space_descriptor_slice_t<T, Offset::value, Extent::value>; })))
+      (dynamic_index_value<Offset> or dynamic_index_value<Extent> or requires { typename internal::static_vector_space_descriptor_slice_t<T, Offset::value, Extent::value>; })))
 #else
   template<typename T, typename Offset, typename Extent, std::enable_if_t<
     vector_space_descriptor<T> and index_value<Offset> and index_value<Extent> and
@@ -108,9 +108,9 @@ namespace OpenKalman
   constexpr auto
   get_vector_space_descriptor_slice(T&& t, const Offset& offset, const Extent& extent)
   {
-    if constexpr (fixed_vector_space_descriptor<T> and static_index_value<Offset> and static_index_value<Extent>)
+    if constexpr (static_vector_space_descriptor<T> and static_index_value<Offset> and static_index_value<Extent>)
     {
-      return internal::fixed_vector_space_descriptor_slice_t<T, Offset::value, Extent::value> {};
+      return internal::static_vector_space_descriptor_slice_t<T, Offset::value, Extent::value> {};
     }
     else
     {

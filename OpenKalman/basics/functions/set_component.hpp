@@ -16,11 +16,6 @@
 #ifndef OPENKALMAN_SET_COMPONENT_HPP
 #define OPENKALMAN_SET_COMPONENT_HPP
 
-#ifdef __cpp_lib_ranges
-#include<ranges>
-//#else
-#include<algorithm>
-#endif
 
 namespace OpenKalman
 {
@@ -46,11 +41,11 @@ namespace OpenKalman
    * \tparam Indices An input range object containing the indices.
    * \return The modified Arg
    */
-#ifdef __cpp_lib_ranges
-  template<indexible Arg, static_range_size<Arg> Indices> requires writable_by_component<Arg, Indices> 
+#ifdef __cpp_lib_concepts
+  template<indexible Arg, index_range_for<Arg> Indices> requires writable_by_component<Arg, Indices>
 #else
   template<typename Arg, typename Indices, std::enable_if_t<
-    indexible<Arg> and static_range_size<Indices, Arg> and writable_by_component<Arg, Indices>, int> = 0>
+    indexible<Arg> and index_range_for<Indices, Arg> and writable_by_component<Arg, Indices>, int> = 0>
 #endif
   inline Arg&&
   set_component(Arg&& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
@@ -62,7 +57,7 @@ namespace OpenKalman
   /**
    * \brief Set a component of an object at an initializer list of indices.
    */
-#ifdef __cpp_lib_ranges
+#ifdef __cpp_lib_concepts
   template<indexible Arg, index_value Ix> requires writable_by_component<Arg, const std::initializer_list<Ix>&> 
 #else
   template<typename Arg, typename Ix, std::enable_if_t<

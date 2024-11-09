@@ -64,7 +64,7 @@ namespace OpenKalman::vector_space_descriptors
 
 
     /**
-     * \copydoc fixed_vector_space_descriptor_traits::to_euclidean_element
+     * \copydoc static_vector_space_descriptor_traits::to_euclidean_element
      */
 #ifdef __cpp_concepts
     constexpr scalar_type auto
@@ -78,7 +78,7 @@ namespace OpenKalman::vector_space_descriptors
 
 
     /**
-     * \copydoc fixed_vector_space_descriptor_traits::from_euclidean_element
+     * \copydoc static_vector_space_descriptor_traits::from_euclidean_element
      */
 #ifdef __cpp_concepts
     constexpr scalar_type auto
@@ -92,7 +92,7 @@ namespace OpenKalman::vector_space_descriptors
 
 
     /**
-     * \copydoc fixed_vector_space_descriptor_traits::get_wrapped_component
+     * \copydoc static_vector_space_descriptor_traits::get_wrapped_component
      */
 #ifdef __cpp_concepts
     constexpr scalar_type auto
@@ -106,7 +106,7 @@ namespace OpenKalman::vector_space_descriptors
 
 
     /**
-     * \copydoc fixed_vector_space_descriptor_traits::set_wrapped_component
+     * \copydoc static_vector_space_descriptor_traits::set_wrapped_component
      */
 #ifdef __cpp_concepts
     constexpr void

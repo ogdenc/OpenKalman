@@ -45,4 +45,7 @@
 
 #include "internal/index_to_scalar_constant.hpp"
 
+#include "internal/collection.hpp"
+#include "internal/static_collection_size.hpp"
+
 #endif //OPENKALMAN_VALUES_HPP

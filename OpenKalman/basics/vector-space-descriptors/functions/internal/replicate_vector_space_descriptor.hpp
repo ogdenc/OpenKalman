@@ -22,17 +22,17 @@ namespace OpenKalman::internal
 {
   /**
    * \internal
-   * \brief Replicate \ref fixed_vector_space_descriptor T some number of times.
+   * \brief Replicate \ref static_vector_space_descriptor T some number of times.
    */
 #ifdef __cpp_concepts
-  template<scalar_type..., fixed_vector_space_descriptor T, static_index_value N>
+  template<scalar_type..., static_vector_space_descriptor T, static_index_value N>
 #else
   template<typename...S, typename T, typename N, std::enable_if_t<(scalar_type<S> and ...) and
-    fixed_vector_space_descriptor<T> and static_index_value<N>, int> = 0>
+    static_vector_space_descriptor<T> and static_index_value<N>, int> = 0>
 #endif
   auto replicate_vector_space_descriptor(const T& t, N n)
   {
-    return replicate_fixed_vector_space_descriptor_t<T, n> {};
+    return replicate_static_vector_space_descriptor_t<T, n> {};
   }
 
 
@@ -43,11 +43,11 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<scalar_type...AllowableScalarTypes, vector_space_descriptor T, index_value N>
-  requires (not fixed_vector_space_descriptor<T>) or (not static_index_value<N>)
+  requires (not static_vector_space_descriptor<T>) or (not static_index_value<N>)
 #else
   template<typename...AllowableScalarTypes, typename T, typename N, std::enable_if_t<
     (scalar_type<AllowableScalarTypes> and ...) and vector_space_descriptor<T> and index_value<N> and
-      (not fixed_vector_space_descriptor<T> or not static_index_value<N>), int> = 0>
+      (not static_vector_space_descriptor<T> or not static_index_value<N>), int> = 0>
 #endif
   auto replicate_vector_space_descriptor(const T& t, N n)
   {

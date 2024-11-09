@@ -31,7 +31,7 @@ namespace OpenKalman
 #endif
   get_dimension_size_of(const T& t)
   {
-    if constexpr (fixed_vector_space_descriptor<T>)
+    if constexpr (static_vector_space_descriptor<T>)
     {
       return dimension_size_of<T> {};
     }

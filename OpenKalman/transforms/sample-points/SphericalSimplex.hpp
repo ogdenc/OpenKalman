@@ -121,13 +121,13 @@ namespace OpenKalman
     static constexpr auto
     unscaled_sigma_points(std::index_sequence<ns...>)
     {
-      using FixedDescriptor = typename DistributionTraits<Dist>::FixedDescriptor;
+      using StaticDescriptor = typename DistributionTraits<Dist>::StaticDescriptor;
       using Scalar = typename DistributionTraits<Dist>::Scalar;
       constexpr auto rows = index_dimension_of_v<Dist, 0>;
       constexpr auto count = sigma_point_count<dim>;
       using M = typename DistributionTraits<Dist>::Mean;
       using Xnative = untyped_dense_writable_matrix_t<M, Layout::none, Scalar, rows, count>;
-      Matrix<FixedDescriptor, Dimensions<count>, Xnative> X {sigma_point_coeff<ns / count + pos, ns % count, dim, Scalar>()...};
+      Matrix<StaticDescriptor, Dimensions<count>, Xnative> X {sigma_point_coeff<ns / count + pos, ns % count, dim, Scalar>()...};
       return X;
     }
 

@@ -20,11 +20,11 @@
 namespace OpenKalman::Eigen3::internal
 {
 #ifdef __cpp_concepts
-  template<typename FixedDescriptor, OpenKalman::Eigen3::eigen_tensor_general NestedMatrix>
-  struct native_traits<OpenKalman::Mean<FixedDescriptor, NestedMatrix>>
+  template<typename StaticDescriptor, OpenKalman::Eigen3::eigen_tensor_general NestedMatrix>
+  struct native_traits<OpenKalman::Mean<StaticDescriptor, NestedMatrix>>
 #else
-  template<typename FixedDescriptor, typename NestedMatrix>
-  struct native_traits<OpenKalman::Mean<FixedDescriptor, NestedMatrix>, std::enable_if_t<
+  template<typename StaticDescriptor, typename NestedMatrix>
+  struct native_traits<OpenKalman::Mean<StaticDescriptor, NestedMatrix>, std::enable_if_t<
     OpenKalman::Eigen3::eigen_tensor_general<NestedMatrix>>>
 #endif
     : Eigen::internal::traits<std::decay_t<NestedMatrix>>
@@ -32,7 +32,7 @@ namespace OpenKalman::Eigen3::internal
     static constexpr auto BaseFlags = Eigen::internal::traits<std::decay_t<NestedMatrix>>::Flags;
     enum
     {
-      Flags = OpenKalman::euclidean_vector_space_descriptor<FixedDescriptor> ? BaseFlags : BaseFlags & ~Eigen::LvalueBit,
+      Flags = OpenKalman::euclidean_vector_space_descriptor<StaticDescriptor> ? BaseFlags : BaseFlags & ~Eigen::LvalueBit,
     };
   };
 

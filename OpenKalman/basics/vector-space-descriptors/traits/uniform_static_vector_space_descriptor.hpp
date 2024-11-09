@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref uniform_fixed_vector_space_descriptor.
+ * \brief Definition for \ref uniform_static_vector_space_descriptor.
  */
 
 #ifndef OPENKALMAN_UNIFORM_FIXED_VECTOR_SPACE_DESCRIPTOR_HPP
@@ -28,27 +28,27 @@ namespace OpenKalman
 #else
     template<typename T, typename = void>
 #endif
-    struct uniform_fixed_vector_space_descriptor_impl : std::false_type {};
+    struct uniform_static_vector_space_descriptor_impl : std::false_type {};
 
 
 #ifdef __cpp_concepts
-    template<fixed_vector_space_descriptor T>
-    struct uniform_fixed_vector_space_descriptor_impl<T>
+    template<static_vector_space_descriptor T>
+    struct uniform_static_vector_space_descriptor_impl<T>
 #else
     template<typename T>
-    struct uniform_fixed_vector_space_descriptor_impl<T, std::enable_if_t<fixed_vector_space_descriptor<T>>>
+    struct uniform_static_vector_space_descriptor_impl<T, std::enable_if_t<static_vector_space_descriptor<T>>>
 #endif
-      : internal::uniform_fixed_vector_space_descriptor_query<canonical_fixed_vector_space_descriptor_t<std::decay_t<T>>> {};
+      : internal::uniform_static_vector_space_descriptor_query<canonical_static_vector_space_descriptor_t<std::decay_t<T>>> {};
 
 
 #ifdef __cpp_concepts
     template<dynamic_vector_space_descriptor T>
-    struct uniform_fixed_vector_space_descriptor_impl<T>
+    struct uniform_static_vector_space_descriptor_impl<T>
 #else
     template<typename T>
-    struct uniform_fixed_vector_space_descriptor_impl<T, std::enable_if_t<dynamic_vector_space_descriptor<T>>>
+    struct uniform_static_vector_space_descriptor_impl<T, std::enable_if_t<dynamic_vector_space_descriptor<T>>>
 #endif
-      : internal::uniform_fixed_vector_space_descriptor_query<std::decay_t<T>> {};
+      : internal::uniform_static_vector_space_descriptor_query<std::decay_t<T>> {};
 
   } // namespace detail
 
@@ -58,11 +58,11 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept uniform_fixed_vector_space_descriptor =
+  concept uniform_static_vector_space_descriptor =
 #else
-  constexpr bool uniform_fixed_vector_space_descriptor =
+  constexpr bool uniform_static_vector_space_descriptor =
 #endif
-    detail::uniform_fixed_vector_space_descriptor_impl<T>::value;
+    detail::uniform_static_vector_space_descriptor_impl<T>::value;
 
 
 } // namespace OpenKalman

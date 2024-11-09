@@ -130,12 +130,12 @@ namespace OpenKalman
   using pattern_matrix_of_t = typename pattern_matrix_of<std::decay_t<T>>::type;
 
 
-  // ------------------------------------- //
-  //  DiagonalMatrix, eigen_diagonal_expr  //
-  // ------------------------------------- //
+  // ------------------------------------------ //
+  //  DiagonalAdapter, internal::diagonal_expr  //
+  // ------------------------------------------ //
 
   /**
-   * \brief A diagonal matrix or tensor.
+   * \brief An adapter for creating a diagonal matrix or tensor.
    * \details The matrix is guaranteed to be diagonal.
    * Implicit conversions are available from any \ref diagonal_matrix of compatible size.
    * \tparam NestedMatrix A column vector expression defining the diagonal elements.
@@ -146,32 +146,35 @@ namespace OpenKalman
 #else
   template<typename NestedMatrix>
 #endif
-  struct DiagonalMatrix;
+  struct DiagonalAdapter;
 
 
-  namespace detail
+  namespace internal
   {
+    namespace detail
+    {
+      template<typename T>
+      struct is_diagonal_expr : std::false_type {};
+
+      template<typename NestedMatrix>
+      struct is_diagonal_expr<DiagonalAdapter<NestedMatrix>> : std::true_type {};
+    }
+
+
+    /**
+     * \brief Specifies that T is a diagonal matrix based on the Eigen library (i.e., DiaginalMatrix).
+     */
     template<typename T>
-    struct is_eigen_diagonal_expr : std::false_type {};
-
-    template<typename NestedMatrix>
-    struct is_eigen_diagonal_expr<DiagonalMatrix<NestedMatrix>> : std::true_type {};
-  }
-
-
-  /**
-   * \brief Specifies that T is a diagonal matrix based on the Eigen library (i.e., DiaginalMatrix).
-   */
-  template<typename T>
 #ifdef __cpp_concepts
-  concept eigen_diagonal_expr = detail::is_eigen_diagonal_expr<std::decay_t<T>>::value;
+    concept diagonal_expr = detail::is_diagonal_expr<std::decay_t<T>>::value;
 #else
-  constexpr bool eigen_diagonal_expr = detail::is_eigen_diagonal_expr<std::decay_t<T>>::value;
+    constexpr bool diagonal_expr = detail::is_diagonal_expr<std::decay_t<T>>::value;
 #endif
+  } // namespace internal
 
 
   // -------------------------------------------- //
-  //  SelfAdjointMatrix, eigen_self_adjoint_expr  //
+  //  HermitianAdapter, internal::hermitian_expr  //
   // -------------------------------------------- //
 
   /**
@@ -201,33 +204,36 @@ namespace OpenKalman
     triangular_matrix<NestedMatrix, TriangleType::diagonal> ? HermitianAdapterType::lower :
     triangular_matrix<NestedMatrix, TriangleType::upper> ? HermitianAdapterType::upper : HermitianAdapterType::lower>
 #endif
-  struct SelfAdjointMatrix;
+  struct HermitianAdapter;
 
 
-  namespace detail
+  namespace internal
   {
+    namespace detail
+    {
+      template<typename T>
+      struct is_hermitian_expr : std::false_type {};
+
+      template<typename NestedMatrix, HermitianAdapterType storage_triangle>
+      struct is_hermitian_expr<HermitianAdapter<NestedMatrix, storage_triangle>> : std::true_type {};
+    }
+
+
+    /**
+     * \brief Specifies that T is a self-adjoint matrix based on the Eigen library (i.e., HermitianAdapter).
+     */
     template<typename T>
-    struct is_eigen_self_adjoint_expr : std::false_type {};
-
-    template<typename NestedMatrix, HermitianAdapterType storage_triangle>
-    struct is_eigen_self_adjoint_expr<SelfAdjointMatrix<NestedMatrix, storage_triangle>> : std::true_type {};
-  }
-
-
-  /**
-   * \brief Specifies that T is a self-adjoint matrix based on the Eigen library (i.e., SelfAdjointMatrix).
-   */
-  template<typename T>
 #ifdef __cpp_concepts
-  concept eigen_self_adjoint_expr = detail::is_eigen_self_adjoint_expr<std::decay_t<T>>::value;
+    concept hermitian_expr = detail::is_hermitian_expr<std::decay_t<T>>::value;
 #else
-  constexpr bool eigen_self_adjoint_expr = detail::is_eigen_self_adjoint_expr<std::decay_t<T>>::value;
+    constexpr bool hermitian_expr = detail::is_hermitian_expr<std::decay_t<T>>::value;
 #endif
+  } // namespace internal
 
 
-  // ----------------------------------------- //
-  //  TriangularMatrix, eigen_triangular_expr  //
-  // ----------------------------------------- //
+  // ---------------------------------------------- //
+  //  TriangularAdapter, internal::triangular_expr  //
+  // ---------------------------------------------- //
 
   /**
    * \brief A \ref triangular_adapter, where components above or below the diagonal (or both) are zero.
@@ -248,28 +254,31 @@ namespace OpenKalman
   template<typename NestedMatrix, TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
     (triangular_matrix<NestedMatrix, TriangleType::upper> ? TriangleType::upper : TriangleType::lower))>
 #endif
-  struct TriangularMatrix;
+  struct TriangularAdapter;
 
 
-  namespace detail
+  namespace internal
   {
+    namespace detail
+    {
+      template<typename T>
+      struct is_triangular_expr : std::false_type {};
+
+      template<typename NestedMatrix, TriangleType triangle_type>
+      struct is_triangular_expr<TriangularAdapter<NestedMatrix, triangle_type>> : std::true_type {};
+    }
+
+
+    /**
+     * \brief Specifies that T is a triangular matrix based on the Eigen library (i.e., TriangularAdapter).
+     */
     template<typename T>
-    struct is_eigen_triangular_expr : std::false_type {};
-
-    template<typename NestedMatrix, TriangleType triangle_type>
-    struct is_eigen_triangular_expr<TriangularMatrix<NestedMatrix, triangle_type>> : std::true_type {};
-  }
-
-
-  /**
-   * \brief Specifies that T is a triangular matrix based on the Eigen library (i.e., TriangularMatrix).
-   */
-  template<typename T>
 #ifdef __cpp_concepts
-  concept eigen_triangular_expr = detail::is_eigen_triangular_expr<std::decay_t<T>>::value;
+    concept triangular_expr = detail::is_triangular_expr<std::decay_t<T>>::value;
 #else
-  constexpr bool eigen_triangular_expr = detail::is_eigen_triangular_expr<std::decay_t<T>>::value;
+    constexpr bool triangular_expr = detail::is_triangular_expr<std::decay_t<T>>::value;
 #endif
+  }
 
 
   // ------------------------------------------ //
@@ -283,11 +292,11 @@ namespace OpenKalman
    * \taram Vs A set of \ref vector_space_descriptor objects
    */
 #ifdef __cpp_concepts
-  template<indexible NestedObject, vector_space_descriptor...Vs>
-  requires internal::not_more_fixed_than<NestedObject, Vs...> and (not internal::less_fixed_than<NestedObject, Vs...>) and
-    internal::maybe_same_shape_as_vector_space_descriptors<NestedObject, Vs...>
+  template<indexible NestedObject, vector_space_descriptor_collection Descriptors>
+  requires internal::not_more_fixed_than<NestedObject, Descriptors> and (not internal::less_fixed_than<NestedObject, Descriptors>) and
+    internal::maybe_same_shape_as_vector_space_descriptors<NestedObject, Descriptors>
 #else
-  template<typename NestedObject, typename...Vs>
+  template<typename NestedObject, typename Descriptors>
 #endif
   struct VectorSpaceAdapter;
 
@@ -298,8 +307,8 @@ namespace OpenKalman
       template<typename T>
       struct is_vector_space_adapter : std::false_type {};
 
-      template<typename NestedObject, typename...Vs>
-      struct is_vector_space_adapter<VectorSpaceAdapter<NestedObject, Vs...>> : std::true_type {};
+      template<typename NestedObject, typename Descriptors>
+      struct is_vector_space_adapter<VectorSpaceAdapter<NestedObject, Descriptors>> : std::true_type {};
     } // namespace detail
 
 
@@ -416,9 +425,9 @@ namespace OpenKalman
    * \details It is a wrapper for a native matrix type from a supported matrix library such as Eigen.
    * The matrix can be thought of as a tests from X to Y, where the coefficients for each of X and Y are typed.
    * Example declarations:
-   * - <code>Matrix<FixedDescriptor<Axis, Axis, angle::Radians>, FixedDescriptor<Axis, Axis>,
+   * - <code>Matrix<StaticDescriptor<Axis, Axis, angle::Radians>, StaticDescriptor<Axis, Axis>,
    * eigen_matrix_t<double, 3, 2>> x;</code>
-   * - <code>Matrix<double, FixedDescriptor<Axis, Axis, angle::Radians>, FixedDescriptor<Axis, Axis>,
+   * - <code>Matrix<double, StaticDescriptor<Axis, Axis, angle::Radians>, StaticDescriptor<Axis, Axis>,
    * eigen_matrix_t<double, 3, 2>> x;</code>
    * \tparam RowCoefficients A set of \ref OpenKalman::coefficients "coefficients" (e.g., Axis, Spherical, etc.)
    * corresponding to the rows.
@@ -427,7 +436,7 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor RowCoefficients, fixed_vector_space_descriptor ColumnCoefficients, typed_matrix_nestable NestedMatrix>
+  template<static_vector_space_descriptor RowCoefficients, static_vector_space_descriptor ColumnCoefficients, typed_matrix_nestable NestedMatrix>
   requires (dimension_size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
     (dimension_size_of_v<ColumnCoefficients> == index_dimension_of_v<NestedMatrix, 1>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
@@ -451,7 +460,7 @@ namespace OpenKalman
    * \details Unlike OpenKalman::Matrix, the columns of a Mean are untyped. When a Mean is converted to an
    * OpenKalman::Matrix, the columns are assigned type Axis.
    * Example declaration:
-   * <code>Mean<FixedDescriptor<Axis, Axis, angle::Radians>, 1, eigen_matrix_t<double, 3, 1>> x;</code>
+   * <code>Mean<StaticDescriptor<Axis, Axis, angle::Radians>, 1, eigen_matrix_t<double, 3, 1>> x;</code>
    * This declares a 3-dimensional vector <var>x</var>, where the coefficients are, respectively, an Axis,
    * an Axis, and an angle::Radians, all of scalar type <code>double</code>. The underlying representation is an
    * Eigen3 column vector.
@@ -459,7 +468,7 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor Descriptor, typed_matrix_nestable NestedMatrix> requires
+  template<static_vector_space_descriptor Descriptor, typed_matrix_nestable NestedMatrix> requires
   (dimension_size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
   (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
@@ -479,7 +488,7 @@ namespace OpenKalman
    * \brief Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.
    * \details Means containing angles should be converted to EuclideanMean before taking an average or weighted average.
    * Example declaration:
-   * <code>EuclideanMean<FixedDescriptor<Axis, Axis, angle::Radians>, 1, eigen_matrix_t<double, 4, 1>> x;</code>
+   * <code>EuclideanMean<StaticDescriptor<Axis, Axis, angle::Radians>, 1, eigen_matrix_t<double, 4, 1>> x;</code>
    * This declares a 3-dimensional mean <var>x</var>, where the coefficients are, respectively, an Axis,
    * an Axis, and an angle::Radians, all of scalar type <code>double</code>. The underlying representation is a
    * four-dimensional vector in Euclidean space, with the last two of the dimensions representing the angle::Radians coefficient
@@ -488,7 +497,7 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor Descriptor, typed_matrix_nestable NestedMatrix> requires
+  template<static_vector_space_descriptor Descriptor, typed_matrix_nestable NestedMatrix> requires
   (euclidean_dimension_size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Descriptor, typename NestedMatrix>
@@ -513,7 +522,7 @@ namespace OpenKalman
    * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor Descriptor, covariance_nestable NestedMatrix> requires
+  template<static_vector_space_descriptor Descriptor, covariance_nestable NestedMatrix> requires
     (dimension_size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and scalar_type<scalar_type_of_t<NestedMatrix>>
 #else
@@ -541,7 +550,7 @@ namespace OpenKalman
    * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor Descriptor, covariance_nestable NestedMatrix> requires
+  template<static_vector_space_descriptor Descriptor, covariance_nestable NestedMatrix> requires
     (dimension_size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and scalar_type<scalar_type_of_t<NestedMatrix>>
 #else
@@ -604,7 +613,7 @@ namespace OpenKalman
   #ifdef __cpp_concepts
     template<indexible NestedObject, vector_space_descriptor...Vs> requires
       compatible_with_vector_space_descriptors<NestedObject, Vs...> and
-      internal::not_more_fixed_than<NestedObject, Vs...> and internal::less_fixed_than<NestedObject, Vs...>
+      internal::not_more_fixed_than<NestedObject, std::tuple<Vs...>> and internal::less_fixed_than<NestedObject, std::tuple<Vs...>>
   #else
     template<typename NestedObject, typename...Vs>
   #endif
@@ -650,7 +659,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<
-    fixed_vector_space_descriptor Descriptor,
+    static_vector_space_descriptor Descriptor,
     typed_matrix_nestable MeanNestedMatrix,
     covariance_nestable CovarianceNestedMatrix,
     std::uniform_random_bit_generator random_number_engine = std::mt19937> requires

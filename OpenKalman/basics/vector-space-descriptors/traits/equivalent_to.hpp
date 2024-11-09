@@ -24,10 +24,10 @@ namespace OpenKalman
    * \details Every descriptor in the set must be equivalent to every other descriptor in the set.
    * Sets of coefficients are equivalent if they are treated functionally the same.
    * - Any coefficient or group of coefficients is equivalent to itself.
-   * - FixedDescriptor<As...> is equivalent to FixedDescriptor<Bs...>, if each As is equivalent to its respective Bs.
-   * - FixedDescriptor<A> is equivalent to A, and vice versa.
+   * - StaticDescriptor<As...> is equivalent to StaticDescriptor<Bs...>, if each As is equivalent to its respective Bs.
+   * - StaticDescriptor<A> is equivalent to A, and vice versa.
    * \par Example:
-   * <code>equivalent_to&lt;Axis, FixedDescriptor&lt;Axis&gt;&gt;</code>
+   * <code>equivalent_to&lt;Axis, StaticDescriptor&lt;Axis&gt;&gt;</code>
    */
   template<typename...Ts>
 #ifdef __cpp_concepts
@@ -35,7 +35,7 @@ namespace OpenKalman
 #else
   constexpr bool equivalent_to =
 #endif
-    (fixed_vector_space_descriptor<Ts> and ...) and maybe_equivalent_to<Ts...>;
+    (static_vector_space_descriptor<Ts> and ...) and maybe_equivalent_to<Ts...>;
 
 
 } // namespace OpenKalman

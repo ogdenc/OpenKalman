@@ -32,8 +32,8 @@ namespace OpenKalman::internal
 #endif
   constexpr bool is_uniform_component_of(const A& a, const C& c)
   {
-    if constexpr (fixed_vector_space_descriptor<A> and fixed_vector_space_descriptor<C>)
-      return equivalent_to_uniform_fixed_vector_space_descriptor_component_of<A, C>;
+    if constexpr (static_vector_space_descriptor<A> and static_vector_space_descriptor<C>)
+      return equivalent_to_uniform_static_vector_space_descriptor_component_of<A, C>;
     else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<C>)
       return get_dimension_size_of(a) == 1;
     else

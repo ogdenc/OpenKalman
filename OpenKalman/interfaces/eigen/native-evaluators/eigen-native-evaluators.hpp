@@ -289,14 +289,14 @@ namespace Eigen::internal
   //  Mean  //
   // ------ //
 
-  template<typename FixedDescriptor, typename ArgType>
-  struct evaluator<OpenKalman::Mean<FixedDescriptor, ArgType>> : evaluator<std::decay_t<ArgType>>
+  template<typename StaticDescriptor, typename ArgType>
+  struct evaluator<OpenKalman::Mean<StaticDescriptor, ArgType>> : evaluator<std::decay_t<ArgType>>
   {
-    using XprType = OpenKalman::Mean<FixedDescriptor, ArgType>;
+    using XprType = OpenKalman::Mean<StaticDescriptor, ArgType>;
     using Base = evaluator<std::decay_t<ArgType>>;
     enum
     {
-      Flags = (OpenKalman::euclidean_vector_space_descriptor<FixedDescriptor> ? Base::Flags : Base::Flags & ~LvalueBit),
+      Flags = (OpenKalman::euclidean_vector_space_descriptor<StaticDescriptor> ? Base::Flags : Base::Flags & ~LvalueBit),
     };
     explicit evaluator(const XprType& m) : Base(m.nested_object()) {}
   };
@@ -333,12 +333,12 @@ namespace Eigen::internal
   //  Covariance  //
   // ------------ //
 
-  template<typename FixedDescriptor, typename ArgType>
-  struct evaluator<OpenKalman::Covariance<FixedDescriptor, ArgType>>
+  template<typename StaticDescriptor, typename ArgType>
+  struct evaluator<OpenKalman::Covariance<StaticDescriptor, ArgType>>
     : evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
-      std::declval<const OpenKalman::Covariance<FixedDescriptor, ArgType>&>()))>>
+      std::declval<const OpenKalman::Covariance<StaticDescriptor, ArgType>&>()))>>
   {
-    using XprType = OpenKalman::Covariance<FixedDescriptor, ArgType>;
+    using XprType = OpenKalman::Covariance<StaticDescriptor, ArgType>;
     using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
       std::declval<const XprType&>()))>>;
     enum
@@ -353,12 +353,12 @@ namespace Eigen::internal
   //  SquareRootCovariance  //
   // ---------------------- //
 
-  template<typename FixedDescriptor, typename ArgType>
-  struct evaluator<OpenKalman::SquareRootCovariance<FixedDescriptor, ArgType>>
+  template<typename StaticDescriptor, typename ArgType>
+  struct evaluator<OpenKalman::SquareRootCovariance<StaticDescriptor, ArgType>>
     : evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
-      std::declval<const OpenKalman::SquareRootCovariance<FixedDescriptor, ArgType>&>()))>>
+      std::declval<const OpenKalman::SquareRootCovariance<StaticDescriptor, ArgType>&>()))>>
   {
-    using XprType = OpenKalman::SquareRootCovariance<FixedDescriptor, ArgType>;
+    using XprType = OpenKalman::SquareRootCovariance<StaticDescriptor, ArgType>;
     using Base = evaluator<std::decay_t<decltype(OpenKalman::internal::to_covariance_nestable(
       std::declval<const XprType&>()))>>;
     enum

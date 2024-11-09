@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref canonical_fixed_vector_space_descriptor.
+ * \brief Definition for \ref canonical_static_vector_space_descriptor.
  */
 
 #ifndef OPENKALMAN_INDEX_DESCRIPTOR_FORWARD_DECLARATIONS_HPP
@@ -21,62 +21,62 @@
 namespace OpenKalman
 {
   /**
-   * \brief Concatenate any number of FixedDescriptor<...> types.
+   * \brief Concatenate any number of StaticDescriptor<...> types.
    * \details
    * Example:
-   * - \code concatenate_fixed_vector_space_descriptor_t<FixedDescriptor<angle::Radians>,
-   * FixedDescriptor<Axis, Distance>> == FixedDescriptor<angle::Radians, Axis, Distance> \endcode.
+   * - \code concatenate_static_vector_space_descriptor_t<StaticDescriptor<angle::Radians>,
+   * StaticDescriptor<Axis, Distance>> == StaticDescriptor<angle::Radians, Axis, Distance> \endcode.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor...Cs>
+  template<static_vector_space_descriptor...Cs>
 #else
   template<typename...Cs>
 #endif
-  struct concatenate_fixed_vector_space_descriptor;
+  struct concatenate_static_vector_space_descriptor;
 
 
   /**
-   * \brief Helper template for \ref concatenate_fixed_vector_space_descriptor.
+   * \brief Helper template for \ref concatenate_static_vector_space_descriptor.
    */
   template<typename...Cs>
-  using concatenate_fixed_vector_space_descriptor_t = typename concatenate_fixed_vector_space_descriptor<Cs...>::type;
+  using concatenate_static_vector_space_descriptor_t = typename concatenate_static_vector_space_descriptor<Cs...>::type;
 
 
   /**
-   * \brief Reduce a \ref fixed_vector_space_descriptor into its expanded canonical form.
-   * \sa canonical_fixed_vector_space_descriptor_t
+   * \brief Reduce a \ref static_vector_space_descriptor into its expanded canonical form.
+   * \sa canonical_static_vector_space_descriptor_t
    */
 #ifdef __cpp_concepts
   template<typename T>
 #else
   template<typename T, typename = void>
 #endif
-  struct canonical_fixed_vector_space_descriptor;
+  struct canonical_static_vector_space_descriptor;
 
 
   /**
-   * \brief Helper template for \ref canonical_fixed_vector_space_descriptor.
+   * \brief Helper template for \ref canonical_static_vector_space_descriptor.
    */
   template<typename T>
-  using canonical_fixed_vector_space_descriptor_t = typename canonical_fixed_vector_space_descriptor<T>::type;
+  using canonical_static_vector_space_descriptor_t = typename canonical_static_vector_space_descriptor<T>::type;
 
 
   /**
    * \brief Reverse the order of a \ref vector_space_descriptor.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor T>
+  template<static_vector_space_descriptor T>
 #else
   template<typename T>
 #endif
-  struct reverse_fixed_vector_space_descriptor;
+  struct reverse_static_vector_space_descriptor;
 
 
   /**
-   * \brief Helper template for \ref reverse_fixed_vector_space_descriptor.
+   * \brief Helper template for \ref reverse_static_vector_space_descriptor.
    */
   template<typename T>
-  using reverse_fixed_vector_space_descriptor_t = typename reverse_fixed_vector_space_descriptor<T>::type;
+  using reverse_static_vector_space_descriptor_t = typename reverse_static_vector_space_descriptor<T>::type;
 
 
 } // namespace OpenKalman

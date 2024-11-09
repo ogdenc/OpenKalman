@@ -32,7 +32,7 @@ namespace OpenKalman
   constexpr std::size_t
   get_euclidean_dimension_size_of(const T& t)
   {
-    if constexpr (fixed_vector_space_descriptor<T>) return euclidean_dimension_size_of_v<T>;
+    if constexpr (static_vector_space_descriptor<T>) return euclidean_dimension_size_of_v<T>;
     else
     {
       dynamic_vector_space_descriptor_traits ret{t};

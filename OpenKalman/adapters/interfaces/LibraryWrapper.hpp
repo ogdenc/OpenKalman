@@ -130,7 +130,7 @@ namespace OpenKalman::interface
     using NestedInterface = library_interface<std::decay_t<NestedObject>>;
     using LibraryInterface = library_interface<std::decay_t<LibraryObject>>;
     
-    template<indexible Arg> 
+    template<typename Arg>
     static constexpr decltype(auto)
     to_LibraryObject_native(Arg&& arg)
     {
@@ -191,13 +191,13 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<Layout layout, typename Scalar, typename...D> requires interface::make_default_defined_for<LibraryObject, layout, Scalar, D&&...>
+    template<Layout layout, typename Scalar, typename D> requires interface::make_default_defined_for<LibraryObject, layout, Scalar, D&&>
 #else
-    template<Layout layout, typename Scalar, typename...D, std::enable_if_t<interface::make_default_defined_for<LibraryObject, layout, Scalar, D&&...>, int> = 0>
+    template<Layout layout, typename Scalar, typename D, std::enable_if_t<interface::make_default_defined_for<LibraryObject, layout, Scalar, D&&>, int> = 0>
 #endif
-    static auto make_default(D&&...d)
+    static auto make_default(D&& d)
     {
-      return LibraryInterface::template make_default<layout, Scalar>(std::forward<D>(d)...);
+      return LibraryInterface::template make_default<layout, Scalar>(std::forward<D>(d));
     }
 
 
@@ -215,26 +215,26 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<typename C, typename...D> requires interface::make_constant_matrix_defined_for<LibraryObject, C&&, D&&...>
+    template<typename C, typename D> requires interface::make_constant_defined_for<LibraryObject, C&&, D&&>
 #else
-    template<typename C, typename...D, std::enable_if_t<interface::make_constant_matrix_defined_for<LibraryObject, C&&, D&&...>, int> = 0>
+    template<typename C, typename D, std::enable_if_t<interface::make_constant_defined_for<LibraryObject, C&&, D&&>, int> = 0>
 #endif
     static constexpr auto
-    make_constant(C&& c, D&&...d)
+    make_constant(C&& c, D&& d)
     {
-      return LibraryInterface::make_constant(std::forward<C>(c), std::forward<D>(d)...);
+      return LibraryInterface::make_constant(std::forward<C>(c), std::forward<D>(d));
     }
 
 
 #ifdef __cpp_concepts
-    template<typename Scalar, typename...D> requires interface::make_identity_matrix_defined_for<LibraryObject, Scalar, D&&...>
+    template<typename Scalar, typename D> requires interface::make_identity_matrix_defined_for<LibraryObject, Scalar, D&&>
 #else
-    template<typename Scalar, typename...D, std::enable_if_t<interface::make_identity_matrix_defined_for<LibraryObject, Scalar, D&&...>, int> = 0>
+    template<typename Scalar, typename D, std::enable_if_t<interface::make_identity_matrix_defined_for<LibraryObject, Scalar, D&&>, int> = 0>
 #endif
     static constexpr auto
-    make_identity_matrix(D&&...d)
+    make_identity_matrix(D&& d)
     {
-      return LibraryInterface::make_identity_matrix(std::forward<D>(d)...);
+      return LibraryInterface::make_identity_matrix(std::forward<D>(d));
     }
 
 

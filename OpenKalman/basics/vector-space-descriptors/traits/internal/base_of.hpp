@@ -61,7 +61,7 @@ namespace OpenKalman::internal
   struct base_of<T, U, std::enable_if_t<(suffix_of<T, U> and not prefix_of<T, U>)>>
 #endif
   {
-    using type = reverse_fixed_vector_space_descriptor_t<base_of_t<reverse_fixed_vector_space_descriptor_t<T>, reverse_fixed_vector_space_descriptor_t<U>>>;
+    using type = reverse_static_vector_space_descriptor_t<base_of_t<reverse_static_vector_space_descriptor_t<T>, reverse_static_vector_space_descriptor_t<U>>>;
   };
 
 

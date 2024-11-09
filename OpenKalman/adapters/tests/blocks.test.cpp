@@ -43,32 +43,32 @@ namespace
   using C01 = eigen_matrix_t<cdouble, dynamic_size_v, 1>;
   using C00 = eigen_matrix_t<cdouble, dynamic_size_v, dynamic_size_v>;
 
-  using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
-  using D0 = DiagonalMatrix<eigen_matrix_t<double, dynamic_size_v, 1>>;
+  using D2 = DiagonalAdapter<eigen_matrix_t<double, 2, 1>>;
+  using D0 = DiagonalAdapter<eigen_matrix_t<double, dynamic_size_v, 1>>;
 
-  using L22 = SelfAdjointMatrix<M22, TriangleType::lower>;
-  using L20 = SelfAdjointMatrix<M2x, TriangleType::lower>;
-  using L02 = SelfAdjointMatrix<Mx2, TriangleType::lower>;
-  using L00 = SelfAdjointMatrix<Mxx, TriangleType::lower>;
+  using L22 = HermitianAdapter<M22, TriangleType::lower>;
+  using L20 = HermitianAdapter<M2x, TriangleType::lower>;
+  using L02 = HermitianAdapter<Mx2, TriangleType::lower>;
+  using L00 = HermitianAdapter<Mxx, TriangleType::lower>;
 
-  using U22 = SelfAdjointMatrix<M22, TriangleType::upper>;
-  using U20 = SelfAdjointMatrix<M2x, TriangleType::upper>;
-  using U02 = SelfAdjointMatrix<Mx2, TriangleType::upper>;
-  using U00 = SelfAdjointMatrix<Mxx, TriangleType::upper>;
+  using U22 = HermitianAdapter<M22, TriangleType::upper>;
+  using U20 = HermitianAdapter<M2x, TriangleType::upper>;
+  using U02 = HermitianAdapter<Mx2, TriangleType::upper>;
+  using U00 = HermitianAdapter<Mxx, TriangleType::upper>;
   
-  using CL22 = SelfAdjointMatrix<C22, TriangleType::lower>;
-  using CU22 = SelfAdjointMatrix<C22, TriangleType::upper>;
+  using CL22 = HermitianAdapter<C22, TriangleType::lower>;
+  using CU22 = HermitianAdapter<C22, TriangleType::upper>;
 
-  using DM22 = SelfAdjointMatrix<M22, TriangleType::diagonal>;
-  using DM20 = SelfAdjointMatrix<M2x, TriangleType::diagonal>;
-  using DM02 = SelfAdjointMatrix<Mx2, TriangleType::diagonal>;
-  using DM00 = SelfAdjointMatrix<Mxx, TriangleType::diagonal>;
+  using DM22 = HermitianAdapter<M22, TriangleType::diagonal>;
+  using DM20 = HermitianAdapter<M2x, TriangleType::diagonal>;
+  using DM02 = HermitianAdapter<Mx2, TriangleType::diagonal>;
+  using DM00 = HermitianAdapter<Mxx, TriangleType::diagonal>;
   
-  using DD2 = SelfAdjointMatrix<D2, TriangleType::diagonal>;
-  using DD0 = SelfAdjointMatrix<D0, TriangleType::diagonal>;
+  using DD2 = HermitianAdapter<D2, TriangleType::diagonal>;
+  using DD0 = HermitianAdapter<D0, TriangleType::diagonal>;
   
-  using DL2 = SelfAdjointMatrix<D2, TriangleType::lower>;
-  using DL0 = SelfAdjointMatrix<D0, TriangleType::lower>;
+  using DL2 = HermitianAdapter<D2, TriangleType::lower>;
+  using DL0 = HermitianAdapter<D0, TriangleType::lower>;
 
   template<typename...Args>
   inline auto mat22(Args...args) { return make_dense_writable_matrix_from<M22>(args...); }
@@ -76,11 +76,11 @@ namespace
   auto m_93310 = make_dense_writable_matrix_from<M22>(9, 3, 3, 10);
   auto m_4225 = make_dense_writable_matrix_from<M22>(4, 2, 2, 5);
 
-  template<typename T> using D = DiagonalMatrix<T>;
-  template<typename T> using Tl = TriangularMatrix<T, TriangleType::lower>;
-  template<typename T> using Tu = TriangularMatrix<T, TriangleType::upper>;
-  template<typename T> using SAl = SelfAdjointMatrix<T, TriangleType::lower>;
-  template<typename T> using SAu = SelfAdjointMatrix<T, TriangleType::upper>;
+  template<typename T> using D = DiagonalAdapter<T>;
+  template<typename T> using Tl = TriangularAdapter<T, TriangleType::lower>;
+  template<typename T> using Tu = TriangularAdapter<T, TriangleType::upper>;
+  template<typename T> using SAl = HermitianAdapter<T, TriangleType::lower>;
+  template<typename T> using SAu = HermitianAdapter<T, TriangleType::upper>;
 }
 
 

@@ -32,13 +32,13 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<fixed_vector_space_descriptor T, fixed_vector_space_descriptor U>
+    template<static_vector_space_descriptor T, static_vector_space_descriptor U>
     struct is_maybe_equivalent_to_impl<T, U>
 #else
     template<typename T, typename U>
-    struct is_maybe_equivalent_to_impl<T, U, std::enable_if_t<fixed_vector_space_descriptor<T> and fixed_vector_space_descriptor<U>>>
+    struct is_maybe_equivalent_to_impl<T, U, std::enable_if_t<static_vector_space_descriptor<T> and static_vector_space_descriptor<U>>>
 #endif
-      : std::bool_constant<std::is_same_v<canonical_fixed_vector_space_descriptor_t<T>, canonical_fixed_vector_space_descriptor_t<U>>> {};
+      : std::bool_constant<std::is_same_v<canonical_static_vector_space_descriptor_t<T>, canonical_static_vector_space_descriptor_t<U>>> {};
 
 
 #ifdef __cpp_concepts
@@ -68,11 +68,11 @@ namespace OpenKalman
    * \details Every descriptor in the set must be potentially equivalent to every other descriptor in the set.
    * Sets of vector space descriptors are equivalent if they are treated functionally the same.
    * - Any descriptor or group of descriptor is equivalent to itself.
-   * - FixedDescriptor<As...> is equivalent to FixedDescriptor<Bs...>, if each As is equivalent to its respective Bs.
-   * - FixedDescriptor<A> is equivalent to A, and vice versa.
+   * - StaticDescriptor<As...> is equivalent to StaticDescriptor<Bs...>, if each As is equivalent to its respective Bs.
+   * - StaticDescriptor<A> is equivalent to A, and vice versa.
    * - Dynamic \ref euclidean_vector_space_descriptor objects are equivalent to any other \ref euclidean_vector_space_descriptor,
    * \par Example:
-   * <code>equivalent_to&lt;Axis, FixedDescriptor&lt;Axis&gt;&gt;</code>
+   * <code>equivalent_to&lt;Axis, StaticDescriptor&lt;Axis&gt;&gt;</code>
    */
   template<typename...Ts>
 #ifdef __cpp_concepts

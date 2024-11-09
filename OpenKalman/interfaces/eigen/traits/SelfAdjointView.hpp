@@ -106,14 +106,14 @@ namespace OpenKalman
 
 
   /**
-   * \brief Deduction guide for converting Eigen::SelfAdjointView to SelfAdjointMatrix
+   * \brief Deduction guide for converting Eigen::SelfAdjointView to HermitianAdapter
    */
 #ifdef __cpp_concepts
   template<Eigen3::eigen_SelfAdjointView M>
 #else
   template<typename M, std::enable_if_t<Eigen3::eigen_SelfAdjointView<M>, int> = 0>
 #endif
-  SelfAdjointMatrix(M&&) -> SelfAdjointMatrix<nested_object_of_t<M>, hermitian_adapter_type_of_v<M>>;
+  HermitianAdapter(M&&) -> HermitianAdapter<nested_object_of_t<M>, hermitian_adapter_type_of_v<M>>;
 
 } // namespace OpenKalman
 

@@ -32,7 +32,7 @@ namespace OpenKalman
   constexpr std::size_t
   get_vector_space_descriptor_component_count_of(const T& t)
   {
-    if constexpr (fixed_vector_space_descriptor<T>) return vector_space_component_count_v<T>;
+    if constexpr (static_vector_space_descriptor<T>) return vector_space_component_count_v<T>;
     else
     {
       dynamic_vector_space_descriptor_traits ret{t};

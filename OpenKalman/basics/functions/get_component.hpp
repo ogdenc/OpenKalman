@@ -16,11 +16,6 @@
 #ifndef OPENKALMAN_GET_COMPONENT_HPP
 #define OPENKALMAN_GET_COMPONENT_HPP
 
-#ifdef __cpp_lib_ranges
-#include<ranges>
-//#else
-#include<algorithm>
-#endif
 
 namespace OpenKalman
 {
@@ -44,12 +39,12 @@ namespace OpenKalman
    * \tparam Indices A sized input range containing the indices.
    * \return a \ref scalar_constant
    */
-#ifdef __cpp_lib_ranges
-  template<indexible Arg, static_range_size<Arg> Indices> requires (not empty_object<Arg>)
+#ifdef __cpp_lib_concepts
+  template<indexible Arg, index_range_for<Arg> Indices> requires (not empty_object<Arg>)
   constexpr scalar_constant decltype(auto)
 #else
   template<typename Arg, typename Indices, std::enable_if_t<
-    static_range_size<Indices, Arg> and (not empty_object<Arg>), int> = 0>
+    index_range_for<Indices, Arg> and (not empty_object<Arg>), int> = 0>
   constexpr decltype(auto)
 #endif
   get_component(Arg&& arg, const Indices& indices)
@@ -62,7 +57,7 @@ namespace OpenKalman
    * \overload 
    * \brief Get a component of an object at an initializer list of indices.
    */
-#ifdef __cpp_lib_ranges
+#ifdef __cpp_lib_concepts
   template<indexible Arg, index_value Ix> requires (not empty_object<Arg>)
   constexpr scalar_constant decltype(auto)
 #else

@@ -30,7 +30,7 @@ namespace OpenKalman
   constexpr bool
   get_vector_space_descriptor_is_euclidean(const T& t)
   {
-    if constexpr (fixed_vector_space_descriptor<T>) return euclidean_vector_space_descriptor<T>;
+    if constexpr (static_vector_space_descriptor<T>) return euclidean_vector_space_descriptor<T>;
     else
     {
       dynamic_vector_space_descriptor_traits ret{t};

@@ -22,10 +22,10 @@
 namespace Eigen::internal
 {
   template<typename ArgType, OpenKalman::HermitianAdapterType storage_triangle>
-  struct evaluator<OpenKalman::SelfAdjointMatrix<ArgType, storage_triangle>>
-    : evaluator_base<OpenKalman::SelfAdjointMatrix<ArgType, storage_triangle>>
+  struct evaluator<OpenKalman::HermitianAdapter<ArgType, storage_triangle>>
+    : evaluator_base<OpenKalman::HermitianAdapter<ArgType, storage_triangle>>
   {
-    using XprType = OpenKalman::SelfAdjointMatrix<ArgType, storage_triangle>;
+    using XprType = OpenKalman::HermitianAdapter<ArgType, storage_triangle>;
     using NestedEvaluator = evaluator<std::decay_t<ArgType>>;
     using Scalar = typename traits<std::decay_t<ArgType>>::Scalar;
     using CoeffReturnType = typename std::decay_t<ArgType>::CoeffReturnType;
@@ -44,7 +44,7 @@ namespace Eigen::internal
     auto& coeffRef(Index row, Index col)
     {
       static_assert(not OpenKalman::complex_number<Scalar>,
-        "Reference to element is not available for a complex SelfAdjointMatrix");
+        "Reference to element is not available for a complex HermitianAdapter");
 
       if constexpr (storage_triangle == OpenKalman::HermitianAdapterType::upper)
       {
@@ -64,10 +64,10 @@ namespace Eigen::internal
     auto& coeffRef(Index i)
     {
       static_assert(OpenKalman::one_dimensional<ArgType>,
-        "Linear (single index) element access by reference is only available for one-by-one SelfAdjointMatrix");
+        "Linear (single index) element access by reference is only available for one-by-one HermitianAdapter");
 
       static_assert(not OpenKalman::complex_number<Scalar>,
-        "Reference to element is not available for a complex SelfAdjointMatrix");
+        "Reference to element is not available for a complex HermitianAdapter");
 
       return m_argImpl.coeffRef(i);
     }

@@ -17,9 +17,9 @@ include(GoogleTest)
 add_executable(adapters
         ConstantAdapter.test.cpp
         constant-matrix-functions.test.cpp
-        #DiagonalMatrix.test.cpp
-        #SelfAdjointMatrix.test.cpp
-        #TriangularMatrix.test.cpp
+        #DiagonalAdapter.test.cpp
+        #HermitianAdapter.test.cpp
+        #TriangularAdapter.test.cpp
         #VectorSpaceAdapter.test.cpp
         #ToEuclideanExpr.test.cpp
         #FromEuclideanExpr.test.cpp

@@ -14,14 +14,14 @@ using namespace OpenKalman;
 using namespace OpenKalman::test;
 
 using M2 = eigen_matrix_t<double, 2, 2>;
-using C = FixedDescriptor<angle::Radians, Axis>;
+using C = StaticDescriptor<angle::Radians, Axis>;
 using Mat2 = Matrix<C, C, M2>;
 using Mat2col = Matrix<C, Axis, eigen_matrix_t<double, 2, 1>>;
-using SA2l = SelfAdjointMatrix<M2, TriangleType::lower>;
-using SA2u = SelfAdjointMatrix<M2, TriangleType::upper>;
-using T2l = TriangularMatrix<M2, TriangleType::lower>;
-using T2u = TriangularMatrix<M2, TriangleType::upper>;
-using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
+using SA2l = HermitianAdapter<M2, TriangleType::lower>;
+using SA2u = HermitianAdapter<M2, TriangleType::upper>;
+using T2l = TriangularAdapter<M2, TriangleType::lower>;
+using T2u = TriangularAdapter<M2, TriangleType::upper>;
+using D2 = DiagonalAdapter<eigen_matrix_t<double, 2, 1>>;
 using D1 = eigen_matrix_t<double, 1, 1>;
 using I2 = Eigen3::IdentityMatrix<M2>;
 using Z2 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>;
@@ -803,8 +803,8 @@ TEST(covariance_tests, Covariance_overloads)
   EXPECT_TRUE(is_near(square_root(CovT2u {4, 2, 2, 1}), Mat2 {2, 1, 0, 0}));
 
   // Semidefinite square root, constant matrix
-  EXPECT_TRUE(is_near(square_root(make_covariance<C>(SelfAdjointMatrix<M2::ConstantReturnType, TriangleType::lower>(M2::Constant(9)))), Mat2 {3, 0, 3, 0}));
-  EXPECT_TRUE(is_near(square_root(make_covariance<C>(SelfAdjointMatrix<M2::ConstantReturnType, TriangleType::upper>(M2::Constant(4)))), Mat2 {2, 2, 0, 0}));
+  EXPECT_TRUE(is_near(square_root(make_covariance<C>(HermitianAdapter<M2::ConstantReturnType, TriangleType::lower>(M2::Constant(9)))), Mat2 {3, 0, 3, 0}));
+  EXPECT_TRUE(is_near(square_root(make_covariance<C>(HermitianAdapter<M2::ConstantReturnType, TriangleType::upper>(M2::Constant(4)))), Mat2 {2, 2, 0, 0}));
 
   EXPECT_TRUE(is_near(make_dense_object_from(CovSA2l {9, 3, 3, 10}), Mat2 { 9, 3, 3, 10}));
   EXPECT_TRUE(is_near(make_dense_object_from(CovSA2u {9, 3, 3, 10}), Mat2 { 9, 3, 3, 10}));
@@ -881,13 +881,13 @@ TEST(covariance_tests, Covariance_overloads)
 
 TEST(covariance_tests, Covariance_blocks)
 {
-  using C4 = concatenate_fixed_vector_space_descriptor_t<C, C>;
+  using C4 = concatenate_static_vector_space_descriptor_t<C, C>;
   using M4 = eigen_matrix_t<double, 4, 4>;
   using Mat4 = Matrix<C4, C4, M4>;
-  using CovSA4l = Covariance<C4, SelfAdjointMatrix<M4, TriangleType::lower>>;
-  using CovSA4u = Covariance<C4, SelfAdjointMatrix<M4, TriangleType::upper>>;
-  using CovT4l = Covariance<C4, TriangularMatrix<M4, TriangleType::lower>>;
-  using CovT4u = Covariance<C4, TriangularMatrix<M4, TriangleType::upper>>;
+  using CovSA4l = Covariance<C4, HermitianAdapter<M4, TriangleType::lower>>;
+  using CovSA4u = Covariance<C4, HermitianAdapter<M4, TriangleType::upper>>;
+  using CovT4l = Covariance<C4, TriangularAdapter<M4, TriangleType::lower>>;
+  using CovT4u = Covariance<C4, TriangularAdapter<M4, TriangleType::upper>>;
   Mat2 ma {9, 3, 3, 10}, mb {4, 2, 2, 5};
   Mat4 n {9, 3, 0, 0,
           3, 10, 0, 0,

@@ -45,8 +45,8 @@ namespace OpenKalman
     using T_d = std::decay_t<decltype(t)>;
     if constexpr (euclidean_vector_space_descriptor<T_d>)
       s(x, start + local_index);
-    else if constexpr (fixed_vector_space_descriptor<T_d>)
-      fixed_vector_space_descriptor_traits<T_d>::set_wrapped_component(s, g, x, local_index, start);
+    else if constexpr (static_vector_space_descriptor<T_d>)
+      static_vector_space_descriptor_traits<T_d>::set_wrapped_component(s, g, x, local_index, start);
     else
       dynamic_vector_space_descriptor_traits<T_d>{t}.set_wrapped_component(s, g, x, local_index, start);
   }

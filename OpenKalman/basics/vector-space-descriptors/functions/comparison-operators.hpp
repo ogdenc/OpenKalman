@@ -32,7 +32,7 @@ namespace OpenKalman::vector_space_descriptors
   template<vector_space_descriptor A, vector_space_descriptor B>
   constexpr auto operator<=>(const A& a, const B& b)
   {
-    if constexpr (fixed_vector_space_descriptor<A> and fixed_vector_space_descriptor<B>)
+    if constexpr (static_vector_space_descriptor<A> and static_vector_space_descriptor<B>)
     {
       if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
         return dimension_size_of_v<A> <=> dimension_size_of_v<B>;
@@ -68,7 +68,7 @@ namespace OpenKalman::vector_space_descriptors
   template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B>, int> = 0>
   constexpr bool operator==(const A& a, const B& b)
   {
-    if constexpr (fixed_vector_space_descriptor<A> and fixed_vector_space_descriptor<B>)
+    if constexpr (static_vector_space_descriptor<A> and static_vector_space_descriptor<B>)
       return equivalent_to<A, B>;
     else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
       return static_cast<std::size_t>(get_dimension_size_of(a)) == static_cast<std::size_t>(get_dimension_size_of(b));
@@ -79,7 +79,7 @@ namespace OpenKalman::vector_space_descriptors
   template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B>, int> = 0>
   constexpr bool operator<=(const A& a, const B& b)
   {
-    if constexpr (fixed_vector_space_descriptor<A> and fixed_vector_space_descriptor<B>)
+    if constexpr (static_vector_space_descriptor<A> and static_vector_space_descriptor<B>)
       return internal::prefix_of<A, B>;
     else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
       return static_cast<std::size_t>(get_dimension_size_of(a)) <= static_cast<std::size_t>(get_dimension_size_of(b));
@@ -90,7 +90,7 @@ namespace OpenKalman::vector_space_descriptors
   template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B>, int> = 0>
   constexpr bool operator>=(const A& a, const B& b)
   {
-    if constexpr (fixed_vector_space_descriptor<A> and fixed_vector_space_descriptor<B>)
+    if constexpr (static_vector_space_descriptor<A> and static_vector_space_descriptor<B>)
       return internal::prefix_of<B, A>;
     else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
       return static_cast<std::size_t>(get_dimension_size_of(a)) >= static_cast<std::size_t>(get_dimension_size_of(b));

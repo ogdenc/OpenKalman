@@ -37,9 +37,9 @@ namespace
   using Mx2 = eigen_matrix_t<double, dynamic_size_v, 2>;
   using Mxx = eigen_matrix_t<double, dynamic_size_v, dynamic_size_v>;
 
-  using Car = FixedDescriptor<Axis, angle::Radians>;
-  using Cra = FixedDescriptor<angle::Radians, Axis>;
-  using Cara = FixedDescriptor<Axis, angle::Radians, Axis>;
+  using Car = StaticDescriptor<Axis, angle::Radians>;
+  using Cra = StaticDescriptor<angle::Radians, Axis>;
+  using Cara = StaticDescriptor<Axis, angle::Radians, Axis>;
 
   using To23 = ToEuclideanExpr<Car, M23>;
   using To32 = ToEuclideanExpr<Cara, M32>;
@@ -150,7 +150,7 @@ TEST(special_matrices, ToEuclideanExpr_subscripts)
   EXPECT_EQ(e1[0], 3);
   EXPECT_NEAR(e1(1), std::sqrt(2.)/2, 1e-6);
   EXPECT_NEAR(e1(2), std::sqrt(2.)/2, 1e-6);
-  ToEuclideanExpr<FixedDescriptor<Dimensions<2>>, eigen_matrix_t<double, 2, 2>> e2 = {1, 2, 3, 4};
+  ToEuclideanExpr<StaticDescriptor<Dimensions<2>>, eigen_matrix_t<double, 2, 2>> e2 = {1, 2, 3, 4};
   e2(0,0) = 5;
   EXPECT_EQ(e2(0, 0), 5);
   e2(0,1) = 6;
@@ -201,10 +201,10 @@ TEST(special_matrices, ToEuclideanExpr_overloads)
 
   auto m33_to_ra = make_dense_writable_matrix_from<M33>(std::cos(1.), std::cos(2.), std::cos(3.), std::sin(1.), std::sin(2.), std::sin(3.), 4, 5, 6);
 
-  EXPECT_TRUE(is_near(to_euclidean<FixedDescriptor<angle::Radians, Axis>>(m23), m33_to_ra));
-  //EXPECT_TRUE(is_near(to_euclidean<FixedDescriptor<angle::Radians, Axis>>(m2x_3), m33_to_ra)); \todo
-  //EXPECT_TRUE(is_near(to_euclidean<FixedDescriptor<angle::Radians, Axis>>(mx3_2), m33_to_ra));
-  //EXPECT_TRUE(is_near(to_euclidean<FixedDescriptor<angle::Radians, Axis>>(mxx_23), m33_to_ra));
+  EXPECT_TRUE(is_near(to_euclidean<StaticDescriptor<angle::Radians, Axis>>(m23), m33_to_ra));
+  //EXPECT_TRUE(is_near(to_euclidean<StaticDescriptor<angle::Radians, Axis>>(m2x_3), m33_to_ra)); \todo
+  //EXPECT_TRUE(is_near(to_euclidean<StaticDescriptor<angle::Radians, Axis>>(mx3_2), m33_to_ra));
+  //EXPECT_TRUE(is_near(to_euclidean<StaticDescriptor<angle::Radians, Axis>>(mxx_23), m33_to_ra));
 
   ConstantAdapter<eigen_matrix_t<double, 3, 4>, 5> c534 {};
   ConstantAdapter<eigen_matrix_t<double, 3, dynamic_size_v>, 5> c530_4 {4};
@@ -223,14 +223,14 @@ TEST(special_matrices, ToEuclideanExpr_overloads)
   auto m44_to_raa = make_dense_writable_matrix_from<M44>(std::cos(5.), std::cos(5.), std::cos(5.), std::cos(5.),
     std::sin(5.), std::sin(5.), std::sin(5.), std::sin(5), 5, 5, 5, 5, 5, 5, 5, 5);
 
-  EXPECT_TRUE(is_near(to_euclidean<FixedDescriptor<angle::Radians, Axis, Axis>>(c534), m44_to_raa));
-  EXPECT_TRUE(is_near(to_euclidean<FixedDescriptor<angle::Radians, Axis, Axis>>(c530_4), m44_to_raa));
-  EXPECT_TRUE(is_near(to_euclidean<FixedDescriptor<angle::Radians, Axis, Axis>>(c504_3), m44_to_raa));
-  EXPECT_TRUE(is_near(to_euclidean<FixedDescriptor<angle::Radians, Axis, Axis>>(c500_34), m44_to_raa));
-  //EXPECT_TRUE(is_near(to_euclidean(DynamicTypedIndex {FixedDescriptor<angle::Radians, Axis, Axis>{}}, c534), m44_to_raa));
-  //EXPECT_TRUE(is_near(to_euclidean(DynamicTypedIndex {FixedDescriptor<angle::Radians, Axis, Axis>{}}, c530_4), m44_to_raa));
-  //EXPECT_TRUE(is_near(to_euclidean(DynamicTypedIndex {FixedDescriptor<angle::Radians, Axis, Axis>{}}, c504_3), m44_to_raa));
-  //EXPECT_TRUE(is_near(to_euclidean(DynamicTypedIndex {FixedDescriptor<angle::Radians, Axis, Axis>{}}, c500_34), m44_to_raa));
+  EXPECT_TRUE(is_near(to_euclidean<StaticDescriptor<angle::Radians, Axis, Axis>>(c534), m44_to_raa));
+  EXPECT_TRUE(is_near(to_euclidean<StaticDescriptor<angle::Radians, Axis, Axis>>(c530_4), m44_to_raa));
+  EXPECT_TRUE(is_near(to_euclidean<StaticDescriptor<angle::Radians, Axis, Axis>>(c504_3), m44_to_raa));
+  EXPECT_TRUE(is_near(to_euclidean<StaticDescriptor<angle::Radians, Axis, Axis>>(c500_34), m44_to_raa));
+  //EXPECT_TRUE(is_near(to_euclidean(DynamicTypedIndex {StaticDescriptor<angle::Radians, Axis, Axis>{}}, c534), m44_to_raa));
+  //EXPECT_TRUE(is_near(to_euclidean(DynamicTypedIndex {StaticDescriptor<angle::Radians, Axis, Axis>{}}, c530_4), m44_to_raa));
+  //EXPECT_TRUE(is_near(to_euclidean(DynamicTypedIndex {StaticDescriptor<angle::Radians, Axis, Axis>{}}, c504_3), m44_to_raa));
+  //EXPECT_TRUE(is_near(to_euclidean(DynamicTypedIndex {StaticDescriptor<angle::Radians, Axis, Axis>{}}, c500_34), m44_to_raa));
 
   ZeroAdapter<eigen_matrix_t<double, 2, 3>> z23;
   ZeroAdapter<eigen_matrix_t<double, 2, dynamic_size_v>> z20_3 {3};
@@ -244,15 +244,15 @@ TEST(special_matrices, ToEuclideanExpr_overloads)
 
   auto z33 = ZeroAdapter<eigen_matrix_t<double, 3, 3>> {};
 
-  EXPECT_TRUE(is_near(to_euclidean<Axis, FixedDescriptor<angle::Radians>>(z23), z33));
-  EXPECT_TRUE(is_near(to_euclidean<Axis, FixedDescriptor<angle::Radians>>(z20_3), z33));
-  EXPECT_TRUE(is_near(to_euclidean<Axis, FixedDescriptor<angle::Radians>>(z03_2), z33));
-  EXPECT_TRUE(is_near(to_euclidean<Axis, FixedDescriptor<angle::Radians>>(z00_23), z33));
+  EXPECT_TRUE(is_near(to_euclidean<Axis, StaticDescriptor<angle::Radians>>(z23), z33));
+  EXPECT_TRUE(is_near(to_euclidean<Axis, StaticDescriptor<angle::Radians>>(z20_3), z33));
+  EXPECT_TRUE(is_near(to_euclidean<Axis, StaticDescriptor<angle::Radians>>(z03_2), z33));
+  EXPECT_TRUE(is_near(to_euclidean<Axis, StaticDescriptor<angle::Radians>>(z00_23), z33));
 
   EXPECT_TRUE(is_near(from_euclidean(To32 {1, 2, 2*pi + pi/6, -4*pi + pi/3, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
   EXPECT_TRUE(is_near(from_euclidean<Cara>(To32 {1, 2, 2*pi + pi/6, -4*pi + pi/3, 3, 4}), mat3(1, 2, pi/6, pi/3, 3, 4)));
 
-  EXPECT_TRUE(is_near(to_diagonal(ToEuclideanExpr<Cara, eigen_matrix_t<double, 3, 1>>{1, pi/6, 3}), DiagonalMatrix {1., std::sqrt(3)/2, 0.5, 3}));
+  EXPECT_TRUE(is_near(to_diagonal(ToEuclideanExpr<Cara, eigen_matrix_t<double, 3, 1>>{1, pi/6, 3}), DiagonalAdapter {1., std::sqrt(3)/2, 0.5, 3}));
 
   EXPECT_TRUE(is_near(diagonal_of(To23 {1, 2, 3, pi/6, pi/3, pi/4}), make_eigen_matrix<double, 3, 1>(1, 0.5, std::sqrt(2.)/2)));
   EXPECT_TRUE(is_near(transpose(To32 {1, 2, pi/6, pi/3, 3, 4}), make_eigen_matrix<double, 2, 4>(1, std::sqrt(3)/2, 0.5, 3, 2, 0.5, std::sqrt(3)/2, 4)));
@@ -312,7 +312,7 @@ TEST(special_matrices, ToEuclideanExpr_blocks)
   EXPECT_TRUE(is_near(split_vertical(
     ToEuclideanExpr<Car, eigen_matrix_t<double, 2, 2>> {1., 2, pi/6, pi/3}), std::tuple {}));
   EXPECT_TRUE(is_near(split_vertical<3, 3>(
-    ToEuclideanExpr<FixedDescriptor<Axis, angle::Radians, angle::Radians, Axis>, eigen_matrix_t<double, 4, 3>> {
+    ToEuclideanExpr<StaticDescriptor<Axis, angle::Radians, angle::Radians, Axis>, eigen_matrix_t<double, 4, 3>> {
       1., 2, 3,
       pi/6, pi/3, pi/4,
       pi/4, pi/3, pi/6,
@@ -325,7 +325,7 @@ TEST(special_matrices, ToEuclideanExpr_blocks)
                  std::sqrt(2)/2, 0.5, std::sqrt(3)/2,
                  std::sqrt(2)/2, std::sqrt(3)/2, 0.5,
                  4, 5, 6)}));
-  auto a1 = ToEuclideanExpr<FixedDescriptor<Polar<>, angle::Radians, Axis>, eigen_matrix_t<double, 4, 3>> {
+  auto a1 = ToEuclideanExpr<StaticDescriptor<Polar<>, angle::Radians, Axis>, eigen_matrix_t<double, 4, 3>> {
     1., 2, 3,
     pi/6, pi/3, pi/4,
     pi/4, pi/3, pi/6,
@@ -340,7 +340,7 @@ TEST(special_matrices, ToEuclideanExpr_blocks)
                  std::sqrt(2)/2, std::sqrt(3)/2, 0.5,
                  4, 5, 6)}));
   EXPECT_TRUE(is_near(split_vertical<3, 2>(
-    ToEuclideanExpr<FixedDescriptor<Axis, angle::Radians, angle::Radians, Axis>, eigen_matrix_t<double, 4, 3>> {
+    ToEuclideanExpr<StaticDescriptor<Axis, angle::Radians, angle::Radians, Axis>, eigen_matrix_t<double, 4, 3>> {
       1., 2, 3,
       pi/6, pi/3, pi/4,
       pi/4, pi/3, pi/6,
@@ -354,7 +354,7 @@ TEST(special_matrices, ToEuclideanExpr_blocks)
         std::sqrt(2)/2, 0.5, std::sqrt(3)/2,
         std::sqrt(2)/2, std::sqrt(3)/2, 0.5)}));
   EXPECT_TRUE(is_near(split_vertical<Car, Cra>(
-    ToEuclideanExpr<FixedDescriptor<Axis, angle::Radians, angle::Radians, Axis>, eigen_matrix_t<double, 4, 3>> {
+    ToEuclideanExpr<StaticDescriptor<Axis, angle::Radians, angle::Radians, Axis>, eigen_matrix_t<double, 4, 3>> {
       1., 2, 3,
       pi/6, pi/3, pi/4,
       pi/4, pi/3, pi/6,
@@ -367,8 +367,8 @@ TEST(special_matrices, ToEuclideanExpr_blocks)
                  std::sqrt(2)/2, 0.5, std::sqrt(3)/2,
                  std::sqrt(2)/2, std::sqrt(3)/2, 0.5,
                  4, 5, 6)}));
-  EXPECT_TRUE(is_near(split_vertical<Car, FixedDescriptor<angle::Radians>>(
-    ToEuclideanExpr<FixedDescriptor<Axis, angle::Radians, angle::Radians, Axis>, eigen_matrix_t<double, 4, 3>> {
+  EXPECT_TRUE(is_near(split_vertical<Car, StaticDescriptor<angle::Radians>>(
+    ToEuclideanExpr<StaticDescriptor<Axis, angle::Radians, angle::Radians, Axis>, eigen_matrix_t<double, 4, 3>> {
       1., 2, 3,
       pi/6, pi/3, pi/4,
       pi/4, pi/3, pi/6,
@@ -521,7 +521,7 @@ TEST(special_matrices, ToEuclideanExpr_arithmetic)
   EXPECT_TRUE(is_near(2 * To32 {1, 2, pi/6, pi/3, 3, 4}, mat4(2, 4, std::sqrt(3), 1, 1, std::sqrt(3), 6, 8)));
   EXPECT_TRUE(is_near(To32 {1, 2, pi/6, pi/3, 3, 4} / 2, mat4(0.5, 1, std::sqrt(3)/4, 0.25, 0.25, std::sqrt(3)/4, 1.5, 2)));
   EXPECT_TRUE(is_near(-To32 {1, 2, pi/6, pi/3, 3, 4}, mat4(-1, -2, -std::sqrt(3)/2, -0.5, -0.5, -std::sqrt(3)/2, -3, -4)));
-  EXPECT_TRUE(is_near(To32 {1, 2, pi/6, pi/3, 3, 4} * DiagonalMatrix {1., 2}, mat4(1, 4, std::sqrt(3)/2, 1, 0.5, std::sqrt(3), 3, 8)));
+  EXPECT_TRUE(is_near(To32 {1, 2, pi/6, pi/3, 3, 4} * DiagonalAdapter {1., 2}, mat4(1, 4, std::sqrt(3)/2, 1, 0.5, std::sqrt(3), 3, 8)));
 }
 
 

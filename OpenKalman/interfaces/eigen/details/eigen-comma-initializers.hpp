@@ -27,7 +27,7 @@ namespace Eigen
   {
     using Base = CommaInitializer<XprType>;
     using Scalar = OpenKalman::scalar_type_of_t<XprType>;
-    using FixedDescriptor = OpenKalman::vector_space_descriptor_of_t<Derived, 0>;
+    using StaticDescriptor = OpenKalman::vector_space_descriptor_of_t<Derived, 0>;
     using Base::Base;
 
     template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
@@ -39,19 +39,19 @@ namespace Eigen
 
     ~MeanCommaInitializer()
     {
-      this->m_xpr = OpenKalman::wrap_angles<FixedDescriptor>(Base::finished());
+      this->m_xpr = OpenKalman::wrap_angles<StaticDescriptor>(Base::finished());
     }
 
     auto& finished()
     {
-      this->m_xpr = OpenKalman::wrap_angles<FixedDescriptor>(Base::finished());
+      this->m_xpr = OpenKalman::wrap_angles<StaticDescriptor>(Base::finished());
       return this->m_xpr;
     }
   };
 
 
   /**
-   * \brief Version of Eigen::CommaInitializer for diagonal versions of SelfAdjointMatrix and TriangularMatrix.
+   * \brief Version of Eigen::CommaInitializer for diagonal versions of HermitianAdapter and TriangularAdapter.
    */
   template<typename XprType>
   struct DiagonalCommaInitializer
@@ -105,12 +105,12 @@ namespace Eigen
 
     ~DiagonalCommaInitializer()
     {
-      diag = OpenKalman::DiagonalMatrix<NestedMatrix>(comma_initializer.finished());
+      diag = OpenKalman::DiagonalAdapter<NestedMatrix>(comma_initializer.finished());
     }
 
     auto& finished()
     {
-      diag = OpenKalman::DiagonalMatrix<NestedMatrix>(comma_initializer.finished());
+      diag = OpenKalman::DiagonalAdapter<NestedMatrix>(comma_initializer.finished());
       return diag;
     }
   };

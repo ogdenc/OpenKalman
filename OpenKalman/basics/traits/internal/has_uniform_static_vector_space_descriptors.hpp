@@ -11,7 +11,7 @@
 /**
  * \file
  * \internal
- * \brief Definition for \ref has_uniform_fixed_vector_space_descriptors function.
+ * \brief Definition for \ref has_uniform_static_vector_space_descriptors function.
  */
 
 #ifndef OPENKALMAN_HAS_UNIFORM_FIXED_VECTOR_SPACE_DESCRIPTORS_HPP
@@ -24,7 +24,7 @@ namespace OpenKalman::internal
     template<typename Arg, std::size_t...Is>
     constexpr bool indices_are_uniform_impl(std::index_sequence<Is...>)
     {
-      return (... and uniform_fixed_vector_space_descriptor<vector_space_descriptor_of_t<Arg, Is>>);
+      return (... and uniform_static_vector_space_descriptor<vector_space_descriptor_of_t<Arg, Is>>);
     }
   } // namespace detail
 
@@ -36,9 +36,9 @@ namespace OpenKalman::internal
    */
   template<typename Arg, std::size_t...indices>
 #ifdef __cpp_concepts
-  concept has_uniform_fixed_vector_space_descriptors =
+  concept has_uniform_static_vector_space_descriptors =
 #else
-  constexpr bool has_uniform_fixed_vector_space_descriptors =
+  constexpr bool has_uniform_static_vector_space_descriptors =
 #endif
     indexible<Arg> and
     (sizeof...(indices) == 0 or detail::indices_are_uniform_impl<Arg>(std::index_sequence<indices...>{})) and

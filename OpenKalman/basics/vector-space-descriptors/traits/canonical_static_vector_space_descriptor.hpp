@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref canonical_fixed_vector_space_descriptor.
+ * \brief Definition for \ref canonical_static_vector_space_descriptor.
  */
 
 #ifndef OPENKALMAN_CANONICAL_FIXED_VECTOR_SPACE_DESCRIPTOR_HPP
@@ -22,34 +22,34 @@
 namespace OpenKalman
 {
 #ifdef __cpp_concepts
-  template<atomic_fixed_vector_space_descriptor C>
-  struct canonical_fixed_vector_space_descriptor<C>
+  template<atomic_static_vector_space_descriptor C>
+  struct canonical_static_vector_space_descriptor<C>
 #else
   template<typename C>
-  struct canonical_fixed_vector_space_descriptor<C, std::enable_if_t<atomic_fixed_vector_space_descriptor<C>>>
+  struct canonical_static_vector_space_descriptor<C, std::enable_if_t<atomic_static_vector_space_descriptor<C>>>
 #endif
   {
     using type = std::conditional_t<
       euclidean_vector_space_descriptor<C>,
       std::conditional_t<
         dimension_size_of_v<C> == 1,
-        FixedDescriptor<Dimensions<1>>,
-        replicate_fixed_vector_space_descriptor_t<Dimensions<1>, dimension_size_of_v<C>>>,
-      FixedDescriptor<C>>;
+        StaticDescriptor<Dimensions<1>>,
+        replicate_static_vector_space_descriptor_t<Dimensions<1>, dimension_size_of_v<C>>>,
+      StaticDescriptor<C>>;
   };
 
 
   template<typename...Cs>
-  struct canonical_fixed_vector_space_descriptor<FixedDescriptor<FixedDescriptor<Cs...>>>
+  struct canonical_static_vector_space_descriptor<StaticDescriptor<StaticDescriptor<Cs...>>>
   {
-    using type = typename canonical_fixed_vector_space_descriptor<FixedDescriptor<Cs...>>::type;
+    using type = typename canonical_static_vector_space_descriptor<StaticDescriptor<Cs...>>::type;
   };
 
 
   template<typename...Cs>
-  struct canonical_fixed_vector_space_descriptor<FixedDescriptor<Cs...>>
+  struct canonical_static_vector_space_descriptor<StaticDescriptor<Cs...>>
   {
-    using type = concatenate_fixed_vector_space_descriptor_t<typename canonical_fixed_vector_space_descriptor<Cs>::type...>;
+    using type = concatenate_static_vector_space_descriptor_t<typename canonical_static_vector_space_descriptor<Cs>::type...>;
   };
 
 

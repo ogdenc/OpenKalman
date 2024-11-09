@@ -26,19 +26,19 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible Arg, vector_space_descriptor D0, vector_space_descriptor D1> requires
-    (not fixed_vector_space_descriptor<D0> or not fixed_vector_space_descriptor<D1> or internal::prefix_of<D0, D1> or internal::prefix_of<D1, D0>) and
+    (not static_vector_space_descriptor<D0> or not static_vector_space_descriptor<D1> or internal::prefix_of<D0, D1> or internal::prefix_of<D1, D0>) and
     (dynamic_dimension<Arg, 0> or maybe_equivalent_to<vector_space_descriptor_of<Arg, 0>, D0> or maybe_equivalent_to<vector_space_descriptor_of<Arg, 0>, D1>)
   constexpr diagonal_matrix auto
 #else
   template<typename Arg, typename D0, typename D1, std::enable_if_t<
     indexible<Arg> and vector_space_descriptor<D0> and vector_space_descriptor<D1> and
-      (not fixed_vector_space_descriptor<D0> or not fixed_vector_space_descriptor<D1> or internal::prefix_of<D0, D1> or internal::prefix_of<D1, D0>) and
+      (not static_vector_space_descriptor<D0> or not static_vector_space_descriptor<D1> or internal::prefix_of<D0, D1> or internal::prefix_of<D1, D0>) and
       (dynamic_dimension<Arg, 0> or maybe_equivalent_to<vector_space_descriptor_of<Arg, 0>, D0> or maybe_equivalent_to<vector_space_descriptor_of<Arg, 0>, D1>), int> = 0>
   constexpr auto
 #endif
   make_diagonal_matrix(Arg&& arg, D0&& d0, D1&& d1)
   {
-    return DiagonalMatrix {std::forward<Arg>(arg), std::forward<D0>(d0), std::forward<D1>(d1)};
+    return DiagonalAdapter {std::forward<Arg>(arg), std::forward<D0>(d0), std::forward<D1>(d1)};
   }
 
 
@@ -57,7 +57,7 @@ namespace OpenKalman
   make_diagonal_matrix(Arg&& arg)
   {
     auto d = get_vector_space_descriptor<0>(arg);
-    return DiagonalMatrix {std::forward<Arg>(arg), d, d};
+    return DiagonalAdapter {std::forward<Arg>(arg), d, d};
   }
 
 } // namespace OpenKalman

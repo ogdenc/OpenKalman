@@ -17,10 +17,12 @@
 #ifndef OPENKALMAN_ELEMENT_FUNCTIONS_HPP
 #define OPENKALMAN_ELEMENT_FUNCTIONS_HPP
 
+#include <algorithm>
+#include <stdexcept>
+#include <vector>
 #if defined(__cpp_lib_ranges) and not defined (__clang__)
-#include<ranges>
+#include <ranges>
 #endif
-#include<algorithm>
 
 namespace OpenKalman::internal
 {

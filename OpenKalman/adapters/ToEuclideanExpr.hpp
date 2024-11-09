@@ -301,10 +301,10 @@ namespace OpenKalman
       // fill_components not necessary because T is not a dense writable matrix.
 
 
-      template<typename C, typename...D>
-      static constexpr auto make_constant(C&& c, D&&...d)
+      template<typename C, typename D>
+      static constexpr auto make_constant(C&& c, D&& d)
       {
-        return make_constant<nested_object_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
+        return make_constant<nested_object_of_t<T>>(std::forward<C>(c), std::forward<D>(d));
       }
 
 
@@ -379,40 +379,11 @@ namespace OpenKalman
       }
 
 
-#ifdef __cpp_concepts
-      template<from_euclidean_expr Arg>
-#else
-      template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg>, int> = 0>
-#endif
-      constexpr decltype(auto)
-      to_euclidean(Arg&& arg)
-      {
-        return nested_object(std::forward<Arg>(arg));
-      }
+      // to_euclidean not included
 
+      // from_duclidean not included
 
-#ifdef __cpp_concepts
-      template<to_euclidean_expr Arg>
-#else
-      template<typename Arg, std::enable_if_t<to_euclidean_expr<Arg>, int> = 0>
-#endif
-      constexpr decltype(auto)
-      from_euclidean(Arg&& arg)
-      {
-        return FromEuclideanExpr<Arg> {std::forward<Arg>(arg)};
-      }
-
-
-#ifdef __cpp_concepts
-      template<from_euclidean_expr Arg>
-#else
-      template<typename Arg, std::enable_if_t<from_euclidean_expr<Arg>, int> = 0>
-#endif
-      constexpr decltype(auto)
-      wrap_angles(Arg&& arg)
-      {
-        return std::forward<Arg>(arg);
-      }
+      // wrap_angles not included
 
 
       template<typename Arg>

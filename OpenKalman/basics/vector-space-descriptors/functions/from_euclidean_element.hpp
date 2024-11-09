@@ -40,8 +40,8 @@ namespace OpenKalman
     using T_d = std::decay_t<decltype(t)>;
     if constexpr (euclidean_vector_space_descriptor<T_d>)
       return g(euclidean_start + local_index);
-    else if constexpr (fixed_vector_space_descriptor<T_d>)
-      return fixed_vector_space_descriptor_traits<T_d>::from_euclidean_element(g, local_index, euclidean_start);
+    else if constexpr (static_vector_space_descriptor<T_d>)
+      return static_vector_space_descriptor_traits<T_d>::from_euclidean_element(g, local_index, euclidean_start);
     else
       return dynamic_vector_space_descriptor_traits<T_d>{t}.from_euclidean_element(g, local_index, euclidean_start);
   }

@@ -33,50 +33,50 @@ namespace OpenKalman::internal
 
 
 #ifdef __cpp_concepts
-    template<atomic_fixed_vector_space_descriptor C>
+    template<atomic_static_vector_space_descriptor C>
     struct split_head_tail_fixed_impl<C>
 #else
     template<typename C>
-    struct split_head_tail_fixed_impl<C, std::enable_if_t<atomic_fixed_vector_space_descriptor<C>>>
+    struct split_head_tail_fixed_impl<C, std::enable_if_t<atomic_static_vector_space_descriptor<C>>>
 #endif
     {
-      using type = std::tuple<C, FixedDescriptor<>>;
+      using type = std::tuple<C, StaticDescriptor<>>;
     };
 
 
     template<typename C>
-    struct split_head_tail_fixed_impl<FixedDescriptor<C>>
+    struct split_head_tail_fixed_impl<StaticDescriptor<C>>
     {
-      using type = std::tuple<C, FixedDescriptor<>>;
+      using type = std::tuple<C, StaticDescriptor<>>;
     };
 
 
     template<typename C0, typename C1>
-    struct split_head_tail_fixed_impl<FixedDescriptor<C0, C1>>
+    struct split_head_tail_fixed_impl<StaticDescriptor<C0, C1>>
     {
       using type = std::tuple<C0, C1>;
     };
 
 
     template<typename C0, typename C1, typename...Cs>
-    struct split_head_tail_fixed_impl<FixedDescriptor<C0, C1, Cs...>>
+    struct split_head_tail_fixed_impl<StaticDescriptor<C0, C1, Cs...>>
     {
-      using type = std::tuple<C0, FixedDescriptor<C1, Cs...>>;
+      using type = std::tuple<C0, StaticDescriptor<C1, Cs...>>;
     };
 
   } // namespace detail
 
 
   /**
-   * \brief Split a \ref fixed_vector_space_descriptor into head and tail components.
-   * \detail T is first converted to its \ref canonical_fixed_vector_space_descriptor "canonical" form.
+   * \brief Split a \ref static_vector_space_descriptor into head and tail components.
+   * \detail T is first converted to its \ref canonical_static_vector_space_descriptor "canonical" form.
    * Member alias <code>head</code> will reflect the head type and
    * member alias <code>tail</code> will reflect the tail type.
    * The above aliases are undefined for an empty vector space descriptor.
-   * \tparam T A \ref fixed_vector_space_descriptor
+   * \tparam T A \ref static_vector_space_descriptor
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor T>
+  template<static_vector_space_descriptor T>
 #else
   template<typename T, typename = void>
 #endif
@@ -84,20 +84,20 @@ namespace OpenKalman::internal
 
 
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor T>
+  template<static_vector_space_descriptor T>
   struct split_head_tail_fixed
 #else
   template<typename T>
-  struct split_head_tail_fixed<T, std::enable_if_t<fixed_vector_space_descriptor<T>>>
+  struct split_head_tail_fixed<T, std::enable_if_t<static_vector_space_descriptor<T>>>
 #endif
-    : detail::split_head_tail_fixed_impl<canonical_fixed_vector_space_descriptor_t<T>> {};
+    : detail::split_head_tail_fixed_impl<canonical_static_vector_space_descriptor_t<T>> {};
 
 
   /**
    * \brief Helper template for \ref split_head_tail_fixed.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor T>
+  template<static_vector_space_descriptor T>
 #else
   template<typename T>
 #endif

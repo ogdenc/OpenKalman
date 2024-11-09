@@ -21,7 +21,7 @@ namespace OpenKalman
 {
   /**
    * \brief Specifies that T has an untyped index N.
-   * \details Index N of T is Euclidean and non-modular (e.g., Axis, FixedDescriptor<Axis, Axis>, etc.).
+   * \details Index N of T is Euclidean and non-modular (e.g., Axis, StaticDescriptor<Axis, Axis>, etc.).
    */
 #ifdef __cpp_concepts
   template<typename T, std::size_t N>

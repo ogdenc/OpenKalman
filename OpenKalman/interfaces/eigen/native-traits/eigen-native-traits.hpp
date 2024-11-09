@@ -52,18 +52,18 @@ namespace Eigen::internal
 
 
   template<typename NestedObject, OpenKalman::HermitianAdapterType storage_triangle>
-  struct traits<OpenKalman::SelfAdjointMatrix<NestedObject, storage_triangle>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::SelfAdjointMatrix<NestedObject, storage_triangle>> {};
+  struct traits<OpenKalman::HermitianAdapter<NestedObject, storage_triangle>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::HermitianAdapter<NestedObject, storage_triangle>> {};
 
 
   template<typename NestedObject, OpenKalman::TriangleType triangle_type>
-  struct traits<OpenKalman::TriangularMatrix<NestedObject, triangle_type>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::TriangularMatrix<NestedObject, triangle_type>> {};
+  struct traits<OpenKalman::TriangularAdapter<NestedObject, triangle_type>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::TriangularAdapter<NestedObject, triangle_type>> {};
 
 
   template<typename NestedObject>
-  struct traits<OpenKalman::DiagonalMatrix<NestedObject>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::DiagonalMatrix<NestedObject>> {};
+  struct traits<OpenKalman::DiagonalAdapter<NestedObject>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::DiagonalAdapter<NestedObject>> {};
 
 
   template<typename NestedObject>
@@ -81,9 +81,9 @@ namespace Eigen::internal
   
   
 
-  template<typename FixedDescriptor, typename NestedObject>
-  struct traits<OpenKalman::Mean<FixedDescriptor, NestedObject>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::Mean<FixedDescriptor, NestedObject>> {};
+  template<typename StaticDescriptor, typename NestedObject>
+  struct traits<OpenKalman::Mean<StaticDescriptor, NestedObject>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::Mean<StaticDescriptor, NestedObject>> {};
 
 
   template<typename RowCoefficients, typename ColumnCoefficients, typename ArgType>
@@ -96,14 +96,14 @@ namespace Eigen::internal
     : traits<std::decay_t<NestedObject>> {};
 
 
-  template<typename FixedDescriptor, typename NestedObject>
-  struct traits<OpenKalman::Covariance<FixedDescriptor, NestedObject>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::Covariance<FixedDescriptor, NestedObject>> {};
+  template<typename StaticDescriptor, typename NestedObject>
+  struct traits<OpenKalman::Covariance<StaticDescriptor, NestedObject>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::Covariance<StaticDescriptor, NestedObject>> {};
 
 
-  template<typename FixedDescriptor, typename NestedObject>
-  struct traits<OpenKalman::SquareRootCovariance<FixedDescriptor, NestedObject>>
-    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::SquareRootCovariance<FixedDescriptor, NestedObject>> {};
+  template<typename StaticDescriptor, typename NestedObject>
+  struct traits<OpenKalman::SquareRootCovariance<StaticDescriptor, NestedObject>>
+    : OpenKalman::Eigen3::internal::native_traits<OpenKalman::SquareRootCovariance<StaticDescriptor, NestedObject>> {};
 
 
 }

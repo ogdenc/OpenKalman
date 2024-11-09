@@ -21,7 +21,7 @@ namespace OpenKalman
 {
   /**
    * \brief A wrapper type's nested object type, if it exists.
-   * \details For example, for OpenKalman::TriangularMatrix<M, TriangleType::lower>, the nested object type is M.
+   * \details For example, for OpenKalman::TriangularAdapter<M, TriangleType::lower>, the nested object type is M.
    * \tparam T A wrapper type that has a nested object.
    * \internal \sa interface::indexible_object_traits
    */

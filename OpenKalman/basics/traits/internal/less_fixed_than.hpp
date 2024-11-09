@@ -39,25 +39,36 @@ namespace OpenKalman::internal
     }
 
 
-    template<typename T, typename...Ds, std::size_t...IxD>
-    static constexpr bool less_fixed_than_impl(std::index_sequence<IxD...>)
+#if not defined(__cpp_concepts) or __cpp_generic_lambdas < 201707L
+    template<typename T, typename Descriptors, std::size_t...Ix>
+    static constexpr bool less_fixed_than_impl(std::index_sequence<Ix...>)
     {
-      return ((dynamic_dimension<T, IxD> and fixed_vector_space_descriptor<Ds>) or ... or an_extended_dim_is_dynamic<T, sizeof...(IxD)>());
+      return ((dynamic_dimension<T, Ix> and static_vector_space_descriptor<std::tuple_element_t<Ix, Descriptors>>) or ... or
+        an_extended_dim_is_dynamic<T, sizeof...(Ix)>());
     }
+#endif
   } // namespace detail
 
 
   /**
-   * \brief \ref indexible T's vector space descriptors are less fixed than the set Ds, for at least one Ds.
+   * \brief \ref indexible T's vector space descriptors are less fixed than the at least one of the specified \ref vectors_space_descriptor_collection.
    */
-  template<typename T, typename...Ds>
-#ifdef __cpp_concepts
+  template<typename T, typename Descriptors>
+#if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
   concept less_fixed_than =
+    indexible<T> and vector_space_descriptor_collection<Descriptors> and
+      (not vector_space_descriptor_tuple<Descriptors> or
+        []<std::size_t...Ix>(std::index_sequence<Ix...>)
+          { return ((dynamic_dimension<T, Ix> and static_vector_space_descriptor<std::tuple_element_t<Ix, Descriptors>>) or ... or
+              detail::an_extended_dim_is_dynamic<T, sizeof...(Ix)>()); }
+          (std::make_index_sequence<std::tuple_size_v<Descriptors>>{}));
 #else
   constexpr bool less_fixed_than =
+    indexible<T> and vector_space_descriptor_collection<Descriptors> and
+    (not vector_space_descriptor_tuple<Descriptors> or
+      detail::less_fixed_than_impl<T, Descriptors>(std::make_index_sequence<std::tuple_size_v<Descriptors>>{}));
 #endif
-    indexible<T> and (vector_space_descriptor<Ds> and ...) and
-      detail::less_fixed_than_impl<T, Ds...>(std::index_sequence_for<Ds...>{});
+
 
 } // namespace OpenKalman::internal
 

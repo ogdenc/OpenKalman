@@ -14,14 +14,14 @@ using namespace OpenKalman;
 using namespace OpenKalman::test;
 
 using M2 = eigen_matrix_t<double, 2, 2>;
-using C = FixedDescriptor<angle::Radians, Axis>;
+using C = StaticDescriptor<angle::Radians, Axis>;
 using Mat2 = Matrix<C, C, M2>;
 using Mat2col = Matrix<C, Axis, eigen_matrix_t<double, 2, 1>>;
-using SA2l = SelfAdjointMatrix<M2, TriangleType::lower>;
-using SA2u = SelfAdjointMatrix<M2, TriangleType::upper>;
-using T2l = TriangularMatrix<M2, TriangleType::lower>;
-using T2u = TriangularMatrix<M2, TriangleType::upper>;
-using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
+using SA2l = HermitianAdapter<M2, TriangleType::lower>;
+using SA2u = HermitianAdapter<M2, TriangleType::upper>;
+using T2l = TriangularAdapter<M2, TriangleType::lower>;
+using T2u = TriangularAdapter<M2, TriangleType::upper>;
+using D2 = DiagonalAdapter<eigen_matrix_t<double, 2, 1>>;
 using I2 = Eigen3::IdentityMatrix<eigen_matrix_t<double, 2, 2>>;
 using Z2 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>;
 using CovSA2l = Covariance<C, SA2l>;
@@ -639,7 +639,7 @@ TEST(covariance_tests, SquareRootCovariance_mult_TypedMatrix)
   using MatZ2 = Matrix<C, C, Z2>;
   auto mati2 = MatI2(i2);
   auto matz2 = MatZ2(z2);
-  using Cx = FixedDescriptor<Axis, angle::Radians>;
+  using Cx = StaticDescriptor<Axis, angle::Radians>;
   using MatI2x = Matrix<C, Cx, I2>;
   auto mati2x = MatI2x(i2);
 
@@ -766,7 +766,7 @@ TEST(covariance_tests, SquareRootCovariance_mult_scalar)
 
 TEST(covariance_tests, SquareRootCovariance_scale)
 {
-  Matrix<FixedDescriptor<angle::Radians, Axis, angle::Radians>, C> a1 {1, 2, 3, 4, 5, 6};
+  Matrix<StaticDescriptor<angle::Radians, Axis, angle::Radians>, C> a1 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(scale(SqCovSA2l {2, 0, 1, 2}, 2), Mat2 {4, 0, 2, 4}));
   EXPECT_TRUE(is_near(scale(SqCovSA2u {2, 1, 0, 2}, 2), Mat2 {4, 2, 0, 4}));
   EXPECT_TRUE(is_near(scale(SqCovT2l {2, 0, 1, 2}, 2), Mat2 {4, 0, 2, 4}));
@@ -791,7 +791,7 @@ TEST(covariance_tests, SquareRootCovariance_scale)
 
   // Rank-deficient case
   using M3 = eigen_matrix_t<double, 3, 3>;
-  using Mat3 = Matrix<FixedDescriptor<angle::Radians, Axis, angle::Radians>, FixedDescriptor<angle::Radians, Axis, angle::Radians>, M3>;
+  using Mat3 = Matrix<StaticDescriptor<angle::Radians, Axis, angle::Radians>, StaticDescriptor<angle::Radians, Axis, angle::Radians>, M3>;
   EXPECT_TRUE(is_near(square(scale(SqCovSA2l {2, 0, 1, 2}, a1)), Mat3 {32, 72, 112, 72, 164, 256, 112, 256, 400}));
   EXPECT_TRUE(is_near(square(scale(SqCovSA2u {2, 1, 0, 2}, a1)), Mat3 {32, 72, 112, 72, 164, 256, 112, 256, 400}));
   EXPECT_TRUE(is_near(square(scale(SqCovT2l {2, 0, 1, 2}, a1)), Mat3 {32, 72, 112, 72, 164, 256, 112, 256, 400}));
@@ -804,18 +804,18 @@ TEST(covariance_tests, SquareRootCovariance_scale)
   static_assert(hermitian_adapter<decltype(scale(SqCovD2 {1, 2}, a1).get_self_adjoint_nested_matrix()), HermitianAdapterType::lower>);
 
   // Rank-sufficient case
-  using SqCovSA3l = SquareRootCovariance<FixedDescriptor<angle::Radians, Axis, angle::Radians>, SelfAdjointMatrix<M3, TriangleType::lower>>;
-  using SqCovSA3u = SquareRootCovariance<FixedDescriptor<angle::Radians, Axis, angle::Radians>, SelfAdjointMatrix<M3, TriangleType::upper>>;
-  using SqCovT3l = SquareRootCovariance<FixedDescriptor<angle::Radians, Axis, angle::Radians>, TriangularMatrix<M3, TriangleType::lower>>;
-  using SqCovT3u = SquareRootCovariance<FixedDescriptor<angle::Radians, Axis, angle::Radians>, TriangularMatrix<M3, TriangleType::upper>>;
-  using SqCovD3 = SquareRootCovariance<FixedDescriptor<angle::Radians, Axis, angle::Radians>, DiagonalMatrix<eigen_matrix_t<double, 3, 1>>>;
+  using SqCovSA3l = SquareRootCovariance<StaticDescriptor<angle::Radians, Axis, angle::Radians>, HermitianAdapter<M3, TriangleType::lower>>;
+  using SqCovSA3u = SquareRootCovariance<StaticDescriptor<angle::Radians, Axis, angle::Radians>, HermitianAdapter<M3, TriangleType::upper>>;
+  using SqCovT3l = SquareRootCovariance<StaticDescriptor<angle::Radians, Axis, angle::Radians>, TriangularAdapter<M3, TriangleType::lower>>;
+  using SqCovT3u = SquareRootCovariance<StaticDescriptor<angle::Radians, Axis, angle::Radians>, TriangularAdapter<M3, TriangleType::upper>>;
+  using SqCovD3 = SquareRootCovariance<StaticDescriptor<angle::Radians, Axis, angle::Radians>, DiagonalAdapter<eigen_matrix_t<double, 3, 1>>>;
   Mat3 q1l {4, 0, 0,
             2, 5, 0,
             2, 3, 6};
   Mat3 q1u {4, 2, 2,
             0, 5, 3,
             0, 0, 6};
-  Matrix<C, FixedDescriptor<angle::Radians, Axis, angle::Radians>> b1 {1, 2, 3, 4, 5, 6};
+  Matrix<C, StaticDescriptor<angle::Radians, Axis, angle::Radians>> b1 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(square(scale(SqCovSA3l(q1l), b1)), Mat2 {881, 1997, 1997, 4589}));
   SqCovSA3l sqcovsa3lq1l {q1l}; EXPECT_TRUE(is_near(square(scale(sqcovsa3lq1l, b1)), Mat2 {881, 1997, 1997, 4589}));
   EXPECT_TRUE(is_near(square(scale(SqCovSA3u(q1u), b1)), Mat2 {881, 1997, 1997, 4589}));
@@ -840,7 +840,7 @@ TEST(covariance_tests, TypedMatrix_mult_SquareRootCovariance)
   using MatZ2 = Matrix<C, C, Z2>;
   auto mati2 = MatI2(i2);
   auto matz2 = MatZ2(z2);
-  using Cx = FixedDescriptor<Axis, angle::Radians>;
+  using Cx = StaticDescriptor<Axis, angle::Radians>;
   using MatI2x = Matrix<Cx, C, I2>;
   auto mati2x = MatI2x(i2);
 

@@ -14,14 +14,14 @@ using namespace OpenKalman;
 using namespace OpenKalman::test;
 
 using M2 = eigen_matrix_t<double, 2, 2>;
-using C = FixedDescriptor<angle::Radians, Axis>;
+using C = StaticDescriptor<angle::Radians, Axis>;
 using Mat2 = Matrix<C, C, M2>;
 using Mat2col = Matrix<C, Axis, eigen_matrix_t<double, 2, 1>>;
-using SA2l = SelfAdjointMatrix<M2, TriangleType::lower>;
-using SA2u = SelfAdjointMatrix<M2, TriangleType::upper>;
-using T2l = TriangularMatrix<M2, TriangleType::lower>;
-using T2u = TriangularMatrix<M2, TriangleType::upper>;
-using D2 = DiagonalMatrix<eigen_matrix_t<double, 2, 1>>;
+using SA2l = HermitianAdapter<M2, TriangleType::lower>;
+using SA2u = HermitianAdapter<M2, TriangleType::upper>;
+using T2l = TriangularAdapter<M2, TriangleType::lower>;
+using T2u = TriangularAdapter<M2, TriangleType::upper>;
+using D2 = DiagonalAdapter<eigen_matrix_t<double, 2, 1>>;
 using D1 = eigen_matrix_t<double, 1, 1>;
 using I2 = Eigen3::IdentityMatrix<eigen_matrix_t<double, 2, 2>>;
 using Z2 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>;
@@ -907,13 +907,13 @@ TEST(covariance_tests, SquareRootCovariance_overloads)
 
 TEST(covariance_tests, SquareRootCovariance_blocks)
 {
-  using C4 = concatenate_fixed_vector_space_descriptor_t<C, C>;
+  using C4 = concatenate_static_vector_space_descriptor_t<C, C>;
   using M4 = eigen_matrix_t<double, 4, 4>;
   using Mat4 = Matrix<C4, C4, M4>;
-  using SqCovSA4l = SquareRootCovariance<C4, SelfAdjointMatrix<M4, TriangleType::lower>>;
-  using SqCovSA4u = SquareRootCovariance<C4, SelfAdjointMatrix<M4, TriangleType::upper>>;
-  using SqCovT4l = SquareRootCovariance<C4, TriangularMatrix<M4, TriangleType::lower>>;
-  using SqCovT4u = SquareRootCovariance<C4, TriangularMatrix<M4, TriangleType::upper>>;
+  using SqCovSA4l = SquareRootCovariance<C4, HermitianAdapter<M4, TriangleType::lower>>;
+  using SqCovSA4u = SquareRootCovariance<C4, HermitianAdapter<M4, TriangleType::upper>>;
+  using SqCovT4l = SquareRootCovariance<C4, TriangularAdapter<M4, TriangleType::lower>>;
+  using SqCovT4u = SquareRootCovariance<C4, TriangularAdapter<M4, TriangleType::upper>>;
   Mat2 m1l {3, 0, 1, 3}, m2l {2, 0, 1, 2}, m1u {3, 1, 0, 3}, m2u {2, 1, 0, 2};
   Mat4 nl {3, 0, 0, 0,
           1, 3, 0, 0,

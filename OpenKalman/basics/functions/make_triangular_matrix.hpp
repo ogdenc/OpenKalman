@@ -62,7 +62,7 @@ namespace OpenKalman
     }
     else // Default behavior if interface function not defined:
     {
-      return TriangularMatrix<Arg, t> {std::forward<Arg>(arg)};
+      return TriangularAdapter<Arg, t> {std::forward<Arg>(arg)};
     }
   }
 

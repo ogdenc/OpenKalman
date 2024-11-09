@@ -36,7 +36,7 @@ namespace OpenKalman::internal
   get_reduced_vector_space_descriptor(const Arg& arg)
   {
     if constexpr ((... or (I == indices)))
-      return uniform_fixed_vector_space_descriptor_component_of_t<vector_space_descriptor_of_t<Arg, I>>{};
+      return uniform_static_vector_space_descriptor_component_of_t<vector_space_descriptor_of_t<Arg, I>>{};
     else
       return get_vector_space_descriptor<I>(arg);
   }

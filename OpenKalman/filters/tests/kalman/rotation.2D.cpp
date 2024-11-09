@@ -49,35 +49,35 @@ namespace
 
 TEST(kalman, rotation_2D_linear_SA)
 {
-  rotation_2D<SelfAdjointMatrix<M22>>(LinearTransform());
+  rotation_2D<HermitianAdapter<M22>>(LinearTransform());
 }
 
 TEST(kalman, rotation_2D_linear_T)
 {
-  rotation_2D<TriangularMatrix<M22>>(LinearTransform());
+  rotation_2D<TriangularAdapter<M22>>(LinearTransform());
 }
 
 TEST(kalman, rotation_2D_linearized_SA)
 {
-  rotation_2D<SelfAdjointMatrix<M22>>(LinearizedTransform<2>());
+  rotation_2D<HermitianAdapter<M22>>(LinearizedTransform<2>());
 }
 
 TEST(kalman, rotation_2D_linearized_T)
 {
-  rotation_2D<TriangularMatrix<M22>>(LinearizedTransform<2>());
+  rotation_2D<TriangularAdapter<M22>>(LinearizedTransform<2>());
 }
 
 TEST(kalman, rotation_2D_cubature_SA)
 {
-  rotation_2D<SelfAdjointMatrix<M22>>(CubatureTransform());
+  rotation_2D<HermitianAdapter<M22>>(CubatureTransform());
 }
 
 TEST(kalman, rotation_2D_cubature_T)
 {
-  rotation_2D<TriangularMatrix<M22>>(CubatureTransform());
+  rotation_2D<TriangularAdapter<M22>>(CubatureTransform());
 }
 
 TEST(kalman, rotation_2D_MCT_SA)
 {
-  rotation_2D<SelfAdjointMatrix<M22>>(MonteCarloTransform(1e6));
+  rotation_2D<HermitianAdapter<M22>>(MonteCarloTransform(1e6));
 }

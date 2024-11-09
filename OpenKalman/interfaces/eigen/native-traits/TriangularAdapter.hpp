@@ -11,7 +11,7 @@
 /**
  * \internal
  * \file
- * \brief Native Eigen3 traits for Eigen3 general \ref TriangularMatrix
+ * \brief Native Eigen3 traits for Eigen3 general \ref TriangularAdapter
  */
 
 #ifndef OPENKALMAN_EIGEN_NATIVE_TRAITS_TRIANGULARMATRIX_HPP
@@ -21,10 +21,10 @@ namespace OpenKalman::Eigen3::internal
 {
 #ifdef __cpp_concepts
   template<OpenKalman::Eigen3::eigen_general NestedMatrix, OpenKalman::TriangleType triangle_type>
-  struct native_traits<OpenKalman::TriangularMatrix<NestedMatrix, triangle_type>>
+  struct native_traits<OpenKalman::TriangularAdapter<NestedMatrix, triangle_type>>
 #else
   template<typename NestedMatrix, OpenKalman::TriangleType triangle_type>
-  struct native_traits<OpenKalman::TriangularMatrix<NestedMatrix, triangle_type>, std::enable_if_t<
+  struct native_traits<OpenKalman::TriangularAdapter<NestedMatrix, triangle_type>, std::enable_if_t<
     OpenKalman::Eigen3::eigen_general<NestedMatrix>>>
 #endif
     : Eigen::internal::traits<std::decay_t<NestedMatrix>>

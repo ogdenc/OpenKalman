@@ -160,8 +160,8 @@ TEST(eigen3, Eigen_Matrix)
   static_assert(equivalent_to<vector_space_descriptor_of_t<M11, 1>, Axis>);
   static_assert(std::is_same_v<vector_space_descriptor_of<M22, 0>::type, Dimensions<2>>);
   static_assert(std::is_same_v<vector_space_descriptor_of<M22, 1>::type, Dimensions<2>>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<M22, 0>, FixedDescriptor<Axis, Axis>>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<M22, 1>, FixedDescriptor<Axis, Axis>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<M22, 0>, StaticDescriptor<Axis, Axis>>);
+  static_assert(equivalent_to<vector_space_descriptor_of_t<M22, 1>, StaticDescriptor<Axis, Axis>>);
 
   static_assert(vector_space_descriptors_may_match_with<M22, M2x, Mx2, Mxx>);
   static_assert(vector_space_descriptors_match_with<M22, CM22, M22>);

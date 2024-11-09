@@ -26,7 +26,7 @@ namespace OpenKalman::internal
 {
   /**
    * \internal
-   * \brief A type representing any \ref atomic_fixed_vector_space_descriptor object, for use with DynamicDescriptor.
+   * \brief A type representing any \ref atomic_static_vector_space_descriptor object, for use with DynamicDescriptor.
    * \tparam AllowableScalarTypes The allowable scalar types for elements associated with this \ref vector_space_descriptor object.
    */
   template<typename...AllowableScalarTypes>
@@ -74,12 +74,12 @@ namespace OpenKalman::internal
         if constexpr (euclidean_vector_space_descriptor<T>)
           return g(start + euclidean_local_index);
         else if constexpr (sizeof...(AllowableScalarTypes) == 1)
-          return fixed_vector_space_descriptor_traits<T>::to_euclidean_element(g, euclidean_local_index, start);
+          return static_vector_space_descriptor_traits<T>::to_euclidean_element(g, euclidean_local_index, start);
         else
           return std::visit([&g, euclidean_local_index, start](auto&& arg) -> Scalar {
             using S = std::decay_t<decltype(arg)>;
             auto gv = [&g](std::size_t i){ return std::get<S>(g(i)); };
-            return {fixed_vector_space_descriptor_traits<T>::to_euclidean_element(std::move(gv), euclidean_local_index, start)};
+            return {static_vector_space_descriptor_traits<T>::to_euclidean_element(std::move(gv), euclidean_local_index, start)};
           }, g(0));
       }
 
@@ -88,12 +88,12 @@ namespace OpenKalman::internal
         if constexpr (euclidean_vector_space_descriptor<T>)
           return g(euclidean_start + local_index);
         else if constexpr (sizeof...(AllowableScalarTypes) == 1)
-          return fixed_vector_space_descriptor_traits<T>::from_euclidean_element(g, local_index, euclidean_start);
+          return static_vector_space_descriptor_traits<T>::from_euclidean_element(g, local_index, euclidean_start);
         else
           return std::visit([&g, local_index, euclidean_start](auto&& arg) -> Scalar {
             using S = std::decay_t<decltype(arg)>;
             auto gv = [&g](std::size_t i){ return std::get<S>(g(i)); };
-            return {fixed_vector_space_descriptor_traits<T>::from_euclidean_element(std::move(gv), local_index, euclidean_start)};
+            return {static_vector_space_descriptor_traits<T>::from_euclidean_element(std::move(gv), local_index, euclidean_start)};
           }, g(0));
       }
 
@@ -102,12 +102,12 @@ namespace OpenKalman::internal
         if constexpr (euclidean_vector_space_descriptor<T>)
           return g(start + local_index);
         else if constexpr (sizeof...(AllowableScalarTypes) == 1)
-          return fixed_vector_space_descriptor_traits<T>::get_wrapped_component(g, local_index, start);
+          return static_vector_space_descriptor_traits<T>::get_wrapped_component(g, local_index, start);
         else
           return std::visit([&g, local_index, start](auto&& arg) -> Scalar {
             using S = std::decay_t<decltype(arg)>;
             auto gv = [&g](std::size_t i){ return std::get<S>(g(i)); };
-            return {fixed_vector_space_descriptor_traits<T>::get_wrapped_component(std::move(gv), local_index, start)};
+            return {static_vector_space_descriptor_traits<T>::get_wrapped_component(std::move(gv), local_index, start)};
           }, g(0));
       }
 
@@ -116,13 +116,13 @@ namespace OpenKalman::internal
         if constexpr (euclidean_vector_space_descriptor<T>)
           s(x, start + local_index);
         else if constexpr (sizeof...(AllowableScalarTypes) == 1)
-          fixed_vector_space_descriptor_traits<T>::set_wrapped_component(s, g, x, local_index, start);
+          static_vector_space_descriptor_traits<T>::set_wrapped_component(s, g, x, local_index, start);
         else
           std::visit([&s, &g, local_index, start](auto&& arg) {
             using S = std::decay_t<decltype(arg)>;
             auto sv = [&s](const S& scalar, std::size_t i){ s(Scalar {scalar}, i); };
             auto gv = [&g](std::size_t i){ return std::get<S>(g(i)); };
-            fixed_vector_space_descriptor_traits<T>::set_wrapped_component(std::move(sv), std::move(gv), arg, local_index, start);
+            static_vector_space_descriptor_traits<T>::set_wrapped_component(std::move(sv), std::move(gv), arg, local_index, start);
           }, x);
       }
 
@@ -131,12 +131,12 @@ namespace OpenKalman::internal
   public:
 
     /**
-     * \brief Construct from a \ref fixed_vector_space_descriptor.
+     * \brief Construct from a \ref static_vector_space_descriptor.
      */
 #ifdef __cpp_concepts
-    template <fixed_vector_space_descriptor T>
+    template <static_vector_space_descriptor T>
 #else
-    template<typename T, std::enable_if_t<fixed_vector_space_descriptor<T>, int> = 0>
+    template<typename T, std::enable_if_t<static_vector_space_descriptor<T>, int> = 0>
 #endif
     explicit constexpr AnyAtomicVectorSpaceDescriptor(T&&) : mConcept {Model<T>::get_instance()} {}
 

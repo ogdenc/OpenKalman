@@ -24,7 +24,7 @@
 namespace OpenKalman::vector_space_descriptors
 {
   /**
-   * \brief A dynamic list of \ref atomic_fixed_vector_space_descriptor objects that can be defined or extended at runtime.
+   * \brief A dynamic list of \ref atomic_static_vector_space_descriptor objects that can be defined or extended at runtime.
    * \details At compile time, the structure is treated if it has zero dimension.
    * \tparam AllowableScalarTypes The allowable scalar types for elements associated with this object.
    */
@@ -70,11 +70,11 @@ namespace OpenKalman::vector_space_descriptors
 #ifdef __cpp_concepts
     template<vector_space_descriptor...Cs> requires (sizeof...(Cs) > 0) and
       (sizeof...(Cs) != 1 or (not std::is_base_of_v<DynamicDescriptor, Cs> and ...)) and
-      (sizeof...(Cs) == 1 or ((fixed_vector_space_descriptor<Cs> or dynamic_vector_space_descriptor<Cs>) and ...))
+      (sizeof...(Cs) == 1 or ((static_vector_space_descriptor<Cs> or dynamic_vector_space_descriptor<Cs>) and ...))
 #else
     template<typename...Cs, std::enable_if_t<(vector_space_descriptor<Cs> and ...) and (sizeof...(Cs) > 0) and
       (sizeof...(Cs) != 1 or (not std::is_base_of_v<DynamicDescriptor, Cs> and ...)) and
-      (sizeof...(Cs) == 1 or ((fixed_vector_space_descriptor<Cs> or dynamic_vector_space_descriptor<Cs>) and ...)),
+      (sizeof...(Cs) == 1 or ((static_vector_space_descriptor<Cs> or dynamic_vector_space_descriptor<Cs>) and ...)),
       int> = 0>
 #endif
     explicit DynamicDescriptor(Cs&&...cs)
@@ -133,10 +133,10 @@ namespace OpenKalman::vector_space_descriptors
      */
 #ifdef __cpp_concepts
     template<vector_space_descriptor...Cs> requires (sizeof...(Cs) > 0) and
-      ((fixed_vector_space_descriptor<Cs> or euclidean_vector_space_descriptor<Cs> or std::same_as<std::decay_t<Cs>, DynamicDescriptor>) and ...)
+      ((static_vector_space_descriptor<Cs> or euclidean_vector_space_descriptor<Cs> or std::same_as<std::decay_t<Cs>, DynamicDescriptor>) and ...)
 #else
     template<typename...Cs, std::enable_if_t<(vector_space_descriptor<Cs> and ...) and (sizeof...(Cs) > 0) and
-      ((fixed_vector_space_descriptor<Cs> or euclidean_vector_space_descriptor<Cs> or std::is_same_v<std::decay_t<Cs>, DynamicDescriptor>) and ...), int> = 0>
+      ((static_vector_space_descriptor<Cs> or euclidean_vector_space_descriptor<Cs> or std::is_same_v<std::decay_t<Cs>, DynamicDescriptor>) and ...), int> = 0>
 #endif
     DynamicDescriptor& extend(Cs&&...cs)
     {
@@ -206,7 +206,7 @@ namespace OpenKalman::vector_space_descriptors
 
 
     template<typename...Cs>
-    void fill_tables_fixed(std::size_t i, std::size_t i_e, std::size_t t, const FixedDescriptor<Cs...>&)
+    void fill_tables_fixed(std::size_t i, std::size_t i_e, std::size_t t, const StaticDescriptor<Cs...>&)
     {
       (dynamic_types.emplace_back(AtomicType {Cs{}}), ...);
       extend_table_fixed<false, 0, Cs...>(i, t, i_e);
@@ -257,9 +257,9 @@ namespace OpenKalman::vector_space_descriptors
     template<typename C, typename...Cs>
     void fill_tables(std::size_t i, std::size_t i_e, std::size_t t, C&& c, Cs&&...cs)
     {
-      if constexpr (fixed_vector_space_descriptor<C>)
+      if constexpr (static_vector_space_descriptor<C>)
       {
-        using red_C = canonical_fixed_vector_space_descriptor_t<std::decay_t<C>>;
+        using red_C = canonical_static_vector_space_descriptor_t<std::decay_t<C>>;
         fill_tables_fixed(i, i_e, t, red_C {});
         fill_tables(i + dimension_size_of_v<C>, i_e + euclidean_dimension_size_of_v<C>,
           t + vector_space_component_count<red_C>::value, std::forward<Cs>(cs)...);
@@ -277,27 +277,27 @@ namespace OpenKalman::vector_space_descriptors
     // ---------- comparison ---------- //
 
     template<typename It, typename EndIt, std::size_t N>
-    static constexpr bool partial_compare(It it, EndIt endit, const Dimensions<N>&, FixedDescriptor<>)
+    static constexpr bool partial_compare(It it, EndIt endit, const Dimensions<N>&, StaticDescriptor<>)
     {
       return it == endit or it->is_euclidean();
     }
 
 
     template<typename It, typename EndIt, std::size_t N, typename C, typename...Cs>
-    static constexpr bool partial_compare(It it, EndIt endit, const Dimensions<N>& d, FixedDescriptor<C, Cs...>)
+    static constexpr bool partial_compare(It it, EndIt endit, const Dimensions<N>& d, StaticDescriptor<C, Cs...>)
     {
       if (it->is_euclidean())
       {
         std::size_t it_size = it->size();
         std::size_t d_size = get_dimension_size_of(d);
         if (it_size == d_size)
-          return partial_compare(++it, endit, FixedDescriptor<C, Cs...> {});
+          return partial_compare(++it, endit, StaticDescriptor<C, Cs...> {});
         else if (it_size < d_size)
-          return partial_compare(++it, endit, Dimensions {static_cast<std::size_t>(d_size - it_size)}, FixedDescriptor<C, Cs...> {});
+          return partial_compare(++it, endit, Dimensions {static_cast<std::size_t>(d_size - it_size)}, StaticDescriptor<C, Cs...> {});
         else // it_size > d_size
         {
           if constexpr (euclidean_vector_space_descriptor<C>)
-            return partial_compare(it, endit, Dimensions {d_size + dimension_size_of_v<C>}, FixedDescriptor<Cs...> {});
+            return partial_compare(it, endit, Dimensions {d_size + dimension_size_of_v<C>}, StaticDescriptor<Cs...> {});
           else
             return false;
         }
@@ -307,22 +307,22 @@ namespace OpenKalman::vector_space_descriptors
 
 
     template<typename It, typename EndIt>
-    static constexpr bool partial_compare(It, EndIt, FixedDescriptor<>) { return true; }
+    static constexpr bool partial_compare(It, EndIt, StaticDescriptor<>) { return true; }
 
 
     template<typename It, typename EndIt, typename C, typename...Cs>
-    static constexpr bool partial_compare(It it, EndIt endit, FixedDescriptor<C, Cs...>)
+    static constexpr bool partial_compare(It it, EndIt endit, StaticDescriptor<C, Cs...>)
     {
       if (it == endit) return true;
       else
       {
         if constexpr (euclidean_vector_space_descriptor<C>)
         {
-          return partial_compare(it, endit, Dimensions {dimension_size_of_v<C>}, FixedDescriptor<Cs...> {});
+          return partial_compare(it, endit, Dimensions {dimension_size_of_v<C>}, StaticDescriptor<Cs...> {});
         }
         else
         {
-          if (it->get_type_index() == std::type_index {typeid(C)}) return partial_compare(++it, endit, FixedDescriptor<Cs...> {});
+          if (it->get_type_index() == std::type_index {typeid(C)}) return partial_compare(++it, endit, StaticDescriptor<Cs...> {});
           else return false;
         }
       }
@@ -333,16 +333,16 @@ namespace OpenKalman::vector_space_descriptors
      * \brief True if <code>this</code> is a subset or superset of the \ref vector_space_descriptor argument
      */
 #ifdef __cpp_concepts
-    template<typename Arg> requires fixed_vector_space_descriptor<Arg> or euclidean_vector_space_descriptor<Arg>
+    template<typename Arg> requires static_vector_space_descriptor<Arg> or euclidean_vector_space_descriptor<Arg>
 #else
-    template<typename Arg, std::enable_if_t<fixed_vector_space_descriptor<Arg> or euclidean_vector_space_descriptor<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<static_vector_space_descriptor<Arg> or euclidean_vector_space_descriptor<Arg>, int> = 0>
 #endif
     bool partially_matches(const Arg& arg) const
     {
-      if constexpr (fixed_vector_space_descriptor<Arg>)
-        return partial_compare(dynamic_types.begin(), dynamic_types.end(), canonical_fixed_vector_space_descriptor_t<Arg> {});
+      if constexpr (static_vector_space_descriptor<Arg>)
+        return partial_compare(dynamic_types.begin(), dynamic_types.end(), canonical_static_vector_space_descriptor_t<Arg> {});
       else
-        return partial_compare(dynamic_types.begin(), dynamic_types.end(), Dimensions<dynamic_size> {get_dimension_size_of(arg)}, FixedDescriptor<> {});
+        return partial_compare(dynamic_types.begin(), dynamic_types.end(), Dimensions<dynamic_size> {get_dimension_size_of(arg)}, StaticDescriptor<> {});
     }
 
 
@@ -523,7 +523,7 @@ namespace OpenKalman::vector_space_descriptors
   private:
 
     template<std::size_t n, std::size_t ni, std::size_t ne, typename It, typename EndIt>
-    static constexpr auto subtract(const DynamicDescriptor& a, It, EndIt, FixedDescriptor<>)
+    static constexpr auto subtract(const DynamicDescriptor& a, It, EndIt, StaticDescriptor<>)
     {
       DynamicDescriptor ret;
       ret.dynamic_types.assign(a.dynamic_types.begin(), a.dynamic_types.end() - n);
@@ -534,30 +534,30 @@ namespace OpenKalman::vector_space_descriptors
 
 
     template<std::size_t n, std::size_t ni, std::size_t ne, typename It, typename EndIt, typename C, typename...Cs>
-    static constexpr auto subtract(const DynamicDescriptor& a, It it, EndIt endit, FixedDescriptor<C, Cs...>)
+    static constexpr auto subtract(const DynamicDescriptor& a, It it, EndIt endit, StaticDescriptor<C, Cs...>)
     {
       if (it == endit or (--endit)->get_type_index() != std::type_index {typeid(C)})
         throw std::invalid_argument {"Subtraction of incompatible vector_space_descriptor values"};
       else
-        return subtract<n + 1, ni + dimension_size_of_v<C>, ne + euclidean_dimension_size_of_v<C>>(a, it, endit, FixedDescriptor<Cs...>{});
+        return subtract<n + 1, ni + dimension_size_of_v<C>, ne + euclidean_dimension_size_of_v<C>>(a, it, endit, StaticDescriptor<Cs...>{});
     }
 
   public:
 
     /**
-     * \brief Minus operator when the operand is a \ref fixed_vector_space_descriptor
+     * \brief Minus operator when the operand is a \ref static_vector_space_descriptor
      */
 #ifdef __cpp_concepts
-    template<fixed_vector_space_descriptor B>
+    template<static_vector_space_descriptor B>
 #else
-    template<typename B, std::enable_if_t<fixed_vector_space_descriptor<B>, int> = 0>
+    template<typename B, std::enable_if_t<static_vector_space_descriptor<B>, int> = 0>
 #endif
     friend constexpr auto operator-(const DynamicDescriptor& a, const B&)
     {
       if constexpr (dimension_size_of_v<B> == 0) return a;
       else
       {
-        using F = reverse_fixed_vector_space_descriptor_t<canonical_fixed_vector_space_descriptor_t<B>>;
+        using F = reverse_static_vector_space_descriptor_t<canonical_static_vector_space_descriptor_t<B>>;
         return subtract<0,0,0>(a, a.dynamic_types.begin(), a.dynamic_types.end(), F{});
       }
     }

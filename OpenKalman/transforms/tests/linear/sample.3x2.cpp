@@ -17,8 +17,8 @@ inline namespace
 {
   using C3 = Dimensions<3>;
   using M33 = eigen_matrix_t<double, 3, 3>;
-  using CovSA3 = Covariance <C3, SelfAdjointMatrix<M33>>;
-  using CovT3 = Covariance <C3, TriangularMatrix<M33>>;
+  using CovSA3 = Covariance <C3, HermitianAdapter<M33>>;
+  using CovT3 = Covariance <C3, TriangularAdapter<M33>>;
   inline SamplePointsTransform <UnscentedSigmaPoints> UT1;
   inline SamplePointsTransform <UnscentedSigmaPointsParameterEstimation> UT2;
   inline SamplePointsTransform <SphericalSimplexSigmaPoints> UTS;

@@ -19,7 +19,7 @@ using numbers::pi;
 
 namespace
 {
-  using Axis2 = FixedDescriptor<Axis, Axis>;
+  using Axis2 = StaticDescriptor<Axis, Axis>;
 
   using ZA11 = ZeroAdapter<M11>;
   using ZA10 = ZeroAdapter<M1x>;

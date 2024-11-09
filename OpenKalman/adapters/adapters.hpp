@@ -29,9 +29,9 @@
 #define OPENKALMAN_ADAPTERS_HPP
 
 #include "ConstantAdapter.hpp"
-#include "DiagonalMatrix.hpp"
-#include "SelfAdjointMatrix.hpp"
-#include "TriangularMatrix.hpp"
+#include "DiagonalAdapter.hpp"
+#include "HermitianAdapter.hpp"
+#include "TriangularAdapter.hpp"
 #include "ToEuclideanExpr.hpp"
 #include "FromEuclideanExpr.hpp"
 #include "VectorSpaceAdapter.hpp"

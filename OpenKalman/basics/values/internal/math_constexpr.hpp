@@ -23,6 +23,9 @@
 #include "basics/values/scalars/scalar_constant.hpp"
 
 
+#define MINIMUMNORMALCLANGVERSION 1000 // Set this to a permanent value after clang doesn't cause an issue. Is at least 19.
+
+
 #ifdef __cpp_lib_is_constant_evaluated
 #define NOTCONSTANTEVALUATED not std::is_constant_evaluated()
 #else
@@ -187,7 +190,7 @@ namespace OpenKalman::internal
     }
 
 
-    // Convert a scalar type to an output typt
+    // Convert a scalar type to an output type
     template<typename Scalar, typename T>
     constexpr decltype(auto) convert_to_output(T&& x)
     {
@@ -919,7 +922,7 @@ namespace OpenKalman::internal
         using Xf = std::decay_t<decltype(xf)>;
         auto ex = constexpr_exp(std::forward<decltype(xf)>(xf));
 
-#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 17) // Check this and later versions of clang
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= MINIMUMNORMALCLANGVERSION)
         return detail::convert_to_output<Scalar>((ex - Xf{1}/ex) * Xf{0.5});
 #else
         if constexpr (complex_number<Scalar>)
@@ -986,7 +989,7 @@ namespace OpenKalman::internal
       using Xf = std::decay_t<decltype(xf)>;
       auto ex = constexpr_exp(std::forward<decltype(xf)>(xf));
 
-#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 17) // Check this and later versions of clang
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= MINIMUMNORMALCLANGVERSION)
       return detail::convert_to_output<Scalar>((ex + Xf{1}/ex) * Xf{0.5});
 #else
       if constexpr (complex_number<Scalar>)
@@ -1057,7 +1060,7 @@ namespace OpenKalman::internal
         using Xf = std::decay_t<decltype(xf)>;
         auto ex = constexpr_exp(std::forward<decltype(xf)>(xf));
 
-#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 17) // Check this and later versions of clang
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= MINIMUMNORMALCLANGVERSION)
         auto ex2 = ex * ex;
         return detail::convert_to_output<Scalar>((ex2 - Xf{1}) / (ex2 + Xf{1}));
 #else
@@ -1238,7 +1241,7 @@ namespace OpenKalman::internal
         auto sx = constexpr_sin(xf);
         auto cx = constexpr_cos(xf);
 
-#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 17) // Check this and later versions of clang
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= MINIMUMNORMALCLANGVERSION)
         return detail::convert_to_output<Scalar>(sx / cx);
 #else
         if constexpr (complex_number<Scalar>)
@@ -1561,7 +1564,7 @@ namespace OpenKalman::internal
         auto&& xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
         using Xf = std::decay_t<decltype(xf)>;
 
-#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 17) // Check this and later versions of clang
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= MINIMUMNORMALCLANGVERSION)
         return detail::convert_to_output<Scalar>(constexpr_log(xf + constexpr_sqrt(xf * xf + Xf{1})));
 #else
         if constexpr (complex_number<Scalar>)
@@ -1621,7 +1624,8 @@ namespace OpenKalman::internal
         auto xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
         using Xf = std::decay_t<decltype(xf)>;
 
-#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 17) // Check this and later versions of clang
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= MINIMUMNORMALCLANGVERSION)
+
         return detail::convert_to_output<Scalar>(constexpr_log(xf + constexpr_sqrt(xf + Xf{1}) * constexpr_sqrt(xf - Xf{1})));
 #else
         if constexpr (complex_number<Scalar>)
@@ -1698,7 +1702,7 @@ namespace OpenKalman::internal
         auto&& xf = detail::convert_to_floating(std::forward<decltype(x)>(x));
         using Xf = std::decay_t<decltype(xf)>;
 
-#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 17) // Check this and later versions of clang
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= MINIMUMNORMALCLANGVERSION)
         return detail::convert_to_output<Scalar>(constexpr_log((Xf{1} + xf) / (Xf{1} - xf)) * Xf{0.5});
 #else
         if constexpr (complex_number<Scalar>)
@@ -1754,7 +1758,7 @@ namespace OpenKalman::internal
         auto&& xf = detail::convert_to_floating(std::forward<Arg>(arg));
         using R = std::decay_t<decltype(constexpr_real(xf))>;
 
-#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 17) // Check this and later versions of clang
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= MINIMUMNORMALCLANGVERSION)
         using Xf = std::decay_t<decltype(xf)>;
         constexpr auto i = make_complex_number<Xf>(R{0}, R{1});
         return detail::convert_to_output<Scalar>(i * constexpr_log(constexpr_sqrt(Xf{1} - xf * xf) - i * xf));
@@ -1807,7 +1811,7 @@ namespace OpenKalman::internal
       auto s = constexpr_asin(xf);
       if (s != s) return constexpr_NaN<Scalar>();
 
-#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 17) // Check this and later versions of clang
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= MINIMUMNORMALCLANGVERSION)
       return detail::convert_to_output<Scalar>(Xf{numbers::pi_v<R> / 2} - std::move(s));
 #else
       if constexpr (complex_number<Scalar>)
@@ -1830,7 +1834,7 @@ namespace OpenKalman::internal
       {
         using R = std::decay_t<decltype(constexpr_real(x))>;
 
-#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 17) // Check this and later versions of clang
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= MINIMUMNORMALCLANGVERSION)
         constexpr auto i = make_complex_number<T>(R{0}, R{1});
         return T{-0.5} * i * constexpr_log((T{1} + x*i)/(T{1} - x*i));
 #else
@@ -1953,7 +1957,7 @@ namespace OpenKalman::internal
           return Scalar(0);
         }
         else
-#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= 17) // Check this and later versions of clang
+#if __cpp_lib_constexpr_complex >= 201711L and (not defined(__clang__) or __clang_major__ >= MINIMUMNORMALCLANGVERSION)
         {
           auto raw = detail::atan_impl_general(yf / xf);
           auto raw_r = constexpr_real(raw);

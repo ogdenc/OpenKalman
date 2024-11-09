@@ -23,13 +23,13 @@
 namespace OpenKalman::internal
 {
   /**
-   * \brief T is a prefix of U, where T and U are sets of \ref fixed_vector_space_descriptor types.
+   * \brief T is a prefix of U, where T and U are sets of \ref static_vector_space_descriptor types.
    * \details If T is a prefix of U, then U is equivalent_to concatenating T with the remaining part of U.
-   * C is a prefix of FixedDescriptor<C, Cs...> for any \ref fixed_vector_space_descriptor Cs.
+   * C is a prefix of StaticDescriptor<C, Cs...> for any \ref static_vector_space_descriptor Cs.
    * T is a prefix of U if equivalent_to<T, U>.
-   * FixedDescriptor<> is a prefix of any \ref fixed_vector_space_descriptor.
+   * StaticDescriptor<> is a prefix of any \ref static_vector_space_descriptor.
    * \par Example:
-   * <code>prefix_of&lt;FixedDescriptor&lt;Axis&gt;, FixedDescriptor&lt;Axis, angle::Radians&gt;&gt;</code>
+   * <code>prefix_of&lt;StaticDescriptor&lt;Axis&gt;, StaticDescriptor&lt;Axis, angle::Radians&gt;&gt;</code>
    */
   template<typename T, typename U>
 #ifdef __cpp_concepts
@@ -37,7 +37,7 @@ namespace OpenKalman::internal
 #else
   constexpr bool prefix_of =
 #endif
-    fixed_vector_space_descriptor<T> and fixed_vector_space_descriptor<U> and internal::is_prefix<T, U>::value;
+    static_vector_space_descriptor<T> and static_vector_space_descriptor<U> and internal::is_prefix<T, U>::value;
 
 
 } // namespace OpenKalman::internal

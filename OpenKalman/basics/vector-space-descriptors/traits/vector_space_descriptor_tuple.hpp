@@ -19,45 +19,42 @@
 
 namespace OpenKalman
 {
+#if not defined(__cpp_concepts) or __cpp_generic_lambdas < 201707L
   namespace detail
   {
     template<typename T, std::size_t...Ix>
     constexpr bool is_descriptor_tuple_impl(std::index_sequence<Ix...>)
     {
-      return (... and vector_space_descriptor<std::tuple_element_t<Ix, T>>); 
+      return (... and vector_space_descriptor<std::tuple_element_t<Ix, T>>);
     }
-    
-    
-#ifdef __cpp_concepts
-    template<typename T>
-#else
+
+
     template<typename T, typename = void>
-#endif
     struct is_descriptor_tuple : std::false_type {};
 
  
-#ifdef __cpp_concepts
-    template<internal::tuple_like T>
-    struct is_descriptor_tuple<T> 
-#else
     template<typename T>
     struct is_descriptor_tuple<T, std::enable_if_t<internal::tuple_like<T>>> 
-#endif
-      : std::bool_constant<is_descriptor_tuple_impl<T>(std::make_index_sequence<std::tuple_size_v<T>>{})> {}; 
- 
+      : std::bool_constant<is_descriptor_tuple_impl<T>(std::make_index_sequence<std::tuple_size_v<T>>{})> {};
+
   } // namespace detail
-	
+#endif
+
 	
   /**
    * \brief An object describing a tuple-like collection of /ref vector_space_descriptor objects.
    */
   template<typename T>
-#ifdef __cpp_lib_ranges
+#if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
   concept vector_space_descriptor_tuple =
+    internal::tuple_like<T> and
+    []<std::size_t...Ix>(std::index_sequence<Ix...>)
+      { return (... and vector_space_descriptor<std::tuple_element_t<Ix, T>>); }
+      (std::make_index_sequence<std::tuple_size_v<T>>{});
 #else
   constexpr bool vector_space_descriptor_tuple =
-#endif
     detail::is_descriptor_tuple<T>::value;
+#endif
 
 
 } // namespace OpenKalman

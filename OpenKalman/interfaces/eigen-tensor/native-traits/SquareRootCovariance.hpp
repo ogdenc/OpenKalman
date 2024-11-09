@@ -20,11 +20,11 @@
 namespace OpenKalman::Eigen3::internal
 {
 #ifdef __cpp_concepts
-  template<typename FixedDescriptor, OpenKalman::Eigen3::eigen_tensor_general NestedMatrix>
-  struct native_traits<OpenKalman::SquareRootCovariance<FixedDescriptor, NestedMatrix>>
+  template<typename StaticDescriptor, OpenKalman::Eigen3::eigen_tensor_general NestedMatrix>
+  struct native_traits<OpenKalman::SquareRootCovariance<StaticDescriptor, NestedMatrix>>
 #else
-  template<typename FixedDescriptor, typename NestedMatrix>
-  struct native_traits<OpenKalman::SquareRootCovariance<FixedDescriptor, NestedMatrix>, std::enable_if_t<
+  template<typename StaticDescriptor, typename NestedMatrix>
+  struct native_traits<OpenKalman::SquareRootCovariance<StaticDescriptor, NestedMatrix>, std::enable_if_t<
     OpenKalman::Eigen3::eigen_tensor_general<NestedMatrix>>>
 #endif
     : Eigen::internal::traits<std::decay_t<std::conditional_t<OpenKalman::triangular_matrix<NestedMatrix>, NestedMatrix, decltype(cholesky_factor(std::declval<NestedMatrix>()))>>>

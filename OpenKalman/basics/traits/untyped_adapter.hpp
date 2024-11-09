@@ -30,7 +30,7 @@ namespace OpenKalman
 #else
   constexpr bool untyped_adapter =
 #endif
-    eigen_diagonal_expr<T> or eigen_self_adjoint_expr<T> or eigen_triangular_expr<T>;
+    internal::diagonal_expr<T> or internal::hermitian_expr<T> or internal::triangular_expr<T>;
 
 
 } // namespace OpenKalman

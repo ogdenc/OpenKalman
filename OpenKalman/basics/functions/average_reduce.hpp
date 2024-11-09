@@ -48,12 +48,12 @@ namespace OpenKalman
    * \returns A vector or tensor with reduced dimensions.
    */
 #ifdef __cpp_concepts
-  template<std::size_t index, std::size_t...indices, internal::has_uniform_fixed_vector_space_descriptors<index, indices...> Arg> requires
+  template<std::size_t index, std::size_t...indices, internal::has_uniform_static_vector_space_descriptors<index, indices...> Arg> requires
     (not empty_object<Arg>)
   constexpr indexible decltype(auto)
 #else
   template<std::size_t index, std::size_t...indices, typename Arg, std::enable_if_t<
-    internal::has_uniform_fixed_vector_space_descriptors<Arg, index, indices...> and (not empty_object<Arg>), int> = 0>
+    internal::has_uniform_static_vector_space_descriptors<Arg, index, indices...> and (not empty_object<Arg>), int> = 0>
   constexpr decltype(auto)
 #endif
   average_reduce(Arg&& arg)
@@ -77,9 +77,9 @@ namespace OpenKalman
    * \returns A scalar representing the average of all components.
    */
 #ifdef __cpp_concepts
-  template<internal::has_uniform_fixed_vector_space_descriptors Arg>
+  template<internal::has_uniform_static_vector_space_descriptors Arg>
 #else
-  template<typename Arg, std::enable_if_t<internal::has_uniform_fixed_vector_space_descriptors<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<internal::has_uniform_static_vector_space_descriptors<Arg>, int> = 0>
 #endif
   constexpr scalar_type_of_t<Arg>
   average_reduce(Arg&& arg)

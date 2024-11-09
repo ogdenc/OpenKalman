@@ -20,7 +20,7 @@ namespace OpenKalman
   // --------------- //
 
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor RowCoefficients, typed_matrix_nestable NestedMatrix> requires
+  template<static_vector_space_descriptor RowCoefficients, typed_matrix_nestable NestedMatrix> requires
     (euclidean_dimension_size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
@@ -31,7 +31,7 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(fixed_vector_space_descriptor<RowCoefficients>);
+    static_assert(static_vector_space_descriptor<RowCoefficients>);
     static_assert(typed_matrix_nestable<NestedMatrix>);
     static_assert(euclidean_dimension_size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
@@ -131,13 +131,13 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, EuclideanMean>) and
-      (not euclidean_transformed<Arg> and fixed_vector_space_descriptor<RowCoefficients>) and
+      (not euclidean_transformed<Arg> and static_vector_space_descriptor<RowCoefficients>) and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       has_untyped_index<Arg, 1> and std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, nested_object_of_t<Arg&&>>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
       (not std::is_base_of_v<EuclideanMean, std::decay_t<Arg>>) and
-      (not euclidean_transformed<Arg> and fixed_vector_space_descriptor<RowCoefficients>) and
+      (not euclidean_transformed<Arg> and static_vector_space_descriptor<RowCoefficients>) and
       equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       has_untyped_index<Arg, 1> and std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, nested_object_of_t<Arg&&>>, int> = 0>
 #endif
@@ -201,10 +201,10 @@ namespace OpenKalman
     /// Add a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
     template<distribution Arg> requires euclidean_vector_space_descriptor<RowCoefficients> and
-      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>)
+      (equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>)
 #else
     template<typename Arg, std::enable_if_t<distribution<Arg> and euclidean_vector_space_descriptor<RowCoefficients> and
-      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>), int> = 0>
+      (equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>), int> = 0>
 #endif
     auto& operator+=(const Arg& arg)
     {
@@ -243,10 +243,10 @@ namespace OpenKalman
     /// Subtract a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
     template<distribution Arg> requires euclidean_vector_space_descriptor<RowCoefficients> and
-      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>)
+      (equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>)
 #else
     template<typename Arg, std::enable_if_t<distribution<Arg> and euclidean_vector_space_descriptor<RowCoefficients> and
-      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>), int> = 0>
+      (equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>), int> = 0>
 #endif
     auto& operator-=(const Arg& arg)
     {
@@ -307,19 +307,19 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
 
   /**
    * \brief Make a EuclideanMean from a typed_matrix_nestable, specifying the row coefficients.
-   * \tparam FixedDescriptor The coefficient types corresponding to the rows.
+   * \tparam StaticDescriptor The coefficient types corresponding to the rows.
    * \tparam M A typed_matrix_nestable with size matching ColumnCoefficients.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor FixedDescriptor, typed_matrix_nestable M> requires
-    (euclidean_dimension_size_of_v<FixedDescriptor> == index_dimension_of_v<M, 0>)
+  template<static_vector_space_descriptor StaticDescriptor, typed_matrix_nestable M> requires
+    (euclidean_dimension_size_of_v<StaticDescriptor> == index_dimension_of_v<M, 0>)
 #else
-  template<typename FixedDescriptor, typename M, std::enable_if_t<fixed_vector_space_descriptor<FixedDescriptor> and
-    typed_matrix_nestable<M> and (euclidean_dimension_size_of_v<FixedDescriptor> == index_dimension_of<M, 0>::value), int> = 0>
+  template<typename StaticDescriptor, typename M, std::enable_if_t<static_vector_space_descriptor<StaticDescriptor> and
+    typed_matrix_nestable<M> and (euclidean_dimension_size_of_v<StaticDescriptor> == index_dimension_of<M, 0>::value), int> = 0>
 #endif
   auto make_euclidean_mean(M&& arg)
   {
-    return EuclideanMean<FixedDescriptor, passable_t<M>>(std::forward<M>(arg));
+    return EuclideanMean<StaticDescriptor, passable_t<M>>(std::forward<M>(arg));
   }
 
 
@@ -362,20 +362,20 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
   /**
    * \overload
    * \brief Make a default, self-contained EuclideanMean.
-   * \tparam FixedDescriptor The coefficient types corresponding to the rows.
+   * \tparam StaticDescriptor The coefficient types corresponding to the rows.
    * \tparam M a typed_matrix_nestable on which the new matrix is based. It will be converted to a self_contained type
    * if it is not already self-contained.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor FixedDescriptor, typed_matrix_nestable M> requires
-    (euclidean_dimension_size_of_v<FixedDescriptor> == index_dimension_of_v<M, 0>)
+  template<static_vector_space_descriptor StaticDescriptor, typed_matrix_nestable M> requires
+    (euclidean_dimension_size_of_v<StaticDescriptor> == index_dimension_of_v<M, 0>)
 #else
-  template<typename FixedDescriptor, typename M, std::enable_if_t<fixed_vector_space_descriptor<FixedDescriptor> and
-    typed_matrix_nestable<M> and (euclidean_dimension_size_of_v<FixedDescriptor> == index_dimension_of<M, 0>::value), int> = 0>
+  template<typename StaticDescriptor, typename M, std::enable_if_t<static_vector_space_descriptor<StaticDescriptor> and
+    typed_matrix_nestable<M> and (euclidean_dimension_size_of_v<StaticDescriptor> == index_dimension_of<M, 0>::value), int> = 0>
 #endif
   auto make_euclidean_mean()
   {
-    return EuclideanMean<FixedDescriptor, dense_writable_matrix_t<M>>();
+    return EuclideanMean<StaticDescriptor, dense_writable_matrix_t<M>>();
   }
 
 
@@ -418,7 +418,7 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
           if constexpr (n == 0_uz) return arg.my_dimension;
           else return OpenKalman::get_vector_space_descriptor(nested_object(arg), n);
         }
-        else if constexpr (uniform_fixed_vector_space_descriptor<NestedMatrix> and equivalent_to<Coeffs, uniform_fixed_vector_space_descriptor_component_of<NestedMatrix>>)
+        else if constexpr (uniform_static_vector_space_descriptor<NestedMatrix> and equivalent_to<Coeffs, uniform_static_vector_space_descriptor_component_of<NestedMatrix>>)
         {
           return arg.my_dimension;
         }

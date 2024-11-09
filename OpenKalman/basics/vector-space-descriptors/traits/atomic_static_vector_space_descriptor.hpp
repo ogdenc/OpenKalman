@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref atomic_fixed_vector_space_descriptor.
+ * \brief Definition for \ref atomic_static_vector_space_descriptor.
  */
 
 #ifndef OPENKALMAN_ATOMIC_FIXED_VECTOR_SPACE_DESCRIPTOR_HPP
@@ -25,11 +25,11 @@ namespace OpenKalman
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept atomic_fixed_vector_space_descriptor =
+  concept atomic_static_vector_space_descriptor =
 #else
-  constexpr bool atomic_fixed_vector_space_descriptor =
+  constexpr bool atomic_static_vector_space_descriptor =
 #endif
-    fixed_vector_space_descriptor<T> and (not composite_vector_space_descriptor<T>);
+    static_vector_space_descriptor<T> and (not composite_vector_space_descriptor<T>);
 
 
 } // namespace OpenKalman

@@ -142,7 +142,7 @@ namespace OpenKalman
     sigma_points_impl(const D& d, const Ds&...ds)
     {
       using Scalar = typename DistributionTraits<D>::Scalar;
-      using Coeffs = typename DistributionTraits<D>::FixedDescriptor;
+      using Coeffs = typename DistributionTraits<D>::StaticDescriptor;
       using M = typename DistributionTraits<D>::Mean;
       constexpr auto points_count = sigma_point_count<dim>;
       constexpr auto dim_i = index_dimension_of_v<D, 0>;

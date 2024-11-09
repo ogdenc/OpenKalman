@@ -52,9 +52,9 @@ namespace OpenKalman::internal
     {
       return make_fixed_size_adapter<Ds...>(nested_object(std::forward<Arg>(arg)));
     }
-    else if constexpr (internal::less_fixed_than<Arg, Ds...>)
+    else if constexpr (internal::less_fixed_than<Arg, std::tuple<Ds...>>)
     {
-      using DTup = std::decay_t<decltype(remove_trailing_1D_descriptors(std::declval<Ds>()...))>;
+      using DTup = std::decay_t<decltype(remove_trailing_1D_descriptors(std::forward_as_tuple(std::declval<Ds>()...)))>;
       std::make_index_sequence<std::tuple_size_v<DTup>> seq {};
       return detail::make_fixed_size_adapter_impl<DTup>(std::forward<Arg>(arg), seq);
     }

@@ -17,8 +17,8 @@ using numbers::pi;
 
 inline namespace
 {
-  using C2 = FixedDescriptor<Axis, Axis>;
-  using P2 = FixedDescriptor<Polar<>>;
+  using C2 = StaticDescriptor<Axis, Axis>;
+  using P2 = StaticDescriptor<Polar<>>;
 
   const GaussianDistribution input1 {Mean<C2>(std::cos(0.9999 * pi), std::sin(0.9999 * pi)), Covariance<C2>(0.25, 0, 0, 0.25)};
   const GaussianDistribution input1_tri {Mean<C2>(std::cos(0.9999 * pi), std::sin(0.9999 * pi)), make_covariance<C2, TriangleType::lower>(0.25, 0, 0, 0.25)};

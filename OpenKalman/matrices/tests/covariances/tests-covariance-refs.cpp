@@ -15,14 +15,14 @@ using namespace OpenKalman::test;
 
 using M = eigen_matrix_t<double, 3, 3>;
 using M1 = eigen_matrix_t<double, 3, 1>;
-using C = FixedDescriptor<Axis, angle::Radians, Axis>;
+using C = StaticDescriptor<Axis, angle::Radians, Axis>;
 using Mat3 = Matrix<C, C, M>;
 using Mat31 = Matrix<C, Axis, M1>;
-template<typename Mat> using SAl = SelfAdjointMatrix<Mat, TriangleType::lower>;
-template<typename Mat> using SAu = SelfAdjointMatrix<Mat, TriangleType::upper>;
-template<typename Mat> using Tl = TriangularMatrix<Mat, TriangleType::lower>;
-template<typename Mat> using Tu = TriangularMatrix<Mat, TriangleType::upper>;
-template<typename Mat> using D = DiagonalMatrix<Mat>;
+template<typename Mat> using SAl = HermitianAdapter<Mat, TriangleType::lower>;
+template<typename Mat> using SAu = HermitianAdapter<Mat, TriangleType::upper>;
+template<typename Mat> using Tl = TriangularAdapter<Mat, TriangleType::lower>;
+template<typename Mat> using Tu = TriangularAdapter<Mat, TriangleType::upper>;
+template<typename Mat> using D = DiagonalAdapter<Mat>;
 
 
 // -----------Case 2 from Case 1----------- //

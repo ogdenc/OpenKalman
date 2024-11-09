@@ -10,11 +10,11 @@
 
 /**
  * \file
- * \brief Definitions for FixedDescriptor class specializations and associated aliases.
+ * \brief Definitions for StaticDescriptor class specializations and associated aliases.
  */
 
-#ifndef OPENKALMAN_FIXEDDESCRIPTOR_HPP
-#define OPENKALMAN_FIXEDDESCRIPTOR_HPP
+#ifndef OPENKALMAN_STATICDESCRIPTOR_HPP
+#define OPENKALMAN_STATICDESCRIPTOR_HPP
 
 #include <array>
 #include <functional>
@@ -23,42 +23,42 @@
 namespace OpenKalman::vector_space_descriptors
 {
   /**
-   * \brief A composite \ref fixed_vector_space_descriptor comprising a sequence of other fixed \ref vector_space_descriptor.
-   * \details This is the key to the wrapping functionality of OpenKalman. Each of the fixed_vector_space_descriptor Cs... matches-up with
+   * \brief A composite \ref static_vector_space_descriptor comprising a sequence of other fixed \ref vector_space_descriptor.
+   * \details This is the key to the wrapping functionality of OpenKalman. Each of the static_vector_space_descriptor Cs... matches-up with
    * one or more of the rows or columns of a matrix. The number of coefficients per coefficient depends on the dimension
    * of the coefficient. For example, Axis, Distance, Angle, and Inclination are dimension 1, and each correspond to a
    * single coefficient. Polar is dimension 2 and corresponds to two coefficients (e.g., a distance and an angle).
    * Spherical is dimension 3 and corresponds to three coefficients.
-   * Example: <code>FixedDescriptor&lt;Axis, angle::Radians&gt;</code>
+   * Example: <code>StaticDescriptor&lt;Axis, angle::Radians&gt;</code>
    * \tparam Cs Any types within the concept coefficients.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor...Cs>
+  template<static_vector_space_descriptor...Cs>
 #else
   template<typename...Cs>
 #endif
-  struct FixedDescriptor
+  struct StaticDescriptor
   {
 #ifndef __cpp_concepts
-    static_assert((fixed_vector_space_descriptor<Cs> and ...));
+    static_assert((static_vector_space_descriptor<Cs> and ...));
 #endif
 
     /// Default constructor
-    constexpr FixedDescriptor() = default;
+    constexpr StaticDescriptor() = default;
 
 
     /// Conversion constructor
 #ifdef __cpp_concepts
-    template<maybe_equivalent_to<FixedDescriptor> D> requires (not std::same_as<std::decay_t<D>, FixedDescriptor>)
+    template<maybe_equivalent_to<StaticDescriptor> D> requires (not std::same_as<std::decay_t<D>, StaticDescriptor>)
 #else
     template<typename D, std::enable_if_t<
-      maybe_equivalent_to<D, FixedDescriptor> and not std::is_same_v<std::decay_t<D>, FixedDescriptor>, int> = 0>
+      maybe_equivalent_to<D, StaticDescriptor> and not std::is_same_v<std::decay_t<D>, StaticDescriptor>, int> = 0>
 #endif
-    explicit constexpr FixedDescriptor(D&& d)
+    explicit constexpr StaticDescriptor(D&& d)
     {
       if constexpr (dynamic_vector_space_descriptor<D>)
       {
-        if (d != FixedDescriptor{}) throw std::invalid_argument{"Dynamic argument of 'FixedDescriptor' constructor is not an equivalent vector space descriptor."};
+        if (d != StaticDescriptor{}) throw std::invalid_argument{"Dynamic argument of 'StaticDescriptor' constructor is not an equivalent vector space descriptor."};
       }
     }
 
@@ -68,7 +68,7 @@ namespace OpenKalman::vector_space_descriptors
      * \tparam Cnew The set of new coordinates to prepend.
      */
     template<typename ... Cnew>
-    using Prepend = FixedDescriptor<Cnew..., Cs ...>;
+    using Prepend = StaticDescriptor<Cnew..., Cs ...>;
 
 
     /**
@@ -76,20 +76,20 @@ namespace OpenKalman::vector_space_descriptors
      * \tparam Cnew The set of new coordinates to append.
      */
     template<typename ... Cnew>
-    using Append = FixedDescriptor<Cs ..., Cnew ...>;
+    using Append = StaticDescriptor<Cs ..., Cnew ...>;
 
   private:
 
     template<std::size_t count, typename...Ds>
-    struct Take_impl { using type = FixedDescriptor<>; };
+    struct Take_impl { using type = StaticDescriptor<>; };
 
 
     template<std::size_t count, typename D, typename...Ds>
-    struct Take_impl<count, D, Ds...> { using type = typename FixedDescriptor<Ds...>::template Take<count - 1>::template Prepend<D>; };
+    struct Take_impl<count, D, Ds...> { using type = typename StaticDescriptor<Ds...>::template Take<count - 1>::template Prepend<D>; };
 
 
     template<typename D, typename...Ds>
-    struct Take_impl<0, D, Ds...> { using type = FixedDescriptor<>; };
+    struct Take_impl<0, D, Ds...> { using type = StaticDescriptor<>; };
 
   public:
 
@@ -108,15 +108,15 @@ namespace OpenKalman::vector_space_descriptors
   private:
 
     template<std::size_t count, typename...Ds>
-    struct Drop_impl { using type = FixedDescriptor<>; };
+    struct Drop_impl { using type = StaticDescriptor<>; };
 
 
     template<std::size_t count, typename D, typename...Ds>
-    struct Drop_impl<count, D, Ds...> { using type = typename FixedDescriptor<Ds...>::template Drop<count - 1>; };
+    struct Drop_impl<count, D, Ds...> { using type = typename StaticDescriptor<Ds...>::template Drop<count - 1>; };
 
 
     template<typename D, typename...Ds>
-    struct Drop_impl<0, D, Ds...> { using type = FixedDescriptor<D, Ds...>; };
+    struct Drop_impl<0, D, Ds...> { using type = StaticDescriptor<D, Ds...>; };
 
   public:
 
@@ -137,7 +137,7 @@ namespace OpenKalman::vector_space_descriptors
 
 
     template<std::size_t i, typename D, typename...Ds>
-    struct Select_impl<i, D, Ds...> { using type = typename FixedDescriptor<Ds...>::template Select<i - 1>; };
+    struct Select_impl<i, D, Ds...> { using type = typename StaticDescriptor<Ds...>::template Select<i - 1>; };
 
 
     template<typename D, typename...Ds>
@@ -156,15 +156,15 @@ namespace OpenKalman::vector_space_descriptors
 #endif
     using Select = typename Select_impl<i, Cs...>::type;
 
-  }; // struct FixedDescriptor
+  }; // struct StaticDescriptor
 
 
   /**
    * \internal
-   * \brief traits for FixedDescriptor.
+   * \brief traits for StaticDescriptor.
    */
   template<typename...Cs>
-  struct fixed_vector_space_descriptor_traits<FixedDescriptor<Cs...>>
+  struct static_vector_space_descriptor_traits<StaticDescriptor<Cs...>>
   {
     static constexpr std::size_t size = (0 + ... + dimension_size_of_v<Cs>);
 
@@ -175,7 +175,7 @@ namespace OpenKalman::vector_space_descriptors
     static constexpr std::size_t component_count = (0 + ... + vector_space_component_count<Cs>::value);
 
 
-    using difference_type = concatenate_fixed_vector_space_descriptor_t<dimension_difference_of_t<Cs>...>;
+    using difference_type = concatenate_static_vector_space_descriptor_t<dimension_difference_of_t<Cs>...>;
 
 
     static constexpr bool always_euclidean = (euclidean_vector_space_descriptor<Cs> and ...);
@@ -198,7 +198,7 @@ namespace OpenKalman::vector_space_descriptors
     {
       if constexpr (t < sizeof...(Cs))
       {
-        using C = typename FixedDescriptor<Cs...>::template Select<t>;
+        using C = typename StaticDescriptor<Cs...>::template Select<t>;
         constexpr auto i_size = dimension_size_of_v<C>;
         constexpr auto e_size = euclidean_dimension_size_of_v<C>;
         if constexpr (local_index >= (euclidean ? e_size : i_size))
@@ -239,16 +239,16 @@ namespace OpenKalman::vector_space_descriptors
 
 #ifdef __cpp_concepts
     template<typename Scalar> static constexpr GArr<Scalar>
-    to_euclidean_array {fixed_vector_space_descriptor_traits<Cs>::to_euclidean_element... };
+    to_euclidean_array {static_vector_space_descriptor_traits<Cs>::to_euclidean_element... };
 
     template<typename Scalar> static constexpr GArr<Scalar>
-    from_euclidean_array {fixed_vector_space_descriptor_traits<Cs>::from_euclidean_element... };
+    from_euclidean_array {static_vector_space_descriptor_traits<Cs>::from_euclidean_element... };
 
     template<typename Scalar> static constexpr GArr<Scalar>
-    wrap_get_array {fixed_vector_space_descriptor_traits<Cs>::get_wrapped_component... };
+    wrap_get_array {static_vector_space_descriptor_traits<Cs>::get_wrapped_component... };
 
     template<typename Scalar> static constexpr SArr<Scalar>
-    wrap_set_array {fixed_vector_space_descriptor_traits<Cs>::set_wrapped_component... };
+    wrap_set_array {static_vector_space_descriptor_traits<Cs>::set_wrapped_component... };
 #else
   private:
 
@@ -258,16 +258,16 @@ namespace OpenKalman::vector_space_descriptors
   public:
 
     template<typename Scalar> static constexpr GArr<Scalar>
-    to_euclidean_array { fixed_vector_space_descriptor_traits<Cs>::template to_euclidean_element<Getter<Scalar>, 0>... };
+    to_euclidean_array { static_vector_space_descriptor_traits<Cs>::template to_euclidean_element<Getter<Scalar>, 0>... };
 
     template<typename Scalar> static constexpr GArr<Scalar>
-    from_euclidean_array { fixed_vector_space_descriptor_traits<Cs>::template from_euclidean_element<Getter<Scalar>, 0>... };
+    from_euclidean_array { static_vector_space_descriptor_traits<Cs>::template from_euclidean_element<Getter<Scalar>, 0>... };
 
     template<typename Scalar> static constexpr GArr<Scalar>
-    wrap_get_array { fixed_vector_space_descriptor_traits<Cs>::template get_wrapped_component<Getter<Scalar>, 0>... };
+    wrap_get_array { static_vector_space_descriptor_traits<Cs>::template get_wrapped_component<Getter<Scalar>, 0>... };
 
     template<typename Scalar> static constexpr SArr<Scalar>
-    wrap_set_array { fixed_vector_space_descriptor_traits<Cs>::template set_wrapped_component<Setter<Scalar>, Getter<Scalar>, 0>... };
+    wrap_set_array { static_vector_space_descriptor_traits<Cs>::template set_wrapped_component<Setter<Scalar>, Getter<Scalar>, 0>... };
 #endif
 
     static constexpr bool euclidean_type = (euclidean_vector_space_descriptor<Cs> and ...);
@@ -342,4 +342,4 @@ namespace OpenKalman::vector_space_descriptors
 }// namespace OpenKalman::vector_space_descriptors
 
 
-#endif //OPENKALMAN_FIXEDDESCRIPTOR_HPP
+#endif //OPENKALMAN_STATICDESCRIPTOR_HPP

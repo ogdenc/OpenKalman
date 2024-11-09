@@ -21,7 +21,7 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
   template<indexible NestedObject, vector_space_descriptor...Vs> requires
     compatible_with_vector_space_descriptors<NestedObject, Vs...> and
-    internal::not_more_fixed_than<NestedObject, Vs...> and internal::less_fixed_than<NestedObject, Vs...>
+    internal::not_more_fixed_than<NestedObject, std::tuple<Vs...>> and internal::less_fixed_than<NestedObject, std::tuple<Vs...>>
 #else
   template<typename NestedObject, typename...Vs>
 #endif
@@ -33,8 +33,8 @@ namespace OpenKalman::internal
     static_assert(indexible<NestedObject>);
     static_assert((vector_space_descriptor<Vs> and ...));
     static_assert(compatible_with_vector_space_descriptors<NestedObject, Vs...>);
-    static_assert(internal::not_more_fixed_than<NestedObject, Vs...>);
-    static_assert(internal::less_fixed_than<NestedObject, Vs...>);
+    static_assert(internal::not_more_fixed_than<NestedObject, std::tuple<Vs...>>);
+    static_assert(internal::less_fixed_than<NestedObject, std::tuple<Vs...>>);
 #endif
 
     using Base = AdapterBase<FixedSizeAdapter, const NestedObject>;

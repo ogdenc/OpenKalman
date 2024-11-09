@@ -27,7 +27,7 @@ namespace OpenKalman::internal
       using difference_type = std::ptrdiff_t;
       using value_type = std::decay_t<decltype(get_vector_space_descriptor<0>(std::declval<Indexible>()))>; 
       static_assert(dynamic_vector_space_descriptor<value_type>);
-      constexpr Iterator(const std::size_t p) : pos{p} {}
+      constexpr Iterator(const Indexible& indexible, const std::size_t p) : my_indexible{indexible}, pos{p} {}
       constexpr value_type operator*() const { return get_vector_space_descriptor(my_indexible, pos); } 
       constexpr auto& operator++() noexcept { ++pos; return *this; }
       constexpr auto operator++(int) noexcept { auto temp = *this; ++*this; return temp; }
@@ -53,19 +53,21 @@ namespace OpenKalman::internal
 
     private:
 
+      const Indexible& my_indexible;
+
       std::size_t pos;
       
     }; // struct Iterator
 
-    constexpr VectorSpaceDescriptorRange(const VectorSpaceDescriptorRange& other) : my_indexible{other.my_indexible} {}
+    constexpr VectorSpaceDescriptorRange(const VectorSpaceDescriptorRange& other) : my_indexible {other.my_indexible} {}
     
-    constexpr VectorSpaceDescriptorRange(VectorSpaceDescriptorRange&& other) : my_indexible{other.my_indexible} {}
+    constexpr VectorSpaceDescriptorRange(VectorSpaceDescriptorRange&& other) : my_indexible {other.my_indexible} {}
     
-    constexpr VectorSpaceDescriptorRange(const Indexible& indexible) : my_indexible{indexible} {}
+    constexpr VectorSpaceDescriptorRange(const Indexible& indexible) : my_indexible {indexible} {}
     
-    constexpr auto begin() const { return Iterator {0}; }
+    constexpr auto begin() const { return Iterator {my_indexible, 0}; }
     
-    constexpr auto end() const { return Iterator {count_indices(my_indexible)}; }
+    constexpr auto end() const { return Iterator {my_indexible, count_indices(my_indexible)}; }
     
     constexpr std::size_t size() const { return count_indices(my_indexible); } 
 

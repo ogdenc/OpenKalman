@@ -87,42 +87,35 @@ namespace OpenKalman::interface
     }
 
 
-    template<typename Arg, typename Indices>
+    template<typename Indices>
     static constexpr std::tuple<Eigen::Index, Eigen::Index>
-    extract_indices(const Arg& arg, const Indices& indices)
+    extract_indices(const Indices& indices)
     {
-      auto sz = std::size(indices);
-      if (sz == 2)
-      {
-        auto it = indices.begin();
-        auto i = static_cast<std::size_t>(*it);
-        return {i, static_cast<std::size_t>(*++it)};
-      }
-      else if (sz == 1)
-      {
-        return {static_cast<std::size_t>(*indices.begin()), 0};
-      }
-      else if (sz == 0)
-      {
-        return {0, 0};
-      }
-      else throw std::logic_error("Wrong number of indices on component access");
+      auto it = indices.begin();
+      if (it == indices.end()) return {0, 0};
+      auto i = static_cast<std::size_t>(*it);
+      if (++it == indices.end()) return {i, 0};
+      auto j = static_cast<std::size_t>(*it);
+      if (++it == indices.end()) return {i, j};
+      throw std::logic_error("Wrong number of indices on component access");
     }
 
   public:
 
 #ifdef __cpp_lib_ranges
   template<typename Arg, std::ranges::input_range Indices> requires 
-    std::convertible_to<std::ranges::range_value_t<Indices>, const typename std::decay_t<Arg>::Index>
+    std::convertible_to<std::ranges::range_value_t<Indices>, const typename std::decay_t<Arg>::Index> and
+    (internal::static_collection_size_v<Indices> == dynamic_size or internal::static_collection_size_v<Indices> <= 2)
   static constexpr scalar_constant decltype(auto)
 #else
-    template<typename Arg, typename Indices>
-    static constexpr decltype(auto)
+  template<typename Arg, typename Indices, std::enable_if_t<
+    (internal::static_collection_size_v<Indices> == dynamic_size or internal::static_collection_size_v<Indices> <= 2), int> = 0>
+  static constexpr decltype(auto)
 #endif
     get_component(Arg&& arg, const Indices& indices)
     {
       using Scalar = scalar_type_of_t<Arg>;
-      auto [i, j] = extract_indices(arg, indices);
+      auto [i, j] = extract_indices(indices);
       if constexpr (Eigen3::eigen_SelfAdjointView<Arg>)
       {
         constexpr int Mode {std::decay_t<Arg>::Mode};
@@ -149,11 +142,13 @@ namespace OpenKalman::interface
 #ifdef __cpp_lib_ranges
     template<typename Arg, std::ranges::input_range Indices> requires (not std::is_const_v<Arg>) and
       std::convertible_to<std::ranges::range_value_t<Indices>, const typename Arg::Index> and
+      (internal::static_collection_size_v<Indices> == dynamic_size or internal::static_collection_size_v<Indices> <= 2) and
       std::assignable_from<decltype(get_coeff(std::declval<Arg&>(), 0, 0)), const scalar_type_of_t<Arg>&> and
       ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0) and
       (not Eigen3::eigen_DiagonalWrapper<Arg>) and (not Eigen3::eigen_TriangularView<Arg>)
 #else
     template<typename Arg, typename Indices, std::enable_if_t<(not std::is_const_v<Arg>) and
+      (internal::static_collection_size_v<Indices> == dynamic_size or internal::static_collection_size_v<Indices> <= 2) and
       std::is_assignable<decltype(get_coeff(std::declval<Arg&>(), 0, 0)), const scalar_type_of_t<Arg>&>::value and
       (Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0 and
       (not Eigen3::eigen_DiagonalWrapper<Arg>) and (not Eigen3::eigen_TriangularView<Arg>), int> = 0>
@@ -162,7 +157,7 @@ namespace OpenKalman::interface
     set_component(Arg& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
     {
       using Scalar = scalar_type_of_t<Arg>;
-      auto [i, j] = extract_indices(arg, indices);
+      auto [i, j] = extract_indices(indices);
       if constexpr (Eigen3::eigen_SelfAdjointView<Arg>)
       {
         constexpr int Mode {std::decay_t<Arg>::Mode};
@@ -308,9 +303,6 @@ namespace OpenKalman::interface
       (rows == dynamic_size ? Eigen::Dynamic : static_cast<int>(rows)),
       (cols == dynamic_size ? Eigen::Dynamic : static_cast<int>(cols)), options>;
 
-    template<std::size_t i, typename...D>
-    static constexpr auto get_dim = dimension_size_of_v<std::tuple_element_t<i, std::tuple<D..., Dimensions<1>, Dimensions<1>>>>;
-
   public:
 
 #ifdef __cpp_concepts
@@ -333,43 +325,87 @@ namespace OpenKalman::interface
       }
     }
 
+  private:
 
-#ifdef __cpp_concepts
-    template<Layout layout, scalar_type Scalar, vector_space_descriptor...D>
-#else
-    template<Layout layout, typename Scalar, typename...D, std::enable_if_t<scalar_type<Scalar> and
-      (vector_space_descriptor<D> and ...), int> = 0>
-#endif
-    static auto make_default(D&&...d)
+    template<typename Arg, typename Descriptors>
+    static constexpr auto
+    extract_descriptors(const Descriptors& descriptors)
     {
-      static_assert(layout != Layout::right or get_dim<0, D...> == 1 or get_dim<1, D...> != 1,
-        "Eigen does not allow creation of a row-major column vector.");
-      static_assert(layout != Layout::left or get_dim<0, D...> != 1 or get_dim<1, D...> == 1,
-        "Eigen does not allow creation of a column-major row vector.");
-
-      constexpr auto options =
-        layout == Layout::right or (layout == Layout::none and get_dim<0, D...> == 1 and get_dim<1, D...> != 1) ?
-        Eigen::RowMajor : Eigen::ColMajor;
-
-      using IndexType = typename Eigen::Index;
-
-      if constexpr (sizeof...(D) <= 2)
+      if constexpr (vector_space_descriptor_tuple<Descriptors>)
       {
-        using M = writable_type<Scalar, get_dim<0, D...>, get_dim<1, D...>, options>;
-
-        if constexpr (((dimension_size_of_v<D> == dynamic_size) or ...))
-          return M(static_cast<IndexType>(get_dimension_size_of(d))...);
-        else
-          return M {};
-      }
-      else if constexpr ((dynamic_vector_space_descriptor<D> or ...))
-      {
-        return Eigen::Tensor<Scalar, sizeof...(D), options, IndexType> {static_cast<IndexType>(get_dimension_size_of(d))...};
+        static_assert(std::tuple_size_v<Descriptors> <= 2);
+        if constexpr (std::tuple_size_v<Descriptors> == 0) return std::tuple {Axis{}, Axis{}};
+        else if constexpr (std::tuple_size_v<Descriptors> == 1) return std::tuple {std::get<0>(descriptors), Axis{}};
+        else return descriptors;
       }
       else
       {
-        return Eigen::TensorFixedSize<Scalar, Eigen::Sizes<std::decay_t<D>::value...>, options, IndexType> {};
+        auto it = descriptors.begin();
+        if (it == descriptors.end()) return std::tuple {Axis{}, Axis{}};
+        auto i = *it;
+        if (++it == descriptors.end()) return std::tuple {i, Axis{}};
+        auto j = *it;
+        if (++it == descriptors.end()) return std::tuple {i, j};
+        throw std::logic_error("Wrong number of vector space descriptors");
       }
+    }
+
+  public:
+
+#ifdef __cpp_concepts
+    template<Layout layout, scalar_type Scalar, euclidean_vector_space_descriptor_collection Ds>
+#else
+    template<Layout layout, typename Scalar, typename Ds, std::enable_if_t<scalar_type<Scalar> and
+      euclidean_vector_space_descriptor_collection<Ds>, int> = 0>
+#endif
+    static auto make_default(Ds&& ds)
+    {
+      using IndexType = typename Eigen::Index;
+
+      if constexpr (vector_space_descriptor_tuple<Ds> and internal::static_collection_size_v<Ds> > 2)
+      {
+        constexpr auto options = layout == Layout::right ? Eigen::RowMajor : Eigen::ColMajor;
+
+        if constexpr (static_vector_space_descriptor_tuple<Ds>)
+        {
+          auto sizes = std::apply([](auto&&...d){
+            return Eigen::Sizes<static_cast<std::ptrdiff_t>(get_dimension_size_of(d))...> {};
+          }, std::forward<Ds>(ds));
+
+          return Eigen::TensorFixedSize<Scalar, decltype(sizes), options, IndexType> {};
+        }
+        else
+        {
+          return std::apply([](auto&&...d){
+            using Ten = Eigen::Tensor<Scalar, internal::static_collection_size_v<Ds>, options, IndexType>;
+            return Ten {static_cast<IndexType>(get_dimension_size_of(d))...};
+            }, std::forward<Ds>(ds));
+        }
+      }
+      else
+      {
+        auto [d0, d1] = extract_descriptors(std::forward<Ds>(ds));
+        constexpr auto dim0 = dimension_size_of_v<decltype(d0)>;
+        constexpr auto dim1 = dimension_size_of_v<decltype(d1)>;
+
+        static_assert(layout != Layout::right or dim0 == 1 or dim1 != 1,
+          "Eigen does not allow creation of a row-major column vector.");
+        static_assert(layout != Layout::left or dim0 != 1 or dim1 == 1,
+          "Eigen does not allow creation of a column-major row vector.");
+
+        constexpr auto options =
+          layout == Layout::right or (layout == Layout::none and dim0 == 1 and dim1 != 1) ?
+          Eigen::RowMajor : Eigen::ColMajor;
+
+        using M = writable_type<Scalar, static_index_value<decltype(dim0)>, static_index_value<decltype(dim1)>, options>;
+
+        if constexpr (dim0 == dynamic_size or dim1 == dynamic_size)
+          return M {static_cast<IndexType>(get_dimension_size_of(d0)), static_cast<IndexType>(get_dimension_size_of(d1))};
+        else
+          return M {};
+      }
+
+
     }
 
 
@@ -377,7 +413,7 @@ namespace OpenKalman::interface
     template<Layout layout, writable Arg, std::convertible_to<scalar_type_of_t<Arg>> S, std::convertible_to<scalar_type_of_t<Arg>>...Ss>
       requires (layout == Layout::right) or (layout == Layout::left)
 #else
-    template<Layout layout, typename Arg, typename S, typename...Ss, std::enable_if_t<writable<M> and
+    template<Layout layout, typename Arg, typename S, typename...Ss, std::enable_if_t<writable<Arg> and
       (layout == Layout::right or layout == Layout::left) and
       std::conjunction<std::is_convertible<S, typename scalar_type_of<Arg>::type>,
           std::is_convertible<Ss, typename scalar_type_of<Arg>::type>...>::value, int> = 0>
@@ -389,49 +425,61 @@ namespace OpenKalman::interface
     }
 
 
-#ifdef __cpp_concepts
-    template<scalar_constant<ConstantType::dynamic_constant> C, typename...Ds> requires (sizeof...(Ds) <= 2)
+#ifdef __cpp_lib_ranges
+    template<scalar_constant<ConstantType::dynamic_constant> C, euclidean_vector_space_descriptor_collection Ds> requires
+      (internal::static_collection_size_v<Ds> != dynamic_size) and (internal::static_collection_size_v<Ds> <= 2)
     static constexpr constant_matrix<ConstantType::dynamic_constant> auto
 #else
-    template<typename C, typename...Ds, std::enable_if_t<
-      scalar_constant<C, ConstantType::dynamic_constant> and (sizeof...(Ds) <= 2), int> = 0>
+    template<typename C, typename Ds, std::enable_if_t<scalar_constant<C, ConstantType::dynamic_constant> and
+      euclidean_vector_space_descriptor_collection<Ds> and
+      (internal::static_collection_size_v<Ds> != dynamic_size) and (internal::static_collection_size_v<Ds> <= 2)), int> = 0>
     static constexpr auto
 #endif
-    make_constant(C&& c, Ds&&...ds)
+    make_constant(C&& c, Ds&& ds)
     {
+      auto [d0, d1] = extract_descriptors(ds);
+      constexpr auto dim0 = dimension_size_of_v<decltype(d0)>;
+      constexpr auto dim1 = dimension_size_of_v<decltype(d1)>;
+
       auto value = get_scalar_constant_value(std::forward<C>(c));
       using Scalar = std::decay_t<decltype(value)>;
-      using M = dense_writable_matrix_t<T, Layout::none, Scalar, std::decay_t<Ds>...>;
-      if constexpr ((fixed_vector_space_descriptor<Ds> and ...))
+      constexpr auto options = (dim0 == 1 and dim1 != 1) ? Eigen::RowMajor : Eigen::ColMajor;
+      using M = writable_type<Scalar, dim0, dim1, options>;
+
+      using IndexType = typename Eigen::Index;
+
+      if constexpr (static_vector_space_descriptor_collection<Ds>)
         return M::Constant(value);
-      else if constexpr (sizeof...(Ds) == 2)
-        return M::Constant(static_cast<typename M::Index>(get_dimension_size_of(std::forward<Ds>(ds)))..., value);
-      else if constexpr (sizeof...(Ds) == 1)
-        return M::Constant(static_cast<typename M::Index>(get_dimension_size_of(std::forward<Ds>(ds)))..., 1, value);
-      else // sizeof...(Ds) == 0
-        return M::Constant(1, 1, value);
+      else
+        return M::Constant(static_cast<IndexType>(get_dimension_size_of(d0)), static_cast<IndexType>(get_dimension_size_of(d1)), value);
       // Note: We don't address orders greater than 2 because Eigen::Tensor's constant has substantial limitations.
     }
 
 
 #ifdef __cpp_concepts
-    template<typename Scalar, typename...Ds> requires (sizeof...(Ds) <= 2)
+    template<typename Scalar, euclidean_vector_space_descriptor_collection Ds> requires
+      (internal::static_collection_size_v<Ds> != dynamic_size) and (internal::static_collection_size_v<Ds> <= 2)
     static constexpr identity_matrix auto
 #else
-    template<typename Scalar, typename...Ds, std::enable_if_t<(sizeof...(Ds) <= 2), int> = 0>
+    template<typename Scalar, typename...Ds, std::enable_if_t<euclidean_vector_space_descriptor_collection<Ds> and
+      (internal::static_collection_size_v<Ds> != dynamic_size) and (internal::static_collection_size_v<Ds> <= 2), int> = 0>
     static constexpr auto
 #endif
-    make_identity_matrix(Ds&&...ds)
+    make_identity_matrix(Ds&& ds)
     {
-      using M = dense_writable_matrix_t<T, Layout::none, Scalar, std::decay_t<Ds>...>;
-      if constexpr ((fixed_vector_space_descriptor<Ds> and ...))
+      auto [d0, d1] = extract_descriptors(ds);
+      constexpr auto dim0 = dimension_size_of_v<decltype(d0)>;
+      constexpr auto dim1 = dimension_size_of_v<decltype(d1)>;
+
+      constexpr auto options = (dim0 == 1 and dim1 != 1) ? Eigen::RowMajor : Eigen::ColMajor;
+      using M = writable_type<Scalar, dim0, dim1, options>;
+
+      using IndexType = typename Eigen::Index;
+
+      if constexpr (static_vector_space_descriptor_collection<Ds>)
         return M::Identity();
-      else if constexpr (sizeof...(Ds) == 2)
-        return M::Identity(static_cast<typename M::Index>(get_dimension_size_of(std::forward<Ds>(ds)))...);
-      else if constexpr (sizeof...(Ds) == 1)
-        return M::Identity(static_cast<typename M::Index>(get_dimension_size_of(std::forward<Ds>(ds)))..., 1);
-      else // sizeof...(Ds) == 0
-        return M::Identity(1, 1);
+      else
+        return M::Identity(static_cast<IndexType>(get_dimension_size_of(d0)), static_cast<IndexType>(get_dimension_size_of(d1)));
     }
 
 
@@ -908,13 +956,13 @@ namespace OpenKalman::interface
       }
       else if constexpr (triangular_matrix<Arg>)
       {
-        return OpenKalman::conjugate(TriangularMatrix {std::forward<Arg>(arg)});
+        return OpenKalman::conjugate(TriangularAdapter {std::forward<Arg>(arg)});
       }
       else
       {
         return conjugate(to_native_matrix(std::forward<Arg>(arg)));
       }
-      // Note: the global conjugate function already handles DiagonalMatrix and DiagonalWrapper
+      // Note: the global conjugate function already handles Eigen::DiagonalMatrix and Eigen::DiagonalWrapper
     }
 
 
@@ -984,7 +1032,7 @@ namespace OpenKalman::interface
         return std::forward<Arg>(arg).matrix().determinant();
       else
         return to_native_matrix(std::forward<Arg>(arg)).determinant();
-      // Note: the global determinant function already handles TriangularView, DiagonalMatrix, and DiagonalWrapper
+      // Note: the global determinant function already handles Eigen::TriangularView, Eigen::DiagonalMatrix, and Eigen::DiagonalWrapper
     }
 
 
@@ -1173,7 +1221,7 @@ namespace OpenKalman::interface
         if (get_scalar_constant_value(s) < Scalar(0))
         {
           // Cholesky factor elements are complex, so throw an exception.
-          throw (std::runtime_error("cholesky_factor of constant SelfAdjointMatrix: result is indefinite"));
+          throw (std::runtime_error("cholesky_factor of constant HermitianAdapter: result is indefinite"));
         }
 
         if constexpr(triangle_type == TriangleType::diagonal)
@@ -1231,7 +1279,7 @@ namespace OpenKalman::interface
             }
             else // Covariance is indefinite, so throw an exception.
             {
-              throw (std::runtime_error("cholesky_factor of SelfAdjointMatrix: covariance is indefinite"));
+              throw (std::runtime_error("cholesky_factor of HermitianAdapter: covariance is indefinite"));
             }
           }
           else if constexpr(triangle_type == TriangleType::lower)
@@ -1245,7 +1293,7 @@ namespace OpenKalman::interface
               LDL_x.vectorD().cwiseSqrt().asDiagonal() * LDL_x.matrixU().toDenseMatrix();
           }
         }
-        return TriangularMatrix<M, triangle_type> {std::move(b)};
+        return TriangularAdapter<M, triangle_type> {std::move(b)};
       }
     }
 

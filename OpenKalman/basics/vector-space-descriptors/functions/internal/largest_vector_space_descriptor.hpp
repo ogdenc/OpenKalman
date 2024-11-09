@@ -31,7 +31,8 @@ namespace OpenKalman::internal
   template<scalar_type...Scalars, vector_space_descriptor V, vector_space_descriptor...Vs>
   constexpr vector_space_descriptor decltype(auto)
 #else
-  template<typename V, typename...Vs, std::enable_if_t<(vector_space_descriptor<V> and ... and vector_space_descriptor<Vs>), int> = 0>
+  template<typename...Scalars, typename V, typename...Vs, std::enable_if_t<
+    (... and scalar_type<Scalars>) and (vector_space_descriptor<V> and ... and vector_space_descriptor<Vs>), int> = 0>
   constexpr decltype(auto)
 #endif
   largest_vector_space_descriptor(V&& v, Vs&&...vs)
@@ -44,7 +45,7 @@ namespace OpenKalman::internal
     {
       decltype(auto) tail = largest_vector_space_descriptor<Scalars...>(std::forward<Vs>(vs)...);
 
-      if constexpr ((fixed_vector_space_descriptor<V> and fixed_vector_space_descriptor<decltype(tail)>))
+      if constexpr ((static_vector_space_descriptor<V> and static_vector_space_descriptor<decltype(tail)>))
       {
         if constexpr (dimension_size_of_v<V> >= dimension_size_of_v<decltype(tail)>)
           return std::forward<V>(v);

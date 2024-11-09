@@ -20,7 +20,7 @@ namespace OpenKalman
   // --------------------- //
 
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor RowCoefficients, fixed_vector_space_descriptor ColumnCoefficients, typed_matrix_nestable NestedMatrix>
+  template<static_vector_space_descriptor RowCoefficients, static_vector_space_descriptor ColumnCoefficients, typed_matrix_nestable NestedMatrix>
   requires (dimension_size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
     (dimension_size_of_v<ColumnCoefficients> == index_dimension_of_v<NestedMatrix, 1>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
@@ -34,8 +34,8 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(fixed_vector_space_descriptor<RowCoefficients>);
-    static_assert(fixed_vector_space_descriptor<ColumnCoefficients>);
+    static_assert(static_vector_space_descriptor<RowCoefficients>);
+    static_assert(static_vector_space_descriptor<ColumnCoefficients>);
     static_assert(typed_matrix_nestable<NestedMatrix>);
     static_assert(dimension_size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>);
     static_assert(dimension_size_of_v<ColumnCoefficients> == index_dimension_of_v<NestedMatrix, 1>);
@@ -210,10 +210,10 @@ namespace OpenKalman
     /// Add a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
     template<distribution Arg> requires (euclidean_vector_space_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>)
+      (equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>)
 #else
     template<typename Arg, std::enable_if_t<distribution<Arg> and (euclidean_vector_space_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>), int> = 0>
+      (equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>), int> = 0>
 #endif
     auto& operator+=(const Arg& arg)
     {
@@ -250,10 +250,10 @@ namespace OpenKalman
     /// Subtract a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
     template<distribution Arg> requires (euclidean_vector_space_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>)
+      (equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>)
 #else
     template<typename Arg, std::enable_if_t<distribution<Arg> and (euclidean_vector_space_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::FixedDescriptor, RowCoefficients>), int> = 0>
+      (equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>), int> = 0>
 #endif
     auto& operator-=(const Arg& arg)
     {

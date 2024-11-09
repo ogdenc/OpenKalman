@@ -28,7 +28,7 @@ namespace OpenKalman
    * It is a native matrix type with both rows and columns corresponding to OutputCoefficients.
    */
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor InputCoefficients, fixed_vector_space_descriptor OutputCoefficients, typed_matrix_nestable TransformationMatrix,
+  template<static_vector_space_descriptor InputCoefficients, static_vector_space_descriptor OutputCoefficients, typed_matrix_nestable TransformationMatrix,
       typed_matrix_nestable ... PerturbationTransformationMatrices> requires
     (index_dimension_of_v<TransformationMatrix, 0> == dimension_size_of_v<OutputCoefficients>) and
     (index_dimension_of_v<TransformationMatrix, 1> == dimension_size_of_v<InputCoefficients>) and
@@ -75,15 +75,15 @@ namespace OpenKalman
     /**
      * \internal
      * \brief T is a suitable input to a linear tests constructor.
-     * \tparam RowCoefficients The row \ref fixed_vector_space_descriptor of the linear tests matrix.
-     * \tparam ColumnCoefficients The column \ref fixed_vector_space_descriptor of the linear tests
+     * \tparam RowCoefficients The row \ref static_vector_space_descriptor of the linear tests matrix.
+     * \tparam ColumnCoefficients The column \ref static_vector_space_descriptor of the linear tests
      * matrix.
      */
 #ifdef __cpp_concepts
     template<typename T, typename RowCoefficients, typename ColumnCoefficients = RowCoefficients>
     concept linear_transformation_input =
       (typed_matrix<T> or typed_matrix_nestable<T>) and
-      fixed_vector_space_descriptor<RowCoefficients> and fixed_vector_space_descriptor<ColumnCoefficients> and
+      static_vector_space_descriptor<RowCoefficients> and static_vector_space_descriptor<ColumnCoefficients> and
       (not typed_matrix<T> or (equivalent_to<vector_space_descriptor_of_t<T, 0>, RowCoefficients> and
           equivalent_to<vector_space_descriptor_of_t<T, 1>, ColumnCoefficients>)) and
       (not typed_matrix_nestable<T> or (index_dimension_of_v<T, 0> == dimension_size_of_v<RowCoefficients> and
@@ -91,7 +91,7 @@ namespace OpenKalman
 #else
     template<typename T, typename RowCoefficients, typename ColumnCoefficients = RowCoefficients>
     constexpr bool linear_transformation_input =
-      fixed_vector_space_descriptor<RowCoefficients> and fixed_vector_space_descriptor<ColumnCoefficients> and
+      static_vector_space_descriptor<RowCoefficients> and static_vector_space_descriptor<ColumnCoefficients> and
       detail::is_linear_transformation_input<T, RowCoefficients, ColumnCoefficients>::value;
 #endif
 
@@ -99,7 +99,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor InputCoefficients, fixed_vector_space_descriptor OutputCoefficients, typed_matrix_nestable TransformationMatrix,
+  template<static_vector_space_descriptor InputCoefficients, static_vector_space_descriptor OutputCoefficients, typed_matrix_nestable TransformationMatrix,
     typed_matrix_nestable ... PerturbationTransformationMatrices> requires
   (index_dimension_of_v<TransformationMatrix, 0> == dimension_size_of_v<OutputCoefficients>) and
     (index_dimension_of_v<TransformationMatrix, 1> == dimension_size_of_v<InputCoefficients>) and
@@ -113,8 +113,8 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(fixed_vector_space_descriptor<InputCoefficients>);
-    static_assert(fixed_vector_space_descriptor<OutputCoefficients>);
+    static_assert(static_vector_space_descriptor<InputCoefficients>);
+    static_assert(static_vector_space_descriptor<OutputCoefficients>);
     static_assert(typed_matrix_nestable<TransformationMatrix>);
     static_assert((typed_matrix_nestable<PerturbationTransformationMatrices> and ...));
     static_assert(index_dimension_of_v<TransformationMatrix, 0> == dimension_size_of_v<OutputCoefficients>);

@@ -63,7 +63,7 @@ namespace OpenKalman::internal
       typename MatrixTraits<std::decay_t<NestedMatrix>>::template DiagonalMatrixFrom<>,
       std::conditional_t<triangular_matrix<NestedMatrix>,
         typename MatrixTraits<std::decay_t<NestedMatrix>>::template SelfAdjointMatrixFrom<>,
-        typename MatrixTraits<std::decay_t<NestedMatrix>>::template TriangularMatrixFrom<>>>;
+        typename MatrixTraits<std::decay_t<NestedMatrix>>::template TriangularAdapterFrom<>>>;
 
   private:
 

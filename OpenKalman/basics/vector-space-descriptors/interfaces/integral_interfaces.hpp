@@ -26,10 +26,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<static_index_value T>
-  struct fixed_vector_space_descriptor_traits<T>
+  struct static_vector_space_descriptor_traits<T>
 #else
   template<typename T>
-  struct fixed_vector_space_descriptor_traits<T, std::enable_if_t<static_index_value<T>>>
+  struct static_vector_space_descriptor_traits<T, std::enable_if_t<static_index_value<T>>>
 #endif
   {
     static constexpr std::size_t size = static_cast<std::size_t>(T{});

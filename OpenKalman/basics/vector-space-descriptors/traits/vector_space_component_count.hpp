@@ -34,13 +34,13 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor T>
+  template<static_vector_space_descriptor T>
   struct vector_space_component_count<T>
 #else
   template<typename T>
-  struct vector_space_component_count<T, std::enable_if_t<fixed_vector_space_descriptor<T>>>
+  struct vector_space_component_count<T, std::enable_if_t<static_vector_space_descriptor<T>>>
 #endif
-    : std::integral_constant<std::size_t, fixed_vector_space_descriptor_traits<std::decay_t<T>>::component_count> {};
+    : std::integral_constant<std::size_t, static_vector_space_descriptor_traits<std::decay_t<T>>::component_count> {};
 
 
   /**

@@ -48,12 +48,12 @@ namespace OpenKalman::vector_space_descriptors
     /// Constructor, taking a static \ref euclidean_vector_space_descriptor.
 #ifdef __cpp_concepts
     template<typename D> requires (not std::same_as<std::decay_t<D>, Dimensions>) and 
-      ((euclidean_vector_space_descriptor<D> and fixed_vector_space_descriptor<D> and dimension_size_of_v<D> == N) or 
+      ((euclidean_vector_space_descriptor<D> and static_vector_space_descriptor<D> and dimension_size_of_v<D> == N) or
       dynamic_vector_space_descriptor<D>)
 #else
     template<typename D, std::enable_if_t<
-      (not std::same_as<std::decay_t<D>, Dimensions>) and 
-      ((euclidean_vector_space_descriptor<D> and fixed_vector_space_descriptor<D> and dimension_size_of_v<D> == N) or 
+      (not std::is_same_v<std::decay_t<D>, Dimensions>) and
+      ((euclidean_vector_space_descriptor<D> and static_vector_space_descriptor<D> and dimension_size_of_v<D> == N) or
       dynamic_vector_space_descriptor<D>), int> = 0>
 #endif
     explicit constexpr Dimensions(D&& d)
@@ -160,9 +160,9 @@ namespace OpenKalman::vector_space_descriptors
   // ------------------ //
 
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor D> requires euclidean_vector_space_descriptor<D>
+  template<static_vector_space_descriptor D> requires euclidean_vector_space_descriptor<D>
 #else
-  template<typename D, std::enable_if_t<fixed_vector_space_descriptor<D> and euclidean_vector_space_descriptor<D>, int> = 0>
+  template<typename D, std::enable_if_t<static_vector_space_descriptor<D> and euclidean_vector_space_descriptor<D>, int> = 0>
 #endif
   explicit Dimensions(D&&) -> Dimensions<dimension_size_of_v<D>>;
 
@@ -195,12 +195,12 @@ namespace OpenKalman::vector_space_descriptors
    */
 #ifdef __cpp_concepts
   template<std::size_t N> requires (N != dynamic_size)
-  struct fixed_vector_space_descriptor_traits<Dimensions<N>>
+  struct static_vector_space_descriptor_traits<Dimensions<N>>
 #else
   template<std::size_t N>
-  struct fixed_vector_space_descriptor_traits<Dimensions<N>, std::enable_if_t<N != dynamic_size>>
+  struct static_vector_space_descriptor_traits<Dimensions<N>, std::enable_if_t<N != dynamic_size>>
 #endif
-    : fixed_vector_space_descriptor_traits<std::integral_constant<std::size_t, N>>
+    : static_vector_space_descriptor_traits<std::integral_constant<std::size_t, N>>
   {
     using difference_type = Dimensions<N>;
   };

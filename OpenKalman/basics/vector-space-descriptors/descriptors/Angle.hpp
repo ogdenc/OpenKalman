@@ -34,7 +34,7 @@ namespace OpenKalman::vector_space_descriptors
   struct Angle;
 
 
-  /// Namespace for definitions relating to fixed_vector_space_descriptor representing an angle.
+  /// Namespace for definitions relating to static_vector_space_descriptor representing an angle.
   namespace angle
   {
     /**
@@ -154,7 +154,7 @@ namespace OpenKalman::vector_space_descriptors
    * \brief traits for Angle.
    */
   template<typename Limits>
-  struct fixed_vector_space_descriptor_traits<Angle<Limits>>
+  struct static_vector_space_descriptor_traits<Angle<Limits>>
   {
     static constexpr std::size_t size = 1;
 

@@ -34,7 +34,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typename T>
   concept euclidean_vector_space_descriptor = vector_space_descriptor<T> and
-    (fixed_vector_space_descriptor_traits<std::decay_t<T>>::always_euclidean or
+    (static_vector_space_descriptor_traits<std::decay_t<T>>::always_euclidean or
       dynamic_vector_space_descriptor_traits<std::decay_t<T>>::always_euclidean);
 #else
   namespace detail
@@ -43,8 +43,8 @@ namespace OpenKalman
     struct is_euclidean_vector_space_descriptor : std::false_type {};
 
     template<typename T>
-    struct is_euclidean_vector_space_descriptor<T, std::enable_if_t<fixed_vector_space_descriptor<T> and
-      fixed_vector_space_descriptor_traits<T>::always_euclidean>>
+    struct is_euclidean_vector_space_descriptor<T, std::enable_if_t<static_vector_space_descriptor<T> and
+      static_vector_space_descriptor_traits<T>::always_euclidean>>
       : std::true_type {};
 
     template<typename T>

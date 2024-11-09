@@ -30,9 +30,9 @@ namespace OpenKalman
     {
       auto d = get_vector_space_descriptor<ix>(arg);
       using D = decltype(d);
-      if constexpr (fixed_vector_space_descriptor<Best_d>)
+      if constexpr (static_vector_space_descriptor<Best_d>)
       {
-        if constexpr (fixed_vector_space_descriptor<D>)
+        if constexpr (static_vector_space_descriptor<D>)
           static_assert(dimension_size_of_v<D> == dimension_size_of_v<Best_d>,
             "Arguments to chipwise_operation must have matching vector space descriptors.");
         else
@@ -42,7 +42,7 @@ namespace OpenKalman
       else // dynamic_vector_space_descriptor<Best_d>
       {
         if (d != best_d) throw std::invalid_argument {"Arguments to chipwise_operation must have matching vector space descriptors."};
-        if constexpr (fixed_vector_space_descriptor<D>)
+        if constexpr (static_vector_space_descriptor<D>)
           return chipwise_vector_space_descriptor_for<ix>(d, args...);
         else
           return chipwise_vector_space_descriptor_for<ix>(best_d, args...);

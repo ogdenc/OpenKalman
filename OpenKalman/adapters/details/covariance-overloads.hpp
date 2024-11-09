@@ -73,11 +73,11 @@ namespace OpenKalman
           OpenKalman::internal::to_covariance_nestable(std::forward<Arg>(arg))(std::forward<Arg>(arg)));
       }
 
-      template<typename C, typename...D>
+      template<typename C, typenameD>
       static constexpr auto
-      make_constant(C&& c, D&&...d)
+      make_constant(C&& c, D&& d)
       {
-        return make_constant<nested_object_of_t<T>>(std::forward<C>(c), std::forward<D>(d)...);
+        return make_constant<nested_object_of_t<T>>(std::forward<C>(c), std::forward<D>(d));
       }
 
 
@@ -230,7 +230,7 @@ namespace OpenKalman
     if constexpr(sizeof...(Ms) > 0)
     {
       using Coeffs =
-        concatenate_fixed_vector_space_descriptor_t<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Ms, 0>...>;
+        concatenate_static_vector_space_descriptor_t<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Ms, 0>...>;
       auto cat = concatenate_diagonal(nested_object(std::forward<M>(m)), nested_object(std::forward<Ms>(mN))...);
       return MatrixTraits<std::decay_t<M>>::template make<Coeffs>(std::move(cat));
     }
@@ -318,21 +318,21 @@ namespace OpenKalman
 
   /// Split Covariance or SquareRootCovariance diagonally.
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor ... Cs, covariance M>
+  template<static_vector_space_descriptor ... Cs, covariance M>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
   inline auto
   split_diagonal(M&& m)
   {
-    static_assert(internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
+    static_assert(internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
     return split_diagonal<oin::SplitCovDiagF<M>, Cs...>(nested_object(std::forward<M>(m)));
   }
 
 
   /// Split Covariance or SquareRootCovariance vertically. Result is a tuple of typed matrices.
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor ... Cs, covariance M>
+  template<static_vector_space_descriptor ... Cs, covariance M>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
@@ -340,14 +340,14 @@ namespace OpenKalman
   split_vertical(M&& m)
   {
     using CC = vector_space_descriptor_of_t<M, 0>;
-    static_assert(internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, CC>);
+    static_assert(internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, CC>);
     return split_vertical<oin::SplitCovVertF<M, CC>, Cs...>(to_dense_object(std::forward<M>(m)));
   }
 
 
   /// Split Covariance or SquareRootCovariance vertically. Result is a tuple of typed matrices.
 #ifdef __cpp_concepts
-  template<fixed_vector_space_descriptor ... Cs, covariance M>
+  template<static_vector_space_descriptor ... Cs, covariance M>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
@@ -355,7 +355,7 @@ namespace OpenKalman
   split_horizontal(M&& m)
   {
     using RC = vector_space_descriptor_of_t<M, 0>;
-    static_assert(internal::prefix_of<concatenate_fixed_vector_space_descriptor_t<Cs...>, RC>);
+    static_assert(internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, RC>);
     return split_horizontal<oin::SplitCovHorizF<M, RC>, Cs...>(to_dense_object(std::forward<M>(m)));
   }
 

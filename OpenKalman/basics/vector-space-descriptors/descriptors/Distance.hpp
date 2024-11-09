@@ -67,7 +67,7 @@ namespace OpenKalman::vector_space_descriptors
    * \brief traits for Distance.
    */
   template<>
-  struct fixed_vector_space_descriptor_traits<Distance>
+  struct static_vector_space_descriptor_traits<Distance>
   {
     static constexpr std::size_t size = 1;
     static constexpr std::size_t euclidean_size = 1;
