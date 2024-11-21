@@ -1,7 +1,5 @@
-add_subdirectory(interfaces)
 add_subdirectory(basics/tests)
-add_subdirectory(adapters/tests)
-add_subdirectory(matrices/tests)
+add_subdirectory(linear-algebra)
 add_subdirectory(distributions/tests)
 add_subdirectory(transformations/tests)
 add_subdirectory(transforms/tests)

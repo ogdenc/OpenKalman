@@ -182,7 +182,8 @@ namespace OpenKalman
       using Term = decltype(std::get<term>(inputs));
       const auto t = h_k<term>(inputs, std::make_index_sequence<index_dimension_of_v<Term, 0>> {});
       using C = vector_space_descriptor_of_t<Term, 0>;
-      using V = Matrix<C, C, dense_writable_matrix_t<Term, Layout::none, scalar_type_of_t<Term>, Dimensions<index_dimension_of_v<Term, 0>>, Dimensions<index_dimension_of_v<Term, 0>>>>;
+      using V = Matrix<C, C, dense_writable_matrix_t<Term, Layout::none, scalar_type_of_t<Term>,
+        std::tuple<index_dimension_of<Term, 0>, index_dimension_of<Term, 0>>>>;
       return std::array<V, sizeof...(ks)> {
         apply_coefficientwise<V>([&t](std::size_t i, std::size_t j) { return t[i][j][ks]; })...};
     }

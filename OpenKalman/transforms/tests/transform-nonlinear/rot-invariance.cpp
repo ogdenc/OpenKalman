@@ -12,6 +12,7 @@
 #include <cmath>
 
 using namespace OpenKalman;
+using namespace OpenKalman::descriptors;
 using namespace OpenKalman::test;
 
 using numbers::pi;

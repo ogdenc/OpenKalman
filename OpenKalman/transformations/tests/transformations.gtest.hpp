@@ -10,7 +10,7 @@
 
 #include "transformations/transformations.hpp"
 
-#include "basics/tests/test-transformations.hpp"
+#include "test-transformations.hpp"
 
 
 #endif //OPENKALMAN_TRANSFORMATIONS_GTEST_HPP

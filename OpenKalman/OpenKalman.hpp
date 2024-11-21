@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020-2021 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -13,9 +13,6 @@
  * \brief This is the meta-header file for OpenKalman.
  * \details Include this file before using any OpenKalman classes or methods.
  * It should appear *after* an interface header file (e.g., Eigen3.h), for the matrix library.
- *
- * \dir interfaces
- * \brief Files relating to interfaces to matrix libraries.
  */
 
 #ifndef OPENKALMAN_OPENKALMAN_HPP
@@ -27,8 +24,7 @@
 namespace OpenKalman {}
 
 #include "basics/basics.hpp"
-#include "special-matrices/special-matrices.hpp"
-#include "matrices/matrices.hpp"
+#include "adapters/adapters.hpp"
 #include "distributions/distributions.hpp"
 #include "transformations/transformations.hpp"
 #include "transforms/transforms.hpp"

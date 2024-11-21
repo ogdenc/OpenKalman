@@ -11,6 +11,7 @@
 #include "linear.gtest.hpp"
 
 using namespace OpenKalman;
+using namespace OpenKalman::descriptors;
 using namespace OpenKalman::test;
 
 inline namespace

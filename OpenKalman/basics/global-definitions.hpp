@@ -97,32 +97,22 @@ namespace OpenKalman
   };
 
 
-  constexpr Qualification operator!(Qualification x)
+  constexpr Qualification operator not (Qualification x)
   {
     return x == Qualification::unqualified ? Qualification::depends_on_dynamic_shape : Qualification::unqualified;
   }
 
 
-  constexpr Qualification operator&&(Qualification x, Qualification y)
+  constexpr Qualification operator and (Qualification x, Qualification y)
   {
     return x == Qualification::unqualified and y == Qualification::unqualified ? Qualification::unqualified : Qualification::depends_on_dynamic_shape;
   }
 
 
-  constexpr Qualification operator||(Qualification x, Qualification y)
+  constexpr Qualification operator or (Qualification x, Qualification y)
   {
     return x == Qualification::unqualified or y == Qualification::unqualified ? Qualification::unqualified : Qualification::depends_on_dynamic_shape;
   }
-
-
-  /**
-   * \brief The type of constant.
-   */
-  enum struct ConstantType {
-    any, ///< The constant is determined either at compile time or runtime.
-    dynamic_constant, ///< The constant is unknown at compile time and is determined at runtime.
-    static_constant, ///< The constant is known at compile time.
-  };
 
 
   namespace internal

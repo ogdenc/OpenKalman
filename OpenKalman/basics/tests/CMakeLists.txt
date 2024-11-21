@@ -15,11 +15,11 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 
 add_executable(basics
-        scalar-types.cpp
-        basics.cpp
-        vector-space-descriptors.cpp
-        vector-space-descriptor-functions.cpp
-        dynamic-typed-vector-space-descriptors.cpp
+        tests.cpp
+        language-features.cpp
+        global-definitions.cpp
+        utils.cpp
+        collection.cpp
     )
 
 target_link_libraries(basics GTest::gtest_main Eigen3::Eigen Threads::Threads)

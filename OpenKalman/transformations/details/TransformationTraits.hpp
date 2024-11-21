@@ -217,11 +217,10 @@ namespace OpenKalman
     inline auto zero_hessian_impl()
     {
       using InputCoefficients = vector_space_descriptor_of_t<In, 0>;
-      constexpr std::size_t input_size = dimension_size_of_v<InputCoefficients>;
-      constexpr std::size_t output_size = dimension_size_of_v<OutputCoefficients>;
-      using HessianMatrixInBase = untyped_dense_writable_matrix_t<In, Layout::none, scalar_type_of_t<In>, input_size, input_size>;
+      using HessianMatrixInBase = dense_writable_matrix_t<In, Layout::none, scalar_type_of_t<In>,
+        std::tuple<dimension_size_of<InputCoefficients>, dimension_size_of<InputCoefficients>>>;
       using HessianMatrixIn = Matrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
-      using HessianArrayIn = std::array<HessianMatrixIn, output_size>;
+      using HessianArrayIn = std::array<HessianMatrixIn, dimension_size_of_v<OutputCoefficients>>;
 
       HessianArrayIn a;
       a.fill(make_zero(a));
