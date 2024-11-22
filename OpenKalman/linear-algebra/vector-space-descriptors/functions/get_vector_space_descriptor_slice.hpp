@@ -60,7 +60,7 @@ namespace OpenKalman
 
 
     template<typename Scalar, typename T, std::size_t max_dim, std::size_t position = 0>
-    auto get_vector_space_descriptor_slice_impl(std::size_t offset, std::size_t extent, descriptors::DynamicDescriptor<Scalar>&& ds = {})
+    auto get_vector_space_descriptor_slice_impl(std::size_t offset, std::size_t extent, descriptor::DynamicDescriptor<Scalar>&& ds = {})
     {
       if constexpr (vector_space_component_count_v<T> == 0 and position == max_dim)
       {

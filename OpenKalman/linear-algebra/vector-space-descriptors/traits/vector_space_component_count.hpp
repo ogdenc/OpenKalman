@@ -22,7 +22,7 @@
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
 
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
   /**
    * \brief The number of atomic component parts of a set of \ref vector_space_descriptor.
@@ -54,6 +54,6 @@ namespace OpenKalman
   constexpr auto vector_space_component_count_v = vector_space_component_count<T>::value;
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 #endif //OPENKALMAN_VECTOR_SPACE_COMPONENT_COUNT_HPP

@@ -11,7 +11,7 @@
 #include "covariances.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptors;
+using namespace OpenKalman::descriptor;
 using namespace OpenKalman::test;
 
 using M2 = eigen_matrix_t<double, 2, 2>;

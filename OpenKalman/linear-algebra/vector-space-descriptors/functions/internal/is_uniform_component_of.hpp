@@ -46,7 +46,7 @@ namespace OpenKalman::internal
    * \overload
    */
   template<typename S1, typename S2>
-  constexpr bool is_uniform_component_of(const descriptors::DynamicDescriptor<S1>& a, const descriptors::DynamicDescriptor<S2>& b)
+  constexpr bool is_uniform_component_of(const descriptor::DynamicDescriptor<S1>& a, const descriptor::DynamicDescriptor<S2>& b)
   {
     if constexpr (not std::is_same_v<S1, S2>) return false;
     else if (get_dimension_size_of(a) != 1) return false;
@@ -64,7 +64,7 @@ namespace OpenKalman::internal
 #else
   template<typename A, typename S, std::enable_if_t<vector_space_descriptor<A>, int> = 0>
 #endif
-  constexpr bool is_uniform_component_of(const A& a, const descriptors::DynamicDescriptor<S>& b)
+  constexpr bool is_uniform_component_of(const A& a, const descriptor::DynamicDescriptor<S>& b)
   {
     if (get_dimension_size_of(a) != 1) return false;
     else if (get_vector_space_descriptor_is_euclidean(a) and get_vector_space_descriptor_is_euclidean(b)) return true;
@@ -81,7 +81,7 @@ namespace OpenKalman::internal
 #else
   template<typename S, typename B, std::enable_if_t<vector_space_descriptor<B>, int> = 0>
 #endif
-  constexpr bool is_uniform_component_of(const descriptors::DynamicDescriptor<S>& a, const B& b)
+  constexpr bool is_uniform_component_of(const descriptor::DynamicDescriptor<S>& a, const B& b)
   {
     if (get_dimension_size_of(a) != 1) return false;
     else if (get_vector_space_descriptor_is_euclidean(a) and get_vector_space_descriptor_is_euclidean(b)) return true;

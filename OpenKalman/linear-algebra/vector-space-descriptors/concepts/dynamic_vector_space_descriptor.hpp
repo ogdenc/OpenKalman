@@ -20,7 +20,7 @@
 #include "linear-algebra/vector-space-descriptors/interfaces/dynamic_vector_space_descriptor_traits.hpp"
 
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
 #ifndef __cpp_concepts
   namespace detail
@@ -58,6 +58,6 @@ namespace OpenKalman
 #endif
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 #endif //OPENKALMAN_DYNAMIC_VECTOR_SPACE_DESCRIPTOR_HPP

@@ -40,101 +40,110 @@
 #define OPENKALMAN_VECTOR_TYPES_HPP
 
 
+/**
+ * \internal
+ * \brief The namespace for vector-space descriptor code.
+ */
+namespace OpenKalman::descriptor {}
+
+
 // interfaces:
 
-#include "linear-algebra/vector-space-descriptors/interfaces/static_vector_space_descriptor_traits.hpp" //
-#include "linear-algebra/vector-space-descriptors/interfaces/dynamic_vector_space_descriptor_traits.hpp" //
+#include "interfaces/static_vector_space_descriptor_traits.hpp" //
+#include "interfaces/dynamic_vector_space_descriptor_traits.hpp" //
 
 // initial concepts:
 
-#include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp" //
+#include "concepts/static_vector_space_descriptor.hpp" //
+#include "internal/forward-declarations.hpp" //
+#include "concepts/dynamic_vector_space_descriptor.hpp" //
+#include "concepts/vector_space_descriptor.hpp" //
+#include "concepts/euclidean_vector_space_descriptor.hpp" //
 
-#include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor_tuple.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor_collection.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor_tuple.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor_collection.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor_tuple.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor_collection.hpp" //
+#include "concepts/vector_space_descriptor_tuple.hpp" //
+#include "concepts/vector_space_descriptor_collection.hpp" //
+#include "concepts/static_vector_space_descriptor_tuple.hpp" //
+#include "concepts/static_vector_space_descriptor_collection.hpp" //
+#include "concepts/euclidean_vector_space_descriptor_tuple.hpp" //
+#include "concepts/euclidean_vector_space_descriptor_collection.hpp" //
 
-#include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp" //
+#include "concepts/composite_vector_space_descriptor.hpp" //
+#include "concepts/atomic_static_vector_space_descriptor.hpp" //
 
-#include "linear-algebra/vector-space-descriptors/concepts/composite_vector_space_descriptor.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/atomic_static_vector_space_descriptor.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/equivalent_to.hpp" //
+#include "traits/static_concatenate.hpp" //
+#include "traits/static_reverse.hpp" //
+#include "traits/internal/static_canonical_form.hpp" //
+
+#include "concepts/maybe_equivalent_to.hpp" //
+#include "concepts/equivalent_to.hpp" //
 
 // interface-based traits and functions
 
-#include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/traits/euclidean_dimension_size_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/traits/vector_space_component_count.hpp" //
-#include "linear-algebra/vector-space-descriptors/traits/dimension_difference_of.hpp" //
+#include "traits/dimension_size_of.hpp" //
+#include "traits/euclidean_dimension_size_of.hpp" //
+#include "traits/vector_space_component_count.hpp" //
+#include "traits/dimension_difference_of.hpp" //
 
-#include "linear-algebra/vector-space-descriptors/functions/get_dimension_size_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/get_euclidean_dimension_size_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_component_count_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_is_euclidean.hpp" //
+#include "functions/get_dimension_size_of.hpp" //
+#include "functions/get_euclidean_dimension_size_of.hpp" //
+#include "functions/get_vector_space_descriptor_component_count_of.hpp" //
+#include "functions/get_vector_space_descriptor_is_euclidean.hpp" //
 
-#include "linear-algebra/vector-space-descriptors/functions/to_euclidean_element.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/from_euclidean_element.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/get_wrapped_component.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/set_wrapped_component.hpp" //
+#include "functions/to_euclidean_element.hpp" //
+#include "functions/from_euclidean_element.hpp" //
+#include "functions/get_wrapped_component.hpp" //
+#include "functions/set_wrapped_component.hpp" //
 
 // internal traits:
 
-#include "linear-algebra/vector-space-descriptors/traits/internal/prefix_base_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/internal/prefix_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/internal/suffix_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/traits/internal/suffix_base_of.hpp" //
+#include "traits/internal/prefix_base_of.hpp" //
+#include "concepts/internal/prefix_of.hpp" //
+#include "concepts/internal/suffix_of.hpp" //
+#include "traits/internal/suffix_base_of.hpp" //
 
 // descriptors:
 
-#include "linear-algebra/vector-space-descriptors/descriptors/Dimensions.hpp" //
-#include "linear-algebra/vector-space-descriptors/descriptors/StaticDescriptor.hpp" //
-#include "linear-algebra/vector-space-descriptors/descriptors/DynamicDescriptor.hpp" //
+#include "descriptors/Dimensions.hpp" //
+#include "descriptors/StaticDescriptor.hpp" //
+#include "descriptors/DynamicDescriptor.hpp" //
 
-#include "linear-algebra/vector-space-descriptors/descriptors/Distance.hpp" //
-#include "linear-algebra/vector-space-descriptors/descriptors/Angle.hpp" //
-#include "linear-algebra/vector-space-descriptors/descriptors/Inclination.hpp" //
-#include "linear-algebra/vector-space-descriptors/descriptors/Polar.hpp" //
-#include "linear-algebra/vector-space-descriptors/descriptors/Spherical.hpp" //
+#include "descriptors/Distance.hpp" //
+#include "descriptors/Angle.hpp" //
+#include "descriptors/Inclination.hpp" //
+#include "descriptors/Polar.hpp" //
+#include "descriptors/Spherical.hpp" //
 
 // traits for manipulating static descriptors
 
-#include "linear-algebra/vector-space-descriptors/traits/replicate_static_vector_space_descriptor.hpp" //
+#include "traits/replicate_static_vector_space_descriptor.hpp" //
 
-#include "linear-algebra/vector-space-descriptors/traits/internal/canonical_static_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/traits/concatenate_static_vector_space_descriptor.hpp" //
-#include "linear-algebra/vector-space-descriptors/traits/reverse_static_vector_space_descriptor.hpp"
 
-#include "linear-algebra/vector-space-descriptors/traits/internal/uniform_static_vector_space_descriptor_query.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/uniform_static_vector_space_descriptor.hpp" //
-#include "linear-algebra/vector-space-descriptors/traits/uniform_static_vector_space_descriptor_component_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/equivalent_to_uniform_static_vector_space_descriptor_component_of.hpp" //
+#include "traits/internal/uniform_static_vector_space_descriptor_query.hpp" //
+#include "concepts/uniform_static_vector_space_descriptor.hpp" //
+#include "traits/uniform_static_vector_space_descriptor_component_of.hpp" //
+#include "concepts/equivalent_to_uniform_static_vector_space_descriptor_component_of.hpp" //
 
 // collection traits
 
-#include "linear-algebra/vector-space-descriptors/traits/internal/vector_space_descriptor_collection_common_type.hpp" //
+#include "traits/internal/vector_space_descriptor_collection_common_type.hpp" //
 
 // functions:
 
-#include "linear-algebra/vector-space-descriptors/functions/comparison-operators.hpp"
+#include "functions/comparison-operators.hpp"
+#include "functions/internal/arithmetic-operators.hpp"
 
-#include "linear-algebra/vector-space-descriptors/functions/internal/replicate_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/internal/is_uniform_component_of.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/internal/remove_trailing_1D_descriptors.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/internal/best_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/internal/smallest_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/internal/largest_vector_space_descriptor.hpp"
+#include "functions/internal/replicate_vector_space_descriptor.hpp"
+#include "functions/internal/is_uniform_component_of.hpp"
+#include "functions/internal/remove_trailing_1D_descriptors.hpp"
+#include "functions/internal/best_vector_space_descriptor.hpp"
+#include "functions/internal/smallest_vector_space_descriptor.hpp"
+#include "functions/internal/largest_vector_space_descriptor.hpp"
 
-#include "linear-algebra/vector-space-descriptors/functions/internal/split_head_tail.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/internal/static_vector_space_descriptor_slice.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_slice.hpp" //
+#include "functions/internal/split_head_tail.hpp" //
+#include "functions/internal/static_vector_space_descriptor_slice.hpp" //
+#include "functions/get_vector_space_descriptor_slice.hpp" //
 
-#include "linear-algebra/vector-space-descriptors/functions/internal/to_euclidean_vector_space_descriptor_collection.hpp"
+#include "functions/internal/to_euclidean_vector_space_descriptor_collection.hpp"
 
 
 #endif //OPENKALMAN_VECTOR_TYPES_HPP

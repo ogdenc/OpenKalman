@@ -18,22 +18,20 @@
 
 #include <array>
 #include <functional>
-#include <numeric>
-#include "basics/values/values.hpp"
+#include "linear-algebra/values/values.hpp"
 #include "linear-algebra/vector-space-descriptors/interfaces/static_vector_space_descriptor_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp"
+#include "linear-algebra/vector-space-descriptors/traits/static_concatenate.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/euclidean_dimension_size_of.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/vector_space_component_count.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/dimension_difference_of.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/internal/suffix_of.hpp"
-#include "linear-algebra/vector-space-descriptors/traits/internal/suffix_base_of.hpp"
+#include "Dimensions.hpp"
 
-namespace OpenKalman::descriptors
+namespace OpenKalman::descriptor
 {
 #ifdef __cpp_concepts
   template<static_vector_space_descriptor...Cs>
@@ -160,56 +158,9 @@ namespace OpenKalman::descriptors
     using Select = typename Select_impl<i, Cs...>::type;
 
 
-    /**
-     * \brief Plus operator
-     */
-#ifdef __cpp_concepts
-    template<static_vector_space_descriptor Arg>
-#else
-    template<typename B, std::enable_if_t<static_vector_space_descriptor<Arg>, int> = 0>
-#endif
-    constexpr auto operator+(const Arg& arg)
-    {
-      return concatenate_static_vector_space_descriptor_t<StaticDescriptor, std::decay_t<Arg>>{};
-    }
-
-
-    /**
-     * \overload
-     */
-#ifdef __cpp_concepts
-    template<static_vector_space_descriptor A>
-#else
-    template<typename A, std::enable_if_t<static_vector_space_descriptor<A>, int> = 0>
-#endif
-    friend constexpr auto operator+(const A& a, const StaticDescriptor& b)
-    {
-      return concatenate_static_vector_space_descriptor_t<std::decay_t<A>, StaticDescriptor>{};
-    }
-
-
-    /**
-     * \brief Minus operator
-     */
-    constexpr auto operator-(const StaticDescriptor&) const
-    {
-      return StaticDescriptor<>{};
-    }
-
-
-#ifdef __cpp_concepts
-    template<internal::suffix_of<StaticDescriptor> Arg>
-#else
-    template<typename Arg, std::enable_if_t<internal::suffix_of<Arg, StaticDescriptor>, int> = 0>
-#endif
-    constexpr auto operator-(const Arg& arg)
-    {
-      return internal::suffix_base_of_t<Arg, StaticDescriptor> {};
-    }
-
   }; // struct StaticDescriptor
 
-} // namespace OpenKalman::descriptors
+} // namespace OpenKalman::descriptor
 
 
 namespace OpenKalman::interface
@@ -219,21 +170,21 @@ namespace OpenKalman::interface
    * \brief traits for StaticDescriptor.
    */
   template<typename...Cs>
-  struct static_vector_space_descriptor_traits<descriptors::StaticDescriptor<Cs...>>
+  struct static_vector_space_descriptor_traits<descriptor::StaticDescriptor<Cs...>>
   {
-    static constexpr std::size_t size = (0 + ... + dimension_size_of_v<Cs>);
+    static constexpr std::size_t size = (0 + ... + descriptor::dimension_size_of_v<Cs>);
 
 
-    static constexpr std::size_t euclidean_size = (0 + ... + euclidean_dimension_size_of_v<Cs>);
+    static constexpr std::size_t euclidean_size = (0 + ... + descriptor::euclidean_dimension_size_of_v<Cs>);
 
 
-    static constexpr std::size_t component_count = (0 + ... + vector_space_component_count<Cs>::value);
+    static constexpr std::size_t component_count = (0 + ... + descriptor::vector_space_component_count<Cs>::value);
 
 
-    using difference_type = concatenate_static_vector_space_descriptor_t<dimension_difference_of_t<Cs>...>;
+    using difference_type = descriptor::static_concatenate_t<descriptor::dimension_difference_of_t<Cs>...>;
 
 
-    static constexpr bool always_euclidean = (euclidean_vector_space_descriptor<Cs> and ...);
+    static constexpr bool always_euclidean = (descriptor::euclidean_vector_space_descriptor<Cs> and ...);
 
   private:
 
@@ -253,9 +204,9 @@ namespace OpenKalman::interface
     {
       if constexpr (t < sizeof...(Cs))
       {
-        using C = typename descriptors::StaticDescriptor<Cs...>::template Select<t>;
-        constexpr auto i_size = dimension_size_of_v<C>;
-        constexpr auto e_size = euclidean_dimension_size_of_v<C>;
+        using C = typename descriptor::StaticDescriptor<Cs...>::template Select<t>;
+        constexpr auto i_size = descriptor::dimension_size_of_v<C>;
+        constexpr auto e_size = descriptor::euclidean_dimension_size_of_v<C>;
         if constexpr (local_index >= (euclidean ? e_size : i_size))
         {
           return make_table<euclidean, i, t + 1, 0, start + (euclidean ? i_size : e_size)>(std::forward<Arrs>(arrs)...);
@@ -325,7 +276,7 @@ namespace OpenKalman::interface
     wrap_set_array { static_vector_space_descriptor_traits<Cs>::template set_wrapped_component<Setter<Scalar>, Getter<Scalar>, 0>... };
 #endif
 
-    static constexpr bool euclidean_type = (euclidean_vector_space_descriptor<Cs> and ...);
+    static constexpr bool euclidean_type = (descriptor::euclidean_vector_space_descriptor<Cs> and ...);
 
   public:
 

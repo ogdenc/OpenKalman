@@ -11,7 +11,7 @@
 #include "covariances.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptors;
+using namespace OpenKalman::descriptor;
 using namespace OpenKalman::test;
 
 using M2 = eigen_matrix_t<double, 2, 2>;
@@ -908,7 +908,7 @@ TEST(covariance_tests, SquareRootCovariance_overloads)
 
 TEST(covariance_tests, SquareRootCovariance_blocks)
 {
-  using C4 = concatenate_static_vector_space_descriptor_t<C, C>;
+  using C4 = static_concatenate_t<C, C>;
   using M4 = eigen_matrix_t<double, 4, 4>;
   using Mat4 = Matrix<C4, C4, M4>;
   using SqCovSA4l = SquareRootCovariance<C4, HermitianAdapter<M4, TriangleType::lower>>;

@@ -21,7 +21,7 @@
 #include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp"
 
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
   namespace detail
   {
@@ -29,10 +29,10 @@ namespace OpenKalman
     struct is_composite_vector_space_descriptor : std::false_type {};
 
     template<typename...C>
-    struct is_composite_vector_space_descriptor<descriptors::StaticDescriptor<C...>> : std::true_type {};
+    struct is_composite_vector_space_descriptor<descriptor::StaticDescriptor<C...>> : std::true_type {};
 
     template<typename Scalar>
-    struct is_composite_vector_space_descriptor<descriptors::DynamicDescriptor<Scalar>> : std::true_type {};
+    struct is_composite_vector_space_descriptor<descriptor::DynamicDescriptor<Scalar>> : std::true_type {};
   }
 
 
@@ -51,6 +51,6 @@ namespace OpenKalman
     vector_space_descriptor<T> and detail::is_composite_vector_space_descriptor<std::decay_t<T>>::value;
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 #endif //OPENKALMAN_COMPOSITE_VECTOR_SPACE_DESCRIPTOR_HPP

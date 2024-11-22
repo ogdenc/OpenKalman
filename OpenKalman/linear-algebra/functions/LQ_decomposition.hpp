@@ -44,13 +44,13 @@ namespace OpenKalman
 
       if constexpr (dynamic_dimension<A, 0>)
       {
-        auto dim = descriptors::Dimensions {get_index_dimension_of<0>(a)};
-        auto col1 = make_constant<A>(elem, dim, descriptors::Axis{});
+        auto dim = descriptor::Dimensions {get_index_dimension_of<0>(a)};
+        auto col1 = make_constant<A>(elem, dim, descriptor::Axis{});
 
         auto m {make_dense_object<A>(dim, dim)};
 
         if (get_dimension_size_of(dim) == 1) m = std::move(col1);
-        else m = concatenate<1>(std::move(col1), make_zero<A>(dim, dim - descriptors::Axis{}));
+        else m = concatenate<1>(std::move(col1), make_zero<A>(dim, dim - descriptor::Axis{}));
 
         auto ret {make_triangular_matrix<TriangleType::lower>(std::move(m))};
 
@@ -62,9 +62,9 @@ namespace OpenKalman
       {
         auto ret = make_triangular_matrix<TriangleType::lower>([](Scalar elem){
           constexpr auto dim = index_dimension_of_v<A, 0>;
-          auto col1 = make_constant<A>(elem, descriptors::Dimensions<dim>{}, descriptors::Axis{});
+          auto col1 = make_constant<A>(elem, descriptor::Dimensions<dim>{}, descriptor::Axis{});
           if constexpr (dim == 1) return col1;
-          else return concatenate<1>(std::move(col1), make_zero<A>(descriptors::Dimensions<dim>{}, descriptors::Dimensions<dim - 1>{}));
+          else return concatenate<1>(std::move(col1), make_zero<A>(descriptor::Dimensions<dim>{}, descriptor::Dimensions<dim - 1>{}));
         }(elem));
 
         // \todo Fix this:

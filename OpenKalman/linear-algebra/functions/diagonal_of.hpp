@@ -51,7 +51,7 @@ namespace OpenKalman
       {
         return internal::make_constant_diagonal_from_descriptors<Arg>(
           constant_coefficient {std::forward<Arg>(arg)},
-          std::tuple_cat(ds, std::tuple{descriptors::Axis{}, descriptors::Axis{}}));
+          std::tuple_cat(ds, std::tuple{descriptor::Axis{}, descriptor::Axis{}}));
       }
       else
       {
@@ -65,7 +65,7 @@ namespace OpenKalman
       {      
         return internal::make_constant_diagonal_from_descriptors<Arg>(
           constant_diagonal_coefficient {std::forward<Arg>(arg)},
-          std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{descriptors::Axis{}, descriptors::Axis{}}));
+          std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{descriptor::Axis{}, descriptor::Axis{}}));
       }
       else
       {

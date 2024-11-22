@@ -80,7 +80,7 @@ namespace OpenKalman
       }
       else
       {
-        auto ret {make_dense_object_from<A>(std::tuple{descriptors::Axis{}, descriptors::Axis{}}, e)};
+        auto ret {make_dense_object_from<A>(std::tuple{descriptor::Axis{}, descriptor::Axis{}}, e)};
         if constexpr (std::is_assignable_v<A, decltype(std::move(ret))>)
         {
           a = std::move(ret);

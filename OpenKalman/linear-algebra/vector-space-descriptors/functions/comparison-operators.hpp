@@ -22,7 +22,7 @@
 #include <compare>
 #endif
 
-namespace OpenKalman::descriptors
+namespace OpenKalman::descriptor
 {
   /**
    * \brief Comparison operator for library-defined \ref vector_space_descriptor objects
@@ -118,7 +118,7 @@ namespace OpenKalman::descriptors
 #endif
 
 
-} // namespace OpenKalman::descriptors
+} // namespace OpenKalman::descriptor
 
 
 #endif //OPENKALMAN_COMPARISON_OPERATORS_HPP

@@ -19,11 +19,10 @@
 
 #include <type_traits>
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/internal/prefix_base_of.hpp"
 
 
-namespace OpenKalman::internal
+namespace OpenKalman::descriptor::internal
 {
 #ifndef __cpp_concepts
   namespace detail
@@ -48,15 +47,14 @@ namespace OpenKalman::internal
    */
   template<typename T, typename U>
 #ifdef __cpp_concepts
-  concept prefix_of =
-    static_vector_space_descriptor<T> and static_vector_space_descriptor<U> and
-      requires { typename prefix_base_of_t<T, U>; };
+  concept prefix_of = static_vector_space_descriptor<T> and static_vector_space_descriptor<U> and
+    requires { typename prefix_base_of_t<T, U>; };
 #else
   constexpr bool prefix_of =
     static_vector_space_descriptor<T> and static_vector_space_descriptor<U> and detail::prefix_of_impl<T, U>::value;
 #endif
 
 
-} // namespace OpenKalman::internal
+} // namespace OpenKalman::descriptor::internal
 
 #endif //OPENKALMAN_PREFIX_OF_HPP

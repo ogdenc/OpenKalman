@@ -38,7 +38,7 @@ namespace OpenKalman::internal
       {
         return std::tuple {};
       }
-      else if constexpr (equivalent_to<std::tuple_element_t<N - 1, std::tuple<Ds...>>, descriptors::Axis>)
+      else if constexpr (equivalent_to<std::tuple_element_t<N - 1, std::tuple<Ds...>>, descriptor::Axis>)
       {
         return std::apply(
           [](auto&&...ds2){ return remove_trailing_1D_descriptors_tup(std::forward<decltype(ds2)>(ds2)...); },
@@ -74,13 +74,13 @@ namespace OpenKalman::internal
     else
     {
 #if defined(__cpp_lib_ranges) and not defined (__clang__)
-      auto n = std::ranges::partition_point(descriptors, [](const auto& x){ return x != descriptors::Axis{}; });
+      auto n = std::ranges::partition_point(descriptors, [](const auto& x){ return x != descriptor::Axis{}; });
       return descriptors | std::ranges::views::take(n);
 #else
       auto it = descriptors.begin();
       for (auto d = descriptors.begin(); d != descriptors.end(); ++descriptors)
       {
-        if (*d != descriptors::Axis{}) it = d;
+        if (*d != descriptor::Axis{}) it = d;
       }
       std::vector<std::decay_t<decltype(*it)>> ret {};
       std::copy(descriptors.begin(), it, ret.begin());

@@ -78,8 +78,8 @@ namespace OpenKalman
           if constexpr (dynamic_dimension<T, I>) // There will be only one dynamic dimension, at most.
           {
             constexpr auto dims = ((dynamic_dimension<T, I> ? 1 : index_dimension_of_v<T, I>) * ... * 1);
-            if constexpr (dims == 0) return descriptors::Dimensions<0>{};
-            else return descriptors::Dimensions<sizeof...(Args) / dims>{};
+            if constexpr (dims == 0) return descriptor::Dimensions<0>{};
+            else return descriptor::Dimensions<sizeof...(Args) / dims>{};
           }
           else return vector_space_descriptor_of_t<T, I> {};
         }()...};

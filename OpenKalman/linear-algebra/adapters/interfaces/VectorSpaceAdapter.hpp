@@ -59,7 +59,7 @@ namespace OpenKalman::interface
         if constexpr (value::static_index<N>)
         {
           if constexpr (N::value >= dim)
-            return descriptors::Axis{};
+            return descriptor::Axis{};
           else if constexpr (static_vector_space_descriptor<std::tuple_element_t<N::value, Descriptors>>)
             return std::tuple_element_t<N::value, Descriptors> {};
           else
@@ -68,7 +68,7 @@ namespace OpenKalman::interface
         else
         {
           return std::apply(
-            [](auto&&...vs){ return std::array<descriptors::DynamicDescriptor<scalar_type>, dim> {std::forward<decltype(vs)>(vs)...}; },
+            [](auto&&...vs){ return std::array<descriptor::DynamicDescriptor<scalar_type>, dim> {std::forward<decltype(vs)>(vs)...}; },
             std::forward<Arg>(arg).my_descriptors)[n];
         }
       }
@@ -78,11 +78,11 @@ namespace OpenKalman::interface
       else if (n >= std::size(arg))
 #endif
       {
-        return descriptors::DynamicDescriptor<scalar_type>{descriptors::Axis{}};
+        return descriptor::DynamicDescriptor<scalar_type>{descriptor::Axis{}};
       }
       else
       {
-        return static_cast<descriptors::DynamicDescriptor<scalar_type>>(std::forward<Arg>(arg).my_descriptors[n]);
+        return static_cast<descriptor::DynamicDescriptor<scalar_type>>(std::forward<Arg>(arg).my_descriptors[n]);
       }
     }
 
@@ -392,7 +392,7 @@ namespace OpenKalman::interface
         }, std::tuple_cat(
           std::forward_as_tuple(NestedInterface::to_diagonal(nested_object(std::forward<Arg>(arg)))),
           std::forward<Arg>(arg).my_descriptors),
-          std::tuple{descriptors::Axis{}});
+          std::tuple{descriptor::Axis{}});
     }
 
   private:
@@ -429,7 +429,7 @@ namespace OpenKalman::interface
         return diagonal_of_impl(NestedInterface::transpose(nested_object(nested_object(std::forward<Arg>(arg)))));
       else 
         return diagonal_of_impl(NestedInterface::diagonal_of(nested_object(std::forward<Arg>(arg))),
-          std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{descriptors::Axis{}, descriptors::Axis{}}));
+          std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{descriptor::Axis{}, descriptor::Axis{}}));
     }
 
   private:
@@ -441,7 +441,7 @@ namespace OpenKalman::interface
       if constexpr (Ix < N)
         return replicate_vector_space_descriptor<scalar_type_of_t<Arg>>(get_vector_space_descriptor<Ix>(arg), std::get<Ix>(factors_tup));
       else
-        return descriptors::Axis{};
+        return descriptor::Axis{};
     }
 
 

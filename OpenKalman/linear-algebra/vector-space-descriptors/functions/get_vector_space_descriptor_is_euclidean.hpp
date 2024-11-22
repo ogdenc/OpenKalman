@@ -21,7 +21,7 @@
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
 
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
   /**
    * \brief Determine, at runtime, whether \ref vector_space_descriptor T is untyped.
@@ -43,7 +43,7 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 
 #endif //OPENKALMAN_GET_VECTOR_SPACE_DESCRIPTOR_IS_EUCLIDEAN_HPP

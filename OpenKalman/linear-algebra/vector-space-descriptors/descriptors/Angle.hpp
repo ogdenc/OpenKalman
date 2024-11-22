@@ -29,13 +29,10 @@
 #include "linear-algebra/values/concepts/floating_number.hpp"
 #include "linear-algebra/values/functions/internal/math_constexpr.hpp"
 #include "linear-algebra/vector-space-descriptors/interfaces/static_vector_space_descriptor_traits.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/composite_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp"
-#include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp"
 
-namespace OpenKalman::descriptors
+namespace OpenKalman::descriptor
 {
   template<typename Limits>
 #ifdef __cpp_concepts
@@ -158,33 +155,6 @@ namespace OpenKalman::descriptors
       }
     }
 
-
-    /**
-     * \brief Plus operator
-     */
-#ifdef __cpp_concepts
-    template<static_vector_space_descriptor Arg> requires (not composite_vector_space_descriptor<Arg>)
-#else
-    template<typename Arg, std::enable_if_t<
-      static_vector_space_descriptor<Arg> and (not composite_vector_space_descriptor<Arg>), int> = 0>
-#endif
-    constexpr auto operator+(Arg&& arg) const
-    {
-      if constexpr (dimension_size_of_v<Arg> == 0)
-        return *this;
-      else
-        return concatenate_static_vector_space_descriptor_t<Angle, std::decay_t<Arg>>{};
-    }
-
-
-    /**
-     * \brief Minus operator
-     */
-    constexpr auto operator-(const Angle&) const
-    {
-      return StaticDescriptor<>{};
-    }
-
   };
 
 
@@ -220,7 +190,7 @@ namespace OpenKalman::interface
    * \brief traits for Angle.
    */
   template<typename Limits>
-  struct static_vector_space_descriptor_traits<descriptors::Angle<Limits>>
+  struct static_vector_space_descriptor_traits<descriptor::Angle<Limits>>
   {
     static constexpr std::size_t size = 1;
 
@@ -231,7 +201,7 @@ namespace OpenKalman::interface
     static constexpr std::size_t component_count = 1;
 
 
-    using difference_type = descriptors::Angle<Limits>;
+    using difference_type = descriptor::Angle<Limits>;
 
 
     static constexpr bool always_euclidean = false;

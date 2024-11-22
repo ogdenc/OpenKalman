@@ -36,7 +36,7 @@ namespace OpenKalman::internal
     if constexpr (euclidean_vector_space_descriptor<T>)
     {
       if constexpr (static_vector_space_descriptor<T> and value::static_index<N>)
-        return descriptors::Dimensions<dimension_size_of_v<T> * static_cast<std::size_t>(n)> {};
+        return descriptor::Dimensions<dimension_size_of_v<T> * static_cast<std::size_t>(n)> {};
       else
         return get_dimension_size_of(t) * n;
     }
@@ -46,7 +46,7 @@ namespace OpenKalman::internal
     }
     else
     {
-      auto ret = descriptors::DynamicDescriptor<Scalar> {t};
+      auto ret = descriptor::DynamicDescriptor<Scalar> {t};
       for (std::size_t i = 1; i < static_cast<std::size_t>(n); ++i) ret.extend(t);
       return ret;
     }

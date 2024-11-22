@@ -63,7 +63,7 @@ namespace OpenKalman::internal
     detail::same_descriptors_in_tuple(std::make_index_sequence<std::tuple_size<T>::value>{})>>
 #endif
   {
-    using type = canonical_static_vector_space_descriptor_t<std::tuple_element_t<0, T>>;
+    using type = static_canonical_form_t<std::tuple_element_t<0, T>>;
   };
 
 
@@ -76,7 +76,7 @@ namespace OpenKalman::internal
     (not static_vector_space_descriptor_tuple<T>)>>
 #endif
   {
-    using type = descriptors::DynamicDescriptor<Scalar>;
+    using type = descriptor::DynamicDescriptor<Scalar>;
   };
 
 

@@ -11,7 +11,7 @@
 #include "typed-matrix.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptors;
+using namespace OpenKalman::descriptor;
 using namespace OpenKalman::test;
 
 using numbers::pi;
@@ -502,9 +502,9 @@ TEST(matrices, Mean_angle_concatenate_split)
   using Var3 = Mean<C3>;
   auto x1 = Var3 {5., 7, 9};
   auto x2 = Var3 {3., 2, 1};
-  auto x3 = Mean<concatenate_static_vector_space_descriptor_t<C3, C3>> {5., 7, 9, 3, 2, 1};
+  auto x3 = Mean<static_concatenate_t<C3, C3>> {5., 7, 9, 3, 2, 1};
   EXPECT_TRUE(is_near(concatenate(x1, x2), x3));
-  auto x4 = Mean<concatenate_static_vector_space_descriptor_t<C3, C3, C3>> {5., 7, 9, 3, 2, 1, 5, 7, 9};
+  auto x4 = Mean<static_concatenate_t<C3, C3, C3>> {5., 7, 9, 3, 2, 1, 5, 7, 9};
   EXPECT_TRUE(is_near(concatenate(x1, x2, x1), x4));
   auto [x5, x6] = split_vertical<C3, C3>(x3);
   EXPECT_TRUE(is_near(nested_object(x5), nested_object(x1)));

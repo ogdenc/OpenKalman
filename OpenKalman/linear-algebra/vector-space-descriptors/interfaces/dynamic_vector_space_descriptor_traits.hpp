@@ -18,7 +18,7 @@
 #define OPENKALMAN_DYNAMIC_VECTOR_SPACE_DESCRIPTOR_TRAITS_HPP
 
 #include <type_traits>
-#include "basics/values/values.hpp"
+#include "linear-algebra/values/values.hpp"
 
 namespace OpenKalman::interface
 {

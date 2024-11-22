@@ -17,7 +17,7 @@
 #include "basics/basics.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptors;
+using namespace OpenKalman::descriptor;
 
 using numbers::pi;
 

@@ -22,16 +22,13 @@
 #include "linear-algebra/vector-space-descriptors/interfaces/dynamic_vector_space_descriptor_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/composite_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/get_dimension_size_of.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_is_euclidean.hpp"
 
 
-namespace OpenKalman::descriptors
+namespace OpenKalman::descriptor
 {
   // ------------ //
   //  fixed case  //
@@ -89,54 +86,6 @@ namespace OpenKalman::descriptors
     constexpr operator Int()
     {
       return N;
-    }
-
-
-    /**
-     * \brief Plus operator
-     */
-#ifdef __cpp_concepts
-    template<vector_space_descriptor Arg> requires (not composite_vector_space_descriptor<Arg>) and
-      (static_vector_space_descriptor<Arg> or euclidean_vector_space_descriptor<Arg>)
-#else
-    template<typename Arg, std::enable_if_t<
-      vector_space_descriptor<Arg> and (not composite_vector_space_descriptor<Arg>) and
-      (static_vector_space_descriptor<Arg> or euclidean_vector_space_descriptor<Arg>), int> = 0>
-#endif
-    constexpr auto operator+(Arg&& arg) const
-    {
-      if constexpr (dimension_size_of_v<Arg> == 0)
-        return *this;
-      else if constexpr (static_vector_space_descriptor<Arg>)
-        return concatenate_static_vector_space_descriptor_t<Dimensions, std::decay_t<Arg>>{};
-      else // if constexpr (euclidean_vector_space_descriptor<Arg>)
-        return Dimensions<dynamic_size> {*this + get_dimension_size_of(arg)};
-    }
-
-
-    /**
-     * \brief Minus operator
-     */
-#ifdef __cpp_concepts
-    template<euclidean_vector_space_descriptor Arg> requires (not composite_vector_space_descriptor<Arg>) and
-      (dynamic_vector_space_descriptor<Arg> or (dimension_size_of_v<Arg> <= N))
-#else
-    template<typename Arg, std::enable_if_t<
-      euclidean_vector_space_descriptor<Arg> and (not composite_vector_space_descriptor<Arg>) and
-      (dynamic_vector_space_descriptor<Arg> or (dimension_size_of<Arg>::value <= N)), int> = 0>
-#endif
-    constexpr auto operator-(Arg&& arg) const
-    {
-      if constexpr (dimension_size_of_v<Arg> == 0)
-        return *this;
-      else if constexpr (static_vector_space_descriptor<Arg>)
-        return Dimensions<N - dimension_size_of_v<Arg>>{};
-      else // if constexpr (dynamic_vector_space_descriptor<Arg>)
-      {
-        if (get_dimension_size_of(arg) > *this)
-          throw std::invalid_argument {"Argument to Dimensions<N>::operator- would result in a negative result"};
-        return Dimensions<dynamic_size> {*this - get_dimension_size_of(arg)};
-      }
     }
 
   }; // struct Dimensions, static case
@@ -198,43 +147,6 @@ namespace OpenKalman::descriptors
       return runtime_size;
     }
 
-
-    /**
-     * \brief Plus operator
-     */
-#ifdef __cpp_concepts
-    template<euclidean_vector_space_descriptor Arg> requires (not composite_vector_space_descriptor<Arg>)
-#else
-    template<typename Arg, std::enable_if_t<
-      euclidean_vector_space_descriptor<Arg> and (not composite_vector_space_descriptor<Arg>), int> = 0>
-#endif
-    constexpr auto operator+(Arg&& arg) const
-    {
-      if constexpr (dimension_size_of_v<Arg> == 0)
-        return *this;
-      else
-        return Dimensions {runtime_size + get_dimension_size_of(arg)};
-    }
-
-
-#ifdef __cpp_concepts
-    template<euclidean_vector_space_descriptor Arg> requires (not composite_vector_space_descriptor<Arg>)
-#else
-    template<typename Arg, std::enable_if_t<
-      euclidean_vector_space_descriptor<Arg> and (not composite_vector_space_descriptor<Arg>), int> = 0>
-#endif
-    constexpr auto operator-(Arg&& arg) const
-    {
-      if constexpr (dimension_size_of_v<Arg> == 0)
-        return *this;
-      else
-      {
-        if (get_dimension_size_of(arg) > runtime_size)
-          throw std::invalid_argument {"Argument to Dimensions<dynamic_size>::operator- would result in a negative result"};
-        return Dimensions {runtime_size - get_dimension_size_of(arg)};
-      }
-    }
-
   protected:
 
     std::size_t runtime_size;
@@ -284,14 +196,14 @@ namespace OpenKalman::interface
    */
 #ifdef __cpp_concepts
   template<std::size_t N> requires (N != dynamic_size)
-  struct static_vector_space_descriptor_traits<descriptors::Dimensions<N>>
+  struct static_vector_space_descriptor_traits<descriptor::Dimensions<N>>
 #else
   template<std::size_t N>
-  struct static_vector_space_descriptor_traits<descriptors::Dimensions<N>, std::enable_if_t<N != dynamic_size>>
+  struct static_vector_space_descriptor_traits<descriptor::Dimensions<N>, std::enable_if_t<N != dynamic_size>>
 #endif
     : static_vector_space_descriptor_traits<std::integral_constant<std::size_t, N>>
   {
-    using difference_type = descriptors::Dimensions<N>;
+    using difference_type = descriptor::Dimensions<N>;
   };
 
 
@@ -300,7 +212,7 @@ namespace OpenKalman::interface
    * \brief traits for dynamic Dimensions.
    */
   template<>
-  struct dynamic_vector_space_descriptor_traits<descriptors::Dimensions<dynamic_size>> : dynamic_vector_space_descriptor_traits<std::size_t>
+  struct dynamic_vector_space_descriptor_traits<descriptor::Dimensions<dynamic_size>> : dynamic_vector_space_descriptor_traits<std::size_t>
   {
   private:
 
@@ -308,7 +220,7 @@ namespace OpenKalman::interface
 
   public:
 
-    explicit constexpr dynamic_vector_space_descriptor_traits(const descriptors::Dimensions<dynamic_size>& t) : Base {t.runtime_size} {};
+    explicit constexpr dynamic_vector_space_descriptor_traits(const descriptor::Dimensions<dynamic_size>& t) : Base {t.runtime_size} {};
   };
 
 

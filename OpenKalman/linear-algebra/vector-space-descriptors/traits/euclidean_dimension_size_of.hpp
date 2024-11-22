@@ -22,7 +22,7 @@
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
 
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
   /**
    * \brief The dimension size of a set of \ref vector_space_descriptor if it is transformed into Euclidean space.
@@ -54,6 +54,6 @@ namespace OpenKalman
   constexpr auto euclidean_dimension_size_of_v = euclidean_dimension_size_of<T>::value;
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 #endif //OPENKALMAN_EUCLIDEAN_DIMENSION_SIZE_OF_HPP

@@ -13,14 +13,14 @@
  * \brief Definition for \ref equivalent_to.
  */
 
-#ifndef OPENKALMAN_EQUIVALENT_TO_HPP
-#define OPENKALMAN_EQUIVALENT_TO_HPP
+#ifndef OPENKALMAN_DESCRIPTORS_EQUIVALENT_TO_HPP
+#define OPENKALMAN_DESCRIPTORS_EQUIVALENT_TO_HPP
 
 #include "static_vector_space_descriptor.hpp"
 #include "maybe_equivalent_to.hpp"
 
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
   /**
    * \brief Specifies that a set of \ref vector_space_descriptor objects are known at compile time to be equivalent.
@@ -41,6 +41,6 @@ namespace OpenKalman
     (static_vector_space_descriptor<Ts> and ...) and maybe_equivalent_to<Ts...>;
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
-#endif //OPENKALMAN_EQUIVALENT_TO_HPP
+#endif //OPENKALMAN_DESCRIPTORS_EQUIVALENT_TO_HPP

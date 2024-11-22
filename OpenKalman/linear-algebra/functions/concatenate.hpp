@@ -44,7 +44,7 @@ namespace OpenKalman
       if constexpr (((I == indices) or ...))
       {
         auto f = [](auto&& dtup){
-          if constexpr (I >= std::tuple_size_v<std::decay_t<decltype(dtup)>>) return descriptors::Axis {};
+          if constexpr (I >= std::tuple_size_v<std::decay_t<decltype(dtup)>>) return descriptor::Axis {};
           else return std::get<I>(std::forward<decltype(dtup)>(dtup));
         };
         return (f(std::forward<DTup>(d_tup)) + ... + f(std::forward<DTups>(d_tups)));

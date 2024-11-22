@@ -58,14 +58,14 @@ namespace OpenKalman
 
         if constexpr (triangle_type == TriangleType::lower)
         {
-          auto col0 = make_constant<A>(sq, dim, descriptors::Axis{});
-          return make_vector_space_adapter(concatenate<1>(col0, make_zero<A>(dim, dim - descriptors::Axis{})), v, v);
+          auto col0 = make_constant<A>(sq, dim, descriptor::Axis{});
+          return make_vector_space_adapter(concatenate<1>(col0, make_zero<A>(dim, dim - descriptor::Axis{})), v, v);
         }
         else
         {
           static_assert(triangle_type == TriangleType::upper);
-          auto row0 = make_constant<A>(sq, descriptors::Axis{}, dim);
-          return make_vector_space_adapter(concatenate<0>(row0, make_zero<A>(dim - descriptors::Axis{}, dim)), v, v);
+          auto row0 = make_constant<A>(sq, descriptor::Axis{}, dim);
+          return make_vector_space_adapter(concatenate<0>(row0, make_zero<A>(dim - descriptor::Axis{}, dim)), v, v);
         }
       }(a);
 

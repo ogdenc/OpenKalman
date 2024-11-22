@@ -908,17 +908,17 @@ namespace OpenKalman
   /// Split distribution.
 #ifdef __cpp_concepts
   template<static_vector_space_descriptor ... Cs, gaussian_distribution D> requires
-    internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, typename DistributionTraits<D>::StaticDescriptor>
+    internal::prefix_of<static_concatenate_t<Cs...>, typename DistributionTraits<D>::StaticDescriptor>
 #else
   template<typename ... Cs, typename D, std::enable_if_t<
     (static_vector_space_descriptor<Cs> and ...) and gaussian_distribution<D> and
-    internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, typename DistributionTraits<D>::StaticDescriptor>, int> = 0>
+    internal::prefix_of<static_concatenate_t<Cs...>, typename DistributionTraits<D>::StaticDescriptor>, int> = 0>
 #endif
   inline auto
   split(D&& d)
   {
     using Coeffs = typename DistributionTraits<D>::StaticDescriptor;
-    if constexpr(sizeof...(Cs) == 1 and equivalent_to<concatenate_static_vector_space_descriptor_t<Cs...>, Coeffs>)
+    if constexpr(sizeof...(Cs) == 1 and equivalent_to<static_concatenate_t<Cs...>, Coeffs>)
     {
       return std::tuple(std::forward<D>(d));
     }

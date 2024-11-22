@@ -49,7 +49,7 @@ namespace OpenKalman::internal
       auto i1 = ++it;
       if (i1 == descriptors.end())
       {
-        new_descriptors.emplace_back(descriptors::Axis{});
+        new_descriptors.emplace_back(descriptor::Axis{});
       }
       else if (i0 != descriptors.end())
       {

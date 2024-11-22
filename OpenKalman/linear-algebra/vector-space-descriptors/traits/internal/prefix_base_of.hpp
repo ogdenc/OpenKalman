@@ -11,77 +11,19 @@
 /**
  * \file
  * \internal
- * \brief Definition for \ref prefix_base_of.
+ * \brief Definition for \ref descriptor::internal::prefix_base_of.
  */
 
-#ifndef OPENKALMAN_PREFIX_BASE_OF_HPP
-#define OPENKALMAN_PREFIX_BASE_OF_HPP
+#ifndef OPENKALMAN_DESCRIPTORS_PREFIX_BASE_OF_HPP
+#define OPENKALMAN_DESCRIPTORS_PREFIX_BASE_OF_HPP
 
 #include <type_traits>
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/equivalent_to.hpp"
+#include "linear-algebra/vector-space-descriptors/traits/internal/static_canonical_form.hpp"
 
-
-namespace OpenKalman::internal
+namespace OpenKalman::descriptor::internal
 {
-  namespace detail
-  {
-#ifdef __cpp_concepts
-    template<typename T, typename U>
-#else
-    template<typename T, typename U, typename = void>
-#endif
-    struct prefix_base_of_impl {};
-
-
-#ifdef __cpp_concepts
-    template<typename C, equivalent_to<C> D>
-    struct prefix_base_of_impl<C, D>
-#else
-    template<typename C, typename D>
-    struct prefix_base_of_impl<C, D, std::enable_if_t<equivalent_to<C, D>>>
-#endif
-    { using type = descriptors::StaticDescriptor<>; };
-
-
-    template<typename D>
-#ifdef __cpp_concepts
-    struct prefix_base_of_impl<descriptors::StaticDescriptor<>, D>
-#else
-    struct prefix_base_of_impl<StaticDescriptor<>, D, std::enable_if_t<not equivalent_to<StaticDescriptor<>, D>>>
-#endif
-    { using type = D; };
-
-
-#ifdef __cpp_concepts
-    template<typename C, equivalent_to<C> D, typename...Ds>
-    struct prefix_base_of_impl<C, descriptors::StaticDescriptor<D, Ds...>>
-#else
-    template<typename C, typename D, typename...Ds>
-    struct prefix_base_of_impl<C, StaticDescriptor<D, Ds...>, std::enable_if_t<
-      equivalent_to<C, D> and
-      (not equivalent_to<C, StaticDescriptor<D, Ds...>>) and
-      (not std::is_same_v<C, StaticDescriptor<>>)>>
-#endif
-    { using type = descriptors::StaticDescriptor<Ds...>; };
-
-
-#ifdef __cpp_concepts
-    template<typename C, typename...Cs, equivalent_to<C> D, typename...Ds>
-    struct prefix_base_of_impl<descriptors::StaticDescriptor<C, Cs...>, descriptors::StaticDescriptor<D, Ds...>>
-#else
-    template<typename C, typename...Cs, typename D, typename...Ds>
-    struct prefix_base_of_impl<StaticDescriptor<C, Cs...>, StaticDescriptor<D, Ds...>, std::enable_if_t<
-      equivalent_to<C, D> and
-      (not equivalent_to<StaticDescriptor<C, Cs...>, StaticDescriptor<D, Ds...>>) and
-      (not equivalent_to<StaticDescriptor<C, Cs...>, D>)>>
-#endif
-      : prefix_base_of_impl<descriptors::StaticDescriptor<Cs...>, descriptors::StaticDescriptor<Ds...>> {};
-
-  } // namespace detail
-
-
   /**
    * \internal
    * \brief If T is a \ref internal::prefix_of "prefix of" U, return the non-overlapping base part.
@@ -92,7 +34,58 @@ namespace OpenKalman::internal
 #else
   template<typename T, typename U, typename = void>
 #endif
-  struct prefix_base_of {};
+  struct prefix_base_of;
+
+
+  /**
+   * \brief Helper template for \ref base_of.
+   */
+  template<typename T, typename U>
+  using prefix_base_of_t = typename prefix_base_of<T, U>::type;
+
+
+  namespace detail
+  {
+#ifdef __cpp_concepts
+    template<typename T, typename U>
+#else
+    template<typename T, typename U, typename = void>
+#endif
+    struct prefix_base_of_impl {};
+
+
+    template<typename T>
+    struct prefix_base_of_impl<T, T>
+    {
+      using type = StaticDescriptor<>;
+    };
+
+
+    template<typename T>
+    struct prefix_base_of_impl<StaticDescriptor<>, T>
+    {
+      using type = T;
+    };
+
+
+    template<typename T, typename...Ts>
+    struct prefix_base_of_impl<T, StaticDescriptor<T, Ts...>>
+    {
+      using type = StaticDescriptor<Ts...>;
+    };
+
+
+#ifdef __cpp_concepts
+    template<typename T, typename...Cs, typename...Ds> requires (not (... and std::same_as<Cs, Ds>))
+    struct prefix_base_of_impl<StaticDescriptor<T, Cs...>, StaticDescriptor<T, Ds...>>
+#else
+    template<typename T, typename...Cs, typename...Ds>
+    struct prefix_base_of_impl<StaticDescriptor<T, Cs...>, StaticDescriptor<T, Ds...>,
+      std::enable_if_t<not std::is_same_v<StaticDescriptor<T, Cs...>, StaticDescriptor<T, Ds...>>>>
+#endif
+      : prefix_base_of_impl<StaticDescriptor<Cs...>, StaticDescriptor<Ds...>> {};
+
+  } // namespace detail
 
 
 #ifdef __cpp_concepts
@@ -103,17 +96,10 @@ namespace OpenKalman::internal
   struct is_prefix<T, U, std::enable_if_t<static_vector_space_descriptor<T> and static_vector_space_descriptor<U>>>
 #endif
   : detail::prefix_base_of_impl<
-      canonical_static_vector_space_descriptor_t<std::decay_t<T>>,
-      canonical_static_vector_space_descriptor_t<std::decay_t<U>>> {};
+      static_canonical_form_t<std::decay_t<T>>,
+      static_canonical_form_t<std::decay_t<U>>> {};
 
 
-  /**
-   * \brief Helper template for \ref base_of.
-   */
-  template<typename T, typename U>
-  using prefix_base_of_t = typename prefix_base_of<T, U>::type;
+} // namespace OpenKalman::descriptor::internal
 
-
-} // namespace OpenKalman::internal
-
-#endif //OPENKALMAN_PREFIX_BASE_OF_HPP
+#endif //OPENKALMAN_DESCRIPTORS_PREFIX_BASE_OF_HPP

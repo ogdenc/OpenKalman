@@ -13,15 +13,15 @@
  * \brief Definition for \ref get_dimension_size_of.
  */
 
-#ifndef OPENKALMAN_GET_DIMENSION_SIZE_OF_HPP
-#define OPENKALMAN_GET_DIMENSION_SIZE_OF_HPP
+#ifndef OPENKALMAN_DESCRIPTORS_GET_DIMENSION_SIZE_OF_HPP
+#define OPENKALMAN_DESCRIPTORS_GET_DIMENSION_SIZE_OF_HPP
 
-#include "basics/values/values.hpp"
+#include "linear-algebra/values/values.hpp"
 #include "linear-algebra/vector-space-descriptors/interfaces/dynamic_vector_space_descriptor_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
   /**
    * \brief Get the dimension of \ref vector_space_descriptor T
@@ -47,7 +47,7 @@ namespace OpenKalman
   }
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 
-#endif //OPENKALMAN_GET_DIMENSION_SIZE_OF_HPP
+#endif //OPENKALMAN_DESCRIPTORS_GET_DIMENSION_SIZE_OF_HPP

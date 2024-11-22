@@ -19,6 +19,13 @@
 #ifndef OPENKALMAN_VALUES_HPP
 #define OPENKALMAN_VALUES_HPP
 
+/**
+ * \internal
+ * \brief The namespace for value-related code.
+ */
+namespace OpenKalman::value {}
+
+
 // indices
 
 #include "concepts/static_index.hpp"

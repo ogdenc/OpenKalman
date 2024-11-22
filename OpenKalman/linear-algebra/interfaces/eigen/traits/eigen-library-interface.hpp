@@ -335,16 +335,16 @@ namespace OpenKalman::interface
       {
         constexpr auto dim = std::tuple_size_v<std::decay_t<Descriptors>>;
         static_assert(dim <= 2);
-        if constexpr (dim == 0) return std::tuple {descriptors::Axis{}, descriptors::Axis{}};
-        else if constexpr (dim == 1) return std::tuple {std::get<0>(std::forward<Descriptors>(descriptors)), descriptors::Axis{}};
+        if constexpr (dim == 0) return std::tuple {descriptor::Axis{}, descriptor::Axis{}};
+        else if constexpr (dim == 1) return std::tuple {std::get<0>(std::forward<Descriptors>(descriptors)), descriptor::Axis{}};
         else return std::forward<Descriptors>(descriptors);
       }
       else
       {
         auto it = descriptors.begin();
-        if (it == descriptors.end()) return std::tuple {descriptors::Axis{}, descriptors::Axis{}};
+        if (it == descriptors.end()) return std::tuple {descriptor::Axis{}, descriptor::Axis{}};
         auto i = *it;
-        if (++it == descriptors.end()) return std::tuple {i, descriptors::Axis{}};
+        if (++it == descriptors.end()) return std::tuple {i, descriptor::Axis{}};
         auto j = *it;
         if (++it == descriptors.end()) return std::tuple {i, j};
         throw std::logic_error("Wrong number of vector space descriptors");

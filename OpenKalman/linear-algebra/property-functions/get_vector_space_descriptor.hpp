@@ -57,14 +57,14 @@ namespace OpenKalman
   {
     if constexpr (detail::count_is_zero<T>::value)
     {
-      return descriptors::Dimensions<1>{};
+      return descriptor::Dimensions<1>{};
     }
     else if constexpr (value::static_index<N> and value::static_index<decltype(count_indices(t))>)
     {
       if constexpr (N::value < std::decay_t<decltype(count_indices(t))>::value)
         return interface::indexible_object_traits<T>::get_vector_space_descriptor(t, n);
       else
-        return descriptors::Dimensions<1>{};
+        return descriptor::Dimensions<1>{};
     }
     else if constexpr (euclidean_vector_space_descriptor<decltype(interface::indexible_object_traits<T>::get_vector_space_descriptor(t, n))>)
     {
@@ -77,9 +77,9 @@ namespace OpenKalman
     {
       using Scalar = typename interface::indexible_object_traits<std::decay_t<T>>::scalar_type;
       if (n < count_indices(t))
-        return descriptors::DynamicDescriptor<Scalar>{interface::indexible_object_traits<T>::get_vector_space_descriptor(t, n)};
+        return descriptor::DynamicDescriptor<Scalar>{interface::indexible_object_traits<T>::get_vector_space_descriptor(t, n)};
       else
-        return descriptors::DynamicDescriptor<Scalar>{descriptors::Dimensions<1>{}};
+        return descriptor::DynamicDescriptor<Scalar>{descriptor::Dimensions<1>{}};
     }
   }
 

@@ -43,28 +43,28 @@ namespace OpenKalman::internal
     struct split_head_tail_impl<C, std::enable_if_t<atomic_static_vector_space_descriptor<C>>>
 #endif
     {
-      using type = std::tuple<C, descriptors::StaticDescriptor<>>;
+      using type = std::tuple<C, descriptor::StaticDescriptor<>>;
     };
 
 
     template<typename C>
-    struct split_head_tail_impl<descriptors::StaticDescriptor<C>>
+    struct split_head_tail_impl<descriptor::StaticDescriptor<C>>
     {
-      using type = std::tuple<C, descriptors::StaticDescriptor<>>;
+      using type = std::tuple<C, descriptor::StaticDescriptor<>>;
     };
 
 
     template<typename C0, typename C1>
-    struct split_head_tail_impl<descriptors::StaticDescriptor<C0, C1>>
+    struct split_head_tail_impl<descriptor::StaticDescriptor<C0, C1>>
     {
       using type = std::tuple<C0, C1>;
     };
 
 
     template<typename C0, typename C1, typename...Cs>
-    struct split_head_tail_impl<descriptors::StaticDescriptor<C0, C1, Cs...>>
+    struct split_head_tail_impl<descriptor::StaticDescriptor<C0, C1, Cs...>>
     {
-      using type = std::tuple<C0, descriptors::StaticDescriptor<C1, Cs...>>;
+      using type = std::tuple<C0, descriptor::StaticDescriptor<C1, Cs...>>;
     };
 
   } // namespace detail
@@ -72,7 +72,7 @@ namespace OpenKalman::internal
 
   /**
    * \brief Split a \ref static_vector_space_descriptor into head and tail components.
-   * \detail T is first converted to its \ref internal::canonical_static_vector_space_descriptor "canonical" form.
+   * \detail T is first converted to its \ref internal::static_canonical_form "canonical" form.
    * Member alias <code>head</code> will reflect the head type and
    * member alias <code>tail</code> will reflect the tail type.
    * The above aliases are undefined for an empty vector space descriptor.
@@ -93,7 +93,7 @@ namespace OpenKalman::internal
   template<typename T>
   struct split_head_tail<T, std::enable_if_t<static_vector_space_descriptor<T>>>
 #endif
-    : detail::split_head_tail_impl<canonical_static_vector_space_descriptor_t<T>> {};
+    : detail::split_head_tail_impl<static_canonical_form_t<T>> {};
 
 
   /**

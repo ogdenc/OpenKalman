@@ -17,92 +17,35 @@
  * \details This should be included by any OpenKalman file, including interface files.
  */
 
-#ifndef OPENKALMAN_BASICS_HPP
-#define OPENKALMAN_BASICS_HPP
+#ifndef OPENKALMAN_LINEAR_ALGEBRA_HPP
+#define OPENKALMAN_LINEAR_ALGEBRA_HPP
 
-
-// namespaces
-
-/**
- * \brief The root namespace for OpenKalman.
- */
-namespace OpenKalman {}
-
-
-/**
- * \internal
- * \brief The root namespace for OpenKalman interface types.
- */
-namespace OpenKalman::interface {}
-
-
-/**
- * \internal
- * \brief Namespace for internal definitions, not intended for use outside of OpenKalman development.
- */
-namespace OpenKalman::internal {}
-
-
-// global
-
-#include "language-features.hpp"
-#include "global-definitions.hpp"
-#include "utils.hpp"
-
-
-// values
-
-/**
- * \internal
- * \brief The root namespace for OpenKalman values (e.g., \ref constant_coefficient, \ref constant_diagonal_coefficient).
- */
-namespace OpenKalman::value {}
-//namespace OpenKalman { using namespace values; }
-
-
+#include "basics/basics.hpp"
 #include "values/values.hpp"
-
-
-// vector space descriptors
-
-/**
- * \brief The root namespace for OpenKalman \ref vector_space_descriptor objects.
- */
-namespace OpenKalman::descriptors {}
-//namespace OpenKalman { using namespace descriptors; }
-
-
 #include "vector-space-descriptors/vector-space-descriptors.hpp"
-
 
 // objects, properties, and interfaces
 
 #include "interfaces/object-traits-defined.hpp"
 #include "interfaces/library-interfaces-defined.hpp"
-#include "internal/library_base.hpp"
+#include "traits/internal/library_base.hpp"
 
 #include "property-functions/property-functions.hpp"
 
+#include "concepts/concepts.hpp"
 #include "traits/traits.hpp"
 #include "adapters/internal/forward-class-declarations.hpp"
 
 #include "interfaces/default/indexible_object_traits.hpp"
 #include "interfaces/default/library_interface.hpp"
 
-
 // object functions
 
 #include "functions/functions.hpp"
 
-
-// function-dependent traits
-
-#include "basics/traits/other-traits.hpp"
-
-
 // internal objects
 
-#include "internal/ElementAccessor.hpp"
+#include "adapters/internal/ElementAccessor.hpp"
 
 #include "adapters/internal/AdapterBase.hpp"
 
@@ -116,4 +59,4 @@ namespace OpenKalman::descriptors {}
 #include "adapters/interfaces/VectorSpaceAdapter.hpp"
 
 
-#endif //OPENKALMAN_BASICS_HPP
+#endif //OPENKALMAN_LINEAR_ALGEBRA_HPP

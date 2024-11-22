@@ -51,7 +51,7 @@ namespace OpenKalman::interface
       if constexpr (value::static_index<N>)
       {
         if constexpr (N::value >= dim)
-          return descriptors::Axis{};
+          return descriptor::Axis{};
         else if constexpr (static_vector_space_descriptor<std::tuple_element_t<N::value, Descriptors>>)
           return std::tuple_element_t<N::value, Descriptors> {};
         else
@@ -415,7 +415,7 @@ namespace OpenKalman::interface
         return diagonal_of_impl(NestedInterface::transpose(nested_object(nested_object(std::forward<Arg>(arg)))));
       else 
         return diagonal_of_impl(NestedInterface::diagonal_of(nested_object(std::forward<Arg>(arg))),
-          std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{descriptors::Axis{}, descriptors::Axis{}}));
+          std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{descriptor::Axis{}, descriptor::Axis{}}));
     }
 
   private:
@@ -427,7 +427,7 @@ namespace OpenKalman::interface
       if constexpr (Ix < N)
         return replicate_vector_space_descriptor<scalar_type_of_t<Arg>>(get_vector_space_descriptor<Ix>(arg), std::get<Ix>(factors_tup));
       else
-        return descriptors::Axis{};
+        return descriptor::Axis{};
     }
 
 
@@ -549,8 +549,8 @@ namespace OpenKalman::interface
         {
           using V0 = std::conditional_t<
             static_vector_space_descriptor<D0>,
-            descriptors::Dimensions<euclidean_dimension_size_of_v<D0>>,
-            descriptors::DynamicDescriptor<scalar_type_of_t<Arg>>>;
+            descriptor::Dimensions<euclidean_dimension_size_of_v<D0>>,
+            descriptor::DynamicDescriptor<scalar_type_of_t<Arg>>>;
           using Vtail = std::decay_t<decltype(internal::tuple_slice<1, dim>(std::declval<Descriptors>()))>;
           using Vcat = decltype(std::tuple_cat(std::declval<V0>()), std::declval<Vtail>());
           return internal::make_fixed_size_adapter<Vcat>(NestedInterface::to_euclidean(nested_object(std::forward<Arg>(arg))));

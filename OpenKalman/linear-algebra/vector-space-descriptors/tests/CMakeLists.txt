@@ -15,9 +15,21 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 
 add_executable(descriptors
-        vector-space-descriptors.cpp
-        vector-space-descriptor-functions.cpp
-        dynamic-typed-vector-space-descriptors.cpp
+        static-descriptors.cpp
+        static_concatenate.cpp
+        static_reverse.cpp
+        static_canonical_form.cpp
+        equivalent_to.cpp
+
+        #prefix_base_of.cpp
+
+        #static-descriptor-manipulation.cpp
+        #dynamic-descriptors.cpp
+        #dynamic-descriptor-manipulation.cpp
+
+        #functions.cpp
+
+        #vector-space-descriptor-functions.cpp
     )
 
 target_link_libraries(descriptors GTest::gtest_main Eigen3::Eigen Threads::Threads)

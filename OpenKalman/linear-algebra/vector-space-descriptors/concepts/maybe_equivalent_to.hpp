@@ -13,17 +13,17 @@
  * \brief Definition for \ref maybe_equivalent_to.
  */
 
-#ifndef OPENKALMAN_MAYBE_EQUIVALENT_TO_HPP
-#define OPENKALMAN_MAYBE_EQUIVALENT_TO_HPP
+#ifndef OPENKALMAN_DESCRIPTORS_MAYBE_EQUIVALENT_TO_HPP
+#define OPENKALMAN_DESCRIPTORS_MAYBE_EQUIVALENT_TO_HPP
 
 #include <type_traits>
 #include "static_vector_space_descriptor.hpp"
 #include "dynamic_vector_space_descriptor.hpp"
 #include "euclidean_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp" // required for canonical_static_vector_space_descriptor_t
+#include "linear-algebra/vector-space-descriptors/traits/internal/static_canonical_form.hpp"
 
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
   namespace detail
   {
@@ -42,8 +42,8 @@ namespace OpenKalman
     template<typename T, typename U>
     struct is_maybe_equivalent_to_impl<T, U, std::enable_if_t<static_vector_space_descriptor<T> and static_vector_space_descriptor<U>>>
 #endif
-      : std::bool_constant<std::is_same_v<internal::canonical_static_vector_space_descriptor_t<std::decay_t<T>>,
-        internal::canonical_static_vector_space_descriptor_t<std::decay_t<U>>>> {};
+      : std::bool_constant<std::is_same_v<descriptor::internal::static_canonical_form_t<std::decay_t<T>>,
+        descriptor::internal::static_canonical_form_t<std::decay_t<U>>>> {};
 
 
 #ifdef __cpp_concepts
@@ -88,6 +88,6 @@ namespace OpenKalman
     detail::is_maybe_equivalent_to<Ts...>::value;
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
-#endif //OPENKALMAN_MAYBE_EQUIVALENT_TO_HPP
+#endif //OPENKALMAN_DESCRIPTORS_MAYBE_EQUIVALENT_TO_HPP

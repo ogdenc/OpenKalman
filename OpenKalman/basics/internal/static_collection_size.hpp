@@ -19,7 +19,7 @@
 #include <type_traits>
 #include <tuple>
 #include "basics/global-definitions.hpp"
-#include "linear-algebra/values/concepts/internal/collection.hpp"
+#include "basics/internal/collection.hpp"
 
 
 namespace OpenKalman::internal

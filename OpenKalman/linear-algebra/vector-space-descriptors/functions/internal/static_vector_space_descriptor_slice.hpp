@@ -29,7 +29,7 @@ namespace OpenKalman::internal
   namespace detail
   {
 #ifdef __cpp_concepts
-    template<typename T, std::size_t offset, std::size_t extent, std::size_t position = 0, typename Result = descriptors::StaticDescriptor<>>
+    template<typename T, std::size_t offset, std::size_t extent, std::size_t position = 0, typename Result = descriptor::StaticDescriptor<>>
 #else
     template<typename T, std::size_t offset, std::size_t extent, std::size_t position = 0, typename Result = StaticDescriptor<>, typename = void>
 #endif
@@ -39,7 +39,7 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
     template<typename T, std::size_t offset, std::size_t extent, std::size_t position, typename...Ds> requires
       (position <= offset or sizeof...(Ds) > 0) and (position < offset + extent)
-    struct fixed_descriptor_slice_impl<T, offset, extent, position, descriptors::StaticDescriptor<Ds...>>
+    struct fixed_descriptor_slice_impl<T, offset, extent, position, descriptor::StaticDescriptor<Ds...>>
 #else
     template<typename T, std::size_t offset, std::size_t extent, std::size_t position, typename...Ds>
     struct fixed_descriptor_slice_impl<T, offset, extent, position, StaticDescriptor<Ds...>, std::enable_if_t<
@@ -53,22 +53,22 @@ namespace OpenKalman::internal
         position + dimension_size_of_v<std::tuple_element_t<0, internal::split_head_tail_t<T>>>,
         std::conditional_t<
           (position < offset),
-          descriptors::StaticDescriptor<>,
-          descriptors::StaticDescriptor<Ds..., std::tuple_element_t<0, internal::split_head_tail_t<T>>>>>::type;
+          descriptor::StaticDescriptor<>,
+          descriptor::StaticDescriptor<Ds..., std::tuple_element_t<0, internal::split_head_tail_t<T>>>>>::type;
     };
 
 
 #ifdef __cpp_concepts
     template<typename T, std::size_t offset, std::size_t extent, std::size_t position, typename...Ds> requires
       (position == offset + extent)
-    struct fixed_descriptor_slice_impl<T, offset, extent, position, descriptors::StaticDescriptor<Ds...>>
+    struct fixed_descriptor_slice_impl<T, offset, extent, position, descriptor::StaticDescriptor<Ds...>>
 #else
     template<typename T, std::size_t offset, std::size_t extent, std::size_t position, typename...Ds>
     struct fixed_descriptor_slice_impl<T, offset, extent, position, StaticDescriptor<Ds...>, std::enable_if_t<
       (position == offset + extent)>>
 #endif
       {
-        using type = descriptors::StaticDescriptor<Ds...>;
+        using type = descriptor::StaticDescriptor<Ds...>;
       };
 
   } // namespace detail
@@ -98,7 +98,7 @@ namespace OpenKalman::internal
     (offset + extent <= dimension_size_of_v<T>) and euclidean_vector_space_descriptor<T>>>
 #endif
   {
-    using type = descriptors::Dimensions<extent>;
+    using type = descriptor::Dimensions<extent>;
   };
 
 

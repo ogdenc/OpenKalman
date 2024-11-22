@@ -11,7 +11,7 @@
 #include "transform-linear.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptors;
+using namespace OpenKalman::descriptor;
 using namespace OpenKalman::test;
 
 using Axis2 = StaticDescriptor<Axis, Axis>;

@@ -20,7 +20,7 @@
 #include "linear-algebra/vector-space-descriptors/interfaces/static_vector_space_descriptor_traits.hpp"
 
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
 #ifndef __cpp_concepts
   namespace detail
@@ -31,11 +31,11 @@ namespace OpenKalman
     template<typename T>
     struct is_static_vector_space_descriptor<T, std::enable_if_t<
       std::is_default_constructible<std::decay_t<T>>::value and
-      std::is_convertible<decltype(static_vector_space_descriptor_traits<std::decay_t<T>>::size), std::size_t>::value and
-      std::is_convertible<decltype(static_vector_space_descriptor_traits<std::decay_t<T>>::euclidean_size), std::size_t>::value and
-      std::is_convertible<decltype(static_vector_space_descriptor_traits<std::decay_t<T>>::component_count), std::size_t>::value and
-      std::is_convertible<decltype(static_vector_space_descriptor_traits<std::decay_t<T>>::always_euclidean), bool>::value and
-      std::is_void<std::void_t<typename static_vector_space_descriptor_traits<std::decay_t<T>>::difference_type>>::value
+      std::is_convertible<decltype(interface::static_vector_space_descriptor_traits<std::decay_t<T>>::size), std::size_t>::value and
+      std::is_convertible<decltype(interface::static_vector_space_descriptor_traits<std::decay_t<T>>::euclidean_size), std::size_t>::value and
+      std::is_convertible<decltype(interface::static_vector_space_descriptor_traits<std::decay_t<T>>::component_count), std::size_t>::value and
+      std::is_convertible<decltype(interface::static_vector_space_descriptor_traits<std::decay_t<T>>::always_euclidean), bool>::value and
+      std::is_void<std::void_t<typename interface::static_vector_space_descriptor_traits<std::decay_t<T>>::difference_type>>::value
       >> : std::true_type {};
   }
 #endif
@@ -60,6 +60,6 @@ namespace OpenKalman
 #endif
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 #endif //OPENKALMAN_STATIC_VECTOR_SPACE_DESCRIPTOR_HPP

@@ -271,7 +271,7 @@ namespace OpenKalman
   {
     if constexpr(sizeof...(Vs) > 0)
     {
-      using RC = concatenate_static_vector_space_descriptor_t<vector_space_descriptor_of_t<V, 0>, vector_space_descriptor_of_t<Vs, 0>...>;
+      using RC = static_concatenate_t<vector_space_descriptor_of_t<V, 0>, vector_space_descriptor_of_t<Vs, 0>...>;
       return MatrixTraits<std::decay_t<V>>::template make<RC>(
         concatenate_vertical(nested_object(std::forward<V>(v)), nested_object(std::forward<Vs>(vs))...));
     }
@@ -310,7 +310,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
     if constexpr(sizeof...(Vs) > 0)
     {
       using RC = vector_space_descriptor_of_t<V, 0>;
-      using CC = concatenate_static_vector_space_descriptor_t<vector_space_descriptor_of_t<V, 1>,
+      using CC = static_concatenate_t<vector_space_descriptor_of_t<V, 1>,
       vector_space_descriptor_of_t<Vs, 1>...>;
       auto cat = concatenate_horizontal(nested_object(std::forward<V>(v)), nested_object(std::forward<Vs>(vs))...);
       if constexpr(euclidean_vector_space_descriptor<CC>)
@@ -341,8 +341,8 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   {
     if constexpr(sizeof...(Vs) > 0)
     {
-      using RC = concatenate_static_vector_space_descriptor_t<vector_space_descriptor_of_t<V, 0>, vector_space_descriptor_of_t<Vs, 0>...>;
-      using CC = concatenate_static_vector_space_descriptor_t<vector_space_descriptor_of_t<V, 1>,
+      using RC = static_concatenate_t<vector_space_descriptor_of_t<V, 0>, vector_space_descriptor_of_t<Vs, 0>...>;
+      using CC = static_concatenate_t<vector_space_descriptor_of_t<V, 1>,
         vector_space_descriptor_of_t<Vs, 1>...>;
       return MatrixTraits<std::decay_t<V>>::template make<RC, CC>(
         concatenate_diagonal(nested_object(std::forward<V>(v)), nested_object(std::forward<Vs>(vs))...));
@@ -394,10 +394,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   /// Split typed matrix into one or more typed matrices vertically.
 #ifdef __cpp_concepts
   template<static_vector_space_descriptor ... Cs, typed_matrix M> requires
-    internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>
+    internal::prefix_of<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 0>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
-    internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>, int> = 0>
+    internal::prefix_of<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 0>>, int> = 0>
 #endif
   inline auto
   split_vertical(M&& m)
@@ -411,10 +411,10 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   /// Split typed matrix into one or more typed matrices horizontally.
 #ifdef __cpp_concepts
   template<static_vector_space_descriptor ... Cs, typed_matrix M> requires
-    internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 1>>
+    internal::prefix_of<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 1>>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<typed_matrix<M> and
-    internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 1>>, int> = 0>
+    internal::prefix_of<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 1>>, int> = 0>
 #endif
   inline auto
   split_horizontal(M&& m)
@@ -449,7 +449,7 @@ template<typename V, typename ... Vs, std::enable_if_t<(typed_matrix<V> and ... 
   inline auto
   split_diagonal(M&& m)
   {
-    static_assert(internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
+    static_assert(internal::prefix_of<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
     static_assert(equivalent_to<vector_space_descriptor_of_t<M, 0>::ColumnCoefficients, MatrixTraits<std::decay_t<M>>>);
     return split_diagonal<oin::SplitMatDiagF<M>, Cs...>(nested_object(std::forward<M>(m)));
   }

@@ -11,11 +11,11 @@
 /**
  * \file
  * \internal
- * \brief Definition for \ref suffix_base_of.
+ * \brief Definition for \ref descriptor::internal::suffix_base_of.
  */
 
-#ifndef OPENKALMAN_SUFFIX_BASE_OF_HPP
-#define OPENKALMAN_SUFFIX_BASE_OF_HPP
+#ifndef OPENKALMAN_DESCRIPTORS_SUFFIX_BASE_OF_HPP
+#define OPENKALMAN_DESCRIPTORS_SUFFIX_BASE_OF_HPP
 
 #include <type_traits>
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
@@ -24,7 +24,7 @@
 #include "linear-algebra/vector-space-descriptors/concepts/internal/suffix_of.hpp"
 
 
-namespace OpenKalman::internal
+namespace OpenKalman::descriptor::internal
 {
   /**
    * \internal
@@ -47,8 +47,8 @@ namespace OpenKalman::internal
   struct is_prefix<T, U, std::enable_if_t<suffix_of<T, U>>>
 #endif
   {
-    using type = reverse_static_vector_space_descriptor_t<
-      prefix_base_of_t<reverse_static_vector_space_descriptor_t<T>, reverse_static_vector_space_descriptor_t<U>>>;
+    using type = static_reverse_t<
+      prefix_base_of_t<static_reverse_t<T>, static_reverse_t<U>>>;
   };
 
 
@@ -59,6 +59,6 @@ namespace OpenKalman::internal
   using suffix_base_of_t = typename suffix_base_of<T, U>::type;
 
 
-} // namespace OpenKalman::internal
+} // namespace OpenKalman::descriptor::internal
 
-#endif //OPENKALMAN_SUFFIX_BASE_OF_HPP
+#endif //OPENKALMAN_DESCRIPTORS_SUFFIX_BASE_OF_HPP

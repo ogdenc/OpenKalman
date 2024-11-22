@@ -20,7 +20,7 @@
 #include "dynamic_vector_space_descriptor.hpp"
 
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
   /**
    * \brief An object describing the type of (vector) space associated with a tensor index.
@@ -36,6 +36,6 @@ namespace OpenKalman
     static_vector_space_descriptor<T> or dynamic_vector_space_descriptor<T>;
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 #endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_HPP

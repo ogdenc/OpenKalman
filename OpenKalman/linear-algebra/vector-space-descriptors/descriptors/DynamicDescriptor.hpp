@@ -21,7 +21,7 @@
 #include <complex>
 #include <functional>
 #include <typeindex>
-#include "basics/values/values.hpp"
+#include "linear-algebra/values/values.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
@@ -34,10 +34,10 @@
 #include "linear-algebra/vector-space-descriptors/functions/get_euclidean_dimension_size_of.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_component_count_of.hpp"
 
-
+#include "StaticDescriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/descriptors/details/AnyAtomicVectorSpaceDescriptor.hpp"
 
-namespace OpenKalman::descriptors
+namespace OpenKalman::descriptor
 {
 #ifdef __cpp_concepts
   template<value::number Scalar>
@@ -257,7 +257,7 @@ namespace OpenKalman::descriptors
     {
       if constexpr (static_vector_space_descriptor<C>)
       {
-        using red_C = internal::canonical_static_vector_space_descriptor_t<std::decay_t<C>>;
+        using red_C = internal::static_canonical_form_t<std::decay_t<C>>;
         fill_tables_fixed(i, i_e, t, red_C {});
         fill_tables(i + dimension_size_of_v<C>, i_e + euclidean_dimension_size_of_v<C>,
           t + vector_space_component_count<red_C>::value, std::forward<Cs>(cs)...);
@@ -338,7 +338,7 @@ namespace OpenKalman::descriptors
     bool partially_matches(const Arg& arg) const
     {
       if constexpr (static_vector_space_descriptor<Arg>)
-        return partial_compare(dynamic_types.begin(), dynamic_types.end(), internal::canonical_static_vector_space_descriptor_t<Arg> {});
+        return partial_compare(dynamic_types.begin(), dynamic_types.end(), internal::static_canonical_form_t<Arg> {});
       else
         return partial_compare(dynamic_types.begin(), dynamic_types.end(), Dimensions<dynamic_size> {get_dimension_size_of(arg)}, StaticDescriptor<> {});
     }
@@ -518,66 +518,26 @@ namespace OpenKalman::descriptors
     }
 #endif
 
-
-    /**
-     * \brief Plus operator
-     */
-#ifdef __cpp_concepts
-    template<vector_space_descriptor B>
-#else
-    template<typename B, std::enable_if_t<vector_space_descriptor<B>, int> = 0>
-#endif
-    friend constexpr auto operator+(const DynamicDescriptor& a, const B& b)
-    {
-      if constexpr (dimension_size_of_v<B> == 0) return a;
-      else return DynamicDescriptor {a, b};
-    }
-
-
-    /**
-     * \overload
-     */
-#ifdef __cpp_concepts
-    template<vector_space_descriptor A>
-#else
-    template<typename A, std::enable_if_t<vector_space_descriptor<A>, int> = 0>
-#endif
-    friend constexpr auto operator+(const A& a, const DynamicDescriptor& b)
-    {
-      if constexpr (dimension_size_of_v<A> == 0) return b;
-      else return DynamicDescriptor {a, b};
-    }
-
-
-    /**
-     * \overload
-     */
-    template<typename S>
-    friend constexpr auto operator+(const DynamicDescriptor& a, const DynamicDescriptor<S>& b)
-    {
-      return DynamicDescriptor {a, b};
-    }
-
   private:
 
     template<std::size_t n, std::size_t ni, std::size_t ne, typename It, typename EndIt>
-    static constexpr auto subtract(const DynamicDescriptor& a, It, EndIt, StaticDescriptor<>)
+    constexpr auto subtract(It, EndIt, StaticDescriptor<>) const
     {
       DynamicDescriptor ret;
-      ret.dynamic_types.assign(a.dynamic_types.begin(), a.dynamic_types.end() - n);
-      ret.index_table.assign(a.index_table.begin(), a.index_table.end() - ni);
-      ret.euclidean_index_table.assign(a.euclidean_index_table.begin(), a.euclidean_index_table.end() - ne);
+      ret.dynamic_types.assign(dynamic_types.begin(), dynamic_types.end() - n);
+      ret.index_table.assign(index_table.begin(), index_table.end() - ni);
+      ret.euclidean_index_table.assign(euclidean_index_table.begin(), euclidean_index_table.end() - ne);
       return ret;
     }
 
 
     template<std::size_t n, std::size_t ni, std::size_t ne, typename It, typename EndIt, typename C, typename...Cs>
-    static constexpr auto subtract(const DynamicDescriptor& a, It it, EndIt endit, StaticDescriptor<C, Cs...>)
+    constexpr auto subtract(It it, EndIt endit, StaticDescriptor<C, Cs...>) const
     {
       if (it == endit or (--endit)->get_type_index() != std::type_index {typeid(C)})
         throw std::invalid_argument {"Subtraction of incompatible vector_space_descriptor values"};
       else
-        return subtract<n + 1, ni + dimension_size_of_v<C>, ne + euclidean_dimension_size_of_v<C>>(a, it, endit, StaticDescriptor<Cs...>{});
+        return subtract<n + 1, ni + dimension_size_of_v<C>, ne + euclidean_dimension_size_of_v<C>>(it, endit, StaticDescriptor<Cs...>{});
     }
 
   public:
@@ -590,13 +550,13 @@ namespace OpenKalman::descriptors
 #else
     template<typename B, std::enable_if_t<static_vector_space_descriptor<B>, int> = 0>
 #endif
-    friend constexpr auto operator-(const DynamicDescriptor& a, const B&)
+    constexpr auto operator-(const B&) const
     {
-      if constexpr (dimension_size_of_v<B> == 0) return a;
+      if constexpr (dimension_size_of_v<B> == 0) return *this;
       else
       {
-        using F = reverse_static_vector_space_descriptor_t<OpenKalman::internal::canonical_static_vector_space_descriptor_t<B>>;
-        return subtract<0,0,0>(a, a.dynamic_types.begin(), a.dynamic_types.end(), F{});
+        using F = static_reverse_t<internal::static_canonical_form_t<B>>;
+        return subtract<0,0,0>(dynamic_types.begin(), dynamic_types.end(), F{});
       }
     }
 
@@ -610,21 +570,21 @@ namespace OpenKalman::descriptors
 #else
     template<typename B, std::enable_if_t<euclidean_vector_space_descriptor<B> and dynamic_vector_space_descriptor<B>, int> = 0>
 #endif
-    friend constexpr auto operator-(const DynamicDescriptor& a, const B& b)
+    constexpr auto operator-(const B& b) const
     {
       // Compare the tails of a and b, from right to left
-      auto i = a.dynamic_types.end();
+      auto i = dynamic_types.end();
       std::size_t j = 0;
       for (; j < get_dimension_size_of(b); ++j)
       {
-        if (i == a.dynamic_types.begin() or not (--i)->is_euclidean())
+        if (i == dynamic_types.begin() or not (--i)->is_euclidean())
           throw std::invalid_argument {"Subtraction of incompatible dynamic_vector_space_descriptor values"};
       }
       // Construct a dynamic vector space descriptor from the remainder of a
       DynamicDescriptor ret;
-      ret.dynamic_types.assign(a.dynamic_types.begin(), i);
-      ret.index_table.assign(a.index_table.begin(), a.index_table.end() - j);
-      ret.euclidean_index_table.assign(a.euclidean_index_table.begin(), a.euclidean_index_table.end() - j);
+      ret.dynamic_types.assign(dynamic_types.begin(), i);
+      ret.index_table.assign(index_table.begin(), index_table.end() - j);
+      ret.euclidean_index_table.assign(euclidean_index_table.begin(), euclidean_index_table.end() - j);
       return ret;
     }
 
@@ -770,7 +730,7 @@ namespace OpenKalman::descriptors
   DynamicDescriptor(const DynamicDescriptor<S>&, Arg&&, Args&&...) -> DynamicDescriptor<S>;
 
 
-} // namespace OpenKalman::descriptors
+} // namespace OpenKalman::descriptor
 
 
 namespace OpenKalman::interface
@@ -780,7 +740,7 @@ namespace OpenKalman::interface
    * \brief traits for DynamicDescriptor.
    */
   template<typename Scalar>
-  struct dynamic_vector_space_descriptor_traits<descriptors::DynamicDescriptor<Scalar>>
+  struct dynamic_vector_space_descriptor_traits<descriptor::DynamicDescriptor<Scalar>>
   {
   private:
 
@@ -789,7 +749,7 @@ namespace OpenKalman::interface
 
   public:
 
-    explicit constexpr dynamic_vector_space_descriptor_traits(const descriptors::DynamicDescriptor<Scalar>& t)
+    explicit constexpr dynamic_vector_space_descriptor_traits(const descriptor::DynamicDescriptor<Scalar>& t)
       : m_vector_space_descriptor {t} {};
 
 
@@ -867,11 +827,11 @@ namespace OpenKalman::interface
 
   private:
 
-    const descriptors::DynamicDescriptor<Scalar>& m_vector_space_descriptor;
+    const descriptor::DynamicDescriptor<Scalar>& m_vector_space_descriptor;
 
   };
 
-} // namespace OpenKalman::descriptors
+} // namespace OpenKalman::descriptor
 
 
 #endif //OPENKALMAN_DYNAMICDESCRIPTOR_HPP

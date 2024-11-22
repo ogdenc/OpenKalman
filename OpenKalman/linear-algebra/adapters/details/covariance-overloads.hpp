@@ -230,7 +230,7 @@ namespace OpenKalman
     if constexpr(sizeof...(Ms) > 0)
     {
       using Coeffs =
-        concatenate_static_vector_space_descriptor_t<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Ms, 0>...>;
+        static_concatenate_t<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Ms, 0>...>;
       auto cat = concatenate_diagonal(nested_object(std::forward<M>(m)), nested_object(std::forward<Ms>(mN))...);
       return MatrixTraits<std::decay_t<M>>::template make<Coeffs>(std::move(cat));
     }
@@ -325,7 +325,7 @@ namespace OpenKalman
   inline auto
   split_diagonal(M&& m)
   {
-    static_assert(internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
+    static_assert(internal::prefix_of<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
     return split_diagonal<oin::SplitCovDiagF<M>, Cs...>(nested_object(std::forward<M>(m)));
   }
 
@@ -340,7 +340,7 @@ namespace OpenKalman
   split_vertical(M&& m)
   {
     using CC = vector_space_descriptor_of_t<M, 0>;
-    static_assert(internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, CC>);
+    static_assert(internal::prefix_of<static_concatenate_t<Cs...>, CC>);
     return split_vertical<oin::SplitCovVertF<M, CC>, Cs...>(to_dense_object(std::forward<M>(m)));
   }
 
@@ -355,7 +355,7 @@ namespace OpenKalman
   split_horizontal(M&& m)
   {
     using RC = vector_space_descriptor_of_t<M, 0>;
-    static_assert(internal::prefix_of<concatenate_static_vector_space_descriptor_t<Cs...>, RC>);
+    static_assert(internal::prefix_of<static_concatenate_t<Cs...>, RC>);
     return split_horizontal<oin::SplitCovHorizF<M, RC>, Cs...>(to_dense_object(std::forward<M>(m)));
   }
 

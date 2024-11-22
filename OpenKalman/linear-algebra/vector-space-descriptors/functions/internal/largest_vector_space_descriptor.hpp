@@ -54,14 +54,14 @@ namespace OpenKalman::internal
       }
       else if constexpr (euclidean_vector_space_descriptor<V> and euclidean_vector_space_descriptor<decltype(tail)>)
       {
-        return descriptors::Dimensions {std::max<std::size_t>(get_dimension_size_of(v), get_dimension_size_of(tail))};
+        return descriptor::Dimensions {std::max<std::size_t>(get_dimension_size_of(v), get_dimension_size_of(tail))};
       }
       else
       {
         if (get_dimension_size_of(v) >= get_dimension_size_of(tail))
-          return descriptors::DynamicDescriptor<Scalar> {std::forward<V>(v)};
+          return descriptor::DynamicDescriptor<Scalar> {std::forward<V>(v)};
         else
-          return descriptors::DynamicDescriptor<Scalar> {std::forward<decltype(tail)>(tail)};
+          return descriptor::DynamicDescriptor<Scalar> {std::forward<decltype(tail)>(tail)};
       }
     }
   }

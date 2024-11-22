@@ -26,19 +26,16 @@
 #include <cmath>
 #include "basics/language-features.hpp"
 #include "linear-algebra/values/concepts/number.hpp"
-#include "linear-algebra/values/concepts/floating_number.hpp"
 #include "linear-algebra/values/functions/internal/math_constexpr.hpp"
 #include "linear-algebra/vector-space-descriptors/interfaces/static_vector_space_descriptor_traits.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/composite_vector_space_descriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/traits/static_concatenate.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp"
-#include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp"
 #include "Distance.hpp"
 #include "Angle.hpp"
 
 
-namespace OpenKalman::descriptors
+namespace OpenKalman::descriptor
 {
   /**
    * \brief An atomic coefficient group reflecting polar coordinates.
@@ -79,38 +76,9 @@ namespace OpenKalman::descriptors
       }
     }
 
-
-    /**
-     * \brief Plus operator
-     */
-#ifdef __cpp_concepts
-    template<vector_space_descriptor Arg> requires (not composite_vector_space_descriptor<Arg>)
-#else
-    template<typename Arg, std::enable_if_t<
-      vector_space_descriptor<Arg> and (not composite_vector_space_descriptor<Arg>), int> = 0>
-#endif
-    constexpr auto operator+(Arg&& arg) const
-    {
-      if constexpr (dimension_size_of_v<Arg> == 0)
-        return *this;
-      else if constexpr (static_vector_space_descriptor<Arg>)
-        return concatenate_static_vector_space_descriptor_t<Polar, std::decay_t<Arg>>{};
-      else
-        return DynamicDescriptor {*this, std::forward<Arg>(arg)};
-    }
-
-
-    /**
-     * \brief Minus operator
-     */
-    constexpr auto operator-(const Polar&) const
-    {
-      return StaticDescriptor<>{};
-    }
-
   };
 
-} // namespace OpenKalman::descriptors
+} // namespace OpenKalman::descriptor
 
 
 namespace OpenKalman::interface
@@ -316,11 +284,11 @@ namespace OpenKalman::interface
    * \brief traits for Polar<Distance, Angle>.
    */
   template<typename Limits>
-  struct static_vector_space_descriptor_traits<descriptors::Polar<descriptors::Distance, descriptors::Angle<Limits>>> : detail::PolarBase<Limits, 0, 1,  0, 1, 2>
+  struct static_vector_space_descriptor_traits<descriptor::Polar<descriptor::Distance, descriptor::Angle<Limits>>> : detail::PolarBase<Limits, 0, 1,  0, 1, 2>
   {
-    using difference_type = concatenate_static_vector_space_descriptor_t<
-      typename static_vector_space_descriptor_traits<descriptors::Distance>::difference_type,
-      typename static_vector_space_descriptor_traits<descriptors::Angle<Limits>>::difference_type>;
+    using difference_type = descriptor::static_concatenate_t<
+      typename static_vector_space_descriptor_traits<descriptor::Distance>::difference_type,
+      typename static_vector_space_descriptor_traits<descriptor::Angle<Limits>>::difference_type>;
   };
 
 
@@ -329,11 +297,11 @@ namespace OpenKalman::interface
    * \brief traits for Polar<Angle, Distance>.
    */
   template<typename Limits>
-  struct static_vector_space_descriptor_traits<descriptors::Polar<descriptors::Angle<Limits>, descriptors::Distance>> : detail::PolarBase<Limits, 1, 0,  2, 0, 1>
+  struct static_vector_space_descriptor_traits<descriptor::Polar<descriptor::Angle<Limits>, descriptor::Distance>> : detail::PolarBase<Limits, 1, 0,  2, 0, 1>
   {
-    using difference_type = concatenate_static_vector_space_descriptor_t<
-      typename static_vector_space_descriptor_traits<descriptors::Angle<Limits>>::difference_type,
-      typename static_vector_space_descriptor_traits<descriptors::Distance>::difference_type>;
+    using difference_type = descriptor::static_concatenate_t<
+      typename static_vector_space_descriptor_traits<descriptor::Angle<Limits>>::difference_type,
+      typename static_vector_space_descriptor_traits<descriptor::Distance>::difference_type>;
   };
 
 

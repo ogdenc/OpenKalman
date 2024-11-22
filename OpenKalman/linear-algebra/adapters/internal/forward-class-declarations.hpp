@@ -339,7 +339,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible NestedObject, vector_space_descriptor RowDescriptor> requires 
-    maybe_equivalent_to<vector_space_descriptor_of<NestedObject, 0>, descriptors::Dimensions<euclidean_dimension_size_of_v<RowDescriptor>>>
+    maybe_equivalent_to<vector_space_descriptor_of<NestedObject, 0>, descriptor::Dimensions<euclidean_dimension_size_of_v<RowDescriptor>>>
 #else
   template<typename NestedMatrix, typename RowDescriptor>
 #endif

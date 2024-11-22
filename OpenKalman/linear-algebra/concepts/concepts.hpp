@@ -10,41 +10,34 @@
 
 /**
  * \file
- * \brief Forward declarations for object traits.
+ * \brief linear algebra concepts.
  */
 
-#ifndef OPENKALMAN_TRAITS_HPP
-#define OPENKALMAN_TRAITS_HPP
+#ifndef OPENKALMAN_LINEAR_ALGEBRA_CONCEPTS_HPP
+#define OPENKALMAN_LINEAR_ALGEBRA_CONCEPTS_HPP
 
 #include <type_traits>
 
-// basic traits
+// basic
 
-#include "linear-algebra/traits/scalar_type_of.hpp"
 #include "indexible.hpp"
-#include "linear-algebra/traits/index_count.hpp"
-#include "linear-algebra/traits/vector_space_descriptor_of.hpp"
-#include "linear-algebra/traits/index_dimension_of.hpp"
 #include "dynamic_dimension.hpp"
-#include "linear-algebra/traits/dynamic_index_count.hpp"
 #include "has_dynamic_dimensions.hpp"
 #include "dimension_size_of_index_is.hpp"
 #include "vector.hpp"
-#include "linear-algebra/traits/max_tensor_order.hpp"
 
 #include "has_untyped_index.hpp" // Is this necessary?
 #include "all_fixed_indices_are_euclidean.hpp" // Is this necessary?
 
 #include "wrappable.hpp"
 #include "has_nested_object.hpp"
-#include "linear-algebra/traits/nested_object_of.hpp"
 
-// shape-based traits
+// shape-based
 
-#include "linear-algebra/traits/internal/not_more_fixed_than.hpp"
-#include "linear-algebra/traits/internal/less_fixed_than.hpp"
-#include "linear-algebra/traits/internal/maybe_same_shape_as_vector_space_descriptors.hpp"
-#include "linear-algebra/traits/internal/has_uniform_static_vector_space_descriptors.hpp"
+#include "internal/not_more_fixed_than.hpp"
+#include "internal/less_fixed_than.hpp"
+#include "internal/maybe_same_shape_as_vector_space_descriptors.hpp"
+#include "internal/has_uniform_static_vector_space_descriptors.hpp"
 
 #include "compatible_with_vector_space_descriptor_collection.hpp"
 #include "vector_space_descriptors_may_match_with.hpp"
@@ -56,24 +49,19 @@
 
 // constants:
 
-#include "linear-algebra/traits/internal/get_singular_component.hpp"
-#include "linear-algebra/traits/constant_coefficient.hpp"
 #include "constant_matrix.hpp"
 #include "zero.hpp"
-#include "linear-algebra/traits/constant_diagonal_coefficient.hpp"
 #include "constant_diagonal_matrix.hpp"
 #include "identity_matrix.hpp"
 
 // special matrices:
 
 #include "triangular_matrix.hpp"
-#include "linear-algebra/traits/triangle_type_of.hpp"
 #include "triangular_adapter.hpp"
 #include "diagonal_matrix.hpp"
 #include "diagonal_adapter.hpp"
 #include "hermitian_matrix.hpp"
 #include "hermitian_adapter.hpp"
-#include "linear-algebra/traits/hermitian_adapter_type_of.hpp"
 
 // other:
 
@@ -84,9 +72,8 @@
 #include "writable_by_component.hpp"
 
 #include "directly_accessible.hpp"
-#include "linear-algebra/traits/layout_of.hpp"
 
 #include "object-types.hpp"
 
 
-#endif //OPENKALMAN_TRAITS_HPP
+#endif //OPENKALMAN_LINEAR_ALGEBRA_CONCEPTS_HPP

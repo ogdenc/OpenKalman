@@ -22,7 +22,7 @@
 #include "vector_space_descriptor.hpp"
 
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
 
   // ------------------------------------- //
@@ -48,12 +48,12 @@ namespace OpenKalman
 
     template<typename T>
     struct is_euclidean_vector_space_descriptor<T, std::enable_if_t<static_vector_space_descriptor<T> and
-      static_vector_space_descriptor_traits<T>::always_euclidean>>
+        interface::static_vector_space_descriptor_traits<T>::always_euclidean>>
       : std::true_type {};
 
     template<typename T>
     struct is_euclidean_vector_space_descriptor<T, std::enable_if_t<dynamic_vector_space_descriptor<T> and
-      dynamic_vector_space_descriptor_traits<std::decay_t<T>>::always_euclidean>>
+        interface::dynamic_vector_space_descriptor_traits<std::decay_t<T>>::always_euclidean>>
       : std::true_type {};
   }
 
@@ -62,6 +62,6 @@ namespace OpenKalman
 #endif
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 #endif //OPENKALMAN_EUCLIDEAN_VECTOR_SPACE_DESCRIPTOR_HPP

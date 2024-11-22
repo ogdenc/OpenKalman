@@ -22,7 +22,7 @@
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
 
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
   /**
    * \brief The dimension size of a set of \ref vector_space_descriptor.
@@ -54,6 +54,6 @@ namespace OpenKalman
   constexpr auto dimension_size_of_v = dimension_size_of<T>::value;
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 #endif //OPENKALMAN_DIMENSION_SIZE_OF_HPP

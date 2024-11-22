@@ -22,7 +22,7 @@
 #include<typeindex>
 
 
-namespace OpenKalman::descriptors::detail
+namespace OpenKalman::descriptor::detail
 {
   /**
    * \internal
@@ -204,7 +204,7 @@ namespace OpenKalman::descriptors::detail
   };
 
 
-} // namespace OpenKalman::descriptors::detail
+} // namespace OpenKalman::descriptor::detail
 
 
 #endif //OPENKALMAN_ANYATOMICVECTORTYPES_HPP

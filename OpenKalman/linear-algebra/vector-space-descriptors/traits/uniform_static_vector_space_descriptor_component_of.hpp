@@ -18,7 +18,7 @@
 
 #include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp"
-#include "linear-algebra/vector-space-descriptors/traits/internal/canonical_static_vector_space_descriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/traits/internal/static_canonical_form.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/internal/uniform_static_vector_space_descriptor_query.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/uniform_static_vector_space_descriptor.hpp"
 
@@ -52,7 +52,7 @@ namespace OpenKalman
   struct uniform_static_vector_space_descriptor_component_of<T, std::enable_if_t<uniform_static_vector_space_descriptor<T> and euclidean_vector_space_descriptor<T>>>
 #endif
   {
-    using type = descriptors::Dimensions<1>;
+    using type = descriptor::Dimensions<1>;
   };
 
 
@@ -65,7 +65,7 @@ namespace OpenKalman
 #endif
   {
     using type = typename internal::uniform_static_vector_space_descriptor_query<
-      internal::canonical_static_vector_space_descriptor_t<std::decay_t<T>>>::uniform_type;
+      internal::static_canonical_form_t<std::decay_t<T>>>::uniform_type;
   };
 
 

@@ -22,7 +22,7 @@
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
 
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
   /**
    * \brief The type of the \ref vector_space_descriptor object when tensors having respective vector_space_descriptor T are subtracted.
@@ -55,6 +55,6 @@ namespace OpenKalman
   using dimension_difference_of_t = typename dimension_difference_of<std::decay_t<T>>::type;
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 #endif //OPENKALMAN_DIMENSION_DIFFERENCE_OF_HPP

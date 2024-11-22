@@ -19,10 +19,11 @@
 
 #include <type_traits>
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp"
+#include "linear-algebra/vector-space-descriptors/traits/static_reverse.hpp"
+#include "prefix_of.hpp"
 
 
-namespace OpenKalman::internal
+namespace OpenKalman::descriptor::internal
 {
   #ifndef __cpp_concepts
   namespace detail
@@ -32,7 +33,7 @@ namespace OpenKalman::internal
 
     template<typename T, typename U>
     struct suffix_of_impl<T, U, std::enable_if_t<static_vector_space_descriptor<T> and static_vector_space_descriptor<U>>>
-      : std::bool_constant<internal::prefix_of<reverse_static_vector_space_descriptor_t<T>, reverse_static_vector_space_descriptor_t<U>>> {};
+      : std::bool_constant<internal::prefix_of<static_reverse_t<T>, static_reverse_t<U>>> {};
   }
   #endif
 
@@ -49,12 +50,12 @@ namespace OpenKalman::internal
   template<typename T, typename U>
 #ifdef __cpp_concepts
   concept suffix_of = static_vector_space_descriptor<T> and static_vector_space_descriptor<U> and
-    prefix_of<reverse_static_vector_space_descriptor_t<T>, reverse_static_vector_space_descriptor_t<U>>;
+    prefix_of<static_reverse_t<T>, static_reverse_t<U>>;
 #else
   constexpr bool suffix_of = detail::suffix_of_impl<T, U>::value;
 #endif
 
 
-} // namespace OpenKalman::internal
+} // namespace OpenKalman::descriptor::internal
 
 #endif //OPENKALMAN_SUFFIX_OF_HPP

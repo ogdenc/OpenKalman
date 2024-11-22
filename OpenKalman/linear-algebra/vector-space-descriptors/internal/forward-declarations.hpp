@@ -20,10 +20,11 @@
 #include <array>
 #include <functional>
 #include <numeric>
-#include "basics/values/values.hpp"
+#include "basics/global-definitions.hpp"
+#include "linear-algebra/values/values.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 
-namespace OpenKalman::descriptors
+namespace OpenKalman::descriptor
 {
   /**
    * \brief A structure representing the dimensions associated with of a particular index.
@@ -66,73 +67,7 @@ namespace OpenKalman::descriptors
   struct DynamicDescriptor;
 
 
-  namespace internal
-  {
-    /**
-     * \brief Reduce a \ref static_vector_space_descriptor into its expanded canonical form.
-     * \sa canonical_static_vector_space_descriptor_t
-     */
-  #ifdef __cpp_concepts
-    template<typename T>
-  #else
-    template<typename T, typename = void>
-  #endif
-    struct canonical_static_vector_space_descriptor;
-
-
-    /**
-     * \brief Helper template for \ref canonical_static_vector_space_descriptor.
-     */
-    template<typename T>
-    using canonical_static_vector_space_descriptor_t = typename canonical_static_vector_space_descriptor<T>::type;
-
-  } // namespace internal
-
-
-  /**
-   * \brief Concatenate any number of StaticDescriptor<...> types.
-   * \details
-   * Example:
-   * - \code concatenate_static_vector_space_descriptor_t<StaticDescriptor<angle::Radians>,
-   * StaticDescriptor<Axis, Distance>> == StaticDescriptor<angle::Radians, Axis, Distance> \endcode.
-   */
-#ifdef __cpp_concepts
-  template<static_vector_space_descriptor...Cs>
-#else
-  template<typename...Cs>
-#endif
-  struct concatenate_static_vector_space_descriptor;
-
-
-  /**
-   * \brief Helper template for \ref concatenate_static_vector_space_descriptor.
-   */
-  template<typename...Cs>
-  using concatenate_static_vector_space_descriptor_t = typename concatenate_static_vector_space_descriptor<Cs...>::type;
-
-
-  /**
-   * \brief Reverse the order of a \ref vector_space_descriptor.
-   */
-#ifdef __cpp_concepts
-  template<static_vector_space_descriptor T>
-#else
-  template<typename T>
-#endif
-  struct reverse_static_vector_space_descriptor;
-
-
-  /**
-   * \brief Helper template for \ref reverse_static_vector_space_descriptor.
-   */
-  template<typename T>
-  using reverse_static_vector_space_descriptor_t = typename reverse_static_vector_space_descriptor<T>::type;
-
-
-  }
-
-
-}// namespace OpenKalman::descriptors
+} // namespace OpenKalman::descriptor
 
 
 #endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTORS_FORWARD_DECLARATIONS_HPP

@@ -20,7 +20,7 @@
 #include "composite_vector_space_descriptor.hpp"
 
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
   /**
    * \brief T is an atomic (non-separable or non-composite) group of fixed \ref vector_space_descriptor.
@@ -35,6 +35,6 @@ namespace OpenKalman
     static_vector_space_descriptor<T> and (not composite_vector_space_descriptor<T>);
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 #endif //OPENKALMAN_ATOMIC_FIXED_VECTOR_SPACE_DESCRIPTOR_HPP
