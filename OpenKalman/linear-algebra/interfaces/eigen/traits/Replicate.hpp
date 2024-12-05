@@ -88,8 +88,8 @@ namespace OpenKalman::interface
 
 
     static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Qualification::depends_on_dynamic_shape> and
-      ((RowFactor == 1 and ColFactor == 1) or not value::complex_number<scalar_type> or
-        value::real_scalar<constant_coefficient<MatrixType>> or value::real_scalar<constant_diagonal_coefficient<MatrixType>>);
+      ((RowFactor == 1 and ColFactor == 1) or not value::complex<scalar_type> or
+        value::not_complex<constant_coefficient<MatrixType>> or value::not_complex<constant_diagonal_coefficient<MatrixType>>);
 
   };
 

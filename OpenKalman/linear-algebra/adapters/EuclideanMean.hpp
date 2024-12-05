@@ -413,7 +413,7 @@ euclidean_dimension_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimen
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
       {
-        if constexpr (value::static_index<N>)
+        if constexpr (value::fixed<N>)
         {
           if constexpr (n == 0_uz) return arg.my_dimension;
           else return OpenKalman::get_vector_space_descriptor(nested_object(arg), n);

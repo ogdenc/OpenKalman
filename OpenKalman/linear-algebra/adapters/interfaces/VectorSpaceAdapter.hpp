@@ -56,7 +56,7 @@ namespace OpenKalman::interface
       else if constexpr (vector_space_descriptor_tuple<Descriptors>)
       {
         static_assert (dim != dynamic_size);
-        if constexpr (value::static_index<N>)
+        if constexpr (value::fixed<N>)
         {
           if constexpr (N::value >= dim)
             return descriptor::Axis{};

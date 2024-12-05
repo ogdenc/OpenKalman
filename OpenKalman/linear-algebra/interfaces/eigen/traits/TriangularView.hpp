@@ -58,7 +58,7 @@ namespace OpenKalman
       static constexpr auto get_constant(const Arg& arg)
       {
         if constexpr (zero<MatrixType> or ((Mode & Eigen::ZeroDiag) != 0 and diagonal_matrix<MatrixType>))
-          return value::StaticScalar<scalar_type_of_t<MatrixType>, 0>{};
+          return value::Fixed<scalar_type_of_t<MatrixType>, 0>{};
         else
           return std::monostate{};
       }
@@ -73,13 +73,13 @@ namespace OpenKalman
           ((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, TriangleType::lower>) or
           ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, TriangleType::upper>)))
         {
-          return value::StaticScalar<Scalar, 1>{};
+          return value::Fixed<Scalar, 1>{};
         }
         else if constexpr ((Mode & Eigen::ZeroDiag) != 0 and (
           ((Mode & Eigen::Upper) != 0 and triangular_matrix<MatrixType, TriangleType::lower>) or
           ((Mode & Eigen::Lower) != 0 and triangular_matrix<MatrixType, TriangleType::upper>)))
         {
-          return value::StaticScalar<Scalar, 0>{};
+          return value::Fixed<Scalar, 0>{};
         }
         else
         {
@@ -107,8 +107,8 @@ namespace OpenKalman
       static constexpr bool is_triangular_adapter = true;
 
 
-      static constexpr bool is_hermitian = diagonal_matrix<MatrixType> and (not value::complex_number<scalar_type> or
-        value::real_scalar<constant_coefficient<MatrixType>> or value::real_scalar<constant_diagonal_coefficient<MatrixType>>);
+      static constexpr bool is_hermitian = diagonal_matrix<MatrixType> and (not value::complex<scalar_type> or
+        value::not_complex<constant_coefficient<MatrixType>> or value::not_complex<constant_diagonal_coefficient<MatrixType>>);
 
     };
 

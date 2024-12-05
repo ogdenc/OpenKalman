@@ -49,7 +49,7 @@ namespace OpenKalman
     if constexpr (identity_matrix<Arg> or empty_object<Arg>)
     {
       detail::error_if_argument_to_determinant_is_not_square(arg);
-      return value::StaticScalar<Scalar, 1>{};
+      return value::Fixed<Scalar, 1>{};
     }
     else if constexpr (dimension_size_of_index_is<Arg, 0, 1> or dimension_size_of_index_is<Arg, 1, 1>)
     {
@@ -60,12 +60,12 @@ namespace OpenKalman
     else if constexpr (constant_matrix<Arg> and not dynamic_dimension<Arg, ix> and index_dimension_of_v<Arg, ix> >= 2)
     {
       detail::error_if_argument_to_determinant_is_not_square(arg);
-      return value::StaticScalar<Scalar, 0>{};
+      return value::Fixed<Scalar, 0>{};
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       detail::error_if_argument_to_determinant_is_not_square(arg);
-      return internal::constexpr_pow(constant_diagonal_coefficient{arg}, internal::index_to_scalar_constant<Scalar>(get_index_dimension_of<ix>(arg)))();
+      return value::pow(constant_diagonal_coefficient{arg}, value::cast_to<Scalar>(get_index_dimension_of<ix>(arg)))();
     }
     else if constexpr (triangular_matrix<Arg>) // Includes the diagonal case.
     {

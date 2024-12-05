@@ -44,7 +44,7 @@ namespace OpenKalman::internal
     std::advance(ad, n);
     if (std::any_of(ad, indices.end(), [](const auto& x){ return x != 0; }))
       throw std::invalid_argument {"Component access: one or more trailing indices are not 0."};
-    if constexpr (value::static_index<MinCount>)
+    if constexpr (value::fixed<MinCount>)
     {
       std::array<std::size_t, MinCount::value> ret;
       std::copy(indices.begin(), ad, ret.begin());

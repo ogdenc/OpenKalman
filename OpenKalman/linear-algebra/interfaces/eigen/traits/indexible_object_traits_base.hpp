@@ -57,7 +57,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto
     get_vector_space_descriptor(const Arg& arg, N n)
     {
-      if constexpr (value::static_index<N>)
+      if constexpr (value::fixed<N>)
       {
         constexpr auto dim = n == 0_uz ? Arg::RowsAtCompileTime : Arg::ColsAtCompileTime;
 

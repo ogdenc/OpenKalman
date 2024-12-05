@@ -116,7 +116,7 @@ namespace OpenKalman
 
       if constexpr (constant_matrix<NestedObject>)
       {
-        if constexpr (not value::static_scalar<constant_coefficient<NestedObject>> or not value::static_scalar<constant_diagonal_coefficient<Arg>>)
+        if constexpr (not value::fixed<constant_coefficient<NestedObject>> or not value::fixed<constant_diagonal_coefficient<Arg>>)
           if (value::to_number(this->nested_object()) != value::to_number(diagonal_of(std::forward<Arg>(arg))))
             throw std::invalid_argument {"Argument to constant_diagonal DiagonalAdapter assignment operator has non-matching constant value."};
       }

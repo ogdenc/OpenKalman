@@ -65,7 +65,7 @@ namespace OpenKalman
     }
     else
     {
-      if constexpr ((... or value::dynamic_index<Factors>))
+      if constexpr ((... or value::dynamic<Factors>))
       {
         if ((... or (factors <= 0))) throw std::invalid_argument {"In broadcast, all factors must be positive"};
       }

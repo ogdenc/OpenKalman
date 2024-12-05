@@ -43,7 +43,7 @@ namespace OpenKalman
 #endif
   constexpr bool is_vector(const T& t)
   {
-    if constexpr (value::static_index<decltype(count_indices(t))>)
+    if constexpr (value::fixed<decltype(count_indices(t))>)
     {
       constexpr std::size_t count = std::decay_t<decltype(count_indices(t))>::value;
       return detail::get_is_vector_impl<N>(std::make_index_sequence<count>{}, t);

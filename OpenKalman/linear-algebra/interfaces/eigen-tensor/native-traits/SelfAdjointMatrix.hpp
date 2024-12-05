@@ -32,7 +32,7 @@ namespace OpenKalman::Eigen3::internal
     using Base = Eigen::internal::traits<std::decay_t<NestedMatrix>>;
     enum
     {
-      Flags = Base::Flags & ~(OpenKalman::value::complex_number<typename Base::Scalar> ? Eigen::LvalueBit : 0x0),
+      Flags = Base::Flags & ~(OpenKalman::value::complex<typename Base::Scalar> ? Eigen::LvalueBit : 0x0),
     };
   };
 

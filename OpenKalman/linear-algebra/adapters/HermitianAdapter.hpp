@@ -22,8 +22,8 @@ namespace OpenKalman
   template<square_shaped<Qualification::depends_on_dynamic_shape> NestedObject, HermitianAdapterType storage_triangle> requires
     (index_count_v<NestedObject> <= 2) and
     (storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper) and
-    (not constant_matrix<NestedObject> or value::real_scalar<constant_coefficient<NestedObject>>) and
-    (not constant_diagonal_matrix<NestedObject> or value::real_scalar<constant_diagonal_coefficient<NestedObject>>) and
+    (not constant_matrix<NestedObject> or value::not_complex<constant_coefficient<NestedObject>>) and
+    (not constant_diagonal_matrix<NestedObject> or value::not_complex<constant_diagonal_coefficient<NestedObject>>) and
     (not triangular_matrix<NestedObject, TriangleType::any> or triangular_matrix<NestedObject, static_cast<TriangleType>(storage_triangle)>)
 #else
   template<typename NestedObject, HermitianAdapterType storage_triangle>
@@ -36,8 +36,8 @@ namespace OpenKalman
     static_assert(square_shaped<NestedObject, Qualification::depends_on_dynamic_shape>);
     static_assert(index_count_v<NestedObject> <= 2);
     static_assert(storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper);
-    static_assert([]{if constexpr (constant_matrix<NestedObject>) return value::real_scalar<constant_coefficient<NestedObject>>; else return true; }());
-    static_assert([]{if constexpr (constant_diagonal_matrix<NestedObject>) return value::real_scalar<constant_diagonal_coefficient<NestedObject>>; else return true; }());
+    static_assert([]{if constexpr (constant_matrix<NestedObject>) return value::not_complex<constant_coefficient<NestedObject>>; else return true; }());
+    static_assert([]{if constexpr (constant_diagonal_matrix<NestedObject>) return value::not_complex<constant_diagonal_coefficient<NestedObject>>; else return true; }());
     static_assert(not triangular_matrix<NestedObject, TriangleType::any> or triangular_matrix<NestedObject, static_cast<TriangleType>(storage_triangle)>);
 #endif
 
@@ -199,8 +199,8 @@ namespace OpenKalman
       (std::is_constructible_v<NestedObject,
         dense_writable_matrix_t<NestedObject, Layout::none, Scalar,
           std::tuple<
-            Dimensions<static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)))>,
-            Dimensions<static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)))>>>> or
+            Dimensions<static_cast<std::size_t>(value::sqrt(sizeof...(Args)))>,
+            Dimensions<static_cast<std::size_t>(value::sqrt(sizeof...(Args)))>>>> or
         (diagonal_matrix<NestedObject> and std::is_constructible_v<NestedObject,
           dense_writable_matrix_t<NestedObject, Layout::none, Scalar, std::tuple<Dimensions<sizeof...(Args)>, Axis>>>)), int> = 0>
 #endif

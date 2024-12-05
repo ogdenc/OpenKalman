@@ -28,8 +28,8 @@ namespace OpenKalman
 
   /**
    * \brief A tensor or other matrix in which all elements are a constant scalar value.
-   * \details The constant value can be \ref value::static_scalar "static" (known at compile time), or
-   * \ref value::dynamic_scalar "dynamic" (known only at runtime).
+   * \details The constant value can be \ref value::fixed "static" (known at compile time), or
+   * \ref value::dynamic "dynamic" (known only at runtime).
    * Examples:
    * \code
    * using T = Eigen::Matrix<double, 3, 2>; // A 3-by-2 matrix of scalar-type double.
@@ -196,8 +196,8 @@ namespace OpenKalman
       triangular_matrix<NestedMatrix, TriangleType::upper> ? HermitianAdapterType::upper : HermitianAdapterType::lower> requires
     (index_count_v<NestedMatrix> <= 2) and
     (storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper) and
-    (not constant_matrix<NestedMatrix> or value::real_scalar<constant_coefficient<NestedMatrix>>) and
-    (not constant_diagonal_matrix<NestedMatrix> or value::real_scalar<constant_diagonal_coefficient<NestedMatrix>>) and
+    (not constant_matrix<NestedMatrix> or value::not_complex<constant_coefficient<NestedMatrix>>) and
+    (not constant_diagonal_matrix<NestedMatrix> or value::not_complex<constant_diagonal_coefficient<NestedMatrix>>) and
     (not triangular_matrix<NestedMatrix, TriangleType::any> or triangular_matrix<NestedMatrix, static_cast<TriangleType>(storage_triangle)>)
 #else
   template<typename NestedMatrix, HermitianAdapterType storage_triangle =

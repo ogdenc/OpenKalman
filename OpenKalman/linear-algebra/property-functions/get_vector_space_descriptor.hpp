@@ -59,7 +59,7 @@ namespace OpenKalman
     {
       return descriptor::Dimensions<1>{};
     }
-    else if constexpr (value::static_index<N> and value::static_index<decltype(count_indices(t))>)
+    else if constexpr (value::fixed<N> and value::fixed<decltype(count_indices(t))>)
     {
       if constexpr (N::value < std::decay_t<decltype(count_indices(t))>::value)
         return interface::indexible_object_traits<T>::get_vector_space_descriptor(t, n);

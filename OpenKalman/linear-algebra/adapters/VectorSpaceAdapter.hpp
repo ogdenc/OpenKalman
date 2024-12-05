@@ -91,14 +91,14 @@ namespace OpenKalman
     template<internal::maybe_same_shape_as_vector_space_descriptors<Descriptors> Arg> requires
       (not std::is_base_of_v<VectorSpaceAdapter, std::decay_t<Arg>>) and 
       std::assignable_from<std::add_lvalue_reference_t<NestedObject>, Arg&&> and
-      requires(Arg&& arg) { {count_indices(arg)} -> value::static_index; } and
+      requires(Arg&& arg) { {count_indices(arg)} -> value::fixed; } and
       requires(Descriptors my_descriptors, Arg&& arg) { my_descriptors = all_vector_space_descriptors(arg); }
 #else
     template<typename Arg, std::enable_if_t<
       (not std::is_base_of_v<VectorSpaceAdapter, std::decay_t<Arg>>) and 
       internal::maybe_same_shape_as_vector_space_descriptors<Arg, Descriptors> and
       std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, Arg&&> and
-      value::static_index<decltype(count_indices(std::declval<Arg&&>()))> and
+      value::fixed<decltype(count_indices(std::declval<Arg&&>()))> and
       std::is_assignable_v<Descriptors, decltype(all_vector_space_descriptors(std::declval<Arg&&>()))>, int> = 0>
 #endif
     constexpr VectorSpaceAdapter& operator=(Arg&& arg)

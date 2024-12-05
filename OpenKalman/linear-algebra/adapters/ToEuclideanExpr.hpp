@@ -124,7 +124,7 @@ namespace OpenKalman
       static constexpr auto
       get_vector_space_descriptor(Arg&& arg, const N& n)
       {
-        if constexpr (value::static_index<N>)
+        if constexpr (value::fixed<N>)
         {
           if constexpr (n == 0_uz) return Axis;
           else return OpenKalman::get_vector_space_descriptor(nested_object(std::forward<Arg>(arg)), n);

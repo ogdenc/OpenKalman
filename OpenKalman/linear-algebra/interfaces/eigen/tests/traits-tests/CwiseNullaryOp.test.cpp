@@ -22,8 +22,8 @@ TEST(eigen3, Eigen_CwiseNullaryOp)
   static_assert(eigen_matrix_general<M33::ConstantReturnType, true>);
 
   static_assert(constant_coefficient_v<C11_1> == 1);
-  static_assert(value::dynamic_scalar<constant_coefficient<typename Mxx::ConstantReturnType>>);
-  static_assert(not value::static_scalar<constant_coefficient<typename Mxx::ConstantReturnType>>);
+  static_assert(value::dynamic<constant_coefficient<typename Mxx::ConstantReturnType>>);
+  static_assert(not value::fixed<constant_coefficient<typename Mxx::ConstantReturnType>>);
   static_assert(constant_coefficient_v<Z11> == 0);
   static_assert(constant_coefficient_v<Z22> == 0);
 
@@ -61,7 +61,7 @@ TEST(eigen3, Eigen_CwiseNullaryOp)
 
   static_assert(constant_diagonal_coefficient_v<C11_1> == 1);
   static_assert(constant_diagonal_coefficient_v<I22> == 1);
-  static_assert(value::dynamic_scalar<constant_diagonal_coefficient<typename M11::ConstantReturnType>>);
+  static_assert(value::dynamic<constant_diagonal_coefficient<typename M11::ConstantReturnType>>);
   static_assert(not constant_diagonal_matrix<typename M1x::ConstantReturnType>);
   static_assert(not constant_diagonal_matrix<typename Mx1::ConstantReturnType>);
   static_assert(not constant_diagonal_matrix<typename Mxx::ConstantReturnType>);
@@ -73,10 +73,10 @@ TEST(eigen3, Eigen_CwiseNullaryOp)
   static_assert(constant_diagonal_coefficient_v<Ix1> == 1);
   static_assert(constant_diagonal_coefficient_v<Ixx> == 1);
 
-  static_assert(value::static_scalar<constant_diagonal_coefficient<typename M33::IdentityReturnType>>);
-  static_assert(value::static_scalar<constant_diagonal_coefficient<typename M3x::IdentityReturnType>>);
-  static_assert(value::static_scalar<constant_diagonal_coefficient<typename Mx3::IdentityReturnType>>);
-  static_assert(value::static_scalar<constant_diagonal_coefficient<typename Mxx::IdentityReturnType>>);
+  static_assert(value::fixed<constant_diagonal_coefficient<typename M33::IdentityReturnType>>);
+  static_assert(value::fixed<constant_diagonal_coefficient<typename M3x::IdentityReturnType>>);
+  static_assert(value::fixed<constant_diagonal_coefficient<typename Mx3::IdentityReturnType>>);
+  static_assert(value::fixed<constant_diagonal_coefficient<typename Mxx::IdentityReturnType>>);
   static_assert(constant_diagonal_matrix<typename M3x::IdentityReturnType>);
   static_assert(constant_diagonal_matrix<typename Mx3::IdentityReturnType>);
   static_assert(constant_diagonal_matrix<typename Mxx::IdentityReturnType>);

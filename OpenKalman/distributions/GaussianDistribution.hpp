@@ -349,16 +349,16 @@ namespace OpenKalman
     {
       static constexpr auto n = sizeof...(Z);
       auto sum = (trace(transpose(z - mu) * solve(sigma, z - mu)) + ...);
-      return -0.5 * (n * (dim * interface::number_traits<Scalar>::log(2 * numbers::pi_v<long double>) +
-        interface::number_traits<Scalar>::log(determinant(sigma))) + sum);
+      return -0.5 * (n * (dim * value::log(2 * numbers::pi_v<long double>) +
+        value::log(determinant(sigma))) + sum);
     }
 
 
     /// Entropy of the distribution, in bits.
     Scalar entropy() const
     {
-      return 0.5 * (dim * (1 + interface::number_traits<Scalar>::log2(numbers::pi_v<long double>) +
-        Scalar {numbers::log2e_v<long double>}) + interface::number_traits<Scalar>::log2(determinant(sigma)));
+      return 0.5 * (dim * (1 + value::log2(numbers::pi_v<long double>) +
+        Scalar {numbers::log2e_v<long double>}) + value::log2(determinant(sigma)));
     }
 
 
@@ -737,7 +737,7 @@ namespace OpenKalman
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
       {
-        if constexpr (value::static_index<N>)
+        if constexpr (value::fixed<N>)
         {
           static_assert(n == 0_uz);
           if constexpr (not dynamic_dimension<NestedMean, 0>) return OpenKalman::get_vector_space_descriptor<0>(mean_of(arg));

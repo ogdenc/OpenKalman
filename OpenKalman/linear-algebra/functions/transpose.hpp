@@ -58,7 +58,7 @@ namespace OpenKalman
   constexpr decltype(auto) transpose(Arg&& arg)
   {
     if constexpr (((diagonal_matrix<Arg> or constant_matrix<Arg>) and square_shaped<Arg>) or
-      (hermitian_matrix<Arg> and not value::complex_number<scalar_type_of_t<Arg>>))
+      (hermitian_matrix<Arg> and not value::complex<scalar_type_of_t<Arg>>))
     {
       return std::forward<Arg>(arg);
     }

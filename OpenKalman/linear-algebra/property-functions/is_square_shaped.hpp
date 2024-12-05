@@ -62,7 +62,7 @@ namespace OpenKalman
 #endif
   constexpr auto is_square_shaped(const T& t)
   {
-    if constexpr (value::static_index<decltype(count_indices(t))>)
+    if constexpr (value::fixed<decltype(count_indices(t))>)
     {
       constexpr std::size_t count = std::decay_t<decltype(count_indices(t))>::value;
       return detail::is_square_shaped_impl(std::make_index_sequence<count>{}, t);

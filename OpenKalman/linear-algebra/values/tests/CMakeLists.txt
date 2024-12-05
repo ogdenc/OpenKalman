@@ -15,8 +15,10 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 
 add_executable(values
-        indices.cpp
-        scalar-types.cpp
+        tests.cpp
+        integral-types.cpp
+        value-types.cpp
+        complex.cpp
         math-constexpr-functions.cpp
     )
 

@@ -348,7 +348,7 @@ namespace OpenKalman
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(Arg&& arg, N n)
       {
-        if constexpr (value::static_index<N>)
+        if constexpr (value::fixed<N>)
           return std::get<N>(std::forward<Arg>(arg).my_dimensions);
         else if constexpr (equivalent_to<RowCoeffs, ColCoeffs>)
           return std::get<0>(std::forward<Arg>(arg).my_dimensions);

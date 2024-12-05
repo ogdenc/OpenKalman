@@ -20,7 +20,7 @@ TEST(eigen3, Eigen_Diagonal)
   static_assert(constant_coefficient_v<decltype(M22::Identity().diagonal())> == 1);
   static_assert(constant_coefficient_v<decltype(M22::Identity().diagonal<1>())> == 0);
   static_assert(constant_coefficient_v<decltype(M22::Identity().diagonal<-1>())> == 0);
-  static_assert(value::dynamic_scalar<constant_coefficient<decltype(M22::Identity().diagonal<Eigen::DynamicIndex>())>>);
+  static_assert(value::dynamic<constant_coefficient<decltype(M22::Identity().diagonal<Eigen::DynamicIndex>())>>);
   static_assert(not constant_matrix<decltype(M22::Identity().diagonal<2>())>);
 
   static_assert(constant_coefficient_v<decltype(M2x::Identity().diagonal())> == 1);

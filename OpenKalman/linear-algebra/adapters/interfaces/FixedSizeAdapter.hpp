@@ -48,7 +48,7 @@ namespace OpenKalman::interface
     static constexpr auto get_vector_space_descriptor(Arg&& arg, const N& n)
     {
       constexpr auto dim = decltype(count_indices(arg))::value;
-      if constexpr (value::static_index<N>)
+      if constexpr (value::fixed<N>)
       {
         if constexpr (N::value >= dim)
           return descriptor::Axis{};

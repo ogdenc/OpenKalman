@@ -141,30 +141,6 @@ namespace OpenKalman
 #ifndef __cpp_concepts
     namespace detail
     {
-      template<typename Op, typename Void, typename...Args>
-      struct is_constexpr_n_ary_function : std::false_type {};
-
-      template<typename Op, typename...Args>
-      struct is_constexpr_n_ary_function<Op, std::void_t<std::bool_constant<(Op{}(std::decay_t<Args>::value...), true)>>, Args...>
-        : std::true_type {};
-    } // namespace detail
-#endif
-
-
-    /**
-     * Operation Op is constexpr when applied to arguments Args
-     */
-    template<typename Op, typename...Args>
-#ifdef __cpp_concepts
-    concept constexpr_n_ary_function = requires { typename std::bool_constant<(Op{}(std::decay_t<Args>::value...), true)>; };
-#else
-    constexpr bool constexpr_n_ary_function = detail::is_constexpr_n_ary_function<Op, void, Args...>::value;
-#endif
-
-
-#ifndef __cpp_concepts
-    namespace detail
-    {
       template<typename T, typename = void>
       struct is_tuple_like : std::false_type {};
 

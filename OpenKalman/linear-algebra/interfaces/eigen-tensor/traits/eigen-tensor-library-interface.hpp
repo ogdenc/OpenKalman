@@ -232,10 +232,10 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<value::dynamic_scalar C, typename...Ds> requires (... and (not dynamic_vector_space_descriptor<Ds>))
+    template<value::dynamic C, typename...Ds> requires (... and (not dynamic_vector_space_descriptor<Ds>))
     static constexpr constant_matrix auto
 #else
-    template<typename C, typename...Ds, std::enable_if_t<value::dynamic_scalar<C> and
+    template<typename C, typename...Ds, std::enable_if_t<value::dynamic<C> and
       (... and (not dynamic_vector_space_descriptor<Ds>)), int> = 0>
     static constexpr auto
 #endif

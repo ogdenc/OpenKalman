@@ -17,7 +17,6 @@
 #define OPENKALMAN_SPHERICAL_HPP
 
 #include <array>
-#include <functional>
 #include <type_traits>
 #include <stdexcept>
 #ifdef __cpp_concepts
@@ -26,7 +25,7 @@
 #include <cmath>
 #include "basics/language-features.hpp"
 #include "linear-algebra/values/concepts/number.hpp"
-#include "linear-algebra/values/functions/internal/math_constexpr.hpp"
+#include "linear-algebra/values/functions/atan2.hpp"
 #include "linear-algebra/vector-space-descriptors/interfaces/static_vector_space_descriptor_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/static_concatenate.hpp"
@@ -141,7 +140,7 @@ namespace OpenKalman::interface
         else
         {
           using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
-          using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
+          using R = std::decay_t<decltype(value::real(std::declval<Scalar>()))>;
           const Scalar cf_inc {numbers::pi_v<R> / (InclinationLimits::up - InclinationLimits::down)};
           const Scalar horiz {R{InclinationLimits::up + InclinationLimits::down} * R{0.5}};
 
@@ -185,16 +184,16 @@ namespace OpenKalman::interface
       {
         using Scalar = decltype(g(std::declval<std::size_t>()));
         Scalar d = g(euclidean_start + d2_i);
-        auto dr = internal::constexpr_real(d);
+        auto dr = value::real(d);
 
         if (local_index == d_i)
         {
           using std::abs;
-          return internal::update_real_part(d, abs(dr));
+          return value::internal::update_real_part(d, abs(dr));
         }
         else
         {
-          using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
+          using R = std::decay_t<decltype(value::real(std::declval<Scalar>()))>;
           const Scalar cf_cir {2 * numbers::pi_v<R> / (CircleLimits::max - CircleLimits::min)};
           const Scalar mid {R{CircleLimits::max + CircleLimits::min} * R{0.5}};
 
@@ -205,14 +204,14 @@ namespace OpenKalman::interface
           {
             case a_i:
             {
-              auto xp = internal::constexpr_real(g(euclidean_start + x_i));
-              auto yp = internal::constexpr_real(g(euclidean_start + y_i));
+              auto xp = value::real(g(euclidean_start + x_i));
+              auto yp = value::real(g(euclidean_start + y_i));
               // If distance is negative, flip x and y axes 180 degrees:
               using std::signbit;
-              Scalar x2 = internal::update_real_part(x, signbit(dr) ? -xp : xp);
-              Scalar y2 = internal::update_real_part(y, signbit(dr) ? -yp : yp);
+              Scalar x2 = value::internal::update_real_part(x, signbit(dr) ? -xp : xp);
+              Scalar y2 = value::internal::update_real_part(y, signbit(dr) ? -yp : yp);
 
-              if constexpr (value::complex_number<Scalar>) return internal::constexpr_atan2(y2, x2) / cf_cir + mid;
+              if constexpr (value::complex<Scalar>) return value::atan2(y2, x2) / cf_cir + mid;
               else { using std::atan2; return atan2(y2, x2) / cf_cir + mid; }
             }
             default: // case i_i
@@ -220,12 +219,12 @@ namespace OpenKalman::interface
               const Scalar cf_inc {numbers::pi_v<R> / (InclinationLimits::up - InclinationLimits::down)};
               const Scalar horiz {R{InclinationLimits::up + InclinationLimits::down} * R{0.5}};
               Scalar z {g(euclidean_start + z_i)};
-              auto zp = internal::constexpr_real(z);
+              auto zp = value::real(z);
               using std::signbit;
-              Scalar z2 {internal::update_real_part(z, signbit(dr) ? -zp : zp)};
+              Scalar z2 {value::internal::update_real_part(z, signbit(dr) ? -zp : zp)};
               using std::sqrt;
               Scalar r {sqrt(x*x + y*y + z2*z2)};
-              if constexpr (value::complex_number<Scalar>)
+              if constexpr (value::complex<Scalar>)
               {
                 using std::asin;
                 auto theta = (r == Scalar{0}) ? r : asin(z2/r);
@@ -252,8 +251,8 @@ namespace OpenKalman::interface
       static constexpr auto
       inclination_wrap_impl(const Scalar& a)
       {
-        using Ret = std::tuple<std::decay_t<std::decay_t<decltype(internal::constexpr_real(a))>>, bool>;
-        auto ap = internal::constexpr_real(a);
+        using Ret = std::tuple<std::decay_t<std::decay_t<decltype(value::real(a))>>, bool>;
+        auto ap = value::real(a);
         using R = std::decay_t<decltype(ap)>;
         if (ap >= InclinationLimits::down and ap <= InclinationLimits::up) // A shortcut, for the easy case.
         {
@@ -275,21 +274,21 @@ namespace OpenKalman::interface
       static constexpr std::decay_t<Scalar>
       azimuth_wrap_impl(bool reflect_azimuth, Scalar&& a)
       {
-        using R = std::decay_t<decltype(internal::constexpr_real(std::declval<decltype(a)>()))>;
+        using R = std::decay_t<decltype(value::real(std::declval<decltype(a)>()))>;
         constexpr R period {CircleLimits::max - CircleLimits::min};
         constexpr R half_period {(CircleLimits::max - CircleLimits::min) / R{2}};
-        R ap = reflect_azimuth ? internal::constexpr_real(a) - half_period : internal::constexpr_real(a);
+        R ap = reflect_azimuth ? value::real(a) - half_period : value::real(a);
 
         if (ap >= CircleLimits::min and ap < CircleLimits::max) // Check if angle doesn't need wrapping.
         {
-          return internal::update_real_part(std::forward<decltype(a)>(a), ap);;
+          return value::internal::update_real_part(std::forward<decltype(a)>(a), ap);;
         }
         else // Wrap the angle.
         {
           using std::fmod;
           auto ar = fmod(ap - R{CircleLimits::min}, period);
-          if (ar < 0) return internal::update_real_part(std::forward<decltype(a)>(a), R{CircleLimits::min} + ar + period);
-          else return internal::update_real_part(std::forward<decltype(a)>(a), R{CircleLimits::min} + ar);
+          if (ar < 0) return value::internal::update_real_part(std::forward<decltype(a)>(a), R{CircleLimits::min} + ar + period);
+          else return value::internal::update_real_part(std::forward<decltype(a)>(a), R{CircleLimits::min} + ar);
         }
       }
 
@@ -313,14 +312,14 @@ namespace OpenKalman::interface
   #endif
       {
         auto d = g(start + d_i);
-        auto dp = internal::constexpr_real(d);
+        auto dp = value::real(d);
 
         switch(local_index)
         {
           case d_i:
           {
             using std::abs;
-            return internal::update_real_part(d, abs(dp));
+            return value::internal::update_real_part(d, abs(dp));
           }
           case a_i:
           {
@@ -333,7 +332,7 @@ namespace OpenKalman::interface
             auto i = g(start + i_i);
             auto new_i = std::get<0>(inclination_wrap_impl(i));
             using std::signbit;
-            return internal::update_real_part(i, signbit(dp) ? -new_i : new_i);
+            return value::internal::update_real_part(i, signbit(dp) ? -new_i : new_i);
           }
         }
       }
@@ -365,9 +364,9 @@ namespace OpenKalman::interface
         {
           case d_i:
           {
-            auto dp = internal::constexpr_real(x);
+            auto dp = value::real(x);
             using std::abs, std::signbit;
-            s(internal::update_real_part(x, abs(dp)), start + d_i);
+            s(value::internal::update_real_part(x, abs(dp)), start + d_i);
             if (signbit(dp)) // If new distance would have been negative
             {
               auto azimuth_i = start + a_i;
@@ -385,7 +384,7 @@ namespace OpenKalman::interface
           default: // case i_i
           {
             const auto [ip, b] = inclination_wrap_impl(x);
-            s(internal::update_real_part(x, ip), start + i_i); // Reflect inclination.
+            s(value::internal::update_real_part(x, ip), start + i_i); // Reflect inclination.
             const auto azimuth_i = start + a_i;
             s(azimuth_wrap_impl(b, g(azimuth_i)), azimuth_i); // Maybe reflect azimuth.
             break;

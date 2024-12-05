@@ -29,7 +29,7 @@ namespace OpenKalman
     constexpr auto get_tensor_order_of_impl(std::index_sequence<I, Is...>, const T& t)
     {
       auto dim = get_index_dimension_of<I>(t);
-      if constexpr (value::static_index<decltype(dim)>)
+      if constexpr (value::fixed<decltype(dim)>)
       {
         constexpr std::size_t stat_dim = std::decay_t<decltype(dim)>::value;
         if constexpr (stat_dim == 0) return dim;
@@ -37,7 +37,7 @@ namespace OpenKalman
         {
           auto next = get_tensor_order_of_impl(std::index_sequence<Is...> {}, t);
           if constexpr (stat_dim == 1) return next;
-          else if constexpr (value::static_index<decltype(next)>)
+          else if constexpr (value::fixed<decltype(next)>)
             return std::integral_constant<std::size_t, 1_uz + std::decay_t<decltype(next)>::value> {};
           else
             return 1_uz + next;
@@ -73,7 +73,7 @@ namespace OpenKalman
 #endif
   tensor_order(const T& t)
   {
-    if constexpr (value::static_index<decltype(count_indices(t))>)
+    if constexpr (value::fixed<decltype(count_indices(t))>)
     {
       constexpr std::make_index_sequence<std::decay_t<decltype(count_indices(t))>::value> seq;
       return detail::get_tensor_order_of_impl(seq, t);

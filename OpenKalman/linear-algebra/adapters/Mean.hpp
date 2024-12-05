@@ -517,7 +517,7 @@ namespace OpenKalman
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
       {
-        if constexpr (value::static_index<N>)
+        if constexpr (value::fixed<N>)
         {
           if constexpr (n == 0_uz) return arg.my_dimension;
           else return OpenKalman::get_vector_space_descriptor(nested_object(arg), n);

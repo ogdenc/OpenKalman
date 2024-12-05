@@ -108,12 +108,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible T, value::scalar C, auto...constant, vector_space_descriptor_collection Ds> requires
-    ((value::static_scalar<C> and sizeof...(constant) == 0) or requires { C {constant...}; })
+    ((value::fixed<C> and sizeof...(constant) == 0) or requires { C {constant...}; })
   constexpr constant_matrix auto
 #else
   template<typename T, typename C, auto...constant, typename Ds, std::enable_if_t<
     indexible<T> and value::scalar<C> and vector_space_descriptor_collection<Ds> and
-    ((value::static_scalar<C> and sizeof...(constant) == 0) or
+    ((value::fixed<C> and sizeof...(constant) == 0) or
       std::is_constructible<C, decltype(constant)...>::value), int> = 0>
   constexpr auto
 #endif
@@ -123,7 +123,7 @@ namespace OpenKalman
     if constexpr (sizeof...(constant) == 0)
       return make_constant<T>(C{}, std::forward<Ds>(ds));
     else
-      return make_constant<T>(value::StaticScalar<Scalar, constant...>{}, std::forward<Ds>(ds));
+      return make_constant<T>(value::Fixed<Scalar, constant...>{}, std::forward<Ds>(ds));
   }
 
 
@@ -157,12 +157,12 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<indexible T, value::scalar C, auto...constant, vector_space_descriptor...Ds> requires
-    ((value::static_scalar<C> and sizeof...(constant) == 0) or requires { C {constant...}; })
+    ((value::fixed<C> and sizeof...(constant) == 0) or requires { C {constant...}; })
   constexpr constant_matrix auto
 #else
   template<typename T, typename C, auto...constant, typename...Ds, std::enable_if_t<
     indexible<T> and value::scalar<C> and (vector_space_descriptor<Ds> and ...) and
-    ((value::static_scalar<C> and sizeof...(constant) == 0) or
+    ((value::fixed<C> and sizeof...(constant) == 0) or
       std::is_constructible<C, decltype(constant)...>::value), int> = 0>
   constexpr auto
 #endif
@@ -197,11 +197,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<value::scalar C, auto...constant, indexible T> requires
-    ((value::static_scalar<C> and sizeof...(constant) == 0) or requires { C {constant...}; })
+    ((value::fixed<C> and sizeof...(constant) == 0) or requires { C {constant...}; })
   constexpr constant_matrix auto
 #else
   template<typename C, auto...constant, typename T, std::enable_if_t<value::scalar<C> and indexible<T> and
-    ((value::static_scalar<C> and sizeof...(constant) == 0) or std::is_constructible<C, decltype(constant)...>::value), int> = 0>
+    ((value::fixed<C> and sizeof...(constant) == 0) or std::is_constructible<C, decltype(constant)...>::value), int> = 0>
   constexpr auto
 #endif
   make_constant(const T& t)

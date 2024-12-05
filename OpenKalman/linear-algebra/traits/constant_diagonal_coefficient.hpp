@@ -61,21 +61,21 @@ namespace OpenKalman::value
 #ifdef __cpp_concepts
     template<typename T>
     concept has_static_constant_diagonal =
-      value::static_scalar<typename interface::get_constant_diagonal_return_type<T>::type> or
-      (value::static_scalar<typename interface::get_constant_return_type<T>::type> and
-        (one_dimensional<T> or internal::are_within_tolerance(const_value<T>, 0)));
+      value::fixed<typename interface::get_constant_diagonal_return_type<T>::type> or
+      (value::fixed<typename interface::get_constant_return_type<T>::type> and
+        (one_dimensional<T> or value::internal::near(const_value<T>, 0)));
 #else
     template<typename T, typename = void>
     struct has_static_constant_diagonal_impl : std::false_type {};
 
     template<typename T>
-    struct has_static_constant_diagonal_impl<T, std::enable_if_t<value::static_scalar<typename interface::get_constant_return_type<T>::type>>>
-      : std::bool_constant<one_dimensional<T> or internal::are_within_tolerance(const_value<T>, 0)> {};
+    struct has_static_constant_diagonal_impl<T, std::enable_if_t<value::fixed<typename interface::get_constant_return_type<T>::type>>>
+      : std::bool_constant<one_dimensional<T> or value::internal::near(const_value<T>, 0)> {};
 
 
     template<typename T>
     constexpr bool has_static_constant_diagonal =
-      value::static_scalar<typename interface::get_constant_diagonal_return_type<T>::type> or
+      value::fixed<typename interface::get_constant_diagonal_return_type<T>::type> or
       has_static_constant_diagonal_impl<T>::value;
 #endif
   } // namespace detail
@@ -126,12 +126,12 @@ namespace OpenKalman::value
    */
 #ifdef __cpp_concepts
   template<indexible T> requires (not detail::has_static_constant_diagonal<T>) and
-    (value::dynamic_scalar<typename interface::get_constant_diagonal_return_type<T>::type> or one_dimensional<T>)
+    (value::dynamic<typename interface::get_constant_diagonal_return_type<T>::type> or one_dimensional<T>)
   struct constant_diagonal_coefficient<T>
 #else
   template<typename T>
   struct constant_diagonal_coefficient<T, std::enable_if_t<indexible<T> and (not detail::has_static_constant_diagonal<T>) and
-    (value::dynamic_scalar<typename interface::get_constant_diagonal_return_type<T>::type> or one_dimensional<T>)>>
+    (value::dynamic<typename interface::get_constant_diagonal_return_type<T>::type> or one_dimensional<T>)>>
 #endif
   {
   private:

@@ -38,7 +38,7 @@ namespace OpenKalman::internal
         auto curr_dim = get_index_dimension_of<l == Layout::right ? count - 1 - I : I>(t);
         auto next_stride = [](CurrStride curr_stride, auto curr_dim)
         {
-          if constexpr (value::static_index<CurrStride, std::ptrdiff_t> and value::static_index<decltype(curr_dim)>)
+          if constexpr (value::fixed<CurrStride> and value::fixed<decltype(curr_dim)>)
             return std::integral_constant<std::ptrdiff_t, std::decay_t<CurrStride>::value * decltype(curr_dim)::value>{};
           else
             return static_cast<std::ptrdiff_t>(curr_stride) * static_cast<std::ptrdiff_t>(curr_dim);
@@ -56,7 +56,7 @@ namespace OpenKalman::internal
     constexpr bool strides_tuple_impl(std::index_sequence<Is...>)
     {
       return (... and (std::is_convertible_v<std::tuple_element_t<Is, T>, std::ptrdiff_t> or
-        value::static_index<std::tuple_element_t<Is, T>, std::ptrdiff_t>));
+        value::fixed<std::tuple_element_t<Is, T>>));
     }
 
     template<typename T>
@@ -75,7 +75,7 @@ namespace OpenKalman::internal
    * \brief Returns a tuple <code>std::tuple&lt;S...&gt;</code> comprising the strides of a strided tensor or matrix.
    * \details Each of the strides <code>S</code> satisfies one of the following:
    * - <code>std::convertible_to&lt;S, std::ptrdiff_t&gt;</code>; or
-   * - <code>value::static_index&lt;S, std::ptrdiff_t&gt;</code>.
+   * - <code>value::fixed&lt;S&gt;</code>.
    */
 #ifdef __cpp_concepts
   template<interface::count_indices_defined_for T> requires interface::layout_defined_for<T> and
@@ -99,7 +99,7 @@ namespace OpenKalman::internal
 #endif
       return interface::indexible_object_traits<std::decay_t<T>>::strides(t);
     }
-    else if constexpr (value::static_index<decltype(count_indices(t))>)
+    else if constexpr (value::fixed<decltype(count_indices(t))>)
     {
       constexpr std::size_t count = std::decay_t<decltype(count_indices(t))>::value;
       constexpr std::integral_constant<std::ptrdiff_t, 1> N1;

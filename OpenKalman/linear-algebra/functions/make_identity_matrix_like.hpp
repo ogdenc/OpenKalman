@@ -49,7 +49,7 @@ namespace OpenKalman
     }
     else
     {
-      return internal::make_constant_diagonal_from_descriptors<T>(value::StaticScalar<Scalar, 1>{}, std::forward<D>(d));
+      return internal::make_constant_diagonal_from_descriptors<T>(value::Fixed<Scalar, 1>{}, std::forward<D>(d));
     }
   }
 

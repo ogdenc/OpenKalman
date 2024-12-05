@@ -120,7 +120,7 @@ namespace OpenKalman::interface
       {
         constexpr int Mode {std::decay_t<Arg>::Mode};
         bool transp = (i > j and (Mode & int{Eigen::Upper}) != 0) or (i < j and (Mode & int{Eigen::Lower}) != 0);
-        if constexpr (value::complex_number<Scalar>)
+        if constexpr (value::complex<Scalar>)
         {
           using std::conj;
           if (transp) return static_cast<Scalar>(conj(get_coeff(std::as_const(arg), j, i)));
@@ -162,7 +162,7 @@ namespace OpenKalman::interface
       {
         constexpr int Mode {std::decay_t<Arg>::Mode};
         bool transp = (i > j and (Mode & int{Eigen::Upper}) != 0) or (i < j and (Mode & int{Eigen::Lower}) != 0);
-        if constexpr (value::complex_number<Scalar>)
+        if constexpr (value::complex<Scalar>)
         {
           using std::conj;
           if (transp) get_coeff(arg, j, i) = conj(s);
@@ -238,26 +238,26 @@ namespace OpenKalman::interface
           using S0 = decltype(s0);
           using S1 = decltype(s1);
           constexpr int es0 = []() -> int {
-            if constexpr (value::static_index<S0, std::ptrdiff_t>) return static_cast<std::ptrdiff_t>(S0{});
+            if constexpr (value::fixed<S0>) return static_cast<std::ptrdiff_t>(S0{});
             else return Eigen::Dynamic;
           }();
           constexpr int es1 = []() -> int {
-            if constexpr (value::static_index<S1, std::ptrdiff_t>) return static_cast<std::ptrdiff_t>(S1{});
+            if constexpr (value::fixed<S1>) return static_cast<std::ptrdiff_t>(S1{});
             else return Eigen::Dynamic;
           }();
           using IndexType = typename std::decay_t<Arg>::Index;
           auto is0 = static_cast<IndexType>(static_cast<std::ptrdiff_t>(s0));
           auto is1 = static_cast<IndexType>(static_cast<std::ptrdiff_t>(s1));
 
-          if constexpr (value::static_index<S0, std::ptrdiff_t> and
-            (es0 == 1 or (value::static_index<S1, std::ptrdiff_t> and es0 < es1)))
+          if constexpr (value::fixed<S0> and
+            (es0 == 1 or (value::fixed<S1> and es0 < es1)))
           {
             using M = Eigen::Matrix<Scalar, rows, cols, Eigen::ColMajor>;
             Eigen::Stride<es1, es0> strides {is1, is0};
             return Eigen::Map<const M, Eigen::Unaligned, decltype(strides)> {internal::raw_data(arg), rows, cols, strides};
           }
-          else if constexpr (value::static_index<S1, std::ptrdiff_t> and
-            (es1 == 1 or (value::static_index<S0, std::ptrdiff_t> and es1 < es0)))
+          else if constexpr (value::fixed<S1> and
+            (es1 == 1 or (value::fixed<S0> and es1 < es0)))
           {
             using M = Eigen::Matrix<Scalar, rows, cols, Eigen::RowMajor>;
             Eigen::Stride<es0, es1> strides {is0, is1};
@@ -427,11 +427,11 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_ranges
-    template<value::dynamic_scalar C, euclidean_vector_space_descriptor_collection Ds> requires
+    template<value::dynamic C, euclidean_vector_space_descriptor_collection Ds> requires
       (internal::static_collection_size_v<Ds> != dynamic_size) and (internal::static_collection_size_v<Ds> <= 2)
     static constexpr constant_matrix auto
 #else
-    template<typename C, typename Ds, std::enable_if_t<value::dynamic_scalar<C> and
+    template<typename C, typename Ds, std::enable_if_t<value::dynamic<C> and
       euclidean_vector_space_descriptor_collection<Ds> and
       (internal::static_collection_size_v<Ds> != dynamic_size) and (internal::static_collection_size_v<Ds> <= 2)), int> = 0>
     static constexpr auto
@@ -529,7 +529,7 @@ namespace OpenKalman::interface
     {
       auto b0 = [](const auto& begin){
         using Begin0 = std::decay_t<decltype(std::get<0>(begin))>;
-        if constexpr (value::static_index<Begin0>) return std::integral_constant<Eigen::Index, Begin0::value>{};
+        if constexpr (value::fixed<Begin0>) return std::integral_constant<Eigen::Index, Begin0::value>{};
         else return static_cast<Eigen::Index>(std::get<0>(begin));
       }(begin);
 
@@ -538,14 +538,14 @@ namespace OpenKalman::interface
         else
         {
           using Begin1 = std::decay_t<decltype(std::get<1>(begin))>;
-          if constexpr (value::static_index<Begin1>) return std::integral_constant<Eigen::Index, Begin1::value>{};
+          if constexpr (value::fixed<Begin1>) return std::integral_constant<Eigen::Index, Begin1::value>{};
           else return static_cast<Eigen::Index>(std::get<1>(begin));
         }
       }(begin);
 
       auto s0 = [](const auto& size){
         using Size0 = std::decay_t<decltype(std::get<0>(size))>;
-        if constexpr (value::static_index<Size0>) return std::integral_constant<Eigen::Index, Size0::value>{};
+        if constexpr (value::fixed<Size0>) return std::integral_constant<Eigen::Index, Size0::value>{};
         else return static_cast<Eigen::Index>(std::get<0>(size));
       }(size);
 
@@ -554,13 +554,13 @@ namespace OpenKalman::interface
         else
         {
           using Size1 = std::decay_t<decltype(std::get<1>(size))>;
-          if constexpr (value::static_index<Size1>) return std::integral_constant<Eigen::Index, Size1::value>{};
+          if constexpr (value::fixed<Size1>) return std::integral_constant<Eigen::Index, Size1::value>{};
           else return static_cast<Eigen::Index>(std::get<1>(size));
         }
       }(size);
 
-      constexpr int S0 = static_cast<int>(value::static_index<decltype(s0), Eigen::Index> ? static_cast<Eigen::Index>(s0) : Eigen::Dynamic);
-      constexpr int S1 = static_cast<int>(value::static_index<decltype(s1), Eigen::Index> ? static_cast<Eigen::Index>(s1) : Eigen::Dynamic);
+      constexpr int S0 = static_cast<int>(value::fixed<decltype(s0)> ? static_cast<Eigen::Index>(s0) : Eigen::Dynamic);
+      constexpr int S1 = static_cast<int>(value::fixed<decltype(s1)> ? static_cast<Eigen::Index>(s1) : Eigen::Dynamic);
 
       decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
       using M = decltype(m);
@@ -572,7 +572,7 @@ namespace OpenKalman::interface
         // workaround for Eigen::Block's special treatment of directly accessible nested types:
         auto rep {std::forward<M>(m).template replicate<1,1>()};
         using B = Eigen::Block<const decltype(rep), S0, S1>;
-        if constexpr ((value::static_index<Size> and ...))
+        if constexpr ((value::fixed<Size> and ...))
           return B {std::move(rep), std::move(b0), std::move(b1)};
         else
           return B {std::move(rep), std::move(b0), std::move(b1), std::move(s0), std::move(s1)};
@@ -582,7 +582,7 @@ namespace OpenKalman::interface
         using M_noref = std::remove_reference_t<M>;
         using XprType = std::conditional_t<std::is_lvalue_reference_v<M>, M_noref, const M_noref>;
         using B = Eigen::Block<XprType, S0, S1>;
-        if constexpr ((value::static_index<Size> and ...))
+        if constexpr ((value::fixed<Size> and ...))
           return B {std::forward<M>(m), std::move(b0), std::move(b1)};
         else
           return B {std::forward<M>(m), std::move(b0), std::move(b1), std::move(s0), std::move(s1)};
@@ -798,7 +798,7 @@ namespace OpenKalman::interface
       else if constexpr (Eigen3::eigen_Identity<Arg>)
       {
         auto f = [](const auto& a, const auto& b) { return std::min(a, b); };
-        auto dim = value::static_scalar_operation{f, get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)};
+        auto dim = value::operation{f, get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)};
         return make_constant<Arg, Scalar, 1>(dim);
       }
       else if constexpr (Eigen3::eigen_dense_general<Arg>)
@@ -821,11 +821,11 @@ namespace OpenKalman::interface
     broadcast(Arg&& arg, const Factor0& factor0 = Factor0{}, const Factor1& factor1 = Factor1{})
     {
       constexpr int F0 = []{
-        if constexpr (value::static_index<Factor0>) return static_cast<std::size_t>(Factor0{});
+        if constexpr (value::fixed<Factor0>) return static_cast<std::size_t>(Factor0{});
         else return Eigen::Dynamic;
       }();
       constexpr int F1 = []{
-        if constexpr (value::static_index<Factor1>) return static_cast<std::size_t>(Factor1{});
+        if constexpr (value::fixed<Factor1>) return static_cast<std::size_t>(Factor1{});
         else return Eigen::Dynamic;
       }();
 
@@ -834,7 +834,7 @@ namespace OpenKalman::interface
       decltype(auto) m = to_native_matrix(std::forward<Arg>(arg));
       using M = decltype(m);
       using R = Eigen::Replicate<std::remove_reference_t<M>, F0, F1>;
-      if constexpr (value::static_index<Factor0> and value::static_index<Factor1>)
+      if constexpr (value::fixed<Factor0> and value::fixed<Factor1>)
         return R {std::forward<M>(m)};
       else
         return R {std::forward<M>(m), static_cast<IndexType>(factor0), static_cast<IndexType>(factor1)};
@@ -1228,12 +1228,12 @@ namespace OpenKalman::interface
         if constexpr(triangle_type == TriangleType::diagonal)
         {
           static_assert(diagonal_matrix<A>);
-          return OpenKalman::to_diagonal(make_constant<A>(internal::constexpr_sqrt(s), dim, Dimensions<1>{}));
+          return OpenKalman::to_diagonal(make_constant<A>(value::sqrt(s), dim, Dimensions<1>{}));
         }
         else if constexpr(triangle_type == TriangleType::lower)
         {
           auto euc_dim = get_dimension_size_of(dim);
-          auto col0 = make_constant<A>(internal::constexpr_sqrt(s), euc_dim, Dimensions<1>{});
+          auto col0 = make_constant<A>(value::sqrt(s), euc_dim, Dimensions<1>{});
           auto othercols = make_zero<A>(euc_dim, euc_dim - Dimensions<1>{});
           return make_vector_space_adapter(OpenKalman::make_triangular_matrix<triangle_type>(concatenate_horizontal(col0, othercols)), dim, dim);
         }
@@ -1241,7 +1241,7 @@ namespace OpenKalman::interface
         {
           static_assert(triangle_type == TriangleType::upper);
           auto euc_dim = get_dimension_size_of(dim);
-          auto row0 = make_constant<A>(internal::constexpr_sqrt(s), Dimensions<1>{}, dim);
+          auto row0 = make_constant<A>(value::sqrt(s), Dimensions<1>{}, dim);
           auto otherrows = make_zero<A>(euc_dim - Dimensions<1>{}, euc_dim);
           return make_vector_space_adapter(OpenKalman::make_triangular_matrix<triangle_type>(concatenate_vertical(row0, otherrows)), dim, dim);
         }

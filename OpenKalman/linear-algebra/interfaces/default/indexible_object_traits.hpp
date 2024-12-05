@@ -48,7 +48,7 @@ namespace OpenKalman::interface
      * this value should be the maximum such value. For example, if a column vector is accessible by either
      * one or two indices, the value should be 2 (preferably std::integral_constant<std::size_t, 2>{}).
      * \note Mandatory. The \ref indexible concept applies iff this function is defined and returns an \ref value::index.
-     * \return An \ref value::index (either \ref value::static_index or \ref value::dynamic_index) representing the number of indices.
+     * \return An \ref value::index representing the number of indices.
      * \sa OpenKalman::index_count
      * \sa OpenKalman::count_indices
      */

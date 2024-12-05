@@ -61,7 +61,7 @@ namespace OpenKalman
 #endif
   constexpr bool vector_space_descriptors_match(const Ts&...ts)
   {
-    if constexpr ((... and value::static_index<decltype(count_indices(ts))>))
+    if constexpr ((... and value::fixed<decltype(count_indices(ts))>))
     {
       constexpr std::make_index_sequence<std::max({std::decay_t<decltype(count_indices(ts))>::value...})> seq;
       return detail::vector_space_descriptors_match_impl(seq, ts...);

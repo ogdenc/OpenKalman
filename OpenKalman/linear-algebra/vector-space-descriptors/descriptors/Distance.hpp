@@ -121,7 +121,7 @@ namespace OpenKalman::interface
       auto x = g(euclidean_start);
       // The distance component may need to be wrapped to the positive half of the real axis:
       using std::abs;
-      return internal::update_real_part(x, abs(internal::constexpr_real(x)));
+      return value::internal::update_real_part(x, abs(value::real(x)));
     }
 
 
@@ -141,7 +141,7 @@ namespace OpenKalman::interface
     {
       auto x = g(start);
       using std::abs;
-      return internal::update_real_part(x, abs(internal::constexpr_real(x)));
+      return value::internal::update_real_part(x, abs(value::real(x)));
     }
 
 
@@ -163,7 +163,7 @@ namespace OpenKalman::interface
 #endif
     {
       using std::abs;
-      s(internal::update_real_part(x, abs(internal::constexpr_real(x))), start);
+      s(value::internal::update_real_part(x, abs(value::real(x))), start);
     }
 
   };

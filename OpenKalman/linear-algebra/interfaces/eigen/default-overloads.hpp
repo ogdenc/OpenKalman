@@ -286,16 +286,16 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<TriangleType triangle_type, value::number ... Args> requires
     (sizeof...(Args) > 0) and (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (sizeof...(Args) == static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))))
+    (sizeof...(Args) == static_cast<std::size_t>(value::sqrt(sizeof...(Args))) * static_cast<std::size_t>(value::sqrt(sizeof...(Args))))
 #else
   template<TriangleType triangle_type, typename ... Args, std::enable_if_t<
     (sizeof...(Args) > 0) and (value::number<Args> and ...) and
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (sizeof...(Args) == static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)))), int> = 0>
+    (sizeof...(Args) == static_cast<std::size_t>(value::sqrt(sizeof...(Args))) * static_cast<std::size_t>(value::sqrt(sizeof...(Args)))), int> = 0>
 #endif
   auto make_covariance(const Args ... args)
   {
-    constexpr auto dim = static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)));
+    constexpr auto dim = static_cast<std::size_t>(value::sqrt(sizeof...(Args)));
     using StaticDescriptor = OpenKalman::Dimensions<dim>;
     return make_covariance<StaticDescriptor, triangle_type>(args...);
   }
@@ -310,14 +310,14 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<value::number ... Args> requires (sizeof...(Args) > 0) and
-    (sizeof...(Args) == static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))))
+    (sizeof...(Args) == static_cast<std::size_t>(value::sqrt(sizeof...(Args))) * static_cast<std::size_t>(value::sqrt(sizeof...(Args))))
 #else
   template<typename ... Args, std::enable_if_t<(sizeof...(Args) > 0) and (value::number<Args> and ...) and
-  (sizeof...(Args) == static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)))), int> = 0>
+  (sizeof...(Args) == static_cast<std::size_t>(value::sqrt(sizeof...(Args))) * static_cast<std::size_t>(value::sqrt(sizeof...(Args)))), int> = 0>
 #endif
   auto make_covariance(const Args ... args)
   {
-    constexpr auto dim = static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)));
+    constexpr auto dim = static_cast<std::size_t>(value::sqrt(sizeof...(Args)));
     using StaticDescriptor = OpenKalman::Dimensions<dim>;
     return make_covariance<StaticDescriptor>(args...);
   }
@@ -411,17 +411,17 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<TriangleType triangle_type = TriangleType::lower, value::number ... Args> requires
   (sizeof...(Args) > 0) and (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (sizeof...(Args) == static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))) * static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))))
+    (sizeof...(Args) == static_cast<std::size_t>(value::sqrt(sizeof...(Args))) * static_cast<std::size_t>(value::sqrt(sizeof...(Args))))
 #else
   template<TriangleType triangle_type = TriangleType::lower, typename ... Args, std::enable_if_t<
     (sizeof...(Args) > 0) and (value::number<Args> and ...) and
     (triangle_type == TriangleType::lower or triangle_type == TriangleType::upper) and
-    (sizeof...(Args) == static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))) *
-      static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)))), int> = 0>
+    (sizeof...(Args) == static_cast<std::size_t>(value::sqrt(sizeof...(Args))) *
+      static_cast<std::size_t>(value::sqrt(sizeof...(Args)))), int> = 0>
 #endif
   auto make_square_root_covariance(const Args ... args)
   {
-    constexpr auto dim = static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)));
+    constexpr auto dim = static_cast<std::size_t>(value::sqrt(sizeof...(Args)));
     using StaticDescriptor = OpenKalman::Dimensions<dim>;
     return make_square_root_covariance<StaticDescriptor, triangle_type>(args...);
   }
@@ -574,16 +574,16 @@ namespace OpenKalman
   /// If the arguments are a sequence of scalars, derive a square, self-adjoint matrix.
 #if defined(__cpp_concepts) && not defined(__clang__) // Because of compiler issue in at least clang version 10.0.0
   template<value::number ... Args> requires (sizeof...(Args) > 0) and
-    (sizeof...(Args) == static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))) *
-      static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))))
+    (sizeof...(Args) == static_cast<std::size_t>(value::sqrt(sizeof...(Args))) *
+      static_cast<std::size_t>(value::sqrt(sizeof...(Args))))
 #else
   template<typename ... Args, std::enable_if_t<(value::number<Args> and ...) and (sizeof...(Args) > 0) and
-    (sizeof...(Args) == static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))) *
-      static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)))), int> = 0>
+    (sizeof...(Args) == static_cast<std::size_t>(value::sqrt(sizeof...(Args))) *
+      static_cast<std::size_t>(value::sqrt(sizeof...(Args)))), int> = 0>
 #endif
-  explicit Covariance(const Args& ...) -> Covariance<Dimensions<static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)))>,
+  explicit Covariance(const Args& ...) -> Covariance<Dimensions<static_cast<std::size_t>(value::sqrt(sizeof...(Args)))>,
   HermitianAdapter<Eigen3::eigen_matrix_t<std::common_type_t<Args...>,
-    static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))), static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)))>>>;
+    static_cast<std::size_t>(value::sqrt(sizeof...(Args))), static_cast<std::size_t>(value::sqrt(sizeof...(Args)))>>>;
 
 
   // --------------------- //
@@ -605,17 +605,17 @@ namespace OpenKalman
   /// If the arguments are a sequence of scalars, derive a square, lower triangular matrix.
 #if defined(__cpp_concepts) && not defined(__clang__) // Because of compiler issue in at least clang version 10.0.0
   template<value::number ... Args> requires (sizeof...(Args) > 0) and
-  (sizeof...(Args) == static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))) *
-    static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))))
+  (sizeof...(Args) == static_cast<std::size_t>(value::sqrt(sizeof...(Args))) *
+    static_cast<std::size_t>(value::sqrt(sizeof...(Args))))
 #else
   template<typename ... Args, std::enable_if_t<(value::number<Args> and ...) and (sizeof...(Args) > 0) and
-    (sizeof...(Args) == static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))) *
-      static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)))), int> = 0>
+    (sizeof...(Args) == static_cast<std::size_t>(value::sqrt(sizeof...(Args))) *
+      static_cast<std::size_t>(value::sqrt(sizeof...(Args)))), int> = 0>
 #endif
   explicit SquareRootCovariance(const Args& ...) -> SquareRootCovariance<
-    Dimensions<static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)))>,
+    Dimensions<static_cast<std::size_t>(value::sqrt(sizeof...(Args)))>,
     TriangularAdapter<Eigen3::eigen_matrix_t<std::common_type_t<Args...>,
-    static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args))), static_cast<std::size_t>(internal::constexpr_sqrt(sizeof...(Args)))>>>;
+    static_cast<std::size_t>(value::sqrt(sizeof...(Args))), static_cast<std::size_t>(value::sqrt(sizeof...(Args)))>>>;
 
 
 } // namespace OpenKalman

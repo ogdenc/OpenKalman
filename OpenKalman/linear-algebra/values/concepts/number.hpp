@@ -13,12 +13,11 @@
  * \brief Definition for \ref value::number.
  */
 
-#ifndef OPENKALMAN_VALUE_SCALAR_HPP
-#define OPENKALMAN_VALUE_SCALAR_HPP
+#ifndef OPENKALMAN_VALUE_NUMBER_HPP
+#define OPENKALMAN_VALUE_NUMBER_HPP
 
-#include <limits>
 #include <type_traits>
-#include "complex_number.hpp"
+#include "linear-algebra/values/interface/number_traits.hpp"
 
 namespace OpenKalman::value
 {
@@ -33,10 +32,10 @@ namespace OpenKalman::value
 #else
   constexpr bool number =
 #endif
-    std::numeric_limits<std::decay_t<T>>::is_specialized or value::complex_number<T>;
+    interface::number_traits<std::decay_t<T>>::is_specialized;
 
 
 } // namespace OpenKalman::value
 
 
-#endif //OPENKALMAN_VALUE_SCALAR_HPP
+#endif //OPENKALMAN_VALUE_NUMBER_HPP

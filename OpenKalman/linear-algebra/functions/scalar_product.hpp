@@ -57,7 +57,7 @@ namespace OpenKalman
     else if constexpr (constant_matrix<Arg>)
     {
       return make_constant(std::forward<Arg>(arg),
-        value::static_scalar_operation {
+        value::operation {
           std::multiplies<scalar_type_of_t<Arg>>{},
           constant_coefficient{arg},
           std::forward<S>(s)});
@@ -65,12 +65,12 @@ namespace OpenKalman
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       return to_diagonal(make_constant(diagonal_of(std::forward<Arg>(arg)),
-        value::static_scalar_operation {
+        value::operation {
           std::multiplies<scalar_type_of_t<Arg>>{},
           constant_diagonal_coefficient{arg},
           std::forward<S>(s)}));
     }
-    else if constexpr (value::static_scalar<S>)
+    else if constexpr (value::fixed<S>)
     {
       if constexpr (value::to_number(S{}) == 0) return make_zero(arg);
       else if constexpr (value::to_number(S{}) == 1) return std::forward<Arg>(arg);

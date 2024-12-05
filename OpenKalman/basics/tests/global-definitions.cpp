@@ -48,13 +48,6 @@ namespace
 }
 
 
-TEST(basics, constexpr_n_ary_function)
-{
-  static_assert(internal::constexpr_n_ary_function<std::plus<void>, C, C>);
-  static_assert(not internal::constexpr_n_ary_function<std::plus<void>, double, double>);
-}
-
-
 TEST(basics, tuple_like)
 {
   static_assert(internal::tuple_like<std::tuple<double, int>>);

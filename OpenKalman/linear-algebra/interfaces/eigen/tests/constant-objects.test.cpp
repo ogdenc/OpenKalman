@@ -19,11 +19,11 @@ TEST(eigen3, constant_objects)
 {
   static_assert(not constant_matrix<Eigen::CwiseNullaryOp<Eigen::internal::scalar_identity_op<double>, M22>>);
 
-  static_assert(value::static_scalar<constant_coefficient<Z21>>);
-  static_assert(value::static_scalar<constant_coefficient<Z21>>);
-  static_assert(not value::dynamic_scalar<constant_coefficient<Z21>>);
+  static_assert(value::fixed<constant_coefficient<Z21>>);
+  static_assert(value::fixed<constant_coefficient<Z21>>);
+  static_assert(not value::dynamic<constant_coefficient<Z21>>);
 
-  static_assert(value::dynamic_scalar<constant_coefficient<M11>>);
+  static_assert(value::dynamic<constant_coefficient<M11>>);
   static_assert(not constant_matrix<M1x>);
   static_assert(not constant_matrix<Mx1>);
   static_assert(not constant_matrix<Mxx>);

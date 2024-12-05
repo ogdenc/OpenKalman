@@ -182,7 +182,7 @@ namespace OpenKalman
     replicate_arg(const std::tuple<Ds...>& d_tup, Arg&& arg, std::index_sequence<Ix_Ds...>)
     {
       OpenKalman::broadcast(std::forward<Arg>(arg),
-        value::static_scalar_operation {
+        value::operation {
           std::divides<scalar_type_of_t<Arg>>{},
           get_dimension_size_of(std::get<Ix_Ds>(d_tup)),
           get_index_dimension_of<Ix_Ds>(arg)}...);
@@ -198,7 +198,7 @@ namespace OpenKalman
       // constant_matrix:
       if constexpr (sizeof...(Args) > 0 and (constant_matrix<Args> and ...) and not is_invocable_with_indices<Op, scalar_type_of_t<Args>...>(seq))
       {
-        value::static_scalar_operation c {op, constant_coefficient {std::forward<Args>(args)}...};
+        value::operation c {op, constant_coefficient {std::forward<Args>(args)}...};
         return std::apply(
           [](auto&&...as){ return make_constant<PatternMatrix>(std::forward<decltype(as)>(as)...); },
           std::tuple_cat(std::tuple{std::move(c)}, d_tup));

@@ -35,12 +35,12 @@ namespace OpenKalman::internal
   {
     if constexpr (euclidean_vector_space_descriptor<T>)
     {
-      if constexpr (static_vector_space_descriptor<T> and value::static_index<N>)
+      if constexpr (static_vector_space_descriptor<T> and value::fixed<N>)
         return descriptor::Dimensions<dimension_size_of_v<T> * static_cast<std::size_t>(n)> {};
       else
         return get_dimension_size_of(t) * n;
     }
-    else if constexpr (static_vector_space_descriptor<T> and value::static_index<N>)
+    else if constexpr (static_vector_space_descriptor<T> and value::fixed<N>)
     {
       return replicate_static_vector_space_descriptor_t<T, static_cast<std::size_t>(n)> {};
     }

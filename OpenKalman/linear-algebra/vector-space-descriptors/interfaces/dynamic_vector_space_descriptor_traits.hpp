@@ -137,11 +137,11 @@ namespace OpenKalman::interface
    * \brief \ref dynamic_vector_space_descriptor_traits for integral values.
    */
 #ifdef __cpp_concepts
-  template<value::dynamic_index T>
+  template<value::index T> requires value::dynamic<T>
   struct dynamic_vector_space_descriptor_traits<T>
 #else
   template<typename T>
-  struct dynamic_vector_space_descriptor_traits<T, std::enable_if_t<value::dynamic_index<T>>>
+  struct dynamic_vector_space_descriptor_traits<T, std::enable_if_t<value::index<T> and value::dynamic<T>>>
 #endif
   {
     explicit constexpr dynamic_vector_space_descriptor_traits(const T& t) : m_integral {t} {};

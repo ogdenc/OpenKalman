@@ -25,7 +25,7 @@ TEST(eigen3, Eigen_Product)
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().matrix() * std::declval<C22_2>().matrix())> == 8);
   static_assert(constant_coefficient_v<decltype(std::declval<C2x_2>().matrix() * std::declval<C22_2>().matrix())> == 8);
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().matrix() * std::declval<Cx2_2>().matrix())> == 8);
-  static_assert(value::dynamic_scalar<constant_coefficient<decltype(std::declval<C2x_2>().matrix() * std::declval<Cx2_2>().matrix())>>);
+  static_assert(value::dynamic<constant_coefficient<decltype(std::declval<C2x_2>().matrix() * std::declval<Cx2_2>().matrix())>>);
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().matrix() * std::declval<I22>().matrix())> == 2);
   static_assert(constant_coefficient_v<decltype(std::declval<I22>().matrix() * std::declval<C22_2>().matrix())> == 2);
   static_assert(constant_coefficient_v<decltype(std::declval<Z22>().matrix() * std::declval<Z22>().matrix())> == 0);

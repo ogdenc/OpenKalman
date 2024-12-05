@@ -32,23 +32,23 @@ namespace OpenKalman
 #endif
   constexpr decltype(auto) conjugate(Arg&& arg)
   {
-    if constexpr (not value::complex_number<scalar_type_of_t<Arg>> or zero<Arg> or identity_matrix<Arg>)
+    if constexpr (not value::complex<scalar_type_of_t<Arg>> or zero<Arg> or identity_matrix<Arg>)
     {
       return std::forward<Arg>(arg);
     }
     else if constexpr (constant_matrix<Arg>)
     {
-      if constexpr (value::real_scalar<constant_coefficient<Arg>>)
+      if constexpr (value::not_complex<constant_coefficient<Arg>>)
         return std::forward<Arg>(arg);
       else
-        return make_constant(internal::constexpr_conj(constant_coefficient{arg}), std::forward<Arg>(arg));
+        return make_constant(value::conj(constant_coefficient{arg}), std::forward<Arg>(arg));
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
-      if constexpr (value::real_scalar<constant_diagonal_coefficient<Arg>>)
+      if constexpr (value::not_complex<constant_diagonal_coefficient<Arg>>)
         return std::forward<Arg>(arg);
       else
-        return to_diagonal(make_constant(internal::constexpr_conj(constant_diagonal_coefficient{arg}),
+        return to_diagonal(make_constant(value::conj(constant_diagonal_coefficient{arg}),
           diagonal_of(std::forward<Arg>(arg))));
     }
     else if constexpr (diagonal_matrix<Arg>)

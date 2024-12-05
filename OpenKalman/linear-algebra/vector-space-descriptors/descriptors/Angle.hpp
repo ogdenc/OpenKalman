@@ -16,8 +16,6 @@
 #ifndef OPENKALMAN_ANGLE_HPP
 #define OPENKALMAN_ANGLE_HPP
 
-#include <array>
-#include <functional>
 #include <type_traits>
 #include <stdexcept>
 #ifdef __cpp_concepts
@@ -26,8 +24,9 @@
 #include <cmath>
 #include "basics/language-features.hpp"
 #include "linear-algebra/values/concepts/number.hpp"
-#include "linear-algebra/values/concepts/floating_number.hpp"
-#include "linear-algebra/values/functions/internal/math_constexpr.hpp"
+#include "linear-algebra/values/concepts/floating.hpp"
+#include "linear-algebra/values/functions/internal/update_real_part.hpp"
+#include "linear-algebra/values/functions/atan2.hpp"
 #include "linear-algebra/vector-space-descriptors/interfaces/static_vector_space_descriptor_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp"
@@ -36,8 +35,8 @@ namespace OpenKalman::descriptor
 {
   template<typename Limits>
 #ifdef __cpp_concepts
-  requires (std::integral<decltype(Limits::min)> or value::floating_number<decltype(Limits::min)>) and
-    (std::integral<decltype(Limits::max)> or value::floating_number<decltype(Limits::max)>) and
+  requires (std::integral<decltype(Limits::min)> or value::floating<decltype(Limits::min)>) and
+    (std::integral<decltype(Limits::max)> or value::floating<decltype(Limits::max)>) and
     (Limits::min < Limits::max) and (Limits::min <= 0) and (Limits::max > 0)
 #endif
   struct Angle;
@@ -122,15 +121,15 @@ namespace OpenKalman::descriptor
   template<typename Limits = angle::RadiansLimits>
 #endif
 #ifdef __cpp_concepts
-  requires (std::integral<decltype(Limits::min)> or value::floating_number<decltype(Limits::min)>) and
-    (std::integral<decltype(Limits::max)> or value::floating_number<decltype(Limits::max)>) and
+  requires (std::integral<decltype(Limits::min)> or value::floating<decltype(Limits::min)>) and
+    (std::integral<decltype(Limits::max)> or value::floating<decltype(Limits::max)>) and
     (Limits::min < Limits::max) and (Limits::min <= 0) and (Limits::max > 0)
 #endif
   struct Angle
   {
 #ifndef __cpp_concepts
-    static_assert(std::is_integral_v<decltype(Limits::min)> or value::floating_number<decltype(Limits::min)>);
-    static_assert(std::is_integral_v<decltype(Limits::max)> or value::floating_number<decltype(Limits::max)>);
+    static_assert(std::is_integral_v<decltype(Limits::min)> or value::floating<decltype(Limits::min)>);
+    static_assert(std::is_integral_v<decltype(Limits::max)> or value::floating<decltype(Limits::max)>);
     static_assert(Limits::min < Limits::max);
     static_assert(Limits::min <= 0);
     static_assert(Limits::max > 0);
@@ -225,7 +224,7 @@ namespace OpenKalman::interface
 #endif
     {
       using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
-      using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
+      using R = std::decay_t<decltype(value::real(std::declval<Scalar>()))>;
       const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
       const Scalar mid { R{Limits::max + Limits::min} * R{0.5}};
 
@@ -253,14 +252,14 @@ namespace OpenKalman::interface
 #endif
     {
       using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
-      using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
+      using R = std::decay_t<decltype(value::real(std::declval<Scalar>()))>;
       const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
       const Scalar mid { R{Limits::max + Limits::min} * R{0.5}};
 
       Scalar x = g(euclidean_start);
       Scalar y = g(euclidean_start + 1);
 
-      if constexpr (value::complex_number<Scalar>) return internal::constexpr_atan2(y, x) / cf + mid;
+      if constexpr (value::complex<Scalar>) return value::atan2(y, x) / cf + mid;
       else { using std::atan2; return atan2(y, x) / cf + mid; }
     }
 
@@ -274,7 +273,7 @@ namespace OpenKalman::interface
     static constexpr std::decay_t<Scalar> wrap_impl(Scalar&& a)
 #endif
     {
-      auto ap = internal::constexpr_real(a);
+      auto ap = value::real(a);
       if (not (ap < Limits::min) and ap < Limits::max)
       {
         return std::forward<decltype(a)>(a);
@@ -285,8 +284,8 @@ namespace OpenKalman::interface
         constexpr R period {Limits::max - Limits::min};
         using std::fmod;
         R ar {fmod(ap - R{Limits::min}, period)};
-        if (ar < 0) return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar + period);
-        else return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar);
+        if (ar < 0) return value::internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar + period);
+        else return value::internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar);
       }
     }
 

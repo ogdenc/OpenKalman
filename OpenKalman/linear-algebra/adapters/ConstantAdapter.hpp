@@ -42,7 +42,7 @@ namespace OpenKalman
     static_assert(sizeof...(constant) == 0 or std::is_constructible_v<Scalar, decltype(constant)...>);
 #endif
 
-    using MyConstant = std::conditional_t<sizeof...(constant) == 0, Scalar, value::StaticScalar<Scalar, constant...>>;
+    using MyConstant = std::conditional_t<sizeof...(constant) == 0, Scalar, value::Fixed<Scalar, constant...>>;
     using MyScalarType = std::decay_t<decltype(value::to_number(std::declval<MyConstant>()))>;
 
     using AllDescriptorsType = decltype(all_vector_space_descriptors(std::declval<PatternMatrix>()));
@@ -188,12 +188,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_lib_ranges
     template<vector_space_descriptor_collection Descriptors> requires 
-      value::static_scalar<MyConstant> and
+      value::fixed<MyConstant> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, Descriptors>
 #else
     template<typename Descriptors, std::enable_if_t<
       vector_space_descriptor_collection<Descriptors> and 
-      value::static_scalar<MyConstant> and
+      value::fixed<MyConstant> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, Descriptors>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(Descriptors&& descriptors) 
@@ -231,12 +231,12 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<vector_space_descriptors_may_match_with<PatternMatrix> Arg> requires
       (not std::is_base_of_v<ConstantAdapter, Arg>) and 
-      value::static_scalar<MyConstant>
+      value::fixed<MyConstant>
 #else
     template<typename Arg, std::enable_if_t<
       vector_space_descriptors_may_match_with<Arg, PatternMatrix> and 
       (not std::is_base_of_v<ConstantAdapter, Arg>) and 
-      value::static_scalar<MyConstant>, int> = 0>
+      value::fixed<MyConstant>, int> = 0>
 #endif
     constexpr ConstantAdapter(const Arg& arg) :
       descriptor_collection {make_descriptors_collection(all_vector_space_descriptors(arg))} {}
@@ -299,12 +299,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<vector_space_descriptor...Ds> requires 
-      value::static_scalar<MyConstant> and
+      value::fixed<MyConstant> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, std::tuple<Ds...>>
 #else
     template<typename...Ds, std::enable_if_t<
       (vector_space_descriptor<Ds> and ...) and 
-      value::static_scalar<MyConstant> and
+      value::fixed<MyConstant> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, std::tuple<Ds...>>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(Ds&&...ds)
@@ -383,14 +383,14 @@ namespace OpenKalman
       vector_space_descriptor_tuple<DescriptorCollection> and 
       (dynamic_index_count_v<PatternMatrix> != dynamic_size) and 
       (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and 
-      value::static_scalar<MyConstant>
+      value::fixed<MyConstant>
 #else
     template<typename...Ds, std::enable_if_t<
       value::scalar<C> and (dynamic_vector_space_descriptor<Ds> and ...) and
       vector_space_descriptor_tuple<DescriptorCollection> and 
       (dynamic_index_count_v<PatternMatrix> != dynamic_size) and 
       (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and 
-      value::static_scalar<MyConstant>, int> = 0>
+      value::fixed<MyConstant>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(Ds&&...ds) 
       : ConstantAdapter(make_dynamic_dimensions_tuple(std::forward<Ds>(ds)...)) {}
@@ -523,7 +523,7 @@ namespace OpenKalman
       if constexpr (zero<ConstantAdapter>) return arg;
       else
       {
-        value::static_scalar_operation op {std::negate<>{}, constant_coefficient{arg}};
+        value::operation op {std::negate<>{}, constant_coefficient{arg}};
         return make_constant(arg, op);
       }
     }
@@ -637,7 +637,7 @@ namespace OpenKalman
         {
           return std::forward<Arg>(arg).descriptor_collection[static_cast<typename MyDims::size_type>(n)];
         }
-        else if constexpr (value::static_index<N>)
+        else if constexpr (value::fixed<N>)
         {
           if constexpr (N::value >= index_count_v<PatternMatrix>) return Dimensions<1>{};
           else return std::get<N::value>(std::forward<Arg>(arg).descriptor_collection);

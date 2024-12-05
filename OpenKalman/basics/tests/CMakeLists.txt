@@ -15,7 +15,6 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 
 add_executable(basics
-        tests.cpp
         language-features.cpp
         global-definitions.cpp
         utils.cpp

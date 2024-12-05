@@ -68,19 +68,19 @@ namespace OpenKalman::value
 #ifdef __cpp_concepts
     template<typename T>
     concept has_static_constant =
-      value::static_scalar<typename interface::get_constant_return_type<T>::type> or
-      (value::static_scalar<typename interface::get_constant_diagonal_return_type<T>::type> and
-        (one_dimensional<T> or internal::are_within_tolerance(const_diag_value<T>, 0)));
+      value::fixed<typename interface::get_constant_return_type<T>::type> or
+      (value::fixed<typename interface::get_constant_diagonal_return_type<T>::type> and
+        (one_dimensional<T> or value::internal::near(const_diag_value<T>, 0)));
 #else
     template<typename T, typename = void>
     struct has_static_constant_impl : std::false_type {};
 
     template<typename T>
-    struct has_static_constant_impl<T, std::enable_if_t<value::static_scalar<typename interface::get_constant_diagonal_return_type<T>::type>>>
-      : std::bool_constant<one_dimensional<T> or internal::are_within_tolerance(const_diag_value<T>, 0)> {};
+    struct has_static_constant_impl<T, std::enable_if_t<value::fixed<typename interface::get_constant_diagonal_return_type<T>::type>>>
+      : std::bool_constant<one_dimensional<T> or value::internal::near(const_diag_value<T>, 0)> {};
 
     template<typename T>
-    constexpr bool has_static_constant = value::static_scalar<typename interface::get_constant_return_type<T>::type> or
+    constexpr bool has_static_constant = value::fixed<typename interface::get_constant_return_type<T>::type> or
       has_static_constant_impl<T>::value;
 #endif
   } // namespace detail
@@ -113,7 +113,7 @@ namespace OpenKalman::value
     using type = constant_coefficient;
 
     static constexpr value_type value = []{
-      if constexpr (value::static_scalar<typename interface::get_constant_return_type<T>::type>)
+      if constexpr (value::fixed<typename interface::get_constant_return_type<T>::type>)
         return std::decay_t<decltype(Trait::get_constant(std::declval<T>()))>::value;
       else
         return std::decay_t<decltype(Trait::get_constant_diagonal(std::declval<T>()))>::value;
@@ -132,12 +132,12 @@ namespace OpenKalman::value
    */
 #ifdef __cpp_concepts
   template<indexible T> requires (not detail::has_static_constant<T>) and
-    (value::dynamic_scalar<typename interface::get_constant_return_type<T>::type> or one_dimensional<T>)
+    (value::dynamic<typename interface::get_constant_return_type<T>::type> or one_dimensional<T>)
   struct constant_coefficient<T>
 #else
   template<typename T>
   struct constant_coefficient<T, std::enable_if_t<
-    (value::dynamic_scalar<typename interface::get_constant_return_type<T>::type> or one_dimensional<T>) and
+    (value::dynamic<typename interface::get_constant_return_type<T>::type> or one_dimensional<T>) and
     (not detail::has_static_constant<T>)>>
 #endif
   {
@@ -148,9 +148,9 @@ namespace OpenKalman::value
   public:
 
     explicit constexpr constant_coefficient(const std::decay_t<T>& t) : m_value {[](const auto& t){
-        if constexpr (value::dynamic_scalar<typename interface::get_constant_return_type<T>::type>)
+        if constexpr (value::dynamic<typename interface::get_constant_return_type<T>::type>)
           return value::to_number(Trait::get_constant(t));
-        else if constexpr (value::dynamic_scalar<typename interface::get_constant_diagonal_return_type<T>::type>)
+        else if constexpr (value::dynamic<typename interface::get_constant_diagonal_return_type<T>::type>)
           return value::to_number(Trait::get_constant_diagonal(t));
         else
           return internal::get_singular_component(t);

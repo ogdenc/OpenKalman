@@ -51,10 +51,10 @@ TEST(adapters, ConstantAdapter_traits)
   static_assert(indexible<ConstantAdapter<M22, double, 1>>);
   static_assert(indexible<ZA31>);
 
-  static_assert(value::static_scalar<constant_coefficient<ConstantAdapter<M22, double, 1>>>);
-  static_assert(not value::dynamic_scalar<constant_coefficient<ConstantAdapter<M22, double, 1>>>);
-  static_assert(value::dynamic_scalar<constant_coefficient<ConstantAdapter<M22>>>);
-  static_assert(not value::static_scalar<constant_coefficient<ConstantAdapter<M22>>>);
+  static_assert(value::fixed<constant_coefficient<ConstantAdapter<M22, double, 1>>>);
+  static_assert(not value::dynamic<constant_coefficient<ConstantAdapter<M22, double, 1>>>);
+  static_assert(value::dynamic<constant_coefficient<ConstantAdapter<M22>>>);
+  static_assert(not value::fixed<constant_coefficient<ConstantAdapter<M22>>>);
 
   static_assert(constant_diagonal_matrix<ZA33>);
   static_assert(constant_diagonal_matrix<ZA31>);
@@ -427,7 +427,7 @@ TEST(adapters, make_constant)
 
   using C534 = decltype(c534);
 
-  constexpr value::StaticScalar<double, 5> nd5;
+  constexpr value::Fixed<double, 5> nd5;
 
   EXPECT_TRUE(is_near(make_constant<M23>(nd5, Dimensions<2>{}, Dimensions<3>{}), M23::Constant(5)));
   EXPECT_TRUE(is_near(make_constant<Mxx>(nd5, Dimensions<2>{}, 3), M23::Constant(5)));
@@ -460,10 +460,10 @@ TEST(adapters, make_constant)
   EXPECT_TRUE(is_near(make_constant<C534>(5., Dimensions<2>{}, 3), M23::Constant(5)));
   EXPECT_TRUE(is_near(make_constant<C534>(5., 2, Dimensions<3>{}), M23::Constant(5)));
   EXPECT_TRUE(is_near(make_constant<C534>(5., 2, 3), M23::Constant(5)));
-  static_assert(constant_coefficient_v<decltype(make_constant<C534>(value::StaticScalar<double, 5>{}, Dimensions<2>(), Dimensions<3>()))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant<C534>(value::StaticScalar<double, 5>{}, Dimensions<2>(), 3))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant<C534>(value::StaticScalar<double, 5>{}, 2, Dimensions<3>()))> == 5);
-  static_assert(constant_coefficient_v<decltype(make_constant<C534>(value::StaticScalar<double, 5>{}, 2, 3))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant<C534>(value::Fixed<double, 5>{}, Dimensions<2>(), Dimensions<3>()))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant<C534>(value::Fixed<double, 5>{}, Dimensions<2>(), 3))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant<C534>(value::Fixed<double, 5>{}, 2, Dimensions<3>()))> == 5);
+  static_assert(constant_coefficient_v<decltype(make_constant<C534>(value::Fixed<double, 5>{}, 2, 3))> == 5);
 
   EXPECT_TRUE(is_near(make_constant(m23, nd5), M23::Constant(5)));
   EXPECT_TRUE(is_near(make_constant(m2x_3, nd5), M23::Constant(5)));
@@ -726,8 +726,8 @@ TEST(adapters, scalar_product)
   static_assert(constant_coefficient_v<decltype(scalar_product(std::declval<Cxx_2>(), std::integral_constant<int, 5>{}))> == 10);
 
   // Constant diagonal * anything
-  static_assert(value::dynamic_scalar<constant_diagonal_coefficient<decltype(scalar_product(std::declval<Cd22_2>(), std::declval<double>()))>>);
-  static_assert(value::dynamic_scalar<constant_diagonal_coefficient<decltype(scalar_product(std::declval<Cdxx_2>(), std::declval<double>()))>>);
+  static_assert(value::dynamic<constant_diagonal_coefficient<decltype(scalar_product(std::declval<Cd22_2>(), std::declval<double>()))>>);
+  static_assert(value::dynamic<constant_diagonal_coefficient<decltype(scalar_product(std::declval<Cdxx_2>(), std::declval<double>()))>>);
   EXPECT_TRUE(constant_diagonal_coefficient{scalar_product(M22::Identity() + M22::Identity(), 5)} == 10);
   EXPECT_TRUE(constant_diagonal_coefficient{scalar_product(Mxx::Identity(2, 2) + Mxx::Identity(2, 2), 5)} == 10);
   static_assert(constant_diagonal_coefficient_v<decltype(scalar_product(std::declval<Cd22_2>(), std::integral_constant<int, 5>{}))> == 10);
@@ -760,8 +760,8 @@ TEST(adapters, scalar_quotient)
   static_assert(constant_coefficient_v<decltype(scalar_quotient(std::declval<Cxx_2>(), std::integral_constant<int, 2>{}))> == 1);
 
   // Constant diagonal / anything
-  static_assert(value::dynamic_scalar<constant_diagonal_coefficient<decltype(scalar_quotient(std::declval<Cd22_2>(), std::declval<double>()))>>);
-  static_assert(value::dynamic_scalar<constant_diagonal_coefficient<decltype(scalar_quotient(std::declval<Cdxx_2>(), std::declval<double>()))>>);
+  static_assert(value::dynamic<constant_diagonal_coefficient<decltype(scalar_quotient(std::declval<Cd22_2>(), std::declval<double>()))>>);
+  static_assert(value::dynamic<constant_diagonal_coefficient<decltype(scalar_quotient(std::declval<Cdxx_2>(), std::declval<double>()))>>);
   EXPECT_TRUE(constant_diagonal_coefficient{scalar_quotient(M22::Identity() + M22::Identity(), 2)} == 1);
   EXPECT_TRUE(constant_diagonal_coefficient{scalar_quotient(Mxx::Identity(2, 2) + Mxx::Identity(2, 2), 2)} == 1);
   static_assert(constant_diagonal_coefficient_v<decltype(scalar_quotient(std::declval<Cd22_2>(), std::integral_constant<int, 2>{}))> == 1);
@@ -949,16 +949,16 @@ TEST(adapters, ConstantAdapter_arithmetic)
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 0> {} * 2.0, ConstantAdapter<M22, double, 0> {}));
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} * -2.0, ConstantAdapter<M22, double, -6> {}));
   static_assert(constant_adapter<decltype(ConstantAdapter<M22, double, 0> {} * 2.0)>);
-  static_assert(value::static_scalar<constant_coefficient<decltype(ConstantAdapter<M22, double, 0> {} * 2.0)>>);
-  static_assert(value::dynamic_scalar<constant_coefficient<decltype(ConstantAdapter<M22, double, 3> {} * 2.0)>>);
-  static_assert(value::static_scalar<constant_coefficient<decltype(ConstantAdapter<M22, double, 3> {} * N2{})>>);
+  static_assert(value::fixed<constant_coefficient<decltype(ConstantAdapter<M22, double, 0> {} * 2.0)>>);
+  static_assert(value::dynamic<constant_coefficient<decltype(ConstantAdapter<M22, double, 3> {} * 2.0)>>);
+  static_assert(value::fixed<constant_coefficient<decltype(ConstantAdapter<M22, double, 3> {} * N2{})>>);
 
   EXPECT_TRUE(is_near(3.0 * ConstantAdapter<M22, double, 0> {}, ConstantAdapter<M22, double, 0> {}));
   EXPECT_TRUE(is_near(-3.0 * ConstantAdapter<M22, double, 3> {}, ConstantAdapter<M22, double, -9> {}));
   static_assert(constant_adapter<decltype(3.0 * ConstantAdapter<M22, double, 0> {})>);
-  static_assert(value::static_scalar<constant_coefficient<decltype(3.0 * ConstantAdapter<M22, double, 0> {})>>);
-  static_assert(value::dynamic_scalar<constant_coefficient<decltype(3.0 * ConstantAdapter<M22, double, 2> {})>>);
-  static_assert(value::static_scalar<constant_coefficient<decltype(N2{} * ConstantAdapter<M22, double, 2> {})>>);
+  static_assert(value::fixed<constant_coefficient<decltype(3.0 * ConstantAdapter<M22, double, 0> {})>>);
+  static_assert(value::dynamic<constant_coefficient<decltype(3.0 * ConstantAdapter<M22, double, 2> {})>>);
+  static_assert(value::fixed<constant_coefficient<decltype(N2{} * ConstantAdapter<M22, double, 2> {})>>);
 
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 0> {} / 2.0, ConstantAdapter<M22, double, 0> {}));
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 8> {} / -2.0, ConstantAdapter<M22, double, -4> {}));
@@ -968,17 +968,17 @@ TEST(adapters, ConstantAdapter_arithmetic)
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} + ConstantAdapter<M22, double, 5> {}, ConstantAdapter<M22, double, 8> {}));
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} + M22::Constant(5), ConstantAdapter<M22, double, 8> {}));
   EXPECT_TRUE(is_near(M22::Constant(5) + ConstantAdapter<M22, double, 3> {}, ConstantAdapter<M22, double, 8> {}));
-  static_assert(value::static_scalar<constant_coefficient<decltype(ConstantAdapter<M22, double, 3> {} + ConstantAdapter<M22, double, 5> {})>>);
+  static_assert(value::fixed<constant_coefficient<decltype(ConstantAdapter<M22, double, 3> {} + ConstantAdapter<M22, double, 5> {})>>);
   static_assert(not constant_adapter<decltype(ConstantAdapter<M22, double, 3> {} + ConstantAdapter<M22, double, 5> {})>);
-  static_assert(value::dynamic_scalar<constant_coefficient<decltype(M22::Constant(5) + ConstantAdapter<M22, double, 3> {})>>);
+  static_assert(value::dynamic<constant_coefficient<decltype(M22::Constant(5) + ConstantAdapter<M22, double, 3> {})>>);
   static_assert(not constant_adapter<decltype(M22::Constant(5) + ConstantAdapter<M22, double, 3> {})>);
 
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} - ConstantAdapter<M22, double, 5> {}, ConstantAdapter<M22, double, -2> {}));
   EXPECT_TRUE(is_near(ConstantAdapter<M22, double, 3> {} - M22::Constant(5), ConstantAdapter<M22, double, -2> {}));
   EXPECT_TRUE(is_near(M22::Constant(5) - ConstantAdapter<M22, double, 3> {}, ConstantAdapter<M22, double, 2> {}));
-  static_assert(value::static_scalar<constant_coefficient<decltype(ConstantAdapter<M22, double, 3> {} - ConstantAdapter<M22, double, 5> {})>>);
+  static_assert(value::fixed<constant_coefficient<decltype(ConstantAdapter<M22, double, 3> {} - ConstantAdapter<M22, double, 5> {})>>);
   static_assert(not constant_adapter<decltype(ConstantAdapter<M22, double, 3> {} - ConstantAdapter<M22, double, 5> {})>);
-  static_assert(value::dynamic_scalar<constant_coefficient<decltype(M22::Constant(5) - ConstantAdapter<M22, double, 3> {})>>);
+  static_assert(value::dynamic<constant_coefficient<decltype(M22::Constant(5) - ConstantAdapter<M22, double, 3> {})>>);
   static_assert(not constant_adapter<decltype(M22::Constant(5) - ConstantAdapter<M22, double, 3> {})>);
 
   EXPECT_TRUE(is_near(ConstantAdapter<M23, double, 3> {} * ConstantAdapter<M32, double, 5> {}, ConstantAdapter<M22, double, 45> {}));
@@ -987,9 +987,9 @@ TEST(adapters, ConstantAdapter_arithmetic)
   EXPECT_TRUE(is_near(ConstantAdapter<M34, double, 4> {} * M42::Constant(7), ConstantAdapter<M32, double, 112> {}));
   EXPECT_TRUE(is_near(M23::Constant(3) * ConstantAdapter<M32, double, 5> {}, ConstantAdapter<M22, double, 45> {}));
   EXPECT_TRUE(is_near(M34::Constant(4) * ConstantAdapter<M42, double, 7> {}, ConstantAdapter<M32, double, 112> {}));
-  static_assert(value::static_scalar<constant_coefficient<decltype(ConstantAdapter<M23, double, 3> {} * ConstantAdapter<M32, double, 5> {})>>);
+  static_assert(value::fixed<constant_coefficient<decltype(ConstantAdapter<M23, double, 3> {} * ConstantAdapter<M32, double, 5> {})>>);
   static_assert(not constant_adapter<decltype(ConstantAdapter<M23, double, 3> {} * ConstantAdapter<M32, double, 5> {})>);
-  static_assert(value::dynamic_scalar<constant_coefficient<decltype(M23::Constant(3) * ConstantAdapter<M32, double, 5> {})>>);
+  static_assert(value::dynamic<constant_coefficient<decltype(M23::Constant(3) * ConstantAdapter<M32, double, 5> {})>>);
   static_assert(not constant_adapter<decltype(M23::Constant(3) * ConstantAdapter<M32, double, 5> {})>);
 
   EXPECT_EQ((ConstantAdapter<M43, double, 3>{}.rows()), 4);

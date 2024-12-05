@@ -71,15 +71,15 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename T, typename...Ts>
     concept constant_concatenate_arguments =
-      (value::static_scalar<constant_coefficient<T>> and ... and value::static_scalar<constant_coefficient<Ts>>) and
-      (internal::are_within_tolerance(constant_coefficient_v<T>, constant_coefficient_v<Ts>) and ...);
+      (value::fixed<constant_coefficient<T>> and ... and value::fixed<constant_coefficient<Ts>>) and
+      (value::internal::near(constant_coefficient_v<T>, constant_coefficient_v<Ts>) and ...);
 #else
     template<typename T, typename = void, typename...Ts>
     struct constant_concatenate_arguments_impl : std::false_type {};
 
     template<typename T, typename...Ts>
     struct constant_concatenate_arguments_impl<T,
-      std::enable_if_t<(internal::are_within_tolerance(constant_coefficient<T>::value, constant_coefficient<Ts>::value) and ...)>, Ts...>
+      std::enable_if_t<(value::internal::near(constant_coefficient<T>::value, constant_coefficient<Ts>::value) and ...)>, Ts...>
       : std::true_type {};
 
     template<typename T, typename...Ts>

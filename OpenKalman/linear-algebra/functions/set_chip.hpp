@@ -64,7 +64,7 @@ namespace OpenKalman
   set_chip(Arg&& arg, Chip&& chip, Ixs...ixs)
   {
     (... , []{
-      if constexpr (value::static_index<Ixs> and not dynamic_dimension<Arg, indices>)
+      if constexpr (value::fixed<Ixs> and not dynamic_dimension<Arg, indices>)
         static_assert(std::decay_t<Ixs>::value < index_dimension_of_v<Arg, indices>, "set_chip: indices must be in range");
     }());
 

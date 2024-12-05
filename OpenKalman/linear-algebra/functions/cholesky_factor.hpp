@@ -46,13 +46,13 @@ namespace OpenKalman
     }
     else if constexpr (constant_diagonal_matrix<A>)
     {
-      auto sq = internal::constexpr_sqrt(constant_diagonal_coefficient{a});
+      auto sq = value::sqrt(constant_diagonal_coefficient{a});
       return to_diagonal(make_constant<A>(sq, get_vector_space_descriptor<0>(a)));
     }
     else if constexpr (constant_matrix<A>)
     {
       auto m = [](const auto& a){
-        auto sq = internal::constexpr_sqrt(constant_coefficient{a});
+        auto sq = value::sqrt(constant_coefficient{a});
         auto v = *is_square_shaped(a);
         auto dim = get_dimension_size_of(v);
 

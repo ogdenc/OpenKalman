@@ -78,9 +78,9 @@ namespace OpenKalman::interface
 #endif
         return Traits::get_constant(arg);
       else if constexpr (Eigen3::constexpr_unary_operation_defined<UnaryOp>)
-        return value::static_scalar_operation {Traits::constexpr_operation(), constant_coefficient {arg.nestedExpression()}};
+        return value::operation {Traits::constexpr_operation(), constant_coefficient {arg.nestedExpression()}};
       else
-        return value::static_scalar_operation {arg.functor(), constant_coefficient {arg.nestedExpression()}};
+        return value::operation {arg.functor(), constant_coefficient {arg.nestedExpression()}};
     }
 
   private:
@@ -108,9 +108,9 @@ namespace OpenKalman::interface
       else if constexpr (not Traits::preserves_triangle)
         return std::monostate{};
       else if constexpr (Eigen3::constexpr_unary_operation_defined<UnaryOp>)
-        return value::static_scalar_operation {Traits::constexpr_operation(), constant_diagonal_coefficient{arg.nestedExpression()}};
+        return value::operation {Traits::constexpr_operation(), constant_diagonal_coefficient{arg.nestedExpression()}};
       else
-        return value::static_scalar_operation {arg.functor(), constant_diagonal_coefficient{arg.nestedExpression()}};
+        return value::operation {arg.functor(), constant_diagonal_coefficient{arg.nestedExpression()}};
     }
 
 

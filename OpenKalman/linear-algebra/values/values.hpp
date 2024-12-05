@@ -26,36 +26,59 @@
 namespace OpenKalman::value {}
 
 
-// indices
-
-#include "concepts/static_index.hpp"
-#include "concepts/dynamic_index.hpp"
-#include "concepts/index.hpp"
-
 // scalar values
 
-#include "traits/number_traits.hpp"
-
-#include "concepts/complex_number.hpp"
 #include "concepts/number.hpp"
-#include "concepts/floating_number.hpp"
-
-#include "concepts/static_scalar.hpp"
-#include "concepts/dynamic_scalar.hpp"
-#include "concepts/scalar.hpp"
+#include "concepts/fixed.hpp"
+#include "concepts/dynamic.hpp"
+#include "concepts/value.hpp"
 
 #include "functions/to_number.hpp"
-#include "concepts/real_scalar.hpp"
+#include "traits/number_type_of_t.hpp"
+#include "traits/real_type_of_t.hpp"
 
-#include "internal-classes/static_scalar_operation.hpp"
-#include "internal-classes/StaticScalar.hpp"
+#include "concepts/complex.hpp"
+#include "concepts/integral.hpp"
+#include "concepts/index.hpp"
+#include "concepts/floating.hpp"
+#include "concepts/not_complex.hpp"
 
-#include "functions/internal/scalar-arithmetic.hpp"
-#include "functions/internal/make_complex_number.hpp"
-#include "functions/internal/are_within_tolerance.hpp"
-#include "functions/internal/math_constexpr.hpp"
-#include "functions/internal/update_real_part.hpp"
-#include "functions/internal/index_to_scalar_constant.hpp"
+#include "classes/operation.hpp"
+#include "classes/Fixed.hpp"
+
+#include "functions/cast_to.hpp"
+#include "functions/value-arithmetic.hpp"
+
+#include "functions/real.hpp"
+#include "functions/imag.hpp"
+
+#include "functions/isinf.hpp"
+#include "functions/isnan.hpp"
+#include "functions/conj.hpp"
+#include "functions/signbit.hpp"
+#include "functions/copysign.hpp"
+#include "functions/sqrt.hpp"
+#include "functions/hypot.hpp"
+#include "functions/abs.hpp"
+#include "functions/exp.hpp"
+#include "functions/expm1.hpp"
+#include "functions/sinh.hpp"
+#include "functions/cosh.hpp"
+#include "functions/tanh.hpp"
+#include "functions/sin.hpp"
+#include "functions/cos.hpp"
+#include "functions/tan.hpp"
+#include "functions/log.hpp"
+#include "functions/log1p.hpp"
+#include "functions/asinh.hpp"
+#include "functions/acosh.hpp"
+#include "functions/atanh.hpp"
+#include "functions/asin.hpp"
+#include "functions/acos.hpp"
+#include "functions/atan.hpp"
+#include "functions/atan2.hpp"
+#include "functions/pow.hpp"
+
 
 
 #endif //OPENKALMAN_VALUES_HPP

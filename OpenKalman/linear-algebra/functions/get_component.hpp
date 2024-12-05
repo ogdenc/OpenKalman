@@ -78,7 +78,7 @@ namespace OpenKalman
       constexpr bool static_indices_within_bounds_impl(std::index_sequence<Ix...>)
       {
         return ([]{
-          if constexpr (value::static_index<V>)
+          if constexpr (value::fixed<V>)
             return (std::decay_t<V>::value >= 0 and std::decay_t<V>::value < index_dimension_of_v<Arg, Ix>);
           else 
             return true;

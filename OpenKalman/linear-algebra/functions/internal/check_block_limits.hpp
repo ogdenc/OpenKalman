@@ -26,7 +26,7 @@ namespace OpenKalman::internal
     constexpr void check_block_limit(const Arg& arg, const Limits&...)
     {
       if constexpr (((limit_ix >= std::tuple_size_v<Limits>) or ...)) return;
-      else if constexpr (((value::static_index<std::tuple_element_t<limit_ix, Limits>>) and ...) and not dynamic_dimension<Arg, index>)
+      else if constexpr (((value::fixed<std::tuple_element_t<limit_ix, Limits>>) and ...) and not dynamic_dimension<Arg, index>)
       {
         constexpr std::size_t block_limit = (static_cast<std::size_t>(std::decay_t<std::tuple_element_t<limit_ix, Limits>>::value) + ... + 0_uz);
         static_assert(block_limit <= index_dimension_of_v<Arg, index>, "Block limits must be in range");

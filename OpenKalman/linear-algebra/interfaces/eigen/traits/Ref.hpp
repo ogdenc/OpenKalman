@@ -28,7 +28,7 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (value::static_scalar<constant_coefficient<PlainObjectType>>)
+      if constexpr (value::fixed<constant_coefficient<PlainObjectType>>)
         return constant_coefficient<PlainObjectType> {};
       else
         return std::monostate {};
@@ -37,7 +37,7 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (value::static_scalar<constant_diagonal_coefficient<PlainObjectType>>)
+      if constexpr (value::fixed<constant_diagonal_coefficient<PlainObjectType>>)
         return constant_diagonal_coefficient<PlainObjectType> {};
       else
         return std::monostate {};

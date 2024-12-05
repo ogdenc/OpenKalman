@@ -42,7 +42,7 @@ namespace OpenKalman
     else if constexpr (diagonal_matrix<A>)
     {
       return to_diagonal(n_ary_operation([](const auto x){
-        if constexpr (value::complex_number<scalar_type_of_t<A>>) return x * internal::constexpr_conj(x);
+        if constexpr (value::complex<scalar_type_of_t<A>>) return x * value::conj(x);
         else return x * x;
       }, diagonal_of(std::forward<A>(a))));
     }

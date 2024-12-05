@@ -58,7 +58,7 @@ namespace OpenKalman::interface
     template<typename Arg, typename N>
     static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
     {
-      if constexpr (value::static_index<N>)
+      if constexpr (value::fixed<N>)
       {
         constexpr auto dim = n == 0_uz ? Rows : Cols;
         constexpr auto other_dim = n == 0_uz ? Cols : Rows;
@@ -121,7 +121,7 @@ namespace OpenKalman::interface
         ((Rows != Eigen::Dynamic or Cols != Eigen::Dynamic) and not has_dynamic_dimensions<XprType>)) and
       (Rows == Eigen::Dynamic or Cols == Eigen::Dynamic or Rows == Cols) and
       (nested_components == dynamic_size or (
-        internal::are_within_tolerance(nested_components, internal::constexpr_sqrt(nested_components) * internal::constexpr_sqrt(nested_components)) and
+        value::internal::near(nested_components, value::sqrt(nested_components) * value::sqrt(nested_components)) and
         (Rows == Eigen::Dynamic or Rows * Rows == nested_components))) and
       (Rows == Eigen::Dynamic or xprtypemax == dynamic_size or (Rows * Rows) % xprtypemax == 0) and
       (Cols == Eigen::Dynamic or xprtypemax == dynamic_size or (Cols * Cols) % xprtypemax == 0);

@@ -631,7 +631,7 @@ namespace OpenKalman::descriptor
      */
 #ifdef __cpp_concepts
   template<value::index Offset, value::index Extent> requires
-    (value::dynamic_index<Offset> or Offset::value >= 0) and (value::dynamic_index<Extent> or Extent::value >= 0)
+    (value::dynamic<Offset> or Offset::value >= 0) and (value::dynamic<Extent> or Extent::value >= 0)
 #else
   template<typename Offset, typename Extent>
 #endif

@@ -18,13 +18,12 @@
 #define OPENKALMAN_UPDATE_REAL_PART_HPP
 
 #include <type_traits>
-#include "linear-algebra/values/concepts/complex_number.hpp"
+#include "linear-algebra/values/concepts/complex.hpp"
 #include "linear-algebra/values/concepts/number.hpp"
 #include "make_complex_number.hpp"
-#include "math_constexpr.hpp"
 
 
-namespace OpenKalman::internal
+namespace OpenKalman::value::internal
 {
   /**
    * \internal
@@ -34,23 +33,23 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   constexpr value::number decltype(auto)
-  update_real_part(value::number auto&& arg, value::number auto&& re) requires (not value::complex_number<decltype(re)>)
+  update_real_part(value::number auto&& arg, value::number auto&& re) requires (not value::complex<decltype(re)>)
 #else
-  template<typename T, typename Re, std::enable_if_t<value::number<T> and value::number<Re> and not value::complex_number<Re>, int> = 0>
+  template<typename T, typename Re, std::enable_if_t<value::number<T> and value::number<Re> and not value::complex<Re>, int> = 0>
   constexpr decltype(auto) update_real_part(T&& arg, Re&& re)
 #endif
   {
     using Arg = std::decay_t<decltype(arg)>;
-    if constexpr (value::complex_number<Arg>)
+    if constexpr (value::complex<Arg>)
     {
-      auto im = constexpr_imag(std::forward<decltype(arg)>(arg));
+      auto im = value::imag(std::forward<decltype(arg)>(arg));
       using R = std::decay_t<decltype(im)>;
-      return make_complex_number<Arg>(static_cast<R>(std::forward<decltype(re)>(re)), std::move(im));
+      return value::internal::make_complex_number<Arg>(static_cast<R>(std::forward<decltype(re)>(re)), std::move(im));
     }
     else return std::forward<decltype(re)>(re);
   }
 
 
-} // namespace OpenKalman::internal
+} // namespace OpenKalman::value::internal
 
 #endif //OPENKALMAN_UPDATE_REAL_PART_HPP

@@ -16,8 +16,6 @@
 #ifndef OPENKALMAN_COEFFICIENTS_INCLINATION_HPP
 #define OPENKALMAN_COEFFICIENTS_INCLINATION_HPP
 
-#include <array>
-#include <functional>
 #include <type_traits>
 #include <stdexcept>
 #ifdef __cpp_concepts
@@ -26,8 +24,8 @@
 #include <cmath>
 #include "basics/language-features.hpp"
 #include "linear-algebra/values/concepts/number.hpp"
-#include "linear-algebra/values/concepts/floating_number.hpp"
-#include "linear-algebra/values/functions/internal/math_constexpr.hpp"
+#include "linear-algebra/values/concepts/floating.hpp"
+#include "linear-algebra/values/functions/atan2.hpp"
 #include "linear-algebra/vector-space-descriptors/interfaces/static_vector_space_descriptor_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp"
@@ -37,8 +35,8 @@ namespace OpenKalman::descriptor
 {
   template<typename Limits>
 #ifdef __cpp_concepts
-  requires (std::integral<decltype(Limits::down)> or value::floating_number<decltype(Limits::down)>) and
-    (std::integral<decltype(Limits::up)> or value::floating_number<decltype(Limits::up)>) and
+  requires (std::integral<decltype(Limits::down)> or value::floating<decltype(Limits::down)>) and
+    (std::integral<decltype(Limits::up)> or value::floating<decltype(Limits::up)>) and
     (Limits::down < Limits::up) and (Limits::down <= 0) and (Limits::up >= 0)
 #endif
   struct Inclination;
@@ -101,15 +99,15 @@ namespace OpenKalman::descriptor
   template<typename Limits = inclination::RadiansLimits>
 #endif
 #ifdef __cpp_concepts
-  requires (std::integral<decltype(Limits::down)> or value::floating_number<decltype(Limits::down)>) and
-    (std::integral<decltype(Limits::up)> or value::floating_number<decltype(Limits::up)>) and
+  requires (std::integral<decltype(Limits::down)> or value::floating<decltype(Limits::down)>) and
+    (std::integral<decltype(Limits::up)> or value::floating<decltype(Limits::up)>) and
     (Limits::down < Limits::up) and (Limits::down <= 0) and (Limits::up >= 0)
 #endif
   struct Inclination
   {
 #ifndef __cpp_concepts
-    static_assert(std::is_integral_v<decltype(Limits::down)> or value::floating_number<decltype(Limits::down)>);
-    static_assert(std::is_integral_v<decltype(Limits::up)> or value::floating_number<decltype(Limits::up)>);
+    static_assert(std::is_integral_v<decltype(Limits::down)> or value::floating<decltype(Limits::down)>);
+    static_assert(std::is_integral_v<decltype(Limits::up)> or value::floating<decltype(Limits::up)>);
     static_assert(Limits::down < Limits::up);
     static_assert(Limits::down <= 0);
     static_assert(Limits::up >= 0);
@@ -195,7 +193,7 @@ namespace OpenKalman::interface
 #endif
     {
       using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
-      using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
+      using R = std::decay_t<decltype(value::real(std::declval<Scalar>()))>;
       const Scalar cf {numbers::pi_v<R> / (Limits::up - Limits::down)};
       const Scalar horiz {R{Limits::up + Limits::down} * R{0.5}};
 
@@ -222,17 +220,17 @@ namespace OpenKalman::interface
 #endif
     {
       using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
-      using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
+      using R = std::decay_t<decltype(value::real(std::declval<Scalar>()))>;
       const Scalar cf {numbers::pi_v<R> / (Limits::up - Limits::down)};
       const Scalar horiz {R{Limits::up + Limits::down} * R{0.5}};
 
       Scalar x = g(euclidean_start);
       // In Euclidean space, (the real part of) x must be non-negative since the inclination is in range [-½pi,½pi].
       using std::abs;
-      Scalar pos_x = internal::update_real_part(x, abs(internal::constexpr_real(x)));
+      Scalar pos_x = value::internal::update_real_part(x, abs(value::real(x)));
       Scalar y = g(euclidean_start + 1);
 
-      if constexpr (value::complex_number<Scalar>) return internal::constexpr_atan2(y, pos_x) / cf + horiz;
+      if constexpr (value::complex<Scalar>) return value::atan2(y, pos_x) / cf + horiz;
       else { using std::atan2; return atan2(y, pos_x) / cf + horiz; }
     }
 
@@ -241,7 +239,7 @@ namespace OpenKalman::interface
     template<typename A>
     static constexpr std::decay_t<A> wrap_impl(A&& a)
     {
-      auto ap = internal::constexpr_real(a);
+      auto ap = value::real(a);
       if (ap >= Limits::down and ap <= Limits::up)
       {
         return std::forward<decltype(a)>(a);
@@ -254,9 +252,9 @@ namespace OpenKalman::interface
         using std::fmod;
         auto ar = fmod(ap - R{Limits::down}, period);
 
-        if (ar < 0) return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::down} + ar + period);
-        else if (ar > range) return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::down} - ar + period);
-        else return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::down} + ar);
+        if (ar < 0) return value::internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::down} + ar + period);
+        else if (ar > range) return value::internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::down} - ar + period);
+        else return value::internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::down} + ar);
       }
     }
 

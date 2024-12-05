@@ -44,7 +44,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const Arg&) { return std::monostate {}; }
 
     template<typename Arg>
-    static constexpr auto get_constant_diagonal(const Arg&) { return value::StaticScalar<Scalar, 1>{}; }
+    static constexpr auto get_constant_diagonal(const Arg&) { return value::Fixed<Scalar, 1>{}; }
 
     template<TriangleType t>
     static constexpr bool is_triangular = true;
@@ -81,7 +81,7 @@ namespace OpenKalman::Eigen3
     template<TriangleType t>
     static constexpr bool is_triangular = false;
 
-    static constexpr bool is_hermitian = not value::complex_number<Scalar>;
+    static constexpr bool is_hermitian = not value::complex<Scalar>;
   };
 
 } // namespace OpenKalman::Eigen3

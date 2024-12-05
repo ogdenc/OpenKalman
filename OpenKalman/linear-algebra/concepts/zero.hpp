@@ -26,8 +26,8 @@ namespace OpenKalman
     struct is_zero : std::false_type {};
 
     template<typename T>
-    struct is_zero<T, std::enable_if_t<value::static_scalar<constant_coefficient<T>>>>
-      : std::bool_constant<internal::are_within_tolerance(constant_coefficient_v<T>, 0)> {};
+    struct is_zero<T, std::enable_if_t<value::fixed<constant_coefficient<T>>>>
+      : std::bool_constant<value::internal::near(constant_coefficient_v<T>, 0)> {};
   }
 #endif
 
@@ -38,7 +38,7 @@ namespace OpenKalman
   template<typename T>
 #ifdef __cpp_concepts
   concept zero =
-    value::static_scalar<constant_coefficient<T>> and internal::are_within_tolerance(constant_coefficient_v<T>, 0);
+    value::fixed<constant_coefficient<T>> and value::internal::near(constant_coefficient_v<T>, 0);
 #else
   constexpr bool zero = detail::is_zero<T>::value;
 #endif

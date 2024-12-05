@@ -70,13 +70,13 @@ namespace OpenKalman::interface
         return Traits::template get_constant(arg);
 #ifdef __cpp_concepts
       else if constexpr (Eigen3::constexpr_unary_operation_defined<ViewOp>)
-        return value::static_scalar_operation {Traits::constexpr_operation(), constant_coefficient {arg.nestedExpression()}};
+        return value::operation {Traits::constexpr_operation(), constant_coefficient {arg.nestedExpression()}};
 #else
-      else if constexpr (Eigen3::constexpr_unary_operation_defined<ViewOp> and value::static_scalar<constant_coefficient<MatrixType>>)
-        return value::static_scalar_operation {Traits::constexpr_operation(), constant_coefficient<MatrixType>{}};
+      else if constexpr (Eigen3::constexpr_unary_operation_defined<ViewOp> and value::fixed<constant_coefficient<MatrixType>>)
+        return value::operation {Traits::constexpr_operation(), constant_coefficient<MatrixType>{}};
 #endif
       else
-        return value::static_scalar_operation {arg.functor(), constant_coefficient {arg.nestedExpression()}};
+        return value::operation {arg.functor(), constant_coefficient {arg.nestedExpression()}};
     }
 
   private:
@@ -104,9 +104,9 @@ namespace OpenKalman::interface
       else if constexpr (not Traits::preserves_triangle)
         return std::monostate{};
       else if constexpr (Eigen3::constexpr_unary_operation_defined<ViewOp>)
-        return value::static_scalar_operation {Traits::constexpr_operation(), constant_diagonal_coefficient{arg.nestedExpression()}};
+        return value::operation {Traits::constexpr_operation(), constant_diagonal_coefficient{arg.nestedExpression()}};
       else
-        return value::static_scalar_operation {arg.functor(), constant_diagonal_coefficient{arg.nestedExpression()}};
+        return value::operation {arg.functor(), constant_diagonal_coefficient{arg.nestedExpression()}};
     }
 
 

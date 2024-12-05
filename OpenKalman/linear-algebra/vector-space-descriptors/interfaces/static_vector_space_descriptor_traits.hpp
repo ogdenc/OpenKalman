@@ -144,11 +144,11 @@ namespace OpenKalman::interface
  * \brief \ref static_vector_space_descriptor_traits for integral values.
  */
 #ifdef __cpp_concepts
-  template<value::static_index T>
+  template<value::fixed T>
   struct static_vector_space_descriptor_traits<T>
 #else
   template<typename T>
-  struct static_vector_space_descriptor_traits<T, std::enable_if_t<value::static_index<T>>>
+  struct static_vector_space_descriptor_traits<T, std::enable_if_t<value::fixed<T>>>
 #endif
   {
     static constexpr std::size_t size = static_cast<std::size_t>(T{});

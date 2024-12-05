@@ -64,38 +64,6 @@ namespace OpenKalman::test
 
 
   /**
-   * \internal
-   * \brief Compare two std::is_arithmetic objects.
-   */
-#ifdef __cpp_concepts
-  template<typename Arg1, typename Arg2, typename Err> requires
-    std::is_arithmetic_v<Arg1> and std::is_arithmetic_v<Arg2> and std::is_arithmetic_v<Err>
-  struct TestComparison<Arg1, Arg2, Err>
-#else
-  template<typename Arg1, typename Arg2, typename Err>
-  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<
-    std::is_arithmetic_v<Arg1> and std::is_arithmetic_v<Arg2> and std::is_arithmetic_v<Err>>>
-#endif
-    : ::testing::AssertionResult
-  {
-  private:
-
-    static ::testing::AssertionResult
-    compare(const Arg1 arg1, const Arg2 arg2, const Err& err)
-    {
-      auto diff = arg1 - arg2;
-      if (-err <= diff and diff <= err) return ::testing::AssertionSuccess();
-      else return ::testing::AssertionFailure() << arg2 << " is not within " << err << " of " << arg1;
-    }
-
-  public:
-
-    TestComparison(const Arg1& arg1, const Arg2& arg2, const Err& err)
-      : ::testing::AssertionResult {compare(arg1, arg2, err)} {}
-  };
-
-
-  /**
    * \brief Compare two tuple-like objects
    * \tparam Arg1 The first tuple-like object
    * \tparam Arg2 The second tuple-like object

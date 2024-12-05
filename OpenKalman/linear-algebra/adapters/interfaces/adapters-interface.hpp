@@ -74,14 +74,14 @@ namespace OpenKalman::interface
       {
         static_assert(OpenKalman::internal::hermitian_expr<Arg>);
 
-        if constexpr (value::complex_number<Scalar>)
+        if constexpr (value::complex<Scalar>)
         {
           if (i == j)
-            return internal::constexpr_real(OpenKalman::get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), indices));
+            return value::real(OpenKalman::get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), indices));
           else if (hermitian_adapter<Arg, HermitianAdapterType::lower> ? i > j : j > i)
             return OpenKalman::get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), indices);
           else
-            return internal::constexpr_conj(OpenKalman::get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), j, i));
+            return value::conj(OpenKalman::get_component(OpenKalman::nested_object(std::forward<Arg>(arg)), j, i));
         }
         else
         {
@@ -129,7 +129,7 @@ namespace OpenKalman::interface
         if (hermitian_adapter<Arg, HermitianAdapterType::lower> ? i >= j : j >= i)
           OpenKalman::set_component(arg, s, indices);
         else
-          OpenKalman::set_component(arg, internal::constexpr_conj(s), j, i);
+          OpenKalman::set_component(arg, value::conj(s), j, i);
       }
     }
 

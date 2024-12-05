@@ -42,10 +42,10 @@ namespace OpenKalman
     constexpr auto constant_reduce_operation(const BinaryOperation& op, const Constant& c, const Dim& dim)
     {
       if constexpr (internal::is_plus<BinaryOperation>::value) return c * dim;
-      else if constexpr (internal::is_multiplies<BinaryOperation>::value) return internal::constexpr_pow(c, dim);
+      else if constexpr (internal::is_multiplies<BinaryOperation>::value) return value::pow(c, dim);
       else
       {
-        if constexpr (value::dynamic_index<Dim>)
+        if constexpr (value::dynamic<Dim>)
         {
           if (value::to_number(dim) <= 1) return value::to_number(c);
           else return op(constant_reduce_operation(op, c, value::to_number(dim) - 1), value::to_number(c));
@@ -54,7 +54,7 @@ namespace OpenKalman
         else
         {
           auto dim_m1 = std::integral_constant<std::size_t, Dim::value - 1>{};
-          return value::static_scalar_operation {op, constant_reduce_operation(op, c, dim_m1), c};
+          return value::operation {op, constant_reduce_operation(op, c, dim_m1), c};
         }
       }
     }

@@ -26,9 +26,7 @@ namespace OpenKalman::internal
     get_singular_component_impl(Arg &&arg, const Indices &indices)
     {
       using Trait = interface::library_interface<std::decay_t<Arg>>;
-      return value::StaticScalar<scalar_type_of_t<Arg>> {
-        Trait::get_component(std::forward<Arg>(arg), internal::truncate_indices(indices, count_indices(arg)))
-      };
+      return Trait::get_component(std::forward<Arg>(arg), internal::truncate_indices(indices, count_indices(arg)))
     }
 
 

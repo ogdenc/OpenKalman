@@ -69,7 +69,7 @@ namespace OpenKalman
 
       auto e = [](auto ax, const auto& uterm) {
           using std::conj;
-          if constexpr (value::complex_number<scalar_type_of<A>>) return sqrt(ax * conj(ax) + uterm);
+          if constexpr (value::complex<scalar_type_of<A>>) return sqrt(ax * conj(ax) + uterm);
           else return sqrt(ax * ax + uterm);
       }(internal::get_singular_component(a), alpha * internal::get_singular_component(contract(u, adjoint(u))));
 

@@ -16,8 +16,6 @@
 #ifndef OPENKALMAN_POLAR_HPP
 #define OPENKALMAN_POLAR_HPP
 
-#include <array>
-#include <functional>
 #include <type_traits>
 #include <stdexcept>
 #ifdef __cpp_concepts
@@ -26,7 +24,7 @@
 #include <cmath>
 #include "basics/language-features.hpp"
 #include "linear-algebra/values/concepts/number.hpp"
-#include "linear-algebra/values/functions/internal/math_constexpr.hpp"
+#include "linear-algebra/values/functions/atan2.hpp"
 #include "linear-algebra/vector-space-descriptors/interfaces/static_vector_space_descriptor_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/static_concatenate.hpp"
@@ -121,7 +119,7 @@ namespace OpenKalman::interface
         }
         else
         {
-          using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
+          using R = std::decay_t<decltype(value::real(std::declval<Scalar>()))>;
           const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
           const Scalar mid {R{Limits::max + Limits::min} * R{0.5}};
 
@@ -156,16 +154,16 @@ namespace OpenKalman::interface
       {
         using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
         Scalar d = g(euclidean_start + d2_i);
-        auto dr = internal::constexpr_real(d);
+        auto dr = value::real(d);
         if (local_index == d_i)
         {
           // A negative distance is reflected to the positive axis.
           using std::abs;
-          return internal::update_real_part(d, abs(dr));
+          return value::internal::update_real_part(d, abs(dr));
         }
         else
         {
-          using R = std::decay_t<decltype(internal::constexpr_real(std::declval<Scalar>()))>;
+          using R = std::decay_t<decltype(value::real(std::declval<Scalar>()))>;
           const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
           const Scalar mid {R{Limits::max + Limits::min} * R{0.5}};
 
@@ -174,7 +172,7 @@ namespace OpenKalman::interface
           Scalar x = signbit(dr) ? -g(euclidean_start + x_i) : g(euclidean_start + x_i);
           Scalar y = signbit(dr) ? -g(euclidean_start + y_i) : g(euclidean_start + y_i);
 
-          if constexpr (value::complex_number<Scalar>) return internal::constexpr_atan2(y, x) / cf + mid;
+          if constexpr (value::complex<Scalar>) return value::atan2(y, x) / cf + mid;
           else { using std::atan2; return atan2(y, x) / cf + mid; }
         }
       }
@@ -188,20 +186,20 @@ namespace OpenKalman::interface
       static constexpr std::decay_t<Scalar> polar_angle_wrap_impl(bool distance_is_negative, Scalar&& a)
 #endif
       {
-        using R = std::decay_t<decltype(internal::constexpr_real(std::declval<decltype(a)>()))>;
+        using R = std::decay_t<decltype(value::real(std::declval<decltype(a)>()))>;
         constexpr R period {Limits::max - Limits::min};
-        R ap {distance_is_negative ? internal::constexpr_real(a) + period * R{0.5} : internal::constexpr_real(a)};
+        R ap {distance_is_negative ? value::real(a) + period * R{0.5} : value::real(a)};
 
         if (ap >= Limits::min and ap < Limits::max) // Check if the angle doesn't need wrapping.
         {
-          return internal::update_real_part(std::forward<decltype(a)>(a), ap);;
+          return value::internal::update_real_part(std::forward<decltype(a)>(a), ap);;
         }
         else // Wrap the angle.
         {
           using std::fmod;
           auto ar = fmod(ap - R{Limits::min}, period);
-          if (ar < 0) return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar + period);
-          else return internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar);
+          if (ar < 0) return value::internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar + period);
+          else return value::internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar);
         }
       }
 
@@ -228,8 +226,8 @@ namespace OpenKalman::interface
         auto d = g(start + d_i);
         switch(local_index)
         {
-          case d_i: return internal::update_real_part(d, abs(internal::constexpr_real(d)));
-          default: return polar_angle_wrap_impl(signbit(internal::constexpr_real(d)), g(start + a_i)); // case a_i
+          case d_i: return value::internal::update_real_part(d, abs(value::real(d)));
+          default: return polar_angle_wrap_impl(signbit(value::real(d)), g(start + a_i)); // case a_i
         }
       }
 
@@ -260,9 +258,9 @@ namespace OpenKalman::interface
         {
           case d_i:
           {
-            auto xp = internal::constexpr_real(x);
+            auto xp = value::real(x);
             using std::abs, std::signbit;
-            s(internal::update_real_part(x, abs(xp)), start + d_i);
+            s(value::internal::update_real_part(x, abs(xp)), start + d_i);
             s(polar_angle_wrap_impl(signbit(xp), g(start + a_i)), start + a_i); //< Possibly reflect angle
             break;
           }

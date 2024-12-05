@@ -86,7 +86,7 @@ TEST(eigen3, diagonal_of_1x1)
   EXPECT_TRUE(is_near(diagonal_of(mx1_1), m11));
   EXPECT_TRUE(is_near(diagonal_of(mxx_11), m11));
 
-  static_assert(value::dynamic_scalar<constant_coefficient<decltype(diagonal_of(m11))>>);
+  static_assert(value::dynamic<constant_coefficient<decltype(diagonal_of(m11))>>);
   static_assert(not constant_matrix<decltype(diagonal_of(m1x_1))>);
   static_assert(not constant_matrix<decltype(diagonal_of(mx1_1))>);
   static_assert(not constant_matrix<decltype(diagonal_of(mxx_11))>);
@@ -99,13 +99,13 @@ TEST(eigen3, diagonal_of_constant)
   auto c22_3 = M22::Constant(3);
   auto c21_3 = M21::Constant(3);
 
-  static_assert(value::dynamic_scalar<constant_coefficient<decltype(diagonal_of(c11_3))>>);
+  static_assert(value::dynamic<constant_coefficient<decltype(diagonal_of(c11_3))>>);
   static_assert(dimension_size_of_index_is<decltype(diagonal_of(c11_3)), 0, 1>);
   static_assert(dimension_size_of_index_is<decltype(diagonal_of(c11_3)), 1, 1>);
   EXPECT_TRUE(is_near(diagonal_of(c11_3), c11_3));
   EXPECT_EQ(get_component(diagonal_of(c11_3)), 3);
 
-  static_assert(value::dynamic_scalar<constant_coefficient<decltype(diagonal_of(c22_3))>>);
+  static_assert(value::dynamic<constant_coefficient<decltype(diagonal_of(c22_3))>>);
   static_assert(dimension_size_of_index_is<decltype(diagonal_of(c22_3)), 0, 2>);
   static_assert(dimension_size_of_index_is<decltype(diagonal_of(c22_3)), 1, 1>);
   EXPECT_TRUE(is_near(diagonal_of(c22_3), c21_3));
@@ -114,7 +114,7 @@ TEST(eigen3, diagonal_of_constant)
 
   auto cd22_3 = c21_3.asDiagonal();
 
-  static_assert(value::dynamic_scalar<constant_coefficient<decltype(diagonal_of(cd22_3))>>);
+  static_assert(value::dynamic<constant_coefficient<decltype(diagonal_of(cd22_3))>>);
   static_assert(dimension_size_of_index_is<decltype(diagonal_of(cd22_3)), 0, 2>);
   static_assert(dimension_size_of_index_is<decltype(diagonal_of(cd22_3)), 1, 1>);
   EXPECT_TRUE(is_near(diagonal_of(cd22_3), c21_3));
