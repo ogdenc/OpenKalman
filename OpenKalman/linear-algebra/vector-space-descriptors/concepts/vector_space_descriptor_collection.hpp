@@ -19,12 +19,12 @@
 #ifdef __cpp_lib_ranges
 #include <ranges>
 #endif
-#include "basics/values/internal/collection.hpp"
+#include "basics/internal/collection.hpp"
 #include "vector_space_descriptor.hpp"
 #include "vector_space_descriptor_tuple.hpp"
 
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
 #ifndef __cpp_lib_ranges
   namespace detail
@@ -53,6 +53,6 @@ namespace OpenKalman
 #endif
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 #endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_COLLECTION_HPP

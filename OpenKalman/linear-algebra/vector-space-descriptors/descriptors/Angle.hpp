@@ -24,10 +24,13 @@
 #include <cmath>
 #include "basics/language-features.hpp"
 #include "linear-algebra/values/concepts/number.hpp"
-#include "linear-algebra/values/concepts/floating.hpp"
+#include "linear-algebra/values/concepts/value.hpp"
+#include "linear-algebra/values/concepts/integral.hpp"
 #include "linear-algebra/values/functions/internal/update_real_part.hpp"
+#include "linear-algebra/values/functions/sin.hpp"
+#include "linear-algebra/values/functions/cos.hpp"
 #include "linear-algebra/values/functions/atan2.hpp"
-#include "linear-algebra/vector-space-descriptors/interfaces/static_vector_space_descriptor_traits.hpp"
+#include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp"
 
@@ -35,8 +38,7 @@ namespace OpenKalman::descriptor
 {
   template<typename Limits>
 #ifdef __cpp_concepts
-  requires (std::integral<decltype(Limits::min)> or value::floating<decltype(Limits::min)>) and
-    (std::integral<decltype(Limits::max)> or value::floating<decltype(Limits::max)>) and
+  requires value::value<decltype(Limits::min)> and value::value<decltype(Limits::max)> and
     (Limits::min < Limits::max) and (Limits::min <= 0) and (Limits::max > 0)
 #endif
   struct Angle;
@@ -46,10 +48,10 @@ namespace OpenKalman::descriptor
   namespace angle
   {
     /**
-     * \brief The numerical range [minimum, maximum)spanned by an angle.
-     * \details The range include 0.
+     * \brief The numerical range [minimum, maximum) spanned by an angle.
+     * \details The range must include 0.
      * \tparam minimum The minimum angle (inclusive)
-     * \tparam maximum The maximum angle (exclusive)
+     * \tparam maximum The maximum angle as the angle wraps back to the minimum (exclusive)
      */
     template<auto minimum, auto maximum>
     struct Limits
@@ -121,9 +123,8 @@ namespace OpenKalman::descriptor
   template<typename Limits = angle::RadiansLimits>
 #endif
 #ifdef __cpp_concepts
-  requires (std::integral<decltype(Limits::min)> or value::floating<decltype(Limits::min)>) and
-    (std::integral<decltype(Limits::max)> or value::floating<decltype(Limits::max)>) and
-    (Limits::min < Limits::max) and (Limits::min <= 0) and (Limits::max > 0)
+requires value::value<decltype(Limits::min)> and value::value<decltype(Limits::max)> and
+  (Limits::min < Limits::max) and (Limits::min <= 0) and (Limits::max > 0)
 #endif
   struct Angle
   {
@@ -189,21 +190,42 @@ namespace OpenKalman::interface
    * \brief traits for Angle.
    */
   template<typename Limits>
-  struct static_vector_space_descriptor_traits<descriptor::Angle<Limits>>
+  struct vector_space_traits<descriptor::Angle<Limits>>
   {
-    static constexpr std::size_t size = 1;
+  private:
+
+    using T = descriptor::Angle<Limits>;
+
+  public:
+
+    static constexpr auto
+    size(const T&) { return std::integral_constant<std::size_t, 1>{}; };
 
 
-    static constexpr std::size_t euclidean_size = 2;
+    static constexpr auto
+    euclidean_size(const T&) { return std::integral_constant<std::size_t, 2>{}; };
 
 
-    static constexpr std::size_t component_count = 1;
+    static constexpr auto
+    component_count(const T&) { return std::integral_constant<std::size_t, 1>{}; };
 
 
-    using difference_type = descriptor::Angle<Limits>;
+    static constexpr auto
+    is_euclidean(const T&) { return std::false_type{}; }
 
 
-    static constexpr bool always_euclidean = false;
+    static constexpr auto
+    canonical_equivalent(const T& t)
+    {
+#if __cpp_nontype_template_args >= 201911L
+      return descriptor::Angle<descriptor::angle::Limits<0, Limits::max - Limits::min>>{};
+#else
+      if constexpr (value::integral<decltype(Limits::max - Limits::min)>)
+        return descriptor::Angle<descriptor::angle::Limits<0, Limits::max - Limits::min>>{};
+      else
+        return t;
+#endif
+    };
 
 
     /*
@@ -214,25 +236,25 @@ namespace OpenKalman::interface
      * \param euclidean_local_index A local index accessing either the x (if 0) or y (if 1) coordinate in Euclidean space
      */
 #ifdef __cpp_concepts
-    static constexpr value::number auto
-    to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start)
-    requires requires (std::size_t i){ {g(i)} -> value::number; }
+    static constexpr value::value auto
+    to_euclidean_component(const T&, const auto& g, const value::index auto& euclidean_local_index, const value::index auto& start)
+    requires requires { {g(start)} -> value::value; }
 #else
-    template<typename G, std::enable_if_t<value::number<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
+      value::value<typename std::invoke_result<const Getter&, const S&>::type> and value::index<L> and value::index<S>, int> = 0>
     static constexpr auto
-    to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start)
+    to_euclidean_component(const T&, const Getter& g, const L& euclidean_local_index, const S& start)
 #endif
     {
-      using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
+      using Scalar = std::decay_t<decltype(g(start))>;
       using R = std::decay_t<decltype(value::real(std::declval<Scalar>()))>;
       const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
       const Scalar mid { R{Limits::max + Limits::min} * R{0.5}};
 
       Scalar theta = cf * (g(start) - mid); // Convert to radians
 
-      using std::cos, std::sin;
-      if (euclidean_local_index == 0) return cos(theta);
-      else return sin(theta);
+      if (euclidean_local_index == 0) return value::cos(theta);
+      else return value::sin(theta);
     }
 
 
@@ -242,13 +264,14 @@ namespace OpenKalman::interface
      * \param euclidean_start The starting location of the x and y coordinates within any larger set of \ref vector_space_descriptor
      */
 #ifdef __cpp_concepts
-    static constexpr value::number auto
-    from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start)
-    requires requires (std::size_t i){ {g(i)} -> value::number; }
+    static constexpr value::value auto
+    from_euclidean_component(const T&, const auto& g, const value::index auto& local_index, const value::index auto& euclidean_start)
+    requires requires { {g(euclidean_start)} -> value::value; }
 #else
-    template<typename G, std::enable_if_t<value::number<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
+      value::value<typename std::invoke_result<const Getter&, const S&>::type>, int> = 0>
     static constexpr auto
-    from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start)
+    from_euclidean_component(const T&, const Getter& g, const L& local_index, const S& euclidean_start)
 #endif
     {
       using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
@@ -260,7 +283,7 @@ namespace OpenKalman::interface
       Scalar y = g(euclidean_start + 1);
 
       if constexpr (value::complex<Scalar>) return value::atan2(y, x) / cf + mid;
-      else { using std::atan2; return atan2(y, x) / cf + mid; }
+      else { return value::atan2(y, x) / cf + mid; }
     }
 
 
@@ -295,13 +318,14 @@ namespace OpenKalman::interface
      * \param local_index This is assumed to be 0.
      */
 #ifdef __cpp_concepts
-    static constexpr value::number auto
-    get_wrapped_component(const auto& g, std::size_t local_index, std::size_t start)
-    requires requires (std::size_t i){ {g(i)} -> value::number; }
+    static constexpr value::value auto
+    get_wrapped_component(const T&, const auto& g, const value::index auto& local_index, const value::index auto& start)
+    requires requires { {g(start)} -> value::value; }
 #else
-    template<typename G, std::enable_if_t<value::number<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
+      value::value<typename std::invoke_result<const Getter&, const S&>::type>, int> = 0>
     static constexpr auto
-    get_wrapped_component(const G& g, std::size_t local_index, std::size_t start)
+    get_wrapped_component(const T&, const Getter& g, const L& local_index, const S& start)
 #endif
     {
       return wrap_impl(g(start));
@@ -313,15 +337,16 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     static constexpr void
-    set_wrapped_component(const auto& s, const auto& g,
-      const std::decay_t<std::invoke_result_t<decltype(g), std::size_t>>& x, std::size_t local_index, std::size_t start)
-    requires requires (std::size_t i){ s(x, i); {x} -> value::number; }
+    set_wrapped_component(const T&, const auto& s, const auto& g, const value::value auto& x,
+      const value::index auto& local_index, const value::index auto& start)
+    requires requires { s(x, start); s(g(start), start); }
 #else
-    template<typename S, typename G, std::enable_if_t<value::number<typename std::invoke_result<G, std::size_t>::type> and
-      std::is_invocable<S, typename std::invoke_result<G, std::size_t>::type, std::size_t>::value, int> = 0>
+    template<typename Setter, typename Getter, typename X, typename L, typename S, std::enable_if_t<
+      value::value<X> and value::index<L> and value::index<S> and
+      std::is_invocable<const Setter&, const X&, const S&>::value and
+      std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, const S&>::type, const S&>::value, int> = 0>
     static constexpr void
-    set_wrapped_component(const S& s, const G& g, const std::decay_t<typename std::invoke_result<G, std::size_t>::type>& x,
-      std::size_t local_index, std::size_t start)
+    set_wrapped_component(const T&, const Setter& s, const Getter& g, const X& x, const L& local_index, const S& start)
 #endif
     {
       s(wrap_impl(x), start);

@@ -12,6 +12,7 @@
 #define OPENKALMAN_COVARIANCEARITHMETIC_HPP
 
 #include "interfaces/eigen/details/eigen-forward-declarations.hpp"
+#include "linear_algebra/values/functions/sqrt.hpp"
 
 namespace OpenKalman
 {
@@ -334,8 +335,7 @@ namespace OpenKalman
 
         if (s > Scalar(0))
         {
-          using std::sqrt;
-          return MatrixTraits<std::decay_t<M>>::make(B {nested_object(std::forward<M>(m)) * sqrt(static_cast<Scalar>(s))});
+          return MatrixTraits<std::decay_t<M>>::make(B {nested_object(std::forward<M>(m)) * value::sqrt(static_cast<Scalar>(s))});
         }
         else if (s < Scalar(0))
         {
@@ -407,8 +407,7 @@ namespace OpenKalman
 
         if (s > Scalar(0))
         {
-          using std::sqrt;
-          return MatrixTraits<std::decay_t<M>>::make(B {nested_object(std::forward<M>(m)) / sqrt(static_cast<Scalar>(s))});
+          return MatrixTraits<std::decay_t<M>>::make(B {nested_object(std::forward<M>(m)) / value::sqrt(static_cast<Scalar>(s))});
         }
         else if (s < Scalar(0))
         {

@@ -18,11 +18,11 @@
 
 #include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp"
-#include "linear-algebra/vector-space-descriptors/traits/internal/static_canonical_form.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/canonical_equivalent.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/internal/uniform_static_vector_space_descriptor_query.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/uniform_static_vector_space_descriptor.hpp"
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
   /**
    * \brief If T is a \ref uniform_static_vector_space_descriptor, <code>type</code> is an alias for the uniform component.
@@ -64,8 +64,8 @@ namespace OpenKalman
   struct uniform_static_vector_space_descriptor_component_of<T, std::enable_if_t<uniform_static_vector_space_descriptor<T> and not euclidean_vector_space_descriptor<T>>>
 #endif
   {
-    using type = typename internal::uniform_static_vector_space_descriptor_query<
-      internal::static_canonical_form_t<std::decay_t<T>>>::uniform_type;
+    using CT = std::decay_t<decltype(internal::canonical_equivalent(std::declval<T>()))>;
+    using type = typename internal::uniform_static_vector_space_descriptor_query<CT>::uniform_type;
   };
 
 
@@ -80,6 +80,6 @@ namespace OpenKalman
   using uniform_static_vector_space_descriptor_component_of_t = typename uniform_static_vector_space_descriptor_component_of<T>::type;
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 #endif //OPENKALMAN_UNIFORM_FIXED_VECTOR_SPACE_DESCRIPTOR_COMPONENT_OF_HPP

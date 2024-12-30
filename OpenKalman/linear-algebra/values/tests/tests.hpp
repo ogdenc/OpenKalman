@@ -22,6 +22,8 @@
 #include "linear-algebra/values/functions/to_number.hpp"
 #include "linear-algebra/values/concepts/complex.hpp"
 #include "linear-algebra/values/functions/internal/near.hpp"
+#include "linear-algebra/values/functions/real.hpp"
+#include "linear-algebra/values/functions/imag.hpp"
 
 namespace OpenKalman::test
 {
@@ -45,8 +47,7 @@ namespace OpenKalman::test
     {
       if constexpr (value::complex<Arg>)
       {
-        using std::real, std::imag;
-        return std::to_string(real(arg)) + " + " + std::to_string(imag(arg)) + "i";
+        return std::to_string(value::real(arg)) + " + " + std::to_string(value::imag(arg)) + "i";
       }
       else
       {

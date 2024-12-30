@@ -47,8 +47,6 @@ namespace OpenKalman
 # endif
   rank_update_triangular(A&& a, U&& u, scalar_type_of_t<A> alpha = 1)
   {
-    using std::sqrt;
-
     constexpr auto t = triangle_type_of_v<A> == TriangleType::upper ? TriangleType::upper : TriangleType::lower;
 
     if constexpr (zero<U>)
@@ -68,9 +66,8 @@ namespace OpenKalman
       // From here on, A is known to be a 1-by-1 matrix.
 
       auto e = [](auto ax, const auto& uterm) {
-          using std::conj;
-          if constexpr (value::complex<scalar_type_of<A>>) return sqrt(ax * conj(ax) + uterm);
-          else return sqrt(ax * ax + uterm);
+          if constexpr (value::complex<scalar_type_of<A>>) return value::sqrt(ax * value::conj(ax) + uterm);
+          else return value::sqrt(ax * ax + uterm);
       }(internal::get_singular_component(a), alpha * internal::get_singular_component(contract(u, adjoint(u))));
 
       if constexpr (writable_by_component<A&&>)

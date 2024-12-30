@@ -20,6 +20,8 @@
 #ifdef __cpp_concepts
 #include <concepts>
 #endif
+#include <linear-algebra/values/traits/fixed_number_of.hpp>
+
 #include "linear-algebra/values/functions/to_number.hpp"
 #include "linear-algebra/values/traits/number_type_of_t.hpp"
 #include "integral.hpp"
@@ -30,21 +32,20 @@ namespace OpenKalman::value
   namespace detail
   {
     template<typename T, typename = void>
+    struct number_type_is_unsigned : std::false_type {};
+
+
+    template<typename T>
+    struct number_type_is_unsigned<T, std::enable_if_t<std::is_unsigned_v<value::number_type_of_t<T>>>>
+      : std::true_type {};
+
+
+    template<typename T, typename = void>
     struct fixed_integral_gt_0 : std::false_type {};
 
 
     template<typename T>
-    struct fixed_integral_gt_0<T, std::enable_if_t<value::fixed<T>>>
-      : std::bool_constant<static_cast<long int>(value::to_number(T{})) >= 0> {};
-
-
-    template<typename T, typename = void>
-    struct reduces_to_index : std::false_type {};
-
-
-    template<typename T>
-    struct reduces_to_index<T, std::enable_if_t<value::integral<T>>>
-      : std::bool_constant<(std::is_unsigned_v<value::number_type_of_t<T>> or fixed_integral_gt_0<T>::value)> {};
+    struct fixed_integral_gt_0<T, std::enable_if_t<(value::fixed_number_of<T>::value >= 0)>> : std::true_type {};
   }
 #endif
 
@@ -54,11 +55,10 @@ namespace OpenKalman::value
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept index = value::integral<T> and
-    (std::is_unsigned_v<value::number_type_of_t<T>> or (fixed<T> and static_cast<long int>(value::to_number(T{})) >= 0 ));
+  concept index = value::integral<T> and (std::is_unsigned_v<value::number_type_of_t<T>> or fixed_number_of<T>::value >= 0);
 #else
   template<typename T>
-  constexpr bool index = detail::reduces_to_index<T>::value;
+  constexpr bool index = value::integral<T> and (detail::number_type_is_unsigned<T>::value or detail::fixed_integral_gt_0<T>::value);
 #endif
 
 } // namespace OpenKalman::value

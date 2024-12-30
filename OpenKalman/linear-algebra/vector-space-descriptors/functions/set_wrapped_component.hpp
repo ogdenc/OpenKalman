@@ -17,15 +17,14 @@
 #define OPENKALMAN_SET_WRAPPED_COMPONENT_HPP
 
 #include <type_traits>
-#include "basics/values/values.hpp"
-#include "linear-algebra/vector-space-descriptors/interfaces/static_vector_space_descriptor_traits.hpp"
-#include "linear-algebra/vector-space-descriptors/interfaces/dynamic_vector_space_descriptor_traits.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
+#include "linear-algebra/values/concepts/value.hpp"
+#include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp"
 
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
   /**
    * \brief Set a component and then perform any required wrapping.
@@ -38,29 +37,28 @@ namespace OpenKalman
    * \param start The starting location of the element within any larger set of \ref vector_space_descriptor.
    */
 #ifdef __cpp_concepts
+  template<vector_space_descriptor T, value::value X, value::index L, value::index S>
   constexpr void
-  set_wrapped_component(const vector_space_descriptor auto& t, const auto& s, const auto& g,
-    const std::decay_t<std::invoke_result_t<decltype(g), std::size_t>>& x, std::size_t local_index, std::size_t start)
-  requires requires (std::size_t i){ s(x, i); {x} -> value::number; }
+  set_wrapped_component(const T& t, const auto& s, const auto& g, const X& x, const L& local_index, const S& start)
+  requires requires { s(x, start); s(g(start), start); }
 #else
-  template<typename T, typename S, typename G, std::enable_if_t<value::number<typename std::invoke_result<G, std::size_t>::type> and
-    std::is_invocable<S, typename std::invoke_result<G, std::size_t>::type, std::size_t>::value, int> = 0>
+  template<typename T, typename Setter, typename Getter, typename X, typename L, typename S, std::enable_if_t<
+    vector_space_descriptor<T> and value::value<X> and value::index<L> and value::index<S> and
+    std::is_invocable<const Setter&, const X&, const S&>::value and
+    std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, const S&>::type, const S&>::value, int> = 0>
   constexpr void
-  set_wrapped_component(const T& t, const S& s, const G& g,
-    const std::decay_t<typename std::invoke_result<G, std::size_t>::type>& x, std::size_t local_index, std::size_t start)
+  set_wrapped_component(const T& t, const Setter& s, const Getter& g, const X& x, const L& local_index, const S& start)
 #endif
   {
-    using T_d = std::decay_t<decltype(t)>;
-    if constexpr (euclidean_vector_space_descriptor<T_d>)
-      s(x, start + local_index);
-    else if constexpr (static_vector_space_descriptor<T_d>)
-      interface::static_vector_space_descriptor_traits<T_d>::set_wrapped_component(s, g, x, local_index, start);
-    else
-      interface::dynamic_vector_space_descriptor_traits<T_d>{t}.set_wrapped_component(s, g, x, local_index, start);
+    if constexpr (static_vector_space_descriptor<T> and value::fixed<L>)
+      static_assert(value::to_number(local_index) < dimension_size_of_v<T>);
+
+    if constexpr (euclidean_vector_space_descriptor<T>) s(x, start + local_index);
+    else interface::vector_space_traits<T>::set_wrapped_component(t, s, g, x, local_index, start);
   }
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 
 #endif //OPENKALMAN_SET_WRAPPED_COMPONENT_HPP

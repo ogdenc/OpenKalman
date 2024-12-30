@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include "basics/basics.hpp"
+#include "linear-algebra/vector-space-descriptors/vector-space-descriptors.hpp"
 
 using namespace OpenKalman;
 using namespace OpenKalman::descriptor;

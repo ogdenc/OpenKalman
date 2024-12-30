@@ -15,19 +15,17 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 
 add_executable(descriptors
-        static-descriptors.cpp
-        static_concatenate.cpp
-        static_reverse.cpp
-        static_canonical_form.cpp
-        equivalent_to.cpp
+        fixed-descriptors.cpp
+        dynamic-descriptors.cpp
+        comparison.cpp
+        concatenation.cpp
+        #static_reverse.cpp
+        #functions.cpp
 
-        #prefix_base_of.cpp
 
         #static-descriptor-manipulation.cpp
-        #dynamic-descriptors.cpp
         #dynamic-descriptor-manipulation.cpp
 
-        #functions.cpp
 
         #vector-space-descriptor-functions.cpp
     )

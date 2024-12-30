@@ -15,40 +15,26 @@
 
 #include "basics/tests/tests.hpp"
 #include "basics/basics.hpp"
-
-#include "linear-algebra/vector-space-descriptors/interfaces/dynamic_vector_space_descriptor_traits.hpp"
-
+#include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
-
-#include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp" //
-
-#include "linear-algebra/vector-space-descriptors/concepts/composite_vector_space_descriptor.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/atomic_static_vector_space_descriptor.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/equivalent_to.hpp" //
-
-#include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/traits/euclidean_dimension_size_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/traits/vector_space_component_count.hpp" //
-#include "linear-algebra/vector-space-descriptors/traits/dimension_difference_of.hpp" //
-
-#include "linear-algebra/vector-space-descriptors/functions/get_dimension_size_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/get_euclidean_dimension_size_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_component_count_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_is_euclidean.hpp" //
-
-
-#include "linear-algebra/vector-space-descriptors/descriptors/Dimensions.hpp" //
-#include "linear-algebra/vector-space-descriptors/descriptors/StaticDescriptor.hpp" //
-#include "linear-algebra/vector-space-descriptors/descriptors/DynamicDescriptor.hpp" //
-
-#include "linear-algebra/vector-space-descriptors/descriptors/Distance.hpp" //
-#include "linear-algebra/vector-space-descriptors/descriptors/Angle.hpp" //
-#include "linear-algebra/vector-space-descriptors/descriptors/Inclination.hpp" //
-#include "linear-algebra/vector-space-descriptors/descriptors/Polar.hpp" //
-#include "linear-algebra/vector-space-descriptors/descriptors/Spherical.hpp" //
+#include "linear-algebra/vector-space-descriptors/concepts/composite_vector_space_descriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/concepts/atomic_static_vector_space_descriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp"
+#include "linear-algebra/vector-space-descriptors/traits/euclidean_dimension_size_of.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/get_dimension_size_of.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/get_euclidean_dimension_size_of.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_component_count_of.hpp"
+#include "linear-algebra/vector-space-descriptors/descriptors/Dimensions.hpp"
+#include "linear-algebra/vector-space-descriptors/descriptors/StaticDescriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/interfaces/index.hpp"
+#include "linear-algebra/vector-space-descriptors/descriptors/DynamicDescriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/descriptors/Distance.hpp"
+#include "linear-algebra/vector-space-descriptors/descriptors/Angle.hpp"
+#include "linear-algebra/vector-space-descriptors/descriptors/Inclination.hpp"
+#include "linear-algebra/vector-space-descriptors/descriptors/Polar.hpp"
+#include "linear-algebra/vector-space-descriptors/descriptors/Spherical.hpp"
 
 
 using namespace OpenKalman;
@@ -56,26 +42,26 @@ using namespace OpenKalman::descriptor;
 using numbers::pi;
 
 
-TEST(basics, integral)
+TEST(descriptors, integral)
 {
-  static_assert(vector_space_descriptor<int>);
-  static_assert(dynamic_vector_space_descriptor<int>);
-  static_assert(not static_vector_space_descriptor<int>);
-  static_assert(euclidean_vector_space_descriptor<int>);
-  static_assert(not composite_vector_space_descriptor<int>);
-  static_assert(not atomic_static_vector_space_descriptor<int>);
-  static_assert(euclidean_vector_space_descriptor<int>);
-  static_assert(dimension_size_of_v<int> == dynamic_size);
-  static_assert(euclidean_dimension_size_of_v<int> == dynamic_size);
-  static_assert(get_dimension_size_of(3) == 3);
-  EXPECT_EQ(get_dimension_size_of(0), 0);
-  EXPECT_EQ(get_dimension_size_of(3), 3);
-  static_assert(get_euclidean_dimension_size_of(3) == 3);
-  EXPECT_EQ(get_euclidean_dimension_size_of(3), 3);
+  static_assert(vector_space_descriptor<unsigned>);
+  static_assert(dynamic_vector_space_descriptor<unsigned>);
+  static_assert(not static_vector_space_descriptor<unsigned>);
+  static_assert(euclidean_vector_space_descriptor<unsigned>);
+  static_assert(not composite_vector_space_descriptor<unsigned>);
+  static_assert(not atomic_static_vector_space_descriptor<unsigned>);
+  static_assert(euclidean_vector_space_descriptor<unsigned>);
+  static_assert(dimension_size_of_v<unsigned> == dynamic_size);
+  static_assert(euclidean_dimension_size_of_v<unsigned> == dynamic_size);
+  static_assert(get_dimension_size_of(3u) == 3);
+  EXPECT_EQ(get_dimension_size_of(0u), 0);
+  EXPECT_EQ(get_dimension_size_of(3u), 3);
+  static_assert(get_euclidean_dimension_size_of(3u) == 3);
+  EXPECT_EQ(get_euclidean_dimension_size_of(3u), 3);
 }
 
 
-TEST(basics, dynamic_Dimensions)
+TEST(descriptors, dynamic_Dimensions)
 {
   using D = Dimensions<dynamic_size>;
 
@@ -88,6 +74,8 @@ TEST(basics, dynamic_Dimensions)
   static_assert(not atomic_static_vector_space_descriptor<D>);
   static_assert(dimension_size_of_v<D> == dynamic_size);
   static_assert(euclidean_dimension_size_of_v<D> == dynamic_size);
+  static_assert(get_dimension_size_of(D {0}) == 0);
+  static_assert(get_dimension_size_of(D {3}) == 3);
   static_assert(get_dimension_size_of(Dimensions {0}) == 0);
   static_assert(get_dimension_size_of(Dimensions {3}) == 3);
   static_assert(get_euclidean_dimension_size_of(Dimensions{3}) == 3);
@@ -97,7 +85,7 @@ TEST(basics, dynamic_Dimensions)
 }
 
 
-TEST(basics, DynamicDescriptor_traits)
+TEST(descriptors, DynamicDescriptor_traits)
 {
   static_assert(vector_space_descriptor<DynamicDescriptor<float>>);
   static_assert(vector_space_descriptor<DynamicDescriptor<double>>);
@@ -112,7 +100,7 @@ TEST(basics, DynamicDescriptor_traits)
 }
 
 
-TEST(basics, DynamicDescriptor_construct)
+TEST(descriptors, DynamicDescriptor_construct)
 {
   EXPECT_EQ(get_dimension_size_of(DynamicDescriptor<double> {}), 0);
   EXPECT_EQ(get_dimension_size_of(DynamicDescriptor<double> {Dimensions<0>{}}), 0);
@@ -143,13 +131,13 @@ TEST(basics, DynamicDescriptor_construct)
 }
 
 
-TEST(basics, DynamicDescriptor_extend)
+TEST(descriptors, DynamicDescriptor_extend)
 {
   DynamicDescriptor<double> d;
   EXPECT_EQ(get_dimension_size_of(d), 0); EXPECT_EQ(get_euclidean_dimension_size_of(d), 0); EXPECT_EQ(get_vector_space_descriptor_component_count_of(d), 0);
   d.extend(Axis{});
   EXPECT_EQ(get_dimension_size_of(d), 1); EXPECT_EQ(get_euclidean_dimension_size_of(d), 1); EXPECT_EQ(get_vector_space_descriptor_component_count_of(d), 1);
   d.extend(Dimensions{5}, Dimensions<5>{}, angle::Radians{}, StaticDescriptor<Axis, inclination::Radians>{}, Polar<angle::Degrees, Distance>{});
-  EXPECT_EQ(get_dimension_size_of(d), 16); EXPECT_EQ(get_euclidean_dimension_size_of(d), 19); EXPECT_EQ(get_vector_space_descriptor_component_count_of(d), 15);
+  EXPECT_EQ(get_dimension_size_of(d), 16); EXPECT_EQ(get_euclidean_dimension_size_of(d), 19); EXPECT_EQ(get_vector_space_descriptor_component_count_of(d), 11);
 }
 

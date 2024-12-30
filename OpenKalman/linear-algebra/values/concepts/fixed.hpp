@@ -35,22 +35,11 @@ namespace OpenKalman::value
     template<typename T>
     struct has_value_member<T, std::enable_if_t<value::number<decltype(T::value)>>> : std::true_type {};
 
-    namespace detail
-    {
-      template<typename T, typename = void>
-      struct call_result_is_fixed_impl : std::false_type {};
-
-      template<typename T>
-      struct call_result_is_fixed_impl<T, std::void_t<std::bool_constant<(T{}(), true)>>>
-        : std::bool_constant<value::number<decltype(T{}())>> {};
-    } // namespace detail
-
     template<typename T, typename = void>
     struct call_result_is_fixed : std::false_type {};
 
     template<typename T>
-    struct call_result_is_fixed<T, std::enable_if_t<std::is_default_constructible_v<T>>>
-      : std::bool_constant<detail::call_result_is_fixed_impl<T>::value> {};
+    struct call_result_is_fixed<T, std::void_t<std::bool_constant<(T{}(), true)>>> : std::true_type {};
 
   } // namespace internal
 #endif

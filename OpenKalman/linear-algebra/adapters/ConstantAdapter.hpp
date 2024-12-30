@@ -43,7 +43,7 @@ namespace OpenKalman
 #endif
 
     using MyConstant = std::conditional_t<sizeof...(constant) == 0, Scalar, value::Fixed<Scalar, constant...>>;
-    using MyScalarType = std::decay_t<decltype(value::to_number(std::declval<MyConstant>()))>;
+    using MyScalarType = value::number_type_of_t<MyConstant>;
 
     using AllDescriptorsType = decltype(all_vector_space_descriptors(std::declval<PatternMatrix>()));
     using DescriptorCollection = std::conditional_t<

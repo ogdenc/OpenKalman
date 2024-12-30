@@ -19,10 +19,9 @@
 #include <cmath>
 #include <type_traits>
 #include <stdexcept>
-#include <array>
-#include <functional>
 #include "linear-algebra/values/values.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
+#include "linear-algebra/values/functions/internal/update_real_part.hpp"
+#include "linear-algebra/values/functions/abs.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp"
 
@@ -77,26 +76,43 @@ namespace OpenKalman::interface
    * \brief traits for Distance.
    */
   template<>
-  struct static_vector_space_descriptor_traits<descriptor::Distance>
+  struct vector_space_traits<descriptor::Distance>
   {
-    static constexpr std::size_t size = 1;
-    static constexpr std::size_t euclidean_size = 1;
-    static constexpr std::size_t component_count = 1;
-    using difference_type = descriptor::Dimensions<1>;
-    static constexpr bool always_euclidean = false;
+  private:
+
+    using T = descriptor::Distance;
+
+  public:
+
+    static constexpr auto
+    size(const T&) { return std::integral_constant<std::size_t, 1>{}; };
+
+
+    static constexpr auto
+    euclidean_size(const T&) { return std::integral_constant<std::size_t, 1>{}; };
+
+
+    static constexpr auto
+    component_count(const T&) { return std::integral_constant<std::size_t, 1>{}; };
+
+
+    static constexpr auto
+    is_euclidean(const T&) { return std::false_type{}; }
+
 
     /*
      * \brief Maps an element to positive coordinates in 1D Euclidean space.
      * \param euclidean_local_index This is assumed to be 0.
      */
 #ifdef __cpp_concepts
-    static constexpr value::number auto
-    to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start)
-    requires requires (std::size_t i){ {g(i)} -> value::number; }
+    static constexpr value::value auto
+    to_euclidean_component(const T&, const auto& g, const value::index auto& euclidean_local_index, const value::index auto& start)
+    requires requires { {g(start)} -> value::value; }
 #else
-    template<typename G, std::enable_if_t<value::number<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
+      value::value<typename std::invoke_result<const Getter&, const S&>::type> and value::index<L> and value::index<S>, int> = 0>
     static constexpr auto
-    to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start)
+    to_euclidean_component(const T&, const Getter& g, const L& euclidean_local_index, const S& start)
 #endif
     {
       return g(start);
@@ -109,19 +125,19 @@ namespace OpenKalman::interface
      * \param local_index This is assumed to be 0.
      */
 #ifdef __cpp_concepts
-    static constexpr value::number auto
-    from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start)
-    requires requires (std::size_t i){ {g(i)} -> value::number; }
+    static constexpr value::value auto
+    from_euclidean_component(const T&, const auto& g, const value::index auto& local_index, const value::index auto& euclidean_start)
+    requires requires { {g(euclidean_start)} -> value::value; }
 #else
-    template<typename G, std::enable_if_t<value::number<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
+      value::value<typename std::invoke_result<const Getter&, const S&>::type>, int> = 0>
     static constexpr auto
-    from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start)
+    from_euclidean_component(const T&, const Getter& g, const L& local_index, const S& euclidean_start)
 #endif
     {
       auto x = g(euclidean_start);
       // The distance component may need to be wrapped to the positive half of the real axis:
-      using std::abs;
-      return value::internal::update_real_part(x, abs(value::real(x)));
+      return value::internal::update_real_part(x, value::abs(value::real(x)));
     }
 
 
@@ -130,18 +146,18 @@ namespace OpenKalman::interface
      * \param local_index This is assumed to be 0.
      */
 #ifdef __cpp_concepts
-    static constexpr value::number auto
-    get_wrapped_component(const auto& g, std::size_t local_index, std::size_t start)
-    requires requires (std::size_t i){ {g(i)} -> value::number; }
+    static constexpr value::value auto
+    get_wrapped_component(const T&, const auto& g, const value::index auto& local_index, const value::index auto& start)
+    requires requires { {g(start)} -> value::value; }
 #else
-    template<typename G, std::enable_if_t<value::number<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
+    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
+      value::value<typename std::invoke_result<const Getter&, const S&>::type>, int> = 0>
     static constexpr auto
-    get_wrapped_component(const G& g, std::size_t local_index, std::size_t start)
+    get_wrapped_component(const T&, const Getter& g, const L& local_index, const S& start)
 #endif
     {
       auto x = g(start);
-      using std::abs;
-      return value::internal::update_real_part(x, abs(value::real(x)));
+      return value::internal::update_real_part(x, value::abs(value::real(x)));
     }
 
 
@@ -151,19 +167,19 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     static constexpr void
-    set_wrapped_component(const auto& s, const auto& g,
-      const std::decay_t<std::invoke_result_t<decltype(g), std::size_t>>& x, std::size_t local_index, std::size_t start)
-    requires requires (std::size_t i){ s(x, i); {x} -> value::number; }
+    set_wrapped_component(const T&, const auto& s, const auto& g, const value::value auto& x,
+      const value::index auto& local_index, const value::index auto& start)
+    requires requires { s(x, start); s(g(start), start); }
 #else
-    template<typename S, typename G, std::enable_if_t<value::number<typename std::invoke_result<G, std::size_t>::type> and
-      std::is_invocable<S, typename std::invoke_result<G, std::size_t>::type, std::size_t>::value, int> = 0>
+    template<typename Setter, typename Getter, typename X, typename L, typename S, std::enable_if_t<
+      value::value<X> and value::index<L> and value::index<S> and
+      std::is_invocable<const Setter&, const X&, const S&>::value and
+      std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, const S&>::type, const S&>::value, int> = 0>
     static constexpr void
-    set_wrapped_component(const S& s, const G& g, const std::decay_t<typename std::invoke_result<G, std::size_t>::type>& x,
-      std::size_t local_index, std::size_t start)
+    set_wrapped_component(const T&, const Setter& s, const Getter& g, const X& x, const L& local_index, const S& start)
 #endif
     {
-      using std::abs;
-      s(value::internal::update_real_part(x, abs(value::real(x))), start);
+      s(value::internal::update_real_part(x, value::abs(value::real(x))), start);
     }
 
   };

@@ -17,12 +17,11 @@
 #define OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_COMPONENT_COUNT_OF_HPP
 
 #include <type_traits>
-#include "linear-algebra/vector-space-descriptors/interfaces/dynamic_vector_space_descriptor_traits.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
 
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
   /**
    * \brief Get the number of components of \ref vector_space_descriptor T
@@ -35,16 +34,11 @@ namespace OpenKalman
   constexpr std::size_t
   get_vector_space_descriptor_component_count_of(const T& t)
   {
-    if constexpr (static_vector_space_descriptor<T>) return vector_space_component_count_v<T>;
-    else
-    {
-      interface::dynamic_vector_space_descriptor_traits ret{t};
-      return ret.get_component_count();
-    }
+    return interface::vector_space_traits<T>::component_count(t);
   }
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 
 #endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_COMPONENT_COUNT_OF_HPP

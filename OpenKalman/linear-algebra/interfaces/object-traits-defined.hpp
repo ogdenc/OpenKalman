@@ -17,26 +17,13 @@
 #define OPENKALMAN_OBJECT_TRAITS_DEFINED_HPP
 
 #include <type_traits>
-#include "linear-algebra/values/values.hpp"
-
+#include "basics/global-definitions.hpp"
+#include "linear-algebra/values/concepts/number.hpp"
+#include "linear-algebra/values/concepts/index.hpp"
+#include "linear-algebra/interfaces/default/indexible_object_traits.hpp"
 
 namespace OpenKalman::interface
 {
-  /**
-   * \internal
-   * \brief An interface to traits of a particular indexible object (i.e., a matrix or generalized tensor).
-   * \details This traits class must be specialized for any \ref indexible object (matrix, tensor, etc.)
-   * from a linear algebra library. Each different type of objects in a library will typically have its own specialization.
-   * \tparam T An object, such as a matrix, array, or tensor, with components addressable by indices.
-   */
-#ifdef __cpp_concepts
-  template<typename T>
-#else
-  template<typename T, typename = void>
-#endif
-  struct indexible_object_traits;
-
-
   // ------------- //
   //  scalar_type  //
   // ------------- //
@@ -94,7 +81,7 @@ namespace OpenKalman::interface
   template<typename T>
   concept get_vector_space_descriptor_defined_for = requires (T t) {
     {indexible_object_traits<std::decay_t<T>>::get_vector_space_descriptor(
-      t, std::integral_constant<std::size_t, 0>{})} -> vector_space_descriptor;
+      t, std::integral_constant<std::size_t, 0>{})} -> descriptor::vector_space_descriptor;
   };
 #else
   namespace detail
@@ -103,7 +90,7 @@ namespace OpenKalman::interface
     struct get_vector_space_descriptor_defined_for_impl : std::false_type {};
 
     template<typename T>
-    struct get_vector_space_descriptor_defined_for_impl<T, std::enable_if_t<vector_space_descriptor<
+    struct get_vector_space_descriptor_defined_for_impl<T, std::enable_if_t<descriptor::vector_space_descriptor<
       decltype(indexible_object_traits<std::decay_t<T>>::get_vector_space_descriptor(
         std::declval<T>(), std::integral_constant<std::size_t, 0>{}))>>>
       : std::true_type {};
@@ -392,7 +379,7 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typename T>
-  concept raw_data_defined_for = requires (T t) { {*indexible_object_traits<std::decay_t<T>>::raw_data(t)} -> value::scalar; };
+  concept raw_data_defined_for = requires (T t) { {*indexible_object_traits<std::decay_t<T>>::raw_data(t)} -> value::value; };
 #else
   namespace detail
   {
@@ -401,7 +388,7 @@ namespace OpenKalman::interface
 
     template<typename T>
     struct raw_data_defined_for_impl<T, std::enable_if_t<
-        value::scalar<decltype(*indexible_object_traits<std::decay_t<T>>::raw_data(std::declval<T>()))>>>
+        value::value<decltype(*indexible_object_traits<std::decay_t<T>>::raw_data(std::declval<T>()))>>>
       : std::true_type {};
   }
 

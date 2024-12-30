@@ -65,9 +65,9 @@ namespace OpenKalman::value
       struct Op { constexpr auto operator()(const Mag& mag, const Sgn& sgn) { return copysign(mag, sgn); } };
       if (internal::constexpr_callable<Op>(mag, sgn)) return copysign(mag, sgn);
       if constexpr (std::is_unsigned_v<Mag> and std::is_unsigned_v<Sgn>) return static_cast<Return>(mag);
-      if constexpr (value::integral<Mag>) return signbit(sgn) == (mag < 0) ? static_cast<Return>(mag) : -static_cast<Return>(mag);
-      if (value::isnan(mag)) return signbit(sgn) ? -value::internal::NaN<Return>() : value::internal::NaN<Return>();
-      if constexpr (std::numeric_limits<Mag>::is_iec559) if (mag == 0) return signbit(sgn) ? static_cast<Return>(-0.0) : static_cast<Return>(0.0);
+      if constexpr (value::integral<Mag>) return value::signbit(sgn) == (mag < 0) ? static_cast<Return>(mag) : -static_cast<Return>(mag);
+      if (value::isnan(mag)) return value::signbit(sgn) ? -value::internal::NaN<Return>() : value::internal::NaN<Return>();
+      if constexpr (std::numeric_limits<Mag>::is_iec559) if (mag == 0) return value::signbit(sgn) ? static_cast<Return>(-0.0) : static_cast<Return>(0.0);
       return value::signbit(mag) == value::signbit(sgn) ? static_cast<Return>(mag) : -static_cast<Return>(mag);
     }
   }

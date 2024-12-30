@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,9 +19,15 @@
 #include <type_traits>
 #include <tuple>
 
-
 namespace OpenKalman::interface
 {
+  /**
+   * \internal
+   * \brief An interface to traits of a particular indexible object (i.e., a matrix or generalized tensor).
+   * \details This traits class must be specialized for any \ref indexible object (matrix, tensor, etc.)
+   * from a linear algebra library. Each different type of objects in a library will typically have its own specialization.
+   * \tparam T An object, such as a matrix, array, or tensor, with components addressable by indices.
+   */
 #ifdef __cpp_concepts
   template<typename T>
 #else
@@ -225,7 +231,7 @@ namespace OpenKalman::interface
     static constexpr auto
     strides(const T& arg) = delete;
 
-#endif
+#endif // DOXYGEN_SHOULD_SKIP_THIS
   };
 
 } // namespace OpenKalman::interface

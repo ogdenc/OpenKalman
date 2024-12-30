@@ -13,13 +13,13 @@
  * \brief Definition for \ref value::not_complex.
  */
 
-#ifndef OPENKALMAN_VALUE_REAL_SCALAR_CONSTANT_HPP
-#define OPENKALMAN_VALUE_REAL_SCALAR_CONSTANT_HPP
+#ifndef OPENKALMAN_VALUE_NOT_COMPLEX_HPP
+#define OPENKALMAN_VALUE_NOT_COMPLEX_HPP
 
-#include "basics/global-definitions.hpp"
 #include "complex.hpp"
 #include "value.hpp"
 #include "linear-algebra/values/functions/to_number.hpp"
+#include "linear-algebra/values/functions/imag.hpp"
 
 namespace OpenKalman::value
 {
@@ -30,8 +30,7 @@ namespace OpenKalman::value
     {
       if constexpr (value::fixed<T>)
       {
-        using std::imag;
-        return imag(value::to_number(std::decay_t<T>{})) == 0;
+        return value::imag(value::to_number(std::decay_t<T>{})) == 0;
       }
       else return false;
     }
@@ -52,4 +51,4 @@ namespace OpenKalman::value
 
 } // namespace OpenKalman::value
 
-#endif //OPENKALMAN_VALUE_REAL_SCALAR_CONSTANT_HPP
+#endif //OPENKALMAN_VALUE_NOT_COMPLEX_HPP

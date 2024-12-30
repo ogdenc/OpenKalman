@@ -10,49 +10,39 @@
 
 /**
  * \file
- * \brief Implementation for \ref VectorSpaceDescriptorComparisonBase.
+ * \brief Comparison operators for \rev vector_space_descriptor objects.
  */
 
 #ifndef OPENKALMAN_COMPARISON_OPERATORS_HPP
 #define OPENKALMAN_COMPARISON_OPERATORS_HPP
 
-#include <type_traits>
-
 #ifdef __cpp_impl_three_way_comparison
 #include <compare>
 #endif
+#include <type_traits>
+#include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/are_equivalent.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/is_prefix.hpp"
 
 namespace OpenKalman::descriptor
 {
   /**
    * \brief Comparison operator for library-defined \ref vector_space_descriptor objects
    * \details Comparison of dynamic non-euclidean descriptors is defined elsewhere.
+   * \todo Streamline this to avoid re-calculating prefix status
    */
 #if defined(__cpp_concepts) and defined(__cpp_impl_three_way_comparison)
   template<vector_space_descriptor A, vector_space_descriptor B>
   constexpr auto operator<=>(const A& a, const B& b)
   {
-    if constexpr (static_vector_space_descriptor<A> and static_vector_space_descriptor<B>)
-    {
-      if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
-        return dimension_size_of_v<A> <=> dimension_size_of_v<B>;
-      else if constexpr (equivalent_to<A, B>)
-        return std::partial_ordering::equivalent;
-      else if constexpr (internal::prefix_of<A, B>)
-        return std::partial_ordering::less;
-      else if constexpr (internal::prefix_of<B, A>)
-        return std::partial_ordering::greater;
-      else
-        return std::partial_ordering::unordered;
-    }
-    else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
-    {
-      return static_cast<std::size_t>(get_dimension_size_of(a)) <=> static_cast<std::size_t>(get_dimension_size_of(b));
-    }
+    if (internal::are_equivalent(a, b))
+      return std::partial_ordering::equivalent;
+    else if (internal::is_prefix(a, b))
+      return std::partial_ordering::less;
+    else if (internal::is_prefix(b, a))
+      return std::partial_ordering::greater;
     else
-    {
       return std::partial_ordering::unordered;
-    }
   }
 
 
@@ -68,34 +58,19 @@ namespace OpenKalman::descriptor
   template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B>, int> = 0>
   constexpr bool operator==(const A& a, const B& b)
   {
-    if constexpr (static_vector_space_descriptor<A> and static_vector_space_descriptor<B>)
-      return equivalent_to<A, B>;
-    else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
-      return static_cast<std::size_t>(get_dimension_size_of(a)) == static_cast<std::size_t>(get_dimension_size_of(b));
-    else
-      return false;
+    return internal::are_equivalent(a, b);
   }
 
   template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B>, int> = 0>
   constexpr bool operator<=(const A& a, const B& b)
   {
-    if constexpr (static_vector_space_descriptor<A> and static_vector_space_descriptor<B>)
-      return internal::prefix_of<A, B>;
-    else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
-      return static_cast<std::size_t>(get_dimension_size_of(a)) <= static_cast<std::size_t>(get_dimension_size_of(b));
-    else
-      return false;
+    return internal::is_prefix(a, b);
   }
 
   template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B>, int> = 0>
   constexpr bool operator>=(const A& a, const B& b)
   {
-    if constexpr (static_vector_space_descriptor<A> and static_vector_space_descriptor<B>)
-      return internal::prefix_of<B, A>;
-    else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
-      return static_cast<std::size_t>(get_dimension_size_of(a)) >= static_cast<std::size_t>(get_dimension_size_of(b));
-    else
-      return false;
+    return internal::is_prefix(b, a);
   }
 
   template<typename A, typename B, std::enable_if_t<vector_space_descriptor<A> and vector_space_descriptor<B>, int> = 0>

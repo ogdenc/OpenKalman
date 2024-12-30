@@ -16,7 +16,12 @@
 #ifndef OPENKALMAN_TOEUCLIDEANEXPR_HPP
 #define OPENKALMAN_TOEUCLIDEANEXPR_HPP
 
-#include "basics/traits/traits.hpp"
+#include "linear-algebra/vector-space-descriptors/vector-space-descriptors.hpp"
+#include "linear-algebra/concepts/identity_matrix.hpp"
+#include "linear-algebra/concepts/zero.hpp"
+#include "linear-algebra/property-functions/count_indices.hpp"
+#include "linear-algebra/traits/traits.hpp"
+#include "linear-algebra/adapters/internal/AdapterBase.hpp"
 
 namespace OpenKalman
 {
@@ -131,8 +136,8 @@ namespace OpenKalman
         }
         else
         {
-          using Desc = DynamicDescriptor<scalar_type_of<Arg>>;
-          if (n == 0) return Desc {Axis};
+          using Desc = descriptor::DynamicDescriptor<scalar_type_of<Arg>>;
+          if (n == 0) return Desc {descriptor::Axis};
           else return Desc {OpenKalman::get_vector_space_descriptor(nested_object(std::forward<Arg>(arg)), n)};
         }
       }
@@ -260,7 +265,7 @@ namespace OpenKalman
         else
         {
           auto g {[&arg, is...](std::size_t ix) { return get_component(nested_object(std::forward<Arg>(arg)), ix, is...); }};
-          return to_euclidean_element(get_vector_space_descriptor<0>(arg), g, i, 0);
+          return descriptor::to_euclidean_element(get_vector_space_descriptor<0>(arg), g, i, 0);
         }
       }
 

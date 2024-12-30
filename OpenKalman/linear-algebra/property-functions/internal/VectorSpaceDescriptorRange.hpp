@@ -16,6 +16,9 @@
 #ifndef OPENKALMAN_VECTORSPACEDESCRIPTORRANGE_HPP
 #define OPENKALMAN_VECTORSPACEDESCRIPTORRANGE_HPP
 
+#include <cstddef>
+#include <type_traits>
+#include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
 
 namespace OpenKalman::internal
 {

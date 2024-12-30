@@ -16,9 +16,8 @@
 #ifndef OPENKALMAN_DESCRIPTORS_GET_DIMENSION_SIZE_OF_HPP
 #define OPENKALMAN_DESCRIPTORS_GET_DIMENSION_SIZE_OF_HPP
 
-#include "linear-algebra/values/values.hpp"
-#include "linear-algebra/vector-space-descriptors/interfaces/dynamic_vector_space_descriptor_traits.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
+#include "linear-algebra/values/concepts/index.hpp"
+#include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
 
 namespace OpenKalman::descriptor
@@ -35,15 +34,7 @@ namespace OpenKalman::descriptor
 #endif
   get_dimension_size_of(const T& t)
   {
-    if constexpr (static_vector_space_descriptor<T>)
-    {
-      return dimension_size_of<T> {};
-    }
-    else
-    {
-      interface::dynamic_vector_space_descriptor_traits ret{t};
-      return ret.get_size();
-    }
+    return interface::vector_space_traits<T>::size(t);
   }
 
 

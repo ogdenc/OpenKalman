@@ -17,8 +17,7 @@
 #define OPENKALMAN_STATIC_VECTOR_SPACE_DESCRIPTOR_HPP
 
 #include <type_traits>
-#include "linear-algebra/vector-space-descriptors/interfaces/static_vector_space_descriptor_traits.hpp"
-
+#include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
 
 namespace OpenKalman::descriptor
 {
@@ -30,12 +29,9 @@ namespace OpenKalman::descriptor
 
     template<typename T>
     struct is_static_vector_space_descriptor<T, std::enable_if_t<
-      std::is_default_constructible<std::decay_t<T>>::value and
-      std::is_convertible<decltype(interface::static_vector_space_descriptor_traits<std::decay_t<T>>::size), std::size_t>::value and
-      std::is_convertible<decltype(interface::static_vector_space_descriptor_traits<std::decay_t<T>>::euclidean_size), std::size_t>::value and
-      std::is_convertible<decltype(interface::static_vector_space_descriptor_traits<std::decay_t<T>>::component_count), std::size_t>::value and
-      std::is_convertible<decltype(interface::static_vector_space_descriptor_traits<std::decay_t<T>>::always_euclidean), bool>::value and
-      std::is_void<std::void_t<typename interface::static_vector_space_descriptor_traits<std::decay_t<T>>::difference_type>>::value
+      std::is_default_constructible<T>::value and
+      value::index<decltype(interface::vector_space_traits<T>::size(std::declval<T>()))> and
+      value::fixed<decltype(interface::vector_space_traits<T>::size(std::declval<T>()))>
       >> : std::true_type {};
   }
 #endif
@@ -43,17 +39,14 @@ namespace OpenKalman::descriptor
 
   /**
    * \brief A set of \ref vector_space_descriptor for which the number of dimensions is fixed at compile time.
-   * \details This includes any object for which interface::static_vector_space_descriptor_traits is defined.
+   * \details This includes any object for which interface::vector_space_traits is defined.
    */
   template<typename T>
 #ifdef __cpp_concepts
   concept static_vector_space_descriptor = std::default_initializable<std::decay_t<T>> and
-    requires {
-      {interface::static_vector_space_descriptor_traits<std::decay_t<T>>::size} -> std::convertible_to<std::size_t>;
-      {interface::static_vector_space_descriptor_traits<std::decay_t<T>>::euclidean_size} -> std::convertible_to<std::size_t>;
-      {interface::static_vector_space_descriptor_traits<std::decay_t<T>>::component_count} -> std::convertible_to<std::size_t>;
-      {interface::static_vector_space_descriptor_traits<std::decay_t<T>>::always_euclidean} -> std::convertible_to<bool>;
-      typename interface::static_vector_space_descriptor_traits<std::decay_t<T>>::difference_type;
+    requires(const std::decay_t<T>& t) {
+      {interface::vector_space_traits<std::decay_t<T>>::size(t)} -> value::index;
+      {interface::vector_space_traits<std::decay_t<T>>::size(t)} -> value::fixed;
     };
 #else
   constexpr bool static_vector_space_descriptor = detail::is_static_vector_space_descriptor<std::decay_t<T>>::value;

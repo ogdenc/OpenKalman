@@ -49,101 +49,98 @@ namespace OpenKalman::descriptor {}
 
 // interfaces:
 
-#include "interfaces/static_vector_space_descriptor_traits.hpp" //
-#include "interfaces/dynamic_vector_space_descriptor_traits.hpp" //
+#include "interfaces/vector_space_traits.hpp"
 
 // initial concepts:
 
-#include "concepts/static_vector_space_descriptor.hpp" //
-#include "internal/forward-declarations.hpp" //
-#include "concepts/dynamic_vector_space_descriptor.hpp" //
-#include "concepts/vector_space_descriptor.hpp" //
-#include "concepts/euclidean_vector_space_descriptor.hpp" //
+#include "concepts/static_vector_space_descriptor.hpp"
+#include "concepts/dynamic_vector_space_descriptor.hpp"
+#include "concepts/vector_space_descriptor.hpp"
+#include "concepts/euclidean_vector_space_descriptor.hpp"
 
-#include "concepts/vector_space_descriptor_tuple.hpp" //
-#include "concepts/vector_space_descriptor_collection.hpp" //
-#include "concepts/static_vector_space_descriptor_tuple.hpp" //
-#include "concepts/static_vector_space_descriptor_collection.hpp" //
-#include "concepts/euclidean_vector_space_descriptor_tuple.hpp" //
-#include "concepts/euclidean_vector_space_descriptor_collection.hpp" //
+#include "concepts/vector_space_descriptor_tuple.hpp"
+#include "concepts/vector_space_descriptor_collection.hpp"
+#include "concepts/static_vector_space_descriptor_tuple.hpp"
+#include "concepts/static_vector_space_descriptor_collection.hpp"
+#include "concepts/euclidean_vector_space_descriptor_tuple.hpp"
+#include "concepts/euclidean_vector_space_descriptor_collection.hpp"
 
-#include "concepts/composite_vector_space_descriptor.hpp" //
-#include "concepts/atomic_static_vector_space_descriptor.hpp" //
-
-#include "traits/static_concatenate.hpp" //
-#include "traits/static_reverse.hpp" //
-#include "traits/internal/static_canonical_form.hpp" //
-
-#include "concepts/maybe_equivalent_to.hpp" //
-#include "concepts/equivalent_to.hpp" //
+#include "concepts/composite_vector_space_descriptor.hpp"
+#include "concepts/atomic_static_vector_space_descriptor.hpp"
 
 // interface-based traits and functions
 
-#include "traits/dimension_size_of.hpp" //
-#include "traits/euclidean_dimension_size_of.hpp" //
-#include "traits/vector_space_component_count.hpp" //
-#include "traits/dimension_difference_of.hpp" //
+#include "functions/get_dimension_size_of.hpp"
+#include "functions/get_euclidean_dimension_size_of.hpp"
+#include "functions/get_vector_space_descriptor_component_count_of.hpp"
+#include "functions/get_vector_space_descriptor_is_euclidean.hpp"
 
-#include "functions/get_dimension_size_of.hpp" //
-#include "functions/get_euclidean_dimension_size_of.hpp" //
-#include "functions/get_vector_space_descriptor_component_count_of.hpp" //
-#include "functions/get_vector_space_descriptor_is_euclidean.hpp" //
+#include "traits/dimension_size_of.hpp"
+#include "traits/euclidean_dimension_size_of.hpp"
+#include "traits/vector_space_component_count.hpp"
 
-#include "functions/to_euclidean_element.hpp" //
-#include "functions/from_euclidean_element.hpp" //
-#include "functions/get_wrapped_component.hpp" //
-#include "functions/set_wrapped_component.hpp" //
+#include "functions/to_euclidean_element.hpp"
+#include "functions/from_euclidean_element.hpp"
+#include "functions/get_wrapped_component.hpp"
+#include "functions/set_wrapped_component.hpp"
 
-// internal traits:
+#include "internal/forward-declarations.hpp"
+#include "traits/static_concatenate.hpp"
+#include "traits/static_reverse.hpp"
 
-#include "traits/internal/prefix_base_of.hpp" //
-#include "concepts/internal/prefix_of.hpp" //
-#include "concepts/internal/suffix_of.hpp" //
-#include "traits/internal/suffix_base_of.hpp" //
+#include "functions/internal/canonical_equivalent.hpp"
+
+#include "functions/internal/are_equivalent.hpp"
+#include "concepts/maybe_equivalent_to.hpp"
+#include "concepts/equivalent_to.hpp"
+#include "functions/internal/is_prefix.hpp"
+#include "concepts/internal/prefix_of.hpp"
+#include "functions/comparison-operators.hpp" //
+
+#include "functions/internal/concatenate.hpp"
+#include "functions/internal/detatch.hpp"
+#include "functions/arithmetic-operators.hpp" //
 
 // descriptors:
 
-#include "descriptors/Dimensions.hpp" //
-#include "descriptors/StaticDescriptor.hpp" //
-#include "descriptors/DynamicDescriptor.hpp" //
+#include "descriptors/StaticDescriptor.hpp"
+#include "descriptors/Dimensions.hpp"
+#include "interfaces/index.hpp"
+#include "descriptors/DynamicDescriptor.hpp"
 
-#include "descriptors/Distance.hpp" //
-#include "descriptors/Angle.hpp" //
-#include "descriptors/Inclination.hpp" //
-#include "descriptors/Polar.hpp" //
-#include "descriptors/Spherical.hpp" //
+#include "descriptors/Distance.hpp"
+#include "descriptors/Angle.hpp"
+#include "descriptors/Inclination.hpp"
+#include "descriptors/Polar.hpp"
+#include "descriptors/Spherical.hpp"
 
 // traits for manipulating static descriptors
 
-#include "traits/replicate_static_vector_space_descriptor.hpp" //
+#include "traits/replicate_static_vector_space_descriptor.hpp"
 
-
-#include "traits/internal/uniform_static_vector_space_descriptor_query.hpp" //
-#include "concepts/uniform_static_vector_space_descriptor.hpp" //
-#include "traits/uniform_static_vector_space_descriptor_component_of.hpp" //
-#include "concepts/equivalent_to_uniform_static_vector_space_descriptor_component_of.hpp" //
+#include "traits/internal/uniform_static_vector_space_descriptor_query.hpp"
+#include "concepts/uniform_static_vector_space_descriptor.hpp"
+#include "traits/uniform_static_vector_space_descriptor_component_of.hpp"
+#include "concepts/equivalent_to_uniform_static_vector_space_descriptor_component_of.hpp"
 
 // collection traits
 
-#include "traits/internal/vector_space_descriptor_collection_common_type.hpp" //
+#include "traits/internal/vector_space_descriptor_collection_common_type.hpp"
 
 // functions:
 
-#include "functions/comparison-operators.hpp"
-#include "functions/internal/arithmetic-operators.hpp"
+#include "functions/internal/replicate_vector_space_descriptor.hpp" //
+#include "functions/internal/is_uniform_component_of.hpp" //
+#include "functions/internal/remove_trailing_1D_descriptors.hpp" //
+#include "functions/internal/best_vector_space_descriptor.hpp" //
+#include "functions/internal/smallest_vector_space_descriptor.hpp" //
+#include "functions/internal/largest_vector_space_descriptor.hpp" //
 
-#include "functions/internal/replicate_vector_space_descriptor.hpp"
-#include "functions/internal/is_uniform_component_of.hpp"
-#include "functions/internal/remove_trailing_1D_descriptors.hpp"
-#include "functions/internal/best_vector_space_descriptor.hpp"
-#include "functions/internal/smallest_vector_space_descriptor.hpp"
-#include "functions/internal/largest_vector_space_descriptor.hpp"
+#include "functions/internal/split_head_tail.hpp"
+#include "functions/internal/static_vector_space_descriptor_slice.hpp"
+#include "functions/get_vector_space_descriptor_slice.hpp"
 
-#include "functions/internal/split_head_tail.hpp" //
-#include "functions/internal/static_vector_space_descriptor_slice.hpp" //
-#include "functions/get_vector_space_descriptor_slice.hpp" //
-
-#include "functions/internal/to_euclidean_vector_space_descriptor_collection.hpp"
+#include "functions/internal/to_euclidean_vector_space_descriptor_collection.hpp" //
 
 
 #endif //OPENKALMAN_VECTOR_TYPES_HPP

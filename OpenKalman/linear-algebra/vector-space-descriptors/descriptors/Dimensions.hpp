@@ -18,15 +18,14 @@
 
 #include <cstddef>
 #include <type_traits>
-#include "linear-algebra/vector-space-descriptors/interfaces/static_vector_space_descriptor_traits.hpp"
-#include "linear-algebra/vector-space-descriptors/interfaces/dynamic_vector_space_descriptor_traits.hpp"
+#include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/get_dimension_size_of.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_is_euclidean.hpp"
-
+#include "StaticDescriptor.hpp"
 
 namespace OpenKalman::descriptor
 {
@@ -47,7 +46,7 @@ namespace OpenKalman::descriptor
 
     /// Constructor, taking a static \ref euclidean_vector_space_descriptor.
 #ifdef __cpp_concepts
-    template<typename D> requires (not std::same_as<std::decay_t<D>, Dimensions>) and 
+    template<typename D> requires (not std::same_as<std::decay_t<D>, Dimensions>) and
       ((euclidean_vector_space_descriptor<D> and static_vector_space_descriptor<D> and dimension_size_of_v<D> == N) or
       dynamic_vector_space_descriptor<D>)
 #else
@@ -117,6 +116,11 @@ namespace OpenKalman::descriptor
     }
 
 
+    /// Construct from an integral value.
+    explicit constexpr Dimensions(const std::size_t& d = 0) : runtime_size {static_cast<std::size_t>(d)}
+    {}
+
+
     /**
      * \brief Assign from another \ref euclidean_vector_space_descriptor or \ref dynamic_vector_space_descriptor.
      */
@@ -151,7 +155,7 @@ namespace OpenKalman::descriptor
 
     std::size_t runtime_size;
 
-    friend struct interface::dynamic_vector_space_descriptor_traits<Dimensions<dynamic_size>>;
+    friend struct interface::vector_space_traits<Dimensions<dynamic_size>>;
   };
 
 
@@ -168,11 +172,14 @@ namespace OpenKalman::descriptor
 
 
 #ifdef __cpp_concepts
-  template<dynamic_vector_space_descriptor D>
+  template<dynamic_vector_space_descriptor D> requires euclidean_vector_space_descriptor<D>
 #else
-  template<typename D, std::enable_if_t<dynamic_vector_space_descriptor<D>, int> = 0>
+  template<typename D, std::enable_if_t<dynamic_vector_space_descriptor<D> and euclidean_vector_space_descriptor<D>, int> = 0>
 #endif
   explicit Dimensions(D&&) -> Dimensions<dynamic_size>;
+
+
+  explicit Dimensions(const std::size_t&) -> Dimensions<dynamic_size>;
 
 
   // ------ //
@@ -192,35 +199,46 @@ namespace OpenKalman::interface
 {
   /**
    * \internal
-   * \brief traits for fixed Dimensions.
+   * \brief traits for Dimensions.
    */
-#ifdef __cpp_concepts
-  template<std::size_t N> requires (N != dynamic_size)
-  struct static_vector_space_descriptor_traits<descriptor::Dimensions<N>>
-#else
   template<std::size_t N>
-  struct static_vector_space_descriptor_traits<descriptor::Dimensions<N>, std::enable_if_t<N != dynamic_size>>
-#endif
-    : static_vector_space_descriptor_traits<std::integral_constant<std::size_t, N>>
-  {
-    using difference_type = descriptor::Dimensions<N>;
-  };
-
-
-  /**
-   * \internal
-   * \brief traits for dynamic Dimensions.
-   */
-  template<>
-  struct dynamic_vector_space_descriptor_traits<descriptor::Dimensions<dynamic_size>> : dynamic_vector_space_descriptor_traits<std::size_t>
+  struct vector_space_traits<descriptor::Dimensions<N>>
   {
   private:
 
-    using Base = dynamic_vector_space_descriptor_traits<std::size_t>;
+    using T = descriptor::Dimensions<N>;
 
   public:
 
-    explicit constexpr dynamic_vector_space_descriptor_traits(const descriptor::Dimensions<dynamic_size>& t) : Base {t.runtime_size} {};
+    static constexpr auto
+    size(const T& t)
+    {
+      if constexpr (N == dynamic_size) return t.runtime_size;
+      else return std::integral_constant<std::size_t, N>{};
+    };
+
+
+    static constexpr auto
+    euclidean_size(const T& t) { return size(t); };
+
+
+    static constexpr auto
+    component_count(const T& t) { return size(t); }
+
+
+    static constexpr auto
+    is_euclidean(const T&) { return std::true_type{}; }
+
+
+    static constexpr auto
+    canonical_equivalent(const T& t)
+    {
+      if constexpr (N == 0)
+        return descriptor::StaticDescriptor<>{};
+      else
+        return descriptor::Dimensions{t};
+    };
+
   };
 
 

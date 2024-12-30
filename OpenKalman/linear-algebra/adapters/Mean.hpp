@@ -602,7 +602,7 @@ namespace OpenKalman
           const auto set_coeff = [&arg, is...](const std::size_t row, const scalar_type_of_t<Arg> value) {
             set_component(nested_object(arg), value, row, is...);
           };
-          set_wrapped_component<Coeffs>(Coeffs{}, i, s, set_coeff, get_coeff);
+          descriptor::set_wrapped_component<Coeffs>(Coeffs{}, i, s, set_coeff, get_coeff);
         }
         else
         {

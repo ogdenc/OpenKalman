@@ -17,54 +17,48 @@
 #define OPENKALMAN_DESCRIPTORS_MAYBE_EQUIVALENT_TO_HPP
 
 #include <type_traits>
-#include "static_vector_space_descriptor.hpp"
-#include "dynamic_vector_space_descriptor.hpp"
-#include "euclidean_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/traits/internal/static_canonical_form.hpp"
-
+#include "linear-algebra/values/traits/fixed_number_of.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/are_equivalent.hpp"
 
 namespace OpenKalman::descriptor
 {
   namespace detail
   {
-#ifdef __cpp_concepts
+#ifndef __cpp_concepts
     template<typename T, typename U>
-#else
-    template<typename T, typename U, typename = void>
-#endif
     struct is_maybe_equivalent_to_impl : std::false_type {};
 
 
-#ifdef __cpp_concepts
-    template<static_vector_space_descriptor T, static_vector_space_descriptor U>
-    struct is_maybe_equivalent_to_impl<T, U>
-#else
     template<typename T, typename U>
-    struct is_maybe_equivalent_to_impl<T, U, std::enable_if_t<static_vector_space_descriptor<T> and static_vector_space_descriptor<U>>>
+    struct is_maybe_equivalent_to_impl<T, U, std::enable_if_t<internal::are_equivalent(T{}, Ts{})>>
+      : std::false_type {};//value::fixed_number_of<decltype(internal::are_equivalent(std::declval<T>(), std::declval<U>()))> {};
 #endif
-      : std::bool_constant<std::is_same_v<descriptor::internal::static_canonical_form_t<std::decay_t<T>>,
-        descriptor::internal::static_canonical_form_t<std::decay_t<U>>>> {};
 
 
 #ifdef __cpp_concepts
-    template<euclidean_vector_space_descriptor T, euclidean_vector_space_descriptor U> requires
-      dynamic_vector_space_descriptor<T> or dynamic_vector_space_descriptor<U>
-    struct is_maybe_equivalent_to_impl<T, U>
-#else
-    template<typename T, typename U>
-    struct is_maybe_equivalent_to_impl<T, U, std::enable_if_t<
-      euclidean_vector_space_descriptor<T> and euclidean_vector_space_descriptor<U> and
-      (dynamic_vector_space_descriptor<T> or dynamic_vector_space_descriptor<U>)>>
-#endif
-      : std::true_type {};
-
-
     template<typename...Ts>
-    struct is_maybe_equivalent_to : std::true_type {};
+#else
+    template<typename = void, typename...Ts>
+#endif
+    struct is_maybe_equivalent_to : std::false_type {};
 
+
+    template<>
+    struct is_maybe_equivalent_to<> : std::true_type {};
+
+
+#ifdef __cpp_concepts
+    template<typename T, typename...Ts> requires (... and (
+        descriptor::dynamic_vector_space_descriptor<T> or descriptor::dynamic_vector_space_descriptor<Ts> or
+        internal::are_equivalent(T{}, Ts{})))
+    struct is_maybe_equivalent_to<T, Ts...> : is_maybe_equivalent_to<Ts...> {};
+#else
     template<typename T, typename...Ts>
-    struct is_maybe_equivalent_to<T, Ts...>
-      : std::bool_constant<(... and is_maybe_equivalent_to_impl<T, Ts>::value) and is_maybe_equivalent_to<Ts...>::value> {};
+    struct is_maybe_equivalent_to<std::enable_if_t<(... and
+        (descriptor::dynamic_vector_space_descriptor<T> or descriptor::dynamic_vector_space_descriptor<Ts> or
+        is_maybe_equivalent_to_impl<T, Ts>::value)), T, Ts...>
+      : is_maybe_equivalent_to<void, Ts...> {};
+#endif
   }
 
 
@@ -77,15 +71,16 @@ namespace OpenKalman::descriptor
    * - StaticDescriptor<A> is equivalent to A, and vice versa.
    * - Dynamic \ref euclidean_vector_space_descriptor objects are equivalent to any other \ref euclidean_vector_space_descriptor,
    * \par Example:
-   * <code>equivalent_to&lt;Axis, StaticDescriptor&lt;Axis&gt;&gt;</code>
+   * <code>maybe_equivalent_to&lt;Axis, StaticDescriptor&lt;Axis&gt;&gt;</code>
    */
   template<typename...Ts>
 #ifdef __cpp_concepts
   concept maybe_equivalent_to =
+    (... and descriptor::vector_space_descriptor<Ts>) and detail::is_maybe_equivalent_to<Ts...>::value;
 #else
   constexpr bool maybe_equivalent_to =
+    (... and descriptor::vector_space_descriptor<Ts>) and detail::is_maybe_equivalent_to<void, Ts...>::value;
 #endif
-    detail::is_maybe_equivalent_to<Ts...>::value;
 
 
 } // namespace OpenKalman::descriptor

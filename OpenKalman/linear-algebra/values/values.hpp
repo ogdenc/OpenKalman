@@ -34,6 +34,7 @@ namespace OpenKalman::value {}
 #include "concepts/value.hpp"
 
 #include "functions/to_number.hpp"
+#include "traits/fixed_number_of.hpp"
 #include "traits/number_type_of_t.hpp"
 #include "traits/real_type_of_t.hpp"
 

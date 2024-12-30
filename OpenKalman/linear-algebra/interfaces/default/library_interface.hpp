@@ -19,9 +19,16 @@
 #include <type_traits>
 #include <tuple>
 
-
 namespace OpenKalman::interface
 {
+  /**
+   * \brief An interface to various routines from the linear algebra library associated with \ref indexible object T.
+   * \details This traits class must be specialized for any object (matrix, tensor, etc.) from a linear algebra library.
+   * Typically, only one specialization would be necessary for all objects within a given library.
+   * \tparam LibraryObject An \ref indexible object that is native to the linear algebra library of interest.
+   * Normally, this is used simply to select the correct library for processing the arguments.
+   * But in some cases, the interface may also base the result on the properties of LibraryObject (e.g., whether it is a matrix or array).
+   */
 #ifdef __cpp_concepts
   template<typename LibraryObject>
 #else

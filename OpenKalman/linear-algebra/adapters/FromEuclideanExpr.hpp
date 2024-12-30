@@ -278,7 +278,7 @@ namespace OpenKalman
 #endif
       get_component(Arg&& arg, const Indices& indices)
       {
-        if constexpr (euclidean_vector_space_descriptor<V0>)
+        if constexpr (descriptor::euclidean_vector_space_descriptor<V0>)
         {
           return NestedInterface::get_component(nested_object(std::forward<Arg>(arg)), indices);
         }
@@ -286,9 +286,9 @@ namespace OpenKalman
         {
           auto g {[&arg, is...](std::size_t ix) { return OpenKalman::get_component(nested_object(std::forward<Arg>(arg)), ix, is...); }};
           if constexpr (to_euclidean_expr<nested_object_of_t<Arg>>)
-            return get_wrapped_component(get_vector_space_descriptor<0>(arg), g, i, 0);
+            return descriptor::get_wrapped_component(get_vector_space_descriptor<0>(arg), g, i, 0);
           else
-            return from_euclidean_element(get_vector_space_descriptor<0>(arg), g, i, 0);
+            return descriptor::from_euclidean_element(get_vector_space_descriptor<0>(arg), g, i, 0);
         }
       }
 
@@ -301,7 +301,7 @@ namespace OpenKalman
       static void
       set_component(Arg& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
       {
-        if constexpr (euclidean_vector_space_descriptor<vector_space_descriptor_of<Arg, 0>>)
+        if constexpr (descriptor::euclidean_vector_space_descriptor<vector_space_descriptor_of<Arg, 0>>)
         {
           OpenKalman::set_component(nested_object(nested_object(arg)), s, indices);
         }
@@ -313,7 +313,7 @@ namespace OpenKalman
           auto g {[&arg, is...](std::size_t ix) {
             return OpenKalman::get_component(nested_object(nested_object(arg)), ix, is...);
           }};
-          set_wrapped_component(get_vector_space_descriptor<0>(arg), s, g, s, i, 0);
+          descriptor::set_wrapped_component(get_vector_space_descriptor<0>(arg), s, g, s, i, 0);
         }
         else
         {

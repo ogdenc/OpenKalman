@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,14 +25,22 @@ namespace OpenKalman::descriptor
 {
   namespace detail
   {
+#ifdef __cpp_concepts
     template<typename T>
+#else
+    template<typename T typename = void>
+#endif
     struct is_composite_vector_space_descriptor : std::false_type {};
 
-    template<typename...C>
-    struct is_composite_vector_space_descriptor<descriptor::StaticDescriptor<C...>> : std::true_type {};
 
-    template<typename Scalar>
-    struct is_composite_vector_space_descriptor<descriptor::DynamicDescriptor<Scalar>> : std::true_type {};
+#ifdef __cpp_concepts
+    template<typename T> requires interface::vector_space_traits<T>::is_composite
+    struct is_composite_vector_space_descriptor<T>
+#else
+    template<typename T>
+    struct is_composite_vector_space_descriptor<T, std::enable_if_t<interface::vector_space_traits<T>::is_composite>>
+#endif
+      : std::true_type {};
   }
 
 

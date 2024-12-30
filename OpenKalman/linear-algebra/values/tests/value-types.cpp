@@ -46,6 +46,12 @@ TEST(values, fixed)
   static_assert(value::fixed<std::integral_constant<int, 5>>);
   struct return8 { constexpr auto operator()() { return 8; } };
   static_assert(value::fixed<return8>);
+#ifdef __cpp_concepts
+  constexpr auto f8 = []{ return 8; };
+  static_assert(value::fixed<decltype(f8)>);
+  constexpr auto f8d = []{ return 8.; };
+  static_assert(value::fixed<decltype(f8d)>);
+#endif
 }
 
 #include "linear-algebra/values/concepts/dynamic.hpp"
@@ -72,8 +78,23 @@ TEST(values, to_number)
 {
 
   EXPECT_EQ(value::to_number(7), 7);
-  EXPECT_EQ(value::to_number(std::integral_constant<int, 7>{}), 7);
-  EXPECT_EQ(value::to_number([](){ return 8; }), 8);
+  static_assert(value::to_number(std::integral_constant<int, 7>{}) == 7);
+  static_assert(value::to_number([]{ return 8; }) == 8);
+}
+
+#include "linear-algebra/values/traits/fixed_number_of.hpp"
+
+TEST(values, fixed_number_of)
+{
+  static_assert(value::fixed_number_of_v<std::integral_constant<int, 7>> == 7);
+  struct return8 { constexpr auto operator()() { return 8; } };
+  static_assert(value::fixed_number_of_v<return8> == 8);
+#ifdef __cpp_concepts
+  constexpr auto f8 = []{ return 8; };
+  static_assert(value::fixed_number_of_v<decltype(f8)> == 8);
+  constexpr auto f8d = []{ return 8.; };
+  static_assert(value::fixed_number_of_v<decltype(f8d)> == 8.);
+#endif
 }
 
 #include "linear-algebra/values/classes/operation.hpp"

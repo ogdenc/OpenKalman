@@ -122,8 +122,7 @@ namespace OpenKalman::interface
         bool transp = (i > j and (Mode & int{Eigen::Upper}) != 0) or (i < j and (Mode & int{Eigen::Lower}) != 0);
         if constexpr (value::complex<Scalar>)
         {
-          using std::conj;
-          if (transp) return static_cast<Scalar>(conj(get_coeff(std::as_const(arg), j, i)));
+          if (transp) return static_cast<Scalar>(value::conj(get_coeff(std::as_const(arg), j, i)));
           else return static_cast<Scalar>(get_coeff(std::as_const(arg), i, j));
         }
         else
@@ -164,8 +163,7 @@ namespace OpenKalman::interface
         bool transp = (i > j and (Mode & int{Eigen::Upper}) != 0) or (i < j and (Mode & int{Eigen::Lower}) != 0);
         if constexpr (value::complex<Scalar>)
         {
-          using std::conj;
-          if (transp) get_coeff(arg, j, i) = conj(s);
+          if (transp) get_coeff(arg, j, i) = value::conj(s);
           else get_coeff(arg, i, j) = s;
         }
         else

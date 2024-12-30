@@ -17,9 +17,9 @@
 #define OPENKALMAN_VECTOR_SPACE_COMPONENT_COUNT_HPP
 
 #include <type_traits>
-#include "linear-algebra/vector-space-descriptors/interfaces/static_vector_space_descriptor_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_component_count_of.hpp"
 
 
 namespace OpenKalman::descriptor
@@ -44,7 +44,7 @@ namespace OpenKalman::descriptor
   template<typename T>
   struct vector_space_component_count<T, std::enable_if_t<static_vector_space_descriptor<T>>>
 #endif
-    : std::integral_constant<std::size_t, interface::static_vector_space_descriptor_traits<std::decay_t<T>>::component_count> {};
+    : std::integral_constant<std::size_t, value::to_number(get_vector_space_descriptor_component_count_of(T{}))> {};
 
 
   /**

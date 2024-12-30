@@ -21,9 +21,10 @@
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/atomic_static_vector_space_descriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/canonical_equivalent.hpp"
 
 
-namespace OpenKalman::internal
+namespace OpenKalman::descriptor::internal
 {
   namespace detail
   {
@@ -72,7 +73,7 @@ namespace OpenKalman::internal
 
   /**
    * \brief Split a \ref static_vector_space_descriptor into head and tail components.
-   * \detail T is first converted to its \ref internal::static_canonical_form "canonical" form.
+   * \detail T is first converted to its \ref internal::canonical_equivalent "canonical equivalent" form.
    * Member alias <code>head</code> will reflect the head type and
    * member alias <code>tail</code> will reflect the tail type.
    * The above aliases are undefined for an empty vector space descriptor.
@@ -93,7 +94,7 @@ namespace OpenKalman::internal
   template<typename T>
   struct split_head_tail<T, std::enable_if_t<static_vector_space_descriptor<T>>>
 #endif
-    : detail::split_head_tail_impl<static_canonical_form_t<T>> {};
+    : detail::split_head_tail_impl<std::decay_t<decltype(canonical_equivalent(std::declval<T>()))>> {};
 
 
   /**
@@ -107,7 +108,7 @@ namespace OpenKalman::internal
   using split_head_tail_t = typename split_head_tail<T>::type;
 
 
-} // namespace OpenKalman::internal
+} // namespace OpenKalman::descriptor::internal
 
 
 #endif //OPENKALMAN_SPLIT_HEAD_TAIL_HPP

@@ -79,8 +79,7 @@ namespace Eigen::internal
       {
         if (row > col)
         {
-          using std::conj;
-          if constexpr (OpenKalman::value::complex<Scalar>) return conj(m_argImpl.coeff(col, row));
+          if constexpr (OpenKalman::value::complex<Scalar>) return value::conj(m_argImpl.coeff(col, row));
           else return m_argImpl.coeff(col, row);
         }
       }
@@ -88,8 +87,7 @@ namespace Eigen::internal
       {
         if (row < col)
         {
-          using std::conj;
-          if constexpr (OpenKalman::value::complex<Scalar>) return conj(m_argImpl.coeff(col, row));
+          if constexpr (OpenKalman::value::complex<Scalar>) return value::conj(m_argImpl.coeff(col, row));
           else return m_argImpl.coeff(col, row);
         }
       }
@@ -98,8 +96,7 @@ namespace Eigen::internal
       {
         if constexpr (OpenKalman::value::complex<Scalar> and not std::is_lvalue_reference_v<CoeffReturnType>)
         {
-          using std::real;
-          return real(m_argImpl.coeff(row, col));
+          return value::real(m_argImpl.coeff(row, col));
         }
       }
 

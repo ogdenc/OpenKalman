@@ -38,7 +38,7 @@ namespace OpenKalman::descriptor
 #else
   constexpr bool equivalent_to =
 #endif
-    (static_vector_space_descriptor<Ts> and ...) and maybe_equivalent_to<Ts...>;
+    (... and static_vector_space_descriptor<Ts>) and maybe_equivalent_to<Ts...>;
 
 
 } // namespace OpenKalman::descriptor

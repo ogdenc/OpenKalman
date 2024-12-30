@@ -26,8 +26,11 @@
 
 // objects, properties, and interfaces
 
+#include "interfaces/default/indexible_object_traits.hpp"
 #include "interfaces/object-traits-defined.hpp"
+#include "interfaces/default/library_interface.hpp"
 #include "interfaces/library-interfaces-defined.hpp"
+
 #include "traits/internal/library_base.hpp"
 
 #include "property-functions/property-functions.hpp"
@@ -35,9 +38,6 @@
 #include "concepts/concepts.hpp"
 #include "traits/traits.hpp"
 #include "adapters/internal/forward-class-declarations.hpp"
-
-#include "interfaces/default/indexible_object_traits.hpp"
-#include "interfaces/default/library_interface.hpp"
 
 // object functions
 

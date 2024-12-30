@@ -52,7 +52,7 @@ namespace OpenKalman
     else
     {
       // Default behavior if interface function not defined:
-      using Scalar = std::decay_t<decltype(value::to_number(c))>;
+      using Scalar = value::number_type_of_t<C>;
       using U = std::decay_t<decltype(make_dense_object<T, Layout::none, Scalar>(d))>;
       return ConstantAdapter<U, std::decay_t<C>> {std::forward<C>(c), std::forward<D>(d)};
     }
@@ -119,7 +119,7 @@ namespace OpenKalman
 #endif
   make_constant(Ds&& ds)
   {
-    using Scalar = std::decay_t<decltype(value::to_number(std::declval<C>()))>;
+    using Scalar = value::number_type_of_t<C>;
     if constexpr (sizeof...(constant) == 0)
       return make_constant<T>(C{}, std::forward<Ds>(ds));
     else

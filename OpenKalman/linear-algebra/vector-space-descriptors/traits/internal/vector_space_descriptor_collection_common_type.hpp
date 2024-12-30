@@ -27,9 +27,10 @@
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor_collection.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor_tuple.hpp"
 #include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/canonical_equivalent.hpp"
 
 
-namespace OpenKalman::internal
+namespace OpenKalman::descriptor::internal
 {
   namespace detail
   {
@@ -54,7 +55,7 @@ namespace OpenKalman::internal
 
 #ifdef __cpp_concepts
   template<static_vector_space_descriptor_tuple T, value::number Scalar> requires
-    (std::tuple_size_v<T> > 0) and (detail::same_descriptors_in_tuple(std::make_index_sequence<std::tuple_size_v<T>>{}))
+    (std::tuple_size_v<T> > 0) and (detail::same_descriptors_in_tuple<T>(std::make_index_sequence<std::tuple_size_v<T>>{}))
   struct vector_space_descriptor_collection_common_type<T, Scalar>
 #else
   template<typename T, typename Scalar>
@@ -63,7 +64,7 @@ namespace OpenKalman::internal
     detail::same_descriptors_in_tuple(std::make_index_sequence<std::tuple_size<T>::value>{})>>
 #endif
   {
-    using type = static_canonical_form_t<std::tuple_element_t<0, T>>;
+    using type = std::decay_t<decltype(internal::canonical_equivalent(std::declval<std::tuple_element_t<0, T>>()))>;
   };
 
 
@@ -104,6 +105,6 @@ namespace OpenKalman::internal
     vector_space_descriptor_collection_common_type<T, Scalar>::type;
 
 
-} // namespace OpenKalman::internal
+} // namespace OpenKalman::descriptor::internal
 
 #endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_COLLECTION_COMMON_TYPE_HPP

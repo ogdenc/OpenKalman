@@ -165,8 +165,7 @@ namespace OpenKalman::internal
           // Discard first weight and first y-deviation column for now, since square root of weight would be negative.
           const auto [y_deviations_head, y_deviations_tail] = split_horizontal<1, count - 1>(y_deviations);
           const auto [weights_head, weights_tail] = split_vertical<Axis, Dimensions<count - 1>>(weights);
-          using std::sqrt;
-          const auto sqrt_weights_tail = apply_coefficientwise([](const auto x){ return sqrt(x); }, weights_tail);
+          const auto sqrt_weights_tail = apply_coefficientwise([](const auto x){ return value::sqrt(x); }, weights_tail);
           auto out_covariance = make_self_contained(square(LQ_decomposition(y_deviations_tail * to_diagonal(sqrt_weights_tail))));
           static_assert(OpenKalman::covariance<decltype(out_covariance)>);
 
@@ -185,8 +184,7 @@ namespace OpenKalman::internal
         }
         else
         {
-          using std::sqrt;
-          const auto sqrt_weights = apply_coefficientwise([](const auto x){ return sqrt(x); }, weights);
+          const auto sqrt_weights = apply_coefficientwise([](const auto x){ return value::sqrt(x); }, weights);
           auto out_covariance = make_self_contained(square(LQ_decomposition(y_deviations * to_diagonal(sqrt_weights))));
           static_assert(OpenKalman::covariance<decltype(out_covariance)>);
 

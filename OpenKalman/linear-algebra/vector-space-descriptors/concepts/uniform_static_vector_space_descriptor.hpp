@@ -19,11 +19,11 @@
 #include <type_traits>
 #include "static_vector_space_descriptor.hpp"
 #include "dynamic_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/traits/internal/static_canonical_form.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/canonical_equivalent.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/internal/uniform_static_vector_space_descriptor_query.hpp"
 
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
   namespace detail
   {
@@ -42,7 +42,7 @@ namespace OpenKalman
     template<typename T>
     struct uniform_static_vector_space_descriptor_impl<T, std::enable_if_t<static_vector_space_descriptor<T>>>
 #endif
-      : internal::uniform_static_vector_space_descriptor_query<internal::static_canonical_form_t<std::decay_t<T>>> {};
+      : internal::uniform_static_vector_space_descriptor_query<std::decay_t<decltype(internal::canonical_equivalent(std::declval<T>()))>> {};
 
 
 #ifdef __cpp_concepts
@@ -69,6 +69,6 @@ namespace OpenKalman
     detail::uniform_static_vector_space_descriptor_impl<T>::value;
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 #endif //OPENKALMAN_UNIFORM_FIXED_VECTOR_SPACE_DESCRIPTOR_HPP

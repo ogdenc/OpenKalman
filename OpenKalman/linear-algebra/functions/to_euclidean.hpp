@@ -16,6 +16,12 @@
 #ifndef OPENKALMAN_TO_EUCLIDEAN_HPP
 #define OPENKALMAN_TO_EUCLIDEAN_HPP
 
+#include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
+#include "linear-algebra/concepts/indexible.hpp"
+#include "linear-algebra/traits/vector_space_descriptor_of.hpp"
+#include "linear-algebra/adapters/ToEuclideanExpr.hpp"
+#include "linear-algebra/interfaces/library-interfaces-defined.hpp"
+
 namespace OpenKalman
 {
   /**

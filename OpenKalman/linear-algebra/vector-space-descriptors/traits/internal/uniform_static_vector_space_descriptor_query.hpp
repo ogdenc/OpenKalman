@@ -27,7 +27,7 @@
 #include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp"
 
 
-namespace OpenKalman::internal
+namespace OpenKalman::descriptor::internal
 {
 #ifdef __cpp_concepts
     template<typename C>
@@ -83,6 +83,6 @@ namespace OpenKalman::internal
 #endif
       : std::true_type { using uniform_type = C; };
 
-} // namespace OpenKalman::internal
+} // namespace OpenKalman::descriptor::internal
 
 #endif //OPENKALMAN_UNIFORM_FIXED_VECTOR_SPACE_DESCRIPTOR_QUERY_HPP

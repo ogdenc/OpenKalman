@@ -16,7 +16,13 @@
 #ifndef OPENKALMAN_ALL_VECTOR_SPACE_DESCRIPTORS_HPP
 #define OPENKALMAN_ALL_VECTOR_SPACE_DESCRIPTORS_HPP
 
+#include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor_collection.hpp"
+#include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor_tuple.hpp"
+#include "linear-algebra/interfaces/object-traits-defined.hpp"
+#include "linear-algebra/concepts/indexible.hpp"
 #include "linear-algebra/property-functions/internal/VectorSpaceDescriptorRange.hpp"
+#include "linear-algebra/concepts/has_dynamic_dimensions.hpp"
+#include "linear-algebra/traits/index_count.hpp"
 
 namespace OpenKalman
 {

@@ -18,18 +18,22 @@
 
 #include <array>
 #include <functional>
-#include "linear-algebra/values/values.hpp"
-#include "linear-algebra/vector-space-descriptors/interfaces/static_vector_space_descriptor_traits.hpp"
+#include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/traits/static_concatenate.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/to_euclidean_element.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/from_euclidean_element.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/get_wrapped_component.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/set_wrapped_component.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/euclidean_dimension_size_of.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/vector_space_component_count.hpp"
-#include "linear-algebra/vector-space-descriptors/traits/dimension_difference_of.hpp"
-#include "Dimensions.hpp"
+#include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp"
+#include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp"
+#include "internal/prefix_base_of.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/is_prefix.hpp"
+#include "internal/static_canonical_form.hpp"
 
 namespace OpenKalman::descriptor
 {
@@ -170,21 +174,141 @@ namespace OpenKalman::interface
    * \brief traits for StaticDescriptor.
    */
   template<typename...Cs>
-  struct static_vector_space_descriptor_traits<descriptor::StaticDescriptor<Cs...>>
+  struct vector_space_traits<descriptor::StaticDescriptor<Cs...>>
   {
-    static constexpr std::size_t size = (0 + ... + descriptor::dimension_size_of_v<Cs>);
+  private:
+
+    using T = descriptor::StaticDescriptor<Cs...>;
+
+  public:
+
+    static constexpr bool
+    is_composite = true;
 
 
-    static constexpr std::size_t euclidean_size = (0 + ... + descriptor::euclidean_dimension_size_of_v<Cs>);
+    static constexpr auto
+    size(const T&)
+    {
+      return std::integral_constant<std::size_t, (0 + ... + descriptor::dimension_size_of_v<Cs>)>{};
+    };
 
 
-    static constexpr std::size_t component_count = (0 + ... + descriptor::vector_space_component_count<Cs>::value);
+    static constexpr auto
+    euclidean_size(const T&)
+    {
+      return std::integral_constant<std::size_t, (0 + ... + descriptor::euclidean_dimension_size_of_v<Cs>)>{};
+    };
 
 
-    using difference_type = descriptor::static_concatenate_t<descriptor::dimension_difference_of_t<Cs>...>;
+    static constexpr auto
+    component_count(const T&)
+    {
+      return std::integral_constant<std::size_t, (0 + ... + descriptor::vector_space_component_count_v<Cs>)>{};
+    };
 
 
-    static constexpr bool always_euclidean = (descriptor::euclidean_vector_space_descriptor<Cs> and ...);
+    static constexpr auto
+    is_euclidean(const T&)
+    {
+      return std::bool_constant<(... and descriptor::euclidean_vector_space_descriptor<Cs>)>{};
+    }
+
+
+    static constexpr auto
+    canonical_equivalent(const T&)
+    {
+      return descriptor::internal::static_canonical_form_t<T> {};
+    };
+
+  private:
+
+    //static constexpr std::array coordinate_table {internal::AnyAtomicVectorSpaceDescriptor<Scalar>{Cs{}}...};
+
+  public:
+
+#ifdef __cpp_concepts
+    template<typename Arg> requires requires { typename descriptor::internal::prefix_base_of_t<Arg, T>; }
+#else
+    template<typename Arg, typename = std::void_t<typename descriptor::internal::prefix_base_of<Arg, T>::type>>
+#endif
+    static constexpr auto
+    has_prefix(const T&, const Arg&)
+    {
+      std::cout << "c1" << std::endl;
+      return std::true_type{};
+    }
+
+
+    template<typename S>
+    static constexpr auto
+    has_prefix(const T& t, const descriptor::DynamicDescriptor<S>& arg)
+    {
+      std::cout << "c2" << std::endl;
+      return descriptor::internal::is_prefix(arg, descriptor::DynamicDescriptor<S>{t});
+    }
+
+
+#ifdef __cpp_concepts
+    template<descriptor::dynamic_vector_space_descriptor Arg> requires descriptor::euclidean_vector_space_descriptor<Arg>
+#else
+    template<typename Arg, typename = std::enable_if_t<descriptor::dynamic_vector_space_descriptor and
+      descriptor::euclidean_vector_space_descriptor<Arg>>>
+#endif
+    static constexpr auto
+    has_prefix(const T& t, const Arg& arg)
+    {
+      std::cout << "c3" << std::endl;
+      if constexpr (sizeof...(Cs) == 0)
+      {
+        return descriptor::get_dimension_size_of(arg) == 0;
+      }
+      else
+      {
+        using C0 = std::tuple_element_t<0, std::tuple<Cs...>>;
+        if constexpr (not descriptor::euclidean_vector_space_descriptor<C0>) return std::false_type{};
+        else return descriptor::get_dimension_size_of(arg) <= descriptor::dimension_size_of_v<C0>;
+      }
+    }
+
+  /*private:
+  public:
+
+    template<typename Arg>
+    static constexpr auto
+    add(const T&, const Arg&)
+    {
+      return concatenate<T, Arg>::type{};
+    }
+
+  private:
+
+    template<typename A>
+    struct reverse
+    {
+      using type = A;
+    };
+
+
+    template<typename A, typename...As>
+    struct reverse<descriptor::StaticDescriptor<A, As...>>
+    {
+      using type = descriptor::StaticDescriptor<typename reverse<descriptor::StaticDescriptor<As...>>::type, A>;
+    };
+
+  public:
+
+#ifdef __cpp_concepts
+    template<typename Arg> requires
+      requires { typename prefix_base<typename reverse<T>::type, typename reverse<Arg>::type>::type; }
+#else
+    template<typename Arg, typename = std::void_t<
+      typename prefix_base<typename reverse<T>::type, typename reverse<Arg>::type>::type>>
+#endif
+    static constexpr auto
+    subtract(const T&, const Arg&)
+    {
+      return typename reverse<typename prefix_base<typename reverse<T>::type, typename reverse<Arg>::type>::type>::type{};
+    }*/
 
   private:
 
@@ -243,103 +367,93 @@ namespace OpenKalman::interface
       const std::function<Scalar(std::size_t)>&, const Scalar&, std::size_t, std::size_t), 1 + sizeof...(Cs)>;
 
 
-#ifdef __cpp_concepts
     template<typename Scalar> static constexpr GArr<Scalar>
-    to_euclidean_array {static_vector_space_descriptor_traits<Cs>::to_euclidean_element... };
+    to_euclidean_array { [](const auto& g, std::size_t euclidean_local_index, std::size_t start)
+      { return descriptor::to_euclidean_element(Cs{}, g, euclidean_local_index, start); }... };
 
     template<typename Scalar> static constexpr GArr<Scalar>
-    from_euclidean_array {static_vector_space_descriptor_traits<Cs>::from_euclidean_element... };
+    from_euclidean_array { [](const auto& g, std::size_t local_index, std::size_t euclidean_start)
+      { return descriptor::from_euclidean_element(Cs{}, g, local_index, euclidean_start); }... };
 
     template<typename Scalar> static constexpr GArr<Scalar>
-    wrap_get_array {static_vector_space_descriptor_traits<Cs>::get_wrapped_component... };
+    wrap_get_array { [](const auto& g, std::size_t local_index, std::size_t start)
+      { return descriptor::get_wrapped_component(Cs{}, g, local_index, start); }... };
 
     template<typename Scalar> static constexpr SArr<Scalar>
-    wrap_set_array {static_vector_space_descriptor_traits<Cs>::set_wrapped_component... };
-#else
-  private:
-
-    template<typename Scalar> using Getter = std::function<Scalar(std::size_t)>;
-    template<typename Scalar> using Setter = std::function<void(const Scalar&, std::size_t)>;
-
-  public:
-
-    template<typename Scalar> static constexpr GArr<Scalar>
-    to_euclidean_array { static_vector_space_descriptor_traits<Cs>::template to_euclidean_element<Getter<Scalar>, 0>... };
-
-    template<typename Scalar> static constexpr GArr<Scalar>
-    from_euclidean_array { static_vector_space_descriptor_traits<Cs>::template from_euclidean_element<Getter<Scalar>, 0>... };
-
-    template<typename Scalar> static constexpr GArr<Scalar>
-    wrap_get_array { static_vector_space_descriptor_traits<Cs>::template get_wrapped_component<Getter<Scalar>, 0>... };
-
-    template<typename Scalar> static constexpr SArr<Scalar>
-    wrap_set_array { static_vector_space_descriptor_traits<Cs>::template set_wrapped_component<Setter<Scalar>, Getter<Scalar>, 0>... };
-#endif
+    wrap_set_array { [](const auto& s, const auto& g, const Scalar& x, std::size_t local_index, std::size_t start)
+      { return descriptor::set_wrapped_component(Cs{}, s, g, x, local_index, start); }... };
 
     static constexpr bool euclidean_type = (descriptor::euclidean_vector_space_descriptor<Cs> and ...);
 
   public:
 
 #ifdef __cpp_concepts
-    static constexpr value::number auto
-    to_euclidean_element(const auto& g, std::size_t euclidean_local_index, std::size_t start)
-    requires requires (std::size_t i){ {g(i)} -> value::number; }
+    static constexpr value::value auto
+    to_euclidean_component(const T&, const auto& g, const value::index auto& euclidean_local_index, const value::index auto& start)
+    requires requires(std::size_t i){ {g(i)} -> value::value; }
 #else
-    template<typename G, std::enable_if_t<value::number<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
-    static constexpr auto to_euclidean_element(const G& g, std::size_t euclidean_local_index, std::size_t start)
+    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
+      value::value<typename std::invoke_result<const Getter&, std::size_t>::type> and value::index<L> and value::index<S>, int> = 0>
+    static constexpr auto
+    to_euclidean_component(const T&, const Getter& g, const L& euclidean_local_index, const S& start)
 #endif
     {
       using Scalar = decltype(g(std::declval<std::size_t>()));
-      auto [tp, comp_euclidean_local_index, comp_start] = euclidean_index_table[euclidean_local_index];
-      return to_euclidean_array<Scalar>[tp](g, comp_euclidean_local_index, start + comp_start);
+      auto [tp, comp_euclidean_local_index, comp_start] = euclidean_index_table[static_cast<std::size_t>(euclidean_local_index)];
+      return to_euclidean_array<Scalar>[tp](g, comp_euclidean_local_index, static_cast<std::size_t>(start) + comp_start);
     }
 
 
 #ifdef __cpp_concepts
-    static constexpr value::number auto
-    from_euclidean_element(const auto& g, std::size_t local_index, std::size_t euclidean_start)
-    requires requires (std::size_t i){ {g(i)} -> value::number; }
+    static constexpr value::value auto
+    from_euclidean_component(const T&, const auto& g, const value::index auto& local_index, const value::index auto& euclidean_start)
+    requires requires(std::size_t i){ {g(i)} -> value::value; }
 #else
-    template<typename G, std::enable_if_t<value::number<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
-    static constexpr auto from_euclidean_element(const G& g, std::size_t local_index, std::size_t euclidean_start)
+    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
+      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
+    static constexpr auto
+    from_euclidean_component(const T&, const Getter& g, const L& local_index, const S& euclidean_start)
 #endif
     {
       using Scalar = decltype(g(std::declval<std::size_t>()));
-      auto [tp, comp_local_index, comp_euclidean_start] = index_table[local_index];
-      return from_euclidean_array<Scalar>[tp](g, comp_local_index, euclidean_start + comp_euclidean_start);
+      auto [tp, comp_local_index, comp_euclidean_start] = index_table[static_cast<std::size_t>(local_index)];
+      return from_euclidean_array<Scalar>[tp](g, comp_local_index, static_cast<std::size_t>(euclidean_start) + comp_euclidean_start);
     }
 
 
 #ifdef __cpp_concepts
-    static constexpr value::number auto
-    get_wrapped_component(const auto& g, std::size_t local_index, std::size_t start)
-    requires requires (std::size_t i){ {g(i)} -> value::number; }
+    static constexpr value::value auto
+    get_wrapped_component(const T&, const auto& g, const value::index auto& local_index, const value::index auto& start)
+    requires requires(std::size_t i){ {g(i)} -> value::value; }
 #else
-    template<typename G, std::enable_if_t<value::number<typename std::invoke_result<G, std::size_t>::type>, int> = 0>
-    static constexpr auto get_wrapped_component(const G& g, std::size_t local_index, std::size_t start)
+    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
+      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
+    static constexpr auto
+    get_wrapped_component(const T&, const Getter& g, const L& local_index, const S& start)
 #endif
     {
       using Scalar = decltype(g(std::declval<std::size_t>()));
-      auto [tp, comp_local_index, comp_euclidean_start] = index_table[local_index];
-      return wrap_get_array<Scalar>[tp](g, comp_local_index, start + local_index - comp_local_index);
+      auto [tp, comp_local_index, comp_euclidean_start] = index_table[static_cast<std::size_t>(local_index)];
+      return wrap_get_array<Scalar>[tp](g, comp_local_index, static_cast<std::size_t>(start) + static_cast<std::size_t>(local_index) - comp_local_index);
     }
 
 
 #ifdef __cpp_concepts
     static constexpr void
-    set_wrapped_component(const auto& s, const auto& g,
-      const std::decay_t<std::invoke_result_t<decltype(g), std::size_t>>& x, std::size_t local_index, std::size_t start)
-    requires requires (std::size_t i){ s(x, i); } and (euclidean_type or requires{ {x} -> value::number; })
+    set_wrapped_component(const T&, const auto& s, const auto& g, const value::value auto& x,
+      const value::index auto& local_index, const value::index auto& start)
+    requires requires(std::size_t i){ s(x, i); s(g(i), i); }
 #else
-    template<typename S, typename G, std::enable_if_t<value::number<typename std::invoke_result<G, std::size_t>::type> and
-      std::is_invocable<S, typename std::invoke_result<G, std::size_t>::type, std::size_t>::value, int> = 0>
-    static constexpr void set_wrapped_component(const S& s, const G& g,
-      const std::decay_t<typename std::invoke_result<G, std::size_t>::type>& x, std::size_t local_index, std::size_t start)
+    template<typename Setter, typename Getter, typename X, typename L, typename S, std::enable_if_t<
+      value::value<X> and value::index<L> and value::index<S> and
+      std::is_invocable<const Setter&, const X&, std::size_t>::value and
+      std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, std::size_t>::type, std::size_t>::value, int> = 0>
+    static constexpr void
+    set_wrapped_component(const T&, const Setter& s, const Getter& g, const X& x, const L& local_index, const S& start)
 #endif
     {
-      using X = std::decay_t<decltype(x)>;
-      auto [tp, comp_local_index, comp_euclidean_start] = index_table[local_index];
-      wrap_set_array<X>[tp](s, g, x, comp_local_index, start + local_index - comp_local_index);
+      auto [tp, comp_local_index, comp_euclidean_start] = index_table[static_cast<std::size_t>(local_index)];
+      wrap_set_array<std::decay_t<decltype(x)>>[tp](s, g, x, comp_local_index, static_cast<std::size_t>(start) + static_cast<std::size_t>(local_index) - comp_local_index);
     }
 
   };

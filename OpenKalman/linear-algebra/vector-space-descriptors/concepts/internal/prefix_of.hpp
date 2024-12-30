@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2024 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,25 +17,11 @@
 #ifndef OPENKALMAN_PREFIX_OF_HPP
 #define OPENKALMAN_PREFIX_OF_HPP
 
-#include <type_traits>
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/traits/internal/prefix_base_of.hpp"
-
+#include "linear-algebra/vector-space-descriptors/functions/internal/is_prefix.hpp"
 
 namespace OpenKalman::descriptor::internal
 {
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename U, typename = void>
-    struct prefix_of_impl : std::false_type {};
-
-    template<typename T, typename U>
-    struct prefix_of_impl<T, U, std::void_t<typename prefix_base_of<T, U>::type>> : std::true_type {};
-  } // namespace detail
-#endif
-
-
   /**
    * \brief T is a prefix of U, where T and U are sets of \ref static_vector_space_descriptor types.
    * \details If T is a prefix of U, then U is equivalent_to concatenating T with the remaining part of U.
@@ -47,12 +33,12 @@ namespace OpenKalman::descriptor::internal
    */
   template<typename T, typename U>
 #ifdef __cpp_concepts
-  concept prefix_of = static_vector_space_descriptor<T> and static_vector_space_descriptor<U> and
-    requires { typename prefix_base_of_t<T, U>; };
+  concept prefix_of =
 #else
   constexpr bool prefix_of =
-    static_vector_space_descriptor<T> and static_vector_space_descriptor<U> and detail::prefix_of_impl<T, U>::value;
 #endif
+    static_vector_space_descriptor<T> and static_vector_space_descriptor<U> and
+      static_cast<bool>(internal::is_prefix(T{}, U{}));
 
 
 } // namespace OpenKalman::descriptor::internal

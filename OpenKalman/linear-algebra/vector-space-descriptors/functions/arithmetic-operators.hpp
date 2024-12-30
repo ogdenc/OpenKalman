@@ -17,7 +17,7 @@
 #define OPENKALMAN_VECTOR_SPACE_DESCRIPTORS_ARITHMETIC_OPERATORS_HPP
 
 #include <type_traits>
-#include "linear-algebra/values/concepts/scalar.hpp"
+#include "linear-algebra/values/concepts/value.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
@@ -34,10 +34,10 @@ namespace OpenKalman::descriptor
    * \brief Add two sets of \ref vector_space_descriptor objects, whether fixed or dynamic.
    */
 #ifdef __cpp_concepts
-  template<vector_space_descriptor T, vector_space_descriptor U> requires (not value::scalar<T>) or (not value::scalar<U>)
+  template<vector_space_descriptor T, vector_space_descriptor U> requires (not value::value<T>) or (not value::value<U>)
 #else
   template<typename T, typename U, std::enable_if_t<vector_space_descriptor<T> and vector_space_descriptor<U> and
-    (not scalar_constant<T> or not scalar_constant<U>), int> = 0>
+    (not value::value<T> or not value::value<U>), int> = 0>
 #endif
   constexpr auto operator+(T&& t, U&& u)
   {
@@ -63,14 +63,15 @@ namespace OpenKalman::descriptor
    * \brief Subtract two \ref static_vector_space_descriptor values.
    */
 #ifdef __cpp_concepts
-  template<static_vector_space_descriptor T, internal::suffix_of<T> U> requires (not value::scalar<T>) or (not value::scalar<U>)
+  template<static_vector_space_descriptor T, static_vector_space_descriptor U> requires
+    internal::prefix_of<static_reverse_t<U>, static_reverse_t<T>> and (not value::value<T>) or (not value::value<U>)
 #else
-  template<typename T, typename U, std::enable_if_t<static_vector_space_descriptor<T> and internal::suffix_of<U, T> and
-    not (value::scalar<T> and value::scalar<U>), int> = 0>
+  template<typename T, typename U, std::enable_if_t<static_vector_space_descriptor<T> and static_vector_space_descriptor<U> and
+    internal::prefix_of<typename static_reverse<U>::type, typename static_reverse<T>::type> and not (value::scalar<T> and value::scalar<U>), int> = 0>
 #endif
   constexpr auto operator-(const T& t, const U& u)
   {
-    return internal::suffix_base_of_t<T, U> {};
+    return static_reverse_t<internal::prefix_base_of_t<static_reverse_t<T>, static_reverse_t<U>>> {};
   }
 
 
@@ -80,12 +81,12 @@ namespace OpenKalman::descriptor
 #ifdef __cpp_concepts
   template<euclidean_vector_space_descriptor T, euclidean_vector_space_descriptor U> requires
     (dynamic_vector_space_descriptor<T> or dynamic_vector_space_descriptor<U>) and
-    (not value::scalar<T> or not value::scalar<U>)
+    (not value::value<T> or not value::value<U>)
 #else
   template<typename T, typename U, std::enable_if_t<
     euclidean_vector_space_descriptor<T> and euclidean_vector_space_descriptor<U> and
     (dynamic_vector_space_descriptor<T> or dynamic_vector_space_descriptor<U>) and
-    (not value::scalar<T> or not value::scalar<U>), int> = 0>
+    (not value::value<T> or not value::value<U>), int> = 0>
 #endif
   constexpr auto operator-(const T& t, const U& u)
   {

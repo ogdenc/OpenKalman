@@ -17,17 +17,25 @@
 #define OPENKALMAN_EUCLIDEAN_VECTOR_SPACE_DESCRIPTOR_HPP
 
 #include <type_traits>
-#include "linear-algebra/vector-space-descriptors/interfaces/static_vector_space_descriptor_traits.hpp"
-#include "linear-algebra/vector-space-descriptors/interfaces/dynamic_vector_space_descriptor_traits.hpp"
+#include "linear-algebra/values/traits/fixed_number_of.hpp"
+#include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
 #include "vector_space_descriptor.hpp"
-
 
 namespace OpenKalman::descriptor
 {
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct is_euclidean_vector_space_descriptor : std::false_type {};
 
-  // ------------------------------------- //
-  //   euclidean_vector_space_descriptor   //
-  // ------------------------------------- //
+    template<typename T>
+    struct is_euclidean_vector_space_descriptor<T, std::enable_if_t<
+      value::fixed_number_of<decltype(interface::vector_space_traits<std::decay_t<T>>::is_euclidean(std::declval<T>()))>::value>>
+      : std::true_type {};
+  }
+#endif
+
 
   /**
    * \brief A \ref vector_space_descriptor for a normal tensor index, which identifies non-modular coordinates in Euclidean space.
@@ -38,29 +46,12 @@ namespace OpenKalman::descriptor
 #ifdef __cpp_concepts
   template<typename T>
   concept euclidean_vector_space_descriptor = vector_space_descriptor<T> and
-    (interface::static_vector_space_descriptor_traits<std::decay_t<T>>::always_euclidean or
-      interface::dynamic_vector_space_descriptor_traits<std::decay_t<T>>::always_euclidean);
+    value::fixed_number_of<decltype(interface::vector_space_traits<std::decay_t<T>>::is_euclidean(std::declval<T>()))>::value;
 #else
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct is_euclidean_vector_space_descriptor : std::false_type {};
-
-    template<typename T>
-    struct is_euclidean_vector_space_descriptor<T, std::enable_if_t<static_vector_space_descriptor<T> and
-        interface::static_vector_space_descriptor_traits<T>::always_euclidean>>
-      : std::true_type {};
-
-    template<typename T>
-    struct is_euclidean_vector_space_descriptor<T, std::enable_if_t<dynamic_vector_space_descriptor<T> and
-        interface::dynamic_vector_space_descriptor_traits<std::decay_t<T>>::always_euclidean>>
-      : std::true_type {};
-  }
-
   template<typename T>
-  constexpr bool euclidean_vector_space_descriptor = detail::is_euclidean_vector_space_descriptor<std::decay_t<T>>::value;
+  constexpr bool euclidean_vector_space_descriptor = vector_space_descriptor<T> and
+    detail::is_euclidean_vector_space_descriptor<std::decay_t<T>>::value;
 #endif
-
 
 } // namespace OpenKalman::descriptor
 

@@ -17,9 +17,9 @@
 #define OPENKALMAN_EUCLIDEAN_DIMENSION_SIZE_OF_HPP
 
 #include <type_traits>
-#include "linear-algebra/vector-space-descriptors/interfaces/static_vector_space_descriptor_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
+#include <linear-algebra/vector-space-descriptors/functions/get_euclidean_dimension_size_of.hpp>
 
 
 namespace OpenKalman::descriptor
@@ -44,7 +44,7 @@ namespace OpenKalman::descriptor
   template<typename T>
   struct euclidean_dimension_size_of<T, std::enable_if_t<static_vector_space_descriptor<T>>>
 #endif
-    : std::integral_constant<std::size_t, interface::static_vector_space_descriptor_traits<std::decay_t<T>>::euclidean_size> {};
+    : std::integral_constant<std::size_t, value::to_number(get_euclidean_dimension_size_of(T{}))> {};
 
 
   /**

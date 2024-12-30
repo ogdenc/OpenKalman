@@ -89,7 +89,7 @@ namespace OpenKalman::internal
   }
 
 
-} // namespace OPENKALMAN_IS_UNIFORM_COMPONENT_OF_HPP::internal
+} // namespace OpenKalman::internal
 
 
 #endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_FUNCTIONS_HPP

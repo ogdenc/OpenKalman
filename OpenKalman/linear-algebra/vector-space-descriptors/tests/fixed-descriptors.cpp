@@ -23,7 +23,7 @@
 
 using namespace OpenKalman::descriptor;
 
-#include "linear-algebra/vector-space-descriptors/traits/internal/static_canonical_form.hpp"
+#include "linear-algebra/vector-space-descriptors/interfaces/index.hpp"
 
 TEST(descriptors, integral_constant)
 {

@@ -81,7 +81,7 @@ namespace OpenKalman
     else if constexpr (diagonal_matrix<A>)
     {
       // \todo Add facility to potentially use native library operators such as a square-root operator.
-      return to_diagonal(n_ary_operation([](const auto x){ using std::sqrt; return sqrt(x); }, diagonal_of(std::forward<A>(a))));
+      return to_diagonal(n_ary_operation([](const auto x){ return value::sqrt(x); }, diagonal_of(std::forward<A>(a))));
     }
     else
     {

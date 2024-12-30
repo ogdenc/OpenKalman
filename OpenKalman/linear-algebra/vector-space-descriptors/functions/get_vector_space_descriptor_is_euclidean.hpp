@@ -16,8 +16,7 @@
 #ifndef OPENKALMAN_GET_VECTOR_SPACE_DESCRIPTOR_IS_EUCLIDEAN_HPP
 #define OPENKALMAN_GET_VECTOR_SPACE_DESCRIPTOR_IS_EUCLIDEAN_HPP
 
-#include "linear-algebra/vector-space-descriptors/interfaces/dynamic_vector_space_descriptor_traits.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
 
 
@@ -34,12 +33,7 @@ namespace OpenKalman::descriptor
   constexpr bool
   get_vector_space_descriptor_is_euclidean(const T& t)
   {
-    if constexpr (static_vector_space_descriptor<T>) return euclidean_vector_space_descriptor<T>;
-    else
-    {
-      interface::dynamic_vector_space_descriptor_traits ret{t};
-      return ret.is_euclidean();
-    }
+    return interface::vector_space_traits<T>::is_euclidean(t);
   }
 
 

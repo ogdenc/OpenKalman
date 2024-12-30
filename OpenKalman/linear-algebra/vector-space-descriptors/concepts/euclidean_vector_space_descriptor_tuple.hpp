@@ -22,7 +22,7 @@
 #include "basics/global-definitions.hpp"
 #include "euclidean_vector_space_descriptor.hpp"
 
-namespace OpenKalman
+namespace OpenKalman::descriptor
 {
 #if not defined(__cpp_concepts) or not defined(__cpp_lib_remove_cvref) or __cpp_generic_lambdas < 201707L
   namespace detail
@@ -62,6 +62,6 @@ namespace OpenKalman
 #endif
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::descriptor
 
 #endif //OPENKALMAN_EUCLIDEAN_VECTOR_SPACE_DESCRIPTOR_TUPLE_HPP
