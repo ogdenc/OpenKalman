@@ -40,7 +40,7 @@ namespace OpenKalman::descriptor
 
  
     template<typename T>
-    struct is_static_descriptor_tuple<T, std::enable_if_t<internal::tuple_like<T>>>
+    struct is_static_descriptor_tuple<T, std::enable_if_t<OpenKalman::internal::tuple_like<T>>>
       : std::bool_constant<is_static_descriptor_tuple_impl<T>(std::make_index_sequence<std::tuple_size_v<T>>{})> {};
 
   } // namespace detail
@@ -53,7 +53,7 @@ namespace OpenKalman::descriptor
   template<typename T>
 #if defined(__cpp_concepts) and defined(__cpp_lib_remove_cvref) and __cpp_generic_lambdas >= 201707L
   concept static_vector_space_descriptor_tuple =
-    internal::tuple_like<T> and
+    OpenKalman::internal::tuple_like<T> and
     []<std::size_t...Ix>(std::index_sequence<Ix...>)
       { return (... and static_vector_space_descriptor<std::tuple_element_t<Ix, std::remove_cvref_t<T>>>); }
       (std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});

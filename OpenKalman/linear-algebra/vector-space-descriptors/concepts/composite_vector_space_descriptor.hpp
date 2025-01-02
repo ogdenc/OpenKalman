@@ -16,34 +16,11 @@
 #ifndef OPENKALMAN_COMPOSITE_VECTOR_SPACE_DESCRIPTOR_HPP
 #define OPENKALMAN_COMPOSITE_VECTOR_SPACE_DESCRIPTOR_HPP
 
-#include <type_traits>
 #include "vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp"
-
+#include "linear-algebra/vector-space-descriptors/traits/vector_space_component_count.hpp"
 
 namespace OpenKalman::descriptor
 {
-  namespace detail
-  {
-#ifdef __cpp_concepts
-    template<typename T>
-#else
-    template<typename T typename = void>
-#endif
-    struct is_composite_vector_space_descriptor : std::false_type {};
-
-
-#ifdef __cpp_concepts
-    template<typename T> requires interface::vector_space_traits<T>::is_composite
-    struct is_composite_vector_space_descriptor<T>
-#else
-    template<typename T>
-    struct is_composite_vector_space_descriptor<T, std::enable_if_t<interface::vector_space_traits<T>::is_composite>>
-#endif
-      : std::true_type {};
-  }
-
-
   /**
    * \brief T is a \ref composite_vector_space_descriptor.
    * \details A composite \ref vector_space_descriptor object is a container for other \ref vector_space_descriptor, and can either be
@@ -56,7 +33,7 @@ namespace OpenKalman::descriptor
 #else
   constexpr bool composite_vector_space_descriptor =
 #endif
-    vector_space_descriptor<T> and detail::is_composite_vector_space_descriptor<std::decay_t<T>>::value;
+    vector_space_descriptor<T> and (vector_space_component_count_v<T> != 1);
 
 
 } // namespace OpenKalman::descriptor

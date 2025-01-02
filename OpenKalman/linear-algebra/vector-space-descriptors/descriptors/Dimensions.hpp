@@ -18,6 +18,7 @@
 
 #include <cstddef>
 #include <type_traits>
+#include <array>
 #include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
@@ -26,6 +27,7 @@
 #include "linear-algebra/vector-space-descriptors/functions/get_dimension_size_of.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_is_euclidean.hpp"
 #include "StaticDescriptor.hpp"
+#include "internal/AnyAtomicVectorSpaceDescriptor.hpp"
 
 namespace OpenKalman::descriptor
 {
@@ -223,7 +225,10 @@ namespace OpenKalman::interface
 
 
     static constexpr auto
-    component_count(const T& t) { return size(t); }
+    collection(const T& t)
+    {
+      return std::array {t};
+    }
 
 
     static constexpr auto

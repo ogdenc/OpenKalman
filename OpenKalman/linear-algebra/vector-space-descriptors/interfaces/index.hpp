@@ -47,7 +47,7 @@ namespace OpenKalman::interface
 
 
     static constexpr auto
-    component_count(const T& t) { return t; }
+    collection(const T& t) { return std::tuple {t}; }
 
 
     static constexpr auto

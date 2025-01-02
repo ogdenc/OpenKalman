@@ -91,12 +91,19 @@ namespace OpenKalman::interface
     static constexpr std::tuple<Eigen::Index, Eigen::Index>
     extract_indices(const Indices& indices)
     {
-      auto it = indices.begin();
-      if (it == indices.end()) return {0, 0};
+#ifdef __cpp_lib_ranges
+      auto it = std::ranges::begin(indices);
+      auto e = std::ranges::end(indices);
+#else
+      using std::begin, std::end;
+      auto it = begin(indices);
+      auto e = end(indices);
+#endif
+      if (it == e) return {0, 0};
       auto i = static_cast<std::size_t>(*it);
-      if (++it == indices.end()) return {i, 0};
+      if (++it == e) return {i, 0};
       auto j = static_cast<std::size_t>(*it);
-      if (++it == indices.end()) return {i, j};
+      if (++it == e) return {i, j};
       throw std::logic_error("Wrong number of indices on component access");
     }
 
@@ -339,12 +346,19 @@ namespace OpenKalman::interface
       }
       else
       {
-        auto it = descriptors.begin();
-        if (it == descriptors.end()) return std::tuple {descriptor::Axis{}, descriptor::Axis{}};
+#ifdef __cpp_lib_ranges
+        auto it = std::ranges::begin(descriptors);
+        auto e = std::ranges::end(descriptors);
+#else
+        using std::begin, std::end;
+        auto it = begin(descriptors);
+        auto e = end(descriptors);
+#endif
+        if (it == e) return std::tuple {descriptor::Axis{}, descriptor::Axis{}};
         auto i = *it;
-        if (++it == descriptors.end()) return std::tuple {i, descriptor::Axis{}};
+        if (++it == e) return std::tuple {i, descriptor::Axis{}};
         auto j = *it;
-        if (++it == descriptors.end()) return std::tuple {i, j};
+        if (++it == e) return std::tuple {i, j};
         throw std::logic_error("Wrong number of vector space descriptors");
       }
     }

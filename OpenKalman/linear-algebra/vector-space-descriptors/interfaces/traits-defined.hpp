@@ -37,20 +37,19 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-  template<typename A, typename B>
-  concept has_prefix_defined_for = requires (A a, B b) { interface::vector_space_traits<std::decay_t<A>>::has_prefix(a, b); };
+  template<typename T>
+  concept hash_code_defined_for = requires (T t) { interface::vector_space_traits<std::decay_t<T>>::hash_code(t); };
 #else
-  template<typename A, typename B, typename = void>
-  struct has_prefix_defined_for_impl : std::false_type {};
+  template<typename T, typename = void>
+  struct hash_code_defined_for_impl : std::false_type {};
 
-  template<typename A, typename B>
-  struct has_prefix_defined_for_impl<A, B, std::void_t<
-    decltype(interface::vector_space_traits<std::decay_t<A>>::has_prefix(std::declval<A>(), std::declval<B>()))>> : std::true_type {};
+  template<typename T>
+  struct hash_code_defined_for_impl<T, std::void_t<
+  decltype(interface::vector_space_traits<std::decay_t<T>>::hash_code(std::declval<T>()))>> : std::true_type {};
 
-  template<typename A, typename B>
-  constexpr bool has_prefix_defined_for = has_prefix_defined_for_impl<A, B>::value;
+  template<typename T>
+  constexpr bool hash_code_defined_for = hash_code_defined_for_impl<T>::value;
 #endif
-
 
 } // namespace OpenKalman::interface
 

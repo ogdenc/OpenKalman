@@ -43,19 +43,20 @@ namespace OpenKalman::internal
         internal::smallest_vector_space_descriptor<scalar_type_of_t<T>>(std::ranges::views::take(indices, 2)),
         indices | std::ranges::views::drop(2));
 #else
-      auto it = descriptors.begin();
+      using std::begin, std::end;
+      auto it = begin(descriptors);
       auto new_descriptors = std::vector<std::decay_t<decltype(*it)>>{};
       auto i0 = it;
       auto i1 = ++it;
-      if (i1 == descriptors.end())
+      if (i1 == end(descriptors))
       {
         new_descriptors.emplace_back(descriptor::Axis{});
       }
-      else if (i0 != descriptors.end())
+      else if (i0 != end(descriptors))
       {
         auto d0 = internal::smallest_vector_space_descriptor<scalar_type_of_t<T>>(*i0, *i1);
         new_descriptors.emplace_back(d0);
-        std::copy(++it, descriptors.end(), ++new_descriptors.begin());
+        std::copy(++it, end(descriptors), ++begin(new_descriptors));
       }
 #endif
       return make_constant<T>(std::forward<C>(c), new_descriptors);

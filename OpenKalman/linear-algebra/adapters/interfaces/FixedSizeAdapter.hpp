@@ -167,7 +167,12 @@ namespace OpenKalman::interface
       {
         constexpr auto N = index_count_v<Object>; //< We know N is not dynamic_size because index_range_for is not satisfied.
         std::array<std::size_t, N> ret;
+#ifdef __cpp_lib_ranges
+        std::ranges::fill(std::ranges::copy(std::ranges::begin(indices), std::ranges::end(indices), std::ranges::begin(ret)), std::ranges::end(ret), 0);
+#else
+        using std::begin, std::end;
         std::fill(std::copy(indices.begin(), indices.end(), ret.begin()), ret.end(), 0);
+#endif
         return ret;
       }
       else return indices;

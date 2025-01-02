@@ -111,7 +111,7 @@ namespace OpenKalman::internal
       std::vector<std::ptrdiff_t> vec(count);
       if constexpr (l == Layout::left)
       {
-        auto v = vec.begin();
+        auto v = std::begin(vec);
         std::ptrdiff_t curr_stride = 1;
         for (int i = 0; i < count; ++i)
         {

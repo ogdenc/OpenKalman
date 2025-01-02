@@ -22,6 +22,7 @@
 #include <concepts>
 #endif
 #include <cmath>
+#include <array>
 #include "basics/language-features.hpp"
 #include "linear-algebra/values/concepts/number.hpp"
 #include "linear-algebra/values/concepts/floating.hpp"
@@ -185,7 +186,7 @@ namespace OpenKalman::interface
 
 
     static constexpr auto
-    component_count(const T&) { return std::integral_constant<std::size_t, 1>{}; };
+    collection(const T& t) { return std::array {t}; }
 
 
     static constexpr auto

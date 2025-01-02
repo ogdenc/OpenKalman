@@ -93,7 +93,12 @@ namespace OpenKalman::interface
     get_component(Arg&& arg, const Indices& indices)
     {
       constexpr std::size_t ix_count = Eigen::internal::traits<T>::NumDimensions;
-      return get_component(std::forward<Arg>(arg), make_ix_array<ix_count>(indices.begin(), indices.end()));
+#ifdef __cpp_lib_ranges
+      return get_component(std::forward<Arg>(arg), make_ix_array<ix_count>(std::ranges::begin(indices), std::ranges::end(indices)));
+#else
+      using std::begin, std::end;
+      return get_component(std::forward<Arg>(arg), make_ix_array<ix_count>(begin(indices), end(indices)));
+#endif
     }
 
 
@@ -122,7 +127,12 @@ namespace OpenKalman::interface
     set_component(Arg& arg, const scalar_type_of_t<T>& s, const Indices& indices)
     {
       constexpr std::size_t ix_count = Eigen::internal::traits<T>::NumDimensions;
-      set_component(arg, s, make_ix_array<ix_count>(indices.begin(), indices.end()));
+#ifdef __cpp_lib_ranges
+      set_component(arg, s, make_ix_array<ix_count>(std::ranges::begin(indices), std::ranges::end(indices)));
+#else
+      using std::begin, std::end;
+      set_component(arg, s, make_ix_array<ix_count>(begin(indices), end(indices)));
+#endif
     }
 
   private:

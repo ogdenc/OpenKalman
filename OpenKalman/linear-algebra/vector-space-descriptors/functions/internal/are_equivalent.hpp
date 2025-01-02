@@ -25,6 +25,7 @@
 #include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/get_dimension_size_of.hpp"
 #include "canonical_equivalent.hpp"
+#include "is_prefix.hpp"
 
 namespace OpenKalman::descriptor::internal
 {
@@ -46,37 +47,30 @@ namespace OpenKalman::descriptor::internal
     {
       return value::operation {std::equal_to<>{}, get_dimension_size_of(a), get_dimension_size_of(b)};
     }
+    else if constexpr (euclidean_vector_space_descriptor<B>)
+    {
+      return value::operation {
+        std::logical_and<>{},
+        get_vector_space_descriptor_is_euclidean(a),
+        value::operation{std::equal_to<>{}, get_dimension_size_of(a), get_dimension_size_of(b)}};
+    }
+    else if constexpr (euclidean_vector_space_descriptor<A>)
+    {
+      return value::operation {
+        std::logical_and<>{},
+        get_vector_space_descriptor_is_euclidean(b),
+        value::operation{std::equal_to<>{}, get_dimension_size_of(a), get_dimension_size_of(b)}};
+    }
+    else if constexpr (static_vector_space_descriptor<A> and static_vector_space_descriptor<B>)
+    {
+      return std::is_same<std::decay_t<decltype(canonical_equivalent(a))>, std::decay_t<decltype(canonical_equivalent(b))>>{};
+    }
     else
     {
-      using CA = std::decay_t<decltype(canonical_equivalent(a))>;
-      using CB = std::decay_t<decltype(canonical_equivalent(b))>;
-
-      if constexpr (static_vector_space_descriptor<CA> and std::is_same_v<CA, CB>)
-      {
-        return std::true_type{};
-      }
-      else if constexpr (interface::has_prefix_defined_for<CA, CB>)
-      {
-        auto ca = canonical_equivalent(a);
-        auto cb = canonical_equivalent(b);
-        return value::operation {
-          std::logical_and<>{},
-          interface::vector_space_traits<CA>::has_prefix(ca, cb),
-          value::operation{std::equal_to<>{}, get_dimension_size_of(ca), get_dimension_size_of(cb)}};
-      }
-      else if constexpr (interface::has_prefix_defined_for<CB, CA>)
-      {
-        auto ca = canonical_equivalent(a);
-        auto cb = canonical_equivalent(b);
-        return value::operation {
-          std::logical_and<>{},
-          interface::vector_space_traits<CB>::has_prefix(cb, ca),
-          value::operation{std::equal_to<>{}, get_dimension_size_of(ca), get_dimension_size_of(cb)}};
-      }
-      else
-      {
-        return std::false_type{};
-      }
+      return value::operation {
+        std::logical_and<>{},
+        is_prefix(a, b),
+        value::operation{std::equal_to<>{}, get_dimension_size_of(a), get_dimension_size_of(b)}};
     }
   }
 

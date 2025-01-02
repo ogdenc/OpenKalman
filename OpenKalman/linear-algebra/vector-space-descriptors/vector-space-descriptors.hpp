@@ -65,19 +65,21 @@ namespace OpenKalman::descriptor {}
 #include "concepts/euclidean_vector_space_descriptor_tuple.hpp"
 #include "concepts/euclidean_vector_space_descriptor_collection.hpp"
 
-#include "concepts/composite_vector_space_descriptor.hpp"
-#include "concepts/atomic_static_vector_space_descriptor.hpp"
-
 // interface-based traits and functions
 
 #include "functions/get_dimension_size_of.hpp"
 #include "functions/get_euclidean_dimension_size_of.hpp"
+#include "functions/get_collection_of.hpp"
 #include "functions/get_vector_space_descriptor_component_count_of.hpp"
 #include "functions/get_vector_space_descriptor_is_euclidean.hpp"
+#include "functions/get_hash_code.hpp"
 
 #include "traits/dimension_size_of.hpp"
 #include "traits/euclidean_dimension_size_of.hpp"
 #include "traits/vector_space_component_count.hpp"
+
+#include "concepts/composite_vector_space_descriptor.hpp"
+#include "concepts/atomic_static_vector_space_descriptor.hpp"
 
 #include "functions/to_euclidean_element.hpp"
 #include "functions/from_euclidean_element.hpp"

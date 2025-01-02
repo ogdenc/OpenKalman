@@ -19,6 +19,8 @@
 #include <cmath>
 #include <type_traits>
 #include <stdexcept>
+#include <array>
+#include <typeinfo>
 #include "linear-algebra/values/values.hpp"
 #include "linear-algebra/values/functions/internal/update_real_part.hpp"
 #include "linear-algebra/values/functions/abs.hpp"
@@ -93,7 +95,7 @@ namespace OpenKalman::interface
 
 
     static constexpr auto
-    component_count(const T&) { return std::integral_constant<std::size_t, 1>{}; };
+    collection(const T& t) { return std::array {t}; }
 
 
     static constexpr auto

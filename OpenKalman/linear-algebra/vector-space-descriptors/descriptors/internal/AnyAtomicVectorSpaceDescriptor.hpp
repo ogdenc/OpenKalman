@@ -236,10 +236,6 @@ namespace OpenKalman::interface
 
   public:
 
-    static constexpr bool
-    is_composite = false;
-
-
     static constexpr auto
     size(const T& t) { return t.mConcept->size(); }
 
@@ -249,30 +245,15 @@ namespace OpenKalman::interface
 
 
     static constexpr auto
-    component_count(const T& t) { return std::integral_constant<std::size_t, 1>{}; }
+    collection(const T& t) { return std::array<const T&, 1> {t}; }
 
 
     static constexpr auto
     is_euclidean(const T& t) { return t.mConcept->is_euclidean(); }
 
 
-    static constexpr auto
-    has_prefix(const T& t, const T& arg)
-    {
-      std::cout << "a1" << std::endl;
-      if (arg.mConcept->size() == 0) return true;
-      else return t.mConcept->get_type_index() == arg.mConcept->get_type_index();
-    }
-
-
-    template<typename Arg>
-    static constexpr auto
-    has_prefix(const T& t, const Arg& arg)
-    {
-      std::cout << "a2" << std::endl;
-      if (descriptor::get_dimension_size_of(arg) == 0) return true;
-      else return t.mConcept->get_type_index() == std::type_index {typeid(std::decay_t<decltype(descriptor::internal::canonical_equivalent(arg))>)};
-    }
+    static constexpr std::size_t
+    hash_code(const T& t) { return t.mConcept->get_type_index().hash_code(); }
 
 
 #ifdef __cpp_concepts

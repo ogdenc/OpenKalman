@@ -16,10 +16,10 @@
 #ifndef OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_COMPONENT_COUNT_OF_HPP
 #define OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_COMPONENT_COUNT_OF_HPP
 
-#include <type_traits>
-#include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
+#include <tuple>
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
-
+#include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor_collection.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/get_collection_of.hpp"
 
 namespace OpenKalman::descriptor
 {
@@ -34,7 +34,20 @@ namespace OpenKalman::descriptor
   constexpr std::size_t
   get_vector_space_descriptor_component_count_of(const T& t)
   {
-    return interface::vector_space_traits<T>::component_count(t);
+    using C = std::decay_t<decltype(descriptor::get_collection_of(t))>;
+    if constexpr (descriptor::static_vector_space_descriptor_collection<C>)
+    {
+      return std::tuple_size_v<C>;
+    }
+    else
+    {
+#ifdef __cpp_lib_ranges
+      return std::ranges::size(descriptor::get_collection_of(t));
+#else
+      using std::size;
+      return size(descriptor::get_collection_of(t));
+#endif
+    }
   }
 
 

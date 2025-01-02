@@ -27,6 +27,22 @@ namespace OpenKalman
   namespace detail
   {
     template<typename Indices, typename Indexible, typename = void>
+    struct index_range_for_impl_std_it : std::false_type {};
+
+    template<typename Indices, typename Indexible>
+    struct index_range_for_impl_std_it<Indices, Indexible, std::enable_if_t<value::index<decltype(*std::begin(std::declval<Indices>()))>>>
+        : std::true_type {};
+
+
+    template<typename Indices, typename Indexible, typename = void>
+    struct index_range_for_impl_it : std::false_type {};
+
+    template<typename Indices, typename Indexible>
+    struct index_range_for_impl_it<Indices, Indexible, std::enable_if_t<value::index<decltype(*begin(std::declval<Indices>()))>>>
+        : std::true_type {};
+
+
+    template<typename Indices, typename Indexible, typename = void>
     struct index_range_for_impl : std::false_type {};
 
     template<typename Indices, typename Indexible>
@@ -34,6 +50,7 @@ namespace OpenKalman
       internal::static_collection_size<Indices>::value == dynamic_size or index_count<Indexible>::value == dynamic_size or
       internal::static_collection_size<Indices>::value >= index_count<Indexible>::value>>
         : std::true_type {};
+
   }
 #endif
 
@@ -51,7 +68,8 @@ namespace OpenKalman
       internal::static_collection_size_v<Indices> >= index_count_v<T>);
 #else
   constexpr bool index_range_for =
-    indexible<T> and value::index<decltype(*std::declval<Indices>().begin())> and
+    indexible<T> and
+    (detail::index_range_for_impl_std_it<Indices, T>::value or detail::index_range_for_impl_it<Indices, T>::value) and
     interface::get_component_defined_for<T, T, Indices> and 
     detail::index_range_for_impl<Indices, T>::value;
 #endif

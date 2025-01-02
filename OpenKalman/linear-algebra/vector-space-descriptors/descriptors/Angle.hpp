@@ -22,10 +22,10 @@
 #include <concepts>
 #endif
 #include <cmath>
+#include <array>
 #include "basics/language-features.hpp"
 #include "linear-algebra/values/concepts/number.hpp"
 #include "linear-algebra/values/concepts/value.hpp"
-#include "linear-algebra/values/concepts/integral.hpp"
 #include "linear-algebra/values/functions/internal/update_real_part.hpp"
 #include "linear-algebra/values/functions/sin.hpp"
 #include "linear-algebra/values/functions/cos.hpp"
@@ -207,7 +207,7 @@ namespace OpenKalman::interface
 
 
     static constexpr auto
-    component_count(const T&) { return std::integral_constant<std::size_t, 1>{}; };
+    collection(const T& t) { return std::array {t}; }
 
 
     static constexpr auto

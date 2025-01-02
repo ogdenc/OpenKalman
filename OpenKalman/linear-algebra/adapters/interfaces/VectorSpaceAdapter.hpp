@@ -72,17 +72,22 @@ namespace OpenKalman::interface
             std::forward<Arg>(arg).my_descriptors)[n];
         }
       }
-#ifdef __cpp_lib_ranges
-      else if (n >= std::ranges::size(arg))
-#else
-      else if (n >= std::size(arg))
-#endif
-      {
-        return descriptor::DynamicDescriptor<scalar_type>{descriptor::Axis{}};
-      }
       else
       {
-        return static_cast<descriptor::DynamicDescriptor<scalar_type>>(std::forward<Arg>(arg).my_descriptors[n]);
+        using Dyn = descriptor::DynamicDescriptor<scalar_type>;
+#ifdef __cpp_lib_ranges
+        if (n >= std::ranges::size(arg.my_descriptors))
+#else
+        using std::size;
+        if (n >= std::size(arg.my_descriptors))
+#endif
+        {
+          return Dyn {descriptor::Axis{}};
+        }
+        else
+        {
+          return static_cast<Dyn>(std::forward<Arg>(arg).my_descriptors[n]);
+        }
       }
     }
 

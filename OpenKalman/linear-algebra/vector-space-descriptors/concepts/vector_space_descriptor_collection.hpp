@@ -30,11 +30,19 @@ namespace OpenKalman::descriptor
   namespace detail
   {
     template<typename T, typename = void>
-    struct is_descriptor_range : std::false_type {};
+    struct is_descriptor_range_std : std::false_type {};
  
     template<typename T>
-    struct is_descriptor_range<T, std::enable_if_t<vector_space_descriptor<decltype(*std::declval<T>().begin())>>> 
-      : std::true_type {}; 
+    struct is_descriptor_range_std<T, std::enable_if_t<vector_space_descriptor<decltype(*std::begin(std::declval<T>()))>>>
+      : std::true_type {};
+
+
+    template<typename T, typename = void>
+    struct is_descriptor_range : std::false_type {};
+
+    template<typename T>
+    struct is_descriptor_range<T, std::enable_if_t<vector_space_descriptor<decltype(*begin(std::declval<T>()))>>>
+      : std::true_type {};
   } // namespace detail
 #endif 
 
@@ -49,7 +57,8 @@ namespace OpenKalman::descriptor
     (vector_space_descriptor_tuple<T> or vector_space_descriptor<std::ranges::range_value_t<std::decay_t<T>>>);
 #else
   constexpr bool vector_space_descriptor_collection = internal::collection<T> and
-    (vector_space_descriptor_tuple<T> or detail::is_descriptor_range<std::decay_t<T>>::value);
+    (vector_space_descriptor_tuple<T> or detail::is_descriptor_range_std<std::decay_t<T>>::value or
+      detail::is_descriptor_range<std::decay_t<T>>::value);
 #endif
 
 

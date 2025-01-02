@@ -17,9 +17,8 @@
 #define OPENKALMAN_VECTOR_SPACE_COMPONENT_COUNT_HPP
 
 #include <type_traits>
-#include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_component_count_of.hpp"
+#include "basics/internal/static_collection_size.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/get_collection_of.hpp"
 
 
 namespace OpenKalman::descriptor
@@ -32,19 +31,10 @@ namespace OpenKalman::descriptor
 #ifdef __cpp_concepts
   template<vector_space_descriptor T>
 #else
-  template<typename T, typename = void>
-#endif
-  struct vector_space_component_count : std::integral_constant<std::size_t, dynamic_size> {};
-
-
-#ifdef __cpp_concepts
-  template<static_vector_space_descriptor T>
-  struct vector_space_component_count<T>
-#else
   template<typename T>
-  struct vector_space_component_count<T, std::enable_if_t<static_vector_space_descriptor<T>>>
 #endif
-    : std::integral_constant<std::size_t, value::to_number(get_vector_space_descriptor_component_count_of(T{}))> {};
+  struct vector_space_component_count
+    : OpenKalman::internal::static_collection_size<decltype(descriptor::get_collection_of(std::declval<T>()))> {};
 
 
   /**

@@ -19,6 +19,8 @@
 
 #ifdef __cpp_lib_ranges
 #include <ranges>
+#else
+#include <iterator>
 #endif
 #include "basics/global-definitions.hpp"
 
@@ -28,17 +30,57 @@ namespace OpenKalman::internal
   namespace detail
   {
     template<typename T, typename = void>
-    struct is_collection_impl : std::false_type {};
- 
+    struct is_collection_impl_std_begin : std::false_type {};
+
     template<typename T>
-    struct is_collection_impl<T, std::void_t<
+    struct is_collection_impl_std_begin<T, std::void_t<
         decltype(*std::begin(std::declval<T>())),
-        decltype(std::end(std::declval<T>())),
-        decltype(std::size(std::declval<T>())),
         decltype(std::begin(std::declval<T>()) + std::declval<std::ptrdiff_t>()),
         decltype(std::begin(std::declval<T>()) - std::declval<std::ptrdiff_t>()),
         decltype(std::begin(std::declval<T>())[std::declval<std::ptrdiff_t>()])>>
-      : std::true_type {}; 
+      : std::true_type {};
+
+    template<typename T, typename = void>
+    struct is_collection_impl_begin : std::false_type {};
+
+    template<typename T>
+    struct is_collection_impl_begin<T, std::void_t<
+        decltype(*begin(std::declval<T>())),
+        decltype(begin(std::declval<T>()) + std::declval<std::ptrdiff_t>()),
+        decltype(begin(std::declval<T>()) - std::declval<std::ptrdiff_t>()),
+        decltype(begin(std::declval<T>())[std::declval<std::ptrdiff_t>()])>>
+      : std::true_type {};
+
+
+    template<typename T, typename = void>
+    struct is_collection_impl_std_end : std::false_type {};
+
+    template<typename T>
+    struct is_collection_impl_std_end<T, std::void_t<decltype(std::end(std::declval<T>()))>>
+      : std::true_type {};
+
+    template<typename T, typename = void>
+    struct is_collection_impl_end : std::false_type {};
+
+    template<typename T>
+    struct is_collection_impl_end<T, std::void_t<decltype(end(std::declval<T>()))>>
+      : std::true_type {};
+
+
+    template<typename T, typename = void>
+    struct is_collection_impl_std_size : std::false_type {};
+
+    template<typename T>
+    struct is_collection_impl_std_size<T, std::void_t<decltype(std::size(std::declval<T>()))>>
+      : std::true_type {};
+
+    template<typename T, typename = void>
+    struct is_collection_impl_size : std::false_type {};
+
+    template<typename T>
+    struct is_collection_impl_size<T, std::void_t<decltype(size(std::declval<T>()))>>
+      : std::true_type {};
+
   } // namespace detail
 #endif 
 
@@ -53,7 +95,10 @@ namespace OpenKalman::internal
     (std::ranges::random_access_range<std::remove_cvref_t<T>> and std::ranges::sized_range<std::remove_cvref_t<T>>);
 #else
   constexpr bool collection =
-    internal::tuple_like<T> or detail::is_collection_impl<std::decay_t<T>>::value;
+    internal::tuple_like<T> or
+      ((detail::is_collection_impl_begin<std::decay_t<T>>::value or detail::is_collection_impl_std_begin<std::decay_t<T>>::value) and
+        (detail::is_collection_impl_end<std::decay_t<T>>::value or detail::is_collection_impl_std_end<std::decay_t<T>>::value) and
+        (detail::is_collection_impl_size<std::decay_t<T>>::value or detail::is_collection_impl_std_size<std::decay_t<T>>::value));
 #endif
 
 

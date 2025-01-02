@@ -29,7 +29,7 @@ using namespace OpenKalman::descriptor;
 
 #include "linear-algebra/vector-space-descriptors/functions/internal/canonical_equivalent.hpp"
 
-TEST(descriptors, canonical_form)
+TEST(descriptors, canonical_equivalent)
 {
   using namespace internal;
   static_assert(std::is_same_v<std::decay_t<decltype(canonical_equivalent(Dimensions<0>{}))>, StaticDescriptor<>>);
@@ -100,7 +100,7 @@ TEST(descriptors, prefix_base_of)
 
 #include "linear-algebra/vector-space-descriptors/functions/internal/is_prefix.hpp"
 
-/*TEST(descriptors, is_prefix)
+TEST(descriptors, is_prefix)
 {
   using namespace internal;
   static_assert(is_prefix(StaticDescriptor<>{}, Axis{}));
@@ -135,7 +135,7 @@ TEST(descriptors, prefix_base_of)
   static_assert(is_prefix(StaticDescriptor<Axis, angle::Radians, Axis>{}, StaticDescriptor<Axis, angle::Radians, Axis>{}));
   static_assert(not is_prefix(StaticDescriptor<Axis, angle::Radians, angle::Radians>{}, StaticDescriptor<Axis, angle::Radians, Axis>{}));
   static_assert(not is_prefix(StaticDescriptor<Axis, angle::Radians, angle::Radians>{}, StaticDescriptor<Axis, angle::Radians, inclination::Radians>{}));
-}*/
+}
 
 
 #include "linear-algebra/vector-space-descriptors/functions/internal/are_equivalent.hpp"
@@ -350,7 +350,6 @@ TEST(descriptors, dynamic_comparison)
   static_assert(not (Spherical<Distance, inclination::Radians, angle::Radians>{} > Dimensions{5}));
 
   //static_assert(DynamicDescriptor<float>{} != DynamicDescriptor<double>{});
-  EXPECT_TRUE(DynamicDescriptor<float>{StaticDescriptor<> {}} != DynamicDescriptor<double>{StaticDescriptor<> {}});
   EXPECT_TRUE((DynamicDescriptor<double> {StaticDescriptor<> {}} == DynamicDescriptor<double> {StaticDescriptor<> {}}));
   EXPECT_TRUE((DynamicDescriptor<double> {StaticDescriptor<> {}} == DynamicDescriptor<double> {}));
   EXPECT_TRUE((DynamicDescriptor<double> {Axis {}} == DynamicDescriptor<double> {Axis {}}));
@@ -410,10 +409,13 @@ TEST(descriptors, dynamic_comparison)
   EXPECT_TRUE((Dimensions{4} != DynamicDescriptor<double> {StaticDescriptor<Axis, Axis> {}}));
 
   EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians {}} == angle::Radians {}));
+  EXPECT_TRUE((DynamicDescriptor<double> {angle::Degrees {}} == StaticDescriptor<angle::Degrees> {}));
+  EXPECT_TRUE((DynamicDescriptor<double> {Dimensions<3>{}, angle::Degrees{}} == StaticDescriptor<Dimensions<3>, angle::Degrees>{}));
   EXPECT_TRUE((angle::Radians{} == DynamicDescriptor<double> {angle::Radians {}}));
   EXPECT_TRUE((DynamicDescriptor<double> {Dimensions<3>{}, angle::Degrees{}} > Dimensions<3>{}));
   EXPECT_TRUE((DynamicDescriptor<double> {Dimensions<3>{}} < StaticDescriptor<Dimensions<3>, angle::Degrees>{}));
   EXPECT_TRUE((DynamicDescriptor<double> {Dimensions<3>{}, angle::Degrees{}, Dimensions<5>{}} == StaticDescriptor<Dimensions<3>, angle::Degrees, Dimensions<5>>{}));
+  EXPECT_TRUE((StaticDescriptor<Dimensions<3>, angle::Degrees, Dimensions<5>>{} == DynamicDescriptor<double> {Dimensions<3>{}, angle::Degrees{}, Dimensions<5>{}}));
   EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}} == StaticDescriptor<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<3>>{}));
   EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}} == StaticDescriptor<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<3>>{}));
   EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}} < StaticDescriptor<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<4>>{}));
@@ -421,6 +423,7 @@ TEST(descriptors, dynamic_comparison)
   EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, Dimensions<3>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}} != StaticDescriptor<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<3>>{}));
   EXPECT_TRUE(not (DynamicDescriptor<double> {Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}} < StaticDescriptor<Dimensions<4>, angle::Degrees, Dimensions<3>, Dimensions<3>>{}));
 
+  EXPECT_TRUE(DynamicDescriptor<float>{StaticDescriptor<> {}} == DynamicDescriptor<double>{StaticDescriptor<> {}});
   EXPECT_TRUE((DynamicDescriptor<double> {StaticDescriptor<Axis, angle::Radians>{}} == StaticDescriptor<Axis, angle::Radians>{}));
   EXPECT_TRUE((StaticDescriptor<Axis, angle::Radians>{} <= DynamicDescriptor<double> {StaticDescriptor<Axis, angle::Radians>{}}));
   EXPECT_TRUE((StaticDescriptor<Axis, angle::Radians>{} <= DynamicDescriptor<double> {Axis{}, angle::Radians{}}));

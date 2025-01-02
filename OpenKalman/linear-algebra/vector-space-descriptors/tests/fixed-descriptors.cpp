@@ -114,6 +114,6 @@ TEST(descriptors, StaticDescriptor)
   static_assert(not euclidean_vector_space_descriptor<StaticDescriptor<Axis, Axis, angle::Radians>>);
   static_assert(not euclidean_vector_space_descriptor<StaticDescriptor<angle::Radians, Axis, Axis>>);
   static_assert(static_vector_space_descriptor<StaticDescriptor<Axis, Axis, angle::Radians>>);
-  static_assert(not atomic_static_vector_space_descriptor<StaticDescriptor<Axis>>);
+  static_assert(atomic_static_vector_space_descriptor<StaticDescriptor<Axis>>);
 }
 

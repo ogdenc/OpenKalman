@@ -144,16 +144,16 @@ namespace OpenKalman::descriptor
     {
       if (auto N = (0 + ... + get_vector_space_descriptor_component_count_of(cs)); N > 1)
       {
-        if (dynamic_types.capacity() < dynamic_types.size() + N)
+        if (dynamic_types.capacity() < std::size(dynamic_types) + N)
           dynamic_types.reserve(dynamic_types.capacity() * 2);
 
-        if (index_table.capacity() < (index_table.size() + ... + get_dimension_size_of(cs)))
+        if (index_table.capacity() < (std::size(index_table) + ... + get_dimension_size_of(cs)))
           index_table.reserve(index_table.capacity() * 2);
 
         if (euclidean_index_table.capacity() < (euclidean_index_table.size() + ... + get_euclidean_dimension_size_of(cs)))
           euclidean_index_table.reserve(euclidean_index_table.capacity() * 2);
       }
-      fill_tables(index_table.size(), euclidean_index_table.size(), dynamic_types.size(), std::forward<Cs>(cs)...);
+      fill_tables(std::size(index_table), std::size(euclidean_index_table), std::size(dynamic_types), std::forward<Cs>(cs)...);
       return *this;
     }
 
@@ -163,14 +163,14 @@ namespace OpenKalman::descriptor
      * \return Iterator marking the beginning of a vector containing a set of DynamicTypedVectorSpaceDescriptor objects.
      */
     constexpr auto
-    begin() const { return dynamic_types.begin(); }
+    begin() const { return std::begin(dynamic_types); }
 
 
     /**
      * \return Iterator marking the end of a vector containing a set of DynamicTypedVectorSpaceDescriptor objects.
      */
     constexpr auto
-    end() const { return dynamic_types.end(); }
+    end() const { return std::end(dynamic_types); }
 
   private:
 
@@ -520,10 +520,6 @@ namespace OpenKalman::interface
 
   public:
 
-    static constexpr bool
-    is_composite = true;
-
-
     static constexpr auto
     size(const T& t) { return t.index_table.size(); }
 
@@ -532,102 +528,16 @@ namespace OpenKalman::interface
     euclidean_size(const T& t) { return t.euclidean_index_table.size(); }
 
 
-    static constexpr auto
-    component_count(const T& t) { return t.dynamic_types.size(); }
+    static constexpr const auto&
+    collection(const T& t) { return t.dynamic_types; }
 
 
     static constexpr auto
     is_euclidean(const T& t)
     {
-      for (auto i = t.dynamic_types.begin(); i != t.dynamic_types.end(); ++i)
-        if (not descriptor::get_vector_space_descriptor_is_euclidean(*i)) return false;
+      for (const auto& i : t.dynamic_types)
+        if (not descriptor::get_vector_space_descriptor_is_euclidean(i)) return false;
       return true;
-    }
-
-  private:
-
-    template<typename It, typename EndIt, typename Arg>
-    static constexpr bool
-    has_prefix_impl(It it, EndIt endit, const Arg& arg)
-    {
-      std::cout << "b0" << std::endl;
-      if (it == endit) return false;
-      return descriptor::internal::are_equivalent(*it, arg);
-    }
-
-
-    template<typename It, typename EndIt>
-    static constexpr bool
-    has_prefix_impl(It it, EndIt endit, const descriptor::DynamicDescriptor<Scalar>& arg)
-    {
-      std::cout << "b1" << std::endl;
-      for (auto j = arg.begin(); j != arg.end() or it != endit; ++j, ++it)
-      {
-        std::size_t nj = 0, ni = 0;
-        for (; j != arg.end() and descriptor::get_vector_space_descriptor_is_euclidean(*j); ++j)
-          nj += descriptor::get_dimension_size_of(*j);
-        for (; it != endit and descriptor::get_vector_space_descriptor_is_euclidean(*it); ++it)
-          ni += descriptor::get_dimension_size_of(*it);
-        if (j == arg.end()) return nj <= ni;
-        if (it == endit or nj != ni) return false;
-        if (not descriptor::internal::are_equivalent(*j, *it)) return false;
-      }
-      return true;
-    }
-
-
-#ifdef __cpp_concepts
-    template<typename It, typename EndIt, descriptor::euclidean_vector_space_descriptor Arg>
-#else
-    template<typename It, typename EndIt, typename Arg, std::enable_if_t<
-      descriptor::euclidean_vector_space_descriptor<Arg>, int> = 0>
-#endif
-    static constexpr bool
-    has_prefix_impl(It it, EndIt endit, const Arg& arg)
-    {
-      std::cout << "b2" << std::endl;
-      if (it == endit) return descriptor::get_dimension_size_of(arg) == 0;
-      else
-      {
-        std::size_t n = 0;
-        for (; it != endit and descriptor::get_vector_space_descriptor_is_euclidean(*it); ++it)
-          n += descriptor::get_dimension_size_of(*it);
-        std::cout << "b2 " << descriptor::get_dimension_size_of(arg) << " vs " << n << std::endl;
-        return descriptor::get_dimension_size_of(arg) <= n;
-      }
-    }
-
-
-    template<typename It, typename EndIt, typename C, typename...Cs>
-    static constexpr bool
-    has_prefix_impl(It it, EndIt endit, descriptor::StaticDescriptor<C, Cs...>)
-    {
-      std::cout << "b3" << std::endl;
-      if constexpr (descriptor::euclidean_vector_space_descriptor<C>)
-      {
-        constexpr std::size_t N = descriptor::dimension_size_of_v<C>;
-        std::size_t n = 0;
-        for (; it != endit and descriptor::get_vector_space_descriptor_is_euclidean(*it); ++it)
-          n += descriptor::get_dimension_size_of(*it);
-        if (it == endit or n != N) return false;
-        return has_prefix_impl(++it, endit, descriptor::StaticDescriptor<Cs...>{});
-      }
-      else
-      {
-        if (it == endit) return false;
-        if (descriptor::internal::are_equivalent(*it, C{}))
-          return has_prefix_impl(++it, endit, descriptor::StaticDescriptor<Cs...> {});
-        else return false;
-      }
-    }
-
-  public:
-
-    template<typename Arg>
-    static constexpr auto
-    has_prefix(const T& t, const Arg& arg)
-    {
-      return has_prefix_impl(t.begin(), t.end(), descriptor::internal::canonical_equivalent(arg));
     }
 
 

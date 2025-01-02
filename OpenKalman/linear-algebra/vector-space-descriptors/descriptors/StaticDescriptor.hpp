@@ -33,6 +33,7 @@
 #include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp"
 #include "internal/prefix_base_of.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/internal/is_prefix.hpp"
+#include "internal/AnyAtomicVectorSpaceDescriptor.hpp"
 #include "internal/static_canonical_form.hpp"
 
 namespace OpenKalman::descriptor
@@ -182,29 +183,22 @@ namespace OpenKalman::interface
 
   public:
 
-    static constexpr bool
-    is_composite = true;
-
-
     static constexpr auto
     size(const T&)
     {
       return std::integral_constant<std::size_t, (0 + ... + descriptor::dimension_size_of_v<Cs>)>{};
-    };
+    }
 
 
     static constexpr auto
     euclidean_size(const T&)
     {
       return std::integral_constant<std::size_t, (0 + ... + descriptor::euclidean_dimension_size_of_v<Cs>)>{};
-    };
+    }
 
 
     static constexpr auto
-    component_count(const T&)
-    {
-      return std::integral_constant<std::size_t, (0 + ... + descriptor::vector_space_component_count_v<Cs>)>{};
-    };
+    collection(const T&) { return std::tuple {Cs{}...}; }
 
 
     static constexpr auto
@@ -218,57 +212,8 @@ namespace OpenKalman::interface
     canonical_equivalent(const T&)
     {
       return descriptor::internal::static_canonical_form_t<T> {};
-    };
-
-  private:
-
-    //static constexpr std::array coordinate_table {internal::AnyAtomicVectorSpaceDescriptor<Scalar>{Cs{}}...};
-
-  public:
-
-#ifdef __cpp_concepts
-    template<typename Arg> requires requires { typename descriptor::internal::prefix_base_of_t<Arg, T>; }
-#else
-    template<typename Arg, typename = std::void_t<typename descriptor::internal::prefix_base_of<Arg, T>::type>>
-#endif
-    static constexpr auto
-    has_prefix(const T&, const Arg&)
-    {
-      std::cout << "c1" << std::endl;
-      return std::true_type{};
     }
 
-
-    template<typename S>
-    static constexpr auto
-    has_prefix(const T& t, const descriptor::DynamicDescriptor<S>& arg)
-    {
-      std::cout << "c2" << std::endl;
-      return descriptor::internal::is_prefix(arg, descriptor::DynamicDescriptor<S>{t});
-    }
-
-
-#ifdef __cpp_concepts
-    template<descriptor::dynamic_vector_space_descriptor Arg> requires descriptor::euclidean_vector_space_descriptor<Arg>
-#else
-    template<typename Arg, typename = std::enable_if_t<descriptor::dynamic_vector_space_descriptor and
-      descriptor::euclidean_vector_space_descriptor<Arg>>>
-#endif
-    static constexpr auto
-    has_prefix(const T& t, const Arg& arg)
-    {
-      std::cout << "c3" << std::endl;
-      if constexpr (sizeof...(Cs) == 0)
-      {
-        return descriptor::get_dimension_size_of(arg) == 0;
-      }
-      else
-      {
-        using C0 = std::tuple_element_t<0, std::tuple<Cs...>>;
-        if constexpr (not descriptor::euclidean_vector_space_descriptor<C0>) return std::false_type{};
-        else return descriptor::get_dimension_size_of(arg) <= descriptor::dimension_size_of_v<C0>;
-      }
-    }
 
   /*private:
   public:

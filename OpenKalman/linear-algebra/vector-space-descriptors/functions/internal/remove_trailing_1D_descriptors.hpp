@@ -77,13 +77,14 @@ namespace OpenKalman::internal
       auto n = std::ranges::partition_point(descriptors, [](const auto& x){ return x != descriptor::Axis{}; });
       return descriptors | std::ranges::views::take(n);
 #else
-      auto it = descriptors.begin();
-      for (auto d = descriptors.begin(); d != descriptors.end(); ++descriptors)
+      using std::begin, std::end;
+      auto it = begin(descriptors);
+      for (auto d = begin(descriptors); d != end(descriptors); ++descriptors)
       {
         if (*d != descriptor::Axis{}) it = d;
       }
       std::vector<std::decay_t<decltype(*it)>> ret {};
-      std::copy(descriptors.begin(), it, ret.begin());
+      std::copy(begin(descriptors), it, begin(ret));
       return ret;
 #endif
     }

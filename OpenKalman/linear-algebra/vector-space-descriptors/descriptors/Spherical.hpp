@@ -16,13 +16,13 @@
 #ifndef OPENKALMAN_SPHERICAL_HPP
 #define OPENKALMAN_SPHERICAL_HPP
 
-#include <array>
 #include <type_traits>
 #include <stdexcept>
 #ifdef __cpp_concepts
 #include <concepts>
 #endif
 #include <cmath>
+#include <array>
 #include "basics/language-features.hpp"
 #include "linear-algebra/values/concepts/number.hpp"
 #include "linear-algebra/values/functions/real.hpp"
@@ -120,7 +120,7 @@ namespace OpenKalman::interface
 
 
       static constexpr auto
-      component_count(const T&) { return std::integral_constant<std::size_t, 1>{}; };
+      collection(const T& t) { return std::array {t}; }
 
 
       static constexpr auto

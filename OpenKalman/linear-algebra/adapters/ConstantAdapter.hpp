@@ -146,7 +146,12 @@ namespace OpenKalman
         }
         else
         {
-          return make_descriptors_tuple_from_range(descriptors.begin(), descriptors.end());
+#ifdef __cpp_lib_ranges
+          return make_descriptors_tuple_from_range(std::ranges::begin(descriptors), std::ranges::end(descriptors));
+#else
+          using std::begin, std::end;
+          return make_descriptors_tuple_from_range(begin(descriptors), end(descriptors));
+#endif
         }
       }
       else if constexpr (vector_space_descriptor_tuple<Descriptors>)
@@ -157,7 +162,12 @@ namespace OpenKalman
       else
       {
         DescriptorCollection ret;
-        std::copy(descriptors.begin(), descriptors.end(), ret.begin());
+#ifdef __cpp_lib_ranges
+        std::copy(std::ranges::begin(descriptors), std::ranges::end(descriptors), std::ranges::begin(ret));
+#else
+        using std::begin, std::end;
+        std::copy(begin(descriptors), end(descriptors), begin(ret));
+#endif
         return ret;
       }
     }

@@ -92,7 +92,8 @@ namespace OpenKalman::descriptor::internal
   struct vector_space_descriptor_collection_common_type<T, Scalar, std::enable_if_t<
    vector_space_descriptor_collection<T> and (not vector_space_descriptor_tuple<T>)>>
   {
-    using type = std::decay_t<decltype(*std::declval<T>().begin())>;
+    using std::begin;
+    using type = std::decay_t<decltype(*begin(std::declval<T>()))>;
   };
 #endif
 

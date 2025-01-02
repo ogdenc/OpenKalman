@@ -46,11 +46,10 @@ namespace OpenKalman::internal
     {
       std::vector<std::size_t> ret {};
 #ifdef __cpp_lib_ranges
-      std::ranges::transform(t.begin(), t, [](auto&& d){ return get_dimension_size_of(std::forward<decltype(d)>(d)); });
+      std::ranges::transform(std::ranges::begin(t), t, [](auto&& d){ return get_dimension_size_of(std::forward<decltype(d)>(d)); });
 #else
-      std::transform(t.begin(), t.end(), ret.begin(), [](auto&& d){
-        return get_dimension_size_of(std::forward<decltype(d)>(d));
-      });
+      using std::begin, std::end;
+      std::transform(begin(t), end(t), begin(ret), [](auto&& d){ return get_dimension_size_of(std::forward<decltype(d)>(d)); });
 #endif
       return ret;
     }

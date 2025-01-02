@@ -34,14 +34,6 @@ namespace OpenKalman::interface
   {
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
     /**
-     * \brief Whether this coordinate descriptor is composite.
-     * \details This only needs to be defined for composite descriptors (e.g., \ref descriptor::StaticDescriptor and \ref descriptor::DynamicDescriptor)
-     */
-    static constexpr bool
-    is_composite = false;
-
-
-      /**
      * \brief The number of dimensions at compile time.
      */
 #ifdef __cpp_concepts
@@ -64,14 +56,14 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief The number of atomic component parts at compile time.
+     * \brief A \ref descriptor::vector_space_descriptor_collection containing the coordinate groups within T.
      */
 #ifdef __cpp_concepts
-    static constexpr value::index auto
+    static constexpr descriptor::vector_space_descriptor_collection auto
 #else
     static constexpr auto
 #endif
-    component_count(const T&);
+    collection(const T&);
 
 
     /**
@@ -100,27 +92,16 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Whether Arg is at least a prefix of T.
-     * \note A definition is only required if \ref is_composite is true.
-     * \details No definition is required if any of the following:
-     * - <code>static_vector_space_descriptor<T> and std::same_as<T, Arg></code>.
-     * - <code>euclidean_vector_space_descriptor<T> and euclidean_vector_space_descriptor<Arg></code>.
-     * - <code>atomic_static_vector_space_descriptor<T> and composite_vector_space_descriptor<Arg></code>.
-     * It can be assumed that both T and Arg are in their \ref internal::canonical_equivalent "canonical equivalent" forms.
+     * \brief A hash code for type T which is identical for all instances of T.
+     * \details If this is omitted, the hash code will be <code>typeid(internal::canonical_equivalent(t)).hash_code()</code>.
      */
-#ifdef __cpp_concepts
-    static constexpr std::convertible_to<bool> auto
-    has_prefix(const T&, const descriptor::vector_space_descriptor auto& arg);
-#else
-    template<typename Arg, std::enable_if_t<descriptor::vector_space_descriptor<Arg>, int> = 0>
-    static constexpr auto
-    has_prefix(const T&, const Arg&);
-#endif
+    static constexpr std::size_t
+    hash_code(const T& t);
 
 
     /**
      * \brief Concatenate the argument to the end of T.
-     * \details This only need be defined if \ref is_composite is true.
+     * \details
      * It can be assumed that both T and Arg are in their \ref internal::canonical_equivalent "canonical equivalent" forms.
      */
 #ifdef __cpp_concepts
@@ -137,7 +118,6 @@ namespace OpenKalman::interface
      * \brief Detatch the argument from T.
      * \details Arg must be a suffix of T.
      * It can be assumed that both T and Arg are in their \ref internal::canonical_equivalent "canonical equivalent" forms.
-     * This only need be defined if \ref is_composite is true.
      * If Arg is not a suffix of T, the function may throw an exception.
      */
 #ifdef __cpp_concepts

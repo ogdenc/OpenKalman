@@ -20,7 +20,6 @@
 #include <type_traits>
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/internal/canonical_equivalent.hpp"
 
 namespace OpenKalman::descriptor::internal
 {
