@@ -59,6 +59,7 @@ namespace OpenKalman::descriptor {}
 #include "concepts/euclidean_vector_space_descriptor.hpp"
 
 #include "concepts/vector_space_descriptor_tuple.hpp"
+#include "concepts/vector_space_descriptor_range.hpp"
 #include "concepts/vector_space_descriptor_collection.hpp"
 #include "concepts/static_vector_space_descriptor_tuple.hpp"
 #include "concepts/static_vector_space_descriptor_collection.hpp"
@@ -72,11 +73,12 @@ namespace OpenKalman::descriptor {}
 #include "functions/get_collection_of.hpp"
 #include "functions/get_vector_space_descriptor_component_count_of.hpp"
 #include "functions/get_vector_space_descriptor_is_euclidean.hpp"
-#include "functions/get_hash_code.hpp"
+#include "functions/get_type_index.hpp"
 
 #include "traits/dimension_size_of.hpp"
 #include "traits/euclidean_dimension_size_of.hpp"
 #include "traits/vector_space_component_count.hpp"
+#include "traits/scalar_type_of.hpp"
 
 #include "concepts/composite_vector_space_descriptor.hpp"
 #include "concepts/atomic_static_vector_space_descriptor.hpp"
@@ -88,20 +90,18 @@ namespace OpenKalman::descriptor {}
 
 #include "internal/forward-declarations.hpp"
 #include "traits/static_concatenate.hpp"
-#include "traits/static_reverse.hpp"
 
 #include "functions/internal/canonical_equivalent.hpp"
-
-#include "functions/internal/are_equivalent.hpp"
+#include "functions/comparison-operators.hpp"
 #include "concepts/maybe_equivalent_to.hpp"
 #include "concepts/equivalent_to.hpp"
-#include "functions/internal/is_prefix.hpp"
-#include "concepts/internal/prefix_of.hpp"
-#include "functions/comparison-operators.hpp" //
 
-#include "functions/internal/concatenate.hpp"
-#include "functions/internal/detatch.hpp"
-#include "functions/arithmetic-operators.hpp" //
+#include "descriptors/internal/Concatenate.hpp"
+#include "descriptors/internal/Replicate.hpp"
+#include "functions/arithmetic-operators.hpp"
+#include "concepts/internal/maybe_prefix_of.hpp"
+#include "concepts/internal/prefix_of.hpp"
+#include "descriptors/internal/Reverse.hpp"
 
 // descriptors:
 
@@ -124,10 +124,6 @@ namespace OpenKalman::descriptor {}
 #include "concepts/uniform_static_vector_space_descriptor.hpp"
 #include "traits/uniform_static_vector_space_descriptor_component_of.hpp"
 #include "concepts/equivalent_to_uniform_static_vector_space_descriptor_component_of.hpp"
-
-// collection traits
-
-#include "traits/internal/vector_space_descriptor_collection_common_type.hpp"
 
 // functions:
 

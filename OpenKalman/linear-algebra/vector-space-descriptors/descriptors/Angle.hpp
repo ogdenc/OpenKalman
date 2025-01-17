@@ -135,26 +135,6 @@ requires value::value<decltype(Limits::min)> and value::value<decltype(Limits::m
     static_assert(Limits::min <= 0);
     static_assert(Limits::max > 0);
 #endif
-
-    /// Default constructor
-    constexpr Angle() = default;
-
-
-    /// Conversion constructor
-#ifdef __cpp_concepts
-    template<maybe_equivalent_to<Angle> D> requires (not std::same_as<std::decay_t<D>, Angle>)
-#else
-    template<typename D, std::enable_if_t<
-      maybe_equivalent_to<D, Angle> and not std::is_same_v<std::decay_t<D>, Angle>, int> = 0>
-#endif
-    explicit constexpr Angle(D&& d)
-    {
-      if constexpr (dynamic_vector_space_descriptor<D>)
-      {
-        if (d != Angle{}) throw std::invalid_argument{"Dynamic argument of 'Angle' constructor is not an angle vector space descriptor."};
-      }
-    }
-
   };
 
 
@@ -207,25 +187,21 @@ namespace OpenKalman::interface
 
 
     static constexpr auto
-    collection(const T& t) { return std::array {t}; }
+    collection(const T& t)
+    {
+#if __cpp_nontype_template_args >= 201911L
+      return std::array {descriptor::Angle<descriptor::angle::Limits<0, Limits::max - Limits::min>>{}};
+#else
+      if constexpr (value::integral<decltype(Limits::max - Limits::min)>)
+        return std::array {descriptor::Angle<descriptor::angle::Limits<0, Limits::max - Limits::min>>{}};
+      else
+        return std::array {t};
+#endif
+    }
 
 
     static constexpr auto
     is_euclidean(const T&) { return std::false_type{}; }
-
-
-    static constexpr auto
-    canonical_equivalent(const T& t)
-    {
-#if __cpp_nontype_template_args >= 201911L
-      return descriptor::Angle<descriptor::angle::Limits<0, Limits::max - Limits::min>>{};
-#else
-      if constexpr (value::integral<decltype(Limits::max - Limits::min)>)
-        return descriptor::Angle<descriptor::angle::Limits<0, Limits::max - Limits::min>>{};
-      else
-        return t;
-#endif
-    };
 
 
     /*

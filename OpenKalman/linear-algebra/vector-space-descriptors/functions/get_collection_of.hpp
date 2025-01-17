@@ -26,15 +26,17 @@ namespace OpenKalman::descriptor
    * \brief Get the \ref descriptor::vector_space_descriptor_collection that comprises \ref vector_space_descriptor T
    */
 #ifdef __cpp_concepts
-  template<vector_space_descriptor T>
+  template<vector_space_descriptor Arg>
   constexpr descriptor::vector_space_descriptor_collection auto
 #else
-  template<typename T, std::enable_if_t<vector_space_descriptor<T>, int> = 0>
+  template<typename Arg, std::enable_if_t<vector_space_descriptor<Arg>, int> = 0>
   constexpr auto
 #endif
-  get_collection_of(const T& t)
+  get_collection_of(Arg&& arg)
   {
-    return interface::vector_space_traits<T>::collection(t);
+    auto ret = interface::vector_space_traits<std::decay_t<Arg>>::collection(std::forward<Arg>(arg));
+    static_assert(not static_vector_space_descriptor<Arg> or internal::tuple_like<decltype(ret)>);
+    return ret;
   }
 
 

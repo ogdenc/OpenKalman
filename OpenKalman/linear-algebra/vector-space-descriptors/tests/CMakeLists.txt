@@ -18,8 +18,7 @@ add_executable(descriptors
         fixed-descriptors.cpp
         dynamic-descriptors.cpp
         comparison.cpp
-        concatenation.cpp
-        #static_reverse.cpp
+        arithmetic.cpp
         #functions.cpp
 
 

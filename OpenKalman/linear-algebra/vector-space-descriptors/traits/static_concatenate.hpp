@@ -31,23 +31,23 @@ namespace OpenKalman::descriptor
    */
 #ifdef __cpp_concepts
   template<typename...Cs>
-  struct concatenation {};
+  struct static_concatenate {};
 #else
   template<typename...Cs>
   struct static_concatenate;
 #endif
 
 
-/**
+  /**
    * \brief Helper template for \ref static_concatenate.
    */
   template<typename...Cs>
-  using static_concatenate_t = typename concatenation<Cs...>::type;
+  using static_concatenate_t = typename static_concatenate<Cs...>::type;
 
 
 #ifdef __cpp_concepts
   template<static_vector_space_descriptor...Cs>
-  struct concatenation<Cs...>
+  struct static_concatenate<Cs...>
 #else
   template<typename...Cs>
   struct static_concatenate
@@ -62,7 +62,7 @@ namespace OpenKalman::descriptor
 #else
   template<typename...Cs, typename...Ds, typename...Es>
 #endif
-  struct concatenation<StaticDescriptor<Cs...>, StaticDescriptor<Ds...>, Es...>
+  struct static_concatenate<StaticDescriptor<Cs...>, StaticDescriptor<Ds...>, Es...>
   {
     using type = static_concatenate_t<StaticDescriptor<Cs..., Ds...>, Es...>;
   };
@@ -73,7 +73,7 @@ namespace OpenKalman::descriptor
 #else
   template<typename...Cs, typename...Ds>
 #endif
-  struct concatenation<StaticDescriptor<Cs...>, Ds...>
+  struct static_concatenate<StaticDescriptor<Cs...>, Ds...>
   {
     using type = static_concatenate_t<Cs..., Ds...>;
   };
@@ -84,7 +84,7 @@ namespace OpenKalman::descriptor
 #else
   template<typename C, typename...Ds, typename...Es>
 #endif
-  struct concatenation<C, StaticDescriptor<Ds...>, Es...>
+  struct static_concatenate<C, StaticDescriptor<Ds...>, Es...>
   {
     using type = static_concatenate_t<StaticDescriptor<C, Ds...>, Es...>;
   };

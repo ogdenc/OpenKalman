@@ -30,11 +30,21 @@ namespace OpenKalman::descriptor
    * or \ref dynamic_size if not known at compile time.
    */
 #ifdef __cpp_concepts
-  template<vector_space_descriptor T>
+  template<typename T>
 #else
   template<typename T, typename = void>
 #endif
-  struct dimension_size_of : std::integral_constant<std::size_t, dynamic_size> {};
+  struct dimension_size_of {};
+
+
+#ifdef __cpp_concepts
+  template<dynamic_vector_space_descriptor T>
+  struct dimension_size_of<T>
+#else
+  template<typename T>
+  struct dimension_size_of<T, std::enable_if_t<dynamic_vector_space_descriptor<T>>>
+#endif
+    : std::integral_constant<std::size_t, dynamic_size> {};
 
 
 #ifdef __cpp_concepts
@@ -44,7 +54,7 @@ namespace OpenKalman::descriptor
   template<typename T>
   struct dimension_size_of<T, std::enable_if_t<static_vector_space_descriptor<T>>>
 #endif
-    : std::integral_constant<std::size_t, value::to_number(get_dimension_size_of(T{}))> {};
+    : std::integral_constant<std::size_t, value::to_number(get_dimension_size_of(std::decay_t<T>{}))> {};
 
 
   /**

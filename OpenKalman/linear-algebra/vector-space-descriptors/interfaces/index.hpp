@@ -19,8 +19,9 @@
 
 #include <type_traits>
 #include "linear-algebra/values/concepts/index.hpp"
+#include "linear-algebra/values/concepts/fixed.hpp"
+#include "linear-algebra/values/traits/fixed_number_of.hpp"
 #include "vector_space_traits.hpp"
-#include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp"
 #include "linear-algebra/vector-space-descriptors/descriptors/StaticDescriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/descriptors/Dimensions.hpp"
 
@@ -47,21 +48,21 @@ namespace OpenKalman::interface
 
 
     static constexpr auto
-    collection(const T& t) { return std::tuple {t}; }
+    collection(const T& t)
+    {
+      if constexpr (value::fixed<T>)
+      {
+        if constexpr (value::fixed_number_of_v<T> == 0)
+          return std::array {descriptor::StaticDescriptor<>{}};
+        else
+          return std::array {descriptor::Dimensions<value::fixed_number_of_v<T>>{}};
+      }
+      else return std::array {descriptor::Dimensions{t}};
+    }
 
 
     static constexpr auto
     is_euclidean(const T&) { return std::true_type{}; }
-
-
-    static constexpr auto
-    canonical_equivalent(const T& t)
-    {
-      if constexpr (descriptor::dimension_size_of_v<T> == 0)
-        return descriptor::StaticDescriptor<>{};
-      else
-        return descriptor::Dimensions{t};
-    };
 
   };
 

@@ -19,8 +19,8 @@
 
 #include <type_traits>
 #include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
-#include "linear-algebra/vector-space-descriptors/interfaces/traits-defined.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/get_collection_of.hpp"
 
 namespace OpenKalman::descriptor::internal
 {
@@ -38,14 +38,18 @@ namespace OpenKalman::descriptor::internal
 #endif
   canonical_equivalent(Arg&& arg)
   {
-    if constexpr (interface::canonical_equivalent_defined_for<Arg>)
+    if constexpr (static_vector_space_descriptor<Arg>)
     {
-      return interface::vector_space_traits<std::decay_t<Arg>>::canonical_equivalent(std::forward<Arg>(arg));
+      if constexpr (vector_space_component_count_v<Arg> == 1)
+      {
+        auto ret {std::get<0>(interface::vector_space_traits<std::decay_t<Arg>>::collection(std::forward<Arg>(arg)))};
+        return ret;
+      }
+      else return std::apply([](const auto&...a) {
+          return descriptor::StaticDescriptor<std::decay_t<decltype(a)>...>{};
+        }, descriptor::get_collection_of(arg));
     }
-    else
-    {
-      return std::forward<Arg>(arg);
-    }
+    else return std::forward<Arg>(arg);
   }
 
 

@@ -61,7 +61,7 @@ namespace OpenKalman
         [](Arg&& arg, const auto&...fs) { return broadcast(std::forward<Arg>(arg), fs...); },
         std::tuple_cat(
           std::forward_as_tuple(std::forward<Arg>(arg)),
-          internal::tuple_slice<0, sizeof...(Factors) - 1>(std::forward_as_tuple(factors...))));
+          internal::forward_as_tuple_slice<0, sizeof...(Factors) - 1>(std::forward_as_tuple(factors...))));
     }
     else
     {

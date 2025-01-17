@@ -42,7 +42,7 @@ namespace OpenKalman::internal
       {
         return std::apply(
           [](auto&&...ds2){ return remove_trailing_1D_descriptors_tup(std::forward<decltype(ds2)>(ds2)...); },
-          tuple_slice<0, N - 1>(std::forward_as_tuple(std::forward<Ds>(ds)...)));
+          forward_as_tuple_slice<0, N - 1>(std::forward_as_tuple(std::forward<Ds>(ds)...)));
       }
       else
       {

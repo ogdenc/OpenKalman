@@ -18,14 +18,11 @@
 
 #include <cmath>
 #include <type_traits>
-#include <stdexcept>
 #include <array>
-#include <typeinfo>
 #include "linear-algebra/values/values.hpp"
 #include "linear-algebra/values/functions/internal/update_real_part.hpp"
 #include "linear-algebra/values/functions/abs.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp"
+#include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp"
 
 namespace OpenKalman::descriptor
 {
@@ -34,28 +31,7 @@ namespace OpenKalman::descriptor
    * \brief A non-negative real or integral number, [0,&infin;], representing a distance.
    * \details This is similar to Axis, but wrapping occurs to ensure that values are never negative.
    */
-  struct Distance 
-  {
-    /// Default constructor
-    constexpr Distance() = default;
-
-
-    /// Conversion constructor
-#ifdef __cpp_concepts
-    template<maybe_equivalent_to<Distance> D> requires (not std::same_as<std::decay_t<D>, Distance>)
-#else
-    template<typename D, std::enable_if_t<
-      maybe_equivalent_to<D, Distance> and not std::is_same_v<std::decay_t<D>, Distance>, int> = 0>
-#endif
-    explicit constexpr Distance(D&& d)
-    {
-      if constexpr (dynamic_vector_space_descriptor<D>)
-      {
-        if (d != Distance{}) throw std::invalid_argument{"Dynamic argument of 'Distance' constructor is not a distance vector space descriptor."};
-      }
-    }
-
-  };
+  struct Distance {};
 
 
   /**

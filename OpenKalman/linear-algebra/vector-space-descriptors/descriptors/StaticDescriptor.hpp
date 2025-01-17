@@ -18,6 +18,8 @@
 
 #include <array>
 #include <functional>
+#include <typeindex>
+#include "basics/utils.hpp"
 #include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
@@ -31,10 +33,8 @@
 #include "linear-algebra/vector-space-descriptors/traits/vector_space_component_count.hpp"
 #include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp"
-#include "internal/prefix_base_of.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/internal/is_prefix.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/comparison-operators.hpp"
 #include "internal/AnyAtomicVectorSpaceDescriptor.hpp"
-#include "internal/static_canonical_form.hpp"
 
 namespace OpenKalman::descriptor
 {
@@ -48,25 +48,6 @@ namespace OpenKalman::descriptor
 #ifndef __cpp_concepts
     static_assert((static_vector_space_descriptor<Cs> and ...));
 #endif
-
-    /// Default constructor
-    constexpr StaticDescriptor() = default;
-
-
-    /// Conversion constructor
-#ifdef __cpp_concepts
-    template<maybe_equivalent_to<StaticDescriptor> D> requires (not std::same_as<std::decay_t<D>, StaticDescriptor>)
-#else
-    template<typename D, std::enable_if_t<
-      maybe_equivalent_to<D, StaticDescriptor> and not std::is_same_v<std::decay_t<D>, StaticDescriptor>, int> = 0>
-#endif
-    explicit constexpr StaticDescriptor(D&& d)
-    {
-      if constexpr (dynamic_vector_space_descriptor<D>)
-      {
-        if (d != StaticDescriptor{}) throw std::invalid_argument{"Dynamic argument of 'StaticDescriptor' constructor is not an equivalent vector space descriptor."};
-      }
-    }
 
 
     /**
@@ -196,9 +177,55 @@ namespace OpenKalman::interface
       return std::integral_constant<std::size_t, (0 + ... + descriptor::euclidean_dimension_size_of_v<Cs>)>{};
     }
 
+  private:
+
+    template<typename...Ts>
+    static constexpr auto combine_euclidean()
+    {
+      constexpr std::size_t N = (0 + ... + descriptor::dimension_size_of_v<Ts>);
+      if constexpr (N == 0) return std::tuple {};
+      else return std::tuple {descriptor::Dimensions<N>{}};
+    }
+
+
+    template<typename Arg>
+    static constexpr auto canonical_tuple_collection(const Arg& arg)
+    {
+      constexpr auto s = std::tuple_size_v<Arg>;
+      if constexpr (s < 2)
+      {
+        return arg;
+      }
+      else
+      {
+        using A0 = std::tuple_element_t<0, Arg>;
+        using A1 = std::tuple_element_t<1, Arg>;
+        if constexpr (descriptor::euclidean_vector_space_descriptor<A0> and descriptor::euclidean_vector_space_descriptor<A1>)
+        {
+          return canonical_tuple_collection(std::tuple_cat(combine_euclidean<A0, A1>(), internal::tuple_slice<2, s>(arg)));
+        }
+        else if constexpr (descriptor::euclidean_vector_space_descriptor<A0>)
+        {
+          return std::tuple_cat(
+            std::tuple_cat(combine_euclidean<A0>(), std::tuple {std::get<1>(arg)}),
+            canonical_tuple_collection(OpenKalman::internal::tuple_slice<2, s>(arg)));
+        }
+        else
+        {
+          return std::tuple_cat(
+            std::tuple {std::get<0>(arg)},
+            canonical_tuple_collection(OpenKalman::internal::tuple_slice<1, s>(arg)));
+        }
+      }
+    }
+
+  public:
 
     static constexpr auto
-    collection(const T&) { return std::tuple {Cs{}...}; }
+    collection(const T& t)
+    {
+      return canonical_tuple_collection(internal::tuple_flatten(std::tuple {descriptor::get_collection_of(Cs{})...}));
+    }
 
 
     static constexpr auto
@@ -209,51 +236,12 @@ namespace OpenKalman::interface
 
 
     static constexpr auto
-    canonical_equivalent(const T&)
+    type_index(const T& t)
     {
-      return descriptor::internal::static_canonical_form_t<T> {};
+      if constexpr (sizeof...(Cs) == 1) return descriptor::get_type_index(Cs{}...);
+      else return std::type_index{typeid(T)};
     }
 
-
-  /*private:
-  public:
-
-    template<typename Arg>
-    static constexpr auto
-    add(const T&, const Arg&)
-    {
-      return concatenate<T, Arg>::type{};
-    }
-
-  private:
-
-    template<typename A>
-    struct reverse
-    {
-      using type = A;
-    };
-
-
-    template<typename A, typename...As>
-    struct reverse<descriptor::StaticDescriptor<A, As...>>
-    {
-      using type = descriptor::StaticDescriptor<typename reverse<descriptor::StaticDescriptor<As...>>::type, A>;
-    };
-
-  public:
-
-#ifdef __cpp_concepts
-    template<typename Arg> requires
-      requires { typename prefix_base<typename reverse<T>::type, typename reverse<Arg>::type>::type; }
-#else
-    template<typename Arg, typename = std::void_t<
-      typename prefix_base<typename reverse<T>::type, typename reverse<Arg>::type>::type>>
-#endif
-    static constexpr auto
-    subtract(const T&, const Arg&)
-    {
-      return typename reverse<typename prefix_base<typename reverse<T>::type, typename reverse<Arg>::type>::type>::type{};
-    }*/
 
   private:
 

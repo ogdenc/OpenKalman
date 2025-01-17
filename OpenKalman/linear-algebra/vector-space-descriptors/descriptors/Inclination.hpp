@@ -115,26 +115,6 @@ namespace OpenKalman::descriptor
     static_assert(Limits::down <= 0);
     static_assert(Limits::up >= 0);
 #endif
-
-    /// Default constructor
-    constexpr Inclination() = default;
-
-
-    /// Conversion constructor
-#ifdef __cpp_concepts
-    template<maybe_equivalent_to<Inclination> D> requires (not std::same_as<std::decay_t<D>, Inclination>)
-#else
-    template<typename D, std::enable_if_t<
-      maybe_equivalent_to<D, Inclination> and not std::is_same_v<std::decay_t<D>, Inclination>, int> = 0>
-#endif
-    explicit constexpr Inclination(D&& d)
-    {
-      if constexpr (dynamic_vector_space_descriptor<D>)
-      {
-        if (d != Inclination{}) throw std::invalid_argument{"Dynamic argument of 'Inclination' constructor is not an inclination vector space descriptor."};
-      }
-    }
-
   };
 
 

@@ -16,50 +16,24 @@
 #ifndef OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_COLLECTION_HPP
 #define OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_COLLECTION_HPP
 
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#endif
 #include "basics/internal/collection.hpp"
-#include "vector_space_descriptor.hpp"
 #include "vector_space_descriptor_tuple.hpp"
+#include "vector_space_descriptor_range.hpp"
 
 
 namespace OpenKalman::descriptor
 {
-#ifndef __cpp_lib_ranges
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct is_descriptor_range_std : std::false_type {};
- 
-    template<typename T>
-    struct is_descriptor_range_std<T, std::enable_if_t<vector_space_descriptor<decltype(*std::begin(std::declval<T>()))>>>
-      : std::true_type {};
-
-
-    template<typename T, typename = void>
-    struct is_descriptor_range : std::false_type {};
-
-    template<typename T>
-    struct is_descriptor_range<T, std::enable_if_t<vector_space_descriptor<decltype(*begin(std::declval<T>()))>>>
-      : std::true_type {};
-  } // namespace detail
-#endif 
-
-
   /**
    * \brief An object describing a collection of /ref vector_space_descriptor objects.
    * \details This will be a \ref vector_space_descriptor_tuple or a dynamic range over a collection such as std::vector.
    */
   template<typename T>
-#if defined(__cpp_lib_ranges) and defined(__cpp_lib_remove_cvref)
-  concept vector_space_descriptor_collection = internal::collection<T> and
-    (vector_space_descriptor_tuple<T> or vector_space_descriptor<std::ranges::range_value_t<std::decay_t<T>>>);
+#ifdef __cpp_concepts
+  concept vector_space_descriptor_collection =
 #else
-  constexpr bool vector_space_descriptor_collection = internal::collection<T> and
-    (vector_space_descriptor_tuple<T> or detail::is_descriptor_range_std<std::decay_t<T>>::value or
-      detail::is_descriptor_range<std::decay_t<T>>::value);
+  constexpr bool vector_space_descriptor_collection =
 #endif
+    internal::collection<T> and (vector_space_descriptor_tuple<T> or vector_space_descriptor_range<T>);
 
 
 } // namespace OpenKalman::descriptor

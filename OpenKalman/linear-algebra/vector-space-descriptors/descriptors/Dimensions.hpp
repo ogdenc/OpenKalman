@@ -54,7 +54,7 @@ namespace OpenKalman::descriptor
 #else
     template<typename D, std::enable_if_t<
       (not std::is_same_v<std::decay_t<D>, Dimensions>) and
-      ((euclidean_vector_space_descriptor<D> and static_vector_space_descriptor<D> and dimension_size_of_v<D> == N) or
+      ((euclidean_vector_space_descriptor<D> and static_vector_space_descriptor<D> and dimension_size_of<D>::value == N) or
       dynamic_vector_space_descriptor<D>), int> = 0>
 #endif
     explicit constexpr Dimensions(D&& d)
@@ -170,7 +170,7 @@ namespace OpenKalman::descriptor
 #else
   template<typename D, std::enable_if_t<static_vector_space_descriptor<D> and euclidean_vector_space_descriptor<D>, int> = 0>
 #endif
-  explicit Dimensions(D&&) -> Dimensions<dimension_size_of_v<D>>;
+  explicit Dimensions(D&&) -> Dimensions<dimension_size_of<D>::value>;
 
 
 #ifdef __cpp_concepts
@@ -227,22 +227,17 @@ namespace OpenKalman::interface
     static constexpr auto
     collection(const T& t)
     {
-      return std::array {t};
+      if constexpr (N == 0)
+        return std::tuple {};
+      else if constexpr (N == dynamic_size)
+        return std::array {descriptor::Dimensions{t}};
+      else
+        return std::array {descriptor::Dimensions<N>{}};
     }
 
 
     static constexpr auto
     is_euclidean(const T&) { return std::true_type{}; }
-
-
-    static constexpr auto
-    canonical_equivalent(const T& t)
-    {
-      if constexpr (N == 0)
-        return descriptor::StaticDescriptor<>{};
-      else
-        return descriptor::Dimensions{t};
-    };
 
   };
 

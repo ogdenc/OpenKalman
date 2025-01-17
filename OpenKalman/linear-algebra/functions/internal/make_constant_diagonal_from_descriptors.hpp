@@ -21,18 +21,17 @@ namespace OpenKalman::internal
 {
   /**
    * \internal
-   * \brief Extract a column vector (or column slice for rank>2 tensors) comprising the diagonal elements.
-   * \tparam Arg An \ref indexible object, which can have any rank and may or may not be square
-   * \returns Arg A column vector whose \ref vector_space_descriptor corresponds to the smallest-dimension index.
+   * \brief Make a constant diagonal from a constant and a set of \ref vector_space_descriptor objects.
    */
   template<typename T, typename C, typename Descriptors>
   static constexpr decltype(auto)
-  make_constant_diagonal_from_descriptors(C&& c, const Descriptors& descriptors)
+  make_constant_diagonal_from_descriptors(C&& c, Descriptors&& descriptors)
   {
     if constexpr (vector_space_descriptor_tuple<Descriptors>)
     {
       auto new_descriptors = std::tuple_cat(
-        std::forward_as_tuple(internal::smallest_vector_space_descriptor<scalar_type_of_t<T>>(std::get<0>(descriptors), std::get<1>(descriptors))),
+        std::tuple(internal::smallest_vector_space_descriptor<scalar_type_of_t<T>>(
+          std::get<0>(std::forward<Descriptors>(descriptors)), std::get<1>(std::forward<Descriptors>(descriptors)))),
         internal::tuple_slice<2, std::tuple_size_v<Descriptors>>(descriptors));
       return make_constant<T>(std::forward<C>(c), new_descriptors);
     }

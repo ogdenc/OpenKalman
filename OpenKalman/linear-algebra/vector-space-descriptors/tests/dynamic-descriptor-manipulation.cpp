@@ -69,16 +69,11 @@
 #include "linear-algebra/vector-space-descriptors/traits/replicate_static_vector_space_descriptor.hpp" //
 
 #include "linear-algebra/vector-space-descriptors/traits/static_concatenate.hpp" //
-#include "linear-algebra/vector-space-descriptors/traits/static_reverse.hpp"
 
 #include "linear-algebra/vector-space-descriptors/traits/internal/uniform_static_vector_space_descriptor_query.hpp" //
 #include "linear-algebra/vector-space-descriptors/concepts/uniform_static_vector_space_descriptor.hpp" //
 #include "linear-algebra/vector-space-descriptors/traits/uniform_static_vector_space_descriptor_component_of.hpp" //
 #include "linear-algebra/vector-space-descriptors/concepts/equivalent_to_uniform_static_vector_space_descriptor_component_of.hpp" //
-
-// collection traits
-
-#include "linear-algebra/vector-space-descriptors/traits/internal/vector_space_descriptor_collection_common_type.hpp" //
 
 // functions:
 
@@ -132,30 +127,6 @@ TEST(basics, dynamic_assignment)
   EXPECT_EQ(dyn, 6);
   dyn = Polar<>{};
   EXPECT_TRUE(dyn == Polar<>{});
-}
-
-
-TEST(basics, dynamic_arithmetic)
-{
-  EXPECT_TRUE(Dimensions{3} + Dimensions{4} == Dimensions{7});
-  EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, angle::Radians{}} + DynamicDescriptor<double> {angle::Degrees{}, Axis{}} == DynamicDescriptor<double> {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}}));
-  EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, angle::Radians{}} + StaticDescriptor<angle::Degrees, Axis>{} == DynamicDescriptor<double> {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}}));
-  EXPECT_TRUE((StaticDescriptor<Axis, angle::Radians>{} + DynamicDescriptor<double> {angle::Degrees{}, Axis{}} == DynamicDescriptor<double> {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}}));
-
-  EXPECT_TRUE(Dimensions{7} - Dimensions{7} == Dimensions{0});
-  EXPECT_TRUE(Dimensions{7} - Dimensions{4} == Dimensions{3});
-
-  EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}} - StaticDescriptor<>{} == DynamicDescriptor<double> {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}}));
-  EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}} - StaticDescriptor<Axis>{} == DynamicDescriptor<double> {Axis{}, angle::Radians{}, angle::Degrees{}}));
-  EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}} - StaticDescriptor<angle::Degrees, Axis>{} == DynamicDescriptor<double> {Axis{}, angle::Radians{}}));
-
-  EXPECT_TRUE((DynamicDescriptor<double> {Dimensions{7}} - Dimensions{4} == Dimensions{3}));
-  EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}} - Dimensions{1} == DynamicDescriptor<double> {Axis{}, angle::Radians{}, angle::Degrees{}}));
-
-  EXPECT_TRUE((DynamicDescriptor<double> {Dimensions{7}} - DynamicDescriptor<double> {Dimensions{4}} == Dimensions{3}));
-  EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}} - DynamicDescriptor<double> {Axis{}} == DynamicDescriptor<double> {Axis{}, angle::Radians{}, angle::Degrees{}}));
-  EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}} - DynamicDescriptor<double> {angle::Degrees{}, Axis{}} == DynamicDescriptor<double> {Axis{}, angle::Radians{}}));
-  EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}} - DynamicDescriptor<double> {angle::Degrees{}, Axis{}} == StaticDescriptor<Axis, angle::Radians>{}));
 }
 
 

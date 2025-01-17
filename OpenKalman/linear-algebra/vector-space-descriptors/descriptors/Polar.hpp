@@ -60,26 +60,6 @@ namespace OpenKalman::descriptor
 #ifndef __cpp_concepts
     static_assert((distance_vector_space_descriptor<C1> and angle_vector_space_descriptor<C2>) or (distance_vector_space_descriptor<C2> and angle_vector_space_descriptor<C1>));
 #endif
-
-    /// Default constructor
-    constexpr Polar() = default;
-
-
-    /// Conversion constructor
-#ifdef __cpp_concepts
-    template<maybe_equivalent_to<Polar> D> requires (not std::same_as<std::decay_t<D>, Polar>)
-#else
-    template<typename D, std::enable_if_t<
-      maybe_equivalent_to<D, Polar> and not std::is_same_v<std::decay_t<D>, Polar>, int> = 0>
-#endif
-    explicit constexpr Polar(D&& d)
-    {
-      if constexpr (dynamic_vector_space_descriptor<D>)
-      {
-        if (d != Polar{}) throw std::invalid_argument{"Dynamic argument of 'Polar' constructor is not a polar vector space descriptor."};
-      }
-    }
-
   };
 
 } // namespace OpenKalman::descriptor
@@ -103,22 +83,18 @@ namespace OpenKalman::interface
 
 
       static constexpr auto
-      collection(const T& t) { return std::array {t}; }
+      collection(const T& t)
+      {
+        using A = std::decay_t<decltype(std::get<0>(descriptor::get_collection_of(descriptor::Angle<Limits>{})))>;
+        if constexpr (d_i == 0)
+          return std::array {descriptor::Polar<descriptor::Distance, A>{}};
+        else
+          return std::array {descriptor::Polar<A, descriptor::Distance>{}};
+      }
 
 
       static constexpr auto
       is_euclidean(const T&) { return std::false_type{}; }
-
-
-      static constexpr auto
-      canonical_equivalent(const T& t)
-      {
-        using A = std::decay_t<decltype(descriptor::internal::canonical_equivalent(descriptor::Angle<Limits>{}))>;
-        if constexpr (d_i == 0)
-          return descriptor::Polar<descriptor::Distance, A>{};
-        else
-          return descriptor::Polar<A, descriptor::Distance>{};
-      };
 
 
       /**

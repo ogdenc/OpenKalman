@@ -81,8 +81,27 @@ namespace OpenKalman::internal
     struct is_collection_impl_size<T, std::void_t<decltype(size(std::declval<T>()))>>
       : std::true_type {};
 
+
+    template<typename T, typename = void>
+    struct sized_random_access_range_impl : std::false_type {};
+
+    template<typename T>
+    struct sized_random_access_range_impl<T, std::enable_if_t<
+      (detail::is_collection_impl_begin<T>::value or detail::is_collection_impl_std_begin<T>::value) and
+      (detail::is_collection_impl_end<T>::value or detail::is_collection_impl_std_end<T>::value) and
+      (detail::is_collection_impl_size<T>::value or detail::is_collection_impl_std_size<T>::value)>>
+        : std::true_type {};
+
   } // namespace detail
-#endif 
+#endif
+
+
+  template<typename T>
+#ifdef __cpp_lib_ranges
+  concept sized_random_access_range = std::ranges::random_access_range<std::decay_t<T>> and std::ranges::sized_range<std::decay_t<T>>;
+#else
+  constexpr bool sized_random_access_range = detail::sized_random_access_range_impl<std::decay_t<T>>::value;
+#endif
 
 
   /**
@@ -90,18 +109,14 @@ namespace OpenKalman::internal
    * \details This will be a \ref internal::tuple_like "tuple_like" object or a sized std::ranges::random_access_range.
    */
   template<typename T>
-#if defined(__cpp_lib_ranges) and defined(__cpp_lib_remove_cvref)
-  concept collection = internal::tuple_like<T> or
-    (std::ranges::random_access_range<std::remove_cvref_t<T>> and std::ranges::sized_range<std::remove_cvref_t<T>>);
+#ifdef __cpp_lib_ranges
+  concept collection =
 #else
   constexpr bool collection =
-    internal::tuple_like<T> or
-      ((detail::is_collection_impl_begin<std::decay_t<T>>::value or detail::is_collection_impl_std_begin<std::decay_t<T>>::value) and
-        (detail::is_collection_impl_end<std::decay_t<T>>::value or detail::is_collection_impl_std_end<std::decay_t<T>>::value) and
-        (detail::is_collection_impl_size<std::decay_t<T>>::value or detail::is_collection_impl_std_size<std::decay_t<T>>::value));
 #endif
+    internal::tuple_like<T> or internal::sized_random_access_range<T>;
 
 
-} // namespace OpenKalman
+} // namespace OpenKalman::internal
 
 #endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_COLLECTION_HPP

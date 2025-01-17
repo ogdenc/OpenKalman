@@ -135,9 +135,9 @@ TEST(descriptors, DynamicDescriptor_extend)
 {
   DynamicDescriptor<double> d;
   EXPECT_EQ(get_dimension_size_of(d), 0); EXPECT_EQ(get_euclidean_dimension_size_of(d), 0); EXPECT_EQ(get_vector_space_descriptor_component_count_of(d), 0);
-  d.extend(Axis{});
+  d += Axis{};
   EXPECT_EQ(get_dimension_size_of(d), 1); EXPECT_EQ(get_euclidean_dimension_size_of(d), 1); EXPECT_EQ(get_vector_space_descriptor_component_count_of(d), 1);
-  d.extend(Dimensions{5}, Dimensions<5>{}, angle::Radians{}, StaticDescriptor<Axis, inclination::Radians>{}, Polar<angle::Degrees, Distance>{});
+  (((((d += Dimensions{5}) += Dimensions<5>{}) += angle::Radians{}) += StaticDescriptor<Axis, inclination::Radians>{}) += Polar<angle::Degrees, Distance>{});
   EXPECT_EQ(get_dimension_size_of(d), 16); EXPECT_EQ(get_euclidean_dimension_size_of(d), 19); EXPECT_EQ(get_vector_space_descriptor_component_count_of(d), 11);
 }
 

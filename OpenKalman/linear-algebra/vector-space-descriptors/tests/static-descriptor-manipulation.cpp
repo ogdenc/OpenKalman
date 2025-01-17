@@ -66,18 +66,12 @@
 
 // traits for manipulating static descriptors
 
-#include "linear-algebra/vector-space-descriptors/traits/replicate_static_vector_space_descriptor.hpp" //
-
-#include "linear-algebra/vector-space-descriptors/traits/static_reverse.hpp"
+#include "linear-algebra/vector-space-descriptors/traits/replicate_static_vector_space_descriptor.hpp"
 
 #include "linear-algebra/vector-space-descriptors/traits/internal/uniform_static_vector_space_descriptor_query.hpp" //
 #include "linear-algebra/vector-space-descriptors/concepts/uniform_static_vector_space_descriptor.hpp" //
 #include "linear-algebra/vector-space-descriptors/traits/uniform_static_vector_space_descriptor_component_of.hpp" //
 #include "linear-algebra/vector-space-descriptors/concepts/equivalent_to_uniform_static_vector_space_descriptor_component_of.hpp" //
-
-// collection traits
-
-#include "linear-algebra/vector-space-descriptors/traits/internal/vector_space_descriptor_collection_common_type.hpp" //
 
 // functions:
 
@@ -178,20 +172,6 @@ TEST(basics, assignment)
   static_assert(std::is_assignable_v<Dimensions<10>&, Dimensions<10>>);
   static_assert(not std::is_assignable_v<Dimensions<10>&, Dimensions<11>>);
   static_assert(std::is_assignable_v<Polar<>&, Polar<>>);
-}
-
-
-TEST(basics, fixed_arithmetic)
-{
-  static_assert(Dimensions<3>{} + Dimensions<4>{} == Dimensions<7>{});
-  static_assert(StaticDescriptor<Axis, Axis>{} + StaticDescriptor<Axis, Axis, Axis>{} == Dimensions<5>{});
-  static_assert(Polar<Distance, angle::Radians>{} + Dimensions<2>{} == StaticDescriptor<Polar<Distance, angle::Radians>, Dimensions<2>>{});
-
-  static_assert(Dimensions<7>{} - Dimensions<7>{} == Dimensions<0>{});
-  static_assert(Dimensions<7>{} - Dimensions<4>{} == Dimensions<3>{});
-  static_assert(StaticDescriptor<Distance, Distance, Distance>{} - Distance{} == StaticDescriptor<Distance, Distance>{});
-  static_assert(StaticDescriptor<Axis, angle::Radians, Distance>{} - Distance{} == StaticDescriptor<Axis, angle::Radians>{});
-  static_assert(StaticDescriptor<Distance, angle::Radians, Dimensions<3>>{} - Dimensions<2>{} == StaticDescriptor<Distance, angle::Radians, Axis>{});
 }
 
 
@@ -360,13 +340,5 @@ TEST(basics, vector_space_descriptor_collection)
   static_assert(not static_vector_space_descriptor_collection<std::array<Dimensions<dynamic_size>, 5>>);
   static_assert(not static_vector_space_descriptor_collection<std::vector<int>>);
   static_assert(not static_vector_space_descriptor_collection<std::initializer_list<int>>);
-}
-
-
-TEST(basics, vector_space_descriptor_collection_common_type)
-{
-  static_assert(std::is_same_v<vector_space_descriptor_collection_common_type_t<std::tuple<Axis, std::integral_constant<std::size_t, 1>>>, Axis>);
-  static_assert(std::is_same_v<vector_space_descriptor_collection_common_type_t<std::tuple<Axis, angle::Radians>>, DynamicDescriptor<>>);
-  static_assert(std::is_same_v<vector_space_descriptor_collection_common_type_t<std::vector<angle::Degrees>>, angle::Degrees>);
 }
 

@@ -37,8 +37,9 @@ namespace OpenKalman::test
         static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 0>, Axis > and ...));
         static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 1>, Axis > and ...));
 
-        return std::tuple_cat(std::tuple {
-          2 * transpose(x)}, OpenKalman::internal::tuple_replicate<sizeof...(ps)>(Mean {1.}));
+        return std::tuple_cat(
+          std::tuple {2 * transpose(x)},
+          OpenKalman::internal::fill_tuple<sizeof...(ps)>(Mean {1.}));
       },
       [](const auto& x, const auto& ...ps) // Hessians
       {
@@ -108,7 +109,7 @@ namespace OpenKalman::test
           std::cos(x(1)), -x(0) * std::sin(x(1)),
           std::sin(x(1)), x(0) * std::cos(x(1))};
         return std::tuple_cat(std::tuple {std::move(ret)},
-          OpenKalman::internal::tuple_replicate<sizeof...(ps)>(make_identity_matrix_like(ret)));
+          OpenKalman::internal::fill_tuple<sizeof...(ps)>(make_identity_matrix_like(ret)));
       },
       [](const M2t& x, const auto& ...ps) // Hessians
       {
@@ -139,7 +140,7 @@ namespace OpenKalman::test
           std::cos(x(1)), -x(0) * std::sin(x(1)),
           std::sin(x(1)), x(0) * std::cos(x(1))};
         return std::tuple_cat(std::tuple {
-          std::move(ret)}, OpenKalman::internal::tuple_replicate<sizeof...(ps)>(make_identity_matrix_like(ret)));
+          std::move(ret)}, OpenKalman::internal::fill_tuple<sizeof...(ps)>(make_identity_matrix_like(ret)));
       },
       [](const MP1t& x, const auto& ...ps) // Hessians
       {
@@ -166,7 +167,7 @@ namespace OpenKalman::test
           x(0) * h, x(1) * h,
           -x(1) * h2, x(0) * h2};
         return std::tuple_cat(std::tuple {
-          std::move(ret)}, OpenKalman::internal::tuple_replicate<sizeof...(ps)>(make_identity_matrix_like<MPPt>()));
+          std::move(ret)}, OpenKalman::internal::fill_tuple<sizeof...(ps)>(make_identity_matrix_like<MPPt>()));
       },
       [](const M2t& x, const auto& ...ps) // Hessians
       {
@@ -211,7 +212,7 @@ namespace OpenKalman::test
           0, 1, 0,
           -x(2) * h2, 0, x(0) * h2};
         return std::tuple_cat(std::tuple {
-          std::move(ret)}, OpenKalman::internal::tuple_replicate<sizeof...(ps)>(make_identity_matrix_like<MSSt>()));
+          std::move(ret)}, OpenKalman::internal::fill_tuple<sizeof...(ps)>(make_identity_matrix_like<MSSt>()));
       },
       [](const MC1t& x, const auto& ...ps) // Hessians
       {

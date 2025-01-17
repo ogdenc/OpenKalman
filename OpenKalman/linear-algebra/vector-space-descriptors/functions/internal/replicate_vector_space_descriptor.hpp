@@ -47,7 +47,7 @@ namespace OpenKalman::internal
     else
     {
       auto ret = descriptor::DynamicDescriptor<Scalar> {t};
-      for (std::size_t i = 1; i < static_cast<std::size_t>(n); ++i) ret.extend(t);
+      for (std::size_t i = 1; i < static_cast<std::size_t>(n); ++i) ret += t;
       return ret;
     }
   }

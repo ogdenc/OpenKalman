@@ -78,26 +78,6 @@ namespace OpenKalman::descriptor
       (distance_vector_space_descriptor<C3> and angle_vector_space_descriptor<C1> and inclination_vector_space_descriptor<C2>) or
       (distance_vector_space_descriptor<C3> and angle_vector_space_descriptor<C2> and inclination_vector_space_descriptor<C1>));
 #endif
-
-    /// Default constructor
-    constexpr Spherical() = default;
-
-
-    /// Conversion constructor
-#ifdef __cpp_concepts
-    template<maybe_equivalent_to<Spherical> D> requires (not std::same_as<std::decay_t<D>, Spherical>)
-#else
-    template<typename D, std::enable_if_t<
-      maybe_equivalent_to<D, Spherical> and not std::is_same_v<std::decay_t<D>, Spherical>, int> = 0>
-#endif
-    explicit constexpr Spherical(D&& d)
-    {
-      if constexpr (dynamic_vector_space_descriptor<D>)
-      {
-        if (d != Spherical{}) throw std::invalid_argument{"Dynamic argument of 'Spherical' constructor is not a spherical vector space descriptor."};
-      }
-    }
-
   };
 
 } // namespace OpenKalman::descriptor
@@ -118,28 +98,24 @@ namespace OpenKalman::interface
       static constexpr auto
       euclidean_size(const T&) { return std::integral_constant<std::size_t, 4>{}; };
 
-
-      static constexpr auto
-      collection(const T& t) { return std::array {t}; }
-
-
-      static constexpr auto
-      is_euclidean(const T&) { return std::false_type{}; }
-
     private:
 
       template<std::size_t i>
       using Part = std::conditional_t<a_i == i,
-        std::decay_t<decltype(descriptor::internal::canonical_equivalent(descriptor::Angle<CircleLimits>{}))>,
+        std::decay_t<decltype(std::get<0>(descriptor::get_collection_of(descriptor::Angle<CircleLimits>{})))>,
         std::conditional_t<i_i == i, descriptor::Inclination<InclinationLimits>, descriptor::Distance>>;
 
     public:
 
       static constexpr auto
-      canonical_equivalent(const T& t)
+      collection(const T& t)
       {
-        return descriptor::Spherical<Part<0>, Part<1>, Part<2>>{};
-      };
+        return std::array {descriptor::Spherical<Part<0>, Part<1>, Part<2>>{}};
+      }
+
+
+      static constexpr auto
+      is_euclidean(const T&) { return std::false_type{}; }
 
     private:
 

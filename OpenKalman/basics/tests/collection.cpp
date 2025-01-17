@@ -26,6 +26,11 @@ using namespace OpenKalman;
 
 TEST(values, collections)
 {
+  static_assert(not internal::sized_random_access_range<std::tuple<int, double, long double>>);
+  static_assert(internal::sized_random_access_range<std::array<double, 5>>);
+  static_assert(internal::sized_random_access_range<std::vector<double>>);
+  static_assert(internal::sized_random_access_range<std::initializer_list<double>>);
+
   static_assert(internal::collection<std::tuple<int, double, long double>>);
   static_assert(internal::collection<std::array<double, 5>>);
   static_assert(internal::collection<std::vector<double>>);

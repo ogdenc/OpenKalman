@@ -70,9 +70,8 @@ namespace OpenKalman
     static auto construct_ps(FlattenedPs&& flattened_ps)
     {
       constexpr auto group_size = std::tuple_size_v<std::decay_t<T>> - 1; // The size of the noise terms only
-      auto ps_group = oin::tuple_slice<pos, pos + group_size>(std::forward<FlattenedPs>(flattened_ps));
       return std::tuple_cat(
-        std::make_tuple(std::move(ps_group)),
+        oin::tuple_slice<pos, pos + group_size>(std::forward<FlattenedPs>(flattened_ps)),
         construct_ps<pos + group_size, Ts...>(std::forward<FlattenedPs>(flattened_ps)));
     }
 
@@ -204,7 +203,7 @@ namespace OpenKalman
       auto gs = std::forward_as_tuple(std::get<0>(std::forward<Ts>(ts))...);
 
       // Extract the noise terms.
-      auto ds = std::make_tuple(oin::tuple_slice<1, std::tuple_size_v<std::decay_t<Ts>>>(std::forward<Ts>(ts))...);
+      auto ds = std::tuple {oin::tuple_slice<1, std::tuple_size_v<std::decay_t<Ts>>>(std::forward<Ts>(ts))...};
 
       // Number of augmented input dimensions.
       constexpr auto dim = count_dim<InputDist, Ts...>();

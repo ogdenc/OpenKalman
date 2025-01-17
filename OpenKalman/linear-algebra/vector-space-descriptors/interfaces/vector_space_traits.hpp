@@ -34,6 +34,15 @@ namespace OpenKalman::interface
   {
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
     /**
+     * \brief The scalar type associated with T (e.g., double, int).
+     * \details <code>OpenKalman::value::number&lt;scalar_type&gt;</code> must be satisfied.
+     * \note Optional if \ref descriptor::static_vector_space_descriptor<T>. Defaults to <code>double</code>.
+     * \sa descriptor::scalar_type_of
+     */
+    using scalar_type = double;
+
+
+    /**
      * \brief The number of dimensions at compile time.
      */
 #ifdef __cpp_concepts
@@ -57,6 +66,8 @@ namespace OpenKalman::interface
 
     /**
      * \brief A \ref descriptor::vector_space_descriptor_collection containing the coordinate groups within T.
+     * \details The collection represents the canonical form of T.
+     * Two types are equivalent, by definition, if their canonical equivalent types are the same.
      */
 #ifdef __cpp_concepts
     static constexpr descriptor::vector_space_descriptor_collection auto
@@ -78,56 +89,11 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief The canonical equivalent type of T.
-     * \details Two types are equivalent, by definition, if their canonical equivalent types are the same.
-     * No definition is required if \ref is_prefix is defined or if <code>dynamic_vector_space_descriptor<T></code>.
-     * Otherwise, if this is left undefined, the canonical equivalent will be assumed to be T itself.
+     * \brief The std::type_index for type T.
+     * \details If this is omitted, the hash code will be <code>typeid(t)</code>.
      */
-#ifdef __cpp_concepts
-    static constexpr descriptor::vector_space_descriptor auto
-#else
-    static constexpr auto
-#endif
-    canonical_equivalent(const T&);
-
-
-    /**
-     * \brief A hash code for type T which is identical for all instances of T.
-     * \details If this is omitted, the hash code will be <code>typeid(internal::canonical_equivalent(t)).hash_code()</code>.
-     */
-    static constexpr std::size_t
-    hash_code(const T& t);
-
-
-    /**
-     * \brief Concatenate the argument to the end of T.
-     * \details
-     * It can be assumed that both T and Arg are in their \ref internal::canonical_equivalent "canonical equivalent" forms.
-     */
-#ifdef __cpp_concepts
-    static constexpr descriptors::vector_space_descriptor auto
-    append(const T&, const descriptor::vector_space_descriptor auto& arg);
-#else
-    template<typename Arg, std::enable_if_t<descriptor::vector_space_descriptor<Arg>, int> = 0>
-    static constexpr auto
-    concatenate(const T&, const Arg&);
-#endif
-
-
-    /**
-     * \brief Detatch the argument from T.
-     * \details Arg must be a suffix of T.
-     * It can be assumed that both T and Arg are in their \ref internal::canonical_equivalent "canonical equivalent" forms.
-     * If Arg is not a suffix of T, the function may throw an exception.
-     */
-#ifdef __cpp_concepts
-    static constexpr descriptor::vector_space_descriptor auto
-    detach(const T&, const descriptor::vector_space_descriptor auto& arg);
-#else
-    template<typename Arg, std::enable_if_t<descriptor::vector_space_descriptor<Arg>, int> = 0>
-    static constexpr auto
-    detach(const T&, const Arg&);
-#endif
+    static constexpr std::type_index
+    type_index(const T& t);
 
 
     /**

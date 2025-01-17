@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2018-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2018-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -74,93 +74,6 @@ TEST(descriptors, canonical_equivalent)
   static_assert(std::is_same_v<std::decay_t<decltype(canonical_equivalent(StaticDescriptor<Dimensions<1>, Dimensions<2>, angle::Degrees>{}))>, StaticDescriptor<Dimensions<3>, angle::PositiveDegrees>>);
   static_assert(std::is_same_v<std::decay_t<decltype(canonical_equivalent(StaticDescriptor<StaticDescriptor<Dimensions<1>, Dimensions<2>>, angle::Degrees>{}))>, StaticDescriptor<Dimensions<3>, angle::PositiveDegrees>>);
   static_assert(std::is_same_v<std::decay_t<decltype(canonical_equivalent(StaticDescriptor<angle::Degrees, Dimensions<1>, Dimensions<2>>{}))>, StaticDescriptor<angle::PositiveDegrees, Dimensions<3>>>);
-}
-
-
-#include "linear-algebra/vector-space-descriptors/descriptors/internal/prefix_base_of.hpp"
-
-TEST(descriptors, prefix_base_of)
-{
-  using namespace internal;
-  static_assert(std::is_same_v<prefix_base_of_t<StaticDescriptor<>, Axis>, Axis>);
-  static_assert(std::is_same_v<prefix_base_of_t<StaticDescriptor<>, Dimensions<2>>, Dimensions<2>>);
-  static_assert(std::is_same_v<prefix_base_of_t<StaticDescriptor<>, StaticDescriptor<Axis>>, Axis>);
-  static_assert(std::is_same_v<prefix_base_of_t<StaticDescriptor<>, StaticDescriptor<Axis, angle::Radians>>, StaticDescriptor<Axis, angle::Radians>>);
-  static_assert(std::is_same_v<prefix_base_of_t<std::integral_constant<int, 0>, StaticDescriptor<Axis, angle::Radians>>, StaticDescriptor<Axis, angle::Radians>>);
-  static_assert(std::is_same_v<prefix_base_of_t<StaticDescriptor<Axis, angle::Radians>, StaticDescriptor<Axis, angle::Radians>>, StaticDescriptor<>>);
-  static_assert(std::is_same_v<prefix_base_of_t<Axis, StaticDescriptor<Axis, angle::Radians>>, angle::Radians>);
-  static_assert(std::is_same_v<prefix_base_of_t<Axis, StaticDescriptor<Dimensions<2>, angle::Radians>>, StaticDescriptor<Axis, angle::Radians>>);
-  static_assert(std::is_same_v<prefix_base_of_t<Axis, StaticDescriptor<Axis, angle::Radians>>, angle::Radians>);
-  static_assert(std::is_same_v<prefix_base_of_t<Axis, StaticDescriptor<Dimensions<2>, angle::Radians>>, StaticDescriptor<Axis, angle::Radians>>);
-  static_assert(std::is_same_v<prefix_base_of_t<StaticDescriptor<Axis, angle::Radians>, StaticDescriptor<Axis, angle::Radians, Axis>>, Axis>);
-  static_assert(std::is_same_v<prefix_base_of_t<StaticDescriptor<Distance, Dimensions<2>>, StaticDescriptor<Distance, Dimensions<3>, angle::Radians>>, StaticDescriptor<Dimensions<1>, angle::Radians>>);
-  static_assert(std::same_as<prefix_base_of_t<StaticDescriptor<angle::Radians, Dimensions<2>>, StaticDescriptor<angle::Radians, Dimensions<3>>>, Axis>);
-}
-
-
-#include "linear-algebra/vector-space-descriptors/functions/internal/is_prefix.hpp"
-
-TEST(descriptors, is_prefix)
-{
-  using namespace internal;
-  static_assert(is_prefix(StaticDescriptor<>{}, Axis{}));
-  static_assert(is_prefix(StaticDescriptor<>{}, Dimensions<2>{}));
-  static_assert(is_prefix(StaticDescriptor<>{}, StaticDescriptor<Axis>{}));
-  static_assert(is_prefix(StaticDescriptor<>{}, StaticDescriptor<Axis, angle::Radians>{}));
-  EXPECT_TRUE(is_prefix(StaticDescriptor<>{}, 5u));
-  static_assert(is_prefix(StaticDescriptor<Axis>{}, StaticDescriptor<Dimensions<2>, Axis>{}));
-  static_assert(not is_prefix(StaticDescriptor<Axis>{}, StaticDescriptor<>{}));
-  static_assert(is_prefix(StaticDescriptor<Dimensions<7>>{}, StaticDescriptor<Dimensions<7>>{}));
-  static_assert(not is_prefix(StaticDescriptor<Dimensions<7>>{}, StaticDescriptor<Dimensions<6>>{}));
-  EXPECT_TRUE(is_prefix(Dimensions<2>{}, 7u));
-  EXPECT_TRUE(is_prefix(StaticDescriptor<Dimensions<7>>{}, 7u));
-  EXPECT_FALSE(is_prefix(StaticDescriptor<Dimensions<7>>{}, 6u));
-  static_assert(is_prefix(StaticDescriptor<Axis, angle::Radians>{}, StaticDescriptor<Axis, angle::Radians>{}));
-  static_assert(is_prefix(StaticDescriptor<Axis>{}, StaticDescriptor<Axis, angle::Radians>{}));
-  static_assert(is_prefix(std::integral_constant<int, 1>{}, StaticDescriptor<Axis, angle::Radians>{}));
-  static_assert(is_prefix(StaticDescriptor<Distance, Axis>{}, StaticDescriptor<Distance, Axis, angle::Radians>{}));
-  static_assert(is_prefix(StaticDescriptor<Axis>{}, StaticDescriptor<Dimensions<3>, angle::Radians>{}));
-  static_assert(is_prefix(StaticDescriptor<Dimensions<2>, Distance>{}, StaticDescriptor<Dimensions<2>, Distance, angle::Radians>{}));
-  static_assert(is_prefix(StaticDescriptor<Dimensions<2>>{}, StaticDescriptor<Dimensions<3>, angle::Radians>{}));
-  static_assert(is_prefix(StaticDescriptor<Distance, Dimensions<2>>{}, StaticDescriptor<Distance, Dimensions<3>, angle::Radians>{}));
-  static_assert(is_prefix(StaticDescriptor<Distance, Dimensions<2>>{}, StaticDescriptor<Distance, Dimensions<3>, angle::Radians>{}));
-  static_assert(is_prefix(StaticDescriptor<angle::Radians, Dimensions<2>>{}, StaticDescriptor<angle::Radians, Dimensions<3>, angle::Radians>{}));
-  static_assert(is_prefix(StaticDescriptor<Distance, Dimensions<2>>{}, StaticDescriptor<Distance, Dimensions<3>>{}));
-  static_assert(not is_prefix(StaticDescriptor<Distance, Dimensions<3>>{}, StaticDescriptor<Distance, Dimensions<2>>{}));
-  static_assert(is_prefix(Axis{}, StaticDescriptor<Axis, angle::Radians>{}));
-  static_assert(is_prefix(Axis{}, StaticDescriptor<Dimensions<2>, angle::Radians>{}));
-  static_assert(not is_prefix(angle::Radians{}, StaticDescriptor<Axis, angle::Radians>{}));
-  static_assert(not is_prefix(StaticDescriptor<angle::Radians>{}, StaticDescriptor<Axis, angle::Radians>{}));
-  static_assert(is_prefix(StaticDescriptor<Axis, angle::Radians>{}, StaticDescriptor<Axis, angle::Radians, Axis>{}));
-  static_assert(is_prefix(StaticDescriptor<Axis, angle::Radians, Axis>{}, StaticDescriptor<Axis, angle::Radians, Axis>{}));
-  static_assert(not is_prefix(StaticDescriptor<Axis, angle::Radians, angle::Radians>{}, StaticDescriptor<Axis, angle::Radians, Axis>{}));
-  static_assert(not is_prefix(StaticDescriptor<Axis, angle::Radians, angle::Radians>{}, StaticDescriptor<Axis, angle::Radians, inclination::Radians>{}));
-}
-
-
-#include "linear-algebra/vector-space-descriptors/functions/internal/are_equivalent.hpp"
-
-TEST(descriptors, are_equivalent)
-{
-  using namespace OpenKalman::descriptor::internal;
-
-  static_assert(are_equivalent(StaticDescriptor<>{}, StaticDescriptor<>{}));
-  static_assert(are_equivalent(StaticDescriptor<>{}, Dimensions<0>{}));
-  EXPECT_TRUE(are_equivalent(StaticDescriptor<>{}, 0u));
-  static_assert(are_equivalent(0u, Dimensions<0>{}));
-  static_assert(are_equivalent(std::integral_constant<std::size_t, 2>{}, std::integral_constant<int, 2>{}));
-  static_assert(not are_equivalent(std::integral_constant<std::size_t, 2>{}, std::integral_constant<int, 3>{}));
-  static_assert(are_equivalent(Axis{}, std::integral_constant<std::size_t, 1>{}));
-  static_assert(are_equivalent(angle::PositiveDegrees{}, angle::Degrees{}));
-  static_assert(are_equivalent(angle::Degrees{}, angle::PositiveDegrees{}));
-  EXPECT_TRUE(are_equivalent(std::integral_constant<std::size_t, 2>{}, 2u));
-  static_assert(are_equivalent(Polar<Distance, angle::Degrees>{}, Polar<Distance, angle::PositiveDegrees>{}));
-  static_assert(not are_equivalent(Polar<Distance, angle::Radians>{}, Polar<Distance, angle::Degrees>{}));
-  static_assert(are_equivalent(Spherical<Distance, angle::Degrees, inclination::Radians>{}, Spherical<Distance, angle::PositiveDegrees, inclination::Radians>{}));
-  static_assert(not are_equivalent(Spherical<Distance, angle::Degrees, inclination::Radians>{}, Spherical<Distance, angle::Radians, inclination::Radians>{}));
-  static_assert(not are_equivalent(Spherical<Distance, angle::Degrees, inclination::Radians>{}, Spherical<Distance, inclination::Radians, angle::Radians>{}));
-  static_assert(are_equivalent(StaticDescriptor<Axis, angle::Degrees, angle::Degrees>{}, StaticDescriptor<Axis, angle::PositiveDegrees, angle::PositiveDegrees>{}));
-  static_assert(not are_equivalent(StaticDescriptor<Axis, angle::Degrees, angle::Degrees>{}, StaticDescriptor<Axis, angle::Radians, inclination::Radians>{}));
 }
 
 
@@ -246,7 +159,7 @@ TEST(descriptors, equivalent_to)
 
 #include "linear-algebra/vector-space-descriptors/concepts/internal/prefix_of.hpp"
 
-/*TEST(descriptors, prefix_of)
+TEST(descriptors, prefix_of)
 {
   using namespace internal;
   static_assert(prefix_of<StaticDescriptor<>, Axis>);
@@ -263,12 +176,13 @@ TEST(descriptors, equivalent_to)
   static_assert(prefix_of<StaticDescriptor<Axis, angle::Radians>, StaticDescriptor<Axis, angle::Radians, Axis>>);
   static_assert(prefix_of<StaticDescriptor<Axis, angle::Radians, Axis>, StaticDescriptor<Axis, angle::Radians, Axis>>);
   static_assert(not prefix_of<StaticDescriptor<Axis, angle::Radians, angle::Radians>, StaticDescriptor<Axis, angle::Radians, Axis>>);
-}*/
+  static_assert(not prefix_of<Dimensions<>, Axis>);
+}
 
 
 #include "linear-algebra/vector-space-descriptors/functions/comparison-operators.hpp"
 
-/*TEST(descriptors, fixed_comparison)
+TEST(descriptors, fixed_comparison)
 {
   static_assert(Dimensions<3>{} == Dimensions<3>{});
   static_assert(Dimensions<3>{} <= Dimensions<3>{});
@@ -305,11 +219,13 @@ TEST(descriptors, equivalent_to)
   static_assert(not (Polar<Distance, angle::Radians>{} < Dimensions<5>{}));
   static_assert((Spherical<Distance, inclination::Radians, angle::Radians>{} != Dimensions<5>{}));
   static_assert(not (Spherical<Distance, inclination::Radians, angle::Radians>{} < Dimensions<5>{}));
-}*/
+}
 
 
 TEST(descriptors, dynamic_comparison)
 {
+  static_assert(Dimensions{0} == StaticDescriptor<>{});
+  static_assert(StaticDescriptor<>{} == Dimensions{0});
   static_assert(Dimensions{0} == Dimensions{0});
   static_assert(Dimensions{3} == Dimensions{3});
   static_assert(Dimensions{3} == Dimensions{3});
@@ -344,12 +260,12 @@ TEST(descriptors, dynamic_comparison)
   static_assert(StaticDescriptor<Axis, Dimensions<2>, Axis>{} != Dimensions{3});
   static_assert(StaticDescriptor<Axis, Axis, Axis, Axis>{} >= Dimensions{3});
 
-  static_assert(Polar<Distance, angle::Radians>{} != Dimensions{5});
-  static_assert(not (Polar<Distance, angle::Radians>{} < Dimensions{5}));
-  static_assert(Spherical<Distance, inclination::Radians, angle::Radians>{} != Dimensions{5});
-  static_assert(not (Spherical<Distance, inclination::Radians, angle::Radians>{} > Dimensions{5}));
+  static_assert(Polar<>{} != Dimensions{5});
+  static_assert(Dimensions{5} != Polar<>{});
+  static_assert(not (Polar<>{} < Dimensions{5}));
+  static_assert(Spherical<>{} != Dimensions{5});
+  static_assert(not (Spherical<>{} > Dimensions{5}));
 
-  //static_assert(DynamicDescriptor<float>{} != DynamicDescriptor<double>{});
   EXPECT_TRUE((DynamicDescriptor<double> {StaticDescriptor<> {}} == DynamicDescriptor<double> {StaticDescriptor<> {}}));
   EXPECT_TRUE((DynamicDescriptor<double> {StaticDescriptor<> {}} == DynamicDescriptor<double> {}));
   EXPECT_TRUE((DynamicDescriptor<double> {Axis {}} == DynamicDescriptor<double> {Axis {}}));
@@ -364,7 +280,7 @@ TEST(descriptors, dynamic_comparison)
   EXPECT_TRUE((DynamicDescriptor<double> {StaticDescriptor<> {}} < DynamicDescriptor<double> {angle::Radians {}}));
   EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians {}} > DynamicDescriptor<double> {StaticDescriptor<> {}}));
   EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians {}} == DynamicDescriptor<double> {angle::Radians {}}));
-  EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians {}} == DynamicDescriptor<double> {angle::PositiveRadians {}}));
+  EXPECT_TRUE((DynamicDescriptor<double> {angle::Degrees {}} == DynamicDescriptor<double> {angle::PositiveDegrees {}}));
   EXPECT_TRUE((DynamicDescriptor<double> {angle::Degrees {}} != DynamicDescriptor<double> {angle::Radians {}}));
   EXPECT_TRUE((DynamicDescriptor<double> {inclination::Radians {}} != DynamicDescriptor<double> {inclination::Degrees {}}));
   EXPECT_TRUE((DynamicDescriptor<double> {Axis {}} != DynamicDescriptor<double> {angle::Radians {}}));
@@ -407,7 +323,6 @@ TEST(descriptors, dynamic_comparison)
   EXPECT_TRUE((DynamicDescriptor<double> {Dimensions{4}} > StaticDescriptor<Axis, Axis> {}));
   EXPECT_TRUE((DynamicDescriptor<double> {Dimensions{2}} < StaticDescriptor<Axis, Axis, Axis, Axis> {}));
   EXPECT_TRUE((Dimensions{4} != DynamicDescriptor<double> {StaticDescriptor<Axis, Axis> {}}));
-
   EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians {}} == angle::Radians {}));
   EXPECT_TRUE((DynamicDescriptor<double> {angle::Degrees {}} == StaticDescriptor<angle::Degrees> {}));
   EXPECT_TRUE((DynamicDescriptor<double> {Dimensions<3>{}, angle::Degrees{}} == StaticDescriptor<Dimensions<3>, angle::Degrees>{}));
@@ -421,7 +336,7 @@ TEST(descriptors, dynamic_comparison)
   EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}} < StaticDescriptor<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<4>>{}));
   EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}} > StaticDescriptor<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<2>>{}));
   EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, Dimensions<3>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}} != StaticDescriptor<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<3>>{}));
-  EXPECT_TRUE(not (DynamicDescriptor<double> {Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}} < StaticDescriptor<Dimensions<4>, angle::Degrees, Dimensions<3>, Dimensions<3>>{}));
+  EXPECT_FALSE((DynamicDescriptor<double> {Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}} < StaticDescriptor<Dimensions<4>, angle::Degrees, Dimensions<3>, Dimensions<3>>{}));
 
   EXPECT_TRUE(DynamicDescriptor<float>{StaticDescriptor<> {}} == DynamicDescriptor<double>{StaticDescriptor<> {}});
   EXPECT_TRUE((DynamicDescriptor<double> {StaticDescriptor<Axis, angle::Radians>{}} == StaticDescriptor<Axis, angle::Radians>{}));

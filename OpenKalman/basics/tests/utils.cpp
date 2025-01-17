@@ -19,18 +19,17 @@
 
 using namespace OpenKalman;
 
-
 TEST(basics, tuple_slice)
 {
   std::tuple t {1, "c", 5.0, 6.0};
   static_assert(std::is_same_v<decltype(internal::tuple_slice<0, 0>(t)), std::tuple<>>);
-  static_assert(std::is_same_v<decltype(internal::tuple_slice<0, 1>(t)), std::tuple<int&>>);
-  static_assert(std::is_same_v<decltype(internal::tuple_slice<1, 2>(t)), std::tuple<const char*&>>);
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<0, 1>(t)), std::tuple<int>>);
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<1, 2>(t)), std::tuple<const char*>>);
   static_assert(std::is_same_v<decltype(internal::tuple_slice<2, 2>(t)), std::tuple<>>);
-  static_assert(std::is_same_v<decltype(internal::tuple_slice<2, 3>(t)), std::tuple<double&>>);
-  static_assert(std::is_same_v<decltype(internal::tuple_slice<3, 4>(t)), std::tuple<double&>>);
-  static_assert(std::is_same_v<decltype(internal::tuple_slice<1, 3>(t)), std::tuple<const char*&, double&>>);
-  static_assert(std::is_same_v<decltype(internal::tuple_slice<2, 4>(t)), std::tuple<double&, double&>>);
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<2, 3>(t)), std::tuple<double>>);
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<3, 4>(t)), std::tuple<double>>);
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<1, 3>(t)), std::tuple<const char*, double>>);
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<2, 4>(t)), std::tuple<double, double>>);
 
   static_assert(std::is_same_v<decltype(internal::tuple_slice<1, 3>(std::tuple {1, "c", 5.0, 6.0})), std::tuple<const char*, double>>);
   static_assert(std::is_same_v<decltype(internal::tuple_slice<2, 4>(std::tuple {1, "c", 5.0, 6.0})), std::tuple<double, double>>);
@@ -39,20 +38,90 @@ TEST(basics, tuple_slice)
   static_assert(std::is_same_v<decltype(internal::tuple_slice<2, 4>(std::forward_as_tuple(1, "c", 5.0, 6.0))), std::tuple<double, double>>);
 
   std::array a {1, 2, 3, 4};
-  static_assert(std::is_same_v<decltype(internal::tuple_slice<1, 3>(a)), std::tuple<int&, int&>>);
+  static_assert(std::is_same_v<decltype(internal::tuple_slice<1, 3>(a)), std::tuple<int, int>>);
   static_assert(std::is_same_v<decltype(internal::tuple_slice<1, 3>(std::array {1, 2, 3, 4})), std::tuple<int, int>>);
 }
 
 
-TEST(basics, tuple_replicate)
+TEST(basics, forward_as_tuple_slice)
+{
+  std::tuple t {1, "c", 5.0, 6.0};
+  static_assert(std::is_same_v<decltype(internal::forward_as_tuple_slice<0, 0>(t)), std::tuple<>>);
+  static_assert(std::is_same_v<decltype(internal::forward_as_tuple_slice<0, 1>(t)), std::tuple<int&>>);
+  static_assert(std::is_same_v<decltype(internal::forward_as_tuple_slice<1, 2>(t)), std::tuple<const char*&>>);
+  static_assert(std::is_same_v<decltype(internal::forward_as_tuple_slice<2, 2>(t)), std::tuple<>>);
+  static_assert(std::is_same_v<decltype(internal::forward_as_tuple_slice<2, 3>(t)), std::tuple<double&>>);
+  static_assert(std::is_same_v<decltype(internal::forward_as_tuple_slice<3, 4>(t)), std::tuple<double&>>);
+  static_assert(std::is_same_v<decltype(internal::forward_as_tuple_slice<1, 3>(t)), std::tuple<const char*&, double&>>);
+  static_assert(std::is_same_v<decltype(internal::forward_as_tuple_slice<2, 4>(t)), std::tuple<double&, double&>>);
+
+  static_assert(std::is_same_v<decltype(internal::forward_as_tuple_slice<1, 3>(std::tuple {1, "c", 5.0, 6.0})), std::tuple<const char*&&, double&&>>);
+  static_assert(std::is_same_v<decltype(internal::forward_as_tuple_slice<2, 4>(std::tuple {1, "c", 5.0, 6.0})), std::tuple<double&&, double&&>>);
+
+  std::array a {1, 2, 3, 4};
+  static_assert(std::is_same_v<decltype(internal::forward_as_tuple_slice<1, 3>(a)), std::tuple<int&, int&>>);
+  static_assert(std::is_same_v<decltype(internal::forward_as_tuple_slice<1, 3>(std::array {1, 2, 3, 4})), std::tuple<int&&, int&&>>);
+}
+
+
+TEST(basics, fill_tuple)
 {
   double d = 7.0;
-  static_assert(std::is_same_v<decltype(internal::tuple_replicate<0>(d)), std::tuple<>>);
-  static_assert(std::is_same_v<decltype(internal::tuple_replicate<1>(d)), std::tuple<double&>>);
-  static_assert(std::is_same_v<decltype(internal::tuple_replicate<4>(d)), std::tuple<double&, double&, double&, double&>>);
+  static_assert(std::is_same_v<decltype(internal::fill_tuple<0>(d)), std::tuple<>>);
+  static_assert(std::is_same_v<decltype(internal::fill_tuple<1>(d)), std::tuple<double&>>);
+  static_assert(std::is_same_v<decltype(internal::fill_tuple<4>(d)), std::tuple<double&, double&, double&, double&>>);
 
-  static_assert(std::is_same_v<decltype(internal::tuple_replicate<0>(5.0)), std::tuple<>>);
-  static_assert(std::is_same_v<decltype(internal::tuple_replicate<1>(5.0)), std::tuple<double>>);
-  static_assert(std::is_same_v<decltype(internal::tuple_replicate<4>(5.0)), std::tuple<double, double, double, double>>);
+  static_assert(std::is_same_v<decltype(internal::fill_tuple<0>(5.0)), std::tuple<>>);
+  static_assert(std::is_same_v<decltype(internal::fill_tuple<1>(5.0)), std::tuple<double>>);
+  static_assert(std::is_same_v<decltype(internal::fill_tuple<4>(5.0)), std::tuple<double, double, double, double>>);
+}
+
+
+TEST(basics, tuple_reverse)
+{
+  constexpr std::tuple ta {1, 'c', 5.0, 6.0};
+  constexpr auto rta = internal::tuple_reverse(ta);
+  static_assert(std::get<0>(rta) == 6.0);
+  static_assert(std::get<1>(rta) == 5.0);
+  static_assert(std::get<2>(rta) == 'c');
+  static_assert(std::get<3>(rta) == 1);
+  static_assert(std::is_same_v<decltype(internal::tuple_reverse(ta)), std::tuple<double, double, char, int>>);
+  static_assert(std::is_same_v<decltype(internal::tuple_reverse(std::tuple {1, 'c', 5.0, 6.0})), std::tuple<double, double, char, int>>);
+  int n0 = 1;
+  char n1 = 'c';
+  double n2 = 5.0, n3 = 6.0;
+  auto tb = std::forward_as_tuple(n0, n1, n2, n3);
+  auto rtb = internal::tuple_reverse(tb);
+  EXPECT_TRUE(std::get<0>(rtb) == n3);
+  EXPECT_TRUE(std::get<1>(rtb) == n2);
+  EXPECT_TRUE(std::get<2>(rtb) == n1);
+  EXPECT_TRUE(std::get<3>(rtb) == n0);
+  static_assert(std::is_same_v<decltype(internal::tuple_reverse(tb)), std::tuple<double, double, char, int>>);
+}
+
+
+TEST(basics, tuple_flatten)
+{
+  constexpr auto fta = internal::tuple_flatten(std::tuple {0, std::tuple{1, std::tuple{2, 3}}, 4, 5});
+  static_assert(std::get<0>(fta) == 0);
+  static_assert(std::get<1>(fta) == 1);
+  static_assert(std::get<2>(fta) == 2);
+  static_assert(std::get<3>(fta) == 3);
+  static_assert(std::get<4>(fta) == 4);
+  static_assert(std::get<5>(fta) == 5);
+
+  static_assert(std::get<0>(internal::tuple_flatten(std::tuple{7})) == 7);
+
+  constexpr auto ftb = internal::tuple_flatten(std::array{3, 4, 5});
+  static_assert(std::get<2>(ftb) == 5);
+  static_assert(std::is_same_v<const decltype(ftb), const std::array<int, 3>>);
+
+  constexpr auto ftc = internal::tuple_flatten(std::array{std::tuple{0, 1}, std::tuple{2, 3}, std::tuple{4, 5}});
+  static_assert(std::get<0>(ftc) == 0);
+  static_assert(std::get<1>(ftc) == 1);
+  static_assert(std::get<2>(ftc) == 2);
+  static_assert(std::get<3>(ftc) == 3);
+  static_assert(std::get<4>(ftc) == 4);
+  static_assert(std::get<5>(ftc) == 5);
 }
 

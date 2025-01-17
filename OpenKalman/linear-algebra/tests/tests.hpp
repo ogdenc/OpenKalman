@@ -272,8 +272,8 @@ namespace OpenKalman::test
       else
       {
         auto res_tail = compare(
-          OpenKalman::internal::tuple_slice<1, sizeof...(Tail1)>(A),
-          OpenKalman::internal::tuple_slice<1, sizeof...(Tail2)>(B), e);
+          OpenKalman::internal::forward_as_tuple_slice<1, sizeof...(Tail1)>(A),
+          OpenKalman::internal::forward_as_tuple_slice<1, sizeof...(Tail2)>(B), e);
 
         if (res_head) return res_tail;
         else return ::testing::AssertionFailure() << res_head.message() << res_tail.message();

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and b recursive filters.
  *
- * Copyright (c) 2020-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,17 +16,14 @@
 #ifndef OPENKALMAN_VECTOR_SPACE_DESCRIPTORS_ARITHMETIC_OPERATORS_HPP
 #define OPENKALMAN_VECTOR_SPACE_DESCRIPTORS_ARITHMETIC_OPERATORS_HPP
 
-#include <type_traits>
-#include "linear-algebra/values/concepts/value.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/traits/static_concatenate.hpp" //
 #include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp"
-#include "linear-algebra/vector-space-descriptors/descriptors/Dimensions.hpp" //
-#include "linear-algebra/vector-space-descriptors/descriptors/StaticDescriptor.hpp" //
-#include "linear-algebra/vector-space-descriptors/descriptors/DynamicDescriptor.hpp" //
-
+#include "linear-algebra/vector-space-descriptors/descriptors/Dimensions.hpp"
+#include "linear-algebra/vector-space-descriptors/descriptors/DynamicDescriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/descriptors/internal/Concatenate.hpp"
+#include "linear-algebra/vector-space-descriptors/descriptors/internal/Replicate.hpp"
 
 namespace OpenKalman::descriptor
 {
@@ -34,66 +31,56 @@ namespace OpenKalman::descriptor
    * \brief Add two sets of \ref vector_space_descriptor objects, whether fixed or dynamic.
    */
 #ifdef __cpp_concepts
-  template<vector_space_descriptor T, vector_space_descriptor U> requires (not value::value<T>) or (not value::value<U>)
+  template<vector_space_descriptor T, vector_space_descriptor U>
 #else
-  template<typename T, typename U, std::enable_if_t<vector_space_descriptor<T> and vector_space_descriptor<U> and
-    (not value::value<T> or not value::value<U>), int> = 0>
+  template<typename T, typename U, std::enable_if_t<vector_space_descriptor<T> and vector_space_descriptor<U>, int> = 0>
 #endif
   constexpr auto operator+(T&& t, U&& u)
   {
-    if constexpr (static_vector_space_descriptor<T> and static_vector_space_descriptor<U>)
+    if constexpr (euclidean_vector_space_descriptor<T> and euclidean_vector_space_descriptor<U>)
     {
-      if constexpr (euclidean_vector_space_descriptor<T> and euclidean_vector_space_descriptor<U>)
+      if constexpr (static_vector_space_descriptor<T> and static_vector_space_descriptor<U>)
         return Dimensions<dimension_size_of_v<T> + dimension_size_of_v<U>>{};
       else
-        return static_concatenate_t<T, U> {};
+        return Dimensions {get_dimension_size_of(t) + get_dimension_size_of(u)};
     }
-    else if constexpr (euclidean_vector_space_descriptor<T> and euclidean_vector_space_descriptor<U>)
+    else return descriptor::internal::Concatenate {std::forward<T>(t), std::forward<U>(u)};
+  }
+
+
+  /**
+   * \brief Replicate a \ref vector_space_descriptor some number of times.
+   */
+#ifdef __cpp_concepts
+  template<vector_space_descriptor Arg, value::index N>
+#else
+  template<typename Arg, typename N, std::enable_if_t<vector_space_descriptor<Arg> and value::index<N>, int> = 0>
+#endif
+  constexpr auto operator*(Arg&& arg, const N& n)
+  {
+    if constexpr (euclidean_vector_space_descriptor<Arg>)
     {
-      return Dimensions {get_dimension_size_of(t) + get_dimension_size_of(u)};
+      return descriptor::Dimensions {value::operation {std::multiplies<>{}, get_dimension_size_of(arg), n}};
     }
     else
     {
-      return DynamicDescriptor {std::forward<T>(t), std::forward<U>(u)};
+      return internal::Replicate {std::forward<Arg>(arg), n};
     }
   }
 
 
   /**
-   * \brief Subtract two \ref static_vector_space_descriptor values.
+   * \overload
+   * \brief Replicate a \ref vector_space_descriptor some number of times.
    */
 #ifdef __cpp_concepts
-  template<static_vector_space_descriptor T, static_vector_space_descriptor U> requires
-    internal::prefix_of<static_reverse_t<U>, static_reverse_t<T>> and (not value::value<T>) or (not value::value<U>)
+  template<value::index N, vector_space_descriptor Arg>
 #else
-  template<typename T, typename U, std::enable_if_t<static_vector_space_descriptor<T> and static_vector_space_descriptor<U> and
-    internal::prefix_of<typename static_reverse<U>::type, typename static_reverse<T>::type> and not (value::scalar<T> and value::scalar<U>), int> = 0>
+  template<typename N, typename Arg, std::enable_if_t<vector_space_descriptor<Arg> and value::index<N>, int> = 0>
 #endif
-  constexpr auto operator-(const T& t, const U& u)
+  constexpr auto operator*(const N& n, Arg&& arg)
   {
-    return static_reverse_t<internal::prefix_base_of_t<static_reverse_t<T>, static_reverse_t<U>>> {};
-  }
-
-
-  /**
-   * \brief Subtract two \ref vector_space_descriptor values in which at least one is \ref dynamic_vector_space_descriptor "dynamic".
-   */
-#ifdef __cpp_concepts
-  template<euclidean_vector_space_descriptor T, euclidean_vector_space_descriptor U> requires
-    (dynamic_vector_space_descriptor<T> or dynamic_vector_space_descriptor<U>) and
-    (not value::value<T> or not value::value<U>)
-#else
-  template<typename T, typename U, std::enable_if_t<
-    euclidean_vector_space_descriptor<T> and euclidean_vector_space_descriptor<U> and
-    (dynamic_vector_space_descriptor<T> or dynamic_vector_space_descriptor<U>) and
-    (not value::value<T> or not value::value<U>), int> = 0>
-#endif
-  constexpr auto operator-(const T& t, const U& u)
-  {
-    if (get_dimension_size_of(t) < get_dimension_size_of(u))
-      throw std::invalid_argument {"Subtraction of dynamic vector_space_descriptor values resulted in negative dimension"};
-
-    return Dimensions{get_dimension_size_of(t) - get_dimension_size_of(u)};
+    return operator*(std::forward<Arg>(arg), n);
   }
 
 

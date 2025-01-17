@@ -22,33 +22,33 @@ namespace OpenKalman::interface
 {
 #ifdef __cpp_concepts
   template<typename T>
-  concept canonical_equivalent_defined_for = requires (T t) { interface::vector_space_traits<std::decay_t<T>>::canonical_equivalent(t); };
+  concept collection_defined_for = requires (T t) { interface::vector_space_traits<std::decay_t<T>>::collection(t); };
 #else
   template<typename T, typename = void>
-  struct canonical_equivalent_defined_for_impl : std::false_type {};
+  struct collection_defined_for_impl : std::false_type {};
 
   template<typename T>
-  struct canonical_equivalent_defined_for_impl<T, std::void_t<
-    decltype(interface::vector_space_traits<std::decay_t<T>>::canonical_equivalent(std::declval<T>()))>> : std::true_type {};
+  struct collection_defined_for_impl<T, std::void_t<
+    decltype(interface::vector_space_traits<std::decay_t<T>>::collection(std::declval<T>()))>> : std::true_type {};
 
   template<typename T>
-  constexpr bool canonical_equivalent_defined_for = canonical_equivalent_defined_for_impl<T>::value;
+  constexpr bool collection_defined_for = collection_defined_for_impl<T>::value;
 #endif
 
 
 #ifdef __cpp_concepts
   template<typename T>
-  concept hash_code_defined_for = requires (T t) { interface::vector_space_traits<std::decay_t<T>>::hash_code(t); };
+  concept type_index_defined_for = requires (T t) { interface::vector_space_traits<std::decay_t<T>>::type_index(t); };
 #else
   template<typename T, typename = void>
-  struct hash_code_defined_for_impl : std::false_type {};
+  struct type_index_defined_for_impl : std::false_type {};
 
   template<typename T>
-  struct hash_code_defined_for_impl<T, std::void_t<
-  decltype(interface::vector_space_traits<std::decay_t<T>>::hash_code(std::declval<T>()))>> : std::true_type {};
+  struct type_index_defined_for_impl<T, std::void_t<
+  decltype(interface::vector_space_traits<std::decay_t<T>>::type_index(std::declval<T>()))>> : std::true_type {};
 
   template<typename T>
-  constexpr bool hash_code_defined_for = hash_code_defined_for_impl<T>::value;
+  constexpr bool type_index_defined_for = type_index_defined_for_impl<T>::value;
 #endif
 
 } // namespace OpenKalman::interface
