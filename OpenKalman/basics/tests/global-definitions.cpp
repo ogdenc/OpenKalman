@@ -38,23 +38,6 @@ TEST(basics, Qualification)
 }
 
 
-namespace
-{
-  using cdouble = std::complex<double>;
-  struct C
-  {
-    static constexpr double value = 1;
-  };
-}
-
-
-TEST(basics, tuple_like)
-{
-  static_assert(internal::tuple_like<std::tuple<double, int>>);
-  static_assert(internal::tuple_like<std::array<double, 5>>);
-}
-
-
 TEST(basics, remove_rvalue_reference)
 {
   static_assert(std::is_same_v<internal::remove_rvalue_reference_t<double&&>, double>);

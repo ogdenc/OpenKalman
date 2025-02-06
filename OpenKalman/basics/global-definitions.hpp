@@ -17,7 +17,6 @@
 #define OPENKALMAN_GLOBAL_DEFINITIONS_HPP
 
 #include <type_traits>
-#include <cstdint>
 #include <limits>
 #include <functional>
 
@@ -132,35 +131,6 @@ namespace OpenKalman
 
     template<typename T>
     struct is_multiplies<std::multiplies<T>> : std::true_type {};
-
-
-    // ------------------------- //
-    //  constexpr_n_ary_function //
-    // ------------------------- //
-
-#ifndef __cpp_concepts
-    namespace detail
-    {
-      template<typename T, typename = void>
-      struct is_tuple_like : std::false_type {};
-
-      template<typename T>
-      struct is_tuple_like<T, std::void_t<typename std::tuple_size<T>::value_type>> : std::true_type {};
-    }
-#endif
-
-
-    /**
-     * \internal
-     * \brief T is a non-empty tuple, pair, array, or other type that can be an argument to std::apply.
-     */
-  #if defined(__cpp_concepts) and defined(__cpp_lib_remove_cvref)
-    template<typename T>
-    concept tuple_like = requires { typename std::tuple_size<std::remove_cvref_t<T>>::value_type; };
-  #else
-    template<typename T>
-    constexpr bool tuple_like = detail::is_tuple_like<std::decay_t<T>>::value;
-  #endif
 
 
     // ------------------------ //

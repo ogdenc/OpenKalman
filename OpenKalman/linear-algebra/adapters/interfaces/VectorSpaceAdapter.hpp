@@ -40,7 +40,7 @@ namespace OpenKalman::interface
     {
       // Truncate any trailing ℝ¹ dimensions
       using NewDesc = decltype(OpenKalman::internal::remove_trailing_1D_descriptors(std::declval<Descriptors>()));
-      return OpenKalman::internal::static_collection_size<NewDesc>{};
+      return OpenKalman::internal::collection_size_of<NewDesc>{};
     }
 
 
@@ -330,7 +330,7 @@ namespace OpenKalman::interface
     get_slice_impl(Arg&& arg, const BeginTup& begin_tup, const SizeTup& size_tup, std::index_sequence<Ix...>)
     {
       return make_vector_space_adapter(NestedInterface::get_slice(nested_object(std::forward<Arg>(arg)), begin_tup, size_tup),
-        std::tuple {get_vector_space_descriptor_slice<scalar_type_of_t<Arg>>(OpenKalman::get_vector_space_descriptor(arg, Ix), std::get<Ix>(begin_tup), std::get<Ix>(size_tup))...});
+        std::tuple {descriptor::get_slice<scalar_type_of_t<Arg>>(OpenKalman::get_vector_space_descriptor(arg, Ix), std::get<Ix>(begin_tup), std::get<Ix>(size_tup))...});
     }
 
   public:
@@ -444,7 +444,7 @@ namespace OpenKalman::interface
     {
       constexpr auto N = std::tuple_size_v<Factors_tup>;
       if constexpr (Ix < N)
-        return replicate_vector_space_descriptor<scalar_type_of_t<Arg>>(get_vector_space_descriptor<Ix>(arg), std::get<Ix>(factors_tup));
+        return get_vector_space_descriptor<Ix>(arg) * std::get<Ix>(factors_tup);
       else
         return descriptor::Axis{};
     }

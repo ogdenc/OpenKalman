@@ -18,9 +18,8 @@
 
 #include <type_traits>
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
-#include <linear-algebra/vector-space-descriptors/functions/get_dimension_size_of.hpp>
-
+#include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/get_size.hpp"
 
 namespace OpenKalman::descriptor
 {
@@ -38,23 +37,23 @@ namespace OpenKalman::descriptor
 
 
 #ifdef __cpp_concepts
-  template<dynamic_vector_space_descriptor T>
+  template<descriptor::dynamic_vector_space_descriptor T>
   struct dimension_size_of<T>
 #else
   template<typename T>
-  struct dimension_size_of<T, std::enable_if_t<dynamic_vector_space_descriptor<T>>>
+  struct dimension_size_of<T, std::enable_if_t<descriptor::dynamic_vector_space_descriptor<T>>>
 #endif
     : std::integral_constant<std::size_t, dynamic_size> {};
 
 
 #ifdef __cpp_concepts
-  template<static_vector_space_descriptor T>
+  template<descriptor::static_vector_space_descriptor T>
   struct dimension_size_of<T>
 #else
   template<typename T>
-  struct dimension_size_of<T, std::enable_if_t<static_vector_space_descriptor<T>>>
+  struct dimension_size_of<T, std::enable_if_t<descriptor::static_vector_space_descriptor<T>>>
 #endif
-    : std::integral_constant<std::size_t, value::to_number(get_dimension_size_of(std::decay_t<T>{}))> {};
+    : std::integral_constant<std::size_t, value::to_number(descriptor::get_size(std::decay_t<T>{}))> {};
 
 
   /**

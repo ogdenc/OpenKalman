@@ -54,7 +54,7 @@ namespace OpenKalman
       auto m = [](const auto& a){
         auto sq = value::sqrt(constant_coefficient{a});
         auto v = *is_square_shaped(a);
-        auto dim = get_dimension_size_of(v);
+        auto dim = get_size(v);
 
         if constexpr (triangle_type == TriangleType::lower)
         {

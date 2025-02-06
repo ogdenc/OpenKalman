@@ -35,7 +35,7 @@ namespace OpenKalman::internal
     if constexpr (static_vector_space_descriptor<A> and static_vector_space_descriptor<B>)
       return equivalent_to_uniform_static_vector_space_descriptor_component_of<A, B>;
     else if constexpr (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>)
-      return get_dimension_size_of(a) == 1;
+      return get_size(a) == 1;
     else
       return false;
   }
@@ -49,9 +49,9 @@ namespace OpenKalman::internal
   constexpr bool is_uniform_component_of(const descriptor::DynamicDescriptor<S1>& a, const descriptor::DynamicDescriptor<S2>& b)
   {
     if constexpr (not std::is_same_v<S1, S2>) return false;
-    else if (get_dimension_size_of(a) != 1) return false;
-    else if (get_vector_space_descriptor_is_euclidean(a) and get_vector_space_descriptor_is_euclidean(b)) return true;
-    else return replicate_vector_space_descriptor<S1>(a, get_dimension_size_of(b)) == b;
+    else if (get_size(a) != 1) return false;
+    else if (get_is_euclidean(a) and get_is_euclidean(b)) return true;
+    else return a * descriptor::get_size(b) == b;
   }
 
 
@@ -66,9 +66,9 @@ namespace OpenKalman::internal
 #endif
   constexpr bool is_uniform_component_of(const A& a, const descriptor::DynamicDescriptor<S>& b)
   {
-    if (get_dimension_size_of(a) != 1) return false;
-    else if (get_vector_space_descriptor_is_euclidean(a) and get_vector_space_descriptor_is_euclidean(b)) return true;
-    else return replicate_vector_space_descriptor<S>(a, get_dimension_size_of(b)) == b;
+    if (get_size(a) != 1) return false;
+    else if (get_is_euclidean(a) and get_is_euclidean(b)) return true;
+    else return a * descriptor::get_size(b) == b;
   }
 
 
@@ -83,9 +83,9 @@ namespace OpenKalman::internal
 #endif
   constexpr bool is_uniform_component_of(const descriptor::DynamicDescriptor<S>& a, const B& b)
   {
-    if (get_dimension_size_of(a) != 1) return false;
-    else if (get_vector_space_descriptor_is_euclidean(a) and get_vector_space_descriptor_is_euclidean(b)) return true;
-    else return replicate_vector_space_descriptor<S>(a, get_dimension_size_of(b)) == b;
+    if (get_size(a) != 1) return false;
+    else if (get_is_euclidean(a) and get_is_euclidean(b)) return true;
+    else return a * descriptor::get_size(b) == b;
   }
 
 

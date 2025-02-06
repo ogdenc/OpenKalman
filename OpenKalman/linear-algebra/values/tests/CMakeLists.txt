@@ -20,7 +20,7 @@ add_executable(values
         value-types.cpp
         complex.cpp
         math-constexpr-functions.cpp
-    )
+)
 
 target_link_libraries(values GTest::gtest_main Eigen3::Eigen Threads::Threads)
 

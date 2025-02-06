@@ -112,7 +112,7 @@ namespace OpenKalman
       }
       else
       {
-        auto denom = (std::apply([](const auto&...d){ return (get_dimension_size_of(d) * ...); }, all_vector_space_descriptors(arg)));
+        auto denom = (std::apply([](const auto&...d){ return (get_size(d) * ...); }, all_vector_space_descriptors(arg)));
         return r / denom;
       }
     }

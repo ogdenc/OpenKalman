@@ -218,7 +218,7 @@ namespace OpenKalman::interface
     {
       constexpr auto options = layout == Layout::right ? Eigen::RowMajor : Eigen::ColMajor;
       if constexpr (((dynamic_vector_space_descriptor<D>) or ...))
-        return Eigen::Tensor<Scalar, sizeof...(D), options, IndexType>(static_cast<IndexType>(get_dimension_size_of(d))...);
+        return Eigen::Tensor<Scalar, sizeof...(D), options, IndexType>(static_cast<IndexType>(get_size(d))...);
       else
         return Eigen::TensorFixedSize<Scalar, Eigen::Sizes<static_cast<std::ptrdiff_t>(dimension_size_of_v<D>)...>, options, IndexType> {};
     }
@@ -287,7 +287,7 @@ namespace OpenKalman::interface
     {
       auto offsets = std::array {static_cast<std::size_t>(begin)...};
       auto extents = std::apply([](auto&&...a) {
-        return std::array {get_dimension_size_of(std::forward<decltype(a)>(a))...}; }, all_vector_space_descriptors(block));
+        return std::array {get_size(std::forward<decltype(a)>(a))...}; }, all_vector_space_descriptors(block));
       arg.slice(offsets, extents) = std::forward<Block>(block);
     }
 
@@ -514,7 +514,7 @@ namespace OpenKalman::interface
       else
       {
         auto ret = R {std::forward<Arg>(arg), static_cast<IndexType>(
-          get_dimension_size_of(std::get<I>(p_tup)) / get_dimension_size_of(std::get<I>(arg_tup)))...};
+          get_size(std::get<I>(p_tup)) / get_size(std::get<I>(arg_tup)))...};
         return ret;
       }
     }
@@ -547,8 +547,8 @@ namespace OpenKalman::interface
       if constexpr (sizeof...(Args) == 0)
       {
         using P = dense_writable_matrix_t<T, Layout::none, scalar_type_of_t<T>, std::tuple<Ds...>>;
-        IndexType r = get_dimension_size_of(std::get<0>(tup));
-        IndexType c = get_dimension_size_of(std::get<1>(tup));
+        IndexType r = get_size(std::get<0>(tup));
+        IndexType c = get_size(std::get<1>(tup));
         return Eigen::CwiseNullaryOp<std::decay_t<Op>, P> {r, c, std::forward<Op>(op)};
       }
       else if constexpr (sizeof...(Args) == 1)

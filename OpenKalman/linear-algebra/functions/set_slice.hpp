@@ -59,7 +59,7 @@ namespace OpenKalman
     internal::check_block_limits(begin_seq, begin_seq, arg, std::tuple{begin...});
     internal::check_block_limits(begin_seq, begin_seq, arg, std::tuple{begin...},
       std::apply([](auto&&...a) -> decltype(auto) {
-        return std::forward_as_tuple(get_dimension_size_of(std::forward<decltype(a)>(a))...);
+        return std::forward_as_tuple(get_size(std::forward<decltype(a)>(a))...);
       }, all_vector_space_descriptors(block)));
 
     if constexpr (interface::set_slice_defined_for<Arg, Arg&, Block&&, const Begin&...>)

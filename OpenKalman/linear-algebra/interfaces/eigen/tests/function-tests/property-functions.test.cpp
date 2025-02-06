@@ -34,13 +34,13 @@ TEST(eigen3, get_vector_space_descriptor)
 
   static_assert(dimension_size_of_v<decltype(get_vector_space_descriptor<0>(m23))> == 2);
   static_assert(dimension_size_of_v<decltype(get_vector_space_descriptor<0>(M2x {m23}))> == 2);
-  EXPECT_EQ(get_dimension_size_of(get_vector_space_descriptor<0>(Mx3 {m23})), 2);
-  EXPECT_EQ(get_dimension_size_of(get_vector_space_descriptor<0>(Mxx {m23})), 2);
+  EXPECT_EQ(get_size(get_vector_space_descriptor<0>(Mx3 {m23})), 2);
+  EXPECT_EQ(get_size(get_vector_space_descriptor<0>(Mxx {m23})), 2);
 
   static_assert(dimension_size_of_v<decltype(get_vector_space_descriptor<1>(m23))> == 3);
-  EXPECT_EQ(get_dimension_size_of(get_vector_space_descriptor<1>(M2x {m23})), 3);
+  EXPECT_EQ(get_size(get_vector_space_descriptor<1>(M2x {m23})), 3);
   static_assert(dimension_size_of_v<decltype(get_vector_space_descriptor<1>(Mx3 {m23}))> == 3);
-  EXPECT_EQ(get_dimension_size_of(get_vector_space_descriptor<1>(Mxx {m23})), 3);
+  EXPECT_EQ(get_size(get_vector_space_descriptor<1>(Mxx {m23})), 3);
 }
 
 

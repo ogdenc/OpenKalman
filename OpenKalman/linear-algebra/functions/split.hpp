@@ -29,7 +29,7 @@ namespace OpenKalman
     {
       if constexpr ((dynamic_vector_space_descriptor<Ds> or ... or dynamic_dimension<Arg, index>))
       {
-        if (not ((get_dimension_size_of(ds) + ... + std::size_t{0}) <= get_vector_space_descriptor<index>(arg)))
+        if (not ((get_size(ds) + ... + std::size_t{0}) <= get_vector_space_descriptor<index>(arg)))
           throw std::logic_error {"When concatenated, the vector space descriptors provided to split function are not a "
             "prefix of the argument's vector space descriptor along at least index " + std::to_string(index)};
       }
@@ -53,7 +53,7 @@ namespace OpenKalman
     template<std::size_t...indices, typename Arg, typename Blocks_tup, typename D, typename...Ds>
     auto split_symmetric(Arg&& arg, std::size_t begin, Blocks_tup&& blocks_tup, D&& d, Ds&&...ds)
     {
-      auto block_size = get_dimension_size_of(d);
+      auto block_size = get_size(d);
       auto begin_tup = std::tuple{split_dummy<indices>(begin)...};
       auto size_tup = std::tuple{split_dummy<indices>(block_size)...};
       auto block = get_slice<indices...>(std::forward<Arg>(arg), begin_tup, size_tup);
@@ -115,7 +115,7 @@ namespace OpenKalman
     auto split_impl(Arg&& arg, Begin_tup begin_tup, Blocks_tup&& blocks_tup, std::index_sequence<indices_ix...> seq,
       Ds_tup&& ds_tup, Ds_tups&&...ds_tups)
     {
-      auto size_tup = std::tuple{get_dimension_size_of(std::get<indices_ix>(ds_tup))...};
+      auto size_tup = std::tuple{get_size(std::get<indices_ix>(ds_tup))...};
       auto block = get_slice<indices...>(std::forward<Arg>(arg), begin_tup, size_tup);
       auto new_blocks_tup = std::tuple_cat(blocks_tup, std::tuple {std::move(block)});
       auto new_begin_tup = std::tuple{std::get<indices_ix>(begin_tup) + std::get<indices_ix>(size_tup)...};

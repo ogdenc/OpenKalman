@@ -156,7 +156,7 @@ namespace OpenKalman
     template<std::size_t op_ix, std::size_t index, std::size_t...indices, typename OpResult, typename I, typename...Is>
     auto nullary_chipwise_vector_space_descriptor(const OpResult& op_result, I i, Is...is)
     {
-      if constexpr (op_ix == index) return internal::replicate_vector_space_descriptor<scalar_type_of_t<OpResult>>(get_vector_space_descriptor<op_ix>(op_result), i);
+      if constexpr (op_ix == index) return get_vector_space_descriptor<op_ix>(op_result) * i;
       else return nullary_chipwise_vector_space_descriptor<op_ix, indices...>(op_result, is...);
     }
 

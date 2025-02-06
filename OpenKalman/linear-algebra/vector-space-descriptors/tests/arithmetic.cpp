@@ -14,6 +14,7 @@
  */
 
 #include "basics/tests/tests.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/get_component_collection.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/comparison-operators.hpp"
 #include "linear-algebra/vector-space-descriptors/descriptors/Dimensions.hpp"
 #include "linear-algebra/vector-space-descriptors/descriptors/StaticDescriptor.hpp"
@@ -45,12 +46,12 @@ TEST(descriptors, fixed_concatenation)
   static_assert(Polar<>{} + StaticDescriptor<Axis>{} == StaticDescriptor<Polar<>, Axis>{});
   static_assert(Polar<>{} + Spherical<>{} + Polar<>{} == StaticDescriptor<Polar<>, Spherical<>, Polar<>>{});
 
-  static_assert(std::is_same_v<decltype(get_collection_of(StaticDescriptor<Dimensions<0>, Distance, Dimensions<2>>{} + StaticDescriptor<Axis, Dimensions<2>, inclination::Radians>{})),
+  static_assert(std::is_same_v<decltype(internal::get_component_collection(StaticDescriptor<Dimensions<0>, Distance, Dimensions<2>>{} + StaticDescriptor<Axis, Dimensions<2>, inclination::Radians>{})),
     std::tuple<Distance, Dimensions<5>, inclination::Radians>>);
-  static_assert(std::is_same_v<decltype(get_collection_of(StaticDescriptor<Dimensions<0>, Distance, Dimensions<0>>{} + StaticDescriptor<Dimensions<0>, inclination::Radians>{})),
+  static_assert(std::is_same_v<decltype(internal::get_component_collection(StaticDescriptor<Dimensions<0>, Distance, Dimensions<0>>{} + StaticDescriptor<Dimensions<0>, inclination::Radians>{})),
     std::tuple<Distance, inclination::Radians>>);
-  static_assert(std::is_same_v<decltype(get_collection_of(Dimensions<0>{} + StaticDescriptor<inclination::Radians>{})), std::tuple<inclination::Radians>>);
-  static_assert(std::is_same_v<decltype(get_collection_of(StaticDescriptor<inclination::Radians>{} + Dimensions<0>{})), std::tuple<inclination::Radians>>);
+  static_assert(std::is_same_v<decltype(internal::get_component_collection(Dimensions<0>{} + StaticDescriptor<inclination::Radians>{})), std::tuple<inclination::Radians>>);
+  static_assert(std::is_same_v<decltype(internal::get_component_collection(StaticDescriptor<inclination::Radians>{} + Dimensions<0>{})), std::tuple<inclination::Radians>>);
 }
 
 
@@ -58,10 +59,10 @@ TEST(descriptors, dynamic_concatenation)
 {
   static_assert(Dimensions{3} + Dimensions{4} == Dimensions{7});
 
-  auto ca = get_collection_of(DynamicDescriptor<double> {Axis{}, angle::Radians{}} + DynamicDescriptor<double> {Dimensions<3>{}, angle::Degrees{}, Dimensions<2>{}});
+  auto ca = internal::get_component_collection(DynamicDescriptor<double> {Axis{}, angle::Radians{}} + DynamicDescriptor<double> {Dimensions<3>{}, angle::Degrees{}, Dimensions<2>{}});
   auto ita = std::begin(ca);
-  static_assert(std::is_same_v<decltype(*ita), internal::AnyAtomicVectorSpaceDescriptor<double>>);
-  EXPECT_EQ(get_type_index(*ita), get_type_index(internal::AnyAtomicVectorSpaceDescriptor<double>{Axis{}}));
+  static_assert(std::is_same_v<decltype(*ita), internal::Any<double>>);
+  EXPECT_EQ(get_type_index(*ita), get_type_index(internal::Any<double>{Axis{}}));
   EXPECT_TRUE(*ita == Axis{});
   EXPECT_TRUE(*(ita + 1) == angle::Radians{});
   EXPECT_TRUE(ita[1] == angle::Radians{});
@@ -119,10 +120,10 @@ TEST(descriptors, fixed_replication)
   static_assert(std::integral_constant<std::size_t, 2>{} * Distance{} == StaticDescriptor<Distance, Distance>{});
   static_assert(StaticDescriptor<Distance, angle::Radians>{} * std::integral_constant<std::size_t, 2>{} == StaticDescriptor<Distance, angle::Radians, Distance, angle::Radians>{});
 
-  static_assert(std::is_same_v<decltype(get_collection_of(StaticDescriptor<Axis, Distance, Axis>{} * std::integral_constant<std::size_t, 1>{})), std::tuple<Axis, Distance, Axis>>);
-  static_assert(std::is_same_v<decltype(get_collection_of(StaticDescriptor<Axis, Distance, Axis>{} * std::integral_constant<std::size_t, 2>{})), std::tuple<Axis, Distance, Dimensions<2>, Distance, Axis>>);
-  static_assert(std::is_same_v<decltype(get_collection_of(StaticDescriptor<Axis, Distance, Axis>{} * std::integral_constant<std::size_t, 3>{})), std::tuple<Axis, Distance, Dimensions<2>, Distance, Dimensions<2>, Distance, Axis>>);
-  static_assert(std::is_same_v<decltype(get_collection_of(StaticDescriptor<Axis, Distance, Dimensions<2>>{} * std::integral_constant<std::size_t, 4>{})), std::tuple<Axis, Distance, Dimensions<3>, Distance, Dimensions<3>, Distance, Dimensions<3>, Distance, Dimensions<2>>>);
+  static_assert(std::is_same_v<decltype(internal::get_component_collection(StaticDescriptor<Axis, Distance, Axis>{} * std::integral_constant<std::size_t, 1>{})), std::tuple<Axis, Distance, Axis>>);
+  static_assert(std::is_same_v<decltype(internal::get_component_collection(StaticDescriptor<Axis, Distance, Axis>{} * std::integral_constant<std::size_t, 2>{})), std::tuple<Axis, Distance, Dimensions<2>, Distance, Axis>>);
+  static_assert(std::is_same_v<decltype(internal::get_component_collection(StaticDescriptor<Axis, Distance, Axis>{} * std::integral_constant<std::size_t, 3>{})), std::tuple<Axis, Distance, Dimensions<2>, Distance, Dimensions<2>, Distance, Axis>>);
+  static_assert(std::is_same_v<decltype(internal::get_component_collection(StaticDescriptor<Axis, Distance, Dimensions<2>>{} * std::integral_constant<std::size_t, 4>{})), std::tuple<Axis, Distance, Dimensions<3>, Distance, Dimensions<3>, Distance, Dimensions<3>, Distance, Dimensions<2>>>);
 }
 
 

@@ -117,7 +117,7 @@ namespace Eigen::internal
       else
       {
         const auto g = [col, this] (std::size_t i) { return this->m_argImpl.coeff((Index) i, col); };
-        return descriptor::to_euclidean_element(i_vector_space_descriptor, g, (std::size_t) row, 0);
+        return descriptor::to_euclidean_element(i_vector_space_descriptor, g, (std::size_t) row);
       }
     }
 
@@ -130,7 +130,7 @@ namespace Eigen::internal
       else
       {
         const auto g = [this] (std::size_t i) { return this->m_argImpl.coeff((Index) i); };
-        return descriptor::to_euclidean_element(i_vector_space_descriptor, g, (std::size_t) row, 0);
+        return descriptor::to_euclidean_element(i_vector_space_descriptor, g, (std::size_t) row);
       }
     }
 
@@ -178,7 +178,7 @@ namespace Eigen::internal
       else
       {
         const auto g = [col, this] (std::size_t i) { return this->m_argImpl.coeff((Index) i, col); };
-        return i_vector_space_descriptor.from_euclidean_element(i_vector_space_descriptor, g, (std::size_t) row, 0);
+        return i_vector_space_descriptor.from_euclidean_element(i_vector_space_descriptor, g, (std::size_t) row);
       }
     }
 
@@ -191,7 +191,7 @@ namespace Eigen::internal
       else
       {
         const auto g = [this] (std::size_t i) { return this->m_argImpl.coeff((Index) i); };
-        return descriptor::from_euclidean_element(i_vector_space_descriptor, g, (std::size_t) row, 0);
+        return descriptor::from_euclidean_element(i_vector_space_descriptor, g, (std::size_t) row);
       }
     }
   };
@@ -236,7 +236,7 @@ namespace Eigen::internal
       else
       {
         const auto g = [col, this] (std::size_t i) { return this->m_argImpl.coeff((Index) i, col); };
-        return descriptor::get_wrapped_component(i_vector_space_descriptor, g, (std::size_t) row, 0);
+        return descriptor::get_wrapped_component(i_vector_space_descriptor, g, (std::size_t) row);
       }
     }
 
@@ -249,7 +249,7 @@ namespace Eigen::internal
       else
       {
         const auto g = [this] (std::size_t i) { return this->m_argImpl.coeff((Index) i); };
-        return descriptor::get_wrapped_component(i_vector_space_descriptor, g, (std::size_t) row, 0);
+        return descriptor::get_wrapped_component(i_vector_space_descriptor, g, (std::size_t) row);
       }
     }
   };

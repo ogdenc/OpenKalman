@@ -9,6 +9,7 @@
  */
 
 #include "transform-linear.gtest.hpp"
+#include "basics/internal/tuple_like.hpp"
 
 using namespace OpenKalman;
 using namespace OpenKalman::descriptor;

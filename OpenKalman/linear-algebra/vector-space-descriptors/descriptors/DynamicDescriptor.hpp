@@ -22,19 +22,16 @@
 #include "linear-algebra/values/concepts/number.hpp"
 #include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/euclidean_dimension_size_of.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/get_dimension_size_of.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/get_euclidean_dimension_size_of.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_component_count_of.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/comparison-operators.hpp"
-#include "StaticDescriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/interfaces/index.hpp"
-#include "internal/AnyAtomicVectorSpaceDescriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/get_size.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/get_euclidean_size.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/get_component_collection.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/get_component_count.hpp"
+#include "Dimensions.hpp"
+#include "internal/Any.hpp"
 
 namespace OpenKalman::descriptor
 {
@@ -52,113 +49,105 @@ namespace OpenKalman::descriptor
     static_assert(value::number<Scalar>);
 #endif
 
-    template<std::size_t ix = 0, typename C>
+    template<std::size_t local_t = 0, typename Tup>
     constexpr void
-    extend_table_fixed_t(const C& c)
+    extend_table_fixed_t(const Tup& tup, std::size_t i, std::size_t e)
     {
-      if constexpr (ix < std::tuple_size_v<C>)
+      if constexpr (local_t < std::tuple_size_v<Tup>)
       {
-        dynamic_types.emplace_back(std::get<ix>(c));
-        extend_table_fixed_t<ix + 1>(c);
+        component_collection.emplace_back(std::get<local_t>(tup));
+        using C = std::tuple_element_t<local_t, Tup>;
+        component_start_indices.push_back(std::array{i, e});
+        extend_table_fixed_t<local_t + 1>(tup, i + dimension_size_of_v<C>, e + euclidean_dimension_size_of_v<C>);
       }
     }
 
 
-    template<std::size_t ix = 0, std::size_t local_index = 0, typename C>
+    template<std::size_t local_t = 0, std::size_t local_i = 0, typename Tup>
     constexpr void
-    extend_table_fixed_i(std::size_t i, std::size_t i_e, std::size_t t, const C& c)
+    extend_table_fixed_i(std::size_t i, std::size_t e_start, std::size_t t, const Tup& tup)
     {
-      if constexpr (ix < std::tuple_size_v<C>)
+      if constexpr (local_t < std::tuple_size_v<Tup>)
       {
-        if constexpr (local_index < dimension_size_of_v<std::tuple_element_t<ix, C>>)
+        using C = std::tuple_element_t<local_t, Tup>;
+        if constexpr (local_i < dimension_size_of_v<C>)
         {
-          index_table.emplace_back(t, local_index, i_e);
-          extend_table_fixed_i<ix, local_index + 1>(i + 1, i_e, t, c);
+          index_table.emplace_back(t);
+          extend_table_fixed_i<local_t, local_i + 1>(i + 1, e_start, t, tup);
         }
         else
         {
-          extend_table_fixed_i<ix + 1, 0>(i, i_e + euclidean_dimension_size_of_v<std::tuple_element_t<ix, C>>, t + 1, c);
+          extend_table_fixed_i<local_t + 1, 0>(i, e_start + euclidean_dimension_size_of_v<C>, t + 1, tup);
         }
       }
     }
 
 
-    template<std::size_t ix = 0, std::size_t e_local_index = 0, typename C>
+    template<std::size_t local_t = 0, std::size_t local_e = 0, typename Tup>
     constexpr void
-    extend_table_fixed_e(std::size_t i, std::size_t i_e, std::size_t t, const C& c)
+    extend_table_fixed_e(std::size_t i_start, std::size_t i_e, std::size_t t, const Tup& tup)
     {
-      if constexpr (ix < std::tuple_size_v<C>)
+      if constexpr (local_t < std::tuple_size_v<Tup>)
       {
-        if constexpr (e_local_index < euclidean_dimension_size_of_v<std::tuple_element_t<ix, C>>)
+        using C = std::tuple_element_t<local_t, Tup>;
+        if constexpr (local_e < euclidean_dimension_size_of_v<C>)
         {
-          euclidean_index_table.emplace_back(t, e_local_index, i);
-          extend_table_fixed_e<ix, e_local_index + 1>(i, i_e + 1, t, c);
+          euclidean_index_table.emplace_back(t);
+          extend_table_fixed_e<local_t, local_e + 1>(i_start, i_e + 1, t, tup);
         }
         else
         {
-          extend_table_fixed_e<ix + 1, 0>(i + dimension_size_of_v<std::tuple_element_t<ix, C>>, i_e, t + 1, c);
+          extend_table_fixed_e<local_t + 1, 0>(i_start + dimension_size_of_v<C>, i_e, t + 1, tup);
         }
       }
     }
 
 
+    template<typename C>
     constexpr void
-    fill_tables(std::size_t i, std::size_t e, std::size_t t) {}
+    fill_tables(C&& c, std::size_t i = 0, std::size_t e = 0, std::size_t t = 0)
+    {
+      if constexpr (static_vector_space_descriptor<C>)
+      {
+        auto coll = internal::get_component_collection(c);
+        extend_table_fixed_t(coll, i, e);
+        extend_table_fixed_i(i, e, t, coll);
+        extend_table_fixed_e(i, e, t, coll);
+      }
+      else if constexpr (euclidean_vector_space_descriptor<C>)
+      {
+        std::size_t dim = get_size(c);
+        component_collection.emplace_back(Dimensions{dim});
+        component_start_indices.push_back(std::array {i, e});
+        for (std::size_t N = i + dim; i < N; ++i, ++e)
+        {
+          index_table.emplace_back(t);
+          euclidean_index_table.emplace_back(t);
+        }
+      }
+      else // C is dynamic
+      {
+        for (const auto& j : c.component_collection) component_collection.emplace_back(j);
+        for (const auto& [ji, je] : c.component_start_indices) component_start_indices.push_back(std::array {i + ji, e + je});
+        for (const auto& j : c.index_table) index_table.emplace_back(t + j);
+        for (const auto& j : c.euclidean_index_table) euclidean_index_table.emplace_back(t + j);
+      }
+    }
+
+
+    constexpr void
+    init(std::size_t i, std::size_t e, std::size_t t) {}
 
 
     template<typename C, typename...Cs>
     constexpr void
-    fill_tables(std::size_t i, std::size_t e, std::size_t t, C&& c, Cs&&...cs)
+    init(std::size_t i, std::size_t e, std::size_t t, C&& c, Cs&&...cs)
     {
-      if constexpr (static_vector_space_descriptor<C>)
-      {
-        auto coll = get_collection_of(c);
-        extend_table_fixed_t(coll);
-        extend_table_fixed_i(i, e, t, coll);
-        extend_table_fixed_e(i, e, t, coll);
-        fill_tables(
-          i + get_dimension_size_of(c),
-          e + get_euclidean_dimension_size_of(c),
-          t + get_vector_space_descriptor_component_count_of(c),
-          std::forward<Cs>(cs)...);
-      }
-      else if constexpr (euclidean_vector_space_descriptor<C>)
-      {
-        auto N = t + get_dimension_size_of(c);
-        for (; t < N; ++i, ++e, ++t)
-        {
-          dynamic_types.emplace_back(Dimensions<1>{});
-          index_table.emplace_back(t, 0, e);
-          euclidean_index_table.emplace_back(t, 0, i);
-        }
-        fill_tables(i, e, t, std::forward<Cs>(cs)...);
-      }
-      else // C is dynamic
-      {
-        auto new_i = i + c.index_table.size();
-        auto new_e = e + c.euclidean_index_table.size();
-        auto new_t = t + c.dynamic_types.size();
-
-        for (const auto& j : c.dynamic_types)
-          dynamic_types.emplace_back(j);
-
-        for (const auto& j : c.index_table)
-          index_table.emplace_back(t + std::get<0>(j), std::get<1>(j), e + std::get<2>(j));
-
-        for (const auto& j : c.euclidean_index_table)
-          euclidean_index_table.emplace_back(t + std::get<0>(j), std::get<1>(j), i + std::get<2>(j));
-
-        fill_tables(new_i, new_e, new_t, std::forward<Cs>(cs)...);
-      }
+      fill_tables(std::forward<C>(c), i, e, t);
+      init(i + get_size(c), e + get_euclidean_size(c), t + get_component_count(c), std::forward<Cs>(cs)...);
     }
 
   public:
-
-    /**
-     * \brief Default constructor.
-     */
-    constexpr DynamicDescriptor() = default;
-
 
     /**
      * \brief Constructor taking any number of \ref vector_space_descriptor Cs.
@@ -176,11 +165,18 @@ namespace OpenKalman::descriptor
 #endif
     explicit constexpr DynamicDescriptor(Cs&&...cs)
     {
-      dynamic_types.reserve((0 + ... + get_vector_space_descriptor_component_count_of(cs)));
-      index_table.reserve((0 + ... + get_dimension_size_of(cs)));
-      euclidean_index_table.reserve((0 + ... + get_euclidean_dimension_size_of(cs)));
-      fill_tables(0, 0, 0, std::forward<Cs>(cs)...);
+      component_collection.reserve((0 + ... + get_component_count(cs)));
+      component_start_indices.reserve((0 + ... + get_component_count(cs)));
+      index_table.reserve((0 + ... + get_size(cs)));
+      euclidean_index_table.reserve((0 + ... + get_euclidean_size(cs)));
+      init(0, 0, 0, std::forward<Cs>(cs)...);
     }
+
+
+    /**
+     * \brief Default constructor.
+     */
+    constexpr DynamicDescriptor() = default;
 
 
     /**
@@ -194,18 +190,21 @@ namespace OpenKalman::descriptor
     constexpr decltype(auto)
     operator+=(B&& b)
     {
-      if (auto N = get_vector_space_descriptor_component_count_of(b); N > 1)
+      if (auto N = get_component_count(b); N > 1)
       {
-        if (dynamic_types.capacity() < std::size(dynamic_types) + N)
-          dynamic_types.reserve(dynamic_types.capacity() * 2);
+        if (component_collection.capacity() < std::size(component_collection) + N)
+          component_collection.reserve(component_collection.capacity() * 2);
 
-        if (index_table.capacity() < (std::size(index_table) + get_dimension_size_of(b)))
+        if (component_start_indices.capacity() < std::size(component_start_indices) + N)
+          component_start_indices.reserve(component_start_indices.capacity() * 2);
+
+        if (index_table.capacity() < (std::size(index_table) + get_size(b)))
           index_table.reserve(index_table.capacity() * 2);
 
-        if (euclidean_index_table.capacity() < (euclidean_index_table.size() + get_euclidean_dimension_size_of(b)))
+        if (euclidean_index_table.capacity() < (euclidean_index_table.size() + get_euclidean_size(b)))
           euclidean_index_table.reserve(euclidean_index_table.capacity() * 2);
       }
-      fill_tables(std::size(index_table), std::size(euclidean_index_table), std::size(dynamic_types), std::forward<B>(b));
+      fill_tables(std::forward<B>(b), std::size(index_table), std::size(euclidean_index_table), std::size(component_collection));
       return *this;
     }
 
@@ -221,13 +220,15 @@ namespace OpenKalman::descriptor
     constexpr DynamicDescriptor&
     operator=(const D& d)
     {
-      dynamic_types.clear();
+      component_collection.clear();
+      component_start_indices.clear();
       index_table.clear();
       euclidean_index_table.clear();
-      dynamic_types.reserve(get_vector_space_descriptor_component_count_of(d));
-      index_table.reserve(get_dimension_size_of(d));
-      euclidean_index_table.reserve(get_euclidean_dimension_size_of(d));
-      fill_tables(0, 0, 0, d);
+      component_collection.reserve(get_component_count(d));
+      component_start_indices.reserve(get_component_count(d));
+      index_table.reserve(get_size(d));
+      euclidean_index_table.reserve(get_euclidean_size(d));
+      fill_tables(d);
       return *this;
     }
 
@@ -244,10 +245,6 @@ namespace OpenKalman::descriptor
     constexpr auto
     slice(const Offset& offset, const Extent& extent) const
     {
-      //std::cout << "size: " << std::size(index_table) << "; offset: " << offset << "; extent: " << extent << std::endl;
-      //for (const auto& [i, local, e_start] : index_table)
-      //  std::cout << "(" << i << ", " << local << ", " << e_start << ")" << std::endl;
-
       DynamicDescriptor ret;
 
       auto i_first = index_table.begin() + offset;
@@ -264,31 +261,25 @@ namespace OpenKalman::descriptor
             throw std::invalid_argument {"DynamicDescriptor slice: offset + extent does not coincide with a sub-descriptor boundary"};
 
           std::size_t t_first_val = std::get<0>(*i_first);
-          auto t_first = dynamic_types.begin() + t_first_val;
-          auto t_last = i_last == index_table.end() ? dynamic_types.end() : dynamic_types.begin() + std::get<0>(*i_last);
+          auto t_first = component_collection.begin() + t_first_val;
+          auto t_last = i_last == index_table.end() ? component_collection.end() : component_collection.begin() + std::get<0>(*i_last);
 
           std::ptrdiff_t e_first_val = std::get<2>(*i_first);
           auto e_first = euclidean_index_table.begin() + e_first_val;
           auto e_last = i_last == index_table.end() ? euclidean_index_table.end() : euclidean_index_table.begin() + std::get<2>(*i_last);
 
-          ret.dynamic_types.assign(t_first, t_last);
+          ret.component_collection.assign(t_first, t_last);
 
           ret.index_table.reserve(extent);
           for (auto i = i_first; i != i_last; i++)
           {
-            ret.index_table.emplace_back(
-              std::get<0>(*i) - t_first_val,
-              std::get<1>(*i),
-              std::get<2>(*i) - e_first_val);
+            ret.index_table.emplace_back(*i - t_first_val);
           }
 
           ret.euclidean_index_table.reserve(std::distance(e_first, e_last));
           for (auto e = e_first; e != e_last; e++)
           {
-            ret.euclidean_index_table.emplace_back(
-              std::get<0>(*e) - t_first_val,
-              std::get<1>(*e),
-              std::get<2>(*e) - offset);
+            ret.euclidean_index_table.emplace_back(*e - t_first_val);
           }
         }
       }
@@ -318,9 +309,10 @@ namespace OpenKalman::descriptor
 
     // ---------- tables ---------- //
 
-    std::vector<internal::AnyAtomicVectorSpaceDescriptor<Scalar>> dynamic_types;
-    std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> index_table;
-    std::vector<std::tuple<std::size_t, std::size_t, std::size_t>> euclidean_index_table;
+    std::vector<internal::Any<Scalar>> component_collection;
+    std::vector<std::array<std::size_t, 2>> component_start_indices;
+    std::vector<std::size_t> index_table;
+    std::vector<std::size_t> euclidean_index_table;
 
   };
 
@@ -350,7 +342,7 @@ namespace OpenKalman::interface
    * \brief traits for DynamicDescriptor.
    */
   template<typename Scalar>
-  struct vector_space_traits<descriptor::DynamicDescriptor<Scalar>>
+  struct coordinate_set_traits<descriptor::DynamicDescriptor<Scalar>>
   {
   private:
 
@@ -359,6 +351,9 @@ namespace OpenKalman::interface
     using Setter = std::function<void(const Scalar&, std::size_t)>;
 
   public:
+
+    static constexpr bool is_specialized = true;
+
 
     using scalar_type = Scalar;
 
@@ -371,92 +366,123 @@ namespace OpenKalman::interface
     euclidean_size(const T& t) { return t.euclidean_index_table.size(); }
 
 
-    template<typename Arg>
-    static constexpr decltype(auto)
-    collection(Arg&& arg) { return std::forward<Arg>(arg).dynamic_types; }
-
-
     static constexpr auto
     is_euclidean(const T& t)
     {
-      for (const auto& i : t.dynamic_types)
-        if (not descriptor::get_vector_space_descriptor_is_euclidean(i)) return false;
+      for (const auto& i : t.component_collection)
+        if (not descriptor::get_is_euclidean(i)) return false;
       return true;
     }
 
 
     template<typename Arg>
+    static constexpr decltype(auto)
+    component_collection(Arg&& arg) { return std::forward<Arg>(arg).component_collection; }
+
+
+#ifdef __cpp_concepts
+    template<typename Arg, value::index N>
+#else
+    template<typename Arg, typename N, std::enable_if_t<value::index<N>, int> = 0>
+#endif
     static constexpr auto
-    subtract(const T& t, const Arg& arg)
+    component_start_indices(Arg&& arg, N n)
     {
-      return t.operator-(arg);
+      return std::forward<Arg>(arg).component_start_indices[static_cast<std::size_t>(n)];
+    }
+
+
+    template<typename Arg>
+    static constexpr decltype(auto)
+    index_table(Arg&& arg)
+    {
+      return std::forward<Arg>(arg).index_table;
+    }
+
+
+    template<typename Arg>
+    static constexpr decltype(auto)
+    euclidean_index_table(Arg&& arg)
+    {
+      return std::forward<Arg>(arg).euclidean_index_table;
     }
 
 
 #ifdef __cpp_concepts
     static constexpr value::value auto
-    to_euclidean_component(const T& t, const auto& g, const value::index auto& euclidean_local_index, const value::index auto& start)
-    requires requires(std::size_t i){ {g(i)} -> std::convertible_to<Scalar>; }
+    to_euclidean_component(const T& t, const auto& g, const value::index auto& euclidean_local_index)
+    requires requires(std::size_t i){ {g(i)} -> std::convertible_to<scalar_type>; }
 #else
-    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
-      std::is_convertible_v<typename std::invoke_result<const Getter&, std::size_t>::type, Scalar> and value::index<L> and value::index<S>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
+      std::is_convertible_v<typename std::invoke_result<const Getter&, std::size_t>::type, scalar_type> and value::index<L>, int> = 0>
     static constexpr auto
-    to_euclidean_component(const T& t, const Getter& g, const L& euclidean_local_index, const S& start)
+    to_euclidean_component(const T& t, const Getter& g, const L& euclidean_local_index)
 #endif
     {
-      auto [tp, comp_euclidean_local_index, comp_start] = t.euclidean_index_table[euclidean_local_index];
-      return descriptor::to_euclidean_element(t.dynamic_types[tp], g, comp_euclidean_local_index, start + comp_start);
+      auto local_e = static_cast<std::size_t>(euclidean_local_index);
+      auto c = t.euclidean_index_table[local_e];
+      auto [comp_i, comp_e] = component_start_indices(t, c);
+      auto new_g = [&g, comp_i](std::size_t i) { return g(comp_i + i); };
+      return descriptor::to_euclidean_element(t.component_collection[c], new_g, local_e - comp_e);
     }
 
 
 #ifdef __cpp_concepts
     static constexpr value::value auto
-    from_euclidean_component(const T& t, const auto& g, const value::index auto& local_index, const value::index auto& euclidean_start)
-    requires requires(std::size_t i){ {g(i)} -> std::convertible_to<Scalar>; }
+    from_euclidean_component(const T& t, const auto& g, const value::index auto& local_index)
+    requires requires(std::size_t i){ {g(i)} -> std::convertible_to<scalar_type>; }
 #else
-    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
-      std::is_convertible_v<typename std::invoke_result<const Getter&, std::size_t>::type, Scalar>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
+      std::is_convertible_v<typename std::invoke_result<const Getter&, std::size_t>::type, scalar_type>, int> = 0>
     static constexpr auto
-    from_euclidean_component(const T& t, const Getter& g, const L& local_index, const S& euclidean_start)
+    from_euclidean_component(const T& t, const Getter& g, const L& local_index)
 #endif
     {
-      auto [tp, comp_local_index, comp_euclidean_start] = t.index_table[local_index];
-      return descriptor::from_euclidean_element(t.dynamic_types[tp], g, comp_local_index, euclidean_start + comp_euclidean_start);
+      auto local_i = static_cast<std::size_t>(local_index);
+      auto c = t.index_table[local_i];
+      auto [comp_i, comp_e] = component_start_indices(t, c);
+      auto new_g = [&g, comp_e](std::size_t e) { return g(comp_e + e); };
+      return descriptor::from_euclidean_element(t.component_collection[c], new_g, local_i - comp_i);
     }
 
 
 #ifdef __cpp_concepts
     static constexpr value::value auto
-    get_wrapped_component(const T& t, const auto& g, const value::index auto& local_index, const value::index auto& start)
-    requires requires(std::size_t i){ {g(i)} -> std::convertible_to<Scalar>; }
+    get_wrapped_component(const T& t, const auto& g, const value::index auto& local_index)
+    requires requires(std::size_t i){ {g(i)} -> std::convertible_to<scalar_type>; }
 #else
-    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
-      std::is_convertible_v<typename std::invoke_result<const Getter&, std::size_t>::type, Scalar>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
+      std::is_convertible_v<typename std::invoke_result<const Getter&, std::size_t>::type, scalar_type>, int> = 0>
     static constexpr auto
-    get_wrapped_component(const T& t, const Getter& g, const L& local_index, const S& start)
+    get_wrapped_component(const T& t, const Getter& g, const L& local_index)
 #endif
     {
-      auto [tp, comp_local_index, comp_start] = t.index_table[local_index];
-      return descriptor::get_wrapped_component(t.dynamic_types[tp], g, comp_local_index, start + local_index - comp_local_index);
+      auto local_i = static_cast<std::size_t>(local_index);
+      auto c = t.index_table[local_i];
+      auto [comp_i, comp_e] = component_start_indices(t, c);
+      auto new_g = [&g, comp_i](std::size_t i) { return g(comp_i + i); };
+      return descriptor::get_wrapped_component(t.component_collection[c], new_g, local_i - comp_i);
     }
 
 
 #ifdef __cpp_concepts
     static constexpr void
-    set_wrapped_component(const T& t, const auto& s, const auto& g, const Scalar& x,
-      const value::index auto& local_index, const value::index auto& start)
+    set_wrapped_component(const T& t, const auto& s, const auto& g, const scalar_type& x, const value::index auto& local_index)
     requires requires(std::size_t i){ s(x, i); s(g(i), i); }
 #else
-    template<typename Setter, typename Getter, typename L, typename S, std::enable_if_t<
-      value::index<L> and value::index<S> and
-      std::is_invocable<const Setter&, const Scalar&, std::size_t>::value and
+    template<typename Setter, typename Getter, typename L, std::enable_if_t<value::index<L> and
+      std::is_invocable<const Setter&, const scalar_type&, std::size_t>::value and
       std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, std::size_t>::type, std::size_t>::value, int> = 0>
     static constexpr void
-    set_wrapped_component(const T& t, const Setter& s, const Getter& g, const Scalar& x, const L& local_index, const S& start)
+    set_wrapped_component(const T& t, const Setter& s, const Getter& g, const scalar_type& x, const L& local_index)
 #endif
     {
-      auto [tp, comp_local_index, comp_start] = t.index_table[local_index];
-      descriptor::set_wrapped_component(t.dynamic_types[tp], s, g, x, comp_local_index, start + local_index - comp_local_index);
+      auto local_i = static_cast<std::size_t>(local_index);
+      auto c = t.index_table[local_i];
+      auto [comp_i, comp_e] = component_start_indices(t, c);
+      auto new_g = [&g, comp_i](std::size_t i) { return g(comp_i + i); };
+      auto new_s = [&s, comp_i](const scalar_type& x, std::size_t i) { s(x, comp_i + i); };
+      descriptor::set_wrapped_component(t.component_collection[c], new_s, new_g, x, local_i - comp_i);
     }
 
   };

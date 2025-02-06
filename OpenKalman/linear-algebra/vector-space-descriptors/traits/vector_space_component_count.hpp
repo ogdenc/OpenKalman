@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,8 +17,8 @@
 #define OPENKALMAN_VECTOR_SPACE_COMPONENT_COUNT_HPP
 
 #include <type_traits>
-#include "basics/internal/static_collection_size.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/get_collection_of.hpp"
+#include "basics/internal/collection_size_of.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/get_component_collection.hpp"
 
 
 namespace OpenKalman::descriptor
@@ -34,7 +34,7 @@ namespace OpenKalman::descriptor
   template<typename T>
 #endif
   struct vector_space_component_count
-    : OpenKalman::internal::static_collection_size<decltype(descriptor::get_collection_of(std::declval<T>()))> {};
+    : OpenKalman::internal::collection_size_of<decltype(descriptor::internal::get_component_collection(std::declval<T>()))> {};
 
 
   /**

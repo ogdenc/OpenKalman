@@ -42,7 +42,7 @@ namespace OpenKalman::descriptor
       if constexpr (static_vector_space_descriptor<T> and static_vector_space_descriptor<U>)
         return Dimensions<dimension_size_of_v<T> + dimension_size_of_v<U>>{};
       else
-        return Dimensions {get_dimension_size_of(t) + get_dimension_size_of(u)};
+        return Dimensions {get_size(t) + get_size(u)};
     }
     else return descriptor::internal::Concatenate {std::forward<T>(t), std::forward<U>(u)};
   }
@@ -60,7 +60,7 @@ namespace OpenKalman::descriptor
   {
     if constexpr (euclidean_vector_space_descriptor<Arg>)
     {
-      return descriptor::Dimensions {value::operation {std::multiplies<>{}, get_dimension_size_of(arg), n}};
+      return descriptor::Dimensions {value::operation {std::multiplies<>{}, get_size(arg), n}};
     }
     else
     {

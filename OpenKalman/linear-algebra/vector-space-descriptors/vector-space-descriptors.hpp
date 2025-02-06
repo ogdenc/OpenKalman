@@ -50,43 +50,56 @@ namespace OpenKalman::descriptor {}
 // interfaces:
 
 #include "interfaces/vector_space_traits.hpp"
+#include "interfaces/coordinate_set_traits.hpp"
+#include "interfaces/traits-defined.hpp"
 
 // initial concepts:
 
-#include "concepts/static_vector_space_descriptor.hpp"
-#include "concepts/dynamic_vector_space_descriptor.hpp"
+#include "concepts/composite_vector_space_descriptor.hpp"
+#include "concepts/atomic_vector_space_descriptor.hpp"
 #include "concepts/vector_space_descriptor.hpp"
-#include "concepts/euclidean_vector_space_descriptor.hpp"
 
 #include "concepts/vector_space_descriptor_tuple.hpp"
 #include "concepts/vector_space_descriptor_range.hpp"
 #include "concepts/vector_space_descriptor_collection.hpp"
-#include "concepts/static_vector_space_descriptor_tuple.hpp"
-#include "concepts/static_vector_space_descriptor_collection.hpp"
-#include "concepts/euclidean_vector_space_descriptor_tuple.hpp"
-#include "concepts/euclidean_vector_space_descriptor_collection.hpp"
 
 // interface-based traits and functions
 
-#include "functions/get_dimension_size_of.hpp"
-#include "functions/get_euclidean_dimension_size_of.hpp"
-#include "functions/get_collection_of.hpp"
-#include "functions/get_vector_space_descriptor_component_count_of.hpp"
-#include "functions/get_vector_space_descriptor_is_euclidean.hpp"
-#include "functions/get_type_index.hpp"
-
-#include "traits/dimension_size_of.hpp"
-#include "traits/euclidean_dimension_size_of.hpp"
+#include "functions/internal/get_component_collection.hpp"
+#include "functions/get_component_count.hpp"
 #include "traits/vector_space_component_count.hpp"
-#include "traits/scalar_type_of.hpp"
 
-#include "concepts/composite_vector_space_descriptor.hpp"
-#include "concepts/atomic_static_vector_space_descriptor.hpp"
+#include "concepts/static_vector_space_descriptor.hpp"
+#include "concepts/static_vector_space_descriptor_tuple.hpp"
+#include "concepts/static_vector_space_descriptor_collection.hpp"
+#include "concepts/dynamic_vector_space_descriptor.hpp"
+
+#include "functions/internal/get_component_start_indices.hpp"
+#include "functions/internal/get_euclidean_component_start_indices.hpp"
+
+#include "functions/internal/get_index_table.hpp"
+#include "functions/get_size.hpp"
+#include "traits/dimension_size_of.hpp"
+
+#include "functions/internal/get_euclidean_index_table.hpp"
+#include "functions/get_euclidean_size.hpp"
+#include "traits/euclidean_dimension_size_of.hpp"
+
+#include "functions/get_is_euclidean.hpp"
+#include "concepts/euclidean_vector_space_descriptor.hpp"
+#include "concepts/euclidean_vector_space_descriptor_tuple.hpp"
+#include "concepts/euclidean_vector_space_descriptor_collection.hpp"
+
+#include "functions/get_type_index.hpp"
 
 #include "functions/to_euclidean_element.hpp"
 #include "functions/from_euclidean_element.hpp"
 #include "functions/get_wrapped_component.hpp"
 #include "functions/set_wrapped_component.hpp"
+
+#include "traits/scalar_type_of.hpp"
+
+// other
 
 #include "internal/forward-declarations.hpp"
 #include "traits/static_concatenate.hpp"
@@ -101,6 +114,7 @@ namespace OpenKalman::descriptor {}
 #include "functions/arithmetic-operators.hpp"
 #include "concepts/internal/maybe_prefix_of.hpp"
 #include "concepts/internal/prefix_of.hpp"
+#include "descriptors/internal/Slice.hpp"
 #include "descriptors/internal/Reverse.hpp"
 
 // descriptors:
@@ -118,8 +132,6 @@ namespace OpenKalman::descriptor {}
 
 // traits for manipulating static descriptors
 
-#include "traits/replicate_static_vector_space_descriptor.hpp"
-
 #include "traits/internal/uniform_static_vector_space_descriptor_query.hpp"
 #include "concepts/uniform_static_vector_space_descriptor.hpp"
 #include "traits/uniform_static_vector_space_descriptor_component_of.hpp"
@@ -127,16 +139,12 @@ namespace OpenKalman::descriptor {}
 
 // functions:
 
-#include "functions/internal/replicate_vector_space_descriptor.hpp" //
 #include "functions/internal/is_uniform_component_of.hpp" //
 #include "functions/internal/remove_trailing_1D_descriptors.hpp" //
 #include "functions/internal/best_vector_space_descriptor.hpp" //
 #include "functions/internal/smallest_vector_space_descriptor.hpp" //
 #include "functions/internal/largest_vector_space_descriptor.hpp" //
-
-#include "functions/internal/split_head_tail.hpp"
-#include "functions/internal/static_vector_space_descriptor_slice.hpp"
-#include "functions/get_vector_space_descriptor_slice.hpp"
+#include "functions/get_slice.hpp"
 
 #include "functions/internal/to_euclidean_vector_space_descriptor_collection.hpp" //
 

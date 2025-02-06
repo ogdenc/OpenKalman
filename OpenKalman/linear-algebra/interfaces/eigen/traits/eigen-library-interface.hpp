@@ -112,11 +112,11 @@ namespace OpenKalman::interface
 #ifdef __cpp_lib_ranges
   template<typename Arg, std::ranges::input_range Indices> requires 
     std::convertible_to<std::ranges::range_value_t<Indices>, const typename std::decay_t<Arg>::Index> and
-    (internal::static_collection_size_v<Indices> == dynamic_size or internal::static_collection_size_v<Indices> <= 2)
+    (internal::collection_size_of_v<Indices> == dynamic_size or internal::collection_size_of_v<Indices> <= 2)
   static constexpr value::scalar decltype(auto)
 #else
   template<typename Arg, typename Indices, std::enable_if_t<
-    (internal::static_collection_size_v<Indices> == dynamic_size or internal::static_collection_size_v<Indices> <= 2), int> = 0>
+    (internal::collection_size_of_v<Indices> == dynamic_size or internal::collection_size_of_v<Indices> <= 2), int> = 0>
   static constexpr decltype(auto)
 #endif
     get_component(Arg&& arg, const Indices& indices)
@@ -148,13 +148,13 @@ namespace OpenKalman::interface
 #ifdef __cpp_lib_ranges
     template<typename Arg, std::ranges::input_range Indices> requires (not std::is_const_v<Arg>) and
       std::convertible_to<std::ranges::range_value_t<Indices>, const typename Arg::Index> and
-      (internal::static_collection_size_v<Indices> == dynamic_size or internal::static_collection_size_v<Indices> <= 2) and
+      (internal::collection_size_of_v<Indices> == dynamic_size or internal::collection_size_of_v<Indices> <= 2) and
       std::assignable_from<decltype(get_coeff(std::declval<Arg&>(), 0, 0)), const scalar_type_of_t<Arg>&> and
       ((Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0) and
       (not Eigen3::eigen_DiagonalWrapper<Arg>) and (not Eigen3::eigen_TriangularView<Arg>)
 #else
     template<typename Arg, typename Indices, std::enable_if_t<(not std::is_const_v<Arg>) and
-      (internal::static_collection_size_v<Indices> == dynamic_size or internal::static_collection_size_v<Indices> <= 2) and
+      (internal::collection_size_of_v<Indices> == dynamic_size or internal::collection_size_of_v<Indices> <= 2) and
       std::is_assignable<decltype(get_coeff(std::declval<Arg&>(), 0, 0)), const scalar_type_of_t<Arg>&>::value and
       (Eigen::internal::traits<std::decay_t<Arg>>::Flags & Eigen::LvalueBit) != 0 and
       (not Eigen3::eigen_DiagonalWrapper<Arg>) and (not Eigen3::eigen_TriangularView<Arg>), int> = 0>
@@ -375,7 +375,7 @@ namespace OpenKalman::interface
     {
       using IndexType = typename Eigen::Index;
 
-      if constexpr (vector_space_descriptor_tuple<Ds> and internal::static_collection_size_v<Ds> > 2)
+      if constexpr (vector_space_descriptor_tuple<Ds> and internal::collection_size_of_v<Ds> > 2)
       {
         constexpr auto options = layout == Layout::right ? Eigen::RowMajor : Eigen::ColMajor;
 
@@ -390,8 +390,8 @@ namespace OpenKalman::interface
         else
         {
           return std::apply([](auto&&...d){
-            using Ten = Eigen::Tensor<Scalar, internal::static_collection_size_v<Ds>, options, IndexType>;
-            return Ten {static_cast<IndexType>(get_dimension_size_of(d))...};
+            using Ten = Eigen::Tensor<Scalar, internal::collection_size_of_v<Ds>, options, IndexType>;
+            return Ten {static_cast<IndexType>(get_size(d))...};
             }, std::forward<Ds>(ds));
         }
       }
@@ -413,7 +413,7 @@ namespace OpenKalman::interface
         using M = writable_type<Scalar, dim0, dim1, options>;
 
         if constexpr (dim0 == dynamic_size or dim1 == dynamic_size)
-          return M {static_cast<IndexType>(get_dimension_size_of(d0)), static_cast<IndexType>(get_dimension_size_of(d1))};
+          return M {static_cast<IndexType>(get_size(d0)), static_cast<IndexType>(get_size(d1))};
         else
           return M {};
       }
@@ -440,12 +440,12 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_lib_ranges
     template<value::dynamic C, euclidean_vector_space_descriptor_collection Ds> requires
-      (internal::static_collection_size_v<Ds> != dynamic_size) and (internal::static_collection_size_v<Ds> <= 2)
+      (internal::collection_size_of_v<Ds> != dynamic_size) and (internal::collection_size_of_v<Ds> <= 2)
     static constexpr constant_matrix auto
 #else
     template<typename C, typename Ds, std::enable_if_t<value::dynamic<C> and
       euclidean_vector_space_descriptor_collection<Ds> and
-      (internal::static_collection_size_v<Ds> != dynamic_size) and (internal::static_collection_size_v<Ds> <= 2)), int> = 0>
+      (internal::collection_size_of_v<Ds> != dynamic_size) and (internal::collection_size_of_v<Ds> <= 2)), int> = 0>
     static constexpr auto
 #endif
     make_constant(C&& c, Ds&& ds)
@@ -464,18 +464,18 @@ namespace OpenKalman::interface
       if constexpr (static_vector_space_descriptor_collection<Ds>)
         return M::Constant(value);
       else
-        return M::Constant(static_cast<IndexType>(dim0), static_cast<IndexType>(get_dimension_size_of(d1)), value);
+        return M::Constant(static_cast<IndexType>(dim0), static_cast<IndexType>(get_size(d1)), value);
       // Note: We don't address orders greater than 2 because Eigen::Tensor's constant has substantial limitations.
     }
 
 
 #ifdef __cpp_concepts
     template<typename Scalar, euclidean_vector_space_descriptor_collection Ds> requires
-      (internal::static_collection_size_v<Ds> != dynamic_size) and (internal::static_collection_size_v<Ds> <= 2)
+      (internal::collection_size_of_v<Ds> != dynamic_size) and (internal::collection_size_of_v<Ds> <= 2)
     static constexpr identity_matrix auto
 #else
     template<typename Scalar, typename...Ds, std::enable_if_t<euclidean_vector_space_descriptor_collection<Ds> and
-      (internal::static_collection_size_v<Ds> != dynamic_size) and (internal::static_collection_size_v<Ds> <= 2), int> = 0>
+      (internal::collection_size_of_v<Ds> != dynamic_size) and (internal::collection_size_of_v<Ds> <= 2), int> = 0>
     static constexpr auto
 #endif
     make_identity_matrix(Ds&& ds)
@@ -492,7 +492,7 @@ namespace OpenKalman::interface
       if constexpr (static_vector_space_descriptor_collection<Ds>)
         return M::Identity();
       else
-        return M::Identity(static_cast<IndexType>(get_dimension_size_of(d0)), static_cast<IndexType>(get_dimension_size_of(d1)));
+        return M::Identity(static_cast<IndexType>(get_size(d0)), static_cast<IndexType>(get_size(d1)));
     }
 
 
@@ -904,8 +904,8 @@ namespace OpenKalman::interface
       {
         using P = dense_writable_matrix_t<T, Layout::none, Scalar, std::tuple<Ds...>>;
         return Eigen::CwiseNullaryOp<std::remove_reference_t<Op>, P> {
-          static_cast<typename P::Index>(get_dimension_size_of(std::get<0>(tup))),
-          static_cast<typename P::Index>(get_dimension_size_of(std::get<1>(tup))),
+          static_cast<typename P::Index>(get_size(std::get<0>(tup))),
+          static_cast<typename P::Index>(get_size(std::get<1>(tup))),
           std::forward<Op>(op)};
       }
       else
@@ -1244,7 +1244,7 @@ namespace OpenKalman::interface
         }
         else if constexpr(triangle_type == TriangleType::lower)
         {
-          auto euc_dim = get_dimension_size_of(dim);
+          auto euc_dim = get_size(dim);
           auto col0 = make_constant<A>(value::sqrt(s), euc_dim, Dimensions<1>{});
           auto othercols = make_zero<A>(euc_dim, euc_dim - Dimensions<1>{});
           return make_vector_space_adapter(OpenKalman::make_triangular_matrix<triangle_type>(concatenate_horizontal(col0, othercols)), dim, dim);
@@ -1252,7 +1252,7 @@ namespace OpenKalman::interface
         else
         {
           static_assert(triangle_type == TriangleType::upper);
-          auto euc_dim = get_dimension_size_of(dim);
+          auto euc_dim = get_size(dim);
           auto row0 = make_constant<A>(value::sqrt(s), Dimensions<1>{}, dim);
           auto otherrows = make_zero<A>(euc_dim - Dimensions<1>{}, euc_dim);
           return make_vector_space_adapter(OpenKalman::make_triangular_matrix<triangle_type>(concatenate_vertical(row0, otherrows)), dim, dim);

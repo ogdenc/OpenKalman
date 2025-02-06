@@ -21,7 +21,7 @@
 #include "linear-algebra/vector-space-descriptors/concepts/static_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/atomic_static_vector_space_descriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/concepts/atomic_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/equivalent_to.hpp"
 #include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp"
@@ -38,12 +38,12 @@ namespace OpenKalman::descriptor::internal
 
 
 #ifdef __cpp_concepts
-    template<atomic_static_vector_space_descriptor C> requires
+    template<atomic_vector_space_descriptor C> requires
       (dimension_size_of_v<C> == 1) and (not euclidean_vector_space_descriptor<C>)
     struct uniform_static_vector_space_descriptor_query<C>
 #else
     template<typename C>
-    struct uniform_static_vector_space_descriptor_query<C, std::enable_if_t<atomic_static_vector_space_descriptor<C> and
+    struct uniform_static_vector_space_descriptor_query<C, std::enable_if_t<atomic_vector_space_descriptor<C> and
       (dimension_size_of_v<C> == 1) and (not euclidean_vector_space_descriptor<C>)>>
 #endif
       : std::true_type { using uniform_type = C; };
@@ -51,12 +51,12 @@ namespace OpenKalman::descriptor::internal
 
 #ifdef __cpp_concepts
     template<euclidean_vector_space_descriptor C> requires
-      (dynamic_vector_space_descriptor<C> or atomic_static_vector_space_descriptor<C>) and (dimension_size_of_v<C> != 0)
+      (dynamic_vector_space_descriptor<C> or atomic_vector_space_descriptor<C>) and (dimension_size_of_v<C> != 0)
     struct uniform_static_vector_space_descriptor_query<C>
 #else
     template<typename C>
     struct uniform_static_vector_space_descriptor_query<C, std::enable_if_t<euclidean_vector_space_descriptor<C> and
-      (dynamic_vector_space_descriptor<C> or atomic_static_vector_space_descriptor<C>) and (dimension_size_of_v<C> != 0)>>
+      (dynamic_vector_space_descriptor<C> or atomic_vector_space_descriptor<C>) and (dimension_size_of_v<C> != 0)>>
 #endif
       : std::true_type { using uniform_type = descriptor::Dimensions<1>; };
 
@@ -72,13 +72,13 @@ namespace OpenKalman::descriptor::internal
 
 
 #ifdef __cpp_concepts
-    template<atomic_static_vector_space_descriptor C, static_vector_space_descriptor...Cs> requires (dimension_size_of_v<C> == 1) and
+    template<atomic_vector_space_descriptor C, static_vector_space_descriptor...Cs> requires (dimension_size_of_v<C> == 1) and
       (sizeof...(Cs) > 0) and equivalent_to<C, typename uniform_static_vector_space_descriptor_query<descriptor::StaticDescriptor<Cs...>>::uniform_type>
     struct uniform_static_vector_space_descriptor_query<descriptor::StaticDescriptor<C, Cs...>>
 #else
     template<typename C, typename...Cs>
     struct uniform_static_vector_space_descriptor_query<descriptor::StaticDescriptor<C, Cs...>, std::enable_if_t<
-      atomic_static_vector_space_descriptor<C> and (... and static_vector_space_descriptor<Cs>) and (dimension_size_of_v<C> == 1) and
+      atomic_vector_space_descriptor<C> and (... and static_vector_space_descriptor<Cs>) and (dimension_size_of_v<C> == 1) and
       (sizeof...(Cs) > 0) and equivalent_to<C, typename uniform_static_vector_space_descriptor_query<descriptor::StaticDescriptor<Cs...>>::uniform_type>>>
 #endif
       : std::true_type { using uniform_type = C; };

@@ -76,8 +76,8 @@ namespace OpenKalman
     {
       auto d = is_square_shaped(arg);
       if (not d) throw std::invalid_argument{"Argument of 'determinant' is not a square matrix."};
-      else if (get_dimension_size_of(*d) >= 2) return static_cast<Scalar>(0);
-      else if (get_dimension_size_of(*d) == 1) return static_cast<Scalar>(internal::get_singular_component(std::forward<Arg>(arg))); // 1D matrix
+      else if (get_size(*d) >= 2) return static_cast<Scalar>(0);
+      else if (get_size(*d) == 1) return static_cast<Scalar>(internal::get_singular_component(std::forward<Arg>(arg))); // 1D matrix
       else return static_cast<Scalar>(1); // empty matrix
     }
     else

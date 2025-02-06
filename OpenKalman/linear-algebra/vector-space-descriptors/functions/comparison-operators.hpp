@@ -23,9 +23,9 @@
 
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
-#include "get_collection_of.hpp"
+#include "get_is_euclidean.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/get_component_collection.hpp"
 #include "get_type_index.hpp"
-#include "get_vector_space_descriptor_is_euclidean.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/vector_space_component_count.hpp"
 
@@ -67,6 +67,24 @@ namespace OpenKalman::descriptor
     } // namespace ordering
 
 
+#ifdef __cpp_concepts
+    template<typename A, typename B>
+#else
+    template<typename A, typename B, typename = void>
+#endif
+    struct constexpr_type_index : std::false_type {};
+
+
+#ifdef __cpp_concepts
+    template<typename A, typename B> requires (std::bool_constant<get_type_index(A{}) == get_type_index(B{})>::value)
+    struct constexpr_type_index<A, B> : std::bool_constant<get_type_index(A{}) == get_type_index(B{})> {};
+#else
+    template<typename A, typename B>
+    struct constexpr_type_index<A, B, std::enable_if_t<std::bool_constant<get_type_index(A{}) == get_type_index(B{})>::value>>
+      : std::bool_constant<get_type_index(A{}) == get_type_index(B{})> {};
+#endif
+
+
     template<std::size_t ix = 0, typename TupA, typename TupB>
     constexpr auto
     compare_fixed_impl(const TupA& tup_a, const TupB& tup_b)
@@ -80,11 +98,16 @@ namespace OpenKalman::descriptor
       {
         using Ax = std::tuple_element_t<ix, TupA>;
         using Bx = std::tuple_element_t<ix, TupB>;
-        if constexpr (std::is_same_v<Ax, Bx>) return compare_fixed_impl<ix + 1>(tup_a, tup_b);
-        else if constexpr (not euclidean_vector_space_descriptor<Ax> or not euclidean_vector_space_descriptor<Bx>) return detail::ordering::unordered;
-        else if constexpr (ix + 1 >= sA and dimension_size_of_v<Ax> < dimension_size_of_v<Bx>) return detail::ordering::less;
-        else if constexpr (ix + 1 >= sB and dimension_size_of_v<Ax> > dimension_size_of_v<Bx>) return detail::ordering::greater;
-        else return detail::ordering::unordered;
+        if constexpr (std::is_same_v<Ax, Bx> or constexpr_type_index<Ax, Bx>::value)
+          return compare_fixed_impl<ix + 1>(tup_a, tup_b);
+        else if constexpr (not euclidean_vector_space_descriptor<Ax> or not euclidean_vector_space_descriptor<Bx>)
+          return detail::ordering::unordered;
+        else if constexpr (ix + 1 >= sA and dimension_size_of_v<Ax> < dimension_size_of_v<Bx>)
+          return detail::ordering::less;
+        else if constexpr (ix + 1 >= sB and dimension_size_of_v<Ax> > dimension_size_of_v<Bx>)
+          return detail::ordering::greater;
+        else
+          return detail::ordering::unordered;
       }
     }
 
@@ -103,12 +126,12 @@ namespace OpenKalman::descriptor
       else
       {
         using B = std::tuple_element_t<ix, TupB>;
-        if constexpr (descriptor::euclidean_vector_space_descriptor<B>)
+        if constexpr (euclidean_vector_space_descriptor<B>)
         {
           constexpr std::size_t N = descriptor::dimension_size_of_v<B>;
           std::size_t n = 0;
-          for (; ita != enda and descriptor::get_vector_space_descriptor_is_euclidean(*ita); ++ita)
-            n += descriptor::get_dimension_size_of(*ita);
+          for (; ita != enda and descriptor::get_is_euclidean(*ita); ++ita)
+            n += descriptor::get_size(*ita);
           if (n == N) return compare_fixed_b_impl<reverse, ix + 1>(ita, enda, tupb);
           if (ita == enda)
             return reverse == (n < N) ? detail::ordering::greater : detail::ordering::less;
@@ -117,7 +140,8 @@ namespace OpenKalman::descriptor
         else
         {
           if (ita == enda) return reverse ? detail::ordering::greater : detail::ordering::less;
-          if (descriptor::get_type_index(*ita) != descriptor::get_type_index(std::get<ix>(tupb)))
+          using std::get;
+          if (descriptor::get_type_index(*ita) != descriptor::get_type_index(get<ix>(tupb)))
             return detail::ordering::unordered;
           return compare_fixed_b_impl<reverse, ix + 1>(++ita, enda, tupb);
         }
@@ -132,31 +156,32 @@ namespace OpenKalman::descriptor
       if constexpr (dimension_size_of_v<A> == 0 or dimension_size_of_v<B> == 0 or
         (euclidean_vector_space_descriptor<A> and euclidean_vector_space_descriptor<B>))
       {
-        return ordering::compare(get_dimension_size_of(a), get_dimension_size_of(b));
+        return ordering::compare(get_size(a), get_size(b));
       }
       else if constexpr (static_vector_space_descriptor<A> and static_vector_space_descriptor<B>)
       {
-        auto coll_a = descriptor::get_collection_of(a);
-        auto coll_b = descriptor::get_collection_of(b);
+        auto coll_a = descriptor::internal::get_component_collection(a);
+        auto coll_b = descriptor::internal::get_component_collection(b);
         return detail::compare_fixed_impl(coll_a, coll_b);
       }
       else if constexpr (static_vector_space_descriptor<B>)
       {
         if constexpr (euclidean_vector_space_descriptor<A>)
         {
-          auto b0 = std::get<0>(descriptor::get_collection_of(b));
-          if (get_vector_space_descriptor_is_euclidean(b0))
+          using std::get;
+          auto b0 = get<0>(descriptor::internal::get_component_collection(b));
+          if (get_is_euclidean(b0))
           {
             if (vector_space_component_count_v<B> <= 1)
-              return detail::ordering::compare(get_dimension_size_of(a), get_dimension_size_of(b0));
-            if (get_dimension_size_of(a) <= get_dimension_size_of(b0)) return detail::ordering::less;
+              return detail::ordering::compare(get_size(a), get_size(b0));
+            if (get_size(a) <= get_size(b0)) return detail::ordering::less;
             return detail::ordering::unordered;
           }
           return detail::ordering::unordered;
         }
         else
         {
-          auto coll_a = descriptor::get_collection_of(a);
+          auto coll_a = descriptor::internal::get_component_collection(a);
 #ifdef __cpp_lib_ranges
           auto ita = std::ranges::begin(coll_a);
           auto enda = std::ranges::end(coll_a);
@@ -165,26 +190,27 @@ namespace OpenKalman::descriptor
           auto ita = begin(coll_a);
           auto enda = end(coll_a);
 #endif
-          return detail::compare_fixed_b_impl<false>(ita, enda, descriptor::get_collection_of(b));
+          return detail::compare_fixed_b_impl<false>(ita, enda, descriptor::internal::get_component_collection(b));
         }
       }
       else if constexpr (static_vector_space_descriptor<A>)
       {
         if constexpr (euclidean_vector_space_descriptor<B>)
         {
-          auto a0 = std::get<0>(descriptor::get_collection_of(a));
-          if (get_vector_space_descriptor_is_euclidean(a0))
+          using std::get;
+          auto a0 = get<0>(descriptor::internal::get_component_collection(a));
+          if (get_is_euclidean(a0))
           {
             if (vector_space_component_count_v<A> <= 1)
-              return detail::ordering::compare(get_dimension_size_of(a0), get_dimension_size_of(b));
-            if (get_dimension_size_of(a0) >= get_dimension_size_of(b)) return detail::ordering::greater;
+              return detail::ordering::compare(get_size(a0), get_size(b));
+            if (get_size(a0) >= get_size(b)) return detail::ordering::greater;
             return detail::ordering::unordered;
           }
           return detail::ordering::unordered;
         }
         else
         {
-          auto coll_b = descriptor::get_collection_of(b);
+          auto coll_b = descriptor::internal::get_component_collection(b);
 #ifdef __cpp_lib_ranges
           auto itb = std::ranges::begin(coll_b);
           auto endb = std::ranges::end(coll_b);
@@ -193,13 +219,13 @@ namespace OpenKalman::descriptor
           auto itb = begin(coll_b);
           auto endb = end(coll_b);
 #endif
-          return detail::compare_fixed_b_impl<true>(itb, endb, descriptor::get_collection_of(a));
+          return detail::compare_fixed_b_impl<true>(itb, endb, descriptor::internal::get_component_collection(a));
         }
       }
       else
       {
-        auto coll_a = descriptor::get_collection_of(a);
-        auto coll_b = descriptor::get_collection_of(b);
+        auto coll_a = descriptor::internal::get_component_collection(a);
+        auto coll_b = descriptor::internal::get_component_collection(b);
   #ifdef __cpp_lib_ranges
         auto ita = std::ranges::begin(coll_a);
         auto enda = std::ranges::end(coll_a);
@@ -215,10 +241,10 @@ namespace OpenKalman::descriptor
         for (; ita != enda or itb != endb; ++ita, ++itb)
         {
           std::size_t ni = 0, nj = 0;
-          for (; ita != enda and descriptor::get_vector_space_descriptor_is_euclidean(*ita); ++ita)
-            ni += descriptor::get_dimension_size_of(*ita);
-          for (; itb != endb and descriptor::get_vector_space_descriptor_is_euclidean(*itb); ++itb)
-            nj += descriptor::get_dimension_size_of(*itb);
+          for (; ita != enda and descriptor::get_is_euclidean(*ita); ++ita)
+            ni += descriptor::get_size(*ita);
+          for (; itb != endb and descriptor::get_is_euclidean(*itb); ++itb)
+            nj += descriptor::get_size(*itb);
           if (ita == enda)
           {
             if (itb == endb) return detail::ordering::compare(ni, nj);

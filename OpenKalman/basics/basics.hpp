@@ -47,8 +47,13 @@ namespace OpenKalman::internal {}
 #include "global-definitions.hpp"
 #include "utils.hpp"
 
+#include "internal/tuple_like.hpp"
+#include "internal/sized_random_access_range.hpp"
 #include "internal/collection.hpp"
-#include "internal/static_collection_size.hpp"
+#include "internal/collection_size_of.hpp"
+
+#include "internal/iota_tuple.hpp"
+#include "internal/iota_range.hpp"
 
 
 #endif //OPENKALMAN_BASICS_HPP

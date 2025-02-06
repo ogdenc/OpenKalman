@@ -19,9 +19,8 @@
 #ifdef __cpp_lib_ranges
 #include <ranges>
 #endif
-#include "basics/internal/collection.hpp"
+#include "basics/internal/sized_random_access_range.hpp"
 #include "vector_space_descriptor.hpp"
-
 
 namespace OpenKalman::descriptor
 {
@@ -52,10 +51,10 @@ namespace OpenKalman::descriptor
    */
   template<typename T>
 #if defined(__cpp_lib_ranges) and defined(__cpp_lib_remove_cvref)
-  concept vector_space_descriptor_range = internal::sized_random_access_range<T> and
+  concept vector_space_descriptor_range = OpenKalman::internal::sized_random_access_range<T> and
     vector_space_descriptor<std::ranges::range_value_t<std::remove_cvref_t<T>>>;
 #else
-  constexpr bool vector_space_descriptor_range = internal::sized_random_access_range<T> and
+  constexpr bool vector_space_descriptor_range = OpenKalman::internal::sized_random_access_range<T> and
     (detail::is_descriptor_range_std<std::decay_t<T>>::value or detail::is_descriptor_range<std::decay_t<T>>::value);
 #endif
 

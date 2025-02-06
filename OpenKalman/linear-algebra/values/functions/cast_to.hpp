@@ -24,15 +24,20 @@
 
 namespace OpenKalman::value
 {
+#if __cpp_nontype_template_args < 201911L
   namespace detail
   {
-    template<typename T, typename F>
-    struct CastTo
+    template<typename Arg, typename T>
+    struct FixedCast
     {
-      static constexpr T value {static_cast<T>(value::to_number(F{}))};
-      constexpr auto operator()() const { return value; }
+      using value_type = T;
+      static constexpr auto value {static_cast<value_type>(value::fixed_number_of_v<Arg>)};
+      using type = FixedCast;
+      constexpr operator value_type() const { return value; }
+      constexpr value_type operator()() const { return value; }
     };
   } // namespace detail
+#endif
 
 
   /**
@@ -56,10 +61,19 @@ namespace OpenKalman::value
     }
     else if constexpr (value::fixed<Arg>)
     {
-      if constexpr (value::integral<Arg>)
-        return value::Fixed<T, value::to_number(std::decay_t<Arg>{})>{};
+      constexpr auto x = value::fixed_number_of_v<Arg>;
+#if __cpp_nontype_template_args >= 201911L
+      return value::Fixed<T, x>{};
+#else
+      if constexpr (x == static_cast<std::intmax_t>(x))
+      {
+        return value::Fixed<T, static_cast<std::intmax_t>(x)>{};
+      }
       else
-        return value::Fixed<detail::CastTo<T, std::decay_t<Arg>>>{};
+      {
+        return detail::FixedCast<std::decay_t<Arg>, T>{};
+      }
+#endif
     }
     else
     {

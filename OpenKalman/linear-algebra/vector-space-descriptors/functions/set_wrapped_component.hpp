@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -23,7 +23,6 @@
 #include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp"
 
-
 namespace OpenKalman::descriptor
 {
   /**
@@ -34,27 +33,26 @@ namespace OpenKalman::descriptor
    * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
    * \param x The new value to be set.
    * \param local_index A local index accessing the element.
-   * \param start The starting location of the element within any larger set of \ref vector_space_descriptor.
    */
 #ifdef __cpp_concepts
-  template<vector_space_descriptor T, value::value X, value::index L, value::index S>
+  template<vector_space_descriptor T, value::value X, value::index L>
   constexpr void
-  set_wrapped_component(const T& t, const auto& s, const auto& g, const X& x, const L& local_index, const S& start)
-  requires requires { s(x, start); s(g(start), start); }
+  set_wrapped_component(const T& t, const auto& s, const auto& g, const X& x, const L& local_index)
+  requires requires(std::size_t i) { s(x, i); s(g(i), i); }
 #else
-  template<typename T, typename Setter, typename Getter, typename X, typename L, typename S, std::enable_if_t<
-    vector_space_descriptor<T> and value::value<X> and value::index<L> and value::index<S> and
-    std::is_invocable<const Setter&, const X&, const S&>::value and
-    std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, const S&>::type, const S&>::value, int> = 0>
+  template<typename T, typename Setter, typename Getter, typename X, typename L, std::enable_if_t<
+    vector_space_descriptor<T> and value::value<X> and value::index<L> and
+    std::is_invocable<const Setter&, const X&, std::size_t>::value and
+    std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, std::size_t>::type, std::size_t>::value, int> = 0>
   constexpr void
-  set_wrapped_component(const T& t, const Setter& s, const Getter& g, const X& x, const L& local_index, const S& start)
+  set_wrapped_component(const T& t, const Setter& s, const Getter& g, const X& x, const L& local_index)
 #endif
   {
     if constexpr (static_vector_space_descriptor<T> and value::fixed<L>)
       static_assert(value::to_number(local_index) < dimension_size_of_v<T>);
 
-    if constexpr (euclidean_vector_space_descriptor<T>) s(x, start + local_index);
-    else interface::vector_space_traits<T>::set_wrapped_component(t, s, g, x, local_index, start);
+    if constexpr (euclidean_vector_space_descriptor<T>) s(x, local_index);
+    else interface::vector_space_traits<T>::set_wrapped_component(t, s, g, x, local_index);
   }
 
 

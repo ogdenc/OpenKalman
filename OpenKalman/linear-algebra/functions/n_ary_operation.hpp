@@ -37,8 +37,8 @@ namespace OpenKalman
           {
             auto arg_d = get_vector_space_descriptor<ix>(arg);
             auto tup_d = std::get<ix>(d_tup);
-            auto dim_arg_d = get_dimension_size_of(arg_d);
-            auto dim_tup_d = get_dimension_size_of(tup_d);
+            auto dim_arg_d = get_size(arg_d);
+            auto dim_tup_d = get_size(tup_d);
             if (not (arg_d == tup_d) and not internal::is_uniform_component_of(arg_d, tup_d))
               throw std::logic_error {"In an argument to n_ary_operation, the dimension of index " +
                 std::to_string(ix) + " is " + std::to_string(dim_arg_d) + ", but should be 1 " +
@@ -184,7 +184,7 @@ namespace OpenKalman
       OpenKalman::broadcast(std::forward<Arg>(arg),
         value::operation {
           std::divides<scalar_type_of_t<Arg>>{},
-          get_dimension_size_of(std::get<Ix_Ds>(d_tup)),
+          get_size(std::get<Ix_Ds>(d_tup)),
           get_index_dimension_of<Ix_Ds>(arg)}...);
     }
 
@@ -334,7 +334,7 @@ namespace OpenKalman
         auto ret = get_vector_space_descriptor<ix>(arg);
         if constexpr (dynamic_vector_space_descriptor<decltype(ret)>)
         {
-          if (get_dimension_size_of(ret) == 0) throw std::invalid_argument {"A dimension of an arguments "
+          if (get_size(ret) == 0) throw std::invalid_argument {"A dimension of an arguments "
             "to n_ary_operation is zero for at least index " + std::to_string(ix) + "."};
         }
         else static_assert(index_dimension_of_v<Arg, ix> != 0, "Arguments to n_ary_operation cannot have zero dimensions");
@@ -366,7 +366,7 @@ namespace OpenKalman
           if constexpr (static_vector_space_descriptor<Arg_D>)
           {
             constexpr std::size_t a = dimension_size_of_v<Arg_D>;
-            std::size_t m = get_dimension_size_of(max_d);
+            std::size_t m = get_size(max_d);
             if (a != m and a != 1 and m != 1) throw std::invalid_argument {"The dimension of arguments to n_ary_operation "
                 "are not compatible with each other for at least index " + std::to_string(ix) + "."};
 
@@ -376,7 +376,7 @@ namespace OpenKalman
           else if constexpr (static_vector_space_descriptor<Max_D>)
           {
             auto arg_d = get_vector_space_descriptor<ix>(arg);
-            std::size_t a = get_dimension_size_of(arg_d);
+            std::size_t a = get_size(arg_d);
             constexpr std::size_t m = dimension_size_of_v<Max_D>;
             if (a != m and a != 1 and m != 1) throw std::invalid_argument {"The dimension of arguments to n_ary_operation "
                 "are not compatible with each other for at least index " + std::to_string(ix) + "."};
@@ -387,7 +387,7 @@ namespace OpenKalman
           else
           {
             std::size_t a = get_index_dimension_of<ix>(arg);
-            std::size_t m = get_dimension_size_of(max_d);
+            std::size_t m = get_size(max_d);
             if (a == m or a == 1) return m;
             else if (m == 1 and m <= a) return a;
             else throw std::invalid_argument {"The dimension of arguments to n_ary_operation are not compatible with "
@@ -516,7 +516,7 @@ namespace OpenKalman
       else
       {
         // Iterate through the dimensions of the current DsIndex and add set elements for each dimension iteratively.
-        for (std::size_t i = 0; i < get_dimension_size_of(std::get<DsIndex>(ds_tup)); ++i)
+        for (std::size_t i = 0; i < get_size(std::get<DsIndex>(ds_tup)); ++i)
         {
           nullary_set_components<DsIndices...>(m, op, ds_tup, index_seq, k_seq, is..., i);
         }

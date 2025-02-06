@@ -62,7 +62,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<indexible T, Layout layout = Layout::none, value::number Scalar = scalar_type_of_t<T>, vector_space_descriptor...Ds>
     requires (layout != Layout::stride) and
-    interface::make_default_defined_for<T, layout, Scalar, decltype(std::tuple {get_dimension_size_of(std::declval<Ds&&>())...})>
+    interface::make_default_defined_for<T, layout, Scalar, decltype(std::tuple {get_size(std::declval<Ds&&>())...})>
   constexpr writable auto
 #else
   template<typename T, Layout layout = Layout::none, typename Scalar = scalar_type_of_t<T>, typename...Ds, std::enable_if_t<

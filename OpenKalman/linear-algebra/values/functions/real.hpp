@@ -21,6 +21,7 @@
 #include "linear-algebra/values/concepts/number.hpp"
 #include "linear-algebra/values/concepts/value.hpp"
 #include "linear-algebra/values/concepts/integral.hpp"
+#include "linear-algebra/values/concepts/complex.hpp"
 #include "linear-algebra/values/traits/number_type_of_t.hpp"
 #include "linear-algebra/values/classes/operation.hpp"
 

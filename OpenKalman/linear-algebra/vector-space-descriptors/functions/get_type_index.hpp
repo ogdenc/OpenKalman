@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref get_vector_space_descriptor_is_euclidean.
+ * \brief Definition for \ref get_type_index.
  */
 
 #ifndef OPENKALMAN_GET_TYPE_INDEX_HPP
@@ -19,17 +19,17 @@
 #include <typeindex>
 #include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/interfaces/traits-defined.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/concepts/atomic_vector_space_descriptor.hpp"
 
 namespace OpenKalman::descriptor
 {
   /**
-   * \brief Obtain the std::type_index for \ref vector_space_descriptor T.
+   * \brief Obtain the std::type_index for an \ref atomic_vector_space_descriptor.
    */
 #ifdef __cpp_concepts
-  template<vector_space_descriptor Arg>
+  template<descriptor::atomic_vector_space_descriptor Arg>
 #else
-  template<typename Arg, std::enable_if_t<vector_space_descriptor<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<descriptor::atomic_vector_space_descriptor<Arg>, int> = 0>
 #endif
   constexpr auto
   get_type_index(const Arg& arg)
@@ -38,9 +38,9 @@ namespace OpenKalman::descriptor
     {
       return interface::vector_space_traits<std::decay_t<Arg>>::type_index(arg);
     }
-    else
+    else if constexpr (descriptor::atomic_vector_space_descriptor<Arg>)
     {
-      return std::type_index {typeid(arg)};
+      return std::type_index {typeid(Arg)};
     }
   }
 

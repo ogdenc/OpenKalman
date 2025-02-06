@@ -21,7 +21,7 @@
 #include <tuple>
 #include <string>
 #include <gtest/gtest.h>
-#include "basics/global-definitions.hpp"
+#include "basics/internal/tuple_like.hpp"
 
 
 namespace OpenKalman::test

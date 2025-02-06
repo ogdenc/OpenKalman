@@ -31,17 +31,17 @@
 #include "linear-algebra/vector-space-descriptors/traits/static_concatenate.hpp" //
 
 #include "linear-algebra/vector-space-descriptors/concepts/composite_vector_space_descriptor.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/atomic_static_vector_space_descriptor.hpp" //
+#include "linear-algebra/vector-space-descriptors/concepts/atomic_vector_space_descriptor.hpp" //
 #include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp" //
 #include "linear-algebra/vector-space-descriptors/concepts/equivalent_to.hpp" //
 #include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp" //
 #include "linear-algebra/vector-space-descriptors/traits/euclidean_dimension_size_of.hpp" //
 #include "linear-algebra/vector-space-descriptors/traits/vector_space_component_count.hpp" //
 
-#include "linear-algebra/vector-space-descriptors/functions/get_dimension_size_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/get_euclidean_dimension_size_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_component_count_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_is_euclidean.hpp" //
+#include "linear-algebra/vector-space-descriptors/functions/get_size.hpp" //
+#include "linear-algebra/vector-space-descriptors/functions/get_euclidean_size.hpp" //
+#include "linear-algebra/vector-space-descriptors/functions/get_component_count.hpp" //
+#include "linear-algebra/vector-space-descriptors/functions/get_is_euclidean.hpp" //
 
 #include "linear-algebra/vector-space-descriptors/functions/to_euclidean_element.hpp" //
 #include "linear-algebra/vector-space-descriptors/functions/from_euclidean_element.hpp" //
@@ -66,8 +66,6 @@
 
 // traits for manipulating static descriptors
 
-#include "linear-algebra/vector-space-descriptors/traits/replicate_static_vector_space_descriptor.hpp"
-
 #include "linear-algebra/vector-space-descriptors/traits/internal/uniform_static_vector_space_descriptor_query.hpp" //
 #include "linear-algebra/vector-space-descriptors/concepts/uniform_static_vector_space_descriptor.hpp" //
 #include "linear-algebra/vector-space-descriptors/traits/uniform_static_vector_space_descriptor_component_of.hpp" //
@@ -77,73 +75,19 @@
 
 #include "linear-algebra/vector-space-descriptors/functions/comparison-operators.hpp"
 
-#include "linear-algebra/vector-space-descriptors/functions/internal/replicate_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/internal/is_uniform_component_of.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/internal/remove_trailing_1D_descriptors.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/internal/best_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/internal/smallest_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/internal/largest_vector_space_descriptor.hpp"
 
-#include "linear-algebra/vector-space-descriptors/functions/internal/split_head_tail.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/internal/static_vector_space_descriptor_slice.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_slice.hpp" //
+#include "linear-algebra/vector-space-descriptors/functions/get_slice.hpp" //
 
 #include "linear-algebra/vector-space-descriptors/functions/internal/to_euclidean_vector_space_descriptor_collection.hpp"
 
 using namespace OpenKalman::descriptor;
 
-TEST(basics, prepend_append)
-{
-  static_assert(std::is_same_v<StaticDescriptor<angle::Radians, Axis>::Prepend<Axis>, StaticDescriptor<Axis, angle::Radians, Axis>>);
-  static_assert(!std::is_same_v<StaticDescriptor<Axis, angle::Radians>::Prepend<Axis>, StaticDescriptor<Axis, angle::Radians, Axis>>);
-  static_assert(std::is_same_v<StaticDescriptor<angle::Radians, Axis>::Append<angle::Radians>, StaticDescriptor<angle::Radians, Axis, angle::Radians>>);
-  static_assert(!std::is_same_v<StaticDescriptor<Axis, angle::Radians>::Append<angle::Radians>, StaticDescriptor<Axis, angle::Radians, Axis>>);
-  static_assert(std::is_same_v<StaticDescriptor<Axis, angle::Radians>::Append<Polar<Distance, angle::Radians>>, StaticDescriptor<Axis, angle::Radians, Polar<Distance, angle::Radians>>>);
-}
-
-
-TEST(basics, Take)
-{
-  static_assert(std::is_same_v<StaticDescriptor<>::Take<0>, StaticDescriptor<>>);
-  static_assert(std::is_same_v<StaticDescriptor<angle::Radians>::Take<1>, StaticDescriptor<angle::Radians>>);
-  static_assert(std::is_same_v<StaticDescriptor<Axis, angle::Radians, Axis, Axis, angle::Radians>::Take<3>, StaticDescriptor<Axis, angle::Radians, Axis>>);
-  static_assert(!std::is_same_v<StaticDescriptor<Axis, angle::Radians, Axis, Axis, angle::Radians>::Take<3>, StaticDescriptor<Axis, angle::Radians, Axis, Axis>>);
-}
-
-
-TEST(basics, Drop)
-{
-  static_assert(std::is_same_v<StaticDescriptor<Axis>::Drop<0>, StaticDescriptor<Axis>>);
-  static_assert(std::is_same_v<StaticDescriptor<angle::Radians>::Drop<1>, StaticDescriptor<>>);
-  static_assert(std::is_same_v<StaticDescriptor<Axis, angle::Radians, Axis, Axis, angle::Radians>::Drop<3>, StaticDescriptor<Axis, angle::Radians>>);
-  static_assert(std::is_same_v<StaticDescriptor<Axis, angle::Radians, Axis, angle::Radians, Axis>::Drop<3>, StaticDescriptor<angle::Radians, Axis>>);
-}
-
-
-TEST(basics, Select)
-{
-  static_assert(std::is_same_v<StaticDescriptor<Axis, angle::Radians, Axis>::Select<0>, Axis>);
-  static_assert(std::is_same_v<StaticDescriptor<Axis, angle::Radians, Axis>::Select<1>, angle::Radians>);
-  static_assert(std::is_same_v<StaticDescriptor<Axis, angle::Radians, Axis>::Select<2>, Axis>);
-  static_assert(std::is_same_v<StaticDescriptor<Axis, angle::Radians, Axis, Polar<>, Distance>::Select<3>, Polar<>>);
-  static_assert(std::is_same_v<StaticDescriptor<Axis, angle::Radians, Axis, Polar<>, Distance>::Select<4>, Distance>);
-  static_assert(std::is_same_v<StaticDescriptor<Dimensions<3>, Dimensions<2>, Axis>::Select<0>, Dimensions<3>>);
-  static_assert(std::is_same_v<StaticDescriptor<Dimensions<3>, Dimensions<2>, Axis>::Select<1>, Dimensions<2>>);
-  static_assert(std::is_same_v<StaticDescriptor<Dimensions<3>, Dimensions<2>, Axis>::Select<2>, Axis>);
-}
-
-
-TEST(basics, replicate_static_vector_space_descriptor)
-{
-  static_assert(std::is_same_v<replicate_static_vector_space_descriptor_t<angle::Radians, 0>, StaticDescriptor<>>);
-  static_assert(std::is_same_v<replicate_static_vector_space_descriptor_t<angle::Radians, 1>, angle::Radians>);
-  static_assert(std::is_same_v<replicate_static_vector_space_descriptor_t<angle::Radians, 2>, StaticDescriptor<angle::Radians, angle::Radians>>);
-  static_assert(std::is_same_v<replicate_static_vector_space_descriptor_t<StaticDescriptor<angle::Radians, Axis>, 2>, StaticDescriptor<StaticDescriptor<angle::Radians, Axis>, StaticDescriptor<angle::Radians, Axis>>>);
-  static_assert(std::is_same_v<replicate_static_vector_space_descriptor_t<Dimensions<3>, 2>, StaticDescriptor<Dimensions<3>, Dimensions<3>>>);
-}
-
-
-TEST(basics, uniform_static_vector_space_descriptor)
+TEST(descriptors, uniform_static_vector_space_descriptor)
 {
   static_assert(not uniform_static_vector_space_descriptor<Dimensions<0>>);
   static_assert(std::is_same_v<uniform_static_vector_space_descriptor_component_of_t<Dimensions<1>>, Axis>);
@@ -167,15 +111,7 @@ TEST(basics, uniform_static_vector_space_descriptor)
 }
 
 
-TEST(basics, assignment)
-{
-  static_assert(std::is_assignable_v<Dimensions<10>&, Dimensions<10>>);
-  static_assert(not std::is_assignable_v<Dimensions<10>&, Dimensions<11>>);
-  static_assert(std::is_assignable_v<Polar<>&, Polar<>>);
-}
-
-
-TEST(basics, remove_trailing_1D_descriptors)
+TEST(descriptors, remove_trailing_1D_descriptors)
 {
   using D123 = std::tuple<Dimensions<1>, Dimensions<2>, Dimensions<3>>;
   static_assert(std::is_same_v<decltype(internal::remove_trailing_1D_descriptors(std::tuple{})), std::tuple<>>);
@@ -186,20 +122,7 @@ TEST(basics, remove_trailing_1D_descriptors)
 }
 
 
-TEST(basics, split_head_tail_fixed)
-{
-  using namespace internal;
-
-  static_assert(std::is_same_v<split_head_tail_fixed_t<Axis>, std::tuple<Axis, StaticDescriptor<>>>);
-  static_assert(std::is_same_v<split_head_tail_fixed_t<StaticDescriptor<Axis, Distance>>, std::tuple<Axis, Distance>>);
-  static_assert(std::is_same_v<split_head_tail_fixed_t<StaticDescriptor<Dimensions<2>, Distance, Axis>>, std::tuple<Axis, StaticDescriptor<Axis, Distance, Axis>>>);
-  static_assert(std::is_same_v<split_head_tail_fixed_t<StaticDescriptor<Axis, Polar<Distance, angle::Radians>>>, std::tuple<Axis, Polar<Distance, angle::Radians>>>);
-  static_assert(std::is_same_v<split_head_tail_fixed_t<StaticDescriptor<Polar<Distance, angle::Radians>, Axis>>, std::tuple<Polar<Distance, angle::Radians>, Axis>>);
-  static_assert(std::is_same_v<split_head_tail_fixed_t<StaticDescriptor<StaticDescriptor<Axis, Distance>, Axis>>, std::tuple<Axis, StaticDescriptor<Distance, Axis>>>);
-}
-
-
-TEST(basics, smallest_vector_space_descriptor_fixed)
+TEST(descriptors, smallest_vector_space_descriptor_fixed)
 {
   static_assert(internal::smallest_vector_space_descriptor<double>(Dimensions<3>{}, Dimensions<4>{}) == Dimensions<3>{});
   static_assert(internal::smallest_vector_space_descriptor<double>(Dimensions<3>{}, angle::Radians{}) == angle::Radians{});
@@ -208,7 +131,7 @@ TEST(basics, smallest_vector_space_descriptor_fixed)
 }
 
 
-TEST(basics, largest_vector_space_descriptor_fixed)
+TEST(descriptors, largest_vector_space_descriptor_fixed)
 {
   static_assert(internal::largest_vector_space_descriptor<double>(Dimensions<3>{}, Dimensions<4>{}) == Dimensions<4>{});
   static_assert(internal::largest_vector_space_descriptor<double>(Dimensions<3>{}, angle::Radians{}) == Dimensions<3>{});
@@ -218,91 +141,7 @@ TEST(basics, largest_vector_space_descriptor_fixed)
 }
 
 
-TEST(basics, static_vector_space_descriptor_slice)
-{
-  using namespace internal;
-
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<Dimensions<7>, 0, 7>, Dimensions<7>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<Dimensions<7>, 1, 6>, Dimensions<6>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<Dimensions<7>, 2, 3>, Dimensions<3>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<Dimensions<7>, 2, 0>, Dimensions<0>>);
-
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>, 0, 6>, StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>, 0, 0>, StaticDescriptor<>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>, 1, 5>, StaticDescriptor<Axis, Distance, Polar<Distance, angle::Radians>, Axis>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>, 1, 4>, StaticDescriptor<Axis, Distance, Polar<Distance, angle::Radians>>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>, 1, 2>, StaticDescriptor<Axis, Distance>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>, 1, 1>, StaticDescriptor<Axis>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>, 1, 0>, StaticDescriptor<>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>, 2, 4>, StaticDescriptor<Distance, Polar<Distance, angle::Radians>, Axis>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>, 2, 3>, StaticDescriptor<Distance, Polar<Distance, angle::Radians>>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>, 2, 1>, StaticDescriptor<Distance>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>, 2, 0>, StaticDescriptor<>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>, 3, 3>, StaticDescriptor<Polar<Distance, angle::Radians>, Axis>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>, 3, 2>, StaticDescriptor<Polar<Distance, angle::Radians>>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>, 3, 0>, StaticDescriptor<>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>, 5, 1>, StaticDescriptor<Axis>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>, 5, 0>, StaticDescriptor<>>);
-  static_assert(equivalent_to<static_vector_space_descriptor_slice_t<StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>, 6, 0>, StaticDescriptor<>>);
-}
-
-
-TEST(basics, get_vector_space_descriptor_slice_fixed)
-{
-  static_assert(get_vector_space_descriptor_slice<double>(Dimensions<7>{}, std::integral_constant<std::size_t, 0>{}, std::integral_constant<std::size_t, 7>{}) == Dimensions<7>{});
-  static_assert(get_vector_space_descriptor_slice<double>(Dimensions<7>{}, std::integral_constant<std::size_t, 1>{}, std::integral_constant<std::size_t, 6>{}) == Dimensions<6>{});
-  static_assert(get_vector_space_descriptor_slice<double>(Dimensions<7>{}, std::integral_constant<std::size_t, 2>{}, std::integral_constant<std::size_t, 3>{}) == Dimensions<3>{});
-  static_assert(get_vector_space_descriptor_slice<double>(Dimensions<7>{}, std::integral_constant<std::size_t, 2>{}, std::integral_constant<std::size_t, 0>{}) == Dimensions<0>{});
-
-  static_assert(get_vector_space_descriptor_slice<double>(Dimensions<7>{}, 0, 7) == Dimensions<7>{});
-  static_assert(get_vector_space_descriptor_slice<double>(Dimensions<7>{}, 1, 6) == Dimensions<6>{});
-  static_assert(get_vector_space_descriptor_slice<double>(Dimensions<7>{}, 2, 3) == Dimensions<3>{});
-  static_assert(get_vector_space_descriptor_slice<double>(Dimensions<7>{}, 2, 0) == Dimensions<0>{});
-
-  static_assert(get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 0>{}, std::integral_constant<std::size_t, 6>{}) == StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{});
-  static_assert(get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 0>{}, std::integral_constant<std::size_t, 0>{}) == StaticDescriptor<>{});
-  static_assert(get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 1>{}, std::integral_constant<std::size_t, 5>{}) == StaticDescriptor<Axis, Distance, Polar<Distance, angle::Radians>, Axis>{});
-  static_assert(get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 1>{}, std::integral_constant<std::size_t, 4>{}) == StaticDescriptor<Axis, Distance, Polar<Distance, angle::Radians>>{});
-  static_assert(get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 1>{}, std::integral_constant<std::size_t, 2>{}) == StaticDescriptor<Axis, Distance>{});
-  static_assert(get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 1>{}, std::integral_constant<std::size_t, 1>{}) == StaticDescriptor<Axis>{});
-  static_assert(get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 1>{}, std::integral_constant<std::size_t, 0>{}) == StaticDescriptor<>{});
-  static_assert(get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 2>{}, std::integral_constant<std::size_t, 4>{}) == StaticDescriptor<Distance, Polar<Distance, angle::Radians>, Axis>{});
-  static_assert(get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 2>{}, std::integral_constant<std::size_t, 3>{}) == StaticDescriptor<Distance, Polar<Distance, angle::Radians>>{});
-  static_assert(get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 2>{}, std::integral_constant<std::size_t, 1>{}) == StaticDescriptor<Distance>{});
-  static_assert(get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 2>{}, std::integral_constant<std::size_t, 0>{}) == StaticDescriptor<>{});
-  static_assert(get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 3>{}, std::integral_constant<std::size_t, 3>{}) == StaticDescriptor<Polar<Distance, angle::Radians>, Axis>{});
-  static_assert(get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 3>{}, std::integral_constant<std::size_t, 2>{}) == StaticDescriptor<Polar<Distance, angle::Radians>>{});
-  static_assert(get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 3>{}, std::integral_constant<std::size_t, 0>{}) == StaticDescriptor<>{});
-  static_assert(get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 5>{}, std::integral_constant<std::size_t, 1>{}) == StaticDescriptor<Axis>{});
-  static_assert(get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 5>{}, std::integral_constant<std::size_t, 0>{}) == StaticDescriptor<>{});
-  static_assert(get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 6>{}, std::integral_constant<std::size_t, 0>{}) == StaticDescriptor<>{});
-
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 0, std::integral_constant<std::size_t, 6>{}) == StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 0>{}, 6) == StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 1, std::integral_constant<std::size_t, 2>{}) == StaticDescriptor<Axis, Distance>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, std::integral_constant<std::size_t, 1>{}, 2) == StaticDescriptor<Axis, Distance>{}));
-
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 0, 6) == StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 0, 0) == StaticDescriptor<>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 1, 5) == StaticDescriptor<Axis, Distance, Polar<Distance, angle::Radians>, Axis>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 1, 4) == StaticDescriptor<Axis, Distance, Polar<Distance, angle::Radians>>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 1, 2) == StaticDescriptor<Axis, Distance>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 1, 1) == StaticDescriptor<Axis>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 1, 0) == StaticDescriptor<>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 2, 4) == StaticDescriptor<Distance, Polar<Distance, angle::Radians>, Axis>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 2, 3) == StaticDescriptor<Distance, Polar<Distance, angle::Radians>>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 2, 1) == StaticDescriptor<Distance>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 2, 0) == StaticDescriptor<>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 3, 3) == StaticDescriptor<Polar<Distance, angle::Radians>, Axis>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 3, 2) == StaticDescriptor<Polar<Distance, angle::Radians>>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 3, 0) == StaticDescriptor<>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 5, 1) == StaticDescriptor<Axis>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 5, 0) == StaticDescriptor<>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}, 6, 0) == StaticDescriptor<>{}));
-}
-
-
-TEST(basics, vector_space_descriptor_collection)
+TEST(descriptors, vector_space_descriptor_collection)
 {
   static_assert(internal::collection<std::tuple<Axis, Distance, angle::Radians>>);
   static_assert(internal::collection<std::vector<angle::Radians>>);

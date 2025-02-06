@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2018-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2018-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -97,12 +97,11 @@ namespace OpenKalman
   };
 
 
-  // ------------------------------ //
-  //        Deduction Guide         //
-  // ------------------------------ //
-
+  /**
+   * \brief Deduction guide
+   */
 #ifdef __cpp_concepts
-  template<indexible Arg>
+template<indexible Arg>
 #else
   template<typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
 #endif
@@ -111,11 +110,6 @@ namespace OpenKalman
 
   namespace interface
   {
-
-    // --------------------------- //
-    //   indexible_object_traits   //
-    // --------------------------- //
-
     template<typename NestedObject>
     struct indexible_object_traits<ToEuclideanExpr<NestedObject>>
     {
@@ -232,10 +226,6 @@ namespace OpenKalman
     };
 
 
-    // --------------------- //
-    //   library_interface   //
-    // --------------------- //
-
     template<typename NestedObject>
     struct library_interface<ToEuclideanExpr<NestedObject>>
     {
@@ -265,7 +255,7 @@ namespace OpenKalman
         else
         {
           auto g {[&arg, is...](std::size_t ix) { return get_component(nested_object(std::forward<Arg>(arg)), ix, is...); }};
-          return descriptor::to_euclidean_element(get_vector_space_descriptor<0>(arg), g, i, 0);
+          return descriptor::to_euclidean_element(get_vector_space_descriptor<0>(arg), g, i);
         }
       }
 

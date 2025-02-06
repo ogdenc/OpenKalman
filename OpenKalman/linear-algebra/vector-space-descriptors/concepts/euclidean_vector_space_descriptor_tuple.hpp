@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2024-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -18,9 +18,8 @@
 
 #include <type_traits>
 #include <tuple>
-#include <utility>
-#include "basics/global-definitions.hpp"
-#include "euclidean_vector_space_descriptor.hpp"
+#include "basics/internal/tuple_like.hpp"
+#include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
 
 namespace OpenKalman::descriptor
 {
@@ -33,11 +32,9 @@ namespace OpenKalman::descriptor
       return (... and euclidean_vector_space_descriptor<std::tuple_element_t<Ix, T>>);
     }
 
-
     template<typename T, typename = void>
     struct is_euclidean_descriptor_tuple : std::false_type {};
 
- 
     template<typename T>
     struct is_euclidean_descriptor_tuple<T, std::enable_if_t<internal::tuple_like<T>>>
       : std::bool_constant<is_euclidean_descriptor_tuple_impl<T>(std::make_index_sequence<std::tuple_size_v<T>>{})> {};
@@ -52,7 +49,7 @@ namespace OpenKalman::descriptor
   template<typename T>
 #if defined(__cpp_concepts) and defined(__cpp_lib_remove_cvref) and __cpp_generic_lambdas >= 201707L
   concept euclidean_vector_space_descriptor_tuple =
-    internal::tuple_like<T> and
+    descriptor::vector_space_descriptor_tuple<T> and
     []<std::size_t...Ix>(std::index_sequence<Ix...>)
       { return (... and euclidean_vector_space_descriptor<std::tuple_element_t<Ix, std::remove_cvref_t<T>>>); }
       (std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<T>>>{});

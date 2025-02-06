@@ -53,7 +53,10 @@ namespace OpenKalman::value
   struct fixed_number_of<T, std::enable_if_t<value::fixed<T>>>
 #endif
   {
-    static constexpr auto value = []{
+  private:
+
+    static constexpr auto get_value()
+    {
 #ifdef __cpp_concepts
       if constexpr (requires { std::decay_t<T>::value; })
 #else
@@ -62,8 +65,12 @@ namespace OpenKalman::value
         return std::decay_t<T>::value;
       else
         return std::decay_t<T>{}();
-    }();
-    using value_type = decltype(value);
+    };
+
+  public:
+
+    using value_type = std::decay_t<decltype(get_value())>;
+    static constexpr value_type value {get_value()};
     using type = fixed_number_of;
     constexpr operator value_type() const { return value; }
     constexpr value_type operator()() const { return value; }

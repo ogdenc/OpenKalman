@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2023-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2023-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -25,8 +25,8 @@
  */
 namespace OpenKalman::value {}
 
-
-// scalar values
+#include "interface/number_traits.hpp"
+#include "interface/number_traits_defined.hpp"
 
 #include "concepts/number.hpp"
 #include "concepts/fixed.hpp"
@@ -46,6 +46,7 @@ namespace OpenKalman::value {}
 
 #include "classes/operation.hpp"
 #include "classes/Fixed.hpp"
+#include "classes/fixed-constants.hpp"
 
 #include "functions/cast_to.hpp"
 #include "functions/value-arithmetic.hpp"
@@ -80,6 +81,10 @@ namespace OpenKalman::value {}
 #include "functions/atan2.hpp"
 #include "functions/pow.hpp"
 
+#include "concepts/index_tuple.hpp"
+#include "concepts/index_collection.hpp"
 
+#include "functions/internal/get_collection_element.hpp"
+#include "functions/internal/transform_collection.hpp"
 
 #endif //OPENKALMAN_VALUES_HPP

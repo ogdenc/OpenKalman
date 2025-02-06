@@ -706,10 +706,10 @@ TEST(matrices, GaussianDistribution_blocks)
   EXPECT_TRUE(is_near(split<C2, C2>(DistSA4u(b, n)), std::tuple {DistSA2u(a1, ma), DistSA2u(a2, mb)}));
   EXPECT_TRUE(is_near(split<C2, C2>(DistT4l(b, n)), std::tuple {DistT2l(a1, ma), DistT2l(a2, mb)}));
   EXPECT_TRUE(is_near(split<C2, C2>(DistT4u(b, n)), std::tuple {DistT2u(a1, ma), DistT2u(a2, mb)}));
-  EXPECT_TRUE(is_near(split<C2, C2::Take<1>>(DistSA4l(b, n)), std::tuple {DistSA2l(a1, ma), GaussianDistribution {Mean1 {3}, SA1l {4}}}));
-  EXPECT_TRUE(is_near(split<C2, C2::Take<1>>(DistSA4u(b, n)), std::tuple {DistSA2u(a1, ma), GaussianDistribution {Mean1 {3}, SA1u {4}}}));
-  EXPECT_TRUE(is_near(split<C2, C2::Take<1>>(DistT4l(b, n)), std::tuple {DistT2l(a1, ma), GaussianDistribution {Mean1 {3}, SA1l {4}}}));
-  EXPECT_TRUE(is_near(split<C2, C2::Take<1>>(DistT4u(b, n)), std::tuple {DistT2u(a1, ma), GaussianDistribution {Mean1 {3}, SA1u {4}}}));
+  EXPECT_TRUE(is_near(split<C2, angle::Radians>(DistSA4l(b, n)), std::tuple {DistSA2l(a1, ma), GaussianDistribution {Mean1 {3}, SA1l {4}}}));
+  EXPECT_TRUE(is_near(split<C2, angle::Radians>(DistSA4u(b, n)), std::tuple {DistSA2u(a1, ma), GaussianDistribution {Mean1 {3}, SA1u {4}}}));
+  EXPECT_TRUE(is_near(split<C2, angle::Radians>(DistT4l(b, n)), std::tuple {DistT2l(a1, ma), GaussianDistribution {Mean1 {3}, SA1l {4}}}));
+  EXPECT_TRUE(is_near(split<C2, angle::Radians>(DistT4u(b, n)), std::tuple {DistT2u(a1, ma), GaussianDistribution {Mean1 {3}, SA1u {4}}}));
 }
 
 

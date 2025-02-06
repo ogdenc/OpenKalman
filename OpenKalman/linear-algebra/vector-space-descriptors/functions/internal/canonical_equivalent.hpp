@@ -20,7 +20,7 @@
 #include <type_traits>
 #include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/get_collection_of.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/get_component_collection.hpp"
 
 namespace OpenKalman::descriptor::internal
 {
@@ -42,12 +42,12 @@ namespace OpenKalman::descriptor::internal
     {
       if constexpr (vector_space_component_count_v<Arg> == 1)
       {
-        auto ret {std::get<0>(interface::vector_space_traits<std::decay_t<Arg>>::collection(std::forward<Arg>(arg)))};
+        auto ret {std::get<0>(interface::vector_space_traits<std::decay_t<Arg>>::component_collection(std::forward<Arg>(arg)))};
         return ret;
       }
       else return std::apply([](const auto&...a) {
           return descriptor::StaticDescriptor<std::decay_t<decltype(a)>...>{};
-        }, descriptor::get_collection_of(arg));
+        }, descriptor::internal::get_component_collection(arg));
     }
     else return std::forward<Arg>(arg);
   }

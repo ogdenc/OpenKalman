@@ -17,6 +17,7 @@
 #ifndef OPENKALMAN_TRANSFORMBASE_HPP
 #define OPENKALMAN_TRANSFORMBASE_HPP
 
+#include "basics/internal/tuple_like.hpp"
 
 namespace OpenKalman::internal
 {

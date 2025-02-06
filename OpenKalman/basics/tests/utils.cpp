@@ -13,8 +13,10 @@
  * \brief Tests for utils.hpp
  */
 
+#include <tuple>
 #include <array>
 #include <gtest/gtest.h>
+#include "basics/language-features.hpp"
 #include "basics/utils.hpp"
 
 using namespace OpenKalman;
@@ -123,5 +125,56 @@ TEST(basics, tuple_flatten)
   static_assert(std::get<3>(ftc) == 3);
   static_assert(std::get<4>(ftc) == 4);
   static_assert(std::get<5>(ftc) == 5);
+}
+
+
+#include "basics/internal/iota_tuple.hpp"
+
+TEST(basics, iota_tuple)
+{
+  using I3 = decltype(internal::iota_tuple<0, 3>());
+  static_assert(std::tuple_size_v<I3> == 3);
+  static_assert(std::tuple_element_t<0, I3>::value == 0);
+  static_assert(std::tuple_element_t<1, I3>::value == 1);
+  using internal::get;
+  static_assert(get<3>(I3{})() == 3);
+
+  using I27 = decltype(internal::iota_tuple<2, 7>());
+  static_assert(std::tuple_size_v<I27> == 5);
+  static_assert(std::tuple_element_t<0, I27>::value == 2);
+  static_assert(std::tuple_element_t<1, I27>::value == 3);
+  using internal::get;
+  static_assert(get<3>(I27{})() == 5);
+}
+
+
+#include "basics/internal/iota_range.hpp"
+
+TEST(basics, iota_range)
+{
+  auto i9 = internal::iota_range(0, 9);
+  using std::size;
+  EXPECT_EQ(size(i9), 9);
+  auto it9 = i9.begin();
+  EXPECT_EQ(*it9, 0);
+  it9++;
+  EXPECT_EQ(*it9, 1);
+  EXPECT_EQ(*(it9 + 1), 2);
+  EXPECT_EQ(it9[1], 2);
+  EXPECT_EQ(*(2 + it9), 3);
+  EXPECT_EQ(it9[3], 4);
+  ++it9;
+  EXPECT_EQ(*it9, 2);
+  EXPECT_EQ(*(it9 - 1), 1);
+  EXPECT_EQ(it9[-1], 1);
+  EXPECT_EQ(it9[1], 3);
+  EXPECT_EQ(it9++[2], 4);
+  EXPECT_EQ(*it9, 3);
+  EXPECT_EQ(*(it9 - 2), 1);
+  EXPECT_EQ(it9[1], 4);
+  EXPECT_EQ(it9--[2], 5);
+  EXPECT_EQ(*it9, 2);
+  --it9;
+  EXPECT_EQ(*it9, 1);
 }
 

@@ -38,7 +38,7 @@ namespace OpenKalman
 
   /**
    * \brief T is equivalent to the uniform dimension type of C.
-   * \tparam T A 1D \ref atomic_static_vector_space_descriptor
+   * \tparam T A 1D \ref atomic_vector_space_descriptor
    * \tparam C a \ref uniform_static_vector_space_descriptor
    */
   template<typename T, typename C>

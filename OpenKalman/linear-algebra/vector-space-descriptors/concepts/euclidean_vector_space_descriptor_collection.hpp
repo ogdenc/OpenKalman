@@ -20,8 +20,8 @@
 #include <ranges>
 #endif
 #include "basics/internal/collection.hpp"
-#include "euclidean_vector_space_descriptor.hpp"
-#include "euclidean_vector_space_descriptor_tuple.hpp"
+#include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor_tuple.hpp"
 
 
 namespace OpenKalman::descriptor
@@ -53,7 +53,7 @@ namespace OpenKalman::descriptor
    */
   template<typename T>
 #if defined(__cpp_lib_ranges) and defined(__cpp_lib_remove_cvref)
-  concept euclidean_vector_space_descriptor_collection = internal::collection<T> and
+  concept euclidean_vector_space_descriptor_collection = descriptor::vector_space_descriptor_collection<T> and
     (euclidean_vector_space_descriptor_tuple<T> or euclidean_vector_space_descriptor<std::ranges::range_value_t<std::decay_t<T>>>);
 #else
   constexpr bool euclidean_vector_space_descriptor_collection = internal::collection<T> and

@@ -18,6 +18,7 @@
 
 #include <functional>
 #include <tuple>
+#include "basics/internal/tuple_like.hpp"
 
 namespace OpenKalman
 {

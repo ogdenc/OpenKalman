@@ -185,11 +185,12 @@ TEST(values, scalar_arithmetic)
 TEST(values, cast_to)
 {
   static_assert(value::cast_to<double>(std::integral_constant<int, 4>{}) == 4);
-  static_assert(std::is_same_v<decltype(value::cast_to<double>(std::integral_constant<int, 4>{})), value::Fixed<double, 4>>);
+  static_assert(std::is_same_v<decltype(value::cast_to<double>(std::integral_constant<int, 4>{}))::value_type, double>);
   static_assert(std::is_same_v<decltype(value::cast_to<int>(std::integral_constant<int, 4>{})), std::integral_constant<int, 4>>);
   static_assert(value::cast_to<double>(value::Fixed<float, 4>{}) == 4);
   static_assert(std::is_same_v<decltype(value::cast_to<double>(value::Fixed<double, 4>{})), value::Fixed<double, 4>>);
-  static_assert(std::is_same_v<decltype(value::cast_to<double>(value::Fixed<int, 4>{})), value::Fixed<double, 4>>);
+  static_assert(std::is_same_v<typename value::fixed_number_of<decltype(value::cast_to<double>(value::Fixed<double, 4>{}))>::value_type, double>);
+  static_assert(std::is_same_v<decltype(value::cast_to<double>(value::Fixed<int, 4>{}))::value_type, double>);
   static_assert(value::cast_to<double>(value::Fixed<float, 4>{}) == 4);
   static_assert(std::is_same_v<value::number_type_of_t<decltype(value::cast_to<double>(value::Fixed<float, 4>{}))>, double>);
 }

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020-2023 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -23,7 +23,6 @@
 #include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp"
 
-
 namespace OpenKalman::descriptor
 {
   /**
@@ -36,23 +35,22 @@ namespace OpenKalman::descriptor
    * \param start The starting location of the element within any larger set of \ref vector_space_descriptor.
    */
 #ifdef __cpp_concepts
-  template<vector_space_descriptor T, value::index L, value::index S>
+  template<vector_space_descriptor T, value::index L>
   constexpr value::value auto
-  get_wrapped_component(const T& t, const auto& g, const L& local_index, const S& start)
-  requires requires { {g(start)} -> value::value; }
+  get_wrapped_component(const T& t, const auto& g, const L& local_index)
+  requires requires(std::size_t i) { {g(i)} -> value::value; }
 #else
-  template<typename T, typename Getter, typename L, typename S, std::enable_if_t<
-    vector_space_descriptor<T> and value::index<L> and value::index<S> and
-    value::value<typename std::invoke_result<Getter, const S&>::type>, int> = 0>
+  template<typename T, typename Getter, typename L, std::enable_if_t<vector_space_descriptor<T> and value::index<L> and
+    value::value<typename std::invoke_result<Getter, std::size_t>::type>, int> = 0>
   constexpr auto
-  get_wrapped_component(const T& t, const Getter& g, const L& local_index, const S& start)
+  get_wrapped_component(const T& t, const Getter& g, const L& local_index)
 #endif
   {
     if constexpr (static_vector_space_descriptor<T> and value::fixed<L>)
       static_assert(value::to_number(local_index) < dimension_size_of_v<T>);
 
-    if constexpr (euclidean_vector_space_descriptor<T>) return g(start + local_index);
-    else return interface::vector_space_traits<T>::get_wrapped_component(t, g, local_index, start);
+    if constexpr (euclidean_vector_space_descriptor<T>) return g(local_index);
+    else return interface::vector_space_traits<T>::get_wrapped_component(t, g, local_index);
   }
 
 

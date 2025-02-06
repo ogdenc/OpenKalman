@@ -53,7 +53,7 @@ namespace OpenKalman::descriptor
 
 
   /**
-   * \brief A dynamic list of \ref atomic_static_vector_space_descriptor objects that can be defined or extended at runtime.
+   * \brief A dynamic list of \ref atomic_vector_space_descriptor objects that can be defined or extended at runtime.
    * \details At compile time, the structure is treated if it has zero dimension.
    * \tparam Scalar The scalar type for elements associated with this object.
    */

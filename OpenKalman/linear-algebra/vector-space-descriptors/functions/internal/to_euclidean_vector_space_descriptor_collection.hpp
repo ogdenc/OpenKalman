@@ -39,17 +39,17 @@ namespace OpenKalman::internal
     else if constexpr (vector_space_descriptor_tuple<T>)
     {
       return std::apply([](auto&&...ds){
-        return std::tuple {get_dimension_size_of(std::forward<decltype(ds)>(ds))...};
+        return std::tuple {get_size(std::forward<decltype(ds)>(ds))...};
         }, std::forward<T>(t));
     }
     else
     {
       std::vector<std::size_t> ret {};
 #ifdef __cpp_lib_ranges
-      std::ranges::transform(std::ranges::begin(t), t, [](auto&& d){ return get_dimension_size_of(std::forward<decltype(d)>(d)); });
+      std::ranges::transform(std::ranges::begin(t), t, [](auto&& d){ return get_size(std::forward<decltype(d)>(d)); });
 #else
       using std::begin, std::end;
-      std::transform(begin(t), end(t), begin(ret), [](auto&& d){ return get_dimension_size_of(std::forward<decltype(d)>(d)); });
+      std::transform(begin(t), end(t), begin(ret), [](auto&& d){ return get_size(std::forward<decltype(d)>(d)); });
 #endif
       return ret;
     }

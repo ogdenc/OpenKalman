@@ -15,18 +15,24 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 
 add_executable(descriptors
-        fixed-descriptors.cpp
-        dynamic-descriptors.cpp
+        integral-types.cpp
+        Dimensions.cpp
+        Distance.cpp
+        Angle.cpp
+        Inclination.cpp
+        Polar.cpp
+        Spherical.cpp
+        StaticDescriptor.cpp
+        DynamicDescriptor.cpp
         comparison.cpp
         arithmetic.cpp
-        #functions.cpp
-
+        statistical_transformations.cpp
+        #slice.cpp
 
         #static-descriptor-manipulation.cpp
         #dynamic-descriptor-manipulation.cpp
 
 
-        #vector-space-descriptor-functions.cpp
     )
 
 target_link_libraries(descriptors GTest::gtest_main Eigen3::Eigen Threads::Threads)

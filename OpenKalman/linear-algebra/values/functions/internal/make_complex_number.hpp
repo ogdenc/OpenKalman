@@ -22,6 +22,7 @@
 #include "linear-algebra/values/concepts/complex.hpp"
 #include "linear-algebra/values/functions/real.hpp"
 #include "linear-algebra/values/functions/imag.hpp"
+#include "linear-algebra/values/traits/real_type_of_t.hpp"
 
 namespace OpenKalman::value::internal
 {

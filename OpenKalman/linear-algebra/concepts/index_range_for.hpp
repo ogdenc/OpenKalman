@@ -47,8 +47,8 @@ namespace OpenKalman
 
     template<typename Indices, typename Indexible>
     struct index_range_for_impl<Indices, Indexible, std::enable_if_t<
-      internal::static_collection_size<Indices>::value == dynamic_size or index_count<Indexible>::value == dynamic_size or
-      internal::static_collection_size<Indices>::value >= index_count<Indexible>::value>>
+      internal::collection_size_of<Indices>::value == dynamic_size or index_count<Indexible>::value == dynamic_size or
+      internal::collection_size_of<Indices>::value >= index_count<Indexible>::value>>
         : std::true_type {};
 
   }
@@ -64,8 +64,8 @@ namespace OpenKalman
     indexible<T> and std::ranges::input_range<std::decay_t<Indices>> and 
     value::index<std::ranges::range_value_t<Indices>> and
     interface::get_component_defined_for<T, T, Indices> and
-    (internal::static_collection_size_v<Indices> == dynamic_size or index_count_v<T> == dynamic_size or
-      internal::static_collection_size_v<Indices> >= index_count_v<T>);
+    (internal::collection_size_of_v<Indices> == dynamic_size or index_count_v<T> == dynamic_size or
+      internal::collection_size_of_v<Indices> >= index_count_v<T>);
 #else
   constexpr bool index_range_for =
     indexible<T> and

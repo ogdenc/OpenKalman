@@ -49,7 +49,7 @@ namespace OpenKalman
 
         auto m {make_dense_object<A>(dim, dim)};
 
-        if (get_dimension_size_of(dim) == 1) m = std::move(col1);
+        if (get_size(dim) == 1) m = std::move(col1);
         else m = concatenate<1>(std::move(col1), make_zero<A>(dim, dim - descriptor::Axis{}));
 
         auto ret {make_triangular_matrix<TriangleType::lower>(std::move(m))};

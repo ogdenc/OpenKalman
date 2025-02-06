@@ -17,39 +17,20 @@
 #define OPENKALMAN_DYNAMIC_VECTOR_SPACE_DESCRIPTOR_HPP
 
 #include <type_traits>
-#include "basics/internal/collection.hpp"
 #include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
 
 namespace OpenKalman::descriptor
 {
-#ifndef __cpp_concepts
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct is_dynamic_vector_space_descriptor : std::false_type {};
-
-    template<typename T>
-    struct is_dynamic_vector_space_descriptor<T, std::enable_if_t<
-      value::index<decltype(interface::vector_space_traits<T>::size(std::declval<T>()))> and
-      value::dynamic<decltype(interface::vector_space_traits<T>::size(std::declval<T>()))>
-      >> : std::true_type {};
-  }
-#endif
-
-
   /**
    * \brief A set of \ref vector_space_descriptor for which the number of dimensions is defined at runtime.
    */
   template<typename T>
 #ifdef __cpp_concepts
   concept dynamic_vector_space_descriptor =
-    requires(const std::decay_t<T>& t) {
-      {interface::vector_space_traits<std::decay_t<T>>::size(t)} -> value::index;
-      {interface::vector_space_traits<std::decay_t<T>>::size(t)} -> value::dynamic;
-    };
 #else
-  constexpr bool dynamic_vector_space_descriptor = detail::is_dynamic_vector_space_descriptor<std::decay_t<T>>::value;
+  constexpr bool dynamic_vector_space_descriptor =
 #endif
+    vector_space_descriptor<T> and (not descriptor::static_vector_space_descriptor<T>);
 
 
 } // namespace OpenKalman::descriptor

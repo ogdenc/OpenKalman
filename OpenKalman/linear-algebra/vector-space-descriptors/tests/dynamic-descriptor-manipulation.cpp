@@ -31,17 +31,17 @@
 #include "linear-algebra/vector-space-descriptors/internal/forward-declarations.hpp" //
 
 #include "linear-algebra/vector-space-descriptors/concepts/composite_vector_space_descriptor.hpp" //
-#include "linear-algebra/vector-space-descriptors/concepts/atomic_static_vector_space_descriptor.hpp" //
+#include "linear-algebra/vector-space-descriptors/concepts/atomic_vector_space_descriptor.hpp" //
 #include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp" //
 #include "linear-algebra/vector-space-descriptors/concepts/equivalent_to.hpp" //
 #include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp" //
 #include "linear-algebra/vector-space-descriptors/traits/euclidean_dimension_size_of.hpp" //
 #include "linear-algebra/vector-space-descriptors/traits/vector_space_component_count.hpp" //
 
-#include "linear-algebra/vector-space-descriptors/functions/get_dimension_size_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/get_euclidean_dimension_size_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_component_count_of.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_is_euclidean.hpp" //
+#include "linear-algebra/vector-space-descriptors/functions/get_size.hpp" //
+#include "linear-algebra/vector-space-descriptors/functions/get_euclidean_size.hpp" //
+#include "linear-algebra/vector-space-descriptors/functions/get_component_count.hpp" //
+#include "linear-algebra/vector-space-descriptors/functions/get_is_euclidean.hpp" //
 
 #include "linear-algebra/vector-space-descriptors/functions/to_euclidean_element.hpp" //
 #include "linear-algebra/vector-space-descriptors/functions/from_euclidean_element.hpp" //
@@ -66,8 +66,6 @@
 
 // traits for manipulating static descriptors
 
-#include "linear-algebra/vector-space-descriptors/traits/replicate_static_vector_space_descriptor.hpp" //
-
 #include "linear-algebra/vector-space-descriptors/traits/static_concatenate.hpp" //
 
 #include "linear-algebra/vector-space-descriptors/traits/internal/uniform_static_vector_space_descriptor_query.hpp" //
@@ -79,16 +77,13 @@
 
 #include "linear-algebra/vector-space-descriptors/functions/comparison-operators.hpp"
 
-#include "linear-algebra/vector-space-descriptors/functions/internal/replicate_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/internal/is_uniform_component_of.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/internal/remove_trailing_1D_descriptors.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/internal/best_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/internal/smallest_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/internal/largest_vector_space_descriptor.hpp"
 
-#include "linear-algebra/vector-space-descriptors/functions/internal/split_head_tail.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/internal/static_vector_space_descriptor_slice.hpp" //
-#include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_slice.hpp" //
+#include "linear-algebra/vector-space-descriptors/functions/get_slice.hpp" //
 
 #include "linear-algebra/vector-space-descriptors/functions/internal/to_euclidean_vector_space_descriptor_collection.hpp"
 
@@ -97,57 +92,7 @@ using namespace OpenKalman::descriptor;
 using numbers::pi;
 
 
-TEST(basics, dynamic_assignment)
-{
-  static_assert(std::is_assignable_v<std::size_t&, Dimensions<10>>);
-  static_assert(std::is_assignable_v<int&, Dimensions<10>>);
-  static_assert(not std::is_assignable_v<Dimensions<10>&, std::size_t>);
-  static_assert(std::is_assignable_v<Dimensions<dynamic_size>&, Dimensions<11>>);
-  static_assert(std::is_assignable_v<Dimensions<dynamic_size>&, DynamicDescriptor<double>>);
-  static_assert(std::is_assignable_v<DynamicDescriptor<double>&, Dimensions<dynamic_size>>);
-  static_assert(std::is_assignable_v<DynamicDescriptor<double>&, Polar<>>);
-
-  static_assert(std::is_assignable_v<Polar<>&, Polar<>>);
-
-  Dimensions<dynamic_size> dim {5};
-  EXPECT_EQ(dim, 5);
-  dim = 6;
-  EXPECT_EQ(dim, 6);
-  dim = Dimensions<7>{};
-  EXPECT_EQ(dim, 7);
-  dim = DynamicDescriptor<double> {Dimensions<3>{}, Dimensions<5>{}};
-  EXPECT_EQ(dim, 8);
-  EXPECT_ANY_THROW((dim = DynamicDescriptor<double> {Dimensions<3>{}, Polar<>{}}));
-  EXPECT_EQ(dim, 8);
-
-  DynamicDescriptor<double> dyn;
-  dyn = 5;
-  EXPECT_EQ(dyn, 5);
-  dyn = Dimensions<6>{};
-  EXPECT_EQ(dyn, 6);
-  dyn = Polar<>{};
-  EXPECT_TRUE(dyn == Polar<>{});
-}
-
-
-TEST(basics, internal_replicate_vector_space_descriptor)
-{
-  using namespace internal;
-
-  // fixed:
-  static_assert(std::is_same_v<decltype(replicate_vector_space_descriptor<double>(StaticDescriptor<angle::Radians, Axis> {}, std::integral_constant<std::size_t, 2> {})), StaticDescriptor<StaticDescriptor<angle::Radians, Axis>, StaticDescriptor<angle::Radians, Axis>>>);
-
-  // dynamic:
-  auto d1 = replicate_vector_space_descriptor<double>(4, 3);
-  EXPECT_EQ(get_dimension_size_of(d1), 12); EXPECT_EQ(get_euclidean_dimension_size_of(d1), 12); EXPECT_EQ(get_vector_space_descriptor_component_count_of(d1), 12);
-  auto d2 = replicate_vector_space_descriptor<double>(angle::Radians{}, 4);
-  EXPECT_EQ(get_dimension_size_of(d2), 4); EXPECT_EQ(get_euclidean_dimension_size_of(d2), 8); EXPECT_EQ(get_vector_space_descriptor_component_count_of(d2), 4);
-  auto d3 = replicate_vector_space_descriptor<double>(Polar<Distance, angle::Radians>{}, 2);
-  EXPECT_EQ(get_dimension_size_of(d3), 4); EXPECT_EQ(get_euclidean_dimension_size_of(d3), 6); EXPECT_EQ(get_vector_space_descriptor_component_count_of(d3), 2);
-}
-
-
-TEST(basics, internal_is_uniform_component_of)
+TEST(descriptors, internal_is_uniform_component_of)
 {
   using namespace internal;
 
@@ -184,7 +129,7 @@ TEST(basics, internal_is_uniform_component_of)
 }
 
 
-TEST(basics, smallest_vector_space_descriptor_dynamic)
+TEST(descriptors, smallest_vector_space_descriptor_dynamic)
 {
   static_assert(internal::smallest_vector_space_descriptor<double>(Dimensions<3>{}, 4) == 3);
   static_assert(internal::smallest_vector_space_descriptor<double>(Dimensions<4>{}, 3) == 3);
@@ -193,79 +138,5 @@ TEST(basics, smallest_vector_space_descriptor_dynamic)
   EXPECT_TRUE((internal::smallest_vector_space_descriptor<double>(DynamicDescriptor<double>{Dimensions<3>{}}, DynamicDescriptor<double>{Dimensions<4>{}}) == 3));
   EXPECT_TRUE((internal::smallest_vector_space_descriptor<double>(DynamicDescriptor<double>{Dimensions<3>{}}, DynamicDescriptor<double>{Dimensions<4>{}}) == 3));
   EXPECT_TRUE((internal::smallest_vector_space_descriptor<double>(DynamicDescriptor<double>{angle::Radians{}, Dimensions<3>{}}, DynamicDescriptor<double>{Dimensions<4>{}, angle::Degrees{}}) == DynamicDescriptor<double>{angle::Radians{}, Dimensions<3>{}}));
-}
-
-
-TEST(basics, slice_vector_space_descriptor_dynamic)
-{
-  using namespace internal;
-
-  EXPECT_TRUE((DynamicDescriptor<double> {}.slice(0, 0) == DynamicDescriptor<double>{}));
-
-  EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, angle::Radians{}, Distance{}}.slice(0, 1) == Axis{}));
-  EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, angle::Radians{}, Distance{}}.slice(1, 1) == DynamicDescriptor<double> {angle::Radians{}}));
-  EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, angle::Radians{}, Distance{}}.slice(1, 2) == DynamicDescriptor<double> {angle::Radians{}, Distance{}}));
-  EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, angle::Radians{}, Distance{}}.slice(0, 3) == DynamicDescriptor<double> {Axis{}, angle::Radians{}, Distance{}}));
-
-  EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(0, 0) == DynamicDescriptor<double>{}));
-  EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(0, 1) == angle::Radians{}));
-  EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(0, 2) == DynamicDescriptor<double> {angle::Radians{}, Axis{}}));
-  EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(0, 3) == DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}}));
-  EXPECT_ANY_THROW((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(0, 4)));
-  EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(0, 5) == DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}));
-
-  EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(1, 0) == DynamicDescriptor<double>{}));
-  EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(1, 1) == Axis{}));
-  EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(1, 2) == DynamicDescriptor<double> {Axis{}, Distance{}}));
-  EXPECT_ANY_THROW((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(1, 3)));
-  EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(1, 4) == DynamicDescriptor<double> {Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}));
-
-  EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(2, 0) == DynamicDescriptor<double>{}));
-  EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(2, 1) == Distance{}));
-  EXPECT_ANY_THROW((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(2, 2)));
-  EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(2, 3) == DynamicDescriptor<double> {Distance{}, Polar<Distance, angle::Radians>{}}));
-
-  EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(3, 0) == DynamicDescriptor<double> {}));
-  EXPECT_ANY_THROW((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(3, 1)));
-  EXPECT_TRUE((DynamicDescriptor<double> {angle::Radians{}, Axis{}, Distance{}, Polar<Distance, angle::Radians>{}}.slice(3, 2) == Polar<Distance, angle::Radians>{}));
-
-  EXPECT_TRUE((DynamicDescriptor<double> {Polar<Distance, angle::Radians>{}, Axis{}}.slice(0, 2) == Polar<Distance, angle::Radians>{}));
-  EXPECT_TRUE((DynamicDescriptor<double> {Polar<Distance, angle::Radians>{}, Axis{}}.slice(2, 1) == Axis{}));
-}
-
-
-TEST(basics, get_vector_space_descriptor_slice_dynamic)
-{
-  using namespace internal;
-
-  static_assert(get_vector_space_descriptor_slice<double>(Dimensions{7}, 0, 7) == Dimensions<7>{});
-  static_assert(get_vector_space_descriptor_slice<double>(Dimensions{7}, 1, 6) == Dimensions<6>{});
-  static_assert(get_vector_space_descriptor_slice<double>(Dimensions{7}, 2, 3) == Dimensions<3>{});
-  static_assert(get_vector_space_descriptor_slice<double>(Dimensions{7}, 2, 0) == Dimensions<0>{});
-
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 0, 6) == StaticDescriptor<Dimensions<2>, Distance, Polar<Distance, angle::Radians>, Axis>{}));
-  EXPECT_ANY_THROW((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 0, 7)));
-  EXPECT_ANY_THROW((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, -1, 7)));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 0, 0) == StaticDescriptor<>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 1, 5) == StaticDescriptor<Axis, Distance, Polar<Distance, angle::Radians>, Axis>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 1, 4) == StaticDescriptor<Axis, Distance, Polar<Distance, angle::Radians>>{}));
-  EXPECT_ANY_THROW((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 1, 3)));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 1, 2) == StaticDescriptor<Axis, Distance>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 1, 1) == StaticDescriptor<Axis>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 1, 0) == StaticDescriptor<>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 2, 4) == StaticDescriptor<Distance, Polar<Distance, angle::Radians>, Axis>{}));
-  EXPECT_ANY_THROW((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 2, 5)));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 2, 3) == StaticDescriptor<Distance, Polar<Distance, angle::Radians>>{}));
-  EXPECT_ANY_THROW((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 2, 2)));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 2, 1) == StaticDescriptor<Distance>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 2, 0) == StaticDescriptor<>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 3, 3) == StaticDescriptor<Polar<Distance, angle::Radians>, Axis>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 3, 2) == StaticDescriptor<Polar<Distance, angle::Radians>>{}));
-  EXPECT_ANY_THROW((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 3, 1)));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 3, 0) == StaticDescriptor<>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 5, 1) == StaticDescriptor<Axis>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 5, 0) == StaticDescriptor<>{}));
-  EXPECT_TRUE((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 6, 0) == StaticDescriptor<>{}));
-  EXPECT_ANY_THROW((get_vector_space_descriptor_slice<double>(DynamicDescriptor<double> {Dimensions<2>{}, Distance{}, Polar<Distance, angle::Radians>{}, Axis{}}, 7, -1)));
 }
 

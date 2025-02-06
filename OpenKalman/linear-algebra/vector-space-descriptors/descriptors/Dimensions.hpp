@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,10 +24,11 @@
 #include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/dimension_size_of.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/get_dimension_size_of.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_is_euclidean.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/get_size.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/get_is_euclidean.hpp"
 #include "StaticDescriptor.hpp"
-#include "internal/AnyAtomicVectorSpaceDescriptor.hpp"
+#include "internal/Any.hpp"
+#include "linear-algebra/vector-space-descriptors/interfaces/index.hpp"
 
 namespace OpenKalman::descriptor
 {
@@ -63,17 +64,17 @@ namespace OpenKalman::descriptor
       {
         if constexpr (not euclidean_vector_space_descriptor<D>)
         {
-          if (not get_vector_space_descriptor_is_euclidean(d))
+          if (not get_is_euclidean(d))
             throw std::invalid_argument{"Argument of dynamic 'Dimensions' constructor must be a euclidean vector space descriptor."};
         }
-        if (get_dimension_size_of(d) != N)
+        if (get_size(d) != N)
           throw std::invalid_argument{"Dynamic argument to static 'Dimensions' constructor has the wrong size."};
       }
     }
 
 
     template<typename Int>
-    constexpr operator std::integral_constant<Int, N>()
+    explicit constexpr operator std::integral_constant<Int, N>()
     {
       return std::integral_constant<Int, N>{};
     }
@@ -84,7 +85,7 @@ namespace OpenKalman::descriptor
 #else
     template<typename Int, std::enable_if_t<std::is_integral_v<Int>, int> = 0>
 #endif
-    constexpr operator Int()
+    explicit constexpr operator Int()
     {
       return N;
     }
@@ -110,10 +111,10 @@ namespace OpenKalman::descriptor
     template<typename D, std::enable_if_t<(euclidean_vector_space_descriptor<D> or dynamic_vector_space_descriptor<D>) and
       (not std::is_base_of_v<Dimensions, D>), int> = 0>
 #endif
-    explicit constexpr Dimensions(const D& d) : runtime_size {get_dimension_size_of(d)}
+    explicit constexpr Dimensions(const D& d) : runtime_size {get_size(d)}
     {
       if constexpr (not euclidean_vector_space_descriptor<D>)
-        if (not get_vector_space_descriptor_is_euclidean(d))
+        if (not get_is_euclidean(d))
           throw std::invalid_argument{"Argument of dynamic 'Dimensions' constructor must be a euclidean vector space descriptor."};
     }
 
@@ -136,9 +137,9 @@ namespace OpenKalman::descriptor
     constexpr Dimensions& operator=(const D& d)
     {
       if constexpr (not euclidean_vector_space_descriptor<D>)
-        if (not get_vector_space_descriptor_is_euclidean(d))
+        if (not get_is_euclidean(d))
           throw std::invalid_argument{"Argument of dynamic 'Dimensions' assignment operator must be a euclidean vector space descriptor."};
-      runtime_size = get_dimension_size_of(d);
+      runtime_size = get_size(d);
       return *this;
     }
 
@@ -148,7 +149,7 @@ namespace OpenKalman::descriptor
 #else
     template<typename Int, std::enable_if_t<std::is_integral_v<Int>, int> = 0>
 #endif
-    constexpr operator Int()
+    explicit constexpr operator Int()
     {
       return runtime_size;
     }
@@ -157,7 +158,7 @@ namespace OpenKalman::descriptor
 
     std::size_t runtime_size;
 
-    friend struct interface::vector_space_traits<Dimensions<dynamic_size>>;
+    friend struct interface::vector_space_traits<Dimensions>;
   };
 
 
@@ -212,6 +213,9 @@ namespace OpenKalman::interface
 
   public:
 
+    static constexpr bool is_specialized = true;
+
+
     static constexpr auto
     size(const T& t)
     {
@@ -225,7 +229,11 @@ namespace OpenKalman::interface
 
 
     static constexpr auto
-    collection(const T& t)
+    is_euclidean(const T&) { return std::true_type{}; }
+
+
+    static constexpr auto
+    component_collection(const T& t)
     {
       if constexpr (N == 0)
         return std::tuple {};
@@ -234,10 +242,6 @@ namespace OpenKalman::interface
       else
         return std::array {descriptor::Dimensions<N>{}};
     }
-
-
-    static constexpr auto
-    is_euclidean(const T&) { return std::true_type{}; }
 
   };
 

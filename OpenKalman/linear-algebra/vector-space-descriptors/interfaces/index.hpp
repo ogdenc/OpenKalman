@@ -39,6 +39,9 @@ namespace OpenKalman::interface
   struct vector_space_traits<T, std::enable_if_t<value::index<T>>>
 #endif
   {
+    static constexpr bool is_specialized = true;
+
+
     static constexpr auto
     size(const T& t) { return t; };
 
@@ -48,7 +51,11 @@ namespace OpenKalman::interface
 
 
     static constexpr auto
-    collection(const T& t)
+    is_euclidean(const T&) { return std::true_type{}; }
+
+
+    static constexpr auto
+    component_collection(const T& t)
     {
       if constexpr (value::fixed<T>)
       {
@@ -59,10 +66,6 @@ namespace OpenKalman::interface
       }
       else return std::array {descriptor::Dimensions{t}};
     }
-
-
-    static constexpr auto
-    is_euclidean(const T&) { return std::true_type{}; }
 
   };
 

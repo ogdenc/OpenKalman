@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -18,6 +18,7 @@
 #define OPENKALMAN_VECTOR_SPACE_TRAITS_HPP
 
 #include <type_traits>
+#include <typeindex>
 #include "linear-algebra/values/concepts/index.hpp"
 
 namespace OpenKalman::interface
@@ -32,7 +33,9 @@ namespace OpenKalman::interface
 #endif
   struct vector_space_traits
   {
-#ifdef DOXYGEN_SHOULD_SKIP_THIS
+    static constexpr bool is_specialized = false;
+
+
     /**
      * \brief The scalar type associated with T (e.g., double, int).
      * \details <code>OpenKalman::value::number&lt;scalar_type&gt;</code> must be satisfied.
@@ -50,7 +53,10 @@ namespace OpenKalman::interface
 #else
     static constexpr auto
 #endif
-    size(const T&);
+    size(const T& t)
+    {
+      return std::integral_constant<std::size_t, 0_uz>{};
+    }
 
 
     /**
@@ -61,20 +67,10 @@ namespace OpenKalman::interface
 #else
     static constexpr auto
 #endif
-    euclidean_size(const T&);
-
-
-    /**
-     * \brief A \ref descriptor::vector_space_descriptor_collection containing the coordinate groups within T.
-     * \details The collection represents the canonical form of T.
-     * Two types are equivalent, by definition, if their canonical equivalent types are the same.
-     */
-#ifdef __cpp_concepts
-    static constexpr descriptor::vector_space_descriptor_collection auto
-#else
-    static constexpr auto
-#endif
-    collection(const T&);
+    euclidean_size(const T& t)
+    {
+      return std::integral_constant<std::size_t, 0_uz>{};
+    }
 
 
     /**
@@ -85,7 +81,10 @@ namespace OpenKalman::interface
 #else
     static constexpr auto
 #endif
-    is_euclidean(const T&);
+    is_euclidean(const T& t)
+    {
+      return std::integral_constant<bool, true>{};
+    }
 
 
     /**
@@ -93,7 +92,10 @@ namespace OpenKalman::interface
      * \details If this is omitted, the hash code will be <code>typeid(t)</code>.
      */
     static constexpr std::type_index
-    type_index(const T& t);
+    type_index(const T& t)
+    {
+        return std::type_index{typeid(t)};
+    }
 
 
     /**
@@ -101,19 +103,21 @@ namespace OpenKalman::interface
      * \note Optional if T is a \ref euclidean_vector_space_descriptor.
      * \param g An element getter mapping an index i of type std::size_t to an element
      * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
-     * \param euclidean_local_index A local index accessing the coordinate in Euclidean space
-     * \param start The starting location of the angle within any larger set of \ref vector_space_descriptor
+     * \param euclidean_index A local index accessing the coordinate in Euclidean space
      */
 #ifdef __cpp_concepts
     static constexpr value::value auto
-    to_euclidean_component(const T&, const auto& g, const value::index auto& euclidean_local_index, const value::index auto& start)
-    requires requires { {g(start)} -> value::value; };
+    to_euclidean_component(const T& t, const auto& g, const value::index auto& euclidean_index)
+    requires requires(std::size_t i){ {g(i)} -> value::value; }
 #else
-    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
-      value::value<typename std::invoke_result<const Getter&, const S&>::type> and value::index<L> and value::index<S>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
+      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
-    to_euclidean_component(const T&, const Getter& g, const L& euclidean_local_index, const S& start);
+    to_euclidean_component(const T& t, const Getter& g, const L& euclidean_index)
 #endif
+    {
+      return g(euclidean_index);
+    }
 
 
     /**
@@ -121,19 +125,21 @@ namespace OpenKalman::interface
      * \note Optional if T is a \ref euclidean_vector_space_descriptor.
      * \param g An element getter mapping an index i of type std::size_t to an element
      * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
-     * \param local_index A local index accessing the coordinate in modular space.
-     * \param euclidean_start The starting location in Euclidean space within any larger set of \ref vector_space_descriptor
+     * \param index A local index accessing the coordinate in modular space.
      */
 #ifdef __cpp_concepts
     static constexpr value::value auto
-    from_euclidean_component(const T&, const auto& g, const value::index auto& local_index, const value::index auto& euclidean_start)
-    requires requires { {g(euclidean_start)} -> value::value; };
+    from_euclidean_component(const T& t, const auto& g, const value::index auto& index)
+    requires requires(std::size_t i){ {g(i)} -> value::value; }
 #else
-    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
-      value::value<typename std::invoke_result<const Getter&, const S&>::type>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
+      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
-    from_euclidean_component(const T&, const Getter& g, const L& local_index, const S& euclidean_start);
+    from_euclidean_component(const T& t, const Getter& g, const L& index)
 #endif
+    {
+      return g(index);
+    }
 
 
     /**
@@ -143,19 +149,21 @@ namespace OpenKalman::interface
      * \note Optional if T is a \ref euclidean_vector_space_descriptor.
      * \param g An element getter mapping an index i of type std::size_t to an element
      * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
-     * \param local_index A local index accessing the element.
-     * \param start The starting location of the element within any larger set of \ref vector_space_descriptor.
+     * \param index A local index accessing the element.
      */
 #ifdef __cpp_concepts
     static constexpr value::value auto
-    get_wrapped_component(const T&, const auto& g, const value::index auto& local_index, const value::index auto& start)
-    requires requires { {g(start)} -> value::value; };
+    get_wrapped_component(const T& t, const auto& g, const value::index auto& index)
+    requires requires(std::size_t i){ {g(i)} -> value::value; }
 #else
-    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
-      value::value<typename std::invoke_result<const Getter&, const S&>::type>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
+      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
-    get_wrapped_component(const T&, const Getter& g, const L& local_index, const S& start);
+    get_wrapped_component(const T& t, const Getter& g, const L& index)
 #endif
+    {
+      return g(index);
+    }
 
 
     /**
@@ -166,24 +174,24 @@ namespace OpenKalman::interface
      * \param g An element getter mapping an index i of type std::size_t to an element
      * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
      * \param x The new value to be set.
-     * \param local_index A local index accessing the element.
-     * \param start The starting location of the element within any larger set of \ref vector_space_descriptor.
+     * \param index A local index accessing the element.
      */
 #ifdef __cpp_concepts
     static constexpr void
-    set_wrapped_component(const T&, const auto& s, const auto& g, const value::value auto& x,
-      const value::index auto& local_index, const value::index auto& start)
-    requires requires { s(x, start); s(g(start), start); };
+    set_wrapped_component(const T& t, const auto& s, const auto& g, const value::value auto& x, const value::index auto& index)
+    requires requires(std::size_t i){ s(x, i); s(g(i), i); }
 #else
-    template<typename Setter, typename Getter, typename X, typename L, typename S, std::enable_if_t<
-      value::value<X> and value::index<L> and value::index<S> and
-      std::is_invocable<const Setter&, const X&, const S&>::value and
-      std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, const S&>::type, const S&>::value, int> = 0>
+    template<typename Setter, typename Getter, typename X, typename L, std::enable_if_t<value::value<X> and value::index<L> and
+      std::is_invocable<const Setter&, const X&, std::size_t>::value and
+      std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, std::size_t>::type, std::size_t>::value, int> = 0>
     static constexpr void
-    set_wrapped_component(const T&, const Setter& s, const Getter& g, const X& x, const L& local_index, const S& start);
+    set_wrapped_component(const T& t, const Setter& s, const Getter& g, const X& x, const L& index)
 #endif
+    {
+      return g(index);
+    }
 
-#endif // DOXYGEN_SHOULD_SKIP_THIS
+
   };
 
 

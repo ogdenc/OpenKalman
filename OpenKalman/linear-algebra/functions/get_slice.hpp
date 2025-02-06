@@ -56,7 +56,7 @@ namespace OpenKalman
     constexpr auto get_slice_impl(Arg&& arg, const std::tuple<Offset...>& offsets, const std::tuple<Extent...>& extents, std::index_sequence<Ix...> seq)
     {
       auto slice_descriptors = std::tuple {
-        get_vector_space_descriptor_slice<scalar_type_of_t<Arg>>(get_vector_space_descriptor<Ix>(std::forward<Arg>(arg)), std::get<Ix>(offsets), std::get<Ix>(extents))...};
+        get_slice<scalar_type_of_t<Arg>>(get_vector_space_descriptor<Ix>(std::forward<Arg>(arg)), std::get<Ix>(offsets), std::get<Ix>(extents))...};
 
       if constexpr (constant_matrix<Arg>)
       {

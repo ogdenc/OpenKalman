@@ -286,9 +286,9 @@ namespace OpenKalman
         {
           auto g {[&arg, is...](std::size_t ix) { return OpenKalman::get_component(nested_object(std::forward<Arg>(arg)), ix, is...); }};
           if constexpr (to_euclidean_expr<nested_object_of_t<Arg>>)
-            return descriptor::get_wrapped_component(get_vector_space_descriptor<0>(arg), g, i, 0);
+            return descriptor::get_wrapped_component(get_vector_space_descriptor<0>(arg), g, i);
           else
-            return descriptor::from_euclidean_element(get_vector_space_descriptor<0>(arg), g, i, 0);
+            return descriptor::from_euclidean_element(get_vector_space_descriptor<0>(arg), g, i);
         }
       }
 
@@ -313,7 +313,7 @@ namespace OpenKalman
           auto g {[&arg, is...](std::size_t ix) {
             return OpenKalman::get_component(nested_object(nested_object(arg)), ix, is...);
           }};
-          descriptor::set_wrapped_component(get_vector_space_descriptor<0>(arg), s, g, s, i, 0);
+          descriptor::set_wrapped_component(get_vector_space_descriptor<0>(arg), s, g, s, i);
         }
         else
         {

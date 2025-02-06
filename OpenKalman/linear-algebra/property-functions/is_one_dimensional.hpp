@@ -51,7 +51,7 @@ namespace OpenKalman
     else
     {
       auto d0 = get_vector_space_descriptor<0>(t);
-      if (get_dimension_size_of(d0) != 1_uz) return false;
+      if (get_size(d0) != 1_uz) return false;
       else for (std::size_t i = 1; i < count_indices(t); ++i) if (d0 != get_vector_space_descriptor(t, i)) return false;
       return true;
     }

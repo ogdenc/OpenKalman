@@ -10,17 +10,16 @@
 
 /**
  * \file
- * \brief Definition for \ref static_range_size.
+ * \brief Definition for \ref collection_size_of.
  */
 
-#ifndef OPENKALMAN_STATIC_COLLECTION_SIZE_HPP
-#define OPENKALMAN_STATIC_COLLECTION_SIZE_HPP
+#ifndef OPENKALMAN_COLLECTION_SIZE_OF_HPP
+#define OPENKALMAN_COLLECTION_SIZE_OF_HPP
 
 #include <type_traits>
 #include <tuple>
-#include "basics/global-definitions.hpp"
-#include "basics/internal/collection.hpp"
-
+#include "tuple_like.hpp"
+#include "collection.hpp"
 
 namespace OpenKalman::internal
 {
@@ -32,15 +31,15 @@ namespace OpenKalman::internal
 #else
   template<typename Collection, typename = void>
 #endif
-  struct static_collection_size;
+  struct collection_size_of;
 
 
 #ifdef __cpp_concepts
   template<internal::tuple_like Collection>
-  struct static_collection_size<Collection>
+  struct collection_size_of<Collection>
 #else
   template<typename Collection>
-  struct static_collection_size<Collection, std::enable_if_t<internal::tuple_like<Collection>>>
+  struct collection_size_of<Collection, std::enable_if_t<internal::tuple_like<Collection>>>
 #endif
       : std::tuple_size<std::decay_t<Collection>> {};
 
@@ -49,33 +48,37 @@ namespace OpenKalman::internal
   namespace detail
   {
     template<typename Collection>
-    struct static_collection_size_impl : std::integral_constant<std::size_t, dynamic_size> {};
+    struct collection_size_of_impl : std::integral_constant<std::size_t, dynamic_size> {};
 
 
     template<typename T, std::size_t Extent>
-    struct static_collection_size_impl<std::span<T, Extent>>
+    struct collection_size_of_impl<std::span<T, Extent>>
       : std::integral_constant<std::size_t, Extent == std::dynamic_extent ? dynamic_size : Extent> {};
   }
 
 
   template<internal::collection Collection> requires (not internal::tuple_like<Collection>)
-  struct static_collection_size<Collection>
-    : detail::static_collection_size_impl<decltype(std::span{std::declval<std::add_lvalue_reference_t<Collection>>()})> {};
+  struct collection_size_of<Collection>
+    : detail::collection_size_of_impl<decltype(std::span{std::declval<std::add_lvalue_reference_t<Collection>>()})> {};
+#elifdef __cpp_concepts
+  template<internal::collection Collection> requires (not internal::tuple_like<Collection>)
+  struct collection_size_of<Collection>
+    : std::integral_constant<std::size_t, dynamic_size> {};
 #else
   template<typename Collection>
-  struct static_collection_size<Collection, std::enable_if_t<
+  struct collection_size_of<Collection, std::enable_if_t<
     internal::collection<Collection> and (not internal::tuple_like<Collection>)>>
-      : std::integral_constant<std::size_t, dynamic_size> {};
+    : std::integral_constant<std::size_t, dynamic_size> {};
 #endif
 
 
   /**
-   * \brief Helper for \ref static_collection_size.
+   * \brief Helper for \ref collection_size_of.
    */
   template<typename Collection>
-  constexpr std::size_t static_collection_size_v = static_collection_size<Collection>::value;
+  constexpr std::size_t collection_size_of_v = collection_size_of<Collection>::value;
 
 
 } // namespace OpenKalman::internal
 
-#endif //OPENKALMAN_STATIC_COLLECTION_SIZE_HPP
+#endif //OPENKALMAN_COLLECTION_SIZE_OF_HPP

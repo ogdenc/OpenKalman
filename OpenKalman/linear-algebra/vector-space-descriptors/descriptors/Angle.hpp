@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2018-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2018-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,147 +17,101 @@
 #define OPENKALMAN_ANGLE_HPP
 
 #include <type_traits>
-#include <stdexcept>
-#ifdef __cpp_concepts
-#include <concepts>
-#endif
 #include <cmath>
 #include <array>
 #include "basics/language-features.hpp"
 #include "linear-algebra/values/concepts/number.hpp"
+#include "linear-algebra/values/concepts/floating.hpp"
+#include "linear-algebra/values/concepts/fixed.hpp"
 #include "linear-algebra/values/concepts/value.hpp"
+#include "linear-algebra/values/classes/fixed-constants.hpp"
 #include "linear-algebra/values/functions/internal/update_real_part.hpp"
 #include "linear-algebra/values/functions/sin.hpp"
 #include "linear-algebra/values/functions/cos.hpp"
 #include "linear-algebra/values/functions/atan2.hpp"
+#include "linear-algebra/values/functions/internal/near.hpp"
 #include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp"
 
 namespace OpenKalman::descriptor
 {
-  template<typename Limits>
-#ifdef __cpp_concepts
-  requires value::value<decltype(Limits::min)> and value::value<decltype(Limits::max)> and
-    (Limits::min < Limits::max) and (Limits::min <= 0) and (Limits::max > 0)
-#endif
-  struct Angle;
-
-
   /// Namespace for definitions relating to static_vector_space_descriptor representing an angle.
   namespace angle
   {
     /**
-     * \brief The numerical range [minimum, maximum) spanned by an angle.
-     * \details The range must include 0.
-     * \tparam minimum The minimum angle (inclusive)
-     * \tparam maximum The maximum angle as the angle wraps back to the minimum (exclusive)
+     * \brief An angle or any other simple modular value.
+     * \details An angle wraps to a given interval [Min,Max) when it increases or decreases outside that range.
+     * There are several predefined angles, including angle::Radians, angle::Degrees, angle::PositiveRadians,
+     * angle::PositiveDegrees, and angle::Circle.
+     * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
+     * 18th Int'l Conf. on Information Fusion 1550, 1553 (2015).
+     * \tparam Min A \ref value::fixed "fixed value" representing the minimum value beyond which wrapping occurs. This must be no greater than 0.
+     * \tparam Max A \ref value::fixed "fixed value" representing the maximum value beyond which wrapping occurs. This must be greater than 0.
      */
-    template<auto minimum, auto maximum>
-    struct Limits
-    {
-      static constexpr auto min = minimum;
-      static constexpr auto max = maximum;
-    };
-
-
-#if __cpp_nontype_template_args >= 201911L
-    /// An angle measured in radians [-&pi;,&pi;).
-    using Radians = Angle<Limits<-numbers::pi_v<long double>, numbers::pi_v<long double>>>;
+#ifdef __cpp_concepts
+    template<value::fixed Min = value::fixed_minus_pi<long double>, value::fixed Max = value::fixed_pi<long double>>
+    requires (value::fixed_number_of_v<Min> <= 0) and (value::fixed_number_of_v<Max> > 0) and
+      std::common_with<long double, value::number_type_of_t<Min>> and
+      std::common_with<long double, value::number_type_of_t<Max>> and
+      std::common_with<value::number_type_of_t<Min>, value::number_type_of_t<Max>>
 #else
-    /// The limits of an angle measured in radians [-&pi;,&pi;).
-    struct RadiansLimits
-    {
-      static constexpr long double min = -numbers::pi_v<long double>;
-      static constexpr long double max = numbers::pi_v<long double>;
-    };
-
-    /// An angle measured in radians [-&pi;,&pi;).
-    using Radians = Angle<RadiansLimits>;
+  template<typename Min = value::fixed_minus_pi<long double>, typename Max = value::fixed_pi<long double>>
 #endif
-
-
-#if __cpp_nontype_template_args >= 201911L
-    /// An angle measured in positive radians [0,2&pi;).
-    using PositiveRadians = Angle<Limits<0, 2 * numbers::pi_v<long double>>>;
-#else
-    /// The limits of an angle measured in positive radians [0,2&pi;).
-    struct PositiveRadiansLimits
+    struct Angle
     {
-      static constexpr long double min = 0;
-      static constexpr long double max = 2 * numbers::pi_v<long double>;
+#ifndef __cpp_concepts
+      static_assert(value::fixed<Min>);
+      static_assert(value::fixed<Max>);
+      static_assert(value::fixed_number_of_v<Min> <= 0);
+      static_assert(value::fixed_number_of_v<Max> > 0);
+#endif
     };
+
+
+    /// An angle measured in radians [-&pi;,&pi;).
+    using Radians = Angle<>;
+
 
     /// An angle measured in positive radians [0,2&pi;).
-    using PositiveRadians = Angle<PositiveRadiansLimits>;
-#endif
+    using PositiveRadians = Angle<value::Fixed<long double, std::intmax_t{0}>, value::fixed_2pi<long double>>;
 
 
     /// An angle measured in degrees [0,360).
-    using PositiveDegrees = Angle<Limits<0, 360>>;
+    using PositiveDegrees = Angle<value::Fixed<long double, std::intmax_t{0}>, value::Fixed<long double, std::intmax_t{360}>>;
 
 
     /// An angle measured in positive or negative degrees [-180,180).
-    using Degrees = Angle<Limits<-180, 180>>;
+    using Degrees = Angle<value::Fixed<long double, std::intmax_t{-180}>, value::Fixed<long double, std::intmax_t{180}>>;
 
 
     /// An wrapping circle such as the wrapping interval [0,1).
-    using Circle = Angle<Limits<0, 1>>;
+    using Circle = Angle<value::Fixed<long double, std::intmax_t{0}>, value::Fixed<long double, std::intmax_t{1}>>;
+
+
+    namespace detail
+    {
+      template<typename T>
+      struct is_angle : std::false_type {};
+
+      template<typename Min, typename Max>
+      struct is_angle<Angle<Min, Max>> : std::true_type {};
+    }
+
+
+    /**
+     * \brief T is a \ref vector_space_descriptor object representing an angle.
+     */
+    template<typename T>
+#ifdef __cpp_concepts
+    concept angle =
+#else
+    static constexpr bool angle =
+#endif
+      detail::is_angle<T>::value;
 
   } // namespace angle
 
 
-  /**
-   * \brief An angle or any other simple modular value.
-   * \details An angle wraps to a given interval [max,min) when it increases or decreases outside that range.
-   * There are several predefined angles, including angle::Radians, angle::Degrees, angle::PositiveRadians,
-   * angle::PositiveDegrees, and angle::Circle.
-   * See David Frederic Crouse, Cubature/Unscented/Sigma Point Kalman Filtering with Angular Measurement Models,
-   * 18th Int'l Conf. on Information Fusion 1550, 1553 (2015).
-   * \tparam Limits A template class defining the real values <code>min</code> and <code>max</code>, representing
-   * minimum and maximum values, respectively, beyond which wrapping occurs. This range must include 0.
-   */
-#if __cpp_nontype_template_args >= 201911L
-  template<typename Limits = angle::Limits<-numbers::pi_v<long double>, numbers::pi_v<long double>>>
-#else
-  template<typename Limits = angle::RadiansLimits>
-#endif
-#ifdef __cpp_concepts
-requires value::value<decltype(Limits::min)> and value::value<decltype(Limits::max)> and
-  (Limits::min < Limits::max) and (Limits::min <= 0) and (Limits::max > 0)
-#endif
-  struct Angle
-  {
-#ifndef __cpp_concepts
-    static_assert(std::is_integral_v<decltype(Limits::min)> or value::floating<decltype(Limits::min)>);
-    static_assert(std::is_integral_v<decltype(Limits::max)> or value::floating<decltype(Limits::max)>);
-    static_assert(Limits::min < Limits::max);
-    static_assert(Limits::min <= 0);
-    static_assert(Limits::max > 0);
-#endif
-  };
-
-
-  namespace detail
-  {
-    template<typename T>
-    struct is_angle_vector_space_descriptor : std::false_type {};
-
-    template<typename Limits>
-    struct is_angle_vector_space_descriptor<Angle<Limits>> : std::true_type {};
-  }
-
-
-  /**
-   * \brief T is a \ref vector_space_descriptor object representing an angle.
-   */
-  template<typename T>
-#ifdef __cpp_concepts
-  concept angle_vector_space_descriptor =
-#else
-  static constexpr bool angle_vector_space_descriptor =
-#endif
-    detail::is_angle_vector_space_descriptor<T>::value;
+  using angle::Angle;
 
 } // OpenKalman::descriptors
 
@@ -169,14 +123,20 @@ namespace OpenKalman::interface
    * \internal
    * \brief traits for Angle.
    */
-  template<typename Limits>
-  struct vector_space_traits<descriptor::Angle<Limits>>
+  template<typename Min, typename Max>
+  struct vector_space_traits<descriptor::Angle<Min, Max>>
   {
   private:
 
-    using T = descriptor::Angle<Limits>;
+    using T = descriptor::Angle<Min, Max>;
+    static constexpr auto min = value::fixed_number_of_v<Min>;
+    static constexpr auto max = value::fixed_number_of_v<Max>;
+
 
   public:
+
+    static constexpr bool is_specialized = true;
+
 
     static constexpr auto
     size(const T&) { return std::integral_constant<std::size_t, 1>{}; };
@@ -187,21 +147,56 @@ namespace OpenKalman::interface
 
 
     static constexpr auto
-    collection(const T& t)
-    {
-#if __cpp_nontype_template_args >= 201911L
-      return std::array {descriptor::Angle<descriptor::angle::Limits<0, Limits::max - Limits::min>>{}};
-#else
-      if constexpr (value::integral<decltype(Limits::max - Limits::min)>)
-        return std::array {descriptor::Angle<descriptor::angle::Limits<0, Limits::max - Limits::min>>{}};
-      else
-        return std::array {t};
-#endif
-    }
+    is_euclidean(const T&) { return std::false_type{}; }
 
+  private:
+
+#ifdef __cpp_concepts
+    template<typename Arg, typename CommonLimitType>
+#else
+    template<typename Arg, typename CommonLimitType, typename = void>
+#endif
+    struct CanonicalCast
+    {
+      using type = value::Fixed<CommonLimitType, static_cast<std::intmax_t>(value::fixed_number_of_v<Arg>)>;
+    };
+
+#ifdef __cpp_concepts
+    template<value::floating Arg, typename CommonLimitType>
+    struct CanonicalCast<Arg, CommonLimitType>
+#else
+    template<typename Arg, typename CommonLimitType>
+    struct CanonicalCast<Arg, CommonLimitType, std::enable_if_t<value::floating<Arg>>>
+#endif
+    {
+      static constexpr auto x = value::fixed_number_of_v<Arg>;
+      using X = value::number_type_of_t<Arg>;
+      static constexpr auto pi = numbers::pi_v<X>;
+      using type =
+        std::conditional_t<x == static_cast<std::intmax_t>(x), value::Fixed<CommonLimitType, static_cast<std::intmax_t>(x)>,
+        std::conditional_t<value::internal::near(x, pi), value::fixed_pi<CommonLimitType>,
+        std::conditional_t<value::internal::near(x, -pi), value::fixed_minus_pi<CommonLimitType>,
+        std::conditional_t<value::internal::near(x, X{2} * pi), value::fixed_2pi<CommonLimitType>,
+        std::conditional_t<value::internal::near(x, X{0.5} * pi), value::fixed_half_pi<CommonLimitType>,
+        std::conditional_t<value::internal::near(x, X{-0.5} * pi), value::fixed_minus_half_pi<CommonLimitType>,
+#if __cpp_nontype_template_args >= 201911L
+        value::Fixed<CommonLimitType, static_cast<CommonLimitType>(x)>
+#else
+        Arg
+#endif
+        >>>>>>;
+    };
+
+  public:
 
     static constexpr auto
-    is_euclidean(const T&) { return std::false_type{}; }
+    component_collection(const T&)
+    {
+      using CommonLimitType = std::common_type_t<long double, value::number_type_of_t<Min>, value::number_type_of_t<Max>>;
+      using CMin = typename CanonicalCast<Min, CommonLimitType>::type;
+      using CMax = typename CanonicalCast<Max, CommonLimitType>::type;
+      return std::array {descriptor::Angle<CMin, CMax>{}};
+    }
 
 
     /*
@@ -213,21 +208,21 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     static constexpr value::value auto
-    to_euclidean_component(const T&, const auto& g, const value::index auto& euclidean_local_index, const value::index auto& start)
-    requires requires { {g(start)} -> value::value; }
+    to_euclidean_component(const T& t, const auto& g, const value::index auto& euclidean_local_index)
+    requires requires(std::size_t i){ {g(i)} -> value::value; }
 #else
-    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
-      value::value<typename std::invoke_result<const Getter&, const S&>::type> and value::index<L> and value::index<S>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
+      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
-    to_euclidean_component(const T&, const Getter& g, const L& euclidean_local_index, const S& start)
+    to_euclidean_component(const T& t, const Getter& g, const L& euclidean_local_index)
 #endif
     {
-      using Scalar = std::decay_t<decltype(g(start))>;
+      using Scalar = std::decay_t<decltype(g(0_uz))>;
       using R = std::decay_t<decltype(value::real(std::declval<Scalar>()))>;
-      const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
-      const Scalar mid { R{Limits::max + Limits::min} * R{0.5}};
+      const Scalar cf {2 * numbers::pi_v<R> / (max - min)};
+      const Scalar mid { R{max + min} * R{0.5}};
 
-      Scalar theta = cf * (g(start) - mid); // Convert to radians
+      Scalar theta = cf * (g(0_uz) - mid); // Convert to radians
 
       if (euclidean_local_index == 0) return value::cos(theta);
       else return value::sin(theta);
@@ -237,26 +232,25 @@ namespace OpenKalman::interface
     /*
      * \details The angle corresponds to x and y coordinates on a unit circle.
      * \param local_index This is assumed to be 0.
-     * \param euclidean_start The starting location of the x and y coordinates within any larger set of \ref vector_space_descriptor
      */
 #ifdef __cpp_concepts
     static constexpr value::value auto
-    from_euclidean_component(const T&, const auto& g, const value::index auto& local_index, const value::index auto& euclidean_start)
-    requires requires { {g(euclidean_start)} -> value::value; }
+    from_euclidean_component(const T& t, const auto& g, const value::index auto& local_index)
+    requires requires(std::size_t i){ {g(i)} -> value::value; }
 #else
-    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
-      value::value<typename std::invoke_result<const Getter&, const S&>::type>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
+      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
-    from_euclidean_component(const T&, const Getter& g, const L& local_index, const S& euclidean_start)
+    from_euclidean_component(const T& t, const Getter& g, const L& local_index)
 #endif
     {
       using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
       using R = std::decay_t<decltype(value::real(std::declval<Scalar>()))>;
-      const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
-      const Scalar mid { R{Limits::max + Limits::min} * R{0.5}};
+      const Scalar cf {2 * numbers::pi_v<R> / (max - min)};
+      const Scalar mid { R{max + min} * R{0.5}};
 
-      Scalar x = g(euclidean_start);
-      Scalar y = g(euclidean_start + 1);
+      Scalar x = g(0_uz);
+      Scalar y = g(1_uz);
 
       if constexpr (value::complex<Scalar>) return value::atan2(y, x) / cf + mid;
       else { return value::atan2(y, x) / cf + mid; }
@@ -273,18 +267,18 @@ namespace OpenKalman::interface
 #endif
     {
       auto ap = value::real(a);
-      if (not (ap < Limits::min) and ap < Limits::max)
+      if (not (ap < min) and ap < max)
       {
         return std::forward<decltype(a)>(a);
       }
       else
       {
         using R = std::decay_t<decltype(ap)>;
-        constexpr R period {Limits::max - Limits::min};
+        constexpr R period {max - min};
         using std::fmod;
-        R ar {fmod(ap - R{Limits::min}, period)};
-        if (ar < 0) return value::internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar + period);
-        else return value::internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar);
+        R ar {fmod(ap - R{min}, period)};
+        if (ar < 0) return value::internal::update_real_part(std::forward<decltype(a)>(a), R{min} + ar + period);
+        else return value::internal::update_real_part(std::forward<decltype(a)>(a), R{min} + ar);
       }
     }
 
@@ -295,16 +289,16 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     static constexpr value::value auto
-    get_wrapped_component(const T&, const auto& g, const value::index auto& local_index, const value::index auto& start)
-    requires requires { {g(start)} -> value::value; }
+    get_wrapped_component(const T& t, const auto& g, const value::index auto& local_index)
+    requires requires(std::size_t i){ {g(i)} -> value::value; }
 #else
-    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
-      value::value<typename std::invoke_result<const Getter&, const S&>::type>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
+      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
-    get_wrapped_component(const T&, const Getter& g, const L& local_index, const S& start)
+    get_wrapped_component(const T& t, const Getter& g, const L& local_index)
 #endif
     {
-      return wrap_impl(g(start));
+      return wrap_impl(g(0_uz));
     }
 
 
@@ -313,19 +307,17 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     static constexpr void
-    set_wrapped_component(const T&, const auto& s, const auto& g, const value::value auto& x,
-      const value::index auto& local_index, const value::index auto& start)
-    requires requires { s(x, start); s(g(start), start); }
+    set_wrapped_component(const T& t, const auto& s, const auto& g, const value::value auto& x, const value::index auto& local_index)
+    requires requires(std::size_t i){ s(x, i); s(g(i), i); }
 #else
-    template<typename Setter, typename Getter, typename X, typename L, typename S, std::enable_if_t<
-      value::value<X> and value::index<L> and value::index<S> and
-      std::is_invocable<const Setter&, const X&, const S&>::value and
-      std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, const S&>::type, const S&>::value, int> = 0>
+    template<typename Setter, typename Getter, typename X, typename L, std::enable_if_t<value::value<X> and value::index<L> and
+      std::is_invocable<const Setter&, const X&, std::size_t>::value and
+      std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, std::size_t>::type, std::size_t>::value, int> = 0>
     static constexpr void
-    set_wrapped_component(const T&, const Setter& s, const Getter& g, const X& x, const L& local_index, const S& start)
+    set_wrapped_component(const T& t, const Setter& s, const Getter& g, const X& x, const L& local_index)
 #endif
     {
-      s(wrap_impl(x), start);
+      s(wrap_impl(x), 0_uz);
     }
 
   };

@@ -904,30 +904,30 @@ TEST(covariance_tests, Covariance_blocks)
   EXPECT_TRUE(is_near(split_diagonal<C, C>(CovSA4u(n)), std::tuple {ma, mb}));
   EXPECT_TRUE(is_near(split_diagonal<C, C>(CovT4l(n)), std::tuple {ma, mb}));
   EXPECT_TRUE(is_near(split_diagonal<C, C>(CovT4u(n)), std::tuple {ma, mb}));
-  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(CovSA4l(n)), std::tuple {ma, Matrix<angle::Radians, angle::Radians>{4}}));
-  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(CovSA4u(n)), std::tuple {ma, Matrix<angle::Radians, angle::Radians>{4}}));
-  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(CovT4l(n)), std::tuple {ma, Matrix<angle::Radians, angle::Radians>{4}}));
-  EXPECT_TRUE(is_near(split_diagonal<C, C::Take<1>>(CovT4u(n)), std::tuple {ma, Matrix<angle::Radians, angle::Radians>{4}}));
+  EXPECT_TRUE(is_near(split_diagonal<C, angle::Radians>(CovSA4l(n)), std::tuple {ma, Matrix<angle::Radians, angle::Radians>{4}}));
+  EXPECT_TRUE(is_near(split_diagonal<C, angle::Radians>(CovSA4u(n)), std::tuple {ma, Matrix<angle::Radians, angle::Radians>{4}}));
+  EXPECT_TRUE(is_near(split_diagonal<C, angle::Radians>(CovT4l(n)), std::tuple {ma, Matrix<angle::Radians, angle::Radians>{4}}));
+  EXPECT_TRUE(is_near(split_diagonal<C, angle::Radians>(CovT4u(n)), std::tuple {ma, Matrix<angle::Radians, angle::Radians>{4}}));
 
   EXPECT_TRUE(is_near(split_vertical(CovSA4l(n)), std::tuple {}));
   EXPECT_TRUE(is_near(split_vertical<C, C>(CovSA4l(n)), std::tuple {concatenate_horizontal(ma, make_zero<Mat2>()), concatenate_horizontal(make_zero<Mat2>(), mb)}));
   EXPECT_TRUE(is_near(split_vertical<C, C>(CovSA4u(n)), std::tuple {concatenate_horizontal(ma, make_zero<Mat2>()), concatenate_horizontal(make_zero<Mat2>(), mb)}));
   EXPECT_TRUE(is_near(split_vertical<C, C>(CovT4l(n)), std::tuple {concatenate_horizontal(ma, make_zero<Mat2>()), concatenate_horizontal(make_zero<Mat2>(), mb)}));
   EXPECT_TRUE(is_near(split_vertical<C, C>(CovT4u(n)), std::tuple {concatenate_horizontal(ma, make_zero<Mat2>()), concatenate_horizontal(make_zero<Mat2>(), mb)}));
-  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovSA4l(n)), std::tuple {concatenate_horizontal(ma, make_zero<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovSA4u(n)), std::tuple {concatenate_horizontal(ma, make_zero<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovT4l(n)), std::tuple {concatenate_horizontal(ma, make_zero<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_vertical<C, C::Take<1>>(CovT4u(n)), std::tuple {concatenate_horizontal(ma, make_zero<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_vertical<C, angle::Radians>(CovSA4l(n)), std::tuple {concatenate_horizontal(ma, make_zero<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_vertical<C, angle::Radians>(CovSA4u(n)), std::tuple {concatenate_horizontal(ma, make_zero<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_vertical<C, angle::Radians>(CovT4l(n)), std::tuple {concatenate_horizontal(ma, make_zero<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_vertical<C, angle::Radians>(CovT4u(n)), std::tuple {concatenate_horizontal(ma, make_zero<Mat2>()), Matrix<angle::Radians, C4>{0, 0, 4, 2}}));
 
   EXPECT_TRUE(is_near(split_horizontal(CovSA4l(n)), std::tuple {}));
   EXPECT_TRUE(is_near(split_horizontal<C, C>(CovSA4l(n)), std::tuple {concatenate_vertical(ma, make_zero<Mat2>()), concatenate_vertical(make_zero<Mat2>(), mb)}));
   EXPECT_TRUE(is_near(split_horizontal<C, C>(CovSA4u(n)), std::tuple {concatenate_vertical(ma, make_zero<Mat2>()), concatenate_vertical(make_zero<Mat2>(), mb)}));
   EXPECT_TRUE(is_near(split_horizontal<C, C>(CovT4l(n)), std::tuple {concatenate_vertical(ma, make_zero<Mat2>()), concatenate_vertical(make_zero<Mat2>(), mb)}));
   EXPECT_TRUE(is_near(split_horizontal<C, C>(CovT4u(n)), std::tuple {concatenate_vertical(ma, make_zero<Mat2>()), concatenate_vertical(make_zero<Mat2>(), mb)}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovSA4l(n)), std::tuple {concatenate_vertical(ma, make_zero<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovSA4u(n)), std::tuple {concatenate_vertical(ma, make_zero<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovT4l(n)), std::tuple {concatenate_vertical(ma, make_zero<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
-  EXPECT_TRUE(is_near(split_horizontal<C, C::Take<1>>(CovT4u(n)), std::tuple {concatenate_vertical(ma, make_zero<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_horizontal<C, angle::Radians>(CovSA4l(n)), std::tuple {concatenate_vertical(ma, make_zero<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_horizontal<C, angle::Radians>(CovSA4u(n)), std::tuple {concatenate_vertical(ma, make_zero<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_horizontal<C, angle::Radians>(CovT4l(n)), std::tuple {concatenate_vertical(ma, make_zero<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
+  EXPECT_TRUE(is_near(split_horizontal<C, angle::Radians>(CovT4u(n)), std::tuple {concatenate_vertical(ma, make_zero<Mat2>()), Matrix<C4, angle::Radians>{0, 0, 4, 2}}));
 
   EXPECT_TRUE(is_near(column(CovSA4l(n), 2), Mean{0., 0, 4, 2}));
   EXPECT_TRUE(is_near(column(CovSA4u(n), 2), Mean{0., 0, 4, 2}));

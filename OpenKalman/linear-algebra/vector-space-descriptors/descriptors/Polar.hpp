@@ -17,10 +17,7 @@
 #define OPENKALMAN_POLAR_HPP
 
 #include <type_traits>
-#include <stdexcept>
-#ifdef __cpp_concepts
-#include <concepts>
-#endif
+#include <typeindex>
 #include <cmath>
 #include <array>
 #include "basics/language-features.hpp"
@@ -33,8 +30,7 @@
 #include "linear-algebra/values/functions/sin.hpp"
 #include "linear-algebra/values/functions/atan2.hpp"
 #include "linear-algebra/vector-space-descriptors/interfaces/vector_space_traits.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/maybe_equivalent_to.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/get_component_collection.hpp"
 #include "Distance.hpp"
 #include "Angle.hpp"
 
@@ -53,12 +49,12 @@ namespace OpenKalman::descriptor
    */
   template<typename C1 = Distance, typename C2 = angle::Radians>
 #ifdef __cpp_concepts
-  requires (distance_vector_space_descriptor<C1> and angle_vector_space_descriptor<C2>) or (distance_vector_space_descriptor<C2> and angle_vector_space_descriptor<C1>)
+  requires (std::same_as<C1, Distance> and angle::angle<C2>) or (std::same_as<C2, Distance> and angle::angle<C1>)
 #endif
   struct Polar
   {
 #ifndef __cpp_concepts
-    static_assert((distance_vector_space_descriptor<C1> and angle_vector_space_descriptor<C2>) or (distance_vector_space_descriptor<C2> and angle_vector_space_descriptor<C1>));
+    static_assert((std::is_same_v<C1, Distance> and angle::angle<C2>) or (std::is_same_v<C2, Distance> and angle::angle<C1>));
 #endif
   };
 
@@ -70,10 +66,20 @@ namespace OpenKalman::interface
   namespace detail
   {
     // Implementation of polar coordinates.
-    template<typename T, typename Limits,
+    template<typename T, typename Min, typename Max,
       std::size_t d_i, std::size_t a_i, std::size_t d2_i, std::size_t x_i, std::size_t y_i>
     struct PolarBase
     {
+    private:
+
+      static constexpr auto min = value::fixed_number_of_v<Min>;
+      static constexpr auto max = value::fixed_number_of_v<Max>;
+
+    public:
+
+      static constexpr bool is_specialized = true;
+
+
       static constexpr auto
       size(const T&) { return std::integral_constant<std::size_t, 2>{}; };
 
@@ -83,18 +89,18 @@ namespace OpenKalman::interface
 
 
       static constexpr auto
-      collection(const T& t)
+      is_euclidean(const T&) { return std::false_type{}; }
+
+
+      static constexpr auto
+      component_collection(const T& t)
       {
-        using A = std::decay_t<decltype(std::get<0>(descriptor::get_collection_of(descriptor::Angle<Limits>{})))>;
+        using A = std::tuple_element_t<0, std::decay_t<decltype(descriptor::internal::get_component_collection(descriptor::Angle<Min, Max>{}))>>;
         if constexpr (d_i == 0)
           return std::array {descriptor::Polar<descriptor::Distance, A>{}};
         else
           return std::array {descriptor::Polar<A, descriptor::Distance>{}};
       }
-
-
-      static constexpr auto
-      is_euclidean(const T&) { return std::false_type{}; }
 
 
       /**
@@ -107,17 +113,17 @@ namespace OpenKalman::interface
        */
 #ifdef __cpp_concepts
       static constexpr value::value auto
-      to_euclidean_component(const T&, const auto& g, const value::index auto& euclidean_local_index, const value::index auto& start)
-      requires requires { {g(start)} -> value::value; }
+      to_euclidean_component(const T& t, const auto& g, const value::index auto& euclidean_local_index)
+      requires requires(std::size_t i){ {g(i)} -> value::value; }
 #else
-      template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
-        value::value<typename std::invoke_result<const Getter&, const S&>::type> and value::index<L> and value::index<S>, int> = 0>
+      template<typename Getter, typename L, std::enable_if_t<value::index<L> and
+        value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
       static constexpr auto
-      to_euclidean_component(const T&, const Getter& g, const L& euclidean_local_index, const S& start)
+      to_euclidean_component(const T& t, const Getter& g, const L& euclidean_local_index)
 #endif
       {
         using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
-        Scalar d = g(start + d_i);
+        Scalar d = g(d_i);
         if (euclidean_local_index == d2_i)
         {
           return d;
@@ -125,10 +131,10 @@ namespace OpenKalman::interface
         else
         {
           using R = std::decay_t<decltype(value::real(std::declval<Scalar>()))>;
-          const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
-          const Scalar mid {R{Limits::max + Limits::min} * R{0.5}};
+          const Scalar cf {2 * numbers::pi_v<R> / (max - min)};
+          const Scalar mid {R{max + min} * R{0.5}};
 
-          Scalar theta = cf * g(start + a_i) - mid;
+          Scalar theta = cf * g(a_i) - mid;
           switch(euclidean_local_index)
           {
             case x_i: return value::cos(theta);
@@ -148,17 +154,17 @@ namespace OpenKalman::interface
        */
 #ifdef __cpp_concepts
       static constexpr value::value auto
-      from_euclidean_component(const T&, const auto& g, const value::index auto& local_index, const value::index auto& euclidean_start)
-      requires requires { {g(euclidean_start)} -> value::value; }
+      from_euclidean_component(const T& t, const auto& g, const value::index auto& local_index)
+      requires requires(std::size_t i){ {g(i)} -> value::value; }
 #else
-      template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
-        value::value<typename std::invoke_result<const Getter&, const S&>::type>, int> = 0>
+      template<typename Getter, typename L, std::enable_if_t<value::index<L> and
+        value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
       static constexpr auto
-      from_euclidean_component(const T&, const Getter& g, const L& local_index, const S& euclidean_start)
-#endif
-      {
+      from_euclidean_component(const T& t, const Getter& g, const L& local_index)
+  #endif
+        {
         using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
-        Scalar d = g(euclidean_start + d2_i);
+        Scalar d = g(d2_i);
         auto dr = value::real(d);
         if (local_index == d_i)
         {
@@ -168,12 +174,12 @@ namespace OpenKalman::interface
         else
         {
           using R = std::decay_t<decltype(value::real(std::declval<Scalar>()))>;
-          const Scalar cf {2 * numbers::pi_v<R> / (Limits::max - Limits::min)};
-          const Scalar mid {R{Limits::max + Limits::min} * R{0.5}};
+          const Scalar cf {2 * numbers::pi_v<R> / (max - min)};
+          const Scalar mid {R{max + min} * R{0.5}};
 
           // If distance is negative, flip 180 degrees:
-          Scalar x = value::signbit(dr) ? -g(euclidean_start + x_i) : g(euclidean_start + x_i);
-          Scalar y = value::signbit(dr) ? -g(euclidean_start + y_i) : g(euclidean_start + y_i);
+          Scalar x = value::signbit(dr) ? -g(x_i) : g(x_i);
+          Scalar y = value::signbit(dr) ? -g(y_i) : g(y_i);
 
           if constexpr (value::complex<Scalar>) return value::atan2(y, x) / cf + mid;
           else { return value::atan2(y, x) / cf + mid; }
@@ -190,19 +196,19 @@ namespace OpenKalman::interface
 #endif
       {
         using R = std::decay_t<decltype(value::real(std::declval<decltype(a)>()))>;
-        constexpr R period {Limits::max - Limits::min};
+        constexpr R period {max - min};
         R ap {distance_is_negative ? value::real(a) + period * R{0.5} : value::real(a)};
 
-        if (ap >= Limits::min and ap < Limits::max) // Check if the angle doesn't need wrapping.
+        if (ap >= min and ap < max) // Check if the angle doesn't need wrapping.
         {
           return value::internal::update_real_part(std::forward<decltype(a)>(a), ap);;
         }
         else // Wrap the angle.
         {
           using std::fmod;
-          auto ar = fmod(ap - R{Limits::min}, period);
-          if (ar < 0) return value::internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar + period);
-          else return value::internal::update_real_part(std::forward<decltype(a)>(a), R{Limits::min} + ar);
+          auto ar = fmod(ap - R{min}, period);
+          if (ar < 0) return value::internal::update_real_part(std::forward<decltype(a)>(a), R{min} + ar + period);
+          else return value::internal::update_real_part(std::forward<decltype(a)>(a), R{min} + ar);
         }
       }
 
@@ -217,20 +223,20 @@ namespace OpenKalman::interface
        */
 #ifdef __cpp_concepts
       static constexpr value::value auto
-      get_wrapped_component(const T&, const auto& g, const value::index auto& local_index, const value::index auto& start)
-      requires requires { {g(start)} -> value::value; }
+      get_wrapped_component(const T& t, const auto& g, const value::index auto& local_index)
+      requires requires(std::size_t i){ {g(i)} -> value::value; }
 #else
-      template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
-        value::value<typename std::invoke_result<const Getter&, const S&>::type>, int> = 0>
+      template<typename Getter, typename L, std::enable_if_t<value::index<L> and
+        value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
       static constexpr auto
-      get_wrapped_component(const T&, const Getter& g, const L& local_index, const S& start)
+      get_wrapped_component(const T& t, const Getter& g, const L& local_index)
 #endif
       {
-        auto d = g(start + d_i);
+        auto d = g(d_i);
         switch(local_index)
         {
           case d_i: return value::internal::update_real_part(d, value::abs(value::real(d)));
-          default: return polar_angle_wrap_impl(value::signbit(value::real(d)), g(start + a_i)); // case a_i
+          default: return polar_angle_wrap_impl(value::signbit(value::real(d)), g(a_i)); // case a_i
         }
       }
 
@@ -246,16 +252,14 @@ namespace OpenKalman::interface
        */
 #ifdef __cpp_concepts
       static constexpr void
-      set_wrapped_component(const T&, const auto& s, const auto& g, const value::value auto& x,
-        const value::index auto& local_index, const value::index auto& start)
-      requires requires { s(x, start); s(g(start), start); }
+      set_wrapped_component(const T& t, const auto& s, const auto& g, const value::value auto& x, const value::index auto& local_index)
+      requires requires(std::size_t i){ s(x, i); s(g(i), i); }
 #else
-      template<typename Setter, typename Getter, typename X, typename L, typename S, std::enable_if_t<
-        value::value<X> and value::index<L> and value::index<S> and
-        std::is_invocable<const Setter&, const X&, const S&>::value and
-        std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, const S&>::type, const S&>::value, int> = 0>
+      template<typename Setter, typename Getter, typename X, typename L, std::enable_if_t<value::value<X> and value::index<L> and
+        std::is_invocable<const Setter&, const X&, std::size_t>::value and
+        std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, std::size_t>::type, std::size_t>::value, int> = 0>
       static constexpr void
-      set_wrapped_component(const T&, const Setter& s, const Getter& g, const X& x, const L& local_index, const S& start)
+      set_wrapped_component(const T& t, const Setter& s, const Getter& g, const X& x, const L& local_index)
 #endif
       {
         switch(local_index)
@@ -263,13 +267,13 @@ namespace OpenKalman::interface
           case d_i:
           {
             auto xp = value::real(x);
-            s(value::internal::update_real_part(x, value::abs(xp)), start + d_i);
-            s(polar_angle_wrap_impl(value::signbit(xp), g(start + a_i)), start + a_i); //< Possibly reflect angle
+            s(value::internal::update_real_part(x, value::abs(xp)), d_i);
+            s(polar_angle_wrap_impl(value::signbit(xp), g(a_i)), a_i); //< Possibly reflect angle
             break;
           }
           default: // case a_i
           {
-            s(polar_angle_wrap_impl(false, x), start + a_i);
+            s(polar_angle_wrap_impl(false, x), a_i);
             break;
           }
         }
@@ -284,9 +288,9 @@ namespace OpenKalman::interface
    * \internal
    * \brief traits for Polar<Distance, Angle>.
    */
-  template<typename Limits>
-  struct vector_space_traits<descriptor::Polar<descriptor::Distance, descriptor::Angle<Limits>>>
-    : detail::PolarBase<descriptor::Polar<descriptor::Distance, descriptor::Angle<Limits>>, Limits, 0, 1,  0, 1, 2>
+  template<typename Min, typename Max>
+  struct vector_space_traits<descriptor::Polar<descriptor::Distance, descriptor::Angle<Min, Max>>>
+    : detail::PolarBase<descriptor::Polar<descriptor::Distance, descriptor::Angle<Min, Max>>, Min, Max, 0, 1,  0, 1, 2>
   {};
 
 
@@ -294,9 +298,9 @@ namespace OpenKalman::interface
    * \internal
    * \brief traits for Polar<Angle, Distance>.
    */
-  template<typename Limits>
-  struct vector_space_traits<descriptor::Polar<descriptor::Angle<Limits>, descriptor::Distance>>
-    : detail::PolarBase<descriptor::Polar<descriptor::Angle<Limits>, descriptor::Distance>, Limits, 1, 0,  2, 0, 1>
+  template<typename Min, typename Max>
+  struct vector_space_traits<descriptor::Polar<descriptor::Angle<Min, Max>, descriptor::Distance>>
+    : detail::PolarBase<descriptor::Polar<descriptor::Angle<Min, Max>, descriptor::Distance>, Min, Max, 1, 0,  2, 0, 1>
   {};
 
 

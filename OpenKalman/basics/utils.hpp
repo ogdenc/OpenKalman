@@ -18,7 +18,7 @@
 
 #include <type_traits>
 #include <tuple>
-#include "basics/global-definitions.hpp"
+#include "internal/tuple_like.hpp"
 
 namespace OpenKalman::internal
 {
@@ -28,7 +28,8 @@ namespace OpenKalman::internal
     template<std::size_t index1, typename Arg, std::size_t...Is>
     constexpr auto tuple_slice_impl(Arg&& arg, std::index_sequence<Is...>)
     {
-      return std::tuple {std::get<index1 + Is>(std::forward<Arg>(arg))...};
+      using std::get;
+      return std::tuple {get<index1 + Is>(std::forward<Arg>(arg))...};
     }
   } // namespace detail
 #endif
@@ -55,7 +56,8 @@ namespace OpenKalman::internal
   {
 #if __cpp_generic_lambdas >= 201707L
     return []<std::size_t...Is>(Arg&& arg, std::index_sequence<Is...>){
-      return std::tuple {std::get<index1 + Is>(std::forward<Arg>(arg))...};
+      using std::get;
+      return std::tuple {get<index1 + Is>(std::forward<Arg>(arg))...};
     }(std::forward<Arg>(arg), std::make_index_sequence<index2 - index1>{});
 #else
     return detail::tuple_slice_impl<index1>(std::forward<Arg>(arg), std::make_index_sequence<index2 - index1>{});
@@ -69,7 +71,8 @@ namespace OpenKalman::internal
     template<std::size_t index1, typename Arg, std::size_t...Is>
     constexpr auto forward_as_tuple_slice_impl(Arg&& arg, std::index_sequence<Is...>)
     {
-      return std::forward_as_tuple(std::get<index1 + Is>(std::forward<Arg>(arg))...);
+      using std::get;
+      return std::forward_as_tuple(get<index1 + Is>(std::forward<Arg>(arg))...);
     }
   } // namespace detail
 #endif
@@ -96,7 +99,8 @@ namespace OpenKalman::internal
   {
 #if __cpp_generic_lambdas >= 201707L
     return []<std::size_t...Is>(Arg&& arg, std::index_sequence<Is...>){
-      return std::forward_as_tuple(std::get<index1 + Is>(std::forward<Arg>(arg))...);
+      using std::get;
+      return std::forward_as_tuple(get<index1 + Is>(std::forward<Arg>(arg))...);
     }(std::forward<Arg>(arg), std::make_index_sequence<index2 - index1>{});
 #else
     return detail::forward_as_tuple_slice_impl<index1>(std::forward<Arg>(arg), std::make_index_sequence<index2 - index1>{});
@@ -158,7 +162,8 @@ namespace OpenKalman::internal
     constexpr auto
     tuple_reverse_impl(Arg&& arg, std::index_sequence<Ix...>)
     {
-      return std::tuple {std::get<Ix>(std::forward<Arg>(arg))...};
+      using std::get;
+      return std::tuple {get<Ix>(std::forward<Arg>(arg))...};
     }
   } // namespace detail
 
@@ -193,8 +198,9 @@ namespace OpenKalman::internal
     constexpr auto
     tuple_flatten_impl(Arg&& arg, std::index_sequence<Ix...>)
     {
+      using std::get;
       if constexpr ((... or internal::tuple_like<std::tuple_element_t<Ix, std::decay_t<Arg>>>))
-        return std::tuple_cat(tuple_flatten_impl(std::get<Ix>(std::forward<Arg>(arg)))...);
+        return std::tuple_cat(tuple_flatten_impl(get<Ix>(std::forward<Arg>(arg)))...);
       else
         return std::forward<Arg>(arg);
     }

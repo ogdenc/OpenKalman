@@ -33,7 +33,7 @@ namespace OpenKalman
 #endif
   get_index_dimension_of(const T& t, N n = N{})
   {
-    return get_dimension_size_of(get_vector_space_descriptor(t, n));
+    return get_size(get_vector_space_descriptor(t, n));
   }
 
 
@@ -50,7 +50,7 @@ namespace OpenKalman
 #endif
   get_index_dimension_of(const T& t)
   {
-    return get_dimension_size_of(get_vector_space_descriptor<N>(t));
+    return get_size(get_vector_space_descriptor<N>(t));
   }
 
 

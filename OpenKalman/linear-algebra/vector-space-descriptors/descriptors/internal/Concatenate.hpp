@@ -21,17 +21,21 @@
 #include <array>
 #include "basics/utils.hpp"
 #include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/get_dimension_size_of.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/get_euclidean_dimension_size_of.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/get_collection_of.hpp"
-#include "linear-algebra/vector-space-descriptors/functions/get_vector_space_descriptor_is_euclidean.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/get_size.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/get_euclidean_size.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/get_component_collection.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/get_component_start_indices.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/get_is_euclidean.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/get_type_index.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/get_index_table.hpp"
+#include "linear-algebra/vector-space-descriptors/functions/internal/get_euclidean_index_table.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/to_euclidean_element.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/from_euclidean_element.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/get_wrapped_component.hpp"
 #include "linear-algebra/vector-space-descriptors/functions/set_wrapped_component.hpp"
 #include "linear-algebra/vector-space-descriptors/traits/scalar_type_of.hpp"
-#include "linear-algebra/vector-space-descriptors/descriptors/internal/AnyAtomicVectorSpaceDescriptor.hpp"
+#include "linear-algebra/vector-space-descriptors/descriptors/internal/Any.hpp"
+#include <linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor_range.hpp>
 
 namespace OpenKalman::descriptor::internal
 {
@@ -101,7 +105,7 @@ namespace OpenKalman::descriptor::internal
 
       using difference_type = std::ptrdiff_t;
 
-      using value_type = AnyAtomicVectorSpaceDescriptor<std::common_type_t<scalar_type_of_t<Range1>, scalar_type_of_t<Range2>>>;
+      using value_type = Any<std::common_type_t<scalar_type_of_t<Range1>, scalar_type_of_t<Range2>>>;
 
       template<typename R1, typename R2>
       constexpr Iterator(R1* r1, R2* r2, const std::size_t p) : my_range1{r1}, my_range2{r2}, pos{p} {}
@@ -207,7 +211,7 @@ namespace OpenKalman::descriptor::internal
     }; // struct Iterator
 
 
-    constexpr ConcatenateRange(Range1 r1, Range2 r2) : my_range1 {r1}, my_range2 {r2} {}
+    constexpr ConcatenateRange(Range1&& r1, Range2&& r2) : my_range1 {r1}, my_range2 {r2} {}
 
     [[nodiscard]] constexpr std::size_t size() const
     {
@@ -257,13 +261,16 @@ namespace OpenKalman::interface
    * \brief traits for descriptor::internal::Reverse.
    */
   template<typename C1, typename C2>
-  struct vector_space_traits<descriptor::internal::Concatenate<C1, C2>>
+  struct coordinate_set_traits<descriptor::internal::Concatenate<C1, C2>>
   {
   private:
 
     using T = descriptor::internal::Concatenate<C1, C2>;
 
   public:
+
+    static constexpr bool is_specialized = true;
+
 
     using scalar_type = std::conditional_t<
       descriptor::dynamic_vector_space_descriptor<C1> and descriptor::dynamic_vector_space_descriptor<C2>,
@@ -275,8 +282,8 @@ namespace OpenKalman::interface
     size(const T& t)
     {
       return value::operation {std::plus<>{},
-        descriptor::get_dimension_size_of(t.my_coordinates1),
-        descriptor::get_dimension_size_of(t.my_coordinates2)};
+        descriptor::get_size(t.my_coordinates1),
+        descriptor::get_size(t.my_coordinates2)};
     }
 
 
@@ -284,8 +291,17 @@ namespace OpenKalman::interface
     euclidean_size(const T& t)
     {
       return value::operation {std::plus<>{},
-        descriptor::get_euclidean_dimension_size_of(t.my_coordinates1),
-        descriptor::get_euclidean_dimension_size_of(t.my_coordinates2)};
+        descriptor::get_euclidean_size(t.my_coordinates1),
+        descriptor::get_euclidean_size(t.my_coordinates2)};
+    }
+
+
+    static constexpr auto
+    is_euclidean(const T& t)
+    {
+      return value::operation {std::logical_and<>{},
+        descriptor::get_is_euclidean(t.my_coordinates1),
+        descriptor::get_is_euclidean(t.my_coordinates2)};
     }
 
   private:
@@ -303,7 +319,7 @@ namespace OpenKalman::interface
     static constexpr auto
     tuple_to_range_impl(Arg&& arg, std::index_sequence<Ix...>)
     {
-      return std::array {descriptor::internal::AnyAtomicVectorSpaceDescriptor<scalar_type> {std::get<Ix>(std::forward<Arg>(arg))}...};
+      return std::array {descriptor::internal::Any<scalar_type> {std::get<Ix>(std::forward<Arg>(arg))}...};
     }
 
 
@@ -321,7 +337,7 @@ namespace OpenKalman::interface
 
     template<typename Arg>
     static constexpr auto
-    collection(Arg&& arg)
+    component_collection(Arg&& arg)
     {
       if constexpr (descriptor::static_vector_space_descriptor<C1> and descriptor::static_vector_space_descriptor<C2>)
       {
@@ -331,18 +347,18 @@ namespace OpenKalman::interface
         }
         else if constexpr (descriptor::dimension_size_of_v<C1> == 0)
         {
-          return descriptor::get_collection_of(C2{});
+          return descriptor::internal::get_component_collection(C2{});
         }
         else if constexpr (descriptor::dimension_size_of_v<C2> == 0)
         {
-          return descriptor::get_collection_of(C1{});
+          return descriptor::internal::get_component_collection(C1{});
         }
         else
         {
-          auto c1 = descriptor::get_collection_of(C1{});
+          auto c1 = descriptor::internal::get_component_collection(C1{});
           constexpr std::size_t s1 = std::tuple_size_v<std::decay_t<decltype(c1)>> - 1;
           using c1_last = std::tuple_element_t<s1, std::decay_t<decltype(c1)>>;
-          auto c2 = descriptor::get_collection_of(C2{});
+          auto c2 = descriptor::internal::get_component_collection(C2{});
           constexpr std::size_t s2 = std::tuple_size_v<std::decay_t<decltype(c2)>>;
           using c2_first = std::tuple_element_t<0, std::decay_t<decltype(c2)>>;
           if constexpr (descriptor::euclidean_vector_space_descriptor<c1_last> and descriptor::euclidean_vector_space_descriptor<c2_first>)
@@ -362,96 +378,174 @@ namespace OpenKalman::interface
       {
 #if __cpp_lib_containers_ranges >= 202202L and __cpp_lib_ranges_concat >= 202403L
         return std::views::concat(
-          tuple_to_range(descriptor::get_collection_of(std::forward<Arg>(arg).my_coordinates1)),
-          tuple_to_range(descriptor::get_collection_of(std::forward<Arg>(arg).my_coordinates2)));
+          tuple_to_range(descriptor::internal::get_component_collection(std::forward<Arg>(arg).my_coordinates1)),
+          tuple_to_range(descriptor::internal::get_component_collection(std::forward<Arg>(arg).my_coordinates2)));
 #else
         return descriptor::internal::ConcatenateRange {
-          tuple_to_range(descriptor::get_collection_of(std::forward<Arg>(arg).my_coordinates1)),
-          tuple_to_range(descriptor::get_collection_of(std::forward<Arg>(arg).my_coordinates2))};
+          tuple_to_range(descriptor::internal::get_component_collection(std::forward<Arg>(arg).my_coordinates1)),
+          tuple_to_range(descriptor::internal::get_component_collection(std::forward<Arg>(arg).my_coordinates2))};
 #endif
       }
     }
 
 
-    static constexpr auto
-    is_euclidean(const T& t)
-    {
-      return value::operation {std::logical_and<>{},
-        descriptor::get_vector_space_descriptor_is_euclidean(t.my_coordinates1),
-        descriptor::get_vector_space_descriptor_is_euclidean(t.my_coordinates2)};
-    }
-
-
 #ifdef __cpp_concepts
-    static constexpr value::value auto
-    to_euclidean_component(const T& t, const auto& g, const value::index auto& euclidean_local_index, const value::index auto& start)
-    requires requires(std::size_t i){ {g(i)} -> value::value; }
+    template<value::index N>
 #else
-    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
-      value::value<typename std::invoke_result<const Getter&, std::size_t>::type> and value::index<L> and value::index<S>, int> = 0>
-    static constexpr auto
-    to_euclidean_component(const T& t, const Getter& g, const L& euclidean_local_index, const S& start)
+    template<typename N, std::enable_if_t<value::index<N>, int> = 0>
 #endif
+    static constexpr auto
+    component_start_indices(const T& t, N n)
     {
-      auto es1 = descriptor::get_euclidean_dimension_size_of(t.my_coordinates1);
-      if (euclidean_local_index < es1) return descriptor::to_euclidean_element(t.my_coordinates1, g, euclidean_local_index, start);
-      auto s1 = descriptor::get_dimension_size_of(t.my_coordinates1);
-      return descriptor::to_euclidean_element(t.my_coordinates2, g, euclidean_local_index - es1, start + s1);
+      auto count1 = descriptor::get_component_count(t.my_coordinates1);
+      auto section1 = value::operation {std::less<>{}, n, count1};
+
+      if constexpr (value::fixed<decltype(section1)>)
+      {
+        if constexpr (section1)
+        {
+          return descriptor::internal::get_component_start_indices(t.my_coordinates1, n);
+        }
+        else
+        {
+          auto ia = descriptor::get_size(t.my_coordinates1);
+          auto ea = descriptor::get_euclidean_size(t.my_coordinates1);
+          auto local_n = value::operation(std::minus<>{}, n, count1);
+          auto [ib, eb] = descriptor::internal::get_component_start_indices(t.my_coordinates2, local_n);
+          return std::tuple {value::operation {std::plus<>{}, ia, ib}, value::operation {std::plus<>{}, ea, eb}};
+        }
+      }
+      else
+      {
+        if (section1)
+        {
+          auto [ia, ea] = descriptor::internal::get_component_start_indices(t.my_coordinates1, n);
+          return std::tuple {static_cast<std::size_t>(ia), static_cast<std::size_t>(ea)};
+        }
+        else
+        {
+          std::size_t ia = descriptor::get_size(t.my_coordinates1);
+          std::size_t ea = descriptor::get_euclidean_size(t.my_coordinates1);
+          std::size_t local_n = static_cast<std::size_t>(n) - static_cast<std::size_t>(count1);
+          auto [ib, eb] = descriptor::internal::get_component_start_indices(t.my_coordinates2, local_n);
+          return std::tuple {ia + static_cast<std::size_t>(ib), ea + static_cast<std::size_t>(eb)};
+        }
+      }
+    }
+
+
+    static constexpr auto
+    index_table(const T& t)
+    {
+      auto s1 = static_cast<std::size_t>(descriptor::get_size(t.my_coordinates1));
+#if __cpp_lib_containers_ranges >= 202202L and __cpp_lib_ranges_concat >= 202403L
+      return std::views::concat(
+        descriptor::internal::get_index_table(t.my_coordinates1),
+        descriptor::internal::get_index_table(t.my_coordinates2) | std::views::transform([s1](std::size_t i){ return i - s1; }));
+#else
+      auto f = [s1, &t](std::size_t i)
+      {
+        if (i < s1) return descriptor::internal::get_index_table(t.my_coordinates1, i);
+        else return descriptor::internal::get_index_table(t.my_coordinates2, i - s1);
+      };
+      return value::internal::make_index_range(std::move(f), s1 + static_cast<std::size_t>(descriptor::get_size(t.my_coordinates2)));
+#endif
+    }
+
+
+    static constexpr auto
+    euclidean_index_table(const T& t)
+    {
+      auto es1 = static_cast<std::size_t>(descriptor::get_euclidean_size(t.my_coordinates1));
+#if __cpp_lib_containers_ranges >= 202202L and __cpp_lib_ranges_concat >= 202403L
+      return std::views::concat(
+        descriptor::internal::get_euclidean_index_table(t.my_coordinates1),
+        descriptor::internal::get_euclidean_index_table(t.my_coordinates2) | std::views::transform([es1](std::size_t i){ return i - es1; }));
+#else
+      auto f = [es1, &t](std::size_t i)
+      {
+        if (i < es1) return descriptor::internal::get_euclidean_index_table(t.my_coordinates1, i);
+        else return descriptor::internal::get_euclidean_index_table(t.my_coordinates2, i - es1);
+      };
+      return value::internal::make_index_range(std::move(f), es1 + static_cast<std::size_t>(descriptor::get_euclidean_size(t.my_coordinates2)));
+#endif
     }
 
 
 #ifdef __cpp_concepts
     static constexpr value::value auto
-    from_euclidean_component(const T& t, const auto& g, const value::index auto& local_index, const value::index auto& euclidean_start)
+    to_euclidean_component(const T& t, const auto& g, const value::index auto& euclidean_local_index)
     requires requires(std::size_t i){ {g(i)} -> value::value; }
 #else
-    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
+    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
       value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
-    from_euclidean_component(const T& t, const Getter& g, const L& local_index, const S& euclidean_start)
+    to_euclidean_component(const T& t, const Getter& g, const L& euclidean_local_index)
 #endif
     {
-      auto s1 = descriptor::get_dimension_size_of(t.my_coordinates1);
-      if (local_index < s1) return descriptor::from_euclidean_element(t.my_coordinates1, g, local_index, euclidean_start);
-      auto es1 = descriptor::get_euclidean_dimension_size_of(t.my_coordinates1);
-      return descriptor::from_euclidean_element(t.my_coordinates2, g, local_index - s1, euclidean_start + es1);
+      auto es1 = descriptor::get_euclidean_size(t.my_coordinates1);
+      if (euclidean_local_index < es1) return descriptor::to_euclidean_element(t.my_coordinates1, g, euclidean_local_index);
+      std::size_t s1 = descriptor::get_size(t.my_coordinates1);
+      auto new_g = [&g, s1](std::size_t i) { return g(s1 + i); };
+      return descriptor::to_euclidean_element(t.my_coordinates2, new_g, euclidean_local_index - es1);
     }
 
 
 #ifdef __cpp_concepts
     static constexpr value::value auto
-    get_wrapped_component(const T& t, const auto& g, const value::index auto& local_index, const value::index auto& start)
+    from_euclidean_component(const T& t, const auto& g, const value::index auto& local_index)
     requires requires(std::size_t i){ {g(i)} -> value::value; }
 #else
-    template<typename Getter, typename L, typename S, std::enable_if_t<value::index<L> and value::index<S> and
+    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
       value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
-    get_wrapped_component(const T& t, const Getter& g, const L& local_index, const S& start)
+    from_euclidean_component(const T& t, const Getter& g, const L& local_index)
 #endif
     {
-      auto s1 = descriptor::get_dimension_size_of(t.my_coordinates1);
-      if (local_index < s1) return descriptor::get_wrapped_component(t.my_coordinates1, g, local_index, start);
-      return descriptor::get_wrapped_component(t.my_coordinates2, g, local_index - s1, start + s1);
+      auto s1 = descriptor::get_size(t.my_coordinates1);
+      if (local_index < s1) return descriptor::from_euclidean_element(t.my_coordinates1, g, local_index);
+      std::size_t es1 = descriptor::get_euclidean_size(t.my_coordinates1);
+      auto new_g = [&g, es1](std::size_t i) { return g(es1 + i); };
+      return descriptor::from_euclidean_element(t.my_coordinates2, new_g, local_index - s1);
+    }
+
+
+#ifdef __cpp_concepts
+    static constexpr value::value auto
+    get_wrapped_component(const T& t, const auto& g, const value::index auto& local_index)
+    requires requires(std::size_t i){ {g(i)} -> value::value; }
+#else
+    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
+      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
+    static constexpr auto
+    get_wrapped_component(const T& t, const Getter& g, const L& local_index)
+#endif
+    {
+      std::size_t s1 = descriptor::get_size(t.my_coordinates1);
+      if (local_index < s1) return descriptor::get_wrapped_component(t.my_coordinates1, g, local_index);
+      auto new_g = [&g, s1](std::size_t i) { return g(s1 + i); };
+      return descriptor::get_wrapped_component(t.my_coordinates2, new_g, local_index - s1);
     }
 
 
 #ifdef __cpp_concepts
     static constexpr void
-    set_wrapped_component(const T& t, const auto& s, const auto& g, const value::value auto& x,
-      const value::index auto& local_index, const value::index auto& start)
+    set_wrapped_component(const T& t, const auto& s, const auto& g, const value::value auto& x, const value::index auto& local_index)
     requires requires(std::size_t i){ s(x, i); s(g(i), i); }
 #else
-    template<typename Setter, typename Getter, typename X, typename L, typename S, std::enable_if_t<
-      value::value<X> and value::index<L> and value::index<S> and
+    template<typename Setter, typename Getter, typename X, typename L, std::enable_if_t<value::value<X> and value::index<L> and
       std::is_invocable<const Setter&, const X&, std::size_t>::value and
       std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, std::size_t>::type, std::size_t>::value, int> = 0>
     static constexpr void
-    set_wrapped_component(const T& t, const Setter& s, const Getter& g, const X& x, const L& local_index, const S& start)
+    set_wrapped_component(const T& t, const Setter& s, const Getter& g, const X& x, const L& local_index)
 #endif
     {
-      auto s1 = descriptor::get_dimension_size_of(t.my_coordinates1);
-      if (local_index < s1) return descriptor::set_wrapped_component(t.my_coordinates1, s, g, x, local_index, start);
-      return descriptor::set_wrapped_component(t.my_coordinates2, s, g, x, local_index - s1, start + s1);
+      using Scalar = std::decay_t<decltype(x)>;
+      auto s1 = descriptor::get_size(t.my_coordinates1);
+      if (local_index < s1) return descriptor::set_wrapped_component(t.my_coordinates1, s, g, x, local_index);
+      auto new_g = [&g, s1](std::size_t i) { return g(s1 + i); };
+      auto new_s = [&s, s1](const Scalar& x, std::size_t i) { s(x, s1 + i); };
+      return descriptor::set_wrapped_component(t.my_coordinates2, new_s, new_g, x, local_index - s1);
     }
 
   };

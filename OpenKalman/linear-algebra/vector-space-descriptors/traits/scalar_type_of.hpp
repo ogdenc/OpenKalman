@@ -29,17 +29,33 @@ namespace OpenKalman::descriptor
 #ifdef __cpp_concepts
   template<typename T>
 #else
-  template<typename T, typename = void>
+  template<typename T, typename = void, typename = void>
 #endif
   struct scalar_type_of { using type = double; };
 
 
 #ifdef __cpp_concepts
-  template<typename T> requires requires { typename interface::vector_space_traits<std::decay_t<T>>::scalar_type; }
+  template<descriptor::atomic_vector_space_descriptor T> requires
+    requires { typename interface::vector_space_traits<std::decay_t<T>>::scalar_type; }
   struct scalar_type_of<T>
 #else
   template<typename T>
-  struct scalar_type_of<T, std::void_t<typename interface::vector_space_traits<std::decay_t<T>>::scalar_type>>
+  struct scalar_type_of<T, std::enable_if_t<descriptor::atomic_vector_space_descriptor<T>>,
+    std::void_t<typename interface::vector_space_traits<std::decay_t<T>>::scalar_type>>
+#endif
+  {
+    using type = typename interface::vector_space_traits<std::decay_t<T>>::scalar_type;
+  };
+
+
+#ifdef __cpp_concepts
+  template<descriptor::atomic_vector_space_descriptor T> requires
+    requires { typename interface::vector_space_traits<std::decay_t<T>>::scalar_type; }
+  struct scalar_type_of<T>
+#else
+  template<typename T>
+  struct scalar_type_of<T, std::enable_if_t<descriptor::atomic_vector_space_descriptor<T>>,
+    std::void_t<typename interface::vector_space_traits<std::decay_t<T>>::scalar_type>>
 #endif
   {
     using type = typename interface::vector_space_traits<std::decay_t<T>>::scalar_type;
