@@ -52,12 +52,12 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_sum_op)
   static_assert(one_dimensional<decltype(std::declval<M1x>() + std::declval<DMx>())>);
   static_assert(one_dimensional<decltype(std::declval<Mx1>() + std::declval<DMx>())>);
   static_assert(one_dimensional<decltype(std::declval<Axx>() + std::declval<A11>())>);
-  static_assert(one_dimensional<decltype(std::declval<Mxx>() + std::declval<Mx1>()), Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<decltype(std::declval<Mxx>() + std::declval<Mx1>()), Applicability::permitted>);
   static_assert(not one_dimensional<decltype(std::declval<Mxx>() + std::declval<Mx1>())>);
 
   static_assert(square_shaped<decltype(std::declval<M2x>() + std::declval<Mx2>())>);
   static_assert(not square_shaped<decltype(std::declval<Mxx>() + std::declval<Mx2>())>);
-  static_assert(square_shaped<decltype(std::declval<Mxx>() + std::declval<Mx2>()), Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<decltype(std::declval<Mxx>() + std::declval<Mx2>()), Applicability::permitted>);
   static_assert(square_shaped<decltype(std::declval<DMx>() + std::declval<DMx>())>);
   static_assert(square_shaped<decltype(std::declval<DMx>() + std::declval<Mxx>())>);
 
@@ -317,15 +317,15 @@ TEST(eigen3, Eigen_CwiseBinaryOp_scalar_difference_op)
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>() - std::declval<Salv22>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>() - std::declval<Salv22>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>() - std::declval<Sauv22>())>);
-  static_assert(hermitian_matrix<decltype(std::declval<Salvxx>() - std::declval<Sauvxx>()), Qualification::depends_on_dynamic_shape>);
+  static_assert(hermitian_matrix<decltype(std::declval<Salvxx>() - std::declval<Sauvxx>()), Applicability::permitted>);
   static_assert(hermitian_matrix<decltype(std::declval<DW21>() - std::declval<DW21>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>() - std::declval<Sauv22>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>() - std::declval<Salv22>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>() - std::declval<Sauv22>())>);
-  static_assert(hermitian_matrix<decltype(std::declval<Sauvxx>() - std::declval<Sauvxx>()), Qualification::depends_on_dynamic_shape>);
+  static_assert(hermitian_matrix<decltype(std::declval<Sauvxx>() - std::declval<Sauvxx>()), Applicability::permitted>);
   static_assert(hermitian_matrix<decltype(std::declval<Sauv22>() - std::declval<Salv22>())>);
   static_assert(hermitian_matrix<decltype(std::declval<Salv22>() - std::declval<Sauv22>())>);
-  static_assert(hermitian_matrix<decltype(std::declval<Salvxx>() - std::declval<Sauvxx>()), Qualification::depends_on_dynamic_shape>);
+  static_assert(hermitian_matrix<decltype(std::declval<Salvxx>() - std::declval<Sauvxx>()), Applicability::permitted>);
   static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Salv22>() - std::declval<Salv22>())> == HermitianAdapterType::any);
   static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>() - std::declval<Sauv22>())> == HermitianAdapterType::any);
   static_assert(hermitian_adapter_type_of_v<decltype(std::declval<Sauv22>() - std::declval<Salv22>())> == HermitianAdapterType::any);

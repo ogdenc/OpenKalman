@@ -18,8 +18,8 @@
 
 #include <type_traits>
 #include "basics/global-definitions.hpp"
-#include "linear-algebra/values/concepts/number.hpp"
-#include "linear-algebra/values/concepts/index.hpp"
+#include "values/concepts/number.hpp"
+#include "values/concepts/index.hpp"
 #include "linear-algebra/interfaces/default/indexible_object_traits.hpp"
 
 namespace OpenKalman::interface
@@ -81,7 +81,7 @@ namespace OpenKalman::interface
   template<typename T>
   concept get_vector_space_descriptor_defined_for = requires (T t) {
     {indexible_object_traits<std::decay_t<T>>::get_vector_space_descriptor(
-      t, std::integral_constant<std::size_t, 0>{})} -> descriptor::vector_space_descriptor;
+      t, std::integral_constant<std::size_t, 0>{})} -> coordinate::coordinate::pattern;
   };
 #else
   namespace detail
@@ -90,7 +90,7 @@ namespace OpenKalman::interface
     struct get_vector_space_descriptor_defined_for_impl : std::false_type {};
 
     template<typename T>
-    struct get_vector_space_descriptor_defined_for_impl<T, std::enable_if_t<descriptor::vector_space_descriptor<
+    struct get_vector_space_descriptor_defined_for_impl<T, std::enable_if_t<coordinate::coordinate::pattern<
       decltype(indexible_object_traits<std::decay_t<T>>::get_vector_space_descriptor(
         std::declval<T>(), std::integral_constant<std::size_t, 0>{}))>>>
       : std::true_type {};
@@ -182,29 +182,29 @@ namespace OpenKalman::interface
   // ----------------- //
 
 #ifdef __cpp_concepts
-  template<typename T, Qualification b = Qualification::unqualified>
+  template<typename T, Applicability b = Applicability::guaranteed>
   concept one_dimensional_defined_for = std::convertible_to<
     decltype(indexible_object_traits<std::decay_t<T>>::template one_dimensional<b>), bool>;
 #else
   namespace detail
   {
-    template<typename T, Qualification b, typename = void>
+    template<typename T, Applicability b, typename = void>
     struct one_dimensional_defined_for_impl : std::false_type {};
 
-    template<typename T, Qualification b>
+    template<typename T, Applicability b>
     struct one_dimensional_defined_for_impl<T, b, std::enable_if_t<std::is_convertible_v<
           decltype(indexible_object_traits<std::decay_t<T>>::template one_dimensional<b>), bool>>>
       : std::true_type {};
   }
 
-  template<typename T, Qualification b = Qualification::unqualified>
+  template<typename T, Applicability b = Applicability::guaranteed>
   constexpr bool one_dimensional_defined_for = detail::one_dimensional_defined_for_impl<T, b>::value;
 
 
-  template<typename T, Qualification b, typename = void>
+  template<typename T, Applicability b, typename = void>
   struct is_explicitly_one_dimensional : std::false_type {};
 
-  template<typename T, Qualification b>
+  template<typename T, Applicability b>
   struct is_explicitly_one_dimensional<T, b, std::enable_if_t<indexible_object_traits<std::decay_t<T>>::template one_dimensional<b>>>
     : std::true_type {};
 #endif
@@ -215,22 +215,22 @@ namespace OpenKalman::interface
   // ----------- //
 
 #ifdef __cpp_concepts
-  template<typename T, Qualification b = Qualification::unqualified>
+  template<typename T, Applicability b = Applicability::guaranteed>
   concept is_square_defined_for = std::convertible_to<
     decltype(indexible_object_traits<std::decay_t<T>>::template is_square<b>), bool>;
 #else
   namespace detail
   {
-    template<typename T, Qualification b, typename = void>
+    template<typename T, Applicability b, typename = void>
     struct is_square_defined_for_impl : std::false_type {};
 
-    template<typename T, Qualification b>
+    template<typename T, Applicability b>
     struct is_square_defined_for_impl<T, b, std::enable_if_t<std::is_convertible_v<
           decltype(indexible_object_traits<std::decay_t<T>>::template is_square<b>), bool>>>
       : std::true_type {};
   }
 
-  template<typename T, Qualification b = Qualification::unqualified>
+  template<typename T, Applicability b = Applicability::guaranteed>
   constexpr bool is_square_defined_for = detail::is_square_defined_for_impl<T, b>::value;
 #endif
 

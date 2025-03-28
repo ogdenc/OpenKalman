@@ -23,30 +23,30 @@ namespace OpenKalman::test
     {
       [](const auto& x, const auto& ...ps) // function
       {
-        static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(x), 0>, Dimensions<n>>);
-        static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(x), 1>, Axis > );
-        static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 0>, Axis > and ...));
-        static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 1>, Axis > and ...));
+        static_assert(compares_with<vector_space_descriptor_of_t<decltype(x), 0>, Dimensions<n>>);
+        static_assert(compares_with<vector_space_descriptor_of_t<decltype(x), 1>, Axis >);
+        static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 0>, Axis >and ...));
+        static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 1>, Axis >and ...));
 
         return sum(((transpose(x) * x), ... , ps));
       },
       [](const auto& x, const auto& ...ps) // Jacobians
       {
-        static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(x), 0>, Dimensions<n>>);
-        static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(x), 1>, Axis > );
-        static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 0>, Axis > and ...));
-        static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 1>, Axis > and ...));
+        static_assert(compares_with<vector_space_descriptor_of_t<decltype(x), 0>, Dimensions<n>>);
+        static_assert(compares_with<vector_space_descriptor_of_t<decltype(x), 1>, Axis >);
+        static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 0>, Axis >and ...));
+        static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 1>, Axis >and ...));
 
         return std::tuple_cat(
           std::tuple {2 * transpose(x)},
-          OpenKalman::internal::fill_tuple<sizeof...(ps)>(Mean {1.}));
+          OpenKalman::internal::tuple_fill<sizeof...(ps)>(Mean {1.}));
       },
       [](const auto& x, const auto& ...ps) // Hessians
       {
-        static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(x), 0>, Dimensions<n>>);
-        static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(x), 1>, Axis > );
-        static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 0>, Axis > and ...));
-        static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 1>, Axis > and ...));
+        static_assert(compares_with<vector_space_descriptor_of_t<decltype(x), 0>, Dimensions<n>>);
+        static_assert(compares_with<vector_space_descriptor_of_t<decltype(x), 1>, Axis >);
+        static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 0>, Axis >and ...));
+        static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 1>, Axis >and ...));
 
         std::array<Matrix<Dimensions<n>, Dimensions<n>, eigen_matrix_t<double, n, n>>, 1> I;
         I[0] = 2 * eigen_matrix_t<double, n, n>::Identity();
@@ -59,29 +59,29 @@ namespace OpenKalman::test
     {
       [](const auto& x, const auto& ...ps) // function
       {
-        static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(x), 0>, Dimensions<n>>);
-        static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(x), 1>, Axis > );
-        static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 0>, Axis > and ...));
-        static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 1>, Axis > and ...));
+        static_assert(compares_with<vector_space_descriptor_of_t<decltype(x), 0>, Dimensions<n>>);
+        static_assert(compares_with<vector_space_descriptor_of_t<decltype(x), 1>, Axis >);
+        static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 0>, Axis >and ...));
+        static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 1>, Axis >and ...));
 
         return sum(apply_coefficientwise([](const auto& c) { return std::sqrt(c); }, adjoint(x) * x), ps...);
       },
       [](const auto& x, const auto& ...ps) // Jacobians
       {
-        static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(x), 0>, Dimensions<n>>);
-        static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(x), 1>, Axis > );
-        static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 0>, Axis > and ...));
-        static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 1>, Axis > and ...));
+        static_assert(compares_with<vector_space_descriptor_of_t<decltype(x), 0>, Dimensions<n>>);
+        static_assert(compares_with<vector_space_descriptor_of_t<decltype(x), 1>, Axis >);
+        static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 0>, Axis >and ...));
+        static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 1>, Axis >and ...));
 
         return std::make_tuple(scalar_quotient(adjoint(x), std::sqrt(trace(adjoint(x) * x))),
           Matrix<Axis, Axis, dense_writable_matrix_t<decltype(ps), Layout::none, scalar_type_of_t<decltype(ps)>, std::tuple<Axis, Axis>>> {1.}...);
       },
       [](const auto& x, const auto& ...ps) // Hessians
       {
-        static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(x), 0>, Dimensions<n>>);
-        static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(x), 1>, Axis > );
-        static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 0>, Axis > and ...));
-        static_assert((equivalent_to<vector_space_descriptor_of_t<decltype(ps), 1>, Axis > and ...));
+        static_assert(compares_with<vector_space_descriptor_of_t<decltype(x), 0>, Dimensions<n>>);
+        static_assert(compares_with<vector_space_descriptor_of_t<decltype(x), 1>, Axis >);
+        static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 0>, Axis >and ...));
+        static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 1>, Axis >and ...));
 
         std::array<Matrix<Dimensions<n>, Dimensions<n>, eigen_matrix_t<double, n, n>>, 1> ret;
         double sq = trace(adjoint(x) * x);
@@ -92,7 +92,7 @@ namespace OpenKalman::test
 
   namespace
   {
-    using C2t = StaticDescriptor<Axis, Axis>;
+    using C2t = Dimensions<2>;
     using M2t = Mean<C2t, eigen_matrix_t < double, 2, 1>>;
     using M22t = Matrix <C2t, C2t, eigen_matrix_t<double, 2, 2>>;
   }
@@ -109,7 +109,7 @@ namespace OpenKalman::test
           std::cos(x(1)), -x(0) * std::sin(x(1)),
           std::sin(x(1)), x(0) * std::cos(x(1))};
         return std::tuple_cat(std::tuple {std::move(ret)},
-          OpenKalman::internal::fill_tuple<sizeof...(ps)>(make_identity_matrix_like(ret)));
+          OpenKalman::internal::tuple_fill<sizeof...(ps)>(make_identity_matrix_like(ret)));
       },
       [](const M2t& x, const auto& ...ps) // Hessians
       {
@@ -140,7 +140,7 @@ namespace OpenKalman::test
           std::cos(x(1)), -x(0) * std::sin(x(1)),
           std::sin(x(1)), x(0) * std::cos(x(1))};
         return std::tuple_cat(std::tuple {
-          std::move(ret)}, OpenKalman::internal::fill_tuple<sizeof...(ps)>(make_identity_matrix_like(ret)));
+          std::move(ret)}, OpenKalman::internal::tuple_fill<sizeof...(ps)>(make_identity_matrix_like(ret)));
       },
       [](const MP1t& x, const auto& ...ps) // Hessians
       {
@@ -167,7 +167,7 @@ namespace OpenKalman::test
           x(0) * h, x(1) * h,
           -x(1) * h2, x(0) * h2};
         return std::tuple_cat(std::tuple {
-          std::move(ret)}, OpenKalman::internal::fill_tuple<sizeof...(ps)>(make_identity_matrix_like<MPPt>()));
+          std::move(ret)}, OpenKalman::internal::tuple_fill<sizeof...(ps)>(make_identity_matrix_like<MPPt>()));
       },
       [](const M2t& x, const auto& ...ps) // Hessians
       {
@@ -189,7 +189,7 @@ namespace OpenKalman::test
 
   namespace
   {
-    using Cyl = StaticDescriptor<Polar<>, Axis>;
+    using Cyl = std::tuple<Polar<>, Axis>;
     using MC1t = Matrix <Cyl, Axis, eigen_matrix_t<double, 3, 1>>;
     using MS1t = Matrix <Spherical<>, Axis, eigen_matrix_t<double, 3, 1>>;
     using MSCt = Matrix <Spherical<>, Cyl, eigen_matrix_t<double, 3, 3>>;
@@ -212,7 +212,7 @@ namespace OpenKalman::test
           0, 1, 0,
           -x(2) * h2, 0, x(0) * h2};
         return std::tuple_cat(std::tuple {
-          std::move(ret)}, OpenKalman::internal::fill_tuple<sizeof...(ps)>(make_identity_matrix_like<MSSt>()));
+          std::move(ret)}, OpenKalman::internal::tuple_fill<sizeof...(ps)>(make_identity_matrix_like<MSSt>()));
       },
       [](const MC1t& x, const auto& ...ps) // Hessians
       {

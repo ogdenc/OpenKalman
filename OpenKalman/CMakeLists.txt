@@ -1,4 +1,6 @@
 add_subdirectory(basics/tests)
+add_subdirectory(values/tests)
+add_subdirectory(collections/tests)
 add_subdirectory(linear-algebra)
 add_subdirectory(distributions/tests)
 add_subdirectory(transformations/tests)

@@ -18,7 +18,7 @@
 
 #include <cstddef>
 #include <type_traits>
-#include "linear-algebra/vector-space-descriptors/concepts/dynamic_vector_space_descriptor.hpp"
+#include "linear-algebra/coordinates/concepts/dynamic_pattern.hpp"
 
 namespace OpenKalman::internal
 {
@@ -29,7 +29,7 @@ namespace OpenKalman::internal
     {
       using difference_type = std::ptrdiff_t;
       using value_type = std::decay_t<decltype(get_vector_space_descriptor<0>(std::declval<Indexible>()))>; 
-      static_assert(dynamic_vector_space_descriptor<value_type>);
+      static_assert(dynamic_pattern<value_type>);
       constexpr Iterator(const Indexible& indexible, const std::size_t p) : my_indexible{indexible}, pos{p} {}
       constexpr value_type operator*() const { return get_vector_space_descriptor(my_indexible, pos); } 
       constexpr auto& operator++() noexcept { ++pos; return *this; }

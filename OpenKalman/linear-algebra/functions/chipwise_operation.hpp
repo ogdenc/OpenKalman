@@ -30,19 +30,19 @@ namespace OpenKalman
     {
       auto d = get_vector_space_descriptor<ix>(arg);
       using D = decltype(d);
-      if constexpr (static_vector_space_descriptor<Best_d>)
+      if constexpr (fixed_pattern<Best_d>)
       {
-        if constexpr (static_vector_space_descriptor<D>)
-          static_assert(dimension_size_of_v<D> == dimension_size_of_v<Best_d>,
+        if constexpr (fixed_pattern<D>)
+          static_assert(coordinate::size_of_v<D> == coordinate::size_of_v<Best_d>,
             "Arguments to chipwise_operation must have matching vector space descriptors.");
         else
           if (d != best_d) throw std::invalid_argument {"Arguments to chipwise_operation must have matching vector space descriptors."};
         return chipwise_vector_space_descriptor_for<ix>(best_d, args...);
       }
-      else // dynamic_vector_space_descriptor<Best_d>
+      else // dynamic_pattern<Best_d>
       {
         if (d != best_d) throw std::invalid_argument {"Arguments to chipwise_operation must have matching vector space descriptors."};
-        if constexpr (static_vector_space_descriptor<D>)
+        if constexpr (fixed_pattern<D>)
           return chipwise_vector_space_descriptor_for<ix>(d, args...);
         else
           return chipwise_vector_space_descriptor_for<ix>(best_d, args...);
@@ -239,7 +239,7 @@ namespace OpenKalman
       }(operation);
     using OpResult = decltype(op_result);
 
-    static_assert((dimension_size_of_index_is<OpResult, indices, 1, Qualification::depends_on_dynamic_shape> and ...),
+    static_assert((dimension_size_of_index_is<OpResult, indices, 1, Applicability::permitted> and ...),
       "Operator must return a chip, meaning that the dimension is 1 for each of the specified indices.");
     // Note: set_chip also includes a runtime check that operation() is a chip.
 

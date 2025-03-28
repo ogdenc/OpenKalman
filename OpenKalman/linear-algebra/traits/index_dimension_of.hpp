@@ -41,7 +41,7 @@ namespace OpenKalman
 #else
   struct index_dimension_of<T, N, std::void_t<typename vector_space_descriptor_of<T, N>::type>>
 #endif
-    : std::integral_constant<std::size_t, dimension_size_of_v<vector_space_descriptor_of_t<T, N>>> {};
+    : std::integral_constant<std::size_t, coordinate::size_of_v<vector_space_descriptor_of_t<T, N>>> {};
 
 
   /**

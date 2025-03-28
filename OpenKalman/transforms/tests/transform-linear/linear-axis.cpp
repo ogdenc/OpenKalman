@@ -9,13 +9,13 @@
  */
 
 #include "transform-linear.gtest.hpp"
-#include "basics/internal/tuple_like.hpp"
+#include "collections/concepts/tuple_like.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptor;
+using namespace OpenKalman::coordinate;
 using namespace OpenKalman::test;
 
-using Axis2 = StaticDescriptor<Axis, Axis>;
+using Axis2 = Dimensions<2>;
 using M2 = Mean<Axis2>;
 using Mat2 = Matrix<Axis2, Axis2>;
 
@@ -46,7 +46,7 @@ TEST(transform_linear, linear_dual)
   LinearTransform t;
   GaussianDistribution input {M2(1, 2), Covariance(make_identity_matrix_like<Mat2>())};
   GaussianDistribution noise {make_zero<M2>(), Covariance(make_identity_matrix_like<Mat2>())};
-  static_assert(OpenKalman::internal::tuple_like<decltype(std::tuple {g})>);
+  static_assert(collections::tuple_like<decltype(std::tuple {g})>);
   auto [out1, cross] = t.transform_with_cross_covariance(input, std::tuple {g}, std::tuple {g});
   EXPECT_TRUE(is_near(mean_of(out1), M2(27, 59)));
   EXPECT_TRUE(is_near(covariance_of(out1), Mat2 {149, 325, 325, 709}));

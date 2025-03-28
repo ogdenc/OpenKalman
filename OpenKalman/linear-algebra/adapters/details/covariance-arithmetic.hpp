@@ -12,7 +12,7 @@
 #define OPENKALMAN_COVARIANCEARITHMETIC_HPP
 
 #include "interfaces/eigen/details/eigen-forward-declarations.hpp"
-#include "linear_algebra/values/functions/sqrt.hpp"
+#include "values/math/sqrt.hpp"
 
 namespace OpenKalman
 {
@@ -45,12 +45,12 @@ namespace OpenKalman
   template<typename Arg1, typename Arg2> requires
     ((covariance<Arg1> and (covariance<Arg2> or (typed_matrix<Arg2> and square_shaped<Arg2>))) or
       ((typed_matrix<Arg1> and square_shaped<Arg1>) and covariance<Arg2>)) and
-    equivalent_to<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>
+    compares_with<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     ((covariance<Arg1> and (covariance<Arg2> or (typed_matrix<Arg2> and square_shaped<Arg2>))) or
       ((typed_matrix<Arg1> and square_shaped<Arg1>) and covariance<Arg2>)) and
-    equivalent_to<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>, int> = 0>
+    compares_with<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>, int> = 0>
 #endif
   constexpr decltype(auto) operator+(Arg1&& arg1, Arg2&& arg2)
   {
@@ -116,12 +116,12 @@ namespace OpenKalman
   template<typename Arg1, typename Arg2> requires
   ((covariance<Arg1> and (covariance<Arg2> or (typed_matrix<Arg2> and square_shaped<Arg2>))) or
     ((typed_matrix<Arg1> and square_shaped<Arg1>) and covariance<Arg2>)) and
-    equivalent_to<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>
+    coordinate::compares_with<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     ((covariance<Arg1> and (covariance<Arg2> or (typed_matrix<Arg2> and square_shaped<Arg2>))) or
       ((typed_matrix<Arg1> and square_shaped<Arg1>) and covariance<Arg2>)) and
-    equivalent_to<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>, int> = 0>
+    compares_with<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>, int> = 0>
 #endif
   constexpr decltype(auto) operator-(Arg1&& arg1, Arg2&& arg2)
   {
@@ -178,10 +178,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<covariance Arg1, covariance Arg2> requires
-    equivalent_to<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>
+    coordinate::compares_with<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<covariance<Arg1> and covariance<Arg2> and
-    equivalent_to<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>, int> = 0>
+    compares_with<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>, int> = 0>
 #endif
   constexpr decltype(auto) operator*(Arg1&& arg1, Arg2&& arg2)
   {
@@ -225,10 +225,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typed_matrix M, covariance Cov> requires
-    equivalent_to<vector_space_descriptor_of_t<M, 0>::ColumnCoefficients, typename MatrixTraits<std::decay_t<Cov>>>
+    coordinate::compares_with<vector_space_descriptor_of_t<M, 0>::ColumnCoefficients, typename MatrixTraits<std::decay_t<Cov>>>
 #else
   template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and covariance<Cov> and
-    equivalent_to<vector_space_descriptor_of_t<M, 0>::ColumnCoefficients, typename MatrixTraits<std::decay_t<Cov>>>, int> = 0>
+    compares_with<vector_space_descriptor_of_t<M, 0>::ColumnCoefficients, typename MatrixTraits<std::decay_t<Cov>>>, int> = 0>
 #endif
   constexpr decltype(auto) operator*(M&& m, Cov&& cov)
   {
@@ -268,10 +268,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<covariance Cov, typed_matrix M> requires
-    equivalent_to<vector_space_descriptor_of_t<Cov, 0>, vector_space_descriptor_of_t<M, 0>>
+    coordinate::compares_with<vector_space_descriptor_of_t<Cov, 0>, vector_space_descriptor_of_t<M, 0>>
 #else
   template<typename Cov, typename M, std::enable_if_t<covariance<Cov> and typed_matrix<M> and
-    equivalent_to<vector_space_descriptor_of_t<Cov, 0>, vector_space_descriptor_of_t<M, 0>>, int> = 0>
+    compares_with<vector_space_descriptor_of_t<Cov, 0>, vector_space_descriptor_of_t<M, 0>>, int> = 0>
 #endif
   constexpr decltype(auto) operator*(Cov&& cov, M&& m)
   {
@@ -479,7 +479,7 @@ namespace OpenKalman
 #endif
   constexpr bool operator==(Arg1&& arg1, Arg2&& arg2)
   {
-    if constexpr (equivalent_to<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>)
+    if constexpr (compares_with<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>)
     {
       return to_dense_object(std::forward<Arg1>(arg1)) == to_dense_object(std::forward<Arg2>(arg2));
     }
@@ -567,11 +567,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<covariance M, typed_matrix A> requires
-    equivalent_to<vector_space_descriptor_of_t<A, 0>::ColumnCoefficients, typename MatrixTraits<std::decay_t<M>>> and
+    compares_with<vector_space_descriptor_of_t<A, 0>::ColumnCoefficients, typename MatrixTraits<std::decay_t<M>>>and
     (not euclidean_transformed<A>)
 #else
   template<typename M, typename A, std::enable_if_t<covariance<M> and typed_matrix<A> and
-    equivalent_to<vector_space_descriptor_of_t<A, 0>::ColumnCoefficients, typename MatrixTraits<std::decay_t<M>>> and
+    compares_with<vector_space_descriptor_of_t<A, 0>::ColumnCoefficients, typename MatrixTraits<std::decay_t<M>>>and
     (not euclidean_transformed<A>), int> = 0>
 #endif
   inline auto

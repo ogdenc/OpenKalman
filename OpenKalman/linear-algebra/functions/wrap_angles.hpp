@@ -27,7 +27,7 @@ namespace OpenKalman
 #endif
   wrap_angles(Arg&& arg)
   {
-    if constexpr (euclidean_vector_space_descriptor<vector_space_descriptor_of_t<Arg, 0>> or identity_matrix<Arg> or zero<Arg>)
+    if constexpr (coordinate::euclidean_pattern<vector_space_descriptor_of_t<Arg, 0>> or identity_matrix<Arg> or zero<Arg>)
     {
       return std::forward<Arg>(arg);
     }

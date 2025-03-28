@@ -36,13 +36,13 @@ namespace OpenKalman::internal
    * \brief Make the best possible \ref FixedSizeAdapter, if applicable, based on a set of vector space descriptors.
    * \details The function will only return an adapter if at least one of the specified vector space descriptors is
    * more fixed than the corresponding descriptor of the argument.
-   * \tparam Descriptors A \rev vector_space_descriptor_tuple reflecting the new object
+   * \tparam Descriptors A \rev pattern_tuple reflecting the new object
    * \return (1) A fixed size adapter if some dimension becomes more fixed, or (2) a reference to the argument unchanged.
    */
 #ifdef __cpp_concepts
-  template<vector_space_descriptor_tuple Descriptors, compatible_with_vector_space_descriptor_collection<Descriptors> Arg>
+  template<pattern_tuple Descriptors, compatible_with_vector_space_descriptor_collection<Descriptors> Arg>
 #else
-  template<typename Descriptors, typename Arg, std::enable_if_t<vector_space_descriptor_tuple<Descriptors> and
+  template<typename Descriptors, typename Arg, std::enable_if_t<pattern_tuple<Descriptors> and
     compatible_with_vector_space_descriptor_collection<Arg, Descriptors>, int> = 0>
 #endif
   constexpr decltype(auto)
@@ -69,9 +69,9 @@ namespace OpenKalman::internal
    * \overload
    */
 #ifdef __cpp_concepts
-  template<vector_space_descriptor...Ds, compatible_with_vector_space_descriptor_collection<std::tuple<Ds...>> Arg>
+  template<coordinate::pattern...Ds, compatible_with_vector_space_descriptor_collection<std::tuple<Ds...>> Arg>
 #else
-  template<typename...Ds, typename Arg, std::enable_if_t<(... and vector_space_descriptor<Ds>) and
+  template<typename...Ds, typename Arg, std::enable_if_t<(... and coordinate::pattern<Ds>) and
     compatible_with_vector_space_descriptor_collection<Arg, std::tuple<Ds...>>, int> = 0>
 #endif
   constexpr decltype(auto)
@@ -85,10 +85,10 @@ namespace OpenKalman::internal
    * \overload
    */
 #ifdef __cpp_concepts
-  template<indexible Arg, vector_space_descriptor_tuple Descriptors>
+  template<indexible Arg, pattern_tuple Descriptors>
     requires compatible_with_vector_space_descriptor_collection<Arg, Descriptors>
 #else
-  template<typename Arg, typename Descriptors, std::enable_if_t<indexible<Arg> and vector_space_descriptor_tuple<Descriptors> and
+  template<typename Arg, typename Descriptors, std::enable_if_t<indexible<Arg> and pattern_tuple<Descriptors> and
     compatible_with_vector_space_descriptor_collection<Arg, Descriptors>, int> = 0>
 #endif
   constexpr decltype(auto)

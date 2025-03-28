@@ -11,14 +11,14 @@
 #include "transform-nonlinear.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptor;
+using namespace OpenKalman::coordinate;
 using namespace OpenKalman::test;
 
 using numbers::pi;
 
 inline namespace
 {
-  using C2 = StaticDescriptor<Axis, Axis>;
+  using C2 = Dimensions<2>;
   using M2 = Mean<C2>;
   using Mat2 = Matrix<C2,C2>;
   Mat2 a {1, 2,

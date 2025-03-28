@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,7 +19,6 @@
 
 #ifndef OPENKALMAN_BASICS_HPP
 #define OPENKALMAN_BASICS_HPP
-
 
 // namespaces
 
@@ -44,16 +43,17 @@ namespace OpenKalman::internal {}
 
 
 #include "language-features.hpp"
+#ifndef __cpp_lib_ranges
+#include "ranges.hpp"
+#endif
 #include "global-definitions.hpp"
-#include "utils.hpp"
 
-#include "internal/tuple_like.hpp"
-#include "internal/sized_random_access_range.hpp"
-#include "internal/collection.hpp"
-#include "internal/collection_size_of.hpp"
-
-#include "internal/iota_tuple.hpp"
-#include "internal/iota_range.hpp"
+#include "classes/equal_to.hpp"
+#include "classes/not_equal_to.hpp"
+#include "classes/less.hpp"
+#include "classes/less_equal.hpp"
+#include "classes/greater.hpp"
+#include "classes/greater_equal.hpp"
 
 
 #endif //OPENKALMAN_BASICS_HPP

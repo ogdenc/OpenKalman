@@ -44,13 +44,13 @@ namespace OpenKalman
 
       if constexpr (dynamic_dimension<A, 0>)
       {
-        auto dim = descriptor::Dimensions {get_index_dimension_of<0>(a)};
-        auto col1 = make_constant<A>(elem, dim, descriptor::Axis{});
+        auto dim = coordinate::Dimensions {get_index_dimension_of<0>(a)};
+        auto col1 = make_constant<A>(elem, dim, coordinate::Axis{});
 
         auto m {make_dense_object<A>(dim, dim)};
 
         if (get_size(dim) == 1) m = std::move(col1);
-        else m = concatenate<1>(std::move(col1), make_zero<A>(dim, dim - descriptor::Axis{}));
+        else m = concatenate<1>(std::move(col1), make_zero<A>(dim, dim - coordinate::Axis{}));
 
         auto ret {make_triangular_matrix<TriangleType::lower>(std::move(m))};
 
@@ -62,14 +62,14 @@ namespace OpenKalman
       {
         auto ret = make_triangular_matrix<TriangleType::lower>([](Scalar elem){
           constexpr auto dim = index_dimension_of_v<A, 0>;
-          auto col1 = make_constant<A>(elem, descriptor::Dimensions<dim>{}, descriptor::Axis{});
+          auto col1 = make_constant<A>(elem, coordinate::Dimensions<dim>{}, coordinate::Axis{});
           if constexpr (dim == 1) return col1;
-          else return concatenate<1>(std::move(col1), make_zero<A>(descriptor::Dimensions<dim>{}, descriptor::Dimensions<dim - 1>{}));
+          else return concatenate<1>(std::move(col1), make_zero<A>(coordinate::Dimensions<dim>{}, coordinate::Dimensions<dim - 1>{}));
         }(elem));
 
         // \todo Fix this:
         using C = vector_space_descriptor_of_t<A, 0>;
-        if constexpr (euclidean_vector_space_descriptor<C>) return ret;
+        if constexpr (coordinate::euclidean_pattern<C>) return ret;
         else return SquareRootCovariance {std::move(ret), C{}};
       }
     }

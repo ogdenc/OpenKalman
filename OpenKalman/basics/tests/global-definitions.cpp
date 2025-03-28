@@ -20,21 +20,21 @@
 using namespace OpenKalman;
 
 
-TEST(basics, Qualification)
+TEST(basics, Applicability)
 {
 
-  static_assert(Qualification::unqualified == not Qualification::depends_on_dynamic_shape);
-  static_assert((not Qualification::unqualified) == Qualification::depends_on_dynamic_shape);
+  static_assert(Applicability::guaranteed == not Applicability::permitted);
+  static_assert((not Applicability::guaranteed) == Applicability::permitted);
 
-  static_assert((Qualification::unqualified and Qualification::unqualified) == Qualification::unqualified);
-  static_assert((Qualification::unqualified and Qualification::depends_on_dynamic_shape) == Qualification::depends_on_dynamic_shape);
-  static_assert((Qualification::depends_on_dynamic_shape and Qualification::unqualified) == Qualification::depends_on_dynamic_shape);
-  static_assert((Qualification::depends_on_dynamic_shape and Qualification::depends_on_dynamic_shape) == Qualification::depends_on_dynamic_shape);
+  static_assert((Applicability::guaranteed and Applicability::guaranteed) == Applicability::guaranteed);
+  static_assert((Applicability::guaranteed and Applicability::permitted) == Applicability::permitted);
+  static_assert((Applicability::permitted and Applicability::guaranteed) == Applicability::permitted);
+  static_assert((Applicability::permitted and Applicability::permitted) == Applicability::permitted);
 
-  static_assert((Qualification::unqualified or Qualification::unqualified) == Qualification::unqualified);
-  static_assert((Qualification::unqualified or Qualification::depends_on_dynamic_shape) == Qualification::unqualified);
-  static_assert((Qualification::depends_on_dynamic_shape or Qualification::unqualified) == Qualification::unqualified);
-  static_assert((Qualification::depends_on_dynamic_shape or Qualification::depends_on_dynamic_shape) == Qualification::depends_on_dynamic_shape);
+  static_assert((Applicability::guaranteed or Applicability::guaranteed) == Applicability::guaranteed);
+  static_assert((Applicability::guaranteed or Applicability::permitted) == Applicability::guaranteed);
+  static_assert((Applicability::permitted or Applicability::guaranteed) == Applicability::guaranteed);
+  static_assert((Applicability::permitted or Applicability::permitted) == Applicability::permitted);
 }
 
 

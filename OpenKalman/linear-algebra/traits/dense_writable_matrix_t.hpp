@@ -24,16 +24,16 @@ namespace OpenKalman
    * \tparam T A matrix or array from the relevant matrix library.
    * \tparam S A scalar type (may or may not be </code>scalar_type_of_t<T></code>.
    * \tparam layout The /ref Layout of the result.
-   * \tparam D A \ref vector_space_descriptor_collection defining the new object. This will be derived from T if omitted.
+   * \tparam D A \ref pattern_collection defining the new object. This will be derived from T if omitted.
    */
 #ifdef __cpp_concepts
   template<indexible T, Layout layout = Layout::none, value::number S = scalar_type_of_t<T>,
-    vector_space_descriptor_collection D = decltype(all_vector_space_descriptors(std::declval<T>()))>
+    pattern_collection D = decltype(all_vector_space_descriptors(std::declval<T>()))>
       requires (layout != Layout::stride)
 #else
   template<typename T, Layout layout = Layout::none, typename S = scalar_type_of_t<T>,
     typename D = decltype(all_vector_space_descriptors(std::declval<T>())), std::enable_if_t<
-      indexible<T> and value::number<S> and vector_space_descriptor_collection<D>, int> = 0>
+      indexible<T> and value::number<S> and pattern_collection<D>, int> = 0>
 #endif
   using dense_writable_matrix_t = std::decay_t<decltype(make_dense_object<T, layout, S>(std::declval<D>()))>;
 

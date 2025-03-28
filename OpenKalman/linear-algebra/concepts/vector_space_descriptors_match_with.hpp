@@ -20,7 +20,7 @@
 namespace OpenKalman
 {
   /**
-   * \brief Specifies that a set of indexible objects have \ref equivalent_to "equivalent" vector space descriptors for each index.
+   * \brief Specifies that a set of indexible objects have equivalent vector space descriptors for each index.
    * \tparam Ts A set of \ref indexible objects
    * \sa vector_space_descriptors_may_match_with
    * \sa vector_space_descriptors_match

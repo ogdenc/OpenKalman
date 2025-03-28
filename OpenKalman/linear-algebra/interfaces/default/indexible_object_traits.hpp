@@ -67,16 +67,16 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Get the \ref vector_space_descriptor for index N of an argument.
+     * \brief Get the \ref coordinate::pattern for index N of an argument.
      * \details The implementation may assume that <code>n &lt; count_indices(t)</code>.
      * \note Mandatory. The simplest implementation is to return the dimension of index N as <code>std::size_t</code>
      * (if dynamic) or as <code>std::integral_constant&gt;std::size_t, ...&gt;</code> (if static).
      * \param n An index value less than the result of \ref count_indices
      * (e.g., 0 (dynamic) or <code>std::integral_constant&lt;std::size_t, 0&gt;</code> (static))
-     * \return A \ref vector_space_descriptor object (either static or dynamic) for dimension <code>n</code>.
+     * \return A \ref coordinate::pattern object (either static or dynamic) for dimension <code>n</code>.
      */
 #ifdef __cpp_concepts
-    static constexpr vector_space_descriptor auto
+    static constexpr coordinate::pattern auto
     get_vector_space_descriptor(const T& arg, const value::index auto& n) = delete;
 #else
     template<typename N, std::enable_if_t<value::index<N>, int> = 0>
@@ -133,7 +133,7 @@ namespace OpenKalman::interface
      * \details This can be useful because some types may erase information about the shape of their nested objects,
      * such as in an object that replicates an existing object in one or more directions.
      */
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool
     one_dimensional = false;
 
@@ -143,7 +143,7 @@ namespace OpenKalman::interface
      * \note: Optional. If omitted, T's status as square can usually be derived from the dimensions.
      * \details This can be useful because some types may erase information about the shape of their nested objects.
      */
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool
     is_square = false;
 

@@ -19,7 +19,7 @@
 namespace OpenKalman::internal
 {
 #ifdef __cpp_concepts
-  template<indexible NestedObject, vector_space_descriptor_tuple Descriptors> requires
+  template<indexible NestedObject, pattern_tuple Descriptors> requires
     compatible_with_vector_space_descriptor_collection<NestedObject, Descriptors> and
     internal::not_more_fixed_than<NestedObject, Descriptors> and internal::less_fixed_than<NestedObject, Descriptors>
 #else
@@ -31,7 +31,7 @@ namespace OpenKalman::internal
 
 #ifndef __cpp_concepts
     static_assert(indexible<NestedObject>);
-    static_assert(vector_space_descriptor_tuple<Descriptors>);
+    static_assert(pattern_tuple<Descriptors>);
     static_assert(compatible_with_vector_space_descriptor_collection<NestedObject, Descriptors>);
     static_assert(internal::not_more_fixed_than<NestedObject, Descriptors>);
     static_assert(internal::less_fixed_than<NestedObject, Descriptors>);
@@ -47,7 +47,7 @@ namespace OpenKalman::internal
     /**
      * \brief Construct from a compatible indexible object.
      * \tparam Arg An \ref indexible object
-     * \tparam D A compatible \ref vector_space_descriptor_collection
+     * \tparam D A compatible \ref pattern_collection
      */
 #ifdef __cpp_concepts
     template<compatible_with_vector_space_descriptor_collection<Descriptors> Arg> requires
@@ -62,16 +62,16 @@ namespace OpenKalman::internal
 
     /**
      * \overload
-     * \tparam Ds A set of optional \ref vector_space_descriptor objects,
+     * \tparam Ds A set of optional \ref coordinate::pattern objects,
      * which if included must be compatible with those of the FixedSizeAdapter
      */
 #ifdef __cpp_concepts
-    template<compatible_with_vector_space_descriptor_collection<Descriptors> Arg, vector_space_descriptor...Ds> requires
+    template<compatible_with_vector_space_descriptor_collection<Descriptors> Arg, coordinate::pattern...Ds> requires
       (sizeof...(Ds) == 0 or std::same_as<std::tuple<Ds...>, Descriptors>) and
       std::constructible_from<NestedObject, Arg&&> and (not fixed_size_adapter<Arg>)
 #else
     template<typename Arg, typename...Ds, std::enable_if_t<
-      compatible_with_vector_space_descriptors<Arg, Vs...> and (... and vector_space_descriptor<Ds>) and
+      compatible_with_vector_space_descriptors<Arg, Vs...> and (... and coordinate::pattern<Ds>) and
       std::is_same_v<std::tuple<Ds...>, Descriptors> and
       std::is_constructible_v<NestedObject, Arg&&> and (not fixed_size_adapter<Arg>), int> = 0>
 #endif
@@ -97,16 +97,16 @@ namespace OpenKalman::internal
      * \overload
      * \brief Construct from another FixedSizeAdapter.
      * \tparam Arg A \ref fixed_size_adapter
-     * \tparam Ds A set of optional \ref vector_space_descriptor objects,
+     * \tparam Ds A set of optional \ref coordinate::pattern objects,
      * which if included must be compatible with those of the FixedSizeAdapter
      */
 #ifdef __cpp_concepts
-    template<compatible_with_vector_space_descriptor_collection<Descriptors> Arg, vector_space_descriptor...Ds> requires
+    template<compatible_with_vector_space_descriptor_collection<Descriptors> Arg, coordinate::pattern...Ds> requires
       (sizeof...(Ds) == 0 or std::same_as<std::tuple<Ds...>, Descriptors>) and
       std::constructible_from<NestedObject, nested_object_of_t<Arg&&>> and fixed_size_adapter<Arg>
 #else
     template<typename Arg, typename...Ds, std::enable_if_t<
-      compatible_with_vector_space_descriptors<Arg, Vs...> and (... and vector_space_descriptor<Ds>) and
+      compatible_with_vector_space_descriptors<Arg, Vs...> and (... and coordinate::pattern<Ds>) and
       std::is_same_v<std::tuple<Ds...>, Descriptors> and
       std::is_constructible_v<NestedObject, nested_object_of_t<Arg&&>> and fixed_size_adapter<Arg>, int> = 0>
 #endif
@@ -146,37 +146,37 @@ namespace OpenKalman::internal
   // ------------------ //
 
 #ifdef __cpp_concepts
-    template<indexible Arg, vector_space_descriptor_collection Descriptors> requires (not fixed_size_adapter<Arg>)
+    template<indexible Arg, pattern_collection Descriptors> requires (not fixed_size_adapter<Arg>)
 #else
-    template<typename Arg, typename...Vs, std::enable_if_t<indexible<Arg> and vector_space_descriptor_collection<Descriptors> and
+    template<typename Arg, typename...Vs, std::enable_if_t<indexible<Arg> and pattern_collection<Descriptors> and
       (not fixed_size_adapter<Arg>), int> = 0>
 #endif
     FixedSizeAdapter(Arg&&, const Descriptors&) -> FixedSizeAdapter<Arg, Descriptors>;
 
 
 #ifdef __cpp_concepts
-    template<indexible Arg, vector_space_descriptor...Vs> requires (not fixed_size_adapter<Arg>)
+    template<indexible Arg, coordinate::pattern...Vs> requires (not fixed_size_adapter<Arg>)
 #else
-    template<typename Arg, typename...Vs, std::enable_if_t<indexible<Arg> and (... and vector_space_descriptor<Vs>) and
+    template<typename Arg, typename...Vs, std::enable_if_t<indexible<Arg> and (... and coordinate::pattern<Vs>) and
       (not fixed_size_adapter<Arg>), int> = 0>
 #endif
     FixedSizeAdapter(Arg&&, const Vs&...) -> FixedSizeAdapter<Arg, std::tuple<Vs...>>;
 
 
 #ifdef __cpp_concepts
-    template<fixed_size_adapter Arg, vector_space_descriptor_collection Descriptors>
+    template<fixed_size_adapter Arg, pattern_collection Descriptors>
 #else
-    template<typename Arg, typename Descriptors, std::enable_if_t<fixed_size_adapter<Arg> and vector_space_descriptor_collection<Descriptors>, int> = 0>
+    template<typename Arg, typename Descriptors, std::enable_if_t<fixed_size_adapter<Arg> and pattern_collection<Descriptors>, int> = 0>
 #endif
     FixedSizeAdapter(Arg&&, const Descriptors&) ->
       FixedSizeAdapter<internal::remove_rvalue_reference_t<nested_object_of_t<Arg&&>>, Descriptors>;
 
 
 #ifdef __cpp_concepts
-    template<fixed_size_adapter Arg, vector_space_descriptor...Vs>
+    template<fixed_size_adapter Arg, coordinate::pattern...Vs>
 #else
     template<typename Arg, typename...Vs, std::enable_if_t<
-      fixed_size_adapter<Arg> and (... and vector_space_descriptor<Vs>), int> = 0>
+      fixed_size_adapter<Arg> and (... and coordinate::pattern<Vs>), int> = 0>
 #endif
     FixedSizeAdapter(Arg&&, const Vs&...) ->
       FixedSizeAdapter<internal::remove_rvalue_reference_t<nested_object_of_t<Arg&&>>, std::tuple<Vs...>>;

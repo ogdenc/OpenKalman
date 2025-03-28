@@ -142,7 +142,7 @@ namespace OpenKalman
    * indexible_object_traits outside the diagonal are automatically 0.
    */
 #ifdef __cpp_concepts
-  template<vector<0, Qualification::depends_on_dynamic_shape> NestedMatrix>
+  template<vector<0, Applicability::permitted> NestedMatrix>
 #else
   template<typename NestedMatrix>
 #endif
@@ -191,7 +191,7 @@ namespace OpenKalman
    * diagonal.
    */
 #ifdef __cpp_concepts
-  template<square_shaped<Qualification::depends_on_dynamic_shape> NestedMatrix, HermitianAdapterType storage_triangle =
+  template<square_shaped<Applicability::permitted> NestedMatrix, HermitianAdapterType storage_triangle =
       triangular_matrix<NestedMatrix, TriangleType::diagonal> ? HermitianAdapterType::lower :
       triangular_matrix<NestedMatrix, TriangleType::upper> ? HermitianAdapterType::upper : HermitianAdapterType::lower> requires
     (index_count_v<NestedMatrix> <= 2) and
@@ -246,7 +246,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<
-    square_shaped<Qualification::depends_on_dynamic_shape> NestedMatrix,
+    square_shaped<Applicability::permitted> NestedMatrix,
     TriangleType triangle_type = (diagonal_matrix<NestedMatrix> ? TriangleType::diagonal :
       (triangular_matrix<NestedMatrix, TriangleType::upper> ? TriangleType::upper : TriangleType::lower))>
     requires (index_count_v<NestedMatrix> <= 2)
@@ -289,10 +289,10 @@ namespace OpenKalman
    * \brief An adapter that adds vector space descriptors for each index.
    * \details Any vector space descriptors associated with NestedObject are overwritten.
    * \tparam Arg An \ref indexible object.
-   * \taram Vs A set of \ref vector_space_descriptor objects
+   * \taram Vs A set of \ref coordinate::pattern objects
    */
 #ifdef __cpp_concepts
-  template<indexible NestedObject, vector_space_descriptor_collection Descriptors>
+  template<indexible NestedObject, pattern_collection Descriptors>
   requires internal::not_more_fixed_than<NestedObject, Descriptors> and (not internal::less_fixed_than<NestedObject, Descriptors>) and
     internal::maybe_same_shape_as_vector_space_descriptors<NestedObject, Descriptors>
 #else
@@ -335,11 +335,11 @@ namespace OpenKalman
    * \brief An expression that transforms angular or other modular vector space descriptors back from Euclidean space.
    * \details This is the counterpart expression to ToEuclideanExpr.
    * \tparam NestedObject The pre-transformed column vector, or set of column vectors in the form of a matrix.
-   * \tparam RowDescriptor The \ref vector_space_descriptor of the first index.
+   * \tparam RowDescriptor The \ref coordinate::pattern of the first index.
    */
 #ifdef __cpp_concepts
-  template<indexible NestedObject, vector_space_descriptor RowDescriptor> requires 
-    maybe_equivalent_to<vector_space_descriptor_of<NestedObject, 0>, descriptor::Dimensions<euclidean_dimension_size_of_v<RowDescriptor>>>
+  template<indexible NestedObject, coordinate::pattern RowDescriptor> requires
+    compares_with<vector_space_descriptor_of<NestedObject, 0>, coordinate::Dimensions<coordinate::euclidean_size_of_v<RowDescriptor>>, equal_to<>, Applicability::permitted>
 #else
   template<typename NestedMatrix, typename RowDescriptor>
 #endif
@@ -425,9 +425,9 @@ namespace OpenKalman
    * \details It is a wrapper for a native matrix type from a supported matrix library such as Eigen.
    * The matrix can be thought of as a tests from X to Y, where the coefficients for each of X and Y are typed.
    * Example declarations:
-   * - <code>Matrix<StaticDescriptor<Axis, Axis, angle::Radians>, StaticDescriptor<Axis, Axis>,
+   * - <code>Matrix<std::tuple<Axis, Axis, angle::Radians>, Dimensions<2>,
    * eigen_matrix_t<double, 3, 2>> x;</code>
-   * - <code>Matrix<double, StaticDescriptor<Axis, Axis, angle::Radians>, StaticDescriptor<Axis, Axis>,
+   * - <code>Matrix<double, std::tuple<Axis, Axis, angle::Radians>, Dimensions<2>,
    * eigen_matrix_t<double, 3, 2>> x;</code>
    * \tparam RowCoefficients A set of \ref OpenKalman::coefficients "coefficients" (e.g., Axis, Spherical, etc.)
    * corresponding to the rows.
@@ -436,12 +436,12 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<static_vector_space_descriptor RowCoefficients, static_vector_space_descriptor ColumnCoefficients, typed_matrix_nestable NestedMatrix>
-  requires (dimension_size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
-    (dimension_size_of_v<ColumnCoefficients> == index_dimension_of_v<NestedMatrix, 1>) and
+  template<fixed_pattern RowCoefficients, fixed_pattern ColumnCoefficients, typed_matrix_nestable NestedMatrix>
+  requires (coordinate::size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
+    (coordinate::size_of_v<ColumnCoefficients> == index_dimension_of_v<NestedMatrix, 1>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
-    (dynamic_vector_space_descriptor<RowCoefficients> == dynamic_dimension<NestedMatrix, 0>) and
-    (dynamic_vector_space_descriptor<ColumnCoefficients> == dynamic_dimension<NestedMatrix, 1>)
+    (dynamic_pattern<RowCoefficients> == dynamic_dimension<NestedMatrix, 0>) and
+    (dynamic_pattern<ColumnCoefficients> == dynamic_dimension<NestedMatrix, 1>)
 #else
   template<typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
 #endif
@@ -460,7 +460,7 @@ namespace OpenKalman
    * \details Unlike OpenKalman::Matrix, the columns of a Mean are untyped. When a Mean is converted to an
    * OpenKalman::Matrix, the columns are assigned type Axis.
    * Example declaration:
-   * <code>Mean<StaticDescriptor<Axis, Axis, angle::Radians>, 1, eigen_matrix_t<double, 3, 1>> x;</code>
+   * <code>Mean<std::tuple<Axis, Axis, angle::Radians>, 1, eigen_matrix_t<double, 3, 1>> x;</code>
    * This declares a 3-dimensional vector <var>x</var>, where the coefficients are, respectively, an Axis,
    * an Axis, and an angle::Radians, all of scalar type <code>double</code>. The underlying representation is an
    * Eigen3 column vector.
@@ -468,8 +468,8 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<static_vector_space_descriptor Descriptor, typed_matrix_nestable NestedMatrix> requires
-  (dimension_size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
+  template<fixed_pattern Descriptor, typed_matrix_nestable NestedMatrix> requires
+  (coordinate::size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
   (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Descriptor, typename NestedMatrix>
@@ -488,7 +488,7 @@ namespace OpenKalman
    * \brief Similar to a Mean, but the coefficients are transformed into Euclidean space, based on their type.
    * \details Means containing angles should be converted to EuclideanMean before taking an average or weighted average.
    * Example declaration:
-   * <code>EuclideanMean<StaticDescriptor<Axis, Axis, angle::Radians>, 1, eigen_matrix_t<double, 4, 1>> x;</code>
+   * <code>EuclideanMean<std::tuple<Axis, Axis, angle::Radians>, 1, eigen_matrix_t<double, 4, 1>> x;</code>
    * This declares a 3-dimensional mean <var>x</var>, where the coefficients are, respectively, an Axis,
    * an Axis, and an angle::Radians, all of scalar type <code>double</code>. The underlying representation is a
    * four-dimensional vector in Euclidean space, with the last two of the dimensions representing the angle::Radians coefficient
@@ -497,8 +497,8 @@ namespace OpenKalman
    * \tparam NestedMatrix The underlying native matrix or matrix expression.
    */
 #ifdef __cpp_concepts
-  template<static_vector_space_descriptor Descriptor, typed_matrix_nestable NestedMatrix> requires
-  (euclidean_dimension_size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  template<fixed_pattern Descriptor, typed_matrix_nestable NestedMatrix> requires
+  (coordinate::euclidean_size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Descriptor, typename NestedMatrix>
 #endif
@@ -522,8 +522,8 @@ namespace OpenKalman
    * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<static_vector_space_descriptor Descriptor, covariance_nestable NestedMatrix> requires
-    (dimension_size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
+  template<fixed_pattern Descriptor, covariance_nestable NestedMatrix> requires
+    (coordinate::size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and value::number<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename Descriptor, typename NestedMatrix>
@@ -550,8 +550,8 @@ namespace OpenKalman
    * are functionally identical, but often the triangular version is more efficient.
    */
 #ifdef __cpp_concepts
-  template<static_vector_space_descriptor Descriptor, covariance_nestable NestedMatrix> requires
-    (dimension_size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
+  template<fixed_pattern Descriptor, covariance_nestable NestedMatrix> requires
+    (coordinate::size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and value::number<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename Descriptor, typename NestedMatrix>
@@ -607,11 +607,11 @@ namespace OpenKalman
      * \internal
      * \brief Wraps a dynamic-sized input, immutably, in a wrapper that has one or more fixed dimensions.
      * \tparam NestedMatrix The underlying native matrix or matrix expression.
-     * \tparam Descriptors A \ref vector_space_descriptor_tuple (preferably but not necessarily a \ref static_vector_space_descriptor_tuple).
+     * \tparam Descriptors A \ref pattern_tuple (preferably but not necessarily a \ref fixed_pattern_tuple).
      * If this set is empty, the object is treated as a \ref one_dimensional.
      */
   #ifdef __cpp_concepts
-    template<indexible NestedObject, vector_space_descriptor_tuple Descriptors> requires
+    template<indexible NestedObject, pattern_tuple Descriptors> requires
       compatible_with_vector_space_descriptor_collection<NestedObject, Descriptors> and
       internal::not_more_fixed_than<NestedObject, Descriptors> and internal::less_fixed_than<NestedObject, Descriptors>
   #else
@@ -659,7 +659,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<
-    static_vector_space_descriptor Descriptor,
+    fixed_pattern Descriptor,
     typed_matrix_nestable MeanNestedMatrix,
     covariance_nestable CovarianceNestedMatrix,
     std::uniform_random_bit_generator random_number_engine = std::mt19937> requires

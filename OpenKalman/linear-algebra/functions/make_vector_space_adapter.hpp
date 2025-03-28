@@ -22,21 +22,21 @@ namespace OpenKalman
    * \brief If necessary, wrap an object in a wrapper that adds vector space descriptors for each index.
    * \details Any vector space descriptors in the argument are overwritten.
    * \tparam Arg An \ref indexible object.
-   * \taram Ds A set of \ref vector_space_descriptor objects
+   * \taram Ds A set of \ref coordinate::pattern objects
    */
 #ifdef __cpp_concepts
-  template<indexible Arg, vector_space_descriptor_collection Descriptors> requires
+  template<indexible Arg, pattern_collection Descriptors> requires
     internal::not_more_fixed_than<Arg, Descriptors> and (not internal::less_fixed_than<Arg, Descriptors>) and
     internal::maybe_same_shape_as_vector_space_descriptors<Arg, Descriptors>
 #else
   template<typename Arg, typename Descriptors, std::enable_if_t<
-    indexible<Arg> and vector_space_descriptor_collection<Descriptors> and
+    indexible<Arg> and pattern_collection<Descriptors> and
     internal::not_more_fixed_than<Arg, Descriptors> and (not internal::less_fixed_than<Arg, Descriptors>) and
     internal::maybe_same_shape_as_vector_space_descriptors<Arg, Descriptors>, int> = 0>
 #endif
   inline auto make_vector_space_adapter(Arg&& arg, Descriptors&& descriptors)
   {
-    if constexpr (static_vector_space_descriptor_tuple<Descriptors> and
+    if constexpr (fixed_pattern_tuple<Descriptors> and
         compatible_with_vector_space_descriptor_collection<Arg, Descriptors>)
       return std::forward<Arg>(arg);
     else
@@ -46,16 +46,16 @@ namespace OpenKalman
 
   /**
    * \overload
-   * \brief \ref vector_space_descriptor objects are passed as arguments.
+   * \brief \ref coordinate::pattern objects are passed as arguments.
    */
 #ifdef __cpp_concepts
-  template<indexible Arg, vector_space_descriptor...Ds> requires
+  template<indexible Arg, coordinate::pattern...Ds> requires
     internal::not_more_fixed_than<Arg, std::tuple<Ds...>> and
     (not internal::less_fixed_than<Arg, std::tuple<Ds...>>) and
     internal::maybe_same_shape_as_vector_space_descriptors<Arg, std::tuple<Ds...>>
 #else
   template<typename Arg, typename...Ds, std::enable_if_t<
-    indexible<Arg> and (... and vector_space_descriptor<Ds>) and
+    indexible<Arg> and (... and coordinate::pattern<Ds>) and
     internal::not_more_fixed_than<Arg, std::tuple<Ds...>> and
     (not internal::less_fixed_than<Arg, std::tuple<Ds...>>) and
     internal::maybe_same_shape_as_vector_space_descriptors<Arg, std::tuple<Ds...>>, int> = 0>
@@ -71,11 +71,11 @@ namespace OpenKalman
    * \brief Create an adapter in which all vector space descriptors are static.
    */
 #ifdef __cpp_concepts
-  template<static_vector_space_descriptor...Ds, indexible Arg> requires (not has_dynamic_dimensions<Arg>) and
+  template<fixed_pattern...Ds, indexible Arg> requires (not has_dynamic_dimensions<Arg>) and
     (sizeof...(Ds) > 0) and internal::maybe_same_shape_as_vector_space_descriptors<Arg, std::tuple<Ds...>>
 #else
   template<typename...Ds, typename Arg, std::enable_if_t<
-    indexible<Arg> and (... and static_vector_space_descriptor<Ds>) and
+    indexible<Arg> and (... and fixed_pattern<Ds>) and
     (not has_dynamic_dimensions<Arg>) and (sizeof...(Ds) > 0) and
     internal::maybe_same_shape_as_vector_space_descriptors<Arg, std::tuple<Ds...>>, int> = 0>
 #endif

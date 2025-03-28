@@ -23,14 +23,14 @@ TEST(eigen3, Eigen_Reverse)
   static_assert(index_dimension_of_v<Eigen::Reverse<Mx2, Eigen::BothDirections>, 1> == 2);
 
   static_assert(one_dimensional<Eigen::Reverse<M11, Eigen::Vertical>>);
-  static_assert(one_dimensional<Eigen::Reverse<M1x, Eigen::Horizontal>, Qualification::depends_on_dynamic_shape>);
-  static_assert(one_dimensional<Eigen::Reverse<Mx1, Eigen::BothDirections>, Qualification::depends_on_dynamic_shape>);
-  static_assert(one_dimensional<Eigen::Reverse<Mxx, Eigen::Vertical>, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<Eigen::Reverse<M1x, Eigen::Horizontal>, Applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Reverse<Mx1, Eigen::BothDirections>, Applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Reverse<Mxx, Eigen::Vertical>, Applicability::permitted>);
 
   static_assert(square_shaped<Eigen::Reverse<M22, Eigen::BothDirections>>);
-  static_assert(square_shaped<Eigen::Reverse<M2x, Eigen::BothDirections>, Qualification::depends_on_dynamic_shape>);
-  static_assert(square_shaped<Eigen::Reverse<Mx2, Eigen::BothDirections>, Qualification::depends_on_dynamic_shape>);
-  static_assert(square_shaped<Eigen::Reverse<Mxx, Eigen::BothDirections>, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Eigen::Reverse<M2x, Eigen::BothDirections>, Applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reverse<Mx2, Eigen::BothDirections>, Applicability::permitted>);
+  static_assert(square_shaped<Eigen::Reverse<Mxx, Eigen::BothDirections>, Applicability::permitted>);
 
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().reverse())> == 2);
   static_assert(constant_coefficient_v<decltype(std::declval<C21_2>().reverse())> == 2);

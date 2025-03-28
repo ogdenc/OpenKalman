@@ -11,7 +11,7 @@
 #include "kalman.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptor;
+using namespace OpenKalman::coordinate;
 using namespace OpenKalman::test;
 
 using numbers::pi;

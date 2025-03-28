@@ -27,7 +27,7 @@ namespace OpenKalman
     template<std::size_t index, typename Arg, typename...Ds>
     constexpr void check_split_vector_space_descriptor(Arg&& arg, Ds&&...ds)
     {
-      if constexpr ((dynamic_vector_space_descriptor<Ds> or ... or dynamic_dimension<Arg, index>))
+      if constexpr ((dynamic_pattern<Ds> or ... or dynamic_dimension<Arg, index>))
       {
         if (not ((get_size(ds) + ... + std::size_t{0}) <= get_vector_space_descriptor<index>(arg)))
           throw std::logic_error {"When concatenated, the vector space descriptors provided to split function are not a "
@@ -35,7 +35,7 @@ namespace OpenKalman
       }
       else
       {
-        static_assert(internal::prefix_of<descriptor::StaticDescriptor<std::decay_t<Ds>...>, vector_space_descriptor_of_t<Arg, index>>,
+        static_assert(coordinate::compares_with<std::tuple<std::decay_t<Ds>...>, vector_space_descriptor_of_t<Arg, index>, less_equal<>>,
           "Concatenated vector space descriptors provided to split function must be a prefix of the argument's vector space descriptor");
       }
     }
@@ -73,13 +73,13 @@ namespace OpenKalman
    * \tparam indices The indices along which to make the split. E.g., 0 means to split along rows,
    * 1 means to split along columns, {0, 1} means to split diagonally.
    * \tparam Arg The matrix or tensor to be split.
-   * \tparam Ds A set of \ref vector_space_descriptor (the same for for each of indices)
+   * \tparam Ds A set of \ref coordinate::pattern (the same for for each of indices)
    */
 #ifdef __cpp_concepts
-  template<std::size_t...indices, indexible Arg, vector_space_descriptor...Ds> requires (sizeof...(indices) > 0)
+  template<std::size_t...indices, indexible Arg, coordinate::pattern...Ds> requires (sizeof...(indices) > 0)
 #else
   template<std::size_t...indices, typename Arg, typename...Ds, std::enable_if_t<indexible<Arg> and
-    (vector_space_descriptor<Ds> and ...) and (sizeof...(indices) > 0), int> = 0>
+    (coordinate::pattern<Ds> and ...) and (sizeof...(indices) > 0), int> = 0>
 #endif
   inline auto
   split(Arg&& arg, Ds&&...ds)
@@ -135,7 +135,7 @@ namespace OpenKalman
    * \tparam indices The indices along which to make the split. E.g., 0 means to split along rows,
    * 1 means to split along columns, {0, 1} means to split diagonally.
    * \tparam Arg The matrix or tensor to be split.
-   * \tparam Ds_tups A set of tuples of \ref vector_space_descriptor objects, each tuple having <code>sizeof...(indices)</code> elements
+   * \tparam Ds_tups A set of tuples of \ref coordinate::pattern objects, each tuple having <code>sizeof...(indices)</code> elements
    */
 #ifdef __cpp_concepts
   template<std::size_t...indices, indexible Arg, typename...Ds_tups> requires

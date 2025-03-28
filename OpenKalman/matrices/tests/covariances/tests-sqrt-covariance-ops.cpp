@@ -11,11 +11,11 @@
 #include "covariances.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptor;
+using namespace OpenKalman::coordinate;
 using namespace OpenKalman::test;
 
 using M2 = eigen_matrix_t<double, 2, 2>;
-using C = StaticDescriptor<angle::Radians, Axis>;
+using C = std::tuple<angle::Radians, Axis>;
 using Mat2 = Matrix<C, C, M2>;
 using Mat2col = Matrix<C, Axis, eigen_matrix_t<double, 2, 1>>;
 using SA2l = HermitianAdapter<M2, TriangleType::lower>;
@@ -640,7 +640,7 @@ TEST(covariance_tests, SquareRootCovariance_mult_TypedMatrix)
   using MatZ2 = Matrix<C, C, Z2>;
   auto mati2 = MatI2(i2);
   auto matz2 = MatZ2(z2);
-  using Cx = StaticDescriptor<Axis, angle::Radians>;
+  using Cx = std::tuple<Axis, angle::Radians>;
   using MatI2x = Matrix<C, Cx, I2>;
   auto mati2x = MatI2x(i2);
 
@@ -650,8 +650,8 @@ TEST(covariance_tests, SquareRootCovariance_mult_TypedMatrix)
   EXPECT_TRUE(is_near(sqCovSA2l * matz2, Mat2 {0, 0, 0, 0}));
   static_assert(hermitian_adapter<decltype((sqCovSA2l * mati2).get_self_adjoint_nested_matrix()), HermitianAdapterType::lower>);
   static_assert(zero<decltype((sqCovSA2l * matz2).nested_object())>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(sqCovSA2l * mati2x), 0>, C>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(sqCovSA2l * mati2x), 1>, Cx>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(sqCovSA2l * mati2x), 0>, C>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(sqCovSA2l * mati2x), 1>, Cx>);
 
   auto sqCovSA2u = SqCovSA2u {3, 1, 0, 3};
   EXPECT_TRUE(is_near(sqCovSA2u * Mat2 {4, 2, 2, 5}, Mat2 {14, 11, 6, 15}));
@@ -659,8 +659,8 @@ TEST(covariance_tests, SquareRootCovariance_mult_TypedMatrix)
   EXPECT_TRUE(is_near(sqCovSA2u * matz2, Mat2 {0, 0, 0, 0}));
   static_assert(hermitian_adapter<decltype((sqCovSA2u * mati2).get_self_adjoint_nested_matrix()), HermitianAdapterType::upper>);
   static_assert(zero<decltype((sqCovSA2u * matz2).nested_object())>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(sqCovSA2u * mati2x), 0>, C>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(sqCovSA2u * mati2x), 1>, Cx>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(sqCovSA2u * mati2x), 0>, C>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(sqCovSA2u * mati2x), 1>, Cx>);
 
   auto sqCovT2l = SqCovT2l {3, 0, 1, 3};
   EXPECT_TRUE(is_near(sqCovT2l * Mat2 {4, 2, 2, 5}, Mat2 {12, 6, 10, 17}));
@@ -668,8 +668,8 @@ TEST(covariance_tests, SquareRootCovariance_mult_TypedMatrix)
   EXPECT_TRUE(is_near(sqCovT2l * matz2, Mat2 {0, 0, 0, 0}));
   static_assert(triangular_matrix<decltype((sqCovT2l * mati2).get_triangular_nested_matrix()), TriangleType::lower>);
   static_assert(zero<decltype((sqCovT2l * matz2).nested_object())>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(sqCovT2l * mati2x), 0>, C>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(sqCovT2l * mati2x), 1>, Cx>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(sqCovT2l * mati2x), 0>, C>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(sqCovT2l * mati2x), 1>, Cx>);
 
   auto sqCovT2u = SqCovT2u {3, 1, 0, 3};
   EXPECT_TRUE(is_near(sqCovT2u * Mat2 {4, 2, 2, 5}, Mat2 {14, 11, 6, 15}));
@@ -677,8 +677,8 @@ TEST(covariance_tests, SquareRootCovariance_mult_TypedMatrix)
   EXPECT_TRUE(is_near(sqCovT2u * matz2, Mat2 {0, 0, 0, 0}));
   static_assert(triangular_matrix<decltype((sqCovT2u * mati2).get_triangular_nested_matrix()), TriangleType::upper>);
   static_assert(zero<decltype((sqCovT2u * matz2).nested_object())>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(sqCovT2u * mati2x), 0>, C>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(sqCovT2u * mati2x), 1>, Cx>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(sqCovT2u * mati2x), 0>, C>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(sqCovT2u * mati2x), 1>, Cx>);
 
   auto sqCovD2 = SqCovD2 {3, 3};
   EXPECT_TRUE(is_near(sqCovD2 * Mat2 {4, 2, 2, 5}, Mat2 {12, 6, 6, 15}));
@@ -686,24 +686,24 @@ TEST(covariance_tests, SquareRootCovariance_mult_TypedMatrix)
   EXPECT_TRUE(is_near(sqCovD2 * matz2, Mat2 {0, 0, 0, 0}));
   static_assert(diagonal_matrix<decltype((sqCovD2 * mati2).get_triangular_nested_matrix())>);
   static_assert(zero<decltype((sqCovD2 * matz2).nested_object())>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(sqCovD2 * mati2x), 0>, C>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(sqCovD2 * mati2x), 1>, Cx>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(sqCovD2 * mati2x), 0>, C>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(sqCovD2 * mati2x), 1>, Cx>);
 
   EXPECT_TRUE(is_near(sqcovi2 * Mat2 {4, 2, 2, 5}, Mat2 {4, 2, 2, 5}));
   EXPECT_TRUE(is_near(sqcovi2 * mati2, Mat2 {1, 0, 0, 1}));
   EXPECT_TRUE(is_near(sqcovi2 * matz2, Mat2 {0, 0, 0, 0}));
   static_assert(identity_matrix<decltype((sqcovi2 * mati2).get_triangular_nested_matrix())>);
   static_assert(zero<decltype((sqcovi2 * matz2).nested_object())>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(sqcovi2 * mati2x), 0>, C>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(sqcovi2 * mati2x), 1>, Cx>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(sqcovi2 * mati2x), 0>, C>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(sqcovi2 * mati2x), 1>, Cx>);
 
   EXPECT_TRUE(is_near(sqcovz2 * Mat2 {4, 2, 2, 5}, Mat2 {0, 0, 0, 0}));
   EXPECT_TRUE(is_near(sqcovz2 * mati2, Mat2 {0, 0, 0, 0}));
   EXPECT_TRUE(is_near(sqcovz2 * matz2, Mat2 {0, 0, 0, 0}));
   static_assert(zero<decltype((sqcovz2 * mati2).nested_object())>);
   static_assert(zero<decltype((sqcovz2 * matz2).nested_object())>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(sqcovz2 * mati2x), 0>, C>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(sqcovz2 * mati2x), 1>, Cx>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(sqcovz2 * mati2x), 0>, C>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(sqcovz2 * mati2x), 1>, Cx>);
 }
 
 
@@ -767,7 +767,7 @@ TEST(covariance_tests, SquareRootCovariance_mult_scalar)
 
 TEST(covariance_tests, SquareRootCovariance_scale)
 {
-  Matrix<StaticDescriptor<angle::Radians, Axis, angle::Radians>, C> a1 {1, 2, 3, 4, 5, 6};
+  Matrix<std::tuple<angle::Radians, Axis, angle::Radians>, C> a1 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(scale(SqCovSA2l {2, 0, 1, 2}, 2), Mat2 {4, 0, 2, 4}));
   EXPECT_TRUE(is_near(scale(SqCovSA2u {2, 1, 0, 2}, 2), Mat2 {4, 2, 0, 4}));
   EXPECT_TRUE(is_near(scale(SqCovT2l {2, 0, 1, 2}, 2), Mat2 {4, 0, 2, 4}));
@@ -792,7 +792,7 @@ TEST(covariance_tests, SquareRootCovariance_scale)
 
   // Rank-deficient case
   using M3 = eigen_matrix_t<double, 3, 3>;
-  using Mat3 = Matrix<StaticDescriptor<angle::Radians, Axis, angle::Radians>, StaticDescriptor<angle::Radians, Axis, angle::Radians>, M3>;
+  using Mat3 = Matrix<std::tuple<angle::Radians, Axis, angle::Radians>, std::tuple<angle::Radians, Axis, angle::Radians>, M3>;
   EXPECT_TRUE(is_near(square(scale(SqCovSA2l {2, 0, 1, 2}, a1)), Mat3 {32, 72, 112, 72, 164, 256, 112, 256, 400}));
   EXPECT_TRUE(is_near(square(scale(SqCovSA2u {2, 1, 0, 2}, a1)), Mat3 {32, 72, 112, 72, 164, 256, 112, 256, 400}));
   EXPECT_TRUE(is_near(square(scale(SqCovT2l {2, 0, 1, 2}, a1)), Mat3 {32, 72, 112, 72, 164, 256, 112, 256, 400}));
@@ -805,18 +805,18 @@ TEST(covariance_tests, SquareRootCovariance_scale)
   static_assert(hermitian_adapter<decltype(scale(SqCovD2 {1, 2}, a1).get_self_adjoint_nested_matrix()), HermitianAdapterType::lower>);
 
   // Rank-sufficient case
-  using SqCovSA3l = SquareRootCovariance<StaticDescriptor<angle::Radians, Axis, angle::Radians>, HermitianAdapter<M3, TriangleType::lower>>;
-  using SqCovSA3u = SquareRootCovariance<StaticDescriptor<angle::Radians, Axis, angle::Radians>, HermitianAdapter<M3, TriangleType::upper>>;
-  using SqCovT3l = SquareRootCovariance<StaticDescriptor<angle::Radians, Axis, angle::Radians>, TriangularAdapter<M3, TriangleType::lower>>;
-  using SqCovT3u = SquareRootCovariance<StaticDescriptor<angle::Radians, Axis, angle::Radians>, TriangularAdapter<M3, TriangleType::upper>>;
-  using SqCovD3 = SquareRootCovariance<StaticDescriptor<angle::Radians, Axis, angle::Radians>, DiagonalAdapter<eigen_matrix_t<double, 3, 1>>>;
+  using SqCovSA3l = SquareRootCovariance<std::tuple<angle::Radians, Axis, angle::Radians>, HermitianAdapter<M3, TriangleType::lower>>;
+  using SqCovSA3u = SquareRootCovariance<std::tuple<angle::Radians, Axis, angle::Radians>, HermitianAdapter<M3, TriangleType::upper>>;
+  using SqCovT3l = SquareRootCovariance<std::tuple<angle::Radians, Axis, angle::Radians>, TriangularAdapter<M3, TriangleType::lower>>;
+  using SqCovT3u = SquareRootCovariance<std::tuple<angle::Radians, Axis, angle::Radians>, TriangularAdapter<M3, TriangleType::upper>>;
+  using SqCovD3 = SquareRootCovariance<std::tuple<angle::Radians, Axis, angle::Radians>, DiagonalAdapter<eigen_matrix_t<double, 3, 1>>>;
   Mat3 q1l {4, 0, 0,
             2, 5, 0,
             2, 3, 6};
   Mat3 q1u {4, 2, 2,
             0, 5, 3,
             0, 0, 6};
-  Matrix<C, StaticDescriptor<angle::Radians, Axis, angle::Radians>> b1 {1, 2, 3, 4, 5, 6};
+  Matrix<C, std::tuple<angle::Radians, Axis, angle::Radians>> b1 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(square(scale(SqCovSA3l(q1l), b1)), Mat2 {881, 1997, 1997, 4589}));
   SqCovSA3l sqcovsa3lq1l {q1l}; EXPECT_TRUE(is_near(square(scale(sqcovsa3lq1l, b1)), Mat2 {881, 1997, 1997, 4589}));
   EXPECT_TRUE(is_near(square(scale(SqCovSA3u(q1u), b1)), Mat2 {881, 1997, 1997, 4589}));
@@ -841,7 +841,7 @@ TEST(covariance_tests, TypedMatrix_mult_SquareRootCovariance)
   using MatZ2 = Matrix<C, C, Z2>;
   auto mati2 = MatI2(i2);
   auto matz2 = MatZ2(z2);
-  using Cx = StaticDescriptor<Axis, angle::Radians>;
+  using Cx = std::tuple<Axis, angle::Radians>;
   using MatI2x = Matrix<Cx, C, I2>;
   auto mati2x = MatI2x(i2);
 
@@ -851,8 +851,8 @@ TEST(covariance_tests, TypedMatrix_mult_SquareRootCovariance)
   EXPECT_TRUE(is_near(matz2 * sqCovSA2l, Mat2 {0, 0, 0, 0}));
   static_assert(hermitian_adapter<decltype((mati2 * sqCovSA2l).get_self_adjoint_nested_matrix()), HermitianAdapterType::lower>);
   static_assert(zero<decltype((matz2 * sqCovSA2l).nested_object())>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(mati2x * sqCovSA2l), 0>, Cx>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(mati2x * sqCovSA2l), 1>, C>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(mati2x * sqCovSA2l), 0>, Cx>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(mati2x * sqCovSA2l), 1>, C>);
 
   auto sqCovSA2u = SqCovSA2u {3, 1, 0, 3};
   EXPECT_TRUE(is_near(Mat2 {4, 2, 2, 5} * sqCovSA2u, Mat2 {12, 10, 6, 17}));
@@ -860,8 +860,8 @@ TEST(covariance_tests, TypedMatrix_mult_SquareRootCovariance)
   EXPECT_TRUE(is_near(matz2 * sqCovSA2u, Mat2 {0, 0, 0, 0}));
   static_assert(hermitian_adapter<decltype((mati2 * sqCovSA2u).get_self_adjoint_nested_matrix()), HermitianAdapterType::upper>);
   static_assert(zero<decltype((matz2 * sqCovSA2u).nested_object())>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(mati2x * sqCovSA2u), 0>, Cx>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(mati2x * sqCovSA2u), 1>, C>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(mati2x * sqCovSA2u), 0>, Cx>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(mati2x * sqCovSA2u), 1>, C>);
 
   auto sqCovT2l = SqCovT2l {3, 0, 1, 3};
   EXPECT_TRUE(is_near(Mat2 {4, 2, 2, 5} * sqCovT2l, Mat2 {14, 6, 11, 15}));
@@ -869,8 +869,8 @@ TEST(covariance_tests, TypedMatrix_mult_SquareRootCovariance)
   EXPECT_TRUE(is_near(matz2 * sqCovT2l, Mat2 {0, 0, 0, 0}));
   static_assert(triangular_matrix<decltype((mati2 * sqCovT2l).get_triangular_nested_matrix()), TriangleType::lower>);
   static_assert(zero<decltype((matz2 * sqCovT2l).nested_object())>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(mati2x * sqCovT2l), 0>, Cx>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(mati2x * sqCovT2l), 1>, C>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(mati2x * sqCovT2l), 0>, Cx>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(mati2x * sqCovT2l), 1>, C>);
 
   auto sqCovT2u = SqCovT2u {3, 1, 0, 3};
   EXPECT_TRUE(is_near(Mat2 {4, 2, 2, 5} * sqCovT2u, Mat2 {12, 10, 6, 17}));
@@ -878,8 +878,8 @@ TEST(covariance_tests, TypedMatrix_mult_SquareRootCovariance)
   EXPECT_TRUE(is_near(matz2 * sqCovT2u, Mat2 {0, 0, 0, 0}));
   static_assert(triangular_matrix<decltype((mati2 * sqCovT2u).get_triangular_nested_matrix()), TriangleType::upper>);
   static_assert(zero<decltype((matz2 * sqCovT2u).nested_object())>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(mati2x * sqCovT2u), 0>, Cx>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(mati2x * sqCovT2u), 1>, C>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(mati2x * sqCovT2u), 0>, Cx>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(mati2x * sqCovT2u), 1>, C>);
 
   auto sqCovD2 = SqCovD2 {3, 3};
   EXPECT_TRUE(is_near(Mat2 {4, 2, 2, 5} * sqCovD2, Mat2 {12, 6, 6, 15}));
@@ -887,24 +887,24 @@ TEST(covariance_tests, TypedMatrix_mult_SquareRootCovariance)
   EXPECT_TRUE(is_near(matz2 * sqCovD2, Mat2 {0, 0, 0, 0}));
   static_assert(diagonal_matrix<decltype((mati2 * sqCovD2).get_triangular_nested_matrix())>);
   static_assert(zero<decltype((matz2 * sqCovD2).nested_object())>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(mati2x * sqCovD2), 0>, Cx>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(mati2x * sqCovD2), 1>, C>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(mati2x * sqCovD2), 0>, Cx>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(mati2x * sqCovD2), 1>, C>);
 
   EXPECT_TRUE(is_near(Mat2 {4, 2, 2, 5} * sqcovi2, Mat2 {4, 2, 2, 5}));
   EXPECT_TRUE(is_near(mati2 * sqcovi2, Mat2 {1, 0, 0, 1}));
   EXPECT_TRUE(is_near(matz2 * sqcovi2, Mat2 {0, 0, 0, 0}));
   static_assert(identity_matrix<decltype((mati2 * sqcovi2).get_triangular_nested_matrix())>);
   static_assert(zero<decltype((matz2 * sqcovi2).nested_object())>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(mati2x * sqcovi2), 0>, Cx>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(mati2x * sqcovi2), 1>, C>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(mati2x * sqcovi2), 0>, Cx>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(mati2x * sqcovi2), 1>, C>);
 
   EXPECT_TRUE(is_near(Mat2 {4, 2, 2, 5} * sqcovz2, Mat2 {0, 0, 0, 0}));
   EXPECT_TRUE(is_near(mati2 * sqcovz2, Mat2 {0, 0, 0, 0}));
   EXPECT_TRUE(is_near(matz2 * sqcovz2, Mat2 {0, 0, 0, 0}));
   static_assert(zero<decltype(nested_object(mati2 * sqcovz2))>);
   static_assert(zero<decltype(nested_object(matz2 * sqcovz2))>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(mati2x * sqcovz2), 0>, Cx>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(mati2x * sqcovz2), 1>, C>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(mati2x * sqcovz2), 0>, Cx>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(mati2x * sqcovz2), 1>, C>);
 }
 
 

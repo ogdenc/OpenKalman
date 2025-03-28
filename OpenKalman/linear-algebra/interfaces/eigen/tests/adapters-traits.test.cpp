@@ -123,20 +123,20 @@ TEST(eigen3, special_matrix_traits)
   static_assert(not diagonal_adapter<DWxx>);
 
   static_assert(hermitian_matrix<Z22>);
-  static_assert(hermitian_matrix<Z2x, Qualification::depends_on_dynamic_shape>);
-  static_assert(hermitian_matrix<Zx2, Qualification::depends_on_dynamic_shape>);
-  static_assert(hermitian_matrix<Zxx, Qualification::depends_on_dynamic_shape>);
+  static_assert(hermitian_matrix<Z2x, Applicability::permitted>);
+  static_assert(hermitian_matrix<Zx2, Applicability::permitted>);
+  static_assert(hermitian_matrix<Zxx, Applicability::permitted>);
   static_assert(not hermitian_adapter<Z22>);
   static_assert(not hermitian_adapter<Z2x>);
   static_assert(not hermitian_adapter<Zx2>);
   static_assert(not hermitian_adapter<Zxx>);
   static_assert(hermitian_matrix<C22_2>);
   static_assert(hermitian_matrix<I22>);
-  static_assert(hermitian_matrix<I2x, Qualification::depends_on_dynamic_shape>);
+  static_assert(hermitian_matrix<I2x, Applicability::permitted>);
   static_assert(hermitian_matrix<Cd22_2>);
-  static_assert(hermitian_matrix<Cd2x_2, Qualification::depends_on_dynamic_shape>);
-  static_assert(hermitian_matrix<Cdx2_2, Qualification::depends_on_dynamic_shape>);
-  static_assert(hermitian_matrix<Cdxx_2, Qualification::depends_on_dynamic_shape>);
+  static_assert(hermitian_matrix<Cd2x_2, Applicability::permitted>);
+  static_assert(hermitian_matrix<Cdx2_2, Applicability::permitted>);
+  static_assert(hermitian_matrix<Cdxx_2, Applicability::permitted>);
   static_assert(hermitian_matrix<DW21>);
   static_assert(hermitian_matrix<DW2x>);
   static_assert(hermitian_matrix<DWx1>);

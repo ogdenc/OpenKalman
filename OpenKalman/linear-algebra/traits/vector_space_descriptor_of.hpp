@@ -20,7 +20,7 @@
 namespace OpenKalman
 {
   /**
-   * \brief The \ref vector_space_descriptor for index N of object T.
+   * \brief The \ref coordinate::pattern for index N of object T.
    * \details Usually, this is defined by the traits for T.
    * \tparam T A matrix, expression, or array
    * \tparam N An index number (0 = rows, 1 = columns, etc.)
@@ -38,11 +38,11 @@ namespace OpenKalman
    * \overload As defined by the traits for T.
    */
 #ifdef __cpp_concepts
-  template<indexible T, std::size_t N> requires requires(T t) { {get_vector_space_descriptor<N>(t)} -> vector_space_descriptor; }
+  template<indexible T, std::size_t N> requires requires(T t) { {get_vector_space_descriptor<N>(t)} -> coordinate::pattern; }
   struct vector_space_descriptor_of<T, N>
 #else
   template<typename T, std::size_t N>
-  struct vector_space_descriptor_of<T, N, std::enable_if_t<vector_space_descriptor<decltype(get_vector_space_descriptor<N>(std::declval<T>()))>>>
+  struct vector_space_descriptor_of<T, N, std::enable_if_t<coordinate::pattern<decltype(get_vector_space_descriptor<N>(std::declval<T>()))>>>
 #endif
   {
     using type = std::decay_t<decltype(get_vector_space_descriptor<N>(std::declval<T>()))>;

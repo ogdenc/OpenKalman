@@ -17,7 +17,7 @@
 #define OPENKALMAN_CONSTANT_COEFFICIENT_HPP
 
 #include <type_traits>
-#include "linear-algebra/values/values.hpp"
+#include "values/values.hpp"
 #include "linear-algebra/interfaces/object-traits-defined.hpp"
 #include "linear-algebra/concepts/indexible.hpp"
 #include "linear-algebra/concepts/one_dimensional.hpp"

@@ -32,7 +32,7 @@ namespace OpenKalman
 
   /**
    * \brief Return true if T is a \ref one_dimensional at runtime.
-   * \details Each index also must have an equivalent \ref vector_space_descriptor object.
+   * \details Each index also must have an equivalent \ref coordinate::pattern object.
    * \tparam T A tensor or matrix
    */
 #ifdef __cpp_concepts

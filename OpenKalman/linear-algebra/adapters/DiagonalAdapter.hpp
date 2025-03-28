@@ -20,7 +20,7 @@ namespace OpenKalman
 {
 
 #ifdef __cpp_concepts
-  template<vector<0, Qualification::depends_on_dynamic_shape> NestedObject>
+  template<vector<0, Applicability::permitted> NestedObject>
 #else
   template<typename NestedObject>
 #endif
@@ -28,7 +28,7 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(vector<NestedObject, 0, Qualification::depends_on_dynamic_shape>);
+    static_assert(vector<NestedObject, 0, Applicability::permitted>);
 #endif
 
   private:
@@ -309,11 +309,11 @@ namespace OpenKalman
       }
 
 
-      template<Qualification b>
+      template<Applicability b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedObject, b>;
 
 
-      template<Qualification b>
+      template<Applicability b>
       static constexpr bool is_square = true;
 
 

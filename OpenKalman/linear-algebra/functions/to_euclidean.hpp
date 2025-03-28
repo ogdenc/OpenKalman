@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_TO_EUCLIDEAN_HPP
 #define OPENKALMAN_TO_EUCLIDEAN_HPP
 
-#include "linear-algebra/vector-space-descriptors/concepts/euclidean_vector_space_descriptor.hpp"
+#include "linear-algebra/coordinates/concepts/euclidean_pattern.hpp"
 #include "linear-algebra/concepts/indexible.hpp"
 #include "linear-algebra/traits/vector_space_descriptor_of.hpp"
 #include "linear-algebra/adapters/ToEuclideanExpr.hpp"
@@ -37,7 +37,7 @@ namespace OpenKalman
 #endif
   to_euclidean(Arg&& arg)
   {
-    if constexpr (euclidean_vector_space_descriptor<vector_space_descriptor_of_t<Arg, 0>>)
+    if constexpr (coordinate::euclidean_pattern<vector_space_descriptor_of_t<Arg, 0>>)
     {
       return std::forward<Arg>(arg);
     }

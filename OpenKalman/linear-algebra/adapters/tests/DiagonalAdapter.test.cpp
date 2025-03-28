@@ -159,7 +159,7 @@ TEST(adapters, Diagonal_class)
   // construct from zero matrix, and deduction guide (from non-DiagonalAdapter diagonal)
   static_assert(zero<decltype(DiagonalAdapter {ZeroAdapter<eigen_matrix_t<double, 3, 1>>{}})>);
   static_assert(diagonal_matrix<decltype(DiagonalAdapter {ZeroAdapter<eigen_matrix_t<double, 3, 1>>{}})>);
-  static_assert(square_shaped<decltype(DiagonalAdapter {ZeroAdapter<eigen_matrix_t<double, 3, 1>>{}}), Qualification::depends_on_dynamic_shape> );
+  static_assert(square_shaped<decltype(DiagonalAdapter {ZeroAdapter<eigen_matrix_t<double, 3, 1>>{}}), Applicability::permitted> );
   static_assert(square_shaped<decltype(DiagonalAdapter {ZeroAdapter<eigen_matrix_t<double, 3, 1>>{}})>);
 
   EXPECT_TRUE(is_near(DiagonalAdapter {ZeroAdapter<eigen_matrix_t<double, 3, 1>>{}}, M33::Zero()));

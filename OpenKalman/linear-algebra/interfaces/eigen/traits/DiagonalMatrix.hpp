@@ -70,11 +70,11 @@ namespace OpenKalman
       // get_constant_diagonal() not defined
 
 
-      template<Qualification b>
-      static constexpr bool one_dimensional = SizeAtCompileTime == 1 or (SizeAtCompileTime == Eigen::Dynamic and b == Qualification::depends_on_dynamic_shape);
+      template<Applicability b>
+      static constexpr bool one_dimensional = SizeAtCompileTime == 1 or (SizeAtCompileTime == Eigen::Dynamic and b == Applicability::permitted);
 
 
-      template<Qualification b>
+      template<Applicability b>
       static constexpr bool is_square = true;
 
 

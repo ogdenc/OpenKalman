@@ -49,7 +49,7 @@ namespace OpenKalman
 
 
   /**
-   * \brief Return true if every set of \ref vector_space_descriptor of a set of objects match.
+   * \brief Return true if every set of \ref coordinate::pattern of a set of objects match.
    * \tparam Ts A set of tensors or matrices
    * \sa vector_space_descriptors_match_with
    * \sa vector_space_descriptors_may_match_with

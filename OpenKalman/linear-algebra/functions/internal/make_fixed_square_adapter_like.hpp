@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,6 +16,10 @@
 
 #ifndef OPENKALMAN_MAKE_FIXED_SQUARE_ADAPTER_LIKE_HPP
 #define OPENKALMAN_MAKE_FIXED_SQUARE_ADAPTER_LIKE_HPP
+
+#include "linear-algebra/coordinates/concepts/pattern.hpp"
+#include "linear-algebra/coordinates/concepts/compares_with.hpp"
+#include "linear-algebra/coordinates/descriptors/Dimensions.hpp"
 
 namespace OpenKalman::internal
 {
@@ -43,12 +47,12 @@ namespace OpenKalman::internal
    * \return (1) A fixed size adapter or (2) a reference to the argument unchanged.
    */
 #ifdef __cpp_concepts
-  template<vector_space_descriptor...Ds, square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires
-    (index_count_v<Arg> != dynamic_size) and maybe_equivalent_to<Ds...>
+  template<coordinate::pattern D = coordinate::Axis, coordinate::pattern...Ds, square_shaped<Applicability::permitted> Arg> requires
+    (index_count_v<Arg> != dynamic_size) and (... and coordinate::compares_with<D, Ds, equal_to<>, Applicability::permitted>)
 #else
   template<typename...Ds, typename Arg, std::enable_if_t<
-    (... and vector_space_descriptor<Ds>) and square_shaped<Arg, Qualification::depends_on_dynamic_shape> and
-    (index_count_v<Arg> != dynamic_size) and maybe_equivalent_to<Ds...>, int> = 0>
+    (... and coordinate::pattern<Ds>) and square_shaped<Arg, Applicability::permitted> and
+    (index_count_v<Arg> != dynamic_size) and (... and coordinate::compares_with<D, Ds, equal_to<>, Applicability::permitted>), int> = 0>
 #endif
   constexpr decltype(auto)
   make_fixed_square_adapter_like(Arg&& arg)

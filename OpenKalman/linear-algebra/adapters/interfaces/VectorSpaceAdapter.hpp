@@ -40,7 +40,7 @@ namespace OpenKalman::interface
     {
       // Truncate any trailing ℝ¹ dimensions
       using NewDesc = decltype(OpenKalman::internal::remove_trailing_1D_descriptors(std::declval<Descriptors>()));
-      return OpenKalman::internal::collection_size_of<NewDesc>{};
+      return collections::size_of<NewDesc>{};
     }
 
 
@@ -49,18 +49,18 @@ namespace OpenKalman::interface
     {
       constexpr auto dim = decltype(count_indices(arg))::value;
 
-      if constexpr (euclidean_vector_space_descriptor_collection<Descriptors>)
+      if constexpr (coordinate::euclidean_pattern_collection<Descriptors>)
       {
         return get_index_dimension_of(std::forward<Arg>(arg).nested_object(), n);
       }
-      else if constexpr (vector_space_descriptor_tuple<Descriptors>)
+      else if constexpr (pattern_tuple<Descriptors>)
       {
         static_assert (dim != dynamic_size);
         if constexpr (value::fixed<N>)
         {
           if constexpr (N::value >= dim)
-            return descriptor::Axis{};
-          else if constexpr (static_vector_space_descriptor<std::tuple_element_t<N::value, Descriptors>>)
+            return coordinate::Axis{};
+          else if constexpr (fixed_pattern<std::tuple_element_t<N::value, Descriptors>>)
             return std::tuple_element_t<N::value, Descriptors> {};
           else
             return std::get<N::value>(std::forward<Arg>(arg).my_descriptors);
@@ -68,21 +68,19 @@ namespace OpenKalman::interface
         else
         {
           return std::apply(
-            [](auto&&...vs){ return std::array<descriptor::DynamicDescriptor<scalar_type>, dim> {std::forward<decltype(vs)>(vs)...}; },
+            [](auto&&...vs){ return std::array<coordinate::DynamicDescriptor<scalar_type>, dim> {std::forward<decltype(vs)>(vs)...}; },
             std::forward<Arg>(arg).my_descriptors)[n];
         }
       }
       else
       {
-        using Dyn = descriptor::DynamicDescriptor<scalar_type>;
+        using Dyn = coordinate::DynamicDescriptor<scalar_type>;
 #ifdef __cpp_lib_ranges
-        if (n >= std::ranges::size(arg.my_descriptors))
-#else
-        using std::size;
-        if (n >= std::size(arg.my_descriptors))
+        namespace ranges = std::ranges;
 #endif
+        if (n >= ranges::size(arg.my_descriptors))
         {
-          return Dyn {descriptor::Axis{}};
+          return Dyn {coordinate::Axis{}};
         }
         else
         {
@@ -111,11 +109,11 @@ namespace OpenKalman::interface
     }
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedObject, b>;
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool is_square = square_shaped<NestedObject, b>;
 
 
@@ -126,7 +124,7 @@ namespace OpenKalman::interface
     static constexpr bool is_triangular_adapter = false;
 
 
-    static constexpr bool is_hermitian = hermitian_matrix<NestedObject, Qualification::depends_on_dynamic_shape>;
+    static constexpr bool is_hermitian = hermitian_matrix<NestedObject, Applicability::permitted>;
 
 
     static constexpr bool is_writable = writable<NestedObject>;
@@ -330,7 +328,7 @@ namespace OpenKalman::interface
     get_slice_impl(Arg&& arg, const BeginTup& begin_tup, const SizeTup& size_tup, std::index_sequence<Ix...>)
     {
       return make_vector_space_adapter(NestedInterface::get_slice(nested_object(std::forward<Arg>(arg)), begin_tup, size_tup),
-        std::tuple {descriptor::get_slice<scalar_type_of_t<Arg>>(OpenKalman::get_vector_space_descriptor(arg, Ix), std::get<Ix>(begin_tup), std::get<Ix>(size_tup))...});
+        std::tuple {coordinate::get_slice<scalar_type_of_t<Arg>>(OpenKalman::get_vector_space_descriptor(arg, Ix), std::get<Ix>(begin_tup), std::get<Ix>(size_tup))...});
     }
 
   public:
@@ -397,7 +395,7 @@ namespace OpenKalman::interface
         }, std::tuple_cat(
           std::forward_as_tuple(NestedInterface::to_diagonal(nested_object(std::forward<Arg>(arg)))),
           std::forward<Arg>(arg).my_descriptors),
-          std::tuple{descriptor::Axis{}});
+          std::tuple{coordinate::Axis{}});
     }
 
   private:
@@ -434,7 +432,7 @@ namespace OpenKalman::interface
         return diagonal_of_impl(NestedInterface::transpose(nested_object(nested_object(std::forward<Arg>(arg)))));
       else 
         return diagonal_of_impl(NestedInterface::diagonal_of(nested_object(std::forward<Arg>(arg))),
-          std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{descriptor::Axis{}, descriptor::Axis{}}));
+          std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{coordinate::Axis{}, coordinate::Axis{}}));
     }
 
   private:
@@ -446,7 +444,7 @@ namespace OpenKalman::interface
       if constexpr (Ix < N)
         return get_vector_space_descriptor<Ix>(arg) * std::get<Ix>(factors_tup);
       else
-        return descriptor::Axis{};
+        return coordinate::Axis{};
     }
 
 
@@ -478,7 +476,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<vector_space_descriptor...Vs, typename Operation> requires
+    template<coordinate::pattern...Vs, typename Operation> requires
       interface::n_ary_operation_defined_for<NestedInterface, const std::tuple<Vs...>&, Operation&&>
     static indexible auto
 #else
@@ -493,7 +491,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<vector_space_descriptor...Vs, typename Operation, indexible Arg, indexible...Args> requires
+    template<coordinate::pattern...Vs, typename Operation, indexible Arg, indexible...Args> requires
       interface::n_ary_operation_defined_for<NestedObject, const std::tuple<Vs...>&, Operation&&, nested_object_of_t<Arg&&>, Args...>
     static indexible auto
 #else
@@ -558,7 +556,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<indexible Arg, vector_space_descriptor V> requires
+    template<indexible Arg, coordinate::pattern V> requires
       interface::from_euclidean_defined_for<NestedObject, Arg&&, const V&> or
       interface::from_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>, const V&>
     static constexpr indexible auto

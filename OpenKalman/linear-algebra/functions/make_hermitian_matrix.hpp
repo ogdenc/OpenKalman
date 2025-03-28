@@ -25,12 +25,12 @@ namespace OpenKalman
    * \tparam Arg A square matrix.
    */
 #ifdef __cpp_concepts
-  template<HermitianAdapterType adapter_type = HermitianAdapterType::lower, square_shaped<Qualification::depends_on_dynamic_shape> Arg>
+  template<HermitianAdapterType adapter_type = HermitianAdapterType::lower, square_shaped<Applicability::permitted> Arg>
     requires (adapter_type == HermitianAdapterType::lower) or (adapter_type == HermitianAdapterType::upper)
   constexpr hermitian_matrix decltype(auto)
 #else
   template<HermitianAdapterType adapter_type = HermitianAdapterType::lower, typename Arg, std::enable_if_t<
-    square_shaped<Arg, Qualification::depends_on_dynamic_shape> and
+    square_shaped<Arg, Applicability::permitted> and
     (adapter_type == HermitianAdapterType::lower or adapter_type == HermitianAdapterType::upper), int> = 0>
   constexpr decltype(auto)
 #endif
@@ -38,7 +38,7 @@ namespace OpenKalman
   {
     constexpr auto transp = adapter_type == HermitianAdapterType::lower ? HermitianAdapterType::upper : HermitianAdapterType::lower;
 
-    if constexpr (hermitian_matrix<Arg, Qualification::depends_on_dynamic_shape>)
+    if constexpr (hermitian_matrix<Arg, Applicability::permitted>)
     {
       if constexpr (hermitian_matrix<Arg>)
         return std::forward<Arg>(arg);
@@ -60,7 +60,7 @@ namespace OpenKalman
     {
       using Traits = interface::library_interface<std::decay_t<Arg>>;
       auto new_h {Traits::template make_hermitian_adapter<adapter_type>(std::forward<Arg>(arg))};
-      static_assert(hermitian_matrix<decltype(new_h), Qualification::depends_on_dynamic_shape>, "make_hermitian_matrix interface must return a hermitian matrix");
+      static_assert(hermitian_matrix<decltype(new_h), Applicability::permitted>, "make_hermitian_matrix interface must return a hermitian matrix");
       if constexpr (hermitian_matrix<decltype(new_h)>) return new_h;
       else return make_hermitian_matrix<adapter_type>(std::move(new_h));
     }

@@ -18,8 +18,8 @@ using numbers::sqrt2;
 
 namespace
 {
-  using C2 = StaticDescriptor<Axis, angle::Radians>;
-  using C3 = StaticDescriptor<Axis, angle::Radians, Axis>;
+  using C2 = std::tuple<Axis, angle::Radians>;
+  using C3 = std::tuple<Axis, angle::Radians, Axis>;
   using Mat12 = VectorSpaceDescriptor<M12, Axis, C2>;
   using Mat21 = VectorSpaceDescriptor<M21, C2, Axis>;
   using Mat22 = VectorSpaceDescriptor<M22, C2, C2>;
@@ -170,30 +170,30 @@ TEST(adapters, VectorSpaceDescriptor_deduction_guides)
 {
   auto a = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
   EXPECT_TRUE(is_near(Matrix(a), a));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix(a)), 0>, Dimensions<2>>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix(a)), 1>, Dimensions<3>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(a)), 0>, Dimensions<2>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(a)), 1>, Dimensions<3>>);
 
   //auto b1 = Mat23 {1, 2, 3, 4, 5, 6};
   //EXPECT_TRUE(is_near(Matrix(b1), a));
-  //static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix(b1)), 0>, C2>);
-  //static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix(b1)), 1>, C3>);
+  //static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(b1)), 0>, C2>);
+  //static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(b1)), 1>, C3>);
 
   auto b2 = Mean<C2, M23> {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(Matrix(b2), (M23() << 1, 2, 3, 4-2*pi, 5-2*pi, 6-2*pi).finished()));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix(b2)), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix(b2)), 1>, Dimensions<3>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(b2)), 0>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(b2)), 1>, Dimensions<3>>);
 
   auto b3 = EuclideanMean<C2, M33> {1, 2, 3,
                                     0.5, std::sqrt(3)/2, sqrt2/2,
                                     std::sqrt(3)/2, 0.5, sqrt2/2};
   EXPECT_TRUE(is_near(Matrix(b3), Mat23 {1, 2, 3, pi/3, pi/6, pi/4}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix(b3)), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix(b3)), 1>, Dimensions<3>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(b3)), 0>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(b3)), 1>, Dimensions<3>>);
 
   auto c = Covariance<C2, HermitianAdapter<M22, TriangleType::lower>> {9, 3, 3, 10};
   EXPECT_TRUE(is_near(Matrix(c), Mat22 {9, 3, 3, 10}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix(c)), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Matrix(c)), 1>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(c)), 0>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Matrix(c)), 1>, C2>);
 }
 
 
@@ -201,26 +201,26 @@ TEST(adapters, VectorSpaceDescriptor_make_functions)
 {
   auto a = make_dense_object_from<M23>(1, 2, 3, 4, 5, 6);
   EXPECT_TRUE(is_near(make_vector_space_adapter<C2, C3>(a), a));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, C3, 0>(a))>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, C3>(a)), 1>, C3>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, C3, 0>(a))>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, C3>(a)), 1>, C3>);
   EXPECT_TRUE(is_near(make_vector_space_adapter<C2>(a), a));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, 0>(a))>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2>(a)), 1>, Dimensions<3>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, 0>(a))>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2>(a)), 1>, Dimensions<3>>);
 
   auto b = Mat23 {1, 2, 3, 4, 5, 6};
   EXPECT_TRUE(is_near(make_vector_space_adapter(b), a));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(b)), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(b)), 1>, C3>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(b)), 0>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(b)), 1>, C3>);
 
   auto c = Covariance<C2, HermitianAdapter<M22, TriangleType::lower>> {9, 3, 3, 10};
   EXPECT_TRUE(is_near(make_vector_space_adapter(c), Mat22 {9, 3, 3, 10}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(c)), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(c)), 1>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(c)), 0>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter(c)), 1>, C2>);
 
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, C3, M23>()), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, C3, M23>()), 1>, C3>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<M23>()), 0>, Dimensions<2>>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<M23>()), 1>, Dimensions<3>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, C3, M23>()), 0>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<C2, C3, M23>()), 1>, C3>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<M23>()), 0>, Dimensions<2>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(make_vector_space_adapter<M23>()), 1>, Dimensions<3>>);
 }
 
 
@@ -273,7 +273,7 @@ TEST(adapters, VectorSpaceDescriptor_overloads)
   EXPECT_TRUE(is_near(to_diagonal(Mat21 {2, 3}).nested_object(), Mat22 {2, 0, 0, 3}));
   static_assert(diagonal_matrix<decltype(to_diagonal(Mat21 {2, 3}))>);
   static_assert(typed_matrix<decltype(to_diagonal(Mat21 {2, 3}))>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(to_diagonal(Mat21 {2, 3})), 1>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(to_diagonal(Mat21 {2, 3})), 1>, C2>);
 
   EXPECT_TRUE(is_near(transpose(Mat23 {1, 2, 3, 4, 5, 6}).nested_object(), Mat32 {1, 4, 2, 5, 3, 6}));
 
@@ -307,16 +307,16 @@ TEST(adapters, VectorSpaceDescriptor_blocks)
 {
   using Mat22x = VectorSpaceDescriptor<C2, Dimensions<2>, M22>;
   EXPECT_TRUE(is_near(concatenate_vertical(Mat22 {1, 2, 3, 4}, Mat12 {5, 6}), Mat32 {1, 2, 3, 4, 5, 6}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_vertical(Mat22 {1, 2, 3, 4}, Mat12 {5, 6})), 0>, C3>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_vertical(Mat22 {1, 2, 3, 4}, Mat12 {5, 6})), 1>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(concatenate_vertical(Mat22 {1, 2, 3, 4}, Mat12 {5, 6})), 0>, C3>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(concatenate_vertical(Mat22 {1, 2, 3, 4}, Mat12 {5, 6})), 1>, C2>);
 
   EXPECT_TRUE(is_near(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6}), Mat23 {1, 2, 3, 4, 5, 6}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6})), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6})), 1>, C3>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6})), 0>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(concatenate_horizontal(Mat22 {1, 2, 4, 5}, Mat21 {3, 6})), 1>, C3>);
 
   EXPECT_TRUE(is_near(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4}), Mat33 {1, 2, 0, 0, 0, 3, 0, 0, 4}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4})), 0>, StaticDescriptor<Axis, Axis, angle::Radians>>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4})), 1>, StaticDescriptor<Axis, angle::Radians, Axis>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4})), 0>, std::tuple<Axis, Axis, angle::Radians>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(concatenate_diagonal(Mat12 {1, 2}, Mat21 {3, 4})), 1>, std::tuple<Axis, angle::Radians, Axis>>);
 
   EXPECT_TRUE(is_near(split_vertical(Mat32 {1, 2, 3, 4, 5, 6}), std::tuple {}));
   EXPECT_TRUE(is_near(split_horizontal(Mat23 {1, 2, 3, 4, 5, 6}), std::tuple {}));
@@ -330,10 +330,10 @@ TEST(adapters, VectorSpaceDescriptor_blocks)
 
   EXPECT_TRUE(is_near(column<0>(Mat22 {1, 2, 3, 4}), Mean{1., 3}));
   EXPECT_TRUE(is_near(column<1>(Mat22 {1, 2, 3, 4}), Mean{2., 4}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(column<0>(Mat22 {1, 2, 3, 4})), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(column<1>(Mat22 {1, 2, 3, 4})), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(column<0>(Mat22 {1, 2, 3, 4})), 1>, Axis>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(column<1>(Mat22 {1, 2, 3, 4})), 1>, angle::Radians>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(column<0>(Mat22 {1, 2, 3, 4})), 0>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(column<1>(Mat22 {1, 2, 3, 4})), 0>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(column<0>(Mat22 {1, 2, 3, 4})), 1>, Axis>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(column<1>(Mat22 {1, 2, 3, 4})), 1>, angle::Radians>);
 
   auto m = Mat22x {1, 2, 3, 4};
 
@@ -352,10 +352,10 @@ TEST(adapters, VectorSpaceDescriptor_blocks)
 
   EXPECT_TRUE(is_near(apply_columnwise<2>([] { return VectorSpaceDescriptor<C2, angle::Radians> {1., 2}; }), Mat22 {1, 1, 2, 2}));
   EXPECT_TRUE(is_near(apply_columnwise<2>([](std::size_t i){ return VectorSpaceDescriptor<C2, angle::Radians> {i + 1., 2*i + 1}; }), Mat22 {1, 2, 1, 3}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<VectorSpaceDescriptor<C2, angle::Radians>()>())), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<VectorSpaceDescriptor<C2, angle::Radians>()>())), 1>, StaticDescriptor<angle::Radians, angle::Radians>>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<VectorSpaceDescriptor<C2, angle::Radians>(std::size_t)>())), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<VectorSpaceDescriptor<C2, angle::Radians>(std::size_t)>())), 1>, StaticDescriptor<angle::Radians, angle::Radians>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<VectorSpaceDescriptor<C2, angle::Radians>()>())), 0>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<VectorSpaceDescriptor<C2, angle::Radians>()>())), 1>, std::tuple<angle::Radians, angle::Radians>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<VectorSpaceDescriptor<C2, angle::Radians>(std::size_t)>())), 0>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(apply_columnwise<2>(std::declval<VectorSpaceDescriptor<C2, angle::Radians>(std::size_t)>())), 1>, std::array<angle::Radians, 2>>);
 
   const auto mat22_1234 = Mat22x {1, 2, 3, 4};
   auto n = mat22_1234
@@ -383,14 +383,14 @@ TEST(adapters, VectorSpaceDescriptor_arithmetic)
   EXPECT_TRUE(is_near(Mat32 {7, 6, 5, 4, 3, 2} + Mat32 {1, 2, 3, 4, 5, 6}, Mat32 {8, 8, 8, 8, 8, 8}));
   EXPECT_TRUE(is_near(VectorSpaceDescriptor<C3, Dimensions<2>, M32> {7, 6, 5, 4, 3, 2} + Mean<C3, M32> {1, 2, 3, 4, 5, 6}, Mat32 {8, 8, 8, 8 - 2*pi, 8, 8}));
   EXPECT_TRUE(is_near(VectorSpaceDescriptor<Dimensions<3>, Dimensions<2>, M32> {7, 6, 5, 4, 3, 2} + EuclideanMean<Dimensions<3>, M32> {1, 2, 3, 4, 5, 6}, Mat32 {8, 8, 8, 8, 8, 8}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Mat32 {7, 6, 5, 4, 3, 2} + Mat32 {1, 2, 3, 4, 5, 6}), 1>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Mat32 {7, 6, 5, 4, 3, 2} + Mat32 {1, 2, 3, 4, 5, 6}), 1>, C2>);
   static_assert(typed_matrix<decltype(VectorSpaceDescriptor<C3, Dimensions<2>, M32> {7, 6, 5, 4, 3, 2} + Mean<C3, M32> {1, 2, 3, 4, 5, 6})>);
   static_assert(typed_matrix<decltype(VectorSpaceDescriptor<Dimensions<3>, Dimensions<2>, M32> {7, 6, 5, 4, 3, 2} + EuclideanMean<Dimensions<3>, M32> {1, 2, 3, 4, 5, 6})>);
 
   EXPECT_TRUE(is_near(Mat32 {7, 6, 5, 4, 3, 2} - Mat32 {1, 2, 3, 4, 5, 6}, Mat32 {6, 4, 2, 0, -2, -4}));
   EXPECT_TRUE(is_near(VectorSpaceDescriptor<C3, Dimensions<2>, M32> {7, 6, 5, 4, 3, 2} - Mean<C3, M32> {1, 2, 3, 4, 5, 6}, Mat32 {6, 4, 2, 2*pi, -2, -4}));
   EXPECT_TRUE(is_near(VectorSpaceDescriptor<Dimensions<3>, Dimensions<2>, M32> {7, 6, 5, 4, 3, 2} - EuclideanMean<Dimensions<3>, M32> {1, 2, 3, 4, 5, 6}, Mat32 {6, 4, 2, 0, -2, -4}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Mat32 {7, 6, 5, 4, 3, 2} - Mat32 {1, 2, 3, 4, 5, 6}), 1>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Mat32 {7, 6, 5, 4, 3, 2} - Mat32 {1, 2, 3, 4, 5, 6}), 1>, C2>);
   static_assert(typed_matrix<decltype(VectorSpaceDescriptor<C3, Dimensions<2>, M32> {7, 6, 5, 4, 3, 2} - Mean<C3, M32> {1, 2, 3, 4, 5, 6})>);
   static_assert(typed_matrix<decltype(VectorSpaceDescriptor<Dimensions<3>, Dimensions<2>, M32> {7, 6, 5, 4, 3, 2} - EuclideanMean<Dimensions<3>, M32> {1, 2, 3, 4, 5, 6})>);
 
@@ -402,17 +402,17 @@ TEST(adapters, VectorSpaceDescriptor_arithmetic)
   static_assert(typed_matrix<decltype(Mat32 {2, 4, 6, 8, 10, 12} / 2, Mat32 {1, 2, 3, 4, 5, 6})>);
 
   EXPECT_TRUE(is_near(Mat22 {1, 2, 3, 4} * Mat23 {1, 2, 3, 4, 5, 6}, Mat23 {9, 12, 15, 19, 26, 33}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Mat23 {1, 2, 3, 4, 5, 6}), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Mat23 {1, 2, 3, 4, 5, 6}), 1>, C3>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Mat23 {1, 2, 3, 4, 5, 6}), 0>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Mat23 {1, 2, 3, 4, 5, 6}), 1>, C3>);
 
   EXPECT_TRUE(is_near(Mat22 {1, 2, 3, 2} * Mean<C2, M23> {1, 2, 3, 3, 2, 1}, Mat23 {7, 6, 5, 9, 10, 11}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Mean<C2, M23> {1, 2, 3, 4, 5, 6}), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Mean<C2, M23> {1, 2, 3, 4, 5, 6}), 1>, Dimensions<3>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Mean<C2, M23> {1, 2, 3, 4, 5, 6}), 0>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Mat22 {1, 2, 3, 4} * Mean<C2, M23> {1, 2, 3, 4, 5, 6}), 1>, Dimensions<3>>);
   static_assert(typed_matrix<decltype(Mat22 {1, 2, 3, 4} * Mean<C2, M23> {1, 2, 3, 4, 5, 6})>);
 
   EXPECT_TRUE(is_near(VectorSpaceDescriptor<C2, Dimensions<2>, M22> {1, 2, 3, 4} * EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6}, Mat23 {9, 12, 15, 19, 26, 33}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(VectorSpaceDescriptor<C2, Dimensions<2>, M22> {1, 2, 3, 4} * EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6}), 0>, C2>);
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(VectorSpaceDescriptor<C2, Dimensions<2>, M22> {1, 2, 3, 4} * EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6}), 1>, Dimensions<3>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(VectorSpaceDescriptor<C2, Dimensions<2>, M22> {1, 2, 3, 4} * EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6}), 0>, C2>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(VectorSpaceDescriptor<C2, Dimensions<2>, M22> {1, 2, 3, 4} * EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6}), 1>, Dimensions<3>>);
   static_assert(typed_matrix<decltype(VectorSpaceDescriptor<C2, Dimensions<2>, M22> {1, 2, 3, 4} * EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})>);
   static_assert(typed_matrix<decltype(VectorSpaceDescriptor<C2, Dimensions<2>, M22> {1, 2, 3, 4} * EuclideanMean<Dimensions<2>, M23> {1, 2, 3, 4, 5, 6})>);
 

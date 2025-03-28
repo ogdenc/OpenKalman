@@ -11,7 +11,7 @@
 #include "typed-matrix.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptor;
+using namespace OpenKalman::coordinate;
 using namespace OpenKalman::test;
 
 using numbers::pi;
@@ -24,8 +24,8 @@ using M32 = eigen_matrix_t<double, 3, 2>;
 using M33 = eigen_matrix_t<double, 3, 3>;
 using I22 = Eigen3::IdentityMatrix<M22>;
 using Z22 = ZeroAdapter<eigen_matrix_t<double, 2, 2>>;
-using C2 = StaticDescriptor<Axis, angle::Radians>;
-using C3 = StaticDescriptor<Axis, angle::Radians, Axis>;
+using C2 = std::tuple<Axis, angle::Radians>;
+using C3 = std::tuple<Axis, angle::Radians, Axis>;
 
 
 TEST(matrices, References_TypedMatrix_lvalue)

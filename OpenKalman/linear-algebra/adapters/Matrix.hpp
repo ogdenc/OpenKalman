@@ -20,12 +20,12 @@ namespace OpenKalman
   // --------------------- //
 
 #ifdef __cpp_concepts
-  template<static_vector_space_descriptor RowCoefficients, static_vector_space_descriptor ColumnCoefficients, typed_matrix_nestable NestedMatrix>
-  requires (dimension_size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
-    (dimension_size_of_v<ColumnCoefficients> == index_dimension_of_v<NestedMatrix, 1>) and
+  template<fixed_pattern RowCoefficients, fixed_pattern ColumnCoefficients, typed_matrix_nestable NestedMatrix>
+  requires (coordinate::size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
+    (coordinate::size_of_v<ColumnCoefficients> == index_dimension_of_v<NestedMatrix, 1>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
-    (dynamic_vector_space_descriptor<RowCoefficients> == dynamic_dimension<NestedMatrix, 0>) and
-    (dynamic_vector_space_descriptor<ColumnCoefficients> == dynamic_dimension<NestedMatrix, 1>)
+    (dynamic_pattern<RowCoefficients> == dynamic_dimension<NestedMatrix, 0>) and
+    (dynamic_pattern<ColumnCoefficients> == dynamic_dimension<NestedMatrix, 1>)
 #else
   template<typename RowCoefficients, typename ColumnCoefficients, typename NestedMatrix>
 #endif
@@ -34,14 +34,14 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(static_vector_space_descriptor<RowCoefficients>);
-    static_assert(static_vector_space_descriptor<ColumnCoefficients>);
+    static_assert(fixed_pattern<RowCoefficients>);
+    static_assert(fixed_pattern<ColumnCoefficients>);
     static_assert(typed_matrix_nestable<NestedMatrix>);
-    static_assert(dimension_size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>);
-    static_assert(dimension_size_of_v<ColumnCoefficients> == index_dimension_of_v<NestedMatrix, 1>);
+    static_assert(coordinate::size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>);
+    static_assert(coordinate::size_of_v<ColumnCoefficients> == index_dimension_of_v<NestedMatrix, 1>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
-    static_assert(dynamic_vector_space_descriptor<RowCoefficients> == dynamic_dimension<NestedMatrix, 0>);
-    static_assert(dynamic_vector_space_descriptor<ColumnCoefficients> == dynamic_dimension<NestedMatrix, 1>);
+    static_assert(dynamic_pattern<RowCoefficients> == dynamic_dimension<NestedMatrix, 0>);
+    static_assert(dynamic_pattern<ColumnCoefficients> == dynamic_dimension<NestedMatrix, 1>);
 #endif
 
     using Scalar = scalar_type_of_t<NestedMatrix>; ///< Scalar type for this matrix.
@@ -59,15 +59,15 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, Matrix>) and
       (not euclidean_transformed<Arg>) and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
       //requires(Arg&& arg) { NestedMatrix {nested_object(std::forward<Arg>(arg))}; } // \todo 't work in GCC 10
       std::constructible_from<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and not std::is_base_of_v<Matrix, std::decay_t<Arg>> and
       not euclidean_transformed<Arg> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
       std::is_constructible_v<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
 #endif
     Matrix(Arg&& arg) : Base {nested_object(std::forward<Arg>(arg))} {}
@@ -76,13 +76,13 @@ namespace OpenKalman
     /// Construct from a compatible \ref OpenKalman::euclidean_transformed "euclidean_transformed".
 #ifdef __cpp_concepts
     template<euclidean_transformed Arg> requires
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
       requires(Arg&& arg) { NestedMatrix {from_euclidean<RowCoefficients>(nested_object(std::forward<Arg>(arg)))}; }
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and euclidean_transformed<Arg> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
       std::is_constructible_v<NestedMatrix,
         decltype(from_euclidean<RowCoefficients>(nested_object(std::declval<Arg&&>())))>, int> = 0>
 #endif
@@ -107,13 +107,13 @@ namespace OpenKalman
     /// Construct from compatible \ref OpenKalman::covariance "covariance".
 #ifdef __cpp_concepts
     template<covariance Arg> requires
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, ColumnCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 0>, ColumnCoefficients> and
       requires(Arg&& arg) { NestedMatrix {to_dense_object(std::forward<Arg>(arg))}; }
 #else
     template<typename Arg, std::enable_if_t<covariance<Arg> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, ColumnCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 0>, ColumnCoefficients> and
       std::is_constructible_v<NestedMatrix, dense_writable_matrix_t<Arg>>, int> = 0>
 #endif
     Matrix(Arg&& arg) : Base {to_dense_object(std::forward<Arg>(arg))} {}
@@ -123,14 +123,14 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not euclidean_transformed<Arg>) and
       (not std::derived_from<std::decay_t<Arg>, Matrix>) and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
       std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, nested_object_of_t<Arg&&>>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and (not euclidean_transformed<Arg>) and
       (not std::is_base_of_v<Matrix, std::decay_t<Arg>>) and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
       std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, nested_object_of_t<Arg&&>>, int> = 0>
 #endif
     auto& operator=(Arg&& other)
@@ -146,13 +146,13 @@ namespace OpenKalman
     /// Assign from a compatible \ref OpenKalman::euclidean_transformed "euclidean_transformed" matrix.
 #ifdef __cpp_concepts
     template<euclidean_transformed Arg> requires
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
       std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, decltype(from_euclidean<RowCoefficients>(std::declval<nested_object_of_t<Arg>>()))>
 #else
     template<typename Arg, std::enable_if_t<euclidean_transformed<Arg> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
+      compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
       std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, decltype(from_euclidean<RowCoefficients>(std::declval<nested_object_of_t<Arg>>()))>,
       int> = 0>
 #endif
@@ -193,12 +193,12 @@ namespace OpenKalman
     /// Increment from another typed matrix.
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients>
+      compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
+      coordinate::compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients>, int> = 0>
+      compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients>and
+      compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients>, int> = 0>
 #endif
     auto& operator+=(Arg&& other)
     {
@@ -209,11 +209,11 @@ namespace OpenKalman
 
     /// Add a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
-    template<distribution Arg> requires (euclidean_vector_space_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>)
+    template<distribution Arg> requires (coordinate::euclidean_pattern<ColumnCoefficients>) and
+      (compares_with<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>)
 #else
-    template<typename Arg, std::enable_if_t<distribution<Arg> and (euclidean_vector_space_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>), int> = 0>
+    template<typename Arg, std::enable_if_t<distribution<Arg> and (coordinate::euclidean_pattern<ColumnCoefficients>) and
+      (compares_with<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>), int> = 0>
 #endif
     auto& operator+=(const Arg& arg)
     {
@@ -233,12 +233,12 @@ namespace OpenKalman
     /// Decrement from another typed matrix.
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients>
+      compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients>and
+      coordinate::compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
-      equivalent_to<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients>, int> = 0>
+      compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients>and
+      compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients>, int> = 0>
 #endif
     auto& operator-=(Arg&& other)
     {
@@ -249,11 +249,11 @@ namespace OpenKalman
 
     /// Subtract a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
-    template<distribution Arg> requires (euclidean_vector_space_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>)
+    template<distribution Arg> requires (coordinate::euclidean_pattern<ColumnCoefficients>) and
+      (compares_with<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>)
 #else
-    template<typename Arg, std::enable_if_t<distribution<Arg> and (euclidean_vector_space_descriptor<ColumnCoefficients>) and
-      (equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>), int> = 0>
+    template<typename Arg, std::enable_if_t<distribution<Arg> and (coordinate::euclidean_pattern<ColumnCoefficients>) and
+      (compares_with<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>), int> = 0>
 #endif
     auto& operator-=(const Arg& arg)
     {
@@ -286,7 +286,7 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<typed_matrix_nestable M, vector_space_descriptor...Cs>
+  template<typed_matrix_nestable M, coordinate::pattern...Cs>
 #else
   template<typename M, std::enable_if_t<typed_matrix_nestable<M>, int> = 0>
 #endif
@@ -350,7 +350,7 @@ namespace OpenKalman
       {
         if constexpr (value::fixed<N>)
           return std::get<N>(std::forward<Arg>(arg).my_dimensions);
-        else if constexpr (equivalent_to<RowCoeffs, ColCoeffs>)
+        else if constexpr (compares_with<RowCoeffs, ColCoeffs>)
           return std::get<0>(std::forward<Arg>(arg).my_dimensions);
         else
           return std::apply(
@@ -376,29 +376,29 @@ namespace OpenKalman
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
-        if constexpr (euclidean_vector_space_descriptor<RowCoeffs> and euclidean_vector_space_descriptor<ColCoeffs>)
+        if constexpr (coordinate::euclidean_pattern<RowCoeffs> and coordinate::euclidean_pattern<ColCoeffs>)
           return constant_diagonal_coefficient {arg.nestedExpression()};
         else
           return std::monostate {};
       }
 
 
-      template<Qualification b>
+      template<Applicability b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedMatrix, b>;
 
 
-      template<Qualification b>
+      template<Applicability b>
       static constexpr bool is_square = OpenKalman::square_shaped<NestedMatrix, b>;
 
 
       template<TriangleType t>
-      static constexpr bool is_triangular = equivalent_to<RowCoeffs, ColCoeffs> and triangular_matrix<NestedMatrix, t>;
+      static constexpr bool is_triangular = compares_with<RowCoeffs, ColCoeffs>and triangular_matrix<NestedMatrix, t>;
 
 
       static constexpr bool is_triangular_adapter = false;
 
 
-      static constexpr bool is_hermitian = equivalent_to<RowCoeffs, ColCoeffs> and hermitian_matrix<NestedMatrix>;
+      static constexpr bool is_hermitian = compares_with<RowCoeffs, ColCoeffs>and hermitian_matrix<NestedMatrix>;
 
 
   #ifdef __cpp_lib_concepts

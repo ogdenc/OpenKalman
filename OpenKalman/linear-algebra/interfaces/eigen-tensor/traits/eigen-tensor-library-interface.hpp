@@ -94,11 +94,9 @@ namespace OpenKalman::interface
     {
       constexpr std::size_t ix_count = Eigen::internal::traits<T>::NumDimensions;
 #ifdef __cpp_lib_ranges
-      return get_component(std::forward<Arg>(arg), make_ix_array<ix_count>(std::ranges::begin(indices), std::ranges::end(indices)));
-#else
-      using std::begin, std::end;
-      return get_component(std::forward<Arg>(arg), make_ix_array<ix_count>(begin(indices), end(indices)));
+      namespace ranges = std::ranges;
 #endif
+      return get_component(std::forward<Arg>(arg), make_ix_array<ix_count>(ranges::begin(indices), ranges::end(indices)));
     }
 
 
@@ -128,11 +126,9 @@ namespace OpenKalman::interface
     {
       constexpr std::size_t ix_count = Eigen::internal::traits<T>::NumDimensions;
 #ifdef __cpp_lib_ranges
-      set_component(arg, s, make_ix_array<ix_count>(std::ranges::begin(indices), std::ranges::end(indices)));
-#else
-      using std::begin, std::end;
-      set_component(arg, s, make_ix_array<ix_count>(begin(indices), end(indices)));
+      namespace ranges = std::ranges;
 #endif
+      set_component(arg, s, make_ix_array<ix_count>(ranges::begin(indices), ranges::end(indices)));
     }
 
   private:
@@ -217,10 +213,10 @@ namespace OpenKalman::interface
     static auto make_default(D&&...d)
     {
       constexpr auto options = layout == Layout::right ? Eigen::RowMajor : Eigen::ColMajor;
-      if constexpr (((dynamic_vector_space_descriptor<D>) or ...))
+      if constexpr (((dynamic_pattern<D>) or ...))
         return Eigen::Tensor<Scalar, sizeof...(D), options, IndexType>(static_cast<IndexType>(get_size(d))...);
       else
-        return Eigen::TensorFixedSize<Scalar, Eigen::Sizes<static_cast<std::ptrdiff_t>(dimension_size_of_v<D>)...>, options, IndexType> {};
+        return Eigen::TensorFixedSize<Scalar, Eigen::Sizes<static_cast<std::ptrdiff_t>(coordinate::size_of_v<D>)...>, options, IndexType> {};
     }
 
 
@@ -242,11 +238,11 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<value::dynamic C, typename...Ds> requires (... and (not dynamic_vector_space_descriptor<Ds>))
+    template<value::dynamic C, typename...Ds> requires (... and (not dynamic_pattern<Ds>))
     static constexpr constant_matrix auto
 #else
     template<typename C, typename...Ds, std::enable_if_t<value::dynamic<C> and
-      (... and (not dynamic_vector_space_descriptor<Ds>)), int> = 0>
+      (... and (not dynamic_pattern<Ds>)), int> = 0>
     static constexpr auto
 #endif
     make_constant(C&& c, Ds&&...ds)
@@ -414,9 +410,9 @@ namespace OpenKalman::interface
       using Diag = const std::decay_t<decltype(diag)>;
       static_assert(vector<Diag>);
 
-      using D = std::conditional_t<dynamic_dimension<Diag, 0> and static_vector_space_descriptor<Id>, std::decay_t<Id>, vector_space_descriptor_of_t<Diag, 0>>;
+      using D = std::conditional_t<dynamic_dimension<Diag, 0> and fixed_pattern<Id>, std::decay_t<Id>, vector_space_descriptor_of_t<Diag, 0>>;
 
-      if constexpr (not dynamic_dimension<Diag, 0> or dynamic_vector_space_descriptor<D>) return diag;
+      if constexpr (not dynamic_dimension<Diag, 0> or dynamic_pattern<D>) return diag;
       else return internal::FixedSizeAdapter<Diag, D, Dimensions<1>> {std::move(diag)};
     }
 
@@ -500,13 +496,13 @@ namespace OpenKalman::interface
     replicate_arg_impl(const std::tuple<Ds...>& p_tup, const std::tuple<ArgDs...>& arg_tup, Arg&& arg, std::index_sequence<I...>)
     {
       using R = Eigen::Replicate<std::decay_t<Arg>,
-        (dimension_size_of_v<Ds> == dynamic_size or dimension_size_of_v<ArgDs> == dynamic_size ?
-        Eigen::Dynamic : static_cast<IndexType>(dimension_size_of_v<Ds> / dimension_size_of_v<ArgDs>))...>;
+        (coordinate::size_of_v<Ds> == dynamic_size or coordinate::size_of_v<ArgDs> == dynamic_size ?
+        Eigen::Dynamic : static_cast<IndexType>(coordinate::size_of_v<Ds> / coordinate::size_of_v<ArgDs>))...>;
 
-      if constexpr (((dimension_size_of_v<Ds> != dynamic_size) and ...) and
-        ((dimension_size_of_v<ArgDs> != dynamic_size) and ...))
+      if constexpr (((coordinate::size_of_v<Ds> != dynamic_size) and ...) and
+        ((coordinate::size_of_v<ArgDs> != dynamic_size) and ...))
       {
-        if constexpr (((dimension_size_of_v<Ds> == dimension_size_of_v<ArgDs>) and ...))
+        if constexpr (((coordinate::size_of_v<Ds> == coordinate::size_of_v<ArgDs>) and ...))
           return std::forward<Arg>(arg);
         else
           return R {std::forward<Arg>(arg)};
@@ -688,10 +684,10 @@ namespace OpenKalman::interface
         using A0 = vector_space_descriptor_of_t<A, 0>; using A1 = vector_space_descriptor_of_t<A, 1>;
         using B0 = vector_space_descriptor_of_t<B, 0>; using B1 = vector_space_descriptor_of_t<B, 1>;
 
-        using R = std::conditional_t<dynamic_vector_space_descriptor<S0>,
-          std::conditional_t<dynamic_vector_space_descriptor<A0>, std::conditional_t<dynamic_vector_space_descriptor<B0>, S0, B0>, A0>, S0>;
-        using C = std::conditional_t<dynamic_vector_space_descriptor<S1>,
-          std::conditional_t<dynamic_vector_space_descriptor<A1>, std::conditional_t<dynamic_vector_space_descriptor<B1>, S1, B1>, A1>, S1>;
+        using R = std::conditional_t<dynamic_pattern<S0>,
+          std::conditional_t<dynamic_pattern<A0>, std::conditional_t<dynamic_pattern<B0>, S0, B0>, A0>, S0>;
+        using C = std::conditional_t<dynamic_pattern<S1>,
+          std::conditional_t<dynamic_pattern<A1>, std::conditional_t<dynamic_pattern<B1>, S1, B1>, A1>, S1>;
         return internal::FixedSizeAdapter<std::decay_t<decltype(s)>, R, C> {std::move(s)};
       }
       else return s;

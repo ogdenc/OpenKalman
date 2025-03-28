@@ -83,34 +83,34 @@ namespace OpenKalman
 
 
   /**
-   * \brief How a concept or trait is qualified.
-   * \details Qualification::depends_on_dynamic_shape means that the concept or trait may vary based on the
-   * dynamic shape of the argument, which is not known at compile time. For example:
-   * - <code>square_shaped<T, Qualification::unqualified></code> means that T is known at compile time to be a square matrix.
-   * - <code>square_shaped<T, Qualification::depends_on_dynamic_shape></code> means that T <em>could</em> be a square matrix, but whether it
-   * actually <em>is</em> cannot be determined at compile time.
+   * \brief The applicability of a concept, trait, or restraint.
+   * \details Determines whether something is necessarily applicable, or alternatively just permissible, at compile time.
+   * Examples:
+   * - <code>square_shaped<T, Applicability::guaranteed></code> means that T is known at compile time to be square shaped.
+   * - <code>square_shaped<T, Applicability::permitted></code> means that T <em>could</em> be square shaped,
+   * but whether it actually <em>is</em> cannot be determined at compile time.
    */
-  enum struct Qualification : int {
-    unqualified, ///< At compile time, the property is known to apply.
-    depends_on_dynamic_shape, ///< The property is not ruled out and depends on the dynamic shape.
+  enum struct Applicability : int {
+    guaranteed, ///< The concept, trait, or restraint represents a compile-time guarantee.
+    permitted, ///< The concept, trait, or restraint is permitted, but whether it applies is not necessarily known at compile time.
   };
 
 
-  constexpr Qualification operator not (Qualification x)
+  constexpr Applicability operator not (Applicability x)
   {
-    return x == Qualification::unqualified ? Qualification::depends_on_dynamic_shape : Qualification::unqualified;
+    return x == Applicability::guaranteed ? Applicability::permitted : Applicability::guaranteed;
   }
 
 
-  constexpr Qualification operator and (Qualification x, Qualification y)
+  constexpr Applicability operator and (Applicability x, Applicability y)
   {
-    return x == Qualification::unqualified and y == Qualification::unqualified ? Qualification::unqualified : Qualification::depends_on_dynamic_shape;
+    return x == Applicability::guaranteed and y == Applicability::guaranteed ? Applicability::guaranteed : Applicability::permitted;
   }
 
 
-  constexpr Qualification operator or (Qualification x, Qualification y)
+  constexpr Applicability operator or (Applicability x, Applicability y)
   {
-    return x == Qualification::unqualified or y == Qualification::unqualified ? Qualification::unqualified : Qualification::depends_on_dynamic_shape;
+    return x == Applicability::guaranteed or y == Applicability::guaranteed ? Applicability::guaranteed : Applicability::permitted;
   }
 
 

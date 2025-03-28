@@ -18,7 +18,7 @@
 
 #include <functional>
 #include <tuple>
-#include "basics/internal/tuple_like.hpp"
+#include "collections/concepts/tuple_like.hpp"
 
 namespace OpenKalman
 {
@@ -223,10 +223,10 @@ namespace OpenKalman
      * \return The posterior distribution.
      **/
 #ifdef __cpp_concepts
-    template<gaussian_distribution InputDist, typename...Ts> requires (... and oin::tuple_like<std::decay_t<Ts>>)
+    template<gaussian_distribution InputDist, typename...Ts> requires (... and collections::tuple_like<std::decay_t<Ts>>)
 #else
     template<typename InputDist, typename...Ts, std::enable_if_t<
-      gaussian_distribution<InputDist> and (oin::tuple_like<std::decay_t<Ts>> and ...), int> = 0>
+      gaussian_distribution<InputDist> and (collections::tuple_like<std::decay_t<Ts>> and ...), int> = 0>
 #endif
     auto operator()(InputDist&& x, Ts&&...ts) const
     {
@@ -265,10 +265,10 @@ namespace OpenKalman
      * \return A tuple comprising the posterior distribution and the cross-covariance.
      **/
 #ifdef __cpp_concepts
-    template<gaussian_distribution InputDist, oin::tuple_like...Ts> requires (... and oin::tuple_like<std::decay_t<Ts>>)
+    template<gaussian_distribution InputDist, collections::tuple_like...Ts> requires (... and collections::tuple_like<std::decay_t<Ts>>)
 #else
     template<typename InputDist, typename...Ts, std::enable_if_t<
-      gaussian_distribution<InputDist> and (oin::tuple_like<std::decay_t<Ts>> and ...), int> = 0>
+      gaussian_distribution<InputDist> and (collections::tuple_like<std::decay_t<Ts>> and ...), int> = 0>
 #endif
     auto transform_with_cross_covariance(InputDist&& x, Ts&&...ts) const
     {

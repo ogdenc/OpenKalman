@@ -14,7 +14,7 @@
 namespace OpenKalman
 {
 #ifdef __cpp_concepts
-  template<indexible NestedObject, vector_space_descriptor_collection Descriptors> requires
+  template<indexible NestedObject, pattern_collection Descriptors> requires
     internal::not_more_fixed_than<NestedObject, Descriptors> and (not internal::less_fixed_than<NestedObject, Descriptors>) and
     internal::maybe_same_shape_as_vector_space_descriptors<NestedObject, Descriptors>
 #else
@@ -26,7 +26,7 @@ namespace OpenKalman
 
 #ifndef __cpp_concepts
     static_assert(indexible<NestedObject>);
-    static_assert(vector_space_descriptor_collection<Descriptors>);
+    static_assert(pattern_collection<Descriptors>);
     static_assert(internal::not_more_fixed_than<NestedObject, Descriptors>);
     static_assert(not internal::less_fixed_than<NestedObject, Descriptors>);
     static_assert(internal::maybe_same_shape_as_vector_space_descriptors<NestedObject, Descriptors>);
@@ -41,10 +41,10 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     constexpr VectorSpaceAdapter() requires std::default_initializable<Base> and
-      static_vector_space_descriptor_tuple<Descriptors>
+      fixed_pattern_tuple<Descriptors>
 #else
     template<typename B = Base, std::enable_if_t<std::is_default_constructible<B>::value
-      and static_vector_space_descriptor_tuple<Descriptors>, int> = 0>
+      and fixed_pattern_tuple<Descriptors>, int> = 0>
     constexpr VectorSpaceAdapter()
 #endif
       : Base {}, my_descriptors{} {}
@@ -53,7 +53,7 @@ namespace OpenKalman
     /**
      * \brief Construct from a compatible indexible object.
      * \tparam Arg An \ref indexible object. Any of its vector space descriptors will be overwritten.
-     * \param descriptors A set of \ref vector_space_descriptor objects
+     * \param descriptors A set of \ref coordinate::pattern objects
      */
 #ifdef __cpp_concepts
     template<internal::maybe_same_shape_as_vector_space_descriptors<Descriptors> Arg> requires
@@ -154,9 +154,9 @@ namespace OpenKalman
   // ------------------------------- //
 
 #ifdef __cpp_concepts
-    template<indexible Arg, vector_space_descriptor_collection Descriptors> requires (not internal::vector_space_adapter<Arg>)
+    template<indexible Arg, pattern_collection Descriptors> requires (not internal::vector_space_adapter<Arg>)
 #else
-    template<typename Arg, typename...Vs, std::enable_if_t<indexible<Arg> and vector_space_descriptor_collection<Descriptors> and
+    template<typename Arg, typename...Vs, std::enable_if_t<indexible<Arg> and pattern_collection<Descriptors> and
       (not internal::vector_space_adapter<Arg>), int> = 0>
 #endif
     VectorSpaceAdapter(Arg&&, Descriptors&&)
@@ -164,10 +164,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    template<internal::vector_space_adapter Arg, vector_space_descriptor_collection Descriptors>
+    template<internal::vector_space_adapter Arg, pattern_collection Descriptors>
 #else
     template<typename Arg, typename...Vs, std::enable_if_t<
-      internal::vector_space_adapter<Arg> and vector_space_descriptor_collection<Descriptors>, int> = 0>
+      internal::vector_space_adapter<Arg> and pattern_collection<Descriptors>, int> = 0>
 #endif
     VectorSpaceAdapter(Arg&&, Descriptors&&)
       -> VectorSpaceAdapter<internal::remove_rvalue_reference_t<nested_object_of_t<Arg&&>>, std::decay_t<Descriptors>>;

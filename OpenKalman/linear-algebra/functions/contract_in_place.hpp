@@ -25,12 +25,12 @@ namespace OpenKalman
    * \result Either A * B (if on_the_right == true) or B * A (if on_the_right == false)
    */
 #ifdef __cpp_concepts
-  template<bool on_the_right = true, square_shaped<Qualification::depends_on_dynamic_shape> A, square_shaped<Qualification::depends_on_dynamic_shape> B> requires
+  template<bool on_the_right = true, square_shaped<Applicability::permitted> A, square_shaped<Applicability::permitted> B> requires
     vector_space_descriptors_may_match_with<A, B> and (not triangular_matrix<A> or triangle_type_of_v<A> == triangle_type_of_v<A, B>) and
     (index_count_v<A> == dynamic_size or index_count_v<A> <= 2) and (index_count_v<B> == dynamic_size or index_count_v<B> <= 2)
 #else
   template<bool on_the_right = true, typename A, typename B, std::enable_if_t<
-    square_shaped<A, Qualification::depends_on_dynamic_shape> and square_shaped<B, Qualification::depends_on_dynamic_shape> and
+    square_shaped<A, Applicability::permitted> and square_shaped<B, Applicability::permitted> and
     vector_space_descriptors_may_match_with<A, B> and (not triangular_matrix<A> or triangle_type_of<A>::value == triangle_type_of<A, B>::value) and
     (index_count<A>::value == dynamic_size or index_count<A>::value <= 2) and (index_count<B>::value == dynamic_size or index_count<B>::value <= 2), int> = 0>
 #endif

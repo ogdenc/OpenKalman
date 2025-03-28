@@ -11,7 +11,7 @@
 #include "transformations.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptor;
+using namespace OpenKalman::coordinate;
 using namespace OpenKalman::test;
 
 using numbers::pi;
@@ -21,7 +21,7 @@ using M1 = Mean<Axis, eigen_matrix_t<double, 1, 1>>;
 using M2 = Mean<Dimensions<2>, eigen_matrix_t<double, 2, 1>>;
 using MP = Mean<Polar<>, eigen_matrix_t<double, 2, 1>>;
 using M3 = Mean<Dimensions<3>, eigen_matrix_t<double, 3, 1>>;
-using MC = Mean<StaticDescriptor<Polar<>, Axis>, eigen_matrix_t<double, 3, 1>>;
+using MC = Mean<std::tuple<Polar<>, Axis>, eigen_matrix_t<double, 3, 1>>;
 using MS = Mean<Spherical<>, eigen_matrix_t<double, 3, 1>>;
 using A22 = Matrix<Dimensions<2>, Dimensions<2>, eigen_matrix_t<double, 2, 2>>;
 using AP2 = Matrix<Polar<>, Dimensions<2>, eigen_matrix_t<double, 2, 2>>;

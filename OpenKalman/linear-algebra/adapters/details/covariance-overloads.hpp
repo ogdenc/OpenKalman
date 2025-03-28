@@ -287,7 +287,7 @@ namespace OpenKalman
       template<typename RC, typename CC, typename Arg>
       static auto call(Arg&& arg)
       {
-        static_assert(equivalent_to<RC, CC>);
+        static_assert(compares_with<RC, CC>);
         auto f = [](auto&& m) { return MatrixTraits<std::decay_t<Expr>>::template make<RC>(std::forward<decltype(m)>(m)); };
         return split_cov_diag_impl<Expr>(f, std::forward<Arg>(arg));
       }
@@ -318,21 +318,21 @@ namespace OpenKalman
 
   /// Split Covariance or SquareRootCovariance diagonally.
 #ifdef __cpp_concepts
-  template<static_vector_space_descriptor ... Cs, covariance M>
+  template<fixed_pattern ... Cs, covariance M>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
   inline auto
   split_diagonal(M&& m)
   {
-    static_assert(internal::prefix_of<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 0>>);
+    static_assert(coordinate::compares_with<static_concatenate_t<Cs...>, vector_space_descriptor_of_t<M, 0>, less_equal<>>);
     return split_diagonal<oin::SplitCovDiagF<M>, Cs...>(nested_object(std::forward<M>(m)));
   }
 
 
   /// Split Covariance or SquareRootCovariance vertically. Result is a tuple of typed matrices.
 #ifdef __cpp_concepts
-  template<static_vector_space_descriptor ... Cs, covariance M>
+  template<fixed_pattern ... Cs, covariance M>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
@@ -340,14 +340,14 @@ namespace OpenKalman
   split_vertical(M&& m)
   {
     using CC = vector_space_descriptor_of_t<M, 0>;
-    static_assert(internal::prefix_of<static_concatenate_t<Cs...>, CC>);
+    static_assert(coordinate::compares_with<static_concatenate_t<Cs...>, CC, less_equal<>>);
     return split_vertical<oin::SplitCovVertF<M, CC>, Cs...>(to_dense_object(std::forward<M>(m)));
   }
 
 
   /// Split Covariance or SquareRootCovariance vertically. Result is a tuple of typed matrices.
 #ifdef __cpp_concepts
-  template<static_vector_space_descriptor ... Cs, covariance M>
+  template<fixed_pattern ... Cs, covariance M>
 #else
   template<typename ... Cs, typename M, std::enable_if_t<covariance<M>, int> = 0>
 #endif
@@ -355,7 +355,7 @@ namespace OpenKalman
   split_horizontal(M&& m)
   {
     using RC = vector_space_descriptor_of_t<M, 0>;
-    static_assert(internal::prefix_of<static_concatenate_t<Cs...>, RC>);
+    static_assert(coordinate::compares_with<static_concatenate_t<Cs...>, RC, less_equal<>>);
     return split_horizontal<oin::SplitCovHorizF<M, RC>, Cs...>(to_dense_object(std::forward<M>(m)));
   }
 

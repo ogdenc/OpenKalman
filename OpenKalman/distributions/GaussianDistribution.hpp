@@ -24,7 +24,7 @@ namespace OpenKalman
 {
 #ifdef __cpp_concepts
   template<
-    static_vector_space_descriptor StaticDescriptor,
+    fixed_pattern StaticDescriptor,
     typed_matrix_nestable MeanNestedMatrix,
     covariance_nestable CovarianceNestedMatrix,
     std::uniform_random_bit_generator random_number_engine> requires
@@ -53,7 +53,7 @@ namespace OpenKalman
 
   protected:
 
-    static constexpr auto dim = dimension_size_of_v<StaticDescriptor>;
+    static constexpr auto dim = coordinate::size_of_v<StaticDescriptor>;
     using Mean = Mean<StaticDescriptor, MeanNestedMatrix>;
     using Covariance = Covariance<StaticDescriptor, CovarianceNestedMatrix>;
     using Scalar = scalar_type_of_t<Mean>;
@@ -91,11 +91,11 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<gaussian_distribution Arg> requires (not std::derived_from<std::decay_t<Arg>, GaussianDistribution>) and
-      equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, StaticDescriptor>
+      compares_with<typename DistributionTraits<Arg>::StaticDescriptor, StaticDescriptor>
 #else
     template<typename Arg, std::enable_if_t<gaussian_distribution<Arg> and
       not std::is_base_of_v<GaussianDistribution, std::decay_t<Arg>> and
-      equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, StaticDescriptor>, int> = 0>
+      compares_with<typename DistributionTraits<Arg>::StaticDescriptor, StaticDescriptor>, int> = 0>
 #endif
     GaussianDistribution(Arg&& arg)
       : mu {std::forward<Arg>(arg).mu}, sigma {std::forward<Arg>(arg).sigma} {}
@@ -112,10 +112,10 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix M> requires vector<M> and has_untyped_index<M, 1> and
-      equivalent_to<vector_space_descriptor_of_t<M, 0>, StaticDescriptor>
+      compares_with<vector_space_descriptor_of_t<M, 0>, StaticDescriptor>
 #else
     template<typename M, std::enable_if_t<typed_matrix<M> and vector<M> and has_untyped_index<M, 1> and
-      equivalent_to<vector_space_descriptor_of_t<M, 0>, StaticDescriptor>, int> = 0>
+      compares_with<vector_space_descriptor_of_t<M, 0>, StaticDescriptor>, int> = 0>
 #endif
     GaussianDistribution(M&& mean, Covariance&& cov) : mu {std::forward<M>(mean)}, sigma {std::move(cov)} {}
 
@@ -138,11 +138,11 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typename Cov> requires ((covariance<Cov> or (typed_matrix<Cov> and square_shaped<Cov>)) and
-        equivalent_to<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>) or
+        compares_with<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>) or
       (covariance_nestable<Cov> and index_dimension_of_v<Cov, 0> == dim)
 #else
     template<typename Cov, std::enable_if_t<(covariance<Cov> or (typed_matrix<Cov> and square_shaped<Cov>)) and
-        equivalent_to<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>, int> = 0>
+        compares_with<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>, int> = 0>
     GaussianDistribution(Mean&& mean, Cov&& cov) : mu {std::move(mean)}, sigma {cov_adapter(std::forward<Cov>(cov))} {}
 
     template<typename Cov, std::enable_if_t<
@@ -158,14 +158,14 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix M, typename Cov> requires vector<M> and has_untyped_index<M, 1> and
-      equivalent_to<vector_space_descriptor_of_t<M, 0>, StaticDescriptor> and
+      compares_with<vector_space_descriptor_of_t<M, 0>, StaticDescriptor> and
       (covariance<Cov> or typed_matrix<Cov>) and
-      equivalent_to<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>
+      compares_with<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>
 #else
     template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and vector<M> and has_untyped_index<M, 1> and
-      equivalent_to<vector_space_descriptor_of_t<M, 0>, StaticDescriptor> and
+      compares_with<vector_space_descriptor_of_t<M, 0>, StaticDescriptor> and
       (covariance<Cov> or typed_matrix<Cov>) and
-      equivalent_to<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>, int> = 0>
+      compares_with<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>, int> = 0>
 #endif
     GaussianDistribution(M&& mean, Cov&& cov)
       : mu {std::forward<M>(mean)}, sigma {cov_adapter(std::forward<Cov>(cov))} {}
@@ -178,11 +178,11 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix M, typename Cov> requires vector<M> and has_untyped_index<M, 1> and
-      equivalent_to<vector_space_descriptor_of_t<M, 0>, StaticDescriptor> and
+      compares_with<vector_space_descriptor_of_t<M, 0>, StaticDescriptor> and
       covariance_nestable<Cov> and (index_dimension_of_v<Cov, 0> == dim)
 #else
     template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and vector<M> and has_untyped_index<M, 1> and
-      equivalent_to<vector_space_descriptor_of_t<M, 0>, StaticDescriptor> and
+      compares_with<vector_space_descriptor_of_t<M, 0>, StaticDescriptor> and
       covariance_nestable<Cov> and (index_dimension_of<Cov, 0>::value == dim), int> = 0>
 #endif
     GaussianDistribution(M&& mean, Cov&& cov) : mu {std::forward<M>(mean)}, sigma {std::forward<Cov>(cov)} {}
@@ -196,11 +196,11 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typed_matrix_nestable M, typename Cov> requires vector<M> and
       (index_dimension_of_v<M, 0> == dim) and (covariance<Cov> or typed_matrix<Cov>) and
-      equivalent_to<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>
+      coordinate::compares_with<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>
 #else
     template<typename M, typename Cov, std::enable_if_t<typed_matrix_nestable<M> and vector<M> and
       (index_dimension_of<M, 0>::value == dim) and (covariance<Cov> or typed_matrix<Cov>) and
-      equivalent_to<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>, int> = 0>
+      compares_with<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>, int> = 0>
 #endif
     GaussianDistribution(M&& mean, Cov&& cov)
       : mu {std::forward<M>(mean)}, sigma {cov_adapter(std::forward<Cov>(cov))} {}
@@ -226,10 +226,10 @@ namespace OpenKalman
     /// Construct with only a \ref covariance or \ref square_shaped "square" \ref typed_matrix (mean is set to zero).
 #ifdef __cpp_concepts
     template<typename Cov> requires (covariance<Cov> or (typed_matrix<Cov> and square_shaped<Cov>)) and
-      equivalent_to<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>
+      coordinate::compares_with<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>
 #else
     template<typename Cov, std::enable_if_t<(covariance<Cov> or (typed_matrix<Cov> and square_shaped<Cov>)) and
-      equivalent_to<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>, int> = 0>
+      compares_with<vector_space_descriptor_of_t<Cov, 0>, StaticDescriptor>, int> = 0>
 #endif
     explicit GaussianDistribution(Cov&& cov) :
       mu {[]{ make_zero<MeanNestedMatrix>(get_vector_space_descriptor<0>(cov), Dimensions<1>{}); }()},
@@ -254,10 +254,10 @@ namespace OpenKalman
     /// Assign from another compatible distribution.
 #ifdef __cpp_concepts
     template<gaussian_distribution Arg> requires
-      equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, StaticDescriptor>
+      coordinate::compares_with<typename DistributionTraits<Arg>::StaticDescriptor, StaticDescriptor>
 #else
     template<typename Arg, std::enable_if_t<gaussian_distribution<Arg> and
-      equivalent_to<typename DistributionTraits<Arg>::StaticDescriptor, StaticDescriptor>, int> = 0>
+      compares_with<typename DistributionTraits<Arg>::StaticDescriptor, StaticDescriptor>, int> = 0>
 #endif
     GaussianDistribution& operator=(Arg&& arg)
     {
@@ -340,10 +340,10 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix...Z> requires (sizeof...(Z) > 0) and
-      ((vector<Z> and equivalent_to<vector_space_descriptor_of_t<Z, 0>, StaticDescriptor>) and ...)
+      ((vector<Z> and compares_with<vector_space_descriptor_of_t<Z, 0>, StaticDescriptor>) and ...)
 #else
     template<typename...Z, std::enable_if_t<(sizeof...(Z) > 0) and ((typed_matrix<Z> and vector<Z> and
-      equivalent_to<vector_space_descriptor_of_t<Z, 0>, StaticDescriptor>) and ...), int> = 0>
+      compares_with<vector_space_descriptor_of_t<Z, 0>, StaticDescriptor>) and ...), int> = 0>
 #endif
     Scalar log_likelihood(const Z&...z) const
     {
@@ -405,11 +405,11 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<typed_matrix M, typed_matrix C> requires
-    equivalent_to<vector_space_descriptor_of_t<C, 0>, vector_space_descriptor_of_t<C, 1>>
+    coordinate::compares_with<vector_space_descriptor_of_t<C, 0>, vector_space_descriptor_of_t<C, 1>>
 #else
   template<typename M, typename C, std::enable_if_t<
     typed_matrix<M> and typed_matrix<C> and
-    equivalent_to<vector_space_descriptor_of_t<C, 0>, vector_space_descriptor_of_t<C, 1>>, int> = 0>
+    compares_with<vector_space_descriptor_of_t<C, 0>, vector_space_descriptor_of_t<C, 1>>, int> = 0>
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     vector_space_descriptor_of_t<M, 0>,
@@ -453,10 +453,10 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<typed_matrix_nestable M, typed_matrix C> requires
-    equivalent_to<vector_space_descriptor_of_t<C, 0>, vector_space_descriptor_of_t<C, 1>>
+    coordinate::compares_with<vector_space_descriptor_of_t<C, 0>, vector_space_descriptor_of_t<C, 1>>
 #else
   template<typename M, typename C, std::enable_if_t<typed_matrix_nestable<M> and typed_matrix<C> and
-    equivalent_to<vector_space_descriptor_of_t<C, 0>, vector_space_descriptor_of_t<C, 1>>, int> = 0>
+    compares_with<vector_space_descriptor_of_t<C, 0>, vector_space_descriptor_of_t<C, 1>>, int> = 0>
 #endif
   GaussianDistribution(M&&, C&&) -> GaussianDistribution<
     vector_space_descriptor_of_t<C, 0>,
@@ -507,12 +507,12 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<std::uniform_random_bit_generator re = std::mt19937, typed_matrix M, typename Cov> requires
     vector<M> and has_untyped_index<M, 1> and square_shaped<Cov> and (covariance<Cov> or typed_matrix<Cov>) and
-    (equivalent_to<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Cov, 0>>)
+    (compares_with<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Cov, 0>>)
 #else
-  template<typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<(not static_vector_space_descriptor<re>) and
+  template<typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<(not fixed_pattern<re>) and
     typed_matrix<M> and vector<M> and has_untyped_index<M, 1> and
     square_shaped<Cov> and (covariance<Cov> or typed_matrix<Cov>) and
-    (equivalent_to<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Cov, 0>>), int> = 0>
+    (compares_with<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Cov, 0>>), int> = 0>
 #endif
   inline auto
   make_GaussianDistribution(M&& mean, Cov&& cov)
@@ -538,7 +538,7 @@ namespace OpenKalman
     (index_dimension_of_v<M, 0> == index_dimension_of_v<Cov, 0>)
 #else
   template<typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<
-    (not static_vector_space_descriptor<re>) and typed_matrix<M> and vector<M> and has_untyped_index<M, 1> and
+    (not fixed_pattern<re>) and typed_matrix<M> and vector<M> and has_untyped_index<M, 1> and
     square_shaped<Cov> and (covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
     (index_dimension_of<M, 0>::value == index_dimension_of<Cov, 0>::value), int> = 0>
 #endif
@@ -566,7 +566,7 @@ namespace OpenKalman
     (index_dimension_of_v<M, 0> == index_dimension_of_v<Cov, 0>)
 #else
   template<typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<
-    (not static_vector_space_descriptor<re>) and typed_matrix_nestable<M> and vector<M> and square_shaped<Cov> and
+    (not fixed_pattern<re>) and typed_matrix_nestable<M> and vector<M> and square_shaped<Cov> and
     (covariance<Cov> or typed_matrix<Cov> or covariance_nestable<Cov> or typed_matrix_nestable<Cov>) and
     (index_dimension_of<M, 0>::value == index_dimension_of<Cov, 0>::value), int> = 0>
 #endif
@@ -599,18 +599,18 @@ namespace OpenKalman
 
   /**
    * \brief Make a Gaussian distribution.
-   * \tparam StaticDescriptor The types of the \ref static_vector_space_descriptor for the distribution.
+   * \tparam StaticDescriptor The types of the \ref fixed_pattern for the distribution.
    * \tparam re A random number engine.
    * \tparam M A \ref typed_matrix_nestable.
    * \tparam Cov A \ref covariance_nestable or \ref typed_matrix_nestable.
    * \return A \ref gaussian_distribution.
    */
 #ifdef __cpp_concepts
-  template<static_vector_space_descriptor StaticDescriptor, std::uniform_random_bit_generator re = std::mt19937,
+  template<fixed_pattern StaticDescriptor, std::uniform_random_bit_generator re = std::mt19937,
     typed_matrix_nestable M, typename Cov> requires vector<M> and (covariance_nestable<Cov> or typed_matrix_nestable<Cov>)
 #else
   template<typename StaticDescriptor, typename re = std::mt19937, typename M, typename Cov, std::enable_if_t<
-    static_vector_space_descriptor<StaticDescriptor> and typed_matrix_nestable<M> and vector<M> and
+    fixed_pattern<StaticDescriptor> and typed_matrix_nestable<M> and vector<M> and
     (covariance_nestable<Cov> or typed_matrix_nestable<Cov>), int> = 0>
 #endif
   inline auto
@@ -642,11 +642,11 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix M, covariance Cov, std::uniform_random_bit_generator re = std::mt19937> requires
   vector<M> and has_untyped_index<M, 1> and
-    equivalent_to<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Cov, 0>>
+    coordinate::compares_with<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Cov, 0>>
 #else
   template<typename M, typename Cov, typename re = std::mt19937, std::enable_if_t<
     typed_matrix<M> and vector<M> and has_untyped_index<M, 1> and covariance<Cov> and
-    equivalent_to<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Cov, 0>>, int> = 0>
+    compares_with<vector_space_descriptor_of_t<M, 0>, vector_space_descriptor_of_t<Cov, 0>>, int> = 0>
 #endif
   inline auto
   make_GaussianDistribution()
@@ -698,14 +698,14 @@ namespace OpenKalman
 
   /**
    * \brief Make a default Gaussian distribution.
-   * \tparam StaticDescriptor The types of the \ref static_vector_space_descriptor for the distribution.
+   * \tparam StaticDescriptor The types of the \ref fixed_pattern for the distribution.
    * \tparam M A \ref typed_matrix_nestable
    * \tparam Cov A \ref covariance_nestable.
    * \tparam re A random number engine
    * \return A \ref gaussian_distribution
    */
 #ifdef __cpp_concepts
-  template<static_vector_space_descriptor StaticDescriptor, typed_matrix_nestable M, covariance_nestable Cov,
+  template<fixed_pattern StaticDescriptor, typed_matrix_nestable M, covariance_nestable Cov,
       std::uniform_random_bit_generator re = std::mt19937> requires
   vector<M> and (index_dimension_of_v<M, 0> == index_dimension_of_v<Cov, 0>)
 #else
@@ -784,11 +784,11 @@ namespace OpenKalman
     using random_number_engine = re;
 
 #ifdef __cpp_concepts
-    template<static_vector_space_descriptor C = StaticDescriptor, typed_matrix_nestable M, covariance_nestable Cov> requires
+    template<fixed_pattern C = StaticDescriptor, typed_matrix_nestable M, covariance_nestable Cov> requires
       vector<M> and (index_dimension_of_v<M, 0> == index_dimension_of_v<Cov, 0>)
 #else
     template<typename C = StaticDescriptor, typename M, typename Cov,
-      std::enable_if_t<static_vector_space_descriptor<C> and typed_matrix_nestable<M> and covariance_nestable<Cov> and
+      std::enable_if_t<fixed_pattern<C> and typed_matrix_nestable<M> and covariance_nestable<Cov> and
       vector<M> and (index_dimension_of<M, 0>::value == index_dimension_of<Cov, 0>::value), int> = 0>
 #endif
     static auto make(M&& mean, Cov&& covariance)
@@ -907,18 +907,18 @@ namespace OpenKalman
 
   /// Split distribution.
 #ifdef __cpp_concepts
-  template<static_vector_space_descriptor ... Cs, gaussian_distribution D> requires
-    internal::prefix_of<static_concatenate_t<Cs...>, typename DistributionTraits<D>::StaticDescriptor>
+  template<fixed_pattern ... Cs, gaussian_distribution D> requires
+    coordinate::compares_with<static_concatenate_t<Cs...>, typename DistributionTraits<D>::StaticDescriptor, less_equal<>>
 #else
   template<typename ... Cs, typename D, std::enable_if_t<
-    (static_vector_space_descriptor<Cs> and ...) and gaussian_distribution<D> and
-    internal::prefix_of<static_concatenate_t<Cs...>, typename DistributionTraits<D>::StaticDescriptor>, int> = 0>
+    (fixed_pattern<Cs> and ...) and gaussian_distribution<D> and
+    coordinate::compares_with<static_concatenate_t<Cs...>, typename DistributionTraits<D>::StaticDescriptor, less_equal<>>, int> = 0>
 #endif
   inline auto
   split(D&& d)
   {
     using Coeffs = typename DistributionTraits<D>::StaticDescriptor;
-    if constexpr(sizeof...(Cs) == 1 and equivalent_to<static_concatenate_t<Cs...>, Coeffs>)
+    if constexpr(sizeof...(Cs) == 1 and compares_with<static_concatenate_t<Cs...>, Coeffs>)
     {
       return std::tuple(std::forward<D>(d));
     }
@@ -951,11 +951,11 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<gaussian_distribution Dist1, gaussian_distribution Dist2> requires
-    equivalent_to<typename DistributionTraits<Dist1>::StaticDescriptor, typename DistributionTraits<Dist2>::StaticDescriptor>
+    coordinate::compares_with<typename DistributionTraits<Dist1>::StaticDescriptor, typename DistributionTraits<Dist2>::StaticDescriptor>
 #else
   template<typename Dist1, typename Dist2, std::enable_if_t<
     gaussian_distribution<Dist1> and gaussian_distribution<Dist2> and
-    equivalent_to<typename DistributionTraits<Dist1>::StaticDescriptor,
+    coordinate::compares_with<typename DistributionTraits<Dist1>::StaticDescriptor,
       typename DistributionTraits<Dist2>::StaticDescriptor>, int> = 0>
 #endif
   inline auto
@@ -970,11 +970,11 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<gaussian_distribution Dist1, gaussian_distribution Dist2> requires
-    equivalent_to<typename DistributionTraits<Dist1>::StaticDescriptor, typename DistributionTraits<Dist2>::StaticDescriptor>
+    coordinate::compares_with<typename DistributionTraits<Dist1>::StaticDescriptor, typename DistributionTraits<Dist2>::StaticDescriptor>
 #else
   template<typename Dist1, typename Dist2, std::enable_if_t<
     gaussian_distribution<Dist1> and gaussian_distribution<Dist2> and
-    equivalent_to<typename DistributionTraits<Dist1>::StaticDescriptor,
+    coordinate::compares_with<typename DistributionTraits<Dist1>::StaticDescriptor,
       typename DistributionTraits<Dist2>::StaticDescriptor>, int> = 0>
 #endif
   inline auto
@@ -990,11 +990,11 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typed_matrix A, gaussian_distribution D> requires gaussian_distribution<D> and
     (not euclidean_transformed<A>) and
-    (equivalent_to<vector_space_descriptor_of_t<A, 1>, typename DistributionTraits<D>::StaticDescriptor>)
+    (compares_with<vector_space_descriptor_of_t<A, 1>, typename DistributionTraits<D>::StaticDescriptor>)
 #else
   template<typename A, typename D, std::enable_if_t<typed_matrix<A> and gaussian_distribution<D> and
     (not euclidean_transformed<A>) and
-    (equivalent_to<vector_space_descriptor_of_t<A, 1>, typename DistributionTraits<D>::StaticDescriptor>), int> = 0>
+    (compares_with<vector_space_descriptor_of_t<A, 1>, typename DistributionTraits<D>::StaticDescriptor>), int> = 0>
 #endif
   inline auto
   operator*(A&& a, D&& d)

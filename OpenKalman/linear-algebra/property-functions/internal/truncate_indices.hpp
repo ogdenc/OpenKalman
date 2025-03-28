@@ -20,13 +20,15 @@
 #include <algorithm>
 #include <stdexcept>
 #include <vector>
-#if defined(__cpp_lib_ranges) and not defined (__clang__)
+#if defined(__cpp_lib_ranges)
 #include <ranges>
+#else
+#include "basics/ranges.hpp"
 #endif
 
 namespace OpenKalman::internal
 {
-#if defined(__cpp_lib_ranges) and not defined (__clang__)
+#if __cpp_lib_ranges >= 202202L
   template<std::ranges::input_range Indices, value::index MinCount>
   constexpr decltype(auto) truncate_indices(const Indices& indices, const MinCount& min_count)
   {
@@ -39,22 +41,24 @@ namespace OpenKalman::internal
   template<typename Indices, typename MinCount, std::enable_if_t<value::index<MinCount>, int> = 0>
   decltype(auto) truncate_indices(const Indices& indices, const MinCount& min_count)
   {
-    using std::begin, std::end;
+#ifdef __cpp_lib_ranges
+    namespace ranges = std::ranges;
+#endif
     auto n {static_cast<std::size_t>(min_count)};
-    auto ad = begin(indices);
+    auto ad = ranges::begin(indices);
     std::advance(ad, n);
-    if (std::any_of(ad, end(indices), [](const auto& x){ return x != 0; }))
+    if (std::any_of(ad, ranges::end(indices), [](const auto& x){ return x != 0; }))
       throw std::invalid_argument {"Component access: one or more trailing indices are not 0."};
     if constexpr (value::fixed<MinCount>)
     {
       std::array<std::size_t, MinCount::value> ret;
-      std::copy(begin(indices), ad, begin(ret));
+      std::copy(ranges::begin(indices), ad, ranges::begin(ret));
       return ret;
     }
     else
     {
       std::vector<std::size_t> ret {n};
-      std::copy(begin(indices), ad, begin(ret));
+      std::copy(ranges::begin(indices), ad, ranges::begin(ret));
       return ret;
     }
   }

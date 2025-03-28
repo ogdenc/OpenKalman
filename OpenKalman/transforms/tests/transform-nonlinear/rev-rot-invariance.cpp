@@ -11,15 +11,15 @@
 #include "transform-nonlinear.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptor;
+using namespace OpenKalman::coordinate;
 using namespace OpenKalman::test;
 
 using numbers::pi;
 
 inline namespace
 {
-  using C2 = StaticDescriptor<Axis, Axis>;
-  using P2 = StaticDescriptor<Polar<>>;
+  using C2 = Dimensions<2>;
+  using P2 = Polar<>;
 
   const GaussianDistribution input1 {Mean<C2>(std::cos(0.9999 * pi), std::sin(0.9999 * pi)), Covariance<C2>(0.25, 0, 0, 0.25)};
   const GaussianDistribution input1_tri {Mean<C2>(std::cos(0.9999 * pi), std::sin(0.9999 * pi)), make_covariance<C2, TriangleType::lower>(0.25, 0, 0, 0.25)};

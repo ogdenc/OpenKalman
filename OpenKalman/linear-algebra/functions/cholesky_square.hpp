@@ -24,10 +24,10 @@ namespace OpenKalman
    * \return AA<sup>*</sup> (if A is lower \ref triangular_matrix) or otherwise A<sup>*</sup>A.
    */
 #ifdef __cpp_concepts
-  template<triangular_matrix A> requires square_shaped<A, Qualification::depends_on_dynamic_shape>
+  template<triangular_matrix A> requires square_shaped<A, Applicability::permitted>
   constexpr hermitian_matrix decltype(auto)
 #else
-  template<typename A, std::enable_if_t<triangular_matrix<A> and square_shaped<A, Qualification::depends_on_dynamic_shape>, int> = 0>
+  template<typename A, std::enable_if_t<triangular_matrix<A> and square_shaped<A, Applicability::permitted>, int> = 0>
   constexpr decltype(auto)
 #endif
   cholesky_square(A&& a)

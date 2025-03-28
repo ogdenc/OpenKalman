@@ -22,7 +22,7 @@
 
 #include "basics/basics.hpp"
 #include "values/values.hpp"
-#include "vector-space-descriptors/vector-space-descriptors.hpp"
+#include "coordinates/coordinates.hpp"
 
 // objects, properties, and interfaces
 

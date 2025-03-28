@@ -35,10 +35,10 @@ namespace OpenKalman
    * \tparam Arg A square matrix
    */
 #ifdef __cpp_concepts
-  template<square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires (max_tensor_order_v<Arg> <= 2)
+  template<square_shaped<Applicability::permitted> Arg> requires (max_tensor_order_v<Arg> <= 2)
   constexpr std::convertible_to<scalar_type_of_t<Arg>> auto
 #else
-  template<typename Arg, std::enable_if_t<square_shaped<Arg, Qualification::depends_on_dynamic_shape> and (max_tensor_order_v<Arg> <= 2), int> = 0>
+  template<typename Arg, std::enable_if_t<square_shaped<Arg, Applicability::permitted> and (max_tensor_order_v<Arg> <= 2), int> = 0>
   constexpr auto
 #endif
   determinant(Arg&& arg)

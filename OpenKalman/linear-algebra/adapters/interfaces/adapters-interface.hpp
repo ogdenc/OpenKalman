@@ -53,15 +53,11 @@ namespace OpenKalman::interface
     {
       using Scalar = scalar_type_of_t<Arg>;
 #ifdef __cpp_lib_ranges
-      auto it = std::ranges::begin(indices);
-      std::size_t i {*it};
-      std::size_t j {++it == std::ranges::end(indices) ? 1 : *it};
-#else
-      using std::begin, std::end;
-      auto it = begin(indices);
-      std::size_t i {*it};
-      std::size_t j {++it == end(indices) ? 1 : *it};
+      namespace ranges = std::ranges;
 #endif
+      auto it = ranges::begin(indices);
+      std::size_t i {*it};
+      std::size_t j {++it == ranges::end(indices) ? 1 : *it};
 
       if constexpr (OpenKalman::internal::diagonal_expr<Arg>)
       {
@@ -112,15 +108,11 @@ namespace OpenKalman::interface
     {
       using Scalar = scalar_type_of_t<Arg>;
 #ifdef __cpp_lib_ranges
-      auto it = std::ranges::begin(indices);
-      std::size_t i {*it};
-      std::size_t j {++it == std::ranges::end(indices) ? 1 : *it};
-#else
-      using std::begin, std::end;
-      auto it = begin(indices);
-      std::size_t i {*it};
-      std::size_t j {++it == end(indices) ? 1 : *it};
+      namespace ranges = std::ranges;
 #endif
+      auto it = ranges::begin(indices);
+      std::size_t i {*it};
+      std::size_t j {++it == ranges::end(indices) ? 1 : *it};
 
       if constexpr (OpenKalman::internal::diagonal_expr<Arg>)
       {

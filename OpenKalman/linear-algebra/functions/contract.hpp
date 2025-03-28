@@ -42,12 +42,12 @@ namespace OpenKalman
    * \brief Matrix multiplication of A * B.
    */
 #ifdef __cpp_concepts
-  template<indexible A, indexible B> requires dimension_size_of_index_is<A, 1, index_dimension_of_v<B, 0>, Qualification::depends_on_dynamic_shape> and
+  template<indexible A, indexible B> requires dimension_size_of_index_is<A, 1, index_dimension_of_v<B, 0>, Applicability::permitted> and
     (index_count_v<A> == dynamic_size or index_count_v<A> <= 2) and (index_count_v<B> == dynamic_size or index_count_v<B> <= 2)
   constexpr compatible_with_vector_space_descriptor_collection<std::tuple<vector_space_descriptor_of_t<A, 0>, vector_space_descriptor_of_t<B, 1>>> decltype(auto)
 #else
   template<typename A, typename B, std::enable_if_t<indexible<A> and indexible<B> and
-    (dimension_size_of_index_is<A, 1, index_dimension_of<B, 0>::value, Qualification::depends_on_dynamic_shape>) and
+    (dimension_size_of_index_is<A, 1, index_dimension_of<B, 0>::value, Applicability::permitted>) and
     (index_count<A>::value == dynamic_size or index_count<A>::value <= 2) and (index_count<B>::value == dynamic_size or index_count<B>::value <= 2), int> = 0>
   constexpr decltype(auto)
 #endif

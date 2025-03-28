@@ -26,7 +26,7 @@ namespace OpenKalman::internal
     template<typename T, typename Descriptors, std::size_t...Ix>
     static constexpr bool not_more_fixed_than_impl(std::index_sequence<Ix...>)
     {
-      return (... and (dynamic_dimension<T, Ix> or static_vector_space_descriptor<std::tuple_element_t<Ix, Descriptors>>));
+      return (... and (dynamic_dimension<T, Ix> or fixed_pattern<std::tuple_element_t<Ix, Descriptors>>));
     }
   } // namespace detail
 #endif
@@ -38,15 +38,15 @@ namespace OpenKalman::internal
   template<typename T, typename Descriptors>
 #if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
   concept not_more_fixed_than =
-    indexible<T> and vector_space_descriptor_collection<Descriptors> and
-      (not vector_space_descriptor_tuple<Descriptors> or
+    indexible<T> and pattern_collection<Descriptors> and
+      (not pattern_tuple<Descriptors> or
         []<std::size_t...Ix>(std::index_sequence<Ix...>)
-          { return (... and (dynamic_dimension<T, Ix> or static_vector_space_descriptor<std::tuple_element_t<Ix, Descriptors>>)); }
+          { return (... and (dynamic_dimension<T, Ix> or fixed_pattern<std::tuple_element_t<Ix, Descriptors>>)); }
           (std::make_index_sequence<std::tuple_size_v<Descriptors>>{}));
 #else
   constexpr bool not_more_fixed_than =
-    indexible<T> and vector_space_descriptor_collection<Descriptors> and
-    (not vector_space_descriptor_tuple<Descriptors> or
+    indexible<T> and pattern_collection<Descriptors> and
+    (not pattern_tuple<Descriptors> or
       detail::not_more_fixed_than_impl<T, Descriptors>(std::make_index_sequence<std::tuple_size_v<Descriptors>>{}));
 #endif
 

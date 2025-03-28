@@ -25,7 +25,7 @@ namespace OpenKalman
     constexpr bool concatenate_dimensions_match_impl(std::index_sequence<I...>)
     {
       return (([](std::size_t i){ return ((i != indices) and ...); }(I) or
-        dimension_size_of_index_is<T, I, index_dimension_of_v<U, I>, Qualification::depends_on_dynamic_shape>) and ...);
+        dimension_size_of_index_is<T, I, index_dimension_of_v<U, I>, Applicability::permitted>) and ...);
     }
 
 
@@ -44,14 +44,14 @@ namespace OpenKalman
       if constexpr (((I == indices) or ...))
       {
         auto f = [](auto&& dtup){
-          if constexpr (I >= std::tuple_size_v<std::decay_t<decltype(dtup)>>) return descriptor::Axis {};
+          if constexpr (I >= std::tuple_size_v<std::decay_t<decltype(dtup)>>) return coordinate::Axis {};
           else return std::get<I>(std::forward<decltype(dtup)>(dtup));
         };
         return (f(std::forward<DTup>(d_tup)) + ... + f(std::forward<DTups>(d_tups)));
       }
       else
       {
-        if constexpr (not (equivalent_to<std::tuple_element_t<I, DTup>, std::tuple_element_t<I, DTups>> and ...))
+        if constexpr (not (compares_with<std::tuple_element_t<I, DTup>, std::tuple_element_t<I, DTups>>and ...))
         {
           if (((std::get<I>(std::forward<DTup>(d_tup)) != std::get<I>(std::forward<DTups>(d_tups))) or ...))
             throw std::invalid_argument {"Arguments to concatenate do not match in at least index " + std::to_string(I)};

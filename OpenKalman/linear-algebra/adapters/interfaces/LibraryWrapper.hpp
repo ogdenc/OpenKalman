@@ -68,11 +68,11 @@ namespace OpenKalman::interface
     }
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedObject, b>;
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool is_square = square_shaped<NestedObject, b>;
 
 
@@ -83,7 +83,7 @@ namespace OpenKalman::interface
     static constexpr bool is_triangular_adapter = false;
 
 
-    static constexpr bool is_hermitian = hermitian_matrix<NestedObject, Qualification::depends_on_dynamic_shape>;
+    static constexpr bool is_hermitian = hermitian_matrix<NestedObject, Applicability::permitted>;
 
 
     static constexpr bool is_writable = writable<NestedObject>;
@@ -373,7 +373,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<vector_space_descriptor...IDs, typename Operation, indexible...Args> requires
+    template<coordinate::pattern...IDs, typename Operation, indexible...Args> requires
       interface::n_ary_operation_defined_for<LibraryInterface, const std::tuple<IDs...>&, Operation&&>
     static indexible auto
 #else
@@ -388,7 +388,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<vector_space_descriptor...IDs, typename Operation, indexible Arg, indexible...Args> requires
+    template<coordinate::pattern...IDs, typename Operation, indexible Arg, indexible...Args> requires
       interface::n_ary_operation_defined_for<NestedObject, const std::tuple<IDs...>&, Operation&&, nested_object_of_t<Arg&&>, Args...>
     static indexible auto
 #else
@@ -439,7 +439,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<indexible Arg, vector_space_descriptor V> requires
+    template<indexible Arg, coordinate::pattern V> requires
       interface::from_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>, const V&> or
       interface::from_euclidean_defined_for<NestedObject, Arg&&, const V&>
     static constexpr indexible auto

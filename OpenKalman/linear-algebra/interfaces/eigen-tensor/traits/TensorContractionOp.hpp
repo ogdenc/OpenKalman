@@ -100,7 +100,7 @@ namespace OpenKalman::interface
     {
       if constexpr (std::tuple_size_v<decltype(arg.indices())> == 1)
       {
-        return value::operation {std::multiplies<>{},
+        return value::operation {std::multiplies{},
           constant_diagonal_coefficient{arg.lhs()}, constant_diagonal_coefficient{arg.rhs()}};
       }
       else
@@ -128,8 +128,8 @@ namespace OpenKalman::interface
 
 
     static constexpr bool is_hermitian = std::tuple_size_v<decltype(std::declval<Xpr>().indices())> == 1 and
-      ((constant_diagonal_matrix<LhsXprType> and hermitian_matrix<RhsXprType, Qualification::depends_on_dynamic_shape>) or
-      (constant_diagonal_matrix<RhsXprType> and hermitian_matrix<LhsXprType, Qualification::depends_on_dynamic_shape>));
+      ((constant_diagonal_matrix<LhsXprType> and hermitian_matrix<RhsXprType, Applicability::permitted>) or
+      (constant_diagonal_matrix<RhsXprType> and hermitian_matrix<LhsXprType, Applicability::permitted>));
 
 
     static constexpr bool is_writable = false;

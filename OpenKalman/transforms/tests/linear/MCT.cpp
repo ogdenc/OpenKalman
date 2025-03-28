@@ -11,12 +11,12 @@
 #include "linear.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptor;
+using namespace OpenKalman::coordinate;
 using namespace OpenKalman::test;
 
 inline namespace
 {
-  using C2 = StaticDescriptor<Axis, Axis>;
+  using C2 = std::tuple<Axis, Axis>;
   using M22 = eigen_matrix_t<double, 2, 2>;
   using CovSA2 = Covariance <C2, HermitianAdapter<M22>>;
   using CovT2 = Covariance <C2, TriangularAdapter<M22>>;

@@ -118,7 +118,7 @@ namespace OpenKalman::interface
 
     /**
      * \brief Make a default, potentially uninitialized, dense, writable matrix or array within the library.
-     * \details Takes a \ref euclidean_vector_space_descriptor_collection that specifies the dimensions of the resulting object
+     * \details Takes a \ref coordinate::euclidean_pattern_collection that specifies the dimensions of the resulting object
      * \tparam layout the \ref Layout of the result, which may be Layout::left, Layout::right, or
      * Layout::none (which indicates the default layout for the library).
      * \tparam Scalar The scalar value of the result.
@@ -128,7 +128,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<Layout layout, value::number Scalar> requires (layout != Layout::stride)
     static auto
-    make_default(euclidean_vector_space_descriptor_collection auto&& descriptors) = delete;
+    make_default(coordinate::euclidean_pattern_collection auto&& descriptors) = delete;
 #else
     template<Layout layout, typename Scalar, typename Descriptors>
     static auto
@@ -157,14 +157,14 @@ namespace OpenKalman::interface
 
     /**
      * \brief Create a \ref constant_matrix of a given shape (optional).
-     * \details Takes a \ref euclidean_vector_space_descriptor_collection that specifies the dimensions of the resulting object
+     * \details Takes a \ref coordinate::euclidean_pattern_collection that specifies the dimensions of the resulting object
      * \param c A \ref value::scalar (either static or dynamic)
-     * \param d A \ref euclidean_vector_space_descriptor_collection
+     * \param d A \ref coordinate::euclidean_pattern_collection
      * \note If this is not defined, calls to <code>OpenKalman::make_constant</code> will return an object of type ConstantAdapter.
      */
 #ifdef __cpp_concepts
     static constexpr constant_matrix auto
-    make_constant(const value::scalar auto& c, euclidean_vector_space_descriptor_collection auto&& d) = delete;
+    make_constant(const value::scalar auto& c, coordinate::euclidean_pattern_collection auto&& d) = delete;
 #else
     template<typename C, typename D>
     static constexpr auto
@@ -177,12 +177,12 @@ namespace OpenKalman::interface
      * \details This is a generalized identity matrix that need not be square, but every non-diagonal element must be zero.
      * \note If not defined, an identity matrix is a \ref DiagonalAdapter with a constant diagonal of 1.
      * \tparam Scalar The scalar type of the new object
-     * \param d A \ref vector_space_descriptor object defining the size
+     * \param d A \ref coordinate::pattern object defining the size
      */
 #ifdef __cpp_concepts
     template<value::number Scalar>
     static constexpr identity_matrix auto
-    make_identity_matrix(euclidean_vector_space_descriptor_collection auto&& d) = delete;
+    make_identity_matrix(coordinate::euclidean_pattern_collection auto&& d) = delete;
 #else
     template<typename Scalar, typename D>
     static constexpr auto
@@ -245,14 +245,14 @@ namespace OpenKalman::interface
 
 
      /**
-      * \brief Project the Euclidean vector space associated with index 0 to \ref vector_space_descriptor v after applying directional statistics
-      * \param v The new \ref vector_space_descriptor for index 0.
+      * \brief Project the Euclidean vector space associated with index 0 to \ref coordinate::pattern v after applying directional statistics
+      * \param v The new \ref coordinate::pattern for index 0.
       * \note This is optional.
       * If not defined, the \ref OpenKalman::from_euclidean "from_euclidean" function will construct a FromEuclideanExpr object.
       * In this case, the library should be able to accept FromEuclideanExpr object as native.
       */
  #ifdef __cpp_concepts
-     template<indexible Arg, vector_space_descriptor V>
+     template<indexible Arg, coordinate::pattern V>
      static constexpr indexible auto
  #else
      template<typename Arg, typename V>
@@ -262,7 +262,7 @@ namespace OpenKalman::interface
 
 
      /**
-      * \brief Wrap Arg based on \ref vector_space_descriptor V.
+      * \brief Wrap Arg based on \ref coordinate::pattern V.
       * \note This is optional. If not defined, the public \ref OpenKalman::wrap_angles "wrap_angles" function
       * will call <code>from_euclidean(to_euclidean(std::forward<Arg>(arg)), get_vector_space_descriptor<0>(arg))</code>.
       */
@@ -358,7 +358,7 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     static constexpr indexible auto
-    diagonal_of(square_shaped<Qualification::depends_on_dynamic_shape> auto&& arg) = delete;
+    diagonal_of(square_shaped<Applicability::permitted> auto&& arg) = delete;
 #else
     template<typename Arg>
     static constexpr auto
@@ -385,10 +385,10 @@ namespace OpenKalman::interface
 
     /**
      * \brief Perform an n-ary array operation on a set of n arguments.
-     * \details The \ref vector_space_descriptor tuple d_tup defines the size of the resulting matrix.
+     * \details The \ref coordinate::pattern tuple d_tup defines the size of the resulting matrix.
      * \note This is optional and should be left undefined to the extent the native library does not provide this
      * functionality.
-     * \param d_tup A tuple of \ref vector_space_descriptor (of type Ds) defining the resulting tensor
+     * \param d_tup A tuple of \ref coordinate::pattern (of type Ds) defining the resulting tensor
      * \tparam Operation The n-ary operation taking n scalar arguments and (optionally) <code>sizeof...(Ds)</code> indices.
      * Examples:
      * - <code>template<value::number...X> operation(const X&...)</code>
@@ -398,7 +398,7 @@ namespace OpenKalman::interface
      * \todo Eliminate the Ds?
      */
 #ifdef __cpp_concepts
-    template<vector_space_descriptor...Ds, typename Operation, indexible...Args> requires
+    template<coordinate::pattern...Ds, typename Operation, indexible...Args> requires
       std::invocable<Operation&&, scalar_type_of_t<Args>...> or
       std::invocable<Operation&&, scalar_type_of_t<Args>..., std::conditional_t<true, std::size_t, Ds>...>
     static compatible_with_vector_space_descriptor_collection<std::tuple<Ds...>> auto
@@ -476,7 +476,7 @@ namespace OpenKalman::interface
      * \param arg An \ref indexible object within the same library as LibraryObject.
      */
 #ifdef __cpp_concepts
-    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg>
+    template<square_shaped<Applicability::permitted> Arg>
     static constexpr std::convertible_to<scalar_type_of_t<Arg>> auto
 #else
     template<typename Arg>

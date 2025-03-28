@@ -33,14 +33,14 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
   template<TriangleType t, indexible A, indexible B> requires
     (t != TriangleType::any) and (index_count_v<A> == dynamic_size or index_count_v<A> <= 2) and
-    (t != TriangleType::lower or dimension_size_of_index_is<A, 0, index_dimension_of_v<B, 0>, Qualification::depends_on_dynamic_shape>) and
-    (t != TriangleType::upper or dimension_size_of_index_is<A, 1, index_dimension_of_v<B, 1>, Qualification::depends_on_dynamic_shape>) and
+    (t != TriangleType::lower or dimension_size_of_index_is<A, 0, index_dimension_of_v<B, 0>, Applicability::permitted>) and
+    (t != TriangleType::upper or dimension_size_of_index_is<A, 1, index_dimension_of_v<B, 1>, Applicability::permitted>) and
     (not (diagonal_matrix<A> or (triangular_matrix<A> and not triangular_matrix<A, t>)) or t == TriangleType::diagonal or diagonal_matrix<B>)
 #else
   template<TriangleType t, typename A, typename B, std::enable_if_t<indexible<A> and indexible<B> and
     (t != TriangleType::any) and (index_count<A>::value == dynamic_size or index_count<A>::value <= 2) and
-    (t != TriangleType::lower or dimension_size_of_index_is<A, 0, index_dimension_of<B, 0>::value, Qualification::depends_on_dynamic_shape>) and
-    (t != TriangleType::upper or dimension_size_of_index_is<A, 1, index_dimension_of<B, 1>::value, Qualification::depends_on_dynamic_shape>) and
+    (t != TriangleType::lower or dimension_size_of_index_is<A, 0, index_dimension_of<B, 0>::value, Applicability::permitted>) and
+    (t != TriangleType::upper or dimension_size_of_index_is<A, 1, index_dimension_of<B, 1>::value, Applicability::permitted>) and
     (not (diagonal_matrix<A> or (triangular_matrix<A> and not triangular_matrix<A, t>)) or t == TriangleType::diagonal or diagonal_matrix<B>), int> = 0>
 #endif
   constexpr A&&

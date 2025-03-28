@@ -47,7 +47,7 @@ namespace OpenKalman
 
     using AllDescriptorsType = decltype(all_vector_space_descriptors(std::declval<PatternMatrix>()));
     using DescriptorCollection = std::conditional_t<
-      vector_space_descriptor_tuple<AllDescriptorsType>, 
+      pattern_tuple<AllDescriptorsType>,
       AllDescriptorsType, 
       std::vector<DynamicDescriptor<MyScalarType>>>;
 
@@ -55,7 +55,7 @@ namespace OpenKalman
     template<typename D, std::size_t...Ix, std::size_t...IxExtra>
     static constexpr auto make_descriptors_tuple(D&& d, std::index_sequence<Ix...>, std::index_sequence<IxExtra...>)
     {
-      if constexpr ((... or dynamic_vector_space_descriptor<std::tuple_element_t<IxExtra, D>>))
+      if constexpr ((... or dynamic_pattern<std::tuple_element_t<IxExtra, D>>))
         if ((... or (std::get<IxExtra>(d) != Axis{})));
           throw std::invalid_argument {"Too many elements in vector space descriptors_collection_tuple argument of a constant adapter"};
 
@@ -64,14 +64,14 @@ namespace OpenKalman
 
         if constexpr (Ix < std::tuple_size_v<D>)
         {
-          if constexpr (static_vector_space_descriptor<E>)
+          if constexpr (fixed_pattern<E>)
           {
-            if constexpr (dynamic_vector_space_descriptor<std::tuple_element_t<Ix, D>>)
+            if constexpr (dynamic_pattern<std::tuple_element_t<Ix, D>>)
               if (std::get<Ix>(d) != E{}) throw std::invalid_argument {
-                "Invalid dynamic element in vector_space_descriptor_tuple argument of a constant adapter"};
+                "Invalid dynamic element in pattern_tuple argument of a constant adapter"};
             return E{};
           }
-          else // if constexpr (dynamic_vector_space_descriptor<E>)
+          else // if constexpr (dynamic_pattern<E>)
           {
             return std::forward<D>(d);
           }
@@ -93,26 +93,26 @@ namespace OpenKalman
           "Too many elements in vector space descriptors_collection range argument of a constant adapter"};
         return std::tuple {};
       }
-      else if constexpr (static_vector_space_descriptor<std::tuple_element_t<N, DescriptorCollection>>)
+      else if constexpr (fixed_pattern<std::tuple_element_t<N, DescriptorCollection>>)
       {
         using E = std::tuple_element_t<N, DescriptorCollection>;
         if (it == end)
         {
-          if (not equivalent_to<E, Axis>) throw std::invalid_argument {
+          if (not compares_with<E, Axis>) throw std::invalid_argument {
             "Too few elements in vector space descriptors_collection range argument of a constant adapter"};
           return std::tuple_cat(std::forward_as_tuple(E{}),
             make_descriptors_tuple_from_range<N + 1>(std::move(it), end));
         }
         else
         {
-          if constexpr (dynamic_vector_space_descriptor<decltype(*it)>) 
+          if constexpr (dynamic_pattern<decltype(*it)>)
             if (*it != E{}) throw std::invalid_argument {
-              "Invalid dynamic element in vector_space_descriptor_collection range argument of a constant adapter"};
+              "Invalid dynamic element in pattern_collection range argument of a constant adapter"};
           return std::tuple_cat(std::forward_as_tuple(E{}),
             make_descriptors_tuple_from_range<N + 1>(++it, end));
         }
       }
-      else // if constexpr (dynamic_vector_space_descriptor<std::tuple_element_t<N, DescriptorCollection>>)
+      else // if constexpr (dynamic_pattern<std::tuple_element_t<N, DescriptorCollection>>)
       {
         using E = std::tuple_element_t<N, DescriptorCollection>;
         if (it == end) throw std::invalid_argument {
@@ -134,9 +134,12 @@ namespace OpenKalman
     template<typename Descriptors>
     static constexpr auto make_descriptors_collection(Descriptors&& descriptors)
     {
-      if constexpr (vector_space_descriptor_tuple<DescriptorCollection>)
+#ifdef __cpp_lib_ranges
+      namespace ranges = std::ranges;
+#endif
+      if constexpr (pattern_tuple<DescriptorCollection>)
       {
-        if constexpr (vector_space_descriptor_tuple<Descriptors>)
+        if constexpr (pattern_tuple<Descriptors>)
         {
           constexpr auto N = std::tuple_size_v<DescriptorCollection>;
           constexpr auto M = std::tuple_size_v<Descriptors>;
@@ -146,15 +149,10 @@ namespace OpenKalman
         }
         else
         {
-#ifdef __cpp_lib_ranges
-          return make_descriptors_tuple_from_range(std::ranges::begin(descriptors), std::ranges::end(descriptors));
-#else
-          using std::begin, std::end;
-          return make_descriptors_tuple_from_range(begin(descriptors), end(descriptors));
-#endif
+          return make_descriptors_tuple_from_range(ranges::begin(descriptors), ranges::end(descriptors));
         }
       }
-      else if constexpr (vector_space_descriptor_tuple<Descriptors>)
+      else if constexpr (pattern_tuple<Descriptors>)
       {
         return make_descriptors_range_from_tuple(std::forward<Descriptors>(descriptors),
           std::make_index_sequence<std::tuple_size_v<Descriptors>> {});
@@ -162,12 +160,7 @@ namespace OpenKalman
       else
       {
         DescriptorCollection ret;
-#ifdef __cpp_lib_ranges
-        std::copy(std::ranges::begin(descriptors), std::ranges::end(descriptors), std::ranges::begin(ret));
-#else
-        using std::begin, std::end;
-        std::copy(begin(descriptors), end(descriptors), begin(ret));
-#endif
+        std::copy(ranges::begin(descriptors), ranges::end(descriptors), ranges::begin(ret));
         return ret;
       }
     }
@@ -175,15 +168,15 @@ namespace OpenKalman
   public:
 
     /**
-     * \brief Construct from \ref value::scalar and a \ref vector_space_descriptor_collection
+     * \brief Construct from \ref value::scalar and a \ref pattern_collection
      */
 #ifdef __cpp_lib_ranges
-    template<value::scalar C, vector_space_descriptor_collection Descriptors> requires
+    template<value::scalar C, pattern_collection Descriptors> requires
       std::constructible_from<MyConstant, C&&> and 
       compatible_with_vector_space_descriptor_collection<PatternMatrix, Descriptors>
 #else
     template<typename C, typename Descriptors, std::enable_if_t<
-      value::scalar<C> and vector_space_descriptor_collection<Descriptors> and
+      value::scalar<C> and pattern_collection<Descriptors> and
       std::is_constructible_v<MyConstant, C&&> and 
       compatible_with_vector_space_descriptor_collection<PatternMatrix, Descriptors>, int> = 0>
 #endif
@@ -197,12 +190,12 @@ namespace OpenKalman
      * \brief Same as above, where the constant is known at compile time.
      */
 #ifdef __cpp_lib_ranges
-    template<vector_space_descriptor_collection Descriptors> requires 
+    template<pattern_collection Descriptors> requires
       value::fixed<MyConstant> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, Descriptors>
 #else
     template<typename Descriptors, std::enable_if_t<
-      vector_space_descriptor_collection<Descriptors> and 
+      pattern_collection<Descriptors> and
       value::fixed<MyConstant> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, Descriptors>, int> = 0>
 #endif
@@ -272,7 +265,7 @@ namespace OpenKalman
 
 
     /**
-     * \brief Construct using a full set of \ref vector_space_descriptor objects.
+     * \brief Construct using a full set of \ref coordinate::pattern objects.
      * \details For example, the following construct a 2-by-3 constant matrix of value 5:
      * \code
      * ConstantAdapter<eigen_matrix_t<double, 2, 3>, 5>(std::integral_constant<int, 5>{}, 2, 3)
@@ -281,12 +274,12 @@ namespace OpenKalman
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<value::scalar C, vector_space_descriptor...Ds> requires
+    template<value::scalar C, coordinate::pattern...Ds> requires
       std::constructible_from<MyConstant, C&&> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, std::tuple<Ds...>>
 #else
     template<typename C, typename...Ds, std::enable_if_t<
-      value::scalar<C> and (vector_space_descriptor<Ds> and ...) and
+      value::scalar<C> and (coordinate::pattern<Ds> and ...) and
       std::is_constructible_v<MyConstant, C&&> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, std::tuple<Ds...>>, int> = 0>
 #endif
@@ -297,7 +290,7 @@ namespace OpenKalman
     /**
      * \overload
      * \brief Same as above, where the constant is known at compile time.
-     * \tparam Ds A set of \ref vector_space_descriptor objects corresponding to PatternMatrix.
+     * \tparam Ds A set of \ref coordinate::pattern objects corresponding to PatternMatrix.
      * \details
      * For example, the following construct a 2-by-3 constant matrix of value 5:
      * \code
@@ -308,12 +301,12 @@ namespace OpenKalman
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<vector_space_descriptor...Ds> requires 
+    template<coordinate::pattern...Ds> requires
       value::fixed<MyConstant> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, std::tuple<Ds...>>
 #else
     template<typename...Ds, std::enable_if_t<
-      (vector_space_descriptor<Ds> and ...) and 
+      (coordinate::pattern<Ds> and ...) and
       value::fixed<MyConstant> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, std::tuple<Ds...>>, int> = 0>
 #endif
@@ -335,7 +328,7 @@ namespace OpenKalman
     template<std::size_t N = 0, typename D, typename...Ds>
     constexpr auto make_dynamic_dimensions_tuple(D&& d, Ds&&...ds)
     {
-      if constexpr (dynamic_vector_space_descriptor<std::tuple_element_t<N, DescriptorCollection>>)
+      if constexpr (dynamic_pattern<std::tuple_element_t<N, DescriptorCollection>>)
         return std::tuple_cat(std::forward_as_tuple(std::forward<D>(d)),
           make_dynamic_dimensions_tuple<N + 1>(std::forward<Ds>(ds)...));
       else
@@ -346,9 +339,9 @@ namespace OpenKalman
   public:
 
     /**
-     * \brief Construct using only applicable \ref dynamic_vector_space_descriptor.
-     * \tparam Ds A set of \ref dynamic_vector_space_descriptor corresponding to each of
-     * class template parameter Ds that is dynamic, in order of Ds. This list should omit any \ref static_vector_space_descriptor.
+     * \brief Construct using only applicable \ref dynamic_pattern.
+     * \tparam Ds A set of \ref dynamic_pattern corresponding to each of
+     * class template parameter Ds that is dynamic, in order of Ds. This list should omit any \ref fixed_pattern.
      * \details If PatternMatrix has no dynamic dimensions, this is a default constructor.
      * The constructor can take a number of arguments representing the number of dynamic dimensions.
      * For example, the following construct a 2-by-3 constant matrix of value 5:
@@ -360,15 +353,15 @@ namespace OpenKalman
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<value::scalar C, dynamic_vector_space_descriptor...Ds> requires
-      vector_space_descriptor_tuple<DescriptorCollection> and 
+    template<value::scalar C, dynamic_pattern...Ds> requires
+      pattern_tuple<DescriptorCollection> and
       (dynamic_index_count_v<PatternMatrix> != dynamic_size) and 
       (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and 
       std::constructible_from<MyConstant, C&&>
 #else
     template<typename C, typename...Ds, std::enable_if_t<
-      value::scalar<C> and (dynamic_vector_space_descriptor<Ds> and ...) and
-      vector_space_descriptor_tuple<DescriptorCollection> and 
+      value::scalar<C> and (dynamic_pattern<Ds> and ...) and
+      pattern_tuple<DescriptorCollection> and
       (dynamic_index_count_v<PatternMatrix> != dynamic_size) and 
       (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and 
       std::is_constructible_v<MyConstant, C&&>, int> = 0>
@@ -389,15 +382,15 @@ namespace OpenKalman
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<dynamic_vector_space_descriptor...Ds> requires
-      vector_space_descriptor_tuple<DescriptorCollection> and 
+    template<dynamic_pattern...Ds> requires
+      pattern_tuple<DescriptorCollection> and
       (dynamic_index_count_v<PatternMatrix> != dynamic_size) and 
       (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and 
       value::fixed<MyConstant>
 #else
     template<typename...Ds, std::enable_if_t<
-      value::scalar<C> and (dynamic_vector_space_descriptor<Ds> and ...) and
-      vector_space_descriptor_tuple<DescriptorCollection> and 
+      value::scalar<C> and (dynamic_pattern<Ds> and ...) and
+      pattern_tuple<DescriptorCollection> and
       (dynamic_index_count_v<PatternMatrix> != dynamic_size) and 
       (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and 
       value::fixed<MyConstant>, int> = 0>
@@ -533,7 +526,7 @@ namespace OpenKalman
       if constexpr (zero<ConstantAdapter>) return arg;
       else
       {
-        value::operation op {std::negate<>{}, constant_coefficient{arg}};
+        value::operation op {std::negate{}, constant_coefficient{arg}};
         return make_constant(arg, op);
       }
     }
@@ -675,11 +668,11 @@ namespace OpenKalman
       // No get_constant_diagonal defined
 
 
-      template<Qualification b>
+      template<Applicability b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<PatternMatrix, b>;
 
 
-      template<Qualification b>
+      template<Applicability b>
       static constexpr bool is_square = OpenKalman::square_shaped<PatternMatrix, b>;
 
 

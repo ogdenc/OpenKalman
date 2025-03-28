@@ -76,11 +76,11 @@ namespace OpenKalman
       }
 
 
-      template<Qualification b>
+      template<Applicability b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
 
-      template<Qualification b>
+      template<Applicability b>
       static constexpr bool is_square = square_shaped<MatrixType, b>;
 
 

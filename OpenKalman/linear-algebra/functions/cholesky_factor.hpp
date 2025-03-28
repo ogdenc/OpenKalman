@@ -27,11 +27,11 @@ namespace OpenKalman
    * \return T, where the argument is in the form A = TT<sup>T</sup>.
    */
 #ifdef __cpp_concepts
-  template<TriangleType triangle_type, hermitian_matrix<Qualification::depends_on_dynamic_shape> A> requires
+  template<TriangleType triangle_type, hermitian_matrix<Applicability::permitted> A> requires
     (triangle_type != TriangleType::diagonal or diagonal_matrix<A>)
   constexpr triangular_matrix<triangle_type> decltype(auto)
 #else
-  template<TriangleType triangle_type, typename A, std::enable_if_t<hermitian_matrix<A, Qualification::depends_on_dynamic_shape> and
+  template<TriangleType triangle_type, typename A, std::enable_if_t<hermitian_matrix<A, Applicability::permitted> and
     (triangle_type != TriangleType::diagonal or diagonal_matrix<A>), int> = 0>
   constexpr decltype(auto)
 #endif
@@ -58,23 +58,23 @@ namespace OpenKalman
 
         if constexpr (triangle_type == TriangleType::lower)
         {
-          auto col0 = make_constant<A>(sq, dim, descriptor::Axis{});
-          return make_vector_space_adapter(concatenate<1>(col0, make_zero<A>(dim, dim - descriptor::Axis{})), v, v);
+          auto col0 = make_constant<A>(sq, dim, coordinate::Axis{});
+          return make_vector_space_adapter(concatenate<1>(col0, make_zero<A>(dim, dim - coordinate::Axis{})), v, v);
         }
         else
         {
           static_assert(triangle_type == TriangleType::upper);
-          auto row0 = make_constant<A>(sq, descriptor::Axis{}, dim);
-          return make_vector_space_adapter(concatenate<0>(row0, make_zero<A>(dim - descriptor::Axis{}, dim)), v, v);
+          auto row0 = make_constant<A>(sq, coordinate::Axis{}, dim);
+          return make_vector_space_adapter(concatenate<0>(row0, make_zero<A>(dim - coordinate::Axis{}, dim)), v, v);
         }
       }(a);
 
       auto ret {make_triangular_matrix<triangle_type>(std::move(m))};
       using C0 = vector_space_descriptor_of_t<A, 0>;
       using C1 = vector_space_descriptor_of_t<A, 1>;
-      using Cret = std::conditional_t<dynamic_vector_space_descriptor<C0>, C1, C0>;
+      using Cret = std::conditional_t<dynamic_pattern<C0>, C1, C0>;
 
-      if constexpr (euclidean_vector_space_descriptor<Cret>) return ret;
+      if constexpr (coordinate::euclidean_pattern<Cret>) return ret;
       //else return make_square_root_covariance<Cret>(ret);
       else return ret; // \todo change to make_triangular_matrix
     }
@@ -98,10 +98,10 @@ namespace OpenKalman
   * # TriangleType::lower, by default.
   */
 #ifdef __cpp_concepts
-  template<hermitian_matrix<Qualification::depends_on_dynamic_shape> A>
+  template<hermitian_matrix<Applicability::permitted> A>
   constexpr triangular_matrix decltype(auto)
 #else
-  template<typename A, std::enable_if_t<hermitian_matrix<A, Qualification::depends_on_dynamic_shape>, int> = 0>
+  template<typename A, std::enable_if_t<hermitian_matrix<A, Applicability::permitted>, int> = 0>
   constexpr decltype(auto)
 #endif
   cholesky_factor(A&& a)

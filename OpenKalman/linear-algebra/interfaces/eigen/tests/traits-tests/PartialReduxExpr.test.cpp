@@ -104,7 +104,7 @@ TEST(eigen3, Eigen_PartialReduxExpr_lpNorm1)
 {
   static_assert(value::fixed<constant_coefficient<decltype(c22_m2)>>);
   static_assert(not zero<decltype(c22_m2)>);
-  static_assert(not one_dimensional<decltype(c22_m2), Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<decltype(c22_m2), Applicability::permitted>);
   static_assert(not constant_diagonal_matrix<decltype(c22_m2)>);
 
   //constant

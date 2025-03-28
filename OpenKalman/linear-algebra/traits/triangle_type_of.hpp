@@ -22,7 +22,7 @@ namespace OpenKalman
   /**
    * \brief The common \ref TriangleType associated with a set of \ref triangular_matrix "triangular matrices".
    * \details If there is no common triangle type, the result is TriangleType::any.
-   * The result here does not guarantee that any of the parameters are unqualified triangular, which must be checked
+   * The result here does not guarantee that any of the parameters are guaranteed triangular, which must be checked
    * with \ref triangular_matrix.
    */
   template<typename T, typename...Ts>

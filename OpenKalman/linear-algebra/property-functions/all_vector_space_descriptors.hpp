@@ -16,8 +16,8 @@
 #ifndef OPENKALMAN_ALL_VECTOR_SPACE_DESCRIPTORS_HPP
 #define OPENKALMAN_ALL_VECTOR_SPACE_DESCRIPTORS_HPP
 
-#include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor_collection.hpp"
-#include "linear-algebra/vector-space-descriptors/concepts/vector_space_descriptor_tuple.hpp"
+#include "linear-algebra/coordinates/concepts/pattern_collection.hpp"
+#include "linear-algebra/coordinates/concepts/pattern_tuple.hpp"
 #include "linear-algebra/interfaces/object-traits-defined.hpp"
 #include "linear-algebra/concepts/indexible.hpp"
 #include "linear-algebra/property-functions/internal/VectorSpaceDescriptorRange.hpp"
@@ -38,12 +38,12 @@ namespace OpenKalman
 
 
   /**
-   * \brief Return a collection of \ref vector_space_descriptor objects associated with T.
-     \details This will be a \ref vector_space_descriptor_collection in the form of a std::tuple or a std::vector.
+   * \brief Return a collection of \ref coordinate::pattern objects associated with T.
+     \details This will be a \ref pattern_collection in the form of a std::tuple or a std::vector.
    */
 #ifdef __cpp_concepts
   template<indexible T> requires interface::get_vector_space_descriptor_defined_for<T> 
-  constexpr vector_space_descriptor_collection decltype(auto) 
+  constexpr pattern_collection decltype(auto)
 #else
   template<typename T, std::enable_if_t<
     indexible<T> and interface::get_vector_space_descriptor_defined_for<T>, int> = 0>
@@ -71,12 +71,12 @@ namespace OpenKalman
 
   /**
    * \overload
-   * \brief Return a collection of \ref static_vector_space_descriptor objects associated with T.
+   * \brief Return a collection of \ref fixed_pattern objects associated with T.
    * \details This overload is only enabled if all vector space descriptors are static.
    */
 #ifdef __cpp_concepts
   template<indexible T> requires (index_count_v<T> != dynamic_size) and (not has_dynamic_dimensions<T>) 
-  constexpr vector_space_descriptor_tuple auto 
+  constexpr pattern_tuple auto
 #else
   template<typename T, std::enable_if_t<indexible<T> and (index_count<T>::value != dynamic_size) and 
     (not has_dynamic_dimensions<T>), int> = 0>

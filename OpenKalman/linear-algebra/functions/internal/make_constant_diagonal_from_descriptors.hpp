@@ -17,17 +17,21 @@
 #ifndef OPENKALMAN_MAKE_CONSTANT_DIAGONAL_FROM_DESCRIPTORS_HPP
 #define OPENKALMAN_MAKE_CONSTANT_DIAGONAL_FROM_DESCRIPTORS_HPP
 
+#include <vector>
+#include "linear-algebra/coordinates/concepts/pattern.hpp"
+#include "linear-algebra/coordinates/concepts/pattern_tuple.hpp"
+
 namespace OpenKalman::internal
 {
   /**
    * \internal
-   * \brief Make a constant diagonal from a constant and a set of \ref vector_space_descriptor objects.
+   * \brief Make a constant diagonal from a constant and a set of \ref coordinate::pattern objects.
    */
   template<typename T, typename C, typename Descriptors>
   static constexpr decltype(auto)
   make_constant_diagonal_from_descriptors(C&& c, Descriptors&& descriptors)
   {
-    if constexpr (vector_space_descriptor_tuple<Descriptors>)
+    if constexpr (coordinate::pattern_tuple<Descriptors>)
     {
       auto new_descriptors = std::tuple_cat(
         std::tuple(internal::smallest_vector_space_descriptor<scalar_type_of_t<T>>(
@@ -42,20 +46,22 @@ namespace OpenKalman::internal
         internal::smallest_vector_space_descriptor<scalar_type_of_t<T>>(std::ranges::views::take(indices, 2)),
         indices | std::ranges::views::drop(2));
 #else
-      using std::begin, std::end;
-      auto it = begin(descriptors);
+#ifdef __cpp_lib_ranges
+      namespace ranges = std::ranges;
+#endif
+      auto it = ranges::begin(descriptors);
       auto new_descriptors = std::vector<std::decay_t<decltype(*it)>>{};
       auto i0 = it;
       auto i1 = ++it;
       if (i1 == end(descriptors))
       {
-        new_descriptors.emplace_back(descriptor::Axis{});
+        new_descriptors.emplace_back(coordinate::Axis{});
       }
       else if (i0 != end(descriptors))
       {
         auto d0 = internal::smallest_vector_space_descriptor<scalar_type_of_t<T>>(*i0, *i1);
         new_descriptors.emplace_back(d0);
-        std::copy(++it, end(descriptors), ++begin(new_descriptors));
+        std::copy(++it, ranges::end(descriptors), ++ranges::begin(new_descriptors));
       }
 #endif
       return make_constant<T>(std::forward<C>(c), new_descriptors);

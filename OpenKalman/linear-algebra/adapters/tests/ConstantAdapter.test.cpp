@@ -12,7 +12,7 @@
 #include <complex>
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptor;
+using namespace OpenKalman::coordinate;
 using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
@@ -20,7 +20,7 @@ using numbers::pi;
 
 namespace
 {
-  using Axis2 = StaticDescriptor<Axis, Axis>;
+  using Axis2 = Dimensions<2>;
 
   using ZA11 = ZeroAdapter<M11>;
   using ZA10 = ZeroAdapter<M1x>;
@@ -86,9 +86,9 @@ TEST(adapters, ConstantAdapter_traits)
 
   static_assert(hermitian_matrix<ZA33>);
   static_assert(hermitian_matrix<ZeroAdapter<CM33>>);
-  static_assert(not hermitian_matrix<ZA31, Qualification::depends_on_dynamic_shape>);
+  static_assert(not hermitian_matrix<ZA31, Applicability::permitted>);
   static_assert(not hermitian_matrix<ZA00>);
-  static_assert(hermitian_matrix<ZA00, Qualification::depends_on_dynamic_shape>);
+  static_assert(hermitian_matrix<ZA00, Applicability::permitted>);
 
   static_assert(triangular_matrix<ConstantAdapter<M22, double, 0>>);
   static_assert(triangular_matrix<ConstantAdapter<M11, double, 5>>);
@@ -105,39 +105,39 @@ TEST(adapters, ConstantAdapter_traits)
   static_assert(triangular_matrix<ZA31, TriangleType::lower>);
   static_assert(triangular_matrix<ZA00, TriangleType::lower>);
 
-  static_assert(square_shaped<ConstantAdapter<M22, double, 0>, Qualification::depends_on_dynamic_shape>);
-  static_assert(not square_shaped<ConstantAdapter<M34, double, 5>, Qualification::depends_on_dynamic_shape>);
-  static_assert(square_shaped<ConstantAdapter<M3x, double, 5>, Qualification::depends_on_dynamic_shape>);
-  static_assert(square_shaped<ConstantAdapter<Mxx, double, 5>, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<ConstantAdapter<M22, double, 0>, Applicability::permitted>);
+  static_assert(not square_shaped<ConstantAdapter<M34, double, 5>, Applicability::permitted>);
+  static_assert(square_shaped<ConstantAdapter<M3x, double, 5>, Applicability::permitted>);
+  static_assert(square_shaped<ConstantAdapter<Mxx, double, 5>, Applicability::permitted>);
 
   static_assert(square_shaped<ConstantAdapter<M22, double, 0>>);
   static_assert(square_shaped<ConstantAdapter<M22, double, 5>>);
   static_assert(not square_shaped<ConstantAdapter<Mxx, double, 5>>);
   static_assert(not square_shaped<ConstantAdapter<M34, double, 5>>);
 
-  static_assert(not square_shaped<ZA31, Qualification::depends_on_dynamic_shape>);
+  static_assert(not square_shaped<ZA31, Applicability::permitted>);
   static_assert(square_shaped<ZA33>);
   static_assert(not square_shaped<ZA30>);
-  static_assert(square_shaped<ZA30, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<ZA30, Applicability::permitted>);
   static_assert(not square_shaped<ZA03>);
-  static_assert(square_shaped<ZA03, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<ZA03, Applicability::permitted>);
   static_assert(not square_shaped<ZA00>);
-  static_assert(square_shaped<ZA00, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<ZA00, Applicability::permitted>);
 
   static_assert(one_dimensional<ConstantAdapter<M11, double, 5>>);
-  static_assert(one_dimensional<ConstantAdapter<M1x, double, 5>, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<ConstantAdapter<M1x, double, 5>, Applicability::permitted>);
   static_assert(not one_dimensional<ConstantAdapter<M1x, double, 5>>);
-  static_assert(one_dimensional<ConstantAdapter<Mxx, double, 5>, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<ConstantAdapter<Mxx, double, 5>, Applicability::permitted>);
   static_assert(not one_dimensional<ConstantAdapter<Mxx, double, 5>>);
 
-  static_assert(not one_dimensional<ZA31, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<ZA31, Applicability::permitted>);
   static_assert(one_dimensional<ZA11>);
   static_assert(not one_dimensional<ZA10>);
-  static_assert(one_dimensional<ZA10, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<ZA10, Applicability::permitted>);
   static_assert(not one_dimensional<ZA01>);
-  static_assert(one_dimensional<ZA01, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<ZA01, Applicability::permitted>);
   static_assert(not one_dimensional<ZA00>);
-  static_assert(one_dimensional<ZA00, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<ZA00, Applicability::permitted>);
 
   static_assert(element_gettable<ConstantAdapter<M22, double, 3>, 2>);
   static_assert(element_gettable<ConstantAdapter<M2x, double, 3>, 2>);
@@ -624,9 +624,9 @@ TEST(adapters, diagonal_of_constant)
   static_assert(not one_dimensional<decltype(diagonal_of(M1x::Identity(1, 1)))>);
   static_assert(not one_dimensional<decltype(diagonal_of(Mx1::Identity(1, 1)))>);
   static_assert(not one_dimensional<decltype(diagonal_of(Mxx::Identity(1, 1)))>);
-  static_assert(one_dimensional<decltype(diagonal_of(M1x::Identity(1, 1))), Qualification::depends_on_dynamic_shape>);
-  static_assert(one_dimensional<decltype(diagonal_of(Mx1::Identity(1, 1))), Qualification::depends_on_dynamic_shape>);
-  static_assert(one_dimensional<decltype(diagonal_of(Mxx::Identity(1, 1))), Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<decltype(diagonal_of(M1x::Identity(1, 1))), Applicability::permitted>);
+  static_assert(one_dimensional<decltype(diagonal_of(Mx1::Identity(1, 1))), Applicability::permitted>);
+  static_assert(one_dimensional<decltype(diagonal_of(Mxx::Identity(1, 1))), Applicability::permitted>);
 
   static_assert(not has_dynamic_dimensions<decltype(diagonal_of(M11::Identity()))>);
   static_assert(has_dynamic_dimensions<decltype(diagonal_of(M1x::Identity(1, 1)))>);

@@ -19,7 +19,7 @@
 namespace OpenKalman
 {
 #ifdef __cpp_concepts
-  template<square_shaped<Qualification::depends_on_dynamic_shape> NestedObject, HermitianAdapterType storage_triangle> requires
+  template<square_shaped<Applicability::permitted> NestedObject, HermitianAdapterType storage_triangle> requires
     (index_count_v<NestedObject> <= 2) and
     (storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper) and
     (not constant_matrix<NestedObject> or value::not_complex<constant_coefficient<NestedObject>>) and
@@ -33,7 +33,7 @@ namespace OpenKalman
   {
 
 #ifndef __cpp_concepts
-    static_assert(square_shaped<NestedObject, Qualification::depends_on_dynamic_shape>);
+    static_assert(square_shaped<NestedObject, Applicability::permitted>);
     static_assert(index_count_v<NestedObject> <= 2);
     static_assert(storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper);
     static_assert([]{if constexpr (constant_matrix<NestedObject>) return value::not_complex<constant_coefficient<NestedObject>>; else return true; }());
@@ -98,13 +98,13 @@ namespace OpenKalman
     /// Construct from a hermitian, non-diagonal wrapper of the same storage type
 #ifdef __cpp_concepts
     template<hermitian_adapter<storage_triangle> Arg> requires (not std::is_base_of_v<HermitianAdapter, std::decay_t<Arg>>) and
-      (not diagonal_matrix<Arg>) and square_shaped<nested_object_of_t<Arg>, Qualification::depends_on_dynamic_shape> and
+      (not diagonal_matrix<Arg>) and square_shaped<nested_object_of_t<Arg>, Applicability::permitted> and
       std::constructible_from<NestedObject, decltype(nested_object(std::declval<Arg&&>()))>
       //alt: requires(Arg&& arg) { NestedObject {nested_object(std::forward<Arg>(arg))}; } -- not accepted in GCC 10
 #else
     template<typename Arg, std::enable_if_t<
       hermitian_adapter<Arg, storage_triangle> and (not std::is_base_of_v<HermitianAdapter, std::decay_t<Arg>>) and
-      (not diagonal_matrix<Arg>) and square_shaped<nested_object_of_t<Arg>, Qualification::depends_on_dynamic_shape> and
+      (not diagonal_matrix<Arg>) and square_shaped<nested_object_of_t<Arg>, Applicability::permitted> and
       std::is_constructible_v<NestedObject, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
 #endif
     HermitianAdapter(Arg&& arg) : Base {nested_object(std::forward<Arg>(arg))} {}
@@ -114,13 +114,13 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<hermitian_adapter Arg> requires (not diagonal_matrix<Arg>) and
       (hermitian_adapter_type_of<Arg>::value != storage_triangle) and
-      square_shaped<nested_object_of_t<Arg>, Qualification::depends_on_dynamic_shape> and
+      square_shaped<nested_object_of_t<Arg>, Applicability::permitted> and
       requires(Arg&& arg) { NestedObject {transpose(nested_object(std::forward<Arg>(arg)))}; }
 #else
     template<typename Arg, std::enable_if_t<
       hermitian_adapter<Arg> and (not diagonal_matrix<Arg>) and
       (hermitian_adapter_type_of<Arg>::value != storage_triangle) and
-      square_shaped<nested_object_of_t<Arg>, Qualification::depends_on_dynamic_shape> and
+      square_shaped<nested_object_of_t<Arg>, Applicability::permitted> and
       std::is_constructible_v<NestedObject, decltype(transpose(nested_object(std::declval<Arg&&>())))>, int> = 0>
 #endif
     HermitianAdapter(Arg&& arg) : Base {transpose(nested_object(std::forward<Arg>(arg)))} {}
@@ -154,10 +154,10 @@ namespace OpenKalman
 
     /// Construct from a non-hermitian matrix if NestedObject is not diagonal.
 #ifdef __cpp_concepts
-    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires (not hermitian_adapter<Arg>) and (not diagonal_matrix<NestedObject>) and
+    template<square_shaped<Applicability::permitted> Arg> requires (not hermitian_adapter<Arg>) and (not diagonal_matrix<NestedObject>) and
       std::constructible_from<NestedObject, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<square_shaped<Arg, Qualification::depends_on_dynamic_shape> and
+    template<typename Arg, std::enable_if_t<square_shaped<Arg, Applicability::permitted> and
       not hermitian_adapter<Arg> and not diagonal_matrix<NestedObject> and
       std::is_constructible_v<NestedObject, Arg&&>, int> = 0>
 #endif
@@ -171,10 +171,10 @@ namespace OpenKalman
 
     /// Construct from a non-hermitian matrix if NestedObject is diagonal.
 #ifdef __cpp_concepts
-    template<square_shaped<Qualification::depends_on_dynamic_shape> Arg> requires (not hermitian_matrix<Arg>) and diagonal_matrix<NestedObject> and
+    template<square_shaped<Applicability::permitted> Arg> requires (not hermitian_matrix<Arg>) and diagonal_matrix<NestedObject> and
       requires(Arg&& arg) { NestedObject {diagonal_of(std::forward<Arg>(arg))}; }
 #else
-    template<typename Arg, std::enable_if_t<square_shaped<Arg, Qualification::depends_on_dynamic_shape> and (not hermitian_matrix<Arg>) and
+    template<typename Arg, std::enable_if_t<square_shaped<Arg, Applicability::permitted> and (not hermitian_matrix<Arg>) and
       diagonal_matrix<NestedObject> and std::is_constructible_v<NestedObject, decltype(diagonal_of(std::declval<Arg&&>()))>, int> = 0>
 #endif
     explicit HermitianAdapter(Arg&& arg) : Base {
@@ -348,9 +348,9 @@ namespace OpenKalman
   // ------------------------------- //
 
 #ifdef __cpp_concepts
-  template<hermitian_matrix<Qualification::depends_on_dynamic_shape> M>
+  template<hermitian_matrix<Applicability::permitted> M>
 #else
-  template<typename M, std::enable_if_t<hermitian_matrix<M, Qualification::depends_on_dynamic_shape>, int> = 0>
+  template<typename M, std::enable_if_t<hermitian_matrix<M, Applicability::permitted>, int> = 0>
 #endif
   explicit HermitianAdapter(M&&) -> HermitianAdapter<
     std::conditional_t<hermitian_adapter<M>, nested_object_of_t<M>, M>,
@@ -358,10 +358,10 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-  template<triangular_matrix M> requires (not hermitian_matrix<M, Qualification::depends_on_dynamic_shape>)
+  template<triangular_matrix M> requires (not hermitian_matrix<M, Applicability::permitted>)
 #else
   template<typename M, std::enable_if_t<triangular_matrix<M> and
-    (not hermitian_matrix<M, Qualification::depends_on_dynamic_shape>), int> = 0>
+    (not hermitian_matrix<M, Applicability::permitted>), int> = 0>
 #endif
   explicit HermitianAdapter(M&&) -> HermitianAdapter<
     std::conditional_t<triangular_adapter<M>, nested_object_of_t<M>, M>,
@@ -370,10 +370,10 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<indexible M> requires
-    (not hermitian_matrix<M, Qualification::depends_on_dynamic_shape>) and (not triangular_matrix<M>)
+    (not hermitian_matrix<M, Applicability::permitted>) and (not triangular_matrix<M>)
 #else
   template<typename M, std::enable_if_t<indexible<M> and
-      (not hermitian_matrix<M, Qualification::depends_on_dynamic_shape>) and (not triangular_matrix<M>), int> = 0>
+      (not hermitian_matrix<M, Applicability::permitted>) and (not triangular_matrix<M>), int> = 0>
 #endif
   explicit HermitianAdapter(M&&) -> HermitianAdapter<M, HermitianAdapterType::lower>;
 
@@ -423,11 +423,11 @@ namespace OpenKalman
       }
 
 
-      template<Qualification b>
+      template<Applicability b>
       static constexpr bool one_dimensional = OpenKalman::one_dimensional<NestedObject, b>;
 
 
-      template<Qualification b>
+      template<Applicability b>
       static constexpr bool is_square = true;
 
 

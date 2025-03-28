@@ -42,12 +42,12 @@ namespace OpenKalman
 
 
   /**
-   * \brief Get the \ref vector_space_descriptor object for index N of \ref indexible object T.
+   * \brief Get the \ref coordinate::pattern object for index N of \ref indexible object T.
    */
 #ifdef __cpp_concepts
   template<typename T, value::index N> requires
     interface::get_vector_space_descriptor_defined_for<T> or detail::count_is_zero<T>::value
-  constexpr vector_space_descriptor auto
+  constexpr coordinate::pattern auto
 #else
   template<typename T, typename N, std::enable_if_t<value::index<N> and
     (interface::get_vector_space_descriptor_defined_for<T> or detail::count_is_zero<T>::value), int> = 0>
@@ -57,16 +57,16 @@ namespace OpenKalman
   {
     if constexpr (detail::count_is_zero<T>::value)
     {
-      return descriptor::Dimensions<1>{};
+      return coordinate::Dimensions<1>{};
     }
     else if constexpr (value::fixed<N> and value::fixed<decltype(count_indices(t))>)
     {
       if constexpr (N::value < std::decay_t<decltype(count_indices(t))>::value)
         return interface::indexible_object_traits<T>::get_vector_space_descriptor(t, n);
       else
-        return descriptor::Dimensions<1>{};
+        return coordinate::Dimensions<1>{};
     }
-    else if constexpr (euclidean_vector_space_descriptor<decltype(interface::indexible_object_traits<T>::get_vector_space_descriptor(t, n))>)
+    else if constexpr (coordinate::euclidean_pattern<decltype(interface::indexible_object_traits<T>::get_vector_space_descriptor(t, n))>)
     {
       if (n < count_indices(t))
         return static_cast<std::size_t>(interface::indexible_object_traits<T>::get_vector_space_descriptor(t, n));
@@ -77,9 +77,9 @@ namespace OpenKalman
     {
       using Scalar = typename interface::indexible_object_traits<std::decay_t<T>>::scalar_type;
       if (n < count_indices(t))
-        return descriptor::DynamicDescriptor<Scalar>{interface::indexible_object_traits<T>::get_vector_space_descriptor(t, n)};
+        return coordinate::DynamicDescriptor<Scalar>{interface::indexible_object_traits<T>::get_vector_space_descriptor(t, n)};
       else
-        return descriptor::DynamicDescriptor<Scalar>{descriptor::Dimensions<1>{}};
+        return coordinate::DynamicDescriptor<Scalar>{coordinate::Dimensions<1>{}};
     }
   }
 
@@ -91,7 +91,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<std::size_t N = 0, typename T> requires
     interface::get_vector_space_descriptor_defined_for<T> or detail::count_is_zero<T>::value
-  constexpr vector_space_descriptor auto
+  constexpr coordinate::pattern auto
 #else
   template<std::size_t N = 0, typename T, std::enable_if_t<
     (interface::get_vector_space_descriptor_defined_for<T> or detail::count_is_zero<T>::value), int> = 0>

@@ -15,7 +15,7 @@ using namespace OpenKalman::test;
 
 using M = eigen_matrix_t<double, 3, 3>;
 using M1 = eigen_matrix_t<double, 3, 1>;
-using C = StaticDescriptor<Axis, angle::Radians, Axis>;
+using C = std::tuple<Axis, angle::Radians, Axis>;
 using Mat3 = Matrix<C, C, M>;
 using Mat31 = Matrix<C, Axis, M1>;
 template<typename Mat> using SAl = HermitianAdapter<Mat, TriangleType::lower>;

@@ -110,11 +110,11 @@ namespace OpenKalman::interface
     }
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<MatrixType, b>;
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool is_square = square_shaped<MatrixType, b>;
 
 
@@ -125,7 +125,7 @@ namespace OpenKalman::interface
     static constexpr bool is_triangular = Traits::preserves_triangle and triangular_matrix<MatrixType, t>;
 
 
-    static constexpr bool is_hermitian = Traits ::preserves_hermitian and hermitian_matrix<MatrixType, Qualification::depends_on_dynamic_shape>;
+    static constexpr bool is_hermitian = Traits ::preserves_hermitian and hermitian_matrix<MatrixType, Applicability::permitted>;
   };
 
 

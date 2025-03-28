@@ -11,10 +11,10 @@
 #include "transform-linear.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptor;
+using namespace OpenKalman::coordinate;
 using namespace OpenKalman::test;
 
-using Axis2 = StaticDescriptor<Axis, Axis>;
+using Axis2 = Dimensions<2>;
 using M2 = Mean<Axis2>;
 using Mat2 = Matrix<Axis2, Axis2>;
 

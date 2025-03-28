@@ -98,14 +98,14 @@ TEST(eigen3, Eigen_Diagonal)
   static_assert(one_dimensional<Eigen::Diagonal<M13, 0>>);
   static_assert(one_dimensional<Eigen::Diagonal<M13, 1>>);
   static_assert(not one_dimensional<Eigen::Diagonal<M1x, 0>>);
-  static_assert(one_dimensional<Eigen::Diagonal<M1x, 0>, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<Eigen::Diagonal<M1x, 0>, Applicability::permitted>);
   static_assert(one_dimensional<Eigen::Diagonal<M31, 0>>);
   static_assert(one_dimensional<Eigen::Diagonal<M31, -1>>);
   static_assert(not one_dimensional<Eigen::Diagonal<Mx1, 0>>);
-  static_assert(one_dimensional<Eigen::Diagonal<Mx1, 0>, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<Eigen::Diagonal<Mx1, 0>, Applicability::permitted>);
   static_assert(not one_dimensional<Eigen::Diagonal<M22, Eigen::DynamicIndex>>);
-  static_assert(one_dimensional<Eigen::Diagonal<M22, Eigen::Dynamic>, Qualification::depends_on_dynamic_shape>);
-  static_assert(one_dimensional<Eigen::Diagonal<M2x, 0>, Qualification::depends_on_dynamic_shape>);
-  static_assert(one_dimensional<Eigen::Diagonal<Mx2, 0>, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<Eigen::Diagonal<M22, Eigen::Dynamic>, Applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Diagonal<M2x, 0>, Applicability::permitted>);
+  static_assert(one_dimensional<Eigen::Diagonal<Mx2, 0>, Applicability::permitted>);
 }
 

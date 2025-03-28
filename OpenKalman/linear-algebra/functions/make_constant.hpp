@@ -24,14 +24,14 @@ namespace OpenKalman
    * \details A constant object is a matrix or tensor in which every component is the same scalar value.
    * \tparam T An \indexible object (matrix or tensor) from a particular library. Its shape and contents are irrelevant.
    * \tparam C A \ref value::scalar
-   * \tparam Descriptors A \ref vector_space_descriptor_collection defining the dimensions of each index.
+   * \tparam Descriptors A \ref pattern_collection defining the dimensions of each index.
    */
 #ifdef __cpp_concepts
-  template<indexible T, value::scalar C, vector_space_descriptor_collection Descriptors>
+  template<indexible T, value::scalar C, pattern_collection Descriptors>
   constexpr constant_matrix auto
 #else
   template<typename T, typename C, typename Ds, std::enable_if_t<
-    indexible<T> and value::scalar<C> and vector_space_descriptor_collection<Ds>, int> = 0>
+    indexible<T> and value::scalar<C> and pattern_collection<Ds>, int> = 0>
   constexpr auto
 #endif
   make_constant(C&& c, Descriptors&& descriptors)
@@ -40,7 +40,7 @@ namespace OpenKalman
     using D = decltype(d);
     using Trait = interface::library_interface<std::decay_t<T>>;
 
-    if constexpr (euclidean_vector_space_descriptor_collection<D> and interface::make_constant_defined_for<T, C&&, D>)
+    if constexpr (coordinate::euclidean_pattern_collection<D> and interface::make_constant_defined_for<T, C&&, D>)
     {
       return Trait::template make_constant(std::forward<C>(c), std::forward<D>(d));
     }
@@ -64,11 +64,11 @@ namespace OpenKalman
    * \brief \ref vector_space_descriptors are specified as arguments.
    */
 #ifdef __cpp_concepts
-  template<indexible T, value::scalar C, vector_space_descriptor...Ds>
+  template<indexible T, value::scalar C, coordinate::pattern...Ds>
   constexpr constant_matrix auto
 #else
   template<typename T, typename C, typename...Ds, std::enable_if_t<
-    indexible<T> and value::scalar<C> and (vector_space_descriptor<Ds> and ...), int> = 0>
+    indexible<T> and value::scalar<C> and (coordinate::pattern<Ds> and ...), int> = 0>
   constexpr auto
 #endif
   make_constant(C&& c, Ds&&...ds)
@@ -104,15 +104,15 @@ namespace OpenKalman
    * \tparam C A \ref value::scalar for the new zero matrix. Must be constructible from {constant...}
    * \tparam constant A constant or set of coefficients in a vector space defining a constant
    * (e.g., real and imaginary parts of a complex number).
-   * \param Ds A \ref vector_space_descriptor_collection defining the dimensions of each index.
+   * \param Ds A \ref pattern_collection defining the dimensions of each index.
    */
 #ifdef __cpp_concepts
-  template<indexible T, value::scalar C, auto...constant, vector_space_descriptor_collection Ds> requires
+  template<indexible T, value::scalar C, auto...constant, pattern_collection Ds> requires
     ((value::fixed<C> and sizeof...(constant) == 0) or requires { C {constant...}; })
   constexpr constant_matrix auto
 #else
   template<typename T, typename C, auto...constant, typename Ds, std::enable_if_t<
-    indexible<T> and value::scalar<C> and vector_space_descriptor_collection<Ds> and
+    indexible<T> and value::scalar<C> and pattern_collection<Ds> and
     ((value::fixed<C> and sizeof...(constant) == 0) or
       std::is_constructible<C, decltype(constant)...>::value), int> = 0>
   constexpr auto
@@ -133,11 +133,11 @@ namespace OpenKalman
    * \tparam constant The constant
    */
 #ifdef __cpp_concepts
-  template<indexible T, auto constant, vector_space_descriptor_collection Ds> requires value::number<decltype(constant)>
+  template<indexible T, auto constant, pattern_collection Ds> requires value::number<decltype(constant)>
   constexpr constant_matrix auto
 #else
   template<typename T, auto constant, typename Ds, std::enable_if_t<
-    indexible<T> and value::number<decltype(constant)> and vector_space_descriptor_collection<Ds>, int> = 0>
+    indexible<T> and value::number<decltype(constant)> and pattern_collection<Ds>, int> = 0>
   constexpr auto
 #endif
   make_constant(Ds&& ds)
@@ -153,15 +153,15 @@ namespace OpenKalman
    * \tparam C A \ref value::scalar for the new zero matrix. Must be constructible from {constant...}
    * \tparam constant A constant or set of coefficients in a vector space defining a constant
    * (e.g., real and imaginary parts of a complex number).
-   * \param Ds A set of \ref vector_space_descriptor defining the dimensions of each index.
+   * \param Ds A set of \ref coordinate::pattern defining the dimensions of each index.
    */
 #ifdef __cpp_concepts
-  template<indexible T, value::scalar C, auto...constant, vector_space_descriptor...Ds> requires
+  template<indexible T, value::scalar C, auto...constant, coordinate::pattern...Ds> requires
     ((value::fixed<C> and sizeof...(constant) == 0) or requires { C {constant...}; })
   constexpr constant_matrix auto
 #else
   template<typename T, typename C, auto...constant, typename...Ds, std::enable_if_t<
-    indexible<T> and value::scalar<C> and (vector_space_descriptor<Ds> and ...) and
+    indexible<T> and value::scalar<C> and (coordinate::pattern<Ds> and ...) and
     ((value::fixed<C> and sizeof...(constant) == 0) or
       std::is_constructible<C, decltype(constant)...>::value), int> = 0>
   constexpr auto
@@ -178,11 +178,11 @@ namespace OpenKalman
    * \tparam constant The constant
    */
 #ifdef __cpp_concepts
-  template<indexible T, auto constant, vector_space_descriptor...Ds> requires value::number<decltype(constant)>
+  template<indexible T, auto constant, coordinate::pattern...Ds> requires value::number<decltype(constant)>
   constexpr constant_matrix auto
 #else
   template<typename T, auto constant, typename...Ds, std::enable_if_t<
-    indexible<T> and value::number<decltype(constant)> and (vector_space_descriptor<Ds> and ...), int> = 0>
+    indexible<T> and value::number<decltype(constant)> and (coordinate::pattern<Ds> and ...), int> = 0>
   constexpr auto
 #endif
   make_constant(Ds&&...ds)

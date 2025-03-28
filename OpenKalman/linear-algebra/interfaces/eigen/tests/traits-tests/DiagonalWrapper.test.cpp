@@ -35,8 +35,8 @@ TEST(eigen3, Eigen_DiagonalWrapper)
   static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<M1x>, 1> == dynamic_size);
   static_assert(index_dimension_of_v<Eigen::DiagonalWrapper<Mx3>, 1> == dynamic_size);
 
-  static_assert(dimension_size_of_v<decltype(std::get<0>(all_vector_space_descriptors(std::declval<Eigen::DiagonalWrapper<M31>>())))> == 3);
-  static_assert(dimension_size_of_v<decltype(std::get<1>(all_vector_space_descriptors(std::declval<Eigen::DiagonalWrapper<M31>>())))> == 3);
+  static_assert(coordinate::size_of_v<decltype(std::get<0>(all_vector_space_descriptors(std::declval<Eigen::DiagonalWrapper<M31>>())))> == 3);
+  static_assert(coordinate::size_of_v<decltype(std::get<1>(all_vector_space_descriptors(std::declval<Eigen::DiagonalWrapper<M31>>())))> == 3);
 
   static_assert(square_shaped<Eigen::DiagonalWrapper<Mxx>>);
 

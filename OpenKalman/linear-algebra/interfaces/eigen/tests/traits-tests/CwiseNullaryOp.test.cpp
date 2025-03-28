@@ -117,15 +117,15 @@ TEST(eigen3, Eigen_CwiseNullaryOp)
   static_assert(square_shaped<Z11>);
   static_assert(square_shaped<C11_1>);
 
-  static_assert(square_shaped<Z11, Qualification::depends_on_dynamic_shape>);
-  static_assert(square_shaped<Z2x, Qualification::depends_on_dynamic_shape>);
-  static_assert(not square_shaped<Z21, Qualification::depends_on_dynamic_shape>);
-  static_assert(square_shaped<C22_1, Qualification::depends_on_dynamic_shape>);
-  static_assert(not square_shaped<C21_1, Qualification::depends_on_dynamic_shape>);
+  static_assert(square_shaped<Z11, Applicability::permitted>);
+  static_assert(square_shaped<Z2x, Applicability::permitted>);
+  static_assert(not square_shaped<Z21, Applicability::permitted>);
+  static_assert(square_shaped<C22_1, Applicability::permitted>);
+  static_assert(not square_shaped<C21_1, Applicability::permitted>);
 
   static_assert(one_dimensional<Z11>);
-  static_assert(one_dimensional<Z1x, Qualification::depends_on_dynamic_shape>);
-  static_assert(one_dimensional<Zx1, Qualification::depends_on_dynamic_shape>);
+  static_assert(one_dimensional<Z1x, Applicability::permitted>);
+  static_assert(one_dimensional<Zx1, Applicability::permitted>);
   static_assert(one_dimensional<C11_1>);
 
   static_assert(not writable<Mx2::ConstantReturnType>);

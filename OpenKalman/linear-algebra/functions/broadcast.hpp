@@ -32,7 +32,7 @@ namespace OpenKalman
   /**
    * \brief Broadcast an object by replicating it by factors specified for each index.
    * \details The operation may increase the order of the object by specifying factors greater than 1 for higher indices.
-   * Any such higher indices will have a \ref vector_space_descriptor of <code>Dimensions&lt;n&gt;<code> where <code>n</code> is the factor.
+   * Any such higher indices will have a \ref coordinate::pattern of <code>Dimensions&lt;n&gt;<code> where <code>n</code> is the factor.
    * \tparam Arg The object.
    * \tparam Factors A set of factors, each an \ref value::index, indicating the increase in size of each index.
    * Any omitted trailing factors are treated as factor 1 (no broadcasting along that index).
@@ -59,9 +59,8 @@ namespace OpenKalman
       // Recursively remove any trailing 1D vector space descriptors
       return std::apply(
         [](Arg&& arg, const auto&...fs) { return broadcast(std::forward<Arg>(arg), fs...); },
-        std::tuple_cat(
-          std::forward_as_tuple(std::forward<Arg>(arg)),
-          internal::forward_as_tuple_slice<0, sizeof...(Factors) - 1>(std::forward_as_tuple(factors...))));
+        internal::tuple_concatenate(std::forward_as_tuple(std::forward<Arg>(arg)),
+          internal::tuple_slice<0, sizeof...(Factors) - 1>(std::forward_as_tuple(factors...))));
     }
     else
     {

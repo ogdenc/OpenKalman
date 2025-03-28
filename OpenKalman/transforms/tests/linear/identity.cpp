@@ -11,16 +11,16 @@
 #include "linear.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptor;
+using namespace OpenKalman::coordinate;
 using namespace OpenKalman::test;
 
 inline namespace
 {
-  using C2 = StaticDescriptor<Axis, Axis>;
+  using C2 = Dimensions<2>;
   using M22 = eigen_matrix_t<double, 2, 2>;
   using CovSA2 = Covariance <C2, HermitianAdapter<M22>>;
   using CovT2 = Covariance <C2, TriangularAdapter<M22>>;
-  using C3 = StaticDescriptor<Axis, Axis, Axis>;
+  using C3 = Dimensions<3>;
   using M33 = eigen_matrix_t<double, 3, 3>;
   using CovSA3 = Covariance <C3, HermitianAdapter<M33>>;
   using CovT3 = Covariance <C3, TriangularAdapter<M33>>;

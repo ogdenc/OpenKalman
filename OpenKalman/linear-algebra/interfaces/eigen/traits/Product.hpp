@@ -110,10 +110,10 @@ namespace OpenKalman::interface
     static constexpr bool is_hermitian =
       (constant_diagonal_matrix<LhsType> and
         (not value::complex<scalar_type_of_t<LhsType>> or value::not_complex<constant_diagonal_coefficient<LhsType>>) and
-        hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>) or
+        hermitian_matrix<RhsType, Applicability::permitted>) or
       (constant_diagonal_matrix<RhsType> and
         (not value::complex<scalar_type_of_t<RhsType>> or value::not_complex<constant_diagonal_coefficient<RhsType>>) and
-        hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape>);
+        hermitian_matrix<LhsType, Applicability::permitted>);
 
   };
 

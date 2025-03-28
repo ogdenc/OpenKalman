@@ -107,11 +107,14 @@ namespace OpenKalman::internal
     }
     else
     {
+#ifdef __cpp_lib_ranges
+      namespace ranges = std::ranges;
+#endif
       std::size_t count = count_indices(t);
       std::vector<std::ptrdiff_t> vec(count);
       if constexpr (l == Layout::left)
       {
-        auto v = std::begin(vec);
+        auto v = ranges::begin(vec);
         std::ptrdiff_t curr_stride = 1;
         for (int i = 0; i < count; ++i)
         {
@@ -122,7 +125,7 @@ namespace OpenKalman::internal
       }
       else
       {
-        auto v = vec.end();
+        auto v = ranges::end(vec);
         std::ptrdiff_t curr_stride = 1;
         for (int i = 1; i <= count; ++i)
         {

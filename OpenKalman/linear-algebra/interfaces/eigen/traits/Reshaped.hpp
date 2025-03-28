@@ -109,15 +109,15 @@ namespace OpenKalman::interface
     }
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool one_dimensional =
-      (Rows == 1 and Cols == 1 and OpenKalman::one_dimensional<XprType, Qualification::depends_on_dynamic_shape>) or
+      (Rows == 1 and Cols == 1 and OpenKalman::one_dimensional<XprType, Applicability::permitted>) or
       ((Rows == 1 or Rows == Eigen::Dynamic) and (Cols == 1 or Cols == Eigen::Dynamic) and OpenKalman::one_dimensional<XprType, b>);
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool is_square =
-      (b != Qualification::unqualified or (Rows != Eigen::Dynamic and Cols != Eigen::Dynamic) or
+      (b != Applicability::guaranteed or (Rows != Eigen::Dynamic and Cols != Eigen::Dynamic) or
         ((Rows != Eigen::Dynamic or Cols != Eigen::Dynamic) and not has_dynamic_dimensions<XprType>)) and
       (Rows == Eigen::Dynamic or Cols == Eigen::Dynamic or Rows == Cols) and
       (nested_components == dynamic_size or (
@@ -135,7 +135,7 @@ namespace OpenKalman::interface
     static constexpr bool is_triangular_adapter = false;
 
 
-    static constexpr bool is_hermitian = hermitian_matrix<XprType, Qualification::depends_on_dynamic_shape> and
+    static constexpr bool is_hermitian = hermitian_matrix<XprType, Applicability::permitted> and
       ((XprType::RowsAtCompileTime == Eigen::Dynamic and XprType::ColsAtCompileTime == Eigen::Dynamic) or
         (Rows == Eigen::Dynamic or Rows == XprType::RowsAtCompileTime or Rows == XprType::ColsAtCompileTime) and
         (Cols == Eigen::Dynamic or Cols == XprType::ColsAtCompileTime or Cols == XprType::RowsAtCompileTime));

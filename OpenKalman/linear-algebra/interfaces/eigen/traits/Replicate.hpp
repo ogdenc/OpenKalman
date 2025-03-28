@@ -57,17 +57,17 @@ namespace OpenKalman::interface
     }
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool one_dimensional =
-      (b != Qualification::unqualified or (RowFactor == 1 and ColFactor == 1)) and
+      (b != Applicability::guaranteed or (RowFactor == 1 and ColFactor == 1)) and
       (RowFactor == 1 or RowFactor == Eigen::Dynamic) and
       (ColFactor == 1 or ColFactor == Eigen::Dynamic) and
         OpenKalman::one_dimensional<MatrixType, b>;
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool is_square =
-      (b != Qualification::unqualified or not has_dynamic_dimensions<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>) and
+      (b != Applicability::guaranteed or not has_dynamic_dimensions<Eigen::Replicate<MatrixType, RowFactor, ColFactor>>) and
       (RowFactor == Eigen::Dynamic or ColFactor == Eigen::Dynamic or
         ((RowFactor != ColFactor or square_shaped<MatrixType, b>) and
         (dynamic_dimension<MatrixType, 0> or RowFactor * index_dimension_of_v<MatrixType, 0> % ColFactor == 0) and
@@ -87,7 +87,7 @@ namespace OpenKalman::interface
     static constexpr bool is_triangular_adapter = false;
 
 
-    static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Qualification::depends_on_dynamic_shape> and
+    static constexpr bool is_hermitian = hermitian_matrix<MatrixType, Applicability::permitted> and
       ((RowFactor == 1 and ColFactor == 1) or not value::complex<scalar_type> or
         value::not_complex<constant_coefficient<MatrixType>> or value::not_complex<constant_diagonal_coefficient<MatrixType>>);
 

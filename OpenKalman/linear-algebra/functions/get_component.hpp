@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_GET_COMPONENT_HPP
 #define OPENKALMAN_GET_COMPONENT_HPP
 
-#include "linear-algebra/values/concepts/index.hpp"
+#include "values/concepts/index.hpp"
 #include "linear-algebra/concepts/index_range_for.hpp"
 #include "linear-algebra/interfaces/default/library_interface.hpp"
 #include "linear-algebra/concepts/empty_object.hpp"

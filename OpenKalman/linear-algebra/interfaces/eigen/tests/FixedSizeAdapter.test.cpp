@@ -24,12 +24,12 @@ TEST(eigen3, FixedSizeAdapter)
   static_assert(dimension_size_of_index_is<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, 0, 2>);
   static_assert(dimension_size_of_index_is<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, 1, 1>);
 
-  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, Qualification::depends_on_dynamic_shape>);
-  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, Qualification::depends_on_dynamic_shape>);
-  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, Applicability::permitted>);
+  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, Applicability::permitted>);
+  static_assert(not one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, Applicability::permitted>);
   static_assert(one_dimensional<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, std::tuple<Dimensions<1>, Dimensions<1>>>>);
 
-  static_assert(not square_shaped<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, Qualification::depends_on_dynamic_shape>);
+  static_assert(not square_shaped<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>, Applicability::permitted>);
 
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>>);
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>>);

@@ -12,15 +12,15 @@
 #include <cmath>
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptor;
+using namespace OpenKalman::coordinate;
 using namespace OpenKalman::test;
 
 using numbers::pi;
 
 inline namespace
 {
-  using C2 = StaticDescriptor<Axis, Axis>;
-  using P2 = StaticDescriptor<Polar<>>;
+  using C2 = Dimensions<2>;
+  using P2 = Polar<>;
 
   const GaussianDistribution angle_input {Mean<P2>(1, 0.9999 * pi), Covariance<P2>(0.25, 0, 0, pi * pi / 9)};
   const GaussianDistribution angle_input_tri {Mean<P2>(1, 0.9999 * pi), make_covariance<P2, TriangleType::lower>(0.25, 0, 0, pi * pi / 9)};

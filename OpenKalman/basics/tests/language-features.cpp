@@ -22,3 +22,11 @@ TEST(basics, uz_literal)
   static_assert(std::is_same_v<decltype(5_uz), std::size_t>);
 }
 
+
+#ifndef __cpp_lib_remove_cvref
+TEST(basics, remove_cvref)
+{
+  static_assert(std::is_same_v<OpenKalman::remove_cvref_t<int[5]>, int[5]>);
+  static_assert(std::is_same_v<OpenKalman::remove_cvref_t<const int[5]>, int[5]>);
+}
+#endif

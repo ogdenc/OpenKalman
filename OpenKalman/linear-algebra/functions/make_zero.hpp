@@ -22,15 +22,15 @@ namespace OpenKalman
    * \brief Make a \ref zero associated with a particular library.
    * \tparam T An \indexible object (matrix or tensor) from a particular library. Its shape and contents are irrelevant.
    * \tparam Scalar An optional scalar type for the new zero matrix. By default, T's scalar type is used.
-   * \param Descriptors A \ref vector_space_descriptor_collection defining the dimensions of each index.
-   * If none are provided and T has no dynamic dimensions, the function takes \ref vector_space_descriptor from T.
+   * \param Descriptors A \ref pattern_collection defining the dimensions of each index.
+   * If none are provided and T has no dynamic dimensions, the function takes \ref coordinate::pattern from T.
    */
 #ifdef __cpp_concepts
-  template<indexible T, value::number Scalar = scalar_type_of_t<T>, vector_space_descriptor_collection Descriptors>
+  template<indexible T, value::number Scalar = scalar_type_of_t<T>, pattern_collection Descriptors>
   constexpr zero auto
 #else
   template<typename T, typename Scalar = scalar_type_of_t<T>, typename...Ds, std::enable_if_t<indexible<T> and
-    value::number<Scalar> and vector_space_descriptor_collection<Descriptors>, int> = 0>
+    value::number<Scalar> and pattern_collection<Descriptors>, int> = 0>
   constexpr auto
 #endif
   make_zero(Descriptors&& descriptors)
@@ -41,14 +41,14 @@ namespace OpenKalman
 
   /**
    * \overload
-   * \brief Specify \ref vector_space_descriptor objects as arguments.
+   * \brief Specify \ref coordinate::pattern objects as arguments.
    */
 #ifdef __cpp_concepts
-  template<indexible T, value::number Scalar = scalar_type_of_t<T>, vector_space_descriptor...Ds>
+  template<indexible T, value::number Scalar = scalar_type_of_t<T>, coordinate::pattern...Ds>
   constexpr zero auto
 #else
   template<typename T, typename Scalar = scalar_type_of_t<T>, typename...Ds, std::enable_if_t<indexible<T> and
-    value::number<Scalar> and (... and vector_space_descriptor<Ds>), int> = 0>
+    value::number<Scalar> and (... and coordinate::pattern<Ds>), int> = 0>
   constexpr auto
 #endif
   make_zero(Ds&&...ds)

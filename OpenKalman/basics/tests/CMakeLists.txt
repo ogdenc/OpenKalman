@@ -17,8 +17,7 @@ include(GoogleTest)
 add_executable(basics
         language-features.cpp
         global-definitions.cpp
-        utils.cpp
-        collection.cpp
+        classes.cpp
     )
 
 target_link_libraries(basics GTest::gtest_main Eigen3::Eigen Threads::Threads)

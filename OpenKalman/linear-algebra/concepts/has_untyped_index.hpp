@@ -21,7 +21,7 @@ namespace OpenKalman
 {
   /**
    * \brief Specifies that T has an untyped index N.
-   * \details Index N of T is Euclidean and non-modular (e.g., Axis, StaticDescriptor<Axis, Axis>, etc.).
+   * \details Index N of T is Euclidean and non-modular (e.g., Axis, Dimensions<2>, etc.).
    */
 #ifdef __cpp_concepts
   template<typename T, std::size_t N>
@@ -30,7 +30,7 @@ namespace OpenKalman
   template<typename T, std::size_t N>
   constexpr bool has_untyped_index =
 #endif
-    euclidean_vector_space_descriptor<vector_space_descriptor_of_t<T, N>>;
+    coordinate::euclidean_pattern<vector_space_descriptor_of_t<T, N>>;
 
 
 } // namespace OpenKalman

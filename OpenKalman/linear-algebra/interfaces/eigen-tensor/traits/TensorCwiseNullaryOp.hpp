@@ -60,11 +60,11 @@ namespace OpenKalman::interface
     }
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool one_dimensional = OpenKalman::one_dimensional<XprType, b>;
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool is_square = square_shaped<XprType, b>;
 
 

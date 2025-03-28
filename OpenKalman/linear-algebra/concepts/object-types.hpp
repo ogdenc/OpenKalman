@@ -42,7 +42,7 @@ namespace OpenKalman
 
 
   /**
-   * \brief Specifies that T is a wrapped mean (i.e., its row static_vector_space_descriptor have at least one type that requires wrapping).
+   * \brief Specifies that T is a wrapped mean (i.e., its row fixed_pattern have at least one type that requires wrapping).
    */
 #ifdef __cpp_concepts
   template<typename T>

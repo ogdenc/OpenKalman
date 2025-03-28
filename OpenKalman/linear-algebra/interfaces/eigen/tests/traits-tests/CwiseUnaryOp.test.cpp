@@ -690,7 +690,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_bind1st_op)
   static_assert(value::dynamic<constant_coefficient<Eigen::CwiseUnaryOp<CB1sum, Z22>>>);
   static_assert(not constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB1sum, Z22>>);
   static_assert(not constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB1sum, decltype(cdp2)>>);
-  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1sum, decltype(cp2)>, Qualification::depends_on_dynamic_shape>);
+  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1sum, decltype(cp2)>, Applicability::permitted>);
   static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1sum, decltype(cm2)>>);
 
   using CB1prod = Eigen::internal::bind1st_op<Eigen::internal::scalar_product_op<double, double>>;
@@ -700,7 +700,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_bind1st_op)
   static_assert(zero<Eigen::CwiseUnaryOp<CB1prod, Z22>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryOp<CB1prod, I22>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryOp<CB1prod, DM2>>);
-  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1prod, decltype(cp2)>, Qualification::depends_on_dynamic_shape>);
+  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1prod, decltype(cp2)>, Applicability::permitted>);
   static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1prod, decltype(cm2)>>);
 }
 
@@ -713,7 +713,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_bind2nd_op)
   static_assert(value::dynamic<constant_coefficient<Eigen::CwiseUnaryOp<CB2sum, Z22>>>);
   static_assert(not constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB2sum, Z22>>);
   static_assert(not constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB2sum, decltype(cdp2)>>);
-  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2sum, decltype(cp2)>, Qualification::depends_on_dynamic_shape>);
+  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2sum, decltype(cp2)>, Applicability::permitted>);
   static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2sum, decltype(cm2)>>);
 
   using CB2prod = Eigen::internal::bind2nd_op<Eigen::internal::scalar_product_op<double, double>>;
@@ -723,7 +723,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_bind2nd_op)
   static_assert(zero<Eigen::CwiseUnaryOp<CB2prod, Z22>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryOp<CB2prod, I22>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryOp<CB2prod, DM2>>);
-  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2prod, decltype(cp2)>, Qualification::depends_on_dynamic_shape>);
+  static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2prod, decltype(cp2)>, Applicability::permitted>);
   static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2prod, decltype(cm2)>>);
 }
 

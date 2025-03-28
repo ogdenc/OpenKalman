@@ -24,8 +24,8 @@ namespace OpenKalman
   {
     using RC1 = vector_space_descriptor_of_t<V1, 0>;
     using CC1 = vector_space_descriptor_of_t<V1, 1>;
-    static_assert(equivalent_to<vector_space_descriptor_of_t<V2, 0>, RC1>);
-    static_assert(equivalent_to<vector_space_descriptor_of_t<V2, 1>, CC1>);
+    static_assert(compares_with<vector_space_descriptor_of_t<V2, 0>, RC1>);
+    static_assert(compares_with<vector_space_descriptor_of_t<V2, 1>, CC1>);
     static_assert(euclidean_transformed<V1> == euclidean_transformed<V2>);
 
     auto b = make_self_contained<V1, V2>(nested_object(std::forward<V1>(v1)) + nested_object(std::forward<V2>(v2)));
@@ -46,8 +46,8 @@ namespace OpenKalman
   {
     using RC1 = vector_space_descriptor_of_t<V1, 0>;
     using CC1 = vector_space_descriptor_of_t<V1, 1>;
-    static_assert(equivalent_to<vector_space_descriptor_of_t<V2, 0>, RC1>);
-    static_assert(equivalent_to<vector_space_descriptor_of_t<V2, 1>, CC1>);
+    static_assert(compares_with<vector_space_descriptor_of_t<V2, 0>, RC1>);
+    static_assert(compares_with<vector_space_descriptor_of_t<V2, 1>, CC1>);
     static_assert(euclidean_transformed<V1> == euclidean_transformed<V2>);
 
     auto b = make_self_contained<V1, V2>(nested_object(std::forward<V1>(v1)) - nested_object(std::forward<V2>(v2)));
@@ -129,7 +129,7 @@ namespace OpenKalman
 #endif
   inline auto operator*(V1&& v1, V2&& v2)
   {
-    static_assert(equivalent_to<vector_space_descriptor_of_t<V1, 1>, vector_space_descriptor_of_t<V2, 0>>);
+    static_assert(compares_with<vector_space_descriptor_of_t<V1, 1>, vector_space_descriptor_of_t<V2, 0>>);
     using RC = vector_space_descriptor_of_t<V1, 0>;
     using CC = vector_space_descriptor_of_t<V2, 1>;
 
@@ -167,8 +167,8 @@ namespace OpenKalman
   constexpr bool operator==(V1&& v1, V2&& v2)
   {
     if constexpr(
-      equivalent_to<vector_space_descriptor_of_t<V1, 0>, vector_space_descriptor_of_t<V2, 0>> and
-      equivalent_to<vector_space_descriptor_of_t<V1, 1>, vector_space_descriptor_of_t<V2, 1>>)
+      compares_with<vector_space_descriptor_of_t<V1, 0>, vector_space_descriptor_of_t<V2, 0>>and
+      compares_with<vector_space_descriptor_of_t<V1, 1>, vector_space_descriptor_of_t<V2, 1>>)
     {
       return to_dense_object(std::forward<V1>(v1)) == to_dense_object(std::forward<V2>(v2));
     }

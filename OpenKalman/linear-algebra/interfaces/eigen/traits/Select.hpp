@@ -94,24 +94,24 @@ namespace OpenKalman::interface
     }
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool one_dimensional =
-      OpenKalman::one_dimensional<ConditionMatrixType, Qualification::depends_on_dynamic_shape> and
-      OpenKalman::one_dimensional<ThenMatrixType, Qualification::depends_on_dynamic_shape> and
-      OpenKalman::one_dimensional<ElseMatrixType, Qualification::depends_on_dynamic_shape> and
-      (b != Qualification::unqualified or
+      OpenKalman::one_dimensional<ConditionMatrixType, Applicability::permitted> and
+      OpenKalman::one_dimensional<ThenMatrixType, Applicability::permitted> and
+      OpenKalman::one_dimensional<ElseMatrixType, Applicability::permitted> and
+      (b != Applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
         OpenKalman::one_dimensional<ConditionMatrixType> or
         OpenKalman::one_dimensional<ThenMatrixType> or
         OpenKalman::one_dimensional<ElseMatrixType>);
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool is_square =
-      square_shaped<ConditionMatrixType, Qualification::depends_on_dynamic_shape> and
-      square_shaped<ThenMatrixType, Qualification::depends_on_dynamic_shape> and
-      square_shaped<ElseMatrixType, Qualification::depends_on_dynamic_shape> and
-      (b != Qualification::unqualified or
+      square_shaped<ConditionMatrixType, Applicability::permitted> and
+      square_shaped<ThenMatrixType, Applicability::permitted> and
+      square_shaped<ElseMatrixType, Applicability::permitted> and
+      (b != Applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
         square_shaped<ConditionMatrixType, b> or
         square_shaped<ThenMatrixType, b> or
@@ -136,11 +136,11 @@ namespace OpenKalman::interface
         [](){
           if constexpr (constant_matrix<ConditionMatrixType>)
             return hermitian_matrix<std::conditional_t<static_cast<bool>(constant_coefficient_v<ConditionMatrixType>),
-              ThenMatrixType, ElseMatrixType>, Qualification::depends_on_dynamic_shape>;
+              ThenMatrixType, ElseMatrixType>, Applicability::permitted>;
           else return false;
         }()) or
-      (hermitian_matrix<ConditionMatrixType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<ThenMatrixType, Qualification::depends_on_dynamic_shape> and
-        hermitian_matrix<ElseMatrixType, Qualification::depends_on_dynamic_shape> and
+      (hermitian_matrix<ConditionMatrixType, Applicability::permitted> and hermitian_matrix<ThenMatrixType, Applicability::permitted> and
+        hermitian_matrix<ElseMatrixType, Applicability::permitted> and
         (not value::fixed<constant_coefficient<ConditionMatrixType>>));
   };
 

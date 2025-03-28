@@ -11,11 +11,11 @@
 #include "covariances.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptor;
+using namespace OpenKalman::coordinate;
 using namespace OpenKalman::test;
 
 using M2 = eigen_matrix_t<double, 2, 2>;
-using C = StaticDescriptor<angle::Radians, Axis>;
+using C = std::tuple<angle::Radians, Axis>;
 using Mat2 = Matrix<C, C, M2>;
 using Mat2col = Matrix<C, Axis, eigen_matrix_t<double, 2, 1>>;
 using SA2l = HermitianAdapter<M2, TriangleType::lower>;
@@ -557,22 +557,22 @@ TEST(covariance_tests, Covariance_subscripts)
 TEST(covariance_tests, Covariance_deduction_guides)
 {
   EXPECT_TRUE(is_near(Covariance(CovSA2l {9, 3, 3, 10}), Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Covariance(CovSA2l {9, 3, 3, 10})), 0>, C>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Covariance(CovSA2l {9, 3, 3, 10})), 0>, C>);
 
   EXPECT_TRUE(is_near(Covariance(T2l {3, 0, 1, 3}), Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Covariance(T2l {3, 0, 1, 3})), 0>, Dimensions<2>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Covariance(T2l {3, 0, 1, 3})), 0>, Dimensions<2>>);
 
   EXPECT_TRUE(is_near(Covariance(D2 {1, 2}), Mat2 {1, 0, 0, 2}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Covariance(D2 {1, 2})), 0>, Dimensions<2>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Covariance(D2 {1, 2})), 0>, Dimensions<2>>);
 
   EXPECT_TRUE(is_near(Covariance(Mat2 {9, 3, 3, 10}), Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Covariance(Mat2 {9, 3, 3, 10})), 0>, C>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Covariance(Mat2 {9, 3, 3, 10})), 0>, C>);
 
   EXPECT_TRUE(is_near(Covariance(make_dense_object_from<M2>(9, 3, 3, 10)), Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Covariance(make_dense_object_from<M2>(9, 3, 3, 10))), 0>, Dimensions<2>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Covariance(make_dense_object_from<M2>(9, 3, 3, 10))), 0>, Dimensions<2>>);
 
   EXPECT_TRUE(is_near(Covariance {9., 3, 3, 10}, Mat2 {9, 3, 3, 10}));
-  static_assert(equivalent_to<vector_space_descriptor_of_t<decltype(Covariance {9., 3, 3, 10}), 0>, Dimensions<2>>);
+  static_assert(compares_with<vector_space_descriptor_of_t<decltype(Covariance {9., 3, 3, 10}), 0>, Dimensions<2>>);
 }
 
 
@@ -689,7 +689,7 @@ TEST(covariance_tests, Covariance_make)
   static_assert(triangular_matrix<decltype(make_covariance<C, TriangleType::lower>().get_triangular_nested_matrix()), TriangleType::lower>);
   static_assert(triangular_matrix<decltype(make_covariance<C, TriangleType::upper>().get_triangular_nested_matrix()), TriangleType::upper>);
   static_assert(hermitian_adapter<decltype(make_covariance<C>().get_self_adjoint_nested_matrix()), HermitianAdapterType::lower>);
-  static_assert(dimension_size_of_v<vector_space_descriptor_of_t<decltype(make_covariance<C>()), 0>> == 2);
+  static_assert(coordinate::size_of_v<vector_space_descriptor_of_t<decltype(make_covariance<C>()), 0>> == 2);
 }
 
 

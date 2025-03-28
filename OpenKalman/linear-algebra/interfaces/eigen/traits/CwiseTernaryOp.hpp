@@ -69,24 +69,24 @@ namespace OpenKalman::interface
       return Traits::template get_constant<true>(arg);
     }
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool one_dimensional =
-      OpenKalman::one_dimensional<Arg1, Qualification::depends_on_dynamic_shape> and
-      OpenKalman::one_dimensional<Arg2, Qualification::depends_on_dynamic_shape> and
-      OpenKalman::one_dimensional<Arg3, Qualification::depends_on_dynamic_shape> and
-      (b != Qualification::unqualified or
+      OpenKalman::one_dimensional<Arg1, Applicability::permitted> and
+      OpenKalman::one_dimensional<Arg2, Applicability::permitted> and
+      OpenKalman::one_dimensional<Arg3, Applicability::permitted> and
+      (b != Applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
         OpenKalman::one_dimensional<Arg1, b> or
         OpenKalman::one_dimensional<Arg2, b> or
         OpenKalman::one_dimensional<Arg3, b>);
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool is_square =
-      square_shaped<Arg1, Qualification::depends_on_dynamic_shape> and
-      square_shaped<Arg2, Qualification::depends_on_dynamic_shape> and
-      square_shaped<Arg3, Qualification::depends_on_dynamic_shape> and
-      (b != Qualification::unqualified or
+      square_shaped<Arg1, Applicability::permitted> and
+      square_shaped<Arg2, Applicability::permitted> and
+      square_shaped<Arg3, Applicability::permitted> and
+      (b != Applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
         square_shaped<Arg1, b> or
         square_shaped<Arg2, b> or

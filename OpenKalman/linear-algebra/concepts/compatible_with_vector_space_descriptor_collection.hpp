@@ -24,7 +24,7 @@ namespace OpenKalman
     template<typename T, std::size_t N, std::size_t...Ix>
     constexpr bool compatible_extension(std::index_sequence<Ix...>)
     {
-      return (... and (maybe_equivalent_to<vector_space_descriptor_of_t<T, N + Ix>, descriptor::Dimensions<1>>));
+      return (... and (compares_with<vector_space_descriptor_of_t<T, N + Ix>, coordinate::Dimensions<1>, equal_to<>, Applicability::permitted>));
     }
 
 
@@ -32,7 +32,7 @@ namespace OpenKalman
     constexpr bool is_compatible_descriptor_tuple(std::index_sequence<Ix...>)
     {
       constexpr std::size_t N = sizeof...(Ix);
-      constexpr bool Dsmatch = (... and (maybe_equivalent_to<vector_space_descriptor_of_t<T, Ix>, std::tuple_element_t<Ix, D>>));
+      constexpr bool Dsmatch = (... and (compares_with<vector_space_descriptor_of_t<T, Ix>, std::tuple_element_t<Ix, D>, equal_to<>, Applicability::permitted>));
 
       if constexpr (index_count_v<T> != dynamic_size and N < index_count_v<T>)
         return Dsmatch and compatible_extension<T, N>(std::make_index_sequence<index_count_v<T> - N>{});
@@ -50,12 +50,12 @@ namespace OpenKalman
  
  
 #ifdef __cpp_concepts
-    template<typename T, vector_space_descriptor_tuple D>
+    template<typename T, pattern_tuple D>
     struct compatible_with_vector_space_descriptor_collection_impl<T, D> 
 #else
     template<typename T, typename D>
     struct compatible_with_vector_space_descriptor_collection_impl<T, D, std::enable_if_t<
-      vector_space_descriptor_tuple<D>>> 
+      pattern_tuple<D>>>
 #endif
       : std::bool_constant<is_compatible_descriptor_tuple<T, D>(std::make_index_sequence<std::tuple_size_v<D>>{})> {}; 
 
@@ -63,9 +63,9 @@ namespace OpenKalman
 
 
   /**
-   * \brief \ref indexible T is compatible with \ref vector_space_descriptor_collection D.
+   * \brief \ref indexible T is compatible with \ref pattern_collection D.
    * \tparam T An \ref indexible object
-   * \tparam D A \ref vector_space_descriptor_collection
+   * \tparam D A \ref pattern_collection
    */
   template<typename T, typename D>
 #ifdef __cpp_concepts
@@ -73,7 +73,7 @@ namespace OpenKalman
 #else
   constexpr bool compatible_with_vector_space_descriptor_collection =
 #endif
-    indexible<T> and vector_space_descriptor_collection<D> and
+    indexible<T> and pattern_collection<D> and
       detail::compatible_with_vector_space_descriptor_collection_impl<T, D>::value;
 
 

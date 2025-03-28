@@ -166,18 +166,18 @@ namespace OpenKalman::interface
     }
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool one_dimensional =
-      OpenKalman::one_dimensional<LhsXprType, Qualification::depends_on_dynamic_shape> and OpenKalman::one_dimensional<RhsXprType, Qualification::depends_on_dynamic_shape> and
-      (b != Qualification::unqualified or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
+      OpenKalman::one_dimensional<LhsXprType, Applicability::permitted> and OpenKalman::one_dimensional<RhsXprType, Applicability::permitted> and
+      (b != Applicability::guaranteed or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
         (square_shaped<LhsXprType, b> and (dimension_size_of_index_is<RhsXprType, 0, 1> or dimension_size_of_index_is<RhsXprType, 1, 1>)) or
         ((dimension_size_of_index_is<LhsXprType, 0, 1> or dimension_size_of_index_is<LhsXprType, 1, 1>) and square_shaped<RhsXprType, b>));
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool is_square =
-      square_shaped<LhsXprType, Qualification::depends_on_dynamic_shape> and square_shaped<RhsXprType, Qualification::depends_on_dynamic_shape> and
-      (b != Qualification::unqualified or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
+      square_shaped<LhsXprType, Applicability::permitted> and square_shaped<RhsXprType, Applicability::permitted> and
+      (b != Applicability::guaranteed or not has_dynamic_dimensions<Eigen::CwiseBinaryOp<BinaryOp, LhsXprType, RhsXprType>> or
         square_shaped<LhsXprType, b> or square_shaped<RhsXprType, b>);
 
 
@@ -196,7 +196,7 @@ namespace OpenKalman::interface
 
 
     static constexpr bool is_hermitian = Traits::preserves_hermitian and
-      hermitian_matrix<LhsXprType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsXprType, Qualification::depends_on_dynamic_shape>;;
+      hermitian_matrix<LhsXprType, Applicability::permitted> and hermitian_matrix<RhsXprType, Applicability::permitted>;;
 
   };
 

@@ -1,0 +1,78 @@
+/* This file is part of OpenKalman, a header-only C++ library for
+ * Kalman filters and other recursive filters.
+ *
+ * Copyright (c) 2025 Christopher Lee Ogden <ogden@gatech.edu>
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+/**
+ * \file
+ * \internal
+ * \brief Definition of \ref internal::to_tuple.
+ */
+
+#ifndef OPENKALMAN_TO_TUPLE_HPP
+#define OPENKALMAN_TO_TUPLE_HPP
+
+#include <type_traits>
+#include <tuple>
+#include "collections/concepts/tuple_like.hpp"
+
+namespace OpenKalman::internal
+{
+  namespace detail
+  {
+#ifndef __cpp_concepts
+    template<typename T, typename = void>
+    struct is_stl_tuple_like : std::false_type {};
+
+    template<typename T>
+    struct is_stl_tuple_like<T, std::void_t<decltype(std::tuple_cat(std::declval<T>()))>> : std::true_type {};
+#endif
+
+
+#ifdef __cpp_concepts
+    template<typename T>
+    concept stl_tuple_like = requires(T t) { std::tuple_cat(t); };
+#else
+    template<typename T>
+    constexpr bool stl_tuple_like = detail::is_stl_tuple_like<std::decay_t<T>>::value;
+#endif
+
+
+    template<typename Arg, std::size_t...Ix>
+    constexpr auto
+    to_tuple_impl(Arg&& arg, std::index_sequence<Ix...>)
+    {
+      return std::tuple {get(std::forward<Arg>(arg), std::integral_constant<std::size_t, Ix>{})...};
+    }
+  } // namespace detail
+
+
+  /**
+   * \deprecated
+   * \brief Convert a \ref tuple_like object to a std::tuple or equivalent
+   * \details This is a temporary measure until the expositional "tuple-like" concept in the stl library
+   * encompasses \ref tuple_like as defined in this library.
+   */
+#ifdef __cpp_concepts
+  template<tuple_like Arg>
+  constexpr detail::stl_tuple_like decltype(auto)
+#else
+  template<typename Arg, std::enable_if_t<tuple_like<Arg>, int> = 0>
+  constexpr decltype(auto)
+#endif
+  to_tuple(Arg&& arg)
+  {
+    if constexpr (detail::stl_tuple_like<Arg>)
+      return std::forward<Arg>(arg);
+    else
+      return detail::to_tuple_impl(std::forward<Arg>(arg), std::make_index_sequence<std::tuple_size_v<std::decay_t<Arg>>>{});
+  }
+
+} // namespace OpenKalman::internal
+
+#endif //OPENKALMAN_TO_TUPLE_HPP

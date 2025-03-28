@@ -18,7 +18,9 @@
 
 #include <type_traits>
 #ifdef __cpp_lib_ranges
-#include<ranges>
+#include <ranges>
+#else
+#include "basics/ranges.hpp"
 #endif
 
 namespace OpenKalman
@@ -27,18 +29,10 @@ namespace OpenKalman
   namespace detail
   {
     template<typename Indices, typename Indexible, typename = void>
-    struct index_range_for_impl_std_it : std::false_type {};
-
-    template<typename Indices, typename Indexible>
-    struct index_range_for_impl_std_it<Indices, Indexible, std::enable_if_t<value::index<decltype(*std::begin(std::declval<Indices>()))>>>
-        : std::true_type {};
-
-
-    template<typename Indices, typename Indexible, typename = void>
     struct index_range_for_impl_it : std::false_type {};
 
     template<typename Indices, typename Indexible>
-    struct index_range_for_impl_it<Indices, Indexible, std::enable_if_t<value::index<decltype(*begin(std::declval<Indices>()))>>>
+    struct index_range_for_impl_it<Indices, Indexible, std::enable_if_t<value::index<ranges::iterator_t<Indices>>>>
         : std::true_type {};
 
 
@@ -47,8 +41,8 @@ namespace OpenKalman
 
     template<typename Indices, typename Indexible>
     struct index_range_for_impl<Indices, Indexible, std::enable_if_t<
-      internal::collection_size_of<Indices>::value == dynamic_size or index_count<Indexible>::value == dynamic_size or
-      internal::collection_size_of<Indices>::value >= index_count<Indexible>::value>>
+      collections::size_of<Indices>::value == dynamic_size or index_count<Indexible>::value == dynamic_size or
+      collections::size_of<Indices>::value >= index_count<Indexible>::value>>
         : std::true_type {};
 
   }
@@ -64,12 +58,12 @@ namespace OpenKalman
     indexible<T> and std::ranges::input_range<std::decay_t<Indices>> and 
     value::index<std::ranges::range_value_t<Indices>> and
     interface::get_component_defined_for<T, T, Indices> and
-    (internal::collection_size_of_v<Indices> == dynamic_size or index_count_v<T> == dynamic_size or
-      internal::collection_size_of_v<Indices> >= index_count_v<T>);
+    (collections::size_of_v<Indices> == dynamic_size or index_count_v<T> == dynamic_size or
+      collections::size_of_v<Indices> >= index_count_v<T>);
 #else
   constexpr bool index_range_for =
     indexible<T> and
-    (detail::index_range_for_impl_std_it<Indices, T>::value or detail::index_range_for_impl_it<Indices, T>::value) and
+    detail::index_range_for_impl_it<Indices, T>::value and
     interface::get_component_defined_for<T, T, Indices> and 
     detail::index_range_for_impl<Indices, T>::value;
 #endif

@@ -199,7 +199,7 @@ namespace OpenKalman
       decltype(auto) red = detail::reduce_impl(b, arg, seq, seq);
       using Red = decltype(red);
 
-      static_assert(value::number<Red> or one_dimensional<Red, Qualification::depends_on_dynamic_shape>,
+      static_assert(value::number<Red> or one_dimensional<Red, Applicability::permitted>,
         "Incorrect library interface for total 'reduce' on all indices: must return a scalar or one-by-one matrix.");
 
       if constexpr (value::number<Red>)

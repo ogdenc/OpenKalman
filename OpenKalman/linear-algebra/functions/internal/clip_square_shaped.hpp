@@ -42,7 +42,7 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_concepts
   template<indexible Arg>
-  constexpr square_shaped<Qualification::depends_on_dynamic_shape> decltype(auto)
+  constexpr square_shaped<Applicability::permitted> decltype(auto)
 #else
   template<typename Arg>
   constexpr decltype(auto)

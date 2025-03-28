@@ -21,7 +21,7 @@ namespace OpenKalman
   /**
    * \brief Extract a column vector (or column slice for rank>2 tensors) comprising the diagonal elements.
    * \tparam Arg An \ref indexible object, which can have any rank and may or may not be square
-   * \returns Arg A column vector whose \ref vector_space_descriptor corresponds to the smallest-dimension index.
+   * \returns Arg A column vector whose \ref coordinate::pattern corresponds to the smallest-dimension index.
    */
 #ifdef __cpp_concepts
   template<indexible Arg> requires (index_count_v<Arg> == dynamic_size) or (index_count_v<Arg> <= 2)
@@ -47,11 +47,11 @@ namespace OpenKalman
     else if constexpr (constant_matrix<Arg>)
     {
       auto ds = all_vector_space_descriptors(std::forward<Arg>(arg));
-      if constexpr (vector_space_descriptor_tuple<decltype(ds)>)
+      if constexpr (pattern_tuple<decltype(ds)>)
       {
         return internal::make_constant_diagonal_from_descriptors<Arg>(
           constant_coefficient {std::forward<Arg>(arg)},
-          std::tuple_cat(ds, std::tuple{descriptor::Axis{}, descriptor::Axis{}}));
+          std::tuple_cat(ds, std::tuple{coordinate::Axis{}, coordinate::Axis{}}));
       }
       else
       {
@@ -61,11 +61,11 @@ namespace OpenKalman
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       auto ds = all_vector_space_descriptors(std::forward<Arg>(arg));
-      if constexpr (vector_space_descriptor_tuple<decltype(ds)>)
+      if constexpr (pattern_tuple<decltype(ds)>)
       {      
         return internal::make_constant_diagonal_from_descriptors<Arg>(
           constant_diagonal_coefficient {std::forward<Arg>(arg)},
-          std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{descriptor::Axis{}, descriptor::Axis{}}));
+          std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{coordinate::Axis{}, coordinate::Axis{}}));
       }
       else
       {

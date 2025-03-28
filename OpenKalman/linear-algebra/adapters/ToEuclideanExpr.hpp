@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_TOEUCLIDEANEXPR_HPP
 #define OPENKALMAN_TOEUCLIDEANEXPR_HPP
 
-#include "linear-algebra/vector-space-descriptors/vector-space-descriptors.hpp"
+#include "linear-algebra/coordinates/coordinates.hpp"
 #include "linear-algebra/concepts/identity_matrix.hpp"
 #include "linear-algebra/concepts/zero.hpp"
 #include "linear-algebra/property-functions/count_indices.hpp"
@@ -130,8 +130,8 @@ template<indexible Arg>
         }
         else
         {
-          using Desc = descriptor::DynamicDescriptor<scalar_type_of<Arg>>;
-          if (n == 0) return Desc {descriptor::Axis};
+          using Desc = coordinate::DynamicDescriptor<scalar_type_of<Arg>>;
+          if (n == 0) return Desc {coordinate::Axis};
           else return Desc {OpenKalman::get_vector_space_descriptor(nested_object(std::forward<Arg>(arg)), n)};
         }
       }
@@ -167,12 +167,12 @@ template<indexible Arg>
       }
 
 
-      template<Qualification b>
+      template<Applicability b>
       static constexpr bool
       one_dimensional = has_untyped_index<NestedObject, 0> and OpenKalman::one_dimensional<NestedObject, b>;
 
 
-      template<Qualification b>
+      template<Applicability b>
       static constexpr bool
       is_square = has_untyped_index<NestedObject, 0> and square_shaped<NestedObject, b>;
 
@@ -255,7 +255,7 @@ template<indexible Arg>
         else
         {
           auto g {[&arg, is...](std::size_t ix) { return get_component(nested_object(std::forward<Arg>(arg)), ix, is...); }};
-          return descriptor::to_euclidean_element(get_vector_space_descriptor<0>(arg), g, i);
+          return coordinate::to_euclidean_element(get_vector_space_descriptor<0>(arg), g, i);
         }
       }
 

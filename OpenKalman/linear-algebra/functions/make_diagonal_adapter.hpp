@@ -21,19 +21,19 @@ namespace OpenKalman
   /**
    * \brief Make a \ref diagonal_matrix, specifying the first two dimensions, which may not necessarily be the same.
    * \tparam Arg A vector or higher-order tensor reflecting the diagonal(s).
-   * \tparam D0 The \ref vector_space_descriptor for the rows.
-   * \tparam D1 The \ref vector_space_descriptor for the columns.
+   * \tparam D0 The \ref coordinate::pattern for the rows.
+   * \tparam D1 The \ref coordinate::pattern for the columns.
    */
 #ifdef __cpp_concepts
-  template<indexible Arg, vector_space_descriptor D0, vector_space_descriptor D1> requires
-    (not static_vector_space_descriptor<D0> or not static_vector_space_descriptor<D1> or internal::prefix_of<D0, D1> or internal::prefix_of<D1, D0>) and
-    (dynamic_dimension<Arg, 0> or maybe_equivalent_to<vector_space_descriptor_of<Arg, 0>, D0> or maybe_equivalent_to<vector_space_descriptor_of<Arg, 0>, D1>)
+  template<indexible Arg, coordinate::pattern D0, coordinate::pattern D1> requires
+    (not fixed_pattern<D0> or not fixed_pattern<D1> or coordinate::compares_with<D0, D1, less_equal<>> or coordinate::compares_with<D1, D0, less_equal<>>) and
+    (dynamic_dimension<Arg, 0> or compares_with<vector_space_descriptor_of<Arg, 0>, D0, equal_to<>, Applicability::permitted> or compares_with<vector_space_descriptor_of<Arg, 0>, D1, equal_to<>, Applicability::permitted>)
   constexpr diagonal_matrix auto
 #else
   template<typename Arg, typename D0, typename D1, std::enable_if_t<
-    indexible<Arg> and vector_space_descriptor<D0> and vector_space_descriptor<D1> and
-      (not static_vector_space_descriptor<D0> or not static_vector_space_descriptor<D1> or internal::prefix_of<D0, D1> or internal::prefix_of<D1, D0>) and
-      (dynamic_dimension<Arg, 0> or maybe_equivalent_to<vector_space_descriptor_of<Arg, 0>, D0> or maybe_equivalent_to<vector_space_descriptor_of<Arg, 0>, D1>), int> = 0>
+    indexible<Arg> and coordinate::pattern<D0> and coordinate::pattern<D1> and
+      (not fixed_pattern<D0> or not fixed_pattern<D1> or coordinate::compares_with<D0, D1, less_equal<>> or coordinate::compares_with<D1, D0, less_equal<>>) and
+      (dynamic_dimension<Arg, 0> or compares_with<vector_space_descriptor_of<Arg, 0>, D0, equal_to<>, Applicability::permitted> or compares_with<vector_space_descriptor_of<Arg, 0>, D1, equal_to<>, Applicability::permitted>), int> = 0>
   constexpr auto
 #endif
   make_diagonal_adapter(Arg&& arg, D0&& d0, D1&& d1)

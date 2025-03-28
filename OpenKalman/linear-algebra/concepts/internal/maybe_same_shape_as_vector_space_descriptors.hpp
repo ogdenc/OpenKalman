@@ -26,8 +26,8 @@ namespace OpenKalman::internal
     constexpr bool maybe_same_shape_impl(std::index_sequence<Ix...>)
     {
       return (... and (dynamic_dimension<T, Ix> or
-                        dynamic_vector_space_descriptor<std::tuple_element_t<Ix, Descriptors>> or
-                        index_dimension_of_v<T, Ix> == dimension_size_of_v<std::tuple_element_t<Ix, Descriptors>>));
+                        dynamic_pattern<std::tuple_element_t<Ix, Descriptors>> or
+                        index_dimension_of_v<T, Ix> == coordinate::size_of_v<std::tuple_element_t<Ix, Descriptors>>));
     }
 
 
@@ -40,8 +40,8 @@ namespace OpenKalman::internal
 #endif
 
   /**
-   * \brief Specifies that it is not ruled out, at compile time, that T has dimensions corresponding to a \ref vector_space_descriptor_collection.
-   * \details Two dimensions are considered the same if their \ref vector_space_descriptor are \ref equivalent_to "equivalent".
+   * \brief Specifies that it is not ruled out, at compile time, that T has dimensions corresponding to a \ref pattern_collection.
+   * \details Two dimensions are considered the same if their \ref coordinate::pattern are equivalent.
    * \tparam T an \ref indexible object
    * \tparam Ds a set of vector space descriptors
    * \sa vector_space_descriptors_may_match_with
@@ -49,12 +49,12 @@ namespace OpenKalman::internal
   template<typename T, typename Descriptors>
 #if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
   concept maybe_same_shape_as_vector_space_descriptors =
-    indexible<T> and vector_space_descriptor_collection<Descriptors> and
-    (not vector_space_descriptor_tuple<Descriptors> or (
+    indexible<T> and pattern_collection<Descriptors> and
+    (not pattern_tuple<Descriptors> or (
       []<std::size_t...Ix>(std::index_sequence<Ix...>){
         return (... and (dynamic_dimension<T, Ix> or
-                          dynamic_vector_space_descriptor<std::tuple_element_t<Ix, Descriptors>> or
-                          index_dimension_of_v<T, Ix> == dimension_size_of_v<std::tuple_element_t<Ix, Descriptors>>));
+                          dynamic_pattern<std::tuple_element_t<Ix, Descriptors>> or
+                          index_dimension_of_v<T, Ix> == coordinate::size_of_v<std::tuple_element_t<Ix, Descriptors>>));
         }(std::make_index_sequence<std::tuple_size_v<Descriptors>>{}) and
       (index_count_v<T> == dynamic_size or index_count_v<T> <= std::tuple_size_v<Descriptors> or
         []<std::size_t...Ix>(std::index_sequence<Ix...>){
@@ -63,8 +63,8 @@ namespace OpenKalman::internal
         )));
 #else
   constexpr bool maybe_same_shape_as_vector_space_descriptors =
-    indexible<T> and vector_space_descriptor_collection<Descriptors> and
-    (not vector_space_descriptor_tuple<Descriptors> or
+    indexible<T> and pattern_collection<Descriptors> and
+    (not pattern_tuple<Descriptors> or
       (detail::maybe_same_shape_impl<T, Descriptors>(std::make_index_sequence<std::tuple_size_v<Descriptors>>{}) and
         (index_count_v<T> == dynamic_size or index_count_v<T> <= std::tuple_size_v<Descriptors> or
           detail::maybe_same_shape_ext<T, Descriptors>(std::make_index_sequence<index_count_v<T> - std::tuple_size_v<Descriptors>>{}))));

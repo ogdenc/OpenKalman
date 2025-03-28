@@ -158,7 +158,7 @@ namespace OpenKalman
   constexpr bool transformation_input =
 #endif
     typed_matrix<T> and vector<T> and has_untyped_index<T, 1> and (not euclidean_transformed<T>) and
-    equivalent_to<typename oin::PerturbationTraits<T>::RowCoefficients, Coeffs>;
+    coordinate::compares_with<typename oin::PerturbationTraits<T>::RowCoefficients, Coeffs>;
 
 
   /**
@@ -168,7 +168,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<typename T, typename Coeffs = typename oin::PerturbationTraits<T>::RowCoefficients>
   concept perturbation = (gaussian_distribution<T> and
-    equivalent_to<typename oin::PerturbationTraits<T>::RowCoefficients, Coeffs>) or transformation_input<T, Coeffs>;
+    compares_with<typename oin::PerturbationTraits<T>::RowCoefficients, Coeffs>) or transformation_input<T, Coeffs>;
 #else
   namespace detail
   {
@@ -177,7 +177,7 @@ namespace OpenKalman
 
     template<typename T, typename Coeffs>
     struct is_perturbation<T, Coeffs, std::enable_if_t<gaussian_distribution<T> and
-      equivalent_to<typename oin::PerturbationTraits<T>::RowCoefficients, Coeffs>>> : std::true_type {};
+      compares_with<typename oin::PerturbationTraits<T>::RowCoefficients, Coeffs>>>: std::true_type {};
 
     template<typename T, typename Coeffs>
     struct is_perturbation<T, Coeffs, std::enable_if_t<
@@ -218,9 +218,9 @@ namespace OpenKalman
     {
       using InputCoefficients = vector_space_descriptor_of_t<In, 0>;
       using HessianMatrixInBase = dense_writable_matrix_t<In, Layout::none, scalar_type_of_t<In>,
-        std::tuple<dimension_size_of<InputCoefficients>, dimension_size_of<InputCoefficients>>>;
+        std::tuple<coordinate::size_of<InputCoefficients>, coordinate::size_of<InputCoefficients>>>;
       using HessianMatrixIn = Matrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
-      using HessianArrayIn = std::array<HessianMatrixIn, dimension_size_of_v<OutputCoefficients>>;
+      using HessianArrayIn = std::array<HessianMatrixIn, coordinate::size_of_v<OutputCoefficients>>;
 
       HessianArrayIn a;
       a.fill(make_zero(a));

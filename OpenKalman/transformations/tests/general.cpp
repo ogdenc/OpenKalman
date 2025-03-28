@@ -11,7 +11,7 @@
 #include "transformations.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptor;
+using namespace OpenKalman::coordinate;
 using namespace OpenKalman::test;
 
 using numbers::pi;
@@ -31,7 +31,7 @@ struct Scale
 
 TEST(transformations, Scale_no_noise_1D)
 {
-  using M_int1 = Mean<StaticDescriptor<Axis>, eigen_matrix_t<int, 1, 1>>;
+  using M_int1 = Mean<Axis, eigen_matrix_t<int, 1, 1>>;
   Transformation<Scale<3>> t;
   EXPECT_EQ(t(M_int1 {2}), M_int1 {6});
 }
@@ -68,7 +68,7 @@ TEST(transformations, Mult_additive_axis)
 
 TEST(transformations, Mult_additive_angle)
 {
-  using C = StaticDescriptor<Axis, angle::Radians>;
+  using C = std::tuple<Axis, angle::Radians>;
   using M = Mean<C>;
   using A = Matrix<C, C>;
   const auto f = [](const M& x) -> M { return A {1, 2, 3, 4} * x; };
@@ -92,7 +92,7 @@ TEST(transformations, Mult_augmented_axis)
 
 TEST(transformations, Mult_augmented_angle)
 {
-  using C = StaticDescriptor<Axis, angle::Radians>;
+  using C = std::tuple<Axis, angle::Radians>;
   using M = Mean<C>;
   using A = Matrix<C, C>;
   A a, an;

@@ -28,7 +28,7 @@ namespace OpenKalman
     constexpr auto get_best_square_index()
     {
       if constexpr (i + 1 >= count) return i;
-      else if constexpr (static_vector_space_descriptor<decltype(get_vector_space_descriptor<i>(std::declval<T>()))>) return i;
+      else if constexpr (fixed_pattern<decltype(get_vector_space_descriptor<i>(std::declval<T>()))>) return i;
       else return get_best_square_index<count, T, i + 1>();
     }
 
@@ -48,10 +48,10 @@ namespace OpenKalman
 
   /**
    * \brief Determine whether an object is \ref square_shaped at runtime.
-   * \details An object is square-shaped if it has the same size and \ref vector_space_descriptor type along every index
+   * \details An object is square-shaped if it has the same size and \ref coordinate::pattern type along every index
    * (excluding trailing 1D indices).
    * \tparam T A tensor or matrix
-   * \return a \ref std::optional which includes the \ref vector_space_descriptor object if T is square.
+   * \return a \ref std::optional which includes the \ref coordinate::pattern object if T is square.
    * The result is convertible to <code>bool</code>: if true, then T is square.
    * \sa square_shaped
    */

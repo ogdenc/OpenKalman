@@ -168,21 +168,21 @@ namespace OpenKalman::interface
     }
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool one_dimensional =
-      OpenKalman::one_dimensional<LhsType, Qualification::depends_on_dynamic_shape> and
-      OpenKalman::one_dimensional<RhsType, Qualification::depends_on_dynamic_shape> and
-      (b != Qualification::unqualified or
+      OpenKalman::one_dimensional<LhsType, Applicability::permitted> and
+      OpenKalman::one_dimensional<RhsType, Applicability::permitted> and
+      (b != Applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
         OpenKalman::one_dimensional<LhsType, b> or
         OpenKalman::one_dimensional<RhsType, b>);
 
 
-    template<Qualification b>
+    template<Applicability b>
     static constexpr bool is_square =
-      square_shaped<LhsType, Qualification::depends_on_dynamic_shape> and
-      square_shaped<RhsType, Qualification::depends_on_dynamic_shape> and
-      (b != Qualification::unqualified or
+      square_shaped<LhsType, Applicability::permitted> and
+      square_shaped<RhsType, Applicability::permitted> and
+      (b != Applicability::guaranteed or
         not has_dynamic_dimensions<Xpr> or
         square_shaped<LhsType, b> or
         square_shaped<RhsType, b>);
@@ -203,7 +203,7 @@ namespace OpenKalman::interface
 
 
     static constexpr bool is_hermitian = Traits::preserves_hermitian and
-      hermitian_matrix<LhsType, Qualification::depends_on_dynamic_shape> and hermitian_matrix<RhsType, Qualification::depends_on_dynamic_shape>;;
+      hermitian_matrix<LhsType, Applicability::permitted> and hermitian_matrix<RhsType, Applicability::permitted>;;
 
   };
 

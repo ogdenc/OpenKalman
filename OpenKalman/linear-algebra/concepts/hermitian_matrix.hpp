@@ -39,7 +39,7 @@ namespace OpenKalman
    * \tparam T A matrix or tensor.
    * \tparam b Whether T must be known to be a square matrix at compile time.
    */
-  template<typename T, Qualification b = Qualification::unqualified>
+  template<typename T, Applicability b = Applicability::guaranteed>
 #ifdef __cpp_concepts
   concept hermitian_matrix = indexible<T> and square_shaped<T, b> and
     (interface::indexible_object_traits<std::decay_t<T>>::is_hermitian or

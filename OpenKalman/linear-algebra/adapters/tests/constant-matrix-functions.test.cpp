@@ -12,7 +12,7 @@
 #include <complex>
 
 using namespace OpenKalman;
-using namespace OpenKalman::descriptor;
+using namespace OpenKalman::coordinate;
 using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
@@ -20,7 +20,7 @@ using numbers::pi;
 
 namespace
 {
-  using Axis2 = StaticDescriptor<Axis, Axis>;
+  using Axis2 = Dimensions<2>;
 
   using ZA11 = ZeroAdapter<M11>;
   using ZA10 = ZeroAdapter<M1x>;
