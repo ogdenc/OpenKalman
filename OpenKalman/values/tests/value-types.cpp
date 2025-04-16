@@ -112,7 +112,7 @@ TEST(values, operation)
   static_assert(value::to_number(value::operation<NullaryFunc>{}) == 5.5);
   static_assert(value::to_number(value::operation{std::plus{}, 4, 5}) == 9);
   static_assert(value::to_number(value::operation{[](){ return 4 + 5; }}) == 9);
-  int k = 9; EXPECT_EQ(value::to_number(value::operation{[&k](){ return k; }}), 9);
+  int k = 9; EXPECT_EQ(value::to_number(value::operation{[&k]{ return k; }}), 9);
 }
 
 #include "values/traits/number_type_of_t.hpp"

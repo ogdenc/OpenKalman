@@ -19,6 +19,7 @@
 
 #include <type_traits>
 #include <tuple>
+#include "values/concepts/index.hpp"
 #include "collection_view_interface.hpp"
 
 namespace OpenKalman::collections
@@ -39,55 +40,89 @@ namespace OpenKalman::collections
   struct single_view : collection_view_interface<single_view<T>>
   {
 #ifdef __cpp_concepts
-    constexpr single_view() requires std::default_initializable<T> = default;
+    constexpr
+    single_view() requires std::default_initializable<std::tuple<T>> = default;
 #else
-    template<typename aT = T, std::enable_if_t<std::is_default_constructible_v<aT>, int> = 0>
-    constexpr single_view() {}
+    template<typename aT = std::tuple<T>, std::enable_if_t<std::is_default_constructible_v<aT>, int> = 0>
+    constexpr
+    single_view() {}
 #endif
 
 
+    /**
+     * \brief Construct from an object convertible to type T.
+     */
 #ifdef __cpp_concepts
-    template<typename Arg> requires std::constructible_from<T, Arg&&>
+    template<typename Arg> requires std::constructible_from<std::tuple<T>, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<std::is_constructible_v<T, Arg&&>, int> = 0>
+    template<typename Arg, std::enable_if_t<std::is_constructible_v<std::tuple<T>, Arg&&>, int> = 0>
 #endif
-    explicit constexpr single_view(Arg&& arg) : t {std::forward<Arg>(arg)} {}
+    explicit constexpr
+    single_view(Arg&& arg) : my_t {std::forward<Arg>(arg)} {}
 
 
+    /**
+     * \brief Assign from an object convertible to type T.
+     */
+#ifdef __cpp_concepts
+    template<typename Arg> requires std::constructible_from<std::tuple<T>, Arg&&> and std::is_move_assignable_v<std::tuple<T>>
+#else
+    template<typename Arg, std::enable_if_t<std::is_constructible_v<std::tuple<T>, Arg&&> and std::is_move_assignable<std::tuple<T>>::value, int> = 0>
+#endif
+    constexpr single_view&
+    operator=(Arg&& arg) { my_t = std::tuple<T> {std::forward<Arg>(arg)}; return *this; }
+
+
+    /**
+     * \brief Get element i.
+     */
 #ifdef __cpp_explicit_this_parameter
-    template<value::index I> requires (value::dynamic<I> or value::fixed_number_of_v<I> == 0)
+    template<std::size_t i>
     constexpr decltype(auto)
-    operator[](this auto&& self, I i)
+    get(this auto&& self) noexcept
     {
-      if constexpr(value::dynamic<I>) if (i != 0) throw std::out_of_range("index to a single_view must be 0");
-      return std::get<0>(std::forward<decltype(self)>(self).t);
+      static_assert(i == 0, "Index out of range");
+      return std::get<0>(std::forward<decltype(self)>(self).my_t);
     }
 #else
-    template<typename I, std::enable_if_t<value::index<I>, int> = 0>
+    template<std::size_t i>
     constexpr decltype(auto)
-    operator[](I i) const &
+    get() &
     {
-      if constexpr(value::fixed<I>) static_assert(value::fixed_number_of_v<I> == 0);
-      else if (i != 0) throw std::out_of_range("index to a single_view must be 0");
-      return std::get<0>(t);
+      static_assert(i == 0, "Index out of range");
+      return std::get<0>(my_t);
     }
 
-
-    template<typename I, std::enable_if_t<value::index<I>, int> = 0>
+    template<std::size_t i>
     constexpr decltype(auto)
-    operator[](I i) &&
+    get() const &
     {
-      if constexpr(value::fixed<I>) static_assert(value::fixed_number_of_v<I> == 0);
-      else if (i != 0) throw std::out_of_range("index to a single_view must be 0");
-      return std::get<0>(std::move(*this).t);
+      static_assert(i == 0, "Index out of range");
+      return std::get<0>(my_t);
+    }
+
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get() && noexcept
+    {
+      static_assert(i == 0, "Index out of range");
+      return std::get<0>(std::move(*this).my_t);
+    }
+
+    template<std::size_t i>
+    constexpr decltype(auto)
+    get() const && noexcept
+    {
+      static_assert(i == 0, "Index out of range");
+      return std::get<0>(std::move(*this).my_t);
     }
 #endif
 
 
 #ifdef __cpp_concepts
-    constexpr value::index auto size() const
+    constexpr value::index auto size() const noexcept
 #else
-    constexpr auto size() const
+    constexpr auto size() const noexcept
 #endif
     {
       return std::integral_constant<std::size_t, 1> {};
@@ -95,7 +130,8 @@ namespace OpenKalman::collections
 
   private:
 
-    std::tuple<T> t;
+    std::tuple<T> my_t;
+
   };
 
 
@@ -105,13 +141,79 @@ namespace OpenKalman::collections
   template<typename Arg>
   single_view(Arg&&) -> single_view<Arg>;
 
+
+#ifdef __cpp_impl_three_way_comparison
+  template<typename T>
+  constexpr std::partial_ordering
+  operator<=>(const single_view<T>& lhs, const T& rhs) noexcept
+  {
+    return get(lhs, std::integral_constant<std::size_t, 0>{}) <=> rhs;
+  }
+
+  template<typename T>
+  constexpr bool
+  operator==(const single_view<T>& lhs, const T& rhs) noexcept
+  {
+    return std::is_eq(operator<=>(lhs, rhs));
+  }
+#else
+  template<typename T>
+  constexpr bool operator==(const single_view<T>& lhs, const T& rhs) noexcept { return get(lhs, std::integral_constant<std::size_t, 0>{}) == rhs; }
+
+  template<typename T>
+  constexpr bool operator!=(const single_view<T>& lhs, const T& rhs) noexcept { return get(lhs, std::integral_constant<std::size_t, 0>{}) != rhs; }
+
+  template<typename T>
+  constexpr bool operator<(const single_view<T>& lhs, const T& rhs) noexcept { return get(lhs, std::integral_constant<std::size_t, 0>{}) < rhs; }
+
+  template<typename T>
+  constexpr bool operator>(const single_view<T>& lhs, const T& rhs) noexcept { return get(lhs, std::integral_constant<std::size_t, 0>{}) > rhs; }
+
+  template<typename T>
+  constexpr bool operator<=(const single_view<T>& lhs, const T& rhs) noexcept { return get(lhs, std::integral_constant<std::size_t, 0>{}) <= rhs; }
+
+  template<typename T>
+  constexpr bool operator>=(const single_view<T>& lhs, const T& rhs) noexcept { return get(lhs, std::integral_constant<std::size_t, 0>{}) >= rhs; }
+
+
+  template<typename T>
+  constexpr bool operator==(const T& lhs, const single_view<T>& rhs) noexcept { return lhs == get(rhs, std::integral_constant<std::size_t, 0>{}); }
+
+  template<typename T>
+  constexpr bool operator!=(const T& lhs, const single_view<T>& rhs) noexcept { return lhs != get(rhs, std::integral_constant<std::size_t, 0>{}); }
+
+  template<typename T>
+  constexpr bool operator<(const T& lhs, const single_view<T>& rhs) noexcept { return lhs < get(rhs, std::integral_constant<std::size_t, 0>{}); }
+
+  template<typename T>
+  constexpr bool operator>(const T& lhs, const single_view<T>& rhs) noexcept { return lhs > get(rhs, std::integral_constant<std::size_t, 0>{}); }
+
+  template<typename T>
+  constexpr bool operator<=(const T& lhs, const single_view<T>& rhs) noexcept { return lhs <= get(rhs, std::integral_constant<std::size_t, 0>{}); }
+
+  template<typename T>
+  constexpr bool operator>=(const T& lhs, const single_view<T>& rhs) noexcept { return lhs >= get(rhs, std::integral_constant<std::size_t, 0>{}); }
+
+#endif
+
 } // namespace OpenKalman
+
+
+#ifdef __cpp_lib_ranges
+  namespace std::ranges
+#else
+  namespace OpenKalman::ranges
+#endif
+  {
+    template<typename T>
+    constexpr bool enable_borrowed_range<OpenKalman::collections::single_view<T>> = std::is_lvalue_reference_v<T>;
+  }
 
 
 namespace std
 {
   template<typename T>
-  struct tuple_size<OpenKalman::collections::single_view<T>> : integral_constant<std::size_t, 1> {};
+  struct tuple_size<OpenKalman::collections::single_view<T>> : integral_constant<size_t, 1> {};
 
   template<size_t i, typename T>
   struct tuple_element<i, OpenKalman::collections::single_view<T>> { static_assert(i == 0); using type = T; };
@@ -124,9 +226,9 @@ namespace OpenKalman::collections::views
   {
     struct single_impl
     {
-      template<typename T>
+      template<typename R>
       constexpr auto
-      operator() [[nodiscard]] (T&& t) const { return single_view {std::forward<T>(t)}; }
+      operator() [[nodiscard]] (R&& r) const { return single_view<R> {std::forward<R>(r)}; }
     };
   }
 

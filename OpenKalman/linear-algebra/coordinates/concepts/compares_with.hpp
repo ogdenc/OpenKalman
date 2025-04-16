@@ -19,7 +19,7 @@
 #include <type_traits>
 #include "basics/global-definitions.hpp"
 #include "basics/classes/equal_to.hpp"
-#include "values/views/identity.hpp"
+#include "collections/views/all.hpp"
 #include "linear-algebra/coordinates/concepts/pattern.hpp"
 #include "linear-algebra/coordinates/concepts/dynamic_pattern.hpp"
 #include "linear-algebra/coordinates/functions/comparison-operators.hpp"
@@ -37,7 +37,7 @@ namespace OpenKalman::coordinate
       {
         if constexpr (euclidean_pattern<T> and euclidean_pattern<U>)
           return std::decay_t<C>{}(value::to_number(get_size(t)), value::to_number(get_size(u)));
-        else if constexpr (collection<T> and collection<U>)
+        else if constexpr (collections::collection<T> and collections::collection<U>)
           return std::decay_t<C>{}(comparison_view<T>{t}, u);
         else
           return std::decay_t<C>{}(t, u);

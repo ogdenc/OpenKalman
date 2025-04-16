@@ -23,7 +23,7 @@
 #include <type_traits>
 #include "basics/global-definitions.hpp"
 #include "values/functions/to_number.hpp"
-#include "values/views/single.hpp"
+#include "collections/views/single.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor.hpp"
 #include "linear-algebra/coordinates/concepts/euclidean_pattern.hpp"
 #include "linear-algebra/coordinates/functions/internal/get_hash_code.hpp"

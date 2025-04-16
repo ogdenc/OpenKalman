@@ -16,7 +16,12 @@
 #ifndef OPENKALMAN_RANGES_HPP
 #define OPENKALMAN_RANGES_HPP
 
-#ifndef __cpp_lib_ranges
+#ifdef __cpp_lib_ranges
+namespace OpenKalman::ranges
+{
+  using namespace std::ranges;
+}
+#else
 
 #include <iterator>
 #include "language-features.hpp"
@@ -50,7 +55,7 @@ namespace OpenKalman::ranges
 
   namespace detail_begin
   {
-    using std::begin;
+    using namespace std;
 
     template<typename T, typename = void> struct begin_def : std::false_type {};
     template<typename T> struct begin_def<T, std::void_t<decltype(begin(std::declval<T&&>()))>> : std::true_type {};
@@ -82,6 +87,7 @@ namespace OpenKalman::ranges
         return begin_impl{}(static_cast<CT<T>&&>(t));
       }
     };
+
   }
 
   inline constexpr detail_begin::begin_impl begin;
@@ -94,7 +100,7 @@ namespace OpenKalman::ranges
 
   namespace detail_end
   {
-    using std::end;
+    using namespace std;
 
     template<typename T, typename = void> struct end_def : std::false_type {};
     template<typename T> struct end_def<T, std::void_t<decltype(end(std::declval<T&&>()))>> : std::true_type {};
@@ -106,8 +112,8 @@ namespace OpenKalman::ranges
       constexpr auto
       operator() [[nodiscard]] (T&& t) const
       {
-        if constexpr (is_bounded_array_v<std::remove_reference_t<T>>)
-          return t + std::extent_v<T>;
+        if constexpr (is_bounded_array_v<remove_cvref_t<T>>)
+          return t + std::extent_v<remove_cvref_t<T>>;
         else
           return internal::decay_copy(end(std::forward<T>(t)));
       }
@@ -130,6 +136,93 @@ namespace OpenKalman::ranges
 
   inline constexpr detail_end::end_impl end;
   inline constexpr detail_end::cend_impl cend;
+
+
+  // ---
+  // rbegin, crbegin
+  // ---
+
+  namespace detail_rbegin
+  {
+    template<typename T, typename = void> struct rbegin_def : std::false_type {};
+    template<typename T> struct rbegin_def<T, std::void_t<decltype(rbegin(std::declval<T&&>()))>> : std::true_type {};
+
+    struct rbegin_impl
+    {
+      template<typename T, std::enable_if_t<(std::is_lvalue_reference_v<T> or enable_borrowed_range<std::remove_cv_t<T>>) and
+        (rbegin_def<T>::value or (detail_begin::begin_def<T>::value and detail_end::end_def<T>::value)), int> = 0>
+      constexpr auto
+      operator() [[nodiscard]] (T&& t) const
+      {
+        if constexpr (rbegin_def<T>::value)
+          return internal::decay_copy(rbegin(std::forward<T>(t)));
+        else
+          return std::make_reverse_iterator(end(std::forward<T>(t)));
+      }
+    };
+
+    template<typename T>
+    using CT = std::conditional_t<std::is_lvalue_reference_v<T>, const std::remove_reference_t<T>&, const T>;
+
+    struct crbegin_impl
+    {
+      template<typename T, std::enable_if_t<(std::is_lvalue_reference_v<T> or enable_borrowed_range<std::remove_cv_t<T>>) and
+        (rbegin_def<T>::value or (detail_begin::begin_def<T>::value and detail_end::end_def<T>::value)), int> = 0>
+      constexpr auto
+      operator() [[nodiscard]] (T&& t) const
+      {
+        return rbegin_impl{}(static_cast<CT<T>&&>(t));
+      }
+    };
+
+  }
+
+  inline constexpr detail_rbegin::rbegin_impl rbegin;
+  inline constexpr detail_rbegin::crbegin_impl crbegin;
+
+
+  // ---
+  // rend, crend
+  // ---
+
+  namespace detail_rend
+  {
+    using namespace std;
+
+    template<typename T, typename = void> struct rend_def : std::false_type {};
+    template<typename T> struct rend_def<T, std::void_t<decltype(rend(std::declval<T&&>()))>> : std::true_type {};
+
+    struct rend_impl
+    {
+      template<typename T, std::enable_if_t<(std::is_lvalue_reference_v<T> or enable_borrowed_range<std::remove_cv_t<T>>) and
+        (rend_def<T>::value or (detail_begin::begin_def<T>::value and detail_end::end_def<T>::value)), int> = 0>
+      constexpr auto
+      operator() [[nodiscard]] (T&& t) const
+      {
+        if constexpr (rend_def<T>::value)
+          return internal::decay_copy(rend(std::forward<T>(t)));
+        else
+          return std::make_reverse_iterator(begin(std::forward<T>(t)));
+      }
+    };
+
+    template<typename T>
+    using CT = std::conditional_t<std::is_lvalue_reference_v<T>, const std::remove_reference_t<T>&, const T>;
+
+    struct crend_impl
+    {
+      template<typename T, std::enable_if_t<(std::is_lvalue_reference_v<T> or enable_borrowed_range<std::remove_cv_t<T>>) and
+        (rend_def<T>::value or (detail_begin::begin_def<T>::value and detail_end::end_def<T>::value)), int> = 0>
+      constexpr auto
+      operator() [[nodiscard]] (T&& t) const
+      {
+        return rend_impl{}(static_cast<CT<T>&&>(t));
+      }
+    };
+  }
+
+  inline constexpr detail_rend::rend_impl rend;
+  inline constexpr detail_rend::crend_impl crend;
 
 
   // ---
@@ -157,8 +250,8 @@ namespace OpenKalman::ranges
       constexpr auto
       operator() [[nodiscard]] (T&& t) const
       {
-        if constexpr (is_bounded_array_v<std::remove_reference_t<T>>)
-          return internal::decay_copy(std::extent_v<T>);
+        if constexpr (is_bounded_array_v<remove_cvref_t<T>>)
+          return internal::decay_copy(std::extent_v<remove_cvref_t<T>>);
         else if constexpr (member_size_def<T>::value)
           return internal::decay_copy(t.size());
         else if constexpr (atd_size_def<T>::value)
@@ -296,27 +389,27 @@ namespace OpenKalman::ranges
   {
     template<typename R = Derived, std::enable_if_t<sized_range<R>, int> = 0>
     [[nodiscard]] constexpr bool
-    empty() { return size(static_cast<R&>(*this)) == 0; }
+    empty() { return ranges::size(static_cast<R&>(*this)) == 0; }
 
     template<typename R = Derived, std::enable_if_t<sized_range<R>, int> = 0>
     [[nodiscard]] constexpr bool
-    empty() const { return size(static_cast<const R&>(*this)) == 0; }
+    empty() const { return ranges::size(static_cast<const R&>(*this)) == 0; }
 
     template<typename R = Derived, std::enable_if_t<range<R>, int> = 0>
     constexpr auto
-    cbegin() { return cbegin(static_cast<R&>(*this)); }
+    cbegin() { return ranges::cbegin(static_cast<R&>(*this)); }
 
     template<typename R = Derived, std::enable_if_t<range<R>, int> = 0>
     constexpr auto
-    cbegin() const { return cbegin(static_cast<const R&>(*this)); }
+    cbegin() const { return ranges::cbegin(static_cast<const R&>(*this)); }
 
     template<typename R = Derived, std::enable_if_t<range<R>, int> = 0>
     constexpr auto
-    cend() { return cend(static_cast<R&>(*this)); }
+    cend() { return ranges::cend(static_cast<R&>(*this)); }
 
     template<typename R = Derived, std::enable_if_t<range<R>, int> = 0>
     constexpr auto
-    cend() const { return cend(static_cast<const R&>(*this)); }
+    cend() const { return ranges::cend(static_cast<const R&>(*this)); }
 
     template<typename R = Derived, std::enable_if_t<sized_range<R>, int> = 0>
     constexpr explicit
@@ -325,6 +418,16 @@ namespace OpenKalman::ranges
     template<typename R = Derived, std::enable_if_t<sized_range<R>, int> = 0>
     constexpr explicit
     operator bool() const { return not empty(); }
+
+    template<typename R = Derived, std::enable_if_t<range<R>, int> = 0,
+      typename = std::void_t<decltype(end(std::declval<R&>()) - begin(std::declval<R&>()))>>
+    constexpr auto
+    size() { return end(static_cast<R&>(*this)) - begin(static_cast<R&>(*this)); }
+
+    template<typename R = Derived, std::enable_if_t<range<R>, int> = 0,
+      typename = std::void_t<decltype(end(std::declval<R&>()) - begin(std::declval<R&>()))>>
+    constexpr auto
+    size() const { return end(static_cast<const R&>(*this)) - begin(static_cast<const R&>(*this)); }
 
     template<typename R = Derived, std::enable_if_t<range<R>, int> = 0>
     constexpr decltype(auto)
@@ -350,6 +453,39 @@ namespace OpenKalman::ranges
     constexpr decltype(auto)
     operator[](range_difference_t<R> n) const { return begin(static_cast<const R&>(*this))[n]; }
   };
+
+
+  // ---
+  // view
+  // ---
+
+  template<typename T>
+  constexpr bool view = range<T> and std::is_object_v<T> and
+    std::is_move_constructible_v<T> and std::is_assignable_v<T&, T> and
+    std::is_base_of_v<view_interface<remove_cvref_t<T>>, remove_cvref_t<T>>;
+
+
+  // ---
+  // viewable_range
+  // ---
+
+  namespace detail
+  {
+    template<typename T>
+    struct is_initializer_list : std::false_type {};
+
+    template<typename T>
+    struct is_initializer_list<std::initializer_list<T>> : std::true_type {};
+  }
+
+  template<typename T>
+  constexpr bool viewable_range =  ranges::range<T> and
+    ((view<remove_cvref_t<T>> and std::is_constructible_v<remove_cvref_t<T>, T>) or
+     (not view<remove_cvref_t<T>> and
+      (std::is_lvalue_reference_v<T> or
+        (std::is_object_v<std::remove_reference_t<T>> and std::is_move_constructible_v<std::remove_reference_t<T>> and
+          std::is_assignable_v<std::remove_reference_t<T>&, std::remove_reference_t<T>> and
+          not detail::is_initializer_list<remove_cvref_t<T>>::value))));
 
 
 } // namespace OpenKalman::ranges

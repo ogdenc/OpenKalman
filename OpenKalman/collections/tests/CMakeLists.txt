@@ -20,8 +20,8 @@ add_executable(collections
         get.cpp
         tuple-utils.cpp
         views.cpp
-        #iota.cpp
-        #transform.cpp
+        iota.cpp
+        transform.cpp
     )
 
 target_link_libraries(collections GTest::gtest_main Eigen3::Eigen Threads::Threads)

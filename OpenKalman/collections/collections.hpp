@@ -41,11 +41,14 @@ namespace OpenKalman::views {}
 #include "concepts/index.hpp"
 #include "concepts/invocable_on_collection.hpp"
 
-#include "functions/get.hpp"
-#include "functions/internal/get_collection_element.hpp"
+#include "traits/common_tuple_type.hpp"
+#include "concepts/uniform_tuple_like.hpp"
+#include "traits/common_collection_type.hpp"
 
 #include "traits/size_of.hpp"
 #include "functions/get_collection_size.hpp"
+
+#include "functions/get.hpp"
 
 #include "functions/internal/tuple_concatenate.hpp"
 #include "functions/internal/tuple_slice.hpp"
@@ -55,16 +58,19 @@ namespace OpenKalman::views {}
 
 #include "functions/internal/to_tuple.hpp"
 
-#include "views/iota_collection.hpp"
-#include "views/transform_collection.hpp"
-
+#include "concepts/viewable_collection.hpp"
 #include "views/collection_view_interface.hpp"
-#include "views/identity.hpp"
+#include "concepts/collection_view.hpp"
+
+#include "views/all.hpp"
 #include "views/single.hpp"
 #include "views/reverse.hpp"
 #include "views/replicate.hpp"
 #include "views/concat.hpp"
 #include "views/slice.hpp"
+
+#include "views/iota.hpp"
+#include "views/transform.hpp"
 
 
 #endif //OPENKALMAN_COLLECTIONS_HPP

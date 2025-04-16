@@ -20,31 +20,28 @@
 #include "values/traits/real_type_of_t.hpp"
 #include "values/concepts/integral.hpp"
 #include "values/concepts/index.hpp"
-#include "values/functions/internal/get_collection_element.hpp"
+#include "collections/functions/get.hpp"
+#include "collections/views/iota.hpp"
+#include "collections/views/transform.hpp"
 
 using namespace OpenKalman;
 using namespace OpenKalman::collections;
 
-#include "values/functions/iota_collection.hpp"
-
-#include "values/functions/transform_collection.hpp"
-
-TEST(values, transform_collection)
+TEST(collections, transform_view)
 {
-  using value::transform_collection;
   auto c0 = std::integral_constant<std::size_t, 0>{};
   auto c5 = std::integral_constant<std::size_t, 5>{};
-  constexpr auto t_identity = transform_collection(value::iota_collection(c0, c5), [](auto i){ return i; });
+  constexpr auto t_identity = transform_view(iota_view(c0, c5), [](auto i){ return i; });
   static_assert(std::tuple_size_v<std::decay_t<decltype(t_identity)>> == 5);
-  using value::get;
-  static_assert(get<3>(t_identity) == 3);
+  EXPECT_EQ(get(t_identity, 3u), 3);
 
-  auto r_identity = transform_collection(value::iota_collection(0u, 5u), [](auto i){ return i; });
+  auto r_identity = transform_view(iota_view(0u, 5u), [](auto i){ return i; });
+  static_assert(collection<decltype(r_identity)>);
   EXPECT_EQ(r_identity.size(), 5_uz);
   std::size_t j = 0;
   for (auto i : r_identity) EXPECT_EQ(i, j++);
 
-  auto r_reverse = transform_collection(value::iota_collection(0u, 9u), [](auto i){ return 10_uz - i; });
+  auto r_reverse = transform_view(iota_view(0u, 9u), [](auto i){ return 10_uz - i; });
   EXPECT_EQ(r_reverse.size(), 9_uz);
   j = 10;
   for (auto i : r_reverse) EXPECT_EQ(i, j--);
@@ -68,5 +65,10 @@ TEST(values, transform_collection)
   EXPECT_EQ(*ita, 9);
   --ita;
   EXPECT_EQ(*ita, 10);
+
+#if __cpp_lib_ranges >= 202202L
+  EXPECT_EQ((views::iota(0u, 5u) | views::transform([](auto i){ return i + 3u; }))[0u], 3u);
+  EXPECT_EQ((views::iota(0u, 5u) | views::transform([](auto i){ return i * 2u; }))[3u], 6u);
+#endif
 }
 

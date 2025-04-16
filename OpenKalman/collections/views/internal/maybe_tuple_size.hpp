@@ -11,7 +11,7 @@
 /**
  * \file
  * \internal
- * \brief Definition for \ref collections::internal::tuple_size_base.
+ * \brief Definition for \ref collections::internal::maybe_tuple_size.
  */
 
 #ifndef OPENKALMAN_COLLECTIONS_TUPLE_SIZE_BASE_HPP
@@ -31,15 +31,15 @@ namespace OpenKalman::collections::internal
 #else
   template<typename T, typename = void>
 #endif
-  struct tuple_size_base {};
+  struct maybe_tuple_size {};
 
 
 #ifdef __cpp_concepts
   template<typename T> requires requires { std::tuple_size<T>::value; }
-  struct tuple_size_base<T>
+  struct maybe_tuple_size<T>
 #else
   template<typename T>
-  struct tuple_size_base<T, std::void_t<decltype(std::tuple_size<T>::value)>>
+  struct maybe_tuple_size<T, std::void_t<decltype(std::tuple_size<T>::value)>>
 #endif
     : std::tuple_size<T> {};
 

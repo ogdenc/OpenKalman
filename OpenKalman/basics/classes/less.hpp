@@ -28,7 +28,7 @@ namespace OpenKalman
   template<typename T = void>
   struct less
   {
-#if defined(__cpp_concepts) and defined(__cpp_static_call_operator)
+#if defined(__cpp_static_call_operator) and __cplusplus >= 202002L
     static constexpr bool operator()(const T& lhs, const T& rhs)
 #else
     constexpr bool operator()(const T& lhs, const T& rhs) const
@@ -46,7 +46,7 @@ namespace OpenKalman
   struct less<void>
   {
     template<typename Lhs, typename Rhs>
-#if defined(__cpp_concepts) and defined(__cpp_static_call_operator)
+#if defined(__cpp_static_call_operator) and __cplusplus >= 202002L
     static constexpr bool operator()(const Lhs& lhs, const Rhs& rhs)
 #else
     constexpr bool operator()(const Lhs& lhs, const Rhs& rhs) const

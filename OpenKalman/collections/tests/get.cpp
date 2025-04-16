@@ -91,8 +91,6 @@ TEST(collections, get)
   static_assert(not sized_random_access_range<decltype(tup1)>);
   static_assert(get(tup1, std::integral_constant<std::size_t, 0>{}) == 0);
   static_assert(get(tup1, std::integral_constant<std::size_t, 3>{}) == 3);
-  static_assert(get<std::size_t>(tup1, 1u) == 1);
-  static_assert(get<std::size_t>(tup1, 2u) == 2);
 
   auto range1 = std::vector<std::size_t> {3, 4, 5, 6, 7, 8};
   static_assert(not tuple_like<decltype(range1)>);

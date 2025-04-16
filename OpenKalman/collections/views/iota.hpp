@@ -11,11 +11,11 @@
 /**
  * \file
  * \internal
- * \brief Definition for \ref collection::iota_view and \ref collection::views::iota.
+ * \brief Definition for \ref collections::iota_view and \ref collections::views::iota.
  */
 
-#ifndef OPENKALMAN_IOTA_COLLECTION_HPP
-#define OPENKALMAN_IOTA_COLLECTION_HPP
+#ifndef OPENKALMAN_COLLECTIONS_VIEWS_IOTA_HPP
+#define OPENKALMAN_COLLECTIONS_VIEWS_IOTA_HPP
 
 #include <type_traits>
 #ifdef __cpp_lib_ranges
@@ -28,70 +28,71 @@
 #include "values/traits/fixed_number_of.hpp"
 #include "values/traits/number_type_of_t.hpp"
 #include "values/functions/to_number.hpp"
+#include "collection_view_interface.hpp"
 
-namespace OpenKalman::collection
+namespace OpenKalman::collections
 {
-#ifndef __cpp_lib_ranges_iota
-  namespace detail
+  namespace internal
   {
+    /**
+     * \internal
+     * \brief Iterator for \ref iota_view
+     */
     template<typename W>
-    struct IotaRange
-#ifdef __cpp_lib_ranges
-      : std::ranges::view_interface<IotaRange>
-#endif
+    struct iota_view_iterator
     {
-      struct Iterator
-      {
-        using iterator_category = std::random_access_iterator_tag;
-        using value_type = W;
-        using difference_type = std::decay_t<decltype(std::declval<value_type>() - std::declval<value_type>())>;
-        explicit constexpr Iterator(value_type p) : pos{p} {}
-        constexpr Iterator(const Iterator& other) = default;
-        constexpr Iterator(Iterator&& other) noexcept = default;
-        constexpr Iterator& operator=(const Iterator& other) = default;
-        constexpr Iterator& operator=(Iterator&& other) noexcept = default;
-        constexpr value_type operator*() const { return pos; }
-        constexpr auto& operator++() noexcept { ++pos; return *this; }
-        constexpr auto operator++(int) noexcept { auto temp = *this; ++*this; return temp; }
-        constexpr auto& operator--() noexcept { --pos; return *this; }
-        constexpr auto operator--(int) noexcept { auto temp = *this; --*this; return temp; }
-        constexpr auto& operator+=(const difference_type diff) noexcept { pos += diff; return *this; }
-        constexpr auto& operator-=(const difference_type diff) noexcept { pos -= diff; return *this; }
-        constexpr auto operator+(const difference_type diff) const noexcept { return Iterator {pos + diff}; }
-        friend constexpr auto operator+(const difference_type diff, const Iterator& it) noexcept { return Iterator {diff + it.pos}; }
-        constexpr auto operator-(const difference_type diff) const noexcept { return Iterator {pos - diff}; }
-        constexpr value_type operator[](difference_type offset) const { return pos + offset; }
-        constexpr bool operator==(const Iterator& other) const noexcept { return pos == other.pos; }
+      using iterator_category = std::random_access_iterator_tag;
+      using value_type = W;
+      using difference_type = std::ptrdiff_t;
+      explicit constexpr iota_view_iterator(value_type p) : current{p} {}
+      constexpr iota_view_iterator() = default;
+      constexpr iota_view_iterator(const iota_view_iterator& other) = default;
+      constexpr iota_view_iterator(iota_view_iterator&& other) noexcept = default;
+      constexpr iota_view_iterator& operator=(const iota_view_iterator& other) = default;
+      constexpr iota_view_iterator& operator=(iota_view_iterator&& other) noexcept = default;
+      explicit constexpr operator value_type() const noexcept { return current; }
+      constexpr value_type operator*() noexcept { return current; }
+      constexpr value_type operator*() const noexcept { return current; }
+      constexpr value_type operator[](difference_type offset) noexcept { return current + offset; }
+      constexpr value_type operator[](difference_type offset) const noexcept { return current + offset; }
+      constexpr auto& operator++() noexcept { ++current; return *this; }
+      constexpr auto operator++(int) noexcept { auto temp = *this; ++*this; return temp; }
+      constexpr auto& operator--() noexcept { --current; return *this; }
+      constexpr auto operator--(int) noexcept { auto temp = *this; --*this; return temp; }
+      constexpr auto& operator+=(const difference_type diff) noexcept { current += diff; return *this; }
+      constexpr auto& operator-=(const difference_type diff) noexcept { current -= diff; return *this; }
+      friend constexpr auto operator+(const iota_view_iterator& it, const difference_type diff) noexcept
+      { return iota_view_iterator {static_cast<value_type>(it.current + diff)}; }
+      friend constexpr auto operator+(const difference_type diff, const iota_view_iterator& it) noexcept
+      { return iota_view_iterator {static_cast<value_type>(diff + it.current)}; }
+      friend constexpr auto operator-(const iota_view_iterator& it, const difference_type diff)
+      { if (static_cast<difference_type>(it.current) < diff) throw std::out_of_range{"Iterator out of range"};
+        return iota_view_iterator {static_cast<value_type>(it.current - diff)}; }
+      friend constexpr difference_type operator-(const iota_view_iterator& it, const iota_view_iterator& other) noexcept
+      { return it.current - other.current; }
+      friend constexpr bool operator==(const iota_view_iterator& it, const iota_view_iterator& other) noexcept
+      { return it.current == other.current; }
 #ifdef __cpp_impl_three_way_comparison
-        constexpr auto operator<=>(const Iterator& other) const noexcept { return pos <=> other.pos; }
+      constexpr auto operator<=>(const iota_view_iterator& other) const noexcept { return current <=> other.current; }
 #else
-        constexpr bool operator!=(const Iterator& other) const noexcept { return pos != other.pos; }
-        constexpr bool operator<(const Iterator& other) const noexcept { return pos < other.pos; }
-        constexpr bool operator>(const Iterator& other) const noexcept { return pos > other.pos; }
-        constexpr bool operator<=(const Iterator& other) const noexcept { return pos <= other.pos; }
-        constexpr bool operator>=(const Iterator& other) const noexcept { return pos >= other.pos; }
+      constexpr bool operator!=(const iota_view_iterator& other) const noexcept { return current != other.current; }
+      constexpr bool operator<(const iota_view_iterator& other) const noexcept { return current < other.current; }
+      constexpr bool operator>(const iota_view_iterator& other) const noexcept { return current > other.current; }
+      constexpr bool operator<=(const iota_view_iterator& other) const noexcept { return current <= other.current; }
+      constexpr bool operator>=(const iota_view_iterator& other) const noexcept { return current >= other.current; }
 #endif
-
-      private:
-
-        value_type pos;
-
-      }; // struct Iterator
-
-      explicit constexpr IotaRange(W w, W size) : my_w {w}, my_size {size} {}
-      [[nodiscard]] constexpr auto begin() const { return Iterator {my_w}; }
-      [[nodiscard]] constexpr auto end() const { return Iterator {my_w + my_size}; }
-      [[nodiscard]] constexpr auto size() const { return my_size; }
 
     private:
 
-      W my_w;
-      W my_size;
+      value_type current;
 
-    }; // struct IotaRange
+    }; // struct Iterator
 
-  } // namespace detail
-#endif
+
+    template<typename W>
+    iota_view_iterator(const W&) -> iota_view_iterator<value::number_type_of_t<W>>;
+
+  } // namespace internal
 
 
   /**
@@ -100,109 +101,111 @@ namespace OpenKalman::collection
    * If the Size parameter is \ref value::fixed, then the result will also be
    * a \ref tuple_like sequence effectively in the form of
    * <code>std::integral_sequence<std::size_t, 0>{},...,std::integral_sequence<std::size_t, N>{}</code>
-   * \tparam W The type of the iota.
+   * \tparam Start The start value of the iota.
    * \tparam Size The size of the resulting collection
    */
 #ifdef __cpp_concepts
-  template<value::index W, value::index Size = W> requires std::is_object_v<W> and
-    std::convertible_to<value::number_type_of_t<Size>, value::number_type_of_t<W>>
+  template<value::integral Start, value::index Size = value::number_type_of_t<Start>> requires
+    std::convertible_to<value::number_type_of_t<Size>, value::number_type_of_t<Start>>
 #else
-  template<typename W, typename Size = W>
+  template<typename Start, typename Size = value::number_type_of_t<Start>>
 #endif
-  struct iota_view : collection_view_interface<iota_view<W, Size>>
-#ifdef __cpp_lib_ranges_iota
-    : std::ranges::iota_view<value::number_type_of_t<W>, value::number_type_of_t<W>>
-#else
-    : detail::IotaRange<number_type_of_t<W>>
-#endif
+  struct iota_view : collection_view_interface<iota_view<Start, Size>>
   {
-  private:
-
-#ifdef __cpp_lib_ranges_iota
-    using base = std::ranges::iota_view<value::number_type_of_t<W>, value::number_type_of_t<W>>;
-#else
-    using base = detail::IotaRange<number_type_of_t<W>>;
-#endif
-
-  public:
-
+    /**
+     * \brief Default constructor.
+     */
 #ifdef __cpp_concepts
-    constexpr iota_collection_view() requires value::fixed<W> and value::fixed<Size> = default;
+    constexpr iota_view() requires value::fixed<Start> and value::fixed<Size> = default;
 #else
-    template<typename aW = W, std::enable_if_t<fixed<aW> and fixed<Size>, int> = 0>
-    constexpr iota_collection_view() : base {W{}, Size{}} {};
+    template<typename aW = Start, std::enable_if_t<value::fixed<aW> and value::fixed<Size>, int> = 0>
+    constexpr iota_view() {};
 #endif
 
 
-    constexpr iota_collection_view(const W& w, const Size& size)
-      : base {value::to_number(w), value::to_number(w) + static_cast<value::number_type_of_t<W>>(to_number(size))} {}
+    /**
+     * \brief Construct from an initial value and size.
+     */
+    constexpr iota_view(const Start& start, const Size& size) : my_start {start}, my_size {size} {}
 
 
-    [[nodiscard]] constexpr auto size() const
+    /**
+     * \brief Construct from a size, starting at 1.
+     */
+    constexpr iota_view(const Size& size)
+      : my_start {std::integral_constant<value::number_type_of_t<Start>, 1>{}}, my_size {size} {}
+
+
+    /**
+     * \brief Get element i.
+     */
+    template<size_t i>
+    constexpr auto
+    get() const
     {
-      if constexpr (value::fixed<Size>) return value::to_number(std::decay_t<Size>{});
-      else return base::size();
+      if constexpr (value::fixed<Size>) static_assert(i < value::fixed_number_of_v<Size>);
+      return value::operation {std::plus{}, my_start, std::integral_constant<std::size_t, i>{}};
     }
 
-  }; // struct iota_collection_view
+
+    /**
+     * \returns The size of the object.
+     */
+    constexpr auto size() const
+    {
+      return my_size;
+    }
 
 
-  template<typename W, typename Size>
-  iota_collection_view(const W&, const Size&) -> iota_collection_view<W, Size>;
+    /**
+     * \returns An iterator at the beginning, if the base object is a range.
+     */
+    constexpr auto begin() { return internal::iota_view_iterator {my_start}; }
+
+    /// \overload
+    constexpr auto begin() const { return internal::iota_view_iterator {my_start}; }
 
 
-#ifdef __cpp_concepts
-  template<size_t i, typename W, typename Size> requires fixed<Size>
-#else
-  template<size_t i, typename W, typename Size, std::enable_if_t<fixed<Size>, int> = 0>
-#endif
-  constexpr auto
-  get(const iota_collection_view<W, Size>& v)
-  {
-    static_assert(i < fixed_number_of_v<Size>);
-    if constexpr (fixed<W>) return operation {std::plus{}, W{}, std::integral_constant<std::size_t, i>{}};
-    else return operation {std::plus{}, *v.begin(), std::integral_constant<std::size_t, i>{}};
-  }
+    /**
+     * \returns An iterator at the end, if the base object is a range.
+     */
+    constexpr auto end() { return internal::iota_view_iterator {my_start + my_size}; }
 
 
-  /**
-   * \brief Create an \ref iota_collection_view.
-   * \tparam W The type of the iota.
-   * \tparam Size The size of the resulting collection
-   */
-#ifdef __cpp_concepts
-  template<index W, index Size> requires std::convertible_to<number_type_of_t<Size>, number_type_of_t<W>>
-  constexpr collection auto
-#else
-  template<typename W, typename Size, std::enable_if_t<index<W> and index<Size> and
-    std::is_convertible_v<number_type_of_t<Size>, number_type_of_t<W>>, int> = 0>
-  constexpr auto
-#endif
-  iota_collection(W&& w, Size&& size)
-  {
-    return iota_collection_view {std::forward<W>(w), std::forward<Size>(size)};
-  }
+    /// \overload
+    constexpr auto end() const { return internal::iota_view_iterator {my_start + my_size}; }
+
+  private:
+
+    Start my_start;
+    Size my_size;
+
+  }; // struct iota_view
+
+
+  template<typename Start, typename Size>
+  iota_view(const Start&, const Size&) -> iota_view<Start, Size>;
 
 
 #ifndef __cpp_concepts
   namespace detail
   {
     template<typename Size, typename = void>
-    struct iota_collection_view_tuple_size_impl {};
+    struct iota_view_tuple_size_impl {};
 
     template<typename Size>
-    struct iota_collection_view_tuple_size_impl<Size, std::enable_if_t<fixed<Size>>>
-      : std::integral_constant<size_t, fixed_number_of_v<Size>> {};
+    struct iota_view_tuple_size_impl<Size, std::enable_if_t<value::fixed<Size>>>
+      : std::integral_constant<std::size_t, value::fixed_number_of_v<Size>> {};
 
 
-    template<std::size_t i, typename W, typename Size, typename = void>
-    struct iota_collection_view_tuple_element_impl {};
+    template<std::size_t i, typename Start, typename Size, typename = void>
+    struct iota_view_tuple_element_impl {};
 
-    template<std::size_t i, typename W, typename Size>
-    struct iota_collection_view_tuple_element_impl<i, W, Size, std::enable_if_t<fixed<Size>>>
+    template<std::size_t i, typename Start, typename Size>
+    struct iota_view_tuple_element_impl<i, Start, Size, std::enable_if_t<value::fixed<Size>>>
     {
-      static_assert(i < fixed_number_of_v<Size>);
-      using type = operation<std::plus<>, std::decay_t<W>, std::integral_constant<std::size_t, i>>;
+      static_assert(i < value::fixed_number_of_v<Size>);
+      using type = value::operation<std::plus<>, std::decay_t<Start>, std::integral_constant<std::size_t, i>>;
     };
   } // namespace detail
 #endif
@@ -213,28 +216,37 @@ namespace OpenKalman::collection
 namespace std
 {
 #ifdef __cpp_concepts
-  template<typename W, OpenKalman::value::fixed Size>
-  struct tuple_size<OpenKalman::value::iota_collection_view<W, Size>>
+  template<typename Start, OpenKalman::value::fixed Size>
+  struct tuple_size<OpenKalman::collections::iota_view<Start, Size>>
     : std::integral_constant<size_t, OpenKalman::value::fixed_number_of_v<Size>> {};
 #else
-  template<typename W, typename Size>
-  struct tuple_size<OpenKalman::value::iota_collection_view<W, Size>>
-    : OpenKalman::value::detail::iota_collection_view_tuple_size_impl<Size> {};
+  template<typename Start, typename Size>
+  struct tuple_size<OpenKalman::collections::iota_view<Start, Size>>
+    : OpenKalman::collections::detail::iota_view_tuple_size_impl<Size> {};
 #endif
 
 
 #ifdef __cpp_concepts
-  template<std::size_t i, typename W, OpenKalman::value::fixed Size>
-  struct tuple_element<i, OpenKalman::value::iota_collection_view<W, Size>>
+  template<std::size_t i, OpenKalman::value::fixed Start, OpenKalman::value::fixed Size>
+  struct tuple_element<i, OpenKalman::collections::iota_view<Start, Size>>
   {
     static_assert(i < OpenKalman::value::fixed_number_of_v<Size>);
-    using type = OpenKalman::value::operation<std::plus<>, std::decay_t<W>, std::integral_constant<std::size_t, i>>;
+    using type = OpenKalman::value::operation<std::plus<>, Start, std::integral_constant<std::size_t, i>>;
   };
 #else
-  template<std::size_t i, typename W, typename Size>
-  struct tuple_element<i, OpenKalman::value::iota_collection_view<W, Size>>
-    : OpenKalman::value::detail::iota_collection_view_tuple_element_impl<i, W, Size> {};
+  template<std::size_t i, typename Start, typename Size>
+  struct tuple_element<i, OpenKalman::collections::iota_view<Start, Size>>
+    : OpenKalman::collections::detail::iota_view_tuple_element_impl<i, Start, Size> {};
 #endif
+
+
+  template<typename W>
+  struct iterator_traits<OpenKalman::collections::internal::iota_view_iterator<W>>
+  {
+    using difference_type = typename OpenKalman::collections::internal::iota_view_iterator<W>::difference_type;
+    using value_type = typename OpenKalman::collections::internal::iota_view_iterator<W>::value_type;
+    using iterator_category = typename OpenKalman::collections::internal::iota_view_iterator<W>::iterator_category;
+  };
 
 } // namespace std
 
@@ -243,28 +255,31 @@ namespace OpenKalman::collections::views
 {
   namespace detail
   {
-    struct iota_impl
+    struct iota_adapter
     {
 #ifdef __cpp_concepts
-      template<value::index W, value::index Size>
+      template<value::index Start, value::index Size>
 #else
-      template<typename W, typename Size, std::enable_if_t<value::index<W> and value::index<Size>, int> = 0>
+      template<typename Start, typename Size, std::enable_if_t<value::index<Start> and value::index<Size>, int> = 0>
 #endif
       constexpr auto
-      operator() [[nodiscard]] (W&& w, Size&& size) const { return iota_view<W, Size> {std::forward<W>(w), std::forward<Size>(size)}; }
+      operator() [[nodiscard]] (Start start, Size size) const
+      {
+        return collections::iota_view {std::move(start), std::move(size)};
+      }
     };
   }
 
 
   /**
-   * \brief a RangeAdapterObject associated with \ref identity_view.
-   * \details The expression <code>views::identity(arg)</code> is expression-equivalent
-   * to <code>identity_view(arg)</code> for any suitable \ref collection arg.
-   * \sa identity_view
+   * \brief a RangeAdapterObject associated with \ref iota_view.
+   * \details The expression <code>views::iota(arg)</code> is expression-equivalent
+   * to <code>iota_view(arg)</code> for any suitable \ref collection arg.
+   * \sa iota_view
    */
-  inline constexpr detail::iota_impl iota;
+  inline constexpr detail::iota_adapter iota;
 
 }
 
 
-#endif //OPENKALMAN_IOTA_COLLECTION_HPP
+#endif //OPENKALMAN_COLLECTIONS_VIEWS_IOTA_HPP

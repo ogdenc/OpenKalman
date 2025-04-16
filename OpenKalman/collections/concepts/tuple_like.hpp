@@ -29,7 +29,7 @@ namespace OpenKalman::collections
 
     template<typename T, std::size_t...i>
     struct is_tuple_like_impl<T, std::index_sequence<i...>,
-      std::void_t<typename std::tuple_element<i, T>::type...>>
+      std::void_t<typename std::tuple_element<i, T>::type..., decltype(internal::generalized_std_get<i>(std::declval<T&>()))...>>
       : std::true_type {};
 
 
@@ -48,18 +48,18 @@ namespace OpenKalman::collections
    * \brief T is a non-empty tuple, pair, array, or other type that can be an argument to std::apply.
    */
   template<typename T>
-#if defined(__cpp_concepts) and defined(__cpp_lib_remove_cvref) and __cpp_generic_lambdas >= 201707L
-  concept tuple_like = requires(std::remove_cvref_t<T>& t)
+#if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
+  concept tuple_like = requires(std::decay_t<T>& t)
   {
     std::tuple_size<std::decay_t<T>>::value;
     requires []<std::size_t...i>(std::index_sequence<i...>)
     { return (... and (
-        requires { typename std::tuple_element<i, std::remove_cvref_t<T>>::type; } and
-        (requires { t.template get<i>(); } or requires { get<i>(t); } or requires { std::get<i>(t); })));
-    } (std::make_index_sequence<std::tuple_size<std::remove_cvref_t<T>>::value>{});
+        requires { typename std::tuple_element<i, std::decay_t<T>>::type;
+                   internal::generalized_std_get<i>(t); }));
+    } (std::make_index_sequence<std::tuple_size<std::decay_t<T>>::value>{});
   };
 #else
-  constexpr bool tuple_like = detail::is_tuple_like<remove_cvref_t<T>>::value;
+  constexpr bool tuple_like = detail::is_tuple_like<std::decay_t<T>>::value;
 #endif
 
 

@@ -11,7 +11,7 @@
 /**
  * \file
  * \internal
- * \brief Definition for \ref collections::internal::tuple_element_base.
+ * \brief Definition for \ref collections::internal::maybe_tuple_element.
  */
 
 #ifndef OPENKALMAN_COLLECTIONS_TUPLE_ELEMENT_BASE_HPP
@@ -55,15 +55,15 @@ namespace OpenKalman::collections::internal
 #else
   template<typename I, typename T, typename = void>
 #endif
-  struct tuple_element_base {};
+  struct maybe_tuple_element {};
 
 
 #ifdef __cpp_concepts
   template<value::index I, typename T> requires detail::tuple_element_defined<I, T>::value
-  struct tuple_element_base<I, T>
+  struct maybe_tuple_element<I, T>
 #else
   template<typename I, typename T>
-  struct tuple_element_base<I, T, std::enable_if_t<
+  struct maybe_tuple_element<I, T, std::enable_if_t<
     value::index<I> and std::is_same_v<T, std::decay_t<T>> and detail::tuple_element_defined<I, T>::value>>
 #endif
     : std::tuple_element<value::fixed_number_of_v<I>, T> {};
@@ -71,10 +71,10 @@ namespace OpenKalman::collections::internal
 
 #ifdef __cpp_concepts
   template<value::index I, typename T> requires detail::tuple_element_defined<I, T>::value
-  struct tuple_element_base<I, T&>
+  struct maybe_tuple_element<I, T&>
 #else
   template<typename I, typename T>
-  struct tuple_element_base<I, T&, std::enable_if_t<value::index<I> and detail::tuple_element_defined<I, T>::value>>
+  struct maybe_tuple_element<I, T&, std::enable_if_t<value::index<I> and detail::tuple_element_defined<I, T>::value>>
 #endif
   {
     using type = std::tuple_element_t<value::fixed_number_of_v<I>, T>&;
@@ -83,10 +83,10 @@ namespace OpenKalman::collections::internal
 
 #ifdef __cpp_concepts
   template<value::index I, typename T> requires detail::tuple_element_defined<I, T>::value
-  struct tuple_element_base<I, T&&>
+  struct maybe_tuple_element<I, T&&>
 #else
   template<typename I, typename T>
-  struct tuple_element_base<I, T&&, std::enable_if_t<value::index<I> and detail::tuple_element_defined<I, T>::value>>
+  struct maybe_tuple_element<I, T&&, std::enable_if_t<value::index<I> and detail::tuple_element_defined<I, T>::value>>
 #endif
   {
     using type = std::tuple_element_t<value::fixed_number_of_v<I>, T>&&;

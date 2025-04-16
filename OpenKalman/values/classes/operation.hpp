@@ -30,16 +30,20 @@ namespace OpenKalman::value
    */
 #ifdef __cpp_concepts
   template<typename Operation, typename...Args>
-  struct operation
+  struct operation {};
+
+
+  template<typename Operation, value...Args> requires (... or not fixed<Args>) or
+    (not requires { std::bool_constant<(Operation{}(to_number(Args{})...), true)>::value; })
+  struct operation<Operation, Args...>
   {
-    explicit constexpr operation(const Operation& op, Args...args) : value {op(value::to_number(std::move(args))...)} {};
-    using value_type = std::decay_t<decltype(std::declval<const Operation&>()(value::to_number(std::declval<Args&&>())...))>;
+    explicit constexpr operation(const Operation& op, Args...args) : value {op(to_number(std::move(args))...)} {};
+    using value_type = std::decay_t<decltype(std::declval<const Operation&>()(to_number(std::declval<Args&&>())...))>;
     using type = operation;
     constexpr operator value_type() const { return value; }
     constexpr value_type operator()() const { return value; }
 
   private:
-
     value_type value;
   };
 
@@ -48,7 +52,7 @@ namespace OpenKalman::value
    * \brief A constant-evaluated operation involving some number of \ref value::fixed "fixed values".
    */
   template<typename Operation, value::fixed...Args> requires
-    requires { typename std::bool_constant<(Operation{}(value::to_number(Args{})...), true)>; }
+    std::bool_constant<(Operation{}(value::to_number(Args{})...), true)>::value
   struct operation<Operation, Args...>
   {
     constexpr operation() = default;
@@ -67,9 +71,22 @@ namespace OpenKalman::value
 
   namespace detail
   {
-    // n-ary, not calculable at compile time
     template<typename Operation, typename = void, typename...Args>
-    struct constant_operation_impl
+    struct constant_operation_impl {};
+
+
+    template<typename Op, typename = void, typename...Args>
+    struct operation_invocable : std::false_type{};
+
+    template<typename Op, typename...Args>
+    struct operation_invocable<Op, std::void_t<std::bool_constant<(Op{}(value::to_number(Args{})...), true)>>, Args...>
+      : std::true_type{};
+
+
+    // n-ary, not calculable at compile time
+    template<typename Operation, typename...Args>
+    struct constant_operation_impl<Operation, std::enable_if_t<(... and value<Args>) and
+      ((... or not fixed<Args>) or not operation_invocable<Operation, void, Args...>::value)>, Args...>
     {
       explicit constexpr constant_operation_impl(const Operation& op, Args...args) : value {op(value::to_number(std::move(args))...)} {};
       using value_type = std::decay_t<decltype(std::declval<const Operation&>()(value::to_number(std::declval<Args&&>())...))>;
@@ -78,7 +95,6 @@ namespace OpenKalman::value
       constexpr value_type operator()() const { return value; }
 
     private:
-
       value_type value;
     };
 
@@ -86,7 +102,7 @@ namespace OpenKalman::value
     // n-ary, all arguments calculable at compile time
     template<typename Operation, typename...Args>
     struct constant_operation_impl<Operation, std::enable_if_t<
-      (value::fixed<Args> and ...) and std::bool_constant<(Operation{}(value::to_number(Args{})...), true)>::value>, Args...>
+      (... and value::fixed<Args>) and operation_invocable<Operation, void, Args...>::value>, Args...>
     {
       constexpr constant_operation_impl() = default;
       explicit constexpr constant_operation_impl(const Operation&, const Args&...) {};

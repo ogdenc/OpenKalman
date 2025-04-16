@@ -35,14 +35,14 @@ namespace OpenKalman::collections
   template<typename Arg, std::enable_if_t<collection<Arg>, int> = 0>
 #endif
   constexpr auto
-  get_collection_size(const Arg& arg)
+  get_collection_size(Arg&& arg)
   {
     if constexpr (size_of_v<Arg> == dynamic_size)
     {
 #ifdef __cpp_lib_ranges
-      return std::ranges::size(arg);
+      return std::ranges::size(std::forward<Arg>(arg));
 #else
-      return ranges::size(arg);
+      return ranges::size(std::forward<Arg>(arg));
 #endif
     }
     else

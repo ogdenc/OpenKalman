@@ -103,3 +103,38 @@ TEST(basics, greater_equal)
   static_assert(not greater_equal{}(std::tuple{3, 4, 5}, std::tuple{3LL, 4LL, 6LL}));
 }
 
+
+#include "basics/classes/movable_wrapper.hpp"
+
+TEST(basics, movable_wrapper)
+{
+  //owning
+  constexpr internal::movable_wrapper mr {6};
+  static_assert(mr.get() == 6);
+  static_assert(internal::movable_wrapper{5}.get() == 5);
+  static_assert(static_cast<int>(mr) == 6);
+  static_assert(static_cast<int>(std::as_const(mr)) == 6);
+  static_assert(internal::movable_wrapper{5} == 5);
+  static_assert(internal::movable_wrapper{5} < 6);
+  static_assert(internal::movable_wrapper{5} > 4);
+  static_assert(5 == internal::movable_wrapper{5});
+  static_assert(6 > internal::movable_wrapper{5});
+  static_assert(4 < internal::movable_wrapper{5});
+
+  //non-owning
+  static constexpr auto i = 7;
+  constexpr internal::movable_wrapper ml {i};
+  static_assert(ml.get() == 7);
+  static_assert(internal::movable_wrapper{i}.get() == 7);
+  static_assert(internal::movable_wrapper{std::as_const(i)}.get() == 7);
+  static_assert(static_cast<int>(ml) == 7);
+  static_assert(static_cast<int>(std::as_const(ml)) == 7);
+  static_assert(static_cast<const int&>(ml) == 7);
+  static_assert(internal::movable_wrapper{i} == 7);
+  static_assert(internal::movable_wrapper{i} < 8);
+  static_assert(internal::movable_wrapper{i} > 6);
+  static_assert(7 == internal::movable_wrapper{i});
+  static_assert(6 < internal::movable_wrapper{i});
+  static_assert(8 > internal::movable_wrapper{i});
+}
+
