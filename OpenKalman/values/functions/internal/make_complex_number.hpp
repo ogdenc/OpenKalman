@@ -11,7 +11,7 @@
 /**
  * \file
  * \internal
- * \brief Definition for \ref value::internal::make_complex_number function.
+ * \brief Definition for \ref values::internal::make_complex_number function.
  */
 
 #ifndef OPENKALMAN_MAKE_COMPLEX_NUMBER_HPP
@@ -24,7 +24,7 @@
 #include "values/math/imag.hpp"
 #include "values/traits/real_type_of_t.hpp"
 
-namespace OpenKalman::value::internal
+namespace OpenKalman::values::internal
 {
   /**
    * \internal
@@ -34,12 +34,12 @@ namespace OpenKalman::value::internal
    * \param im The imaginary part.
    */
 #ifdef __cpp_concepts
-  template<value::complex T, std::convertible_to<real_type_of_t<T>> Re, std::convertible_to<real_type_of_t<T>> Im = Re> requires
-    value::value<Re> and value::value<Im> and (not value::complex<Re>) and (not value::complex<Im>)
+  template<values::complex T, std::convertible_to<real_type_of_t<T>> Re, std::convertible_to<real_type_of_t<T>> Im = Re> requires
+    values::value<Re> and values::value<Im> and (not values::complex<Re>) and (not values::complex<Im>)
 #else
-  template<typename T, typename Re, typename Im = Re, std::enable_if_t<value::complex<T> and
+  template<typename T, typename Re, typename Im = Re, std::enable_if_t<values::complex<T> and
     std::is_convertible_v<Re, real_type_of_t<T>> and std::is_convertible_v<Im, real_type_of_t<T>> and
-    value::value<Re> and value::value<Im> and (not value::complex<Re>) and (not value::complex<Im>), int> = 0>
+    values::value<Re> and values::value<Im> and (not values::complex<Re>) and (not values::complex<Im>), int> = 0>
 #endif
   constexpr std::decay_t<T>
   make_complex_number(Re&& re, Im&& im = 0)
@@ -56,10 +56,10 @@ namespace OpenKalman::value::internal
    * \tparam Arg A complex number to be converted.
    */
 #ifdef __cpp_concepts
-  template<value::value T, value::complex Arg> requires std::constructible_from<real_type_of_t<T>, real_type_of_t<Arg>>
-  constexpr value::complex decltype(auto)
+  template<values::value T, values::complex Arg> requires std::constructible_from<real_type_of_t<T>, real_type_of_t<Arg>>
+  constexpr values::complex decltype(auto)
 #else
-  template<typename T, typename Arg, std::enable_if_t<value::value<T> and value::complex<Arg> and
+  template<typename T, typename Arg, std::enable_if_t<values::value<T> and values::complex<Arg> and
     std::is_constructible_v<real_type_of_t<T>, real_type_of_t<Arg>>, int> = 0>
   constexpr decltype(auto)
 #endif
@@ -73,7 +73,7 @@ namespace OpenKalman::value::internal
     else
     {
       return interface::number_traits<std::decay_t<T>>::make_complex(
-        static_cast<R>(value::real(arg)), static_cast<R>(value::imag(arg)));
+        static_cast<R>(values::real(arg)), static_cast<R>(values::imag(arg)));
     }
   }
 
@@ -86,12 +86,12 @@ namespace OpenKalman::value::internal
    * \param im The imaginary part.
    */
 #ifdef __cpp_concepts
-  template<value::number Re, value::number Im> requires
-    (not value::complex<Re>) and (not value::complex<Im>) and std::common_with<Re, Im>
-  constexpr value::complex auto
+  template<values::number Re, values::number Im> requires
+    (not values::complex<Re>) and (not values::complex<Im>) and std::common_with<Re, Im>
+  constexpr values::complex auto
 #else
-  template<typename Re, typename Im, std::enable_if_t<value::number<Re> and value::number<Im> and
-    (not value::complex<Re>) and (not value::complex<Im>), int> = 0>
+  template<typename Re, typename Im, std::enable_if_t<values::number<Re> and values::number<Im> and
+    (not values::complex<Re>) and (not values::complex<Im>), int> = 0>
   constexpr auto
 #endif
   make_complex_number(const Re& re, const Im& im = 0)
@@ -100,6 +100,6 @@ namespace OpenKalman::value::internal
   }
 
 
-} // namespace OpenKalman::value::internal
+} // namespace OpenKalman::values::internal
 
 #endif //OPENKALMAN_MAKE_COMPLEX_NUMBER_HPP

@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref coordinate::descriptor_tuple.
+ * \brief Definition for \ref coordinates::descriptor_tuple.
  */
 
 #ifndef OPENKALMAN_COORDINATES_GROUP_TUPLE_HPP
@@ -22,7 +22,7 @@
 #include "collections/concepts/tuple_like.hpp"
 #include "descriptor.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
 #if not defined(__cpp_concepts) or __cpp_generic_lambdas < 201707L
   namespace detail
@@ -44,11 +44,11 @@ namespace OpenKalman::coordinate
 
 	
   /**
-   * \brief An object describing a tuple-like collection of /ref coordinate::descriptor objects.
+   * \brief An object describing a tuple-like collection of /ref coordinates::descriptor objects.
    */
   template<typename T>
 #if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
-  concept descriptor_tuple = tuple_like<T> and
+  concept descriptor_tuple = collections::tuple_like<T> and
     []<std::size_t...Ix>(std::index_sequence<Ix...>)
       { return (... and descriptor<std::tuple_element_t<Ix, std::decay_t<T>>>); }
       (std::make_index_sequence<std::tuple_size_v<std::decay_t<T>>>{});
@@ -57,6 +57,6 @@ namespace OpenKalman::coordinate
 #endif
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 #endif //OPENKALMAN_COORDINATES_GROUP_TUPLE_HPP

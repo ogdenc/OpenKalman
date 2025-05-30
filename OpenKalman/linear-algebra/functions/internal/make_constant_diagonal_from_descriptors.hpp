@@ -25,13 +25,13 @@ namespace OpenKalman::internal
 {
   /**
    * \internal
-   * \brief Make a constant diagonal from a constant and a set of \ref coordinate::pattern objects.
+   * \brief Make a constant diagonal from a constant and a set of \ref coordinates::pattern objects.
    */
   template<typename T, typename C, typename Descriptors>
   static constexpr decltype(auto)
   make_constant_diagonal_from_descriptors(C&& c, Descriptors&& descriptors)
   {
-    if constexpr (coordinate::pattern_tuple<Descriptors>)
+    if constexpr (coordinates::pattern_tuple<Descriptors>)
     {
       auto new_descriptors = std::tuple_cat(
         std::tuple(internal::smallest_vector_space_descriptor<scalar_type_of_t<T>>(
@@ -55,7 +55,7 @@ namespace OpenKalman::internal
       auto i1 = ++it;
       if (i1 == end(descriptors))
       {
-        new_descriptors.emplace_back(coordinate::Axis{});
+        new_descriptors.emplace_back(coordinates::Axis{});
       }
       else if (i0 != end(descriptors))
       {

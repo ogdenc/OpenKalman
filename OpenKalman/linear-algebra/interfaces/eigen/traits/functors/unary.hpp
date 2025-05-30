@@ -89,7 +89,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_abs_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::abs(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::abs(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = true;
     static constexpr bool preserves_hermitian = true;
@@ -111,15 +111,15 @@ namespace OpenKalman::Eigen3
     {
       constexpr auto operator()(Scalar arg) const
       {
-        auto r = value::real(arg);
-        auto i = value::imag(arg);
+        auto r = values::real(arg);
+        auto i = values::imag(arg);
         return r * r + i * i;
       }
     };
     struct Op2 { constexpr auto operator()(Scalar arg) const { return arg * arg; } };
     static constexpr auto constexpr_operation()
     {
-      if constexpr (value::complex<Scalar>) return Op1{};
+      if constexpr (values::complex<Scalar>) return Op1{};
       else return Op2{};
     }
     static constexpr bool preserves_triangle = true;
@@ -130,7 +130,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_conjugate_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::conj(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::conj(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = true;
     static constexpr bool preserves_hermitian = true;
@@ -143,7 +143,7 @@ namespace OpenKalman::Eigen3
     struct Op
     {
       constexpr auto operator()(Scalar arg) const {
-        return value::atan2(value::imag(arg), value::real(arg));
+        return values::atan2(values::imag(arg), values::real(arg));
       }
     };
     static constexpr auto constexpr_operation()
@@ -203,7 +203,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_real_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::real(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::real(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = true;
     static constexpr bool preserves_hermitian = true;
@@ -213,10 +213,10 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_imag_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::imag(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::imag(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = true;
-    static constexpr bool preserves_hermitian = not value::complex<Scalar>;
+    static constexpr bool preserves_hermitian = not values::complex<Scalar>;
   };
 
 
@@ -233,7 +233,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_exp_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::exp(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::exp(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = false;
     static constexpr bool preserves_hermitian = true;
@@ -244,7 +244,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_expm1_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::expm1(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::expm1(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = true;
     static constexpr bool preserves_hermitian = true;
@@ -255,7 +255,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_log_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::log(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::log(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = false;
     static constexpr bool preserves_hermitian = true;
@@ -265,7 +265,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_log1p_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::log1p(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::log1p(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = true;
     static constexpr bool preserves_hermitian = true;
@@ -279,8 +279,8 @@ namespace OpenKalman::Eigen3
     {
       constexpr auto operator()(Scalar arg) const
       {
-        using S = std::decay_t<decltype(value::real(arg))>;
-        return value::log(arg) / numbers::ln10_v<S>;
+        using S = std::decay_t<decltype(values::real(arg))>;
+        return values::log(arg) / numbers::ln10_v<S>;
       }
     };
     static constexpr auto constexpr_operation() { return Op{}; }
@@ -297,8 +297,8 @@ namespace OpenKalman::Eigen3
     {
       constexpr auto operator()(Scalar arg) const
       {
-        using S = std::decay_t<decltype(value::real(arg))>;
-        return value::log(arg) / numbers::ln2_v<S>;
+        using S = std::decay_t<decltype(values::real(arg))>;
+        return values::log(arg) / numbers::ln2_v<S>;
       }
     };
     static constexpr auto constexpr_operation() { return Op{}; }
@@ -311,7 +311,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_sqrt_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::sqrt(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::sqrt(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = true;
     static constexpr bool preserves_hermitian = true;
@@ -325,8 +325,8 @@ namespace OpenKalman::Eigen3
     {
       constexpr auto operator()(Scalar arg) const
       {
-        if (arg == Scalar{0}) return value::internal::NaN<Scalar>();
-        else return Scalar{1} / value::sqrt(arg);
+        if (arg == Scalar{0}) return values::internal::NaN<Scalar>();
+        else return Scalar{1} / values::sqrt(arg);
       }
     };
     static constexpr auto constexpr_operation() { return Op{}; }
@@ -338,7 +338,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_cos_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::cos(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::cos(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = false;
     static constexpr bool preserves_hermitian = true;
@@ -348,7 +348,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_sin_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::sin(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::sin(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = true;
     static constexpr bool preserves_hermitian = true;
@@ -358,7 +358,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_tan_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::tan(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::tan(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = true;
     static constexpr bool preserves_hermitian = true;
@@ -368,7 +368,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_acos_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::acos(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::acos(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = false;
     static constexpr bool preserves_hermitian = true;
@@ -378,7 +378,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_asin_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::asin(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::asin(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = true;
     static constexpr bool preserves_hermitian = true;
@@ -388,7 +388,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_atan_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::atan(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::atan(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = true;
     static constexpr bool preserves_hermitian = true;
@@ -398,7 +398,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_tanh_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::tanh(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::tanh(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = true;
     static constexpr bool preserves_hermitian = true;
@@ -409,7 +409,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_atanh_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::atanh(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::atanh(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = true;
     static constexpr bool preserves_hermitian = true;
@@ -420,7 +420,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_sinh_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::sinh(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::sinh(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = true;
     static constexpr bool preserves_hermitian = true;
@@ -431,7 +431,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_asinh_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::asinh(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::asinh(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = true;
     static constexpr bool preserves_hermitian = true;
@@ -442,7 +442,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_cosh_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::cosh(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::cosh(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = false;
     static constexpr bool preserves_hermitian = true;
@@ -453,7 +453,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar>
   struct UnaryFunctorTraits<Eigen::internal::scalar_acosh_op<Scalar>>
   {
-    struct Op { constexpr auto operator()(Scalar arg) const { return value::acosh(arg); } };
+    struct Op { constexpr auto operator()(Scalar arg) const { return values::acosh(arg); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = false;
     static constexpr bool preserves_hermitian = true;
@@ -468,7 +468,7 @@ namespace OpenKalman::Eigen3
     {
       constexpr auto operator()(Scalar arg) const
       {
-        if (arg == Scalar{0}) return value::internal::NaN<Scalar>();
+        if (arg == Scalar{0}) return values::internal::NaN<Scalar>();
         else return static_cast<Scalar>(1) / arg;
       }
     };
@@ -521,7 +521,7 @@ namespace OpenKalman::Eigen3
   {
     struct Op
     {
-      constexpr auto operator()(Scalar arg) const { return Scalar{1} / (Scalar{1} + (value::exp(-arg))); }
+      constexpr auto operator()(Scalar arg) const { return Scalar{1} / (Scalar{1} + (values::exp(-arg))); }
     };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_triangle = false;

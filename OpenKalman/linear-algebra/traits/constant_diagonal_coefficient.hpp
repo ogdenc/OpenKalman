@@ -18,7 +18,7 @@
 
 #include <type_traits>
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief The constant associated with T, assuming T is a \ref constant_diagonal_matrix.
@@ -61,21 +61,21 @@ namespace OpenKalman::value
 #ifdef __cpp_concepts
     template<typename T>
     concept has_static_constant_diagonal =
-      value::fixed<typename interface::get_constant_diagonal_return_type<T>::type> or
-      (value::fixed<typename interface::get_constant_return_type<T>::type> and
-        (one_dimensional<T> or value::internal::near(const_value<T>, 0)));
+      values::fixed<typename interface::get_constant_diagonal_return_type<T>::type> or
+      (values::fixed<typename interface::get_constant_return_type<T>::type> and
+        (one_dimensional<T> or values::internal::near(const_value<T>, 0)));
 #else
     template<typename T, typename = void>
     struct has_static_constant_diagonal_impl : std::false_type {};
 
     template<typename T>
-    struct has_static_constant_diagonal_impl<T, std::enable_if_t<value::fixed<typename interface::get_constant_return_type<T>::type>>>
-      : std::bool_constant<one_dimensional<T> or value::internal::near(const_value<T>, 0)> {};
+    struct has_static_constant_diagonal_impl<T, std::enable_if_t<values::fixed<typename interface::get_constant_return_type<T>::type>>>
+      : std::bool_constant<one_dimensional<T> or values::internal::near(const_value<T>, 0)> {};
 
 
     template<typename T>
     constexpr bool has_static_constant_diagonal =
-      value::fixed<typename interface::get_constant_diagonal_return_type<T>::type> or
+      values::fixed<typename interface::get_constant_diagonal_return_type<T>::type> or
       has_static_constant_diagonal_impl<T>::value;
 #endif
   } // namespace detail
@@ -108,7 +108,7 @@ namespace OpenKalman::value
     using type = constant_diagonal_coefficient;
 
     static constexpr value_type value = []{
-      if constexpr (value::scalar<typename interface::get_constant_diagonal_return_type<T>::type>)
+      if constexpr (values::scalar<typename interface::get_constant_diagonal_return_type<T>::type>)
         return std::decay_t<decltype(Trait::get_constant_diagonal(std::declval<T>()))>::value;
       else
         return std::decay_t<decltype(Trait::get_constant(std::declval<T>()))>::value;
@@ -126,12 +126,12 @@ namespace OpenKalman::value
    */
 #ifdef __cpp_concepts
   template<indexible T> requires (not detail::has_static_constant_diagonal<T>) and
-    (value::dynamic<typename interface::get_constant_diagonal_return_type<T>::type> or one_dimensional<T>)
+    (values::dynamic<typename interface::get_constant_diagonal_return_type<T>::type> or one_dimensional<T>)
   struct constant_diagonal_coefficient<T>
 #else
   template<typename T>
   struct constant_diagonal_coefficient<T, std::enable_if_t<indexible<T> and (not detail::has_static_constant_diagonal<T>) and
-    (value::dynamic<typename interface::get_constant_diagonal_return_type<T>::type> or one_dimensional<T>)>>
+    (values::dynamic<typename interface::get_constant_diagonal_return_type<T>::type> or one_dimensional<T>)>>
 #endif
   {
   private:
@@ -141,10 +141,10 @@ namespace OpenKalman::value
   public:
 
     explicit constexpr constant_diagonal_coefficient(const std::decay_t<T>& t) : m_value {[](const auto& t){
-        if constexpr (value::scalar<typename interface::get_constant_diagonal_return_type<T>::type>)
-          return value::to_number(Trait::get_constant_diagonal(t));
-        else if constexpr (value::scalar<typename interface::get_constant_return_type<T>::type>)
-          return value::to_number(Trait::get_constant(t));
+        if constexpr (values::scalar<typename interface::get_constant_diagonal_return_type<T>::type>)
+          return values::to_number(Trait::get_constant_diagonal(t));
+        else if constexpr (values::scalar<typename interface::get_constant_return_type<T>::type>)
+          return values::to_number(Trait::get_constant(t));
         else
           return internal::get_singular_component(t);
       }(t)} {};
@@ -163,13 +163,13 @@ namespace OpenKalman::value
   };
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 namespace OpenKalman
 {
-  using value::constant_diagonal_coefficient;
-  using value::constant_diagonal_coefficient_v;
+  using values::constant_diagonal_coefficient;
+  using values::constant_diagonal_coefficient_v;
 }
 
 

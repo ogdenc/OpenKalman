@@ -22,7 +22,7 @@
 #include "to_number.hpp"
 #include "values/classes/operation.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   namespace detail
   {
@@ -39,8 +39,8 @@ namespace OpenKalman::value
 
     template<typename Arg1, typename Arg2>
     struct value_common_with_impl<Arg1, Arg2, std::void_t<typename std::common_type<
-      std::decay_t<decltype(value::to_number(std::declval<Arg1>()))>,
-      std::decay_t<decltype(value::to_number(std::declval<Arg2>()))>>::type>>
+      std::decay_t<decltype(values::to_number(std::declval<Arg1>()))>,
+      std::decay_t<decltype(values::to_number(std::declval<Arg2>()))>>::type>>
       : std::true_type {};
 #endif
 
@@ -205,6 +205,6 @@ template<typename A, typename B, std::enable_if_t<detail::value_common_with<A, B
 #endif
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_VALUE_ARITHMETIC_HPP

@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref value::conj.
+ * \brief Definition for \ref values::conj.
  */
 
 #ifndef OPENKALMAN_VALUE_CONJ_HPP
@@ -26,23 +26,23 @@
 #include "values/functions/internal/constexpr_callable.hpp"
 
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief A constexpr function for the complex conjugate of a (complex) number.
    */
 #ifdef __cpp_concepts
-  template<value::value Arg>
-  constexpr value::value auto conj(const Arg& arg)
+  template<values::value Arg>
+  constexpr values::value auto conj(const Arg& arg)
 #else
-  template <typename Arg, std::enable_if_t<value::value<Arg>, int> = 0>
+  template <typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
   constexpr auto conj(const Arg& arg)
 #endif
   {
-    if constexpr (not value::number<Arg>)
+    if constexpr (not values::number<Arg>)
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Arg>& a) const { return value::conj(a); } };
-      return value::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::conj(a); } };
+      return values::operation {Op{}, arg};
     }
     else
     {
@@ -50,12 +50,12 @@ namespace OpenKalman::value
       using Return = std::decay_t<decltype(conj(arg))>;
       struct Op { auto operator()(const Arg& arg) { return conj(arg); } };
       if (internal::constexpr_callable<Op>(arg)) return conj(arg);
-      else return value::internal::make_complex_number<Return>(value::real(arg), -value::imag(arg));
+      else return values::internal::make_complex_number<Return>(values::real(arg), -values::imag(arg));
     }
   }
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_CONJ_HPP

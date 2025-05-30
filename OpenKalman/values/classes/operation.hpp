@@ -11,7 +11,7 @@
 /**
  * \file
  * \internal
- * \brief Definition of \ref value::operation.
+ * \brief Definition of \ref values::operation.
  */
 
 #ifndef OPENKALMAN_SCALAR_CONSTANT_OPERATION_HPP
@@ -20,13 +20,13 @@
 #include "values/concepts/value.hpp"
 #include "values/functions/to_number.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
-   * \brief An operation involving some number of \ref value::value "values".
+   * \brief An operation involving some number of \ref values::value "values".
    * \details In this unspecialized case, the operation is not constant-evaluated.
    * \tparam Operation An operation taking <code>sizeof...(Ts)</code> parameters
-   * \tparam Args A set of \ref value::value types
+   * \tparam Args A set of \ref values::value types
    */
 #ifdef __cpp_concepts
   template<typename Operation, typename...Args>
@@ -49,15 +49,15 @@ namespace OpenKalman::value
 
 
   /**
-   * \brief A constant-evaluated operation involving some number of \ref value::fixed "fixed values".
+   * \brief A constant-evaluated operation involving some number of \ref values::fixed "fixed values".
    */
-  template<typename Operation, value::fixed...Args> requires
-    std::bool_constant<(Operation{}(value::to_number(Args{})...), true)>::value
+  template<typename Operation, values::fixed...Args> requires
+    std::bool_constant<(Operation{}(values::to_number(Args{})...), true)>::value
   struct operation<Operation, Args...>
   {
     constexpr operation() = default;
     explicit constexpr operation(const Operation&, const Args&...) {};
-    static constexpr auto value = Operation{}(value::to_number(Args{})...);
+    static constexpr auto value = Operation{}(values::to_number(Args{})...);
     using value_type = std::decay_t<decltype(value)>;
     using type = operation;
     constexpr operator value_type() const { return value; }
@@ -79,7 +79,7 @@ namespace OpenKalman::value
     struct operation_invocable : std::false_type{};
 
     template<typename Op, typename...Args>
-    struct operation_invocable<Op, std::void_t<std::bool_constant<(Op{}(value::to_number(Args{})...), true)>>, Args...>
+    struct operation_invocable<Op, std::void_t<std::bool_constant<(Op{}(values::to_number(Args{})...), true)>>, Args...>
       : std::true_type{};
 
 
@@ -88,8 +88,8 @@ namespace OpenKalman::value
     struct constant_operation_impl<Operation, std::enable_if_t<(... and value<Args>) and
       ((... or not fixed<Args>) or not operation_invocable<Operation, void, Args...>::value)>, Args...>
     {
-      explicit constexpr constant_operation_impl(const Operation& op, Args...args) : value {op(value::to_number(std::move(args))...)} {};
-      using value_type = std::decay_t<decltype(std::declval<const Operation&>()(value::to_number(std::declval<Args&&>())...))>;
+      explicit constexpr constant_operation_impl(const Operation& op, Args...args) : value {op(values::to_number(std::move(args))...)} {};
+      using value_type = std::decay_t<decltype(std::declval<const Operation&>()(values::to_number(std::declval<Args&&>())...))>;
       using type = operation<Operation, Args...>;
       constexpr operator value_type() const { return value; }
       constexpr value_type operator()() const { return value; }
@@ -102,11 +102,11 @@ namespace OpenKalman::value
     // n-ary, all arguments calculable at compile time
     template<typename Operation, typename...Args>
     struct constant_operation_impl<Operation, std::enable_if_t<
-      (... and value::fixed<Args>) and operation_invocable<Operation, void, Args...>::value>, Args...>
+      (... and values::fixed<Args>) and operation_invocable<Operation, void, Args...>::value>, Args...>
     {
       constexpr constant_operation_impl() = default;
       explicit constexpr constant_operation_impl(const Operation&, const Args&...) {};
-      static constexpr auto value = Operation{}(value::to_number(Args{})...);
+      static constexpr auto value = Operation{}(values::to_number(Args{})...);
       using value_type = std::decay_t<decltype(value)>;
       using type = operation<Operation, Args...>;
       constexpr operator value_type() const { return value; }
@@ -134,6 +134,6 @@ namespace OpenKalman::value
   template<typename Operation, typename...Args>
   explicit operation(const Operation&, const Args&...) -> operation<Operation, Args...>;
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_SCALAR_CONSTANT_OPERATION_HPP

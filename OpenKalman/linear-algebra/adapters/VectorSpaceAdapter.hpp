@@ -53,7 +53,7 @@ namespace OpenKalman
     /**
      * \brief Construct from a compatible indexible object.
      * \tparam Arg An \ref indexible object. Any of its vector space descriptors will be overwritten.
-     * \param descriptors A set of \ref coordinate::pattern objects
+     * \param descriptors A set of \ref coordinates::pattern objects
      */
 #ifdef __cpp_concepts
     template<internal::maybe_same_shape_as_vector_space_descriptors<Descriptors> Arg> requires
@@ -91,14 +91,14 @@ namespace OpenKalman
     template<internal::maybe_same_shape_as_vector_space_descriptors<Descriptors> Arg> requires
       (not std::is_base_of_v<VectorSpaceAdapter, std::decay_t<Arg>>) and 
       std::assignable_from<std::add_lvalue_reference_t<NestedObject>, Arg&&> and
-      requires(Arg&& arg) { {count_indices(arg)} -> value::fixed; } and
+      requires(Arg&& arg) { {count_indices(arg)} -> values::fixed; } and
       requires(Descriptors my_descriptors, Arg&& arg) { my_descriptors = all_vector_space_descriptors(arg); }
 #else
     template<typename Arg, std::enable_if_t<
       (not std::is_base_of_v<VectorSpaceAdapter, std::decay_t<Arg>>) and 
       internal::maybe_same_shape_as_vector_space_descriptors<Arg, Descriptors> and
       std::is_assignable_v<std::add_lvalue_reference_t<NestedObject>, Arg&&> and
-      value::fixed<decltype(count_indices(std::declval<Arg&&>()))> and
+      values::fixed<decltype(count_indices(std::declval<Arg&&>()))> and
       std::is_assignable_v<Descriptors, decltype(all_vector_space_descriptors(std::declval<Arg&&>()))>, int> = 0>
 #endif
     constexpr VectorSpaceAdapter& operator=(Arg&& arg)

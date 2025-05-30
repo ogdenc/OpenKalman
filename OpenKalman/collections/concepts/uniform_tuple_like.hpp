@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_COLLECTIONS_UNIFORM_TUPLE_LIKE_HPP
 #define OPENKALMAN_COLLECTIONS_UNIFORM_TUPLE_LIKE_HPP
 
+#include "collections/traits/size_of.hpp"
 #include "collections/traits/common_tuple_type.hpp"
 
 namespace OpenKalman::collections
@@ -37,9 +38,9 @@ namespace OpenKalman::collections
    */
   template<typename T>
 #ifdef __cpp_lib_ranges
-  concept uniform_tuple_like = tuple_like<T> and requires { typename common_tuple_type<T>::type; };
+  concept uniform_tuple_like = tuple_like<T> and (size_of_v<T> == 0 or requires { typename common_tuple_type<T>::type; });
 #else
-  constexpr bool uniform_tuple_like = tuple_like<T> and detail::has_common_tuple_type<T>::value;
+  constexpr bool uniform_tuple_like = tuple_like<T> and (size_of_v<T> == 0 or detail::has_common_tuple_type<T>::value);
 #endif
 
 

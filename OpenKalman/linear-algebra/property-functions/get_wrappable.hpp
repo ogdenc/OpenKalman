@@ -42,7 +42,7 @@ namespace OpenKalman
 #endif
   constexpr bool get_wrappable(const T& t)
   {
-    if constexpr (value::fixed<decltype(count_indices(t))>)
+    if constexpr (values::fixed<decltype(count_indices(t))>)
     {
       constexpr std::size_t count = std::decay_t<decltype(count_indices(t))>::value;
       return detail::get_wrappable_impl(t, std::make_index_sequence<count - 1> {});

@@ -17,22 +17,22 @@
 #ifndef OPENKALMAN_SMALLEST_VECTOR_SPACE_DESCRIPTOR_HPP
 #define OPENKALMAN_SMALLEST_VECTOR_SPACE_DESCRIPTOR_HPP
 
-namespace OpenKalman::coordinate::internal
+namespace OpenKalman::coordinates::internal
 {
   /**
    * \internal
-   * \brief Return the smallest \ref coordinate::pattern
+   * \brief Return the smallest \ref coordinates::pattern
    * \details If the dimensions are the same, this will return the earlier-listed one.
    * \tparam Scalars The scalar type, if the result is a DynamicDescriptor
-   * \tparam V A \ref coordinate::pattern
-   * \tparam Vs A set of \ref coordinate::pattern objects
+   * \tparam V A \ref coordinates::pattern
+   * \tparam Vs A set of \ref coordinates::pattern objects
    */
 #ifdef __cpp_concepts
-  template<value::number Scalar, coordinate::pattern V, coordinate::pattern...Vs>
-  constexpr coordinate::pattern decltype(auto)
+  template<values::number Scalar, coordinates::pattern V, coordinates::pattern...Vs>
+  constexpr coordinates::pattern decltype(auto)
 #else
   template<typename Scalar, typename V, typename...Vs, std::enable_if_t<
-    value::number<Scalar> and (coordinate::pattern<V> and ... and coordinate::pattern<Vs>), int> = 0>
+    values::number<Scalar> and (coordinates::pattern<V> and ... and coordinates::pattern<Vs>), int> = 0>
   constexpr decltype(auto)
 #endif
   smallest_vector_space_descriptor(V&& v, Vs&&...vs)
@@ -47,25 +47,25 @@ namespace OpenKalman::coordinate::internal
 
       if constexpr ((fixed_pattern<V> and fixed_pattern<decltype(tail)>))
       {
-        if constexpr (size_of_v<V> <= size_of_v<decltype(tail)>)
+        if constexpr (dimension_of_v<V> <= dimension_of_v<decltype(tail)>)
           return std::forward<V>(v);
         else
           return std::forward<decltype(tail)>(tail);
       }
       else if constexpr (euclidean_pattern<V> and euclidean_pattern<decltype(tail)>)
       {
-        return coordinate::Dimensions {std::min<std::size_t>(get_size(v), get_size(tail))};
+        return coordinates::Dimensions {std::min<std::size_t>(get_dimension(v), get_dimension(tail))};
       }
       else
       {
-        if (get_size(v) <= get_size(tail))
-          return coordinate::DynamicDescriptor<Scalar> {std::forward<V>(v)};
+        if (get_dimension(v) <= get_dimension(tail))
+          return coordinates::DynamicDescriptor<Scalar> {std::forward<V>(v)};
         else
-          return coordinate::DynamicDescriptor<Scalar> {std::forward<decltype(tail)>(tail)};
+          return coordinates::DynamicDescriptor<Scalar> {std::forward<decltype(tail)>(tail)};
       }
     }
   }
 
-} // namespace OpenKalman::coordinate::internal
+} // namespace OpenKalman::coordinates::internal
 
 #endif //OPENKALMAN_SMALLEST_VECTOR_SPACE_DESCRIPTOR_HPP

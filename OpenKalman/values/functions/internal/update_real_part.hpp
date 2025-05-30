@@ -23,7 +23,7 @@
 #include "make_complex_number.hpp"
 
 
-namespace OpenKalman::value::internal
+namespace OpenKalman::values::internal
 {
   /**
    * \internal
@@ -32,24 +32,24 @@ namespace OpenKalman::value::internal
    * \param re A real value.
    */
 #ifdef __cpp_concepts
-  constexpr value::number decltype(auto)
-  update_real_part(value::number auto&& arg, value::number auto&& re) requires (not value::complex<decltype(re)>)
+  constexpr values::number decltype(auto)
+  update_real_part(values::number auto&& arg, values::number auto&& re) requires (not values::complex<decltype(re)>)
 #else
-  template<typename T, typename Re, std::enable_if_t<value::number<T> and value::number<Re> and not value::complex<Re>, int> = 0>
+  template<typename T, typename Re, std::enable_if_t<values::number<T> and values::number<Re> and not values::complex<Re>, int> = 0>
   constexpr decltype(auto) update_real_part(T&& arg, Re&& re)
 #endif
   {
     using Arg = std::decay_t<decltype(arg)>;
-    if constexpr (value::complex<Arg>)
+    if constexpr (values::complex<Arg>)
     {
-      auto im = value::imag(std::forward<decltype(arg)>(arg));
+      auto im = values::imag(std::forward<decltype(arg)>(arg));
       using R = std::decay_t<decltype(im)>;
-      return value::internal::make_complex_number<Arg>(static_cast<R>(std::forward<decltype(re)>(re)), std::move(im));
+      return values::internal::make_complex_number<Arg>(static_cast<R>(std::forward<decltype(re)>(re)), std::move(im));
     }
     else return std::forward<decltype(re)>(re);
   }
 
 
-} // namespace OpenKalman::value::internal
+} // namespace OpenKalman::values::internal
 
 #endif //OPENKALMAN_UPDATE_REAL_PART_HPP

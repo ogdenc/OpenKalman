@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::tanh.
+ * \brief Definition for \ref values::tanh.
  */
 
 #ifndef OPENKALMAN_VALUE_TANH_HPP
@@ -30,24 +30,24 @@
 #include "values/math/isnan.hpp"
 #include "values/math/exp.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \internal
    * \brief Constexpr alternative to the std::tanh function.
    */
 #ifdef __cpp_concepts
-  template<value::value Arg>
-  constexpr value::value auto tanh(const Arg& arg)
+  template<values::value Arg>
+  constexpr values::value auto tanh(const Arg& arg)
 #else
-  template<typename Arg, std::enable_if_t<value::value<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
   constexpr auto tanh(const Arg& arg)
 #endif
   {
-    if constexpr (not value::number<Arg>)
+    if constexpr (not values::number<Arg>)
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Arg>& a) const { return value::tanh(a); } };
-      return value::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::tanh(a); } };
+      return values::operation {Op{}, arg};
     }
     else
     {
@@ -55,23 +55,23 @@ namespace OpenKalman::value
       using Return = decltype(tanh(arg));
       struct Op { auto operator()(const Arg& arg) { return tanh(arg); } };
       if (internal::constexpr_callable<Op>(arg)) return tanh(arg);
-      else if constexpr (value::complex<Return>)
+      else if constexpr (values::complex<Return>)
       {
         if (arg == Arg{0}) return static_cast<Return>(arg);
-        if (value::real(arg) == 0 and value::imag(arg) == 0) return value::internal::make_complex_number<Return>(0, 0);
-        using R = std::conditional_t<value::integral<value::real_type_of_t<Return>>, double, value::real_type_of_t<Return>>;
-        auto ex = value::exp(value::internal::make_complex_number<R>(arg));
-        auto er = value::real(ex);
-        auto ei = value::imag(ex);
+        if (values::real(arg) == 0 and values::imag(arg) == 0) return values::internal::make_complex_number<Return>(0, 0);
+        using R = std::conditional_t<values::integral<values::real_type_of_t<Return>>, double, values::real_type_of_t<Return>>;
+        auto ex = values::exp(values::internal::make_complex_number<R>(arg));
+        auto er = values::real(ex);
+        auto ei = values::imag(ex);
         auto d = er*er - ei*ei;
         auto b = 2*er*ei;
         auto d2b2 = d*d + b*b;
         auto denom = R{d2b2 + 2*d + 1};
-        return value::internal::make_complex_number<Return>(R{d2b2 - 1} / denom, R{2 * b} / denom);
+        return values::internal::make_complex_number<Return>(R{d2b2 - 1} / denom, R{2 * b} / denom);
       }
       else
       {
-        if (value::isnan(arg)) return value::internal::NaN<Return>();
+        if (values::isnan(arg)) return values::internal::NaN<Return>();
         if constexpr (std::numeric_limits<Arg>::has_infinity)
         {
           if (arg == std::numeric_limits<Arg>::infinity()) return Return{1};
@@ -79,7 +79,7 @@ namespace OpenKalman::value
         }
         if (arg == Arg{0}) return static_cast<Return>(arg);
 
-        Return ex = value::exp(arg);
+        Return ex = values::exp(arg);
         Return ex2 = ex * ex;
         return (ex2 - Return{1}) / (ex2 + Return{1});
       }
@@ -87,7 +87,7 @@ namespace OpenKalman::value
   }
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_TANH_HPP

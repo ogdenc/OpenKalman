@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref coordinate::internal::get_euclidean_component_start_indices.
+ * \brief Definition for \ref coordinates::internal::get_euclidean_component_start_indices.
  */
 
 #ifndef OPENKALMAN_DESCRIPTORS_GET_EUCLIDEAN_COMPONENT_START_INDICES_HPP
@@ -23,9 +23,9 @@
 #include "linear-algebra/coordinates/concepts/descriptor.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor_tuple.hpp"
 #include "linear-algebra/coordinates/concepts/pattern.hpp"
-#include "get_descriptor_euclidean_size.hpp"
+#include "get_descriptor_stat_dimension.hpp"
 
-namespace OpenKalman::coordinate::internal
+namespace OpenKalman::coordinates::internal
 {
   namespace detail
   {
@@ -34,7 +34,7 @@ namespace OpenKalman::coordinate::internal
     {
       if constexpr (i < std::tuple_size_v<Tup>)
       {
-        auto next_loc = value::operation {std::plus{}, currloc, get_descriptor_euclidean_size(std::get<i>(tup))};
+        auto next_loc = values::operation {std::plus{}, currloc, get_descriptor_stat_dimension(std::get<i>(tup))};
         return euclidean_component_start_indices_tuple<i + 1>(tup, std::move(next_loc), std::move(locs)..., std::move(currloc));
       }
       else return std::tuple {std::move(locs)...};
@@ -43,11 +43,11 @@ namespace OpenKalman::coordinate::internal
 
 
   /**
-   * \brief A \ref collections::index mapping a component of T to an \ref value::index "index" within a vector.
+   * \brief A \ref collections::index mapping a component of T to an \ref values::index "index" within a vector.
    * \details The size must be the same as <code>component_collection(t)</code>.
    * Each component of the resulting collection must map to the corresponding starting index within a vector
    * transformed to Euclidean space for directional statistics.
-   * \returns A \ref collection of \ref value::index "index" values
+   * \returns A \ref collection of \ref values::index "index" values
    */
 #ifdef __cpp_lib_constexpr_vector
   template<pattern Arg>
@@ -69,18 +69,18 @@ namespace OpenKalman::coordinate::internal
     else
     {
       std::size_t i = 0, loc = 0;
-      std::vector<std::size_t> indices(get_collection_size(arg));
+      std::vector<std::size_t> indices(get_size(arg));
       for (auto& c : arg)
       {
         indices[i++] = loc;
-        loc += get_descriptor_euclidean_size(c);
+        loc += get_descriptor_stat_dimension(c);
       }
       return indices;
     }
   }
 
 
-} // namespace OpenKalman::coordinate::internal
+} // namespace OpenKalman::coordinates::internal
 
 
 #endif //OPENKALMAN_DESCRIPTORS_GET_EUCLIDEAN_COMPONENT_START_INDICES_HPP

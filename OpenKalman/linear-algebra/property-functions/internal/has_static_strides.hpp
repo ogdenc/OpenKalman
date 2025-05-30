@@ -24,7 +24,7 @@ namespace OpenKalman::internal
     template<typename Strides, std::size_t...ix>
     constexpr bool has_static_strides_i(std::index_sequence<ix...>)
     {
-      return (value::fixed<std::tuple_element_t<ix, Strides>> and ...);
+      return (values::fixed<std::tuple_element_t<ix, Strides>> and ...);
     };
 
     template<typename Strides>

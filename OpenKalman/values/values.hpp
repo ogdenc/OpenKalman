@@ -23,7 +23,7 @@
  * \internal
  * \brief The namespace for value-related code.
  */
-namespace OpenKalman::value {}
+namespace OpenKalman::values {}
 
 #include "interface/number_traits.hpp"
 

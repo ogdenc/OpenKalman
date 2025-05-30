@@ -43,12 +43,12 @@ namespace OpenKalman
      **/
 #ifdef __cpp_concepts
     template<distribution InputDist, distribution ... NoiseDists> requires
-      (coordinate::compares_with<typename DistributionTraits<InputDist>::StaticDescriptor,
+      (coordinates::compares_with<typename DistributionTraits<InputDist>::StaticDescriptor,
         typename DistributionTraits<NoiseDists>::StaticDescriptor> and ...)
 #else
     template<typename InputDist, typename ... NoiseDists,
       std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>) and
-        (coordinate::compares_with<typename DistributionTraits<InputDist>::StaticDescriptor,
+        (coordinates::compares_with<typename DistributionTraits<InputDist>::StaticDescriptor,
         typename DistributionTraits<NoiseDists>::StaticDescriptor> and ...), int> = 0>
 #endif
     auto operator()(const InputDist& x, const NoiseDists& ... ns) const
@@ -68,12 +68,12 @@ namespace OpenKalman
      **/
 #ifdef __cpp_concepts
     template<distribution InputDist, distribution ... NoiseDists> requires
-      (coordinate::compares_with<typename DistributionTraits<InputDist>::StaticDescriptor,
+      (coordinates::compares_with<typename DistributionTraits<InputDist>::StaticDescriptor,
         typename DistributionTraits<NoiseDists>::StaticDescriptor> and ...)
 #else
     template<typename InputDist, typename ... NoiseDists,
       std::enable_if_t<(distribution<InputDist> and ... and distribution<NoiseDists>) and
-        (coordinate::compares_with<typename DistributionTraits<InputDist>::StaticDescriptor,
+        (coordinates::compares_with<typename DistributionTraits<InputDist>::StaticDescriptor,
         typename DistributionTraits<NoiseDists>::StaticDescriptor> and ...), int> = 0>
 #endif
     auto transform_with_cross_covariance(const InputDist& x, const NoiseDists& ... ns) const

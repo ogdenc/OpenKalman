@@ -21,7 +21,7 @@ namespace OpenKalman
 
 #ifdef __cpp_concepts
   template<fixed_pattern RowCoefficients, typed_matrix_nestable NestedMatrix> requires
-    (coordinate::euclidean_size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
+    (coordinates::stat_dimension_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename RowCoefficients, typename NestedMatrix>
@@ -33,7 +33,7 @@ namespace OpenKalman
 #ifndef __cpp_concepts
     static_assert(fixed_pattern<RowCoefficients>);
     static_assert(typed_matrix_nestable<NestedMatrix>);
-    static_assert(coordinate::euclidean_size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>);
+    static_assert(coordinates::stat_dimension_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
 #endif
 
@@ -105,13 +105,13 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<typed_matrix Arg> requires (not std::derived_from<std::decay_t<Arg>, EuclideanMean>) and
-      (euclidean_transformed<Arg> or coordinate::euclidean_pattern<RowCoefficients>) and
+      (euclidean_transformed<Arg> or coordinates::euclidean_pattern<RowCoefficients>) and
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       has_untyped_index<Arg, 1> and std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, nested_object_of_t<Arg&&>>
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
       (not std::is_base_of_v<EuclideanMean, std::decay_t<Arg>>) and
-      (euclidean_transformed<Arg> or coordinate::euclidean_pattern<RowCoefficients>) and
+      (euclidean_transformed<Arg> or coordinates::euclidean_pattern<RowCoefficients>) and
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       has_untyped_index<Arg, 1> and std::is_assignable_v<std::add_lvalue_reference_t<NestedMatrix>, nested_object_of_t<Arg&&>>, int> = 0>
 #endif
@@ -184,12 +184,12 @@ namespace OpenKalman
     template<typed_matrix Arg> requires
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
-      (coordinate::euclidean_pattern<RowCoefficients> or euclidean_transformed<Arg>)
+      (coordinates::euclidean_pattern<RowCoefficients> or euclidean_transformed<Arg>)
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
-      (coordinate::euclidean_pattern<RowCoefficients> or euclidean_transformed<Arg>), int> = 0>
+      (coordinates::euclidean_pattern<RowCoefficients> or euclidean_transformed<Arg>), int> = 0>
 #endif
     auto& operator+=(Arg&& other)
     {
@@ -200,10 +200,10 @@ namespace OpenKalman
 
     /// Add a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
-    template<distribution Arg> requires coordinate::euclidean_pattern<RowCoefficients> and
+    template<distribution Arg> requires coordinates::euclidean_pattern<RowCoefficients> and
       (compares_with<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>)
 #else
-    template<typename Arg, std::enable_if_t<distribution<Arg> and coordinate::euclidean_pattern<RowCoefficients> and
+    template<typename Arg, std::enable_if_t<distribution<Arg> and coordinates::euclidean_pattern<RowCoefficients> and
       (compares_with<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>), int> = 0>
 #endif
     auto& operator+=(const Arg& arg)
@@ -226,12 +226,12 @@ namespace OpenKalman
     template<typed_matrix Arg> requires
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
-      (coordinate::euclidean_pattern<RowCoefficients> or euclidean_transformed<Arg>)
+      (coordinates::euclidean_pattern<RowCoefficients> or euclidean_transformed<Arg>)
 #else
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients>and
       compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients>and
-      (coordinate::euclidean_pattern<RowCoefficients> or euclidean_transformed<Arg>), int> = 0>
+      (coordinates::euclidean_pattern<RowCoefficients> or euclidean_transformed<Arg>), int> = 0>
 #endif
     auto& operator-=(Arg&& other)
     {
@@ -242,10 +242,10 @@ namespace OpenKalman
 
     /// Subtract a stochastic value to each column of the matrix, based on a distribution.
 #ifdef __cpp_concepts
-    template<distribution Arg> requires coordinate::euclidean_pattern<RowCoefficients> and
+    template<distribution Arg> requires coordinates::euclidean_pattern<RowCoefficients> and
       (compares_with<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>)
 #else
-    template<typename Arg, std::enable_if_t<distribution<Arg> and coordinate::euclidean_pattern<RowCoefficients> and
+    template<typename Arg, std::enable_if_t<distribution<Arg> and coordinates::euclidean_pattern<RowCoefficients> and
       (compares_with<typename DistributionTraits<Arg>::StaticDescriptor, RowCoefficients>), int> = 0>
 #endif
     auto& operator-=(const Arg& arg)
@@ -273,10 +273,10 @@ namespace OpenKalman
 #if defined(__cpp_concepts) and OPENKALMAN_CPP_FEATURE_CONCEPTS_2
   // \todo Unlike SFINAE version, this incorrectly matches V==EuclideanMean in both GCC 10.1.0 and clang 10.0.0:
   template<typed_matrix V> requires (not euclidean_transformed<V>) and has_untyped_index<V, 1> and
-    (coordinate::euclidean_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimension_of_v<V, 0>)
+    (coordinates::stat_dimension_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimension_of_v<V, 0>)
 #else
   template<typename V, std::enable_if_t<typed_matrix<V> and not euclidean_transformed<V> and has_untyped_index<V, 1> and
-coordinate::euclidean_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimension_of_v<V, 0>, int> = 0>
+coordinates::stat_dimension_of_v<vector_space_descriptor_of_t<V, 0>> == index_dimension_of_v<V, 0>, int> = 0>
 #endif
   EuclideanMean(V&&)
     -> EuclideanMean<vector_space_descriptor_of_t<V, 0>, std::remove_reference_t<
@@ -312,10 +312,10 @@ coordinate::euclidean_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dim
    */
 #ifdef __cpp_concepts
   template<fixed_pattern StaticDescriptor, typed_matrix_nestable M> requires
-    (coordinate::euclidean_size_of_v<StaticDescriptor> == index_dimension_of_v<M, 0>)
+    (coordinates::stat_dimension_of_v<StaticDescriptor> == index_dimension_of_v<M, 0>)
 #else
   template<typename StaticDescriptor, typename M, std::enable_if_t<fixed_pattern<StaticDescriptor> and
-    typed_matrix_nestable<M> and (coordinate::euclidean_size_of_v<StaticDescriptor> == index_dimension_of<M, 0>::value), int> = 0>
+    typed_matrix_nestable<M> and (coordinates::stat_dimension_of_v<StaticDescriptor> == index_dimension_of<M, 0>::value), int> = 0>
 #endif
   auto make_euclidean_mean(M&& arg)
   {
@@ -368,10 +368,10 @@ coordinate::euclidean_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dim
    */
 #ifdef __cpp_concepts
   template<fixed_pattern StaticDescriptor, typed_matrix_nestable M> requires
-    (coordinate::euclidean_size_of_v<StaticDescriptor> == index_dimension_of_v<M, 0>)
+    (coordinates::stat_dimension_of_v<StaticDescriptor> == index_dimension_of_v<M, 0>)
 #else
   template<typename StaticDescriptor, typename M, std::enable_if_t<fixed_pattern<StaticDescriptor> and
-    typed_matrix_nestable<M> and (coordinate::euclidean_size_of_v<StaticDescriptor> == index_dimension_of<M, 0>::value), int> = 0>
+    typed_matrix_nestable<M> and (coordinates::stat_dimension_of_v<StaticDescriptor> == index_dimension_of<M, 0>::value), int> = 0>
 #endif
   auto make_euclidean_mean()
   {
@@ -413,7 +413,7 @@ coordinate::euclidean_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dim
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
       {
-        if constexpr (value::fixed<N>)
+        if constexpr (values::fixed<N>)
         {
           if constexpr (n == 0_uz) return arg.my_dimension;
           else return OpenKalman::get_vector_space_descriptor(nested_object(arg), n);
@@ -440,7 +440,7 @@ coordinate::euclidean_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dim
       template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
       {
-        if constexpr (coordinate::euclidean_pattern<Coeffs>)
+        if constexpr (coordinates::euclidean_pattern<Coeffs>)
           return constant_coefficient {arg.nestedExpression()};
         else
           return std::monostate {};
@@ -450,7 +450,7 @@ coordinate::euclidean_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dim
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
-        if constexpr (coordinate::euclidean_pattern<Coeffs>)
+        if constexpr (coordinates::euclidean_pattern<Coeffs>)
           return constant_diagonal_coefficient {arg.nestedExpression()};
         else
           return std::monostate {};
@@ -466,13 +466,13 @@ coordinate::euclidean_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dim
 
 
       template<TriangleType t>
-      static constexpr bool is_triangular = coordinate::euclidean_pattern<Coeffs> and triangular_matrix<NestedMatrix, t>;
+      static constexpr bool is_triangular = coordinates::euclidean_pattern<Coeffs> and triangular_matrix<NestedMatrix, t>;
 
 
       static constexpr bool is_triangular_adapter = false;
 
 
-      static constexpr bool is_hermitian = coordinate::euclidean_pattern<Coeffs> and hermitian_matrix<NestedMatrix>;
+      static constexpr bool is_hermitian = coordinates::euclidean_pattern<Coeffs> and hermitian_matrix<NestedMatrix>;
 
 
   #ifdef __cpp_lib_concepts
@@ -503,15 +503,15 @@ coordinate::euclidean_size_of_v<vector_space_descriptor_of_t<V, 0>> == index_dim
 
 
 #ifdef __cpp_lib_concepts
-      template<typename Arg> requires raw_data_defined_for<NestedMatrix> and coordinate::euclidean_pattern<Coeffs>
+      template<typename Arg> requires raw_data_defined_for<NestedMatrix> and coordinates::euclidean_pattern<Coeffs>
 #else
-      template<typename Arg, std::enable_if_t<raw_data_defined_for<NestedMatrix> and coordinate::euclidean_pattern<Coeffs>, int> = 0>
+      template<typename Arg, std::enable_if_t<raw_data_defined_for<NestedMatrix> and coordinates::euclidean_pattern<Coeffs>, int> = 0>
 #endif
       static constexpr auto * const
       raw_data(Arg& arg) { return internal::raw_data(OpenKalman::nested_object(arg)); }
 
 
-      static constexpr Layout layout = coordinate::euclidean_pattern<Coeffs> ? layout_of_v<NestedMatrix> : Layout::none;
+      static constexpr Layout layout = coordinates::euclidean_pattern<Coeffs> ? layout_of_v<NestedMatrix> : Layout::none;
 
     };
 

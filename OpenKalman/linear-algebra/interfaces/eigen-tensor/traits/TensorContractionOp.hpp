@@ -100,7 +100,7 @@ namespace OpenKalman::interface
     {
       if constexpr (std::tuple_size_v<decltype(arg.indices())> == 1)
       {
-        return value::operation {std::multiplies{},
+        return values::operation {std::multiplies{},
           constant_diagonal_coefficient{arg.lhs()}, constant_diagonal_coefficient{arg.rhs()}};
       }
       else

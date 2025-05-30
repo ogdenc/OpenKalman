@@ -37,7 +37,7 @@ namespace OpenKalman
 #endif
   to_euclidean(Arg&& arg)
   {
-    if constexpr (coordinate::euclidean_pattern<vector_space_descriptor_of_t<Arg, 0>>)
+    if constexpr (coordinates::euclidean_pattern<vector_space_descriptor_of_t<Arg, 0>>)
     {
       return std::forward<Arg>(arg);
     }

@@ -12,7 +12,7 @@
 #include "collections/concepts/tuple_like.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::coordinate;
+using namespace OpenKalman::coordinates;
 using namespace OpenKalman::test;
 
 using Axis2 = Dimensions<2>;

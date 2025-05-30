@@ -10,7 +10,7 @@
 
 /**
  * \file \internal
- * \brief Definition for value::internal::constexpr_callable.
+ * \brief Definition for values::internal::constexpr_callable.
  */
 
 #ifndef OPENKALMAN_VALUE_CONSTEXPR_CALLABLE_HPP
@@ -19,7 +19,7 @@
 #include <type_traits>
 #include "values/concepts/number.hpp"
 
-namespace OpenKalman::value::internal
+namespace OpenKalman::values::internal
 {
 #ifndef __cpp_concepts
   namespace detail
@@ -29,7 +29,7 @@ namespace OpenKalman::value::internal
 
     template<typename Op, typename...Args>
     struct constexpr_callable_impl<Op, std::enable_if_t<
-      value::number<decltype(std::declval<Op>()(std::declval<Args>()...))> and
+      values::number<decltype(std::declval<Op>()(std::declval<Args>()...))> and
       std::bool_constant<(Op{}(Args{}...), true)>::value>, Args...> : std::true_type {};
   } // namespace detail
 #endif
@@ -45,7 +45,7 @@ namespace OpenKalman::value::internal
   {
 #ifdef __cpp_concepts
     if constexpr (requires(Op op, const Args&...args) {
-      {op(args...)} -> value::number;
+      {op(args...)} -> values::number;
       requires std::bool_constant<(Op{}(Args{}...), true)>::value;
     })
 #else
@@ -66,7 +66,7 @@ namespace OpenKalman::value::internal
     else return false;
   }
 
-} // namespace OpenKalman::value::internal
+} // namespace OpenKalman::values::internal
 
 
 #endif //OPENKALMAN_VALUE_CONSTEXPR_CALLABLE_HPP

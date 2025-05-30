@@ -140,9 +140,9 @@ namespace OpenKalman::interface
   public:
 
 #ifdef __cpp_lib_ranges
-    template<indexible Arg, std::ranges::input_range Indices> requires value::index<std::ranges::range_value_t<Indices>> and
+    template<indexible Arg, std::ranges::input_range Indices> requires values::index<std::ranges::range_value_t<Indices>> and
       interface::get_component_defined_for<NestedObject, nested_object_of_t<Arg&&>, const Indices&>
-    static constexpr value::scalar decltype(auto)
+    static constexpr values::scalar decltype(auto)
 #else
     template<typename Arg, typename Indices, std::enable_if_t<
       interface::get_component_defined_for<NestedObject, typename nested_object_of<Arg&&>::type, const Indices&>, int> = 0>
@@ -155,7 +155,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_ranges
-    template<indexible Arg, std::ranges::input_range Indices> requires value::index<std::ranges::range_value_t<Indices>> and
+    template<indexible Arg, std::ranges::input_range Indices> requires values::index<std::ranges::range_value_t<Indices>> and
       interface::set_component_defined_for<NestedObject, nested_object_of_t<Arg&&>, const scalar_type_of_t<Arg>&, const Indices&>
 #else
     template<typename Arg, typename Indices, std::enable_if_t<
@@ -358,7 +358,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<indexible Arg, value::index...Factors> requires
+    template<indexible Arg, values::index...Factors> requires
       interface::broadcast_defined_for<NestedObject, nested_object_of_t<Arg&&>, const Factors&...>
     static indexible auto
 #else
@@ -373,7 +373,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<coordinate::pattern...IDs, typename Operation, indexible...Args> requires
+    template<coordinates::pattern...IDs, typename Operation, indexible...Args> requires
       interface::n_ary_operation_defined_for<LibraryInterface, const std::tuple<IDs...>&, Operation&&>
     static indexible auto
 #else
@@ -388,7 +388,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<coordinate::pattern...IDs, typename Operation, indexible Arg, indexible...Args> requires
+    template<coordinates::pattern...IDs, typename Operation, indexible Arg, indexible...Args> requires
       interface::n_ary_operation_defined_for<NestedObject, const std::tuple<IDs...>&, Operation&&, nested_object_of_t<Arg&&>, Args...>
     static indexible auto
 #else
@@ -439,7 +439,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<indexible Arg, coordinate::pattern V> requires
+    template<indexible Arg, coordinates::pattern V> requires
       interface::from_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>, const V&> or
       interface::from_euclidean_defined_for<NestedObject, Arg&&, const V&>
     static constexpr indexible auto

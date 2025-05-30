@@ -38,7 +38,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that \ref indexible objects Ts may have equivalent dimensions and vector-space types.
-   * \details Two dimensions are considered the same if their \ref coordinate::pattern are equivalent.
+   * \details Two dimensions are considered the same if their \ref coordinates::pattern are equivalent.
    * \sa vector_space_descriptors_match_with
    * \sa vector_space_descriptors_match
    */

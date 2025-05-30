@@ -53,13 +53,13 @@ namespace OpenKalman::interface
      * \brief Get a scalar component of Arg at a given set of indices.
      * \details The indices are are in the form of a ranged object accessible by an iterator.
      * \tparam Indices A ranged object satisfying std::ranges::input_range, which contains exactly <code>count_indices(arg)</code> indices.
-     * \returns an element or reference to a component of Arg, as a \ref value::scalar (preferably as a non-const lvalue reference)
+     * \returns an element or reference to a component of Arg, as a \ref values::scalar (preferably as a non-const lvalue reference)
      * \note Mandatory. Also, this function, or the library, is responsible for any optional bounds checking.
      *
      */
 #ifdef __cpp_lib_ranges
-    template<indexible Arg, std::ranges::input_range Indices> requires value::index<std::ranges::range_value_t<Indices>>
-    static constexpr value::scalar decltype(auto)
+    template<indexible Arg, std::ranges::input_range Indices> requires values::index<std::ranges::range_value_t<Indices>>
+    static constexpr values::scalar decltype(auto)
 #else
     template<typename Arg, typename Indices>
     static constexpr decltype(auto)
@@ -76,7 +76,7 @@ namespace OpenKalman::interface
      *
      */
 #ifdef __cpp_lib_ranges
-    template<indexible Arg, std::ranges::input_range Indices> requires value::index<std::ranges::range_value_t<Indices>>
+    template<indexible Arg, std::ranges::input_range Indices> requires values::index<std::ranges::range_value_t<Indices>>
 #else
     template<typename Arg, typename Indices>
 #endif
@@ -118,7 +118,7 @@ namespace OpenKalman::interface
 
     /**
      * \brief Make a default, potentially uninitialized, dense, writable matrix or array within the library.
-     * \details Takes a \ref coordinate::euclidean_pattern_collection that specifies the dimensions of the resulting object
+     * \details Takes a \ref coordinates::euclidean_pattern_collection that specifies the dimensions of the resulting object
      * \tparam layout the \ref Layout of the result, which may be Layout::left, Layout::right, or
      * Layout::none (which indicates the default layout for the library).
      * \tparam Scalar The scalar value of the result.
@@ -126,9 +126,9 @@ namespace OpenKalman::interface
      * \note The interface may base the return value on any properties of LibraryObject (e.g., whether LibraryObject is a matrix or array).
      */
 #ifdef __cpp_concepts
-    template<Layout layout, value::number Scalar> requires (layout != Layout::stride)
+    template<Layout layout, values::number Scalar> requires (layout != Layout::stride)
     static auto
-    make_default(coordinate::euclidean_pattern_collection auto&& descriptors) = delete;
+    make_default(coordinates::euclidean_pattern_collection auto&& descriptors) = delete;
 #else
     template<Layout layout, typename Scalar, typename Descriptors>
     static auto
@@ -157,14 +157,14 @@ namespace OpenKalman::interface
 
     /**
      * \brief Create a \ref constant_matrix of a given shape (optional).
-     * \details Takes a \ref coordinate::euclidean_pattern_collection that specifies the dimensions of the resulting object
-     * \param c A \ref value::scalar (either static or dynamic)
-     * \param d A \ref coordinate::euclidean_pattern_collection
+     * \details Takes a \ref coordinates::euclidean_pattern_collection that specifies the dimensions of the resulting object
+     * \param c A \ref values::scalar (either static or dynamic)
+     * \param d A \ref coordinates::euclidean_pattern_collection
      * \note If this is not defined, calls to <code>OpenKalman::make_constant</code> will return an object of type ConstantAdapter.
      */
 #ifdef __cpp_concepts
     static constexpr constant_matrix auto
-    make_constant(const value::scalar auto& c, coordinate::euclidean_pattern_collection auto&& d) = delete;
+    make_constant(const values::scalar auto& c, coordinates::euclidean_pattern_collection auto&& d) = delete;
 #else
     template<typename C, typename D>
     static constexpr auto
@@ -177,12 +177,12 @@ namespace OpenKalman::interface
      * \details This is a generalized identity matrix that need not be square, but every non-diagonal element must be zero.
      * \note If not defined, an identity matrix is a \ref DiagonalAdapter with a constant diagonal of 1.
      * \tparam Scalar The scalar type of the new object
-     * \param d A \ref coordinate::pattern object defining the size
+     * \param d A \ref coordinates::pattern object defining the size
      */
 #ifdef __cpp_concepts
-    template<value::number Scalar>
+    template<values::number Scalar>
     static constexpr identity_matrix auto
-    make_identity_matrix(coordinate::euclidean_pattern_collection auto&& d) = delete;
+    make_identity_matrix(coordinates::euclidean_pattern_collection auto&& d) = delete;
 #else
     template<typename Scalar, typename D>
     static constexpr auto
@@ -245,14 +245,14 @@ namespace OpenKalman::interface
 
 
      /**
-      * \brief Project the Euclidean vector space associated with index 0 to \ref coordinate::pattern v after applying directional statistics
-      * \param v The new \ref coordinate::pattern for index 0.
+      * \brief Project the Euclidean vector space associated with index 0 to \ref coordinates::pattern v after applying directional statistics
+      * \param v The new \ref coordinates::pattern for index 0.
       * \note This is optional.
       * If not defined, the \ref OpenKalman::from_euclidean "from_euclidean" function will construct a FromEuclideanExpr object.
       * In this case, the library should be able to accept FromEuclideanExpr object as native.
       */
  #ifdef __cpp_concepts
-     template<indexible Arg, coordinate::pattern V>
+     template<indexible Arg, coordinates::pattern V>
      static constexpr indexible auto
  #else
      template<typename Arg, typename V>
@@ -262,7 +262,7 @@ namespace OpenKalman::interface
 
 
      /**
-      * \brief Wrap Arg based on \ref coordinate::pattern V.
+      * \brief Wrap Arg based on \ref coordinates::pattern V.
       * \note This is optional. If not defined, the public \ref OpenKalman::wrap_angles "wrap_angles" function
       * will call <code>from_euclidean(to_euclidean(std::forward<Arg>(arg)), get_vector_space_descriptor<0>(arg))</code>.
       */
@@ -278,11 +278,11 @@ namespace OpenKalman::interface
 
     /**
      * \brief Get a block from a matrix or tensor.
-     * \param begin A tuple corresponding to each of indices, each element specifying the beginning \ref value::index.
-     * \param size A tuple corresponding to each of indices, each element specifying the size (as an \ref value::index) of the extracted block.
+     * \param begin A tuple corresponding to each of indices, each element specifying the beginning \ref values::index.
+     * \param size A tuple corresponding to each of indices, each element specifying the size (as an \ref values::index) of the extracted block.
      */
 #ifdef __cpp_concepts
-    template<indexible Arg, value::index...Begin, value::index...Size> requires
+    template<indexible Arg, values::index...Begin, values::index...Size> requires
       (index_count_v<Arg> == sizeof...(Begin)) and (index_count_v<Arg> == sizeof...(Size))
     static indexible decltype(auto)
 #else
@@ -298,11 +298,11 @@ namespace OpenKalman::interface
      * \param block A block to be copied into Arg at a particular location.
      * Note: This may not necessarily be within the same library as arg, so a conversion may be necessary
      * (e.g., via /ref to_native_matrix).
-     * \param begin \ref value::index corresponding to each of indices, specifying the beginning \ref value::index.
+     * \param begin \ref values::index corresponding to each of indices, specifying the beginning \ref values::index.
      * \returns An lvalue reference to arg.
      */
 #ifdef __cpp_concepts
-    template<writable Arg, indexible Block, value::index...Begin> requires
+    template<writable Arg, indexible Block, values::index...Begin> requires
       (index_count_v<Block> == sizeof...(Begin)) and (index_count_v<Arg> == sizeof...(Begin))
 #else
     template<typename Arg, typename Block, typename...Begin>
@@ -375,7 +375,7 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     static indexible auto
-    broadcast(indexible auto&& arg, const value::index auto&...factors) = delete;
+    broadcast(indexible auto&& arg, const values::index auto&...factors) = delete;
 #else
     template<typename Arg, typename...Factors>
     static auto
@@ -385,20 +385,20 @@ namespace OpenKalman::interface
 
     /**
      * \brief Perform an n-ary array operation on a set of n arguments.
-     * \details The \ref coordinate::pattern tuple d_tup defines the size of the resulting matrix.
+     * \details The \ref coordinates::pattern tuple d_tup defines the size of the resulting matrix.
      * \note This is optional and should be left undefined to the extent the native library does not provide this
      * functionality.
-     * \param d_tup A tuple of \ref coordinate::pattern (of type Ds) defining the resulting tensor
+     * \param d_tup A tuple of \ref coordinates::pattern (of type Ds) defining the resulting tensor
      * \tparam Operation The n-ary operation taking n scalar arguments and (optionally) <code>sizeof...(Ds)</code> indices.
      * Examples:
-     * - <code>template<value::number...X> operation(const X&...)</code>
-     * - <code>template<value::number...X, value::index...I> operation(const X&..., I...)</code>
+     * - <code>template<values::number...X> operation(const X&...)</code>
+     * - <code>template<values::number...X, values::index...I> operation(const X&..., I...)</code>
      * \param args A set of n indexible arguments, each having the same vector space descriptors.
      * \return An object with size and shape defined by d_tup and with elements defined by the operation
      * \todo Eliminate the Ds?
      */
 #ifdef __cpp_concepts
-    template<coordinate::pattern...Ds, typename Operation, indexible...Args> requires
+    template<coordinates::pattern...Ds, typename Operation, indexible...Args> requires
       std::invocable<Operation&&, scalar_type_of_t<Args>...> or
       std::invocable<Operation&&, scalar_type_of_t<Args>..., std::conditional_t<true, std::size_t, Ds>...>
     static compatible_with_vector_space_descriptor_collection<std::tuple<Ds...>> auto
@@ -508,8 +508,8 @@ namespace OpenKalman::interface
      * \note This is optional. If not defined, the library will use n_ary_operation with a constant.
      */
 #ifdef __cpp_concepts
-    template<indexible Arg, value::scalar S> requires
-      requires(S s) { {value::to_number(s)} -> std::convertible_to<scalar_type_of_t<Arg>>; }
+    template<indexible Arg, values::scalar S> requires
+      requires(S s) { {values::to_number(s)} -> std::convertible_to<scalar_type_of_t<Arg>>; }
     static constexpr vector_space_descriptors_may_match_with<Arg> auto
 #else
     template<typename Arg, typename S>
@@ -525,8 +525,8 @@ namespace OpenKalman::interface
      * \note This is optional. If not defined, the library will use n_ary_operation with a constant.
      */
 #ifdef __cpp_concepts
-    template<indexible Arg, value::scalar S> requires
-      requires(S s) { {value::to_number(s)} -> std::convertible_to<scalar_type_of_t<Arg>>; }
+    template<indexible Arg, values::scalar S> requires
+      requires(S s) { {values::to_number(s)} -> std::convertible_to<scalar_type_of_t<Arg>>; }
     static constexpr vector_space_descriptors_may_match_with<Arg> auto
 #else
     template<typename Arg, typename S>

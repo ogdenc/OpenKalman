@@ -11,7 +11,7 @@
 /**
  * \file
  * \internal
- * \brief Definition of \ref value::fixed constants.
+ * \brief Definition of \ref values::fixed constants.
  */
 
 #ifndef OPENKALMAN_VALUE_CLASSES_FIXED_CONSTANTS_HPP
@@ -20,19 +20,19 @@
 #include "values/concepts/number.hpp"
 #include "values/classes/Fixed.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief A fixed version of pi
    */
 #if __cpp_nontype_template_args >= 201911L
-  template<value::number T>
-  using fixed_pi = value::Fixed<T, numbers::pi_v<T>>;
+  template<values::number T>
+  using fixed_pi = values::Fixed<T, numbers::pi_v<T>>;
 #else
   template<typename T>
   struct fixed_pi
   {
-    static_assert(value::number<T>);
+    static_assert(values::number<T>);
     using value_type = T;
     static constexpr value_type value {numbers::pi_v<value_type>};
     using type = fixed_pi;
@@ -46,13 +46,13 @@ namespace OpenKalman::value
    * \brief A fixed version of -pi
    */
 #if __cpp_nontype_template_args >= 201911L
-  template<value::number T>
-  using fixed_minus_pi = value::Fixed<T, -numbers::pi_v<T>>;
+  template<values::number T>
+  using fixed_minus_pi = values::Fixed<T, -numbers::pi_v<T>>;
 #else
   template<typename T>
   struct fixed_minus_pi
   {
-    static_assert(value::number<T>);
+    static_assert(values::number<T>);
     using value_type = T;
     static constexpr value_type value {-numbers::pi_v<value_type>};
     using type = fixed_minus_pi;
@@ -66,13 +66,13 @@ namespace OpenKalman::value
    * \brief A fixed version of 2*pi
    */
 #if __cpp_nontype_template_args >= 201911L
-  template<value::number T>
-  using fixed_2pi = value::Fixed<T, 2 * numbers::pi_v<T>>;
+  template<values::number T>
+  using fixed_2pi = values::Fixed<T, 2 * numbers::pi_v<T>>;
 #else
   template<typename T>
   struct fixed_2pi
   {
-    static_assert(value::number<T>);
+    static_assert(values::number<T>);
     using value_type = T;
     static constexpr value_type value {2 * numbers::pi_v<value_type>};
     using type = fixed_2pi;
@@ -86,13 +86,13 @@ namespace OpenKalman::value
  * \brief A fixed version of pi/2
  */
 #if __cpp_nontype_template_args >= 201911L
-  template<value::number T>
-  using fixed_half_pi = value::Fixed<T, static_cast<T>(0.5) * numbers::pi_v<T>>;
+  template<values::number T>
+  using fixed_half_pi = values::Fixed<T, static_cast<T>(0.5) * numbers::pi_v<T>>;
 #else
   template<typename T>
   struct fixed_half_pi
   {
-    static_assert(value::number<T>);
+    static_assert(values::number<T>);
     using value_type = T;
     static constexpr value_type value {static_cast<value_type>(0.5) * numbers::pi_v<value_type>};
     using type = fixed_half_pi;
@@ -106,13 +106,13 @@ namespace OpenKalman::value
  * \brief A fixed version of -pi/2
  */
 #if __cpp_nontype_template_args >= 201911L
-  template<value::number T>
-  using fixed_minus_half_pi = value::Fixed<T, static_cast<T>(-0.5) * numbers::pi_v<T>>;
+  template<values::number T>
+  using fixed_minus_half_pi = values::Fixed<T, static_cast<T>(-0.5) * numbers::pi_v<T>>;
 #else
   template<typename T>
   struct fixed_minus_half_pi
   {
-    static_assert(value::number<T>);
+    static_assert(values::number<T>);
     using value_type = T;
     static constexpr value_type value {static_cast<value_type>(-0.5) * numbers::pi_v<value_type>};
     using type = fixed_minus_half_pi;
@@ -122,7 +122,7 @@ namespace OpenKalman::value
 #endif
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_CLASSES_FIXED_CONSTANTS_HPP

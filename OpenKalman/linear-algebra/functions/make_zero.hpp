@@ -23,14 +23,14 @@ namespace OpenKalman
    * \tparam T An \indexible object (matrix or tensor) from a particular library. Its shape and contents are irrelevant.
    * \tparam Scalar An optional scalar type for the new zero matrix. By default, T's scalar type is used.
    * \param Descriptors A \ref pattern_collection defining the dimensions of each index.
-   * If none are provided and T has no dynamic dimensions, the function takes \ref coordinate::pattern from T.
+   * If none are provided and T has no dynamic dimensions, the function takes \ref coordinates::pattern from T.
    */
 #ifdef __cpp_concepts
-  template<indexible T, value::number Scalar = scalar_type_of_t<T>, pattern_collection Descriptors>
+  template<indexible T, values::number Scalar = scalar_type_of_t<T>, pattern_collection Descriptors>
   constexpr zero auto
 #else
   template<typename T, typename Scalar = scalar_type_of_t<T>, typename...Ds, std::enable_if_t<indexible<T> and
-    value::number<Scalar> and pattern_collection<Descriptors>, int> = 0>
+    values::number<Scalar> and pattern_collection<Descriptors>, int> = 0>
   constexpr auto
 #endif
   make_zero(Descriptors&& descriptors)
@@ -41,14 +41,14 @@ namespace OpenKalman
 
   /**
    * \overload
-   * \brief Specify \ref coordinate::pattern objects as arguments.
+   * \brief Specify \ref coordinates::pattern objects as arguments.
    */
 #ifdef __cpp_concepts
-  template<indexible T, value::number Scalar = scalar_type_of_t<T>, coordinate::pattern...Ds>
+  template<indexible T, values::number Scalar = scalar_type_of_t<T>, coordinates::pattern...Ds>
   constexpr zero auto
 #else
   template<typename T, typename Scalar = scalar_type_of_t<T>, typename...Ds, std::enable_if_t<indexible<T> and
-    value::number<Scalar> and (... and coordinate::pattern<Ds>), int> = 0>
+    values::number<Scalar> and (... and coordinates::pattern<Ds>), int> = 0>
   constexpr auto
 #endif
   make_zero(Ds&&...ds)
@@ -64,10 +64,10 @@ namespace OpenKalman
    * \tparam Scalar A scalar type for the new matrix.
    */
 #ifdef __cpp_concepts
-  template<value::number Scalar, indexible T>
+  template<values::number Scalar, indexible T>
   constexpr zero auto
 #else
-  template<typename Scalar, typename T, std::enable_if_t<value::number<Scalar> and indexible<T>, int> = 0>
+  template<typename Scalar, typename T, std::enable_if_t<values::number<Scalar> and indexible<T>, int> = 0>
   constexpr auto
 #endif
   make_zero(const T& t)

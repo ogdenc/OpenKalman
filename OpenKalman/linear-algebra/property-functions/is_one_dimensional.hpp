@@ -32,7 +32,7 @@ namespace OpenKalman
 
   /**
    * \brief Return true if T is a \ref one_dimensional at runtime.
-   * \details Each index also must have an equivalent \ref coordinate::pattern object.
+   * \details Each index also must have an equivalent \ref coordinates::pattern object.
    * \tparam T A tensor or matrix
    */
 #ifdef __cpp_concepts
@@ -42,7 +42,7 @@ namespace OpenKalman
 #endif
   constexpr bool is_one_dimensional(const T& t)
   {
-    if constexpr (value::fixed<decltype(count_indices(t))>)
+    if constexpr (values::fixed<decltype(count_indices(t))>)
     {
       constexpr std::size_t count = std::decay_t<decltype(count_indices(t))>::value;
       if constexpr (count == 0) return true;
@@ -51,7 +51,7 @@ namespace OpenKalman
     else
     {
       auto d0 = get_vector_space_descriptor<0>(t);
-      if (get_size(d0) != 1_uz) return false;
+      if (get_dimension(d0) != 1_uz) return false;
       else for (std::size_t i = 1; i < count_indices(t); ++i) if (d0 != get_vector_space_descriptor(t, i)) return false;
       return true;
     }

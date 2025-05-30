@@ -26,11 +26,11 @@ namespace OpenKalman::Eigen3
    * \tparam columns The number of columns.
    */
 #ifdef __cpp_concepts
-  template<value::number Scalar, std::size_t rows, std::size_t columns = 1, std::convertible_to<Scalar> ... Args>
+  template<values::number Scalar, std::size_t rows, std::size_t columns = 1, std::convertible_to<Scalar> ... Args>
     requires (rows != dynamic_size) and (columns != dynamic_size) and (sizeof...(Args) == rows * columns)
 #else
   template<typename Scalar, std::size_t rows, std::size_t columns = 1, typename ... Args, std::enable_if_t<
-    value::number<Scalar> and (std::is_convertible_v<Args, Scalar> and ...) and
+    values::number<Scalar> and (std::is_convertible_v<Args, Scalar> and ...) and
     (rows != dynamic_size) and (columns != dynamic_size) and (sizeof...(Args) == rows * columns), int> = 0>
 #endif
   inline auto
@@ -47,11 +47,11 @@ namespace OpenKalman::Eigen3
    * \brief In this overload, the scalar type is derived from the arguments.
    */
 #ifdef __cpp_concepts
-  template<std::size_t rows, std::size_t columns = 1, value::number...Args> requires
+  template<std::size_t rows, std::size_t columns = 1, values::number...Args> requires
     (rows != dynamic_size) and (columns != dynamic_size) and (sizeof...(Args) == rows * columns) and
-    requires { requires value::number<std::common_type_t<Args...>>; }
+    requires { requires values::number<std::common_type_t<Args...>>; }
 #else
-  template<std::size_t rows, std::size_t columns = 1, typename ... Args, std::enable_if_t<(value::number<Args> and ...) and
+  template<std::size_t rows, std::size_t columns = 1, typename ... Args, std::enable_if_t<(values::number<Args> and ...) and
     (rows != dynamic_size) and (columns != dynamic_size) and (sizeof...(Args) == rows * columns), int> = 0>
 #endif
   inline auto
@@ -66,10 +66,10 @@ namespace OpenKalman::Eigen3
    * \brief In this overload, the result is a column vector of size determined by the number of arguments.
    */
 #ifdef __cpp_concepts
-  template<value::number Scalar, std::convertible_to<Scalar>...Args> requires (not std::is_void_v<Scalar>)
+  template<values::number Scalar, std::convertible_to<Scalar>...Args> requires (not std::is_void_v<Scalar>)
 #else
   template<typename Scalar, typename ... Args, std::enable_if_t<
-    value::number<Scalar> and (std::is_convertible_v<Args, Scalar> and ...) and (not std::is_void_v<Scalar>), int> = 0>
+    values::number<Scalar> and (std::is_convertible_v<Args, Scalar> and ...) and (not std::is_void_v<Scalar>), int> = 0>
 #endif
   inline auto
   make_eigen_matrix(const Args ... args)
@@ -83,10 +83,10 @@ namespace OpenKalman::Eigen3
    * \brief In this overload, the scalar type is derived from the arguments.
    */
 #ifdef __cpp_concepts
-  template<typename Scalar = void, value::number ... Args> requires (std::is_void_v<Scalar>) and
-    requires { requires value::number<std::common_type_t<Args...>>; }
+  template<typename Scalar = void, values::number ... Args> requires (std::is_void_v<Scalar>) and
+    requires { requires values::number<std::common_type_t<Args...>>; }
 #else
-  template<typename Scalar = void, typename ... Args, std::enable_if_t<(value::number<Args> and ...) and std::is_void_v<Scalar>, int> = 0>
+  template<typename Scalar = void, typename ... Args, std::enable_if_t<(values::number<Args> and ...) and std::is_void_v<Scalar>, int> = 0>
 #endif
   inline auto
   make_eigen_matrix(const Args...args)

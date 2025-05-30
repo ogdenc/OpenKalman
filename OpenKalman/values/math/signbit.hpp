@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::signbit.
+ * \brief Definition for \ref values::signbit.
  */
 
 #ifndef OPENKALMAN_VALUE_SIGNBIT_HPP
@@ -21,7 +21,7 @@
 #include "values/classes/operation.hpp"
 #include "values/functions/internal/constexpr_callable.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief A constexpr function analogous to std::signbit.
@@ -32,31 +32,31 @@ namespace OpenKalman::value
    * at compile time, the sign of either ±NaN or ±0.0.
    */
 #ifdef __cpp_concepts
-  template<value::value Arg> requires (not value::complex<value::number_type_of_t<Arg>>)
+  template<values::value Arg> requires (not values::complex<values::number_type_of_t<Arg>>)
 #else
-  template <typename Arg, std::enable_if_t<value::value<Arg> and not value::complex<value::number_type_of_t<Arg>>, int> = 0>
+  template <typename Arg, std::enable_if_t<values::value<Arg> and not values::complex<values::number_type_of_t<Arg>>, int> = 0>
 #endif
   constexpr bool signbit(const Arg& arg)
   {
-    if constexpr (not value::number<Arg>)
+    if constexpr (not values::number<Arg>)
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Arg>& a) const { return value::signbit(a); } };
-      return value::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::signbit(a); } };
+      return values::operation {Op{}, arg};
     }
     else
     {
       using std::signbit;
       struct Op { auto operator()(const Arg& arg) { return signbit(arg); } };
       if (internal::constexpr_callable<Op>(arg)) return signbit(arg);
-      if constexpr (value::integral<Arg>) return arg < 0;
-      // Note: The result will be inaccurate if, at this stage, value::isnan(arg) == true or
+      if constexpr (values::integral<Arg>) return arg < 0;
+      // Note: The result will be inaccurate if, at this stage, values::isnan(arg) == true or
       // (std::numeric_limits<Arg>::is_iec559 and arg == 0).
       return arg < 0;
     }
   }
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_SIGNBIT_HPP

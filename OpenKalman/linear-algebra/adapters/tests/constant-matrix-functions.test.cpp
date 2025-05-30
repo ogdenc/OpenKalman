@@ -12,7 +12,7 @@
 #include <complex>
 
 using namespace OpenKalman;
-using namespace OpenKalman::coordinate;
+using namespace OpenKalman::coordinates;
 using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 
@@ -660,9 +660,9 @@ TEST(adapters, constant_solve)
   EXPECT_TRUE(is_near(solve(cxx_22, cxx_23), m23_2));
 
   static_assert(constant_coefficient_v<decltype(solve(c22, c23))> == 2);
-  static_assert(value::dynamic<constant_coefficient<decltype(solve(c2x_2, c23))>>);
+  static_assert(values::dynamic<constant_coefficient<decltype(solve(c2x_2, c23))>>);
   static_assert(constant_coefficient_v<decltype(solve(cx2_2, c23))> == 2);
-  static_assert(value::dynamic<constant_coefficient<decltype(solve(cxx_22, c23))>>);
+  static_assert(values::dynamic<constant_coefficient<decltype(solve(cxx_22, c23))>>);
 
   auto c12_2 = Eigen::Replicate<decltype(c11_2), 1, 2> {c11_2, 1, 2};
   auto c1x_2_2 = Eigen::Replicate<decltype(c11_2), 1, Eigen::Dynamic> {c11_2, 1, 2};
@@ -989,7 +989,7 @@ TEST(adapters, constant_reductions)
 
   auto efc11 = (M11::Identity() + M11::Identity()).array() / (M11::Identity() + M11::Identity() + M11::Identity()).array();
   using EFC11 = decltype(efc11);
-  static_assert(value::internal::near(constant_coefficient_v<EFC11>, 2./3));
+  static_assert(values::internal::near(constant_coefficient_v<EFC11>, 2./3));
 
   auto efc23 = Eigen::Replicate<EFC11, 2, 3> {efc11};
   auto efc2x_3 = Eigen::Replicate<EFC11, 2, Eigen::Dynamic> {efc11, 2, 3};
@@ -1004,8 +1004,8 @@ TEST(adapters, constant_reductions)
   EXPECT_TRUE(is_near(reduce<0>(std::multiplies<double>{}, efc2x_3), 2./3 * efc13));
   EXPECT_TRUE(is_near(reduce<0>(std::multiplies<double>{}, efcxx_23), 2./3 * efc13));
 
-  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, efc23), 3 * efc21)); static_assert(value::internal::near(constant_coefficient_v<decltype(reduce<1>(std::plus<double>{}, efc23))>, 2));
-  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, efcx3_2), 3 * efc21)); static_assert(value::internal::near(constant_coefficient_v<decltype(reduce<1>(std::plus<double>{}, efcx3_2))>, 2));
+  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, efc23), 3 * efc21)); static_assert(values::internal::near(constant_coefficient_v<decltype(reduce<1>(std::plus<double>{}, efc23))>, 2));
+  EXPECT_TRUE(is_near(reduce<1>(std::plus<double>{}, efcx3_2), 3 * efc21)); static_assert(values::internal::near(constant_coefficient_v<decltype(reduce<1>(std::plus<double>{}, efcx3_2))>, 2));
   EXPECT_TRUE(is_near(reduce<1>(std::multiplies<double>{}, efc2x_3), 4./9 * efc21));
   EXPECT_TRUE(is_near(reduce<1>(std::multiplies<double>{}, efcxx_23), 4./9 * efc21));
 
@@ -1016,18 +1016,18 @@ TEST(adapters, constant_reductions)
   EXPECT_TRUE(is_near(reduce<1, 0>(std::multiplies<double>{}, efc2x_3), 32./243 * efc11));
 
 #if defined(__cpp_lib_ranges) and not defined (__clang__)
-  static_assert(value::internal::near(reduce(std::plus<double>{}, efc11), 2./3));
-  static_assert(value::internal::near(reduce(std::multiplies<double>{}, efc11), 2./3));
+  static_assert(values::internal::near(reduce(std::plus<double>{}, efc11), 2./3));
+  static_assert(values::internal::near(reduce(std::multiplies<double>{}, efc11), 2./3));
 #else
   EXPECT_NEAR(reduce(std::plus<double>{}, efc11), 2./3, 1e-9);
   EXPECT_NEAR(reduce(std::multiplies<double>{}, efc11), 2./3, 1e-9);
 #endif
-  static_assert(value::internal::near(reduce(std::plus<double>{}, efc13), 2));
-  static_assert(value::internal::near(reduce(std::multiplies<double>{}, efc13), 8./27));
-  static_assert(value::internal::near(reduce(std::plus<double>{}, efc21), 4./3));
-  static_assert(value::internal::near(reduce(std::multiplies<double>{}, efc21), 4./9));
-  static_assert(value::internal::near(reduce(std::plus<double>{}, efc23), 4));
-  static_assert(value::internal::near(reduce(std::multiplies<double>{}, efc23), 64./729));
+  static_assert(values::internal::near(reduce(std::plus<double>{}, efc13), 2));
+  static_assert(values::internal::near(reduce(std::multiplies<double>{}, efc13), 8./27));
+  static_assert(values::internal::near(reduce(std::plus<double>{}, efc21), 4./3));
+  static_assert(values::internal::near(reduce(std::multiplies<double>{}, efc21), 4./9));
+  static_assert(values::internal::near(reduce(std::plus<double>{}, efc23), 4));
+  static_assert(values::internal::near(reduce(std::multiplies<double>{}, efc23), 64./729));
 
   // average_reduce zero
 

@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::isinf.
+ * \brief Definition for \ref values::isinf.
  */
 
 #ifndef OPENKALMAN_VALUE_ISINF_HPP
@@ -19,22 +19,22 @@
 #include "values/concepts/number.hpp"
 #include "values/functions/internal/constexpr_callable.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief Constexpr alternative to std::isinf. Checks whether the input is positive or negative infinity.
    */
 #ifdef __cpp_concepts
-  template <value::value Arg> requires (not value::complex<value::number_type_of_t<Arg>>)
+  template <values::value Arg> requires (not values::complex<values::number_type_of_t<Arg>>)
 #else
-  template <typename Arg, std::enable_if_t<value::value<Arg> and (not value::complex<value::number_type_of_t<Arg>>), int> = 0>
+  template <typename Arg, std::enable_if_t<values::value<Arg> and (not values::complex<values::number_type_of_t<Arg>>), int> = 0>
 #endif
   constexpr bool isinf(const Arg& arg)
   {
-    if constexpr (not value::number<Arg>)
+    if constexpr (not values::number<Arg>)
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Arg>& a) const { return value::isinf(a); } };
-      return value::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::isinf(a); } };
+      return values::operation {Op{}, arg};
     }
     else
     {
@@ -47,7 +47,7 @@ namespace OpenKalman::value
     }
   }
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_ISINF_HPP

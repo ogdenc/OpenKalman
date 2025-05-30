@@ -21,19 +21,19 @@
 #include "values/functions/to_number.hpp"
 
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
-   * \brief Obtain the \ref value::number type associated with a\ref value::value.
+   * \brief Obtain the \ref values::number type associated with a\ref values::value.
    */
 #ifdef __cpp_concepts
-  template<value::value T>
+  template<values::value T>
 #else
-  template<typename T, std::enable_if_t<value::value<T>, int> = 0>
+  template<typename T, std::enable_if_t<values::value<T>, int> = 0>
 #endif
-  using number_type_of_t = std::decay_t<decltype(value::to_number(std::declval<T>()))>;
+  using number_type_of_t = std::decay_t<decltype(values::to_number(std::declval<T>()))>;
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_VALUES_NUMBER_TYPE_OF_T_HPP

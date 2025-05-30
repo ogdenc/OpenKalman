@@ -26,7 +26,7 @@ namespace OpenKalman
   /// A typed vector.
 #ifdef __cpp_concepts
   template<fixed_pattern RowCoefficients, typed_matrix_nestable NestedMatrix> requires
-    (coordinate::size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
+    (coordinates::dimension_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
     (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename RowCoefficients, typename NestedMatrix>
@@ -38,7 +38,7 @@ namespace OpenKalman
 #ifndef __cpp_concepts
     static_assert(fixed_pattern<RowCoefficients>);
     static_assert(typed_matrix_nestable<NestedMatrix>);
-    static_assert(coordinate::size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>);
+    static_assert(coordinates::dimension_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>);
     static_assert(not std::is_rvalue_reference_v<NestedMatrix>);
 #endif
 
@@ -221,7 +221,7 @@ namespace OpenKalman
     /// Increment from another mean.
     auto& operator+=(const Mean& other)
     {
-      if constexpr(coordinate::euclidean_pattern<RowCoefficients>)
+      if constexpr(coordinates::euclidean_pattern<RowCoefficients>)
         this->nested_object() += other.nested_object();
       else
         this->nested_object() = wrap_angles<RowCoefficients>(this->nested_object() + other.nested_object());
@@ -243,7 +243,7 @@ namespace OpenKalman
 #endif
     auto& operator+=(Arg&& other)
     {
-      if constexpr(coordinate::euclidean_pattern<RowCoefficients>)
+      if constexpr(coordinates::euclidean_pattern<RowCoefficients>)
         this->nested_object() += nested_object(std::forward<Arg>(other));
       else
         this->nested_object() = wrap_angles<RowCoefficients>(
@@ -262,7 +262,7 @@ namespace OpenKalman
     auto& operator+=(const Arg& arg)
     {
       apply_columnwise([&arg](auto& col){
-        if constexpr(coordinate::euclidean_pattern<RowCoefficients>)
+        if constexpr(coordinates::euclidean_pattern<RowCoefficients>)
           col += arg().nested_object();
         else
           col = wrap_angles<RowCoefficients>(col + arg().nested_object());
@@ -274,7 +274,7 @@ namespace OpenKalman
     /// Decrement from another mean and wrap result.
     auto& operator-=(const Mean& other)
     {
-      if constexpr(coordinate::euclidean_pattern<RowCoefficients>)
+      if constexpr(coordinates::euclidean_pattern<RowCoefficients>)
         this->nested_object() -= other.nested_object();
       else
         this->nested_object() = wrap_angles<RowCoefficients>(this->nested_object() - other.nested_object());
@@ -296,7 +296,7 @@ namespace OpenKalman
 #endif
     auto& operator-=(Arg&& other)
     {
-      if constexpr(coordinate::euclidean_pattern<RowCoefficients>)
+      if constexpr(coordinates::euclidean_pattern<RowCoefficients>)
         this->nested_object() -= nested_object(std::forward<Arg>(other));
       else
         this->nested_object() = wrap_angles<RowCoefficients>(
@@ -315,7 +315,7 @@ namespace OpenKalman
     auto& operator-=(const Arg& arg)
     {
       apply_columnwise([&arg](auto& col){
-        if constexpr(coordinate::euclidean_pattern<RowCoefficients>)
+        if constexpr(coordinates::euclidean_pattern<RowCoefficients>)
           col -= arg().nested_object();
         else
           col = wrap_angles<RowCoefficients>(col - arg().nested_object());
@@ -332,7 +332,7 @@ namespace OpenKalman
 #endif
     auto& operator*=(const S s)
     {
-      if constexpr(coordinate::euclidean_pattern<RowCoefficients>)
+      if constexpr(coordinates::euclidean_pattern<RowCoefficients>)
         this->nested_object() *= s;
       else
         this->nested_object() = wrap_angles<RowCoefficients>(this->nested_object() * s);
@@ -348,7 +348,7 @@ namespace OpenKalman
 #endif
     auto& operator/=(const S s)
     {
-      if constexpr(coordinate::euclidean_pattern<RowCoefficients>)
+      if constexpr(coordinates::euclidean_pattern<RowCoefficients>)
         this->nested_object() /= s;
       else
         this->nested_object() = wrap_angles<RowCoefficients>(this->nested_object() / s);
@@ -370,7 +370,7 @@ namespace OpenKalman
   //        Deduction guides         //
   // ------------------------------- //
 
-  /// Deduce template parameters from a typed_matrix_nestable, assuming untyped \ref coordinate::pattern.
+  /// Deduce template parameters from a typed_matrix_nestable, assuming untyped \ref coordinates::pattern.
 #ifdef __cpp_concepts
   template<typed_matrix_nestable V>
 #else
@@ -412,10 +412,10 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<fixed_pattern StaticDescriptor, typed_matrix_nestable M> requires
-    (coordinate::size_of_v<StaticDescriptor> == index_dimension_of_v<M, 0>)
+    (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of_v<M, 0>)
 #else
   template<typename StaticDescriptor, typename M, std::enable_if_t<fixed_pattern<StaticDescriptor> and
-    typed_matrix_nestable<M> and (coordinate::size_of_v<StaticDescriptor> == index_dimension_of<M, 0>::value), int> = 0>
+    typed_matrix_nestable<M> and (coordinates::dimension_of_v<StaticDescriptor> == index_dimension_of<M, 0>::value), int> = 0>
 #endif
   inline auto make_mean(M&& m)
   {
@@ -471,11 +471,11 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<fixed_pattern StaticDescriptor, typed_matrix_nestable M> requires
-    (index_dimension_of_v<M, 0> == coordinate::size_of_v<StaticDescriptor>)
+    (index_dimension_of_v<M, 0> == coordinates::dimension_of_v<StaticDescriptor>)
 #else
   template<typename StaticDescriptor, typename M, std::enable_if_t<
     fixed_pattern<StaticDescriptor> and typed_matrix_nestable<M> and
-    (index_dimension_of<M, 0>::value == coordinate::size_of_v<StaticDescriptor>), int> = 0>
+    (index_dimension_of<M, 0>::value == coordinates::dimension_of_v<StaticDescriptor>), int> = 0>
 #endif
   inline auto make_mean()
   {
@@ -517,7 +517,7 @@ namespace OpenKalman
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
       {
-        if constexpr (value::fixed<N>)
+        if constexpr (values::fixed<N>)
         {
           if constexpr (n == 0_uz) return arg.my_dimension;
           else return OpenKalman::get_vector_space_descriptor(nested_object(arg), n);
@@ -551,7 +551,7 @@ namespace OpenKalman
       template<typename Arg>
       static constexpr auto get_constant_diagonal(const Arg& arg)
       {
-        if constexpr (coordinate::euclidean_pattern<Coeffs>)
+        if constexpr (coordinates::euclidean_pattern<Coeffs>)
           return constant_diagonal_coefficient {arg.nestedExpression()};
         else
           return std::monostate {};
@@ -567,13 +567,13 @@ namespace OpenKalman
 
 
       template<TriangleType t>
-      static constexpr bool is_triangular = coordinate::euclidean_pattern<Coeffs> and triangular_matrix<NestedMatrix, t>;
+      static constexpr bool is_triangular = coordinates::euclidean_pattern<Coeffs> and triangular_matrix<NestedMatrix, t>;
 
 
       static constexpr bool is_triangular_adapter = false;
 
 
-      static constexpr bool is_hermitian = coordinate::euclidean_pattern<Coeffs> and hermitian_matrix<NestedMatrix>;
+      static constexpr bool is_hermitian = coordinates::euclidean_pattern<Coeffs> and hermitian_matrix<NestedMatrix>;
 
 
   #ifdef __cpp_lib_concepts
@@ -602,7 +602,7 @@ namespace OpenKalman
           const auto set_coeff = [&arg, is...](const std::size_t row, const scalar_type_of_t<Arg> value) {
             set_component(nested_object(arg), value, row, is...);
           };
-          coordinate::set_wrapped_component<Coeffs>(Coeffs{}, i, s, set_coeff, get_coeff);
+          coordinates::set_wrapped_component<Coeffs>(Coeffs{}, i, s, set_coeff, get_coeff);
         }
         else
         {

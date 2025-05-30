@@ -17,49 +17,38 @@
 #define OPENKALMAN_COLLECTIONS_TUPLE_LIKE_HPP
 
 #include <tuple>
-#include "basics/language-features.hpp"
+#include "basics/compatibility/language-features.hpp"
+#include "uniformly_gettable.hpp"
 
 namespace OpenKalman::collections
 {
-#if not defined(__cpp_concepts) or __cpp_generic_lambdas < 201707L or not defined(__cpp_explicit_this_parameter)
+#if not defined(__cpp_concepts) or __cpp_generic_lambdas < 201707L
   namespace detail
   {
-    template<typename T, typename = std::make_index_sequence<std::tuple_size<T>::value>, typename = void>
-    struct is_tuple_like_impl : std::false_type {};
-
-    template<typename T, std::size_t...i>
-    struct is_tuple_like_impl<T, std::index_sequence<i...>,
-      std::void_t<typename std::tuple_element<i, T>::type..., decltype(internal::generalized_std_get<i>(std::declval<T&>()))...>>
-      : std::true_type {};
-
-
     template<typename T, typename = void>
     struct is_tuple_like : std::false_type {};
 
     template<typename T>
-    struct is_tuple_like<T, std::void_t<decltype(std::tuple_size<T>::value)>> : is_tuple_like_impl<T> {};
+    struct is_tuple_like<T, std::void_t<decltype(std::tuple_size<T>::value)>> : std::true_type {};
 
   } // namespace detail
 #endif
 
 
   /**
-   * \internal
-   * \brief T is a non-empty tuple, pair, array, or other type that can be an argument to std::apply.
+   * \brief T is a non-empty tuple, pair, array, or other type that acts like a tuple.
+   * \details T has defined specializations for std::tuple_size and std::tuple_element, and
+   * the elements of T can be accessible by std::get(...), a get(...) member function, or an atd-findable get(...) function.
    */
   template<typename T>
 #if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
-  concept tuple_like = requires(std::decay_t<T>& t)
+  concept tuple_like = uniformly_gettable<T> and requires
   {
+    typename std::tuple_size<std::decay_t<T>>;
     std::tuple_size<std::decay_t<T>>::value;
-    requires []<std::size_t...i>(std::index_sequence<i...>)
-    { return (... and (
-        requires { typename std::tuple_element<i, std::decay_t<T>>::type;
-                   internal::generalized_std_get<i>(t); }));
-    } (std::make_index_sequence<std::tuple_size<std::decay_t<T>>::value>{});
   };
 #else
-  constexpr bool tuple_like = detail::is_tuple_like<std::decay_t<T>>::value;
+  constexpr bool tuple_like = uniformly_gettable<T> and detail::is_tuple_like<std::decay_t<T>>::value;
 #endif
 
 

@@ -11,7 +11,7 @@
 /**
  * \file
  * \internal
- * \brief Definition of \ref value::Fixed.
+ * \brief Definition of \ref values::Fixed.
  */
 
 #ifndef OPENKALMAN_VALUE_CLASSES_FIXED_HPP
@@ -20,22 +20,22 @@
 #include "values/concepts/value.hpp"
 #include "values/functions/to_number.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \internal
-   * \brief A defined \ref value::fixed
+   * \brief A defined \ref values::fixed
    * \tparam C A scalar type
    * \tparam constant Optional compile-time arguments for constructing C
    */
 #ifdef __cpp_concepts
-  template<value::value C, auto...constant> requires std::bool_constant<(C{constant...}, true)>::value
+  template<values::value C, auto...constant> requires std::bool_constant<(C{constant...}, true)>::value
 #else
   template<typename C, auto...constant>
 #endif
   struct Fixed
   {
-    static constexpr auto value {value::to_number(C {constant...})};
+    static constexpr auto value {values::to_number(C {constant...})};
 
 
     using value_type = std::decay_t<decltype(value)>;
@@ -54,17 +54,17 @@ namespace OpenKalman::value
 
 
 #ifdef __cpp_concepts
-    template<value::fixed T> requires (value::to_number(C {constant...}) == value)
+    template<values::fixed T> requires (values::to_number(C {constant...}) == value)
 #else
-    template<typename T, std::enable_if_t<(value::to_number(C {constant...}) == value), int> = 0>
+    template<typename T, std::enable_if_t<(values::to_number(C {constant...}) == value), int> = 0>
 #endif
     explicit constexpr Fixed(const T&) {};
 
 
 #ifdef __cpp_concepts
-    template<value::fixed T> requires (value::to_number(C {constant...}) == value)
+    template<values::fixed T> requires (values::to_number(C {constant...}) == value)
 #else
-    template<typename T, std::enable_if_t<(value::to_number(C {constant...}) == value), int> = 0>
+    template<typename T, std::enable_if_t<(values::to_number(C {constant...}) == value), int> = 0>
 #endif
     constexpr Fixed& operator=(const T&) { return *this; }
 
@@ -73,17 +73,17 @@ namespace OpenKalman::value
 
   /**
    * \internal
-   * \brief Deduction guide for \ref Fixed where T is already \ref value::fixed.
+   * \brief Deduction guide for \ref Fixed where T is already \ref values::fixed.
    */
 #ifdef __cpp_concepts
-  template<value::fixed T>
+  template<values::fixed T>
 #else
-  template<typename T, std::enable_if_t<value::fixed<T>, int> = 0>
+  template<typename T, std::enable_if_t<values::fixed<T>, int> = 0>
 #endif
   explicit Fixed(const T&) -> Fixed<std::decay_t<T>>;
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_CLASSES_FIXED_HPP

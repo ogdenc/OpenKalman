@@ -19,23 +19,21 @@
 #ifdef __cpp_lib_ranges
 #include <ranges>
 #else
-#include "basics/ranges.hpp"
+#include "basics/compatibility/views/view-concepts.hpp"
 #endif
-#include "collection.hpp"
-#include "collections/views/collection_view_interface.hpp"
+#include "uniformly_gettable.hpp"
 
 namespace OpenKalman::collections
 {
   /**
    * \brief A view to a \ref collection which is also a std::ranges:view.
+   * \details It may or may not be \ref sized.
    */
   template<typename T>
 #ifdef __cpp_lib_ranges
-  concept collection_view = tuple_like<T> and sized_random_access_range<T> and std::ranges::view<T> and
-    std::derived_from<std::remove_cvref_t<T>, collection_view_interface<std::remove_cvref_t<T>>>;
+  concept collection_view = std::ranges::view<T> and uniformly_gettable<T> and std::ranges::random_access_range<T>;
 #else
-  constexpr bool collection_view = tuple_like<T> and sized_random_access_range<T> and ranges::view<T> and
-    std::is_base_of_v<collection_view_interface<remove_cvref_t<T>>, remove_cvref_t<T>>;
+  constexpr bool collection_view = ranges::view<T> and uniformly_gettable<T> and ranges::random_access_range<T>;
 #endif
 
 

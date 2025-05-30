@@ -16,7 +16,7 @@ using namespace OpenKalman::test;
 
 TEST(eigen3, FixedSizeAdapter)
 {
-  static_assert(value::dynamic<constant_coefficient<internal::FixedSizeAdapter<const Mxx, std::tuple<Dimensions<1>, Dimensions<1>>>>>);
+  static_assert(values::dynamic<constant_coefficient<internal::FixedSizeAdapter<const Mxx, std::tuple<Dimensions<1>, Dimensions<1>>>>>);
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const Mxx, std::tuple<Dimensions<1>, std::size_t>>>);
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const Mxx, std::tuple<std::size_t, Dimensions<1>>>>);
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const M2x, std::tuple<Dimensions<2>, Dimensions<1>>>>);
@@ -34,12 +34,12 @@ TEST(eigen3, FixedSizeAdapter)
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>>);
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>>);
   static_assert(not constant_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>>);
-  static_assert(value::dynamic<constant_coefficient<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, std::tuple<Dimensions<1>, Dimensions<1>>>>>);
+  static_assert(values::dynamic<constant_coefficient<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, std::tuple<Dimensions<1>, Dimensions<1>>>>>);
 
   static_assert(not constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<M2x, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>>);
   static_assert(not constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mx2, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>>);
   static_assert(not constant_diagonal_matrix<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, std::tuple<Dimensions<2>, Dimensions<1>>>>);
-  static_assert(value::dynamic<constant_diagonal_coefficient<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, std::tuple<Dimensions<1>, Dimensions<1>>>>>);
+  static_assert(values::dynamic<constant_diagonal_coefficient<internal::FixedSizeAdapter<const Eigen::Diagonal<Mxx, 0>, std::tuple<Dimensions<1>, Dimensions<1>>>>>);
 
   EXPECT_EQ(get_vector_space_descriptor(internal::FixedSizeAdapter<Mxx, std::tuple<Dimensions<2>, Dimensions<3>>>{}, std::integral_constant<std::size_t, 0>{}), 2);
   EXPECT_EQ(get_vector_space_descriptor(internal::FixedSizeAdapter<Mxx, std::tuple<Dimensions<2>, Dimensions<3>>>{}, std::integral_constant<std::size_t, 1>{}), 3);

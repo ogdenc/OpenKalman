@@ -19,12 +19,19 @@
 
 #include <type_traits>
 #include <typeindex>
+#ifdef __cpp_lib_ranges
+#include <ranges>
+#else
+#include "basics/compatibility/ranges.hpp"
+#endif
 #include "values/concepts/index.hpp"
+#include "collections/concepts/collection.hpp"
+#include "collections/traits/size_of.hpp"
 
 namespace OpenKalman::interface
 {
   /**
-   * \brief Traits for \ref coordinate::pattern objects.
+   * \brief Traits for \ref coordinates::pattern objects.
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -37,161 +44,205 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief The scalar type, if any, associated with T (e.g., double, int).
-     * \details <code>OpenKalman::value::number&lt;scalar_type&gt;</code> must be satisfied.
-     * \note Optional if \ref coordinate::fixed_pattern<T>. Defaults to <code>double</code>.
-     * \sa coordinate::scalar_type_of
+     * \brief A callable object returning the number of dimensions at compile time (as a \ref values::index).
      */
-    using scalar_type = double;
+    static constexpr auto dimension = [](const T& t) noexcept { return std::integral_constant<std::size_t, 0_uz>{}; };
 
 
     /**
-     * \brief The number of dimensions at compile time.
+     * \brief A callable object returning the number of dimensions after transforming to Euclidean space (as a \ref values::index).
      */
-#ifdef __cpp_concepts
-    static constexpr value::index auto
-#else
-    static constexpr auto
-#endif
-    size(const T& t)
-    {
-      return std::integral_constant<std::size_t, 0_uz>{};
-    }
+    static constexpr auto stat_dimension = [](const T& t) noexcept { return std::integral_constant<std::size_t, 0_uz>{}; };
 
 
     /**
-     * \brief The number of dimensions after transforming to Euclidean space.
+     * \brief A callable object returning a bool reflecting whether the \ref coordinates::pattern object describes Euclidean coordinates.
+     * \details In this case, dimension() == stat_dimension().
      */
-#ifdef __cpp_concepts
-    static constexpr value::index auto
-#else
-    static constexpr auto
-#endif
-    euclidean_size(const T& t)
-    {
-      return std::integral_constant<std::size_t, 0_uz>{};
-    }
-
+    static constexpr auto is_euclidean = [](const T& t) noexcept { return std::false_type {}; };
 
     /**
-     * \brief Whether the \ref coordinate::pattern object describes Euclidean coordinates (and in this case, size == euclidean_size).
-     */
-#ifdef __cpp_concepts
-    static constexpr std::convertible_to<bool> auto
-#else
-    static constexpr auto
-#endif
-    is_euclidean(const T& t)
-    {
-      return std::integral_constant<bool, true>{};
-    }
-
-
-    /**
-     * \brief A unique hash code for type T.
+     * \brief A unique hash code for type T, of type std::size_t.
      * \details Two coordinates will be equivalent if they have the same hash code. Generally, this can be obtained
      * through calling <code>typeid(t).hash_code()</code>.
+     * \returns std::size_t
      */
-    static constexpr std::size_t
-    hash_code(const T& t)
-    {
-        return typeid(t).hash_code();
-    }
+    static constexpr auto hash_code = [](const T& t) noexcept -> std::size_t { return typeid(t).hash_code(); };
 
 
     /**
-     * \brief Returns a range that maps components of any modular space to a corresponding component in Euclidean space.
-     * \note Optional if T is a \ref coordinate::euclidean_pattern.
-     * \param g An element getter mapping an index i of type std::size_t to an element
-     * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
-     * \param euclidean_index A local index accessing the coordinate in Euclidean space
+     * \brief A callable object mapping a range reflecting vector-space data to an corresponding range in a vector space for directional statistics.
+     * \details This is the inverse of <code>from_stat_space</code>.
+     * \note Optional if T is a \ref coordinates::euclidean_pattern.
+     * \param data_range A range within a data object corresponding to the descriptor
+     * \returns A \ref collections::collection of elements in the transformed statistical space
      */
+    static constexpr auto to_stat_space =
 #ifdef __cpp_concepts
-    static constexpr value::value auto
-    to_euclidean_component(const T& t, const auto& g, const value::index auto& euclidean_index)
-    requires requires(std::size_t i){ {g(i)} -> value::value; }
+    [](const T& t, collections::collection auto&& data_range) noexcept -> collections::collection decltype(auto)
 #else
-    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
-      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
-    static constexpr auto
-    to_euclidean_component(const T& t, const Getter& g, const L& euclidean_index)
+    [](const T& t, auto&& data_range) noexcept
 #endif
     {
-      return g(euclidean_index);
-    }
+      if constexpr (collections::size_of_v<decltype(data_range)> != dynamic_size and values::fixed<decltype(dimension(std::declval<const T&>()))>)
+        static_assert(collections::size_of_v<decltype(data_range)> == values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
+      return std::forward<decltype(data_range)>(data_range);
+    };
 
 
     /**
-     * \brief The inverse of <code>to_euclidean_element</code>. Maps coordinates in Euclidean space back into modular space.
-     * \note Optional if T is a \ref coordinate::euclidean_pattern.
-     * \param g An element getter mapping an index i of type std::size_t to an element
-     * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
-     * \param index A local index accessing the coordinate in modular space.
+     * \brief A callable object mapping a range in a vector space for directional statistics back to a range corresponding to the original vector space.
+     * \details This is the inverse of <code>to_stat_space</code>.
+     * \note Optional if T is a \ref coordinates::euclidean_pattern.
+     * \param data_range A collection of elements within a data object in directional-statistics space corresponding to the descriptor
+     * \returns A \ref collections::collection of vector elements in the original vector space
      */
+    static constexpr auto from_stat_space =
 #ifdef __cpp_concepts
-    static constexpr value::value auto
-    from_euclidean_component(const T& t, const auto& g, const value::index auto& index)
-    requires requires(std::size_t i){ {g(i)} -> value::value; }
+    [](const T& t, collections::collection auto&& data_range) noexcept -> collections::collection decltype(auto)
 #else
-    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
-      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
-    static constexpr auto
-    from_euclidean_component(const T& t, const Getter& g, const L& index)
+    [](const T& t, auto&& data_range) noexcept
 #endif
     {
-      return g(index);
-    }
+      if constexpr (collections::size_of_v<decltype(data_range)> != dynamic_size and values::fixed<decltype(stat_dimension(std::declval<const T&>()))>)
+        static_assert(collections::size_of_v<decltype(data_range)> == values::fixed_number_of_v<decltype(stat_dimension(std::declval<const T&>()))>);
+      return std::forward<decltype(data_range)>(data_range);
+    };
 
 
     /**
-     * \brief Gets an element from a matrix or tensor object and wraps the result.
-     * \details The wrapping operation is equivalent to mapping from modular space to Euclidean space and then back again,
-     * or in other words, performing <code>to_euclidean_element</code> followed by <code>from_euclidean_element<code>.
-     * \note Optional if T is a \ref coordinate::euclidean_pattern.
-     * \param g An element getter mapping an index i of type std::size_t to an element
-     * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
-     * \param index A local index accessing the element.
+     * \brief A callable object that gets a wrapped component from a range in a vector space.
+     * \details The wrapped range is equivalent to <code>from_stat_space(t, to_stat_space(t, data_range))<code>.
+     * \note Optional if T is a \ref coordinates::euclidean_pattern.
+     * \param data_range A collection of elements within a data object corresponding to the descriptor
+     * \returns A wrapped component
      */
+    static constexpr auto get_wrapped_component =
 #ifdef __cpp_concepts
-    static constexpr value::value auto
-    get_wrapped_component(const T& t, const auto& g, const value::index auto& index)
-    requires requires(std::size_t i){ {g(i)} -> value::value; }
+    [](const T& t, collections::collection auto&& data_range, values::index auto i) noexcept
 #else
-    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
-      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
-    static constexpr auto
-    get_wrapped_component(const T& t, const Getter& g, const L& index)
+    [](const T& t, auto&& data_range, auto i) noexcept
 #endif
     {
-      return g(index);
-    }
+      if constexpr (collections::size_of_v<decltype(data_range)> != dynamic_size and values::fixed<decltype(dimension(std::declval<const T&>()))>)
+        static_assert(collections::size_of_v<decltype(data_range)> == values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
+      if constexpr (values::fixed<decltype(i)> and collections::size_of_v<decltype(data_range)> != dynamic_size)
+        static_assert(values::fixed_number_of_v<decltype(i)> < collections::size_of_v<decltype(data_range)>);
+      if constexpr (values::fixed<decltype(i)> and values::fixed<decltype(dimension(std::declval<const T&>()))>)
+        static_assert(values::fixed_number_of_v<decltype(i)> < values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
+      return get(std::forward<decltype(data_range)>(data_range), std::move(i));
+    };
 
 
     /**
-     * \brief Set an angle and then wrapping.
-     * \details The operation is equivalent to setting the angle and then mapping to, and then back from, Euclidean space.
-     * \note Optional if T is a \ref coordinate::euclidean_pattern.
-     * \param s An element setter that sets an element at the location of index i (e.g., <code>std::function&lt;void(std::size_t, double)&rt;</code>)
-     * \param g An element getter mapping an index i of type std::size_t to an element
-     * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
-     * \param x The new value to be set.
-     * \param index A local index accessing the element.
+     * \brief A callable object that sets a component from a range in a vector space, and wraps, if necessary, any components in the range.
+     * \details The wrapped range is equivalent to <code>from_stat_space(t, to_stat_space(t, data_range))<code>.
+     * \note Optional if T is a \ref coordinates::euclidean_pattern.
+     * \param data_range A collection of elements within a data object corresponding to the descriptor
      */
+    static constexpr auto set_wrapped_component =
 #ifdef __cpp_concepts
-    static constexpr void
-    set_wrapped_component(const T& t, const auto& s, const auto& g, const value::value auto& x, const value::index auto& index)
-    requires requires(std::size_t i){ s(x, i); s(g(i), i); }
+    [](const T& t, collections::collection auto&& data_range, values::value auto x, values::index auto i) noexcept
+      requires std::assignable_from<std::ranges::range_reference_t<decltype(data_range)>, decltype(x)&&>
 #else
-    template<typename Setter, typename Getter, typename X, typename L, std::enable_if_t<value::value<X> and value::index<L> and
-      std::is_invocable<const Setter&, const X&, std::size_t>::value and
-      std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, std::size_t>::type, std::size_t>::value, int> = 0>
-    static constexpr void
-    set_wrapped_component(const T& t, const Setter& s, const Getter& g, const X& x, const L& index)
+    [](const T& t, auto&& data_range, auto x, auto i) noexcept
 #endif
     {
-      return g(index);
-    }
+      if constexpr (collections::size_of_v<decltype(data_range)> != dynamic_size and values::fixed<decltype(dimension(std::declval<const T&>()))>)
+        static_assert(collections::size_of_v<decltype(data_range)> == values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
+      if constexpr (values::fixed<decltype(i)> and collections::size_of_v<decltype(data_range)> != dynamic_size)
+        static_assert(values::fixed_number_of_v<decltype(i)> < collections::size_of_v<decltype(data_range)>);
+      if constexpr (values::fixed<decltype(i)> and values::fixed<decltype(dimension(std::declval<const T&>()))>)
+        static_assert(values::fixed_number_of_v<decltype(i)> < values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
+      get(std::forward<decltype(data_range)>(data_range), std::move(i)) = std::move(x);
+    };
 
+  };
+
+
+  /**
+   * \brief Traits for \ref values::index.
+   */
+#ifdef __cpp_concepts
+  template<values::index T>
+  struct coordinate_descriptor_traits<T>
+#else
+  template<typename T>
+  struct coordinate_descriptor_traits<T, std::enable_if_t<values::index<T>>>
+#endif
+  {
+    static constexpr bool is_specialized = true;
+
+    using scalar_type = values::number_type_of_t<T>;
+
+    static constexpr auto dimension = [](const T& t) { return t; };
+
+    static constexpr auto stat_dimension = [](const T& t) { return t; };
+
+    static constexpr auto is_euclidean = [](const T&) { return std::true_type {}; };
+
+    static constexpr auto hash_code = [](const T& t) -> std::size_t { return t; };
+
+
+    static constexpr auto to_stat_space =
+#ifdef __cpp_concepts
+    [](const T& t, collections::collection auto&& data_range) noexcept
+#else
+    [](const T& t, auto&& data_range) noexcept
+#endif
+    {
+      if constexpr (collections::size_of_v<decltype(data_range)> != dynamic_size and values::fixed<T>)
+        static_assert(collections::size_of_v<decltype(data_range)> == values::fixed_number_of_v<T>);
+      return std::forward<decltype(data_range)>(data_range);
+    };
+
+
+    static constexpr auto from_stat_space =
+#ifdef __cpp_concepts
+    [](const T& t, collections::collection auto&& data_range) noexcept
+#else
+    [](const T& t, auto&& data_range) noexcept
+#endif
+    {
+      if constexpr (collections::size_of_v<decltype(data_range)> != dynamic_size and values::fixed<T>)
+        static_assert(collections::size_of_v<decltype(data_range)> == values::fixed_number_of_v<T>);
+      return std::forward<decltype(data_range)>(data_range);
+    };
+
+
+    static constexpr auto get_wrapped_component =
+#ifdef __cpp_concepts
+    [](const T& t, collections::collection auto&& data_range, values::index auto i) noexcept
+#else
+    [](const T& t, auto&& data_range, auto i) noexcept
+#endif
+    {
+      if constexpr (collections::size_of_v<decltype(data_range)> != dynamic_size and values::fixed<decltype(dimension(std::declval<const T&>()))>)
+        static_assert(collections::size_of_v<decltype(data_range)> == values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
+      if constexpr (values::fixed<decltype(i)> and collections::size_of_v<decltype(data_range)> != dynamic_size)
+        static_assert(values::fixed_number_of_v<decltype(i)> < collections::size_of_v<decltype(data_range)>);
+      if constexpr (values::fixed<decltype(i)> and values::fixed<decltype(dimension(std::declval<const T&>()))>)
+        static_assert(values::fixed_number_of_v<decltype(i)> < values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
+      return get(std::forward<decltype(data_range)>(data_range), std::move(i));
+    };
+
+
+    static constexpr auto set_wrapped_component =
+#ifdef __cpp_concepts
+    [](const T& t, collections::collection auto&& data_range, values::value auto x, values::index auto i) noexcept
+      requires std::assignable_from<std::ranges::range_reference_t<decltype(data_range)>, decltype(x)&&>
+#else
+    [](const T& t, auto&& data_range, auto x, auto i) noexcept
+#endif
+    {
+      if constexpr (collections::size_of_v<decltype(data_range)> != dynamic_size and values::fixed<decltype(dimension(std::declval<const T&>()))>)
+        static_assert(collections::size_of_v<decltype(data_range)> == values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
+      if constexpr (values::fixed<decltype(i)> and collections::size_of_v<decltype(data_range)> != dynamic_size)
+        static_assert(values::fixed_number_of_v<decltype(i)> < collections::size_of_v<decltype(data_range)>);
+      if constexpr (values::fixed<decltype(i)> and values::fixed<decltype(dimension(std::declval<const T&>()))>)
+        static_assert(values::fixed_number_of_v<decltype(i)> < values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
+      get(std::forward<decltype(data_range)>(data_range), std::move(i)) = std::move(x);
+    };
 
   };
 

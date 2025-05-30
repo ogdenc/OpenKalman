@@ -24,35 +24,35 @@
 #include "values/math/copysign.hpp"
 #include "values/math/log1p.hpp"
 
-namespace OpenKalman::value::internal
+namespace OpenKalman::values::internal
 {
   template <typename T>
   constexpr T atan_impl_general(const T& x)
   {
-    if constexpr (value::complex<T>)
+    if constexpr (values::complex<T>)
     {
-      using R = std::decay_t<decltype(value::real(x))>;
+      using R = std::decay_t<decltype(values::real(x))>;
 
-      auto xr = value::real(x);
-      auto xi = value::imag(x);
+      auto xr = values::real(x);
+      auto xi = values::imag(x);
       auto ar = -xi;
       auto ai = xr;
       auto half = static_cast<R>(0.5);
-      auto lar = half * value::log1p(ar * ar + 2 * ar + ai * ai);
+      auto lar = half * values::log1p(ar * ar + 2 * ar + ai * ai);
       auto lai = not std::numeric_limits<R>::is_iec559 and ai == 0 ?
-        value::copysign(value::signbit(ar + 1) ? numbers::pi_v<R> : 0, ai) : atan2_impl(ai, ar + 1);
+        values::copysign(values::signbit(ar + 1) ? numbers::pi_v<R> : 0, ai) : atan2_impl(ai, ar + 1);
       auto br = xi;
       auto bi = -xr;
-      auto lbr = half * value::log1p(br * br + 2 * br + bi * bi);
+      auto lbr = half * values::log1p(br * br + 2 * br + bi * bi);
       auto lbi = not std::numeric_limits<R>::is_iec559 and bi == 0 ?
-        value::copysign(value::signbit(br + 1) ? numbers::pi_v<R> : 0, bi) : atan2_impl(bi, br + 1);
-      return value::internal::make_complex_number<T>(half * (lai - lbi), half * (lbr - lar));
+        values::copysign(values::signbit(br + 1) ? numbers::pi_v<R> : 0, bi) : atan2_impl(bi, br + 1);
+      return values::internal::make_complex_number<T>(half * (lai - lbi), half * (lbr - lar));
     }
     else return atan_impl(x);
   }
 
 
-} // namespace OpenKalman::value::internal
+} // namespace OpenKalman::values::internal
 
 
 #endif //OPENKALMAN_VALUE_ATAN_UTILS_HPP

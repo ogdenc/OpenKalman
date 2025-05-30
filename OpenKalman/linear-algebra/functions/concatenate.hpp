@@ -44,7 +44,7 @@ namespace OpenKalman
       if constexpr (((I == indices) or ...))
       {
         auto f = [](auto&& dtup){
-          if constexpr (I >= std::tuple_size_v<std::decay_t<decltype(dtup)>>) return coordinate::Axis {};
+          if constexpr (I >= std::tuple_size_v<std::decay_t<decltype(dtup)>>) return coordinates::Axis {};
           else return std::get<I>(std::forward<decltype(dtup)>(dtup));
         };
         return (f(std::forward<DTup>(d_tup)) + ... + f(std::forward<DTups>(d_tups)));
@@ -71,15 +71,15 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<typename T, typename...Ts>
     concept constant_concatenate_arguments =
-      (value::fixed<constant_coefficient<T>> and ... and value::fixed<constant_coefficient<Ts>>) and
-      (value::internal::near(constant_coefficient_v<T>, constant_coefficient_v<Ts>) and ...);
+      (values::fixed<constant_coefficient<T>> and ... and values::fixed<constant_coefficient<Ts>>) and
+      (values::internal::near(constant_coefficient_v<T>, constant_coefficient_v<Ts>) and ...);
 #else
     template<typename T, typename = void, typename...Ts>
     struct constant_concatenate_arguments_impl : std::false_type {};
 
     template<typename T, typename...Ts>
     struct constant_concatenate_arguments_impl<T,
-      std::enable_if_t<(value::internal::near(constant_coefficient<T>::value, constant_coefficient<Ts>::value) and ...)>, Ts...>
+      std::enable_if_t<(values::internal::near(constant_coefficient<T>::value, constant_coefficient<Ts>::value) and ...)>, Ts...>
       : std::true_type {};
 
     template<typename T, typename...Ts>

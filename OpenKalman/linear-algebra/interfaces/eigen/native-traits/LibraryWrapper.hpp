@@ -88,8 +88,8 @@ namespace OpenKalman::Eigen3::internal
 
     using IndexType = typename std::decay_t<T>::Index;
 
-    static constexpr IndexType stride0 = OpenKalman::value::fixed<Stride0, std::ptrdiff_t> ? static_cast<std::ptrdiff_t>(Stride0{}) : Eigen::Dynamic;
-    static constexpr IndexType stride1 = OpenKalman::value::fixed<Stride1, std::ptrdiff_t> ? static_cast<std::ptrdiff_t>(Stride1{}) : Eigen::Dynamic;
+    static constexpr IndexType stride0 = OpenKalman::values::fixed<Stride0, std::ptrdiff_t> ? static_cast<std::ptrdiff_t>(Stride0{}) : Eigen::Dynamic;
+    static constexpr IndexType stride1 = OpenKalman::values::fixed<Stride1, std::ptrdiff_t> ? static_cast<std::ptrdiff_t>(Stride1{}) : Eigen::Dynamic;
 
   public:
 

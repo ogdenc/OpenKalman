@@ -40,12 +40,12 @@ TEST(values, tests_complex)
 
 TEST(values, tests_fixed)
 {
-  EXPECT_TRUE(test::is_near(value::Fixed<double, 4>{}, value::Fixed<double, 5>{}, 2));
+  EXPECT_TRUE(test::is_near(values::Fixed<double, 4>{}, values::Fixed<double, 5>{}, 2));
   EXPECT_TRUE(test::is_near(std::integral_constant<int, 4>{}, std::integral_constant<int, 5>{}, 2));
   EXPECT_TRUE(test::is_near(std::integral_constant<int, 4>{}, 5, 2));
   EXPECT_FALSE(test::is_near(std::integral_constant<int, 4>{}, 6, 1));
-  EXPECT_TRUE(test::is_near(value::Fixed<std::complex<double>, 3, 4>{}, value::Fixed<std::complex<double>, 4, 5>{}, 2));
-  EXPECT_TRUE(test::is_near(value::Fixed<std::complex<double>, 3, 4>{}, value::Fixed<std::complex<double>, 4, 5>{}, value::Fixed<std::complex<double>, 2, 2>{}));
-  EXPECT_TRUE(test::is_near(std::integral_constant<int, 4>{}, value::Fixed<std::complex<double>, 4, 1>{}, 2));
+  EXPECT_TRUE(test::is_near(values::Fixed<std::complex<double>, 3, 4>{}, values::Fixed<std::complex<double>, 4, 5>{}, 2));
+  EXPECT_TRUE(test::is_near(values::Fixed<std::complex<double>, 3, 4>{}, values::Fixed<std::complex<double>, 4, 5>{}, values::Fixed<std::complex<double>, 2, 2>{}));
+  EXPECT_TRUE(test::is_near(std::integral_constant<int, 4>{}, values::Fixed<std::complex<double>, 4, 1>{}, 2));
 }
 

@@ -14,29 +14,38 @@
  */
 
 #include "tests.hpp"
+#include "collections/concepts/collection_view.hpp"
+#include "collections/functions/get.hpp"
+#include "collections/functions/get_size.hpp"
+#include "collections/views/iota.hpp"
 
 using namespace OpenKalman;
 using namespace OpenKalman::collections;
 
-#include "collections/functions/get.hpp"
-#include "collections/functions/get_collection_size.hpp"
-#include "collections/views/iota.hpp"
+#ifdef __cpp_lib_ranges
+namespace rg = std::ranges;
+#else
+namespace rg = OpenKalman::ranges;
+#endif
+namespace vw = rg::views;
 
 TEST(collections, iota_view)
 {
   auto c0 = std::integral_constant<std::size_t, 0>{};
   auto c3 = std::integral_constant<std::size_t, 3>{};
 
+  static_assert(rg::view<iota_view<decltype(c0), decltype(c3)>>);
+  static_assert(collection_view<iota_view<decltype(c0), decltype(c3)>>);
   static_assert(tuple_like<iota_view<decltype(c0), decltype(c3)>>);
   static_assert(not tuple_like<iota_view<decltype(c0), std::size_t>>);
   static_assert(not tuple_like<iota_view<std::size_t, std::size_t>>);
-  static_assert(sized_random_access_range<decltype(iota_view {0u, 5u})>);
-  static_assert(sized_random_access_range<iota_view<decltype(c0), decltype(c3)>>);
-  static_assert(sized_random_access_range<iota_view<std::size_t, decltype(c3)>>);
-  static_assert(sized_random_access_range<iota_view<decltype(c0), std::size_t>>);
-  static_assert(sized_random_access_range<iota_view<std::size_t, std::size_t>>);
+  static_assert(rg::random_access_range<decltype(iota_view {0u, 5u})>);
+  static_assert(rg::random_access_range<iota_view<decltype(c0), decltype(c3)>>);
+  static_assert(rg::random_access_range<iota_view<std::size_t, decltype(c3)>>);
+  static_assert(rg::random_access_range<iota_view<decltype(c0), std::size_t>>);
+  static_assert(rg::random_access_range<iota_view<std::size_t, std::size_t>>);
 
-  auto i3 = views::iota(c0, c3);
+  constexpr auto i3 = views::iota(c3);
   EXPECT_EQ(i3.template get<2>()(), 2);
   EXPECT_EQ(i3.size(), 3);
   static_assert(i3.size() == 3);
@@ -63,8 +72,8 @@ TEST(collections, iota_view)
   EXPECT_EQ(views::iota(0u, c3).begin()[2], 2);
   static_assert(views::iota(0u, c3).size() == 3);
 
-  auto i9 = views::iota(0u, 9u);
-  EXPECT_EQ(get_collection_size(i9), 9);
+  constexpr auto i9 = views::iota(0u, 9u);
+  EXPECT_EQ(get_size(i9), 9);
   auto it9 = i9.begin();
   EXPECT_EQ(*it9, 0);
   it9++;
@@ -89,8 +98,10 @@ TEST(collections, iota_view)
 
 
   constexpr auto iota_range1 = views::iota(3u, 8u);
+  static_assert(sized<decltype(iota_range1)>);
+  static_assert(rg::random_access_range<decltype(iota_range1)>);
   static_assert(not tuple_like<decltype(iota_range1)>);
-  static_assert(sized_random_access_range<decltype(iota_range1)>);
+  static_assert(iota_range1[0u] == 3);
   static_assert(get(iota_range1, std::integral_constant<std::size_t, 0>{}) == 3);
   static_assert(get(iota_range1, 0u) == 3);
   static_assert(get(iota_range1, 3u) == 6);
@@ -99,7 +110,7 @@ TEST(collections, iota_view)
   auto c8 = std::integral_constant<std::size_t, 8>{};
   constexpr auto iota_tup1 = views::iota(c3, c8);
   static_assert(tuple_like<decltype(iota_tup1)>);
-  static_assert(sized_random_access_range<decltype(iota_tup1)>);
+  static_assert(rg::random_access_range<decltype(iota_tup1)>);
   static_assert(get(iota_tup1, std::integral_constant<std::size_t, 0>{}) == 3);
   static_assert(get(iota_tup1, std::integral_constant<std::size_t, 3>{}) == 6);
 

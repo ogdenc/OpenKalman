@@ -32,7 +32,7 @@ namespace OpenKalman::Eigen3
   {
   private:
 
-    using IndexType = typename T::Index; // static_assert(value::index<IndexType>);
+    using IndexType = typename T::Index; // static_assert(values::index<IndexType>);
 
   public:
 
@@ -57,7 +57,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto
     get_vector_space_descriptor(const Arg& arg, N n)
     {
-      if constexpr (value::fixed<N>)
+      if constexpr (values::fixed<N>)
       {
         constexpr auto dim = n == 0_uz ? Arg::RowsAtCompileTime : Arg::ColsAtCompileTime;
 
@@ -91,9 +91,9 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_lib_concepts
-    template<typename Arg> requires requires(Arg&& arg) { {*std::forward<Arg>(arg).data()} -> value::scalar; } and direct_access
+    template<typename Arg> requires requires(Arg&& arg) { {*std::forward<Arg>(arg).data()} -> values::scalar; } and direct_access
 #else
-    template<typename Arg, std::enable_if_t<value::scalar<decltype(*std::declval<Arg&&>().data())> and direct_access, int> = 0>
+    template<typename Arg, std::enable_if_t<values::scalar<decltype(*std::declval<Arg&&>().data())> and direct_access, int> = 0>
 #endif
     static constexpr decltype(auto)
     raw_data(Arg&& arg) { return std::forward<Arg>(arg).data(); }
@@ -109,12 +109,12 @@ namespace OpenKalman::Eigen3
 
 
 #ifdef __cpp_lib_concepts
-    template<typename U> requires requires(U u) { {u.innerStride()} -> value::index; {u.outerStride()} -> value::index; }
+    template<typename U> requires requires(U u) { {u.innerStride()} -> values::index; {u.outerStride()} -> values::index; }
     struct has_strides<U>
 #else
     template<typename U>
-    struct has_strides<U, std::enable_if_t<value::index<decltype(std::declval<U>().innerStride())> and
-      value::index<decltype(std::declval<U>().outerStride())>>>
+    struct has_strides<U, std::enable_if_t<values::index<decltype(std::declval<U>().innerStride())> and
+      values::index<decltype(std::declval<U>().outerStride())>>>
 #endif
       : std::true_type {};
 

@@ -21,18 +21,18 @@ namespace OpenKalman
   /**
    * \brief Make a \ref diagonal_matrix, specifying the first two dimensions, which may not necessarily be the same.
    * \tparam Arg A vector or higher-order tensor reflecting the diagonal(s).
-   * \tparam D0 The \ref coordinate::pattern for the rows.
-   * \tparam D1 The \ref coordinate::pattern for the columns.
+   * \tparam D0 The \ref coordinates::pattern for the rows.
+   * \tparam D1 The \ref coordinates::pattern for the columns.
    */
 #ifdef __cpp_concepts
-  template<indexible Arg, coordinate::pattern D0, coordinate::pattern D1> requires
-    (not fixed_pattern<D0> or not fixed_pattern<D1> or coordinate::compares_with<D0, D1, less_equal<>> or coordinate::compares_with<D1, D0, less_equal<>>) and
+  template<indexible Arg, coordinates::pattern D0, coordinates::pattern D1> requires
+    (not fixed_pattern<D0> or not fixed_pattern<D1> or coordinates::compares_with<D0, D1, less_equal<>> or coordinates::compares_with<D1, D0, less_equal<>>) and
     (dynamic_dimension<Arg, 0> or compares_with<vector_space_descriptor_of<Arg, 0>, D0, equal_to<>, Applicability::permitted> or compares_with<vector_space_descriptor_of<Arg, 0>, D1, equal_to<>, Applicability::permitted>)
   constexpr diagonal_matrix auto
 #else
   template<typename Arg, typename D0, typename D1, std::enable_if_t<
-    indexible<Arg> and coordinate::pattern<D0> and coordinate::pattern<D1> and
-      (not fixed_pattern<D0> or not fixed_pattern<D1> or coordinate::compares_with<D0, D1, less_equal<>> or coordinate::compares_with<D1, D0, less_equal<>>) and
+    indexible<Arg> and coordinates::pattern<D0> and coordinates::pattern<D1> and
+      (not fixed_pattern<D0> or not fixed_pattern<D1> or coordinates::compares_with<D0, D1, less_equal<>> or coordinates::compares_with<D1, D0, less_equal<>>) and
       (dynamic_dimension<Arg, 0> or compares_with<vector_space_descriptor_of<Arg, 0>, D0, equal_to<>, Applicability::permitted> or compares_with<vector_space_descriptor_of<Arg, 0>, D1, equal_to<>, Applicability::permitted>), int> = 0>
   constexpr auto
 #endif

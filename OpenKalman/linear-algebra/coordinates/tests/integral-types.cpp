@@ -19,16 +19,14 @@
 #include "linear-algebra/coordinates/concepts/euclidean_pattern.hpp"
 #include "linear-algebra/coordinates/concepts/fixed_pattern.hpp"
 #include "linear-algebra/coordinates/concepts/dynamic_pattern.hpp"
-#include "linear-algebra/coordinates/functions/get_size.hpp"
-#include "linear-algebra/coordinates/traits/size_of.hpp"
-#include "linear-algebra/coordinates/functions/get_euclidean_size.hpp"
-#include "linear-algebra/coordinates/traits/euclidean_size_of.hpp"
-#include "linear-algebra/coordinates/functions/get_component_count.hpp"
+#include "linear-algebra/coordinates/functions/get_dimension.hpp"
+#include "linear-algebra/coordinates/traits/dimension_of.hpp"
+#include "linear-algebra/coordinates/functions/get_stat_dimension.hpp"
+#include "linear-algebra/coordinates/traits/stat_dimension_of.hpp"
 #include "linear-algebra/coordinates/functions/get_is_euclidean.hpp"
-#include "linear-algebra/coordinates/traits/component_count_of.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::coordinate;
+using namespace OpenKalman::coordinates;
 
 TEST(coordinates, integral_constant)
 {
@@ -41,16 +39,14 @@ TEST(coordinates, integral_constant)
   static_assert(descriptor<std::integral_constant<std::size_t, 1>>);
   static_assert(descriptor<std::integral_constant<std::size_t, 2>>);
 
-  static_assert(get_size(std::integral_constant<std::size_t, 3>{}) == 3);
-  static_assert(get_euclidean_size(std::integral_constant<std::size_t, 3>{}) == 3);
-  static_assert(get_component_count(std::integral_constant<std::size_t, 3>{}) == 1);
+  static_assert(get_dimension(std::integral_constant<std::size_t, 3>{}) == 3);
+  static_assert(get_stat_dimension(std::integral_constant<std::size_t, 3>{}) == 3);
   static_assert(get_is_euclidean(std::integral_constant<std::size_t, 5>{}));
 
-  static_assert(size_of_v<std::integral_constant<std::size_t, 0>> == 0);
-  static_assert(size_of_v<std::integral_constant<std::size_t, 3>> == 3);
-  static_assert(size_of_v<std::integral_constant<int, 3>> == 3);
-  static_assert(euclidean_size_of_v<std::integral_constant<std::size_t, 3>> == 3);
-  static_assert(component_count_of_v<std::integral_constant<std::size_t, 3>> == 1);
+  static_assert(dimension_of_v<std::integral_constant<std::size_t, 0>> == 0);
+  static_assert(dimension_of_v<std::integral_constant<std::size_t, 3>> == 3);
+  static_assert(dimension_of_v<std::integral_constant<int, 3>> == 3);
+  static_assert(stat_dimension_of_v<std::integral_constant<std::size_t, 3>> == 3);
 }
 
 
@@ -62,11 +58,11 @@ TEST(coordinates, integral)
   static_assert(euclidean_pattern<unsigned>);
   static_assert(descriptor<unsigned>);
   static_assert(euclidean_pattern<unsigned>);
-  static_assert(size_of_v<unsigned> == dynamic_size);
-  static_assert(euclidean_size_of_v<unsigned> == dynamic_size);
-  static_assert(get_size(3u) == 3);
-  EXPECT_EQ(get_size(0u), 0);
-  EXPECT_EQ(get_size(3u), 3);
-  static_assert(get_euclidean_size(3u) == 3);
-  EXPECT_EQ(get_euclidean_size(3u), 3);
+  static_assert(dimension_of_v<unsigned> == dynamic_size);
+  static_assert(stat_dimension_of_v<unsigned> == dynamic_size);
+  static_assert(get_dimension(3u) == 3);
+  EXPECT_EQ(get_dimension(0u), 0);
+  EXPECT_EQ(get_dimension(3u), 3);
+  static_assert(get_stat_dimension(3u) == 3);
+  EXPECT_EQ(get_stat_dimension(3u), 3);
 }

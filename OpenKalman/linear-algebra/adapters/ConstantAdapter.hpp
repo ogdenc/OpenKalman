@@ -26,7 +26,7 @@ namespace OpenKalman
   // ----------------- //
 
 #ifdef __cpp_concepts
-  template<indexible PatternMatrix, value::scalar Scalar, auto...constant>
+  template<indexible PatternMatrix, values::scalar Scalar, auto...constant>
     requires (sizeof...(constant) == 0) or requires { Scalar {constant...}; }
 #else
   template<typename PatternMatrix, typename Scalar, auto...constant>
@@ -38,12 +38,12 @@ namespace OpenKalman
 
 #ifndef __cpp_concepts
     static_assert(indexible<PatternMatrix>);
-    static_assert(value::scalar<Scalar>);
+    static_assert(values::scalar<Scalar>);
     static_assert(sizeof...(constant) == 0 or std::is_constructible_v<Scalar, decltype(constant)...>);
 #endif
 
-    using MyConstant = std::conditional_t<sizeof...(constant) == 0, Scalar, value::Fixed<Scalar, constant...>>;
-    using MyScalarType = value::number_type_of_t<MyConstant>;
+    using MyConstant = std::conditional_t<sizeof...(constant) == 0, Scalar, values::Fixed<Scalar, constant...>>;
+    using MyScalarType = values::number_type_of_t<MyConstant>;
 
     using AllDescriptorsType = decltype(all_vector_space_descriptors(std::declval<PatternMatrix>()));
     using DescriptorCollection = std::conditional_t<
@@ -168,15 +168,15 @@ namespace OpenKalman
   public:
 
     /**
-     * \brief Construct from \ref value::scalar and a \ref pattern_collection
+     * \brief Construct from \ref values::scalar and a \ref pattern_collection
      */
 #ifdef __cpp_lib_ranges
-    template<value::scalar C, pattern_collection Descriptors> requires
+    template<values::scalar C, pattern_collection Descriptors> requires
       std::constructible_from<MyConstant, C&&> and 
       compatible_with_vector_space_descriptor_collection<PatternMatrix, Descriptors>
 #else
     template<typename C, typename Descriptors, std::enable_if_t<
-      value::scalar<C> and pattern_collection<Descriptors> and
+      values::scalar<C> and pattern_collection<Descriptors> and
       std::is_constructible_v<MyConstant, C&&> and 
       compatible_with_vector_space_descriptor_collection<PatternMatrix, Descriptors>, int> = 0>
 #endif
@@ -191,12 +191,12 @@ namespace OpenKalman
      */
 #ifdef __cpp_lib_ranges
     template<pattern_collection Descriptors> requires
-      value::fixed<MyConstant> and
+      values::fixed<MyConstant> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, Descriptors>
 #else
     template<typename Descriptors, std::enable_if_t<
       pattern_collection<Descriptors> and
-      value::fixed<MyConstant> and
+      values::fixed<MyConstant> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, Descriptors>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(Descriptors&& descriptors) 
@@ -204,7 +204,7 @@ namespace OpenKalman
 
   
     /**
-     * \brief Construct based on a \ref value::scalar and the shape of an \ref indexible reference object.
+     * \brief Construct based on a \ref values::scalar and the shape of an \ref indexible reference object.
      * \details 
      * The following constructs a 2-by-3 ConstantAdapter with constant 5.
      * \code
@@ -215,11 +215,11 @@ namespace OpenKalman
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<value::scalar C, vector_space_descriptors_may_match_with<PatternMatrix> Arg> requires
+    template<values::scalar C, vector_space_descriptors_may_match_with<PatternMatrix> Arg> requires
       std::constructible_from<MyConstant, C&&>
 #else
     template<typename C, typename Arg, std::enable_if_t<
-      value::scalar<C> and vector_space_descriptors_may_match_with<Arg, PatternMatrix> and
+      values::scalar<C> and vector_space_descriptors_may_match_with<Arg, PatternMatrix> and
       std::is_constructible_v<MyConstant, C&&>, int> = 0>
 #endif
     constexpr ConstantAdapter(C&& c, const Arg& arg) :
@@ -234,12 +234,12 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<vector_space_descriptors_may_match_with<PatternMatrix> Arg> requires
       (not std::is_base_of_v<ConstantAdapter, Arg>) and 
-      value::fixed<MyConstant>
+      values::fixed<MyConstant>
 #else
     template<typename Arg, std::enable_if_t<
       vector_space_descriptors_may_match_with<Arg, PatternMatrix> and 
       (not std::is_base_of_v<ConstantAdapter, Arg>) and 
-      value::fixed<MyConstant>, int> = 0>
+      values::fixed<MyConstant>, int> = 0>
 #endif
     constexpr ConstantAdapter(const Arg& arg) :
       descriptor_collection {make_descriptors_collection(all_vector_space_descriptors(arg))} {}
@@ -265,7 +265,7 @@ namespace OpenKalman
 
 
     /**
-     * \brief Construct using a full set of \ref coordinate::pattern objects.
+     * \brief Construct using a full set of \ref coordinates::pattern objects.
      * \details For example, the following construct a 2-by-3 constant matrix of value 5:
      * \code
      * ConstantAdapter<eigen_matrix_t<double, 2, 3>, 5>(std::integral_constant<int, 5>{}, 2, 3)
@@ -274,12 +274,12 @@ namespace OpenKalman
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<value::scalar C, coordinate::pattern...Ds> requires
+    template<values::scalar C, coordinates::pattern...Ds> requires
       std::constructible_from<MyConstant, C&&> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, std::tuple<Ds...>>
 #else
     template<typename C, typename...Ds, std::enable_if_t<
-      value::scalar<C> and (coordinate::pattern<Ds> and ...) and
+      values::scalar<C> and (coordinates::pattern<Ds> and ...) and
       std::is_constructible_v<MyConstant, C&&> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, std::tuple<Ds...>>, int> = 0>
 #endif
@@ -290,7 +290,7 @@ namespace OpenKalman
     /**
      * \overload
      * \brief Same as above, where the constant is known at compile time.
-     * \tparam Ds A set of \ref coordinate::pattern objects corresponding to PatternMatrix.
+     * \tparam Ds A set of \ref coordinates::pattern objects corresponding to PatternMatrix.
      * \details
      * For example, the following construct a 2-by-3 constant matrix of value 5:
      * \code
@@ -301,13 +301,13 @@ namespace OpenKalman
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<coordinate::pattern...Ds> requires
-      value::fixed<MyConstant> and
+    template<coordinates::pattern...Ds> requires
+      values::fixed<MyConstant> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, std::tuple<Ds...>>
 #else
     template<typename...Ds, std::enable_if_t<
-      (coordinate::pattern<Ds> and ...) and
-      value::fixed<MyConstant> and
+      (coordinates::pattern<Ds> and ...) and
+      values::fixed<MyConstant> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, std::tuple<Ds...>>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(Ds&&...ds)
@@ -353,14 +353,14 @@ namespace OpenKalman
      * \endcode
      */
 #ifdef __cpp_concepts
-    template<value::scalar C, dynamic_pattern...Ds> requires
+    template<values::scalar C, dynamic_pattern...Ds> requires
       pattern_tuple<DescriptorCollection> and
       (dynamic_index_count_v<PatternMatrix> != dynamic_size) and 
       (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and 
       std::constructible_from<MyConstant, C&&>
 #else
     template<typename C, typename...Ds, std::enable_if_t<
-      value::scalar<C> and (dynamic_pattern<Ds> and ...) and
+      values::scalar<C> and (dynamic_pattern<Ds> and ...) and
       pattern_tuple<DescriptorCollection> and
       (dynamic_index_count_v<PatternMatrix> != dynamic_size) and 
       (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and 
@@ -386,14 +386,14 @@ namespace OpenKalman
       pattern_tuple<DescriptorCollection> and
       (dynamic_index_count_v<PatternMatrix> != dynamic_size) and 
       (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and 
-      value::fixed<MyConstant>
+      values::fixed<MyConstant>
 #else
     template<typename...Ds, std::enable_if_t<
-      value::scalar<C> and (dynamic_pattern<Ds> and ...) and
+      values::scalar<C> and (dynamic_pattern<Ds> and ...) and
       pattern_tuple<DescriptorCollection> and
       (dynamic_index_count_v<PatternMatrix> != dynamic_size) and 
       (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and 
-      value::fixed<MyConstant>, int> = 0>
+      values::fixed<MyConstant>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(Ds&&...ds) 
       : ConstantAdapter(make_dynamic_dimensions_tuple(std::forward<Ds>(ds)...)) {}
@@ -436,7 +436,7 @@ namespace OpenKalman
       if constexpr (not vector_space_descriptors_may_match_with<Arg, PatternMatrix>)
         return false;
       else if constexpr (constant_matrix<Arg>)
-        return value::to_number(constant_coefficient{arg}) == value::to_number(my_constant) and vector_space_descriptors_match(*this, arg);
+        return values::to_number(constant_coefficient{arg}) == values::to_number(my_constant) and vector_space_descriptors_match(*this, arg);
       else
       {
         auto c = to_native_matrix<PatternMatrix>(*this);
@@ -461,7 +461,7 @@ namespace OpenKalman
       if constexpr (not vector_space_descriptors_may_match_with<Arg, PatternMatrix>)
         return false;
       else if constexpr (constant_matrix<Arg>)
-        return value::to_number(constant_coefficient{arg}) == value::to_number(c.get_scalar_constant()) and vector_space_descriptors_match(arg, c);
+        return values::to_number(constant_coefficient{arg}) == values::to_number(c.get_scalar_constant()) and vector_space_descriptors_match(arg, c);
       else
       {
         auto new_c = to_native_matrix<Arg>(c);
@@ -495,7 +495,7 @@ namespace OpenKalman
      */
 #ifdef __cpp_lib_ranges
     template<index_range_for<PatternMatrix> Indices> requires (not empty_object<PatternMatrix>)
-    constexpr value::scalar auto
+    constexpr values::scalar auto
 #else
     template<typename Indices, std::enable_if_t<
       index_range_for<Indices, PatternMatrix> and (not empty_object<PatternMatrix>), int> = 0>
@@ -503,15 +503,15 @@ namespace OpenKalman
 #endif
     operator[](const Indices& indices) const 
     {
-      return value::to_number(my_constant);
+      return values::to_number(my_constant);
     }
 
 
     /**
-     * \brief Get the \ref value::scalar associated with this object.
+     * \brief Get the \ref values::scalar associated with this object.
      */
 #ifdef __cpp_concepts
-    constexpr value::scalar auto
+    constexpr values::scalar auto
 #else
     constexpr auto
 #endif
@@ -526,16 +526,16 @@ namespace OpenKalman
       if constexpr (zero<ConstantAdapter>) return arg;
       else
       {
-        value::operation op {std::negate{}, constant_coefficient{arg}};
+        values::operation op {std::negate{}, constant_coefficient{arg}};
         return make_constant(arg, op);
       }
     }
 
 
 #ifdef __cpp_concepts
-    friend auto operator*(const ConstantAdapter& arg, value::scalar auto s)
+    friend auto operator*(const ConstantAdapter& arg, values::scalar auto s)
 #else
-    template<typename S, std::enable_if_t<value::scalar<S>, int> = 0>
+    template<typename S, std::enable_if_t<values::scalar<S>, int> = 0>
     friend auto operator*(const ConstantAdapter& arg, S s)
 #endif
     {
@@ -548,9 +548,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    friend auto operator*(value::scalar auto s, const ConstantAdapter& arg)
+    friend auto operator*(values::scalar auto s, const ConstantAdapter& arg)
 #else
-    template<typename S, std::enable_if_t<value::scalar<S>, int> = 0>
+    template<typename S, std::enable_if_t<values::scalar<S>, int> = 0>
     friend auto operator*(S s, const ConstantAdapter& arg)
 #endif
     {
@@ -563,9 +563,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_concepts
-    friend auto operator/(const ConstantAdapter& arg, value::scalar auto s)
+    friend auto operator/(const ConstantAdapter& arg, values::scalar auto s)
 #else
-    template<typename S, std::enable_if_t<value::scalar<S>, int> = 0>
+    template<typename S, std::enable_if_t<values::scalar<S>, int> = 0>
     friend auto operator/(const ConstantAdapter& arg, S s)
 #endif
     {
@@ -589,9 +589,9 @@ namespace OpenKalman
   // ------------------ //
 
 #ifdef __cpp_concepts
-  template<value::scalar C, indexible Arg>
+  template<values::scalar C, indexible Arg>
 #else
-  template<typename C, typename Arg, std::enable_if_t<value::scalar<C> and indexible<Arg>, int> = 0>
+  template<typename C, typename Arg, std::enable_if_t<values::scalar<C> and indexible<Arg>, int> = 0>
 #endif
   ConstantAdapter(const C&, const Arg&) -> ConstantAdapter<Arg, C>;
 
@@ -640,7 +640,7 @@ namespace OpenKalman
         {
           return std::forward<Arg>(arg).descriptor_collection[static_cast<typename MyDims::size_type>(n)];
         }
-        else if constexpr (value::fixed<N>)
+        else if constexpr (values::fixed<N>)
         {
           if constexpr (N::value >= index_count_v<PatternMatrix>) return Dimensions<1>{};
           else return std::get<N::value>(std::forward<Arg>(arg).descriptor_collection);

@@ -15,9 +15,9 @@
 #ifndef OPENKALMAN_VALUE_EXP_UTILS_HPP
 #define OPENKALMAN_VALUE_EXP_UTILS_HPP
 
-#include "basics/language-features.hpp"
+#include "../../../basics/compatibility/language-features.hpp"
 
-namespace OpenKalman::value::internal
+namespace OpenKalman::values::internal
 {
   // Maclaurin series expansion
   template <typename T>
@@ -41,7 +41,7 @@ namespace OpenKalman::value::internal
   }
 
 
-} // namespace OpenKalman::value::internal
+} // namespace OpenKalman::values::internal
 
 
 #endif //OPENKALMAN_VALUE_EXP_UTILS_HPP

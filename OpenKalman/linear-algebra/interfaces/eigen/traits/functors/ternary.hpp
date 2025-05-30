@@ -28,7 +28,7 @@ namespace OpenKalman::Eigen3
     /**
      * \brief Return a scalar constant or std::monostate
      * \tparam is_diag True if \ref constant_diagonal_coefficient, false if \ref constant_coefficient.
-     * \return \ref value::scalar
+     * \return \ref values::scalar
      */
     template<bool is_diag, typename Arg>
     static constexpr auto get_constant(const Arg& arg)

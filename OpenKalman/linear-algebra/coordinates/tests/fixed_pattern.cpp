@@ -10,19 +10,17 @@
 
 /**
  * \file
- * \brief Tests for coordinate::fixed_pattern objects
+ * \brief Tests for coordinates::fixed_pattern objects
  */
 
 #include "basics/tests/tests.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor.hpp"
 #include "linear-algebra/coordinates/concepts/pattern.hpp"
 #include "linear-algebra/coordinates/concepts/euclidean_pattern.hpp"
-#include "linear-algebra/coordinates/functions/get_euclidean_size.hpp"
-#include "linear-algebra/coordinates/functions/get_component_count.hpp"
+#include "linear-algebra/coordinates/functions/get_stat_dimension.hpp"
 #include "linear-algebra/coordinates/functions/get_is_euclidean.hpp"
-#include "linear-algebra/coordinates/traits/size_of.hpp"
-#include "linear-algebra/coordinates/traits/euclidean_size_of.hpp"
-#include "linear-algebra/coordinates/traits/component_count_of.hpp"
+#include "linear-algebra/coordinates/traits/dimension_of.hpp"
+#include "linear-algebra/coordinates/traits/stat_dimension_of.hpp"
 #include "linear-algebra/coordinates/concepts/fixed_pattern.hpp"
 #include "linear-algebra/coordinates/descriptors/Dimensions.hpp"
 #include "linear-algebra/coordinates/descriptors/Distance.hpp"
@@ -32,7 +30,7 @@
 #include "linear-algebra/coordinates/descriptors/Spherical.hpp"
 #include "linear-algebra/coordinates/views/comparison.hpp"
 
-using namespace OpenKalman::coordinate;
+using namespace OpenKalman::coordinates;
 
 TEST(coordinates, fixed_pattern)
 {
@@ -53,17 +51,15 @@ TEST(coordinates, fixed_pattern)
   static_assert(descriptor_tuple<std::tuple<Axis>>);
   static_assert(not descriptor<std::tuple<Axis>>);
 
-  static_assert(get_size(Dimensions{std::tuple<Axis, Axis> {}}) == 2u);
-  static_assert(get_size(std::tuple<Axis, Axis, angle::Radians>{}) == 3u);
-  static_assert(get_size(std::tuple{Polar<Distance, angle::PositiveRadians>{}}) == 2u);
-  static_assert(get_euclidean_size(std::tuple{Polar<angle::PositiveDegrees, Distance>{}}) == 3u);
-  static_assert(get_euclidean_size(std::tuple<Axis, Dimensions<2>, angle::Radians>{}) == 5u);
-  static_assert(get_component_count(std::tuple<Axis, angle::Radians, angle::Radians>{}) == 3u);
+  static_assert(get_dimension(Dimensions{std::tuple<Axis, Axis> {}}) == 2u);
+  static_assert(get_dimension(std::tuple<Axis, Axis, angle::Radians>{}) == 3u);
+  static_assert(get_dimension(std::tuple{Polar<Distance, angle::PositiveRadians>{}}) == 2u);
+  static_assert(get_stat_dimension(std::tuple{Polar<angle::PositiveDegrees, Distance>{}}) == 3u);
+  static_assert(get_stat_dimension(std::tuple<Axis, Dimensions<2>, angle::Radians>{}) == 5u);
   static_assert(get_is_euclidean(std::tuple<Axis, Dimensions<5>, Axis>{}));
   static_assert(not get_is_euclidean(std::tuple<Axis, Dimensions<5>, angle::Radians>{}));
 
-  static_assert(size_of_v<std::tuple<Axis, Axis, angle::Radians, Polar<>, Spherical<>>> == 8u);
-  static_assert(euclidean_size_of_v<std::tuple<angle::Radians, Axis, Axis, Polar<>, Spherical<>>> == 11u);
-  static_assert(component_count_of_v<std::tuple<Axis, Axis, angle::Radians, Axis, Polar<>, Spherical<>>> == 6u);
+  static_assert(dimension_of_v<std::tuple<Axis, Axis, angle::Radians, Polar<>, Spherical<>>> == 8u);
+  static_assert(stat_dimension_of_v<std::tuple<angle::Radians, Axis, Axis, Polar<>, Spherical<>>> == 11u);
 }
 

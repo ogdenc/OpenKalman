@@ -158,7 +158,7 @@ namespace OpenKalman
   constexpr bool transformation_input =
 #endif
     typed_matrix<T> and vector<T> and has_untyped_index<T, 1> and (not euclidean_transformed<T>) and
-    coordinate::compares_with<typename oin::PerturbationTraits<T>::RowCoefficients, Coeffs>;
+    coordinates::compares_with<typename oin::PerturbationTraits<T>::RowCoefficients, Coeffs>;
 
 
   /**
@@ -218,9 +218,9 @@ namespace OpenKalman
     {
       using InputCoefficients = vector_space_descriptor_of_t<In, 0>;
       using HessianMatrixInBase = dense_writable_matrix_t<In, Layout::none, scalar_type_of_t<In>,
-        std::tuple<coordinate::size_of<InputCoefficients>, coordinate::size_of<InputCoefficients>>>;
+        std::tuple<coordinates::dimension_of<InputCoefficients>, coordinates::dimension_of<InputCoefficients>>>;
       using HessianMatrixIn = Matrix<InputCoefficients, InputCoefficients, HessianMatrixInBase>;
-      using HessianArrayIn = std::array<HessianMatrixIn, coordinate::size_of_v<OutputCoefficients>>;
+      using HessianArrayIn = std::array<HessianMatrixIn, coordinates::dimension_of_v<OutputCoefficients>>;
 
       HessianArrayIn a;
       a.fill(make_zero(a));

@@ -41,8 +41,8 @@ namespace OpenKalman
    * \brief Multiply an object by a scalar value.
    */
 #ifdef __cpp_concepts
-  template<indexible Arg, value::scalar S> requires
-    requires(S s) { {value::to_number(s)} -> std::convertible_to<scalar_type_of_t<Arg>>; }
+  template<indexible Arg, values::scalar S> requires
+    requires(S s) { {values::to_number(s)} -> std::convertible_to<scalar_type_of_t<Arg>>; }
   static constexpr vector_space_descriptors_may_match_with<Arg> auto
 #else
   template<typename Arg, typename S>
@@ -57,7 +57,7 @@ namespace OpenKalman
     else if constexpr (constant_matrix<Arg>)
     {
       return make_constant(std::forward<Arg>(arg),
-        value::operation {
+        values::operation {
           std::multiplies<scalar_type_of_t<Arg>>{},
           constant_coefficient{arg},
           std::forward<S>(s)});
@@ -65,15 +65,15 @@ namespace OpenKalman
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       return to_diagonal(make_constant(diagonal_of(std::forward<Arg>(arg)),
-        value::operation {
+        values::operation {
           std::multiplies<scalar_type_of_t<Arg>>{},
           constant_diagonal_coefficient{arg},
           std::forward<S>(s)}));
     }
-    else if constexpr (value::fixed<S>)
+    else if constexpr (values::fixed<S>)
     {
-      if constexpr (value::to_number(S{}) == 0) return make_zero(arg);
-      else if constexpr (value::to_number(S{}) == 1) return std::forward<Arg>(arg);
+      if constexpr (values::to_number(S{}) == 0) return make_zero(arg);
+      else if constexpr (values::to_number(S{}) == 1) return std::forward<Arg>(arg);
       else return detail::scalar_product_impl(std::forward<Arg>(arg), std::forward<S>(s));
     }
     else

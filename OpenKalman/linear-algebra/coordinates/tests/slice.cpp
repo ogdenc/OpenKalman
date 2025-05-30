@@ -16,7 +16,6 @@
 #include "basics/tests/tests.hpp"
 #include "linear-algebra/coordinates/concepts/fixed_pattern.hpp"
 #include "linear-algebra/coordinates/concepts/fixed_pattern_collection.hpp"
-#include "linear-algebra/coordinates/functions/get_component_count.hpp"
 #include "linear-algebra/coordinates/concepts/compares_with.hpp"
 #include "linear-algebra/coordinates/descriptors/Dimensions.hpp"
 #include "linear-algebra/coordinates/descriptors/Distance.hpp"
@@ -29,7 +28,7 @@
 #include "linear-algebra/coordinates/functions/internal/remove_trailing_1D_descriptors.hpp"
 #include "linear-algebra/coordinates/descriptors/internal/Slice.hpp"
 
-using namespace OpenKalman::coordinate;
+using namespace OpenKalman::coordinates;
 
 TEST(coordinates, get_slice_fixed)
 {
@@ -88,7 +87,7 @@ TEST(coordinates, get_slice_fixed)
 
 TEST(coordinates, slice_vector_space_descriptor_dynamic)
 {
-  using namespace OpenKalman::coordinate::internal;
+  using namespace OpenKalman::coordinates::internal;
 
   EXPECT_TRUE((DynamicDescriptor<double> {}.slice(0, 0) == DynamicDescriptor<double>{}));
 
@@ -126,7 +125,7 @@ TEST(coordinates, slice_vector_space_descriptor_dynamic)
 
 TEST(coordinates, get_slice_dynamic)
 {
-  using namespace OpenKalman::coordinate::internal;
+  using namespace OpenKalman::coordinates::internal;
 
   static_assert(get_slice<double>(Dimensions{7}, 0, 7) == Dimensions<7>{});
   static_assert(get_slice<double>(Dimensions{7}, 1, 6) == Dimensions<6>{});

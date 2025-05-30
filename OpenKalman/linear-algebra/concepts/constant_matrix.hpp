@@ -30,7 +30,7 @@ namespace OpenKalman
 #else
   constexpr bool constant_matrix =
 #endif
-    indexible<T> and value::scalar<constant_coefficient<T>>;
+    indexible<T> and values::scalar<constant_coefficient<T>>;
 
 
 } // namespace OpenKalman

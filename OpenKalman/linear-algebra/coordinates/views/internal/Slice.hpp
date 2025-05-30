@@ -11,7 +11,7 @@
 /**
  * \internal
  * \file
- * \brief Definition of \ref coordinate::internal::Slice.
+ * \brief Definition of \ref coordinates::internal::Slice.
  */
 
 #ifndef OPENKALMAN_DESCRIPTOR_SLICE_HPP
@@ -22,28 +22,28 @@
 
 #include "values/concepts/index.hpp"
 #include "linear-algebra/coordinates/concepts/pattern.hpp"
-#include "linear-algebra/coordinates/functions/get_size.hpp"
-#include "linear-algebra/coordinates/functions/get_euclidean_size.hpp"
+#include "linear-algebra/coordinates/functions/get_dimension.hpp"
+#include "linear-algebra/coordinates/functions/get_stat_dimension.hpp"
 #include "linear-algebra/coordinates/functions/internal/get_component_collection.hpp"
 #include "linear-algebra/coordinates/functions/get_is_euclidean.hpp"
-#include "linear-algebra/coordinates/functions/to_euclidean_element.hpp"
-#include "linear-algebra/coordinates/functions/from_euclidean_element.hpp"
+#include "linear-algebra/coordinates/functions/to_stat_space.hpp"
+#include "linear-algebra/coordinates/functions/from_stat_space.hpp"
 #include "linear-algebra/coordinates/functions/get_wrapped_component.hpp"
 #include "linear-algebra/coordinates/functions/set_wrapped_component.hpp"
-#include "linear-algebra/coordinates/traits/scalar_type_of.hpp"
+#include "linear-algebra/coordinates/traits/scalar_type_of_deprecated.hpp"
 #include "linear-algebra/coordinates/descriptors/Any.hpp"
 
-namespace OpenKalman::coordinate::internal
+namespace OpenKalman::coordinates::internal
 {
   /**
    * \internal
-   * \brief A type representing a slice of another \ref coordinate::pattern objects.
+   * \brief A type representing a slice of another \ref coordinates::pattern objects.
    */
 #ifdef __cpp_concepts
-  template<pattern C, value::index Offset, value::index Extent> requires dynamic_pattern<C> or
-    ((value::dynamic<Offset> or value::fixed_number_of_v<Offset> <= size_of_v<C>) and
-    (value::dynamic<Extent> or value::fixed_number_of_v<Extent> <= size_of_v<C>) and
-    (value::dynamic<Offset> or value::dynamic<Extent> or value::fixed_number_of_v<Offset> + value::fixed_number_of_v<Extent> <= size_of_v<C>))
+  template<pattern C, values::index Offset, values::index Extent> requires dynamic_pattern<C> or
+    ((values::dynamic<Offset> or values::fixed_number_of_v<Offset> <= dimension_of_v<C>) and
+    (values::dynamic<Extent> or values::fixed_number_of_v<Extent> <= dimension_of_v<C>) and
+    (values::dynamic<Offset> or values::dynamic<Extent> or values::fixed_number_of_v<Offset> + values::fixed_number_of_v<Extent> <= dimension_of_v<C>))
 #else
   template<typename C, typename Offset, typename Extent>
 #endif
@@ -52,36 +52,36 @@ namespace OpenKalman::coordinate::internal
 #ifndef __cpp_concepts
     if constexpr (fixed_pattern<C>)
     {
-      if constexpr (value::fixed<Offset>)
-        static_assert(value::fixed_number_of_v<Offset> <= size_of_v<C>);
-      if constexpr (value::fixed<Extent>)
-        static_assert(value::fixed_number_of_v<Extent> <= size_of_v<C>);
-      if constexpr (value::fixed<Offset> and value::fixed<Extent>)
-        static_assert(value::fixed_number_of_v<Offset> + value::fixed_number_of_v<Extent> <= size_of_v<C>);
+      if constexpr (values::fixed<Offset>)
+        static_assert(values::fixed_number_of_v<Offset> <= dimension_of_v<C>);
+      if constexpr (values::fixed<Extent>)
+        static_assert(values::fixed_number_of_v<Extent> <= dimension_of_v<C>);
+      if constexpr (values::fixed<Offset> and values::fixed<Extent>)
+        static_assert(values::fixed_number_of_v<Offset> + values::fixed_number_of_v<Extent> <= dimension_of_v<C>);
     }
 #endif
 
 
     /// Default constructor
 #ifdef __cpp_concepts
-    constexpr Slice() requires fixed_pattern<C> and value::fixed<Offset> and value::fixed<Extent> = default;
+    constexpr Slice() requires fixed_pattern<C> and values::fixed<Offset> and values::fixed<Extent> = default;
 #else
     template<typename mC = C, typename mO = Offset, typename mE = Extent, std::enable_if_t<
-      fixed_pattern<mC> and value::fixed<mO> and value::fixed<mE>, int> = 0>
+      fixed_pattern<mC> and values::fixed<mO> and values::fixed<mE>, int> = 0>
     constexpr Slice() {};
 #endif
 
 
     /**
-     * \brief Construct from a \ref coordinate::pattern, an offset, and an extent.
+     * \brief Construct from a \ref coordinates::pattern, an offset, and an extent.
      */
 #ifdef __cpp_concepts
-    template <pattern Arg, value::index an_offset, value::index an_extent> requires
+    template <pattern Arg, values::index an_offset, values::index an_extent> requires
       std::constructible_from<C, Arg&&> and std::constructible_from<Offset, an_offset&&> and
       std::constructible_from<Extent, an_extent&&>
 #else
     template<typename Arg, typename an_offset, typename an_extent, std::enable_if_t<pattern<Arg> and
-      value::index<an_offset> and value::index<an_extent> and std::is_constructible_v<C, Arg&&> and
+      values::index<an_offset> and values::index<an_extent> and std::is_constructible_v<C, Arg&&> and
       std::is_constructible_v<Offset, an_offset&&> and std::is_constructible_v<Extent, an_extent&&>, int> = 0>
 #endif
     explicit constexpr
@@ -123,7 +123,7 @@ namespace OpenKalman::coordinate::internal
 
       using difference_type = std::ptrdiff_t;
 
-      using value_type = coordinate::Any<scalar_type_of_t<Range>>;
+      using value_type = coordinates::Any<scalar_type_of_t<Range>>;
 
       template<typename R>
       constexpr Iterator(R* r, const std::size_t p) : my_range{r}, pos{p} {}
@@ -259,28 +259,28 @@ namespace OpenKalman::coordinate::internal
   template<typename Arg, typename an_offset, typename an_extent>
   SliceRange(Arg&&, an_offset&&, an_extent&&) -> ReplicateRange<Arg>;
 
-} // namespace OpenKalman::coordinate::internal
+} // namespace OpenKalman::coordinates::internal
 
 
 namespace OpenKalman::interface
 {
   /**
    * \internal
-   * \brief traits for coordinate::internal::Reverse.
+   * \brief traits for coordinates::internal::Reverse.
    */
   template<typename C, typename Offset, typename Extent>
-  struct coordinate_set_traits<coordinate::internal::Slice<C, Offset, Extent>>
+  struct coordinate_set_traits<coordinates::internal::Slice<C, Offset, Extent>>
   {
   private:
 
-    using T = coordinate::internal::Slice<C, Offset, Extent>;
+    using T = coordinates::internal::Slice<C, Offset, Extent>;
 
   public:
 
     static constexpr bool is_specialized = true;
 
 
-    using scalar_type = coordinate::scalar_type_of_t<C>;
+    using scalar_type = coordinates::scalar_type_of_t<C>;
 
 
     static constexpr auto
@@ -294,12 +294,12 @@ namespace OpenKalman::interface
     template<std::size_t position = 0, std::size_t element = 0, typename...Ds, typename Tup>
     auto fixed_slice(const Tup& tup)
     {
-      constexpr auto offset = value::fixed_number_of_v<Offset>;
-      constexpr auto extent = value::fixed_number_of_v<Extent>;
+      constexpr auto offset = values::fixed_number_of_v<Offset>;
+      constexpr auto extent = values::fixed_number_of_v<Extent>;
       if constexpr (position < offset + extent)
       {
         using Element = std::tuple_element_t<element, Tup>;
-        constexpr auto next_position = position + coordinate::size_of_v<Element>;
+        constexpr auto next_position = position + coordinates::dimension_of_v<Element>;
         if constexpr (position < offset)
         {
           static_assert(next_position <= offset, "Slice must begin on a coordinate-descriptor boundary");
@@ -322,7 +322,7 @@ namespace OpenKalman::interface
     static constexpr auto
     tuple_to_range_impl(Arg&& arg, std::index_sequence<Ix...>)
     {
-      return std::array {coordinate::Any<scalar_type> {std::get<Ix>(std::forward<Arg>(arg))}...};
+      return std::array {coordinates::Any<scalar_type> {std::get<Ix>(std::forward<Arg>(arg))}...};
     }
 
 
@@ -330,7 +330,7 @@ namespace OpenKalman::interface
     static constexpr auto
     tuple_to_range(Arg&& arg)
     {
-      if constexpr (coordinate::pattern_range<Arg>)
+      if constexpr (coordinates::pattern_range<Arg>)
         return std::forward<Arg>(arg);
       else
         return tuple_to_range_impl(std::forward<Arg>(arg), std::make_index_sequence<std::tuple_size_v<std::decay_t<Arg>>>{});
@@ -342,40 +342,40 @@ namespace OpenKalman::interface
     static constexpr auto
     component_collection(Arg&& arg)
     {
-      if constexpr (coordinate::fixed_pattern<C> and value::fixed<Offset> and value::fixed<Extent>)
+      if constexpr (coordinates::fixed_pattern<C> and values::fixed<Offset> and values::fixed<Extent>)
       {
-        if constexpr (value::fixed_number_of_v<Extent> == 0)
+        if constexpr (values::fixed_number_of_v<Extent> == 0)
         {
           return std::tuple {};
         }
-        else if constexpr (coordinate::euclidean_pattern<C>)
+        else if constexpr (coordinates::euclidean_pattern<C>)
         {
-          return std::array {coordinate::Dimensions {arg.my_extent}};
+          return std::array {coordinates::Dimensions {arg.my_extent}};
         }
         else
         {
-          return fixed_slice(coordinate::internal::get_component_collection(std::forward<Arg>(arg).my_coordinates));
+          return fixed_slice(coordinates::internal::get_component_collection(std::forward<Arg>(arg).my_coordinates));
         }
       }
       else
       {
-        return coordinate::internal::SliceRange {
-          tuple_to_range(coordinate::internal::get_component_collection(std::forward<Arg>(arg).my_coordinates)), arg.my_index};
+        return coordinates::internal::SliceRange {
+          tuple_to_range(coordinates::internal::get_component_collection(std::forward<Arg>(arg).my_coordinates)), arg.my_index};
       }
     }
 
 
 #ifdef __cpp_concepts
-    template<value::index N>
+    template<values::index N>
 #else
-    template<typename N, std::enable_if_t<value::index<N>, int> = 0>
+    template<typename N, std::enable_if_t<values::index<N>, int> = 0>
 #endif
     static constexpr auto
     component_start_indices(const T&, N n)
     {
-      if constexpr (value::fixed<N>)
+      if constexpr (values::fixed<N>)
       {
-        return component_start_indices_fixed(std::make_index_sequence<value::fixed_number_of_v<N>>{});
+        return component_start_indices_fixed(std::make_index_sequence<values::fixed_number_of_v<N>>{});
       }
       else
       {
@@ -385,102 +385,102 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<value::index I>
+    template<values::index I>
 #else
-    template<typename I, std::enable_if_t<value::index<I>, int> = 0>
+    template<typename I, std::enable_if_t<values::index<I>, int> = 0>
     static constexpr auto
 #endif
     static constexpr auto
     index_table(const T& t, I i)
     {
-      return coordinate::internal::get_index_table(t.my_coordinates, size(t) - i - 1_uz);
+      return coordinates::internal::get_index_table(t.my_coordinates, size(t) - i - 1_uz);
     }
 
 
 #ifdef __cpp_concepts
-    template<value::index I>
+    template<values::index I>
 #else
-    template<typename I, std::enable_if_t<value::index<I>, int> = 0>
+    template<typename I, std::enable_if_t<values::index<I>, int> = 0>
     static constexpr auto
 #endif
     static constexpr auto
     euclidean_index_table(const T& t, I i)
     {
-      return coordinate::internal::get_euclidean_index_table(t.my_coordinates, euclidean_size(t) - i - 1_uz);
+      return coordinates::internal::get_euclidean_index_table(t.my_coordinates, stat_dimension(t) - i - 1_uz);
     }
 
 
     static constexpr auto
-    euclidean_size(const T& t)
+    stat_dimension(const T& t)
     {
-      return value::operation {std::multiplies{}, coordinate::get_euclidean_size(t.my_coordinates), t.my_index};
+      return values::operation {std::multiplies{}, coordinates::get_stat_dimension(t.my_coordinates), t.my_index};
     }
 
 
     static constexpr auto
     is_euclidean(const T& t)
     {
-      return coordinate::get_is_euclidean(t.my_coordinates);
+      return coordinates::get_is_euclidean(t.my_coordinates);
     }
 
 
 #ifdef __cpp_concepts
-    static constexpr value::value auto
-    to_euclidean_component(const T& t, const auto& g, const value::index auto& euclidean_local_index)
-    requires requires(std::size_t i){ {g(i)} -> value::value; }
+    static constexpr values::value auto
+    to_euclidean_component(const T& t, const auto& g, const values::index auto& euclidean_local_index)
+    requires requires(std::size_t i){ {g(i)} -> values::value; }
 #else
-    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
-      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
+      values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
     to_euclidean_component(const T& t, const Getter& g, const L& euclidean_local_index)
 #endif
     {
-      std::size_t n = coordinate::get_euclidean_size(t.my_coordinates);
+      std::size_t n = coordinates::get_stat_dimension(t.my_coordinates);
       auto new_g = [&g, offset = euclidean_local_index / n](std::size_t i) { return g(offset + i); };
-      return coordinate::to_euclidean_element(t.my_coordinates, new_g, euclidean_local_index % n);
+      return coordinates::to_stat_space(t.my_coordinates, new_g, euclidean_local_index % n);
     }
 
 
 #ifdef __cpp_concepts
-    static constexpr value::value auto
-    from_euclidean_component(const T& t, const auto& g, const value::index auto& local_index)
-    requires requires(std::size_t i){ {g(i)} -> value::value; }
+    static constexpr values::value auto
+    from_euclidean_component(const T& t, const auto& g, const values::index auto& local_index)
+    requires requires(std::size_t i){ {g(i)} -> values::value; }
 #else
-    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
-      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
+      values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
     from_euclidean_component(const T& t, const Getter& g, const L& local_index)
 #endif
     {
-      auto n = coordinate::get_size(t.my_coordinates);
+      auto n = coordinates::get_dimension(t.my_coordinates);
       auto new_g = [&g, offset = local_index / n](std::size_t i) { return g(offset + i); };
-      return coordinate::from_euclidean_element(t.my_coordinates, new_g, local_index % n);
+      return coordinates::from_stat_space(t.my_coordinates, new_g, local_index % n);
     }
 
 
 #ifdef __cpp_concepts
-    static constexpr value::value auto
-    get_wrapped_component(const T& t, const auto& g, const value::index auto& local_index)
-    requires requires(std::size_t i){ {g(i)} -> value::value; }
+    static constexpr values::value auto
+    get_wrapped_component(const T& t, const auto& g, const values::index auto& local_index)
+    requires requires(std::size_t i){ {g(i)} -> values::value; }
 #else
-    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
-      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
+      values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
     get_wrapped_component(const T& t, const Getter& g, const L& local_index)
 #endif
     {
-      auto n = coordinate::get_size(t.my_coordinates);
+      auto n = coordinates::get_dimension(t.my_coordinates);
       auto new_g = [&g, offset = local_index / n](std::size_t i) { return g(offset + i); };
-      return coordinate::get_wrapped_component(t.my_coordinates, new_g, local_index % n);
+      return coordinates::get_wrapped_component(t.my_coordinates, new_g, local_index % n);
     }
 
 
 #ifdef __cpp_concepts
     static constexpr void
-    set_wrapped_component(const T& t, const auto& s, const auto& g, const value::value auto& x, const value::index auto& local_index)
+    set_wrapped_component(const T& t, const auto& s, const auto& g, const values::value auto& x, const values::index auto& local_index)
     requires requires(std::size_t i){ s(x, i); s(g(i), i); }
 #else
-    template<typename Setter, typename Getter, typename X, typename L, std::enable_if_t<value::value<X> and value::index<L> and
+    template<typename Setter, typename Getter, typename X, typename L, std::enable_if_t<values::value<X> and values::index<L> and
       std::is_invocable<const Setter&, const X&, std::size_t>::value and
       std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, std::size_t>::type, std::size_t>::value, int> = 0>
     static constexpr void
@@ -488,10 +488,10 @@ namespace OpenKalman::interface
 #endif
     {
       using Scalar = std::decay_t<decltype(x)>;
-      auto n = coordinate::get_size(t.my_coordinates);
+      auto n = coordinates::get_dimension(t.my_coordinates);
       auto new_g = [&g, offset = local_index / n](std::size_t i) { return g(offset + i); };
       auto new_s = [&s, offset = local_index / n](const Scalar& x, std::size_t i) { s(x, offset + i); };
-      return coordinate::set_wrapped_component(t.my_coordinates, new_s, new_g, x, local_index % n);
+      return coordinates::set_wrapped_component(t.my_coordinates, new_s, new_g, x, local_index % n);
     }
 
   };

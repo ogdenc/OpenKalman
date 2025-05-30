@@ -30,9 +30,9 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<fixed_pattern InputCoefficients, fixed_pattern OutputCoefficients, typed_matrix_nestable TransformationMatrix,
       typed_matrix_nestable ... PerturbationTransformationMatrices> requires
-    (index_dimension_of_v<TransformationMatrix, 0> == coordinate::size_of_v<OutputCoefficients>) and
-    (index_dimension_of_v<TransformationMatrix, 1> == coordinate::size_of_v<InputCoefficients>) and
-    ((index_dimension_of_v<PerturbationTransformationMatrices, 0> == coordinate::size_of_v<OutputCoefficients>) and ...) and
+    (index_dimension_of_v<TransformationMatrix, 0> == coordinates::dimension_of_v<OutputCoefficients>) and
+    (index_dimension_of_v<TransformationMatrix, 1> == coordinates::dimension_of_v<InputCoefficients>) and
+    ((index_dimension_of_v<PerturbationTransformationMatrices, 0> == coordinates::dimension_of_v<OutputCoefficients>) and ...) and
     (square_shaped<PerturbationTransformationMatrices> and ...)
 #else
   template<typename InputCoefficients, typename OutputCoefficients, typename TransformationMatrix,
@@ -66,8 +66,8 @@ namespace OpenKalman
 
       template<typename T, typename R, typename C>
       struct is_linear_transformation_input<T, R, C, std::enable_if_t<
-        typed_matrix_nestable<T> and (index_dimension_of<T, 0>::value == coordinate::size_of_v<R>) and
-        (index_dimension_of<T, 1>::value == coordinate::size_of_v<C>)>> : std::true_type {};
+        typed_matrix_nestable<T> and (index_dimension_of<T, 0>::value == coordinates::dimension_of_v<R>) and
+        (index_dimension_of<T, 1>::value == coordinates::dimension_of_v<C>)>> : std::true_type {};
     }
 #endif
 
@@ -86,8 +86,8 @@ namespace OpenKalman
       fixed_pattern<RowCoefficients> and fixed_pattern<ColumnCoefficients> and
       (not typed_matrix<T> or (compares_with<vector_space_descriptor_of_t<T, 0>, RowCoefficients>and
           compares_with<vector_space_descriptor_of_t<T, 1>, ColumnCoefficients>)) and
-      (not typed_matrix_nestable<T> or (index_dimension_of_v<T, 0> == coordinate::size_of_v<RowCoefficients> and
-        index_dimension_of_v<T, 1> == coordinate::size_of_v<ColumnCoefficients>));
+      (not typed_matrix_nestable<T> or (index_dimension_of_v<T, 0> == coordinates::dimension_of_v<RowCoefficients> and
+        index_dimension_of_v<T, 1> == coordinates::dimension_of_v<ColumnCoefficients>));
 #else
     template<typename T, typename RowCoefficients, typename ColumnCoefficients = RowCoefficients>
     constexpr bool linear_transformation_input =
@@ -101,9 +101,9 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<fixed_pattern InputCoefficients, fixed_pattern OutputCoefficients, typed_matrix_nestable TransformationMatrix,
     typed_matrix_nestable ... PerturbationTransformationMatrices> requires
-  (index_dimension_of_v<TransformationMatrix, 0> == coordinate::size_of_v<OutputCoefficients>) and
-    (index_dimension_of_v<TransformationMatrix, 1> == coordinate::size_of_v<InputCoefficients>) and
-    ((index_dimension_of_v<PerturbationTransformationMatrices, 0> == coordinate::size_of_v<OutputCoefficients>) and ...) and
+  (index_dimension_of_v<TransformationMatrix, 0> == coordinates::dimension_of_v<OutputCoefficients>) and
+    (index_dimension_of_v<TransformationMatrix, 1> == coordinates::dimension_of_v<InputCoefficients>) and
+    ((index_dimension_of_v<PerturbationTransformationMatrices, 0> == coordinates::dimension_of_v<OutputCoefficients>) and ...) and
     (square_shaped<PerturbationTransformationMatrices> and ...)
 #else
   template<typename InputCoefficients, typename OutputCoefficients, typename TransformationMatrix,
@@ -117,9 +117,9 @@ namespace OpenKalman
     static_assert(fixed_pattern<OutputCoefficients>);
     static_assert(typed_matrix_nestable<TransformationMatrix>);
     static_assert((typed_matrix_nestable<PerturbationTransformationMatrices> and ...));
-    static_assert(index_dimension_of_v<TransformationMatrix, 0> == coordinate::size_of_v<OutputCoefficients>);
-    static_assert(index_dimension_of_v<TransformationMatrix, 1> == coordinate::size_of_v<InputCoefficients>);
-    static_assert(((index_dimension_of_v<PerturbationTransformationMatrices, 0> == coordinate::size_of_v<OutputCoefficients>) and ...));
+    static_assert(index_dimension_of_v<TransformationMatrix, 0> == coordinates::dimension_of_v<OutputCoefficients>);
+    static_assert(index_dimension_of_v<TransformationMatrix, 1> == coordinates::dimension_of_v<InputCoefficients>);
+    static_assert(((index_dimension_of_v<PerturbationTransformationMatrices, 0> == coordinates::dimension_of_v<OutputCoefficients>) and ...));
     static_assert((square_shaped<PerturbationTransformationMatrices> and ...));
 #endif
 

@@ -19,17 +19,17 @@
 namespace OpenKalman
 {
   /**
-   * \brief Make an \ref identity_matrix with a particular set of \ref coordinate::pattern objects.
+   * \brief Make an \ref identity_matrix with a particular set of \ref coordinates::pattern objects.
    * \tparam T Any matrix or tensor within the relevant library.
    * \tparam Scalar An optional scalar type for the new zero matrix. By default, T's scalar type is used.
-   * \param Ds A set of \ref coordinate::pattern items defining the dimensions of each index.
+   * \param Ds A set of \ref coordinates::pattern items defining the dimensions of each index.
    */
 #ifdef __cpp_concepts
-  template<indexible T, value::number Scalar = scalar_type_of_t<T>, pattern_collection Descriptors>
+  template<indexible T, values::number Scalar = scalar_type_of_t<T>, pattern_collection Descriptors>
   constexpr identity_matrix auto
 #else
   template<typename T, typename Scalar = typename scalar_type_of<T>::type, typename Descriptors, std::enable_if_t<
-    indexible<T> and value::number<Scalar> and pattern_collection<Descriptors>, int> = 0>
+    indexible<T> and values::number<Scalar> and pattern_collection<Descriptors>, int> = 0>
   constexpr auto
 #endif
   make_identity_matrix_like(Descriptors&& descriptors)
@@ -38,7 +38,7 @@ namespace OpenKalman
     using D = decltype(d);
     using Trait = interface::library_interface<std::decay_t<T>>;
 
-    if constexpr (coordinate::euclidean_pattern_collection<D> and interface::make_identity_matrix_defined_for<T, Scalar, D>)
+    if constexpr (coordinates::euclidean_pattern_collection<D> and interface::make_identity_matrix_defined_for<T, Scalar, D>)
     {
       return Trait::template make_identity_matrix<Scalar>(std::forward<D>(d));
     }
@@ -49,21 +49,21 @@ namespace OpenKalman
     }
     else
     {
-      return internal::make_constant_diagonal_from_descriptors<T>(value::Fixed<Scalar, 1>{}, std::forward<D>(d));
+      return internal::make_constant_diagonal_from_descriptors<T>(values::Fixed<Scalar, 1>{}, std::forward<D>(d));
     }
   }
 
 
   /**
    * \overload
-   * \brief \ref coordinate::pattern objects are passed as arguments.
+   * \brief \ref coordinates::pattern objects are passed as arguments.
    */
 #ifdef __cpp_concepts
-    template<indexible T, value::number Scalar = scalar_type_of_t<T>, coordinate::pattern...Ds>
+    template<indexible T, values::number Scalar = scalar_type_of_t<T>, coordinates::pattern...Ds>
     constexpr identity_matrix auto
 #else
     template<typename T, typename Scalar = typename scalar_type_of<T>::type, typename...Ds, std::enable_if_t<
-      indexible<T> and value::number<Scalar> and (... and coordinate::pattern<Ds>), int> = 0>
+      indexible<T> and values::number<Scalar> and (... and coordinates::pattern<Ds>), int> = 0>
     constexpr auto
 #endif
     make_identity_matrix_like(Ds&&...ds)
@@ -80,10 +80,10 @@ namespace OpenKalman
    * \return An identity matrix of the same dimensions as Arg (even if not square).
    */
 #ifdef __cpp_concepts
-  template<value::number Scalar, indexible Arg>
+  template<values::number Scalar, indexible Arg>
   constexpr identity_matrix auto
 #else
-  template<typename Scalar, typename Arg, std::enable_if_t<value::number<Scalar> and indexible<Arg>, int> = 0>
+  template<typename Scalar, typename Arg, std::enable_if_t<values::number<Scalar> and indexible<Arg>, int> = 0>
   constexpr auto
 #endif
   make_identity_matrix_like(Arg&& arg)

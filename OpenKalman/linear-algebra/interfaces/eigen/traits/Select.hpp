@@ -132,7 +132,7 @@ namespace OpenKalman::interface
 
 
     static constexpr bool is_hermitian =
-      (value::fixed<constant_coefficient<ConditionMatrixType>> and
+      (values::fixed<constant_coefficient<ConditionMatrixType>> and
         [](){
           if constexpr (constant_matrix<ConditionMatrixType>)
             return hermitian_matrix<std::conditional_t<static_cast<bool>(constant_coefficient_v<ConditionMatrixType>),
@@ -141,7 +141,7 @@ namespace OpenKalman::interface
         }()) or
       (hermitian_matrix<ConditionMatrixType, Applicability::permitted> and hermitian_matrix<ThenMatrixType, Applicability::permitted> and
         hermitian_matrix<ElseMatrixType, Applicability::permitted> and
-        (not value::fixed<constant_coefficient<ConditionMatrixType>>));
+        (not values::fixed<constant_coefficient<ConditionMatrixType>>));
   };
 
 

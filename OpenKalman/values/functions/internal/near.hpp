@@ -11,7 +11,7 @@
 /**
  * \file
  * \internal
- * \brief Definition for \ref value::internal::near function.
+ * \brief Definition for \ref values::internal::near function.
  */
 
 #ifndef OPENKALMAN_ARE_WITHIN_TOLERANCE_HPP
@@ -23,7 +23,7 @@
 #include "values/functions/to_number.hpp"
 
 
-namespace OpenKalman::value::internal
+namespace OpenKalman::values::internal
 {
   /**
    * \brief Determine whether two numbers are within a rounding tolerance
@@ -35,11 +35,11 @@ namespace OpenKalman::value::internal
   template<unsigned int epsilon_factor = 2, typename Arg1, typename Arg2>
   constexpr bool near(const Arg1& arg1, const Arg2& arg2)
   {
-    if constexpr (not value::number<Arg1> or not value::number<Arg2>)
+    if constexpr (not values::number<Arg1> or not values::number<Arg2>)
     {
-      return near(value::to_number<epsilon_factor>(arg1), value::to_number(arg2));
+      return near(values::to_number<epsilon_factor>(arg1), values::to_number(arg2));
     }
-    else if constexpr (value::complex<Arg1> or value::complex<Arg2>)
+    else if constexpr (values::complex<Arg1> or values::complex<Arg2>)
     {
       using std::real, std::imag;
       return
@@ -67,11 +67,11 @@ namespace OpenKalman::value::internal
   template<typename Arg1, typename Arg2, typename Err>
   constexpr bool near(const Arg1& arg1, const Arg2& arg2, const Err& err)
   {
-    if constexpr (not value::number<Arg1> or not value::number<Arg2> or not value::number<Err>)
+    if constexpr (not values::number<Arg1> or not values::number<Arg2> or not values::number<Err>)
     {
-      return near(value::to_number(arg1), value::to_number(arg2), value::to_number(err));
+      return near(values::to_number(arg1), values::to_number(arg2), values::to_number(err));
     }
-    else if constexpr (value::complex<Arg1> or value::complex<Arg2> or value::complex<Err>)
+    else if constexpr (values::complex<Arg1> or values::complex<Arg2> or values::complex<Err>)
     {
       using std::real, std::imag;
       auto dr = real(arg2) - real(arg1);
@@ -91,6 +91,6 @@ namespace OpenKalman::value::internal
   }
 
 
-} // namespace OpenKalman::value::internal
+} // namespace OpenKalman::values::internal
 
 #endif //OPENKALMAN_ARE_WITHIN_TOLERANCE_HPP

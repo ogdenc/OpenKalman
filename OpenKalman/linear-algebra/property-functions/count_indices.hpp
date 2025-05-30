@@ -25,7 +25,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<interface::count_indices_defined_for T>
-  constexpr value::index auto
+  constexpr values::index auto
 #else
   template<typename T, std::enable_if_t<interface::count_indices_defined_for<T>, int> = 0>
   constexpr auto

@@ -28,7 +28,7 @@ TEST(eigen3, scalar_product)
   EXPECT_TRUE(constant_coefficient{scalar_product(M23::Identity() - M23::Identity(), 5)} == 0);
 
   // Constant * runtime value
-  static_assert(value::dynamic<constant_coefficient<decltype(scalar_product(std::declval<C22_2>(), std::declval<double>()))>>);
+  static_assert(values::dynamic<constant_coefficient<decltype(scalar_product(std::declval<C22_2>(), std::declval<double>()))>>);
   EXPECT_TRUE(constant_coefficient{scalar_product(c22_2, 5)} == 10);
   EXPECT_TRUE(constant_coefficient{scalar_product(cxx_22_2, 5)} == 10);
 
@@ -55,7 +55,7 @@ TEST(eigen3, scalar_quotient)
   EXPECT_TRUE(constant_coefficient{scalar_quotient(M23::Identity() - M23::Identity(), 5)} == 0);
 
   // Constant / runtime value
-  static_assert(value::dynamic<constant_coefficient<decltype(scalar_quotient(std::declval<C22_2>(), std::declval<double>()))>>);
+  static_assert(values::dynamic<constant_coefficient<decltype(scalar_quotient(std::declval<C22_2>(), std::declval<double>()))>>);
   EXPECT_TRUE(constant_coefficient{scalar_quotient(c22_2, 2)} == 1);
   EXPECT_TRUE(constant_coefficient{scalar_quotient(cxx_22_2, 2)} == 1);
 

@@ -14,7 +14,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "basics/language-features.hpp"
+#include "basics/compatibility/language-features.hpp"
 
 
 TEST(basics, uz_literal)
@@ -38,7 +38,7 @@ TEST(basics, bounded_array)
   static_assert(OpenKalman::is_bounded_array_v<int[5]>);
   static_assert(OpenKalman::is_bounded_array_v<const int[5]>);
   static_assert(not OpenKalman::is_bounded_array_v<int[]>);
-  static_assert(OpenKalman::is_bounded_array_v<int[5][]>);
+  static_assert(not OpenKalman::is_bounded_array_v<int[][5]>);
   static_assert(not OpenKalman::is_bounded_array_v<int*>);
 }
 #endif

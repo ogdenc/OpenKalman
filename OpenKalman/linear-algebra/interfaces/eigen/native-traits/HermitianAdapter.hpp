@@ -35,7 +35,7 @@ namespace OpenKalman::Eigen3::internal
       Flags = Base::Flags &
         ~Eigen::DirectAccessBit &
         ~(OpenKalman::one_dimensional<NestedMatrix> ? 0x0 : Eigen::LinearAccessBit | Eigen::PacketAccessBit) &
-        ~(OpenKalman::value::complex<typename Base::Scalar> ? Eigen::LvalueBit : 0x0),
+        ~(OpenKalman::values::complex<typename Base::Scalar> ? Eigen::LvalueBit : 0x0),
     };
   };
 

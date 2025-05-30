@@ -21,14 +21,14 @@ namespace OpenKalman::internal
 {
   /**
    * \internal
-   * \brief Return a \ref coordinate::pattern for arg after reducing along index I
+   * \brief Return a \ref coordinates::pattern for arg after reducing along index I
    * \tparam I The index along which the reduction takes place
    * \tparam indices The set of reduced indices
    * \tparam Arg The indexible object
    */
 #ifdef __cpp_concepts
   template<std::size_t I, std::size_t...indices, indexible Arg>
-  constexpr coordinate::pattern auto
+  constexpr coordinates::pattern auto
 #else
   template<std::size_t I, std::size_t...indices, typename Arg, std::enable_if_t<indexible<Arg>, int> = 0>
   constexpr auto

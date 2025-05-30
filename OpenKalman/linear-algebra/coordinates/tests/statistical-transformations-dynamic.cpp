@@ -14,8 +14,8 @@
  */
 
 #include "basics/tests/tests.hpp"
-#include "linear-algebra/coordinates/functions/to_euclidean_element.hpp"
-#include "linear-algebra/coordinates/functions/from_euclidean_element.hpp"
+#include "linear-algebra/coordinates/functions/to_stat_space.hpp"
+#include "linear-algebra/coordinates/functions/from_stat_space.hpp"
 #include "linear-algebra/coordinates/functions/get_wrapped_component.hpp"
 #include "linear-algebra/coordinates/functions/set_wrapped_component.hpp"
 #include "linear-algebra/coordinates/descriptors/Dimensions.hpp"
@@ -28,7 +28,7 @@
 #include "linear-algebra/coordinates/functions/make_pattern_vector.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::coordinate;
+using namespace OpenKalman::coordinates;
 
 using numbers::pi;
 
@@ -45,204 +45,204 @@ inline auto g(Ss...ss)
 
 TEST(coordinates, toEuclidean_axis_angle_dynamic)
 {
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}), g(3.), 0u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(angle::Radians{}), g(pi/3), 0u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(angle::Radians{}), g(pi/3), 1u)), std::sqrt(3)/2, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(angle::Degrees{}), g(60.), 0u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(angle::Degrees{}), g(30.), 1u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}), g(3.), 0u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(angle::Radians{}), g(pi/3), 0u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(angle::Radians{}), g(pi/3), 1u)), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(angle::Degrees{}), g(60.), 0u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(angle::Degrees{}), g(30.), 1u)), 0.5, 1e-6);
 
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}), g(3.), 0u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, Axis{}), g(3., 2.), 0u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, Axis{}), g(3., 2.), 1u)), 2., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, Axis{}), g(3., 2.), 1u)), 2., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}), g(3.), 0u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, Axis{}), g(3., 2.), 0u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, Axis{}), g(3., 2.), 1u)), 2., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, Axis{}), g(3., 2.), 1u)), 2., 1e-6);
 
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(angle::Degrees{}), g(-60.), 0u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(angle::Degrees{}), g(-30.), 1u)), -0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(angle::Radians{}, angle::PositiveRadians{}), g(pi / 3, pi / 6), 0u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(angle::Radians{}, angle::PositiveRadians{}), g(pi / 3, pi / 6), 1u)), std::sqrt(3) / 2, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(angle::Radians{}, angle::Radians{}), g(pi / 3, pi / 6), 2u)), std::sqrt(3) / 2, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(angle::Radians{}, angle::Radians{}), g(pi / 3, pi / 6), 3u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(angle::Radians{}, angle::Radians{}), g(pi / 3, pi / 6), 3u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(angle::Radians{}, angle::Radians{}), g(pi / 3, pi / 6), 3u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(angle::Radians{}, Dimensions<2>{}, angle::Radians{}), g(pi / 3, 3., 4., pi / 6), 5u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(angle::Degrees{}), g(-60.), 0u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(angle::Degrees{}), g(-30.), 1u)), -0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(angle::Radians{}, angle::PositiveRadians{}), g(pi / 3, pi / 6), 0u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(angle::Radians{}, angle::PositiveRadians{}), g(pi / 3, pi / 6), 1u)), std::sqrt(3) / 2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(angle::Radians{}, angle::Radians{}), g(pi / 3, pi / 6), 2u)), std::sqrt(3) / 2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(angle::Radians{}, angle::Radians{}), g(pi / 3, pi / 6), 3u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(angle::Radians{}, angle::Radians{}), g(pi / 3, pi / 6), 3u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(angle::Radians{}, angle::Radians{}), g(pi / 3, pi / 6), 3u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(angle::Radians{}, Dimensions<2>{}, angle::Radians{}), g(pi / 3, 3., 4., pi / 6), 5u)), 0.5, 1e-6);
 
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, angle::Radians{}), g(3., pi / 3), 0u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, angle::Radians{}), g(3., pi / 3), 1u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, angle::Radians{}), g(3., pi / 3), 2u)), std::sqrt(3) / 2, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, angle::Radians{}), g(3., pi / 3), 2u)), std::sqrt(3) / 2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, angle::Radians{}), g(3., pi / 3), 0u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, angle::Radians{}), g(3., pi / 3), 1u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, angle::Radians{}), g(3., pi / 3), 2u)), std::sqrt(3) / 2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, angle::Radians{}), g(3., pi / 3), 2u)), std::sqrt(3) / 2, 1e-6);
 
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, angle::Radians{}), g<float>(3., pi / 3), 0u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, angle::Radians{}), g(3., pi / 3), 0u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector<float>(Axis{}, angle::Radians{}), g<float>(3., pi / 3), 1u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector<long double>(Axis{}, angle::Radians{}), g<long double>(3., pi / 3), 2u)), std::sqrt(3) / 2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, angle::Radians{}), g<float>(3., pi / 3), 0u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, angle::Radians{}), g(3., pi / 3), 0u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector<float>(Axis{}, angle::Radians{}), g<float>(3., pi / 3), 1u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector<long double>(Axis{}, angle::Radians{}), g<long double>(3., pi / 3), 2u)), std::sqrt(3) / 2, 1e-6);
 }
 
 
 TEST(coordinates, toEuclidean_distance_inclination_dynamic)
 {
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Distance{}), g(3.), 0u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Distance{}), g(-3.), 0u)), -3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(angle::Radians{}), g(pi/3), 0u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(angle::Radians{}), g(pi/3), 1u)), std::sqrt(3)/2, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(angle::Degrees{}), g(60.), 0u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(angle::Degrees{}), g(30.), 1u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Distance{}), g(3.), 0u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Distance{}), g(-3.), 0u)), -3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(angle::Radians{}), g(pi/3), 0u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(angle::Radians{}), g(pi/3), 1u)), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(angle::Degrees{}), g(60.), 0u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(angle::Degrees{}), g(30.), 1u)), 0.5, 1e-6);
 
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Distance{}), g(-3.), 0u)), -3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Distance{}, Distance{}), g(3., -2.), 0u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Distance{}, Distance{}), g(3., -2.), 1u)), -2., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Distance{}, Distance{}), g(3., -2.), 1u)), -2., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Distance{}), g(-3.), 0u)), -3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Distance{}, Distance{}), g(3., -2.), 0u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Distance{}, Distance{}), g(3., -2.), 1u)), -2., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Distance{}, Distance{}), g(3., -2.), 1u)), -2., 1e-6);
 
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(inclination::Degrees{}), g(-60.), 0u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(inclination::Degrees{}), g(-30.), 1u)), -0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(inclination::Radians{}, inclination::Radians{}), g(pi / 3, pi / 6), 0u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(inclination::Radians{}, inclination::Radians{}), g(pi / 3, pi / 6), 1u)), std::sqrt(3) / 2, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(inclination::Radians{}, inclination::Radians{}), g(pi / 3, pi / 6), 2u)), std::sqrt(3) / 2, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(inclination::Radians{}, inclination::Radians{}), g(pi / 3, pi / 6), 3u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(inclination::Radians{}, inclination::Radians{}), g(pi / 3, pi / 6), 3u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(inclination::Degrees{}), g(-60.), 0u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(inclination::Degrees{}), g(-30.), 1u)), -0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(inclination::Radians{}, inclination::Radians{}), g(pi / 3, pi / 6), 0u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(inclination::Radians{}, inclination::Radians{}), g(pi / 3, pi / 6), 1u)), std::sqrt(3) / 2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(inclination::Radians{}, inclination::Radians{}), g(pi / 3, pi / 6), 2u)), std::sqrt(3) / 2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(inclination::Radians{}, inclination::Radians{}), g(pi / 3, pi / 6), 3u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(inclination::Radians{}, inclination::Radians{}), g(pi / 3, pi / 6), 3u)), 0.5, 1e-6);
 
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Distance{}, inclination::Radians{}), g(3., pi / 3), 0u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Distance{}, inclination::Radians{}), g(3., pi / 3), 1u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Distance{}, inclination::Radians{}), g(3., pi / 3), 2u)), std::sqrt(3) / 2, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Distance{}, inclination::Radians{}, Distance{}), g(3., pi / 3, 4), 2u)), std::sqrt(3) / 2, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Distance{}, inclination::Radians{}, Distance{}), g(3., pi / 3, 4), 3u)), 4, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Distance{}, inclination::Radians{}), g(3., pi / 3), 0u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Distance{}, inclination::Radians{}), g(3., pi / 3), 1u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Distance{}, inclination::Radians{}), g(3., pi / 3), 2u)), std::sqrt(3) / 2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Distance{}, inclination::Radians{}, Distance{}), g(3., pi / 3, 4), 2u)), std::sqrt(3) / 2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Distance{}, inclination::Radians{}, Distance{}), g(3., pi / 3, 4), 3u)), 4, 1e-6);
 
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Distance{}, inclination::Radians{}), g<double>(3., pi / 3), 0u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Distance{}, inclination::Radians{}), g<double>(3., pi / 3), 0u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector<float>(Distance{}, inclination::Radians{}), g<float>(3., pi / 3), 1u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector<long double>(Distance{}, inclination::Radians{}), g<long double>(3., pi / 3), 2u)), std::sqrt(3) / 2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Distance{}, inclination::Radians{}), g<double>(3., pi / 3), 0u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Distance{}, inclination::Radians{}), g<double>(3., pi / 3), 0u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector<float>(Distance{}, inclination::Radians{}), g<float>(3., pi / 3), 1u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector<long double>(Distance{}, inclination::Radians{}), g<long double>(3., pi / 3), 2u)), std::sqrt(3) / 2, 1e-6);
 }
 
 
 TEST(coordinates, toEuclidean_polar_dynamic)
 {
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Polar<Distance, angle::Radians>{}), g(3., pi/3), 0u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Polar<Distance, angle::Radians>{}), g(3., pi/3), 1u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Polar<Distance, angle::Radians>{}), g(3., pi/3), 2u)), std::sqrt(3)/2, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Polar<angle::Radians, Distance>{}), g(pi/3, 3.), 0u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Polar<angle::Radians, Distance>{}), g(pi/3, 3.), 1u)), std::sqrt(3)/2, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Polar<angle::Radians, Distance>{}), g(pi/3, 3.), 2u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Polar<Distance, angle::Radians>{}), g(3., pi/3), 0u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Polar<Distance, angle::Radians>{}), g(3., pi/3), 1u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Polar<Distance, angle::Radians>{}), g(3., pi/3), 2u)), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Polar<angle::Radians, Distance>{}), g(pi/3, 3.), 0u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Polar<angle::Radians, Distance>{}), g(pi/3, 3.), 1u)), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Polar<angle::Radians, Distance>{}), g(pi/3, 3.), 2u)), 3., 1e-6);
 
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Polar<Distance, angle::Degrees>{}), g(3., 60.), 0u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Polar<Distance, angle::Degrees>{}), g(3., 60.), 1u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Polar<Distance, angle::Degrees>{}), g(3., 60.), 2u)), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Polar<Distance, angle::Degrees>{}), g(3., 60.), 0u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Polar<Distance, angle::Degrees>{}), g(3., 60.), 1u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Polar<Distance, angle::Degrees>{}), g(3., 60.), 2u)), std::sqrt(3)/2, 1e-6);
 
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, Polar<Distance, angle::Degrees>{}), g(1.1, 3., 60.), 0u)), 1.1, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, Polar<Distance, angle::Degrees>{}), g(1.1, 3., 60.), 1u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, Polar<Distance, angle::Degrees>{}), g(1.1, 3., 60.), 2u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, Polar<Distance, angle::Degrees>{}), g(1.1, 3., 60.), 3u)), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, Polar<Distance, angle::Degrees>{}), g(1.1, 3., 60.), 0u)), 1.1, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, Polar<Distance, angle::Degrees>{}), g(1.1, 3., 60.), 1u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, Polar<Distance, angle::Degrees>{}), g(1.1, 3., 60.), 2u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, Polar<Distance, angle::Degrees>{}), g(1.1, 3., 60.), 3u)), std::sqrt(3)/2, 1e-6);
 
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, Polar<Distance, angle::Degrees>{}), g<long double>(1.1, 3., 60.), 0u)), 1.1, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, Polar<Distance, angle::Degrees>{}), g<double>(1.1, 3., 60.), 1u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector<float>(Axis{}, Polar<Distance, angle::Degrees>{}), g<float>(1.1, 3., 60.), 2u)), 0.5, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector<long double>(Axis{}, Polar<Distance, angle::Degrees>{}), g<long double>(1.1, 3., 60.), 3u)), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, Polar<Distance, angle::Degrees>{}), g<long double>(1.1, 3., 60.), 0u)), 1.1, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, Polar<Distance, angle::Degrees>{}), g<double>(1.1, 3., 60.), 1u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector<float>(Axis{}, Polar<Distance, angle::Degrees>{}), g<float>(1.1, 3., 60.), 2u)), 0.5, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector<long double>(Axis{}, Polar<Distance, angle::Degrees>{}), g<long double>(1.1, 3., 60.), 3u)), std::sqrt(3)/2, 1e-6);
 }
 
 
 TEST(coordinates, toEuclidean_spherical_dynamic)
 {
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}), g(2., pi/6, pi/3), 0u)), 2., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}), g(2., pi/6, pi/3), 1u)), std::sqrt(3)/4, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}), g(2., pi/6, pi/3), 2u)), 0.25, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}), g(2., pi/6, pi/3), 3u)), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}), g(2., pi/6, pi/3), 0u)), 2., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}), g(2., pi/6, pi/3), 1u)), std::sqrt(3)/4, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}), g(2., pi/6, pi/3), 2u)), 0.25, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}), g(2., pi/6, pi/3), 3u)), std::sqrt(3)/2, 1e-6);
 
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., pi/6, pi/3), 0u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., pi/6, pi/3), 1u)), 2., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., pi/6, pi/3), 2u)), std::sqrt(3)/4, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., pi/6, pi/3), 3u)), 0.25, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., pi/6, pi/3), 4u)), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., pi/6, pi/3), 0u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., pi/6, pi/3), 1u)), 2., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., pi/6, pi/3), 2u)), std::sqrt(3)/4, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., pi/6, pi/3), 3u)), 0.25, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., pi/6, pi/3), 4u)), std::sqrt(3)/2, 1e-6);
 
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., pi/6, pi/3, 3.), 0u)), 2., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., pi/6, pi/3, 3.), 1u)), std::sqrt(3)/4, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., pi/6, pi/3, 3.), 2u)), 0.25, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., pi/6, pi/3, 3.), 3u)), std::sqrt(3)/2, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., pi/6, pi/3, 3.), 4u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., pi/6, pi/3, 3.), 4u)), 3., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., pi/6, pi/3, 3.), 4u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., pi/6, pi/3, 3.), 0u)), 2., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., pi/6, pi/3, 3.), 1u)), std::sqrt(3)/4, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., pi/6, pi/3, 3.), 2u)), 0.25, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., pi/6, pi/3, 3.), 3u)), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., pi/6, pi/3, 3.), 4u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., pi/6, pi/3, 3.), 4u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., pi/6, pi/3, 3.), 4u)), 3., 1e-6);
 
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<float>(2., pi/6, pi/3, 3.), 0u)), 2., 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<double>(2., pi/6, pi/3, 3.), 1u)), std::sqrt(3)/4, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector<float>(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<float>(2., pi/6, pi/3, 3.), 2u)), 0.25, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector<long double>(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<long double>(2., pi/6, pi/3, 3.), 3u)), std::sqrt(3)/2, 1e-6);
-  EXPECT_NEAR((to_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<long double>(2., pi/6, pi/3, 3.), 4u)), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<float>(2., pi/6, pi/3, 3.), 0u)), 2., 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<double>(2., pi/6, pi/3, 3.), 1u)), std::sqrt(3)/4, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector<float>(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<float>(2., pi/6, pi/3, 3.), 2u)), 0.25, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector<long double>(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<long double>(2., pi/6, pi/3, 3.), 3u)), std::sqrt(3)/2, 1e-6);
+  EXPECT_NEAR((to_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<long double>(2., pi/6, pi/3, 3.), 4u)), 3., 1e-6);
 }
 
 
 TEST(coordinates, fromEuclidean_axis_angle_dynamic)
 {
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Axis{}), g(3.), 0u)), 3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Axis{}), g(-3.), 0u)), -3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(angle::Radians{}), g(0.5, std::sqrt(3) / 2), 0u)), pi / 3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(angle::Degrees{}), g(0.5, std::sqrt(3) / 2), 0u)), 60, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Axis{}, angle::Radians{}), g(3, 0.5, -std::sqrt(3) / 2), 0u)), 3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Axis{}, angle::Radians{}), g(3, 0.5, -std::sqrt(3) / 2), 1u)), -pi/3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(angle::Radians{}, Axis{}), g(0.5, std::sqrt(3) / 2, 3), 0u)), pi/3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(angle::Radians{}, Axis{}), g(0.5, std::sqrt(3) / 2, 3), 1u)), 3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Axis{}), g(3.), 0u)), 3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Axis{}), g(-3.), 0u)), -3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(angle::Radians{}), g(0.5, std::sqrt(3) / 2), 0u)), pi / 3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(angle::Degrees{}), g(0.5, std::sqrt(3) / 2), 0u)), 60, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Axis{}, angle::Radians{}), g(3, 0.5, -std::sqrt(3) / 2), 0u)), 3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Axis{}, angle::Radians{}), g(3, 0.5, -std::sqrt(3) / 2), 1u)), -pi/3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(angle::Radians{}, Axis{}), g(0.5, std::sqrt(3) / 2, 3), 0u)), pi/3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(angle::Radians{}, Axis{}), g(0.5, std::sqrt(3) / 2, 3), 1u)), 3, 1e-6);
 
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Axis{}, angle::Radians{}), g<float>(3, 0.5, -std::sqrt(3) / 2), 0u)), 3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Axis{}, angle::Radians{}), g<double>(3, 0.5, -std::sqrt(3) / 2), 0u)), 3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector<float>(Axis{}, angle::Radians{}), g<float>(3, 0.5, -std::sqrt(3) / 2), 1u)), -pi/3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector<long double>(Axis{}, angle::Radians{}), g<long double>(3, 0.5, -std::sqrt(3) / 2), 1u)), -pi/3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Axis{}, angle::Radians{}), g<float>(3, 0.5, -std::sqrt(3) / 2), 0u)), 3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Axis{}, angle::Radians{}), g<double>(3, 0.5, -std::sqrt(3) / 2), 0u)), 3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector<float>(Axis{}, angle::Radians{}), g<float>(3, 0.5, -std::sqrt(3) / 2), 1u)), -pi/3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector<long double>(Axis{}, angle::Radians{}), g<long double>(3, 0.5, -std::sqrt(3) / 2), 1u)), -pi/3, 1e-6);
 }
 
 
 TEST(coordinates, fromEuclidean_distance_inclination_dynamic)
 {
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Distance{}), g(3.), 0u)), 3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Distance{}), g(-3.), 0u)), 3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(inclination::Radians{}), g(0.5, std::sqrt(3) / 2), 0u)), pi / 3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(inclination::Degrees{}), g(0.5, std::sqrt(3) / 2), 0u)), 60, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Distance{}, inclination::Radians{}), g(3, 0.5, -std::sqrt(3) / 2), 0u)), 3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Distance{}, inclination::Radians{}), g(3, 0.5, -std::sqrt(3) / 2), 1u)), -pi/3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(inclination::Radians{}, Distance{}), g(0.5, std::sqrt(3) / 2, 3), 0u)), pi/3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(inclination::Radians{}, Distance{}), g(0.5, std::sqrt(3) / 2, 3), 1u)), 3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Distance{}), g(3.), 0u)), 3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Distance{}), g(-3.), 0u)), 3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(inclination::Radians{}), g(0.5, std::sqrt(3) / 2), 0u)), pi / 3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(inclination::Degrees{}), g(0.5, std::sqrt(3) / 2), 0u)), 60, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Distance{}, inclination::Radians{}), g(3, 0.5, -std::sqrt(3) / 2), 0u)), 3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Distance{}, inclination::Radians{}), g(3, 0.5, -std::sqrt(3) / 2), 1u)), -pi/3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(inclination::Radians{}, Distance{}), g(0.5, std::sqrt(3) / 2, 3), 0u)), pi/3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(inclination::Radians{}, Distance{}), g(0.5, std::sqrt(3) / 2, 3), 1u)), 3, 1e-6);
 
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(inclination::Radians{}, Distance{}), g<double>(0.5, std::sqrt(3) / 2, 3), 0u)), pi/3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(inclination::Radians{}, Distance{}), g<double>(0.5, std::sqrt(3) / 2, 3), 0u)), pi/3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector<float>(inclination::Radians{}, Distance{}), g<float>(0.5, std::sqrt(3) / 2, 3), 1u)), 3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector<long double>(inclination::Radians{}, Distance{}), g<long double>(0.5, std::sqrt(3) / 2, 3), 1u)), 3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(inclination::Radians{}, Distance{}), g<double>(0.5, std::sqrt(3) / 2, 3), 0u)), pi/3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(inclination::Radians{}, Distance{}), g<double>(0.5, std::sqrt(3) / 2, 3), 0u)), pi/3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector<float>(inclination::Radians{}, Distance{}), g<float>(0.5, std::sqrt(3) / 2, 3), 1u)), 3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector<long double>(inclination::Radians{}, Distance{}), g<long double>(0.5, std::sqrt(3) / 2, 3), 1u)), 3, 1e-6);
 }
 
 
 TEST(coordinates, fromEuclidean_polar_dynamic)
 {
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Polar<Distance, angle::Radians>{}), g(3., 0.5, std::sqrt(3) / 2), 0u)), 3., 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Polar<Distance, angle::Radians>{}), g(3., 0.5, std::sqrt(3) / 2), 1u)), pi/3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Axis{}, Polar<Distance, angle::Radians>{}), g(1.1, 3, 0.5, -std::sqrt(3) / 2), 0u)), 1.1, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Axis{}, Polar<Distance, angle::Radians>{}), g(1.1, 3, 0.5, -std::sqrt(3) / 2), 1u)), 3., 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Axis{}, Polar<Distance, angle::Radians>{}), g(1.1, 3, 0.5, -std::sqrt(3) / 2), 2u)), -pi/3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Polar<angle::Degrees, Distance>{}, Axis{}), g(0.5, std::sqrt(3)/2, 3, 1.1), 0u)), 60, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Polar<angle::Degrees, Distance>{}, Axis{}), g(0.5, std::sqrt(3)/2, 3, 1.1), 1u)), 3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Polar<angle::Degrees, Distance>{}, Axis{}), g(0.5, std::sqrt(3)/2, 3, 1.1), 2u)), 1.1, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Polar<Distance, angle::Radians>{}), g(3., 0.5, std::sqrt(3) / 2), 0u)), 3., 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Polar<Distance, angle::Radians>{}), g(3., 0.5, std::sqrt(3) / 2), 1u)), pi/3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Axis{}, Polar<Distance, angle::Radians>{}), g(1.1, 3, 0.5, -std::sqrt(3) / 2), 0u)), 1.1, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Axis{}, Polar<Distance, angle::Radians>{}), g(1.1, 3, 0.5, -std::sqrt(3) / 2), 1u)), 3., 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Axis{}, Polar<Distance, angle::Radians>{}), g(1.1, 3, 0.5, -std::sqrt(3) / 2), 2u)), -pi/3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Polar<angle::Degrees, Distance>{}, Axis{}), g(0.5, std::sqrt(3)/2, 3, 1.1), 0u)), 60, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Polar<angle::Degrees, Distance>{}, Axis{}), g(0.5, std::sqrt(3)/2, 3, 1.1), 1u)), 3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Polar<angle::Degrees, Distance>{}, Axis{}), g(0.5, std::sqrt(3)/2, 3, 1.1), 2u)), 1.1, 1e-6);
 
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Polar<angle::Degrees, Distance>{}, Axis{}), g<long double>(0.5, std::sqrt(3)/2, 3, 1.1), 0u)), 60, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Polar<angle::Degrees, Distance>{}, Axis{}), g<double>(0.5, std::sqrt(3)/2, 3, 1.1), 0u)), 60, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector<float>(Polar<angle::Degrees, Distance>{}, Axis{}), g<float>(0.5, std::sqrt(3)/2, 3, 1.1), 1u)), 3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector<long double>(Polar<angle::Degrees, Distance>{}, Axis{}), g<long double>(0.5, std::sqrt(3)/2, 3, 1.1), 2u)), 1.1, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Polar<angle::Degrees, Distance>{}, Axis{}), g<long double>(0.5, std::sqrt(3)/2, 3, 1.1), 0u)), 60, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Polar<angle::Degrees, Distance>{}, Axis{}), g<double>(0.5, std::sqrt(3)/2, 3, 1.1), 0u)), 60, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector<float>(Polar<angle::Degrees, Distance>{}, Axis{}), g<float>(0.5, std::sqrt(3)/2, 3, 1.1), 1u)), 3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector<long double>(Polar<angle::Degrees, Distance>{}, Axis{}), g<long double>(0.5, std::sqrt(3)/2, 3, 1.1), 2u)), 1.1, 1e-6);
 }
 
 
 TEST(coordinates, fromEuclidean_spherical_dynamic)
 {
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 0u)), 2., 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 1u)), pi/6, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 2u)), pi/3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 0u)), 2., 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 1u)), pi/6, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 2u)), pi/3, 1e-6);
 
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 0u)), 3., 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 1u)), 2., 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 2u)), pi/6, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 3u)), pi/3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 0u)), 3., 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 1u)), 2., 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 2u)), pi/6, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Axis{}, Spherical<Distance, angle::Radians, inclination::Radians>{}), g(3., 2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2), 3u)), pi/3, 1e-6);
 
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 0u)), 2., 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 1u)), pi/6, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 2u)), pi/3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 3u)), 3., 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 3u)), 3., 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 3u)), 3., 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 0u)), 2., 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 1u)), pi/6, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 2u)), pi/3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 3u)), 3., 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 3u)), 3., 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 3u)), 3., 1e-6);
 
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<float>(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 0u)), 2., 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<double>(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 1u)), pi/6, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector<float>(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<float>(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 2u)), pi/3, 1e-6);
-  EXPECT_NEAR((from_euclidean_element(make_pattern_vector<long double>(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<long double>(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 3u)), 3., 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<float>(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 0u)), 2., 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<double>(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 1u)), pi/6, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector<float>(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<float>(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 2u)), pi/3, 1e-6);
+  EXPECT_NEAR((from_stat_space(make_pattern_vector<long double>(Spherical<Distance, angle::Radians, inclination::Radians>{}, Axis{}), g<long double>(2., std::sqrt(3)/4, 0.25, std::sqrt(3)/2, 3.), 3u)), 3., 1e-6);
 }
 
 

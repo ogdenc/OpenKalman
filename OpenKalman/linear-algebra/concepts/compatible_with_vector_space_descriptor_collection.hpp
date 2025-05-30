@@ -24,7 +24,7 @@ namespace OpenKalman
     template<typename T, std::size_t N, std::size_t...Ix>
     constexpr bool compatible_extension(std::index_sequence<Ix...>)
     {
-      return (... and (compares_with<vector_space_descriptor_of_t<T, N + Ix>, coordinate::Dimensions<1>, equal_to<>, Applicability::permitted>));
+      return (... and (compares_with<vector_space_descriptor_of_t<T, N + Ix>, coordinates::Dimensions<1>, equal_to<>, Applicability::permitted>));
     }
 
 

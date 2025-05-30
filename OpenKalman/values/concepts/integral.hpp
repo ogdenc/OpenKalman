@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref value::integral.
+ * \brief Definition for \ref values::integral.
  */
 
 #ifndef OPENKALMAN_VALUE_INTEGRAL_HPP
@@ -23,7 +23,7 @@
 #include "value.hpp"
 #include "values/traits/number_type_of_t.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
 #ifndef __cpp_concepts
   namespace detail
@@ -33,7 +33,7 @@ namespace OpenKalman::value
 
 
     template<typename T>
-    struct reduces_to_integral<T, std::enable_if_t<std::is_integral_v<value::number_type_of_t<T>>>>
+    struct reduces_to_integral<T, std::enable_if_t<std::is_integral_v<values::number_type_of_t<T>>>>
       : std::true_type {};
   }
 #endif
@@ -44,12 +44,12 @@ namespace OpenKalman::value
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept integral = value::value<T> and std::integral<value::number_type_of_t<T>>;
+  concept integral = values::value<T> and std::integral<values::number_type_of_t<T>>;
 #else
   template<typename T>
-  constexpr bool integral = value::value<T> and detail::reduces_to_integral<T>::value;
+  constexpr bool integral = values::value<T> and detail::reduces_to_integral<T>::value;
 #endif
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_VALUE_INTEGRAL_HPP

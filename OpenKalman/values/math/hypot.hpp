@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::hypot.
+ * \brief Definition for \ref values::hypot.
  */
 
 #ifndef OPENKALMAN_VALUE_HYPOT_HPP
@@ -30,33 +30,33 @@
 #include "values/math/signbit.hpp"
 #include "values/math/sqrt.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief A constexpr alternative to std::hypot.
    * \details This version can take one or more parameters (not limited to 2 or 3 as std::hypot is).
    */
 #ifdef __cpp_concepts
-  template<value::value...Args> requires (sizeof...(Args) > 0) and
-    (... and (not value::complex<Args>))
-  constexpr value::value auto hypot(const Args&...args)
+  template<values::value...Args> requires (sizeof...(Args) > 0) and
+    (... and (not values::complex<Args>))
+  constexpr values::value auto hypot(const Args&...args)
 #else
-  template <typename...Args, std::enable_if_t<(... and value::value<Args>) and (sizeof...(Args) > 0) and
-    (... and (not value::complex<Args>)), int> = 0>
+  template <typename...Args, std::enable_if_t<(... and values::value<Args>) and (sizeof...(Args) > 0) and
+    (... and (not values::complex<Args>)), int> = 0>
   constexpr auto hypot(const Args&...args)
 #endif
   {
-    if constexpr ((... or (not value::number<Args>)))
+    if constexpr ((... or (not values::number<Args>)))
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Args>&...as) const { return value::hypot(as...); } };
-      return value::operation {Op{}, args...};
+      struct Op { constexpr auto operator()(const values::number_type_of_t<Args>&...as) const { return values::hypot(as...); } };
+      return values::operation {Op{}, args...};
     }
     else if constexpr (sizeof...(Args) == 1)
     {
       using std::abs;
       struct Op { auto operator()(const Args&...args) { return abs(args...); } };
-      if (internal::constexpr_callable<Op>(args...)) return value::real(abs(args...));
-      return value::real((..., (value::signbit(args...) ? -args : args)));
+      if (internal::constexpr_callable<Op>(args...)) return values::real(abs(args...));
+      return values::real((..., (values::signbit(args...) ? -args : args)));
     }
     else
     {
@@ -68,16 +68,16 @@ namespace OpenKalman::value
         struct Op { auto operator()(const Args&...args) { return hypot(args...); } };
         if (internal::constexpr_callable<Op>(args...)) return static_cast<Return>(hypot(args...));
       }
-      if ((... or value::isinf(args))) return value::internal::infinity<Return>();
-      if ((... or value::isnan(args))) return value::internal::NaN<Return>();
-      auto m = static_cast<Return>(std::max({static_cast<ArgCommon>(value::signbit(args) ? -args : args)...}));
+      if ((... or values::isinf(args))) return values::internal::infinity<Return>();
+      if ((... or values::isnan(args))) return values::internal::NaN<Return>();
+      auto m = static_cast<Return>(std::max({static_cast<ArgCommon>(values::signbit(args) ? -args : args)...}));
       if (m == 0) return m;
-      return m * value::sqrt((... + [](const auto& a){ return a * a; }(static_cast<Return>(args)/m)));
+      return m * values::sqrt((... + [](const auto& a){ return a * a; }(static_cast<Return>(args)/m)));
     }
   }
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_HYPOT_HPP

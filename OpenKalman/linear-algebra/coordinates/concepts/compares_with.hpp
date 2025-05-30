@@ -25,7 +25,7 @@
 #include "linear-algebra/coordinates/functions/comparison-operators.hpp"
 #include "linear-algebra/coordinates/views/comparison.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
   namespace detail
   {
@@ -36,7 +36,7 @@ namespace OpenKalman::coordinate
       constexpr bool operator()(const T& t, const U& u) const
       {
         if constexpr (euclidean_pattern<T> and euclidean_pattern<U>)
-          return std::decay_t<C>{}(value::to_number(get_size(t)), value::to_number(get_size(u)));
+          return std::decay_t<C>{}(values::to_number(get_dimension(t)), values::to_number(get_dimension(u)));
         else if constexpr (collections::collection<T> and collections::collection<U>)
           return std::decay_t<C>{}(comparison_view<T>{t}, u);
         else
@@ -47,7 +47,7 @@ namespace OpenKalman::coordinate
 
 #ifdef __cpp_concepts
     template<typename T>
-    concept euclidean_status_is_fixed = value::fixed<decltype(coordinate::get_is_euclidean(std::declval<T>()))>;
+    concept euclidean_status_is_fixed = values::fixed<decltype(coordinates::get_is_euclidean(std::declval<T>()))>;
 #else
     template<typename T, typename U, typename Comparison, Applicability applicability, typename = void>
     struct comparison_invocable : std::false_type {};
@@ -72,21 +72,21 @@ namespace OpenKalman::coordinate
 
     template<typename T, typename U, typename Comparison, Applicability applicability>
     struct compares_with_permitted<T, U, Comparison, applicability, std::enable_if_t<
-      (value::fixed<decltype(coordinate::get_is_euclidean(std::declval<T>()))> !=
-        value::fixed<decltype(coordinate::get_is_euclidean(std::declval<U>()))>)>>
+      (values::fixed<decltype(coordinates::get_is_euclidean(std::declval<T>()))> !=
+        values::fixed<decltype(coordinates::get_is_euclidean(std::declval<U>()))>)>>
       : std::true_type {};
 #endif
   } // namespace detail
 
 
   /**
-   * \brief Specifies that a set of \ref coordinate::pattern objects may be equivalent based on what is known at compile time.
+   * \brief Specifies that a set of \ref coordinates::pattern objects may be equivalent based on what is known at compile time.
    * \details Every \ref coordinate_list in the set must be potentially equivalent to every other \ref coordinate_list in the set.
    * Sets of vector space descriptors are equivalent if they are treated functionally the same.
    * - Any \ref coordinate_list is equivalent to itself.
    * - std::tuple<As...> is equivalent to std::tuple<Bs...>, if each As is equivalent to its respective Bs.
    * - std::tuple<A> is equivalent to A, and vice versa.
-   * - Dynamic \ref coordinate::euclidean_pattern objects are equivalent to any other \ref coordinate::euclidean_pattern,
+   * - Dynamic \ref coordinates::euclidean_pattern objects are equivalent to any other \ref coordinates::euclidean_pattern,
    * \par Examples:
    * <code>compares_with&lt;std::tuple&lt;Axis, Direction&gt;, std::tuple&lt;Axis, Direction&gt;&gt;</code>
    * <code>compares_with&lt;std::tuple&lt;Axis, Direction&gt;, std::tuple&lt;Axis, Direction, angle::Radians&gt;, less_than<>, Applicability::guaranteed&gt;</code>
@@ -108,6 +108,6 @@ namespace OpenKalman::coordinate
 #endif
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 #endif //OPENKALMAN_COORDINATE_COMPARES_WITH_HPP

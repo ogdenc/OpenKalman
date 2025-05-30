@@ -66,8 +66,8 @@ namespace OpenKalman
       // From here on, A is known to be a 1-by-1 matrix.
 
       auto e = [](auto ax, const auto& uterm) {
-          if constexpr (value::complex<scalar_type_of<A>>) return value::sqrt(ax * value::conj(ax) + uterm);
-          else return value::sqrt(ax * ax + uterm);
+          if constexpr (values::complex<scalar_type_of<A>>) return values::sqrt(ax * values::conj(ax) + uterm);
+          else return values::sqrt(ax * ax + uterm);
       }(internal::get_singular_component(a), alpha * internal::get_singular_component(contract(u, adjoint(u))));
 
       if constexpr (writable_by_component<A&&>)
@@ -77,7 +77,7 @@ namespace OpenKalman
       }
       else
       {
-        auto ret {make_dense_object_from<A>(std::tuple{coordinate::Axis{}, coordinate::Axis{}}, e)};
+        auto ret {make_dense_object_from<A>(std::tuple{coordinates::Axis{}, coordinates::Axis{}}, e)};
         if constexpr (std::is_assignable_v<A, decltype(std::move(ret))>)
         {
           a = std::move(ret);

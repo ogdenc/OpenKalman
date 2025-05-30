@@ -22,7 +22,7 @@
 #if defined(__cpp_lib_ranges)
 #include <ranges>
 #else
-#include "basics/ranges.hpp"
+#include "basics/compatibility/ranges.hpp"
 #endif
 
 
@@ -40,7 +40,7 @@ namespace OpenKalman::internal
       {
         return std::tuple {};
       }
-      else if constexpr (compares_with<std::tuple_element_t<N - 1, std::tuple<Ds...>>, coordinate::Axis>)
+      else if constexpr (compares_with<std::tuple_element_t<N - 1, std::tuple<Ds...>>, coordinates::Axis>)
       {
         return std::apply(
           [](auto&&...ds2){ return remove_trailing_1D_descriptors_tup(std::forward<decltype(ds2)>(ds2)...); },
@@ -56,7 +56,7 @@ namespace OpenKalman::internal
 
   /**
    * \internal
-   * \brief Remove any trailing, one-dimensional \ref coordinate::pattern objects.
+   * \brief Remove any trailing, one-dimensional \ref coordinates::pattern objects.
    * \return A \ref pattern_collection containing the resulting, potentially shortened, list of vector space descriptors
    */
 #ifdef __cpp_concepts
@@ -76,7 +76,7 @@ namespace OpenKalman::internal
     else
     {
 #ifdef __cpp_lib_ranges
-      auto n = std::ranges::partition_point(descriptors, [](const auto& x){ return x != coordinate::Axis{}; });
+      auto n = std::ranges::partition_point(descriptors, [](const auto& x){ return x != coordinates::Axis{}; });
 #if __cpp_lib_ranges >= 202202L
       return descriptors | std::ranges::views::take(n);
 #endif
@@ -85,7 +85,7 @@ namespace OpenKalman::internal
       auto it = ranges::begin(descriptors);
       for (auto d = ranges::begin(descriptors); d != ranges::end(descriptors); ++descriptors)
       {
-        if (*d != coordinate::Axis{}) it = d;
+        if (*d != coordinates::Axis{}) it = d;
       }
       std::vector<std::decay_t<decltype(*it)>> ret {};
       std::copy(ranges::begin(descriptors), it, ranges::begin(ret));

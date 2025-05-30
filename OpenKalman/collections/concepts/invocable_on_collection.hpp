@@ -16,8 +16,12 @@
 #ifndef OPENKALMAN_INVOCABLE_ON_COLLECTION_HPP
 #define OPENKALMAN_INVOCABLE_ON_COLLECTION_HPP
 
+#ifdef __cpp_lib_ranges
+#include <ranges>
+#else
+#include "basics/compatibility/ranges.hpp"
+#endif
 #include "tuple_like.hpp"
-#include "sized_random_access_range.hpp"
 
 namespace OpenKalman::collections
 {
@@ -68,7 +72,7 @@ namespace OpenKalman::collections
     (not tuple_like<C> or detail::is_invocable_on_tuple<C, F>::value);
 #else
   constexpr bool invocable_on_collection =
-    (not sized_random_access_range<C> or detail::is_invocable_on_range<C, F>::value) and
+    (not ranges::range<C> or detail::is_invocable_on_range<C, F>::value) and
     (not tuple_like<C> or detail::is_invocable_on_tuple<C, F>::value);
 #endif
 

@@ -47,12 +47,12 @@ namespace OpenKalman::internal
    * \return (1) A fixed size adapter or (2) a reference to the argument unchanged.
    */
 #ifdef __cpp_concepts
-  template<coordinate::pattern D = coordinate::Axis, coordinate::pattern...Ds, square_shaped<Applicability::permitted> Arg> requires
-    (index_count_v<Arg> != dynamic_size) and (... and coordinate::compares_with<D, Ds, equal_to<>, Applicability::permitted>)
+  template<coordinates::pattern D = coordinates::Axis, coordinates::pattern...Ds, square_shaped<Applicability::permitted> Arg> requires
+    (index_count_v<Arg> != dynamic_size) and (... and coordinates::compares_with<D, Ds, equal_to<>, Applicability::permitted>)
 #else
   template<typename...Ds, typename Arg, std::enable_if_t<
-    (... and coordinate::pattern<Ds>) and square_shaped<Arg, Applicability::permitted> and
-    (index_count_v<Arg> != dynamic_size) and (... and coordinate::compares_with<D, Ds, equal_to<>, Applicability::permitted>), int> = 0>
+    (... and coordinates::pattern<Ds>) and square_shaped<Arg, Applicability::permitted> and
+    (index_count_v<Arg> != dynamic_size) and (... and coordinates::compares_with<D, Ds, equal_to<>, Applicability::permitted>), int> = 0>
 #endif
   constexpr decltype(auto)
   make_fixed_square_adapter_like(Arg&& arg)

@@ -21,7 +21,7 @@
 #include <concepts>
 #endif
 #include <cmath>
-#include "basics/language-features.hpp"
+#include "../../../basics/compatibility/language-features.hpp"
 #include "values/concepts/floating.hpp"
 #include "values/classes/fixed-constants.hpp"
 #include "values/functions/internal/update_real_part.hpp"
@@ -33,7 +33,7 @@
 #include "linear-algebra/coordinates/interfaces/coordinate_descriptor_traits.hpp"
 
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
   /**
    * \brief A positive or negative real number &phi; representing an inclination or declination from the horizon.
@@ -42,24 +42,24 @@ namespace OpenKalman::coordinate
    * &phi;<sub>down</sub>=&minus;&phi;<sub>up</sub>, but in general, the horizon is at
    * &frac12;(&phi;<sub>down</sub>+&minus;&phi;<sub>up</sub>).
    * The inclinations inclination::Radians and inclination::Degrees are predefined.
-   * \tparam Down a \ref value::fixed "fixed value" representing the down direction. This must be no greater than zero.
-   * \tparam Up a \ref value::fixed "fixed value" representing the up direction. This must be no less than zero and must exceed Down.
+   * \tparam Down a \ref values::fixed "fixed value" representing the down direction. This must be no greater than zero.
+   * \tparam Up a \ref values::fixed "fixed value" representing the up direction. This must be no less than zero and must exceed Down.
    */
 #ifdef __cpp_concepts
-  template<value::fixed Down = value::fixed_minus_half_pi<long double>, value::fixed Up = value::fixed_half_pi<long double>>
-  requires (value::fixed_number_of_v<Up> - value::fixed_number_of_v<Down> > 0) and
-    (value::fixed_number_of_v<Down> <= 0) and (value::fixed_number_of_v<Up> >= 0)
+  template<values::fixed Down = values::fixed_minus_half_pi<long double>, values::fixed Up = values::fixed_half_pi<long double>>
+  requires (values::fixed_number_of_v<Up> - values::fixed_number_of_v<Down> > 0) and
+    (values::fixed_number_of_v<Down> <= 0) and (values::fixed_number_of_v<Up> >= 0)
 #else
-  template<typename Down = value::fixed_minus_half_pi<long double>, typename Up = value::fixed_half_pi<long double>>
+  template<typename Down = values::fixed_minus_half_pi<long double>, typename Up = values::fixed_half_pi<long double>>
 #endif
   struct Inclination
   {
 #ifndef __cpp_concepts
-    static_assert(value::fixed<Down>);
-    static_assert(value::fixed<Up>);
-    static_assert(value::fixed_number_of_v<Up> - value::fixed_number_of_v<Down> > 0);
-    static_assert(value::fixed_number_of_v<Down> <= 0);
-    static_assert(value::fixed_number_of_v<Up> >= 0);
+    static_assert(values::fixed<Down>);
+    static_assert(values::fixed<Up>);
+    static_assert(values::fixed_number_of_v<Up> - values::fixed_number_of_v<Down> > 0);
+    static_assert(values::fixed_number_of_v<Down> <= 0);
+    static_assert(values::fixed_number_of_v<Up> >= 0);
 #endif
   };
 
@@ -72,7 +72,7 @@ namespace OpenKalman::coordinate
 
 
     /// An inclination measured in degrees [-90,90].
-    using Degrees = Inclination<value::Fixed<long double, -90>, value::Fixed<long double, 90>>;
+    using Degrees = Inclination<values::Fixed<long double, -90>, values::Fixed<long double, 90>>;
 
 
     namespace detail
@@ -86,7 +86,7 @@ namespace OpenKalman::coordinate
 
 
     /**
-     * \brief T is a \ref coordinate::pattern object representing an inclination.
+     * \brief T is a \ref coordinates::pattern object representing an inclination.
      */
     template<typename T>
 #ifdef __cpp_concepts
@@ -98,7 +98,7 @@ namespace OpenKalman::coordinate
 
   } // namespace inclination
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 
 namespace OpenKalman::interface
@@ -108,13 +108,13 @@ namespace OpenKalman::interface
    * \brief traits for Inclination.
    */
   template<typename Down, typename Up>
-  struct coordinate_descriptor_traits<coordinate::Inclination<Down, Up>>
+  struct coordinate_descriptor_traits<coordinates::Inclination<Down, Up>>
   {
   private:
 
-    using T = coordinate::Inclination<Down, Up>;
-    static constexpr auto down = value::fixed_number_of_v<Down>;
-    static constexpr auto up = value::fixed_number_of_v<Up>;
+    using T = coordinates::Inclination<Down, Up>;
+    static constexpr auto down = values::fixed_number_of_v<Down>;
+    static constexpr auto up = values::fixed_number_of_v<Up>;
 
   public:
 
@@ -122,11 +122,11 @@ namespace OpenKalman::interface
 
 
     static constexpr auto
-    size(const T&) { return std::integral_constant<std::size_t, 1>{}; };
+    dimension(const T&) { return std::integral_constant<std::size_t, 1>{}; };
 
 
     static constexpr auto
-    euclidean_size(const T&) { return std::integral_constant<std::size_t, 2>{}; };
+    stat_dimension(const T&) { return std::integral_constant<std::size_t, 2>{}; };
 
 
     static constexpr auto
@@ -154,25 +154,25 @@ namespace OpenKalman::interface
      * \param euclidean_local_index A local index accessing either the x (if 0) or y (if 1) coordinate in Euclidean space
      */
 #ifdef __cpp_concepts
-    static constexpr value::value auto
-    to_euclidean_component(const T& t, const auto& g, const value::index auto& euclidean_local_index)
-    requires requires(std::size_t i){ {g(i)} -> value::value; }
+    static constexpr values::value auto
+    to_euclidean_component(const T& t, const auto& g, const values::index auto& euclidean_local_index)
+    requires requires(std::size_t i){ {g(i)} -> values::value; }
 #else
-    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
-      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
+      values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
     to_euclidean_component(const T& t, const Getter& g, const L& euclidean_local_index)
 #endif
     {
       using Scalar = std::decay_t<decltype(g(0_uz))>;
-      using R = std::decay_t<decltype(value::real(std::declval<Scalar>()))>;
+      using R = std::decay_t<decltype(values::real(std::declval<Scalar>()))>;
       const Scalar cf {numbers::pi_v<R> / (up - down)};
       const Scalar horiz {R{up + down} * R{0.5}};
 
       Scalar theta = cf * (g(0_uz) - horiz); // Convert to radians
 
-      if (euclidean_local_index == 0) return value::cos(theta);
-      else return value::sin(theta);
+      if (euclidean_local_index == 0) return values::cos(theta);
+      else return values::sin(theta);
     }
 
 
@@ -181,28 +181,28 @@ namespace OpenKalman::interface
      * \param local_index A local index accessing the angle (in this case, it must be 0)
      */
 #ifdef __cpp_concepts
-    static constexpr value::value auto
-    from_euclidean_component(const T& t, const auto& g, const value::index auto& local_index)
-    requires requires(std::size_t i){ {g(i)} -> value::value; }
+    static constexpr values::value auto
+    from_euclidean_component(const T& t, const auto& g, const values::index auto& local_index)
+    requires requires(std::size_t i){ {g(i)} -> values::value; }
 #else
-    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
-      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
+      values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
     from_euclidean_component(const T& t, const Getter& g, const L& local_index)
 #endif
     {
       using Scalar = std::decay_t<decltype(g(0_uz))>;
-      using R = std::decay_t<decltype(value::real(std::declval<Scalar>()))>;
+      using R = std::decay_t<decltype(values::real(std::declval<Scalar>()))>;
       const Scalar cf {numbers::pi_v<R> / (up - down)};
       const Scalar horiz {R{up + down} * R{0.5}};
 
       Scalar x = g(0_uz);
       // In Euclidean space, (the real part of) x must be non-negative since the inclination is in range [-½pi,½pi].
-      Scalar pos_x = value::internal::update_real_part(x, value::abs(value::real(x)));
+      Scalar pos_x = values::internal::update_real_part(x, values::abs(values::real(x)));
       Scalar y = g(1_uz);
 
-      if constexpr (value::complex<Scalar>) return value::atan2(y, pos_x) / cf + horiz;
-      else { return value::atan2(y, pos_x) / cf + horiz; }
+      if constexpr (values::complex<Scalar>) return values::atan2(y, pos_x) / cf + horiz;
+      else { return values::atan2(y, pos_x) / cf + horiz; }
     }
 
   private:
@@ -210,7 +210,7 @@ namespace OpenKalman::interface
     template<typename A>
     static constexpr std::decay_t<A> wrap_impl(A&& a)
     {
-      auto ap = value::real(a);
+      auto ap = values::real(a);
       if (ap >= down and ap <= up)
       {
         return std::forward<decltype(a)>(a);
@@ -223,9 +223,9 @@ namespace OpenKalman::interface
         using std::fmod;
         auto ar = fmod(ap - R{down}, period);
 
-        if (ar < 0) return value::internal::update_real_part(std::forward<decltype(a)>(a), R{down} + ar + period);
-        else if (ar > range) return value::internal::update_real_part(std::forward<decltype(a)>(a), R{down} - ar + period);
-        else return value::internal::update_real_part(std::forward<decltype(a)>(a), R{down} + ar);
+        if (ar < 0) return values::internal::update_real_part(std::forward<decltype(a)>(a), R{down} + ar + period);
+        else if (ar > range) return values::internal::update_real_part(std::forward<decltype(a)>(a), R{down} - ar + period);
+        else return values::internal::update_real_part(std::forward<decltype(a)>(a), R{down} + ar);
       }
     }
 
@@ -235,12 +235,12 @@ namespace OpenKalman::interface
      * \param local_index A local index accessing the inclination angle (in this case, it must be 0)
      */
 #ifdef __cpp_concepts
-    static constexpr value::value auto
-    get_wrapped_component(const T& t, const auto& g, const value::index auto& local_index)
-    requires requires(std::size_t i){ {g(i)} -> value::value; }
+    static constexpr values::value auto
+    get_wrapped_component(const T& t, const auto& g, const values::index auto& local_index)
+    requires requires(std::size_t i){ {g(i)} -> values::value; }
 #else
-    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
-      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
+      values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
     get_wrapped_component(const T& t, const Getter& g, const L& local_index)
 #endif
@@ -254,10 +254,10 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     static constexpr void
-    set_wrapped_component(const T& t, const auto& s, const auto& g, const value::value auto& x, const value::index auto& local_index)
+    set_wrapped_component(const T& t, const auto& s, const auto& g, const values::value auto& x, const values::index auto& local_index)
     requires requires(std::size_t i){ s(x, i); s(g(i), i); }
 #else
-    template<typename Setter, typename Getter, typename X, typename L, std::enable_if_t<value::value<X> and value::index<L> and
+    template<typename Setter, typename Getter, typename X, typename L, std::enable_if_t<values::value<X> and values::index<L> and
       std::is_invocable<const Setter&, const X&, std::size_t>::value and
       std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, std::size_t>::type, std::size_t>::value, int> = 0>
     static constexpr void

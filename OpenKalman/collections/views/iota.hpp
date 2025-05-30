@@ -21,232 +21,221 @@
 #ifdef __cpp_lib_ranges
 #include <ranges>
 #else
-#include "basics/ranges.hpp"
+#include "basics/compatibility/ranges.hpp"
 #endif
 #include "values/concepts/index.hpp"
 #include "values/concepts/fixed.hpp"
 #include "values/traits/fixed_number_of.hpp"
 #include "values/traits/number_type_of_t.hpp"
-#include "values/functions/to_number.hpp"
-#include "collection_view_interface.hpp"
+#include "values/functions/cast_to.hpp"
+#include "collections/functions/compare.hpp"
+#include "generate.hpp"
 
 namespace OpenKalman::collections
 {
-  namespace internal
+  namespace detail
   {
-    /**
-     * \internal
-     * \brief Iterator for \ref iota_view
-     */
-    template<typename W>
-    struct iota_view_iterator
-    {
-      using iterator_category = std::random_access_iterator_tag;
-      using value_type = W;
-      using difference_type = std::ptrdiff_t;
-      explicit constexpr iota_view_iterator(value_type p) : current{p} {}
-      constexpr iota_view_iterator() = default;
-      constexpr iota_view_iterator(const iota_view_iterator& other) = default;
-      constexpr iota_view_iterator(iota_view_iterator&& other) noexcept = default;
-      constexpr iota_view_iterator& operator=(const iota_view_iterator& other) = default;
-      constexpr iota_view_iterator& operator=(iota_view_iterator&& other) noexcept = default;
-      explicit constexpr operator value_type() const noexcept { return current; }
-      constexpr value_type operator*() noexcept { return current; }
-      constexpr value_type operator*() const noexcept { return current; }
-      constexpr value_type operator[](difference_type offset) noexcept { return current + offset; }
-      constexpr value_type operator[](difference_type offset) const noexcept { return current + offset; }
-      constexpr auto& operator++() noexcept { ++current; return *this; }
-      constexpr auto operator++(int) noexcept { auto temp = *this; ++*this; return temp; }
-      constexpr auto& operator--() noexcept { --current; return *this; }
-      constexpr auto operator--(int) noexcept { auto temp = *this; --*this; return temp; }
-      constexpr auto& operator+=(const difference_type diff) noexcept { current += diff; return *this; }
-      constexpr auto& operator-=(const difference_type diff) noexcept { current -= diff; return *this; }
-      friend constexpr auto operator+(const iota_view_iterator& it, const difference_type diff) noexcept
-      { return iota_view_iterator {static_cast<value_type>(it.current + diff)}; }
-      friend constexpr auto operator+(const difference_type diff, const iota_view_iterator& it) noexcept
-      { return iota_view_iterator {static_cast<value_type>(diff + it.current)}; }
-      friend constexpr auto operator-(const iota_view_iterator& it, const difference_type diff)
-      { if (static_cast<difference_type>(it.current) < diff) throw std::out_of_range{"Iterator out of range"};
-        return iota_view_iterator {static_cast<value_type>(it.current - diff)}; }
-      friend constexpr difference_type operator-(const iota_view_iterator& it, const iota_view_iterator& other) noexcept
-      { return it.current - other.current; }
-      friend constexpr bool operator==(const iota_view_iterator& it, const iota_view_iterator& other) noexcept
-      { return it.current == other.current; }
-#ifdef __cpp_impl_three_way_comparison
-      constexpr auto operator<=>(const iota_view_iterator& other) const noexcept { return current <=> other.current; }
+#ifdef __cpp_concepts
+    template<values::integral Start = std::integral_constant<std::size_t, 0>>
 #else
-      constexpr bool operator!=(const iota_view_iterator& other) const noexcept { return current != other.current; }
-      constexpr bool operator<(const iota_view_iterator& other) const noexcept { return current < other.current; }
-      constexpr bool operator>(const iota_view_iterator& other) const noexcept { return current > other.current; }
-      constexpr bool operator<=(const iota_view_iterator& other) const noexcept { return current <= other.current; }
-      constexpr bool operator>=(const iota_view_iterator& other) const noexcept { return current >= other.current; }
+    template<typename Start = std::integral_constant<std::size_t, 0>, std::enable_if_t<values::integral<Start>, int> = 0>
 #endif
+    struct iota_generator
+    {
+      constexpr iota_generator() = default;
+
+      explicit constexpr iota_generator(Start start) : start_ {std::move(start)} {};
+
+#ifdef __cpp_concepts
+      template<values::index I>
+#else
+      template<typename I, std::enable_if_t<values::index<I>, int> = 0>
+#endif
+      constexpr auto
+      operator() (I i) const
+      {
+        return values::operation {std::plus<values::number_type_of_t<Start>>{}, start_, std::move(i)};
+      }
 
     private:
 
-      value_type current;
+      Start start_;
+    };
 
-    }; // struct Iterator
-
-
-    template<typename W>
-    iota_view_iterator(const W&) -> iota_view_iterator<value::number_type_of_t<W>>;
-
-  } // namespace internal
+  }
 
 
   /**
    * \brief An iota \ref collection that is a std::range and may also be \ref tuple_like.
    * \details In all cases, the result will be a std::range.
-   * If the Size parameter is \ref value::fixed, then the result will also be
+   * If the Size parameter is \ref values::fixed, then the result will also be
    * a \ref tuple_like sequence effectively in the form of
    * <code>std::integral_sequence<std::size_t, 0>{},...,std::integral_sequence<std::size_t, N>{}</code>
    * \tparam Start The start value of the iota.
    * \tparam Size The size of the resulting collection
    */
 #ifdef __cpp_concepts
-  template<value::integral Start, value::index Size = value::number_type_of_t<Start>> requires
-    std::convertible_to<value::number_type_of_t<Size>, value::number_type_of_t<Start>>
+  template<values::integral Start, values::index Size = std::make_unsigned_t<values::number_type_of_t<Start>>> requires
+    std::convertible_to<values::number_type_of_t<Size>, values::number_type_of_t<Start>> and
+    std::same_as<Start, std::remove_reference_t<Start>> and std::same_as<Size, std::remove_reference_t<Size>>
 #else
-  template<typename Start, typename Size = value::number_type_of_t<Start>>
+  template<typename Start, typename Size = std::make_unsigned_t<values::number_type_of_t<Start>>, typename = void>
 #endif
-  struct iota_view : collection_view_interface<iota_view<Start, Size>>
+  struct iota_view;
+
+
+  /**
+   * \brief Specialization in which Start is \ref values::dynamic
+   */
+#ifdef __cpp_concepts
+  template<values::integral Start, values::index Size> requires (not values::fixed<Start>) and
+    std::convertible_to<values::number_type_of_t<Size>, values::number_type_of_t<Start>> and
+    std::same_as<Start, std::remove_reference_t<Start>> and std::same_as<Size, std::remove_reference_t<Size>>
+  struct iota_view<Start, Size>
+#else
+  template<typename Start, typename Size>
+  struct iota_view<Start, Size, std::enable_if_t<not values::fixed<Start>>>
+#endif
+    : generate_view<detail::iota_generator<Start>&, Size>
   {
+  private:
+
+    using base = generate_view<detail::iota_generator<Start>&, Size>;
+
+  public:
     /**
      * \brief Default constructor.
      */
 #ifdef __cpp_concepts
-    constexpr iota_view() requires value::fixed<Start> and value::fixed<Size> = default;
+    constexpr iota_view() requires values::fixed<Start> and values::fixed<Size>
 #else
-    template<typename aW = Start, std::enable_if_t<value::fixed<aW> and value::fixed<Size>, int> = 0>
-    constexpr iota_view() {};
+    template<bool Enable = true, std::enable_if_t<Enable and values::fixed<Start> and values::fixed<Size>, int> = 0>
+    constexpr iota_view()
 #endif
+      : base {Size{}} {};
 
 
     /**
      * \brief Construct from an initial value and size.
      */
-    constexpr iota_view(const Start& start, const Size& size) : my_start {start}, my_size {size} {}
+    constexpr iota_view(Start start, Size size)
+      : base {gen_, std::move(size)}, gen_ {detail::iota_generator {std::move(start)}} {}
 
 
     /**
-     * \brief Construct from a size, starting at 1.
+     * \brief Construct from a size, default-initializing Start.
      */
-    constexpr iota_view(const Size& size)
-      : my_start {std::integral_constant<value::number_type_of_t<Start>, 1>{}}, my_size {size} {}
-
-
-    /**
-     * \brief Get element i.
-     */
-    template<size_t i>
-    constexpr auto
-    get() const
-    {
-      if constexpr (value::fixed<Size>) static_assert(i < value::fixed_number_of_v<Size>);
-      return value::operation {std::plus{}, my_start, std::integral_constant<std::size_t, i>{}};
-    }
-
-
-    /**
-     * \returns The size of the object.
-     */
-    constexpr auto size() const
-    {
-      return my_size;
-    }
-
-
-    /**
-     * \returns An iterator at the beginning, if the base object is a range.
-     */
-    constexpr auto begin() { return internal::iota_view_iterator {my_start}; }
-
-    /// \overload
-    constexpr auto begin() const { return internal::iota_view_iterator {my_start}; }
-
-
-    /**
-     * \returns An iterator at the end, if the base object is a range.
-     */
-    constexpr auto end() { return internal::iota_view_iterator {my_start + my_size}; }
-
-
-    /// \overload
-    constexpr auto end() const { return internal::iota_view_iterator {my_start + my_size}; }
+#ifdef __cpp_concepts
+    explicit constexpr iota_view(Size size) requires values::fixed<Start>
+#else
+    template<bool Enable = true, std::enable_if_t<Enable and values::fixed<Start>>>
+    explicit constexpr iota_view(Size size)
+#endif
+      : base {gen_, std::move(size)} {}
 
   private:
 
-    Start my_start;
-    Size my_size;
+    detail::iota_generator<Start> gen_;
 
-  }; // struct iota_view
+  };
 
 
+  /**
+   * \brief Specialization in which Start is \ref values::fixed
+   */
+  #ifdef __cpp_concepts
+  template<values::integral Start, values::index Size> requires values::fixed<Start> and
+    std::convertible_to<values::number_type_of_t<Size>, values::number_type_of_t<Start>> and
+    std::same_as<Start, std::remove_reference_t<Start>> and std::same_as<Size, std::remove_reference_t<Size>>
+  struct iota_view<Start, Size>
+  #else
   template<typename Start, typename Size>
-  iota_view(const Start&, const Size&) -> iota_view<Start, Size>;
-
-
-#ifndef __cpp_concepts
-  namespace detail
+  struct iota_view<Start, Size, std::enable_if_t<values::fixed<Start>>>
+  #endif
+    : generate_view<detail::iota_generator<Start>, Size>
   {
-    template<typename Size, typename = void>
-    struct iota_view_tuple_size_impl {};
+  private:
 
-    template<typename Size>
-    struct iota_view_tuple_size_impl<Size, std::enable_if_t<value::fixed<Size>>>
-      : std::integral_constant<std::size_t, value::fixed_number_of_v<Size>> {};
+    using base = generate_view<detail::iota_generator<Start>, Size>;
+
+  public:
+    /**
+     * \brief Default constructor.
+     */
+  #ifdef __cpp_concepts
+    constexpr iota_view() requires values::fixed<Start> and values::fixed<Size>
+  #else
+    template<bool Enable = true, std::enable_if_t<Enable and values::fixed<Start> and values::fixed<Size>, int> = 0>
+    constexpr iota_view()
+  #endif
+    {};
 
 
-    template<std::size_t i, typename Start, typename Size, typename = void>
-    struct iota_view_tuple_element_impl {};
+    /**
+     * \brief Construct from an initial value and size.
+     */
+    constexpr iota_view(Start, Size size) : base {std::move(size)} {}
 
-    template<std::size_t i, typename Start, typename Size>
-    struct iota_view_tuple_element_impl<i, Start, Size, std::enable_if_t<value::fixed<Size>>>
-    {
-      static_assert(i < value::fixed_number_of_v<Size>);
-      using type = value::operation<std::plus<>, std::decay_t<Start>, std::integral_constant<std::size_t, i>>;
-    };
-  } // namespace detail
+
+    /**
+     * \brief Construct from a size, default-initializing Start.
+     */
+  #ifdef __cpp_concepts
+    explicit constexpr iota_view(Size size) requires values::fixed<Start>
+  #else
+    template<bool Enable = true, std::enable_if_t<Enable and values::fixed<Start>>>
+    explicit constexpr iota_view(Size size)
+  #endif
+      : base {std::move(size)} {}
+
+  };
+
+
+  /**
+   * \brief Deduction guide which assumes that omitting a Start parameter means that the sequence will start at zero.
+   */
+  template<typename Size>
+  iota_view(const Size&) -> iota_view<std::integral_constant<values::number_type_of_t<Size>, 0>, Size>;
+
+} // OpenKalman::values
+
+
+#ifdef __cpp_lib_ranges
+namespace std::ranges
+#else
+namespace OpenKalman::ranges
 #endif
-
-} // OpenKalman::value
+{
+  template<typename Start, typename Size>
+  constexpr bool enable_borrowed_range<OpenKalman::collections::iota_view<Start, Size>> = true;
+}
 
 
 namespace std
 {
 #ifdef __cpp_concepts
-  template<typename Start, OpenKalman::value::fixed Size>
+  template<typename Start, OpenKalman::values::fixed Size>
   struct tuple_size<OpenKalman::collections::iota_view<Start, Size>>
-    : std::integral_constant<size_t, OpenKalman::value::fixed_number_of_v<Size>> {};
+    : std::integral_constant<size_t, OpenKalman::values::fixed_number_of_v<Size>> {};
 #else
   template<typename Start, typename Size>
   struct tuple_size<OpenKalman::collections::iota_view<Start, Size>>
-    : OpenKalman::collections::detail::iota_view_tuple_size_impl<Size> {};
+    : tuple_size<OpenKalman::collections::generate_view<OpenKalman::collections::detail::iota_generator<Start>, Size>> {};
 #endif
 
 
 #ifdef __cpp_concepts
-  template<std::size_t i, OpenKalman::value::fixed Start, OpenKalman::value::fixed Size>
+  template<std::size_t i, OpenKalman::values::fixed Start, OpenKalman::values::fixed Size>
   struct tuple_element<i, OpenKalman::collections::iota_view<Start, Size>>
   {
-    static_assert(i < OpenKalman::value::fixed_number_of_v<Size>);
-    using type = OpenKalman::value::operation<std::plus<>, Start, std::integral_constant<std::size_t, i>>;
+    static_assert(i < OpenKalman::values::fixed_number_of_v<Size>);
+    using type = OpenKalman::values::operation<std::plus<>, Start, std::integral_constant<std::size_t, i>>;
   };
 #else
   template<std::size_t i, typename Start, typename Size>
   struct tuple_element<i, OpenKalman::collections::iota_view<Start, Size>>
-    : OpenKalman::collections::detail::iota_view_tuple_element_impl<i, Start, Size> {};
+    : tuple_element<i, OpenKalman::collections::generate_view<OpenKalman::collections::detail::iota_generator<Start>, Size>> {};
 #endif
-
-
-  template<typename W>
-  struct iterator_traits<OpenKalman::collections::internal::iota_view_iterator<W>>
-  {
-    using difference_type = typename OpenKalman::collections::internal::iota_view_iterator<W>::difference_type;
-    using value_type = typename OpenKalman::collections::internal::iota_view_iterator<W>::value_type;
-    using iterator_category = typename OpenKalman::collections::internal::iota_view_iterator<W>::iterator_category;
-  };
 
 } // namespace std
 
@@ -258,14 +247,26 @@ namespace OpenKalman::collections::views
     struct iota_adapter
     {
 #ifdef __cpp_concepts
-      template<value::index Start, value::index Size>
+      template<values::index Start, values::index Size>
 #else
-      template<typename Start, typename Size, std::enable_if_t<value::index<Start> and value::index<Size>, int> = 0>
+      template<typename Start, typename Size, std::enable_if_t<values::index<Start> and values::index<Size>, int> = 0>
 #endif
       constexpr auto
-      operator() [[nodiscard]] (Start start, Size size) const
+      operator() (Start start, Size size) const
       {
-        return collections::iota_view {std::move(start), std::move(size)};
+        return iota_view(std::move(start), std::move(size));
+      }
+
+
+#ifdef __cpp_concepts
+      template<values::index Size>
+#else
+      template<typename Size, std::enable_if_t<values::index<Size>, int> = 0>
+#endif
+      constexpr auto
+      operator() (Size size) const
+      {
+        return iota_view(std::move(size));
       }
     };
   }

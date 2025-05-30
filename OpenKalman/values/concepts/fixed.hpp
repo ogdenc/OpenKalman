@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \value::fixed.
+ * \brief Definition for \values::fixed.
  */
 
 #ifndef OPENKALMAN_VALUE_FIXED_HPP
@@ -22,12 +22,12 @@
 #include <type_traits>
 #include "number.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
 #ifndef __cpp_concepts
   namespace internal
   {
-    // These functions are also used in value::to_number
+    // These functions are also used in values::to_number
 
     template<typename T, typename = void>
     struct has_value_member : std::false_type {};
@@ -46,7 +46,7 @@ namespace OpenKalman::value
 
 
   /**
-   * \brief T is a value::value that is determinable at compile time.
+   * \brief T is a values::value that is determinable at compile time.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -62,6 +62,6 @@ namespace OpenKalman::value
 #endif
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_VALUE_FIXED_HPP

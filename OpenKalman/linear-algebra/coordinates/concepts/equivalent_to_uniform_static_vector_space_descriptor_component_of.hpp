@@ -38,12 +38,12 @@ namespace OpenKalman
 
   /**
    * \brief T is equivalent to the uniform dimension type of C.
-   * \tparam T A 1D \ref coordinate::descriptor
+   * \tparam T A 1D \ref coordinates::descriptor
    * \tparam C a \ref uniform_static_vector_space_descriptor
    */
   template<typename T, typename C>
 #ifdef __cpp_concepts
-  concept equivalent_to_uniform_static_vector_space_descriptor_component_of = coordinate::compares_with<T, uniform_static_vector_space_descriptor_component_of_t<C>>;
+  concept equivalent_to_uniform_static_vector_space_descriptor_component_of = coordinates::compares_with<T, uniform_static_vector_space_descriptor_component_of_t<C>>;
 #else
   constexpr bool equivalent_to_uniform_static_vector_space_descriptor_component_of = detail::equivalent_to_uniform_static_vector_space_descriptor_component_of_impl<T, C>::value;
 #endif

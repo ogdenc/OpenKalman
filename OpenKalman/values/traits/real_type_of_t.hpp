@@ -21,20 +21,20 @@
 #include "values/functions/to_number.hpp"
 #include "values/math/real.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
-   * \brief Obtain the real type associated with a number (typically a \ref value::complex number.
-   * \details This will be the type of the result of <code>value::real(...)</code>.
+   * \brief Obtain the real type associated with a number (typically a \ref values::complex number.
+   * \details This will be the type of the result of <code>values::real(...)</code>.
    */
 #ifdef __cpp_concepts
-  template<value T> requires requires(T t) { {value::real(t)} -> value; }
+  template<value T>
 #else
-  template<typename T, std::enable_if_t<value<T>, int> = 0, typename = std::void_t<decltype(value::real(std::declval<T>()))>>
+  template<typename T, std::enable_if_t<value<T>, int> = 0>
 #endif
-  using real_type_of_t = std::decay_t<decltype(value::real(std::declval<T>()))>;
+  using real_type_of_t = std::decay_t<decltype(values::real(std::declval<T>()))>;
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_VALUES_REAL_TYPE_OF_T_HPP

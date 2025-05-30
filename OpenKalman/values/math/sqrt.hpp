@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::sqrt.
+ * \brief Definition for \ref values::sqrt.
  */
 
 #ifndef OPENKALMAN_VALUE_SQRT_HPP
@@ -32,24 +32,24 @@
 
 #include "values/math/copysign.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief A constexpr alternative to std::sqrt.
    * \details Uses the Newton-Raphson method
    */
 #ifdef __cpp_concepts
-  template<value::value Arg>
-  constexpr value::value auto sqrt(const Arg& arg)
+  template<values::value Arg>
+  constexpr values::value auto sqrt(const Arg& arg)
 #else
-  template <typename Arg, std::enable_if_t<value::value<Arg>, int> = 0>
+  template <typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
   constexpr auto sqrt(const Arg& arg)
 #endif
   {
-    if constexpr (not value::number<Arg>)
+    if constexpr (not values::number<Arg>)
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Arg>& a) const { return value::sqrt(a); } };
-      return value::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::sqrt(a); } };
+      return values::operation {Op{}, arg};
     }
     else
     {
@@ -57,38 +57,38 @@ namespace OpenKalman::value
       using Return = std::decay_t<decltype(sqrt(arg))>;
       struct Op { auto operator()(const Arg& arg) { return sqrt(arg); } };
       if (internal::constexpr_callable<Op>(arg)) return sqrt(arg);
-      else if constexpr (value::complex<Arg>)
+      else if constexpr (values::complex<Arg>)
       {
         // Find the principal square root
-        auto arg_re = value::real(arg);
-        auto arg_im = value::imag(arg);
+        auto arg_re = values::real(arg);
+        auto arg_im = values::imag(arg);
         using R = real_type_of_t<Arg>;
         if constexpr (std::numeric_limits<R>::is_iec559)
         {
-          if (value::isinf(arg_im)) return value::internal::make_complex_number<Return>(
-            value::internal::infinity<R>(),
-            value::copysign(value::internal::infinity<R>(), arg_im));
-          if (arg_re == value::internal::infinity<R>()) return value::internal::make_complex_number<Return>(
-            value::internal::infinity<R>(),
-            value::copysign(value::isnan(arg_im) ? value::internal::NaN<R>() : 0, arg_im));
-          if (arg_re == -value::internal::infinity<R>()) return value::internal::make_complex_number<Return>(
-            value::isnan(arg_im) ? value::internal::NaN<R>() : 0,
-            value::copysign(value::internal::infinity<R>(), arg_im));
+          if (values::isinf(arg_im)) return values::internal::make_complex_number<Return>(
+            values::internal::infinity<R>(),
+            values::copysign(values::internal::infinity<R>(), arg_im));
+          if (arg_re == values::internal::infinity<R>()) return values::internal::make_complex_number<Return>(
+            values::internal::infinity<R>(),
+            values::copysign(values::isnan(arg_im) ? values::internal::NaN<R>() : 0, arg_im));
+          if (arg_re == -values::internal::infinity<R>()) return values::internal::make_complex_number<Return>(
+            values::isnan(arg_im) ? values::internal::NaN<R>() : 0,
+            values::copysign(values::internal::infinity<R>(), arg_im));
         }
-        auto re = value::real(arg_re);
-        auto im = value::real(arg_im);
-        auto nx = value::sqrt(re * re + im * im);
+        auto re = values::real(arg_re);
+        auto im = values::real(arg_im);
+        auto nx = values::sqrt(re * re + im * im);
         auto half = static_cast<std::decay_t<decltype(re)>>(0.5);
-        auto sqp = value::sqrt(half * (nx + re));
-        auto sqm = value::sqrt(half * (nx - re));
-        return value::internal::make_complex_number<Return>(sqp, value::copysign(sqm, im));
+        auto sqp = values::sqrt(half * (nx + re));
+        auto sqm = values::sqrt(half * (nx - re));
+        return values::internal::make_complex_number<Return>(sqp, values::copysign(sqm, im));
       }
       else
       {
-        if (value::isnan(arg) or arg == 0) return static_cast<Return>(arg); //< This will potentially preserve the sign.
-        if (arg < 0) return value::internal::NaN<Return>();
+        if (values::isnan(arg) or arg == 0) return static_cast<Return>(arg); //< This will potentially preserve the sign.
+        if (arg < 0) return values::internal::NaN<Return>();
         if constexpr (std::numeric_limits<Arg>::has_infinity)
-          if (arg == value::internal::infinity<Arg>()) return value::internal::infinity<Return>();
+          if (arg == values::internal::infinity<Arg>()) return values::internal::infinity<Return>();
         auto half = static_cast<Return>(0.5);
         Return next = half * static_cast<Return>(arg);
         Return previous = 0;
@@ -107,7 +107,7 @@ namespace OpenKalman::value
     }
   }
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_SQRT_HPP

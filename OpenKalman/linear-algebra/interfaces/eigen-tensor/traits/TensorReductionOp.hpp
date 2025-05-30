@@ -26,7 +26,7 @@ namespace OpenKalman::interface
     template<typename Arg, typename N>
     static constexpr auto get_index_descriptor(const Arg& arg, N n)
     {
-      if constexpr (value::fixed<N>)
+      if constexpr (values::fixed<N>)
         return std::integral_constant<std::size_t, Eigen::internal::get<n, typename Dims::Base>::value>{};
       else
         return static_cast<std::size_t>(arg.dimension[n]);

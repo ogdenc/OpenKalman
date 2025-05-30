@@ -22,7 +22,7 @@
 #include "collections/concepts/tuple_like.hpp"
 #include "pattern.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
 #if not defined(__cpp_concepts) or __cpp_generic_lambdas < 201707L
   namespace detail
@@ -44,7 +44,7 @@ namespace OpenKalman::coordinate
 
 	
   /**
-   * \brief An object describing a tuple-like collection of /ref coordinate::pattern objects.
+   * \brief An object describing a tuple-like collection of /ref coordinates::pattern objects.
    */
   template<typename T>
 #if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
@@ -57,6 +57,6 @@ namespace OpenKalman::coordinate
 #endif
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 #endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_TUPLE_HPP

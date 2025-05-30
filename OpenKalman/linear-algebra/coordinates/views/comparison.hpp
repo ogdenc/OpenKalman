@@ -11,20 +11,20 @@
 /**
  * \file
  * \internal
- * \brief Definition of \ref coordinate::comparison_view and \ref coordinate::views::comparison.
+ * \brief Definition of \ref coordinates::comparison_view and \ref coordinates::views::comparison.
  */
 
 #ifndef OPENKALMAN_COORDINATES_VIEWS_COMPARISON_HPP
 #define OPENKALMAN_COORDINATES_VIEWS_COMPARISON_HPP
 
-#include "basics/concepts/sized_random_access_range.hpp"
-#include "basics/functions/get_collection_size.hpp"
 #include "values/concepts/index.hpp"
 #include "values/concepts/fixed.hpp"
+#include "collections/concepts/sized_random_access_range.hpp"
+#include "collections/functions/get_size.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor_collection.hpp"
 #include "linear-algebra/coordinates/functions/internal/get_descriptor_collection_element.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
   /**
    * \internal
@@ -63,40 +63,40 @@ namespace OpenKalman::coordinate
 
 
 #ifdef __cpp_explicit_this_parameter
-    template<value::index I> requires (value::fixed<I> or sized_random_access_range<T>) and
-      (value::dynamic<I> or collections::size_of_v<T> == dynamic_size or (value::fixed_number_of_v<I> < collections::size_of_v<T>))
+    template<values::index I> requires (values::fixed<I> or sized_random_access_range<T>) and
+      (values::dynamic<I> or collections::dimension_of_v<T> == dynamic_size or (values::fixed_number_of_v<I> < collections::dimension_of_v<T>))
     constexpr decltype(auto)
     operator[](this auto&& self, I i)
     {
       return internal::get_descriptor_collection_element(std::forward<decltype(self)>(self).t, std::move(i));
     }
 #else
-    template<typename I, std::enable_if_t<value::index<I> and (value::fixed<I> or sized_random_access_range<T>), int> = 0>
+    template<typename I, std::enable_if_t<values::index<I> and (values::fixed<I> or sized_random_access_range<T>), int> = 0>
     constexpr decltype(auto)
     operator[](I i) const &
     {
-      if constexpr(value::fixed<I> and collections::size_of_v<T> != dynamic_size) static_assert(value::fixed_number_of_v<I> < collections::size_of_v<T>);
+      if constexpr(values::fixed<I> and collections::dimension_of_v<T> != dynamic_size) static_assert(values::fixed_number_of_v<I> < collections::dimension_of_v<T>);
       return internal::get_descriptor_collection_element(t, std::move(i));
     }
 
 
-    template<typename I, std::enable_if_t<value::index<I> and (value::fixed<I> or sized_random_access_range<T>), int> = 0>
+    template<typename I, std::enable_if_t<values::index<I> and (values::fixed<I> or sized_random_access_range<T>), int> = 0>
     constexpr decltype(auto)
     operator[](I i) &&
     {
-      if constexpr(value::fixed<I> and collections::size_of_v<T> != dynamic_size) static_assert(value::fixed_number_of_v<I> < collections::size_of_v<T>);
+      if constexpr(values::fixed<I> and collections::dimension_of_v<T> != dynamic_size) static_assert(values::fixed_number_of_v<I> < collections::dimension_of_v<T>);
       return internal::get_descriptor_collection_element(std::move(*this).t, std::move(i));
     }
 #endif
 
 
 #ifdef __cpp_concepts
-    constexpr value::index auto size() const
+    constexpr values::index auto size() const
 #else
     constexpr auto size() const
 #endif
     {
-      return get_collection_size(t);
+      return get_size(t);
     }
 
   private:
@@ -111,22 +111,22 @@ namespace OpenKalman::coordinate
   template<typename Arg>
   comparison_view(Arg&&) -> comparison_view<Arg>;
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 
 #ifndef __cpp_concepts
 namespace std
 {
   template<typename T>
-  struct tuple_size<OpenKalman::coordinate::comparison_view<T>> : tuple_size<OpenKalman::collection_view_interface<OpenKalman::coordinate::comparison_view<T>>> {};
+  struct tuple_size<OpenKalman::coordinates::comparison_view<T>> : tuple_size<OpenKalman::collection_view_interface<OpenKalman::coordinates::comparison_view<T>>> {};
 
   template<size_t i, typename T>
-  struct tuple_element<i, OpenKalman::coordinate::comparison_view<T>> : tuple_element<i, OpenKalman::collection_view_interface<OpenKalman::coordinate::comparison_view<T>>> {};
+  struct tuple_element<i, OpenKalman::coordinates::comparison_view<T>> : tuple_element<i, OpenKalman::collection_view_interface<OpenKalman::coordinates::comparison_view<T>>> {};
 } // namespace std
 #endif
 
 
-namespace OpenKalman::coordinate::views
+namespace OpenKalman::coordinates::views
 {
   namespace detail
   {
@@ -155,7 +155,7 @@ namespace OpenKalman::coordinate::views
   inline constexpr detail::comparison_impl comparison;
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 
 #endif //OPENKALMAN_COORDINATES_VIEWS_COMPARISON_HPP

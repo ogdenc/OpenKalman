@@ -40,17 +40,17 @@ namespace OpenKalman
     {
       using Scalar = scalar_type_of_t<A>;
 
-      auto elem = constant_coefficient{a} * value::sqrt(value::cast_to<Scalar>(get_index_dimension_of<1>(a)));
+      auto elem = constant_coefficient{a} * values::sqrt(values::cast_to<Scalar>(get_index_dimension_of<1>(a)));
 
       if constexpr (dynamic_dimension<A, 0>)
       {
-        auto dim = coordinate::Dimensions {get_index_dimension_of<0>(a)};
-        auto col1 = make_constant<A>(elem, dim, coordinate::Axis{});
+        auto dim = coordinates::Dimensions {get_index_dimension_of<0>(a)};
+        auto col1 = make_constant<A>(elem, dim, coordinates::Axis{});
 
         auto m {make_dense_object<A>(dim, dim)};
 
-        if (get_size(dim) == 1) m = std::move(col1);
-        else m = concatenate<1>(std::move(col1), make_zero<A>(dim, dim - coordinate::Axis{}));
+        if (get_dimension(dim) == 1) m = std::move(col1);
+        else m = concatenate<1>(std::move(col1), make_zero<A>(dim, dim - coordinates::Axis{}));
 
         auto ret {make_triangular_matrix<TriangleType::lower>(std::move(m))};
 
@@ -62,14 +62,14 @@ namespace OpenKalman
       {
         auto ret = make_triangular_matrix<TriangleType::lower>([](Scalar elem){
           constexpr auto dim = index_dimension_of_v<A, 0>;
-          auto col1 = make_constant<A>(elem, coordinate::Dimensions<dim>{}, coordinate::Axis{});
+          auto col1 = make_constant<A>(elem, coordinates::Dimensions<dim>{}, coordinates::Axis{});
           if constexpr (dim == 1) return col1;
-          else return concatenate<1>(std::move(col1), make_zero<A>(coordinate::Dimensions<dim>{}, coordinate::Dimensions<dim - 1>{}));
+          else return concatenate<1>(std::move(col1), make_zero<A>(coordinates::Dimensions<dim>{}, coordinates::Dimensions<dim - 1>{}));
         }(elem));
 
         // \todo Fix this:
         using C = vector_space_descriptor_of_t<A, 0>;
-        if constexpr (coordinate::euclidean_pattern<C>) return ret;
+        if constexpr (coordinates::euclidean_pattern<C>) return ret;
         else return SquareRootCovariance {std::move(ret), C{}};
       }
     }

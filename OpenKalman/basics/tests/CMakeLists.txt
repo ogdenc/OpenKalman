@@ -18,7 +18,15 @@ add_executable(basics
         language-features.cpp
         global-definitions.cpp
         classes.cpp
-    )
+        all.cpp
+        empty.cpp
+        single.cpp
+        iota.cpp
+        transform.cpp
+        reverse.cpp
+        concat.cpp
+        to.cpp
+)
 
 target_link_libraries(basics GTest::gtest_main Eigen3::Eigen Threads::Threads)
 

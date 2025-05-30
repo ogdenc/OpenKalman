@@ -48,7 +48,7 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_lib_concepts
     template<indexible Arg, std::size_t NumIndices> requires (NumIndices == index_count_v<Arg>)
-    static constexpr value::scalar decltype(auto)
+    static constexpr values::scalar decltype(auto)
 #else
     template <typename Arg, std::size_t NumIndices, std::enable_if_t<NumIndices == index_count_v<Arg>, int> = 0>
     static constexpr decltype(auto)
@@ -85,7 +85,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_lib_ranges
     template<indexible Arg, std::ranges::input_range Indices> requires
       std::convertible_to<std::ranges::range_value_t<Indices>, const typename std::decay_t<Arg>::Index>
-    static constexpr value::scalar decltype(auto)
+    static constexpr values::scalar decltype(auto)
 #else
     template<typename Arg, typename Indices>
     static constexpr decltype(auto)
@@ -214,9 +214,9 @@ namespace OpenKalman::interface
     {
       constexpr auto options = layout == Layout::right ? Eigen::RowMajor : Eigen::ColMajor;
       if constexpr (((dynamic_pattern<D>) or ...))
-        return Eigen::Tensor<Scalar, sizeof...(D), options, IndexType>(static_cast<IndexType>(get_size(d))...);
+        return Eigen::Tensor<Scalar, sizeof...(D), options, IndexType>(static_cast<IndexType>(get_dimension(d))...);
       else
-        return Eigen::TensorFixedSize<Scalar, Eigen::Sizes<static_cast<std::ptrdiff_t>(coordinate::size_of_v<D>)...>, options, IndexType> {};
+        return Eigen::TensorFixedSize<Scalar, Eigen::Sizes<static_cast<std::ptrdiff_t>(coordinates::dimension_of_v<D>)...>, options, IndexType> {};
     }
 
 
@@ -238,16 +238,16 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<value::dynamic C, typename...Ds> requires (... and (not dynamic_pattern<Ds>))
+    template<values::dynamic C, typename...Ds> requires (... and (not dynamic_pattern<Ds>))
     static constexpr constant_matrix auto
 #else
-    template<typename C, typename...Ds, std::enable_if_t<value::dynamic<C> and
+    template<typename C, typename...Ds, std::enable_if_t<values::dynamic<C> and
       (... and (not dynamic_pattern<Ds>)), int> = 0>
     static constexpr auto
 #endif
     make_constant(C&& c, Ds&&...ds)
     {
-      auto value = value::to_number(std::forward<C>(c));
+      auto value = values::to_number(std::forward<C>(c));
       using Scalar = std::decay_t<decltype(value)>;
       auto m = make_default<Layout::none, Scalar>(std::forward<Ds>(ds)...);
       // m will be a dangling reference to TensorFixedSize, but Eigen only references its static dimensions, so there is no bug
@@ -283,7 +283,7 @@ namespace OpenKalman::interface
     {
       auto offsets = std::array {static_cast<std::size_t>(begin)...};
       auto extents = std::apply([](auto&&...a) {
-        return std::array {get_size(std::forward<decltype(a)>(a))...}; }, all_vector_space_descriptors(block));
+        return std::array {get_dimension(std::forward<decltype(a)>(a))...}; }, all_vector_space_descriptors(block));
       arg.slice(offsets, extents) = std::forward<Block>(block);
     }
 
@@ -496,13 +496,13 @@ namespace OpenKalman::interface
     replicate_arg_impl(const std::tuple<Ds...>& p_tup, const std::tuple<ArgDs...>& arg_tup, Arg&& arg, std::index_sequence<I...>)
     {
       using R = Eigen::Replicate<std::decay_t<Arg>,
-        (coordinate::size_of_v<Ds> == dynamic_size or coordinate::size_of_v<ArgDs> == dynamic_size ?
-        Eigen::Dynamic : static_cast<IndexType>(coordinate::size_of_v<Ds> / coordinate::size_of_v<ArgDs>))...>;
+        (coordinates::dimension_of_v<Ds> == dynamic_size or coordinates::dimension_of_v<ArgDs> == dynamic_size ?
+        Eigen::Dynamic : static_cast<IndexType>(coordinates::dimension_of_v<Ds> / coordinates::dimension_of_v<ArgDs>))...>;
 
-      if constexpr (((coordinate::size_of_v<Ds> != dynamic_size) and ...) and
-        ((coordinate::size_of_v<ArgDs> != dynamic_size) and ...))
+      if constexpr (((coordinates::dimension_of_v<Ds> != dynamic_size) and ...) and
+        ((coordinates::dimension_of_v<ArgDs> != dynamic_size) and ...))
       {
-        if constexpr (((coordinate::size_of_v<Ds> == coordinate::size_of_v<ArgDs>) and ...))
+        if constexpr (((coordinates::dimension_of_v<Ds> == coordinates::dimension_of_v<ArgDs>) and ...))
           return std::forward<Arg>(arg);
         else
           return R {std::forward<Arg>(arg)};
@@ -510,7 +510,7 @@ namespace OpenKalman::interface
       else
       {
         auto ret = R {std::forward<Arg>(arg), static_cast<IndexType>(
-          get_size(std::get<I>(p_tup)) / get_size(std::get<I>(arg_tup)))...};
+          get_dimension(std::get<I>(p_tup)) / get_dimension(std::get<I>(arg_tup)))...};
         return ret;
       }
     }
@@ -528,11 +528,11 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
     template<typename...Ds, typename Operation, typename...Args> requires (sizeof...(Args) <= 3) and
       std::invocable<Operation&&, scalar_type_of_t<Args>...> and
-      value::number<std::invoke_result_t<Operation&&, scalar_type_of_t<Args>...>>
+      values::number<std::invoke_result_t<Operation&&, scalar_type_of_t<Args>...>>
 #else
     template<typename...Ds, typename Operation, typename...Args, std::enable_if_t<(sizeof...(Args) <= 3) and
       std::is_invocable<Operation&&, typename scalar_type_of<Args>::type...>::value and
-      value::number<typename std::invoke_result<Operation&&, typename scalar_type_of<Args>::type...>::type>, int> = 0>
+      values::number<typename std::invoke_result<Operation&&, typename scalar_type_of<Args>::type...>::type>, int> = 0>
 #endif
     static auto
     n_ary_operation(const std::tuple<Ds...>& tup, Operation&& operation, Args&&...args)
@@ -543,8 +543,8 @@ namespace OpenKalman::interface
       if constexpr (sizeof...(Args) == 0)
       {
         using P = dense_writable_matrix_t<T, Layout::none, scalar_type_of_t<T>, std::tuple<Ds...>>;
-        IndexType r = get_size(std::get<0>(tup));
-        IndexType c = get_size(std::get<1>(tup));
+        IndexType r = get_dimension(std::get<0>(tup));
+        IndexType c = get_dimension(std::get<1>(tup));
         return Eigen::CwiseNullaryOp<std::decay_t<Op>, P> {r, c, std::forward<Op>(op)};
       }
       else if constexpr (sizeof...(Args) == 1)

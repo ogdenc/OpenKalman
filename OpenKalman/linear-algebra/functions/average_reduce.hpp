@@ -95,7 +95,7 @@ namespace OpenKalman
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       // Arg cannot be a zero matrix, so the denominator should never be zero.
-      return value::operation {
+      return values::operation {
         std::divides<scalar_type_of_t<Arg>>{},
         constant_diagonal_coefficient{arg},
         internal::largest_vector_space_descriptor<scalar_type_of_t<Arg>>(get_vector_space_descriptor<0>(arg), get_vector_space_descriptor<1>(arg))};
@@ -112,7 +112,7 @@ namespace OpenKalman
       }
       else
       {
-        auto denom = (std::apply([](const auto&...d){ return (get_size(d) * ...); }, all_vector_space_descriptors(arg)));
+        auto denom = (std::apply([](const auto&...d){ return (get_dimension(d) * ...); }, all_vector_space_descriptors(arg)));
         return r / denom;
       }
     }

@@ -21,7 +21,7 @@
 #ifdef __cpp_lib_ranges
 #include <ranges>
 #else
-#include "basics/ranges.hpp"
+#include "basics/compatibility/ranges.hpp"
 #endif
 #include "values/concepts/index.hpp"
 #include "values/concepts/fixed.hpp"
@@ -30,11 +30,11 @@
 #include "collections/concepts/invocable_on_collection.hpp"
 #include "collections/concepts/sized_random_access_range.hpp"
 #include "collections/concepts/viewable_collection.hpp"
-#include "collections/functions/get_collection_size.hpp"
+#include "collections/functions/get_size.hpp"
 #include "collections/functions/get.hpp"
 #include "internal/maybe_tuple_size.hpp"
 #include "internal/maybe_tuple_element.hpp"
-#include "collection_view_interface.hpp"
+#include "comparison.hpp"
 
 namespace OpenKalman::collections
 {
@@ -50,10 +50,11 @@ namespace OpenKalman::collections
     struct transform_view_iterator
     {
       using iterator_category = std::random_access_iterator_tag;
-      using value_type = decltype(std::invoke(*std::declval<F*>(), *std::declval<It>()));
 #ifdef __cpp_lib_ranges
+      using value_type = std::invoke_result_t<F, std::iter_value_t<It>>;
       using difference_type = std::iter_difference_t<It>;
 #else
+      using value_type = std::invoke_result_t<F, iter_value_t<It>>;
       using difference_type = iter_difference_t<It>;
 #endif
       constexpr transform_view_iterator(It it, F& f) : my_it {std::move(it)}, my_f {std::addressof(f)} {}
@@ -62,10 +63,17 @@ namespace OpenKalman::collections
       constexpr transform_view_iterator(transform_view_iterator&& other) noexcept = default;
       constexpr transform_view_iterator& operator=(const transform_view_iterator& other) = default;
       constexpr transform_view_iterator& operator=(transform_view_iterator&& other) noexcept = default;
+#if __cplusplus >= 202002L
       constexpr value_type operator*() { return std::invoke(*my_f, *my_it); }
       constexpr value_type operator*() const { return std::invoke(*my_f, *my_it); }
       constexpr value_type operator[](difference_type offset) { return std::invoke(*my_f, my_it[offset]); }
       constexpr value_type operator[](difference_type offset) const { return std::invoke(*my_f, my_it[offset]); }
+#else // because pre-c++20, std::invoke was not constexpr
+      constexpr value_type operator*() { return (*my_f)(*my_it); }
+      constexpr value_type operator*() const { return (*my_f)(*my_it); }
+      constexpr value_type operator[](difference_type offset) { return (*my_f)(my_it[offset]); }
+      constexpr value_type operator[](difference_type offset) const { return (*my_f)(my_it[offset]); }
+#endif
       constexpr auto& operator++() noexcept { ++my_it; return *this; }
       constexpr auto operator++(int) noexcept { auto temp = *this; ++*this; return temp; }
       constexpr auto& operator--() noexcept { --my_it; return *this; }
@@ -106,7 +114,7 @@ namespace OpenKalman::collections
 
 
   /**
-   * \brief A \ref collection created by applying a transformation to another collection of the same size.
+   * \brief A \ref collection created by applying a component-by-component transformation to another collection of the same size.
    * \tparam T An underlying collection to be transformed
    * \tparam F A callable object taking an element of T and resulting in another object
    */
@@ -167,7 +175,7 @@ namespace OpenKalman::collections
     get() &
     {
       static_assert(size_of_v<T> == dynamic_size or i < size_of_v<T>, "Index out of range");
-      return std::invoke(my_f, OpenKalman::internal::generalized_std_get<i>(my_t.get()));
+      return my_f(OpenKalman::internal::generalized_std_get<i>(my_t.get()));
     }
 
     template<std::size_t i, typename aT = T, std::enable_if_t<tuple_like<aT>, int> = 0>
@@ -175,7 +183,7 @@ namespace OpenKalman::collections
     get() const &
     {
       static_assert(size_of_v<T> == dynamic_size or i < size_of_v<T>, "Index out of range");
-      return std::invoke(my_f, OpenKalman::internal::generalized_std_get<i>(my_t.get()));
+      return my_f(OpenKalman::internal::generalized_std_get<i>(my_t.get()));
     }
 
     template<std::size_t i, typename aT = T, std::enable_if_t<tuple_like<aT>, int> = 0>
@@ -183,7 +191,7 @@ namespace OpenKalman::collections
     get() && noexcept
     {
       static_assert(size_of_v<T> == dynamic_size or i < size_of_v<T>, "Index out of range");
-      return std::invoke(std::move(*this).my_f, OpenKalman::internal::generalized_std_get<i>(std::move(*this).my_t.get()));
+      return my_f(OpenKalman::internal::generalized_std_get<i>(std::move(*this).my_t.get()));
     }
 
     template<std::size_t i, typename aT = T, std::enable_if_t<tuple_like<aT>, int> = 0>
@@ -191,22 +199,22 @@ namespace OpenKalman::collections
     get() const && noexcept
     {
       static_assert(size_of_v<T> == dynamic_size or i < size_of_v<T>, "Index out of range");
-      return std::invoke(std::move(*this).my_f, OpenKalman::internal::generalized_std_get<i>(std::move(*this).my_t.get()));
+      return my_f(OpenKalman::internal::generalized_std_get<i>(std::move(*this).my_t.get()));
     }
 #endif
 
 
     /**
-     * \brief The size of the base object.
+     * \brief The size of the resulting object.
      */
 #ifdef __cpp_concepts
-    constexpr value::index auto
+    constexpr values::index auto
     size() const noexcept
 #else
     constexpr auto size() const noexcept
 #endif
     {
-      return get_collection_size(my_t.get());
+      return get_size(my_t.get());
     }
 
 
@@ -287,7 +295,7 @@ namespace OpenKalman::collections
   } // namespace detail
 #endif
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #ifdef __cpp_lib_ranges

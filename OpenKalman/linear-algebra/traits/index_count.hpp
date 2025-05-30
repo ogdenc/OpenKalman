@@ -41,7 +41,7 @@ namespace OpenKalman
 
     template<typename T>
     struct static_count_indices_defined<T, std::enable_if_t<interface::count_indices_defined_for<T>>>
-    : std::bool_constant<value::fixed<decltype(count_indices(std::declval<T>()))>> {};
+    : std::bool_constant<values::fixed<decltype(count_indices(std::declval<T>()))>> {};
   }
 #endif
 
@@ -50,7 +50,7 @@ namespace OpenKalman
    * \overload
    */
 #ifdef __cpp_concepts
-  template<typename T> requires requires(T t) { {count_indices(t)} -> value::fixed; }
+  template<typename T> requires requires(T t) { {count_indices(t)} -> values::fixed; }
   struct index_count<T>
 #else
   template<typename T>
@@ -67,8 +67,8 @@ namespace OpenKalman
 
     template<typename T>
     struct dynamic_count_indices_defined<T, std::enable_if_t<interface::count_indices_defined_for<T>>>
-    : std::bool_constant<value::index<decltype(count_indices(std::declval<T>()))> and
-        value::dynamic<decltype(count_indices(std::declval<T>()))>> {};
+    : std::bool_constant<values::index<decltype(count_indices(std::declval<T>()))> and
+        values::dynamic<decltype(count_indices(std::declval<T>()))>> {};
   }
 #endif
 
@@ -77,7 +77,7 @@ namespace OpenKalman
    * \overload
    */
 #ifdef __cpp_concepts
-  template<typename T> requires requires(T t) { {count_indices(t)} -> value::dynamic; }
+  template<typename T> requires requires(T t) { {count_indices(t)} -> values::dynamic; }
   struct index_count<T>
 #else
   template<typename T>

@@ -38,7 +38,7 @@ namespace OpenKalman
 
 
   /**
-   * \brief Return a collection of \ref coordinate::pattern objects associated with T.
+   * \brief Return a collection of \ref coordinates::pattern objects associated with T.
      \details This will be a \ref pattern_collection in the form of a std::tuple or a std::vector.
    */
 #ifdef __cpp_concepts

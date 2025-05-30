@@ -29,14 +29,14 @@ namespace OpenKalman::test
 {
   /**
    * \internal
-   * \brief Compare two value::value objects.
+   * \brief Compare two values::value objects.
    */
 #ifdef __cpp_concepts
-  template<value::value Arg1, value::value Arg2, value::value Err>
+  template<values::value Arg1, values::value Arg2, values::value Err>
   struct TestComparison<Arg1, Arg2, Err>
 #else
   template<typename Arg1, typename Arg2, typename Err>
-  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<value::value<Arg1> and value::value<Arg2> and value::value<Err>>>
+  struct TestComparison<Arg1, Arg2, Err, std::enable_if_t<values::value<Arg1> and values::value<Arg2> and values::value<Err>>>
 #endif
     : ::testing::AssertionResult
   {
@@ -45,9 +45,9 @@ namespace OpenKalman::test
     template<typename Arg>
     static auto print(Arg&& arg)
     {
-      if constexpr (value::complex<Arg>)
+      if constexpr (values::complex<Arg>)
       {
-        return std::to_string(value::real(arg)) + " + " + std::to_string(value::imag(arg)) + "i";
+        return std::to_string(values::real(arg)) + " + " + std::to_string(values::imag(arg)) + "i";
       }
       else
       {
@@ -59,11 +59,11 @@ namespace OpenKalman::test
     static ::testing::AssertionResult
     compare(const Arg1 arg1, const Arg2 arg2, const Err& err)
     {
-      if (value::internal::near(arg1, arg2, err))
+      if (values::internal::near(arg1, arg2, err))
         return ::testing::AssertionSuccess();
       else
-        return ::testing::AssertionFailure() << print(value::to_number(arg2)) << " is not within " <<
-          print(value::to_number(err)) << " of " << print(value::to_number(arg1));
+        return ::testing::AssertionFailure() << print(values::to_number(arg2)) << " is not within " <<
+          print(values::to_number(err)) << " of " << print(values::to_number(arg1));
     }
 
   public:

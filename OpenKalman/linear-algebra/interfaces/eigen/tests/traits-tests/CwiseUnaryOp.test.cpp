@@ -76,7 +76,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_abs_op)
   static_assert(Eigen3::constexpr_unary_operation_defined<Eigen::internal::scalar_abs_op<double>>);
   auto c22 = constant_coefficient {cp2.abs().nestedExpression()};
   static_assert(std::decay_t<decltype(c22)>::value == 2);
-  static_assert(OpenKalman::value::operation {Traits::constexpr_operation(), c22} == 2);
+  static_assert(OpenKalman::values::operation {Traits::constexpr_operation(), c22} == 2);
   static_assert(constant_coefficient_v<const Eigen::CwiseUnaryOp<Eigen::internal::scalar_abs_op<double>, C211>> == 2);
 
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().abs())> == 2);
@@ -153,8 +153,8 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_arg_op)
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().arg())> == 0);
   EXPECT_EQ(constant_coefficient{cm2.arg()}(), std::arg(-2));
   static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().arg())> == OpenKalman::numbers::pi);
-  EXPECT_TRUE(value::internal::near<10>((constant_coefficient{cxa.arg()}()), (std::arg(std::complex<double>{1, 2}))));
-  EXPECT_TRUE(value::internal::near<10>((constant_coefficient{cxb.arg()}()), (std::arg(std::complex<double>{3, 4}))));
+  EXPECT_TRUE(values::internal::near<10>((constant_coefficient{cxa.arg()}()), (std::arg(std::complex<double>{1, 2}))));
+  EXPECT_TRUE(values::internal::near<10>((constant_coefficient{cxb.arg()}()), (std::arg(std::complex<double>{3, 4}))));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().arg())>);
   static_assert(triangular_matrix<decltype(std::declval<Tlv22>().cwiseAbs()), TriangleType::lower>);
   static_assert(not diagonal_matrix<decltype(std::declval<Cd22_2>().arg())>);
@@ -199,7 +199,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_shift_right_op)
   EXPECT_EQ(constant_diagonal_coefficient{cdp2_int.shiftRight<1>()}(), cdp2_int.shiftRight<1>()(0, 0));
   EXPECT_EQ(0, cdp2_int.shiftRight<1>()(0, 1));
   EXPECT_EQ(constant_diagonal_coefficient{cdp2_int.shiftRight<1>()}(), 1);
-  static_assert(value::dynamic<constant_diagonal_coefficient<decltype(cdp2_int.shiftRight<1>())>>);
+  static_assert(values::dynamic<constant_diagonal_coefficient<decltype(cdp2_int.shiftRight<1>())>>);
   static_assert(triangular_matrix<decltype(std::declval<Tlv22>().cast<int>().array().shiftRight<1>()), TriangleType::lower>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().cast<int>().array().shiftRight<1>()), TriangleType::upper>);
   static_assert(diagonal_matrix<decltype(std::declval<Cd22_2>().cast<int>().shiftRight<1>())>);
@@ -216,7 +216,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_shift_left_op)
   EXPECT_EQ(constant_diagonal_coefficient{cdp2_int.shiftLeft<1>()}(), cdp2_int.shiftLeft<1>()(0, 0));
   EXPECT_EQ(0, cdp2_int.shiftLeft<1>()(0, 1));
   EXPECT_EQ(constant_diagonal_coefficient{cdp2_int.shiftLeft<1>()}(), 4);
-  static_assert(value::dynamic<constant_diagonal_coefficient<decltype(cdp2_int.shiftLeft<1>())>>);
+  static_assert(values::dynamic<constant_diagonal_coefficient<decltype(cdp2_int.shiftLeft<1>())>>);
   static_assert(triangular_matrix<decltype(std::declval<Tlv22>().cast<int>().array().shiftLeft<1>()), TriangleType::lower>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().cast<int>().array().shiftLeft<1>()), TriangleType::upper>);
   static_assert(diagonal_matrix<decltype(std::declval<Cd22_2>().cast<int>().shiftLeft<1>())>);
@@ -248,12 +248,12 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_imag_op)
 
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_exp_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().exp())>, value::exp(2)));
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_m2>().exp())>, value::exp(-2)));
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cp2.exp()}(), cp2.exp()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cm2.exp()}(), cm2.exp()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxa.exp()}(), cxa.exp()(0, 0)));
-  EXPECT_TRUE(value::internal::near<100>(constant_coefficient{cxb.exp()}(), cxb.exp()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().exp())>, values::exp(2)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_m2>().exp())>, values::exp(-2)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cp2.exp()}(), cp2.exp()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cm2.exp()}(), cm2.exp()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxa.exp()}(), cxa.exp()(0, 0)));
+  EXPECT_TRUE(values::internal::near<100>(constant_coefficient{cxb.exp()}(), cxb.exp()(0, 0)));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().exp())>);
   static_assert(not zero<decltype(z.exp())>);
   static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().exp()), TriangleType::upper>);
@@ -266,17 +266,17 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_exp_op)
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_expm1_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().expm1())>, value::expm1(2)));
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_m2>().expm1())>, value::expm1(-2)));
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cp2.expm1()}(), cp2.expm1()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cm2.expm1()}(), cm2.expm1()(0, 0)));
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cxa.expm1()}(), cxa.expm1()(0, 0)));
-  EXPECT_TRUE(value::internal::near<100>(constant_coefficient{cxb.expm1()}(), cxb.expm1()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().expm1())> == value::expm1(2));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_m1>().expm1())> == value::expm1(-1));
-  EXPECT_TRUE(value::internal::near<10>(constant_diagonal_coefficient{cdp2.expm1()}(), cdp2.expm1()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().expm1())>, values::expm1(2)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_m2>().expm1())>, values::expm1(-2)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cp2.expm1()}(), cp2.expm1()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cm2.expm1()}(), cm2.expm1()(0, 0)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxa.expm1()}(), cxa.expm1()(0, 0)));
+  EXPECT_TRUE(values::internal::near<100>(constant_coefficient{cxb.expm1()}(), cxb.expm1()(0, 0)));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().expm1())> == values::expm1(2));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_m1>().expm1())> == values::expm1(-1));
+  EXPECT_TRUE(values::internal::near<10>(constant_diagonal_coefficient{cdp2.expm1()}(), cdp2.expm1()(0, 0)));
   EXPECT_EQ(0, cdp2.expm1()(0, 1));
-  EXPECT_TRUE(value::internal::near(constant_diagonal_coefficient{cdm2.expm1()}(), cdm2.expm1()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdm2.expm1()}(), cdm2.expm1()(0, 0)));
   EXPECT_EQ(0, cdm2.expm1()(0, 1));
   static_assert(zero<decltype(z.expm1())>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().expm1()), TriangleType::upper>);
@@ -289,10 +289,10 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_expm1_op)
 
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_log_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().log())>, value::log(2)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cp2.log()}(), cp2.log()(0, 0)));
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cxa.log()}(), cxa.log()(0, 0)));
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cxb.log()}(), cxb.log()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().log())>, values::log(2)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.log()}(), cp2.log()(0, 0)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxa.log()}(), cxa.log()(0, 0)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxb.log()}(), cxb.log()(0, 0)));
   static_assert(zero<decltype(std::declval<C22_1>().log())>);
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().log())>);
   static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().log()), TriangleType::upper>);
@@ -304,12 +304,12 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_log_op)
 
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_log1p_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().log1p())>, value::log1p(2)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cp2.log1p()}(), cp2.log1p()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxa.log1p()}(), cxa.log1p()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxb.log1p()}(), cxb.log1p()(0, 0)));
-  static_assert(value::internal::near(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().log1p())>, value::log1p(2)));
-  EXPECT_TRUE(value::internal::near(constant_diagonal_coefficient{cdp2.log1p()}(), cdp2.log1p()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().log1p())>, values::log1p(2)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.log1p()}(), cp2.log1p()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxa.log1p()}(), cxa.log1p()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxb.log1p()}(), cxb.log1p()(0, 0)));
+  static_assert(values::internal::near(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().log1p())>, values::log1p(2)));
+  EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.log1p()}(), cdp2.log1p()(0, 0)));
   EXPECT_EQ(0, cdp2.log1p()(0, 1));
   static_assert(zero<decltype(z.log1p())>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().log1p()), TriangleType::upper>);
@@ -321,10 +321,10 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_log1p_op)
 
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_log10_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().log10())>, value::log(2) / numbers::ln10_v<double>));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cp2.log10()}(), cp2.log10()(0, 0)));
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cxa.log10()}(), cxa.log10()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxb.log10()}(), cxb.log10()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().log10())>, values::log(2) / numbers::ln10_v<double>));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.log10()}(), cp2.log10()(0, 0)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxa.log10()}(), cxa.log10()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxb.log10()}(), cxb.log10()(0, 0)));
   static_assert(zero<decltype(std::declval<C22_1>().log10())>);
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().log10())>);
   static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().log10()), TriangleType::upper>);
@@ -337,10 +337,10 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_log10_op)
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_log2_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().log2())>, value::log(2) / numbers::ln2_v<double>));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cp2.log2()}(), cp2.log2()(0, 0)));
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cxa.log2()}(), cxa.log2()(0, 0)));
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cxb.log2()}(), cxb.log2()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().log2())>, values::log(2) / numbers::ln2_v<double>));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.log2()}(), cp2.log2()(0, 0)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxa.log2()}(), cxa.log2()(0, 0)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxb.log2()}(), cxb.log2()(0, 0)));
   static_assert(zero<decltype(std::declval<C22_1>().log2())>);
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().log2())>);
   static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().log2()), TriangleType::upper>);
@@ -353,12 +353,12 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_log2_op)
 
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_sqrt_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().sqrt())>, value::sqrt(2.)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cp2.sqrt()}(), cp2.sqrt()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxa.sqrt()}(), cxa.sqrt()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxb.sqrt()}(), cxb.sqrt()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().sqrt())> == value::sqrt(2.));
-  EXPECT_TRUE(value::internal::near(constant_diagonal_coefficient{cdp2.sqrt()}(), cdp2.sqrt()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().sqrt())>, values::sqrt(2.)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.sqrt()}(), cp2.sqrt()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxa.sqrt()}(), cxa.sqrt()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxb.sqrt()}(), cxb.sqrt()(0, 0)));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().sqrt())> == values::sqrt(2.));
+  EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.sqrt()}(), cdp2.sqrt()(0, 0)));
   EXPECT_EQ(0, cdp2.sqrt()(0, 1));
   static_assert(zero<decltype(z.sqrt())>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().sqrt()), TriangleType::upper>);
@@ -370,10 +370,10 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_sqrt_op)
 
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_rsqrt_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().rsqrt())>, 1./value::sqrt(2.)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cp2.rsqrt()}(), cp2.rsqrt()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxa.rsqrt()}(), cxa.rsqrt()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxb.rsqrt()}(), cxb.rsqrt()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().rsqrt())>, 1./values::sqrt(2.)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.rsqrt()}(), cp2.rsqrt()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxa.rsqrt()}(), cxa.rsqrt()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxb.rsqrt()}(), cxb.rsqrt()(0, 0)));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().rsqrt())>);
   static_assert(not zero<decltype(z.rsqrt())>);
   static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().rsqrt()), TriangleType::upper>);
@@ -385,10 +385,10 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_rsqrt_op)
 
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_cos_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().cos())>, value::cos(2.)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cp2.cos()}(), cp2.cos()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxa.cos()}(), cxa.cos()(0, 0)));
-  EXPECT_TRUE(value::internal::near<100>(constant_coefficient{cxb.cos()}(), cxb.cos()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().cos())>, values::cos(2.)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.cos()}(), cp2.cos()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxa.cos()}(), cxa.cos()(0, 0)));
+  EXPECT_TRUE(values::internal::near<100>(constant_coefficient{cxb.cos()}(), cxb.cos()(0, 0)));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().cos())>);
   static_assert(not zero<decltype(z.cos())>);
   static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().cos()), TriangleType::upper>);
@@ -400,12 +400,12 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_cos_op)
 
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_sin_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().sin())>, value::sin(2.)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cp2.sin()}(), cp2.sin()(0, 0)));
-  EXPECT_TRUE(value::internal::near<100>(constant_coefficient{cxa.sin()}(), cxa.sin()(0, 0)));
-  EXPECT_TRUE(value::internal::near<100>(constant_coefficient{cxb.sin()}(), cxb.sin()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().sin())> == value::sin(2.));
-  EXPECT_TRUE(value::internal::near(constant_diagonal_coefficient{cdp2.sin()}(), cdp2.sin()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().sin())>, values::sin(2.)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.sin()}(), cp2.sin()(0, 0)));
+  EXPECT_TRUE(values::internal::near<100>(constant_coefficient{cxa.sin()}(), cxa.sin()(0, 0)));
+  EXPECT_TRUE(values::internal::near<100>(constant_coefficient{cxb.sin()}(), cxb.sin()(0, 0)));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().sin())> == values::sin(2.));
+  EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.sin()}(), cdp2.sin()(0, 0)));
   EXPECT_EQ(0, cdp2.sin()(0, 1));
   static_assert(zero<decltype(z.sin())>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().sin()), TriangleType::upper>);
@@ -417,12 +417,12 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_sin_op)
 
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_tan_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().tan())>, value::tan(2.)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cp2.tan()}(), cp2.tan()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxa.tan()}(), cxa.tan()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxb.tan()}(), cxb.tan()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().tan())> == value::tan(2.));
-  EXPECT_TRUE(value::internal::near(constant_diagonal_coefficient{cdp2.tan()}(), cdp2.tan()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().tan())>, values::tan(2.)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.tan()}(), cp2.tan()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxa.tan()}(), cxa.tan()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxb.tan()}(), cxb.tan()(0, 0)));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().tan())> == values::tan(2.));
+  EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.tan()}(), cdp2.tan()(0, 0)));
   EXPECT_EQ(0, cdp2.tan()(0, 1));
   static_assert(zero<decltype(z.tan())>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().tan()), TriangleType::upper>);
@@ -434,10 +434,10 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_tan_op)
 
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_acos_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_1>().acos())>, value::acos(1.)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{(cp2/4).acos()}(), (cp2/4).acos()(0, 0)));
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cxa.acos()}(), cxa.acos()(0, 0)));
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cxb.acos()}(), cxb.acos()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_1>().acos())>, values::acos(1.)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{(cp2/4).acos()}(), (cp2/4).acos()(0, 0)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxa.acos()}(), cxa.acos()(0, 0)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxb.acos()}(), cxb.acos()(0, 0)));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_m1>().acos())>);
   static_assert(not zero<decltype(z.acos())>);
   static_assert(not triangular_matrix<decltype((std::declval<Tuv22>()* 0.25).array().acos()), TriangleType::upper>);
@@ -449,12 +449,12 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_acos_op)
 
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_asin_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_1>().asin())>, value::asin(1.)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{(cp2/4).asin()}(), (cp2/4).asin()(0, 0)));
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cxa.asin()}(), cxa.asin()(0, 0)));
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cxb.asin()}(), cxb.asin()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_m1>().asin())> == value::asin(-1.));
-  EXPECT_TRUE(value::internal::near(constant_diagonal_coefficient{(cdp2*0.25).asin()}(), (cdp2*0.25).asin()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_1>().asin())>, values::asin(1.)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{(cp2/4).asin()}(), (cp2/4).asin()(0, 0)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxa.asin()}(), cxa.asin()(0, 0)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxb.asin()}(), cxb.asin()(0, 0)));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_m1>().asin())> == values::asin(-1.));
+  EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{(cdp2*0.25).asin()}(), (cdp2*0.25).asin()(0, 0)));
   EXPECT_EQ(0, (cdp2*0.25).asin()(0, 1));
   static_assert(zero<decltype(z.asin())>);
   static_assert(triangular_matrix<decltype((std::declval<Tuv22>() * 0.25).array().asin()), TriangleType::upper>);
@@ -466,13 +466,13 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_asin_op)
 
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_atan_op)
 {
-  //static_assert(value::atan(11.) > 1.1);
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().atan())>, value::atan(2.)));
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cp2.atan()}(), cp2.atan()(0, 0)));
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cxa.atan()}(), cxa.atan()(0, 0)));
-  EXPECT_TRUE(value::internal::near<100>(constant_coefficient{cxb.atan()}(), cxb.atan()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_m2>().atan())> == value::atan(-2.));
-  EXPECT_TRUE(value::internal::near(constant_diagonal_coefficient{(cdp2*0.25).atan()}(), (cdp2*0.25).atan()(0, 0)));
+  //static_assert(values::atan(11.) > 1.1);
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().atan())>, values::atan(2.)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cp2.atan()}(), cp2.atan()(0, 0)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxa.atan()}(), cxa.atan()(0, 0)));
+  EXPECT_TRUE(values::internal::near<100>(constant_coefficient{cxb.atan()}(), cxb.atan()(0, 0)));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_m2>().atan())> == values::atan(-2.));
+  EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{(cdp2*0.25).atan()}(), (cdp2*0.25).atan()(0, 0)));
   EXPECT_EQ(0, (cdp2*0.25).atan()(0, 1));
   static_assert(zero<decltype(z.atan())>);
   static_assert(triangular_matrix<decltype((std::declval<Tuv22>() * 0.25).array().atan()), TriangleType::upper>);
@@ -484,12 +484,12 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_atan_op)
 
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_tanh_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().tanh())>, value::tanh(2.)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cp2.tanh()}(), cp2.tanh()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxa.tanh()}(), cxa.tanh()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxb.tanh()}(), cxb.tanh()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().tanh())> == value::tanh(2.));
-  EXPECT_TRUE(value::internal::near(constant_diagonal_coefficient{cdp2.tanh()}(), cdp2.tanh()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().tanh())>, values::tanh(2.)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.tanh()}(), cp2.tanh()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxa.tanh()}(), cxa.tanh()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxb.tanh()}(), cxb.tanh()(0, 0)));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().tanh())> == values::tanh(2.));
+  EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.tanh()}(), cdp2.tanh()(0, 0)));
   EXPECT_EQ(0, cdp2.tanh()(0, 1));
   static_assert(zero<decltype(z.tanh())>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().tanh()), TriangleType::upper>);
@@ -502,10 +502,10 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_tanh_op)
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_atanh_op)
 {
-  EXPECT_TRUE(value::internal::near(constant_coefficient{(cp2 * 0.3).atanh()}(), (cp2 * 0.3).atanh()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxa.atanh()}(), cxa.atanh()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxb.atanh()}(), cxb.atanh()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_diagonal_coefficient{(cdp2 * 0.3).atanh()}(), (cdp2 * 0.3).atanh()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{(cp2 * 0.3).atanh()}(), (cp2 * 0.3).atanh()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxa.atanh()}(), cxa.atanh()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxb.atanh()}(), cxb.atanh()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{(cdp2 * 0.3).atanh()}(), (cdp2 * 0.3).atanh()(0, 0)));
   EXPECT_EQ(0, (cdp2 * 0.3).atanh()(0, 1));
   static_assert(zero<decltype(z.atanh())>);
   static_assert(triangular_matrix<decltype((std::declval<Tuv22>() * 0.3).array().atanh()), TriangleType::upper>);
@@ -518,12 +518,12 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_atanh_op)
 
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_sinh_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().sinh())>, value::sinh(2.)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cp2.sinh()}(), cp2.sinh()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxa.sinh()}(), cxa.sinh()(0, 0)));
-  EXPECT_TRUE(value::internal::near<100>(constant_coefficient{cxb.sinh()}(), cxb.sinh()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().sinh())> == value::sinh(2.));
-  EXPECT_TRUE(value::internal::near(constant_diagonal_coefficient{cdp2.sinh()}(), cdp2.sinh()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().sinh())>, values::sinh(2.)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.sinh()}(), cp2.sinh()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxa.sinh()}(), cxa.sinh()(0, 0)));
+  EXPECT_TRUE(values::internal::near<100>(constant_coefficient{cxb.sinh()}(), cxb.sinh()(0, 0)));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().sinh())> == values::sinh(2.));
+  EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.sinh()}(), cdp2.sinh()(0, 0)));
   EXPECT_EQ(0, cdp2.sinh()(0, 1));
   static_assert(zero<decltype(z.sinh())>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().sinh()), TriangleType::upper>);
@@ -536,12 +536,12 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_sinh_op)
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_asinh_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().asinh())>, value::asinh(2.)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cp2.asinh()}(), cp2.asinh()(0, 0)));
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cxa.asinh()}(), cxa.asinh()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxb.asinh()}(), cxb.asinh()(0, 0)));
-  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().asinh())> == value::asinh(2.));
-  EXPECT_TRUE(value::internal::near(constant_diagonal_coefficient{cdp2.asinh()}(), cdp2.asinh()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().asinh())>, values::asinh(2.)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.asinh()}(), cp2.asinh()(0, 0)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxa.asinh()}(), cxa.asinh()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxb.asinh()}(), cxb.asinh()(0, 0)));
+  static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().asinh())> == values::asinh(2.));
+  EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.asinh()}(), cdp2.asinh()(0, 0)));
   EXPECT_EQ(0, cdp2.asinh()(0, 1));
   static_assert(zero<decltype(z.asinh())>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().asinh()), TriangleType::upper>);
@@ -554,10 +554,10 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_asinh_op)
 
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_cosh_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().cosh())>, value::cosh(2.)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cp2.cosh()}(), cp2.cosh()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxa.cosh()}(), cxa.cosh()(0, 0)));
-  EXPECT_TRUE(value::internal::near<100>(constant_coefficient{cxb.cosh()}(), cxb.cosh()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().cosh())>, values::cosh(2.)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.cosh()}(), cp2.cosh()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxa.cosh()}(), cxa.cosh()(0, 0)));
+  EXPECT_TRUE(values::internal::near<100>(constant_coefficient{cxb.cosh()}(), cxb.cosh()(0, 0)));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().cosh())>);
   static_assert(not zero<decltype(z.cosh())>);
   static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().cosh()), TriangleType::upper>);
@@ -570,9 +570,9 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_cosh_op)
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_acosh_op)
 {
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cp2.acosh()}(), cp2.acosh()(0, 0)));
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cxa.acosh()}(), cxa.acosh()(0, 0)));
-  EXPECT_TRUE(value::internal::near<10>(constant_coefficient{cxb.acosh()}(), cxb.acosh()(0, 0)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cp2.acosh()}(), cp2.acosh()(0, 0)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxa.acosh()}(), cxa.acosh()(0, 0)));
+  EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxb.acosh()}(), cxb.acosh()(0, 0)));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().acosh())>);
   static_assert(not zero<decltype(z.acosh())>);
   static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().acosh()), TriangleType::upper>);
@@ -585,9 +585,9 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_acosh_op)
 
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_inverse_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().inverse())>, 0.5));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cp2.inverse()}(), cp2.inverse()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxa.inverse()}(), cxa.inverse()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().inverse())>, 0.5));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.inverse()}(), cp2.inverse()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxa.inverse()}(), cxa.inverse()(0, 0)));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().inverse())>);
   static_assert(not zero<decltype(z.inverse())>);
   static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().inverse()), TriangleType::upper>);
@@ -601,11 +601,11 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_square_op)
 {
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().square())> == 4);
   static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().square())> == 4);
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cp2.square()}(), cp2.square()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxa.square()}(), cxa.square()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxb.square()}(), cxb.square()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.square()}(), cp2.square()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxa.square()}(), cxa.square()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxb.square()}(), cxb.square()(0, 0)));
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().square())> == 4);
-  EXPECT_TRUE(value::internal::near(constant_diagonal_coefficient{cdp2.square()}(), cdp2.square()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.square()}(), cdp2.square()(0, 0)));
   EXPECT_EQ(0, cdp2.square()(0, 1));
   static_assert(zero<decltype(z.square())>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().square()), TriangleType::upper>);
@@ -619,10 +619,10 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_cube_op)
 {
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().cube())> == 8);
   static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().cube())> == -8);
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cp2.cube()}(), cp2.cube()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxa.cube()}(), cxa.cube()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.cube()}(), cp2.cube()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxa.cube()}(), cxa.cube()(0, 0)));
   static_assert(constant_diagonal_coefficient_v<decltype(std::declval<Cd22_2>().cube())> == 8);
-  EXPECT_TRUE(value::internal::near(constant_diagonal_coefficient{cdp2.cube()}(), cdp2.cube()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_diagonal_coefficient{cdp2.cube()}(), cdp2.cube()(0, 0)));
   EXPECT_EQ(0, cdp2.cube()(0, 1));
   static_assert(zero<decltype(z.cube())>);
   static_assert(triangular_matrix<decltype(std::declval<Tuv22>().array().cube()), TriangleType::upper>);
@@ -667,11 +667,11 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_boolean_not_op)
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_logistic_op)
 {
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().logistic())>, 1 / (1 + (value::exp(-2)))));
-  static_assert(value::internal::near(constant_coefficient_v<decltype(std::declval<C22_m2>().logistic())>, 1 / (1 + (value::exp(2)))));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cp2.logistic()}(), cp2.logistic()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxa.logistic()}(), cxa.logistic()(0, 0)));
-  EXPECT_TRUE(value::internal::near(constant_coefficient{cxb.logistic()}(), cxb.logistic()(0, 0)));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().logistic())>, 1 / (1 + (values::exp(-2)))));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_m2>().logistic())>, 1 / (1 + (values::exp(2)))));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.logistic()}(), cp2.logistic()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxa.logistic()}(), cxa.logistic()(0, 0)));
+  EXPECT_TRUE(values::internal::near(constant_coefficient{cxb.logistic()}(), cxb.logistic()(0, 0)));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().logistic())>);
   static_assert(not zero<decltype(z.logistic())>);
   static_assert(not triangular_matrix<decltype(std::declval<Tuv22>().array().logistic()), TriangleType::upper>);
@@ -687,7 +687,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_bind1st_op)
   using CB1sum = Eigen::internal::bind1st_op<Eigen::internal::scalar_sum_op<double, double>>;
   EXPECT_EQ((constant_coefficient{Eigen::CwiseUnaryOp<CB1sum, decltype(cp2)>{cp2, CB1sum{3}}}()), 5);
   EXPECT_EQ((constant_coefficient{Eigen::CwiseUnaryOp<CB1sum, decltype(cm2)>{cm2, CB1sum{6}}}()), 4);
-  static_assert(value::dynamic<constant_coefficient<Eigen::CwiseUnaryOp<CB1sum, Z22>>>);
+  static_assert(values::dynamic<constant_coefficient<Eigen::CwiseUnaryOp<CB1sum, Z22>>>);
   static_assert(not constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB1sum, Z22>>);
   static_assert(not constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB1sum, decltype(cdp2)>>);
   static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB1sum, decltype(cp2)>, Applicability::permitted>);
@@ -696,7 +696,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_bind1st_op)
   using CB1prod = Eigen::internal::bind1st_op<Eigen::internal::scalar_product_op<double, double>>;
   EXPECT_EQ((constant_coefficient{Eigen::CwiseUnaryOp<CB1prod, decltype(cm2)>{cm2, CB1prod{6}}}()), -12);
   EXPECT_EQ((constant_diagonal_coefficient{Eigen::CwiseUnaryOp<CB1prod, decltype(cdp2)>{cdp2, CB1prod{3}}}()), 6);
-  static_assert(value::dynamic<constant_diagonal_coefficient<Eigen::CwiseUnaryOp<CB1prod, I22>>>);
+  static_assert(values::dynamic<constant_diagonal_coefficient<Eigen::CwiseUnaryOp<CB1prod, I22>>>);
   static_assert(zero<Eigen::CwiseUnaryOp<CB1prod, Z22>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryOp<CB1prod, I22>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryOp<CB1prod, DM2>>);
@@ -710,7 +710,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_bind2nd_op)
   using CB2sum = Eigen::internal::bind2nd_op<Eigen::internal::scalar_sum_op<double, double>>;
   EXPECT_EQ((constant_coefficient{Eigen::CwiseUnaryOp<CB2sum, decltype(cp2)>{cp2, CB2sum{3}}}()), 5);
   EXPECT_EQ((constant_coefficient{Eigen::CwiseUnaryOp<CB2sum, decltype(cm2)>{cm2, CB2sum{6}}}()), 4);
-  static_assert(value::dynamic<constant_coefficient<Eigen::CwiseUnaryOp<CB2sum, Z22>>>);
+  static_assert(values::dynamic<constant_coefficient<Eigen::CwiseUnaryOp<CB2sum, Z22>>>);
   static_assert(not constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB2sum, Z22>>);
   static_assert(not constant_diagonal_matrix<Eigen::CwiseUnaryOp<CB2sum, decltype(cdp2)>>);
   static_assert(hermitian_matrix<Eigen::CwiseUnaryOp<CB2sum, decltype(cp2)>, Applicability::permitted>);
@@ -719,7 +719,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_bind2nd_op)
   using CB2prod = Eigen::internal::bind2nd_op<Eigen::internal::scalar_product_op<double, double>>;
   EXPECT_EQ((constant_coefficient{Eigen::CwiseUnaryOp<CB2prod, decltype(cp2)>{cp2, CB2prod{3}}}()), 6);
   EXPECT_EQ((constant_diagonal_coefficient{Eigen::CwiseUnaryOp<CB2prod, decltype(cdm2)>{cdm2, CB2prod{6}}}()), -12);
-  static_assert(value::dynamic<constant_diagonal_coefficient<Eigen::CwiseUnaryOp<CB2prod, I22>>>);
+  static_assert(values::dynamic<constant_diagonal_coefficient<Eigen::CwiseUnaryOp<CB2prod, I22>>>);
   static_assert(zero<Eigen::CwiseUnaryOp<CB2prod, Z22>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryOp<CB2prod, I22>>);
   static_assert(diagonal_matrix<Eigen::CwiseUnaryOp<CB2prod, DM2>>);
@@ -750,7 +750,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_functor_composition)
   EXPECT_EQ(constant_coefficient {c11_2.unaryExpr(abs_negate)}, 2);
 
 #ifdef __cpp_concepts
-  auto abs_negate2 = Eigen3::functor_composition {[](const auto& x){ return OpenKalman::value::abs(x); }, std::negate<double>{}};
+  auto abs_negate2 = Eigen3::functor_composition {[](const auto& x){ return OpenKalman::values::abs(x); }, std::negate<double>{}};
   static_assert(abs_negate2(5.0) == 5.0);
   static_assert(constant_coefficient_v<const Eigen::CwiseUnaryOp<decltype(abs_negate2), C11_2>> == 2);
   EXPECT_EQ(constant_coefficient {c11_2.unaryExpr(abs_negate2)}, 2);

@@ -10,26 +10,26 @@
 
 /**
  * \file
- * \brief Definition for \ref coordinate::make_pattern_vector.
+ * \brief Definition for \ref coordinates::make_pattern_vector.
  */
 
-#ifndef OPENKALMAN_COORDINATE_MAKE_PATTERN_VECTOR_HPP
-#define OPENKALMAN_COORDINATE_MAKE_PATTERN_VECTOR_HPP
+#ifndef OPENKALMAN_COORDINATES_MAKE_PATTERN_VECTOR_HPP
+#define OPENKALMAN_COORDINATES_MAKE_PATTERN_VECTOR_HPP
 
 #include "values/concepts/value.hpp"
 #include "linear-algebra/coordinates/descriptors/Any.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
   /**
-   * \brief Make a \ref coordinate::pattern comprising a std::vector of \ref coordinate::descriptor "descriptors"
+   * \brief Make a \ref coordinates::pattern comprising a std::vector of \ref coordinates::descriptor "descriptors"
    * \details The resulting type <code>std::vector&lt;component::Any&lt;Scalar&gt;&gt;</code>
    */
 #ifdef __cpp_concepts
-  template<value::value Scalar = double, descriptor...Args>
+  template<values::value Scalar = double, descriptor...Args>
 #else
   template<typename Scalar = double, typename...Args, std::enable_if_t<
-    value::value<Scalar> and (... and descriptor<Args>), int> = 0>
+    values::value<Scalar> and (... and descriptor<Args>), int> = 0>
 #endif
   constexpr std::vector<Any<Scalar>>
   make_pattern_vector(Args&&...args)
@@ -38,7 +38,7 @@ namespace OpenKalman::coordinate
   }
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 
-#endif //OPENKALMAN_COORDINATE_MAKE_PATTERN_VECTOR_HPP
+#endif //OPENKALMAN_COORDINATES_MAKE_PATTERN_VECTOR_HPP

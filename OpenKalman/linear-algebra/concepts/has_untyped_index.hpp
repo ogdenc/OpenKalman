@@ -30,7 +30,7 @@ namespace OpenKalman
   template<typename T, std::size_t N>
   constexpr bool has_untyped_index =
 #endif
-    coordinate::euclidean_pattern<vector_space_descriptor_of_t<T, N>>;
+    coordinates::euclidean_pattern<vector_space_descriptor_of_t<T, N>>;
 
 
 } // namespace OpenKalman

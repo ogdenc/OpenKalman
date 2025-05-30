@@ -10,30 +10,30 @@
 
 /**
  * \dir
- * \brief Definitions relating to \ref coordinate::pattern object.
+ * \brief Definitions relating to \ref coordinates::pattern object.
  *
  * \dir coordinates/descriptors
- * \brief Files defining \ref coordinate::descriptor objects.
+ * \brief Files defining \ref coordinates::descriptor objects.
  *
  * \dir coordinates/concepts
- * \brief Concepts relating to \ref coordinate::pattern objects.
+ * \brief Concepts relating to \ref coordinates::pattern objects.
  *
  * \dir coordinates/functions
- * \brief Files for functions relating to \ref coordinate::pattern objects.
+ * \brief Files for functions relating to \ref coordinates::pattern objects.
  *
  * \dir coordinates/traits
- * \brief Traits relating to \ref coordinate::pattern objects.
+ * \brief Traits relating to \ref coordinates::pattern objects.
  *
  * \dir coordinates/internal
  * \internal
- * \brief Internal files relating to \ref coordinate::pattern objects.
+ * \brief Internal files relating to \ref coordinates::pattern objects.
  *
  * \dir coordinates/tests
  * \internal
- * \brief Tests relating to \ref coordinate::pattern objects.
+ * \brief Tests relating to \ref coordinates::pattern objects.
  *
  * \file
- * \brief Comprehensive header file including all classes and definitions relating to a \ref coordinate::pattern
+ * \brief Comprehensive header file including all classes and definitions relating to a \ref coordinates::pattern
  */
 
 #ifndef OPENKALMAN_VECTOR_TYPES_HPP
@@ -44,7 +44,7 @@
  * \internal
  * \brief The namespace for vector-space descriptor code.
  */
-namespace OpenKalman::coordinate {}
+namespace OpenKalman::coordinates {}
 
 
 #include "interfaces/coordinate_descriptor_traits.hpp"
@@ -60,21 +60,18 @@ namespace OpenKalman::coordinate {}
 #include "concepts/pattern_range.hpp"
 #include "concepts/pattern_collection.hpp"
 
-#include "functions/internal/get_descriptor_size.hpp"
-#include "functions/get_size.hpp"
-#include "traits/size_of.hpp"
+#include "functions/internal/get_descriptor_dimension.hpp"
+#include "functions/get_dimension.hpp"
+#include "traits/dimension_of.hpp"
 
-#include "functions/internal/get_descriptor_euclidean_size.hpp"
-#include "functions/get_euclidean_size.hpp"
-#include "traits/euclidean_size_of.hpp"
+#include "functions/internal/get_descriptor_stat_dimension.hpp"
+#include "functions/get_stat_dimension.hpp"
+#include "traits/stat_dimension_of.hpp"
 
 #include "functions/internal/get_hash_code.hpp"
 #include "functions/get_is_euclidean.hpp"
 
-#include "functions/get_component_count.hpp"
-#include "traits/component_count_of.hpp"
-
-#include "traits/scalar_type_of.hpp" //
+//#include "traits/scalar_type_of.hpp" //
 
 #include "concepts/fixed_pattern.hpp"
 #include "concepts/fixed_pattern_tuple.hpp"
@@ -92,8 +89,8 @@ namespace OpenKalman::coordinate {}
 #include "functions/internal/get_euclidean_index_table.hpp"
 
 #include "functions/internal/get_component_start_indices.hpp"
-#include "functions/to_euclidean_element.hpp"
-#include "functions/from_euclidean_element.hpp"
+#include "functions/to_stat_space.hpp"
+#include "functions/from_stat_space.hpp"
 #include "functions/get_wrapped_component.hpp"
 #include "functions/set_wrapped_component.hpp"
 

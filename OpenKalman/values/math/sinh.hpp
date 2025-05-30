@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::sinh.
+ * \brief Definition for \ref values::sinh.
  */
 
 #ifndef OPENKALMAN_VALUE_SINH_HPP
@@ -33,24 +33,24 @@
 #include "exp.hpp"
 #include "internal/atan_utils.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief Constexpr alternative to the std::sinh function.
    */
 #ifdef __cpp_concepts
-  template<value::value Arg>
-  constexpr value::value auto
+  template<values::value Arg>
+  constexpr values::value auto
 #else
-  template<typename Arg, std::enable_if_t<value::value<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
   constexpr auto
 #endif
   sinh(const Arg& arg)
   {
-    if constexpr (not value::number<Arg>)
+    if constexpr (not values::number<Arg>)
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Arg>& a) const { return value::sinh(a); } };
-      return value::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::sinh(a); } };
+      return values::operation {Op{}, arg};
     }
     else
     {
@@ -60,26 +60,26 @@ namespace OpenKalman::value
       if (internal::constexpr_callable<Op>(arg)) return sinh(arg);
       else
       {
-        using R = std::conditional_t<value::integral<value::real_type_of_t<Return>>, double, value::real_type_of_t<Return>>;
-        if constexpr (value::complex<Arg>)
+        using R = std::conditional_t<values::integral<values::real_type_of_t<Return>>, double, values::real_type_of_t<Return>>;
+        if constexpr (values::complex<Arg>)
         {
-          auto ex = value::exp(value::internal::make_complex_number<R>(arg));
-          auto exr = value::real(ex);
-          auto exi = value::imag(ex);
+          auto ex = values::exp(values::internal::make_complex_number<R>(arg));
+          auto exr = values::real(ex);
+          auto exi = values::imag(ex);
           auto half = static_cast<R>(0.5);
-          if (exi == 0) return value::internal::make_complex_number<Return>((exr - 1/exr) * half, 0);
+          if (exi == 0) return values::internal::make_complex_number<Return>((exr - 1/exr) * half, 0);
           else
           {
             auto denom1 = 1 / (exr*exr + exi*exi);
-            return value::internal::make_complex_number<Return>(half * exr * (1 - denom1), half * exi * (1 + denom1));
+            return values::internal::make_complex_number<Return>(half * exr * (1 - denom1), half * exi * (1 + denom1));
           }
         }
         else
         {
-          if (value::isnan(arg)) return value::internal::NaN<Return>();
+          if (values::isnan(arg)) return values::internal::NaN<Return>();
           if (arg == 0) return static_cast<Return>(arg);
-          if (value::isinf(arg)) return copysign(value::internal::infinity<Return>(), arg);
-          Return ex = value::exp(arg);
+          if (values::isinf(arg)) return copysign(values::internal::infinity<Return>(), arg);
+          Return ex = values::exp(arg);
           return (ex - 1/ex) * static_cast<R>(0.5);
         }
       }
@@ -87,7 +87,7 @@ namespace OpenKalman::value
   }
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_SINH_HPP

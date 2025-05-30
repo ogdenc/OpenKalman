@@ -11,11 +11,11 @@
 /**
  * \file
  * \internal
- * \brief Definition for \ref coordinate::internal::get_descriptor_collection_element.
+ * \brief Definition for \ref coordinates::internal::get_descriptor_collection_element.
  */
 
-#ifndef OPENKALMAN_COORDINATE_GET_DESCRIPTOR_COLLECTION_ELEMENT_HPP
-#define OPENKALMAN_COORDINATE_GET_DESCRIPTOR_COLLECTION_ELEMENT_HPP
+#ifndef OPENKALMAN_COORDINATES_GET_DESCRIPTOR_COLLECTION_ELEMENT_HPP
+#define OPENKALMAN_COORDINATES_GET_DESCRIPTOR_COLLECTION_ELEMENT_HPP
 
 #include <type_traits>
 #include "linear-algebra/coordinates/interfaces/coordinate_descriptor_traits.hpp"
@@ -23,10 +23,10 @@
 #include "linear-algebra/coordinates/concepts/descriptor_range.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor_collection.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
 #ifdef __cpp_concepts
-  template<value::number Scalar>
+  template<values::number Scalar>
 #else
   template<typename Scalar>
 #endif
@@ -34,7 +34,7 @@ namespace OpenKalman::coordinate
 }
 
 
-namespace OpenKalman::coordinate::internal
+namespace OpenKalman::coordinates::internal
 {
   namespace detail
   {
@@ -102,20 +102,20 @@ namespace OpenKalman::coordinate::internal
 
   /**
    * \internal
-   * \brief Get an element of a \ref coordinate::descriptor_collection
-   * \details If components are of different types, the result will be a value of <code>coordinate::Any<double></code>.
+   * \brief Get an element of a \ref coordinates::descriptor_collection
+   * \details If components are of different types, the result will be a value of <code>coordinates::Any<double></code>.
    */
 #ifdef __cpp_concepts
-  template<descriptor_collection Arg, value::index I>
+  template<descriptor_collection Arg, values::index I>
 #else
-  template<typename Arg, typename I, std::enable_if_t<descriptor_collection<Arg> and value::index<I>, int> = 0>
+  template<typename Arg, typename I, std::enable_if_t<descriptor_collection<Arg> and values::index<I>, int> = 0>
 #endif
   constexpr auto
   get_descriptor_collection_element(Arg&& arg, const I i)
   {
-    if constexpr (sized_random_access_range<Arg>)
+    if constexpr (collections::sized_random_access_range<Arg>)
     {
-      return value::internal::get_collection_element(std::forward<Arg>(arg), std::move(i));
+      return collections::get(std::forward<Arg>(arg), std::move(i));
     }
     else if constexpr (std::tuple_size_v<std::decay_t<Arg>> == 0)
     {
@@ -123,16 +123,16 @@ namespace OpenKalman::coordinate::internal
     }
     else if constexpr (std::tuple_size_v<std::decay_t<Arg>> == 1)
     {
-      return value::internal::get_collection_element(std::forward<Arg>(arg), std::move(i));
+      return collections::get(std::forward<Arg>(arg), std::move(i));
     }
     else //if constexpr (descriptor_tuple<Arg> and std::tuple_size_v<std::decay_t<Arg>> >= 2)
     {
       using Common = typename detail::common_descriptor_tuple_element<std::decay_t<Arg>>::type;
-      return value::internal::get_collection_element<Common>(std::forward<Arg>(arg), std::move(i));
+      return collections::get(static_cast<Common>(std::forward<Arg>(arg)), std::move(i));
     }
   };
 
 
-} // namespace OpenKalman::coordinate::internal
+} // namespace OpenKalman::coordinates::internal
 
-#endif //OPENKALMAN_COORDINATE_GET_DESCRIPTOR_COLLECTION_ELEMENT_HPP
+#endif //OPENKALMAN_COORDINATES_GET_DESCRIPTOR_COLLECTION_ELEMENT_HPP

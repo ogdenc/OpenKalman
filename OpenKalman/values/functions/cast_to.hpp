@@ -11,7 +11,7 @@
 /**
  * \file
  * \internal
- * \brief Definition for \ref value::cast_to.
+ * \brief Definition for \ref values::cast_to.
  */
 
 #ifndef OPENKALMAN_VALUES_CAST_TO_HPP
@@ -22,7 +22,7 @@
 #include "values/traits/number_type_of_t.hpp"
 #include "values/classes/Fixed.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
 #if __cpp_nontype_template_args < 201911L
   namespace detail
@@ -31,7 +31,7 @@ namespace OpenKalman::value
     struct FixedCast
     {
       using value_type = T;
-      static constexpr auto value {static_cast<value_type>(value::fixed_number_of_v<Arg>)};
+      static constexpr auto value {static_cast<value_type>(values::fixed_number_of_v<Arg>)};
       using type = FixedCast;
       constexpr operator value_type() const { return value; }
       constexpr value_type operator()() const { return value; }
@@ -42,32 +42,32 @@ namespace OpenKalman::value
 
   /**
    * \internal
-   * \brief Cast a \ref value::value to another \ref value::value based on a given \ref value::number type.
-   * \tparam T The \ref value::number type associated with the result
-   * \tparam Arg A \ref value::value
+   * \brief Cast a \ref values::value to another \ref values::value based on a given \ref values::number type.
+   * \tparam T The \ref values::number type associated with the result
+   * \tparam Arg A \ref values::value
    */
 #ifdef __cpp_concepts
-  template<value::number T, value::value Arg>
-  constexpr value::value decltype(auto)
+  template<values::number T, values::value Arg>
+  constexpr values::value decltype(auto)
 #else
-  template<typename T, typename Arg, std::enable_if_t<value::number<T> and value::value<Arg>, int> = 0>
+  template<typename T, typename Arg, std::enable_if_t<values::number<T> and values::value<Arg>, int> = 0>
   constexpr decltype(auto)
 #endif
   cast_to(Arg&& arg)
   {
-    if constexpr (std::is_same_v<value::number_type_of_t<Arg>, T>)
+    if constexpr (std::is_same_v<values::number_type_of_t<Arg>, T>)
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (value::fixed<Arg>)
+    else if constexpr (values::fixed<Arg>)
     {
-      constexpr auto x = value::fixed_number_of_v<Arg>;
+      constexpr auto x = values::fixed_number_of_v<Arg>;
 #if __cpp_nontype_template_args >= 201911L
-      return value::Fixed<T, x>{};
+      return values::Fixed<T, x>{};
 #else
       if constexpr (x == static_cast<std::intmax_t>(x))
       {
-        return value::Fixed<T, static_cast<std::intmax_t>(x)>{};
+        return values::Fixed<T, static_cast<std::intmax_t>(x)>{};
       }
       else
       {
@@ -77,10 +77,10 @@ namespace OpenKalman::value
     }
     else
     {
-      return static_cast<T>(value::to_number(std::forward<Arg>(arg)));
+      return static_cast<T>(values::to_number(std::forward<Arg>(arg)));
     }
   }
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_VALUES_CAST_TO_HPP

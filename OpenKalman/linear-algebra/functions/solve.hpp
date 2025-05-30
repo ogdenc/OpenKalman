@@ -117,9 +117,9 @@ namespace OpenKalman
       using V1 = vector_space_descriptor_of_t<B, 1>;
 
       if constexpr (identity_matrix<A>)
-        return internal::make_fixed_size_adapter<coordinate::Axis, V1>(std::forward<B>(b));
+        return internal::make_fixed_size_adapter<coordinates::Axis, V1>(std::forward<B>(b));
       else
-        return internal::make_fixed_size_adapter<coordinate::Axis, V1>(scalar_quotient(std::forward<B>(b), internal::get_singular_component(std::forward<A>(a))));
+        return internal::make_fixed_size_adapter<coordinates::Axis, V1>(scalar_quotient(std::forward<B>(b), internal::get_singular_component(std::forward<A>(a))));
     }
     else if constexpr (constant_diagonal_matrix<A> and (square_shaped<A> or (not dynamic_dimension<A, 1> and index_dimension_of_v<A, 1> == index_dimension_of_v<B, 0>)))
     {
@@ -138,7 +138,7 @@ namespace OpenKalman
       if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) detail::solve_check_A_and_B_rows_match(a, b);
 
       return make_constant<B>(
-        constant_coefficient{b} / (value::cast_to<scalar_type_of_t<A>>(get_index_dimension_of<1>(a)) * constant_coefficient{a}),
+        constant_coefficient{b} / (values::cast_to<scalar_type_of_t<A>>(get_index_dimension_of<1>(a)) * constant_coefficient{a}),
         get_vector_space_descriptor<1>(a), get_vector_space_descriptor<1>(b));
     }
     else if constexpr (constant_matrix<A> and (index_dimension_of_v<A, 0> == 1 or index_dimension_of_v<B, 0> == 1 or
@@ -147,7 +147,7 @@ namespace OpenKalman
       if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) detail::solve_check_A_and_B_rows_match(a, b);
 
       return detail::wrap_solve_result<A, B>(
-        scalar_quotient(std::forward<B>(b), value::cast_to<scalar_type_of_t<A>>(get_index_dimension_of<1>(a)) * constant_coefficient{a}));
+        scalar_quotient(std::forward<B>(b), values::cast_to<scalar_type_of_t<A>>(get_index_dimension_of<1>(a)) * constant_coefficient{a}));
     }
     else if constexpr (diagonal_matrix<A> and square_shaped<A>)
     {

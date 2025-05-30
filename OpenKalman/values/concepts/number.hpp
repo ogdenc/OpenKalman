@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref value::number.
+ * \brief Definition for \ref values::number.
  */
 
 #ifndef OPENKALMAN_VALUE_NUMBER_HPP
@@ -19,7 +19,7 @@
 #include <type_traits>
 #include "values/interface/number_traits.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief T is a numerical type.
@@ -35,7 +35,7 @@ namespace OpenKalman::value
     interface::number_traits<std::decay_t<T>>::is_specialized;
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_NUMBER_HPP

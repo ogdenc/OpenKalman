@@ -33,16 +33,16 @@ namespace OpenKalman
    * \return A sub-array of the argument
    */
 #ifdef __cpp_concepts
-  template<std::size_t...indices, indexible Arg, value::index...Ixs> requires (sizeof...(indices) == sizeof...(Ixs))
+  template<std::size_t...indices, indexible Arg, values::index...Ixs> requires (sizeof...(indices) == sizeof...(Ixs))
 #else
   template<std::size_t...indices, typename Arg, typename...Ixs, std::enable_if_t<
-    indexible<Arg> and (value::index<Ixs> and ...) and (sizeof...(indices) == sizeof...(Ixs)), int> = 0>
+    indexible<Arg> and (values::index<Ixs> and ...) and (sizeof...(indices) == sizeof...(Ixs)), int> = 0>
 #endif
   constexpr decltype(auto)
   get_chip(Arg&& arg, Ixs...ixs)
   {
     (... , []{
-      if constexpr (value::fixed<Ixs> and not dynamic_dimension<Arg, indices>)
+      if constexpr (values::fixed<Ixs> and not dynamic_dimension<Arg, indices>)
         static_assert(std::decay_t<Ixs>::value < index_dimension_of_v<Arg, indices>, "get_chip: indices must be in range");
     }());
 

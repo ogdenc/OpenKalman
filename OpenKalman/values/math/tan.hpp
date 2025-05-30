@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::tan.
+ * \brief Definition for \ref values::tan.
  */
 
 #ifndef OPENKALMAN_VALUE_TAN_HPP
@@ -27,24 +27,24 @@
 #include "values/math/isinf.hpp"
 #include "values/math/isnan.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief Constexpr alternative to the std::tan function.
    */
 #ifdef __cpp_concepts
-  template<value::value Arg>
-  constexpr value::value auto
+  template<values::value Arg>
+  constexpr values::value auto
 #else
-  template<typename Arg, std::enable_if_t<value::value<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
   constexpr auto
 #endif
   tan(const Arg& arg)
   {
-    if constexpr (not value::number<Arg>)
+    if constexpr (not values::number<Arg>)
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Arg>& a) const { return value::tan(a); } };
-      return value::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::tan(a); } };
+      return values::operation {Op{}, arg};
     }
     else
     {
@@ -52,29 +52,29 @@ namespace OpenKalman::value
       using Return = decltype(tan(arg));
       struct Op { auto operator()(const Arg& arg) { return tan(arg); } };
       if (internal::constexpr_callable<Op>(arg)) return tan(arg);
-      else if constexpr (value::complex<Return>)
+      else if constexpr (values::complex<Return>)
       {
-        auto sx = value::sin(arg);
-        auto cx = value::cos(arg);
-        auto sr = value::real(sx);
-        auto si = value::imag(sx);
-        auto cr = value::real(cx);
-        auto ci = value::imag(cx);
+        auto sx = values::sin(arg);
+        auto cx = values::cos(arg);
+        auto sr = values::real(sx);
+        auto si = values::imag(sx);
+        auto cr = values::real(cx);
+        auto ci = values::imag(cx);
         auto denom = cr*cr + ci*ci;
-        return value::internal::make_complex_number<Return>((sr*cr + si*ci) / denom, (si*cr - sr*ci) / denom);
+        return values::internal::make_complex_number<Return>((sr*cr + si*ci) / denom, (si*cr - sr*ci) / denom);
       }
       else
       {
-        if (value::isnan(arg)) return value::internal::NaN<Return>();
+        if (values::isnan(arg)) return values::internal::NaN<Return>();
         if (arg == 0) return static_cast<Return>(arg);
-        if (value::isinf(arg)) return value::internal::NaN<Return>();
-        return static_cast<Return>(value::sin(arg) / value::cos(arg));
+        if (values::isinf(arg)) return values::internal::NaN<Return>();
+        return static_cast<Return>(values::sin(arg) / values::cos(arg));
       }
     }
   }
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_TAN_HPP

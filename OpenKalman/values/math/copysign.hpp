@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::copysign.
+ * \brief Definition for \ref values::copysign.
  */
 
 #ifndef OPENKALMAN_VALUE_COPYSIGN_HPP
@@ -25,7 +25,7 @@
 #include "values/math/isnan.hpp"
 #include "values/math/signbit.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief A constexpr function for copysign.
@@ -38,24 +38,24 @@ namespace OpenKalman::value
    * \param sgn A value reflecting the sign of the result.
    */
 #ifdef __cpp_concepts
-  template<value::value Mag, value::value Sgn> requires
-    (not value::complex<value::number_type_of_t<Mag>>) and (not value::complex<value::number_type_of_t<Sgn>>) and
-    (std::common_with<value::number_type_of_t<Mag>, value::number_type_of_t<Sgn>>)
-  constexpr value::value auto copysign(const Mag& mag, const Sgn& sgn)
+  template<values::value Mag, values::value Sgn> requires
+    (not values::complex<values::number_type_of_t<Mag>>) and (not values::complex<values::number_type_of_t<Sgn>>) and
+    (std::common_with<values::number_type_of_t<Mag>, values::number_type_of_t<Sgn>>)
+  constexpr values::value auto copysign(const Mag& mag, const Sgn& sgn)
 #else
-  template <typename Mag, typename Sgn, std::enable_if_t<value::value<Mag> and value::value<Sgn> and
-    (not value::complex<value::number_type_of_t<Mag>>) and (not value::complex<value::number_type_of_t<Sgn>>), int> = 0>
+  template <typename Mag, typename Sgn, std::enable_if_t<values::value<Mag> and values::value<Sgn> and
+    (not values::complex<values::number_type_of_t<Mag>>) and (not values::complex<values::number_type_of_t<Sgn>>), int> = 0>
   constexpr auto copysign(const Mag& mag, const Sgn& sgn)
 #endif
   {
-    if constexpr (not value::number<Mag> or not value::number<Sgn>)
+    if constexpr (not values::number<Mag> or not values::number<Sgn>)
     {
       struct Op
       {
-        constexpr auto operator()(const value::number_type_of_t<Mag>& m, const value::number_type_of_t<Sgn>& s) const
-        { return value::copysign(m, s); }
+        constexpr auto operator()(const values::number_type_of_t<Mag>& m, const values::number_type_of_t<Sgn>& s) const
+        { return values::copysign(m, s); }
       };
-      return value::operation {Op{}, mag, sgn};
+      return values::operation {Op{}, mag, sgn};
     }
     else
     {
@@ -64,14 +64,14 @@ namespace OpenKalman::value
       struct Op { auto operator()(const Mag& mag, const Sgn& sgn) { return copysign(mag, sgn); } };
       if (internal::constexpr_callable<Op>(mag, sgn)) return copysign(mag, sgn);
       if constexpr (std::is_unsigned_v<Mag> and std::is_unsigned_v<Sgn>) return static_cast<Return>(mag);
-      if constexpr (value::integral<Mag>) return value::signbit(sgn) == (mag < 0) ? static_cast<Return>(mag) : -static_cast<Return>(mag);
-      if (value::isnan(mag)) return value::signbit(sgn) ? -value::internal::NaN<Return>() : value::internal::NaN<Return>();
-      if constexpr (std::numeric_limits<Mag>::is_iec559) if (mag == 0) return value::signbit(sgn) ? static_cast<Return>(-0.0) : static_cast<Return>(0.0);
-      return value::signbit(mag) == value::signbit(sgn) ? static_cast<Return>(mag) : -static_cast<Return>(mag);
+      if constexpr (values::integral<Mag>) return values::signbit(sgn) == (mag < 0) ? static_cast<Return>(mag) : -static_cast<Return>(mag);
+      if (values::isnan(mag)) return values::signbit(sgn) ? -values::internal::NaN<Return>() : values::internal::NaN<Return>();
+      if constexpr (std::numeric_limits<Mag>::is_iec559) if (mag == 0) return values::signbit(sgn) ? static_cast<Return>(-0.0) : static_cast<Return>(0.0);
+      return values::signbit(mag) == values::signbit(sgn) ? static_cast<Return>(mag) : -static_cast<Return>(mag);
     }
   }
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_COPYSIGN_HPP

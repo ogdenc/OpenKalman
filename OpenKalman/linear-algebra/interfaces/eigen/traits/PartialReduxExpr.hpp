@@ -29,7 +29,7 @@ namespace OpenKalman::Eigen3::detail
 
     template<typename Dim, typename OtherDim>
     struct at_least_square_impl<Dim, OtherDim, std::enable_if_t<
-      value::fixed<Dim> and value::fixed<OtherDim>>>
+      values::fixed<Dim> and values::fixed<OtherDim>>>
       : std::bool_constant<std::decay_t<Dim>::value >= std::decay_t<OtherDim>::value> {};
 
     template<typename Dim, typename OtherDim>
@@ -60,31 +60,31 @@ namespace OpenKalman::Eigen3::detail
 
       auto f = [](const auto& dim, const auto& n_dim) {
         if constexpr (F::value != dynamic_size) return F{};
-        else return value::operation {std::divides<std::size_t>{}, dim, n_dim};
+        else return values::operation {std::divides<std::size_t>{}, dim, n_dim};
       }(dim, n_dim);
 
       auto new_dim = [](const auto& dim, const auto& n_dim) {
-        if constexpr (value::fixed<decltype(dim)> and F::value != dynamic_size and
-            not value::fixed<decltype(n_dim)>)
-          return value::operation {std::divides<std::size_t>{}, dim, F{}};
+        if constexpr (values::fixed<decltype(dim)> and F::value != dynamic_size and
+            not values::fixed<decltype(n_dim)>)
+          return values::operation {std::divides<std::size_t>{}, dim, F{}};
         else
           return n_dim;
       }(dim, n_dim);
 
-      auto new_f = value::operation{std::multiplies<std::size_t>{}, factor, f};
+      auto new_f = values::operation{std::multiplies<std::size_t>{}, factor, f};
       return get_constant_redux<MemberOp, direction>(n_xpr, new_f, new_dim, std::forward<Func>(func));
     }
     else
     {
       if constexpr (constant_matrix<XprType>)
       {
-        auto c = value::operation {std::forward<Func>(func), constant_coefficient {xpr}};
+        auto c = values::operation {std::forward<Func>(func), constant_coefficient {xpr}};
         return Eigen3::ReduxTraits<MemberOp, direction>::get_constant(c, factor, dim);
       }
       else if constexpr (constant_diagonal_matrix<XprType>)
       {
         constexpr bool als = at_least_square<decltype(dim), decltype(get_index_dimension_of<direction == 1 ? 0 : 1>(xpr))>;
-        auto c = value::operation {std::forward<Func>(func), constant_diagonal_coefficient {xpr}};
+        auto c = values::operation {std::forward<Func>(func), constant_diagonal_coefficient {xpr}};
         return Eigen3::ReduxTraits<MemberOp, direction>::template get_constant_diagonal<als>(c, factor, dim);
       }
       else

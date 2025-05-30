@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -18,7 +18,7 @@
 
 #include <limits>
 #include <complex>
-#include "basics/language-features.hpp"
+#include "../../basics/compatibility/language-features.hpp"
 
 namespace OpenKalman::interface
 {
@@ -49,15 +49,23 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Make a complex number consistent with T from two real arguments.
+     * \brief A callable object that returns the real part of the argument of type T.
+     */
+    static constexpr auto real = [](T t) { throw std::logic_error("Interface not implemented"); };
+
+
+    /**
+     * \brief A callable object that returns the real part of the argument of type T.
+     */
+    static constexpr auto imag = [](T t) { throw std::logic_error("Interface not implemented"); };
+
+
+    /**
+     * \brief A callable object that makes a complex number consistent with T from two real arguments.
      * \tparam Re Real part
      * \tparam Im Imaginary part
      */
-    template<typename Re, typename Im>
-    static constexpr auto make_complex(Re re, Im im)
-    {
-      return std::complex<T> {std::move(re), std::move(im)};
-    }
+    static constexpr auto make_complex = [](T re, T im) { throw std::logic_error("Interface not implemented"); };
 
   };
 
@@ -78,10 +86,11 @@ namespace OpenKalman::interface
 
     static constexpr bool is_complex = false;
 
-    static constexpr auto make_complex(T re, T im)
-    {
-      return std::complex<T> {std::move(re), std::move(im)};
-    }
+    static constexpr auto real = [](T t) noexcept { return std::real(std::move(t)); };
+
+    static constexpr auto imag = [](T t) noexcept { return std::imag(std::move(t)); };
+
+    static constexpr auto make_complex = [](T re, T im) noexcept { return std::complex<T> {std::move(re), std::move(im)}; };
 
   };
 
@@ -96,10 +105,11 @@ namespace OpenKalman::interface
 
     static constexpr bool is_complex = true;
 
-    static constexpr auto make_complex(T re, T im)
-    {
-      return std::complex<T> {std::move(re), std::move(im)};
-    }
+    static constexpr auto real = [](std::complex<T> t) noexcept { return std::real(std::move(t)); };
+
+    static constexpr auto imag = [](std::complex<T> t) noexcept { return std::imag(std::move(t)); };
+
+    static constexpr auto make_complex = [](T re, T im) noexcept { return std::complex<T> {std::move(re), std::move(im)}; };
 
   };
 

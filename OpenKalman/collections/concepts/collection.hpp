@@ -17,21 +17,22 @@
 #define OPENKALMAN_COLLECTIONS_COLLECTION_HPP
 
 #include "tuple_like.hpp"
-#include "sized_random_access_range.hpp"
+#include "uniformly_gettable.hpp"
 
 namespace OpenKalman::collections
 {
   /**
    * \brief An object describing a collection of objects.
-   * \details This will be a \ref collections::tuple_like "tuple_like" object or a sized std::ranges::random_access_range.
+   * \details This is either a \ref collections::uniformly_gettable "uniforly gettable" object
+   * or a std::ranges::random_access_range. It need not be \ref sized.
+   * A sized \ref collection is either \ref tuple_like or \ref sized_random_access_range.
    */
   template<typename T>
 #ifdef __cpp_lib_ranges
-  concept collection =
+  concept collection = std::ranges::random_access_range<T> or uniformly_gettable<T>;
 #else
-  constexpr bool collection =
+  constexpr bool collection = ranges::random_access_range<T> or uniformly_gettable<T>;
 #endif
-    tuple_like<T> or sized_random_access_range<T>;
 
 
 } // namespace OpenKalman

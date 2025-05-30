@@ -96,16 +96,16 @@ namespace OpenKalman
 
   /**
    * \brief Create a matrix or tensor by tiling individual blocks.
-   * \tparam Ds A set of \ref coordinate::pattern for the resulting matrix or tensor.
+   * \tparam Ds A set of \ref coordinates::pattern for the resulting matrix or tensor.
    * \tparam Block The first block
    * \tparam Blocks Subsequent blocks
    */
 #ifdef __cpp_concepts
-  template<coordinate::pattern...Ds, indexible Block, indexible...Blocks>
+  template<coordinates::pattern...Ds, indexible Block, indexible...Blocks>
   requires (sizeof...(Ds) >= std::max({index_count_v<Block>, index_count_v<Blocks>...}))
 #else
   template<typename...Ds, typename Block, typename...Blocks, std::enable_if_t<
-    (coordinate::pattern<Ds> and ...) and (indexible<Block> and ... and indexible<Blocks>) and
+    (coordinates::pattern<Ds> and ...) and (indexible<Block> and ... and indexible<Blocks>) and
     (sizeof...(Ds) >= std::max({index_count<Block>::value, index_count<Blocks>::value...})), int> = 0>
 #endif
   constexpr decltype(auto) tile(const std::tuple<Ds...>& ds_tuple, Block&& block, Blocks&&...blocks)
@@ -117,7 +117,7 @@ namespace OpenKalman
     else
     {
       auto m = make_dense_object<Block>(ds_tuple);
-      auto current_position = std::tuple{(coordinate::pattern<Ds> ? std::size_t(0) : std::size_t(-1))...};
+      auto current_position = std::tuple{(coordinates::pattern<Ds> ? std::size_t(0) : std::size_t(-1))...};
       decltype(current_position) current_block_size;
 
       detail::tile_impl<0>(current_position, current_block_size, std::index_sequence_for<Ds...> {}, m, block, blocks...);

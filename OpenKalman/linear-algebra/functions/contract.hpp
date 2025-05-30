@@ -78,13 +78,13 @@ namespace OpenKalman
     }
     else if constexpr (zero<A> or zero<B>)
     {
-      return detail::contract_constant(value::Fixed<Scalar, 0>{}, std::forward<A>(a), std::forward<B>(b), seq);
+      return detail::contract_constant(values::Fixed<Scalar, 0>{}, std::forward<A>(a), std::forward<B>(b), seq);
     }
     else if constexpr (constant_matrix<A> and constant_matrix<B>)
     {
       auto dim_const = [](const auto& a, const auto& b) {
-        if constexpr (dynamic_dimension<A, 1>) return value::cast_to<Scalar>(get_index_dimension_of<0>(b));
-        else return value::cast_to<Scalar>(get_index_dimension_of<1>(a));
+        if constexpr (dynamic_dimension<A, 1>) return values::cast_to<Scalar>(get_index_dimension_of<0>(b));
+        else return values::cast_to<Scalar>(get_index_dimension_of<1>(a));
       }(a, b);
 
       auto abd = constant_coefficient{a} * constant_coefficient{b} * std::move(dim_const);

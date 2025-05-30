@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref coordinate::internal::get_index_table.
+ * \brief Definition for \ref coordinates::internal::get_index_table.
  */
 
 #ifndef OPENKALMAN_DESCRIPTORS_GET_INDEX_TABLE_HPP
@@ -21,10 +21,10 @@
 #include "collections/concepts/index.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor.hpp"
 #include "linear-algebra/coordinates/concepts/pattern.hpp"
-#include "get_descriptor_size.hpp"
-#include "linear-algebra/coordinates/traits/size_of.hpp"
+#include "get_descriptor_dimension.hpp"
+#include "linear-algebra/coordinates/traits/dimension_of.hpp"
 
-namespace OpenKalman::coordinate::internal
+namespace OpenKalman::coordinates::internal
 {
   namespace detail
   {
@@ -34,7 +34,7 @@ namespace OpenKalman::coordinate::internal
     {
       if constexpr (c < std::tuple_size_v<Tup>)
       {
-        if constexpr (local < size_of_v<std::tuple_element_t<c, Tup>>)
+        if constexpr (local < dimension_of_v<std::tuple_element_t<c, Tup>>)
           return get_index_table_tuple<c, local + 1>(tup, std::index_sequence<is..., c>{});
         else
           return get_index_table_tuple<c + 1, 0>(tup, seq);
@@ -46,8 +46,8 @@ namespace OpenKalman::coordinate::internal
 
   /**
    * \brief Get a \ref collection mapping each index of an \ref indexible vector
-   * to a corresponding \ref value::index "index" within component_collection(t).
-   * \returns A \ref collection of \ref value::index "index" values
+   * to a corresponding \ref values::index "index" within component_collection(t).
+   * \returns A \ref collection of \ref values::index "index" values
    */
 #ifdef __cpp_lib_constexpr_vector
   template<pattern Arg>
@@ -58,11 +58,11 @@ namespace OpenKalman::coordinate::internal
 #endif
   get_index_table(Arg&& arg)
   {
-    if constexpr (size_of_v<Arg> != dynamic_size)
+    if constexpr (dimension_of_v<Arg> != dynamic_size)
     {
       if constexpr (descriptor<Arg>)
       {
-        constexpr std::size_t N = value::to_number(get_descriptor_size(arg));
+        constexpr std::size_t N = values::to_number(get_descriptor_dimension(arg));
         return OpenKalman::internal::tuple_fill<N>(std::integral_constant<std::size_t, 0_uz>{});
       }
       else
@@ -76,7 +76,7 @@ namespace OpenKalman::coordinate::internal
       std::size_t c = 0;
       for (auto& comp : arg)
       {
-        for (std::size_t local = 0; local < get_descriptor_size(comp); ++local) table.emplace_back(c);
+        for (std::size_t local = 0; local < get_descriptor_dimension(comp); ++local) table.emplace_back(c);
         ++c;
       }
       return table;
@@ -84,7 +84,7 @@ namespace OpenKalman::coordinate::internal
   }
 
 
-} // namespace OpenKalman::coordinate::internal
+} // namespace OpenKalman::coordinates::internal
 
 
 #endif //OPENKALMAN_DESCRIPTORS_GET_INDEX_TABLE_HPP

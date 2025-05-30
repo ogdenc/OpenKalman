@@ -33,7 +33,7 @@ namespace OpenKalman
       if constexpr (fixed_pattern<Best_d>)
       {
         if constexpr (fixed_pattern<D>)
-          static_assert(coordinate::size_of_v<D> == coordinate::size_of_v<Best_d>,
+          static_assert(coordinates::dimension_of_v<D> == coordinates::dimension_of_v<Best_d>,
             "Arguments to chipwise_operation must have matching vector space descriptors.");
         else
           if (d != best_d) throw std::invalid_argument {"Arguments to chipwise_operation must have matching vector space descriptors."};
@@ -223,10 +223,10 @@ namespace OpenKalman
    * \tparam Is Number of dimensions corresponding to each of <code>indices...</code>.
    */
 #ifdef __cpp_concepts
-  template<std::size_t...indices, typename Operation, value::index...Is> requires (sizeof...(Is) == sizeof...(indices))
+  template<std::size_t...indices, typename Operation, values::index...Is> requires (sizeof...(Is) == sizeof...(indices))
 #else
   template<std::size_t...indices, typename Operation, typename...Is, std::enable_if_t<
-    (value::index<Is> and ...) and (sizeof...(Is) == sizeof...(indices)), int> = 0>
+    (values::index<Is> and ...) and (sizeof...(Is) == sizeof...(indices)), int> = 0>
 #endif
   constexpr auto
   chipwise_operation(const Operation& operation, Is...is)

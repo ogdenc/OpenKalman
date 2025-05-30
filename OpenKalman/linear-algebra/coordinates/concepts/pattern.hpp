@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref coordinate::pattern.
+ * \brief Definition for \ref coordinates::pattern.
  */
 
 #ifndef OPENKALMAN_COORDINATE_PATTERN_HPP
@@ -19,7 +19,7 @@
 #include "descriptor.hpp"
 #include "descriptor_collection.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
   /**
    * \brief An object describing the set of coordinates associated with a tensor index.
@@ -33,6 +33,6 @@ namespace OpenKalman::coordinate
     descriptor<T> or descriptor_collection<T>;
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 #endif //OPENKALMAN_COORDINATE_PATTERN_HPP

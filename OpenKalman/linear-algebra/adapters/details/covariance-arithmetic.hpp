@@ -116,7 +116,7 @@ namespace OpenKalman
   template<typename Arg1, typename Arg2> requires
   ((covariance<Arg1> and (covariance<Arg2> or (typed_matrix<Arg2> and square_shaped<Arg2>))) or
     ((typed_matrix<Arg1> and square_shaped<Arg1>) and covariance<Arg2>)) and
-    coordinate::compares_with<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>
+    coordinates::compares_with<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<
     ((covariance<Arg1> and (covariance<Arg2> or (typed_matrix<Arg2> and square_shaped<Arg2>))) or
@@ -178,7 +178,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<covariance Arg1, covariance Arg2> requires
-    coordinate::compares_with<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>
+    coordinates::compares_with<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>
 #else
   template<typename Arg1, typename Arg2, std::enable_if_t<covariance<Arg1> and covariance<Arg2> and
     compares_with<vector_space_descriptor_of_t<Arg1, 0>, vector_space_descriptor_of_t<Arg2, 0>>, int> = 0>
@@ -225,7 +225,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<typed_matrix M, covariance Cov> requires
-    coordinate::compares_with<vector_space_descriptor_of_t<M, 0>::ColumnCoefficients, typename MatrixTraits<std::decay_t<Cov>>>
+    coordinates::compares_with<vector_space_descriptor_of_t<M, 0>::ColumnCoefficients, typename MatrixTraits<std::decay_t<Cov>>>
 #else
   template<typename M, typename Cov, std::enable_if_t<typed_matrix<M> and covariance<Cov> and
     compares_with<vector_space_descriptor_of_t<M, 0>::ColumnCoefficients, typename MatrixTraits<std::decay_t<Cov>>>, int> = 0>
@@ -268,7 +268,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<covariance Cov, typed_matrix M> requires
-    coordinate::compares_with<vector_space_descriptor_of_t<Cov, 0>, vector_space_descriptor_of_t<M, 0>>
+    coordinates::compares_with<vector_space_descriptor_of_t<Cov, 0>, vector_space_descriptor_of_t<M, 0>>
 #else
   template<typename Cov, typename M, std::enable_if_t<covariance<Cov> and typed_matrix<M> and
     compares_with<vector_space_descriptor_of_t<Cov, 0>, vector_space_descriptor_of_t<M, 0>>, int> = 0>
@@ -335,7 +335,7 @@ namespace OpenKalman
 
         if (s > Scalar(0))
         {
-          return MatrixTraits<std::decay_t<M>>::make(B {nested_object(std::forward<M>(m)) * value::sqrt(static_cast<Scalar>(s))});
+          return MatrixTraits<std::decay_t<M>>::make(B {nested_object(std::forward<M>(m)) * values::sqrt(static_cast<Scalar>(s))});
         }
         else if (s < Scalar(0))
         {
@@ -407,7 +407,7 @@ namespace OpenKalman
 
         if (s > Scalar(0))
         {
-          return MatrixTraits<std::decay_t<M>>::make(B {nested_object(std::forward<M>(m)) / value::sqrt(static_cast<Scalar>(s))});
+          return MatrixTraits<std::decay_t<M>>::make(B {nested_object(std::forward<M>(m)) / values::sqrt(static_cast<Scalar>(s))});
         }
         else if (s < Scalar(0))
         {

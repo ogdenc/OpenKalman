@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref value::floating.
+ * \brief Definition for \ref values::floating.
  */
 
 #ifndef OPENKALMAN_VALUE_FLOATING_HPP
@@ -21,10 +21,10 @@
 #include "integral.hpp"
 #include "complex.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
-   * \brief T is a floating-point value::value.
+   * \brief T is a floating-point values::value.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -32,9 +32,9 @@ namespace OpenKalman::value
 #else
   constexpr bool floating =
 #endif
-    value::value<T> and (not integral<T>) and (not value::complex<T>);
+    values::value<T> and (not integral<T>) and (not values::complex<T>);
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_VALUE_FLOATING_HPP

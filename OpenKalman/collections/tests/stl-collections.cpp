@@ -88,17 +88,6 @@ TEST(collections, collections)
 }
 
 
-#include "collections/traits/size_of.hpp"
-
-TEST(collections, collections_size_of)
-{
-  static_assert(size_of_v<std::tuple<int, double, long double>> == 3);
-  static_assert(size_of_v<std::array<double, 5>> == 5);
-  static_assert(size_of_v<std::vector<double>> == dynamic_size);
-  static_assert(size_of_v<std::initializer_list<double>> == dynamic_size);
-}
-
-
 #include "collections/concepts/invocable_on_collection.hpp"
 
 TEST(collections, invocable_on_collection)

@@ -20,29 +20,21 @@
 #ifdef __cpp_lib_ranges
 #include <ranges>
 #else
-#include "basics/ranges.hpp"
+#include "basics/compatibility/ranges.hpp"
 #endif
+#include "sized.hpp"
 
 namespace OpenKalman::collections
 {
   /**
    * \brief A \ref std::ranges::sized_range "sized" \ref std::ranges::random_access_range "random access range".
    */
-#if defined(__cpp_lib_ranges) and defined(__cpp_lib_remove_cvref)
+#if defined(__cpp_concepts) and defined(__cpp_lib_remove_cvref)
   template<typename T>
-  concept sized_random_access_range =
-    std::ranges::random_access_range<std::remove_cvref_t<T>> and std::ranges::sized_range<std::remove_cvref_t<T>>;
+  concept sized_random_access_range = std::ranges::random_access_range<std::remove_cvref_t<T>> and sized<T>;
 #else
-  namespace detail_sized_random_access_range
-  {
-    using namespace std;
-
-    template<typename T>
-    constexpr bool sized_random_access_range =
-      ranges::random_access_range<remove_cvref_t<T>> and ranges::sized_range<remove_cvref_t<T>>;
-  }
-
-  using detail_sized_random_access_range::sized_random_access_range;
+  template<typename T>
+  constexpr bool sized_random_access_range = ranges::random_access_range<remove_cvref_t<T>> and sized<T>;
 #endif
 
 } // OpenKalman::collections

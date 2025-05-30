@@ -22,10 +22,10 @@
 namespace OpenKalman::internal
 {
   /**
-   * \brief Given one or more /ref coordinate::pattern objects, return the "best" one (i.e., the one that is static).
+   * \brief Given one or more /ref coordinates::pattern objects, return the "best" one (i.e., the one that is static).
    */
 #ifdef __cpp_concepts
-  template<coordinate::pattern D, coordinate::pattern...Ds> requires (... and compares_with<D, Ds, equal_to<>, Applicability::permitted>)
+  template<coordinates::pattern D, coordinates::pattern...Ds> requires (... and compares_with<D, Ds, equal_to<>, Applicability::permitted>)
 #else
   template<typename D, typename...Ds, std::enable_if_t<(... and compares_with<D, Ds, equal_to<>, Applicability::permitted>), int> = 0>
 #endif

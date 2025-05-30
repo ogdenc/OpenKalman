@@ -17,16 +17,16 @@
 
 #include <cstdint>
 #include <limits>
-#include "basics/language-features.hpp"
+#include "../../../basics/compatibility/language-features.hpp"
 
-namespace OpenKalman::value::internal
+namespace OpenKalman::values::internal
 {
   // Taylor series expansion
   template <typename T>
   constexpr T sin_cos_impl(int i, const T& x, const T& sum, const T& term)
   {
     auto new_sum = sum + term;
-    //if (value::internal::near(sum, new_sum)) return new_sum;
+    //if (values::internal::near(sum, new_sum)) return new_sum;
     if (sum == new_sum) return sum;
     else return sin_cos_impl(i + 2, x, new_sum, term * x * x / static_cast<T>(-i * (i + 1)));
   }
@@ -62,7 +62,7 @@ namespace OpenKalman::value::internal
   }
 
 
-} // namespace OpenKalman::value::internal
+} // namespace OpenKalman::values::internal
 
 
 #endif //OPENKALMAN_VALUE_PERIODIC_UTILS_HPP

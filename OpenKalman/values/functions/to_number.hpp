@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref value::to_number.
+ * \brief Definition for \ref values::to_number.
  */
 
 #ifndef OPENKALMAN_VALUE_TO_NUMBER_HPP
@@ -19,35 +19,35 @@
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
-   * \brief Convert any \ref value::value to a \ref value::number
+   * \brief Convert any \ref values::value to a \ref values::number
    */
 #ifdef __cpp_concepts
-  template<value::value Arg>
-  constexpr value::number auto
+  template<value Arg>
+  constexpr number auto
   to_number(Arg arg)
 #else
-  template<typename Arg, std::enable_if_t<value::value<Arg>, int> = 0>
+  template<typename Arg>
   constexpr auto
   to_number(Arg arg)
 #endif
   {
-    using T = std::decay_t<Arg>;
 #ifdef __cpp_concepts
-    if constexpr (requires { {T::value} -> value::number; }) return T::value;
-    else if constexpr (requires { {std::move(arg)()} -> value::number; }) return std::move(arg)();
-    else return arg;
+    if constexpr (requires { {std::decay_t<Arg>::value} -> number; }) return std::decay_t<Arg>::value;
+    else if constexpr (requires { {std::move(arg)()} -> number; }) return std::move(arg)();
+    else return std::move(arg);
 #else
-    if constexpr (value::internal::has_value_member<T>::value) return T::value;
-    else if constexpr (internal::call_result_is_fixed<T>::value or internal::is_dynamic<T>::value)
+    static_assert(value<Arg>);
+    if constexpr (internal::has_value_member<std::decay_t<Arg>>::value) return std::decay_t<Arg>::value;
+    else if constexpr (internal::call_result_is_fixed<std::decay_t<Arg>>::value or internal::is_dynamic<std::decay_t<Arg>>::value)
       return std::move(arg)();
-    else { static_assert(value::number<Arg>); return arg; }
+    else { static_assert(number<Arg>); return std::move(arg); }
 #endif
   }
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_VALUE_TO_NUMBER_HPP

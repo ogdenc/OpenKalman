@@ -22,7 +22,7 @@ namespace OpenKalman
 {
 
 #ifdef __cpp_concepts
-  template<has_untyped_index<0> NestedObject, coordinate::pattern V0>
+  template<has_untyped_index<0> NestedObject, coordinates::pattern V0>
 #else
   template<typename NestedObject, typename V0>
 #endif
@@ -33,7 +33,7 @@ namespace OpenKalman
 
 #ifndef __cpp_concepts
     static_assert(indexible<NestedObject>);
-    static_assert(coordinate::pattern<V0>);
+    static_assert(coordinates::pattern<V0>);
     static_assert(has_untyped_index<NestedObject, 0>);
 #endif
 
@@ -59,10 +59,10 @@ namespace OpenKalman
      * Construct from a compatible \ref indexible object.
      */
 #ifdef __cpp_concepts
-    template<indexible Arg, coordinate::pattern D0> requires
+    template<indexible Arg, coordinates::pattern D0> requires
       std::constructible_from<NestedObject, Arg&&> and std::constructible_from<std::decay_t<V0>, D0>
 #else
-    template<typename Arg, typename D0, std::enable_if_t<indexible<Arg> and coordinate::pattern<C> and
+    template<typename Arg, typename D0, std::enable_if_t<indexible<Arg> and coordinates::pattern<C> and
       std::is_constructible_v<NestedObject, Arg&&> and std::is_constructible_v<std::decay_t<V0>, D0>, int> = 0>
 #endif
     explicit FromEuclideanExpr(Arg&& arg, const D0& d0) : Base {std::forward<Arg>(arg)}, vector_space_descriptor_index_0{d0} {}
@@ -117,9 +117,9 @@ namespace OpenKalman
   // ------------------------------ //
 
 #ifdef __cpp_concepts
-  template<indexible Arg, coordinate::pattern V>
+  template<indexible Arg, coordinates::pattern V>
 #else
-  template<typename Arg, typename V, std::enable_if_t<indexible<Arg> and coordinate::pattern<V>, int> = 0>
+  template<typename Arg, typename V, std::enable_if_t<indexible<Arg> and coordinates::pattern<V>, int> = 0>
 #endif
   FromEuclideanExpr(Arg&&, const V&) -> FromEuclideanExpr<Arg, V>;
 
@@ -149,7 +149,7 @@ namespace OpenKalman
       static constexpr auto
       get_vector_space_descriptor(Arg&& arg, const N& n)
       {
-        if constexpr (value::fixed<N>)
+        if constexpr (values::fixed<N>)
         {
           if constexpr (n == 0_uz) return std::forward<Arg>(arg).vector_space_descriptor_index_0;
           else return OpenKalman::get_vector_space_descriptor(nested_object(std::forward<Arg>(arg)), n);
@@ -175,7 +175,7 @@ namespace OpenKalman
       static constexpr auto
       get_constant(const Arg& arg)
       {
-        if constexpr (coordinate::euclidean_pattern<V0>)
+        if constexpr (coordinates::euclidean_pattern<V0>)
           return constant_coefficient {arg.nested_object()};
         else
           return std::monostate {};
@@ -186,7 +186,7 @@ namespace OpenKalman
       static constexpr auto
       get_constant_diagonal(const Arg& arg)
       {
-        if constexpr (coordinate::euclidean_pattern<V0>)
+        if constexpr (coordinates::euclidean_pattern<V0>)
           return constant_diagonal_coefficient {arg.nested_object()};
         else
           return std::monostate {};
@@ -195,17 +195,17 @@ namespace OpenKalman
 
       template<Applicability b>
       static constexpr bool
-      one_dimensional = coordinate::euclidean_pattern<V0> and OpenKalman::one_dimensional<NestedObject, b>;
+      one_dimensional = coordinates::euclidean_pattern<V0> and OpenKalman::one_dimensional<NestedObject, b>;
 
 
       template<Applicability b>
       static constexpr bool
-      is_square = coordinate::euclidean_pattern<V0> and square_shaped<NestedObject, b>;
+      is_square = coordinates::euclidean_pattern<V0> and square_shaped<NestedObject, b>;
 
 
       template<TriangleType t>
       static constexpr bool
-      is_triangular = coordinate::euclidean_pattern<V0> and triangular_matrix<NestedObject, t>;
+      is_triangular = coordinates::euclidean_pattern<V0> and triangular_matrix<NestedObject, t>;
 
 
       static constexpr bool
@@ -213,7 +213,7 @@ namespace OpenKalman
 
 
       static constexpr bool
-      is_hermitian = coordinate::euclidean_pattern<V0> and hermitian_matrix<NestedObject>;
+      is_hermitian = coordinates::euclidean_pattern<V0> and hermitian_matrix<NestedObject>;
 
 
     // hermitian_adapter_type is omitted
@@ -223,9 +223,9 @@ namespace OpenKalman
 
 
 #ifdef __cpp_lib_concepts
-      template<typename Arg> requires coordinate::euclidean_pattern<V0> and raw_data_defined_for<nested_object_of_t<Arg&>>
+      template<typename Arg> requires coordinates::euclidean_pattern<V0> and raw_data_defined_for<nested_object_of_t<Arg&>>
 #else
-      template<typename Arg, std::enable_if_t<coordinate::euclidean_pattern<V0> and raw_data_defined_for<typename nested_object_of<Arg&>::type>, int> = 0>
+      template<typename Arg, std::enable_if_t<coordinates::euclidean_pattern<V0> and raw_data_defined_for<typename nested_object_of<Arg&>::type>, int> = 0>
 #endif
       static constexpr auto * const
       raw_data(Arg& arg)
@@ -235,7 +235,7 @@ namespace OpenKalman
 
 
       static constexpr Layout
-      layout = coordinate::euclidean_pattern<V0> ? layout_of_v<NestedObject> : Layout::none;
+      layout = coordinates::euclidean_pattern<V0> ? layout_of_v<NestedObject> : Layout::none;
 
 
 #ifdef __cpp_concepts
@@ -270,15 +270,15 @@ namespace OpenKalman
 
 
 #ifdef __cpp_lib_ranges
-      template<indexible Arg, std::ranges::input_range Indices> requires value::index<std::ranges::range_value_t<Indices>>
-      static constexpr value::scalar decltype(auto)
+      template<indexible Arg, std::ranges::input_range Indices> requires values::index<std::ranges::range_value_t<Indices>>
+      static constexpr values::scalar decltype(auto)
 #else
       template<typename Arg, typename Indices>
       static constexpr decltype(auto)
 #endif
       get_component(Arg&& arg, const Indices& indices)
       {
-        if constexpr (coordinate::euclidean_pattern<V0>)
+        if constexpr (coordinates::euclidean_pattern<V0>)
         {
           return NestedInterface::get_component(nested_object(std::forward<Arg>(arg)), indices);
         }
@@ -286,22 +286,22 @@ namespace OpenKalman
         {
           auto g {[&arg, is...](std::size_t ix) { return OpenKalman::get_component(nested_object(std::forward<Arg>(arg)), ix, is...); }};
           if constexpr (to_euclidean_expr<nested_object_of_t<Arg>>)
-            return coordinate::get_wrapped_component(get_vector_space_descriptor<0>(arg), g, i);
+            return coordinates::get_wrapped_component(get_vector_space_descriptor<0>(arg), g, i);
           else
-            return coordinate::from_euclidean_element(get_vector_space_descriptor<0>(arg), g, i);
+            return coordinates::from_stat_space(get_vector_space_descriptor<0>(arg), g, i);
         }
       }
 
 
 #ifdef __cpp_lib_ranges
-      template<indexible Arg, std::ranges::input_range Indices> requires value::index<std::ranges::range_value_t<Indices>>
+      template<indexible Arg, std::ranges::input_range Indices> requires values::index<std::ranges::range_value_t<Indices>>
 #else
       template<typename Arg, typename Indices>
 #endif
       static void
       set_component(Arg& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
       {
-        if constexpr (coordinate::euclidean_pattern<vector_space_descriptor_of<Arg, 0>>)
+        if constexpr (coordinates::euclidean_pattern<vector_space_descriptor_of<Arg, 0>>)
         {
           OpenKalman::set_component(nested_object(nested_object(arg)), s, indices);
         }
@@ -313,7 +313,7 @@ namespace OpenKalman
           auto g {[&arg, is...](std::size_t ix) {
             return OpenKalman::get_component(nested_object(nested_object(arg)), ix, is...);
           }};
-          coordinate::set_wrapped_component(get_vector_space_descriptor<0>(arg), s, g, s, i);
+          coordinates::set_wrapped_component(get_vector_space_descriptor<0>(arg), s, g, s, i);
         }
         else
         {

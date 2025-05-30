@@ -102,12 +102,12 @@ namespace OpenKalman::Eigen3
     template<typename LhsType, typename RhsType, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (value::fixed<constant_coefficient<RhsType>>)
+      if constexpr (values::fixed<constant_coefficient<RhsType>>)
       {
         if constexpr (constant_coefficient_v<RhsType> == true) return constant_coefficient {arg.rhs()};
         else return constant_coefficient {arg.lhs()};
       }
-      else if constexpr (value::fixed<constant_coefficient<LhsType>>)
+      else if constexpr (values::fixed<constant_coefficient<LhsType>>)
       {
         if constexpr (constant_coefficient_v<LhsType> == true) return constant_coefficient {arg.lhs()};
         else return constant_coefficient {arg.rhs()};
@@ -121,7 +121,7 @@ namespace OpenKalman::Eigen3
     template<typename LhsType, typename RhsType, typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (value::fixed<constant_diagonal_coefficient<RhsType>>)
+      if constexpr (values::fixed<constant_diagonal_coefficient<RhsType>>)
       {
         if constexpr (constant_diagonal_coefficient_v<RhsType> == true and diagonal_matrix<LhsType>)
           return constant_diagonal_coefficient {arg.rhs()};
@@ -130,7 +130,7 @@ namespace OpenKalman::Eigen3
         else
           return std::monostate{};
       }
-      else if constexpr (value::fixed<constant_diagonal_coefficient<LhsType>>)
+      else if constexpr (values::fixed<constant_diagonal_coefficient<LhsType>>)
       {
         if constexpr (constant_diagonal_coefficient_v<LhsType> == true and diagonal_matrix<RhsType>)
           return constant_diagonal_coefficient {arg.lhs()};
@@ -224,7 +224,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar1, typename Scalar2>
   struct BinaryFunctorTraits<Eigen::internal::scalar_conj_product_op<Scalar1, Scalar2>>
   {
-    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const { return value::conj(arg1) * arg2; } };
+    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const { return values::conj(arg1) * arg2; } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_constant_diagonal = true;
     static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::product;
@@ -244,13 +244,13 @@ namespace OpenKalman::Eigen3
     template<typename LhsType, typename RhsType, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (value::fixed<constant_coefficient<LhsType>> and value::fixed<constant_diagonal_coefficient<RhsType>>)
+      if constexpr (values::fixed<constant_coefficient<LhsType>> and values::fixed<constant_diagonal_coefficient<RhsType>>)
       {
         if constexpr (constant_coefficient_v<LhsType> < 0 and constant_coefficient_v<LhsType> < constant_diagonal_coefficient_v<RhsType>)
           return constant_coefficient {arg.lhs()};
         else return std::monostate{};
       }
-      else if constexpr (value::fixed<constant_diagonal_coefficient<LhsType>> and value::fixed<constant_coefficient<RhsType>>)
+      else if constexpr (values::fixed<constant_diagonal_coefficient<LhsType>> and values::fixed<constant_coefficient<RhsType>>)
       {
         if constexpr (constant_coefficient_v<RhsType> < 0 and constant_coefficient_v<RhsType> < constant_diagonal_coefficient_v<LhsType>)
           return constant_coefficient {arg.rhs()};
@@ -258,20 +258,20 @@ namespace OpenKalman::Eigen3
       }
       else
       {
-        return value::operation {constexpr_operation(), constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
+        return values::operation {constexpr_operation(), constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
       }
     }
 
     template<typename LhsType, typename RhsType, typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (value::fixed<constant_coefficient<LhsType>> and value::fixed<constant_diagonal_coefficient<RhsType>>)
+      if constexpr (values::fixed<constant_coefficient<LhsType>> and values::fixed<constant_diagonal_coefficient<RhsType>>)
       {
         if constexpr (constant_coefficient_v<LhsType> > 0 and constant_coefficient_v<LhsType> > constant_diagonal_coefficient_v<RhsType>)
           return constant_diagonal_coefficient {arg.rhs()};
         else return std::monostate{};
       }
-      else if constexpr (value::fixed<constant_diagonal_coefficient<LhsType>> and value::fixed<constant_coefficient<RhsType>>)
+      else if constexpr (values::fixed<constant_diagonal_coefficient<LhsType>> and values::fixed<constant_coefficient<RhsType>>)
       {
         if constexpr (constant_coefficient_v<RhsType> > 0 and constant_coefficient_v<RhsType> > constant_diagonal_coefficient_v<LhsType>)
           return constant_diagonal_coefficient {arg.lhs()};
@@ -279,7 +279,7 @@ namespace OpenKalman::Eigen3
       }
       else
       {
-        return value::operation {constexpr_operation(),
+        return values::operation {constexpr_operation(),
           constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
       }
     }
@@ -298,13 +298,13 @@ namespace OpenKalman::Eigen3
     template<typename LhsType, typename RhsType, typename Arg>
     static constexpr auto get_constant(const Arg& arg)
     {
-      if constexpr (value::fixed<constant_coefficient<LhsType>> and value::fixed<constant_diagonal_coefficient<RhsType>>)
+      if constexpr (values::fixed<constant_coefficient<LhsType>> and values::fixed<constant_diagonal_coefficient<RhsType>>)
       {
         if constexpr (constant_coefficient_v<LhsType> > 0 and constant_coefficient_v<LhsType> > constant_diagonal_coefficient_v<RhsType>)
           return constant_coefficient {arg.lhs()};
         else return std::monostate{};
       }
-      else if constexpr (value::fixed<constant_diagonal_coefficient<LhsType>> and value::fixed<constant_coefficient<RhsType>>)
+      else if constexpr (values::fixed<constant_diagonal_coefficient<LhsType>> and values::fixed<constant_coefficient<RhsType>>)
       {
         if constexpr (constant_coefficient_v<RhsType> > 0 and constant_coefficient_v<RhsType> > constant_diagonal_coefficient_v<LhsType>)
           return constant_coefficient {arg.rhs()};
@@ -312,7 +312,7 @@ namespace OpenKalman::Eigen3
       }
       else
       {
-        return value::operation {constexpr_operation(),
+        return values::operation {constexpr_operation(),
           constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
       }
     }
@@ -320,13 +320,13 @@ namespace OpenKalman::Eigen3
     template<typename LhsType, typename RhsType, typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      if constexpr (value::fixed<constant_coefficient<LhsType>> and value::fixed<constant_diagonal_coefficient<RhsType>>)
+      if constexpr (values::fixed<constant_coefficient<LhsType>> and values::fixed<constant_diagonal_coefficient<RhsType>>)
       {
         if constexpr (constant_coefficient_v<LhsType> < 0 and constant_coefficient_v<LhsType> < constant_diagonal_coefficient_v<RhsType>)
           return constant_diagonal_coefficient {arg.rhs()};
         else return std::monostate{};
       }
-      else if constexpr (value::fixed<constant_diagonal_coefficient<LhsType>> and value::fixed<constant_coefficient<RhsType>>)
+      else if constexpr (values::fixed<constant_diagonal_coefficient<LhsType>> and values::fixed<constant_coefficient<RhsType>>)
       {
         if constexpr (constant_coefficient_v<RhsType> < 0 and constant_coefficient_v<RhsType> < constant_diagonal_coefficient_v<LhsType>)
           return constant_diagonal_coefficient {arg.lhs()};
@@ -334,7 +334,7 @@ namespace OpenKalman::Eigen3
       }
       else
       {
-        return value::operation {constexpr_operation(),
+        return values::operation {constexpr_operation(),
           constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
       }
     }
@@ -366,7 +366,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar1, typename Scalar2>
   struct BinaryFunctorTraits<Eigen::internal::scalar_hypot_op<Scalar1, Scalar2>>
   {
-    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const { return value::sqrt(arg1 * arg1 + arg2 * arg2); } };
+    struct Op { constexpr auto operator()(Scalar1 arg1, Scalar2 arg2) const { return values::sqrt(arg1 * arg1 + arg2 * arg2); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_constant_diagonal = true;
     static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::sum;
@@ -377,7 +377,7 @@ namespace OpenKalman::Eigen3
   template<typename Scalar, typename Exponent>
   struct BinaryFunctorTraits<Eigen::internal::scalar_pow_op<Scalar, Exponent>>
   {
-    struct Op { constexpr auto operator()(Scalar arg1, Exponent arg2) const { return value::pow(arg1, arg2); } };
+    struct Op { constexpr auto operator()(Scalar arg1, Exponent arg2) const { return values::pow(arg1, arg2); } };
     static constexpr auto constexpr_operation() { return Op{}; }
     static constexpr bool preserves_constant_diagonal = false;
     static constexpr BinaryFunctorType binary_functor_type = BinaryFunctorType::normal;

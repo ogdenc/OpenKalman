@@ -16,14 +16,15 @@
 #ifndef OPENKALMAN_GET_IS_EUCLIDEAN_HPP
 #define OPENKALMAN_GET_IS_EUCLIDEAN_HPP
 
-#include "collections/concepts/tuple_like.hpp"
+#include "../../../basics/compatibility/language-features.hpp"
 #include "values/concepts/index.hpp"
 #include "values/classes/operation.hpp"
+#include "collections/concepts/tuple_like.hpp"
 #include "linear-algebra/coordinates/interfaces/coordinate_descriptor_traits.hpp"
 #include "linear-algebra/coordinates/concepts/pattern.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
   namespace detail
   {
@@ -36,7 +37,7 @@ namespace OpenKalman::coordinate
       }
       else
       {
-        static_assert(value::index<Arg>);
+        static_assert(values::index<Arg>);
         return std::true_type{};
       }
     }
@@ -47,7 +48,10 @@ namespace OpenKalman::coordinate
     {
       if constexpr (i < std::tuple_size_v<Tup>)
       {
-        return value::operation {std::logical_and{}, get_descriptor_is_euclidean(collections::get<i>(tup)), get_is_euclidean_tuple<i + 1>(tup)};
+        return values::operation {
+          std::logical_and{},
+          get_descriptor_is_euclidean(OpenKalman::internal::generalized_std_get<i>(tup)),
+          get_is_euclidean_tuple<i + 1>(tup)};
       }
       else return std::true_type {};
     }
@@ -55,7 +59,7 @@ namespace OpenKalman::coordinate
 
 
   /**
-   * \brief Determine, whether \ref coordinate::pattern Arg is euclidean.
+   * \brief Determine, whether \ref coordinates::pattern Arg is euclidean.
    */
 #ifdef __cpp_concepts
   template<pattern Arg>
@@ -69,7 +73,7 @@ namespace OpenKalman::coordinate
     {
       return detail::get_descriptor_is_euclidean(arg);
     }
-    else if constexpr (tuple_like<Arg>)
+    else if constexpr (collections::tuple_like<Arg>)
     {
       return detail::get_is_euclidean_tuple(arg);
     }
@@ -81,7 +85,7 @@ namespace OpenKalman::coordinate
   }
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 
 #endif //OPENKALMAN_GET_IS_EUCLIDEAN_HPP

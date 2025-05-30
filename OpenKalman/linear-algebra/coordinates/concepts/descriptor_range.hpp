@@ -19,12 +19,12 @@
 #ifdef __cpp_lib_ranges
 #include <ranges>
 #else
-#include "basics/ranges.hpp"
+#include "basics/compatibility/ranges.hpp"
 #endif
 #include "collections/concepts/sized_random_access_range.hpp"
 #include "descriptor.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
 #ifndef __cpp_lib_ranges
   namespace detail
@@ -51,6 +51,6 @@ namespace OpenKalman::coordinate
 #endif
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 #endif //OPENKALMAN_COORDINATES_GROUP_RANGE_HPP

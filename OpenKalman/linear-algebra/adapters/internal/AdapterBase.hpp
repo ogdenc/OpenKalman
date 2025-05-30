@@ -114,8 +114,8 @@ namespace OpenKalman::internal
 #ifdef __cpp_explicit_this_parameter 
     template<typename Self, typename Indices> requires
       requires(Self&& self, const Indices& indices) {
-        {get_component(std::forward<Self>(self), indices)} -> value::scalar; }
-    constexpr value::scalar auto operator[](this Self&& self, const Indices& indices)
+        {get_component(std::forward<Self>(self), indices)} -> values::scalar; }
+    constexpr values::scalar auto operator[](this Self&& self, const Indices& indices)
     {
       if constexpr (writable_by_component<Self, Indices>) return ElementAccessor(std::forward<Self>(self), indices);
       else return get_component(std::forward<Self>(self), indices);
@@ -123,10 +123,10 @@ namespace OpenKalman::internal
 #else
 #ifdef __cpp_lib_concepts
     template<typename Indices> requires
-      requires(Derived& derived, const Indices& indices) {{get_component(derived, indices)} -> value::scalar; }
+      requires(Derived& derived, const Indices& indices) {{get_component(derived, indices)} -> values::scalar; }
 #else
     template<typename Indices, std::enable_if_t<
-      value::scalar<decltype(get_component(std::declval<Derived&>(), std::declval<const Indices&>()))>, int> = 0>
+      values::scalar<decltype(get_component(std::declval<Derived&>(), std::declval<const Indices&>()))>, int> = 0>
 #endif
     constexpr auto operator[](const Indices& indices) &
     {
@@ -137,10 +137,10 @@ namespace OpenKalman::internal
     /// \overload
 #ifdef __cpp_lib_concepts
     template<typename Indices> requires
-      requires(Derived&& derived, const Indices& indices) {{get_component(derived, indices)} -> value::scalar; }
+      requires(Derived&& derived, const Indices& indices) {{get_component(derived, indices)} -> values::scalar; }
 #else
     template<typename Indices, std::enable_if_t<
-      value::scalar<decltype(get_component(std::declval<Derived&&>(), std::declval<const Indices&>()))>, int> = 0>
+      values::scalar<decltype(get_component(std::declval<Derived&&>(), std::declval<const Indices&>()))>, int> = 0>
 #endif
     constexpr auto operator[](const Indices& indices) &&
     {
@@ -151,10 +151,10 @@ namespace OpenKalman::internal
     /// \overload
 #ifdef __cpp_lib_concepts
     template<typename Indices> requires
-      requires(const Derived& derived, const Indices& indices) {{get_component(derived, indices)} -> value::scalar; }
+      requires(const Derived& derived, const Indices& indices) {{get_component(derived, indices)} -> values::scalar; }
 #else
     template<typename Indices, std::enable_if_t<
-      value::scalar<decltype(get_component(std::declval<const Derived&>(), std::declval<const Indices&>()))>, int> = 0>
+      values::scalar<decltype(get_component(std::declval<const Derived&>(), std::declval<const Indices&>()))>, int> = 0>
 #endif
     constexpr auto operator[](const Indices& indices) const &
     {
@@ -164,10 +164,10 @@ namespace OpenKalman::internal
     /// \overload
 #ifdef __cpp_lib_concepts
     template<typename Indices> requires
-      requires(const Derived&& derived, const Indices& indices) {{get_component(derived, indices)} -> value::scalar; }
+      requires(const Derived&& derived, const Indices& indices) {{get_component(derived, indices)} -> values::scalar; }
 #else
     template<typename Indices, std::enable_if_t<
-      value::scalar<decltype(get_component(std::declval<const Derived&&>(), std::declval<const Indices&>()))>, int> = 0>
+      values::scalar<decltype(get_component(std::declval<const Derived&&>(), std::declval<const Indices&>()))>, int> = 0>
 #endif
     constexpr auto operator[](const Indices& indices) const &&
     {
@@ -181,10 +181,10 @@ namespace OpenKalman::internal
      * \brief Access a component at a set of indices.
      * \return If <code>writable_by_component<Derived></code>, the component can be directly assigned.
      */
-    template<typename Self, value::index...I> requires
+    template<typename Self, values::index...I> requires
       requires(Self&& self, const std::array<std::size_t, sizeof...(I)>& indices) { 
-        {get_component(std::forward<Self>(self), indices)} -> value::scalar; }
-    constexpr value::scalar auto operator[](this Self&& self, I&&...i)
+        {get_component(std::forward<Self>(self), indices)} -> values::scalar; }
+    constexpr values::scalar auto operator[](this Self&& self, I&&...i)
     {
       auto indices = std::array<std::size_t, sizeof...(I)> {static_cast<std::size_t>(std::forward<I>(i))...};
       if constexpr (writable_by_component<Self, std::array<std::size_t, sizeof...(I)>>)

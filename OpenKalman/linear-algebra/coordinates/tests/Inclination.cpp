@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Tests for coordinate::Inclination
+ * \brief Tests for coordinates::Inclination
  */
 
 #include "basics/tests/tests.hpp"
@@ -18,15 +18,13 @@
 #include "linear-algebra/coordinates/concepts/pattern.hpp"
 #include "linear-algebra/coordinates/concepts/euclidean_pattern.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor.hpp"
-#include "linear-algebra/coordinates/functions/get_euclidean_size.hpp"
-#include "linear-algebra/coordinates/functions/get_component_count.hpp"
+#include "linear-algebra/coordinates/functions/get_stat_dimension.hpp"
 #include "linear-algebra/coordinates/functions/get_is_euclidean.hpp"
-#include "linear-algebra/coordinates/traits/size_of.hpp"
-#include "linear-algebra/coordinates/traits/euclidean_size_of.hpp"
-#include "linear-algebra/coordinates/traits/component_count_of.hpp"
+#include "linear-algebra/coordinates/traits/dimension_of.hpp"
+#include "linear-algebra/coordinates/traits/stat_dimension_of.hpp"
 #include "linear-algebra/coordinates/descriptors/Inclination.hpp"
 
-using namespace OpenKalman::coordinate;
+using namespace OpenKalman::coordinates;
 
 TEST(coordinates, Inclination)
 {
@@ -35,11 +33,10 @@ TEST(coordinates, Inclination)
   static_assert(pattern<inclination::Degrees>);
   static_assert(not euclidean_pattern<inclination::Radians>);
 
-  static_assert(get_size(inclination::Radians{}) == 1);
-  static_assert(get_euclidean_size(inclination::Radians{}) == 2);
+  static_assert(get_dimension(inclination::Radians{}) == 1);
+  static_assert(get_stat_dimension(inclination::Radians{}) == 2);
   static_assert(not get_is_euclidean(inclination::Radians{}));
-  static_assert(size_of_v<inclination::Radians> == 1);
-  static_assert(euclidean_size_of_v<inclination::Radians> == 2);
-  static_assert(component_count_of_v<inclination::Radians> == 1);
+  static_assert(dimension_of_v<inclination::Radians> == 1);
+  static_assert(stat_dimension_of_v<inclination::Radians> == 2);
 }
 

@@ -46,26 +46,26 @@ namespace OpenKalman
     }
     else if constexpr (constant_diagonal_matrix<A>)
     {
-      auto sq = value::sqrt(constant_diagonal_coefficient{a});
+      auto sq = values::sqrt(constant_diagonal_coefficient{a});
       return to_diagonal(make_constant<A>(sq, get_vector_space_descriptor<0>(a)));
     }
     else if constexpr (constant_matrix<A>)
     {
       auto m = [](const auto& a){
-        auto sq = value::sqrt(constant_coefficient{a});
+        auto sq = values::sqrt(constant_coefficient{a});
         auto v = *is_square_shaped(a);
-        auto dim = get_size(v);
+        auto dim = get_dimension(v);
 
         if constexpr (triangle_type == TriangleType::lower)
         {
-          auto col0 = make_constant<A>(sq, dim, coordinate::Axis{});
-          return make_vector_space_adapter(concatenate<1>(col0, make_zero<A>(dim, dim - coordinate::Axis{})), v, v);
+          auto col0 = make_constant<A>(sq, dim, coordinates::Axis{});
+          return make_vector_space_adapter(concatenate<1>(col0, make_zero<A>(dim, dim - coordinates::Axis{})), v, v);
         }
         else
         {
           static_assert(triangle_type == TriangleType::upper);
-          auto row0 = make_constant<A>(sq, coordinate::Axis{}, dim);
-          return make_vector_space_adapter(concatenate<0>(row0, make_zero<A>(dim - coordinate::Axis{}, dim)), v, v);
+          auto row0 = make_constant<A>(sq, coordinates::Axis{}, dim);
+          return make_vector_space_adapter(concatenate<0>(row0, make_zero<A>(dim - coordinates::Axis{}, dim)), v, v);
         }
       }(a);
 
@@ -74,14 +74,14 @@ namespace OpenKalman
       using C1 = vector_space_descriptor_of_t<A, 1>;
       using Cret = std::conditional_t<dynamic_pattern<C0>, C1, C0>;
 
-      if constexpr (coordinate::euclidean_pattern<Cret>) return ret;
+      if constexpr (coordinates::euclidean_pattern<Cret>) return ret;
       //else return make_square_root_covariance<Cret>(ret);
       else return ret; // \todo change to make_triangular_matrix
     }
     else if constexpr (diagonal_matrix<A>)
     {
       // \todo Add facility to potentially use native library operators such as a square-root operator.
-      return to_diagonal(n_ary_operation([](const auto x){ return value::sqrt(x); }, diagonal_of(std::forward<A>(a))));
+      return to_diagonal(n_ary_operation([](const auto x){ return values::sqrt(x); }, diagonal_of(std::forward<A>(a))));
     }
     else
     {

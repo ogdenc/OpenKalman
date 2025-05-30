@@ -26,12 +26,12 @@ namespace OpenKalman
    * \param arg The object from which the new matrix is based
    */
 #ifdef __cpp_concepts
-  template<indexible T, Layout layout = Layout::none, value::number Scalar = scalar_type_of_t<T>, indexible Arg> requires
+  template<indexible T, Layout layout = Layout::none, values::number Scalar = scalar_type_of_t<T>, indexible Arg> requires
     (layout != Layout::stride)
   constexpr writable decltype(auto)
 #else
   template<typename T, Layout layout = Layout::none, typename Scalar = scalar_type_of_t<T>, typename Arg, std::enable_if_t<
-    indexible<T> and (layout != Layout::stride) and value::number<Scalar> and indexible<Arg>, int> = 0>
+    indexible<T> and (layout != Layout::stride) and values::number<Scalar> and indexible<Arg>, int> = 0>
   constexpr decltype(auto)
 #endif
   to_dense_object(Arg&& arg)
@@ -60,10 +60,10 @@ namespace OpenKalman
  * \param arg The object from which the new matrix is based
  */
 #ifdef __cpp_concepts
-  template<Layout layout, value::number Scalar, indexible Arg> requires (layout != Layout::stride)
+  template<Layout layout, values::number Scalar, indexible Arg> requires (layout != Layout::stride)
   constexpr writable decltype(auto)
 #else
-  template<Layout layout, typename Scalar, typename Arg, std::enable_if_t<value::number<Scalar> and indexible<Arg> and
+  template<Layout layout, typename Scalar, typename Arg, std::enable_if_t<values::number<Scalar> and indexible<Arg> and
     (layout != Layout::stride), int> = 0>
   constexpr decltype(auto)
 #endif

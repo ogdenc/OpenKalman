@@ -17,6 +17,8 @@
 #include "collections/tests/tests.hpp"
 #include "collections/functions/get.hpp"
 
+#include "collections/concepts/sized_random_access_range.hpp"
+
 using namespace OpenKalman;
 using namespace OpenKalman::collections;
 

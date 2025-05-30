@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::expm1.
+ * \brief Definition for \ref values::expm1.
  */
 
 #ifndef OPENKALMAN_VALUE_EXPM1_HPP
@@ -33,7 +33,7 @@
 #include "internal/exp_utils.hpp"
 #include "internal/math_utils.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief Constexpr alternative to the std::expm1 function (exponential function minus 1).
@@ -41,29 +41,29 @@ namespace OpenKalman::value
    * \note This function allows a complex argument, even though the C++ standard does not as of at least C++23.
    */
 #ifdef __cpp_concepts
-  template<value::value Arg>
-  constexpr value::value auto expm1(const Arg& arg)
+  template<values::value Arg>
+  constexpr values::value auto expm1(const Arg& arg)
 #else
-  template <typename Arg, std::enable_if_t<value::value<Arg>, int> = 0>
+  template <typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
   constexpr auto expm1(const Arg& arg)
 #endif
   {
-    if constexpr (not value::number<Arg>)
+    if constexpr (not values::number<Arg>)
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Arg>& a) const { return value::expm1(a); } };
-      return value::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::expm1(a); } };
+      return values::operation {Op{}, arg};
     }
-    else if constexpr (value::complex<Arg>) // Complex expm1 is not defined in the standard.
+    else if constexpr (values::complex<Arg>) // Complex expm1 is not defined in the standard.
     {
       using Return = std::decay_t<Arg>;
-      using R = std::conditional_t<value::integral<value::real_type_of_t<Return>>, double, value::real_type_of_t<Return>>;
-      auto ea = value::expm1(value::real(arg));
-      auto b = static_cast<R>(value::imag(arg));
-      if (value::isinf(b) or value::isnan(b)) return value::internal::NaN<Return>();
+      using R = std::conditional_t<values::integral<values::real_type_of_t<Return>>, double, values::real_type_of_t<Return>>;
+      auto ea = values::expm1(values::real(arg));
+      auto b = static_cast<R>(values::imag(arg));
+      if (values::isinf(b) or values::isnan(b)) return values::internal::NaN<Return>();
       auto theta{internal::scale_periodic_function(std::move(b))};
       auto sinb = internal::sin_cos_impl<R>(4, theta, theta, theta * theta * theta / -6);
       auto cosbm1 = internal::sin_cos_impl<R>(3, theta, R{0}, static_cast<R>(-0.5) * theta * theta);
-      return value::internal::make_complex_number<Return>(ea * (cosbm1 + 1) + cosbm1, ea * sinb + sinb);
+      return values::internal::make_complex_number<Return>(ea * (cosbm1 + 1) + cosbm1, ea * sinb + sinb);
     }
     else
     {
@@ -71,8 +71,8 @@ namespace OpenKalman::value
       using Return = decltype(expm1(arg));
       struct Op { auto operator()(const Arg& arg) { return expm1(arg); } };
       if (internal::constexpr_callable<Op>(arg)) return expm1(arg);
-      else if (value::isnan(arg)) return value::internal::NaN<Return>();
-      else if constexpr (value::integral<Arg>)
+      else if (values::isnan(arg)) return values::internal::NaN<Return>();
+      else if constexpr (values::integral<Arg>)
       {
         return internal::integral_exp<Return>(arg) - Return{1};
       }
@@ -80,7 +80,7 @@ namespace OpenKalman::value
       {
         if constexpr (std::numeric_limits<Return>::has_infinity)
         {
-          if (arg == std::numeric_limits<Return>::infinity()) return value::internal::infinity<Return>();
+          if (arg == std::numeric_limits<Return>::infinity()) return values::internal::infinity<Return>();
           else if (arg == -std::numeric_limits<Return>::infinity()) return Return{-1};
         }
 
@@ -101,7 +101,7 @@ namespace OpenKalman::value
     }
   }
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_EXPM1_HPP

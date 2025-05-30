@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \value::complex.
+ * \brief Definition for \values::complex.
  */
 
 #ifndef OPENKALMAN_VALUE_COMPLEX_HPP
@@ -20,7 +20,7 @@
 #include "values/interface/number_traits.hpp"
 #include "values/traits/number_type_of_t.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
 #ifndef __cpp_concepts
   namespace detail
@@ -30,23 +30,23 @@ namespace OpenKalman::value
 
 
     template<typename T>
-    struct complex_impl<T, std::enable_if_t<interface::number_traits<value::number_type_of_t<T>>::is_complex>>
+    struct complex_impl<T, std::enable_if_t<interface::number_traits<values::number_type_of_t<T>>::is_complex>>
       : std::true_type {};
   }
 #endif
 
 
   /**
-   * \brief T is a value::value that reduces to std::complex or a custom complex type.
+   * \brief T is a values::value that reduces to std::complex or a custom complex type.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept complex = value::value<T> and interface::number_traits<value::number_type_of_t<T>>::is_complex;
+  concept complex = values::value<T> and interface::number_traits<values::number_type_of_t<T>>::is_complex;
 #else
   constexpr bool complex = detail::complex_impl<std::decay_t<T>>::value;
 #endif
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_VALUE_COMPLEX_HPP

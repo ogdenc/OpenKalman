@@ -135,11 +135,11 @@ namespace OpenKalman
      */
 #ifdef __cpp_concepts
     template<std::size_t dim, typed_matrix YMeans> requires has_untyped_index<YMeans, 1> and
-      (index_dimension_of_v<YMeans, 0> == coordinate::euclidean_size_of_v<vector_space_descriptor_of_t<YMeans, 0>>) and
+      (index_dimension_of_v<YMeans, 0> == coordinates::stat_dimension_of_v<vector_space_descriptor_of_t<YMeans, 0>>) and
       (index_dimension_of_v<YMeans, 1> == dim * 2)
 #else
     template<std::size_t dim, typename YMeans, std::enable_if_t<typed_matrix<YMeans> and has_untyped_index<YMeans, 1> and
-      (index_dimension_of<YMeans, 0>::value == coordinate::euclidean_size_of_v<vector_space_descriptor_of_t<YMeans, 0>>) and
+      (index_dimension_of<YMeans, 0>::value == coordinates::stat_dimension_of_v<vector_space_descriptor_of_t<YMeans, 0>>) and
       (index_dimension_of_v<YMeans, 1> == dim * 2), int> = 0>
 #endif
     static auto
@@ -178,7 +178,7 @@ namespace OpenKalman
 
       if constexpr(cholesky_form<InputDist>)
       {
-        auto out_covariance = make_self_contained(square(LQ_decomposition(y_deviations * value::sqrt(inv_weight))));
+        auto out_covariance = make_self_contained(square(LQ_decomposition(y_deviations * values::sqrt(inv_weight))));
         static_assert(OpenKalman::covariance<decltype(out_covariance)>);
 
         if constexpr (return_cross)

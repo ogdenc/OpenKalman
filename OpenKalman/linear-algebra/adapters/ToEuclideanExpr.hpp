@@ -123,15 +123,15 @@ template<indexible Arg>
       static constexpr auto
       get_vector_space_descriptor(Arg&& arg, const N& n)
       {
-        if constexpr (value::fixed<N>)
+        if constexpr (values::fixed<N>)
         {
           if constexpr (n == 0_uz) return Axis;
           else return OpenKalman::get_vector_space_descriptor(nested_object(std::forward<Arg>(arg)), n);
         }
         else
         {
-          using Desc = coordinate::DynamicDescriptor<scalar_type_of<Arg>>;
-          if (n == 0) return Desc {coordinate::Axis};
+          using Desc = coordinates::DynamicDescriptor<scalar_type_of<Arg>>;
+          if (n == 0) return Desc {coordinates::Axis};
           else return Desc {OpenKalman::get_vector_space_descriptor(nested_object(std::forward<Arg>(arg)), n)};
         }
       }
@@ -240,8 +240,8 @@ template<indexible Arg>
 
 
 #ifdef __cpp_lib_ranges
-      template<indexible Arg, std::ranges::input_range Indices> requires value::index<std::ranges::range_value_t<Indices>>
-      static constexpr value::scalar decltype(auto)
+      template<indexible Arg, std::ranges::input_range Indices> requires values::index<std::ranges::range_value_t<Indices>>
+      static constexpr values::scalar decltype(auto)
 #else
       template<typename Arg, typename Indices>
       static constexpr decltype(auto)
@@ -255,13 +255,13 @@ template<indexible Arg>
         else
         {
           auto g {[&arg, is...](std::size_t ix) { return get_component(nested_object(std::forward<Arg>(arg)), ix, is...); }};
-          return coordinate::to_euclidean_element(get_vector_space_descriptor<0>(arg), g, i);
+          return coordinates::to_stat_space(get_vector_space_descriptor<0>(arg), g, i);
         }
       }
 
 
 #ifdef __cpp_lib_ranges
-      template<indexible Arg, std::ranges::input_range Indices> requires value::index<std::ranges::range_value_t<Indices>>
+      template<indexible Arg, std::ranges::input_range Indices> requires values::index<std::ranges::range_value_t<Indices>>
 #else
       template<typename Arg, typename Indices>
 #endif

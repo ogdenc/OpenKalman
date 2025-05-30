@@ -11,7 +11,7 @@
 #include "transform-nonlinear.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::coordinate;
+using namespace OpenKalman::coordinates;
 using namespace OpenKalman::test;
 
 using numbers::pi;

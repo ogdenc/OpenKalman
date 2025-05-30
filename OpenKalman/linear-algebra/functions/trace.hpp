@@ -38,11 +38,11 @@ namespace OpenKalman
 
     if constexpr (zero<Arg> or empty_object<Arg>)
     {
-      return value::Fixed<Scalar, 0>{};
+      return values::Fixed<Scalar, 0>{};
     }
     else if constexpr (identity_matrix<Arg>)
     {
-      return value::cast_to<Scalar>(
+      return values::cast_to<Scalar>(
         internal::smallest_vector_space_descriptor<Scalar>(get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)));
     }
     else if constexpr (one_dimensional<Arg>)
@@ -52,16 +52,16 @@ namespace OpenKalman
     else if constexpr (constant_matrix<Arg>)
     {
       std::multiplies<Scalar> op;
-      auto n = value::cast_to<Scalar>(
+      auto n = values::cast_to<Scalar>(
         internal::smallest_vector_space_descriptor<Scalar>(get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)));;
-      return value::operation{op, constant_coefficient{std::forward<Arg>(arg)}, n};
+      return values::operation{op, constant_coefficient{std::forward<Arg>(arg)}, n};
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       std::multiplies<scalar_type_of_t<Arg>> op;
-      auto n = value::cast_to<Scalar>(
+      auto n = values::cast_to<Scalar>(
         internal::smallest_vector_space_descriptor<Scalar>(get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)));;
-      return value::operation{op, constant_diagonal_coefficient{std::forward<Arg>(arg)}, n};
+      return values::operation{op, constant_diagonal_coefficient{std::forward<Arg>(arg)}, n};
     }
     else if constexpr (triangular_matrix<Arg>) // Includes the diagonal case.
     {

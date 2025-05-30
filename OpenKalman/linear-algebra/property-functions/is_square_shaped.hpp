@@ -48,10 +48,10 @@ namespace OpenKalman
 
   /**
    * \brief Determine whether an object is \ref square_shaped at runtime.
-   * \details An object is square-shaped if it has the same size and \ref coordinate::pattern type along every index
+   * \details An object is square-shaped if it has the same size and \ref coordinates::pattern type along every index
    * (excluding trailing 1D indices).
    * \tparam T A tensor or matrix
-   * \return a \ref std::optional which includes the \ref coordinate::pattern object if T is square.
+   * \return a \ref std::optional which includes the \ref coordinates::pattern object if T is square.
    * The result is convertible to <code>bool</code>: if true, then T is square.
    * \sa square_shaped
    */
@@ -62,7 +62,7 @@ namespace OpenKalman
 #endif
   constexpr auto is_square_shaped(const T& t)
   {
-    if constexpr (value::fixed<decltype(count_indices(t))>)
+    if constexpr (values::fixed<decltype(count_indices(t))>)
     {
       constexpr std::size_t count = std::decay_t<decltype(count_indices(t))>::value;
       return detail::is_square_shaped_impl(std::make_index_sequence<count>{}, t);

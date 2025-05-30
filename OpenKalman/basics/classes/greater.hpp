@@ -18,7 +18,7 @@
 
 #include <utility>
 #include "basics/global-definitions.hpp"
-#include "basics/language-features.hpp"
+#include "basics/compatibility/language-features.hpp"
 
 namespace OpenKalman
 {

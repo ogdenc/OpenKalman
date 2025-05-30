@@ -20,10 +20,10 @@
 #include "linear-algebra/coordinates/interfaces/coordinate_descriptor_traits.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor.hpp"
 
-namespace OpenKalman::coordinate::internal
+namespace OpenKalman::coordinates::internal
 {
   /**
-   * \brief Obtain a unique hash code for an \ref coordinate::descriptor.
+   * \brief Obtain a unique hash code for an \ref coordinates::descriptor.
    * \details Two coordinates will be equivalent if they have the same hash code.
    */
 #ifdef __cpp_concepts
@@ -34,14 +34,11 @@ namespace OpenKalman::coordinate::internal
   constexpr std::size_t
   get_hash_code(const Arg& arg)
   {
-    if constexpr (value::index<Arg>)
-      return arg;
-    else
-      return interface::coordinate_descriptor_traits<std::decay_t<Arg>>::hash_code(arg);
+    return interface::coordinate_descriptor_traits<std::decay_t<Arg>>::hash_code(arg);
   }
 
 
-} // namespace OpenKalman::coordinate::internal
+} // namespace OpenKalman::coordinates::internal
 
 
 #endif //OPENKALMAN_GET_HASH_CODE_HPP

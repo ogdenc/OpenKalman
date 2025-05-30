@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::abs.
+ * \brief Definition for \ref values::abs.
  */
 
 #ifndef OPENKALMAN_VALUE_ABS_HPP
@@ -25,23 +25,23 @@
 #include "values/math/signbit.hpp"
 #include "values/math/hypot.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief A constexpr alternative to std::abs.
    */
 #ifdef __cpp_concepts
-  template<value::value Arg>
-  constexpr value::value auto abs(const Arg& arg)
+  template<value Arg>
+  constexpr value auto abs(const Arg& arg)
 #else
-  template <typename Arg, std::enable_if_t<value::value<Arg>, int> = 0>
+  template <typename Arg, std::enable_if_t<value<Arg>, int> = 0>
   constexpr auto abs(const Arg& arg)
 #endif
   {
-    if constexpr (not value::number<Arg>)
+    if constexpr (not number<Arg>)
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Arg>& a) const { return value::abs(a); } };
-      return value::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::abs(a); } };
+      return operation {Op{}, arg};
     }
     else
     {
@@ -49,15 +49,15 @@ namespace OpenKalman::value
       using Return = std::decay_t<decltype(abs(arg))>;
       struct Op { auto operator()(const Arg& arg) { return abs(arg); } };
       if (internal::constexpr_callable<Op>(arg)) return abs(arg);
-      else if constexpr (value::complex<Arg>)
-        return static_cast<Return>(value::hypot(value::real(arg), value::imag(arg)));
+      else if constexpr (complex<Arg>)
+        return static_cast<Return>(values::hypot(values::real(arg), values::imag(arg)));
       else
-        return static_cast<Return>(value::signbit(arg) ? -arg : arg);
+        return static_cast<Return>(values::signbit(arg) ? -arg : arg);
     }
   }
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_ABS_HPP

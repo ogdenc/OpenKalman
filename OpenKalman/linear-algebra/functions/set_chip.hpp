@@ -54,17 +54,17 @@ namespace OpenKalman
    * \return arg as modified
    */
 #ifdef __cpp_concepts
-  template<std::size_t...indices, writable Arg, indexible Chip, value::index...Ixs> requires
+  template<std::size_t...indices, writable Arg, indexible Chip, values::index...Ixs> requires
     (sizeof...(indices) == sizeof...(Ixs))
 #else
   template<std::size_t...indices, typename Arg, typename Chip, typename...Ixs, std::enable_if_t<
-    writable<Arg> and indexible<Chip> and (value::index<Ixs> and ...) and (sizeof...(indices) == sizeof...(Ixs)), int> = 0>
+    writable<Arg> and indexible<Chip> and (values::index<Ixs> and ...) and (sizeof...(indices) == sizeof...(Ixs)), int> = 0>
 #endif
   constexpr Arg&&
   set_chip(Arg&& arg, Chip&& chip, Ixs...ixs)
   {
     (... , []{
-      if constexpr (value::fixed<Ixs> and not dynamic_dimension<Arg, indices>)
+      if constexpr (values::fixed<Ixs> and not dynamic_dimension<Arg, indices>)
         static_assert(std::decay_t<Ixs>::value < index_dimension_of_v<Arg, indices>, "set_chip: indices must be in range");
     }());
 

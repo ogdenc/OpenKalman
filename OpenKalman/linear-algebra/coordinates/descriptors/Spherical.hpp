@@ -20,7 +20,7 @@
 #include <typeinfo>
 #include <cmath>
 #include <array>
-#include "basics/language-features.hpp"
+#include "../../../basics/compatibility/language-features.hpp"
 #include "values/concepts/number.hpp"
 #include "values/math/real.hpp"
 #include "values/functions/internal/update_real_part.hpp"
@@ -38,10 +38,10 @@
 #include "Inclination.hpp"
 
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
   /**
-   * \brief A \ref coordinate::descriptor reflecting spherical coordinates.
+   * \brief A \ref coordinates::descriptor reflecting spherical coordinates.
    * \details C1, C2, and C3 must be some combination of Distance, Inclination, and Angle
    * in any order, reflecting the distance, inclination, and azimuth, respectively.
    * Spherical coordinates span three adjacent coefficients in a matrix.<br/>
@@ -76,7 +76,7 @@ namespace OpenKalman::coordinate
 #endif
   };
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 
 namespace OpenKalman::interface
@@ -89,10 +89,10 @@ namespace OpenKalman::interface
     {
     private:
 
-      static constexpr auto min = value::fixed_number_of_v<Min>;
-      static constexpr auto max = value::fixed_number_of_v<Max>;
-      static constexpr auto down = value::fixed_number_of_v<Down>;
-      static constexpr auto up = value::fixed_number_of_v<Up>;
+      static constexpr auto min = values::fixed_number_of_v<Min>;
+      static constexpr auto max = values::fixed_number_of_v<Max>;
+      static constexpr auto down = values::fixed_number_of_v<Down>;
+      static constexpr auto up = values::fixed_number_of_v<Up>;
 
     public:
 
@@ -100,11 +100,11 @@ namespace OpenKalman::interface
 
 
       static constexpr auto
-      size(const T&) { return std::integral_constant<std::size_t, 3>{}; };
+      dimension(const T&) { return std::integral_constant<std::size_t, 3>{}; };
 
 
       static constexpr auto
-      euclidean_size(const T&) { return std::integral_constant<std::size_t, 4>{}; };
+      stat_dimension(const T&) { return std::integral_constant<std::size_t, 4>{}; };
 
 
       static constexpr auto
@@ -114,8 +114,8 @@ namespace OpenKalman::interface
       static constexpr std::size_t
       hash_code(const T&)
       {
-        constexpr auto a = coordinate::internal::get_hash_code(coordinate::Angle<Min, Max>{});
-        constexpr auto b = coordinate::internal::get_hash_code(coordinate::Inclination<Down, Up>{});
+        constexpr auto a = coordinates::internal::get_hash_code(coordinates::Angle<Min, Max>{});
+        constexpr auto b = coordinates::internal::get_hash_code(coordinates::Inclination<Down, Up>{});
         constexpr std::size_t f = (a_i * 2 + i_i * 3 - 2);
         constexpr auto bits = std::numeric_limits<std::size_t>::digits;
         if constexpr (bits < 32) return (a - 0x83B0_uz) + (b - 0x83B0_uz) + f * 0x1000_uz;
@@ -135,15 +135,15 @@ namespace OpenKalman::interface
        * Cartesian coordinates representing a location on a unit 4D half-cylinder.
        * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
        * \param euclidean_local_index A local index relative to the Euclidean-transformed coordinates (starting at 0)
-       * \param start The starting index within the \ref coordinate::pattern object
+       * \param start The starting index within the \ref coordinates::pattern object
        */
 #ifdef __cpp_concepts
-      static constexpr value::value auto
-      to_euclidean_component(const T& t, const auto& g, const value::index auto& euclidean_local_index)
-      requires requires(std::size_t i){ {g(i)} -> value::value; }
+      static constexpr values::value auto
+      to_euclidean_component(const T& t, const auto& g, const values::index auto& euclidean_local_index)
+      requires requires(std::size_t i){ {g(i)} -> values::value; }
 #else
-      template<typename Getter, typename L, std::enable_if_t<value::index<L> and
-        value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
+      template<typename Getter, typename L, std::enable_if_t<values::index<L> and
+        values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
       static constexpr auto
       to_euclidean_component(const T& t, const Getter& g, const L& euclidean_local_index)
 #endif
@@ -155,14 +155,14 @@ namespace OpenKalman::interface
         else
         {
           using Scalar = std::decay_t<decltype(g(std::declval<std::size_t>()))>;
-          using R = std::decay_t<decltype(value::real(std::declval<Scalar>()))>;
+          using R = std::decay_t<decltype(values::real(std::declval<Scalar>()))>;
           const Scalar cf_inc {numbers::pi_v<R> / (up - down)};
           const Scalar horiz {R{up + down} * R{0.5}};
 
           Scalar phi = cf_inc * (g(i_i) - horiz);
           if (euclidean_local_index == z_i)
           {
-            return value::sin(phi);
+            return values::sin(phi);
           }
           else
           {
@@ -170,8 +170,8 @@ namespace OpenKalman::interface
             const Scalar mid {R{max + min} * R{0.5}};
             Scalar theta = cf_cir * (g(a_i) - mid);
 
-            if (euclidean_local_index == x_i) return value::cos(theta) * value::cos(phi);
-            else return value::sin(theta) * value::cos(phi); // euclidean_local_index == y_i
+            if (euclidean_local_index == x_i) return values::cos(theta) * values::cos(phi);
+            else return values::sin(theta) * values::cos(phi); // euclidean_local_index == y_i
           }
         }
       }
@@ -186,27 +186,27 @@ namespace OpenKalman::interface
        * \param start The starting index within the Euclidean-transformed indices
        */
 #ifdef __cpp_concepts
-      static constexpr value::value auto
-      from_euclidean_component(const T& t, const auto& g, const value::index auto& local_index)
-      requires requires(std::size_t i){ {g(i)} -> value::value; }
+      static constexpr values::value auto
+      from_euclidean_component(const T& t, const auto& g, const values::index auto& local_index)
+      requires requires(std::size_t i){ {g(i)} -> values::value; }
 #else
-      template<typename Getter, typename L, std::enable_if_t<value::index<L> and
-        value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
+      template<typename Getter, typename L, std::enable_if_t<values::index<L> and
+        values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
       static constexpr auto
       from_euclidean_component(const T& t, const Getter& g, const L& local_index)
 #endif
       {
         using Scalar = decltype(g(std::declval<std::size_t>()));
         Scalar d = g(d2_i);
-        auto dr = value::real(d);
+        auto dr = values::real(d);
 
         if (local_index == d_i)
         {
-          return value::internal::update_real_part(d, value::abs(dr));
+          return values::internal::update_real_part(d, values::abs(dr));
         }
         else
         {
-          using R = std::decay_t<decltype(value::real(std::declval<Scalar>()))>;
+          using R = std::decay_t<decltype(values::real(std::declval<Scalar>()))>;
           const Scalar cf_cir {2 * numbers::pi_v<R> / (max - min)};
           const Scalar mid {R{max + min} * R{0.5}};
 
@@ -217,33 +217,33 @@ namespace OpenKalman::interface
           {
             case a_i:
             {
-              auto xp = value::real(g(x_i));
-              auto yp = value::real(g(y_i));
+              auto xp = values::real(g(x_i));
+              auto yp = values::real(g(y_i));
               // If distance is negative, flip x and y axes 180 degrees:
-              Scalar x2 = value::internal::update_real_part(x, value::signbit(dr) ? -xp : xp);
-              Scalar y2 = value::internal::update_real_part(y, value::signbit(dr) ? -yp : yp);
+              Scalar x2 = values::internal::update_real_part(x, values::signbit(dr) ? -xp : xp);
+              Scalar y2 = values::internal::update_real_part(y, values::signbit(dr) ? -yp : yp);
 
-              if constexpr (value::complex<Scalar>) return value::atan2(y2, x2) / cf_cir + mid;
-              else { return value::atan2(y2, x2) / cf_cir + mid; }
+              if constexpr (values::complex<Scalar>) return values::atan2(y2, x2) / cf_cir + mid;
+              else { return values::atan2(y2, x2) / cf_cir + mid; }
             }
             default: // case i_i
             {
               const Scalar cf_inc {numbers::pi_v<R> / (up - down)};
               const Scalar horiz {R{up + down} * R{0.5}};
               Scalar z {g(z_i)};
-              auto zp = value::real(z);
-              Scalar z2 {value::internal::update_real_part(z, value::signbit(dr) ? -zp : zp)};
-              Scalar r {value::sqrt(x*x + y*y + z2*z2)};
-              if constexpr (value::complex<Scalar>)
+              auto zp = values::real(z);
+              Scalar z2 {values::internal::update_real_part(z, values::signbit(dr) ? -zp : zp)};
+              Scalar r {values::sqrt(x*x + y*y + z2*z2)};
+              if constexpr (values::complex<Scalar>)
               {
-                auto theta = (r == Scalar{0}) ? r : value::asin(z2/r);
+                auto theta = (r == Scalar{0}) ? r : values::asin(z2/r);
                 return theta / cf_inc + horiz;
               }
               else
               {
-                using R = std::decay_t<decltype(value::asin(z2/r))>;
+                using R = std::decay_t<decltype(values::asin(z2/r))>;
                 // This is so that a zero-radius or faulty spherical coordinate has horizontal inclination:
-                auto theta = (r == 0 or r < z2 or z2 < -r) ? R{0} : value::asin(z2/r);
+                auto theta = (r == 0 or r < z2 or z2 < -r) ? R{0} : values::asin(z2/r);
                 return theta / cf_inc + horiz;
               }
 
@@ -259,8 +259,8 @@ namespace OpenKalman::interface
       static constexpr auto
       inclination_wrap_impl(const Scalar& a)
       {
-        using Ret = std::tuple<std::decay_t<std::decay_t<decltype(value::real(a))>>, bool>;
-        auto ap = value::real(a);
+        using Ret = std::tuple<std::decay_t<std::decay_t<decltype(values::real(a))>>, bool>;
+        auto ap = values::real(a);
         using R = std::decay_t<decltype(ap)>;
         if (ap >= down and ap <= up) // A shortcut, for the easy case.
         {
@@ -282,21 +282,21 @@ namespace OpenKalman::interface
       static constexpr std::decay_t<Scalar>
       azimuth_wrap_impl(bool reflect_azimuth, Scalar&& a)
       {
-        using R = std::decay_t<decltype(value::real(std::declval<decltype(a)>()))>;
+        using R = std::decay_t<decltype(values::real(std::declval<decltype(a)>()))>;
         constexpr R period {max - min};
         constexpr R half_period {(max - min) / R{2}};
-        R ap = reflect_azimuth ? value::real(a) - half_period : value::real(a);
+        R ap = reflect_azimuth ? values::real(a) - half_period : values::real(a);
 
         if (ap >= min and ap < max) // Check if angle doesn't need wrapping.
         {
-          return value::internal::update_real_part(std::forward<decltype(a)>(a), ap);;
+          return values::internal::update_real_part(std::forward<decltype(a)>(a), ap);;
         }
         else // Wrap the angle.
         {
           using std::fmod;
           auto ar = fmod(ap - R{min}, period);
-          if (ar < 0) return value::internal::update_real_part(std::forward<decltype(a)>(a), R{min} + ar + period);
-          else return value::internal::update_real_part(std::forward<decltype(a)>(a), R{min} + ar);
+          if (ar < 0) return values::internal::update_real_part(std::forward<decltype(a)>(a), R{min} + ar + period);
+          else return values::internal::update_real_part(std::forward<decltype(a)>(a), R{min} + ar);
         }
       }
 
@@ -307,38 +307,38 @@ namespace OpenKalman::interface
        * \details The wrapping operation is equivalent to mapping to, and then back from, Euclidean space.
        * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
        * \param local_index A local index accessing the angle (in this case, it must be 0)
-       * \param start The starting location of the angle within any larger set of \ref coordinate::pattern
+       * \param start The starting location of the angle within any larger set of \ref coordinates::pattern
        */
 #ifdef __cpp_concepts
-      static constexpr value::value auto
-      get_wrapped_component(const T& t, const auto& g, const value::index auto& local_index)
-      requires requires(std::size_t i){ {g(i)} -> value::value; }
+      static constexpr values::value auto
+      get_wrapped_component(const T& t, const auto& g, const values::index auto& local_index)
+      requires requires(std::size_t i){ {g(i)} -> values::value; }
 #else
-      template<typename Getter, typename L, std::enable_if_t<value::index<L> and
-        value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
+      template<typename Getter, typename L, std::enable_if_t<values::index<L> and
+        values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
       static constexpr auto
       get_wrapped_component(const T& t, const Getter& g, const L& local_index)
 #endif
       {
         auto d = g(d_i);
-        auto dp = value::real(d);
+        auto dp = values::real(d);
 
         switch(local_index)
         {
           case d_i:
           {
-            return value::internal::update_real_part(d, value::abs(dp));
+            return values::internal::update_real_part(d, values::abs(dp));
           }
           case a_i:
           {
             const bool b = std::get<1>(inclination_wrap_impl(g(i_i)));
-            return azimuth_wrap_impl(b != value::signbit(dp), g(a_i));
+            return azimuth_wrap_impl(b != values::signbit(dp), g(a_i));
           }
           default: // case i_i
           {
             auto i = g(i_i);
             auto new_i = std::get<0>(inclination_wrap_impl(i));
-            return value::internal::update_real_part(i, value::signbit(dp) ? -new_i : new_i);
+            return values::internal::update_real_part(i, values::signbit(dp) ? -new_i : new_i);
           }
         }
       }
@@ -351,14 +351,14 @@ namespace OpenKalman::interface
        * \param g An element getter (<code>std::function&lt;Scalar(std::size_t)&rt;</code>)
        * \param x The scalar value to be set.
        * \param local_index A local index accessing the angle (in this case, it must be 0)
-       * \param start The starting location of the angle within any larger set of \ref coordinate::pattern
+       * \param start The starting location of the angle within any larger set of \ref coordinates::pattern
        */
 #ifdef __cpp_concepts
       static constexpr void
-      set_wrapped_component(const T& t, const auto& s, const auto& g, const value::value auto& x, const value::index auto& local_index)
+      set_wrapped_component(const T& t, const auto& s, const auto& g, const values::value auto& x, const values::index auto& local_index)
       requires requires(std::size_t i){ s(x, i); s(g(i), i); }
 #else
-      template<typename Setter, typename Getter, typename X, typename L, std::enable_if_t<value::value<X> and value::index<L> and
+      template<typename Setter, typename Getter, typename X, typename L, std::enable_if_t<values::value<X> and values::index<L> and
         std::is_invocable<const Setter&, const X&, std::size_t>::value and
         std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, std::size_t>::type, std::size_t>::value, int> = 0>
       static constexpr void
@@ -369,9 +369,9 @@ namespace OpenKalman::interface
         {
           case d_i:
           {
-            auto dp = value::real(x);
-            s(value::internal::update_real_part(x, value::abs(dp)), d_i);
-            if (value::signbit(dp)) // If new distance would have been negative
+            auto dp = values::real(x);
+            s(values::internal::update_real_part(x, values::abs(dp)), d_i);
+            if (values::signbit(dp)) // If new distance would have been negative
             {
               auto azimuth_i = a_i;
               auto inclination = i_i;
@@ -388,7 +388,7 @@ namespace OpenKalman::interface
           default: // case i_i
           {
             const auto [ip, b] = inclination_wrap_impl(x);
-            s(value::internal::update_real_part(x, ip), i_i); // Reflect inclination.
+            s(values::internal::update_real_part(x, ip), i_i); // Reflect inclination.
             const auto azimuth_i = a_i;
             s(azimuth_wrap_impl(b, g(azimuth_i)), azimuth_i); // Maybe reflect azimuth.
             break;
@@ -406,8 +406,8 @@ namespace OpenKalman::interface
    * \brief traits for Spherical<Distance, Angle, Inclination>.
    */
   template<typename Min, typename Max, typename Down, typename Up>
-  struct coordinate_descriptor_traits<coordinate::Spherical<coordinate::Distance, coordinate::Angle<Min, Max>, coordinate::Inclination<Down, Up>>>
-    : detail::SphericalBase<coordinate::Spherical<coordinate::Distance, coordinate::Angle<Min, Max>, coordinate::Inclination<Down, Up>>, Min, Max, Down, Up, 0, 1, 2>
+  struct coordinate_descriptor_traits<coordinates::Spherical<coordinates::Distance, coordinates::Angle<Min, Max>, coordinates::Inclination<Down, Up>>>
+    : detail::SphericalBase<coordinates::Spherical<coordinates::Distance, coordinates::Angle<Min, Max>, coordinates::Inclination<Down, Up>>, Min, Max, Down, Up, 0, 1, 2>
   {};
 
 
@@ -416,8 +416,8 @@ namespace OpenKalman::interface
    * \brief traits for Spherical<Distance, Inclination, Angle>.
    */
   template<typename Down, typename Up, typename Min, typename Max>
-  struct coordinate_descriptor_traits<coordinate::Spherical<coordinate::Distance, coordinate::Inclination<Down, Up>, coordinate::Angle<Min, Max>>>
-    : detail::SphericalBase<coordinate::Spherical<coordinate::Distance, coordinate::Inclination<Down, Up>, coordinate::Angle<Min, Max>>, Min, Max, Down, Up, 0, 2, 1>
+  struct coordinate_descriptor_traits<coordinates::Spherical<coordinates::Distance, coordinates::Inclination<Down, Up>, coordinates::Angle<Min, Max>>>
+    : detail::SphericalBase<coordinates::Spherical<coordinates::Distance, coordinates::Inclination<Down, Up>, coordinates::Angle<Min, Max>>, Min, Max, Down, Up, 0, 2, 1>
   {};
 
 
@@ -426,8 +426,8 @@ namespace OpenKalman::interface
    * \brief traits for Spherical<Angle, Distance, Inclination>.
    */
   template<typename Min, typename Max, typename Down, typename Up>
-  struct coordinate_descriptor_traits<coordinate::Spherical<coordinate::Angle<Min, Max>, coordinate::Distance, coordinate::Inclination<Down, Up>>>
-    : detail::SphericalBase<coordinate::Spherical<coordinate::Angle<Min, Max>, coordinate::Distance, coordinate::Inclination<Down, Up>>, Min, Max, Down, Up, 1, 0, 2>
+  struct coordinate_descriptor_traits<coordinates::Spherical<coordinates::Angle<Min, Max>, coordinates::Distance, coordinates::Inclination<Down, Up>>>
+    : detail::SphericalBase<coordinates::Spherical<coordinates::Angle<Min, Max>, coordinates::Distance, coordinates::Inclination<Down, Up>>, Min, Max, Down, Up, 1, 0, 2>
   {};
 
 
@@ -436,8 +436,8 @@ namespace OpenKalman::interface
    * \brief traits for Spherical<Inclination, Distance, Angle>.
    */
   template<typename Down, typename Up, typename Min, typename Max>
-  struct coordinate_descriptor_traits<coordinate::Spherical<coordinate::Inclination<Down, Up>, coordinate::Distance, coordinate::Angle<Min, Max>>>
-    : detail::SphericalBase<coordinate::Spherical<coordinate::Inclination<Down, Up>, coordinate::Distance, coordinate::Angle<Min, Max>>, Min, Max, Down, Up, 1, 2, 0>
+  struct coordinate_descriptor_traits<coordinates::Spherical<coordinates::Inclination<Down, Up>, coordinates::Distance, coordinates::Angle<Min, Max>>>
+    : detail::SphericalBase<coordinates::Spherical<coordinates::Inclination<Down, Up>, coordinates::Distance, coordinates::Angle<Min, Max>>, Min, Max, Down, Up, 1, 2, 0>
   {};
 
 
@@ -446,8 +446,8 @@ namespace OpenKalman::interface
    * \brief traits for Spherical<Angle, Inclination, Distance>.
    */
   template<typename Min, typename Max, typename Down, typename Up>
-  struct coordinate_descriptor_traits<coordinate::Spherical<coordinate::Angle<Min, Max>, coordinate::Inclination<Down, Up>, coordinate::Distance>>
-    : detail::SphericalBase<coordinate::Spherical<coordinate::Angle<Min, Max>, coordinate::Inclination<Down, Up>, coordinate::Distance>, Min, Max, Down, Up, 2, 0, 1>
+  struct coordinate_descriptor_traits<coordinates::Spherical<coordinates::Angle<Min, Max>, coordinates::Inclination<Down, Up>, coordinates::Distance>>
+    : detail::SphericalBase<coordinates::Spherical<coordinates::Angle<Min, Max>, coordinates::Inclination<Down, Up>, coordinates::Distance>, Min, Max, Down, Up, 2, 0, 1>
   {};
 
 
@@ -456,8 +456,8 @@ namespace OpenKalman::interface
    * \brief traits for Spherical<Inclination, Angle, Distance>.
    */
   template<typename Down, typename Up, typename Min, typename Max>
-  struct coordinate_descriptor_traits<coordinate::Spherical<coordinate::Inclination<Down, Up>, coordinate::Angle<Min, Max>, coordinate::Distance>>
-    : detail::SphericalBase<coordinate::Spherical<coordinate::Inclination<Down, Up>, coordinate::Angle<Min, Max>, coordinate::Distance>, Min, Max, Down, Up, 2, 1, 0>
+  struct coordinate_descriptor_traits<coordinates::Spherical<coordinates::Inclination<Down, Up>, coordinates::Angle<Min, Max>, coordinates::Distance>>
+    : detail::SphericalBase<coordinates::Spherical<coordinates::Inclination<Down, Up>, coordinates::Angle<Min, Max>, coordinates::Distance>, Min, Max, Down, Up, 2, 1, 0>
   {};
 
 

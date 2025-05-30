@@ -115,10 +115,10 @@ namespace OpenKalman::internal
 
 #ifdef __cpp_concepts
     template<std::size_t dim, typed_matrix YMeans> requires has_untyped_index<YMeans, 1> and
-      (index_dimension_of_v<YMeans, 0> == coordinate::euclidean_size_of_v<vector_space_descriptor_of_t<YMeans, 0>>)
+      (index_dimension_of_v<YMeans, 0> == coordinates::stat_dimension_of_v<vector_space_descriptor_of_t<YMeans, 0>>)
 #else
     template<std::size_t dim, typename YMeans, std::enable_if_t<typed_matrix<YMeans> and has_untyped_index<YMeans, 1> and
-      (index_dimension_of<YMeans, 0>::value == coordinate::euclidean_size_of_v<vector_space_descriptor_of_t<YMeans, 0>>), int> = 0>
+      (index_dimension_of<YMeans, 0>::value == coordinates::stat_dimension_of_v<vector_space_descriptor_of_t<YMeans, 0>>), int> = 0>
 #endif
     static auto
     weighted_means(YMeans&& y_means)
@@ -165,7 +165,7 @@ namespace OpenKalman::internal
           // Discard first weight and first y-deviation column for now, since square root of weight would be negative.
           const auto [y_deviations_head, y_deviations_tail] = split_horizontal<1, count - 1>(y_deviations);
           const auto [weights_head, weights_tail] = split_vertical<Axis, Dimensions<count - 1>>(weights);
-          const auto sqrt_weights_tail = apply_coefficientwise([](const auto x){ return value::sqrt(x); }, weights_tail);
+          const auto sqrt_weights_tail = apply_coefficientwise([](const auto x){ return values::sqrt(x); }, weights_tail);
           auto out_covariance = make_self_contained(square(LQ_decomposition(y_deviations_tail * to_diagonal(sqrt_weights_tail))));
           static_assert(OpenKalman::covariance<decltype(out_covariance)>);
 
@@ -184,7 +184,7 @@ namespace OpenKalman::internal
         }
         else
         {
-          const auto sqrt_weights = apply_coefficientwise([](const auto x){ return value::sqrt(x); }, weights);
+          const auto sqrt_weights = apply_coefficientwise([](const auto x){ return values::sqrt(x); }, weights);
           auto out_covariance = make_self_contained(square(LQ_decomposition(y_deviations * to_diagonal(sqrt_weights))));
           static_assert(OpenKalman::covariance<decltype(out_covariance)>);
 

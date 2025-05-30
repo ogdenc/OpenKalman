@@ -58,10 +58,10 @@ namespace OpenKalman
    * \brief Set a component of an object at an initializer list of indices.
    */
 #ifdef __cpp_lib_concepts
-  template<indexible Arg, value::index Ix> requires writable_by_component<Arg, const std::initializer_list<Ix>&>
+  template<indexible Arg, values::index Ix> requires writable_by_component<Arg, const std::initializer_list<Ix>&>
 #else
   template<typename Arg, typename Ix, std::enable_if_t<
-    indexible<Arg> and value::index<Ix> and writable_by_component<Arg, const std::initializer_list<Ix>&>, int> = 0>
+    indexible<Arg> and values::index<Ix> and writable_by_component<Arg, const std::initializer_list<Ix>&>, int> = 0>
 #endif
   inline Arg&&
   set_component(Arg&& arg, const scalar_type_of_t<Arg>& s, const std::initializer_list<Ix>& indices)
@@ -77,12 +77,12 @@ namespace OpenKalman
    * integral constants, the function performs compile-time bounds checking to the extent possible.
    */
 #ifdef __cpp_lib_concepts
-  template<typename Arg, value::index...I> requires writable_by_component<Arg, std::array<std::size_t, sizeof...(I)>> and
+  template<typename Arg, values::index...I> requires writable_by_component<Arg, std::array<std::size_t, sizeof...(I)>> and
     (index_count_v<Arg> == dynamic_size or sizeof...(I) >= index_count_v<Arg>) and
     internal::static_indices_within_bounds<Arg, I...>::value
 #else
   template<typename Arg, typename...I, std::enable_if_t<
-    (value::index<I> and ...) and writable_by_component<Arg, std::array<std::size_t, sizeof...(I)>> and
+    (values::index<I> and ...) and writable_by_component<Arg, std::array<std::size_t, sizeof...(I)>> and
     (index_count<Arg>::value == dynamic_size or sizeof...(I) >= index_count<Arg>::value) and
     internal::static_indices_within_bounds<Arg, I...>::value, int> = 0>
 #endif

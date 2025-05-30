@@ -72,7 +72,7 @@ namespace OpenKalman
 
   /**
    * \brief Specifies that a type is one-dimensional in every index.
-   * \details Each index also must have an equivalent \ref coordinate::pattern object.
+   * \details Each index also must have an equivalent \ref coordinates::pattern object.
    */
   template<typename T, Applicability b = Applicability::guaranteed>
 #ifdef __cpp_concepts

@@ -44,11 +44,11 @@ namespace OpenKalman
       static_assert(gaussian_distribution<YDistribution>);
       static_assert(typed_matrix<CrossCovariance>);
       static_assert(typed_matrix<Measurement> and vector<Measurement>);
-      static_assert(coordinate::compares_with<vector_space_descriptor_of_t<Measurement, 0>,
+      static_assert(coordinates::compares_with<vector_space_descriptor_of_t<Measurement, 0>,
         typename DistributionTraits<YDistribution>::StaticDescriptor>);
-      static_assert(coordinate::compares_with<vector_space_descriptor_of_t<CrossCovariance, 0>,
+      static_assert(coordinates::compares_with<vector_space_descriptor_of_t<CrossCovariance, 0>,
         typename DistributionTraits<XDistribution>::StaticDescriptor>);
-      static_assert(coordinate::compares_with<vector_space_descriptor_of_t<CrossCovariance, 1>,
+      static_assert(coordinates::compares_with<vector_space_descriptor_of_t<CrossCovariance, 1>,
         typename DistributionTraits<YDistribution>::StaticDescriptor>);
 
       const auto y = mean_of(Ny);

@@ -43,7 +43,7 @@ namespace Eigen::internal
 
     auto& coeffRef(Index row, Index col)
     {
-      static_assert(not OpenKalman::value::complex<Scalar>,
+      static_assert(not OpenKalman::values::complex<Scalar>,
         "Reference to element is not available for a complex HermitianAdapter");
 
       if constexpr (storage_triangle == OpenKalman::HermitianAdapterType::upper)
@@ -66,7 +66,7 @@ namespace Eigen::internal
       static_assert(OpenKalman::one_dimensional<ArgType>,
         "Linear (single index) element access by reference is only available for one-by-one HermitianAdapter");
 
-      static_assert(not OpenKalman::value::complex<Scalar>,
+      static_assert(not OpenKalman::values::complex<Scalar>,
         "Reference to element is not available for a complex HermitianAdapter");
 
       return m_argImpl.coeffRef(i);
@@ -79,7 +79,7 @@ namespace Eigen::internal
       {
         if (row > col)
         {
-          if constexpr (OpenKalman::value::complex<Scalar>) return value::conj(m_argImpl.coeff(col, row));
+          if constexpr (OpenKalman::values::complex<Scalar>) return values::conj(m_argImpl.coeff(col, row));
           else return m_argImpl.coeff(col, row);
         }
       }
@@ -87,16 +87,16 @@ namespace Eigen::internal
       {
         if (row < col)
         {
-          if constexpr (OpenKalman::value::complex<Scalar>) return value::conj(m_argImpl.coeff(col, row));
+          if constexpr (OpenKalman::values::complex<Scalar>) return values::conj(m_argImpl.coeff(col, row));
           else return m_argImpl.coeff(col, row);
         }
       }
 
       if (row == col)
       {
-        if constexpr (OpenKalman::value::complex<Scalar> and not std::is_lvalue_reference_v<CoeffReturnType>)
+        if constexpr (OpenKalman::values::complex<Scalar> and not std::is_lvalue_reference_v<CoeffReturnType>)
         {
-          return value::real(m_argImpl.coeff(row, col));
+          return values::real(m_argImpl.coeff(row, col));
         }
       }
 

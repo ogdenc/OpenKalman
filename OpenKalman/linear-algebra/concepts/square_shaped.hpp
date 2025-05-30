@@ -65,7 +65,7 @@ namespace OpenKalman
 
 
   /**
-   * \brief Specifies that an object is square (i.e., has equivalent \ref coordinate::pattern along each dimension).
+   * \brief Specifies that an object is square (i.e., has equivalent \ref coordinates::pattern along each dimension).
    * \details Any trailing 1D Euclidean descriptors are disregarded. A vector must be one-dimensional.
    * An empty (0-by-0) matrix or tensor is considered to be square.
    * \tparam b Defines what happens when one or more of the indices has dynamic dimension:

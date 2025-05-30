@@ -19,23 +19,23 @@
 #include <type_traits>
 
 
-namespace OpenKalman::coordinate::internal
+namespace OpenKalman::coordinates::internal
 {
   /**
    * \internal
-   * \brief Whether <code>a</code> is a 1D \ref coordinate::pattern object that, when replicated some number of times, becomes <code>c</code>.
+   * \brief Whether <code>a</code> is a 1D \ref coordinates::pattern object that, when replicated some number of times, becomes <code>c</code>.
    */
 #ifdef __cpp_concepts
-  template<coordinate::pattern A, coordinate::pattern B>
+  template<coordinates::pattern A, coordinates::pattern B>
 #else
-  template<typename A, typename B, std::enable_if_t<coordinate::pattern<A> and coordinate::pattern<B>, int> = 0>
+  template<typename A, typename B, std::enable_if_t<coordinates::pattern<A> and coordinates::pattern<B>, int> = 0>
 #endif
   constexpr bool is_uniform_component_of(const A& a, const B& b)
   {
     if constexpr (fixed_pattern<A> and fixed_pattern<B>)
       return equivalent_to_uniform_static_vector_space_descriptor_component_of<A, B>;
     else if constexpr (euclidean_pattern<A> and euclidean_pattern<B>)
-      return get_size(a) == 1;
+      return get_dimension(a) == 1;
     else
       return false;
   }
@@ -46,12 +46,12 @@ namespace OpenKalman::coordinate::internal
    * \overload
    */
   template<typename S1, typename S2>
-  constexpr bool is_uniform_component_of(const coordinate::DynamicDescriptor<S1>& a, const coordinate::DynamicDescriptor<S2>& b)
+  constexpr bool is_uniform_component_of(const coordinates::DynamicDescriptor<S1>& a, const coordinates::DynamicDescriptor<S2>& b)
   {
     if constexpr (not std::is_same_v<S1, S2>) return false;
-    else if (get_size(a) != 1) return false;
+    else if (get_dimension(a) != 1) return false;
     else if (get_is_euclidean(a) and get_is_euclidean(b)) return true;
-    else return a * coordinate::get_size(b) == b;
+    else return a * coordinates::get_dimension(b) == b;
   }
 
 
@@ -60,15 +60,15 @@ namespace OpenKalman::coordinate::internal
    * \overload
    */
 #ifdef __cpp_concepts
-  template<coordinate::pattern A, typename S>
+  template<coordinates::pattern A, typename S>
 #else
-  template<typename A, typename S, std::enable_if_t<coordinate::pattern<A>, int> = 0>
+  template<typename A, typename S, std::enable_if_t<coordinates::pattern<A>, int> = 0>
 #endif
-  constexpr bool is_uniform_component_of(const A& a, const coordinate::DynamicDescriptor<S>& b)
+  constexpr bool is_uniform_component_of(const A& a, const coordinates::DynamicDescriptor<S>& b)
   {
-    if (get_size(a) != 1) return false;
+    if (get_dimension(a) != 1) return false;
     else if (get_is_euclidean(a) and get_is_euclidean(b)) return true;
-    else return a * coordinate::get_size(b) == b;
+    else return a * coordinates::get_dimension(b) == b;
   }
 
 
@@ -77,19 +77,19 @@ namespace OpenKalman::coordinate::internal
    * \overload
    */
 #ifdef __cpp_concepts
-  template<typename S, coordinate::pattern B>
+  template<typename S, coordinates::pattern B>
 #else
-  template<typename S, typename B, std::enable_if_t<coordinate::pattern<B>, int> = 0>
+  template<typename S, typename B, std::enable_if_t<coordinates::pattern<B>, int> = 0>
 #endif
-  constexpr bool is_uniform_component_of(const coordinate::DynamicDescriptor<S>& a, const B& b)
+  constexpr bool is_uniform_component_of(const coordinates::DynamicDescriptor<S>& a, const B& b)
   {
-    if (get_size(a) != 1) return false;
+    if (get_dimension(a) != 1) return false;
     else if (get_is_euclidean(a) and get_is_euclidean(b)) return true;
-    else return a * coordinate::get_size(b) == b;
+    else return a * coordinates::get_dimension(b) == b;
   }
 
 
-} // namespace OpenKalman::coordinate::internal
+} // namespace OpenKalman::coordinates::internal
 
 
 #endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_FUNCTIONS_HPP

@@ -10,7 +10,7 @@
 
 /**
  * \file \internal
- * \brief Definition for \ref value::internal::NaN.
+ * \brief Definition for \ref values::internal::NaN.
  */
 
 #ifndef OPENKALMAN_VALUE_NAN_HPP
@@ -22,23 +22,23 @@
 #include "values/traits/real_type_of_t.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
 
-namespace OpenKalman::value::internal
+namespace OpenKalman::values::internal
 {
   /**
    * \internal
    * \brief Return a NaN in type T or raise an exception if Nan is not available.
    */
 #ifdef __cpp_concepts
-  template <value::number T>
+  template <values::number T>
 #else
-  template <typename T, std::enable_if_t<value::number<T>, int> = 0>
+  template <typename T, std::enable_if_t<values::number<T>, int> = 0>
 #endif
   constexpr std::decay_t<T> NaN()
   {
     using R = std::decay_t<T>;
-    if constexpr (value::complex<T>)
-      return value::internal::make_complex_number<T>(
-        value::internal::NaN<value::real_type_of_t<T>>(), value::internal::NaN<value::real_type_of_t<T>>());
+    if constexpr (values::complex<T>)
+      return values::internal::make_complex_number<T>(
+        values::internal::NaN<values::real_type_of_t<T>>(), values::internal::NaN<values::real_type_of_t<T>>());
     else if constexpr (std::numeric_limits<R>::has_quiet_NaN)
       return std::numeric_limits<R>::quiet_NaN();
     else if constexpr (std::numeric_limits<R>::has_signaling_NaN)
@@ -47,7 +47,7 @@ namespace OpenKalman::value::internal
       throw std::domain_error {"Domain error in arithmetic operation: result is not a number"};
   }
 
-} // namespace OpenKalman::value::internal
+} // namespace OpenKalman::values::internal
 
 
 #endif //OPENKALMAN_VALUE_NAN_HPP

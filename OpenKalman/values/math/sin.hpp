@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::sin.
+ * \brief Definition for \ref values::sin.
  */
 
 #ifndef OPENKALMAN_VALUE_SIN_HPP
@@ -30,23 +30,23 @@
 #include "values/math/cosh.hpp"
 #include "internal/periodic_utils.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief Constexpr alternative to the std::sin function.
    */
 #ifdef __cpp_concepts
-  template<value::value Arg>
-  constexpr value::value auto sin(const Arg& arg)
+  template<values::value Arg>
+  constexpr values::value auto sin(const Arg& arg)
 #else
-  template<typename Arg, std::enable_if_t<value::value<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
   constexpr auto sin(const Arg& arg)
 #endif
   {
-    if constexpr (not value::number<Arg>)
+    if constexpr (not values::number<Arg>)
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Arg>& a) const { return value::sin(a); } };
-      return value::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::sin(a); } };
+      return values::operation {Op{}, arg};
     }
     else
     {
@@ -54,20 +54,20 @@ namespace OpenKalman::value
       using Return = decltype(sin(arg));
       struct Op { auto operator()(const Arg& arg) { return sin(arg); } };
       if (internal::constexpr_callable<Op>(arg)) return sin(arg);
-      else if constexpr (value::complex<Arg>)
+      else if constexpr (values::complex<Arg>)
       {
-        auto re = value::real(value::real(arg));
-        auto im = value::real(value::imag(arg));
+        auto re = values::real(values::real(arg));
+        auto im = values::real(values::imag(arg));
         using R = std::decay_t<decltype(re)>;
-        if (value::isnan(re) or value::isnan(im)) return value::internal::NaN<Return>();
+        if (values::isnan(re) or values::isnan(im)) return values::internal::NaN<Return>();
         auto theta = internal::scale_periodic_function(re);
         auto sinre = internal::sin_cos_impl(4, theta, theta, theta * theta * theta / -6);
         auto cosre = internal::sin_cos_impl(3, theta, R{1}, static_cast<R>(-0.5) * theta * theta);
-        return value::internal::make_complex_number<Return>(sinre * value::cosh(im), cosre * value::sinh(im));
+        return values::internal::make_complex_number<Return>(sinre * values::cosh(im), cosre * values::sinh(im));
       }
       else
       {
-        if (value::isinf(arg) or value::isnan(arg)) return value::internal::NaN<Return>();
+        if (values::isinf(arg) or values::isnan(arg)) return values::internal::NaN<Return>();
         auto theta {internal::scale_periodic_function(static_cast<Return>(arg))};
         return internal::sin_cos_impl(4, theta, theta, theta * theta * theta / -6);
       }
@@ -75,7 +75,7 @@ namespace OpenKalman::value
   }
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_SIN_HPP

@@ -10,20 +10,20 @@
 
 /**
  * \file
- * \brief Definition for \ref coordinate::descriptor_collection.
+ * \brief Definition for \ref coordinates::descriptor_collection.
  */
 
 #ifndef OPENKALMAN_COORDINATES_GROUP_COLLECTION_HPP
 #define OPENKALMAN_COORDINATES_GROUP_COLLECTION_HPP
 
-#include "basics/concepts/collection.hpp"
+#include "collections/concepts/collection.hpp"
 #include "descriptor_tuple.hpp"
 #include "descriptor_range.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
   /**
-   * \brief An object describing a collection of /ref coordinate::descriptor objects.
+   * \brief An object describing a collection of /ref coordinates::descriptor objects.
    * \details This will be either a \ref descriptor_tuple or a \ref descriptor_range.
    */
   template<typename T>
@@ -32,9 +32,9 @@ namespace OpenKalman::coordinate
 #else
   constexpr bool descriptor_collection =
 #endif
-    collection<T> and (descriptor_tuple<T> or descriptor_range<T>);
+    collections::collection<T> and (descriptor_tuple<T> or descriptor_range<T>);
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 #endif //OPENKALMAN_COORDINATES_GROUP_COLLECTION_HPP

@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::exp.
+ * \brief Definition for \ref values::exp.
  */
 
 #ifndef OPENKALMAN_VALUE_EXP_HPP
@@ -32,7 +32,7 @@
 #include "internal/periodic_utils.hpp"
 #include "internal/exp_utils.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \internal
@@ -40,17 +40,17 @@ namespace OpenKalman::value
    * \details Thus uses a Maclaurin series expansion For floating-point values, or multiplication for integral values.
    */
 #ifdef __cpp_concepts
-  template<value::value Arg>
-  constexpr value::value auto exp(const Arg& arg)
+  template<values::value Arg>
+  constexpr values::value auto exp(const Arg& arg)
 #else
-  template<typename Arg, std::enable_if_t<value::value<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
   constexpr auto exp(const Arg& arg)
 #endif
   {
-    if constexpr (not value::number<Arg>)
+    if constexpr (not values::number<Arg>)
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Arg>& a) const { return value::exp(a); } };
-      return value::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::exp(a); } };
+      return values::operation {Op{}, arg};
     }
     else
     {
@@ -58,27 +58,27 @@ namespace OpenKalman::value
       using Return = decltype(exp(arg));
       struct Op { auto operator()(const Arg& arg) { return exp(arg); } };
       if (internal::constexpr_callable<Op>(arg)) return exp(arg);
-      else if constexpr (value::integral<Arg>)
+      else if constexpr (values::integral<Arg>)
       {
         return internal::integral_exp<Return>(arg);
       }
-      else if constexpr (value::complex<Arg>)
+      else if constexpr (values::complex<Arg>)
       {
-        using R = std::conditional_t<value::integral<value::real_type_of_t<Return>>, double, value::real_type_of_t<Return>>;
-        auto ea = value::exp(value::real(arg));
-        auto b = static_cast<R>(value::imag(arg));
-        if (value::isinf(b) or value::isnan(b)) return value::internal::NaN<Return>();
+        using R = std::conditional_t<values::integral<values::real_type_of_t<Return>>, double, values::real_type_of_t<Return>>;
+        auto ea = values::exp(values::real(arg));
+        auto b = static_cast<R>(values::imag(arg));
+        if (values::isinf(b) or values::isnan(b)) return values::internal::NaN<Return>();
         R theta {internal::scale_periodic_function(std::move(b))};
         R sinb = internal::sin_cos_impl<R>(4, theta, theta, theta * theta * theta / -6);
         R cosb = internal::sin_cos_impl<R>(3, theta, R{1}, static_cast<R>(-0.5) * theta * theta);
-        return value::internal::make_complex_number<Return>(ea * cosb, ea * sinb);
+        return values::internal::make_complex_number<Return>(ea * cosb, ea * sinb);
       }
       else
       {
-        if (value::isnan(arg)) return value::internal::NaN<Return>();
+        if (values::isnan(arg)) return values::internal::NaN<Return>();
         if constexpr (std::numeric_limits<Arg>::has_infinity)
         {
-          if (arg == std::numeric_limits<Arg>::infinity()) return value::internal::infinity<Return>();
+          if (arg == std::numeric_limits<Arg>::infinity()) return values::internal::infinity<Return>();
           else if (arg == -std::numeric_limits<Arg>::infinity()) return Return{0};
         }
 
@@ -97,7 +97,7 @@ namespace OpenKalman::value
     }
   }
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_EXP_HPP

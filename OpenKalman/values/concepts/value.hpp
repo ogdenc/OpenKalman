@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \value::value.
+ * \brief Definition for \values::value.
  */
 
 #ifndef OPENKALMAN_VALUE_SCALAR_CONSTANT_HPP
@@ -19,7 +19,7 @@
 #include "fixed.hpp"
 #include "dynamic.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief T is numerical value or is reducible to a numerical value.
@@ -30,9 +30,9 @@ namespace OpenKalman::value
 #else
   constexpr bool value =
 #endif
-    value::fixed<T> or dynamic<T>;
+    values::fixed<T> or dynamic<T>;
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_VALUE_SCALAR_CONSTANT_HPP

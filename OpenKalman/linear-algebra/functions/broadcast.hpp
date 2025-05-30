@@ -32,16 +32,16 @@ namespace OpenKalman
   /**
    * \brief Broadcast an object by replicating it by factors specified for each index.
    * \details The operation may increase the order of the object by specifying factors greater than 1 for higher indices.
-   * Any such higher indices will have a \ref coordinate::pattern of <code>Dimensions&lt;n&gt;<code> where <code>n</code> is the factor.
+   * Any such higher indices will have a \ref coordinates::pattern of <code>Dimensions&lt;n&gt;<code> where <code>n</code> is the factor.
    * \tparam Arg The object.
-   * \tparam Factors A set of factors, each an \ref value::index, indicating the increase in size of each index.
+   * \tparam Factors A set of factors, each an \ref values::index, indicating the increase in size of each index.
    * Any omitted trailing factors are treated as factor 1 (no broadcasting along that index).
    */
 #ifdef __cpp_concepts
-  template<indexible Arg, value::index...Factors>
+  template<indexible Arg, values::index...Factors>
   constexpr indexible decltype(auto)
 #else
-  template<typename Arg, typename...Factors, std::enable_if_t<indexible<Arg> and (... and value::index<Factors>), int> = 0>
+  template<typename Arg, typename...Factors, std::enable_if_t<indexible<Arg> and (... and values::index<Factors>), int> = 0>
   constexpr decltype(auto)
 #endif
   broadcast(Arg&& arg, const Factors&...factors)
@@ -64,7 +64,7 @@ namespace OpenKalman
     }
     else
     {
-      if constexpr ((... or value::dynamic<Factors>))
+      if constexpr ((... or values::dynamic<Factors>))
       {
         if ((... or (factors <= 0))) throw std::invalid_argument {"In broadcast, all factors must be positive"};
       }

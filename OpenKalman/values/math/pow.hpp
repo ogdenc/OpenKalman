@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::pow.
+ * \brief Definition for \ref values::pow.
  */
 
 #ifndef OPENKALMAN_VALUE_POW_HPP
@@ -34,7 +34,7 @@
 #include "values/math/exp.hpp"
 #include "values/math/log.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   namespace detail
   {
@@ -59,14 +59,14 @@ namespace OpenKalman::value
       else if (-n % 2 == 1) // negative odd
       {
         if (arg == Arg{0})
-          return Arg {value::copysign(value::internal::infinity<value::real_type_of_t<Arg>>(), value::real(arg))};
+          return Arg {values::copysign(values::internal::infinity<values::real_type_of_t<Arg>>(), values::real(arg))};
         else
           return pow_integral(arg, n + 1) / arg;
       }
       else // positive even or negative even
       {
         if (arg == Arg{0})
-          return n > 0 ? static_cast<Arg>(+0.) : Arg {+value::internal::infinity<value::real_type_of_t<Arg>>()};
+          return n > 0 ? static_cast<Arg>(+0.) : Arg {+values::internal::infinity<values::real_type_of_t<Arg>>()};
         else
           return pow_integral(arg, n / 2) * pow_integral(arg, n / 2);
       }
@@ -82,40 +82,40 @@ namespace OpenKalman::value
    * \return x to the power of n.
    */
 #ifdef __cpp_concepts
-  template<value::value Arg, value::value Exponent> requires
-    (value::integral<Exponent> or std::common_with<number_type_of_t<Arg>, number_type_of_t<Exponent>>)
-  constexpr value::value auto pow(const Arg& arg, const Exponent& exponent)
+  template<values::value Arg, values::value Exponent> requires
+    (values::integral<Exponent> or std::common_with<number_type_of_t<Arg>, number_type_of_t<Exponent>>)
+  constexpr values::value auto pow(const Arg& arg, const Exponent& exponent)
 #else
-  template <typename Arg, typename Exponent, std::enable_if_t<value::value<Arg> and value::value<Exponent> and
-    (value::integral<Exponent> or
+  template <typename Arg, typename Exponent, std::enable_if_t<values::value<Arg> and values::value<Exponent> and
+    (values::integral<Exponent> or
       std::is_void_v<std::void_t<typename std::common_type<number_type_of_t<Arg>, number_type_of_t<Exponent>>::type>>), int> = 0>
   constexpr auto pow(const Arg& arg, const Exponent& exponent)
 #endif
   {
-    if constexpr (not value::number<Arg> or not value::number<Exponent>)
+    if constexpr (not values::number<Arg> or not values::number<Exponent>)
     {
       struct Op
       {
-        using NA = value::number_type_of_t<Arg>;
-        using NE = value::number_type_of_t<Exponent>;
-        constexpr auto operator()(const NA& a, const NE& e) const { return value::pow(a, e); }
+        using NA = values::number_type_of_t<Arg>;
+        using NE = values::number_type_of_t<Exponent>;
+        constexpr auto operator()(const NA& a, const NE& e) const { return values::pow(a, e); }
       };
-      return value::operation {Op{}, arg, exponent};
+      return values::operation {Op{}, arg, exponent};
     }
     else
     {
       using std::pow;
       using Return = decltype(pow(arg, exponent));
-      using R = decltype(value::real(arg));
+      using R = decltype(values::real(arg));
       struct Op { auto operator()(const Arg& a, const Exponent& e) { return pow(a, e); } };
       if (internal::constexpr_callable<Op>(arg, exponent)) return pow(arg, exponent);
-      else if constexpr (value::integral<Exponent>)
+      else if constexpr (values::integral<Exponent>)
       {
-        if constexpr (value::complex<Arg>)
+        if constexpr (values::complex<Arg>)
         {
           // Errors should be the same as if the exponent were non-integral:
-          if (value::isinf(value::real(arg)) or value::isinf(value::imag(arg)) or value::isnan(value::real(arg)) or value::isnan(value::imag(arg)))
-            return value::pow(arg, value::real(exponent));
+          if (values::isinf(values::real(arg)) or values::isinf(values::imag(arg)) or values::isnan(values::real(arg)) or values::isnan(values::imag(arg)))
+            return values::pow(arg, values::real(exponent));
           else
             return internal::make_complex_number<Return>(detail::pow_integral(internal::make_complex_number<R>(arg), exponent));
         }
@@ -123,13 +123,13 @@ namespace OpenKalman::value
         {
           if (arg == 1) return Return{1};
           if (exponent == 0) return Return{1};
-          if (value::isnan(arg)) return value::internal::NaN<Return>();
+          if (values::isnan(arg)) return values::internal::NaN<Return>();
           if constexpr (std::numeric_limits<Arg>::has_infinity)
           {
             if (exponent % 2 == 1) // positive odd
             {
-              if (arg == -std::numeric_limits<Arg>::infinity()) return -value::internal::infinity<Return>();
-              else if (arg == +std::numeric_limits<Arg>::infinity()) return +value::internal::infinity<Return>();
+              if (arg == -std::numeric_limits<Arg>::infinity()) return -values::internal::infinity<Return>();
+              else if (arg == +std::numeric_limits<Arg>::infinity()) return +values::internal::infinity<Return>();
             }
             else if (-exponent % 2 == 1) // negative odd
             {
@@ -138,31 +138,31 @@ namespace OpenKalman::value
             }
             else if (arg == -std::numeric_limits<Arg>::infinity() or arg == +std::numeric_limits<Arg>::infinity())
             {
-              if (exponent > 0) return +value::internal::infinity<Return>(); // positive even
+              if (exponent > 0) return +values::internal::infinity<Return>(); // positive even
               else return static_cast<Return>(+0.); // negative even
             }
           }
-          return detail::pow_integral(value::real(arg), exponent);
+          return detail::pow_integral(values::real(arg), exponent);
         }
       }
       else
       {
-        if constexpr (value::complex<Return>)
+        if constexpr (values::complex<Return>)
         {
-          auto lg = value::log(internal::make_complex_number<Return>(arg));
-          if constexpr (value::complex<Exponent>)
+          auto lg = values::log(internal::make_complex_number<Return>(arg));
+          if constexpr (values::complex<Exponent>)
           {
-            auto a = value::real(lg);
-            auto b = value::imag(lg);
-            auto c = value::real(exponent);
-            auto d = value::imag(exponent);
+            auto a = values::real(lg);
+            auto b = values::imag(lg);
+            auto c = values::real(exponent);
+            auto d = values::imag(exponent);
             auto lge = internal::make_complex_number<R>(a*c - b*d, a*d + b*c);
-            return internal::make_complex_number<Return>(value::exp(lge));
+            return internal::make_complex_number<Return>(values::exp(lge));
           }
           else
           {
-            auto lge = internal::make_complex_number<R>(value::real(lg) * exponent, value::imag(lg) * exponent);
-            return internal::make_complex_number<Return>(value::exp(lge));
+            auto lge = internal::make_complex_number<R>(values::real(lg) * exponent, values::imag(lg) * exponent);
+            return internal::make_complex_number<Return>(values::exp(lge));
           }
         }
         else
@@ -170,21 +170,21 @@ namespace OpenKalman::value
           if (arg == 1) return Return{1};
           if constexpr (std::numeric_limits<Arg>::has_infinity)
           {
-            if (value::isinf(arg))
+            if (values::isinf(arg))
             {
               if (exponent < 0) return static_cast<Return>(+0.);
-              else return value::internal::infinity<Return>();
+              else return values::internal::infinity<Return>();
             }
             else if (exponent == -std::numeric_limits<Exponent>::infinity())
             {
-              if (-1 < arg and arg < 1) return +value::internal::infinity<Return>();
+              if (-1 < arg and arg < 1) return +values::internal::infinity<Return>();
               else if (arg < -1 or 1 < arg) return static_cast<Return>(+0.);
               else return Return{1}; // x == -1 (x == 1 case handled above)
             }
             else if (exponent == +std::numeric_limits<Exponent>::infinity())
             {
               if (-1 < arg and arg < 1) return static_cast<Return>(+0.);
-              else if (arg < -1 or 1 < arg) return +value::internal::infinity<Return>();
+              else if (arg < -1 or 1 < arg) return +values::internal::infinity<Return>();
               else return Return{1}; // x == -1 (x == 1 case handled above)
             }
           }
@@ -192,21 +192,21 @@ namespace OpenKalman::value
           if (arg > 0)
           {
             if (exponent == 1) return static_cast<Return>(arg);
-            else return static_cast<Return>(value::exp(value::log(arg) * exponent));
+            else return static_cast<Return>(values::exp(values::log(arg) * exponent));
           }
           else if (arg == 0)
           {
-            if (exponent < 0) return +value::internal::infinity<Return>();
+            if (exponent < 0) return +values::internal::infinity<Return>();
             else return static_cast<Return>(+0.);
           }
-          else return value::internal::NaN<Return>();
+          else return values::internal::NaN<Return>();
         }
       }
     }
   }
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_POW_HPP

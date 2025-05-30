@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref coordinate::euclidean_pattern_tuple.
+ * \brief Definition for \ref coordinates::euclidean_pattern_tuple.
  */
 
 #ifndef OPENKALMAN_EUCLIDEAN_PATTERN_TUPLE_HPP
@@ -21,7 +21,7 @@
 #include "collections/concepts/tuple_like.hpp"
 #include "linear-algebra/coordinates/concepts/euclidean_pattern.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
 #if not defined(__cpp_concepts) or __cpp_generic_lambdas < 201707L
   namespace detail
@@ -43,12 +43,12 @@ namespace OpenKalman::coordinate
 
 	
   /**
-   * \brief An object describing a tuple-like collection of /ref coordinate::pattern objects.
+   * \brief An object describing a tuple-like collection of /ref coordinates::pattern objects.
    */
   template<typename T>
 #if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
   concept euclidean_pattern_tuple =
-    coordinate::pattern_tuple<T> and
+    coordinates::pattern_tuple<T> and
     []<std::size_t...Ix>(std::index_sequence<Ix...>)
       { return (... and euclidean_pattern<std::tuple_element_t<Ix, std::decay_t<T>>>); }
       (std::make_index_sequence<std::tuple_size_v<std::decay_t<T>>>{});
@@ -58,6 +58,6 @@ namespace OpenKalman::coordinate
 #endif
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 #endif //OPENKALMAN_EUCLIDEAN_PATTERN_TUPLE_HPP

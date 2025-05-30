@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref value::not_complex.
+ * \brief Definition for \ref values::not_complex.
  */
 
 #ifndef OPENKALMAN_VALUE_NOT_COMPLEX_HPP
@@ -21,16 +21,16 @@
 #include "values/functions/to_number.hpp"
 #include "values/math/imag.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   namespace detail
   {
     template<typename T>
     constexpr bool imaginary_part_is_zero()
     {
-      if constexpr (value::fixed<T>)
+      if constexpr (values::fixed<T>)
       {
-        return value::imag(value::to_number(std::decay_t<T>{})) == 0;
+        return values::imag(values::to_number(std::decay_t<T>{})) == 0;
       }
       else return false;
     }
@@ -38,7 +38,7 @@ namespace OpenKalman::value
 
 
   /**
-   * \brief T is a \ref value::value in which either its type is not a \ref value::complex or its imaginary component is 0.
+   * \brief T is a \ref values::value in which either its type is not a \ref values::complex or its imaginary component is 0.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -46,9 +46,9 @@ namespace OpenKalman::value
 #else
   constexpr bool not_complex =
 #endif
-    value::value<T> and (not complex<T> or detail::imaginary_part_is_zero<std::decay_t<T>>());
+    values::value<T> and (not complex<T> or detail::imaginary_part_is_zero<std::decay_t<T>>());
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_VALUE_NOT_COMPLEX_HPP

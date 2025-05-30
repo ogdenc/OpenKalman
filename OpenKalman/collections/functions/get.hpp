@@ -17,8 +17,11 @@
 #define OPENKALMAN_COLLECTIONS_GET_HPP
 
 #include <tuple>
+#ifdef __cpp_lib_ranges
+#include <ranges>
+#endif
+#include "basics/compatibility/ranges.hpp"
 #include "basics/global-definitions.hpp"
-#include "basics/ranges.hpp"
 #include "values/concepts/fixed.hpp"
 #include "values/concepts/index.hpp"
 #include "values/traits/fixed_number_of.hpp"
@@ -27,36 +30,58 @@
 
 namespace OpenKalman::collections
 {
+#ifndef __cpp_lib_ranges
+  namespace detail
+  {
+    template<typename T, typename I>
+    inline constexpr bool gettable_with_i = []
+    {
+      if constexpr (values::fixed<I>) { return gettable<values::fixed_number_of_v<I>, T>; }
+      else { return false; }
+    }();
+  }
+#endif
+
+
   /**
    * \brief A generalization of std::get
-   * \details This function takes a \ref value::value parameter instead of a template parameter like std::get.
+   * \details This function takes a \ref values::value parameter instead of a template parameter like std::get.
    * - If the argument has a <code>get()</code> member, call that member.
    * - Otherwise, call <code>get&lt;i*gt;(std::forward&lt;Arg&gt;(arg))</code> if such a function is found using ADL.
    * - Otherwise, call <code>std::get&lt;i*gt;(std::forward&lt;Arg&gt;(arg))</code> if it is defined.
    * - Otherwise, call <code>std::ranges::begin(std::forward&lt;Arg&gt;(arg))</code> if it is a valid call.
    */
 #ifdef __cpp_lib_ranges
-  template<collection Arg, value::index I> requires value::fixed<I> or sized_random_access_range<Arg>
+  template<collection Arg, values::index I> requires std::ranges::random_access_range<Arg> or
+    (values::fixed<I> and gettable<values::fixed_number_of_v<I>, Arg>)
 #else
-  template<typename Arg, typename I, std::enable_if_t<collection<Arg> and value::index<I> and
-    (value::fixed<I> or sized_random_access_range<Arg>), int> = 0>
+  template<typename Arg, typename I, std::enable_if_t<collection<Arg> and values::index<I> and
+    (ranges::random_access_range<Arg> or detail::gettable_with_i<Arg, I>), int> = 0>
 #endif
   constexpr decltype(auto)
   get(Arg&& arg, I i)
   {
-    if constexpr (value::fixed<I> and size_of_v<Arg> != dynamic_size)
-      static_assert(value::fixed_number_of_v<I> < size_of_v<Arg>, "Index out of range");
+    if constexpr (sized<Arg> and values::fixed<I>)
+    { static_assert(size_of_v<Arg> == dynamic_size or values::fixed_number_of_v<I> < size_of_v<Arg>, "Index out of range"); }
 
-    if constexpr (tuple_like<Arg> and value::fixed<I>)
+#ifdef __cpp_lib_ranges
+    if constexpr (values::fixed<I> and requires { requires gettable<values::fixed_number_of<I>::value, Arg>; })
+#else
+    if constexpr (detail::gettable_with_i<Arg, I>)
+#endif
     {
-      return OpenKalman::internal::generalized_std_get<value::fixed_number_of_v<I>>(std::forward<Arg>(arg));
+      return OpenKalman::internal::generalized_std_get<values::fixed_number_of_v<I>>(std::forward<Arg>(arg));
     }
     else
     {
-#ifdef __cpp_lib_ranges
-      using namespace std;
+#ifdef __cpp_lib_remove_cvref
+      using std::remove_cvref_t;
 #endif
-      std::size_t n = value::to_number(std::move(i));
+#ifdef __cpp_lib_ranges
+      namespace ranges = std::ranges;
+#endif
+
+      std::size_t n = values::to_number(std::move(i));
       if constexpr (std::is_array_v<remove_cvref_t<Arg>>)
         return std::forward<Arg>(arg)[n];
       else if constexpr (ranges::borrowed_range<Arg>)

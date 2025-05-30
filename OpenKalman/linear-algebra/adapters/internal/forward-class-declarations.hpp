@@ -28,8 +28,8 @@ namespace OpenKalman
 
   /**
    * \brief A tensor or other matrix in which all elements are a constant scalar value.
-   * \details The constant value can be \ref value::fixed "static" (known at compile time), or
-   * \ref value::dynamic "dynamic" (known only at runtime).
+   * \details The constant value can be \ref values::fixed "static" (known at compile time), or
+   * \ref values::dynamic "dynamic" (known only at runtime).
    * Examples:
    * \code
    * using T = Eigen::Matrix<double, 3, 2>; // A 3-by-2 matrix of scalar-type double.
@@ -42,11 +42,11 @@ namespace OpenKalman
    * ConstantAdapter<T, std::complex<double>, 4, 5> c7; // Construct a 3-by-2 A complex constant of shape T and value 4.0 + 5.0i (known at compile time).
    * \endcode
    * \tparam PatternMatrix An \ref indexible object reflecting the size and shape of the constant object
-   * \tparam Scalar A \ref value::number reflecting the type of the constant
+   * \tparam Scalar A \ref values::number reflecting the type of the constant
    * \tparam constant Optional parameters for constructing Scalar at compile time.
    */
 #ifdef __cpp_concepts
-  template<indexible PatternMatrix, value::scalar Scalar = scalar_type_of_t<PatternMatrix>, auto...constant>
+  template<indexible PatternMatrix, values::scalar Scalar = scalar_type_of_t<PatternMatrix>, auto...constant>
     requires (sizeof...(constant) == 0) or requires { Scalar {constant...}; }
 #else
   template<typename PatternMatrix, typename Scalar = scalar_type_of_t<PatternMatrix>, auto...constant>
@@ -88,7 +88,7 @@ namespace OpenKalman
    * \tparam PatternObject An indexible object, in some library, defining the shape of the resulting zero object
    */
 #ifdef __cpp_concepts
-  template<indexible PatternObject, value::number Scalar = scalar_type_of_t<PatternObject>>
+  template<indexible PatternObject, values::number Scalar = scalar_type_of_t<PatternObject>>
 #else
   template<typename PatternObject, typename Scalar = scalar_type_of_t<PatternObject>>
 #endif
@@ -196,8 +196,8 @@ namespace OpenKalman
       triangular_matrix<NestedMatrix, TriangleType::upper> ? HermitianAdapterType::upper : HermitianAdapterType::lower> requires
     (index_count_v<NestedMatrix> <= 2) and
     (storage_triangle == HermitianAdapterType::lower or storage_triangle == HermitianAdapterType::upper) and
-    (not constant_matrix<NestedMatrix> or value::not_complex<constant_coefficient<NestedMatrix>>) and
-    (not constant_diagonal_matrix<NestedMatrix> or value::not_complex<constant_diagonal_coefficient<NestedMatrix>>) and
+    (not constant_matrix<NestedMatrix> or values::not_complex<constant_coefficient<NestedMatrix>>) and
+    (not constant_diagonal_matrix<NestedMatrix> or values::not_complex<constant_diagonal_coefficient<NestedMatrix>>) and
     (not triangular_matrix<NestedMatrix, TriangleType::any> or triangular_matrix<NestedMatrix, static_cast<TriangleType>(storage_triangle)>)
 #else
   template<typename NestedMatrix, HermitianAdapterType storage_triangle =
@@ -289,7 +289,7 @@ namespace OpenKalman
    * \brief An adapter that adds vector space descriptors for each index.
    * \details Any vector space descriptors associated with NestedObject are overwritten.
    * \tparam Arg An \ref indexible object.
-   * \taram Vs A set of \ref coordinate::pattern objects
+   * \taram Vs A set of \ref coordinates::pattern objects
    */
 #ifdef __cpp_concepts
   template<indexible NestedObject, pattern_collection Descriptors>
@@ -335,11 +335,11 @@ namespace OpenKalman
    * \brief An expression that transforms angular or other modular vector space descriptors back from Euclidean space.
    * \details This is the counterpart expression to ToEuclideanExpr.
    * \tparam NestedObject The pre-transformed column vector, or set of column vectors in the form of a matrix.
-   * \tparam RowDescriptor The \ref coordinate::pattern of the first index.
+   * \tparam RowDescriptor The \ref coordinates::pattern of the first index.
    */
 #ifdef __cpp_concepts
-  template<indexible NestedObject, coordinate::pattern RowDescriptor> requires
-    compares_with<vector_space_descriptor_of<NestedObject, 0>, coordinate::Dimensions<coordinate::euclidean_size_of_v<RowDescriptor>>, equal_to<>, Applicability::permitted>
+  template<indexible NestedObject, coordinates::pattern RowDescriptor> requires
+    compares_with<vector_space_descriptor_of<NestedObject, 0>, coordinates::Dimensions<coordinates::stat_dimension_of_v<RowDescriptor>>, equal_to<>, Applicability::permitted>
 #else
   template<typename NestedMatrix, typename RowDescriptor>
 #endif
@@ -437,8 +437,8 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<fixed_pattern RowCoefficients, fixed_pattern ColumnCoefficients, typed_matrix_nestable NestedMatrix>
-  requires (coordinate::size_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
-    (coordinate::size_of_v<ColumnCoefficients> == index_dimension_of_v<NestedMatrix, 1>) and
+  requires (coordinates::dimension_of_v<RowCoefficients> == index_dimension_of_v<NestedMatrix, 0>) and
+    (coordinates::dimension_of_v<ColumnCoefficients> == index_dimension_of_v<NestedMatrix, 1>) and
     (not std::is_rvalue_reference_v<NestedMatrix>) and
     (dynamic_pattern<RowCoefficients> == dynamic_dimension<NestedMatrix, 0>) and
     (dynamic_pattern<ColumnCoefficients> == dynamic_dimension<NestedMatrix, 1>)
@@ -469,7 +469,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<fixed_pattern Descriptor, typed_matrix_nestable NestedMatrix> requires
-  (coordinate::size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
+  (coordinates::dimension_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
   (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Descriptor, typename NestedMatrix>
@@ -498,7 +498,7 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<fixed_pattern Descriptor, typed_matrix_nestable NestedMatrix> requires
-  (coordinate::euclidean_size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and (not std::is_rvalue_reference_v<NestedMatrix>)
+  (coordinates::stat_dimension_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and (not std::is_rvalue_reference_v<NestedMatrix>)
 #else
   template<typename Descriptor, typename NestedMatrix>
 #endif
@@ -523,8 +523,8 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<fixed_pattern Descriptor, covariance_nestable NestedMatrix> requires
-    (coordinate::size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
-    (not std::is_rvalue_reference_v<NestedMatrix>) and value::number<scalar_type_of_t<NestedMatrix>>
+    (coordinates::dimension_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
+    (not std::is_rvalue_reference_v<NestedMatrix>) and values::number<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename Descriptor, typename NestedMatrix>
 #endif
@@ -551,8 +551,8 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<fixed_pattern Descriptor, covariance_nestable NestedMatrix> requires
-    (coordinate::size_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
-    (not std::is_rvalue_reference_v<NestedMatrix>) and value::number<scalar_type_of_t<NestedMatrix>>
+    (coordinates::dimension_of_v<Descriptor> == index_dimension_of_v<NestedMatrix, 0>) and
+    (not std::is_rvalue_reference_v<NestedMatrix>) and values::number<scalar_type_of_t<NestedMatrix>>
 #else
   template<typename Descriptor, typename NestedMatrix>
 #endif

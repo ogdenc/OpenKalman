@@ -21,7 +21,7 @@ namespace OpenKalman
   /**
    * \brief Extract a column vector (or column slice for rank>2 tensors) comprising the diagonal elements.
    * \tparam Arg An \ref indexible object, which can have any rank and may or may not be square
-   * \returns Arg A column vector whose \ref coordinate::pattern corresponds to the smallest-dimension index.
+   * \returns Arg A column vector whose \ref coordinates::pattern corresponds to the smallest-dimension index.
    */
 #ifdef __cpp_concepts
   template<indexible Arg> requires (index_count_v<Arg> == dynamic_size) or (index_count_v<Arg> <= 2)
@@ -51,7 +51,7 @@ namespace OpenKalman
       {
         return internal::make_constant_diagonal_from_descriptors<Arg>(
           constant_coefficient {std::forward<Arg>(arg)},
-          std::tuple_cat(ds, std::tuple{coordinate::Axis{}, coordinate::Axis{}}));
+          std::tuple_cat(ds, std::tuple{coordinates::Axis{}, coordinates::Axis{}}));
       }
       else
       {
@@ -65,7 +65,7 @@ namespace OpenKalman
       {      
         return internal::make_constant_diagonal_from_descriptors<Arg>(
           constant_diagonal_coefficient {std::forward<Arg>(arg)},
-          std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{coordinate::Axis{}, coordinate::Axis{}}));
+          std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{coordinates::Axis{}, coordinates::Axis{}}));
       }
       else
       {

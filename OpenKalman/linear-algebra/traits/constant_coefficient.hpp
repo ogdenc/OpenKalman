@@ -22,7 +22,7 @@
 #include "linear-algebra/concepts/indexible.hpp"
 #include "linear-algebra/concepts/one_dimensional.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief The constant associated with T, assuming T is a \ref constant_matrix.
@@ -68,19 +68,19 @@ namespace OpenKalman::value
 #ifdef __cpp_concepts
     template<typename T>
     concept has_static_constant =
-      value::fixed<typename interface::get_constant_return_type<T>::type> or
-      (value::fixed<typename interface::get_constant_diagonal_return_type<T>::type> and
-        (one_dimensional<T> or value::internal::near(const_diag_value<T>, 0)));
+      values::fixed<typename interface::get_constant_return_type<T>::type> or
+      (values::fixed<typename interface::get_constant_diagonal_return_type<T>::type> and
+        (one_dimensional<T> or values::internal::near(const_diag_value<T>, 0)));
 #else
     template<typename T, typename = void>
     struct has_static_constant_impl : std::false_type {};
 
     template<typename T>
-    struct has_static_constant_impl<T, std::enable_if_t<value::fixed<typename interface::get_constant_diagonal_return_type<T>::type>>>
-      : std::bool_constant<one_dimensional<T> or value::internal::near(const_diag_value<T>, 0)> {};
+    struct has_static_constant_impl<T, std::enable_if_t<values::fixed<typename interface::get_constant_diagonal_return_type<T>::type>>>
+      : std::bool_constant<one_dimensional<T> or values::internal::near(const_diag_value<T>, 0)> {};
 
     template<typename T>
-    constexpr bool has_static_constant = value::fixed<typename interface::get_constant_return_type<T>::type> or
+    constexpr bool has_static_constant = values::fixed<typename interface::get_constant_return_type<T>::type> or
       has_static_constant_impl<T>::value;
 #endif
   } // namespace detail
@@ -113,7 +113,7 @@ namespace OpenKalman::value
     using type = constant_coefficient;
 
     static constexpr value_type value = []{
-      if constexpr (value::fixed<typename interface::get_constant_return_type<T>::type>)
+      if constexpr (values::fixed<typename interface::get_constant_return_type<T>::type>)
         return std::decay_t<decltype(Trait::get_constant(std::declval<T>()))>::value;
       else
         return std::decay_t<decltype(Trait::get_constant_diagonal(std::declval<T>()))>::value;
@@ -132,12 +132,12 @@ namespace OpenKalman::value
    */
 #ifdef __cpp_concepts
   template<indexible T> requires (not detail::has_static_constant<T>) and
-    (value::dynamic<typename interface::get_constant_return_type<T>::type> or one_dimensional<T>)
+    (values::dynamic<typename interface::get_constant_return_type<T>::type> or one_dimensional<T>)
   struct constant_coefficient<T>
 #else
   template<typename T>
   struct constant_coefficient<T, std::enable_if_t<
-    (value::dynamic<typename interface::get_constant_return_type<T>::type> or one_dimensional<T>) and
+    (values::dynamic<typename interface::get_constant_return_type<T>::type> or one_dimensional<T>) and
     (not detail::has_static_constant<T>)>>
 #endif
   {
@@ -148,10 +148,10 @@ namespace OpenKalman::value
   public:
 
     explicit constexpr constant_coefficient(const std::decay_t<T>& t) : m_value {[](const auto& t){
-        if constexpr (value::dynamic<typename interface::get_constant_return_type<T>::type>)
-          return value::to_number(Trait::get_constant(t));
-        else if constexpr (value::dynamic<typename interface::get_constant_diagonal_return_type<T>::type>)
-          return value::to_number(Trait::get_constant_diagonal(t));
+        if constexpr (values::dynamic<typename interface::get_constant_return_type<T>::type>)
+          return values::to_number(Trait::get_constant(t));
+        else if constexpr (values::dynamic<typename interface::get_constant_diagonal_return_type<T>::type>)
+          return values::to_number(Trait::get_constant_diagonal(t));
         else
           return internal::get_singular_component(t);
       }(t)} {};
@@ -170,13 +170,13 @@ namespace OpenKalman::value
   };
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 namespace OpenKalman
 {
-  using value::constant_coefficient;
-  using value::constant_coefficient_v;
+  using values::constant_coefficient;
+  using values::constant_coefficient_v;
 }
 
 #endif //OPENKALMAN_CONSTANT_COEFFICIENT_HPP

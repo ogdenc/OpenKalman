@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref coordinate::euclidean_pattern_collection.
+ * \brief Definition for \ref coordinates::euclidean_pattern_collection.
  */
 
 #ifndef OPENKALMAN_EUCLIDEAN_PATTERN_COLLECTION_HPP
@@ -19,22 +19,22 @@
 #ifdef __cpp_lib_ranges
 #include <ranges>
 #else
-#include "basics/ranges.hpp"
+#include "basics/compatibility/ranges.hpp"
 #endif
 #include "collections/concepts/collection.hpp"
 #include "linear-algebra/coordinates/concepts/euclidean_pattern.hpp"
 #include "linear-algebra/coordinates/concepts/euclidean_pattern_tuple.hpp"
 
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
   /**
-   * \brief An object describing a collection of /ref coordinate::pattern objects.
+   * \brief An object describing a collection of /ref coordinates::pattern objects.
    * \details This will be a \ref pattern_tuple or a dynamic range over a collection such as std::vector.
    */
   template<typename T>
 #if defined(__cpp_lib_ranges)
-  concept euclidean_pattern_collection = coordinate::pattern_collection<T> and
+  concept euclidean_pattern_collection = coordinates::pattern_collection<T> and
     (euclidean_pattern_tuple<T> or euclidean_pattern<std::ranges::range_value_t<std::decay_t<T>>>);
 #else
   constexpr bool euclidean_pattern_collection = collections::collection<T> and
@@ -42,6 +42,6 @@ namespace OpenKalman::coordinate
 #endif
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 #endif //OPENKALMAN_EUCLIDEAN_PATTERN_COLLECTION_HPP

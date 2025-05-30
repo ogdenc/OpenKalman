@@ -33,14 +33,14 @@ namespace OpenKalman::collections
 
 
 #ifdef __cpp_lib_ranges
-  template<sized_random_access_range T>
+  template<collection T> requires std::ranges::range<T>
   struct common_collection_type<T>
   {
     using type = std::ranges::range_value_t<std::remove_cvref_t<T>>;
   };
 #else
   template<typename T>
-  struct common_collection_type<T, std::enable_if_t<sized_random_access_range<T>>>
+  struct common_collection_type<T, std::enable_if_t<ranges::range<T>>>
   {
     using type = ranges::range_value_t<remove_cvref_t<T>>;
   };

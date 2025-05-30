@@ -30,7 +30,7 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typename T>
-  concept scalar_type_defined_for = value::number<typename indexible_object_traits<std::decay_t<T>>::scalar_type>;
+  concept scalar_type_defined_for = values::number<typename indexible_object_traits<std::decay_t<T>>::scalar_type>;
 #else
   namespace detail
   {
@@ -38,7 +38,7 @@ namespace OpenKalman::interface
     struct scalar_type_defined_for_impl : std::false_type {};
 
     template<typename T>
-    struct scalar_type_defined_for_impl<T, std::enable_if_t<value::number<typename indexible_object_traits<std::decay_t<T>>::scalar_type>>>
+    struct scalar_type_defined_for_impl<T, std::enable_if_t<values::number<typename indexible_object_traits<std::decay_t<T>>::scalar_type>>>
       : std::true_type {};
   }
 
@@ -54,7 +54,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_concepts
    template<typename T>
   concept count_indices_defined_for = requires (T t) {
-    {indexible_object_traits<std::decay_t<T>>::count_indices(t)} -> value::index;
+    {indexible_object_traits<std::decay_t<T>>::count_indices(t)} -> values::index;
   };
 #else
   namespace detail
@@ -64,7 +64,7 @@ namespace OpenKalman::interface
 
     template<typename T>
     struct count_indices_defined_for_impl<T, std::enable_if_t<
-      value::index<decltype(indexible_object_traits<std::decay_t<T>>::count_indices(std::declval<T>()))>>>
+      values::index<decltype(indexible_object_traits<std::decay_t<T>>::count_indices(std::declval<T>()))>>>
       : std::true_type {};
   }
 
@@ -81,7 +81,7 @@ namespace OpenKalman::interface
   template<typename T>
   concept get_vector_space_descriptor_defined_for = requires (T t) {
     {indexible_object_traits<std::decay_t<T>>::get_vector_space_descriptor(
-      t, std::integral_constant<std::size_t, 0>{})} -> coordinate::coordinate::pattern;
+      t, std::integral_constant<std::size_t, 0>{})} -> coordinates::coordinates::pattern;
   };
 #else
   namespace detail
@@ -90,7 +90,7 @@ namespace OpenKalman::interface
     struct get_vector_space_descriptor_defined_for_impl : std::false_type {};
 
     template<typename T>
-    struct get_vector_space_descriptor_defined_for_impl<T, std::enable_if_t<coordinate::coordinate::pattern<
+    struct get_vector_space_descriptor_defined_for_impl<T, std::enable_if_t<coordinates::coordinates::pattern<
       decltype(indexible_object_traits<std::decay_t<T>>::get_vector_space_descriptor(
         std::declval<T>(), std::integral_constant<std::size_t, 0>{}))>>>
       : std::true_type {};
@@ -379,7 +379,7 @@ namespace OpenKalman::interface
 
 #ifdef __cpp_concepts
   template<typename T>
-  concept raw_data_defined_for = requires (T t) { {*indexible_object_traits<std::decay_t<T>>::raw_data(t)} -> value::value; };
+  concept raw_data_defined_for = requires (T t) { {*indexible_object_traits<std::decay_t<T>>::raw_data(t)} -> values::value; };
 #else
   namespace detail
   {
@@ -388,7 +388,7 @@ namespace OpenKalman::interface
 
     template<typename T>
     struct raw_data_defined_for_impl<T, std::enable_if_t<
-        value::value<decltype(*indexible_object_traits<std::decay_t<T>>::raw_data(std::declval<T>()))>>>
+        values::value<decltype(*indexible_object_traits<std::decay_t<T>>::raw_data(std::declval<T>()))>>>
       : std::true_type {};
   }
 

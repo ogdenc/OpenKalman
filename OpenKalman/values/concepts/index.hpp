@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref value::index.
+ * \brief Definition for \ref values::index.
  */
 
 #ifndef OPENKALMAN_VALUE_INDEX_HPP
@@ -26,7 +26,7 @@
 #include "values/traits/number_type_of_t.hpp"
 #include "integral.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
 #ifndef __cpp_concepts
   namespace detail
@@ -36,7 +36,7 @@ namespace OpenKalman::value
 
 
     template<typename T>
-    struct number_type_is_unsigned<T, std::enable_if_t<std::is_unsigned_v<value::number_type_of_t<T>>>>
+    struct number_type_is_unsigned<T, std::enable_if_t<std::is_unsigned_v<values::number_type_of_t<T>>>>
       : std::true_type {};
 
 
@@ -45,7 +45,7 @@ namespace OpenKalman::value
 
 
     template<typename T>
-    struct fixed_integral_gt_0<T, std::enable_if_t<(value::fixed_number_of<T>::value >= 0)>> : std::true_type {};
+    struct fixed_integral_gt_0<T, std::enable_if_t<(values::fixed_number_of<T>::value >= 0)>> : std::true_type {};
   }
 #endif
 
@@ -55,12 +55,12 @@ namespace OpenKalman::value
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept index = value::integral<T> and (std::is_unsigned_v<value::number_type_of_t<T>> or fixed_number_of<T>::value >= 0);
+  concept index = values::integral<T> and (std::is_unsigned_v<values::number_type_of_t<T>> or fixed_number_of<T>::value >= 0);
 #else
   template<typename T>
-  constexpr bool index = value::integral<T> and (detail::number_type_is_unsigned<T>::value or detail::fixed_integral_gt_0<T>::value);
+  constexpr bool index = values::integral<T> and (detail::number_type_is_unsigned<T>::value or detail::fixed_integral_gt_0<T>::value);
 #endif
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_VALUE_INDEX_HPP

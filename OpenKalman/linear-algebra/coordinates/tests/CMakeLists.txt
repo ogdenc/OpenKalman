@@ -15,7 +15,7 @@ find_package(GTest REQUIRED)
 include(GoogleTest)
 
 add_executable(coordinates
-        #integral-types.cpp
+        integral-types.cpp
         #Dimensions.cpp
         #Distance.cpp
         #Angle.cpp
@@ -23,7 +23,7 @@ add_executable(coordinates
         #Polar.cpp
         #Spherical.cpp
         #fixed_pattern.cpp
-        dynamic_pattern.cpp
+        #dynamic_pattern.cpp
         #statistical-transformations-fixed.cpp
         #statistical-transformations-dynamic.cpp
         #compare_descriptors.cpp

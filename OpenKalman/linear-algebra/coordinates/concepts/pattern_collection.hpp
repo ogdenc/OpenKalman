@@ -20,10 +20,10 @@
 #include "pattern_tuple.hpp"
 #include "pattern_range.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
   /**
-   * \brief An object describing a collection of /ref  coordinate::pattern objects.
+   * \brief An object describing a collection of /ref  coordinates::pattern objects.
    * \details This will be a \ref pattern_tuple or a dynamic range over a collection such as std::vector.
    */
   template<typename T>
@@ -35,6 +35,6 @@ namespace OpenKalman::coordinate
     collection<T> and (pattern_tuple<T> or pattern_range<T>);
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 #endif //OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_COLLECTION_HPP

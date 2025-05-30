@@ -24,7 +24,7 @@
 #include "values/math/abs.hpp"
 #include "values/functions/internal/constexpr_callable.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
   /**
    * \struct Distance
@@ -34,7 +34,7 @@ namespace OpenKalman::coordinate
   struct Distance {};
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 
 namespace OpenKalman::interface
@@ -44,11 +44,11 @@ namespace OpenKalman::interface
    * \brief traits for Distance.
    */
   template<>
-  struct coordinate_descriptor_traits<coordinate::Distance>
+  struct coordinate_descriptor_traits<coordinates::Distance>
   {
   private:
 
-    using T = coordinate::Distance;
+    using T = coordinates::Distance;
 
   public:
 
@@ -56,11 +56,11 @@ namespace OpenKalman::interface
 
 
     static constexpr auto
-    size(const T&) { return std::integral_constant<std::size_t, 1>{}; };
+    dimension(const T&) { return std::integral_constant<std::size_t, 1>{}; };
 
 
     static constexpr auto
-    euclidean_size(const T&) { return std::integral_constant<std::size_t, 1>{}; };
+    stat_dimension(const T&) { return std::integral_constant<std::size_t, 1>{}; };
 
 
     static constexpr auto
@@ -82,12 +82,12 @@ namespace OpenKalman::interface
      * \param euclidean_local_index This is assumed to be 0.
      */
 #ifdef __cpp_concepts
-    static constexpr value::value auto
-    to_euclidean_component(const T& t, const auto& g, const value::index auto& euclidean_local_index)
-    requires requires(std::size_t i){ {g(i)} -> value::value; }
+    static constexpr values::value auto
+    to_euclidean_component(const T& t, const auto& g, const values::index auto& euclidean_local_index)
+    requires requires(std::size_t i){ {g(i)} -> values::value; }
 #else
-    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
-      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
+      values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
     to_euclidean_component(const T& t, const Getter& g, const L& euclidean_local_index)
 #endif
@@ -102,19 +102,19 @@ namespace OpenKalman::interface
      * \param local_index This is assumed to be 0.
      */
 #ifdef __cpp_concepts
-    static constexpr value::value auto
-    from_euclidean_component(const T& t, const auto& g, const value::index auto& local_index)
-    requires requires(std::size_t i){ {g(i)} -> value::value; }
+    static constexpr values::value auto
+    from_euclidean_component(const T& t, const auto& g, const values::index auto& local_index)
+    requires requires(std::size_t i){ {g(i)} -> values::value; }
 #else
-    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
-      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
+      values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
     from_euclidean_component(const T& t, const Getter& g, const L& local_index)
 #endif
     {
       auto x = g(0_uz);
       // The distance component may need to be wrapped to the positive half of the real axis:
-      return value::internal::update_real_part(x, value::abs(value::real(x)));
+      return values::internal::update_real_part(x, values::abs(values::real(x)));
     }
 
 
@@ -123,18 +123,18 @@ namespace OpenKalman::interface
      * \param local_index This is assumed to be 0.
      */
 #ifdef __cpp_concepts
-    static constexpr value::value auto
-    get_wrapped_component(const T& t, const auto& g, const value::index auto& local_index)
-    requires requires(std::size_t i){ {g(i)} -> value::value; }
+    static constexpr values::value auto
+    get_wrapped_component(const T& t, const auto& g, const values::index auto& local_index)
+    requires requires(std::size_t i){ {g(i)} -> values::value; }
 #else
-    template<typename Getter, typename L, std::enable_if_t<value::index<L> and
-      value::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
+    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
+      values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
     get_wrapped_component(const T& t, const Getter& g, const L& local_index)
 #endif
     {
       auto x = g(0_uz);
-      return value::internal::update_real_part(x, value::abs(value::real(x)));
+      return values::internal::update_real_part(x, values::abs(values::real(x)));
     }
 
 
@@ -144,17 +144,17 @@ namespace OpenKalman::interface
      */
 #ifdef __cpp_concepts
     static constexpr void
-    set_wrapped_component(const T& t, const auto& s, const auto& g, const value::value auto& x, const value::index auto& local_index)
+    set_wrapped_component(const T& t, const auto& s, const auto& g, const values::value auto& x, const values::index auto& local_index)
     requires requires(std::size_t i){ s(x, i); s(g(i), i); }
 #else
-    template<typename Setter, typename Getter, typename X, typename L, std::enable_if_t<value::value<X> and value::index<L> and
+    template<typename Setter, typename Getter, typename X, typename L, std::enable_if_t<values::value<X> and values::index<L> and
       std::is_invocable<const Setter&, const X&, std::size_t>::value and
       std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, std::size_t>::type, std::size_t>::value, int> = 0>
     static constexpr void
     set_wrapped_component(const T& t, const Setter& s, const Getter& g, const X& x, const L& local_index)
 #endif
     {
-      s(value::internal::update_real_part(x, value::abs(value::real(x))), 0_uz);
+      s(values::internal::update_real_part(x, values::abs(values::real(x))), 0_uz);
     }
 
   };

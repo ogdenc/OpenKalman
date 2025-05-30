@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::log1p.
+ * \brief Definition for \ref values::log1p.
  */
 
 #ifndef OPENKALMAN_VALUE_LOG1P_HPP
@@ -33,7 +33,7 @@
 #include "internal/math_utils.hpp"
 #include "internal/log_utils.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   namespace detail
   {
@@ -53,29 +53,29 @@ namespace OpenKalman::value
    * \details Unlike the standard function, this one accepts complex arguments.
    */
 #ifdef __cpp_concepts
-  template<value::value Arg>
-  constexpr value::value auto log1p(const Arg& arg)
+  template<values::value Arg>
+  constexpr values::value auto log1p(const Arg& arg)
 #else
-  template<typename Arg, std::enable_if_t<value::value<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
   constexpr auto log1p(const Arg& arg)
 #endif
   {
-    if constexpr (not value::number<Arg>)
+    if constexpr (not values::number<Arg>)
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Arg>& a) const { return value::log1p(a); } };
-      return value::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::log1p(a); } };
+      return values::operation {Op{}, arg};
     }
-    else if constexpr (value::complex<Arg>)
+    else if constexpr (values::complex<Arg>)
     {
       using Return = Arg;
-      auto re = value::real(value::real(arg));
-      auto im = value::real(value::imag(arg));
+      auto re = values::real(values::real(arg));
+      auto im = values::real(values::imag(arg));
       using R = decltype(re);
-      auto a = static_cast<R>(0.5) * value::log1p(re * re + 2 * re + im * im);
-      if constexpr (not std::numeric_limits<value::real_type_of_t<Arg>>::is_iec559) if (value::imag(arg) == 0)
-        return value::internal::make_complex_number<Return>(a,
-          value::copysign(value::signbit(value::real(arg) + 1) ? numbers::pi_v<R> : 0, value::imag(arg)));
-      return value::internal::make_complex_number<Return>(a, internal::atan2_impl(im, re + 1));
+      auto a = static_cast<R>(0.5) * values::log1p(re * re + 2 * re + im * im);
+      if constexpr (not std::numeric_limits<values::real_type_of_t<Arg>>::is_iec559) if (values::imag(arg) == 0)
+        return values::internal::make_complex_number<Return>(a,
+          values::copysign(values::signbit(values::real(arg) + 1) ? numbers::pi_v<R> : 0, values::imag(arg)));
+      return values::internal::make_complex_number<Return>(a, internal::atan2_impl(im, re + 1));
     }
     else
     {
@@ -83,22 +83,22 @@ namespace OpenKalman::value
       using Return = decltype(log1p(arg));
       struct Op { auto operator()(const Arg& arg) { return log1p(arg); } };
       if (internal::constexpr_callable<Op>(arg)) return log1p(arg);
-      if (value::isnan(arg)) return value::internal::NaN<Return>();
+      if (values::isnan(arg)) return values::internal::NaN<Return>();
       if constexpr (std::numeric_limits<Arg>::has_infinity)
         if (arg == std::numeric_limits<Return>::infinity()) return static_cast<Return>(arg);
       if (arg == 0) return static_cast<Return>(arg);
-      if (arg == -1) return -value::internal::infinity<Return>();
-      if (arg < -1) return value::internal::NaN<Return>();
+      if (arg == -1) return -values::internal::infinity<Return>();
+      if (arg < -1) return values::internal::NaN<Return>();
 
       if (static_cast<Return>(-0.125) < arg and arg < static_cast<Return>(0.125))
-        return detail::log1p_impl(2, value::real(arg), value::real(arg), -value::real(arg));
-      auto [scaled, corr] = arg >= 16 ? internal::log_scaling_gt(value::real(arg) + 1) : internal::log_scaling_lt(value::real(arg) + 1);
+        return detail::log1p_impl(2, values::real(arg), values::real(arg), -values::real(arg));
+      auto [scaled, corr] = arg >= 16 ? internal::log_scaling_gt(values::real(arg) + 1) : internal::log_scaling_lt(values::real(arg) + 1);
       return internal::log_impl(scaled) + corr;
     }
   }
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_LOG1P_HPP

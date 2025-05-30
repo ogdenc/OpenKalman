@@ -105,7 +105,7 @@ namespace OpenKalman
     static constexpr auto
     sigma_point_coeff()
     {
-      constexpr auto denom = 1 / static_cast<std::size_t>(value::sqrt((j + 1)) * (j + 2) * unscaled_W<dim>());
+      constexpr auto denom = 1 / static_cast<std::size_t>(values::sqrt((j + 1)) * (j + 2) * unscaled_W<dim>());
       if constexpr(i == 0)
         return Scalar(0);
       else if constexpr(i < j + 2)

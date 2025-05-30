@@ -41,11 +41,11 @@ namespace OpenKalman
    * \brief Get a component of an object at a particular set of indices.
    * \tparam Arg The object to be accessed.
    * \tparam Indices A sized input range containing the indices.
-   * \return a \ref value::scalar
+   * \return a \ref values::scalar
    */
 #ifdef __cpp_lib_concepts
   template<indexible Arg, index_range_for<Arg> Indices> requires (not empty_object<Arg>)
-  constexpr value::scalar decltype(auto)
+  constexpr values::scalar decltype(auto)
 #else
   template<typename Arg, typename Indices, std::enable_if_t<
     index_range_for<Indices, Arg> and (not empty_object<Arg>), int> = 0>
@@ -62,10 +62,10 @@ namespace OpenKalman
    * \brief Get a component of an object at an initializer list of indices.
    */
 #ifdef __cpp_lib_concepts
-  template<indexible Arg, value::index Ix> requires (not empty_object<Arg>)
-  constexpr value::scalar decltype(auto)
+  template<indexible Arg, values::index Ix> requires (not empty_object<Arg>)
+  constexpr values::scalar decltype(auto)
 #else
-  template<typename Arg, typename Ix, std::enable_if_t<value::index<Ix> and (not empty_object<Arg>), int> = 0>
+  template<typename Arg, typename Ix, std::enable_if_t<values::index<Ix> and (not empty_object<Arg>), int> = 0>
   constexpr decltype(auto)
 #endif
   get_component(Arg&& arg, const std::initializer_list<Ix>& indices)
@@ -82,7 +82,7 @@ namespace OpenKalman
       constexpr bool static_indices_within_bounds_impl(std::index_sequence<Ix...>)
       {
         return ([]{
-          if constexpr (value::fixed<V>)
+          if constexpr (values::fixed<V>)
             return (std::decay_t<V>::value >= 0 and std::decay_t<V>::value < index_dimension_of_v<Arg, Ix>);
           else 
             return true;
@@ -105,12 +105,12 @@ namespace OpenKalman
    * integral constants, the function performs compile-time bounds checking to the extent possible.
    */
 #ifdef __cpp_lib_concepts
-  template<indexible Arg, value::index...I> requires
+  template<indexible Arg, values::index...I> requires
     (index_count_v<Arg> == dynamic_size or sizeof...(I) >= index_count_v<Arg>) and
     (not empty_object<Arg>) and internal::static_indices_within_bounds<Arg, I...>::value
-  constexpr value::scalar decltype(auto)
+  constexpr values::scalar decltype(auto)
 #else
-  template<typename Arg, typename...I, std::enable_if_t<indexible<Arg> and (... and value::index<I>) and
+  template<typename Arg, typename...I, std::enable_if_t<indexible<Arg> and (... and values::index<I>) and
     (index_count<Arg>::value == dynamic_size or sizeof...(I) >= index_count<Arg>::value) and
     (not empty_object<Arg>) and internal::static_indices_within_bounds<Arg, I...>::value, int> = 0>
   constexpr decltype(auto)

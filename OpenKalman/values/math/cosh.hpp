@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::cosh.
+ * \brief Definition for \ref values::cosh.
  */
 
 #ifndef OPENKALMAN_VALUE_COSH_HPP
@@ -31,23 +31,23 @@
 #include "values/math/isnan.hpp"
 #include "values/math/exp.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief Constexpr alternative to the std::cosh function.
    */
 #ifdef __cpp_concepts
-  template<value::value Arg>
-  constexpr value::value auto cosh(const Arg& arg)
+  template<values::value Arg>
+  constexpr values::value auto cosh(const Arg& arg)
 #else
-  template<typename Arg, std::enable_if_t<value::value<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
   constexpr auto cosh(const Arg& arg)
 #endif
 {
-    if constexpr (not value::number<Arg>)
+    if constexpr (not values::number<Arg>)
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Arg>& a) const { return value::cosh(a); } };
-      return value::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::cosh(a); } };
+      return values::operation {Op{}, arg};
     }
     else
     {
@@ -56,32 +56,32 @@ namespace OpenKalman::value
       struct Op { auto operator()(const Arg& arg) { using std::cosh; return cosh(arg); } };
       if (internal::constexpr_callable<Op>(arg)) return cosh(arg);
 
-      using R = std::conditional_t<value::integral<value::real_type_of_t<Return>>, double, value::real_type_of_t<Return>>;
-      if constexpr (value::complex<Return>)
+      using R = std::conditional_t<values::integral<values::real_type_of_t<Return>>, double, values::real_type_of_t<Return>>;
+      if constexpr (values::complex<Return>)
       {
-        auto ex = value::exp(value::internal::make_complex_number<R>(arg));
-        auto exr = value::real(ex);
-        auto exi = value::imag(ex);
+        auto ex = values::exp(values::internal::make_complex_number<R>(arg));
+        auto exr = values::real(ex);
+        auto exi = values::imag(ex);
         auto half = static_cast<R>(0.5);
-        if (exi == 0) return value::internal::make_complex_number<Return>((exr + 1/exr) * half, 0);
+        if (exi == 0) return values::internal::make_complex_number<Return>((exr + 1/exr) * half, 0);
         else
         {
           auto denom1 = 1 / (exr*exr + exi*exi);
-          return value::internal::make_complex_number<Return>(half * exr * (1 + denom1), half * exi * (1 - denom1));
+          return values::internal::make_complex_number<Return>(half * exr * (1 + denom1), half * exi * (1 - denom1));
         }
       }
       else
       {
-        if (value::isnan(arg)) return value::internal::NaN<Return>();
-        if (value::isinf(arg)) return value::internal::infinity<Return>();
-        Return ex = value::exp(arg);
+        if (values::isnan(arg)) return values::internal::NaN<Return>();
+        if (values::isinf(arg)) return values::internal::infinity<Return>();
+        Return ex = values::exp(arg);
         return (ex + 1/ex) * static_cast<R>(0.5);
       }
     }
   }
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_COSH_HPP

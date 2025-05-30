@@ -22,7 +22,7 @@
 #include "linear-algebra/coordinates/traits/internal/uniform_static_vector_space_descriptor_query.hpp"
 
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
   namespace detail
   {
@@ -57,7 +57,7 @@ namespace OpenKalman::coordinate
 
 
   /**
-   * \brief T is a \ref coordinate::pattern that can be decomposed into a uniform set of 1D \ref coordinate::pattern.
+   * \brief T is a \ref coordinates::pattern that can be decomposed into a uniform set of 1D \ref coordinates::pattern.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -68,6 +68,6 @@ namespace OpenKalman::coordinate
     detail::uniform_static_vector_space_descriptor_impl<T>::value;
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 #endif //OPENKALMAN_UNIFORM_FIXED_VECTOR_SPACE_DESCRIPTOR_HPP

@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Tests for \ref coordinate::pattern equivalence
+ * \brief Tests for \ref coordinates::pattern equivalence
  */
 
 #include "basics/tests/tests.hpp"
@@ -25,8 +25,8 @@
 #include "linear-algebra/coordinates/views/comparison.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::coordinate;
-using coordinate::views::comparison;
+using namespace OpenKalman::coordinates;
+using coordinates::views::comparison;
 
 #include "linear-algebra/coordinates/functions/comparison-operators.hpp"
 
@@ -124,7 +124,7 @@ TEST(coordinates, compare_dynamic_pattern)
   EXPECT_TRUE((make_pattern_vector(angle::Radians{}) > make_pattern_vector()));
   EXPECT_TRUE((make_pattern_vector(angle::Radians{}) == make_pattern_vector(angle::Radians{})));
   EXPECT_TRUE((make_pattern_vector(angle::Degrees{}) == make_pattern_vector(Angle<std::integral_constant<int, -180>, std::integral_constant<int, 180>>{})));
-  EXPECT_TRUE((make_pattern_vector(angle::Degrees{}) == make_pattern_vector(Angle<value::Fixed<double, -180>, value::Fixed<long double, 180>>{})));
+  EXPECT_TRUE((make_pattern_vector(angle::Degrees{}) == make_pattern_vector(Angle<values::Fixed<double, -180>, values::Fixed<long double, 180>>{})));
   EXPECT_TRUE((make_pattern_vector(angle::PositiveDegrees{}) == make_pattern_vector(Angle<std::integral_constant<int, 0>, std::integral_constant<std::size_t, 360>>{})));
   EXPECT_TRUE((make_pattern_vector(angle::Degrees{}) != make_pattern_vector(angle::PositiveDegrees{})));
   EXPECT_TRUE((make_pattern_vector(angle::Degrees{}) != make_pattern_vector(angle::Radians{})));
@@ -134,7 +134,7 @@ TEST(coordinates, compare_dynamic_pattern)
   EXPECT_TRUE((make_pattern_vector(inclination::Radians{}) > make_pattern_vector()));
   EXPECT_TRUE((make_pattern_vector(inclination::Radians{}) == make_pattern_vector(inclination::Radians{})));
   EXPECT_TRUE((make_pattern_vector(inclination::Degrees{}) == make_pattern_vector(Inclination<std::integral_constant<int, -90>, std::integral_constant<int, 90>>{})));
-  EXPECT_TRUE((make_pattern_vector(inclination::Degrees{}) == make_pattern_vector(Inclination<value::Fixed<double, -90>, value::Fixed<long double, 90>>{})));
+  EXPECT_TRUE((make_pattern_vector(inclination::Degrees{}) == make_pattern_vector(Inclination<values::Fixed<double, -90>, values::Fixed<long double, 90>>{})));
 
   EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}, Axis{}) == make_pattern_vector(Axis{}, angle::Radians{}, Axis{})));
   EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}, Axis{}) < make_pattern_vector(Axis{}, angle::Radians{}, Axis{}, Axis{})));

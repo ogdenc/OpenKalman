@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::log.
+ * \brief Definition for \ref values::log.
  */
 
 #ifndef OPENKALMAN_VALUE_LOG_HPP
@@ -34,57 +34,57 @@
 #include "internal/log_utils.hpp"
 #include "internal/atan_utils.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief Constexpr alternative to the std::log function.
    */
 #ifdef __cpp_concepts
-  template<value::value Arg>
-  constexpr value::value auto log(const Arg& arg)
+  template<values::value Arg>
+  constexpr values::value auto log(const Arg& arg)
 #else
-  template<typename Arg, std::enable_if_t<value::value<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
   constexpr auto log(const Arg& arg)
 #endif
   {
-    if constexpr (not value::number<Arg>)
+    if constexpr (not values::number<Arg>)
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Arg>& a) const { return value::log(a); } };
-      return value::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::log(a); } };
+      return values::operation {Op{}, arg};
     }
     else
     {
       using std::log;
       using Return = decltype(log(arg));
       struct Op { auto operator()(const Arg& arg) { return log(arg); } };
-      if (value::internal::constexpr_callable<Op>(arg)) return log(arg);
-      else if constexpr (value::complex<Return>)
+      if (values::internal::constexpr_callable<Op>(arg)) return log(arg);
+      else if constexpr (values::complex<Return>)
       {
-        auto re = value::real(value::real(arg));
-        auto im = value::real(value::imag(arg));
+        auto re = values::real(values::real(arg));
+        auto im = values::real(values::imag(arg));
         using R = decltype(re);
-        auto a = static_cast<R>(0.5) * value::log(re * re + im * im);
-        if constexpr (not std::numeric_limits<value::real_type_of_t<Arg>>::is_iec559) if (value::imag(arg) == 0)
-          return value::internal::make_complex_number<Return>(a,
-            value::copysign(value::signbit(value::real(arg)) ? numbers::pi_v<R> : 0, value::imag(arg)));
-        return value::internal::make_complex_number<Return>(a, internal::atan2_impl(im, re));
+        auto a = static_cast<R>(0.5) * values::log(re * re + im * im);
+        if constexpr (not std::numeric_limits<values::real_type_of_t<Arg>>::is_iec559) if (values::imag(arg) == 0)
+          return values::internal::make_complex_number<Return>(a,
+            values::copysign(values::signbit(values::real(arg)) ? numbers::pi_v<R> : 0, values::imag(arg)));
+        return values::internal::make_complex_number<Return>(a, internal::atan2_impl(im, re));
       }
       else
       {
-        if (value::isnan(arg)) return value::internal::NaN<Return>();
+        if (values::isnan(arg)) return values::internal::NaN<Return>();
         if constexpr (std::numeric_limits<Arg>::has_infinity)
           if (arg == std::numeric_limits<Arg>::infinity()) return std::numeric_limits<Return>::infinity();
         if (arg == 1) return static_cast<Return>(+0.);
-        else if (arg == 0) return -value::internal::infinity<Return>();
-        else if (arg < 0) return value::internal::NaN<Return>();
-        auto [scaled, corr] = arg >= 16 ? internal::log_scaling_gt(value::real(arg)) : internal::log_scaling_lt(value::real(arg));
+        else if (arg == 0) return -values::internal::infinity<Return>();
+        else if (arg < 0) return values::internal::NaN<Return>();
+        auto [scaled, corr] = arg >= 16 ? internal::log_scaling_gt(values::real(arg)) : internal::log_scaling_lt(values::real(arg));
         return internal::log_impl(scaled) + corr;
       }
     }
   }
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_LOG_HPP

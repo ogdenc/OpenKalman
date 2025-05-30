@@ -71,4 +71,3 @@ TEST(collections, transform_view)
   EXPECT_EQ((views::iota(0u, 5u) | views::transform([](auto i){ return i * 2u; }))[3u], 6u);
 #endif
 }
-

@@ -19,7 +19,7 @@
 #include "values/math/copysign.hpp"
 #include "values/math/sqrt.hpp"
 
-namespace OpenKalman::value::internal
+namespace OpenKalman::values::internal
 {
  template<typename T>
  constexpr T asin_series(int n, const T& x, const T& sum, const T& term)
@@ -37,13 +37,13 @@ namespace OpenKalman::value::internal
   T pi2 = numbers::pi_v<T> * half;
   T invsq2 = numbers::sqrt2_v<T> * half;
   if (-invsq2 <= x and x <= invsq2) return asin_series<T>(3, x, x, half*x*x*x);
-  if (invsq2 < x and x < 1) return pi2 - asin_impl(value::sqrt(1 - x*x));
-  if (-1 < x and x < -invsq2) return -pi2 + asin_impl(value::sqrt(1 - x*x));
+  if (invsq2 < x and x < 1) return pi2 - asin_impl(values::sqrt(1 - x*x));
+  if (-1 < x and x < -invsq2) return -pi2 + asin_impl(values::sqrt(1 - x*x));
   if (x == 1) return +pi2;
   if (x == -1) return -pi2;
-  return value::internal::NaN<T>();
+  return values::internal::NaN<T>();
  }
-} // namespace OpenKalman::value::internal
+} // namespace OpenKalman::values::internal
 
 
 #endif //OPENKALMAN_VALUE_ASIN_UTILS_HPP

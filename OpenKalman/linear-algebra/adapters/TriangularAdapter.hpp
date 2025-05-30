@@ -185,7 +185,7 @@ namespace OpenKalman
     template<triangular_matrix<triangle_type> Arg> requires
       (not std::is_base_of_v<TriangularAdapter, std::decay_t<Arg>>) and
       vector_space_descriptors_may_match_with<NestedObject, Arg> and
-      (not value::fixed<constant_diagonal_coefficient<NestedObject>> or
+      (not values::fixed<constant_diagonal_coefficient<NestedObject>> or
         requires { requires constant_diagonal_coefficient<NestedObject>::value == constant_diagonal_coefficient<Arg>::value; }) and
       (not (diagonal_matrix<NestedObject> or triangle_type == TriangleType::diagonal) or diagonal_matrix<Arg>)
 #else

@@ -20,9 +20,9 @@
 #ifdef __cpp_lib_ranges
 #include <ranges>
 #else
-#include "basics/ranges.hpp"
+#include "basics/compatibility/ranges.hpp"
 #endif
-#include "basics/language-features.hpp"
+#include "../../basics/compatibility/language-features.hpp"
 #include "values/values.hpp"
 #include "collection.hpp"
 
@@ -32,7 +32,7 @@ namespace OpenKalman::collections
   namespace detail_index
   {
     template<typename T, std::size_t...Ix>
-    constexpr bool is_index_tuple_impl(std::index_sequence<Ix...>) { return (... and value::index<typename std::tuple_element<Ix, T>::type>); }
+    constexpr bool is_index_tuple_impl(std::index_sequence<Ix...>) { return (... and values::index<typename std::tuple_element<Ix, T>::type>); }
 
     template<typename T, typename = void>
     struct is_index_tuple : std::false_type {};
@@ -54,23 +54,23 @@ namespace OpenKalman::collections
     struct is_index_range : std::false_type {};
 
     template<typename T>
-    struct is_index_range<T, std::enable_if_t<value::index<ranges::range_value_t<remove_cvref_t<T>>>>> : std::true_type {};
+    struct is_index_range<T, std::enable_if_t<values::index<ranges::range_value_t<remove_cvref_t<T>>>>> : std::true_type {};
 
   }
 #endif
 
 
   /**
-   * \brief An object describing a collection of /ref value::index objects.
+   * \brief An object describing a collection of /ref values::index objects.
    * \details This will be a tuple-like object or a dynamic range over a collection such as std::vector.
    */
   template<typename T>
 #if defined(__cpp_lib_ranges) and defined(__cpp_lib_remove_cvref) and __cpp_generic_lambdas >= 201707L
   concept index = collection<T> and
     ([]<std::size_t...Ix>(std::index_sequence<Ix...>)
-      { return (... and value::index<std::tuple_element_t<Ix, std::remove_cvref_t<T>>>); }
+      { return (... and values::index<std::tuple_element_t<Ix, std::remove_cvref_t<T>>>); }
         (std::make_index_sequence<std::tuple_size<std::remove_cvref_t<T>>::value>{}) or
-    value::index<std::ranges::range_value_t<std::remove_cvref_t<T>>>);
+    values::index<std::ranges::range_value_t<std::remove_cvref_t<T>>>);
 #else
   constexpr bool index = collection<T> and
     (detail_index::is_index_tuple<std::decay_t<T>>::value or detail_index::is_index_range<std::decay_t<T>>::value);

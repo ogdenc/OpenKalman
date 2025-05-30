@@ -41,16 +41,16 @@ namespace OpenKalman
    * \brief Assign an object to a particular slice of a matrix or tensor.
    * \param arg The \ref writable object in which the slice is to be assigned.
    * \param block The block to be set.
-   * \param begin A tuple specifying, for each index of Arg in order, the beginning \ref value::index.
+   * \param begin A tuple specifying, for each index of Arg in order, the beginning \ref values::index.
    * \param size A tuple specifying, for each index of Arg in order, the dimensions of the extracted block.
    * \return A reference to arg as modified.
    * \todo Add a static check that Block has the correct vector space descriptors
    */
 #ifdef __cpp_concepts
-  template<writable Arg, indexible Block, value::index...Begin> requires (sizeof...(Begin) >= index_count_v<Arg>)
+  template<writable Arg, indexible Block, values::index...Begin> requires (sizeof...(Begin) >= index_count_v<Arg>)
 #else
   template<typename Arg, typename Block, typename...Begin, std::enable_if_t<writable<Arg> and indexible<Block> and
-    (value::index<Begin> and ...) and (sizeof...(Begin) >= index_count<Arg>::value), int> = 0>
+    (values::index<Begin> and ...) and (sizeof...(Begin) >= index_count<Arg>::value), int> = 0>
 #endif
   constexpr Arg&&
   set_slice(Arg&& arg, Block&& block, const Begin&...begin)
@@ -59,7 +59,7 @@ namespace OpenKalman
     internal::check_block_limits(begin_seq, begin_seq, arg, std::tuple{begin...});
     internal::check_block_limits(begin_seq, begin_seq, arg, std::tuple{begin...},
       std::apply([](auto&&...a) -> decltype(auto) {
-        return std::forward_as_tuple(get_size(std::forward<decltype(a)>(a))...);
+        return std::forward_as_tuple(get_dimension(std::forward<decltype(a)>(a))...);
       }, all_vector_space_descriptors(block)));
 
     if constexpr (interface::set_slice_defined_for<Arg, Arg&, Block&&, const Begin&...>)

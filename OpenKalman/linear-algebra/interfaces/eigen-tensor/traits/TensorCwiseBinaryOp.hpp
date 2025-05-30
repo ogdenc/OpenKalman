@@ -35,7 +35,7 @@ namespace OpenKalman::interface
     static constexpr auto
     get_vector_space_descriptor(const Arg& arg, N n)
     {
-      if constexpr (value::fixed<N>)
+      if constexpr (values::fixed<N>)
       {
         if constexpr (not dynamic_dimension<LhsXprType, n>)
           return OpenKalman::get_vector_space_descriptor(arg.lhsExpression(), n);
@@ -90,10 +90,10 @@ namespace OpenKalman::interface
 #else
         else if constexpr (constexpr_operation_defined<>::value)
 #endif
-        return value::operation {Traits::constexpr_operation(),
+        return values::operation {Traits::constexpr_operation(),
           constant_coefficient {arg.lhsExpression()}, constant_coefficient {arg.rhsExpression()}};
       else
-        return value::operation {arg.functor(),
+        return values::operation {arg.functor(),
           constant_coefficient {arg.lhsExpression()}, constant_coefficient {arg.rhsExpression()}};
     }
 
@@ -142,9 +142,9 @@ namespace OpenKalman::interface
 #else
         if constexpr (constexpr_operation_defined<>::value)
 #endif
-          return value::operation {Traits::constexpr_operation(), c_left, c_right};
+          return values::operation {Traits::constexpr_operation(), c_left, c_right};
         else
-          return value::operation {arg.functor(), c_left, c_right};
+          return values::operation {arg.functor(), c_left, c_right};
       }
       else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum or Traits::preserves_constant_diagonal)
       {
@@ -153,10 +153,10 @@ namespace OpenKalman::interface
 #else
         if constexpr (constexpr_operation_defined<>::value)
 #endif
-          return value::operation {Traits::constexpr_operation(),
+          return values::operation {Traits::constexpr_operation(),
             constant_diagonal_coefficient {arg.lhsExpression()}, constant_diagonal_coefficient {arg.rhsExpression()}};
         else
-          return value::operation {arg.functor(),
+          return values::operation {arg.functor(),
             constant_diagonal_coefficient {arg.lhsExpression()}, constant_diagonal_coefficient {arg.rhsExpression()}};
       }
       else

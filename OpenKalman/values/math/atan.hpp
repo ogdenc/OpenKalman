@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::atan.
+ * \brief Definition for \ref values::atan.
  */
 
 #ifndef OPENKALMAN_VALUE_ATAN_HPP
@@ -29,40 +29,40 @@
 #include "internal/math_utils.hpp"
 #include "internal/atan_utils.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief Constexpr alternative to the std::atan function.
    */
 #ifdef __cpp_concepts
-  template<value::value Arg>
-  constexpr value::value auto atan(const Arg& arg)
+  template<values::value Arg>
+  constexpr values::value auto atan(const Arg& arg)
 #else
-  template <typename Arg, std::enable_if_t<value::value<Arg>, int> = 0>
+  template <typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
   constexpr auto atan(const Arg& arg)
 #endif
   {
-    if constexpr (not value::number<Arg>)
+    if constexpr (not values::number<Arg>)
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Arg>& a) const { return value::atan(a); } };
-      return value::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::atan(a); } };
+      return values::operation {Op{}, arg};
     }
     else
     {
       using std::atan;
       using Return = std::decay_t<decltype(atan(arg))>;
       struct Op { auto operator()(const Arg& arg) { return atan(arg); } };
-      if (value::internal::constexpr_callable<Op>(arg)) return atan(arg);
-      else if constexpr (value::complex<Return>)
+      if (values::internal::constexpr_callable<Op>(arg)) return atan(arg);
+      else if constexpr (values::complex<Return>)
       {
         using R = real_type_of_t<real_type_of_t<Arg>>;
-        auto x = value::internal::make_complex_number<R>(arg);
+        auto x = values::internal::make_complex_number<R>(arg);
         return internal::make_complex_number<Return>(internal::atan_impl_general(x));
       }
       else
       {
-        if (value::isnan(arg)) return value::internal::NaN<Return>();
-        if (value::isinf(arg)) return value::copysign(numbers::pi_v<Return> * static_cast<Return>(0.5), arg);
+        if (values::isnan(arg)) return values::internal::NaN<Return>();
+        if (values::isinf(arg)) return values::copysign(numbers::pi_v<Return> * static_cast<Return>(0.5), arg);
         if (arg == 0) return static_cast<Return>(arg);
         return internal::atan_impl(static_cast<Return>(arg));
       }
@@ -70,7 +70,7 @@ namespace OpenKalman::value
   }
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_ATAN_HPP

@@ -27,7 +27,7 @@ namespace OpenKalman::internal
    */
 #ifdef __cpp_lib_ranges
   template<indexible Object, index_range_for<Object> Indices> requires
-    writable_by_component<Object, Indices> and value::index<std::ranges::range_value_t<Indices>>
+    writable_by_component<Object, Indices> and values::index<std::ranges::range_value_t<Indices>>
 #else
   template<typename Object, typename Indices>
 #endif

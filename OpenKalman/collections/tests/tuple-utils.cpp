@@ -22,11 +22,11 @@ using namespace OpenKalman;
 using namespace OpenKalman::collections;
 
 #include "collections/functions/internal/tuple_concatenate.hpp"
-#include "collections/functions/internal/to_tuple.hpp"
+#include "collections/functions/internal/tuple_like_to_tuple.hpp"
 
 TEST(collections, tuple_concatenate)
 {
-  using OpenKalman::internal::to_tuple;
+  using OpenKalman::internal::tuple_like_to_tuple;
   static constexpr std::tuple a {1, 1.4f};
   static constexpr std::tuple b {2, 2.1};
   static constexpr std::tuple c {3.2l};
@@ -43,8 +43,8 @@ TEST(collections, tuple_concatenate)
   static_assert(get(tuple_concatenate(a, b, c), std::integral_constant<std::size_t, 4>{}) == 3.2l);
 
   constexpr auto tup1 = tuple_concatenate(std::tuple {1, 2}, std::tuple {3}, std::tuple {4, 5, 6});
-  static_assert(to_tuple(tup1) == std::tuple {1, 2, 3, 4, 5, 6});
-  static_assert(to_tuple(tuple_concatenate(std::tuple {1, 2}, std::tuple {3}, std::tuple {4, 5, 6})) == std::tuple {1, 2, 3, 4, 5, 6});
+  static_assert(tuple_like_to_tuple(tup1) == std::tuple {1, 2, 3, 4, 5, 6});
+  static_assert(tuple_like_to_tuple(tuple_concatenate(std::tuple {1, 2}, std::tuple {3}, std::tuple {4, 5, 6})) == std::tuple {1, 2, 3, 4, 5, 6});
 }
 
 
@@ -52,7 +52,7 @@ TEST(collections, tuple_concatenate)
 
 TEST(collections, tuple_slice)
 {
-  using OpenKalman::internal::to_tuple;
+  using OpenKalman::internal::tuple_like_to_tuple;
   std::tuple t {1, "c", 5.0, 6.0};
   static_assert(std::tuple_size_v<decltype(tuple_slice<0, 0>(t))> == 0);
   static_assert(std::tuple_size_v<decltype(tuple_slice<0, 2>(t))> == 2);
@@ -80,8 +80,8 @@ TEST(collections, tuple_slice)
   static_assert(std::is_same_v<std::tuple_element_t<1, decltype(tuple_slice<1, 3>(a))>, int>);
   static_assert(get(tuple_slice<1, 3>(a), std::integral_constant<std::size_t, 0>{}) == 2);
 
-  static_assert(to_tuple(tuple_slice<1, 4>(a)) == std::tuple {2, 3, 4});
-  static_assert(to_tuple(tuple_slice<1, 4>(std::array{1, 2, 3, 4, 5})) == std::tuple {2, 3, 4});
+  static_assert(tuple_like_to_tuple(tuple_slice<1, 4>(a)) == std::tuple {2, 3, 4});
+  static_assert(tuple_like_to_tuple(tuple_slice<1, 4>(std::array{1, 2, 3, 4, 5})) == std::tuple {2, 3, 4});
 }
 
 
@@ -89,7 +89,7 @@ TEST(collections, tuple_slice)
 
 TEST(collections, tuple_fill)
 {
-  using OpenKalman::internal::to_tuple;
+  using OpenKalman::internal::tuple_like_to_tuple;
   static_assert(std::tuple_size_v<tuple_fill_view<4, double>> == 4);
   static_assert(std::is_same_v<std::tuple_element_t<0, tuple_fill_view<4, std::integral_constant<std::size_t, 2>>>, std::integral_constant<std::size_t, 2>>);
   static_assert(get(tuple_fill_view<4, double>{7.0}, std::integral_constant<std::size_t, 0>{}) == 7.0);
@@ -113,7 +113,7 @@ TEST(collections, tuple_fill)
   static_assert(get(tuple_fill<4>(5.0), std::integral_constant<std::size_t, 0>{}) == 5.0);
   static_assert(get(tuple_fill<4>(6.0), std::integral_constant<std::size_t, 3>{}) == 6.0);
 
-  static_assert(to_tuple(tuple_fill<4>(6)) == std::tuple {6, 6, 6, 6});
+  static_assert(tuple_like_to_tuple(tuple_fill<4>(6)) == std::tuple {6, 6, 6, 6});
 }
 
 
@@ -121,7 +121,7 @@ TEST(collections, tuple_fill)
 
 TEST(collections, tuple_reverse)
 {
-  using OpenKalman::internal::to_tuple;
+  using OpenKalman::internal::tuple_like_to_tuple;
   static_assert(std::is_same_v<std::tuple_element_t<0, decltype(tuple_reverse<std::tuple<std::integral_constant<std::size_t, 2>>>())>, std::integral_constant<std::size_t, 2>>);
 
   static constexpr std::tuple ta {1, 'c', 5.0, 6.0};
@@ -148,8 +148,8 @@ TEST(collections, tuple_reverse)
   static_assert(std::is_same_v<std::tuple_element_t<2, decltype(tuple_reverse(tb))>, char&>);
   static_assert(std::is_same_v<std::tuple_element_t<3, decltype(tuple_reverse(tb))>, int&>);
 
-  static_assert(to_tuple(tuple_reverse(ta)) == std::tuple {6.0, 5.0, 'c', 1});
-  static_assert(to_tuple(tuple_reverse(std::tuple{1, 'c', 5.0, 6.0})) == std::tuple {6.0, 5.0, 'c', 1});
+  static_assert(tuple_like_to_tuple(tuple_reverse(ta)) == std::tuple {6.0, 5.0, 'c', 1});
+  static_assert(tuple_like_to_tuple(tuple_reverse(std::tuple{1, 'c', 5.0, 6.0})) == std::tuple {6.0, 5.0, 'c', 1});
 }
 
 

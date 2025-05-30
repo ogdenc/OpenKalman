@@ -23,13 +23,13 @@
 #if defined(__cpp_lib_ranges)
 #include <ranges>
 #else
-#include "basics/ranges.hpp"
+#include "basics/compatibility/ranges.hpp"
 #endif
 
 namespace OpenKalman::internal
 {
 #if __cpp_lib_ranges >= 202202L
-  template<std::ranges::input_range Indices, value::index MinCount>
+  template<std::ranges::input_range Indices, values::index MinCount>
   constexpr decltype(auto) truncate_indices(const Indices& indices, const MinCount& min_count)
   {
     auto n {static_cast<std::ranges::range_difference_t<Indices>>(min_count)};
@@ -38,7 +38,7 @@ namespace OpenKalman::internal
     return indices | std::ranges::views::take(n);
   }
 #else
-  template<typename Indices, typename MinCount, std::enable_if_t<value::index<MinCount>, int> = 0>
+  template<typename Indices, typename MinCount, std::enable_if_t<values::index<MinCount>, int> = 0>
   decltype(auto) truncate_indices(const Indices& indices, const MinCount& min_count)
   {
 #ifdef __cpp_lib_ranges
@@ -49,7 +49,7 @@ namespace OpenKalman::internal
     std::advance(ad, n);
     if (std::any_of(ad, ranges::end(indices), [](const auto& x){ return x != 0; }))
       throw std::invalid_argument {"Component access: one or more trailing indices are not 0."};
-    if constexpr (value::fixed<MinCount>)
+    if constexpr (values::fixed<MinCount>)
     {
       std::array<std::size_t, MinCount::value> ret;
       std::copy(ranges::begin(indices), ad, ranges::begin(ret));

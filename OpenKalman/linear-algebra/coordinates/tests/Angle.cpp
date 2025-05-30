@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Tests for coordinate::Angle
+ * \brief Tests for coordinates::Angle
  */
 
 #include "basics/tests/tests.hpp"
@@ -18,14 +18,13 @@
 #include "linear-algebra/coordinates/concepts/pattern.hpp"
 #include "linear-algebra/coordinates/concepts/euclidean_pattern.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor.hpp"
-#include "linear-algebra/coordinates/functions/get_euclidean_size.hpp"
+#include "linear-algebra/coordinates/functions/get_stat_dimension.hpp"
 #include "linear-algebra/coordinates/functions/get_is_euclidean.hpp"
-#include "linear-algebra/coordinates/traits/size_of.hpp"
-#include "linear-algebra/coordinates/traits/euclidean_size_of.hpp"
-#include "linear-algebra/coordinates/traits/component_count_of.hpp"
+#include "linear-algebra/coordinates/traits/dimension_of.hpp"
+#include "linear-algebra/coordinates/traits/stat_dimension_of.hpp"
 #include "linear-algebra/coordinates/descriptors/Angle.hpp"
 
-using namespace OpenKalman::coordinate;
+using namespace OpenKalman::coordinates;
 
 TEST(coordinates, Angle)
 {
@@ -34,11 +33,10 @@ TEST(coordinates, Angle)
   static_assert(pattern<angle::Degrees>);
   static_assert(not euclidean_pattern<angle::Radians>);
 
-  static_assert(get_size(angle::Radians{}) == 1);
-  static_assert(get_euclidean_size(angle::Radians{}) == 2);
+  static_assert(get_dimension(angle::Radians{}) == 1);
+  static_assert(get_stat_dimension(angle::Radians{}) == 2);
   static_assert(not get_is_euclidean(angle::Radians{}));
-  static_assert(size_of_v<angle::Radians> == 1);
-  static_assert(euclidean_size_of_v<angle::Radians> == 2);
-  static_assert(component_count_of_v<angle::Radians> == 1);
+  static_assert(dimension_of_v<angle::Radians> == 1);
+  static_assert(stat_dimension_of_v<angle::Radians> == 2);
 }
 

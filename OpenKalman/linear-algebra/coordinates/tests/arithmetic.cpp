@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Tests for \ref coordinate::pattern arithmetic.
+ * \brief Tests for \ref coordinates::pattern arithmetic.
  */
 
 #include "basics/tests/tests.hpp"
@@ -23,7 +23,7 @@
 #include "linear-algebra/coordinates/descriptors/Spherical.hpp"
 #include "linear-algebra/coordinates/functions/arithmetic-operators.hpp"
 
-using namespace OpenKalman::coordinate;
+using namespace OpenKalman::coordinates;
 
 TEST(coordinates, fixed_concatenation)
 {
@@ -87,13 +87,13 @@ TEST(coordinates, dynamic_concatenation)
     DynamicDescriptor<double> {Axis{}, angle::Radians{}, Dimensions<3>{}, angle::Degrees{}, Dimensions<4>{}}));
 
   EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, angle::Radians{}} + Dimensions<2>{} ==
-    DynamicDescriptor<double> {Axis{}, angle::Radians{}, Dimensions<2>{}}));
-  EXPECT_TRUE((Dimensions<2>{} + DynamicDescriptor<double> {angle::Degrees{}, Axis{}} ==
-    DynamicDescriptor<double> {Dimensions<2>{}, angle::Degrees{}, Axis{}}));
-  EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, angle::Radians{}} + angle::Degrees{} ==
-    DynamicDescriptor<double> {Axis{}, angle::Radians{}, angle::Degrees{}}));
-  EXPECT_TRUE((angle::Radians{} + DynamicDescriptor<double> {angle::Degrees{}, Axis{}} ==
-    DynamicDescriptor<double> {angle::Radians{}, angle::Degrees{}, Axis{}}));
+    std::tuple {Axis{}, angle::Radians{}, Dimensions<2>{}}));
+  EXPECT_TRUE((Dimensions<2>{} + std::tuple {angle::Degrees{}, Axis{}} ==
+    std::tuple {Dimensions<2>{}, angle::Degrees{}, Axis{}}));
+  EXPECT_TRUE((std::tuple {Axis{}, angle::Radians{}} + angle::Degrees{} ==
+    std::tuple {Axis{}, angle::Radians{}, angle::Degrees{}}));
+  EXPECT_TRUE((angle::Radians{} + std::tuple {angle::Degrees{}, Axis{}} ==
+    std::tuple {angle::Radians{}, angle::Degrees{}, Axis{}}));
   EXPECT_TRUE((DynamicDescriptor<double> {Axis{}, angle::Radians{}} + std::tuple<angle::Degrees, Axis>{} ==
     DynamicDescriptor<double> {Axis{}, angle::Radians{}, angle::Degrees{}, Axis{}}));
   EXPECT_TRUE((std::tuple<Axis, angle::Radians>{} + DynamicDescriptor<double> {angle::Degrees{}, Axis{}} ==

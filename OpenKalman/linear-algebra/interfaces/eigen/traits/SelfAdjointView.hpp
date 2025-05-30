@@ -57,11 +57,11 @@ namespace OpenKalman
       template<typename Arg>
       static constexpr auto get_constant(const Arg& arg)
       {
-        if constexpr (not value::complex<scalar_type_of_t<MatrixType>>)
+        if constexpr (not values::complex<scalar_type_of_t<MatrixType>>)
           return constant_coefficient{arg.nestedExpression()};
-        else if constexpr (value::fixed<constant_coefficient<MatrixType>>)
+        else if constexpr (values::fixed<constant_coefficient<MatrixType>>)
         {
-          if constexpr (value::not_complex<constant_coefficient<MatrixType>>)
+          if constexpr (values::not_complex<constant_coefficient<MatrixType>>)
             return constant_coefficient{arg.nestedExpression()};
           else return std::monostate{};
         }
@@ -92,9 +92,9 @@ namespace OpenKalman
 
 
       static constexpr bool is_hermitian =
-        (not value::complex<typename Eigen::internal::traits<MatrixType>::Scalar>) or
-        value::not_complex<constant_coefficient<MatrixType>> or
-        value::not_complex<constant_diagonal_coefficient<MatrixType>>;
+        (not values::complex<typename Eigen::internal::traits<MatrixType>::Scalar>) or
+        values::not_complex<constant_coefficient<MatrixType>> or
+        values::not_complex<constant_diagonal_coefficient<MatrixType>>;
 
 
       static constexpr HermitianAdapterType hermitian_adapter_type =

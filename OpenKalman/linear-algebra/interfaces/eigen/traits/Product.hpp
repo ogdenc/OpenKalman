@@ -51,14 +51,14 @@ namespace OpenKalman::interface
       }
       else if constexpr (constant_diagonal_matrix<LhsType> and constant_matrix<RhsType>)
       {
-        return value::operation {
+        return values::operation {
           std::multiplies<scalar_type>{},
           constant_diagonal_coefficient{arg.lhs()},
           constant_coefficient{arg.rhs()}};
       }
       else if constexpr (constant_matrix<LhsType> and constant_diagonal_matrix<RhsType>)
       {
-        return value::operation {
+        return values::operation {
           std::multiplies<scalar_type>{},
           constant_coefficient{arg.lhs()},
           constant_diagonal_coefficient{arg.rhs()}};
@@ -68,23 +68,23 @@ namespace OpenKalman::interface
         constexpr auto dim = dynamic_dimension<LhsType, 1> ? index_dimension_of_v<RhsType, 0> : index_dimension_of_v<LhsType, 1>;
         if constexpr (dim == dynamic_size)
         {
-          return value::operation {
+          return values::operation {
             std::multiplies<scalar_type>{},
             get_index_dimension_of<1>(arg.lhs()),
-            value::operation {std::multiplies<scalar_type>{}, constant_coefficient{arg.lhs()}, constant_coefficient{arg.rhs()}}};
+            values::operation {std::multiplies<scalar_type>{}, constant_coefficient{arg.lhs()}, constant_coefficient{arg.rhs()}}};
         }
-        else if constexpr (value::fixed<constant_coefficient<LhsType>>)
+        else if constexpr (values::fixed<constant_coefficient<LhsType>>)
         {
-          return value::operation {
+          return values::operation {
             std::multiplies<scalar_type>{},
-            value::operation {std::multiplies<scalar_type>{}, std::integral_constant<std::size_t, dim>{}, constant_coefficient{arg.lhs()}},
+            values::operation {std::multiplies<scalar_type>{}, std::integral_constant<std::size_t, dim>{}, constant_coefficient{arg.lhs()}},
             constant_coefficient{arg.rhs()}};
         }
         else
         {
-          return value::operation {
+          return values::operation {
             std::multiplies<scalar_type>{},
-            value::operation {std::multiplies<scalar_type>{}, std::integral_constant<std::size_t, dim>{}, constant_coefficient{arg.rhs()}},
+            values::operation {std::multiplies<scalar_type>{}, std::integral_constant<std::size_t, dim>{}, constant_coefficient{arg.rhs()}},
             constant_coefficient{arg.lhs()}};
         }
       }
@@ -94,7 +94,7 @@ namespace OpenKalman::interface
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return value::operation {std::multiplies<scalar_type>{},
+      return values::operation {std::multiplies<scalar_type>{},
         constant_diagonal_coefficient{arg.lhs()}, constant_diagonal_coefficient{arg.rhs()}};
     }
 
@@ -109,10 +109,10 @@ namespace OpenKalman::interface
     /// A constant diagonal matrix times a hermitian matrix (or vice versa) is hermitian.
     static constexpr bool is_hermitian =
       (constant_diagonal_matrix<LhsType> and
-        (not value::complex<scalar_type_of_t<LhsType>> or value::not_complex<constant_diagonal_coefficient<LhsType>>) and
+        (not values::complex<scalar_type_of_t<LhsType>> or values::not_complex<constant_diagonal_coefficient<LhsType>>) and
         hermitian_matrix<RhsType, Applicability::permitted>) or
       (constant_diagonal_matrix<RhsType> and
-        (not value::complex<scalar_type_of_t<RhsType>> or value::not_complex<constant_diagonal_coefficient<RhsType>>) and
+        (not values::complex<scalar_type_of_t<RhsType>> or values::not_complex<constant_diagonal_coefficient<RhsType>>) and
         hermitian_matrix<LhsType, Applicability::permitted>);
 
   };

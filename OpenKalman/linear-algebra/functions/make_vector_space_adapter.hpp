@@ -22,7 +22,7 @@ namespace OpenKalman
    * \brief If necessary, wrap an object in a wrapper that adds vector space descriptors for each index.
    * \details Any vector space descriptors in the argument are overwritten.
    * \tparam Arg An \ref indexible object.
-   * \taram Ds A set of \ref coordinate::pattern objects
+   * \taram Ds A set of \ref coordinates::pattern objects
    */
 #ifdef __cpp_concepts
   template<indexible Arg, pattern_collection Descriptors> requires
@@ -46,16 +46,16 @@ namespace OpenKalman
 
   /**
    * \overload
-   * \brief \ref coordinate::pattern objects are passed as arguments.
+   * \brief \ref coordinates::pattern objects are passed as arguments.
    */
 #ifdef __cpp_concepts
-  template<indexible Arg, coordinate::pattern...Ds> requires
+  template<indexible Arg, coordinates::pattern...Ds> requires
     internal::not_more_fixed_than<Arg, std::tuple<Ds...>> and
     (not internal::less_fixed_than<Arg, std::tuple<Ds...>>) and
     internal::maybe_same_shape_as_vector_space_descriptors<Arg, std::tuple<Ds...>>
 #else
   template<typename Arg, typename...Ds, std::enable_if_t<
-    indexible<Arg> and (... and coordinate::pattern<Ds>) and
+    indexible<Arg> and (... and coordinates::pattern<Ds>) and
     internal::not_more_fixed_than<Arg, std::tuple<Ds...>> and
     (not internal::less_fixed_than<Arg, std::tuple<Ds...>>) and
     internal::maybe_same_shape_as_vector_space_descriptors<Arg, std::tuple<Ds...>>, int> = 0>

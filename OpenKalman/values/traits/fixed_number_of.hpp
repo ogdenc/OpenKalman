@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref value::fixed_number_of.
+ * \brief Definition for \ref values::fixed_number_of.
  */
 
 #ifndef OPENKALMAN_VALUES_FIXED_NUMBER_OF_HPP
@@ -20,7 +20,7 @@
 #include "values/concepts/value.hpp"
 #include "values/concepts/fixed.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
 #ifndef __cpp_concepts
   namespace detail
@@ -35,10 +35,10 @@ namespace OpenKalman::value
 
 
   /**
-   * \brief The fixed number associated with a \ref value::fixed.
+   * \brief The fixed number associated with a \ref values::fixed.
    */
 #ifdef __cpp_concepts
-  template<value::value T>
+  template<values::value T>
 #else
   template<typename T, typename = void>
 #endif
@@ -46,11 +46,11 @@ namespace OpenKalman::value
 
 
 #ifdef __cpp_concepts
-  template<value::fixed T>
+  template<values::fixed T>
   struct fixed_number_of<T>
 #else
   template<typename T>
-  struct fixed_number_of<T, std::enable_if_t<value::fixed<T>>>
+  struct fixed_number_of<T, std::enable_if_t<values::fixed<T>>>
 #endif
   {
   private:
@@ -84,6 +84,6 @@ namespace OpenKalman::value
   constexpr auto fixed_number_of_v = fixed_number_of<T>::value;
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_VALUES_FIXED_NUMBER_OF_HPP

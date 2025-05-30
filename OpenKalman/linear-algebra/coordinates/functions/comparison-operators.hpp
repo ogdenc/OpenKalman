@@ -10,11 +10,11 @@
 
 /**
  * \file
- * \brief Comparison operators for \rev coordinate::pattern objects.
+ * \brief Comparison operators for \rev coordinates::pattern objects.
  */
 
-#ifndef OPENKALMAN_COORDINATE_COMPARISON_OPERATORS_HPP
-#define OPENKALMAN_COORDINATE_COMPARISON_OPERATORS_HPP
+#ifndef OPENKALMAN_COORDINATES_COMPARISON_OPERATORS_HPP
+#define OPENKALMAN_COORDINATES_COMPARISON_OPERATORS_HPP
 
 #ifdef __cpp_impl_three_way_comparison
 #include <compare>
@@ -27,11 +27,10 @@
 #include "linear-algebra/coordinates/concepts/descriptor.hpp"
 #include "linear-algebra/coordinates/concepts/euclidean_pattern.hpp"
 #include "linear-algebra/coordinates/functions/internal/get_hash_code.hpp"
-#include "linear-algebra/coordinates/functions/get_size.hpp"
-#include "linear-algebra/coordinates/traits/component_count_of.hpp"
+#include "linear-algebra/coordinates/functions/get_dimension.hpp"
 #include "linear-algebra/coordinates/functions/internal/get_descriptor_collection_element.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
   namespace detail
   {
@@ -96,14 +95,14 @@ namespace OpenKalman::coordinate
     constexpr auto
     compare_fixed(const A& a, const B& b)
     {
-      if constexpr (ai < component_count_of_v<A> and bi < component_count_of_v<B>)
+      if constexpr (ai < collections::size_of_v<A> and bi < collections::size_of_v<B>)
       {
         using Ai = std::tuple_element_t<ai, A>;
         using Bi = std::tuple_element_t<bi, B>;
         constexpr bool ae = euclidean_pattern<Ai>, be = euclidean_pattern<Bi>;
-        if constexpr (ae and be) return compare_fixed<ai + 1, bi + 1, abank + size_of_v<Ai>, bbank + size_of_v<Bi>>(a, b);
-        else if constexpr (ae) return compare_fixed<ai + 1, bi, abank + size_of_v<Ai>, bbank>(a, b);
-        else if constexpr (be) return compare_fixed<ai, bi + 1, abank, bbank + size_of_v<Bi>>(a, b);
+        if constexpr (ae and be) return compare_fixed<ai + 1, bi + 1, abank + dimension_of_v<Ai>, bbank + dimension_of_v<Bi>>(a, b);
+        else if constexpr (ae) return compare_fixed<ai + 1, bi, abank + dimension_of_v<Ai>, bbank>(a, b);
+        else if constexpr (be) return compare_fixed<ai, bi + 1, abank, bbank + dimension_of_v<Bi>>(a, b);
         else
         {
           if constexpr (abank == bbank) if (internal::get_hash_code(collections::get<ai>(a)) == internal::get_hash_code(collections::get<bi>(b)))
@@ -111,24 +110,24 @@ namespace OpenKalman::coordinate
           return ordering::unordered;
         }
       }
-      else if constexpr (ai < component_count_of_v<A>) // bi >= component_count_of_v<B>
+      else if constexpr (ai < collections::size_of_v<A>) // bi >= collections::size_of_v<B>
       {
         using Ai = std::tuple_element_t<ai, A>;
-        if (euclidean_pattern<Ai>) return compare_fixed<ai + 1, bi, abank + size_of_v<Ai>, bbank>(a, b);
-        if (value::to_number(abank) >= value::to_number(bbank)) return ordering::greater;
+        if (euclidean_pattern<Ai>) return compare_fixed<ai + 1, bi, abank + dimension_of_v<Ai>, bbank>(a, b);
+        if (values::to_number(abank) >= values::to_number(bbank)) return ordering::greater;
         return ordering::unordered;
       }
-      else if constexpr (bi < component_count_of_v<B>) // ai >= component_count_of_v<A>
+      else if constexpr (bi < collections::size_of_v<B>) // ai >= collections::size_of_v<A>
       {
         using Bi = std::tuple_element_t<bi, B>;
-        if (euclidean_pattern<Bi>) return compare_fixed<ai, bi + 1, abank, bbank + size_of_v<Bi>>(a, b);
-        if (value::to_number(abank) <= value::to_number(bbank)) return ordering::less;
+        if (euclidean_pattern<Bi>) return compare_fixed<ai, bi + 1, abank, bbank + dimension_of_v<Bi>>(a, b);
+        if (values::to_number(abank) <= values::to_number(bbank)) return ordering::less;
         return ordering::unordered;
       }
       else
       {
         // not ai_in_range and not bi_in_range:
-        return ordering_compare(value::to_number(abank), value::to_number(bbank));
+        return ordering_compare(values::to_number(abank), values::to_number(bbank));
       }
     }
 
@@ -137,8 +136,8 @@ namespace OpenKalman::coordinate
     constexpr ordering
     compare_impl(const A& a, const B& b, std::size_t ai = 0, std::size_t bi = 0, std::size_t abank = 0, std::size_t bbank = 0)
     {
-      bool ai_in_range = ai < value::to_number(get_collection_size(a));
-      bool bi_in_range = bi < value::to_number(get_collection_size(b));
+      bool ai_in_range = ai < values::to_number(get_size(a));
+      bool bi_in_range = bi < values::to_number(get_size(b));
 
       if (ai_in_range and bi_in_range)
       {
@@ -146,21 +145,21 @@ namespace OpenKalman::coordinate
         auto b_i = internal::get_descriptor_collection_element(b, bi);
         bool ae = get_is_euclidean(a_i), be = get_is_euclidean(b_i);
         if (ae or be) return compare_impl(a, b, (ae ? ai + 1 : ai), (be ? bi + 1 : bi),
-          (ae ? abank + get_size(a_i) : abank), (be ? bbank + get_size(b_i) : bbank));
+          (ae ? abank + get_dimension(a_i) : abank), (be ? bbank + get_dimension(b_i) : bbank));
         if (internal::get_hash_code(a_i) == internal::get_hash_code(b_i) and abank == bbank) return compare_impl(a, b, ai + 1, bi + 1);
         return ordering::unordered;
       }
       if (ai_in_range) // not bi_in_range
       {
         auto a_i = internal::get_descriptor_collection_element(a, ai);
-        if (get_is_euclidean(a_i)) return compare_impl(a, b, ai + 1, bi, abank + get_size(a_i), bbank);
+        if (get_is_euclidean(a_i)) return compare_impl(a, b, ai + 1, bi, abank + get_dimension(a_i), bbank);
         if (abank >= bbank) return ordering::greater;
         return ordering::unordered;
       }
       if (bi_in_range) // not ai_in_range
       {
         auto b_i = internal::get_descriptor_collection_element(b, bi);
-        if (get_is_euclidean(b_i)) return compare_impl(a, b, ai, bi + 1, abank, bbank + get_size(b_i));
+        if (get_is_euclidean(b_i)) return compare_impl(a, b, ai, bi + 1, abank, bbank + get_dimension(b_i));
         if (abank <= bbank) return ordering::less;
         return ordering::unordered;
       }
@@ -172,7 +171,7 @@ namespace OpenKalman::coordinate
 
 
   /**
-   * \brief Comparison operator for library-defined \ref coordinate::pattern objects
+   * \brief Comparison operator for library-defined \ref coordinates::pattern objects
    * \todo Streamline this to avoid re-calculating prefix status
    */
 #if defined(__cpp_concepts) and defined(__cpp_impl_three_way_comparison)
@@ -180,9 +179,9 @@ namespace OpenKalman::coordinate
   constexpr std::partial_ordering
   operator<=>(const A& a, const B& b)
   {
-    if (get_is_euclidean(a) and get_is_euclidean(b)) return value::to_number(get_size(a)) <=> value::to_number(get_size(b));
-    if (get_size(a) == 0) return std::partial_ordering::less;
-    if (get_size(b) == 0) return std::partial_ordering::greater;
+    if (get_is_euclidean(a) and get_is_euclidean(b)) return values::to_number(get_dimension(a)) <=> values::to_number(get_dimension(b));
+    if (get_dimension(a) == 0) return std::partial_ordering::less;
+    if (get_dimension(b) == 0) return std::partial_ordering::greater;
 
     if constexpr (descriptor<A> and descriptor<B>)
     {
@@ -211,7 +210,7 @@ namespace OpenKalman::coordinate
 
 
   /**
-   * Equality operator for library-defined \ref coordinate::pattern objects
+   * Equality operator for library-defined \ref coordinates::pattern objects
    */
   template<pattern A, pattern B>
   constexpr bool
@@ -225,7 +224,7 @@ namespace OpenKalman::coordinate
   template<typename A, typename B, std::enable_if_t<pattern<A> and pattern<B>, int> = 0>
   constexpr bool operator==(const A& a, const B& b)
   {
-    if (get_is_euclidean(a) and get_is_euclidean(b)) return value::to_number(get_size(a)) == value::to_number(get_size(b));
+    if (get_is_euclidean(a) and get_is_euclidean(b)) return values::to_number(get_dimension(a)) == values::to_number(get_dimension(b));
 
     if constexpr (descriptor<A> and descriptor<B>) return internal::get_hash_code(a) == internal::get_hash_code(b);
     else if constexpr (descriptor<A>) return std::array {a} == b;
@@ -238,8 +237,8 @@ namespace OpenKalman::coordinate
   template<typename A, typename B, std::enable_if_t<pattern<A> and pattern<B>, int> = 0>
   constexpr bool operator<(const A& a, const B& b)
   {
-    if (get_is_euclidean(a) and get_is_euclidean(b)) return value::to_number(get_size(a)) < value::to_number(get_size(b));
-    if (get_size(a) == 0) return true;
+    if (get_is_euclidean(a) and get_is_euclidean(b)) return values::to_number(get_dimension(a)) < values::to_number(get_dimension(b));
+    if (get_dimension(a) == 0) return true;
 
     if constexpr ((descriptor<A> and descriptor<B>) or descriptor<B>) return false;
     else if constexpr (descriptor<A>) return std::array {a} < b;
@@ -251,8 +250,8 @@ namespace OpenKalman::coordinate
   template<typename A, typename B, std::enable_if_t<pattern<A> and pattern<B>, int> = 0>
   constexpr bool operator>(const A& a, const B& b)
   {
-    if (get_is_euclidean(a) and get_is_euclidean(b)) return value::to_number(get_size(a)) > value::to_number(get_size(b));
-    if (get_size(b) == 0) return true;
+    if (get_is_euclidean(a) and get_is_euclidean(b)) return values::to_number(get_dimension(a)) > values::to_number(get_dimension(b));
+    if (get_dimension(b) == 0) return true;
 
     if constexpr ((descriptor<A> and descriptor<B>) or descriptor<A>) return false;
     else if constexpr (descriptor<B>) return a > std::array {b};
@@ -264,8 +263,8 @@ namespace OpenKalman::coordinate
   template<typename A, typename B, std::enable_if_t<pattern<A> and pattern<B>, int> = 0>
   constexpr bool operator<=(const A& a, const B& b)
   {
-    if (get_is_euclidean(a) and get_is_euclidean(b)) return value::to_number(get_size(a)) <= value::to_number(get_size(b));
-    if (get_size(a) == 0) return true;
+    if (get_is_euclidean(a) and get_is_euclidean(b)) return values::to_number(get_dimension(a)) <= values::to_number(get_dimension(b));
+    if (get_dimension(a) == 0) return true;
 
     if constexpr (descriptor<A> and descriptor<B>) return internal::get_hash_code(a) == internal::get_hash_code(b);
     else if constexpr (descriptor<A>) return std::array {a} <= b;
@@ -280,8 +279,8 @@ namespace OpenKalman::coordinate
   template<typename A, typename B, std::enable_if_t<pattern<A> and pattern<B>, int> = 0>
   constexpr bool operator>=(const A& a, const B& b)
   {
-    if (get_is_euclidean(a) and get_is_euclidean(b)) return value::to_number(get_size(a)) >= value::to_number(get_size(b));
-    if (get_size(b) == 0) return true;
+    if (get_is_euclidean(a) and get_is_euclidean(b)) return values::to_number(get_dimension(a)) >= values::to_number(get_dimension(b));
+    if (get_dimension(b) == 0) return true;
 
     if constexpr (descriptor<A> and descriptor<B>) return internal::get_hash_code(a) == internal::get_hash_code(b);
     else if constexpr (descriptor<B>) return a >= std::array {b};
@@ -301,7 +300,7 @@ namespace OpenKalman::coordinate
 #endif
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 
-#endif //OPENKALMAN_COORDINATE_COMPARISON_OPERATORS_HPP
+#endif //OPENKALMAN_COORDINATES_COMPARISON_OPERATORS_HPP

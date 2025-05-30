@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::asin.
+ * \brief Definition for \ref values::asin.
  */
 
 #ifndef OPENKALMAN_VALUE_ASIN_HPP
@@ -29,49 +29,49 @@
 #include "values/math/internal/asin_utils.hpp"
 #include "values/math/log.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief Constexpr alternative to the std::asin function.
    */
 #ifdef __cpp_concepts
-  template<value::value Arg>
-  constexpr value::value auto
+  template<values::value Arg>
+  constexpr values::value auto
 #else
-  template<typename Arg, std::enable_if_t<value::value<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
   constexpr auto
 #endif
   asin(const Arg& arg)
   {
-    if constexpr (not value::number<Arg>)
+    if constexpr (not values::number<Arg>)
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Arg>& a) const { return value::asin(a); } };
-      return value::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::asin(a); } };
+      return values::operation {Op{}, arg};
     }
     else
     {
       using std::asin;
       using Return = std::decay_t<decltype(asin(arg))>;
       struct Op { auto operator()(const Arg& arg) { return asin(arg); } };
-      if (value::internal::constexpr_callable<Op>(arg)) return asin(arg);
-      else if constexpr (value::complex<Return>)
+      if (values::internal::constexpr_callable<Op>(arg)) return asin(arg);
+      else if constexpr (values::complex<Return>)
       {
-        auto xr = value::real(value::real(arg));
-        auto xi = value::real(value::imag(arg));
-        auto sqt = value::sqrt(value::internal::make_complex_number(1 - xr*xr + xi*xi, - 2*xr*xi));
-        auto lg = value::log(value::internal::make_complex_number(value::real(sqt) + xi, value::imag(sqt) - xr));
-        return value::internal::make_complex_number<Return>(-value::imag(lg), value::real(lg));
+        auto xr = values::real(values::real(arg));
+        auto xi = values::real(values::imag(arg));
+        auto sqt = values::sqrt(values::internal::make_complex_number(1 - xr*xr + xi*xi, - 2*xr*xi));
+        auto lg = values::log(values::internal::make_complex_number(values::real(sqt) + xi, values::imag(sqt) - xr));
+        return values::internal::make_complex_number<Return>(-values::imag(lg), values::real(lg));
       }
       else
       {
-        if (value::isnan(arg)) return value::internal::NaN<Return>();
+        if (values::isnan(arg)) return values::internal::NaN<Return>();
         return internal::asin_impl(static_cast<Return>(arg));
       }
     }
   }
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_ASIN_HPP

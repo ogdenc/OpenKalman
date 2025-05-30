@@ -42,19 +42,19 @@ namespace OpenKalman
     constexpr auto constant_reduce_operation(const BinaryOperation& op, const Constant& c, const Dim& dim)
     {
       if constexpr (internal::is_plus<BinaryOperation>::value) return c * dim;
-      else if constexpr (internal::is_multiplies<BinaryOperation>::value) return value::pow(c, dim);
+      else if constexpr (internal::is_multiplies<BinaryOperation>::value) return values::pow(c, dim);
       else
       {
-        if constexpr (value::dynamic<Dim>)
+        if constexpr (values::dynamic<Dim>)
         {
-          if (value::to_number(dim) <= 1) return value::to_number(c);
-          else return op(constant_reduce_operation(op, c, value::to_number(dim) - 1), value::to_number(c));
+          if (values::to_number(dim) <= 1) return values::to_number(c);
+          else return op(constant_reduce_operation(op, c, values::to_number(dim) - 1), values::to_number(c));
         }
         else if constexpr (Dim::value <= 1) return c;
         else
         {
           auto dim_m1 = std::integral_constant<std::size_t, Dim::value - 1>{};
-          return value::operation {op, constant_reduce_operation(op, c, dim_m1), c};
+          return values::operation {op, constant_reduce_operation(op, c, dim_m1), c};
         }
       }
     }
@@ -107,7 +107,7 @@ namespace OpenKalman
       {
         using LibraryInterface = interface::library_interface<std::decay_t<Arg>>;
         auto red = LibraryInterface::template reduce<indices...>(std::forward<BinaryFunction>(b), std::forward<Arg>(arg));
-        if constexpr (value::number<decltype(red)>)
+        if constexpr (values::number<decltype(red)>)
           return make_constant<Arg>(std::move(red), internal::get_reduced_vector_space_descriptor<Ix, indices...>(arg)...);
         else
           return red;
@@ -199,10 +199,10 @@ namespace OpenKalman
       decltype(auto) red = detail::reduce_impl(b, arg, seq, seq);
       using Red = decltype(red);
 
-      static_assert(value::number<Red> or one_dimensional<Red, Applicability::permitted>,
+      static_assert(values::number<Red> or one_dimensional<Red, Applicability::permitted>,
         "Incorrect library interface for total 'reduce' on all indices: must return a scalar or one-by-one matrix.");
 
-      if constexpr (value::number<Red>)
+      if constexpr (values::number<Red>)
         return red;
       else
         return internal::get_singular_component(red);

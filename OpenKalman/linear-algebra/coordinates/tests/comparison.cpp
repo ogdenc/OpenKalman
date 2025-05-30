@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Tests for \ref coordinate::compare_with
+ * \brief Tests for \ref coordinates::compare_with
  */
 
 #include "basics/tests/tests.hpp"
@@ -24,7 +24,7 @@
 #include "linear-algebra/coordinates/functions/make_pattern_vector.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::coordinate;
+using namespace OpenKalman::coordinates;
 
 #include "linear-algebra/coordinates/concepts/compares_with.hpp"
 #include "basics/classes/equal_to.hpp"
@@ -108,7 +108,7 @@ TEST(coordinates, compares_with_equal_to)
 
 TEST(coordinates, compares_with_less)
 {
-  using namespace coordinate::internal;
+  using namespace coordinates::internal;
   static_assert(compares_with<std::tuple<>, Axis, less_equal<>>);
   static_assert(compares_with<std::tuple<>, Dimensions<2>, less_equal<>>);
   static_assert(compares_with<std::tuple<>, std::tuple<Axis>, less_equal<>>);

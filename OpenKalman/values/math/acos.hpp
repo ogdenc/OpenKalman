@@ -9,7 +9,7 @@
  */
 
 /**
- * \brief Definition for \ref value::acos.
+ * \brief Definition for \ref values::acos.
  */
 
 #ifndef OPENKALMAN_VALUE_ACOS_HPP
@@ -28,49 +28,49 @@
 #include "values/math/isnan.hpp"
 #include "values/math/asin.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
   /**
    * \brief Constexpr alternative to the std::acos function.
    */
 #ifdef __cpp_concepts
-  template<value::value Arg>
-  constexpr value::value auto acos(const Arg& arg)
+  template<value Arg>
+  constexpr value auto acos(const Arg& arg)
 #else
-  template <typename Arg, std::enable_if_t<value::value<Arg>, int> = 0>
+  template <typename Arg, std::enable_if_t<value<Arg>, int> = 0>
   constexpr auto acos(const Arg& arg)
 #endif
   {
-    if constexpr (not value::number<Arg>)
+    if constexpr (not number<Arg>)
     {
-      struct Op { constexpr auto operator()(const value::number_type_of_t<Arg>& a) const { return value::acos(a); } };
-      return value::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::acos(a); } };
+      return operation {Op{}, arg};
     }
     else
     {
       using std::acos;
       using Return = std::decay_t<decltype(acos(arg))>;
       struct Op { auto operator()(const Arg& arg) { return acos(arg); } };
-      if (value::internal::constexpr_callable<Op>(arg)) return acos(arg);
-      else if constexpr (value::complex<Return>)
+      if (internal::constexpr_callable<Op>(arg)) return acos(arg);
+      else if constexpr (values::complex<Return>)
       {
         using R = real_type_of_t<real_type_of_t<Arg>>;
-        auto s = value::asin(value::internal::make_complex_number<R>(arg));
-        return value::internal::make_complex_number<Return>(numbers::pi_v<R> / 2 - value::real(s), - value::imag(s));
+        auto s = values::asin(internal::make_complex_number<R>(arg));
+        return internal::make_complex_number<Return>(numbers::pi_v<R> / 2 - values::real(s), - values::imag(s));
       }
       else
       {
         using R = real_type_of_t<Arg>;
         if (arg == 1) return static_cast<Return>(+0.);
-        auto s = value::asin(arg);
-        if (value::isnan(s)) return value::internal::NaN<Return>();
+        auto s = values::asin(arg);
+        if (values::isnan(s)) return internal::NaN<Return>();
         return numbers::pi_v<R> / 2 - s;
       }
     }
   }
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 
 #endif //OPENKALMAN_VALUE_ACOS_HPP

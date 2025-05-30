@@ -46,14 +46,14 @@ namespace OpenKalman
     }
     else if constexpr (constant_matrix<Arg>)
     {
-      if constexpr (value::not_complex<constant_coefficient<Arg>>)
+      if constexpr (values::not_complex<constant_coefficient<Arg>>)
         return transpose(std::forward<Arg>(arg));
       else if constexpr (not has_dynamic_dimensions<Arg> and index_dimension_of_v<Arg, 0> == index_dimension_of_v<Arg, 1>)
         return conjugate(std::forward<Arg>(arg));
       else
       {
         constexpr std::make_index_sequence<std::max({index_count_v<Arg>, 2_uz}) - 2_uz> seq;
-        return internal::transpose_constant(value::conj(constant_coefficient{arg}), std::forward<Arg>(arg), seq);
+        return internal::transpose_constant(values::conj(constant_coefficient{arg}), std::forward<Arg>(arg), seq);
       }
     }
     else if constexpr (interface::adjoint_defined_for<Arg, Arg&&>)

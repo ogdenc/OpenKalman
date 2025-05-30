@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref coordinate::get_slice.
+ * \brief Definition for \ref coordinates::get_slice.
  */
 
 #ifndef OPENKALMAN_GET_VECTOR_SPACE_DESCRIPTOR_SLICE_HPP
@@ -18,7 +18,7 @@
 
 #include "linear-algebra/coordinates/descriptors/internal/Slice.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
   namespace detail
   {
@@ -28,41 +28,41 @@ namespace OpenKalman::coordinate
 
     template<typename T, typename Offset, typename Extent>
     struct slice_is_within_range<T, Offset, Extent, std::enable_if_t<
-      value::dynamic<Offset> and value::dynamic<Extent>>>
+      values::dynamic<Offset> and values::dynamic<Extent>>>
       : std::true_type {};
 
     template<typename T, typename Offset, typename Extent>
     struct slice_is_within_range<T, Offset, Extent, std::enable_if_t<
-      fixed_pattern<T> and value::fixed<Offset> and value::dynamic<Extent>>>
-      : std::bool_constant<value::fixed_number_of_v<Offset> <= size_of_v<T>> {};
+      fixed_pattern<T> and values::fixed<Offset> and values::dynamic<Extent>>>
+      : std::bool_constant<values::fixed_number_of_v<Offset> <= dimension_of_v<T>> {};
 
     template<typename T, typename Offset, typename Extent>
     struct slice_is_within_range<T, Offset, Extent, std::enable_if_t<
-      fixed_pattern<T> and value::dynamic<Offset> and value::fixed<Extent>>>
-      : std::bool_constant<value::fixed_number_of_v<Extent> <= size_of_v<T>> {};
+      fixed_pattern<T> and values::dynamic<Offset> and values::fixed<Extent>>>
+      : std::bool_constant<values::fixed_number_of_v<Extent> <= dimension_of_v<T>> {};
 
     template<typename T, typename Offset, typename Extent>
     struct slice_is_within_range<T, Offset, Extent, std::enable_if_t<
-      fixed_pattern<T> and value::fixed<Offset> and value::fixed<Extent>>>
-      : std::bool_constant<value::fixed_number_of_v<Offset> + value::fixed_number_of_v<Extent> <= size_of_v<Arg>> {};
+      fixed_pattern<T> and values::fixed<Offset> and values::fixed<Extent>>>
+      : std::bool_constant<values::fixed_number_of_v<Offset> + values::fixed_number_of_v<Extent> <= dimension_of_v<Arg>> {};
 #endif
   } // namespace detail
 
 
   /**
-   * \brief Get a slice of \ref coordinate::pattern T
-   * \tparam T The \ref coordinate::pattern
+   * \brief Get a slice of \ref coordinates::pattern T
+   * \tparam T The \ref coordinates::pattern
    * \tparam Offset The beginning location of the slice.
    * \tparam Extent The size of the slize.
    */
 #ifdef __cpp_concepts
-  template<coordinate::pattern Arg, value::index Offset, value::index Extent> requires dynamic_pattern<Arg> or
-    ((value::dynamic<Offset> or value::fixed_number_of_v<Offset> <= size_of_v<Arg>) and
-    (value::dynamic<Extent> or value::fixed_number_of_v<Extent> <= size_of_v<Arg>) and
-    (value::dynamic<Offset> or value::dynamic<Extent> or value::fixed_number_of_v<Offset> + value::fixed_number_of_v<Extent> <= size_of_v<Arg>))
+  template<coordinates::pattern Arg, values::index Offset, values::index Extent> requires dynamic_pattern<Arg> or
+    ((values::dynamic<Offset> or values::fixed_number_of_v<Offset> <= dimension_of_v<Arg>) and
+    (values::dynamic<Extent> or values::fixed_number_of_v<Extent> <= dimension_of_v<Arg>) and
+    (values::dynamic<Offset> or values::dynamic<Extent> or values::fixed_number_of_v<Offset> + values::fixed_number_of_v<Extent> <= dimension_of_v<Arg>))
 #else
   template<typename Scalar, typename Arg, typename Offset, typename Extent, std::enable_if_t<
-    value::number<Scalar> and coordinate::pattern<Arg> and value::index<Offset> and value::index<Extent> and
+    values::number<Scalar> and coordinates::pattern<Arg> and values::index<Offset> and values::index<Extent> and
     (dynamic_pattern<Arg> or detail::slice_is_within_range<Arg, Offset, Extent>::value), int> = 0>
 #endif
   constexpr auto
@@ -72,7 +72,7 @@ namespace OpenKalman::coordinate
   }
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 
 #endif //OPENKALMAN_GET_VECTOR_SPACE_DESCRIPTOR_SLICE_HPP

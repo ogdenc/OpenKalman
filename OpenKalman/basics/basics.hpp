@@ -12,6 +12,12 @@
  * \dir
  * \brief Basic definitions for OpenKalman as a whole.
  *
+ * \dir compatibility
+ * \brief Definitions for compatibility with c++17 or other legacy versions of c++.
+*
+ * \dir classes
+ * \brief Classes for general use in the library.
+ *
  * \file
  * \brief Basic definitions for OpenKalman as a whole.
  * \details This should be included by any OpenKalman file, including interface files.
@@ -42,10 +48,26 @@ namespace OpenKalman::interface {}
 namespace OpenKalman::internal {}
 
 
-#include "language-features.hpp"
-#ifndef __cpp_lib_ranges
-#include "ranges.hpp"
+#include "compatibility/language-features.hpp"
+
+#if __cplusplus < 202002L
+#include "compatibility/common_reference.hpp"
 #endif
+
+#ifndef __cpp_lib_ranges
+#include "compatibility/iterator.hpp"
+#include "compatibility/ranges.hpp"
+#endif
+
+#if __cpp_lib_ranges < 202202L
+#include "compatibility/views/range_adaptor_closure.hpp"
+#endif
+
+#ifndef __cpp_lib_ranges
+#include "compatibility/views.hpp"
+#endif
+
+
 #include "global-definitions.hpp"
 
 #include "classes/equal_to.hpp"

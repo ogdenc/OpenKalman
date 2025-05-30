@@ -23,7 +23,7 @@ namespace OpenKalman::internal
   namespace detail
   {
     template<typename T>
-    concept raw_data_result = requires(T t) { {*t} -> value::scalar; };
+    concept raw_data_result = requires(T t) { {*t} -> values::scalar; };
   }
 #endif
 

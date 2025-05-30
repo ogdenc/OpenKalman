@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \value::dynamic.
+ * \brief Definition for \values::dynamic.
  */
 
 #ifndef OPENKALMAN_VALUE_DYNAMIC_HPP
@@ -20,18 +20,18 @@
 #include "number.hpp"
 #include "fixed.hpp"
 
-namespace OpenKalman::value
+namespace OpenKalman::values
 {
 #ifndef __cpp_concepts
   namespace internal
   {
-    // This functions is also used in value::to_number
+    // This functions is also used in values::to_number
 
     template<typename T, typename = void>
     struct is_dynamic : std::false_type {};
 
     template<typename T>
-    struct is_dynamic<T, std::enable_if_t<value::number<typename std::invoke_result<T>::type>>>
+    struct is_dynamic<T, std::enable_if_t<values::number<typename std::invoke_result<T>::type>>>
       : std::true_type {};
 
   } // namespace internal
@@ -39,17 +39,17 @@ namespace OpenKalman::value
 
 
   /**
-   * \brief T is a value::value that is not determinable at compile time.
+   * \brief T is a values::value that is not determinable at compile time.
    */
   template<typename T>
 #ifdef __cpp_concepts
-  concept dynamic = (not value::fixed<T>) and (value::number<T> or requires(std::decay_t<T> t){ {t()} -> value::number; });
+  concept dynamic = (not values::fixed<T>) and (values::number<T> or requires(std::decay_t<T> t){ {t()} -> values::number; });
 #else
   constexpr bool dynamic =
-    (not value::fixed<T>) and (value::number<T> or internal::is_dynamic<std::decay_t<T>>::value);
+    (not values::fixed<T>) and (values::number<T> or internal::is_dynamic<std::decay_t<T>>::value);
 #endif
 
 
-} // namespace OpenKalman::value
+} // namespace OpenKalman::values
 
 #endif //OPENKALMAN_VALUE_DYNAMIC_HPP

@@ -11,7 +11,7 @@
 #include "linear-algebra/interfaces/eigen/tests/eigen.gtest.hpp"
 
 using namespace OpenKalman;
-using namespace OpenKalman::coordinate;
+using namespace OpenKalman::coordinates;
 using namespace OpenKalman::Eigen3;
 using namespace OpenKalman::test;
 

@@ -10,18 +10,19 @@
 
 /**
  * \file
- * \brief Definition for \ref coordinate::fixed_pattern.
+ * \brief Definition for \ref coordinates::fixed_pattern.
  */
 
 #ifndef OPENKALMAN_COORDINATE_FIXED_PATTERN_HPP
 #define OPENKALMAN_COORDINATE_FIXED_PATTERN_HPP
 
 #include <type_traits>
+#include "basics/global-definitions.hpp"
 #include "values/concepts/fixed.hpp"
 #include "pattern.hpp"
-#include "linear-algebra/coordinates/traits/size_of.hpp"
+#include "linear-algebra/coordinates/traits/dimension_of.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
 #ifndef __cpp_concepts
   namespace detail
@@ -30,24 +31,24 @@ namespace OpenKalman::coordinate
     struct fixed_pattern_impl : std::false_type {};
 
     template<typename T>
-    struct fixed_pattern_impl<T, std::enable_if_t<size_of<T>::value != dynamic_size>> : std::true_type {};
+    struct fixed_pattern_impl<T, std::enable_if_t<dimension_of<T>::value != dynamic_size>> : std::true_type {};
   }
 #endif
 
 
   /**
-   * \brief A \ref coordinate::pattern for which the \ref coordinate::size_of "size" is fixed at compile time.
+   * \brief A \ref coordinates::pattern for which the \ref coordinates::dimension_of "size" is fixed at compile time.
    */
   template<typename T>
 #ifdef __cpp_concepts
   concept fixed_pattern = std::default_initializable<std::decay_t<T>> and
-    pattern<T> and (size_of_v<T> != dynamic_size);
+    pattern<T> and (dimension_of_v<T> != dynamic_size);
 #else
   constexpr bool fixed_pattern = std::is_default_constructible<std::decay_t<T>>::value and
     detail::fixed_pattern_impl<T>::value;
 #endif
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 #endif //OPENKALMAN_COORDINATE_FIXED_PATTERN_HPP

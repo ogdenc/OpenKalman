@@ -32,15 +32,15 @@ TEST(eigen3, get_vector_space_descriptor)
 {
   M23 m23;
 
-  static_assert(coordinate::size_of_v<decltype(get_vector_space_descriptor<0>(m23))> == 2);
-  static_assert(coordinate::size_of_v<decltype(get_vector_space_descriptor<0>(M2x {m23}))> == 2);
-  EXPECT_EQ(get_size(get_vector_space_descriptor<0>(Mx3 {m23})), 2);
-  EXPECT_EQ(get_size(get_vector_space_descriptor<0>(Mxx {m23})), 2);
+  static_assert(coordinates::dimension_of_v<decltype(get_vector_space_descriptor<0>(m23))> == 2);
+  static_assert(coordinates::dimension_of_v<decltype(get_vector_space_descriptor<0>(M2x {m23}))> == 2);
+  EXPECT_EQ(get_dimension(get_vector_space_descriptor<0>(Mx3 {m23})), 2);
+  EXPECT_EQ(get_dimension(get_vector_space_descriptor<0>(Mxx {m23})), 2);
 
-  static_assert(coordinate::size_of_v<decltype(get_vector_space_descriptor<1>(m23))> == 3);
-  EXPECT_EQ(get_size(get_vector_space_descriptor<1>(M2x {m23})), 3);
-  static_assert(coordinate::size_of_v<decltype(get_vector_space_descriptor<1>(Mx3 {m23}))> == 3);
-  EXPECT_EQ(get_size(get_vector_space_descriptor<1>(Mxx {m23})), 3);
+  static_assert(coordinates::dimension_of_v<decltype(get_vector_space_descriptor<1>(m23))> == 3);
+  EXPECT_EQ(get_dimension(get_vector_space_descriptor<1>(M2x {m23})), 3);
+  static_assert(coordinates::dimension_of_v<decltype(get_vector_space_descriptor<1>(Mx3 {m23}))> == 3);
+  EXPECT_EQ(get_dimension(get_vector_space_descriptor<1>(Mxx {m23})), 3);
 }
 
 
@@ -81,11 +81,11 @@ TEST(eigen3, tensor_order)
 
 TEST(eigen3, all_vector_space_descriptors)
 {
-  static_assert(coordinate::size_of_v<decltype(std::get<0>(all_vector_space_descriptors(std::declval<M23>())))> == 2);
-  static_assert(coordinate::size_of_v<decltype(std::get<0>(all_vector_space_descriptors<M23>()))> == 2);
-  static_assert(coordinate::size_of_v<decltype(std::get<0>(all_vector_space_descriptors(std::declval<M2x>())))> == 2);
-  static_assert(coordinate::size_of_v<decltype(std::get<1>(all_vector_space_descriptors(std::declval<M23>())))> == 3);
-  static_assert(coordinate::size_of_v<decltype(std::get<1>(all_vector_space_descriptors(std::declval<Mx3>())))> == 3);
+  static_assert(coordinates::dimension_of_v<decltype(std::get<0>(all_vector_space_descriptors(std::declval<M23>())))> == 2);
+  static_assert(coordinates::dimension_of_v<decltype(std::get<0>(all_vector_space_descriptors<M23>()))> == 2);
+  static_assert(coordinates::dimension_of_v<decltype(std::get<0>(all_vector_space_descriptors(std::declval<M2x>())))> == 2);
+  static_assert(coordinates::dimension_of_v<decltype(std::get<1>(all_vector_space_descriptors(std::declval<M23>())))> == 3);
+  static_assert(coordinates::dimension_of_v<decltype(std::get<1>(all_vector_space_descriptors(std::declval<Mx3>())))> == 3);
   static_assert(std::tuple_size_v<decltype(all_vector_space_descriptors(std::declval<Mxx>()))> == 2);
 
   EXPECT_EQ(std::get<0>(all_vector_space_descriptors(Mxx(2, 3))), 2);

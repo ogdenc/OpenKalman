@@ -81,19 +81,19 @@ namespace OpenKalman
    * \tparam indices The index or indices of the particular dimensions to be specified, in any order (optional).
    * If this is omitted, the Offset and Extent parameters proceed in index order.
    * \param arg The indexible object from which a slice is to be taken.
-   * \param offsets A tuple corresponding to each of indices, each element specifying the offsetning \ref value::index.
+   * \param offsets A tuple corresponding to each of indices, each element specifying the offsetning \ref values::index.
    * If indices are not specified, the tuple proceeds in normal index order.
    * \param extents A tuple corresponding to each of indices, each element specifying the dimensions of the extracted block.
    * If indices are not specified, the tuple proceeds in normal index order.
    */
 #ifdef __cpp_concepts
-  template<std::size_t...indices, indexible Arg, value::index...Offset, value::index...Extent> requires
+  template<std::size_t...indices, indexible Arg, values::index...Offset, values::index...Extent> requires
     (sizeof...(Offset) == sizeof...(Extent)) and internal::has_uniform_static_vector_space_descriptors<Arg, indices...> and
     (sizeof...(indices) == 0 or sizeof...(indices) == sizeof...(Offset))
   constexpr indexible decltype(auto)
 #else
   template<std::size_t...indices, typename Arg, typename...Offset, typename...Extent, std::enable_if_t<
-    indexible<Arg> and (value::index<Offset> and ...) and (value::index<Extent> and ...) and
+    indexible<Arg> and (values::index<Offset> and ...) and (values::index<Extent> and ...) and
     (sizeof...(Offset) == sizeof...(Extent)) and internal::has_uniform_static_vector_space_descriptors<Arg, indices...> and
     (sizeof...(indices) == 0 or sizeof...(indices) == sizeof...(Offset)), int> = 0>
   constexpr decltype(auto)

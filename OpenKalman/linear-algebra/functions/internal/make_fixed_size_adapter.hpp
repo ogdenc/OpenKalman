@@ -69,9 +69,9 @@ namespace OpenKalman::internal
    * \overload
    */
 #ifdef __cpp_concepts
-  template<coordinate::pattern...Ds, compatible_with_vector_space_descriptor_collection<std::tuple<Ds...>> Arg>
+  template<coordinates::pattern...Ds, compatible_with_vector_space_descriptor_collection<std::tuple<Ds...>> Arg>
 #else
-  template<typename...Ds, typename Arg, std::enable_if_t<(... and coordinate::pattern<Ds>) and
+  template<typename...Ds, typename Arg, std::enable_if_t<(... and coordinates::pattern<Ds>) and
     compatible_with_vector_space_descriptor_collection<Arg, std::tuple<Ds...>>, int> = 0>
 #endif
   constexpr decltype(auto)

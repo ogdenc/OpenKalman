@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref coordinate::euclidean_pattern.
+ * \brief Definition for \ref coordinates::euclidean_pattern.
  */
 
 #ifndef OPENKALMAN_EUCLIDEAN_VECTOR_SPACE_DESCRIPTOR_HPP
@@ -22,7 +22,7 @@
 #include "linear-algebra/coordinates/concepts/pattern.hpp"
 #include "linear-algebra/coordinates/functions/get_is_euclidean.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
 #ifndef __cpp_concepts
   namespace detail
@@ -31,24 +31,24 @@ namespace OpenKalman::coordinate
     struct euclidean_pattern_impl : std::false_type {};
 
     template<typename T>
-    struct euclidean_pattern_impl<T, std::enable_if_t<value::fixed<decltype(coordinate::get_is_euclidean(std::declval<T>()))>>>
-      : std::bool_constant<value::fixed_number_of_v<decltype(coordinate::get_is_euclidean(std::declval<T>()))>> {};
+    struct euclidean_pattern_impl<T, std::enable_if_t<values::fixed<decltype(coordinates::get_is_euclidean(std::declval<T>()))>>>
+      : std::bool_constant<values::fixed_number_of_v<decltype(coordinates::get_is_euclidean(std::declval<T>()))>> {};
   }
 #endif
 
 
   /**
-   * \brief A \ref coordinate::pattern for a normal Euclidean vector.
+   * \brief A \ref coordinates::pattern for a normal Euclidean vector.
    */
 #ifdef __cpp_concepts
   template<typename T>
   concept euclidean_pattern = pattern<T> and
-    (value::fixed_number_of<decltype(coordinate::get_is_euclidean(std::declval<T>()))>::value);
+    (values::fixed_number_of<decltype(coordinates::get_is_euclidean(std::declval<T>()))>::value);
 #else
   template<typename T>
   constexpr bool euclidean_pattern = detail::euclidean_pattern_impl<T>::value;
 #endif
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 #endif //OPENKALMAN_EUCLIDEAN_VECTOR_SPACE_DESCRIPTOR_HPP

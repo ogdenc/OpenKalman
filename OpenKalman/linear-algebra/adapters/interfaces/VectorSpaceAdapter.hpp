@@ -49,17 +49,17 @@ namespace OpenKalman::interface
     {
       constexpr auto dim = decltype(count_indices(arg))::value;
 
-      if constexpr (coordinate::euclidean_pattern_collection<Descriptors>)
+      if constexpr (coordinates::euclidean_pattern_collection<Descriptors>)
       {
         return get_index_dimension_of(std::forward<Arg>(arg).nested_object(), n);
       }
       else if constexpr (pattern_tuple<Descriptors>)
       {
         static_assert (dim != dynamic_size);
-        if constexpr (value::fixed<N>)
+        if constexpr (values::fixed<N>)
         {
           if constexpr (N::value >= dim)
-            return coordinate::Axis{};
+            return coordinates::Axis{};
           else if constexpr (fixed_pattern<std::tuple_element_t<N::value, Descriptors>>)
             return std::tuple_element_t<N::value, Descriptors> {};
           else
@@ -68,19 +68,19 @@ namespace OpenKalman::interface
         else
         {
           return std::apply(
-            [](auto&&...vs){ return std::array<coordinate::DynamicDescriptor<scalar_type>, dim> {std::forward<decltype(vs)>(vs)...}; },
+            [](auto&&...vs){ return std::array<coordinates::DynamicDescriptor<scalar_type>, dim> {std::forward<decltype(vs)>(vs)...}; },
             std::forward<Arg>(arg).my_descriptors)[n];
         }
       }
       else
       {
-        using Dyn = coordinate::DynamicDescriptor<scalar_type>;
+        using Dyn = coordinates::DynamicDescriptor<scalar_type>;
 #ifdef __cpp_lib_ranges
         namespace ranges = std::ranges;
 #endif
         if (n >= ranges::size(arg.my_descriptors))
         {
-          return Dyn {coordinate::Axis{}};
+          return Dyn {coordinates::Axis{}};
         }
         else
         {
@@ -186,9 +186,9 @@ namespace OpenKalman::interface
     using LibraryBase = internal::library_base_t<Derived, NestedObject>;
 
 #ifdef __cpp_lib_ranges
-    template<indexible Arg, std::ranges::input_range Indices> requires value::index<std::ranges::range_value_t<Indices>> and
+    template<indexible Arg, std::ranges::input_range Indices> requires values::index<std::ranges::range_value_t<Indices>> and
       interface::get_component_defined_for<NestedObject, nested_object_of_t<Arg&&>, const Indices&>
-    static constexpr value::scalar decltype(auto)
+    static constexpr values::scalar decltype(auto)
 #else
     template<typename Arg, typename Indices, std::enable_if_t<
       interface::get_component_defined_for<NestedObject, typename nested_object_of<Arg&&>::type, const Indices&>, int> = 0>
@@ -201,7 +201,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_lib_ranges
-    template<indexible Arg, std::ranges::input_range Indices> requires value::index<std::ranges::range_value_t<Indices>> and
+    template<indexible Arg, std::ranges::input_range Indices> requires values::index<std::ranges::range_value_t<Indices>> and
       interface::set_component_defined_for<NestedObject, nested_object_of_t<Arg&&>, const scalar_type_of_t<Arg>&, const Indices&>
 #else
     template<typename Arg, typename Indices, std::enable_if_t<
@@ -328,7 +328,7 @@ namespace OpenKalman::interface
     get_slice_impl(Arg&& arg, const BeginTup& begin_tup, const SizeTup& size_tup, std::index_sequence<Ix...>)
     {
       return make_vector_space_adapter(NestedInterface::get_slice(nested_object(std::forward<Arg>(arg)), begin_tup, size_tup),
-        std::tuple {coordinate::get_slice<scalar_type_of_t<Arg>>(OpenKalman::get_vector_space_descriptor(arg, Ix), std::get<Ix>(begin_tup), std::get<Ix>(size_tup))...});
+        std::tuple {coordinates::get_slice<scalar_type_of_t<Arg>>(OpenKalman::get_vector_space_descriptor(arg, Ix), std::get<Ix>(begin_tup), std::get<Ix>(size_tup))...});
     }
 
   public:
@@ -395,7 +395,7 @@ namespace OpenKalman::interface
         }, std::tuple_cat(
           std::forward_as_tuple(NestedInterface::to_diagonal(nested_object(std::forward<Arg>(arg)))),
           std::forward<Arg>(arg).my_descriptors),
-          std::tuple{coordinate::Axis{}});
+          std::tuple{coordinates::Axis{}});
     }
 
   private:
@@ -432,7 +432,7 @@ namespace OpenKalman::interface
         return diagonal_of_impl(NestedInterface::transpose(nested_object(nested_object(std::forward<Arg>(arg)))));
       else 
         return diagonal_of_impl(NestedInterface::diagonal_of(nested_object(std::forward<Arg>(arg))),
-          std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{coordinate::Axis{}, coordinate::Axis{}}));
+          std::tuple_cat(all_vector_space_descriptors(std::forward<Arg>(arg)), std::tuple{coordinates::Axis{}, coordinates::Axis{}}));
     }
 
   private:
@@ -444,7 +444,7 @@ namespace OpenKalman::interface
       if constexpr (Ix < N)
         return get_vector_space_descriptor<Ix>(arg) * std::get<Ix>(factors_tup);
       else
-        return coordinate::Axis{};
+        return coordinates::Axis{};
     }
 
 
@@ -458,7 +458,7 @@ namespace OpenKalman::interface
   public:
 
 #ifdef __cpp_concepts
-    template<indexible Arg, value::index...Factors> requires
+    template<indexible Arg, values::index...Factors> requires
       interface::broadcast_defined_for<NestedObject, nested_object_of_t<Arg&&>, const Factors&...>
     static indexible auto
 #else
@@ -476,7 +476,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<coordinate::pattern...Vs, typename Operation> requires
+    template<coordinates::pattern...Vs, typename Operation> requires
       interface::n_ary_operation_defined_for<NestedInterface, const std::tuple<Vs...>&, Operation&&>
     static indexible auto
 #else
@@ -491,7 +491,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<coordinate::pattern...Vs, typename Operation, indexible Arg, indexible...Args> requires
+    template<coordinates::pattern...Vs, typename Operation, indexible Arg, indexible...Args> requires
       interface::n_ary_operation_defined_for<NestedObject, const std::tuple<Vs...>&, Operation&&, nested_object_of_t<Arg&&>, Args...>
     static indexible auto
 #else
@@ -556,7 +556,7 @@ namespace OpenKalman::interface
 
 
 #ifdef __cpp_concepts
-    template<indexible Arg, coordinate::pattern V> requires
+    template<indexible Arg, coordinates::pattern V> requires
       interface::from_euclidean_defined_for<NestedObject, Arg&&, const V&> or
       interface::from_euclidean_defined_for<NestedObject, nested_object_of_t<Arg&&>, const V&>
     static constexpr indexible auto

@@ -92,10 +92,10 @@ namespace OpenKalman::interface
 #else
       else if constexpr (constexpr_operation_defined<>::value)
 #endif
-        return value::operation {Traits::constexpr_operation(),
+        return values::operation {Traits::constexpr_operation(),
           constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
       else
-        return value::operation {arg.functor(),
+        return values::operation {arg.functor(),
           constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
     }
 
@@ -144,9 +144,9 @@ namespace OpenKalman::interface
 #else
         if constexpr (constexpr_operation_defined<>::value)
 #endif
-          return value::operation {Traits::constexpr_operation(), c_left, c_right};
+          return values::operation {Traits::constexpr_operation(), c_left, c_right};
         else
-          return value::operation {arg.functor(), c_left, c_right};
+          return values::operation {arg.functor(), c_left, c_right};
       }
       else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum or Traits::preserves_constant_diagonal)
       {
@@ -155,10 +155,10 @@ namespace OpenKalman::interface
 #else
         if constexpr (constexpr_operation_defined<>::value)
 #endif
-          return value::operation {Traits::constexpr_operation(),
+          return values::operation {Traits::constexpr_operation(),
             constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
         else
-          return value::operation {arg.functor(),
+          return values::operation {arg.functor(),
             constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
       }
       else

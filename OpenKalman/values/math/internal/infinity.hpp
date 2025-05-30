@@ -10,7 +10,7 @@
 
 /**
  * \file \internal
- * \brief Definition for \ref value::internal::infinity.
+ * \brief Definition for \ref values::internal::infinity.
  */
 
 #ifndef OPENKALMAN_VALUE_INFINITY_HPP
@@ -20,16 +20,16 @@
 #include <stdexcept>
 #include "values/concepts/number.hpp"
 
-namespace OpenKalman::value::internal
+namespace OpenKalman::values::internal
 {
   /**
    * \internal
    * \brief Return +infinity in type T or raise an exception if infinity is not available.
    */
 #ifdef __cpp_concepts
-  template <value::number T>
+  template <values::number T>
 #else
-  template <typename T, std::enable_if_t<value::number<T>, int> = 0>
+  template <typename T, std::enable_if_t<values::number<T>, int> = 0>
 #endif
   constexpr std::decay_t<T> infinity()
   {
@@ -38,7 +38,7 @@ namespace OpenKalman::value::internal
     else throw std::domain_error {"Domain error in arithmetic operation: result is infinity"};
   }
 
-} // namespace OpenKalman::value::internal
+} // namespace OpenKalman::values::internal
 
 
 #endif //OPENKALMAN_VALUE_INFINITY_HPP

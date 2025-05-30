@@ -31,7 +31,7 @@ namespace OpenKalman::Eigen3::internal
     static constexpr auto BaseFlags = Eigen::internal::traits<std::decay_t<NestedMatrix>>::Flags;
     enum
     {
-      Flags = OpenKalman::coordinate::euclidean_pattern<StaticDescriptor> ? BaseFlags :
+      Flags = OpenKalman::coordinates::euclidean_pattern<StaticDescriptor> ? BaseFlags :
         BaseFlags & ~Eigen::DirectAccessBit & ~Eigen::PacketAccessBit & ~Eigen::LvalueBit,
     };
   };

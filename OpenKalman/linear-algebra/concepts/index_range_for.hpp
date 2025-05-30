@@ -20,7 +20,7 @@
 #ifdef __cpp_lib_ranges
 #include <ranges>
 #else
-#include "basics/ranges.hpp"
+#include "basics/compatibility/ranges.hpp"
 #endif
 
 namespace OpenKalman
@@ -32,7 +32,7 @@ namespace OpenKalman
     struct index_range_for_impl_it : std::false_type {};
 
     template<typename Indices, typename Indexible>
-    struct index_range_for_impl_it<Indices, Indexible, std::enable_if_t<value::index<ranges::iterator_t<Indices>>>>
+    struct index_range_for_impl_it<Indices, Indexible, std::enable_if_t<values::index<ranges::iterator_t<Indices>>>>
         : std::true_type {};
 
 
@@ -56,7 +56,7 @@ namespace OpenKalman
 #ifdef __cpp_lib_ranges
   concept index_range_for =
     indexible<T> and std::ranges::input_range<std::decay_t<Indices>> and 
-    value::index<std::ranges::range_value_t<Indices>> and
+    values::index<std::ranges::range_value_t<Indices>> and
     interface::get_component_defined_for<T, T, Indices> and
     (collections::size_of_v<Indices> == dynamic_size or index_count_v<T> == dynamic_size or
       collections::size_of_v<Indices> >= index_count_v<T>);

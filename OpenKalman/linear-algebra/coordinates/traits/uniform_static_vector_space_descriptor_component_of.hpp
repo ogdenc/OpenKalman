@@ -20,7 +20,7 @@
 #include "linear-algebra/coordinates/traits/internal/uniform_static_vector_space_descriptor_query.hpp"
 #include "linear-algebra/coordinates/concepts/uniform_static_vector_space_descriptor.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
   /**
    * \brief If T is a \ref uniform_static_vector_space_descriptor, <code>type</code> is an alias for the uniform component.
@@ -50,7 +50,7 @@ namespace OpenKalman::coordinate
   struct uniform_static_vector_space_descriptor_component_of<T, std::enable_if_t<uniform_static_vector_space_descriptor<T> and euclidean_pattern<T>>>
 #endif
   {
-    using type = coordinate::Dimensions<1>;
+    using type = coordinates::Dimensions<1>;
   };
 
 
@@ -78,6 +78,6 @@ namespace OpenKalman::coordinate
   using uniform_static_vector_space_descriptor_component_of_t = typename uniform_static_vector_space_descriptor_component_of<T>::type;
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 #endif //OPENKALMAN_UNIFORM_FIXED_VECTOR_SPACE_DESCRIPTOR_COMPONENT_OF_HPP

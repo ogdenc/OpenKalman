@@ -19,32 +19,23 @@
 #ifdef __cpp_lib_ranges
 #include <ranges>
 #else
-#include "basics/ranges.hpp"
+#include "basics/compatibility/views/view-concepts.hpp"
 #endif
-#include "collection.hpp"
-#include "collections/traits/common_collection_type.hpp"
+#include "uniform_tuple_like.hpp"
 
 namespace OpenKalman::collections
 {
-  namespace detail
-  {
-    template<typename T, typename = void>
-    struct has_common_collection_type : std::false_type {};
-
-    template<typename T>
-    struct has_common_collection_type<T, std::void_t<typename common_collection_type<T>::type>> : std::true_type {};
-  }
   /**
-   * \brief A \ref collections::collection "collection" that can be converted into a
-   * a \ref collections::collection_view "collection_view" through \ref collections::views::all.
+   * \brief A std::range or \ref uniform_tuple_like object that can be converted into
+   * a \ref collection_view by passing it to \ref collections::views::all.
    */
   template<typename T>
 #ifdef __cpp_lib_ranges
-  concept viewable_collection = collection<T> and
-    (std::ranges::viewable_range<T> or requires { typename common_collection_type<T>::type; });
+  concept viewable_collection = (std::ranges::random_access_range<T> and
+    (std::ranges::view<std::remove_cvref_t<T>> or std::ranges::viewable_range<T>)) or uniform_tuple_like<T>;
 #else
-  constexpr bool viewable_collection = collection<T> and
-    (ranges::viewable_range<T> or detail::has_common_collection_type<T>::value);
+  constexpr bool viewable_collection = (ranges::random_access_range<T> and
+    (ranges::view<remove_cvref_t<T>> or ranges::viewable_range<T>)) or uniform_tuple_like<T>;
 #endif
 
 

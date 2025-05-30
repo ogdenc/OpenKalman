@@ -26,8 +26,8 @@ namespace OpenKalman
     struct is_identity_matrix : std::false_type {};
 
     template<typename T>
-    struct is_identity_matrix<T, std::enable_if_t<value::fixed<constant_diagonal_coefficient<T>>>>
-      : std::bool_constant<value::internal::near(constant_diagonal_coefficient_v<T>, 1)> {};
+    struct is_identity_matrix<T, std::enable_if_t<values::fixed<constant_diagonal_coefficient<T>>>>
+      : std::bool_constant<values::internal::near(constant_diagonal_coefficient_v<T>, 1)> {};
   }
 #endif
 
@@ -40,7 +40,7 @@ namespace OpenKalman
   template<typename T>
 #ifdef __cpp_concepts
   concept identity_matrix =
-    (value::fixed<constant_diagonal_coefficient<T>> and value::internal::near(constant_diagonal_coefficient_v<T>, 1)) or
+    (values::fixed<constant_diagonal_coefficient<T>> and values::internal::near(constant_diagonal_coefficient_v<T>, 1)) or
 #else
     constexpr bool identity_matrix = detail::is_identity_matrix<T>::value or
 #endif

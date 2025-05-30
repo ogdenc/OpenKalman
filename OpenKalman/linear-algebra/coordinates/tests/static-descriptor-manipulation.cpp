@@ -29,17 +29,15 @@
 
 #include "linear-algebra/coordinates/concepts/descriptor.hpp" //
 #include "linear-algebra/coordinates/concepts/compares_with.hpp" //
-#include "linear-algebra/coordinates/traits/size_of.hpp" //
-#include "linear-algebra/coordinates/traits/euclidean_size_of.hpp" //
-#include "linear-algebra/coordinates/traits/component_count_of.hpp" //
+#include "linear-algebra/coordinates/traits/dimension_of.hpp" //
+#include "linear-algebra/coordinates/traits/stat_dimension_of.hpp" //
 
-#include "linear-algebra/coordinates/functions/get_size.hpp" //
-#include "linear-algebra/coordinates/functions/get_euclidean_size.hpp" //
-#include "linear-algebra/coordinates/functions/get_component_count.hpp" //
+#include "linear-algebra/coordinates/functions/get_dimension.hpp" //
+#include "linear-algebra/coordinates/functions/get_stat_dimension.hpp" //
 #include "linear-algebra/coordinates/functions/get_is_euclidean.hpp" //
 
-#include "linear-algebra/coordinates/functions/to_euclidean_element.hpp" //
-#include "linear-algebra/coordinates/functions/from_euclidean_element.hpp" //
+#include "linear-algebra/coordinates/functions/to_stat_space.hpp" //
+#include "linear-algebra/coordinates/functions/from_stat_space.hpp" //
 #include "linear-algebra/coordinates/functions/get_wrapped_component.hpp" //
 #include "linear-algebra/coordinates/functions/set_wrapped_component.hpp" //
 
@@ -73,7 +71,7 @@
 
 #include "linear-algebra/coordinates/functions/internal/to_euclidean_vector_space_descriptor_collection.hpp"
 
-using namespace OpenKalman::coordinate;
+using namespace OpenKalman::coordinates;
 
 TEST(coordinates, uniform_static_vector_space_descriptor)
 {

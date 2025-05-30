@@ -23,10 +23,10 @@
 #include "linear-algebra/coordinates/concepts/euclidean_pattern.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor.hpp"
 #include "linear-algebra/coordinates/concepts/compares_with.hpp"
-#include "linear-algebra/coordinates/traits/size_of.hpp"
+#include "linear-algebra/coordinates/traits/dimension_of.hpp"
 
 
-namespace OpenKalman::coordinate::internal
+namespace OpenKalman::coordinates::internal
 {
 #ifdef __cpp_concepts
     template<typename C>
@@ -38,50 +38,50 @@ namespace OpenKalman::coordinate::internal
 
 #ifdef __cpp_concepts
     template<descriptor C> requires
-      (size_of_v<C> == 1) and (not euclidean_pattern<C>)
+      (dimension_of_v<C> == 1) and (not euclidean_pattern<C>)
     struct uniform_static_vector_space_descriptor_query<C>
 #else
     template<typename C>
     struct uniform_static_vector_space_descriptor_query<C, std::enable_if_t<descriptor<C> and
-      (size_of_v<C> == 1) and (not euclidean_pattern<C>)>>
+      (dimension_of_v<C> == 1) and (not euclidean_pattern<C>)>>
 #endif
       : std::true_type { using uniform_type = C; };
 
 
 #ifdef __cpp_concepts
     template<euclidean_pattern C> requires
-      (dynamic_pattern<C> or descriptor<C>) and (size_of_v<C> != 0)
+      (dynamic_pattern<C> or descriptor<C>) and (dimension_of_v<C> != 0)
     struct uniform_static_vector_space_descriptor_query<C>
 #else
     template<typename C>
     struct uniform_static_vector_space_descriptor_query<C, std::enable_if_t<euclidean_pattern<C> and
-      (dynamic_pattern<C> or descriptor<C>) and (size_of_v<C> != 0)>>
+      (dynamic_pattern<C> or descriptor<C>) and (dimension_of_v<C> != 0)>>
 #endif
-      : std::true_type { using uniform_type = coordinate::Dimensions<1>; };
+      : std::true_type { using uniform_type = coordinates::Dimensions<1>; };
 
 
 #ifdef __cpp_concepts
-    template<typename C> requires (size_of_v<C> == 1)
+    template<typename C> requires (dimension_of_v<C> == 1)
     struct uniform_static_vector_space_descriptor_query<C>
 #else
     template<typename C>
-    struct uniform_static_vector_space_descriptor_query<C, std::enable_if_t<size_of_v<C> == 1>>
+    struct uniform_static_vector_space_descriptor_query<C, std::enable_if_t<dimension_of_v<C> == 1>>
 #endif
       : uniform_static_vector_space_descriptor_query<C> {};
 
 
 #ifdef __cpp_concepts
-    template<descriptor C, fixed_pattern...Cs> requires (size_of_v<C> == 1) and
+    template<descriptor C, fixed_pattern...Cs> requires (dimension_of_v<C> == 1) and
       (sizeof...(Cs) > 0) and compares_with<C, typename uniform_static_vector_space_descriptor_query<std::tuple<Cs...>>::uniform_type>
     struct uniform_static_vector_space_descriptor_query<std::tuple<C, Cs...>>
 #else
     template<typename C, typename...Cs>
     struct uniform_static_vector_space_descriptor_query<std::tuple<C, Cs...>, std::enable_if_t<
-      descriptor<C> and (... and fixed_pattern<Cs>) and (size_of_v<C> == 1) and
+      descriptor<C> and (... and fixed_pattern<Cs>) and (dimension_of_v<C> == 1) and
       (sizeof...(Cs) > 0) and compares_with<C, typename uniform_static_vector_space_descriptor_query<std::tuple<Cs...>>::uniform_type>>>
 #endif
       : std::true_type { using uniform_type = C; };
 
-} // namespace OpenKalman::coordinate::internal
+} // namespace OpenKalman::coordinates::internal
 
 #endif //OPENKALMAN_UNIFORM_FIXED_VECTOR_SPACE_DESCRIPTOR_QUERY_HPP

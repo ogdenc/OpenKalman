@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref coordinate::fixed_pattern_tuple.
+ * \brief Definition for \ref coordinates::fixed_pattern_tuple.
  */
 
 #ifndef OPENKALMAN_COORDINATE_FIXED_PATTERN_TUPLE_HPP
@@ -22,7 +22,7 @@
 #include "linear-algebra/coordinates/concepts/pattern_tuple.hpp"
 #include "fixed_pattern.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
 #if not defined(__cpp_concepts) or __cpp_generic_lambdas < 201707L
   namespace detail
@@ -45,7 +45,7 @@ namespace OpenKalman::coordinate
 
 	
   /**
-   * \brief An object describing a tuple-like collection of /ref coordinate::pattern objects.
+   * \brief An object describing a tuple-like collection of /ref coordinates::pattern objects.
    */
   template<typename T>
 #if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
@@ -60,6 +60,6 @@ namespace OpenKalman::coordinate
 #endif
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 #endif //OPENKALMAN_COORDINATE_FIXED_PATTERN_TUPLE_HPP

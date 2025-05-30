@@ -38,7 +38,7 @@ namespace OpenKalman::interface
 #ifdef DOXYGEN_SHOULD_SKIP_THIS
     /**
      * \brief The scalar type of T (e.g., double, int).
-     * \details <code>OpenKalman::value::number&lt;scalar_type&gt;</code> must be satisfied.
+     * \details <code>OpenKalman::values::number&lt;scalar_type&gt;</code> must be satisfied.
      * \note Mandatory.
      * \sa scalar_type_of
      */
@@ -53,13 +53,13 @@ namespace OpenKalman::interface
      * If a library allows more than one choice for the number of indices,
      * this value should be the maximum such value. For example, if a column vector is accessible by either
      * one or two indices, the value should be 2 (preferably std::integral_constant<std::size_t, 2>{}).
-     * \note Mandatory. The \ref indexible concept applies iff this function is defined and returns an \ref value::index.
-     * \return An \ref value::index representing the number of indices.
+     * \note Mandatory. The \ref indexible concept applies iff this function is defined and returns an \ref values::index.
+     * \return An \ref values::index representing the number of indices.
      * \sa OpenKalman::index_count
      * \sa OpenKalman::count_indices
      */
 #ifdef __cpp_concepts
-    static constexpr value::index auto
+    static constexpr values::index auto
 #else
     static constexpr auto
 #endif
@@ -67,19 +67,19 @@ namespace OpenKalman::interface
 
 
     /**
-     * \brief Get the \ref coordinate::pattern for index N of an argument.
+     * \brief Get the \ref coordinates::pattern for index N of an argument.
      * \details The implementation may assume that <code>n &lt; count_indices(t)</code>.
      * \note Mandatory. The simplest implementation is to return the dimension of index N as <code>std::size_t</code>
      * (if dynamic) or as <code>std::integral_constant&gt;std::size_t, ...&gt;</code> (if static).
      * \param n An index value less than the result of \ref count_indices
      * (e.g., 0 (dynamic) or <code>std::integral_constant&lt;std::size_t, 0&gt;</code> (static))
-     * \return A \ref coordinate::pattern object (either static or dynamic) for dimension <code>n</code>.
+     * \return A \ref coordinates::pattern object (either static or dynamic) for dimension <code>n</code>.
      */
 #ifdef __cpp_concepts
-    static constexpr coordinate::pattern auto
-    get_vector_space_descriptor(const T& arg, const value::index auto& n) = delete;
+    static constexpr coordinates::pattern auto
+    get_vector_space_descriptor(const T& arg, const values::index auto& n) = delete;
 #else
-    template<typename N, std::enable_if_t<value::index<N>, int> = 0>
+    template<typename N, std::enable_if_t<values::index<N>, int> = 0>
     static constexpr auto
     get_vector_space_descriptor(const T& arg, const N& n) = delete;
 #endif
@@ -103,10 +103,10 @@ namespace OpenKalman::interface
     /**
      * \brief If all components of the argument share the same constant value, return that constant.
      * \note: Optional.
-     * \returns A \ref value::scalar (or, if no constant, some empty class such as std::monostate).
+     * \returns A \ref values::scalar (or, if no constant, some empty class such as std::monostate).
      */
 #ifdef __cpp_concepts
-    static constexpr value::scalar auto
+    static constexpr values::scalar auto
 #else
     static constexpr auto
 #endif
@@ -117,10 +117,10 @@ namespace OpenKalman::interface
      * \brief If the argument is a \ref diagonal_matrix and all diagonal components share the same constant value, return that constant.
      * \details If T is a rank >2 tensor, every rank-2 slice comprising dimensions 0 and 1 must be constant diagonal matrix.
      * \note: Optional.
-     * \returns A \ref value::scalar (or, if no constant diagonal, some empty class such as std::monostate).
+     * \returns A \ref values::scalar (or, if no constant diagonal, some empty class such as std::monostate).
      */
 #ifdef __cpp_concepts
-    static constexpr value::scalar auto
+    static constexpr values::scalar auto
 #else
     static constexpr auto
 #endif
@@ -201,11 +201,11 @@ namespace OpenKalman::interface
      * \details This could be a
      */
 #ifdef __cpp_lib_concepts
-    template<std::convertible_to<const T&> Arg> requires requires(Arg&& arg) { {*std::forward<Arg>(arg).data()} -> value::scalar; } and direct_access
-    static constexpr value::number decltype(auto)
+    template<std::convertible_to<const T&> Arg> requires requires(Arg&& arg) { {*std::forward<Arg>(arg).data()} -> values::scalar; } and direct_access
+    static constexpr values::number decltype(auto)
 #else
     template<typename Arg, std::enable_if_t<
-      std::is_convertible_v<Arg, const T> and value::scalar<decltype(*std::declval<Arg&&>().data())> and direct_access, int> = 0>
+      std::is_convertible_v<Arg, const T> and values::scalar<decltype(*std::declval<Arg&&>().data())> and direct_access, int> = 0>
     static constexpr auto decltype(auto)
 #endif
     raw_data(Arg&& arg) = delete;

@@ -17,18 +17,18 @@
 
 #include <type_traits>
 #include <limits>
-#include "basics/language-features.hpp"
+#include "../../../basics/compatibility/language-features.hpp"
 #include "values/math/signbit.hpp"
 #include "values/math/copysign.hpp"
 #include "values/math/sqrt.hpp"
 #include "asin_utils.hpp"
 
-namespace OpenKalman::value::internal
+namespace OpenKalman::values::internal
 {
   template<typename T>
   constexpr T atan_impl(const T& x)
   {
-    return asin_impl(x / value::sqrt(1 + x * x));
+    return asin_impl(x / values::sqrt(1 + x * x));
   }
 
 
@@ -54,11 +54,11 @@ namespace OpenKalman::value::internal
       }
       else if (x == +inf)
       {
-        return value::copysign(T{0}, y);
+        return values::copysign(T{0}, y);
       }
       else if (x == -inf)
       {
-        return value::copysign(pi, y);
+        return values::copysign(pi, y);
       }
     }
 
@@ -70,18 +70,18 @@ namespace OpenKalman::value::internal
     {
       if (y > 0) return atan_impl(y / x) + pi;
       else if (y < 0) return atan_impl(y / x) - pi;
-      else return value::copysign(pi, y);
+      else return values::copysign(pi, y);
     }
     else // if (x == T{0})
     {
       if (y > 0) return pi/2;
       else if (y < 0) return -pi/2;
-      else return value::signbit(x) ? value::copysign(pi, y) : value::copysign(T{0}, y);
+      else return values::signbit(x) ? values::copysign(pi, y) : values::copysign(T{0}, y);
     }
   }
 
 
-} // namespace OpenKalman::value::internal
+} // namespace OpenKalman::values::internal
 
 
 #endif //OPENKALMAN_VALUE_MATH_UTILS_HPP

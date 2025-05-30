@@ -15,21 +15,21 @@
 #ifndef OPENKALMAN_VALUE_LOG_UTILS_HPP
 #define OPENKALMAN_VALUE_LOG_UTILS_HPP
 
-#include "basics/language-features.hpp"
+#include "../../../basics/compatibility/language-features.hpp"
 #include "values/functions/internal/near.hpp"
 #include "values/math/exp.hpp"
 
-namespace OpenKalman::value::internal
+namespace OpenKalman::values::internal
 {
   // Halley's method
   template <typename T>
   constexpr T log_impl(const T& x, const T& y0 = 0, int cmp = 0)
   {
-    auto expy0 = value::exp(y0);
+    auto expy0 = values::exp(y0);
     auto y1 = y0 + T{2} * (x - expy0) / (x + expy0);
-    if constexpr (value::complex<T>)
+    if constexpr (values::complex<T>)
     {
-      if (value::internal::near(y1, y0)) return y1;
+      if (values::internal::near(y1, y0)) return y1;
       else return log_impl(x, y1);
     }
     else
@@ -61,7 +61,7 @@ namespace OpenKalman::value::internal
   }
 
 
-} // namespace OpenKalman::value::internal
+} // namespace OpenKalman::values::internal
 
 
 #endif //OPENKALMAN_VALUE_LOG_UTILS_HPP

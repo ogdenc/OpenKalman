@@ -16,12 +16,15 @@ include(GoogleTest)
 
 add_executable(collections
         tests.cpp
+        size_of.cpp
         stl-collections.cpp
         get.cpp
-        tuple-utils.cpp
-        views.cpp
+        all.cpp
+        replicate.cpp
+        generate.cpp
+        slice.cpp
         iota.cpp
-        transform.cpp
+        #transform.cpp
     )
 
 target_link_libraries(collections GTest::gtest_main Eigen3::Eigen Threads::Threads)

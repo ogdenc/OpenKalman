@@ -25,6 +25,7 @@ namespace OpenKalman::collections
     template<typename Tup, typename = std::make_index_sequence<std::tuple_size_v<Tup>>>
     struct common_tuple_type_impl {};
 
+
     template<typename Tup, std::size_t...ix>
     struct common_tuple_type_impl<Tup, std::index_sequence<ix...>>
 #if __cplusplus >= 202002L

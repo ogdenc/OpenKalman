@@ -33,7 +33,7 @@ namespace OpenKalman
 #else
   constexpr bool constant_diagonal_matrix =
 #endif
-    indexible<T> and value::scalar<constant_diagonal_coefficient<T>>;
+    indexible<T> and values::scalar<constant_diagonal_coefficient<T>>;
 
 
 } // namespace OpenKalman

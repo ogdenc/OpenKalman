@@ -29,13 +29,13 @@ namespace OpenKalman
     {
       if constexpr ((dynamic_pattern<Ds> or ... or dynamic_dimension<Arg, index>))
       {
-        if (not ((get_size(ds) + ... + std::size_t{0}) <= get_vector_space_descriptor<index>(arg)))
+        if (not ((get_dimension(ds) + ... + std::size_t{0}) <= get_vector_space_descriptor<index>(arg)))
           throw std::logic_error {"When concatenated, the vector space descriptors provided to split function are not a "
             "prefix of the argument's vector space descriptor along at least index " + std::to_string(index)};
       }
       else
       {
-        static_assert(coordinate::compares_with<std::tuple<std::decay_t<Ds>...>, vector_space_descriptor_of_t<Arg, index>, less_equal<>>,
+        static_assert(coordinates::compares_with<std::tuple<std::decay_t<Ds>...>, vector_space_descriptor_of_t<Arg, index>, less_equal<>>,
           "Concatenated vector space descriptors provided to split function must be a prefix of the argument's vector space descriptor");
       }
     }
@@ -53,7 +53,7 @@ namespace OpenKalman
     template<std::size_t...indices, typename Arg, typename Blocks_tup, typename D, typename...Ds>
     auto split_symmetric(Arg&& arg, std::size_t begin, Blocks_tup&& blocks_tup, D&& d, Ds&&...ds)
     {
-      auto block_size = get_size(d);
+      auto block_size = get_dimension(d);
       auto begin_tup = std::tuple{split_dummy<indices>(begin)...};
       auto size_tup = std::tuple{split_dummy<indices>(block_size)...};
       auto block = get_slice<indices...>(std::forward<Arg>(arg), begin_tup, size_tup);
@@ -73,13 +73,13 @@ namespace OpenKalman
    * \tparam indices The indices along which to make the split. E.g., 0 means to split along rows,
    * 1 means to split along columns, {0, 1} means to split diagonally.
    * \tparam Arg The matrix or tensor to be split.
-   * \tparam Ds A set of \ref coordinate::pattern (the same for for each of indices)
+   * \tparam Ds A set of \ref coordinates::pattern (the same for for each of indices)
    */
 #ifdef __cpp_concepts
-  template<std::size_t...indices, indexible Arg, coordinate::pattern...Ds> requires (sizeof...(indices) > 0)
+  template<std::size_t...indices, indexible Arg, coordinates::pattern...Ds> requires (sizeof...(indices) > 0)
 #else
   template<std::size_t...indices, typename Arg, typename...Ds, std::enable_if_t<indexible<Arg> and
-    (coordinate::pattern<Ds> and ...) and (sizeof...(indices) > 0), int> = 0>
+    (coordinates::pattern<Ds> and ...) and (sizeof...(indices) > 0), int> = 0>
 #endif
   inline auto
   split(Arg&& arg, Ds&&...ds)
@@ -115,7 +115,7 @@ namespace OpenKalman
     auto split_impl(Arg&& arg, Begin_tup begin_tup, Blocks_tup&& blocks_tup, std::index_sequence<indices_ix...> seq,
       Ds_tup&& ds_tup, Ds_tups&&...ds_tups)
     {
-      auto size_tup = std::tuple{get_size(std::get<indices_ix>(ds_tup))...};
+      auto size_tup = std::tuple{get_dimension(std::get<indices_ix>(ds_tup))...};
       auto block = get_slice<indices...>(std::forward<Arg>(arg), begin_tup, size_tup);
       auto new_blocks_tup = std::tuple_cat(blocks_tup, std::tuple {std::move(block)});
       auto new_begin_tup = std::tuple{std::get<indices_ix>(begin_tup) + std::get<indices_ix>(size_tup)...};
@@ -135,7 +135,7 @@ namespace OpenKalman
    * \tparam indices The indices along which to make the split. E.g., 0 means to split along rows,
    * 1 means to split along columns, {0, 1} means to split diagonally.
    * \tparam Arg The matrix or tensor to be split.
-   * \tparam Ds_tups A set of tuples of \ref coordinate::pattern objects, each tuple having <code>sizeof...(indices)</code> elements
+   * \tparam Ds_tups A set of tuples of \ref coordinates::pattern objects, each tuple having <code>sizeof...(indices)</code> elements
    */
 #ifdef __cpp_concepts
   template<std::size_t...indices, indexible Arg, typename...Ds_tups> requires

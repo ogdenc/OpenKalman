@@ -10,7 +10,7 @@
 
 /**
  * \file
- * \brief Definition for \ref coordinate::dynamic_pattern.
+ * \brief Definition for \ref coordinates::dynamic_pattern.
  */
 
 #ifndef OPENKALMAN_COORDINATE_DYNAMIC_PATTERN_HPP
@@ -19,10 +19,10 @@
 #include "linear-algebra/coordinates/concepts/pattern.hpp"
 #include "linear-algebra/coordinates/concepts/fixed_pattern.hpp"
 
-namespace OpenKalman::coordinate
+namespace OpenKalman::coordinates
 {
   /**
-   * \brief A \ref coordinate::pattern for which the \ref coordinate::size_of "size" is defined at runtime.
+   * \brief A \ref coordinates::pattern for which the \ref coordinates::dimension_of "size" is defined at runtime.
    */
   template<typename T>
 #ifdef __cpp_concepts
@@ -33,6 +33,6 @@ namespace OpenKalman::coordinate
     pattern<T> and (not fixed_pattern<T>);
 
 
-} // namespace OpenKalman::coordinate
+} // namespace OpenKalman::coordinates
 
 #endif //OPENKALMAN_COORDINATE_DYNAMIC_PATTERN_HPP
