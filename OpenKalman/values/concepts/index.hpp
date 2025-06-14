@@ -17,12 +17,7 @@
 #define OPENKALMAN_VALUE_INDEX_HPP
 
 #include <type_traits>
-#ifdef __cpp_concepts
-#include <concepts>
-#endif
-#include <values/traits/fixed_number_of.hpp>
-
-#include "values/functions/to_number.hpp"
+#include "values/traits/fixed_number_of.hpp"
 #include "values/traits/number_type_of_t.hpp"
 #include "integral.hpp"
 
@@ -55,7 +50,7 @@ namespace OpenKalman::values
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept index = values::integral<T> and (std::is_unsigned_v<values::number_type_of_t<T>> or fixed_number_of<T>::value >= 0);
+  concept index = values::integral<T> and (std::is_unsigned_v<number_type_of_t<T>> or fixed_number_of<T>::value >= 0);
 #else
   template<typename T>
   constexpr bool index = values::integral<T> and (detail::number_type_is_unsigned<T>::value or detail::fixed_integral_gt_0<T>::value);

@@ -23,7 +23,7 @@
 #else
 #include "basics/compatibility/ranges.hpp"
 #endif
-#include "../../../basics/compatibility/language-features.hpp"
+#include "basics/compatibility/language-features.hpp"
 #include "values/concepts/fixed.hpp"
 #include "values/concepts/value.hpp"
 #include "values/classes/fixed-constants.hpp"
@@ -32,9 +32,10 @@
 #include "values/math/cos.hpp"
 #include "values/math/atan2.hpp"
 #include "values/functions/cast_to.hpp"
+#include "collections/concepts/collection_view.hpp"
 #include "collections/traits/common_collection_type.hpp"
 #include "collections/views/generate.hpp"
-#include "collections/views/single.hpp"
+#include "collections/views/update.hpp"
 #include "linear-algebra/coordinates/interfaces/coordinate_descriptor_traits.hpp"
 
 namespace OpenKalman::coordinates
@@ -182,18 +183,19 @@ namespace OpenKalman::interface
      * and the angle is scaled so that the difference between Limits<Scalar>::min and Limits<<Scalar>::max is 2&pi;,
      * so Limits<Scalar>::max wraps back to the point (-1, 0).
      */
-    static constexpr auto to_stat_space =
+    static constexpr auto
+    to_stat_space =
 #ifdef __cpp_concepts
-    [](const T&, const collections::collection auto& data_range) noexcept
+    [](const T&, const collections::collection_view auto& data_view) noexcept
 #else
-    [](const T&, const auto& data_range) noexcept
+    [](const T&, const auto& data_view) noexcept
 #endif
     {
-      using Scalar = collections::common_collection_type_t<decltype(data_range)>;
+      using Scalar = collections::common_collection_type_t<decltype(data_view)>;
       using R = values::real_type_of_t<Scalar>;
       Scalar cf {2 * numbers::pi_v<R> / (max - min)};
       Scalar mid { R{max + min} * R{0.5}};
-      Scalar a = collections::get(data_range, std::integral_constant<std::size_t, 0>{});
+      Scalar a = collections::get(data_view, std::integral_constant<std::size_t, 0>{});
       return collections::views::generate(to_stat_collection {cf * (a - mid)}, std::integral_constant<std::size_t, 2>{});
     };
 
@@ -201,30 +203,37 @@ namespace OpenKalman::interface
     /*
      * \details Maps x and y coordinates on Euclidean space back to an angle.
      */
-    static constexpr auto from_stat_space =
+    static constexpr auto
+    from_stat_space =
 #ifdef __cpp_concepts
-    [](const T&, const collections::collection auto& data_range) noexcept
+    [](const T&, const collections::collection_view auto& data_view) noexcept
 #else
-    [](const T&, const auto& data_range) noexcept
+    [](const T&, const auto& data_view) noexcept
 #endif
     {
-      using Scalar = collections::common_collection_type_t<decltype(data_range)>;
+      using Scalar = collections::common_collection_type_t<decltype(data_view)>;
       using R = values::real_type_of_t<Scalar>;
       Scalar cf {2 * numbers::pi_v<R> / (max - min)};
       Scalar mid { R{max + min} * R{0.5}};
-      Scalar x = collections::get(data_range, std::integral_constant<std::size_t, 0>{});
-      Scalar y = collections::get(data_range, std::integral_constant<std::size_t, 1>{});
-      return collections::views::single(values::atan2(y, x) / cf + mid);
+      Scalar x = collections::get(data_view, std::integral_constant<std::size_t, 0>{});
+      Scalar y = collections::get(data_view, std::integral_constant<std::size_t, 1>{});
+#ifdef __cpp_lib_ranges
+      return std::views::single(values::atan2(y, x) / cf + mid);
+#else
+      return ranges::views::single(values::atan2(y, x) / cf + mid);
+#endif
     };
 
 
   private:
 
 #ifdef __cpp_concepts
-    static constexpr auto wrap_impl(auto&& a) -> std::decay_t<decltype(a)>
+    static constexpr auto
+    wrap_impl(auto&& a) -> std::decay_t<decltype(a)>
 #else
     template<typename Scalar>
-    static constexpr std::decay_t<Scalar> wrap_impl(Scalar&& a)
+    static constexpr std::decay_t<Scalar>
+    wrap_impl(Scalar&& a)
 #endif
     {
       auto ap = values::real(a);
@@ -246,31 +255,38 @@ namespace OpenKalman::interface
   public:
 
     /*
-     * \brief Gets the angle, wrapped into the primary range.
+     * \brief Return a collection_view that can get and update an angle wrapped into the primary range.
      */
-    static constexpr auto get_wrapped_component =
+    static constexpr auto
+    wrap =
 #ifdef __cpp_concepts
-    [](const T& t, collections::collection auto&& data_range, values::index auto i) noexcept
+    [](const T&, collections::collection_view auto&& data_view) noexcept
 #else
-    [](const T& t, auto&& data_range, auto i) noexcept
+    [](const T&, auto&& data_view) noexcept
 #endif
     {
-      return wrap_impl(get(std::forward<decltype(data_range)>(data_range), std::move(i)));
-    };
-
-
-    /**
-     * \param local_index This is assumed to be 0.
-     */
-    static constexpr auto set_wrapped_component =
-#ifdef __cpp_concepts
-    [](const T& t, collections::collection auto&& data_range, values::value auto x, values::index auto i) noexcept
-      requires std::assignable_from<std::ranges::range_reference_t<decltype(data_range)>, decltype(x)&&>
+      using D = decltype(data_view);
+      using Scalar = collections::common_collection_type_t<decltype(data_view)>;
+#ifdef __cpp_lib_ranges
+      if constexpr (std::ranges::output_range<D, Scalar>)
 #else
-    [](const T& t, auto&& data_range, auto x, auto i) noexcept
+      if constexpr (ranges::output_range<D, Scalar>)
 #endif
-    {
-      get(std::forward<decltype(data_range)>(data_range), std::move(i)) = wrap_impl(std::move(x));
+      {
+        Scalar& a = collections::get(data_view, std::integral_constant<std::size_t, 0>{});
+      }
+
+
+
+      using V = decltype(data_view);
+      auto wrap_get = [](V& v, auto i) { return wrap_impl(collections::get(v, std::move(i))); };
+      auto wrap_set = [](V& v, auto i, auto x) -> auto&
+      {
+        auto& ret = collections::get(v, std::move(i));
+        ret = wrap_impl(std::move(x));
+        return ret;
+      };
+      return std::forward<decltype(data_view)>(data_view) | collections::views::update(wrap_get, wrap_set);
     };
 
   };

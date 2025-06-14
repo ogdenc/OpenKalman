@@ -25,6 +25,7 @@
 #else
 #include "basics/compatibility/ranges.hpp"
 #endif
+#include "collections/concepts/collection_view.hpp"
 #include "collections/traits/size_of.hpp"
 #include "collections/functions/get.hpp"
 
@@ -34,10 +35,10 @@ namespace OpenKalman::collections
   {
 #ifdef __cpp_lib_ranges
     template<typename T>
-    concept comparable = collection<T> and (size_of_v<T> != dynamic_size) or std::ranges::input_range<T>;
+    concept comparable = collection_view<T> and (size_of_v<T> != dynamic_size) or std::ranges::input_range<T>;
 #else
     template<typename T>
-    inline constexpr bool comparable = collection<T> and (size_of_v<T> != dynamic_size) or ranges::input_range<T>;
+    inline constexpr bool comparable = collection_view<T> and (size_of_v<T> != dynamic_size) or ranges::input_range<T>;
 #endif
 
 

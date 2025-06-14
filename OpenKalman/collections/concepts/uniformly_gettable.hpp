@@ -25,15 +25,6 @@ namespace OpenKalman::collections
 #if not defined(__cpp_concepts) or __cpp_generic_lambdas < 201707L
   namespace detail
   {
-    template<typename T, typename = void>
-    struct uniformly_gettable_unsized : std::false_type {};
-
-    template<typename T>
-    struct uniformly_gettable_unsized<T, std::enable_if<
-      gettable<0_uz, T> and gettable<std::numeric_limits<std::size_t>::max() - 1_uz, T>>>
-      : std::true_type {};
-
-
     template<typename T, typename = std::make_index_sequence<size_of_v<T>>, typename = void>
     struct uniformly_gettable_sized_impl : std::false_type {};
 
@@ -66,7 +57,8 @@ namespace OpenKalman::collections
         (std::make_index_sequence<size_of_v<T>>{}));
 #else
   constexpr bool uniformly_gettable =
-    ((sized<T> and size_of_v<T> != dynamic_size) or detail::uniformly_gettable_unsized<std::decay_t<T>>::value) and
+    ((sized<T> and size_of_v<T> != dynamic_size) or
+      (gettable<0_uz, T> and gettable<std::numeric_limits<std::size_t>::max() - 1_uz, T>)) and
     (not sized<T> or size_of_v<T> == dynamic_size or detail::uniformly_gettable_sized<T>::value);
 #endif
 

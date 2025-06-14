@@ -107,6 +107,24 @@ namespace OpenKalman::ranges
 
 
   // ---
+  // output_range
+  // ---
+
+  namespace detail
+  {
+    template<typename R, typename T, typename = void>
+    struct has_output_iterator : std::false_type {};
+
+    template<typename R, typename T>
+    struct has_output_iterator<R, T, std::enable_if_t<output_iterator<iterator_t<R>, T>>> : std::true_type {};
+  }
+
+
+  template<typename R, typename T>
+  inline constexpr bool output_range = range<R> and detail::has_output_iterator<R, T>::value;
+
+
+  // ---
   // forward_range
   // ---
 

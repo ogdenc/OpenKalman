@@ -24,6 +24,7 @@
 #include "collections/concepts/sized_random_access_range.hpp"
 #include "collections/concepts/collection_view.hpp"
 #include "collections/concepts/viewable_collection.hpp"
+#include "collections/concepts/settable.hpp"
 #include "collections/views/internal/movable_wrapper.hpp"
 #include "collections/views/all.hpp"
 #include "collections/functions/compare.hpp"
@@ -38,13 +39,6 @@ using namespace OpenKalman::collections;
 #else
 #include "basics/compatibility/views.hpp"
   namespace rg = OpenKalman::ranges;
-#endif
-
-#if __cpp_lib_ranges_concat >= 202403L
-  namespace cv = std::ranges::views;
-#else
-#include "basics/compatibility/views.hpp"
-  namespace cv = ranges::views;
 #endif
 
 TEST(collections, movable_wrapper)
@@ -116,6 +110,8 @@ TEST(collections, all_view)
 
   static_assert(gettable<0, views::all_t<std::tuple<int, double>>>);
   static_assert(gettable<1, views::all_t<std::tuple<int, double>>>);
+  static_assert(settable<0, views::all_t<std::tuple<int, double>>, int>);
+  static_assert(settable<1, views::all_t<std::tuple<int, double>>, double>);
   static_assert(rg::range<views::all_t<std::tuple<int, double>>>);
   static_assert(tuple_like<views::all_t<std::tuple<int, double>>>);
   static_assert(std::tuple_size_v<views::all_t<std::tuple<>>> == 0);
@@ -161,6 +157,8 @@ TEST(collections, all_view)
 
   auto v1 = std::vector{4, 5, 6, 7, 8};
   static_assert(rg::random_access_range<decltype(views::all(v1))>);
+  static_assert(gettable<0, views::all_t<decltype(v1)>>);
+  static_assert(gettable<1, views::all_t<decltype(v1)>>);
   EXPECT_EQ((views::all(v1)[0u]), 4);
   EXPECT_EQ((views::all(v1)[4u]), 8);
   EXPECT_EQ((views::all(std::vector{4, 5, 6, 7, 8})[3u]), 7);
@@ -215,6 +213,8 @@ TEST(collections, all_view)
   static_assert(views::all(a1).template get<4>() == 5);
   static_assert(OpenKalman::internal::generalized_std_get<0>(views::all(a1)) == 1);
   static_assert(OpenKalman::internal::generalized_std_get<4>(views::all(a1)) == 5);
+  static_assert(gettable<0, views::all_t<decltype((a1))>>);
+  static_assert(gettable<1, views::all_t<decltype((a1))>>);
   static_assert(tuple_like<views::all_t<int(&)[5]>>);
   static_assert(tuple_like<views::all_t<const int(&)[5]>>);
 
@@ -260,26 +260,28 @@ TEST(collections, all_view)
   static_assert(size_of_v<decltype(t1 | views::all | rg::views::reverse | rg::views::transform(std::negate{}))> == 5);
   static_assert(size_of_v<decltype(t1 | views::all | rg::views::transform(std::negate{}))> == 5);
   static_assert(size_of_v<decltype(t1 | views::all | rg::views::transform(std::negate{}) | rg::views::reverse)> == 5);
-  static_assert(size_of_v<decltype(cv::concat(t1 | views::all, a1 | views::all) | rg::views::transform(std::negate{}) | rg::views::reverse)> == 10);
+
+  static_assert(std::tuple_size_v<decltype(t1 | views::all | rg::views::transform(std::negate{}) | views::all)> == 5);
+  static_assert(std::is_same_v<std::tuple_element_t<1, decltype(t1 | views::all | rg::views::transform(std::negate{}) | views::all)>, int>);
+  static_assert(OpenKalman::internal::generalized_std_get<1>(t1 | views::all | rg::views::transform(std::negate{}) | views::all) == -2);
+  static_assert(tuple_like<decltype(t1 | views::all | rg::views::transform(std::negate{}) | views::all)>);
 
   static_assert(size_of_v<decltype(rg::views::empty<int> | views::all)> == 0);
   static_assert(size_of_v<decltype(rg::views::single(5.) | views::all)> == 1);
   static_assert(size_of_v<decltype(rg::views::iota(0, 4) | views::all)> == dynamic_size);
 
-  static_assert(equal_to{}(views::all(std::tuple{4, 5.}), std::tuple{4, 5.}));
-  static_assert(equal_to{}(std::tuple{4, 5.}, views::all(std::tuple{4, 5.})));
-  static_assert(equal_to{}(views::all(std::tuple{4, 5.}), views::all(std::tuple{4, 5.})));
+  static_assert(equal_to{}(std::tuple{4, 5.} | views::all, std::tuple{4, 5.} | views::all));
   EXPECT_TRUE(equal_to{}(views::all(std::vector{4, 5, 6}), std::vector{4, 5, 6}));
   EXPECT_TRUE(equal_to{}(std::array{4, 5, 6}, views::all(std::array{4, 5, 6})));
   EXPECT_TRUE(equal_to{}(views::all(v1), v1));
   EXPECT_TRUE(equal_to{}(v1, views::all(v1)));
-  EXPECT_TRUE(equal_to{}(views::all(std::vector{4, 5, 6}), views::all(std::tuple{4, 5, 6})));
-  EXPECT_TRUE(equal_to{}(views::all(std::tuple{4, 5, 6}), views::all(std::vector{4, 5, 6})));
-  EXPECT_TRUE(equal_to{}(views::all(std::tuple{4, 5, 6}), std::vector{4, 5, 6}));
+  EXPECT_TRUE(equal_to{}(views::all(std::vector{4, 5, 6}), views::all(std::tuple{4, 5, 6} | views::all)));
+  EXPECT_TRUE(equal_to{}(views::all(std::tuple{4, 5, 6} | views::all), views::all(std::vector{4, 5, 6})));
+  EXPECT_TRUE(equal_to{}(views::all(std::tuple{4, 5, 6} | views::all), std::vector{4, 5, 6}));
   EXPECT_TRUE(equal_to{}(std::vector{4, 5, 6}, views::all(std::tuple{4, 5, 6})));
 
-  static_assert(less{}(views::all(std::tuple{4, 5.}), std::tuple{4, 6.}));
-  static_assert(less{}(std::tuple{4, 5.}, views::all(std::tuple{4, 5., 1})));
+  static_assert(less{}(views::all(std::tuple{4, 5.}), std::tuple{4, 6.} | views::all));
+  static_assert(less{}(std::tuple{4, 5.} | views::all, views::all(std::tuple{4, 5., 1})));
   static_assert(less{}(views::all(std::tuple{4, 5.}), views::all(std::tuple{4, 6.})));
   EXPECT_TRUE(less{}(views::all(std::vector{4, 5, 6}), std::vector{4, 5, 7}));
   EXPECT_TRUE(less{}(std::array{4, 5, 6}, views::all(std::array{4, 5, 6, 1})));
@@ -288,11 +290,11 @@ TEST(collections, all_view)
   EXPECT_TRUE(less{}(views::all(std::tuple{4, 5, 6}), std::vector{4, 5, 7}));
   EXPECT_TRUE(less{}(std::vector{4, 5, 6}, views::all(std::tuple{4, 5, 7})));
 
-  static_assert(greater{}(views::all(std::tuple{4, 6.}), std::tuple{4, 5.}));
-  static_assert(less_equal{}(views::all(std::tuple{4, 5.}), std::tuple{4, 6.}));
+  static_assert(greater{}(views::all(std::tuple{4, 6.}), std::tuple{4, 5.} | views::all));
+  static_assert(less_equal{}(views::all(std::tuple{4, 5.}), std::tuple{4, 6.} | views::all));
   EXPECT_TRUE(less_equal{}(views::all(std::vector{4, 5.}), std::vector{4, 5.}));
-  static_assert(greater_equal{}(views::all(std::tuple{4, 6.}), std::tuple{4, 5.}));
+  static_assert(greater_equal{}(views::all(std::tuple{4, 6.}), std::tuple{4, 5.} | views::all));
   EXPECT_TRUE(greater_equal{}(views::all(std::tuple{4, 5.}), std::vector{4, 5.}));
-  static_assert(not_equal_to<>{}(views::all(std::tuple{4, 5.}), std::tuple{4, 6.}));
+  static_assert(not_equal_to<>{}(views::all(std::tuple{4, 5.}), std::tuple{4, 6.} | views::all));
 }
 

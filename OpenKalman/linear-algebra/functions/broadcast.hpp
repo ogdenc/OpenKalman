@@ -16,6 +16,8 @@
 #ifndef OPENKALMAN_BROADCAST_HPP
 #define OPENKALMAN_BROADCAST_HPP
 
+#include "collections/views/concat.hpp"
+
 namespace OpenKalman
 {
 #ifndef __cpp_concepts
@@ -59,7 +61,7 @@ namespace OpenKalman
       // Recursively remove any trailing 1D vector space descriptors
       return std::apply(
         [](Arg&& arg, const auto&...fs) { return broadcast(std::forward<Arg>(arg), fs...); },
-        internal::tuple_concatenate(std::forward_as_tuple(std::forward<Arg>(arg)),
+        collections::views_concat(std::forward_as_tuple(std::forward<Arg>(arg)),
           internal::tuple_slice<0, sizeof...(Factors) - 1>(std::forward_as_tuple(factors...))));
     }
     else

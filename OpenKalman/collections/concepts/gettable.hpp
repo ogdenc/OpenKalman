@@ -18,17 +18,25 @@
 
 #include <tuple>
 #include "basics/compatibility/language-features.hpp"
+#include "sized.hpp"
+#include "collections/traits/size_of.hpp"
 
 namespace OpenKalman::collections
 {
 #ifndef __cpp_concepts
   namespace detail
   {
-    template<std::size_t i, typename T, typename = void>
+    template<std::size_t i, typename T, typename = void, typename = void>
     struct gettable_impl : std::false_type {};
 
     template<std::size_t i, typename T>
-    struct gettable_impl<i, T, std::void_t<typename std::tuple_element<i, T>::type,
+    struct gettable_impl<i, T, std::enable_if_t<sized<T> and i < size_of_v<T>>, std::void_t<
+      typename std::tuple_element<i, std::decay_t<T>>::type,
+      decltype(internal::generalized_std_get<i>(std::declval<T&>()))>> : std::true_type {};
+
+    template<std::size_t i, typename T>
+    struct gettable_impl<i, T, std::enable_if_t<not sized<T>>, std::void_t<
+      typename std::tuple_element<i, std::decay_t<T>>::type,
       decltype(internal::generalized_std_get<i>(std::declval<T&>()))>> : std::true_type {};
 
   } // namespace detail
@@ -43,10 +51,11 @@ namespace OpenKalman::collections
   template<std::size_t i, typename T>
 #ifdef __cpp_concepts
   concept gettable =
+    (not sized<T> or i < size_of_v<T>) and
     requires { typename std::tuple_element<i, std::decay_t<T>>::type;
                internal::generalized_std_get<i>(std::declval<T&>()); };
 #else
-  constexpr bool gettable = detail::gettable_impl<i, std::decay_t<T>>::value;
+  constexpr bool gettable = detail::gettable_impl<i, T>::value;
 #endif
 
 

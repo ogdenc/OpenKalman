@@ -189,10 +189,12 @@ namespace OpenKalman::interface
     private:
 
 #ifdef __cpp_concepts
-      static constexpr auto polar_angle_wrap_impl(bool distance_is_negative, auto&& a) -> std::decay_t<decltype(a)>
+      static constexpr auto
+      polar_angle_wrap_impl(bool distance_is_negative, auto&& a) -> std::decay_t<decltype(a)>
 #else
       template<typename Scalar>
-      static constexpr std::decay_t<Scalar> polar_angle_wrap_impl(bool distance_is_negative, Scalar&& a)
+      static constexpr std::decay_t<Scalar>
+      polar_angle_wrap_impl(bool distance_is_negative, Scalar&& a)
 #endif
       {
         using R = std::decay_t<decltype(values::real(std::declval<decltype(a)>()))>;

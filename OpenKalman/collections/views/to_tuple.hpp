@@ -40,6 +40,7 @@ namespace OpenKalman::collections
     namespace ranges = std::ranges;
 #endif
 
+
 #ifdef __cpp_concepts
     template<std::size_t i, typename T>
 #else
@@ -75,16 +76,16 @@ namespace OpenKalman::collections
 #else
     template<std::size_t i, typename T, typename = void>
 #endif
-    struct get_t : tuple_element_impl<i, T> {};
+    struct get_elem : tuple_element_impl<i, T> {};
 
 
     template<std::size_t i, typename R>
     inline constexpr decltype(auto)
-    tget(R&& r) { using namespace std; return get_t<i, remove_cvref_t<R>>{}(std::forward<R>(r)); }
+    get_from_base(R&& r) { using namespace std; return get_elem<i, remove_cvref_t<R>>{}(std::forward<R>(r)); }
 
 
     template<typename T>
-    struct get_t<0, ranges::single_view<T>>
+    struct get_elem<0, ranges::single_view<T>>
     {
       using type = T;
       template<typename U> constexpr decltype(auto) operator() (U&& u) const { return *std::forward<U>(u).data(); }
@@ -92,32 +93,32 @@ namespace OpenKalman::collections
 
 
     template<std::size_t i, typename R>
-    struct get_t<i, ranges::ref_view<R>> : get_t<i, remove_cvref_t<R>>
+    struct get_elem<i, ranges::ref_view<R>> : get_elem<i, remove_cvref_t<R>>
     {
-      template<typename T> constexpr decltype(auto) operator() (T&& t) const { return tget<i>(std::forward<T>(t).base()); }
+      template<typename T> constexpr decltype(auto) operator() (T&& t) const { return get_from_base<i>(std::forward<T>(t).base()); }
     };
 
 
     template<std::size_t i, typename R>
-    struct get_t<i, ranges::owning_view<R>> : get_t<i, remove_cvref_t<R>>
+    struct get_elem<i, ranges::owning_view<R>> : get_elem<i, remove_cvref_t<R>>
     {
-      template<typename T> constexpr decltype(auto) operator() (T&& t) const { return tget<i>(std::forward<T>(t).base()); }
+      template<typename T> constexpr decltype(auto) operator() (T&& t) const { return get_from_base<i>(std::forward<T>(t).base()); }
     };
 
 
 #ifdef __cpp_concepts
     template<std::size_t i, typename V> requires (size_of_v<V> != dynamic_size)
-    struct get_t<i, ranges::reverse_view<V>>
+    struct get_elem<i, ranges::reverse_view<V>>
 #else
     template<std::size_t i, typename V>
-    struct get_t<i, ranges::reverse_view<V>, std::enable_if_t<size_of_v<V> != dynamic_size>>
+    struct get_elem<i, ranges::reverse_view<V>, std::enable_if_t<size_of_v<V> != dynamic_size>>
 #endif
-      : get_t<size_of_v<V> - i - 1_uz, remove_cvref_t<V>>
+      : get_elem<size_of_v<V> - i - 1_uz, remove_cvref_t<V>>
     {
       template<typename T> constexpr decltype(auto) operator() (T&& t) const
       {
         if constexpr (not std::is_lvalue_reference_v<T> or std::is_copy_constructible_v<V>)
-          return tget<size_of_v<V> - i - 1_uz>(std::forward<T>(t).base());
+          return get_from_base<size_of_v<V> - i - 1_uz>(std::forward<T>(t).base());
         else
           return collections::get(std::forward<T>(t), std::integral_constant<std::size_t, i>{});
       }
@@ -406,40 +407,40 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     get(this auto&& self) noexcept
     {
-      if constexpr (size_of_v<V> != dynamic_size) static_assert(i < size_of_v<V>, "Index out of range");
-      return detail_to_tuple::tget<i>(std::forward<decltype(self)>(self).base());
+      if constexpr(sized<V>) if constexpr (size_of_v<V> != dynamic_size) static_assert(i < size_of_v<V>, "Index out of range");
+      return detail_to_tuple::get_from_base<i>(std::forward<decltype(self)>(self).base());
     }
 #else
     template<std::size_t i>
     constexpr decltype(auto)
     get() &
     {
-      if constexpr (size_of_v<V> != dynamic_size) static_assert(i < size_of_v<V>, "Index out of range");
-      return detail_to_tuple::tget<i>(base());
+      if constexpr(sized<V>) if constexpr (size_of_v<V> != dynamic_size) static_assert(i < size_of_v<V>, "Index out of range");
+      return detail_to_tuple::get_from_base<i>(base());
     }
 
     template<std::size_t i>
     constexpr decltype(auto)
     get() const &
     {
-      if constexpr (size_of_v<V> != dynamic_size) static_assert(i < size_of_v<V>, "Index out of range");
-      return detail_to_tuple::tget<i>(base());
+      if constexpr(sized<V>) if constexpr (size_of_v<V> != dynamic_size) static_assert(i < size_of_v<V>, "Index out of range");
+      return detail_to_tuple::get_from_base<i>(base());
     }
 
     template<std::size_t i>
     constexpr decltype(auto)
     get() && noexcept
     {
-      if constexpr (size_of_v<V> != dynamic_size) static_assert(i < size_of_v<V>, "Index out of range");
-      return detail_to_tuple::tget<i>(std::move(*this).base());
+      if constexpr(sized<V>) if constexpr (size_of_v<V> != dynamic_size) static_assert(i < size_of_v<V>, "Index out of range");
+      return detail_to_tuple::get_from_base<i>(std::move(*this).base());
     }
 
     template<std::size_t i>
     constexpr decltype(auto)
     get() const && noexcept
     {
-      if constexpr (size_of_v<V> != dynamic_size) static_assert(i < size_of_v<V>, "Index out of range");
-      return detail_to_tuple::tget<i>(std::move(*this).base());
+      if constexpr(sized<V>) if constexpr (size_of_v<V> != dynamic_size) static_assert(i < size_of_v<V>, "Index out of range");
+      return detail_to_tuple::get_from_base<i>(std::move(*this).base());
     }
 #endif
 
@@ -461,7 +462,7 @@ namespace OpenKalman::collections
     struct tuple_size {};
 
     template<typename V>
-    struct tuple_size<V, std::enable_if_t<sized<V>>> : size_of<V> {};
+    struct tuple_size<V, std::enable_if_t<sized<V> and size_of<V>::value != dynamic_size>> : size_of<V> {};
   }
 #endif
 
@@ -494,9 +495,9 @@ namespace std
   template<std::size_t i, typename V>
   struct tuple_element<i, OpenKalman::collections::to_tuple<V>>
 #ifdef __cpp_lib_remove_cvref
-    : OpenKalman::collections::detail_to_tuple::get_t<i, remove_cvref_t<V>> {};
+    : OpenKalman::collections::detail_to_tuple::get_elem<i, remove_cvref_t<V>> {};
 #else
-    : OpenKalman::collections::detail_to_tuple::get_t<i, OpenKalman::remove_cvref_t<V>> {};
+    : OpenKalman::collections::detail_to_tuple::get_elem<i, OpenKalman::remove_cvref_t<V>> {};
 #endif
 }
 

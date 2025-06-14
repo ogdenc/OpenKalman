@@ -5,7 +5,6 @@
 # Any copyright as to this file is dedicated to the Public Domain.
 # https://creativecommons.org/publicdomain/zero/1.0/
 
-
 cmake_minimum_required(VERSION 3.10)
 
 find_package(Eigen3 REQUIRED)
@@ -16,7 +15,7 @@ include(GoogleTest)
 
 add_executable(coordinates
         integral-types.cpp
-        #Dimensions.cpp
+        Dimensions.cpp
         #Distance.cpp
         #Angle.cpp
         #Inclination.cpp

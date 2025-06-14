@@ -27,11 +27,34 @@
 namespace OpenKalman::ranges
 {
   // ---
-  // view
+  // view, enable_view, view_base
   // ---
 
+  struct view_base {};
+
+  namespace detail
+  {
+    template<typename T, typename U, std::enable_if_t<not std::is_same_v<T, view_interface<U>>, int> = 0>
+    void is_derived_from_view_interface_test(const T&, const view_interface<U>&); // no need to define
+
+
+    template<typename T, typename = void>
+    struct is_derived_from_view_interface : std::false_type {};
+
+    template<typename T>
+    struct is_derived_from_view_interface<T,
+      std::void_t<decltype(is_derived_from_view_interface_test(std::declval<T>(), std::declval<T>()))>> : std::true_type {};
+  }
+
+
+  template<class T>
+  inline constexpr bool enable_view =
+   (std::is_base_of_v<view_base, T> and std::is_convertible_v<const volatile T&, const volatile view_base&>) or
+   detail::is_derived_from_view_interface<T>::value;
+
+
   template<typename T>
-  inline constexpr bool view = range<T> and movable<T> and std::is_base_of_v<view_interface<T>, T>;
+  inline constexpr bool view = range<T> and movable<T> and enable_view<T>;
 
 
   // ---

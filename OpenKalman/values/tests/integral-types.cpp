@@ -20,6 +20,7 @@
 #include "values/traits/real_type_of_t.hpp"
 #include "values/concepts/integral.hpp"
 #include "values/concepts/index.hpp"
+#include "values/concepts/size.hpp"
 
 using namespace OpenKalman;
 
@@ -40,8 +41,18 @@ TEST(values, integral)
   static_assert(std::is_same_v<values::real_type_of_t<std::size_t>, double>);
 
   static_assert(not values::index<int>);
+  static_assert(not values::index<void>);
   static_assert(values::integral<int>);
   static_assert(not values::fixed<int>);
   static_assert(values::dynamic<int>);
+
+  static_assert(values::size<unsigned>);
+  static_assert(values::size<std::size_t>);
+#ifdef __cpp_lib_ranges
+  static_assert(values::size<std::unreachable_sentinel_t>);
+#else
+  static_assert(values::size<unreachable_sentinel_t>);
+#endif
+  static_assert(not values::size<int>);
 }
 

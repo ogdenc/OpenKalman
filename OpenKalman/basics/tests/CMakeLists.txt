@@ -22,6 +22,7 @@ add_executable(basics
         empty.cpp
         single.cpp
         iota.cpp
+        repeat.cpp
         transform.cpp
         reverse.cpp
         concat.cpp

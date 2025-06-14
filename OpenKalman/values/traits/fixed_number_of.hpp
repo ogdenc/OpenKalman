@@ -38,7 +38,7 @@ namespace OpenKalman::values
    * \brief The fixed number associated with a \ref values::fixed.
    */
 #ifdef __cpp_concepts
-  template<values::value T>
+  template<typename T>
 #else
   template<typename T, typename = void>
 #endif

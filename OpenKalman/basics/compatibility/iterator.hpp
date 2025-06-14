@@ -181,9 +181,6 @@ namespace OpenKalman
     struct is_indirectly_readable<I,
       std::void_t<iter_value_t<I>, iter_reference_t<I>, iter_rvalue_reference_t<I>>,
       std::enable_if_t<std::is_same<decltype(*std::declval<I>()), iter_reference_t<I>>::value>> : std::true_type {};
-
-    template<typename I>
-    inline constexpr bool indirectly_readable = is_indirectly_readable<remove_cvref_t<I>>::value;
   }
 
 
@@ -196,6 +193,30 @@ namespace OpenKalman
 
   template<typename T, std::enable_if_t<indirectly_readable<T>, int > = 0>
   using iter_common_reference_t = common_reference_t<iter_reference_t<T>, iter_value_t<T>&>;
+
+
+  // ---
+  // indirectly_writable
+  // ---
+
+  namespace detail
+  {
+    template<typename Out, typename T, typename = void>
+    struct is_indirectly_writable : std::false_type {};
+
+    template<typename Out, typename T>
+    struct is_indirectly_writable<Out, T,
+      std::void_t<
+        decltype(*std::declval<Out&>() = std::declval<T&&>()),
+        decltype(*std::declval<Out&&>() = std::declval<T&&>()),
+        decltype(const_cast<const iter_reference_t<Out>&&>(*std::declval<Out&>()) = std::declval<T&&>()),
+        decltype(const_cast<const iter_reference_t<Out>&&>(*std::declval<Out&&>()) = std::declval<T&&>())
+      >> : std::true_type {};
+  }
+
+
+  template<typename Out, typename T>
+  inline constexpr bool indirectly_writable = detail::is_indirectly_readable<Out, T>::value;
 
 
   // ---
@@ -245,6 +266,27 @@ namespace OpenKalman
   inline constexpr bool input_iterator =
     input_or_output_iterator<I> and
     indirectly_readable<I>;
+
+
+  // ---
+  // output_iterator
+  // ---
+
+  namespace detail
+  {
+    template<typename I, typename T, typename = void>
+    struct output_iterator_impl : std::false_type {};
+
+    template<typename I, typename T>
+    struct output_iterator_impl<I, T, std::void_t<decltype(*std::declval<I&>()++ = std::declval<T&&>())>> : std::true_type {};
+  }
+
+
+  template<typename I, typename T>
+  inline constexpr bool output_iterator =
+    input_or_output_iterator<I> and
+    indirectly_writable<I, T> and
+    detail::output_iterator_impl<I, T>::value;
 
 
   // ---

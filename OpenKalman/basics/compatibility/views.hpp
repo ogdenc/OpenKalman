@@ -37,6 +37,10 @@
 #include "views/reverse.hpp"
 #endif
 
+#ifndef __cpp_lib_ranges_repeat
+#include "views/repeat.hpp"
+#endif
+
 #ifndef __cpp_lib_ranges_concat
 #include "views/concat.hpp"
 #endif

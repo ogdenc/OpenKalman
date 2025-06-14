@@ -22,6 +22,7 @@
 #else
 #include "basics/compatibility/ranges.hpp"
 #include "basics/compatibility/views/range_adaptor_closure.hpp"
+#include "basics/compatibility/views/single.hpp"
 #endif
 #include "collections/concepts/viewable_collection.hpp"
 #include "from_tuple.hpp"
@@ -54,7 +55,13 @@ namespace OpenKalman::collections::views
         }
         else if constexpr (uniform_tuple_like<R>)
         {
-          return from_tuple {std::forward<R>(r)};
+          if constexpr (size_of_v<R> == 1)
+  #ifdef __cpp_lib_ranges
+            return std::ranges::views::single(OpenKalman::internal::generalized_std_get<0>(std::forward<R>(r)));
+  #else
+            return ranges::views::single(OpenKalman::internal::generalized_std_get<0>(std::forward<R>(r)));
+  #endif
+          else return from_tuple {std::forward<R>(r)};
         }
         else // std::ranges::random_access_range<T> and std::ranges::viewable_range<T>
         {

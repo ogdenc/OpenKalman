@@ -21,38 +21,13 @@
 using namespace OpenKalman;
 using namespace OpenKalman::collections;
 
-#include "collections/functions/internal/tuple_concatenate.hpp"
 #include "collections/functions/internal/tuple_like_to_tuple.hpp"
-
-TEST(collections, tuple_concatenate)
-{
-  using OpenKalman::internal::tuple_like_to_tuple;
-  static constexpr std::tuple a {1, 1.4f};
-  static constexpr std::tuple b {2, 2.1};
-  static constexpr std::tuple c {3.2l};
-  static_assert(std::tuple_size_v<decltype(tuple_concatenate(a, b, c))> == 5);
-  static_assert(std::is_same_v<std::tuple_element_t<0, decltype(tuple_concatenate(a, b, c))>, int>);
-  static_assert(std::is_same_v<std::tuple_element_t<1, decltype(tuple_concatenate(a, b, c))>, float>);
-  static_assert(std::is_same_v<std::tuple_element_t<2, decltype(tuple_concatenate(a, b, c))>, int>);
-  static_assert(std::is_same_v<std::tuple_element_t<3, decltype(tuple_concatenate(a, b, c))>, double>);
-  static_assert(std::is_same_v<std::tuple_element_t<4, decltype(tuple_concatenate(a, b, c))>, long double>);
-  static_assert(get(tuple_concatenate(a, b, c), std::integral_constant<std::size_t, 0>{}) == 1);
-  static_assert(get(tuple_concatenate(a, b, c), std::integral_constant<std::size_t, 1>{}) == 1.4f);
-  static_assert(get(tuple_concatenate(a, b, c), std::integral_constant<std::size_t, 2>{}) == 2);
-  static_assert(get(tuple_concatenate(a, b, c), std::integral_constant<std::size_t, 3>{}) == 2.1);
-  static_assert(get(tuple_concatenate(a, b, c), std::integral_constant<std::size_t, 4>{}) == 3.2l);
-
-  constexpr auto tup1 = tuple_concatenate(std::tuple {1, 2}, std::tuple {3}, std::tuple {4, 5, 6});
-  static_assert(tuple_like_to_tuple(tup1) == std::tuple {1, 2, 3, 4, 5, 6});
-  static_assert(tuple_like_to_tuple(tuple_concatenate(std::tuple {1, 2}, std::tuple {3}, std::tuple {4, 5, 6})) == std::tuple {1, 2, 3, 4, 5, 6});
-}
-
 
 #include "collections/functions/internal/tuple_slice.hpp"
 
 TEST(collections, tuple_slice)
 {
-  using OpenKalman::internal::tuple_like_to_tuple;
+  using OpenKalman::collections::internal::tuple_like_to_tuple;
   std::tuple t {1, "c", 5.0, 6.0};
   static_assert(std::tuple_size_v<decltype(tuple_slice<0, 0>(t))> == 0);
   static_assert(std::tuple_size_v<decltype(tuple_slice<0, 2>(t))> == 2);
@@ -85,43 +60,11 @@ TEST(collections, tuple_slice)
 }
 
 
-#include "collections/functions/internal/tuple_fill.hpp"
-
-TEST(collections, tuple_fill)
-{
-  using OpenKalman::internal::tuple_like_to_tuple;
-  static_assert(std::tuple_size_v<tuple_fill_view<4, double>> == 4);
-  static_assert(std::is_same_v<std::tuple_element_t<0, tuple_fill_view<4, std::integral_constant<std::size_t, 2>>>, std::integral_constant<std::size_t, 2>>);
-  static_assert(get(tuple_fill_view<4, double>{7.0}, std::integral_constant<std::size_t, 0>{}) == 7.0);
-  static_assert(std::is_same_v<std::tuple_element_t<0, decltype(tuple_fill<4, std::integral_constant<std::size_t, 2>>())>, std::integral_constant<std::size_t, 2>>);
-
-  constexpr double d = 7.0;
-  static_assert(std::tuple_size_v<decltype(tuple_fill<0>(d))> == 0);
-  static_assert(std::tuple_size_v<decltype(tuple_fill<4>(d))> == 4);
-  static_assert(std::is_same_v<std::tuple_element_t<0, decltype(tuple_fill<4>(d))>, const double&>);
-  static_assert(std::is_same_v<std::tuple_element_t<3, decltype(tuple_fill<4>(d))>, const double&>);
-  static_assert(std::is_same_v<std::tuple_element_t<3, decltype(tuple_fill<4>(std::declval<double&>()))>, double&>);
-  static_assert(get(tuple_fill<4>(d), std::integral_constant<std::size_t, 0>{}) == 7.0);
-  static_assert(get(tuple_fill<4>(d), std::integral_constant<std::size_t, 3>{}) == 7.0);
-  static_assert(std::is_same_v<decltype(get<0>(tuple_fill<4>(d))), const double&>);
-  static_assert(std::is_same_v<decltype(get<0>(tuple_fill<4>(std::declval<double&>()))), double&>);
-
-  static_assert(std::tuple_size_v<decltype(tuple_fill<0>(5.0))> == 0);
-  static_assert(std::tuple_size_v<decltype(tuple_fill<4>(5.0))> == 4);
-  static_assert(std::is_same_v<std::tuple_element_t<0, decltype(tuple_fill<4>(5.0))>, double>);
-  static_assert(std::is_same_v<std::tuple_element_t<3, decltype(tuple_fill<4>(5.0))>, double>);
-  static_assert(get(tuple_fill<4>(5.0), std::integral_constant<std::size_t, 0>{}) == 5.0);
-  static_assert(get(tuple_fill<4>(6.0), std::integral_constant<std::size_t, 3>{}) == 6.0);
-
-  static_assert(tuple_like_to_tuple(tuple_fill<4>(6)) == std::tuple {6, 6, 6, 6});
-}
-
-
 #include "collections/functions/internal/tuple_reverse.hpp"
 
 TEST(collections, tuple_reverse)
 {
-  using OpenKalman::internal::tuple_like_to_tuple;
+  using OpenKalman::collections::internal::tuple_like_to_tuple;
   static_assert(std::is_same_v<std::tuple_element_t<0, decltype(tuple_reverse<std::tuple<std::integral_constant<std::size_t, 2>>>())>, std::integral_constant<std::size_t, 2>>);
 
   static constexpr std::tuple ta {1, 'c', 5.0, 6.0};

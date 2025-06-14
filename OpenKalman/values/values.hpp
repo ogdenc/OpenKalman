@@ -39,6 +39,7 @@ namespace OpenKalman::values {}
 #include "concepts/complex.hpp"
 #include "concepts/integral.hpp"
 #include "concepts/index.hpp"
+#include "concepts/size.hpp"
 #include "concepts/floating.hpp"
 #include "concepts/not_complex.hpp"
 

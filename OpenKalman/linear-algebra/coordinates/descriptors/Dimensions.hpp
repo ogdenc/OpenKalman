@@ -216,7 +216,7 @@ namespace OpenKalman::interface
 
 
     static constexpr auto
-    dimension(const T& t)
+    dimension = [](const T& t)
     {
       if constexpr (N == dynamic_size) return t.runtime_size;
       else return std::integral_constant<std::size_t, N>{};
@@ -224,25 +224,19 @@ namespace OpenKalman::interface
 
 
     static constexpr auto
-    stat_dimension(const T& t) { return size(t); };
+    stat_dimension = [](const T& t) { return dimension(t); };
 
 
     static constexpr auto
-    is_euclidean(const T&) { return std::true_type{}; }
+    is_euclidean = [](const T&) { return std::true_type{}; };
 
 
     static constexpr std::size_t
-    hash_code(const T& t)
+    hash_code = [](const T& t)
     {
-      if constexpr (N == dynamic_size)
-      {
-        return static_cast<std::size_t>(t.runtime_size);
-      }
-      else
-      {
-        return N;
-      }
-    }
+      if constexpr (N == dynamic_size) return static_cast<std::size_t>(t.runtime_size);
+      else return N;
+    };
 
   };
 

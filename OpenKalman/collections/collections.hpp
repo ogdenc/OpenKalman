@@ -56,6 +56,10 @@ namespace OpenKalman
 #include "concepts/index.hpp"
 #include "concepts/invocable_on_collection.hpp"
 
+#include "concepts/settable.hpp"
+#include "concepts/uniformly_settable.hpp"
+#include "concepts/output_collection.hpp"
+
 #include "traits/common_tuple_type.hpp"
 #include "concepts/uniform_tuple_like.hpp"
 #include "traits/common_collection_type.hpp"
@@ -63,15 +67,14 @@ namespace OpenKalman
 
 #include "functions/compare.hpp"
 
-#include "functions/internal/tuple_concatenate.hpp"
+#include "concepts/viewable_collection.hpp"
+#include "concepts/collection_view.hpp"
+
+#include "collections/views/internal/repeat_tuple_view.hpp"
 #include "functions/internal/tuple_slice.hpp"
-#include "functions/internal/tuple_fill.hpp"
 #include "functions/internal/tuple_reverse.hpp"
 #include "functions/internal/tuple_flatten.hpp"
 #include "functions/internal/tuple_like_to_tuple.hpp"
-
-#include "concepts/viewable_collection.hpp"
-#include "concepts/collection_view.hpp"
 
 #include "views/from_tuple.hpp"
 #include "views/to_tuple.hpp"
@@ -79,9 +82,10 @@ namespace OpenKalman
 #include "views/replicate.hpp"
 #include "views/generate.hpp"
 #include "views/slice.hpp"
-
-//#include "views/iota.hpp"
-//#include "views/transform.hpp"
+#include "views/iota.hpp"
+#include "views/repeat.hpp"
+#include "views/concat.hpp"
+#include "views/update.hpp"
 
 
 #endif //OPENKALMAN_COLLECTIONS_HPP

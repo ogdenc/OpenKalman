@@ -53,12 +53,12 @@ namespace OpenKalman::ranges
      */
 #ifdef __cpp_concepts
     explicit constexpr
-    single_view(const T& t) requires std::copy_constructible<T> : my_t {t} {}
+    single_view(const T& t) requires std::copy_constructible<T> : t_ {t} {}
     requires std::copy_constructible<T>
 #else
     template<typename aT = T, std::enable_if_t<std::is_copy_constructible_v<aT>, int> = 0>
     explicit constexpr
-    single_view(const T& t) : my_t {t} {}
+    single_view(const T& t) : t_ {t} {}
 #endif
 
 
@@ -66,7 +66,7 @@ namespace OpenKalman::ranges
      * \brief Construct from an object convertible to type T.
      */
     explicit constexpr
-    single_view(T&& t) : my_t {std::move(t)} {}
+    single_view(T&& t) : t_ {std::move(t)} {}
 
 
     /**
@@ -109,18 +109,18 @@ namespace OpenKalman::ranges
      * \brief A pointer to the contained value
      */
     constexpr T*
-    data() noexcept { return std::addressof(std::get<0>(my_t)); }
+    data() noexcept { return std::addressof(std::get<0>(t_)); }
 
 
     /**
      * \overload
      */
     constexpr const T*
-    data() const noexcept { return std::addressof(std::get<0>(my_t)); }
+    data() const noexcept { return std::addressof(std::get<0>(t_)); }
 
   private:
 
-    std::tuple<T> my_t;
+    std::tuple<T> t_;
 
   };
 

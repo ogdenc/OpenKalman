@@ -31,7 +31,7 @@ namespace OpenKalman::ranges
   /**
    * \brief Equivalent to std::ranges::transform_view.
    */
-  template<typename V, typename F, typename = void>
+  template<typename V, typename F>
   struct transform_view : ranges::view_interface<transform_view<V, F>>
   {
   private:
@@ -89,19 +89,23 @@ namespace OpenKalman::ranges
 
       constexpr decltype(auto) operator*() const
       {
-        if constexpr (std::is_member_pointer_v<remove_cvref_t<F>>)
-          return std::invoke(std::get<0>(parent_->fun_), *current_); // This won't be constexpr before c++20
-        else
-          return std::get<0>(parent_->fun_)(*current_);
+#if __cplusplus >= 202002L
+        namespace ns = std;
+#else
+        namespace ns = OpenKalman;
+#endif
+        return ns::invoke(std::get<0>(parent_->fun_), *current_);
       }
 
       template<bool Enable = true, std::enable_if_t<Enable and ranges::random_access_range<Base>, int> = 0>
       constexpr decltype(auto) operator[](difference_type n) const
       {
-        if constexpr (std::is_member_pointer_v<remove_cvref_t<F>>)
-          return std::invoke(std::get<0>(parent_->fun_), current_[n]); // This won't be constexpr before c++20
-        else
-          return std::get<0>(parent_->fun_)(current_[n]);
+#if __cplusplus >= 202002L
+        namespace ns = std;
+#else
+        namespace ns = OpenKalman;
+#endif
+        return ns::invoke(std::get<0>(parent_->fun_), current_[n]);
       }
 
       constexpr iterator& operator++() { ++current_; return *this; }

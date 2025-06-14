@@ -11,7 +11,7 @@
 /**
  * \file
  * \internal
- * \brief Definition of \ref internal::tuple_like_to_tuple.
+ * \brief Definition of \ref collections::internal::tuple_like_to_tuple.
  */
 
 #ifndef OPENKALMAN_TUPLE_LIKE_TO_TUPLE_HPP
@@ -21,7 +21,7 @@
 #include <tuple>
 #include "collections/concepts/tuple_like.hpp"
 
-namespace OpenKalman::internal
+namespace OpenKalman::collections::internal
 {
   namespace detail
   {

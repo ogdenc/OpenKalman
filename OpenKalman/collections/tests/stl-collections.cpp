@@ -29,11 +29,11 @@ namespace C1
 {
   struct C1
   {
-    int n1 = 4;
+    mutable int n1 = 4;
   };
 
   template<std::size_t i>
-  constexpr auto get(const C1& c1) { return c1.n1 + i; }
+  constexpr auto& get(const C1& c1) { return c1.n1 += i; }
 }
 
 namespace std
@@ -45,8 +45,10 @@ namespace std
 
 struct C2
 {
+  mutable std::size_t x = 7_uz;
+
   template<std::size_t i>
-  constexpr auto get() const { return 7_uz + i; }
+  constexpr auto& get() const { return x += i; }
 };
 
 namespace std
@@ -55,14 +57,6 @@ namespace std
   template<size_t i> struct tuple_element<i, C2> { using type = std::size_t; };
 }
 
-
-TEST(collections, tuple_like)
-{
-  static_assert(tuple_like<std::tuple<double, int>>);
-  static_assert(tuple_like<std::array<double, 5>>);
-  static_assert(tuple_like<C1::C1>);
-  static_assert(tuple_like<C2>);
-}
 
 #include "collections/concepts/sized_random_access_range.hpp"
 
@@ -77,14 +71,82 @@ TEST(collections, size_random_access_range)
 }
 
 
+#include "collections/concepts/gettable.hpp"
+
+TEST(collections, gettable)
+{
+  static_assert(gettable<0, std::tuple<double, int>>);
+  static_assert(gettable<0, std::array<double, 5>>);
+  static_assert(gettable<0, C1::C1>);
+  static_assert(gettable<0, C2>);
+}
+
+
+#include "collections/concepts/uniformly_gettable.hpp"
+
+TEST(collections, uniformly_gettable)
+{
+  static_assert(uniformly_gettable<std::tuple<double, int>>);
+  static_assert(uniformly_gettable<std::array<double, 5>>);
+  static_assert(uniformly_gettable<C1::C1>);
+  static_assert(uniformly_gettable<C2>);
+}
+
+
+TEST(collections, tuple_like)
+{
+  static_assert(tuple_like<std::tuple<double, int>>);
+  static_assert(tuple_like<std::array<double, 5>>);
+  static_assert(tuple_like<C1::C1>);
+  static_assert(tuple_like<C2>);
+}
+
+
 #include "collections/concepts/collection.hpp"
 
-TEST(collections, collections)
+TEST(collections, collection)
 {
   static_assert(collection<std::tuple<int, double, long double>>);
   static_assert(collection<std::array<double, 5>>);
   static_assert(collection<std::vector<double>>);
   static_assert(collection<std::initializer_list<double>>);
+}
+
+
+#include "collections/concepts/settable.hpp"
+
+TEST(collections, settable)
+{
+  static_assert(settable<0, std::tuple<double, int>, double>);
+  static_assert(settable<1, std::tuple<double, int>, int>);
+  static_assert(settable<0, std::array<double, 5>, double>);
+  static_assert(settable<0, C1::C1, int>);
+  static_assert(settable<0, C2, std::size_t>);
+}
+
+
+#include "collections/concepts/uniformly_settable.hpp"
+
+TEST(collections, uniformly_settable)
+{
+  static_assert(uniformly_settable<std::tuple<double, int>, int>);
+  static_assert(uniformly_settable<std::tuple<double, int>, double>);
+  static_assert(uniformly_settable<std::array<double, 5>, double>);
+  static_assert(uniformly_settable<C1::C1, int>);
+  static_assert(uniformly_settable<C2, std::size_t>);
+}
+
+
+#include "collections/concepts/output_collection.hpp"
+
+TEST(collections, output_collection)
+{
+  static_assert(output_collection<std::tuple<int, double, long double>, double>);
+  static_assert(output_collection<std::tuple<int, double, long double>, long double>);
+  static_assert(output_collection<std::array<double, 5>, double>);
+  static_assert(output_collection<std::array<double, 5>, int>);
+  static_assert(output_collection<std::vector<double>, double>);
+  static_assert(not output_collection<std::initializer_list<double>, double>);
 }
 
 

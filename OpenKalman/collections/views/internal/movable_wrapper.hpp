@@ -20,10 +20,6 @@
 #include <functional>
 #include "basics/compatibility/language-features.hpp"
 #include "collections/concepts/tuple_like.hpp"
-#ifndef __cpp_concepts
-#include "maybe_tuple_size.hpp"
-#include "maybe_tuple_element.hpp"
-#endif
 
 namespace OpenKalman::collections::internal
 {
@@ -52,13 +48,8 @@ namespace OpenKalman::collections::internal
     /**
      * \brief Default constructor.
      */
-#ifdef __cpp_concepts
     constexpr
     movable_wrapper() noexcept = default;
-#else
-    template<typename aT = T, std::enable_if_t<std::is_default_constructible_v<aT>, int> = 0>
-    constexpr movable_wrapper() noexcept {}
-#endif
 
 
     /**
@@ -260,6 +251,13 @@ namespace OpenKalman::collections::internal
      * \brief The wrapped type
      */
     using type = T;
+
+
+    /**
+     * \brief Default constructor.
+     */
+    constexpr
+    movable_wrapper() noexcept = default;
 
 
     /**
@@ -569,6 +567,24 @@ constexpr bool operator>=(const movable_wrapper<T>& lhs, const movable_wrapper<T
     requires { typename std::common_reference_t<typename R::type, TQ>; } and
     std::convertible_to<RQ, std::common_reference_t<typename R::type, TQ>>
   ;
+#endif
+
+
+#ifndef __cpp_concepts
+  template<typename T, typename = void>
+  struct maybe_tuple_size {};
+
+  template<typename T>
+  struct maybe_tuple_size<T, std::void_t<decltype(std::tuple_size<T>::value)>>
+    : std::tuple_size<T> {};
+
+
+  template<std::size_t i, typename T, typename = void>
+  struct maybe_tuple_element {};
+
+  template<std::size_t i, typename T>
+  struct maybe_tuple_element<i, T, std::void_t<typename std::tuple_element<i, T>::type>>
+    : std::tuple_element<i, T> {};
 #endif
 
 }

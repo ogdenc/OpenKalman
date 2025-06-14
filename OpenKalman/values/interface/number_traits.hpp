@@ -51,22 +51,34 @@ namespace OpenKalman::interface
     /**
      * \brief A callable object that returns the real part of the argument of type T.
      */
-    static constexpr auto real = [](T t) { throw std::logic_error("Interface not implemented"); };
+    static constexpr auto real = [](T) { throw std::logic_error("Interface not implemented"); };
 
 
     /**
      * \brief A callable object that returns the real part of the argument of type T.
      */
-    static constexpr auto imag = [](T t) { throw std::logic_error("Interface not implemented"); };
+    static constexpr auto imag = [](T) { throw std::logic_error("Interface not implemented"); };
 
 
     /**
      * \brief A callable object that makes a complex number consistent with T from two real arguments.
-     * \tparam Re Real part
-     * \tparam Im Imaginary part
+     * \param re Real part
+     * \param im Imaginary part
      */
     static constexpr auto make_complex = [](T re, T im) { throw std::logic_error("Interface not implemented"); };
 
+  };
+
+
+
+  /**
+   * \brief Void is explicitly not a number.
+   */
+  template<>
+  struct number_traits<void>
+  {
+    static constexpr bool is_specialized = false;
+    static constexpr bool is_complex = false;
   };
 
 
@@ -83,15 +95,10 @@ namespace OpenKalman::interface
 #endif
   {
     static constexpr bool is_specialized = true;
-
     static constexpr bool is_complex = false;
-
     static constexpr auto real = [](T t) noexcept { return std::real(std::move(t)); };
-
     static constexpr auto imag = [](T t) noexcept { return std::imag(std::move(t)); };
-
     static constexpr auto make_complex = [](T re, T im) noexcept { return std::complex<T> {std::move(re), std::move(im)}; };
-
   };
 
 
@@ -102,13 +109,9 @@ namespace OpenKalman::interface
   struct number_traits<std::complex<T>>
   {
     static constexpr bool is_specialized = true;
-
     static constexpr bool is_complex = true;
-
     static constexpr auto real = [](std::complex<T> t) noexcept { return std::real(std::move(t)); };
-
     static constexpr auto imag = [](std::complex<T> t) noexcept { return std::imag(std::move(t)); };
-
     static constexpr auto make_complex = [](T re, T im) noexcept { return std::complex<T> {std::move(re), std::move(im)}; };
 
   };

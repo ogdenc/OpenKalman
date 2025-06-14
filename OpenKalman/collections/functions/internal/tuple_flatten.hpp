@@ -25,7 +25,8 @@ namespace OpenKalman::collections
 {
   namespace detail
   {
-    template<typename Arg> constexpr auto tuple_flatten_impl(Arg&&);
+    template<typename Arg> constexpr auto
+    tuple_flatten_impl(Arg&&); // forward declaration
 
 
     template<typename Arg, std::size_t...Ix>

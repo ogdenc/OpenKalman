@@ -13,8 +13,8 @@
  * \brief Definition for \ref coordinates::descriptor_tuple.
  */
 
-#ifndef OPENKALMAN_COORDINATES_GROUP_TUPLE_HPP
-#define OPENKALMAN_COORDINATES_GROUP_TUPLE_HPP
+#ifndef OPENKALMAN_COORDINATES_DESCRIPTOR_TUPLE_HPP
+#define OPENKALMAN_COORDINATES_DESCRIPTOR_TUPLE_HPP
 
 #include <type_traits>
 #include <tuple>
@@ -37,7 +37,7 @@ namespace OpenKalman::coordinates
     struct is_descriptor_tuple : std::false_type {};
 
     template<typename T>
-    struct is_descriptor_tuple<T, std::enable_if_t<tuple_like<T>>>
+    struct is_descriptor_tuple<T, std::enable_if_t<collections::tuple_like<T>>>
       : std::bool_constant<is_descriptor_tuple_impl<T>(std::make_index_sequence<std::tuple_size_v<T>>{})> {};
   } // namespace detail
 #endif
@@ -59,4 +59,4 @@ namespace OpenKalman::coordinates
 
 } // namespace OpenKalman::coordinates
 
-#endif //OPENKALMAN_COORDINATES_GROUP_TUPLE_HPP
+#endif //OPENKALMAN_COORDINATES_DESCRIPTOR_TUPLE_HPP

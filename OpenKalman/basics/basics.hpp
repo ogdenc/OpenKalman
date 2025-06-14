@@ -49,6 +49,7 @@ namespace OpenKalman::internal {}
 
 
 #include "compatibility/language-features.hpp"
+#include "compatibility/internal/movable_box.hpp"
 
 #if __cplusplus < 202002L
 #include "compatibility/common_reference.hpp"

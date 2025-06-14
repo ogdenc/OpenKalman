@@ -11,16 +11,16 @@
 /**
  * \file
  * \internal
- * \brief Definition of \ref collections::tuple_fill.
+ * \brief Definition of \ref collections::internal::repeat_tuple_view.
  */
 
-#ifndef OPENKALMAN_TUPLE_FILL_HPP
-#define OPENKALMAN_TUPLE_FILL_HPP
+#ifndef OPENKALMAN_TUPLE_FILL_VIEW_HPP
+#define OPENKALMAN_TUPLE_FILL_VIEW_HPP
 
 #include <type_traits>
 #include <tuple>
 
-namespace OpenKalman::collections
+namespace OpenKalman::collections::internal
 {
   /**
    * \internal
@@ -29,13 +29,13 @@ namespace OpenKalman::collections
    * \tparam T The type of the object to be replicated
    */
   template<std::size_t N, typename T>
-  struct tuple_fill_view
+  struct repeat_tuple_view
   {
 #ifdef __cpp_concepts
-    constexpr tuple_fill_view() requires std::default_initializable<T> = default;
+    constexpr repeat_tuple_view() requires std::default_initializable<T> = default;
 #else
     template<typename aT = T, std::enable_if_t<std::is_default_constructible_v<aT>, int> = 0>
-    constexpr tuple_fill_view() {};
+    constexpr repeat_tuple_view() {};
 #endif
 
 
@@ -44,7 +44,7 @@ namespace OpenKalman::collections
 #else
     template<typename Arg, std::enable_if_t<std::is_constructible_v<T, Arg&&>, int> = 0>
 #endif
-    explicit constexpr tuple_fill_view(Arg&& arg) : t {std::forward<Arg>(arg)} {}
+    explicit constexpr repeat_tuple_view(Arg&& arg) : t {std::forward<Arg>(arg)} {}
 
 
     /**
@@ -54,7 +54,7 @@ namespace OpenKalman::collections
 
 
     /**
-     * \brief Get element i of a \ref tuple_fill_view
+     * \brief Get element i of a \ref repeat_tuple_view
      */
 #ifdef __cpp_concepts
     template<std::size_t i> requires (i < N)
@@ -62,14 +62,14 @@ namespace OpenKalman::collections
     template<std::size_t i, std::enable_if_t<i < N, int> = 0>
 #endif
     friend constexpr T
-    get(const tuple_fill_view& v)
+    get(const repeat_tuple_view& v)
     {
       return v.t;
     }
 
 
     /**
-    * \brief Get element i of a \ref tuple_fill_view
+    * \brief Get element i of a \ref repeat_tuple_view
     */
 #ifdef __cpp_concepts
     template<size_t i> requires (i < N)
@@ -77,7 +77,7 @@ namespace OpenKalman::collections
     template<size_t i, std::enable_if_t<i < N, int> = 0>
 #endif
     friend constexpr T
-    get(tuple_fill_view&& v)
+    get(repeat_tuple_view&& v)
     {
       return std::move(v).t;
     }
@@ -87,17 +87,17 @@ namespace OpenKalman::collections
     T t;
   };
 
-} // namespace OpenKalman::internal
+}
 
 
 namespace std
 {
   template<std::size_t N, typename T>
-  struct tuple_size<OpenKalman::collections::tuple_fill_view<N, T>> : std::integral_constant<size_t, N> {};
+  struct tuple_size<OpenKalman::collections::internal::repeat_tuple_view<N, T>> : std::integral_constant<size_t, N> {};
 
 
   template<std::size_t i, std::size_t N, typename T>
-  struct tuple_element<i, OpenKalman::collections::tuple_fill_view<N, T>>
+  struct tuple_element<i, OpenKalman::collections::internal::repeat_tuple_view<N, T>>
   {
     static_assert(i < N);
     using type = T;
@@ -105,38 +105,4 @@ namespace std
 } // namespace std
 
 
-namespace OpenKalman::collections
-{
-  /**
-   * \internal
-   * \brief Creates a tuple that replicates a value N number of times.
-   * \details If the argument is an lvalue reference, the result will be a tuple of lvalue references.
-   * \tparam N The number of times to replicate.
-   * \param arg The object to be replicated.
-   * \return A \ref tuple_like object containing N copies of t.
-   */
-  template<std::size_t N, typename Arg>
-  constexpr auto
-  tuple_fill(Arg&& arg)
-  {
-    return tuple_fill_view<N, Arg> {std::forward<Arg>(arg)};
-  }
-
-
-  /**
-   * \overload
-   */
-#ifdef __cpp_concepts
-  template<std::size_t N, std::default_initializable T>
-#else
-  template<std::size_t N, typename T, std::enable_if_t<std::is_default_constructible_v<T>, int> = 0>
-#endif
-  constexpr auto
-  tuple_fill()
-  {
-    return tuple_fill_view<N, T> {};
-  }
-
-} // namespace OpenKalman::collections
-
-#endif //OPENKALMAN_TUPLE_FILL_HPP
+#endif //OPENKALMAN_TUPLE_FILL_VIEW_HPP

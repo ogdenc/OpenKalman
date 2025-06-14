@@ -23,7 +23,7 @@
 #else
 #include "basics/compatibility/ranges.hpp"
 #endif
-#include "values/concepts/index.hpp"
+#include "values/concepts/size.hpp"
 #include "collections/functions/compare.hpp"
 #include "internal/movable_wrapper.hpp"
 
@@ -33,18 +33,20 @@ namespace OpenKalman::collections
    * \brief A \ref collection_view created by lazily generating elements based on an index.
    * \details Typically, the generating function will be a closure.
    * \tparam F A callable object (possibly a closure) taking an index and producing an output value corresponding to the index.
-   * \tparam Size The size of the output collection
+   * \tparam Size The size of the output collection. If it is <code>void</code>, the view is unsized.
    */
 #ifdef __cpp_concepts
-  template<typename F, values::index Size> requires std::same_as<Size, std::remove_reference_t<Size>> and
+  template<typename F, values::size Size = std::unreachable_sentinel_t> requires std::same_as<Size, std::remove_reference_t<Size>> and
     std::invocable<F, std::size_t> and std::invocable<F, std::integral_constant<std::size_t, 0>>
   struct generate_view : std::ranges::view_interface<generate_view<F, Size>>
 #else
-  template<typename F, typename Size, typename = void>
+  template<typename F, typename Size = unreachable_sentinel_t>
   struct generate_view : ranges::view_interface<generate_view<F, Size>>
 #endif
   {
   private:
+
+    using Size_ = std::conditional_t<values::index<Size>, Size, std::monostate>;
 
     using F_box = internal::movable_wrapper<F>;
 
@@ -148,60 +150,69 @@ namespace OpenKalman::collections
 
 
     /**
-     * \brief Default constructor.
-     */
-#ifdef __cpp_concepts
-    constexpr
-    generate_view() = default;
-#else
-    template<bool Enable = true, std::enable_if_t<Enable and
-      std::is_default_constructible_v<F_box> and std::is_default_constructible_v<Size>, int> = 0>
-    constexpr generate_view() {}
-#endif
-
-
-    /**
-     * \brief Construct from a size of the function can be defined statically.
-     */
-#ifdef __cpp_concepts
-    explicit constexpr
-    generate_view(Size size) noexcept requires static_F
-#else
-    template<bool Enable = static_F, std::enable_if_t<Enable, int> = 0>
-    explicit constexpr
-    generate_view(Size size) noexcept
-#endif
-      : size_ {std::move(size)} {}
-
-
-    /**
-     * \brief Construct from a callable object and a size, if the callable object can be defined statically.
-     */
-#ifdef __cpp_concepts
-    constexpr
-    generate_view(const F&, Size size) noexcept requires static_F
-#else
-    template<bool Enable = static_F, std::enable_if_t<Enable, int> = 0>
-    constexpr
-    generate_view(const F&, Size size) noexcept
-#endif
-      : size_ {std::move(size)} {}
-
-
-    /**
      * \brief Construct from a callable object and a size.
      */
 #ifdef __cpp_concepts
-    template<typename Arg> requires std::constructible_from<const F, Arg&&> and (not static_F)
+    template<typename Arg> requires std::constructible_from<const F, Arg&&> and values::index<Size>
     constexpr
-    generate_view(Arg&& arg, Size size) noexcept requires (not static_F)
+    generate_view(Arg&& arg, Size_ size) noexcept
 #else
-    template<bool Enable = true, typename Arg, std::enable_if_t<Enable and
-      std::is_constructible_v<const F, Arg&&> and not static_F, int> = 0>
+    template<typename Arg, std::enable_if_t<std::is_constructible_v<const F, Arg&&> and values::index<Size>, int> = 0>
     constexpr
-    generate_view(Arg&& arg, Size size) noexcept
+    generate_view(Arg&& arg, Size_ size) noexcept
 #endif
       : f_box {const_cast<F&&>(std::forward<Arg>(arg))}, size_ {std::move(size)} {}
+
+
+    /**
+     * \brief Construct from a statically constructable callable object, if the view is unsized.
+     */
+#ifdef __cpp_concepts
+    constexpr
+    generate_view(const F&) noexcept requires static_F and (not values::index<Size>)
+#else
+    template<bool Enable = true, std::enable_if_t<Enable and static_F and (not values::index<Size>), int> = 0>
+    constexpr
+    generate_view(const F&) noexcept
+#endif
+      : f_box {F{}}, size_ {} {}
+
+
+    /**
+     * \brief Construct from a callable object, if the view is unsized.
+     */
+#ifdef __cpp_concepts
+    template<typename Arg> requires std::constructible_from<const F, Arg&&> and (not static_F) and (not values::index<Size>)
+    constexpr
+    generate_view(Arg&& arg) noexcept requires (not static_F)
+#else
+    template<bool Enable = true, typename Arg, std::enable_if_t<Enable and
+      std::is_constructible_v<const F, Arg&&> and not static_F and (not values::index<Size>), int> = 0>
+    constexpr
+    generate_view(Arg&& arg) noexcept
+#endif
+      : f_box {const_cast<F&&>(std::forward<Arg>(arg))}, size_ {} {}
+
+
+    /**
+     * \brief Construct from a size if the function can be defined statically.
+     */
+#ifdef __cpp_concepts
+    explicit constexpr
+    generate_view(Size_ size) noexcept requires static_F and values::index<Size>
+#else
+    template<bool Enable = true, std::enable_if_t<Enable and static_F and values::index<Size>, int> = 0>
+    explicit constexpr
+    generate_view(Size_ size) noexcept
+#endif
+      : f_box {F{}}, size_ {std::move(size)} {}
+
+
+    /**
+     * \brief Default constructor.
+     */
+    constexpr
+    generate_view() = default;
 
 
     /**
@@ -216,16 +227,36 @@ namespace OpenKalman::collections
     /**
      * \returns An iterator at the end, if the base object is a range.
      */
-    constexpr auto end() { return iterator<false> {f_box, static_cast<std::size_t>(size_)}; }
+    constexpr auto end()
+    {
+      using namespace std;
+      if constexpr (values::index<Size>)
+        return iterator<false> {f_box, static_cast<std::size_t>(size_)};
+      else
+        return unreachable_sentinel;
+    }
 
     /// \overload
-    constexpr auto end() const { return iterator<true> {f_box, static_cast<std::size_t>(size_)}; }
+    constexpr auto end() const
+    {
+      using namespace std;
+      if constexpr (values::index<Size>)
+        return iterator<true> {f_box, static_cast<std::size_t>(size_)};
+      else
+        return unreachable_sentinel;
+    }
+
 
     /**
      * \brief The size of the resulting object.
      */
+#ifdef __cpp_concepts
     constexpr auto
-    size() const noexcept
+    size() const noexcept requires values::index<Size>
+#else
+    template<bool Enable = true, std::enable_if_t<Enable and (values::index<Size>), int> = 0>
+    constexpr auto size() const noexcept
+#endif
     {
       return size_;
     }
@@ -239,7 +270,7 @@ namespace OpenKalman::collections
     constexpr decltype(auto)
     get(this auto&& self) noexcept
     {
-      if constexpr (values::dynamic<Size>) static_assert(i < values::fixed_number_of_v<Size>, "Index out of range");
+      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_number_of_v<Size>, "Index out of range");
       return std::forward<decltype(self)>(self).f_box(std::integral_constant<std::size_t, i>{});
     }
 #else
@@ -248,7 +279,7 @@ namespace OpenKalman::collections
     get() &
     {
       using namespace std;
-      if constexpr (values::dynamic<Size>) static_assert(i < values::fixed_number_of_v<Size>, "Index out of range");
+      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_number_of_v<Size>, "Index out of range");
       return f_box(std::integral_constant<std::size_t, i>{});
     }
 
@@ -257,7 +288,7 @@ namespace OpenKalman::collections
     get() const &
     {
       using namespace std;
-      if constexpr (values::dynamic<Size>) static_assert(i < values::fixed_number_of_v<Size>, "Index out of range");
+      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_number_of_v<Size>, "Index out of range");
       return f_box(std::integral_constant<std::size_t, i>{});
     }
 
@@ -266,7 +297,7 @@ namespace OpenKalman::collections
     get() && noexcept
     {
       using namespace std;
-      if constexpr (values::dynamic<Size>) static_assert(i < values::fixed_number_of_v<Size>, "Index out of range");
+      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_number_of_v<Size>, "Index out of range");
       return std::move(*this).f_box(std::integral_constant<std::size_t, i>{});
     }
 
@@ -275,7 +306,7 @@ namespace OpenKalman::collections
     get() const && noexcept
     {
       using namespace std;
-      if constexpr (values::dynamic<Size>) static_assert(i < values::fixed_number_of_v<Size>, "Index out of range");
+      if constexpr (values::fixed<Size>) static_assert(i < values::fixed_number_of_v<Size>, "Index out of range");
       return std::move(*this).f_box(std::integral_constant<std::size_t, i>{});
     }
 #endif
@@ -283,13 +314,20 @@ namespace OpenKalman::collections
   private:
 
     F_box f_box;
-    Size size_;
+    Size_ size_;
 
   };
 
 
+  /**
+   * \brief Deduction guide
+   */
   template<typename F, typename S>
   generate_view(F&&, const S&) -> generate_view<F, S>;
+
+  /// \overload
+  template<typename F>
+  generate_view(F&&) -> generate_view<F>;
 
 
 } // namespace OpenKalman::values
@@ -332,6 +370,9 @@ namespace OpenKalman::collections::views
   {
     struct generate_adaptor
     {
+      /**
+       * \brief Create a \ref generate_view.
+       */
 #ifdef __cpp_concepts
       template<typename F, values::index Size> requires
         std::invocable<F, std::size_t> and std::invocable<F, std::integral_constant<std::size_t, 0>>
@@ -343,6 +384,23 @@ namespace OpenKalman::collections::views
       operator() (F&& f, Size s) const
       {
         return generate_view {std::forward<F>(f), std::move(s)};
+      }
+
+
+      /**
+       * \brief Create an unsized \ref generate_view.
+       */
+#ifdef __cpp_concepts
+      template<typename F> requires
+        std::invocable<F, std::size_t> and std::invocable<F, std::integral_constant<std::size_t, 0>>
+#else
+      template<typename F, std::enable_if_t<std::is_invocable_v<F, std::size_t> and
+        std::is_invocable_v<F, std::integral_constant<std::size_t, 0>>, int> = 0>
+#endif
+      constexpr auto
+      operator() (F&& f) const
+      {
+        return generate_view {std::forward<F>(f)};
       }
 
     };

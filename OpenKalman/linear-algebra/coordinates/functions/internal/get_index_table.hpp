@@ -17,7 +17,7 @@
 #define OPENKALMAN_DESCRIPTORS_GET_INDEX_TABLE_HPP
 
 #include <type_traits>
-#include "collections/functions/internal/tuple_fill.hpp"
+#include "collections/views/internal/repeat_tuple_view.hpp"
 #include "collections/concepts/index.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor.hpp"
 #include "linear-algebra/coordinates/concepts/pattern.hpp"
@@ -63,7 +63,7 @@ namespace OpenKalman::coordinates::internal
       if constexpr (descriptor<Arg>)
       {
         constexpr std::size_t N = values::to_number(get_descriptor_dimension(arg));
-        return OpenKalman::internal::tuple_fill<N>(std::integral_constant<std::size_t, 0_uz>{});
+        return OpenKalman::collections::internal::repeat_tuple_view<N, std::integral_constant<std::size_t, 0_uz>>(std::integral_constant<std::size_t, 0_uz>{});
       }
       else
       {

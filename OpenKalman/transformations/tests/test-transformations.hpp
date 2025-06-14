@@ -39,7 +39,7 @@ namespace OpenKalman::test
 
         return std::tuple_cat(
           std::tuple {2 * transpose(x)},
-          OpenKalman::internal::tuple_fill<sizeof...(ps)>(Mean {1.}));
+          OpenKalman::collections::internal::repeat_tuple_view<sizeof...(ps), decltype(Mean {1.})>(Mean {1.}));
       },
       [](const auto& x, const auto& ...ps) // Hessians
       {
@@ -109,7 +109,7 @@ namespace OpenKalman::test
           std::cos(x(1)), -x(0) * std::sin(x(1)),
           std::sin(x(1)), x(0) * std::cos(x(1))};
         return std::tuple_cat(std::tuple {std::move(ret)},
-          OpenKalman::internal::tuple_fill<sizeof...(ps)>(make_identity_matrix_like(ret)));
+          OpenKalman::collections::internal::repeat_tuple_view<sizeof...(ps), decltype(make_identity_matrix_like(ret))>(make_identity_matrix_like(ret)));
       },
       [](const M2t& x, const auto& ...ps) // Hessians
       {
@@ -140,7 +140,7 @@ namespace OpenKalman::test
           std::cos(x(1)), -x(0) * std::sin(x(1)),
           std::sin(x(1)), x(0) * std::cos(x(1))};
         return std::tuple_cat(std::tuple {
-          std::move(ret)}, OpenKalman::internal::tuple_fill<sizeof...(ps)>(make_identity_matrix_like(ret)));
+          std::move(ret)}, OpenKalman::collections::internal::repeat_tuple_view<sizeof...(ps), decltype(make_identity_matrix_like(ret))>(make_identity_matrix_like(ret)));
       },
       [](const MP1t& x, const auto& ...ps) // Hessians
       {
@@ -167,7 +167,7 @@ namespace OpenKalman::test
           x(0) * h, x(1) * h,
           -x(1) * h2, x(0) * h2};
         return std::tuple_cat(std::tuple {
-          std::move(ret)}, OpenKalman::internal::tuple_fill<sizeof...(ps)>(make_identity_matrix_like<MPPt>()));
+          std::move(ret)}, OpenKalman::collections::internal::repeat_tuple_view<sizeof...(ps), decltype(make_identity_matrix_like<MPPt>())>(make_identity_matrix_like<MPPt>()));
       },
       [](const M2t& x, const auto& ...ps) // Hessians
       {
@@ -212,7 +212,7 @@ namespace OpenKalman::test
           0, 1, 0,
           -x(2) * h2, 0, x(0) * h2};
         return std::tuple_cat(std::tuple {
-          std::move(ret)}, OpenKalman::internal::tuple_fill<sizeof...(ps)>(make_identity_matrix_like<MSSt>()));
+          std::move(ret)}, OpenKalman::collections::internal::repeat_tuple_view<sizeof...(ps), decltype(make_identity_matrix_like<MSSt>())>(make_identity_matrix_like<MSSt>()));
       },
       [](const MC1t& x, const auto& ...ps) // Hessians
       {

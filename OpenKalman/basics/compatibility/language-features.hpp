@@ -270,7 +270,6 @@ namespace OpenKalman
 #endif
 
 
-#if __cplusplus < 202002L
 namespace OpenKalman::internal
 {
   namespace detail
@@ -306,24 +305,9 @@ namespace OpenKalman::internal
 }
 
 
+#if __cplusplus < 202002L
 namespace OpenKalman
 {
-  struct identity
-  {
-    template<typename T>
-    [[nodiscard]] constexpr T&& operator()(T&& t) const noexcept { return std::forward<T>(t); }
-
-    struct is_transparent; // undefined
-  };
-
-
-  template<typename T>
-  struct type_identity { using type = T; };
-
-  template<typename T>
-  using type_identity_t = typename type_identity<T>::type;
-
-
   /**
    * \internal
    * \brief A constexpr version of std::reference_wrapper, for use when compiling in c++17
@@ -401,14 +385,73 @@ namespace OpenKalman
 
   template<typename T>
   void cref(const T&&) = delete;
+}
+#endif
 
 
+#ifndef __cpp_lib_concepts
+namespace OpenKalman
+{
   // ---
-  // copyable, movable, semiregular
+  // Basic concepts
   // ---
+
+  struct identity
+  {
+    template<typename T>
+    [[nodiscard]] constexpr T&& operator()(T&& t) const noexcept { return std::forward<T>(t); }
+
+    struct is_transparent; // undefined
+  };
+
 
   template<typename T>
-  inline constexpr bool movable =
+  struct type_identity { using type = T; };
+
+  template<typename T>
+  using type_identity_t = typename type_identity<T>::type;
+
+
+  template<typename T, typename...Args>
+  inline constexpr bool
+  destructible = std::is_nothrow_destructible_v<T>;
+
+
+  template<typename T, typename...Args>
+  inline constexpr bool
+  constructible_from = destructible<T> and std::is_constructible_v<T, Args...>;
+
+
+  namespace detail
+  {
+    template<typename From, typename To, typename = void>
+    struct convertible_to_impl : std::false_type {};
+
+    template<typename From, typename To>
+    struct convertible_to_impl<From, To, std::void_t<decltype(static_cast<To>(std::declval<From>()))>> : std::true_type {};
+  }
+
+  template<typename From, typename To>
+  inline constexpr bool
+  convertible_to = std::is_convertible_v<From, To> and detail::convertible_to_impl<From, To>::value;
+
+
+  template<typename T>
+  inline constexpr bool
+  move_constructible = constructible_from<T, T> and convertible_to<T, T>;
+
+
+  template<typename T>
+  inline constexpr bool copy_constructible =
+    move_constructible<T> and
+    constructible_from<T, T&> and convertible_to<T&, T> and
+    constructible_from<T, const T&> && convertible_to<const T&, T> and
+    constructible_from<T, const T> && convertible_to<const T, T>;
+
+
+  template<typename T>
+  inline constexpr bool
+  movable =
     std::is_object_v<T> and
     std::is_move_constructible_v<T> and
     std::is_assignable_v<T&, T> /*and
@@ -416,7 +459,8 @@ namespace OpenKalman
 
 
   template<typename T>
-  inline constexpr bool copyable =
+  inline constexpr bool
+  copyable =
     std::is_copy_constructible_v<T> and
     movable<T> and
     std::is_assignable_v<T&, T&> and
@@ -425,7 +469,8 @@ namespace OpenKalman
 
 
   template<typename T>
-  inline constexpr bool semiregular = copyable<T> and std::is_default_constructible_v<T>;
+  inline constexpr bool
+  semiregular = copyable<T> and std::is_default_constructible_v<T>;
 
 }
 #endif

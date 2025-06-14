@@ -24,10 +24,10 @@
 #include "basics/compatibility/ranges.hpp"
 #endif
 #include "values/concepts/index.hpp"
+#include "values/concepts/size.hpp"
 #include "values/concepts/fixed.hpp"
 #include "values/traits/fixed_number_of.hpp"
 #include "values/traits/number_type_of_t.hpp"
-#include "values/functions/cast_to.hpp"
 #include "collections/functions/compare.hpp"
 #include "generate.hpp"
 
@@ -35,11 +35,7 @@ namespace OpenKalman::collections
 {
   namespace detail
   {
-#ifdef __cpp_concepts
-    template<values::integral Start = std::integral_constant<std::size_t, 0>>
-#else
-    template<typename Start = std::integral_constant<std::size_t, 0>, std::enable_if_t<values::integral<Start>, int> = 0>
-#endif
+    template<typename Start = std::integral_constant<std::size_t, 0>>
     struct iota_generator
     {
       constexpr iota_generator() = default;
@@ -54,7 +50,7 @@ namespace OpenKalman::collections
       constexpr auto
       operator() (I i) const
       {
-        return values::operation {std::plus<values::number_type_of_t<Start>>{}, start_, std::move(i)};
+        return values::operation {std::plus<std::size_t>{}, start_, std::move(i)};
       }
 
     private:
@@ -72,130 +68,71 @@ namespace OpenKalman::collections
    * a \ref tuple_like sequence effectively in the form of
    * <code>std::integral_sequence<std::size_t, 0>{},...,std::integral_sequence<std::size_t, N>{}</code>
    * \tparam Start The start value of the iota.
-   * \tparam Size The size of the resulting collection
+   * \tparam Size The size of the resulting collection. The view is unsized if Size is <code>void</code>.
    */
 #ifdef __cpp_concepts
-  template<values::integral Start, values::index Size = std::make_unsigned_t<values::number_type_of_t<Start>>> requires
-    std::convertible_to<values::number_type_of_t<Size>, values::number_type_of_t<Start>> and
-    std::same_as<Start, std::remove_reference_t<Start>> and std::same_as<Size, std::remove_reference_t<Size>>
+  template<values::integral Start = std::integral_constant<std::size_t, 0>, values::size Size = std::unreachable_sentinel_t>
+  requires (not values::index<Size> or std::convertible_to<values::number_type_of_t<Size>, values::number_type_of_t<Start>>) and
+    std::same_as<Start, std::remove_reference_t<Start>> and
+    std::same_as<Size, std::remove_reference_t<Size>>
 #else
-  template<typename Start, typename Size = std::make_unsigned_t<values::number_type_of_t<Start>>, typename = void>
+  template<typename Start = std::integral_constant<std::size_t, 0>, typename Size = unreachable_sentinel_t>
 #endif
-  struct iota_view;
-
-
-  /**
-   * \brief Specialization in which Start is \ref values::dynamic
-   */
-#ifdef __cpp_concepts
-  template<values::integral Start, values::index Size> requires (not values::fixed<Start>) and
-    std::convertible_to<values::number_type_of_t<Size>, values::number_type_of_t<Start>> and
-    std::same_as<Start, std::remove_reference_t<Start>> and std::same_as<Size, std::remove_reference_t<Size>>
-  struct iota_view<Start, Size>
-#else
-  template<typename Start, typename Size>
-  struct iota_view<Start, Size, std::enable_if_t<not values::fixed<Start>>>
-#endif
-    : generate_view<detail::iota_generator<Start>&, Size>
+  struct iota_view : generate_view<detail::iota_generator<Start>, Size>
   {
   private:
 
-    using base = generate_view<detail::iota_generator<Start>&, Size>;
+    using Size_ = std::conditional_t<values::index<Size>, Size, std::monostate>;
+    using view_base = generate_view<detail::iota_generator<Start>, Size>;
 
   public:
-    /**
-     * \brief Default constructor.
-     */
-#ifdef __cpp_concepts
-    constexpr iota_view() requires values::fixed<Start> and values::fixed<Size>
-#else
-    template<bool Enable = true, std::enable_if_t<Enable and values::fixed<Start> and values::fixed<Size>, int> = 0>
-    constexpr iota_view()
-#endif
-      : base {Size{}} {};
-
 
     /**
      * \brief Construct from an initial value and size.
      */
-    constexpr iota_view(Start start, Size size)
-      : base {gen_, std::move(size)}, gen_ {detail::iota_generator {std::move(start)}} {}
+#ifdef __cpp_concepts
+    constexpr
+    iota_view(Start start, Size_ size) requires values::index<Size>
+#else
+    template<bool Enable = true, std::enable_if_t<Enable and values::index<Size>, int> = 0>
+    constexpr iota_view(Start start, Size_ size)
+#endif
+      : view_base {detail::iota_generator{start}, std::move(size)} {}
 
 
     /**
      * \brief Construct from a size, default-initializing Start.
      */
 #ifdef __cpp_concepts
-    explicit constexpr iota_view(Size size) requires values::fixed<Start>
+    explicit constexpr
+    iota_view(Size_ size) requires values::fixed<Start> and values::index<Size>
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and values::fixed<Start>>>
-    explicit constexpr iota_view(Size size)
+    template<bool Enable = true, std::enable_if_t<Enable and values::fixed<Start> and values::index<Size>, int> = 0>
+    explicit constexpr iota_view(Size_ size)
 #endif
-      : base {gen_, std::move(size)} {}
+      : view_base {std::move(size)} {}
 
-  private:
 
-    detail::iota_generator<Start> gen_;
+    /**
+     * \brief Default constructor.
+     */
+    constexpr
+    iota_view() noexcept = default;
 
   };
 
 
   /**
-   * \brief Specialization in which Start is \ref values::fixed
+   * \brief Deduction guide.
    */
-  #ifdef __cpp_concepts
-  template<values::integral Start, values::index Size> requires values::fixed<Start> and
-    std::convertible_to<values::number_type_of_t<Size>, values::number_type_of_t<Start>> and
-    std::same_as<Start, std::remove_reference_t<Start>> and std::same_as<Size, std::remove_reference_t<Size>>
-  struct iota_view<Start, Size>
-  #else
   template<typename Start, typename Size>
-  struct iota_view<Start, Size, std::enable_if_t<values::fixed<Start>>>
-  #endif
-    : generate_view<detail::iota_generator<Start>, Size>
-  {
-  private:
-
-    using base = generate_view<detail::iota_generator<Start>, Size>;
-
-  public:
-    /**
-     * \brief Default constructor.
-     */
-  #ifdef __cpp_concepts
-    constexpr iota_view() requires values::fixed<Start> and values::fixed<Size>
-  #else
-    template<bool Enable = true, std::enable_if_t<Enable and values::fixed<Start> and values::fixed<Size>, int> = 0>
-    constexpr iota_view()
-  #endif
-    {};
-
-
-    /**
-     * \brief Construct from an initial value and size.
-     */
-    constexpr iota_view(Start, Size size) : base {std::move(size)} {}
-
-
-    /**
-     * \brief Construct from a size, default-initializing Start.
-     */
-  #ifdef __cpp_concepts
-    explicit constexpr iota_view(Size size) requires values::fixed<Start>
-  #else
-    template<bool Enable = true, std::enable_if_t<Enable and values::fixed<Start>>>
-    explicit constexpr iota_view(Size size)
-  #endif
-      : base {std::move(size)} {}
-
-  };
-
+  iota_view(const Start&, const Size&) -> iota_view<Start, Size>;
 
   /**
    * \brief Deduction guide which assumes that omitting a Start parameter means that the sequence will start at zero.
    */
   template<typename Size>
-  iota_view(const Size&) -> iota_view<std::integral_constant<values::number_type_of_t<Size>, 0>, Size>;
+  iota_view(const Size&) -> iota_view<std::integral_constant<std::size_t, 0>, Size>;
 
 } // OpenKalman::values
 
@@ -225,10 +162,10 @@ namespace std
 
 
 #ifdef __cpp_concepts
-  template<std::size_t i, OpenKalman::values::fixed Start, OpenKalman::values::fixed Size>
+  template<std::size_t i, OpenKalman::values::fixed Start, typename Size>
   struct tuple_element<i, OpenKalman::collections::iota_view<Start, Size>>
   {
-    static_assert(i < OpenKalman::values::fixed_number_of_v<Size>);
+    static_assert(not OpenKalman::values::fixed<Size> or requires { requires i < OpenKalman::values::fixed_number_of<Size>::value; });
     using type = OpenKalman::values::operation<std::plus<>, Start, std::integral_constant<std::size_t, i>>;
   };
 #else
@@ -246,18 +183,26 @@ namespace OpenKalman::collections::views
   {
     struct iota_adapter
     {
+      /**
+       * \brief Create an \ref iota_view.
+       */
 #ifdef __cpp_concepts
-      template<values::index Start, values::index Size>
+      template<values::index Start, values::index Size> requires
+        std::convertible_to<values::number_type_of_t<Size>, values::number_type_of_t<Start>>
 #else
-      template<typename Start, typename Size, std::enable_if_t<values::index<Start> and values::index<Size>, int> = 0>
+      template<typename Start, typename Size, std::enable_if_t<values::index<Start> and values::index<Size> and
+        std::is_convertible_v<values::number_type_of_t<Size>, values::number_type_of_t<Start>>, int> = 0>
 #endif
       constexpr auto
       operator() (Start start, Size size) const
       {
-        return iota_view(std::move(start), std::move(size));
+        return iota_view<std::decay_t<Start>, std::decay_t<Size>>(std::move(start), std::move(size));
       }
 
 
+      /**
+       * \brief Create an \ref iota_view starting at 0.
+       */
 #ifdef __cpp_concepts
       template<values::index Size>
 #else
@@ -266,8 +211,19 @@ namespace OpenKalman::collections::views
       constexpr auto
       operator() (Size size) const
       {
-        return iota_view(std::move(size));
+        return iota_view<std::integral_constant<std::size_t, 0>, std::decay_t<Size>>(std::move(size));
       }
+
+
+      /**
+       * \brief Create an unsized \ref iota_view starting at 0.
+       */
+      constexpr auto
+      operator() () const
+      {
+        return iota_view<> {};
+      }
+
     };
   }
 

@@ -25,7 +25,7 @@
 #include "basics/compatibility/ranges.hpp"
 #endif
 #include "values/concepts/index.hpp"
-#include "collections/concepts/collection.hpp"
+#include "collections/concepts/collection_view.hpp"
 #include "collections/traits/size_of.hpp"
 
 namespace OpenKalman::interface
@@ -40,121 +40,103 @@ namespace OpenKalman::interface
 #endif
   struct coordinate_descriptor_traits
   {
-    static constexpr bool is_specialized = false;
+    static constexpr bool
+    is_specialized = false;
 
 
     /**
      * \brief A callable object returning the number of dimensions at compile time (as a \ref values::index).
      */
-    static constexpr auto dimension = [](const T& t) noexcept { return std::integral_constant<std::size_t, 0_uz>{}; };
+    static constexpr auto
+    dimension =
+      [](const T&) noexcept
+#ifdef __cpp_concepts
+        -> values::index auto
+#endif
+      { return std::integral_constant<std::size_t, 0_uz>{}; };
 
 
     /**
      * \brief A callable object returning the number of dimensions after transforming to Euclidean space (as a \ref values::index).
      */
-    static constexpr auto stat_dimension = [](const T& t) noexcept { return std::integral_constant<std::size_t, 0_uz>{}; };
+    static constexpr auto stat_dimension = [](const T&) noexcept -> values::index auto
+      { return std::integral_constant<std::size_t, 0_uz>{}; };
 
 
     /**
      * \brief A callable object returning a bool reflecting whether the \ref coordinates::pattern object describes Euclidean coordinates.
      * \details In this case, dimension() == stat_dimension().
      */
-    static constexpr auto is_euclidean = [](const T& t) noexcept { return std::false_type {}; };
+    static constexpr auto
+    is_euclidean =
+      [](const T&) noexcept
+#ifdef __cpp_concepts
+        -> std::convertible_to<bool> auto
+#endif
+      { return std::false_type {}; };
 
     /**
-     * \brief A unique hash code for type T, of type std::size_t.
+     * \brief A callable object returning a unique hash code for type T, of type std::size_t.
      * \details Two coordinates will be equivalent if they have the same hash code. Generally, this can be obtained
      * through calling <code>typeid(t).hash_code()</code>.
-     * \returns std::size_t
      */
-    static constexpr auto hash_code = [](const T& t) noexcept -> std::size_t { return typeid(t).hash_code(); };
+    static constexpr auto
+    hash_code = [](const T&) noexcept -> std::size_t { return typeid(T).hash_code(); };
 
 
     /**
-     * \brief A callable object mapping a range reflecting vector-space data to an corresponding range in a vector space for directional statistics.
+     * \brief A callable object mapping a range reflecting vector-space data to a corresponding range in a vector space for directional statistics.
      * \details This is the inverse of <code>from_stat_space</code>.
-     * \note Optional if T is a \ref coordinates::euclidean_pattern.
-     * \param data_range A range within a data object corresponding to the descriptor
-     * \returns A \ref collections::collection of elements in the transformed statistical space
+     * \note Disregarded if T is a \ref coordinates::euclidean_pattern. In this case, this will be treated as an identity function.
+     * \param data_view A range within a data object corresponding to the descriptor
      */
-    static constexpr auto to_stat_space =
+    static constexpr auto
+    to_stat_space =
 #ifdef __cpp_concepts
-    [](const T& t, collections::collection auto&& data_range) noexcept -> collections::collection decltype(auto)
+      [](const T& t, collections::collection_view auto&& data_view) noexcept -> collections::collection_view decltype(auto)
 #else
-    [](const T& t, auto&& data_range) noexcept
+      [](const T& t, auto&& data_view) noexcept
 #endif
     {
-      if constexpr (collections::size_of_v<decltype(data_range)> != dynamic_size and values::fixed<decltype(dimension(std::declval<const T&>()))>)
-        static_assert(collections::size_of_v<decltype(data_range)> == values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
-      return std::forward<decltype(data_range)>(data_range);
+      return std::forward<decltype(data_view)>(data_view);
     };
 
 
     /**
      * \brief A callable object mapping a range in a vector space for directional statistics back to a range corresponding to the original vector space.
      * \details This is the inverse of <code>to_stat_space</code>.
-     * \note Optional if T is a \ref coordinates::euclidean_pattern.
-     * \param data_range A collection of elements within a data object in directional-statistics space corresponding to the descriptor
-     * \returns A \ref collections::collection of vector elements in the original vector space
+     * \note Disregarded if T is a \ref coordinates::euclidean_pattern. In this case, this will be treated as an identity function.
+     * \param data_view A collection of elements within a data object in directional-statistics space corresponding to the descriptor
      */
-    static constexpr auto from_stat_space =
+    static constexpr auto
+    from_stat_space =
 #ifdef __cpp_concepts
-    [](const T& t, collections::collection auto&& data_range) noexcept -> collections::collection decltype(auto)
+      [](const T& t, collections::collection_view auto&& data_view) noexcept -> collections::collection_view decltype(auto)
 #else
-    [](const T& t, auto&& data_range) noexcept
+      [](const T& t, auto&& data_view) noexcept
 #endif
     {
-      if constexpr (collections::size_of_v<decltype(data_range)> != dynamic_size and values::fixed<decltype(stat_dimension(std::declval<const T&>()))>)
-        static_assert(collections::size_of_v<decltype(data_range)> == values::fixed_number_of_v<decltype(stat_dimension(std::declval<const T&>()))>);
-      return std::forward<decltype(data_range)>(data_range);
+      return std::forward<decltype(data_view)>(data_view);
     };
 
 
     /**
-     * \brief A callable object that gets a wrapped component from a range in a vector space.
-     * \details The wrapped range is equivalent to <code>from_stat_space(t, to_stat_space(t, data_range))<code>.
-     * \note Optional if T is a \ref coordinates::euclidean_pattern.
-     * \param data_range A collection of elements within a data object corresponding to the descriptor
-     * \returns A wrapped component
+     * \brief A callable object that maps a range reflecting vector-space data to a wrapped range.
+     * \details The wrapped range is equivalent to <code>from_stat_space(t, to_stat_space(t, data_view))<code>.
+     * If data_view is an std::ranges::output_range, the update should be performed in place.
+     * \note Optional. This will be disregarded if T is a \ref coordinates::euclidean_pattern.
+     * Otherwise, if not provided, the library will use <code>from_stat_space(t, to_stat_space(t, data_view))<code>.
+     * \param data_view A collection of elements within a data object corresponding to the descriptor
      */
-    static constexpr auto get_wrapped_component =
+    static constexpr auto
+    wrap =
 #ifdef __cpp_concepts
-    [](const T& t, collections::collection auto&& data_range, values::index auto i) noexcept
+      [](const T& t, collections::collection_view auto&& data_view) noexcept -> collections::collection_view decltype(auto)
 #else
-    [](const T& t, auto&& data_range, auto i) noexcept
+      [](const T& t, auto&& data_view) noexcept
 #endif
     {
-      if constexpr (collections::size_of_v<decltype(data_range)> != dynamic_size and values::fixed<decltype(dimension(std::declval<const T&>()))>)
-        static_assert(collections::size_of_v<decltype(data_range)> == values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
-      if constexpr (values::fixed<decltype(i)> and collections::size_of_v<decltype(data_range)> != dynamic_size)
-        static_assert(values::fixed_number_of_v<decltype(i)> < collections::size_of_v<decltype(data_range)>);
-      if constexpr (values::fixed<decltype(i)> and values::fixed<decltype(dimension(std::declval<const T&>()))>)
-        static_assert(values::fixed_number_of_v<decltype(i)> < values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
-      return get(std::forward<decltype(data_range)>(data_range), std::move(i));
-    };
-
-
-    /**
-     * \brief A callable object that sets a component from a range in a vector space, and wraps, if necessary, any components in the range.
-     * \details The wrapped range is equivalent to <code>from_stat_space(t, to_stat_space(t, data_range))<code>.
-     * \note Optional if T is a \ref coordinates::euclidean_pattern.
-     * \param data_range A collection of elements within a data object corresponding to the descriptor
-     */
-    static constexpr auto set_wrapped_component =
-#ifdef __cpp_concepts
-    [](const T& t, collections::collection auto&& data_range, values::value auto x, values::index auto i) noexcept
-      requires std::assignable_from<std::ranges::range_reference_t<decltype(data_range)>, decltype(x)&&>
-#else
-    [](const T& t, auto&& data_range, auto x, auto i) noexcept
-#endif
-    {
-      if constexpr (collections::size_of_v<decltype(data_range)> != dynamic_size and values::fixed<decltype(dimension(std::declval<const T&>()))>)
-        static_assert(collections::size_of_v<decltype(data_range)> == values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
-      if constexpr (values::fixed<decltype(i)> and collections::size_of_v<decltype(data_range)> != dynamic_size)
-        static_assert(values::fixed_number_of_v<decltype(i)> < collections::size_of_v<decltype(data_range)>);
-      if constexpr (values::fixed<decltype(i)> and values::fixed<decltype(dimension(std::declval<const T&>()))>)
-        static_assert(values::fixed_number_of_v<decltype(i)> < values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
-      get(std::forward<decltype(data_range)>(data_range), std::move(i)) = std::move(x);
+      return std::forward<decltype(data_view)>(data_view);
     };
 
   };
@@ -175,74 +157,17 @@ namespace OpenKalman::interface
 
     using scalar_type = values::number_type_of_t<T>;
 
-    static constexpr auto dimension = [](const T& t) { return t; };
+    static constexpr auto
+    dimension = [](const T& t) { return t; };
 
-    static constexpr auto stat_dimension = [](const T& t) { return t; };
+    static constexpr auto
+    stat_dimension = [](const T& t) { return t; };
 
-    static constexpr auto is_euclidean = [](const T&) { return std::true_type {}; };
+    static constexpr auto
+    is_euclidean = [](const T&) { return std::true_type {}; };
 
-    static constexpr auto hash_code = [](const T& t) -> std::size_t { return t; };
-
-
-    static constexpr auto to_stat_space =
-#ifdef __cpp_concepts
-    [](const T& t, collections::collection auto&& data_range) noexcept
-#else
-    [](const T& t, auto&& data_range) noexcept
-#endif
-    {
-      if constexpr (collections::size_of_v<decltype(data_range)> != dynamic_size and values::fixed<T>)
-        static_assert(collections::size_of_v<decltype(data_range)> == values::fixed_number_of_v<T>);
-      return std::forward<decltype(data_range)>(data_range);
-    };
-
-
-    static constexpr auto from_stat_space =
-#ifdef __cpp_concepts
-    [](const T& t, collections::collection auto&& data_range) noexcept
-#else
-    [](const T& t, auto&& data_range) noexcept
-#endif
-    {
-      if constexpr (collections::size_of_v<decltype(data_range)> != dynamic_size and values::fixed<T>)
-        static_assert(collections::size_of_v<decltype(data_range)> == values::fixed_number_of_v<T>);
-      return std::forward<decltype(data_range)>(data_range);
-    };
-
-
-    static constexpr auto get_wrapped_component =
-#ifdef __cpp_concepts
-    [](const T& t, collections::collection auto&& data_range, values::index auto i) noexcept
-#else
-    [](const T& t, auto&& data_range, auto i) noexcept
-#endif
-    {
-      if constexpr (collections::size_of_v<decltype(data_range)> != dynamic_size and values::fixed<decltype(dimension(std::declval<const T&>()))>)
-        static_assert(collections::size_of_v<decltype(data_range)> == values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
-      if constexpr (values::fixed<decltype(i)> and collections::size_of_v<decltype(data_range)> != dynamic_size)
-        static_assert(values::fixed_number_of_v<decltype(i)> < collections::size_of_v<decltype(data_range)>);
-      if constexpr (values::fixed<decltype(i)> and values::fixed<decltype(dimension(std::declval<const T&>()))>)
-        static_assert(values::fixed_number_of_v<decltype(i)> < values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
-      return get(std::forward<decltype(data_range)>(data_range), std::move(i));
-    };
-
-
-    static constexpr auto set_wrapped_component =
-#ifdef __cpp_concepts
-    [](const T& t, collections::collection auto&& data_range, values::value auto x, values::index auto i) noexcept
-      requires std::assignable_from<std::ranges::range_reference_t<decltype(data_range)>, decltype(x)&&>
-#else
-    [](const T& t, auto&& data_range, auto x, auto i) noexcept
-#endif
-    {
-      if constexpr (collections::size_of_v<decltype(data_range)> != dynamic_size and values::fixed<decltype(dimension(std::declval<const T&>()))>)
-        static_assert(collections::size_of_v<decltype(data_range)> == values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
-      if constexpr (values::fixed<decltype(i)> and collections::size_of_v<decltype(data_range)> != dynamic_size)
-        static_assert(values::fixed_number_of_v<decltype(i)> < collections::size_of_v<decltype(data_range)>);
-      if constexpr (values::fixed<decltype(i)> and values::fixed<decltype(dimension(std::declval<const T&>()))>)
-        static_assert(values::fixed_number_of_v<decltype(i)> < values::fixed_number_of_v<decltype(dimension(std::declval<const T&>()))>);
-      get(std::forward<decltype(data_range)>(data_range), std::move(i)) = std::move(x);
-    };
+    static constexpr auto
+    hash_code = [](const T& t) -> std::size_t { return t; };
 
   };
 
