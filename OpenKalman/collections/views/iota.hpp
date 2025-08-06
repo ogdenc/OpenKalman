@@ -27,8 +27,8 @@
 #include "values/concepts/size.hpp"
 #include "values/concepts/fixed.hpp"
 #include "values/traits/fixed_number_of.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "collections/functions/compare.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "collections/functions/comparison_operators.hpp"
 #include "generate.hpp"
 
 namespace OpenKalman::collections
@@ -50,7 +50,7 @@ namespace OpenKalman::collections
       constexpr auto
       operator() (I i) const
       {
-        return values::operation {std::plus<std::size_t>{}, start_, std::move(i)};
+        return values::operation(std::plus<std::size_t>{}, start_, std::move(i));
       }
 
     private:
@@ -71,12 +71,12 @@ namespace OpenKalman::collections
    * \tparam Size The size of the resulting collection. The view is unsized if Size is <code>void</code>.
    */
 #ifdef __cpp_concepts
-  template<values::integral Start = std::integral_constant<std::size_t, 0>, values::size Size = std::unreachable_sentinel_t>
+  template<values::integral Start = std::integral_constant<std::size_t, 0>, values::size Size = stdcompat::unreachable_sentinel_t>
   requires (not values::index<Size> or std::convertible_to<values::number_type_of_t<Size>, values::number_type_of_t<Start>>) and
     std::same_as<Start, std::remove_reference_t<Start>> and
     std::same_as<Size, std::remove_reference_t<Size>>
 #else
-  template<typename Start = std::integral_constant<std::size_t, 0>, typename Size = unreachable_sentinel_t>
+  template<typename Start = std::integral_constant<std::size_t, 0>, typename Size = stdcompat::unreachable_sentinel_t>
 #endif
   struct iota_view : generate_view<detail::iota_generator<Start>, Size>
   {
@@ -110,7 +110,7 @@ namespace OpenKalman::collections
     template<bool Enable = true, std::enable_if_t<Enable and values::fixed<Start> and values::index<Size>, int> = 0>
     explicit constexpr iota_view(Size_ size)
 #endif
-      : view_base {std::move(size)} {}
+      : view_base {detail::iota_generator{}, std::move(size)} {}
 
 
     /**
@@ -140,7 +140,7 @@ namespace OpenKalman::collections
 #ifdef __cpp_lib_ranges
 namespace std::ranges
 #else
-namespace OpenKalman::ranges
+namespace OpenKalman::stdcompat::ranges
 #endif
 {
   template<typename Start, typename Size>
@@ -166,7 +166,7 @@ namespace std
   struct tuple_element<i, OpenKalman::collections::iota_view<Start, Size>>
   {
     static_assert(not OpenKalman::values::fixed<Size> or requires { requires i < OpenKalman::values::fixed_number_of<Size>::value; });
-    using type = OpenKalman::values::operation<std::plus<>, Start, std::integral_constant<std::size_t, i>>;
+    using type = OpenKalman::values::operation_t<std::plus<>, Start, std::integral_constant<std::size_t, i>>;
   };
 #else
   template<std::size_t i, typename Start, typename Size>
@@ -191,7 +191,7 @@ namespace OpenKalman::collections::views
         std::convertible_to<values::number_type_of_t<Size>, values::number_type_of_t<Start>>
 #else
       template<typename Start, typename Size, std::enable_if_t<values::index<Start> and values::index<Size> and
-        std::is_convertible_v<values::number_type_of_t<Size>, values::number_type_of_t<Start>>, int> = 0>
+        stdcompat::convertible_to<values::number_type_of_t<Size>, values::number_type_of_t<Start>>, int> = 0>
 #endif
       constexpr auto
       operator() (Start start, Size size) const

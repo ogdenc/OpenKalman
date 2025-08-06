@@ -17,11 +17,7 @@
 #define OPENKALMAN_COLLECTIONS_SIZED_RANDOM_ACCESS_RANGE_HPP
 
 #include <type_traits>
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
-#include "basics/compatibility/ranges.hpp"
-#endif
+#include "basics/basics.hpp"
 #include "sized.hpp"
 
 namespace OpenKalman::collections
@@ -29,13 +25,13 @@ namespace OpenKalman::collections
   /**
    * \brief A \ref std::ranges::sized_range "sized" \ref std::ranges::random_access_range "random access range".
    */
-#if defined(__cpp_concepts) and defined(__cpp_lib_remove_cvref)
   template<typename T>
-  concept sized_random_access_range = std::ranges::random_access_range<std::remove_cvref_t<T>> and sized<T>;
+#ifdef __cpp_concepts
+  concept sized_random_access_range =
 #else
-  template<typename T>
-  constexpr bool sized_random_access_range = ranges::random_access_range<remove_cvref_t<T>> and sized<T>;
+  constexpr bool sized_random_access_range =
 #endif
+    stdcompat::ranges::random_access_range<stdcompat::remove_cvref_t<T>> and sized<T>;
 
 } // OpenKalman::collections
 

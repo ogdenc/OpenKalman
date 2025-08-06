@@ -17,9 +17,13 @@
 #ifndef OPENKALMAN_VALUES_CAST_TO_HPP
 #define OPENKALMAN_VALUES_CAST_TO_HPP
 
+#include <cstdint>
 #include "values/concepts/number.hpp"
+#include "values/concepts/complex.hpp"
 #include "values/functions/to_number.hpp"
-#include "values/traits/number_type_of_t.hpp"
+#include "values/functions/internal/make_complex_number.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/traits/complex_type_of.hpp"
 #include "values/classes/Fixed.hpp"
 
 namespace OpenKalman::values
@@ -27,7 +31,7 @@ namespace OpenKalman::values
 #if __cpp_nontype_template_args < 201911L
   namespace detail
   {
-    template<typename Arg, typename T>
+    template<typename T, typename Arg>
     struct FixedCast
     {
       using value_type = T;
@@ -39,40 +43,65 @@ namespace OpenKalman::values
   } // namespace detail
 #endif
 
+#ifndef __cpp_concepts
+  namespace detail
+  {
+    template<typename T, typename = void>
+    struct is_complexible : std::false_type {};
+
+    template<typename T>
+    struct is_complexible<T, std::void_t<typename complex_type_of<T>::type>> : std::true_type {};
+
+
+    template<typename T, typename Arg, typename = void>
+    struct is_fixable : std::false_type {};
+
+    template<typename T, typename Arg>
+    struct is_fixable<T, Arg, std::enable_if_t<(std::bool_constant<(static_cast<T>(fixed_number_of<Arg>::value) == static_cast<T>(fixed_number_of<Arg>::value))>::value)>>
+      : std::true_type {};
+  }
+#endif
+
 
   /**
    * \internal
-   * \brief Cast a \ref values::value to another \ref values::value based on a given \ref values::number type.
+   * \brief Cast a \ref values::value to another \ref values::value with a particular underlying real \ref values::number type.
+   * \details If the argument is complex, the result will be complex. If the argument is fixed, the result may or may not be fixed.
    * \tparam T The \ref values::number type associated with the result
    * \tparam Arg A \ref values::value
    */
 #ifdef __cpp_concepts
-  template<values::number T, values::value Arg>
-  constexpr values::value decltype(auto)
+  template<number T, value Arg> requires (not complex<T>) and std::same_as<T, std::decay_t<T>> and
+    requires { static_cast<T>(real(to_number(std::declval<Arg&&>()))); } and
+    (not complex<Arg> or requires { typename complex_type_of<T>::type; }) and
+    (complex<Arg> or not fixed<Arg> or requires { typename Fixed<T, fixed_number_of_v<Arg>>; })
+  constexpr value decltype(auto)
 #else
-  template<typename T, typename Arg, std::enable_if_t<values::number<T> and values::value<Arg>, int> = 0>
+  template<typename T, typename Arg, std::enable_if_t<
+    number<T> and value<Arg> and (not complex<T>) and std::is_same_v<T, std::decay_t<T>> and
+    (not complex<Arg> or detail::is_complexible<T>::value) and
+    (complex<Arg> or not fixed<Arg> or detail::is_fixable<T, Arg>::value), int> = 0,
+    typename = std::void_t<decltype(static_cast<T>(real(to_number(std::declval<Arg&&>()))))>>
   constexpr decltype(auto)
 #endif
   cast_to(Arg&& arg)
   {
-    if constexpr (std::is_same_v<values::number_type_of_t<Arg>, T>)
+    if constexpr (std::is_same_v<T, number_type_of_t<Arg>>)
     {
       return std::forward<Arg>(arg);
     }
-    else if constexpr (values::fixed<Arg>)
+    else if constexpr (complex<Arg>)
     {
-      constexpr auto x = values::fixed_number_of_v<Arg>;
+      return internal::make_complex_number<T>(std::forward<Arg>(arg));
+    }
+    else if constexpr (fixed<Arg>)
+    {
+      constexpr auto x = fixed_number_of_v<Arg>;
 #if __cpp_nontype_template_args >= 201911L
-      return values::Fixed<T, x>{};
+      return Fixed<T, x>{};
 #else
-      if constexpr (x == static_cast<std::intmax_t>(x))
-      {
-        return values::Fixed<T, static_cast<std::intmax_t>(x)>{};
-      }
-      else
-      {
-        return detail::FixedCast<std::decay_t<Arg>, T>{};
-      }
+      if constexpr (x == static_cast<std::intmax_t>(x)) return Fixed<T, static_cast<std::intmax_t>(x)>{};
+      else return detail::FixedCast<T, std::decay_t<Arg>>{};
 #endif
     }
     else

@@ -26,12 +26,15 @@
 #endif
 #include "values/concepts/index.hpp"
 #include "collections/concepts/collection_view.hpp"
-#include "collections/traits/size_of.hpp"
+#include "collections/views/all.hpp"
 
 namespace OpenKalman::interface
 {
   /**
    * \brief Traits for \ref coordinates::pattern objects.
+   * \details This should only be specialized for user-defined objects.
+   * If this class is specialized with T, the library will also define the following:
+   * # std::common_type<T, >
    */
 #ifdef __cpp_concepts
   template<typename T>
@@ -43,24 +46,20 @@ namespace OpenKalman::interface
     static constexpr bool
     is_specialized = false;
 
+#ifdef DOXYGEN_SHOULD_SKIP_THIS
 
     /**
      * \brief A callable object returning the number of dimensions at compile time (as a \ref values::index).
      */
     static constexpr auto
-    dimension =
-      [](const T&) noexcept
-#ifdef __cpp_concepts
-        -> values::index auto
-#endif
-      { return std::integral_constant<std::size_t, 0_uz>{}; };
+    dimension = [](const T&) -> values::index auto { return std::integral_constant<std::size_t, 0_uz>{}; };
 
 
     /**
      * \brief A callable object returning the number of dimensions after transforming to Euclidean space (as a \ref values::index).
      */
-    static constexpr auto stat_dimension = [](const T&) noexcept -> values::index auto
-      { return std::integral_constant<std::size_t, 0_uz>{}; };
+    static constexpr auto
+    stat_dimension = [](const T&) noexcept -> values::index auto { return std::integral_constant<std::size_t, 0_uz>{}; };
 
 
     /**
@@ -68,12 +67,8 @@ namespace OpenKalman::interface
      * \details In this case, dimension() == stat_dimension().
      */
     static constexpr auto
-    is_euclidean =
-      [](const T&) noexcept
-#ifdef __cpp_concepts
-        -> std::convertible_to<bool> auto
-#endif
-      { return std::false_type {}; };
+    is_euclidean = [](const T&) -> std::convertible_to<bool> auto { return std::false_type {}; };
+
 
     /**
      * \brief A callable object returning a unique hash code for type T, of type std::size_t.
@@ -81,7 +76,7 @@ namespace OpenKalman::interface
      * through calling <code>typeid(t).hash_code()</code>.
      */
     static constexpr auto
-    hash_code = [](const T&) noexcept -> std::size_t { return typeid(T).hash_code(); };
+    hash_code = [](const T&) -> std::size_t { return typeid(T).hash_code(); };
 
 
     /**
@@ -91,14 +86,9 @@ namespace OpenKalman::interface
      * \param data_view A range within a data object corresponding to the descriptor
      */
     static constexpr auto
-    to_stat_space =
-#ifdef __cpp_concepts
-      [](const T& t, collections::collection_view auto&& data_view) noexcept -> collections::collection_view decltype(auto)
-#else
-      [](const T& t, auto&& data_view) noexcept
-#endif
+    to_stat_space = [](const T& t, collections::collection_view auto&& data_view) -> collections::collection decltype(auto)
     {
-      return std::forward<decltype(data_view)>(data_view);
+      return collections::views::all(std::forward<decltype(data_view)>(data_view));
     };
 
 
@@ -109,68 +99,28 @@ namespace OpenKalman::interface
      * \param data_view A collection of elements within a data object in directional-statistics space corresponding to the descriptor
      */
     static constexpr auto
-    from_stat_space =
-#ifdef __cpp_concepts
-      [](const T& t, collections::collection_view auto&& data_view) noexcept -> collections::collection_view decltype(auto)
-#else
-      [](const T& t, auto&& data_view) noexcept
-#endif
+    from_stat_space = [](const T& t, collections::collection_view auto&& data_view) -> collections::collection decltype(auto)
     {
-      return std::forward<decltype(data_view)>(data_view);
+      return collections::views::all(std::forward<decltype(data_view)>(data_view));
     };
 
 
     /**
      * \brief A callable object that maps a range reflecting vector-space data to a wrapped range.
      * \details The wrapped range is equivalent to <code>from_stat_space(t, to_stat_space(t, data_view))<code>.
-     * If data_view is an std::ranges::output_range, the update should be performed in place.
      * \note Optional. This will be disregarded if T is a \ref coordinates::euclidean_pattern.
      * Otherwise, if not provided, the library will use <code>from_stat_space(t, to_stat_space(t, data_view))<code>.
      * \param data_view A collection of elements within a data object corresponding to the descriptor
      */
     static constexpr auto
-    wrap =
-#ifdef __cpp_concepts
-      [](const T& t, collections::collection_view auto&& data_view) noexcept -> collections::collection_view decltype(auto)
-#else
-      [](const T& t, auto&& data_view) noexcept
-#endif
+    wrap = [](const T& t, collections::collection_view auto&& data_view) -> collections::collection decltype(auto)
     {
-      return std::forward<decltype(data_view)>(data_view);
+      return collections::views::all(std::forward<decltype(data_view)>(data_view));
     };
 
-  };
-
-
-  /**
-   * \brief Traits for \ref values::index.
-   */
-#ifdef __cpp_concepts
-  template<values::index T>
-  struct coordinate_descriptor_traits<T>
-#else
-  template<typename T>
-  struct coordinate_descriptor_traits<T, std::enable_if_t<values::index<T>>>
 #endif
-  {
-    static constexpr bool is_specialized = true;
-
-    using scalar_type = values::number_type_of_t<T>;
-
-    static constexpr auto
-    dimension = [](const T& t) { return t; };
-
-    static constexpr auto
-    stat_dimension = [](const T& t) { return t; };
-
-    static constexpr auto
-    is_euclidean = [](const T&) { return std::true_type {}; };
-
-    static constexpr auto
-    hash_code = [](const T& t) -> std::size_t { return t; };
 
   };
-
 
 } // namespace OpenKalman::interface
 

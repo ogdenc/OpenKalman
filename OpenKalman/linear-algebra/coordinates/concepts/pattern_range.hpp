@@ -33,7 +33,7 @@ namespace OpenKalman::coordinates
     struct is_pattern_range : std::false_type {};
 
     template<typename T>
-    struct is_pattern_range<T, std::enable_if_t<pattern<ranges::range_value_t<T>>>>
+    struct is_pattern_range<T, std::enable_if_t<pattern<stdcompat::ranges::range_value_t<T>>>>
       : std::true_type {};
   } // namespace detail
 #endif 

@@ -13,8 +13,8 @@
  * \brief Definition for \ref collection::fixed_pattern_collection.
  */
 
-#ifndef OPENKALMAN_COORDINATE::FIXED_PATTERN_COLLECTION_HPP
-#define OPENKALMAN_COORDINATE
+#ifndef OPENKALMAN_COORDINATE_FIXED_PATTERN_COLLECTION_HPP
+#define OPENKALMAN_COORDINATE_FIXED_PATTERN_COLLECTION_HPP
 
 #ifdef __cpp_lib_ranges
 #include <ranges>
@@ -36,9 +36,9 @@ namespace OpenKalman::coordinates
     struct is_fixed_descriptor_range : std::false_type {};
  
     template<typename T>
-    struct is_fixed_descriptor_range<T, std::enable_if_t<fixed_pattern<ranges::range_value_t<T>>>>
+    struct is_fixed_descriptor_range<T, std::enable_if_t<fixed_pattern<stdcompat::ranges::range_value_t<T>>>>
       : std::true_type {};
-  } // namespace detail
+  }
 #endif 
 	
 	
@@ -47,15 +47,15 @@ namespace OpenKalman::coordinates
    * \details This will be a \ref pattern_tuple or a dynamic range over a collection such as std::vector.
    */
   template<typename T>
-#if defined(__cpp_lib_ranges) and defined(__cpp_lib_remove_cvref)
+#ifdef __cpp_lib_ranges
   concept fixed_pattern_collection = pattern_collection<T> and
-    (fixed_pattern_tuple<T> or fixed_pattern<std::ranges::range_value_t<std::decay_t<T>>>);
+    (fixed_pattern_tuple<T> or fixed_pattern<stdcompat::ranges::range_value_t<std::decay_t<T>>>);
 #else
   constexpr bool fixed_pattern_collection = collections::collection<T> and
     (fixed_pattern_tuple<T> or detail::is_fixed_descriptor_range<T>::value);
 #endif
 
 
-} // namespace OpenKalman::coordinates
+}
 
-#endif //OPENKALMAN_COORDINATE
+#endif

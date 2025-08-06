@@ -108,16 +108,15 @@ namespace OpenKalman::Eigen3
       }
       else if constexpr (p == Eigen::Infinity)
       {
-        return values::operation{OpInf{}, c};
+        return values::operation(OpInf{}, c);
       }
       else if constexpr (diag)
       {
-        return values::operation{Op{}, c, factor};
+        return values::operation(Op{}, c, factor);
       }
       else
       {
-        return values::operation{Op{}, c,
-          values::operation{std::multiplies<std::size_t>{}, factor, dim}};
+        return values::operation(Op{}, c, values::operation(std::multiplies<std::size_t>{}, factor, dim));
       }
     }
 
@@ -191,8 +190,7 @@ namespace OpenKalman::Eigen3
 #endif
         return values::Fixed<ResultType, 0>{};
       else
-        return values::operation{Op{}, c,
-          values::operation{std::multiplies<std::size_t>{}, factor, dim}};
+        return values::operation(Op{}, c, values::operation(std::multiplies<std::size_t>{}, factor, dim));
     }
 
 
@@ -206,7 +204,7 @@ namespace OpenKalman::Eigen3
 #endif
         return values::Fixed<ResultType, 0>{};
       else if constexpr (at_least_square)
-        return values::operation{Op{}, c, factor};
+        return values::operation(Op{}, c, factor);
       else
         return std::monostate{};
     }
@@ -246,8 +244,7 @@ namespace OpenKalman::Eigen3
 #endif
         return values::Fixed<ResultType, 0>{};
       else
-        return values::operation{Op{}, c,
-          values::operation{std::multiplies<std::size_t>{}, factor, dim}};
+        return values::operation(Op{}, c, values::operation(std::multiplies<std::size_t>{}, factor, dim));
     }
 
 
@@ -255,7 +252,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim)
     {
       if constexpr (at_least_square)
-        return values::operation{Op{}, c, factor};
+        return values::operation(Op{}, c, factor);
       else
         return std::monostate{};
     }
@@ -307,8 +304,7 @@ namespace OpenKalman::Eigen3
   #endif
         return values::Fixed<Scalar, 0>{};
       else
-        return values::operation{std::multiplies<Scalar>{}, c,
-          values::operation{std::multiplies<Scalar>{}, factor, dim}};
+        return values::operation(std::multiplies<Scalar>{}, c, values::operation(std::multiplies<Scalar>{}, factor, dim));
     }
 
 
@@ -322,7 +318,7 @@ namespace OpenKalman::Eigen3
 #endif
         return values::Fixed<Scalar, 0>{};
       else if constexpr (at_least_square)
-        return values::operation{std::multiplies<Scalar>{}, c, factor};
+        return values::operation(std::multiplies<Scalar>{}, c, factor);
       else
         return std::monostate{};
     }
@@ -379,7 +375,7 @@ namespace OpenKalman::Eigen3
     {
       if constexpr (at_least_square)
       {
-        return values::operation {Op{}, c, dim};
+        return values::operation(Op{}, c, dim);
       }
       else if constexpr (values::fixed<C>)
       {
@@ -435,7 +431,7 @@ namespace OpenKalman::Eigen3
     {
       if constexpr (at_least_square)
       {
-        return values::operation {Op{}, c, dim};
+        return values::operation(Op{}, c, dim);
       }
       else if constexpr (values::fixed<C>)
       {
@@ -478,7 +474,7 @@ namespace OpenKalman::Eigen3
     template<typename C, typename Factor, typename Dim>
     static constexpr auto get_constant(const C& c, const Factor&, const Dim&)
     {
-      return values::operation {Op{}, c};
+      return values::operation(Op{}, c);
     }
 
 
@@ -530,7 +526,7 @@ namespace OpenKalman::Eigen3
     template<typename C, typename Factor, typename Dim>
     static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim)
     {
-      return values::operation {Op{}, c};
+      return values::operation(Op{}, c);
     }
 
 
@@ -538,7 +534,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim& dim)
     {
       if constexpr (at_least_square)
-        return values::operation {Op{}, c};
+        return values::operation(Op{}, c);
       else
         return std::monostate{};
     }
@@ -588,8 +584,7 @@ namespace OpenKalman::Eigen3
     template<typename C, typename Factor, typename Dim>
     static constexpr auto get_constant(const C& c, const Factor& factor, const Dim& dim)
     {
-      return values::operation {Op{}, c,
-        values::operation{std::multiplies<std::size_t>{}, dim, factor}};
+      return values::operation(Op{}, c, values::operation(std::multiplies<std::size_t>{}, dim, factor));
     }
 
 
@@ -597,7 +592,7 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant_diagonal(const C& c, const Factor& factor, const Dim&)
     {
       if constexpr (at_least_square)
-        return values::operation {Op{}, c, factor};
+        return values::operation(Op{}, c, factor);
       else
         return std::monostate{};
     }
@@ -633,8 +628,7 @@ namespace OpenKalman::Eigen3
 #endif
         return values::Fixed<ResultType, 0>{};
       else
-        return values::operation{Op{}, c,
-          values::operation{std::multiplies<std::size_t>{}, factor, dim}};
+        return values::operation(Op{}, c, values::operation(std::multiplies<std::size_t>{}, factor, dim));
     }
 
 

@@ -57,7 +57,7 @@ namespace OpenKalman::collections
 #ifdef __cpp_concepts
     constexpr concat_tuple_view() requires (... and std::default_initializable<Ts>) = default;
 #else
-    template<typename Tup = std::tuple<Ts...>, std::enable_if_t<std::is_default_constructible_v<Tup>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and (... and stdcompat::default_initializable<Ts>), int> = 0>
     constexpr concat_tuple_view() {};
 #endif
 
@@ -65,7 +65,7 @@ namespace OpenKalman::collections
 #ifdef __cpp_concepts
     template<typename...Args> requires (... and std::constructible_from<Ts, Args&&>)
 #else
-    template<typename...Args, std::enable_if_t<(... and std::is_constructible_v<Ts, Args&&>), int> = 0>
+    template<typename...Args, std::enable_if_t<(... and stdcompat::constructible_from<Ts, Args&&>), int> = 0>
 #endif
     explicit constexpr concat_tuple_view(Args&&...args) : tup {std::forward<Args>(args)...} {}
 
@@ -82,7 +82,7 @@ namespace OpenKalman::collections
     get(const concat_tuple_view& v)
     {
       auto [element, index] = std::decay_t<decltype(detail::concat_tuple_view_indices<i, Ts...>())>();
-      return get(get(v.tup, element), index);
+      return get(get(v.tup, element).get(), index);
     }
 
 
@@ -98,12 +98,12 @@ namespace OpenKalman::collections
     get(concat_tuple_view&& v)
     {
       auto [element, index] = std::decay_t<decltype(detail::concat_tuple_view_indices<i, Ts...>())>();
-      return get(get(std::move(v).tup, element), index);
+      return get(get(std::move(v).tup, element).get(), index);
     }
 
   private:
 
-    std::tuple<Ts...> tup;
+    std::tuple<internal::movable_wrapper<Ts>...> tup;
   };
 
 
@@ -120,19 +120,21 @@ namespace std
 {
   template<typename...Ts>
   struct tuple_size<OpenKalman::collections::concat_tuple_view<Ts...>>
-    : std::integral_constant<std::size_t, (0_uz + ... + std::tuple_size_v<std::decay_t<Ts>>)> {};
+    : std::integral_constant<std::size_t, (0 + ... + std::tuple_size_v<std::decay_t<Ts>>)> {};
 
 
   template<std::size_t i, typename...Ts>
   struct tuple_element<i, OpenKalman::collections::concat_tuple_view<Ts...>>
   {
-    static_assert(i < (0_uz + ... + std::tuple_size_v<std::decay_t<Ts>>));
+  private:
+    static_assert(i < (0 + ... + std::tuple_size_v<std::decay_t<Ts>>));
     using indices = decltype(OpenKalman::collections::detail::concat_tuple_view_indices<i, Ts...>());
     using element = std::tuple_element_t<0, indices>;
     using index = std::tuple_element_t<1, indices>;
+  public:
     using type = std::tuple_element_t<index::value, std::decay_t<std::tuple_element_t<element::value, std::tuple<Ts...>>>>;
   };
-} // namespace std
+}
 
 
 namespace OpenKalman::collections::views
@@ -149,17 +151,12 @@ namespace OpenKalman::collections::views
       constexpr auto
       operator() (R&&...r) const
       {
-#if __cpp_lib_ranges_concat >= 202403L
-        namespace cv = std::ranges::views;
-#else
-        namespace cv = ranges::views;
-#endif
         if constexpr (sizeof...(R) == 1)
           return all(std::forward<R>(r)...);
         else if constexpr ((... and tuple_like<R>))
-          return concat_tuple_view {all(std::forward<R>(r))...} | all;
+          return concat_tuple_view {std::forward<R>(r)...} | all;
         else
-          return cv::concat(all(std::forward<R>(r))...) | all;
+          return stdcompat::ranges::views::concat(all(std::forward<R>(r))...) | all;
       }
 
     };

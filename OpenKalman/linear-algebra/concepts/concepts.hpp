@@ -37,7 +37,7 @@
 #include "internal/not_more_fixed_than.hpp"
 #include "internal/less_fixed_than.hpp"
 #include "internal/maybe_same_shape_as_vector_space_descriptors.hpp"
-#include "internal/has_uniform_static_vector_space_descriptors.hpp"
+#include "internal/has_uniform_patterns.hpp"
 
 #include "compatible_with_vector_space_descriptor_collection.hpp"
 #include "vector_space_descriptors_may_match_with.hpp"

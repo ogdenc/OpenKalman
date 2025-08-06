@@ -26,7 +26,7 @@ namespace OpenKalman::internal
   namespace detail
   {
     template<typename...Ts>
-    using best_desc = std::decay_t<decltype(best_vector_space_descriptor(std::declval<Ts>()...))>;
+    using best_desc = std::decay_t<decltype(most_fixed_pattern(std::declval<Ts>()...))>;
 
 
     template<typename...Ds, typename Arg, std::size_t...Ix>

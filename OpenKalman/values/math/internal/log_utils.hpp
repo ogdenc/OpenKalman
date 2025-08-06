@@ -15,7 +15,7 @@
 #ifndef OPENKALMAN_VALUE_LOG_UTILS_HPP
 #define OPENKALMAN_VALUE_LOG_UTILS_HPP
 
-#include "../../../basics/compatibility/language-features.hpp"
+#include "basics/basics.hpp"
 #include "values/functions/internal/near.hpp"
 #include "values/math/exp.hpp"
 
@@ -45,9 +45,9 @@ namespace OpenKalman::values::internal
   constexpr std::tuple<T, T> log_scaling_gt(const T& x, const T& corr = T{0})
   {
     if (x < T{0x1p+4}) return {x, corr};
-    else if (x < T{0x1p+16}) return log_scaling_gt<T>(x * T{0x1p-4}, corr + T{4} * numbers::ln2_v<T>);
-    else if (x < T{0x1p+64}) return log_scaling_gt<T>(x * T{0x1p-16}, corr + T{16} * numbers::ln2_v<T>);
-    else return log_scaling_gt<T>(x * T{0x1p-64}, corr + T{64} * numbers::ln2_v<T>);
+    else if (x < T{0x1p+16}) return log_scaling_gt<T>(x * T{0x1p-4}, corr + T{4} * stdcompat::numbers::ln2_v<T>);
+    else if (x < T{0x1p+64}) return log_scaling_gt<T>(x * T{0x1p-16}, corr + T{16} * stdcompat::numbers::ln2_v<T>);
+    else return log_scaling_gt<T>(x * T{0x1p-64}, corr + T{64} * stdcompat::numbers::ln2_v<T>);
   }
 
 
@@ -55,9 +55,9 @@ namespace OpenKalman::values::internal
   constexpr std::tuple<T, T> log_scaling_lt(const T& x, const T& corr = T{0})
   {
     if (x > T{0x1p-4}) return {x, corr};
-    else if (x > T{0x1p-16}) return log_scaling_lt<T>(x * T{0x1p+4}, corr - T{4} * numbers::ln2_v<T>);
-    else if (x > T{0x1p-64}) return log_scaling_lt<T>(x * T{0x1p+16}, corr - T{16} * numbers::ln2_v<T>);
-    else return log_scaling_lt<T>(x * T{0x1p+64}, corr - T{64} * numbers::ln2_v<T>);
+    else if (x > T{0x1p-16}) return log_scaling_lt<T>(x * T{0x1p+4}, corr - T{4} * stdcompat::numbers::ln2_v<T>);
+    else if (x > T{0x1p-64}) return log_scaling_lt<T>(x * T{0x1p+16}, corr - T{16} * stdcompat::numbers::ln2_v<T>);
+    else return log_scaling_lt<T>(x * T{0x1p+64}, corr - T{64} * stdcompat::numbers::ln2_v<T>);
   }
 
 

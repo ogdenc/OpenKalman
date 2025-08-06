@@ -18,8 +18,8 @@
 #include <limits>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/classes/operation.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
@@ -43,10 +43,10 @@ namespace OpenKalman::values
   constexpr auto acosh(const Arg& arg)
 #endif
   {
-    if constexpr (not values::number<Arg>)
+    if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::acosh(a); } };
-      return values::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::acosh(a); } };
+      return values::operation(Op{}, arg);
     }
     else
     {
@@ -65,7 +65,7 @@ namespace OpenKalman::values
         auto sqtm = values::sqrt(values::internal::make_complex_number<R>(xr - 1, xi));
         auto c = values::real(sqtm);
         auto d = values::imag(sqtm);
-        return values::internal::make_complex_number<Return>(values::log(values::internal::make_complex_number(xr + a*c - b*d, xi + a*d + b*c)));
+        return values::internal::make_complex_number<Return>(values::log(values::internal::make_complex_number<>(xr + a*c - b*d, xi + a*d + b*c)));
       }
       else
       {

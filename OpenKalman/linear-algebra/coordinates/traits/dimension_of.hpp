@@ -13,13 +13,12 @@
  * \brief Definition for \ref coordinates::dimension_of.
  */
 
-#ifndef OPENKALMAN_COORDINATE_SIZE_OF_HPP
-#define OPENKALMAN_COORDINATE_SIZE_OF_HPP
+#ifndef OPENKALMAN_DIMENSION_OF_HPP
+#define OPENKALMAN_DIMENSION_OF_HPP
 
 #include <type_traits>
-#include "basics/global-definitions.hpp"
-#include "values/concepts/fixed.hpp"
-#include "values/functions/to_number.hpp"
+#include "values/values.hpp"
+#include "linear-algebra/coordinates/concepts/pattern.hpp"
 #include "linear-algebra/coordinates/functions/get_dimension.hpp"
 
 namespace OpenKalman::coordinates
@@ -30,29 +29,24 @@ namespace OpenKalman::coordinates
    * or \ref dynamic_size if not known at compile time.
    */
 #ifdef __cpp_concepts
-  template<pattern T>
-  struct dimension_of : std::integral_constant<std::size_t, dynamic_size> {};
+  template<typename T>
 #else
   template<typename T, typename = void>
+#endif
   struct dimension_of {};
-#endif
-
-
-#ifndef __cpp_concepts
-  template<typename T>
-  struct dimension_of<T, std::enable_if_t<not values::fixed<decltype(get_dimension(std::declval<std::decay_t<T>>()))>>>
-    : std::integral_constant<std::size_t, dynamic_size> {};
-#endif
 
 
 #ifdef __cpp_concepts
-  template<pattern T> requires values::fixed<decltype(get_dimension(std::declval<std::decay_t<T>>()))>
+  template<pattern T> requires requires(T t) { {coordinates::get_dimension(t)} -> values::index; }
   struct dimension_of<T>
 #else
   template<typename T>
-  struct dimension_of<T, std::enable_if_t<values::fixed<decltype(get_dimension(std::declval<std::decay_t<T>>()))>>>
+  struct dimension_of<T, std::enable_if_t<values::index<decltype(coordinates::get_dimension(std::declval<T>()))>>>
 #endif
-    : std::integral_constant<std::size_t, values::to_number(get_dimension(std::decay_t<T>{}))> {};
+    : std::conditional_t<
+        values::fixed<decltype(coordinates::get_dimension(std::declval<T>()))>,
+        values::fixed_number_of<decltype(coordinates::get_dimension(std::declval<T>()))>,
+        std::integral_constant<std::size_t, dynamic_size>> {};
 
 
   /**
@@ -62,6 +56,6 @@ namespace OpenKalman::coordinates
   constexpr auto dimension_of_v = dimension_of<T>::value;
 
 
-} // namespace OpenKalman::coordinates
+}
 
-#endif //OPENKALMAN_COORDINATE_SIZE_OF_HPP
+#endif

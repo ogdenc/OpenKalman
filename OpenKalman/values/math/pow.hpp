@@ -18,10 +18,10 @@
 #include <limits>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/traits/real_type_of_t.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/traits/real_type_of.hpp"
 #include "values/concepts/integral.hpp"
-#include "values/classes/operation.hpp"
+#include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
@@ -82,31 +82,27 @@ namespace OpenKalman::values
    * \return x to the power of n.
    */
 #ifdef __cpp_concepts
-  template<values::value Arg, values::value Exponent> requires
-    (values::integral<Exponent> or std::common_with<number_type_of_t<Arg>, number_type_of_t<Exponent>>)
-  constexpr values::value auto pow(const Arg& arg, const Exponent& exponent)
+  template<value Arg, value Exponent> requires
+    (integral<Exponent> or std::common_with<number_type_of_t<Arg>, number_type_of_t<Exponent>>)
+  constexpr value auto
 #else
-  template <typename Arg, typename Exponent, std::enable_if_t<values::value<Arg> and values::value<Exponent> and
+  template <typename Arg, typename Exponent, std::enable_if_t<value<Arg> and value<Exponent> and
     (values::integral<Exponent> or
       std::is_void_v<std::void_t<typename std::common_type<number_type_of_t<Arg>, number_type_of_t<Exponent>>::type>>), int> = 0>
-  constexpr auto pow(const Arg& arg, const Exponent& exponent)
+  constexpr auto
 #endif
+  pow(const Arg& arg, const Exponent& exponent)
   {
-    if constexpr (not values::number<Arg> or not values::number<Exponent>)
+    if constexpr (fixed<Arg> or fixed<Exponent>)
     {
-      struct Op
-      {
-        using NA = values::number_type_of_t<Arg>;
-        using NE = values::number_type_of_t<Exponent>;
-        constexpr auto operator()(const NA& a, const NE& e) const { return values::pow(a, e); }
-      };
-      return values::operation {Op{}, arg, exponent};
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a, const number_type_of_t<Exponent>& e) const { return values::pow(a, e); } };
+      return values::operation(Op{}, arg, exponent);
     }
     else
     {
       using std::pow;
       using Return = decltype(pow(arg, exponent));
-      using R = decltype(values::real(arg));
+      using R = real_type_of_t<real_type_of_t<Return>>;
       struct Op { auto operator()(const Arg& a, const Exponent& e) { return pow(a, e); } };
       if (internal::constexpr_callable<Op>(arg, exponent)) return pow(arg, exponent);
       else if constexpr (values::integral<Exponent>)

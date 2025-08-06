@@ -21,7 +21,7 @@
 #include <concepts>
 #endif
 #include "value.hpp"
-#include "values/traits/number_type_of_t.hpp"
+#include "values/traits/number_type_of.hpp"
 
 namespace OpenKalman::values
 {
@@ -33,23 +33,23 @@ namespace OpenKalman::values
 
 
     template<typename T>
-    struct reduces_to_integral<T, std::enable_if_t<std::is_integral_v<values::number_type_of_t<T>>>>
+    struct reduces_to_integral<T, std::enable_if_t<std::is_integral_v<number_type_of_t<T>>>>
       : std::true_type {};
   }
 #endif
 
 
 /**
-   * \brief T is an index value.
+   * \brief T is an integral value.
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept integral = values::value<T> and std::integral<values::number_type_of_t<T>>;
+  concept integral = value<T> and std::integral<number_type_of_t<T>>;
 #else
   template<typename T>
-  constexpr bool integral = values::value<T> and detail::reduces_to_integral<T>::value;
+  constexpr bool integral = value<T> and detail::reduces_to_integral<T>::value;
 #endif
 
-} // namespace OpenKalman::values
+}
 
-#endif //OPENKALMAN_VALUE_INTEGRAL_HPP
+#endif

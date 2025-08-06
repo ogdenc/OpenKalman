@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2024-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,7 +17,6 @@
 #define OPENKALMAN_VALUES_FIXED_NUMBER_OF_HPP
 
 #include <type_traits>
-#include "values/concepts/value.hpp"
 #include "values/concepts/fixed.hpp"
 
 namespace OpenKalman::values
@@ -45,6 +44,7 @@ namespace OpenKalman::values
   struct fixed_number_of {};
 
 
+  /// \overload
 #ifdef __cpp_concepts
   template<values::fixed T>
   struct fixed_number_of<T>

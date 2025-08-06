@@ -28,11 +28,7 @@ namespace OpenKalman::collections
 
     template<typename Tup, std::size_t...ix>
     struct common_tuple_type_impl<Tup, std::index_sequence<ix...>>
-#if __cplusplus >= 202002L
-      : std::common_reference<std::tuple_element_t<ix, std::decay_t<Tup>>...> {};
-#else
-      : std::common_type<std::tuple_element_t<ix, std::decay_t<Tup>>...> {};
-#endif
+      : stdcompat::common_reference<std::tuple_element_t<ix, Tup>...> {};
   }
 
 
@@ -40,12 +36,18 @@ namespace OpenKalman::collections
    * \brief The common type within a \ref tuple_like object, if it exists.
    */
 #ifdef __cpp_concepts
-  template<tuple_like T>
-  struct common_tuple_type
+  template<typename T>
 #else
   template<typename T, typename = void>
-  struct common_tuple_type;
+#endif
+  struct common_tuple_type {};
 
+
+  /// \overload
+#ifdef __cpp_concepts
+  template<tuple_like T>
+  struct common_tuple_type<T>
+#else
   template<typename T>
   struct common_tuple_type<T, std::enable_if_t<tuple_like<T>>>
 #endif
@@ -59,6 +61,6 @@ namespace OpenKalman::collections
   using common_tuple_type_t = typename common_tuple_type<T>::type;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_COLLECTIONS_COMMON_TUPLE_TYPE_HPP
+#endif

@@ -17,7 +17,7 @@
 
 #include <type_traits>
 #include <limits>
-#include "../../../basics/compatibility/language-features.hpp"
+#include "basics/basics.hpp"
 #include "values/math/signbit.hpp"
 #include "values/math/copysign.hpp"
 #include "values/math/sqrt.hpp"
@@ -35,7 +35,7 @@ namespace OpenKalman::values::internal
   template<typename T>
   constexpr T atan2_impl(const T& y, const T& x)
   {
-    constexpr auto pi = numbers::pi_v<T>;
+    constexpr auto pi = stdcompat::numbers::pi_v<T>;
 
     if constexpr (std::numeric_limits<T>::has_infinity)
     {

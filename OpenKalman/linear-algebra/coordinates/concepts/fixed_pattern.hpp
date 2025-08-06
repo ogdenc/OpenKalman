@@ -42,9 +42,9 @@ namespace OpenKalman::coordinates
   template<typename T>
 #ifdef __cpp_concepts
   concept fixed_pattern = std::default_initializable<std::decay_t<T>> and
-    pattern<T> and (dimension_of_v<T> != dynamic_size);
+    pattern<T> and (dimension_of<T>::value != dynamic_size);
 #else
-  constexpr bool fixed_pattern = std::is_default_constructible<std::decay_t<T>>::value and
+  constexpr bool fixed_pattern = stdcompat::default_initializable<std::decay_t<T>> and
     detail::fixed_pattern_impl<T>::value;
 #endif
 

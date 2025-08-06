@@ -17,13 +17,15 @@
 #ifndef OPENKALMAN_COMPATIBILITY_VIEWS_REF_VIEW_HPP
 #define OPENKALMAN_COMPATIBILITY_VIEWS_REF_VIEW_HPP
 
-#ifndef __cpp_lib_ranges
-
+#include "basics/compatibility/language-features.hpp"
 #include "basics/compatibility/ranges.hpp"
 #include "view_interface.hpp"
 
-namespace OpenKalman::ranges
+namespace OpenKalman::stdcompat::ranges
 {
+#ifdef __cpp_lib_ranges
+  using std::ranges::ref_view;
+#else
   /**
    * \internal
    * \brief Equivalent to std::ranges::ref_view.
@@ -42,7 +44,7 @@ namespace OpenKalman::ranges
     /**
      * \brief Construct from a \ref range.
      */
-    template<typename T, std::enable_if_t<std::is_convertible_v<T, R&> and (not std::is_same_v<remove_cvref_t<T>, ref_view>), int> = 0,
+    template<typename T, std::enable_if_t<stdcompat::convertible_to<T, R&> and (not std::is_same_v<stdcompat::remove_cvref_t<T>, ref_view>), int> = 0,
       typename = std::void_t<decltype(FUN(std::declval<T>()))>>
     constexpr
     ref_view(T&& t) : r_ {std::addressof(static_cast<R&>(std::forward<T>(t)))} {}
@@ -58,26 +60,26 @@ namespace OpenKalman::ranges
     /**
      * \returns An iterator at the beginning, if the base object is a range.
      */
-    constexpr ranges::iterator_t<R> begin() const { return ranges::begin(*r_); }
+    constexpr stdcompat::ranges::iterator_t<R> begin() const { return stdcompat::ranges::begin(*r_); }
 
 
     /**
      * \returns An iterator at the end, if the base object is a range.
      */
-    constexpr ranges::sentinel_t<R> end() const { return ranges::end(*r_); }
+    constexpr stdcompat::ranges::sentinel_t<R> end() const { return stdcompat::ranges::end(*r_); }
 
 
     /**
      * \brief Indicates whether the view is empty
      */
-    constexpr bool empty() const { return ranges::empty(*r_); }
+    constexpr bool empty() const { return stdcompat::ranges::empty(*r_); }
 
 
     /**
      * \brief The size of the object.
      */
     template<bool Enable = true, std::enable_if_t<Enable and sized_range<R>, int> = 0>
-    constexpr auto size() const { return ranges::size(*r_); }
+    constexpr auto size() const { return stdcompat::ranges::size(*r_); }
 
   private:
 
@@ -96,8 +98,7 @@ namespace OpenKalman::ranges
   template<typename R>
   constexpr bool enable_borrowed_range<ref_view<R>> = true;
 
+#endif
 }
 
-
-#endif
 #endif //OPENKALMAN_COMPATIBILITY_VIEWS_REF_VIEW_HPP

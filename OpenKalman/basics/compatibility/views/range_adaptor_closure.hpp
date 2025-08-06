@@ -11,22 +11,21 @@
 /**
  * \file
  * \internal
- * \brief Definition of \ref basics::compatibility::ranges::range_adaptor_closure.
+ * \brief Definition of \ref stdcompat::ranges::range_adaptor_closure.
  */
 
 #ifndef OPENKALMAN_COMPATIBILITY_VIEWS_RANGE_ADAPTOR_CLOSURE_HPP
 #define OPENKALMAN_COMPATIBILITY_VIEWS_RANGE_ADAPTOR_CLOSURE_HPP
 
-#if __cpp_lib_ranges < 202202L
-
 #include <type_traits>
 #include "basics/compatibility/language-features.hpp"
 #include "view-concepts.hpp"
-#include "ref_view.hpp"
-#include "owning_view.hpp"
 
-namespace OpenKalman::ranges
+namespace OpenKalman::stdcompat::ranges
 {
+#if __cpp_lib_ranges >= 202202L
+  using std::ranges::range_adaptor_closure;
+#else
 #ifdef __cpp_concepts
   template<typename D> requires std::is_object_v<D> && std::same_as<D, std::remove_cv_t<D>>
 #else
@@ -148,9 +147,7 @@ namespace OpenKalman::ranges
     return internal::Pipe<std::decay_t<Lhs>, std::decay_t<Rhs>>{std::forward<Lhs>(lhs), std::forward<Rhs>(rhs)};
   }
 
-}
-
-
 #endif
+}
 
 #endif //OPENKALMAN_COMPATIBILITY_VIEWS_RANGE_ADAPTOR_CLOSURE_HPP

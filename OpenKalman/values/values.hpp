@@ -25,6 +25,8 @@
  */
 namespace OpenKalman::values {}
 
+#include "basics/basics.hpp"
+
 #include "interface/number_traits.hpp"
 
 #include "concepts/number.hpp"
@@ -34,7 +36,10 @@ namespace OpenKalman::values {}
 
 #include "functions/to_number.hpp"
 #include "traits/fixed_number_of.hpp"
-#include "traits/number_type_of_t.hpp"
+#include "traits/number_type_of.hpp"
+#include "concepts/fixed_number_compares_with.hpp"
+
+#include "functions/internal/update_real_part.hpp"
 
 #include "concepts/complex.hpp"
 #include "concepts/integral.hpp"
@@ -43,23 +48,25 @@ namespace OpenKalman::values {}
 #include "concepts/floating.hpp"
 #include "concepts/not_complex.hpp"
 
-#include "classes/operation.hpp"
+#include "functions/operation.hpp"
 #include "classes/Fixed.hpp"
 #include "classes/fixed-constants.hpp"
 
-#include "functions/cast_to.hpp"
-#include "functions/value-arithmetic.hpp"
-
 #include "math/real.hpp"
 #include "math/imag.hpp"
-#include "traits/real_type_of_t.hpp"
+#include "traits/real_type_of.hpp"
 #include "functions/internal/make_complex_number.hpp"
+#include "traits/complex_type_of.hpp"
+
+#include "functions/cast_to.hpp"
+#include "functions/value-arithmetic.hpp"
 
 #include "math/isinf.hpp"
 #include "math/isnan.hpp"
 #include "math/conj.hpp"
 #include "math/signbit.hpp"
 #include "math/copysign.hpp"
+#include "math/fmod.hpp"
 #include "math/sqrt.hpp"
 #include "math/hypot.hpp"
 #include "math/abs.hpp"

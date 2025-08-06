@@ -37,9 +37,10 @@ namespace OpenKalman::test
         static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 0>, Axis >and ...));
         static_assert((compares_with<vector_space_descriptor_of_t<decltype(ps), 1>, Axis >and ...));
 
+        auto dim = std::integral_constant<std::size_t, sizeof...(ps)>{};
         return std::tuple_cat(
           std::tuple {2 * transpose(x)},
-          OpenKalman::collections::internal::repeat_tuple_view<sizeof...(ps), decltype(Mean {1.})>(Mean {1.}));
+          OpenKalman::collections::views::repeat(Mean {1.}, dim));
       },
       [](const auto& x, const auto& ...ps) // Hessians
       {
@@ -105,11 +106,12 @@ namespace OpenKalman::test
       },
       [](const M2t& x, const auto& ...ps) // Jacobians
       {
+        auto dim = std::integral_constant<std::size_t, sizeof...(ps)>{};
         M22t ret = {
           std::cos(x(1)), -x(0) * std::sin(x(1)),
           std::sin(x(1)), x(0) * std::cos(x(1))};
         return std::tuple_cat(std::tuple {std::move(ret)},
-          OpenKalman::collections::internal::repeat_tuple_view<sizeof...(ps), decltype(make_identity_matrix_like(ret))>(make_identity_matrix_like(ret)));
+          OpenKalman::collections::views::repeat(make_identity_matrix_like(ret), dim));
       },
       [](const M2t& x, const auto& ...ps) // Hessians
       {
@@ -136,11 +138,12 @@ namespace OpenKalman::test
       },
       [](const MP1t& x, const auto& ...ps) // Jacobians
       {
+        auto dim = std::integral_constant<std::size_t, sizeof...(ps)>{};
         M2Pt ret = {
           std::cos(x(1)), -x(0) * std::sin(x(1)),
           std::sin(x(1)), x(0) * std::cos(x(1))};
         return std::tuple_cat(std::tuple {
-          std::move(ret)}, OpenKalman::collections::internal::repeat_tuple_view<sizeof...(ps), decltype(make_identity_matrix_like(ret))>(make_identity_matrix_like(ret)));
+          std::move(ret)}, OpenKalman::collections::views::repeat(make_identity_matrix_like(ret), dim));
       },
       [](const MP1t& x, const auto& ...ps) // Hessians
       {
@@ -163,11 +166,12 @@ namespace OpenKalman::test
       {
         const auto h = 1 / std::hypot(x(0), x(1));
         const auto h2 = h * h;
+        auto dim = std::integral_constant<std::size_t, sizeof...(ps)>{};
         MP2t ret = {
           x(0) * h, x(1) * h,
           -x(1) * h2, x(0) * h2};
         return std::tuple_cat(std::tuple {
-          std::move(ret)}, OpenKalman::collections::internal::repeat_tuple_view<sizeof...(ps), decltype(make_identity_matrix_like<MPPt>())>(make_identity_matrix_like<MPPt>()));
+          std::move(ret)}, OpenKalman::collections::views::repeat(make_identity_matrix_like<MPPt>(), dim));
       },
       [](const M2t& x, const auto& ...ps) // Hessians
       {
@@ -211,8 +215,9 @@ namespace OpenKalman::test
           x(0) * h, 0, x(2) * h,
           0, 1, 0,
           -x(2) * h2, 0, x(0) * h2};
+        auto dim = std::integral_constant<std::size_t, sizeof...(ps)>{};
         return std::tuple_cat(std::tuple {
-          std::move(ret)}, OpenKalman::collections::internal::repeat_tuple_view<sizeof...(ps), decltype(make_identity_matrix_like<MSSt>())>(make_identity_matrix_like<MSSt>()));
+          std::move(ret)}, OpenKalman::collections::views::repeat(make_identity_matrix_like<MSSt>(), dim));
       },
       [](const MC1t& x, const auto& ...ps) // Hessians
       {

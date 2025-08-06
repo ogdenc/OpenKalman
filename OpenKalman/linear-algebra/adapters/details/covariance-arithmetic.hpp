@@ -312,7 +312,7 @@ namespace OpenKalman
   template<covariance M, std::convertible_to<scalar_type_of_t<M>> S>
 #else
   template<typename M, typename S, std::enable_if_t<
-    covariance<M> and std::is_convertible_v<S, typename scalar_type_of<M>::type>, int> = 0>
+    covariance<M> and stdcompat::convertible_to<S, typename scalar_type_of<M>::type>, int> = 0>
 #endif
   inline auto operator*(M&& m, const S s)
   {
@@ -373,7 +373,7 @@ namespace OpenKalman
   template<covariance M, std::convertible_to<scalar_type_of_t<M>> S>
 #else
   template<typename S, typename M, std::enable_if_t<
-    std::is_convertible_v<S, typename scalar_type_of<M>::type> and covariance<M>, int> = 0>
+    stdcompat::convertible_to<S, typename scalar_type_of<M>::type> and covariance<M>, int> = 0>
 #endif
   inline auto operator*(const S s, M&& m)
   {
@@ -388,7 +388,7 @@ namespace OpenKalman
   template<covariance M, std::convertible_to<scalar_type_of_t<M>> S>
 #else
   template<typename M, typename S, std::enable_if_t<
-    covariance<M> and std::is_convertible_v<S, typename scalar_type_of<M>::type>, int> = 0>
+    covariance<M> and stdcompat::convertible_to<S, typename scalar_type_of<M>::type>, int> = 0>
 #endif
   constexpr auto operator/(M&& m, const S s)
   {
@@ -512,7 +512,7 @@ namespace OpenKalman
   template<covariance M, std::convertible_to<scalar_type_of_t<M>> S>
 #else
   template<typename M, typename S, std::enable_if_t<
-    covariance<M> and std::is_convertible_v<S, typename scalar_type_of<M>::type>, int> = 0>
+    covariance<M> and stdcompat::convertible_to<S, typename scalar_type_of<M>::type>, int> = 0>
 #endif
   inline auto
   scale(M&& m, const S s)
@@ -537,7 +537,7 @@ namespace OpenKalman
     template<covariance M, std::convertible_to<scalar_type_of_t<M>> S>
 #else
   template<typename M, typename S, std::enable_if_t<
-    covariance<M> and std::is_convertible_v<S, typename scalar_type_of<M>::type>, int> = 0>
+    covariance<M> and stdcompat::convertible_to<S, typename scalar_type_of<M>::type>, int> = 0>
 #endif
   inline auto
   inverse_scale(M&& m, const S s)

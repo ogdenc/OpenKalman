@@ -16,6 +16,8 @@
 #ifndef OPENKALMAN_HERMITIANADAPTER_HPP
 #define OPENKALMAN_HERMITIANADAPTER_HPP
 
+#include "basics/basics.hpp"
+
 namespace OpenKalman
 {
 #ifdef __cpp_concepts
@@ -59,8 +61,8 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     HermitianAdapter() requires std::default_initializable<NestedObject> and (not has_dynamic_dimensions<NestedObject>)
 #else
-    template<typename T = NestedObject, std::enable_if_t<
-      std::is_default_constructible_v<T> and (not has_dynamic_dimensions<NestedObject>), int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and
+      stdcompat::default_initializable<NestedObject> and (not has_dynamic_dimensions<NestedObject>), int> = 0>
     HermitianAdapter()
 #endif
       : Base {} {}
@@ -74,7 +76,7 @@ namespace OpenKalman
 #else
     template<typename Arg, std::enable_if_t<(not std::is_base_of_v<HermitianAdapter, std::decay_t<Arg>>) and
       diagonal_matrix<Arg> and diagonal_adapter<NestedObject> and vector_space_descriptors_match_with<Arg, NestedObject> and
-      std::is_constructible_v<NestedObject, decltype(diagonal_of(std::declval<Arg&&>()))>, int> = 0>
+      stdcompat::constructible_from<NestedObject, decltype(diagonal_of(std::declval<Arg&&>()))>, int> = 0>
 #endif
     HermitianAdapter(Arg&& arg) : Base {diagonal_of(std::forward<Arg>(arg))} {}
 
@@ -89,8 +91,8 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<
       diagonal_matrix<Arg> and (not std::is_base_of_v<HermitianAdapter, std::decay_t<Arg>>) and
       (not diagonal_matrix<NestedObject> or
-        not std::is_constructible_v<NestedObject, decltype(diagonal_of(std::declval<Arg&&>()))>) and
-      std::is_constructible_v<NestedObject, Arg&&>, int> = 0>
+        not stdcompat::constructible_from<NestedObject, decltype(diagonal_of(std::declval<Arg&&>()))>) and
+      stdcompat::constructible_from<NestedObject, Arg&&>, int> = 0>
 #endif
     HermitianAdapter(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
@@ -105,7 +107,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<
       hermitian_adapter<Arg, storage_triangle> and (not std::is_base_of_v<HermitianAdapter, std::decay_t<Arg>>) and
       (not diagonal_matrix<Arg>) and square_shaped<nested_object_of_t<Arg>, Applicability::permitted> and
-      std::is_constructible_v<NestedObject, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
+      stdcompat::constructible_from<NestedObject, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
 #endif
     HermitianAdapter(Arg&& arg) : Base {nested_object(std::forward<Arg>(arg))} {}
 
@@ -121,7 +123,7 @@ namespace OpenKalman
       hermitian_adapter<Arg> and (not diagonal_matrix<Arg>) and
       (hermitian_adapter_type_of<Arg>::value != storage_triangle) and
       square_shaped<nested_object_of_t<Arg>, Applicability::permitted> and
-      std::is_constructible_v<NestedObject, decltype(transpose(nested_object(std::declval<Arg&&>())))>, int> = 0>
+      stdcompat::constructible_from<NestedObject, decltype(transpose(nested_object(std::declval<Arg&&>())))>, int> = 0>
 #endif
     HermitianAdapter(Arg&& arg) : Base {transpose(nested_object(std::forward<Arg>(arg)))} {}
 
@@ -134,7 +136,7 @@ namespace OpenKalman
 #else
     template<typename Arg, std::enable_if_t<hermitian_matrix<Arg> and (not diagonal_matrix<Arg>) and
       (not has_nested_object<Arg>) and (hermitian_adapter_type_of<Arg>::value == storage_triangle) and
-      std::is_constructible_v<NestedObject, Arg&&>, int> = 0>
+      stdcompat::constructible_from<NestedObject, Arg&&>, int> = 0>
 #endif
     HermitianAdapter(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
@@ -147,7 +149,7 @@ namespace OpenKalman
 #else
     template<typename Arg, std::enable_if_t<hermitian_matrix<Arg> and (not diagonal_matrix<Arg>) and
       (not has_nested_object<Arg>) and (hermitian_adapter_type_of<Arg>::value != storage_triangle) and
-      std::is_constructible_v<NestedObject, decltype(transpose(std::declval<Arg&&>()))>, int> = 0>
+      stdcompat::constructible_from<NestedObject, decltype(transpose(std::declval<Arg&&>()))>, int> = 0>
 #endif
     HermitianAdapter(Arg&& arg) : Base {transpose(std::forward<Arg>(arg))} {}
 
@@ -159,7 +161,7 @@ namespace OpenKalman
 #else
     template<typename Arg, std::enable_if_t<square_shaped<Arg, Applicability::permitted> and
       not hermitian_adapter<Arg> and not diagonal_matrix<NestedObject> and
-      std::is_constructible_v<NestedObject, Arg&&>, int> = 0>
+      stdcompat::constructible_from<NestedObject, Arg&&>, int> = 0>
 #endif
     explicit HermitianAdapter(Arg&& arg) : Base {
       [](Arg&& arg) -> decltype(auto) {
@@ -175,7 +177,7 @@ namespace OpenKalman
       requires(Arg&& arg) { NestedObject {diagonal_of(std::forward<Arg>(arg))}; }
 #else
     template<typename Arg, std::enable_if_t<square_shaped<Arg, Applicability::permitted> and (not hermitian_matrix<Arg>) and
-      diagonal_matrix<NestedObject> and std::is_constructible_v<NestedObject, decltype(diagonal_of(std::declval<Arg&&>()))>, int> = 0>
+      diagonal_matrix<NestedObject> and stdcompat::constructible_from<NestedObject, decltype(diagonal_of(std::declval<Arg&&>()))>, int> = 0>
 #endif
     explicit HermitianAdapter(Arg&& arg) : Base {
       [](Arg&& arg) -> decltype(auto) {
@@ -196,12 +198,12 @@ namespace OpenKalman
 #else
     template<typename ... Args, std::enable_if_t<
       std::conjunction_v<std::is_convertible<Args, const Scalar>...> and (sizeof...(Args) > 0) and
-      (std::is_constructible_v<NestedObject,
+      (stdcompat::constructible_from<NestedObject,
         dense_writable_matrix_t<NestedObject, Layout::none, Scalar,
           std::tuple<
             Dimensions<static_cast<std::size_t>(values::sqrt(sizeof...(Args)))>,
             Dimensions<static_cast<std::size_t>(values::sqrt(sizeof...(Args)))>>>> or
-        (diagonal_matrix<NestedObject> and std::is_constructible_v<NestedObject,
+        (diagonal_matrix<NestedObject> and stdcompat::constructible_from<NestedObject,
           dense_writable_matrix_t<NestedObject, Layout::none, Scalar, std::tuple<Dimensions<sizeof...(Args)>, Axis>>>)), int> = 0>
 #endif
     HermitianAdapter(Args ... args)
@@ -263,7 +265,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
-    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar>, int> = 0>
 #endif
     auto& operator*=(const S s)
     {
@@ -276,7 +278,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
-    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar>, int> = 0>
 #endif
     auto& operator/=(const S s)
     {
@@ -309,7 +311,7 @@ namespace OpenKalman
     template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, HermitianAdapter>
 #else
     template<typename Arg, typename S, std::enable_if_t<
-      std::is_same_v<std::decay_t<Arg>, HermitianAdapter> and std::is_convertible_v<S, const scalar_type_of_t<Arg>>>>
+      std::is_same_v<std::decay_t<Arg>, HermitianAdapter> and stdcompat::convertible_to<S, const scalar_type_of_t<Arg>>>>
 #endif
     friend decltype(auto) operator*(Arg&& arg, S s)
     {
@@ -321,7 +323,7 @@ namespace OpenKalman
     template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, HermitianAdapter>
 #else
     template<typename Arg, typename S, std::enable_if_t<
-      std::is_same_v<std::decay_t<Arg>, HermitianAdapter> and std::is_convertible_v<S, const scalar_type_of_t<Arg>>>>
+      std::is_same_v<std::decay_t<Arg>, HermitianAdapter> and stdcompat::convertible_to<S, const scalar_type_of_t<Arg>>>>
 #endif
     friend decltype(auto) operator*(S s, Arg&& arg)
     {
@@ -333,7 +335,7 @@ namespace OpenKalman
     template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, HermitianAdapter>
 #else
     template<typename Arg, typename S, std::enable_if_t<
-      std::is_same_v<std::decay_t<Arg>, HermitianAdapter> and std::is_convertible_v<S, const scalar_type_of_t<Arg>>>>
+      std::is_same_v<std::decay_t<Arg>, HermitianAdapter> and stdcompat::convertible_to<S, const scalar_type_of_t<Arg>>>>
 #endif
     friend decltype(auto) operator/(Arg&& arg, S s)
     {
@@ -396,7 +398,7 @@ namespace OpenKalman
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(Arg&& arg, N n)
       {
-        return internal::best_vector_space_descriptor(
+        return internal::most_fixed_pattern(
           OpenKalman::get_vector_space_descriptor<0>(nested_object(arg)),
           OpenKalman::get_vector_space_descriptor<1>(nested_object(arg)));
       }

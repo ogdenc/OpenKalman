@@ -36,13 +36,13 @@ namespace OpenKalman::interface
     get_vector_space_descriptor(const Arg& arg, N n)
     {
       if constexpr (square_shaped<LhsType> or square_shaped<RhsType>)
-        return internal::best_vector_space_descriptor(
+        return internal::most_fixed_pattern(
           OpenKalman::get_vector_space_descriptor<0>(arg.lhs()),
           OpenKalman::get_vector_space_descriptor<0>(arg.rhs()),
           OpenKalman::get_vector_space_descriptor<1>(arg.lhs()),
           OpenKalman::get_vector_space_descriptor<1>(arg.rhs()));
       else
-        return internal::best_vector_space_descriptor(
+        return internal::most_fixed_pattern(
           OpenKalman::get_vector_space_descriptor(arg.lhs(), n),
           OpenKalman::get_vector_space_descriptor(arg.rhs(), n));
     }
@@ -92,11 +92,11 @@ namespace OpenKalman::interface
 #else
       else if constexpr (constexpr_operation_defined<>::value)
 #endif
-        return values::operation {Traits::constexpr_operation(),
-          constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
+        return values::operation(Traits::constexpr_operation(),
+          constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()});
       else
-        return values::operation {arg.functor(),
-          constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
+        return values::operation(arg.functor(),
+          constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()});
     }
 
   private:
@@ -144,9 +144,9 @@ namespace OpenKalman::interface
 #else
         if constexpr (constexpr_operation_defined<>::value)
 #endif
-          return values::operation {Traits::constexpr_operation(), c_left, c_right};
+          return values::operation(Traits::constexpr_operation(), c_left, c_right);
         else
-          return values::operation {arg.functor(), c_left, c_right};
+          return values::operation(arg.functor(), c_left, c_right);
       }
       else if constexpr (Traits::binary_functor_type == Eigen3::BinaryFunctorType::sum or Traits::preserves_constant_diagonal)
       {
@@ -155,11 +155,11 @@ namespace OpenKalman::interface
 #else
         if constexpr (constexpr_operation_defined<>::value)
 #endif
-          return values::operation {Traits::constexpr_operation(),
-            constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
+          return values::operation(Traits::constexpr_operation(),
+            constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()});
         else
-          return values::operation {arg.functor(),
-            constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
+          return values::operation(arg.functor(),
+            constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()});
       }
       else
       {

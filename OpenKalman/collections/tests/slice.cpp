@@ -26,13 +26,13 @@ TEST(collections, slice_view)
   using N1 = std::integral_constant<std::size_t, 1>;
   using N3 = std::integral_constant<std::size_t, 3>;
 
-  using T1 = slice_view<views::all_t<std::tuple<int, double, long double&, float&&, unsigned>>, N1, N3>;
+  using T1 = slice_view<views::all_t<std::tuple<int, double, long double&, float&, unsigned>>, N1, N3>;
   static_assert(collection_view<T1>);
   static_assert(std::tuple_size_v<T1> == 3);
   static_assert(std::tuple_size_v<slice_view<std::tuple<>, N0, N0>> == 0);
   static_assert(std::is_same_v<std::tuple_element_t<0, T1>, double>);
   static_assert(std::is_same_v<std::tuple_element_t<1, T1>, long double&>);
-  static_assert(std::is_same_v<std::tuple_element_t<2, T1>, float&&>);
+  static_assert(std::is_same_v<std::tuple_element_t<2, T1>, float&>);
 
   constexpr auto t1 = std::tuple{4, 5., 6.f, 8.l, 7u};
   static_assert(get(views::slice(t1, N1{}, N3{}), std::integral_constant<std::size_t, 0>{}) == 5.);

@@ -14,32 +14,17 @@
  */
 
 #include "tests.hpp"
-#include "basics/classes/equal_to.hpp"
-#include "basics/classes/not_equal_to.hpp"
-#include "basics/classes/less.hpp"
-#include "basics/classes/greater.hpp"
-#include "basics/classes/less_equal.hpp"
-#include "basics/classes/greater_equal.hpp"
-#include "basics/compatibility/views.hpp"
+#include "basics/basics.hpp"
 #include "collections/concepts/sized_random_access_range.hpp"
 #include "collections/concepts/collection_view.hpp"
 #include "collections/concepts/viewable_collection.hpp"
 #include "collections/concepts/settable.hpp"
-#include "collections/views/internal/movable_wrapper.hpp"
 #include "collections/views/all.hpp"
-#include "collections/functions/compare.hpp"
-
+#include "collections/views/repeat.hpp"
+#include "collections/functions/comparison_operators.hpp"
 
 using namespace OpenKalman;
 using namespace OpenKalman::collections;
-
-#ifdef __cpp_lib_ranges
-#include<ranges>
-  namespace rg = std::ranges;
-#else
-#include "basics/compatibility/views.hpp"
-  namespace rg = OpenKalman::ranges;
-#endif
 
 TEST(collections, movable_wrapper)
 {
@@ -76,68 +61,125 @@ TEST(collections, movable_wrapper)
   static_assert(7 == movable_wrapper{i});
   static_assert(6 < movable_wrapper{i});
   static_assert(8 > movable_wrapper{i});
+}
 
-  // tuple
+
+TEST(collections, tuple_wrapper)
+{
+  using OpenKalman::collections::internal::tuple_wrapper;
+
+  static_assert(viewable_tuple_like<std::tuple<int, double>>);
+  static_assert(viewable_tuple_like<std::tuple<int&, double>>);
+  static_assert(not viewable_tuple_like<std::tuple<int&&, double>>);
+  static_assert(viewable_tuple_like<std::tuple<std::tuple<int>&, double>>);
+  static_assert(not viewable_tuple_like<std::tuple<std::tuple<int&>, double>>);
+
+  static constexpr auto mrt = std::tuple {4, 5., 6.f};
+  constexpr tuple_wrapper mr {mrt};
+  static_assert(mr.get<0>() == 4);
+  static_assert(tuple_wrapper {mrt}.get<1>() == 5.);
+  static_assert(std::is_same_v<std::decay_t<decltype(mr.get<2>())>, float>);
+
+  constexpr tuple_wrapper ms {std::tuple {4, 5., 6.f}};
+  static_assert(ms.get<0>() == 4);
+  static_assert(tuple_wrapper {std::tuple{4, 5., 6.f}}.get<1>() == 5.);
+  static_assert(std::is_same_v<std::decay_t<decltype(ms.get<2>())>, float>);
+
   static constexpr double x = 5.;
-  constexpr movable_wrapper mt {std::tuple {4, x, 6.f}};
-  static_assert(mt.get() == std::tuple{4, 5., 6.f});
-  static_assert(movable_wrapper {std::tuple{4, x, 6.f}}.get() == std::tuple{4, 5., 6.f});
-  static_assert(gettable<0, movable_wrapper<std::tuple<int, double>>>);
-  static_assert(gettable<1, movable_wrapper<std::tuple<int, double>>>);
-  static_assert(tuple_like<movable_wrapper<std::tuple<int, double>>>);
+  constexpr tuple_wrapper mt {std::tuple {4, x, 6.f}};
+  static_assert(mt.get<0>() == 4);
+  static_assert(tuple_wrapper {std::tuple{4, x, 6.f}}.get<1>() == 5.);
+  static_assert(std::is_same_v<std::decay_t<decltype(mt.get<2>())>, float>);
 
-  using namespace std;
-  static_assert(copyable<movable_wrapper<std::tuple<int, double, const float>>>);
-  static_assert(movable<movable_wrapper<std::tuple<int&, double, const float>>>);
-  static_assert(movable<movable_wrapper<std::tuple<int&, double, const float>&>>);
+  static_assert(gettable<0, tuple_wrapper<std::tuple<int, double>>>);
+  static_assert(gettable<1, tuple_wrapper<std::tuple<int, double>>>);
+  static_assert(viewable_collection<tuple_wrapper<std::tuple<int, double>>>);
+  static_assert(viewable_collection<tuple_wrapper<std::tuple<int&, double>>>);
+  static_assert(viewable_collection<tuple_wrapper<std::tuple<std::tuple<int>&, double>>>);
+
+  static_assert(stdcompat::copyable<tuple_wrapper<std::tuple<int, double, const float>>>);
+  static_assert(stdcompat::copyable<tuple_wrapper<std::tuple<int, double, const float>&>>);
+  static_assert(stdcompat::copyable<tuple_wrapper<std::tuple<int&, double, const float>>>);
+  static_assert(stdcompat::copyable<tuple_wrapper<std::tuple<int&, double, const float>&>>);
+  static_assert(stdcompat::copyable<tuple_wrapper<std::tuple<int, std::tuple<double>, const float>>>);
+  static_assert(stdcompat::copyable<tuple_wrapper<std::tuple<int, std::tuple<double>&, const float>>>);
 }
 
 
 TEST(collections, all_view)
 {
   static_assert(collection<std::tuple<int, double>>);
-  static_assert(rg::view<views::all_t<std::tuple<int, double>>>);
-  static_assert(sized_random_access_range<views::all_t<std::tuple<int, double>>>);
-  static_assert(viewable_collection<std::tuple<double, int>>);
-  static_assert(viewable_collection<views::all_t<std::tuple<double, int>>>);
-  static_assert(collection_view<views::all_t<std::tuple<int, double>>>);
-  static_assert(not collection_view<std::tuple<int, double>>);
+  static_assert(collection<std::tuple<>>);
+  static_assert(collection<std::vector<double>>);
+  static_assert(collection<std::array<double, 4>>);
+  static_assert(stdcompat::ranges::view<views::all_t<std::tuple<int, double>>>);
 
-  static_assert(std::is_move_constructible_v<to_tuple<rg::reverse_view<from_tuple<std::tuple<int, double, const float>>>>>);
-  static_assert(std::is_move_constructible_v<to_tuple<rg::reverse_view<from_tuple<std::tuple<int&, double, const float>>>>>);
-  static_assert(std::is_move_constructible_v<to_tuple<rg::reverse_view<from_tuple<std::tuple<int&, double, const float>&>>>>);
-  static_assert(std::is_move_constructible_v<to_tuple<rg::reverse_view<from_tuple<std::tuple<int&, double, const float>>>&>>);
+
+  static_assert(tuple_like<std::tuple<>>);
+  static_assert(size_of_v<std::tuple<>> == 0);
+  static_assert(stdcompat::ranges::view<views::all_t<std::tuple<>>>);
+
+
+  static_assert(stdcompat::ranges::view<views::all_t<std::vector<double>>>);
+  static_assert(stdcompat::ranges::view<views::all_t<std::array<double, 4>>>);
+  static_assert(sized_random_access_range<views::all_t<std::tuple<int, double>>>);
+  static_assert(sized_random_access_range<views::all_t<std::tuple<>>>);
+  static_assert(sized_random_access_range<views::all_t<std::vector<double>>>);
+  static_assert(sized_random_access_range<views::all_t<std::array<double, 4>>>);
+  static_assert(viewable_collection<std::tuple<double, int>>);
+  static_assert(viewable_collection<std::tuple<>>);
+  static_assert(viewable_collection<std::vector<double>>);
+  static_assert(viewable_collection<std::array<double, 4>>);
+  static_assert(viewable_collection<views::all_t<std::tuple<double, int>>>);
+  static_assert(viewable_collection<views::all_t<std::tuple<>>>);
+  static_assert(viewable_collection<views::all_t<std::vector<double>>>);
+  static_assert(viewable_collection<views::all_t<std::array<double, 4>>>);
+  static_assert(collection_view<views::all_t<std::tuple<int, double>>>);
+  static_assert(collection_view<views::all_t<std::tuple<>>>);
+  static_assert(collection_view<views::all_t<std::tuple<int&>>>);
+  static_assert(collection_view<views::all_t<std::tuple<int&>&>>);
+  static_assert(collection_view<views::all_t<std::vector<double>>>);
+  static_assert(collection_view<views::all_t<std::array<double, 4>>>);
+  static_assert(not collection_view<std::tuple<int, double>>);
+  static_assert(not collection_view<std::tuple<>>);
+  static_assert(not collection_view<std::vector<double>>);
+  static_assert(not collection_view<std::array<double, 4>>);
+
+  static_assert(std::is_move_constructible_v<from_range<stdcompat::ranges::reverse_view<from_tuple_like<std::tuple<int, double, const float>>>>>);
+  static_assert(std::is_move_constructible_v<from_range<stdcompat::ranges::reverse_view<from_tuple_like<std::tuple<int&, double, const float>>>>>);
+  static_assert(std::is_move_constructible_v<from_range<stdcompat::ranges::reverse_view<from_tuple_like<std::tuple<int&, double, const float>&>>>>);
+  static_assert(std::is_move_constructible_v<from_range<stdcompat::ranges::reverse_view<from_tuple_like<std::tuple<int&, double, const float>>>&>>);
 
   static_assert(gettable<0, views::all_t<std::tuple<int, double>>>);
   static_assert(gettable<1, views::all_t<std::tuple<int, double>>>);
   static_assert(settable<0, views::all_t<std::tuple<int, double>>, int>);
   static_assert(settable<1, views::all_t<std::tuple<int, double>>, double>);
-  static_assert(rg::range<views::all_t<std::tuple<int, double>>>);
+  static_assert(stdcompat::ranges::range<views::all_t<std::tuple<int, double>>>);
   static_assert(tuple_like<views::all_t<std::tuple<int, double>>>);
   static_assert(std::tuple_size_v<views::all_t<std::tuple<>>> == 0);
-  static_assert(std::tuple_size_v<rg::views::all_t<views::all_t<std::tuple<>>>> == 0);
+  static_assert(std::tuple_size_v<stdcompat::ranges::views::all_t<views::all_t<std::tuple<>>>> == 0);
   static_assert(std::tuple_size_v<views::all_t<std::tuple<int, double>>> == 2);
-  static_assert(std::tuple_size_v<rg::views::all_t<views::all_t<std::tuple<int, double>>>> == 2);
+  static_assert(std::tuple_size_v<stdcompat::ranges::views::all_t<views::all_t<std::tuple<int, double>>>> == 2);
   static_assert(std::is_same_v<std::tuple_element_t<0, views::all_t<std::tuple<int&, double>>>, int&>);
   static_assert(std::is_same_v<std::tuple_element_t<0, views::all_t<std::tuple<int&, double>&>>, int&>);
   static_assert(std::is_same_v<std::tuple_element_t<0, views::all_t<std::tuple<int&, double>&&>>, int&>);
   static_assert(std::is_same_v<std::tuple_element_t<1, views::all_t<std::tuple<int&, double>>>, double>);
   static_assert(std::is_same_v<std::tuple_element_t<1, views::all_t<std::tuple<int&, double>&>>, double>);
   static_assert(std::is_same_v<std::tuple_element_t<1, views::all_t<std::tuple<int&, double>&&>>, double>);
-  static_assert(std::is_same_v<std::tuple_element_t<0, views::all_t<rg::reverse_view<views::all_t<std::tuple<int&, double, const float>>>>>, const float>);
-  static_assert(std::is_same_v<std::tuple_element_t<1, views::all_t<rg::reverse_view<views::all_t<std::tuple<int&, double, const float>>>>>, double>);
-  static_assert(std::is_same_v<std::tuple_element_t<2, views::all_t<rg::reverse_view<views::all_t<std::tuple<int&, double, const float>>>>>, int&>);
-  static_assert(std::is_same_v<std::tuple_element_t<0, views::all_t<rg::reverse_view<views::all_t<std::tuple<int&, double, const float>&>>>>, const float>);
-  static_assert(std::is_same_v<std::tuple_element_t<1, views::all_t<rg::reverse_view<views::all_t<std::tuple<int&, double, const float>&>>>>, double>);
-  static_assert(std::is_same_v<std::tuple_element_t<2, views::all_t<rg::reverse_view<views::all_t<std::tuple<int&, double, const float>&>>>>, int&>);
-  static_assert(std::is_same_v<std::tuple_element_t<0, views::all_t<rg::reverse_view<views::all_t<std::tuple<int&, double, const float>>>&>>, const float>);
-  static_assert(std::is_same_v<std::tuple_element_t<1, views::all_t<rg::reverse_view<views::all_t<std::tuple<int&, double, const float>>>&>>, double>);
-  static_assert(std::is_same_v<std::tuple_element_t<2, views::all_t<rg::reverse_view<views::all_t<std::tuple<int&, double, const float>>>&>>, int&>);
+  static_assert(std::is_same_v<std::tuple_element_t<0, views::all_t<stdcompat::ranges::reverse_view<views::all_t<std::tuple<int&, double, const float>>>>>, const float>);
+  static_assert(std::is_same_v<std::tuple_element_t<1, views::all_t<stdcompat::ranges::reverse_view<views::all_t<std::tuple<int&, double, const float>>>>>, double>);
+  static_assert(std::is_same_v<std::tuple_element_t<2, views::all_t<stdcompat::ranges::reverse_view<views::all_t<std::tuple<int&, double, const float>>>>>, int&>);
+  static_assert(std::is_same_v<std::tuple_element_t<0, views::all_t<stdcompat::ranges::reverse_view<views::all_t<std::tuple<int&, double, const float>&>>>>, const float>);
+  static_assert(std::is_same_v<std::tuple_element_t<1, views::all_t<stdcompat::ranges::reverse_view<views::all_t<std::tuple<int&, double, const float>&>>>>, double>);
+  static_assert(std::is_same_v<std::tuple_element_t<2, views::all_t<stdcompat::ranges::reverse_view<views::all_t<std::tuple<int&, double, const float>&>>>>, int&>);
+  static_assert(std::is_same_v<std::tuple_element_t<0, views::all_t<stdcompat::ranges::reverse_view<views::all_t<std::tuple<int&, double, const float>>>&>>, const float>);
+  static_assert(std::is_same_v<std::tuple_element_t<1, views::all_t<stdcompat::ranges::reverse_view<views::all_t<std::tuple<int&, double, const float>>>&>>, double>);
+  static_assert(std::is_same_v<std::tuple_element_t<2, views::all_t<stdcompat::ranges::reverse_view<views::all_t<std::tuple<int&, double, const float>>>&>>, int&>);
 
   constexpr auto t0 = std::tuple{4, 5.};
-  static_assert(rg::size(rg::views::reverse(views::all(t0))) == 2);
-  static_assert(size_of_v<decltype(rg::views::reverse(views::all(t0)))> == 2);
-  static_assert(std::tuple_size_v<views::all_t<decltype(rg::views::reverse(views::all(t0)))>> == 2);
+  static_assert(stdcompat::ranges::size(stdcompat::ranges::views::reverse(views::all(t0))) == 2);
+  static_assert(size_of_v<decltype(stdcompat::ranges::views::reverse(views::all(t0)))> == 2);
+  static_assert(std::tuple_size_v<views::all_t<decltype(stdcompat::ranges::views::reverse(views::all(t0)))>> == 2);
   static_assert(get(views::all(t0), std::integral_constant<std::size_t, 0>{}) == 4);
   static_assert(get(views::all(t0), std::integral_constant<std::size_t, 1>{}) == 5.);
   static_assert(get(views::all(std::tuple{4, 5.}), std::integral_constant<std::size_t, 0>{}) == 4);
@@ -148,31 +190,31 @@ TEST(collections, all_view)
   static_assert(sized_random_access_range<views::all_t<std::array<int, 7>>>);
   static_assert(sized_random_access_range<views::all_t<const std::array<int, 7>&>>);
 
-  static_assert(rg::view<views::all_t<std::array<int, 7>>>);
-  static_assert(rg::view<views::all_t<std::vector<int>>>);
-  static_assert(rg::view<views::all_t<std::vector<int>&>>);
-  static_assert(rg::view<views::all_t<const std::vector<int>&>>);
-  static_assert(rg::range<views::all_t<std::vector<int>&>>);
-  static_assert(rg::range<views::all_t<std::vector<int>>>);
+  static_assert(stdcompat::ranges::view<views::all_t<std::array<int, 7>>>);
+  static_assert(stdcompat::ranges::view<views::all_t<std::vector<int>>>);
+  static_assert(stdcompat::ranges::view<views::all_t<std::vector<int>&>>);
+  static_assert(stdcompat::ranges::view<views::all_t<const std::vector<int>&>>);
+  static_assert(stdcompat::ranges::range<views::all_t<std::vector<int>&>>);
+  static_assert(stdcompat::ranges::range<views::all_t<std::vector<int>>>);
 
   auto v1 = std::vector{4, 5, 6, 7, 8};
-  static_assert(rg::random_access_range<decltype(views::all(v1))>);
+  static_assert(stdcompat::ranges::random_access_range<decltype(views::all(v1))>);
   static_assert(gettable<0, views::all_t<decltype(v1)>>);
   static_assert(gettable<1, views::all_t<decltype(v1)>>);
   EXPECT_EQ((views::all(v1)[0u]), 4);
   EXPECT_EQ((views::all(v1)[4u]), 8);
   EXPECT_EQ((views::all(std::vector{4, 5, 6, 7, 8})[3u]), 7);
   EXPECT_EQ((views::all(v1)[std::integral_constant<std::size_t, 4>{}]), 8);
-  EXPECT_EQ(*rg::begin(views::all(v1)), 4);
-  EXPECT_EQ(*--rg::end(views::all(v1)), 8);
-  EXPECT_EQ(rg::size(views::all(v1)), 5);
+  EXPECT_EQ(*stdcompat::ranges::begin(views::all(v1)), 4);
+  EXPECT_EQ(*--stdcompat::ranges::end(views::all(v1)), 8);
+  EXPECT_EQ(stdcompat::ranges::size(views::all(v1)), 5);
 
   EXPECT_EQ(views::all(v1).front(), 4);
   EXPECT_EQ(views::all(std::vector{4, 5, 6, 7, 8}).front(), 4);
   EXPECT_EQ(views::all(v1).back(), 8);
   EXPECT_EQ(views::all(std::vector{4, 5, 6, 7, 8}).back(), 8);
-  EXPECT_EQ(*rg::cbegin(views::all(v1)), 4);
-  EXPECT_EQ(*--rg::cend(views::all(v1)), 8);
+  EXPECT_EQ(*stdcompat::ranges::cbegin(views::all(v1)), 4);
+  EXPECT_EQ(*--stdcompat::ranges::cend(views::all(v1)), 8);
   EXPECT_TRUE(views::all(std::vector<int>{}).empty());
   EXPECT_FALSE(views::all(std::vector{4, 5, 6, 7, 8}).empty());
   EXPECT_FALSE(views::all(std::vector<int>{}));
@@ -188,27 +230,27 @@ TEST(collections, all_view)
   auto id2_v1 = views::all(std::vector{4, 5, 6, 7, 8});
   EXPECT_EQ((id2_v1[2u]), 6);
 
-  auto v1b = rg::begin(v1);
+  auto v1b = stdcompat::ranges::begin(v1);
   EXPECT_EQ(*v1b, 4);
   EXPECT_EQ(*++v1b, 5);
   EXPECT_EQ(v1b[3], 8);
   EXPECT_EQ(*--v1b, 4);
-  EXPECT_EQ(*--rg::end(v1), 8);
+  EXPECT_EQ(*--stdcompat::ranges::end(v1), 8);
 
   constexpr int a1[5] = {1, 2, 3, 4, 5};
-  static_assert(std::is_same_v<views::all_t<int(&)[5]>, to_tuple<int (&)[5]>>);
-  static_assert(std::is_same_v<views::all_t<const int(&)[5]>, to_tuple<const int(&)[5]>>);
-  static_assert(std::is_same_v<views::all_t<decltype((a1))>, to_tuple<const int(&)[5]>>);
-  static_assert(rg::range<views::all_t<int(&)[5]>>);
+  static_assert(std::is_same_v<views::all_t<int(&)[5]>, from_range<int (&)[5]>>);
+  static_assert(std::is_same_v<views::all_t<const int(&)[5]>, from_range<const int(&)[5]>>);
+  static_assert(std::is_same_v<views::all_t<decltype((a1))>, from_range<const int(&)[5]>>);
+  static_assert(stdcompat::ranges::range<views::all_t<int(&)[5]>>);
   static_assert(std::tuple_size_v<views::all_t<int(&)[5]>> == 5);
-  static_assert(std::tuple_size_v<rg::views::all_t<views::all_t<int(&)[5]>>> == 5);
+  static_assert(std::tuple_size_v<stdcompat::ranges::views::all_t<views::all_t<int(&)[5]>>> == 5);
   static_assert(std::tuple_size_v<views::all_t<const int(&)[5]>> == 5);
-  static_assert(std::tuple_size_v<rg::views::all_t<views::all_t<const int(&)[5]>>> == 5);
-  static_assert(std::tuple_size_v<views::all_t<decltype(rg::views::reverse(views::all(a1)))>> == 5);
+  static_assert(std::tuple_size_v<stdcompat::ranges::views::all_t<views::all_t<const int(&)[5]>>> == 5);
+  static_assert(std::tuple_size_v<views::all_t<decltype(stdcompat::ranges::views::reverse(views::all(a1)))>> == 5);
   static_assert(std::is_same_v<std::tuple_element_t<1, views::all_t<int(&)[5]>>, int>);
-  static_assert(std::is_same_v<std::tuple_element_t<1, rg::views::all_t<views::all_t<int(&)[5]>>>, int>);
+  static_assert(std::is_same_v<std::tuple_element_t<1, stdcompat::ranges::views::all_t<views::all_t<int(&)[5]>>>, int>);
   static_assert(std::is_same_v<std::tuple_element_t<2, views::all_t<const int(&)[5]>>, int>);
-  static_assert(std::is_same_v<std::tuple_element_t<2, rg::views::all_t<views::all_t<const int(&)[5]>>>, int>);
+  static_assert(std::is_same_v<std::tuple_element_t<2, stdcompat::ranges::views::all_t<views::all_t<const int(&)[5]>>>, int>);
   static_assert(views::all(a1).template get<0>() == 1);
   static_assert(views::all(a1).template get<4>() == 5);
   static_assert(OpenKalman::internal::generalized_std_get<0>(views::all(a1)) == 1);
@@ -220,55 +262,55 @@ TEST(collections, all_view)
 
   static_assert((views::all(a1)[0u]) == 1);
   static_assert((views::all(a1)[4u]) == 5);
-  static_assert(*rg::begin(views::all(a1)) == 1);
-  static_assert(*(rg::end(views::all(a1)) - 1) == 5);
-  static_assert(*rg::cbegin(views::all(a1)) == 1);
-  static_assert(*(rg::cend(views::all(a1)) - 1) == 5);
-  static_assert(rg::size(views::all(a1)) == 5);
-  static_assert(rg::begin(views::all(a1))[2] == 3);
+  static_assert(*stdcompat::ranges::begin(views::all(a1)) == 1);
+  static_assert(*(stdcompat::ranges::end(views::all(a1)) - 1) == 5);
+  static_assert(*stdcompat::ranges::cbegin(views::all(a1)) == 1);
+  static_assert(*(stdcompat::ranges::cend(views::all(a1)) - 1) == 5);
+  static_assert(stdcompat::ranges::size(views::all(a1)) == 5);
+  static_assert(stdcompat::ranges::begin(views::all(a1))[2] == 3);
   static_assert(views::all(a1).front() == 1);
   static_assert(views::all(a1).back() == 5);
   static_assert(not views::all(a1).empty());
 
   constexpr auto t1 = std::tuple{1, 2, 3, 4, 5};
-  static_assert(*rg::begin(views::all(t1)) == 1);
+  static_assert(*stdcompat::ranges::begin(views::all(t1)) == 1);
   static_assert(views::all(t1)[1_uz] == 2);
   static_assert(views::all(std::tuple{1, 2, 3, 4, 5})[2_uz] == 3);
-  static_assert(*++rg::begin(views::all(t1)) == 2);
+  static_assert(*++stdcompat::ranges::begin(views::all(t1)) == 2);
   static_assert(views::all(t1).front() == 1);
   static_assert(views::all(std::tuple{1, 2, 3, 4, 5}).front() == 1);
   static_assert(views::all(t1).back() == 5);
   static_assert(views::all(std::tuple{1, 2, 3, 4, 5}).back() == 5);
 
   auto at1 = views::all(t1);
-  auto it1 = rg::begin(at1);
+  auto it1 = stdcompat::ranges::begin(at1);
   EXPECT_EQ(it1[2], 3);
-  EXPECT_EQ(rg::begin(at1)[2], 3);
+  EXPECT_EQ(stdcompat::ranges::begin(at1)[2], 3);
   EXPECT_EQ(at1.front(), 1);
   EXPECT_EQ(views::all(t1).front(), 1);
   EXPECT_EQ(at1.back(), 5);
   EXPECT_EQ(views::all(t1).back(), 5);
 
-  EXPECT_EQ((v1 | views::all | rg::views::reverse | rg::views::transform([](auto a){return a*a;}))[1u], 49);
-  EXPECT_EQ((t1 | views::all | rg::views::transform(std::negate{}) | rg::views::reverse)[1u], -4);
+  EXPECT_EQ((v1 | views::all | stdcompat::ranges::views::reverse | stdcompat::ranges::views::transform([](auto a){return a*a;}))[1u], 49);
+  EXPECT_EQ((t1 | views::all | stdcompat::ranges::views::transform(std::negate{}) | stdcompat::ranges::views::reverse)[1u], -4);
 #if __cplusplus >= 202002L
-  EXPECT_EQ((t1 | views::all | rg::views::transform([](auto a){return a*a + 1;}) | rg::views::reverse)[1u], 17);
-  static_assert(size_of_v<decltype(t1 | views::all | rg::views::transform([](auto a){return a*a + 1;}) | rg::views::reverse)> == 5);
+  EXPECT_EQ((t1 | views::all | stdcompat::ranges::views::transform([](auto a){return a*a + 1;}) | stdcompat::ranges::views::reverse)[1u], 17);
+  static_assert(size_of_v<decltype(t1 | views::all | stdcompat::ranges::views::transform([](auto a){return a*a + 1;}) | stdcompat::ranges::views::reverse)> == 5);
 #endif
   static_assert(size_of_v<decltype(t1 | views::all)> == 5);
-  static_assert(size_of_v<decltype(t1 | views::all | rg::views::reverse)> == 5);
-  static_assert(size_of_v<decltype(t1 | views::all | rg::views::reverse | rg::views::transform(std::negate{}))> == 5);
-  static_assert(size_of_v<decltype(t1 | views::all | rg::views::transform(std::negate{}))> == 5);
-  static_assert(size_of_v<decltype(t1 | views::all | rg::views::transform(std::negate{}) | rg::views::reverse)> == 5);
+  static_assert(size_of_v<decltype(t1 | views::all | stdcompat::ranges::views::reverse)> == 5);
+  static_assert(size_of_v<decltype(t1 | views::all | stdcompat::ranges::views::reverse | stdcompat::ranges::views::transform(std::negate{}))> == 5);
+  static_assert(size_of_v<decltype(t1 | views::all | stdcompat::ranges::views::transform(std::negate{}))> == 5);
+  static_assert(size_of_v<decltype(t1 | views::all | stdcompat::ranges::views::transform(std::negate{}) | stdcompat::ranges::views::reverse)> == 5);
 
-  static_assert(std::tuple_size_v<decltype(t1 | views::all | rg::views::transform(std::negate{}) | views::all)> == 5);
-  static_assert(std::is_same_v<std::tuple_element_t<1, decltype(t1 | views::all | rg::views::transform(std::negate{}) | views::all)>, int>);
-  static_assert(OpenKalman::internal::generalized_std_get<1>(t1 | views::all | rg::views::transform(std::negate{}) | views::all) == -2);
-  static_assert(tuple_like<decltype(t1 | views::all | rg::views::transform(std::negate{}) | views::all)>);
+  static_assert(std::tuple_size_v<decltype(t1 | views::all | stdcompat::ranges::views::transform(std::negate{}) | views::all)> == 5);
+  static_assert(std::is_same_v<std::tuple_element_t<1, decltype(t1 | views::all | stdcompat::ranges::views::transform(std::negate{}) | views::all)>, int>);
+  static_assert(OpenKalman::internal::generalized_std_get<1>(t1 | views::all | stdcompat::ranges::views::transform(std::negate{}) | views::all) == -2);
+  static_assert(tuple_like<decltype(t1 | views::all | stdcompat::ranges::views::transform(std::negate{}) | views::all)>);
 
-  static_assert(size_of_v<decltype(rg::views::empty<int> | views::all)> == 0);
-  static_assert(size_of_v<decltype(rg::views::single(5.) | views::all)> == 1);
-  static_assert(size_of_v<decltype(rg::views::iota(0, 4) | views::all)> == dynamic_size);
+  static_assert(size_of_v<decltype(stdcompat::ranges::views::empty<int> | views::all)> == 0);
+  static_assert(size_of_v<decltype(stdcompat::ranges::views::single(5.) | views::all)> == 1);
+  static_assert(size_of_v<decltype(stdcompat::ranges::views::iota(0, 4) | views::all)> == dynamic_size);
 
   static_assert(equal_to{}(std::tuple{4, 5.} | views::all, std::tuple{4, 5.} | views::all));
   EXPECT_TRUE(equal_to{}(views::all(std::vector{4, 5, 6}), std::vector{4, 5, 6}));
@@ -296,5 +338,8 @@ TEST(collections, all_view)
   static_assert(greater_equal{}(views::all(std::tuple{4, 6.}), std::tuple{4, 5.} | views::all));
   EXPECT_TRUE(greater_equal{}(views::all(std::tuple{4, 5.}), std::vector{4, 5.}));
   static_assert(not_equal_to<>{}(views::all(std::tuple{4, 5.}), std::tuple{4, 6.} | views::all));
+
+  static_assert(views::repeat(5, std::integral_constant<std::size_t, 3>{})[1U] == 5);
+  static_assert(collections::get(views::repeat(5, std::integral_constant<std::size_t, 10>{}), std::integral_constant<std::size_t, 3>{}) == 5);
 }
 

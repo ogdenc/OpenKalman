@@ -45,7 +45,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_lib_concepts
     template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == PlainObjectType::NumDimensions)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, IndexType> and ...) and
+    template<typename Arg, typename...I, std::enable_if_t<(stdcompat::convertible_to<I, IndexType> and ...) and
       (sizeof...(I) == PlainObjectType::NumDimensions), int> = 0>
 #endif
     static constexpr decltype(auto) get(Arg&& arg, I...i)
@@ -58,7 +58,7 @@ namespace OpenKalman::interface
     template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == PlainObjectType::NumDimensions) and
     std::is_lvalue_reference_v<StorageRefType> and (not std::is_const_v<std::remove_reference_t<StorageRefType>>)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, IndexType> and ...) and
+    template<typename Arg, typename...I, std::enable_if_t<(stdcompat::convertible_to<I, IndexType> and ...) and
       (sizeof...(I) == PlainObjectType::NumDimensions) and std::is_lvalue_reference<StorageRefType>::value and
       not std::is_const<typename std::remove_reference<StorageRefType>::type>::value, int> = 0>
 #endif

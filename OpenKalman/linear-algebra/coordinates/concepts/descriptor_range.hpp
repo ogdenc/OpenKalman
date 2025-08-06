@@ -33,7 +33,7 @@ namespace OpenKalman::coordinates
     struct is_descriptor_range : std::false_type {};
  
     template<typename T>
-    struct is_descriptor_range<T, std::enable_if_t<descriptor<ranges::range_value_t<T>>>> : std::true_type {};
+    struct is_descriptor_range<T, std::enable_if_t<descriptor<stdcompat::ranges::range_value_t<T>>>> : std::true_type {};
   } // namespace detail
 #endif 
 
@@ -44,10 +44,10 @@ namespace OpenKalman::coordinates
    */
   template<typename T>
 #ifdef __cpp_lib_ranges
-  concept descriptor_range = collections::sized_random_access_range<T> and descriptor<std::ranges::range_value_t<T>>;
+  concept descriptor_range = std::ranges::random_access_range<T> and descriptor<std::ranges::range_value_t<T>>;
 #else
-  constexpr bool descriptor_range = collections::sized_random_access_range<T> and
-    detail::is_descriptor_range<std::decay_t<T>>::value;
+  constexpr bool descriptor_range =
+    stdcompat::ranges::random_access_range<T> and detail::is_descriptor_range<std::decay_t<T>>::value;
 #endif
 
 

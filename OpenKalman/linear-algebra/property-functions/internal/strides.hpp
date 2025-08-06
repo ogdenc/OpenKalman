@@ -55,7 +55,7 @@ namespace OpenKalman::internal
     template<typename T, std::size_t...Is>
     constexpr bool strides_tuple_impl(std::index_sequence<Is...>)
     {
-      return (... and (std::is_convertible_v<std::tuple_element_t<Is, T>, std::ptrdiff_t> or
+      return (... and (stdcompat::convertible_to<std::tuple_element_t<Is, T>, std::ptrdiff_t> or
         values::fixed<std::tuple_element_t<Is, T>>));
     }
 
@@ -107,14 +107,11 @@ namespace OpenKalman::internal
     }
     else
     {
-#ifdef __cpp_lib_ranges
-      namespace ranges = std::ranges;
-#endif
       std::size_t count = count_indices(t);
       std::vector<std::ptrdiff_t> vec(count);
       if constexpr (l == Layout::left)
       {
-        auto v = ranges::begin(vec);
+        auto v = stdcompat::ranges::begin(vec);
         std::ptrdiff_t curr_stride = 1;
         for (int i = 0; i < count; ++i)
         {
@@ -125,7 +122,7 @@ namespace OpenKalman::internal
       }
       else
       {
-        auto v = ranges::end(vec);
+        auto v = stdcompat::ranges::end(vec);
         std::ptrdiff_t curr_stride = 1;
         for (int i = 1; i <= count; ++i)
         {

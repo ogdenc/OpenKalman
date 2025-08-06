@@ -32,7 +32,7 @@ namespace OpenKalman
     struct index_range_for_impl_it : std::false_type {};
 
     template<typename Indices, typename Indexible>
-    struct index_range_for_impl_it<Indices, Indexible, std::enable_if_t<values::index<ranges::iterator_t<Indices>>>>
+    struct index_range_for_impl_it<Indices, Indexible, std::enable_if_t<values::index<stdcompat::ranges::iterator_t<Indices>>>>
         : std::true_type {};
 
 

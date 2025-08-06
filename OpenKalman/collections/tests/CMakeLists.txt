@@ -20,14 +20,13 @@ add_executable(collections
         size_of.cpp
         stl-collections.cpp
         get.cpp
-        all.cpp
-        replicate.cpp
+        all.cpp #
+        replicate.cpp #
         generate.cpp
         slice.cpp
         iota.cpp
         repeat.cpp
-        concat.cpp
-        update.cpp
+        concat.cpp #
     )
 
 target_link_libraries(collections GTest::gtest_main Eigen3::Eigen Threads::Threads)

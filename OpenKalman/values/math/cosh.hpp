@@ -17,10 +17,10 @@
 
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/traits/real_type_of_t.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/traits/real_type_of.hpp"
 #include "values/concepts/integral.hpp"
-#include "values/classes/operation.hpp"
+#include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
@@ -44,10 +44,10 @@ namespace OpenKalman::values
   constexpr auto cosh(const Arg& arg)
 #endif
 {
-    if constexpr (not values::number<Arg>)
+    if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::cosh(a); } };
-      return values::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::cosh(a); } };
+      return values::operation(Op{}, arg);
     }
     else
     {
@@ -56,9 +56,9 @@ namespace OpenKalman::values
       struct Op { auto operator()(const Arg& arg) { using std::cosh; return cosh(arg); } };
       if (internal::constexpr_callable<Op>(arg)) return cosh(arg);
 
-      using R = std::conditional_t<values::integral<values::real_type_of_t<Return>>, double, values::real_type_of_t<Return>>;
       if constexpr (values::complex<Return>)
       {
+        using R = real_type_of_t<real_type_of_t<Return>>;
         auto ex = values::exp(values::internal::make_complex_number<R>(arg));
         auto exr = values::real(ex);
         auto exi = values::imag(ex);
@@ -75,7 +75,7 @@ namespace OpenKalman::values
         if (values::isnan(arg)) return values::internal::NaN<Return>();
         if (values::isinf(arg)) return values::internal::infinity<Return>();
         Return ex = values::exp(arg);
-        return (ex + 1/ex) * static_cast<R>(0.5);
+        return (ex + 1/ex) * static_cast<Return>(0.5);
       }
     }
   }

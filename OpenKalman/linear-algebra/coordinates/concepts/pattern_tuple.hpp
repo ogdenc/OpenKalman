@@ -19,7 +19,7 @@
 #include <type_traits>
 #include <tuple>
 #include <utility>
-#include "collections/concepts/tuple_like.hpp"
+#include "collections/collections.hpp"
 #include "pattern.hpp"
 
 namespace OpenKalman::coordinates
@@ -37,7 +37,7 @@ namespace OpenKalman::coordinates
     struct is_pattern_tuple : std::false_type {};
 
     template<typename T>
-    struct is_pattern_tuple<T, std::enable_if_t<tuple_like<T>>>
+    struct is_pattern_tuple<T, std::enable_if_t<collections::tuple_like<T>>>
       : std::bool_constant<is_pattern_tuple_impl<T>(std::make_index_sequence<std::tuple_size_v<T>>{})> {};
   } // namespace detail
 #endif
@@ -48,7 +48,7 @@ namespace OpenKalman::coordinates
    */
   template<typename T>
 #if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
-  concept pattern_tuple = tuple_like<T> and
+  concept pattern_tuple = collections::tuple_like<T> and
     []<std::size_t...Ix>(std::index_sequence<Ix...>)
       { return (... and pattern<std::tuple_element_t<Ix, std::decay_t<T>>>); }
       (std::make_index_sequence<std::tuple_size_v<std::decay_t<T>>>{});

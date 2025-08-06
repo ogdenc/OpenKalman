@@ -17,13 +17,15 @@
 #ifndef OPENKALMAN_COMPATIBILITY_VIEWS_OWNING_VIEW_HPP
 #define OPENKALMAN_COMPATIBILITY_VIEWS_OWNING_VIEW_HPP
 
-#ifndef __cpp_lib_ranges
-
+#include "basics/compatibility/internal/exposition.hpp"
 #include "basics/compatibility/ranges.hpp"
 #include "view_interface.hpp"
 
-namespace OpenKalman::ranges
+namespace OpenKalman::stdcompat::ranges
 {
+#ifdef __cpp_lib_ranges
+  using std::ranges::owning_view;
+#else
   /**
    * \internal
    * \brief Equivalent to std::ranges::owning_view.
@@ -39,7 +41,7 @@ namespace OpenKalman::ranges
     /**
      * \brief Default constructor.
      */
-    template<typename aR = R, std::enable_if_t<std::is_default_constructible_v<aR>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<R>, int> = 0>
     constexpr
     owning_view() {}
 
@@ -87,43 +89,43 @@ namespace OpenKalman::ranges
     /**
      * \returns An iterator at the beginning, if the base object is a range.
      */
-    constexpr auto begin() { return ranges::begin(my_r); }
+    constexpr auto begin() { return stdcompat::ranges::begin(my_r); }
 
     /// \overload
     template<bool Enable = true, std::enable_if_t<Enable and range<const R>, int> = 0>
-    constexpr auto begin() const { return ranges::begin(my_r); }
+    constexpr auto begin() const { return stdcompat::ranges::begin(my_r); }
 
 
     /**
      * \returns An iterator at the end, if the base object is a range.
      */
-    constexpr auto end() { return ranges::end(my_r); }
+    constexpr auto end() { return stdcompat::ranges::end(my_r); }
 
     /// \overload
     template<bool Enable = true, std::enable_if_t<Enable and range<const R>, int> = 0>
-    constexpr auto end() const { return ranges::end(my_r); }
+    constexpr auto end() const { return stdcompat::ranges::end(my_r); }
 
 
     /**
      * \brief Indicates whether the view is empty
      */
-    template<typename Enable = void, typename = std::void_t<Enable, decltype(ranges::empty(std::declval<R>()))>>
-    constexpr auto empty() { return ranges::empty(my_r); }
+    template<typename Enable = void, typename = std::void_t<Enable, decltype(stdcompat::ranges::empty(std::declval<R>()))>>
+    constexpr auto empty() { return stdcompat::ranges::empty(my_r); }
 
     /// \overload
-    template<typename Enable = void, typename = std::void_t<Enable, decltype(ranges::empty(std::declval<const R>()))>>
-    constexpr auto empty() const { return ranges::empty(my_r); }
+    template<typename Enable = void, typename = std::void_t<Enable, decltype(stdcompat::ranges::empty(std::declval<const R>()))>>
+    constexpr auto empty() const { return stdcompat::ranges::empty(my_r); }
 
 
     /**
      * \brief The size of the object.
      */
     template<bool Enable = true, std::enable_if_t<Enable and sized_range<R>, int> = 0>
-    constexpr auto size() noexcept { return ranges::size(my_r); }
+    constexpr auto size() noexcept { return stdcompat::ranges::size(my_r); }
 
     /// \overload
     template<bool Enable = true, std::enable_if_t<Enable and sized_range<const R>, int> = 0>
-    constexpr auto size() const noexcept { return ranges::size(my_r); }
+    constexpr auto size() const noexcept { return stdcompat::ranges::size(my_r); }
 
   private:
 
@@ -135,10 +137,7 @@ namespace OpenKalman::ranges
   template<typename R>
   constexpr bool enable_borrowed_range<owning_view<R>> = enable_borrowed_range<R>;
 
-}
-
-
-
 #endif
+}
 
 #endif //OPENKALMAN_COMPATIBILITY_VIEWS_OWNING_VIEW_HPP

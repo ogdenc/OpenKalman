@@ -40,7 +40,7 @@ namespace OpenKalman
         compatible_with_vector_space_descriptor_collection<Arg, Descriptors>)
       return std::forward<Arg>(arg);
     else
-      return VectorSpaceAdapter {std::forward<Arg>(arg), internal::remove_trailing_1D_descriptors(std::forward<Descriptors>(descriptors))};
+      return VectorSpaceAdapter {std::forward<Arg>(arg), coordinates::internal::strip_1D_tail(std::forward<Descriptors>(descriptors))};
   }
 
 

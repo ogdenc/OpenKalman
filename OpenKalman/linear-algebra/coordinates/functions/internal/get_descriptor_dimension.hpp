@@ -21,6 +21,7 @@
 #include "values/functions/cast_to.hpp"
 #include "linear-algebra/coordinates/interfaces/coordinate_descriptor_traits.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor.hpp"
+#include "linear-algebra/coordinates/concepts/euclidean_pattern.hpp"
 
 namespace OpenKalman::coordinates::internal
 {

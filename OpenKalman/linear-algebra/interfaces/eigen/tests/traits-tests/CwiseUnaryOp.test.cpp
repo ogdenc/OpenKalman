@@ -76,7 +76,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_abs_op)
   static_assert(Eigen3::constexpr_unary_operation_defined<Eigen::internal::scalar_abs_op<double>>);
   auto c22 = constant_coefficient {cp2.abs().nestedExpression()};
   static_assert(std::decay_t<decltype(c22)>::value == 2);
-  static_assert(OpenKalman::values::operation {Traits::constexpr_operation(), c22} == 2);
+  static_assert(OpenKalman::values::operation(Traits::constexpr_operation(), c22) == 2);
   static_assert(constant_coefficient_v<const Eigen::CwiseUnaryOp<Eigen::internal::scalar_abs_op<double>, C211>> == 2);
 
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().abs())> == 2);
@@ -152,7 +152,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_arg_op)
   EXPECT_EQ(constant_coefficient{cp2.arg()}(), std::arg(2));
   static_assert(constant_coefficient_v<decltype(std::declval<C22_2>().arg())> == 0);
   EXPECT_EQ(constant_coefficient{cm2.arg()}(), std::arg(-2));
-  static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().arg())> == OpenKalman::numbers::pi);
+  static_assert(constant_coefficient_v<decltype(std::declval<C22_m2>().arg())> == OpenKalman::stdcompat::numbers::pi);
   EXPECT_TRUE(values::internal::near<10>((constant_coefficient{cxa.arg()}()), (std::arg(std::complex<double>{1, 2}))));
   EXPECT_TRUE(values::internal::near<10>((constant_coefficient{cxb.arg()}()), (std::arg(std::complex<double>{3, 4}))));
   static_assert(not constant_diagonal_matrix<decltype(std::declval<Cd22_2>().arg())>);
@@ -321,7 +321,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_log1p_op)
 
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_log10_op)
 {
-  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().log10())>, values::log(2) / numbers::ln10_v<double>));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().log10())>, values::log(2) / stdcompat::numbers::ln10_v<double>));
   EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.log10()}(), cp2.log10()(0, 0)));
   EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxa.log10()}(), cxa.log10()(0, 0)));
   EXPECT_TRUE(values::internal::near(constant_coefficient{cxb.log10()}(), cxb.log10()(0, 0)));
@@ -337,7 +337,7 @@ TEST(eigen3, Eigen_CwiseUnaryOp_scalar_log10_op)
 #if EIGEN_VERSION_AT_LEAST(3,4,0)
 TEST(eigen3, Eigen_CwiseUnaryOp_scalar_log2_op)
 {
-  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().log2())>, values::log(2) / numbers::ln2_v<double>));
+  static_assert(values::internal::near(constant_coefficient_v<decltype(std::declval<C22_2>().log2())>, values::log(2) / stdcompat::numbers::ln2_v<double>));
   EXPECT_TRUE(values::internal::near(constant_coefficient{cp2.log2()}(), cp2.log2()(0, 0)));
   EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxa.log2()}(), cxa.log2()(0, 0)));
   EXPECT_TRUE(values::internal::near<10>(constant_coefficient{cxb.log2()}(), cxb.log2()(0, 0)));

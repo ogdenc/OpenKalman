@@ -58,7 +58,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     constexpr functor_composition() requires std::default_initializable<CF1> and std::default_initializable<CF2> = default;
 #else
-    template<typename X = CF1, std::enable_if_t<std::is_default_constructible_v<X> and std::is_default_constructible_v<CF2>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<CF1> and stdcompat::default_initializable<CF2>, int> = 0>
     constexpr functor_composition() {};
 #endif
 
@@ -126,15 +126,15 @@ namespace OpenKalman::Eigen3
     static constexpr auto get_constant(const Eigen::CwiseUnaryOp<UnaryOp, XprType>& arg)
     {
       if constexpr (values::fixed<constant_coefficient<XprType>>)
-        return values::operation<UnaryOp, constant_coefficient<XprType>>{};
+        return values::operation(UnaryOp{}, constant_coefficient<XprType>{});
       else
-        return values::operation {arg.functor(), constant_coefficient {arg.nestedExpression()}};
+        return values::operation(arg.functor(), constant_coefficient {arg.nestedExpression()});
     }
 
     template<typename Arg>
     static constexpr auto get_constant_diagonal(const Arg& arg)
     {
-      return values::operation {arg.functor(), constant_diagonal_coefficient {arg.nestedExpression()}};
+      return values::operation(arg.functor(), constant_diagonal_coefficient {arg.nestedExpression()});
     }
 
   };

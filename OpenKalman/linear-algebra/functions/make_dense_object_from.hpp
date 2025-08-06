@@ -40,7 +40,7 @@ namespace OpenKalman
 #else
   template<typename T, Layout layout = Layout::none, typename Scalar = scalar_type_of_t<T>, typename...Ds, typename...Args, std::enable_if_t<
     indexible<T> and values::number<Scalar> and (coordinates::pattern<Ds> and ...) and
-    (std::is_convertible_v<Args, const Scalar> and ...) and (layout != Layout::stride) and
+    (stdcompat::convertible_to<Args, const Scalar> and ...) and (layout != Layout::stride) and
     (((coordinates::dimension_of<Ds>::value == 0) or ...) ? sizeof...(Args) == 0 :
       (sizeof...(Args) % ((dynamic_pattern<Ds> ? 1 : coordinates::dimension_of<Ds>::value) * ... * 1) == 0)), int> = 0>
   inline auto
@@ -107,7 +107,7 @@ namespace OpenKalman
   inline writable auto
 #else
   template<typename T, Layout layout = Layout::none, typename Scalar = scalar_type_of_t<T>, typename ... Args, std::enable_if_t<
-    indexible<T> and values::number<Scalar> and (std::is_convertible_v<Args, const Scalar> and ...) and
+    indexible<T> and values::number<Scalar> and (stdcompat::convertible_to<Args, const Scalar> and ...) and
     (layout != Layout::stride) and internal::may_hold_components<T, Args...> and
     (dynamic_index_count_v<T> + detail::zero_dimension_count<T>::value <= 1), int> = 0>
   inline auto

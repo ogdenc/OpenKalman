@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2023-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2023-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,7 +15,7 @@
 #ifndef OPENKALMAN_VALUE_EXP_UTILS_HPP
 #define OPENKALMAN_VALUE_EXP_UTILS_HPP
 
-#include "../../../basics/compatibility/language-features.hpp"
+#include "basics/basics.hpp"
 
 namespace OpenKalman::values::internal
 {
@@ -32,7 +32,7 @@ namespace OpenKalman::values::internal
   template <typename Return, typename X>
   constexpr Return integral_exp(const X& x)
   {
-    constexpr auto e = numbers::e_v<Return>;
+    constexpr auto e = stdcompat::numbers::e_v<Return>;
     if (x == X{0}) return Return{1};
     else if (x == X{1}) return e;
     else if (x < X{0}) return Return{1} / integral_exp<Return>(-x);

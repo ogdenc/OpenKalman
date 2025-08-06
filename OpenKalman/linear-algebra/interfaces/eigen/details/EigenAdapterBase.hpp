@@ -237,7 +237,7 @@ namespace OpenKalman::Eigen3
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
-    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar>, int> = 0>
 #endif
     auto operator<<(const S& s)
     {

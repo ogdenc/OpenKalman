@@ -11,6 +11,8 @@
 #ifndef OPENKALMAN_MATRIX_HPP
 #define OPENKALMAN_MATRIX_HPP
 
+#include "basics/basics.hpp"
+
 namespace OpenKalman
 {
   namespace oin = OpenKalman::internal;
@@ -68,7 +70,7 @@ namespace OpenKalman
       not euclidean_transformed<Arg> and
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
-      std::is_constructible_v<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
+      stdcompat::constructible_from<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
 #endif
     Matrix(Arg&& arg) : Base {nested_object(std::forward<Arg>(arg))} {}
 
@@ -83,7 +85,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and euclidean_transformed<Arg> and
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients> and
-      std::is_constructible_v<NestedMatrix,
+      stdcompat::constructible_from<NestedMatrix,
         decltype(from_euclidean<RowCoefficients>(nested_object(std::declval<Arg&&>())))>, int> = 0>
 #endif
     Matrix(Arg&& arg)
@@ -99,7 +101,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and
       (index_dimension_of<Arg, 0>::value == index_dimension_of<NestedMatrix, 0>::value) and
       (index_dimension_of<Arg, 1>::value == index_dimension_of<NestedMatrix, 1>::value) and
-      std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
+      stdcompat::constructible_from<NestedMatrix, Arg&&>, int> = 0>
 #endif
     explicit Matrix(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
@@ -114,7 +116,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<covariance<Arg> and
       compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients> and
       compares_with<vector_space_descriptor_of_t<Arg, 0>, ColumnCoefficients> and
-      std::is_constructible_v<NestedMatrix, dense_writable_matrix_t<Arg>>, int> = 0>
+      stdcompat::constructible_from<NestedMatrix, dense_writable_matrix_t<Arg>>, int> = 0>
 #endif
     Matrix(Arg&& arg) : Base {to_dense_object(std::forward<Arg>(arg))} {}
 

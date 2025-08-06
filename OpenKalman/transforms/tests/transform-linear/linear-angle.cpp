@@ -14,7 +14,7 @@
 using namespace OpenKalman;
 using namespace OpenKalman::test;
 
-using numbers::pi;
+using stdcompat::numbers::pi;
 
 using C2 = Polar<>;
 using M2 = Mean<C2>;

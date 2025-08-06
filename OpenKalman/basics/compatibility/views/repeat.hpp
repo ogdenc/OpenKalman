@@ -11,28 +11,27 @@
 /**
  * \file
  * \internal
- * \brief Definition for \ref collections::repeat_view and \ref collections::views::repeat.
+ * \brief Definition for \ref ranges::repeat_view and \ref ranges::views::repeat.
  */
 
 #ifndef OPENKALMAN_COMPATIBILITY_VIEWS_REPEAT_HPP
 #define OPENKALMAN_COMPATIBILITY_VIEWS_REPEAT_HPP
 
-#ifndef __cpp_lib_ranges_repeat
-
 #include <type_traits>
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
-#include "basics/compatibility/ranges.hpp"
-#include "view_interface.hpp"
-#endif
 #include "basics/compatibility/language-features.hpp"
-#include "basics/compatibility/ranges/range-access.hpp"
-#include "basics/compatibility/ranges/range-concepts.hpp"
+#include "basics/compatibility/ranges.hpp"
 #include "basics/compatibility/internal/movable_box.hpp"
+#include "view_interface.hpp"
 
-namespace OpenKalman::ranges
+namespace OpenKalman::stdcompat::ranges
 {
+#ifdef __cpp_lib_ranges_repeat
+  using std::ranges::repeat_view;
+  namespace views
+  {
+    using std::ranges::views::repeat;
+  }
+#else
   /**
    * \brief Equivalent to std::ranges::repeat_view.
    */
@@ -126,7 +125,7 @@ namespace OpenKalman::ranges
 #ifdef __cpp_lib_concepts
     repeat_view() requires std::default_initializable<W> = default;
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and std::is_default_constructible_v<W>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<W>, int> = 0>
     constexpr repeat_view() {};
 #endif
 
@@ -144,7 +143,7 @@ namespace OpenKalman::ranges
       std::constructible_from<W, WArgs...> and std::constructible_from<Bound, BoundArgs...>
 #else
     template<typename...WArgs, typename...BoundArgs, std::enable_if_t<
-      constructible_from<W, WArgs...> and constructible_from<Bound, BoundArgs...>, int> = 0>
+      stdcompat::constructible_from<W, WArgs...> and stdcompat::constructible_from<Bound, BoundArgs...>, int> = 0>
 #endif
     constexpr explicit
     repeat_view(std::piecewise_construct_t, std::tuple<WArgs...> value_args, std::tuple<BoundArgs...> bound_args = std::tuple<>{})
@@ -168,7 +167,7 @@ namespace OpenKalman::ranges
     constexpr auto
     size() const requires (not std::same_as<Bound, std::unreachable_sentinel_t>)
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and not std::is_same_v<Bound, unreachable_sentinel_t>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and not stdcompat::same_as<Bound, unreachable_sentinel_t>, int> = 0>
     constexpr auto size() const
 #endif
     {
@@ -182,47 +181,46 @@ namespace OpenKalman::ranges
 
     Bound bound_;
 
-  }; // struct repeat_view
+  };
 
 
   template<typename W, typename Bound = unreachable_sentinel_t>
   repeat_view(W, Bound = {}) -> repeat_view<W, Bound>;
 
-}
 
-
-namespace OpenKalman::ranges::views
-{
-  namespace detail
+  namespace views
   {
-    struct repeat_adapter
+    namespace detail
     {
-#ifdef __cpp_lib_concepts
-      template<std::move_constructible W, std::semiregular Bound = unreachable_sentinel_t> requires
-        std::is_object_v<W> and std::same_as<W, std::remove_cv_t<W>> and
-        (OpenKalman::internal::is_signed_integer_like<Bound> or
-        (OpenKalman::internal::is_integer_like<Bound> and weakly_incrementable<Bound> or
-        std::same_as<Bound, std::unreachable_sentinel_t>))
-#else
-      template<typename W, typename Bound = unreachable_sentinel_t>
-#endif
-      constexpr auto
-      operator() [[nodiscard]] (W&& value, Bound&& bound = {}) const
+      struct repeat_adapter
       {
-        return repeat_view<std::decay_t<W>, std::decay_t<Bound>> {std::forward<W>(value), std::forward<Bound>(bound)};
-      }
-    };
+  #ifdef __cpp_lib_concepts
+        template<std::move_constructible W, std::semiregular Bound = unreachable_sentinel_t> requires
+          (OpenKalman::internal::is_signed_integer_like<Bound> or
+          (OpenKalman::internal::is_integer_like<Bound> and weakly_incrementable<Bound> or
+          std::same_as<Bound, std::unreachable_sentinel_t>))
+  #else
+        template<typename W, typename Bound = unreachable_sentinel_t>
+  #endif
+        constexpr auto
+        operator() [[nodiscard]] (W&& value, Bound&& bound = {}) const
+        {
+          return repeat_view<std::decay_t<W>, std::decay_t<Bound>> {std::forward<W>(value), std::forward<Bound>(bound)};
+        }
+      };
+    }
+
+
+    /**
+     * \brief Equivalent to std::ranges::views::repeat.
+     * \sa repeat_view
+     */
+    inline constexpr detail::repeat_adapter repeat;
+
   }
 
-
-  /**
-   * \brief Equivalent to std::ranges::views::repeat.
-   * \sa repeat_view
-   */
-  inline constexpr detail::repeat_adapter repeat;
-
+#endif
 }
 
-#endif
 
 #endif

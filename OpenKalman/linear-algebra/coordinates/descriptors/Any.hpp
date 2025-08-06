@@ -11,20 +11,23 @@
 /**
  * \internal
  * \file
- * \brief Definition of the coordinates::Any class.
+ * \brief Definition of \ref coordinates::Any.
  */
 
-#ifndef OPENKALMAN_ANYATOMICVECTORTYPES_HPP
-#define OPENKALMAN_ANYATOMICVECTORTYPES_HPP
+#ifndef OPENKALMAN_DESCRIPTOR_ANY_HPP
+#define OPENKALMAN_DESCRIPTOR_ANY_HPP
 
 #include <memory>
 #include "values/concepts/number.hpp"
+#include "collections/views/generate.hpp"
 #include "linear-algebra/coordinates/interfaces/coordinate_descriptor_traits.hpp"
-#include "linear-algebra/coordinates/concepts/pattern.hpp"
 #include "linear-algebra/coordinates/functions/to_stat_space.hpp"
 #include "linear-algebra/coordinates/functions/from_stat_space.hpp"
-#include "linear-algebra/coordinates/functions/get_wrapped_component.hpp"
-#include "linear-algebra/coordinates/functions/set_wrapped_component.hpp"
+#include "linear-algebra/coordinates/functions/wrap.hpp"
+#include "linear-algebra/coordinates/functions/internal/get_descriptor_hash_code.hpp"
+#include "linear-algebra/coordinates/functions/internal/get_descriptor_dimension.hpp"
+#include "linear-algebra/coordinates/functions/internal/get_descriptor_stat_dimension.hpp"
+#include "linear-algebra/coordinates/functions/comparison-operators.hpp"
 
 namespace OpenKalman::coordinates
 {
@@ -34,16 +37,36 @@ namespace OpenKalman::coordinates
    * \tparam Scalar The scalar type for elements associated with this \ref coordinates::pattern object.
    */
 #ifdef __cpp_concepts
-  template<values::number Scalar = double>
+  template<values::number Scalar = double> requires std::same_as<Scalar, std::decay_t<Scalar>>
 #else
   template<typename Scalar = double>
+#endif
+  struct Any;
+
+
+  namespace internal
+  {
+    /**
+     * \brief Tests whether the argument is an instance of of type \ref Any.
+     */
+    template<typename T>
+    struct is_Any : std::false_type { using scalar_type = double; };
+
+    template<typename Scalar>
+    struct is_Any<Any<Scalar>> : std::true_type { using scalar_type = Scalar; };
+  }
+
+
+#ifdef __cpp_concepts
+  template<values::number Scalar> requires std::same_as<Scalar, std::decay_t<Scalar>>
+#else
+  template<typename Scalar>
 #endif
   struct Any
   {
   private:
 
     using Getter = std::function<Scalar(std::size_t)>;
-    using Setter = std::function<void(const Scalar&, std::size_t)>;
 
     struct Base
     {
@@ -52,45 +75,65 @@ namespace OpenKalman::coordinates
       [[nodiscard]] virtual std::size_t stat_dimension() const = 0;
       [[nodiscard]] virtual bool is_euclidean() const = 0;
       [[nodiscard]] virtual std::size_t hash_code() const = 0;
-      [[nodiscard]] virtual Scalar to_stat_space(const Getter& g, std::size_t euclidean_local_index) const = 0;
-      [[nodiscard]] virtual Scalar from_stat_space(const Getter& g, std::size_t local_index) const = 0;
-      [[nodiscard]] virtual Scalar get_wrapped_component(const Getter& g, std::size_t local_index) const = 0;
-      virtual void set_wrapped_component(const Setter& s, const Getter& g, const Scalar& x, std::size_t local_index) const = 0;
+      [[nodiscard]] virtual Getter to_stat_space(Getter g) const = 0;
+      [[nodiscard]] virtual Getter from_stat_space(Getter g) const = 0;
+      [[nodiscard]] virtual Getter wrap(Getter g) const = 0;
     };
 
 
     template <typename T>
     struct Derived : Base
     {
+      static_assert(descriptor<T> and not coordinates::internal::is_Any<T>::value);
+
       template<typename Arg>
       explicit Derived(Arg&& arg) : my_t(std::forward<Arg>(arg)) {}
 
-      [[nodiscard]] std::size_t dimension() const final { return get_dimension(my_t); }
+      [[nodiscard]] std::size_t dimension() const final { return coordinates::internal::get_descriptor_dimension(my_t); }
 
-      [[nodiscard]] std::size_t stat_dimension() const final { return get_stat_dimension(my_t); }
+      [[nodiscard]] std::size_t stat_dimension() const final { return coordinates::internal::get_descriptor_stat_dimension(my_t); }
 
-      [[nodiscard]] bool is_euclidean() const final { return get_is_euclidean(my_t); }
+      [[nodiscard]] bool is_euclidean() const final { return coordinates::internal::get_descriptor_is_euclidean(my_t); }
 
-      [[nodiscard]] std::size_t hash_code() const final { return internal::get_hash_code(my_t); }
+      [[nodiscard]] std::size_t hash_code() const final { return coordinates::internal::get_descriptor_hash_code(my_t); }
 
-      [[nodiscard]] Scalar to_stat_space(const Getter& g, std::size_t euclidean_local_index) const final
+      [[nodiscard]] Getter to_stat_space(Getter g) const final
       {
-        return coordinates::to_stat_space(my_t, g, euclidean_local_index);
+        if constexpr (euclidean_pattern<T>)
+        {
+          return std::move(g);
+        }
+        else
+        {
+          auto stat_data = coordinates::to_stat_space(my_t, collections::views::generate(std::move(g), get_dimension(my_t)));
+          return [stat_data](std::size_t i) -> Scalar { return collections::get(stat_data, i); };
+        }
       }
 
-      [[nodiscard]] Scalar from_stat_space(const Getter& g, std::size_t local_index) const final
+      [[nodiscard]] Getter from_stat_space(Getter g) const final
       {
-        return coordinates::from_stat_space(my_t, g, local_index);
+        if constexpr (euclidean_pattern<T>)
+        {
+          return std::move(g);
+        }
+        else
+        {
+          auto data = coordinates::from_stat_space(my_t, collections::views::generate(std::move(g), get_stat_dimension(my_t)));
+          return [data](std::size_t i) -> Scalar { return collections::get(data, i); };
+        }
       }
 
-      [[nodiscard]] Scalar get_wrapped_component(const Getter& g, std::size_t local_index) const final
+      [[nodiscard]] Getter wrap(Getter g) const final
       {
-        return coordinates::get_wrapped_component(my_t, g, local_index);
-      }
-
-      void set_wrapped_component(const Setter& s, const Getter& g, const Scalar& x, std::size_t local_index) const final
-      {
-        coordinates::set_wrapped_component(my_t, s, g, x, local_index);
+        if constexpr (euclidean_pattern<T>)
+        {
+          return std::move(g);
+        }
+        else
+        {
+          auto data = coordinates::wrap(my_t, collections::views::generate(std::move(g), get_dimension(my_t)));
+          return [data](std::size_t i) -> Scalar { return collections::get(data, i); };
+        }
       }
 
     private:
@@ -104,12 +147,18 @@ namespace OpenKalman::coordinates
      * \brief Construct from a \ref coordinates::descriptor.
      */
 #ifdef __cpp_concepts
-    template <descriptor Arg>
+    template <descriptor Arg> requires (not coordinates::internal::is_Any<std::decay_t<Arg>>::value)
 #else
-    template<typename Arg, std::enable_if_t<descriptor<Arg>, int> = 0>
+    template<typename Arg, std::enable_if_t<descriptor<Arg> and (not coordinates::internal::is_Any<std::decay_t<Arg>>::value), int> = 0>
 #endif
-    explicit constexpr
+    constexpr
     Any(Arg&& arg) : mBase {std::make_shared<Derived<std::decay_t<Arg>>>(std::forward<Arg>(arg))} {}
+
+
+#ifndef __cpp_concepts
+    // Addresses an issue with a version of clang in c++17
+    constexpr Any() : mBase {std::make_shared<Derived<std::integral_constant<std::size_t, 0>>>(std::integral_constant<std::size_t, 0>{})} {}
+#endif
 
   private:
 
@@ -124,8 +173,7 @@ namespace OpenKalman::coordinates
 
   };
 
-
-} // namespace OpenKalman::coordinates
+}
 
 
 namespace OpenKalman::interface
@@ -140,131 +188,78 @@ namespace OpenKalman::interface
   private:
 
     using T = coordinates::Any<Scalar>;
-    using Getter = std::function<Scalar(std::size_t)>;
-    using Setter = std::function<void(const Scalar&, std::size_t)>;
 
   public:
 
     static constexpr bool is_specialized = true;
 
 
-    using scalar_type = Scalar;
+    static constexpr auto dimension = [](const T& t) -> std::size_t { return t.mBase->dimension(); };
+
+
+    static constexpr auto stat_dimension = [](const T& t) -> std::size_t { return t.mBase->stat_dimension(); };
+
+
+    static constexpr auto is_euclidean = [](const T& t) -> bool { return t.mBase->is_euclidean(); };
+
+
+    static constexpr auto hash_code = [](const T& t) -> std::size_t { return t.mBase->hash_code(); };
 
 
     static constexpr auto
-    dimension(const T& t) { return t.mBase->dimension(); }
-
-
-    static constexpr auto
-    stat_dimension(const T& t) { return t.mBase->stat_dimension(); }
-
-
-    static constexpr auto
-    is_euclidean(const T& t) { return t.mBase->is_euclidean(); }
-
-
-    static constexpr std::size_t
-    hash_code(const T& t) { return t.mBase->hash_code(); }
-
-
-#ifdef __cpp_concepts
-    static constexpr values::value auto
-    to_euclidean_component(const T& t, const auto& g, const values::index auto& euclidean_local_index)
-    requires requires(std::size_t i){ {g(i)} -> std::convertible_to<scalar_type>; }
-#else
-    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
-      std::is_convertible_v<typename std::invoke_result<const Getter&, std::size_t>::type, scalar_type> and values::index<L>, int> = 0>
-    static constexpr auto
-    to_euclidean_component(const T& t, const Getter& g, const L& euclidean_local_index)
-#endif
+    to_stat_space = [](const T& t, auto&& data_view)
     {
-      return t.mBase->to_stat_space(g, euclidean_local_index);
-    }
+      auto d = std::make_tuple(std::forward<decltype(data_view)>(data_view));
+      return collections::views::generate(
+        t.mBase->to_stat_space([d](std::size_t i){ return collections::get(std::get<0>(d), i); }),
+        t.mBase->stat_dimension());
+    };
 
 
-#ifdef __cpp_concepts
-    static constexpr values::value auto
-    from_euclidean_component(const T& t, const auto& g, const values::index auto& local_index)
-    requires requires(std::size_t i){ {g(i)} -> std::convertible_to<scalar_type>; }
-#else
-    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
-      std::is_convertible_v<typename std::invoke_result<const Getter&, std::size_t>::type, scalar_type>, int> = 0>
     static constexpr auto
-    from_euclidean_component(const T& t, const Getter& g, const L& local_index)
-#endif
+    from_stat_space = [](const T& t, auto&& data_view)
     {
-      return t.mBase->from_stat_space(g, local_index);
-    }
+      auto d = std::make_tuple(std::forward<decltype(data_view)>(data_view));
+      return collections::views::generate(
+        t.mBase->from_stat_space([d](std::size_t i){ return collections::get(std::get<0>(d), i); }),
+        t.mBase->dimension());
+    };
 
 
-#ifdef __cpp_concepts
-    static constexpr values::value auto
-    get_wrapped_component(const T& t, const auto& g, const values::index auto& local_index)
-    requires requires(std::size_t i){ {g(i)} -> std::convertible_to<scalar_type>; }
-#else
-    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
-      std::is_convertible_v<typename std::invoke_result<const Getter&, std::size_t>::type, scalar_type>, int> = 0>
     static constexpr auto
-    get_wrapped_component(const T& t, const Getter& g, const L& local_index)
-#endif
+    wrap = [](const T& t, auto&& data_view)
     {
-      return t.mBase->get_wrapped_component(g, local_index);
-    }
-
-
-#ifdef __cpp_concepts
-    static constexpr void
-    set_wrapped_component(const T& t, const auto& s, const auto& g, const scalar_type& x, const values::index auto& local_index)
-    requires requires(std::size_t i){ s(x, i); s(g(i), i); }
-#else
-    template<typename Setter, typename Getter, typename L, std::enable_if_t<values::index<L> and
-      std::is_invocable<const Setter&, const scalar_type&, std::size_t>::value and
-      std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, std::size_t>::type, std::size_t>::value, int> = 0>
-    static constexpr void
-    set_wrapped_component(const T& t, const Setter& s, const Getter& g, const scalar_type& x, const L& local_index)
-#endif
-    {
-      t.mBase->set_wrapped_component(s, g, x, local_index);
-    }
+      auto d = std::make_tuple(std::forward<decltype(data_view)>(data_view));
+      return collections::views::generate(
+        t.mBase->wrap([d](std::size_t i){ return collections::get(std::get<0>(d), i); }),
+        t.mBase->dimension());
+    };
 
   };
 
-} // namespace OpenKalman::interface
+}
 
 
 namespace std
 {
-#ifdef __cpp_concepts
-  template<typename Scalar1, std::common_with<Scalar1> Scalar2>
-#else
   template<typename Scalar1, typename Scalar2>
-#endif
   struct common_type<OpenKalman::coordinates::Any<Scalar1>, OpenKalman::coordinates::Any<Scalar2>>
-  {
-    using type = OpenKalman::coordinates::Any<common_type_t<Scalar1, Scalar2>>;
-  };
+    : std::conditional_t<
+        OpenKalman::stdcompat::common_with<Scalar1, Scalar2>,
+        OpenKalman::stdcompat::type_identity<OpenKalman::coordinates::Any<
+          typename std::conditional_t<
+            OpenKalman::stdcompat::common_with<Scalar1, Scalar2>,
+            common_type<Scalar1, Scalar2>,
+            OpenKalman::stdcompat::type_identity<double>>::type>>,
+        std::monostate> {};
 
 
-#ifdef __cpp_concepts
-  template<typename Scalar, OpenKalman::coordinates::descriptor U>
-#else
-  template<typename Scalar, typename U>
-#endif
-  struct common_type<OpenKalman::coordinates::Any<Scalar>, U>
-  {
-    using type = OpenKalman::coordinates::Any<Scalar>;
-  };
-
-
-#ifdef __cpp_concepts
-  template<OpenKalman::coordinates::descriptor T, typename Scalar>
-#else
-  template<typename T, typename Scalar>
-#endif
-  struct common_type<T, OpenKalman::coordinates::Any<Scalar>>
-  {
-    using type = OpenKalman::coordinates::Any<Scalar>;
-  };
+  template<typename Scalar, typename T>
+  struct common_type<OpenKalman::coordinates::Any<Scalar>, T>
+    : std::conditional_t<
+      OpenKalman::coordinates::descriptor<T>,
+      OpenKalman::stdcompat::type_identity<OpenKalman::coordinates::Any<Scalar>>,
+      std::monostate> {};
 }
 
-#endif //OPENKALMAN_ANYATOMICVECTORTYPES_HPP
+#endif

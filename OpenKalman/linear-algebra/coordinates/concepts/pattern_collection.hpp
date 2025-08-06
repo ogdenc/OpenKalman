@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_COLLECTION_HPP
 #define OPENKALMAN_VECTOR_SPACE_DESCRIPTOR_COLLECTION_HPP
 
-#include "basics/concepts/collection.hpp"
+#include "collections/concepts/collection.hpp"
 #include "pattern_tuple.hpp"
 #include "pattern_range.hpp"
 
@@ -32,7 +32,7 @@ namespace OpenKalman::coordinates
 #else
   constexpr bool pattern_collection =
 #endif
-    collection<T> and (pattern_tuple<T> or pattern_range<T>);
+    collections::collection<T> and (pattern_tuple<T> or pattern_range<T>);
 
 
 } // namespace OpenKalman::coordinates

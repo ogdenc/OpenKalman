@@ -14,33 +14,22 @@
  */
 
 #include "tests.hpp"
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
 #include "basics/compatibility/views/iota.hpp"
-#endif
 
 using namespace OpenKalman;
 
-#ifdef __cpp_lib_ranges
-namespace rg = std::ranges;
-#else
-namespace rg = OpenKalman::ranges;
-#endif
-namespace vw = rg::views;
-
 TEST(basics, iota_view)
 {
-  auto i3 = rg::views::iota(0, 4);
+  auto i3 = stdcompat::ranges::views::iota(0, 4);
   EXPECT_EQ(i3.size(), 4);
-  static_assert(rg::views::iota(0, 4).size() == 4);
+  static_assert(stdcompat::ranges::views::iota(0, 4).size() == 4);
 
-  EXPECT_EQ(rg::views::iota(0, 4).begin()[2], 2);
-  EXPECT_EQ(rg::views::iota(0u, 4u).begin()[3], 3);
-  EXPECT_EQ(rg::views::iota(1u).begin()[100], 101);
-  static_assert(rg::views::iota(0, 4).size() == 4);
+  EXPECT_EQ(stdcompat::ranges::views::iota(0, 4).begin()[2], 2);
+  EXPECT_EQ(stdcompat::ranges::views::iota(0u, 4u).begin()[3], 3);
+  EXPECT_EQ(stdcompat::ranges::views::iota(1u).begin()[100], 101);
+  static_assert(stdcompat::ranges::views::iota(0, 4).size() == 4);
 
-  auto i8 = rg::views::iota(0u, 9u);
+  auto i8 = stdcompat::ranges::views::iota(0u, 9u);
   auto it8 = i8.begin();
   EXPECT_EQ(*it8, 0);
   it8++;
@@ -63,7 +52,7 @@ TEST(basics, iota_view)
   --it8;
   EXPECT_EQ(*it8, 1);
 
-  auto i9 = rg::views::iota(0, 10);
+  auto i9 = stdcompat::ranges::views::iota(0, 10);
   auto it9 = i9.begin();
   EXPECT_EQ(*it9, 0);
   it9++;

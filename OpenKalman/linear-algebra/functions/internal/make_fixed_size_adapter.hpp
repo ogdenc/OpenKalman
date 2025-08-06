@@ -26,7 +26,7 @@ namespace OpenKalman::internal
     make_fixed_size_adapter_impl(Arg&& arg, std::index_sequence<Ix...> seq)
     {
       return FixedSizeAdapter<Arg,
-        std::tuple<decltype(best_vector_space_descriptor(get_vector_space_descriptor(std::declval<Arg>(), Ix),
+        std::tuple<decltype(most_fixed_pattern(get_vector_space_descriptor(std::declval<Arg>(), Ix),
           std::get<Ix>(std::declval<DTup>())))...>> {std::forward<Arg>(arg)};
     }
   } // namespace detail
@@ -54,7 +54,7 @@ namespace OpenKalman::internal
     }
     else if constexpr (internal::less_fixed_than<Arg, Descriptors>)
     {
-      using DTup = std::decay_t<decltype(remove_trailing_1D_descriptors(std::declval<Descriptors>()))>;
+      using DTup = std::decay_t<decltype(coordinates::internal::strip_1D_tail(std::declval<Descriptors>()))>;
       std::make_index_sequence<std::tuple_size_v<DTup>> seq {};
       return detail::make_fixed_size_adapter_impl<DTup>(std::forward<Arg>(arg), seq);
     }

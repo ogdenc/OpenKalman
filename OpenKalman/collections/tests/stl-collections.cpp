@@ -176,3 +176,12 @@ TEST(collections, index_collection)
   using Range2 = std::array<std::size_t, 5>;
   static_assert(collections::index<Range2>);
 }
+
+
+#include "collections/functions/apply.hpp"
+
+TEST(collections, apply)
+{
+  static_assert(collections::apply(std::equal_to{}, std::tuple{4, 2+2}));
+  static_assert(collections::apply(std::equal_to{}, std::array{4, 2+2}));
+}

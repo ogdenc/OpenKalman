@@ -63,7 +63,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<euclidean_transformed<Arg> and
       (compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients>) and
       (compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients>) and
-      std::is_constructible_v<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
+      stdcompat::constructible_from<NestedMatrix, decltype(nested_object(std::declval<Arg&&>()))>, int> = 0>
 #endif
     EuclideanMean(Arg&& arg) : Base {nested_object(std::forward<Arg>(arg))} {}
 
@@ -78,7 +78,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<typed_matrix<Arg> and (not euclidean_transformed<Arg>) and
       (compares_with<vector_space_descriptor_of_t<Arg, 0>, RowCoefficients>) and
       (compares_with<vector_space_descriptor_of_t<Arg, 1>, ColumnCoefficients>) and
-      std::is_constructible_v<NestedMatrix,
+      stdcompat::constructible_from<NestedMatrix,
         decltype(to_euclidean<RowCoefficients>(nested_object(std::declval<Arg&&>())))>, int> = 0>
 #endif
     EuclideanMean(Arg&& arg)
@@ -94,7 +94,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<typed_matrix_nestable<Arg> and
       (index_dimension_of<Arg, 0>::value == index_dimension_of<NestedMatrix, 0>::value) and
       (index_dimension_of<Arg, 1>::value == index_dimension_of<NestedMatrix, 1>::value) and
-      std::is_constructible_v<NestedMatrix, Arg&&>, int> = 0>
+      stdcompat::constructible_from<NestedMatrix, Arg&&>, int> = 0>
 #endif
     EuclideanMean(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
@@ -418,9 +418,9 @@ coordinates::stat_dimension_of_v<vector_space_descriptor_of_t<V, 0>> == index_di
           if constexpr (n == 0_uz) return arg.my_dimension;
           else return OpenKalman::get_vector_space_descriptor(nested_object(arg), n);
         }
-        else if constexpr (uniform_static_vector_space_descriptor<NestedMatrix> and compares_with<Coeffs, uniform_static_vector_space_descriptor_component_of<NestedMatrix>>)
+        else if constexpr (coordinates::uniform_pattern<Coeffs>)
         {
-          return arg.my_dimension;
+          return coordinates::uniform_pattern_component_of_t<Coeffs>;
         }
         else
         {

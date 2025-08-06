@@ -30,7 +30,7 @@ namespace Eigen
     using StaticDescriptor = OpenKalman::vector_space_descriptor_of_t<Derived, 0>;
     using Base::Base;
 
-    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar>, int> = 0>
     MeanCommaInitializer(XprType& xpr, const S& s) : Base {xpr, static_cast<const Scalar&>(s)} {}
 
     template<typename OtherDerived>
@@ -70,7 +70,7 @@ namespace Eigen
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
-    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar>, int> = 0>
 #endif
     DiagonalCommaInitializer(XprType& xpr, const S& s)
       : matrix {}, comma_initializer {matrix, static_cast<const Scalar&>(s)}, diag {xpr} {}
@@ -89,7 +89,7 @@ namespace Eigen
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
-    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar>, int> = 0>
 #endif
     auto& operator,(const S& s)
     {
@@ -135,7 +135,7 @@ namespace Eigen
     Nested comma_initializer;
     CovarianceType& cov;
 
-    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar>, int> = 0>
     CovarianceCommaInitializer(CovarianceType& xpr, const S& s)
       : matrix {}, comma_initializer {matrix, static_cast<const Scalar&>(s)}, cov {xpr} {}
 

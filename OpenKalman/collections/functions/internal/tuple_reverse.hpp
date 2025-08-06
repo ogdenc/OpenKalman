@@ -43,7 +43,7 @@ namespace OpenKalman::collections
 #ifdef __cpp_concepts
     constexpr tuple_reverse_view() requires std::default_initializable<T> = default;
 #else
-    template<typename aT = T, std::enable_if_t<std::is_default_constructible_v<aT>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<T>, int> = 0>
     constexpr tuple_reverse_view() {};
 #endif
 
@@ -51,7 +51,7 @@ namespace OpenKalman::collections
 #ifdef __cpp_concepts
     template<typename Arg> requires std::constructible_from<T, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<std::is_constructible_v<T, Arg&&>, int> = 0>
+    template<typename Arg, std::enable_if_t<stdcompat::constructible_from<T, Arg&&>, int> = 0>
 #endif
     explicit constexpr tuple_reverse_view(Arg&& arg) : t {std::forward<Arg>(arg)} {}
 
@@ -110,7 +110,7 @@ namespace std
   struct tuple_element<i, OpenKalman::collections::tuple_reverse_view<T>>
   {
     static_assert(i < std::tuple_size_v<std::decay_t<T>>);
-    using type = std::tuple_element_t<std::tuple_size_v<std::decay_t<T>> - i - 1_uz, std::decay_t<T>>;
+    using type = std::tuple_element_t<std::tuple_size_v<std::decay_t<T>> - i - 1, std::decay_t<T>>;
   };
 } // namespace std
 
@@ -139,7 +139,7 @@ namespace OpenKalman::collections
 #ifdef __cpp_concepts
   template<tuple_like T> requires std::default_initializable<T>
 #else
-  template<typename T, std::enable_if_t<tuple_like<T> and std::is_default_constructible_v<T>, int> = 0>
+  template<typename T, std::enable_if_t<tuple_like<T> and stdcompat::default_initializable<T>, int> = 0>
 #endif
   constexpr auto
   tuple_reverse()

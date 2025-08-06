@@ -19,7 +19,7 @@
 #include <limits>
 #include <stdexcept>
 #include "values/concepts/number.hpp"
-#include "values/traits/real_type_of_t.hpp"
+#include "values/traits/real_type_of.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
 
 namespace OpenKalman::values::internal
@@ -35,14 +35,14 @@ namespace OpenKalman::values::internal
 #endif
   constexpr std::decay_t<T> NaN()
   {
-    using R = std::decay_t<T>;
+    using Return = std::decay_t<T>;
+    using R = real_type_of_t<real_type_of_t<T>>;
     if constexpr (values::complex<T>)
-      return values::internal::make_complex_number<T>(
-        values::internal::NaN<values::real_type_of_t<T>>(), values::internal::NaN<values::real_type_of_t<T>>());
-    else if constexpr (std::numeric_limits<R>::has_quiet_NaN)
-      return std::numeric_limits<R>::quiet_NaN();
-    else if constexpr (std::numeric_limits<R>::has_signaling_NaN)
-      return std::numeric_limits<R>::signaling_NaN();
+      return values::internal::make_complex_number<Return>(values::internal::NaN<R>(), values::internal::NaN<R>());
+    else if constexpr (std::numeric_limits<Return>::has_quiet_NaN)
+      return std::numeric_limits<Return>::quiet_NaN();
+    else if constexpr (std::numeric_limits<Return>::has_signaling_NaN)
+      return std::numeric_limits<Return>::signaling_NaN();
     else
       throw std::domain_error {"Domain error in arithmetic operation: result is not a number"};
   }

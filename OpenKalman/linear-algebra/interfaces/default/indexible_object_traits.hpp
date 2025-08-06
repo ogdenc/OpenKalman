@@ -94,7 +94,7 @@ namespace OpenKalman::interface
     static indexible decltype(auto)
     nested_object(std::convertible_to<const T&> auto&& arg) = delete;
 #else
-    template<typename Arg, std::enable_if_t<std::is_convertible_v<Arg, const T&>, int> = 0>
+    template<typename Arg, std::enable_if_t<stdcompat::convertible_to<Arg, const T&>, int> = 0>
     static decltype(auto)
     nested_object(Arg&& arg) = delete;
 #endif
@@ -205,7 +205,7 @@ namespace OpenKalman::interface
     static constexpr values::number decltype(auto)
 #else
     template<typename Arg, std::enable_if_t<
-      std::is_convertible_v<Arg, const T> and values::scalar<decltype(*std::declval<Arg&&>().data())> and direct_access, int> = 0>
+      stdcompat::convertible_to<Arg, const T> and values::scalar<decltype(*std::declval<Arg&&>().data())> and direct_access, int> = 0>
     static constexpr auto decltype(auto)
 #endif
     raw_data(Arg&& arg) = delete;

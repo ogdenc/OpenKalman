@@ -29,10 +29,11 @@ namespace OpenKalman::collections
    */
   template<typename T>
 #ifdef __cpp_lib_ranges
-  concept collection = std::ranges::random_access_range<T> or uniformly_gettable<T>;
+  concept collection =
 #else
-  constexpr bool collection = ranges::random_access_range<T> or uniformly_gettable<T>;
+  constexpr bool collection =
 #endif
+    stdcompat::ranges::random_access_range<T> or uniformly_gettable<T>;
 
 
 } // namespace OpenKalman

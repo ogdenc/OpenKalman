@@ -11,6 +11,7 @@
 #ifndef OPENKALMAN_SQUAREROOTCOVARIANCE_HPP
 #define OPENKALMAN_SQUAREROOTCOVARIANCE_HPP
 
+#include "basics/basics.hpp"
 
 namespace OpenKalman
 {
@@ -98,7 +99,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     SquareRootCovariance() requires std::default_initializable<Base>
 #else
-    template<typename T = Base, std::enable_if_t<std::is_default_constructible_v<T>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<Base>, int> = 0>
     SquareRootCovariance()
 #endif
       : Base {} {}
@@ -114,7 +115,7 @@ namespace OpenKalman
     template<typename M, std::enable_if_t<
       triangular_covariance<M> and (not std::is_base_of_v<SquareRootCovariance, std::decay_t<M>>) and
       (triangle_type_of<M>::value == triangle_type_of<SquareRootCovariance>::value) and
-      std::is_constructible_v<Base, M&&>, int> = 0>
+      stdcompat::constructible_from<Base, M&&>, int> = 0>
 #endif
     SquareRootCovariance(M&& m) : Base {std::forward<M>(m)} {}
 
@@ -126,7 +127,7 @@ namespace OpenKalman
     template<covariance_nestable M> requires requires(M&& m) { Base {std::forward<M>(m)}; }
 #else
     template<typename M, std::enable_if_t<covariance_nestable<M> and
-      std::is_constructible_v<Base, M&&>, int> = 0>
+      stdcompat::constructible_from<Base, M&&>, int> = 0>
 #endif
     explicit SquareRootCovariance(M&& m) : Base {std::forward<M>(m)} {}
 
@@ -145,7 +146,7 @@ namespace OpenKalman
     template<typename M, std::enable_if_t<typed_matrix<M> and
       (square_shaped<M> or (diagonal_matrix<NestedMatrix> and vector<M>)) and
       compares_with<vector_space_descriptor_of_t<M, 0>, StaticDescriptor> and
-      std::is_constructible_v<Base,
+      stdcompat::constructible_from<Base,
         decltype(oin::to_covariance_nestable<NestedTriangular>(std::declval<M&&>()))>, int> = 0>
 #endif
     explicit SquareRootCovariance(M&& m)
@@ -165,7 +166,7 @@ namespace OpenKalman
 #else
     template<typename M, std::enable_if_t<typed_matrix_nestable<M> and (not covariance_nestable<M>) and
       (square_shaped<M> or (diagonal_matrix<NestedMatrix> and vector<M>)) and
-      std::is_constructible_v<Base,
+      stdcompat::constructible_from<Base,
         decltype(oin::to_covariance_nestable<NestedTriangular>(std::declval<M&&>()))>, int> = 0>
 #endif
     explicit SquareRootCovariance(M&& m)
@@ -178,9 +179,9 @@ namespace OpenKalman
       requires(Args ... args) { Base {make_dense_object_from<NestedTriangular>(static_cast<const Scalar>(args)...)};
       }
 #else
-    template<typename ... Args, std::enable_if_t<(std::is_convertible_v<Args, const Scalar> and ...) and
+    template<typename ... Args, std::enable_if_t<(stdcompat::convertible_to<Args, const Scalar> and ...) and
       ((diagonal_matrix<NestedMatrix> and sizeof...(Args) == dim) or
-        (sizeof...(Args) == dim * dim)) and std::is_constructible_v<Base, NestedTriangular&&>, int> = 0>
+        (sizeof...(Args) == dim * dim)) and stdcompat::constructible_from<Base, NestedTriangular&&>, int> = 0>
 #endif
     SquareRootCovariance(Args ... args)
       : Base {make_dense_object_from<NestedTriangular>(static_cast<const Scalar>(args)...)} {}
@@ -392,7 +393,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S> requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>)
 #else
-    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar> and
+    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar> and
       (not std::is_const_v<std::remove_reference_t<NestedMatrix>>), int> = 0>
 #endif
     auto& operator*=(const S s)
@@ -414,7 +415,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S> requires (not std::is_const_v<std::remove_reference_t<NestedMatrix>>)
 #else
-    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar> and
+    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar> and
       (not std::is_const_v<std::remove_reference_t<NestedMatrix>>), int> = 0>
 #endif
     auto& operator/=(const S s)

@@ -15,11 +15,10 @@
 #ifndef OPENKALMAN_VALUE_COS_HPP
 #define OPENKALMAN_VALUE_COS_HPP
 
-#include <limits>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/classes/operation.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
@@ -36,22 +35,22 @@ namespace OpenKalman::values
    * \brief Constexpr alternative to the std::cos function.
    */
 #ifdef __cpp_concepts
-template<values::value Arg>
-  constexpr values::value auto cos(const Arg& arg)
+  template<value Arg>
+  constexpr value auto cos(const Arg& arg)
 #else
-  template<typename Arg>
-  constexpr auto cos(const Arg& arg, std::enable_if_t<values::value<Arg>, int> = 0)
+  template<typename Arg, std::enable_if_t<value<Arg>, int> = 0>
+  constexpr auto cos(const Arg& arg)
 #endif
   {
-    if constexpr (not values::number<Arg>)
+    if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::cos(a); } };
-      return values::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::cos(a); } };
+      return values::operation(Op{}, arg);
     }
     else
     {
       using std::cos;
-      using Return = decltype(cos(arg));
+      using Return = std::decay_t<decltype(cos(arg))>;
       struct Op { auto operator()(const Arg& arg) { return cos(arg); } };
       if (internal::constexpr_callable<Op>(arg)) return cos(arg);
       else if constexpr (values::complex<Arg>)

@@ -14,26 +14,12 @@
  */
 
 #include "tests.hpp"
+#include "basics/basics.hpp"
 #include "values/values.hpp"
+#include "collections/concepts/sized.hpp"
 
 using namespace OpenKalman;
 using namespace OpenKalman::collections;
-
-#ifdef __cpp_lib_ranges
-#include<ranges>
-  namespace rg = std::ranges;
-#else
-  namespace rg = OpenKalman::ranges;
-#endif
-
-#if __cpp_lib_ranges_concat >= 202403L
-  namespace crg = std::ranges;
-#else
-  namespace crg = OpenKalman::ranges;
-#endif
-
-#include "basics/compatibility/views.hpp"
-#include "collections/concepts/sized.hpp"
 
 TEST(collections, sized)
 {
@@ -46,8 +32,8 @@ TEST(collections, sized)
   static_assert(sized<const std::vector<int>&>);
   static_assert(sized<int(&)[5]>);
   static_assert(sized<const int(&)[6]>);
-  static_assert(sized<rg::views::all_t<int(&)[7]>>);
-  static_assert(sized<rg::views::all_t<decltype(rg::views::reverse(rg::views::all(std::declval<int(&)[5]>())))>>);
+  static_assert(sized<stdcompat::ranges::views::all_t<int(&)[7]>>);
+  static_assert(sized<stdcompat::ranges::views::all_t<decltype(stdcompat::ranges::views::reverse(stdcompat::ranges::views::all(std::declval<int(&)[5]>())))>>);
 }
 
 
@@ -83,29 +69,29 @@ TEST(collections, get_size)
   static_assert(not values::fixed<decltype(get_size(v1))>);
   static_assert(not values::fixed<decltype(get_size(std::vector{1,2,3}))>);
 
-  constexpr auto all_arr1 = rg::views::all(arr1);
-  static_assert(rg::size(rg::views::all(arr1)) == 4);
-  static_assert(rg::size(all_arr1) == 4);
-  static_assert(std::integral_constant<std::size_t, rg::size(all_arr1)>::value == 4);
+  constexpr auto all_arr1 = stdcompat::ranges::views::all(arr1);
+  static_assert(stdcompat::ranges::size(stdcompat::ranges::views::all(arr1)) == 4);
+  static_assert(stdcompat::ranges::size(all_arr1) == 4);
+  static_assert(std::integral_constant<std::size_t, stdcompat::ranges::size(all_arr1)>::value == 4);
 
-  static_assert(get_size(rg::views::all(std::array{1,2,3,4})) == 4);
-  static_assert(get_size(rg::views::all(arr1)) == 4);
+  static_assert(get_size(stdcompat::ranges::views::all(std::array{1,2,3,4})) == 4);
+  static_assert(get_size(stdcompat::ranges::views::all(arr1)) == 4);
 
-  static_assert(values::fixed<decltype(get_size(rg::views::all(std::array{1,2,3,4})))>);
-  static_assert(values::fixed<decltype(get_size(rg::views::all(arr1)))>);
-  static_assert(get_size(rg::views::reverse(rg::views::all(std::array{1,2,3,4}))) == 4);
-  static_assert(get_size(rg::views::reverse(rg::views::all(arr1))) == 4);
-  static_assert(values::fixed<decltype(get_size(rg::views::reverse(rg::views::all(std::array{1,2,3,4}))))>);
-  static_assert(values::fixed<decltype(get_size(rg::views::reverse(rg::views::all(arr1))))>);
+  static_assert(values::fixed<decltype(get_size(stdcompat::ranges::views::all(std::array{1,2,3,4})))>);
+  static_assert(values::fixed<decltype(get_size(stdcompat::ranges::views::all(arr1)))>);
+  static_assert(get_size(stdcompat::ranges::views::reverse(stdcompat::ranges::views::all(std::array{1,2,3,4}))) == 4);
+  static_assert(get_size(stdcompat::ranges::views::reverse(stdcompat::ranges::views::all(arr1))) == 4);
+  static_assert(values::fixed<decltype(get_size(stdcompat::ranges::views::reverse(stdcompat::ranges::views::all(std::array{1,2,3,4}))))>);
+  static_assert(values::fixed<decltype(get_size(stdcompat::ranges::views::reverse(stdcompat::ranges::views::all(arr1))))>);
 
-  static_assert(get_size(rg::views::all(a1)) == 5);
-  static_assert(get_size(rg::views::reverse(rg::views::all(a1))) == 5);
-  static_assert(values::fixed<decltype(get_size(rg::views::all(a1)))>);
-  static_assert(values::fixed<decltype(get_size(rg::views::reverse(rg::views::all(a1))))>);
+  static_assert(get_size(stdcompat::ranges::views::all(a1)) == 5);
+  static_assert(get_size(stdcompat::ranges::views::reverse(stdcompat::ranges::views::all(a1))) == 5);
+  static_assert(values::fixed<decltype(get_size(stdcompat::ranges::views::all(a1)))>);
+  static_assert(values::fixed<decltype(get_size(stdcompat::ranges::views::reverse(stdcompat::ranges::views::all(a1))))>);
 
-  EXPECT_EQ(get_size(crg::views::concat(arr1, a1)), 9);
-  EXPECT_EQ(get_size(crg::views::concat(arr1, a1) | rg::views::transform(std::negate{}) | rg::views::reverse), 9);
-  EXPECT_EQ(get_size(crg::views::concat(arr1, v1, a1) | rg::views::transform(std::negate{}) | rg::views::reverse), 12);
+  EXPECT_EQ(get_size(stdcompat::ranges::views::concat(arr1, a1)), 9);
+  EXPECT_EQ(get_size(stdcompat::ranges::views::concat(arr1, a1) | stdcompat::ranges::views::transform(std::negate{}) | stdcompat::ranges::views::reverse), 9);
+  EXPECT_EQ(get_size(stdcompat::ranges::views::concat(arr1, v1, a1) | stdcompat::ranges::views::transform(std::negate{}) | stdcompat::ranges::views::reverse), 12);
 }
 
 
@@ -127,9 +113,12 @@ TEST(collections, size_of)
   static_assert(size_of_v<int(&)[5]> == 5);
   static_assert(size_of_v<const int(&)[6]> == 6);
 
-  static_assert(size_of_v<rg::views::all_t<std::array<double, 5>>> == 5);
-  static_assert(size_of_v<rg::views::all_t<int(&)[7]>> == 7);
+  static_assert(size_of_v<stdcompat::ranges::views::all_t<std::array<double, 5>>> == 5);
+  static_assert(size_of_v<stdcompat::ranges::views::all_t<int(&)[7]>> == 7);
 
-  static_assert(size_of_v<crg::concat_view<rg::views::all_t<std::array<double, 5>>, rg::views::all_t<int(&)[4]>>> == 9);
+  static_assert(size_of_v<stdcompat::ranges::empty_view<int>> == 0);
+  static_assert(size_of_v<stdcompat::ranges::single_view<int>> == 1);
+
+  static_assert(size_of_v<stdcompat::ranges::concat_view<stdcompat::ranges::views::all_t<std::array<double, 5>>, stdcompat::ranges::views::all_t<int(&)[4]>>> == 9);
 }
 

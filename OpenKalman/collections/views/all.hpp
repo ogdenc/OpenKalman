@@ -17,27 +17,17 @@
 #ifndef OPENKALMAN_COLLECTIONS_VIEWS_ALL_HPP
 #define OPENKALMAN_COLLECTIONS_VIEWS_ALL_HPP
 
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
-#include "basics/compatibility/ranges.hpp"
-#include "basics/compatibility/views/range_adaptor_closure.hpp"
-#include "basics/compatibility/views/single.hpp"
-#endif
+#include "basics/basics.hpp"
 #include "collections/concepts/viewable_collection.hpp"
-#include "from_tuple.hpp"
-#include "to_tuple.hpp"
+#include "from_tuple_like_range.hpp"
+#include "from_tuple_like.hpp"
+#include "from_range.hpp"
 
 namespace OpenKalman::collections::views
 {
   namespace detail
   {
-    struct all_closure
-#if __cpp_lib_ranges >= 202202L
-      : std::ranges::range_adaptor_closure<all_closure>
-#else
-      : ranges::range_adaptor_closure<all_closure>
-#endif
+    struct all_closure : stdcompat::ranges::range_adaptor_closure<all_closure>
     {
 #ifdef __cpp_concepts
       template<viewable_collection R>
@@ -46,26 +36,24 @@ namespace OpenKalman::collections::views
       template<typename R, std::enable_if_t<viewable_collection<R>, int> = 0>
       constexpr auto
 #endif
-      operator() [[nodiscard]] (R&& r) const
+      operator() (R&& r) const
       {
         using namespace std;
-        if constexpr (collection_view<R>)
+        if constexpr (collection_view<std::decay_t<R>>)
         {
           return static_cast<std::decay_t<R>>(std::forward<R>(r));
         }
-        else if constexpr (uniform_tuple_like<R>)
+        else if constexpr (viewable_tuple_like<R> and stdcompat::ranges::random_access_range<R> and stdcompat::ranges::viewable_range<R>)
         {
-          if constexpr (size_of_v<R> == 1)
-  #ifdef __cpp_lib_ranges
-            return std::ranges::views::single(OpenKalman::internal::generalized_std_get<0>(std::forward<R>(r)));
-  #else
-            return ranges::views::single(OpenKalman::internal::generalized_std_get<0>(std::forward<R>(r)));
-  #endif
-          else return from_tuple {std::forward<R>(r)};
+          return from_tuple_like_range {std::forward<R>(r)};
         }
-        else // std::ranges::random_access_range<T> and std::ranges::viewable_range<T>
+        else if constexpr (viewable_tuple_like<R>)
         {
-          return to_tuple {std::forward<R>(r)};
+          return from_tuple_like {std::forward<R>(r)};
+        }
+        else // std::ranges::random_access_range<R> and std::ranges::viewable_range<R>
+        {
+          return from_range {std::forward<R>(r)};
         }
       }
     };
@@ -99,4 +87,4 @@ namespace OpenKalman::collections::views
 }
 
 
-#endif //OPENKALMAN_COLLECTIONS_VIEWS_ALL_HPP
+#endif

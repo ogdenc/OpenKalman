@@ -18,8 +18,8 @@
 #include <limits>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/classes/operation.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
@@ -43,10 +43,10 @@ namespace OpenKalman::values
   constexpr auto asinh(const Arg& arg)
 #endif
   {
-    if constexpr (not values::number<Arg>)
+    if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::asinh(a); } };
-      return values::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::asinh(a); } };
+      return values::operation(Op{}, arg);
     }
     else
     {
@@ -59,7 +59,7 @@ namespace OpenKalman::values
         auto re = values::real(values::real(arg));
         auto im = values::real(values::imag(arg));
         using R = std::decay_t<decltype(re)>;
-        auto sqt = values::sqrt(values::internal::make_complex_number(re*re - im*im + 1, 2*re*im));
+        auto sqt = values::sqrt(values::internal::make_complex_number<>(re*re - im*im + 1, 2*re*im));
         auto sqtr = values::real(sqt);
         auto sqti = values::imag(sqt);
         return values::internal::make_complex_number<Return>(values::log(values::internal::make_complex_number<R>(re + sqtr, im + sqti)));

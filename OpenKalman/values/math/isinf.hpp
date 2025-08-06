@@ -31,10 +31,10 @@ namespace OpenKalman::values
 #endif
   constexpr bool isinf(const Arg& arg)
   {
-    if constexpr (not values::number<Arg>)
+    if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::isinf(a); } };
-      return values::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::isinf(a); } };
+      return values::operation(Op{}, arg);
     }
     else
     {

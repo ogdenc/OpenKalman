@@ -16,6 +16,8 @@
 #ifndef OPENKALMAN_FIXEDSIZEADAPTER_HPP
 #define OPENKALMAN_FIXEDSIZEADAPTER_HPP
 
+#include "basics/basics.hpp"
+
 namespace OpenKalman::internal
 {
 #ifdef __cpp_concepts
@@ -54,7 +56,7 @@ namespace OpenKalman::internal
       std::constructible_from<NestedObject, Arg&&> and (not fixed_size_adapter<Arg>)
 #else
     template<typename Arg, std::enable_if_t<
-      compatible_with_vector_space_descriptors<Arg, Descriptors> and std::is_constructible_v<NestedObject, Arg&&> and
+      compatible_with_vector_space_descriptors<Arg, Descriptors> and stdcompat::constructible_from<NestedObject, Arg&&> and
         (not fixed_size_adapter<Arg>), int> = 0>
 #endif
     constexpr FixedSizeAdapter(Arg&& arg, const Descriptors&) : Base {std::forward<Arg>(arg)} {}
@@ -73,7 +75,7 @@ namespace OpenKalman::internal
     template<typename Arg, typename...Ds, std::enable_if_t<
       compatible_with_vector_space_descriptors<Arg, Vs...> and (... and coordinates::pattern<Ds>) and
       std::is_same_v<std::tuple<Ds...>, Descriptors> and
-      std::is_constructible_v<NestedObject, Arg&&> and (not fixed_size_adapter<Arg>), int> = 0>
+      stdcompat::constructible_from<NestedObject, Arg&&> and (not fixed_size_adapter<Arg>), int> = 0>
 #endif
     constexpr FixedSizeAdapter(Arg&& arg, const Ds&...) : Base {std::forward<Arg>(arg)} {}
 
@@ -88,7 +90,7 @@ namespace OpenKalman::internal
 #else
     template<typename Arg, std::enable_if_t<
       compatible_with_vector_space_descriptors<Arg, Descriptors> and
-      std::is_constructible_v<NestedObject, nested_object_of_t<Arg&&>> and fixed_size_adapter<Arg>, int> = 0>
+      stdcompat::constructible_from<NestedObject, nested_object_of_t<Arg&&>> and fixed_size_adapter<Arg>, int> = 0>
 #endif
     constexpr FixedSizeAdapter(Arg&& arg, const Descriptors&...) : Base {nested_object(std::forward<Arg>(arg))} {}
 
@@ -108,7 +110,7 @@ namespace OpenKalman::internal
     template<typename Arg, typename...Ds, std::enable_if_t<
       compatible_with_vector_space_descriptors<Arg, Vs...> and (... and coordinates::pattern<Ds>) and
       std::is_same_v<std::tuple<Ds...>, Descriptors> and
-      std::is_constructible_v<NestedObject, nested_object_of_t<Arg&&>> and fixed_size_adapter<Arg>, int> = 0>
+      stdcompat::constructible_from<NestedObject, nested_object_of_t<Arg&&>> and fixed_size_adapter<Arg>, int> = 0>
 #endif
     constexpr FixedSizeAdapter(Arg&& arg, const Ds&...) : Base {nested_object(std::forward<Arg>(arg))} {}
 

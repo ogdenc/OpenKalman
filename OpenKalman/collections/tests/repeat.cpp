@@ -14,27 +14,11 @@
  */
 
 #include "tests.hpp"
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
 #include "basics/compatibility/views/repeat.hpp"
-#endif
 #include "collections/views/repeat.hpp"
 
 using namespace OpenKalman;
 using namespace OpenKalman::collections;
-
-#ifdef __cpp_lib_ranges
-namespace rg = std::ranges;
-#else
-namespace rg = OpenKalman::ranges;
-#endif
-
-#ifdef __cpp_lib_ranges_repeat
-namespace cv = std::ranges::views;
-#else
-namespace cv = ranges::views;
-#endif
 
 TEST(collections, repeat_tuple_view)
 {
@@ -67,7 +51,7 @@ TEST(collections, repeat_view)
 {
   constexpr auto c0 = std::integral_constant<std::size_t, 0>{};
   auto i3 = views::repeat(7., 4u);
-  static_assert(rg::view<decltype(i3)>);
+  static_assert(stdcompat::ranges::view<decltype(i3)>);
   EXPECT_EQ(i3.size(), 4);
   static_assert(views::repeat(7., 4u).size() == 4);
 
@@ -75,7 +59,7 @@ TEST(collections, repeat_view)
   EXPECT_EQ(views::repeat(7., 4u).begin()[3], 7.);
   EXPECT_EQ(views::repeat(7.).begin()[100], 7.);
 
-  static constexpr auto i1 = views::repeat(7., std::integral_constant<std::size_t, 1>{});
+  constexpr auto i1 = views::repeat(7., std::integral_constant<std::size_t, 1>{});
   auto it1 = i1.begin();
   EXPECT_EQ(*it1, 7.);
   static_assert(size_of_v<decltype(i1)> == 1);

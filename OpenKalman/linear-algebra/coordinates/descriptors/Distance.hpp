@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2018-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2018-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -18,11 +18,9 @@
 
 #include <cmath>
 #include <type_traits>
-#include "values/concepts/value.hpp"
-#include "values/values.hpp"
-#include "values/functions/internal/update_real_part.hpp"
-#include "values/math/abs.hpp"
-#include "values/functions/internal/constexpr_callable.hpp"
+#include "collections/functions/get.hpp"
+#include "linear-algebra/coordinates/functions/comparison-operators.hpp"
+#include "Any.hpp"
 
 namespace OpenKalman::coordinates
 {
@@ -55,112 +53,79 @@ namespace OpenKalman::interface
     static constexpr bool is_specialized = true;
 
 
-    static constexpr auto
-    dimension(const T&) { return std::integral_constant<std::size_t, 1>{}; };
+    static constexpr auto dimension = [](const T&) { return std::integral_constant<std::size_t, 1>{}; };
 
 
-    static constexpr auto
-    stat_dimension(const T&) { return std::integral_constant<std::size_t, 1>{}; };
+    static constexpr auto stat_dimension = [](const T&) { return std::integral_constant<std::size_t, 1>{}; };
 
 
-    static constexpr auto
-    is_euclidean(const T&) { return std::false_type{}; }
+    static constexpr auto is_euclidean = [](const T&) { return std::false_type{}; };
 
 
-    static constexpr std::size_t
-    hash_code(const T&)
+    static constexpr auto hash_code = [](const T&) -> std::size_t
     {
       constexpr auto bits = std::numeric_limits<std::size_t>::digits;
       if constexpr (bits < 32) return 0xBD0A_uz;
       else if constexpr (bits < 64) return 0xBD0A6689_uz;
       else return 0xBD0A668977D34578_uz;
-    }
+    };
 
 
-    /*
-     * \brief Maps an element to positive coordinates in 1D Euclidean space.
-     * \param euclidean_local_index This is assumed to be 0.
+    /**
+     * \brief This wraps the argument value so that its real part is non-negative.
      */
-#ifdef __cpp_concepts
-    static constexpr values::value auto
-    to_euclidean_component(const T& t, const auto& g, const values::index auto& euclidean_local_index)
-    requires requires(std::size_t i){ {g(i)} -> values::value; }
-#else
-    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
-      values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
-    to_euclidean_component(const T& t, const Getter& g, const L& euclidean_local_index)
-#endif
+    to_stat_space = [](const T&, auto&& data_view)
     {
-      return g(0_uz);
-    }
+      decltype(auto) d = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 0>{});
+      // The distance component is wrapped to the non-negative half of the real axis:
+      return std::array {values::internal::update_real_part(std::forward<decltype(d)>(d), values::abs(values::real(d)))};
+    };
 
 
     /*
-     * \brief Maps a coordinate in positive 1D Euclidean space to an element.
-     * \details The resulting distance should always be positive, so this function takes the absolute value.
-     * \param local_index This is assumed to be 0.
+     * \brief This is effectively an identity function.
+     * \details This value should be positive, but this performs no bounds checking.
      */
-#ifdef __cpp_concepts
-    static constexpr values::value auto
-    from_euclidean_component(const T& t, const auto& g, const values::index auto& local_index)
-    requires requires(std::size_t i){ {g(i)} -> values::value; }
-#else
-    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
-      values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
-    from_euclidean_component(const T& t, const Getter& g, const L& local_index)
-#endif
+    from_stat_space = [](const T&, auto&& data_view) -> decltype(auto)
     {
-      auto x = g(0_uz);
-      // The distance component may need to be wrapped to the positive half of the real axis:
-      return values::internal::update_real_part(x, values::abs(values::real(x)));
-    }
+      return std::forward<decltype(data_view)>(data_view);
+    };
 
 
     /*
-     * \details The wrapping operation is equivalent to taking the absolute value.
-     * \param local_index This is assumed to be 0.
+     * \brief Wraps the argument so that its real part is non-negative.
      */
-#ifdef __cpp_concepts
-    static constexpr values::value auto
-    get_wrapped_component(const T& t, const auto& g, const values::index auto& local_index)
-    requires requires(std::size_t i){ {g(i)} -> values::value; }
-#else
-    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
-      values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
     static constexpr auto
-    get_wrapped_component(const T& t, const Getter& g, const L& local_index)
-#endif
-    {
-      auto x = g(0_uz);
-      return values::internal::update_real_part(x, values::abs(values::real(x)));
-    }
-
-
-    /*
-     * \details The operation is equivalent to setting and then changing to the absolute value.
-     * \param local_index This is assumed to be 0.
-     */
-#ifdef __cpp_concepts
-    static constexpr void
-    set_wrapped_component(const T& t, const auto& s, const auto& g, const values::value auto& x, const values::index auto& local_index)
-    requires requires(std::size_t i){ s(x, i); s(g(i), i); }
-#else
-    template<typename Setter, typename Getter, typename X, typename L, std::enable_if_t<values::value<X> and values::index<L> and
-      std::is_invocable<const Setter&, const X&, std::size_t>::value and
-      std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, std::size_t>::type, std::size_t>::value, int> = 0>
-    static constexpr void
-    set_wrapped_component(const T& t, const Setter& s, const Getter& g, const X& x, const L& local_index)
-#endif
-    {
-      s(values::internal::update_real_part(x, values::abs(values::real(x))), 0_uz);
-    }
+    wrap = to_stat_space;
 
   };
 
+}
 
-} // namespace OpenKalman::interface
+
+namespace std
+{
+  template<>
+  struct common_type<OpenKalman::coordinates::Distance, OpenKalman::coordinates::Distance>
+  {
+    using type = OpenKalman::coordinates::Distance;
+  };
+
+
+  template<typename Scalar>
+  struct common_type<OpenKalman::coordinates::Distance, OpenKalman::coordinates::Any<Scalar>>
+    : common_type<OpenKalman::coordinates::Any<Scalar>, OpenKalman::coordinates::Distance> {};
+
+
+  template<typename T>
+  struct common_type<OpenKalman::coordinates::Distance, T>
+    : std::conditional_t<
+      OpenKalman::coordinates::descriptor<T>,
+      OpenKalman::stdcompat::type_identity<OpenKalman::coordinates::Any<>>,
+      std::monostate> {};
+}
 
 
 #endif //OPENKALMAN_DISTANCE_HPP

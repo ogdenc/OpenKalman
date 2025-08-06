@@ -31,8 +31,8 @@ namespace OpenKalman::coordinates
     struct euclidean_pattern_impl : std::false_type {};
 
     template<typename T>
-    struct euclidean_pattern_impl<T, std::enable_if_t<values::fixed<decltype(coordinates::get_is_euclidean(std::declval<T>()))>>>
-      : std::bool_constant<values::fixed_number_of_v<decltype(coordinates::get_is_euclidean(std::declval<T>()))>> {};
+    struct euclidean_pattern_impl<T, std::enable_if_t<values::fixed_number_of<decltype(coordinates::get_is_euclidean(std::declval<T>()))>::value>>
+      : std::true_type {};
   }
 #endif
 
@@ -43,7 +43,7 @@ namespace OpenKalman::coordinates
 #ifdef __cpp_concepts
   template<typename T>
   concept euclidean_pattern = pattern<T> and
-    (values::fixed_number_of<decltype(coordinates::get_is_euclidean(std::declval<T>()))>::value);
+    values::fixed_number_of<decltype(coordinates::get_is_euclidean(std::declval<T>()))>::value;
 #else
   template<typename T>
   constexpr bool euclidean_pattern = detail::euclidean_pattern_impl<T>::value;

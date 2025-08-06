@@ -16,46 +16,42 @@
 #include <gtest/gtest.h>
 #include "basics/compatibility/language-features.hpp"
 
-
 TEST(basics, uz_literal)
 {
+  using namespace OpenKalman;
   static_assert(std::is_same_v<decltype(5_uz), std::size_t>);
 }
 
 
-#ifndef __cpp_lib_remove_cvref
 TEST(basics, remove_cvref)
 {
-  static_assert(std::is_same_v<OpenKalman::remove_cvref_t<int[5]>, int[5]>);
-  static_assert(std::is_same_v<OpenKalman::remove_cvref_t<const int[5]>, int[5]>);
+  using OpenKalman::stdcompat::remove_cvref_t;
+  static_assert(std::is_same_v<remove_cvref_t<int[5]>, int[5]>);
+  static_assert(std::is_same_v<remove_cvref_t<const int[5]>, int[5]>);
 }
-#endif
 
 
-#ifndef __cpp_lib_bounded_array_traits
 TEST(basics, bounded_array)
 {
-  static_assert(OpenKalman::is_bounded_array_v<int[5]>);
-  static_assert(OpenKalman::is_bounded_array_v<const int[5]>);
-  static_assert(not OpenKalman::is_bounded_array_v<int[]>);
-  static_assert(not OpenKalman::is_bounded_array_v<int[][5]>);
-  static_assert(not OpenKalman::is_bounded_array_v<int*>);
+  using OpenKalman::stdcompat::is_bounded_array_v;
+  static_assert(is_bounded_array_v<int[5]>);
+  static_assert(is_bounded_array_v<const int[5]>);
+  static_assert(not is_bounded_array_v<int[]>);
+  static_assert(not is_bounded_array_v<int[][5]>);
+  static_assert(not is_bounded_array_v<int*>);
 }
-#endif
 
 
-#if __cplusplus < 202002L
 TEST(basics, reference_wrapper)
 {
   static constexpr auto i = 5;
-  constexpr auto r = OpenKalman::reference_wrapper<const int> {i};
+  constexpr auto r = OpenKalman::stdcompat::reference_wrapper<const int> {i};
   static_assert(r.get() == 5);
   auto j = 6;
-  EXPECT_EQ(OpenKalman::ref(j), 6);
+  EXPECT_EQ(OpenKalman::stdcompat::ref(j), 6);
   ++j;
-  EXPECT_EQ(OpenKalman::cref(j), 7);
+  EXPECT_EQ(OpenKalman::stdcompat::cref(j), 7);
 }
-#endif
 
 
 struct tup1
@@ -77,6 +73,7 @@ struct tup2
 };
 
 #include <tuple>
+#include "basics/compatibility/internal/generalized_std_get.hpp"
 
 TEST(basics, generalized_std_get)
 {

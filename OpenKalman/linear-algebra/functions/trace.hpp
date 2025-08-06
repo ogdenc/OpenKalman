@@ -43,7 +43,7 @@ namespace OpenKalman
     else if constexpr (identity_matrix<Arg>)
     {
       return values::cast_to<Scalar>(
-        internal::smallest_vector_space_descriptor<Scalar>(get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)));
+        internal::smallest_pattern<Scalar>(get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)));
     }
     else if constexpr (one_dimensional<Arg>)
     {
@@ -53,15 +53,15 @@ namespace OpenKalman
     {
       std::multiplies<Scalar> op;
       auto n = values::cast_to<Scalar>(
-        internal::smallest_vector_space_descriptor<Scalar>(get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)));;
-      return values::operation{op, constant_coefficient{std::forward<Arg>(arg)}, n};
+        internal::smallest_pattern<Scalar>(get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)));;
+      return values::operation(op, constant_coefficient{std::forward<Arg>(arg)}, n);
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       std::multiplies<scalar_type_of_t<Arg>> op;
       auto n = values::cast_to<Scalar>(
-        internal::smallest_vector_space_descriptor<Scalar>(get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)));;
-      return values::operation{op, constant_diagonal_coefficient{std::forward<Arg>(arg)}, n};
+        internal::smallest_pattern<Scalar>(get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)));;
+      return values::operation(op, constant_diagonal_coefficient{std::forward<Arg>(arg)}, n);
     }
     else if constexpr (triangular_matrix<Arg>) // Includes the diagonal case.
     {

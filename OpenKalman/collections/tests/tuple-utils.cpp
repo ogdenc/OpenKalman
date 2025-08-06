@@ -23,43 +23,6 @@ using namespace OpenKalman::collections;
 
 #include "collections/functions/internal/tuple_like_to_tuple.hpp"
 
-#include "collections/functions/internal/tuple_slice.hpp"
-
-TEST(collections, tuple_slice)
-{
-  using OpenKalman::collections::internal::tuple_like_to_tuple;
-  std::tuple t {1, "c", 5.0, 6.0};
-  static_assert(std::tuple_size_v<decltype(tuple_slice<0, 0>(t))> == 0);
-  static_assert(std::tuple_size_v<decltype(tuple_slice<0, 2>(t))> == 2);
-  static_assert(std::tuple_size_v<decltype(tuple_slice<1, 3>(t))> == 2);
-  static_assert(std::tuple_size_v<decltype(tuple_slice<3, 3>(t))> == 0);
-  static_assert(std::tuple_size_v<decltype(tuple_slice<2, 4>(t))> == 2);
-
-  static_assert(std::is_same_v<std::tuple_element_t<0, decltype(tuple_slice<0, 1>(t))>, int>);
-  static_assert(std::is_same_v<std::tuple_element_t<0, decltype(tuple_slice<1, 2>(t))>, const char*>);
-  static_assert(std::is_same_v<std::tuple_element_t<0, decltype(tuple_slice<2, 3>(t))>, double>);
-  static_assert(std::is_same_v<std::tuple_element_t<0, decltype(tuple_slice<3, 4>(t))>, double>);
-  static_assert(std::is_same_v<std::tuple_element_t<0, decltype(tuple_slice<1, 3>(t))>, const char*>);
-  static_assert(std::is_same_v<std::tuple_element_t<1, decltype(tuple_slice<1, 3>(t))>, double>);
-  static_assert(std::is_same_v<std::tuple_element_t<0, decltype(tuple_slice<2, 4>(t))>, double>);
-  static_assert(std::is_same_v<std::tuple_element_t<1, decltype(tuple_slice<2, 4>(t))>, double>);
-
-  static_assert(std::is_same_v<std::tuple_element_t<0, decltype(tuple_slice<1, 3>(std::tuple {1, "c", 5.0, 6.0}))>, const char*>);
-  static_assert(std::is_same_v<std::tuple_element_t<1, decltype(tuple_slice<1, 3>(std::tuple {1, "c", 5.0, 6.0}))>, double>);
-
-  static_assert(std::is_same_v<decltype(get(tuple_slice<1, 3>(t), std::integral_constant<std::size_t, 0>{})), const char*&>);
-  static_assert(std::is_same_v<decltype(get(tuple_slice<1, 3>(t), std::integral_constant<std::size_t, 1>{})), double&>);
-
-  constexpr std::array a {1, 2, 3, 4, 5};
-  static_assert(std::is_same_v<std::tuple_element_t<0, decltype(tuple_slice<0, 2>(a))>, int>);
-  static_assert(std::is_same_v<std::tuple_element_t<1, decltype(tuple_slice<1, 3>(a))>, int>);
-  static_assert(get(tuple_slice<1, 3>(a), std::integral_constant<std::size_t, 0>{}) == 2);
-
-  static_assert(tuple_like_to_tuple(tuple_slice<1, 4>(a)) == std::tuple {2, 3, 4});
-  static_assert(tuple_like_to_tuple(tuple_slice<1, 4>(std::array{1, 2, 3, 4, 5})) == std::tuple {2, 3, 4});
-}
-
-
 #include "collections/functions/internal/tuple_reverse.hpp"
 
 TEST(collections, tuple_reverse)

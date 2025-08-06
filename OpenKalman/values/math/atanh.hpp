@@ -18,8 +18,8 @@
 #include <limits>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/classes/operation.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
@@ -42,10 +42,10 @@ namespace OpenKalman::values
   constexpr auto atanh(const Arg& arg)
 #endif
   {
-    if constexpr (not values::number<Arg>)
+    if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::atanh(a); } };
-      return values::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::atanh(a); } };
+      return values::operation(Op{}, arg);
     }
     else
     {
@@ -59,7 +59,7 @@ namespace OpenKalman::values
         auto xi = values::real(values::imag(arg));
         using R = std::decay_t<decltype(xr)>;
         auto denom = 1 - 2*xr + xr*xr + xi*xi;
-        auto lg = values::log(values::internal::make_complex_number((1 - xr*xr - xi*xi) / denom, 2 * xi / denom));
+        auto lg = values::log(values::internal::make_complex_number<>((1 - xr*xr - xi*xi) / denom, 2 * xi / denom));
         auto half = static_cast<R>(0.5);
         return values::internal::make_complex_number<Return>(half * values::real(lg), half * values::imag(lg));
       }

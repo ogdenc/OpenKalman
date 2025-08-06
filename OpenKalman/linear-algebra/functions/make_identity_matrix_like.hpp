@@ -34,7 +34,7 @@ namespace OpenKalman
 #endif
   make_identity_matrix_like(Descriptors&& descriptors)
   {
-    decltype(auto) d = internal::remove_trailing_1D_descriptors(std::forward<Descriptors>(descriptors));
+    decltype(auto) d = coordinates::internal::strip_1D_tail(std::forward<Descriptors>(descriptors));
     using D = decltype(d);
     using Trait = interface::library_interface<std::decay_t<T>>;
 
@@ -42,9 +42,9 @@ namespace OpenKalman
     {
       return Trait::template make_identity_matrix<Scalar>(std::forward<D>(d));
     }
-    else if constexpr (interface::make_identity_matrix_defined_for<T, Scalar, decltype(internal::to_euclidean_vector_space_descriptor_collection(d))>)
+    else if constexpr (interface::make_identity_matrix_defined_for<T, Scalar, decltype(internal::to_euclidean_pattern_collection(d))>)
     {
-      auto ed = internal::to_euclidean_vector_space_descriptor_collection(d);
+      auto ed = internal::to_euclidean_pattern_collection(d);
       return make_vector_space_adapter(Trait::template make_identity_matrix<Scalar>(ed), std::forward<D>(d));
     }
     else

@@ -16,14 +16,13 @@
 #ifndef OPENKALMAN_VIEWS_REPEAT_HPP
 #define OPENKALMAN_VIEWS_REPEAT_HPP
 
-#include "values/concepts/size.hpp"
-#include "values/concepts/fixed.hpp"
+#include "values/values.hpp"
 #include "all.hpp"
 
 namespace OpenKalman::collections
 {
   /**
-   * \brief A view of a tuple that replicates a particular value N number of times
+   * \brief A \ref tuple_like view that replicates a particular value N number of times
    * \tparam N The number of copies
    * \tparam T The type of the object to be replicated
    */
@@ -33,7 +32,7 @@ namespace OpenKalman::collections
 #ifdef __cpp_lib_concepts
     constexpr repeat_tuple_view() requires std::default_initializable<T> = default;
 #else
-    template<typename aT = T, std::enable_if_t<std::is_default_constructible_v<aT>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<T>, int> = 0>
     constexpr repeat_tuple_view() {};
 #endif
 
@@ -41,7 +40,7 @@ namespace OpenKalman::collections
 #ifdef __cpp_lib_concepts
     template<typename Arg> requires std::constructible_from<T, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<std::is_constructible_v<T, Arg&&>, int> = 0>
+    template<typename Arg, std::enable_if_t<stdcompat::constructible_from<T, Arg&&>, int> = 0>
 #endif
     explicit constexpr repeat_tuple_view(Arg&& arg) : t {std::forward<Arg>(arg)} {}
 
@@ -111,33 +110,27 @@ namespace OpenKalman::collections::views
     struct repeat_adaptor
     {
 #ifdef __cpp_lib_ranges
-      template<std::move_constructible W, values::size Bound = std::unreachable_sentinel_t> requires
-        std::is_object_v<W> and std::same_as<W, std::remove_cv_t<W>>
+      template<std::move_constructible W, values::size Bound = stdcompat::unreachable_sentinel_t> requires
+        (OpenKalman::internal::is_signed_integer_like<values::number_type_of_t<Bound>> or
+        (OpenKalman::internal::is_integer_like<values::number_type_of_t<Bound>> and stdcompat::weakly_incrementable<values::number_type_of_t<Bound>> or
+        std::same_as<Bound, std::unreachable_sentinel_t>))
 #else
-      template<typename W, typename Bound = unreachable_sentinel_t, typename = void>
+      template<typename W, typename Bound = stdcompat::unreachable_sentinel_t, typename = void>
 #endif
       constexpr auto
       operator() [[nodiscard]] (W&& value, Bound&& bound = {}) const
       {
-        if constexpr (values::fixed<Bound>)
+        if constexpr (std::is_same_v<Bound, stdcompat::unreachable_sentinel_t>)
+          return stdcompat::ranges::views::repeat(std::forward<W>(value)) | all;
+        else if constexpr (values::fixed<Bound>)
         {
-  #ifdef __cpp_lib_ranges
-          namespace cv = std::ranges::views;
-  #else
-          namespace cv = ranges::views;
-  #endif
-          if constexpr (values::fixed_number_of_v<Bound> == 1) return cv::single(std::forward<W>(value)) | all;
-          else return repeat_tuple_view<values::fixed_number_of_v<Bound>, W> {std::forward<W>(value)} | all;
+          if constexpr (values::fixed_number_of_v<Bound> == 1)
+            return stdcompat::ranges::views::single(std::forward<W>(value)) | all;
+          else
+            return repeat_tuple_view<values::fixed_number_of_v<Bound>, W> {std::forward<W>(value)} | all;
         }
         else
-        {
-#ifdef __cpp_lib_ranges_repeat
-          namespace cv = std::ranges::views;
-#else
-          namespace cv = ranges::views;
-#endif
-          return cv::repeat(std::forward<W>(value), std::forward<Bound>(bound)) | all;
-        }
+          return stdcompat::ranges::views::repeat(std::forward<W>(value), values::to_number(std::forward<Bound>(bound))) | all;
       }
     };
 
@@ -145,7 +138,7 @@ namespace OpenKalman::collections::views
 
 
   /**
-   * \brief a std::ranges::range_adaptor_closure for a set of repeatenated \ref collection objects.
+   * \brief a std::ranges::range_adaptor_closure for a set of repeated \ref collection objects.
    */
   inline constexpr detail::repeat_adaptor repeat;
 

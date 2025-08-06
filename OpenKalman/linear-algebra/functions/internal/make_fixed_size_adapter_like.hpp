@@ -24,7 +24,7 @@ namespace OpenKalman::internal
     template<std::size_t I, typename...Ts>
     constexpr decltype(auto) best_desc_Ts_impl(const Ts&...ts)
     {
-      return best_vector_space_descriptor(get_vector_space_descriptor<I>(ts)...);
+      return most_fixed_pattern(get_vector_space_descriptor<I>(ts)...);
     }
 
 

@@ -63,7 +63,7 @@ namespace OpenKalman
   template<typed_matrix V, std::convertible_to<const scalar_type_of_t<V>> S>
 #else
   template<typename V, typename S, std::enable_if_t<
-    typed_matrix<V> and std::is_convertible_v<S, const typename scalar_type_of<V>::type>, int> = 0>
+    typed_matrix<V> and stdcompat::convertible_to<S, const typename scalar_type_of<V>::type>, int> = 0>
 #endif
   inline auto operator*(V&& v, S scale)
   {
@@ -84,7 +84,7 @@ namespace OpenKalman
   template<typed_matrix V, std::convertible_to<const scalar_type_of_t<V>> S>
 #else
   template<typename V, typename S, std::enable_if_t<typed_matrix<V> and
-    std::is_convertible_v<S, const typename scalar_type_of<V>::type>, int> = 0>
+    stdcompat::convertible_to<S, const typename scalar_type_of<V>::type>, int> = 0>
 #endif
   inline auto operator*(S scale, V&& v)
   {
@@ -105,7 +105,7 @@ namespace OpenKalman
   template<typed_matrix V, std::convertible_to<const scalar_type_of_t<V>> S>
 #else
   template<typename V, typename S, std::enable_if_t<typed_matrix<V> and
-    std::is_convertible_v<S, const typename scalar_type_of<V>::type>, int> = 0>
+    stdcompat::convertible_to<S, const typename scalar_type_of<V>::type>, int> = 0>
 #endif
   inline auto operator/(V&& v, S scale)
   {

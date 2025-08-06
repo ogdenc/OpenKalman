@@ -13,53 +13,40 @@
  * \brief Definition of the Inclination class and related limits.
  */
 
-#ifndef OPENKALMAN_COEFFICIENTS_INCLINATION_HPP
-#define OPENKALMAN_COEFFICIENTS_INCLINATION_HPP
+#ifndef OPENKALMAN_INCLINATION_HPP
+#define OPENKALMAN_INCLINATION_HPP
 
 #include <type_traits>
-#ifdef __cpp_concepts
-#include <concepts>
-#endif
 #include <cmath>
-#include "../../../basics/compatibility/language-features.hpp"
-#include "values/concepts/floating.hpp"
-#include "values/classes/fixed-constants.hpp"
-#include "values/functions/internal/update_real_part.hpp"
-#include "values/math/abs.hpp"
-#include "values/math/sin.hpp"
-#include "values/math/cos.hpp"
-#include "values/math/atan2.hpp"
-#include "values/functions/cast_to.hpp"
+#include <array>
+#include "collections/collections.hpp"
 #include "linear-algebra/coordinates/interfaces/coordinate_descriptor_traits.hpp"
-
+#include "linear-algebra/coordinates/functions/comparison-operators.hpp"
+#include "linear-algebra/coordinates/descriptors/Any.hpp"
 
 namespace OpenKalman::coordinates
 {
   /**
-   * \brief A positive or negative real number &phi; representing an inclination or declination from the horizon.
-   * \details &phi;<sub>down</sub>&le;&phi;&le;&phi;<sub>up</sub>, where &phi;<sub>down</sub> is a real number
-   * representing down, and &phi;<sub>up</sub> is a real number representing up. Normally, the horizon will be zero and
-   * &phi;<sub>down</sub>=&minus;&phi;<sub>up</sub>, but in general, the horizon is at
-   * &frac12;(&phi;<sub>down</sub>+&minus;&phi;<sub>up</sub>).
-   * The inclinations inclination::Radians and inclination::Degrees are predefined.
-   * \tparam Down a \ref values::fixed "fixed value" representing the down direction. This must be no greater than zero.
-   * \tparam Up a \ref values::fixed "fixed value" representing the up direction. This must be no less than zero and must exceed Down.
+   * \brief A non-negative real number &phi; representing an inclination (angle from the positive z axis).
+   * \details 0&le;&phi;&le;&phi;<sub>down</sub>, where &phi;<sub>down</sub> is a positive real number
+   * representing down. The horizon will be ½&phi;<sub>down</sub>.
+   * inclination::Radians (&phi;<sub>down</sub>=&pi;) and inclination::Degrees (&phi;<sub>down</sub>=180;) are predefined.
+   * \tparam Down a \ref values::fixed "fixed value" representing the down direction. This must be positive.
    */
 #ifdef __cpp_concepts
-  template<values::fixed Down = values::fixed_minus_half_pi<long double>, values::fixed Up = values::fixed_half_pi<long double>>
-  requires (values::fixed_number_of_v<Up> - values::fixed_number_of_v<Down> > 0) and
-    (values::fixed_number_of_v<Down> <= 0) and (values::fixed_number_of_v<Up> >= 0)
+  template<values::fixed Down = values::fixed_pi<long double>> requires
+    (values::fixed_number_of_v<Down> > 0) and (not values::complex<Down>) and
+    std::convertible_to<values::number_type_of_t<Down>, float>
 #else
-  template<typename Down = values::fixed_minus_half_pi<long double>, typename Up = values::fixed_half_pi<long double>>
+  template<typename Down = values::fixed_pi<long double>>
 #endif
   struct Inclination
   {
 #ifndef __cpp_concepts
     static_assert(values::fixed<Down>);
-    static_assert(values::fixed<Up>);
-    static_assert(values::fixed_number_of_v<Up> - values::fixed_number_of_v<Down> > 0);
-    static_assert(values::fixed_number_of_v<Down> <= 0);
-    static_assert(values::fixed_number_of_v<Up> >= 0);
+    static_assert(not values::complex<Down>);
+    static_assert(values::fixed_number_of_v<Down> > 0);
+    static_assert(stdcompat::convertible_to<values::number_type_of_t<Down>, float>);
 #endif
   };
 
@@ -67,12 +54,12 @@ namespace OpenKalman::coordinates
   /// Namespace for definitions relating to specialized instances of \ref Inclination.
   namespace inclination
   {
-    /// An inclination measured in radians [-½&pi;,½&pi;].
+    /// An inclination measured in radians [0,&pi;].
     using Radians = Inclination<>;
 
 
-    /// An inclination measured in degrees [-90,90].
-    using Degrees = Inclination<values::Fixed<long double, -90>, values::Fixed<long double, 90>>;
+    /// An inclination measured in degrees [0,180].
+    using Degrees = Inclination<values::Fixed<long double, 180>>;
 
 
     namespace detail
@@ -80,8 +67,8 @@ namespace OpenKalman::coordinates
       template<typename T>
       struct is_inclination : std::false_type {};
 
-      template<typename Down, typename Up>
-      struct is_inclination<Inclination<Down, Up>> : std::true_type {};
+      template<typename Down>
+      struct is_inclination<Inclination<Down>> : std::true_type {};
     }
 
 
@@ -96,9 +83,9 @@ namespace OpenKalman::coordinates
 #endif
       detail::is_inclination<T>::value;
 
-  } // namespace inclination
+  }
 
-} // namespace OpenKalman::coordinates
+}
 
 
 namespace OpenKalman::interface
@@ -107,170 +94,154 @@ namespace OpenKalman::interface
    * \internal
    * \brief traits for Inclination.
    */
-  template<typename Down, typename Up>
-  struct coordinate_descriptor_traits<coordinates::Inclination<Down, Up>>
+  template<typename Down>
+  struct coordinate_descriptor_traits<coordinates::Inclination<Down>>
   {
   private:
 
-    using T = coordinates::Inclination<Down, Up>;
+    using T = coordinates::Inclination<Down>;
     static constexpr auto down = values::fixed_number_of_v<Down>;
-    static constexpr auto up = values::fixed_number_of_v<Up>;
+
+
+    template<typename...Args>
+    static constexpr auto make_range(Args&&...args)
+    {
+      if constexpr ((... or values::fixed<Args>))
+        return std::tuple {std::forward<Args>(args)...};
+      else
+        return std::array<std::common_type_t<Args...>, sizeof...(Args)> {std::forward<Args>(args)...};
+    }
 
   public:
 
     static constexpr bool is_specialized = true;
 
 
-    static constexpr auto
-    dimension(const T&) { return std::integral_constant<std::size_t, 1>{}; };
+    static constexpr auto dimension = [](const T&) { return std::integral_constant<std::size_t, 1>{}; };
 
 
-    static constexpr auto
-    stat_dimension(const T&) { return std::integral_constant<std::size_t, 2>{}; };
+    static constexpr auto stat_dimension = [](const T&) { return std::integral_constant<std::size_t, 2>{}; };
 
 
-    static constexpr auto
-    is_euclidean(const T&) { return std::false_type{}; }
+    static constexpr auto is_euclidean = [](const T&) { return std::false_type{}; };
 
 
-    static constexpr auto
-    hash_code(const T&)
+    static constexpr auto hash_code = [](const T&) -> std::size_t
     {
-      constexpr auto down_float = static_cast<float>(down);
-      constexpr auto up_float = static_cast<float>(up);
-      constexpr float a = (down_float * 3.f + up_float * 2.f) / (up_float - down_float);
+      auto a = static_cast<float>(down);
       constexpr auto bits = std::numeric_limits<std::size_t>::digits;
       if constexpr (bits < 32) return 0x8CE6_uz + static_cast<std::size_t>(a * a * 0x1.p2f);
       else if constexpr (bits < 64) return 0x8CE6267E_uz + static_cast<std::size_t>(a * a * 0x1.p4f);
       else return 0x8CE6267E341642F7_uz + static_cast<std::size_t>(a * a * 0x1.p8f);
-    }
-
-
-    /**
-     * \details The inclination angle corresponds to x and y coordinates in quadrants I or IV of a unit circle.
-     * By convention, the minimum angle limit Limits<Scalar::min corresponds to the point (-1,0) in Euclidean space,
-     * and the angle is scaled so that the difference between Limits<Scalar>::min and Limits<<Scalar>::max is 2&pi;,
-     * so Limits<Scalar>::max wraps back to the point (-1, 0).
-     * \param euclidean_local_index A local index accessing either the x (if 0) or y (if 1) coordinate in Euclidean space
-     */
-#ifdef __cpp_concepts
-    static constexpr values::value auto
-    to_euclidean_component(const T& t, const auto& g, const values::index auto& euclidean_local_index)
-    requires requires(std::size_t i){ {g(i)} -> values::value; }
-#else
-    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
-      values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
-    static constexpr auto
-    to_euclidean_component(const T& t, const Getter& g, const L& euclidean_local_index)
-#endif
-    {
-      using Scalar = std::decay_t<decltype(g(0_uz))>;
-      using R = std::decay_t<decltype(values::real(std::declval<Scalar>()))>;
-      const Scalar cf {numbers::pi_v<R> / (up - down)};
-      const Scalar horiz {R{up + down} * R{0.5}};
-
-      Scalar theta = cf * (g(0_uz) - horiz); // Convert to radians
-
-      if (euclidean_local_index == 0) return values::cos(theta);
-      else return values::sin(theta);
-    }
-
-
-    /**
-     * \details The inclination angle corresponds to x and y coordinates in quadrants I or IV of a unit circle.
-     * \param local_index A local index accessing the angle (in this case, it must be 0)
-     */
-#ifdef __cpp_concepts
-    static constexpr values::value auto
-    from_euclidean_component(const T& t, const auto& g, const values::index auto& local_index)
-    requires requires(std::size_t i){ {g(i)} -> values::value; }
-#else
-    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
-      values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
-    static constexpr auto
-    from_euclidean_component(const T& t, const Getter& g, const L& local_index)
-#endif
-    {
-      using Scalar = std::decay_t<decltype(g(0_uz))>;
-      using R = std::decay_t<decltype(values::real(std::declval<Scalar>()))>;
-      const Scalar cf {numbers::pi_v<R> / (up - down)};
-      const Scalar horiz {R{up + down} * R{0.5}};
-
-      Scalar x = g(0_uz);
-      // In Euclidean space, (the real part of) x must be non-negative since the inclination is in range [-½pi,½pi].
-      Scalar pos_x = values::internal::update_real_part(x, values::abs(values::real(x)));
-      Scalar y = g(1_uz);
-
-      if constexpr (values::complex<Scalar>) return values::atan2(y, pos_x) / cf + horiz;
-      else { return values::atan2(y, pos_x) / cf + horiz; }
-    }
-
-  private:
-
-    template<typename A>
-    static constexpr std::decay_t<A> wrap_impl(A&& a)
-    {
-      auto ap = values::real(a);
-      if (ap >= down and ap <= up)
-      {
-        return std::forward<decltype(a)>(a);
-      }
-      else
-      {
-        using R = std::decay_t<decltype(ap)>;
-        constexpr R range {up - down};
-        constexpr R period {range * 2};
-        using std::fmod;
-        auto ar = fmod(ap - R{down}, period);
-
-        if (ar < 0) return values::internal::update_real_part(std::forward<decltype(a)>(a), R{down} + ar + period);
-        else if (ar > range) return values::internal::update_real_part(std::forward<decltype(a)>(a), R{down} - ar + period);
-        else return values::internal::update_real_part(std::forward<decltype(a)>(a), R{down} + ar);
-      }
-    }
-
-  public:
-
-    /**
-     * \param local_index A local index accessing the inclination angle (in this case, it must be 0)
-     */
-#ifdef __cpp_concepts
-    static constexpr values::value auto
-    get_wrapped_component(const T& t, const auto& g, const values::index auto& local_index)
-    requires requires(std::size_t i){ {g(i)} -> values::value; }
-#else
-    template<typename Getter, typename L, std::enable_if_t<values::index<L> and
-      values::value<typename std::invoke_result<const Getter&, std::size_t>::type>, int> = 0>
-    static constexpr auto
-    get_wrapped_component(const T& t, const Getter& g, const L& local_index)
-#endif
-    {
-      return wrap_impl(g(0_uz));
     };
 
 
     /**
-     * \param local_index A local index accessing the inclination angle (in this case, it must be 0)
+     * \brief Maps an inclination to x and y coordinates on quadrants I or II of a unit circle.
+     * \details The inclination angle always corresponds to (z,w) coordinates in quadrants I or II
+     * of a unit circle of directional-statistics space.
      */
-#ifdef __cpp_concepts
-    static constexpr void
-    set_wrapped_component(const T& t, const auto& s, const auto& g, const values::value auto& x, const values::index auto& local_index)
-    requires requires(std::size_t i){ s(x, i); s(g(i), i); }
-#else
-    template<typename Setter, typename Getter, typename X, typename L, std::enable_if_t<values::value<X> and values::index<L> and
-      std::is_invocable<const Setter&, const X&, std::size_t>::value and
-      std::is_invocable<const Setter&, typename std::invoke_result<const Getter&, std::size_t>::type, std::size_t>::value, int> = 0>
-    static constexpr void
-    set_wrapped_component(const T& t, const Setter& s, const Getter& g, const X& x, const L& local_index)
-#endif
+    static constexpr auto
+    to_stat_space = [](const T&, auto&& data_view)
     {
-      s(wrap_impl(x), 0_uz);
-    }
+      decltype(auto) i = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 0>{});
+      using R = values::real_type_of_t<values::real_type_of_t<decltype(i)>>;
+      auto theta = [](auto&& i)
+      {
+        if constexpr (down == stdcompat::numbers::pi_v<R>) //< Avoid scaling, if possible.
+        {
+          return std::forward<decltype(i)>(i);
+        }
+        else
+        {
+          constexpr auto scale = values::operation(std::divides{}, values::fixed_pi<R>{}, values::cast_to<R>(Down{}));
+          return values::operation(std::multiplies{}, std::forward<decltype(i)>(i), scale);
+        }
+      }(std::forward<decltype(i)>(i));
+      auto w = values::sin(theta);
+      auto pos_w = values::internal::update_real_part(std::move(w), values::abs(values::real(w)));
+      return make_range(values::cos(std::move(theta)), std::move(pos_w));
+    };
+
+
+    /**
+     * \brief Maps x and y coordinates on quadrants I or II of a unit circle back to an inclination angle.
+     * \details The inclination angle corresponds to (z,w) coordinates directional-statistics space.
+     * This does not perform bounds checking to ensure that the angle is in quadrants I or II of the z-w plane.
+     */
+    static constexpr auto
+    from_stat_space = [](const T&, auto&& data_view)
+    {
+      decltype(auto) z = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 0>{});
+      decltype(auto) w = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 1>{});
+      using R = values::real_type_of_t<values::real_type_of_t<collections::common_collection_type_t<decltype(data_view)>>>;
+      auto pos_w = values::internal::update_real_part(std::forward<decltype(w)>(w), values::abs(values::real(w)));
+      if constexpr (down == stdcompat::numbers::pi_v<R>) //< avoid scaling, if possible
+      {
+        return std::array {values::atan2(std::move(pos_w), std::forward<decltype(z)>(z))};
+      }
+      else
+      {
+        constexpr auto scale = values::operation(std::divides{}, values::cast_to<R>(Down{}), values::fixed_pi<R>{});
+        return std::array {values::operation(std::multiplies{}, values::atan2(std::move(pos_w), std::forward<decltype(z)>(z)), scale)};
+      }
+    };
+
+  private:
+
+    struct wrap_theta
+    {
+      template<typename R>
+      constexpr R operator()(const R& theta_real) const
+      {
+        if (theta_real >= R{0} and theta_real <= R{down}) return theta_real;
+        constexpr R down2 = R{down * 2};
+        auto am = values::fmod(values::abs(theta_real), down2);
+        if (am > R{down}) return down2 - am;
+        else return am;
+      }
+    };
+
+  public:
+
+    /**
+     * \brief Wrap the inclination to its primary range.
+     */
+    static constexpr auto
+    wrap = [](const T&, auto&& data_view)
+    {
+      decltype(auto) i = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 0>{});
+      return std::array {values::internal::update_real_part(std::forward<decltype(i)>(i),
+        values::operation(wrap_theta{}, values::real(values::real(i))))};
+    };
 
   };
 
 
-} // namespace OpenKalman::interface
+}
 
 
-#endif //OPENKALMAN_COEFFICIENTS_INCLINATION_HPP
+namespace std
+{
+  template<typename Down1, typename Down2>
+  struct common_type<OpenKalman::coordinates::Inclination<Down1>, OpenKalman::coordinates::Inclination<Down2>>
+    : std::conditional<
+      OpenKalman::values::fixed_number_of_v<Down1> == OpenKalman::values::fixed_number_of_v<Down2>,
+      OpenKalman::coordinates::Inclination<Down1>,
+      OpenKalman::coordinates::Any<>> {};
+
+
+  template<typename Down, typename Scalar>
+  struct common_type<OpenKalman::coordinates::Inclination<Down>, OpenKalman::coordinates::Any<Scalar>>
+    : common_type<OpenKalman::coordinates::Any<Scalar>, OpenKalman::coordinates::Inclination<Down>> {};
+
+
+  template<typename Down, typename T>
+  struct common_type<OpenKalman::coordinates::Inclination<Down>, T>
+    : std::conditional_t<
+      OpenKalman::coordinates::descriptor<T>,
+      OpenKalman::stdcompat::type_identity<OpenKalman::coordinates::Any<>>,
+      std::monostate> {};
+}
+
+#endif

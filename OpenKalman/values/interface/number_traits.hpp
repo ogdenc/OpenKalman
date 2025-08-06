@@ -18,7 +18,7 @@
 
 #include <limits>
 #include <complex>
-#include "../../basics/compatibility/language-features.hpp"
+#include "basics/basics.hpp"
 
 namespace OpenKalman::interface
 {
@@ -48,16 +48,17 @@ namespace OpenKalman::interface
     static constexpr bool is_complex = false;
 
 
+#ifdef DOXYGEN_SHOULD_SKIP_THIS
     /**
      * \brief A callable object that returns the real part of the argument of type T.
      */
-    static constexpr auto real = [](T) { throw std::logic_error("Interface not implemented"); };
+    static constexpr auto real = [](T t) { return std::real(std::move(t)); };
 
 
     /**
      * \brief A callable object that returns the real part of the argument of type T.
      */
-    static constexpr auto imag = [](T) { throw std::logic_error("Interface not implemented"); };
+    static constexpr auto imag = [](T t) { return std::imag(std::move(t)); };
 
 
     /**
@@ -65,22 +66,10 @@ namespace OpenKalman::interface
      * \param re Real part
      * \param im Imaginary part
      */
-    static constexpr auto make_complex = [](T re, T im) { throw std::logic_error("Interface not implemented"); };
+    static constexpr auto make_complex = [](auto re, auto im) { return std::complex<T> {std::move(re), std::move(im)}; };
 
+#endif
   };
-
-
-
-  /**
-   * \brief Void is explicitly not a number.
-   */
-  template<>
-  struct number_traits<void>
-  {
-    static constexpr bool is_specialized = false;
-    static constexpr bool is_complex = false;
-  };
-
 
 
   /**
@@ -96,9 +85,9 @@ namespace OpenKalman::interface
   {
     static constexpr bool is_specialized = true;
     static constexpr bool is_complex = false;
-    static constexpr auto real = [](T t) noexcept { return std::real(std::move(t)); };
-    static constexpr auto imag = [](T t) noexcept { return std::imag(std::move(t)); };
-    static constexpr auto make_complex = [](T re, T im) noexcept { return std::complex<T> {std::move(re), std::move(im)}; };
+    static constexpr auto real = [](T t) { return std::real(std::move(t)); };
+    static constexpr auto imag = [](T t) { return std::imag(std::move(t)); };
+    static constexpr auto make_complex = [](T re, T im) { return std::complex<T> {std::move(re), std::move(im)}; };
   };
 
 
@@ -110,10 +99,9 @@ namespace OpenKalman::interface
   {
     static constexpr bool is_specialized = true;
     static constexpr bool is_complex = true;
-    static constexpr auto real = [](std::complex<T> t) noexcept { return std::real(std::move(t)); };
-    static constexpr auto imag = [](std::complex<T> t) noexcept { return std::imag(std::move(t)); };
-    static constexpr auto make_complex = [](T re, T im) noexcept { return std::complex<T> {std::move(re), std::move(im)}; };
-
+    static constexpr auto real = [](std::complex<T> t) { return std::real(std::move(t)); };
+    static constexpr auto imag = [](std::complex<T> t) { return std::imag(std::move(t)); };
+    static constexpr auto make_complex = [](T re, T im) { return std::complex<T> {std::move(re), std::move(im)}; };
   };
 
 } // namespace OpenKalman::interface

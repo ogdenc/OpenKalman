@@ -30,8 +30,8 @@ using namespace OpenKalman;
 #define COMPLEXINTEXISTS(F)
 #endif
 
-#include "values/traits/number_type_of_t.hpp"
-#include "values/traits/real_type_of_t.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/traits/real_type_of.hpp"
 
 TEST(values, interface)
 {
@@ -66,14 +66,13 @@ TEST(values, complex)
 
 TEST(values, Fixed_complex)
 {
-  static_assert(values::not_complex<int>);
+  static_assert(not values::complex<double>);
   static_assert(values::not_complex<double>);
+  static_assert(values::not_complex<int>);
   static_assert(not values::not_complex<std::complex<double>>);
 
-  static_assert(values::complex<values::Fixed<std::complex<double>, 3, 0>>);
-
-  static_assert(values::not_complex<values::Fixed<std::complex<double>, 3, 0>>);
-
+  static_assert(values::complex<values::Fixed<std::complex<double>, 3>>);
+  static_assert(values::not_complex<values::Fixed<std::complex<double>, 3>>);
   static_assert(values::not_complex<values::Fixed<std::complex<double>, 3, 0>>);
   static_assert(not values::not_complex<values::Fixed<std::complex<double>, 3, 1>>);
 
@@ -97,9 +96,10 @@ TEST(values, make_complex_number)
   static_assert(values::internal::make_complex_number<std::complex<double>>(std::complex<float>{3, 4}) == std::complex<double>{3, 4});
   static_assert(values::internal::make_complex_number<double>(std::complex<double>{3, 4}) == std::complex<double>{3, 4});
   static_assert(values::internal::make_complex_number<double>(std::complex<float>{3, 4}) == std::complex<double>{3, 4});
-  static_assert(values::internal::make_complex_number(3., 4.) == std::complex<double>{3, 4});
-  static_assert(values::internal::make_complex_number(3., 4.f) == std::complex<double>{3, 4});
-  static_assert(values::internal::make_complex_number(3.f, 4.f) == std::complex<float>{3, 4});
+  static_assert(values::internal::make_complex_number<>(3., 4.) == std::complex<double>{3, 4});
+  static_assert(values::internal::make_complex_number<>(3., 4.f) == std::complex<double>{3, 4});
+  static_assert(values::internal::make_complex_number<>(3.f, 4.f) == std::complex<float>{3, 4});
+  static_assert(values::internal::make_complex_number<double>(3.) == std::complex<double>{3., 0.});
 }
 
 
@@ -108,7 +108,42 @@ TEST(values, make_complex_number)
 TEST(values, update_real_part)
 {
   static_assert(values::internal::update_real_part(std::complex{3.5, 4.5}, 5.5) == std::complex{5.5, 4.5});
-  static_assert(values::internal::update_real_part(std::complex{3, 4}, 5.2) == std::complex{5, 4}); // truncation occurs
+  static_assert(values::internal::update_real_part(std::complex{3, 4}, 5.2) == std::complex{5.2, 4.}); // truncation occurs
+  static_assert(values::internal::update_real_part(values::Fixed<std::complex<double>, 3, 4>{}, 5.5) == std::complex{5.5, 4.});
+  static_assert(values::real(values::internal::update_real_part(values::Fixed<std::complex<double>, 3, 4>{}, values::Fixed<double, 5>{})) == 5.);
+  static_assert(values::imag(values::internal::update_real_part(values::Fixed<std::complex<double>, 3, 4>{}, values::Fixed<double, 5>{})) == 4.);
+}
+
+#include "values/traits/complex_type_of.hpp"
+
+TEST(values, complex_type_of)
+{
+  static_assert(std::is_same_v<values::complex_type_of_t<double>, std::complex<double>>);
+  static_assert(std::is_same_v<values::complex_type_of_t<float>, std::complex<float>>);
+  static_assert(std::is_same_v<values::complex_type_of_t<std::complex<double>>, std::complex<double>>);
+#if __cpp_nontype_template_args >= 201911L
+  static_assert(std::is_same_v<values::complex_type_of_t<values::Fixed<double, 3.>>, values::Fixed<std::complex<double>, 3., 0.>>);
+#else
+  static_assert(std::is_same_v<values::complex_type_of_t<values::Fixed<double, 3>>, values::Fixed<std::complex<double>, static_cast<std::intmax_t>(3), static_cast<std::intmax_t>(0)>>);
+#endif
+  static_assert(values::real(values::fixed_number_of_v<values::complex_type_of_t<values::Fixed<double, 3>>>) == 3.);
+  static_assert(values::imag(values::fixed_number_of_v<values::complex_type_of_t<values::Fixed<double, 3>>>) == 0.);
+  static_assert(values::fixed_number_of_v<values::complex_type_of_t<values::Fixed<std::complex<double>, 3, 4>>> == std::complex<double>{3., 4.});
+}
+
+#include "values/functions/cast_to.hpp"
+
+TEST(values, cast_to_complex)
+{
+  static_assert(values::cast_to<double>(std::complex<float>{3, 4}) == std::complex<double>{3, 4});
+  static_assert(values::real(values::cast_to<double>(values::Fixed<std::complex<float>, 3, 4>{})) == 3);
+  static_assert(values::imag(values::cast_to<double>(values::Fixed<std::complex<float>, 3, 4>{})) == 4);
+  static_assert(std::is_same_v<decltype(values::cast_to<double>(values::Fixed<double, 4>{})), values::Fixed<double, 4>&&>);
+  static_assert(std::is_same_v<typename values::fixed_number_of<decltype(values::cast_to<double>(values::Fixed<double, 4>{}))>::value_type, double>);
+  static_assert(std::is_same_v<values::fixed_number_of<decltype(values::cast_to<int>(values::Fixed<int, 4>{}))>::value_type, int>);
+  static_assert(std::is_same_v<values::fixed_number_of<decltype(values::cast_to<double>(values::Fixed<int, 4>{}))>::value_type, double>);
+  static_assert(values::cast_to<double>(values::Fixed<float, 4>{}) == 4);
+  static_assert(std::is_same_v<values::number_type_of_t<decltype(values::cast_to<double>(values::Fixed<float, 4>{}))>, double>);
 }
 
 
@@ -127,5 +162,8 @@ TEST(values, near_complex)
   static_assert(values::internal::near<2>(std::complex<double>{3, 4}, std::complex<double>{3 - std::numeric_limits<double>::epsilon(), 4 - std::numeric_limits<double>::epsilon()}));
   static_assert(not values::internal::near<2>(std::complex<double>{3, 4}, std::complex<double>{3 + 3 * std::numeric_limits<double>::epsilon(), 4 + std::numeric_limits<double>::epsilon()}));
   static_assert(not values::internal::near<2>(std::complex<double>{3, 4}, std::complex<double>{3 - std::numeric_limits<double>::epsilon(), 4 - 3 * std::numeric_limits<double>::epsilon()}));
-}
 
+  static_assert(values::internal::near(std::integral_constant<int, 4>{}, values::Fixed<std::complex<double>, 4, 1>{}, 2));
+  static_assert(values::internal::near(values::Fixed<std::complex<double>, 3, 4>{}, values::Fixed<std::complex<double>, 4, 5>{}, 2));
+  static_assert(values::internal::near(values::Fixed<std::complex<double>, 3, 4>{}, values::Fixed<std::complex<double>, 4, 5>{}, values::Fixed<std::complex<double>, 2, 2>{}));
+}

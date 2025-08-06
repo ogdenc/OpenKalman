@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -16,8 +16,8 @@
 #ifndef OPENKALMAN_CONSTANTADAPTER_HPP
 #define OPENKALMAN_CONSTANTADAPTER_HPP
 
-#include <type_traits>
-#include <algorithm>
+#include "collections/collections.hpp"
+#include "linear-algebra/coordinates/coordinates.hpp"
 
 namespace OpenKalman
 {
@@ -39,7 +39,7 @@ namespace OpenKalman
 #ifndef __cpp_concepts
     static_assert(indexible<PatternMatrix>);
     static_assert(values::scalar<Scalar>);
-    static_assert(sizeof...(constant) == 0 or std::is_constructible_v<Scalar, decltype(constant)...>);
+    static_assert(sizeof...(constant) == 0 or stdcompat::constructible_from<Scalar, decltype(constant)...>);
 #endif
 
     using MyConstant = std::conditional_t<sizeof...(constant) == 0, Scalar, values::Fixed<Scalar, constant...>>;
@@ -149,7 +149,7 @@ namespace OpenKalman
         }
         else
         {
-          return make_descriptors_tuple_from_range(ranges::begin(descriptors), ranges::end(descriptors));
+          return make_descriptors_tuple_from_range<stdcompat::ranges::begin(descriptors), stdcompat::ranges::end(descriptors));
         }
       }
       else if constexpr (pattern_tuple<Descriptors>)
@@ -160,7 +160,7 @@ namespace OpenKalman
       else
       {
         DescriptorCollection ret;
-        std::copy(ranges::begin(descriptors), ranges::end(descriptors), ranges::begin(ret));
+        std::copy<stdcompat::ranges::begin(descriptors), stdcompat::ranges::end(descriptors), stdcompat::ranges::begin(ret));
         return ret;
       }
     }
@@ -177,7 +177,7 @@ namespace OpenKalman
 #else
     template<typename C, typename Descriptors, std::enable_if_t<
       values::scalar<C> and pattern_collection<Descriptors> and
-      std::is_constructible_v<MyConstant, C&&> and 
+      stdcompat::constructible_from<MyConstant, C&&> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, Descriptors>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(C&& c, Descriptors&& descriptors) 
@@ -220,7 +220,7 @@ namespace OpenKalman
 #else
     template<typename C, typename Arg, std::enable_if_t<
       values::scalar<C> and vector_space_descriptors_may_match_with<Arg, PatternMatrix> and
-      std::is_constructible_v<MyConstant, C&&>, int> = 0>
+      stdcompat::constructible_from<MyConstant, C&&>, int> = 0>
 #endif
     constexpr ConstantAdapter(C&& c, const Arg& arg) :
       my_constant {std::forward<C>(c)}, 
@@ -257,7 +257,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<constant_matrix<Arg> and
       (not std::is_base_of_v<ConstantAdapter, Arg>) and 
       vector_space_descriptors_may_match_with<Arg, PatternMatrix> and
-      std::is_constructible_v<MyConstant, constant_coefficient<Arg>>, int> = 0>
+      stdcompat::constructible_from<MyConstant, constant_coefficient<Arg>>, int> = 0>
 #endif
     constexpr ConstantAdapter(const Arg& arg) :
       my_constant {constant_coefficient {arg}}, 
@@ -280,7 +280,7 @@ namespace OpenKalman
 #else
     template<typename C, typename...Ds, std::enable_if_t<
       values::scalar<C> and (coordinates::pattern<Ds> and ...) and
-      std::is_constructible_v<MyConstant, C&&> and
+      stdcompat::constructible_from<MyConstant, C&&> and
       compatible_with_vector_space_descriptor_collection<PatternMatrix, std::tuple<Ds...>>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(C&& c, Ds&&...ds)
@@ -364,7 +364,7 @@ namespace OpenKalman
       pattern_tuple<DescriptorCollection> and
       (dynamic_index_count_v<PatternMatrix> != dynamic_size) and 
       (sizeof...(Ds) == dynamic_index_count_v<PatternMatrix>) and 
-      std::is_constructible_v<MyConstant, C&&>, int> = 0>
+      stdcompat::constructible_from<MyConstant, C&&>, int> = 0>
 #endif
     explicit constexpr ConstantAdapter(C&& c, Ds&&...ds) 
       : ConstantAdapter(std::forward<C>(c), make_dynamic_dimensions_tuple(std::forward<Ds>(ds)...)) {}
@@ -815,10 +815,10 @@ namespace OpenKalman
 
     };
 
-  } // namespace interface
+  }
 
 
-} // namespace OpenKalman
+}
 
 
-#endif //OPENKALMAN_CONSTANTADAPTER_HPP
+#endif

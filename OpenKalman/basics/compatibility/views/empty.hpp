@@ -17,19 +17,24 @@
 #ifndef OPENKALMAN_COMPATIBILITY_VIEWS_EMPTY_HPP
 #define OPENKALMAN_COMPATIBILITY_VIEWS_EMPTY_HPP
 
-#ifndef __cpp_lib_ranges
-
 #include "view-concepts.hpp"
 #include "view_interface.hpp"
 
-namespace OpenKalman::ranges
+namespace OpenKalman::stdcompat::ranges
 {
+#ifdef __cpp_lib_ranges
+  using std::ranges::empty_view;
+  namespace views
+  {
+    using std::ranges::views::empty;
+  }
+#else
   /**
-   * \brief Equivalent to std::ranges::single_view.
+   * \brief Equivalent to std::ranges::empty_view.
    * \internal
    */
   template<typename T>
-  struct empty_view : ranges::view_interface<empty_view<T>>
+  struct empty_view : stdcompat::ranges::view_interface<empty_view<T>>
   {
     static constexpr T* begin() noexcept { return nullptr; }
 
@@ -44,22 +49,19 @@ namespace OpenKalman::ranges
 
 
   template<typename T>
-  constexpr bool enable_borrowed_range<OpenKalman::ranges::empty_view<T>> = true;
-
-}
+  constexpr bool enable_borrowed_range<empty_view<T>> = true;
 
 
-namespace OpenKalman::ranges::views
-{
-  /**
-   * \brief Equivalent to std::ranges::views::empty.
-   */
-  template<class T>
-  constexpr empty_view<T> empty{};
-
-}
-
+  namespace views
+  {
+    /**
+     * \brief Equivalent to std::ranges::views::empty.
+     */
+    template<class T>
+    constexpr empty_view<T> empty{};
+  }
 
 #endif
+}
 
-#endif //OPENKALMAN_COMPATIBILITY_VIEWS_EMPTY_HPP
+#endif

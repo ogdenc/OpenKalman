@@ -57,23 +57,22 @@ namespace OpenKalman
     else if constexpr (constant_matrix<Arg>)
     {
       return make_constant(std::forward<Arg>(arg),
-        values::operation {
+        values::operation(
           std::divides<scalar_type_of_t<Arg>>{},
           constant_coefficient{arg},
-          std::forward<S>(s)});
+          std::forward<S>(s)));
     }
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       return to_diagonal(make_constant(diagonal_of(std::forward<Arg>(arg)),
-        values::operation {
+        values::operation(
           std::divides<scalar_type_of_t<Arg>>{},
           constant_diagonal_coefficient{arg},
-          std::forward<S>(s)}));
+          std::forward<S>(s))));
     }
-    else if constexpr (values::fixed<S>)
+    else if constexpr (values::fixed_number_compares_with<S, 1>)
     {
-      if constexpr (values::to_number(S{}) == 1) return std::forward<Arg>(arg);
-      else return detail::scalar_quotient_impl(std::forward<Arg>(arg), std::forward<S>(s));
+      return std::forward<Arg>(arg);
     }
     else
     {

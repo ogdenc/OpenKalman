@@ -29,29 +29,24 @@ namespace OpenKalman::coordinates
    * to Euclidean space, or \ref dynamic_size if not known at compile time.
    */
 #ifdef __cpp_concepts
-  template<pattern T>
-  struct stat_dimension_of : std::integral_constant<std::size_t, dynamic_size> {};
+  template<typename T>
 #else
   template<typename T, typename = void>
+#endif
   struct stat_dimension_of {};
-#endif
-
-
-#ifndef __cpp_concepts
-  template<typename T>
-  struct stat_dimension_of<T, std::enable_if_t<not values::fixed<decltype(get_stat_dimension(std::declval<std::decay_t<T>>()))>>>
-    : std::integral_constant<std::size_t, dynamic_size> {};
-#endif
 
 
 #ifdef __cpp_concepts
-  template<pattern T> requires values::fixed<decltype(get_stat_dimension(std::declval<std::decay_t<T>>()))>
+  template<pattern T> requires requires(T t) { {coordinates::get_stat_dimension(t)} -> values::index; }
   struct stat_dimension_of<T>
 #else
   template<typename T>
-  struct stat_dimension_of<T, std::enable_if_t<values::fixed<decltype(get_stat_dimension(std::declval<std::decay_t<T>>()))>>>
+  struct stat_dimension_of<T, std::enable_if_t<values::index<decltype(coordinates::get_stat_dimension(std::declval<T>()))>>>
 #endif
-    : std::integral_constant<std::size_t, values::to_number(get_stat_dimension(T{}))> {};
+  : std::conditional_t<
+        values::fixed<decltype(coordinates::get_stat_dimension(std::declval<T>()))>,
+        values::fixed_number_of<decltype(coordinates::get_stat_dimension(std::declval<T>()))>,
+        std::integral_constant<std::size_t, dynamic_size>> {};
 
 
   /**

@@ -19,12 +19,12 @@
 #include <tuple>
 #include "values/concepts/index.hpp"
 #include "values/concepts/fixed.hpp"
-#include "values/classes/operation.hpp"
+#include "values/functions/operation.hpp"
 #include "collections/concepts/sized_random_access_range.hpp"
 #include "collections/concepts/collection.hpp"
 #include "collections/concepts/viewable_collection.hpp"
 #include "collections/functions/get.hpp"
-#include "collections/functions/compare.hpp"
+#include "collections/functions/comparison_operators.hpp"
 #include "all.hpp"
 
 namespace OpenKalman::collections
@@ -46,11 +46,10 @@ namespace OpenKalman::collections
     ((values::dynamic<Offset> or values::fixed_number_of_v<Offset> <= std::tuple_size_v<std::decay_t<V>>) and
     (values::dynamic<Extent> or values::fixed_number_of_v<Extent> <= std::tuple_size_v<std::decay_t<V>>) and
     (values::dynamic<Offset> or values::dynamic<Extent> or values::fixed_number_of_v<Offset> + values::fixed_number_of_v<Extent> <= std::tuple_size_v<std::decay_t<V>>)))
-  struct slice_view : std::ranges::view_interface<slice_view<V, Offset, Extent>>
 #else
   template<typename V, typename Offset, typename Extent>
-  struct slice_view : ranges::view_interface<slice_view<V, Offset, Extent>>
 #endif
+  struct slice_view : stdcompat::ranges::view_interface<slice_view<V, Offset, Extent>>
   {
     /**
      * \brief Default constructor.
@@ -58,8 +57,8 @@ namespace OpenKalman::collections
 #ifdef __cpp_concepts
     constexpr slice_view() = default;
 #else
-    template<bool Enable = true, std::enable_if_t<Enable and std::is_default_constructible_v<V> and
-      std::is_default_constructible_v<Offset> and std::is_default_constructible_v<Extent>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<V> and
+      stdcompat::default_initializable<Offset> and stdcompat::default_initializable<Extent>, int> = 0>
     constexpr slice_view() {}
 #endif
 
@@ -96,12 +95,7 @@ namespace OpenKalman::collections
     static constexpr auto
     begin_impl(Self&& self) noexcept
     {
-#ifdef __cpp_lib_ranges
-      namespace ranges = std::ranges;
-#else
-      namespace ranges = OpenKalman::ranges;
-#endif
-      return ranges::begin(std::forward<Self>(self).v_);
+      return stdcompat::ranges::begin(std::forward<Self>(self).v_);
     }
 
   public:
@@ -163,7 +157,7 @@ namespace OpenKalman::collections
     {
       if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_number_of_v<Extent>, "Index exceeds range");
       return collections::get(std::forward<decltype(self)>(self).v_,
-        values::operation {std::plus{}, std::forward<decltype(self)>(self).offset_, std::integral_constant<std::size_t, i>{}});
+        values::operation(std::plus{}, std::forward<decltype(self)>(self).offset_, std::integral_constant<std::size_t, i>{}));
     }
 #else
     template<std::size_t i>
@@ -172,7 +166,7 @@ namespace OpenKalman::collections
     {
       if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_number_of_v<Extent>, "Index exceeds range");
       return collections::get(v_,
-        values::operation {std::plus{}, offset_, std::integral_constant<std::size_t, i>{}});
+        values::operation(std::plus{}, offset_, std::integral_constant<std::size_t, i>{}));
     }
 
     template<std::size_t i>
@@ -181,7 +175,7 @@ namespace OpenKalman::collections
     {
       if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_number_of_v<Extent>, "Index exceeds range");
       return collections::get(v_,
-        values::operation {std::plus{}, offset_, std::integral_constant<std::size_t, i>{}});
+        values::operation(std::plus{}, offset_, std::integral_constant<std::size_t, i>{}));
     }
 
     template<std::size_t i>
@@ -190,7 +184,7 @@ namespace OpenKalman::collections
     {
       if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_number_of_v<Extent>, "Index exceeds range");
       return collections::get(std::move(*this).v_,
-        values::operation {std::plus{}, offset_, std::integral_constant<std::size_t, i>{}});
+        values::operation(std::plus{}, offset_, std::integral_constant<std::size_t, i>{}));
     }
 
     template<std::size_t i>
@@ -199,7 +193,7 @@ namespace OpenKalman::collections
     {
       if constexpr (values::fixed<Extent>) static_assert(i < values::fixed_number_of_v<Extent>, "Index exceeds range");
       return collections::get(std::move(*this).v_,
-        values::operation {std::modulus{}, std::integral_constant<std::size_t, i>{}, get_size(std::move(*this).get_t())});
+        values::operation(std::modulus{}, std::integral_constant<std::size_t, i>{}, get_size(std::move(*this).get_t())));
     }
 #endif
 
@@ -224,7 +218,7 @@ namespace OpenKalman::collections
 #ifdef __cpp_lib_ranges
 namespace std::ranges
 #else
-namespace OpenKalman::ranges
+namespace OpenKalman::stdcompat::ranges
 #endif
 {
   template<typename V, typename O, typename E>
@@ -238,7 +232,7 @@ namespace OpenKalman::collections::detail
   template<std::size_t i, typename V, typename O, typename = void>
   struct slice_tuple_element
   {
-    using type = ranges::range_value_t<V>;
+    using type = stdcompat::ranges::range_value_t<V>;
   };
 
   template<std::size_t i, typename V, typename O>
@@ -254,7 +248,7 @@ namespace std
   struct tuple_size<OpenKalman::collections::slice_view<V, O, E>> : OpenKalman::values::fixed_number_of<E> {};
 
 
-#ifdef __cpp_lib_ranges
+#ifdef __cpp_concepts
   template<size_t i, typename V, OpenKalman::values::fixed O, typename E>
   struct tuple_element<i, OpenKalman::collections::slice_view<V, O, E>>
     : tuple_element<OpenKalman::values::fixed_number_of_v<O> + i, std::decay_t<V>> {};
@@ -262,7 +256,7 @@ namespace std
   template<size_t i, typename V, typename O, typename E> requires (not OpenKalman::values::fixed<O>)
   struct tuple_element<i, OpenKalman::collections::slice_view<V, O, E>>
   {
-    using type = ranges::range_value_t<V>;
+    using type = OpenKalman::stdcompat::ranges::range_value_t<V>;
   };
 #else
   template<size_t i, typename V, typename O, typename E>
@@ -276,13 +270,26 @@ namespace OpenKalman::collections::views
 {
   namespace detail
   {
-    template<typename O, typename E>
-    struct slice_closure
-#if __cpp_lib_ranges >= 202202L
-      : std::ranges::range_adaptor_closure<slice_closure<O, E>>
+#ifdef __cpp_concepts
+    template<typename O, typename E, typename N>
 #else
-      : ranges::range_adaptor_closure<slice_closure<O, E>>
+    template<typename O, typename E, typename N, typename = void>
 #endif
+    struct slice_is_whole : std::false_type {};
+
+#ifdef __cpp_concepts
+    template<values::fixed O, values::fixed E, values::fixed N>
+    struct slice_is_whole<O, E, N>
+#else
+    template<typename O, typename E, typename N>
+    struct slice_is_whole<O, E, N, std::enable_if_t<values::fixed<O> and values::fixed<E> and values::fixed<N>>>
+#endif
+      : std::bool_constant<(values::fixed_number_of_v<O> == 0_uz and values::fixed_number_of_v<E> == values::fixed_number_of_v<N>)> {};
+
+
+
+    template<typename O, typename E>
+    struct slice_closure : stdcompat::ranges::range_adaptor_closure<slice_closure<O, E>>
     {
       constexpr slice_closure(O o, E e) : offset_ {std::move(o)}, extent_ {std::move(e)} {};
 
@@ -294,7 +301,10 @@ namespace OpenKalman::collections::views
       constexpr auto
       operator() (R&& r) const
       {
-        return slice_view {all(std::forward<R>(r)), offset_, extent_};
+        if constexpr (slice_is_whole<O, E, size_of<R>>::value)
+          return all(std::forward<R>(r));
+        else
+          return slice_view {all(std::forward<R>(r)), offset_, extent_};
       }
 
     private:
@@ -318,14 +328,18 @@ namespace OpenKalman::collections::views
 
 
 #ifdef __cpp_concepts
-      template<collection V, values::index O, values::index E>
+      template<viewable_collection R, values::index O, values::index E>
 #else
-      template<typename V, typename O, typename E, std::enable_if_t<collection<V> and values::index<O> and values::index<E>, int> = 0>
+      template<typename R, typename O, typename E, std::enable_if_t<
+        viewable_collection<R> and values::index<O> and values::index<E>, int> = 0>
 #endif
-      constexpr auto
-      operator() (V&& t, O o, E e) const
+      constexpr decltype(auto)
+      operator() (R&& r, O o, E e) const
       {
-        return slice_view {all(std::forward<V>(t)), std::move(o), std::move(e)};
+        if constexpr (slice_is_whole<O, E, size_of<R>>::value)
+          return all(std::forward<R>(r));
+        else
+          return slice_view {all(std::forward<R>(r)), std::move(o), std::move(e)};
       }
 
     };

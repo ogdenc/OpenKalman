@@ -13,7 +13,9 @@
  * \brief Tests for coordinates::Dimensions
  */
 
-#include "basics/tests/tests.hpp"
+#include <type_traits>
+#include "values/classes/Fixed.hpp"
+#include "collections/tests/tests.hpp"
 #include "linear-algebra/coordinates/concepts/fixed_pattern.hpp"
 #include "linear-algebra/coordinates/concepts/pattern.hpp"
 #include "linear-algebra/coordinates/concepts/euclidean_pattern.hpp"
@@ -29,14 +31,10 @@ using namespace OpenKalman::coordinates;
 
 TEST(coordinates, Dimensions_fixed)
 {
-  static_assert(descriptor<Dimensions<3>>);
-  static_assert(fixed_pattern<Dimensions<3>>);
-  static_assert(pattern<Dimensions<3>>);
-  static_assert(descriptor<Dimensions<1>>);
   static_assert(descriptor<Dimensions<2>>);
-  static_assert(euclidean_pattern<Dimensions<1>>);
-  static_assert(euclidean_pattern<Dimensions<2>>);
-  static_assert(euclidean_pattern<Axis>);
+  static_assert(descriptor<Dimensions<3>>);
+  static_assert(descriptor<Axis>);
+  static_assert(pattern<Dimensions<3>>);
 
   static_assert(get_dimension(Dimensions<3>{}) == 3);
   static_assert(get_dimension(Axis{}) == 1);
@@ -51,6 +49,12 @@ TEST(coordinates, Dimensions_fixed)
   static_assert(dimension_of_v<Axis> == 1);
   static_assert(stat_dimension_of_v<Dimensions<3>> == 3);
   static_assert(stat_dimension_of_v<Axis> == 1);
+
+  static_assert(fixed_pattern<Dimensions<3>>);
+  static_assert(fixed_pattern<Axis>);
+  static_assert(euclidean_pattern<Dimensions<1>>);
+  static_assert(euclidean_pattern<Dimensions<2>>);
+  static_assert(euclidean_pattern<Axis>);
 
   static_assert(static_cast<std::integral_constant<int, 3>>(Dimensions{std::integral_constant<int, 3> {}}) == 3);
   static_assert(static_cast<std::size_t>(Dimensions{std::integral_constant<int, 3> {}}) == 3);
@@ -108,4 +112,27 @@ TEST(coordinates, Dimensions_assignment)
   EXPECT_EQ(get_dimension(d), 8);
   d = std::vector {4_uz, 5_uz};
   EXPECT_EQ(get_dimension(d), 9);
+}
+
+#include "linear-algebra/coordinates/functions/to_stat_space.hpp"
+#include "linear-algebra/coordinates/functions/from_stat_space.hpp"
+#include "linear-algebra/coordinates/functions/wrap.hpp"
+
+TEST(coordinates, Dimensions_transformations)
+{
+  EXPECT_NEAR(to_stat_space(Axis{}, std::array{3.})[0U], 3., 1e-6);
+  EXPECT_NEAR(from_stat_space(Axis{}, std::array{3.})[0U], 3., 1e-6);
+  EXPECT_NEAR(wrap(Axis{}, std::array{3.})[0U], 3., 1e-6);
+
+  EXPECT_NEAR(to_stat_space(Dimensions<5>{}, std::array{1., 2., 3., 4., 5.})[2U], 3., 1e-6);
+  EXPECT_NEAR(from_stat_space(Dimensions<5>{}, std::array{1., 2., 3., 4., 5.})[2U], 3., 1e-6);
+  EXPECT_NEAR(wrap(Dimensions<5>{}, std::array{1., 2., 3., 4., 5.})[2U], 3., 1e-6);
+
+  EXPECT_NEAR(to_stat_space(Dimensions{5}, std::vector{1., 2., 3., 4., 5.})[2U], 3., 1e-6);
+  EXPECT_NEAR(from_stat_space(Dimensions{5}, std::vector{1., 2., 3., 4., 5.})[2U], 3., 1e-6);
+  EXPECT_NEAR(wrap(Dimensions{5}, std::vector{1., 2., 3., 4., 5.})[2U], 3., 1e-6);
+
+  EXPECT_NEAR((to_stat_space(Dimensions<5>{}, std::tuple{1., 2., 3., 4., 5.})[std::integral_constant<std::size_t, 2>{}]), 3., 1e-6);
+  EXPECT_NEAR((from_stat_space(Dimensions<5>{}, std::tuple{1., 2., 3., 4, 5.})[std::integral_constant<std::size_t, 3>{}]), 4, 1e-6);
+  EXPECT_NEAR((wrap(Dimensions<5>{}, std::tuple{1., 2., 3., 4., 5.f})[std::integral_constant<std::size_t, 4>{}]), 5.f, 1e-6);
 }

@@ -53,10 +53,10 @@ namespace OpenKalman::coordinates
       { return (... and descriptor<std::tuple_element_t<Ix, std::decay_t<T>>>); }
       (std::make_index_sequence<std::tuple_size_v<std::decay_t<T>>>{});
 #else
-  constexpr bool descriptor_tuple = detail::is_descriptor_tuple<std::decay_t<T>>::value;
+  inline constexpr bool descriptor_tuple = detail::is_descriptor_tuple<std::decay_t<T>>::value;
 #endif
 
 
-} // namespace OpenKalman::coordinates
+}
 
-#endif //OPENKALMAN_COORDINATES_DESCRIPTOR_TUPLE_HPP
+#endif

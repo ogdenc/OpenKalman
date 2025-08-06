@@ -17,6 +17,7 @@
 #define OPENKALMAN_EIGEN_PARTIALREDUXEXPR_HPP
 
 #include <type_traits>
+#include "basics/basics.hpp"
 
 namespace OpenKalman::Eigen3::detail
 {
@@ -40,7 +41,7 @@ namespace OpenKalman::Eigen3::detail
   template<typename MemberOp, std::size_t direction, typename XprType, typename Factor, typename DirDim, typename Func>
   constexpr auto get_constant_redux(const XprType& xpr, const Factor& factor, const DirDim& dir_dim, Func&& func)
   {
-    auto dim = internal::best_vector_space_descriptor(dir_dim, get_index_dimension_of<direction>(xpr));
+    auto dim = internal::most_fixed_pattern(dir_dim, get_index_dimension_of<direction>(xpr));
 
     if constexpr (Eigen3::eigen_MatrixWrapper<XprType> or Eigen3::eigen_ArrayWrapper<XprType> or
       internal::fixed_size_adapter<XprType> or Eigen3::eigen_wrapper<XprType>)
@@ -60,31 +61,31 @@ namespace OpenKalman::Eigen3::detail
 
       auto f = [](const auto& dim, const auto& n_dim) {
         if constexpr (F::value != dynamic_size) return F{};
-        else return values::operation {std::divides<std::size_t>{}, dim, n_dim};
+        else return values::operation(std::divides<std::size_t>{}, dim, n_dim);
       }(dim, n_dim);
 
       auto new_dim = [](const auto& dim, const auto& n_dim) {
         if constexpr (values::fixed<decltype(dim)> and F::value != dynamic_size and
             not values::fixed<decltype(n_dim)>)
-          return values::operation {std::divides<std::size_t>{}, dim, F{}};
+          return values::operation(std::divides<std::size_t>{}, dim, F{});
         else
           return n_dim;
       }(dim, n_dim);
 
-      auto new_f = values::operation{std::multiplies<std::size_t>{}, factor, f};
+      auto new_f = values::operation(std::multiplies<std::size_t>{}, factor, f);
       return get_constant_redux<MemberOp, direction>(n_xpr, new_f, new_dim, std::forward<Func>(func));
     }
     else
     {
       if constexpr (constant_matrix<XprType>)
       {
-        auto c = values::operation {std::forward<Func>(func), constant_coefficient {xpr}};
+        auto c = values::operation(std::forward<Func>(func), constant_coefficient {xpr});
         return Eigen3::ReduxTraits<MemberOp, direction>::get_constant(c, factor, dim);
       }
       else if constexpr (constant_diagonal_matrix<XprType>)
       {
         constexpr bool als = at_least_square<decltype(dim), decltype(get_index_dimension_of<direction == 1 ? 0 : 1>(xpr))>;
-        auto c = values::operation {std::forward<Func>(func), constant_diagonal_coefficient {xpr}};
+        auto c = values::operation(std::forward<Func>(func), constant_diagonal_coefficient {xpr});
         return Eigen3::ReduxTraits<MemberOp, direction>::template get_constant_diagonal<als>(c, factor, dim);
       }
       else
@@ -112,14 +113,6 @@ namespace OpenKalman::interface
 
     using Base = Eigen3::indexible_object_traits_base<Eigen::PartialReduxExpr<MatrixType, MemberOp, Direction>>;
 
-#if __cplusplus < 202002L
-    struct Op
-    {
-      template<typename Scalar>
-      constexpr Scalar&& operator()(Scalar&& arg) const { return std::forward<Scalar>(arg); }
-    };
-#endif
-
   public:
 
     template<typename Arg>
@@ -140,11 +133,7 @@ namespace OpenKalman::interface
       const auto& x = arg.nestedExpression();
       auto dim = get_index_dimension_of<direction>(x);
       std::integral_constant<std::size_t, 1> f;
-#if __cplusplus >= 202002L
-      return OpenKalman::Eigen3::detail::get_constant_redux<MemberOp, direction>(x, f, dim, std::identity{});
-#else
-      return OpenKalman::Eigen3::detail::get_constant_redux<MemberOp, direction>(x, f, dim, Op{});
-#endif
+      return OpenKalman::Eigen3::detail::get_constant_redux<MemberOp, direction>(x, f, dim, stdcompat::identity{});
     }
 
   };

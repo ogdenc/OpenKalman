@@ -39,7 +39,7 @@ namespace OpenKalman
   template<typename A, typename U, std::enable_if_t<indexible<U> and hermitian_matrix<A, Applicability::permitted> and
     dimension_size_of_index_is<U, 0, index_dimension_of<A, 0>::value, Applicability::permitted> and
     dimension_size_of_index_is<U, 0, index_dimension_of<A, 1>::value, Applicability::permitted> and
-    std::is_convertible_v<typename scalar_type_of<U>::type, const typename scalar_type_of<A>::type>, int> = 0>
+    stdcompat::convertible_to<typename scalar_type_of<U>::type, const typename scalar_type_of<A>::type>, int> = 0>
   inline decltype(auto)
 #endif
   rank_update_hermitian(A&& a, U&& u, scalar_type_of_t<A> alpha = 1)

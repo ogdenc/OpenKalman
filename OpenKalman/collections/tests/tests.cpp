@@ -20,7 +20,7 @@
 using namespace OpenKalman;
 using namespace OpenKalman::test;
 
-TEST(collections, tests_tuple)
+TEST(collections, tests_tuple_like)
 {
   EXPECT_TRUE(is_near(std::tuple{1.0, 2.0, 3.0}, std::tuple{1.0, 2.0, 3.0}, std::array{0.0, 0.0, 0.0}));
   EXPECT_TRUE(is_near(std::tuple{1.0, 2.0, 3.0}, std::array{1.1, 1.8, 3.3}, std::tuple{0.11, 0.21, 0.31}));
@@ -29,4 +29,18 @@ TEST(collections, tests_tuple)
   EXPECT_TRUE(is_near(std::tuple{1.0, 2.0, 3.0}, std::tuple{1.0, 2.0, 3.0}, 0.0));
   EXPECT_TRUE(is_near(std::array{1.0, 2.0, 3.0}, std::tuple{1.1, 1.9, 3.3}, 0.31));
   EXPECT_FALSE(is_near(std::tuple{1.0, 2.0, 3.0}, std::tuple{1.1, 1.7, 3.2}, 0.21));
+}
+
+
+TEST(collections, tests_sized_random_access_range)
+{
+  EXPECT_TRUE(is_near(std::vector{1.0, 2.0, 3.0}, std::vector{1.0, 2.0, 3.0}, std::vector{0.0, 0.0, 0.0}));
+  EXPECT_TRUE(is_near(std::vector{1.0, 2.0, 3.0}, std::vector{1.1, 1.8, 3.3}, std::vector{0.11, 0.21, 0.31}));
+  EXPECT_FALSE(is_near(std::vector{1.0, 2.0, 3.0}, std::vector{1.1, 1.7, 3.3}, std::vector{0.11, 0.21, 0.31}));
+
+  EXPECT_TRUE(is_near(std::vector{1.0, 2.0, 3.0}, std::vector{1.0, 2.0, 3.0}, 0.0));
+  EXPECT_TRUE(is_near(std::vector{1.0, 2.0, 3.0}, std::vector{1.1, 1.9, 3.3}, 0.31));
+  EXPECT_FALSE(is_near(std::vector{1.0, 2.0, 3.0}, std::vector{1.1, 1.7, 3.2}, 0.21));
+
+  EXPECT_TRUE(is_near(std::vector{1.0, 2.0, 3.0}, std::array{1.0, 2.0, 3.0}, 0.0));
 }

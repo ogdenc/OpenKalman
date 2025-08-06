@@ -13,7 +13,7 @@
  * \brief Tests for \ref coordinates::compare_with
  */
 
-#include "basics/tests/tests.hpp"
+#include "collections/tests/tests.hpp"
 #include "linear-algebra/coordinates/descriptors/Dimensions.hpp"
 #include "linear-algebra/coordinates/descriptors/Distance.hpp"
 #include "linear-algebra/coordinates/descriptors/Angle.hpp"
@@ -21,7 +21,7 @@
 #include "linear-algebra/coordinates/descriptors/Polar.hpp"
 #include "linear-algebra/coordinates/descriptors/Spherical.hpp"
 #include "linear-algebra/coordinates/descriptors/Any.hpp"
-#include "linear-algebra/coordinates/functions/make_pattern_vector.hpp"
+#include "linear-algebra/coordinates/functions/make_pattern.hpp"
 
 using namespace OpenKalman;
 using namespace OpenKalman::coordinates;
@@ -32,44 +32,50 @@ using namespace OpenKalman::coordinates;
 TEST(coordinates, compares_with_equal_to)
 {
   static_assert(compares_with<std::integral_constant<std::size_t, 2>, std::integral_constant<int, 2>>);
-  static_assert(compares_with<std::integral_constant<std::size_t, 2>, unsigned, equal_to<>, Applicability::permitted>);
+  static_assert(compares_with<std::integral_constant<std::size_t, 2>&, std::integral_constant<int, 2>>);
+  static_assert(compares_with<std::integral_constant<std::size_t, 2>, unsigned, &stdcompat::is_eq, Applicability::permitted>);
   static_assert(not compares_with<std::integral_constant<std::size_t, 2>, unsigned>);
-  static_assert(compares_with<unsigned, std::integral_constant<std::size_t, 2>, equal_to<>, Applicability::permitted>);
-  static_assert(compares_with<unsigned short, unsigned, equal_to<>, Applicability::permitted>);
+  static_assert(compares_with<unsigned, std::integral_constant<std::size_t, 2>, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(compares_with<unsigned short, unsigned, &stdcompat::is_eq, Applicability::permitted>);
   static_assert(not compares_with<unsigned short, unsigned>);
+  static_assert(compares_with<unsigned&, unsigned&&, &stdcompat::is_eq, Applicability::permitted>);
 
-  static_assert(compares_with<std::integral_constant<std::size_t, 2>, unsigned, equal_to<>, Applicability::permitted>);
-  static_assert(compares_with<unsigned, std::integral_constant<std::size_t, 2>, equal_to<>, Applicability::permitted>);
+  static_assert(compares_with<std::integral_constant<std::size_t, 2>, unsigned, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(compares_with<unsigned, std::integral_constant<std::size_t, 2>, &stdcompat::is_eq, Applicability::permitted>);
 
   static_assert(not compares_with<std::integral_constant<std::size_t, 2>, std::integral_constant<std::size_t, 3>>);
-  static_assert(not compares_with<std::integral_constant<std::size_t, 2>, std::integral_constant<std::size_t, 3>, equal_to<>, Applicability::permitted>);
-  static_assert(compares_with<std::tuple<>, unsigned, equal_to<>, Applicability::permitted>);
-  static_assert(compares_with<unsigned, std::tuple<>, equal_to<>, Applicability::permitted>);
-  static_assert(compares_with<Axis, Dimensions<>, equal_to<>, Applicability::permitted>);
-  static_assert(compares_with<Dimensions<>, Axis, equal_to<>, Applicability::permitted>);
-  static_assert(not compares_with<Axis, Polar<>, equal_to<>, Applicability::permitted>);
-  static_assert(not compares_with<Polar<>, angle::Radians, equal_to<>, Applicability::permitted>);
+  static_assert(not compares_with<std::integral_constant<std::size_t, 2>, std::integral_constant<std::size_t, 3>, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(compares_with<std::tuple<>, unsigned, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(compares_with<unsigned, std::tuple<>, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(compares_with<Axis, Dimensions<>, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(compares_with<Dimensions<>, Axis, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(not compares_with<Axis, Polar<>, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(not compares_with<Polar<>, angle::Radians, &stdcompat::is_eq, Applicability::permitted>);
 
   static_assert(compares_with<std::tuple<>, Dimensions<0>>);
-  static_assert(compares_with<std::tuple<>, Dimensions<0>, equal_to<>, Applicability::permitted>);
-  static_assert(compares_with<Dimensions<0>, std::tuple<>, equal_to<>, Applicability::permitted>);
-  static_assert(compares_with<std::tuple<>, Dimensions<0>, equal_to<>, Applicability::permitted>);
-  static_assert(compares_with<Dimensions<0>, std::size_t, equal_to<>, Applicability::permitted>);
-  static_assert(compares_with<std::size_t, Dimensions<0>, equal_to<>, Applicability::permitted>);
-  static_assert(compares_with<Dimensions<1>, std::size_t, equal_to<>, Applicability::permitted>);
-  static_assert(compares_with<Dimensions<>, Dimensions<10>, equal_to<>, Applicability::permitted>);
-  static_assert(not compares_with<Dimensions<10>, Dimensions<5>, equal_to<>, Applicability::permitted>);
-  static_assert(not compares_with<angle::Degrees, std::size_t, equal_to<>, Applicability::permitted>);
-  static_assert(not compares_with<unsigned, angle::Radians, equal_to<>, Applicability::permitted>);
-  static_assert(not compares_with<angle::Degrees, unsigned, equal_to<>, Applicability::permitted>);
-  static_assert(not compares_with<std::tuple<Axis, angle::Radians, angle::Radians>, std::tuple<Axis, angle::Radians, inclination::Radians>, equal_to<>, Applicability::permitted>);
-  static_assert(not compares_with<std::tuple<Axis, angle::Radians>, Polar<>, equal_to<>, Applicability::permitted>);
+  static_assert(compares_with<stdcompat::ranges::empty_view<Dimensions<1>>, Dimensions<0>>);
+  static_assert(compares_with<stdcompat::ranges::empty_view<Dimensions<0>>, Dimensions<0>>);
+  static_assert(compares_with<stdcompat::ranges::empty_view<Distance>, Dimensions<0>>);
+  static_assert(compares_with<std::tuple<>, Dimensions<0>, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(compares_with<Dimensions<0>, std::tuple<>, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(compares_with<std::tuple<>, Dimensions<0>, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(compares_with<Dimensions<0>, std::size_t, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(compares_with<std::size_t, Dimensions<0>, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(compares_with<Dimensions<1>, std::size_t, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(compares_with<Dimensions<>, Dimensions<10>, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(not compares_with<Dimensions<10>, Dimensions<5>, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(not compares_with<angle::Degrees, std::size_t, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(not compares_with<unsigned, angle::Radians, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(not compares_with<angle::Degrees, unsigned, &stdcompat::is_eq, Applicability::permitted>);
 
-  static_assert(compares_with<Any<double>, Any<double>, equal_to<>, Applicability::permitted>);
-  static_assert(compares_with<Any<double>, Any<float>, equal_to<>, Applicability::permitted>);
-  static_assert(compares_with<Distance, Any<double>, equal_to<>, Applicability::permitted>);
-  static_assert(compares_with<Any<double>, unsigned, equal_to<>, Applicability::permitted>);
-  static_assert(compares_with<std::integral_constant<std::size_t, 2>, Any<double>, equal_to<>, Applicability::permitted>);
+  static_assert(not compares_with<std::tuple<Axis, angle::Radians, angle::Radians>, std::tuple<Axis, angle::Radians, inclination::Radians>, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(not compares_with<std::tuple<Axis, angle::Radians>, Polar<>, &stdcompat::is_eq, Applicability::permitted>);
+
+  static_assert(compares_with<Any<double>, Any<double>, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(compares_with<Any<double>, Any<float>, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(compares_with<Distance, Any<double>, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(compares_with<Any<double>, unsigned, &stdcompat::is_eq, Applicability::permitted>);
+  static_assert(compares_with<std::integral_constant<std::size_t, 2>, Any<double>, &stdcompat::is_eq, Applicability::permitted>);
 
   static_assert(not compares_with<std::integral_constant<std::size_t, 2>, unsigned int>);
   static_assert(compares_with<std::integral_constant<std::size_t, 2>, std::integral_constant<std::size_t, 2>>);
@@ -109,19 +115,21 @@ TEST(coordinates, compares_with_equal_to)
 TEST(coordinates, compares_with_less)
 {
   using namespace coordinates::internal;
-  static_assert(compares_with<std::tuple<>, Axis, less_equal<>>);
-  static_assert(compares_with<std::tuple<>, Dimensions<2>, less_equal<>>);
-  static_assert(compares_with<std::tuple<>, std::tuple<Axis>, less_equal<>>);
-  static_assert(compares_with<std::tuple<>, std::tuple<Axis, angle::Radians>, less_equal<>>);
-  static_assert(compares_with<std::tuple<Axis, angle::Radians>, std::tuple<Axis, angle::Radians>, less_equal<>>);
-  static_assert(compares_with<std::tuple<Axis>, std::tuple<Axis, angle::Radians>, less_equal<>>);
-  static_assert(compares_with<std::tuple<Axis>, std::tuple<Dimensions<2>, angle::Radians>, less_equal<>>);
-  static_assert(compares_with<Axis, std::tuple<Axis, angle::Radians>, less_equal<>>);
-  static_assert(compares_with<Axis, std::tuple<Dimensions<2>, angle::Radians>, less_equal<>>);
-  static_assert(not compares_with<angle::Radians, std::tuple<Axis, angle::Radians>, less_equal<>>);
-  static_assert(not compares_with<std::tuple<angle::Radians>, std::tuple<Axis, angle::Radians>, less_equal<>>);
-  static_assert(compares_with<std::tuple<Axis, angle::Radians>, std::tuple<Axis, angle::Radians, Axis>, less_equal<>>);
-  static_assert(compares_with<std::tuple<Axis, angle::Radians, Axis>, std::tuple<Axis, angle::Radians, Axis>, less_equal<>>);
-  static_assert(not compares_with<std::tuple<Axis, angle::Radians, angle::Radians>, std::tuple<Axis, angle::Radians, Axis>, less_equal<>>);
-  static_assert(not compares_with<Dimensions<>, Axis, less_equal<>>);
+  static_assert(compares_with<std::tuple<>, Axis, &stdcompat::is_lteq>);
+  static_assert(compares_with<std::tuple<>, Dimensions<2>, &stdcompat::is_lteq>);
+  static_assert(compares_with<std::tuple<>, std::tuple<Axis>, &stdcompat::is_lteq>);
+  static_assert(compares_with<std::tuple<>, std::tuple<Axis, angle::Radians>, &stdcompat::is_lteq>);
+  static_assert(compares_with<std::tuple<Axis, angle::Radians>, std::tuple<Axis, angle::Radians>, &stdcompat::is_lteq>);
+  static_assert(compares_with<std::tuple<Axis>, std::tuple<Axis, angle::Radians>, &stdcompat::is_lteq>);
+  static_assert(compares_with<std::tuple<Axis>, std::tuple<Dimensions<2>, angle::Radians>, &stdcompat::is_lteq>);
+
+  static_assert(compares_with<Axis, std::tuple<Axis, angle::Radians>, &stdcompat::is_lteq>);
+  static_assert(compares_with<Axis, std::tuple<Dimensions<2>, angle::Radians>, &stdcompat::is_lteq>);
+
+  static_assert(not compares_with<angle::Radians, std::tuple<Axis, angle::Radians>, &stdcompat::is_lteq>);
+  static_assert(not compares_with<std::tuple<angle::Radians>, std::tuple<Axis, angle::Radians>, &stdcompat::is_lteq>);
+  static_assert(compares_with<std::tuple<Axis, angle::Radians>, std::tuple<Axis, angle::Radians, Axis>, &stdcompat::is_lteq>);
+  static_assert(compares_with<std::tuple<Axis, angle::Radians, Axis>, std::tuple<Axis, angle::Radians, Axis>, &stdcompat::is_lteq>);
+  static_assert(not compares_with<std::tuple<Axis, angle::Radians, angle::Radians>, std::tuple<Axis, angle::Radians, Axis>, &stdcompat::is_lteq>);
+  static_assert(not compares_with<Dimensions<>, Axis, &stdcompat::is_lteq>);
 }

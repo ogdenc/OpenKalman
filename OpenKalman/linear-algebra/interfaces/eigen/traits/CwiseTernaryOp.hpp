@@ -37,7 +37,7 @@ namespace OpenKalman::interface
     get_vector_space_descriptor(const Arg& arg, N n)
     {
       if constexpr (square_shaped<Arg1> or square_shaped<Arg2> or square_shaped<Arg3>)
-        return internal::best_vector_space_descriptor(
+        return internal::most_fixed_pattern(
           OpenKalman::get_vector_space_descriptor<0>(arg.arg1()),
           OpenKalman::get_vector_space_descriptor<0>(arg.arg2()),
           OpenKalman::get_vector_space_descriptor<0>(arg.arg3()),
@@ -45,7 +45,7 @@ namespace OpenKalman::interface
           OpenKalman::get_vector_space_descriptor<1>(arg.arg2()),
           OpenKalman::get_vector_space_descriptor<1>(arg.arg3()));
       else
-        return internal::best_vector_space_descriptor(
+        return internal::most_fixed_pattern(
           OpenKalman::get_vector_space_descriptor(arg.arg1(), n),
           OpenKalman::get_vector_space_descriptor(arg.arg2(), n),
           OpenKalman::get_vector_space_descriptor(arg.arg3(), n));

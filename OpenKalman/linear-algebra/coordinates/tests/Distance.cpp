@@ -13,7 +13,7 @@
  * \brief Tests for coordinates::Distance
  */
 
-#include "basics/tests/tests.hpp"
+#include "collections/tests/tests.hpp"
 #include "linear-algebra/coordinates/concepts/fixed_pattern.hpp"
 #include "linear-algebra/coordinates/concepts/pattern.hpp"
 #include "linear-algebra/coordinates/concepts/euclidean_pattern.hpp"
@@ -38,5 +38,29 @@ TEST(coordinates, Distance)
   static_assert(not get_is_euclidean(Distance{}));
   static_assert(dimension_of_v<Distance> == 1);
   static_assert(stat_dimension_of_v<Distance> == 1);
+
+  static_assert(std::is_same_v<std::common_type_t<Distance, Distance>, Distance>);
 }
 
+#include "linear-algebra/coordinates/functions/to_stat_space.hpp"
+#include "linear-algebra/coordinates/functions/from_stat_space.hpp"
+#include "linear-algebra/coordinates/functions/wrap.hpp"
+
+TEST(coordinates, Distance_transformations)
+{
+  EXPECT_NEAR(to_stat_space(Distance{}, std::vector{3.})[0U], 3., 1e-6);
+  EXPECT_NEAR(to_stat_space(Distance{}, std::array{-3.})[0U], 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(Distance{}, std::array{-3.})[std::integral_constant<std::size_t, 0>{}]), 3., 1e-6);
+  EXPECT_NEAR((to_stat_space(Distance{}, std::tuple{-3.})[std::integral_constant<std::size_t, 0>{}]), 3., 1e-6);
+  EXPECT_NEAR(to_stat_space(Distance{}, std::tuple{-3.})[0U], 3., 1e-6);
+
+  EXPECT_NEAR(from_stat_space(Distance{}, std::vector{3.})[0U], 3., 1e-6);
+  EXPECT_NEAR((from_stat_space(Distance{}, std::array{3.})[std::integral_constant<std::size_t, 0>{}]), 3., 1e-6);
+  EXPECT_NEAR(from_stat_space(Distance{}, std::tuple{3.})[0U], 3., 1e-6);
+
+  EXPECT_NEAR(wrap(Distance{}, std::vector{3.})[0U], 3., 1e-6);
+  EXPECT_NEAR(wrap(Distance{}, std::array{-3.})[0U], 3., 1e-6);
+  EXPECT_NEAR((wrap(Distance{}, std::array{-3.})[std::integral_constant<std::size_t, 0>{}]), 3., 1e-6);
+  EXPECT_NEAR((wrap(Distance{}, std::tuple{-3.})[std::integral_constant<std::size_t, 0>{}]), 3., 1e-6);
+  EXPECT_NEAR(wrap(Distance{}, std::tuple{-3.})[0U], 3., 1e-6);
+}

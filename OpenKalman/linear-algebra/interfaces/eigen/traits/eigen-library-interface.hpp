@@ -91,11 +91,8 @@ namespace OpenKalman::interface
     static constexpr std::tuple<Eigen::Index, Eigen::Index>
     extract_indices(const Indices& indices)
     {
-#ifdef __cpp_lib_ranges
-      namespace ranges = std::ranges;
-#endif
-      auto it = ranges::begin(indices);
-      auto e = ranges::end(indices);
+      auto it = stdcompat::ranges::begin(indices);
+      auto e = stdcompat::ranges::end(indices);
       if (it == e) return {0, 0};
       auto i = static_cast<std::size_t>(*it);
       if (++it == e) return {i, 0};
@@ -343,11 +340,8 @@ namespace OpenKalman::interface
       }
       else
       {
-#ifdef __cpp_lib_ranges
-        namespace ranges = std::ranges;
-#endif
-        auto it = ranges::begin(descriptors);
-        auto e = ranges::end(descriptors);
+        auto it = stdcompat::ranges::begin(descriptors);
+        auto e = stdcompat::ranges::end(descriptors);
         if (it == e) return std::tuple {coordinates::Axis{}, coordinates::Axis{}};
         auto i = *it;
         if (++it == e) return std::tuple {i, coordinates::Axis{}};
@@ -804,7 +798,7 @@ namespace OpenKalman::interface
       else if constexpr (Eigen3::eigen_Identity<Arg>)
       {
         auto f = [](const auto& a, const auto& b) { return std::min(a, b); };
-        auto dim = values::operation{f, get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg)};
+        auto dim = values::operation(f, get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg));
         return make_constant<Arg, Scalar, 1>(dim);
       }
       else if constexpr (Eigen3::eigen_dense_general<Arg>)

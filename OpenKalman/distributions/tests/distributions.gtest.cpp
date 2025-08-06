@@ -14,7 +14,7 @@ using namespace OpenKalman;
 using namespace OpenKalman::coordinates;
 using namespace OpenKalman::test;
 
-using numbers::pi;
+using stdcompat::numbers::pi;
 
 using M1 = eigen_matrix_t<double, 1, 1>;
 using M2 = eigen_matrix_t<double, 2, 2>;

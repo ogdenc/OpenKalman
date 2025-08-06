@@ -18,25 +18,11 @@
 
 #include <type_traits>
 #include <cmath>
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
-#include "basics/compatibility/ranges.hpp"
-#endif
-#include "basics/compatibility/language-features.hpp"
-#include "values/concepts/fixed.hpp"
-#include "values/concepts/value.hpp"
-#include "values/classes/fixed-constants.hpp"
-#include "values/functions/internal/update_real_part.hpp"
-#include "values/math/sin.hpp"
-#include "values/math/cos.hpp"
-#include "values/math/atan2.hpp"
-#include "values/functions/cast_to.hpp"
-#include "collections/concepts/collection_view.hpp"
-#include "collections/traits/common_collection_type.hpp"
-#include "collections/views/generate.hpp"
-#include "collections/views/update.hpp"
+#include <array>
+#include "collections/collections.hpp"
 #include "linear-algebra/coordinates/interfaces/coordinate_descriptor_traits.hpp"
+#include "linear-algebra/coordinates/functions/comparison-operators.hpp"
+#include "Any.hpp"
 
 namespace OpenKalman::coordinates
 {
@@ -53,8 +39,9 @@ namespace OpenKalman::coordinates
 #ifdef __cpp_concepts
   template<values::fixed Min = values::fixed_minus_pi<long double>, values::fixed Max = values::fixed_pi<long double>>
   requires (values::fixed_number_of_v<Min> <= 0) and (values::fixed_number_of_v<Max> > 0) and
-    std::common_with<long double, values::number_type_of_t<Min>> and
-    std::common_with<long double, values::number_type_of_t<Max>> and
+    (not values::complex<Min>) and (not values::complex<Max>) and
+    std::convertible_to<values::number_type_of_t<Min>, float> and
+    std::convertible_to<values::number_type_of_t<Max>, float> and
     std::common_with<values::number_type_of_t<Min>, values::number_type_of_t<Max>>
 #else
 template<typename Min = values::fixed_minus_pi<long double>, typename Max = values::fixed_pi<long double>>
@@ -66,6 +53,11 @@ template<typename Min = values::fixed_minus_pi<long double>, typename Max = valu
     static_assert(values::fixed<Max>);
     static_assert(values::fixed_number_of_v<Min> <= 0);
     static_assert(values::fixed_number_of_v<Max> > 0);
+    static_assert(not values::complex<Min>);
+    static_assert(not values::complex<Max>);
+    static_assert(stdcompat::convertible_to<values::number_type_of_t<Min>, float>);
+    static_assert(stdcompat::convertible_to<values::number_type_of_t<Max>, float>);
+    static_assert(stdcompat::common_with<values::number_type_of_t<Min>, values::number_type_of_t<Max>>);
 #endif
   };
 
@@ -114,15 +106,13 @@ template<typename Min = values::fixed_minus_pi<long double>, typename Max = valu
 #endif
       detail::is_angle<T>::value;
 
-  } // namespace angle
+  }
 
-
-} // OpenKalman::coordinates
+}
 
 
 namespace OpenKalman::interface
 {
-
   /**
    * \internal
    * \brief traits for Angle.
@@ -136,6 +126,15 @@ namespace OpenKalman::interface
     static constexpr auto min = values::fixed_number_of_v<Min>;
     static constexpr auto max = values::fixed_number_of_v<Max>;
 
+
+    template<typename...Args>
+    static constexpr auto make_range(Args&&...args)
+    {
+      if constexpr ((... or values::fixed<Args>))
+        return std::tuple {std::forward<Args>(args)...};
+      else
+        return std::array<std::common_type_t<Args...>, sizeof...(Args)> {std::forward<Args>(args)...};
+    }
 
   public:
 
@@ -153,146 +152,132 @@ namespace OpenKalman::interface
 
     static constexpr auto hash_code = [](const T&) -> std::size_t
     {
-
-      constexpr auto min_float = static_cast<float>(min);
-      constexpr auto max_float = static_cast<float>(max);
-      constexpr float a = (min_float * 3.f + max_float * 2.f) / (max_float - min_float);
+      auto min_float = static_cast<float>(min);
+      auto max_float = static_cast<float>(max);
+      float a = (max_float * 3.f + min_float * 2.f + 1.f) / (max_float - min_float + 1.f);
       constexpr auto bits = std::numeric_limits<std::size_t>::digits;
       if constexpr (bits < 32) return 0x62BB_uz + static_cast<std::size_t>(a * a * 0x1.p2f);
       else if constexpr (bits < 64) return 0x62BB0D37_uz + static_cast<std::size_t>(a * a * 0x1.p4f);
       else return 0x62BB0D37A58D6F96_uz + static_cast<std::size_t>(a * a * 0x1.p8f);
     };
 
-  private:
-
-    template<typename Scalar>
-    struct to_stat_collection
-    {
-      to_stat_collection() = default;
-      explicit constexpr to_stat_collection(Scalar theta) : my_theta {std::move(theta)} {};
-      constexpr auto operator()(std::size_t i) const { return i == 0 ? values::cos(my_theta) : values::sin(my_theta); };
-    private:
-      Scalar my_theta;
-    };
-
-  public:
 
     /*
-     * \details Maps the angle to corresponding x and y coordinates on a unit circle.
-     * By convention, the minimum angle limit Limits<Scalar::min corresponds to the point (-1,0) in Euclidean statistical space,
-     * and the angle is scaled so that the difference between Limits<Scalar>::min and Limits<<Scalar>::max is 2&pi;,
-     * so Limits<Scalar>::max wraps back to the point (-1, 0).
+     * \brief Maps the angle to corresponding x and y coordinates on a unit circle.
      */
     static constexpr auto
-    to_stat_space =
-#ifdef __cpp_concepts
-    [](const T&, const collections::collection_view auto& data_view) noexcept
-#else
-    [](const T&, const auto& data_view) noexcept
-#endif
+    to_stat_space = [](const T&, auto&& data_view)
     {
-      using Scalar = collections::common_collection_type_t<decltype(data_view)>;
-      using R = values::real_type_of_t<Scalar>;
-      Scalar cf {2 * numbers::pi_v<R> / (max - min)};
-      Scalar mid { R{max + min} * R{0.5}};
-      Scalar a = collections::get(data_view, std::integral_constant<std::size_t, 0>{});
-      return collections::views::generate(to_stat_collection {cf * (a - mid)}, std::integral_constant<std::size_t, 2>{});
-    };
-
-
-    /*
-     * \details Maps x and y coordinates on Euclidean space back to an angle.
-     */
-    static constexpr auto
-    from_stat_space =
-#ifdef __cpp_concepts
-    [](const T&, const collections::collection_view auto& data_view) noexcept
-#else
-    [](const T&, const auto& data_view) noexcept
-#endif
-    {
-      using Scalar = collections::common_collection_type_t<decltype(data_view)>;
-      using R = values::real_type_of_t<Scalar>;
-      Scalar cf {2 * numbers::pi_v<R> / (max - min)};
-      Scalar mid { R{max + min} * R{0.5}};
-      Scalar x = collections::get(data_view, std::integral_constant<std::size_t, 0>{});
-      Scalar y = collections::get(data_view, std::integral_constant<std::size_t, 1>{});
-#ifdef __cpp_lib_ranges
-      return std::views::single(values::atan2(y, x) / cf + mid);
-#else
-      return ranges::views::single(values::atan2(y, x) / cf + mid);
-#endif
-    };
-
-
-  private:
-
-#ifdef __cpp_concepts
-    static constexpr auto
-    wrap_impl(auto&& a) -> std::decay_t<decltype(a)>
-#else
-    template<typename Scalar>
-    static constexpr std::decay_t<Scalar>
-    wrap_impl(Scalar&& a)
-#endif
-    {
-      auto ap = values::real(a);
-      if (ap >= min and ap < max)
+      decltype(auto) a = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 0>{});
+      using R = values::real_type_of_t<values::real_type_of_t<decltype(a)>>;
+      if constexpr (min == -stdcompat::numbers::pi_v<R> and max == stdcompat::numbers::pi_v<R>) //< Avoid scaling, if possible.
       {
-        return std::forward<decltype(a)>(a);
+        return make_range(values::cos(a), values::sin(a));
       }
       else
       {
-        using R = std::decay_t<decltype(ap)>;
-        constexpr R period {max - min};
-        using std::fmod;
-        R ar {fmod(ap - R{min}, period)};
-        if (ar < 0) return values::internal::update_real_part(std::forward<decltype(a)>(a), R{min} + ar + period);
-        else return values::internal::update_real_part(std::forward<decltype(a)>(a), R{min} + ar);
+        constexpr auto period = values::cast_to<R>(values::operation(std::minus{}, Max{}, Min{}));
+        constexpr auto scale = values::operation(std::divides{}, values::fixed_2pi<R>{}, period);
+        auto phi = values::operation(std::multiplies{}, std::forward<decltype(a)>(a), scale);
+        return make_range(values::cos(phi), values::sin(phi));
       }
-    }
+    };
+
+  private:
+
+    struct wrap_phi
+    {
+      template<typename R>
+      constexpr R operator()(const R& phi_real) const
+      {
+        constexpr R period = max - min;
+        if (phi_real < R{min}) return phi_real + period;
+        if (phi_real >= R{max}) return phi_real - period;
+        return phi_real;
+      }
+    };
 
   public:
 
     /*
-     * \brief Return a collection_view that can get and update an angle wrapped into the primary range.
+     * \brief Maps x and y coordinates on Euclidean space back to an angle.
+     * \details This performs bounds checking to ensure that the angle is within the primary range.
      */
     static constexpr auto
-    wrap =
-#ifdef __cpp_concepts
-    [](const T&, collections::collection_view auto&& data_view) noexcept
-#else
-    [](const T&, auto&& data_view) noexcept
-#endif
+    from_stat_space = [](const T&, auto&& data_view)
     {
-      using D = decltype(data_view);
-      using Scalar = collections::common_collection_type_t<decltype(data_view)>;
-#ifdef __cpp_lib_ranges
-      if constexpr (std::ranges::output_range<D, Scalar>)
-#else
-      if constexpr (ranges::output_range<D, Scalar>)
-#endif
+      decltype(auto) x = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 0>{});
+      decltype(auto) y = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 1>{});
+      using R = values::real_type_of_t<values::real_type_of_t<collections::common_collection_type_t<decltype(data_view)>>>;
+      if constexpr (min == -stdcompat::numbers::pi_v<R> and max == stdcompat::numbers::pi_v<R>) //< Avoid scaling and wrapping, if possible.
       {
-        Scalar& a = collections::get(data_view, std::integral_constant<std::size_t, 0>{});
+        return std::array {values::atan2(std::forward<decltype(y)>(y), std::forward<decltype(x)>(x))};
       }
-
-
-
-      using V = decltype(data_view);
-      auto wrap_get = [](V& v, auto i) { return wrap_impl(collections::get(v, std::move(i))); };
-      auto wrap_set = [](V& v, auto i, auto x) -> auto&
+      else
       {
-        auto& ret = collections::get(v, std::move(i));
-        ret = wrap_impl(std::move(x));
-        return ret;
-      };
-      return std::forward<decltype(data_view)>(data_view) | collections::views::update(wrap_get, wrap_set);
+        constexpr auto period = values::cast_to<R>(values::operation(std::minus{}, Max{}, Min{}));
+        constexpr auto scale = values::operation(std::divides{}, period, values::fixed_2pi<R>{});
+        auto phi = values::operation(std::multiplies{}, values::atan2(std::forward<decltype(y)>(y), std::forward<decltype(x)>(x)), scale);
+        return std::array {values::internal::update_real_part(std::move(phi),
+          values::operation(wrap_phi{}, values::real(std::move(phi))))};
+      }
+    };
+
+  private:
+
+    struct wrap_phi_mod
+    {
+      template<typename R>
+      constexpr R operator()(const R& phi_real) const
+      {
+        constexpr R period = max - min;
+        if (phi_real >= R{min} and phi_real < max) return phi_real;
+        R phi_real_mod {values::fmod(phi_real - R{min}, period)};
+        if (phi_real_mod < 0) return R{min} + phi_real_mod + period;
+        return R{min} + phi_real_mod;
+      }
+    };
+
+  public:
+
+    /*
+     * \brief Wrap the angle to its primary range.
+     */
+    static constexpr auto
+    wrap = [](const T&, auto&& data_view)
+    {
+      decltype(auto) phi = collections::get(std::forward<decltype(data_view)>(data_view), std::integral_constant<std::size_t, 0>{});
+      return std::array {values::internal::update_real_part(std::forward<decltype(phi)>(phi),
+        values::operation(wrap_phi_mod{}, values::real(values::real(phi))))};
     };
 
   };
 
+}
 
-} // namespace OpenKalman::interface
+
+namespace std
+{
+  template<typename Min1, typename Max1, typename Min2, typename Max2>
+  struct common_type<OpenKalman::coordinates::Angle<Min1, Max1>, OpenKalman::coordinates::Angle<Min2, Max2>>
+    : std::conditional<
+      OpenKalman::values::fixed_number_of_v<Min1> == OpenKalman::values::fixed_number_of_v<Min2> and
+          OpenKalman::values::fixed_number_of_v<Max1> == OpenKalman::values::fixed_number_of_v<Max2>,
+      OpenKalman::coordinates::Angle<Min1, Max1>,
+      OpenKalman::coordinates::Any<>> {};
 
 
-#endif //OPENKALMAN_ANGLE_HPP
+  template<typename Min1, typename Max1, typename Scalar>
+  struct common_type<OpenKalman::coordinates::Angle<Min1, Max1>, OpenKalman::coordinates::Any<Scalar>>
+    : common_type<OpenKalman::coordinates::Any<Scalar>, OpenKalman::coordinates::Angle<Min1, Max1>> {};
+
+
+  template<typename Min1, typename Max1, typename T>
+  struct common_type<OpenKalman::coordinates::Angle<Min1, Max1>, T>
+    : std::conditional_t<
+      OpenKalman::coordinates::descriptor<T>,
+      OpenKalman::stdcompat::type_identity<OpenKalman::coordinates::Any<>>,
+      std::monostate> {};
+}
+
+#endif

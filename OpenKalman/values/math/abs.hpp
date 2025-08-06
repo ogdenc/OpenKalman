@@ -17,8 +17,8 @@
 
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/classes/operation.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
 #include "values/functions/internal/constexpr_callable.hpp"
@@ -38,10 +38,10 @@ namespace OpenKalman::values
   constexpr auto abs(const Arg& arg)
 #endif
   {
-    if constexpr (not number<Arg>)
+    if constexpr (fixed<Arg>)
     {
       struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::abs(a); } };
-      return operation {Op{}, arg};
+      return values::operation(Op{}, arg);
     }
     else
     {

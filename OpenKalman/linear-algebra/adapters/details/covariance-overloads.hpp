@@ -409,7 +409,7 @@ namespace OpenKalman
     std::invoke_result_t<Function, scalar_type_of_t<Arg>>, const scalar_type_of_t<Arg>>
 #else
   template<typename Function, typename Arg, std::enable_if_t<covariance<Arg> and
-    std::is_convertible_v<std::invoke_result_t<Function, typename scalar_type_of<Arg>::type>,
+    stdcompat::convertible_to<std::invoke_result_t<Function, typename scalar_type_of<Arg>::type>,
       const typename scalar_type_of<Arg>::type>, int> = 0>
 #endif
   inline auto
@@ -426,7 +426,7 @@ namespace OpenKalman
       const scalar_type_of_t<Arg>>
 #else
   template<typename Function, typename Arg, std::enable_if_t<covariance<Arg> and
-    std::is_convertible_v<std::invoke_result_t<Function, typename scalar_type_of<Arg>::type, std::size_t, std::size_t>,
+    stdcompat::convertible_to<std::invoke_result_t<Function, typename scalar_type_of<Arg>::type, std::size_t, std::size_t>,
     const typename scalar_type_of<Arg>::type>, int> = 0>
 #endif
   inline auto

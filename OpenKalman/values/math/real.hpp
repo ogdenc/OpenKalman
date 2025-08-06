@@ -18,7 +18,7 @@
 
 #include "values/concepts/fixed.hpp"
 #include "values/concepts/value.hpp"
-#include "values/classes/operation.hpp"
+#include "values/functions/operation.hpp"
 
 namespace OpenKalman::values
 {
@@ -37,14 +37,17 @@ namespace OpenKalman::values
   template<typename Arg, std::enable_if_t<value<Arg>, int> = 0>
   constexpr auto
 #endif
-  real(Arg arg)
+  real(const Arg& arg)
   {
     if constexpr (fixed<Arg>)
-      return operation {
-        [](auto a) { return interface::number_traits<std::decay_t<decltype(a)>>::real(std::move(a)); },
-        std::move(arg)};
+    {
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::real(a); } };
+      return values::operation(Op{}, arg);
+    }
     else
+    {
       return interface::number_traits<std::decay_t<Arg>>::real(std::move(arg));
+    }
   }
 
 

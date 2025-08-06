@@ -17,9 +17,9 @@
 
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/traits/real_type_of_t.hpp"
-#include "values/classes/operation.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/traits/real_type_of.hpp"
+#include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
@@ -41,10 +41,10 @@ namespace OpenKalman::values
   constexpr auto acos(const Arg& arg)
 #endif
   {
-    if constexpr (not number<Arg>)
+    if constexpr (fixed<Arg>)
     {
       struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::acos(a); } };
-      return operation {Op{}, arg};
+      return values::operation(Op{}, arg);
     }
     else
     {
@@ -54,17 +54,16 @@ namespace OpenKalman::values
       if (internal::constexpr_callable<Op>(arg)) return acos(arg);
       else if constexpr (values::complex<Return>)
       {
-        using R = real_type_of_t<real_type_of_t<Arg>>;
+        using R = real_type_of_t<real_type_of_t<Return>>;
         auto s = values::asin(internal::make_complex_number<R>(arg));
-        return internal::make_complex_number<Return>(numbers::pi_v<R> / 2 - values::real(s), - values::imag(s));
+        return internal::make_complex_number<Return>(stdcompat::numbers::pi_v<R> / 2 - values::real(s), - values::imag(s));
       }
       else
       {
-        using R = real_type_of_t<Arg>;
         if (arg == 1) return static_cast<Return>(+0.);
         auto s = values::asin(arg);
         if (values::isnan(s)) return internal::NaN<Return>();
-        return numbers::pi_v<R> / 2 - s;
+        return stdcompat::numbers::pi_v<Return> / 2 - s;
       }
     }
   }

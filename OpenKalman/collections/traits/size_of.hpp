@@ -16,10 +16,7 @@
 #ifndef OPENKALMAN_COLLECTIONS_SIZE_OF_HPP
 #define OPENKALMAN_COLLECTIONS_SIZE_OF_HPP
 
-#include <type_traits>
-#include "basics/global-definitions.hpp"
-#include "values/concepts/fixed.hpp"
-#include "values/traits/fixed_number_of.hpp"
+#include "values/values.hpp"
 #include "collections/concepts/sized.hpp"
 #include "collections/functions/get_size.hpp"
 
@@ -29,31 +26,37 @@ namespace OpenKalman::collections
    * \brief The size of a \ref sized object (including a \ref collection).
    */
 #ifdef __cpp_concepts
-  template<sized T>
+  template<typename T>
 #else
   template<typename T, typename = void>
 #endif
-  struct size_of : std::integral_constant<std::size_t, dynamic_size> {};
+  struct size_of {};
 
 
 #ifdef __cpp_concepts
-  template<sized T> requires values::fixed<decltype(get_size(std::declval<T>()))>
+  template<sized T>
   struct size_of<T>
 #else
   template<typename T>
-  struct size_of<T, std::enable_if_t<values::fixed<decltype(get_size(std::declval<T>()))>>>
+  struct size_of<T, std::enable_if_t<sized<T> and not values::fixed<decltype(collections::get_size(std::declval<T>()))>>>
 #endif
-    : std::integral_constant<std::size_t, values::fixed_number_of_v<decltype(get_size(std::declval<T>()))>> {};
+    : std::integral_constant<std::size_t, dynamic_size> {};
+
+
+#ifdef __cpp_concepts
+  template<sized T> requires values::fixed<decltype(collections::get_size(std::declval<T>()))>
+  struct size_of<T>
+#else
+  template<typename T>
+  struct size_of<T, std::enable_if_t<sized<T> and values::fixed<decltype(collections::get_size(std::declval<T>()))>>>
+#endif
+    : values::fixed_number_of<decltype(collections::get_size(std::declval<T>()))> {};
 
 
   /**
    * \brief Helper for \ref collections::size_of.
    */
-#ifdef __cpp_concepts
-  template<sized T>
-#else
   template<typename T>
-#endif
   inline constexpr std::size_t size_of_v = size_of<T>::value;
 
 

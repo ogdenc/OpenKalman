@@ -44,10 +44,7 @@ namespace OpenKalman::values::internal
   constexpr_callable(const Args&...args)
   {
 #ifdef __cpp_concepts
-    if constexpr (requires(Op op, const Args&...args) {
-      {op(args...)} -> values::number;
-      requires std::bool_constant<(Op{}(Args{}...), true)>::value;
-    })
+    if constexpr (requires { {Op{}(args...)} -> number; requires std::bool_constant<(Op{}(args...), true)>::value; })
 #else
     if constexpr (detail::constexpr_callable_impl<Op, void, Args...>::value)
 #endif

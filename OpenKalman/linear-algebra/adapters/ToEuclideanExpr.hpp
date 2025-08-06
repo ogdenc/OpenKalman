@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_TOEUCLIDEANEXPR_HPP
 #define OPENKALMAN_TOEUCLIDEANEXPR_HPP
 
+#include "basics/basics.hpp"
 #include "linear-algebra/coordinates/coordinates.hpp"
 #include "linear-algebra/concepts/identity_matrix.hpp"
 #include "linear-algebra/concepts/zero.hpp"
@@ -53,7 +54,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     constexpr ToEuclideanExpr() requires std::default_initializable<Base>
 #else
-    template<typename B = Base, std::enable_if_t<std::is_default_constructible_v<B>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<Base>, int> = 0>
     constexpr ToEuclideanExpr()
 #endif
     {}
@@ -65,7 +66,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<indexible Arg> requires std::constructible_from<NestedObject, Arg&&>
 #else
-    template<typename Arg, std::enable_if_t<indexible<Arg> and std::is_constructible_v<NestedObject, Arg&&>, int> = 0>
+    template<typename Arg, std::enable_if_t<indexible<Arg> and stdcompat::constructible_from<NestedObject, Arg&&>, int> = 0>
 #endif
     explicit ToEuclideanExpr(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 

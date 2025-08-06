@@ -48,7 +48,7 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
     constexpr AdapterBase() requires std::default_initializable<NestedObject>
 #else
-    template<typename T = NestedObject, std::enable_if_t<std::is_default_constructible<T>::value, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<NestedObject>, int> = 0>
     constexpr AdapterBase()
 #endif
       : m_nested_object {} {}

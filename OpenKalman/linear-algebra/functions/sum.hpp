@@ -27,7 +27,7 @@ namespace OpenKalman
     constexpr auto sum_constants(std::index_sequence<Ix...> seq, T0&& t0, T1&& t1)
     {
       auto c = constant_coefficient{t0} + constant_coefficient{t1};
-      return make_constant<T0>(std::move(c), internal::best_vector_space_descriptor(
+      return make_constant<T0>(std::move(c), internal::most_fixed_pattern(
         get_vector_space_descriptor<Ix>(t0), get_vector_space_descriptor<Ix>(t1))...);
     }
 

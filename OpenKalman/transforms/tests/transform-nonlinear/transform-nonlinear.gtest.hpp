@@ -36,7 +36,7 @@ namespace OpenKalman::test
     const auto res1 = is_near(
       f2(mean_of(output)),
       Mean {f2(mean_of(output_rot)) +
-        make_mean<typename DistributionTraits<AngleRotDist>::StaticDescriptor>(0, numbers::pi)},
+        make_mean<typename DistributionTraits<AngleRotDist>::StaticDescriptor>(0, stdcompat::numbers::pi)},
       1e-4);
     const auto res2 = is_near(covariance_of(output), covariance_of(output_rot), 1e-3);
     const auto res3 = is_near(cross, -cross_rot, 1e-4);
@@ -67,7 +67,7 @@ namespace OpenKalman::test
     const auto[output, cross] = t.transform_with_cross_covariance(loc_input, f1, noise...);
     const auto[output_rot, cross_rot] = t.transform_with_cross_covariance(loc_input_rot, f1, noise...);
     const auto res1 = is_near(
-      f2(mean_of(output) - make_mean<Polar<>>(0, numbers::pi)),
+      f2(mean_of(output) - make_mean<Polar<>>(0, stdcompat::numbers::pi)),
       Mean {f2(mean_of(output_rot))},
       1e-3);
     const auto res2 = is_near(covariance_of(output), covariance_of(output_rot), 1e-3);

@@ -26,10 +26,11 @@ namespace OpenKalman::collections
    */
   template<typename C, typename T>
 #ifdef __cpp_lib_ranges
-concept output_collection = collection<C> and (std::ranges::output_range<C, T> or uniformly_settable<C, T>);
+  concept output_collection =
 #else
-  constexpr bool output_collection = collection<C> and (ranges::output_range<C, T> or uniformly_settable<C, T>);
+  constexpr bool output_collection =
 #endif
+    collection<C> and (stdcompat::ranges::output_range<C, T> or uniformly_settable<C, T>);
 
 
 } // namespace OpenKalman

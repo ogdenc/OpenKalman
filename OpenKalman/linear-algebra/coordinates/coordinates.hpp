@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2020-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -12,23 +12,23 @@
  * \dir
  * \brief Definitions relating to \ref coordinates::pattern object.
  *
- * \dir coordinates/descriptors
+ * \dir descriptors
  * \brief Files defining \ref coordinates::descriptor objects.
  *
- * \dir coordinates/concepts
+ * \dir concepts
  * \brief Concepts relating to \ref coordinates::pattern objects.
  *
- * \dir coordinates/functions
+ * \dir functions
  * \brief Files for functions relating to \ref coordinates::pattern objects.
  *
- * \dir coordinates/traits
+ * \dir traits
  * \brief Traits relating to \ref coordinates::pattern objects.
  *
- * \dir coordinates/internal
+ * \dir internal
  * \internal
  * \brief Internal files relating to \ref coordinates::pattern objects.
  *
- * \dir coordinates/tests
+ * \dir tests
  * \internal
  * \brief Tests relating to \ref coordinates::pattern objects.
  *
@@ -36,8 +36,8 @@
  * \brief Comprehensive header file including all classes and definitions relating to a \ref coordinates::pattern
  */
 
-#ifndef OPENKALMAN_VECTOR_TYPES_HPP
-#define OPENKALMAN_VECTOR_TYPES_HPP
+#ifndef OPENKALMAN_COORDINATES_HPP
+#define OPENKALMAN_COORDINATES_HPP
 
 
 /**
@@ -46,9 +46,9 @@
  */
 namespace OpenKalman::coordinates {}
 
+#include "collections/collections.hpp"
 
 #include "interfaces/coordinate_descriptor_traits.hpp"
-
 
 #include "concepts/descriptor.hpp"
 #include "concepts/descriptor_tuple.hpp"
@@ -56,9 +56,6 @@ namespace OpenKalman::coordinates {}
 #include "concepts/descriptor_collection.hpp"
 
 #include "concepts/pattern.hpp"
-#include "concepts/pattern_tuple.hpp"
-#include "concepts/pattern_range.hpp"
-#include "concepts/pattern_collection.hpp"
 
 #include "functions/internal/get_descriptor_dimension.hpp"
 #include "functions/get_dimension.hpp"
@@ -68,66 +65,61 @@ namespace OpenKalman::coordinates {}
 #include "functions/get_stat_dimension.hpp"
 #include "traits/stat_dimension_of.hpp"
 
-#include "functions/internal/get_hash_code.hpp"
+#include "functions/internal/get_descriptor_is_euclidean.hpp"
 #include "functions/get_is_euclidean.hpp"
 
-//#include "traits/scalar_type_of.hpp" //
+#include "functions/internal/get_descriptor_hash_code.hpp"
 
 #include "concepts/fixed_pattern.hpp"
-#include "concepts/fixed_pattern_tuple.hpp"
-#include "concepts/fixed_pattern_collection.hpp"
-
 #include "concepts/dynamic_pattern.hpp"
-
 #include "concepts/euclidean_pattern.hpp"
-#include "concepts/euclidean_pattern_tuple.hpp"
-#include "concepts/euclidean_pattern_collection.hpp"
 
-#include "functions/internal/get_component_start_indices.hpp"
-#include "functions/internal/get_euclidean_component_start_indices.hpp"
-#include "functions/internal/get_index_table.hpp"
-#include "functions/internal/get_euclidean_index_table.hpp"
-
-#include "functions/internal/get_component_start_indices.hpp"
 #include "functions/to_stat_space.hpp"
 #include "functions/from_stat_space.hpp"
-#include "functions/get_wrapped_component.hpp"
-#include "functions/set_wrapped_component.hpp"
+#include "functions/wrap.hpp"
 
+// descriptors and their operators
+
+#include "descriptors/Any.hpp"
 #include "descriptors/Dimensions.hpp"
 #include "descriptors/Distance.hpp"
 #include "descriptors/Angle.hpp"
 #include "descriptors/Inclination.hpp"
 #include "descriptors/Polar.hpp"
 #include "descriptors/Spherical.hpp"
-#include "descriptors/Any.hpp"
 
+#include "functions/internal/get_descriptor_collection_element.hpp"
 #include "functions/comparison-operators.hpp"
+#include "functions/compare.hpp"
 #include "concepts/compares_with.hpp"
-#include "views/comparison.hpp"
-
 
 #include "functions/arithmetic-operators.hpp"
 
-// descriptors:
+// common or uniform types
 
-// traits for manipulating static descriptors
+#include "traits/common_descriptor_type.hpp"
+#include "traits/uniform_pattern_type.hpp"
+#include "concepts/uniform_pattern.hpp"
+#include "functions/is_uniform_pattern_component_of.hpp"
+#include "functions/get_uniform_pattern_component.hpp"
 
-#include "traits/internal/uniform_static_vector_space_descriptor_query.hpp"
-#include "concepts/uniform_static_vector_space_descriptor.hpp"
-#include "traits/uniform_static_vector_space_descriptor_component_of.hpp"
-#include "concepts/equivalent_to_uniform_static_vector_space_descriptor_component_of.hpp"
+// pattern_collections:
 
-// functions:
+#include "concepts/pattern_tuple.hpp"
+#include "concepts/pattern_range.hpp"
+#include "concepts/pattern_collection.hpp"
+#include "concepts/fixed_pattern_tuple.hpp"
+#include "concepts/fixed_pattern_collection.hpp"
+#include "concepts/euclidean_pattern_tuple.hpp"
+#include "concepts/euclidean_pattern_collection.hpp"
 
-#include "functions/internal/is_uniform_component_of.hpp" //
-#include "functions/internal/remove_trailing_1D_descriptors.hpp" //
-#include "functions/internal/best_vector_space_descriptor.hpp" //
-#include "functions/internal/smallest_vector_space_descriptor.hpp" //
-#include "functions/internal/largest_vector_space_descriptor.hpp" //
-#include "functions/get_slice.hpp"
+#include "functions/compare_pattern_collections.hpp"
 
-#include "functions/internal/to_euclidean_vector_space_descriptor_collection.hpp" //
+#include "functions/internal/smallest_pattern.hpp"
+#include "functions/internal/largest_pattern.hpp"
+#include "functions/internal/strip_1D_tail.hpp"
+#include "functions/internal/most_fixed_pattern.hpp"
+#include "functions/internal/to_euclidean_pattern_collection.hpp"
 
 
-#endif //OPENKALMAN_VECTOR_TYPES_HPP
+#endif

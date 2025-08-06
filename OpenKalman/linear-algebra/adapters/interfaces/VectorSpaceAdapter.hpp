@@ -39,7 +39,7 @@ namespace OpenKalman::interface
     static constexpr auto count_indices(const Arg&)
     {
       // Truncate any trailing ℝ¹ dimensions
-      using NewDesc = decltype(OpenKalman::internal::remove_trailing_1D_descriptors(std::declval<Descriptors>()));
+      using NewDesc = decltype(OpenKalman::internal::coordinates::strip_1D_tail(std::declval<Descriptors>()));
       return collections::size_of<NewDesc>{};
     }
 
@@ -75,10 +75,7 @@ namespace OpenKalman::interface
       else
       {
         using Dyn = coordinates::DynamicDescriptor<scalar_type>;
-#ifdef __cpp_lib_ranges
-        namespace ranges = std::ranges;
-#endif
-        if (n >= ranges::size(arg.my_descriptors))
+        if (n >= stdcompat::ranges::size(arg.my_descriptors))
         {
           return Dyn {coordinates::Axis{}};
         }
@@ -404,7 +401,7 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     diagonal_of_impl(Arg&& arg, V0&& v0, V1&& v1, const Vs&...vs)
     {
-      auto d0 = internal::smallest_vector_space_descriptor<scalar_type_of_t<Arg>>(std::forward<V0>(v0), std::forward<V1>(v1));
+      auto d0 = internal::smallest_pattern<scalar_type_of_t<Arg>>(std::forward<V0>(v0), std::forward<V1>(v1));
       return make_vector_space_adapter(std::forward<Arg>(arg), d0, vs...);
     }
 
@@ -512,7 +509,7 @@ namespace OpenKalman::interface
     {
       return make_vector_space_adapter(std::forward<Arg>(arg),
         ([]{ constexpr auto I = Ix; return ((I == indices) or ...); } ?
-          uniform_static_vector_space_descriptor_component_of_t<vector_space_descriptor_of_t<Vs, Ix>>{} :
+          uniform_pattern_component_of_t<vector_space_descriptor_of_t<Vs, Ix>>{} :
           std::get<Ix>(tup_vs))...);
     }
 

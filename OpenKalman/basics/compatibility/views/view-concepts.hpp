@@ -17,15 +17,21 @@
 #ifndef OPENKALMAN_COMPATIBILITY_VIEWS_VIEW_CONCEPTS_HPP
 #define OPENKALMAN_COMPATIBILITY_VIEWS_VIEW_CONCEPTS_HPP
 
-#ifndef __cpp_lib_ranges
-
-#include "basics/global-definitions.hpp"
 #include "basics/compatibility/language-features.hpp"
+#include "basics/compatibility/internal/exposition.hpp"
 #include "basics/compatibility/ranges.hpp"
+#include "basics/global-definitions.hpp"
 #include "view_interface.hpp"
 
-namespace OpenKalman::ranges
+
+namespace OpenKalman::stdcompat::ranges
 {
+#ifdef __cpp_lib_ranges
+  using std::ranges::view_base;
+  using std::ranges::enable_view;
+  using std::ranges::view;
+  using std::ranges::viewable_range;
+#else
   // ---
   // view, enable_view, view_base
   // ---
@@ -49,38 +55,26 @@ namespace OpenKalman::ranges
 
   template<class T>
   inline constexpr bool enable_view =
-   (std::is_base_of_v<view_base, T> and std::is_convertible_v<const volatile T&, const volatile view_base&>) or
+   (std::is_base_of_v<view_base, T> and stdcompat::convertible_to<const volatile T&, const volatile view_base&>) or
    detail::is_derived_from_view_interface<T>::value;
 
 
   template<typename T>
-  inline constexpr bool view = range<T> and movable<T> and enable_view<T>;
+  inline constexpr bool view = range<T> and stdcompat::movable<T> and enable_view<T>;
 
 
   // ---
   // viewable_range
   // ---
 
-  namespace detail
-  {
-   template<typename T>
-   struct is_initializer_list : std::false_type {};
-
-   template<typename T>
-   struct is_initializer_list<std::initializer_list<T>> : std::true_type {};
-  }
-
-
   template<typename T>
-  constexpr bool viewable_range =  ranges::range<T> and
-    ((view<remove_cvref_t<T>> and std::is_constructible_v<remove_cvref_t<T>, T>) or
+  constexpr bool viewable_range =  stdcompat::ranges::range<T> and
+    ((view<stdcompat::remove_cvref_t<T>> and stdcompat::constructible_from<stdcompat::remove_cvref_t<T>, T>) or
      (not view<remove_cvref_t<T>> and
       (std::is_lvalue_reference_v<T> or
-        (movable<std::remove_reference_t<T>> and not OpenKalman::internal::is_initializer_list<remove_cvref_t<T>>::value))));
-
-}
-
+        (stdcompat::movable<std::remove_reference_t<T>> and not OpenKalman::internal::is_initializer_list<stdcompat::remove_cvref_t<T>>::value))));
 
 #endif
+}
 
 #endif //OPENKALMAN_COMPATIBILITY_VIEWS_VIEW_CONCEPTS_HPP

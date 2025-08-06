@@ -280,7 +280,7 @@ namespace OpenKalman::Eigen3
       constexpr auto operator()(Scalar arg) const
       {
         using S = std::decay_t<decltype(values::real(arg))>;
-        return values::log(arg) / numbers::ln10_v<S>;
+        return values::log(arg) / stdcompat::numbers::ln10_v<S>;
       }
     };
     static constexpr auto constexpr_operation() { return Op{}; }
@@ -298,7 +298,7 @@ namespace OpenKalman::Eigen3
       constexpr auto operator()(Scalar arg) const
       {
         using S = std::decay_t<decltype(values::real(arg))>;
-        return values::log(arg) / numbers::ln2_v<S>;
+        return values::log(arg) / stdcompat::numbers::ln2_v<S>;
       }
     };
     static constexpr auto constexpr_operation() { return Op{}; }

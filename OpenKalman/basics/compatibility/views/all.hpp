@@ -11,19 +11,11 @@
 /**
  * \file
  * \internal
- * \brief Definition of \ref collections::all_view and \ref collections::views::all.
- */
-
-/**
- * \file
- * \internal
- * \brief Definition of \ref basics::compatibility::ranges::views::all.
+ * \brief Definition of \ref stdcompat::ranges::views::all and \ref stdcompat::ranges::views::all_t.
  */
 
 #ifndef OPENKALMAN_COMPATIBILITY_VIEWS_ALL_HPP
 #define OPENKALMAN_COMPATIBILITY_VIEWS_ALL_HPP
-
-#ifndef __cpp_lib_ranges
 
 #include <type_traits>
 #include "basics/compatibility/language-features.hpp"
@@ -32,15 +24,19 @@
 #include "ref_view.hpp"
 #include "owning_view.hpp"
 
-namespace OpenKalman::ranges::views
+namespace OpenKalman::stdcompat::ranges::views
 {
+#ifdef __cpp_lib_ranges
+  using std::ranges::views::all;
+  using std::ranges::views::all_t;
+#else
   namespace detail
   {
     template<typename R, typename = void, typename = void>
     struct can_ref_view : std::false_type {};
 
     template<typename R>
-    struct can_ref_view<R, std::enable_if_t<std::is_object_v<remove_cvref_t<R>> and range<remove_cvref_t<R>>>,
+    struct can_ref_view<R, std::enable_if_t<std::is_object_v<stdcompat::remove_cvref_t<R>> and range<stdcompat::remove_cvref_t<R>>>,
       std::void_t<decltype(ref_view {std::declval<R>()})>> : std::true_type {};
 
 
@@ -75,9 +71,7 @@ namespace OpenKalman::ranges::views
   template<typename R, std::enable_if_t<viewable_range<R>, int> = 0>
   using all_t = decltype(all(std::declval<R>()));
 
-}
-
-
 #endif
+}
 
 #endif //OPENKALMAN_COMPATIBILITY_VIEWS_ALL_HPP

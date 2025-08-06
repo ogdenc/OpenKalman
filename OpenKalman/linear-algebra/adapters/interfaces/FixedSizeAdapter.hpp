@@ -39,7 +39,7 @@ namespace OpenKalman::interface
     static constexpr auto count_indices(const Arg&)
     {
       // Truncate any trailing ℝ¹ dimensions
-      using NewDesc = decltype(OpenKalman::internal::remove_trailing_1D_descriptors(std::declval<Descriptors>()));
+      using NewDesc = decltype(OpenKalman::coordinates::internal::strip_1D_tail(std::declval<Descriptors>()));
       return collections::size_of<NewDesc>{};
     }
 
@@ -167,10 +167,7 @@ namespace OpenKalman::interface
       {
         constexpr auto N = index_count_v<Object>; //< We know N is not dynamic_size because index_range_for is not satisfied.
         std::array<std::size_t, N> ret;
-#ifdef __cpp_lib_ranges
-        namespace ranges = std::ranges;
-#endif
-        std::ranges::fill(std::ranges::copy(ranges::begin(indices), ranges::end(indices), ranges::begin(ret)), ranges::end(ret), 0);
+        std::ranges::fill(std::ranges::copy<stdcompat::ranges::begin(indices), stdcompat::ranges::end(indices), stdcompat::ranges::begin(ret)), stdcompat::ranges::end(ret), 0);
         return ret;
       }
       else return indices;
@@ -390,7 +387,7 @@ namespace OpenKalman::interface
     static constexpr decltype(auto)
     diagonal_of_impl(Arg&& arg, const std::tuple<V0, V1, Vs...>&)
     {
-      using D0 = decltype(internal::smallest_vector_space_descriptor<scalar_type_of_t<Arg>>(std::declval<V0>(), std::declval<V1>()));
+      using D0 = decltype(internal::smallest_pattern<scalar_type_of_t<Arg>>(std::declval<V0>(), std::declval<V1>()));
       return OpenKalman::internal::make_fixed_size_adapter<D0, Vs...>(std::forward<Arg>(arg));
     }
 
@@ -503,7 +500,7 @@ namespace OpenKalman::interface
       return internal::make_fixed_size_adapter<std::tuple<
         std::conditional_t<
           matching_Ix<Ix, indices...>(),
-          uniform_static_vector_space_descriptor_component_of_t<vector_space_descriptor_of_t<Arg, Ix>>,
+          uniform_pattern_component_of_t<vector_space_descriptor_of_t<Arg, Ix>>,
           std::tuple_element_t<Ix, Descriptors>>...>>
         (std::forward<Arg>(arg));
     }

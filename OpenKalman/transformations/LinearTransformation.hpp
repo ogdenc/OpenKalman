@@ -195,9 +195,9 @@ namespace OpenKalman
       // If there are more inputs than tests matrices, pad the tuple with extra identity matrices.
       if constexpr(sizeof...(Perturbations) + 1 > mat_count)
       {
-        constexpr auto pad_size = sizeof...(Perturbations) + 1 - mat_count;
+        constexpr auto pad_size = std::integral_constant<std::size_t, sizeof...(Perturbations) + 1 - mat_count>{};
         auto id = make_vector_space_adapter(make_identity_matrix_like<TransformationMatrix>(), OutputCoefficients{}, OutputCoefficients{});
-        return std::tuple_cat(transformation_matrices, OpenKalman::collections::internal::repeat_tuple_view<pad_size, decltype(id)&&>(std::move(id)));
+        return std::tuple_cat(transformation_matrices, OpenKalman::collections::views::repeat(std::move(id), pad_size));
       }
       else
       {

@@ -154,37 +154,6 @@ namespace OpenKalman
     using remove_rvalue_reference_t = typename remove_rvalue_reference<T>::type;
 
 
-    // -------------------- //
-    //  is_initializer_list //
-    // -------------------- //
-
-    /**
-     * \brief Whether the argument is a specialization of std::initializer_list
-     */
-    template<typename T>
-    struct is_initializer_list : std::false_type {};
-
-    /// \overload
-    template<typename T>
-    struct is_initializer_list<std::initializer_list<T>> : std::true_type {};
-
-    /// \overload
-    template<typename T>
-    struct is_initializer_list<T&> : is_initializer_list<T> {};
-
-    /// \overload
-    template<typename T>
-    struct is_initializer_list<T&&> : is_initializer_list<T> {};
-
-    /// \overload
-    template<typename T>
-    struct is_initializer_list<const T> : is_initializer_list<T> {};
-
-    /// \overload
-    template<typename T>
-    struct is_initializer_list<volatile T> : is_initializer_list<T> {};
-
-
   } // namespace internal
 
 } // namespace OpenKalman

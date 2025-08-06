@@ -18,10 +18,10 @@
 #include <limits>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/traits/real_type_of_t.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/traits/real_type_of.hpp"
 #include "values/concepts/integral.hpp"
-#include "values/classes/operation.hpp"
+#include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
@@ -44,10 +44,10 @@ namespace OpenKalman::values
   constexpr auto tanh(const Arg& arg)
 #endif
   {
-    if constexpr (not values::number<Arg>)
+    if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::tanh(a); } };
-      return values::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::tanh(a); } };
+      return values::operation(Op{}, arg);
     }
     else
     {
@@ -59,7 +59,7 @@ namespace OpenKalman::values
       {
         if (arg == Arg{0}) return static_cast<Return>(arg);
         if (values::real(arg) == 0 and values::imag(arg) == 0) return values::internal::make_complex_number<Return>(0, 0);
-        using R = std::conditional_t<values::integral<values::real_type_of_t<Return>>, double, values::real_type_of_t<Return>>;
+        using R = real_type_of_t<real_type_of_t<Return>>;
         auto ex = values::exp(values::internal::make_complex_number<R>(arg));
         auto er = values::real(ex);
         auto ei = values::imag(ex);

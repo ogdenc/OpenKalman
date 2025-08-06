@@ -14,39 +14,17 @@
  */
 
 #include "tests.hpp"
-#include "basics/classes/equal_to.hpp"
-#include "basics/classes/not_equal_to.hpp"
-#include "basics/classes/less.hpp"
-#include "basics/classes/greater.hpp"
-#include "basics/classes/less_equal.hpp"
-#include "basics/classes/greater_equal.hpp"
-#include "basics/compatibility/views.hpp"
+#include "basics/basics.hpp"
 #include "collections/concepts/sized_random_access_range.hpp"
 #include "collections/concepts/collection_view.hpp"
 #include "collections/concepts/viewable_collection.hpp"
 #include "collections/views/all.hpp"
 #include "collections/views/concat.hpp"
 #include "collections/functions/internal/tuple_like_to_tuple.hpp"
-#include "collections/functions/compare.hpp"
-
+#include "collections/functions/comparison_operators.hpp"
 
 using namespace OpenKalman;
 using namespace OpenKalman::collections;
-
-#ifdef __cpp_lib_ranges
-#include<ranges>
-  namespace rg = std::ranges;
-#else
-#include "basics/compatibility/views.hpp"
-  namespace rg = OpenKalman::ranges;
-#endif
-
-#if __cpp_lib_ranges_concat >= 202403L
-  namespace cv = std::ranges::views;
-#else
-#include "basics/compatibility/views.hpp"
-  namespace cv = ranges::views;
-#endif
 
 TEST(collections, concat_tuple_view)
 {
@@ -80,20 +58,20 @@ TEST(collections, concat)
   constexpr int a1[5] = {1, 2, 3, 4, 5};
   auto v1 = std::vector{4, 5, 6, 7, 8};
 
-  static_assert(size_of_v<decltype(cv::concat(t1 | views::all, a1 | views::all) | rg::views::transform(std::negate{}) | rg::views::reverse)> == 10);
-  static_assert(std::tuple_size_v<decltype(cv::concat(t1 | views::all, t1 | views::all) | views::all)> == 10);
-  static_assert(std::is_same_v<std::tuple_element_t<1, decltype(cv::concat(t1 | views::all, t1 | views::all) | views::all)>, double>);
-  static_assert(std::is_same_v<std::tuple_element_t<2, decltype(cv::concat(t1 | views::all, t1 | views::all) | views::all)>, double>);
-  EXPECT_EQ(OpenKalman::internal::generalized_std_get<7>(cv::concat(t1 | views::all, t1 | views::all) | views::all), 3);
-  static_assert(tuple_like<decltype(cv::concat(t1 | views::all, t1 | views::all) | views::all)>);
+  static_assert(size_of_v<decltype(stdcompat::ranges::views::concat(t1 | views::all, a1 | views::all) | stdcompat::ranges::views::transform(std::negate{}) | stdcompat::ranges::views::reverse)> == 10);
+  static_assert(std::tuple_size_v<decltype(stdcompat::ranges::views::concat(t1 | views::all, t1 | views::all) | views::all)> == 10);
+  static_assert(std::is_same_v<std::tuple_element_t<1, decltype(stdcompat::ranges::views::concat(t1 | views::all, t1 | views::all) | views::all)>, double>);
+  static_assert(std::is_same_v<std::tuple_element_t<2, decltype(stdcompat::ranges::views::concat(t1 | views::all, t1 | views::all) | views::all)>, double>);
+  EXPECT_EQ(OpenKalman::internal::generalized_std_get<7>(stdcompat::ranges::views::concat(t1 | views::all, t1 | views::all) | views::all), 3);
+  static_assert(tuple_like<decltype(stdcompat::ranges::views::concat(t1 | views::all, t1 | views::all) | views::all)>);
 
   static_assert(tuple_like<decltype(views::concat(t1, t1, t1))>);
-  static_assert(rg::random_access_range<decltype(views::concat(t1, t1, t1))>);
+  static_assert(stdcompat::ranges::random_access_range<decltype(views::concat(t1, t1, t1))>);
   static_assert(tuple_like<decltype(views::concat(a1, t1))>);
-  static_assert(rg::random_access_range<decltype(views::concat(a1, t1))>);
+  static_assert(stdcompat::ranges::random_access_range<decltype(views::concat(a1, t1))>);
   static_assert(size_of_v<decltype(views::concat(a1, v1))> == dynamic_size);
   static_assert(not tuple_like<decltype(views::concat(a1, v1))>);
-  static_assert(rg::random_access_range<decltype(views::concat(a1, v1))>);
+  static_assert(stdcompat::ranges::random_access_range<decltype(views::concat(a1, v1))>);
 
   static_assert(std::is_same_v<std::tuple_element_t<5, decltype(views::concat(t1, t1) | views::all)>, int>);
   static_assert(std::is_same_v<std::tuple_element_t<6, decltype(views::concat(t1, t1) | views::all)>, double>);

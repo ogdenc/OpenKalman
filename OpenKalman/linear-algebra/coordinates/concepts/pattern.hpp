@@ -28,11 +28,11 @@ namespace OpenKalman::coordinates
 #ifdef __cpp_concepts
   concept pattern =
 #else
-  constexpr bool pattern =
+  inline constexpr bool pattern =
 #endif
     descriptor<T> or descriptor_collection<T>;
 
 
-} // namespace OpenKalman::coordinates
+}
 
-#endif //OPENKALMAN_COORDINATE_PATTERN_HPP
+#endif

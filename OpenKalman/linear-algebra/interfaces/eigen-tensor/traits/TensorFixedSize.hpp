@@ -48,7 +48,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_lib_concepts
     template<typename Arg, std::convertible_to<IndexType>...I> requires (sizeof...(I) == Dims::count)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, IndexType> and ...) and
+    template<typename Arg, typename...I, std::enable_if_t<(stdcompat::convertible_to<I, IndexType> and ...) and
       (sizeof...(I) == Dims::count), int> = 0>
 #endif
     static constexpr decltype(auto)

@@ -16,7 +16,7 @@
 #ifndef OPENKALMAN_COLLECTIONS_UNIFORMLY_SETTABLE_HPP
 #define OPENKALMAN_COLLECTIONS_UNIFORMLY_SETTABLE_HPP
 
-#include <type_traits>
+#include "values/values.hpp"
 #include "settable.hpp"
 #include "collections/traits/size_of.hpp"
 
@@ -33,37 +33,35 @@ namespace OpenKalman::collections
       : std::true_type {};
 
 
-    template<typename C, typename = void>
+    template<typename C, typename T, typename = void>
     struct uniformly_settable_sized : std::false_type {};
 
     template<typename C, typename T>
     struct uniformly_settable_sized<C, T, std::enable_if_t<size_of<C>::value != dynamic_size>>
       : uniformly_settable_sized_impl<C, T> {};
-
-  } // namespace detail
+  }
 #endif
 
 
   /**
    * \brief C is \ref settable with type C for all indices.
-   * \details If C is not \ref sized, then it must be settable for at least index 0 and std::numeric_limits<std::size_t>::max() - 1.
+   * \details If C is not \ref sized or has dynamic size, then it must be settable for at least index 0.
    */
   template<typename C, typename T>
 #if defined(__cpp_concepts) and __cpp_generic_lambdas >= 201707L
   concept uniformly_settable =
-    ((sized<C> and size_of_v<C> != dynamic_size) or
-      (settable<0_uz, C, T> and settable<std::numeric_limits<std::size_t>::max() - 1_uz, C, T>)) and
+    ((sized<C> and size_of_v<C> != dynamic_size) or settable<0_uz, C, T>) and
     (not sized<C> or size_of_v<C> == dynamic_size or
       []<std::size_t...i>(std::index_sequence<i...>) { return (... and settable<i, C, T>); }
         (std::make_index_sequence<size_of_v<C>>{}));
 #else
   constexpr bool uniformly_settable =
-    ((sized<C> and size_of_v<C> != dynamic_size) or
-      (settable<0_uz, C, T> and settable<std::numeric_limits<std::size_t>::max() - 1_uz, C, T>)) and
-    (not sized<C> or size_of_v<C> == dynamic_size or detail::uniformly_settable_sized<C, T>::value);
+    ((sized<C> and not values::fixed_number_compares_with<size_of<C>, dynamic_size>) or settable<0_uz, C, T>) and
+    (not sized<C> or size_of_v<C> == dynamic_size or
+      detail::uniformly_settable_sized<C, T>::value);
 #endif
 
 
-} // namespace OpenKalman::collections
+}
 
 #endif 

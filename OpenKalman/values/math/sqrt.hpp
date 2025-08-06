@@ -18,9 +18,9 @@
 #include <limits>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/traits/real_type_of_t.hpp"
-#include "values/classes/operation.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/traits/real_type_of.hpp"
+#include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
@@ -39,17 +39,17 @@ namespace OpenKalman::values
    * \details Uses the Newton-Raphson method
    */
 #ifdef __cpp_concepts
-  template<values::value Arg>
-  constexpr values::value auto sqrt(const Arg& arg)
+  template<value Arg>
+  constexpr value auto sqrt(const Arg& arg)
 #else
-  template <typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
+  template <typename Arg, std::enable_if_t<value<Arg>, int> = 0>
   constexpr auto sqrt(const Arg& arg)
 #endif
   {
-    if constexpr (not values::number<Arg>)
+    if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::sqrt(a); } };
-      return values::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::sqrt(a); } };
+      return values::operation(Op{}, arg);
     }
     else
     {
@@ -62,18 +62,20 @@ namespace OpenKalman::values
         // Find the principal square root
         auto arg_re = values::real(arg);
         auto arg_im = values::imag(arg);
-        using R = real_type_of_t<Arg>;
-        if constexpr (std::numeric_limits<R>::is_iec559)
+        using R = real_type_of_t<real_type_of_t<Return>>;
+        if constexpr (std::numeric_limits<real_type_of_t<Arg>>::is_iec559)
         {
           if (values::isinf(arg_im)) return values::internal::make_complex_number<Return>(
             values::internal::infinity<R>(),
             values::copysign(values::internal::infinity<R>(), arg_im));
-          if (arg_re == values::internal::infinity<R>()) return values::internal::make_complex_number<Return>(
-            values::internal::infinity<R>(),
-            values::copysign(values::isnan(arg_im) ? values::internal::NaN<R>() : 0, arg_im));
-          if (arg_re == -values::internal::infinity<R>()) return values::internal::make_complex_number<Return>(
-            values::isnan(arg_im) ? values::internal::NaN<R>() : 0,
-            values::copysign(values::internal::infinity<R>(), arg_im));
+          if (arg_re == values::internal::infinity<real_type_of_t<Arg>>())
+            return values::internal::make_complex_number<Return>(
+              values::internal::infinity<R>(),
+              values::copysign(values::isnan(arg_im) ? values::internal::NaN<R>() : 0, arg_im));
+          if (arg_re == -values::internal::infinity<real_type_of_t<Arg>>())
+            return values::internal::make_complex_number<Return>(
+              values::isnan(arg_im) ? values::internal::NaN<R>() : 0,
+              values::copysign(values::internal::infinity<R>(), arg_im));
         }
         auto re = values::real(arg_re);
         auto im = values::real(arg_im);

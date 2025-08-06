@@ -32,7 +32,7 @@ namespace OpenKalman
 #else
   constexpr bool writable =
     indexible<T> and interface::is_explicitly_writable<T>::value and (not std::is_const_v<std::remove_reference_t<T>>) and
-    std::is_copy_constructible_v<std::decay_t<T>> and std::is_move_constructible_v<std::decay_t<T>>;
+    stdcompat::copy_constructible<std::decay_t<T>> and std::is_move_constructible_v<std::decay_t<T>>;
 #endif
 
 

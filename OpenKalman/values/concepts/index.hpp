@@ -18,7 +18,7 @@
 
 #include <type_traits>
 #include "values/traits/fixed_number_of.hpp"
-#include "values/traits/number_type_of_t.hpp"
+#include "values/traits/number_type_of.hpp"
 #include "integral.hpp"
 
 namespace OpenKalman::values
@@ -29,18 +29,23 @@ namespace OpenKalman::values
     template<typename T, typename = void>
     struct number_type_is_unsigned : std::false_type {};
 
-
     template<typename T>
-    struct number_type_is_unsigned<T, std::enable_if_t<std::is_unsigned_v<values::number_type_of_t<T>>>>
+    struct number_type_is_unsigned<T, std::enable_if_t<std::is_unsigned_v<number_type_of_t<T>>>>
       : std::true_type {};
 
 
     template<typename T, typename = void>
     struct fixed_integral_gt_0 : std::false_type {};
 
+    template<typename T>
+    struct fixed_integral_gt_0<T, std::enable_if_t<(fixed_number_of<T>::value >= 0)>> : std::true_type {};
+
+
+    template<typename T, typename = void>
+    struct is_bool : std::false_type {};
 
     template<typename T>
-    struct fixed_integral_gt_0<T, std::enable_if_t<(values::fixed_number_of<T>::value >= 0)>> : std::true_type {};
+    struct is_bool<T, std::enable_if_t<std::is_same_v<number_type_of_t<T>, bool>>> : std::true_type {};
   }
 #endif
 
@@ -50,12 +55,14 @@ namespace OpenKalman::values
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept index = values::integral<T> and (std::is_unsigned_v<number_type_of_t<T>> or fixed_number_of<T>::value >= 0);
+  concept index = integral<T> and (std::is_unsigned_v<number_type_of_t<T>> or fixed_number_of<T>::value >= 0) and
+    (not std::same_as<number_type_of_t<T>, bool>);
 #else
   template<typename T>
-  constexpr bool index = values::integral<T> and (detail::number_type_is_unsigned<T>::value or detail::fixed_integral_gt_0<T>::value);
+  constexpr bool index = integral<T> and (detail::number_type_is_unsigned<T>::value or detail::fixed_integral_gt_0<T>::value) and
+    (not detail::is_bool<T>::value);
 #endif
 
-} // namespace OpenKalman::values
+}
 
-#endif //OPENKALMAN_VALUE_INDEX_HPP
+#endif

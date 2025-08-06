@@ -17,7 +17,7 @@
 #define OPENKALMAN_GET_EUCLIDEAN_DIMENSION_HPP
 
 #include <functional>
-#include "basics/global-definitions.hpp"
+#include "basics/basics.hpp"
 #include "collections/concepts/tuple_like.hpp"
 #include "linear-algebra/coordinates/concepts/pattern.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor.hpp"
@@ -32,7 +32,7 @@ namespace OpenKalman::coordinates
     {
       if constexpr (i < std::tuple_size_v<Tup>)
       {
-        return values::operation {std::plus{}, internal::get_descriptor_stat_dimension(OpenKalman::internal::generalized_std_get<i>(tup)), get_euclidean_dimension_tuple<i + 1>(tup)};
+        return values::operation(std::plus{}, internal::get_descriptor_stat_dimension(OpenKalman::internal::generalized_std_get<i>(tup)), get_euclidean_dimension_tuple<i + 1>(tup));
       }
       else return std::integral_constant<std::size_t, 0_uz>{};
     }
@@ -62,9 +62,14 @@ namespace OpenKalman::coordinates
     }
     else
     {
+#ifdef __cpp_lib_ranges_fold
+      return std::ranges::fold_left(collections::views::all(arg), 0_uz,
+        [](const auto& a, const auto& b) { return a + internal::get_descriptor_stat_dimension(b); });
+#else
       std::size_t ret = 0_uz;
-      for (auto& c : arg) ret += internal::get_descriptor_stat_dimension(c);
+      for (const auto& c : collections::views::all(arg)) ret += internal::get_descriptor_stat_dimension(c);
       return ret;
+#endif
     }
   }
 

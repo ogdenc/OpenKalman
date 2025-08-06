@@ -49,7 +49,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     constexpr FromEuclideanExpr() requires std::default_initializable<Base> and fixed_pattern<V0>
 #else
-    template<typename B = Base, std::enable_if_t<std::is_default_constructible_v<B> and fixed_pattern<V0>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<Base> and fixed_pattern<V0>, int> = 0>
     constexpr FromEuclideanExpr()
 #endif
     {}
@@ -63,7 +63,7 @@ namespace OpenKalman
       std::constructible_from<NestedObject, Arg&&> and std::constructible_from<std::decay_t<V0>, D0>
 #else
     template<typename Arg, typename D0, std::enable_if_t<indexible<Arg> and coordinates::pattern<C> and
-      std::is_constructible_v<NestedObject, Arg&&> and std::is_constructible_v<std::decay_t<V0>, D0>, int> = 0>
+      stdcompat::constructible_from<NestedObject, Arg&&> and stdcompat::constructible_from<std::decay_t<V0>, D0>, int> = 0>
 #endif
     explicit FromEuclideanExpr(Arg&& arg, const D0& d0) : Base {std::forward<Arg>(arg)}, vector_space_descriptor_index_0{d0} {}
 
@@ -75,7 +75,7 @@ namespace OpenKalman
     template<indexible Arg> requires std::constructible_from<NestedObject, Arg&&> and fixed_index_descriptor<V0>
 #else
     template<typename Arg, typename D0, std::enable_if_t<indexible<Arg> and
-      std::is_constructible_v<NestedObject, Arg&&> and fixed_index_descriptor<V0>, int> = 0>
+      stdcompat::constructible_from<NestedObject, Arg&&> and fixed_index_descriptor<V0>, int> = 0>
 #endif
     explicit FromEuclideanExpr(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
@@ -286,7 +286,7 @@ namespace OpenKalman
         {
           auto g {[&arg, is...](std::size_t ix) { return OpenKalman::get_component(nested_object(std::forward<Arg>(arg)), ix, is...); }};
           if constexpr (to_euclidean_expr<nested_object_of_t<Arg>>)
-            return coordinates::get_wrapped_component(get_vector_space_descriptor<0>(arg), g, i);
+            return coordinates::wrap(get_vector_space_descriptor<0>(arg), g, i);
           else
             return coordinates::from_stat_space(get_vector_space_descriptor<0>(arg), g, i);
         }

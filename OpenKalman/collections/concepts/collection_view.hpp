@@ -16,11 +16,7 @@
 #ifndef OPENKALMAN_COLLECTIONS_COLLECTION_VIEW_HPP
 #define OPENKALMAN_COLLECTIONS_COLLECTION_VIEW_HPP
 
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
 #include "basics/compatibility/views/view-concepts.hpp"
-#endif
 #include "uniformly_gettable.hpp"
 
 namespace OpenKalman::collections
@@ -31,10 +27,11 @@ namespace OpenKalman::collections
    */
   template<typename T>
 #ifdef __cpp_lib_ranges
-  concept collection_view = std::ranges::view<T> and uniformly_gettable<T> and std::ranges::random_access_range<T>;
+  concept collection_view =
 #else
-  constexpr bool collection_view = ranges::view<T> and uniformly_gettable<T> and ranges::random_access_range<T>;
+  constexpr bool collection_view =
 #endif
+    stdcompat::ranges::view<T> and uniformly_gettable<T> and stdcompat::ranges::random_access_range<T>;
 
 
 } // namespace OpenKalman

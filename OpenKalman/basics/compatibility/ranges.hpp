@@ -19,12 +19,38 @@
 #ifndef OPENKALMAN_RANGES_HPP
 #define OPENKALMAN_RANGES_HPP
 
-#ifndef __cpp_lib_ranges
+#ifdef __cpp_lib_ranges
+#include <ranges>
+#endif
+
+namespace OpenKalman::stdcompat::ranges {}
+
+#include "common.hpp"
+#include "language-features.hpp"
+#include "core-concepts.hpp"
+#include "invoke.hpp"
+#include "comparison.hpp"
+#include "internal/movable_box.hpp"
+#include "iterator.hpp"
 
 #include "ranges/range-access.hpp"
 #include "ranges/range-concepts.hpp"
 
+#include "views/view_interface.hpp"
+#include "views/view-concepts.hpp"
+#include "views/range_adaptor_closure.hpp"
+#include "views/ref_view.hpp"
+#include "views/owning_view.hpp"
+#include "views/all.hpp"
+#include "views/empty.hpp"
+#include "views/single.hpp"
+#include "views/iota.hpp"
+#include "views/transform.hpp"
+#include "views/reverse.hpp"
+
+#include "views/repeat.hpp"
+#include "views/concat.hpp"
+#include "views/to.hpp"
+
 #endif
 
-
-#endif //OPENKALMAN_RANGES_HPP

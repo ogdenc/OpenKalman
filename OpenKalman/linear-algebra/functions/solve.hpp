@@ -125,7 +125,7 @@ namespace OpenKalman
     {
       if constexpr (dynamic_dimension<A, 0> or dynamic_dimension<B, 0>) detail::solve_check_A_and_B_rows_match(a, b);
 
-      using V0 = decltype(internal::best_vector_space_descriptor(get_vector_space_descriptor<0>(b), get_vector_space_descriptor<0>(a), get_vector_space_descriptor<1>(a)));
+      using V0 = decltype(internal::most_fixed_pattern(get_vector_space_descriptor<0>(b), get_vector_space_descriptor<0>(a), get_vector_space_descriptor<1>(a)));
       using V1 = vector_space_descriptor_of_t<B, 1>;
 
       if constexpr (identity_matrix<A> and square_shaped<A>)

@@ -17,19 +17,17 @@
 #ifndef OPENKALMAN_COMPATIBILITY_VIEWS_TO_HPP
 #define OPENKALMAN_COMPATIBILITY_VIEWS_TO_HPP
 
-#if __cpp_lib_ranges_to_container < 202202L
-
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
+#include "basics/compatibility/language-features.hpp"
 #include "basics/compatibility/ranges.hpp"
 #include "view-concepts.hpp"
 #include "range_adaptor_closure.hpp"
 #include "transform.hpp"
-#endif
 
-namespace OpenKalman::ranges
+namespace OpenKalman::stdcompat::ranges
 {
+#if __cpp_lib_ranges_to_container >= 202202L
+  using std::ranges::to;
+#else
   namespace detail_to
   {
     using namespace std;
@@ -56,7 +54,7 @@ namespace OpenKalman::ranges
 
     
     template<typename Adaptor, typename...Args>
-    struct Partial : ranges::range_adaptor_closure<Partial<Adaptor, Args...>>
+    struct Partial : stdcompat::ranges::range_adaptor_closure<Partial<Adaptor, Args...>>
     {
       template<typename...Ts>
 	    constexpr explicit
@@ -101,7 +99,7 @@ namespace OpenKalman::ranges
 
     
     template<typename Adaptor, typename Arg>
-    struct Partial<Adaptor, Arg> : ranges::range_adaptor_closure<Partial<Adaptor, Arg>>
+    struct Partial<Adaptor, Arg> : stdcompat::ranges::range_adaptor_closure<Partial<Adaptor, Arg>>
     {
       template<typename Tp>
 	    constexpr
@@ -156,28 +154,28 @@ namespace OpenKalman::ranges
     struct reservable_container_impl : std::false_type {};
 
     template<typename T>
-    struct reservable_container_impl<T, std::void_t<decltype(std::declval<T&>().reserve(std::declval<ranges::range_size_t<T>>()))>,
+    struct reservable_container_impl<T, std::void_t<decltype(std::declval<T&>().reserve(std::declval<stdcompat::ranges::range_size_t<T>>()))>,
       std::enable_if_t<
-        std::is_same_v<decltype(std::declval<T&>().capacity()), ranges::range_size_t<T>> and
-        std::is_same_v<decltype(std::declval<T&>().max_size()), ranges::range_size_t<T>>>>
+        std::is_same_v<decltype(std::declval<T&>().capacity()), stdcompat::ranges::range_size_t<T>> and
+        std::is_same_v<decltype(std::declval<T&>().max_size()), stdcompat::ranges::range_size_t<T>>>>
       : std::true_type {};
 
     template<typename Container>
     inline constexpr bool reservable_container =
-      ranges::sized_range<Container> and reservable_container_impl<Container>::value;
+      stdcompat::ranges::sized_range<Container> and reservable_container_impl<Container>::value;
 
     template<typename Range, typename = void>
     struct toable1_impl : std::false_type {};
 
     template<typename Cont>
-    struct toable1_impl<Cont, std::enable_if_t<not ranges::input_range<Cont>>> : std::true_type {};
+    struct toable1_impl<Cont, std::enable_if_t<not stdcompat::ranges::input_range<Cont>>> : std::true_type {};
 
     template<typename Cont, typename Range, typename = void>
     struct toable2_impl : std::false_type {};
 
     template<typename Cont, typename Range>
     struct toable2_impl<Cont, Range, std::enable_if_t<
-      std::is_convertible_v<ranges::range_reference_t<Range>, ranges::range_value_t<Cont>>>> : std::true_type {};
+      stdcompat::convertible_to<stdcompat::ranges::range_reference_t<Range>, stdcompat::ranges::range_value_t<Cont>>>> : std::true_type {};
 
     template<typename Cont, typename Range>
     inline constexpr bool toable = toable1_impl<Cont>::value or toable2_impl<Cont, Range>::value;
@@ -212,7 +210,7 @@ namespace OpenKalman::ranges
     template<typename Cont, std::ranges::input_range Rg, typename...Args> requires (not std::ranges::view<Cont>)
 #else
     template<typename Cont, typename Rg, typename...Args, std::enable_if_t<
-      ranges::input_range<Rg> and not ranges::view<Cont>, int> = 0>
+      stdcompat::ranges::input_range<Rg> and not stdcompat::ranges::view<Cont>, int> = 0>
 #endif
     constexpr Cont
     to [[nodiscard]] (Rg&& r, Args&&... args)
@@ -222,23 +220,23 @@ namespace OpenKalman::ranges
 
       if constexpr (toable<Cont, Rg>)
       {
-        if constexpr (std::is_constructible_v<Cont, Rg, Args...>)
+        if constexpr (stdcompat::constructible_from<Cont, Rg, Args...>)
         {
           return Cont(std::forward<Rg>(r), std::forward<Args>(args)...);
         }
-        else if constexpr (input_iterator<Rg> and ranges::common_range<Rg> and
-          std::is_constructible_v<Cont, ranges::iterator_t<Rg>, ranges::sentinel_t<Rg>, Args...>)
+        else if constexpr (input_iterator<Rg> and stdcompat::ranges::common_range<Rg> and
+          stdcompat::constructible_from<Cont, stdcompat::ranges::iterator_t<Rg>, stdcompat::ranges::sentinel_t<Rg>, Args...>)
         {
-          return Cont(ranges::begin(r), ranges::end(r), std::forward<Args>(args)...);
+          return Cont(stdcompat::ranges::begin(r), stdcompat::ranges::end(r), std::forward<Args>(args)...);
         }
         else
         {
-          static_assert(std::is_constructible_v<Cont, Args...>);
+          static_assert(stdcompat::constructible_from<Cont, Args...>);
           Cont c(std::forward<Args>(args)...);
-          if constexpr (ranges::sized_range<Rg> and reservable_container<Cont>)
-            c.reserve(static_cast<ranges::range_size_t<Cont>>(ranges::size(r)));
-          auto it = ranges::begin(r);
-          const auto sent = ranges::end(r);
+          if constexpr (stdcompat::ranges::sized_range<Rg> and reservable_container<Cont>)
+            c.reserve(static_cast<stdcompat::ranges::range_size_t<Cont>>(stdcompat::ranges::size(r)));
+          auto it = stdcompat::ranges::begin(r);
+          const auto sent = stdcompat::ranges::end(r);
           while (it != sent)
           {
 #ifdef __cpp_concepts
@@ -258,9 +256,9 @@ namespace OpenKalman::ranges
       }
       else
       {
-        static_assert(ranges::input_range<ranges::range_reference_t<Rg>>);
-        return to<Cont>(ref_view(r) | ranges::views::transform(
-        [](auto&& elem) { return to<ranges::range_value_t<Cont>>(std::forward<decltype(elem)>(elem)); }), std::forward<Args>(args)...);
+        static_assert(stdcompat::ranges::input_range<stdcompat::ranges::range_reference_t<Rg>>);
+        return to<Cont>(ref_view(r) | stdcompat::ranges::views::transform(
+        [](auto&& elem) { return to<stdcompat::ranges::range_value_t<Cont>>(std::forward<decltype(elem)>(elem)); }), std::forward<Args>(args)...);
       }
     }
 
@@ -269,10 +267,10 @@ namespace OpenKalman::ranges
     struct InputIter
     {
       using iterator_category = std::input_iterator_tag;
-      using value_type = ranges::range_value_t<Rg>;
+      using value_type = stdcompat::ranges::range_value_t<Rg>;
       using difference_type = std::ptrdiff_t;
-      using pointer = std::add_pointer_t<ranges::range_reference_t<Rg>>;
-      using reference = ranges::range_reference_t<Rg>;
+      using pointer = std::add_pointer_t<stdcompat::ranges::range_reference_t<Rg>>;
+      using reference = stdcompat::ranges::range_reference_t<Rg>;
       reference operator*() const;
       pointer operator->() const;
       InputIter& operator++();
@@ -319,7 +317,7 @@ namespace OpenKalman::ranges
 #ifdef __cpp_concepts
     template<template<typename...> typename Cont, std::ranges::input_range Rg, typename...Args>
 #else
-    template<template<typename...> typename Cont, typename Rg, typename...Args, std::enable_if_t<ranges::input_range<Rg>, int> = 0>
+    template<template<typename...> typename Cont, typename Rg, typename...Args, std::enable_if_t<stdcompat::ranges::input_range<Rg>, int> = 0>
 #endif
     constexpr auto
     to [[nodiscard]] (Rg&& r, Args&&... args)
@@ -350,9 +348,9 @@ namespace OpenKalman::ranges
 
 
 #ifdef __cpp_concepts
-    template<typename Cont, typename... Args> requires (not ranges::view<Cont>)
+    template<typename Cont, typename... Args> requires (not stdcompat::ranges::view<Cont>)
 #else
-    template<typename Cont, typename...Args, std::enable_if_t<not ranges::view<Cont>, int> = 0>
+    template<typename Cont, typename...Args, std::enable_if_t<not stdcompat::ranges::view<Cont>, int> = 0>
 #endif
     constexpr auto
     to [[nodiscard]] (Args&&... args)
@@ -388,8 +386,8 @@ namespace OpenKalman::ranges
 
   using detail_to::to;
 
+#endif
 }
 
-#endif
 
 #endif //OPENKALMAN_COMPATIBILITY_VIEWS_TO_HPP

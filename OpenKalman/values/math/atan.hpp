@@ -17,9 +17,9 @@
 
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/traits/real_type_of_t.hpp"
-#include "values/classes/operation.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/traits/real_type_of.hpp"
+#include "values/functions/operation.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
 #include "values/functions/internal/constexpr_callable.hpp"
 #include "values/math/internal/NaN.hpp"
@@ -35,17 +35,17 @@ namespace OpenKalman::values
    * \brief Constexpr alternative to the std::atan function.
    */
 #ifdef __cpp_concepts
-  template<values::value Arg>
-  constexpr values::value auto atan(const Arg& arg)
+  template<value Arg>
+  constexpr value auto atan(const Arg& arg)
 #else
-  template <typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
+  template <typename Arg, std::enable_if_t<value<Arg>, int> = 0>
   constexpr auto atan(const Arg& arg)
 #endif
   {
-    if constexpr (not values::number<Arg>)
+    if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::atan(a); } };
-      return values::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::atan(a); } };
+      return values::operation(Op{}, arg);
     }
     else
     {
@@ -55,14 +55,14 @@ namespace OpenKalman::values
       if (values::internal::constexpr_callable<Op>(arg)) return atan(arg);
       else if constexpr (values::complex<Return>)
       {
-        using R = real_type_of_t<real_type_of_t<Arg>>;
+        using R = real_type_of_t<real_type_of_t<Return>>;
         auto x = values::internal::make_complex_number<R>(arg);
         return internal::make_complex_number<Return>(internal::atan_impl_general(x));
       }
       else
       {
         if (values::isnan(arg)) return values::internal::NaN<Return>();
-        if (values::isinf(arg)) return values::copysign(numbers::pi_v<Return> * static_cast<Return>(0.5), arg);
+        if (values::isinf(arg)) return values::copysign(stdcompat::numbers::pi_v<Return> * static_cast<Return>(0.5), arg);
         if (arg == 0) return static_cast<Return>(arg);
         return internal::atan_impl(static_cast<Return>(arg));
       }

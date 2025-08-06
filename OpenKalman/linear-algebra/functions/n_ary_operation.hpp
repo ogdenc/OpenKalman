@@ -39,7 +39,7 @@ namespace OpenKalman
             auto tup_d = std::get<ix>(d_tup);
             auto dim_arg_d = get_dimension(arg_d);
             auto dim_tup_d = get_dimension(tup_d);
-            if (not (arg_d == tup_d) and not internal::is_uniform_component_of(arg_d, tup_d))
+            if (not (arg_d == tup_d) and not coordinates::is_uniform_pattern_component_of(arg_d, tup_d))
               throw std::logic_error {"In an argument to n_ary_operation, the dimension of index " +
                 std::to_string(ix) + " is " + std::to_string(dim_arg_d) + ", but should be 1 " +
                 (dim_tup_d == 1 ? "" : "or " + std::to_string(dim_tup_d)) +
@@ -49,8 +49,8 @@ namespace OpenKalman
           {
             using D_Arg = vector_space_descriptor_of_t<Arg, ix>;
             using D = std::tuple_element_t<ix, DTup>;
-            static_assert(compares_with<D_Arg, D> or equivalent_to_uniform_static_vector_space_descriptor_component_of<D_Arg, D>or
-              (ix >= index_count_v<Arg> and uniform_static_vector_space_descriptor<D>),
+            static_assert(compares_with<D_Arg, D> or equivalent_to_uniform_pattern_component_of<D_Arg, D> or
+              (ix >= index_count_v<Arg> and uniform_pattern<D>),
               "In argument to n_ary_operation, the dimension of each index must be either 1 or that of Ds.");
           }
         }(d_tup, args),...);
@@ -182,10 +182,10 @@ namespace OpenKalman
     replicate_arg(const std::tuple<Ds...>& d_tup, Arg&& arg, std::index_sequence<Ix_Ds...>)
     {
       OpenKalman::broadcast(std::forward<Arg>(arg),
-        values::operation {
+        values::operation(
           std::divides<scalar_type_of_t<Arg>>{},
           get_dimension(std::get<Ix_Ds>(d_tup)),
-          get_index_dimension_of<Ix_Ds>(arg)}...);
+          get_index_dimension_of<Ix_Ds>(arg))...);
     }
 
 
@@ -349,14 +349,14 @@ namespace OpenKalman
         if constexpr (fixed_pattern<Arg_D> and fixed_pattern<Max_D>)
         {
           constexpr auto dim_arg_d = coordinates::dimension_of_v<Arg_D>;
-          if constexpr (compares_with<Arg_D, Max_D>or (dim_arg_d == 1 and equivalent_to_uniform_static_vector_space_descriptor_component_of<Arg_D, Max_D>))
+          if constexpr (compares_with<Arg_D, Max_D>or (dim_arg_d == 1 and equivalent_to_uniform_pattern_component_of<Arg_D, Max_D>))
           {
             return max_d;
           }
           else
           {
             constexpr auto dim_max_d = coordinates::dimension_of_v<Max_D>;
-            static_assert(dim_max_d != 1 or not equivalent_to_uniform_static_vector_space_descriptor_component_of<Max_D, Arg_D>,
+            static_assert(dim_max_d != 1 or not equivalent_to_uniform_pattern_component_of<Max_D, Arg_D>,
               "The dimension of arguments to n_ary_operation are not compatible with each other for at least one index.");
             return get_vector_space_descriptor<ix>(arg);
           }
@@ -398,13 +398,13 @@ namespace OpenKalman
         {
           auto arg_d = get_vector_space_descriptor<ix>(arg);
           //using Scalar = scalar_type_of_t<Arg>;
-          if (internal::is_uniform_component_of(arg_d, max_d))
+          if (coordinates::is_uniform_pattern_component_of(arg_d, max_d))
           {
             //if constexpr (internal::is_DynamicDescriptor<Max_D>::value) return DynamicDescriptor {max_d};
             //else return DynamicDescriptor<Scalar> {max_d};
             return max_d;
           }
-          else if (internal::is_uniform_component_of(max_d, arg_d))
+          else if (coordinates::is_uniform_pattern_component_of(max_d, arg_d))
           {
             //if constexpr (internal::is_DynamicDescriptor<Max_D>::value) return DynamicDescriptor {arg_d};
             //else return DynamicDescriptor<Scalar> {arg_d};

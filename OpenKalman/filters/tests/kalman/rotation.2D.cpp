@@ -14,7 +14,7 @@ using namespace OpenKalman;
 using namespace OpenKalman::coordinates;
 using namespace OpenKalman::test;
 
-using numbers::pi;
+using stdcompat::numbers::pi;
 
 
 namespace

@@ -48,26 +48,24 @@ namespace OpenKalman::interface {}
 namespace OpenKalman::internal {}
 
 
+/**
+ * \internal
+ * \brief Namespace for recreating or updating elements of the Standard Template Library.
+ */
+namespace OpenKalman::stdcompat {}
+
 #include "compatibility/language-features.hpp"
+#include "compatibility/core-concepts.hpp"
+#include "compatibility/internal/exposition.hpp"
+#include "compatibility/common.hpp"
+#include "compatibility/comparison.hpp"
+#include "compatibility/object-concepts.hpp"
+#include "compatibility/invoke.hpp"
+#include "compatibility/callable-concepts.hpp"
+
 #include "compatibility/internal/movable_box.hpp"
-
-#if __cplusplus < 202002L
-#include "compatibility/common_reference.hpp"
-#endif
-
-#ifndef __cpp_lib_ranges
 #include "compatibility/iterator.hpp"
 #include "compatibility/ranges.hpp"
-#endif
-
-#if __cpp_lib_ranges < 202202L
-#include "compatibility/views/range_adaptor_closure.hpp"
-#endif
-
-#ifndef __cpp_lib_ranges
-#include "compatibility/views.hpp"
-#endif
-
 
 #include "global-definitions.hpp"
 
@@ -78,5 +76,6 @@ namespace OpenKalman::internal {}
 #include "classes/greater.hpp"
 #include "classes/greater_equal.hpp"
 
+#include "compatibility/internal/generalized_std_get.hpp"
 
-#endif //OPENKALMAN_BASICS_HPP
+#endif

@@ -18,7 +18,7 @@
 
 #include <type_traits>
 #include "values/interface/number_traits.hpp"
-#include "values/traits/number_type_of_t.hpp"
+#include "values/traits/number_type_of.hpp"
 
 namespace OpenKalman::values
 {

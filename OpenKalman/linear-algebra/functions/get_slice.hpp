@@ -88,13 +88,13 @@ namespace OpenKalman
    */
 #ifdef __cpp_concepts
   template<std::size_t...indices, indexible Arg, values::index...Offset, values::index...Extent> requires
-    (sizeof...(Offset) == sizeof...(Extent)) and internal::has_uniform_static_vector_space_descriptors<Arg, indices...> and
+    (sizeof...(Offset) == sizeof...(Extent)) and internal::has_uniform_patterns<Arg, indices...> and
     (sizeof...(indices) == 0 or sizeof...(indices) == sizeof...(Offset))
   constexpr indexible decltype(auto)
 #else
   template<std::size_t...indices, typename Arg, typename...Offset, typename...Extent, std::enable_if_t<
     indexible<Arg> and (values::index<Offset> and ...) and (values::index<Extent> and ...) and
-    (sizeof...(Offset) == sizeof...(Extent)) and internal::has_uniform_static_vector_space_descriptors<Arg, indices...> and
+    (sizeof...(Offset) == sizeof...(Extent)) and internal::has_uniform_patterns<Arg, indices...> and
     (sizeof...(indices) == 0 or sizeof...(indices) == sizeof...(Offset)), int> = 0>
   constexpr decltype(auto)
 #endif

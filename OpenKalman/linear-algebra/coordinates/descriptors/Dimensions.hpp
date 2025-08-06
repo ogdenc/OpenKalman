@@ -25,6 +25,8 @@
 #include "linear-algebra/coordinates/traits/dimension_of.hpp"
 #include "linear-algebra/coordinates/functions/get_dimension.hpp"
 #include "linear-algebra/coordinates/functions/get_is_euclidean.hpp"
+#include "linear-algebra/coordinates/functions/comparison-operators.hpp"
+#include "Any.hpp"
 
 namespace OpenKalman::coordinates
 {
@@ -45,30 +47,13 @@ namespace OpenKalman::coordinates
     constexpr Dimensions() = default;
 
 
-    /// Constructor, taking a static \ref coordinates::euclidean_pattern.
+    /// Constructor, taking a \ref values::fixed "fixed" \ref values::index "index".
 #ifdef __cpp_concepts
-    template<typename D> requires (not std::same_as<std::decay_t<D>, Dimensions>) and
-      ((euclidean_pattern<D> and fixed_pattern<D> and dimension_of_v<D> == N) or
-      dynamic_pattern<D>)
+    template<values::index D> requires values::fixed<D> and (values::fixed_number_of_v<D> == N)
 #else
-    template<typename D, std::enable_if_t<
-      (not std::is_same_v<std::decay_t<D>, Dimensions>) and
-      ((euclidean_pattern<D> and fixed_pattern<D> and dimension_of<D>::value == N) or
-      dynamic_pattern<D>), int> = 0>
+    template<typename D, std::enable_if_t<values::index<D> and values::fixed<D> and values::fixed_number_of<D>::value == N, int> = 0>
 #endif
-    explicit constexpr Dimensions(D&& d)
-    {
-      if constexpr (dynamic_pattern<D>)
-      {
-        if constexpr (not euclidean_pattern<D>)
-        {
-          if (not get_is_euclidean(d))
-            throw std::invalid_argument{"Argument of dynamic 'Dimensions' constructor must be a euclidean_coordinate_list."};
-        }
-        if (get_dimension(d) != N)
-          throw std::invalid_argument{"Dynamic argument to static 'Dimensions' constructor has the wrong size."};
-      }
-    }
+    constexpr Dimensions(const D&) {}
 
 
     template<typename Int>
@@ -104,13 +89,12 @@ namespace OpenKalman::coordinates
   {
     /// Construct from a \ref coordinates::euclidean_pattern or \ref dynamic_pattern.
 #ifdef __cpp_concepts
-    template<typename D> requires (euclidean_pattern<D> or dynamic_pattern<D>) and
-      (not std::is_base_of_v<Dimensions, D>)
+    template<typename D> requires (not std::same_as<Dimensions, D>) and (euclidean_pattern<D> or dynamic_pattern<D>)
 #else
-    template<typename D, std::enable_if_t<(euclidean_pattern<D> or dynamic_pattern<D>) and
-      (not std::is_base_of_v<Dimensions, D>), int> = 0>
+    template<typename D, std::enable_if_t<(not std::is_same_v<Dimensions, D>) and
+      (euclidean_pattern<D> or dynamic_pattern<D>), int> = 0>
 #endif
-    explicit constexpr Dimensions(const D& d) : runtime_size {get_dimension(d)}
+    constexpr Dimensions(const D& d) : runtime_size {get_dimension(d)}
     {
       if constexpr (not euclidean_pattern<D>)
         if (not get_is_euclidean(d))
@@ -119,7 +103,7 @@ namespace OpenKalman::coordinates
 
 
     /// Construct from an integral value.
-    explicit constexpr Dimensions(const std::size_t& d = 0) : runtime_size {static_cast<std::size_t>(d)}
+    constexpr Dimensions(const std::size_t& d = 0) : runtime_size {static_cast<std::size_t>(d)}
     {}
 
 
@@ -128,10 +112,10 @@ namespace OpenKalman::coordinates
      */
 #ifdef __cpp_concepts
     template<typename D> requires (euclidean_pattern<D> or dynamic_pattern<D>) and
-      (not std::is_base_of_v<Dimensions, D>)
+      (not std::same_as<Dimensions, D>)
 #else
     template<typename D, std::enable_if_t<(euclidean_pattern<D> or dynamic_pattern<D>) and
-      (not std::is_base_of_v<Dimensions, D>), int> = 0>
+      (not std::is_same_v<Dimensions, D>), int> = 0>
 #endif
     constexpr Dimensions& operator=(const D& d)
     {
@@ -189,12 +173,11 @@ namespace OpenKalman::coordinates
   // ------ //
 
   /**
-   * \brief Alias for a 1D euclidean \ref coordinates::pattern object.
+   * \brief Alias for a 1D Euclidean \ref coordinates::pattern object.
    */
   using Axis = Dimensions<1>;
 
-
-} // OpenKalman::coordinates
+}
 
 
 namespace OpenKalman::interface
@@ -231,8 +214,8 @@ namespace OpenKalman::interface
     is_euclidean = [](const T&) { return std::true_type{}; };
 
 
-    static constexpr std::size_t
-    hash_code = [](const T& t)
+    static constexpr auto
+    hash_code = [](const T& t) -> std::size_t
     {
       if constexpr (N == dynamic_size) return static_cast<std::size_t>(t.runtime_size);
       else return N;
@@ -240,8 +223,80 @@ namespace OpenKalman::interface
 
   };
 
+}
 
-} // namespace OpenKalman::interface
+
+namespace std
+{
+  template<std::size_t M, std::size_t N>
+  struct common_type<OpenKalman::coordinates::Dimensions<M>, OpenKalman::coordinates::Dimensions<N>>
+  {
+    using type = OpenKalman::coordinates::Dimensions<M == N ? N : OpenKalman::dynamic_size>;
+  };
 
 
-#endif //OPENKALMAN_DIMENSIONS_HPP
+  template<std::size_t N, typename T>
+  struct common_type<OpenKalman::coordinates::Dimensions<N>, T>
+    : std::conditional_t<
+      OpenKalman::coordinates::descriptor<T>,
+      std::conditional<OpenKalman::coordinates::euclidean_pattern<T>,
+        OpenKalman::coordinates::Dimensions<N == OpenKalman::coordinates::dimension_of_v<T> ? N : OpenKalman::dynamic_size>,
+        OpenKalman::coordinates::Any<>>,
+      std::monostate> {};
+
+
+  template<std::size_t N, typename Scalar>
+  struct common_type<OpenKalman::coordinates::Dimensions<N>, OpenKalman::coordinates::Any<Scalar>>
+  {
+    using type = OpenKalman::coordinates::Any<Scalar>;
+  };
+
+
+  template<std::size_t N, typename Scalar>
+  struct common_type<OpenKalman::coordinates::Any<Scalar>, OpenKalman::coordinates::Dimensions<N>>
+  {
+    using type = OpenKalman::coordinates::Any<Scalar>;
+  };
+
+
+#ifdef __cpp_concepts
+  template<OpenKalman::coordinates::euclidean_pattern T, std::size_t N>
+  struct common_type<T, OpenKalman::coordinates::Dimensions<N>> : common_type<OpenKalman::coordinates::Dimensions<N>, T> {};
+#endif
+}
+
+#ifndef __cpp_concepts
+#define OPENKALMAN_INDEX_STD_COMMON_TYPE_SPECIALIZATION(I)          \
+namespace std                                                       \
+{                                                                   \
+  template<std::size_t N>                                           \
+  struct common_type<I, OpenKalman::coordinates::Dimensions<N>>     \
+    : common_type<OpenKalman::coordinates::Dimensions<N>, I> {};    \
+}
+
+OPENKALMAN_INDEX_STD_COMMON_TYPE_SPECIALIZATION(unsigned char)
+OPENKALMAN_INDEX_STD_COMMON_TYPE_SPECIALIZATION(unsigned short)
+OPENKALMAN_INDEX_STD_COMMON_TYPE_SPECIALIZATION(unsigned int)
+OPENKALMAN_INDEX_STD_COMMON_TYPE_SPECIALIZATION(unsigned long)
+OPENKALMAN_INDEX_STD_COMMON_TYPE_SPECIALIZATION(unsigned long long)
+
+namespace std
+{
+  template<typename T, auto M, std::size_t N>
+  struct common_type<std::integral_constant<T, M>, OpenKalman::coordinates::Dimensions<N>>
+    : common_type<OpenKalman::coordinates::Dimensions<N>, std::integral_constant<T, M>> {};
+
+
+  template<typename T, auto...M, std::size_t N>
+  struct common_type<OpenKalman::values::Fixed<T, M...>, OpenKalman::coordinates::Dimensions<N>>
+    : common_type<OpenKalman::coordinates::Dimensions<N>, OpenKalman::values::Fixed<T, M...>> {};
+
+
+  template<typename...Args, std::size_t N>
+  struct common_type<OpenKalman::values::consteval_operation<Args...>, OpenKalman::coordinates::Dimensions<N>>
+    : common_type<OpenKalman::coordinates::Dimensions<N>, OpenKalman::values::consteval_operation<Args...>> {};
+}
+#endif
+
+
+#endif

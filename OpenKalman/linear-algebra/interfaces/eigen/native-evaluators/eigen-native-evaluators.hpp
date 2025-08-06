@@ -236,7 +236,7 @@ namespace Eigen::internal
       else
       {
         const auto g = [col, this] (std::size_t i) { return this->m_argImpl.coeff((Index) i, col); };
-        return coordinates::get_wrapped_component(i_vector_space_descriptor, g, (std::size_t) row);
+        return coordinates::wrap(i_vector_space_descriptor, g, (std::size_t) row);
       }
     }
 
@@ -249,7 +249,7 @@ namespace Eigen::internal
       else
       {
         const auto g = [this] (std::size_t i) { return this->m_argImpl.coeff((Index) i); };
-        return coordinates::get_wrapped_component(i_vector_space_descriptor, g, (std::size_t) row);
+        return coordinates::wrap(i_vector_space_descriptor, g, (std::size_t) row);
       }
     }
   };

@@ -17,18 +17,22 @@
 #ifndef OPENKALMAN_COMPATIBILITY_VIEWS_CONCAT_HPP
 #define OPENKALMAN_COMPATIBILITY_VIEWS_CONCAT_HPP
 
-#if __cpp_lib_ranges_concat < 202403L
-
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
+#include "basics/compatibility/language-features.hpp"
+#include "basics/compatibility/common.hpp"
+#include "basics/compatibility/invoke.hpp"
 #include "view-concepts.hpp"
 #include "view_interface.hpp"
 #include "all.hpp"
-#endif
 
-namespace OpenKalman::ranges
+namespace OpenKalman::stdcompat::ranges
 {
+#if __cpp_lib_ranges_concat >= 202403L
+  using std::ranges::concat_view;
+  namespace views
+  {
+    using std::ranges::views::concat;
+  }
+#else
   /**
    * \internal
    * \brief Equivalent to std::ranges::concat_view so long as all Views are std::ranges::random_access_range.
@@ -36,23 +40,16 @@ namespace OpenKalman::ranges
    */
 #ifdef __cpp_lib_ranges
   template<std::ranges::random_access_range...Views> requires (... and std::ranges::view<Views>) and (sizeof...(Views) > 0)
-  struct concat_view : std::ranges::view_interface<concat_view<Views...>>
 #else
   template<typename...Views>
-  struct concat_view : ranges::view_interface<concat_view<Views...>>
 #endif
+  struct concat_view : stdcompat::ranges::view_interface<concat_view<Views...>>
   {
   private:
 
-#if __cplusplus >= 202002L
-    template<typename...Rs> using concat_reference_t = std::common_reference_t<std::ranges::range_reference_t<Rs>...>;
-    template<typename...Rs> using concat_value_t = std::common_type_t<std::ranges::range_value_t<Rs>...>;
-    template<typename...Rs> using concat_rvalue_reference_t = std::common_reference_t<std::ranges::range_rvalue_reference_t<Rs>...>;
-#else
-    template<typename...Rs> using concat_reference_t = common_reference_t<ranges::range_reference_t<Rs>...>;
-    template<typename...Rs> using concat_value_t = std::common_type_t<ranges::range_value_t<Rs>...>;
-    template<typename...Rs> using concat_rvalue_reference_t = common_reference_t<ranges::range_rvalue_reference_t<Rs>...>;
-#endif
+    template<typename...Rs> using concat_reference_t = stdcompat::common_reference_t<stdcompat::ranges::range_reference_t<Rs>...>;
+    template<typename...Rs> using concat_value_t = std::common_type_t<stdcompat::ranges::range_value_t<Rs>...>;
+    template<typename...Rs> using concat_rvalue_reference_t = stdcompat::common_reference_t<stdcompat::ranges::range_rvalue_reference_t<Rs>...>;
 
     template<bool Const, typename Rs>
     using maybe_const = std::conditional_t<Const, const Rs, Rs>;
@@ -72,11 +69,7 @@ namespace OpenKalman::ranges
       {
         std::vector<std::size_t> table;
         auto it = std::back_inserter(table);
-#ifdef __cpp_lib_ranges
-        (std::fill_n(it, std::ranges::size(std::get<cs>(tup)), cs), ...);
-#else
-        (std::fill_n(it, ranges::size(std::get<cs>(tup)), cs), ...);
-#endif
+        (std::fill_n(it, stdcompat::ranges::size(std::get<cs>(tup)), cs), ...);
         return table;
       }
 
@@ -104,11 +97,7 @@ namespace OpenKalman::ranges
       {
         if constexpr (i < sizeof...(Views))
         {
-#ifdef __cpp_lib_ranges
-          std::size_t next_loc = currloc + std::ranges::size(std::get<i>(tup));
-#else
-          std::size_t next_loc = currloc + ranges::size(std::get<i>(tup));
-#endif
+          std::size_t next_loc = currloc + stdcompat::ranges::size(std::get<i>(tup));
           return make_start_table<i + 1>(tup, next_loc, locs..., currloc);
         }
         else
@@ -138,11 +127,7 @@ namespace OpenKalman::ranges
       using iterator_concept = std::random_access_iterator_tag;
       using iterator_category = iterator_concept;
       using value_type = concat_value_t<maybe_const<Const, Views>...>;
-#if __cplusplus >= 202002L
-      using difference_type = std::common_type_t<std::ranges::range_difference_t<maybe_const<Const, Views>>...>;
-#else
-      using difference_type = std::common_type_t<ranges::range_difference_t<maybe_const<Const, Views>>...>;
-#endif
+      using difference_type = std::common_type_t<stdcompat::ranges::range_difference_t<maybe_const<Const, Views>>...>;
       using pointer = void;
       using reference = concat_reference_t<maybe_const<Const, Views>...>;
 
@@ -170,27 +155,24 @@ namespace OpenKalman::ranges
 
     public:
 
-#ifdef __cpp_lib_ranges
+#ifdef __cpp_concepts
       constexpr iterator() = default;
 
       constexpr iterator(iterator<not Const> it) requires Const and
-        (... and std::convertible_to<std::ranges::iterator_t<Views>, std::ranges::iterator_t<const Views>>)
+        (... and std::convertible_to<stdcompat::ranges::iterator_t<Views>, stdcompat::ranges::iterator_t<const Views>>)
         : parent(it.parent), current(it.current) {}
+#else
+      constexpr iterator() : parent{nullptr} {};
+
+      template<bool C = Const, std::enable_if_t<C and
+        (... and stdcompat::convertible_to<stdcompat::ranges::iterator_t<Views>, stdcompat::ranges::iterator_t<const Views>>), int> = 0>
+      constexpr iterator(iterator<not C> it) : parent(it.parent), current(it.current) {}
+#endif
 
       //template<typename...Args>
       constexpr explicit iterator(maybe_const<Const, concat_view>* parent, difference_type p)
         //requires std::constructible_from<base_iter, Args&&...>
         : parent(parent), current(p) {}
-#else
-      constexpr iterator() : parent{nullptr} {};
-
-      template<bool C = Const, std::enable_if_t<C and
-        (... and std::is_convertible_v<ranges::iterator_t<Views>, ranges::iterator_t<const Views>>), int> = 0>
-      constexpr iterator(iterator<not C> it) : parent(it.parent), current(it.current) {}
-
-      //template<typename...Args, bool Enable = true, std::enable_if_t<Enable and std::is_constructible_v<base_iter, Args&&...>, int> = 0>
-      constexpr explicit iterator(maybe_const<Const, concat_view>* parent, difference_type p) : parent(parent), current(p) {}
-#endif
 
       constexpr iterator(const iterator& other) = default;
       constexpr iterator(iterator&& other) noexcept = default;
@@ -272,7 +254,7 @@ namespace OpenKalman::ranges
 #ifdef __cpp_concepts
     constexpr concat_view() = default;
 #else
-    template<typename aT = void, std::enable_if_t<std::is_void_v<aT> and (... and std::is_default_constructible_v<Views>), int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and (... and stdcompat::default_initializable<Views>), int> = 0>
     constexpr concat_view() {}
 #endif
 
@@ -314,26 +296,22 @@ namespace OpenKalman::ranges
     {
       return std::apply([&f](auto&&...args)
       {
-        return std::tuple<std::invoke_result_t<F&, decltype(args)>...>(std::invoke(f, std::forward<decltype(args)>(args))...);
+        return std::tuple<std::invoke_result_t<F&, decltype(args)>...>(stdcompat::invoke(f, std::forward<decltype(args)>(args))...);
       }, std::forward<Tuple>(tuple));
 
     }
 
   public:
 
-#ifdef __cpp_lib_ranges
-    constexpr auto size() const requires (... and std::ranges::sized_range<Views>)
+#ifdef __cpp_concepts
+    constexpr auto size() const requires (... and stdcompat::ranges::sized_range<Views>)
 #else
-    template<typename aT = void, std::enable_if_t<std::is_void_v<aT> and (... and ranges::sized_range<Views>), int> = 0>
+    template<typename aT = void, std::enable_if_t<std::is_void_v<aT> and (... and stdcompat::ranges::sized_range<Views>), int> = 0>
     constexpr auto size() const
 #endif
     {
       return std::apply([](auto...sizes) { return (... + static_cast<std::size_t>(sizes)); },
-#ifdef __cpp_lib_ranges
-        tuple_transform(std::ranges::size, views_tup));
-#else
-        tuple_transform(ranges::size, views_tup));
-#endif
+        tuple_transform(stdcompat::ranges::size, views_tup));
     }
 
   private:
@@ -354,46 +332,39 @@ namespace OpenKalman::ranges
   concat_view(Rs&&...) -> concat_view<views::all_t<Rs>...>;
 #endif
 
-}
 
-
-namespace OpenKalman::ranges::views
-{
-  namespace detail
+  namespace views
   {
-    struct concat_adaptor
+    namespace detail
     {
-#ifdef __cpp_lib_ranges
-      template<std::ranges::viewable_range...Rs> requires (... and std::ranges::random_access_range<Rs>)
-#else
-      template<typename...Rs, std::enable_if_t<(... and (ranges::viewable_range<Rs> and ranges::random_access_range<Rs>)), int> = 0>
-#endif
-      constexpr auto
-      operator() (Rs&&...rs) const
+      struct concat_adaptor
       {
-#ifdef __cpp_lib_ranges
-        namespace ns = std;
-#else
-        namespace ns = OpenKalman;
-#endif
-        if constexpr (sizeof...(Rs) == 1 and (... and ns::ranges::input_range<Rs>))
-          return ns::ranges::views::all(std::forward<Rs>(rs)...);
-        else
-          return concat_view {ns::ranges::views::all(std::forward<Rs>(rs))...};
-      }
-    };
+  #ifdef __cpp_lib_ranges
+        template<stdcompat::ranges::viewable_range...Rs> requires (... and stdcompat::ranges::random_access_range<Rs>)
+  #else
+        template<typename...Rs, std::enable_if_t<(... and (stdcompat::ranges::viewable_range<Rs> and stdcompat::ranges::random_access_range<Rs>)), int> = 0>
+  #endif
+        constexpr auto
+        operator() (Rs&&...rs) const
+        {
+          if constexpr (sizeof...(Rs) == 1 and (... and stdcompat::ranges::input_range<Rs>))
+            return stdcompat::ranges::views::all(std::forward<Rs>(rs)...);
+          else
+            return concat_view { stdcompat::ranges::views::all(std::forward<Rs>(rs))...};
+        }
+      };
+    }
+
+
+    /**
+     * \brief Equivalent to std::ranges::views::concat so long as all Views are std::ranges::random_access_range.
+     * \sa concat_view
+     */
+    inline constexpr detail::concat_adaptor concat;
 
   }
 
-
-  /**
-   * \brief Equivalent to std::ranges::views::concat so long as all Views are std::ranges::random_access_range.
-   * \sa concat_view
-   */
-  inline constexpr detail::concat_adaptor concat;
-
+#endif
 }
 
 #endif
-
-#endif //OPENKALMAN_COMPATIBILITY_VIEWS_CONCAT_HPP

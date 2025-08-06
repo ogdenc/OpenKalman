@@ -35,14 +35,14 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
   template<typename Derived, typename NestedMatrix> requires
     (not case1or2<Derived, NestedMatrix>) and self_contained<NestedMatrix> and
-    std::is_default_constructible_v<NestedMatrix> and
+    std::default_initializable<NestedMatrix> and
     std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, NestedMatrix>
   struct CovarianceBase<Derived, NestedMatrix>
 #else
   template<typename Derived, typename NestedMatrix>
   struct CovarianceBase<Derived, NestedMatrix, std::enable_if_t<
     (not case1or2<Derived, NestedMatrix>) and self_contained<NestedMatrix> and
-    std::is_default_constructible_v<NestedMatrix> and
+    stdcompat::default_initializable<NestedMatrix> and
     std::assignable_from<std::add_lvalue_reference_t<NestedMatrix>, NestedMatrix>>>
 #endif
     : CovarianceBase3Impl<Derived, NestedMatrix>
@@ -110,8 +110,8 @@ namespace OpenKalman::internal
 #ifdef __cpp_concepts
     CovarianceBase() requires self_contained<NestedMatrix> and std::default_initializable<NestedMatrix>
 #else
-    template<typename T = NestedMatrix, std::enable_if_t<
-      self_contained<T> and std::is_default_constructible_v<T>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and
+      self_contained<NestedMatrix> and stdcompat::default_initializable<NestedMatrix>, int> = 0>
     CovarianceBase()
 #endif
       : Base {} {}
@@ -120,7 +120,7 @@ namespace OpenKalman::internal
     /// Copy constructor.
     CovarianceBase(const CovarianceBase& other)
       : Base {other.synch_direction < 0 ? NestedMatrix {} : NestedMatrix {other.nested_object()},
-              std::is_default_constructible_v<CholeskyNestedMatrix> and other.synch_direction > 0 ?
+              stdcompat::default_initializable<CholeskyNestedMatrix> and other.synch_direction > 0 ?
                 CholeskyNestedMatrix {} : CholeskyNestedMatrix {other.cholesky_nested},
               other.synch_direction} {}
 
@@ -147,7 +147,7 @@ namespace OpenKalman::internal
           arg.synchronization_direction() < 0 ?
             NestedMatrix {} :
             NestedMatrix {to_covariance_nestable<NestedMatrix>(arg)},
-          std::is_default_constructible_v<CholeskyNestedMatrix> and arg.synchronization_direction() > 0 ?
+          stdcompat::default_initializable<CholeskyNestedMatrix> and arg.synchronization_direction() > 0 ?
             CholeskyNestedMatrix {} :
             CholeskyNestedMatrix {to_covariance_nestable<CholeskyNestedMatrix>(std::forward<Arg>(arg))},
           arg.synchronization_direction()} {}

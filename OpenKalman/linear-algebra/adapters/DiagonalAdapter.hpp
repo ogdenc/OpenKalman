@@ -57,8 +57,8 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     constexpr DiagonalAdapter() requires std::default_initializable<NestedObject> and (not has_dynamic_dimensions<NestedObject>)
 #else
-    template<typename T = NestedObject, std::enable_if_t<
-      std::is_default_constructible_v<T> and (not has_dynamic_dimensions<NestedObject>), int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and
+      stdcompat::default_initializable<NestedObject> and (not has_dynamic_dimensions<NestedObject>), int> = 0>
     constexpr DiagonalAdapter()
 #endif
       : Base {} {}
@@ -72,7 +72,7 @@ namespace OpenKalman
       (not std::is_base_of_v<DiagonalAdapter, std::decay_t<Arg>>) and std::constructible_from<NestedObject, Arg&&>
 #else
     template<typename Arg, std::enable_if_t<vector_space_descriptors_may_match_with<Arg, NestedObject> and
-      (not std::is_base_of_v<DiagonalAdapter, std::decay_t<Arg>>) and std::is_constructible_v<NestedObject, Arg&&>, int> = 0>
+      (not std::is_base_of_v<DiagonalAdapter, std::decay_t<Arg>>) and stdcompat::constructible_from<NestedObject, Arg&&>, int> = 0>
 #endif
     constexpr explicit DiagonalAdapter(Arg&& arg) : Base {std::forward<Arg>(arg)} {}
 
@@ -165,7 +165,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
-    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar>, int> = 0>
 #endif
     auto& operator*=(const S s)
     {
@@ -177,7 +177,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
-    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar>, int> = 0>
 #endif
     auto& operator/=(const S s)
     {
@@ -222,7 +222,7 @@ namespace OpenKalman
     template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, DiagonalAdapter>
 #else
     template<typename Arg, typename S, std::enable_if_t<
-      std::is_same_v<std::decay_t<Arg>, DiagonalAdapter> and std::is_convertible_v<S, const scalar_type_of_t<Arg>>>>
+      std::is_same_v<std::decay_t<Arg>, DiagonalAdapter> and stdcompat::convertible_to<S, const scalar_type_of_t<Arg>>>>
 #endif
     friend decltype(auto) operator*(Arg&& arg, S s)
     {
@@ -234,7 +234,7 @@ namespace OpenKalman
     template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, DiagonalAdapter>
 #else
     template<typename Arg, typename S, std::enable_if_t<
-      std::is_same_v<std::decay_t<Arg>, DiagonalAdapter> and std::is_convertible_v<S, const scalar_type_of_t<Arg>>>>
+      std::is_same_v<std::decay_t<Arg>, DiagonalAdapter> and stdcompat::convertible_to<S, const scalar_type_of_t<Arg>>>>
 #endif
     friend decltype(auto) operator*(S s, Arg&& arg)
     {
@@ -246,7 +246,7 @@ namespace OpenKalman
     template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, DiagonalAdapter>
 #else
     template<typename Arg, typename S, std::enable_if_t<
-      std::is_same_v<std::decay_t<Arg>, DiagonalAdapter> and std::is_convertible_v<S, const scalar_type_of_t<Arg>>>>
+      std::is_same_v<std::decay_t<Arg>, DiagonalAdapter> and stdcompat::convertible_to<S, const scalar_type_of_t<Arg>>>>
 #endif
     friend decltype(auto) operator/(Arg&& arg, S s)
     {

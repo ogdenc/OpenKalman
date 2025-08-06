@@ -26,7 +26,7 @@ namespace OpenKalman::internal
     template<std::size_t...Ix, typename Arg>
     constexpr decltype(auto) clip_square_shaped_impl(std::index_sequence<Ix...>, Arg&& arg)
     {
-      auto dim = internal::smallest_vector_space_descriptor<scalar_type_of_t<Arg>>(get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg));
+      auto dim = internal::smallest_pattern<scalar_type_of_t<Arg>>(get_index_dimension_of<0>(arg), get_index_dimension_of<1>(arg));
       auto ret {get_slice(std::forward<Arg>(arg),
         std::forward_as_tuple(std::integral_constant<std::size_t, static_cast<decltype(Ix)>(0)>{}...),
         std::forward_as_tuple((Ix==0?dim:dim)...))};

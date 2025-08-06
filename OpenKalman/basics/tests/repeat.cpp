@@ -14,33 +14,22 @@
  */
 
 #include "tests.hpp"
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
 #include "basics/compatibility/views/repeat.hpp"
-#endif
 
 using namespace OpenKalman;
 
-#ifdef __cpp_lib_ranges
-namespace rg = std::ranges;
-#else
-namespace rg = OpenKalman::ranges;
-#endif
-namespace vw = rg::views;
-
 TEST(basics, repeat_view)
 {
-  static_assert(rg::view<rg::repeat_view<double, int>>);
-  auto i3 = rg::views::repeat(7., 4);
+  static_assert(stdcompat::ranges::view<stdcompat::ranges::repeat_view<double, int>>);
+  auto i3 = stdcompat::ranges::views::repeat(7., 4);
   EXPECT_EQ(i3.size(), 4);
-  static_assert(rg::views::repeat(7., 4).size() == 4);
+  static_assert(stdcompat::ranges::views::repeat(7., 4).size() == 4);
 
-  EXPECT_EQ(rg::views::repeat(7., 4).begin()[2], 7.);
-  EXPECT_EQ(rg::views::repeat(7., 4u).begin()[3], 7.);
-  EXPECT_EQ(rg::views::repeat(7.).begin()[100], 7.);
+  EXPECT_EQ(stdcompat::ranges::views::repeat(7., 4).begin()[2], 7.);
+  EXPECT_EQ(stdcompat::ranges::views::repeat(7., 4u).begin()[3], 7.);
+  EXPECT_EQ(stdcompat::ranges::views::repeat(7.).begin()[100], 7.);
 
-  auto i8 = rg::views::repeat(7., 8u);
+  auto i8 = stdcompat::ranges::views::repeat(7., 8u);
   auto it8 = i8.begin();
   EXPECT_EQ(*it8, 7.);
   it8++;

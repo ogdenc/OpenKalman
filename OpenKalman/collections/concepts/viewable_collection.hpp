@@ -16,29 +16,25 @@
 #ifndef OPENKALMAN_COLLECTIONS_VIEWABLE_COLLECTION_HPP
 #define OPENKALMAN_COLLECTIONS_VIEWABLE_COLLECTION_HPP
 
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
-#include "basics/compatibility/views/view-concepts.hpp"
-#endif
-#include "uniform_tuple_like.hpp"
+#include "basics/basics.hpp"
+#include "viewable_tuple_like.hpp"
 
 namespace OpenKalman::collections
 {
   /**
-   * \brief A std::range or \ref uniform_tuple_like object that can be converted into
+   * \brief A std::range or \ref viewable_tuple_like object that can be converted into
    * a \ref collection_view by passing it to \ref collections::views::all.
    */
   template<typename T>
 #ifdef __cpp_lib_ranges
-  concept viewable_collection = (std::ranges::random_access_range<T> and
-    (std::ranges::view<std::remove_cvref_t<T>> or std::ranges::viewable_range<T>)) or uniform_tuple_like<T>;
+  concept viewable_collection =
 #else
-  constexpr bool viewable_collection = (ranges::random_access_range<T> and
-    (ranges::view<remove_cvref_t<T>> or ranges::viewable_range<T>)) or uniform_tuple_like<T>;
+  constexpr bool viewable_collection =
 #endif
+    (stdcompat::ranges::random_access_range<T> and stdcompat::ranges::viewable_range<T>) or
+    viewable_tuple_like<T>;
 
 
-} // namespace OpenKalman
+}
 
-#endif //OPENKALMAN_COLLECTIONS_VIEWABLE_COLLECTION_HPP
+#endif

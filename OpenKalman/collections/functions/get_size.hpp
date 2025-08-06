@@ -16,26 +16,13 @@
 #ifndef OPENKALMAN_COLLECTIONS_GET_SIZE_HPP
 #define OPENKALMAN_COLLECTIONS_GET_SIZE_HPP
 
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#endif
-#include "basics/compatibility/language-features.hpp"
-#include "basics/compatibility/views.hpp"
-#include "values/concepts/fixed.hpp"
+#include "values/values.hpp"
 #include "collections/concepts/sized.hpp"
 
 namespace OpenKalman::collections
 {
   namespace detail_get_size
   {
-#ifdef __cpp_lib_remove_cvref
-    using std::remove_cvref_t;
-#endif
-#ifdef __cpp_lib_ranges
-    namespace ranges = std::ranges;
-#endif
-
-
 #ifndef __cpp_concepts
     template<typename T, typename = void>
     struct has_tuple_size : std::false_type {};
@@ -64,15 +51,30 @@ namespace OpenKalman::collections
 
 
 #ifdef __cpp_concepts
-    template<typename T> requires values::fixed<decltype(ranges::size(std::declval<T>()))> and
+    template<typename T> requires values::fixed<decltype(stdcompat::ranges::size(std::declval<T>()))> and
       (not requires { std::tuple_size<T>::value; })
     struct range_extent_impl<T>
 #else
     template<typename T>
-    struct range_extent_impl<T, std::enable_if_t<values::fixed<decltype(ranges::size(std::declval<T>()))> and
+    struct range_extent_impl<T, std::enable_if_t<values::fixed<decltype(stdcompat::ranges::size(std::declval<T>()))> and
       not has_tuple_size<T>::value>>
 #endif
-      : values::fixed_number_of<decltype(ranges::size(std::declval<T>()))> {};
+      : values::fixed_number_of<decltype(stdcompat::ranges::size(std::declval<T>()))> {};
+
+
+    // If T has a static size() member function (e.g., ranges::empty_view and ranges::single_view)
+#ifdef __cpp_concepts
+    template<typename T> requires std::bool_constant<(std::decay_t<T>::size(), true)>::value and
+      (not values::fixed<decltype(stdcompat::ranges::size(std::declval<T>()))>) and
+      (not requires { std::tuple_size<T>::value; })
+    struct range_extent_impl<T>
+#else
+    template<typename T>
+    struct range_extent_impl<T, std::enable_if_t<std::bool_constant<(std::decay_t<T>::size(), true)>::value and
+      (not values::fixed<decltype(stdcompat::ranges::size(std::declval<T>()))>) and
+      not has_tuple_size<T>::value>>
+#endif
+      : std::integral_constant<std::size_t, std::decay_t<T>::size()> {};
 
 
     template<typename T>
@@ -84,56 +86,50 @@ namespace OpenKalman::collections
     template<typename T, std::size_t N>
     struct range_extent<T[N]> : std::integral_constant<std::size_t, N> {};
 
-    template<typename T>
-    struct range_extent<ranges::empty_view<T>> : std::integral_constant<std::size_t, 0> {};
+    //template<typename T>
+    //struct range_extent<stdcompat::ranges::empty_view<T>> : std::integral_constant<std::size_t, 0> {};
 
-    template<typename T>
-    struct range_extent<ranges::single_view<T>> : std::integral_constant<std::size_t, 1> {};
-
-    template<typename R>
-    struct range_extent<ranges::ref_view<R>> : range_extent<remove_cvref_t<R>> {};
+    //template<typename T>
+    //struct range_extent<stdcompat::ranges::single_view<T>> : std::integral_constant<std::size_t, 1> {};
 
     template<typename R>
-    struct range_extent<ranges::owning_view<R>> : range_extent<remove_cvref_t<R>> {};
+    struct range_extent<stdcompat::ranges::ref_view<R>> : range_extent<stdcompat::remove_cvref_t<R>> {};
+
+    template<typename R>
+    struct range_extent<stdcompat::ranges::owning_view<R>> : range_extent<stdcompat::remove_cvref_t<R>> {};
 
     template<typename V, typename F>
-    struct range_extent<ranges::transform_view<V, F>> : range_extent<remove_cvref_t<V>> {};
+    struct range_extent<stdcompat::ranges::transform_view<V, F>> : range_extent<stdcompat::remove_cvref_t<V>> {};
 
     template<typename V>
-    struct range_extent<ranges::reverse_view<V>> : range_extent<remove_cvref_t<V>> {};
-
-#ifdef __cpp_lib_ranges_concat
-    namespace rg = std::ranges;
-#else
-    namespace rg = OpenKalman::ranges;
-#endif
+    struct range_extent<stdcompat::ranges::reverse_view<V>> : range_extent<stdcompat::remove_cvref_t<V>> {};
 
     template<typename...Views>
-      struct range_extent<rg::concat_view<Views...>> : std::integral_constant<std::size_t,
-        (... or (range_extent<Views>::value == dynamic_size)) ? dynamic_size :
-          (0_uz + ... + range_extent<Views>::value)> {};
+    struct range_extent<stdcompat::ranges::concat_view<Views...>> : std::integral_constant<std::size_t,
+      (... or (range_extent<Views>::value == dynamic_size)) ? dynamic_size :
+        (0_uz + ... + range_extent<Views>::value)> {};
 
 #ifdef __cpp_lib_ranges
     template<typename V>
-    struct range_extent<std::ranges::common_view<V>> : range_extent<std::remove_cvref_t<V>> {};
+    struct range_extent<std::ranges::common_view<V>> : range_extent<stdcompat::remove_cvref_t<V>> {};
 
     template<typename V, std::size_t N>
-    struct range_extent<std::ranges::elements_view<V, N>> : range_extent<std::remove_cvref_t<V>> {};
+    struct range_extent<std::ranges::elements_view<V, N>> : range_extent<stdcompat::remove_cvref_t<V>> {};
 #endif
 
 #ifdef __cpp_lib_ranges_as_rvalue
     template<typename V>
-    struct range_extent<std::ranges::as_rvalue_view<V>> : range_extent<std::remove_cvref_t<V>> {};
+    struct range_extent<std::ranges::as_rvalue_view<V>> : range_extent<stdcompat::remove_cvref_t<V>> {};
 #endif
 
 #ifdef __cpp_lib_ranges_as_const
     template<typename V>
-    struct range_extent<std::ranges::as_const_view<V>> : range_extent<std::remove_cvref_t<V>> {};
+    struct range_extent<std::ranges::as_const_view<V>> : range_extent<stdcompat::remove_cvref_t<V>> {};
 #endif
 
 #ifdef __cpp_lib_ranges_enumerate
     template<typename V>
-    struct range_extent<std::ranges::enumerate_view<V>> : range_extent<std::remove_cvref_t<V>> {};
+    struct range_extent<std::ranges::enumerate_view<V>> : range_extent<stdcompat::remove_cvref_t<V>> {};
 #endif
 
 #ifdef __cpp_lib_ranges_zip
@@ -167,12 +163,12 @@ namespace OpenKalman::collections
 
 #ifdef __cpp_lib_ranges_cache_latest
     template<typename V>
-    struct range_extent<std::ranges::cache_latest_view<V>> : range_extent<std::remove_cvref_t<V>> {};
+    struct range_extent<std::ranges::cache_latest_view<V>> : range_extent<stdcompat::remove_cvref_t<V>> {};
 #endif
 
 #ifdef __cpp_lib_ranges_to_input
     template<typename V>
-    struct range_extent<std::ranges::to_input_view<V>> : range_extent<std::remove_cvref_t<V>> {};
+    struct range_extent<std::ranges::to_input_view<V>> : range_extent<stdcompat::remove_cvref_t<V>> {};
 #endif
 
 
@@ -184,29 +180,20 @@ namespace OpenKalman::collections
    */
 #ifdef __cpp_concepts
   template<sized Arg>
+  constexpr values::index auto
 #else
   template<typename Arg, std::enable_if_t<sized<Arg>, int> = 0>
-#endif
   constexpr auto
+#endif
   get_size(Arg&& arg)
   {
-#ifdef __cpp_lib_remove_cvref
-    using std::remove_cvref_t;
-#endif
-#ifdef __cpp_lib_ranges
-    using std::ranges::size;
-#else
-    using OpenKalman::ranges::size;
-#endif
-
-    using Ex = detail_get_size::range_extent<remove_cvref_t<Arg>>;
-
-    if constexpr (Ex::value != dynamic_size) { return Ex {}; }
-    else { return size(std::forward<Arg>(arg)); }
+    using Ex = detail_get_size::range_extent<stdcompat::remove_cvref_t<Arg>>;
+    if constexpr (Ex::value != dynamic_size) { return values::cast_to<std::size_t>(Ex {}); }
+    else { return static_cast<std::size_t>(stdcompat::ranges::size(std::forward<Arg>(arg))); }
   };
 
 
-} // OpenKalman::collections
+}
 
 
-#endif //OPENKALMAN_COLLECTIONS_GET_SIZE_HPP
+#endif

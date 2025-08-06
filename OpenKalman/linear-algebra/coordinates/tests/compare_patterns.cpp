@@ -21,191 +21,183 @@
 #include "linear-algebra/coordinates/descriptors/Polar.hpp"
 #include "linear-algebra/coordinates/descriptors/Spherical.hpp"
 #include "linear-algebra/coordinates/descriptors/Any.hpp"
-#include "linear-algebra/coordinates/functions/make_pattern_vector.hpp"
-#include "linear-algebra/coordinates/views/comparison.hpp"
+#include "linear-algebra/coordinates/functions/make_pattern.hpp"
 
 using namespace OpenKalman;
 using namespace OpenKalman::coordinates;
-using coordinates::views::comparison;
 
-#include "linear-algebra/coordinates/functions/comparison-operators.hpp"
+#include "linear-algebra/coordinates/functions/compare.hpp"
 
 TEST(coordinates, compare_fixed_pattern)
 {
-  static_assert(Dimensions<3>{} == std::tuple<Axis, Axis, Axis>{});
-  static_assert(Dimensions<3>{} <= std::tuple<Axis, Axis, Axis>{});
-  static_assert(Dimensions<3>{} <= std::tuple<Axis, Axis, Axis, Axis>{});
-  static_assert(Dimensions<3>{} < std::tuple<Axis, Axis, Axis, Axis>{});
-  static_assert(Dimensions<4>{} >= std::tuple<Axis, Axis, Axis, Axis>{});
-  static_assert(Dimensions<4>{} >= std::tuple<Axis, Axis, Axis>{});
-  static_assert(Dimensions<4>{} > std::tuple<Axis, Axis, Axis>{});
+  static_assert(compare(Dimensions<3>{}, std::tuple<Axis, Axis, Axis>{}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(Dimensions<3>{}, std::tuple<Axis, Axis, Axis, Axis>{}) == stdcompat::partial_ordering::less);
+  static_assert(compare(Dimensions<4>{}, std::tuple<Axis, Axis, Axis, Axis>{}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(Dimensions<4>{}, std::tuple<Axis, Axis, Axis>{}) == stdcompat::partial_ordering::greater);
 
-  static_assert(std::tuple<Axis, Axis, Axis>{} == Dimensions<3>{});
-  static_assert(std::tuple<Axis, Axis, Axis>{} >= Dimensions<3>{});
-  static_assert(std::tuple<Axis, Axis, Axis, Axis>{} >= Dimensions<3>{});
-  static_assert(std::tuple<Axis, Axis, Axis, Axis>{} > Dimensions<3>{});
-  static_assert(std::tuple<Axis, Axis, Axis, Axis>{} <= Dimensions<4>{});
-  static_assert(std::tuple<Axis, Axis, Axis>{} <= Dimensions<4>{});
-  static_assert(std::tuple<Axis, Axis, Axis>{} < Dimensions<4>{});
+  static_assert(compare(std::tuple{Axis{}}, Dimensions<1>{}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(Dimensions<1>{}, std::tuple{Axis{}}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(std::tuple{Axis{}}, Dimensions<1>{}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(make_pattern(Axis{}, Axis{}, Axis{}), Dimensions<3>{}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(make_pattern(Axis{}, Axis{}), Dimensions<3>{}) == stdcompat::partial_ordering::less);
+  static_assert(compare(std::tuple<Axis, Axis, Axis>{}, Dimensions<3>{}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(std::tuple<Axis, Axis, Axis, Axis>{}, Dimensions<3>{}) == stdcompat::partial_ordering::greater);
+  static_assert(compare(std::tuple<Axis, Axis, Axis, Axis>{}, Dimensions<4>{}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(std::tuple<Axis, Axis, Axis>{}, Dimensions<4>{}) == stdcompat::partial_ordering::less);
 
-  static_assert(std::tuple<>{} == std::tuple<>{});
-  static_assert(std::tuple<Axis, angle::Radians>{} == std::tuple<Axis, angle::Radians>{});
-  static_assert(std::tuple<Axis, angle::Radians>{} <= std::tuple<Axis, angle::Radians>{});
-  static_assert(std::tuple<Axis, angle::Radians>{} >= std::tuple<Axis, angle::Radians>{});
+  static_assert(compare(std::tuple<Axis, Axis>{}, make_pattern(Dimensions<4>{})) == stdcompat::partial_ordering::less);
+  static_assert(compare(make_pattern(Dimensions<4>{}), std::tuple<Axis, Axis>{}) == stdcompat::partial_ordering::greater);
+  static_assert(compare(make_pattern(Dimensions<4>{}), std::tuple<Axis, Axis>{}) == stdcompat::partial_ordering::greater);
+  static_assert(compare(std::tuple<>{}, make_pattern()) == stdcompat::partial_ordering::equivalent);
 
-  static_assert(comparison(std::tuple<>{}) <= std::tuple<Axis, angle::Radians>{});
-  static_assert(comparison(std::tuple<Axis>{}) <= std::tuple<Axis, angle::Radians>{});
-  static_assert(comparison(std::tuple<Axis, angle::Radians>{}) < std::tuple<Axis, angle::Radians, Axis>{});
-  static_assert(std::tuple<Axis, angle::Radians, Axis>{} > comparison(std::tuple<Axis, angle::Radians>{}));
-  static_assert(comparison(std::tuple<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{}) <= std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{});
-  static_assert(std::tuple<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{} == comparison(std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}));
-  static_assert(comparison(std::tuple<Axis, Dimensions<3>, angle::Radians, Axis, Dimensions<2>>{}) < std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<4>>{});
+  static_assert(compare(std::tuple<Axis, Axis>{}, std::tuple{Dimensions<4>{}}) == stdcompat::partial_ordering::less);
+  static_assert(compare(std::tuple{Dimensions<4>{}}, std::tuple<Axis, Axis>{}) == stdcompat::partial_ordering::greater);
+  static_assert(compare(std::tuple{Dimensions<4>{}}, std::tuple<Axis, Axis>{}) == stdcompat::partial_ordering::greater);
+
+  static_assert(compare(std::tuple{}, std::tuple{}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(stdcompat::ranges::views::empty<Dimensions<1>>, std::tuple{}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(std::tuple{}, stdcompat::ranges::views::empty<Dimensions<1>>) == stdcompat::partial_ordering::equivalent);
+
+  static_assert(compare(std::tuple<Axis, angle::Radians>{}, std::tuple<Axis, angle::Radians>{}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(std::tuple<>{}, std::tuple<Axis, angle::Radians>{}) == stdcompat::partial_ordering::less);
+  static_assert(compare(make_pattern(), std::tuple<Axis, angle::Radians>{}) == stdcompat::partial_ordering::less);
+  static_assert(compare(std::tuple<Axis>{}, std::tuple<Axis, angle::Radians>{}) == stdcompat::partial_ordering::less);
+  static_assert(compare(std::tuple<Axis, angle::Radians>{}, std::tuple<Axis, angle::Radians, Axis>{}) == stdcompat::partial_ordering::less);
+  static_assert(compare(std::tuple<Axis, angle::Radians, Axis>{}, std::tuple<Axis, angle::Radians>{}) == stdcompat::partial_ordering::greater);
+  static_assert(compare(std::tuple<Axis, Dimensions<3>, angle::Radians, Dimensions<4>>{}, std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(make_pattern(Axis{}, Dimensions<3>{}, angle::Radians{}, Dimensions<5>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<3>, Axis>{}) == stdcompat::partial_ordering::greater);
+  static_assert(compare(make_pattern(Axis{}, Dimensions<3>{}, angle::Radians{}, Axis{}, Dimensions<2>{}), std::tuple<Dimensions<2>, Dimensions<2>, angle::Radians, Dimensions<4>>{}) == stdcompat::partial_ordering::less);
 }
 
 
 TEST(coordinates, compare_dynamic_pattern)
 {
-  static_assert(Dimensions{0} == std::tuple<>{});
-  static_assert(std::tuple<>{} == Dimensions{0});
+  static_assert(compare(Dimensions<0>{}, std::tuple<>{}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(Dimensions{0}, std::tuple<>{}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(std::tuple<>{}, Dimensions{0}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(Dimensions<2>{}, std::tuple<>{}) == stdcompat::partial_ordering::greater);
+  static_assert(compare(std::tuple<>{}, std::tuple<Axis>{}) == stdcompat::partial_ordering::less);
 
-  static_assert(Dimensions{3} == std::tuple<Axis, Axis, Axis>{});
-  static_assert(Dimensions{4} == std::tuple<Axis, Dimensions<2>, Axis>{});
-  static_assert(Dimensions{3} <= std::tuple<Axis, Dimensions<2>>{});
-  static_assert(Dimensions{3} < std::tuple<Axis, Dimensions<2>, Axis>{});
-  static_assert(Dimensions{3} != std::tuple<Axis, Dimensions<2>, Axis>{});
-  static_assert(Dimensions{3} <= std::tuple<Axis, Axis, Axis, Axis>{});
+  static_assert(compare(Dimensions{3}, std::tuple<Axis, Axis, Axis>{}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(Dimensions{4}, std::tuple<Axis, Dimensions<2>, Axis>{}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(Dimensions{3}, std::tuple<Axis, Dimensions<2>>{}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(Dimensions{3}, std::tuple<Axis, Dimensions<2>, Axis>{}) == stdcompat::partial_ordering::less);
+  static_assert(compare(Dimensions{3}, std::tuple<Axis, Dimensions<2>, Axis>{}) == stdcompat::partial_ordering::less);
+  static_assert(compare(Dimensions{3}, std::tuple<Axis, Axis, Axis, Axis>{}) == stdcompat::partial_ordering::less);
 
-  static_assert(std::tuple<Axis, Axis, Axis>{} == Dimensions{3});
-  static_assert(std::tuple<Axis, Dimensions<2>, Axis>{} == Dimensions{4});
-  static_assert(std::tuple<Axis, Dimensions<2>>{} >= Dimensions{3});
-  static_assert(std::tuple<Axis, Dimensions<2>, Axis>{} > Dimensions{3});
-  static_assert(std::tuple<Axis, Dimensions<2>, Axis>{} != Dimensions{3});
-  static_assert(std::tuple<Axis, Axis, Axis, Axis>{} >= Dimensions{3});
+  static_assert(compare(std::tuple<Axis, Axis, Axis>{}, Dimensions{3}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(std::tuple<Axis, Dimensions<2>, Axis>{}, Dimensions{4}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(std::tuple<Axis, Dimensions<2>>{}, Dimensions{3}) == stdcompat::partial_ordering::equivalent);
+  static_assert(compare(std::tuple<Axis, Dimensions<2>, Axis>{}, Dimensions{3}) == stdcompat::partial_ordering::greater);
+  static_assert(compare(std::tuple<Axis, Axis, Axis, Axis>{}, Dimensions{3}) == stdcompat::partial_ordering::greater);
 
-  // delete these after debugging:
-  std::cout << "-------------" << std::endl;
-  EXPECT_TRUE((comparison(make_pattern_vector(Dimensions<3>{}, Dimensions<2>{}, angle::Radians{}, Dimensions<5>{})) == comparison(make_pattern_vector(Dimensions<2>{}, Dimensions<3>{}, angle::Radians{}, Dimensions<2>{}, Dimensions<3>{}))));
-  std::cout << "-------------" << std::endl;
-  EXPECT_TRUE((make_pattern_vector(Dimensions<3>{}, Dimensions<2>{}, angle::Radians{}, Dimensions<4>{}) < comparison(make_pattern_vector(Dimensions<2>{}, Dimensions<3>{}, angle::Radians{}, Dimensions<2>{}, Dimensions<3>{}))));
-  std::cout << "-------------" << std::endl;
+  EXPECT_TRUE(compare(Any{Axis{}}, Any{Axis{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(Any{Dimensions<3>{}}, Any{Dimensions<3>{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(Any{Dimensions<4>{}}, Any{Dimensions<3>{}}) == stdcompat::partial_ordering::greater);
+  EXPECT_TRUE(compare(Any{Dimensions{4}}, Any{Dimensions{4}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(Any{Dimensions{6}}, Any{Dimensions{5}}) == stdcompat::partial_ordering::greater);
+  EXPECT_TRUE(compare(Any{Dimensions<2>{}}, Dimensions<2>{}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(Any{Dimensions<2>{}}, Dimensions{2}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(Any{Dimensions<2>{}}, Dimensions{3}) == stdcompat::partial_ordering::less);
+  EXPECT_TRUE(compare(Dimensions{3}, Any{Dimensions<3>{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(Dimensions{2}, Any{Dimensions<3>{}}) == stdcompat::partial_ordering::less);
 
+  EXPECT_TRUE(compare(Any{angle::Radians{}}, Any{angle::Radians{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(Any{angle::Radians{}}, Any{angle::Degrees{}}) == stdcompat::partial_ordering::unordered);
+  EXPECT_TRUE(compare(Any{angle::Radians{}}, angle::Radians{}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(angle::Radians{}, Any{angle::Radians{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(angle::Degrees{}, Any{angle::Radians{}}) == stdcompat::partial_ordering::unordered);
 
-  EXPECT_TRUE(Any<double>{Axis{}} == Any<double>{Axis{}});
-  EXPECT_TRUE(Any<double>{Dimensions<3>{}} == Any<double>{Dimensions<3>{}});
-  EXPECT_TRUE(Any<double>{Dimensions<4>{}} != Any<double>{Dimensions<3>{}});
-  EXPECT_TRUE(Any<double>{Dimensions{4}} == Any<double>{Dimensions{4}});
-  EXPECT_TRUE(Any<double>{Dimensions{4}} != Any<double>{Dimensions{5}});
-  EXPECT_TRUE(Any<double>{Dimensions<2>{}} == Dimensions<2>{});
-  EXPECT_TRUE(Any<double>{Dimensions<2>{}} == Dimensions{2});
-  EXPECT_TRUE(Any<double>{Dimensions<2>{}} < Dimensions{3});
-  EXPECT_TRUE(Dimensions{3} == Any<double>{Dimensions<3>{}});
-  EXPECT_TRUE(Dimensions{2} < Any<double>{Dimensions<3>{}});
+  EXPECT_TRUE(compare(std::vector<Axis>{}, std::vector<Axis>{}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::vector{Axis{}}, std::vector{Axis{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(Axis{}, std::vector{Axis{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::vector{Axis{}}, Axis{}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::vector{Axis{}}, std::vector{Axis{}, Axis{}}) == stdcompat::partial_ordering::less);
+  EXPECT_TRUE(compare(std::vector{Axis{}, Axis{}}, std::vector{Axis{}}) == stdcompat::partial_ordering::greater);
+  EXPECT_TRUE(compare(std::vector{Axis{}, Axis{}}, std::vector{Axis{}}) == stdcompat::partial_ordering::greater);
+  EXPECT_TRUE(compare(std::vector{Axis{}}, std::vector{angle::Radians{}}) == stdcompat::partial_ordering::unordered);
+  EXPECT_TRUE(compare(std::vector{Axis{}}, std::vector{Polar<>{}}) == stdcompat::partial_ordering::unordered);
 
-  EXPECT_TRUE(Any<double>{angle::Radians{}} == Any<double>{angle::Radians{}});
-  EXPECT_TRUE(Any<double>{angle::Radians{}} != Any<double>{angle::Degrees{}});
-  EXPECT_TRUE(Any<double>{angle::Radians{}} == angle::Radians{});
-  EXPECT_TRUE(angle::Radians{} == Any<double>{angle::Radians{}});
-  EXPECT_TRUE(angle::Degrees{} != Any<double>{angle::Radians{}});
+  EXPECT_TRUE(compare(std::vector<Axis>{}, std::vector{angle::Radians{}}) == stdcompat::partial_ordering::less);
+  EXPECT_TRUE(compare(std::vector{angle::Radians{}}, std::vector<Axis>{}) == stdcompat::partial_ordering::greater);
+  EXPECT_TRUE(compare(std::vector{angle::Radians{}}, std::vector{angle::Radians{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::vector{angle::Degrees{}}, std::vector{Angle<std::integral_constant<int, -180>, std::integral_constant<int, 180>>{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::vector{angle::Degrees{}}, std::vector{Angle<values::Fixed<double, -180>, values::Fixed<long double, 180>>{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::vector{angle::PositiveDegrees{}}, std::vector{Angle<std::integral_constant<int, 0>, std::integral_constant<std::size_t, 360>>{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::vector{angle::Degrees{}}, std::vector{angle::PositiveDegrees{}}) == stdcompat::partial_ordering::unordered);
+  EXPECT_TRUE(compare(std::vector{angle::Degrees{}}, std::vector{angle::Radians{}}) == stdcompat::partial_ordering::unordered);
+  EXPECT_TRUE(compare(std::vector{inclination::Radians{}}, std::vector{inclination::Degrees{}}) == stdcompat::partial_ordering::unordered);
 
+  EXPECT_TRUE(compare(std::vector<Axis>{}, std::vector{inclination::Radians{}}) == stdcompat::partial_ordering::less);
+  EXPECT_TRUE(compare(std::vector{inclination::Radians{}}, std::vector<Axis>{}) == stdcompat::partial_ordering::greater);
+  EXPECT_TRUE(compare(std::vector{inclination::Radians{}}, std::vector{inclination::Radians{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::vector{inclination::Degrees{}}, std::vector{Inclination<std::integral_constant<int, 180>>{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::vector{inclination::Degrees{}}, std::vector{Inclination<values::Fixed<long double, 180>>{}}) == stdcompat::partial_ordering::equivalent);
 
-  EXPECT_TRUE((make_pattern_vector() == make_pattern_vector()));
-  EXPECT_TRUE((make_pattern_vector(Axis{}) == make_pattern_vector(Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}) <= make_pattern_vector(Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}) == make_pattern_vector(Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}) < make_pattern_vector(Axis{}, Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}) == make_pattern_vector(Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, Axis{}) > make_pattern_vector(Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}) == make_pattern_vector(Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, Axis{}) >= make_pattern_vector(Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}) != make_pattern_vector(angle::Radians{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}) != make_pattern_vector(Polar<>{})));
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, angle::Radians{}, Dimensions{1}), make_pattern(Dimensions{1}, angle::Radians{}, Dimensions{1})) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, angle::Radians{}, Dimensions{1}), make_pattern(Dimensions{1}, angle::Radians{}, Dimensions{1}, Dimensions{1})) == stdcompat::partial_ordering::less);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, angle::Radians{}, Dimensions{1}, Dimensions{1}), make_pattern(Dimensions{1}, angle::Radians{}, Dimensions{1})) == stdcompat::partial_ordering::greater);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, angle::Radians{}, Dimensions{1}), make_pattern(Dimensions{1}, angle::Radians{}, Dimensions{1})) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{3}, Dimensions{2}, angle::Radians{}, Dimensions{5}), make_pattern(Dimensions{2}, Dimensions<3>{}, angle::Radians{}, Dimensions<2>{}, Dimensions<3>{})) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, angle::Radians{}, Dimensions{1}), make_pattern(Dimensions{1}, angle::Radians{}, Dimensions{1})) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{3}, Dimensions<2>{}, angle::Radians{}, Dimensions<4>{}), make_pattern(Dimensions{2}, Dimensions<3>{}, angle::Radians{}, Dimensions<2>{}, Dimensions<3>{})) == stdcompat::partial_ordering::less);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{3}, Dimensions<2>{}, angle::Radians{}, Dimensions<5>{}), make_pattern(Dimensions{2}, Dimensions<3>{}, angle::Radians{}, Dimensions<2>{}, Dimensions<2>{})) == stdcompat::partial_ordering::greater);
+  EXPECT_TRUE(compare(std::vector<Polar<>>{}, std::vector<Polar<>>{}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(make_pattern(Polar{}, Dimensions{1}), make_pattern(Polar{}, Dimensions{1})) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(make_pattern(Polar{}, Dimensions{1}), std::vector<Polar<>>{}) == stdcompat::partial_ordering::greater);
+  EXPECT_TRUE(compare(std::vector{Spherical<Distance, angle::Radians, inclination::Radians>{}}, std::vector{Spherical<Distance, angle::Radians, inclination::Radians>{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, angle::Radians{}, angle::Radians{}), make_pattern(Dimensions{1}, angle::Radians{}, Dimensions{1})) == stdcompat::partial_ordering::unordered);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, angle::Radians{}), make_pattern(Polar<Distance, angle::Radians>{})) == stdcompat::partial_ordering::unordered);
 
-  EXPECT_TRUE((make_pattern_vector() < make_pattern_vector(angle::Radians{})));
-  EXPECT_TRUE((make_pattern_vector(angle::Radians{}) > make_pattern_vector()));
-  EXPECT_TRUE((make_pattern_vector(angle::Radians{}) == make_pattern_vector(angle::Radians{})));
-  EXPECT_TRUE((make_pattern_vector(angle::Degrees{}) == make_pattern_vector(Angle<std::integral_constant<int, -180>, std::integral_constant<int, 180>>{})));
-  EXPECT_TRUE((make_pattern_vector(angle::Degrees{}) == make_pattern_vector(Angle<values::Fixed<double, -180>, values::Fixed<long double, 180>>{})));
-  EXPECT_TRUE((make_pattern_vector(angle::PositiveDegrees{}) == make_pattern_vector(Angle<std::integral_constant<int, 0>, std::integral_constant<std::size_t, 360>>{})));
-  EXPECT_TRUE((make_pattern_vector(angle::Degrees{}) != make_pattern_vector(angle::PositiveDegrees{})));
-  EXPECT_TRUE((make_pattern_vector(angle::Degrees{}) != make_pattern_vector(angle::Radians{})));
-  EXPECT_TRUE((make_pattern_vector(inclination::Radians{}) != make_pattern_vector(inclination::Degrees{})));
+  EXPECT_TRUE(compare(std::vector{Axis{}}, Dimensions{1}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::vector{Axis{}}, Dimensions<1>{}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(Dimensions{1}, std::vector{Axis{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::vector{Axis{}, Axis{}, Axis{}}, Dimensions<3>{}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::vector{Axis{}, Axis{}}, Dimensions<3>{}) == stdcompat::partial_ordering::less);
+  EXPECT_TRUE(compare(std::tuple<Axis, Axis>{}, std::vector{Dimensions<4>{}}) == stdcompat::partial_ordering::less);
+  EXPECT_TRUE(compare(std::vector{Dimensions<4>{}}, std::tuple<Axis, Axis>{}) == stdcompat::partial_ordering::greater);
+  EXPECT_TRUE(compare(std::vector{Dimensions<4>{}}, std::tuple<Axis, Axis>{}) == stdcompat::partial_ordering::greater);
+  EXPECT_TRUE(compare(std::tuple<>{}, std::vector<Axis>{}) == stdcompat::partial_ordering::equivalent);
 
-  EXPECT_TRUE((make_pattern_vector() < make_pattern_vector(inclination::Radians{})));
-  EXPECT_TRUE((make_pattern_vector(inclination::Radians{}) > make_pattern_vector()));
-  EXPECT_TRUE((make_pattern_vector(inclination::Radians{}) == make_pattern_vector(inclination::Radians{})));
-  EXPECT_TRUE((make_pattern_vector(inclination::Degrees{}) == make_pattern_vector(Inclination<std::integral_constant<int, -90>, std::integral_constant<int, 90>>{})));
-  EXPECT_TRUE((make_pattern_vector(inclination::Degrees{}) == make_pattern_vector(Inclination<values::Fixed<double, -90>, values::Fixed<long double, 90>>{})));
+  EXPECT_TRUE(compare(std::vector{Axis{}}, Dimensions{1}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(Dimensions{1}, std::vector{Axis{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::vector{Axis{}}, Dimensions{1}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::vector{Axis{}, Axis{}, Axis{}}, Dimensions{3}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::vector{Axis{}, Axis{}}, Dimensions{4}) == stdcompat::partial_ordering::less);
+  EXPECT_TRUE(compare(std::tuple<Axis, Axis>{}, make_pattern(Dimensions{4})) == stdcompat::partial_ordering::less);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{4}), std::tuple<Axis, Axis>{}) == stdcompat::partial_ordering::greater);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{2}), std::tuple<Axis, Axis, Axis, Axis>{}) == stdcompat::partial_ordering::less);
+  EXPECT_TRUE(compare(Dimensions{4}, std::vector{Axis{}, Axis{}}) == stdcompat::partial_ordering::greater);
+  EXPECT_TRUE(compare(std::vector{angle::Radians{}}, angle::Radians{}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::vector{angle::Degrees{}}, std::tuple<angle::Degrees>{}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(make_pattern(Dimensions<3>{}, angle::Degrees{}), std::tuple<Dimensions<3>, angle::Degrees>{}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(angle::Radians{}, std::vector{angle::Radians{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(make_pattern(Dimensions<3>{}, angle::Degrees{}), Dimensions<3>{}) == stdcompat::partial_ordering::greater);
+  EXPECT_TRUE(compare(std::vector{Dimensions<3>{}}, std::tuple<Dimensions<3>, angle::Degrees>{}) == stdcompat::partial_ordering::less);
+  EXPECT_TRUE(compare(make_pattern(Dimensions<3>{}, angle::Degrees{}, Dimensions<5>{}), std::tuple<Dimensions<3>, angle::Degrees, Dimensions<5>>{}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::tuple<Dimensions<3>, angle::Degrees, Dimensions<5>>{}, make_pattern(Dimensions<3>{}, angle::Degrees{}, Dimensions<5>{})) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}), std::tuple<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<3>>{}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}), std::tuple<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<3>>{}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}), std::tuple<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<4>>{}) == stdcompat::partial_ordering::less);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}), std::tuple<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<2>>{}) == stdcompat::partial_ordering::greater);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, Dimensions<3>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}), std::tuple<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<3>>{}) == stdcompat::partial_ordering::unordered);
+  EXPECT_FALSE(compare(make_pattern(Dimensions{1}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}), std::tuple<Dimensions<4>, angle::Degrees, Dimensions<3>, Dimensions<3>>{}) == stdcompat::partial_ordering::less);
 
-  EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}, Axis{}) == make_pattern_vector(Axis{}, angle::Radians{}, Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}, Axis{}) < make_pattern_vector(Axis{}, angle::Radians{}, Axis{}, Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}, Axis{}, Axis{}) > make_pattern_vector(Axis{}, angle::Radians{}, Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}, Axis{}) == make_pattern_vector(Axis{}, angle::Radians{}, Axis{})));
-  EXPECT_TRUE((comparison(make_pattern_vector(Dimensions<3>{}, Dimensions<2>{}, angle::Radians{}, Dimensions<5>{})) == make_pattern_vector(Dimensions<2>{}, Dimensions<3>{}, angle::Radians{}, Dimensions<2>{}, Dimensions<3>{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}, Axis{}) == make_pattern_vector(Axis{}, angle::Radians{}, Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Dimensions<3>{}, Dimensions<2>{}, angle::Radians{}, Dimensions<4>{}) < comparison(make_pattern_vector(Dimensions<2>{}, Dimensions<3>{}, angle::Radians{}, Dimensions<2>{}, Dimensions<3>{}))));
-  EXPECT_TRUE((make_pattern_vector(Dimensions<3>{}, Dimensions<2>{}, angle::Radians{}, Dimensions<5>{}) > make_pattern_vector(Dimensions<2>{}, Dimensions<3>{}, angle::Radians{}, Dimensions<2>{}, Dimensions<2>{})));
-  EXPECT_TRUE((make_pattern_vector(Polar<Distance, angle::Radians>{}) == make_pattern_vector(Polar<Distance, angle::Radians>{})));
-  EXPECT_TRUE((make_pattern_vector(Polar<Distance, angle::Radians>{}, Axis{}) == make_pattern_vector(Polar<Distance, angle::Radians>{}, Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Polar<Distance, angle::Radians>{}, Axis{}) != make_pattern_vector(Polar<Distance, angle::Radians>{})));
-  EXPECT_TRUE((make_pattern_vector(Polar<Distance, angle::Radians>{}, Axis{}) > make_pattern_vector(Polar<Distance, angle::Radians>{})));
-  EXPECT_TRUE((make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{}) == make_pattern_vector(Spherical<Distance, angle::Radians, inclination::Radians>{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}, angle::Radians{}) != make_pattern_vector(Axis{}, angle::Radians{}, Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}) != make_pattern_vector(Polar<Distance, angle::Radians>{})));
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, angle::Radians{}), std::tuple<Axis, angle::Radians>{}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::tuple<Axis, angle::Radians>{}, make_pattern(Dimensions{1}, angle::Radians{}, Dimensions{1})) == stdcompat::partial_ordering::less);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, angle::Radians{}), std::tuple<Axis, angle::Radians, Axis>{}) == stdcompat::partial_ordering::less);
+  EXPECT_TRUE(compare(angle::Radians{}, std::vector{angle::Radians{}}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(std::vector{inclination::Radians{}}, inclination::Radians{}) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(angle::Radians{}, std::vector{inclination::Radians{}}) == stdcompat::partial_ordering::unordered);
+  EXPECT_TRUE(compare(angle::Radians{}, inclination::Radians{}) == stdcompat::partial_ordering::unordered);
+  EXPECT_TRUE(compare(std::vector{Polar<Distance, angle::Radians>{}}, Dimensions<5>{}) == stdcompat::partial_ordering::unordered);
+  EXPECT_TRUE(compare(Polar<Distance, angle::Radians>{}, std::vector{Dimensions<5>{}}) == stdcompat::partial_ordering::unordered);
+  EXPECT_TRUE(compare(std::vector{Spherical<Distance, inclination::Radians, angle::Radians>{}}, Dimensions<5>{}) == stdcompat::partial_ordering::unordered);
+  EXPECT_TRUE(compare(Spherical<Distance, inclination::Radians, angle::Radians>{}, std::vector{Dimensions<5>{}}) == stdcompat::partial_ordering::unordered);
 
-  EXPECT_TRUE((make_pattern_vector(Axis{}) == Dimensions<1>{}));
-  EXPECT_TRUE((Dimensions<1>{} == make_pattern_vector(Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}) == Dimensions<1>{}));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, Axis{}, Axis{}) == Dimensions<3>{}));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, Axis{}) < Dimensions<3>{}));
-  EXPECT_TRUE((std::tuple<Axis, Axis>{} < make_pattern_vector(Dimensions<4>{})));
-  EXPECT_TRUE((make_pattern_vector(Dimensions<4>{}) > std::tuple<Axis, Axis>{}));
-  EXPECT_TRUE((make_pattern_vector(Dimensions<4>{}) != std::tuple<Axis, Axis>{}));
-  EXPECT_TRUE((std::tuple<>{} == make_pattern_vector()));
-
-  EXPECT_TRUE((make_pattern_vector(Axis{}) == Dimensions{1}));
-  EXPECT_TRUE((Dimensions{1} == make_pattern_vector(Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}) == Dimensions{1}));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, Axis{}, Axis{}) == Dimensions{3}));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, Axis{}) < Dimensions{4}));
-  EXPECT_TRUE((std::tuple<Axis, Axis>{} < make_pattern_vector(Dimensions{4})));
-  EXPECT_TRUE((make_pattern_vector(Dimensions{4}) > std::tuple<Axis, Axis>{}));
-  EXPECT_TRUE((make_pattern_vector(Dimensions{2}) < std::tuple<Axis, Axis, Axis, Axis>{}));
-  EXPECT_TRUE((Dimensions{4} != make_pattern_vector(Axis{}, Axis{})));
-  EXPECT_TRUE((make_pattern_vector(angle::Radians{}) == angle::Radians{}));
-  EXPECT_TRUE((make_pattern_vector(angle::Degrees{}) == std::tuple<angle::Degrees>{}));
-  EXPECT_TRUE((make_pattern_vector(Dimensions<3>{}, angle::Degrees{}) == std::tuple<Dimensions<3>, angle::Degrees>{}));
-  EXPECT_TRUE((angle::Radians{} == make_pattern_vector(angle::Radians{})));
-  EXPECT_TRUE((make_pattern_vector(Dimensions<3>{}, angle::Degrees{}) > Dimensions<3>{}));
-  EXPECT_TRUE((make_pattern_vector(Dimensions<3>{}) < std::tuple<Dimensions<3>, angle::Degrees>{}));
-  EXPECT_TRUE((make_pattern_vector(Dimensions<3>{}, angle::Degrees{}, Dimensions<5>{}) == std::tuple<Dimensions<3>, angle::Degrees, Dimensions<5>>{}));
-  EXPECT_TRUE((std::tuple<Dimensions<3>, angle::Degrees, Dimensions<5>>{} == make_pattern_vector(Dimensions<3>{}, angle::Degrees{}, Dimensions<5>{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}) == std::tuple<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<3>>{}));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}) == std::tuple<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<3>>{}));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}) < std::tuple<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<4>>{}));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}) > std::tuple<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<2>>{}));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, Dimensions<3>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}) != std::tuple<Dimensions<2>, Axis, angle::Degrees, Dimensions<2>, Dimensions<3>>{}));
-  EXPECT_FALSE((make_pattern_vector(Axis{}, Dimensions<2>{}, angle::Degrees{}, Dimensions<3>{}, Dimensions<2>{}) < std::tuple<Dimensions<4>, angle::Degrees, Dimensions<3>, Dimensions<3>>{}));
-
-  EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}) == std::tuple<Axis, angle::Radians>{}));
-  EXPECT_TRUE((std::tuple<Axis, angle::Radians>{} <= make_pattern_vector(Axis{}, angle::Radians{})));
-  EXPECT_TRUE((std::tuple<Axis, angle::Radians>{} <= make_pattern_vector(Axis{}, angle::Radians{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}) >= std::tuple<Axis, angle::Radians>{}));
-  EXPECT_TRUE((std::tuple<Axis, angle::Radians>{} < make_pattern_vector(Axis{}, angle::Radians{}, Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}) <= std::tuple<Axis, angle::Radians, Axis>{}));
-  EXPECT_TRUE((angle::Radians{} == make_pattern_vector(angle::Radians{})));
-  EXPECT_TRUE((make_pattern_vector(inclination::Radians{}) == inclination::Radians{}));
-  EXPECT_TRUE((angle::Radians{} != make_pattern_vector(inclination::Radians{})));
-  EXPECT_FALSE((angle::Radians{} < inclination::Radians{}));
-  EXPECT_TRUE((make_pattern_vector(Polar<Distance, angle::Radians>{}) != Dimensions<5>{}));
-  EXPECT_FALSE((Polar<Distance, angle::Radians>{} < make_pattern_vector(Dimensions<5>{})));
-  EXPECT_TRUE((make_pattern_vector(Spherical<Distance, inclination::Radians, angle::Radians>{}) != Dimensions<5>{}));
-  EXPECT_FALSE((Spherical<Distance, inclination::Radians, angle::Radians>{} < make_pattern_vector(Dimensions<5>{})));
-
-  EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}, Distance{}) == make_pattern_vector<float> (Axis{}, angle::Radians{}, Distance{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}, Distance{}) == make_pattern_vector<long double> (Axis{}, angle::Radians{}, Distance{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}, Distance{}) < make_pattern_vector<float> (Axis{}, angle::Radians{}, Distance{}, Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}, Distance{}, Axis{}) > make_pattern_vector<float> (Axis{}, angle::Radians{}, Distance{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}, Distance{}) <= make_pattern_vector<float> (Axis{}, angle::Radians{}, Distance{}, Axis{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}, Distance{}, Axis{}) >= make_pattern_vector<float> (Axis{}, angle::Radians{}, Distance{})));
-  EXPECT_TRUE((make_pattern_vector(Axis{}, angle::Radians{}, Distance{}, Axis{}) != make_pattern_vector<float> (Axis{}, angle::Radians{}, Distance{})));
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, angle::Radians{}, Distance{}), make_pattern<float> (Dimensions{1}, angle::Radians{}, Distance{})) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, angle::Radians{}, Distance{}), make_pattern<long double> (Dimensions{1}, angle::Radians{}, Distance{})) == stdcompat::partial_ordering::equivalent);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, angle::Radians{}, Distance{}), make_pattern<float> (Dimensions{1}, angle::Radians{}, Distance{}, Dimensions{1})) == stdcompat::partial_ordering::less);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{1}, angle::Radians{}, Distance{}, Dimensions{1}), make_pattern<float> (Dimensions{1}, angle::Radians{}, Distance{})) == stdcompat::partial_ordering::greater);
+  EXPECT_TRUE(compare(make_pattern(Dimensions{2}, angle::Radians{}, Distance{}, Dimensions{1}), make_pattern<float> (Dimensions{1}, angle::Radians{}, Distance{})) == stdcompat::partial_ordering::unordered);
 }

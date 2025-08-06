@@ -14,6 +14,7 @@
  */
 
 #include "basics/tests/tests.hpp"
+#include "collections/collections.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor.hpp"
 #include "linear-algebra/coordinates/concepts/pattern.hpp"
 #include "linear-algebra/coordinates/concepts/euclidean_pattern.hpp"
@@ -28,16 +29,23 @@
 #include "linear-algebra/coordinates/descriptors/Inclination.hpp"
 #include "linear-algebra/coordinates/descriptors/Polar.hpp"
 #include "linear-algebra/coordinates/descriptors/Spherical.hpp"
-#include "linear-algebra/coordinates/views/comparison.hpp"
 
+using namespace OpenKalman;
 using namespace OpenKalman::coordinates;
 
 TEST(coordinates, fixed_pattern)
 {
+  static_assert(dimension_of_v<std::tuple<>> == 0);
+  static_assert(fixed_pattern<std::tuple<>>);
+  static_assert(euclidean_pattern<std::tuple<>>);
+  static_assert(dimension_of_v<stdcompat::ranges::empty_view<Dimensions<1>>> == 0);
+  static_assert(fixed_pattern<stdcompat::ranges::empty_view<Dimensions<1>>>);
+  static_assert(euclidean_pattern<stdcompat::ranges::empty_view<Dimensions<1>>>);
+  static_assert(euclidean_pattern<stdcompat::ranges::empty_view<Distance>>); // Euclidean because it is empty
+
   static_assert(fixed_pattern<std::tuple<std::integral_constant<std::size_t, 2>, std::integral_constant<std::size_t, 3>>>);
   static_assert(not fixed_pattern<std::tuple<std::integral_constant<std::size_t, 2>, std::integral_constant<std::size_t, 3>, std::size_t>>);
   static_assert(fixed_pattern<std::array<std::integral_constant<std::size_t, 2>, 3>>);
-  static_assert(fixed_pattern<comparison_view<std::tuple<std::integral_constant<std::size_t, 2>, std::integral_constant<std::size_t, 3>>>>);
   static_assert(not fixed_pattern<std::array<std::size_t, 3>>);
   static_assert(euclidean_pattern<std::tuple<std::integral_constant<std::size_t, 2>, std::integral_constant<std::size_t, 3>>>);
 
@@ -51,7 +59,7 @@ TEST(coordinates, fixed_pattern)
   static_assert(descriptor_tuple<std::tuple<Axis>>);
   static_assert(not descriptor<std::tuple<Axis>>);
 
-  static_assert(get_dimension(Dimensions{std::tuple<Axis, Axis> {}}) == 2u);
+  static_assert(get_dimension(Dimensions{std::integral_constant<std::size_t, 2> {}}) == 2u);
   static_assert(get_dimension(std::tuple<Axis, Axis, angle::Radians>{}) == 3u);
   static_assert(get_dimension(std::tuple{Polar<Distance, angle::PositiveRadians>{}}) == 2u);
   static_assert(get_stat_dimension(std::tuple{Polar<angle::PositiveDegrees, Distance>{}}) == 3u);

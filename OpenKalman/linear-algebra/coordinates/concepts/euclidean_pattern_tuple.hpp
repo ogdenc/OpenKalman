@@ -16,9 +16,7 @@
 #ifndef OPENKALMAN_EUCLIDEAN_PATTERN_TUPLE_HPP
 #define OPENKALMAN_EUCLIDEAN_PATTERN_TUPLE_HPP
 
-#include <type_traits>
-#include <tuple>
-#include "collections/concepts/tuple_like.hpp"
+#include "collections/collections.hpp"
 #include "linear-algebra/coordinates/concepts/euclidean_pattern.hpp"
 
 namespace OpenKalman::coordinates
@@ -36,7 +34,7 @@ namespace OpenKalman::coordinates
     struct is_euclidean_pattern_tuple : std::false_type {};
 
     template<typename T>
-    struct is_euclidean_pattern_tuple<T, std::enable_if_t<tuple_like<T>>>
+    struct is_euclidean_pattern_tuple<T, std::enable_if_t<collections::tuple_like<T>>>
       : std::bool_constant<is_euclidean_pattern_tuple_impl<T>(std::make_index_sequence<std::tuple_size_v<T>>{})> {};
   } // namespace detail
 #endif
@@ -58,6 +56,6 @@ namespace OpenKalman::coordinates
 #endif
 
 
-} // namespace OpenKalman::coordinates
+}
 
-#endif //OPENKALMAN_EUCLIDEAN_PATTERN_TUPLE_HPP
+#endif

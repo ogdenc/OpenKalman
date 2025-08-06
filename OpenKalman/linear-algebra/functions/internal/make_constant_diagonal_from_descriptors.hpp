@@ -34,7 +34,7 @@ namespace OpenKalman::internal
     if constexpr (coordinates::pattern_tuple<Descriptors>)
     {
       auto new_descriptors = std::tuple_cat(
-        std::tuple(internal::smallest_vector_space_descriptor<scalar_type_of_t<T>>(
+        std::tuple(internal::smallest_pattern<scalar_type_of_t<T>>(
           std::get<0>(std::forward<Descriptors>(descriptors)), std::get<1>(std::forward<Descriptors>(descriptors)))),
         internal::tuple_slice<2, std::tuple_size_v<Descriptors>>(descriptors));
       return make_constant<T>(std::forward<C>(c), new_descriptors);
@@ -43,13 +43,10 @@ namespace OpenKalman::internal
     {
 #if __cpp_lib_containers_ranges >= 202202L and __cpp_lib_ranges_concat >= 202403L
       auto new_indices = std::views::concat(
-        internal::smallest_vector_space_descriptor<scalar_type_of_t<T>>(std::ranges::views::take(indices, 2)),
+        internal::smallest_pattern<scalar_type_of_t<T>>(std::ranges::views::take(indices, 2)),
         indices | std::ranges::views::drop(2));
 #else
-#ifdef __cpp_lib_ranges
-      namespace ranges = std::ranges;
-#endif
-      auto it = ranges::begin(descriptors);
+      auto it = stdcompat::ranges::begin(descriptors);
       auto new_descriptors = std::vector<std::decay_t<decltype(*it)>>{};
       auto i0 = it;
       auto i1 = ++it;
@@ -59,9 +56,9 @@ namespace OpenKalman::internal
       }
       else if (i0 != end(descriptors))
       {
-        auto d0 = internal::smallest_vector_space_descriptor<scalar_type_of_t<T>>(*i0, *i1);
+        auto d0 = internal::smallest_pattern<scalar_type_of_t<T>>(*i0, *i1);
         new_descriptors.emplace_back(d0);
-        std::copy(++it, ranges::end(descriptors), ++ranges::begin(new_descriptors));
+        std::copy(++it, stdcompat::ranges::end(descriptors), ++stdcompat::ranges::begin(new_descriptors));
       }
 #endif
       return make_constant<T>(std::forward<C>(c), new_descriptors);

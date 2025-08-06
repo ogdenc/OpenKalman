@@ -26,15 +26,15 @@ namespace OpenKalman::values
    * \brief A fixed version of pi
    */
 #if __cpp_nontype_template_args >= 201911L
-  template<values::number T>
-  using fixed_pi = values::Fixed<T, numbers::pi_v<T>>;
+  template<number T>
+  using fixed_pi = Fixed<T, stdcompat::numbers::pi_v<T>>;
 #else
   template<typename T>
   struct fixed_pi
   {
-    static_assert(values::number<T>);
+    static_assert(number<T>);
     using value_type = T;
-    static constexpr value_type value {numbers::pi_v<value_type>};
+    static constexpr value_type value {stdcompat::numbers::pi_v<value_type>};
     using type = fixed_pi;
     constexpr operator value_type() const { return value; }
     constexpr value_type operator()() const { return value; }
@@ -46,15 +46,15 @@ namespace OpenKalman::values
    * \brief A fixed version of -pi
    */
 #if __cpp_nontype_template_args >= 201911L
-  template<values::number T>
-  using fixed_minus_pi = values::Fixed<T, -numbers::pi_v<T>>;
+  template<number T>
+  using fixed_minus_pi = Fixed<T, -stdcompat::numbers::pi_v<T>>;
 #else
   template<typename T>
   struct fixed_minus_pi
   {
-    static_assert(values::number<T>);
+    static_assert(number<T>);
     using value_type = T;
-    static constexpr value_type value {-numbers::pi_v<value_type>};
+    static constexpr value_type value {-stdcompat::numbers::pi_v<value_type>};
     using type = fixed_minus_pi;
     constexpr operator value_type() const { return value; }
     constexpr value_type operator()() const { return value; }
@@ -66,15 +66,15 @@ namespace OpenKalman::values
    * \brief A fixed version of 2*pi
    */
 #if __cpp_nontype_template_args >= 201911L
-  template<values::number T>
-  using fixed_2pi = values::Fixed<T, 2 * numbers::pi_v<T>>;
+  template<number T>
+  using fixed_2pi = Fixed<T, 2 * stdcompat::numbers::pi_v<T>>;
 #else
   template<typename T>
   struct fixed_2pi
   {
-    static_assert(values::number<T>);
+    static_assert(number<T>);
     using value_type = T;
-    static constexpr value_type value {2 * numbers::pi_v<value_type>};
+    static constexpr value_type value {2 * stdcompat::numbers::pi_v<value_type>};
     using type = fixed_2pi;
     constexpr operator value_type() const { return value; }
     constexpr value_type operator()() const { return value; }
@@ -86,15 +86,15 @@ namespace OpenKalman::values
  * \brief A fixed version of pi/2
  */
 #if __cpp_nontype_template_args >= 201911L
-  template<values::number T>
-  using fixed_half_pi = values::Fixed<T, static_cast<T>(0.5) * numbers::pi_v<T>>;
+  template<number T>
+  using fixed_half_pi = Fixed<T, static_cast<T>(0.5) * stdcompat::numbers::pi_v<T>>;
 #else
   template<typename T>
   struct fixed_half_pi
   {
-    static_assert(values::number<T>);
+    static_assert(number<T>);
     using value_type = T;
-    static constexpr value_type value {static_cast<value_type>(0.5) * numbers::pi_v<value_type>};
+    static constexpr value_type value {static_cast<value_type>(0.5) * stdcompat::numbers::pi_v<value_type>};
     using type = fixed_half_pi;
     constexpr operator value_type() const { return value; }
     constexpr value_type operator()() const { return value; }
@@ -106,15 +106,15 @@ namespace OpenKalman::values
  * \brief A fixed version of -pi/2
  */
 #if __cpp_nontype_template_args >= 201911L
-  template<values::number T>
-  using fixed_minus_half_pi = values::Fixed<T, static_cast<T>(-0.5) * numbers::pi_v<T>>;
+  template<number T>
+  using fixed_minus_half_pi = Fixed<T, static_cast<T>(-0.5) * stdcompat::numbers::pi_v<T>>;
 #else
   template<typename T>
   struct fixed_minus_half_pi
   {
-    static_assert(values::number<T>);
+    static_assert(number<T>);
     using value_type = T;
-    static constexpr value_type value {static_cast<value_type>(-0.5) * numbers::pi_v<value_type>};
+    static constexpr value_type value {static_cast<value_type>(-0.5) * stdcompat::numbers::pi_v<value_type>};
     using type = fixed_minus_half_pi;
     constexpr operator value_type() const { return value; }
     constexpr value_type operator()() const { return value; }

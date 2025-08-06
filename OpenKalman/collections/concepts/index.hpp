@@ -16,19 +16,12 @@
 #ifndef OPENKALMAN_COLLECTIONS_INDEX_HPP
 #define OPENKALMAN_COLLECTIONS_INDEX_HPP
 
-#include <type_traits>
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
-#include "basics/compatibility/ranges.hpp"
-#endif
-#include "../../basics/compatibility/language-features.hpp"
 #include "values/values.hpp"
 #include "collection.hpp"
 
 namespace OpenKalman::collections
 {
-#if not defined(__cpp_lib_ranges) or not defined(__cpp_lib_remove_cvref) or __cpp_generic_lambdas < 201707L
+#if not defined(__cpp_lib_ranges) or __cpp_generic_lambdas < 201707L
   namespace detail_index
   {
     template<typename T, std::size_t...Ix>
@@ -42,9 +35,6 @@ namespace OpenKalman::collections
       : std::bool_constant<is_index_tuple_impl<T>(std::make_index_sequence<std::tuple_size_v<T>>{})> {};
 
 
-#ifdef __cpp_lib_remove_cvref
-    using std::remove_cvref_t;
-#endif
 #ifdef __cpp_lib_ranges
     namespace ranges = std::ranges;
 #endif
@@ -54,7 +44,7 @@ namespace OpenKalman::collections
     struct is_index_range : std::false_type {};
 
     template<typename T>
-    struct is_index_range<T, std::enable_if_t<values::index<ranges::range_value_t<remove_cvref_t<T>>>>> : std::true_type {};
+    struct is_index_range<T, std::enable_if_t<values::index<stdcompat::ranges::range_value_t<stdcompat::remove_cvref_t<T>>>>> : std::true_type {};
 
   }
 #endif
@@ -65,12 +55,12 @@ namespace OpenKalman::collections
    * \details This will be a tuple-like object or a dynamic range over a collection such as std::vector.
    */
   template<typename T>
-#if defined(__cpp_lib_ranges) and defined(__cpp_lib_remove_cvref) and __cpp_generic_lambdas >= 201707L
+#if defined(__cpp_lib_ranges) and __cpp_generic_lambdas >= 201707L
   concept index = collection<T> and
     ([]<std::size_t...Ix>(std::index_sequence<Ix...>)
-      { return (... and values::index<std::tuple_element_t<Ix, std::remove_cvref_t<T>>>); }
-        (std::make_index_sequence<std::tuple_size<std::remove_cvref_t<T>>::value>{}) or
-    values::index<std::ranges::range_value_t<std::remove_cvref_t<T>>>);
+      { return (... and values::index<std::tuple_element_t<Ix, stdcompat::remove_cvref_t<T>>>); }
+        (std::make_index_sequence<std::tuple_size<stdcompat::remove_cvref_t<T>>::value>{}) or
+    values::index<std::ranges::range_value_t<stdcompat::remove_cvref_t<T>>>);
 #else
   constexpr bool index = collection<T> and
     (detail_index::is_index_tuple<std::decay_t<T>>::value or detail_index::is_index_range<std::decay_t<T>>::value);

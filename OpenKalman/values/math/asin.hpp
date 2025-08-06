@@ -17,8 +17,8 @@
 
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/classes/operation.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
@@ -35,18 +35,18 @@ namespace OpenKalman::values
    * \brief Constexpr alternative to the std::asin function.
    */
 #ifdef __cpp_concepts
-  template<values::value Arg>
-  constexpr values::value auto
+  template<value Arg>
+  constexpr value auto
 #else
-  template<typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<value<Arg>, int> = 0>
   constexpr auto
 #endif
   asin(const Arg& arg)
   {
-    if constexpr (not values::number<Arg>)
+    if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::asin(a); } };
-      return values::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::asin(a); } };
+      return values::operation(Op{}, arg);
     }
     else
     {
@@ -58,8 +58,8 @@ namespace OpenKalman::values
       {
         auto xr = values::real(values::real(arg));
         auto xi = values::real(values::imag(arg));
-        auto sqt = values::sqrt(values::internal::make_complex_number(1 - xr*xr + xi*xi, - 2*xr*xi));
-        auto lg = values::log(values::internal::make_complex_number(values::real(sqt) + xi, values::imag(sqt) - xr));
+        auto sqt = values::sqrt(values::internal::make_complex_number<>(1 - xr*xr + xi*xi, - 2*xr*xi));
+        auto lg = values::log(values::internal::make_complex_number<>(values::real(sqt) + xi, values::imag(sqt) - xr));
         return values::internal::make_complex_number<Return>(-values::imag(lg), values::real(lg));
       }
       else

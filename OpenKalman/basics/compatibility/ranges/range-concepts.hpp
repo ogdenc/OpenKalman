@@ -21,14 +21,33 @@
 #ifndef OPENKALMAN_RANGES_RANGE_CONCEPTS_HPP
 #define OPENKALMAN_RANGES_RANGE_CONCEPTS_HPP
 
-#ifndef __cpp_lib_ranges
-
 #include "basics/compatibility/language-features.hpp"
 #include "basics/compatibility/iterator.hpp"
 #include "range-access.hpp"
 
-namespace OpenKalman::ranges
+namespace OpenKalman::stdcompat::ranges
 {
+#ifdef __cpp_lib_ranges
+  using std::ranges::range;
+  using std::ranges::borrowed_range;
+  using std::ranges::sized_range;
+  using std::ranges::input_range;
+  using std::ranges::output_range;
+  using std::ranges::forward_range;
+  using std::ranges::bidirectional_range;
+  using std::ranges::random_access_range;
+  using std::ranges::common_range;
+  using std::ranges::range_size_t;
+  using std::ranges::range_difference_t;
+  using std::ranges::range_value_t;
+  using std::ranges::range_reference_t;
+  using std::ranges::range_rvalue_reference_t;
+  //using std::ranges::range_common_reference_t; // Not available in certain c++23 versions of CGG and clang
+#if __cplusplus >= 202302L
+  using std::ranges::range_const_reference_t;
+#endif
+
+#else
   // ---
   // range
   // ---
@@ -53,17 +72,12 @@ namespace OpenKalman::ranges
 
   namespace detail_borrowed_range
   {
-#ifdef __cpp_lib_remove_cvref
-    using std::remove_cvref_t;
-#endif
-
-
     template<typename R, typename = void>
     struct is_borrowed_range : std::false_type {};
 
     template<typename R>
     struct is_borrowed_range<R, std::enable_if_t<range<R> and
-      (std::is_lvalue_reference_v<R> or enable_borrowed_range<remove_cvref_t<R>>)>> : std::true_type {};
+      (std::is_lvalue_reference_v<R> or enable_borrowed_range<stdcompat::remove_cvref_t<R>>)>> : std::true_type {};
   }
 
   template<typename T>
@@ -80,7 +94,7 @@ namespace OpenKalman::ranges
     struct is_sized_range : std::false_type {};
 
     template<typename T>
-    struct is_sized_range<T, std::void_t<decltype(ranges::size(std::declval<T&>()))>> : std::true_type {};
+    struct is_sized_range<T, std::void_t<decltype(stdcompat::ranges::size(std::declval<T&>()))>> : std::true_type {};
 
   }
 
@@ -210,22 +224,24 @@ namespace OpenKalman::ranges
   template<typename R, std::enable_if_t<range<R>, int> = 0>
   using range_value_t = iter_value_t<iterator_t<R>>;
 
-
   template<typename R, std::enable_if_t<range<R>, int> = 0>
   using range_reference_t = iter_reference_t<iterator_t<R>>;
 
   template<typename R, std::enable_if_t<range<R>, int> = 0>
-  using range_const_reference_t =  iter_const_reference_t<iterator_t<R>>;
-
-  template<typename R, std::enable_if_t<range<R>, int> = 0>
   using range_rvalue_reference_t =  iter_rvalue_reference_t<iterator_t<R>>;
-
-  template<typename R, std::enable_if_t<range<R>, int> = 0>
-  using range_common_reference_t =  iter_common_reference_t<iterator_t<R>>;
-
-} // namespace OpenKalman::ranges
-
 #endif
 
 
-#endif //OPENKALMAN_RANGES_RANGE_CONCEPTS_HPP
+  // range_common_reference_t is not available in at least some c++23 versions of GCC or clang
+  template<typename R, std::enable_if_t<range<R>, int> = 0>
+  using range_common_reference_t =  iter_common_reference_t<iterator_t<R>>;
+
+
+#if __cplusplus < 202302L
+  template<typename R, std::enable_if_t<range<R>, int> = 0>
+  using range_const_reference_t =  iter_const_reference_t<iterator_t<R>>;
+#endif
+
+}
+
+#endif

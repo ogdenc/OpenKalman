@@ -46,7 +46,7 @@ namespace OpenKalman::interface
 #ifdef __cpp_lib_concepts
     template<typename Arg, std::convertible_to<Index>...I> requires (sizeof...(I) == index_count_v<PlainObjectType>)
 #else
-    template<typename Arg, typename...I, std::enable_if_t<(std::is_convertible_v<I, Index> and ...) and
+    template<typename Arg, typename...I, std::enable_if_t<(stdcompat::convertible_to<I, Index> and ...) and
       (sizeof...(I) == index_count<PlainObjectType>::value), int> = 0>
 #endif
     static constexpr decltype(auto) get(Arg&& arg, I...i)

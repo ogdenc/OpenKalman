@@ -52,8 +52,8 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     TriangularAdapter() requires std::default_initializable<NestedObject> and (not has_dynamic_dimensions<NestedObject>)
 #else
-    template<typename T = NestedObject, std::enable_if_t<
-      std::is_default_constructible_v<T> and (not has_dynamic_dimensions<NestedObject>), int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and
+      stdcompat::default_initializable<NestedObject> and (not has_dynamic_dimensions<NestedObject>), int> = 0>
     TriangularAdapter()
 #endif
       : Base {} {}
@@ -85,7 +85,7 @@ namespace OpenKalman
 #else
     template<typename Arg, std::enable_if_t<square_shaped<Arg, Applicability::permitted> and
       (not triangular_matrix<Arg, triangle_type>) and (not diagonal_matrix<NestedObject>) and
-      dimensions_match<Arg> and std::is_constructible_v<NestedObject, Arg&&>, int> = 0>
+      dimensions_match<Arg> and stdcompat::constructible_from<NestedObject, Arg&&>, int> = 0>
 #endif
     explicit TriangularAdapter(Arg&& arg) : Base {
       [](Arg&& arg) -> decltype(auto) {
@@ -118,7 +118,7 @@ namespace OpenKalman
       requires(Arg&& arg) { NestedObject {diagonal_of(std::forward<Arg>(arg))}; }
 #else
     template<typename Arg, std::enable_if_t<(not std::is_base_of_v<TriangularAdapter, std::decay_t<Arg>>) and
-      diagonal_matrix<NestedObject> and dimensions_match<Arg> and (not std::is_constructible_v<NestedObject, Arg&&>) and
+      diagonal_matrix<NestedObject> and dimensions_match<Arg> and (not stdcompat::constructible_from<NestedObject, Arg&&>) and
       std::is_constructible<NestedObject, decltype(diagonal_of(std::declval<Arg&&>()))>::value, int> = 0>
 #endif
     TriangularAdapter(Arg&& arg) : Base {diagonal_of(std::forward<Arg>(arg))} {}
@@ -229,7 +229,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
-    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar>, int> = 0>
 #endif
     auto& operator*=(const S s)
     {
@@ -241,7 +241,7 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     template<std::convertible_to<Scalar> S>
 #else
-    template<typename S, std::enable_if_t<std::is_convertible_v<S, Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, Scalar>, int> = 0>
 #endif
     auto& operator/=(const S s)
     {
@@ -285,7 +285,7 @@ namespace OpenKalman
     template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, TriangularAdapter>
 #else
     template<typename Arg, typename S, std::enable_if_t<
-      std::is_same_v<std::decay_t<Arg>, TriangularAdapter> and std::is_convertible_v<S, const scalar_type_of_t<Arg>>>>
+      std::is_same_v<std::decay_t<Arg>, TriangularAdapter> and stdcompat::convertible_to<S, const scalar_type_of_t<Arg>>>>
 #endif
     friend decltype(auto) operator*(Arg&& arg, S s)
     {
@@ -297,7 +297,7 @@ namespace OpenKalman
     template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, TriangularAdapter>
 #else
     template<typename Arg, typename S, std::enable_if_t<
-      std::is_same_v<std::decay_t<Arg>, TriangularAdapter> and std::is_convertible_v<S, const scalar_type_of_t<Arg>>>>
+      std::is_same_v<std::decay_t<Arg>, TriangularAdapter> and stdcompat::convertible_to<S, const scalar_type_of_t<Arg>>>>
 #endif
     friend decltype(auto) operator*(S s, Arg&& arg)
     {
@@ -309,7 +309,7 @@ namespace OpenKalman
     template<typename Arg, std::convertible_to<const scalar_type_of_t<Arg>> S> requires std::same_as<std::decay_t<Arg>, TriangularAdapter>
 #else
     template<typename Arg, typename S, std::enable_if_t<
-      std::is_same_v<std::decay_t<Arg>, TriangularAdapter> and std::is_convertible_v<S, const scalar_type_of_t<Arg>>>>
+      std::is_same_v<std::decay_t<Arg>, TriangularAdapter> and stdcompat::convertible_to<S, const scalar_type_of_t<Arg>>>>
 #endif
     friend decltype(auto) operator/(Arg&& arg, S s)
     {
@@ -373,7 +373,7 @@ namespace OpenKalman
       template<typename Arg, typename N>
       static constexpr auto get_vector_space_descriptor(Arg&& arg, N n)
       {
-        return internal::best_vector_space_descriptor(
+        return internal::most_fixed_pattern(
           OpenKalman::get_vector_space_descriptor<0>(nested_object(arg)),
           OpenKalman::get_vector_space_descriptor<1>(nested_object(arg)));
       }

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -27,23 +27,21 @@ namespace OpenKalman::values
 #ifdef __cpp_concepts
   template<value Arg>
   constexpr number auto
-  to_number(Arg arg)
 #else
-  template<typename Arg>
+  template<typename Arg, std::enable_if_t<value<Arg>, int> = 0>
   constexpr auto
-  to_number(Arg arg)
 #endif
+  to_number(Arg&& arg)
   {
 #ifdef __cpp_concepts
     if constexpr (requires { {std::decay_t<Arg>::value} -> number; }) return std::decay_t<Arg>::value;
-    else if constexpr (requires { {std::move(arg)()} -> number; }) return std::move(arg)();
-    else return std::move(arg);
+    else if constexpr (requires { {std::forward<Arg>(arg)()} -> number; }) return std::forward<Arg>(arg)();
+    else return std::forward<Arg>(arg);
 #else
-    static_assert(value<Arg>);
     if constexpr (internal::has_value_member<std::decay_t<Arg>>::value) return std::decay_t<Arg>::value;
     else if constexpr (internal::call_result_is_fixed<std::decay_t<Arg>>::value or internal::is_dynamic<std::decay_t<Arg>>::value)
-      return std::move(arg)();
-    else { static_assert(number<Arg>); return std::move(arg); }
+      return std::forward<Arg>(arg)();
+    else { static_assert(number<Arg>); return std::forward<Arg>(arg); }
 #endif
   }
 

@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2022-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2022-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,84 +22,165 @@
 #include "values/concepts/complex.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
-#include "values/traits/real_type_of_t.hpp"
+#include "values/traits/fixed_number_of.hpp"
+#include "values/traits/real_type_of.hpp"
+#include "values/functions/to_number.hpp"
+#include "values/classes/Fixed.hpp"
 
 namespace OpenKalman::values::internal
 {
-  /**
-   * \internal
-   * \brief Make a complex number of type T from real and imaginary parts.
-   * \tparam T The complex type of the result
-   * \param re The real part.
-   * \param im The imaginary part.
-   */
-#ifdef __cpp_concepts
-  template<values::complex T, std::convertible_to<real_type_of_t<T>> Re, std::convertible_to<real_type_of_t<T>> Im = Re> requires
-    values::value<Re> and values::value<Im> and (not values::complex<Re>) and (not values::complex<Im>)
-#else
-  template<typename T, typename Re, typename Im = Re, std::enable_if_t<values::complex<T> and
-    std::is_convertible_v<Re, real_type_of_t<T>> and std::is_convertible_v<Im, real_type_of_t<T>> and
-    values::value<Re> and values::value<Im> and (not values::complex<Re>) and (not values::complex<Im>), int> = 0>
-#endif
-  constexpr std::decay_t<T>
-  make_complex_number(Re&& re, Im&& im = 0)
+  namespace detail
   {
-    return interface::number_traits<std::decay_t<T>>::make_complex(std::forward<Re>(re), std::forward<Im>(im));
-  }
+    /**
+     * \internal
+     * \brief A callable object that makes a \ref complex number associated with type T.
+     * \tparam T The complex or real type of the result (or void if this type is to be derived)
+     */
+#ifdef __cpp_concepts
+    template<typename T = void> requires number<T> or std::same_as<T, void>
+#else
+    template<typename T = void, typename = void>
+#endif
+    struct make_complex_number;
 
 
-  /**
-   * \internal
-   * \overload
-   * \brief Convert a complex number of one real type from a complex number of another real type.
-   * \tparam T The complex type of the result, or alternatively, its underlying real type
-   * \tparam Arg A complex number to be converted.
-   */
+    /**
+     * \internal
+     * \brief A callable object that makes a \ref complex number associated with type T.
+     * \tparam T The complex or real type of the result
+     */
 #ifdef __cpp_concepts
-  template<values::value T, values::complex Arg> requires std::constructible_from<real_type_of_t<T>, real_type_of_t<Arg>>
-  constexpr values::complex decltype(auto)
+    template<number T>
+    struct make_complex_number<T>
 #else
-  template<typename T, typename Arg, std::enable_if_t<values::value<T> and values::complex<Arg> and
-    std::is_constructible_v<real_type_of_t<T>, real_type_of_t<Arg>>, int> = 0>
-  constexpr decltype(auto)
+    template<typename T>
+    struct make_complex_number<T, std::enable_if_t<number<T>>>
 #endif
-  make_complex_number(Arg&& arg)
-  {
-    using R = real_type_of_t<T>;
-    if constexpr (std::is_same_v<R, std::decay_t<Arg>>)
     {
-      return std::forward<Arg>(arg);
-    }
-    else
-    {
-      return interface::number_traits<std::decay_t<T>>::make_complex(
-        static_cast<R>(values::real(arg)), static_cast<R>(values::imag(arg)));
-    }
-  }
+#if __cpp_nontype_template_args < 201911L
+    private:
 
+      template<typename C, typename Re, typename Im>
+      struct FixedComplex
+      {
+        using value_type = C;
+        static constexpr value_type value {interface::number_traits<C>::make_complex(fixed_number_of_v<Re>, fixed_number_of_v<Im>)};
+        using type = FixedComplex;
+        constexpr operator value_type() const { return value; }
+        constexpr value_type operator()() const { return value; }
+      };
 
-/**
-   * \internal
-   * \overload
-   * \brief Make a complex number from real and imaginary parts, deriving the complex type from the arguments.
-   * \param re The real part.
-   * \param im The imaginary part.
-   */
-#ifdef __cpp_concepts
-  template<values::number Re, values::number Im> requires
-    (not values::complex<Re>) and (not values::complex<Im>) and std::common_with<Re, Im>
-  constexpr values::complex auto
-#else
-  template<typename Re, typename Im, std::enable_if_t<values::number<Re> and values::number<Im> and
-    (not values::complex<Re>) and (not values::complex<Im>), int> = 0>
-  constexpr auto
+    public:
 #endif
-  make_complex_number(const Re& re, const Im& im = 0)
-  {
-    return interface::number_traits<std::decay_t<std::common_type_t<Re, Im>>>::make_complex(re, im);
+
+      /**
+       * \internal
+       * \brief Make a complex number of type T from real and imaginary parts.
+       * \tparam T The complex or real type of the result
+       * \param re The real part.
+       * \param im The imaginary part.
+       * \return A \ref complex \ref value
+       */
+#ifdef __cpp_concepts
+      template<value Re, value Im = Fixed<real_type_of_t<T>, 0>> requires (not values::complex<Re>) and (not values::complex<Im>) and
+        std::convertible_to<Re, real_type_of_t<T>> and std::convertible_to<Im, real_type_of_t<T>> and
+        requires { interface::number_traits<std::decay_t<T>>::make_complex(to_number(std::declval<Re>()), to_number(std::declval<Im>())); }
+      constexpr complex decltype(auto)
+#else
+      template<typename Re, typename Im = Fixed<real_type_of_t<T>, 0>, std::enable_if_t<values::value<Re> and values::value<Im> and
+        (not values::complex<Re>) and (not values::complex<Im>) and
+        stdcompat::convertible_to<Re, real_type_of_t<T>> and stdcompat::convertible_to<Im, real_type_of_t<T>>, int> = 0>
+      constexpr decltype(auto)
+#endif
+      operator()(Re&& re, Im&& im = {}) const
+      {
+        if constexpr (fixed<Re> and fixed<Im>)
+        {
+          constexpr auto r = fixed_number_of_v<Re>;
+          constexpr auto i = fixed_number_of_v<Im>;
+          using C = std::decay_t<decltype(interface::number_traits<std::decay_t<T>>::make_complex(r, i))>;
+#if __cpp_nontype_template_args >= 201911L
+          return Fixed<C, r, i>{};
+#else
+          if constexpr (r == static_cast<std::intmax_t>(r) and i == static_cast<std::intmax_t>(i))
+            return Fixed<C, static_cast<std::intmax_t>(r), static_cast<std::intmax_t>(i)>{};
+          else
+            return FixedComplex<C, std::decay_t<Re>, std::decay_t<Im>>{};
+#endif
+        }
+        else
+        {
+          return interface::number_traits<std::decay_t<T>>::make_complex(to_number(std::forward<Re>(re)), to_number(std::forward<Im>(im)));
+        }
+      }
+
+
+      /**
+       * \overload
+       * \brief Convert a complex number of one real type from a complex number of another real type.
+       * \tparam Arg A complex number to be converted.
+       */
+#ifdef __cpp_concepts
+      template<complex Arg> requires std::convertible_to<real_type_of_t<Arg>, real_type_of_t<T>>
+      constexpr complex decltype(auto)
+#else
+      template<typename Arg, std::enable_if_t<number<T> and complex<Arg> and
+        stdcompat::convertible_to<real_type_of_t<Arg>, real_type_of_t<T>>, int> = 0>
+      constexpr decltype(auto)
+#endif
+      operator()(Arg&& arg) const
+      {
+        if constexpr (std::is_same_v<real_type_of_t<T>, real_type_of_t<Arg>>)
+        {
+          return std::forward<Arg>(arg);
+        }
+        else
+        {
+          return operator()(values::real(std::forward<Arg>(arg)), values::imag(std::forward<Arg>(arg)));
+        }
+      }
+    };
+
+
+    /**
+     * \internal
+     * \brief A callable object that makes a \ref complex number associated with type T.
+     * \tparam T The complex or real type of the result
+     */
+    template<>
+    struct make_complex_number<void>
+    {
+      /**
+       * \brief Make a complex number from real and imaginary parts, deriving the complex type from the arguments.
+       * \param re The real part.
+       * \param im The imaginary part.
+       */
+#ifdef __cpp_concepts
+      template<number Re, number Im = Fixed<real_type_of_t<Re>, 0>> requires
+        (not complex<Re>) and (not complex<Im>) and std::common_with<number_type_of_t<Re>, number_type_of_t<Im>>
+      constexpr complex decltype(auto)
+#else
+      template<typename Re, typename Im = Fixed<real_type_of_t<Re>, 0>, std::enable_if_t<
+        number<Re> and number<Im> and (not complex<Re>) and (not complex<Im>), int> = 0>
+      constexpr decltype(auto)
+#endif
+      operator()(Re&& re, Im&& im) const
+      {
+        using T = std::decay_t<std::common_type_t<number_type_of_t<Re>, number_type_of_t<Im>>>;
+        return make_complex_number<T>{}(std::forward<Re>(re), std::forward<Im>(im));
+      }
+    };
   }
 
 
-} // namespace OpenKalman::values::internal
+#ifdef __cpp_concepts
+  template<typename T = void> requires number<T> or std::same_as<T, void>
+#else
+  template<typename T = void, typename = void>
+#endif
+  inline constexpr auto make_complex_number = detail::make_complex_number<T>{};
 
-#endif //OPENKALMAN_MAKE_COMPLEX_NUMBER_HPP
+
+}
+
+#endif

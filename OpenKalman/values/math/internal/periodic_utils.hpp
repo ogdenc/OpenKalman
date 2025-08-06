@@ -17,7 +17,7 @@
 
 #include <cstdint>
 #include <limits>
-#include "../../../basics/compatibility/language-features.hpp"
+#include "basics/basics.hpp"
 
 namespace OpenKalman::values::internal
 {
@@ -36,7 +36,7 @@ namespace OpenKalman::values::internal
   template <typename T>
   constexpr T scale_periodic_function(const T& theta)
   {
-    T pi2 {numbers::pi_v<T> * 2};
+    T pi2 {stdcompat::numbers::pi_v<T> * 2};
     T max {static_cast<T>(std::numeric_limits<std::intmax_t>::max())};
     T lowest {static_cast<T>(std::numeric_limits<std::intmax_t>::lowest())};
     if (theta > -pi2 and theta < pi2)

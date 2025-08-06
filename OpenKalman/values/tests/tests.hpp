@@ -72,7 +72,7 @@ namespace OpenKalman::test
       : ::testing::AssertionResult {compare(arg1, arg2, err)} {}
   };
 
-} // namespace OpenKalman::test
+}
 
 
-#endif //OPENKALMAN_VALUES_TESTS_HPP
+#endif

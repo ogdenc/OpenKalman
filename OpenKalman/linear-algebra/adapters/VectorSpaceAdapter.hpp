@@ -43,7 +43,7 @@ namespace OpenKalman
     constexpr VectorSpaceAdapter() requires std::default_initializable<Base> and
       fixed_pattern_tuple<Descriptors>
 #else
-    template<typename B = Base, std::enable_if_t<std::is_default_constructible<B>::value
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<Base>
       and fixed_pattern_tuple<Descriptors>, int> = 0>
     constexpr VectorSpaceAdapter()
 #endif
@@ -61,7 +61,7 @@ namespace OpenKalman
 #else
     template<typename Arg, typename...Ds, std::enable_if_t<
       internal::maybe_same_shape_as_vector_space_descriptors<Arg, Descriptors> and
-      (not internal::vector_space_adapter<Arg>) and std::is_constructible_v<Base, Arg&&>, int> = 0>
+      (not internal::vector_space_adapter<Arg>) and stdcompat::constructible_from<Base, Arg&&>, int> = 0>
 #endif
     constexpr VectorSpaceAdapter(Arg&& arg, const std::decay_t<Descriptors>& descriptors)
       : Base {std::forward<Arg>(arg)}, my_descriptors {descriptors} {}
@@ -78,7 +78,7 @@ namespace OpenKalman
     template<typename Arg, std::enable_if_t<
       internal::maybe_same_shape_as_vector_space_descriptors<Arg, Descriptors> and
       internal::maybe_same_shape_as_vector_space_descriptors<Arg, Descriptors> and
-      internal::vector_space_adapter<Arg> and std::is_constructible_v<Base, typename nested_object_of<Arg&&>::type>, int> = 0>
+      internal::vector_space_adapter<Arg> and stdcompat::constructible_from<Base, typename nested_object_of<Arg&&>::type>, int> = 0>
 #endif
     constexpr VectorSpaceAdapter(Arg&& arg, const std::decay_t<Descriptors>& descriptors)
       : Base {nested_object(std::forward<Arg>(arg))}, my_descriptors {descriptors} {}

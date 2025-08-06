@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2020-2025 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,71 +10,121 @@
 
 /**
  * \file
- * \brief Definition for \ref from_stat_space.
+ * \brief Definition for \ref collections::from_stat_space.
  */
 
-#ifndef OPENKALMAN_FROM_EUCLIDEAN_ELEMENT_HPP
-#define OPENKALMAN_FROM_EUCLIDEAN_ELEMENT_HPP
+#ifndef OPENKALMAN_COLLECTIONS_FROM_STAT_SPACE_HPP
+#define OPENKALMAN_COLLECTIONS_FROM_STAT_SPACE_HPP
 
-#include <type_traits>
 #include <functional>
-#include "values/concepts/value.hpp"
-#include "values/classes/operation.hpp"
+#include "collections/collections.hpp"
 #include "linear-algebra/coordinates/interfaces/coordinate_descriptor_traits.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor.hpp"
-#include "linear-algebra/coordinates/concepts/pattern.hpp"
+#include "linear-algebra/coordinates/concepts/descriptor_collection.hpp"
 #include "linear-algebra/coordinates/concepts/euclidean_pattern.hpp"
-#include "linear-algebra/coordinates/functions/internal/get_index_table.hpp"
-#include "linear-algebra/coordinates/functions/internal/get_component_start_indices.hpp"
-#include "linear-algebra/coordinates/functions/internal/get_euclidean_component_start_indices.hpp"
-#include "linear-algebra/coordinates/functions/internal/get_descriptor_collection_element.hpp"
-#include "linear-algebra/coordinates/traits/dimension_of.hpp"
+#include "linear-algebra/coordinates/traits/stat_dimension_of.hpp"
+#include "linear-algebra/coordinates/functions/get_dimension.hpp"
+#include "linear-algebra/coordinates/functions/get_stat_dimension.hpp"
 
 namespace OpenKalman::coordinates
 {
   /**
-   * \brief The inverse of <code>to_stat_space</code>. Maps coordinates in Euclidean space back into modular space.
-   * \param g An element getter mapping an index i of type std::size_t to an element value
-   * (e.g., <code>std::function&lt;double(std::size_t)&rt;</code>)
-   * \param local_index A local index accessing the coordinate in modular space.
+   * \brief Maps a range in a vector space for directional-statistics back to a range reflecting vector-space data.
+   * \details This is the inverse of <code>to_stat_space</code>.
+   * \param t A \ref coordinates::descriptor "descriptor".
+   * \param stat_data_view A range within a data object corresponding to \ref coordinates::descriptor "descriptor" t.
    */
 #ifdef __cpp_concepts
-  template<pattern T, values::index L>
-  constexpr values::value auto
-  from_stat_space(const T& t, const auto& g, const L& local_index)
-  requires requires(std::size_t i) { {g(i)} -> values::value; }
+  template<descriptor T, collections::collection R>
+  constexpr collections::collection_view decltype(auto)
 #else
-  template<typename T, typename Getter, typename L, std::enable_if_t<pattern<T> and values::index<L> and
-    values::value<typename std::invoke_result<Getter, std::size_t>::type>, int> = 0>
-  constexpr auto
-  from_stat_space(const T& t, const Getter& g, const L& local_index)
+  template<typename T, typename R, std::enable_if_t<descriptor<T> and collections::collection<R>, int> = 0>
+  constexpr decltype(auto)
 #endif
+  from_stat_space(const T& t, R&& stat_data_view)
   {
-    if constexpr (dimension_of_v<T> != dynamic_size and values::fixed<L>)
-      static_assert(values::to_number(local_index) < dimension_of_v<T>);
+    if constexpr (stat_dimension_of_v<T> != dynamic_size and collections::size_of_v<R> != dynamic_size)
+      static_assert(stat_dimension_of_v<T> == collections::size_of_v<R>);
 
     if constexpr (euclidean_pattern<T>)
     {
-      return g(local_index);
+      return collections::views::all(std::forward<R>(stat_data_view));
     }
-    else if constexpr (descriptor<T>)
+    else
     {
-      return interface::coordinate_descriptor_traits<T>::from_euclidean_component(t, g, local_index);;
-    }
-    else // if constexpr (descriptor_collection<T>)
-    {
-      auto component_ix = collections::get(internal::get_index_table(t), local_index);
-      auto component = internal::get_descriptor_collection_element(t, component_ix);
-      auto start_i = collections::get(internal::get_component_start_indices(t), component_ix);
-      auto start_e = collections::get(internal::get_euclidean_component_start_indices(t), component_ix);
-      auto new_g = [&g, start_e](auto i) { return g(values::operation {std::plus{}, start_e, i}); };
-      auto new_local_index = values::operation {std::minus{}, local_index, start_i};
-      return from_stat_space(component, new_g, new_local_index);
+      auto from_stat_space = interface::coordinate_descriptor_traits<T>::from_stat_space;
+      return collections::views::all(stdcompat::invoke(from_stat_space, t, std::forward<R>(stat_data_view)));
     }
   }
 
 
+  namespace detail
+  {
+    template<std::size_t t_i = 0, std::size_t stat_data_view_i = 0, typename T, typename R, typename...Out>
+    static constexpr auto
+    from_stat_space_tuple(const T& t, const R& stat_data_view, Out...out)
+    {
+      if constexpr (t_i < collections::size_of_v<T>)
+      {
+        decltype(auto) t_elem = collections::get(t, std::integral_constant<std::size_t, t_i>{});
+        auto dim = get_stat_dimension(t_elem);
+        auto data_view_sub = collections::views::slice(stat_data_view, std::integral_constant<std::size_t, stat_data_view_i>{}, dim);
+        auto o = collections::views::all(from_stat_space(t_elem, std::move(data_view_sub)));
+        return from_stat_space_tuple<t_i + 1, stat_data_view_i + values::fixed_number_of_v<decltype(dim)>>(
+          t, stat_data_view, std::move(out)..., std::move(o));
+      }
+      else
+      {
+        return collections::views::concat(std::move(out)...);
+      }
+    }
+  } // namespace detail
+
+
+  /**
+   * \overload
+   * \brief Maps a range in a vector space for directional-statistics back to a range reflecting vector-space data.
+   * \details This is the inverse of <code>to_stat_space</code>.
+   * \param t A \ref coordinates::descriptor_collection "descriptor_collection".
+   * \param stat_data_view A range within a data object corresponding to coordinates::descriptor_collection "descriptor_collection" t
+   */
+#ifdef __cpp_concepts
+  template<descriptor_collection T, collections::collection R>
+  constexpr collections::collection_view decltype(auto)
+#else
+  template<typename T, typename R, std::enable_if_t<descriptor_collection<T> and collections::collection<R>, int> = 0>
+  constexpr decltype(auto)
+#endif
+  from_stat_space(const T& t, R&& stat_data_view)
+  {
+    if constexpr (stat_dimension_of_v<T> != dynamic_size and collections::size_of_v<R> != dynamic_size)
+      static_assert(stat_dimension_of_v<T> == collections::size_of_v<R>);
+
+    if constexpr (stat_dimension_of_v<T> == dynamic_size)
+    {
+      std::vector<collections::common_collection_type_t<R>> data;
+      data.reserve(get_dimension(t));
+      std::size_t i = 0;
+      for (auto& d : t)
+      {
+        auto dim = get_stat_dimension(d);
+#if __cpp_lib_containers_ranges >= 202002L
+        data.append_range(to_stat_space(d, collections::views::slice(stat_data_view, i, dim)));
+#else
+        auto sd = from_stat_space(d, collections::views::slice(stat_data_view, i, dim));
+        data.insert(data.end(), sd.cbegin(), sd.cend());
+#endif
+        i += values::to_number(dim);
+      }
+      return collections::views::all(std::move(data));
+    }
+    else //if constexpr (fixed_pattern<T>)
+    {
+      return detail::from_stat_space_tuple(t, stat_data_view);
+    }
+  }
+
 } // namespace OpenKalman::coordinates
 
 
-#endif //OPENKALMAN_FROM_EUCLIDEAN_ELEMENT_HPP
+#endif

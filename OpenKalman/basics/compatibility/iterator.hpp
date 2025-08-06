@@ -17,14 +17,41 @@
 #ifndef OPENKALMAN_COMPATIBILITY_ITERATOR_HPP
 #define OPENKALMAN_COMPATIBILITY_ITERATOR_HPP
 
-#ifndef __cpp_lib_ranges
-
 #include <iterator>
 #include "language-features.hpp"
-#include "common_reference.hpp"
+#include "core-concepts.hpp"
+#include "internal/exposition.hpp"
+#include "common.hpp"
 
-namespace OpenKalman
+namespace OpenKalman::stdcompat
 {
+#ifdef __cpp_lib_ranges
+  using std::indirectly_readable_traits;
+  using std::incrementable_traits;
+  using std::iter_value_t;
+  using std::iter_reference_t;
+  using std::iter_difference_t;
+  using std::iter_rvalue_reference_t;
+  using std::indirectly_readable;
+  using std::iter_common_reference_t;
+#if __cplusplus >= 202302L
+  using std::iter_const_reference_t;
+#endif
+  using std::indirectly_writable;
+  using std::weakly_incrementable;
+  using std::input_or_output_iterator;
+  using std::input_iterator;
+  using std::output_iterator;
+  using std::incrementable;
+  using std::forward_iterator;
+  using std::bidirectional_iterator;
+  using std::random_access_iterator;
+  using std::sentinel_for;
+  using std::sized_sentinel_for;
+  using std::unreachable_sentinel_t;
+  using std::unreachable_sentinel;
+#else
+
   // ---
   // indirectly_readable_traits
   // ---
@@ -156,17 +183,16 @@ namespace OpenKalman
 
 
   template<typename I>
-  using iter_value_t = typename detail::iter_value_impl<remove_cvref_t<I>>::value_type;
+  using iter_value_t = typename detail::iter_value_impl<stdcompat::remove_cvref_t<I>>::value_type;
 
   template<typename I>
   using iter_reference_t = decltype(*std::declval<I&>());
 
   template<typename I>
-  using iter_difference_t = typename detail::iter_difference_impl<remove_cvref_t<I>>::difference_type;
+  using iter_difference_t = typename detail::iter_difference_impl<stdcompat::remove_cvref_t<I>>::difference_type;
 
   template<typename I>
   using iter_rvalue_reference_t = decltype(std::move(*std::declval<I&>()));
-
 
   // ---
   // indirectly_readable
@@ -185,16 +211,22 @@ namespace OpenKalman
 
 
   template<typename I>
-  inline constexpr bool indirectly_readable = detail::is_indirectly_readable<remove_cvref_t<I>>::value;
+  inline constexpr bool indirectly_readable = detail::is_indirectly_readable<stdcompat::remove_cvref_t<I>>::value;
 
 
   template<typename T, std::enable_if_t<indirectly_readable<T>, int > = 0>
-  using iter_const_reference_t = common_reference_t<const iter_value_t<T>&&, iter_reference_t<T>>;
+  using iter_common_reference_t = stdcompat::common_reference_t<iter_reference_t<T>, iter_value_t<T>&>;
 
+#endif
+
+
+#if __cplusplus < 202302L
   template<typename T, std::enable_if_t<indirectly_readable<T>, int > = 0>
-  using iter_common_reference_t = common_reference_t<iter_reference_t<T>, iter_value_t<T>&>;
+  using iter_const_reference_t = stdcompat::common_reference_t<const iter_value_t<T>&&, iter_reference_t<T>>;
+#endif
 
 
+#ifndef __cpp_lib_ranges
   // ---
   // indirectly_writable
   // ---
@@ -216,7 +248,7 @@ namespace OpenKalman
 
 
   template<typename Out, typename T>
-  inline constexpr bool indirectly_writable = detail::is_indirectly_readable<Out, T>::value;
+  inline constexpr bool indirectly_writable = detail::is_indirectly_writable<Out, T>::value;
 
 
   // ---
@@ -305,14 +337,14 @@ namespace OpenKalman
 
   template<typename I>
   inline constexpr bool incrementable =
-    std::is_copy_constructible_v<I> and
+    stdcompat::copy_constructible<I> and
     std::is_object_v<I> and
     std::is_move_constructible_v<I> and
     std::is_assignable_v<I&, I> and
     std::is_assignable_v<I&, I&> and
     std::is_assignable_v<I&, const I&> and
     std::is_assignable_v<I&, const I> and
-    std::is_default_constructible_v<I> and
+    default_initializable<I> and
     weakly_incrementable<I> and
     detail::is_incrementable<I>::value;
 
@@ -383,17 +415,6 @@ namespace OpenKalman
   namespace detail
   {
     template<typename T, typename U, typename = void>
-    struct WeaklyEqualityComparableWith : std::false_type {};
-
-    template<typename T, typename U>
-    struct WeaklyEqualityComparableWith<T, U, std::enable_if_t<
-      std::is_convertible_v<decltype(std::declval<const T&>() == std::declval<const U&>()), bool> and
-      std::is_convertible_v<decltype(std::declval<const T&>() != std::declval<const U&>()), bool> and
-      std::is_convertible_v<decltype(std::declval<const U&>() == std::declval<const T&>()), bool> and
-      std::is_convertible_v<decltype(std::declval<const U&>() != std::declval<const T&>()), bool>
-    >> : std::true_type {};
-
-    template<typename T, typename U, typename = void>
     struct subtractable : std::false_type {};
 
     template<typename I, typename S>
@@ -407,7 +428,7 @@ namespace OpenKalman
 
   template<typename S, typename I>
   inline constexpr bool sentinel_for =
-    semiregular<S> and input_or_output_iterator<I> and detail::WeaklyEqualityComparableWith<S, I>::value;
+    stdcompat::semiregular<S> and input_or_output_iterator<I> and OpenKalman::internal::WeaklyEqualityComparableWith<S, I>;
 
 
   template<typename S, typename I>
@@ -433,14 +454,27 @@ namespace OpenKalman
     template<typename I, std::enable_if_t<weakly_incrementable<I>, int> = 0>
     friend constexpr bool
     operator==(const I&, unreachable_sentinel_t) noexcept { return false; };
+
+    template<typename I, std::enable_if_t<weakly_incrementable<I>, int> = 0>
+    friend constexpr bool
+    operator!=(unreachable_sentinel_t, unreachable_sentinel_t) noexcept { return true; };
+
+    template<typename I, std::enable_if_t<weakly_incrementable<I>, int> = 0>
+    friend constexpr bool
+    operator!=(unreachable_sentinel_t, const I&) noexcept { return true; };
+
+    template<typename I, std::enable_if_t<weakly_incrementable<I>, int> = 0>
+    friend constexpr bool
+    operator!=(const I&, unreachable_sentinel_t) noexcept { return true; };
+
   };
 
 
   inline constexpr unreachable_sentinel_t unreachable_sentinel {};
 
+#endif
 
 }
 
-#endif
 
-#endif //OPENKALMAN_COMPATIBILITY_ITERATOR_HPP
+#endif

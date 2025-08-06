@@ -17,13 +17,18 @@
 #ifndef OPENKALMAN_COMPATIBILITY_VIEWS_SINGLE_HPP
 #define OPENKALMAN_COMPATIBILITY_VIEWS_SINGLE_HPP
 
-#ifndef __cpp_lib_ranges
-
 #include "view-concepts.hpp"
 #include "view_interface.hpp"
 
-namespace OpenKalman::ranges
+namespace OpenKalman::stdcompat::ranges
 {
+#ifdef __cpp_lib_ranges
+  using std::ranges::single_view;
+  namespace views
+  {
+    using std::ranges::views::single;
+  }
+#else
   /**
    * \brief Equivalent to std::ranges::single_view.
    * \internal
@@ -42,7 +47,7 @@ namespace OpenKalman::ranges
     constexpr
     single_view() requires std::default_initializable<T> = default;
 #else
-    template<typename aT = T, std::enable_if_t<std::is_default_constructible_v<aT>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and stdcompat::default_initializable<T>, int> = 0>
     constexpr
     single_view() {}
 #endif
@@ -53,12 +58,12 @@ namespace OpenKalman::ranges
      */
 #ifdef __cpp_concepts
     explicit constexpr
-    single_view(const T& t) requires std::copy_constructible<T> : t_ {t} {}
+    single_view(const T& t) requires std::copy_constructible<T> : value_ {t} {}
     requires std::copy_constructible<T>
 #else
-    template<typename aT = T, std::enable_if_t<std::is_copy_constructible_v<aT>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<stdcompat::copy_constructible<T>, int> = 0>
     explicit constexpr
-    single_view(const T& t) : t_ {t} {}
+    single_view(const T& t) : value_ {t} {}
 #endif
 
 
@@ -66,7 +71,7 @@ namespace OpenKalman::ranges
      * \brief Construct from an object convertible to type T.
      */
     explicit constexpr
-    single_view(T&& t) : t_ {std::move(t)} {}
+    single_view(T&& t) : value_ {std::move(t)} {}
 
 
     /**
@@ -109,18 +114,18 @@ namespace OpenKalman::ranges
      * \brief A pointer to the contained value
      */
     constexpr T*
-    data() noexcept { return std::addressof(std::get<0>(t_)); }
+    data() noexcept { return std::addressof(*value_); }
 
 
     /**
      * \overload
      */
     constexpr const T*
-    data() const noexcept { return std::addressof(std::get<0>(t_)); }
+    data() const noexcept { return std::addressof(*value_); }
 
   private:
 
-    std::tuple<T> t_;
+    OpenKalman::internal::movable_box<T> value_;
 
   };
 
@@ -144,7 +149,7 @@ namespace OpenKalman::ranges
   constexpr bool
   operator==(const single_view<T>& lhs, const T& rhs) noexcept
   {
-    return std::is_eq(operator<=>(lhs, rhs));
+    return stdcompat::is_eq(operator<=>(lhs, rhs));
   }
 #else
   template<typename T>
@@ -186,31 +191,30 @@ namespace OpenKalman::ranges
 
 #endif
 
-} // namespace OpenKalman
 
-
-namespace OpenKalman::ranges::views
-{
-  namespace detail
+  namespace views
   {
-    struct single_impl
+    namespace detail
     {
-      template<typename R>
-      constexpr auto
-      operator() [[nodiscard]] (R&& r) const { return single_view<R> {std::forward<R>(r)}; }
-    };
+      struct single_impl
+      {
+        template<typename R>
+        constexpr auto
+        operator() [[nodiscard]] (R&& r) const { return single_view<R> {std::forward<R>(r)}; }
+      };
+    }
+
+
+    /**
+     * \brief Equivalent to std::ranges::views::single.
+     * \internal
+     * \sa single_view
+     */
+    inline constexpr detail::single_impl single;
+
   }
 
-
-  /**
-   * \brief Equivalent to std::ranges::views::single.
-   * \internal
-   * \sa single_view
-   */
-  inline constexpr detail::single_impl single;
-
+#endif
 }
 
 #endif
-
-#endif //OPENKALMAN_COMPATIBILITY_VIEWS_SINGLE_HPP

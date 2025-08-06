@@ -17,9 +17,9 @@
 
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
+#include "values/traits/number_type_of.hpp"
 #include "values/concepts/integral.hpp"
-#include "values/classes/operation.hpp"
+#include "values/functions/operation.hpp"
 #include "values/functions/internal/constexpr_callable.hpp"
 #include "values/math/internal/NaN.hpp"
 #include "values/math/isnan.hpp"
@@ -38,24 +38,20 @@ namespace OpenKalman::values
    * \param sgn A value reflecting the sign of the result.
    */
 #ifdef __cpp_concepts
-  template<values::value Mag, values::value Sgn> requires
-    (not values::complex<values::number_type_of_t<Mag>>) and (not values::complex<values::number_type_of_t<Sgn>>) and
-    (std::common_with<values::number_type_of_t<Mag>, values::number_type_of_t<Sgn>>)
-  constexpr values::value auto copysign(const Mag& mag, const Sgn& sgn)
+  template<value Mag, value Sgn> requires
+    (not complex<number_type_of_t<Mag>>) and (not complex<number_type_of_t<Sgn>>) and
+    (std::common_with<number_type_of_t<Mag>, number_type_of_t<Sgn>>)
+  constexpr value auto copysign(const Mag& mag, const Sgn& sgn)
 #else
-  template <typename Mag, typename Sgn, std::enable_if_t<values::value<Mag> and values::value<Sgn> and
-    (not values::complex<values::number_type_of_t<Mag>>) and (not values::complex<values::number_type_of_t<Sgn>>), int> = 0>
+  template <typename Mag, typename Sgn, std::enable_if_t<value<Mag> and value<Sgn> and
+    (not complex<number_type_of_t<Mag>>) and (not complex<number_type_of_t<Sgn>>), int> = 0>
   constexpr auto copysign(const Mag& mag, const Sgn& sgn)
 #endif
   {
-    if constexpr (not values::number<Mag> or not values::number<Sgn>)
+    if constexpr (fixed<Mag> or fixed<Sgn>)
     {
-      struct Op
-      {
-        constexpr auto operator()(const values::number_type_of_t<Mag>& m, const values::number_type_of_t<Sgn>& s) const
-        { return values::copysign(m, s); }
-      };
-      return values::operation {Op{}, mag, sgn};
+      struct Op { constexpr auto operator()(const number_type_of_t<Mag>& m, const number_type_of_t<Sgn>& s) const { return values::copysign(m, s); } };
+      return values::operation(Op{}, mag, sgn);
     }
     else
     {

@@ -192,7 +192,7 @@ namespace OpenKalman::interface
     struct one_dimensional_defined_for_impl : std::false_type {};
 
     template<typename T, Applicability b>
-    struct one_dimensional_defined_for_impl<T, b, std::enable_if_t<std::is_convertible_v<
+    struct one_dimensional_defined_for_impl<T, b, std::enable_if_t<stdcompat::convertible_to<
           decltype(indexible_object_traits<std::decay_t<T>>::template one_dimensional<b>), bool>>>
       : std::true_type {};
   }
@@ -225,7 +225,7 @@ namespace OpenKalman::interface
     struct is_square_defined_for_impl : std::false_type {};
 
     template<typename T, Applicability b>
-    struct is_square_defined_for_impl<T, b, std::enable_if_t<std::is_convertible_v<
+    struct is_square_defined_for_impl<T, b, std::enable_if_t<stdcompat::convertible_to<
           decltype(indexible_object_traits<std::decay_t<T>>::template is_square<b>), bool>>>
       : std::true_type {};
   }
@@ -273,7 +273,7 @@ namespace OpenKalman::interface
     struct is_triangular_adapter_defined_for_impl : std::false_type {};
 
     template<typename T>
-    struct is_triangular_adapter_defined_for_impl<T, std::enable_if_t<std::is_convertible_v<
+    struct is_triangular_adapter_defined_for_impl<T, std::enable_if_t<stdcompat::convertible_to<
           decltype(indexible_object_traits<std::decay_t<T>>::is_triangular_adapter), bool>>>
       : std::true_type {};
   }

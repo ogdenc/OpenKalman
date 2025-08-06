@@ -16,7 +16,6 @@
 #ifndef OPENKALMAN_COORDINATES_GROUP_COLLECTION_HPP
 #define OPENKALMAN_COORDINATES_GROUP_COLLECTION_HPP
 
-#include "collections/concepts/collection.hpp"
 #include "descriptor_tuple.hpp"
 #include "descriptor_range.hpp"
 
@@ -32,9 +31,9 @@ namespace OpenKalman::coordinates
 #else
   constexpr bool descriptor_collection =
 #endif
-    collections::collection<T> and (descriptor_tuple<T> or descriptor_range<T>);
+    descriptor_tuple<T> or descriptor_range<T>;
 
 
-} // namespace OpenKalman::coordinates
+}
 
-#endif //OPENKALMAN_COORDINATES_GROUP_COLLECTION_HPP
+#endif

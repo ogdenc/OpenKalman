@@ -258,7 +258,7 @@ namespace OpenKalman::Eigen3
       }
       else
       {
-        return values::operation {constexpr_operation(), constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
+        return values::operation(constexpr_operation(), constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()});
       }
     }
 
@@ -279,8 +279,8 @@ namespace OpenKalman::Eigen3
       }
       else
       {
-        return values::operation {constexpr_operation(),
-          constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
+        return values::operation(constexpr_operation(),
+          constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()});
       }
     }
   };
@@ -312,8 +312,8 @@ namespace OpenKalman::Eigen3
       }
       else
       {
-        return values::operation {constexpr_operation(),
-          constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()}};
+        return values::operation(constexpr_operation(),
+          constant_coefficient {arg.lhs()}, constant_coefficient {arg.rhs()});
       }
     }
 
@@ -334,8 +334,8 @@ namespace OpenKalman::Eigen3
       }
       else
       {
-        return values::operation {constexpr_operation(),
-          constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()}};
+        return values::operation(constexpr_operation(),
+          constant_diagonal_coefficient {arg.lhs()}, constant_diagonal_coefficient {arg.rhs()});
       }
     }
   };

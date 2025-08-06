@@ -30,17 +30,17 @@ namespace OpenKalman
 #ifdef __cpp_concepts
   template<indexible T, Layout layout = Layout::none, values::number Scalar = scalar_type_of_t<T>, pattern_collection Descriptors>
     requires (layout != Layout::stride) and
-    interface::make_default_defined_for<T, layout, Scalar, decltype(internal::to_euclidean_vector_space_descriptor_collection(std::declval<Descriptors&&>()))>
+    interface::make_default_defined_for<T, layout, Scalar, decltype(internal::to_euclidean_pattern_collection(std::declval<Descriptors&&>()))>
   constexpr writable auto
 #else
   template<typename T, Layout layout = Layout::none, typename Scalar = scalar_type_of_t<T>, typename Descriptors, std::enable_if_t<
     indexible<T> and values::number<Scalar> and pattern_collection<D> and (layout != Layout::stride) and
-    interface::make_default_defined_for<T, layout, Scalar, decltype(internal::to_euclidean_vector_space_descriptor_collection(std::declval<Descriptors&&>()))>, int> = 0>
+    interface::make_default_defined_for<T, layout, Scalar, decltype(internal::to_euclidean_pattern_collection(std::declval<Descriptors&&>()))>, int> = 0>
   constexpr auto
 #endif
   make_dense_object(Descriptors&& descriptors)
   {
-    decltype(auto) d = internal::remove_trailing_1D_descriptors(std::forward<Descriptors>(descriptors));
+    decltype(auto) d = coordinates::internal::strip_1D_tail(std::forward<Descriptors>(descriptors));
     using D = decltype(d);
     using Traits = interface::library_interface<std::decay_t<T>>;
     if constexpr (coordinates::euclidean_pattern_collection<D>)
@@ -49,7 +49,7 @@ namespace OpenKalman
     }
     else
     {
-      auto ed = internal::to_euclidean_vector_space_descriptor_collection(d);
+      auto ed = internal::to_euclidean_pattern_collection(d);
       return make_vector_space_adapter(Traits::template make_default<layout, Scalar>(ed), std::forward<D>(d));
     }
   }

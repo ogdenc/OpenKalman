@@ -16,15 +16,8 @@
 #ifndef OPENKALMAN_COLLECTIONS_VIEWS_GENERATE_HPP
 #define OPENKALMAN_COLLECTIONS_VIEWS_GENERATE_HPP
 
-#include <type_traits>
-#include "basics/compatibility/language-features.hpp"
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
-#include "basics/compatibility/ranges.hpp"
-#endif
-#include "values/concepts/size.hpp"
-#include "collections/functions/compare.hpp"
+#include "values/values.hpp"
+#include "collections/functions/comparison_operators.hpp"
 #include "internal/movable_wrapper.hpp"
 
 namespace OpenKalman::collections
@@ -33,29 +26,22 @@ namespace OpenKalman::collections
    * \brief A \ref collection_view created by lazily generating elements based on an index.
    * \details Typically, the generating function will be a closure.
    * \tparam F A callable object (possibly a closure) taking an index and producing an output value corresponding to the index.
+   * This should preferably be able to take a \ref values::fixed index argument.
    * \tparam Size The size of the output collection. If it is <code>void</code>, the view is unsized.
    */
 #ifdef __cpp_concepts
-  template<typename F, values::size Size = std::unreachable_sentinel_t> requires std::same_as<Size, std::remove_reference_t<Size>> and
-    std::invocable<F, std::size_t> and std::invocable<F, std::integral_constant<std::size_t, 0>>
-  struct generate_view : std::ranges::view_interface<generate_view<F, Size>>
+  template<typename F, values::size Size = stdcompat::unreachable_sentinel_t> requires
+    std::same_as<Size, std::remove_reference_t<Size>> and std::is_object_v<F> and std::invocable<F&, std::size_t>
 #else
-  template<typename F, typename Size = unreachable_sentinel_t>
-  struct generate_view : ranges::view_interface<generate_view<F, Size>>
+  template<typename F, typename Size = stdcompat::unreachable_sentinel_t>
 #endif
+  struct generate_view : stdcompat::ranges::view_interface<generate_view<F, Size>>
   {
   private:
 
     using Size_ = std::conditional_t<values::index<Size>, Size, std::monostate>;
 
     using F_box = internal::movable_wrapper<F>;
-
-#if __cplusplus >= 202002L
-    static constexpr bool static_F = std::semiregular<F_box>;
-#else
-    static constexpr bool static_F = semiregular<F_box>;
-#endif
-
 
     template<bool Const, typename T>
     using maybe_const = std::conditional_t<Const, const T, T>;
@@ -68,28 +54,6 @@ namespace OpenKalman::collections
     template<bool Const>
     struct iterator
     {
-    private:
-
-      using F_box_c = maybe_const<Const, F_box>;
-
-      using F_ref = std::conditional_t<static_F, F_box, F_box_c *>;
-
-      constexpr F_box&
-      get_f() const noexcept
-      {
-        if constexpr (static_F) return const_cast<F_box&>(f_ref);
-        else return const_cast<F_box&>(*f_ref);
-      }
-
-      static constexpr F_ref
-      init_f_ref(F_box_c& f) noexcept
-      {
-        if constexpr (static_F) return const_cast<F_ref&&>(f);
-        else return std::addressof(f);
-      }
-
-    public:
-
       using iterator_concept = std::random_access_iterator_tag;
       using iterator_category = std::random_access_iterator_tag;
       using value_type = std::invoke_result_t<F_box&, std::size_t>;
@@ -99,19 +63,19 @@ namespace OpenKalman::collections
 
       constexpr iterator() = default;
 
-      constexpr iterator(F_box_c& f, std::size_t pos)
-        : f_ref {init_f_ref(f)}, current_ {static_cast<difference_type>(pos)} {};
+      constexpr iterator(maybe_const<Const, F_box>& f, std::size_t pos)
+        : f_ {std::addressof(f)}, current_ {static_cast<difference_type>(pos)} {};
 
-      constexpr iterator(iterator<not Const> i) : f_ref {std::move(i.f_ref)}, current_ {std::move(i.current_)} {}
+      constexpr iterator(iterator<not Const> i) : f_ {std::move(i.f_)}, current_ {std::move(i.current_)} {}
 
       constexpr value_type operator*() const
       {
-        return get_f()(static_cast<std::size_t>(current_));
+        return stdcompat::invoke(*f_, static_cast<std::size_t>(current_));
       }
 
       constexpr value_type operator[](difference_type offset) const
       {
-        return get_f()(static_cast<std::size_t>(current_ + offset));
+        return stdcompat::invoke(*f_, static_cast<std::size_t>(current_ + offset));
       }
 
       constexpr auto& operator++() noexcept { ++current_; return *this; }
@@ -122,11 +86,11 @@ namespace OpenKalman::collections
       constexpr auto& operator-=(const difference_type diff) noexcept { current_ -= diff; return *this; }
 
       friend constexpr auto operator+(const iterator& it, const difference_type diff)
-      { return iterator {it.get_f(), static_cast<std::size_t>(it.current_ + diff)}; }
+      { return iterator {*it.f_, static_cast<std::size_t>(it.current_ + diff)}; }
       friend constexpr auto operator+(const difference_type diff, const iterator& it)
-      { return iterator {it.get_f(), static_cast<std::size_t>(diff + it.current_)}; }
+      { return iterator {*it.f_, static_cast<std::size_t>(diff + it.current_)}; }
       friend constexpr auto operator-(const iterator& it, const difference_type diff)
-      { if (it.current_ < diff) throw std::out_of_range{"Iterator out of range"}; return iterator {it.get_f(), static_cast<std::size_t>(it.current_ - diff)}; }
+      { if (it.current_ < diff) throw std::out_of_range{"Iterator out of range"}; return iterator {*it.f_, static_cast<std::size_t>(it.current_ - diff)}; }
       friend constexpr difference_type operator-(const iterator& it, const iterator& other)
       { return it.current_ - other.current_; }
       friend constexpr bool operator==(const iterator& it, const iterator& other)
@@ -143,7 +107,7 @@ namespace OpenKalman::collections
 
     private:
 
-      F_ref f_ref;
+      maybe_const<Const, F_box> * f_;
       difference_type current_;
 
     }; // struct Iterator
@@ -153,59 +117,28 @@ namespace OpenKalman::collections
      * \brief Construct from a callable object and a size.
      */
 #ifdef __cpp_concepts
-    template<typename Arg> requires std::constructible_from<const F, Arg&&> and values::index<Size>
     constexpr
-    generate_view(Arg&& arg, Size_ size) noexcept
+    generate_view(F f, Size_ size) noexcept requires (values::index<Size>)
 #else
-    template<typename Arg, std::enable_if_t<std::is_constructible_v<const F, Arg&&> and values::index<Size>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and values::index<Size>, int> = 0>
     constexpr
-    generate_view(Arg&& arg, Size_ size) noexcept
+    generate_view(F f, Size_ size) noexcept
 #endif
-      : f_box {const_cast<F&&>(std::forward<Arg>(arg))}, size_ {std::move(size)} {}
-
-
-    /**
-     * \brief Construct from a statically constructable callable object, if the view is unsized.
-     */
-#ifdef __cpp_concepts
-    constexpr
-    generate_view(const F&) noexcept requires static_F and (not values::index<Size>)
-#else
-    template<bool Enable = true, std::enable_if_t<Enable and static_F and (not values::index<Size>), int> = 0>
-    constexpr
-    generate_view(const F&) noexcept
-#endif
-      : f_box {F{}}, size_ {} {}
+      : f_box {std::move(f)}, size_ {std::move(size)} {}
 
 
     /**
      * \brief Construct from a callable object, if the view is unsized.
      */
 #ifdef __cpp_concepts
-    template<typename Arg> requires std::constructible_from<const F, Arg&&> and (not static_F) and (not values::index<Size>)
     constexpr
-    generate_view(Arg&& arg) noexcept requires (not static_F)
+    generate_view(F f) noexcept requires (not values::index<Size>)
 #else
-    template<bool Enable = true, typename Arg, std::enable_if_t<Enable and
-      std::is_constructible_v<const F, Arg&&> and not static_F and (not values::index<Size>), int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and (not values::index<Size>), int> = 0>
     constexpr
-    generate_view(Arg&& arg) noexcept
+    generate_view(F f) noexcept
 #endif
-      : f_box {const_cast<F&&>(std::forward<Arg>(arg))}, size_ {} {}
-
-
-    /**
-     * \brief Construct from a size if the function can be defined statically.
-     */
-#ifdef __cpp_concepts
-    explicit constexpr
-    generate_view(Size_ size) noexcept requires static_F and values::index<Size>
-#else
-    template<bool Enable = true, std::enable_if_t<Enable and static_F and values::index<Size>, int> = 0>
-    explicit constexpr
-    generate_view(Size_ size) noexcept
-#endif
-      : f_box {F{}}, size_ {std::move(size)} {}
+      : f_box {std::move(f)}, size_ {} {}
 
 
     /**
@@ -233,7 +166,7 @@ namespace OpenKalman::collections
       if constexpr (values::index<Size>)
         return iterator<false> {f_box, static_cast<std::size_t>(size_)};
       else
-        return unreachable_sentinel;
+        return stdcompat::unreachable_sentinel;
     }
 
     /// \overload
@@ -243,7 +176,7 @@ namespace OpenKalman::collections
       if constexpr (values::index<Size>)
         return iterator<true> {f_box, static_cast<std::size_t>(size_)};
       else
-        return unreachable_sentinel;
+        return stdcompat::unreachable_sentinel;
     }
 
 
@@ -323,11 +256,11 @@ namespace OpenKalman::collections
    * \brief Deduction guide
    */
   template<typename F, typename S>
-  generate_view(F&&, const S&) -> generate_view<F, S>;
+  generate_view(F, S) -> generate_view<F, S>;
 
   /// \overload
   template<typename F>
-  generate_view(F&&) -> generate_view<F>;
+  generate_view(F) -> generate_view<F>;
 
 
 } // namespace OpenKalman::values
@@ -336,16 +269,12 @@ namespace OpenKalman::collections
 #ifdef __cpp_lib_ranges
 namespace std::ranges
 #else
-namespace OpenKalman::ranges
+namespace OpenKalman::stdcompat::ranges
 #endif
 {
   template<typename F, typename S>
   constexpr bool enable_borrowed_range<OpenKalman::collections::generate_view<F, S>> = std::is_lvalue_reference_v<F> or
-#if __cplusplus >= 202002L
-    std::semiregular<OpenKalman::collections::internal::movable_wrapper<F>>;
-#else
-    semiregular<OpenKalman::collections::internal::movable_wrapper<F>>;
-#endif
+    OpenKalman::stdcompat::semiregular<OpenKalman::collections::internal::movable_wrapper<F>>;
 }
 
 

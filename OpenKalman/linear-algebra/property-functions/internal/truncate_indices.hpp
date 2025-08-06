@@ -41,24 +41,21 @@ namespace OpenKalman::internal
   template<typename Indices, typename MinCount, std::enable_if_t<values::index<MinCount>, int> = 0>
   decltype(auto) truncate_indices(const Indices& indices, const MinCount& min_count)
   {
-#ifdef __cpp_lib_ranges
-    namespace ranges = std::ranges;
-#endif
     auto n {static_cast<std::size_t>(min_count)};
-    auto ad = ranges::begin(indices);
+    auto ad = stdcompat::ranges::begin(indices);
     std::advance(ad, n);
-    if (std::any_of(ad, ranges::end(indices), [](const auto& x){ return x != 0; }))
+    if (std::any_of(ad, stdcompat::ranges::end(indices), [](const auto& x){ return x != 0; }))
       throw std::invalid_argument {"Component access: one or more trailing indices are not 0."};
     if constexpr (values::fixed<MinCount>)
     {
       std::array<std::size_t, MinCount::value> ret;
-      std::copy(ranges::begin(indices), ad, ranges::begin(ret));
+      std::copy(stdcompat::ranges::begin(indices), ad, stdcompat::ranges::begin(ret));
       return ret;
     }
     else
     {
       std::vector<std::size_t> ret {n};
-      std::copy(ranges::begin(indices), ad, ranges::begin(ret));
+      std::copy<stdcompat::ranges::begin(indices), ad, stdcompat::ranges::begin(ret));
       return ret;
     }
   }

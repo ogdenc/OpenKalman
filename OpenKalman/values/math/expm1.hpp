@@ -18,10 +18,10 @@
 #include <limits>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/traits/real_type_of_t.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/traits/real_type_of.hpp"
 #include "values/concepts/integral.hpp"
-#include "values/classes/operation.hpp"
+#include "values/functions/operation.hpp"
 #include "real.hpp"
 #include "imag.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
@@ -48,15 +48,15 @@ namespace OpenKalman::values
   constexpr auto expm1(const Arg& arg)
 #endif
   {
-    if constexpr (not values::number<Arg>)
+    if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::expm1(a); } };
-      return values::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::expm1(a); } };
+      return values::operation(Op{}, arg);
     }
     else if constexpr (values::complex<Arg>) // Complex expm1 is not defined in the standard.
     {
       using Return = std::decay_t<Arg>;
-      using R = std::conditional_t<values::integral<values::real_type_of_t<Return>>, double, values::real_type_of_t<Return>>;
+      using R = real_type_of_t<real_type_of_t<Return>>;
       auto ea = values::expm1(values::real(arg));
       auto b = static_cast<R>(values::imag(arg));
       if (values::isinf(b) or values::isnan(b)) return values::internal::NaN<Return>();

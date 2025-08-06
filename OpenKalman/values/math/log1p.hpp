@@ -18,9 +18,9 @@
 #include <limits>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/traits/real_type_of_t.hpp"
-#include "values/classes/operation.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/traits/real_type_of.hpp"
+#include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
@@ -60,21 +60,21 @@ namespace OpenKalman::values
   constexpr auto log1p(const Arg& arg)
 #endif
   {
-    if constexpr (not values::number<Arg>)
+    if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::log1p(a); } };
-      return values::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::log1p(a); } };
+      return values::operation(Op{}, arg);
     }
     else if constexpr (values::complex<Arg>)
     {
       using Return = Arg;
+      using R = real_type_of_t<real_type_of_t<Return>>;
       auto re = values::real(values::real(arg));
       auto im = values::real(values::imag(arg));
-      using R = decltype(re);
       auto a = static_cast<R>(0.5) * values::log1p(re * re + 2 * re + im * im);
       if constexpr (not std::numeric_limits<values::real_type_of_t<Arg>>::is_iec559) if (values::imag(arg) == 0)
         return values::internal::make_complex_number<Return>(a,
-          values::copysign(values::signbit(values::real(arg) + 1) ? numbers::pi_v<R> : 0, values::imag(arg)));
+          values::copysign(values::signbit(values::real(arg) + 1) ? stdcompat::numbers::pi_v<R> : 0, values::imag(arg)));
       return values::internal::make_complex_number<Return>(a, internal::atan2_impl(im, re + 1));
     }
     else

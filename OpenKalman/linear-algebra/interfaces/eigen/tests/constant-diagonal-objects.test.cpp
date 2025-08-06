@@ -78,7 +78,7 @@ TEST(eigen3, constant_diagonal_objects)
 
   constant_coefficient<C21_3> c3;
   auto sc3 = values::Fixed<double, 3>{};
-  auto sco3 = values::operation{std::minus{}, values::Fixed<double, 7>{}, std::integral_constant<int, 4>{}};
+  auto sco3 = values::operation(std::minus{}, values::Fixed<double, 7>{}, std::integral_constant<int, 4>{});
   static_assert(std::decay_t<decltype(c3 + cd3)>::value == 6);
   static_assert(std::decay_t<decltype(sc3 - cd3)>::value == 0);
   static_assert(std::decay_t<decltype(c3 * sco3)>::value == 9);

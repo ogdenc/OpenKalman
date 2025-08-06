@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_COLLECTIONS_COMMON_COLLECTION_TYPE_HPP
 #define OPENKALMAN_COLLECTIONS_COMMON_COLLECTION_TYPE_HPP
 
+#include "basics/basics.hpp"
 #include "collections/concepts/collection.hpp"
 #include "collections/traits/common_tuple_type.hpp"
 
@@ -24,36 +25,52 @@ namespace OpenKalman::collections
   /**
    * \brief The common type within a \ref collections::collection "collection", if it exists.
    */
-#ifdef __cpp_lib_ranges
-  template<collection T>
+#ifdef __cpp_concepts
+  template<typename T>
 #else
-  template<typename T, typename = void>
+  template<typename T, typename = void, typename = void>
 #endif
-  struct common_collection_type : common_tuple_type<T> {};
+  struct common_collection_type {};
 
 
-#ifdef __cpp_lib_ranges
-  template<collection T> requires std::ranges::range<T>
+  /// \overload
+#ifdef __cpp_concepts
+  template<stdcompat::ranges::random_access_range T>
   struct common_collection_type<T>
-  {
-    using type = std::ranges::range_value_t<std::remove_cvref_t<T>>;
-  };
 #else
   template<typename T>
-  struct common_collection_type<T, std::enable_if_t<ranges::range<T>>>
-  {
-    using type = ranges::range_value_t<remove_cvref_t<T>>;
-  };
+  struct common_collection_type<T, std::enable_if_t<stdcompat::ranges::random_access_range<T>>>
 #endif
+  {
+    using type = stdcompat::ranges::range_value_t<stdcompat::remove_cvref_t<T>>;
+  };
+
+
+  /// \overload
+#ifdef __cpp_concepts
+  template<uniformly_gettable T> requires
+    (not stdcompat::ranges::random_access_range<T>) and
+    requires { typename common_tuple_type<T>::type; }
+  struct common_collection_type<T>
+#else
+  template<typename T>
+  struct common_collection_type<T,
+    std::enable_if_t<not stdcompat::ranges::random_access_range<T>>,
+    std::void_t<typename common_tuple_type<T>::type>>
+#endif
+    : common_tuple_type<T> {};
 
 
   /**
    * \brief Helper template for \ref common_collection_type.
    */
+#ifdef __cpp_concepts
+  template<collection T>
+#else
   template<typename T>
+#endif
   using common_collection_type_t = typename common_collection_type<T>::type;
 
+}
 
-} // namespace OpenKalman
-
-#endif //OPENKALMAN_COLLECTIONS_COMMON_COLLECTION_TYPE_HPP
+#endif

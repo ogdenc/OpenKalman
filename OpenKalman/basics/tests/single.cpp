@@ -14,44 +14,33 @@
  */
 
 #include "tests.hpp"
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
 #include "basics/compatibility/views/all.hpp"
 #include "basics/compatibility/views/single.hpp"
-#endif
 
 using namespace OpenKalman;
 
-#ifdef __cpp_lib_ranges
-  namespace rg = std::ranges;
-#else
-  namespace rg = OpenKalman::ranges;
-#endif
-  namespace vw = rg::views;
-
 TEST(basics, single_view)
 {
-  static_assert(rg::view<rg::single_view<std::tuple<int, double>>>);
-  static_assert(rg::view<rg::single_view<std::vector<int>>>);
-  static_assert(rg::viewable_range<rg::single_view<std::tuple<int, double>>>);
-  static_assert(rg::viewable_range<rg::single_view<std::vector<int>>>);
+  static_assert(stdcompat::ranges::view<stdcompat::ranges::single_view<std::tuple<int, double>>>);
+  static_assert(stdcompat::ranges::view<stdcompat::ranges::single_view<std::vector<int>>>);
+  static_assert(stdcompat::ranges::viewable_range<stdcompat::ranges::single_view<std::tuple<int, double>>>);
+  static_assert(stdcompat::ranges::viewable_range<stdcompat::ranges::single_view<std::vector<int>>>);
 
-  static_assert((vw::single(4)[0u]) == 4);
+  static_assert((stdcompat::ranges::views::single(4)[0u]) == 4);
 
-  static constexpr auto s1 = vw::single(7);
-  constexpr auto is1 = rg::begin(s1);
+  static constexpr auto s1 = stdcompat::ranges::views::single(7);
+  constexpr auto is1 = stdcompat::ranges::begin(s1);
   static_assert(*is1 == 7);
-  auto e_s1 = rg::end(s1);
+  auto e_s1 = stdcompat::ranges::end(s1);
   EXPECT_EQ(*--e_s1, 7);
 
-  auto s2 = vw::single(7);
-  EXPECT_EQ(*rg::begin(s2), 7);
+  auto s2 = stdcompat::ranges::views::single(7);
+  EXPECT_EQ(*stdcompat::ranges::begin(s2), 7);
   *s2.data() = 8;
-  EXPECT_EQ(*rg::begin(s2), 8);
+  EXPECT_EQ(*stdcompat::ranges::begin(s2), 8);
 
-  EXPECT_EQ((s1 | vw::all)[0u], 7);
-  EXPECT_EQ((vw::single(7) | vw::all)[0u], 7);
+  EXPECT_EQ((s1 | stdcompat::ranges::views::all)[0u], 7);
+  EXPECT_EQ((stdcompat::ranges::views::single(7) | stdcompat::ranges::views::all)[0u], 7);
 }
 
 

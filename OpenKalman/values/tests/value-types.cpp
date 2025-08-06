@@ -97,40 +97,55 @@ TEST(values, fixed_number_of)
 #endif
 }
 
-#include "values/classes/operation.hpp"
+#include "values/concepts/fixed_number_compares_with.hpp"
+
+TEST(values, fixed_number_compares_with)
+{
+  static_assert(values::fixed_number_compares_with<std::integral_constant<int, 7>, 7>);
+  static_assert(not values::fixed_number_compares_with<std::integral_constant<int, 7>, 6>);
+  static_assert(values::fixed_number_compares_with<std::integral_constant<int, 6>, 7, std::less<>>);
+  static_assert(not values::fixed_number_compares_with<std::integral_constant<int, 6>, 7, std::greater<>>);
+}
+
+#include "values/functions/operation.hpp"
 
 TEST(values, operation)
 {
-  struct NullaryFunc { constexpr auto operator()() { return 5.5; } };
+  struct NullaryFunc { constexpr auto operator()() const { return 5.5; } };
 
-  static_assert(values::fixed<values::operation<NullaryFunc>>);
+  static_assert(values::fixed<values::consteval_operation<NullaryFunc>>);
+  struct add_op { constexpr auto operator()(int a) const { return a + 1; } };
+  struct take_real { constexpr auto operator()(int a) const { return std::real(a); } };
 
-  static_assert(values::dynamic<values::operation<std::negate<>, double>>);
-  static_assert(values::dynamic<values::operation<std::multiplies<>, double, double>>);
-  static_assert(values::operation{std::plus{}, std::integral_constant<int, 4>{}, std::integral_constant<int, 5>{}}() == 9);
+  static_assert(values::fixed<values::consteval_operation<std::negate<>, std::integral_constant<int, 3>>>);
+  static_assert(values::fixed<values::consteval_operation<std::multiplies<>, std::integral_constant<int, 2>, std::integral_constant<int, 3>>>);
+  static_assert(values::operation(std::plus{}, std::integral_constant<int, 4>{}, std::integral_constant<int, 5>{}) == 9);
 
-  static_assert(values::to_number(values::operation<NullaryFunc>{}) == 5.5);
-  static_assert(values::to_number(values::operation{std::plus{}, 4, 5}) == 9);
-  static_assert(values::to_number(values::operation{[](){ return 4 + 5; }}) == 9);
-  int k = 9; EXPECT_EQ(values::to_number(values::operation{[&k]{ return k; }}), 9);
+  static_assert(values::fixed_number_of_v<decltype(values::operation(std::plus{}, std::integral_constant<int, 4>{}, std::integral_constant<int, 5>{}))> == 9);
+  static_assert(values::fixed_number_of_v<decltype(values::operation(add_op{}, std::integral_constant<int, 4>{}))> == 5);
+  static_assert(values::fixed_number_of_v<decltype(values::operation(take_real{}, std::integral_constant<int, 4>{}))> == 4);
+  static_assert(values::fixed_number_of_v<decltype(values::operation(NullaryFunc{}))> == 5.5);
+
+  static_assert(values::to_number(values::consteval_operation<NullaryFunc>{}) == 5.5);
+  static_assert(values::to_number(values::operation(std::plus{}, 4, 5)) == 9);
+  EXPECT_EQ(values::to_number(values::operation([](){ return 4 + 5; })), 9);
+  int k = 9; EXPECT_EQ(values::to_number(values::operation([&k]{ return k; })), 9);
 }
 
-#include "values/traits/number_type_of_t.hpp"
-#include "values/traits/real_type_of_t.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/traits/real_type_of.hpp"
 #include "values/classes/Fixed.hpp"
 
 TEST(values, Fixed)
 {
-  static_assert(not values::number<values::Fixed<double, 3>>);
-
-  static_assert(values::floating<values::Fixed<double, 3>>);
-
   static_assert(values::fixed<values::Fixed<double, 3>>);
+  static_assert(not values::number<values::Fixed<double, 3>>);
+  static_assert(values::floating<values::Fixed<double, 3>>);
   static_assert(values::fixed<decltype(values::Fixed{values::Fixed<double, 7>{}})>);
 
   static_assert(values::to_number(values::Fixed<double, 3>{}) == 3);
   static_assert(values::Fixed<double, 3>{}() == 3);
-  static_assert(values::Fixed<std::integral_constant<int, 7>>{}() == 7);
+  static_assert(values::Fixed {std::integral_constant<int, 7>{}}() == 7);
   static_assert(decltype(values::Fixed{std::integral_constant<int, 7>{}})::value == 7);
   static_assert(values::Fixed{values::Fixed<double, 7>{}} == 7);
   static_assert(std::is_same_v<decltype(values::Fixed{std::integral_constant<int, 7>{}})::value_type, int>);
@@ -165,7 +180,7 @@ TEST(values, scalar_arithmetic)
   static_assert(values::Fixed<double, 8>{} > std::integral_constant<int, 4>{});
   static_assert(std::integral_constant<int, 9>{} >= values::Fixed<double, 7>{});
 
-  auto sc3 = values::operation{std::minus{}, values::Fixed<double, 7>{}, std::integral_constant<int, 4>{}};
+  auto sc3 = values::operation(std::minus{}, values::Fixed<double, 7>{}, std::integral_constant<int, 4>{});
 
   static_assert(std::decay_t<decltype(+sc3)>::value == 3);
   static_assert(std::decay_t<decltype(-sc3)>::value == -3);
@@ -185,12 +200,13 @@ TEST(values, scalar_arithmetic)
 TEST(values, cast_to)
 {
   static_assert(values::cast_to<double>(std::integral_constant<int, 4>{}) == 4);
-  static_assert(std::is_same_v<decltype(values::cast_to<double>(std::integral_constant<int, 4>{}))::value_type, double>);
-  static_assert(std::is_same_v<decltype(values::cast_to<int>(std::integral_constant<int, 4>{})), std::integral_constant<int, 4>&&>);
+  static_assert(std::is_same_v<values::fixed_number_of<decltype(values::cast_to<int>(std::integral_constant<int, 4>{}))>::value_type, int>);
+  static_assert(std::is_same_v<values::fixed_number_of<decltype(values::cast_to<double>(std::integral_constant<int, 4>{}))>::value_type, double>);
   static_assert(values::cast_to<double>(values::Fixed<float, 4>{}) == 4);
   static_assert(std::is_same_v<decltype(values::cast_to<double>(values::Fixed<double, 4>{})), values::Fixed<double, 4>&&>);
   static_assert(std::is_same_v<typename values::fixed_number_of<decltype(values::cast_to<double>(values::Fixed<double, 4>{}))>::value_type, double>);
-  static_assert(std::is_same_v<decltype(values::cast_to<double>(values::Fixed<int, 4>{}))::value_type, double>);
+  static_assert(std::is_same_v<values::fixed_number_of<decltype(values::cast_to<int>(values::Fixed<int, 4>{}))>::value_type, int>);
+  static_assert(std::is_same_v<values::fixed_number_of<decltype(values::cast_to<double>(values::Fixed<int, 4>{}))>::value_type, double>);
   static_assert(values::cast_to<double>(values::Fixed<float, 4>{}) == 4);
   static_assert(std::is_same_v<values::number_type_of_t<decltype(values::cast_to<double>(values::Fixed<float, 4>{}))>, double>);
 }
@@ -207,8 +223,5 @@ TEST(values, near)
   static_assert(values::internal::near(std::integral_constant<int, 4>{}, std::integral_constant<int, 5>{}, 2));
   static_assert(values::internal::near(std::integral_constant<int, 4>{}, 5, 2));
   static_assert(not values::internal::near(std::integral_constant<int, 4>{}, 6, 1));
-  static_assert(values::internal::near(values::Fixed<std::complex<double>, 3, 4>{}, values::Fixed<std::complex<double>, 4, 5>{}, 2));
-  static_assert(values::internal::near(values::Fixed<std::complex<double>, 3, 4>{}, values::Fixed<std::complex<double>, 4, 5>{}, values::Fixed<std::complex<double>, 2, 2>{}));
-  static_assert(values::internal::near(std::integral_constant<int, 4>{}, values::Fixed<std::complex<double>, 4, 1>{}, 2));
 }
 

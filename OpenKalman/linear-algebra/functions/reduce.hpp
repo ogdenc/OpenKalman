@@ -54,7 +54,7 @@ namespace OpenKalman
         else
         {
           auto dim_m1 = std::integral_constant<std::size_t, Dim::value - 1>{};
-          return values::operation {op, constant_reduce_operation(op, c, dim_m1), c};
+          return values::operation(op, constant_reduce_operation(op, c, dim_m1), c);
         }
       }
     }
@@ -131,12 +131,12 @@ namespace OpenKalman
    * \returns A vector or tensor with reduced dimensions.
    */
 #ifdef __cpp_concepts
-  template<std::size_t index, std::size_t...indices, typename BinaryFunction, internal::has_uniform_static_vector_space_descriptors<index, indices...> Arg> requires
+  template<std::size_t index, std::size_t...indices, typename BinaryFunction, internal::has_uniform_patterns<index, indices...> Arg> requires
     std::is_invocable_r_v<scalar_type_of_t<Arg>, BinaryFunction&&, scalar_type_of_t<Arg>, scalar_type_of_t<Arg>>
   constexpr indexible decltype(auto)
 #else
   template<std::size_t index, std::size_t...indices, typename BinaryFunction, typename Arg, std::enable_if_t<
-    internal::has_uniform_static_vector_space_descriptors<Arg, index, indices...> and
+    internal::has_uniform_patterns<Arg, index, indices...> and
     std::is_invocable_r<typename scalar_type_of<Arg>::type, BinaryFunction&&, typename scalar_type_of<Arg>::type, typename scalar_type_of<Arg>::type>::value, int> = 0>
   constexpr decltype(auto)
 #endif
@@ -169,10 +169,10 @@ namespace OpenKalman
    * \returns A scalar representing a complete reduction.
    */
 #ifdef __cpp_concepts
-  template<typename BinaryFunction, internal::has_uniform_static_vector_space_descriptors Arg> requires
+  template<typename BinaryFunction, internal::has_uniform_patterns Arg> requires
     std::is_invocable_r_v<scalar_type_of_t<Arg>, BinaryFunction&&, scalar_type_of_t<Arg>, scalar_type_of_t<Arg>>
 #else
-  template<typename BinaryFunction, typename Arg, std::enable_if_t<internal::has_uniform_static_vector_space_descriptors<Arg> and
+  template<typename BinaryFunction, typename Arg, std::enable_if_t<internal::has_uniform_patterns<Arg> and
     std::is_invocable_r<typename scalar_type_of<Arg>::type, BinaryFunction&&,
       typename scalar_type_of<Arg>::type, typename scalar_type_of<Arg>::type>::value, int> = 0>
 #endif

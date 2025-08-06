@@ -26,11 +26,12 @@ namespace OpenKalman::values
    */
 #ifdef __cpp_concepts
   template<typename T>
-  concept size = index<T> or std::is_same_v<std::decay_t<T>, std::unreachable_sentinel_t>;
+  concept size =
 #else
   template<typename T>
-  constexpr bool size = index<T> or std::is_same_v<std::decay_t<T>, unreachable_sentinel_t>;
+  constexpr bool size =
 #endif
+    index<T> or std::is_same_v<std::decay_t<T>, stdcompat::unreachable_sentinel_t>;
 
 } // namespace OpenKalman::values
 

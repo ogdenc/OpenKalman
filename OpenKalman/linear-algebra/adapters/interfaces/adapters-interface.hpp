@@ -52,12 +52,9 @@ namespace OpenKalman::interface
     get_component(Arg&& arg, const Indices& indices)
     {
       using Scalar = scalar_type_of_t<Arg>;
-#ifdef __cpp_lib_ranges
-      namespace ranges = std::ranges;
-#endif
-      auto it = ranges::begin(indices);
+      auto it = stdcompat::ranges::begin(indices);
       std::size_t i {*it};
-      std::size_t j {++it == ranges::end(indices) ? 1 : *it};
+      std::size_t j {++it == stdcompat::ranges::end(indices) ? 1 : *it};
 
       if constexpr (OpenKalman::internal::diagonal_expr<Arg>)
       {
@@ -107,12 +104,9 @@ namespace OpenKalman::interface
     set_component(Arg& arg, const scalar_type_of_t<Arg>& s, const Indices& indices)
     {
       using Scalar = scalar_type_of_t<Arg>;
-#ifdef __cpp_lib_ranges
-      namespace ranges = std::ranges;
-#endif
-      auto it = ranges::begin(indices);
+      auto it = stdcompat::ranges::begin(indices);
       std::size_t i {*it};
-      std::size_t j {++it == ranges::end(indices) ? 1 : *it};
+      std::size_t j {++it == stdcompat::ranges::end(indices) ? 1 : *it};
 
       if constexpr (OpenKalman::internal::diagonal_expr<Arg>)
       {

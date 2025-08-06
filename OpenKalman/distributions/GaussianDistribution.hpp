@@ -79,8 +79,8 @@ namespace OpenKalman
 #ifdef __cpp_concepts
     GaussianDistribution() requires std::default_initializable<Mean> and std::default_initializable<Covariance>
 #else
-    template<typename T = Mean, typename U = Covariance, std::enable_if_t<
-      std::is_default_constructible_v<T> and std::is_default_constructible_v<U>, int> = 0>
+    template<bool Enable = true, std::enable_if_t<Enable and
+      stdcompat::default_initializable<Mean> and stdcompat::default_initializable<Covariance>, int> = 0>
     GaussianDistribution()
 #endif
       : mu {}, sigma {} {}
@@ -284,7 +284,7 @@ namespace OpenKalman
     };
 
 
-    template<typename S, std::enable_if_t<std::is_convertible_v<S, const Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, const Scalar>, int> = 0>
     auto& operator*=(const S scale)
     {
       mu *= static_cast<const Scalar>(scale);
@@ -293,7 +293,7 @@ namespace OpenKalman
     };
 
 
-    template<typename S, std::enable_if_t<std::is_convertible_v<S, const Scalar>, int> = 0>
+    template<typename S, std::enable_if_t<stdcompat::convertible_to<S, const Scalar>, int> = 0>
     auto& operator/=(const S scale)
     {
       mu /= static_cast<const Scalar>(scale);
@@ -349,7 +349,7 @@ namespace OpenKalman
     {
       static constexpr auto n = sizeof...(Z);
       auto sum = (trace(transpose(z - mu) * solve(sigma, z - mu)) + ...);
-      return -0.5 * (n * (dim * values::log(2 * numbers::pi_v<long double>) +
+      return -0.5 * (n * (dim * values::log(2 * stdcompat::numbers::pi_v<long double>) +
         values::log(determinant(sigma))) + sum);
     }
 
@@ -357,8 +357,8 @@ namespace OpenKalman
     /// Entropy of the distribution, in bits.
     Scalar entropy() const
     {
-      return 0.5 * (dim * (1 + values::log2(numbers::pi_v<long double>) +
-        Scalar {numbers::log2e_v<long double>}) + values::log2(determinant(sigma)));
+      return 0.5 * (dim * (1 + values::log2(stdcompat::numbers::pi_v<long double>) +
+        Scalar {stdcompat::numbers::log2e_v<long double>}) + values::log2(determinant(sigma)));
     }
 
 
@@ -835,7 +835,7 @@ namespace OpenKalman
   template<typename T, std::size_t dimension = index_dimension_of<T, 0>::value,
     typename Scalar = typename scalar_type_of<T>::type, typename...runtime_dimensions, std::enable_if_t<
       gaussian_distribution<T> and (sizeof...(runtime_dimensions) == (dimension == dynamic_size ? 1 : 0)) and
-      (std::is_convertible_v<runtime_dimensions, std::size_t> and ...), int> = 0>
+      (stdcompat::convertible_to<runtime_dimensions, std::size_t> and ...), int> = 0>
 #endif
   constexpr auto
   make_zero_distribution_like(runtime_dimensions...e)
@@ -856,7 +856,7 @@ namespace OpenKalman
   template<typename T, std::size_t dimension = index_dimension_of<T, 0>::value,
     typename Scalar = typename scalar_type_of<T>::type, typename...runtime_dimensions, std::enable_if_t<
       gaussian_distribution<T> and (sizeof...(runtime_dimensions) == (dimension == dynamic_size ? 1 : 0)) and
-      (std::is_convertible_v<runtime_dimensions, std::size_t> and ...), int> = 0>
+      (stdcompat::convertible_to<runtime_dimensions, std::size_t> and ...), int> = 0>
 #endif
   constexpr auto
   make_normal_distribution_like(runtime_dimensions...e)
@@ -1010,7 +1010,7 @@ namespace OpenKalman
   template<gaussian_distribution Dist, std::convertible_to<const typename DistributionTraits<Dist>::Scalar> S>
 #else
   template<typename Dist, typename S, std::enable_if_t<
-    gaussian_distribution<Dist> and std::is_convertible_v<S, const typename DistributionTraits<Dist>::Scalar>, int> = 0>
+    gaussian_distribution<Dist> and stdcompat::convertible_to<S, const typename DistributionTraits<Dist>::Scalar>, int> = 0>
 #endif
   inline auto
   operator*(Dist&& d, S s)
@@ -1026,7 +1026,7 @@ namespace OpenKalman
   template<gaussian_distribution Dist, std::convertible_to<const typename DistributionTraits<Dist>::Scalar> S>
 #else
   template<typename Dist, typename S, std::enable_if_t<
-    gaussian_distribution<Dist> and std::is_convertible_v<S, const typename DistributionTraits<Dist>::Scalar>, int> = 0>
+    gaussian_distribution<Dist> and stdcompat::convertible_to<S, const typename DistributionTraits<Dist>::Scalar>, int> = 0>
 #endif
   inline auto
   operator*(S s, Dist&& d)

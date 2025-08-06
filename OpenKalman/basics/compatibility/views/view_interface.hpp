@@ -17,13 +17,14 @@
 #ifndef OPENKALMAN_COMPATIBILITY_RANGES_VIEW_INTERFACE_HPP
 #define OPENKALMAN_COMPATIBILITY_RANGES_VIEW_INTERFACE_HPP
 
-#ifndef __cpp_lib_ranges
-
 #include <type_traits>
 #include "basics/compatibility/ranges.hpp"
 
-namespace OpenKalman::ranges
+namespace OpenKalman::stdcompat::ranges
 {
+#ifdef __cpp_lib_ranges
+  using std::ranges::view_interface;
+#else
   /**
    * \internal
    * \brief Equivalent to std::ranges::view_interface.
@@ -36,7 +37,7 @@ namespace OpenKalman::ranges
     empty()
     {
       auto& derived = static_cast<D&>(*this);
-      if constexpr (sized_range<D>) return ranges::size(derived) == 0;
+      if constexpr (sized_range<D>) return stdcompat::ranges::size(derived) == 0;
       else return begin(derived) == end(derived);
     }
 
@@ -45,36 +46,36 @@ namespace OpenKalman::ranges
     empty() const
     {
       auto& derived = static_cast<D&>(*this);
-      if constexpr (sized_range<D>) return ranges::size(derived) == 0;
+      if constexpr (sized_range<D>) return stdcompat::ranges::size(derived) == 0;
       else return begin(derived) == end(derived);
     }
 
 
     template<typename D = Derived, std::enable_if_t<range<D>, int> = 0>
     constexpr auto
-    cbegin() { return ranges::cbegin(static_cast<D&>(*this)); }
+    cbegin() { return stdcompat::ranges::cbegin(static_cast<D&>(*this)); }
 
     template<typename D = const Derived, std::enable_if_t<range<D>, int> = 0>
     constexpr auto
-    cbegin() const { return ranges::cbegin(static_cast<D&>(*this)); }
+    cbegin() const { return stdcompat::ranges::cbegin(static_cast<D&>(*this)); }
 
 
     template<typename D = Derived, std::enable_if_t<range<D>, int> = 0>
     constexpr auto
-    cend() { return ranges::cend(static_cast<D&>(*this)); }
+    cend() { return stdcompat::ranges::cend(static_cast<D&>(*this)); }
 
     template<typename D = const Derived, std::enable_if_t<range<D>, int> = 0>
     constexpr auto
-    cend() const { return ranges::cend(static_cast<D&>(*this)); }
+    cend() const { return stdcompat::ranges::cend(static_cast<D&>(*this)); }
 
 
-    template<typename D = Derived, typename = std::void_t<decltype(ranges::empty(std::declval<D&>()))>>
+    template<typename D = Derived, typename = std::void_t<decltype(stdcompat::ranges::empty(std::declval<D&>()))>>
     constexpr explicit
-    operator bool() { return not ranges::empty(static_cast<D&>(*this)); }
+    operator bool() { return not stdcompat::ranges::empty(static_cast<D&>(*this)); }
 
-    template<typename D = const Derived, typename = std::void_t<decltype(ranges::empty(std::declval<D&>()))>>
+    template<typename D = const Derived, typename = std::void_t<decltype(stdcompat::ranges::empty(std::declval<D&>()))>>
     constexpr explicit
-    operator bool() const { return not ranges::empty(static_cast<D&>(*this)); }
+    operator bool() const { return not stdcompat::ranges::empty(static_cast<D&>(*this)); }
 
 
     template<typename D = Derived, std::enable_if_t<forward_range<D>, int> = 0,
@@ -116,9 +117,7 @@ namespace OpenKalman::ranges
 
   };
 
-
-} // namespace OpenKalman::collections
-
 #endif
+}
 
 #endif //OPENKALMAN_COMPATIBILITY_RANGES_VIEW_INTERFACE_HPP

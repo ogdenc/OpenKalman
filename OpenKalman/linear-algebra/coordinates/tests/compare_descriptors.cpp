@@ -45,7 +45,8 @@ TEST(coordinates, compare_descriptors)
   static_assert((Dimensions<4>{} >= Dimensions<3>{}));
 
   static_assert(angle::Degrees{} == angle::Degrees{});
-  static_assert(coordinates::internal::get_hash_code(angle::Degrees{}) == coordinates::internal::get_hash_code(Angle<std::integral_constant<int, -180>, std::integral_constant<int, 180>>{}));
+  static_assert(angle::Radians{} != angle::Degrees{});
+  static_assert(coordinates::internal::get_descriptor_hash_code(angle::Degrees{}) == coordinates::internal::get_descriptor_hash_code(Angle<std::integral_constant<int, -180>, std::integral_constant<int, 180>>{}));
   static_assert(angle::Degrees{} == Angle<std::integral_constant<int, -180>, std::integral_constant<int, 180>>{});
   static_assert(angle::Degrees{} == Angle<std::integral_constant<int, -180>, std::integral_constant<std::size_t, 180>>{});
   static_assert(angle::Degrees{} == Angle<values::Fixed<long double, -180>, values::Fixed<double, 180>>{});
@@ -55,14 +56,16 @@ TEST(coordinates, compare_descriptors)
   static_assert(angle::Radians{} == angle::Radians{});
   static_assert(angle::Radians{} != inclination::Radians{});
   static_assert(not (angle::Radians{} < inclination::Radians{}));
+  static_assert(stdcompat::compare_three_way{}(angle::Radians{}, inclination::Radians{}) == stdcompat::partial_ordering::unordered);
+  static_assert(stdcompat::invoke(stdcompat::compare_three_way{}, angle::Radians{}, inclination::Radians{}) == stdcompat::partial_ordering::unordered);
 
   static_assert(inclination::Degrees{} == inclination::Degrees{});
   static_assert(inclination::Radians{} == inclination::Radians{});
   static_assert(inclination::Radians{} != inclination::Degrees{});
-  static_assert(inclination::Degrees{} == Inclination<std::integral_constant<int, -90>, std::integral_constant<int, 90>>{});
-  static_assert(inclination::Degrees{} == Inclination<std::integral_constant<int, -90>, std::integral_constant<std::size_t, 90>>{});
-  static_assert(inclination::Degrees{} == Inclination<values::Fixed<long double, -90>, values::Fixed<double, 90>>{});
-  static_assert(inclination::Radians{} == Inclination<values::fixed_minus_half_pi<double>, values::fixed_half_pi<float>>{});
+  static_assert(inclination::Degrees{} == Inclination<std::integral_constant<int, 180>>{});
+  static_assert(inclination::Degrees{} == Inclination<values::Fixed<double, 180>>{});
+  static_assert(inclination::Radians{} == Inclination<values::fixed_pi<double>>{});
+  static_assert(inclination::Radians{} == Inclination<values::fixed_pi<float>>{});
 
   static_assert(Polar<Distance, angle::Degrees>{} != Polar<Distance, angle::PositiveDegrees>{});
   static_assert(Polar<angle::Radians, Distance>{} != Polar<angle::PositiveRadians, Distance>{});

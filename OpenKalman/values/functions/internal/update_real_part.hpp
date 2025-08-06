@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2019-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2019-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -17,36 +17,37 @@
 #ifndef OPENKALMAN_UPDATE_REAL_PART_HPP
 #define OPENKALMAN_UPDATE_REAL_PART_HPP
 
-#include <type_traits>
+#include "values/concepts/value.hpp"
 #include "values/concepts/complex.hpp"
-#include "values/concepts/number.hpp"
-#include "make_complex_number.hpp"
-
+#include "values/functions/internal/make_complex_number.hpp"
 
 namespace OpenKalman::values::internal
 {
   /**
    * \internal
-   * \brief Update only the real part of a (potentially) complex number, leaving the imaginary part unchanged.
-   * \param arg A potentially complex number to update.
-   * \param re A real value.
+   * \brief Update only the real part of a (potentially) complex \ref values::number, leaving the imaginary part unchanged.
+   * \param t A potentially complex \ref values::value to update.
+   * \param re A real \ref values::value.
+   * \returns A new \ref values::value, which will be \ref complex only if t is complex.
    */
 #ifdef __cpp_concepts
-  constexpr values::number decltype(auto)
-  update_real_part(values::number auto&& arg, values::number auto&& re) requires (not values::complex<decltype(re)>)
+  template<value T, value Re> requires (not complex<Re>) and std::common_with<real_type_of_t<T>, number_type_of_t<Re>>
+  constexpr values::value decltype(auto)
 #else
-  template<typename T, typename Re, std::enable_if_t<values::number<T> and values::number<Re> and not values::complex<Re>, int> = 0>
-  constexpr decltype(auto) update_real_part(T&& arg, Re&& re)
+  template<typename T, typename Re, std::enable_if_t<value<T> and value<Re> and not complex<Re>, int> = 0>
+  constexpr decltype(auto)
 #endif
+  update_real_part(T t, Re&& re)
   {
-    using Arg = std::decay_t<decltype(arg)>;
-    if constexpr (values::complex<Arg>)
+    if constexpr (complex<T>)
     {
-      auto im = values::imag(std::forward<decltype(arg)>(arg));
-      using R = std::decay_t<decltype(im)>;
-      return values::internal::make_complex_number<Arg>(static_cast<R>(std::forward<decltype(re)>(re)), std::move(im));
+      using U = std::common_type_t<real_type_of_t<T>, Re>;
+      return values::internal::make_complex_number<U>(std::forward<Re>(re), values::imag(std::move(t)));
     }
-    else return std::forward<decltype(re)>(re);
+    else
+    {
+      return std::forward<Re>(re);
+    }
   }
 
 

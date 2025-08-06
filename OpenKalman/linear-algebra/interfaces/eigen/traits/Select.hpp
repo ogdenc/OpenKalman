@@ -36,7 +36,7 @@ namespace OpenKalman::interface
     static constexpr auto get_vector_space_descriptor(const Arg& arg, N n)
     {
       if constexpr (square_shaped<ConditionMatrixType> or square_shaped<ThenMatrixType> or square_shaped<ElseMatrixType>)
-        return internal::best_vector_space_descriptor(
+        return internal::most_fixed_pattern(
           OpenKalman::get_vector_space_descriptor<0>(arg.conditionMatrix()),
           OpenKalman::get_vector_space_descriptor<0>(arg.thenMatrix()),
           OpenKalman::get_vector_space_descriptor<0>(arg.elseMatrix()),
@@ -44,7 +44,7 @@ namespace OpenKalman::interface
           OpenKalman::get_vector_space_descriptor<1>(arg.thenMatrix()),
           OpenKalman::get_vector_space_descriptor<1>(arg.elseMatrix()));
       else
-        return internal::best_vector_space_descriptor(
+        return internal::most_fixed_pattern(
           OpenKalman::get_vector_space_descriptor(arg.conditionMatrix(), n),
           OpenKalman::get_vector_space_descriptor(arg.thenMatrix(), n),
           OpenKalman::get_vector_space_descriptor(arg.elseMatrix(), n));

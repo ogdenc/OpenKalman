@@ -16,8 +16,8 @@
 #include "values/tests/tests.hpp"
 #include "values/concepts/fixed.hpp"
 #include "values/concepts/dynamic.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/traits/real_type_of_t.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/traits/real_type_of.hpp"
 #include "values/concepts/integral.hpp"
 #include "values/concepts/index.hpp"
 #include "values/concepts/size.hpp"
@@ -48,11 +48,7 @@ TEST(values, integral)
 
   static_assert(values::size<unsigned>);
   static_assert(values::size<std::size_t>);
-#ifdef __cpp_lib_ranges
-  static_assert(values::size<std::unreachable_sentinel_t>);
-#else
-  static_assert(values::size<unreachable_sentinel_t>);
-#endif
+  static_assert(values::size<stdcompat::unreachable_sentinel_t>);
   static_assert(not values::size<int>);
 }
 

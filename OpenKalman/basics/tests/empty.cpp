@@ -14,30 +14,19 @@
  */
 
 #include "tests.hpp"
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
 #include "basics/compatibility/views/empty.hpp"
-#endif
 
 using namespace OpenKalman;
 
-#ifdef __cpp_lib_ranges
-namespace rg = std::ranges;
-#else
-namespace rg = OpenKalman::ranges;
-#endif
-namespace vw = rg::views;
-
 TEST(basics, empty_view)
 {
-  static_assert(rg::view<rg::empty_view<int>>);
-  static_assert(rg::viewable_range<rg::empty_view<double>>);
-  static constexpr auto e1 = vw::empty<int>;
+  static_assert(stdcompat::ranges::view<stdcompat::ranges::empty_view<int>>);
+  static_assert(stdcompat::ranges::viewable_range<stdcompat::ranges::empty_view<double>>);
+  static constexpr auto e1 = stdcompat::ranges::views::empty<int>;
   static_assert(e1.begin() == nullptr);
   static_assert(e1.end() == nullptr);
-  static_assert(rg::begin(e1) == nullptr);
-  static_assert(rg::end(e1) == nullptr);
+  static_assert(stdcompat::ranges::begin(e1) == nullptr);
+  static_assert(stdcompat::ranges::end(e1) == nullptr);
   static_assert(e1.data() == nullptr);
   static_assert(e1.empty());
 }

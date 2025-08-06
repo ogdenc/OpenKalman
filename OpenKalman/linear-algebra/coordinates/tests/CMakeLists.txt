@@ -16,25 +16,22 @@ include(GoogleTest)
 add_executable(coordinates
         integral-types.cpp
         Dimensions.cpp
-        #Distance.cpp
-        #Angle.cpp
-        #Inclination.cpp
-        #Polar.cpp
-        #Spherical.cpp
-        #fixed_pattern.cpp
-        #dynamic_pattern.cpp
-        #statistical-transformations-fixed.cpp
-        #statistical-transformations-dynamic.cpp
-        #compare_descriptors.cpp
-        #compare_patterns.cpp
-        #comparison.cpp
-        #arithmetic.cpp
-        #slice.cpp
-
-        #static-descriptor-manipulation.cpp
-        #dynamic-descriptor-manipulation.cpp
-
-
+        Distance.cpp
+        Angle.cpp
+        Inclination.cpp
+        Polar.cpp
+        Spherical.cpp
+        Any.cpp
+        fixed_pattern.cpp
+        dynamic_pattern.cpp
+        statistical-transformations-fixed.cpp
+        statistical-transformations-dynamic.cpp
+        compare_descriptors.cpp
+        compare_patterns.cpp
+        comparison.cpp
+        arithmetic.cpp
+        uniform_pattern.cpp
+        pattern_collection.cpp
     )
 
 target_link_libraries(coordinates GTest::gtest_main Eigen3::Eigen Threads::Threads)

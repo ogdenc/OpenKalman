@@ -239,16 +239,16 @@ TEST(eigen3, Eigen_PartialReduxExpr_lpNorm2)
   static_assert(constant_coefficient_v<decltype(cd22_m2.colwise().lpNorm<2>())> == 2);
   static_assert(constant_coefficient_v<decltype(cd22_m2.rowwise().lpNorm<2>())> == 2);
 
-  static_assert(constant_coefficient_v<decltype(cd3322_m2.colwise().lpNorm<2>())> == 2 * numbers::sqrt3);
-  static_assert(constant_coefficient_v<decltype(cd3322_m2.rowwise().lpNorm<2>())> == 2 * numbers::sqrt3);
+  static_assert(constant_coefficient_v<decltype(cd3322_m2.colwise().lpNorm<2>())> == 2 * stdcompat::numbers::sqrt3);
+  static_assert(constant_coefficient_v<decltype(cd3322_m2.rowwise().lpNorm<2>())> == 2 * stdcompat::numbers::sqrt3);
   static_assert(values::dynamic<constant_coefficient<decltype(cdxx22_33_m2.colwise().lpNorm<2>())>>);
   static_assert(values::dynamic<constant_coefficient<decltype(cdxx22_33_m2.rowwise().lpNorm<2>())>>);
-  EXPECT_EQ(constant_coefficient{cdxx22_33_m2.colwise().lpNorm<2>()}, 2 * numbers::sqrt3);
-  EXPECT_EQ(constant_coefficient{cdxx22_33_m2.rowwise().lpNorm<2>()}, 2 * numbers::sqrt3);
+  EXPECT_EQ(constant_coefficient{cdxx22_33_m2.colwise().lpNorm<2>()}, 2 * stdcompat::numbers::sqrt3);
+  EXPECT_EQ(constant_coefficient{cdxx22_33_m2.rowwise().lpNorm<2>()}, 2 * stdcompat::numbers::sqrt3);
   static_assert(values::dynamic<constant_coefficient<decltype(cd33xx_22_m2a.colwise().lpNorm<2>())>>);
   static_assert(values::dynamic<constant_coefficient<decltype(cd33xx_22_m2a.rowwise().lpNorm<2>())>>);
-  EXPECT_EQ(constant_coefficient{cd33xx_22_m2a.colwise().lpNorm<2>()}, 2 * numbers::sqrt3);
-  EXPECT_EQ(constant_coefficient{cd33xx_22_m2a.rowwise().lpNorm<2>()}, 2 * numbers::sqrt3);
+  EXPECT_EQ(constant_coefficient{cd33xx_22_m2a.colwise().lpNorm<2>()}, 2 * stdcompat::numbers::sqrt3);
+  EXPECT_EQ(constant_coefficient{cd33xx_22_m2a.rowwise().lpNorm<2>()}, 2 * stdcompat::numbers::sqrt3);
 
   static_assert(zero<decltype(std::declval<Z22>().colwise().lpNorm<2>())>);
   static_assert(zero<decltype(std::declval<Zxx>().colwise().lpNorm<2>())>);
@@ -316,19 +316,19 @@ TEST(eigen3, Eigen_PartialReduxExpr_stableNorm)
   static_assert(not constant_matrix<decltype(cdxx_22_m2.colwise().stableNorm())>);
   static_assert(not constant_matrix<decltype(cdxx_22_m2.rowwise().stableNorm())>);
 
-  static_assert(constant_coefficient_v<decltype(cd3322_m2.colwise().stableNorm())> == 2 * numbers::sqrt3);
-  static_assert(constant_coefficient_v<decltype(cd3322_m2.rowwise().stableNorm())> == 2 * numbers::sqrt3);
+  static_assert(constant_coefficient_v<decltype(cd3322_m2.colwise().stableNorm())> == 2 * stdcompat::numbers::sqrt3);
+  static_assert(constant_coefficient_v<decltype(cd3322_m2.rowwise().stableNorm())> == 2 * stdcompat::numbers::sqrt3);
   static_assert(not constant_matrix<decltype(cd33xx_22_m2.colwise().stableNorm())>);
   static_assert(not constant_matrix<decltype(cd33xx_22_m2.rowwise().stableNorm())>);
   static_assert(values::dynamic<constant_coefficient<decltype(cdxx22_33_m2.colwise().stableNorm())>>);
   static_assert(values::dynamic<constant_coefficient<decltype(cdxx22_33_m2.rowwise().stableNorm())>>);
-  EXPECT_NEAR(constant_coefficient{cdxx22_33_m2.colwise().stableNorm()}, 2 * numbers::sqrt3, 1e-9);
-  EXPECT_NEAR(constant_coefficient{cdxx22_33_m2.rowwise().stableNorm()}, 2 * numbers::sqrt3, 1e-9);
+  EXPECT_NEAR(constant_coefficient{cdxx22_33_m2.colwise().stableNorm()}, 2 * stdcompat::numbers::sqrt3, 1e-9);
+  EXPECT_NEAR(constant_coefficient{cdxx22_33_m2.rowwise().stableNorm()}, 2 * stdcompat::numbers::sqrt3, 1e-9);
   static_assert(values::dynamic<constant_coefficient<decltype(cd33xx_22_m2a.colwise().stableNorm())>>);
   static_assert(values::dynamic<constant_coefficient<decltype(cd33xx_22_m2a.rowwise().stableNorm())>>);
-  EXPECT_NEAR(constant_coefficient{cd33xx_22_m2a.colwise().stableNorm()}, 2 * numbers::sqrt3, 1e-9);
-  EXPECT_NEAR(constant_coefficient{cd33xx_22_m2a.rowwise().stableNorm()}, 2 * numbers::sqrt3, 1e-9);
-  EXPECT_DOUBLE_EQ(cd33xx_22_m2a.rowwise().stableNorm()(0,0), 2 * numbers::sqrt3);
+  EXPECT_NEAR(constant_coefficient{cd33xx_22_m2a.colwise().stableNorm()}, 2 * stdcompat::numbers::sqrt3, 1e-9);
+  EXPECT_NEAR(constant_coefficient{cd33xx_22_m2a.rowwise().stableNorm()}, 2 * stdcompat::numbers::sqrt3, 1e-9);
+  EXPECT_DOUBLE_EQ(cd33xx_22_m2a.rowwise().stableNorm()(0,0), 2 * stdcompat::numbers::sqrt3);
 
   static_assert(zero<decltype(std::declval<Z22>().colwise().stableNorm())>);
   static_assert(zero<decltype(std::declval<Zxx>().colwise().stableNorm())>);
@@ -350,13 +350,13 @@ TEST(eigen3, Eigen_PartialReduxExpr_hypotNorm)
   static_assert(not constant_matrix<decltype(cdxx_22_m2.colwise().hypotNorm())>);
   static_assert(not constant_matrix<decltype(cdxx_22_m2.rowwise().hypotNorm())>);
 
-  static_assert(constant_coefficient_v<decltype(cd3322_m2.colwise().hypotNorm())> == 2 * numbers::sqrt3);
-  static_assert(constant_coefficient_v<decltype(cd3322_m2.rowwise().hypotNorm())> == 2 * numbers::sqrt3);
+  static_assert(constant_coefficient_v<decltype(cd3322_m2.colwise().hypotNorm())> == 2 * stdcompat::numbers::sqrt3);
+  static_assert(constant_coefficient_v<decltype(cd3322_m2.rowwise().hypotNorm())> == 2 * stdcompat::numbers::sqrt3);
   static_assert(not constant_matrix<decltype(cd33xx_22_m2.colwise().hypotNorm())>);
   static_assert(not constant_matrix<decltype(cd33xx_22_m2.rowwise().hypotNorm())>);
-  EXPECT_NEAR(constant_coefficient {cd33xx_22_m2a.colwise().hypotNorm()}, 2 * numbers::sqrt3, 1e-9);
-  EXPECT_NEAR(constant_coefficient {cd33xx_22_m2a.rowwise().hypotNorm()}, 2 * numbers::sqrt3, 1e-9);
-  EXPECT_DOUBLE_EQ(cd33xx_22_m2a.rowwise().hypotNorm()(0,0), 2 * numbers::sqrt3);
+  EXPECT_NEAR(constant_coefficient {cd33xx_22_m2a.colwise().hypotNorm()}, 2 * stdcompat::numbers::sqrt3, 1e-9);
+  EXPECT_NEAR(constant_coefficient {cd33xx_22_m2a.rowwise().hypotNorm()}, 2 * stdcompat::numbers::sqrt3, 1e-9);
+  EXPECT_DOUBLE_EQ(cd33xx_22_m2a.rowwise().hypotNorm()(0,0), 2 * stdcompat::numbers::sqrt3);
 
   static_assert(zero<decltype(std::declval<Z22>().colwise().hypotNorm())>);
   static_assert(zero<decltype(std::declval<Zxx>().colwise().hypotNorm())>);
@@ -409,12 +409,12 @@ TEST(eigen3, Eigen_PartialReduxExpr_norm)
   static_assert(not constant_matrix<decltype(cdxx_22_m2.colwise().norm())>);
   static_assert(not constant_matrix<decltype(cdxx_22_m2.rowwise().norm())>);
 
-  static_assert(constant_coefficient_v<decltype(cd3322_m2.colwise().norm())> == 2 * numbers::sqrt3);
-  static_assert(constant_coefficient_v<decltype(cd3322_m2.rowwise().norm())> == 2 * numbers::sqrt3);
+  static_assert(constant_coefficient_v<decltype(cd3322_m2.colwise().norm())> == 2 * stdcompat::numbers::sqrt3);
+  static_assert(constant_coefficient_v<decltype(cd3322_m2.rowwise().norm())> == 2 * stdcompat::numbers::sqrt3);
   static_assert(not constant_matrix<decltype(cd33xx_22_m2.colwise().norm())>);
   static_assert(not constant_matrix<decltype(cd33xx_22_m2.rowwise().norm())>);
-  EXPECT_NEAR(constant_coefficient {cd33xx_22_m2a.colwise().norm()}, 2 * numbers::sqrt3, 1e-9);
-  EXPECT_NEAR(constant_coefficient {cd33xx_22_m2a.rowwise().norm()}, 2 * numbers::sqrt3, 1e-9);
+  EXPECT_NEAR(constant_coefficient {cd33xx_22_m2a.colwise().norm()}, 2 * stdcompat::numbers::sqrt3, 1e-9);
+  EXPECT_NEAR(constant_coefficient {cd33xx_22_m2a.rowwise().norm()}, 2 * stdcompat::numbers::sqrt3, 1e-9);
 
   static_assert(zero<decltype(std::declval<Z22>().colwise().norm())>);
   static_assert(zero<decltype(std::declval<Zxx>().colwise().norm())>);

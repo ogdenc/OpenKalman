@@ -1,7 +1,7 @@
 /* This file is part of OpenKalman, a header-only C++ library for
  * Kalman filters and other recursive filters.
  *
- * Copyright (c) 2023-2024 Christopher Lee Ogden <ogden@gatech.edu>
+ * Copyright (c) 2023-2025 Christopher Lee Ogden <ogden@gatech.edu>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -18,8 +18,8 @@
 
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/classes/operation.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/functions/operation.hpp"
 #include "real.hpp"
 #include "imag.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
@@ -32,17 +32,17 @@ namespace OpenKalman::values
    * \brief A constexpr function for the complex conjugate of a (complex) number.
    */
 #ifdef __cpp_concepts
-  template<values::value Arg>
-  constexpr values::value auto conj(const Arg& arg)
+  template<value Arg>
+  constexpr value auto conj(const Arg& arg)
 #else
-  template <typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
+  template <typename Arg, std::enable_if_t<value<Arg>, int> = 0>
   constexpr auto conj(const Arg& arg)
 #endif
   {
-    if constexpr (not values::number<Arg>)
+    if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::conj(a); } };
-      return values::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::conj(a); } };
+      return values::operation(Op{}, arg);
     }
     else
     {

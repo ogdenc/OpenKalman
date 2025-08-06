@@ -17,9 +17,9 @@
 
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/traits/real_type_of_t.hpp"
-#include "values/classes/operation.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/traits/real_type_of.hpp"
+#include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
@@ -36,23 +36,19 @@ namespace OpenKalman::values
    * \details Unlike the standard function, this one accepts complex arguments.
    */
 #ifdef __cpp_concepts
-  template <values::value Y, values::value X> requires
-    std::common_with<values::number_type_of_t<Y>, values::number_type_of_t<X>>
-  constexpr values::value auto
+  template <value Y, value X> requires
+    std::common_with<number_type_of_t<Y>, number_type_of_t<X>>
+  constexpr value auto
 #else
-  template <typename Y, typename X, std::enable_if_t<values::value<Y> and values::value<X>, int> = 0>
+  template <typename Y, typename X, std::enable_if_t<value<Y> and value<X>, int> = 0>
   constexpr auto
 #endif
   atan2(const Y& y_arg, const X& x_arg)
   {
-    if constexpr (not values::number<Y> or not values::number<X>)
+    if constexpr (fixed<Y> or fixed<X>)
     {
-      struct Op
-      {
-        using N = std::common_type_t<values::number_type_of_t<Y>, values::number_type_of_t<X>>;
-        constexpr auto operator()(const N& y, const N& x) const { return values::atan2(y, x); }
-      };
-      return values::operation {Op{}, y_arg, x_arg};
+      struct Op { constexpr auto operator()(const number_type_of_t<Y>& y, const number_type_of_t<X>& x) const { return values::atan2(y, x); } };
+      return values::operation(Op{}, y_arg, x_arg);
     }
     else
     {
@@ -65,7 +61,7 @@ namespace OpenKalman::values
         auto yi = values::real(values::imag(y_arg));
         auto xr = values::real(values::real(x_arg));
         auto xi = values::real(values::imag(x_arg));
-        auto pi = numbers::pi_v<R>;
+        auto pi = stdcompat::numbers::pi_v<R>;
         auto halfpi = static_cast<R>(0.5) * pi;
         if (xr == 0 and xi == 0)
         {
@@ -81,7 +77,7 @@ namespace OpenKalman::values
         else
         {
           auto denom = xr*xr + xi*xi;
-          auto raw = internal::atan_impl_general(values::internal::make_complex_number((yr * xr + yi * xi) / denom, (yi * xr - yr * xi) / denom));
+          auto raw = internal::atan_impl_general(values::internal::make_complex_number<>((yr * xr + yi * xi) / denom, (yi * xr - yr * xi) / denom));
           auto raw_r = values::real(raw);
           auto raw_i = values::imag(raw);
           if (raw_r > pi) return values::internal::make_complex_number<Return>(raw_r - pi, raw_i);

@@ -16,62 +16,42 @@
 #ifndef OPENKALMAN_COORDINATE_COMPARES_WITH_HPP
 #define OPENKALMAN_COORDINATE_COMPARES_WITH_HPP
 
-#include <type_traits>
-#include "basics/global-definitions.hpp"
-#include "basics/classes/equal_to.hpp"
-#include "collections/views/all.hpp"
+#include "basics/basics.hpp"
 #include "linear-algebra/coordinates/concepts/pattern.hpp"
 #include "linear-algebra/coordinates/concepts/dynamic_pattern.hpp"
-#include "linear-algebra/coordinates/functions/comparison-operators.hpp"
-#include "linear-algebra/coordinates/views/comparison.hpp"
+#include "linear-algebra/coordinates/functions/compare.hpp"
 
 namespace OpenKalman::coordinates
 {
   namespace detail
   {
-    template<typename C>
-    struct comp_adapter
-    {
-      template<typename T, typename U>
-      constexpr bool operator()(const T& t, const U& u) const
-      {
-        if constexpr (euclidean_pattern<T> and euclidean_pattern<U>)
-          return std::decay_t<C>{}(values::to_number(get_dimension(t)), values::to_number(get_dimension(u)));
-        else if constexpr (collections::collection<T> and collections::collection<U>)
-          return std::decay_t<C>{}(comparison_view<T>{t}, u);
-        else
-          return std::decay_t<C>{}(t, u);
-      }
-    };
-
-
 #ifdef __cpp_concepts
     template<typename T>
     concept euclidean_status_is_fixed = values::fixed<decltype(coordinates::get_is_euclidean(std::declval<T>()))>;
 #else
-    template<typename T, typename U, typename Comparison, Applicability applicability, typename = void>
+    template<typename T, typename U, auto comp, Applicability applicability, typename = void>
     struct comparison_invocable : std::false_type {};
 
-    template<typename T, typename U, typename Comparison, Applicability applicability>
-    struct comparison_invocable<T, U, Comparison, applicability, std::enable_if_t<
-      std::is_convertible<decltype(detail::comp_adapter<Comparison>{}(std::declval<T>(), std::declval<U>())), bool>::value>>
+    template<typename T, typename U, auto comp, Applicability applicability>
+    struct comparison_invocable<T, U, comp, applicability,
+      std::void_t<decltype(stdcompat::invoke(comp, compare(std::declval<T>(), std::declval<U>())))>>
       : std::true_type {};
 
 
-    template<typename T, typename U, typename Comparison, typename = void>
+    template<typename T, typename U, auto comp, typename = void>
     struct compares_with_guaranteed : std::false_type {};
 
-    template<typename T, typename U, typename Comparison>
-    struct compares_with_guaranteed<T, U, Comparison, std::enable_if_t<
-      std::bool_constant<detail::comp_adapter<Comparison>{}(std::decay_t<T>{}, std::decay_t<U>{})>::value>>
+    template<typename T, typename U, auto comp>
+    struct compares_with_guaranteed<T, U, comp, std::enable_if_t<
+      std::bool_constant<stdcompat::invoke(comp, compare(std::decay_t<T>{}, std::decay_t<U>{}))>::value>>
       : std::true_type {};
 
 
-    template<typename T, typename U, typename Comparison, Applicability applicability, typename = void>
+    template<typename T, typename U, auto comp, Applicability applicability, typename = void>
     struct compares_with_permitted : std::false_type {};
 
-    template<typename T, typename U, typename Comparison, Applicability applicability>
-    struct compares_with_permitted<T, U, Comparison, applicability, std::enable_if_t<
+    template<typename T, typename U, auto comp, Applicability applicability>
+    struct compares_with_permitted<T, U, comp, applicability, std::enable_if_t<
       (values::fixed<decltype(coordinates::get_is_euclidean(std::declval<T>()))> !=
         values::fixed<decltype(coordinates::get_is_euclidean(std::declval<U>()))>)>>
       : std::true_type {};
@@ -91,20 +71,21 @@ namespace OpenKalman::coordinates
    * <code>compares_with&lt;std::tuple&lt;Axis, Direction&gt;, std::tuple&lt;Axis, Direction&gt;&gt;</code>
    * <code>compares_with&lt;std::tuple&lt;Axis, Direction&gt;, std::tuple&lt;Axis, Direction, angle::Radians&gt;, less_than<>, Applicability::guaranteed&gt;</code>
    * <code>compares_with&lt;std::tuple&lt;Axis, Direction&gt;, std::tuple&lt;Dimensions<>, Direction, angle::Radians&gt;, less_than<>, Applicability::permitted&gt;</code>
+   * \tparam comp A callable object taking the comparison result (e.g., std::partial_ordering) and returning a bool value
    */
-  template<typename T, typename U, typename Comparison = equal_to<>, Applicability applicability = Applicability::guaranteed>
+  template<typename T, typename U, auto comp = &stdcompat::is_eq, Applicability applicability = Applicability::guaranteed>
 #ifdef __cpp_concepts
-  concept compares_with = pattern<T> and pattern<U> and std::default_initializable<Comparison> and
-    std::convertible_to<decltype(detail::comp_adapter<Comparison>{}(std::declval<T>(), std::declval<U>())), bool> and
-    ((fixed_pattern<T> and fixed_pattern<U> and std::bool_constant<detail::comp_adapter<Comparison>{}(std::decay_t<T>{}, std::decay_t<U>{})>::value) or
-    (applicability == Applicability::permitted and (dynamic_pattern<T> or dynamic_pattern<U>) and
-      (euclidean_pattern<T> == euclidean_pattern<U> or detail::euclidean_status_is_fixed<T> != detail::euclidean_status_is_fixed<U>)));
+  concept compares_with = pattern<T> and pattern<U> and
+    requires(T t, U u) { {stdcompat::invoke(comp, compare(t, u))} -> std::same_as<bool>; } and
+    ((fixed_pattern<T> and fixed_pattern<U> and std::bool_constant<stdcompat::invoke(comp, compare(std::decay_t<T>{}, std::decay_t<U>{}))>::value) or
+      (applicability == Applicability::permitted and (dynamic_pattern<T> or dynamic_pattern<U>) and
+        (euclidean_pattern<T> == euclidean_pattern<U> or detail::euclidean_status_is_fixed<T> != detail::euclidean_status_is_fixed<U>)));
 #else
-  constexpr bool compares_with = pattern<T> and pattern<U> and std::is_default_constructible_v<Comparison> and
-    detail::comparison_invocable<T, U, Comparison, applicability>::value and
-      ((fixed_pattern<T> and fixed_pattern<U> and detail::compares_with_guaranteed<T, U, Comparison>::value) or
-        (applicability == Applicability::permitted and (dynamic_pattern<T> or dynamic_pattern<U>) and
-          (euclidean_pattern<T> == euclidean_pattern<U> or detail::compares_with_permitted<T, U, Comparison, applicability>::value)));
+  constexpr bool compares_with = pattern<T> and pattern<U> and
+    detail::comparison_invocable<T, U, comp, applicability>::value and
+    ((fixed_pattern<T> and fixed_pattern<U> and detail::compares_with_guaranteed<T, U, comp>::value) or
+      (applicability == Applicability::permitted and (dynamic_pattern<T> or dynamic_pattern<U>) and
+        (euclidean_pattern<T> == euclidean_pattern<U> or detail::compares_with_permitted<T, U, comp, applicability>::value)));
 #endif
 
 

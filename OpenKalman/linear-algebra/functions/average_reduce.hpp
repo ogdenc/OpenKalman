@@ -48,12 +48,12 @@ namespace OpenKalman
    * \returns A vector or tensor with reduced dimensions.
    */
 #ifdef __cpp_concepts
-  template<std::size_t index, std::size_t...indices, internal::has_uniform_static_vector_space_descriptors<index, indices...> Arg> requires
+  template<std::size_t index, std::size_t...indices, internal::has_uniform_patterns<index, indices...> Arg> requires
     (not empty_object<Arg>)
   constexpr indexible decltype(auto)
 #else
   template<std::size_t index, std::size_t...indices, typename Arg, std::enable_if_t<
-    internal::has_uniform_static_vector_space_descriptors<Arg, index, indices...> and (not empty_object<Arg>), int> = 0>
+    internal::has_uniform_patterns<Arg, index, indices...> and (not empty_object<Arg>), int> = 0>
   constexpr decltype(auto)
 #endif
   average_reduce(Arg&& arg)
@@ -77,9 +77,9 @@ namespace OpenKalman
    * \returns A scalar representing the average of all components.
    */
 #ifdef __cpp_concepts
-  template<internal::has_uniform_static_vector_space_descriptors Arg>
+  template<internal::has_uniform_patterns Arg>
 #else
-  template<typename Arg, std::enable_if_t<internal::has_uniform_static_vector_space_descriptors<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<internal::has_uniform_patterns<Arg>, int> = 0>
 #endif
   constexpr scalar_type_of_t<Arg>
   average_reduce(Arg&& arg)
@@ -95,10 +95,10 @@ namespace OpenKalman
     else if constexpr (constant_diagonal_matrix<Arg>)
     {
       // Arg cannot be a zero matrix, so the denominator should never be zero.
-      return values::operation {
+      return values::operation(
         std::divides<scalar_type_of_t<Arg>>{},
         constant_diagonal_coefficient{arg},
-        internal::largest_vector_space_descriptor<scalar_type_of_t<Arg>>(get_vector_space_descriptor<0>(arg), get_vector_space_descriptor<1>(arg))};
+        internal::largest_pattern<scalar_type_of_t<Arg>>(get_vector_space_descriptor<0>(arg), get_vector_space_descriptor<1>(arg)));
     }
     else
     {

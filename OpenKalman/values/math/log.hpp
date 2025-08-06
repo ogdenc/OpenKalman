@@ -18,9 +18,9 @@
 #include <limits>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/traits/real_type_of_t.hpp"
-#include "values/classes/operation.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/traits/real_type_of.hpp"
+#include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/math/imag.hpp"
 #include "values/functions/internal/make_complex_number.hpp"
@@ -40,33 +40,33 @@ namespace OpenKalman::values
    * \brief Constexpr alternative to the std::log function.
    */
 #ifdef __cpp_concepts
-  template<values::value Arg>
-  constexpr values::value auto log(const Arg& arg)
+  template<value Arg>
+  constexpr value auto log(const Arg& arg)
 #else
-  template<typename Arg, std::enable_if_t<values::value<Arg>, int> = 0>
+  template<typename Arg, std::enable_if_t<value<Arg>, int> = 0>
   constexpr auto log(const Arg& arg)
 #endif
   {
-    if constexpr (not values::number<Arg>)
+    if constexpr (fixed<Arg>)
     {
-      struct Op { constexpr auto operator()(const values::number_type_of_t<Arg>& a) const { return values::log(a); } };
-      return values::operation {Op{}, arg};
+      struct Op { constexpr auto operator()(const number_type_of_t<Arg>& a) const { return values::log(a); } };
+      return values::operation(Op{}, arg);
     }
     else
     {
       using std::log;
       using Return = decltype(log(arg));
+      using R = real_type_of_t<real_type_of_t<Return>>;
       struct Op { auto operator()(const Arg& arg) { return log(arg); } };
       if (values::internal::constexpr_callable<Op>(arg)) return log(arg);
-      else if constexpr (values::complex<Return>)
+      else if constexpr (complex<Return>)
       {
         auto re = values::real(values::real(arg));
         auto im = values::real(values::imag(arg));
-        using R = decltype(re);
         auto a = static_cast<R>(0.5) * values::log(re * re + im * im);
         if constexpr (not std::numeric_limits<values::real_type_of_t<Arg>>::is_iec559) if (values::imag(arg) == 0)
           return values::internal::make_complex_number<Return>(a,
-            values::copysign(values::signbit(values::real(arg)) ? numbers::pi_v<R> : 0, values::imag(arg)));
+            values::copysign(values::signbit(values::real(arg)) ? stdcompat::numbers::pi_v<R> : 0, values::imag(arg)));
         return values::internal::make_complex_number<Return>(a, internal::atan2_impl(im, re));
       }
       else

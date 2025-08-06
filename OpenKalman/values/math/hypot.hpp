@@ -18,9 +18,9 @@
 #include <algorithm>
 #include "values/concepts/number.hpp"
 #include "values/concepts/value.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/traits/real_type_of_t.hpp"
-#include "values/classes/operation.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/traits/real_type_of.hpp"
+#include "values/functions/operation.hpp"
 #include "values/math/real.hpp"
 #include "values/functions/internal/constexpr_callable.hpp"
 #include "values/math/internal/NaN.hpp"
@@ -35,21 +35,20 @@ namespace OpenKalman::values
   /**
    * \brief A constexpr alternative to std::hypot.
    * \details This version can take one or more parameters (not limited to 2 or 3 as std::hypot is).
+   * Also, this function can take complex arguments
    */
 #ifdef __cpp_concepts
-  template<values::value...Args> requires (sizeof...(Args) > 0) and
-    (... and (not values::complex<Args>))
+  template<values::value...Args> requires (sizeof...(Args) > 0)
   constexpr values::value auto hypot(const Args&...args)
 #else
-  template <typename...Args, std::enable_if_t<(... and values::value<Args>) and (sizeof...(Args) > 0) and
-    (... and (not values::complex<Args>)), int> = 0>
+  template <typename...Args, std::enable_if_t<(... and values::value<Args>) and (sizeof...(Args) > 0), int> = 0>
   constexpr auto hypot(const Args&...args)
 #endif
   {
-    if constexpr ((... or (not values::number<Args>)))
+    if constexpr ((... or fixed<Args>))
     {
-      struct Op { constexpr auto operator()(const values::number_type_of_t<Args>&...as) const { return values::hypot(as...); } };
-      return values::operation {Op{}, args...};
+      struct Op { constexpr auto operator()(const number_type_of_t<Args>&...a) const { return values::hypot(a...); } };
+      return values::operation(Op{}, args...);
     }
     else if constexpr (sizeof...(Args) == 1)
     {
@@ -57,6 +56,17 @@ namespace OpenKalman::values
       struct Op { auto operator()(const Args&...args) { return abs(args...); } };
       if (internal::constexpr_callable<Op>(args...)) return values::real(abs(args...));
       return values::real((..., (values::signbit(args...) ? -args : args)));
+    }
+    else if constexpr ((... or values::complex<Args>))
+    {
+      using R = std::common_type_t<real_type_of_t<real_type_of_t<Args>>...>;
+      auto abst = [](const auto& a){ return values::signbit(a) ? -a : a; };
+      auto m = static_cast<R>(std::max<R>({abst(values::real(args))..., abst(values::imag(args))...}));
+      if (m == 0) return internal::make_complex_number<>(R{0}, R{0});
+      auto r = (... + [](const auto& a, const auto& b) { return (a*a - b*b); }(values::real(args)/m, values::imag(args)/m));
+      auto i = (... + [](const auto& a, const auto& b) { return (2*a*b); }(values::real(args)/m, values::imag(args)/m));
+      auto s = values::sqrt(internal::make_complex_number<R>(r, i));
+      return internal::make_complex_number<>(m * values::real(s), m * values::imag(s));
     }
     else
     {

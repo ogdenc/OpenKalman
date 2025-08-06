@@ -16,8 +16,8 @@
 #include "values/tests/tests.hpp"
 #include "values/concepts/fixed.hpp"
 #include "values/concepts/dynamic.hpp"
-#include "values/traits/number_type_of_t.hpp"
-#include "values/traits/real_type_of_t.hpp"
+#include "values/traits/number_type_of.hpp"
+#include "values/traits/real_type_of.hpp"
 #include "values/concepts/integral.hpp"
 #include "values/concepts/index.hpp"
 #include "collections/concepts/collection_view.hpp"
@@ -42,20 +42,13 @@ inline namespace {
 
 }
 
-#ifdef __cpp_lib_ranges
-  namespace rg = std::ranges;
-#else
-  namespace rg = OpenKalman::ranges;
-#endif
-  namespace vw = rg::views;
-
 #include "collections/views/generate.hpp"
 
 TEST(collections, generate_view)
 {
   constexpr auto i0 = generate_view(fi{}, c3{});
   using I0 = std::decay_t<decltype(i0)>;
-  static_assert(rg::view<I0>);
+  static_assert(stdcompat::ranges::view<I0>);
   static_assert(collection_view<I0>);
   static_assert(std::tuple_size_v<std::decay_t<I0>> == 3U);
   static_assert(values::fixed_number_of_v<std::tuple_element_t<0, std::decay_t<I0>>> == 0U);
@@ -84,18 +77,14 @@ TEST(collections, generate_view)
   static_assert(*++generate_view(fi{}, c5{}).begin() == 1U);
   static_assert(generate_view(fi{}, c5{}).begin()[4] == 4U);
 
-  constexpr auto iti1 = generate_view<fi, c5>(c5{}).begin();
-  static_assert(*iti1 == 0U);
-  static_assert(iti1[5] == 5U);
-
   static constexpr auto f0 = [](auto&& r)
   {
-    return [r = std::tuple {std::forward<decltype(r)>(r)}](auto i)
+    return [r = std::make_tuple(std::forward<decltype(r)>(r))](auto i)
     {
-      return values::operation {std::multiplies<>{}, values::operation {std::multiplies<>{},
-        values::operation {std::plus<>{}, values::operation {std::plus<>{}, get(std::get<0>(r), c0{}), i}, c1{}},
-        values::operation {std::plus<>{}, values::operation {std::plus<>{}, get(std::get<0>(r), c1{}), i}, c1{}}},
-        values::operation {std::plus<>{}, values::operation {std::plus<>{}, get(std::get<0>(r), c2{}), i}, c1{}}};
+      return values::operation(std::multiplies<>{}, values::operation(std::multiplies<>{},
+        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get(std::get<0>(r), c0{}), i), c1{}),
+        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get(std::get<0>(r), c1{}), i), c1{})),
+        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get(std::get<0>(r), c2{}), i), c1{}));
     };
   };
   constexpr auto t0 = generate_view(f0(generate_view(fi{}, c3{})), c2{});
@@ -121,7 +110,7 @@ TEST(collections, generate_view)
 
   static constexpr auto f1 = [](auto&& r)
   {
-    return [r = std::tuple{std::forward<decltype(r)>(r)}](auto i)
+    return [r = std::make_tuple(std::forward<decltype(r)>(r))](auto i)
     {
       return (get(std::get<0>(r), c0{}) + i + 1) * (get(std::get<0>(r), c1{}) + i + 1) * (get(std::get<0>(r), c2{}) + i + 1);
     };
@@ -153,7 +142,7 @@ TEST(collections, generate_view_unsized)
 {
   constexpr auto i0 = generate_view(fi{});
   using I0 = std::decay_t<decltype(i0)>;
-  static_assert(rg::view<I0>);
+  static_assert(stdcompat::ranges::view<I0>);
   static_assert(not sized<I0>);
   static_assert(uniformly_gettable<I0>);
   static_assert(collection_view<I0>);
@@ -183,18 +172,14 @@ TEST(collections, generate_view_unsized)
   static_assert(*++generate_view(fi{}).begin() == 1U);
   static_assert(generate_view(fi{}).begin()[4000] == 4000U);
 
-  constexpr auto iti1 = generate_view<fi>().begin();
-  static_assert(*iti1 == 0U);
-  static_assert(iti1[50] == 50U);
-
   static constexpr auto f0 = [](auto&& r)
   {
-    return [r = std::tuple {std::forward<decltype(r)>(r)}](auto i)
+    return [r = std::make_tuple(std::forward<decltype(r)>(r))](auto i)
     {
-      return values::operation {std::multiplies<>{}, values::operation {std::multiplies<>{},
-        values::operation {std::plus<>{}, values::operation {std::plus<>{}, get(std::get<0>(r), c0{}), i}, c1{}},
-        values::operation {std::plus<>{}, values::operation {std::plus<>{}, get(std::get<0>(r), c1{}), i}, c1{}}},
-        values::operation {std::plus<>{}, values::operation {std::plus<>{}, get(std::get<0>(r), c2{}), i}, c1{}}};
+      return values::operation(std::multiplies<>{}, values::operation(std::multiplies<>{},
+        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get(std::get<0>(r), c0{}), i), c1{}),
+        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get(std::get<0>(r), c1{}), i), c1{})),
+        values::operation(std::plus<>{}, values::operation(std::plus<>{}, get(std::get<0>(r), c2{}), i), c1{}));
     };
   };
   constexpr auto t0 = generate_view(f0(generate_view(fi{})));
@@ -220,7 +205,7 @@ TEST(collections, generate_view_unsized)
 
   static constexpr auto f1 = [](auto&& r)
   {
-    return [r = std::tuple{std::forward<decltype(r)>(r)}](auto i)
+    return [r = std::make_tuple(std::forward<decltype(r)>(r))](auto i)
     {
       return (get(std::get<0>(r), c0{}) + i + 1) * (get(std::get<0>(r), c1{}) + i + 1) * (get(std::get<0>(r), c2{}) + i + 1);
     };

@@ -13,8 +13,8 @@
 using namespace OpenKalman;
 using namespace OpenKalman::test;
 
-using numbers::pi;
-using numbers::sqrt2;
+using stdcompat::numbers::pi;
+using stdcompat::numbers::sqrt2;
 
 namespace
 {

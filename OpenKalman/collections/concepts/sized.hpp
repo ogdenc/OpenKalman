@@ -17,11 +17,7 @@
 #define OPENKALMAN_COLLECTIONS_SIZED_HPP
 
 #include <type_traits>
-#ifdef __cpp_lib_ranges
-#include <ranges>
-#else
-#include "basics/compatibility/ranges.hpp"
-#endif
+#include "basics/basics.hpp"
 
 namespace OpenKalman::collections
 {
@@ -43,7 +39,7 @@ namespace OpenKalman::collections
     using namespace std;
 
     template<typename T>
-    constexpr bool sized = ranges::sized_range<remove_cvref_t<T>> or has_tuple_size<T>::value;
+    constexpr bool sized = stdcompat::ranges::sized_range<stdcompat::remove_cvref_t<T>> or has_tuple_size<T>::value;
   }
 
 

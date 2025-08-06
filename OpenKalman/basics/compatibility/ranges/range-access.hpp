@@ -17,13 +17,31 @@
 #ifndef OPENKALMAN_COMPATIBILITY_RANGES_RANGE_ACCESS_HPP
 #define OPENKALMAN_COMPATIBILITY_RANGES_RANGE_ACCESS_HPP
 
-#ifndef __cpp_lib_ranges
-
-#include "basics/compatibility/iterator.hpp"
 #include "basics/compatibility/language-features.hpp"
+#include "basics/compatibility/internal/exposition.hpp"
+#include "basics/compatibility/iterator.hpp"
 
-namespace OpenKalman::ranges
+namespace OpenKalman::stdcompat::ranges
 {
+#ifdef __cpp_lib_ranges
+  using std::ranges::enable_borrowed_range;
+  using std::ranges::begin;
+  using std::ranges::cbegin;
+  using std::ranges::end;
+  using std::ranges::cend;
+  using std::ranges::rbegin;
+  using std::ranges::crbegin;
+  using std::ranges::rend;
+  using std::ranges::crend;
+  using std::ranges::size;
+  using std::ranges::empty;
+  using std::ranges::advance;
+  using std::ranges::next;
+  using std::ranges::iterator_t;
+  using std::ranges::const_iterator_t;
+  using std::ranges::sentinel_t;
+  using std::ranges::const_sentinel_t;
+#else
   // Forward definition
   template<typename T>
   inline constexpr bool enable_borrowed_range = false;
@@ -50,7 +68,7 @@ namespace OpenKalman::ranges
         if constexpr (std::is_array_v<std::remove_reference_t<T>>)
           return t + 0;
         else
-          return internal::decay_copy(begin(std::forward<T>(t)));
+          return OpenKalman::internal::decay_copy(begin(std::forward<T>(t)));
       }
     };
 
@@ -88,14 +106,14 @@ namespace OpenKalman::ranges
     struct end_impl
     {
       template<typename T, std::enable_if_t<(std::is_lvalue_reference_v<T> or enable_borrowed_range<std::remove_cv_t<T>>) and
-        (is_bounded_array_v<std::remove_reference_t<T>> or end_def<T>::value), int> = 0>
+        (stdcompat::is_bounded_array_v<std::remove_reference_t<T>> or end_def<T>::value), int> = 0>
       constexpr auto
       operator() [[nodiscard]] (T&& t) const
       {
-        if constexpr (is_bounded_array_v<remove_cvref_t<T>>)
-          return t + std::extent_v<remove_cvref_t<T>>;
+        if constexpr (stdcompat::is_bounded_array_v<stdcompat::remove_cvref_t<T>>)
+          return t + std::extent_v<stdcompat::remove_cvref_t<T>>;
         else
-          return internal::decay_copy(end(std::forward<T>(t)));
+          return OpenKalman::internal::decay_copy(end(std::forward<T>(t)));
       }
     };
 
@@ -105,7 +123,7 @@ namespace OpenKalman::ranges
     struct cend_impl
     {
       template<typename T, std::enable_if_t<(std::is_lvalue_reference_v<T> or enable_borrowed_range<std::remove_cv_t<T>>) and
-        (is_bounded_array_v<std::remove_reference_t<T>> or end_def<CT<T>>::value), int> = 0>
+        (stdcompat::is_bounded_array_v<std::remove_reference_t<T>> or end_def<CT<T>>::value), int> = 0>
       constexpr auto
       operator() [[nodiscard]] (T&& t) const
       {
@@ -135,7 +153,7 @@ namespace OpenKalman::ranges
       operator() [[nodiscard]] (T&& t) const
       {
         if constexpr (rbegin_def<T>::value)
-          return internal::decay_copy(rbegin(std::forward<T>(t)));
+          return OpenKalman::internal::decay_copy(rbegin(std::forward<T>(t)));
         else
           return std::make_reverse_iterator(end(std::forward<T>(t)));
       }
@@ -180,7 +198,7 @@ namespace OpenKalman::ranges
       operator() [[nodiscard]] (T&& t) const
       {
         if constexpr (rend_def<T>::value)
-          return internal::decay_copy(rend(std::forward<T>(t)));
+          return OpenKalman::internal::decay_copy(rend(std::forward<T>(t)));
         else
           return std::make_reverse_iterator(begin(std::forward<T>(t)));
       }
@@ -225,17 +243,17 @@ namespace OpenKalman::ranges
 
     public:
 
-      template<typename T, std::enable_if_t<is_bounded_array_v<std::remove_reference_t<T>> or
+      template<typename T, std::enable_if_t<stdcompat::is_bounded_array_v<std::remove_reference_t<T>> or
         member_size_def<T>::value or atd_size_def<T>::value, int> = 0>
       constexpr auto
       operator() [[nodiscard]] (T&& t) const
       {
-        if constexpr (is_bounded_array_v<remove_cvref_t<T>>)
-          return internal::decay_copy(std::extent_v<remove_cvref_t<T>>);
+        if constexpr (stdcompat::is_bounded_array_v<stdcompat::remove_cvref_t<T>>)
+          return OpenKalman::internal::decay_copy(std::extent_v<stdcompat::remove_cvref_t<T>>);
         else if constexpr (member_size_def<T>::value)
-          return internal::decay_copy(std::forward<T>(t).size());
+          return OpenKalman::internal::decay_copy(std::forward<T>(t).size());
         else if constexpr (atd_size_def<T>::value)
-          return internal::decay_copy(size(std::forward<T>(t)));
+          return OpenKalman::internal::decay_copy(size(std::forward<T>(t)));
         else
           return end(std::forward<T>(t)) - begin(std::forward<T>(t));
       }
@@ -261,10 +279,10 @@ namespace OpenKalman::ranges
       template<typename T> struct member_empty_def<T, std::void_t<decltype(bool(std::declval<T&&>().empty()))>> : std::true_type {};
 
       template<typename T, typename = void> struct ranges_size_compares_zero : std::false_type {};
-      template<typename T> struct ranges_size_compares_zero<T, std::void_t<decltype(ranges::size(std::declval<T&&>()) == 0)>> : std::true_type {};
+      template<typename T> struct ranges_size_compares_zero<T, std::void_t<decltype(stdcompat::ranges::size(std::declval<T&&>()) == 0)>> : std::true_type {};
 
       template<typename T, typename = void> struct begin_at_end : std::false_type {};
-      template<typename T> struct begin_at_end<T, std::void_t<decltype(bool(ranges::begin(std::declval<T&&>()) == ranges::end(std::declval<T&&>())))>> : std::true_type {};
+      template<typename T> struct begin_at_end<T, std::void_t<decltype(bool(stdcompat::ranges::begin(std::declval<T&&>()) == stdcompat::ranges::end(std::declval<T&&>())))>> : std::true_type {};
 
     public:
 
@@ -275,9 +293,9 @@ namespace OpenKalman::ranges
         if constexpr (member_empty_def<T>::value)
           return bool(std::forward<T>(t).empty());
         else if constexpr (ranges_size_compares_zero<T>::value)
-          return ranges::size(std::forward<T>(t)) == 0;
+          return stdcompat::ranges::size(std::forward<T>(t)) == 0;
         else
-          return bool(ranges::begin(std::forward<T>(t)) == ranges::end(std::forward<T>(t)));
+          return bool(stdcompat::ranges::begin(std::forward<T>(t)) == stdcompat::ranges::end(std::forward<T>(t)));
       }
     };
   }
@@ -289,117 +307,123 @@ namespace OpenKalman::ranges
   // advance, next
   // ---
 
-  struct advance_fn
+  namespace detail_advance
   {
-    template<typename I, std::enable_if_t<input_or_output_iterator<I>, int> = 0>
-    constexpr void operator()(I& i, iter_difference_t<I> n) const
+    struct advance_fn
     {
-      if constexpr (random_access_iterator<I>)
-        i += n;
-      else
+      template<typename I, std::enable_if_t<input_or_output_iterator<I>, int> = 0>
+      constexpr void operator()(I& i, iter_difference_t<I> n) const
       {
-        while (n > 0)
+        if constexpr (random_access_iterator<I>)
+          i += n;
+        else
         {
-          --n;
-          ++i;
-        }
-
-        if constexpr (bidirectional_iterator<I>)
-        {
-          while (n < 0)
+          while (n > 0)
           {
-            ++n;
-            --i;
+            --n;
+            ++i;
+          }
+
+          if constexpr (bidirectional_iterator<I>)
+          {
+            while (n < 0)
+            {
+              ++n;
+              --i;
+            }
           }
         }
       }
-    }
 
 
-    template<typename I, typename S, std::enable_if_t<input_or_output_iterator<I> and sentinel_for<S, I>, int> = 0>
-    constexpr void operator()(I& i, S bound) const
-    {
-      if constexpr (std::is_assignable_v<I&, S>)
-        i = std::move(bound);
-      else if constexpr (sized_sentinel_for<S, I>)
-        (*this)(i, bound - i);
-      else
-        while (i != bound)
-          ++i;
-    }
-
-
-    template<typename I, typename S, std::enable_if_t<input_or_output_iterator<I> and sentinel_for<S, I>, int> = 0>
-    constexpr iter_difference_t<I>
-    operator()(I& i, iter_difference_t<I> n, S bound) const
-    {
-      if constexpr (sized_sentinel_for<S, I>)
+      template<typename I, typename S, std::enable_if_t<input_or_output_iterator<I> and sentinel_for<S, I>, int> = 0>
+      constexpr void operator()(I& i, S bound) const
       {
-        // std::abs is not constexpr until C++23
-        auto abs = [](const iter_difference_t<I> x) { return x < 0 ? -x : x; };
-
-        if (const auto dist = abs(n) - abs(bound - i); dist < 0)
-        {
-          (*this)(i, bound);
-          return -dist;
-        }
-
-        (*this)(i, n);
-        return 0;
+        if constexpr (std::is_assignable_v<I&, S>)
+          i = std::move(bound);
+        else if constexpr (sized_sentinel_for<S, I>)
+          (*this)(i, bound - i);
+        else
+          while (i != bound)
+            ++i;
       }
-      else
-      {
-        while (n > 0 && i != bound)
-        {
-          --n;
-          ++i;
-        }
 
-        if constexpr (bidirectional_iterator<I>)
+
+      template<typename I, typename S, std::enable_if_t<input_or_output_iterator<I> and sentinel_for<S, I>, int> = 0>
+      constexpr iter_difference_t<I>
+      operator()(I& i, iter_difference_t<I> n, S bound) const
+      {
+        if constexpr (sized_sentinel_for<S, I>)
         {
-          while (n < 0 && i != bound)
+          // std::abs is not constexpr until C++23
+          auto abs = [](const iter_difference_t<I> x) { return x < 0 ? -x : x; };
+
+          if (const auto dist = abs(n) - abs(bound - i); dist < 0)
           {
-            ++n;
-            --i;
+            (*this)(i, bound);
+            return -dist;
           }
+
+          (*this)(i, n);
+          return 0;
         }
+        else
+        {
+          while (n > 0 && i != bound)
+          {
+            --n;
+            ++i;
+          }
 
-        return n;
+          if constexpr (bidirectional_iterator<I>)
+          {
+            while (n < 0 && i != bound)
+            {
+              ++n;
+              --i;
+            }
+          }
+
+          return n;
+        }
       }
-    }
-  };
+    };
+  }
 
-  inline constexpr auto advance = advance_fn();
+  inline constexpr detail_advance::advance_fn advance;
 
 
-  struct next_fn
+  namespace detail_next
   {
-    template<typename I, std::enable_if_t<input_or_output_iterator<I>, int> = 0>
-    constexpr I operator()(I i) const { ++i; return i; }
-
-    template<typename I, std::enable_if_t<input_or_output_iterator<I>, int> = 0>
-    constexpr I operator()(I i, iter_difference_t<I> n) const
+    struct next_fn
     {
-      ranges::advance(i, n);
-      return i;
-    }
+      template<typename I, std::enable_if_t<input_or_output_iterator<I>, int> = 0>
+      constexpr I operator()(I i) const { ++i; return i; }
 
-    template<typename I, typename S, std::enable_if_t<input_or_output_iterator<I> and sentinel_for<S, I>, int> = 0>
-    constexpr I operator()(I i, S bound) const
-    {
-      ranges::advance(i, bound);
-      return i;
-    }
+      template<typename I, std::enable_if_t<input_or_output_iterator<I>, int> = 0>
+      constexpr I operator()(I i, iter_difference_t<I> n) const
+      {
+        stdcompat::ranges::advance(i, n);
+        return i;
+      }
 
-    template<typename I, typename S, std::enable_if_t<input_or_output_iterator<I> and sentinel_for<S, I>, int> = 0>
-    constexpr I operator()(I i, iter_difference_t<I> n, S bound) const
-    {
-      ranges::advance(i, n, bound);
-      return i;
-    }
-  };
+      template<typename I, typename S, std::enable_if_t<input_or_output_iterator<I> and sentinel_for<S, I>, int> = 0>
+      constexpr I operator()(I i, S bound) const
+      {
+        stdcompat::ranges::advance(i, bound);
+        return i;
+      }
 
-  inline constexpr next_fn next;
+      template<typename I, typename S, std::enable_if_t<input_or_output_iterator<I> and sentinel_for<S, I>, int> = 0>
+      constexpr I operator()(I i, iter_difference_t<I> n, S bound) const
+      {
+        stdcompat::ranges::advance(i, n, bound);
+        return i;
+      }
+    };
+  }
+
+  inline constexpr detail_next::next_fn next;
 
 
   // ---
@@ -407,21 +431,18 @@ namespace OpenKalman::ranges
   // ---
 
   template<typename R>
-  using iterator_t = decltype(ranges::begin(std::declval<R&>()));
+  using iterator_t = decltype(stdcompat::ranges::begin(std::declval<R&>()));
 
   template<typename R>
-  using const_iterator_t = decltype(ranges::cbegin(std::declval<R&>()));
+  using const_iterator_t = decltype(stdcompat::ranges::cbegin(std::declval<R&>()));
 
 
   template<typename R>
-  using sentinel_t = decltype(ranges::end(std::declval<R&>()));
+  using sentinel_t = decltype(stdcompat::ranges::end(std::declval<R&>()));
 
   template<typename R>
-  using const_sentinel_t = decltype(ranges::cend(std::declval<R&>()));
-
+  using const_sentinel_t = decltype(stdcompat::ranges::cend(std::declval<R&>()));
+#endif
 }
 
-
 #endif
-
-#endif //OPENKALMAN_COMPATIBILITY_RANGES_RANGE_ACCESS_HPP

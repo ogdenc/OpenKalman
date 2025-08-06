@@ -16,9 +16,7 @@
 #ifndef OPENKALMAN_EQUAL_TO_HPP
 #define OPENKALMAN_EQUAL_TO_HPP
 
-#include <utility>
-#include "basics/global-definitions.hpp"
-#include "basics/compatibility/language-features.hpp"
+#include "basics/compatibility/comparison.hpp"
 
 namespace OpenKalman
 {
@@ -54,7 +52,7 @@ namespace OpenKalman
     {
       using namespace std;
       if constexpr (is_arithmetic_v<Lhs> and is_arithmetic_v<Rhs>)
-        return cmp_equal(lhs, rhs);
+        return stdcompat::cmp_equal(lhs, rhs);
       else
         return lhs == rhs;
     }

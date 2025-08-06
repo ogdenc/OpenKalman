@@ -16,6 +16,7 @@
 #ifndef OPENKALMAN_COORDINATES_DESCRIPTOR_HPP
 #define OPENKALMAN_COORDINATES_DESCRIPTOR_HPP
 
+#include "values/concepts/index.hpp"
 #include "linear-algebra/coordinates/interfaces/coordinate_descriptor_traits.hpp"
 
 namespace OpenKalman::coordinates
@@ -29,7 +30,7 @@ namespace OpenKalman::coordinates
 #else
   constexpr bool descriptor =
 #endif
-    interface::coordinate_descriptor_traits<std::decay_t<T>>::is_specialized;
+    values::index<T> or interface::coordinate_descriptor_traits<std::decay_t<T>>::is_specialized;
 
 
 } // namespace OpenKalman::coordinates

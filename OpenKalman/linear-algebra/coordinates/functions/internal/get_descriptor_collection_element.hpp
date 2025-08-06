@@ -18,21 +18,10 @@
 #define OPENKALMAN_COORDINATES_GET_DESCRIPTOR_COLLECTION_ELEMENT_HPP
 
 #include <type_traits>
-#include "linear-algebra/coordinates/interfaces/coordinate_descriptor_traits.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor_range.hpp"
 #include "linear-algebra/coordinates/concepts/descriptor_collection.hpp"
-
-namespace OpenKalman::coordinates
-{
-#ifdef __cpp_concepts
-  template<values::number Scalar>
-#else
-  template<typename Scalar>
-#endif
-  struct Any;
-}
-
+#include "linear-algebra/coordinates/descriptors/Any.hpp"
 
 namespace OpenKalman::coordinates::internal
 {

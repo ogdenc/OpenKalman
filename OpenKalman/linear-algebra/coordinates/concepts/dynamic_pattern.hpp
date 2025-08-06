@@ -28,7 +28,7 @@ namespace OpenKalman::coordinates
 #ifdef __cpp_concepts
   concept dynamic_pattern =
 #else
-  constexpr bool dynamic_pattern =
+  inline constexpr bool dynamic_pattern =
 #endif
     pattern<T> and (not fixed_pattern<T>);
 
